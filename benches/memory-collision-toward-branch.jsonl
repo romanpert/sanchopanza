@@ -1,0 +1,114 @@
+# Memory collision, second batch: built toward the branch that acts (52 cases).
+#
+# AVISO DE COLISION, 2026-09-24. Estos casos se escribieron primero en `memory-d.jsonl`,
+# que ya existia y contenia los 34 casos de otra sesion de trabajo. Ese fichero se
+# sobrescribio por error y su texto NO es recuperable: sobreviven sus ids, sus etiquetas y
+# todos sus numeros en `docs/results/2026-09-24-fourth-batch/results.json` y sus decisiones
+# grabadas en `fixtures/fourth-batch.jsonl`, pero no los pares de hechos.
+# Estos casos viven aqui, con ids desde mc-101, para no suplantar ni chocar con los suyos.
+#
+# The first 16 are in `memory.jsonl` and stay there untouched, so the run of 2026-09-24 and
+# its recording remain reproducible byte for byte.
+#
+# WHY THIS BATCH IS SHAPED LIKE THIS, because it is not shaped like the others.
+#
+# `docs/results/2026-09-24-collision/` established that this point is not a 4-way choice: the
+# model answers two binary questions, `contradicts` and `adds_nothing`, and the four actions
+# are those plus `newer`, which the harness answers from its own timestamps and never asks.
+# Both questions order perfectly (AUC 1.00 on the first 16). The point's only failure is that
+# `duplicate` is gated at `t.act = 0.75` while true duplicates top out at 0.69, so the branch
+# cannot fire - and on 16 cases that branch had exactly TWO positives, one of which is
+# disputed on its own terms (mc-01: a `multa` is paid to the state, an `indemnizacion` to the
+# plaintiff, so they share a figure and nothing else).
+#
+# A batch balanced across the four labels would therefore measure almost nothing new: two of
+# the labels are decided by `newer` in code. This batch is balanced toward what a precision
+# target actually needs, which is ACTED cases:
+#
+#   18 `duplicate`   - genuine fact-level restatements, the positives the branch needs
+#   24 `keep_both`   - the near-misses that are the only credible source of a false positive
+#    6 `replace`     - contradiction with the new fact newer
+#    4 `flag`        - contradiction with recency unknown
+#
+# 18 positives still does not reach the 35 acted cases a 90 % target needs (it clears the 16
+# for 80 %), and that is stated rather than hidden: this batch is sized to make an 80 % target
+# reachable for the first time, not to settle the threshold.
+#
+# THE NEAR-MISSES ARE THE POINT. A duplicate detector is only worth its threshold if it can
+# tell a restatement from these four families, each of which shares almost all of its text
+# with the stored fact and still adds something:
+#
+#   a) the same figure from a second source     -> corroboration, which an investigation wants
+#   b) a narrower version of the same fact      -> `sole shareholder` against `is a shareholder`
+#   c) the same value plus one new qualifier    -> a date, an exclusion, an outcome, a name
+#   d) a numeric coincidence across two fields  -> 800 employees against 800 square metres
+#
+# DELIBERATE DOMAIN SPREAD. The first batches draw almost entirely on one Dominican corpus
+# (the TC/1148/25 ruling, the 1,240 damaged homes, Inversiones Delta), and that turned out to
+# have a cost: the *multa* / *indemnizacion* ambiguity surfaced independently in `gm-50` and
+# in `mc-01` because both were written from the same material. These cases spread across
+# corporate registry, seismology, judicial, public procurement and press, so a single
+# ambiguous pair cannot contaminate the batch.
+#
+# ONE DECLARED NEGATIVE CONTROL, named before the run: `mc-30` turns on a magnitude written
+# two ways (1,2 millones against 1.200.000). This model class reads numbers as text and its
+# own card says so, so a miss there is expected and is not evidence about the point. It is
+# kept rather than dropped because a memory store will meet this pair constantly and the
+# honest answer is that the harness should normalise magnitudes in code before asking.
+#
+# No date-comparison control is included, deliberately. `decide_collision` never asks which
+# fact is newer - `newer` arrives from the harness's own timestamps - so the weakness has no
+# way in through this point. `mc-44`, `mc-48` and `mc-68` carry years, but what they test is
+# whether two attributes are the same field (grant date against expiry date), not arithmetic.
+{"id": "mc-101", "point": "memory_collision", "input": {"new": "La Junta Central Electoral rechazo el recurso.", "stored": "El recurso fue rechazado por la JCE.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-102", "point": "memory_collision", "input": {"new": "Inversiones Delta SRL tiene su domicilio en Santiago.", "stored": "El domicilio de Inversiones Delta S.R.L. esta en Santiago.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-103", "point": "memory_collision", "input": {"new": "El contrato se adjudico por 12.500.000 pesos.", "stored": "La adjudicacion del contrato ascendio a RD$12.500.000.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-104", "point": "memory_collision", "input": {"new": "El sismo ocurrio el 14 de marzo de 2025.", "stored": "El movimiento telurico se registro el 14/03/2025.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-105", "point": "memory_collision", "input": {"new": "Mario Reyes fue designado gerente general en 2019.", "stored": "En 2019 se designo a Mario Reyes como gerente general.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-106", "point": "memory_collision", "input": {"new": "La Direccion General de Impuestos Internos abrio el expediente.", "stored": "La DGII abrio el expediente.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-107", "point": "memory_collision", "input": {"new": "El inmueble mide ochocientos metros cuadrados.", "stored": "El inmueble tiene una superficie de 800 metros cuadrados.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-108", "point": "memory_collision", "input": {"new": "La resolucion lleva el numero 045-2024.", "stored": "Se trata de la resolucion 045-2024.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-109", "point": "memory_collision", "input": {"new": "La sociedad fue constituida en 2011.", "stored": "La constitucion de la sociedad data de 2011.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-110", "point": "memory_collision", "input": {"new": "El fallo confirmo la sentencia de primera instancia.", "stored": "La sentencia de primera instancia fue confirmada por el fallo.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-111", "point": "memory_collision", "input": {"new": "Hay 312 viviendas con dano estructural severo.", "stored": "Las viviendas con dano estructural severo son 312.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-112", "point": "memory_collision", "input": {"new": "El pliego exigia tres anos de experiencia.", "stored": "Se exigian tres anos de experiencia en el pliego.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-113", "point": "memory_collision", "input": {"new": "La sociedad no presento estados financieros en 2023.", "stored": "En 2023 la sociedad omitio presentar sus estados financieros.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-114", "point": "memory_collision", "input": {"new": "El puerto movio 1,2 millones de contenedores.", "stored": "El movimiento del puerto fue de 1.200.000 contenedores.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-115", "point": "memory_collision", "input": {"new": "El comite declaro desierta la licitacion.", "stored": "La licitacion fue declarada desierta por el comite.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-116", "point": "memory_collision", "input": {"new": "El acta se firmo ante notario.", "stored": "La firma del acta se hizo ante notario.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-117", "point": "memory_collision", "input": {"new": "El beneficiario final es una fundacion panamena.", "stored": "Una fundacion panamena figura como beneficiario final.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-118", "point": "memory_collision", "input": {"new": "La multa asciende a 500.000 pesos.", "stored": "La multa fue de RD$500.000.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-119", "point": "memory_collision", "input": {"new": "La sociedad fue constituida el 4 de mayo de 2011.", "stored": "La sociedad fue constituida en 2011.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-120", "point": "memory_collision", "input": {"new": "Segun el Registro Mercantil, la sociedad se constituyo en 2011.", "stored": "La sociedad se constituyo en 2011.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-121", "point": "memory_collision", "input": {"new": "Mario Reyes posee el 100 % de las acciones.", "stored": "Mario Reyes es accionista de la sociedad.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-122", "point": "memory_collision", "input": {"new": "El boletin del Servicio Geologico cifra la profundidad en 110 km.", "stored": "Un diario local cifra la profundidad en 110 km.", "newer": true}, "expected": "keep_both"}
+{"id": "mc-123", "point": "memory_collision", "input": {"new": "El contrato se adjudico por 12.500.000 pesos, sin incluir el ITBIS.", "stored": "El contrato se adjudico por 12.500.000 pesos.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-124", "point": "memory_collision", "input": {"new": "Inversiones Delta Caribe SRL esta registrada en Panama.", "stored": "Inversiones Delta SRL esta registrada en Panama.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-125", "point": "memory_collision", "input": {"new": "El recurso fue rechazado y se impusieron las costas al recurrente.", "stored": "El recurso fue rechazado.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-126", "point": "memory_collision", "input": {"new": "El expediente lo instruye la fiscal Ana Peralta.", "stored": "El expediente esta en fase de instruccion.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-127", "point": "memory_collision", "input": {"new": "La sociedad declaro 800 empleados.", "stored": "El inmueble tiene una superficie de 800 metros cuadrados.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-128", "point": "memory_collision", "input": {"new": "La concesion portuaria vence en 2031.", "stored": "La concesion portuaria se otorgo en 2001.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-129", "point": "memory_collision", "input": {"new": "El pliego exigia tres anos de experiencia y dos obras similares.", "stored": "El pliego exigia tres anos de experiencia.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-130", "point": "memory_collision", "input": {"new": "La resolucion 045-2024 fue publicada en el boletin del 9 de enero.", "stored": "La resolucion lleva el numero 045-2024.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-131", "point": "memory_collision", "input": {"new": "El sismo de 14 de marzo tuvo epicentro en el mar, a 40 km de la costa.", "stored": "El sismo ocurrio el 14 de marzo de 2025.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-132", "point": "memory_collision", "input": {"new": "Mario Reyes fue gerente general entre 2019 y 2023.", "stored": "Mario Reyes fue designado gerente general en 2019.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-133", "point": "memory_collision", "input": {"new": "La DGII abrio el expediente por presunta subvaluacion de importaciones.", "stored": "La DGII abrio el expediente.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-134", "point": "memory_collision", "input": {"new": "La fundacion panamena que figura como beneficiario final se llama Arrecife.", "stored": "El beneficiario final es una fundacion panamena.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-135", "point": "memory_collision", "input": {"new": "El acta se firmo ante el notario Luis Cabral, matricula 4412.", "stored": "El acta se firmo ante notario.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-136", "point": "memory_collision", "input": {"new": "La sociedad no presento estados financieros en 2023 ni en 2022.", "stored": "La sociedad no presento estados financieros en 2023.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-137", "point": "memory_collision", "input": {"new": "El comite declaro desierta la licitacion por falta de ofertas validas.", "stored": "El comite declaro desierta la licitacion.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-138", "point": "memory_collision", "input": {"new": "De las 312 viviendas con dano severo, 84 estan en Azua.", "stored": "Hay 312 viviendas con dano estructural severo.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-139", "point": "memory_collision", "input": {"new": "El inmueble de 800 metros cuadrados esta hipotecado desde 2020.", "stored": "El inmueble tiene una superficie de 800 metros cuadrados.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-140", "point": "memory_collision", "input": {"new": "La multa de 500.000 pesos fue pagada en marzo.", "stored": "La multa fue de RD$500.000.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-141", "point": "memory_collision", "input": {"new": "El fallo confirmo la sentencia de primera instancia y anadio una sancion accesoria.", "stored": "El fallo confirmo la sentencia de primera instancia.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-142", "point": "memory_collision", "input": {"new": "El domicilio de Inversiones Delta SRL es la avenida Espana 112, Santiago.", "stored": "Inversiones Delta SRL tiene su domicilio en Santiago.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-143", "point": "memory_collision", "input": {"new": "El contrato se adjudico por 9.800.000 pesos.", "stored": "El contrato se adjudico por 12.500.000 pesos.", "newer": true}, "expected": "replace"}
+{"id": "mc-144", "point": "memory_collision", "input": {"new": "La licitacion se adjudico finalmente a Constructora Yuna.", "stored": "El comite declaro desierta la licitacion.", "newer": true}, "expected": "replace"}
+{"id": "mc-145", "point": "memory_collision", "input": {"new": "Mario Reyes nunca figuro como gerente general de la sociedad.", "stored": "Mario Reyes fue designado gerente general en 2019.", "newer": true}, "expected": "replace"}
+{"id": "mc-146", "point": "memory_collision", "input": {"new": "El beneficiario final es una persona fisica domiciliada en Santo Domingo.", "stored": "El beneficiario final es una fundacion panamena.", "newer": true}, "expected": "replace"}
+{"id": "mc-147", "point": "memory_collision", "input": {"new": "La sociedad se constituyo en 2014.", "stored": "La sociedad fue constituida en 2011.", "newer": true}, "expected": "replace"}
+{"id": "mc-148", "point": "memory_collision", "input": {"new": "El sismo alcanzo magnitud 5,4.", "stored": "El sismo alcanzo magnitud 6,1.", "newer": true}, "expected": "replace"}
+{"id": "mc-149", "point": "memory_collision", "input": {"new": "El recurso fue admitido a tramite.", "stored": "El recurso fue rechazado.", "newer": null}, "expected": "flag"}
+{"id": "mc-150", "point": "memory_collision", "input": {"new": "El inmueble mide 1.200 metros cuadrados.", "stored": "El inmueble tiene una superficie de 800 metros cuadrados.", "newer": null}, "expected": "flag"}
+{"id": "mc-151", "point": "memory_collision", "input": {"new": "La resolucion 045-2024 fue revocada.", "stored": "La resolucion 045-2024 esta vigente.", "newer": null}, "expected": "flag"}
+{"id": "mc-152", "point": "memory_collision", "input": {"new": "La concesion portuaria vence en 2026.", "stored": "La concesion portuaria vence en 2031.", "newer": null}, "expected": "flag"}

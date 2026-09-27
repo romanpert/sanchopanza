@@ -1,0 +1,34 @@
+{
+ "lever": "redundancy",
+ "pairs": 10,
+ "docs_served_per_arm": 193,
+ "dropped_triage": 0,
+ "dropped_redundant": 4,
+ "dropped_total": 4,
+ "informative": true,
+ "input_tokens": {
+  "bare": 342042,
+  "squire": 329949,
+  "ratio": [
+   -0.0353553072429702,
+   -0.12077540747842763,
+   0.0
+  ]
+ },
+ "cost_usd": {
+  "bare": 0.692604,
+  "squire": 0.678887,
+  "ratio": [
+   -0.019804552096147288,
+   -0.10126119232152775,
+   0.015325452588154986
+  ]
+ },
+ "squire_cost_usd": 0.009549,
+ "correct": {
+  "bare": "9/10",
+  "squire": "9/10",
+  "bare_lower_bound": 0.596,
+  "squire_lower_bound": 0.596
+ }
+}

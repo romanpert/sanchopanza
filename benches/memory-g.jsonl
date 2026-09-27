@@ -1,0 +1,38 @@
+# memory_write, seventh batch: 30 cases written BEFORE variant P4 was measured. Last iteration.
+#
+# P3 (floor `specific >= 0.15`) FAILED its pre-registered criterion on memory-f: it stored no
+# pointer but lost one instruction, and a second one on memory-e, both at specific 0.13. Across
+# the 39 cases seen, pointers score <= 0.04 and instructions >= 0.13. P4, pre-registered
+# 2026-09-25 from those EXPOSED values: P1 plus `specific >= 0.08`, the midpoint. Success on
+# this batch only: P4 keeps every instruction P1 keeps, stores fewer pointers than P1, and makes
+# no more costly errors than P1. Whatever it does is reported; no P5 today.
+#
+# Evidence-and-sourcing rules are over-represented in F2 on purpose: both instructions lost at
+# 0.13 were of that kind ("prefers primary sources", "no speculation"), so that is where a
+# floor would bite. Written by Claude with no model answer seen for any of these.
+#   E2 vacuous pointers and generalities (skip)
+#   F2 standing instructions, half of them about evidence and sourcing (store)
+{"id": "mw-401", "point": "memory_write", "input": {"fact": "Parece que hay mas informacion disponible sobre este tema."}, "expected": "skip"}
+{"id": "mw-402", "point": "memory_write", "input": {"fact": "Various websites discuss the company's history."}, "expected": "skip"}
+{"id": "mw-403", "point": "memory_write", "input": {"fact": "El expediente tiene varios documentos que pueden ser utiles."}, "expected": "skip"}
+{"id": "mw-404", "point": "memory_write", "input": {"fact": "There are sources that mention the transaction."}, "expected": "skip"}
+{"id": "mw-405", "point": "memory_write", "input": {"fact": "Se habla del asunto en algunos foros."}, "expected": "skip"}
+{"id": "mw-406", "point": "memory_write", "input": {"fact": "The subject appears in public records of several kinds."}, "expected": "skip"}
+{"id": "mw-407", "point": "memory_write", "input": {"fact": "Habra que seguir buscando en otras fuentes."}, "expected": "skip"}
+{"id": "mw-408", "point": "memory_write", "input": {"fact": "Some articles seem relevant to the question."}, "expected": "skip"}
+{"id": "mw-409", "point": "memory_write", "input": {"fact": "La informacion sobre los socios esta dispersa."}, "expected": "skip"}
+{"id": "mw-410", "point": "memory_write", "input": {"fact": "The matter has several angles worth exploring."}, "expected": "skip"}
+{"id": "mw-411", "point": "memory_write", "input": {"fact": "Hay antecedentes que podrian estar relacionados."}, "expected": "skip"}
+{"id": "mw-412", "point": "memory_write", "input": {"fact": "Different sources describe the events in different ways."}, "expected": "skip"}
+{"id": "mw-413", "point": "memory_write", "input": {"fact": "El cliente solo acepta como prueba documentos oficiales o escritos firmados, no testimonios."}, "expected": "store"}
+{"id": "mw-414", "point": "memory_write", "input": {"fact": "The client wants every claim in the report to be backed by at least two independent sources."}, "expected": "store"}
+{"id": "mw-415", "point": "memory_write", "input": {"fact": "El cliente prefiere que se diga que no se encontro nada antes que rellenar con suposiciones."}, "expected": "store"}
+{"id": "mw-416", "point": "memory_write", "input": {"fact": "The client does not accept Wikipedia as a source, only what it cites."}, "expected": "store"}
+{"id": "mw-417", "point": "memory_write", "input": {"fact": "Acordamos distinguir siempre entre lo que dice la fuente y lo que deducimos nosotros."}, "expected": "store"}
+{"id": "mw-418", "point": "memory_write", "input": {"fact": "The client wants the original documents attached, not just summaries of them."}, "expected": "store"}
+{"id": "mw-419", "point": "memory_write", "input": {"fact": "El cliente quiere que las conclusiones vayan en lenguaje llano, sin jerga juridica."}, "expected": "store"}
+{"id": "mw-420", "point": "memory_write", "input": {"fact": "The client asked us not to use automated translation for quotes that go into the report."}, "expected": "store"}
+{"id": "mw-421", "point": "memory_write", "input": {"fact": "Quedo acordado que las cifras se redondean al millar en el resumen y van exactas en el anexo."}, "expected": "store"}
+{"id": "mw-422", "point": "memory_write", "input": {"fact": "The client prefers to be called rather than emailed when something urgent comes up."}, "expected": "store"}
+{"id": "mw-423", "point": "memory_write", "input": {"fact": "El cliente no quiere que se consulten fuentes de pago sin su visto bueno previo."}, "expected": "store"}
+{"id": "mw-424", "point": "memory_write", "input": {"fact": "The client wants rumours reported only if they are labelled as rumours."}, "expected": "store"}

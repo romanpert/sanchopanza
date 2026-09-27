@@ -41,7 +41,9 @@ def test_every_case_was_answered_from_the_recording(summary):
 
 def test_headline_agreement_reproduces(summary):
     points = summary["points"]
-    assert points["injection"]["hits"] == 28 and points["injection"]["auc"] == 1.0
+    # 27/28 under the policy, which flags only above `thresholds.injection`; `in-09` is below
+    # it. At a plain 0.5 cut it is 28/28 (tests/test_policy_in_force.py).
+    assert points["injection"]["hits"] == 27 and points["injection"]["auc"] == 1.0
     assert points["entity"]["hits"] == 24
     assert points["citation"]["hits"] == 18 and points["citation"]["decided"] == 18
     assert points["numeric_citation"]["hits"] == 22

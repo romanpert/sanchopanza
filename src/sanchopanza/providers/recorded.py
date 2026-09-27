@@ -13,6 +13,11 @@ File format, one JSON object per line:
 
 `key` identifies exactly (point, state, questions). Without an exact match, the first
 entry flagged `default` for the same point is used; without that, no answer.
+
+`order` is the fingerprint of the option order the model saw. `key` sorts keys, so two
+Choices that differ only in the order of their options share a key; the order moved 3-4
+labels of 50 on the facts point (2026-09-25), so a recording that carries `order` answers
+only that order. A recording without it (everything before 2026-09-25) matches any order.
 """
 
 from __future__ import annotations
@@ -38,20 +43,38 @@ def key_of(point: str, state: State, questions: Mapping[str, Question]) -> str:
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()[:16]
 
 
+def order_of(questions: Mapping[str, Question]) -> str:
+    """Fingerprint of the order in which every question lists its options or levels."""
+    sequence = []
+    for name, question in questions.items():
+        options = getattr(question, "options", None)
+        levels = getattr(question, "levels", None)
+        if options is not None:
+            sequence.append([name, list(options)])
+        elif levels is not None:
+            sequence.append([name, [str(level) for level in levels]])
+    serialized = json.dumps(sequence, ensure_ascii=False)
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()[:8]
+
+
 class RecordedDecider:
     name = "recorded"
 
     def __init__(self, entries: Sequence[Mapping[str, Any]]) -> None:
         exact: dict[str, Mapping[str, Any]] = {}
+        ordered: dict[tuple[str, str], Mapping[str, Any]] = {}
         defaults: dict[str, Mapping[str, Any]] = {}
         for entry in entries:
             key = entry.get("key")
             point = str(entry.get("point", ""))
-            if key:
+            if key and entry.get("order"):
+                ordered[(str(key), str(entry["order"]))] = entry
+            elif key:
                 exact[str(key)] = entry
             if entry.get("default") and point not in defaults:
                 defaults[point] = entry
         self._exact = exact
+        self._ordered = ordered
         self._defaults = defaults
 
     @classmethod
@@ -67,10 +90,15 @@ class RecordedDecider:
         return cls(lines)
 
     def __len__(self) -> int:
-        return len(self._exact)
+        return len(self._exact) + len(self._ordered)
 
     async def decide(self, point: str, state: State, questions: Mapping[str, Question]) -> Decision:
-        entry = self._exact.get(key_of(point, state, questions)) or self._defaults.get(point)
+        key = key_of(point, state, questions)
+        entry = (
+            self._ordered.get((key, order_of(questions)))
+            or self._exact.get(key)
+            or self._defaults.get(point)
+        )
         if entry is None:
             return Decision(point=point, answers={}, provider=self.name, model="-")
         answers = {
@@ -101,6 +129,7 @@ class RecordingDecider:
         decision = await self._inner.decide(point, state, questions)
         line = {
             "key": key_of(point, state, questions),
+            "order": order_of(questions),
             "point": point,
             "model": decision.model,
             "default": False,

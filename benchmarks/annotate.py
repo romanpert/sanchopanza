@@ -50,7 +50,7 @@ sys.path.insert(0, str(RAIZ / "benchmarks"))
 import anthropic  # noqa: E402
 from meter import Meter, Timed  # noqa: E402
 
-from sanchopanza.points import graph, loop, memory, plan, triage  # noqa: E402
+from sanchopanza.points import entities, graph, loop, memory, plan, triage  # noqa: E402
 
 # Vocabulary and the rule by which the point's questions combine into one label, taken from
 # the package's own `decide_*` functions. The questions themselves are never paraphrased.
@@ -93,6 +93,31 @@ POINTS: dict[str, tuple[list[str], str]] = {
         "dataset, a selection, a verdict - so that starting them together would make B wait "
         "or repeat work. Sharing a topic is not a dependency. Being merged later is not a "
         "dependency.",
+    ),
+    "facts": (
+        ["agree", "conflict", "unrelated"],
+        "Answer conflict only if the two state values for the SAME attribute of the same "
+        "thing that cannot both hold. Answer agree if both can be true and one bears on the "
+        "other: a part of it, a component, a corroboration from another body, a narrower or "
+        "wider statement of the same quantity. Answer unrelated if they speak about different "
+        "things, or about different attributes of the same thing, so that neither supports "
+        "nor contradicts the other.",
+    ),
+    "edge": (
+        ["supported", "reversed", "unsupported"],
+        "Answer supported only if `text` states that relation between those two, in that "
+        "direction. Answer reversed if `text` states the same relation with the roles "
+        "swapped. Answer unsupported if `text` mentions both but states no such relation, "
+        "states a different one, or only makes it plausible.",
+    ),
+    "memory_collision": (
+        ["duplicate", "replace", "flag", "keep_both"],
+        "First: does `new` add anything at all to `stored`? If not, answer duplicate. "
+        "Otherwise: do they state incompatible values for the same attribute of the same "
+        "thing? If not, answer keep_both. If they do, use `newer`: true means the new fact is "
+        "more recent, so answer replace; false means the stored one is, so answer keep_both; "
+        "null means recency is unknown, so answer flag. Do NOT judge which is more likely to "
+        "be right - recency comes from the harness, not from you.",
     ),
     "redundant_page": (
         ["drop", "keep"],
@@ -160,6 +185,22 @@ def rubric(point: str, inp: dict) -> tuple[str, str]:
             b_goal=inp["b_goal"],
         )
         one = qs["b_needs_a"]
+    elif point == "facts":
+        state, qs = entities.fact_questions(fact_a=inp["fact_a"], fact_b=inp["fact_b"])
+        one = qs["relation"]
+    elif point == "edge":
+        state, qs = graph.edge_questions(
+            subject=inp["subject"],
+            relation=inp["relation"],
+            obj=inp["obj"],
+            text=inp["text"],
+            direction_by_roles=False,  # the wording the recorded edge benches were asked with
+        )
+        one = None  # two questions combine into the label
+    elif point == "memory_collision":
+        state, qs = memory.collision_questions(new=inp["new"], stored=inp["stored"])
+        state = {**dict(state), "newer": inp.get("newer")}
+        one = None
     elif point == "redundant_page":
         state, qs = triage.redundancy_questions(
             purpose=inp["purpose"], text=inp["text"], known=inp["known"]
@@ -293,6 +334,19 @@ async def run(args: argparse.Namespace) -> int:
                 row = json.loads(line)
                 previous[row["id"]] = row["label"]
 
+    if not cases:
+        # A run that annotates nothing used to print "0 cases", write an empty label file and
+        # exit 0, which is indistinguishable from a run where the model agreed with
+        # everything. It happened on 2026-09-24 with `facts`, `edge` and `memory_collision`,
+        # whose rubrics were simply absent from POINTS. Silence about an empty result is the
+        # failure mode this repository keeps paying for, so this one is loud.
+        known = ", ".join(sorted(POINTS))
+        print(
+            f"no cases to annotate. Either the bench files are empty, or their points have no "
+            f"rubric here. Rubrics exist for: {known}",
+            file=sys.stderr,
+        )
+        return 2
     print(f"{len(cases)} cases, {args.model}, concurrency {args.concurrency}", flush=True)
     meter = Meter(args.model, ledger=out / "annotator-usage.jsonl")
     client = anthropic.AsyncAnthropic()

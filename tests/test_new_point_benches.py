@@ -25,7 +25,7 @@ from sanchopanza.providers import RecordedDecider
 
 ROOT = Path(__file__).resolve().parents[1]
 BENCHES = ROOT / "benches"
-FIXTURE = ROOT / "fixtures" / "new-points.jsonl"
+FIXTURE = ROOT / "fixtures" / "new-points-v2.jsonl"
 FILES = ["memory.jsonl", "graph-build.jsonl", "retrieval.jsonl", "loop.jsonl"]
 BINARY = ("extract_gate", "goal_met", "memory_write", "recall", "redundant_page", "repeats_check")
 
@@ -48,13 +48,15 @@ def test_the_recording_covers_the_whole_bench(run):
 
 def test_agreement_per_point_reproduces(run):
     points = run[0]["points"]
-    assert points["goal_met"]["hits"] == 14 and points["goal_met"]["decided"] == 14
+    # 12/14 under the policy in force (`saturated` 0.70); 14/14 at a plain 0.5 cut, where
+    # `gm-01` sits at exactly 0.50 (docs/results/2026-09-25-pending/).
+    assert points["goal_met"]["hits"] == 12 and points["goal_met"]["decided"] == 14
     assert points["repeats_check"]["hits"] == 12
     assert points["recall"]["hits"] == 14
     assert points["extract_gate"]["hits"] == 15
-    assert points["memory_write"]["hits"] == 16
+    assert points["memory_write"]["hits"] == 14  # at the derived 0.54 cut; 15 at 0.70 / 0.75
     assert points["memory_collision"]["hits"] == 14
-    assert points["redundant_page"]["hits"] == 14
+    assert points["redundant_page"]["hits"] == 15  # 14 while it shared search's knob
     assert points["edge"]["hits"] == 15 and points["edge"]["decided"] == 17
 
 
@@ -78,8 +80,10 @@ def test_the_gap_between_a_plain_cut_and_the_shipped_policy(run):
     points = run[0]["points"]
     at_half = sum(points[p]["at_0.5"] for p in BINARY)
     under_policy = sum(points[p]["hits"] for p in BINARY)
-    assert at_half == 86
-    assert under_policy == 85
+    assert at_half == 85
+    # 83 at the old memory_write gates; the derived 0.54 cut loses mw-08 (a store at margin
+    # 0.51) on these in-sample cases and gains three on the fifty-case bench.
+    assert under_policy == 82
 
 
 def test_every_policy_error_is_a_refusal_to_act(run):
@@ -116,4 +120,4 @@ def test_confidence_separates_right_from_wrong_here_too(run):
     assert high / high_n > 0.95  # 92/94
     # Weaker than before the redundant gates went, and honestly so: the policy now decides
     # cases it used to abstain on, and most of those low-confidence decisions are right.
-    assert low / low_n < 0.85  # 22/27
+    assert low / low_n < 0.85  # 20/27 (22/27 while the loop points were scored at 0.5)

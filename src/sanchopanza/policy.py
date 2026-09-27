@@ -53,8 +53,41 @@ class Thresholds:
     relax: float = 0.60  # confidence needed for the cheap direction (upgrade, keep)
     allow_upgrade: bool = False  # may a task be sent to a deeper model than the default?
     redundant: float = 0.80  # probability that a query repeats an earlier one
+    # Probability that a fetched page adds nothing the agent already holds.
+    #
+    # It shared `redundant` until 2026-09-24, on the stated theory that a repeated query and
+    # a repeated page "are the same reading". They are not, and the first derivation large
+    # enough to test it said so: 0.80 scores 26/34 out of sample on page redundancy while
+    # 0.59 scores 33/34, and search's 0.80 is the value measured at 17/18 on its own bench.
+    # One knob serving two points meant neither could move without breaking the other.
+    #
+    # 0.59 is the first threshold in this repository derived rather than chosen: on 75 new
+    # cases, to a 90 % precision target, requiring the 95 % Wilson LOWER bound to clear it,
+    # and reported on the 34 cases of a different batch - 100 % precision and 92 % recall
+    # held out. The 80 % target derived 0.06 on the same data and MISSED out of sample at
+    # 55 % precision, which is the argument for targeting high and the reason the looser
+    # target is not the safer one. See `docs/results/2026-09-24-third-batch/`.
+    adds_nothing: float = 0.59
     keyword: float = 0.60  # probability that a query is keyword-style (cheap search)
     relevance: float = 0.45  # below this, a page does not enter the context
+    # The contribution cut of `Squire.triage_part`. Derived, not chosen: on 300 HotpotQA
+    # questions, to 95 % joint recall of the supporting paragraphs at the smallest text kept;
+    # confirmed on 300 new ones at 93.3 % joint recall with 52 % of the text kept, where the
+    # relevance question at 0.45 kept both paragraphs in 19.7 % (docs/results/2026-09-25-triage).
+    contributes: float = 0.28
+    # `Squire.triage_pages` (every page asked in one call, the others in view) and
+    # `Squire.select_sentences`. Derived on 600 HotpotQA questions, confirmed on 300 new: 98.3 %
+    # of supporting pages kept at 34 % of the text in one call, and with sentences selected
+    # inside the kept pages, every supporting sentence in 90.3 % at 22 % of the text
+    # (docs/results/2026-09-27-chunks/).
+    pages_in_context: float = 0.40
+    sentences: float = 0.28
+    # `Squire.triage_many`, sets past `chunks.PAGE_MAX`: round one in balanced groups keeps
+    # p >= this, the survivors are judged together at `pages_in_context`. Derived on 100
+    # HotpotQA questions with 100 pages each (round-one recall >= 99 %), confirmed on 200 new:
+    # 96.5 % of questions keep both supporting pages at 3.1 % of the text, against 94.0 % at
+    # 4.3 % for the groups alone and 50.5 % for BM25 (docs/results/2026-09-27-hierarchy/).
+    pages_first_round: float = 0.18
     injection: float = 0.70  # above this, a page is dropped and logged
     citation: float = 0.80  # confidence needed for an automatic citation verdict
     review: float = 0.70  # signal needed before the squire speaks about a report
@@ -63,14 +96,50 @@ class Thresholds:
     entity_high: float = 0.75  # above: same entity; in between: not sure
     classify: float = 0.60  # probability needed to accept a closed-vocabulary label
     tools: float = 0.35  # below this, a tool group leaves the model's call (in doubt, keep)
+    # Probability that a request defers what to do to something unread. It was read from
+    # `relax` until 2026-09-25, which is a *confidence* knob for the cheap direction of every
+    # point; a probability gate on one point borrowing it meant neither could move alone.
+    # Same value, its own name: the failure mode `adds_nothing` was split out for.
+    deferred: float = 0.60
+    # Probability a group must reach to be ADDED to an open tool window after the agent has
+    # read something. Its own knob because the error costs differ from `tools`: a missed
+    # addition costs one discovery round trip (the group stays findable), a false one costs
+    # its schema for the rest of the session, and an append-only window cannot take it back.
+    #
+    # NOT derived, and the attempt is on record. It equals `tools` because that is the only
+    # measured cut for a per-group question. On 97 AgentDojo trajectories the observe answers
+    # held 13 positives in 4,268 (a group called later that the window lacked): no cut clears
+    # even a 50 % precision target at the Wilson lower bound, on either half. At 0.35 it adds
+    # 51 groups of which 12 were needed (24 %); 20 of the 39 false ones are `web` on travel.
+    # A number derived from 13 positives would be sampled, not measured.
+    # See docs/results/2026-09-25-window/.
+    window_add: float = 0.35
     saturated: float = 0.70  # probability that a research line is exhausted
-    remember: float = 0.70  # probability needed to write a fact to long-term memory
+    # `decide_write` stores iff durable >= remember, specific >= remember and derivable <=
+    # `derivable`: one cut on the weakest margin, remember = c and derivable = 1 - c.
+    # Derived, not chosen: c = 0.54 on half of the 100 cases, to an 80 % precision target on
+    # the 95 % Wilson lower bound; on the other half 94 % precision and 39/49 against 37/49
+    # for the previous 0.70 / 0.75 with one costly store against two, and on 108 cases never
+    # used for this threshold one costly store against four (docs/results/
+    # 2026-09-27-memory-write-cut/, pre-registered). Above `derivable` a candidate is
+    # re-readable from its source and is not stored.
+    remember: float = 0.54
+    derivable: float = 0.46
+    # The opt-in `decide_write_common` was measured at 0.70 / 0.75 and keeps them: its own
+    # knobs, so that moving the default policy does not move a policy nobody re-measured.
+    common_durable: float = 0.70
+    common_derivable: float = 0.75
     # Fraction of decisions pre-registered for re-labelling. See `Squire.record`: the
     # point is that the sample is chosen before anyone has seen the outcome, so a
     # threshold can never be tuned on a set someone picked afterwards.
     audit: float = 0.0
     max_decisions: int = 400  # per job
     max_usd: float = 0.10  # per job
+    # Windows of `points.injection.TEXT_LIMIT` characters scanned in one content scan. Eight
+    # covers 16,000 characters, which is longer than every tool result in the AgentDojo
+    # harvest and than most pages. Beyond it the scan stops and says so in the journal: a
+    # gap that is recorded is a known limitation, a gap that is silent is the expensive kind.
+    max_windows: int = 8
 
     @classmethod
     def from_mapping(cls, raw: Mapping[str, Any] | None) -> Thresholds:
@@ -83,7 +152,7 @@ class Thresholds:
                 continue
             if key == "allow_upgrade":
                 values[key] = _as_bool(value)
-            elif key == "max_decisions":
+            elif key in ("max_decisions", "max_windows"):
                 values[key] = int(value)
             else:
                 values[key] = float(value)

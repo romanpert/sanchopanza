@@ -3,8 +3,8 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "sanchopanza"          # el nombre `sancho` estaba cogido en PyPI; se importa como `sancho`
-version = "0.2.0"
+name = "sanchopanza"          # `sancho` en PyPI es de otro; se instala y se importa como `sanchopanza`
+version = "0.3.0"
 description = "A calibrated, non-generative decision layer (a squire) for LLM agent harnesses."
 readme = "README.md"
 license = "Apache-2.0"
@@ -37,7 +37,6 @@ dev = ["pytest>=8", "pytest-asyncio>=0.23", "ruff>=0.6", "httpx>=0.27"]
 
 [project.scripts]
 sanchopanza = "sanchopanza.cli:main"
-sancho = "sanchopanza.cli:main"          # atajo
 
 [project.entry-points."sanchopanza.providers"]
 jev = "sanchopanza.providers.jev:JevDecider"
@@ -64,6 +63,16 @@ include = [
   "README.md",
   "LICENSE",
   "NOTICE",
+  "THIRD_PARTY_NOTICES",
+]
+# A PyPI upload cannot be withdrawn. Session handoffs carry local paths and commands that read
+# another project's .env; raw agent transcripts carry thinking-block signatures. Neither ships.
+# tests/test_packaging.py pins this list.
+exclude = [
+  "docs/HANDOFF-*.md",
+  "docs/results/**/runs/",
+  "docs/results/**/runs-*/",
+  "benchmarks/**/runs/",  # where benchmarks/agentdojo/run.py logs by default
 ]
 
 [tool.ruff]

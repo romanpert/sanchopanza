@@ -1,0 +1,71 @@
+# memory_write, fifth batch: 48 cases written BEFORE the `common` question was ever asked.
+#
+# Pre-registered on 2026-09-24 (docs/results/2026-09-24-third-batch/, section 3): the three
+# shipped questions lose the client's standing instructions (`specific` throws them away
+# because an instruction names no figure), and widening `specific` let general knowledge
+# through. The proposed fix is a fourth question, `common`. This batch exists so that fix is
+# measured on cases that did not expose the defect. Written 2026-09-25 by Claude, labelled by
+# the rule below, with no decision from any model seen for any of them.
+#
+# LABEL RULE, the module's own intent ("a junk memory is read on every later turn"):
+#   store = it will matter after this task, it can be acted on without the source, it was
+#           learned in this work (not re-readable exactly from a source the agent holds),
+#           and a competent reader would not already know it.
+#   skip  = any of those fails.
+#
+# Four families, 12 each, so no family can carry the result alone:
+#   A  standing instructions, agreements and preferences of the client (store) - the family
+#      the shipped policy loses. Phrased without figures on purpose, like mw-54/69/72/74.
+#   B  general knowledge, definitions, public-law text, textbook facts (skip) - the family
+#      the widened `specific` let through.
+#   C  concrete findings learned by doing (store) - the family the shipped policy gets right,
+#      so a fix that breaks it shows here.
+#   D  transient state, restatements of the task, pointers with no content (skip).
+{"id": "mw-201", "point": "memory_write", "input": {"fact": "El cliente no quiere que aparezcan nombres de menores en ningun entregable, ni siquiera con iniciales."}, "expected": "store"}
+{"id": "mw-202", "point": "memory_write", "input": {"fact": "The client prefers primary sources over press coverage and wants every press claim traced back to the document it cites."}, "expected": "store"}
+{"id": "mw-203", "point": "memory_write", "input": {"fact": "Acordamos con el cliente que las fechas se escriben siempre en formato dia/mes/ano completo, sin abreviar el mes."}, "expected": "store"}
+{"id": "mw-204", "point": "memory_write", "input": {"fact": "La abogada del cliente pide que cualquier hallazgo sobre la esposa del investigado se le comunique aparte y nunca dentro del informe."}, "expected": "store"}
+{"id": "mw-205", "point": "memory_write", "input": {"fact": "The client asked us never to contact former employees directly; requests go through their legal team."}, "expected": "store"}
+{"id": "mw-206", "point": "memory_write", "input": {"fact": "El cliente considera fuente valida los boletines autonomicos pero no las notas de prensa de las consejerias."}, "expected": "store"}
+{"id": "mw-207", "point": "memory_write", "input": {"fact": "Quedamos en que los informes llevan primero las conclusiones y despues el detalle, nunca al reves."}, "expected": "store"}
+{"id": "mw-208", "point": "memory_write", "input": {"fact": "The client wants uncertainty stated in words (likely, unconfirmed), not as percentages."}, "expected": "store"}
+{"id": "mw-209", "point": "memory_write", "input": {"fact": "El cliente pidio que no se usen capturas de redes sociales como prueba si la cuenta no esta verificada."}, "expected": "store"}
+{"id": "mw-210", "point": "memory_write", "input": {"fact": "Acordado: cualquier gasto de acceso a bases de pago se consulta antes con el cliente, aunque sea pequeno."}, "expected": "store"}
+{"id": "mw-211", "point": "memory_write", "input": {"fact": "The client's compliance team reads the reports; they asked that every legal conclusion names the article it rests on."}, "expected": "store"}
+{"id": "mw-212", "point": "memory_write", "input": {"fact": "El cliente no quiere que mencionemos a su empresa en ninguna consulta a terceros durante la investigacion."}, "expected": "store"}
+{"id": "mw-213", "point": "memory_write", "input": {"fact": "Madrid es la capital de Espana y la ciudad mas poblada del pais."}, "expected": "skip"}
+{"id": "mw-214", "point": "memory_write", "input": {"fact": "An IBAN starts with a two-letter country code followed by two check digits."}, "expected": "skip"}
+{"id": "mw-215", "point": "memory_write", "input": {"fact": "El articulo 18 de la Constitucion espanola garantiza el derecho al honor, a la intimidad personal y familiar y a la propia imagen."}, "expected": "skip"}
+{"id": "mw-216", "point": "memory_write", "input": {"fact": "Una sociedad limitada en Espana necesita un capital social minimo que se desembolsa al constituirla."}, "expected": "skip"}
+{"id": "mw-217", "point": "memory_write", "input": {"fact": "The GDPR gives data subjects a right to have their personal data erased under certain conditions."}, "expected": "skip"}
+{"id": "mw-218", "point": "memory_write", "input": {"fact": "Uruguay limita al norte con Brasil y al oeste con Argentina."}, "expected": "skip"}
+{"id": "mw-219", "point": "memory_write", "input": {"fact": "La difamacion consiste en imputar a alguien hechos que dañan su reputacion ante terceros."}, "expected": "skip"}
+{"id": "mw-220", "point": "memory_write", "input": {"fact": "A court of appeal reviews decisions of lower courts rather than hearing cases for the first time."}, "expected": "skip"}
+{"id": "mw-221", "point": "memory_write", "input": {"fact": "El euro es la moneda oficial de la mayoria de paises de la Union Europea."}, "expected": "skip"}
+{"id": "mw-222", "point": "memory_write", "input": {"fact": "PDF files can embed fonts so that a document looks the same on every computer."}, "expected": "skip"}
+{"id": "mw-223", "point": "memory_write", "input": {"fact": "El Boletin Oficial del Estado publica las leyes, reales decretos y disposiciones generales del Estado."}, "expected": "skip"}
+{"id": "mw-224", "point": "memory_write", "input": {"fact": "A limited company's directors owe duties to the company rather than to individual shareholders."}, "expected": "skip"}
+{"id": "mw-225", "point": "memory_write", "input": {"fact": "El buscador del registro de patentes no encuentra solicitudes por nombre del inventor si lleva tilde; hay que buscar sin acentos."}, "expected": "store"}
+{"id": "mw-226", "point": "memory_write", "input": {"fact": "The two companies share a director since 2019, which the registry shows but neither annual report mentions."}, "expected": "store"}
+{"id": "mw-227", "point": "memory_write", "input": {"fact": "Descartamos al homonimo de Sevilla: nacio en 1987 y el investigado ya tenia sociedades en 1995."}, "expected": "store"}
+{"id": "mw-228", "point": "memory_write", "input": {"fact": "The procurement portal lists awards only for the last five years; older ones are in a separate archive with its own search."}, "expected": "store"}
+{"id": "mw-229", "point": "memory_write", "input": {"fact": "La sentencia de apelacion y la nota de prensa del tribunal no coinciden en la cuantia; la sentencia dice 30.000 euros y la nota 300.000."}, "expected": "store"}
+{"id": "mw-230", "point": "memory_write", "input": {"fact": "El diario local borro el articulo de 2021 pero sigue en la cache del archivo web con fecha del 14 de marzo."}, "expected": "store"}
+{"id": "mw-231", "point": "memory_write", "input": {"fact": "The regional gazette's PDFs before 2012 are scanned images; search does not reach their text and they must be read page by page."}, "expected": "store"}
+{"id": "mw-232", "point": "memory_write", "input": {"fact": "La administradora que figura en las cuentas de 2020 dimitio en abril de 2021 segun el BORME, aunque la web de la empresa la sigue listando."}, "expected": "store"}
+{"id": "mw-233", "point": "memory_write", "input": {"fact": "Asking the ministry by email got no answer in three weeks; the transparency portal form got one in five days."}, "expected": "store"}
+{"id": "mw-234", "point": "memory_write", "input": {"fact": "El telefono que aparece en el anuncio corresponde a una gestoria de Valencia, no a la empresa investigada."}, "expected": "store"}
+{"id": "mw-235", "point": "memory_write", "input": {"fact": "The land registry charges per extract and does not refund failed searches, so search by parcel number, never by owner name."}, "expected": "store"}
+{"id": "mw-236", "point": "memory_write", "input": {"fact": "Los dos informes periciales citan el mismo estudio pero con anos distintos; el estudio es de 2016 y uno de ellos pone 2018."}, "expected": "store"}
+{"id": "mw-237", "point": "memory_write", "input": {"fact": "Estamos revisando el tercer resultado de la busqueda."}, "expected": "skip"}
+{"id": "mw-238", "point": "memory_write", "input": {"fact": "The user asked us to find out who owns the company."}, "expected": "skip"}
+{"id": "mw-239", "point": "memory_write", "input": {"fact": "Hay informacion relevante sobre la empresa en varias fuentes."}, "expected": "skip"}
+{"id": "mw-240", "point": "memory_write", "input": {"fact": "The next step is to open the second PDF."}, "expected": "skip"}
+{"id": "mw-241", "point": "memory_write", "input": {"fact": "La pagina tarda en cargar esta manana."}, "expected": "skip"}
+{"id": "mw-242", "point": "memory_write", "input": {"fact": "We have used 40 percent of the time budget for this task so far."}, "expected": "skip"}
+{"id": "mw-243", "point": "memory_write", "input": {"fact": "Voy a buscar ahora en el registro mercantil."}, "expected": "skip"}
+{"id": "mw-244", "point": "memory_write", "input": {"fact": "There are several documents that could be useful later."}, "expected": "skip"}
+{"id": "mw-245", "point": "memory_write", "input": {"fact": "El encargo es investigar las sociedades vinculadas al administrador."}, "expected": "skip"}
+{"id": "mw-246", "point": "memory_write", "input": {"fact": "This search returned twelve results, most of them old."}, "expected": "skip"}
+{"id": "mw-247", "point": "memory_write", "input": {"fact": "Hemos abierto cuatro pestañas con resultados del buscador."}, "expected": "skip"}
+{"id": "mw-248", "point": "memory_write", "input": {"fact": "The report is due at the end of this task."}, "expected": "skip"}

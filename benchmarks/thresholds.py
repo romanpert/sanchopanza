@@ -4,9 +4,9 @@
 
 Free: it reads two bench result files and does arithmetic. Nothing is called.
 
-Why this exists. `docs/paper.md` Section 8 promised "fifty cases and a second annotator per
-new point, then thresholds set the way Google sets them: per point, to a target precision,
-reported as recall@X" [Frommgen et al., 2024]. This is that, plus the part the promise left
+Why this exists. Thresholds are set the way Google sets them: fifty cases and a second
+annotator per new point, then per point, to a target precision, reported as recall@X
+[Frommgen et al., 2024] (`docs/paper.md` Section 5.10). This is that, plus the part the promise left
 out: **whether the sample is large enough for the target to mean anything.**
 
 Two rules make the difference between deriving a threshold and fitting one to its own score:
@@ -58,8 +58,8 @@ ACTION: dict[str, tuple[Any, str]] = {
 SHIPPED = {
     "memory_write": 0.70,
     "redundant_page": 0.80,
-    "goal_met": 0.50,
-    "repeats_check": 0.50,
+    "goal_met": 0.70,  # Thresholds.saturated, read by points/loop.decide (was 0.50: wrong)
+    "repeats_check": 0.70,
     "extract_gate": 0.25,
     "recall": 0.25,
 }

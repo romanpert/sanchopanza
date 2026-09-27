@@ -1,0 +1,34 @@
+[
+ {
+  "arm": "haiku",
+  "id": "msgbatch_018TPdE3nzX7pzSYpAT3xEK2",
+  "count": 869,
+  "status": "collected"
+ },
+ {
+  "arm": "sonnet",
+  "id": "msgbatch_01Vn3pVeBNGBhSZSDyMnX1cn",
+  "count": 869,
+  "status": "submitted"
+ },
+ {
+  "arm": "opus",
+  "id": "msgbatch_01Azdd2R3PPo3LheyqcorVoK",
+  "count": 869,
+  "status": "collected"
+ },
+ {
+  "arm": "haiku",
+  "id": "msgbatch_012vKqMRc7HkV8d2Kn7Xi2Si",
+  "count": 500,
+  "status": "collected",
+  "sets": "codex"
+ },
+ {
+  "arm": "sonnet",
+  "id": "msgbatch_01GPMX9proxntG3XCJkiJy6B",
+  "count": 500,
+  "status": "submitted",
+  "sets": "codex"
+ }
+]

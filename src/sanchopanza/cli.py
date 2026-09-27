@@ -3,6 +3,9 @@
 sanchopanza bench benches/*.jsonl --provider recorded --fixture fixtures/public-benches.jsonl
 sanchopanza bench benches/*.jsonl --provider jev --record fixtures/new.jsonl --out results/today
 sanchopanza hook            # Claude Code hook: JSON in, JSON out
+sanchopanza install         # print the settings block; --write to apply it
+sanchopanza install --scan-content --write   # and scan arriving content for injections
+sanchopanza install --check-done --write     # and check "done" before a stop
 sanchopanza providers       # what is installed
 sanchopanza dag plan.json   # clean DAG and waves from {"nodes": [...], "edges": {"A->B": 0.9}}
 """
@@ -11,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 import json
 import os
 import sys
@@ -61,6 +65,54 @@ def _providers(_args: argparse.Namespace) -> int:
     return 0
 
 
+def _install(args: argparse.Namespace) -> int:
+    from .harness.generic import HarnessConfig
+    from .harness.install import apply, default_path, plan
+
+    defaults = HarnessConfig()
+    config = HarnessConfig(
+        scan_content=args.scan_content,
+        check_done=args.check_done,
+        content_tools=(
+            frozenset(t.strip() for t in args.content_tools.split(",") if t.strip())
+            if args.content_tools
+            else defaults.content_tools
+        ),
+    )
+    path = Path(args.path) if args.path else default_path(args.scope)
+    try:
+        settings = plan(path, config, command=args.command_line, provider=args.provider or "")
+    except ValueError as error:
+        sys.stderr.write(f"{error}\n")
+        return 2
+    if not settings.changed:
+        sys.stdout.write(f"{path}: already wired, nothing to do\n")
+        return 0
+    for line in settings.removed:
+        sys.stdout.write(f"- {line}\n")
+    for line in settings.added:
+        sys.stdout.write(f"+ {line}\n")
+    if not args.write:
+        sys.stdout.write(
+            "\n" + json.dumps(settings.merged, ensure_ascii=False, indent=2) + "\n\n"
+            f"Nothing written. Re-run with --write to apply to {path}.\n"
+        )
+        return 0
+    try:
+        backup = apply(settings)
+    except OSError as error:
+        sys.stderr.write(f"could not write {path} ({error}); the file was left as it was\n")
+        return 2
+    kept = f" (previous contents in {backup.name})" if backup else ""
+    sys.stdout.write(f"\nwritten to {path}{kept}\n")
+    if config.scan_content:
+        sys.stdout.write(
+            "Content scanning is on. It is detection, not prevention: by PostToolUse the "
+            "text is already in the model's context and no hook can take it back.\n"
+        )
+    return 0
+
+
 def _dag(args: argparse.Namespace) -> int:
     data = json.loads(Path(args.plan).read_text(encoding="utf-8"))
     nodes = list(data["nodes"])
@@ -72,9 +124,26 @@ def _dag(args: argparse.Namespace) -> int:
     return 0
 
 
+def _tolerate_the_console_encoding() -> None:
+    """Never die on a console that cannot encode what we print.
+
+    `install` echoes the user's own settings file, and a console's encoding is not ours to
+    choose (Windows defaults to cp1252): an unencodable character degrades to `?`, it does
+    not abort the command. Only the error handler changes; the encoding stays the console's.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            with contextlib.suppress(ValueError, OSError):  # a closed or exotic stream
+                reconfigure(errors="replace")
+
+
 def main(argv: list[str] | None = None) -> int:
+    _tolerate_the_console_encoding()
     parser = argparse.ArgumentParser(
-        prog="sancho", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        prog="sanchopanza",
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -95,6 +164,33 @@ def main(argv: list[str] | None = None) -> int:
 
     providers = sub.add_parser("providers", help="list installed providers")
     providers.set_defaults(func=_providers)
+
+    install = sub.add_parser("install", help="write the harness hooks into settings.json")
+    install.add_argument(
+        "--scope", default="user", choices=("user", "project", "local"), help="which settings file"
+    )
+    install.add_argument("--path", default=None, help="an explicit settings file instead")
+    install.add_argument(
+        "--scan-content",
+        action="store_true",
+        help="also scan arriving tool results for instructions aimed at the model "
+        "(detection only: the text is already in context by then)",
+    )
+    install.add_argument(
+        "--check-done",
+        action="store_true",
+        help="at Stop, check that the transcript shows the request done and send Claude back "
+        "once if it confidently does not (measured on AgentDojo, not on coding sessions)",
+    )
+    install.add_argument(
+        "--content-tools",
+        default=None,
+        help="comma-separated tools to scan (default WebFetch,WebSearch)",
+    )
+    install.add_argument("--provider", default=None, help="set SANCHO_PROVIDER in the env block")
+    install.add_argument("--command-line", default="sanchopanza hook", help="the hook command")
+    install.add_argument("--write", action="store_true", help="apply instead of printing")
+    install.set_defaults(func=_install)
 
     dag = sub.add_parser("dag", help="clean DAG and waves from probabilistic pairs")
     dag.add_argument("plan")

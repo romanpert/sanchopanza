@@ -1,0 +1,1190 @@
+{
+ "facts": {
+  "shipped": {
+   "shipped_policy": {
+    "n": 30,
+    "decided": 27,
+    "right": 25,
+    "costly": 1
+   },
+   "unrelated_at_half": {
+    "n": 30,
+    "decided": 27,
+    "right": 25,
+    "costly": 1
+   },
+   "rows": [
+    {
+     "id": "fa-51",
+     "expected": "unrelated",
+     "choice": "agree",
+     "p": {
+      "agree": 0.65,
+      "unrelated": 0.35,
+      "conflict": 0.0
+     },
+     "verdict": null
+    },
+    {
+     "id": "fa-52",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "agree": 1.0,
+      "unrelated": 0.0,
+      "conflict": 0.0
+     },
+     "verdict": "agree"
+    },
+    {
+     "id": "fa-53",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "unrelated": 0.0,
+      "conflict": 1.0,
+      "agree": 0.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-54",
+     "expected": "unrelated",
+     "choice": "agree",
+     "p": {
+      "conflict": 0.0,
+      "unrelated": 0.4,
+      "agree": 0.6
+     },
+     "verdict": null
+    },
+    {
+     "id": "fa-55",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "agree": 1.0,
+      "conflict": 0.0,
+      "unrelated": 0.0
+     },
+     "verdict": "agree"
+    },
+    {
+     "id": "fa-56",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "conflict": 1.0,
+      "agree": 0.0,
+      "unrelated": 0.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-57",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "conflict": 0.0,
+      "agree": 0.26,
+      "unrelated": 0.74
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-58",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "agree": 1.0,
+      "unrelated": 0.0,
+      "conflict": 0.0
+     },
+     "verdict": "agree"
+    },
+    {
+     "id": "fa-59",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "agree": 0.0,
+      "unrelated": 0.0,
+      "conflict": 1.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-60",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "unrelated": 0.85,
+      "agree": 0.14,
+      "conflict": 0.01
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-61",
+     "expected": "agree",
+     "choice": "conflict",
+     "p": {
+      "agree": 0.05,
+      "conflict": 0.95,
+      "unrelated": 0.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-62",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "unrelated": 0.0,
+      "conflict": 1.0,
+      "agree": 0.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-63",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "conflict": 0.0,
+      "agree": 0.0,
+      "unrelated": 1.0
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-64",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "conflict": 0.04,
+      "unrelated": 0.0,
+      "agree": 0.96
+     },
+     "verdict": "agree"
+    },
+    {
+     "id": "fa-65",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "agree": 0.0,
+      "conflict": 1.0,
+      "unrelated": 0.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-66",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "conflict": 0.0,
+      "agree": 0.03,
+      "unrelated": 0.97
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-67",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "conflict": 0.0,
+      "unrelated": 0.0,
+      "agree": 1.0
+     },
+     "verdict": "agree"
+    },
+    {
+     "id": "fa-68",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "unrelated": 0.0,
+      "agree": 0.0,
+      "conflict": 1.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-69",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "conflict": 0.0,
+      "agree": 0.04,
+      "unrelated": 0.96
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-70",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "unrelated": 0.0,
+      "agree": 1.0,
+      "conflict": 0.0
+     },
+     "verdict": "agree"
+    },
+    {
+     "id": "fa-71",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "agree": 0.0,
+      "conflict": 1.0,
+      "unrelated": 0.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-72",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "agree": 0.05,
+      "conflict": 0.0,
+      "unrelated": 0.95
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-73",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "unrelated": 0.0,
+      "conflict": 0.0,
+      "agree": 1.0
+     },
+     "verdict": "agree"
+    },
+    {
+     "id": "fa-74",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "unrelated": 0.0,
+      "agree": 0.0,
+      "conflict": 1.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-75",
+     "expected": "unrelated",
+     "choice": "agree",
+     "p": {
+      "unrelated": 0.22,
+      "conflict": 0.0,
+      "agree": 0.78
+     },
+     "verdict": "agree"
+    },
+    {
+     "id": "fa-76",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "unrelated": 0.0,
+      "agree": 0.7,
+      "conflict": 0.3
+     },
+     "verdict": null
+    },
+    {
+     "id": "fa-77",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "unrelated": 0.0,
+      "agree": 0.0,
+      "conflict": 1.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-78",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "agree": 0.19,
+      "conflict": 0.0,
+      "unrelated": 0.81
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-79",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "agree": 0.21,
+      "conflict": 0.0,
+      "unrelated": 0.79
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-80",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "conflict": 0.0,
+      "agree": 0.25,
+      "unrelated": 0.75
+     },
+     "verdict": "unrelated"
+    }
+   ]
+  },
+  "examples": {
+   "shipped_policy": {
+    "n": 30,
+    "decided": 26,
+    "right": 25,
+    "costly": 1
+   },
+   "unrelated_at_half": {
+    "n": 30,
+    "decided": 28,
+    "right": 27,
+    "costly": 1
+   },
+   "rows": [
+    {
+     "id": "fa-51",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "conflict": 0.0,
+      "unrelated": 0.64,
+      "agree": 0.36
+     },
+     "verdict": null
+    },
+    {
+     "id": "fa-52",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "unrelated": 0.0,
+      "conflict": 0.0,
+      "agree": 1.0
+     },
+     "verdict": "agree"
+    },
+    {
+     "id": "fa-53",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "agree": 0.0,
+      "conflict": 1.0,
+      "unrelated": 0.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-54",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "conflict": 0.0,
+      "unrelated": 0.56,
+      "agree": 0.44
+     },
+     "verdict": null
+    },
+    {
+     "id": "fa-55",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "agree": 1.0,
+      "conflict": 0.0,
+      "unrelated": 0.0
+     },
+     "verdict": "agree"
+    },
+    {
+     "id": "fa-56",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "conflict": 1.0,
+      "agree": 0.0,
+      "unrelated": 0.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-57",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "conflict": 0.0,
+      "unrelated": 0.78,
+      "agree": 0.22
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-58",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "unrelated": 0.0,
+      "conflict": 0.0,
+      "agree": 1.0
+     },
+     "verdict": "agree"
+    },
+    {
+     "id": "fa-59",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "conflict": 1.0,
+      "agree": 0.0,
+      "unrelated": 0.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-60",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "unrelated": 0.82,
+      "conflict": 0.02,
+      "agree": 0.16
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-61",
+     "expected": "agree",
+     "choice": "conflict",
+     "p": {
+      "unrelated": 0.0,
+      "agree": 0.05,
+      "conflict": 0.95
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-62",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "unrelated": 0.0,
+      "conflict": 1.0,
+      "agree": 0.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-63",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "conflict": 0.0,
+      "unrelated": 1.0,
+      "agree": 0.0
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-64",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "agree": 0.97,
+      "conflict": 0.03,
+      "unrelated": 0.0
+     },
+     "verdict": "agree"
+    },
+    {
+     "id": "fa-65",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "unrelated": 0.0,
+      "conflict": 1.0,
+      "agree": 0.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-66",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "agree": 0.03,
+      "conflict": 0.0,
+      "unrelated": 0.97
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-67",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "conflict": 0.0,
+      "agree": 1.0,
+      "unrelated": 0.0
+     },
+     "verdict": "agree"
+    },
+    {
+     "id": "fa-68",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "agree": 0.0,
+      "conflict": 1.0,
+      "unrelated": 0.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-69",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "agree": 0.05,
+      "conflict": 0.0,
+      "unrelated": 0.95
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-70",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "conflict": 0.0,
+      "agree": 1.0,
+      "unrelated": 0.0
+     },
+     "verdict": "agree"
+    },
+    {
+     "id": "fa-71",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "unrelated": 0.0,
+      "conflict": 1.0,
+      "agree": 0.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-72",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "conflict": 0.0,
+      "unrelated": 0.98,
+      "agree": 0.02
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-73",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "agree": 1.0,
+      "conflict": 0.0,
+      "unrelated": 0.0
+     },
+     "verdict": "agree"
+    },
+    {
+     "id": "fa-74",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "unrelated": 0.0,
+      "agree": 0.0,
+      "conflict": 1.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-75",
+     "expected": "unrelated",
+     "choice": "agree",
+     "p": {
+      "agree": 0.69,
+      "conflict": 0.0,
+      "unrelated": 0.31
+     },
+     "verdict": null
+    },
+    {
+     "id": "fa-76",
+     "expected": "agree",
+     "choice": "agree",
+     "p": {
+      "conflict": 0.28,
+      "unrelated": 0.0,
+      "agree": 0.72
+     },
+     "verdict": null
+    },
+    {
+     "id": "fa-77",
+     "expected": "conflict",
+     "choice": "conflict",
+     "p": {
+      "unrelated": 0.0,
+      "conflict": 1.0,
+      "agree": 0.0
+     },
+     "verdict": "conflict"
+    },
+    {
+     "id": "fa-78",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "agree": 0.17,
+      "unrelated": 0.83,
+      "conflict": 0.0
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-79",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "conflict": 0.0,
+      "unrelated": 0.86,
+      "agree": 0.14
+     },
+     "verdict": "unrelated"
+    },
+    {
+     "id": "fa-80",
+     "expected": "unrelated",
+     "choice": "unrelated",
+     "p": {
+      "agree": 0.25,
+      "conflict": 0.0,
+      "unrelated": 0.75
+     },
+     "verdict": "unrelated"
+    }
+   ]
+  }
+ },
+ "edge": {
+  "shipped": {
+   "n": 30,
+   "decided": 20,
+   "right": 19,
+   "committed": 12,
+   "committed_wrong": [
+    "ed-57"
+   ],
+   "commit_precision_wilson95_low": 0.646,
+   "reversed_caught": 5,
+   "reversed_total": 12,
+   "passive_reversed_caught": 1,
+   "supported_committed": 11
+  },
+  "by_roles": {
+   "n": 30,
+   "decided": 25,
+   "right": 25,
+   "committed": 12,
+   "committed_wrong": [],
+   "commit_precision_wilson95_low": 0.757,
+   "reversed_caught": 10,
+   "reversed_total": 12,
+   "passive_reversed_caught": 6,
+   "supported_committed": 12
+  },
+  "rows": {
+   "shipped": [
+    {
+     "id": "ed-51",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.95,
+     "direction": 0.83
+    },
+    {
+     "id": "ed-52",
+     "expected": "reversed",
+     "verdict": "review",
+     "stated": 0.31,
+     "direction": 0.42
+    },
+    {
+     "id": "ed-53",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.92,
+     "direction": 0.94
+    },
+    {
+     "id": "ed-54",
+     "expected": "reversed",
+     "verdict": "review",
+     "stated": 0.25,
+     "direction": 0.3
+    },
+    {
+     "id": "ed-55",
+     "expected": "reversed",
+     "verdict": "reversed",
+     "stated": 0.04,
+     "direction": 0.05
+    },
+    {
+     "id": "ed-56",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.98,
+     "direction": 0.98
+    },
+    {
+     "id": "ed-57",
+     "expected": "reversed",
+     "verdict": "supported",
+     "stated": 0.98,
+     "direction": 0.94
+    },
+    {
+     "id": "ed-58",
+     "expected": "supported",
+     "verdict": "review",
+     "stated": 0.89,
+     "direction": 0.88
+    },
+    {
+     "id": "ed-59",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.99,
+     "direction": 0.99
+    },
+    {
+     "id": "ed-60",
+     "expected": "reversed",
+     "verdict": "reversed",
+     "stated": 0.04,
+     "direction": 0.05
+    },
+    {
+     "id": "ed-61",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.97,
+     "direction": 0.97
+    },
+    {
+     "id": "ed-62",
+     "expected": "reversed",
+     "verdict": "reversed",
+     "stated": 0.03,
+     "direction": 0.03
+    },
+    {
+     "id": "ed-63",
+     "expected": "reversed",
+     "verdict": "reversed",
+     "stated": 0.06,
+     "direction": 0.05
+    },
+    {
+     "id": "ed-64",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.98,
+     "direction": 0.98
+    },
+    {
+     "id": "ed-65",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.98,
+     "direction": 0.96
+    },
+    {
+     "id": "ed-66",
+     "expected": "reversed",
+     "verdict": "review",
+     "stated": 0.52,
+     "direction": 0.54
+    },
+    {
+     "id": "ed-67",
+     "expected": "reversed",
+     "verdict": "review",
+     "stated": 0.29,
+     "direction": 0.33
+    },
+    {
+     "id": "ed-68",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.91,
+     "direction": 0.87
+    },
+    {
+     "id": "ed-69",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.99,
+     "direction": 0.97
+    },
+    {
+     "id": "ed-70",
+     "expected": "reversed",
+     "verdict": "reversed",
+     "stated": 0.05,
+     "direction": 0.09
+    },
+    {
+     "id": "ed-71",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.98,
+     "direction": 0.97
+    },
+    {
+     "id": "ed-72",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.98,
+     "direction": 0.96
+    },
+    {
+     "id": "ed-73",
+     "expected": "reversed",
+     "verdict": "review",
+     "stated": 0.73,
+     "direction": 0.75
+    },
+    {
+     "id": "ed-74",
+     "expected": "reversed",
+     "verdict": "review",
+     "stated": 0.85,
+     "direction": 0.87
+    },
+    {
+     "id": "ed-75",
+     "expected": "unsupported",
+     "verdict": "unsupported",
+     "stated": 0.04,
+     "direction": 0.33
+    },
+    {
+     "id": "ed-76",
+     "expected": "unsupported",
+     "verdict": "unsupported",
+     "stated": 0.03,
+     "direction": 0.65
+    },
+    {
+     "id": "ed-77",
+     "expected": "unsupported",
+     "verdict": "review",
+     "stated": 0.63,
+     "direction": 0.92
+    },
+    {
+     "id": "ed-78",
+     "expected": "unsupported",
+     "verdict": "review",
+     "stated": 0.2,
+     "direction": 0.84
+    },
+    {
+     "id": "ed-79",
+     "expected": "unsupported",
+     "verdict": "unsupported",
+     "stated": 0.02,
+     "direction": 0.35
+    },
+    {
+     "id": "ed-80",
+     "expected": "unsupported",
+     "verdict": "review",
+     "stated": 0.44,
+     "direction": 0.78
+    }
+   ],
+   "by_roles": [
+    {
+     "id": "ed-51",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.94,
+     "direction": 0.98
+    },
+    {
+     "id": "ed-52",
+     "expected": "reversed",
+     "verdict": "reversed",
+     "stated": 0.46,
+     "direction": 0.07
+    },
+    {
+     "id": "ed-53",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.93,
+     "direction": 0.96
+    },
+    {
+     "id": "ed-54",
+     "expected": "reversed",
+     "verdict": "reversed",
+     "stated": 0.29,
+     "direction": 0.08
+    },
+    {
+     "id": "ed-55",
+     "expected": "reversed",
+     "verdict": "reversed",
+     "stated": 0.05,
+     "direction": 0.03
+    },
+    {
+     "id": "ed-56",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.98,
+     "direction": 0.98
+    },
+    {
+     "id": "ed-57",
+     "expected": "reversed",
+     "verdict": "review",
+     "stated": 0.97,
+     "direction": 0.3
+    },
+    {
+     "id": "ed-58",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.92,
+     "direction": 0.98
+    },
+    {
+     "id": "ed-59",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.99,
+     "direction": 0.99
+    },
+    {
+     "id": "ed-60",
+     "expected": "reversed",
+     "verdict": "reversed",
+     "stated": 0.04,
+     "direction": 0.04
+    },
+    {
+     "id": "ed-61",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.97,
+     "direction": 0.98
+    },
+    {
+     "id": "ed-62",
+     "expected": "reversed",
+     "verdict": "reversed",
+     "stated": 0.02,
+     "direction": 0.03
+    },
+    {
+     "id": "ed-63",
+     "expected": "reversed",
+     "verdict": "reversed",
+     "stated": 0.05,
+     "direction": 0.03
+    },
+    {
+     "id": "ed-64",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.99,
+     "direction": 0.98
+    },
+    {
+     "id": "ed-65",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.98,
+     "direction": 0.98
+    },
+    {
+     "id": "ed-66",
+     "expected": "reversed",
+     "verdict": "reversed",
+     "stated": 0.48,
+     "direction": 0.1
+    },
+    {
+     "id": "ed-67",
+     "expected": "reversed",
+     "verdict": "reversed",
+     "stated": 0.24,
+     "direction": 0.06
+    },
+    {
+     "id": "ed-68",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.9,
+     "direction": 0.97
+    },
+    {
+     "id": "ed-69",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.99,
+     "direction": 0.97
+    },
+    {
+     "id": "ed-70",
+     "expected": "reversed",
+     "verdict": "reversed",
+     "stated": 0.04,
+     "direction": 0.18
+    },
+    {
+     "id": "ed-71",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.98,
+     "direction": 0.98
+    },
+    {
+     "id": "ed-72",
+     "expected": "supported",
+     "verdict": "supported",
+     "stated": 0.98,
+     "direction": 0.98
+    },
+    {
+     "id": "ed-73",
+     "expected": "reversed",
+     "verdict": "reversed",
+     "stated": 0.71,
+     "direction": 0.12
+    },
+    {
+     "id": "ed-74",
+     "expected": "reversed",
+     "verdict": "review",
+     "stated": 0.88,
+     "direction": 0.65
+    },
+    {
+     "id": "ed-75",
+     "expected": "unsupported",
+     "verdict": "unsupported",
+     "stated": 0.05,
+     "direction": 0.29
+    },
+    {
+     "id": "ed-76",
+     "expected": "unsupported",
+     "verdict": "unsupported",
+     "stated": 0.03,
+     "direction": 0.71
+    },
+    {
+     "id": "ed-77",
+     "expected": "unsupported",
+     "verdict": "review",
+     "stated": 0.64,
+     "direction": 0.93
+    },
+    {
+     "id": "ed-78",
+     "expected": "unsupported",
+     "verdict": "review",
+     "stated": 0.2,
+     "direction": 0.84
+    },
+    {
+     "id": "ed-79",
+     "expected": "unsupported",
+     "verdict": "unsupported",
+     "stated": 0.02,
+     "direction": 0.27
+    },
+    {
+     "id": "ed-80",
+     "expected": "unsupported",
+     "verdict": "review",
+     "stated": 0.46,
+     "direction": 0.74
+    }
+   ]
+  }
+ },
+ "direction_cut": {
+  "derived_on": "fourth batch, shipped question (50 cases)",
+  "derived": 0.88,
+  "reported": {
+   "cut": 0.88,
+   "committed": 10,
+   "right": 9,
+   "wilson95_low": 0.596,
+   "reaches_target": false,
+   "best_possible_wilson95_low": 0.757
+  }
+ },
+ "licensed": {
+  "facts_policy_unrelated_at_half": false,
+  "facts_wording_examples": false,
+  "edge_wording_by_roles": true,
+  "edge_direction_cut": false
+ },
+ "recording": {
+  "calls": 120,
+  "cost_usd": 0.003359
+ },
+ "annotators": {
+  "facts": {
+   "n": 30,
+   "agreement": 1.0,
+   "kappa": 1.0
+  },
+  "edge": {
+   "n": 30,
+   "agreement": 1.0,
+   "kappa": 1.0
+  },
+  "all": {
+   "n": 60,
+   "agreement": 1.0,
+   "kappa": 1.0
+  },
+  "disputed": []
+ }
+}

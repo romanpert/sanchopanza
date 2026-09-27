@@ -13,6 +13,7 @@ Retries: 429 and 529 with bounded exponential backoff. No unbounded loops.
 from __future__ import annotations
 
 import asyncio
+import math
 import os
 import time
 from collections.abc import Mapping
@@ -27,7 +28,9 @@ from ..contract import (
     Score,
     State,
     Truth,
+    as_number,
     truth_confidence,
+    usable,
 )
 from ..media import attachments_in
 
@@ -74,33 +77,48 @@ def to_wire(question: Question) -> dict[str, Any]:
 
 
 def from_wire(raw: Mapping[str, Any]) -> Answer:
-    """TypeSafe answer to contract. Tolerates missing fields."""
+    """TypeSafe answer to contract. Tolerates missing fields.
+
+    httpx's JSON parser accepts NaN and Infinity, and so does `float()`. A value that is not
+    a finite number (or a probability outside [0, 1]) comes back as an empty answer, the
+    same as a missing one: it must never reach a threshold, where NaN reads as permission.
+    """
     kind = WIRE_TO_KIND.get(str(raw.get("type", "")), "truth")
-    probabilities = {str(k): float(v) for k, v in (raw.get("probabilities") or {}).items()}
+    probabilities = {str(k): _required(v) for k, v in (raw.get("probabilities") or {}).items()}
     if kind == "truth":
-        value = raw.get("noul")
-        truth = float(value) if value is not None else None
-        return Answer(
-            kind="truth",
-            confidence=truth_confidence(truth) if truth is not None else 0.0,
-            truth=truth,
+        truth = as_number(raw.get("noul"))
+        return usable(
+            Answer(
+                kind="truth",
+                confidence=truth_confidence(truth) if truth is not None else 0.0,
+                truth=truth,
+            )
         )
-    confidence = float(raw.get("confidence") or 0.0)
+    confidence = _required(raw.get("confidence") or 0.0)
     if kind == "choice":
         chosen = raw.get("choice")
-        return Answer(
-            kind="choice",
+        return usable(
+            Answer(
+                kind="choice",
+                confidence=confidence,
+                choice=str(chosen) if chosen is not None else None,
+                probabilities=probabilities,
+            )
+        )
+    return usable(
+        Answer(
+            kind="score",
             confidence=confidence,
-            choice=str(chosen) if chosen is not None else None,
+            score=as_number(raw.get("score")),
             probabilities=probabilities,
         )
-    value = raw.get("score")
-    return Answer(
-        kind="score",
-        confidence=confidence,
-        score=float(value) if value is not None else None,
-        probabilities=probabilities,
     )
+
+
+def _required(value: Any) -> float:
+    """A number the wire must carry: missing or unparseable is NaN, which `usable` rejects."""
+    number = as_number(value)
+    return math.nan if number is None else number
 
 
 class JevDecider:
@@ -124,7 +142,7 @@ class JevDecider:
         try:
             import httpx
         except ImportError as error:  # pragma: no cover - exercised only without the extra
-            raise DeciderUnavailable("install sancho[jev] to use the Jev provider") from error
+            raise DeciderUnavailable("install sanchopanza[jev] to use the Jev provider") from error
         self._model = model
         self._price = price_per_mtok
         self._client = client or httpx.AsyncClient(

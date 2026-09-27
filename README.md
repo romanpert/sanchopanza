@@ -28,7 +28,9 @@ whether this page is worth reading, whether this citation holds, whether this sh
 is safe, happen dozens to hundreds of times per job, get paid at the large model's price, and
 leave no trace of why they were taken. Sanchopanza moves those to a model that returns a
 typed choice, a scale position or a probability, **never text**, at 29 millionths of a dollar
-and a quarter of a second. It attaches through the hooks and tools your harness already has.
+and a median latency, measured client-side, of 235-344 ms for most points and up to 546 ms
+for the pairwise dependency point. It attaches through the hooks and tools your harness
+already has.
 
 ```bash
 pip install sanchopanza[jev]     # TypeSafe Jev over HTTP
@@ -36,8 +38,8 @@ pip install sanchopanza[mcp]     # expose the decision points as MCP tools
 pip install sanchopanza          # core only: recorded, null, local and LLM providers
 ```
 
-Distribution, import and command are all `sanchopanza`; `sancho` is a short alias for the
-command. Python 3.11+. No required dependencies.
+Distribution, import and command are all `sanchopanza` (`sancho` on PyPI is an unrelated
+package). Python 3.11+. No required dependencies.
 
 ---
 
@@ -75,98 +77,120 @@ as it did before. That is the point: **the squire can only improve an agent, nev
 
 ---
 
+## Where it pays, and where it does not
+
+Measured, not argued. Each line links to the run behind it.
+
+| It pays | Measured |
+|---|---|
+| **Substituting a check some model was going to make anyway** (verify this citation, match this pair, check this triple) | Against Claude Opus 5 on the same 211 judgments, both arms metered: **131x cheaper and 10.9x faster**, 2 decisions less accurate at a plain 0.5 cut (202 against 204) and 4 under the shipped thresholds (200) ([paper, 5.13](docs/paper.md), [substitution](docs/results/2026-09-27-memory-write-cut/fifty/substitution.md)). Against Claude Haiku 4.5 with tool-forced output on 156 cases: **49x cheaper, 3x faster**, comparable accuracy ([paper, 5.6](docs/paper.md)) |
+| **Cheap guards with a false-alarm rate low enough to leave on** | The injection check raised **0 false alarms on 149 real tool outputs**; the question and a free keyword layer together catch 120 of 124 AgentDojo payloads ([bench](docs/results/2026-09-24-agentdojo/)). Marking flagged content costs 1 task in 42; redacting it costs 65 points of utility under attack; and in front of a model that already refuses the guard buys nothing, since undefended Sonnet 5 was compromised 0 times in 105 ([end to end](docs/results/2026-09-24-agentdojo-e2e/)). A tool window that widens on what the agent reads let 24 of 56 payloads add the attacker's tools without the scan, and 0 of 56 with it ([window](docs/results/2026-09-25-window/)) |
+| **Typed decisions whose confidence can be acted on** | 131 of 132 decisions above 0.75 confidence were right, against 11 of 24 below it. Choice answers are the best calibrated primitive (ECE 0.035, n = 392); Truth answers are under-confident (0.142, n = 182), so a policy can act only when confident and fall back to the harness default otherwise ([paper](docs/paper.md)) |
+| **Checking the agent's own "done" before it stops** | On 655 AgentDojo trajectories, labelled by the benchmark's own check of the environment's final state: believing the agent is right **52 %** of the time, one calibrated question **94 %** (AUC 0.98), 94.5 % on the held-out half. Blocking a stop below the derived cut was right 138 times in 147 held out. Shipped as an opt-in Claude Code Stop hook (`SANCHO_CHECK_DONE=1`); measured on AgentDojo tasks, not on coding sessions ([completion](docs/results/2026-09-25-completion/)) |
+| **Page selection that asks the right question** | On multi-part HotpotQA questions, labels by construction. Asking of each page alone whether it *contributes any fact the answer would use* kept both supporting paragraphs in **93.3 %** of 300 questions nothing was chosen on, with 52 % of the text, against **80.3 %** for BM25 given more text ([triage](docs/results/2026-09-25-triage/)). Asking all ten pages in one call, each with the others in view (`triage_pages`), keeps every supporting page in **98.3 %** of 300 new questions at 34 % of the text, against 94.3 % at 53 % asking page by page in ten calls; selecting sentences inside the kept pages (`select_sentences`) keeps every supporting sentence in **90.3 %** at 22 % ([chunks](docs/results/2026-09-27-chunks/)). Past what one call holds, a tournament (`triage_many`) on 100 pages per question kept both supporting pages in **96.5 %** of 200 held-out questions at **3.1 %** of the text in 5 calls; the groups alone kept 94.0 % at 4.3 %, and BM25 at the same page count 50.5 % ([hierarchy](docs/results/2026-09-27-hierarchy/)). And the kept text answers as well: with the reply forced into one short field, Claude Haiku 4.5 through the Claude Code CLI scored 70.0 % from all ten pages, **71.0 %** from the kept pages and **70.7 %** from the kept sentences, pre-registered, all three criteria holding; the claim is equality, not gain. A first run with free-length replies was negative as registered (81.0 % against 76.7 % and 76.0 %) because its containment score rewards long replies, and replies grew with the context ([answers](docs/results/2026-09-27-answers/)) |
+| **A calibrated first stage in front of Opus 5 for permissions** | Confirmed on data Opus had never seen, pre-registered: on ATBench-Codex the Jev-then-Opus cascade at tau 0.45 (fixed on R-Judge) scored **80.3 %** against Opus 5 alone at 79.9 % on the held-out half, at **38.8 %** of Opus's cost; the other half and all 500 replicate (79.1 % against 77.8 % at 38.5 %). On this set Jev alone matches Opus (78.2 %) and lets fewer unsafe actions through (false allows 14.9 % against 25.7 %) ([confirmation](docs/results/2026-09-27-cascade-frontier/)). On R-Judge, where Opus is clearly stronger, the registered rule at tau 0.80 reached Opus's 93.2 % at 57 % of the cost, over its 50 % bar: that fail stands ([cascade](docs/results/2026-09-25-cascade/)). The comparison against Sonnet 5 (P1, P2, P9) is not run |
+
+| It does not pay, or not yet | Measured |
+|---|---|
+| **A tool window where the platform already has tool search** | Sonnet 5, 40 AgentDojo tasks, 74 tools: success shows no detectable difference (loading everything 70/80 over two runs, the window 100/120 over three, the platform's search 31/40). Cost, estimated from recorded usage with the `tools` + `system` prefix shared between tasks: the window **0.77-0.88x** of loading everything, the search 1.48x; the window's time is 0.91x ([e2e](docs/results/2026-09-25-e2e/), [cost basis](docs/results/2026-09-25-cache/)). On a real MCP catalog of 398 tools the platform's search is the cheaper, an estimated **0.34x against the window's 0.54x** of loading everything with the prefix shared, at the same success (8/9 each, 7/9 for loading everything): the window opened the 121-tool Google Workspace server in 11 of 17 tasks ([wide](docs/results/2026-09-25-wide/)). Inside Claude Code, a sanchopanza hook changed nothing measurable over its own deferred tool search |
+| **Keeping pages out of the context with a relevance question** | Asking whether a page *addresses the purpose* fails on purposes with several parts: at its shipped cut it kept both supporting paragraphs in 19.7 % of 300 multi-part questions. With the document sequence held fixed, page triage cut input tokens by **75.2 % [-86.8 %, -63.9 %]** and correct answers from **10/10 to 6/10**: one result, and neither half is quoted without the other ([fixed sequence](docs/results/2026-09-24-fixed-sequence/)). In an agent loop that fetched one or two documents per task, 64 paired runs showed no measurable change in cost and 11 to 16 % more wall time ([A/B](benchmarks/ab)). Use `triage_part` or `triage_pages`, above |
+| **Compression on whole documents** | Not shown. `triage_many` with the shipped cuts on 300 whole QASPER papers (49 paragraphs on average), pre-registered: all evidence kept in **94.7 %**, 16.3 points over BM25 at the same paragraph count, but **48.9 %** of the text kept against a criterion of 25 %: not confirmed. The recall transfers, the compression does not, because a paper is one topic end to end. Sentences inside the kept paragraphs (`select_sentences`, pre-registered, QASPER's highlighted evidence) bring it to **31.5 %** with every answer sentence kept in **83.1 %**, 31 points over BM25 with the same text; criteria 85 % and 25 %: not confirmed either ([longdocs](docs/results/2026-09-27-longdocs/)) |
+
+The rule that falls out of it: a cheap decision pays reliably when it **replaces** a call,
+because the saving is then a price ratio and not a bet on the workload's shape. It pays
+unreliably when it tries to keep tokens out of a context, because inside a warm loop those
+tokens are priced at the cache-read rate. And it pays a third way that is not a saving at
+all: at 29 millionths a decision, checks that were too expensive to run on everything become
+cheap enough to run on everything. The full argument and the catalog of levers ranked by how
+sure we are: **[docs/where-it-pays.md](docs/where-it-pays.md)**.
+
+**The tool window, stated plainly.** It is correct (no needed group missed on 97 trajectories
+and 40 three-task sessions, in-sample) and safe (with the injection scan no payload widened
+it, also in-sample), and it keeps the prompt cache. Its cost case is weak where the platform offers tool
+search. Use it where the platform has no tool search, or where the catalog is small; the open
+problem is the unit, since a group the size of a whole MCP server is loaded whole.
+
+---
+
 ## What it decides
 
 | Method | Decides | Measured |
 |---|---|---|
 | `route_task` | Which model tier a subtask deserves | 17/20 raw; **11/11** when acting above 0.75 confidence; a small LLM got 8/20 |
 | `route_search` | Repeat, cheap engine, or the paid one | **17/18** |
-| `triage_page` | Whether a page enters the context, and whether it carries injected instructions | relevance 14/16; injection **28/28, AUC 1.00** against a regex 23/28 |
+| `triage_page` | Whether a page enters the context, and whether it carries injected instructions | Relevance 14/16. Injection: **27/28** under the policy on the public bench, AUC 1.00; on AgentDojo the question catches 101/124, the keyword layer 115/124, the two together **120/124**, with **0/149 false alarms** ([read this before quoting it](docs/results/2026-09-24-agentdojo/)) |
 | `verify_citation` | supported / contradicted / unsupported / fabricated / review | **19/20**; with numbers 23/24 |
 | `evaluate_plan` | Priority, saturation, tier, dependencies as a DAG with parallel waves | pairwise **20/20**; full DAG 100 % precision, 88 % recall after code cleanup |
 | `review_report` | Whether a subagent's report names its sources | **21/22** |
 | `guard_command` | Adds a denial on a dangerous shell command, never an approval | 29/32 alone; **31/32 with the code deny-list, zero false positives** |
 | `same_entity` | Whether two mentions are the same real-world entity | **24/24** |
-| `relate_facts` | agree / conflict / unrelated | 16/20, not yet integrated |
+| `relate_facts` | agree / conflict / unrelated | **35/39 when it decides** on 50 cases, abstaining on 11 of them. It never confuses `conflict` with `unrelated`, and it reaches `unrelated` only 2 times in 12: that option is the one whose criteria carry no examples ([detail](docs/results/2026-09-24-fourth-batch/)). Its abstentions are diagnosed, not changed: one gate serves all three options although `unrelated` triggers no action ([edge-facts](docs/results/2026-09-27-edge-facts/)). Not integrated |
 | `classify` | Free text into a closed vocabulary, with abstention | **80-85 %** against independent labels; majority baseline 43-62 % |
-| `select_tools` | Which groups of a large tool catalog a request needs | accuracy not yet measured; **the wiring is**, and it is the one that can cost you money: [read this first](benchmarks/cache/results/summary.md) |
-
-Added in 0.2.0, first run measured on 124 new cases
-([results](docs/results/2026-09-24-new-points/summary.md)):
-
-| Method | Decides | Measured |
-|---|---|---|
-| `check_loop` | Whether the goal is already met, or a check repeats one already run | **14/14** and **12/12**, AUC 1.00. Attacks the largest measured waste in an agent loop: 18x the clean-run cost, no success gain |
-| `remember` | Whether a fact is worth writing to long-term memory | **16/16**, AUC 1.00 |
-| `reconcile` | Whether a new fact contradicts, duplicates or complements a stored one | **14/16**; recency stays in code, because dates are the model's declared weakness |
-| `needs_recall` | Whether a turn needs a memory lookup at all | **14/14**, AUC 1.00, ECE 0.051 |
+| `select_tools` | Which groups of a large tool catalog a request needs, once, before the first request | **91/97** AgentDojo tasks keep every group they need on the recorded run; a live run of the same states kept 92/97 at 77 % less catalog, and a live run on a 248-group catalog **94/97 at 88 % less**. BM25 over the same catalog and budget: 38/97. The misses are groups the request does not name ([what it is for, and where it fails](docs/results/2026-09-24-tools/)) |
+| `check_loop` | Whether the goal is already met, or a check repeats one already run | **12/14** and **12/12** under the policy, AUC 1.00; with the second batch, **46/50** and **50/50**, zero false alarms ([rescored](docs/results/2026-09-25-pending/)). Attacks the largest measured waste in an agent loop: 18x the clean-run cost, no success gain |
+| `triage_part` | Whether a page holds any fact the answer needs, even one step of it | **93.3 %** of 300 multi-part questions keep both supporting paragraphs at 52 % of the text; BM25 80.3 % with more ([triage](docs/results/2026-09-25-triage/)) |
+| `triage_pages`, `select_sentences` | Which of a set of pages, and which of their sentences, the answer needs, each judged with the rest in view | **98.3 %** of 300 new questions keep every supporting page at 34 % of the text in one call, against 94.3 % at 53 % page by page; with sentences, **90.3 %** keep every supporting sentence at **22 %** ([chunks](docs/results/2026-09-27-chunks/)) |
+| `triage_many` | `triage_pages` for any number of pages: one call up to 30, past that groups at a lenient cut (`Thresholds.pages_first_round`, 0.18, derived) and the survivors judged together at 0.40 | 100 pages per question, 200 held-out HotpotQA questions: both supporting pages kept in **96.5 %** at **3.1 %** of the text in 5 calls; groups alone 94.0 % at 4.3 %; BM25 at the same page count 50.5 %. After LATTICE (arXiv:2510.13217). The 90 added pages are off-topic, and a third round is unmeasured ([hierarchy](docs/results/2026-09-27-hierarchy/)) |
+| `check_done` | Whether the transcript shows the request actually done | **94 %** on 655 AgentDojo trajectories against 52 % for the agent's own word; AUC 0.98 ([completion](docs/results/2026-09-25-completion/)) |
+| `remember` | Whether a fact is worth writing to long-term memory | One cut of **0.54** on the weakest margin, derived on half of 100 cases to an 80 % precision target and pre-registered: on the held-out half **39/49 with 1** fact labelled skip stored (the three-question conjunction it replaced: 37/49 with 2); on 108 cases never used for any threshold, **74 with 1** (conjunction: 60 with 4) ([cut](docs/results/2026-09-27-memory-write-cut/)). It stores 4 of 36 standing client instructions; the opt-in fourth question fixes that family: `remember(ask_common=True)` scores **45/48** on a batch written before it was measured, where the shipped cut scores 37/48, keeping 32-35 of the 36 ([numbers and the trade](docs/results/2026-09-25-window/memory.md)) |
+| `reconcile` | Whether a new fact contradicts, duplicates or complements a stored one | **46/50**, all four errors into `keep_both`; every branch fires. Recency stays in code, because dates are the model's declared weakness |
+| `needs_recall` | Whether a turn needs a memory lookup at all | **14/14** on the first bench, AUC 1.00, ECE 0.049; **50/50** with the second batch |
 | `gate_extraction` | Whether a chunk is worth a generative extraction call | **15/16**, AUC 1.00 |
-| `verify_edge` | Whether the text states a proposed triple, in that direction | 15/17 when deciding; **8 edges committed, 0 of them wrong** |
-| `triage_redundant` | Whether a page repeats what the agent already holds | **14/16**, 15/16 at a plain 0.5 cut, AUC 1.00 |
+| `verify_edge` | Whether the text states a proposed triple, in that direction | 31/38 when deciding on 50 cases; **17 edges committed, 1 of them backwards** ([detail](docs/results/2026-09-24-fourth-batch/)). The misses clustered on actions and passives; a `direction` question worded by roles, tested on a pre-registered fifth batch, caught **10 of 12** reversed edges against 5 with no wrong commit, and is the default since ([fifth batch](docs/results/2026-09-27-edge-facts/fifth-batch.md)) |
+| `triage_redundant` | Whether a page repeats what the agent already holds | **116/125**, AUC 1.00. Its threshold is **derived** rather than chosen: 0.59 to a 90 % precision target, 100 % precision held out ([how](docs/results/2026-09-24-third-batch/)) |
 
-> **What that run found, and what it turned out to be.** Across the six binary points the
-> model is right **86 times out of 88** at a plain 0.5 cut, with **AUC 1.00 on every one**:
-> no error is an ordering error. Under the shipped policy it was 78 of 88, and the eight
-> lost decisions looked like conservative thresholds. They were not. For a Truth answer from
-> this model, `confidence` is exactly `|2p - 1|` - 651 recorded answers, zero deviation - so
-> a policy asking for both `p >= 0.70` and `confidence >= 0.60` was asking for `p >= 0.80`,
-> and the threshold named in the configuration was not the one in force. Removing the
-> redundant gate changed **no threshold value** and closed the gap to three decisions:
-> **85 of 88**.
+| Class (0.3.0) | Decides | Measured |
+|---|---|---|
+| `ToolWindow` | Which tool groups the agent holds as the work moves: opened from the request, widened on each new user turn and after each tool result it reads, once that result passes the injection scan. It never swaps or removes, so the prompt cache survives | 0 missed groups on 97 trajectories and 40 three-task sessions, where selecting once misses 6 and 124 (in-sample). End to end, see the table above ([results](docs/results/2026-09-25-e2e/), [mechanism](docs/results/2026-09-25-window/)) |
 
-Full method, intervals and caveats: [the paper](docs/paper.md). Benches and how to run them:
-[docs/benches.md](docs/benches.md).
+> **Two gates on one number are one gate.** For a Truth answer from this model,
+> `confidence` is exactly `|2p - 1|` (651 recorded answers, zero deviation), so a policy that
+> asks for both a probability and a confidence is asking for one stricter probability. The
+> shipped policy gates each probability once. On the six binary points of the 124-case bench
+> it is right **82 times out of 88**, with **AUC 1.00 on every one**: no error is an ordering
+> error, and every error is a refusal to act. A Choice answer follows the same identity,
+> rescaled: `confidence = (p_top - 1/k) / (1 - 1/k)` to within 0.022 over 7,162 recorded
+> answers ([edge-facts](docs/results/2026-09-27-edge-facts/)).
 
-> **The result that matters is not accuracy, it is separation.** 131 of 132 decisions above
-> 0.75 confidence were right, against 11 of 24 below it. Thirteen of the model's fourteen
-> errors carried confidence below 0.75. A small LLM's self-reported confidence did not
-> separate its errors at all. That is what lets a policy act only when confident and fall back
-> to the harness default otherwise.
+Every figure is quoted from a recording and pinned by a replay test, because the provider is
+not deterministic across a day: the same state, asked again of the same pinned version, moved
+by up to 0.09. Full method, intervals and caveats: [the paper](docs/paper.md). Benches and
+how to run them: [docs/benches.md](docs/benches.md).
 
 ---
 
-## What it costs, honestly
+## What it costs
 
 | | |
 |---|---|
 | One decision | **29 millionths of a dollar**, output included, because this model's output is free |
-| **Measured against Claude Opus 5, the same 211 judgments, both arms metered** | **131x cheaper, 10.9x faster, two decisions less accurate** |
+| **Against Claude Opus 5, the same 211 judgments, both arms metered** | **131x cheaper, 10.9x faster, two decisions less accurate** |
 | The same tokens on Claude Sonnet 5, input only | **48x** more |
 | The same tokens as a Sonnet 5 **cache read** (0.1x input) | **4.8x** more, and this is the honest comparison inside a warm loop |
-| Measured against Claude Haiku 4.5, tool-forced, same cases | **49x cheaper, 3x faster**, comparable accuracy |
+| Against Claude Haiku 4.5, tool-forced, same cases | **49x cheaper, 3x faster**, comparable accuracy |
 | Against a hosted evaluation meter (Azure, Vertex legacy), per 1,000 judgments | 0.029 USD against about 42 USD: **~1,450x** |
 
 The second row is the one to read, because both sides of it are measured rather than quoted
 from a tariff. Building a second annotator for our own bench meant asking a frontier model
 the same 211 judgments, from the same question builders, blind to the labels. It agreed with
-the labels **204/211**; we agreed **202/211** at a plain 0.5 cut and **190/211** under the
-thresholds we ship. So the frontier model is the better judge, by two decisions once our own
-thresholds are taken out of it — and it costs 131 times more per judgment and answers eleven
-times slower. That is the trade, stated in the direction that does not flatter us:
-[docs/results/2026-09-24-fifty/substitution.md](docs/results/2026-09-24-fifty/substitution.md),
-reproduce with `python benchmarks/substitution.py`.
+the labels **204/211**; the evaluator agreed **202/211** at a plain 0.5 cut and **200/211**
+under the thresholds it ships with. So the frontier model is the better judge, by two
+decisions once the thresholds are taken out of it, and it costs 131 times more per judgment
+and answers eleven times slower. That is the trade, stated in the direction that does not
+flatter this package ([paper, 5.13](docs/paper.md),
+[substitution](docs/results/2026-09-27-memory-write-cut/fifty/substitution.md)). It
+reproduces for free from the recording and the second annotator's files:
 
-**There is no headline saving percentage on this page, and that is deliberate.** We ran the
-end-to-end A/B ([benchmarks/ab](benchmarks/ab)) instead of guessing. Across 64 paired runs,
-two retrieval conditions and two document sizes, page triage **did not measurably change
-cost** (every interval spans zero) and added 11 to 16 % wall time (both intervals exclude
-zero). It lost no answers. The reason is visible in the runs: our tasks fetched one or two
-documents each, and the lever only bites when an agent fetches many and most are useless.
+```bash
+sanchopanza bench benches/loop-b.jsonl benches/memory-b.jsonl benches/graph-build-b.jsonl \
+    benches/retrieval-b.jsonl --provider recorded --fixture fixtures/new-points-50-v2.jsonl --out DIR
+cp docs/results/2026-09-27-memory-write-cut/fifty/annotator-* DIR/
+python benchmarks/substitution.py --results DIR
+```
 
-So: **add Sanchopanza for the safety and quality decisions, which are measured, not for the
-bill, which we could not demonstrate in our own agent.** The break-even arithmetic and the
-fetch-heavy experiment that would settle the cost question are in
-[docs/savings.md](docs/savings.md) and [benchmarks/](benchmarks/).
-
-**Where it does pay, and why the A/B could not see it.** A cheap decision pays reliably when
-it *replaces* a call some model was going to make anyway (verify this citation, match this
-pair, check this triple, screen this page), because then the saving is a price ratio and not
-a bet on the workload's shape. It pays unreliably when it tries to keep tokens out of a
-context, which is what our A/B measured. And it pays a third way that is not a saving at
-all: at 29 millionths a decision, checks that were too expensive to run on everything become
-cheap enough to run on everything. The full argument, the catalog of levers ranked by how
-sure we are, and the four things you should *not* use a decision model for, are in
-**[docs/where-it-pays.md](docs/where-it-pays.md)**.
+There is no headline saving percentage on this page. The break-even arithmetic and the
+experiments that bound it are in [docs/savings.md](docs/savings.md) and
+[benchmarks/](benchmarks/).
 
 **And one way to lose money with it.** Tool definitions sit at the front of the prompt
 prefix, so rewriting them invalidates the tools, system and message caches at once. Measured
@@ -174,7 +198,9 @@ over 8 turns on Claude Sonnet 5: narrowing the catalog **once** is 43 % cheaper 
 narrowing, narrowing it on alternate turns is 14 % *dearer* than not narrowing, and a
 selector that picks a different subset every turn reads **nothing** from cache and costs
 4.15x the one that decided once ([benchmarks/cache](benchmarks/cache/results/summary.md)).
-Same decision, different moment, opposite sign.
+Same decision, different moment, opposite sign. The same mechanism applies to any benchmark
+of tool presentation: tasks must share the `tools` + `system` cache prefix the way a
+production harness does, or the arms with a fixed catalog are overcharged.
 
 ---
 
@@ -197,6 +223,7 @@ flowchart LR
     D --> J[Jev / TypeSafe]
     D --> L[Local classifier / vision]
     D --> M[LLM forced to a schema]
+    D --> CLI[LLM through claude -p]
     D --> R[Recorded fixture]
     A -.-> PRE --> G
     O -.-> POST --> G
@@ -210,7 +237,7 @@ flowchart LR
 | `sanchopanza.points` | The questions of each decision point, verbatim as measured, plus a pure policy function per point |
 | `sanchopanza.squire` | One decider, one `Thresholds`, one journal, one budget. Fail-open, capped, traced |
 | `sanchopanza.harness` | `Guardian` (tool call in, verdict out) and the per-harness adapters |
-| `sanchopanza.providers` | `jev`, `recorded`, `null`, `llm`, `local`, plus `FallbackDecider` and `RoutedDecider` |
+| `sanchopanza.providers` | `jev`, `recorded`, `null`, `llm`, `claude-cli`, `local`, plus `FallbackDecider`, `RoutedDecider` and `CascadeDecider` |
 | `sanchopanza.eval` | Bench runner and statistics, in plain Python: Wilson, bootstrap, McNemar, AUC, Brier, ECE |
 
 ### Four invariants
@@ -226,7 +253,9 @@ flowchart LR
    cached prefix: before the first request of a session, on content about to be appended, or
    inside a tool the agent called anyway. Never by rewriting `tools`, `system` or history
    mid-session. This one is measured, not assumed: getting it wrong costs 4.15x
-   ([benchmarks/cache](benchmarks/cache/results/summary.md)).
+   ([benchmarks/cache](benchmarks/cache/results/summary.md)). The tool window keeps it: it
+   grows only through channels that append (`tool_addition`, `tool_reference` results) and
+   never removes, because removal reclaims no tokens.
 
 More: [docs/architecture.md](docs/architecture.md).
 
@@ -237,10 +266,11 @@ More: [docs/architecture.md](docs/architecture.md).
 | Harness | How | Status |
 |---|---|---|
 | **Claude Agent SDK** | `hooks=hook_matchers(guardian)` | Hook shapes tested |
-| **Claude Code** | A command hook pointed at `sanchopanza hook` | Tested end to end |
+| **Claude Code** | A command hook pointed at `sanchopanza hook` | Tested through `handle()`, stdin JSON to stdout JSON |
 | **MCP client** (Cursor, Codex, Copilot, Hermes, yours) | `build_server(squire).run()` | Parsers tested |
 | **OpenAI Agents SDK** | `tool_guardrail(guardian)` | Shape tested |
-| **LangChain / LangGraph** | `ToolSelectMiddleware(squire)` | Shape tested |
+| **Anthropic Messages API** | `WindowedTools(window, tools_by_group, model=...)`: the whole catalog deferred, `tool_addition` on Opus 5 (end to end) and Opus 4.8 / Fable (shape only), a `load_tools` tool elsewhere | Shapes checked against `count_tokens`; **measured end to end** |
+| **LangChain / LangGraph** | `ToolSelectMiddleware(squire, key_of=thread_id)`: one append-only window per conversation | Shape tested |
 | **Anything else** | `await guardian.before_tool(ToolCall(name, args))` returns allow, deny with a reason, or rewrite with new arguments | |
 
 <details>
@@ -289,6 +319,37 @@ build_server(squire).run()
 Tools: `verify_citation`, `evaluate_plan`, `align_entities`, `classify_field`, `triage_text`.
 </details>
 
+<details>
+<summary><b>Anthropic Messages API: a tool window</b></summary>
+
+```python
+from sanchopanza import ToolWindow
+from sanchopanza.harness.messages_api import WindowedTools, accepts_tool_addition
+
+# catalog: [{"name": "email", "about": "...", "requires": [...]}, ...]; tools_by_group: name -> schemas
+# Waiting to read deferred content only pays where the widening can reach the model unasked.
+window = ToolWindow(squire, catalog, always={"clock"},
+                    wait_on_deferred=accepts_tool_addition("claude-sonnet-5"))
+await window.open(user_request)
+wt = WindowedTools(window, tools_by_group, model="claude-sonnet-5")
+tools = wt.tools()                      # identical on every request: the cache survives
+messages = [{"role": "user", "content": user_request}, *wt.opening()]
+
+# in the loop, for each tool call:
+if call.name == "load_tools":
+    result = await wt.load(call.id, call.input["need"])       # references only
+else:
+    text = run(call)
+    change = await window.observe(text, trust="tool")         # scanned, then widened
+    messages += wt.after(change)        # a tool_addition system message on Opus 5, Opus 4.8, Fable
+```
+
+The window only grows: `tool_removal` reclaims no tokens (measured), so removing would only
+cost. A tool result that the injection scan flags taints the window until the next user
+turn, and `load_tools` is refused meanwhile - a model that has read an injection asks for
+tools in the attacker's words.
+</details>
+
 Details per harness, including what is tested and what is not:
 [docs/adapters.md](docs/adapters.md).
 
@@ -310,7 +371,14 @@ squire = Squire(FallbackDecider([local, create("jev")]))  # local first, hosted 
 
 `RoutedDecider({"guard": on_prem}, default=hosted)` keeps one decision point in your building.
 `LLMDecider(anthropic_completer(...))` forces any chat model into the same schema, with the
-caveat, measured, that an LLM's self-reported confidence does not separate its errors. Vision
+caveat, measured, that an LLM's self-reported confidence does not separate its errors.
+`create("claude-cli", model=..., ceiling_usd=..., cache_path=...)` is the same `LLMDecider`
+run through `claude -p`: billed to the account `claude` is logged into, never to an API key
+(the session's environment drops every `ANTHROPIC_*`, `CLAUDE_CODE_USE_*` and
+`AWS_BEARER_TOKEN_BEDROCK` variable), with a hard ceiling and a disk cache. A number from that path is not
+placed beside an API number without a check: with free-length replies the CLI scored 74.7 %
+where the Batch API scored 67.7 % on the same prompts; with the reply forced into one short
+field, 67.0 % against 67.7 % ([answers](docs/results/2026-09-27-answers/)). Vision
 models plug in through `LocalDecider` with the image reference in the state. Third-party
 packages register providers under the `sanchopanza.providers` entry-point group.
 
@@ -321,17 +389,43 @@ Writing one: [docs/providers.md](docs/providers.md).
 ## Measure before you trust
 
 ```bash
-sanchopanza bench benches/*.jsonl --provider recorded --fixture fixtures/public-benches.jsonl
+sanchopanza bench benches/core.jsonl benches/safety.jsonl benches/graph.jsonl \
+    --provider recorded --fixture fixtures/public-benches.jsonl
 sanchopanza bench mycases.jsonl --provider jev --record fixtures/mine.jsonl --out results/today
 ```
 
-The first command replays a real run from a recording, costs nothing and reproduces every
-number in the paper. Both print agreement when deciding, coverage, Wilson intervals, AUC,
+The first command replays a real run from its recording, costs nothing and reproduces the
+public run ([paper, Section 5.9](docs/paper.md)); Appendix A of the paper lists each bench's
+fixture. Both print agreement when deciding, coverage, Wilson intervals, AUC,
 Brier, expected calibration error, agreement by confidence band and calibration by primitive.
 
+**Quote from the recording.** Pinning the model version keeps the thresholds meaningful, but
+it does not make an answer reproducible: identical states moved by up to 0.09 within a day. A
+decision within about 0.1 of its cut is a coin flip between runs, so a live rerun is a new
+sample, and a number worth publishing is recorded with `--record` and pinned by a replay test.
+
 **The rule for thresholds:** one moves when that decision point has 50 cases, a second
-annotator, and a confidence-band table that justifies the move. The shipped defaults were
-fixed before the runs that measured them and have not been tuned on the results.
+annotator, and a confidence-band table that justifies the move, or when it is derived to a
+target on one set and checked on another. Page redundancy's `adds_nothing` (0.59) and
+`memory_write`'s cut (0.54) are derived to a precision target; the cuts of the page and
+sentence selection points, including the tournament's first round (0.18), to a recall target
+on HotpotQA; each result README gives the rule. The other defaults were fixed before the
+runs that measured them and have not been tuned on the results.
+
+### What is open
+
+- **Whole documents.** Paragraphs then sentences keep about a third of a paper with the
+  answer whole in five questions of six ([longdocs](docs/results/2026-09-27-longdocs/)). What
+  would get below 25 % is unmeasured; a lower sentence cut would have to be derived on one set
+  of papers and tested on another.
+- **The permission cascade against Sonnet 5** (P1, P2, P9 of 2026-09-25), not run.
+- **`relate_facts`.** The `unrelated` gate at 0.5 and examples on `unrelated` did not beat the
+  shipped question on the fifth batch; its errors stay as documented
+  ([fifth batch](docs/results/2026-09-27-edge-facts/fifth-batch.md)).
+- **The unit of the tool window**, through the tournament over the sub-groups of a large
+  server. An idea, unmeasured.
+- **Long documents**, by the same descent: document, then sections, then sentences.
+  Unmeasured.
 
 ---
 
@@ -343,11 +437,12 @@ fixed before the runs that measured them and have not been tuned on the results.
   injected into its state. It may add a denial on top of a deterministic list; it never grants
   permission.
 - **Not an explainer.** The audit trail is probabilities, not prose.
-- **Not a silver bullet for cost.** See the A/B. It pays when documents are large or
-  retrieval is noisy, and it costs latency always.
-- **Not a competitor to your harness's own tool search.** Anthropic's appends schemas instead
-  of swapping them, so it keeps the cache; ours would have to rewrite `tools`. Where a tool
-  search exists, use it, and keep the squire for decisions it does not make.
+- **Not a silver bullet for cost.** It pays reliably when it replaces a model call; keeping
+  tokens out of a context is a bet on the workload, and every decision adds latency.
+- **Not a replacement for the platform's tool search.** On a 398-tool catalog the platform's
+  search matched the tool window's success at a lower cost, and inside Claude Code a hook
+  added nothing measurable. Where a tool search exists, use it, and keep the squire for the
+  decisions it does not make.
 - **Not a substitute for a probe.** It chooses between the options you tell it exist. If one
   of them does not, it will route work into the hole confidently, and nothing will fail.
 
@@ -357,20 +452,28 @@ fixed before the runs that measured them and have not been tuned on the results.
 
 ```
 src/sanchopanza/       the package
-benches/               public benches: core 74, safety 106, graph 64 + one plan,
-                       and 124 more for memory, graph building, redundancy and the loop
-fixtures/              two recorded real runs, so tests and CI cost nothing
+benches/               public benches: core 74, safety 106, graph 64 + one plan, the
+                       memory, graph-building, redundancy and loop batches, and 273
+                       injection cases harvested from AgentDojo (docs/benches.md)
+fixtures/              recorded real runs, so tests and CI cost nothing
 benchmarks/ab/         the end-to-end A/B: corpus, tasks, runner, results
 benchmarks/cache/      what narrowing a tool catalog costs, per turn against once
+benchmarks/agentdojo/  injection, tool selection, the tool window, end to end
+benchmarks/mcp_wide/   the tool window against a real 398-tool MCP catalog
+benchmarks/chunks/     pages and sentences in context on HotpotQA, and the answering runs
+benchmarks/hierarchy/  the tournament over 100 pages per question
+benchmarks/cascade/    the permission cascade and its post-hoc frontier
 skills/sanchopanza/    a skill for coding agents that wire this in
 docs/paper.md          the working paper
+docs/results/          one directory per run, each with the report behind its figures
 docs/savings.md        what it costs, and the break-even arithmetic
 docs/where-it-pays.md  which decisions are worth taking, ranked by how sure we are
 docs/architecture.md   diagrams and the invariants
 docs/adapters.md       one section per harness
 docs/providers.md      how to write a provider
+docs/evolve.md         the interface a self-improving harness uses to tune this package
 docs/governance.md     branch protection, PyPI trusted publishing, releasing
-examples/              Claude Code, Claude Agent SDK, MCP, a local provider
+examples/              Claude Code, Claude Agent SDK, MCP, a local provider, evolve
 tests/                 no test calls a paid API
 ```
 

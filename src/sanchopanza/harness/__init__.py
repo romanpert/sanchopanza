@@ -11,6 +11,6 @@ for the orchestrator comes out. Every concrete adapter is a thin translation of 
 - `openai_agents`: a tool guardrail function in the shape the OpenAI Agents SDK expects.
 """
 
-from .generic import Guardian, HarnessConfig, ToolCall, Verdict
+from .generic import Guardian, HarnessConfig, Note, ToolCall, Verdict
 
-__all__ = ["Guardian", "HarnessConfig", "ToolCall", "Verdict"]
+__all__ = ["Guardian", "HarnessConfig", "Note", "ToolCall", "Verdict"]

@@ -1,0 +1,53 @@
+# memory_write, sixth batch: 36 cases written BEFORE variant P3 was measured.
+#
+# The fifth batch (memory-e) confirmed the pre-registered `common` question (P1: 45/48 against
+# 25/48 shipped). Its residual errors, and the earlier batches', located two gaps: P1 drops
+# `specific` entirely, so vacuous pointers ("there is relevant information in several sources",
+# specific 0.02-0.03) are stored; and `derivable` misses verbatim details of a document the
+# agent already holds (0.59-0.70, under its 0.75 cut) under every policy.
+#
+# P3, pre-registered 2026-09-25 from those EXPOSED cases, which is why it needs this batch:
+# P1 plus a floor `specific >= 0.15`, the midpoint between the pointers seen (<= 0.03) and the
+# lowest legitimate instruction seen (0.33). The derivable gap is NOT addressed by P3; family
+# H is here to measure it on fresh cases, not to fix it.
+#
+# Same label rule as memory-e. Written 2026-09-25 by Claude with no model answer seen.
+#   E  vacuous pointers and generalities (skip)          - what P3's floor is for
+#   F  standing instructions, new phrasings (store)      - what the floor must not break
+#   H  verbatim details of a document already held (skip) - the derivable gap, measured only
+{"id": "mw-301", "point": "memory_write", "input": {"fact": "Existen varios documentos que podrian servir mas adelante."}, "expected": "skip"}
+{"id": "mw-302", "point": "memory_write", "input": {"fact": "There is useful material about the director online."}, "expected": "skip"}
+{"id": "mw-303", "point": "memory_write", "input": {"fact": "El caso tiene bastante recorrido en prensa."}, "expected": "skip"}
+{"id": "mw-304", "point": "memory_write", "input": {"fact": "Several registries contain information that is relevant to the investigation."}, "expected": "skip"}
+{"id": "mw-305", "point": "memory_write", "input": {"fact": "Hay datos interesantes sobre las sociedades del grupo."}, "expected": "skip"}
+{"id": "mw-306", "point": "memory_write", "input": {"fact": "The topic has been covered by a number of sources over the years."}, "expected": "skip"}
+{"id": "mw-307", "point": "memory_write", "input": {"fact": "Conviene revisar mas fuentes sobre este asunto."}, "expected": "skip"}
+{"id": "mw-308", "point": "memory_write", "input": {"fact": "There may be more to find about this company."}, "expected": "skip"}
+{"id": "mw-309", "point": "memory_write", "input": {"fact": "La empresa aparece mencionada en distintos sitios."}, "expected": "skip"}
+{"id": "mw-310", "point": "memory_write", "input": {"fact": "Some of the documents seem to be related to each other."}, "expected": "skip"}
+{"id": "mw-311", "point": "memory_write", "input": {"fact": "Hay informacion publicada sobre los contratos."}, "expected": "skip"}
+{"id": "mw-312", "point": "memory_write", "input": {"fact": "The case is complex and involves many parties."}, "expected": "skip"}
+{"id": "mw-313", "point": "memory_write", "input": {"fact": "El cliente quiere que las citas textuales vayan siempre en su idioma original, con la traduccion al lado."}, "expected": "store"}
+{"id": "mw-314", "point": "memory_write", "input": {"fact": "The client does not want speculation in the report; if something is not documented, it is left out."}, "expected": "store"}
+{"id": "mw-315", "point": "memory_write", "input": {"fact": "Acordamos que cualquier contacto con periodistas lo decide el cliente, nunca nosotros."}, "expected": "store"}
+{"id": "mw-316", "point": "memory_write", "input": {"fact": "The client asked that we flag every source that is paywalled so their team can buy access if needed."}, "expected": "store"}
+{"id": "mw-317", "point": "memory_write", "input": {"fact": "El cliente prefiere que los nombres de empresas se escriban tal como figuran en el registro, con su forma juridica."}, "expected": "store"}
+{"id": "mw-318", "point": "memory_write", "input": {"fact": "The client wants the executive summary to fit on one page."}, "expected": "store"}
+{"id": "mw-319", "point": "memory_write", "input": {"fact": "Quedo acordado que no se investiga la vida privada del directivo, solo su actividad empresarial."}, "expected": "store"}
+{"id": "mw-320", "point": "memory_write", "input": {"fact": "The client asked us to treat anonymous forum posts as leads only, never as evidence."}, "expected": "store"}
+{"id": "mw-321", "point": "memory_write", "input": {"fact": "El cliente pide que las fuentes se citen con enlace y fecha de consulta."}, "expected": "store"}
+{"id": "mw-322", "point": "memory_write", "input": {"fact": "The client does not want the investigation to reach the subject's relatives."}, "expected": "store"}
+{"id": "mw-323", "point": "memory_write", "input": {"fact": "Acordamos entregar avances semanales aunque no haya hallazgos nuevos."}, "expected": "store"}
+{"id": "mw-324", "point": "memory_write", "input": {"fact": "The client asked that amounts be shown with the original currency next to the conversion."}, "expected": "store"}
+{"id": "mw-325", "point": "memory_write", "input": {"fact": "El contrato descargado lleva fecha de firma 3 de febrero de 2023."}, "expected": "skip"}
+{"id": "mw-326", "point": "memory_write", "input": {"fact": "The annual report we downloaded lists 214 employees at year end."}, "expected": "skip"}
+{"id": "mw-327", "point": "memory_write", "input": {"fact": "La resolucion que tenemos abierta esta firmada por la directora general de Industria."}, "expected": "skip"}
+{"id": "mw-328", "point": "memory_write", "input": {"fact": "The PDF of the ruling we saved names the judge as M. Alvarez."}, "expected": "skip"}
+{"id": "mw-329", "point": "memory_write", "input": {"fact": "El acta que descargamos recoge la junta del 12 de mayo en el domicilio social."}, "expected": "skip"}
+{"id": "mw-330", "point": "memory_write", "input": {"fact": "The downloaded filing gives the registered office as Calle Mayor 14, Zaragoza."}, "expected": "skip"}
+{"id": "mw-331", "point": "memory_write", "input": {"fact": "La escritura que tenemos indica un capital social de 60.000 euros."}, "expected": "skip"}
+{"id": "mw-332", "point": "memory_write", "input": {"fact": "The saved press release is dated 9 October and quotes the CEO twice."}, "expected": "skip"}
+{"id": "mw-333", "point": "memory_write", "input": {"fact": "El informe de auditoria descargado tiene opinion con salvedades."}, "expected": "skip"}
+{"id": "mw-334", "point": "memory_write", "input": {"fact": "The court document in our folder lists three defendants."}, "expected": "skip"}
+{"id": "mw-335", "point": "memory_write", "input": {"fact": "La pagina 12 del expediente que guardamos contiene el informe del perito."}, "expected": "skip"}
+{"id": "mw-336", "point": "memory_write", "input": {"fact": "The tender document we have open sets the deadline at 14:00 on the 30th."}, "expected": "skip"}

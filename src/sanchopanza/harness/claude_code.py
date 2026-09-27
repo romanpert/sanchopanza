@@ -16,6 +16,20 @@ Configuration is by environment, because a hook process has nothing else:
     SANCHO_JOURNAL    path of the JSONL journal (default: ~/.sancho/journal.jsonl)
     SANCHO_TIERS      "light=haiku-agent,default=general-purpose,deep=opus-agent" (optional)
     SANCHO_CHEAP_SEARCH  "1" when a cheap search tool is available to the agent
+    SANCHO_SCAN_CONTENT  "1" to scan arriving tool results for instructions aimed at the
+                      model. Off by default: it is a DETECTION control, not a barrier - by
+                      PostToolUse the text is already in the transcript and no hook can
+                      replace a tool result. It warns you, marks the passage as data in
+                      front of the model, and journals the event. See `points.injection`.
+    SANCHO_CONTENT_TOOLS  comma-separated tool names to scan (default: WebFetch,WebSearch)
+    SANCHO_PURPOSE    what the job is about, so the scan can judge "aimed at changing what?"
+    SANCHO_CHECK_DONE "1" to check, at Stop, that the transcript shows the last request done,
+                      and send Claude back once if it confidently does not (opt-in; never
+                      twice in a row; any failure lets the stop through). Measured on
+                      AgentDojo, not on coding sessions: see docs/results/2026-09-25-completion.
+    SANCHO_T_*        any threshold by name, e.g. SANCHO_T_INJECTION=0.5
+
+`sanchopanza install` writes the settings block for all of this.
 
 Each hook process is a fresh squire, so the per-job budget and the repeated-query memory
 do not persist across calls. That is the price of the process model; the SDK adapter keeps
@@ -33,6 +47,7 @@ from typing import Any
 
 from ..contract import Decider
 from ..journal import JsonlJournal
+from ..points import completion
 from ..points.routing import Tier
 from ..policy import Thresholds
 from ..squire import Squire
@@ -62,7 +77,19 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
         if tier.strip() in ("light", "default", "deep") and name.strip():
             tiers[tier.strip()] = name.strip()  # type: ignore[index]
     cheap = env.get("SANCHO_CHEAP_SEARCH", "") in ("1", "true", "yes")
-    return HarnessConfig(tiers=tiers, cheap_search_available=lambda: cheap)
+    scan = env.get("SANCHO_SCAN_CONTENT", "") in ("1", "true", "yes")
+    check_done = env.get("SANCHO_CHECK_DONE", "") in ("1", "true", "yes")
+    named = {t.strip() for t in env.get("SANCHO_CONTENT_TOOLS", "").split(",") if t.strip()}
+    purpose = env.get("SANCHO_PURPOSE", "").strip()
+    defaults = HarnessConfig()
+    return HarnessConfig(
+        tiers=tiers,
+        cheap_search_available=lambda: cheap,
+        scan_content=scan,
+        check_done=check_done,
+        content_tools=frozenset(named) if named else defaults.content_tools,
+        content_purpose=(lambda: purpose) if purpose else defaults.content_purpose,
+    )
 
 
 def guardian_from_env(env: dict[str, str] | None = None) -> Guardian:
@@ -77,8 +104,83 @@ def guardian_from_env(env: dict[str, str] | None = None) -> Guardian:
     return Guardian(squire, config_from_env(env))
 
 
+TOOL_RESULT_LIMIT = 1_500
+
+
+def _text_of(content: Any) -> str:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return " ".join(
+            str(b.get("text") or b.get("content") or "")
+            for b in content
+            if isinstance(b, dict) and b.get("type") in ("text", None)
+        )
+    return ""
+
+
+def transcript_task_and_record(path: Path) -> tuple[str, str]:
+    """The last real prompt, and what the agent did after it, from a Claude Code transcript."""
+    entries = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        try:
+            entries.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    task, lines = "", []
+    for entry in entries:
+        message = entry.get("message") or {}
+        content = message.get("content")
+        if entry.get("type") == "user":
+            blocks = content if isinstance(content, list) else []
+            results = [b for b in blocks if isinstance(b, dict) and b.get("type") == "tool_result"]
+            if results:
+                for b in results:
+                    lines.append(f"TOOL RESULT: {_text_of(b.get('content'))[:TOOL_RESULT_LIMIT]}")
+            elif _text_of(content).strip():
+                task, lines = _text_of(content).strip(), []  # a new request starts the record
+        elif entry.get("type") == "assistant" and isinstance(content, list):
+            for b in content:
+                if not isinstance(b, dict):
+                    continue
+                if b.get("type") == "text" and b.get("text"):
+                    lines.append(f"AGENT: {b['text']}")
+                elif b.get("type") == "tool_use":
+                    arguments = json.dumps(b.get("input"), ensure_ascii=False)
+                    lines.append(f"AGENT ACTION: {b.get('name')}({arguments})")
+    record = "\n".join(lines)
+    return task, record[-completion.RECORD_LIMIT :]
+
+
+async def stop(input_data: dict[str, Any], guardian: Guardian) -> dict[str, Any]:
+    """Send Claude back once when the transcript confidently does not show the task done."""
+    config = guardian.config
+    if not config.check_done or input_data.get("stop_hook_active"):
+        return {}
+    try:
+        task, record = transcript_task_and_record(Path(str(input_data.get("transcript_path"))))
+    except OSError:
+        return {}
+    if not task:
+        return {}
+    verdict = await guardian.squire.check_done(task=task, record=record, cut=config.done_cut)
+    if verdict.done is not False:
+        return {}
+    return {
+        "decision": "block",
+        "reason": (
+            "sanchopanza: the transcript does not show this request done "
+            f"(p={verdict.probability:.2f}). Before stopping, check every part of the request "
+            "against what the tools actually returned, finish what is missing, or say plainly "
+            "what could not be done and why."
+        ),
+    }
+
+
 async def handle(input_data: dict[str, Any], guardian: Guardian) -> dict[str, Any]:
     event = str(input_data.get("hook_event_name", "PreToolUse"))
+    if event == "Stop":
+        return await stop(input_data, guardian)
     if event == "PostToolUse":
         return await post_tool_use(guardian)(input_data)
     return await pre_tool_use(guardian)(input_data)

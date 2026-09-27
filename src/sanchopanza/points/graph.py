@@ -106,10 +106,48 @@ def decide_gate(decision: Decision, t: Thresholds) -> Gate:
 # --- G6: does the text actually state this edge? ----------------------------------------
 
 
+# The shipped `direction` question asks which side "has" the relation and which it is "had
+# towards": a possession wording. The misses of the fourth batch cluster on actions read from
+# a passive sentence (ed-24, ed-26, ed-30, ed-45, ed-47). This variant asks by roles, for
+# actions as well as possession, and says how to read a passive. Written for the fifth batch
+# (docs/results/2026-09-27-edge-facts/prereg.md); off by default until that batch licenses it.
+DIRECTION_BY_ROLES = Truth(
+    "If the relation is there at all, does `text` give the roles as the triple does: "
+    "`triple.subject` as the one that does, holds or is the source of `triple.relation`, and "
+    "`triple.object` as the one it is done to, held by or directed at? Judge by roles, not "
+    "by word order: in a passive sentence the one that acts comes after 'por' or 'by'.",
+    criteria={
+        "true": {
+            "what": "The triple's subject is the one the text has doing or holding the "
+            "relation, whether the sentence is active or passive",
+            "examples": [
+                "text: 'the permit was granted to Alfa by the city council' for "
+                "(city council, granted a permit to, Alfa)",
+                "text: 'Delta is a subsidiary of Omega' for (Omega, parent_of, Delta)",
+            ],
+        },
+        "false": {
+            "what": "The text states the same relation with the roles swapped: the triple's "
+            "subject is the one it is done to, held by or directed at",
+            "examples": [
+                "text: 'the accounts of Beta were audited by Gamma' for (Beta, audits, Gamma)",
+                "text: 'Omega is the parent of Delta' for (Delta, parent_of, Omega)",
+            ],
+        },
+    },
+)
+
+
 def edge_questions(
-    *, subject: str, relation: str, obj: str, text: str
+    *, subject: str, relation: str, obj: str, text: str, direction_by_roles: bool = True
 ) -> tuple[Mapping[str, Any], dict[str, Question]]:
-    """One reading of a candidate triple against the chunk it was extracted from."""
+    """One reading of a candidate triple against the chunk it was extracted from.
+
+    `direction` asks who does, holds or is the source of the relation (`DIRECTION_BY_ROLES`),
+    licensed by the fifth batch (docs/results/2026-09-27-edge-facts/fifth-batch.md).
+    `direction_by_roles=False` is the earlier possession wording, kept so the recordings made
+    with it still replay.
+    """
     state = {
         "triple": {
             "subject": truncate(subject, TRIPLE_LIMIT),
@@ -159,6 +197,8 @@ def edge_questions(
             },
         ),
     }
+    if direction_by_roles:
+        qs = {**qs, "direction": DIRECTION_BY_ROLES}
     return state, qs
 
 
@@ -190,10 +230,31 @@ def decide_edge(decision: Decision, t: Thresholds, *, mentions_found: bool = Tru
     ps, pdir = probability(stated), probability(direction, default=1.0)
     if stated.empty:
         return EdgeCheck("review", ps, pdir, 0.0)
+
+    # The direction is read FIRST, and the order is the whole fix. Fifty cases with eleven
+    # reversed triples produced `reversed` exactly zero times, because `stated` was gated on
+    # `citation` (0.80) before `direction` was ever looked at - and a reversed triple is
+    # precisely the case where `stated` is unsure, since the relation is there but not as
+    # written. On `ed-22` the decision already contained `direction` 0.05 at confidence 0.90:
+    # the model knew, we had paid for the answer, and the policy threw it away and abstained.
+    # A confident "the roles are swapped" is a verdict, not a reason to ask a person.
+    if not direction.empty and pdir < 0.5 and confident(direction, t.relax):
+        return EdgeCheck("reversed", ps, pdir, direction.confidence)
+
     if not confident(stated, t.citation):
         return EdgeCheck("review", ps, pdir, stated.confidence)
     if ps < 0.5:
         return EdgeCheck("unsupported", ps, pdir, stated.confidence)
-    if not direction.empty and pdir < 0.5 and confident(direction, t.relax):
-        return EdgeCheck("reversed", ps, pdir, direction.confidence)
+
+    # Doubt about the direction must not commit. `ed-47` answered `direction` 0.57 at
+    # confidence 0.14 - an honest "I do not know" - and the old order read that as "the
+    # direction is fine" and committed a backwards edge, which is the one error in this
+    # point that nothing downstream can catch. Invariant 2 of the package says the costly
+    # direction needs more confidence; committing is the costly direction here.
+    #
+    # An ABSENT direction answer is doubt too. Until 2026-09-25 this line read
+    # `not direction.empty and ...`, so a decision with no `direction` at all committed the
+    # edge on `stated` alone - the policy's one irreversible action taken on a missing answer.
+    if direction.empty or not confident(direction, t.relax):
+        return EdgeCheck("review", ps, pdir, direction.confidence)
     return EdgeCheck("supported", ps, pdir, stated.confidence)

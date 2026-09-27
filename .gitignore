@@ -12,3 +12,10 @@ build/
 /results/
 *.log
 .DS_Store
+# Session handoffs hold local paths; raw run transcripts hold thinking-block ids.
+docs/HANDOFF-*.md
+docs/results/**/runs/
+docs/results/**/runs-*/
+# Internal, Spanish-language assessment and launch material: kept local, never published.
+docs/assessment/
+salida/

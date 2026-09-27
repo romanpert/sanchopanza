@@ -40,7 +40,7 @@ You have configured the `pypi` environment with a required reviewer, administrat
 to bypass, and deployment branches limited to `dev` and `main`.
 
 **The release workflow does not run from a branch. It runs from a tag** (`on: push: tags:
-v*.*.*`), so at deployment time `github.ref` is `refs/tags/v0.1.0`. With the environment
+v*.*.*`), so at deployment time `github.ref` is `refs/tags/v0.3.0`. With the environment
 limited to selected branches only, the deployment is rejected before it starts and the
 publish never happens.
 
@@ -53,7 +53,7 @@ v*
 ```
 
 Keep the `dev` and `main` branch rules if you want; they do no harm. The tag rule is the one
-that matters, and without it `v0.1.0` will fail.
+that matters, and without it `v0.3.0` will fail.
 
 ## PyPI trusted publishing
 
@@ -73,8 +73,8 @@ the OIDC exchange is refused.
 ## Releasing
 
 ```
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.3.0
+git push origin v0.3.0
 ```
 
 The workflow checks that the tag matches the version in `pyproject.toml`, runs ruff, the test

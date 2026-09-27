@@ -43,7 +43,7 @@ once, and 2.4x the arm that took no decision at all. The zero is the whole findi
 tools sit ahead of everything, a changing tool set stops the *conversation* from caching
 too, not just the schemas.
 
-So the rule the package documents is now measured rather than cited: **narrow once, at the
+So the rule the package documents is measured rather than cited: **narrow once, at the
 start of a session, and never per turn.** Where a harness genuinely needs the tool set to
 change mid-session, the cache-preserving channels are Anthropic's tool search (schemas are
 appended, not swapped) and the `tool_addition` / `tool_removal` blocks on a `system` message
@@ -56,20 +56,18 @@ It is one model, one synthetic catalog and eight turns. The catalog is 58 tools 
 saving here is **understated** relative to a real setup; the cache-side penalty does not
 depend on catalog size in the same way. It measures cost, not answer quality: the arms were
 asked questions that need no tool call, so nothing here says whether a narrowed catalog
-answers as well. The tool-selection point's own accuracy is still unmeasured
-(`docs/paper.md`, pending item 7).
+answers as well. The tool-selection point's own accuracy is measured separately: 91/97
+AgentDojo tasks keep every group they need (`docs/results/2026-09-24-tools/`).
 
-## The first run of this benchmark was wrong
+## Why each arm is tagged
 
-Worth recording, because the error is the kind that flatters a result. In the first run all
-arms shared one catalog. `static` ran first and wrote the 58-tool prefix; `once` wrote the
-28-tool prefix; `reselect` then alternated between two prefixes **that were already in the
-cache**, read both for free, and came out the cheapest of the three at 0.062 USD. Read
-without care that number says the naive wiring is the best one.
+The prefix cache is keyed by the bytes of the prefix, not by the conversation, so an arm that
+runs after another inherits whatever the earlier one wrote. Without a tag, `reselect` would
+alternate between two prefixes that `static` and `once` had already written, read both for
+free, and come out as the cheapest arm: the order the arms ran in, measured as a property of
+the wiring. So every tool description carries its arm's name, and no arm can read a cache
+another arm wrote.
 
-It is an artifact of the order the arms ran in. The prefix cache is keyed by the bytes of
-the prefix, not by the conversation, so an arm inherits whatever an earlier arm wrote. The
-fix is the per-arm tag in every tool description, and the `churn` arm, which exists because
-that first run also taught us the real risk is not *narrowing* but *instability*: two stable
-subsets cache as two entries and then read cheaply, while a subset that is new every turn
-never reads at all.
+The `churn` arm isolates the risk that matters, which is not *narrowing* but *instability*:
+two stable subsets cache as two entries and then read cheaply, while a subset that is new
+every turn never reads at all.

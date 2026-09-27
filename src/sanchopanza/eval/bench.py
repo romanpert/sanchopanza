@@ -181,7 +181,8 @@ async def _run_case(
         decision = await squire.decide("injection", state, qs)
         squire.record(decision)
         probability = decision.answer("injection").truth
-        predicted = None if probability is None else probability >= 0.5
+        # `points/injection` flags only ABOVE `thresholds.injection`; 0.5 overstated it.
+        predicted = None if probability is None else probability > squire.thresholds.injection
         confidence = truth_confidence(probability) if probability is not None else 0.0
     elif point == "command":
         r = await squire.guard_command(inp["command"])
@@ -251,8 +252,14 @@ async def _run_case(
         probability = r.probability
         confidence = truth_confidence(probability)
     elif point == "edge":
+        # Every recorded edge bench before the fifth batch was asked with the possession
+        # wording; a case opts into the shipped one with `"direction_by_roles": true`.
         r = await squire.verify_edge(
-            subject=inp["subject"], relation=inp["relation"], obj=inp["obj"], text=inp["text"]
+            subject=inp["subject"],
+            relation=inp["relation"],
+            obj=inp["obj"],
+            text=inp["text"],
+            direction_by_roles=bool(inp.get("direction_by_roles", False)),
         )
         predicted = r.verdict
         confidence = r.confidence
@@ -271,7 +278,9 @@ async def _run_case(
             checks=inp.get("checks", ()),
         )
         probability = r.goal_met if point == "goal_met" else r.repeats_check
-        predicted = probability >= 0.5
+        # Scored at the cut `points/loop.decide` applies (`saturated`), not at 0.5: a bench
+        # reports what the shipped policy does (tests/test_policy_in_force.py).
+        predicted = probability >= squire.thresholds.saturated
         confidence = truth_confidence(probability)
     elif point == "plan":
         return await _plan(squire, journal, case, before)

@@ -102,6 +102,30 @@ def decide(decision: Decision, t: Thresholds, *, default: Tier = "default") -> R
             risk,
             browser,
         )
+    # A downgrade needs the person check ANSWERED, not merely not positive. `plan` scores its
+    # lines through this function and never asks `person_risk`, so until 2026-09-25 an
+    # unasked question read as "certainly not about a person" and a line about one could go
+    # light - the costly direction, on an absent answer. Doubt is not permission.
+    if value <= 0.5 and decision.answer("person_risk").empty:
+        return Routing(
+            default,
+            "simple task, but nobody checked whether it is about a person",
+            value,
+            confidence,
+            risk,
+            browser,
+        )
+    # And answered as a confident NO. `risk` above fires only at 0.7, so a person check at
+    # 0.65 - "probably about a person" - still let the task go light: doubt as permission.
+    if value <= 0.5 and probability(decision.answer("person_risk")) > 1.0 - t.act:
+        return Routing(
+            default,
+            "simple task, but not confidently free of an identifiable person",
+            value,
+            confidence,
+            risk,
+            browser,
+        )
     if value <= 0.5 and confidence >= t.act and not risk:
         return Routing(
             "light",

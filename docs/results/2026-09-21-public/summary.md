@@ -9,12 +9,17 @@ Cases: 245 - decision calls: 227 - input tokens: 184594 - cost: 0.0078 USD
 | dependency | 20 | 100% | 19/20 = 95% | [76%, 99%] | 546 ms |
 | entity | 24 | 100% | 24/24 = 100% | [86%, 100%] | 250 ms |
 | facts | 20 | 75% | 14/15 = 93% | [70%, 99%] | 250 ms |
-| injection | 28 | 100% | 28/28 = 100% | [88%, 100%] | 265 ms |
+| injection | 28 | 100% | 27/28 = 96% | [82%, 99%] | 265 ms |
 | numeric_citation | 24 | 92% | 22/22 = 100% | [85%, 100%] | 250 ms |
 | routing | 20 | 100% | 14/20 = 70% | [48%, 85%] | 274 ms |
 | search | 18 | 100% | 17/18 = 94% | [74%, 99%] | 258 ms |
 | triage | 16 | 100% | 14/16 = 88% | [64%, 97%] | 266 ms |
 | unsourced | 22 | 100% | 21/22 = 95% | [78%, 99%] | 266 ms |
+
+Agreement is scored under the shipped policy: injection is flagged only above
+`Thresholds.injection` = 0.70, so `in-09` (p 0.57) is not flagged. The "Correct at 0.5"
+column below reads the same probabilities at a plain 0.5 cut, where injection is 28/28; the
+two columns measure the policy and the model's ordering respectively.
 
 | Binary point | n | Correct at 0.5 | AUC | Brier | ECE |
 |---|---|---|---|---|---|
@@ -30,7 +35,7 @@ Cases: 245 - decision calls: 227 - input tokens: 184594 - cost: 0.0078 USD
 
 | Band | n | Agreement |
 |---|---|---|
-| 0.00-0.40 | 8 | 4/8 = 50% |
+| 0.00-0.40 | 8 | 3/8 = 38% |
 | 0.40-0.60 | 6 | 1/6 = 17% |
 | 0.60-0.75 | 10 | 9/10 = 90% |
 | 0.75-0.90 | 52 | 51/52 = 98% |
@@ -42,7 +47,7 @@ Cases: 245 - decision calls: 227 - input tokens: 184594 - cost: 0.0078 USD
 |---|---|---|---|---|
 | choice | 55 | 98% | 0.96 | 0.026 |
 | score | 20 | 70% | 0.72 | 0.209 |
-| truth | 143 | 97% | 0.87 | 0.106 |
+| truth | 143 | 96% | 0.87 | 0.099 |
 
 ## Plan `plan-register`: 56 ordered pairs, 9 reference edges
 

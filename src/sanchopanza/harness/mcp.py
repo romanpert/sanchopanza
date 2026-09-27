@@ -69,7 +69,7 @@ def build_server(squire: Squire, *, name: str = "sancho") -> Any:
     try:
         from mcp.server.fastmcp import FastMCP
     except ImportError as error:  # pragma: no cover
-        raise RuntimeError("install sancho[mcp] to expose the squire as MCP tools") from error
+        raise RuntimeError("install sanchopanza[mcp] to expose the squire as MCP tools") from error
 
     server = FastMCP(name)
 

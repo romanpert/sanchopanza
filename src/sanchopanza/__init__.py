@@ -30,12 +30,14 @@ from .journal import JsonlJournal, MemoryJournal, NullJournal
 from .media import Attachment, attachments_in, image, without_attachments
 from .policy import Thresholds
 from .squire import GuardResult, Squire
+from .window import Change, ToolWindow
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "Answer",
     "Attachment",
+    "Change",
     "Choice",
     "Decider",
     "DeciderUnavailable",
@@ -50,6 +52,7 @@ __all__ = [
     "Squire",
     "State",
     "Thresholds",
+    "ToolWindow",
     "Truth",
     "__version__",
     "attachments_in",

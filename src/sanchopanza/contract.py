@@ -11,6 +11,7 @@ is what makes the squire swappable.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any, Literal, Protocol, runtime_checkable
@@ -72,9 +73,27 @@ class Answer:
     probabilities: Mapping[str, float] = field(default_factory=dict)
 
     @property
+    def valid(self) -> bool:
+        """False when a number in it is one no threshold can be compared against.
+
+        Every comparison against NaN is False, so a guard written `p < t -> refuse` lets a
+        NaN through as permission. A truth, probability or confidence must be finite and in
+        [0, 1]; a score (a position on a 0..n-1 scale) must be finite.
+        """
+        if not is_probability(self.confidence):
+            return False
+        if self.truth is not None and not is_probability(self.truth):
+            return False
+        if self.score is not None and not _finite(self.score):
+            return False
+        return all(is_probability(p) for p in self.probabilities.values())
+
+    @property
     def empty(self) -> bool:
-        """True when the decider did not answer: code must use its default."""
-        return self.choice is None and self.score is None and self.truth is None
+        """True when the decider did not answer, or answered a number that is not one:
+        code must use its default. An unreadable answer is an absent answer."""
+        unanswered = self.choice is None and self.score is None and self.truth is None
+        return unanswered or not self.valid
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -88,13 +107,16 @@ class Answer:
 
     @classmethod
     def from_dict(cls, raw: Mapping[str, Any]) -> Answer:
-        return cls(
-            kind=raw.get("kind", "truth"),
-            confidence=float(raw.get("confidence", 0.0)),
-            choice=raw.get("choice"),
-            score=raw.get("score"),
-            truth=raw.get("truth"),
-            probabilities=dict(raw.get("probabilities") or {}),
+        confidence = as_number(raw.get("confidence", 0.0))
+        return usable(
+            cls(
+                kind=raw.get("kind", "truth"),
+                confidence=math.nan if confidence is None else confidence,
+                choice=raw.get("choice"),
+                score=raw.get("score"),
+                truth=raw.get("truth"),
+                probabilities=dict(raw.get("probabilities") or {}),
+            )
         )
 
 
@@ -112,8 +134,11 @@ class Decision:
     error: str | None = None
 
     def answer(self, key: str) -> Answer:
-        """The answer to one question, or an empty one if the provider did not return it."""
-        return self.answers.get(key) or Answer(kind="truth", confidence=0.0)
+        """The answer to one question, or an empty one if the provider did not return it
+        or returned a number that is not one (see `Answer.valid`). Every point reads here,
+        so whatever the provider, a NaN never reaches a threshold."""
+        found = self.answers.get(key)
+        return usable(found) if found is not None else Answer(kind="truth", confidence=0.0)
 
     @property
     def failed(self) -> bool:
@@ -149,6 +174,38 @@ def truth_confidence(value: float) -> float:
 
 def empty_answer(kind: QuestionKind) -> Answer:
     return Answer(kind=kind, confidence=0.0)
+
+
+def _finite(value: Any) -> bool:
+    try:
+        return math.isfinite(value)
+    except TypeError:
+        return False
+
+
+def is_probability(value: Any) -> bool:
+    """A finite number in [0, 1]. NaN, infinities and out-of-range values are not."""
+    return _finite(value) and 0.0 <= value <= 1.0
+
+
+def as_number(value: Any) -> float | None:
+    """A wire value as a float: None stays None, anything unparseable becomes NaN, which
+    `Answer.valid` then rejects. Never raises: a malformed field is an absent answer."""
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return math.nan
+
+
+def usable(answer: Answer) -> Answer:
+    """The answer itself if it is valid, else a clean empty answer of the same kind.
+
+    Built as a new value, never by mutating the frozen one: callers that go past `.empty`
+    to `.truth` then see None and fall to their default instead of reading a NaN.
+    """
+    return answer if answer.valid else empty_answer(answer.kind)
 
 
 def empty_decision(point: str, provider: str = "none", error: str | None = None) -> Decision:

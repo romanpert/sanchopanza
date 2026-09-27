@@ -4,9 +4,11 @@
     create("recorded", path=...)          replays a fixture; tests and dry runs, free
     create("null")                        answers nothing; every policy uses its default
     create("llm", complete=...)           any LLM forced into a JSON schema
+    create("claude-cli", model=..., ceiling_usd=...)  the same, through `claude -p` (no API key)
     create("local", handlers=...)         your own classifiers, embeddings, vision models
     FallbackDecider([a, b])               first provider that answers wins
     RoutedDecider({"routing": a}, b)      one provider per decision point
+    CascadeDecider(a, b, tau=0.4)         b only for the questions a was unsure of
 
 Third-party packages register more under the `sanchopanza.providers` entry-point group.
 """
@@ -17,13 +19,14 @@ from importlib.metadata import entry_points
 from typing import Any
 
 from ..contract import Decider
-from .chain import FallbackDecider, RoutedDecider
+from .chain import CascadeDecider, FallbackDecider, RoutedDecider
 from .fixed import FixedDecider
 from .local import LocalDecider
 from .null import NullDecider
-from .recorded import RecordedDecider, RecordingDecider, key_of
+from .recorded import RecordedDecider, RecordingDecider, key_of, order_of
 
 __all__ = [
+    "CascadeDecider",
     "FallbackDecider",
     "FixedDecider",
     "LocalDecider",
@@ -33,6 +36,7 @@ __all__ = [
     "RoutedDecider",
     "create",
     "key_of",
+    "order_of",
 ]
 
 _BUILTIN = {
@@ -40,6 +44,7 @@ _BUILTIN = {
     "recorded": "sanchopanza.providers.recorded:RecordedDecider",
     "jev": "sanchopanza.providers.jev:JevDecider",
     "llm": "sanchopanza.providers.llm:LLMDecider",
+    "claude-cli": "sanchopanza.providers.claude_cli:decider",
     "local": "sanchopanza.providers.local:LocalDecider",
 }
 

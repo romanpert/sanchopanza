@@ -1,0 +1,74 @@
+{
+ "n": 300,
+ "contribution_cut": 0.28,
+ "contribution": {
+  "joint_recall": 0.9333,
+  "gold_recall": 0.9667,
+  "kept_share": 0.5234,
+  "n": 300
+ },
+ "bm25_k": 6.0,
+ "bm25": {
+  "joint_recall": 0.8033,
+  "gold_recall": 0.8983,
+  "kept_share": 0.5629,
+  "n": 300
+ },
+ "shipped_045": {
+  "joint_recall": 0.1967,
+  "gold_recall": 0.47,
+  "kept_share": 0.1056,
+  "n": 300
+ },
+ "shipped_004": {
+  "joint_recall": 0.9533,
+  "gold_recall": 0.9767,
+  "kept_share": 0.6091,
+  "n": 300
+ },
+ "by_type": {
+  "bridge": {
+   "contribution": {
+    "joint_recall": 0.9328,
+    "gold_recall": 0.9664,
+    "kept_share": 0.4943,
+    "n": 238
+   },
+   "bm25": {
+    "joint_recall": 0.7773,
+    "gold_recall": 0.8866,
+    "kept_share": 0.5721,
+    "n": 238
+   },
+   "shipped": {
+    "joint_recall": 0.2353,
+    "gold_recall": 0.5462,
+    "kept_share": 0.128,
+    "n": 238
+   }
+  },
+  "comparison": {
+   "contribution": {
+    "joint_recall": 0.9355,
+    "gold_recall": 0.9677,
+    "kept_share": 0.6352,
+    "n": 62
+   },
+   "bm25": {
+    "joint_recall": 0.9032,
+    "gold_recall": 0.9435,
+    "kept_share": 0.5276,
+    "n": 62
+   },
+   "shipped": {
+    "joint_recall": 0.0484,
+    "gold_recall": 0.1774,
+    "kept_share": 0.0194,
+    "n": 62
+   }
+  }
+ },
+ "P6": true,
+ "P7": true,
+ "verdict": "confirmed"
+}

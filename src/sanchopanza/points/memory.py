@@ -24,6 +24,32 @@ human instead of resolved by a guess.
 
 Not yet measured against an independent annotator: `benches/memory.jsonl` is single-author,
 like the rest, and these three points are newer than the ones in the paper's Section 5.
+
+**A known defect of M1, located but deliberately not patched yet.** On 100 cases the write
+gate loses one family systematically: standing instructions and agreements from the client.
+Measured on `mw-54`, `mw-59`, `mw-69`, `mw-72`, `mw-74`, the `durable` question answers 0.80
+to 0.88 - it sees perfectly well that they will matter later, and its own criteria list "the
+client asked for the report in Spanish" as a true example - and then `specific` answers 0.33
+to 0.50 and throws them away, because it asks whether a fact "names things, figures, dates or
+outcomes" and an instruction names none of those. Two questions in one decision disagreeing
+about what the point is for.
+
+Widening `specific` to admit a rule-shaped fact was tried on 2026-09-24 and **reverted after
+measuring it**, because it made the failure worse in the direction that matters. It took the
+point from 72/100 to 88/100 on the same recording, which looks like a win, and it did it by
+turning safe errors into unsafe ones: errors in the costly direction went from 5 to 8, and the
+eight were `Panama is in Central America`, `article 29 of Ley 6132 defines...`, `the ruling has 47
+pages`. The narrow `specific` gate had been filtering general knowledge and verbatim
+quotations *as a side effect* of asking about figures - doing the right job for the wrong
+reason - and widening it removed that filter without putting anything in its place.
+`derivable` cannot replace it: world knowledge is not re-readable from a source the agent
+holds, so the question correctly answers low (0.37 on the ISO example) and lets it through.
+
+So the real gap is that **none of the three questions asks whether the fact is something any
+competent reader already knows**, and the fix is a fourth question rather than a looser
+third one. It is not in this release because it would be derived from the cases that exposed
+it. What it needs: a `common` question, and a fourth batch of cases written before it is
+measured. Full account: `docs/results/2026-09-24-third-batch/`.
 """
 
 from __future__ import annotations
@@ -45,10 +71,53 @@ TOPICS_LIMIT = 500
 # --- M1: is this worth storing? ---------------------------------------------------------
 
 
+def common_question() -> Truth:
+    """Pre-registered 2026-09-25, NOT in the shipped call until it is measured.
+
+    The gap `docs/results/2026-09-24-third-batch/` located: none of the three shipped
+    questions asks whether a fact is something any competent reader already knows. `specific`
+    was filtering general knowledge as a side effect of asking about figures, and in doing so
+    threw away the client's standing instructions, which name no figure. This asks the
+    missing thing directly so `specific` does not have to. Its examples are deliberately not
+    taken from any bench.
+    """
+    return Truth(
+        "Is `fact` something a competent reader already knows or could look up in any general "
+        "reference - geography, a definition, what a public law or institution says or does, "
+        "how a technology works - rather than something learned about this particular client, "
+        "case, source or piece of work?",
+        criteria={
+            "true": {
+                "what": "General knowledge, a definition, the content of a public law or "
+                "standard, a well-known fact about the world",
+                "examples": [
+                    "Lisbon is the capital of Portugal",
+                    "a notary certifies the authenticity of signatures and documents",
+                    "HTTPS encrypts the traffic between a browser and a server",
+                ],
+            },
+            "false": {
+                "what": "Something about this client, case, source or work: an instruction or "
+                "preference of the client, a quirk of a source, a finding, a decision taken",
+                "examples": [
+                    "the client asked for the report in Spanish",
+                    "this archive only answers requests sent by post",
+                    "the two witnesses give different dates for the meeting",
+                ],
+            },
+        },
+    )
+
+
 def write_questions(
-    *, fact: str, brief: str = "", source: str = ""
+    *, fact: str, brief: str = "", source: str = "", ask_common: bool = False
 ) -> tuple[Mapping[str, Any], dict[str, Question]]:
-    """Three readings of a candidate memory. None of them asks the model to value it."""
+    """Three readings of a candidate memory. None of them asks the model to value it.
+
+    `ask_common` adds the pre-registered fourth reading to the same call. Off by default:
+    adding a question to a joint call moves the other answers, and every shipped recording
+    was made without it.
+    """
     state: dict[str, Any] = {"fact": truncate(fact, FACT_LIMIT)}
     if brief:
         state["brief"] = truncate(brief, CONTEXT_LIMIT)
@@ -123,6 +192,8 @@ def write_questions(
             },
         ),
     }
+    if ask_common:
+        qs = {**qs, "common": common_question()}
     return state, qs
 
 
@@ -142,15 +213,61 @@ def decide_write(decision: Decision, t: Thresholds) -> Write:
     durable, specific = decision.answer("durable"), decision.answer("specific")
     derivable = decision.answer("derivable")
     pd, ps, pr = probability(durable), probability(specific), probability(derivable)
-    if durable.empty or specific.empty:
+    # All three answers, or no store. `derivable` was left out of this check until
+    # 2026-09-25, so a decision missing it stored on the other two: the costly direction
+    # (a permanent write) taken on an absent answer.
+    if durable.empty or specific.empty or derivable.empty:
         return Write(False, "no data: harness default", pd, ps, pr)
     if pd < t.remember:
         return Write(False, f"not durable ({pd:.2f})", pd, ps, pr)
     if ps < t.remember:
         return Write(False, f"not specific enough ({ps:.2f})", pd, ps, pr)
-    if pr > t.act:
+    if pr > t.derivable:
         return Write(False, f"re-readable from the source ({pr:.2f})", pd, ps, pr)
     return Write(True, f"durable {pd:.2f}, specific {ps:.2f}", pd, ps, pr)
+
+
+def decide_write_common(decision: Decision, t: Thresholds, *, specific_floor: float = 0.0) -> Write:
+    """The opt-in policy for a call made with `write_questions(ask_common=True)`.
+
+    `common` replaces `specific` as the filter for general knowledge, which is the job
+    `specific` was doing by accident while throwing away the client's standing instructions.
+    Measured 2026-09-25 on batches written before each variant was (docs/results/
+    2026-09-25-window/memory.md), agreement / costly errors (stored what should be skipped):
+
+    | | `decide_write` 0.54 | at 0.70 / 0.75 | floor 0 (P1) | floor 0.15 (P3) | floor 0.08 (P4) |
+    |---|---|---|---|---|---|
+    | memory-e, 48 | 37 / 1 | 25 / 3 | 45 / 1 | 45 / 0 | 46 / 0 |
+    | memory-f, 36 | 24 / 0 | 23 / 1 | 28 / 8 | 32 / 3 | 33 / 3 |
+    | memory-g, 24 | 13 / 0 | 12 / 0 | 20 / 3 | 22 / 0 | 22 / 0 |
+
+    This policy reads its own `common_durable` / `common_derivable` (0.70 / 0.75), the values
+    it was measured at; `decide_write` reads the derived 0.54 cut
+    (docs/results/2026-09-27-memory-write-cut/).
+
+    Floor 0 passed its pre-registered test and stores vacuous pointers ("there is relevant
+    information in several sources", `specific` <= 0.04). Any floor stops them and loses about
+    one standing instruction in twelve (`specific` 0.13 on evidence rules); P3 and P4 failed
+    their pre-registered "lose none" criterion by exactly that one. Which trade is right is a
+    product decision, so the floor is a parameter and the shipped default does not change.
+    """
+    if decision.failed:
+        return Write(False, "decider unavailable: harness default", 0.0, 0.0, 0.0)
+    durable, specific = decision.answer("durable"), decision.answer("specific")
+    derivable, common = decision.answer("derivable"), decision.answer("common")
+    pd, ps, pr = probability(durable), probability(specific), probability(derivable)
+    if durable.empty or derivable.empty or common.empty or (specific_floor and specific.empty):
+        return Write(False, "no data: harness default", pd, ps, pr)
+    pc = probability(common)
+    if pd < t.common_durable:
+        return Write(False, f"not durable ({pd:.2f})", pd, ps, pr)
+    if pc >= 0.5:
+        return Write(False, f"general knowledge ({pc:.2f})", pd, ps, pr)
+    if pr > t.common_derivable:
+        return Write(False, f"re-readable from the source ({pr:.2f})", pd, ps, pr)
+    if ps < specific_floor:
+        return Write(False, f"says nothing concrete ({ps:.2f})", pd, ps, pr)
+    return Write(True, f"durable {pd:.2f}, not common knowledge ({pc:.2f})", pd, ps, pr)
 
 
 # --- M2: does it collide with what is already stored? -----------------------------------
@@ -240,10 +357,20 @@ def decide_collision(
     ps, pn = probability(against), probability(nothing)
     if against.empty or nothing.empty:
         return Reconciliation("keep_both", "no data: both kept", ps, pn)
+    if pn >= t.act and ps >= t.act:
+        # "Adds nothing" and "contradicts" cannot both be true of one pair. Until 2026-09-25
+        # the duplicate branch won by position and a correction was discarded as a repeat.
+        return Reconciliation(
+            "flag", f"incoherent: adds nothing ({pn:.2f}) and contradicts ({ps:.2f})", ps, pn
+        )
     if pn >= t.act:
         return Reconciliation("duplicate", f"adds nothing ({pn:.2f})", ps, pn)
     if ps < t.act:
-        return Reconciliation("keep_both", f"no contradiction ({ps:.2f})", ps, pn)
+        # Below `act` is "not confident enough to act on", not "no contradiction": the old
+        # reason text said the latter at 0.65. Whether the band [0.5, act) should flag, as
+        # the module docstring promises, is open and NOT changed here - see
+        # docs/results/2026-09-25-window/audit.md.
+        return Reconciliation("keep_both", f"contradiction below the bar to act ({ps:.2f})", ps, pn)
     if newer is True:
         return Reconciliation("replace", f"contradicts ({ps:.2f}), the new one is newer", ps, pn)
     if newer is False:

@@ -1,0 +1,89 @@
+{
+ "prereg_sha256": "7c88fbfef9b87841369475c235fdb032da046a05ea1dc0a194d64f91e2463405",
+ "arms": {
+  "A": {
+   "knob": 0.28,
+   "derivation": {
+    "sentence_joint": 0.95,
+    "page_joint": 0.95,
+    "kept_share": 0.5237,
+    "n": 300
+   },
+   "held_out": {
+    "sentence_joint": 0.9333,
+    "page_joint": 0.9333,
+    "kept_share": 0.5235,
+    "n": 300
+   }
+  },
+  "B": {
+   "knob": 0.31,
+   "derivation": {
+    "sentence_joint": 0.9033,
+    "page_joint": 0.9733,
+    "kept_share": 0.3388,
+    "n": 300
+   },
+   "held_out": {
+    "sentence_joint": 0.8967,
+    "page_joint": 0.9667,
+    "kept_share": 0.3342,
+    "n": 300
+   }
+  },
+  "E": {
+   "knob": 0.27,
+   "derivation": {
+    "sentence_joint": 0.9033,
+    "page_joint": 0.9467,
+    "kept_share": 0.3358,
+    "n": 300
+   },
+   "held_out": {
+    "sentence_joint": 0.8867,
+    "page_joint": 0.93,
+    "kept_share": 0.3334,
+    "n": 300
+   }
+  },
+  "C": {
+   "knob": 0.77,
+   "derivation": {
+    "sentence_joint": 0.9,
+    "page_joint": 0.9,
+    "kept_share": 0.2147,
+    "n": 300
+   },
+   "held_out": {
+    "sentence_joint": 0.8633,
+    "page_joint": 0.8633,
+    "kept_share": 0.2191,
+    "n": 300
+   }
+  },
+  "D": {
+   "knob": 13.0,
+   "held_out": {
+    "sentence_joint": 0.7333,
+    "page_joint": 0.9167,
+    "kept_share": 0.3532,
+    "n": 300
+   },
+   "note": "k at matched budget on held-out"
+  },
+  "D_derived": {
+   "knob": 27.0,
+   "held_out": {
+    "sentence_joint": 0.9,
+    "page_joint": 0.9833,
+    "kept_share": 0.7125,
+    "n": 300
+   }
+  }
+ },
+ "best_sentence_arm": "B",
+ "P15": false,
+ "P16": false,
+ "P17": true,
+ "note": "105 sentences past the 40-sentence cap on 3 long pages were kept unjudged (fail-open)"
+}

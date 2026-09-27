@@ -18,7 +18,9 @@ and OpenAI Chat Completions (json_schema). Both use httpx; neither pulls in an S
 from __future__ import annotations
 
 import json
+import re
 import time
+import unicodedata
 from collections.abc import Awaitable, Callable, Mapping
 from typing import Any
 
@@ -32,6 +34,8 @@ from ..contract import (
     Score,
     State,
     Truth,
+    as_number,
+    is_probability,
 )
 
 Completion = tuple[Mapping[str, Any] | None, int, int]
@@ -79,18 +83,51 @@ def build_schema(questions: Mapping[str, Question]) -> dict[str, Any]:
     }
 
 
+def _folded(label: str) -> str:
+    """A label with literal \\uXXXX escapes decoded, accents removed and case folded."""
+    text = re.sub(r"\\u([0-9a-fA-F]{4})", lambda m: chr(int(m.group(1), 16)), label)
+    text = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in text if not unicodedata.combining(c)).casefold().strip()
+
+
+def match_option(value: Any, options: Mapping[str, Any]) -> str | None:
+    """The option an LLM meant: exact first, then the single option equal after folding.
+
+    Measured: Haiku 4.5 spelled 16 of 298 correct labels with a literal escape or without an
+    accent, and the exact match dropped them all (docs/results/2026-09-25-cascade/). Two
+    options that fold to the same string are ambiguous, and ambiguous is no answer.
+    """
+    if not isinstance(value, str):
+        return None
+    if value in options:
+        return value
+    folded = _folded(value)
+    hits = [option for option in options if _folded(option) == folded]
+    return hits[0] if len(hits) == 1 else None
+
+
 def answers_from(
     payload: Mapping[str, Any], questions: Mapping[str, Question]
 ) -> dict[str, Answer]:
-    """Map a schema-shaped payload to contract answers, reusing the policies unchanged."""
-    confidence = float(payload.get("confidence", 0.5) or 0.5)
+    """Map a schema-shaped payload to contract answers, reusing the policies unchanged.
+
+    The schema bounds `confidence` to [0, 1], but a model can ignore a schema. A
+    confidence that is not a finite number in [0, 1] means the model answered nothing:
+    clamping 1.5 would turn a broken reply into a certain yes.
+    """
+    confidence = as_number(payload.get("confidence", 0.5) or 0.5)
+    if confidence is None or not is_probability(confidence):
+        return {}
     out: dict[str, Answer] = {}
     for key, question in questions.items():
         value = payload.get(key)
         if isinstance(question, Truth) and isinstance(value, bool):
             out[key] = make.truth(confidence if value else 1.0 - confidence)
-        elif isinstance(question, Choice) and value in question.options:
-            out[key] = make.labelled(str(value), list(question.options), confidence=confidence)
+        elif (
+            isinstance(question, Choice)
+            and (chosen := match_option(value, question.options)) is not None
+        ):
+            out[key] = make.labelled(chosen, list(question.options), confidence=confidence)
         elif isinstance(question, Score) and isinstance(value, int) and not isinstance(value, bool):
             out[key] = Answer(kind="score", score=float(value), confidence=confidence)
     return out

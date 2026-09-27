@@ -1,0 +1,82 @@
+{
+ "claude-fable-5": {
+  "10 tools loaded": 9368,
+  "10 tools deferred": 431,
+  "result: text": 462,
+  "result: 2 tool_reference only": 2278,
+  "result: text + tool_reference": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Tool definitions/code executi",
+  "system tool_addition x2": 2280,
+  "addition x2 then more turns": 2287,
+  "same, plus tool_removal x1": 2313
+ },
+ "claude-fable-5-1": {
+  "10 tools loaded": 9366,
+  "10 tools deferred": 429,
+  "result: text": 460,
+  "result: 2 tool_reference only": 2276,
+  "result: text + tool_reference": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Tool definitions/code executi",
+  "system tool_addition x2": 2277,
+  "addition x2 then more turns": 2285,
+  "same, plus tool_removal x1": 2310
+ },
+ "claude-mythos-5": {
+  "10 tools loaded": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5'}, 'request_",
+  "10 tools deferred": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5'}, 'request_",
+  "result: text": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5'}, 'request_",
+  "result: 2 tool_reference only": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5'}, 'request_",
+  "result: text + tool_reference": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5'}, 'request_",
+  "system tool_addition x2": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5'}, 'request_",
+  "addition x2 then more turns": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5'}, 'request_",
+  "same, plus tool_removal x1": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5'}, 'request_"
+ },
+ "claude-mythos-5-1": {
+  "10 tools loaded": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5-1'}, 'reques",
+  "10 tools deferred": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5-1'}, 'reques",
+  "result: text": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5-1'}, 'reques",
+  "result: 2 tool_reference only": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5-1'}, 'reques",
+  "result: text + tool_reference": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5-1'}, 'reques",
+  "system tool_addition x2": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5-1'}, 'reques",
+  "addition x2 then more turns": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5-1'}, 'reques",
+  "same, plus tool_removal x1": "400: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-mythos-5-1'}, 'reques"
+ },
+ "claude-opus-4-8": {
+  "10 tools loaded": 9368,
+  "10 tools deferred": 431,
+  "result: text": 462,
+  "result: 2 tool_reference only": 2278,
+  "result: text + tool_reference": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Tool definitions/code executi",
+  "system tool_addition x2": 2280,
+  "addition x2 then more turns": 2287,
+  "same, plus tool_removal x1": 2313
+ },
+ "claude-opus-5": {
+  "10 tools loaded": 9364,
+  "10 tools deferred": 427,
+  "result: text": 458,
+  "result: 2 tool_reference only": 2274,
+  "result: text + tool_reference": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Tool definitions/code executi",
+  "system tool_addition x2": 2276,
+  "addition x2 then more turns": 2283,
+  "same, plus tool_removal x1": 2309
+ },
+ "claude-sonnet-5": {
+  "10 tools loaded": 9432,
+  "10 tools deferred": 495,
+  "result: text": 526,
+  "result: 2 tool_reference only": 2342,
+  "result: text + tool_reference": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Tool definitions/code executi",
+  "system tool_addition x2": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'tool_addition/tool_removal is",
+  "addition x2 then more turns": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'tool_addition/tool_removal is",
+  "same, plus tool_removal x1": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'tool_addition/tool_removal is"
+ },
+ "claude-haiku-4-5": {
+  "10 tools loaded": 7287,
+  "10 tools deferred": 537,
+  "result: text": 585,
+  "result: 2 tool_reference only": 1943,
+  "result: text + tool_reference": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Tool definitions/code executi",
+  "system tool_addition x2": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'tool_addition/tool_removal re",
+  "addition x2 then more turns": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'tool_addition/tool_removal re",
+  "same, plus tool_removal x1": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'tool_addition/tool_removal re"
+ }
+}

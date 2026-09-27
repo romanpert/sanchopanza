@@ -131,3 +131,85 @@ def test_the_sync_path_narrows_outside_an_event_loop():
     seen: list[Any] = []
     ToolSelectMiddleware(sq).wrap_model_call(Request(TOOLS, MESSAGES), lambda r: seen.append(r))
     assert [t.name for t in seen[0].tools] == ["aemps_buscar", "aemps_ficha"]
+
+
+# Windows persist per `key_of` only; without it nothing is kept between requests
+# (tests/test_langchain_isolation.py). These tests drive a single conversation.
+ONE_CONVERSATION = lambda request: "one"  # noqa: E731
+
+
+class _ByPurpose:
+    """Needs `aemps` for the first question and `chembl` for the second; counts calls."""
+
+    name = "by-purpose"
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def decide(self, point, state, questions):  # noqa: ANN001
+        from sanchopanza import Decision
+
+        self.calls += 1
+        want = "chembl" if "bioactividad" in state["purpose"] else "aemps"
+        answers = {
+            k: yes(0.9 if state["catalog"][int(k.split("_")[1])]["name"] == want else 0.02)
+            for k in questions
+            if k.startswith("needed_")
+        }
+        return Decision(point, answers, self.name, "t")
+
+
+def test_a_new_turn_widens_the_tools_and_never_drops_what_the_last_turn_had():
+    # Until 2026-09-25 each call re-selected: turn two would have carried chembl WITHOUT
+    # aemps, rewriting the tools array to a different set - the 4.15x churn pattern.
+    decider = _ByPurpose()
+    sq, _ = squire(decider)
+    mw = ToolSelectMiddleware(sq, key_of=ONE_CONVERSATION)
+    first = _run(mw, Request(TOOLS, MESSAGES))
+    assert [t.name for t in first.tools] == ["aemps_buscar", "aemps_ficha"]
+    turn_two = [*MESSAGES, AI("..."), Human("¿y su bioactividad?")]
+    second = _run(mw, Request(TOOLS, turn_two))
+    assert [t.name for t in second.tools] == ["aemps_buscar", "aemps_ficha", "chembl_search"]
+
+
+def test_calls_within_one_turn_pay_for_no_new_decision():
+    decider = _ByPurpose()
+    sq, _ = squire(decider)
+    mw = ToolSelectMiddleware(sq, key_of=ONE_CONVERSATION)
+    for _ in range(4):  # the agent loop calling the model again after each tool result
+        _run(mw, Request(TOOLS, MESSAGES))
+    assert decider.calls == 1
+
+
+def test_grow_false_keeps_the_first_selection_for_the_whole_conversation():
+    sq, _ = squire(_ByPurpose())
+    mw = ToolSelectMiddleware(sq, grow=False, key_of=ONE_CONVERSATION)
+    _run(mw, Request(TOOLS, MESSAGES))
+    turn_two = [*MESSAGES, AI("..."), Human("¿y su bioactividad?")]
+    assert [t.name for t in _run(mw, Request(TOOLS, turn_two)).tools] == [
+        "aemps_buscar",
+        "aemps_ficha",
+    ]
+
+
+def test_a_second_conversation_under_a_shared_key_still_widens_on_its_own_turns():
+    sq, _ = squire(_ByPurpose())
+    mw = ToolSelectMiddleware(sq, key_of=ONE_CONVERSATION)  # two users, one key
+    long = [*MESSAGES, AI("."), Human("otra"), AI("."), Human("y otra más")]
+    _run(mw, Request(TOOLS, long))  # conversation A: three human turns under this key
+    b_turn_two = [*MESSAGES, AI("..."), Human("¿y su bioactividad?")]
+    names = [t.name for t in _run(mw, Request(TOOLS, b_turn_two)).tools]
+    assert "chembl_search" in names
+
+
+def test_callers_can_key_conversations_by_thread():
+    sq, _ = squire(_ByPurpose())
+    mw = ToolSelectMiddleware(sq, key_of=lambda request: getattr(request, "thread", None))
+
+    @dataclass(frozen=True)
+    class Threaded(Request):
+        thread: str = ""
+
+    _run(mw, Threaded(TOOLS, MESSAGES, thread="a"))
+    _run(mw, Threaded(TOOLS, MESSAGES, thread="b"))
+    assert len(mw._windows) == 2  # noqa: SLF001

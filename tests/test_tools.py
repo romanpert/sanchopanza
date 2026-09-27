@@ -25,7 +25,7 @@ NAMES = tuple(g["name"] for g in CATALOG)
 
 def test_questions_are_one_truth_per_group_with_positional_ids():
     state, qs = tools.questions(purpose="interacción Sintrom con ibuprofeno", catalog=CATALOG)
-    assert list(qs) == ["needed_0", "needed_1", "needed_2", "needed_3"]
+    assert list(qs) == ["deferred", "needed_0", "needed_1", "needed_2", "needed_3"]
     assert state["catalog"][0]["name"] == "aemps" and "clues" not in state
     assert "`catalog[2]`" in qs["needed_2"].instructions and "chembl" in qs["needed_2"].instructions
 
@@ -120,3 +120,20 @@ def test_a_changed_selection_warns_once_and_names_both_sets():
     assert len(warnings) == 1
     assert warnings[0]["data"]["previous"] == ["judicial", "registros"]
     assert "prompt cache" in warnings[0]["data"]["message"]
+
+
+def test_a_request_that_defers_its_instructions_keeps_the_whole_catalog():
+    """Measured: every one of the selector's ten failures on 97 real tasks was this shape.
+
+    "Read landlord-notices.txt and follow the instructions precisely" needs the transactions
+    group, and nothing in the request says so, because the instruction is in the file. The
+    selector cannot guess it and is not asked to: it is asked to notice and decline. See
+    `docs/results/2026-09-24-tools/`.
+    """
+    probs = {NAMES[0]: 0.9, NAMES[1]: 0.1, NAMES[2]: 0.05, NAMES[3]: 0.1}
+    narrowed = tools.select(probs, thresholds(), deferred=0.05)
+    assert narrowed.narrowed and set(narrowed.dropped) == set(NAMES[1:])
+    whole = tools.select(probs, thresholds(), deferred=0.9)
+    assert whole.keep == NAMES and not whole.narrowed and "defers" in whole.reason
+    # and the guard needs confidence of its own: an unsure `deferred` still narrows
+    assert tools.select(probs, thresholds(), deferred=0.4).narrowed

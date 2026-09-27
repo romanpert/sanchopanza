@@ -24,9 +24,11 @@ For `Choice`, the provider's own confidence if it has one, else top minus runner
 | `recorded` | `RecordedDecider` | replay of real decisions; tests, dry runs, CI | recorded |
 | `null` | `NullDecider` | no provider; every policy uses its default | none |
 | `llm` | `LLMDecider` | any LLM forced into a JSON schema; the paper's baseline | **self-reported**, and measured not to separate errors |
+| `claude-cli` | `LLMDecider` over `ClaudeCLI` | the same, through `claude -p`, billed to the logged-in account and never to an API key | self-reported, as `llm` |
 | `local` | `LocalDecider` | your classifiers, embeddings, vision models | whatever you compute |
 | | `FallbackDecider` | first provider that answers each question wins | merged |
 | | `RoutedDecider` | one provider per decision point | per point |
+| | `CascadeDecider` | a cheap provider first, an expensive one only for the questions it was unsure of; the threshold per question kind is required, there is no default. For `points.actions` in front of Opus 5, 0.45 is confirmed on ATBench-Codex (`docs/results/2026-09-27-cascade-frontier/`) | per question, from whichever answered |
 | | `RecordingDecider` | wraps a real provider and writes a fixture | passthrough |
 
 `sanchopanza.providers.create(name, **kwargs)` instantiates by name, including providers other
@@ -57,8 +59,56 @@ a catch-all. They receive the state and the `Question` object, so a generic hand
 inspect `question.options` or `question.levels`. Sync or async both work.
 
 For an LLM you do not have a completer for, write `async def complete(system, user, schema)
--> (payload, tokens_in, tokens_out)` and pass it to `LLMDecider`. Two are included:
-`anthropic_completer` (tool-forced) and `openai_completer` (json_schema).
+-> (payload, tokens_in, tokens_out)` and pass it to `LLMDecider`. Three are included:
+`anthropic_completer` (tool-forced), `openai_completer` (json_schema) and
+`ClaudeCLI(...).completer()` (`--json-schema`, below).
+
+## `claude-cli`: a generative model with no API key
+
+```python
+from sanchopanza.providers import create
+
+decider = create(
+    "claude-cli",
+    model="claude-haiku-4-5-20251001",
+    ceiling_usd=2.0,                        # required: list-price ceiling for this decider
+    cache_path="fixtures/cli/mine.jsonl",   # optional: answered sessions are replayed
+)
+```
+
+Each question is one Claude Code session (`claude -p`), billed to whatever account `claude`
+is logged into, usually a subscription. What it guarantees:
+
+- **No API key reaches the session.** Every `ANTHROPIC_*`, `CLAUDE_CODE_USE_*` and
+  `AWS_BEARER_TOKEN_BEDROCK` variable is removed from its environment, so a key or a cloud
+  route left in the shell never turns this path into the API path it exists to avoid. A
+  `.cmd` or `.bat` shim is refused as the executable.
+- **An isolated session.** Our system prompt replaces Claude Code's, no tools, no settings
+  sources, no MCP servers, no session persistence, thinking off. The prefix drops to about
+  730 tokens: about 0.002-0.004 USD at list price per Haiku 4.5 session, and about 0.033 USD
+  per permission case on Opus 5 (a pilot of three sessions). `--json-schema` forces the
+  answer, at the price of one extra internal turn.
+- **A hard ceiling.** `ceiling_usd` is required, finite and positive. Before each spawn the
+  cost already spent plus the budget reserved by the sessions in flight is checked against it,
+  and `CeilingReached` is raised instead of spawning; the last sessions get only what is left,
+  passed as `--max-budget-usd`, which the CLI enforces itself. A session whose cost is not
+  reported is charged its whole budget, and a cancelled session's process is killed.
+  `count_cached=True` counts what the cache already cost, for a run resumed after a stop.
+- **A disk cache** (`SessionCache`), keyed by model, system prompt, schema, `effort` and
+  prompt: a prompt already answered is replayed and never asked again, so rerunning a bench
+  after a crash costs nothing. A line torn by a killed run is skipped and counted without
+  losing the row written after it.
+- **Prompts in argv, after `--`.** Under concurrency the CLI waits only 3 s for stdin, so a
+  prompt that fits the command line goes as the last argument, always after `--` so that a
+  prompt starting with `-` is not read as an option; longer ones go on stdin.
+
+The cost it reports is Claude Code's estimate at list price, what the same tokens would cost
+on the API, not what the subscription charges. **A number from this path is not placed beside
+an API number without a check.** The CLI has no `max_tokens`: on the same 300 prompts,
+free-length answers through the CLI scored 74.7 % where the Batch API scored 67.7 %, because
+the replies ran longer. With the reply forced into one short field (`--json-schema`) the two
+paths agree, 67.0 % against 67.7 % (`docs/results/2026-09-27-answers/`). Control the answer
+length, and run every arm of a comparison through the same path.
 
 ## Mixing
 

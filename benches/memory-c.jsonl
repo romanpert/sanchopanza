@@ -1,0 +1,92 @@
+# Agent memory, third batch: the cases that take memory_write to 100 (50 cases).
+#
+# Only the new cases live here; the first 16 stay in `memory.jsonl` and the next 34 in
+# `memory-b.jsonl`, so both published runs stay reproducible exactly as they were.
+#
+# WHY A THIRD BATCH. `docs/results/2026-09-24-fifty` measured this point at 26/34 under the
+# shipped policy and 31/34 at a plain 0.5 cut, with AUC 0.99 and Cohen's kappa 1.00 between
+# the two annotators: not one of its cases is disputed, so every one of those eight losses is
+# the 0.70 threshold declining to act on a case nobody argues about. `benchmarks/thresholds.py`
+# then refused to move the threshold, and was right to: with a 95 % Wilson lower bound the
+# sample supported no target at all at n=34. The arithmetic it published is the reason this
+# file exists - a 90 % precision target needs 35 ACTED cases, which at a balanced label mix
+# is about 70 labelled ones. With these 50, memory_write has 100 cases and 51 `store` labels,
+# which is the first time any point in this repository can carry a target worth having.
+#
+# THE DISTINCTION, unchanged from the second batch because changing it would invalidate it:
+#
+#   store: something the agent learned by doing, that it cannot get back by re-reading a
+#          source it already holds. Operational constraints, the reason behind a decision,
+#          a negative result and why, a standing instruction from the client.
+#   skip:  anything re-derivable. A literal quotation from a document already in the volume,
+#          a fact about code the agent can grep, restatements of the task, progress
+#          narration, transient state, and general world knowledge.
+#
+# THE TRAP PAIRS, written so that surface form cannot decide the answer. Each pair is two
+# cases that read alike and label opposite, which is the only way to tell a point that
+# understands the criterion from one that has learned a register:
+#
+#   mw-69 / mw-85   a price the client authorised us to spend, against the same price
+#                   published on the registry's own website.
+#   mw-53 / mw-91   a negative result carrying the reason it failed, against a bare
+#                   statement that something returned nothing.
+#   mw-70 / mw-96   an opening constraint discovered by asking, against an address anyone
+#                   can look up.
+#   mw-60 / mw-97   a discrepancy we verified between two documents, against a name read
+#                   off one document we already hold.
+#   mw-63 / mw-80   a standing quota on an account, against the size of a file on disk.
+#
+# Annotator 1 (the author) labelled every case before any decision was run. Annotator 2 is a
+# separate generative model given the same question from the same builder, blind to the first
+# label and to the evaluator's answer, run by `benchmarks/annotate.py`. Two annotators, one of
+# them a model, is not two independent humans, and the paper says so wherever it uses these.
+{"id": "mw-51", "point": "memory_write", "input": {"fact": "El juzgado de lo mercantil numero 3 solo admite escritos por via telematica hasta las 15:00; los posteriores entran con fecha del dia siguiente."}, "expected": "store"}
+{"id": "mw-52", "point": "memory_write", "input": {"fact": "La API del registro devuelve codigo 200 con el cuerpo vacio cuando el identificador no existe, en lugar de un 404; hay que comprobar el cuerpo y no el codigo."}, "expected": "store"}
+{"id": "mw-53", "point": "memory_write", "input": {"fact": "Intentamos cruzar el padron con el registro mercantil por nombre y no funciona: el padron guarda nombre y apellidos en un solo campo y el registro los separa en tres."}, "expected": "store"}
+{"id": "mw-54", "point": "memory_write", "input": {"fact": "El cliente quiere todas las cantidades en euros aunque la fuente este en dolares, convertidas a la tasa del dia del hecho y no a la de hoy."}, "expected": "store"}
+{"id": "mw-55", "point": "memory_write", "input": {"fact": "La hemeroteca del diario corta a las tres consultas por hora y direccion; a partir de ahi devuelve listas vacias sin ningun mensaje de error."}, "expected": "store"}
+{"id": "mw-56", "point": "memory_write", "input": {"fact": "Descartamos la via del registro de la propiedad porque la nota simple solo da el titular actual y necesitamos el historico de titulares."}, "expected": "store"}
+{"id": "mw-57", "point": "memory_write", "input": {"fact": "El archivo del ayuntamiento contesto que los expedientes anteriores a 2015 estan solo en papel y requieren cita presencial."}, "expected": "store"}
+{"id": "mw-58", "point": "memory_write", "input": {"fact": "Las actas del consejo vienen firmadas con un certificado caducado y el visor oficial las rechaza; se abren con el visor alternativo sin perder la firma."}, "expected": "store"}
+{"id": "mw-59", "point": "memory_write", "input": {"fact": "El cliente ha pedido que no contactemos con nadie del entorno familiar del investigado en ninguna fase del encargo."}, "expected": "store"}
+{"id": "mw-60", "point": "memory_write", "input": {"fact": "Comprobamos que el numero de expediente que da la noticia no coincide con el del boletin oficial: a la noticia le falta un digito."}, "expected": "store"}
+{"id": "mw-61", "point": "memory_write", "input": {"fact": "El buscador de ese registro solo indexa el primer apellido; buscando por el segundo no devuelve nada aunque la persona este inscrita."}, "expected": "store"}
+{"id": "mw-62", "point": "memory_write", "input": {"fact": "La traduccion jurada la encargamos al segundo traductor porque el primero tradujo fianza por garantia y hubo que rehacer dos apartados del informe."}, "expected": "store"}
+{"id": "mw-63", "point": "memory_write", "input": {"fact": "La cuenta que usamos en la base de datos de sentencias tiene un tope de 500 descargas al mes."}, "expected": "store"}
+{"id": "mw-64", "point": "memory_write", "input": {"fact": "El colegio de abogados confirmo que no facilita fechas de colegiacion por telefono: solo por escrito y motivando la peticion."}, "expected": "store"}
+{"id": "mw-65", "point": "memory_write", "input": {"fact": "Los PDF del boletin autonomico traen el texto a dos columnas y el extractor las entrelaza; hay que procesarlos en modo columnas o el texto sale mezclado."}, "expected": "store"}
+{"id": "mw-66", "point": "memory_write", "input": {"fact": "El informe se entrega en castellano aunque buena parte de las fuentes esten en catalan; lo pidio el cliente expresamente."}, "expected": "store"}
+{"id": "mw-67", "point": "memory_write", "input": {"fact": "Descartamos que las dos sociedades compartan administrador: los nombres coinciden pero los documentos de identidad son distintos."}, "expected": "store"}
+{"id": "mw-68", "point": "memory_write", "input": {"fact": "La sede electronica exige el certificado instalado en el almacen del sistema; el fichero suelto no lo acepta aunque sea el mismo certificado."}, "expected": "store"}
+{"id": "mw-69", "point": "memory_write", "input": {"fact": "El cliente autorizo gastar en notas simples hasta un maximo de cinco sociedades."}, "expected": "store"}
+{"id": "mw-70", "point": "memory_write", "input": {"fact": "Nos confirmaron por telefono que el archivo municipal cierra el mes de agosto completo."}, "expected": "store"}
+{"id": "mw-71", "point": "memory_write", "input": {"fact": "El portal gratuito solo publica los tres ultimos ejercicios de cuentas anuales; para 2018 hay que pedirlas al registro de pago."}, "expected": "store"}
+{"id": "mw-72", "point": "memory_write", "input": {"fact": "El testigo pidio no aparecer con nombre y se acepto; en el informe figura como una persona del entorno laboral."}, "expected": "store"}
+{"id": "mw-73", "point": "memory_write", "input": {"fact": "El buscador de la agencia devuelve un error de servidor si el rango de fechas de la consulta supera los doce meses."}, "expected": "store"}
+{"id": "mw-74", "point": "memory_write", "input": {"fact": "Acordamos con el cliente que las menciones en redes sociales no cuentan como fuente salvo que la cuenta este verificada."}, "expected": "store"}
+{"id": "mw-75", "point": "memory_write", "input": {"fact": "La primera version del cruce dio cuarenta coincidencias falsas porque un fichero traia el municipio como codigo y el otro como nombre."}, "expected": "store"}
+{"id": "mw-76", "point": "memory_write", "input": {"fact": "El articulo 29 de la Ley 6132 define la difamacion como toda alegacion o imputacion de un hecho que ataque el honor de la persona."}, "expected": "skip"}
+{"id": "mw-77", "point": "memory_write", "input": {"fact": "Llevamos revisados catorce de los veintidos expedientes."}, "expected": "skip"}
+{"id": "mw-78", "point": "memory_write", "input": {"fact": "La sentencia 0123-2024 tiene cuarenta y siete paginas."}, "expected": "skip"}
+{"id": "mw-79", "point": "memory_write", "input": {"fact": "Una sociedad de responsabilidad limitada responde de sus deudas con su propio patrimonio y no con el de los socios."}, "expected": "skip"}
+{"id": "mw-80", "point": "memory_write", "input": {"fact": "El fichero descargado se llama boletin-2026-03-14.pdf y ocupa 2,1 megabytes."}, "expected": "skip"}
+{"id": "mw-81", "point": "memory_write", "input": {"fact": "El cliente ha escrito esta manana para preguntar si habia novedades."}, "expected": "skip"}
+{"id": "mw-82", "point": "memory_write", "input": {"fact": "La funcion que normaliza los nombres de persona esta en el modulo de utilidades del proyecto."}, "expected": "skip"}
+{"id": "mw-83", "point": "memory_write", "input": {"fact": "El titulo del expediente es Expediente sancionador 45/2024."}, "expected": "skip"}
+{"id": "mw-84", "point": "memory_write", "input": {"fact": "Ahora mismo estoy descargando la tercera tanda de expedientes."}, "expected": "skip"}
+{"id": "mw-85", "point": "memory_write", "input": {"fact": "El precio de la nota simple esta publicado en el arancel de la web del registro."}, "expected": "skip"}
+{"id": "mw-86", "point": "memory_write", "input": {"fact": "El informe llevara cuatro apartados: antecedentes, hallazgos, fuentes y conclusiones."}, "expected": "skip"}
+{"id": "mw-87", "point": "memory_write", "input": {"fact": "La sociedad se constituyo en 2011, segun el anuncio del BORME que ya tenemos descargado."}, "expected": "skip"}
+{"id": "mw-88", "point": "memory_write", "input": {"fact": "He terminado de leer el tercer capitulo del informe pericial."}, "expected": "skip"}
+{"id": "mw-89", "point": "memory_write", "input": {"fact": "El formato PDF fue publicado como estandar abierto por la organizacion internacional de normalizacion."}, "expected": "skip"}
+{"id": "mw-90", "point": "memory_write", "input": {"fact": "El ordinal TERCERO de la sentencia empieza en la pagina treinta y nueve."}, "expected": "skip"}
+{"id": "mw-91", "point": "memory_write", "input": {"fact": "La ultima consulta que he lanzado esta tardando mas de lo normal en responder."}, "expected": "skip"}
+{"id": "mw-92", "point": "memory_write", "input": {"fact": "El encargo es sobre la sociedad Industrias Belmonte, sociedad limitada."}, "expected": "skip"}
+{"id": "mw-93", "point": "memory_write", "input": {"fact": "El PDF de las cuentas anuales tiene doce paginas y viene firmado digitalmente."}, "expected": "skip"}
+{"id": "mw-94", "point": "memory_write", "input": {"fact": "Voy a empezar por los expedientes mas recientes e ir hacia atras."}, "expected": "skip"}
+{"id": "mw-95", "point": "memory_write", "input": {"fact": "La palabra difamacion aparece catorce veces en el texto de la sentencia."}, "expected": "skip"}
+{"id": "mw-96", "point": "memory_write", "input": {"fact": "El registro mercantil central tiene su sede en Madrid y su direccion figura en su pagina web."}, "expected": "skip"}
+{"id": "mw-97", "point": "memory_write", "input": {"fact": "El administrador que figura en el acta es J. Perez."}, "expected": "skip"}
+{"id": "mw-98", "point": "memory_write", "input": {"fact": "Estamos en la fase dos de cuatro del encargo."}, "expected": "skip"}
+{"id": "mw-99", "point": "memory_write", "input": {"fact": "El identificador interno de este trabajo es job-7741."}, "expected": "skip"}
+{"id": "mw-100", "point": "memory_write", "input": {"fact": "La sentencia cita la Ley 6132 en su fundamento juridico segundo."}, "expected": "skip"}

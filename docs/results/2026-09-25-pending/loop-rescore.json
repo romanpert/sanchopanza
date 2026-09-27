@@ -1,0 +1,1255 @@
+{
+ "saturated": 0.7,
+ "cells": {
+  "goal_met|first (loop.jsonl)|0.50": {
+   "n": 14,
+   "tp": 6,
+   "fp": 0,
+   "fn": 0,
+   "tn": 8,
+   "accuracy": [
+    14,
+    14,
+    1.0,
+    0.785,
+    1.0
+   ],
+   "precision": [
+    6,
+    6,
+    1.0,
+    0.61,
+    1.0
+   ],
+   "recall": [
+    6,
+    6,
+    1.0,
+    0.61,
+    1.0
+   ],
+   "silent_in_band_0.30_to_cut": 0
+  },
+  "goal_met|first (loop.jsonl)|0.70": {
+   "n": 14,
+   "tp": 4,
+   "fp": 0,
+   "fn": 2,
+   "tn": 8,
+   "accuracy": [
+    12,
+    14,
+    0.857,
+    0.601,
+    0.96
+   ],
+   "precision": [
+    4,
+    4,
+    1.0,
+    0.51,
+    1.0
+   ],
+   "recall": [
+    4,
+    6,
+    0.667,
+    0.3,
+    0.903
+   ],
+   "silent_in_band_0.30_to_cut": 2
+  },
+  "goal_met|second (loop-b.jsonl)|0.50": {
+   "n": 36,
+   "tp": 18,
+   "fp": 0,
+   "fn": 1,
+   "tn": 17,
+   "accuracy": [
+    35,
+    36,
+    0.972,
+    0.858,
+    0.995
+   ],
+   "precision": [
+    18,
+    18,
+    1.0,
+    0.824,
+    1.0
+   ],
+   "recall": [
+    18,
+    19,
+    0.947,
+    0.754,
+    0.991
+   ],
+   "silent_in_band_0.30_to_cut": 1
+  },
+  "goal_met|second (loop-b.jsonl)|0.70": {
+   "n": 36,
+   "tp": 17,
+   "fp": 0,
+   "fn": 2,
+   "tn": 17,
+   "accuracy": [
+    34,
+    36,
+    0.944,
+    0.819,
+    0.985
+   ],
+   "precision": [
+    17,
+    17,
+    1.0,
+    0.816,
+    1.0
+   ],
+   "recall": [
+    17,
+    19,
+    0.895,
+    0.686,
+    0.971
+   ],
+   "silent_in_band_0.30_to_cut": 2
+  },
+  "goal_met|both (n=50)|0.50": {
+   "n": 50,
+   "tp": 24,
+   "fp": 0,
+   "fn": 1,
+   "tn": 25,
+   "accuracy": [
+    49,
+    50,
+    0.98,
+    0.895,
+    0.996
+   ],
+   "precision": [
+    24,
+    24,
+    1.0,
+    0.862,
+    1.0
+   ],
+   "recall": [
+    24,
+    25,
+    0.96,
+    0.805,
+    0.993
+   ],
+   "silent_in_band_0.30_to_cut": 1
+  },
+  "goal_met|both (n=50)|0.70": {
+   "n": 50,
+   "tp": 21,
+   "fp": 0,
+   "fn": 4,
+   "tn": 25,
+   "accuracy": [
+    46,
+    50,
+    0.92,
+    0.812,
+    0.968
+   ],
+   "precision": [
+    21,
+    21,
+    1.0,
+    0.845,
+    1.0
+   ],
+   "recall": [
+    21,
+    25,
+    0.84,
+    0.653,
+    0.936
+   ],
+   "silent_in_band_0.30_to_cut": 4
+  },
+  "repeats_check|first (loop.jsonl)|0.50": {
+   "n": 12,
+   "tp": 6,
+   "fp": 0,
+   "fn": 0,
+   "tn": 6,
+   "accuracy": [
+    12,
+    12,
+    1.0,
+    0.757,
+    1.0
+   ],
+   "precision": [
+    6,
+    6,
+    1.0,
+    0.61,
+    1.0
+   ],
+   "recall": [
+    6,
+    6,
+    1.0,
+    0.61,
+    1.0
+   ],
+   "silent_in_band_0.30_to_cut": 0
+  },
+  "repeats_check|first (loop.jsonl)|0.70": {
+   "n": 12,
+   "tp": 6,
+   "fp": 0,
+   "fn": 0,
+   "tn": 6,
+   "accuracy": [
+    12,
+    12,
+    1.0,
+    0.757,
+    1.0
+   ],
+   "precision": [
+    6,
+    6,
+    1.0,
+    0.61,
+    1.0
+   ],
+   "recall": [
+    6,
+    6,
+    1.0,
+    0.61,
+    1.0
+   ],
+   "silent_in_band_0.30_to_cut": 0
+  },
+  "repeats_check|second (loop-b.jsonl)|0.50": {
+   "n": 38,
+   "tp": 19,
+   "fp": 1,
+   "fn": 0,
+   "tn": 18,
+   "accuracy": [
+    37,
+    38,
+    0.974,
+    0.865,
+    0.995
+   ],
+   "precision": [
+    19,
+    20,
+    0.95,
+    0.764,
+    0.991
+   ],
+   "recall": [
+    19,
+    19,
+    1.0,
+    0.832,
+    1.0
+   ],
+   "silent_in_band_0.30_to_cut": 2
+  },
+  "repeats_check|second (loop-b.jsonl)|0.70": {
+   "n": 38,
+   "tp": 19,
+   "fp": 0,
+   "fn": 0,
+   "tn": 19,
+   "accuracy": [
+    38,
+    38,
+    1.0,
+    0.908,
+    1.0
+   ],
+   "precision": [
+    19,
+    19,
+    1.0,
+    0.832,
+    1.0
+   ],
+   "recall": [
+    19,
+    19,
+    1.0,
+    0.832,
+    1.0
+   ],
+   "silent_in_band_0.30_to_cut": 3
+  },
+  "repeats_check|both (n=50)|0.50": {
+   "n": 50,
+   "tp": 25,
+   "fp": 1,
+   "fn": 0,
+   "tn": 24,
+   "accuracy": [
+    49,
+    50,
+    0.98,
+    0.895,
+    0.996
+   ],
+   "precision": [
+    25,
+    26,
+    0.962,
+    0.811,
+    0.993
+   ],
+   "recall": [
+    25,
+    25,
+    1.0,
+    0.867,
+    1.0
+   ],
+   "silent_in_band_0.30_to_cut": 2
+  },
+  "repeats_check|both (n=50)|0.70": {
+   "n": 50,
+   "tp": 25,
+   "fp": 0,
+   "fn": 0,
+   "tn": 25,
+   "accuracy": [
+    50,
+    50,
+    1.0,
+    0.929,
+    1.0
+   ],
+   "precision": [
+    25,
+    25,
+    1.0,
+    0.867,
+    1.0
+   ],
+   "recall": [
+    25,
+    25,
+    1.0,
+    0.867,
+    1.0
+   ],
+   "silent_in_band_0.30_to_cut": 3
+  }
+ },
+ "rows": [
+  {
+   "id": "gm-01",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.5,
+   "at_0.5": true,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "gm-02",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.03,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "gm-03",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.01,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "gm-04",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.62,
+   "at_0.5": true,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "gm-05",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.1,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "gm-06",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.9,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "gm-07",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.05,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "gm-08",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.12,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "gm-09",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.95,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "gm-10",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.03,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "gm-11",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.91,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "gm-12",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.05,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "gm-13",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.75,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "gm-14",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.07,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "rp-01",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.93,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "rp-02",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.21,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "rp-03",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.91,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "rp-04",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.07,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "rp-05",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.72,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "rp-06",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.07,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "rp-07",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.96,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "rp-08",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.15,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "rp-09",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.91,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "rp-10",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.07,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "rp-11",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.91,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "rp-12",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.11,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "first (loop.jsonl)"
+  },
+  {
+   "id": "gm-15",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.07,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-16",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.93,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-17",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.83,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-18",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.05,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-19",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.66,
+   "at_0.5": true,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-20",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.26,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-21",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.9,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-22",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.13,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-23",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.89,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-24",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.02,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-25",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.8,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-26",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.07,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-27",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.9,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-28",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.04,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-29",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.93,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-30",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.03,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-31",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.89,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-32",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.03,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-33",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.77,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-34",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.06,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-35",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.92,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-36",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.02,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-37",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.77,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-38",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.07,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-39",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.91,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-40",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.04,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-41",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.73,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-42",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.09,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-43",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.83,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-44",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.84,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-45",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.75,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-46",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.09,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-47",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.84,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-48",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.03,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-49",
+   "point": "goal_met",
+   "expected": false,
+   "probability": 0.33,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "gm-50",
+   "point": "goal_met",
+   "expected": true,
+   "probability": 0.25,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-13",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.93,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-14",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.08,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-15",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.45,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-16",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.94,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-17",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.09,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-18",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.89,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-19",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.84,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-20",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.16,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-21",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.09,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-22",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.92,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-23",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.79,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-24",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.06,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-25",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.94,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-26",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.07,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-27",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.93,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-28",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.42,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-29",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.04,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-30",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.88,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-31",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.07,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-32",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.88,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-33",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.86,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-34",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.12,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-35",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.85,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-36",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.07,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-37",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.5,
+   "at_0.5": true,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-38",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.93,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-39",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.93,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-40",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.07,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-41",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.95,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-42",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.21,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-43",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.15,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-44",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.94,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-45",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.93,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-46",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.26,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-47",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.93,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-48",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.08,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-49",
+   "point": "repeats_check",
+   "expected": false,
+   "probability": 0.28,
+   "at_0.5": false,
+   "shipped": false,
+   "batch": "second (loop-b.jsonl)"
+  },
+  {
+   "id": "rp-50",
+   "point": "repeats_check",
+   "expected": true,
+   "probability": 0.95,
+   "at_0.5": true,
+   "shipped": true,
+   "batch": "second (loop-b.jsonl)"
+  }
+ ]
+}

@@ -45,6 +45,22 @@ ALLOW = Verdict("allow")
 
 
 @dataclass(frozen=True, slots=True)
+class Note:
+    """Something to say after a tool ran. `context` reaches the model, `user` the operator.
+
+    They are separate because a detection control that only speaks to the model is trusting
+    the model to act on a warning about text designed to steer it. The operator's copy is
+    the part that does not depend on that.
+    """
+
+    context: str = ""
+    user: str = ""
+
+    def __bool__(self) -> bool:
+        return bool(self.context or self.user)
+
+
+@dataclass(frozen=True, slots=True)
 class HarnessConfig:
     """Names the harness uses. Defaults match Claude Code and the Claude Agent SDK."""
 
@@ -71,6 +87,25 @@ class HarnessConfig:
     shell_command_key: str = "command"
     guard_environment: Mapping[str, Any] | None = None
     result_limit: int = 4000
+    # --- content that arrives from outside, scanned after the fact -----------------------
+    # Off by default. It costs one decision per tool result and, unlike every other family
+    # here, it cannot change the outcome: by PostToolUse the text is in the transcript and
+    # the harness offers no way to replace a tool result. It detects and warns. See
+    # `points.injection` for why that is still worth having and why it must not be sold as
+    # a barrier.
+    scan_content: bool = False
+    # --- the agent's own "done", checked before it may stop ------------------------------
+    # Off by default. On 655 AgentDojo trajectories the agent's word was right 52 % of the
+    # time and the completion question 94 % (docs/results/2026-09-25-completion/). `done_cut`
+    # is derived there to a 90 % precision target for a block: a false block costs a turn.
+    check_done: bool = False
+    done_cut: float = 0.5
+    content_tools: frozenset[str] = frozenset({"WebFetch", "WebSearch"})
+    # The purpose the content is judged against. A constant is fine; a callable returning
+    # the live task is better, because the question asks what the text tries to change.
+    content_purpose: Callable[[], str] = lambda: "the task this agent was given"
+    # No longer cuts what is scanned (see `_scan`); kept so existing configs still load.
+    content_limit: int = 4000
 
     def tier_name(self, tier: Tier) -> str:
         return self.tiers.get(tier, tier)
@@ -99,17 +134,44 @@ class Guardian:
             return await self._before_shell(call)
         return ALLOW
 
-    async def after_tool(self, call: ToolCall, response: Any) -> str | None:
-        """A note for the orchestrator after a delegated subtask returns, or None."""
+    async def after_tool(self, call: ToolCall, response: Any) -> Note | None:
+        """What to say once a tool has returned, to the model and to the operator.
+
+        Two things can happen here and they are independent: a delegated subtask gets its
+        report reviewed, and content that arrived from outside gets scanned for instructions
+        aimed at the model. A tool can be in both families; both notes are then joined.
+        """
         c = self.config
-        if call.name not in c.delegate_tools or not c.review_delegations:
-            return None
-        task = self._task_text(call.arguments)
         text = text_of(response)
-        if not task.strip() or not text.strip():
+        if not text.strip():
             return None
-        outcome = await self.squire.review_report(task, text[: c.result_limit])
-        return outcome.message if outcome else None
+        parts: list[Note] = []
+        if call.name in c.delegate_tools and c.review_delegations:
+            task = self._task_text(call.arguments)
+            if task.strip():
+                outcome = await self.squire.review_report(task, text[: c.result_limit])
+                if outcome and outcome.message:
+                    parts.append(Note(context=outcome.message))
+        if c.scan_content and call.name in (c.content_tools | c.delegate_tools):
+            parts.append(await self._scan(call, text))
+        joined = Note(
+            context="\n\n".join(p.context for p in parts if p.context),
+            user="\n".join(p.user for p in parts if p.user),
+        )
+        return joined if (joined.context or joined.user) else None
+
+    async def _scan(self, call: ToolCall, text: str) -> Note:
+        c = self.config
+        source = _source_of(call) or call.name
+        # The whole text: `scan_content` slides its own windows and `max_windows` bounds the
+        # cost. Cut here first, a payload after character 4,000 was never read by either
+        # layer and the journal still said the scan was complete (review of 2026-09-25).
+        flag = await self.squire.scan_content(purpose=c.content_purpose(), text=text, source=source)
+        # An incomplete scan stays silent here, as an outage does (the journal records
+        # `complete`): a note on every page while the provider is down is noise, not news.
+        if not flag.flagged:
+            return Note()
+        return Note(context=flag.note, user=flag.warning)
 
     # --- families --------------------------------------------------------------------
 
@@ -165,6 +227,15 @@ class Guardian:
             if value:
                 return str(value)
         return ""
+
+
+def _source_of(call: ToolCall) -> str:
+    """A short name for where content came from: a URL, a path, a query."""
+    for key in ("url", "file_path", "path", "query", "prompt", "description"):
+        value = call.arguments.get(key)
+        if value:
+            return str(value)[:200]
+    return ""
 
 
 def text_of(response: Any) -> str:

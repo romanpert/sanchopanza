@@ -20,19 +20,23 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass
-from typing import Any
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from dataclasses import dataclass, replace
+from typing import Any, Literal
 
 from .budget import Meter
 from .contract import Decider, DeciderUnavailable, Decision, Question, State
 from .dag import Edge, build_dag, waves
 from .journal import Journal, NullJournal, decision_event
 from .points import (
+    chunks,
     citation,
+    completion,
     entities,
     graph,
     guard,
+    hierarchy,
+    injection,
     loop,
     memory,
     plan,
@@ -64,12 +68,18 @@ class Squire:
         journal: Journal | None = None,
         brief: str = "",
         profile: str = "",
+        redact: Callable[[State], State] | None = None,
     ) -> None:
-        self._decider: Decider = decider or NullDecider()
-        self._t = thresholds or Thresholds()
-        self._journal: Journal = journal or NullJournal()
+        # `is not None`, not truthiness: `RecordedDecider` defines `__len__` as its count of
+        # exact keys, so a recording holding only defaults was falsy and silently replaced by
+        # the null decider - every answer empty, no error.
+        self._decider: Decider = decider if decider is not None else NullDecider()
+        self._t = thresholds if thresholds is not None else Thresholds()
+        self._journal: Journal = journal if journal is not None else NullJournal()
         self._brief = brief
         self._profile = profile
+        # Runs on every state before a provider sees it (review M7; see `redact.py`).
+        self._redact = redact
         self._meter = Meter()
         self._queries: tuple[str, ...] = ()
         self._cap_warned = False
@@ -77,6 +87,23 @@ class Squire:
         self._churn_warned = False
         self._model_seen: str | None = None
         self._model_warned = False
+
+    def fork(self) -> Squire:
+        """A fresh squire - new meter, no history - with this one's configuration.
+
+        Same decider, thresholds, journal, brief, profile and redactor. For a harness that
+        serves several users or conversations from one template: each gets its own budget and
+        its own query memory. It lives here, not in each adapter, so that a setting added to
+        the squire (the redactor was the first) cannot be silently dropped by a copy.
+        """
+        return Squire(
+            self._decider,
+            thresholds=self._t,
+            journal=self._journal,
+            brief=self._brief,
+            profile=self._profile,
+            redact=self._redact,
+        )
 
     # --- plumbing --------------------------------------------------------------------
 
@@ -105,6 +132,14 @@ class Squire:
                     "warning", {"message": "squire budget exhausted: defaults from here on"}
                 )
             return Decision(point, {}, "budget", "-", error="budget exhausted")
+        if self._redact is not None:
+            try:
+                state = self._redact(state)
+            except Exception as error:  # never send the state the redactor failed to clean
+                return Decision(
+                    point, {}, self._decider.name, "-", error=f"redaction failed: {error!r}"
+                )
+        self._meter = self._meter.reserve()
         try:
             decision = await self._decider.decide(point, state, questions)
         except DeciderUnavailable as error:
@@ -113,8 +148,14 @@ class Squire:
             decision = Decision(
                 point, {}, self._decider.name, "-", error=f"{error.__class__.__name__}: {error}"
             )
-        self._meter = self._meter.add(decision.cost_usd)
+        self._meter = self._meter.charge(decision.cost_usd)
         return decision
+
+    @property
+    def exhausted(self) -> bool:
+        """True once the cap is reached. Not an outage: an attacker can cause it, by feeding
+        long documents, so a policy must not answer it the way it answers a provider down."""
+        return not self._meter.within(self._t.max_decisions, self._t.max_usd)
 
     def record(self, decision: Decision, **outcome: Any) -> None:
         self._warn_if_the_model_changed(decision)
@@ -225,6 +266,12 @@ class Squire:
     ) -> triage.Triage:
         """A page's place in the context. Provenance goes in `allowed_kinds`, not in `purpose`.
 
+        **Not for a purpose with several parts.** Its relevance question asks whether the page
+        addresses the whole purpose, and at the shipped cut it kept both supporting paragraphs
+        in 19.7 % of 300 multi-part HotpotQA questions. Use `triage_part` there
+        (`docs/results/2026-09-25-triage/`). The injection and source-kind answers of this
+        call stay useful either way.
+
         Stating "only official sources" inside the purpose asks the relevance question to
         carry a requirement it does not answer; the source-kind Choice in the same decision
         does, better calibrated and for free. Measured: `docs/results/2026-09-24-steerability`.
@@ -242,6 +289,102 @@ class Squire:
             source_kind=result.source_kind,
         )
         return result
+
+    async def triage_part(self, *, purpose: str, title: str = "", text: str) -> triage.Part:
+        """Does this page hold any fact the answer to `purpose` would use, even one step of it?
+
+        The triage for multi-part purposes. Confirmed on 300 HotpotQA questions nothing was
+        chosen on: both supporting paragraphs kept in 93.3 % at 52 % of the text, against
+        80.3 % for BM25 given more text and 19.7 % for `triage_page` at its shipped cut
+        (`docs/results/2026-09-25-triage/`). One question, its own call: that is the shape
+        that was measured. Pair it with `scan_content` or `triage_page` for injection.
+        """
+        state, qs = triage.contribution_questions(purpose=purpose, title=title, text=text)
+        decision = await self.decide("triage_part", state, qs)
+        result = triage.decide_part(decision, self._t)
+        self.record(decision, keep=result.keep, reason=result.reason)
+        return result
+
+    async def check_done(
+        self, *, task: str, record: str, cut: float = 0.5
+    ) -> completion.Completion:
+        """Did the agent do what `task` asked, as far as `record` shows? For a Stop hook.
+
+        On 655 AgentDojo trajectories, against the benchmark's own environment check: 94 %
+        right where trusting the agent is 52 %, AUC 0.98 (docs/results/2026-09-25-completion/).
+        No data means no opinion: the harness keeps its own stop rule.
+        """
+        state, qs = completion.questions(task=task, record=record)
+        decision = await self.decide("completion", state, qs)
+        result = completion.decide(decision, cut=cut)
+        self.record(decision, done=result.done, reason=result.reason)
+        return result
+
+    async def triage_pages(
+        self, *, purpose: str, pages: Sequence[tuple[str, str]]
+    ) -> list[tuple[bool, float | None]]:
+        """Which of these pages hold a fact the answer needs, judged with the others in view.
+
+        One call for the whole set, one probability per page. Confirmed on 300 HotpotQA
+        questions nothing was chosen on: 98.3 % of supporting pages kept at 34 % of the text,
+        where asking page by page kept 94.3 % at 53 % in ten calls
+        (docs/results/2026-09-27-chunks/). Up to `chunks.PAGE_MAX` pages; later ones and
+        unanswered ones are kept: in doubt, a page enters.
+        """
+        state, qs = chunks.context_questions(purpose=purpose, pages=pages)
+        decision = await self.decide("triage_pages", state, qs)
+        out: list[tuple[bool, float | None]] = []
+        for index in range(len(pages)):
+            p = decision.answer(chunks.page_id(index)).truth if index < chunks.PAGE_MAX else None
+            out.append((p is None or p >= self._t.pages_in_context, p))
+        self.record(decision, kept=sum(keep for keep, _ in out), pages=len(pages))
+        return out
+
+    async def triage_many(
+        self, *, purpose: str, pages: Sequence[tuple[str, str]]
+    ) -> list[tuple[bool, float | None]]:
+        """`triage_pages` for any number of pages: a tournament of in-context calls.
+
+        Up to `chunks.PAGE_MAX` it is one call. Past it, balanced groups at the lenient
+        `pages_first_round` cut, then the survivors judged together at `pages_in_context`.
+        Confirmed on 200 HotpotQA questions with 100 pages each: both supporting pages kept in
+        96.5 % at 3.1 % of the text, in five calls (docs/results/2026-09-27-hierarchy/).
+        Unanswered pages are kept. The probability returned is the last one the page got.
+        """
+
+        async def judge(ids: Sequence[int]) -> list[float | None]:
+            state, qs = chunks.context_questions(purpose=purpose, pages=[pages[i] for i in ids])
+            decision = await self.decide("triage_pages", state, qs)
+            self.record(decision, pages=len(ids))
+            return [decision.answer(chunks.page_id(k)).truth for k in range(len(ids))]
+
+        result = await hierarchy.tournament(
+            len(pages),
+            judge,
+            size=chunks.PAGE_MAX,
+            first_cut=self._t.pages_first_round,
+            final_cut=self._t.pages_in_context,
+        )
+        return [(v.keep, v.last) for v in result.pages]
+
+    async def select_sentences(
+        self, *, purpose: str, title: str = "", sentences: Sequence[str]
+    ) -> list[tuple[bool, float | None]]:
+        """Which sentences of a page hold a fact the answer needs, each read in the page.
+
+        Meant inside the pages `triage_pages` keeps: together they returned every supporting
+        sentence in 90.3 % of 300 new questions at 22 % of the text. Sentences past
+        `chunks.SENTENCE_MAX` and unanswered ones are kept.
+        """
+        state, qs = chunks.sentence_questions(purpose=purpose, title=title, sentences=sentences)
+        decision = await self.decide("select_sentences", state, qs)
+        out: list[tuple[bool, float | None]] = []
+        for index in range(len(sentences)):
+            key = chunks.sentence_id(index)
+            p = decision.answer(key).truth if index < chunks.SENTENCE_MAX else None
+            out.append((p is None or p >= self._t.sentences, p))
+        self.record(decision, kept=sum(keep for keep, _ in out), sentences=len(sentences))
+        return out
 
     async def triage_results(
         self, results: Sequence[Mapping[str, Any]], *, purpose: str
@@ -271,37 +414,74 @@ class Squire:
         catalog: Sequence[Mapping[str, Any]],
         clues: str = "",
         always: Iterable[str] = (),
+        honour_deferred: bool = True,
+        warn_churn: bool = True,
     ) -> tools.Selection:
         """Which groups of a tool catalog the model's call should carry. Never empty.
 
         Large catalogs are asked in chunks, in parallel, and merged before the policy runs
-        once over the whole catalog. `always` groups are pinned by code, not by the model.
+        once over the whole catalog. `always` groups are pinned by code, not by the model,
+        and groups a kept group `requires` are added in code after it.
+
+        `honour_deferred=False` narrows even when the request defers its instructions; the
+        probability is still returned on the selection. That is for a caller that can widen
+        later once the deferred content is read (`sanchopanza.window.ToolWindow`), and wrong
+        for one that selects once for the whole session.
         """
         groups = [dict(g) for g in catalog]
         if not groups:
             return tools.Selection((), (), "empty catalog", {})
-        chunks = [
-            groups[i : i + tools.GROUPS_PER_CALL]
-            for i in range(0, len(groups), tools.GROUPS_PER_CALL)
-        ]
-        decisions = await asyncio.gather(
-            *(
-                self.decide("tools", *tools.questions(purpose=purpose, catalog=c, clues=clues))
-                for c in chunks
-            )
+        probs, deferred, decisions = await self.ask_groups(
+            "tools",
+            groups,
+            lambda chunk: tools.questions(purpose=purpose, catalog=chunk, clues=clues),
         )
-        probs: dict[str, float | None] = {}
-        for d, c in zip(decisions, chunks, strict=True):
-            probs.update(tools.probabilities_of(d, c))
         selection = tools.select(
-            probs, self._t, always=always, failed=all(d.failed for d in decisions)
+            probs,
+            self._t,
+            always=always,
+            failed=all(d.failed for d in decisions),
+            deferred=deferred if honour_deferred else None,
+            requires=tools.requires_of(groups),
         )
-        self._warn_if_the_catalog_churns(selection)
+        selection = replace(selection, deferred=deferred)
+        if warn_churn:  # a ToolWindow opening a new conversation is not a session churning
+            self._warn_if_the_catalog_churns(selection)
         for d in decisions:
             self.record(
                 d, kept=len(selection.keep), dropped=len(selection.dropped), reason=selection.reason
             )
         return selection
+
+    async def ask_groups(
+        self,
+        point: str,
+        groups: Sequence[Mapping[str, Any]],
+        build: Callable[
+            [Sequence[Mapping[str, Any]]], tuple[Mapping[str, Any], dict[str, Question]]
+        ],
+    ) -> tuple[dict[str, float | None], float | None, list[Decision]]:
+        """Ask one per-group question over a catalog, in parallel chunks, and merge.
+
+        Returns the probability per group (None where the decider said nothing), the
+        `deferred` probability if the questions carried it, and the raw decisions, which the
+        caller journals with its own outcome.
+        """
+        chunks = [
+            groups[i : i + tools.GROUPS_PER_CALL]
+            for i in range(0, len(groups), tools.GROUPS_PER_CALL)
+        ]
+        decisions = list(await asyncio.gather(*(self.decide(point, *build(c)) for c in chunks)))
+        probs: dict[str, float | None] = {}
+        deferred: float | None = None
+        for d, c in zip(decisions, chunks, strict=True):
+            probs.update(tools.probabilities_of(d, c))
+            chunk_deferred = tools.deferred_of(d)
+            if chunk_deferred is not None:
+                # Chunks each carry the question; the most worried chunk wins, because one
+                # chunk seeing a deferral is enough for the request to be one.
+                deferred = chunk_deferred if deferred is None else max(deferred, chunk_deferred)
+        return probs, deferred, decisions
 
     def _warn_if_the_catalog_churns(self, selection: tools.Selection) -> None:
         """Say so, once, when a session narrows its tool catalog to a *different* set.
@@ -448,6 +628,76 @@ class Squire:
         self.record(decision, message=outcome.message if outcome else None)
         return outcome
 
+    async def scan_content(self, *, purpose: str, text: str, source: str = "") -> injection.Flag:
+        """Detection over content that has already arrived. It cannot withhold anything.
+
+        The prevention path is `triage_page`, inside a tool the agent called, where a page
+        can still be kept out. This one exists for the other case - a built-in fetch whose
+        result the harness will not let anything replace - and it buys three things that do
+        not require the model to comply: the operator is warned, the event is journalled,
+        and the passage is named as data in front of the model. `points.injection` states
+        the difference; do not present this as a barrier.
+
+        Two layers, as in `guard_command`: the keyword list runs first and for free, and when
+        it fires the model is not called at all. Otherwise the text is scanned in overlapping
+        windows and the highest probability wins, because a payload does not have to be near
+        the top and truncating at one window is what made 7 of the AgentDojo cases invisible.
+        `max_windows` bounds the cost of a very long document; what was and was not looked at
+        goes into the journal rather than being silently dropped.
+        """
+        reason = injection.code_signal(text)
+        if reason:
+            decision = Decision("injection", {}, "code", "-")
+            self.record(decision, source=source[:200], flagged=True, origin="code", reason=reason)
+            return injection.decide(decision, self._t, source=source, code_reason=reason)
+
+        every = injection.windows(text)
+        slices = every[: self._t.max_windows]
+        if not slices:
+            # Nothing scanned: complete only if there was nothing to scan. With
+            # `max_windows <= 0` a non-empty text used to come back clean AND complete.
+            return injection.Flag(False, 0.0, complete=not every)
+        step = max(injection.TEXT_LIMIT - injection.WINDOW_OVERLAP, 1)
+        best: Decision | None = None
+        best_p = -1.0
+        judged: list[int] = []  # start offsets of the windows the model actually answered
+        failed = 0
+        for index, chunk in enumerate(slices):
+            state, qs = injection.questions(purpose=purpose, text=chunk)
+            decision = await self.decide("injection", state, qs)
+            answer = decision.answer("injection")
+            if decision.failed or answer.truth is None:
+                # Until 2026-09-25 a failed window scored 0.0 and the scan came back clean
+                # with the journal claiming full coverage. A window nobody judged is a gap.
+                failed += 1
+                best = best or decision
+                continue
+            judged.append(index * step)
+            p = answer.truth
+            if p > best_p:
+                best_p, best = p, decision
+            if p > self._t.injection:
+                break  # one window is enough; the rest cannot clear it
+        assert best is not None
+        flag = injection.decide(best, self._t, source=source)
+        scanned = injection.covered(len(text), judged)
+        complete = flag.flagged or scanned >= len(text)
+        flag = replace(flag, complete=complete)
+        self.record(
+            best,
+            source=source[:200],
+            flagged=flag.flagged,
+            probability=flag.probability,
+            origin=flag.origin,
+            windows=len(slices),
+            windows_total=len(every),
+            windows_failed=failed,
+            scanned_chars=scanned,
+            total_chars=len(text),
+            complete=complete,
+        )
+        return flag
+
     async def guard_command(
         self, command: str, *, environment: Mapping[str, Any] | None = None
     ) -> GuardResult:
@@ -517,11 +767,47 @@ class Squire:
         self.record(decision, drop=result.drop, reason=result.reason)
         return result
 
-    async def remember(self, fact: str, *, source: str = "") -> memory.Write:
-        """Is this worth writing to long-term memory? Stores only on a confident yes."""
-        state, qs = memory.write_questions(fact=fact, brief=self._brief, source=source)
+    async def remember(
+        self,
+        fact: str,
+        *,
+        source: str = "",
+        ask_common: bool = False,
+        specific_floor: float = 0.0,
+        trust: Literal["trusted", "untrusted"] = "trusted",
+    ) -> memory.Write:
+        """Is this worth writing to long-term memory? Stores only on a confident yes.
+
+        `ask_common=True` asks the fourth question and applies `memory.decide_write_common`:
+        measured far better on standing instructions, with a floor trade documented there.
+
+        `trust="untrusted"` for a fact taken from text the agent read (a page, a tool result,
+        an email): memory is where an injected instruction outlives the conversation that
+        carried it. The fact is scanned first; a flagged fact, or one the scan could not read
+        entirely, is not stored and the memory decision is not asked. Review finding M2.
+        """
+        if trust == "untrusted":
+            flag = await self.scan_content(
+                purpose="a fact the agent is about to write to its long-term memory",
+                text=fact,
+                source="memory candidate",
+            )
+            if flag.flagged or not flag.complete:
+                reason = (
+                    f"untrusted fact carries instructions ({flag.probability:.2f})"
+                    if flag.flagged
+                    else "untrusted fact not fully scanned: not stored"
+                )
+                return memory.Write(False, reason, 0.0, 0.0, 0.0)
+        state, qs = memory.write_questions(
+            fact=fact, brief=self._brief, source=source, ask_common=ask_common
+        )
         decision = await self.decide("memory_write", state, qs)
-        result = memory.decide_write(decision, self._t)
+        result = (
+            memory.decide_write_common(decision, self._t, specific_floor=specific_floor)
+            if ask_common
+            else memory.decide_write(decision, self._t)
+        )
         self.record(decision, store=result.store, reason=result.reason)
         return result
 
@@ -559,16 +845,46 @@ class Squire:
         return result
 
     async def verify_edge(
-        self, *, subject: str, relation: str, obj: str, text: str
+        self,
+        *,
+        subject: str,
+        relation: str,
+        obj: str,
+        text: str,
+        trust: Literal["trusted", "untrusted"] = "trusted",
+        direction_by_roles: bool = True,
     ) -> graph.EdgeCheck:
-        """Does the text state this triple? Mentions in code, meaning in the decider."""
+        """Does the text state this triple? Mentions in code, meaning in the decider.
+
+        `direction_by_roles=False` asks the earlier `direction` wording; only a replay of a
+        recording made with it needs that (`graph.edge_questions`).
+
+        `trust="untrusted"` for text the agent fetched: an attacker who writes the page can
+        write a sentence that states any edge, and the graph keeps it. A text that carries
+        instructions, or that the scan could not read entirely, sends the edge to review
+        instead of committing it. Review finding M3.
+        """
+        if trust == "untrusted":
+            flag = await self.scan_content(
+                purpose=f"evidence for the relation: {subject} {relation} {obj}",
+                text=text,
+                source="edge evidence",
+            )
+            if flag.flagged or not flag.complete:
+                return graph.EdgeCheck("review", 0.0, 0.0, 0.0)
         found = mention_present(subject, text) and mention_present(obj, text)
         if not found:
             decision = Decision("edge", {}, "code", "-")
             result = graph.decide_edge(decision, self._t, mentions_found=False)
             self.record(decision, verdict=result.verdict, reason="a mention is not in the text")
             return result
-        state, qs = graph.edge_questions(subject=subject, relation=relation, obj=obj, text=text)
+        state, qs = graph.edge_questions(
+            subject=subject,
+            relation=relation,
+            obj=obj,
+            text=text,
+            direction_by_roles=direction_by_roles,
+        )
         decision = await self.decide("edge", state, qs)
         result = graph.decide_edge(decision, self._t, mentions_found=True)
         self.record(decision, verdict=result.verdict, stated=result.stated)

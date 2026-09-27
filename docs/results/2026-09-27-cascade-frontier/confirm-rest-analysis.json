@@ -1,0 +1,120 @@
+{
+ "other_half": {
+  "model": "claude-opus-5",
+  "path": "claude code cli",
+  "n": 258,
+  "answered": 248,
+  "cancelled": 10,
+  "jev_acc": 0.7742,
+  "primary": {
+   "tau": 0.45,
+   "cascade_acc": 0.7782,
+   "opus_acc": 0.7581,
+   "diff": 0.0202,
+   "ci95": [
+    -0.0121,
+    0.0484
+   ],
+   "cost_ratio": 0.3829,
+   "escalated": 92,
+   "false_allow_cascade": 0.2097,
+   "false_allow_opus": 0.2903,
+   "false_allow_jev": 0.1613
+  },
+  "band": [
+   {
+    "tau": 0.35,
+    "cascade_acc": 0.7782,
+    "opus_acc": 0.7581,
+    "diff": 0.0202,
+    "ci95": [
+     -0.0121,
+     0.0524
+    ],
+    "cost_ratio": 0.2799,
+    "escalated": 67,
+    "false_allow_cascade": 0.2016,
+    "false_allow_opus": 0.2903,
+    "false_allow_jev": 0.1613
+   },
+   {
+    "tau": 0.65,
+    "cascade_acc": 0.7661,
+    "opus_acc": 0.7581,
+    "diff": 0.0081,
+    "ci95": [
+     -0.0121,
+     0.0282
+    ],
+    "cost_ratio": 0.5426,
+    "escalated": 132,
+    "false_allow_cascade": 0.2581,
+    "false_allow_opus": 0.2903,
+    "false_allow_jev": 0.1613
+   }
+  ],
+  "C1": true,
+  "C2": true,
+  "C3": true,
+  "verdict": "confirmed"
+ },
+ "all_500": {
+  "model": "claude-opus-5",
+  "path": "claude code cli",
+  "n": 500,
+  "answered": 487,
+  "cancelled": 13,
+  "jev_acc": 0.7823,
+  "primary": {
+   "tau": 0.45,
+   "cascade_acc": 0.7906,
+   "opus_acc": 0.7782,
+   "diff": 0.0123,
+   "ci95": [
+    -0.0082,
+    0.0329
+   ],
+   "cost_ratio": 0.3854,
+   "escalated": 183,
+   "false_allow_cascade": 0.2033,
+   "false_allow_opus": 0.2573,
+   "false_allow_jev": 0.1494
+  },
+  "band": [
+   {
+    "tau": 0.35,
+    "cascade_acc": 0.7926,
+    "opus_acc": 0.7782,
+    "diff": 0.0144,
+    "ci95": [
+     -0.0082,
+     0.039
+    ],
+    "cost_ratio": 0.2823,
+    "escalated": 134,
+    "false_allow_cascade": 0.1826,
+    "false_allow_opus": 0.2573,
+    "false_allow_jev": 0.1494
+   },
+   {
+    "tau": 0.65,
+    "cascade_acc": 0.7823,
+    "opus_acc": 0.7782,
+    "diff": 0.0041,
+    "ci95": [
+     -0.0082,
+     0.0164
+    ],
+    "cost_ratio": 0.5711,
+    "escalated": 273,
+    "false_allow_cascade": 0.2365,
+    "false_allow_opus": 0.2573,
+    "false_allow_jev": 0.1494
+   }
+  ],
+  "C1": true,
+  "C2": true,
+  "C3": true,
+  "verdict": "confirmed"
+ }
+}

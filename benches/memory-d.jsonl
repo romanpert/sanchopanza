@@ -1,0 +1,76 @@
+# Memory collisions, second batch: `memory_collision` to 50 cases (34 cases).
+#
+# The first 16 are in `memory.jsonl` and stay untouched.
+#
+# NOTE, 2026-09-24: `benches/memory-collision-toward-branch.jsonl` is a DIFFERENT second
+# batch for this point (52 cases, ids mc-101..mc-152) that appeared in the working tree from
+# outside this run. The two do not overlap in ids and both can be run. This file is the one
+# `fixtures/fourth-batch.jsonl` recorded and `docs/results/2026-09-24-fourth-batch/` reports,
+# so deleting it makes that published run unreproducible; if the other batch is meant to
+# replace it, re-record and re-publish rather than removing this file quietly.
+#
+# WHY THIS POINT NEEDED ITS OWN BATCH, and why adding cases to `memory-b.jsonl` would not
+# have done. `docs/results/2026-09-24-fifty` said it in one line and then left it: this point
+# has four labels rather than two, an abstention band, and **a `duplicate` branch that had
+# never fired at the shipped thresholds in any run**. A branch that has never fired is not a
+# measurement, it is an untested code path with a test suite around it.
+#
+# The four labels are not four opinions. Three of them are decided by the harness, not by the
+# model, and getting that straight is what the cases below are for:
+#
+#   duplicate  `adds_nothing >= act`. The new fact restates the stored one. Nothing to store,
+#              nothing to ask a person.
+#   keep_both  `contradicts < act`. No contradiction, and the new fact adds something.
+#   replace    contradicts AND the harness knows the new one is newer (`newer=true`).
+#   flag       contradicts and the harness does NOT know which is newer (`newer=null`).
+#
+# `newer` is never asked of the decider. This model class reads dates as text - its own card
+# says so and paper Section 5.3 measured it - so recency comes from timestamps the harness
+# already has. The same pair of facts therefore has a different correct label depending on
+# `newer` alone, and **eight of these cases are triples of exactly that shape**: the same
+# `new` and `stored` with `newer` true, false and null, labelled replace, keep_both and flag.
+# Nothing about the text distinguishes them. A point that scores well on those has understood
+# that it is not being asked who is right.
+#
+# THE TRAP FAMILY, which is the one the sibling point already got wrong once. Corroboration
+# is not contradiction: the same figure attributed to a second body is `duplicate` when it
+# adds no new source and `keep_both` when the second source is itself the new information.
+# `mc-19` and `mc-20` are that pair, and the difference is whether `stored` already names its
+# source.
+#
+# Annotator 1 (the author) labelled every case before any decision was run. Annotator 2 is a
+# separate generative model, blind to both; agreement is in the results directory.
+{"id": "mc-17", "point": "memory_collision", "input": {"new": "El vertido afecto a 4.200 hectareas.", "stored": "La superficie afectada por el vertido es de 4.200 hectareas.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-18", "point": "memory_collision", "input": {"new": "La multa fue de doscientos mil euros.", "stored": "La multa ascendio a 200.000 euros.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-19", "point": "memory_collision", "input": {"new": "Proteccion Civil cifra en 1.240 las viviendas danadas.", "stored": "Proteccion Civil registra 1.240 viviendas danadas.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-20", "point": "memory_collision", "input": {"new": "La ONG Habitat confirma por su cuenta las 1.240 viviendas danadas.", "stored": "Proteccion Civil registra 1.240 viviendas danadas.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-21", "point": "memory_collision", "input": {"new": "El contrato se adjudico a Constructora Sureste.", "stored": "El adjudicatario del contrato 2026/AB/14 es Constructora Sureste.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-22", "point": "memory_collision", "input": {"new": "La sentencia es de 14 de marzo de 2024.", "stored": "La sentencia fue dictada el catorce de marzo de dos mil veinticuatro.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-23", "point": "memory_collision", "input": {"new": "El archivo municipal cierra en agosto.", "stored": "El archivo municipal permanece cerrado durante el mes de agosto.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-24", "point": "memory_collision", "input": {"new": "La capacidad solar instalada es de 2,1 GW.", "stored": "Colombia cerro 2025 con 2,1 gigavatios solares instalados.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-25", "point": "memory_collision", "input": {"new": "La superficie afectada asciende a 4.700 hectareas.", "stored": "La superficie afectada por el vertido es de 4.200 hectareas.", "newer": true}, "expected": "replace"}
+{"id": "mc-26", "point": "memory_collision", "input": {"new": "La superficie afectada asciende a 4.700 hectareas.", "stored": "La superficie afectada por el vertido es de 4.200 hectareas.", "newer": false}, "expected": "keep_both"}
+{"id": "mc-27", "point": "memory_collision", "input": {"new": "La superficie afectada asciende a 4.700 hectareas.", "stored": "La superficie afectada por el vertido es de 4.200 hectareas.", "newer": null}, "expected": "flag"}
+{"id": "mc-28", "point": "memory_collision", "input": {"new": "El censo definitivo rebaja a 287 las viviendas con dano severo.", "stored": "312 viviendas presentan dano estructural severo.", "newer": true}, "expected": "replace"}
+{"id": "mc-29", "point": "memory_collision", "input": {"new": "El censo definitivo rebaja a 287 las viviendas con dano severo.", "stored": "312 viviendas presentan dano estructural severo.", "newer": null}, "expected": "flag"}
+{"id": "mc-30", "point": "memory_collision", "input": {"new": "El censo definitivo rebaja a 287 las viviendas con dano severo.", "stored": "312 viviendas presentan dano estructural severo.", "newer": false}, "expected": "keep_both"}
+{"id": "mc-31", "point": "memory_collision", "input": {"new": "El tribunal redujo la sancion a 120.000 euros.", "stored": "La multa ascendio a 200.000 euros.", "newer": true}, "expected": "replace"}
+{"id": "mc-32", "point": "memory_collision", "input": {"new": "El tribunal redujo la sancion a 120.000 euros.", "stored": "La multa ascendio a 200.000 euros.", "newer": null}, "expected": "flag"}
+{"id": "mc-33", "point": "memory_collision", "input": {"new": "El expediente sigue abierto.", "stored": "El expediente se archivo en marzo de 2024.", "newer": true}, "expected": "replace"}
+{"id": "mc-34", "point": "memory_collision", "input": {"new": "El expediente sigue abierto.", "stored": "El expediente se archivo en marzo de 2024.", "newer": null}, "expected": "flag"}
+{"id": "mc-35", "point": "memory_collision", "input": {"new": "El recuento de replicas es de 114.", "stored": "Se registraron 96 replicas hasta el 20 de abril.", "newer": true}, "expected": "replace"}
+{"id": "mc-36", "point": "memory_collision", "input": {"new": "El recuento de replicas es de 114.", "stored": "Se registraron 96 replicas hasta el 20 de abril.", "newer": null}, "expected": "flag"}
+{"id": "mc-37", "point": "memory_collision", "input": {"new": "La licencia fue revocada en 2018.", "stored": "La licencia fue revocada en 2016.", "newer": null}, "expected": "flag"}
+{"id": "mc-38", "point": "memory_collision", "input": {"new": "El administrador unico figura con DNI 87654321B.", "stored": "El administrador unico es J. Perez, con DNI 12345678A.", "newer": null}, "expected": "flag"}
+{"id": "mc-39", "point": "memory_collision", "input": {"new": "312 de las viviendas danadas tienen dano estructural severo.", "stored": "El censo registra 1.240 viviendas danadas.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-40", "point": "memory_collision", "input": {"new": "El director de la sociedad dimitio en 2022.", "stored": "La sociedad esta inscrita en Panama desde 2011.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-41", "point": "memory_collision", "input": {"new": "Las cuentas las audita Marquez y Asociados.", "stored": "El informe de auditoria incluye una salvedad por existencias.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-42", "point": "memory_collision", "input": {"new": "A la licitacion concurrieron Obras del Levante y Grupo Marina.", "stored": "El contrato se adjudico a Constructora Sureste por 3,4 millones.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-43", "point": "memory_collision", "input": {"new": "La empresa tenia 290 empleados en 2023.", "stored": "La empresa tiene 340 empleados en 2024.", "newer": false}, "expected": "keep_both"}
+{"id": "mc-44", "point": "memory_collision", "input": {"new": "El contrato fue modificado en septiembre con un incremento del 12 por ciento.", "stored": "El contrato se adjudico por 3,4 millones de euros.", "newer": true}, "expected": "keep_both"}
+{"id": "mc-45", "point": "memory_collision", "input": {"new": "El Supremo admitio a tramite el recurso el 8 de julio.", "stored": "La Audiencia condeno a J. Perez a doce meses de multa.", "newer": true}, "expected": "keep_both"}
+{"id": "mc-46", "point": "memory_collision", "input": {"new": "La indemnizacion se consigno el 2 de junio de 2024.", "stored": "La indemnizacion fijada fue de 6.000 euros.", "newer": true}, "expected": "keep_both"}
+{"id": "mc-47", "point": "memory_collision", "input": {"new": "Transportes Sur S.L. conserva su licencia.", "stored": "Transportes Sur S.A. perdio la licencia en 2025.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-48", "point": "memory_collision", "input": {"new": "El buscador solo indexa el primer apellido.", "stored": "El buscador del registro no encuentra nombres con tilde.", "newer": null}, "expected": "keep_both"}
+{"id": "mc-49", "point": "memory_collision", "input": {"new": "La produccion exportable ronda los 5,8 millones de quintales.", "stored": "El IHCAFE situa la produccion exportable en 5,8 millones de quintales.", "newer": null}, "expected": "duplicate"}
+{"id": "mc-50", "point": "memory_collision", "input": {"new": "La roya afecto al 14 por ciento de las fincas de Copan.", "stored": "El IHCAFE situa la produccion exportable en 5,8 millones de quintales.", "newer": null}, "expected": "keep_both"}

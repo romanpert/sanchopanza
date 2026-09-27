@@ -1,0 +1,48 @@
+Third-party notices
+===================
+
+Sanchopanza is licensed under the Apache License 2.0 (see LICENSE and NOTICE). The source
+distribution also carries material derived from the third-party work listed below, which
+remains under its own license.
+
+
+AgentDojo
+---------
+
+Project:  https://github.com/ethz-spylab/agentdojo
+Version:  v1.2.2
+Citation: Debenedetti et al., "AgentDojo: A Dynamic Environment to Evaluate Prompt Injection
+          Attacks and Defenses for LLM Agents", NeurIPS 2024 Datasets and Benchmarks.
+License:  MIT (reproduced below)
+
+Derived material in this repository:
+
+- benches/agentdojo-injection.jsonl: tool-result texts, injection payloads and attack
+  templates taken from AgentDojo's task suites, harvested by benchmarks/agentdojo/extract.py.
+- docs/results/2026-09-24-agentdojo*/: results of runs over AgentDojo's task suites, which
+  quote task and tool-result text from those suites.
+
+The scripts under benchmarks/agentdojo/ are original work (Apache-2.0) that import AgentDojo
+at run time; AgentDojo itself is not redistributed.
+
+MIT License
+
+Copyright (c) 2024 Edoardo Debenedetti, Jie Zhang, Mislav Balunovic, Luca Beurer-Kellner, Marc Fischer, and Florian Tramèr
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

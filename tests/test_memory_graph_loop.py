@@ -45,7 +45,7 @@ def test_a_transient_fact_is_not_stored():
 
 def test_doubt_does_not_write():
     """Writing is the costly direction: a junk memory is read for the rest of the job."""
-    d = decision("memory_write", durable=yes(0.55), specific=yes(0.80), derivable=yes(0.10))
+    d = decision("memory_write", durable=yes(0.50), specific=yes(0.80), derivable=yes(0.10))
     assert not memory.decide_write(d, T).store
 
 
@@ -166,8 +166,17 @@ def test_a_page_that_repeats_what_is_known_is_dropped():
 
 
 def test_a_page_that_might_add_something_is_kept():
-    d = decision("redundant_page", adds_nothing=yes(0.72))
-    assert not triage.decide_redundancy(d, T).drop
+    """0.50 is kept, 0.72 is dropped: the gate is `adds_nothing`, derived at 0.59.
+
+    It was 0.80 until 2026-09-24, borrowed from the search point's `redundant` on the theory
+    that a repeated query and a repeated page are the same reading. A derivation on 75 cases
+    to a 90 % precision target, reported out of sample on a different batch, put it at 0.59
+    and took the point from 26/34 to 33/34. This test pins both the value and the fact that
+    the two points no longer share a knob.
+    """
+    assert not triage.decide_redundancy(decision("redundant_page", adds_nothing=yes(0.50)), T).drop
+    assert triage.decide_redundancy(decision("redundant_page", adds_nothing=yes(0.72)), T).drop
+    assert T.adds_nothing == 0.59 and T.redundant == 0.80
 
 
 def test_redundancy_fails_open_into_keeping_the_page():

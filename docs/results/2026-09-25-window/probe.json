@@ -1,0 +1,32 @@
+{
+ "claude-sonnet-5": {
+  "10 tools loaded": 9432,
+  "10 tools deferred": 495,
+  "result: text": 526,
+  "result: 2 tool_reference only": 2342,
+  "result: text + tool_reference": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Tool definitions/code executi",
+  "system tool_addition x2": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'tool_addition/tool_removal is",
+  "addition x2 then more turns": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'tool_addition/tool_removal is",
+  "same, plus tool_removal x1": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'tool_addition/tool_removal is"
+ },
+ "claude-opus-5": {
+  "10 tools loaded": 9364,
+  "10 tools deferred": 427,
+  "result: text": 458,
+  "result: 2 tool_reference only": 2274,
+  "result: text + tool_reference": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Tool definitions/code executi",
+  "system tool_addition x2": 2276,
+  "addition x2 then more turns": 2283,
+  "same, plus tool_removal x1": 2309
+ },
+ "claude-haiku-4-5": {
+  "10 tools loaded": 7287,
+  "10 tools deferred": 537,
+  "result: text": 585,
+  "result: 2 tool_reference only": 1943,
+  "result: text + tool_reference": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Tool definitions/code executi",
+  "system tool_addition x2": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'tool_addition/tool_removal re",
+  "addition x2 then more turns": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'tool_addition/tool_removal re",
+  "same, plus tool_removal x1": "400: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'tool_addition/tool_removal re"
+ }
+}

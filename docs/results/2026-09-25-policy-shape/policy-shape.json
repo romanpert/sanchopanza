@@ -1,0 +1,83 @@
+{
+ "memory_write": {
+  "n": 100,
+  "shipped": {
+   "hits": 72,
+   "costly": 5,
+   "wilson95": [
+    0.625,
+    0.799
+   ]
+  },
+  "plain_0.5": {
+   "hits": 86,
+   "costly": 4
+  },
+  "cross_validated": {
+   "regression": {
+    "hits_per_run": 87.8,
+    "costly_per_run": 9.4
+   },
+   "derived_cut": {
+    "hits_per_run": 89.6,
+    "costly_per_run": 6.4
+   },
+   "derived_cuts": {
+    "min": 0.44,
+    "median": 0.45,
+    "max": 0.45
+   }
+  },
+  "regression_on_all": [
+   -1.83,
+   2.54,
+   1.95,
+   -2.71
+  ],
+  "repeats": 5
+ },
+ "recalibration": {
+  "memory_write": {
+   "n": 34,
+   "ece_before": 0.223,
+   "ece_after": 0.027,
+   "brier_before": 0.091,
+   "brier_after": 0.032
+  },
+  "redundant_page": {
+   "n": 34,
+   "ece_before": 0.146,
+   "ece_after": 0.018,
+   "brier_before": 0.04,
+   "brier_after": 0.004
+  },
+  "goal_met": {
+   "n": 36,
+   "ece_before": 0.109,
+   "ece_after": 0.055,
+   "brier_before": 0.038,
+   "brier_after": 0.042
+  },
+  "repeats_check": {
+   "n": 38,
+   "ece_before": 0.133,
+   "ece_after": 0.011,
+   "brier_before": 0.03,
+   "brier_after": 0.001
+  },
+  "extract_gate": {
+   "n": 34,
+   "ece_before": 0.073,
+   "ece_after": 0.085,
+   "brier_before": 0.071,
+   "brier_after": 0.087
+  },
+  "recall": {
+   "n": 36,
+   "ece_before": 0.077,
+   "ece_after": 0.002,
+   "brier_before": 0.009,
+   "brier_after": 0.0
+  }
+ }
+}

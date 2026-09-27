@@ -1,0 +1,3845 @@
+{
+ "summary": {
+  "n": 208,
+  "question_hash": "e382c91e96b1aed3",
+  "answered": 208,
+  "with_distribution": 208,
+  "choice_counts": {
+   "long_term": 112,
+   "session_only": 34,
+   "drop": 62,
+   "null": 0
+  },
+  "table": {
+   "all": {
+    "shipped": {
+     "agree": 130,
+     "n": 208,
+     "wilson": [
+      0.625,
+      0.558,
+      0.688
+     ],
+     "costly": 11,
+     "safe": 67
+    },
+    "choice_argmax": {
+     "agree": 195,
+     "n": 208,
+     "wilson": [
+      0.938,
+      0.896,
+      0.963
+     ],
+     "costly": 13,
+     "safe": 0
+    },
+    "choice_p070": {
+     "agree": 201,
+     "n": 208,
+     "wilson": [
+      0.966,
+      0.932,
+      0.984
+     ],
+     "costly": 0,
+     "safe": 7
+    }
+   },
+   "old": {
+    "shipped": {
+     "agree": 70,
+     "n": 100,
+     "wilson": [
+      0.7,
+      0.604,
+      0.781
+     ],
+     "costly": 7,
+     "safe": 23
+    },
+    "choice_argmax": {
+     "agree": 94,
+     "n": 100,
+     "wilson": [
+      0.94,
+      0.875,
+      0.972
+     ],
+     "costly": 6,
+     "safe": 0
+    },
+    "choice_p070": {
+     "agree": 98,
+     "n": 100,
+     "wilson": [
+      0.98,
+      0.93,
+      0.994
+     ],
+     "costly": 0,
+     "safe": 2
+    }
+   },
+   "new": {
+    "shipped": {
+     "agree": 25,
+     "n": 48,
+     "wilson": [
+      0.521,
+      0.383,
+      0.655
+     ],
+     "costly": 3,
+     "safe": 20
+    },
+    "choice_argmax": {
+     "agree": 46,
+     "n": 48,
+     "wilson": [
+      0.958,
+      0.86,
+      0.988
+     ],
+     "costly": 2,
+     "safe": 0
+    },
+    "choice_p070": {
+     "agree": 45,
+     "n": 48,
+     "wilson": [
+      0.938,
+      0.832,
+      0.979
+     ],
+     "costly": 0,
+     "safe": 3
+    }
+   },
+   "new2": {
+    "shipped": {
+     "agree": 23,
+     "n": 36,
+     "wilson": [
+      0.639,
+      0.476,
+      0.775
+     ],
+     "costly": 1,
+     "safe": 12
+    },
+    "choice_argmax": {
+     "agree": 32,
+     "n": 36,
+     "wilson": [
+      0.889,
+      0.747,
+      0.956
+     ],
+     "costly": 4,
+     "safe": 0
+    },
+    "choice_p070": {
+     "agree": 35,
+     "n": 36,
+     "wilson": [
+      0.972,
+      0.858,
+      0.995
+     ],
+     "costly": 0,
+     "safe": 1
+    }
+   },
+   "new3": {
+    "shipped": {
+     "agree": 12,
+     "n": 24,
+     "wilson": [
+      0.5,
+      0.314,
+      0.686
+     ],
+     "costly": 0,
+     "safe": 12
+    },
+    "choice_argmax": {
+     "agree": 23,
+     "n": 24,
+     "wilson": [
+      0.958,
+      0.798,
+      0.993
+     ],
+     "costly": 1,
+     "safe": 0
+    },
+    "choice_p070": {
+     "agree": 23,
+     "n": 24,
+     "wilson": [
+      0.958,
+      0.798,
+      0.993
+     ],
+     "costly": 0,
+     "safe": 1
+    }
+   }
+  },
+  "families": {
+   "A instructions": {
+    "shipped": 0,
+    "choice_argmax": 12,
+    "choice_p070": 12
+   },
+   "B general knowledge": {
+    "shipped": 9,
+    "choice_argmax": 10,
+    "choice_p070": 12
+   },
+   "C findings": {
+    "shipped": 4,
+    "choice_argmax": 12,
+    "choice_p070": 9
+   },
+   "D transient": {
+    "shipped": 12,
+    "choice_argmax": 12,
+    "choice_p070": 12
+   },
+   "E pointers": {
+    "shipped": 12,
+    "choice_argmax": 10,
+    "choice_p070": 12
+   },
+   "E2 pointers": {
+    "shipped": 12,
+    "choice_argmax": 11,
+    "choice_p070": 12
+   },
+   "F instructions": {
+    "shipped": 0,
+    "choice_argmax": 12,
+    "choice_p070": 11
+   },
+   "F2 instructions": {
+    "shipped": 0,
+    "choice_argmax": 12,
+    "choice_p070": 11
+   },
+   "H verbatim of a held document": {
+    "shipped": 11,
+    "choice_argmax": 10,
+    "choice_p070": 12
+   }
+  },
+  "tests": {
+   "choice_argmax": {
+    "mcnemar_agreement": {
+     "only_choice_right": 73,
+     "only_shipped_right": 8,
+     "p": 0.0
+    },
+    "difference_ci": [
+     0.312,
+     0.24,
+     0.385
+    ],
+    "mcnemar_costly": {
+     "only_choice_costly": 8,
+     "only_shipped_costly": 6,
+     "p": 0.7905
+    }
+   },
+   "choice_p070": {
+    "mcnemar_agreement": {
+     "only_choice_right": 73,
+     "only_shipped_right": 2,
+     "p": 0.0
+    },
+    "difference_ci": [
+     0.341,
+     0.274,
+     0.409
+    ],
+    "mcnemar_costly": {
+     "only_choice_costly": 0,
+     "only_shipped_costly": 11,
+     "p": 0.001
+    }
+   }
+  },
+  "calibration": {
+   "choice_p_long_term": {
+    "n": 208,
+    "ece": 0.119,
+    "auc": 0.999,
+    "brier": 0.042,
+    "null_ece_mean_p95": [
+     0.038,
+     0.061
+    ]
+   },
+   "choice_confidence_vs_correct": {
+    "n": 208,
+    "ece": 0.207,
+    "mean_confidence": 0.731,
+    "agreement": 0.938,
+    "null_ece_mean_p95": [
+     0.042,
+     0.069
+    ]
+   },
+   "shipped_composite_min": {
+    "n": 208,
+    "ece": 0.142,
+    "auc": 0.905,
+    "brier": 0.155,
+    "null_ece_mean_p95": [
+     0.048,
+     0.08
+    ]
+   }
+  },
+  "decision": "TRADE"
+ },
+ "rows": [
+  {
+   "id": "mw-01",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.6599999999999999,
+   "choice": "long_term",
+   "confidence": 0.94,
+   "probabilities": {
+    "long_term": 0.96,
+    "drop": 0.03,
+    "session_only": 0.01
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-02",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.49,
+   "choice": "long_term",
+   "confidence": 0.79,
+   "probabilities": {
+    "session_only": 0.14,
+    "drop": 0.0,
+    "long_term": 0.86
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-03",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.8200000000000001,
+   "choice": "long_term",
+   "confidence": 0.95,
+   "probabilities": {
+    "drop": 0.01,
+    "long_term": 0.96,
+    "session_only": 0.03
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-04",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.77,
+   "choice": "long_term",
+   "confidence": 0.98,
+   "probabilities": {
+    "long_term": 0.99,
+    "drop": 0.0,
+    "session_only": 0.01
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-05",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.76,
+   "choice": "long_term",
+   "confidence": 0.9,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.06,
+    "long_term": 0.9400000000000001
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-06",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.5900000000000001,
+   "choice": "long_term",
+   "confidence": 0.69,
+   "probabilities": {
+    "session_only": 0.19,
+    "long_term": 0.8,
+    "drop": 0.01
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-07",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.61,
+   "choice": "long_term",
+   "confidence": 0.95,
+   "probabilities": {
+    "drop": 0.01,
+    "session_only": 0.02,
+    "long_term": 0.97
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-08",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.51,
+   "choice": "long_term",
+   "confidence": 0.73,
+   "probabilities": {
+    "session_only": 0.06,
+    "drop": 0.12,
+    "long_term": 0.82
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-09",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.13,
+   "choice": "session_only",
+   "confidence": 0.99,
+   "probabilities": {
+    "long_term": 0.01,
+    "drop": 0.0,
+    "session_only": 0.99
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-10",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.19,
+   "choice": "session_only",
+   "confidence": 0.95,
+   "probabilities": {
+    "session_only": 0.97,
+    "long_term": 0.03,
+    "drop": 0.0
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-11",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.02,
+   "choice": "drop",
+   "confidence": 0.98,
+   "probabilities": {
+    "drop": 0.99,
+    "long_term": 0.0,
+    "session_only": 0.01
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-12",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.05,
+   "choice": "drop",
+   "confidence": 0.95,
+   "probabilities": {
+    "session_only": 0.02,
+    "long_term": 0.02,
+    "drop": 0.96
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-13",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "store",
+   "composite": 0.38,
+   "choice": "drop",
+   "confidence": 0.48,
+   "probabilities": {
+    "long_term": 0.24,
+    "session_only": 0.11,
+    "drop": 0.65
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-14",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.26,
+   "choice": "drop",
+   "confidence": 0.95,
+   "probabilities": {
+    "drop": 0.96,
+    "session_only": 0.02,
+    "long_term": 0.02
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-15",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.08,
+   "choice": "session_only",
+   "confidence": 0.99,
+   "probabilities": {
+    "session_only": 1.0,
+    "drop": 0.0,
+    "long_term": 0.0
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-16",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.11,
+   "choice": "session_only",
+   "confidence": 1.0,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 1.0,
+    "long_term": 0.0
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-17",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.75,
+   "choice": "long_term",
+   "confidence": 0.88,
+   "probabilities": {
+    "long_term": 0.91,
+    "drop": 0.01,
+    "session_only": 0.08
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-18",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.56,
+   "choice": "long_term",
+   "confidence": 0.98,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.01,
+    "long_term": 0.99
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-19",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.55,
+   "choice": "long_term",
+   "confidence": 0.83,
+   "probabilities": {
+    "session_only": 0.11,
+    "long_term": 0.89,
+    "drop": 0.0
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-20",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.8,
+   "choice": "long_term",
+   "confidence": 0.88,
+   "probabilities": {
+    "long_term": 0.92,
+    "session_only": 0.07,
+    "drop": 0.01
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-21",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.1,
+   "choice": "session_only",
+   "confidence": 1.0,
+   "probabilities": {
+    "session_only": 1.0,
+    "drop": 0.0,
+    "long_term": 0.0
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-22",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.17,
+   "choice": "drop",
+   "confidence": 0.62,
+   "probabilities": {
+    "session_only": 0.03,
+    "drop": 0.74,
+    "long_term": 0.23
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-23",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.51,
+   "choice": "long_term",
+   "confidence": 0.85,
+   "probabilities": {
+    "session_only": 0.05,
+    "drop": 0.05,
+    "long_term": 0.9
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-24",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.09,
+   "choice": "session_only",
+   "confidence": 0.97,
+   "probabilities": {
+    "long_term": 0.01,
+    "session_only": 0.98,
+    "drop": 0.01
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-25",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "store",
+   "composite": 0.53,
+   "choice": "long_term",
+   "confidence": 0.24,
+   "probabilities": {
+    "session_only": 0.15,
+    "drop": 0.36,
+    "long_term": 0.49
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-26",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.74,
+   "choice": "long_term",
+   "confidence": 0.95,
+   "probabilities": {
+    "drop": 0.01,
+    "session_only": 0.03,
+    "long_term": 0.96
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-27",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.03,
+   "choice": "drop",
+   "confidence": 0.73,
+   "probabilities": {
+    "session_only": 0.07,
+    "long_term": 0.12,
+    "drop": 0.8099999999999999
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-28",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.46,
+   "choice": "long_term",
+   "confidence": 0.86,
+   "probabilities": {
+    "session_only": 0.09,
+    "drop": 0.01,
+    "long_term": 0.9
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-29",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.11,
+   "choice": "session_only",
+   "confidence": 0.91,
+   "probabilities": {
+    "session_only": 0.94,
+    "drop": 0.04,
+    "long_term": 0.02
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-30",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.74,
+   "choice": "long_term",
+   "confidence": 0.96,
+   "probabilities": {
+    "session_only": 0.02,
+    "drop": 0.01,
+    "long_term": 0.97
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-31",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.43999999999999995,
+   "choice": "long_term",
+   "confidence": 0.4,
+   "probabilities": {
+    "long_term": 0.61,
+    "drop": 0.26,
+    "session_only": 0.13
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-32",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.48,
+   "choice": "long_term",
+   "confidence": 0.94,
+   "probabilities": {
+    "session_only": 0.04,
+    "drop": 0.0,
+    "long_term": 0.96
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-33",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.48,
+   "choice": "drop",
+   "confidence": 0.56,
+   "probabilities": {
+    "drop": 0.71,
+    "session_only": 0.07,
+    "long_term": 0.22
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-34",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.69,
+   "choice": "long_term",
+   "confidence": 0.94,
+   "probabilities": {
+    "session_only": 0.03,
+    "drop": 0.01,
+    "long_term": 0.96
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-35",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.07,
+   "choice": "session_only",
+   "confidence": 0.98,
+   "probabilities": {
+    "drop": 0.01,
+    "long_term": 0.0,
+    "session_only": 0.99
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-36",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.67,
+   "choice": "long_term",
+   "confidence": 0.43,
+   "probabilities": {
+    "drop": 0.04,
+    "session_only": 0.34,
+    "long_term": 0.62
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-37",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.43000000000000005,
+   "choice": "drop",
+   "confidence": 0.16,
+   "probabilities": {
+    "long_term": 0.33,
+    "drop": 0.44,
+    "session_only": 0.23
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-38",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.53,
+   "choice": "long_term",
+   "confidence": 0.7,
+   "probabilities": {
+    "long_term": 0.8,
+    "drop": 0.02,
+    "session_only": 0.18
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-39",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.09,
+   "choice": "session_only",
+   "confidence": 1.0,
+   "probabilities": {
+    "session_only": 1.0,
+    "drop": 0.0,
+    "long_term": 0.0
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-40",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.45,
+   "choice": "long_term",
+   "confidence": 0.81,
+   "probabilities": {
+    "session_only": 0.1,
+    "drop": 0.03,
+    "long_term": 0.87
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-41",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.08,
+   "choice": "session_only",
+   "confidence": 0.9,
+   "probabilities": {
+    "session_only": 0.93,
+    "long_term": 0.05,
+    "drop": 0.02
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-42",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.76,
+   "choice": "long_term",
+   "confidence": 0.78,
+   "probabilities": {
+    "drop": 0.02,
+    "session_only": 0.13,
+    "long_term": 0.85
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-43",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.31999999999999995,
+   "choice": "drop",
+   "confidence": 0.47,
+   "probabilities": {
+    "drop": 0.64,
+    "long_term": 0.22,
+    "session_only": 0.14
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-44",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.54,
+   "choice": "long_term",
+   "confidence": 0.79,
+   "probabilities": {
+    "session_only": 0.14,
+    "drop": 0.0,
+    "long_term": 0.86
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-45",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.08,
+   "choice": "drop",
+   "confidence": 0.88,
+   "probabilities": {
+    "drop": 0.92,
+    "session_only": 0.01,
+    "long_term": 0.07
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-46",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.61,
+   "choice": "long_term",
+   "confidence": 0.94,
+   "probabilities": {
+    "long_term": 0.96,
+    "session_only": 0.04,
+    "drop": 0.0
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-47",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.08,
+   "choice": "session_only",
+   "confidence": 0.98,
+   "probabilities": {
+    "session_only": 0.99,
+    "drop": 0.01,
+    "long_term": 0.0
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-48",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.74,
+   "choice": "long_term",
+   "confidence": 0.73,
+   "probabilities": {
+    "long_term": 0.82,
+    "drop": 0.11,
+    "session_only": 0.07
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-49",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.03,
+   "choice": "drop",
+   "confidence": 0.75,
+   "probabilities": {
+    "long_term": 0.15,
+    "drop": 0.84,
+    "session_only": 0.01
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-50",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.77,
+   "choice": "long_term",
+   "confidence": 0.98,
+   "probabilities": {
+    "long_term": 0.99,
+    "session_only": 0.01,
+    "drop": 0.0
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-51",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.51,
+   "choice": "long_term",
+   "confidence": 0.9,
+   "probabilities": {
+    "drop": 0.04,
+    "long_term": 0.93,
+    "session_only": 0.03
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-52",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.76,
+   "choice": "long_term",
+   "confidence": 0.97,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.02,
+    "long_term": 0.98
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-53",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.77,
+   "choice": "long_term",
+   "confidence": 0.89,
+   "probabilities": {
+    "session_only": 0.07,
+    "drop": 0.0,
+    "long_term": 0.93
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-54",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.34,
+   "choice": "long_term",
+   "confidence": 0.78,
+   "probabilities": {
+    "session_only": 0.15,
+    "drop": 0.0,
+    "long_term": 0.85
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-55",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.78,
+   "choice": "long_term",
+   "confidence": 0.95,
+   "probabilities": {
+    "session_only": 0.03,
+    "drop": 0.0,
+    "long_term": 0.97
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-56",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.59,
+   "choice": "long_term",
+   "confidence": 0.71,
+   "probabilities": {
+    "session_only": 0.19,
+    "drop": 0.01,
+    "long_term": 0.8
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-57",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.52,
+   "choice": "long_term",
+   "confidence": 0.87,
+   "probabilities": {
+    "long_term": 0.91,
+    "drop": 0.01,
+    "session_only": 0.08
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-58",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.56,
+   "choice": "long_term",
+   "confidence": 0.67,
+   "probabilities": {
+    "long_term": 0.78,
+    "session_only": 0.21,
+    "drop": 0.01
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-59",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.41,
+   "choice": "long_term",
+   "confidence": 0.83,
+   "probabilities": {
+    "session_only": 0.11,
+    "drop": 0.0,
+    "long_term": 0.89
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-60",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.32,
+   "choice": "long_term",
+   "confidence": 0.71,
+   "probabilities": {
+    "drop": 0.02,
+    "session_only": 0.18,
+    "long_term": 0.8
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-61",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.54,
+   "choice": "long_term",
+   "confidence": 0.94,
+   "probabilities": {
+    "session_only": 0.03,
+    "drop": 0.01,
+    "long_term": 0.96
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-62",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.61,
+   "choice": "long_term",
+   "confidence": 0.46,
+   "probabilities": {
+    "long_term": 0.64,
+    "drop": 0.01,
+    "session_only": 0.35
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-63",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.56,
+   "choice": "long_term",
+   "confidence": 0.89,
+   "probabilities": {
+    "session_only": 0.05,
+    "drop": 0.03,
+    "long_term": 0.92
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-64",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.5700000000000001,
+   "choice": "long_term",
+   "confidence": 0.98,
+   "probabilities": {
+    "drop": 0.01,
+    "session_only": 0.01,
+    "long_term": 0.98
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-65",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.61,
+   "choice": "long_term",
+   "confidence": 0.91,
+   "probabilities": {
+    "session_only": 0.05,
+    "long_term": 0.94,
+    "drop": 0.01
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-66",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.59,
+   "choice": "long_term",
+   "confidence": 0.89,
+   "probabilities": {
+    "session_only": 0.07,
+    "drop": 0.0,
+    "long_term": 0.93
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-67",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.5,
+   "choice": "long_term",
+   "confidence": 0.98,
+   "probabilities": {
+    "session_only": 0.01,
+    "drop": 0.0,
+    "long_term": 0.99
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-68",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.63,
+   "choice": "long_term",
+   "confidence": 0.95,
+   "probabilities": {
+    "session_only": 0.02,
+    "long_term": 0.97,
+    "drop": 0.01
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-69",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.47,
+   "choice": "long_term",
+   "confidence": 0.91,
+   "probabilities": {
+    "long_term": 0.94,
+    "session_only": 0.06,
+    "drop": 0.0
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-70",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.69,
+   "choice": "long_term",
+   "confidence": 0.87,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.08,
+    "long_term": 0.92
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-71",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.64,
+   "choice": "long_term",
+   "confidence": 0.91,
+   "probabilities": {
+    "drop": 0.03,
+    "long_term": 0.94,
+    "session_only": 0.03
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-72",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.33,
+   "choice": "long_term",
+   "confidence": 0.7,
+   "probabilities": {
+    "drop": 0.02,
+    "session_only": 0.18,
+    "long_term": 0.8
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-73",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.65,
+   "choice": "long_term",
+   "confidence": 0.97,
+   "probabilities": {
+    "session_only": 0.01,
+    "drop": 0.01,
+    "long_term": 0.98
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-74",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.46,
+   "choice": "long_term",
+   "confidence": 0.9,
+   "probabilities": {
+    "long_term": 0.94,
+    "session_only": 0.06,
+    "drop": 0.0
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-75",
+   "batch": "old",
+   "family": "-",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.61,
+   "choice": "long_term",
+   "confidence": 0.59,
+   "probabilities": {
+    "session_only": 0.26,
+    "drop": 0.01,
+    "long_term": 0.73
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-76",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.43999999999999995,
+   "choice": "drop",
+   "confidence": 0.4,
+   "probabilities": {
+    "drop": 0.6,
+    "session_only": 0.08,
+    "long_term": 0.32
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-77",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.14,
+   "choice": "session_only",
+   "confidence": 0.92,
+   "probabilities": {
+    "session_only": 0.95,
+    "drop": 0.0,
+    "long_term": 0.05
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-78",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "store",
+   "composite": 0.44999999999999996,
+   "choice": "drop",
+   "confidence": 0.16,
+   "probabilities": {
+    "session_only": 0.17,
+    "long_term": 0.39,
+    "drop": 0.44
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-79",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.38,
+   "choice": "drop",
+   "confidence": 0.29,
+   "probabilities": {
+    "drop": 0.53,
+    "long_term": 0.41,
+    "session_only": 0.06
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-80",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.21,
+   "choice": "session_only",
+   "confidence": 0.43,
+   "probabilities": {
+    "session_only": 0.62,
+    "drop": 0.35,
+    "long_term": 0.03
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-81",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.22,
+   "choice": "session_only",
+   "confidence": 0.69,
+   "probabilities": {
+    "drop": 0.02,
+    "long_term": 0.19,
+    "session_only": 0.79
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-82",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.52,
+   "choice": "long_term",
+   "confidence": 0.28,
+   "probabilities": {
+    "drop": 0.43,
+    "long_term": 0.52,
+    "session_only": 0.05
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-83",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "store",
+   "composite": 0.32999999999999996,
+   "choice": "drop",
+   "confidence": 0.04,
+   "probabilities": {
+    "drop": 0.36,
+    "session_only": 0.34,
+    "long_term": 0.3
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-84",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.04,
+   "choice": "session_only",
+   "confidence": 1.0,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 1.0,
+    "long_term": 0.0
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-85",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.13,
+   "choice": "drop",
+   "confidence": 0.81,
+   "probabilities": {
+    "long_term": 0.09,
+    "session_only": 0.04,
+    "drop": 0.87
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-86",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.51,
+   "choice": "session_only",
+   "confidence": 0.5,
+   "probabilities": {
+    "drop": 0.02,
+    "session_only": 0.67,
+    "long_term": 0.31
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-87",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.17000000000000004,
+   "choice": "drop",
+   "confidence": 0.76,
+   "probabilities": {
+    "long_term": 0.13,
+    "drop": 0.84,
+    "session_only": 0.03
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-88",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.18,
+   "choice": "session_only",
+   "confidence": 0.93,
+   "probabilities": {
+    "drop": 0.02,
+    "session_only": 0.95,
+    "long_term": 0.03
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-89",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "store",
+   "composite": 0.61,
+   "choice": "long_term",
+   "confidence": 0.35,
+   "probabilities": {
+    "long_term": 0.57,
+    "session_only": 0.03,
+    "drop": 0.4
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-90",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.31000000000000005,
+   "choice": "drop",
+   "confidence": 0.51,
+   "probabilities": {
+    "session_only": 0.15,
+    "long_term": 0.17,
+    "drop": 0.68
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-91",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.08,
+   "choice": "session_only",
+   "confidence": 0.99,
+   "probabilities": {
+    "long_term": 0.0,
+    "drop": 0.01,
+    "session_only": 0.99
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-92",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.48,
+   "choice": "session_only",
+   "confidence": 0.6,
+   "probabilities": {
+    "session_only": 0.74,
+    "drop": 0.01,
+    "long_term": 0.25
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-93",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.44999999999999996,
+   "choice": "drop",
+   "confidence": 0.25,
+   "probabilities": {
+    "session_only": 0.27,
+    "drop": 0.5,
+    "long_term": 0.23
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-94",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.06,
+   "choice": "session_only",
+   "confidence": 0.97,
+   "probabilities": {
+    "drop": 0.0,
+    "long_term": 0.02,
+    "session_only": 0.98
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-95",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.33999999999999997,
+   "choice": "drop",
+   "confidence": 0.28,
+   "probabilities": {
+    "session_only": 0.3,
+    "long_term": 0.18,
+    "drop": 0.52
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-96",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.52,
+   "choice": "drop",
+   "confidence": 0.28,
+   "probabilities": {
+    "drop": 0.52,
+    "long_term": 0.44,
+    "session_only": 0.04
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-97",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "store",
+   "composite": 0.36,
+   "choice": "long_term",
+   "confidence": 0.25,
+   "probabilities": {
+    "drop": 0.3,
+    "session_only": 0.2,
+    "long_term": 0.5
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-98",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.06,
+   "choice": "session_only",
+   "confidence": 0.98,
+   "probabilities": {
+    "long_term": 0.01,
+    "drop": 0.0,
+    "session_only": 0.99
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-99",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.41000000000000003,
+   "choice": "session_only",
+   "confidence": 0.46,
+   "probabilities": {
+    "session_only": 0.64,
+    "drop": 0.19,
+    "long_term": 0.17
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-100",
+   "batch": "old",
+   "family": "-",
+   "expected": "skip",
+   "shipped": "store",
+   "composite": 0.31999999999999995,
+   "choice": "long_term",
+   "confidence": 0.13,
+   "probabilities": {
+    "drop": 0.38,
+    "session_only": 0.19,
+    "long_term": 0.43
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-201",
+   "batch": "new",
+   "family": "A instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.51,
+   "choice": "long_term",
+   "confidence": 0.97,
+   "probabilities": {
+    "long_term": 0.98,
+    "drop": 0.0,
+    "session_only": 0.02
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-202",
+   "batch": "new",
+   "family": "A instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.13,
+   "choice": "long_term",
+   "confidence": 0.97,
+   "probabilities": {
+    "session_only": 0.02,
+    "drop": 0.0,
+    "long_term": 0.98
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-203",
+   "batch": "new",
+   "family": "A instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.5800000000000001,
+   "choice": "long_term",
+   "confidence": 0.96,
+   "probabilities": {
+    "session_only": 0.03,
+    "drop": 0.0,
+    "long_term": 0.97
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-204",
+   "batch": "new",
+   "family": "A instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.47,
+   "choice": "long_term",
+   "confidence": 0.82,
+   "probabilities": {
+    "session_only": 0.12,
+    "drop": 0.0,
+    "long_term": 0.88
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-205",
+   "batch": "new",
+   "family": "A instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.46,
+   "choice": "long_term",
+   "confidence": 0.98,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.02,
+    "long_term": 0.98
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-206",
+   "batch": "new",
+   "family": "A instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.62,
+   "choice": "long_term",
+   "confidence": 0.96,
+   "probabilities": {
+    "session_only": 0.02,
+    "drop": 0.0,
+    "long_term": 0.98
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-207",
+   "batch": "new",
+   "family": "A instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.29,
+   "choice": "long_term",
+   "confidence": 0.93,
+   "probabilities": {
+    "drop": 0.0,
+    "long_term": 0.96,
+    "session_only": 0.04
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-208",
+   "batch": "new",
+   "family": "A instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.29,
+   "choice": "long_term",
+   "confidence": 0.85,
+   "probabilities": {
+    "long_term": 0.9,
+    "drop": 0.0,
+    "session_only": 0.1
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-209",
+   "batch": "new",
+   "family": "A instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.54,
+   "choice": "long_term",
+   "confidence": 0.86,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.09,
+    "long_term": 0.91
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-210",
+   "batch": "new",
+   "family": "A instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.35,
+   "choice": "long_term",
+   "confidence": 0.99,
+   "probabilities": {
+    "session_only": 0.01,
+    "long_term": 0.99,
+    "drop": 0.0
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-211",
+   "batch": "new",
+   "family": "A instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.43,
+   "choice": "long_term",
+   "confidence": 0.96,
+   "probabilities": {
+    "drop": 0.0,
+    "long_term": 0.98,
+    "session_only": 0.02
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-212",
+   "batch": "new",
+   "family": "A instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.35,
+   "choice": "long_term",
+   "confidence": 0.7,
+   "probabilities": {
+    "session_only": 0.2,
+    "long_term": 0.8,
+    "drop": 0.0
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-213",
+   "batch": "new",
+   "family": "B general knowledge",
+   "expected": "skip",
+   "shipped": "store",
+   "composite": 0.5,
+   "choice": "drop",
+   "confidence": 0.53,
+   "probabilities": {
+    "drop": 0.68,
+    "long_term": 0.25,
+    "session_only": 0.07
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-214",
+   "batch": "new",
+   "family": "B general knowledge",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.54,
+   "choice": "drop",
+   "confidence": 0.3,
+   "probabilities": {
+    "drop": 0.53,
+    "long_term": 0.42,
+    "session_only": 0.05
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-215",
+   "batch": "new",
+   "family": "B general knowledge",
+   "expected": "skip",
+   "shipped": "store",
+   "composite": 0.39,
+   "choice": "drop",
+   "confidence": 0.66,
+   "probabilities": {
+    "session_only": 0.08,
+    "drop": 0.77,
+    "long_term": 0.15
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-216",
+   "batch": "new",
+   "family": "B general knowledge",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.24,
+   "choice": "long_term",
+   "confidence": 0.25,
+   "probabilities": {
+    "long_term": 0.5,
+    "drop": 0.45,
+    "session_only": 0.05
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-217",
+   "batch": "new",
+   "family": "B general knowledge",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.4,
+   "choice": "drop",
+   "confidence": 0.48,
+   "probabilities": {
+    "session_only": 0.04,
+    "long_term": 0.31,
+    "drop": 0.65
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-218",
+   "batch": "new",
+   "family": "B general knowledge",
+   "expected": "skip",
+   "shipped": "store",
+   "composite": 0.43999999999999995,
+   "choice": "drop",
+   "confidence": 0.27,
+   "probabilities": {
+    "session_only": 0.14,
+    "drop": 0.51,
+    "long_term": 0.35
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-219",
+   "batch": "new",
+   "family": "B general knowledge",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.1,
+   "choice": "drop",
+   "confidence": 0.57,
+   "probabilities": {
+    "drop": 0.72,
+    "session_only": 0.06,
+    "long_term": 0.22
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-220",
+   "batch": "new",
+   "family": "B general knowledge",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.1,
+   "choice": "drop",
+   "confidence": 0.31,
+   "probabilities": {
+    "long_term": 0.43,
+    "drop": 0.54,
+    "session_only": 0.03
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-221",
+   "batch": "new",
+   "family": "B general knowledge",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.5,
+   "choice": "drop",
+   "confidence": 0.61,
+   "probabilities": {
+    "long_term": 0.22,
+    "drop": 0.74,
+    "session_only": 0.04
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-222",
+   "batch": "new",
+   "family": "B general knowledge",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.4,
+   "choice": "drop",
+   "confidence": 0.59,
+   "probabilities": {
+    "long_term": 0.25,
+    "drop": 0.73,
+    "session_only": 0.02
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-223",
+   "batch": "new",
+   "family": "B general knowledge",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.4,
+   "choice": "drop",
+   "confidence": 0.37,
+   "probabilities": {
+    "long_term": 0.4,
+    "drop": 0.58,
+    "session_only": 0.02
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-224",
+   "batch": "new",
+   "family": "B general knowledge",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.29,
+   "choice": "long_term",
+   "confidence": 0.3,
+   "probabilities": {
+    "session_only": 0.03,
+    "long_term": 0.54,
+    "drop": 0.43
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-225",
+   "batch": "new",
+   "family": "C findings",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.62,
+   "choice": "long_term",
+   "confidence": 0.99,
+   "probabilities": {
+    "session_only": 0.01,
+    "long_term": 0.99,
+    "drop": 0.0
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-226",
+   "batch": "new",
+   "family": "C findings",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.38,
+   "choice": "long_term",
+   "confidence": 0.92,
+   "probabilities": {
+    "drop": 0.03,
+    "long_term": 0.95,
+    "session_only": 0.02
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-227",
+   "batch": "new",
+   "family": "C findings",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.8200000000000001,
+   "choice": "long_term",
+   "confidence": 0.93,
+   "probabilities": {
+    "session_only": 0.05,
+    "drop": 0.0,
+    "long_term": 0.95
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-228",
+   "batch": "new",
+   "family": "C findings",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.55,
+   "choice": "long_term",
+   "confidence": 0.92,
+   "probabilities": {
+    "drop": 0.03,
+    "session_only": 0.02,
+    "long_term": 0.95
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-229",
+   "batch": "new",
+   "family": "C findings",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.69,
+   "choice": "long_term",
+   "confidence": 0.49,
+   "probabilities": {
+    "drop": 0.12,
+    "session_only": 0.21,
+    "long_term": 0.67
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-230",
+   "batch": "new",
+   "family": "C findings",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.55,
+   "choice": "long_term",
+   "confidence": 0.34,
+   "probabilities": {
+    "drop": 0.13,
+    "session_only": 0.31,
+    "long_term": 0.56
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-231",
+   "batch": "new",
+   "family": "C findings",
+   "expected": "store",
+   "shipped": "store",
+   "composite": 0.75,
+   "choice": "long_term",
+   "confidence": 0.96,
+   "probabilities": {
+    "long_term": 0.97,
+    "drop": 0.02,
+    "session_only": 0.01
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-232",
+   "batch": "new",
+   "family": "C findings",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.5900000000000001,
+   "choice": "long_term",
+   "confidence": 0.75,
+   "probabilities": {
+    "session_only": 0.06,
+    "drop": 0.11,
+    "long_term": 0.83
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-233",
+   "batch": "new",
+   "family": "C findings",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.61,
+   "choice": "long_term",
+   "confidence": 0.73,
+   "probabilities": {
+    "session_only": 0.18,
+    "drop": 0.0,
+    "long_term": 0.82
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-234",
+   "batch": "new",
+   "family": "C findings",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.68,
+   "choice": "long_term",
+   "confidence": 0.74,
+   "probabilities": {
+    "long_term": 0.83,
+    "drop": 0.01,
+    "session_only": 0.16
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-235",
+   "batch": "new",
+   "family": "C findings",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.58,
+   "choice": "long_term",
+   "confidence": 0.97,
+   "probabilities": {
+    "session_only": 0.01,
+    "long_term": 0.98,
+    "drop": 0.01
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-236",
+   "batch": "new",
+   "family": "C findings",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.62,
+   "choice": "long_term",
+   "confidence": 0.37,
+   "probabilities": {
+    "long_term": 0.58,
+    "drop": 0.08,
+    "session_only": 0.34
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-237",
+   "batch": "new",
+   "family": "D transient",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.06,
+   "choice": "session_only",
+   "confidence": 1.0,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 1.0,
+    "long_term": 0.0
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-238",
+   "batch": "new",
+   "family": "D transient",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.04,
+   "choice": "session_only",
+   "confidence": 0.98,
+   "probabilities": {
+    "drop": 0.01,
+    "long_term": 0.01,
+    "session_only": 0.98
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-239",
+   "batch": "new",
+   "family": "D transient",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.02,
+   "choice": "drop",
+   "confidence": 0.98,
+   "probabilities": {
+    "drop": 0.99,
+    "long_term": 0.0,
+    "session_only": 0.01
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-240",
+   "batch": "new",
+   "family": "D transient",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.06,
+   "choice": "session_only",
+   "confidence": 0.99,
+   "probabilities": {
+    "session_only": 0.99,
+    "drop": 0.01,
+    "long_term": 0.0
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-241",
+   "batch": "new",
+   "family": "D transient",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.11,
+   "choice": "session_only",
+   "confidence": 1.0,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 1.0,
+    "long_term": 0.0
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-242",
+   "batch": "new",
+   "family": "D transient",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.09,
+   "choice": "session_only",
+   "confidence": 1.0,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 1.0,
+    "long_term": 0.0
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-243",
+   "batch": "new",
+   "family": "D transient",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.04,
+   "choice": "session_only",
+   "confidence": 0.97,
+   "probabilities": {
+    "session_only": 0.98,
+    "drop": 0.02,
+    "long_term": 0.0
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-244",
+   "batch": "new",
+   "family": "D transient",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.03,
+   "choice": "drop",
+   "confidence": 0.9,
+   "probabilities": {
+    "drop": 0.93,
+    "session_only": 0.04,
+    "long_term": 0.03
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-245",
+   "batch": "new",
+   "family": "D transient",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.1,
+   "choice": "session_only",
+   "confidence": 0.9,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.9400000000000001,
+    "long_term": 0.06
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-246",
+   "batch": "new",
+   "family": "D transient",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.18,
+   "choice": "session_only",
+   "confidence": 0.78,
+   "probabilities": {
+    "session_only": 0.86,
+    "drop": 0.12,
+    "long_term": 0.02
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-247",
+   "batch": "new",
+   "family": "D transient",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.1,
+   "choice": "session_only",
+   "confidence": 0.98,
+   "probabilities": {
+    "long_term": 0.0,
+    "session_only": 0.99,
+    "drop": 0.01
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-248",
+   "batch": "new",
+   "family": "D transient",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.11,
+   "choice": "session_only",
+   "confidence": 0.96,
+   "probabilities": {
+    "long_term": 0.0,
+    "drop": 0.02,
+    "session_only": 0.98
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-301",
+   "batch": "new2",
+   "family": "E pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.03,
+   "choice": "drop",
+   "confidence": 0.82,
+   "probabilities": {
+    "drop": 0.88,
+    "session_only": 0.06,
+    "long_term": 0.06
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-302",
+   "batch": "new2",
+   "family": "E pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.03,
+   "choice": "drop",
+   "confidence": 0.88,
+   "probabilities": {
+    "drop": 0.93,
+    "session_only": 0.05,
+    "long_term": 0.02
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-303",
+   "batch": "new2",
+   "family": "E pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.04,
+   "choice": "long_term",
+   "confidence": 0.09,
+   "probabilities": {
+    "long_term": 0.4,
+    "drop": 0.37,
+    "session_only": 0.23
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-304",
+   "batch": "new2",
+   "family": "E pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.04,
+   "choice": "drop",
+   "confidence": 0.61,
+   "probabilities": {
+    "long_term": 0.11,
+    "session_only": 0.15,
+    "drop": 0.74
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-305",
+   "batch": "new2",
+   "family": "E pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.02,
+   "choice": "drop",
+   "confidence": 0.92,
+   "probabilities": {
+    "drop": 0.95,
+    "session_only": 0.04,
+    "long_term": 0.01
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-306",
+   "batch": "new2",
+   "family": "E pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.02,
+   "choice": "drop",
+   "confidence": 0.98,
+   "probabilities": {
+    "session_only": 0.01,
+    "drop": 0.98,
+    "long_term": 0.01
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-307",
+   "batch": "new2",
+   "family": "E pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.02,
+   "choice": "drop",
+   "confidence": 0.52,
+   "probabilities": {
+    "drop": 0.6900000000000001,
+    "session_only": 0.31,
+    "long_term": 0.0
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-308",
+   "batch": "new2",
+   "family": "E pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.02,
+   "choice": "drop",
+   "confidence": 0.9,
+   "probabilities": {
+    "long_term": 0.0,
+    "drop": 0.93,
+    "session_only": 0.07
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-309",
+   "batch": "new2",
+   "family": "E pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.03,
+   "choice": "drop",
+   "confidence": 0.76,
+   "probabilities": {
+    "session_only": 0.1,
+    "drop": 0.84,
+    "long_term": 0.06
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-310",
+   "batch": "new2",
+   "family": "E pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.03,
+   "choice": "drop",
+   "confidence": 0.6,
+   "probabilities": {
+    "drop": 0.73,
+    "session_only": 0.24,
+    "long_term": 0.03
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-311",
+   "batch": "new2",
+   "family": "E pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.03,
+   "choice": "drop",
+   "confidence": 0.71,
+   "probabilities": {
+    "long_term": 0.09,
+    "drop": 0.8,
+    "session_only": 0.11
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-312",
+   "batch": "new2",
+   "family": "E pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.04,
+   "choice": "long_term",
+   "confidence": 0.17,
+   "probabilities": {
+    "drop": 0.23,
+    "session_only": 0.32,
+    "long_term": 0.45
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-313",
+   "batch": "new2",
+   "family": "F instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.49,
+   "choice": "long_term",
+   "confidence": 0.96,
+   "probabilities": {
+    "drop": 0.0,
+    "long_term": 0.98,
+    "session_only": 0.02
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-314",
+   "batch": "new2",
+   "family": "F instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.12,
+   "choice": "long_term",
+   "confidence": 0.88,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.08,
+    "long_term": 0.92
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-315",
+   "batch": "new2",
+   "family": "F instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.28,
+   "choice": "long_term",
+   "confidence": 0.97,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.02,
+    "long_term": 0.98
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-316",
+   "batch": "new2",
+   "family": "F instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.33,
+   "choice": "long_term",
+   "confidence": 0.76,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.16,
+    "long_term": 0.84
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-317",
+   "batch": "new2",
+   "family": "F instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.24,
+   "choice": "long_term",
+   "confidence": 0.99,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.01,
+    "long_term": 0.99
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-318",
+   "batch": "new2",
+   "family": "F instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.53,
+   "choice": "long_term",
+   "confidence": 0.36,
+   "probabilities": {
+    "session_only": 0.42,
+    "drop": 0.0,
+    "long_term": 0.58
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-319",
+   "batch": "new2",
+   "family": "F instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.49,
+   "choice": "long_term",
+   "confidence": 0.72,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.18,
+    "long_term": 0.82
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-320",
+   "batch": "new2",
+   "family": "F instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.41,
+   "choice": "long_term",
+   "confidence": 0.94,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.04,
+    "long_term": 0.96
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-321",
+   "batch": "new2",
+   "family": "F instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.4,
+   "choice": "long_term",
+   "confidence": 0.59,
+   "probabilities": {
+    "session_only": 0.27,
+    "drop": 0.0,
+    "long_term": 0.73
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-322",
+   "batch": "new2",
+   "family": "F instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.41,
+   "choice": "long_term",
+   "confidence": 0.88,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.08,
+    "long_term": 0.92
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-323",
+   "batch": "new2",
+   "family": "F instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.34,
+   "choice": "long_term",
+   "confidence": 0.84,
+   "probabilities": {
+    "session_only": 0.1,
+    "long_term": 0.9,
+    "drop": 0.0
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-324",
+   "batch": "new2",
+   "family": "F instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.5,
+   "choice": "long_term",
+   "confidence": 0.66,
+   "probabilities": {
+    "long_term": 0.77,
+    "session_only": 0.23,
+    "drop": 0.0
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-325",
+   "batch": "new2",
+   "family": "H verbatim of a held document",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.21999999999999997,
+   "choice": "drop",
+   "confidence": 0.41,
+   "probabilities": {
+    "session_only": 0.1,
+    "drop": 0.6,
+    "long_term": 0.3
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-326",
+   "batch": "new2",
+   "family": "H verbatim of a held document",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.18000000000000005,
+   "choice": "drop",
+   "confidence": 0.53,
+   "probabilities": {
+    "drop": 0.69,
+    "long_term": 0.19,
+    "session_only": 0.12
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-327",
+   "batch": "new2",
+   "family": "H verbatim of a held document",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.41000000000000003,
+   "choice": "session_only",
+   "confidence": 0.3,
+   "probabilities": {
+    "drop": 0.09,
+    "long_term": 0.38,
+    "session_only": 0.53
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-328",
+   "batch": "new2",
+   "family": "H verbatim of a held document",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.18999999999999995,
+   "choice": "drop",
+   "confidence": 0.56,
+   "probabilities": {
+    "session_only": 0.1,
+    "drop": 0.7,
+    "long_term": 0.2
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-329",
+   "batch": "new2",
+   "family": "H verbatim of a held document",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.29000000000000004,
+   "choice": "drop",
+   "confidence": 0.42,
+   "probabilities": {
+    "drop": 0.62,
+    "long_term": 0.19,
+    "session_only": 0.19
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-330",
+   "batch": "new2",
+   "family": "H verbatim of a held document",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.17000000000000004,
+   "choice": "drop",
+   "confidence": 0.43,
+   "probabilities": {
+    "session_only": 0.1,
+    "drop": 0.61,
+    "long_term": 0.29
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-331",
+   "batch": "new2",
+   "family": "H verbatim of a held document",
+   "expected": "skip",
+   "shipped": "store",
+   "composite": 0.31000000000000005,
+   "choice": "long_term",
+   "confidence": 0.35,
+   "probabilities": {
+    "session_only": 0.12,
+    "drop": 0.32,
+    "long_term": 0.5599999999999999
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-332",
+   "batch": "new2",
+   "family": "H verbatim of a held document",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.31999999999999995,
+   "choice": "drop",
+   "confidence": 0.34,
+   "probabilities": {
+    "drop": 0.56,
+    "long_term": 0.17,
+    "session_only": 0.27
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-333",
+   "batch": "new2",
+   "family": "H verbatim of a held document",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.49,
+   "choice": "long_term",
+   "confidence": 0.18,
+   "probabilities": {
+    "session_only": 0.27,
+    "drop": 0.27,
+    "long_term": 0.46
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-334",
+   "batch": "new2",
+   "family": "H verbatim of a held document",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.31000000000000005,
+   "choice": "drop",
+   "confidence": 0.31,
+   "probabilities": {
+    "drop": 0.54,
+    "session_only": 0.28,
+    "long_term": 0.18
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-335",
+   "batch": "new2",
+   "family": "H verbatim of a held document",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.26,
+   "choice": "drop",
+   "confidence": 0.32,
+   "probabilities": {
+    "session_only": 0.16,
+    "drop": 0.55,
+    "long_term": 0.29
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-336",
+   "batch": "new2",
+   "family": "H verbatim of a held document",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.32999999999999996,
+   "choice": "session_only",
+   "confidence": 0.2,
+   "probabilities": {
+    "drop": 0.33,
+    "session_only": 0.47,
+    "long_term": 0.2
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-401",
+   "batch": "new3",
+   "family": "E2 pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.02,
+   "choice": "drop",
+   "confidence": 0.89,
+   "probabilities": {
+    "drop": 0.93,
+    "long_term": 0.0,
+    "session_only": 0.07
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-402",
+   "batch": "new3",
+   "family": "E2 pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.03,
+   "choice": "drop",
+   "confidence": 0.93,
+   "probabilities": {
+    "drop": 0.95,
+    "session_only": 0.03,
+    "long_term": 0.02
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-403",
+   "batch": "new3",
+   "family": "E2 pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.04,
+   "choice": "drop",
+   "confidence": 0.77,
+   "probabilities": {
+    "long_term": 0.05,
+    "session_only": 0.1,
+    "drop": 0.85
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-404",
+   "batch": "new3",
+   "family": "E2 pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.03,
+   "choice": "drop",
+   "confidence": 0.79,
+   "probabilities": {
+    "drop": 0.86,
+    "long_term": 0.03,
+    "session_only": 0.11
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-405",
+   "batch": "new3",
+   "family": "E2 pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.04,
+   "choice": "drop",
+   "confidence": 0.49,
+   "probabilities": {
+    "long_term": 0.04,
+    "drop": 0.66,
+    "session_only": 0.3
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-406",
+   "batch": "new3",
+   "family": "E2 pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.04,
+   "choice": "drop",
+   "confidence": 0.61,
+   "probabilities": {
+    "drop": 0.74,
+    "session_only": 0.04,
+    "long_term": 0.22
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-407",
+   "batch": "new3",
+   "family": "E2 pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.02,
+   "choice": "drop",
+   "confidence": 0.29,
+   "probabilities": {
+    "drop": 0.53,
+    "session_only": 0.46,
+    "long_term": 0.01
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-408",
+   "batch": "new3",
+   "family": "E2 pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.02,
+   "choice": "drop",
+   "confidence": 0.8,
+   "probabilities": {
+    "long_term": 0.0,
+    "session_only": 0.13,
+    "drop": 0.87
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-409",
+   "batch": "new3",
+   "family": "E2 pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.04,
+   "choice": "long_term",
+   "confidence": 0.28,
+   "probabilities": {
+    "drop": 0.28,
+    "long_term": 0.52,
+    "session_only": 0.2
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-410",
+   "batch": "new3",
+   "family": "E2 pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.02,
+   "choice": "drop",
+   "confidence": 0.91,
+   "probabilities": {
+    "drop": 0.94,
+    "session_only": 0.06,
+    "long_term": 0.0
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-411",
+   "batch": "new3",
+   "family": "E2 pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.03,
+   "choice": "drop",
+   "confidence": 0.86,
+   "probabilities": {
+    "session_only": 0.08,
+    "drop": 0.9,
+    "long_term": 0.02
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-412",
+   "batch": "new3",
+   "family": "E2 pointers",
+   "expected": "skip",
+   "shipped": "skip",
+   "composite": 0.02,
+   "choice": "drop",
+   "confidence": 0.82,
+   "probabilities": {
+    "drop": 0.87,
+    "long_term": 0.09,
+    "session_only": 0.04
+   },
+   "choice_argmax": "skip",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-413",
+   "batch": "new3",
+   "family": "F2 instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.47,
+   "choice": "long_term",
+   "confidence": 0.93,
+   "probabilities": {
+    "session_only": 0.04,
+    "drop": 0.0,
+    "long_term": 0.96
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-414",
+   "batch": "new3",
+   "family": "F2 instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.41,
+   "choice": "long_term",
+   "confidence": 0.62,
+   "probabilities": {
+    "drop": 0.0,
+    "long_term": 0.75,
+    "session_only": 0.25
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-415",
+   "batch": "new3",
+   "family": "F2 instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.34,
+   "choice": "long_term",
+   "confidence": 0.97,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.02,
+    "long_term": 0.98
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-416",
+   "batch": "new3",
+   "family": "F2 instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.42,
+   "choice": "long_term",
+   "confidence": 0.95,
+   "probabilities": {
+    "long_term": 0.97,
+    "drop": 0.0,
+    "session_only": 0.03
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-417",
+   "batch": "new3",
+   "family": "F2 instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.03,
+   "choice": "long_term",
+   "confidence": 0.7,
+   "probabilities": {
+    "drop": 0.16,
+    "session_only": 0.05,
+    "long_term": 0.79
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-418",
+   "batch": "new3",
+   "family": "F2 instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.4,
+   "choice": "long_term",
+   "confidence": 0.36,
+   "probabilities": {
+    "session_only": 0.42,
+    "drop": 0.01,
+    "long_term": 0.57
+   },
+   "choice_argmax": "store",
+   "choice_p070": "skip"
+  },
+  {
+   "id": "mw-419",
+   "batch": "new3",
+   "family": "F2 instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.25,
+   "choice": "long_term",
+   "confidence": 0.79,
+   "probabilities": {
+    "drop": 0.0,
+    "session_only": 0.14,
+    "long_term": 0.86
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-420",
+   "batch": "new3",
+   "family": "F2 instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.55,
+   "choice": "long_term",
+   "confidence": 0.87,
+   "probabilities": {
+    "session_only": 0.08,
+    "drop": 0.0,
+    "long_term": 0.92
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-421",
+   "batch": "new3",
+   "family": "F2 instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.42,
+   "choice": "long_term",
+   "confidence": 0.57,
+   "probabilities": {
+    "session_only": 0.27,
+    "long_term": 0.71,
+    "drop": 0.02
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-422",
+   "batch": "new3",
+   "family": "F2 instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.46,
+   "choice": "long_term",
+   "confidence": 1.0,
+   "probabilities": {
+    "long_term": 1.0,
+    "session_only": 0.0,
+    "drop": 0.0
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-423",
+   "batch": "new3",
+   "family": "F2 instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.45,
+   "choice": "long_term",
+   "confidence": 0.96,
+   "probabilities": {
+    "long_term": 0.98,
+    "drop": 0.0,
+    "session_only": 0.02
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  },
+  {
+   "id": "mw-424",
+   "batch": "new3",
+   "family": "F2 instructions",
+   "expected": "store",
+   "shipped": "skip",
+   "composite": 0.3,
+   "choice": "long_term",
+   "confidence": 0.88,
+   "probabilities": {
+    "long_term": 0.92,
+    "session_only": 0.08,
+    "drop": 0.0
+   },
+   "choice_argmax": "store",
+   "choice_p070": "store"
+  }
+ ]
+}

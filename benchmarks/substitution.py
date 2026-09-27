@@ -149,6 +149,34 @@ def main() -> int:
     speed = gen_latency_ms / ev_latency if ev_latency else float("nan")
     rate_in, rate_out = price_of(gen_model) if gen_model in {gen_model} else (0, 0)
 
+    # The prose follows the numbers. An earlier version hardcoded "and it is not a tie",
+    # which was true when it was written and became false two fixes later - a generator that
+    # asserts its conclusion instead of computing it is a lie with a delay fuse.
+    gap_cut = gen_hits - cut_hits
+    gap_ship = gen_hits - ev_hits
+    if gap_cut > 0:
+        verdict = (
+            f"It is not a tie: the frontier model is the more accurate judge, {gen_hits}/{n} "
+            f"against {ev_hits}/{n} under the shipped policy. Most of that gap is the "
+            f"thresholds and not the model - at a plain 0.5 cut the evaluator reaches "
+            f"{cut_hits}/{n}, and the remaining difference is {gap_cut} decision"
+            f"{'s' if gap_cut != 1 else ''}."
+        )
+    elif gap_cut == 0:
+        verdict = (
+            f"On these judgments it is a tie: both reach {gen_hits}/{n} when the evaluator is "
+            f"read at a plain 0.5 cut. The shipped thresholds give up {gap_ship} decision"
+            f"{'s' if gap_ship != 1 else ''} of that on purpose, in the safe direction. A tie "
+            "on this set is not a claim about judgment in general: these are closed-vocabulary "
+            "questions over a supplied state, which is the only shape the package claims."
+        )
+    else:
+        verdict = (
+            f"On these judgments the evaluator is ahead at a plain cut, {cut_hits}/{n} against "
+            f"{gen_hits}/{n}. That is a result about this set and not a general one, and it is "
+            "small enough that the next relabelling could reverse it."
+        )
+
     lines = [
         "# The same judgments, made two ways",
         "",
@@ -176,11 +204,7 @@ def main() -> int:
         "## What this is",
         "",
         "Substitution, measured end to end on a real set of judgments rather than argued from "
-        "a price list, and it is not a tie. The frontier model is the more accurate judge: "
-        f"{gen_hits}/{n} against {ev_hits}/{n} under the shipped policy. But most of that gap "
-        "is the thresholds and not the model - at a plain 0.5 cut the evaluator reaches "
-        f"{cut_hits}/{n}, and the remaining difference is "
-        f"{gen_hits - cut_hits} decision{'s' if abs(gen_hits - cut_hits) != 1 else ''}.",
+        "a price list. " + verdict,
         "",
         "So the trade is stated honestly like this: **the cheap evaluator gives up a small "
         f"amount of accuracy and buys back {ratio:.0f}x the price and {speed:.1f}x the "

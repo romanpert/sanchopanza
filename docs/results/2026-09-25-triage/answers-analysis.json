@@ -1,0 +1,37 @@
+{
+ "arms": {
+  "all": {
+   "n": 300,
+   "failed": 0,
+   "accuracy": 0.6767,
+   "f1": 0.5574,
+   "input_tokens": 460062
+  },
+  "contribution": {
+   "n": 300,
+   "failed": 0,
+   "accuracy": 0.69,
+   "f1": 0.5977,
+   "input_tokens": 249329
+  },
+  "shipped": {
+   "n": 300,
+   "failed": 0,
+   "accuracy": 0.5067,
+   "f1": 0.4215,
+   "input_tokens": 71683
+  },
+  "bm25": {
+   "n": 300,
+   "failed": 0,
+   "accuracy": 0.6233,
+   "f1": 0.5554,
+   "input_tokens": 270848
+  }
+ },
+ "contribution_tokens_share_of_all": 0.5419,
+ "P10": true,
+ "P11": false,
+ "P12_contribution_minus_bm25": 0.0667,
+ "verdict": "see criteria"
+}

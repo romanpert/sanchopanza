@@ -69,7 +69,15 @@ def post_tool_use(guardian: Guardian) -> Hook:
         note = await guardian.after_tool(call, input_data.get("tool_response"))
         if not note:
             return {}
-        return {"hookSpecificOutput": {"hookEventName": event, "additionalContext": note}}
+        output: dict[str, Any] = {"hookSpecificOutput": {"hookEventName": event}}
+        if note.context:
+            output["hookSpecificOutput"]["additionalContext"] = note.context
+        # The operator's copy travels outside `hookSpecificOutput`, because a PostToolUse
+        # hook cannot replace the tool result: `additionalContext` is the only channel to
+        # the model, and it is the one the suspect text is best placed to talk over.
+        if note.user:
+            output["systemMessage"] = note.user
+        return output
 
     return hook
 
@@ -80,7 +88,8 @@ def hook_matchers(guardian: Guardian) -> dict[str, list[Any]]:
 
     c = guardian.config
     pre = "|".join(sorted(c.delegate_tools | c.search_tools | c.shell_tools))
-    post = "|".join(sorted(c.delegate_tools))
+    after = c.delegate_tools | (c.content_tools if c.scan_content else frozenset())
+    post = "|".join(sorted(after))
     return {
         "PreToolUse": [HookMatcher(matcher=pre, hooks=[pre_tool_use(guardian)])],
         "PostToolUse": [HookMatcher(matcher=post, hooks=[post_tool_use(guardian)])],

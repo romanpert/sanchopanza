@@ -1,0 +1,106 @@
+# Graph points, second batch: `facts` and `edge` to 50 cases each (60 cases).
+#
+# The first 20 of each are in `graph.jsonl` and `graph-build.jsonl` and stay untouched.
+#
+# WHY THESE TWO. They are the points the README has been shipping with a disclaimer.
+# `relate_facts` says "16/20, not yet integrated", and it is not integrated *because* 16/20 on
+# twenty cases is not enough to wire anything to. `verify_edge` says "15/17 when deciding" on
+# twenty cases with three labels, one of which (`reversed`) had two instances. A point with two
+# examples of a label has not been measured on that label, it has been sampled from it.
+#
+# ---------------------------------------------------------------------------------------
+# `facts`: agree / conflict / unrelated
+#
+# The line that decides most of these, and the one the first batch barely tested:
+#
+#   agree      both can be true AND one bears on the other - a subset, a component, a
+#              corroboration, a narrower or wider statement of the same quantity.
+#   conflict   same attribute of the same entity, values that cannot both hold.
+#   unrelated  different entities, or the same entity's different attributes, where neither
+#              statement supports or contradicts the other.
+#
+# The trap is that `agree` and `unrelated` are BOTH "not a conflict", and the difference is
+# whether one fact bears on the other. `fa-21`/`fa-31` are that pair: 1,240 homes and 312 of
+# them severe is agree, because the second is a part of the first; registered in Panama and
+# the director resigned in 2022 is unrelated, because neither says anything about the other.
+# Five of the cases below are built on that pair and they are the ones worth looking at when
+# this point scores badly.
+#
+# The second trap is corroboration. The same figure from a different body is `agree`, not
+# `conflict` and not `unrelated`: it is the most common shape in an investigation and the
+# first draft of the sibling collision point got it wrong, sending every corroboration to a
+# human as if it were a contradiction.
+#
+# ---------------------------------------------------------------------------------------
+# `edge`: supported / unsupported / reversed
+#
+# `reversed` gets ten cases here against two before, because it is the label whose error is
+# unrecoverable: a wrong-direction edge committed to a graph is read later as fact and there
+# is nothing in the text to catch it. The others are cheaper to be wrong about - an
+# unsupported edge is a missing edge, and a missed supported one costs a re-read.
+#
+# The families of `unsupported` are the ones a real extractor produces: both entities present
+# in the chunk with no relation stated between them, a DIFFERENT relation stated between
+# them, a relation that is merely plausible, and a relation stated about a homonym.
+#
+# Annotator 1 (the author) labelled every case before any decision was run.
+{"id": "fa-21", "point": "facts", "input": {"fact_a": "El censo registra 1.240 viviendas danadas por el sismo.", "fact_b": "De las viviendas danadas, 312 presentan dano estructural severo."}, "expected": "agree"}
+{"id": "fa-22", "point": "facts", "input": {"fact_a": "La Confederacion Hidrografica cifra el vertido en 4.200 hectareas.", "fact_b": "El organismo de cuenca situa la superficie afectada en 4.200 hectareas."}, "expected": "agree"}
+{"id": "fa-23", "point": "facts", "input": {"fact_a": "El contrato se adjudico por 3,4 millones de euros.", "fact_b": "El importe de adjudicacion del contrato fue de 3,9 millones de euros."}, "expected": "conflict"}
+{"id": "fa-24", "point": "facts", "input": {"fact_a": "La sociedad esta inscrita en Panama desde 2011.", "fact_b": "El director de la sociedad dimitio en 2022."}, "expected": "unrelated"}
+{"id": "fa-25", "point": "facts", "input": {"fact_a": "El terremoto tuvo magnitud 7,1 segun el USGS.", "fact_b": "El servicio sismologico nacional le asigna magnitud 6,8."}, "expected": "conflict"}
+{"id": "fa-26", "point": "facts", "input": {"fact_a": "La empresa factura 120 millones al ano.", "fact_b": "La empresa tiene 340 empleados."}, "expected": "unrelated"}
+{"id": "fa-27", "point": "facts", "input": {"fact_a": "La multa ascendio a 200.000 euros.", "fact_b": "La sancion economica impuesta fue de doscientos mil euros."}, "expected": "agree"}
+{"id": "fa-28", "point": "facts", "input": {"fact_a": "El expediente se archivo en marzo de 2024.", "fact_b": "El expediente sigue abierto a fecha de hoy."}, "expected": "conflict"}
+{"id": "fa-29", "point": "facts", "input": {"fact_a": "La produccion exportable fue de 5,8 millones de quintales.", "fact_b": "Copan aporto 1,1 millones de quintales a la campana."}, "expected": "agree"}
+{"id": "fa-30", "point": "facts", "input": {"fact_a": "El acusado fue absuelto en primera instancia.", "fact_b": "La Audiencia lo condeno a doce meses de multa."}, "expected": "agree"}
+{"id": "fa-31", "point": "facts", "input": {"fact_a": "La sociedad tiene su domicilio social en Sevilla.", "fact_b": "La sociedad presento cuentas del ejercicio 2024 fuera de plazo."}, "expected": "unrelated"}
+{"id": "fa-32", "point": "facts", "input": {"fact_a": "El vertido afecto a once municipios.", "fact_b": "Entre los municipios afectados estan Aznalcollar y Pilas."}, "expected": "agree"}
+{"id": "fa-33", "point": "facts", "input": {"fact_a": "La licencia fue revocada en 2016.", "fact_b": "La licencia fue revocada en 2018."}, "expected": "conflict"}
+{"id": "fa-34", "point": "facts", "input": {"fact_a": "Mario Reyes es administrador de Inversiones Delta.", "fact_b": "Mario Reyes fue profesor asociado en la Universidad de Alicante."}, "expected": "unrelated"}
+{"id": "fa-35", "point": "facts", "input": {"fact_a": "El informe lo firma la Confederacion Hidrografica.", "fact_b": "El informe lo firma la consejeria de Medio Ambiente."}, "expected": "conflict"}
+{"id": "fa-36", "point": "facts", "input": {"fact_a": "La capacidad solar instalada alcanzo 2,1 gigavatios en 2025.", "fact_b": "De esos gigavatios, 1,4 corresponden a proyectos de La Guajira."}, "expected": "agree"}
+{"id": "fa-37", "point": "facts", "input": {"fact_a": "El recurso fue admitido a tramite el 8 de julio.", "fact_b": "El recurso fue inadmitido por extemporaneo."}, "expected": "conflict"}
+{"id": "fa-38", "point": "facts", "input": {"fact_a": "La sentencia tiene 47 paginas.", "fact_b": "La sentencia condena al pago de 6.000 euros."}, "expected": "unrelated"}
+{"id": "fa-39", "point": "facts", "input": {"fact_a": "Se registraron 96 replicas hasta el 20 de abril.", "fact_b": "Al cierre de abril el recuento era de 114 replicas."}, "expected": "agree"}
+{"id": "fa-40", "point": "facts", "input": {"fact_a": "La empresa fue sancionada por infraccion grave.", "fact_b": "La infraccion fue calificada como leve por la resolucion."}, "expected": "conflict"}
+{"id": "fa-41", "point": "facts", "input": {"fact_a": "El administrador unico es J. Perez, con DNI 12345678A.", "fact_b": "El administrador unico es J. Perez, con DNI 87654321B."}, "expected": "conflict"}
+{"id": "fa-42", "point": "facts", "input": {"fact_a": "El archivo municipal cierra en agosto.", "fact_b": "El archivo municipal conserva expedientes desde 1890."}, "expected": "unrelated"}
+{"id": "fa-43", "point": "facts", "input": {"fact_a": "El censo preliminar daba 312 viviendas con dano severo.", "fact_b": "El censo definitivo rebajo a 287 las viviendas con dano severo."}, "expected": "conflict"}
+{"id": "fa-44", "point": "facts", "input": {"fact_a": "La compania audita sus cuentas con Marquez y Asociados.", "fact_b": "El informe de auditoria incluye una salvedad por existencias."}, "expected": "agree"}
+{"id": "fa-45", "point": "facts", "input": {"fact_a": "Transportes Sur S.A. perdio la licencia en 2025.", "fact_b": "Transportes Sur S.L., del mismo grupo, conserva su licencia.", "context": ""}, "expected": "unrelated"}
+{"id": "fa-46", "point": "facts", "input": {"fact_a": "La indemnizacion se consigno el 2 de junio de 2024.", "fact_b": "La indemnizacion fijada fue de 6.000 euros."}, "expected": "agree"}
+{"id": "fa-47", "point": "facts", "input": {"fact_a": "El sismo ocurrio el 12 de marzo de 2026.", "fact_b": "El boletin con el balance de danos se publico el 14 de marzo."}, "expected": "unrelated"}
+{"id": "fa-48", "point": "facts", "input": {"fact_a": "La empresa tenia 290 empleados en 2023.", "fact_b": "La empresa tenia 340 empleados en 2024."}, "expected": "agree"}
+{"id": "fa-49", "point": "facts", "input": {"fact_a": "El contrato 2026/AB/14 se adjudico a Constructora Sureste.", "fact_b": "El contrato 2026/AB/14 quedo desierto."}, "expected": "conflict"}
+{"id": "fa-50", "point": "facts", "input": {"fact_a": "El portal solo publica los tres ultimos ejercicios.", "fact_b": "Las cuentas de 2018 hay que pedirlas al registro de pago."}, "expected": "agree"}
+{"id": "ed-21", "point": "edge", "input": {"subject": "Omega Holdings", "relation": "es matriz de", "obj": "Inversiones Delta S.A.", "text": "Inversiones Delta S.A. es filial de Omega Holdings desde su constitucion en 2011."}, "expected": "supported"}
+{"id": "ed-22", "point": "edge", "input": {"subject": "Inversiones Delta S.A.", "relation": "es matriz de", "obj": "Omega Holdings", "text": "Inversiones Delta S.A. es filial de Omega Holdings desde su constitucion en 2011."}, "expected": "reversed"}
+{"id": "ed-23", "point": "edge", "input": {"subject": "Constructora Sureste", "relation": "es adjudicataria de", "obj": "contrato 2026/AB/14", "text": "El expediente 2026/AB/14 fue adjudicado a Constructora Sureste por 3,4 millones de euros."}, "expected": "supported"}
+{"id": "ed-24", "point": "edge", "input": {"subject": "contrato 2026/AB/14", "relation": "es adjudicataria de", "obj": "Constructora Sureste", "text": "El expediente 2026/AB/14 fue adjudicado a Constructora Sureste por 3,4 millones de euros."}, "expected": "reversed"}
+{"id": "ed-25", "point": "edge", "input": {"subject": "Marquez y Asociados", "relation": "audita a", "obj": "Industrias Belmonte", "text": "Las cuentas de Industrias Belmonte fueron auditadas por Marquez y Asociados, firma que trabaja con el grupo desde 2019."}, "expected": "supported"}
+{"id": "ed-26", "point": "edge", "input": {"subject": "Industrias Belmonte", "relation": "audita a", "obj": "Marquez y Asociados", "text": "Las cuentas de Industrias Belmonte fueron auditadas por Marquez y Asociados, firma que trabaja con el grupo desde 2019."}, "expected": "reversed"}
+{"id": "ed-27", "point": "edge", "input": {"subject": "J. Perez", "relation": "fue condenado por", "obj": "difamacion", "text": "La Audiencia Provincial condeno a J. Perez por un delito de difamacion a doce meses de multa."}, "expected": "supported"}
+{"id": "ed-28", "point": "edge", "input": {"subject": "J. Perez", "relation": "fue condenado por", "obj": "difamacion", "text": "J. Perez presento querella por difamacion contra el director del medio."}, "expected": "reversed"}
+{"id": "ed-29", "point": "edge", "input": {"subject": "Transportes Sur S.A.", "relation": "tuvo revocada su licencia por", "obj": "Direccion General de Transporte", "text": "La Direccion General de Transporte revoco mediante la resolucion 118-25 la licencia de Transportes Sur S.A."}, "expected": "supported"}
+{"id": "ed-30", "point": "edge", "input": {"subject": "Direccion General de Transporte", "relation": "tuvo revocada su licencia por", "obj": "Transportes Sur S.A.", "text": "La Direccion General de Transporte revoco mediante la resolucion 118-25 la licencia de Transportes Sur S.A."}, "expected": "reversed"}
+{"id": "ed-31", "point": "edge", "input": {"subject": "Mario Reyes Castillo", "relation": "es socio de", "obj": "Omega Holdings", "text": "Mario Reyes Castillo asistio a la junta de Omega Holdings en calidad de invitado."}, "expected": "unsupported"}
+{"id": "ed-32", "point": "edge", "input": {"subject": "Ruiz Alonso", "relation": "presidio el tribunal de", "obj": "sentencia 0123-2024", "text": "La sentencia 0123-2024 cuenta con un voto particular de la magistrada Ruiz Alonso."}, "expected": "unsupported"}
+{"id": "ed-33", "point": "edge", "input": {"subject": "Industrias Belmonte", "relation": "tiene filial en", "obj": "Portugal", "text": "El informe de auditoria incluye una salvedad por la valoracion de las existencias de la filial portuguesa."}, "expected": "supported"}
+{"id": "ed-34", "point": "edge", "input": {"subject": "Obras del Levante", "relation": "es adjudicataria de", "obj": "contrato 2026/AB/14", "text": "A la licitacion del contrato 2026/AB/14 concurrieron tambien Obras del Levante y Grupo Marina."}, "expected": "unsupported"}
+{"id": "ed-35", "point": "edge", "input": {"subject": "Confederacion Hidrografica", "relation": "sanciono a", "obj": "la empresa titular de la balsa", "text": "La consejeria de Medio Ambiente ha incoado expediente sancionador a la empresa titular de la balsa. La Confederacion Hidrografica publico el informe de danos."}, "expected": "unsupported"}
+{"id": "ed-36", "point": "edge", "input": {"subject": "consejeria de Medio Ambiente", "relation": "incoo expediente sancionador a", "obj": "la empresa titular de la balsa", "text": "La consejeria de Medio Ambiente ha incoado expediente sancionador a la empresa titular de la balsa, con propuesta de multa de dos millones."}, "expected": "supported"}
+{"id": "ed-37", "point": "edge", "input": {"subject": "Dario Pena", "relation": "dirige", "obj": "canal de divulgacion juridica", "text": "Antes de dedicarse a la divulgacion juridica, Pena ejercio durante ocho anos como investigador privado. Hoy dirige un canal sobre derecho."}, "expected": "supported"}
+{"id": "ed-38", "point": "edge", "input": {"subject": "canal de divulgacion juridica", "relation": "dirige", "obj": "Dario Pena", "text": "Antes de dedicarse a la divulgacion juridica, Pena ejercio durante ocho anos como investigador privado. Hoy dirige un canal sobre derecho."}, "expected": "reversed"}
+{"id": "ed-39", "point": "edge", "input": {"subject": "Ministerio del Interior", "relation": "revoco la licencia de", "obj": "Dario Pena", "text": "Su licencia de detective privado fue revocada en 2016 por el Ministerio del Interior tras un expediente disciplinario."}, "expected": "supported"}
+{"id": "ed-40", "point": "edge", "input": {"subject": "Dario Pena", "relation": "revoco la licencia de", "obj": "Ministerio del Interior", "text": "Su licencia de detective privado fue revocada en 2016 por el Ministerio del Interior tras un expediente disciplinario."}, "expected": "reversed"}
+{"id": "ed-41", "point": "edge", "input": {"subject": "Sociedad Y", "relation": "recurrio", "obj": "resolucion del expediente 45/2024", "text": "La sancion fue recurrida y el tribunal la redujo en marzo de 2026 a 120.000 euros."}, "expected": "supported"}
+{"id": "ed-42", "point": "edge", "input": {"subject": "Grupo Marina", "relation": "presento oferta de", "obj": "3,9 millones", "text": "A la licitacion concurrieron tambien Obras del Levante y Grupo Marina, cuyas ofertas fueron de 3,6 y 3,9 millones respectivamente."}, "expected": "supported"}
+{"id": "ed-43", "point": "edge", "input": {"subject": "Obras del Levante", "relation": "presento oferta de", "obj": "3,9 millones", "text": "A la licitacion concurrieron tambien Obras del Levante y Grupo Marina, cuyas ofertas fueron de 3,6 y 3,9 millones respectivamente."}, "expected": "unsupported"}
+{"id": "ed-44", "point": "edge", "input": {"subject": "IHCAFE", "relation": "publico", "obj": "informe de enero de 2026", "text": "El informe del IHCAFE de enero de 2026 situa la produccion exportable en 5,8 millones de quintales."}, "expected": "supported"}
+{"id": "ed-45", "point": "edge", "input": {"subject": "informe de enero de 2026", "relation": "publico", "obj": "IHCAFE", "text": "El informe del IHCAFE de enero de 2026 situa la produccion exportable en 5,8 millones de quintales."}, "expected": "reversed"}
+{"id": "ed-46", "point": "edge", "input": {"subject": "Tribunal Supremo", "relation": "admitio a tramite", "obj": "recurso de casacion", "text": "El Tribunal Supremo admitio a tramite el 8 de julio el recurso de casacion interpuesto por la defensa."}, "expected": "supported"}
+{"id": "ed-47", "point": "edge", "input": {"subject": "recurso de casacion", "relation": "admitio a tramite", "obj": "Tribunal Supremo", "text": "El Tribunal Supremo admitio a tramite el 8 de julio el recurso de casacion interpuesto por la defensa."}, "expected": "reversed"}
+{"id": "ed-48", "point": "edge", "input": {"subject": "Mario Reyes Castillo", "relation": "reside en", "obj": "Ciudad de Panama", "text": "Inversiones Delta S.A., con domicilio en Ciudad de Panama, tiene como socio unico a Mario Reyes Castillo."}, "expected": "unsupported"}
+{"id": "ed-49", "point": "edge", "input": {"subject": "UPME", "relation": "estima", "obj": "2,1 gigavatios solares en 2025", "text": "La agencia internacional de energias renovables publica 2,1 GW para Colombia en 2025, la misma cifra que maneja la UPME."}, "expected": "supported"}
+{"id": "ed-50", "point": "edge", "input": {"subject": "Proteccion Civil", "relation": "cerro el censo el", "obj": "28 de marzo", "text": "El censo se cerro el 28 de marzo con 1.315 viviendas danadas tras incorporar dos municipios que faltaban."}, "expected": "unsupported"}

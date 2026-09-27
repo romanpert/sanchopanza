@@ -118,6 +118,24 @@ def decide(
     return Triage(True, f"relevant ({relevance:.2f})", relevance, evidence, inj, kind)
 
 
+@dataclass(frozen=True, slots=True)
+class Part:
+    keep: bool
+    reason: str
+    probability: float
+
+
+def decide_part(decision: Decision, t: Thresholds) -> Part:
+    """Keep a page that holds any fact the answer would use. In doubt, and without data, keep."""
+    answer = decision.answer("contributes")
+    if decision.failed or answer.empty or answer.truth is None:
+        return Part(True, "no data: keep", 0.0)
+    p = answer.truth
+    if p < t.contributes:
+        return Part(False, f"contributes nothing ({p:.2f})", p)
+    return Part(True, f"contributes ({p:.2f})", p)
+
+
 # --- D3b: does this page repeat what the agent already has? -----------------------------
 #
 # Triage asks whether a page is about the purpose. It does not ask whether the agent has
@@ -127,8 +145,12 @@ def decide(
 # its agent fetched one or two documents per task (benchmarks/ab, docs/savings.md).
 #
 # The asymmetry is the same as triage's and for the same reason: dropping a page that did
-# carry something new costs coverage, keeping one costs tokens. `t.redundant` is the same
-# knob the search point uses for a repeated query, because it is the same reading.
+# carry something new costs coverage, keeping one costs tokens.
+#
+# It used `t.redundant`, the search point's knob, on the theory that a repeated query and a
+# repeated page are the same reading. The first sample big enough to test that refuted it:
+# `t.adds_nothing` is now its own number, derived to a 90 % precision target and validated
+# out of sample. `policy.py` carries the derivation.
 
 DIGEST_LIMIT = 1200
 
@@ -187,6 +209,101 @@ def decide_redundancy(decision: Decision, t: Thresholds) -> Redundancy:
     p = probability(answer)
     if answer.empty:
         return Redundancy(False, "no data: keep", p)
-    if p >= t.redundant:
+    if p >= t.adds_nothing:
         return Redundancy(True, f"adds nothing new ({p:.2f})", p)
     return Redundancy(False, f"may add something ({p:.2f})", p)
+
+
+# --- D3c: triage that survives a purpose with several parts --------------------------------
+#
+# The shipped relevance question asks whether a page *addresses the purpose*. On a purpose
+# with several parts no single page does, and the question correctly says no to each one
+# until the answer is gone: with the document sequence held fixed, triage cut 75 % of the
+# tokens and took correct answers from 10/10 to 6/10, dropping every answer document on the
+# two composite questions (`docs/results/2026-09-24-fixed-sequence/`).
+#
+# Two shapes that can express "part of the answer", registered by hash in
+# `docs/results/2026-09-25-triage/prereg.md` before they were measured:
+#
+# - `contribution_questions`: still one page per call, but the question is whether the page
+#   holds a fact the answer would USE, including one step of a chain. Pointwise, so it fits
+#   inside a fetch tool that sees one page at a time.
+# - `set_questions`: one call over the whole candidate set, a Choice among page ids. The
+#   probability mass spreads over the pages the answer needs, which is the covering
+#   constraint a per-page question cannot state. It needs the candidates together, so it fits
+#   a search-results step or a retrieval step, not a fetch tool.
+
+CONTRIBUTES = Truth(
+    "Does `text` contain at least one fact that an answer to `purpose` would use, even if it "
+    "answers only one part of `purpose` or only one step toward the answer?",
+    criteria={
+        "true": {
+            "what": "A name, date, figure, place, relation or outcome that `purpose` asks "
+            "about, or an intermediate fact needed to reach it",
+            "examples": [
+                "for 'where was the founder of the company born?', a page naming the "
+                "company's founder, and a page giving that person's birthplace",
+                "for 'which of the two rulings came first?', a page giving the date of "
+                "either ruling",
+            ],
+        },
+        "false": {
+            "what": "Mentions the topic, similar names or the same field, but holds no fact "
+            "the answer would use",
+            "examples": [
+                "for 'where was the founder born?', a page about a different company with a "
+                "similar name",
+                "for 'which ruling came first?', a page explaining what a ruling is",
+            ],
+        },
+    },
+)
+
+
+def contribution_questions(
+    *, purpose: str, title: str = "", text: str
+) -> tuple[Mapping[str, Any], dict[str, Question]]:
+    state = {
+        "purpose": truncate(purpose, 400),
+        "title": truncate(title, 200),
+        "text": excerpt(text, purpose, TEXT_LIMIT),
+    }
+    return state, {"contributes": CONTRIBUTES}
+
+
+SET_TEXT_LIMIT = 900
+SET_MAX = 40
+
+
+def page_id(index: int) -> str:
+    return f"P{index + 1:02d}"
+
+
+def set_questions(
+    *, purpose: str, pages: list[tuple[str, str]]
+) -> tuple[Mapping[str, Any], dict[str, Question]]:
+    """`pages` is [(title, text)]. Options are page ids; the state carries the pages."""
+    pages = pages[:SET_MAX]
+    body = "\n".join(
+        f"{page_id(i)}| {truncate(title, 120)}: {excerpt(text, purpose, SET_TEXT_LIMIT)}"
+        for i, (title, text) in enumerate(pages)
+    )
+    state = {"purpose": truncate(purpose, 400), "pages": body}
+    qs: dict[str, Question] = {
+        "needed": Choice(
+            "Which page in `pages` holds information that an answer to `purpose` needs?",
+            {page_id(i): None for i in range(len(pages))},
+        )
+    }
+    return state, qs
+
+
+def keep_from_set(decision: Decision, count: int, *, share: float) -> list[bool]:
+    """Keep every page whose share of the probability mass is at least `share`.
+
+    No data keeps everything: a failed call must not empty the context.
+    """
+    answer = decision.answer("needed")
+    if decision.failed or answer.empty or not answer.probabilities:
+        return [True] * count
+    return [answer.probabilities.get(page_id(i), 0.0) >= share for i in range(count)]

@@ -5,10 +5,12 @@ repository and replays with `sanchopanza bench --provider recorded`. Token count
 from Anthropic's token counter, not chars divided by four. Model prices are Anthropic's
 list prices as of 2026-06-24 and are the only inputs that are not measured here.
 
-**Read this first: there is no end-to-end saving figure in this document, because we have
-not run that experiment.** What follows is what the layer costs, what it keeps out, and the
-arithmetic that says when the second exceeds the first. The experiment that would license a
-headline percentage is described at the bottom.
+**Read this first.** Most of what follows is what the layer costs, what it keeps out, and the
+arithmetic that says when the second exceeds the first. The end-to-end measurements come at
+the bottom, and none of them is a saving figure for keeping pages out of a context: in an
+agent loop that saving did not appear, and on a fixed fetch sequence it was paid for in
+answers. The end-to-end percentages quoted here belong to wiring: narrowing a tool catalog
+once, and the estimated cost of a tool window.
 
 | Model | Input $/MTok | Output $/MTok |
 |---|---|---|
@@ -19,7 +21,8 @@ headline percentage is described at the bottom.
 
 ## Measured: what the decision layer costs
 
-The public bench is 227 decisions over 154,886 input tokens,
+The public bench is 227 decisions over 154,886 input tokens (the plan's 56 pairwise calls are
+counted apart),
 and it cost **0.0065 USD**. That is **28.7 millionths of a
 dollar per decision**, output included, because this model's output is free.
 
@@ -33,8 +36,7 @@ had to write:
 | claude-haiku-4-5 | 0.1549 USD | 24x |
 | Jev 1.13 | 0.0065 USD | 1x |
 
-Those multiples are a floor in one direction and a ceiling in another, and the second half
-of that sentence was missing from the first version of this page.
+Those multiples are a floor in one direction and a ceiling in another.
 
 They are a floor because a generative model also pays for the tokens it writes: a measured
 comparison on 156 of these cases against Claude Haiku 4.5 with tool-forced output came out
@@ -125,7 +127,7 @@ On 18 search cases it sent 11 to a free engine, cut
 for 0.000792 USD. The saving there is whatever your search
 provider charges per query, which we cannot measure for you.
 
-## The end-to-end A/B, now that it has been run
+## End to end: the agent loop, and a fixed fetch sequence
 
 Everything above is arithmetic about tokens. It does not say the deliverable gets cheaper or
 better. That question needed its own experiment, and `benchmarks/ab/` is it: the same agent,
@@ -133,7 +135,8 @@ the same eight tasks, the same prompts, tools, model, thinking and effort, one a
 triage and one without, over a fixed corpus, with each squire run paired against the run of
 the same task and repetition without it.
 
-**We could not measure a cost saving. In either condition.** Claude Sonnet 5, 64 paired runs:
+**In the agent loop no cost saving is measurable, in either condition.** Claude Sonnet 5, 64
+paired runs:
 
 | Condition | Pairs | Input tokens | Total cost | Wall time | Correct |
 |---|---|---|---|---|---|
@@ -150,20 +153,30 @@ because in this corpus size and retrieval difficulty are coupled: larger documen
 fewer of them, each holding more, so the first one the agent opens usually has the answer.
 Nothing was left for triage to keep out.
 
-**What would show the effect, if it is there.** A fetch-heavy workload: a task that gathers
-twenty to forty sources before writing, which is what a real dossier does, over a corpus where
-most of what retrieval returns is genuinely off-target. That is the next experiment, and it is
-not this one. Until someone runs it, the arithmetic above is a prediction about that workload,
-not a result.
+**With the fetch sequence held fixed.** An avoidance lever can only act on what the agent
+fetches, so both arms have to read the same documents for the lever to be the only difference.
+`benchmarks/ab/fixed.py` drives both arms through an identical 20-document sequence per task
+and answers from what survives (10 tasks, Claude Sonnet 5, 2.92 USD):
+
+| Lever | Documents dropped | Input tokens | Cost | Correct |
+|---|---|---|---|---|
+| Page triage | 170/193 | **-75.2 %** [-86.8, -63.9] | -72.8 % | **10/10 to 6/10** |
+| Source redundancy | 4/193 | -3.5 % [-12.1, +0.0] | -2.0 % | 9/10 to 9/10 |
+
+Page triage saves three quarters of the input and the saving is the cost of not answering: in
+all four failures the answer document was among those dropped, and in none of the six
+successes was it. The two halves are one result, and neither is quoted without the other
+(`docs/results/2026-09-24-fixed-sequence/`, paper Section 5.15).
 
 **What to quote, then.** The cost per decision and the break-even, which are measured. The
-safety and quality numbers in the paper, which are measured. Not a saving percentage: we
-looked for one in our own agent, twice, and it was not there.
+safety and quality numbers in the paper, which are measured. Not a saving percentage for
+keeping pages out: in the agent loop there was none to measure, and on a fixed sequence it
+came at the price of answers.
 
-## The one saving percentage in this repository, and it is about wiring
+## The percentages that belong to wiring
 
-There is exactly one end-to-end percentage we are willing to quote, and it is not about page
-triage. Narrowing a 58-tool catalog to 28 tools **once, before the first request of a
+The end-to-end percentages this repository quotes are about where a decision acts, not about
+page triage. Narrowing a 58-tool catalog to 28 tools **once, before the first request of a
 session**, cost 0.07916 USD against 0.13873 for the full catalog over 8 turns on
 claude-sonnet-5: **43 % cheaper**, measured, `benchmarks/cache/`.
 
@@ -176,10 +189,18 @@ and message caches together.
 So the percentage belongs to the wiring, not to the model: the same decision, taken at the
 right moment, saves 43 %, and taken every turn, costs three times what it saves.
 
-**What the A/B was worth anyway.** It found a real bug. Triage was judging a 10,000-character
-document on its first 1,500 characters, deciding the preamble did not address the purpose and
-dropping the one page that held the answer; the agent re-fetched it, hit its turn cap and
-returned nothing at twice the cost. `sanchopanza.text.excerpt` now sends the head plus the
-window that matches the purpose. No decision-level number moved, because documents that
-already fit are unchanged. The decisions were fine; the way they were wired to long documents
-was not, and only an end-to-end run could show that.
+The tool window is the same kind of result, and it is an estimate from recorded usage with the
+`tools` + `system` prefix shared between tasks, as a production harness shares it. On a
+74-tool AgentDojo catalog, Claude Sonnet 5, 40 tasks: the window cost an estimated 0.77-0.88x
+of loading everything and the platform's tool search 1.48x, with no detectable difference in
+success. On a real MCP catalog of 398 tools the platform's search was the cheaper, an estimated
+0.34x against the window's 0.54x (`docs/results/2026-09-25-e2e/`,
+`docs/results/2026-09-25-cache/`, `docs/results/2026-09-25-wide/`).
+
+**Why triage reads more than the head of a long document.** Judged on its first 1,500
+characters, a 10,000-character document whose preamble does not address the purpose is
+dropped even when it holds the answer; in the agent loop the agent then re-fetches it, hits
+its turn cap and returns nothing at twice the cost. `sanchopanza.text.excerpt` sends the head
+plus the window that best matches the purpose. Documents that already fit are unchanged, so
+no decision-level number depends on it. A defect of this kind lives in the wiring, not in the
+decision, and only an end-to-end run shows it.

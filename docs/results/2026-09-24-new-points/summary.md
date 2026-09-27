@@ -6,12 +6,18 @@ Cases: 124 - decision calls: 122 - input tokens: 84092 - cost: 0.0035 USD
 |---|---|---|---|---|---|
 | edge | 20 | 85% | 15/17 = 88% | [66%, 97%] | 304 ms |
 | extract_gate | 16 | 100% | 15/16 = 94% | [72%, 99%] | 297 ms |
-| goal_met | 14 | 100% | 14/14 = 100% | [78%, 100%] | 257 ms |
+| goal_met | 14 | 100% | 12/14 = 86% | [60%, 96%] | 257 ms |
 | memory_collision | 16 | 100% | 14/16 = 88% | [64%, 97%] | 311 ms |
 | memory_write | 16 | 100% | 16/16 = 100% | [81%, 100%] | 344 ms |
 | recall | 14 | 100% | 14/14 = 100% | [78%, 100%] | 274 ms |
 | redundant_page | 16 | 100% | 14/16 = 88% | [64%, 97%] | 282 ms |
 | repeats_check | 12 | 100% | 12/12 = 100% | [76%, 100%] | 281 ms |
+
+Agreement is scored under the shipped policy. `goal_met` speaks only from
+`Thresholds.saturated` = 0.70, so `gm-01` (p 0.50) and `gm-04` (p 0.62), both true, stay
+silent. The "Correct at 0.5" column reads the same probabilities at a plain 0.5 cut (14/14):
+the first measures the policy, the second the model's ordering. The band and primitive tables
+count agreement under the policy.
 
 | Binary point | n | Correct at 0.5 | AUC | Brier | ECE |
 |---|---|---|---|---|---|
@@ -26,7 +32,7 @@ Cases: 124 - decision calls: 122 - input tokens: 84092 - cost: 0.0035 USD
 
 | Band | n | Agreement |
 |---|---|---|
-| 0.00-0.40 | 11 | 8/11 = 73% |
+| 0.00-0.40 | 11 | 6/11 = 55% |
 | 0.40-0.60 | 7 | 6/7 = 86% |
 | 0.60-0.75 | 9 | 8/9 = 89% |
 | 0.75-0.90 | 31 | 30/31 = 97% |
@@ -36,4 +42,4 @@ Cases: 124 - decision calls: 122 - input tokens: 84092 - cost: 0.0035 USD
 
 | Primitive | n | Agreement | Mean confidence | ECE |
 |---|---|---|---|---|
-| truth | 121 | 94% | 0.80 | 0.142 |
+| truth | 121 | 93% | 0.80 | 0.126 |

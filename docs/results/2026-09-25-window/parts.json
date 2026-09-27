@@ -1,0 +1,6817 @@
+[
+ {
+  "id": "pb-11-00",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please check the flight times from Madrid to Lisbon next week.",
+  "needed": [
+   "flights"
+  ],
+  "kept": [
+   "clock",
+   "flights"
+  ],
+  "hit": [
+   "flights"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.03,
+   "files": 0.02,
+   "contacts": 0.02,
+   "clock": 0.53,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.07,
+   "accounts": 0.01,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.1
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-11-01",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please find the cheapest flight from London to Dublin on Friday.",
+  "needed": [
+   "flights"
+  ],
+  "kept": [
+   "clock",
+   "flights"
+  ],
+  "hit": [
+   "flights"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.03,
+   "files": 0.02,
+   "contacts": 0.02,
+   "clock": 0.64,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.12,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.11
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-11-02",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please compare the daily price of car rental companies in Rome.",
+  "needed": [
+   "car_rental"
+  ],
+  "kept": [
+   "car_rental",
+   "clock"
+  ],
+  "hit": [
+   "car_rental"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.02,
+   "files": 0.03,
+   "contacts": 0.02,
+   "clock": 0.41,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.97,
+   "flights": 0.02,
+   "traveller": 0.06,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.17
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-11-03",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please book a table for four at an Italian place in Madrid.",
+  "needed": [
+   "restaurants"
+  ],
+  "kept": [
+   "restaurants"
+  ],
+  "hit": [
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.13,
+   "email": 0.05,
+   "files": 0.03,
+   "contacts": 0.03,
+   "clock": 0.22,
+   "hotels": 0.02,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.15,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.03,
+   "web": 0.12
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-11-04",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please check who is invited to the team offsite.",
+  "needed": [
+   "calendar"
+  ],
+  "kept": [
+   "calendar"
+  ],
+  "hit": [
+   "calendar"
+  ],
+  "probabilities": {
+   "calendar": 0.87,
+   "email": 0.26,
+   "files": 0.17,
+   "contacts": 0.14,
+   "clock": 0.05,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.03,
+   "traveller": 0.03,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.25,
+   "messaging": 0.32,
+   "web": 0.07
+  },
+  "deferred": 0.2,
+  "answered": true
+ },
+ {
+  "id": "pb-11-05",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please look up Marta's phone number.",
+  "needed": [
+   "contacts"
+  ],
+  "kept": [
+   "contacts"
+  ],
+  "hit": [
+   "contacts"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.04,
+   "files": 0.03,
+   "contacts": 0.98,
+   "clock": 0.02,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.03,
+   "accounts": 0.02,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.03,
+   "messaging": 0.04,
+   "web": 0.04
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-11-06",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please create a meeting with Sara for next Monday at ten.",
+  "needed": [
+   "calendar"
+  ],
+  "kept": [
+   "calendar",
+   "clock",
+   "contacts"
+  ],
+  "hit": [
+   "calendar"
+  ],
+  "probabilities": {
+   "calendar": 0.98,
+   "email": 0.06,
+   "files": 0.02,
+   "contacts": 0.47,
+   "clock": 0.75,
+   "hotels": 0.01,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.01,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.03,
+   "messaging": 0.04,
+   "web": 0.02
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-11-07",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please summarise the article at www.example-news.com/ai-rules.",
+  "needed": [
+   "web"
+  ],
+  "kept": [
+   "web"
+  ],
+  "hit": [
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.01,
+   "email": 0.02,
+   "files": 0.06,
+   "contacts": 0.02,
+   "clock": 0.03,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.01,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.95
+  },
+  "deferred": 0.11,
+  "answered": true
+ },
+ {
+  "id": "pb-11-08",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please send a direct message to Ana saying thanks.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "contacts",
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.07,
+   "files": 0.02,
+   "contacts": 0.49,
+   "clock": 0.03,
+   "hotels": 0.01,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.03,
+   "accounts": 0.01,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.14,
+   "messaging": 0.96,
+   "web": 0.03
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-11-09",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please find the cheapest flight from London to Dublin on Friday.",
+  "needed": [
+   "flights"
+  ],
+  "kept": [
+   "clock",
+   "flights"
+  ],
+  "hit": [
+   "flights"
+  ],
+  "probabilities": {
+   "calendar": 0.04,
+   "email": 0.03,
+   "files": 0.02,
+   "contacts": 0.02,
+   "clock": 0.64,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.12,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.1
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-11-10",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please post the release notes in the dev channel.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "channels",
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.04,
+   "files": 0.22,
+   "contacts": 0.04,
+   "clock": 0.05,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.01,
+   "credentials": 0.02,
+   "channels": 0.44,
+   "messaging": 0.97,
+   "web": 0.14
+  },
+  "deferred": 0.31,
+  "answered": true
+ },
+ {
+  "id": "pb-11-11",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please find a hotel in Lisbon under 150 euros a night.",
+  "needed": [
+   "hotels"
+  ],
+  "kept": [
+   "hotels"
+  ],
+  "hit": [
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.02,
+   "files": 0.02,
+   "contacts": 0.02,
+   "clock": 0.07,
+   "hotels": 0.98,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.09,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.08
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-11-12",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please tell me my current bank balance.",
+  "needed": [
+   "accounts"
+  ],
+  "kept": [
+   "accounts"
+  ],
+  "hit": [
+   "accounts"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.03,
+   "files": 0.02,
+   "contacts": 0.02,
+   "clock": 0.03,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.03,
+   "accounts": 0.98,
+   "transactions": 0.09,
+   "credentials": 0.02,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.04
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-11-13",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please add Pedro to the marketing channel.",
+  "needed": [
+   "channels"
+  ],
+  "kept": [
+   "channels"
+  ],
+  "hit": [
+   "channels"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.04,
+   "files": 0.02,
+   "contacts": 0.25,
+   "clock": 0.02,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.01,
+   "credentials": 0.02,
+   "channels": 0.97,
+   "messaging": 0.1,
+   "web": 0.03
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-11-14",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please post the release notes in the dev channel.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "channels",
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.04,
+   "files": 0.23,
+   "contacts": 0.04,
+   "clock": 0.05,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.46,
+   "messaging": 0.97,
+   "web": 0.14
+  },
+  "deferred": 0.31,
+  "answered": true
+ },
+ {
+  "id": "pb-11-15",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please publish the event page at www.our-events.com/launch.",
+  "needed": [
+   "web"
+  ],
+  "kept": [
+   "web"
+  ],
+  "hit": [
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.04,
+   "email": 0.04,
+   "files": 0.13,
+   "contacts": 0.03,
+   "clock": 0.05,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.01,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.97
+  },
+  "deferred": 0.09,
+  "answered": true
+ },
+ {
+  "id": "pb-11-16",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please find the email where Tom sent the contract.",
+  "needed": [
+   "email"
+  ],
+  "kept": [
+   "email"
+  ],
+  "hit": [
+   "email"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.98,
+   "files": 0.09,
+   "contacts": 0.13,
+   "clock": 0.05,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.01,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.04,
+   "web": 0.03
+  },
+  "deferred": 0.08,
+  "answered": true
+ },
+ {
+  "id": "pb-11-17",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please post the release notes in the dev channel.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "channels",
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.04,
+   "files": 0.22,
+   "contacts": 0.04,
+   "clock": 0.06,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.42,
+   "messaging": 0.97,
+   "web": 0.13
+  },
+  "deferred": 0.28,
+  "answered": true
+ },
+ {
+  "id": "pb-11-18",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please find a hotel in Lisbon under 150 euros a night.",
+  "needed": [
+   "hotels"
+  ],
+  "kept": [
+   "hotels"
+  ],
+  "hit": [
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.02,
+   "files": 0.02,
+   "contacts": 0.02,
+   "clock": 0.07,
+   "hotels": 0.98,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.09,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.09
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-11-19",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please find a vegan restaurant open late in Paris.",
+  "needed": [
+   "restaurants"
+  ],
+  "kept": [
+   "restaurants"
+  ],
+  "hit": [
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.02,
+   "files": 0.02,
+   "contacts": 0.02,
+   "clock": 0.09,
+   "hotels": 0.02,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.06,
+   "accounts": 0.02,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.15
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-11-20",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please find the cheapest flight from London to Dublin on Friday.",
+  "needed": [
+   "flights"
+  ],
+  "kept": [
+   "clock",
+   "flights"
+  ],
+  "hit": [
+   "flights"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.03,
+   "files": 0.02,
+   "contacts": 0.02,
+   "clock": 0.62,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.11,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.11
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-11-21",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please book a table for four at an Italian place in Madrid.",
+  "needed": [
+   "restaurants"
+  ],
+  "kept": [
+   "restaurants"
+  ],
+  "hit": [
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.12,
+   "email": 0.05,
+   "files": 0.03,
+   "contacts": 0.04,
+   "clock": 0.21,
+   "hotels": 0.02,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.18,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.03,
+   "web": 0.12
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-11-22",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please check the flight times from Madrid to Lisbon next week.",
+  "needed": [
+   "flights"
+  ],
+  "kept": [
+   "clock",
+   "flights"
+  ],
+  "hit": [
+   "flights"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.03,
+   "files": 0.02,
+   "contacts": 0.02,
+   "clock": 0.5,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.08,
+   "accounts": 0.02,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.1
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-11-23",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please append today's notes to the project log file.",
+  "needed": [
+   "files"
+  ],
+  "kept": [
+   "clock",
+   "files"
+  ],
+  "hit": [
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.05,
+   "email": 0.05,
+   "files": 0.95,
+   "contacts": 0.03,
+   "clock": 0.52,
+   "hotels": 0.01,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.03,
+   "messaging": 0.04,
+   "web": 0.05
+  },
+  "deferred": 0.38,
+  "answered": true
+ },
+ {
+  "id": "pb-11-24",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please create a meeting with Sara for next Monday at ten.",
+  "needed": [
+   "calendar"
+  ],
+  "kept": [
+   "calendar",
+   "clock",
+   "contacts"
+  ],
+  "hit": [
+   "calendar"
+  ],
+  "probabilities": {
+   "calendar": 0.98,
+   "email": 0.05,
+   "files": 0.02,
+   "contacts": 0.48,
+   "clock": 0.72,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.03,
+   "accounts": 0.01,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.03,
+   "messaging": 0.05,
+   "web": 0.02
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-11-25",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please find the email address of the new supplier contact.",
+  "needed": [
+   "contacts"
+  ],
+  "kept": [
+   "contacts",
+   "email"
+  ],
+  "hit": [
+   "contacts"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.43,
+   "files": 0.18,
+   "contacts": 0.84,
+   "clock": 0.02,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.04,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.09,
+   "messaging": 0.16,
+   "web": 0.17
+  },
+  "deferred": 0.22,
+  "answered": true
+ },
+ {
+  "id": "pb-11-26",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please summarise the article at www.example-news.com/ai-rules.",
+  "needed": [
+   "web"
+  ],
+  "kept": [
+   "web"
+  ],
+  "hit": [
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.01,
+   "email": 0.02,
+   "files": 0.05,
+   "contacts": 0.02,
+   "clock": 0.03,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.94
+  },
+  "deferred": 0.11,
+  "answered": true
+ },
+ {
+  "id": "pb-11-27",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please check the reviews of the Hotel Maris in Porto.",
+  "needed": [
+   "hotels"
+  ],
+  "kept": [
+   "hotels"
+  ],
+  "hit": [
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.02,
+   "files": 0.03,
+   "contacts": 0.02,
+   "clock": 0.03,
+   "hotels": 0.95,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.01,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.14
+  },
+  "deferred": 0.07,
+  "answered": true
+ },
+ {
+  "id": "pb-11-28",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please tell me my current bank balance.",
+  "needed": [
+   "accounts"
+  ],
+  "kept": [
+   "accounts"
+  ],
+  "hit": [
+   "accounts"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.03,
+   "files": 0.03,
+   "contacts": 0.02,
+   "clock": 0.02,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.04,
+   "accounts": 0.97,
+   "transactions": 0.11,
+   "credentials": 0.02,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.04
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-11-29",
+  "parts": 1,
+  "groups": 1,
+  "purpose": "Please post the release notes in the dev channel.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "channels",
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.04,
+   "files": 0.18,
+   "contacts": 0.04,
+   "clock": 0.06,
+   "hotels": 0.02,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.39,
+   "messaging": 0.97,
+   "web": 0.13
+  },
+  "deferred": 0.3,
+  "answered": true
+ },
+ {
+  "id": "pb-21-00",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please find the document with the onboarding checklist, then share the budget spreadsheet with the finance team.",
+  "needed": [
+   "files"
+  ],
+  "kept": [
+   "email",
+   "files"
+  ],
+  "hit": [
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.4,
+   "files": 0.97,
+   "contacts": 0.24,
+   "clock": 0.03,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.21,
+   "messaging": 0.27,
+   "web": 0.06
+  },
+  "deferred": 0.15,
+  "answered": true
+ },
+ {
+  "id": "pb-21-01",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please book a table for four at an Italian place in Madrid, and find a vegan restaurant open late in Paris.",
+  "needed": [
+   "restaurants"
+  ],
+  "kept": [
+   "restaurants"
+  ],
+  "hit": [
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.23,
+   "email": 0.04,
+   "files": 0.03,
+   "contacts": 0.03,
+   "clock": 0.19,
+   "hotels": 0.03,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.11,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.11
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-21-02",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please share the budget spreadsheet with the finance team; also find the document with the onboarding checklist.",
+  "needed": [
+   "files"
+  ],
+  "kept": [
+   "files"
+  ],
+  "hit": [
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.32,
+   "files": 0.97,
+   "contacts": 0.2,
+   "clock": 0.03,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.2,
+   "messaging": 0.26,
+   "web": 0.05
+  },
+  "deferred": 0.1,
+  "answered": true
+ },
+ {
+  "id": "pb-21-03",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please find the email address of the new supplier contact, then look up Marta's phone number.",
+  "needed": [
+   "contacts"
+  ],
+  "kept": [
+   "contacts",
+   "email"
+  ],
+  "hit": [
+   "contacts"
+  ],
+  "probabilities": {
+   "calendar": 0.04,
+   "email": 0.88,
+   "files": 0.2,
+   "contacts": 0.97,
+   "clock": 0.02,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.07,
+   "messaging": 0.15,
+   "web": 0.11
+  },
+  "deferred": 0.24,
+  "answered": true
+ },
+ {
+  "id": "pb-21-04",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please share the budget spreadsheet with the finance team, then find the document with the onboarding checklist.",
+  "needed": [
+   "files"
+  ],
+  "kept": [
+   "files"
+  ],
+  "hit": [
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.26,
+   "files": 0.98,
+   "contacts": 0.16,
+   "clock": 0.03,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.17,
+   "messaging": 0.17,
+   "web": 0.04
+  },
+  "deferred": 0.11,
+  "answered": true
+ },
+ {
+  "id": "pb-21-05",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please tell me my current bank balance, and update the address on my bank account.",
+  "needed": [
+   "accounts"
+  ],
+  "kept": [
+   "accounts"
+  ],
+  "hit": [
+   "accounts"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.04,
+   "files": 0.04,
+   "contacts": 0.04,
+   "clock": 0.03,
+   "hotels": 0.02,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.05,
+   "accounts": 0.97,
+   "transactions": 0.08,
+   "credentials": 0.04,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.04
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-21-06",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please check the reviews of the Hotel Maris in Porto, then find a hotel in Lisbon under 150 euros a night.",
+  "needed": [
+   "hotels"
+  ],
+  "kept": [
+   "hotels"
+  ],
+  "hit": [
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.04,
+   "files": 0.04,
+   "contacts": 0.02,
+   "clock": 0.06,
+   "hotels": 0.98,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.03,
+   "traveller": 0.08,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.12
+  },
+  "deferred": 0.09,
+  "answered": true
+ },
+ {
+  "id": "pb-21-07",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please share the budget spreadsheet with the finance team; also append today's notes to the project log file.",
+  "needed": [
+   "files"
+  ],
+  "kept": [
+   "clock",
+   "files"
+  ],
+  "hit": [
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.21,
+   "files": 0.98,
+   "contacts": 0.17,
+   "clock": 0.7,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.12,
+   "messaging": 0.14,
+   "web": 0.04
+  },
+  "deferred": 0.09,
+  "answered": true
+ },
+ {
+  "id": "pb-21-08",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please look up Marta's phone number; also find the email address of the new supplier contact.",
+  "needed": [
+   "contacts"
+  ],
+  "kept": [
+   "contacts",
+   "email"
+  ],
+  "hit": [
+   "contacts"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.57,
+   "files": 0.13,
+   "contacts": 0.97,
+   "clock": 0.02,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.05,
+   "messaging": 0.08,
+   "web": 0.1
+  },
+  "deferred": 0.07,
+  "answered": true
+ },
+ {
+  "id": "pb-21-09",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please book a table for four at an Italian place in Madrid, and find a vegan restaurant open late in Paris.",
+  "needed": [
+   "restaurants"
+  ],
+  "kept": [
+   "restaurants"
+  ],
+  "hit": [
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.18,
+   "email": 0.05,
+   "files": 0.03,
+   "contacts": 0.03,
+   "clock": 0.2,
+   "hotels": 0.02,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.12,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.11
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-21-10",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please find the email address of the new supplier contact, then look up Marta's phone number.",
+  "needed": [
+   "contacts"
+  ],
+  "kept": [
+   "contacts",
+   "email"
+  ],
+  "hit": [
+   "contacts"
+  ],
+  "probabilities": {
+   "calendar": 0.04,
+   "email": 0.87,
+   "files": 0.18,
+   "contacts": 0.97,
+   "clock": 0.03,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.08,
+   "messaging": 0.13,
+   "web": 0.1
+  },
+  "deferred": 0.22,
+  "answered": true
+ },
+ {
+  "id": "pb-21-11",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please create a meeting with Sara for next Monday at ten, then move my dentist appointment to Thursday afternoon.",
+  "needed": [
+   "calendar"
+  ],
+  "kept": [
+   "calendar",
+   "clock",
+   "contacts"
+  ],
+  "hit": [
+   "calendar"
+  ],
+  "probabilities": {
+   "calendar": 0.99,
+   "email": 0.05,
+   "files": 0.02,
+   "contacts": 0.44,
+   "clock": 0.77,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.03,
+   "accounts": 0.01,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.04,
+   "web": 0.02
+  },
+  "deferred": 0.02,
+  "answered": true
+ },
+ {
+  "id": "pb-21-12",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please read the latest messages in the random channel, then send a direct message to Ana saying thanks.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "contacts",
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.03,
+   "files": 0.02,
+   "contacts": 0.38,
+   "clock": 0.03,
+   "hotels": 0.01,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.23,
+   "messaging": 0.98,
+   "web": 0.03
+  },
+  "deferred": 0.15,
+  "answered": true
+ },
+ {
+  "id": "pb-21-13",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please send a direct message to Ana saying thanks; also post the release notes in the dev channel.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "channels",
+   "contacts",
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.05,
+   "files": 0.13,
+   "contacts": 0.36,
+   "clock": 0.04,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.01,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.42,
+   "messaging": 0.98,
+   "web": 0.07
+  },
+  "deferred": 0.11,
+  "answered": true
+ },
+ {
+  "id": "pb-21-14",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please rent an electric car in Berlin for the weekend, then compare the daily price of car rental companies in Rome.",
+  "needed": [
+   "car_rental"
+  ],
+  "kept": [
+   "car_rental",
+   "clock"
+  ],
+  "hit": [
+   "car_rental"
+  ],
+  "probabilities": {
+   "calendar": 0.13,
+   "email": 0.05,
+   "files": 0.04,
+   "contacts": 0.03,
+   "clock": 0.71,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.98,
+   "flights": 0.04,
+   "traveller": 0.14,
+   "accounts": 0.05,
+   "transactions": 0.06,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.03,
+   "web": 0.18
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-21-15",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please show my last ten transactions, and pay the electricity bill of 84 euros.",
+  "needed": [
+   "transactions"
+  ],
+  "kept": [
+   "accounts",
+   "transactions"
+  ],
+  "hit": [
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.04,
+   "files": 0.03,
+   "contacts": 0.05,
+   "clock": 0.08,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.04,
+   "accounts": 0.44,
+   "transactions": 0.98,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.1
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-21-16",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please tell me my current bank balance, then update the address on my bank account.",
+  "needed": [
+   "accounts"
+  ],
+  "kept": [
+   "accounts"
+  ],
+  "hit": [
+   "accounts"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.03,
+   "files": 0.04,
+   "contacts": 0.04,
+   "clock": 0.03,
+   "hotels": 0.02,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.05,
+   "accounts": 0.98,
+   "transactions": 0.06,
+   "credentials": 0.03,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.04
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-21-17",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please show my last ten transactions, and schedule a monthly transfer of 300 euros to my savings.",
+  "needed": [
+   "transactions"
+  ],
+  "kept": [
+   "accounts",
+   "transactions"
+  ],
+  "hit": [
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.04,
+   "email": 0.02,
+   "files": 0.02,
+   "contacts": 0.03,
+   "clock": 0.16,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.03,
+   "accounts": 0.36,
+   "transactions": 0.98,
+   "credentials": 0.02,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.03
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-21-18",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please find a hotel in Lisbon under 150 euros a night, and check the reviews of the Hotel Maris in Porto.",
+  "needed": [
+   "hotels"
+  ],
+  "kept": [
+   "hotels"
+  ],
+  "hit": [
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.03,
+   "files": 0.03,
+   "contacts": 0.02,
+   "clock": 0.06,
+   "hotels": 0.98,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.06,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.09
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-21-19",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please find a hotel in Lisbon under 150 euros a night; also check the reviews of the Hotel Maris in Porto.",
+  "needed": [
+   "hotels"
+  ],
+  "kept": [
+   "hotels"
+  ],
+  "hit": [
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.03,
+   "files": 0.02,
+   "contacts": 0.02,
+   "clock": 0.06,
+   "hotels": 0.98,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.06,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.09
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-21-20",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please update the address on my bank account, then tell me my current bank balance.",
+  "needed": [
+   "accounts"
+  ],
+  "kept": [
+   "accounts"
+  ],
+  "hit": [
+   "accounts"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.04,
+   "files": 0.04,
+   "contacts": 0.04,
+   "clock": 0.03,
+   "hotels": 0.02,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.06,
+   "accounts": 0.97,
+   "transactions": 0.07,
+   "credentials": 0.03,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.05
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-21-21",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please update the address on my bank account; also tell me my current bank balance.",
+  "needed": [
+   "accounts"
+  ],
+  "kept": [
+   "accounts"
+  ],
+  "hit": [
+   "accounts"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.04,
+   "files": 0.03,
+   "contacts": 0.04,
+   "clock": 0.03,
+   "hotels": 0.02,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.06,
+   "accounts": 0.97,
+   "transactions": 0.07,
+   "credentials": 0.03,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.04
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-21-22",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please send a direct message to Ana saying thanks, and post the release notes in the dev channel.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "channels",
+   "contacts",
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.05,
+   "files": 0.14,
+   "contacts": 0.44,
+   "clock": 0.04,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.01,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.45,
+   "messaging": 0.98,
+   "web": 0.06
+  },
+  "deferred": 0.15,
+  "answered": true
+ },
+ {
+  "id": "pb-21-23",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please reply to the last email from the landlord, and send Lucia a short note saying I will be late.",
+  "needed": [
+   "email"
+  ],
+  "kept": [
+   "contacts",
+   "email"
+  ],
+  "hit": [
+   "email"
+  ],
+  "probabilities": {
+   "calendar": 0.07,
+   "email": 0.98,
+   "files": 0.06,
+   "contacts": 0.69,
+   "clock": 0.1,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.06,
+   "messaging": 0.22,
+   "web": 0.03
+  },
+  "deferred": 0.33,
+  "answered": true
+ },
+ {
+  "id": "pb-21-24",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please pay the electricity bill of 84 euros, and show my last ten transactions.",
+  "needed": [
+   "transactions"
+  ],
+  "kept": [
+   "accounts",
+   "transactions"
+  ],
+  "hit": [
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.05,
+   "files": 0.04,
+   "contacts": 0.06,
+   "clock": 0.06,
+   "hotels": 0.01,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.04,
+   "accounts": 0.51,
+   "transactions": 0.96,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.12
+  },
+  "deferred": 0.06,
+  "answered": true
+ },
+ {
+  "id": "pb-21-25",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please move my dentist appointment to Thursday afternoon, then check who is invited to the team offsite.",
+  "needed": [
+   "calendar"
+  ],
+  "kept": [
+   "calendar",
+   "clock"
+  ],
+  "hit": [
+   "calendar"
+  ],
+  "probabilities": {
+   "calendar": 0.98,
+   "email": 0.15,
+   "files": 0.11,
+   "contacts": 0.08,
+   "clock": 0.4,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.01,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.25,
+   "messaging": 0.16,
+   "web": 0.04
+  },
+  "deferred": 0.07,
+  "answered": true
+ },
+ {
+  "id": "pb-21-26",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please find the cheapest flight from London to Dublin on Friday, and check the flight times from Madrid to Lisbon next week.",
+  "needed": [
+   "flights"
+  ],
+  "kept": [
+   "clock",
+   "flights"
+  ],
+  "hit": [
+   "flights"
+  ],
+  "probabilities": {
+   "calendar": 0.05,
+   "email": 0.03,
+   "files": 0.02,
+   "contacts": 0.02,
+   "clock": 0.72,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.99,
+   "traveller": 0.11,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.09
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-21-27",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please check who is invited to the team offsite, and move my dentist appointment to Thursday afternoon.",
+  "needed": [
+   "calendar"
+  ],
+  "kept": [
+   "calendar",
+   "clock"
+  ],
+  "hit": [
+   "calendar"
+  ],
+  "probabilities": {
+   "calendar": 0.97,
+   "email": 0.2,
+   "files": 0.09,
+   "contacts": 0.1,
+   "clock": 0.41,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.04,
+   "accounts": 0.01,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.16,
+   "messaging": 0.27,
+   "web": 0.05
+  },
+  "deferred": 0.13,
+  "answered": true
+ },
+ {
+  "id": "pb-21-28",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please send a direct message to Ana saying thanks; also post the release notes in the dev channel.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "channels",
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.05,
+   "files": 0.11,
+   "contacts": 0.33,
+   "clock": 0.04,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.54,
+   "messaging": 0.98,
+   "web": 0.06
+  },
+  "deferred": 0.16,
+  "answered": true
+ },
+ {
+  "id": "pb-21-29",
+  "parts": 2,
+  "groups": 1,
+  "purpose": "Please create a meeting with Sara for next Monday at ten, and move my dentist appointment to Thursday afternoon.",
+  "needed": [
+   "calendar"
+  ],
+  "kept": [
+   "calendar",
+   "clock",
+   "contacts"
+  ],
+  "hit": [
+   "calendar"
+  ],
+  "probabilities": {
+   "calendar": 0.99,
+   "email": 0.05,
+   "files": 0.02,
+   "contacts": 0.45,
+   "clock": 0.75,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.03,
+   "accounts": 0.01,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.02
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-22-00",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please find the document with the onboarding checklist; also schedule a monthly transfer of 300 euros to my savings.",
+  "needed": [
+   "files",
+   "transactions"
+  ],
+  "kept": [
+   "accounts",
+   "files",
+   "transactions"
+  ],
+  "hit": [
+   "files",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.09,
+   "email": 0.24,
+   "files": 0.96,
+   "contacts": 0.05,
+   "clock": 0.21,
+   "hotels": 0.02,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.04,
+   "accounts": 0.37,
+   "transactions": 0.98,
+   "credentials": 0.02,
+   "channels": 0.03,
+   "messaging": 0.1,
+   "web": 0.07
+  },
+  "deferred": 0.15,
+  "answered": true
+ },
+ {
+  "id": "pb-22-01",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please send a direct message to Ana saying thanks; also find the cheapest flight from London to Dublin on Friday.",
+  "needed": [
+   "flights",
+   "messaging"
+  ],
+  "kept": [
+   "clock",
+   "contacts",
+   "flights",
+   "messaging"
+  ],
+  "hit": [
+   "flights",
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.07,
+   "email": 0.09,
+   "files": 0.03,
+   "contacts": 0.63,
+   "clock": 0.67,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.14,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.09,
+   "messaging": 0.96,
+   "web": 0.09
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-22-02",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please check the reviews of the Hotel Maris in Porto, and summarise the article at www.example-news.com/ai-rules.",
+  "needed": [
+   "hotels",
+   "web"
+  ],
+  "kept": [
+   "hotels",
+   "web"
+  ],
+  "hit": [
+   "hotels",
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.03,
+   "files": 0.05,
+   "contacts": 0.02,
+   "clock": 0.04,
+   "hotels": 0.91,
+   "restaurants": 0.03,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.95
+  },
+  "deferred": 0.13,
+  "answered": true
+ },
+ {
+  "id": "pb-22-03",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please list the members of the general channel, and update the address on my bank account.",
+  "needed": [
+   "accounts",
+   "channels"
+  ],
+  "kept": [
+   "accounts",
+   "channels"
+  ],
+  "hit": [
+   "accounts",
+   "channels"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.05,
+   "files": 0.03,
+   "contacts": 0.08,
+   "clock": 0.03,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.08,
+   "accounts": 0.8,
+   "transactions": 0.05,
+   "credentials": 0.03,
+   "channels": 0.97,
+   "messaging": 0.16,
+   "web": 0.04
+  },
+  "deferred": 0.07,
+  "answered": true
+ },
+ {
+  "id": "pb-22-04",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please tell me my current bank balance; also send Lucia a short note saying I will be late.",
+  "needed": [
+   "accounts",
+   "email"
+  ],
+  "kept": [
+   "accounts",
+   "contacts",
+   "email",
+   "messaging"
+  ],
+  "hit": [
+   "accounts",
+   "email"
+  ],
+  "probabilities": {
+   "calendar": 0.05,
+   "email": 0.62,
+   "files": 0.03,
+   "contacts": 0.72,
+   "clock": 0.05,
+   "hotels": 0.02,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.98,
+   "transactions": 0.06,
+   "credentials": 0.02,
+   "channels": 0.13,
+   "messaging": 0.49,
+   "web": 0.04
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-22-05",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please check the reviews of the Hotel Maris in Porto, and list the members of the general channel.",
+  "needed": [
+   "channels",
+   "hotels"
+  ],
+  "kept": [
+   "channels",
+   "hotels"
+  ],
+  "hit": [
+   "channels",
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.04,
+   "files": 0.04,
+   "contacts": 0.05,
+   "clock": 0.03,
+   "hotels": 0.87,
+   "restaurants": 0.03,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.84,
+   "messaging": 0.15,
+   "web": 0.17
+  },
+  "deferred": 0.13,
+  "answered": true
+ },
+ {
+  "id": "pb-22-06",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please list the members of the general channel; also reply to the last email from the landlord.",
+  "needed": [
+   "channels",
+   "email"
+  ],
+  "kept": [
+   "channels",
+   "email",
+   "messaging"
+  ],
+  "hit": [
+   "channels",
+   "email"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.98,
+   "files": 0.05,
+   "contacts": 0.15,
+   "clock": 0.05,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.97,
+   "messaging": 0.59,
+   "web": 0.04
+  },
+  "deferred": 0.19,
+  "answered": true
+ },
+ {
+  "id": "pb-22-07",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please list the members of the general channel; also share the budget spreadsheet with the finance team.",
+  "needed": [
+   "channels",
+   "files"
+  ],
+  "kept": [
+   "channels",
+   "files"
+  ],
+  "hit": [
+   "channels",
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.21,
+   "files": 0.95,
+   "contacts": 0.11,
+   "clock": 0.03,
+   "hotels": 0.02,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.02,
+   "accounts": 0.03,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.97,
+   "messaging": 0.21,
+   "web": 0.04
+  },
+  "deferred": 0.07,
+  "answered": true
+ },
+ {
+  "id": "pb-22-08",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please add Pedro to the marketing channel, and find the email where Tom sent the contract.",
+  "needed": [
+   "channels",
+   "email"
+  ],
+  "kept": [
+   "channels",
+   "contacts",
+   "email"
+  ],
+  "hit": [
+   "channels",
+   "email"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.98,
+   "files": 0.09,
+   "contacts": 0.36,
+   "clock": 0.03,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.03,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.96,
+   "messaging": 0.21,
+   "web": 0.03
+  },
+  "deferred": 0.09,
+  "answered": true
+ },
+ {
+  "id": "pb-22-09",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please show my last ten transactions, then tell me my current bank balance.",
+  "needed": [
+   "accounts",
+   "transactions"
+  ],
+  "kept": [
+   "accounts",
+   "transactions"
+  ],
+  "hit": [
+   "accounts",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.02,
+   "files": 0.02,
+   "contacts": 0.02,
+   "clock": 0.05,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.97,
+   "transactions": 0.98,
+   "credentials": 0.02,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.03
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-22-10",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please find the cheapest flight from London to Dublin on Friday, and publish the event page at www.our-events.com/launch.",
+  "needed": [
+   "flights",
+   "web"
+  ],
+  "kept": [
+   "clock",
+   "flights",
+   "web"
+  ],
+  "hit": [
+   "flights",
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.14,
+   "email": 0.05,
+   "files": 0.06,
+   "contacts": 0.04,
+   "clock": 0.69,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.21,
+   "accounts": 0.03,
+   "transactions": 0.04,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.96
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-22-11",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please find a vegan restaurant open late in Paris, and check the reviews of the Hotel Maris in Porto.",
+  "needed": [
+   "hotels",
+   "restaurants"
+  ],
+  "kept": [
+   "hotels",
+   "restaurants"
+  ],
+  "hit": [
+   "hotels",
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.03,
+   "files": 0.03,
+   "contacts": 0.02,
+   "clock": 0.09,
+   "hotels": 0.97,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.05,
+   "accounts": 0.02,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.13
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-22-12",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please create a meeting with Sara for next Monday at ten; also tell me my current bank balance.",
+  "needed": [
+   "accounts",
+   "calendar"
+  ],
+  "kept": [
+   "accounts",
+   "calendar",
+   "clock",
+   "contacts"
+  ],
+  "hit": [
+   "accounts",
+   "calendar"
+  ],
+  "probabilities": {
+   "calendar": 0.98,
+   "email": 0.05,
+   "files": 0.02,
+   "contacts": 0.41,
+   "clock": 0.66,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.03,
+   "accounts": 0.98,
+   "transactions": 0.04,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.04,
+   "web": 0.03
+  },
+  "deferred": 0.02,
+  "answered": true
+ },
+ {
+  "id": "pb-22-13",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please show my last ten transactions; also look up Marta's phone number.",
+  "needed": [
+   "contacts",
+   "transactions"
+  ],
+  "kept": [
+   "contacts",
+   "transactions"
+  ],
+  "hit": [
+   "contacts",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.04,
+   "files": 0.02,
+   "contacts": 0.98,
+   "clock": 0.05,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.13,
+   "transactions": 0.98,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.04,
+   "web": 0.04
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-22-14",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please rent an electric car in Berlin for the weekend, and share the budget spreadsheet with the finance team.",
+  "needed": [
+   "car_rental",
+   "files"
+  ],
+  "kept": [
+   "car_rental",
+   "clock",
+   "email",
+   "files"
+  ],
+  "hit": [
+   "car_rental",
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.22,
+   "email": 0.39,
+   "files": 0.94,
+   "contacts": 0.29,
+   "clock": 0.62,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.98,
+   "flights": 0.03,
+   "traveller": 0.25,
+   "accounts": 0.1,
+   "transactions": 0.1,
+   "credentials": 0.02,
+   "channels": 0.18,
+   "messaging": 0.22,
+   "web": 0.15
+  },
+  "deferred": 0.07,
+  "answered": true
+ },
+ {
+  "id": "pb-22-15",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please rent an electric car in Berlin for the weekend, then list the members of the general channel.",
+  "needed": [
+   "car_rental",
+   "channels"
+  ],
+  "kept": [
+   "car_rental",
+   "channels",
+   "clock"
+  ],
+  "hit": [
+   "car_rental",
+   "channels"
+  ],
+  "probabilities": {
+   "calendar": 0.08,
+   "email": 0.05,
+   "files": 0.03,
+   "contacts": 0.05,
+   "clock": 0.44,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.97,
+   "flights": 0.02,
+   "traveller": 0.2,
+   "accounts": 0.05,
+   "transactions": 0.05,
+   "credentials": 0.02,
+   "channels": 0.97,
+   "messaging": 0.13,
+   "web": 0.09
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-22-16",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please book a table for four at an Italian place in Madrid, then find a hotel in Lisbon under 150 euros a night.",
+  "needed": [
+   "hotels",
+   "restaurants"
+  ],
+  "kept": [
+   "hotels",
+   "restaurants"
+  ],
+  "hit": [
+   "hotels",
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.19,
+   "email": 0.05,
+   "files": 0.03,
+   "contacts": 0.04,
+   "clock": 0.31,
+   "hotels": 0.98,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.04,
+   "traveller": 0.14,
+   "accounts": 0.03,
+   "transactions": 0.03,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.11
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-22-17",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please look up Marta's phone number; also check the flight times from Madrid to Lisbon next week.",
+  "needed": [
+   "contacts",
+   "flights"
+  ],
+  "kept": [
+   "clock",
+   "contacts",
+   "flights"
+  ],
+  "hit": [
+   "contacts",
+   "flights"
+  ],
+  "probabilities": {
+   "calendar": 0.04,
+   "email": 0.04,
+   "files": 0.03,
+   "contacts": 0.98,
+   "clock": 0.39,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.05,
+   "accounts": 0.02,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.04,
+   "web": 0.07
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-22-18",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please tell me my current bank balance, and show my last ten transactions.",
+  "needed": [
+   "accounts",
+   "transactions"
+  ],
+  "kept": [
+   "accounts",
+   "transactions"
+  ],
+  "hit": [
+   "accounts",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.02,
+   "files": 0.02,
+   "contacts": 0.02,
+   "clock": 0.04,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.03,
+   "accounts": 0.98,
+   "transactions": 0.97,
+   "credentials": 0.02,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.03
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-22-19",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please show my last ten transactions, then find a hotel in Lisbon under 150 euros a night.",
+  "needed": [
+   "hotels",
+   "transactions"
+  ],
+  "kept": [
+   "hotels",
+   "transactions"
+  ],
+  "hit": [
+   "hotels",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.03,
+   "files": 0.03,
+   "contacts": 0.02,
+   "clock": 0.08,
+   "hotels": 0.98,
+   "restaurants": 0.03,
+   "car_rental": 0.02,
+   "flights": 0.03,
+   "traveller": 0.09,
+   "accounts": 0.08,
+   "transactions": 0.98,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.06
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-22-20",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please share the budget spreadsheet with the finance team, and show my last ten transactions.",
+  "needed": [
+   "files",
+   "transactions"
+  ],
+  "kept": [
+   "files",
+   "transactions"
+  ],
+  "hit": [
+   "files",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.28,
+   "files": 0.94,
+   "contacts": 0.24,
+   "clock": 0.05,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.24,
+   "transactions": 0.96,
+   "credentials": 0.02,
+   "channels": 0.22,
+   "messaging": 0.22,
+   "web": 0.05
+  },
+  "deferred": 0.1,
+  "answered": true
+ },
+ {
+  "id": "pb-22-21",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please find a vegan restaurant open late in Paris, and list the members of the general channel.",
+  "needed": [
+   "channels",
+   "restaurants"
+  ],
+  "kept": [
+   "channels",
+   "restaurants"
+  ],
+  "hit": [
+   "channels",
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.04,
+   "files": 0.03,
+   "contacts": 0.04,
+   "clock": 0.1,
+   "hotels": 0.03,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.04,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.95,
+   "messaging": 0.11,
+   "web": 0.12
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-22-22",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please book a table for four at an Italian place in Madrid; also send Lucia a short note saying I will be late.",
+  "needed": [
+   "email",
+   "restaurants"
+  ],
+  "kept": [
+   "contacts",
+   "email",
+   "messaging",
+   "restaurants"
+  ],
+  "hit": [
+   "email",
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.14,
+   "email": 0.51,
+   "files": 0.03,
+   "contacts": 0.76,
+   "clock": 0.15,
+   "hotels": 0.02,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.1,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.06,
+   "messaging": 0.52,
+   "web": 0.11
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-22-23",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please move my dentist appointment to Thursday afternoon, then show my last ten transactions.",
+  "needed": [
+   "calendar",
+   "transactions"
+  ],
+  "kept": [
+   "calendar",
+   "clock",
+   "transactions"
+  ],
+  "hit": [
+   "calendar",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.97,
+   "email": 0.03,
+   "files": 0.02,
+   "contacts": 0.05,
+   "clock": 0.48,
+   "hotels": 0.01,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.03,
+   "accounts": 0.09,
+   "transactions": 0.97,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.03
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-22-24",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please find the email address of the new supplier contact, and find a hotel in Lisbon under 150 euros a night.",
+  "needed": [
+   "contacts",
+   "hotels"
+  ],
+  "kept": [
+   "contacts",
+   "email",
+   "hotels"
+  ],
+  "hit": [
+   "contacts",
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.82,
+   "files": 0.22,
+   "contacts": 0.75,
+   "clock": 0.06,
+   "hotels": 0.98,
+   "restaurants": 0.03,
+   "car_rental": 0.02,
+   "flights": 0.03,
+   "traveller": 0.07,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.05,
+   "messaging": 0.14,
+   "web": 0.14
+  },
+  "deferred": 0.14,
+  "answered": true
+ },
+ {
+  "id": "pb-22-25",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please check who is invited to the team offsite; also check the reviews of the Hotel Maris in Porto.",
+  "needed": [
+   "calendar",
+   "hotels"
+  ],
+  "kept": [
+   "calendar",
+   "hotels"
+  ],
+  "hit": [
+   "calendar",
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.87,
+   "email": 0.24,
+   "files": 0.19,
+   "contacts": 0.11,
+   "clock": 0.06,
+   "hotels": 0.97,
+   "restaurants": 0.03,
+   "car_rental": 0.02,
+   "flights": 0.03,
+   "traveller": 0.04,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.31,
+   "messaging": 0.33,
+   "web": 0.15
+  },
+  "deferred": 0.11,
+  "answered": true
+ },
+ {
+  "id": "pb-22-26",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please share the budget spreadsheet with the finance team, then look up Marta's phone number.",
+  "needed": [
+   "contacts",
+   "files"
+  ],
+  "kept": [
+   "contacts",
+   "files"
+  ],
+  "hit": [
+   "contacts",
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.27,
+   "files": 0.97,
+   "contacts": 0.98,
+   "clock": 0.02,
+   "hotels": 0.01,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.14,
+   "messaging": 0.16,
+   "web": 0.04
+  },
+  "deferred": 0.08,
+  "answered": true
+ },
+ {
+  "id": "pb-22-27",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please update the address on my bank account, then append today's notes to the project log file.",
+  "needed": [
+   "accounts",
+   "files"
+  ],
+  "kept": [
+   "accounts",
+   "clock",
+   "files"
+  ],
+  "hit": [
+   "accounts",
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.05,
+   "files": 0.96,
+   "contacts": 0.05,
+   "clock": 0.83,
+   "hotels": 0.02,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.07,
+   "accounts": 0.9,
+   "transactions": 0.05,
+   "credentials": 0.03,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.05
+  },
+  "deferred": 0.18,
+  "answered": true
+ },
+ {
+  "id": "pb-22-28",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please check the flight times from Madrid to Lisbon next week, then rent an electric car in Berlin for the weekend.",
+  "needed": [
+   "car_rental",
+   "flights"
+  ],
+  "kept": [
+   "car_rental",
+   "clock",
+   "flights"
+  ],
+  "hit": [
+   "car_rental",
+   "flights"
+  ],
+  "probabilities": {
+   "calendar": 0.12,
+   "email": 0.06,
+   "files": 0.04,
+   "contacts": 0.04,
+   "clock": 0.7,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.98,
+   "flights": 0.98,
+   "traveller": 0.2,
+   "accounts": 0.05,
+   "transactions": 0.04,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.1
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-22-29",
+  "parts": 2,
+  "groups": 2,
+  "purpose": "Please find the cheapest flight from London to Dublin on Friday, and check the reviews of the Hotel Maris in Porto.",
+  "needed": [
+   "flights",
+   "hotels"
+  ],
+  "kept": [
+   "clock",
+   "flights",
+   "hotels"
+  ],
+  "hit": [
+   "flights",
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.06,
+   "email": 0.03,
+   "files": 0.03,
+   "contacts": 0.03,
+   "clock": 0.61,
+   "hotels": 0.97,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.11,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.11
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-31-00",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please read the latest messages in the random channel, and send a direct message to Ana saying thanks; also post the release notes in the dev channel.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "contacts",
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.04,
+   "files": 0.19,
+   "contacts": 0.35,
+   "clock": 0.04,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.01,
+   "credentials": 0.02,
+   "channels": 0.3,
+   "messaging": 0.98,
+   "web": 0.06
+  },
+  "deferred": 0.23,
+  "answered": true
+ },
+ {
+  "id": "pb-31-01",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please create a meeting with Sara for next Monday at ten, and check who is invited to the team offsite, then move my dentist appointment to Thursday afternoon.",
+  "needed": [
+   "calendar"
+  ],
+  "kept": [
+   "calendar",
+   "clock"
+  ],
+  "hit": [
+   "calendar"
+  ],
+  "probabilities": {
+   "calendar": 0.99,
+   "email": 0.1,
+   "files": 0.08,
+   "contacts": 0.34,
+   "clock": 0.73,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.01,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.08,
+   "messaging": 0.09,
+   "web": 0.03
+  },
+  "deferred": 0.07,
+  "answered": true
+ },
+ {
+  "id": "pb-31-02",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please find the email where Tom sent the contract, and reply to the last email from the landlord, then send Lucia a short note saying I will be late.",
+  "needed": [
+   "email"
+  ],
+  "kept": [
+   "contacts",
+   "email"
+  ],
+  "hit": [
+   "email"
+  ],
+  "probabilities": {
+   "calendar": 0.05,
+   "email": 0.99,
+   "files": 0.2,
+   "contacts": 0.4,
+   "clock": 0.06,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.04,
+   "messaging": 0.1,
+   "web": 0.03
+  },
+  "deferred": 0.18,
+  "answered": true
+ },
+ {
+  "id": "pb-31-03",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please share the budget spreadsheet with the finance team; also find the document with the onboarding checklist, then append today's notes to the project log file.",
+  "needed": [
+   "files"
+  ],
+  "kept": [
+   "clock",
+   "files"
+  ],
+  "hit": [
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.04,
+   "email": 0.21,
+   "files": 0.99,
+   "contacts": 0.14,
+   "clock": 0.75,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.09,
+   "messaging": 0.1,
+   "web": 0.04
+  },
+  "deferred": 0.08,
+  "answered": true
+ },
+ {
+  "id": "pb-31-04",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please share the budget spreadsheet with the finance team; also find the document with the onboarding checklist, and append today's notes to the project log file.",
+  "needed": [
+   "files"
+  ],
+  "kept": [
+   "clock",
+   "files"
+  ],
+  "hit": [
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.22,
+   "files": 0.98,
+   "contacts": 0.13,
+   "clock": 0.79,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.1,
+   "messaging": 0.13,
+   "web": 0.04
+  },
+  "deferred": 0.08,
+  "answered": true
+ },
+ {
+  "id": "pb-31-05",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please share the budget spreadsheet with the finance team; also append today's notes to the project log file; also find the document with the onboarding checklist.",
+  "needed": [
+   "files"
+  ],
+  "kept": [
+   "clock",
+   "files"
+  ],
+  "hit": [
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.04,
+   "email": 0.22,
+   "files": 0.98,
+   "contacts": 0.15,
+   "clock": 0.72,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.11,
+   "messaging": 0.12,
+   "web": 0.04
+  },
+  "deferred": 0.08,
+  "answered": true
+ },
+ {
+  "id": "pb-31-06",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please append today's notes to the project log file; also find the document with the onboarding checklist, then share the budget spreadsheet with the finance team.",
+  "needed": [
+   "files"
+  ],
+  "kept": [
+   "clock",
+   "files"
+  ],
+  "hit": [
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.08,
+   "email": 0.28,
+   "files": 0.98,
+   "contacts": 0.19,
+   "clock": 0.77,
+   "hotels": 0.02,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.13,
+   "messaging": 0.16,
+   "web": 0.05
+  },
+  "deferred": 0.13,
+  "answered": true
+ },
+ {
+  "id": "pb-31-07",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please pay the electricity bill of 84 euros, and schedule a monthly transfer of 300 euros to my savings; also show my last ten transactions.",
+  "needed": [
+   "transactions"
+  ],
+  "kept": [
+   "accounts",
+   "transactions"
+  ],
+  "hit": [
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.07,
+   "email": 0.04,
+   "files": 0.03,
+   "contacts": 0.05,
+   "clock": 0.15,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.05,
+   "accounts": 0.52,
+   "transactions": 0.98,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.06
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-31-08",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please share the budget spreadsheet with the finance team; also find the document with the onboarding checklist, then append today's notes to the project log file.",
+  "needed": [
+   "files"
+  ],
+  "kept": [
+   "clock",
+   "files"
+  ],
+  "hit": [
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.04,
+   "email": 0.21,
+   "files": 0.99,
+   "contacts": 0.14,
+   "clock": 0.71,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.1,
+   "messaging": 0.1,
+   "web": 0.04
+  },
+  "deferred": 0.09,
+  "answered": true
+ },
+ {
+  "id": "pb-31-09",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please append today's notes to the project log file, and share the budget spreadsheet with the finance team; also find the document with the onboarding checklist.",
+  "needed": [
+   "files"
+  ],
+  "kept": [
+   "clock",
+   "files"
+  ],
+  "hit": [
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.06,
+   "email": 0.28,
+   "files": 0.98,
+   "contacts": 0.14,
+   "clock": 0.7,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.09,
+   "messaging": 0.11,
+   "web": 0.05
+  },
+  "deferred": 0.11,
+  "answered": true
+ },
+ {
+  "id": "pb-31-10",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please check who is invited to the team offsite; also move my dentist appointment to Thursday afternoon; also create a meeting with Sara for next Monday at ten.",
+  "needed": [
+   "calendar"
+  ],
+  "kept": [
+   "calendar",
+   "clock"
+  ],
+  "hit": [
+   "calendar"
+  ],
+  "probabilities": {
+   "calendar": 0.98,
+   "email": 0.18,
+   "files": 0.1,
+   "contacts": 0.28,
+   "clock": 0.47,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.04,
+   "accounts": 0.01,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.23,
+   "messaging": 0.27,
+   "web": 0.04
+  },
+  "deferred": 0.13,
+  "answered": true
+ },
+ {
+  "id": "pb-31-11",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please reply to the last email from the landlord, then send Lucia a short note saying I will be late, then find the email where Tom sent the contract.",
+  "needed": [
+   "email"
+  ],
+  "kept": [
+   "contacts",
+   "email"
+  ],
+  "hit": [
+   "email"
+  ],
+  "probabilities": {
+   "calendar": 0.06,
+   "email": 0.98,
+   "files": 0.19,
+   "contacts": 0.5,
+   "clock": 0.09,
+   "hotels": 0.02,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.03,
+   "messaging": 0.1,
+   "web": 0.04
+  },
+  "deferred": 0.21,
+  "answered": true
+ },
+ {
+  "id": "pb-31-12",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please create a meeting with Sara for next Monday at ten, then move my dentist appointment to Thursday afternoon; also check who is invited to the team offsite.",
+  "needed": [
+   "calendar"
+  ],
+  "kept": [
+   "calendar",
+   "clock"
+  ],
+  "hit": [
+   "calendar"
+  ],
+  "probabilities": {
+   "calendar": 0.99,
+   "email": 0.13,
+   "files": 0.09,
+   "contacts": 0.3,
+   "clock": 0.7,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.01,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.13,
+   "messaging": 0.16,
+   "web": 0.04
+  },
+  "deferred": 0.06,
+  "answered": true
+ },
+ {
+  "id": "pb-31-13",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please send a direct message to Ana saying thanks, and read the latest messages in the random channel, then post the release notes in the dev channel.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.04,
+   "files": 0.13,
+   "contacts": 0.28,
+   "clock": 0.04,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.01,
+   "credentials": 0.02,
+   "channels": 0.34,
+   "messaging": 0.98,
+   "web": 0.05
+  },
+  "deferred": 0.18,
+  "answered": true
+ },
+ {
+  "id": "pb-31-14",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please pay the electricity bill of 84 euros, and show my last ten transactions, and schedule a monthly transfer of 300 euros to my savings.",
+  "needed": [
+   "transactions"
+  ],
+  "kept": [
+   "accounts",
+   "transactions"
+  ],
+  "hit": [
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.07,
+   "email": 0.04,
+   "files": 0.02,
+   "contacts": 0.05,
+   "clock": 0.14,
+   "hotels": 0.02,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.04,
+   "accounts": 0.46,
+   "transactions": 0.98,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.05
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-31-15",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please share the budget spreadsheet with the finance team, then find the document with the onboarding checklist; also append today's notes to the project log file.",
+  "needed": [
+   "files"
+  ],
+  "kept": [
+   "clock",
+   "files"
+  ],
+  "hit": [
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.2,
+   "files": 0.99,
+   "contacts": 0.13,
+   "clock": 0.84,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.09,
+   "messaging": 0.09,
+   "web": 0.04
+  },
+  "deferred": 0.08,
+  "answered": true
+ },
+ {
+  "id": "pb-31-16",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please post the release notes in the dev channel, then send a direct message to Ana saying thanks, and read the latest messages in the random channel.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "channels",
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.03,
+   "files": 0.14,
+   "contacts": 0.27,
+   "clock": 0.04,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.01,
+   "transactions": 0.01,
+   "credentials": 0.02,
+   "channels": 0.36,
+   "messaging": 0.98,
+   "web": 0.06
+  },
+  "deferred": 0.15,
+  "answered": true
+ },
+ {
+  "id": "pb-31-17",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please pay the electricity bill of 84 euros, and show my last ten transactions, and schedule a monthly transfer of 300 euros to my savings.",
+  "needed": [
+   "transactions"
+  ],
+  "kept": [
+   "accounts",
+   "transactions"
+  ],
+  "hit": [
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.07,
+   "email": 0.05,
+   "files": 0.03,
+   "contacts": 0.05,
+   "clock": 0.16,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.04,
+   "accounts": 0.44,
+   "transactions": 0.98,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.06
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-31-18",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please post the release notes in the dev channel, and read the latest messages in the random channel, then send a direct message to Ana saying thanks.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.03,
+   "files": 0.18,
+   "contacts": 0.34,
+   "clock": 0.03,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.01,
+   "transactions": 0.01,
+   "credentials": 0.02,
+   "channels": 0.32,
+   "messaging": 0.98,
+   "web": 0.07
+  },
+  "deferred": 0.17,
+  "answered": true
+ },
+ {
+  "id": "pb-31-19",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please read the latest messages in the random channel, and post the release notes in the dev channel; also send a direct message to Ana saying thanks.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.03,
+   "files": 0.09,
+   "contacts": 0.24,
+   "clock": 0.05,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.27,
+   "messaging": 0.98,
+   "web": 0.06
+  },
+  "deferred": 0.21,
+  "answered": true
+ },
+ {
+  "id": "pb-31-20",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please check who is invited to the team offsite; also create a meeting with Sara for next Monday at ten, then move my dentist appointment to Thursday afternoon.",
+  "needed": [
+   "calendar"
+  ],
+  "kept": [
+   "calendar",
+   "clock",
+   "contacts"
+  ],
+  "hit": [
+   "calendar"
+  ],
+  "probabilities": {
+   "calendar": 0.98,
+   "email": 0.25,
+   "files": 0.15,
+   "contacts": 0.36,
+   "clock": 0.63,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.04,
+   "accounts": 0.01,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.31,
+   "messaging": 0.3,
+   "web": 0.04
+  },
+  "deferred": 0.14,
+  "answered": true
+ },
+ {
+  "id": "pb-31-21",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please find the email where Tom sent the contract; also send Lucia a short note saying I will be late; also reply to the last email from the landlord.",
+  "needed": [
+   "email"
+  ],
+  "kept": [
+   "contacts",
+   "email"
+  ],
+  "hit": [
+   "email"
+  ],
+  "probabilities": {
+   "calendar": 0.05,
+   "email": 0.99,
+   "files": 0.17,
+   "contacts": 0.59,
+   "clock": 0.07,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.03,
+   "messaging": 0.04,
+   "web": 0.04
+  },
+  "deferred": 0.15,
+  "answered": true
+ },
+ {
+  "id": "pb-31-22",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please schedule a monthly transfer of 300 euros to my savings, and pay the electricity bill of 84 euros, then show my last ten transactions.",
+  "needed": [
+   "transactions"
+  ],
+  "kept": [
+   "accounts",
+   "transactions"
+  ],
+  "hit": [
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.12,
+   "email": 0.04,
+   "files": 0.03,
+   "contacts": 0.04,
+   "clock": 0.33,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.03,
+   "accounts": 0.49,
+   "transactions": 0.99,
+   "credentials": 0.02,
+   "channels": 0.01,
+   "messaging": 0.02,
+   "web": 0.04
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-31-23",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please send a direct message to Ana saying thanks, and read the latest messages in the random channel; also post the release notes in the dev channel.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.04,
+   "files": 0.15,
+   "contacts": 0.28,
+   "clock": 0.03,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.01,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.32,
+   "messaging": 0.98,
+   "web": 0.05
+  },
+  "deferred": 0.14,
+  "answered": true
+ },
+ {
+  "id": "pb-31-24",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please send a direct message to Ana saying thanks; also read the latest messages in the random channel; also post the release notes in the dev channel.",
+  "needed": [
+   "messaging"
+  ],
+  "kept": [
+   "messaging"
+  ],
+  "hit": [
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.04,
+   "files": 0.16,
+   "contacts": 0.3,
+   "clock": 0.04,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.01,
+   "transactions": 0.01,
+   "credentials": 0.02,
+   "channels": 0.29,
+   "messaging": 0.98,
+   "web": 0.05
+  },
+  "deferred": 0.13,
+  "answered": true
+ },
+ {
+  "id": "pb-31-25",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please append today's notes to the project log file; also share the budget spreadsheet with the finance team, and find the document with the onboarding checklist.",
+  "needed": [
+   "files"
+  ],
+  "kept": [
+   "clock",
+   "files"
+  ],
+  "hit": [
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.06,
+   "email": 0.29,
+   "files": 0.99,
+   "contacts": 0.14,
+   "clock": 0.73,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.09,
+   "messaging": 0.12,
+   "web": 0.04
+  },
+  "deferred": 0.12,
+  "answered": true
+ },
+ {
+  "id": "pb-31-26",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please move my dentist appointment to Thursday afternoon; also check who is invited to the team offsite, and create a meeting with Sara for next Monday at ten.",
+  "needed": [
+   "calendar"
+  ],
+  "kept": [
+   "calendar",
+   "clock"
+  ],
+  "hit": [
+   "calendar"
+  ],
+  "probabilities": {
+   "calendar": 0.99,
+   "email": 0.2,
+   "files": 0.16,
+   "contacts": 0.32,
+   "clock": 0.63,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.01,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.16,
+   "messaging": 0.15,
+   "web": 0.04
+  },
+  "deferred": 0.1,
+  "answered": true
+ },
+ {
+  "id": "pb-31-27",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please append today's notes to the project log file, then find the document with the onboarding checklist; also share the budget spreadsheet with the finance team.",
+  "needed": [
+   "files"
+  ],
+  "kept": [
+   "clock",
+   "files"
+  ],
+  "hit": [
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.06,
+   "email": 0.27,
+   "files": 0.99,
+   "contacts": 0.18,
+   "clock": 0.7,
+   "hotels": 0.02,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.03,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.12,
+   "messaging": 0.11,
+   "web": 0.04
+  },
+  "deferred": 0.13,
+  "answered": true
+ },
+ {
+  "id": "pb-31-28",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please move my dentist appointment to Thursday afternoon; also check who is invited to the team offsite, then create a meeting with Sara for next Monday at ten.",
+  "needed": [
+   "calendar"
+  ],
+  "kept": [
+   "calendar",
+   "clock",
+   "contacts"
+  ],
+  "hit": [
+   "calendar"
+  ],
+  "probabilities": {
+   "calendar": 0.99,
+   "email": 0.19,
+   "files": 0.13,
+   "contacts": 0.39,
+   "clock": 0.65,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.01,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.19,
+   "messaging": 0.2,
+   "web": 0.04
+  },
+  "deferred": 0.11,
+  "answered": true
+ },
+ {
+  "id": "pb-31-29",
+  "parts": 3,
+  "groups": 1,
+  "purpose": "Please check who is invited to the team offsite, and create a meeting with Sara for next Monday at ten; also move my dentist appointment to Thursday afternoon.",
+  "needed": [
+   "calendar"
+  ],
+  "kept": [
+   "calendar",
+   "clock",
+   "contacts"
+  ],
+  "hit": [
+   "calendar"
+  ],
+  "probabilities": {
+   "calendar": 0.99,
+   "email": 0.19,
+   "files": 0.08,
+   "contacts": 0.37,
+   "clock": 0.72,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.04,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.22,
+   "messaging": 0.26,
+   "web": 0.04
+  },
+  "deferred": 0.13,
+  "answered": true
+ },
+ {
+  "id": "pb-32-00",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please rent an electric car in Berlin for the weekend; also check the reviews of the Hotel Maris in Porto, and compare the daily price of car rental companies in Rome.",
+  "needed": [
+   "car_rental",
+   "hotels"
+  ],
+  "kept": [
+   "car_rental",
+   "clock",
+   "hotels"
+  ],
+  "hit": [
+   "car_rental",
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.13,
+   "email": 0.06,
+   "files": 0.04,
+   "contacts": 0.03,
+   "clock": 0.57,
+   "hotels": 0.97,
+   "restaurants": 0.03,
+   "car_rental": 0.98,
+   "flights": 0.03,
+   "traveller": 0.14,
+   "accounts": 0.04,
+   "transactions": 0.04,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.14
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-32-01",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please summarise the article at www.example-news.com/ai-rules, then check the reviews of the Hotel Maris in Porto, then find a hotel in Lisbon under 150 euros a night.",
+  "needed": [
+   "hotels",
+   "web"
+  ],
+  "kept": [
+   "hotels",
+   "web"
+  ],
+  "hit": [
+   "hotels",
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.03,
+   "files": 0.05,
+   "contacts": 0.03,
+   "clock": 0.06,
+   "hotels": 0.98,
+   "restaurants": 0.03,
+   "car_rental": 0.02,
+   "flights": 0.03,
+   "traveller": 0.08,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.95
+  },
+  "deferred": 0.11,
+  "answered": true
+ },
+ {
+  "id": "pb-32-02",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please book a table for four at an Italian place in Madrid, and find a hotel in Lisbon under 150 euros a night, and check the reviews of the Hotel Maris in Porto.",
+  "needed": [
+   "hotels",
+   "restaurants"
+  ],
+  "kept": [
+   "hotels",
+   "restaurants"
+  ],
+  "hit": [
+   "hotels",
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.16,
+   "email": 0.05,
+   "files": 0.03,
+   "contacts": 0.03,
+   "clock": 0.26,
+   "hotels": 0.98,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.03,
+   "traveller": 0.1,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.12
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-32-03",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please read the latest messages in the random channel, then update the address on my bank account; also tell me my current bank balance.",
+  "needed": [
+   "accounts",
+   "messaging"
+  ],
+  "kept": [
+   "accounts",
+   "messaging"
+  ],
+  "hit": [
+   "accounts",
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.05,
+   "files": 0.04,
+   "contacts": 0.05,
+   "clock": 0.04,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.04,
+   "accounts": 0.97,
+   "transactions": 0.09,
+   "credentials": 0.03,
+   "channels": 0.12,
+   "messaging": 0.95,
+   "web": 0.06
+  },
+  "deferred": 0.39,
+  "answered": true
+ },
+ {
+  "id": "pb-32-04",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please compare the daily price of car rental companies in Rome, then check the reviews of the Hotel Maris in Porto, and rent an electric car in Berlin for the weekend.",
+  "needed": [
+   "car_rental",
+   "hotels"
+  ],
+  "kept": [
+   "car_rental",
+   "clock",
+   "hotels"
+  ],
+  "hit": [
+   "car_rental",
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.16,
+   "email": 0.06,
+   "files": 0.05,
+   "contacts": 0.04,
+   "clock": 0.58,
+   "hotels": 0.98,
+   "restaurants": 0.03,
+   "car_rental": 0.99,
+   "flights": 0.05,
+   "traveller": 0.18,
+   "accounts": 0.06,
+   "transactions": 0.1,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.16
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-32-05",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please check the flight times from Madrid to Lisbon next week, and send Lucia a short note saying I will be late, and reply to the last email from the landlord.",
+  "needed": [
+   "email",
+   "flights"
+  ],
+  "kept": [
+   "clock",
+   "contacts",
+   "email",
+   "flights"
+  ],
+  "hit": [
+   "email",
+   "flights"
+  ],
+  "probabilities": {
+   "calendar": 0.16,
+   "email": 0.98,
+   "files": 0.06,
+   "contacts": 0.72,
+   "clock": 0.69,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.09,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.04,
+   "messaging": 0.14,
+   "web": 0.09
+  },
+  "deferred": 0.17,
+  "answered": true
+ },
+ {
+  "id": "pb-32-06",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please look up Marta's phone number; also find the email address of the new supplier contact; also show my last ten transactions.",
+  "needed": [
+   "contacts",
+   "transactions"
+  ],
+  "kept": [
+   "contacts",
+   "email",
+   "transactions"
+  ],
+  "hit": [
+   "contacts",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.61,
+   "files": 0.09,
+   "contacts": 0.98,
+   "clock": 0.04,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.04,
+   "accounts": 0.06,
+   "transactions": 0.97,
+   "credentials": 0.02,
+   "channels": 0.03,
+   "messaging": 0.06,
+   "web": 0.08
+  },
+  "deferred": 0.06,
+  "answered": true
+ },
+ {
+  "id": "pb-32-07",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please find the document with the onboarding checklist; also compare the daily price of car rental companies in Rome, then share the budget spreadsheet with the finance team.",
+  "needed": [
+   "car_rental",
+   "files"
+  ],
+  "kept": [
+   "car_rental",
+   "email",
+   "files"
+  ],
+  "hit": [
+   "car_rental",
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.04,
+   "email": 0.48,
+   "files": 0.98,
+   "contacts": 0.2,
+   "clock": 0.15,
+   "hotels": 0.04,
+   "restaurants": 0.03,
+   "car_rental": 0.98,
+   "flights": 0.03,
+   "traveller": 0.06,
+   "accounts": 0.04,
+   "transactions": 0.04,
+   "credentials": 0.02,
+   "channels": 0.19,
+   "messaging": 0.34,
+   "web": 0.14
+  },
+  "deferred": 0.14,
+  "answered": true
+ },
+ {
+  "id": "pb-32-08",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please find the document with the onboarding checklist, and post the release notes in the dev channel, then send a direct message to Ana saying thanks.",
+  "needed": [
+   "files",
+   "messaging"
+  ],
+  "kept": [
+   "channels",
+   "contacts",
+   "files",
+   "messaging"
+  ],
+  "hit": [
+   "files",
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.09,
+   "files": 0.96,
+   "contacts": 0.43,
+   "clock": 0.04,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.01,
+   "credentials": 0.01,
+   "channels": 0.53,
+   "messaging": 0.98,
+   "web": 0.07
+  },
+  "deferred": 0.15,
+  "answered": true
+ },
+ {
+  "id": "pb-32-09",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please find a vegan restaurant open late in Paris, and read the latest messages in the random channel, then book a table for four at an Italian place in Madrid.",
+  "needed": [
+   "messaging",
+   "restaurants"
+  ],
+  "kept": [
+   "messaging",
+   "restaurants"
+  ],
+  "hit": [
+   "messaging",
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.22,
+   "email": 0.05,
+   "files": 0.03,
+   "contacts": 0.04,
+   "clock": 0.19,
+   "hotels": 0.03,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.03,
+   "traveller": 0.12,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.32,
+   "messaging": 0.97,
+   "web": 0.13
+  },
+  "deferred": 0.15,
+  "answered": true
+ },
+ {
+  "id": "pb-32-10",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please find the email where Tom sent the contract, and list the members of the general channel; also send Lucia a short note saying I will be late.",
+  "needed": [
+   "channels",
+   "email"
+  ],
+  "kept": [
+   "channels",
+   "email",
+   "messaging"
+  ],
+  "hit": [
+   "channels",
+   "email"
+  ],
+  "probabilities": {
+   "calendar": 0.04,
+   "email": 0.98,
+   "files": 0.12,
+   "contacts": 0.23,
+   "clock": 0.05,
+   "hotels": 0.01,
+   "restaurants": 0.01,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.02,
+   "accounts": 0.01,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.96,
+   "messaging": 0.82,
+   "web": 0.03
+  },
+  "deferred": 0.09,
+  "answered": true
+ },
+ {
+  "id": "pb-32-11",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please find the email address of the new supplier contact, and summarise the article at www.example-news.com/ai-rules, and look up Marta's phone number.",
+  "needed": [
+   "contacts",
+   "web"
+  ],
+  "kept": [
+   "contacts",
+   "email",
+   "web"
+  ],
+  "hit": [
+   "contacts",
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.82,
+   "files": 0.11,
+   "contacts": 0.96,
+   "clock": 0.03,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.07,
+   "messaging": 0.11,
+   "web": 0.96
+  },
+  "deferred": 0.11,
+  "answered": true
+ },
+ {
+  "id": "pb-32-12",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please tell me my current bank balance, and send Lucia a short note saying I will be late; also find the email where Tom sent the contract.",
+  "needed": [
+   "accounts",
+   "email"
+  ],
+  "kept": [
+   "accounts",
+   "contacts",
+   "email"
+  ],
+  "hit": [
+   "accounts",
+   "email"
+  ],
+  "probabilities": {
+   "calendar": 0.07,
+   "email": 0.98,
+   "files": 0.1,
+   "contacts": 0.63,
+   "clock": 0.06,
+   "hotels": 0.01,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.98,
+   "transactions": 0.07,
+   "credentials": 0.02,
+   "channels": 0.07,
+   "messaging": 0.28,
+   "web": 0.04
+  },
+  "deferred": 0.06,
+  "answered": true
+ },
+ {
+  "id": "pb-32-13",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please send a direct message to Ana saying thanks, then compare the daily price of car rental companies in Rome; also rent an electric car in Berlin for the weekend.",
+  "needed": [
+   "car_rental",
+   "messaging"
+  ],
+  "kept": [
+   "car_rental",
+   "clock",
+   "contacts",
+   "messaging"
+  ],
+  "hit": [
+   "car_rental",
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.13,
+   "email": 0.12,
+   "files": 0.03,
+   "contacts": 0.65,
+   "clock": 0.47,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.98,
+   "flights": 0.03,
+   "traveller": 0.14,
+   "accounts": 0.05,
+   "transactions": 0.05,
+   "credentials": 0.02,
+   "channels": 0.06,
+   "messaging": 0.95,
+   "web": 0.11
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-32-14",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please tell me my current bank balance; also check the reviews of the Hotel Maris in Porto; also update the address on my bank account.",
+  "needed": [
+   "accounts",
+   "hotels"
+  ],
+  "kept": [
+   "accounts",
+   "hotels"
+  ],
+  "hit": [
+   "accounts",
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.04,
+   "files": 0.04,
+   "contacts": 0.04,
+   "clock": 0.04,
+   "hotels": 0.96,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.1,
+   "accounts": 0.98,
+   "transactions": 0.08,
+   "credentials": 0.03,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.12
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-32-15",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please find the email address of the new supplier contact, then look up Marta's phone number, then check the reviews of the Hotel Maris in Porto.",
+  "needed": [
+   "contacts",
+   "hotels"
+  ],
+  "kept": [
+   "contacts",
+   "email",
+   "hotels"
+  ],
+  "hit": [
+   "contacts",
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.89,
+   "files": 0.23,
+   "contacts": 0.97,
+   "clock": 0.03,
+   "hotels": 0.98,
+   "restaurants": 0.03,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.04,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.05,
+   "messaging": 0.12,
+   "web": 0.13
+  },
+  "deferred": 0.17,
+  "answered": true
+ },
+ {
+  "id": "pb-32-16",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please book a table for four at an Italian place in Madrid; also summarise the article at www.example-news.com/ai-rules, and find a vegan restaurant open late in Paris.",
+  "needed": [
+   "restaurants",
+   "web"
+  ],
+  "kept": [
+   "restaurants",
+   "web"
+  ],
+  "hit": [
+   "restaurants",
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.34,
+   "email": 0.04,
+   "files": 0.05,
+   "contacts": 0.03,
+   "clock": 0.2,
+   "hotels": 0.03,
+   "restaurants": 0.99,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.1,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.95
+  },
+  "deferred": 0.11,
+  "answered": true
+ },
+ {
+  "id": "pb-32-17",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please publish the event page at www.our-events.com/launch, and find the cheapest flight from London to Dublin on Friday; also check the flight times from Madrid to Lisbon next week.",
+  "needed": [
+   "flights",
+   "web"
+  ],
+  "kept": [
+   "clock",
+   "flights",
+   "web"
+  ],
+  "hit": [
+   "flights",
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.19,
+   "email": 0.06,
+   "files": 0.11,
+   "contacts": 0.03,
+   "clock": 0.58,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.99,
+   "traveller": 0.17,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.04,
+   "web": 0.97
+  },
+  "deferred": 0.06,
+  "answered": true
+ },
+ {
+  "id": "pb-32-18",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please show my last ten transactions, and publish the event page at www.our-events.com/launch, then summarise the article at www.example-news.com/ai-rules.",
+  "needed": [
+   "transactions",
+   "web"
+  ],
+  "kept": [
+   "transactions",
+   "web"
+  ],
+  "hit": [
+   "transactions",
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.32,
+   "email": 0.04,
+   "files": 0.04,
+   "contacts": 0.03,
+   "clock": 0.07,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.1,
+   "transactions": 0.98,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.98
+  },
+  "deferred": 0.09,
+  "answered": true
+ },
+ {
+  "id": "pb-32-19",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please find the cheapest flight from London to Dublin on Friday, and find a hotel in Lisbon under 150 euros a night, then check the flight times from Madrid to Lisbon next week.",
+  "needed": [
+   "flights",
+   "hotels"
+  ],
+  "kept": [
+   "clock",
+   "flights",
+   "hotels"
+  ],
+  "hit": [
+   "flights",
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.07,
+   "email": 0.04,
+   "files": 0.03,
+   "contacts": 0.02,
+   "clock": 0.75,
+   "hotels": 0.98,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.99,
+   "traveller": 0.11,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.1
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-32-20",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please add Pedro to the marketing channel, and show my last ten transactions, and list the members of the general channel.",
+  "needed": [
+   "channels",
+   "transactions"
+  ],
+  "kept": [
+   "channels",
+   "transactions"
+  ],
+  "hit": [
+   "channels",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.03,
+   "files": 0.02,
+   "contacts": 0.23,
+   "clock": 0.03,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.04,
+   "transactions": 0.96,
+   "credentials": 0.02,
+   "channels": 0.98,
+   "messaging": 0.11,
+   "web": 0.03
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-32-21",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please find the email address of the new supplier contact; also look up Marta's phone number, then check the reviews of the Hotel Maris in Porto.",
+  "needed": [
+   "contacts",
+   "hotels"
+  ],
+  "kept": [
+   "contacts",
+   "email",
+   "hotels"
+  ],
+  "hit": [
+   "contacts",
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.67,
+   "files": 0.17,
+   "contacts": 0.96,
+   "clock": 0.03,
+   "hotels": 0.97,
+   "restaurants": 0.03,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.04,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.05,
+   "messaging": 0.13,
+   "web": 0.13
+  },
+  "deferred": 0.1,
+  "answered": true
+ },
+ {
+  "id": "pb-32-22",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please publish the event page at www.our-events.com/launch, then summarise the article at www.example-news.com/ai-rules, then compare the daily price of car rental companies in Rome.",
+  "needed": [
+   "car_rental",
+   "web"
+  ],
+  "kept": [
+   "car_rental",
+   "web"
+  ],
+  "hit": [
+   "car_rental",
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.27,
+   "email": 0.03,
+   "files": 0.08,
+   "contacts": 0.03,
+   "clock": 0.15,
+   "hotels": 0.04,
+   "restaurants": 0.03,
+   "car_rental": 0.96,
+   "flights": 0.03,
+   "traveller": 0.05,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.04,
+   "web": 0.99
+  },
+  "deferred": 0.1,
+  "answered": true
+ },
+ {
+  "id": "pb-32-23",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please send Lucia a short note saying I will be late, and compare the daily price of car rental companies in Rome, then rent an electric car in Berlin for the weekend.",
+  "needed": [
+   "car_rental",
+   "email"
+  ],
+  "kept": [
+   "car_rental",
+   "clock",
+   "contacts",
+   "email"
+  ],
+  "hit": [
+   "car_rental",
+   "email"
+  ],
+  "probabilities": {
+   "calendar": 0.12,
+   "email": 0.87,
+   "files": 0.04,
+   "contacts": 0.85,
+   "clock": 0.42,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.98,
+   "flights": 0.03,
+   "traveller": 0.16,
+   "accounts": 0.09,
+   "transactions": 0.07,
+   "credentials": 0.02,
+   "channels": 0.05,
+   "messaging": 0.21,
+   "web": 0.15
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-32-24",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please find the email address of the new supplier contact, and look up Marta's phone number; also find the document with the onboarding checklist.",
+  "needed": [
+   "contacts",
+   "files"
+  ],
+  "kept": [
+   "contacts",
+   "email",
+   "files"
+  ],
+  "hit": [
+   "contacts",
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.88,
+   "files": 0.96,
+   "contacts": 0.97,
+   "clock": 0.03,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.03,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.11,
+   "messaging": 0.21,
+   "web": 0.07
+  },
+  "deferred": 0.1,
+  "answered": true
+ },
+ {
+  "id": "pb-32-25",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please move my dentist appointment to Thursday afternoon, and check who is invited to the team offsite; also find a hotel in Lisbon under 150 euros a night.",
+  "needed": [
+   "calendar",
+   "hotels"
+  ],
+  "kept": [
+   "calendar",
+   "clock",
+   "hotels"
+  ],
+  "hit": [
+   "calendar",
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.98,
+   "email": 0.18,
+   "files": 0.13,
+   "contacts": 0.09,
+   "clock": 0.54,
+   "hotels": 0.98,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.03,
+   "traveller": 0.1,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.25,
+   "messaging": 0.26,
+   "web": 0.09
+  },
+  "deferred": 0.07,
+  "answered": true
+ },
+ {
+  "id": "pb-32-26",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please find a hotel in Lisbon under 150 euros a night, and check the reviews of the Hotel Maris in Porto, then publish the event page at www.our-events.com/launch.",
+  "needed": [
+   "hotels",
+   "web"
+  ],
+  "kept": [
+   "hotels",
+   "web"
+  ],
+  "hit": [
+   "hotels",
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.06,
+   "email": 0.04,
+   "files": 0.05,
+   "contacts": 0.03,
+   "clock": 0.07,
+   "hotels": 0.98,
+   "restaurants": 0.03,
+   "car_rental": 0.02,
+   "flights": 0.03,
+   "traveller": 0.07,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.97
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-32-27",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please show my last ten transactions; also pay the electricity bill of 84 euros, then find the document with the onboarding checklist.",
+  "needed": [
+   "files",
+   "transactions"
+  ],
+  "kept": [
+   "accounts",
+   "files",
+   "transactions"
+  ],
+  "hit": [
+   "files",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.11,
+   "files": 0.96,
+   "contacts": 0.04,
+   "clock": 0.08,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.04,
+   "accounts": 0.35,
+   "transactions": 0.98,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.06
+  },
+  "deferred": 0.08,
+  "answered": true
+ },
+ {
+  "id": "pb-32-28",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please pay the electricity bill of 84 euros, then book a table for four at an Italian place in Madrid, then show my last ten transactions.",
+  "needed": [
+   "restaurants",
+   "transactions"
+  ],
+  "kept": [
+   "accounts",
+   "restaurants",
+   "transactions"
+  ],
+  "hit": [
+   "restaurants",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.32,
+   "email": 0.07,
+   "files": 0.03,
+   "contacts": 0.05,
+   "clock": 0.2,
+   "hotels": 0.03,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.1,
+   "accounts": 0.5,
+   "transactions": 0.97,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.15
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-32-29",
+  "parts": 3,
+  "groups": 2,
+  "purpose": "Please check who is invited to the team offsite; also compare the daily price of car rental companies in Rome; also move my dentist appointment to Thursday afternoon.",
+  "needed": [
+   "calendar",
+   "car_rental"
+  ],
+  "kept": [
+   "calendar",
+   "car_rental",
+   "clock"
+  ],
+  "hit": [
+   "calendar",
+   "car_rental"
+  ],
+  "probabilities": {
+   "calendar": 0.98,
+   "email": 0.24,
+   "files": 0.12,
+   "contacts": 0.11,
+   "clock": 0.43,
+   "hotels": 0.04,
+   "restaurants": 0.03,
+   "car_rental": 0.97,
+   "flights": 0.03,
+   "traveller": 0.07,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.21,
+   "messaging": 0.3,
+   "web": 0.1
+  },
+  "deferred": 0.12,
+  "answered": true
+ },
+ {
+  "id": "pb-33-00",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please publish the event page at www.our-events.com/launch, and look up Marta's phone number, then find a hotel in Lisbon under 150 euros a night.",
+  "needed": [
+   "contacts",
+   "hotels",
+   "web"
+  ],
+  "kept": [
+   "contacts",
+   "hotels",
+   "web"
+  ],
+  "hit": [
+   "contacts",
+   "hotels",
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.13,
+   "email": 0.06,
+   "files": 0.07,
+   "contacts": 0.98,
+   "clock": 0.06,
+   "hotels": 0.98,
+   "restaurants": 0.03,
+   "car_rental": 0.02,
+   "flights": 0.03,
+   "traveller": 0.08,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.03,
+   "messaging": 0.04,
+   "web": 0.98
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-33-01",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please tell me my current bank balance, and check the reviews of the Hotel Maris in Porto, and find the document with the onboarding checklist.",
+  "needed": [
+   "accounts",
+   "files",
+   "hotels"
+  ],
+  "kept": [
+   "accounts",
+   "files",
+   "hotels"
+  ],
+  "hit": [
+   "accounts",
+   "files",
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.02,
+   "email": 0.1,
+   "files": 0.95,
+   "contacts": 0.03,
+   "clock": 0.04,
+   "hotels": 0.96,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.05,
+   "accounts": 0.98,
+   "transactions": 0.06,
+   "credentials": 0.02,
+   "channels": 0.03,
+   "messaging": 0.04,
+   "web": 0.1
+  },
+  "deferred": 0.06,
+  "answered": true
+ },
+ {
+  "id": "pb-33-02",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please find the email address of the new supplier contact, then move my dentist appointment to Thursday afternoon; also find a hotel in Lisbon under 150 euros a night.",
+  "needed": [
+   "calendar",
+   "contacts",
+   "hotels"
+  ],
+  "kept": [
+   "calendar",
+   "clock",
+   "contacts",
+   "email",
+   "hotels"
+  ],
+  "hit": [
+   "calendar",
+   "contacts",
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.98,
+   "email": 0.89,
+   "files": 0.2,
+   "contacts": 0.53,
+   "clock": 0.59,
+   "hotels": 0.98,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.03,
+   "traveller": 0.09,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.04,
+   "messaging": 0.09,
+   "web": 0.12
+  },
+  "deferred": 0.2,
+  "answered": true
+ },
+ {
+  "id": "pb-33-03",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please find a vegan restaurant open late in Paris; also share the budget spreadsheet with the finance team; also check the flight times from Madrid to Lisbon next week.",
+  "needed": [
+   "files",
+   "flights",
+   "restaurants"
+  ],
+  "kept": [
+   "clock",
+   "email",
+   "files",
+   "flights",
+   "restaurants"
+  ],
+  "hit": [
+   "files",
+   "flights",
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.07,
+   "email": 0.56,
+   "files": 0.95,
+   "contacts": 0.21,
+   "clock": 0.35,
+   "hotels": 0.03,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.09,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.1,
+   "messaging": 0.17,
+   "web": 0.12
+  },
+  "deferred": 0.08,
+  "answered": true
+ },
+ {
+  "id": "pb-33-04",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please list the members of the general channel; also find the cheapest flight from London to Dublin on Friday, then look up Marta's phone number.",
+  "needed": [
+   "channels",
+   "contacts",
+   "flights"
+  ],
+  "kept": [
+   "channels",
+   "clock",
+   "contacts",
+   "flights"
+  ],
+  "hit": [
+   "channels",
+   "contacts",
+   "flights"
+  ],
+  "probabilities": {
+   "calendar": 0.04,
+   "email": 0.04,
+   "files": 0.04,
+   "contacts": 0.98,
+   "clock": 0.51,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.09,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.97,
+   "messaging": 0.13,
+   "web": 0.07
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-33-05",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please find the email address of the new supplier contact; also find a vegan restaurant open late in Paris, then append today's notes to the project log file.",
+  "needed": [
+   "contacts",
+   "files",
+   "restaurants"
+  ],
+  "kept": [
+   "clock",
+   "contacts",
+   "email",
+   "files",
+   "restaurants"
+  ],
+  "hit": [
+   "contacts",
+   "files",
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.04,
+   "email": 0.58,
+   "files": 0.97,
+   "contacts": 0.87,
+   "clock": 0.74,
+   "hotels": 0.03,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.04,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.04,
+   "messaging": 0.09,
+   "web": 0.17
+  },
+  "deferred": 0.14,
+  "answered": true
+ },
+ {
+  "id": "pb-33-06",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please show my last ten transactions; also find the email address of the new supplier contact, and list the members of the general channel.",
+  "needed": [
+   "channels",
+   "contacts",
+   "transactions"
+  ],
+  "kept": [
+   "channels",
+   "contacts",
+   "email",
+   "transactions"
+  ],
+  "hit": [
+   "channels",
+   "contacts",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.48,
+   "files": 0.08,
+   "contacts": 0.81,
+   "clock": 0.05,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.08,
+   "transactions": 0.98,
+   "credentials": 0.02,
+   "channels": 0.96,
+   "messaging": 0.16,
+   "web": 0.04
+  },
+  "deferred": 0.06,
+  "answered": true
+ },
+ {
+  "id": "pb-33-07",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please pay the electricity bill of 84 euros; also reply to the last email from the landlord, then book a table for four at an Italian place in Madrid.",
+  "needed": [
+   "email",
+   "restaurants",
+   "transactions"
+  ],
+  "kept": [
+   "accounts",
+   "email",
+   "restaurants",
+   "transactions"
+  ],
+  "hit": [
+   "email",
+   "restaurants",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.27,
+   "email": 0.98,
+   "files": 0.11,
+   "contacts": 0.34,
+   "clock": 0.18,
+   "hotels": 0.03,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.11,
+   "accounts": 0.62,
+   "transactions": 0.87,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.04,
+   "web": 0.2
+  },
+  "deferred": 0.25,
+  "answered": true
+ },
+ {
+  "id": "pb-33-08",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please book a table for four at an Italian place in Madrid, then rent an electric car in Berlin for the weekend, and show my last ten transactions.",
+  "needed": [
+   "car_rental",
+   "restaurants",
+   "transactions"
+  ],
+  "kept": [
+   "car_rental",
+   "clock",
+   "restaurants",
+   "transactions"
+  ],
+  "hit": [
+   "car_rental",
+   "restaurants",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.26,
+   "email": 0.07,
+   "files": 0.03,
+   "contacts": 0.04,
+   "clock": 0.58,
+   "hotels": 0.03,
+   "restaurants": 0.98,
+   "car_rental": 0.98,
+   "flights": 0.04,
+   "traveller": 0.22,
+   "accounts": 0.08,
+   "transactions": 0.97,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.02,
+   "web": 0.09
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-33-09",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please pay the electricity bill of 84 euros, and move my dentist appointment to Thursday afternoon, and post the release notes in the dev channel.",
+  "needed": [
+   "calendar",
+   "messaging",
+   "transactions"
+  ],
+  "kept": [
+   "accounts",
+   "calendar",
+   "clock",
+   "messaging",
+   "transactions"
+  ],
+  "hit": [
+   "calendar",
+   "messaging",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.98,
+   "email": 0.12,
+   "files": 0.23,
+   "contacts": 0.1,
+   "clock": 0.37,
+   "hotels": 0.01,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.03,
+   "accounts": 0.49,
+   "transactions": 0.73,
+   "credentials": 0.02,
+   "channels": 0.31,
+   "messaging": 0.96,
+   "web": 0.22
+  },
+  "deferred": 0.08,
+  "answered": true
+ },
+ {
+  "id": "pb-33-10",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please send Lucia a short note saying I will be late; also summarise the article at www.example-news.com/ai-rules, and move my dentist appointment to Thursday afternoon.",
+  "needed": [
+   "calendar",
+   "email",
+   "web"
+  ],
+  "kept": [
+   "calendar",
+   "clock",
+   "contacts",
+   "email",
+   "web"
+  ],
+  "hit": [
+   "calendar",
+   "email",
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.97,
+   "email": 0.84,
+   "files": 0.05,
+   "contacts": 0.66,
+   "clock": 0.49,
+   "hotels": 0.01,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.03,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.07,
+   "messaging": 0.24,
+   "web": 0.96
+  },
+  "deferred": 0.1,
+  "answered": true
+ },
+ {
+  "id": "pb-33-11",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please send Lucia a short note saying I will be late; also check the flight times from Madrid to Lisbon next week, and append today's notes to the project log file.",
+  "needed": [
+   "email",
+   "files",
+   "flights"
+  ],
+  "kept": [
+   "clock",
+   "contacts",
+   "email",
+   "files",
+   "flights"
+  ],
+  "hit": [
+   "email",
+   "files",
+   "flights"
+  ],
+  "probabilities": {
+   "calendar": 0.16,
+   "email": 0.82,
+   "files": 0.97,
+   "contacts": 0.72,
+   "clock": 0.55,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.07,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.09,
+   "messaging": 0.28,
+   "web": 0.07
+  },
+  "deferred": 0.08,
+  "answered": true
+ },
+ {
+  "id": "pb-33-12",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please list the members of the general channel, and publish the event page at www.our-events.com/launch, and book a table for four at an Italian place in Madrid.",
+  "needed": [
+   "channels",
+   "restaurants",
+   "web"
+  ],
+  "kept": [
+   "channels",
+   "restaurants",
+   "web"
+  ],
+  "hit": [
+   "channels",
+   "restaurants",
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.19,
+   "email": 0.05,
+   "files": 0.06,
+   "contacts": 0.07,
+   "clock": 0.09,
+   "hotels": 0.03,
+   "restaurants": 0.97,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.07,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.97,
+   "messaging": 0.19,
+   "web": 0.97
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-33-13",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please book a table for four at an Italian place in Madrid, then check the flight times from Madrid to Lisbon next week; also check who is invited to the team offsite.",
+  "needed": [
+   "calendar",
+   "flights",
+   "restaurants"
+  ],
+  "kept": [
+   "calendar",
+   "channels",
+   "clock",
+   "flights",
+   "restaurants"
+  ],
+  "hit": [
+   "calendar",
+   "flights",
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.87,
+   "email": 0.2,
+   "files": 0.09,
+   "contacts": 0.12,
+   "clock": 0.67,
+   "hotels": 0.03,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.15,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.46,
+   "messaging": 0.34,
+   "web": 0.1
+  },
+  "deferred": 0.09,
+  "answered": true
+ },
+ {
+  "id": "pb-33-14",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please schedule a monthly transfer of 300 euros to my savings; also rent an electric car in Berlin for the weekend; also find the email address of the new supplier contact.",
+  "needed": [
+   "car_rental",
+   "contacts",
+   "transactions"
+  ],
+  "kept": [
+   "accounts",
+   "car_rental",
+   "clock",
+   "contacts",
+   "email",
+   "transactions"
+  ],
+  "hit": [
+   "car_rental",
+   "contacts",
+   "transactions"
+  ],
+  "probabilities": {
+   "calendar": 0.24,
+   "email": 0.43,
+   "files": 0.1,
+   "contacts": 0.9,
+   "clock": 0.54,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.97,
+   "flights": 0.02,
+   "traveller": 0.16,
+   "accounts": 0.5,
+   "transactions": 0.98,
+   "credentials": 0.02,
+   "channels": 0.03,
+   "messaging": 0.06,
+   "web": 0.18
+  },
+  "deferred": 0.06,
+  "answered": true
+ },
+ {
+  "id": "pb-33-15",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please rent an electric car in Berlin for the weekend; also find a hotel in Lisbon under 150 euros a night, then read the latest messages in the random channel.",
+  "needed": [
+   "car_rental",
+   "hotels",
+   "messaging"
+  ],
+  "kept": [
+   "car_rental",
+   "clock",
+   "hotels",
+   "messaging"
+  ],
+  "hit": [
+   "car_rental",
+   "hotels",
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.14,
+   "email": 0.06,
+   "files": 0.04,
+   "contacts": 0.04,
+   "clock": 0.55,
+   "hotels": 0.98,
+   "restaurants": 0.03,
+   "car_rental": 0.98,
+   "flights": 0.07,
+   "traveller": 0.19,
+   "accounts": 0.06,
+   "transactions": 0.06,
+   "credentials": 0.02,
+   "channels": 0.23,
+   "messaging": 0.96,
+   "web": 0.13
+  },
+  "deferred": 0.09,
+  "answered": true
+ },
+ {
+  "id": "pb-33-16",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please compare the daily price of car rental companies in Rome, and create a meeting with Sara for next Monday at ten, then publish the event page at www.our-events.com/launch.",
+  "needed": [
+   "calendar",
+   "car_rental",
+   "web"
+  ],
+  "kept": [
+   "calendar",
+   "car_rental",
+   "clock",
+   "contacts",
+   "web"
+  ],
+  "hit": [
+   "calendar",
+   "car_rental",
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.98,
+   "email": 0.17,
+   "files": 0.06,
+   "contacts": 0.61,
+   "clock": 0.78,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.98,
+   "flights": 0.02,
+   "traveller": 0.07,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.03,
+   "messaging": 0.06,
+   "web": 0.96
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-33-17",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please find the cheapest flight from London to Dublin on Friday; also look up Marta's phone number; also send Lucia a short note saying I will be late.",
+  "needed": [
+   "contacts",
+   "email",
+   "flights"
+  ],
+  "kept": [
+   "clock",
+   "contacts",
+   "email",
+   "flights",
+   "messaging"
+  ],
+  "hit": [
+   "contacts",
+   "email",
+   "flights"
+  ],
+  "probabilities": {
+   "calendar": 0.08,
+   "email": 0.4,
+   "files": 0.03,
+   "contacts": 0.98,
+   "clock": 0.65,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.11,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.07,
+   "messaging": 0.51,
+   "web": 0.09
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-33-18",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please publish the event page at www.our-events.com/launch, then find a hotel in Lisbon under 150 euros a night, and move my dentist appointment to Thursday afternoon.",
+  "needed": [
+   "calendar",
+   "hotels",
+   "web"
+  ],
+  "kept": [
+   "calendar",
+   "clock",
+   "hotels",
+   "web"
+  ],
+  "hit": [
+   "calendar",
+   "hotels",
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.97,
+   "email": 0.06,
+   "files": 0.06,
+   "contacts": 0.05,
+   "clock": 0.49,
+   "hotels": 0.98,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.03,
+   "traveller": 0.11,
+   "accounts": 0.03,
+   "transactions": 0.03,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.98
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-33-19",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please book a table for four at an Italian place in Madrid, and reply to the last email from the landlord, then add Pedro to the marketing channel.",
+  "needed": [
+   "channels",
+   "email",
+   "restaurants"
+  ],
+  "kept": [
+   "channels",
+   "clock",
+   "contacts",
+   "email",
+   "restaurants"
+  ],
+  "hit": [
+   "channels",
+   "email",
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.32,
+   "email": 0.98,
+   "files": 0.05,
+   "contacts": 0.49,
+   "clock": 0.36,
+   "hotels": 0.03,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.02,
+   "traveller": 0.1,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.02,
+   "channels": 0.96,
+   "messaging": 0.21,
+   "web": 0.13
+  },
+  "deferred": 0.24,
+  "answered": true
+ },
+ {
+  "id": "pb-33-20",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please find a vegan restaurant open late in Paris, then rent an electric car in Berlin for the weekend, and share the budget spreadsheet with the finance team.",
+  "needed": [
+   "car_rental",
+   "files",
+   "restaurants"
+  ],
+  "kept": [
+   "car_rental",
+   "email",
+   "files",
+   "restaurants"
+  ],
+  "hit": [
+   "car_rental",
+   "files",
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.1,
+   "email": 0.37,
+   "files": 0.93,
+   "contacts": 0.14,
+   "clock": 0.33,
+   "hotels": 0.04,
+   "restaurants": 0.98,
+   "car_rental": 0.98,
+   "flights": 0.05,
+   "traveller": 0.16,
+   "accounts": 0.05,
+   "transactions": 0.06,
+   "credentials": 0.02,
+   "channels": 0.13,
+   "messaging": 0.19,
+   "web": 0.16
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-33-21",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please find the cheapest flight from London to Dublin on Friday, and update the address on my bank account; also rent an electric car in Berlin for the weekend.",
+  "needed": [
+   "accounts",
+   "car_rental",
+   "flights"
+  ],
+  "kept": [
+   "accounts",
+   "car_rental",
+   "clock",
+   "flights"
+  ],
+  "hit": [
+   "accounts",
+   "car_rental",
+   "flights"
+  ],
+  "probabilities": {
+   "calendar": 0.11,
+   "email": 0.1,
+   "files": 0.06,
+   "contacts": 0.06,
+   "clock": 0.68,
+   "hotels": 0.03,
+   "restaurants": 0.03,
+   "car_rental": 0.97,
+   "flights": 0.98,
+   "traveller": 0.28,
+   "accounts": 0.89,
+   "transactions": 0.06,
+   "credentials": 0.03,
+   "channels": 0.02,
+   "messaging": 0.04,
+   "web": 0.17
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-33-22",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please rent an electric car in Berlin for the weekend, and look up Marta's phone number, and add Pedro to the marketing channel.",
+  "needed": [
+   "car_rental",
+   "channels",
+   "contacts"
+  ],
+  "kept": [
+   "car_rental",
+   "channels",
+   "clock",
+   "contacts"
+  ],
+  "hit": [
+   "car_rental",
+   "channels",
+   "contacts"
+  ],
+  "probabilities": {
+   "calendar": 0.11,
+   "email": 0.07,
+   "files": 0.04,
+   "contacts": 0.97,
+   "clock": 0.56,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.98,
+   "flights": 0.02,
+   "traveller": 0.14,
+   "accounts": 0.03,
+   "transactions": 0.04,
+   "credentials": 0.02,
+   "channels": 0.96,
+   "messaging": 0.12,
+   "web": 0.08
+  },
+  "deferred": 0.04,
+  "answered": true
+ },
+ {
+  "id": "pb-33-23",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please read the latest messages in the random channel, and check the flight times from Madrid to Lisbon next week, and check who is invited to the team offsite.",
+  "needed": [
+   "calendar",
+   "flights",
+   "messaging"
+  ],
+  "kept": [
+   "calendar",
+   "channels",
+   "clock",
+   "flights",
+   "messaging"
+  ],
+  "hit": [
+   "calendar",
+   "flights",
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.79,
+   "email": 0.1,
+   "files": 0.12,
+   "contacts": 0.08,
+   "clock": 0.6,
+   "hotels": 0.03,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.09,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.69,
+   "messaging": 0.97,
+   "web": 0.09
+  },
+  "deferred": 0.17,
+  "answered": true
+ },
+ {
+  "id": "pb-33-24",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please append today's notes to the project log file; also publish the event page at www.our-events.com/launch, and schedule a monthly transfer of 300 euros to my savings.",
+  "needed": [
+   "files",
+   "transactions",
+   "web"
+  ],
+  "kept": [
+   "clock",
+   "files",
+   "transactions",
+   "web"
+  ],
+  "hit": [
+   "files",
+   "transactions",
+   "web"
+  ],
+  "probabilities": {
+   "calendar": 0.15,
+   "email": 0.05,
+   "files": 0.96,
+   "contacts": 0.03,
+   "clock": 0.74,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.04,
+   "accounts": 0.32,
+   "transactions": 0.97,
+   "credentials": 0.02,
+   "channels": 0.02,
+   "messaging": 0.04,
+   "web": 0.97
+  },
+  "deferred": 0.14,
+  "answered": true
+ },
+ {
+  "id": "pb-33-25",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please send Lucia a short note saying I will be late, and update the address on my bank account; also append today's notes to the project log file.",
+  "needed": [
+   "accounts",
+   "email",
+   "files"
+  ],
+  "kept": [
+   "accounts",
+   "clock",
+   "contacts",
+   "email",
+   "files",
+   "messaging"
+  ],
+  "hit": [
+   "accounts",
+   "email",
+   "files"
+  ],
+  "probabilities": {
+   "calendar": 0.1,
+   "email": 0.82,
+   "files": 0.96,
+   "contacts": 0.75,
+   "clock": 0.71,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.02,
+   "traveller": 0.07,
+   "accounts": 0.85,
+   "transactions": 0.05,
+   "credentials": 0.03,
+   "channels": 0.07,
+   "messaging": 0.38,
+   "web": 0.05
+  },
+  "deferred": 0.13,
+  "answered": true
+ },
+ {
+  "id": "pb-33-26",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please look up Marta's phone number; also send a direct message to Ana saying thanks, and reply to the last email from the landlord.",
+  "needed": [
+   "contacts",
+   "email",
+   "messaging"
+  ],
+  "kept": [
+   "contacts",
+   "email",
+   "messaging"
+  ],
+  "hit": [
+   "contacts",
+   "email",
+   "messaging"
+  ],
+  "probabilities": {
+   "calendar": 0.03,
+   "email": 0.98,
+   "files": 0.04,
+   "contacts": 0.98,
+   "clock": 0.03,
+   "hotels": 0.01,
+   "restaurants": 0.02,
+   "car_rental": 0.01,
+   "flights": 0.01,
+   "traveller": 0.02,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.07,
+   "messaging": 0.94,
+   "web": 0.04
+  },
+  "deferred": 0.14,
+  "answered": true
+ },
+ {
+  "id": "pb-33-27",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please check the flight times from Madrid to Lisbon next week, then update the address on my bank account; also move my dentist appointment to Thursday afternoon.",
+  "needed": [
+   "accounts",
+   "calendar",
+   "flights"
+  ],
+  "kept": [
+   "accounts",
+   "calendar",
+   "clock",
+   "flights"
+  ],
+  "hit": [
+   "accounts",
+   "calendar",
+   "flights"
+  ],
+  "probabilities": {
+   "calendar": 0.96,
+   "email": 0.06,
+   "files": 0.04,
+   "contacts": 0.07,
+   "clock": 0.62,
+   "hotels": 0.02,
+   "restaurants": 0.02,
+   "car_rental": 0.02,
+   "flights": 0.98,
+   "traveller": 0.13,
+   "accounts": 0.91,
+   "transactions": 0.04,
+   "credentials": 0.03,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.11
+  },
+  "deferred": 0.05,
+  "answered": true
+ },
+ {
+  "id": "pb-33-28",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please find a hotel in Lisbon under 150 euros a night, then find a vegan restaurant open late in Paris, then send Lucia a short note saying I will be late.",
+  "needed": [
+   "email",
+   "hotels",
+   "restaurants"
+  ],
+  "kept": [
+   "contacts",
+   "email",
+   "hotels",
+   "messaging",
+   "restaurants"
+  ],
+  "hit": [
+   "email",
+   "hotels",
+   "restaurants"
+  ],
+  "probabilities": {
+   "calendar": 0.05,
+   "email": 0.43,
+   "files": 0.03,
+   "contacts": 0.76,
+   "clock": 0.09,
+   "hotels": 0.98,
+   "restaurants": 0.98,
+   "car_rental": 0.02,
+   "flights": 0.03,
+   "traveller": 0.08,
+   "accounts": 0.02,
+   "transactions": 0.02,
+   "credentials": 0.01,
+   "channels": 0.08,
+   "messaging": 0.65,
+   "web": 0.09
+  },
+  "deferred": 0.03,
+  "answered": true
+ },
+ {
+  "id": "pb-33-29",
+  "parts": 3,
+  "groups": 3,
+  "purpose": "Please rent an electric car in Berlin for the weekend; also check the reviews of the Hotel Maris in Porto, and move my dentist appointment to Thursday afternoon.",
+  "needed": [
+   "calendar",
+   "car_rental",
+   "hotels"
+  ],
+  "kept": [
+   "calendar",
+   "car_rental",
+   "clock",
+   "hotels"
+  ],
+  "hit": [
+   "calendar",
+   "car_rental",
+   "hotels"
+  ],
+  "probabilities": {
+   "calendar": 0.97,
+   "email": 0.08,
+   "files": 0.03,
+   "contacts": 0.1,
+   "clock": 0.61,
+   "hotels": 0.97,
+   "restaurants": 0.03,
+   "car_rental": 0.98,
+   "flights": 0.03,
+   "traveller": 0.2,
+   "accounts": 0.04,
+   "transactions": 0.05,
+   "credentials": 0.01,
+   "channels": 0.02,
+   "messaging": 0.03,
+   "web": 0.12
+  },
+  "deferred": 0.04,
+  "answered": true
+ }
+]

@@ -1,0 +1,64 @@
+{
+ "model": "claude-haiku-4-5-20251001",
+ "path": "claude code cli",
+ "cuts": {
+  "C": 0.4,
+  "B": 0.31,
+  "CB": 0.28
+ },
+ "arms": {
+  "all": {
+   "n": 300,
+   "failed": 0,
+   "accuracy": 0.81,
+   "f1": 0.339,
+   "exact": 0.2,
+   "input_tokens": 626722
+  },
+  "C": {
+   "n": 300,
+   "failed": 0,
+   "accuracy": 0.7667,
+   "f1": 0.4728,
+   "exact": 0.33,
+   "input_tokens": 328444,
+   "tokens_share_of_all": 0.5241
+  },
+  "CB": {
+   "n": 300,
+   "failed": 0,
+   "accuracy": 0.76,
+   "f1": 0.5093,
+   "exact": 0.36,
+   "input_tokens": 284147,
+   "tokens_share_of_all": 0.4534
+  },
+  "B": {
+   "n": 300,
+   "failed": 0,
+   "accuracy": 0.76,
+   "f1": 0.4033,
+   "exact": 0.2633,
+   "input_tokens": 343009,
+   "tokens_share_of_all": 0.5473
+  },
+  "path": {
+   "n": 300,
+   "failed": 0,
+   "accuracy": 0.7467,
+   "f1": 0.3801,
+   "exact": 0.2567,
+   "input_tokens": 621161
+  }
+ },
+ "P21": false,
+ "P22": false,
+ "api_all_accuracy_seed_2027": 0.6767,
+ "P24": false,
+ "path_agreement": {
+  "n": 300,
+  "same_score": 0.89
+ },
+ "verdict": "see criteria",
+ "run": "free reply"
+}

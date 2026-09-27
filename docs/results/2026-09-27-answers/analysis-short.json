@@ -1,0 +1,64 @@
+{
+ "model": "claude-haiku-4-5-20251001",
+ "path": "claude code cli",
+ "cuts": {
+  "C": 0.4,
+  "B": 0.31,
+  "CB": 0.28
+ },
+ "arms": {
+  "all": {
+   "n": 300,
+   "failed": 0,
+   "accuracy": 0.7,
+   "f1": 0.7404,
+   "exact": 0.5533,
+   "input_tokens": 800660
+  },
+  "C": {
+   "n": 300,
+   "failed": 0,
+   "accuracy": 0.71,
+   "f1": 0.7365,
+   "exact": 0.5633,
+   "input_tokens": 505708,
+   "tokens_share_of_all": 0.6316
+  },
+  "CB": {
+   "n": 300,
+   "failed": 0,
+   "accuracy": 0.7067,
+   "f1": 0.7403,
+   "exact": 0.5633,
+   "input_tokens": 461510,
+   "tokens_share_of_all": 0.5764
+  },
+  "B": {
+   "n": 300,
+   "failed": 0,
+   "accuracy": 0.69,
+   "f1": 0.7357,
+   "exact": 0.5567,
+   "input_tokens": 518961,
+   "tokens_share_of_all": 0.6482
+  },
+  "path": {
+   "n": 300,
+   "failed": 0,
+   "accuracy": 0.67,
+   "f1": 0.747,
+   "exact": 0.62,
+   "input_tokens": 797564
+  }
+ },
+ "P21": true,
+ "P22": true,
+ "api_all_accuracy_seed_2027": 0.6767,
+ "P24": true,
+ "path_agreement": {
+  "n": 300,
+  "same_score": 0.8933
+ },
+ "verdict": "the sentences answer as well as the pages",
+ "run": "short answer field"
+}

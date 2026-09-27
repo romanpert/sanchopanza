@@ -1,0 +1,36 @@
+# facts, fifth batch: 30 cases written 2026-09-27 BEFORE any model answer on them.
+#
+# Protocol: docs/results/2026-09-27-edge-facts/prereg.md, "What would license a change later
+# (the fifth batch)": 12 unrelated, 9 agree, 9 conflict. Labels fixed here; the sha256 of this
+# file (LF) is in docs/results/2026-09-27-edge-facts/fifth-batch/hashes.txt before any Jev call.
+# Invented entities or public bodies; no private persons.
+{"id": "fa-51", "point": "facts", "input": {"fact_a": "La planta desaladora de Punta Esquina produce 60.000 metros cubicos al dia.", "fact_b": "La planta desaladora de Punta Esquina fue inaugurada en 2009."}, "expected": "unrelated"}
+{"id": "fa-52", "point": "facts", "input": {"fact_a": "El incendio calcino 3.100 hectareas en la sierra de Albarran.", "fact_b": "Del total quemado en la sierra de Albarran, unas 800 hectareas eran pinar de repoblacion."}, "expected": "agree"}
+{"id": "fa-53", "point": "facts", "input": {"fact_a": "Segun el parte semanal de la confederacion, el embalse de Valdemora almacena 142 hectometros cubicos.", "fact_b": "El mismo parte semanal situa el embalse de Valdemora en 118 hectometros cubicos."}, "expected": "conflict"}
+{"id": "fa-54", "point": "facts", "input": {"fact_a": "La cooperativa Olivar del Sur tiene 1.200 socios.", "fact_b": "La cooperativa Olivar del Sur exporta a Japon desde 2015."}, "expected": "unrelated"}
+{"id": "fa-55", "point": "facts", "input": {"fact_a": "El ayuntamiento adjudico la limpieza viaria a Servicios Norte por 2,3 millones de euros.", "fact_b": "Servicios Norte gestionara la limpieza viaria del municipio durante cuatro anos."}, "expected": "agree"}
+{"id": "fa-56", "point": "facts", "input": {"fact_a": "El vuelo AX-311 aterrizo en Bilbao a las 14:05 del 2 de mayo.", "fact_b": "El vuelo AX-311 del 2 de mayo tomo tierra en Bilbao a las 15:40."}, "expected": "conflict"}
+{"id": "fa-57", "point": "facts", "input": {"fact_a": "El museo municipal recibio 84.000 visitantes en 2025.", "fact_b": "El museo municipal cierra los lunes."}, "expected": "unrelated"}
+{"id": "fa-58", "point": "facts", "input": {"fact_a": "La OMS notifico 412 casos confirmados del brote.", "fact_b": "El ministerio de sanidad del pais confirma igualmente 412 casos."}, "expected": "agree"}
+{"id": "fa-59", "point": "facts", "input": {"fact_a": "Segun el acta, la junta aprobo las cuentas por unanimidad.", "fact_b": "Segun el acta, tres socios votaron en contra de las cuentas."}, "expected": "conflict"}
+{"id": "fa-60", "point": "facts", "input": {"fact_a": "La empresa Harinera Castro emplea a 85 personas.", "fact_b": "Molinos Castro, sin relacion societaria con Harinera Castro, emplea tambien a 85 personas."}, "expected": "unrelated"}
+{"id": "fa-61", "point": "facts", "input": {"fact_a": "La ley entro en vigor el 1 de enero de 2025.", "fact_b": "La ley se publico en el boletin oficial el 30 de diciembre de 2024 y entro en vigor dos dias despues."}, "expected": "agree"}
+{"id": "fa-62", "point": "facts", "input": {"fact_a": "La mercantil Textiles Brana fue declarada en concurso en mayo de 2023.", "fact_b": "Textiles Brana nunca ha estado en concurso de acreedores."}, "expected": "conflict"}
+{"id": "fa-63", "point": "facts", "input": {"fact_a": "El rio Tamuja tiene 72 kilometros de longitud.", "fact_b": "El caudal medio del rio Almonte en su desembocadura es de 9 metros cubicos por segundo."}, "expected": "unrelated"}
+{"id": "fa-64", "point": "facts", "input": {"fact_a": "La obra se adjudico por 5,2 millones de euros IVA incluido.", "fact_b": "El importe sin IVA de la adjudicacion de la obra fue de 4,3 millones de euros."}, "expected": "agree"}
+{"id": "fa-65", "point": "facts", "input": {"fact_a": "El puente de Ortigal fue inaugurado el 3 de mayo de 1998.", "fact_b": "El puente de Ortigal se inauguro el 17 de octubre de 2001."}, "expected": "conflict"}
+{"id": "fa-66", "point": "facts", "input": {"fact_a": "La consejeria de Educacion abrio 14 nuevas aulas para ninos de dos anos.", "fact_b": "La consejeria de Educacion licito el transporte escolar por 9 millones de euros."}, "expected": "unrelated"}
+{"id": "fa-67", "point": "facts", "input": {"fact_a": "El estudio siguio a 2.400 pacientes durante cinco anos.", "fact_b": "De los pacientes del estudio, 1.310 eran mujeres."}, "expected": "agree"}
+{"id": "fa-68", "point": "facts", "input": {"fact_a": "La sentencia desestima integramente la demanda.", "fact_b": "La sentencia estima parcialmente la demanda y condena al pago de 30.000 euros."}, "expected": "conflict"}
+{"id": "fa-69", "point": "facts", "input": {"fact_a": "La fundacion publico sus cuentas de 2024 en abril.", "fact_b": "La fundacion tiene su sede en Zaragoza."}, "expected": "unrelated"}
+{"id": "fa-70", "point": "facts", "input": {"fact_a": "La tormenta dejo 180 litros por metro cuadrado en Almeria capital.", "fact_b": "La AEMET registro 180 l/m2 en su observatorio de Almeria."}, "expected": "agree"}
+{"id": "fa-71", "point": "facts", "input": {"fact_a": "El satelite Nubia-2 fue lanzado desde Kourou.", "fact_b": "El satelite Nubia-2 fue lanzado desde Cabo Canaveral."}, "expected": "conflict"}
+{"id": "fa-72", "point": "facts", "input": {"fact_a": "El ayuntamiento de Villar del Monte aprobo un presupuesto de 4 millones de euros.", "fact_b": "El alcalde de Villar del Monte anuncio que no se presentara a la reeleccion."}, "expected": "unrelated"}
+{"id": "fa-73", "point": "facts", "input": {"fact_a": "La huelga fue secundada por el 62 % de la plantilla segun el comite.", "fact_b": "El comite de empresa cifra el seguimiento del paro en mas de la mitad de los trabajadores."}, "expected": "agree"}
+{"id": "fa-74", "point": "facts", "input": {"fact_a": "La linea 12 del metro de Solana tiene 28 estaciones.", "fact_b": "La linea 12 del metro de Solana cuenta con 32 estaciones."}, "expected": "conflict"}
+{"id": "fa-75", "point": "facts", "input": {"fact_a": "El Fondo Cierzo gestiona 900 millones de euros.", "fact_b": "La gestora del Fondo Cierzo tiene oficinas en Lisboa y Madrid."}, "expected": "unrelated"}
+{"id": "fa-76", "point": "facts", "input": {"fact_a": "El volcan expulso lava durante 85 dias.", "fact_b": "La erupcion comenzo el 19 de septiembre y termino el 13 de diciembre del mismo ano."}, "expected": "agree"}
+{"id": "fa-77", "point": "facts", "input": {"fact_a": "La subasta del 12 de marzo quedo desierta.", "fact_b": "En la subasta del 12 de marzo se adjudico el lote por 310.000 euros."}, "expected": "conflict"}
+{"id": "fa-78", "point": "facts", "input": {"fact_a": "El hospital comarcal tiene 220 camas.", "fact_b": "El hospital comarcal redujo la espera quirurgica a 45 dias."}, "expected": "unrelated"}
+{"id": "fa-79", "point": "facts", "input": {"fact_a": "El ayuntamiento multo a la discoteca Neon con 6.000 euros por ruido.", "fact_b": "La discoteca Neon amplio su aforo a 700 personas en 2024."}, "expected": "unrelated"}
+{"id": "fa-80", "point": "facts", "input": {"fact_a": "El satelite Nubia-2 pesa 1.200 kilos.", "fact_b": "El satelite Nubia-2 transmite datos meteorologicos cada 15 minutos."}, "expected": "unrelated"}

@@ -1,0 +1,37 @@
+{
+ "cuts_from_600": {
+  "A": 0.28,
+  "C": 0.4,
+  "B": 0.31,
+  "CB": 0.28
+ },
+ "A": {
+  "sentence_joint": 0.9433,
+  "page_joint": 0.9433,
+  "kept_share": 0.5285,
+  "n": 300
+ },
+ "C": {
+  "sentence_joint": 0.9833,
+  "page_joint": 0.9833,
+  "kept_share": 0.3362,
+  "n": 300
+ },
+ "B": {
+  "sentence_joint": 0.8867,
+  "page_joint": 0.9533,
+  "kept_share": 0.3487,
+  "n": 300
+ },
+ "CB": {
+  "sentence_joint": 0.9033,
+  "page_joint": 0.9567,
+  "kept_share": 0.2234,
+  "n": 300
+ },
+ "P18": true,
+ "P19": true,
+ "P20": true,
+ "live_calls": 0,
+ "verdict": "confirmed"
+}

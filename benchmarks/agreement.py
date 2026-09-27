@@ -33,8 +33,23 @@ POINTS = (
     "recall",
     "redundant_page",
     "repeats_check",
+    "facts",
+    "edge",
+    "memory_collision",
 )
-FILES = ("loop-b.jsonl", "memory-b.jsonl", "graph-build-b.jsonl", "retrieval-b.jsonl")
+FILES = (
+    "loop-b.jsonl",
+    "memory-b.jsonl",
+    "graph-build-b.jsonl",
+    "retrieval-b.jsonl",
+    "memory-c.jsonl",
+    "retrieval-c.jsonl",
+    "graph-c.jsonl",
+    "memory-d.jsonl",
+    "graph.jsonl",
+    "graph-build.jsonl",
+    "memory.jsonl",
+)
 
 
 def norm(value: Any) -> str:
@@ -82,6 +97,8 @@ def main() -> int:
                 first[row["id"]] = row["expected"]
 
     rows = json.loads((results_dir / "results.json").read_text(encoding="utf-8"))
+    # `plan` rows have a different shape and no single predicted label; skip them.
+    rows = [r for r in rows if "predicted" in r and "point" in r]
     evaluator = {r["id"]: r["predicted"] for r in rows}
     point_of = {r["id"]: r["point"] for r in rows}
 

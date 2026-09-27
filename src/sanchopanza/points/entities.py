@@ -73,8 +73,27 @@ def decide_alignment(decision: Decision, t: Thresholds) -> tuple[bool | None, fl
 FactRelation = Literal["agree", "conflict", "unrelated"]
 
 
-def fact_questions(*, fact_a: str, fact_b: str) -> tuple[Mapping[str, Any], dict[str, Question]]:
+# The `unrelated` option was the only one of the three whose criteria carried no examples, and
+# on the fourth batch it was the one the model could not reach (2 of 12). The variant below
+# adds two, written for the fifth batch (docs/results/2026-09-27-edge-facts/prereg.md). It is
+# off by default until that batch licenses it; turning it on changes the recording key.
+UNRELATED_EXAMPLES = [
+    "'the bridge is 420 metres long' and 'the bridge was opened in 1998' (different attributes)",
+    "'the fine was 50,000 euros' and 'the inspector who proposed it retired in 2023' "
+    "(different things)",
+]
+
+
+def fact_questions(
+    *, fact_a: str, fact_b: str, unrelated_examples: bool = False
+) -> tuple[Mapping[str, Any], dict[str, Question]]:
     state = {"fact_a": truncate(fact_a, 500), "fact_b": truncate(fact_b, 500)}
+    unrelated: dict[str, Any] = {
+        "what": "They talk about different attributes or different things and "
+        "neither supports nor contradicts the other"
+    }
+    if unrelated_examples:
+        unrelated = {**unrelated, "examples": list(UNRELATED_EXAMPLES)}
     qs: dict[str, Question] = {
         "relation": Choice(
             "How do `fact_a` and `fact_b` relate?",
@@ -94,19 +113,31 @@ def fact_questions(*, fact_a: str, fact_b: str) -> tuple[Mapping[str, Any], dict
                         "'depth 110 km (USGS)' and 'depth 103 km (SGC)'",
                     ],
                 },
-                "unrelated": {
-                    "what": "They talk about different attributes or different things and "
-                    "neither supports nor contradicts the other"
-                },
+                "unrelated": unrelated,
             },
         )
     }
     return state, qs
 
 
-def decide_facts(decision: Decision, t: Thresholds) -> tuple[FactRelation | None, float]:
+def decide_facts(
+    decision: Decision, t: Thresholds, *, unrelated_at: float | None = None
+) -> tuple[FactRelation | None, float]:
+    """(relation, confidence). None below `relax`.
+
+    `unrelated_at` is the candidate asymmetric rule of the edge-facts pre-registration:
+    `unrelated` triggers no action, so it is also accepted when it is the top option at that
+    probability even under `relax`. `agree` and `conflict` keep the shipped gate. Off (None)
+    unless the fifth batch licenses it.
+    """
     answer = decision.answer("relation")
-    if decision.failed or answer.empty or answer.confidence < t.relax:
+    if decision.failed or answer.empty:
+        return None, answer.confidence
+    if answer.confidence < t.relax:
+        dist = answer.probabilities
+        top = max(dist, key=dist.__getitem__) if dist else None
+        if unrelated_at is not None and top == "unrelated" and dist[top] >= unrelated_at:
+            return "unrelated", answer.confidence
         return None, answer.confidence
     choice = answer.choice if answer.choice in ("agree", "conflict", "unrelated") else None
     return choice, answer.confidence  # type: ignore[return-value]

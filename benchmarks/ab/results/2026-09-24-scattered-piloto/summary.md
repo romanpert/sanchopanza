@@ -9,6 +9,12 @@ Retrieval condition `scattered`: body-frequency ranking over a wide result list,
 
 Total spend of this run: 0.2405 USD.
 
+**The lever dropped nothing in any run, so this comparison is uninformative about
+it.** When no page is dropped the squire arm hands the model exactly the bytes the
+bare arm hands it, so the two arms are the same experiment run twice and every
+difference below is the agent's run-to-run variance in its search path. Read the
+numbers as a measurement of that variance, not of the lever.
+
 | | Without the squire | With the squire | Change |
 |---|---|---|---|
 | Runs | 2 | 2 | |
@@ -52,9 +58,3 @@ for other sizes is in `docs/savings.md`.
 Quality is measured as an exact-substring match against figures that appear in exactly
 one document of the corpus, verified by `--verify`. That catches an answer that lost the
 fact; it does not catch an answer that is worse in ways a reader would notice.
-
-**The lever dropped nothing in any run, so this comparison is uninformative about
-it.** When no page is dropped the squire arm hands the model exactly the bytes the
-bare arm hands it, so the two arms are the same experiment run twice and every
-difference above is the agent's run-to-run variance in its search path. Read the
-numbers as a measurement of that variance, not of the lever.

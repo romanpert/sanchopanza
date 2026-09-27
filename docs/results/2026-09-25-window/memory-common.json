@@ -1,0 +1,3746 @@
+[
+ {
+  "id": "mw-01",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.85,
+   "specific": 0.91,
+   "derivable": 0.36,
+   "common": 0.59
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-02",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.78,
+   "specific": 0.71,
+   "derivable": 0.5,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-03",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.84,
+   "specific": 0.81,
+   "derivable": 0.19,
+   "common": 0.03
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-04",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.77,
+   "specific": 0.92,
+   "derivable": 0.18,
+   "common": 0.08
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-05",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.74,
+   "specific": 0.92,
+   "derivable": 0.24,
+   "common": 0.09
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-06",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.76,
+   "specific": 0.86,
+   "derivable": 0.4,
+   "common": 0.08
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-07",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.86,
+   "specific": 0.9,
+   "derivable": 0.38,
+   "common": 0.19
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-08",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.81,
+   "specific": 0.95,
+   "derivable": 0.5,
+   "common": 0.06
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-09",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.12,
+   "specific": 0.23,
+   "derivable": 0.15,
+   "common": 0.05
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-10",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.22,
+   "specific": 0.3,
+   "derivable": 0.47,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-11",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.74,
+   "specific": 0.02,
+   "derivable": 0.2,
+   "common": 0.17
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-12",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.91,
+   "specific": 0.04,
+   "derivable": 0.29,
+   "common": 0.95
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-13",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.85,
+   "specific": 0.93,
+   "derivable": 0.64,
+   "common": 0.07
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-14",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.68,
+   "specific": 0.69,
+   "derivable": 0.72,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-15",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.08,
+   "specific": 0.1,
+   "derivable": 0.29,
+   "common": 0.06
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-16",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.11,
+   "specific": 0.2,
+   "derivable": 0.16,
+   "common": 0.05
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-17",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.85,
+   "specific": 0.86,
+   "derivable": 0.25,
+   "common": 0.21
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-18",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.84,
+   "specific": 0.53,
+   "derivable": 0.22,
+   "common": 0.15
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-19",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.89,
+   "specific": 0.6,
+   "derivable": 0.45,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-20",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.87,
+   "specific": 0.83,
+   "derivable": 0.2,
+   "common": 0.14
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-21",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.1,
+   "specific": 0.33,
+   "derivable": 0.21,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-22",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.9,
+   "specific": 0.19,
+   "derivable": 0.43,
+   "common": 0.95
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-23",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.85,
+   "specific": 0.86,
+   "derivable": 0.48,
+   "common": 0.11
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-24",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.18,
+   "specific": 0.07,
+   "derivable": 0.27,
+   "common": 0.05
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-25",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.68,
+   "specific": 0.85,
+   "derivable": 0.5,
+   "common": 0.83
+  },
+  "shipped": "store",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-26",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.87,
+   "specific": 0.68,
+   "derivable": 0.21,
+   "common": 0.03
+  },
+  "shipped": "store",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-27",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.83,
+   "specific": 0.03,
+   "derivable": 0.23,
+   "common": 0.18
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-28",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.81,
+   "specific": 0.48,
+   "derivable": 0.19,
+   "common": 0.29
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-29",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.2,
+   "specific": 0.09,
+   "derivable": 0.18,
+   "common": 0.07
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-30",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.81,
+   "specific": 0.87,
+   "derivable": 0.29,
+   "common": 0.09
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-31",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.69,
+   "specific": 0.87,
+   "derivable": 0.56,
+   "common": 0.06
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-32",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.88,
+   "specific": 0.48,
+   "derivable": 0.39,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-33",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.91,
+   "specific": 0.65,
+   "derivable": 0.52,
+   "common": 0.98
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-34",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.88,
+   "specific": 0.88,
+   "derivable": 0.31,
+   "common": 0.05
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-35",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.07,
+   "specific": 0.1,
+   "derivable": 0.2,
+   "common": 0.11
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-36",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.73,
+   "specific": 0.66,
+   "derivable": 0.23,
+   "common": 0.4
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-37",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.65,
+   "specific": 0.91,
+   "derivable": 0.57,
+   "common": 0.16
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-38",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.61,
+   "specific": 0.54,
+   "derivable": 0.13,
+   "common": 0.05
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-39",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.12,
+   "specific": 0.1,
+   "derivable": 0.14,
+   "common": 0.08
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-40",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.84,
+   "specific": 0.42,
+   "derivable": 0.24,
+   "common": 0.07
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-41",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.37,
+   "specific": 0.09,
+   "derivable": 0.32,
+   "common": 0.14
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-42",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.75,
+   "specific": 0.9,
+   "derivable": 0.19,
+   "common": 0.08
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-43",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.72,
+   "specific": 0.84,
+   "derivable": 0.67,
+   "common": 0.4
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-44",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.75,
+   "specific": 0.72,
+   "derivable": 0.45,
+   "common": 0.02
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-45",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.84,
+   "specific": 0.09,
+   "derivable": 0.31,
+   "common": 0.96
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-46",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.84,
+   "specific": 0.64,
+   "derivable": 0.31,
+   "common": 0.12
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-47",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.08,
+   "specific": 0.28,
+   "derivable": 0.22,
+   "common": 0.05
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-48",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.75,
+   "specific": 0.84,
+   "derivable": 0.18,
+   "common": 0.05
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-49",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.9,
+   "specific": 0.03,
+   "derivable": 0.27,
+   "common": 0.88
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-50",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.87,
+   "specific": 0.75,
+   "derivable": 0.17,
+   "common": 0.06
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-51",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.88,
+   "specific": 0.93,
+   "derivable": 0.48,
+   "common": 0.44
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-52",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.83,
+   "specific": 0.88,
+   "derivable": 0.23,
+   "common": 0.06
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-53",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.83,
+   "specific": 0.74,
+   "derivable": 0.14,
+   "common": 0.08
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-54",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.82,
+   "specific": 0.33,
+   "derivable": 0.37,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-55",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.82,
+   "specific": 0.88,
+   "derivable": 0.22,
+   "common": 0.06
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-56",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.77,
+   "specific": 0.63,
+   "derivable": 0.14,
+   "common": 0.26
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-57",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.84,
+   "specific": 0.8,
+   "derivable": 0.45,
+   "common": 0.08
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-58",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.73,
+   "specific": 0.57,
+   "derivable": 0.25,
+   "common": 0.08
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-59",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.84,
+   "specific": 0.39,
+   "derivable": 0.55,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-60",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.67,
+   "specific": 0.31,
+   "derivable": 0.13,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-61",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.89,
+   "specific": 0.48,
+   "derivable": 0.2,
+   "common": 0.09
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-62",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.58,
+   "specific": 0.73,
+   "derivable": 0.22,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-63",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.86,
+   "specific": 0.88,
+   "derivable": 0.43,
+   "common": 0.07
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-64",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.88,
+   "specific": 0.74,
+   "derivable": 0.45,
+   "common": 0.27
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-65",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.86,
+   "specific": 0.61,
+   "derivable": 0.19,
+   "common": 0.29
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-66",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.82,
+   "specific": 0.6,
+   "derivable": 0.39,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-67",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.87,
+   "specific": 0.5,
+   "derivable": 0.15,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-68",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.88,
+   "specific": 0.65,
+   "derivable": 0.35,
+   "common": 0.45
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-69",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.85,
+   "specific": 0.82,
+   "derivable": 0.53,
+   "common": 0.02
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-70",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.8,
+   "specific": 0.83,
+   "derivable": 0.3,
+   "common": 0.11
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-71",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.82,
+   "specific": 0.83,
+   "derivable": 0.36,
+   "common": 0.2
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-72",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.81,
+   "specific": 0.37,
+   "derivable": 0.47,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-73",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.85,
+   "specific": 0.89,
+   "derivable": 0.32,
+   "common": 0.06
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-74",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.87,
+   "specific": 0.47,
+   "derivable": 0.36,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-75",
+  "batch": "old",
+  "family": "-",
+  "expected": "store",
+  "answers": {
+   "durable": 0.58,
+   "specific": 0.85,
+   "derivable": 0.22,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-76",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.86,
+   "specific": 0.68,
+   "derivable": 0.55,
+   "common": 0.89
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-77",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.16,
+   "specific": 0.81,
+   "derivable": 0.31,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-78",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.77,
+   "specific": 0.94,
+   "derivable": 0.59,
+   "common": 0.06
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-79",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.93,
+   "specific": 0.42,
+   "derivable": 0.5,
+   "common": 0.96
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-80",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.2,
+   "specific": 0.96,
+   "derivable": 0.56,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-81",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.41,
+   "specific": 0.23,
+   "derivable": 0.49,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-82",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.73,
+   "specific": 0.66,
+   "derivable": 0.47,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-83",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.76,
+   "specific": 0.89,
+   "derivable": 0.7,
+   "common": 0.04
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-84",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.04,
+   "specific": 0.26,
+   "derivable": 0.17,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-85",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.81,
+   "specific": 0.12,
+   "derivable": 0.35,
+   "common": 0.83
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-86",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.58,
+   "specific": 0.53,
+   "derivable": 0.48,
+   "common": 0.09
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-87",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.88,
+   "specific": 0.66,
+   "derivable": 0.82,
+   "common": 0.06
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-88",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.18,
+   "specific": 0.43,
+   "derivable": 0.23,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-89",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.88,
+   "specific": 0.76,
+   "derivable": 0.37,
+   "common": 0.93
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-90",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.59,
+   "specific": 0.78,
+   "derivable": 0.67,
+   "common": 0.05
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-91",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.1,
+   "specific": 0.07,
+   "derivable": 0.13,
+   "common": 0.08
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-92",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.64,
+   "specific": 0.65,
+   "derivable": 0.52,
+   "common": 0.05
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-93",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.65,
+   "specific": 0.88,
+   "derivable": 0.58,
+   "common": 0.05
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-94",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.21,
+   "specific": 0.06,
+   "derivable": 0.2,
+   "common": 0.1
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-95",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.41,
+   "specific": 0.82,
+   "derivable": 0.66,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-96",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.87,
+   "specific": 0.54,
+   "derivable": 0.43,
+   "common": 0.8
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-97",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.78,
+   "specific": 0.91,
+   "derivable": 0.65,
+   "common": 0.03
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-98",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.05,
+   "specific": 0.4,
+   "derivable": 0.41,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-99",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.66,
+   "specific": 0.92,
+   "derivable": 0.61,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-100",
+  "batch": "old",
+  "family": "-",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.82,
+   "specific": 0.72,
+   "derivable": 0.67,
+   "common": 0.08
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-201",
+  "batch": "new",
+  "family": "A instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.91,
+   "specific": 0.53,
+   "derivable": 0.48,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-202",
+  "batch": "new",
+  "family": "A instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.89,
+   "specific": 0.13,
+   "derivable": 0.36,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "store"
+ },
+ {
+  "id": "mw-203",
+  "batch": "new",
+  "family": "A instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.9,
+   "specific": 0.67,
+   "derivable": 0.44,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-204",
+  "batch": "new",
+  "family": "A instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.83,
+   "specific": 0.48,
+   "derivable": 0.5,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-205",
+  "batch": "new",
+  "family": "A instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.9,
+   "specific": 0.43,
+   "derivable": 0.44,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-206",
+  "batch": "new",
+  "family": "A instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.85,
+   "specific": 0.62,
+   "derivable": 0.32,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-207",
+  "batch": "new",
+  "family": "A instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.87,
+   "specific": 0.3,
+   "derivable": 0.33,
+   "common": 0.12
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-208",
+  "batch": "new",
+  "family": "A instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.81,
+   "specific": 0.28,
+   "derivable": 0.39,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-209",
+  "batch": "new",
+  "family": "A instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.86,
+   "specific": 0.6,
+   "derivable": 0.45,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-210",
+  "batch": "new",
+  "family": "A instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.88,
+   "specific": 0.34,
+   "derivable": 0.52,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-211",
+  "batch": "new",
+  "family": "A instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.9,
+   "specific": 0.43,
+   "derivable": 0.39,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-212",
+  "batch": "new",
+  "family": "A instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.85,
+   "specific": 0.37,
+   "derivable": 0.48,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-213",
+  "batch": "new",
+  "family": "B general knowledge",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.92,
+   "specific": 0.89,
+   "derivable": 0.5,
+   "common": 0.99
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-214",
+  "batch": "new",
+  "family": "B general knowledge",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.92,
+   "specific": 0.53,
+   "derivable": 0.48,
+   "common": 0.97
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-215",
+  "batch": "new",
+  "family": "B general knowledge",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.94,
+   "specific": 0.82,
+   "derivable": 0.63,
+   "common": 0.97
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-216",
+  "batch": "new",
+  "family": "B general knowledge",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.82,
+   "specific": 0.24,
+   "derivable": 0.39,
+   "common": 0.95
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-217",
+  "batch": "new",
+  "family": "B general knowledge",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.95,
+   "specific": 0.37,
+   "derivable": 0.52,
+   "common": 0.98
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-218",
+  "batch": "new",
+  "family": "B general knowledge",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.93,
+   "specific": 0.9,
+   "derivable": 0.53,
+   "common": 0.98
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-219",
+  "batch": "new",
+  "family": "B general knowledge",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.88,
+   "specific": 0.09,
+   "derivable": 0.43,
+   "common": 0.97
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-220",
+  "batch": "new",
+  "family": "B general knowledge",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.95,
+   "specific": 0.11,
+   "derivable": 0.46,
+   "common": 0.98
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-221",
+  "batch": "new",
+  "family": "B general knowledge",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.91,
+   "specific": 0.54,
+   "derivable": 0.45,
+   "common": 0.98
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-222",
+  "batch": "new",
+  "family": "B general knowledge",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.9,
+   "specific": 0.38,
+   "derivable": 0.42,
+   "common": 0.97
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-223",
+  "batch": "new",
+  "family": "B general knowledge",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.92,
+   "specific": 0.37,
+   "derivable": 0.48,
+   "common": 0.95
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-224",
+  "batch": "new",
+  "family": "B general knowledge",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.93,
+   "specific": 0.31,
+   "derivable": 0.44,
+   "common": 0.94
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-225",
+  "batch": "new",
+  "family": "C findings",
+  "expected": "store",
+  "answers": {
+   "durable": 0.85,
+   "specific": 0.67,
+   "derivable": 0.23,
+   "common": 0.35
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-226",
+  "batch": "new",
+  "family": "C findings",
+  "expected": "store",
+  "answers": {
+   "durable": 0.85,
+   "specific": 0.34,
+   "derivable": 0.34,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-227",
+  "batch": "new",
+  "family": "C findings",
+  "expected": "store",
+  "answers": {
+   "durable": 0.85,
+   "specific": 0.85,
+   "derivable": 0.18,
+   "common": 0.05
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-228",
+  "batch": "new",
+  "family": "C findings",
+  "expected": "store",
+  "answers": {
+   "durable": 0.89,
+   "specific": 0.57,
+   "derivable": 0.43,
+   "common": 0.08
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-229",
+  "batch": "new",
+  "family": "C findings",
+  "expected": "store",
+  "answers": {
+   "durable": 0.78,
+   "specific": 0.89,
+   "derivable": 0.3,
+   "common": 0.03
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-230",
+  "batch": "new",
+  "family": "C findings",
+  "expected": "store",
+  "answers": {
+   "durable": 0.68,
+   "specific": 0.78,
+   "derivable": 0.44,
+   "common": 0.06
+  },
+  "shipped": "store",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-231",
+  "batch": "new",
+  "family": "C findings",
+  "expected": "store",
+  "answers": {
+   "durable": 0.88,
+   "specific": 0.78,
+   "derivable": 0.23,
+   "common": 0.1
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-232",
+  "batch": "new",
+  "family": "C findings",
+  "expected": "store",
+  "answers": {
+   "durable": 0.85,
+   "specific": 0.63,
+   "derivable": 0.42,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-233",
+  "batch": "new",
+  "family": "C findings",
+  "expected": "store",
+  "answers": {
+   "durable": 0.59,
+   "specific": 0.83,
+   "derivable": 0.3,
+   "common": 0.06
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-234",
+  "batch": "new",
+  "family": "C findings",
+  "expected": "store",
+  "answers": {
+   "durable": 0.82,
+   "specific": 0.65,
+   "derivable": 0.27,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-235",
+  "batch": "new",
+  "family": "C findings",
+  "expected": "store",
+  "answers": {
+   "durable": 0.88,
+   "specific": 0.59,
+   "derivable": 0.36,
+   "common": 0.36
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-236",
+  "batch": "new",
+  "family": "C findings",
+  "expected": "store",
+  "answers": {
+   "durable": 0.75,
+   "specific": 0.61,
+   "derivable": 0.37,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-237",
+  "batch": "new",
+  "family": "D transient",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.07,
+   "specific": 0.07,
+   "derivable": 0.24,
+   "common": 0.06
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-238",
+  "batch": "new",
+  "family": "D transient",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.19,
+   "specific": 0.04,
+   "derivable": 0.45,
+   "common": 0.06
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-239",
+  "batch": "new",
+  "family": "D transient",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.71,
+   "specific": 0.02,
+   "derivable": 0.16,
+   "common": 0.19
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-240",
+  "batch": "new",
+  "family": "D transient",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.06,
+   "specific": 0.23,
+   "derivable": 0.29,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-241",
+  "batch": "new",
+  "family": "D transient",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.09,
+   "specific": 0.18,
+   "derivable": 0.2,
+   "common": 0.06
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-242",
+  "batch": "new",
+  "family": "D transient",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.09,
+   "specific": 0.67,
+   "derivable": 0.25,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-243",
+  "batch": "new",
+  "family": "D transient",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.07,
+   "specific": 0.05,
+   "derivable": 0.15,
+   "common": 0.09
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-244",
+  "batch": "new",
+  "family": "D transient",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.69,
+   "specific": 0.03,
+   "derivable": 0.2,
+   "common": 0.13
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-245",
+  "batch": "new",
+  "family": "D transient",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.23,
+   "specific": 0.1,
+   "derivable": 0.52,
+   "common": 0.06
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-246",
+  "batch": "new",
+  "family": "D transient",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.19,
+   "specific": 0.18,
+   "derivable": 0.21,
+   "common": 0.06
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-247",
+  "batch": "new",
+  "family": "D transient",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.1,
+   "specific": 0.4,
+   "derivable": 0.23,
+   "common": 0.09
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-248",
+  "batch": "new",
+  "family": "D transient",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.11,
+   "specific": 0.2,
+   "derivable": 0.37,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-301",
+  "batch": "new2",
+  "family": "E pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.69,
+   "specific": 0.03,
+   "derivable": 0.24,
+   "common": 0.14
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-302",
+  "batch": "new2",
+  "family": "E pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.77,
+   "specific": 0.03,
+   "derivable": 0.16,
+   "common": 0.36
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-303",
+  "batch": "new2",
+  "family": "E pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.7,
+   "specific": 0.04,
+   "derivable": 0.2,
+   "common": 0.08
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-304",
+  "batch": "new2",
+  "family": "E pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.77,
+   "specific": 0.04,
+   "derivable": 0.27,
+   "common": 0.28
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-305",
+  "batch": "new2",
+  "family": "E pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.61,
+   "specific": 0.02,
+   "derivable": 0.33,
+   "common": 0.15
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-306",
+  "batch": "new2",
+  "family": "E pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.8,
+   "specific": 0.03,
+   "derivable": 0.17,
+   "common": 0.61
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-307",
+  "batch": "new2",
+  "family": "E pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.34,
+   "specific": 0.02,
+   "derivable": 0.15,
+   "common": 0.59
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-308",
+  "batch": "new2",
+  "family": "E pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.45,
+   "specific": 0.02,
+   "derivable": 0.21,
+   "common": 0.46
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-309",
+  "batch": "new2",
+  "family": "E pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.69,
+   "specific": 0.03,
+   "derivable": 0.22,
+   "common": 0.11
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-310",
+  "batch": "new2",
+  "family": "E pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.54,
+   "specific": 0.03,
+   "derivable": 0.14,
+   "common": 0.08
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-311",
+  "batch": "new2",
+  "family": "E pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.73,
+   "specific": 0.03,
+   "derivable": 0.4,
+   "common": 0.26
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-312",
+  "batch": "new2",
+  "family": "E pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.84,
+   "specific": 0.04,
+   "derivable": 0.29,
+   "common": 0.06
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-313",
+  "batch": "new2",
+  "family": "F instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.88,
+   "specific": 0.46,
+   "derivable": 0.4,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-314",
+  "batch": "new2",
+  "family": "F instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.89,
+   "specific": 0.13,
+   "derivable": 0.36,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "store"
+ },
+ {
+  "id": "mw-315",
+  "batch": "new2",
+  "family": "F instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.89,
+   "specific": 0.28,
+   "derivable": 0.45,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-316",
+  "batch": "new2",
+  "family": "F instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.76,
+   "specific": 0.34,
+   "derivable": 0.41,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-317",
+  "batch": "new2",
+  "family": "F instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.9,
+   "specific": 0.27,
+   "derivable": 0.43,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-318",
+  "batch": "new2",
+  "family": "F instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.74,
+   "specific": 0.6,
+   "derivable": 0.42,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-319",
+  "batch": "new2",
+  "family": "F instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.81,
+   "specific": 0.5,
+   "derivable": 0.5,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-320",
+  "batch": "new2",
+  "family": "F instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.85,
+   "specific": 0.38,
+   "derivable": 0.44,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-321",
+  "batch": "new2",
+  "family": "F instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.74,
+   "specific": 0.38,
+   "derivable": 0.41,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-322",
+  "batch": "new2",
+  "family": "F instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.84,
+   "specific": 0.42,
+   "derivable": 0.48,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-323",
+  "batch": "new2",
+  "family": "F instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.72,
+   "specific": 0.34,
+   "derivable": 0.42,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-324",
+  "batch": "new2",
+  "family": "F instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.78,
+   "specific": 0.45,
+   "derivable": 0.47,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-325",
+  "batch": "new2",
+  "family": "H verbatim of a held document",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.77,
+   "specific": 0.92,
+   "derivable": 0.78,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-326",
+  "batch": "new2",
+  "family": "H verbatim of a held document",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.67,
+   "specific": 0.87,
+   "derivable": 0.8,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-327",
+  "batch": "new2",
+  "family": "H verbatim of a held document",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.66,
+   "specific": 0.53,
+   "derivable": 0.58,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-328",
+  "batch": "new2",
+  "family": "H verbatim of a held document",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.74,
+   "specific": 0.81,
+   "derivable": 0.83,
+   "common": 0.04
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-329",
+  "batch": "new2",
+  "family": "H verbatim of a held document",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.65,
+   "specific": 0.72,
+   "derivable": 0.67,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-330",
+  "batch": "new2",
+  "family": "H verbatim of a held document",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.65,
+   "specific": 0.9,
+   "derivable": 0.85,
+   "common": 0.05
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-331",
+  "batch": "new2",
+  "family": "H verbatim of a held document",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.83,
+   "specific": 0.82,
+   "derivable": 0.67,
+   "common": 0.04
+  },
+  "shipped": "store",
+  "shipped_on_4q": "store",
+  "P1": "store",
+  "P2": "store",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-332",
+  "batch": "new2",
+  "family": "H verbatim of a held document",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.66,
+   "specific": 0.53,
+   "derivable": 0.72,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-333",
+  "batch": "new2",
+  "family": "H verbatim of a held document",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.76,
+   "specific": 0.63,
+   "derivable": 0.55,
+   "common": 0.05
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-334",
+  "batch": "new2",
+  "family": "H verbatim of a held document",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.77,
+   "specific": 0.48,
+   "derivable": 0.71,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-335",
+  "batch": "new2",
+  "family": "H verbatim of a held document",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.68,
+   "specific": 0.45,
+   "derivable": 0.74,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-336",
+  "batch": "new2",
+  "family": "H verbatim of a held document",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.65,
+   "specific": 0.87,
+   "derivable": 0.7,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-401",
+  "batch": "new3",
+  "family": "E2 pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.36,
+   "specific": 0.02,
+   "derivable": 0.14,
+   "common": 0.34
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-402",
+  "batch": "new3",
+  "family": "E2 pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.76,
+   "specific": 0.03,
+   "derivable": 0.26,
+   "common": 0.38
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-403",
+  "batch": "new3",
+  "family": "E2 pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.68,
+   "specific": 0.04,
+   "derivable": 0.32,
+   "common": 0.1
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-404",
+  "batch": "new3",
+  "family": "E2 pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.73,
+   "specific": 0.03,
+   "derivable": 0.24,
+   "common": 0.1
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-405",
+  "batch": "new3",
+  "family": "E2 pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.37,
+   "specific": 0.04,
+   "derivable": 0.3,
+   "common": 0.14
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-406",
+  "batch": "new3",
+  "family": "E2 pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.82,
+   "specific": 0.04,
+   "derivable": 0.29,
+   "common": 0.26
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-407",
+  "batch": "new3",
+  "family": "E2 pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.22,
+   "specific": 0.02,
+   "derivable": 0.09,
+   "common": 0.35
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-408",
+  "batch": "new3",
+  "family": "E2 pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.18,
+   "specific": 0.02,
+   "derivable": 0.16,
+   "common": 0.19
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-409",
+  "batch": "new3",
+  "family": "E2 pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.67,
+   "specific": 0.04,
+   "derivable": 0.17,
+   "common": 0.08
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-410",
+  "batch": "new3",
+  "family": "E2 pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.68,
+   "specific": 0.02,
+   "derivable": 0.18,
+   "common": 0.6
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-411",
+  "batch": "new3",
+  "family": "E2 pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.61,
+   "specific": 0.02,
+   "derivable": 0.22,
+   "common": 0.12
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-412",
+  "batch": "new3",
+  "family": "E2 pointers",
+  "expected": "skip",
+  "answers": {
+   "durable": 0.77,
+   "specific": 0.03,
+   "derivable": 0.15,
+   "common": 0.71
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-413",
+  "batch": "new3",
+  "family": "F2 instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.87,
+   "specific": 0.42,
+   "derivable": 0.45,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-414",
+  "batch": "new3",
+  "family": "F2 instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.82,
+   "specific": 0.41,
+   "derivable": 0.4,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-415",
+  "batch": "new3",
+  "family": "F2 instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.88,
+   "specific": 0.32,
+   "derivable": 0.41,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-416",
+  "batch": "new3",
+  "family": "F2 instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.9,
+   "specific": 0.43,
+   "derivable": 0.42,
+   "common": 0.03
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-417",
+  "batch": "new3",
+  "family": "F2 instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.88,
+   "specific": 0.04,
+   "derivable": 0.36,
+   "common": 0.24
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-418",
+  "batch": "new3",
+  "family": "F2 instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.62,
+   "specific": 0.37,
+   "derivable": 0.42,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "skip",
+  "P2": "skip",
+  "P3": "skip",
+  "P4": "skip"
+ },
+ {
+  "id": "mw-419",
+  "batch": "new3",
+  "family": "F2 instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.74,
+   "specific": 0.29,
+   "derivable": 0.45,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-420",
+  "batch": "new3",
+  "family": "F2 instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.84,
+   "specific": 0.54,
+   "derivable": 0.45,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-421",
+  "batch": "new3",
+  "family": "F2 instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.81,
+   "specific": 0.45,
+   "derivable": 0.5,
+   "common": 0.05
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-422",
+  "batch": "new3",
+  "family": "F2 instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.91,
+   "specific": 0.48,
+   "derivable": 0.51,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-423",
+  "batch": "new3",
+  "family": "F2 instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.89,
+   "specific": 0.45,
+   "derivable": 0.41,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ },
+ {
+  "id": "mw-424",
+  "batch": "new3",
+  "family": "F2 instructions",
+  "expected": "store",
+  "answers": {
+   "durable": 0.86,
+   "specific": 0.27,
+   "derivable": 0.45,
+   "common": 0.02
+  },
+  "shipped": "skip",
+  "shipped_on_4q": "skip",
+  "P1": "store",
+  "P2": "skip",
+  "P3": "store",
+  "P4": "store"
+ }
+]

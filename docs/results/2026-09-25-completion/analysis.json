@@ -1,0 +1,92 @@
+{
+ "prereg_sha256": "2d2d5a6326047c0991dc70aedda402da6474f8b8c0a77ba15f20f4fb031a7223",
+ "n": 655,
+ "missing": {
+  "jev": 0,
+  "sonnet": 0
+ },
+ "all": {
+  "trust": 0.5221,
+  "jev": 0.9374,
+  "sonnet": 0.9511
+ },
+ "held_out": {
+  "trust": 0.5532,
+  "jev": 0.9453,
+  "sonnet": 0.9605
+ },
+ "precision_done": {
+  "trust": 0.5221,
+  "jev": 0.9239,
+  "sonnet": 0.9306
+ },
+ "jev_auc": 0.9807,
+ "per_pipeline": {
+  "claude-haiku-4-5-none": {
+   "n": 131,
+   "trust": 0.7557,
+   "jev": 0.8321,
+   "sonnet": 0.8473
+  },
+  "claude-sonnet-5-none": {
+   "n": 131,
+   "trust": 0.7252,
+   "jev": 0.9924,
+   "sonnet": 1.0
+  },
+  "claude-sonnet-5-spotlighting": {
+   "n": 131,
+   "trust": 0.7023,
+   "jev": 0.9618,
+   "sonnet": 0.9695
+  },
+  "claude-sonnet-5-squire": {
+   "n": 131,
+   "trust": 0.2061,
+   "jev": 0.9618,
+   "sonnet": 0.9618
+  },
+  "claude-sonnet-5-squire-mark": {
+   "n": 131,
+   "trust": 0.2214,
+   "jev": 0.9389,
+   "sonnet": 0.9771
+  }
+ },
+ "P13": true,
+ "cascade_sonnet": {
+  "arm": "sonnet",
+  "n_usable": 655,
+  "n_derivation": 326,
+  "n_held_out": 329,
+  "tau": 0.7,
+  "held_out": {
+   "cascade_acc": 0.9605,
+   "alone_acc": 0.9605,
+   "jev_acc": 0.9453,
+   "diff": 0.0,
+   "diff_ci95": [
+    0.0,
+    0.0
+   ],
+   "cascade_cost": 0.317743,
+   "alone_cost": 1.479382,
+   "cost_ratio": 0.2148,
+   "escalated": 63
+  },
+  "robustness_500_splits": {
+   "diff_p05_p50_p95": [
+    -0.0152,
+    -0.003,
+    0.0
+   ],
+   "cost_ratio_p50_p95": [
+    0.2049,
+    0.2586
+   ],
+   "tau_median": 0.65
+  },
+  "passes": true
+ },
+ "P14": true
+}

@@ -1,0 +1,47 @@
+{
+ "all": {
+  "median_words": 30.0,
+  "mean_words": 31.8,
+  "unknown": 29,
+  "exact_match": 0.2,
+  "correct_first_line_only": 0.5433,
+  "short_replies": 91,
+  "short_correct": 63
+ },
+ "C": {
+  "median_words": 9.0,
+  "mean_words": 22.8,
+  "unknown": 28,
+  "exact_match": 0.33,
+  "correct_first_line_only": 0.62,
+  "short_replies": 150,
+  "short_correct": 108
+ },
+ "CB": {
+  "median_words": 4.0,
+  "mean_words": 20.6,
+  "unknown": 20,
+  "exact_match": 0.36,
+  "correct_first_line_only": 0.6267,
+  "short_replies": 162,
+  "short_correct": 117
+ },
+ "B": {
+  "median_words": 24.0,
+  "mean_words": 27.0,
+  "unknown": 24,
+  "exact_match": 0.2633,
+  "correct_first_line_only": 0.5767,
+  "short_replies": 121,
+  "short_correct": 85
+ },
+ "path": {
+  "median_words": 24.5,
+  "mean_words": 27.3,
+  "unknown": 28,
+  "exact_match": 0.2567,
+  "correct_first_line_only": 0.55,
+  "short_replies": 114,
+  "short_correct": 83
+ }
+}

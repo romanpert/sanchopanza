@@ -1,0 +1,115 @@
+{
+ "prereg_sha256": "16dc268bff0bd6230acde945c92e87c4d783c3c6f69cf55323d459f299a0a321",
+ "n": 300,
+ "arms": {
+  "shipped": {
+   "knob": 0.0,
+   "held_out": {
+    "joint_recall": 0.1589,
+    "gold_recall": 0.4702,
+    "kept_share": 0.128,
+    "n": 151
+   },
+   "held_out_bridge": {
+    "joint_recall": 0.192,
+    "gold_recall": 0.54,
+    "kept_share": 0.1503,
+    "n": 125
+   },
+   "held_out_comparison": {
+    "joint_recall": 0.0,
+    "gold_recall": 0.1346,
+    "kept_share": 0.0209,
+    "n": 26
+   }
+  },
+  "shipped_derived": {
+   "knob": 0.05,
+   "held_out": {
+    "joint_recall": 0.9073,
+    "gold_recall": 0.9536,
+    "kept_share": 0.5562,
+    "n": 151
+   },
+   "held_out_bridge": {
+    "joint_recall": 0.888,
+    "gold_recall": 0.944,
+    "kept_share": 0.5376,
+    "n": 125
+   },
+   "held_out_comparison": {
+    "joint_recall": 1.0,
+    "gold_recall": 1.0,
+    "kept_share": 0.6458,
+    "n": 26
+   }
+  },
+  "contribution": {
+   "knob": 0.25,
+   "held_out": {
+    "joint_recall": 0.9603,
+    "gold_recall": 0.9801,
+    "kept_share": 0.5603,
+    "n": 151
+   },
+   "held_out_bridge": {
+    "joint_recall": 0.968,
+    "gold_recall": 0.984,
+    "kept_share": 0.5278,
+    "n": 125
+   },
+   "held_out_comparison": {
+    "joint_recall": 0.9231,
+    "gold_recall": 0.9615,
+    "kept_share": 0.7163,
+    "n": 26
+   }
+  },
+  "set": {
+   "knob": 0.0,
+   "held_out": {
+    "joint_recall": 1.0,
+    "gold_recall": 1.0,
+    "kept_share": 1.0,
+    "n": 151
+   },
+   "held_out_bridge": {
+    "joint_recall": 1.0,
+    "gold_recall": 1.0,
+    "kept_share": 1.0,
+    "n": 125
+   },
+   "held_out_comparison": {
+    "joint_recall": 1.0,
+    "gold_recall": 1.0,
+    "kept_share": 1.0,
+    "n": 26
+   }
+  },
+  "bm25": {
+   "knob": 10.0,
+   "held_out": {
+    "joint_recall": 1.0,
+    "gold_recall": 1.0,
+    "kept_share": 1.0,
+    "n": 151
+   },
+   "held_out_bridge": {
+    "joint_recall": 1.0,
+    "gold_recall": 1.0,
+    "kept_share": 1.0,
+    "n": 125
+   },
+   "held_out_comparison": {
+    "joint_recall": 1.0,
+    "gold_recall": 1.0,
+    "kept_share": 1.0,
+    "n": 26
+   }
+  }
+ },
+ "P3": false,
+ "P4": false,
+ "P5": false,
+ "verdict": "negative"
+}

@@ -1,8 +1,30 @@
 """The fifty-cases-per-point bench, replayed from its recording.
 
-No network: every decision comes from `fixtures/new-points-50.jsonl`, a recording of the run
-of 2026-09-24. These tests pin what that run established, so that a change to a question, a
-threshold or a label has to be deliberate and shows up as a failing test:
+No network: every decision comes from `fixtures/new-points-50-v2.jsonl`, which is the
+recording of 2026-09-24 plus the re-recording made after that day's two structural fixes.
+These tests pin what the bench establishes, so that a change to a question, a threshold or a
+label has to be deliberate and shows up as a failing test.
+
+The gap between the shipped policy and a plain 0.5 cut on this bench is explained by two
+different causes, established on a third batch large enough to derive a threshold:
+
+- `redundant_page` read `t.redundant`, the knob the *search* point uses for a repeated query,
+  on the stated theory that they are "the same reading". Derivation on 75 new cases refuted
+  it: 0.80 scores 26/34 here, its own derived 0.59 scores 33/34, with 100 % precision and
+  92 % recall held out on a different batch. Fixed, and it is the first threshold in this
+  repository that was derived rather than chosen. 26/34 -> 33/34.
+- `memory_write` was NOT a threshold. Its losses are one family - standing instructions from
+  the client - killed by the `specific` gate while `durable` scores them 0.80 to 0.88. The
+  obvious patch (widen `specific`) was tried, measured and reverted: it reaches 88/100 by
+  turning 5 costly-direction errors into 8, because the narrow gate had been filtering
+  general knowledge as a side effect. `points/memory.py` records the defect and what it
+  actually needs. Its cut was then derived on 100 cases to an 80 % precision target and
+  checked on a held-out half (`docs/results/2026-09-27-memory-write-cut/`): one cut of 0.54 on
+  the weakest margin, 29/34 here, every error still a refusal to store.
+
+Total 200/212 against 202 at a plain cut: the gap is two decisions, and it was twelve.
+
+What the tests pin:
 
 1. the agreement per point on the harder cases;
 2. **the gap between what the model orders correctly and what the shipped thresholds act
@@ -26,7 +48,7 @@ from sanchopanza.providers import RecordedDecider
 
 ROOT = Path(__file__).resolve().parents[1]
 BENCHES = ROOT / "benches"
-FIXTURE = ROOT / "fixtures" / "new-points-50.jsonl"
+FIXTURE = ROOT / "fixtures" / "new-points-50-v2.jsonl"
 FILES = ["loop-b.jsonl", "memory-b.jsonl", "graph-build-b.jsonl", "retrieval-b.jsonl"]
 BINARY = ("extract_gate", "goal_met", "memory_write", "recall", "redundant_page", "repeats_check")
 
@@ -44,7 +66,7 @@ def test_the_recording_covers_the_whole_bench(run):
     summary, _ = run
     assert summary["cases"] == 212
     assert summary["calls"] == 212
-    assert summary["cost_usd"] / summary["calls"] < 3e-5  # 28.3 millionths of a dollar
+    assert summary["cost_usd"] / summary["calls"] < 3e-5  # 28.4 millionths of a dollar
 
 
 def test_every_binary_point_reaches_fifty_with_the_first_batch(run):
@@ -63,26 +85,29 @@ def test_every_binary_point_reaches_fifty_with_the_first_batch(run):
 def test_agreement_per_point_reproduces(run):
     points = run[0]["points"]
     assert points["extract_gate"]["hits"] == 30
-    assert points["goal_met"]["hits"] == 35
-    assert points["memory_write"]["hits"] == 26
+    assert points["goal_met"]["hits"] == 34  # at `saturated` 0.70; 35 was the 0.5 cut
+    assert points["memory_write"]["hits"] == 29  # 26 at 0.70 / 0.75; derived cut 0.54
     assert points["recall"]["hits"] == 36
-    assert points["redundant_page"]["hits"] == 26
-    assert points["repeats_check"]["hits"] == 37
-    assert sum(points[p]["hits"] for p in BINARY) == 190
+    assert points["redundant_page"]["hits"] == 33  # 26 while it shared search's knob
+    assert points["repeats_check"]["hits"] == 38  # at 0.70; the 0.5 cut had one false alarm
+    assert sum(points[p]["hits"] for p in BINARY) == 200  # 197 before the 0.54 cut
 
 
 def test_the_gap_against_a_plain_cut_reopened_on_the_hard_cases(run):
-    """190 under the policy, 202 at 0.5, and all of it in two points.
+    """200 under the policy, 202 at 0.5: the gap is two decisions, and it was twelve.
 
-    On the first 124 cases the 0.2.0 fix closed this gap to three decisions. It is back at
-    twelve here, and it is no longer the hidden-gate defect: it is two single thresholds,
-    0.70 and 0.80, declining to act. A tuning pass has to beat this number.
+    This test is the one that caught both structural defects, because it is the only place
+    that states the gap as a number instead of describing it. Its previous docstring
+    concluded the twelve-decision gap was "two single thresholds declining to act", which
+    was the wrong diagnosis and stayed wrong until a bigger sample made a derivation
+    possible. Kept here as a warning: a gap between an ordering and a policy is evidence
+    that something is mis-specified, not evidence about which thing.
     """
     _, results = run
     binary = [r for r in results if r.point in BINARY and r.probability is not None]
     at_half = sum(1 for r in binary if _predicted_at_half(r) == r.expected)
     assert at_half == 202
-    assert at_half - 190 == 12
+    assert at_half - 200 == 2
 
 
 def test_every_policy_error_is_a_refusal_to_act(run):

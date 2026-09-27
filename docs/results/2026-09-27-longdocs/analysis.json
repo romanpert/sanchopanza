@@ -1,0 +1,26 @@
+{
+ "papers": 300,
+ "paragraphs_per_paper": {
+  "mean": 48.9,
+  "max": 290
+ },
+ "evidence_per_question": 1.78,
+ "MANY": {
+  "all_evidence": 0.9467,
+  "any_evidence": 0.9833,
+  "kept_share": 0.4892,
+  "paragraphs_kept": 21.18,
+  "n": 300
+ },
+ "BM25_top22": {
+  "all_evidence": 0.7833,
+  "any_evidence": 0.91,
+  "kept_share": 0.6123,
+  "paragraphs_kept": 21.55,
+  "n": 300
+ },
+ "P28": false,
+ "P29_many_minus_bm25": 0.1634,
+ "P29": true,
+ "verdict": "see criteria"
+}
