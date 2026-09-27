@@ -9,6 +9,19 @@ do not favour this package.
 
 ### Added
 
+- **`Squire.select_passages`, for one long document**, and `select_sentences(window=)`.
+  The tournament over the paragraphs, then sentences with a window of two inside the
+  paragraphs it keeps at 0.75 or more (`Thresholds.document_paragraphs`,
+  `document_window`). Fixed on 261 recorded QASPER questions and confirmed on 219 new
+  ones: every answer sentence in 87.2 % at 21.0 % of the text, against 84.0 % at 30.2 %
+  for the plain two stages, with 59 % fewer sentence calls; Haiku 4.5 answered from it as
+  well as from the whole paper (F1 48.2 % against 44.5 %). `tests/test_select_passages_bench.py`
+  replays the 219 through the shipped method and demands the same sentences
+  (`docs/results/2026-09-28-lateral-wholedocs/`). `text.split_sentences` is the splitter.
+- **A lexical screen before one in-context call, measured and not shipped**
+  (`docs/results/2026-09-28-lateral-screen/`): BM25's top 30 of 100 pages then one
+  `triage_pages` call matched the tournament (96.0 % against 96.5 %) at 28 % of its cost,
+  with its registered bound held exactly at the edge; it loses 13 points on long papers.
 - **`Squire.triage_pages` and `Squire.select_sentences`**: every candidate page asked in one
   call with the others in view, one probability per page; then, inside the kept pages, one per
   sentence. Confirmed on 300 HotpotQA questions nothing was chosen on: 98.3 % of supporting pages
@@ -142,6 +155,18 @@ do not favour this package.
 
 ### Fixed
 
+- **The tournament asked the same group twice** when a round pruned only from later
+  groups and the survivors regrouped into an earlier group. Each tournament now reuses the
+  answers of a group it already asked. Replaying every recorded tournament keeps the same
+  pages with fewer calls: 60 of 1,359 on the 2026-09-27 QASPER run, 14 of 853 on the
+  whole-document confirmation (`docs/results/2026-09-28-lateral-memo/`).
+- **The content scan read nothing from Claude Code's built-in tools.** Claude Code hands
+  PostToolUse a `Read` result as `{"file": {"content"}}`, `WebFetch` as `{"result"}` and
+  `WebSearch` as `{"results"}`; `text_of` read all three as empty, so `--scan-content` never
+  scanned them. Found by the first end-to-end run inside Claude Code, fixed, and confirmed by a
+  registered run with the released hook: the planted file flagged 2/2 (p 0.98, 0.99), no
+  false alarm on benign reads (`docs/results/2026-09-28-claude-code-harness/`). Content fetched
+  with `curl` through Bash is still not scanned unless `Bash` is named in `--content-tools`.
 - **`triage_many`: a round that prunes nothing no longer asks the same groups again.** It
   reused Jev's non-determinism as a second opinion and broke replay; the round's answers are
   reused, and each page reports the last probability it got. The hierarchy result stands:
@@ -264,6 +289,18 @@ do not favour this package.
   over the 50 % criterion). Labelled as post hoc: tau 0.35 reaches 93.2 % (Opus 93.2 %) at
   25.2 % of the cost; prompt caching moves the ratio by at most 0.7 points; one-sided
   escalation does not help. The comparison with Sonnet 5 (P1, P2, P9) is not run.
+- **Inside Claude Code, end to end** (`docs/results/2026-09-28-claude-code-harness/`,
+  pre-registered, 24 headless sessions with Haiku 4.5 as the agent, with and without the
+  hooks): the guard denied both destructive commands that plain Claude Code executed (one by
+  the code deny-list, one by Jev at p 0.71-0.74), allowed the benign one, and the Stop check
+  blocked the unfinished task once while letting finished ones stop; zero false blocks. All
+  17 model decisions came from `jev-1.13.0` (about 0.00005 USD per session), 2 from code, none
+  from Claude. 8 of 9 criteria held; the ninth exposed the content-scan bug fixed above.
+- **The cascade against Sonnet 5: partial** (`docs/results/2026-09-28-cascade-sonnet/`, the
+  2026-09-25 primary verdicts, Sonnet through the Claude Code CLI). P1 (R-Judge) fails on cost:
+  92.3 % like Sonnet at 57.7 % of its cost (median 47.7 % over 500 re-splits). P2 (register)
+  holds: 81.4 % against 80.2 % at 46 %. P9 (Codex) holds: Jev alone matched Sonnet at 0.4 % of
+  the cost. 17.42 USD at list price against the subscription.
 - **The permission cascade, confirmed on unseen data** (`docs/results/2026-09-27-cascade-frontier/`,
   pre-registered: tau 0.45 from R-Judge, ATBench-Codex never shown to Opus, Opus 5 through the
   Claude Code CLI). Held-out half, of record: cascade 80.3 % against Opus 79.9 % at 38.8 % of

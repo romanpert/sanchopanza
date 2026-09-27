@@ -88,6 +88,14 @@ class Thresholds:
     # 96.5 % of questions keep both supporting pages at 3.1 % of the text, against 94.0 % at
     # 4.3 % for the groups alone and 50.5 % for BM25 (docs/results/2026-09-27-hierarchy/).
     pages_first_round: float = 0.18
+    # `Squire.select_passages`, one long document: only paragraphs the tournament scores
+    # at or above this reach the sentence stage, and each kept sentence brings
+    # `document_window` neighbours. Fixed on 261 QASPER questions, confirmed on 219 new
+    # ones: every answer sentence in 87.2 % at 21.0 % of the text
+    # (docs/results/2026-09-28-lateral-wholedocs/). Not for short pages: on HotpotQA it
+    # loses 7 points against `select_sentences` alone.
+    document_paragraphs: float = 0.75
+    document_window: int = 2
     injection: float = 0.70  # above this, a page is dropped and logged
     citation: float = 0.80  # confidence needed for an automatic citation verdict
     review: float = 0.70  # signal needed before the squire speaks about a report
@@ -152,7 +160,7 @@ class Thresholds:
                 continue
             if key == "allow_upgrade":
                 values[key] = _as_bool(value)
-            elif key in ("max_decisions", "max_windows"):
+            elif key in ("max_decisions", "max_windows", "document_window"):
                 values[key] = int(value)
             else:
                 values[key] = float(value)

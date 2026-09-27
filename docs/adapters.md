@@ -50,7 +50,7 @@ through `create_sdk_mcp_server` in your harness if you want them in-process.
 
 ## Claude Code (command hook)
 
-Status: **tested** (stdin JSON to stdout JSON through `handle()`; environment parsing).
+Status: **run end to end** in Claude Code 2.1, installed with `sanchopanza install --write`: 24 headless sessions pre-registered, plus a registered confirmation of the content-scan fix (`docs/results/2026-09-28-claude-code-harness/`). Every model decision came from the `jev` provider; Claude was only the agent being guarded. Each hook call pays 1 to 2 s of Python start-up on Windows before any decision.
 
 `sanchopanza hook` is a process per event. Configuration is by environment variables (see
 `examples/claude_code/README.md`). Same output shapes as the SDK. The hook exits 0 and prints

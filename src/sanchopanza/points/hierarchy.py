@@ -61,14 +61,24 @@ class Tournament:
 
 
 async def _judge_all(
-    ids: list[int], judge: Judge, size: int
+    ids: list[int],
+    judge: Judge,
+    size: int,
+    seen: dict[tuple[int, ...], list[float | None]] | None = None,
 ) -> tuple[dict[int, float | None], int]:
+    # A round that prunes only from later groups can regroup the survivors into a group an
+    # earlier round already asked. Its answers are reused: asking again buys only the
+    # decider's noise and makes a replay diverge (docs/results/2026-09-28-lateral-memo/).
+    seen = {} if seen is None else seen
     parts = [[ids[i] for i in g] for g in groups(len(ids), size)]
-    answers = await asyncio.gather(*(judge(part) for part in parts))
+    fresh = [part for part in parts if tuple(part) not in seen]
+    answers = await asyncio.gather(*(judge(part) for part in fresh))
+    for part, ps in zip(fresh, answers, strict=True):
+        seen[tuple(part)] = list(ps)
     probs: dict[int, float | None] = {}
-    for part, ps in zip(parts, answers, strict=True):
-        probs.update(zip(part, ps, strict=True))
-    return probs, len(parts)
+    for part in parts:
+        probs.update(zip(part, seen[tuple(part)], strict=True))
+    return probs, len(fresh)
 
 
 def _passes(p: float | None, cut: float) -> bool:
@@ -89,9 +99,10 @@ async def tournament(
     first: dict[int, float | None] = {}
     last: dict[int, float | None] = {}
     stalled: dict[int, float | None] | None = None
+    seen: dict[tuple[int, ...], list[float | None]] = {}
     calls = rounds = 0
     while len(candidates) > size and rounds < MAX_ROUNDS:
-        probs, used = await _judge_all(candidates, judge, size)
+        probs, used = await _judge_all(candidates, judge, size, seen)
         calls += used
         rounds += 1
         for i, p in probs.items():
@@ -108,7 +119,7 @@ async def tournament(
     if stalled is not None:
         final, used = stalled, 0
     else:
-        final, used = await _judge_all(candidates, judge, size) if candidates else ({}, 0)
+        final, used = await _judge_all(candidates, judge, size, seen) if candidates else ({}, 0)
     calls += used
     last.update(final)
     pages = []

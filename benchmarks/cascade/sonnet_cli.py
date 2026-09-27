@@ -60,9 +60,7 @@ def prompt_of(case: dict[str, Any]) -> str:
     return "state:\n" + json.dumps(case["state"], ensure_ascii=False, default=str)
 
 
-async def ask(
-    cases: list[dict[str, Any]], live: bool, ceiling: float
-) -> dict[str, dict[str, Any]]:
+async def ask(cases: list[dict[str, Any]], live: bool, ceiling: float) -> dict[str, dict[str, Any]]:
     cache = SessionCache(CACHE)
     cli = ClaudeCLI(model=MODEL, system=SYSTEM, ceiling_usd=ceiling, cache=cache, concurrency=6)
     done = 0

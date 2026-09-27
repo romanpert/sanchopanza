@@ -1,0 +1,226 @@
+{
+ "rule": {
+  "gate": 0.75,
+  "cut": 0.28,
+  "window": 2
+ },
+ "questions": 219,
+ "by_set": {
+  "fresh": 89,
+  "second": 130
+ },
+ "pooled": {
+  "MS_shipped": {
+   "all_gold": 0.8402,
+   "any_gold": 0.9635,
+   "kept_share": 0.3024,
+   "n": 219,
+   "all_gold_hits": 184,
+   "all_gold_ci95": [
+    0.7858,
+    0.8828
+   ]
+  },
+  "GW_frozen": {
+   "all_gold": 0.8721,
+   "any_gold": 0.9132,
+   "kept_share": 0.21,
+   "n": 219,
+   "all_gold_hits": 191,
+   "all_gold_ci95": [
+    0.8214,
+    0.91
+   ]
+  },
+  "W_window_only": {
+   "all_gold": 0.9315,
+   "any_gold": 0.9726,
+   "kept_share": 0.3971,
+   "n": 219,
+   "all_gold_hits": 204,
+   "all_gold_ci95": [
+    0.8901,
+    0.9581
+   ]
+  },
+  "G_gate_only": {
+   "all_gold": 0.7854,
+   "any_gold": 0.9041,
+   "kept_share": 0.1727,
+   "n": 219,
+   "all_gold_hits": 172,
+   "all_gold_ci95": [
+    0.7263,
+    0.8346
+   ]
+  },
+  "BM25_sentences_at_GW_text": {
+   "all_gold": 0.4338,
+   "any_gold": 0.6895,
+   "kept_share": 0.2148,
+   "n": 219,
+   "all_gold_hits": 95,
+   "all_gold_ci95": [
+    0.3699,
+    0.5
+   ]
+  },
+  "GW_minus_MS": {
+   "all_gold": 0.032,
+   "ci95": [
+    -0.0183,
+    0.0822
+   ],
+   "only_GW": 19,
+   "only_MS": 12,
+   "mcnemar_p": 0.281,
+   "text_points": -0.0924
+  }
+ },
+ "fresh_only": {
+  "MS_shipped": {
+   "all_gold": 0.8652,
+   "any_gold": 0.9775,
+   "kept_share": 0.3141,
+   "n": 89,
+   "all_gold_hits": 77,
+   "all_gold_ci95": [
+    0.779,
+    0.9212
+   ]
+  },
+  "GW_frozen": {
+   "all_gold": 0.8764,
+   "any_gold": 0.9101,
+   "kept_share": 0.222,
+   "n": 89,
+   "all_gold_hits": 78,
+   "all_gold_ci95": [
+    0.7921,
+    0.9296
+   ]
+  },
+  "W_window_only": {
+   "all_gold": 0.9663,
+   "any_gold": 0.9775,
+   "kept_share": 0.4083,
+   "n": 89,
+   "all_gold_hits": 86,
+   "all_gold_ci95": [
+    0.9055,
+    0.9885
+   ]
+  },
+  "G_gate_only": {
+   "all_gold": 0.7865,
+   "any_gold": 0.9101,
+   "kept_share": 0.1849,
+   "n": 89,
+   "all_gold_hits": 70,
+   "all_gold_ci95": [
+    0.6905,
+    0.8589
+   ]
+  },
+  "BM25_sentences_at_GW_text": {
+   "all_gold": 0.3596,
+   "any_gold": 0.6517,
+   "kept_share": 0.2269,
+   "n": 89,
+   "all_gold_hits": 32,
+   "all_gold_ci95": [
+    0.2676,
+    0.4631
+   ]
+  },
+  "GW_minus_MS": {
+   "all_gold": 0.0112,
+   "ci95": [
+    -0.0787,
+    0.1011
+   ],
+   "only_GW": 8,
+   "only_MS": 7,
+   "mcnemar_p": 1.0,
+   "text_points": -0.0921
+  }
+ },
+ "second_only": {
+  "MS_shipped": {
+   "all_gold": 0.8231,
+   "any_gold": 0.9538,
+   "kept_share": 0.2944,
+   "n": 130,
+   "all_gold_hits": 107,
+   "all_gold_ci95": [
+    0.7485,
+    0.8791
+   ]
+  },
+  "GW_frozen": {
+   "all_gold": 0.8692,
+   "any_gold": 0.9154,
+   "kept_share": 0.2019,
+   "n": 130,
+   "all_gold_hits": 113,
+   "all_gold_ci95": [
+    0.8005,
+    0.9167
+   ]
+  },
+  "W_window_only": {
+   "all_gold": 0.9077,
+   "any_gold": 0.9692,
+   "kept_share": 0.3895,
+   "n": 130,
+   "all_gold_hits": 118,
+   "all_gold_ci95": [
+    0.8456,
+    0.9464
+   ]
+  },
+  "G_gate_only": {
+   "all_gold": 0.7846,
+   "any_gold": 0.9,
+   "kept_share": 0.1644,
+   "n": 130,
+   "all_gold_hits": 102,
+   "all_gold_ci95": [
+    0.7063,
+    0.8466
+   ]
+  },
+  "BM25_sentences_at_GW_text": {
+   "all_gold": 0.4846,
+   "any_gold": 0.7154,
+   "kept_share": 0.2065,
+   "n": 130,
+   "all_gold_hits": 63,
+   "all_gold_ci95": [
+    0.4004,
+    0.5697
+   ]
+  },
+  "GW_minus_MS": {
+   "all_gold": 0.0462,
+   "ci95": [
+    -0.0154,
+    0.1077
+   ],
+   "only_GW": 11,
+   "only_MS": 5,
+   "mcnemar_p": 0.2101,
+   "text_points": -0.0925
+  }
+ },
+ "calls": {
+  "tournament": 855,
+  "sentences_asked_all_kept_paragraphs": 4277,
+  "sentences_needed_by_rule": 1766
+ },
+ "Q1": true,
+ "Q2": true,
+ "Q3_gw_minus_bm25": 0.4383,
+ "Q3": true,
+ "verdict": "confirmed"
+}

@@ -1,0 +1,44 @@
+{
+ "model": "claude-haiku-4-5-20251001",
+ "path": "claude code cli, one short field",
+ "questions": 146,
+ "answered_by_both": 146,
+ "excluded": [],
+ "arms": {
+  "FULL": {
+   "f1": 0.4445,
+   "exact": 0.1096,
+   "unknown": 11,
+   "input_tokens": 940699,
+   "list_cost_usd": 2.8395
+  },
+  "GW": {
+   "f1": 0.4817,
+   "exact": 0.1507,
+   "unknown": 15,
+   "input_tokens": 324948,
+   "list_cost_usd": 0.7505
+  }
+ },
+ "GW_minus_FULL_f1": {
+  "mean": 0.0373,
+  "ci95": [
+   -0.0045,
+   0.0782
+  ]
+ },
+ "f1_at_least_half_diff": [
+  0.0685,
+  0.0068,
+  0.1301
+ ],
+ "tokens_share_GW_of_FULL": 0.3454,
+ "A1": true,
+ "A2": true,
+ "verdict": "confirmed",
+ "sizing": {
+  "pilot_usd": 0.2556,
+  "per_question_usd": 0.02556,
+  "n": 146
+ }
+}

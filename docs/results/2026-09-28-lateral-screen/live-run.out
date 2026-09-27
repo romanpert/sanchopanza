@@ -1,0 +1,67 @@
+{
+ "held_out": {
+  "SCREEN": {
+   "page_joint": 0.96,
+   "ci95": [
+    0.9231,
+    0.9796
+   ],
+   "kept_share": 0.0343,
+   "pages_kept": 4.12,
+   "n": 200
+  },
+  "TOUR": {
+   "page_joint": 0.965,
+   "ci95": [
+    0.9295,
+    0.9829
+   ],
+   "kept_share": 0.031,
+   "pages_kept": 3.73,
+   "n": 200
+  },
+  "FLAT": {
+   "page_joint": 0.94,
+   "ci95": [
+    0.8981,
+    0.9653
+   ],
+   "kept_share": 0.0428,
+   "pages_kept": 5.0,
+   "n": 200
+  },
+  "CEILING": {
+   "page_joint": 0.99,
+   "ci95": [
+    0.9643,
+    0.9973
+   ],
+   "kept_share": 0.3174,
+   "pages_kept": 30.0,
+   "n": 200
+  }
+ },
+ "screen_minus_tour": {
+  "page_joint": -0.005,
+  "ci95": [
+   -0.03,
+   0.02
+  ],
+  "only_screen": 3,
+  "only_tour": 4,
+  "mcnemar_p": 1.0
+ },
+ "calls_per_question": {
+  "SCREEN": 1,
+  "TOUR": 5.0
+ },
+ "S1": true,
+ "S2": true,
+ "verdict": "confirmed",
+ "qasper_boundary": {
+  "papers_over_one_call": 217,
+  "screen_ceiling_all_evidence": 0.8203,
+  "tournament_all_evidence": 0.9539,
+  "note": "descriptive: the ceiling was computed before registration"
+ }
+}

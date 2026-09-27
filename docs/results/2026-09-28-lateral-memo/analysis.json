@@ -1,0 +1,26 @@
+{
+ "longdocs_2026_09_27": {
+  "questions": 300,
+  "calls_as_shipped": 1359,
+  "calls_memoized": 1299,
+  "repeated_calls": 60,
+  "questions_with_a_repeat": 36,
+  "same_pages_kept": 300
+ },
+ "wholedocs_2026_09_28": {
+  "questions": 219,
+  "calls_as_shipped": 853,
+  "calls_memoized": 839,
+  "repeated_calls": 14,
+  "questions_with_a_repeat": 14,
+  "same_pages_kept": 219
+ },
+ "hierarchy_2026_09_27_held_out": {
+  "questions": 200,
+  "calls_as_shipped": 1000,
+  "calls_memoized": 1000,
+  "repeated_calls": 0,
+  "questions_with_a_repeat": 0,
+  "same_pages_kept": 200
+ }
+}

@@ -1,0 +1,606 @@
+{
+ "questions": 261,
+ "family": {
+  "gate 0.40, cut 0.28, window 0": {
+   "all_gold": 0.8314,
+   "any_gold": 0.9808,
+   "kept_share": 0.3148,
+   "n": 261
+  },
+  "gate 0.40, cut 0.28, window 1": {
+   "all_gold": 0.9272,
+   "any_gold": 0.9885,
+   "kept_share": 0.3812,
+   "n": 261
+  },
+  "gate 0.40, cut 0.28, window 2": {
+   "all_gold": 0.9464,
+   "any_gold": 0.9885,
+   "kept_share": 0.4057,
+   "n": 261
+  },
+  "gate 0.40, cut 0.28, window 3": {
+   "all_gold": 0.9464,
+   "any_gold": 0.9885,
+   "kept_share": 0.416,
+   "n": 261
+  },
+  "gate 0.45, cut 0.28, window 0": {
+   "all_gold": 0.8276,
+   "any_gold": 0.9732,
+   "kept_share": 0.3007,
+   "n": 261
+  },
+  "gate 0.45, cut 0.28, window 1": {
+   "all_gold": 0.9234,
+   "any_gold": 0.9808,
+   "kept_share": 0.361,
+   "n": 261
+  },
+  "gate 0.45, cut 0.28, window 2": {
+   "all_gold": 0.9425,
+   "any_gold": 0.9808,
+   "kept_share": 0.3827,
+   "n": 261
+  },
+  "gate 0.45, cut 0.28, window 3": {
+   "all_gold": 0.9425,
+   "any_gold": 0.9808,
+   "kept_share": 0.3915,
+   "n": 261
+  },
+  "gate 0.50, cut 0.28, window 0": {
+   "all_gold": 0.8238,
+   "any_gold": 0.9693,
+   "kept_share": 0.2838,
+   "n": 261
+  },
+  "gate 0.50, cut 0.28, window 1": {
+   "all_gold": 0.9119,
+   "any_gold": 0.977,
+   "kept_share": 0.3382,
+   "n": 261
+  },
+  "gate 0.50, cut 0.28, window 2": {
+   "all_gold": 0.931,
+   "any_gold": 0.977,
+   "kept_share": 0.3571,
+   "n": 261
+  },
+  "gate 0.50, cut 0.28, window 3": {
+   "all_gold": 0.931,
+   "any_gold": 0.977,
+   "kept_share": 0.3649,
+   "n": 261
+  },
+  "gate 0.55, cut 0.28, window 0": {
+   "all_gold": 0.8161,
+   "any_gold": 0.9617,
+   "kept_share": 0.2648,
+   "n": 261
+  },
+  "gate 0.55, cut 0.28, window 1": {
+   "all_gold": 0.9042,
+   "any_gold": 0.9693,
+   "kept_share": 0.3132,
+   "n": 261
+  },
+  "gate 0.55, cut 0.28, window 2": {
+   "all_gold": 0.9234,
+   "any_gold": 0.9693,
+   "kept_share": 0.3298,
+   "n": 261
+  },
+  "gate 0.55, cut 0.28, window 3": {
+   "all_gold": 0.9234,
+   "any_gold": 0.9693,
+   "kept_share": 0.3365,
+   "n": 261
+  },
+  "gate 0.60, cut 0.28, window 0": {
+   "all_gold": 0.8123,
+   "any_gold": 0.9579,
+   "kept_share": 0.2459,
+   "n": 261
+  },
+  "gate 0.60, cut 0.28, window 1": {
+   "all_gold": 0.9004,
+   "any_gold": 0.9655,
+   "kept_share": 0.2881,
+   "n": 261
+  },
+  "gate 0.60, cut 0.28, window 2": {
+   "all_gold": 0.9195,
+   "any_gold": 0.9655,
+   "kept_share": 0.3023,
+   "n": 261
+  },
+  "gate 0.60, cut 0.28, window 3": {
+   "all_gold": 0.9195,
+   "any_gold": 0.9655,
+   "kept_share": 0.3078,
+   "n": 261
+  },
+  "gate 0.65, cut 0.28, window 0": {
+   "all_gold": 0.8046,
+   "any_gold": 0.954,
+   "kept_share": 0.2285,
+   "n": 261
+  },
+  "gate 0.65, cut 0.28, window 1": {
+   "all_gold": 0.8927,
+   "any_gold": 0.9617,
+   "kept_share": 0.2656,
+   "n": 261
+  },
+  "gate 0.65, cut 0.28, window 2": {
+   "all_gold": 0.9119,
+   "any_gold": 0.9617,
+   "kept_share": 0.278,
+   "n": 261
+  },
+  "gate 0.65, cut 0.28, window 3": {
+   "all_gold": 0.9119,
+   "any_gold": 0.9617,
+   "kept_share": 0.2826,
+   "n": 261
+  },
+  "gate 0.70, cut 0.28, window 0": {
+   "all_gold": 0.7816,
+   "any_gold": 0.9349,
+   "kept_share": 0.2067,
+   "n": 261
+  },
+  "gate 0.70, cut 0.28, window 1": {
+   "all_gold": 0.8697,
+   "any_gold": 0.9425,
+   "kept_share": 0.2386,
+   "n": 261
+  },
+  "gate 0.70, cut 0.28, window 2": {
+   "all_gold": 0.8889,
+   "any_gold": 0.9425,
+   "kept_share": 0.2493,
+   "n": 261
+  },
+  "gate 0.70, cut 0.28, window 3": {
+   "all_gold": 0.8889,
+   "any_gold": 0.9425,
+   "kept_share": 0.2535,
+   "n": 261
+  },
+  "gate 0.75, cut 0.28, window 0": {
+   "all_gold": 0.7701,
+   "any_gold": 0.9234,
+   "kept_share": 0.1882,
+   "n": 261
+  },
+  "gate 0.75, cut 0.28, window 1": {
+   "all_gold": 0.8544,
+   "any_gold": 0.931,
+   "kept_share": 0.2158,
+   "n": 261
+  },
+  "gate 0.75, cut 0.28, window 2": {
+   "all_gold": 0.8697,
+   "any_gold": 0.931,
+   "kept_share": 0.2251,
+   "n": 261
+  },
+  "gate 0.75, cut 0.28, window 3": {
+   "all_gold": 0.8697,
+   "any_gold": 0.931,
+   "kept_share": 0.2287,
+   "n": 261
+  },
+  "gate 0.80, cut 0.28, window 0": {
+   "all_gold": 0.751,
+   "any_gold": 0.9042,
+   "kept_share": 0.163,
+   "n": 261
+  },
+  "gate 0.80, cut 0.28, window 1": {
+   "all_gold": 0.8238,
+   "any_gold": 0.908,
+   "kept_share": 0.1852,
+   "n": 261
+  },
+  "gate 0.80, cut 0.28, window 2": {
+   "all_gold": 0.8352,
+   "any_gold": 0.908,
+   "kept_share": 0.1924,
+   "n": 261
+  },
+  "gate 0.80, cut 0.28, window 3": {
+   "all_gold": 0.8352,
+   "any_gold": 0.908,
+   "kept_share": 0.1952,
+   "n": 261
+  },
+  "gate 0.85, cut 0.28, window 0": {
+   "all_gold": 0.6897,
+   "any_gold": 0.8582,
+   "kept_share": 0.1241,
+   "n": 261
+  },
+  "gate 0.85, cut 0.28, window 1": {
+   "all_gold": 0.7548,
+   "any_gold": 0.8621,
+   "kept_share": 0.1403,
+   "n": 261
+  },
+  "gate 0.85, cut 0.28, window 2": {
+   "all_gold": 0.7663,
+   "any_gold": 0.8621,
+   "kept_share": 0.1457,
+   "n": 261
+  },
+  "gate 0.85, cut 0.28, window 3": {
+   "all_gold": 0.7663,
+   "any_gold": 0.8621,
+   "kept_share": 0.148,
+   "n": 261
+  },
+  "gate 0.90, cut 0.28, window 0": {
+   "all_gold": 0.5977,
+   "any_gold": 0.7663,
+   "kept_share": 0.0883,
+   "n": 261
+  },
+  "gate 0.90, cut 0.28, window 1": {
+   "all_gold": 0.6437,
+   "any_gold": 0.7701,
+   "kept_share": 0.0984,
+   "n": 261
+  },
+  "gate 0.90, cut 0.28, window 2": {
+   "all_gold": 0.6513,
+   "any_gold": 0.7701,
+   "kept_share": 0.1016,
+   "n": 261
+  },
+  "gate 0.90, cut 0.28, window 3": {
+   "all_gold": 0.6513,
+   "any_gold": 0.7701,
+   "kept_share": 0.103,
+   "n": 261
+  }
+ },
+ "chosen": {
+  "gate": 0.75,
+  "cut": 0.28,
+  "window": 2
+ },
+ "chosen_score": {
+  "all_gold": 0.8697,
+  "any_gold": 0.931,
+  "kept_share": 0.2251,
+  "n": 261
+ },
+ "shipped_score": {
+  "all_gold": 0.8314,
+  "any_gold": 0.9808,
+  "kept_share": 0.3148,
+  "n": 261
+ },
+ "window_only": {
+  "all_gold": 0.9464,
+  "any_gold": 0.9885,
+  "kept_share": 0.4057,
+  "n": 261
+ },
+ "gate_only": {
+  "all_gold": 0.7701,
+  "any_gold": 0.9234,
+  "kept_share": 0.1882,
+  "n": 261
+ },
+ "sentence_calls": {
+  "shipped": 5308,
+  "chosen": 2273
+ },
+ "halves": {
+  "splits": 40,
+  "mean_all_gold_held_out": 0.8672,
+  "mean_kept_share_held_out": 0.2224,
+  "both_bars_held_out": 26,
+  "min_all_gold_held_out": 0.8092,
+  "per_split": [
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8931,
+    "any_gold": 0.9618,
+    "kept_share": 0.2252,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8855,
+    "any_gold": 0.9313,
+    "kept_share": 0.2337,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.70, cut 0.28, window 2",
+    "all_gold": 0.8779,
+    "any_gold": 0.9389,
+    "kept_share": 0.2712,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.80, cut 0.28, window 2",
+    "all_gold": 0.8626,
+    "any_gold": 0.9008,
+    "kept_share": 0.1784,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8626,
+    "any_gold": 0.9313,
+    "kept_share": 0.2461,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 1",
+    "all_gold": 0.8473,
+    "any_gold": 0.9542,
+    "kept_share": 0.2137,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8931,
+    "any_gold": 0.9466,
+    "kept_share": 0.23,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.80, cut 0.28, window 2",
+    "all_gold": 0.8473,
+    "any_gold": 0.916,
+    "kept_share": 0.1777,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8702,
+    "any_gold": 0.9237,
+    "kept_share": 0.2218,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8702,
+    "any_gold": 0.9466,
+    "kept_share": 0.2316,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8626,
+    "any_gold": 0.9084,
+    "kept_share": 0.2224,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.70, cut 0.28, window 1",
+    "all_gold": 0.8931,
+    "any_gold": 0.9695,
+    "kept_share": 0.2483,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8626,
+    "any_gold": 0.9237,
+    "kept_share": 0.2287,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8855,
+    "any_gold": 0.9466,
+    "kept_share": 0.2211,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.70, cut 0.28, window 2",
+    "all_gold": 0.916,
+    "any_gold": 0.9542,
+    "kept_share": 0.2724,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8397,
+    "any_gold": 0.916,
+    "kept_share": 0.2391,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8702,
+    "any_gold": 0.9389,
+    "kept_share": 0.2245,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8092,
+    "any_gold": 0.8855,
+    "kept_share": 0.2204,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8626,
+    "any_gold": 0.9237,
+    "kept_share": 0.2322,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8473,
+    "any_gold": 0.9237,
+    "kept_share": 0.2258,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.80, cut 0.28, window 2",
+    "all_gold": 0.8473,
+    "any_gold": 0.9237,
+    "kept_share": 0.1747,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 1",
+    "all_gold": 0.8931,
+    "any_gold": 0.916,
+    "kept_share": 0.2063,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8702,
+    "any_gold": 0.9008,
+    "kept_share": 0.2387,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8702,
+    "any_gold": 0.9466,
+    "kept_share": 0.2276,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8855,
+    "any_gold": 0.9389,
+    "kept_share": 0.2221,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 1",
+    "all_gold": 0.8473,
+    "any_gold": 0.9389,
+    "kept_share": 0.2077,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.80, cut 0.28, window 2",
+    "all_gold": 0.8397,
+    "any_gold": 0.9084,
+    "kept_share": 0.1767,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8473,
+    "any_gold": 0.9237,
+    "kept_share": 0.2401,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8931,
+    "any_gold": 0.9542,
+    "kept_share": 0.2411,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8779,
+    "any_gold": 0.9542,
+    "kept_share": 0.2249,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.9008,
+    "any_gold": 0.9389,
+    "kept_share": 0.2216,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8702,
+    "any_gold": 0.916,
+    "kept_share": 0.2238,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 1",
+    "all_gold": 0.8473,
+    "any_gold": 0.9313,
+    "kept_share": 0.205,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.80, cut 0.28, window 2",
+    "all_gold": 0.8473,
+    "any_gold": 0.916,
+    "kept_share": 0.1812,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8702,
+    "any_gold": 0.9466,
+    "kept_share": 0.2358,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8626,
+    "any_gold": 0.916,
+    "kept_share": 0.225,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 1",
+    "all_gold": 0.855,
+    "any_gold": 0.9389,
+    "kept_share": 0.2036,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 1",
+    "all_gold": 0.8626,
+    "any_gold": 0.9313,
+    "kept_share": 0.2032,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.75, cut 0.28, window 2",
+    "all_gold": 0.8473,
+    "any_gold": 0.9313,
+    "kept_share": 0.2248,
+    "n": 131
+   },
+   {
+    "rule": "gate 0.70, cut 0.28, window 1",
+    "all_gold": 0.8931,
+    "any_gold": 0.9542,
+    "kept_share": 0.2494,
+    "n": 131
+   }
+  ]
+ },
+ "hotpot_confirm_descriptive": {
+  "n": 300,
+  "shipped": {
+   "sentence_joint": 0.9033,
+   "page_joint": 0.9567,
+   "kept_share": 0.2234,
+   "n": 300
+  },
+  "chosen": {
+   "sentence_joint": 0.8333,
+   "page_joint": 0.84,
+   "kept_share": 0.2053,
+   "n": 300
+  }
+ }
+}

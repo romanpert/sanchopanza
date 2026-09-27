@@ -13,6 +13,7 @@ and changes course.
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any, Literal
@@ -245,6 +246,19 @@ def text_of(response: Any) -> str:
     if isinstance(response, str):
         return response
     if isinstance(response, Mapping):
+        # Claude Code's built-in tools: Read nests the file, WebFetch and WebSearch return
+        # `result` / `results`. Read as empty, the content scan never ran on them.
+        file = response.get("file")
+        if isinstance(file, Mapping) and isinstance(file.get("content"), str):
+            return file["content"]
+        if isinstance(response.get("result"), str):
+            return response["result"]
+        results = response.get("results")
+        if isinstance(results, list) and results:
+            return "\n".join(
+                part if isinstance(part, str) else json.dumps(part, ensure_ascii=False)
+                for part in results
+            )
         content = response.get("content")
         if isinstance(content, list):
             return "\n".join(

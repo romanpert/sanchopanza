@@ -1,0 +1,161 @@
+{
+ "model": "claude-sonnet-5",
+ "path": "claude code cli",
+ "sets": {
+  "codex": {
+   "cases": 500,
+   "answered": 499,
+   "cancelled": 1,
+   "sonnet_acc_answered": 0.7816,
+   "jev_acc_same_cases": 0.7796,
+   "cascade": {
+    "arm": "sonnet",
+    "n_usable": 499,
+    "n_derivation": 257,
+    "n_held_out": 242,
+    "tau": 0.0,
+    "held_out": {
+     "cascade_acc": 0.7851,
+     "alone_acc": 0.7893,
+     "jev_acc": 0.7851,
+     "diff": -0.0041,
+     "diff_ci95": [
+      -0.0413,
+      0.0372
+     ],
+     "cascade_cost": 0.014743,
+     "alone_cost": 3.75873,
+     "cost_ratio": 0.0039,
+     "escalated": 0
+    },
+    "robustness_500_splits": {
+     "diff_p05_p50_p95": [
+      -0.024,
+      -0.004,
+      0.024
+     ],
+     "cost_ratio_p50_p95": [
+      0.004,
+      0.3098
+     ],
+     "tau_median": 0.0
+    },
+    "passes": true
+   },
+   "held_out_rates": {
+    "cascade": {
+     "fnr": 0.1429,
+     "fpr": 0.2846
+    },
+    "sonnet": {
+     "fnr": 0.1429,
+     "fpr": 0.2764
+    },
+    "jev": {
+     "fnr": 0.1429,
+     "fpr": 0.2846
+    }
+   }
+  },
+  "register": {
+   "cases": 298,
+   "answered": 298,
+   "cancelled": 0,
+   "sonnet_acc_answered": 0.8289,
+   "jev_acc_same_cases": 0.8255,
+   "cascade": {
+    "arm": "sonnet",
+    "n_usable": 298,
+    "n_derivation": 126,
+    "n_held_out": 172,
+    "tau": 0.9,
+    "held_out": {
+     "cascade_acc": 0.814,
+     "alone_acc": 0.8023,
+     "jev_acc": 0.8314,
+     "diff": 0.0116,
+     "diff_ci95": [
+      -0.0116,
+      0.0349
+     ],
+     "cascade_cost": 0.651756,
+     "alone_cost": 1.418162,
+     "cost_ratio": 0.4596,
+     "escalated": 82
+    },
+    "robustness_500_splits": {
+     "diff_p05_p50_p95": [
+      -0.047,
+      -0.0067,
+      0.0671
+     ],
+     "cost_ratio_p50_p95": [
+      0.0033,
+      0.0807
+     ],
+     "tau_median": 0.0
+    },
+    "passes": true
+   }
+  },
+  "rjudge": {
+   "cases": 571,
+   "answered": 571,
+   "cancelled": 0,
+   "sonnet_acc_answered": 0.9475,
+   "jev_acc_same_cases": 0.8809,
+   "cascade": {
+    "arm": "sonnet",
+    "n_usable": 571,
+    "n_derivation": 297,
+    "n_held_out": 274,
+    "tau": 0.8,
+    "held_out": {
+     "cascade_acc": 0.9234,
+     "alone_acc": 0.9234,
+     "jev_acc": 0.865,
+     "diff": 0.0,
+     "diff_ci95": [
+      0.0,
+      0.0
+     ],
+     "cascade_cost": 1.969429,
+     "alone_cost": 3.415857,
+     "cost_ratio": 0.5766,
+     "escalated": 159
+    },
+    "robustness_500_splits": {
+     "diff_p05_p50_p95": [
+      -0.014,
+      -0.0035,
+      0.0
+     ],
+     "cost_ratio_p50_p95": [
+      0.4766,
+      0.5469
+     ],
+     "tau_median": 0.75
+    },
+    "passes": false
+   },
+   "held_out_rates": {
+    "cascade": {
+     "fnr": 0.1064,
+     "fpr": 0.0451
+    },
+    "sonnet": {
+     "fnr": 0.1064,
+     "fpr": 0.0451
+    },
+    "jev": {
+     "fnr": 0.1064,
+     "fpr": 0.1654
+    }
+   }
+  }
+ },
+ "P1_rjudge": false,
+ "P2_register": true,
+ "P9_codex": true,
+ "verdict_P1_P2": "partial"
+}

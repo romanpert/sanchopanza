@@ -96,9 +96,10 @@ def test_each_page_reports_the_last_probability_it_got() -> None:
     judge = Sequenced(values)
     result = asyncio.run(tournament(100, judge, size=30, first_cut=0.2, final_cut=0.4))
     # Round one prunes 20, round two prunes page 5, round three prunes nothing and its answers
-    # are the final ones: 4 + 3 + 3 calls, none repeated.
+    # are the final ones. Round three regroups the 79 survivors and its last group, pages
+    # 54-79, is round two's last group: its answers are reused, 4 + 3 + 2 calls.
     assert result.rounds == 3
-    assert result.calls == 10
+    assert result.calls == 9
     assert result.pages[90].last == 0.1 and not result.pages[90].keep
     assert result.pages[5].last == 0.05 and not result.pages[5].keep
     assert result.pages[7].last == 0.9 and result.pages[7].keep

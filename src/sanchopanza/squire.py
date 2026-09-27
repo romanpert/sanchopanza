@@ -48,7 +48,7 @@ from .points import (
 )
 from .policy import Thresholds
 from .providers.null import NullDecider
-from .text import is_repeat, mention_present, quote_present
+from .text import is_repeat, mention_present, quote_present, split_sentences
 
 
 @dataclass(frozen=True, slots=True)
@@ -368,14 +368,17 @@ class Squire:
         return [(v.keep, v.last) for v in result.pages]
 
     async def select_sentences(
-        self, *, purpose: str, title: str = "", sentences: Sequence[str]
+        self, *, purpose: str, title: str = "", sentences: Sequence[str], window: int = 0
     ) -> list[tuple[bool, float | None]]:
         """Which sentences of a page hold a fact the answer needs, each read in the page.
 
         Meant inside the pages `triage_pages` keeps: together they returned every supporting
         sentence in 90.3 % of 300 new questions at 22 % of the text. Sentences past
-        `chunks.SENTENCE_MAX` and unanswered ones are kept.
+        `chunks.SENTENCE_MAX` and unanswered ones are kept. `window` also keeps every sentence
+        within that many positions of a kept one; probabilities are returned as answered.
         """
+        if window < 0:
+            raise ValueError("window must be >= 0")
         state, qs = chunks.sentence_questions(purpose=purpose, title=title, sentences=sentences)
         decision = await self.decide("select_sentences", state, qs)
         out: list[tuple[bool, float | None]] = []
@@ -383,8 +386,45 @@ class Squire:
             key = chunks.sentence_id(index)
             p = decision.answer(key).truth if index < chunks.SENTENCE_MAX else None
             out.append((p is None or p >= self._t.sentences, p))
+        if window:
+            flags = [keep for keep, _ in out]
+            out = [
+                (any(flags[max(0, j - window) : j + window + 1]), p) for j, (_, p) in enumerate(out)
+            ]
         self.record(decision, kept=sum(keep for keep, _ in out), sentences=len(sentences))
         return out
+
+    async def select_passages(
+        self, *, purpose: str, pages: Sequence[tuple[str, str]]
+    ) -> list[list[tuple[bool, float | None]] | None]:
+        """The passages of one long document the answer needs: paragraphs, then sentences.
+
+        `triage_many` over the paragraphs; only those it keeps at or above
+        `Thresholds.document_paragraphs` go to `select_sentences`, with a window of
+        `Thresholds.document_window`. One entry per page: `None` for a paragraph not sent on,
+        else one `(keep, probability)` per sentence of `text.split_sentences(page)`. Confirmed on
+        219 new QASPER questions: every answer sentence in 87.2 % at 21.0 % of the text, and an
+        answering model scored as well from it as from the whole paper
+        (docs/results/2026-09-28-lateral-wholedocs/). For one long document, not short pages.
+        """
+        kept = await self.triage_many(purpose=purpose, pages=pages)
+        gate = self._t.document_paragraphs
+
+        async def sentences_of(title: str, body: str) -> list[tuple[bool, float | None]]:
+            return await self.select_sentences(
+                purpose=purpose,
+                title=title,
+                sentences=split_sentences(body),
+                window=self._t.document_window,
+            )
+
+        jobs = [
+            sentences_of(title, body) if keep and (p is None or p >= gate) else None
+            for (title, body), (keep, p) in zip(pages, kept, strict=True)
+        ]
+        done = await asyncio.gather(*(job for job in jobs if job is not None))
+        answers = iter(done)
+        return [None if job is None else next(answers) for job in jobs]
 
     async def triage_results(
         self, results: Sequence[Mapping[str, Any]], *, purpose: str

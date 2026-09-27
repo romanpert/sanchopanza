@@ -1,0 +1,47 @@
+[
+ {
+  "event": "PreToolUse",
+  "attempt": 1,
+  "wall_ms": 1717
+ },
+ {
+  "event": "PreToolUse",
+  "attempt": 2,
+  "wall_ms": 4627
+ },
+ {
+  "event": "PreToolUse",
+  "attempt": 3,
+  "wall_ms": 3613
+ },
+ {
+  "event": "PostToolUse",
+  "attempt": 1,
+  "wall_ms": 3336
+ },
+ {
+  "event": "PostToolUse",
+  "attempt": 2,
+  "wall_ms": 2467
+ },
+ {
+  "event": "PostToolUse",
+  "attempt": 3,
+  "wall_ms": 1680
+ },
+ {
+  "event": "Stop",
+  "attempt": 1,
+  "wall_ms": 2714
+ },
+ {
+  "event": "Stop",
+  "attempt": 2,
+  "wall_ms": 3213
+ },
+ {
+  "event": "Stop",
+  "attempt": 3,
+  "wall_ms": 2783
+ }
+]

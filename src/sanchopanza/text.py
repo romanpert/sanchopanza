@@ -61,6 +61,17 @@ STOPWORDS = frozenset(
 JACCARD_REPEAT = 0.7
 
 
+# After `.`, `!` or `?` and whitespace, before an upper-case letter, a digit, `(` or `[`: the
+# splitter the long-document runs used (benchmarks/longdocs/sentences.py).
+SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9(\[])")
+
+
+def split_sentences(text: str) -> list[str]:
+    """Sentences of a paragraph, whitespace collapsed; nothing clever, and that is measured."""
+    flat = re.sub(r"\s+", " ", text or "").strip()
+    return [part for part in SENTENCE_BREAK.split(flat) if part] if flat else []
+
+
 def truncate(text: object, limit: int) -> str:
     text = str(text or "")
     return text if len(text) <= limit else text[:limit] + " [...]"

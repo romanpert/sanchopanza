@@ -349,7 +349,7 @@ implemented with a bench; "designed" means the arithmetic is here and the code i
 | **Memory collision** (contradicts / adds nothing) | the ADD/UPDATE/DELETE/NOOP call, 1 of 2 LLM calls per message pair in Mem0 **[P]** | candidate facts x similar stored facts | in the package | **50/52 on a bench built toward the acting branch**, both questions at AUC 1.00, and `duplicate` at **16/18 with zero false positives, precision lower bound 81 %** - the first branch here to clear an 80 % target **[M]**. It is two binary questions, not four labels (section 3) |
 | **Recall gating** | a memory lookup per turn; Anthropic's memory tool prompt is literally "always view your memory directory before doing anything else" **[P]** | turns | in the package | 14/14, AUC 1.00, ECE 0.049 **[M]** |
 | **Model per subtask** | nothing; it changes which model runs | delegations | in the package | 17/20 raw, 11/11 above 0.75 confidence, against a small LLM at 8/20 **[M]**. Cache-safe **only** because it routes subagents |
-| **First stage of a permission gate** (`CascadeDecider` + `points.actions`) | the frontier model judging every agent action | actions | in the package, no default threshold | On R-Judge's held-out half the Jev-then-Opus 5 cascade reached Opus's accuracy (93.2 %) at **57 %** of Opus's cost, over the registered 50 %: **fails**, and the verdict stands **[M]** (`docs/results/2026-09-25-cascade/`). Post hoc, on the same cases, and not a result: tau 0.35 reaches 93.2 % at 25.2 % of the cost; prompt caching moves the ratio by at most 0.7 points, because it cheapens an escalation and an Opus-alone call alike; escalating on one side only does not help **[M]**. **Confirmed on ATBench-Codex**, pre-registered, tau 0.45 fixed on R-Judge, Opus never shown the set: held-out half 80.3 % against Opus 79.9 % at **38.8 %** of its cost; the other half and all 500 replicate (79.1 % against 77.8 %, 38.5 %) **[M]** (`docs/results/2026-09-27-cascade-frontier/`). There Jev alone matches Opus (78.2 %) with fewer false allows (14.9 % against 25.7 %): which model is the strong one depends on the set. Pass tau 0.45; the comparison with Sonnet 5 is not run |
+| **First stage of a permission gate** (`CascadeDecider` + `points.actions`) | the frontier model judging every agent action | actions | in the package, no default threshold | On R-Judge's held-out half the Jev-then-Opus 5 cascade reached Opus's accuracy (93.2 %) at **57 %** of Opus's cost, over the registered 50 %: **fails**, and the verdict stands **[M]** (`docs/results/2026-09-25-cascade/`). Post hoc, on the same cases, and not a result: tau 0.35 reaches 93.2 % at 25.2 % of the cost; prompt caching moves the ratio by at most 0.7 points, because it cheapens an escalation and an Opus-alone call alike; escalating on one side only does not help **[M]**. **Confirmed on ATBench-Codex**, pre-registered, tau 0.45 fixed on R-Judge, Opus never shown the set: held-out half 80.3 % against Opus 79.9 % at **38.8 %** of its cost; the other half and all 500 replicate (79.1 % against 77.8 %, 38.5 %) **[M]** (`docs/results/2026-09-27-cascade-frontier/`). There Jev alone matches Opus (78.2 %) with fewer false allows (14.9 % against 25.7 %): which model is the strong one depends on the set. Pass tau 0.45. Against Sonnet 5 the original registration's verdict is **partial**: R-Judge fails on cost (57.7 %, median 47.7 % over re-splits), the register and Codex hold **[M]** (`docs/results/2026-09-28-cascade-sonnet/`) |
 
 ### Tier 3 - avoidance, workload-dependent, prove it on your own traffic
 
@@ -506,14 +506,17 @@ Each of these is specified enough that a disagreement becomes a measurement.
    shipped cuts on 300 QASPER papers kept all evidence in 94.7 % and 48.9 % of the text, over
    the 25 % criterion: not confirmed (replayed with the fixed tournament, unchanged). With
    `select_sentences` inside the kept paragraphs: every answer sentence in 83.1 % at 31.5 %,
-   31 points over BM25 with the same text, again short of 85 % and 25 %. What would reach a
-   quarter of a paper is open.
+   31 points over BM25 with the same text, again short of 85 % and 25 %. **Confirmed** with
+   the compression moved to the paragraph (`select_passages`: gate 0.75, window 2): 87.2 % of
+   219 new questions at 21.0 % of the text, and an answering model as good from it as from
+   the whole paper (`docs/results/2026-09-28-lateral-wholedocs/`). Open: Spanish documents and
+   documents that are not papers.
 8. **Long documents, by descent.** The in-context judgment reads an excerpt of 900 characters
    of each page, and sentence selection judges the first 40 sentences of a page. A long document would be judged as document, then sections, then
    sentences, each step among its siblings, the tournament's shape. Unmeasured.
-9. **The permission cascade against Sonnet 5**, and on a set where the second stage is clearly
-   stronger than Jev. On ATBench-Codex it was not; on R-Judge it was, and the registered rule
-   failed on cost there.
+9. **A cascade rule that does not overpay where the second stage is clearly stronger.** On
+   R-Judge the registered rule failed on cost against Opus and against Sonnet; "within half a
+   point", fixed in advance, is untested against Sonnet on unseen data.
 10. **`relate_facts` on new cases.** On the fifth batch neither `unrelated` at a plain majority
     nor examples on `unrelated` beat the shipped question (25 right answers each). The `direction`
     question by roles did, and ships.
