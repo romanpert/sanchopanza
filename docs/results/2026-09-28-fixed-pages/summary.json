@@ -1,0 +1,35 @@
+{
+ "lever": "pages",
+ "pairs": 9,
+ "docs_served_per_arm": 173,
+ "dropped_triage": 81,
+ "dropped_redundant": 0,
+ "dropped_passages": 2042,
+ "dropped_total": 2123,
+ "informative": true,
+ "input_tokens": {
+  "bare": 500030,
+  "squire": 102660,
+  "ratio": [
+   -0.7946923184608923,
+   -0.8647518485268266,
+   -0.7287843222009434
+  ]
+ },
+ "cost_usd": {
+  "bare": 2.40216,
+  "squire": 0.595036,
+  "ratio": [
+   -0.7522912154061345,
+   -0.8293759642732235,
+   -0.6803235079179866
+  ]
+ },
+ "squire_cost_usd": 0.094039,
+ "correct": {
+  "bare": "9/9",
+  "squire": "9/9",
+  "bare_lower_bound": 0.701,
+  "squire_lower_bound": 0.701
+ }
+}

@@ -1,0 +1,52 @@
+[
+ {
+  "task": "injection",
+  "correct": true,
+  "pins_withheld": []
+ },
+ {
+  "task": "cost",
+  "correct": true,
+  "pins_withheld": []
+ },
+ {
+  "task": "breakeven",
+  "correct": true,
+  "pins_withheld": []
+ },
+ {
+  "task": "dag",
+  "correct": true,
+  "pins_withheld": []
+ },
+ {
+  "task": "entity",
+  "correct": true,
+  "pins_withheld": []
+ },
+ {
+  "task": "viviendas",
+  "correct": true,
+  "pins_withheld": []
+ },
+ {
+  "task": "toolselect",
+  "correct": true,
+  "pins_withheld": []
+ },
+ {
+  "task": "classify",
+  "correct": true,
+  "pins_withheld": []
+ },
+ {
+  "task": "spread-adapters",
+  "correct": true,
+  "pins_withheld": []
+ },
+ {
+  "task": "spread-costs",
+  "correct": null,
+  "pins_withheld": []
+ }
+]

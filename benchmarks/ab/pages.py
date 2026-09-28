@@ -150,3 +150,45 @@ def check_reusable(
         elif list(row.get("fetched", [])) != [d.id for d in seq]:
             problems.append(f"{task}: the recorded sequence is not today's")
     return problems
+
+
+def attribute(
+    rows: Sequence[Mapping[str, Any]],
+    documents: Sequence[Any],
+    tasks: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """For each squire row: which pins reached the answer and which were withheld.
+
+    A pin is withheld when every passage of its sequence that contains it was dropped or its
+    document was withheld whole (the attribution table of 2026-09-24, at passage level).
+    """
+    by_id = {doc.id: doc for doc in documents}
+    by_task = {task["id"]: task for task in tasks}
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        if row.get("arm") != "squire":
+            continue
+        task = by_task[row["task"]]
+        gone = set(row.get("dropped_passages", []))
+        withheld_docs = set(row.get("dropped", []))
+        withheld: list[str] = []
+        for pin in task.get("pins") or [task["pin"]]:
+            holders = [
+                (doc_id, i)
+                for doc_id in row["fetched"]
+                for i, part in enumerate(passages(by_id[doc_id].text))
+                if pin in part
+            ]
+            served = [
+                h for h in holders if h[0] not in withheld_docs and f"{h[0]}#{h[1]}" not in gone
+            ]
+            if not served:
+                withheld.append(pin)
+        out.append(
+            {
+                "task": row["task"],
+                "correct": row.get("correct"),
+                "pins_withheld": withheld,
+            }
+        )
+    return out

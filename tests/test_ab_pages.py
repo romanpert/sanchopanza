@@ -107,3 +107,17 @@ def test_the_whole_pipeline_runs_free_with_fakes():
     assert done.returncode == 0, done.stderr[-2000:]
     assert "--fake:" in done.stdout and "lever `pages`" in done.stdout
     assert "passages removed" in done.stdout
+
+
+def test_attribution_names_a_pin_whose_passages_were_all_dropped(pages):
+    doc = Doc("d1", "T", "first paragraph holds nothing at all. " * 8 + "\n\nthe pin 42 is here.")
+    parts = pages.passages(doc.text)
+    tasks = [{"id": "t", "pin": "42"}]
+    holder = next(i for i, p in enumerate(parts) if "42" in p)
+    row = {"arm": "squire", "task": "t", "fetched": ["d1"], "dropped": []}
+    kept = pages.attribute([{**row, "dropped_passages": []}], [doc], tasks)
+    lost = pages.attribute([{**row, "dropped_passages": [f"d1#{holder}"]}], [doc], tasks)
+    whole = pages.attribute([{**row, "dropped": ["d1"], "dropped_passages": []}], [doc], tasks)
+    assert kept[0]["pins_withheld"] == []
+    assert lost[0]["pins_withheld"] == ["42"] and whole[0]["pins_withheld"] == ["42"]
+    assert pages.attribute([{**row, "arm": "bare", "dropped_passages": []}], [doc], tasks) == []
