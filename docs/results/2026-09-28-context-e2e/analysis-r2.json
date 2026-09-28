@@ -1,0 +1,962 @@
+{
+ "pooled": {
+  "tasks": 12,
+  "success": {
+   "A": 12,
+   "N": 6,
+   "A_ci": [
+    0.7575,
+    1.0
+   ],
+   "N_ci": [
+    0.2538,
+    0.7462
+   ],
+   "fisher": {
+    "two_sided": 0.0137,
+    "one_sided_A_greater": 0.0069
+   }
+  },
+  "facts_A_N": {
+   "token": [
+    12,
+    11
+   ],
+   "probe": [
+    12,
+    8
+   ],
+   "window": [
+    12,
+    8
+   ],
+   "visible": [
+    12,
+    12
+   ]
+  },
+  "input_tokens_true": {
+   "A": 13153067,
+   "N": 11595762,
+   "A_over_N": 0.1343
+  },
+  "usd_true": {
+   "A": 3.356,
+   "N": 2.9555
+  },
+  "HA1_success": true,
+  "HA2_tokens": false,
+  "HA3_one_shot_facts": true,
+  "arrival_cuts": 0,
+  "chars_saved": 0,
+  "results_over_threshold": 0,
+  "recall_injections": {
+   "prompt": 11,
+   "tool": 53,
+   "chars": 297710
+  },
+  "mask": {
+   "pruned": 12,
+   "reductions": [
+    0.42602420464437146,
+    0.4183177062100829,
+    0.5490598010276594,
+    0.3796572482238733,
+    0.5848769623553697,
+    0.5245497791369351,
+    0.5994462901439646,
+    0.3852363559366894,
+    0.39602529851153156,
+    0.48045904066846473,
+    0.4922661100406765,
+    0.41836850144255244
+   ]
+  },
+  "re_reads_mean": {
+   "A": 0.25,
+   "N": 6
+  },
+  "jev_usd": 0.01092
+ },
+ "t01_t06": {
+  "tasks": 6,
+  "success": {
+   "A": 6,
+   "N": 2,
+   "A_ci": [
+    0.6097,
+    1.0
+   ],
+   "N_ci": [
+    0.0968,
+    0.7
+   ],
+   "fisher": {
+    "two_sided": 0.0606,
+    "one_sided_A_greater": 0.0303
+   }
+  },
+  "facts_A_N": {
+   "token": [
+    6,
+    5
+   ],
+   "probe": [
+    6,
+    3
+   ],
+   "window": [
+    6,
+    3
+   ],
+   "visible": [
+    6,
+    6
+   ]
+  },
+  "input_tokens_true": {
+   "A": 5814392,
+   "N": 5546735,
+   "A_over_N": 0.0483
+  },
+  "usd_true": {
+   "A": 1.5825,
+   "N": 1.4189
+  },
+  "HA1_success": true,
+  "HA2_tokens": false,
+  "HA3_one_shot_facts": true,
+  "arrival_cuts": 0,
+  "chars_saved": 0,
+  "results_over_threshold": 0,
+  "recall_injections": {
+   "prompt": 6,
+   "tool": 26,
+   "chars": 143621
+  },
+  "mask": {
+   "pruned": 6,
+   "reductions": [
+    0.42602420464437146,
+    0.4183177062100829,
+    0.5490598010276594,
+    0.3796572482238733,
+    0.5848769623553697,
+    0.5245497791369351
+   ]
+  },
+  "re_reads_mean": {
+   "A": 0,
+   "N": 5
+  },
+  "jev_usd": 0.00537
+ },
+ "t07_t12": {
+  "tasks": 6,
+  "success": {
+   "A": 6,
+   "N": 4,
+   "A_ci": [
+    0.6097,
+    1.0
+   ],
+   "N_ci": [
+    0.3,
+    0.9032
+   ],
+   "fisher": {
+    "two_sided": 0.4545,
+    "one_sided_A_greater": 0.2273
+   }
+  },
+  "facts_A_N": {
+   "token": [
+    6,
+    6
+   ],
+   "probe": [
+    6,
+    5
+   ],
+   "window": [
+    6,
+    5
+   ],
+   "visible": [
+    6,
+    6
+   ]
+  },
+  "input_tokens_true": {
+   "A": 7338675,
+   "N": 6049027,
+   "A_over_N": 0.2132
+  },
+  "usd_true": {
+   "A": 1.7735,
+   "N": 1.5366
+  },
+  "HA1_success": true,
+  "HA2_tokens": false,
+  "HA3_one_shot_facts": true,
+  "arrival_cuts": 0,
+  "chars_saved": 0,
+  "results_over_threshold": 0,
+  "recall_injections": {
+   "prompt": 5,
+   "tool": 27,
+   "chars": 154089
+  },
+  "mask": {
+   "pruned": 6,
+   "reductions": [
+    0.5994462901439646,
+    0.3852363559366894,
+    0.39602529851153156,
+    0.48045904066846473,
+    0.4922661100406765,
+    0.41836850144255244
+   ]
+  },
+  "re_reads_mean": {
+   "A": 0.5,
+   "N": 7
+  },
+  "jev_usd": 0.00555
+ },
+ "invalid_attempts": [
+  {
+   "task": "t01-orders",
+   "reason": "hooks never ran: backslash hook command on Windows (fixed in install.portable_command)",
+   "usd_true": 0.3620648
+  },
+  {
+   "task": "t01-orders",
+   "reason": "compaction plugin never loaded: compact_hook.ts read $.session.usage as a value; Claude Code refused the module (fixed, guarded by test)",
+   "usd_true": 0.23905070000000003
+  }
+ ],
+ "round3_claude_usd_true": 3.3101,
+ "per_task": [
+  {
+   "task": "t01-orders",
+   "A_success": true,
+   "N_success": false,
+   "A_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "N_facts": {
+    "token": true,
+    "probe": false,
+    "window": true,
+    "visible": true
+   },
+   "A_input": 988911,
+   "N_input": 940026,
+   "A_usd": 0.26314,
+   "N_usd": 0.264504,
+   "N_compact_usd": 0.023388,
+   "N_compact_input": 55944,
+   "A_compaction": "pruned",
+   "A_mask_fallback": false,
+   "A_reduction": [
+    0.42602420464437146
+   ],
+   "hooks": {
+    "events": 35,
+    "post_tool_use": 25,
+    "over_6000": 0,
+    "arrival_cuts": 0,
+    "arrival_cut_tools": [],
+    "chars_saved": 0,
+    "recall_on_tool": 5,
+    "recall_on_prompt": 1,
+    "recall_chars": 24087,
+    "denied": 0,
+    "nonzero_exits": 0,
+    "hook_seconds_median": 0.18
+   },
+   "arrival_in_transcript": {},
+   "A_re_reads": 0,
+   "N_re_reads": 7,
+   "A_summary_keeps": {
+    "token": false,
+    "code": false,
+    "tolerance": false,
+    "helper": false,
+    "window_home": false
+   },
+   "N_summary_keeps": {
+    "token": true,
+    "code": false,
+    "tolerance": false,
+    "helper": true,
+    "window_home": true
+   },
+   "jev_usd": 0.0009516780000000001
+  },
+  {
+   "task": "t02-shipments",
+   "A_success": true,
+   "N_success": false,
+   "A_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "N_facts": {
+    "token": true,
+    "probe": false,
+    "window": false,
+    "visible": true
+   },
+   "A_input": 765537,
+   "N_input": 910041,
+   "A_usd": 0.251698,
+   "N_usd": 0.229192,
+   "N_compact_usd": 0.021936,
+   "N_compact_input": 56670,
+   "A_compaction": "pruned",
+   "A_mask_fallback": false,
+   "A_reduction": [
+    0.4183177062100829
+   ],
+   "hooks": {
+    "events": 33,
+    "post_tool_use": 24,
+    "over_6000": 0,
+    "arrival_cuts": 0,
+    "arrival_cut_tools": [],
+    "chars_saved": 0,
+    "recall_on_tool": 4,
+    "recall_on_prompt": 1,
+    "recall_chars": 21847,
+    "denied": 0,
+    "nonzero_exits": 0,
+    "hook_seconds_median": 0.21
+   },
+   "arrival_in_transcript": {},
+   "A_re_reads": 0,
+   "N_re_reads": 5,
+   "A_summary_keeps": {
+    "token": false,
+    "code": false,
+    "tolerance": false,
+    "helper": false,
+    "window_home": false
+   },
+   "N_summary_keeps": {
+    "token": true,
+    "code": false,
+    "tolerance": true,
+    "helper": true,
+    "window_home": true
+   },
+   "jev_usd": 0.0008855280000000001
+  },
+  {
+   "task": "t03-invoices",
+   "A_success": true,
+   "N_success": true,
+   "A_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "N_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "A_input": 853398,
+   "N_input": 1107808,
+   "A_usd": 0.25635,
+   "N_usd": 0.25577,
+   "N_compact_usd": 0.019169,
+   "N_compact_input": 56839,
+   "A_compaction": "pruned",
+   "A_mask_fallback": false,
+   "A_reduction": [
+    0.5490598010276594
+   ],
+   "hooks": {
+    "events": 34,
+    "post_tool_use": 26,
+    "over_6000": 0,
+    "arrival_cuts": 0,
+    "arrival_cut_tools": [],
+    "chars_saved": 0,
+    "recall_on_tool": 4,
+    "recall_on_prompt": 1,
+    "recall_chars": 22836,
+    "denied": 0,
+    "nonzero_exits": 0,
+    "hook_seconds_median": 0.2
+   },
+   "arrival_in_transcript": {},
+   "A_re_reads": 0,
+   "N_re_reads": 7,
+   "A_summary_keeps": {
+    "token": false,
+    "code": false,
+    "tolerance": false,
+    "helper": false,
+    "window_home": false
+   },
+   "N_summary_keeps": {
+    "token": false,
+    "code": true,
+    "tolerance": true,
+    "helper": true,
+    "window_home": false
+   },
+   "jev_usd": 0.0008946420000000001
+  },
+  {
+   "task": "t04-sensors",
+   "A_success": true,
+   "N_success": false,
+   "A_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "N_facts": {
+    "token": false,
+    "probe": false,
+    "window": false,
+    "visible": true
+   },
+   "A_input": 807892,
+   "N_input": 947232,
+   "A_usd": 0.232254,
+   "N_usd": 0.231549,
+   "N_compact_usd": 0.023405,
+   "N_compact_input": 56109,
+   "A_compaction": "pruned",
+   "A_mask_fallback": false,
+   "A_reduction": [
+    0.3796572482238733
+   ],
+   "hooks": {
+    "events": 34,
+    "post_tool_use": 25,
+    "over_6000": 0,
+    "arrival_cuts": 0,
+    "arrival_cut_tools": [],
+    "chars_saved": 0,
+    "recall_on_tool": 4,
+    "recall_on_prompt": 1,
+    "recall_chars": 22585,
+    "denied": 0,
+    "nonzero_exits": 0,
+    "hook_seconds_median": 0.2
+   },
+   "arrival_in_transcript": {},
+   "A_re_reads": 0,
+   "N_re_reads": 2,
+   "A_summary_keeps": {
+    "token": false,
+    "code": false,
+    "tolerance": false,
+    "helper": false,
+    "window_home": false
+   },
+   "N_summary_keeps": {
+    "token": false,
+    "code": true,
+    "tolerance": true,
+    "helper": true,
+    "window_home": true
+   },
+   "jev_usd": 0.0008006460000000001
+  },
+  {
+   "task": "t05-tickets",
+   "A_success": true,
+   "N_success": false,
+   "A_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "N_facts": {
+    "token": true,
+    "probe": true,
+    "window": false,
+    "visible": true
+   },
+   "A_input": 1016964,
+   "N_input": 773492,
+   "A_usd": 0.287265,
+   "N_usd": 0.214327,
+   "N_compact_usd": 0.022517,
+   "N_compact_input": 56580,
+   "A_compaction": "pruned",
+   "A_mask_fallback": false,
+   "A_reduction": [
+    0.5848769623553697
+   ],
+   "hooks": {
+    "events": 36,
+    "post_tool_use": 28,
+    "over_6000": 0,
+    "arrival_cuts": 0,
+    "arrival_cut_tools": [],
+    "chars_saved": 0,
+    "recall_on_tool": 5,
+    "recall_on_prompt": 1,
+    "recall_chars": 29086,
+    "denied": 0,
+    "nonzero_exits": 0,
+    "hook_seconds_median": 0.215
+   },
+   "arrival_in_transcript": {},
+   "A_re_reads": 0,
+   "N_re_reads": 4,
+   "A_summary_keeps": {
+    "token": false,
+    "code": false,
+    "tolerance": false,
+    "helper": false,
+    "window_home": false
+   },
+   "N_summary_keeps": {
+    "token": true,
+    "code": true,
+    "tolerance": true,
+    "helper": true,
+    "window_home": true
+   },
+   "jev_usd": 0.000987714
+  },
+  {
+   "task": "t06-bookings",
+   "A_success": true,
+   "N_success": true,
+   "A_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "N_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "A_input": 1381690,
+   "N_input": 868136,
+   "A_usd": 0.29182,
+   "N_usd": 0.223556,
+   "N_compact_usd": 0.019749,
+   "N_compact_input": 56386,
+   "A_compaction": "pruned",
+   "A_mask_fallback": false,
+   "A_reduction": [
+    0.5245497791369351
+   ],
+   "hooks": {
+    "events": 31,
+    "post_tool_use": 24,
+    "over_6000": 0,
+    "arrival_cuts": 0,
+    "arrival_cut_tools": [],
+    "chars_saved": 0,
+    "recall_on_tool": 4,
+    "recall_on_prompt": 1,
+    "recall_chars": 23180,
+    "denied": 0,
+    "nonzero_exits": 0,
+    "hook_seconds_median": 0.18
+   },
+   "arrival_in_transcript": {},
+   "A_re_reads": 0,
+   "N_re_reads": 5,
+   "A_summary_keeps": {
+    "token": false,
+    "code": false,
+    "tolerance": false,
+    "helper": false,
+    "window_home": false
+   },
+   "N_summary_keeps": {
+    "token": true,
+    "code": true,
+    "tolerance": true,
+    "helper": true,
+    "window_home": true
+   },
+   "jev_usd": 0.000847602
+  },
+  {
+   "task": "t07-payroll",
+   "A_success": true,
+   "N_success": true,
+   "A_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "N_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "A_input": 1839142,
+   "N_input": 862334,
+   "A_usd": 0.37442,
+   "N_usd": 0.228637,
+   "N_compact_usd": 0.021342,
+   "N_compact_input": 56505,
+   "A_compaction": "pruned",
+   "A_mask_fallback": false,
+   "A_reduction": [
+    0.5994462901439646
+   ],
+   "hooks": {
+    "events": 40,
+    "post_tool_use": 30,
+    "over_6000": 0,
+    "arrival_cuts": 0,
+    "arrival_cut_tools": [],
+    "chars_saved": 0,
+    "recall_on_tool": 6,
+    "recall_on_prompt": 1,
+    "recall_chars": 33422,
+    "denied": 0,
+    "nonzero_exits": 0,
+    "hook_seconds_median": 0.25
+   },
+   "arrival_in_transcript": {},
+   "A_re_reads": 2,
+   "N_re_reads": 7,
+   "A_summary_keeps": {
+    "token": false,
+    "code": false,
+    "tolerance": false,
+    "helper": false,
+    "window_home": false
+   },
+   "N_summary_keeps": {
+    "token": true,
+    "code": true,
+    "tolerance": true,
+    "helper": true,
+    "window_home": true
+   },
+   "jev_usd": 0.0011273639999999998
+  },
+  {
+   "task": "t08-loans",
+   "A_success": true,
+   "N_success": true,
+   "A_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "N_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "A_input": 1011158,
+   "N_input": 1260578,
+   "A_usd": 0.27506,
+   "N_usd": 0.297951,
+   "N_compact_usd": 0.021671,
+   "N_compact_input": 57253,
+   "A_compaction": "pruned",
+   "A_mask_fallback": false,
+   "A_reduction": [
+    0.3852363559366894
+   ],
+   "hooks": {
+    "events": 36,
+    "post_tool_use": 26,
+    "over_6000": 0,
+    "arrival_cuts": 0,
+    "arrival_cut_tools": [],
+    "chars_saved": 0,
+    "recall_on_tool": 4,
+    "recall_on_prompt": 1,
+    "recall_chars": 23056,
+    "denied": 0,
+    "nonzero_exits": 0,
+    "hook_seconds_median": 0.21
+   },
+   "arrival_in_transcript": {},
+   "A_re_reads": 0,
+   "N_re_reads": 10,
+   "A_summary_keeps": {
+    "token": false,
+    "code": false,
+    "tolerance": false,
+    "helper": false,
+    "window_home": false
+   },
+   "N_summary_keeps": {
+    "token": true,
+    "code": false,
+    "tolerance": true,
+    "helper": true,
+    "window_home": true
+   },
+   "jev_usd": 0.000839202
+  },
+  {
+   "task": "t09-fleet",
+   "A_success": true,
+   "N_success": true,
+   "A_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "N_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "A_input": 1483913,
+   "N_input": 828247,
+   "A_usd": 0.317507,
+   "N_usd": 0.232936,
+   "N_compact_usd": 0.024586,
+   "N_compact_input": 56611,
+   "A_compaction": "pruned",
+   "A_mask_fallback": false,
+   "A_reduction": [
+    0.39602529851153156
+   ],
+   "hooks": {
+    "events": 35,
+    "post_tool_use": 26,
+    "over_6000": 0,
+    "arrival_cuts": 0,
+    "arrival_cut_tools": [],
+    "chars_saved": 0,
+    "recall_on_tool": 4,
+    "recall_on_prompt": 1,
+    "recall_chars": 23189,
+    "denied": 0,
+    "nonzero_exits": 0,
+    "hook_seconds_median": 0.21
+   },
+   "arrival_in_transcript": {},
+   "A_re_reads": 0,
+   "N_re_reads": 5,
+   "A_summary_keeps": {
+    "token": false,
+    "code": false,
+    "tolerance": false,
+    "helper": false,
+    "window_home": false
+   },
+   "N_summary_keeps": {
+    "token": true,
+    "code": true,
+    "tolerance": true,
+    "helper": true,
+    "window_home": true
+   },
+   "jev_usd": 0.0008351699999999999
+  },
+  {
+   "task": "t10-warehouse",
+   "A_success": true,
+   "N_success": true,
+   "A_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "N_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "A_input": 1127246,
+   "N_input": 1111284,
+   "A_usd": 0.297688,
+   "N_usd": 0.269149,
+   "N_compact_usd": 0.022262,
+   "N_compact_input": 59307,
+   "A_compaction": "pruned",
+   "A_mask_fallback": false,
+   "A_reduction": [
+    0.48045904066846473
+   ],
+   "hooks": {
+    "events": 36,
+    "post_tool_use": 25,
+    "over_6000": 0,
+    "arrival_cuts": 0,
+    "arrival_cut_tools": [],
+    "chars_saved": 0,
+    "recall_on_tool": 5,
+    "recall_on_prompt": 1,
+    "recall_chars": 28930,
+    "denied": 0,
+    "nonzero_exits": 0,
+    "hook_seconds_median": 0.345
+   },
+   "arrival_in_transcript": {},
+   "A_re_reads": 1,
+   "N_re_reads": 8,
+   "A_summary_keeps": {
+    "token": false,
+    "code": false,
+    "tolerance": false,
+    "helper": false,
+    "window_home": false
+   },
+   "N_summary_keeps": {
+    "token": true,
+    "code": true,
+    "tolerance": true,
+    "helper": true,
+    "window_home": true
+   },
+   "jev_usd": 0.001011654
+  },
+  {
+   "task": "t11-subscriptions",
+   "A_success": true,
+   "N_success": false,
+   "A_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "N_facts": {
+    "token": true,
+    "probe": false,
+    "window": true,
+    "visible": true
+   },
+   "A_input": 1069799,
+   "N_input": 1054696,
+   "A_usd": 0.266507,
+   "N_usd": 0.265236,
+   "N_compact_usd": 0.024751,
+   "N_compact_input": 58829,
+   "A_compaction": "pruned",
+   "A_mask_fallback": false,
+   "A_reduction": [
+    0.4922661100406765
+   ],
+   "hooks": {
+    "events": 35,
+    "post_tool_use": 26,
+    "over_6000": 0,
+    "arrival_cuts": 0,
+    "arrival_cut_tools": [],
+    "chars_saved": 0,
+    "recall_on_tool": 4,
+    "recall_on_prompt": 0,
+    "recall_chars": 22529,
+    "denied": 0,
+    "nonzero_exits": 0,
+    "hook_seconds_median": 0.36
+   },
+   "arrival_in_transcript": {},
+   "A_re_reads": 0,
+   "N_re_reads": 7,
+   "A_summary_keeps": {
+    "token": false,
+    "code": false,
+    "tolerance": false,
+    "helper": false,
+    "window_home": false
+   },
+   "N_summary_keeps": {
+    "token": true,
+    "code": false,
+    "tolerance": false,
+    "helper": true,
+    "window_home": true
+   },
+   "jev_usd": 0.0008888040000000001
+  },
+  {
+   "task": "t12-meters",
+   "A_success": true,
+   "N_success": false,
+   "A_facts": {
+    "token": true,
+    "probe": true,
+    "window": true,
+    "visible": true
+   },
+   "N_facts": {
+    "token": true,
+    "probe": true,
+    "window": false,
+    "visible": true
+   },
+   "A_input": 807417,
+   "N_input": 931888,
+   "A_usd": 0.242279,
+   "N_usd": 0.242735,
+   "N_compact_usd": 0.02119,
+   "N_compact_input": 56819,
+   "A_compaction": "pruned",
+   "A_mask_fallback": false,
+   "A_reduction": [
+    0.41836850144255244
+   ],
+   "hooks": {
+    "events": 35,
+    "post_tool_use": 25,
+    "over_6000": 0,
+    "arrival_cuts": 0,
+    "arrival_cut_tools": [],
+    "chars_saved": 0,
+    "recall_on_tool": 4,
+    "recall_on_prompt": 1,
+    "recall_chars": 22963,
+    "denied": 0,
+    "nonzero_exits": 0,
+    "hook_seconds_median": 0.4
+   },
+   "arrival_in_transcript": {},
+   "A_re_reads": 0,
+   "N_re_reads": 5,
+   "A_summary_keeps": {
+    "token": false,
+    "code": false,
+    "tolerance": false,
+    "helper": false,
+    "window_home": false
+   },
+   "N_summary_keeps": {
+    "token": true,
+    "code": true,
+    "tolerance": true,
+    "helper": true,
+    "window_home": true
+   },
+   "jev_usd": 0.0008483160000000001
+  }
+ ]
+}

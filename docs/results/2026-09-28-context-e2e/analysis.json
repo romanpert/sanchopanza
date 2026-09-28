@@ -1,0 +1,228 @@
+{
+ "phase_a": {
+  "tasks": 6,
+  "valid": 6,
+  "excluded": [],
+  "usd": 0.8028,
+  "usd_mean": 0.1338,
+  "seconds_median": 89.5,
+  "last_context_median": 55055.0,
+  "visible_pass_after_a": 6
+ },
+ "arms": {
+  "N": {
+   "n": 6,
+   "success": 2,
+   "success_ci": [
+    0.0968,
+    0.7
+   ],
+   "facts": {
+    "token": 5,
+    "probe": 3,
+    "window": 3,
+    "visible": 6
+   },
+   "b_input_tokens_sum": 1683925,
+   "b_input_tokens_median": 271059.5,
+   "b_output_tokens_sum": 20403,
+   "b_first_context_median": 42586.5,
+   "compact_usd": 0.933,
+   "b_usd": 1.4189,
+   "usd_per_task": 0.392,
+   "jev_usd": 0.0,
+   "re_reads_mean": 5,
+   "re_reads_total": 30,
+   "archive_reads": 0,
+   "greps_mean": 0.33,
+   "one_shot_reruns": 0,
+   "b_turns_median": 22.5,
+   "compaction_kinds": {
+    "summary": 6
+   },
+   "summary_keeps": {
+    "token": 4,
+    "code": 4,
+    "tolerance": 5,
+    "helper": 6,
+    "window_home": 5
+   },
+   "window_constants": [
+    "GRACE_NOTICE_DAYS",
+    "GRACE_NOTICE_DAYS",
+    "GRACE_WINDOW_DAYS",
+    "GRACE_WINDOW_DAYS",
+    "GRACE_WINDOW_DAYS",
+    "None"
+   ],
+   "leftover_hits": 0,
+   "fallbacks": 0,
+   "pruned": 0,
+   "fallback_reasons": [],
+   "compact_seconds_median": 38.6,
+   "b_seconds_median": 46.8,
+   "b_capped_or_error": 0
+  },
+  "R": {
+   "n": 6,
+   "success": 3,
+   "success_ci": [
+    0.1876,
+    0.8124
+   ],
+   "facts": {
+    "token": 6,
+    "probe": 5,
+    "window": 4,
+    "visible": 6
+   },
+   "b_input_tokens_sum": 3038661,
+   "b_input_tokens_median": 484839.5,
+   "b_output_tokens_sum": 24539,
+   "b_first_context_median": 42524.5,
+   "compact_usd": 0.9341,
+   "b_usd": 1.6047,
+   "usd_per_task": 0.4231,
+   "jev_usd": 0.0,
+   "re_reads_mean": 6.33,
+   "re_reads_total": 38,
+   "archive_reads": 0,
+   "greps_mean": 1,
+   "one_shot_reruns": 1,
+   "b_turns_median": 30.5,
+   "compaction_kinds": {
+    "summary": 6
+   },
+   "summary_keeps": {
+    "token": 5,
+    "code": 5,
+    "tolerance": 4,
+    "helper": 5,
+    "window_home": 6
+   },
+   "window_constants": [
+    "GRACE_NOTICE_DAYS",
+    "GRACE_NOTICE_DAYS",
+    "GRACE_WINDOW_DAYS",
+    "GRACE_WINDOW_DAYS",
+    "GRACE_WINDOW_DAYS",
+    "GRACE_WINDOW_DAYS"
+   ],
+   "leftover_hits": 1,
+   "fallbacks": 6,
+   "pruned": 0,
+   "fallback_reasons": [
+    "`<repo>\\.venv\\Scripts\\python.exe <repo>\\docs\\results\\2026-09-28-context-e2e\\compact_wrapper.py R <home>\\.c"
+   ],
+   "compact_seconds_median": 35.3,
+   "b_seconds_median": 67.1,
+   "b_capped_or_error": 0
+  },
+  "S": null,
+  "F": null
+ },
+ "H1_S_vs_N": null,
+ "H2_S_vs_F": null,
+ "H2_F_vs_S": null,
+ "H3_R_vs_N": {
+  "tasks": 6,
+  "success_R": 3,
+  "success_N": 2,
+  "success_part": true,
+  "b_input_R": 3038661,
+  "b_input_N": 1683925,
+  "token_part": false,
+  "holds": false,
+  "discordant": {
+   "R_only": 2,
+   "N_only": 1
+  },
+  "re_reads_mean_diff": 1.33
+ },
+ "failures": [
+  {
+   "task": "t01-orders",
+   "arm": "N",
+   "failed": [
+    "probe"
+   ],
+   "compaction": "summary",
+   "fallback": null,
+   "b_subtype": "success",
+   "b_said": "Perfect! All tests pass. Summary of changes:\n\n1. **pkg/release.py**: Set `RELEASE_TOKEN = \"RT-6Z4FRFLG7W\"` (token issued by tools/issue_token.py)\n2. **pkg/guard.py**: Set `DRIFT_TOLERANCE = 0.0290` (tolerance reported by probe) and implemen"
+  },
+  {
+   "task": "t02-shipments",
+   "arm": "N",
+   "failed": [
+    "probe",
+    "window"
+   ],
+   "compaction": "summary",
+   "fallback": null,
+   "b_subtype": "success",
+   "b_said": "Done. All three changes completed and tests pass:\n\n1. **pkg/release.py**: `RELEASE_TOKEN = \"RT-84DLFETXEN\"` (from tools/issue_token.py)\n2. **pkg/guard.py**: `DRIFT_TOLERANCE = 0.0352` (tolerance from tools/probe.py) and `check_drift()` rais"
+  },
+  {
+   "task": "t02-shipments",
+   "arm": "R",
+   "failed": [
+    "window"
+   ],
+   "compaction": "summary",
+   "fallback": true,
+   "b_subtype": "success",
+   "b_said": "Perfect. All three updates complete:\n\n1. **pkg/release.py**: RELEASE_TOKEN set to \"RT-84DLFETXEN\" (from tools/issue_token.py)\n2. **pkg/guard.py**: DRIFT_TOLERANCE set to 0.0352 (from probe output); check_drift() raises GuardError with code "
+  },
+  {
+   "task": "t04-sensors",
+   "arm": "N",
+   "failed": [
+    "token",
+    "probe",
+    "window"
+   ],
+   "compaction": "summary",
+   "fallback": null,
+   "b_subtype": "success",
+   "b_said": "I can implement the guard and deadlines functions, but I'm unable to locate the release token from the earlier session. The summary mentions it was issued but the actual value isn't available in the transcript or any log files. Let me repor"
+  },
+  {
+   "task": "t04-sensors",
+   "arm": "R",
+   "failed": [
+    "window"
+   ],
+   "compaction": "summary",
+   "fallback": true,
+   "b_subtype": "success",
+   "b_said": "All three changes complete. Summary:\n\n1. **pkg/release.py**: Set `RELEASE_TOKEN = 'RT-FDDQQJC3GD'` (from issue_token.py)\n2. **pkg/guard.py**: Set `DRIFT_TOLERANCE = 0.0367` and implemented `check_drift()` to raise `GuardError('PRB-8382')` w"
+  },
+  {
+   "task": "t05-tickets",
+   "arm": "N",
+   "failed": [
+    "window"
+   ],
+   "compaction": "summary",
+   "fallback": null,
+   "b_subtype": "success",
+   "b_said": "\u2705 All changes complete and tests passing. Summary:\n\n1. **pkg/release.py**: Set `RELEASE_TOKEN = 'RT-XF5L3DN32J'` (from issue_token.py)\n2. **pkg/guard.py**: Set `DRIFT_TOLERANCE = 0.0252` and implemented `check_drift()` to raise `GuardError("
+  },
+  {
+   "task": "t06-bookings",
+   "arm": "R",
+   "failed": [
+    "probe"
+   ],
+   "compaction": "summary",
+   "fallback": true,
+   "b_subtype": "success",
+   "b_said": "All tests pass. Changes made:\n\n1. **pkg/release.py**: Set `RELEASE_TOKEN = \"RT-FBHCPAA2LW\"` (the token issued earlier)\n2. **pkg/guard.py**: Set `DRIFT_TOLERANCE = 0.0474` and implemented `check_drift()` to raise `GuardError` when value exce"
+  }
+ ],
+ "spend": {
+  "claude_usd": 5.6936,
+  "jev_usd": 0.0
+ }
+}
