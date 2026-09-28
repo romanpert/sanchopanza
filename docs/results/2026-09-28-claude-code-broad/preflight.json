@@ -1,0 +1,17 @@
+[
+ {
+  "point": "guard",
+  "provider": "jev",
+  "model": "jev-1.13.0",
+  "error": null,
+  "cost_usd": 2.646e-05,
+  "latency_ms": 358,
+  "input_tokens": 630,
+  "outcome": {
+   "denied": false,
+   "origin": null,
+   "probability": 0.03
+  },
+  "answer": 0.03
+ }
+]

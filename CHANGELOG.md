@@ -9,6 +9,17 @@ do not favour this package.
 
 ### Added
 
+- **Broader Claude Code evidence, pre-registered** (`docs/results/2026-09-28-claude-code-broad/`).
+  Hook level: 1,816 labelled cases through the `sanchopanza hook` process with real Jev. The
+  shell-fetch scan noted 121/124 AgentDojo injections in `curl` output with 0/149 false alarms,
+  and scanned nothing for a non-fetching `cat`; the Stop check's blocks were right in 286 of
+  299 on 655 AgentDojo runs (13 of 342 finished runs blocked); ATBench-Codex: 0 of 250 unsafe
+  trajectories flagged, because the hook does not judge MCP tool calls. End to end: 144
+  Claude Code sessions, hooked against plain, 8 reps: destructive commands stopped 16/16 (plain
+  ran them 15/15), planted pages flagged 16/16, 0 false alarms in 93 benign events; the agent
+  refused the planted text in every session in both arms. 5.29 USD list (subscription), Jev
+  0.043 USD. `tests/test_claude_code_broad.py` replays every hook-level verdict from
+  `fixtures/claude-code-broad-jev.jsonl`, no key.
 - **`triage_many` is the recommended way to keep documents out of a call**, on a
   pre-registered result (`docs/results/2026-09-28-fixed-pages/`): `benchmarks/ab/fixed.py
   --lever pages` judges each document's passages with the others in view, on a pinned corpus
