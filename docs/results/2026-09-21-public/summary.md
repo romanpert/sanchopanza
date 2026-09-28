@@ -1,16 +1,17 @@
 # Public benches, Jev 1.13.0, 2026-09-21
 
-Cases: 245 - decision calls: 227 - input tokens: 184583 - cost: 0.0078 USD
+Cases: 245 - decision calls: 227 - input tokens: 184535 - cost: 0.0078 USD
 
 Re-recorded after pseudonymization hardening (2026-09-28): the cases whose text concerned
 pseudonymized persons were reworded and asked again; the figures below are re-derived.
+Entity question examples replaced with invented ones (2026-09-28): all 24 entity cases re-recorded; agreement unchanged.
 
 | Point | n | Coverage | Agreement when deciding | Wilson 95 % | Median latency |
 |---|---|---|---|---|---|
 | citation | 20 | 90% | 18/18 = 100% | [82%, 100%] | 266 ms |
 | command | 32 | 47% | 15/15 = 100% | [80%, 100%] | 0 ms |
 | dependency | 20 | 100% | 19/20 = 95% | [76%, 99%] | 546 ms |
-| entity | 24 | 100% | 24/24 = 100% | [86%, 100%] | 250 ms |
+| entity | 24 | 100% | 24/24 = 100% | [86%, 100%] | 280 ms |
 | facts | 20 | 80% | 15/16 = 94% | [72%, 99%] | 250 ms |
 | injection | 28 | 100% | 27/28 = 96% | [82%, 99%] | 264 ms |
 | numeric_citation | 24 | 92% | 22/22 = 100% | [85%, 100%] | 250 ms |
@@ -28,7 +29,7 @@ two columns measure the policy and the model's ordering respectively.
 |---|---|---|---|---|---|
 | command | 15 | 15/15 | nan | 0.005 | 0.058 |
 | dependency | 20 | 19/20 | 1.00 | 0.040 | 0.148 |
-| entity | 24 | 24/24 | 1.00 | 0.006 | 0.064 |
+| entity | 24 | 24/24 | 1.00 | 0.007 | 0.067 |
 | injection | 28 | 28/28 | 1.00 | 0.007 | 0.037 |
 | unsourced | 22 | 21/22 | 1.00 | 0.030 | 0.082 |
 
@@ -39,8 +40,8 @@ two columns measure the policy and the model's ordering respectively.
 | Band | n | Agreement |
 |---|---|---|
 | 0.00-0.40 | 8 | 3/8 = 38% |
-| 0.40-0.60 | 7 | 2/7 = 29% |
-| 0.60-0.75 | 12 | 11/12 = 92% |
+| 0.40-0.60 | 8 | 3/8 = 38% |
+| 0.60-0.75 | 11 | 10/11 = 91% |
 | 0.75-0.90 | 51 | 50/51 = 98% |
 | 0.90-1.00 | 141 | 140/141 = 99% |
 
@@ -50,7 +51,7 @@ two columns measure the policy and the model's ordering respectively.
 |---|---|---|---|---|
 | choice | 56 | 98% | 0.96 | 0.026 |
 | score | 20 | 70% | 0.72 | 0.168 |
-| truth | 143 | 96% | 0.87 | 0.100 |
+| truth | 143 | 96% | 0.86 | 0.094 |
 
 ## Plan `plan-register`: 56 ordered pairs, 9 reference edges
 

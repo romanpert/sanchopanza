@@ -39,7 +39,7 @@ def alignment_questions(
                     "what": "Same entity under a different form: alias, nickname, short or "
                     "full name, acronym, with or without a title or date",
                     "examples": [
-                        "'Dario Pena, el Sabueso' and 'Dario Ernesto Pena Castillo'",
+                        "'Tito Ferrer, el Relojero' and 'Alberto Ferrer Quintana'",
                         "'SGC' and 'Servicio Geologico Colombiano'",
                         "'Ley 6132' and "
                         "'Ley 6132 de 1962 sobre Expresion y Difusion del Pensamiento'",
@@ -50,7 +50,7 @@ def alignment_questions(
                     "surname, a person and their employer, a ruling and another ruling, a "
                     "town and the region that contains it, similar nicknames",
                     "examples": [
-                        "'La Chispa' and 'La Chispita' (two different communicators)",
+                        "'Nena Luz' and 'Nena Lux' (two different singers)",
                         "'TC/1148/25' and 'TC/1652/25'",
                         "'San Jose del Palmar' and 'Choco'",
                     ],

@@ -11,9 +11,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 218,
-  "input_tokens": 656,
-  "cost_usd": 2.7552000000000003e-05
+  "latency_ms": 265,
+  "input_tokens": 654,
+  "cost_usd": 2.7468e-05
  },
  {
   "id": "en-02",
@@ -22,14 +22,14 @@
   "predicted": true,
   "correct": true,
   "decided": true,
-  "confidence": 0.8400000000000001,
-  "probability": 0.92,
+  "confidence": 0.8200000000000001,
+  "probability": 0.91,
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 250,
-  "input_tokens": 633,
-  "cost_usd": 2.6586000000000003e-05
+  "latency_ms": 280,
+  "input_tokens": 631,
+  "cost_usd": 2.6502e-05
  },
  {
   "id": "en-03",
@@ -38,14 +38,14 @@
   "predicted": false,
   "correct": true,
   "decided": true,
-  "confidence": 0.62,
-  "probability": 0.19,
+  "confidence": 0.54,
+  "probability": 0.23,
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 218,
-  "input_tokens": 634,
-  "cost_usd": 2.6628e-05
+  "latency_ms": 265,
+  "input_tokens": 632,
+  "cost_usd": 2.6544000000000002e-05
  },
  {
   "id": "en-04",
@@ -59,9 +59,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 312,
-  "input_tokens": 633,
-  "cost_usd": 2.6586000000000003e-05
+  "latency_ms": 375,
+  "input_tokens": 631,
+  "cost_usd": 2.6502e-05
  },
  {
   "id": "en-05",
@@ -75,9 +75,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 250,
-  "input_tokens": 619,
-  "cost_usd": 2.5998e-05
+  "latency_ms": 297,
+  "input_tokens": 617,
+  "cost_usd": 2.5914000000000003e-05
  },
  {
   "id": "en-06",
@@ -92,8 +92,8 @@
   "provider": "recorded",
   "model": "jev-1.13.0",
   "latency_ms": 250,
-  "input_tokens": 621,
-  "cost_usd": 2.6082000000000002e-05
+  "input_tokens": 619,
+  "cost_usd": 2.5998e-05
  },
  {
   "id": "en-07",
@@ -107,9 +107,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 234,
-  "input_tokens": 622,
-  "cost_usd": 2.6124000000000003e-05
+  "latency_ms": 342,
+  "input_tokens": 620,
+  "cost_usd": 2.604e-05
  },
  {
   "id": "en-08",
@@ -123,9 +123,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 218,
-  "input_tokens": 629,
-  "cost_usd": 2.6418000000000004e-05
+  "latency_ms": 313,
+  "input_tokens": 627,
+  "cost_usd": 2.6334000000000002e-05
  },
  {
   "id": "en-09",
@@ -134,14 +134,14 @@
   "predicted": false,
   "correct": true,
   "decided": true,
-  "confidence": 0.94,
-  "probability": 0.03,
+  "confidence": 0.92,
+  "probability": 0.04,
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 218,
-  "input_tokens": 620,
-  "cost_usd": 2.604e-05
+  "latency_ms": 343,
+  "input_tokens": 618,
+  "cost_usd": 2.5956000000000004e-05
  },
  {
   "id": "en-10",
@@ -150,14 +150,14 @@
   "predicted": true,
   "correct": true,
   "decided": true,
-  "confidence": 0.8200000000000001,
-  "probability": 0.91,
+  "confidence": 0.8,
+  "probability": 0.9,
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 281,
-  "input_tokens": 633,
-  "cost_usd": 2.6586000000000003e-05
+  "latency_ms": 328,
+  "input_tokens": 631,
+  "cost_usd": 2.6502e-05
  },
  {
   "id": "en-11",
@@ -171,9 +171,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 233,
-  "input_tokens": 654,
-  "cost_usd": 2.7468e-05
+  "latency_ms": 250,
+  "input_tokens": 652,
+  "cost_usd": 2.7384e-05
  },
  {
   "id": "en-12",
@@ -187,9 +187,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 250,
-  "input_tokens": 646,
-  "cost_usd": 2.7132e-05
+  "latency_ms": 234,
+  "input_tokens": 644,
+  "cost_usd": 2.7048000000000003e-05
  },
  {
   "id": "en-13",
@@ -203,9 +203,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 233,
-  "input_tokens": 642,
-  "cost_usd": 2.6964e-05
+  "latency_ms": 219,
+  "input_tokens": 640,
+  "cost_usd": 2.6880000000000004e-05
  },
  {
   "id": "en-14",
@@ -219,9 +219,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 250,
-  "input_tokens": 635,
-  "cost_usd": 2.667e-05
+  "latency_ms": 280,
+  "input_tokens": 633,
+  "cost_usd": 2.6586000000000003e-05
  },
  {
   "id": "en-15",
@@ -236,8 +236,8 @@
   "provider": "recorded",
   "model": "jev-1.13.0",
   "latency_ms": 250,
-  "input_tokens": 620,
-  "cost_usd": 2.604e-05
+  "input_tokens": 618,
+  "cost_usd": 2.5956000000000004e-05
  },
  {
   "id": "en-16",
@@ -251,9 +251,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 281,
-  "input_tokens": 630,
-  "cost_usd": 2.646e-05
+  "latency_ms": 265,
+  "input_tokens": 628,
+  "cost_usd": 2.6376e-05
  },
  {
   "id": "en-17",
@@ -267,9 +267,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 250,
-  "input_tokens": 614,
-  "cost_usd": 2.5788e-05
+  "latency_ms": 328,
+  "input_tokens": 612,
+  "cost_usd": 2.5704e-05
  },
  {
   "id": "en-18",
@@ -278,14 +278,14 @@
   "predicted": false,
   "correct": true,
   "decided": true,
-  "confidence": 0.86,
-  "probability": 0.07,
+  "confidence": 0.88,
+  "probability": 0.06,
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 343,
-  "input_tokens": 616,
-  "cost_usd": 2.5872e-05
+  "latency_ms": 265,
+  "input_tokens": 614,
+  "cost_usd": 2.5788e-05
  },
  {
   "id": "en-19",
@@ -299,9 +299,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 297,
-  "input_tokens": 620,
-  "cost_usd": 2.604e-05
+  "latency_ms": 264,
+  "input_tokens": 618,
+  "cost_usd": 2.5956000000000004e-05
  },
  {
   "id": "en-20",
@@ -310,14 +310,14 @@
   "predicted": true,
   "correct": true,
   "decided": true,
-  "confidence": 0.8600000000000001,
-  "probability": 0.93,
+  "confidence": 0.8400000000000001,
+  "probability": 0.92,
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
   "latency_ms": 235,
-  "input_tokens": 619,
-  "cost_usd": 2.5998e-05
+  "input_tokens": 617,
+  "cost_usd": 2.5914000000000003e-05
  },
  {
   "id": "en-21",
@@ -326,14 +326,14 @@
   "predicted": true,
   "correct": true,
   "decided": true,
-  "confidence": 0.6200000000000001,
-  "probability": 0.81,
+  "confidence": 0.6399999999999999,
+  "probability": 0.82,
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 235,
-  "input_tokens": 624,
-  "cost_usd": 2.6208e-05
+  "latency_ms": 359,
+  "input_tokens": 622,
+  "cost_usd": 2.6124000000000003e-05
  },
  {
   "id": "en-22",
@@ -342,14 +342,14 @@
   "predicted": false,
   "correct": true,
   "decided": true,
-  "confidence": 0.86,
-  "probability": 0.07,
+  "confidence": 0.8200000000000001,
+  "probability": 0.09,
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 233,
-  "input_tokens": 627,
-  "cost_usd": 2.6334000000000002e-05
+  "latency_ms": 328,
+  "input_tokens": 625,
+  "cost_usd": 2.625e-05
  },
  {
   "id": "en-23",
@@ -358,14 +358,14 @@
   "predicted": false,
   "correct": true,
   "decided": true,
-  "confidence": 0.78,
-  "probability": 0.11,
+  "confidence": 0.8,
+  "probability": 0.1,
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 250,
-  "input_tokens": 620,
-  "cost_usd": 2.604e-05
+  "latency_ms": 312,
+  "input_tokens": 618,
+  "cost_usd": 2.5956000000000004e-05
  },
  {
   "id": "en-24",
@@ -379,9 +379,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 233,
-  "input_tokens": 623,
-  "cost_usd": 2.6166e-05
+  "latency_ms": 280,
+  "input_tokens": 621,
+  "cost_usd": 2.6082000000000002e-05
  },
  {
   "id": "fa-01",

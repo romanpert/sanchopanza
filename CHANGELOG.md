@@ -269,6 +269,9 @@ do not favour this package.
   unchanged. Only those rows were asked again (74 Jev decisions, 0.0020 USD). Moved: public
   `facts` 14/15 -> 15/16, fourth-batch `facts` 35/39 -> 36/40, option-order flips 4 and 3 ->
   3 and 2 (`docs/results/2026-09-25-order/`), and the calibration figures those rows feed.
+  The entity question's examples, which used benched nicknames, were replaced with invented
+  ones and all 48 entity recordings re-asked (0.0013 USD); entity stays 24/24, only the
+  calibration figures moved.
 
 - **The tool window end to end** (`docs/results/2026-09-25-e2e/`, 6.8 USD): Sonnet 5 on 40
   AgentDojo tasks with a 74-tool catalog. Success pooled over runs: loading everything 70/80,

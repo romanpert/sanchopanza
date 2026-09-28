@@ -633,10 +633,11 @@ under the policy it is not flagged, at a plain cut it is. AUC and ECE do not dep
 cut.
 
 Confidence bands on this run, under the policy: >= 0.90 -> 140/141; 0.75-0.90 -> 50/51;
-0.60-0.75 -> 11/12; 0.40-0.60 -> 2/7; < 0.40 -> 3/8. By primitive: Choice 56 cases, 98 %,
-ECE 0.026; Truth 143, 96 %, ECE 0.100 (under-confident); Score 20, 70 %, ECE 0.168.
-(Re-recorded after pseudonymization hardening, 2026-09-28: 22 cases reworded and asked again;
-facts moved from 14/15 to 15/16, the bands and the Score ECE with it.) The plan
+0.60-0.75 -> 10/11; 0.40-0.60 -> 3/8; < 0.40 -> 3/8. By primitive: Choice 56 cases, 98 %,
+ECE 0.026; Truth 143, 96 %, ECE 0.094 (under-confident); Score 20, 70 %, ECE 0.168.
+(Re-recorded after pseudonymization hardening, 2026-09-28: 22 cases reworded and asked again,
+then all 24 entity cases after the entity question's examples were replaced; facts moved from
+14/15 to 15/16, entity stayed 24/24, the bands and ECEs with them.) The plan
 reproduces exactly: 20 raw edges at 40 % precision, 7 clean edges at 100 %, waves identical
 to the reference, L2 -> L8 missing.
 
