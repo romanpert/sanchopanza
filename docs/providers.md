@@ -30,6 +30,7 @@ For `Choice`, the provider's own confidence if it has one, else top minus runner
 | | `RoutedDecider` | one provider per decision point | per point |
 | | `CascadeDecider` | a cheap provider first, an expensive one only for the questions it was unsure of; the threshold per question kind is required, there is no default. For `points.actions` in front of Opus 5, 0.45 is confirmed on ATBench-Codex (`docs/results/2026-09-27-cascade-frontier/`) | per question, from whichever answered |
 | | `RecordingDecider` | wraps a real provider and writes a fixture | passthrough |
+| | `CachedDecider` | wraps a provider: the same question within `ttl_seconds` gets the first answer again, free, journalled as `<provider>@cache`; never stores a failed, empty or partial decision; optional JSON-lines store with `path=` | the first answer's |
 
 `sanchopanza.providers.create(name, **kwargs)` instantiates by name, including providers other
 packages register under the `sanchopanza.providers` entry-point group.

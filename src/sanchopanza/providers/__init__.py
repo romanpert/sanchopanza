@@ -9,6 +9,7 @@
     FallbackDecider([a, b])               first provider that answers wins
     RoutedDecider({"routing": a}, b)      one provider per decision point
     CascadeDecider(a, b, tau=0.4)         b only for the questions a was unsure of
+    CachedDecider(a, ttl_seconds=3600)    a repeat within the TTL: same answer, not paid again
 
 Third-party packages register more under the `sanchopanza.providers` entry-point group.
 """
@@ -20,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ..contract import Decider
+    from .cached import CachedDecider
     from .chain import CascadeDecider, FallbackDecider, RoutedDecider
     from .fixed import FixedDecider
     from .local import LocalDecider
@@ -27,6 +29,7 @@ if TYPE_CHECKING:
     from .recorded import RecordedDecider, RecordingDecider, key_of, order_of
 
 __all__ = [
+    "CachedDecider",
     "CascadeDecider",
     "FallbackDecider",
     "FixedDecider",
@@ -43,6 +46,7 @@ __all__ = [
 # Resolved on first use (PEP 562), and the entry-point scan only when a name is not built in:
 # `importlib.metadata` alone was a fifth of the hook's start-up.
 _LAZY = {
+    "CachedDecider": "cached",
     **dict.fromkeys(("CascadeDecider", "FallbackDecider", "RoutedDecider"), "chain"),
     "FixedDecider": "fixed",
     "LocalDecider": "local",

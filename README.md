@@ -158,6 +158,14 @@ not deterministic across a day: the same state, asked again of the same pinned v
 by up to 0.09. Full method, intervals and caveats: [the paper](docs/paper.md). Benches and
 how to run them: [docs/benches.md](docs/benches.md).
 
+**Same answer within a window, opt-in.** `CachedDecider(inner, ttl_seconds=..., path=None)`
+wraps any provider: a repeat of the same point, state and questions (same option order, same
+provider and model) inside the TTL returns the first answer, identically and at zero cost, and
+the journal shows it as `<provider>@cache`. Failed, empty and partial decisions are never
+stored; `path` adds a JSON-lines store on disk holding hashes and numbers, not the text. It
+gives identical answers within the TTL; it does not fix drift across TTL windows, and it is
+tested with fake providers only.
+
 ---
 
 ## What it costs

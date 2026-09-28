@@ -9,6 +9,13 @@ do not favour this package.
 
 ### Added
 
+- **`providers.CachedDecider`, opt-in.** Wraps any decider and answers a repeat of the same
+  point, state and questions (option order, provider and model included in the key) within
+  `ttl_seconds` with the first answer, at zero cost and latency, journalled as
+  `<provider>@cache`. Never stores a failed, empty, unreadable or partial decision; an
+  unavailable provider still raises. In memory by default, JSON lines on disk with `path=`
+  (hash and answers only, no state text). Identical answers within the TTL; it does not fix
+  the provider's drift across TTL windows. Tested with fake providers.
 - **`Squire.select_passages`, for one long document**, and `select_sentences(window=)`.
   The tournament over the paragraphs, then sentences with a window of two inside the
   paragraphs it keeps at 0.75 or more (`Thresholds.document_paragraphs`,

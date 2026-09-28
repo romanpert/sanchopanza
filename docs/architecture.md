@@ -235,6 +235,9 @@ section 7). Pinning the version keeps the thresholds meaningful; only a recordin
 number reproducible, which is why every figure in this repository is quoted from a recording
 and pinned by a replay test. A decision within about 0.1 of its cut is a coin flip between
 runs, and a published count should say how many of its decisions sit that close.
+Inside a job, `providers.CachedDecider` makes a repeat of the same question within a TTL an
+exact, unpaid repeat; across TTL windows, and across processes that do not share its store,
+the drift remains.
 
 ECE is reported with its limits: at these sample sizes the estimator's own bias is about
 0.083 (n = 180), so a difference between two ECE values here says less than the decimals
