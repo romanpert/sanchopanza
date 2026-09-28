@@ -69,7 +69,7 @@ flowchart TB
     C{{"Decider protocol: decide(point, state, questions) -> Decision"}}
     subgraph providers
         V1[jev] --- V2[recorded] --- V3[null] --- V4[llm] --- V5[local]
-        V8[claude-cli] --- V6[FallbackDecider] --- V7[RoutedDecider] --- V9[CascadeDecider]
+        V6[FallbackDecider] --- V7[RoutedDecider] --- V9[CascadeDecider]
     end
     A1 & A2 & A4 --> G --> S
     A3 --> S
@@ -111,12 +111,6 @@ writes a summary; the idea is LATTICE's (arXiv:2510.13217). On 100 pages per que
 both supporting pages in 96.5 % of 200 held-out HotpotQA questions at 3.1 % of the text in 5
 calls (`docs/results/2026-09-27-hierarchy/`). `hierarchy.MAX_ROUNDS` allows a third round,
 which is unmeasured.
-
-**A generative provider that bills no API key.** `providers/claude_cli.py` wraps `claude -p`
-as a `Completer` for `LLMDecider`: an isolated, tool-less one-shot session per question, the
-environment stripped of API credentials, a list-price ceiling checked before each spawn and a
-disk cache. It exists so that evaluations needing a generative model run against the
-logged-in account; `docs/providers.md` lists what it guarantees and what it does not.
 
 ## Invariants
 

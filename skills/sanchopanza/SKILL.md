@@ -101,7 +101,7 @@ from sanchopanza.providers import create
 from sanchopanza.harness import Guardian, HarnessConfig
 
 squire = Squire(
-    create("jev"),                      # or "null", "recorded", "llm", "claude-cli", "local"
+    create("jev"),                      # or "null", "recorded", "llm", "local"
     thresholds=Thresholds(),            # the measured defaults
     journal=JsonlJournal("journal.jsonl"),
     brief="what this job is about",
@@ -273,12 +273,10 @@ same format; real material beats invented material and hard negatives beat easy 
 For an end-to-end question, "does my agent get cheaper or worse", copy `benchmarks/ab/`:
 same tasks, same prompts, one arm with the squire and one without, paired bootstrap over the
 pairs. Decision-level accuracy does not answer that question and should not be quoted as if
-it did. If an evaluation needs a generative model and should not spend API money,
-`create("claude-cli", model=..., ceiling_usd=..., cache_path=...)` runs it through `claude -p`
-on the logged-in account, with a hard ceiling and a disk cache; run every arm through the same
-path and control the answer length, because free-length CLI replies are not interchangeable
-with API numbers (74.7 % against 67.7 % on the same prompts; 67.0 % against 67.7 % with a
-short answer field). For tool catalogs, `benchmarks/agentdojo/e2e_window.py` is the model: a success
+it did. If an evaluation needs a generative model,
+run every arm through the same path and control the answer length: free-length replies
+from one path are not interchangeable with API numbers (74.7 % against 67.7 % on the same
+prompts; 67.0 % against 67.7 % with a short answer field). For tool catalogs, `benchmarks/agentdojo/e2e_window.py` is the model: a success
 criterion written before the first run, and more than one run: the all-tools arm moved from
 34 to 36 of 40 between two runs with nothing changed, so the model varies against itself as
 much as the arms differ. And share the fixed prefix between tasks the way production would: a

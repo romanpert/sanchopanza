@@ -277,7 +277,6 @@ flowchart LR
     D --> J[Jev / TypeSafe]
     D --> L[Local classifier / vision]
     D --> M[LLM forced to a schema]
-    D --> CLI[LLM through claude -p]
     D --> R[Recorded fixture]
     A -.-> PRE --> G
     O -.-> POST --> G
@@ -291,7 +290,7 @@ flowchart LR
 | `sanchopanza.points` | The questions of each decision point, verbatim as measured, plus a pure policy function per point |
 | `sanchopanza.squire` | One decider, one `Thresholds`, one journal, one budget. Fail-open, capped, traced |
 | `sanchopanza.harness` | `Guardian` (tool call in, verdict out) and the per-harness adapters |
-| `sanchopanza.providers` | `jev`, `recorded`, `null`, `llm`, `claude-cli`, `local`, plus `FallbackDecider`, `RoutedDecider` and `CascadeDecider` |
+| `sanchopanza.providers` | `jev`, `recorded`, `null`, `llm`, `local`, plus `FallbackDecider`, `RoutedDecider` and `CascadeDecider` |
 | `sanchopanza.eval` | Bench runner and statistics, in plain Python: Wilson, bootstrap, McNemar, AUC, Brier, ECE |
 
 ### Four invariants
@@ -426,13 +425,12 @@ squire = Squire(FallbackDecider([local, create("jev")]))  # local first, hosted 
 `RoutedDecider({"guard": on_prem}, default=hosted)` keeps one decision point in your building.
 `LLMDecider(anthropic_completer(...))` forces any chat model into the same schema, with the
 caveat, measured, that an LLM's self-reported confidence does not separate its errors.
-`create("claude-cli", model=..., ceiling_usd=..., cache_path=...)` is the same `LLMDecider`
-run through `claude -p`: billed to the account `claude` is logged into, never to an API key
-(the session's environment drops every `ANTHROPIC_*`, `CLAUDE_CODE_USE_*` and
-`AWS_BEARER_TOKEN_BEDROCK` variable), with a hard ceiling and a disk cache. A number from that path is not
-placed beside an API number without a check: with free-length replies the CLI scored 74.7 %
-where the Batch API scored 67.7 % on the same prompts; with the reply forced into one short
-field, 67.0 % against 67.7 % ([answers](docs/results/2026-09-27-answers/)). Vision
+Results that needed a generative model were answered through our own evaluation harness.
+Both arms of every comparison went through the same path of that harness, and these figures
+are not directly comparable with figures obtained through the API: on the same prompts,
+free-length replies scored 74.7 % there against 67.7 % through the Batch API, and with the
+reply forced into one short field 67.0 % against 67.7 %
+([answers](docs/results/2026-09-27-answers/)). Vision
 models plug in through `LocalDecider` with the image reference in the state. Third-party
 packages register providers under the `sanchopanza.providers` entry-point group.
 

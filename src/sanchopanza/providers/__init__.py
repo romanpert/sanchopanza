@@ -4,7 +4,6 @@
     create("recorded", path=...)          replays a fixture; tests and dry runs, free
     create("null")                        answers nothing; every policy uses its default
     create("llm", complete=...)           any LLM forced into a JSON schema
-    create("claude-cli", model=..., ceiling_usd=...)  the same, through `claude -p` (no API key)
     create("local", handlers=...)         your own classifiers, embeddings, vision models
     FallbackDecider([a, b])               first provider that answers wins
     RoutedDecider({"routing": a}, b)      one provider per decision point
@@ -73,7 +72,6 @@ _BUILTIN = {
     "recorded": "sanchopanza.providers.recorded:RecordedDecider",
     "jev": "sanchopanza.providers.jev:JevDecider",
     "llm": "sanchopanza.providers.llm:LLMDecider",
-    "claude-cli": "sanchopanza.providers.claude_cli:decider",
     "local": "sanchopanza.providers.local:LocalDecider",
 }
 

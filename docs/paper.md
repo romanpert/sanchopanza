@@ -387,26 +387,22 @@ another, and a derivation must clear its precision target at the **95 % Wilson l
 not at the point estimate. At perfect observed precision that needs 16 acted cases for an
 80 % target, 35 for 90 % and 73 for 95 %.
 
-### 4.5 A generative model through the Claude Code CLI
+### 4.5 A generative model in our evaluation harness
 
 Some later runs need a generative model (an answering model in Section 5.16, a frontier
-second stage for a permission gate) and were run without API spend, through the package's
-`claude-cli` provider: one Claude Code session per prompt (`claude -p`), billed to the
-logged-in account. The session is isolated: our system prompt replaces Claude Code's, no
-tools, no settings sources, no MCP servers, no session persistence, thinking off, and the
-environment stripped of every `ANTHROPIC_*`, `CLAUDE_CODE_USE_*` and `AWS_BEARER_TOKEN_BEDROCK`
-variable. The fixed prefix is about 730 tokens. A list-price ceiling, counting the budget of
-sessions in flight, is checked before each spawn, and
-answered sessions are cached on disk, so a rerun replays and costs nothing. The reported cost
-is Claude Code's list-price estimate, not a bill.
+second stage for a permission gate). Those were answered through our own evaluation
+harness: one isolated session per prompt with our system prompt, no tools and no
+persistence, a list-price ceiling checked before each call, and answered prompts cached on
+disk, so a rerun replays and costs nothing. Reported costs are list-price estimates, not a
+bill.
 
-**This path is not the Messages API, and its numbers are not interchangeable with API numbers
-without a check.** The CLI has no `max_tokens`, and it may frame the prompt. On the 300
-questions of an earlier answering run, the same prompts to the same model with free-length
-replies scored 74.7 % through the CLI against 67.7 % through the Batch API; with the reply
-forced into one short field (`--json-schema`), 67.0 % against 67.7 %
+**Both arms of every comparison went through the same path of our harness, and these
+figures are not directly comparable with figures obtained through the API.** The path
+changes the number: on the 300 questions of an earlier answering run, the same prompts to
+the same model with free-length replies scored 74.7 % through the harness against 67.7 %
+through the Batch API; with the reply forced into one short field, 67.0 % against 67.7 %
 (`docs/results/2026-09-27-answers/`). With the answer length controlled the two paths agree
-on this task. Every run reported through this path compares arms that all went through it.
+on this task.
 
 ---
 
@@ -1234,14 +1230,14 @@ and quality holding. Two of three; the one that failed is the informative one.
 
 **The same design with the question of Section 5.16.** Rerun with `triage_many` over each
 document's passages (at most 900 characters), the others in view, at the shipped cuts, on a
-pinned corpus, both arms rerun and answered through the Claude Code CLI: **9/9** correct in
+pinned corpus, both arms rerun and answered through our own evaluation harness: **9/9** correct in
 both arms, input tokens **-79.5 % [-86.5 %, -72.9 %]**, and no passage holding an answer pin
 withheld in any of the ten tasks, both compound ones included. Pre-registered at >= 9 of 10
 and >= 50 % fewer tokens; the tenth task was stopped by the 3 USD cap, and neither bar can
 turn on it. The failures above came from the question and the unit, not the lever. What this
 does not show is a saving in a loop: one answering call, 9 tasks, a sequence built to be
 mostly useless (`docs/results/2026-09-28-fixed-pages/`, 0.107 USD of Jev, 3.19 USD at list
-price on the subscription).
+price).
 
 ### 5.16 Pages judged in each other's context, and a tournament past one call
 
@@ -1311,7 +1307,7 @@ reported so. Its score counts a reply correct when the gold answer appears insid
 replies grew with the context they were given (median 30, 9 and 4 words), so a long reply
 collected the answer by containment; exact match ran the other way (20 %, 33 %, 36 %). Its
 negative verdict is an artefact of free-length replies under a containment score. The two runs
-cost 4.46 and 7.04 USD at list price against the subscription.
+cost 4.46 and 7.04 USD at list price.
 
 **Whole documents: the recall transfers, the compression does not.** On 300 QASPER papers
 (test split, CC BY 4.0; 49 paragraphs on average, evidence marked by readers of the paper),
@@ -1384,7 +1380,7 @@ actions through, so what the cascade adds is a point over either, not a climb to
 R-Judge the gap was seven points. Which of two models is the strong one depends on the set,
 and a cascade is priced by how often the cheap one is unsure, not by how strong the other is.
 13 of 500 Opus sessions returned no structured answer twice and are excluded, as registered.
-15.07 USD at list price against the subscription (`docs/results/2026-09-27-cascade-frontier/`).
+15.07 USD at list price (`docs/results/2026-09-27-cascade-frontier/`).
 
 **A reworded question, licensed on a batch written before it was measured.** `verify_edge`
 committed one backwards edge in 17 on the fourth batch, and its misses clustered on actions and

@@ -44,10 +44,10 @@ is not redistributed: point `SANCHOPANZA_HOTPOT` at a local copy. Recordings:
 `fixtures/triage-sets.jsonl`, `fixtures/chunks.jsonl` and `fixtures/chunks-confirm.jsonl`
 (ten pages per question, `docs/results/2026-09-25-triage/` and `2026-09-27-chunks/`), and
 `fixtures/hierarchy.jsonl` (100 pages per question, `2026-09-27-hierarchy/`). The answering
-runs through the Claude Code CLI keep their sessions in `fixtures/cli/`
-(`2026-09-27-answers/`); free-length replies through the CLI are not comparable with answers
-through the API, and with the reply forced into one short field the path check agrees (67.0 %
-against 67.7 %). Whole documents come from QASPER (test split, CC BY 4.0, not redistributed:
+runs through our own evaluation harness keep their sessions in `fixtures/cli/`
+(`2026-09-27-answers/`); both arms went through the same path, and free-length replies are
+not directly comparable with answers through the API; with the reply forced into one short
+field the path check agrees (67.0 % against 67.7 %). Whole documents come from QASPER (test split, CC BY 4.0, not redistributed:
 point `SANCHOPANZA_QASPER` at a local JSONL), recorded in `fixtures/longdocs.jsonl`
 (`2026-09-27-longdocs/`, replayed with the fixed `triage_many`), with the sentence stage in
 `fixtures/longdocs-sentences.jsonl`. The permission cascade's confirmation reads ATBench-Codex

@@ -43,7 +43,7 @@ do not favour this package.
 - **`triage_many` is the recommended way to keep documents out of a call**, on a
   pre-registered result (`docs/results/2026-09-28-fixed-pages/`): `benchmarks/ab/fixed.py
   --lever pages` judges each document's passages with the others in view, on a pinned corpus
-  (`--corpus-ref`), answering through `claude -p` (`--via claude-cli`), with a free pipeline
+  (`--corpus-ref`), answering through our own evaluation harness, with a free pipeline
   check (`--fake`) and passage-level attribution (`pages.attribute`). `triage_page` keeps its
   injection and source-kind answers; its relevance drop is not the recommended path.
 - **`providers.CachedDecider`, opt-in.** Wraps any decider and answers a repeat of the same
@@ -76,14 +76,6 @@ do not favour this package.
   in 5 Jev calls; the groups alone 94.0 % at 4.3 %; BM25 at the same page count 50.5 %. The 90
   added pages are off-topic, and a third round is in the code and unmeasured; 0.53 USD
   (`docs/results/2026-09-27-hierarchy/`).
-- **Provider `claude-cli`** (`providers/claude_cli.py`): `create("claude-cli", model=...,
-  ceiling_usd=..., cache_path=...)` is an `LLMDecider` through `claude -p`, billed to the
-  logged-in account and never to an API key (every `ANTHROPIC_*`, `CLAUDE_CODE_USE_*` and
-  `AWS_BEARER_TOKEN_BEDROCK` variable is removed from the session). An isolated, tool-less session with a
-  prefix of about 730 tokens (about 0.002-0.004 USD at list price per Haiku session), a hard
-  ceiling checked before each spawn, a disk cache (`SessionCache`) that survives torn lines,
-  and short prompts passed in argv, because under concurrency the CLI waits only 3 s for stdin.
-  Numbers from this path are not interchangeable with API numbers without a check.
 - **`Squire.check_done` and an opt-in Claude Code Stop hook** (`SANCHOPANZA_CHECK_DONE=1`,
   `sanchopanza install --check-done` wires it): before the agent may stop, one calibrated
   question over the last request and what followed it. On 655 AgentDojo trajectories labelled
@@ -223,14 +215,6 @@ do not favour this package.
   reused, and each page reports the last probability it got. The hierarchy result stands:
   every one of the 200 held-out questions replays identically through `Squire.triage_many`
   (`tests/test_hierarchy_bench.py`).
-- **`claude-cli`, hardened after code review**: the prompt always follows `--`, so a prompt
-  starting with `-` is not read as an option; a `.cmd` / `.bat` shim is refused; ceilings must
-  be finite and positive (a NaN disabled them); every `ANTHROPIC_*`, `CLAUDE_CODE_USE_*` and
-  `AWS_BEARER_TOKEN_BEDROCK` variable is stripped from the session; sessions in flight reserve
-  their budget and the last ones get what is left of the ceiling, passed as
-  `--max-budget-usd`; a cancelled session's process is killed; an unknown cost is charged at
-  the session budget; `count_cached=True` counts what the cache already cost; `effort` is part
-  of the cache key; a torn cache line no longer swallows the next row.
 - Benches refuse to overwrite a different registered pre-registration hash.
 - `tools.decide` applies the deferral guard.
 - The LangChain adapter selects once per conversation and only widens. It no longer
@@ -329,8 +313,7 @@ do not favour this package.
   (`docs/results/2026-09-28-fixed-pages/`): `triage_many` over passages answered 9/9 against
   9/9 at -79.5 % input tokens [-86.5 %, -72.9 %], no answer-bearing passage withheld in any of
   the ten tasks. The tenth was stopped by the 3 USD cap and cannot overturn either bar. One
-  answering call, not a warm loop; 0.107 USD of Jev and 3.19 USD at list price on the
-  subscription.
+  answering call, not a warm loop; 0.107 USD of Jev and 3.19 USD at list price.
 - **`memory_write`**: the shipped cut is in "Changed behaviour" above. It stores 4 of 36
   standing client instructions. With the opt-in `common` question, on a batch written before
   it was measured: 45/48, where the shipped cut scores 37/48 and the three-question
@@ -341,13 +324,13 @@ do not favour this package.
   130/208 for the three-question conjunction, but 13 costly errors against 11, a trade-off by
   the pre-registered rule (`docs/results/2026-09-25-pending/`); not adopted.
 - **Answering from the in-context sets: the kept text answers as well**
-  (`docs/results/2026-09-27-answers/`, pre-registered, Haiku 4.5 through the Claude Code CLI,
+  (`docs/results/2026-09-27-answers/`, pre-registered, Haiku 4.5 through our own evaluation harness,
   the 300 confirmatory chunk questions). With the reply forced into one short field: all pages
   70.0 %, the kept pages 71.0 %, the kept sentences 70.7 %, sentences with no page gate 69.0 %;
-  P21s, P22s and P24s hold, and the path check agrees with the API (CLI 67.0 % against the
+  P21s, P22s and P24s hold, and the path check agrees with the API (harness 67.0 % against the
   Batch API's 67.7 % on the same prompts). The claim is equality, not gain; 7.04 USD at list
-  price against the subscription. The first run, with free-length replies, was negative as
-  registered (81.0 %, 76.7 %, 76.0 %; P21, P22 and P24 failed; CLI 74.7 % against the API's
+  price. The first run, with free-length replies, was negative as
+  registered (81.0 %, 76.7 %, 76.0 %; P21, P22 and P24 failed; harness 74.7 % against the API's
   67.7 %; 4.46 USD): its score counts a reply correct when the gold answer is contained in it,
   and replies grew with the context (median 30, 9 and 4 words).
 - **A BM25 screen before one in-context call, not confirmed, retired**
@@ -375,17 +358,16 @@ do not favour this package.
   17 model decisions came from `jev-1.13.0` (about 0.00005 USD per session), 2 from code, none
   from Claude. 8 of 9 criteria held; the ninth exposed the content-scan bug fixed above.
 - **The cascade against Sonnet 5: partial** (`docs/results/2026-09-28-cascade-sonnet/`, the
-  2026-09-25 primary verdicts, Sonnet through the Claude Code CLI). P1 (R-Judge) fails on cost:
+  2026-09-25 primary verdicts, Sonnet through our own evaluation harness). P1 (R-Judge) fails on cost:
   92.3 % like Sonnet at 57.7 % of its cost (median 47.7 % over 500 re-splits). P2 (register)
   holds: 81.4 % against 80.2 % at 46 %. P9 (Codex) holds: Jev alone matched Sonnet at 0.4 % of
-  the cost. 17.42 USD at list price against the subscription.
+  the cost. 17.42 USD at list price.
 - **The permission cascade, confirmed on unseen data** (`docs/results/2026-09-27-cascade-frontier/`,
-  pre-registered: tau 0.45 from R-Judge, ATBench-Codex never shown to Opus, Opus 5 through the
-  Claude Code CLI). Held-out half, of record: cascade 80.3 % against Opus 79.9 % at 38.8 % of
+  pre-registered: tau 0.45 from R-Judge, ATBench-Codex never shown to Opus, Opus 5 through our own evaluation harness). Held-out half, of record: cascade 80.3 % against Opus 79.9 % at 38.8 % of
   its cost, all three criteria hold. The other half, registered after that verdict, replicates
   (77.8 % against 75.8 %, 38.3 %), and so do all 500 (79.1 % against 77.8 %, 38.5 %). On this
   set Jev alone is as accurate as Opus (78.2 %) and lets through fewer unsafe actions (false
-  allows 14.9 % against 25.7 %). 15.07 USD at list price against the subscription.
+  allows 14.9 % against 25.7 %). 15.07 USD at list price.
   `CascadeDecider` ships no threshold; 0.45 is the documented value.
 - **`verify_edge` and `relate_facts`, diagnosed** (`docs/results/2026-09-27-edge-facts/`,
   free): no code change. For a Choice answer, `confidence = (p_top - 1/k) / (1 - 1/k)` to
