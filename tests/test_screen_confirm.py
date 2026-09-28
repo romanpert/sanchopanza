@@ -65,3 +65,14 @@ def test_live_is_refused_without_a_registered_prereg():
     argv = [sys.executable, str(SCRIPT), "--live", "--hotpot", HOTPOT or "none"]
     done = subprocess.run(argv, capture_output=True, text=True, env=_clean_env(), cwd=ROOT)
     assert done.returncode != 0
+
+
+@needs_hotpot
+def test_the_live_confirmation_replays_as_published():
+    argv = [sys.executable, str(SCRIPT), "--replay-live", "--hotpot", HOTPOT]
+    done = subprocess.run(argv, capture_output=True, text=True, env=_clean_env(), cwd=ROOT)
+    assert done.returncode == 0, done.stderr[-2000:]
+    report = json.loads(done.stdout)
+    published = ROOT / "docs" / "results" / "2026-09-28-lateral-screen-confirm" / "analysis.json"
+    assert report == json.loads(published.read_text(encoding="utf-8"))
+    assert report["verdict"] == "not confirmed" and report["S1"] and not report["S2"]

@@ -1,0 +1,51 @@
+{
+ "arms": {
+  "SCREEN": {
+   "page_joint": 0.965,
+   "ci95": [
+    0.9295,
+    0.9829
+   ],
+   "kept_share": 0.0379,
+   "pages_kept": 4.46,
+   "n": 200
+  },
+  "TOUR": {
+   "page_joint": 0.975,
+   "ci95": [
+    0.9428,
+    0.9893
+   ],
+   "kept_share": 0.033,
+   "pages_kept": 3.92,
+   "n": 200
+  },
+  "CEILING": {
+   "page_joint": 0.97,
+   "ci95": [
+    0.9361,
+    0.9862
+   ],
+   "kept_share": 0.3188,
+   "pages_kept": 30.0,
+   "n": 200
+  }
+ },
+ "screen_minus_tour": {
+  "page_joint": -0.01,
+  "ci95": [
+   -0.04,
+   0.02
+  ],
+  "only_screen": 4,
+  "only_tour": 6,
+  "mcnemar_p": 0.7539
+ },
+ "calls_per_question": {
+  "SCREEN": 1,
+  "TOUR": 5.0
+ },
+ "S1": true,
+ "S2": false,
+ "verdict": "not confirmed"
+}

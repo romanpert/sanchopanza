@@ -85,5 +85,7 @@ python benchmarks/lateral/screen/run.py --hotpot HOTPOT.jsonl --qasper QASPER-TE
 
 ## Status (2026-09-28)
 
-Not shipped: S2 held exactly at its edge and the screen loses 13 points on one long document.
-Documented as a candidate for pools of search results.
+Not replicated, and retired. On 200 fresh questions, pre-registered, SCREEN kept 96.5 % against
+the tournament's 97.5 %, lower bound -4 points against the registered -3; six of its seven misses
+were pages BM25 dropped before any call ([confirmation](../2026-09-28-lateral-screen-confirm/)).
+Not a candidate for anything; this folder is the record.

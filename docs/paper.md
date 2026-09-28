@@ -1332,14 +1332,11 @@ with 48.2 % against 44.5 % from the whole paper (146 questions, difference CI -0
 document; on ten short HotpotQA pages it loses 7 points
 (`docs/results/2026-09-28-lateral-wholedocs/`).
 
-**One call instead of a tournament, where the crowd is off-topic.** Over 100 pages of
-which 90 are unrelated, BM25's top 30 held both supporting pages in 99 % of questions;
-one in-context call over those 30 kept both in 96.0 % of 200 held-out questions at 3.4 % of
-the text, against the tournament's 96.5 % at 3.1 % in five calls, at 28 % of its cost. The
-registered lower bound (-3 points) held exactly at its edge. On a single paper the crowd is
-the paper, and BM25's top 30 holds all evidence in only 82 % of questions: it is a rule
-for pools on many topics, measured and not shipped
-(`docs/results/2026-09-28-lateral-screen/`). Replaying the recorded tournaments also found
+**A lexical screen before one call did not confirm.** BM25's top 30 then one in-context call
+matched the tournament on the 200 held-out questions (96.0 % against 96.5 %, bound held at its
+edge) and did not replicate on 200 fresh ones, pre-registered (96.5 % against 97.5 %, lower
+bound -4 against -3; six of seven misses dropped by BM25 before any call): retired
+(`docs/results/2026-09-28-lateral-screen-confirm/`). Replaying the recorded tournaments also found
 that a round pruning only later groups could regroup the survivors into a group already
 asked (60 of 1,359 calls on QASPER); the tournament now reuses those answers, with the
 same pages kept (`docs/results/2026-09-28-lateral-memo/`).

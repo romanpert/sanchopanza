@@ -98,6 +98,7 @@ Measured, not argued. Each line links to the run behind it.
 |---|---|
 | **A tool window where the platform already has tool search** | Sonnet 5, 40 AgentDojo tasks, 74 tools: success shows no detectable difference (loading everything 70/80 over two runs, the window 100/120 over three, the platform's search 31/40). Cost, estimated from recorded usage with the `tools` + `system` prefix shared between tasks: the window **0.77-0.88x** of loading everything, the search 1.48x; the window's time is 0.91x ([e2e](docs/results/2026-09-25-e2e/), [cost basis](docs/results/2026-09-25-cache/)). On a real MCP catalog of 398 tools the platform's search is the cheaper, an estimated **0.34x against the window's 0.54x** of loading everything with the prefix shared, at the same success (8/9 each, 7/9 for loading everything): the window opened the 121-tool Google Workspace server in 11 of 17 tasks ([wide](docs/results/2026-09-25-wide/)). Inside Claude Code, a sanchopanza hook changed nothing measurable over its own deferred tool search |
 | **Keeping pages out of the context with a relevance question** | Asking whether a page *addresses the purpose* fails on purposes with several parts: at its shipped cut it kept both supporting paragraphs in 19.7 % of 300 multi-part questions. With the document sequence held fixed, page triage cut input tokens by **75.2 % [-86.8 %, -63.9 %]** and correct answers from **10/10 to 6/10**: one result, and neither half is quoted without the other ([fixed sequence](docs/results/2026-09-24-fixed-sequence/)). In an agent loop that fetched one or two documents per task, 64 paired runs showed no measurable change in cost and 11 to 16 % more wall time ([A/B](benchmarks/ab)). Use `triage_part` or `triage_pages`, above |
+| **A lexical screen (BM25) before one in-context call** | Matched the tournament once (96.0 % against 96.5 %) and did not replicate on 200 fresh HotpotQA questions, pre-registered: 96.5 % against 97.5 %, lower bound -4 points against a registered -3; six of its seven misses were pages BM25 dropped before any call. Retired ([confirmation](docs/results/2026-09-28-lateral-screen-confirm/)) |
 
 The rule that falls out of it: a cheap decision pays reliably when it **replaces** a call,
 because the saving is then a price ratio and not a bet on the workload's shape. It pays
@@ -426,11 +427,6 @@ runs that measured them and have not been tuned on the results.
 
 ### What is open
 
-- **A lexical screen before one in-context call**, for pools of pages on many topics: BM25's
-  top 30 of 100, then one `triage_pages` call, matched the five-call tournament (96.0 % against
-  96.5 %) at 28 % of its cost, holding its registered bound exactly at the edge, and it loses
-  13 points on one long document ([screen](docs/results/2026-09-28-lateral-screen/)). Not
-  shipped; a candidate for search results.
 - **A derivation rule that does not overpay.** Against both Opus and Sonnet on R-Judge, the
   registered rule ("reach the frontier model's accuracy on the derivation half") bought its
   last case with many escalations. A rule fixed in advance as "within half a point" is what

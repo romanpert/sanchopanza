@@ -9,15 +9,12 @@ do not favour this package.
 
 ### Added
 
-- **Prepared, not run: two confirmations.** `benchmarks/ab/fixed.py --lever pages` runs the
-  fixed-sequence A/B with `triage_many` over passages instead of page-by-page triage, with a
-  pinned corpus (`--corpus-ref`), answers through `claude -p` (`--via claude-cli`), a free
-  pipeline check (`--fake`) and a refusal to reuse a recorded bare arm whose sequences are not
-  today's (the 2026-09-24 one is refused: it matches no commit). Pre-registration in
-  `docs/results/2026-09-28-fixed-pages/`. `benchmarks/lateral/screen/confirm.py` measures the
-  BM25 screen and the tournament live on 200 HotpotQA questions no earlier run drew, and
-  reproduces the published screen from recordings (`--replay-published`). Pre-registration in
-  `docs/results/2026-09-28-lateral-screen-confirm/`. Neither hash is registered yet.
+- **Prepared: the fixed-sequence A/B with in-context page triage.** `benchmarks/ab/fixed.py
+  --lever pages` runs the fixed-sequence A/B with `triage_many` over passages instead of
+  page-by-page triage, with a pinned corpus (`--corpus-ref`), answers through `claude -p`
+  (`--via claude-cli`), a free pipeline check (`--fake`) and a refusal to reuse a recorded
+  bare arm whose sequences are not today's (the 2026-09-24 one is refused: it matches no
+  commit). Pre-registration in `docs/results/2026-09-28-fixed-pages/`.
 - **`providers.CachedDecider`, opt-in.** Wraps any decider and answers a repeat of the same
   point, state and questions (option order, provider and model included in the key) within
   `ttl_seconds` with the first answer, at zero cost and latency, journalled as
@@ -34,10 +31,6 @@ do not favour this package.
   well as from the whole paper (F1 48.2 % against 44.5 %). `tests/test_select_passages_bench.py`
   replays the 219 through the shipped method and demands the same sentences
   (`docs/results/2026-09-28-lateral-wholedocs/`). `text.split_sentences` is the splitter.
-- **A lexical screen before one in-context call, measured and not shipped**
-  (`docs/results/2026-09-28-lateral-screen/`): BM25's top 30 of 100 pages then one
-  `triage_pages` call matched the tournament (96.0 % against 96.5 %) at 28 % of its cost,
-  with its registered bound held exactly at the edge; it loses 13 points on long papers.
 - **`Squire.triage_pages` and `Squire.select_sentences`**: every candidate page asked in one
   call with the others in view, one probability per page; then, inside the kept pages, one per
   sentence. Confirmed on 300 HotpotQA questions nothing was chosen on: 98.3 % of supporting pages
@@ -310,6 +303,9 @@ do not favour this package.
   registered (81.0 %, 76.7 %, 76.0 %; P21, P22 and P24 failed; CLI 74.7 % against the API's
   67.7 %; 4.46 USD): its score counts a reply correct when the gold answer is contained in it,
   and replies grew with the context (median 30, 9 and 4 words).
+- **A BM25 screen before one in-context call, not confirmed, retired**
+  (`docs/results/2026-09-28-lateral-screen-confirm/`, pre-registered, 0.45 USD): on 200 fresh
+  HotpotQA questions 96.5 % against the tournament's 97.5 %, lower bound -4 points against -3.
 - **Whole documents, not confirmed** (`docs/results/2026-09-27-longdocs/`, pre-registered):
   `triage_many` with the shipped cuts on 300 QASPER papers (49 paragraphs on average) kept all
   evidence in 94.7 %, 16.3 points over BM25 at the same paragraph count, but 48.9 % of the text

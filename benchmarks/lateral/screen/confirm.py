@@ -4,6 +4,7 @@ python benchmarks/lateral/screen/confirm.py --record-hash
 python benchmarks/lateral/screen/confirm.py --replay-published --hotpot HOTPOT.jsonl  # free
 python benchmarks/lateral/screen/confirm.py --dry-run --hotpot HOTPOT.jsonl           # free
 python benchmarks/lateral/screen/confirm.py --live --hotpot HOTPOT.jsonl --env-file ENV
+python benchmarks/lateral/screen/confirm.py --replay-live --hotpot HOTPOT.jsonl        # free
 
 The screen of 2026-09-28 (`docs/results/2026-09-28-lateral-screen/`) was scored on the 200
 held-out questions of the hierarchy run, against that run's recorded tournament. Here both arms
@@ -16,6 +17,7 @@ one in-context call at `pages_in_context`; TOUR is the tournament at `pages_firs
   reproduce the published figures (96.0 % and 96.5 %): the check that the harness is the same.
 - `--dry-run` runs the fresh 200 with a hashed fake decider: it counts calls and costs nothing.
 - `--live` requires the registered hash and stops at `CAP_USD` of Jev.
+- `--replay-live` rescores the live run of 2026-09-28 from `fixtures/screen-confirm.jsonl`.
 """
 
 from __future__ import annotations
@@ -165,6 +167,7 @@ def main() -> int:
     mode.add_argument("--replay-published", action="store_true")
     mode.add_argument("--dry-run", action="store_true")
     mode.add_argument("--live", action="store_true")
+    mode.add_argument("--replay-live", action="store_true")
     ap.add_argument("--hotpot", default="")
     ap.add_argument("--env-file", default=None)
     args = ap.parse_args()
@@ -186,7 +189,9 @@ def main() -> int:
         missing = tour.missing + screened.missing
     else:
         rows = fresh(hotpot)
-        if args.dry_run:
+        if args.replay_live:
+            decider = hier.triage_run.ReplayFirst(RecordedDecider.from_file(FIXTURE), None)
+        elif args.dry_run:
             decider = fake.EveryQuestion()
         else:
             live = Capped(
