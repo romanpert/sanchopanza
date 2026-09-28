@@ -28,15 +28,15 @@ def test_every_arm_was_answered_from_the_recording():
 
 def test_reordering_moves_labels_and_re_asking_does_not():
     assert ARMS["shipped"]["flips_vs_shipped"] == 0
-    assert ARMS["reversed"]["flips_vs_shipped"] == 4
-    assert ARMS["rotated"]["flips_vs_shipped"] == 3
+    assert ARMS["reversed"]["flips_vs_shipped"] == 3
+    assert ARMS["rotated"]["flips_vs_shipped"] == 2
     assert ARMS["today"]["flips_vs_shipped"] == 0
-    assert ARMS["today"]["max_delta_p"] == 0.12
+    assert ARMS["today"]["max_delta_p"] == 0.15
     assert ARMS["reversed"]["max_delta_p"] == 0.31
 
 
 def test_the_policy_absorbs_every_flip_in_its_abstention_band():
-    assert (ARMS["shipped"]["hits"], ARMS["shipped"]["decided"]) == (35, 39)
+    assert (ARMS["shipped"]["hits"], ARMS["shipped"]["decided"]) == (36, 40)
     assert (ARMS["reversed"]["hits"], ARMS["reversed"]["decided"]) == (39, 42)
     assert (ARMS["rotated"]["hits"], ARMS["rotated"]["decided"]) == (38, 41)
     assert (ARMS["today"]["hits"], ARMS["today"]["decided"]) == (36, 40)
@@ -48,5 +48,5 @@ def test_the_policy_absorbs_every_flip_in_its_abstention_band():
             for a in ("reversed", "rotated")
         )
     ]
-    assert len(flipped) == 4  # seven flips over four cases
+    assert len(flipped) == 3  # five flips over three cases
     assert all(r["arms"]["shipped"]["confidence"] < 0.60 for r in flipped)

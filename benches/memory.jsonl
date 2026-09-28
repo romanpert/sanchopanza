@@ -19,9 +19,11 @@
 #
 # Single-annotator, authored 2026-09-24, unlike the points in paper Section 5 these have no
 # second pass. Content is Spanish without accents, matching the other benches.
+# 2026-09-28: rows about pseudonymized persons further generalized (outlets -> .test, dates shifted,
+#   descriptors made generic); labels unchanged, recordings of those rows re-asked.
 {"id": "mw-01", "point": "memory_write", "input": {"fact": "El registro judicial de Santo Domingo solo publica en linea las sentencias desde 2018; las anteriores hay que pedirlas en ventanilla."}, "expected": "store"}
 {"id": "mw-02", "point": "memory_write", "input": {"fact": "El cliente pidio que el informe final vaya en castellano y sin anglicismos."}, "expected": "store"}
-{"id": "mw-03", "point": "memory_write", "input": {"fact": "Descartamos la sentencia TC/1652/25: mismo apellido pero el imputado es otro, hijo del que buscamos."}, "expected": "store"}
+{"id": "mw-03", "point": "memory_write", "input": {"fact": "Descartamos la sentencia 0456-2025: mismo apellido pero el imputado es otro, hijo del que buscamos."}, "expected": "store"}
 {"id": "mw-04", "point": "memory_write", "input": {"fact": "El portal de la Camara de Comercio devuelve 403 si la peticion no lleva cabecera referer."}, "expected": "store"}
 {"id": "mw-05", "point": "memory_write", "input": {"fact": "El SGC y el USGS discrepan en la profundidad del sismo, 103 frente a 110 km; para el informe vale el dato del SGC por ser la fuente oficial del pais."}, "expected": "store"}
 {"id": "mw-06", "point": "memory_write", "input": {"fact": "La cuota diaria del buscador gratuito se agota hacia las 16:00; a partir de ahi solo queda la busqueda de pago."}, "expected": "store"}

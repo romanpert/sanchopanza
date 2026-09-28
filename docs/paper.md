@@ -624,7 +624,7 @@ asks both orderings, and the plan asks its 56 ordered pairs), 184,594 input toke
 | search | 18 | 100 % | 17/18 | [74, 99] | 17/18 |
 | triage | 16 | 100 % | 14/16 | [64, 97] | 14/16 |
 | dependency | 20 | 100 % | 19/20, AUC 1.00 | [76, 99] | 20/20 |
-| facts (abstain < 0.60) | 20 | 75 % | 14/15 | [70, 99] | 16/20, no abstention |
+| facts (abstain < 0.60) | 20 | 80 % | 15/16 | [72, 99] | 16/20, no abstention |
 | routing (gated) | 20 | 100 % | 14/20 | [48, 85] | 14/20 |
 | command | 32 | | code list 17/17 dangerous; model 15/15 benign; **32/32 together** | | 31/32 |
 
@@ -632,9 +632,11 @@ The injection policy flags only **above** 0.70, and one positive, `in-09`, sits 
 under the policy it is not flagged, at a plain cut it is. AUC and ECE do not depend on the
 cut.
 
-Confidence bands on this run, under the policy: >= 0.90 -> 141/142; 0.75-0.90 -> 51/52;
-0.60-0.75 -> 9/10; 0.40-0.60 -> 1/6; < 0.40 -> 3/8. By primitive: Choice 55 cases, 98 %,
-ECE 0.026; Truth 143, 96 %, ECE 0.099 (under-confident); Score 20, 70 %, ECE 0.209. The plan
+Confidence bands on this run, under the policy: >= 0.90 -> 140/141; 0.75-0.90 -> 50/51;
+0.60-0.75 -> 11/12; 0.40-0.60 -> 2/7; < 0.40 -> 3/8. By primitive: Choice 56 cases, 98 %,
+ECE 0.026; Truth 143, 96 %, ECE 0.100 (under-confident); Score 20, 70 %, ECE 0.168.
+(Re-recorded after pseudonymization hardening, 2026-09-28: 22 cases reworded and asked again;
+facts moved from 14/15 to 15/16, the bands and the Score ECE with it.) The plan
 reproduces exactly: 20 raw edges at 40 % precision, 7 clean edges at 100 %, waves identical
 to the reference, L2 -> L8 missing.
 
@@ -657,7 +659,9 @@ has already finished, at a measured 18x the cost of a clean run with no improvem
 success [Weinberger and Hozez, 2026].
 
 124 hand-labelled cases, one annotator; 122 decision calls, 84,092 input tokens, 0.0035 USD,
-about 29 millionths per decision. Replays for free from `fixtures/new-points-v2.jsonl`.
+about 29 millionths per decision. Replays for free from `fixtures/new-points-v2.jsonl`. Six of its
+cases were re-recorded after pseudonymization hardening (2026-09-28); only the Memory write
+Brier and ECE moved (0.075 / 0.226 before).
 
 | Point | n | Coverage | Agreement under the policy | Correct at a plain 0.5 cut | AUC | Brier | ECE |
 |---|---|---|---|---|---|---|---|
@@ -667,7 +671,7 @@ about 29 millionths per decision. Replays for free from `fixtures/new-points-v2.
 | Extraction gate (G5) | 16 | 100 % | 15/16 | 15/16 | 1.00 | 0.030 | 0.101 |
 | Memory collision (M2) | 16 | 100 % | 14/16 | | | | |
 | Edge check (G6) | 20 | 85 % | 15/17 | | | | |
-| Memory write (M1) | 16 | 100 % | 14/16 | 15/16 | 1.00 | 0.075 | 0.226 |
+| Memory write (M1) | 16 | 100 % | 14/16 | 15/16 | 1.00 | 0.076 | 0.229 |
 | Source redundancy (D3b) | 16 | 100 % | 15/16 | 15/16 | 1.00 | 0.042 | 0.124 |
 
 Over the six binary points the policy is right **82 of 88** and a plain 0.5 cut **85 of 88**,
@@ -772,9 +776,10 @@ contradiction, not for "the same attribute": the latter sends every corroboratio
 figure from a second source and the common case in an investigation, to a human as though it
 were a conflict.
 
-*Fact relation (G2)*, on 50 cases, is 35/39 at 78 % coverage. It never confuses `conflict`
-with `unrelated`, in either direction; it reaches `unrelated` on 2 of 12 such cases,
-abstaining on 8 and calling 2 `agree`. `unrelated` is the only option whose Choice criteria
+*Fact relation (G2)*, on 50 cases, is 36/40 at 80 % coverage (35/39 before the
+pseudonymization hardening of 2026-09-28 re-recorded three of its cases). It never confuses `conflict`
+with `unrelated`, in either direction; it reaches `unrelated` on 3 of 12 such cases,
+abstaining on 7 and calling 2 `agree`. `unrelated` is the only option whose Choice criteria
 carry no examples.
 
 *Memory write (M1).* The shipped policy stores a fact iff its weakest margin,

@@ -41,9 +41,9 @@
   "family": "-",
   "expected": "store",
   "answers": {
-   "durable": 0.84,
+   "durable": 0.85,
    "specific": 0.81,
-   "derivable": 0.19,
+   "derivable": 0.22,
    "common": 0.03
   },
   "shipped": "store",

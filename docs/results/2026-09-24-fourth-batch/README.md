@@ -8,11 +8,15 @@ across four labels with one branch, `duplicate`, that had **not fired in any run
 A label with two instances has not been measured, it has been sampled from. All three of the
 results below only became visible at fifty.
 
+Re-recorded after pseudonymization hardening (2026-09-28): 17 cases whose text concerned
+pseudonymized persons were reworded and asked again; `facts` moved from 35/39 to 36/40
+(fa-19 now decides, right), nothing else changed its agreement.
+
 | Point | at 16-20 cases | at 50 | what the sample shows |
 |---|---|---|---|
 | `memory_collision` | 14/16 | **46/50** | every branch fires; all four errors are safe |
 | `edge` | 15/17 | **31/38** | 17 edges committed, 1 backwards; the policy reads direction first |
-| `facts` | 16/20 | **35/39** when deciding | the defect is located and deliberately not patched |
+| `facts` | 16/20 | **36/40** when deciding | the defect is located and deliberately not patched |
 
 ## 1. `memory_collision`: the untested branch works
 
@@ -88,14 +92,14 @@ two.
 
 ## 3. `facts`: located, and deliberately not patched
 
-35/39 when it decides, and it abstains on 11 of 50.
+36/40 when it decides, and it abstains on 10 of 50.
 
 | expected | predicted | n |
 |---|---|---|
 | conflict | conflict | 17 |
 | agree | agree | 16 |
-| unrelated | *abstained* | 8 |
-| unrelated | unrelated | 2 |
+| unrelated | *abstained* | 7 |
+| unrelated | unrelated | 3 |
 | conflict | *abstained* | 2 |
 | agree | *abstained* | 1 |
 | unrelated | agree | 2 |
@@ -103,7 +107,7 @@ two.
 | conflict | agree | 1 |
 
 **It never confuses `conflict` with `unrelated`, in either direction.** Its entire problem is
-that it barely reaches `unrelated`: 2 of 12 such cases, abstaining on 8 and calling 2 `agree`. The likely cause is one line: `unrelated` is the only
+that it barely reaches `unrelated`: 3 of 12 such cases, abstaining on 7 and calling 2 `agree`. The likely cause is one line: `unrelated` is the only
 one of the three options whose Choice criteria carry **no examples**, while `agree` and
 `conflict` both do. An option nobody illustrated is an option the model does not pick.
 

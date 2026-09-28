@@ -38,14 +38,14 @@
   "predicted": "store",
   "correct": true,
   "decided": true,
-  "confidence": 0.6400000000000001,
-  "probability": 0.8200000000000001,
+  "confidence": 0.5800000000000001,
+  "probability": 0.79,
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 717,
-  "input_tokens": 890,
-  "cost_usd": 3.7380000000000005e-05
+  "latency_ms": 218,
+  "input_tokens": 891,
+  "cost_usd": 3.7422e-05
  },
  {
   "id": "mw-04",
@@ -843,9 +843,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 358,
-  "input_tokens": 589,
-  "cost_usd": 2.4738000000000003e-05
+  "latency_ms": 218,
+  "input_tokens": 588,
+  "cost_usd": 2.4696000000000002e-05
  },
  {
   "id": "eg-08",
@@ -1083,9 +1083,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 250,
-  "input_tokens": 687,
-  "cost_usd": 2.8854000000000002e-05
+  "latency_ms": 280,
+  "input_tokens": 685,
+  "cost_usd": 2.8770000000000004e-05
  },
  {
   "id": "ed-07",
@@ -1094,14 +1094,14 @@
   "predicted": "review",
   "correct": null,
   "decided": false,
-  "confidence": 0.07999999999999996,
+  "confidence": 0.18000000000000005,
   "probability": null,
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 343,
-  "input_tokens": 690,
-  "cost_usd": 2.898e-05
+  "latency_ms": 250,
+  "input_tokens": 688,
+  "cost_usd": 2.8896e-05
  },
  {
   "id": "ed-08",
@@ -1131,9 +1131,9 @@
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 282,
-  "input_tokens": 685,
-  "cost_usd": 2.8770000000000004e-05
+  "latency_ms": 202,
+  "input_tokens": 688,
+  "cost_usd": 2.8896e-05
  },
  {
   "id": "ed-10",
@@ -1302,14 +1302,14 @@
   "predicted": "review",
   "correct": null,
   "decided": false,
-  "confidence": 0.76,
+  "confidence": 0.74,
   "probability": null,
   "primitive": "truth",
   "provider": "recorded",
   "model": "jev-1.13.0",
-  "latency_ms": 281,
-  "input_tokens": 692,
-  "cost_usd": 2.9064e-05
+  "latency_ms": 219,
+  "input_tokens": 690,
+  "cost_usd": 2.898e-05
  },
  {
   "id": "rd-01",

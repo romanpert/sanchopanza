@@ -76,8 +76,8 @@
   "fourth-batch.jsonl": {
    "shipped": {
     "n": 50,
-    "decided": 39,
-    "right": 35,
+    "decided": 40,
+    "right": 36,
     "costly": 2
    },
    "unrelated_at_half": {
@@ -132,8 +132,8 @@
   "public-benches.jsonl": {
    "shipped": {
     "n": 20,
-    "decided": 15,
-    "right": 14,
+    "decided": 16,
+    "right": 15,
     "costly": 0
    },
    "unrelated_at_half": {
@@ -150,11 +150,11 @@
   "p_when_top": [
    0.61,
    0.61,
-   0.61,
    0.67,
    0.71,
    0.72,
    0.78,
+   0.8,
    0.94
   ]
  },
@@ -298,14 +298,14 @@
    "expected": "supported",
    "predicted": "supported",
    "stated": 0.96,
-   "direction": 0.96
+   "direction": 0.97
   },
   {
    "id": "ed-38",
    "expected": "reversed",
    "predicted": "reversed",
-   "stated": 0.26,
-   "direction": 0.13
+   "stated": 0.29,
+   "direction": 0.17
   },
   {
    "id": "ed-39",
@@ -431,14 +431,14 @@
    "expected": "unsupported",
    "predicted": "unsupported",
    "stated": 0.03,
-   "direction": 0.37
+   "direction": 0.24
   },
   {
    "id": "ed-07",
    "expected": "supported",
    "predicted": "review",
-   "stated": 0.46,
-   "direction": 0.9
+   "stated": 0.41,
+   "direction": 0.85
   },
   {
    "id": "ed-08",
@@ -452,7 +452,7 @@
    "expected": "unsupported",
    "predicted": "unsupported",
    "stated": 0.03,
-   "direction": 0.51
+   "direction": 0.48
   },
   {
    "id": "ed-10",
@@ -528,8 +528,8 @@
    "id": "ed-20",
    "expected": "unsupported",
    "predicted": "review",
-   "stated": 0.12,
-   "direction": 0.7
+   "stated": 0.14,
+   "direction": 0.62
   }
  ]
 }

@@ -1,5 +1,9 @@
 # The widened `specific` gate, measured and not shipped
 
+Re-recorded after pseudonymization hardening (2026-09-28): the cases whose text concerned
+pseudonymized persons were reworded and asked again; agreement did not move; the
+per-case rows and the calibration figures in `summary.md` are re-derived.
+
 This directory records `memory_write` and `redundant_page` measured with the `specific`
 question widened to admit rule-shaped facts - the candidate fix for the defect described in
 `../2026-09-24-third-batch/README.md` section 3. It is kept because the package does not ship

@@ -7,6 +7,10 @@ benchmarks/edge_facts_errors.py` writes `analysis.json`; `tests/test_edge_facts.
 cases, they were read before the pre-registration, and so no held-out check is possible. The
 pre-registration says so and fixes the batch that would license each change.
 
+Re-recorded after pseudonymization hardening (2026-09-28): fa-12, fa-13, fa-19 and the
+edge cases ed-06, 07, 09, 20, 37, 38 were reworded and asked again; the `relate_facts`
+figures below are re-derived (fa-19 now decides, right) and the `verify_edge` ones did not move.
+
 ## `verify_edge`: 17 committed, 1 backwards
 
 | | |
@@ -38,11 +42,11 @@ The seven cases with no literal mention (a pronoun, "portuguesa" for Portugal) a
 `unsupported` by code. For a triple labelled `supported` that is a refusal to commit, the safe
 error; a `review` verdict would describe it better, and it is noted, not changed.
 
-## `relate_facts`: 35 of 39 when it decides
+## `relate_facts`: 36 of 40 when it decides
 
-On the fourth-batch recording: 35/39 decided, 2 costly (an `agree` / `conflict` confusion,
-`fa-30` and `fa-43`, both p 0.74-0.83 just above the gate), 11 abstentions of which 8 are
-`unrelated`. `unrelated` is the top option on 8 of its 12 cases, at p 0.61 to 0.94, and 6 of
+On the fourth-batch recording: 36/40 decided, 2 costly (an `agree` / `conflict` confusion,
+`fa-30` and `fa-43`, both p 0.74-0.83 just above the gate), 10 abstentions of which 7 are
+`unrelated`. `unrelated` is the top option on 8 of its 12 cases, at p 0.61 to 0.94, and 5 of
 those 8 sit below the gate.
 
 **The gate is one number, and it is a policy-shape problem as much as a wording one.** Across
@@ -55,14 +59,14 @@ confidence. Accepting `unrelated` at a plain majority, every other option as shi
 
 | recording (same cases) | shipped: right / decided, costly | `unrelated` at 0.5 |
 |---|---|---|
-| fourth batch (50) | 35/39, 2 | 41/46, 2 |
-| first recording (20) | 14/15, 0 | 15/17, 0 |
+| fourth batch (50) | 36/40, 2 | 41/46, 2 |
+| first recording (20) | 15/16, 0 | 15/17, 0 |
 | direction-first re-recording (30) | 21/24, 2 | 26/29, 2 |
 | option order reversed (50) | 39/42, 1 | 42/45, 1 |
 | option order rotated (50) | 38/41, 1 | 42/45, 1 |
 | same order re-asked (50) | 36/40, 2 | 41/46, 2 |
 
-Six recordings, one to six more right answers each (+6, +1, +5, +3, +4, +5), never a costly error more. It is still
+Six recordings, zero to five more right answers each (+5, +0, +5, +3, +4, +5), never a costly error more. It is still
 one set of cases, read before the rule was written, so it is a candidate and not a result.
 The missing examples on `unrelated` (the other two options have them) may be why its
 probability is low; the two explanations separate only with new cases asked both ways.

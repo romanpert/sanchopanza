@@ -1,5 +1,9 @@
 # The third batch: one threshold derived, one defect located, one fix measured and not shipped
 
+Pseudonymization hardening (2026-09-28): rd-91 to rd-96 and mw-03 were reworded and their
+entries in `fixtures/third-batch.jsonl` re-recorded; agreement under replay did not move, and
+the rows and figures published here come from this run's own sitting and are left as they were.
+
 Run of 2026-09-24. 125 new cases take `memory_write` to 100 and `redundant_page` to 125,
 `jev-1.13.0`, **0.0038 USD** for the new cases and 0.0084 USD for the re-run over all three
 batches. It takes up the twelve-decision gap `docs/results/2026-09-24-fifty` found between

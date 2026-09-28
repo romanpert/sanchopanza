@@ -65,6 +65,12 @@ binary points);
 `docs/results/2026-09-24-new-points/summary.md` is the first recording of the same benches,
 `fixtures/new-points.jsonl`, made under the policy in force that day.
 
+On 2026-09-28 the 38 rows that concerned pseudonymized persons of the defamation material were
+hardened further: real outlet domains became `.test`, dates of court events were shifted,
+distinctive descriptors and nicknames were made generic, and a private name quoted from a
+public ruling was removed. Labels did not change; those rows' recordings were asked again and
+every figure they feed was re-derived.
+
 The 298 closed-vocabulary classifications reported in the paper are not published: they are
 the register of a real investigation.
 

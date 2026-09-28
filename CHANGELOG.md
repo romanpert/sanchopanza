@@ -263,6 +263,13 @@ do not favour this package.
 
 ### Measured
 
+- **Bench rows hardened for privacy, re-recorded after pseudonymization hardening (2026-09-28).**
+  38 rows about pseudonymized persons of the defamation material were generalized (outlet
+  domains to `.test`, court dates shifted, nicknames and biographies made generic); labels
+  unchanged. Only those rows were asked again (74 Jev decisions, 0.0020 USD). Moved: public
+  `facts` 14/15 -> 15/16, fourth-batch `facts` 35/39 -> 36/40, option-order flips 4 and 3 ->
+  3 and 2 (`docs/results/2026-09-25-order/`), and the calibration figures those rows feed.
+
 - **The tool window end to end** (`docs/results/2026-09-25-e2e/`, 6.8 USD): Sonnet 5 on 40
   AgentDojo tasks with a 74-tool catalog. Success pooled over runs: loading everything 70/80,
   the window 100/120, the platform's tool search 31/40, with no detectable difference at this

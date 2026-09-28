@@ -1,6 +1,9 @@
 # After the specific-gate fix and the threshold split
 
-Cases: 291 - decision calls: 291 - input tokens: 210049 - cost: 0.0088 USD
+Cases: 291 - decision calls: 291 - input tokens: 210070 - cost: 0.0088 USD
+
+Re-recorded after pseudonymization hardening (2026-09-28): the cases whose text concerned
+pseudonymized persons were reworded and asked again; the figures below are re-derived.
 
 | Point | n | Coverage | Agreement when deciding | Wilson 95 % | Median latency |
 |---|---|---|---|---|---|
@@ -13,7 +16,7 @@ Cases: 291 - decision calls: 291 - input tokens: 210049 - cost: 0.0088 USD
 |---|---|---|---|---|---|
 | memory_write | 100 | 92/100 | 0.98 | 0.107 | 0.183 |
 | recall | 50 | 50/50 | 1.00 | 0.007 | 0.070 |
-| redundant_page | 125 | 120/125 | 1.00 | 0.048 | 0.153 |
+| redundant_page | 125 | 120/125 | 1.00 | 0.049 | 0.153 |
 
 ## Agreement by confidence band
 
@@ -21,8 +24,8 @@ Cases: 291 - decision calls: 291 - input tokens: 210049 - cost: 0.0088 USD
 |---|---|---|
 | 0.00-0.40 | 68 | 46/68 = 68% |
 | 0.40-0.60 | 41 | 41/41 = 100% |
-| 0.60-0.75 | 42 | 41/42 = 98% |
-| 0.75-0.90 | 65 | 65/65 = 100% |
+| 0.60-0.75 | 43 | 42/43 = 98% |
+| 0.75-0.90 | 64 | 64/64 = 100% |
 | 0.90-1.00 | 75 | 75/75 = 100% |
 
 ## Calibration by primitive (declared confidence vs. agreement)

@@ -12,9 +12,9 @@
     "flips_vs_shipped": 0,
     "median_delta_p": 0.0,
     "max_delta_p": 0.0,
-    "mass_on_first": 0.458,
-    "decided": 39,
-    "hits": 35,
+    "mass_on_first": 0.455,
+    "decided": 40,
+    "hits": 36,
     "unanswered": 0
    },
    "reversed": {
@@ -23,10 +23,10 @@
      "conflict",
      "agree"
     ],
-    "flips_vs_shipped": 4,
-    "median_delta_p": 0.02,
+    "flips_vs_shipped": 3,
+    "median_delta_p": 0.015,
     "max_delta_p": 0.31,
-    "mass_on_first": 0.215,
+    "mass_on_first": 0.214,
     "decided": 42,
     "hits": 39,
     "unanswered": 0
@@ -37,10 +37,10 @@
      "unrelated",
      "agree"
     ],
-    "flips_vs_shipped": 3,
-    "median_delta_p": 0.025,
+    "flips_vs_shipped": 2,
+    "median_delta_p": 0.02,
     "max_delta_p": 0.28,
-    "mass_on_first": 0.378,
+    "mass_on_first": 0.376,
     "decided": 41,
     "hits": 38,
     "unanswered": 0
@@ -53,7 +53,7 @@
     ],
     "flips_vs_shipped": 0,
     "median_delta_p": 0.01,
-    "max_delta_p": 0.12,
+    "max_delta_p": 0.15,
     "mass_on_first": 0.453,
     "decided": 40,
     "hits": 36,
@@ -2118,43 +2118,43 @@
    "arms": {
     "shipped": {
      "choice": "agree",
-     "confidence": 0.75,
+     "confidence": 0.7,
      "probabilities": {
       "conflict": 0.0,
-      "unrelated": 0.17,
-      "agree": 0.83
+      "unrelated": 0.2,
+      "agree": 0.8
      },
      "provider": "recorded",
      "decided": true
     },
     "reversed": {
      "choice": "agree",
-     "confidence": 0.47,
+     "confidence": 0.57,
      "probabilities": {
-      "unrelated": 0.35,
-      "conflict": 0.0,
-      "agree": 0.65
+      "agree": 0.71,
+      "unrelated": 0.29,
+      "conflict": 0.0
      },
      "provider": "recorded",
      "decided": false
     },
     "rotated": {
      "choice": "agree",
-     "confidence": 0.62,
+     "confidence": 0.65,
      "probabilities": {
+      "unrelated": 0.23,
       "conflict": 0.0,
-      "agree": 0.75,
-      "unrelated": 0.25
+      "agree": 0.77
      },
      "provider": "recorded",
      "decided": true
     },
     "today": {
      "choice": "agree",
-     "confidence": 0.67,
+     "confidence": 0.76,
      "probabilities": {
-      "unrelated": 0.21,
-      "agree": 0.79,
+      "agree": 0.84,
+      "unrelated": 0.16,
       "conflict": 0.0
      },
      "provider": "recorded",
@@ -2168,44 +2168,44 @@
    "arms": {
     "shipped": {
      "choice": "agree",
-     "confidence": 0.11,
+     "confidence": 0.07,
      "probabilities": {
-      "conflict": 0.35,
-      "unrelated": 0.24,
-      "agree": 0.41
+      "unrelated": 0.32,
+      "agree": 0.38,
+      "conflict": 0.3
      },
      "provider": "recorded",
      "decided": false
     },
     "reversed": {
-     "choice": "unrelated",
+     "choice": "agree",
      "confidence": 0.08,
      "probabilities": {
+      "conflict": 0.24,
       "agree": 0.39,
-      "conflict": 0.23,
-      "unrelated": 0.38
+      "unrelated": 0.37
      },
      "provider": "recorded",
      "decided": false
     },
     "rotated": {
-     "choice": "conflict",
-     "confidence": 0.05,
+     "choice": "agree",
+     "confidence": 0.08,
      "probabilities": {
-      "unrelated": 0.33,
-      "conflict": 0.36,
-      "agree": 0.31
+      "conflict": 0.28,
+      "agree": 0.39,
+      "unrelated": 0.33
      },
      "provider": "recorded",
      "decided": false
     },
     "today": {
      "choice": "agree",
-     "confidence": 0.3,
+     "confidence": 0.12,
      "probabilities": {
-      "agree": 0.53,
-      "conflict": 0.25,
-      "unrelated": 0.22
+      "conflict": 0.39,
+      "agree": 0.41,
+      "unrelated": 0.2
      },
      "provider": "recorded",
      "decided": false
@@ -2468,44 +2468,44 @@
    "arms": {
     "shipped": {
      "choice": "unrelated",
-     "confidence": 0.52,
+     "confidence": 0.67,
      "probabilities": {
-      "conflict": 0.01,
-      "agree": 0.31,
-      "unrelated": 0.68
+      "agree": 0.22,
+      "unrelated": 0.78,
+      "conflict": 0.0
      },
      "provider": "recorded",
-     "decided": false
+     "decided": true
     },
     "reversed": {
      "choice": "unrelated",
-     "confidence": 0.61,
+     "confidence": 0.62,
      "probabilities": {
-      "conflict": 0.01,
-      "agree": 0.25,
-      "unrelated": 0.74
+      "unrelated": 0.75,
+      "conflict": 0.0,
+      "agree": 0.25
      },
      "provider": "recorded",
      "decided": true
     },
     "rotated": {
      "choice": "unrelated",
-     "confidence": 0.62,
+     "confidence": 0.64,
      "probabilities": {
-      "unrelated": 0.74,
-      "agree": 0.25,
-      "conflict": 0.01
+      "agree": 0.24,
+      "unrelated": 0.76,
+      "conflict": 0.0
      },
      "provider": "recorded",
      "decided": true
     },
     "today": {
      "choice": "unrelated",
-     "confidence": 0.55,
+     "confidence": 0.44,
      "probabilities": {
-      "unrelated": 0.7,
-      "conflict": 0.01,
-      "agree": 0.29
+      "agree": 0.37,
+      "unrelated": 0.63,
+      "conflict": 0.0
      },
      "provider": "recorded",
      "decided": false
