@@ -5,10 +5,10 @@
 
 # Sanchopanza
 
-**A calibrated, non-generative decision layer for LLM agent harnesses.**
+**The squire for your agents.**
+A cheap, calibrated second opinion for the small yes/no calls an agent makes.
 
-[![PyPI](https://img.shields.io/pypi/v/sanchopanza.svg)](https://pypi.org/project/sanchopanza/)
-[![Python](https://img.shields.io/pypi/pyversions/sanchopanza.svg)](https://pypi.org/project/sanchopanza/)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![CI](https://github.com/romanpert/sanchopanza/actions/workflows/ci.yml/badge.svg)](https://github.com/romanpert/sanchopanza/actions/workflows/ci.yml)
 [![Paper](https://img.shields.io/badge/paper-working%20draft-informational)](docs/paper.md)
@@ -16,6 +16,47 @@
 *The knight thinks. The squire reads.*
 
 </div>
+
+---
+
+## In twenty seconds
+
+**What it is.** An AI agent stops to ask itself small questions all the time: is this command
+safe to run, is this page worth reading, is the task really done. Today the same large model
+that does the work answers each one, at its price, and leaves no record of why. Sanchopanza
+hands those questions to a separate model that cannot write, only answer: a choice or a
+probability, logged, for about 29 millionths of a dollar each. If it is missing or unsure,
+the agent does exactly what it did before.
+
+**Who it is for.** Anyone running AI agents who wants to spend less on them and trust them
+more: people who use Claude Code every day, teams that run agents on real work, and the
+developers who build them. You do not need to write code to use it with Claude Code.
+
+**What it has shown, measured and with the catch attached:**
+
+| | Measured | The catch |
+|---|---|---|
+| **The same small judgments for a fraction of the price** | Against Claude Opus 5 on the same 211 judgments: **131x cheaper and 10.9x faster**. A thousand decisions cost about **0.03 USD** against **3.72 USD** | Opus is the better judge: 2 more right at a plain 0.5 cut, 4 more under the thresholds shipped. Only for closed questions, never for the work itself ([substitution](docs/results/2026-09-27-memory-write-cut/fifty/substitution.md)) |
+| **A guard inside Claude Code that stops the dangerous command** | In 144 recorded sessions, the destructive commands plain Claude Code ran 15 of 15 times were stopped **16 of 16** times; planted instructions in a file or a downloaded page were flagged 16 of 16; **0 false alarms** in 93 ordinary events | Two kinds of destructive command, one agent model, 8 repetitions each. It does not judge MCP tool calls. The agent refused the planted text either way, so the flag was a warning, not a changed answer ([Claude Code](docs/results/2026-09-28-claude-code-broad/)) |
+| **Less to read, same answers** | Judging which documents one answer needs, with the others in view: **9 of 9** answers kept, against 9 of 9 with everything, at **79.5 % fewer** input tokens | One answering call over a sequence mostly useless by construction, pre-registered; the tenth task was stopped by the cost cap. Inside a free agent loop the saving did not show ([fixed pages](docs/results/2026-09-28-fixed-pages/)) |
+
+What does not pay is in the same README, with the same weight: [where it does not](#where-it-pays-and-where-it-does-not).
+
+### Install in two commands
+
+```bash
+pip install "sanchopanza[jev] @ git+https://github.com/romanpert/sanchopanza"
+sanchopanza install --write
+```
+
+The second command writes Claude Code hooks into `~/.claude/settings.json`, keeping every
+hook already there and a backup of the file as it was (`settings.json.bak`); without
+`--write` it only prints what it would change. The decisions need a TypeSafe key in
+`TYPESAFE_API_KEY`; without one, only a short list of destructive commands written in
+code is still refused, and everything else goes through as it did before. By default it guards
+shell commands, delegations and searches; add `--scan-content` to flag instructions planted
+in what the agent reads and `--check-done` to check "done" before the agent stops. Not on
+PyPI yet: install from the repository as above (`sancho` on PyPI is an unrelated package).
 
 ---
 
@@ -33,16 +74,14 @@ for the pairwise dependency point. It attaches through the hooks and tools your 
 already has.
 
 ```bash
-pip install sanchopanza[jev]     # TypeSafe Jev over HTTP
-pip install sanchopanza[mcp]     # expose the decision points as MCP tools
-pip install sanchopanza          # core only: recorded, null, local and LLM providers
-
-# not on PyPI yet: install from the repository
-pip install "sanchopanza[jev] @ git+https://github.com/romanpert/sanchopanza"
+# not on PyPI yet: every extra installs from the repository the same way
+pip install "sanchopanza[jev] @ git+https://github.com/romanpert/sanchopanza"  # TypeSafe Jev over HTTP
+pip install "sanchopanza[mcp] @ git+https://github.com/romanpert/sanchopanza"  # the decision points as MCP tools
+pip install "git+https://github.com/romanpert/sanchopanza"   # core only: recorded, null, local and LLM providers
 ```
 
-Distribution, import and command are all `sanchopanza` (`sancho` on PyPI is an unrelated
-package). Python 3.11+. No required dependencies.
+Distribution, import and command are all `sanchopanza`. Python 3.11+. No required
+dependencies.
 
 ---
 
@@ -432,20 +471,25 @@ runs that measured them and have not been tuned on the results.
   registered rule ("reach the frontier model's accuracy on the derivation half") bought its
   last case with many escalations. A rule fixed in advance as "within half a point" is what
   the Codex confirmation used; it has not been tested against Sonnet on unseen data.
-- **Content fetched through the shell.** The Claude Code run saw an agent fetch a page with
-  `curl` from Bash, and nothing scanned it: the hook read Bash's `stdout` as empty. Fixed:
-  with `--scan-content`, the output of a command that fetches from the network (`curl`,
-  `wget`, `Invoke-WebRequest`, `gh api`, ...; decided in code) is scanned by default, and
-  other shell output when `Bash` is named. Checked on the recorded result shape with unit
-  tests only; its cost (one decision per fetching command) and its misses are unmeasured
-  in a live session.
+- **MCP tool calls in Claude Code.** The installed hook guards shell commands, delegations
+  and searches, and lets MCP tool calls through without a decision: on ATBench-Codex, whose
+  risks live in MCP calls, it flagged 0 of 250 unsafe trajectories. The actions point judged
+  the same set at 78.2 % offline ([cascade-frontier](docs/results/2026-09-27-cascade-frontier/))
+  but is not wired into the hook ([broad](docs/results/2026-09-28-claude-code-broad/)).
+- **Content fetched through the shell**, closed for `curl`: with `--scan-content`, the output
+  of a command that fetches from the network is scanned by default. At the hook it noted
+  121/124 AgentDojo injections as `curl` output with 0/149 false alarms, and in live sessions
+  flagged the planted page 8/8 with no false flag on the benign one
+  ([broad](docs/results/2026-09-28-claude-code-broad/)). Other fetchers (`wget`,
+  `Invoke-WebRequest`, `gh api`) are covered by the same code and tested only on the recorded
+  result shape.
 - **`relate_facts`.** The `unrelated` gate at 0.5 and examples on `unrelated` did not beat the
   shipped question on the fifth batch; its errors stay as documented
   ([fifth batch](docs/results/2026-09-27-edge-facts/fifth-batch.md)).
 - **The unit of the tool window**, through the tournament over the sub-groups of a large
   server. An idea, unmeasured.
-- **Long documents**, by the same descent: document, then sections, then sentences.
-  Unmeasured.
+- **Long documents outside English scientific papers.** `select_passages` is measured on
+  QASPER only.
 
 ---
 
