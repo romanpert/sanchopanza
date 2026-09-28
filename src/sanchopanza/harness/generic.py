@@ -20,6 +20,7 @@ from typing import Any, Literal
 
 from ..points.routing import TIERS, Tier
 from ..squire import Squire
+from .fetch import fetches_from_network
 
 Action = Literal["allow", "deny", "rewrite"]
 
@@ -102,11 +103,26 @@ class HarnessConfig:
     check_done: bool = False
     done_cut: float = 0.5
     content_tools: frozenset[str] = frozenset({"WebFetch", "WebSearch"})
+    # With `scan_content` on, the output of a shell command that fetches from the network
+    # (`curl`, `wget`, `Invoke-WebRequest`, ... see `fetch.fetches_from_network`) is scanned
+    # even when no shell tool is named in `content_tools`: an agent refused by WebFetch
+    # reaches for `curl`. Other shell output is scanned only if the shell tool is named.
+    scan_shell_fetches: bool = True
     # The purpose the content is judged against. A constant is fine; a callable returning
     # the live task is better, because the question asks what the text tries to change.
     content_purpose: Callable[[], str] = lambda: "the task this agent was given"
     # No longer cuts what is scanned (see `_scan`); kept so existing configs still load.
     content_limit: int = 4000
+
+    def after_tools(self) -> frozenset[str]:
+        """The tools a PostToolUse hook has to see. Which of their calls to scan is decided
+        per call (`Guardian._carries_content`): a matcher cannot tell `curl` from `ls`."""
+        tools = self.delegate_tools
+        if self.scan_content:
+            tools = tools | self.content_tools
+            if self.scan_shell_fetches:
+                tools = tools | self.shell_tools
+        return tools
 
     def tier_name(self, tier: Tier) -> str:
         return self.tiers.get(tier, tier)
@@ -153,13 +169,21 @@ class Guardian:
                 outcome = await self.squire.review_report(task, text[: c.result_limit])
                 if outcome and outcome.message:
                     parts.append(Note(context=outcome.message))
-        if c.scan_content and call.name in (c.content_tools | c.delegate_tools):
+        if c.scan_content and self._carries_content(call):
             parts.append(await self._scan(call, text))
         joined = Note(
             context="\n\n".join(p.context for p in parts if p.context),
             user="\n".join(p.user for p in parts if p.user),
         )
         return joined if (joined.context or joined.user) else None
+
+    def _carries_content(self, call: ToolCall) -> bool:
+        c = self.config
+        if call.name in c.content_tools or call.name in c.delegate_tools:
+            return True
+        if not (c.scan_shell_fetches and call.name in c.shell_tools):
+            return False
+        return fetches_from_network(str(call.arguments.get(c.shell_command_key) or ""))
 
     async def _scan(self, call: ToolCall, text: str) -> Note:
         c = self.config
@@ -232,7 +256,7 @@ class Guardian:
 
 def _source_of(call: ToolCall) -> str:
     """A short name for where content came from: a URL, a path, a query."""
-    for key in ("url", "file_path", "path", "query", "prompt", "description"):
+    for key in ("url", "file_path", "path", "query", "command", "prompt", "description"):
         value = call.arguments.get(key)
         if value:
             return str(value)[:200]
@@ -253,6 +277,13 @@ def text_of(response: Any) -> str:
             return file["content"]
         if isinstance(response.get("result"), str):
             return response["result"]
+        # Claude Code's Bash: {"stdout", "stderr", "interrupted", "isImage", ...}. Read as
+        # empty until 2026-09-28, so naming `Bash` as a content tool scanned nothing.
+        streams = [response.get(k) for k in ("stdout", "stderr")]
+        if any(isinstance(v, str) for v in streams):
+            return "\n".join(v for v in streams if isinstance(v, str) and v)
+        if isinstance(response.get("output"), str):
+            return response["output"]
         results = response.get("results")
         if isinstance(results, list) and results:
             return "\n".join(

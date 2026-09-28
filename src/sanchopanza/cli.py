@@ -73,6 +73,7 @@ def _install(args: argparse.Namespace) -> int:
     config = HarnessConfig(
         scan_content=args.scan_content,
         check_done=args.check_done,
+        scan_shell_fetches=not args.no_shell_fetches,
         content_tools=(
             frozenset(t.strip() for t in args.content_tools.split(",") if t.strip())
             if args.content_tools
@@ -186,6 +187,12 @@ def main(argv: list[str] | None = None) -> int:
         "--content-tools",
         default=None,
         help="comma-separated tools to scan (default WebFetch,WebSearch)",
+    )
+    install.add_argument(
+        "--no-shell-fetches",
+        action="store_true",
+        help="with --scan-content, do not scan the output of shell commands that fetch from "
+        "the network (curl, wget, ...), which is scanned by default",
     )
     install.add_argument("--provider", default=None, help="set SANCHO_PROVIDER in the env block")
     install.add_argument("--command-line", default="sanchopanza hook", help="the hook command")

@@ -155,6 +155,17 @@ do not favour this package.
 
 ### Fixed
 
+- **Content fetched through the shell was never scanned, even when asked for.** Claude Code
+  hands PostToolUse a Bash result as `{"stdout", "stderr", "interrupted", ...}` and `text_of`
+  read it as empty, so naming `Bash` in `--content-tools` scanned nothing. `text_of` now reads
+  `stdout` and `stderr` (and a plain `output`). And with `--scan-content` on, the output of a
+  shell command that fetches from the network (`curl`, `wget`, `aria2c`, `lynx`/`w3m`,
+  `Invoke-WebRequest`/`iwr`, `Invoke-RestMethod`/`irm`, HTTPie, `gh api`, inline Python or
+  Node code naming an HTTP client) is scanned by default, decided in code by
+  `harness.fetch.fetches_from_network`; other shell output only if the shell is named.
+  `install` hooks Bash at PostToolUse for this; `--no-shell-fetches` or
+  `SANCHO_SCAN_SHELL_FETCHES=0` turns it off. Tested on the recorded Bash result shape with a
+  fixed decider; **not measured in a live Claude Code session**.
 - **The tournament asked the same group twice** when a round pruned only from later
   groups and the survivors regrouped into an earlier group. Each tournament now reuses the
   answers of a group it already asked. Replaying every recorded tournament keeps the same
@@ -166,7 +177,7 @@ do not favour this package.
   scanned them. Found by the first end-to-end run inside Claude Code, fixed, and confirmed by a
   registered run with the released hook: the planted file flagged 2/2 (p 0.98, 0.99), no
   false alarm on benign reads (`docs/results/2026-09-28-claude-code-harness/`). Content fetched
-  with `curl` through Bash is still not scanned unless `Bash` is named in `--content-tools`.
+  with `curl` through Bash was not covered by that fix; see the entry above.
 - **`triage_many`: a round that prunes nothing no longer asks the same groups again.** It
   reused Jev's non-determinism as a second opinion and broke replay; the round's answers are
   reused, and each page reports the last probability it got. The hierarchy result stands:

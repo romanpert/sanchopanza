@@ -1423,8 +1423,11 @@ Eight of nine registered criteria held, with zero false blocks; all 17 model dec
 a decision: Claude Code hands a `Read` result to PostToolUse in a shape the package read as
 empty, so the content scan never ran. Fixed and confirmed by a second registered run with the
 released hook: the planted file flagged 2/2 at p 0.98-0.99, benign reads not flagged. The run
-also found what it does not cover: an agent that could not use WebFetch on a local page fetched
-it with `curl`, and output from the shell is scanned only if `Bash` is named as a content tool.
+also found what it did not cover: an agent that could not use WebFetch on a local page fetched
+it with `curl`, and the hook read the shell's output (`stdout`) as empty, so even naming `Bash`
+as a content tool scanned nothing. Since fixed: the output is read, and a command that fetches
+from the network is scanned by default, decided in code; this is tested on the recorded result
+shape and not yet measured in a live session.
 Each hook call pays 1-2 s of Python start-up on Windows before any decision
 (`docs/results/2026-09-28-claude-code-harness/`).
 
@@ -1715,8 +1718,9 @@ Each is enforced in code or in a test.
     registered rule failed on cost against both Opus and Sonnet (Section 5.17): a derivation
     rule of "within half a point", fixed in advance, tested against Sonnet on unseen data.
 17. **Content that arrives through the shell.** The Claude Code run (Section 5.18) saw an agent
-    fetch a page with `curl` when WebFetch refused it; the content scan covers only the tools it
-    names. Scanning shell output costs one decision per command and is unmeasured.
+    fetch a page with `curl` when WebFetch refused it. Commands that fetch from the network are
+    now recognised in code and their output scanned by default; what that costs and what the
+    matcher misses in live sessions is unmeasured.
 
 ---
 

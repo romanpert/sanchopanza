@@ -424,9 +424,13 @@ runs that measured them and have not been tuned on the results.
   registered rule ("reach the frontier model's accuracy on the derivation half") bought its
   last case with many escalations. A rule fixed in advance as "within half a point" is what
   the Codex confirmation used; it has not been tested against Sonnet on unseen data.
-- **Content fetched through the shell.** `--scan-content` scans the tools it names; an agent
-  that fetches with `curl` from Bash bypasses it (seen in the Claude Code run). Scanning Bash
-  output costs one decision per command, unmeasured.
+- **Content fetched through the shell.** The Claude Code run saw an agent fetch a page with
+  `curl` from Bash, and nothing scanned it: the hook read Bash's `stdout` as empty. Fixed:
+  with `--scan-content`, the output of a command that fetches from the network (`curl`,
+  `wget`, `Invoke-WebRequest`, `gh api`, ...; decided in code) is scanned by default, and
+  other shell output when `Bash` is named. Checked on the recorded result shape with unit
+  tests only; its cost (one decision per fetching command) and its misses are unmeasured
+  in a live session.
 - **`relate_facts`.** The `unrelated` gate at 0.5 and examples on `unrelated` did not beat the
   shipped question on the fifth batch; its errors stay as documented
   ([fifth batch](docs/results/2026-09-27-edge-facts/fifth-batch.md)).

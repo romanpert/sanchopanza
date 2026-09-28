@@ -22,6 +22,10 @@ Configuration is by environment, because a hook process has nothing else:
                       replace a tool result. It warns you, marks the passage as data in
                       front of the model, and journals the event. See `points.injection`.
     SANCHO_CONTENT_TOOLS  comma-separated tool names to scan (default: WebFetch,WebSearch)
+    SANCHO_SCAN_SHELL_FETCHES  "0" to stop scanning the output of shell commands that fetch
+                      from the network (curl, wget, Invoke-WebRequest, ...). On by default
+                      whenever SANCHO_SCAN_CONTENT is; other shell output is scanned only
+                      if Bash is named in SANCHO_CONTENT_TOOLS.
     SANCHO_PURPOSE    what the job is about, so the scan can judge "aimed at changing what?"
     SANCHO_CHECK_DONE "1" to check, at Stop, that the transcript shows the last request done,
                       and send Claude back once if it confidently does not (opt-in; never
@@ -79,6 +83,7 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
     cheap = env.get("SANCHO_CHEAP_SEARCH", "") in ("1", "true", "yes")
     scan = env.get("SANCHO_SCAN_CONTENT", "") in ("1", "true", "yes")
     check_done = env.get("SANCHO_CHECK_DONE", "") in ("1", "true", "yes")
+    shell_fetches = env.get("SANCHO_SCAN_SHELL_FETCHES", "1") not in ("0", "false", "no")
     named = {t.strip() for t in env.get("SANCHO_CONTENT_TOOLS", "").split(",") if t.strip()}
     purpose = env.get("SANCHO_PURPOSE", "").strip()
     defaults = HarnessConfig()
@@ -87,6 +92,7 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
         cheap_search_available=lambda: cheap,
         scan_content=scan,
         check_done=check_done,
+        scan_shell_fetches=shell_fetches,
         content_tools=frozenset(named) if named else defaults.content_tools,
         content_purpose=(lambda: purpose) if purpose else defaults.content_purpose,
     )

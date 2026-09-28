@@ -76,7 +76,7 @@ def _pattern(names: frozenset[str]) -> str:
 def matchers(config: HarnessConfig) -> dict[str, str]:
     """Event -> matcher regex, derived from the config rather than written twice."""
     pre = config.delegate_tools | config.search_tools | config.shell_tools
-    post = config.delegate_tools | (config.content_tools if config.scan_content else frozenset())
+    post = config.after_tools()
     # Stop takes no tool matcher; "*" matches every stop. Empty means: not wired (and removed).
     return {
         "PreToolUse": _pattern(pre),
@@ -95,6 +95,8 @@ def environment(config: HarnessConfig, *, provider: str = "") -> dict[str, str]:
         env["SANCHO_SCAN_CONTENT"] = "1"
         if config.content_tools != HarnessConfig().content_tools:
             env["SANCHO_CONTENT_TOOLS"] = ",".join(sorted(config.content_tools))
+        if not config.scan_shell_fetches:
+            env["SANCHO_SCAN_SHELL_FETCHES"] = "0"
     return env
 
 

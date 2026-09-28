@@ -88,8 +88,7 @@ def hook_matchers(guardian: Guardian) -> dict[str, list[Any]]:
 
     c = guardian.config
     pre = "|".join(sorted(c.delegate_tools | c.search_tools | c.shell_tools))
-    after = c.delegate_tools | (c.content_tools if c.scan_content else frozenset())
-    post = "|".join(sorted(after))
+    post = "|".join(sorted(c.after_tools()))
     return {
         "PreToolUse": [HookMatcher(matcher=pre, hooks=[pre_tool_use(guardian)])],
         "PostToolUse": [HookMatcher(matcher=post, hooks=[post_tool_use(guardian)])],
