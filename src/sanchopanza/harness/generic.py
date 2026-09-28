@@ -16,11 +16,13 @@ from __future__ import annotations
 import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from ..points.routing import TIERS, Tier
-from ..squire import Squire
 from .fetch import fetches_from_network
+
+if TYPE_CHECKING:  # the squire loads asyncio; a hook that decides nothing never needs it
+    from ..squire import Squire
 
 Action = Literal["allow", "deny", "rewrite"]
 
@@ -116,13 +118,21 @@ class HarnessConfig:
 
     def after_tools(self) -> frozenset[str]:
         """The tools a PostToolUse hook has to see. Which of their calls to scan is decided
-        per call (`Guardian._carries_content`): a matcher cannot tell `curl` from `ls`."""
+        per call (`scans_after`): a matcher cannot tell `curl` from `ls`."""
         tools = self.delegate_tools
         if self.scan_content:
             tools = tools | self.content_tools
             if self.scan_shell_fetches:
                 tools = tools | self.shell_tools
         return tools
+
+    def scans_after(self, name: str, arguments: Mapping[str, Any]) -> bool:
+        """Whether this tool call's result goes through the content scan (when it is on)."""
+        if name in self.content_tools or name in self.delegate_tools:
+            return True
+        if not (self.scan_shell_fetches and name in self.shell_tools):
+            return False
+        return fetches_from_network(str(arguments.get(self.shell_command_key) or ""))
 
     def tier_name(self, tier: Tier) -> str:
         return self.tiers.get(tier, tier)
@@ -169,21 +179,13 @@ class Guardian:
                 outcome = await self.squire.review_report(task, text[: c.result_limit])
                 if outcome and outcome.message:
                     parts.append(Note(context=outcome.message))
-        if c.scan_content and self._carries_content(call):
+        if c.scan_content and c.scans_after(call.name, call.arguments):
             parts.append(await self._scan(call, text))
         joined = Note(
             context="\n\n".join(p.context for p in parts if p.context),
             user="\n".join(p.user for p in parts if p.user),
         )
         return joined if (joined.context or joined.user) else None
-
-    def _carries_content(self, call: ToolCall) -> bool:
-        c = self.config
-        if call.name in c.content_tools or call.name in c.delegate_tools:
-            return True
-        if not (c.scan_shell_fetches and call.name in c.shell_tools):
-            return False
-        return fetches_from_network(str(call.arguments.get(c.shell_command_key) or ""))
 
     async def _scan(self, call: ToolCall, text: str) -> Note:
         c = self.config

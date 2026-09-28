@@ -13,20 +13,23 @@ sanchopanza dag plan.json   # clean DAG and waves from {"nodes": [...], "edges":
 from __future__ import annotations
 
 import argparse
-import asyncio
 import contextlib
 import json
 import os
 import sys
 from pathlib import Path
 
-from .dag import build_dag, waves
-from .eval.bench import load_cases, render_markdown, rows_to_json, run_bench, summarize
-from .providers import available, create
-from .providers.recorded import RecordingDecider
+# Each subcommand imports what it needs: `sanchopanza hook` runs once per tool call, and the
+# bench machinery, asyncio and the provider scan are no part of an event that needs no decision.
 
 
 def _bench(args: argparse.Namespace) -> int:
+    import asyncio
+
+    from .eval.bench import load_cases, render_markdown, rows_to_json, run_bench, summarize
+    from .providers import create
+    from .providers.recorded import RecordingDecider
+
     cases = load_cases(args.cases)
     if args.provider == "recorded":
         decider = create("recorded", path=args.fixture)
@@ -60,6 +63,8 @@ def _hook(_args: argparse.Namespace) -> int:
 
 
 def _providers(_args: argparse.Namespace) -> int:
+    from .providers import available
+
     for name, target in sorted(available().items()):
         sys.stdout.write(f"{name:10} {target}\n")
     return 0
@@ -115,6 +120,8 @@ def _install(args: argparse.Namespace) -> int:
 
 
 def _dag(args: argparse.Namespace) -> int:
+    from .dag import build_dag, waves
+
     data = json.loads(Path(args.plan).read_text(encoding="utf-8"))
     nodes = list(data["nodes"])
     edges = {tuple(k.split("->")): float(v) for k, v in data["edges"].items()}

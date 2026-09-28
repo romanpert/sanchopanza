@@ -38,25 +38,28 @@ Configuration is by environment, because a hook process has nothing else:
 Each hook process is a fresh squire, so the per-job budget and the repeated-query memory
 do not persist across calls. That is the price of the process model; the SDK adapter keeps
 them.
+
+The process start-up is the hook's latency, so `main` decides in code, before loading the
+squire, asyncio or any provider, whether the event can lead to a decision at all
+(`needs_decision`). Most PostToolUse events for Bash, for instance, cannot: only the output of
+a command that fetches from the network is scanned by default.
 """
 
 from __future__ import annotations
 
-import asyncio
 import json
 import os
 import sys
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from ..contract import Decider
-from ..journal import JsonlJournal
 from ..points import completion
 from ..points.routing import Tier
-from ..policy import Thresholds
-from ..squire import Squire
-from .claude_agent_sdk import post_tool_use, pre_tool_use
-from .generic import Guardian, HarnessConfig
+from .generic import Guardian, HarnessConfig, text_of
+
+if TYPE_CHECKING:
+    from ..contract import Decider
 
 
 def decider_from_env(env: dict[str, str] | None = None) -> Decider:
@@ -99,6 +102,10 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
 
 
 def guardian_from_env(env: dict[str, str] | None = None) -> Guardian:
+    from ..journal import JsonlJournal
+    from ..policy import Thresholds
+    from ..squire import Squire
+
     env = env if env is not None else dict(os.environ)
     journal_path = Path(env.get("SANCHO_JOURNAL") or Path.home() / ".sancho" / "journal.jsonl")
     thresholds = Thresholds.from_mapping(
@@ -183,7 +190,28 @@ async def stop(input_data: dict[str, Any], guardian: Guardian) -> dict[str, Any]
     }
 
 
+def needs_decision(input_data: Mapping[str, Any], config: HarnessConfig) -> bool:
+    """False when `handle` would certainly answer `{}` without asking anything. Pure code.
+
+    It mirrors the early returns of `Guardian.before_tool` / `after_tool` and `stop`; when in
+    doubt it says True, and the full path decides as before.
+    """
+    event = str(input_data.get("hook_event_name", "PreToolUse"))
+    if event == "Stop":
+        return config.check_done and not input_data.get("stop_hook_active")
+    name = str(input_data.get("tool_name", ""))
+    arguments = input_data.get("tool_input")
+    arguments = arguments if isinstance(arguments, Mapping) else {}
+    if event == "PostToolUse":
+        reviewed = name in config.delegate_tools and config.review_delegations
+        scanned = config.scan_content and config.scans_after(name, arguments)
+        return (reviewed or scanned) and bool(text_of(input_data.get("tool_response")).strip())
+    return name in (config.delegate_tools | config.search_tools | config.shell_tools)
+
+
 async def handle(input_data: dict[str, Any], guardian: Guardian) -> dict[str, Any]:
+    from .claude_agent_sdk import post_tool_use, pre_tool_use
+
     event = str(input_data.get("hook_event_name", "PreToolUse"))
     if event == "Stop":
         return await stop(input_data, guardian)
@@ -199,6 +227,10 @@ def main(argv: list[str] | None = None) -> int:
     except json.JSONDecodeError:
         return 0  # malformed input: let the tool run; never block on our own bug
     try:
+        if not isinstance(input_data, dict) or not needs_decision(input_data, config_from_env()):
+            return 0
+        import asyncio
+
         output = asyncio.run(handle(input_data, guardian_from_env()))
     except Exception:  # fail-open at the process boundary as well
         return 0

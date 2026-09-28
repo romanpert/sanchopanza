@@ -1428,8 +1428,11 @@ it with `curl`, and the hook read the shell's output (`stdout`) as empty, so eve
 as a content tool scanned nothing. Since fixed: the output is read, and a command that fetches
 from the network is scanned by default, decided in code; this is tested on the recorded result
 shape and not yet measured in a live session.
-Each hook call pays 1-2 s of Python start-up on Windows before any decision
-(`docs/results/2026-09-28-claude-code-harness/`).
+Each hook call paid 1-2 s of Python start-up on Windows before any decision
+(`docs/results/2026-09-28-claude-code-harness/`); with lazy imports and a code check that
+skips events needing no decision, an interleaved measurement on the same laptop gave medians
+of 0.17 s (no decision) and 0.25 s (up to the decision) against 0.31-0.34 s before
+(`docs/results/2026-09-28-hook-startup/`).
 
 ---
 

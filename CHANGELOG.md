@@ -204,6 +204,14 @@ do not favour this package.
 
 ### Changed behaviour a user may notice
 
+- **The Claude Code hook starts faster.** `sanchopanza` and `sanchopanza.providers` resolve
+  their names on first use, the entry-point scan runs only for a provider that is not built
+  in, the CLI imports per subcommand, and `sanchopanza hook` decides in code whether an event
+  can need a decision before loading the squire or `asyncio`. Measured on the maintainer's
+  Windows laptop, interleaved, 31 runs: median 0.17 s for an event that needs no decision and
+  0.25 s up to the decision for one that does, against 0.31-0.34 s before
+  (`docs/results/2026-09-28-hook-startup/`). The public imports are unchanged.
+
 - **`memory_write` stores on one derived cut.** `decide_write` stores iff the weakest margin
   `min(durable, specific, 1 - derivable)` is at least 0.54 (`Thresholds.remember` 0.54,
   `Thresholds.derivable` 0.46), where it was a conjunction at 0.70 / 0.70 / 0.75. Derived on

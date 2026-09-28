@@ -1,0 +1,7 @@
+python -c pass                median 0.047 s  min 0.039  n=31
+before          pre-bash      median 0.319 s  min 0.235  n=31
+before          post-bash-ls  median 0.312 s  min 0.239  n=31
+before          stop-off      median 0.339 s  min 0.238  n=31
+after           pre-bash      median 0.251 s  min 0.200  n=31
+after           post-bash-ls  median 0.170 s  min 0.134  n=31
+after           stop-off      median 0.170 s  min 0.128  n=31
