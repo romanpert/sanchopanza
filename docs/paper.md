@@ -69,8 +69,10 @@ its unit, a server-sized group, is the open problem.
 
 Where the layer pays is **substitution**: replacing a judgment some model was going to make
 anyway, at a price ratio that does not depend on the workload. Where it does not is
-**avoidance** bought by dropping content: with the fetch sequence held fixed, page triage
-cuts input tokens by 75 % and correctness from 10/10 to 6/10, and those are one result. Asked
+**avoidance** bought by dropping content one page at a time: with the fetch sequence held
+fixed, relevance triage cuts input tokens by 75 % and correctness from 10/10 to 6/10, and
+those are one result; judging passages with the others in view, the same design keeps 9/9
+answers at 79.5 % fewer input tokens, pre-registered, in one call and not a loop. Asked
 whether each page contributes a fact the answer needs, with the other pages in view, the
 evaluator keeps every supporting page of 98.3 % of new HotpotQA questions at a third of the
 text, and a tournament of such calls keeps both in 96.5 % among 100 pages at 3.1 % of the
@@ -1223,6 +1225,17 @@ handed 193 documents drawn from a handful of source files, it still does not fir
 The prediction recorded in advance was a real effect on input tokens, a smaller one on cost,
 and quality holding. Two of three; the one that failed is the informative one.
 `docs/results/2026-09-24-fixed-sequence/`.
+
+**The same design with the question of Section 5.16.** Rerun with `triage_many` over each
+document's passages (at most 900 characters), the others in view, at the shipped cuts, on a
+pinned corpus, both arms rerun and answered through the Claude Code CLI: **9/9** correct in
+both arms, input tokens **-79.5 % [-86.5 %, -72.9 %]**, and no passage holding an answer pin
+withheld in any of the ten tasks, both compound ones included. Pre-registered at >= 9 of 10
+and >= 50 % fewer tokens; the tenth task was stopped by the 3 USD cap, and neither bar can
+turn on it. The failures above came from the question and the unit, not the lever. What this
+does not show is a saving in a loop: one answering call, 9 tasks, a sequence built to be
+mostly useless (`docs/results/2026-09-28-fixed-pages/`, 0.107 USD of Jev, 3.19 USD at list
+price on the subscription).
 
 ### 5.16 Pages judged in each other's context, and a tournament past one call
 

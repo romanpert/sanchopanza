@@ -98,6 +98,11 @@ Page triage, redundancy, context pruning, a window over the tool catalog. The sa
    plenty to drop, page triage cut input tokens by **75.2 % [-86.8 %, -63.9 %]** and took
    correctness from **10/10 to 6/10**, and in every failure the answer document was among
    those dropped **[M]**. That is one result, not a saving with a footnote (section 3).
+   Asked instead of each passage, with the others in view, whether it holds a fact the
+   answer needs (`triage_many`), the same design answered 9/9 against 9/9 at **-79.5 %**
+   input tokens [-86.5 %, -72.9 %], pre-registered, the tenth task stopped by the cost
+   cap **[M]** (`docs/results/2026-09-28-fixed-pages/`). That is one answering call:
+   reason 1 still applies in a loop.
 
 ### Affordability: the decision makes a quality check cheap enough to always run
 
@@ -240,6 +245,17 @@ that loses four answers in ten is the cost of not answering. Source redundancy o
 design drops **4 of 193** documents, -3.5 % input tokens [-12.1 %, +0.0 %], quality untouched:
 it does not fire even on a corpus built to make it fire.
 
+**Asked the right question, the same lever keeps the answers.** Rerun on the same design
+with `triage_many` over passages of at most 900 characters, the others in view, at the
+shipped cuts, both arms rerun through the Claude Code CLI on a pinned corpus: **9/9**
+correct in both arms, input tokens **-79.5 % [-86.5 %, -72.9 %]**, 81 of 173 documents
+withheld whole and 2,042 passages cut from the rest, and no passage holding an answer pin
+withheld in any of the ten tasks, the two compound ones included **[M]**. Pre-registered at
+>= 9 of 10 and >= 50 % fewer tokens; the tenth task was stopped by the 3 USD cap, and it
+cannot overturn either bar (`docs/results/2026-09-28-fixed-pages/`). Both failure shapes of
+the first run, a compound purpose and a long document judged by its head, are addressed by
+the question and the unit, not by a threshold.
+
 **End-to-end runs see what decision-level benches cannot: document length.** A 10,000-character
 document judged on its first 1,500 characters loses the page that holds the answer, and the
 agent re-fetches it until it hits its turn cap. `sanchopanza.text.excerpt` therefore sends the
@@ -355,7 +371,8 @@ implemented with a bench; "designed" means the arithmetic is here and the code i
 
 | Lever | Why it is here and not in tier 1 |
 |---|---|
-| **Page triage** | **A large saving that costs answers, and it is one result.** With the fetch sequence held fixed in both arms, it drops 170 of 193 documents for **-75.2 % input tokens [-86.8 %, -63.9 %]** and takes correctness from **10/10 to 6/10** **[M]**. In all four failures the answer document was among those dropped; in none of the six successes. Worst on compound purposes, where it dropped 4 of 4 and 3 of 3 answer documents; whether that is a covering constraint is open (section 2). |
+| **Page triage by relevance, one page at a time** | **A large saving that costs answers, and it is one result.** With the fetch sequence held fixed in both arms, it drops 170 of 193 documents for **-75.2 % input tokens [-86.8 %, -63.9 %]** and takes correctness from **10/10 to 6/10** **[M]**. In all four failures the answer document was among those dropped; in none of the six successes. Worst on compound purposes, where it dropped 4 of 4 and 3 of 3 answer documents. Keep `triage_page` for its injection and source-kind answers; to keep documents out, use the row below. |
+| **In-context page triage (`triage_many` over passages)** | **The recommended way to keep documents out of a call.** Same fixed design: **9/9 against 9/9** correct at **-79.5 %** input tokens [-86.5 %, -72.9 %], pre-registered, the tenth task stopped by the cost cap and unable to overturn the bar **[M]** (`docs/results/2026-09-28-fixed-pages/`). Tier 3 still: one answering call over a sequence built to be mostly useless, 9 tasks, and unmeasured inside a warm loop, where reason 1 of section 1 applies. |
 | **Page and sentence selection that asks for a contribution** | **What it keeps is measured, and on HotpotQA with short answers the kept text answers as well as all of it.** On multi-part HotpotQA questions, labels by construction: asking of each page alone whether it contributes a fact the answer needs (`triage_part`) keeps both supporting paragraphs in 93.3 % of 300 held-out questions at 52 % of the text, BM25 80.3 % with more **[M]** (`docs/results/2026-09-25-triage/`). Asking all ten pages in one call, each with the others in view (`triage_pages`), keeps every supporting page in **98.3 %** of 300 new questions at 34 % of the text, against 94.3 % at 53 % page by page in ten calls; sentences inside the kept pages (`select_sentences`) keep every supporting sentence in **90.3 %** at 22 % **[M]** (`docs/results/2026-09-27-chunks/`). Past one call (30 pages), a tournament (`triage_many`) over 100 pages per question keeps both supporting pages in **96.5 %** of 200 held-out questions at **3.1 %** of the text in 5 calls; the groups alone 94.0 % at 4.3 %; BM25 at the same page count 50.5 %; the 90 added pages are off-topic **[M]** (`docs/results/2026-09-27-hierarchy/`, after LATTICE, arXiv:2510.13217). Answering from the in-context sets, with the reply forced into one short field (pre-registered, Haiku 4.5 through the Claude Code CLI): all pages 70.0 %, kept pages **71.0 %**, kept sentences **70.7 %**, all three criteria holding; the claim is equality, not gain **[M]**. The first run, with free-length replies, was negative as registered (81.0 % against 76.7 % and 76.0 %): its score counts a reply correct when the gold answer is contained in it, and replies grew with the context (median 30, 9 and 4 words) (`docs/results/2026-09-27-answers/`). On whole documents the compression does not transfer: on 300 QASPER papers the tournament kept all evidence in 94.7 % but 48.9 % of the text, against a criterion of 25 %, from the tournament before a fix and not yet replayable **[M]** (`docs/results/2026-09-27-longdocs/`). |
 | **Redundancy between sources** | **It does not fire.** Handed **193 documents** drawn from a handful of source files, on a fixed sequence, it dropped **4**: -3.5 % input tokens [-12.1 %, +0.0 %], quality untouched **[M]**. Decision-level accuracy is real (AUC 1.00, 15/16 at a 0.5 cut), but **it is not a cost lever**: it does not appear under conditions built to produce it. |
 | **Tool window** (which tool groups the application loads) | **Correct and safe; its cost case is weak where the platform offers tool search.** Offline, on 97 AgentDojo trajectories and 40 three-task sessions, it misses 0 and 0 needed groups, against 6 and 124 when selecting once from the request, and 3 and 13 with prerequisites added and the selection repeated on every user turn - in-sample, so a statement that the mechanism covers the known failure families, not a success rate **[M]**. Its injection scan stops the window from handing the attacker a capability: without it 24 of 56 payloads got the window to add the attacker's group, with it 0 of 56, and 0 of 26 clean texts blocked **[M]**. End to end with Sonnet 5 on a 74-tool catalog, success shows no detectable difference - loading everything 70/80 pooled over two runs, the window 100/120 over three, the platform's BM25 search 31/40 - and the window runs at 0.91x the time of loading everything **[M]**. Cost, re-priced from the recorded usage with the `tools` + `system` prefix shared between tasks as production shares it (an estimate): the window **0.77-0.88x** of loading everything, the search **1.48x** **[M]**. On a real 398-tool MCP catalog (167,937 tokens of definitions, near-duplicates of the AgentDojo apps included) success is 7/9 loading everything and 8/9 for both the search and the window, no arm calls a distractor tool (n = 5), and the estimated cost with a shared prefix is **0.34x** for the search against **0.54x** for the window **[M]**. The window's cost is set by its coarsest group: it opened the 121-tool `google_workspace` server in 11 of 17 tasks, correctly, and loaded all of it. **Server-sized groups are the open problem.** `docs/results/2026-09-25-window/`, `-e2e/`, `-wide/`, `-cache/`. |
@@ -454,8 +471,12 @@ Each of these is specified enough that a disagreement becomes a measurement.
 
 1. **Page triage on a purpose with parts.** The fixed-sequence A/B
    (`docs/results/2026-09-24-fixed-sequence/`) settles the size of the avoidance effect and
-   its price: -75.2 % input tokens and four answers in ten. What it does not settle is why the
-   compound purposes fail. The experiment varies the number of parts in the purpose while
+   its price: -75.2 % input tokens and four answers in ten. Judging passages with the others
+   in view answered all nine tasks it reached, one compound task among them, and served every
+   answer pin of the other (`docs/results/2026-09-28-fixed-pages/`); what is left is the same
+   lever inside a warm agent loop, and more tasks. The older design below is kept for the
+   record: what it does not settle is why relevance triage fails compound purposes. The
+   experiment varies the number of parts in the purpose while
    holding the required documents fixed, and tests the two candidate fixes against plain
    triage: splitting the purpose into its parts, and gating on the *sufficiency of the set*
    rather than the relevance of each page. Moving the threshold is not a candidate: it buys

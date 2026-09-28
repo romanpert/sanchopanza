@@ -9,12 +9,12 @@ do not favour this package.
 
 ### Added
 
-- **Prepared: the fixed-sequence A/B with in-context page triage.** `benchmarks/ab/fixed.py
-  --lever pages` runs the fixed-sequence A/B with `triage_many` over passages instead of
-  page-by-page triage, with a pinned corpus (`--corpus-ref`), answers through `claude -p`
-  (`--via claude-cli`), a free pipeline check (`--fake`) and a refusal to reuse a recorded
-  bare arm whose sequences are not today's (the 2026-09-24 one is refused: it matches no
-  commit). Pre-registration in `docs/results/2026-09-28-fixed-pages/`.
+- **`triage_many` is the recommended way to keep documents out of a call**, on a
+  pre-registered result (`docs/results/2026-09-28-fixed-pages/`): `benchmarks/ab/fixed.py
+  --lever pages` judges each document's passages with the others in view, on a pinned corpus
+  (`--corpus-ref`), answering through `claude -p` (`--via claude-cli`), with a free pipeline
+  check (`--fake`) and passage-level attribution (`pages.attribute`). `triage_page` keeps its
+  injection and source-kind answers; its relevance drop is not the recommended path.
 - **`providers.CachedDecider`, opt-in.** Wraps any decider and answers a repeat of the same
   point, state and questions (option order, provider and model included in the key) within
   `ttl_seconds` with the first answer, at zero cost and latency, journalled as
@@ -284,6 +284,12 @@ do not favour this package.
 - **Page triage with the document sequence held fixed** (`docs/results/2026-09-24-fixed-sequence/`):
   input tokens -75.2 % [-86.8 %, -63.9 %] and correct answers 10/10 to 6/10. One result; the
   saving is the cost of not answering.
+- **The same design with in-context page triage, pre-registered**
+  (`docs/results/2026-09-28-fixed-pages/`): `triage_many` over passages answered 9/9 against
+  9/9 at -79.5 % input tokens [-86.5 %, -72.9 %], no answer-bearing passage withheld in any of
+  the ten tasks. The tenth was stopped by the 3 USD cap and cannot overturn either bar. One
+  answering call, not a warm loop; 0.107 USD of Jev and 3.19 USD at list price on the
+  subscription.
 - **`memory_write`**: the shipped cut is in "Changed behaviour" above. It stores 4 of 36
   standing client instructions. With the opt-in `common` question, on a batch written before
   it was measured: 45/48, where the shipped cut scores 37/48 and the three-question

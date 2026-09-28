@@ -166,7 +166,9 @@ and answers from what survives (10 tasks, Claude Sonnet 5, 2.92 USD):
 Page triage saves three quarters of the input and the saving is the cost of not answering: in
 all four failures the answer document was among those dropped, and in none of the six
 successes was it. The two halves are one result, and neither is quoted without the other
-(`docs/results/2026-09-24-fixed-sequence/`, paper Section 5.15).
+(`docs/results/2026-09-24-fixed-sequence/`, paper Section 5.15). Judging passages with the
+others in view instead (`triage_many`), the same design answered 9/9 against 9/9 at -79.5 %
+input tokens, pre-registered, one answering call (`docs/results/2026-09-28-fixed-pages/`).
 
 **What to quote, then.** The cost per decision and the break-even, which are measured. The
 safety and quality numbers in the paper, which are measured. Not a saving percentage for

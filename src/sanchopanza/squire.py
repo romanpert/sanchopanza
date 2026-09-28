@@ -272,6 +272,10 @@ class Squire:
         (`docs/results/2026-09-25-triage/`). The injection and source-kind answers of this
         call stay useful either way.
 
+        **Not the way to keep documents out of a call.** On a fixed 20-document sequence,
+        dropping at its relevance cut lost 4 answers in 10; `triage_many` over the documents'
+        passages kept 9/9 at 79.5 % fewer input tokens (docs/results/2026-09-28-fixed-pages/).
+
         Stating "only official sources" inside the purpose asks the relevance question to
         carry a requirement it does not answer; the source-kind Choice in the same decision
         does, better calibrated and for free. Measured: `docs/results/2026-09-24-steerability`.
@@ -349,7 +353,9 @@ class Squire:
         `pages_first_round` cut, then the survivors judged together at `pages_in_context`.
         Confirmed on 200 HotpotQA questions with 100 pages each: both supporting pages kept in
         96.5 % at 3.1 % of the text, in five calls (docs/results/2026-09-27-hierarchy/).
-        Unanswered pages are kept. The probability returned is the last one the page got.
+        The recommended way to keep documents out of an answering call: over each document's
+        passages, 9/9 answers kept at 79.5 % fewer input tokens on a fixed sequence, one call
+        (docs/results/2026-09-28-fixed-pages/). Unanswered pages are kept. The probability returned is the last one the page got.
         """
 
         async def judge(ids: Sequence[int]) -> list[float | None]:

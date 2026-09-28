@@ -220,7 +220,9 @@ def decide_redundancy(decision: Decision, t: Thresholds) -> Redundancy:
 # with several parts no single page does, and the question correctly says no to each one
 # until the answer is gone: with the document sequence held fixed, triage cut 75 % of the
 # tokens and took correct answers from 10/10 to 6/10, dropping every answer document on the
-# two composite questions (`docs/results/2026-09-24-fixed-sequence/`).
+# two composite questions (`docs/results/2026-09-24-fixed-sequence/`). Rerun with
+# `Squire.triage_many` over passages, the others in view: 9/9 against 9/9 at -79.5 % input
+# tokens (`docs/results/2026-09-28-fixed-pages/`): the recommended way to keep pages out.
 #
 # Two shapes that can express "part of the answer", registered by hash in
 # `docs/results/2026-09-25-triage/prereg.md` before they were measured:
