@@ -1,0 +1,289 @@
+{
+ "mode": "live",
+ "smoke": {
+  "questions": 3,
+  "sentence_share": 0.0344,
+  "spent_usd": 0.0061
+ },
+ "plan": {
+  "test_questions": 101,
+  "abstention_questions": 10,
+  "pessimistic_usd": 0.2931
+ },
+ "test": {
+  "questions": 101,
+  "nothing": {
+   "recall": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "any_hit": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "all_hit": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "chars": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "precision": [
+    null,
+    null,
+    null
+   ]
+  },
+  "bm25@1": {
+   "recall": [
+    0.4583,
+    0.4115,
+    0.5115
+   ],
+   "any_hit": [
+    0.8713,
+    0.802,
+    0.9307
+   ],
+   "all_hit": [
+    0.2871,
+    0.2079,
+    0.3762
+   ],
+   "chars": [
+    13054.9,
+    12239.2,
+    13970.3
+   ],
+   "precision": [
+    0.8713,
+    0.802,
+    0.9307
+   ]
+  },
+  "bm25@3": {
+   "recall": [
+    0.8594,
+    0.8038,
+    0.9149
+   ],
+   "any_hit": [
+    0.9505,
+    0.901,
+    0.9901
+   ],
+   "all_hit": [
+    0.802,
+    0.7228,
+    0.8713
+   ],
+   "chars": [
+    40993.5,
+    39505.2,
+    42577.3
+   ],
+   "precision": [
+    0.5446,
+    0.4983,
+    0.5908
+   ]
+  },
+  "bm25@5": {
+   "recall": [
+    0.9062,
+    0.8641,
+    0.9485
+   ],
+   "any_hit": [
+    0.9604,
+    0.9208,
+    0.9901
+   ],
+   "all_hit": [
+    0.8515,
+    0.7822,
+    0.9208
+   ],
+   "chars": [
+    66942.6,
+    64899.3,
+    69007.4
+   ],
+   "precision": [
+    0.3446,
+    0.3129,
+    0.3762
+   ]
+  },
+  "cascade": {
+   "recall": [
+    0.7292,
+    0.6477,
+    0.8011
+   ],
+   "any_hit": [
+    0.8614,
+    0.7921,
+    0.9208
+   ],
+   "all_hit": [
+    0.6535,
+    0.5545,
+    0.7426
+   ],
+   "chars": [
+    1744.6,
+    1334.0,
+    2259.1
+   ],
+   "precision": [
+    0.9655,
+    0.9333,
+    0.9929
+   ]
+  },
+  "cascade_minus_bm25@3_recall": [
+   -0.1302,
+   -0.2083,
+   -0.0542
+  ],
+  "cascade_minus_bm25@5_recall": [
+   -0.1771,
+   -0.2451,
+   -0.1135
+  ],
+  "cascade_chars_over_bm25@3": [
+   0.0426,
+   0.0326,
+   0.0551
+  ],
+  "ceiling_gold_in_candidates": {
+   "in_candidates": 174,
+   "gold": 192
+  },
+  "by_type": {
+   "knowledge-update": {
+    "n": 16,
+    "bm25@3": {
+     "recall": 1.0,
+     "any_hit": 1.0,
+     "all_hit": 1.0,
+     "chars": 41237.4
+    },
+    "cascade": {
+     "recall": 0.9062,
+     "any_hit": 0.9375,
+     "all_hit": 0.875,
+     "chars": 2019.8
+    }
+   },
+   "multi-session": {
+    "n": 26,
+    "bm25@3": {
+     "recall": 0.7945,
+     "any_hit": 0.9615,
+     "all_hit": 0.6154,
+     "chars": 43410.5
+    },
+    "cascade": {
+     "recall": 0.6986,
+     "any_hit": 0.8846,
+     "all_hit": 0.4231,
+     "chars": 1432.7
+    }
+   },
+   "single-session-assistant": {
+    "n": 15,
+    "bm25@3": {
+     "recall": 1.0,
+     "any_hit": 1.0,
+     "all_hit": 1.0,
+     "chars": 32619.3
+    },
+    "cascade": {
+     "recall": 1.0,
+     "any_hit": 1.0,
+     "all_hit": 1.0,
+     "chars": 1012.1
+    }
+   },
+   "single-session-preference": {
+    "n": 9,
+    "bm25@3": {
+     "recall": 0.6667,
+     "any_hit": 0.6667,
+     "all_hit": 0.6667,
+     "chars": 42005.7
+    },
+    "cascade": {
+     "recall": 0.7778,
+     "any_hit": 0.7778,
+     "all_hit": 0.7778,
+     "chars": 6272.9
+    }
+   },
+   "single-session-user": {
+    "n": 11,
+    "bm25@3": {
+     "recall": 1.0,
+     "any_hit": 1.0,
+     "all_hit": 1.0,
+     "chars": 43000.5
+    },
+    "cascade": {
+     "recall": 0.9091,
+     "any_hit": 0.9091,
+     "all_hit": 0.9091,
+     "chars": 1095.8
+    }
+   },
+   "temporal-reasoning": {
+    "n": 24,
+    "bm25@3": {
+     "recall": 0.8269,
+     "any_hit": 0.9583,
+     "all_hit": 0.7083,
+     "chars": 42146.8
+    },
+    "cascade": {
+     "recall": 0.5385,
+     "any_hit": 0.7083,
+     "all_hit": 0.375,
+     "chars": 956.1
+    }
+   }
+  }
+ },
+ "abstention": {
+  "questions": 10,
+  "nothing": {
+   "quiet": 1.0,
+   "chars": 0.0
+  },
+  "bm25@1": {
+   "quiet": 0.0,
+   "chars": 13090.3
+  },
+  "bm25@3": {
+   "quiet": 0.0,
+   "chars": 36788.6
+  },
+  "bm25@5": {
+   "quiet": 0.0,
+   "chars": 61164.2
+  },
+  "cascade": {
+   "quiet": 0.5,
+   "chars": 1242.7
+  }
+ },
+ "complete": true,
+ "failed_calls": 0,
+ "live_calls": 539,
+ "spent_usd": 0.2211
+}

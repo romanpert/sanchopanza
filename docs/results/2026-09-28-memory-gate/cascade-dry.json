@@ -1,0 +1,285 @@
+{
+ "mode": "dry (null decider: the cascade injects nothing)",
+ "smoke": {
+  "questions": 3,
+  "sentence_share": 0.0,
+  "spent_usd": 0.0
+ },
+ "plan": {
+  "test_questions": 120,
+  "abstention_questions": 10,
+  "pessimistic_usd": 0.2683
+ },
+ "test": {
+  "questions": 120,
+  "nothing": {
+   "recall": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "any_hit": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "all_hit": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "chars": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "precision": [
+    null,
+    null,
+    null
+   ]
+  },
+  "bm25@1": {
+   "recall": [
+    0.4685,
+    0.4178,
+    0.519
+   ],
+   "any_hit": [
+    0.8667,
+    0.8,
+    0.925
+   ],
+   "all_hit": [
+    0.325,
+    0.2417,
+    0.4083
+   ],
+   "chars": [
+    12707.4,
+    11905.5,
+    13533.9
+   ],
+   "precision": [
+    0.8667,
+    0.8,
+    0.925
+   ]
+  },
+  "bm25@3": {
+   "recall": [
+    0.8514,
+    0.79,
+    0.9109
+   ],
+   "any_hit": [
+    0.95,
+    0.9083,
+    0.9833
+   ],
+   "all_hit": [
+    0.8083,
+    0.7333,
+    0.875
+   ],
+   "chars": [
+    40657.2,
+    39147.5,
+    42105.6
+   ],
+   "precision": [
+    0.525,
+    0.4806,
+    0.5694
+   ]
+  },
+  "bm25@5": {
+   "recall": [
+    0.8964,
+    0.8407,
+    0.9458
+   ],
+   "any_hit": [
+    0.9583,
+    0.9167,
+    0.9917
+   ],
+   "all_hit": [
+    0.8583,
+    0.7917,
+    0.9167
+   ],
+   "chars": [
+    66612.8,
+    64690.7,
+    68460.1
+   ],
+   "precision": [
+    0.3317,
+    0.3033,
+    0.36
+   ]
+  },
+  "cascade": {
+   "recall": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "any_hit": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "all_hit": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "chars": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "precision": [
+    null,
+    null,
+    null
+   ]
+  },
+  "cascade_minus_bm25@3_recall": [
+   -0.8514,
+   -0.9109,
+   -0.79
+  ],
+  "cascade_minus_bm25@5_recall": [
+   -0.8964,
+   -0.9458,
+   -0.8407
+  ],
+  "cascade_chars_over_bm25@3": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ceiling_gold_in_candidates": {
+   "in_candidates": 199,
+   "gold": 222
+  },
+  "by_type": {
+   "knowledge-update": {
+    "n": 17,
+    "bm25@3": {
+     "recall": 1.0,
+     "any_hit": 1.0,
+     "all_hit": 1.0,
+     "chars": 41278.0
+    },
+    "cascade": {
+     "recall": 0.0,
+     "any_hit": 0.0,
+     "all_hit": 0.0,
+     "chars": 0.0
+    }
+   },
+   "multi-session": {
+    "n": 31,
+    "bm25@3": {
+     "recall": 0.7529,
+     "any_hit": 0.9355,
+     "all_hit": 0.5806,
+     "chars": 42739.5
+    },
+    "cascade": {
+     "recall": 0.0,
+     "any_hit": 0.0,
+     "all_hit": 0.0,
+     "chars": 0.0
+    }
+   },
+   "single-session-assistant": {
+    "n": 19,
+    "bm25@3": {
+     "recall": 1.0,
+     "any_hit": 1.0,
+     "all_hit": 1.0,
+     "chars": 32522.9
+    },
+    "cascade": {
+     "recall": 0.0,
+     "any_hit": 0.0,
+     "all_hit": 0.0,
+     "chars": 0.0
+    }
+   },
+   "single-session-preference": {
+    "n": 10,
+    "bm25@3": {
+     "recall": 0.7,
+     "any_hit": 0.7,
+     "all_hit": 0.7,
+     "chars": 42366.3
+    },
+    "cascade": {
+     "recall": 0.0,
+     "any_hit": 0.0,
+     "all_hit": 0.0,
+     "chars": 0.0
+    }
+   },
+   "single-session-user": {
+    "n": 14,
+    "bm25@3": {
+     "recall": 1.0,
+     "any_hit": 1.0,
+     "all_hit": 1.0,
+     "chars": 40953.6
+    },
+    "cascade": {
+     "recall": 0.0,
+     "any_hit": 0.0,
+     "all_hit": 0.0,
+     "chars": 0.0
+    }
+   },
+   "temporal-reasoning": {
+    "n": 29,
+    "bm25@3": {
+     "recall": 0.85,
+     "any_hit": 0.9655,
+     "all_hit": 0.7586,
+     "chars": 42664.4
+    },
+    "cascade": {
+     "recall": 0.0,
+     "any_hit": 0.0,
+     "all_hit": 0.0,
+     "chars": 0.0
+    }
+   }
+  }
+ },
+ "abstention": {
+  "questions": 10,
+  "nothing": {
+   "quiet": 1.0,
+   "chars": 0.0
+  },
+  "bm25@1": {
+   "quiet": 0.0,
+   "chars": 13090.3
+  },
+  "bm25@3": {
+   "quiet": 0.0,
+   "chars": 36788.6
+  },
+  "bm25@5": {
+   "quiet": 0.0,
+   "chars": 61164.2
+  },
+  "cascade": {
+   "quiet": 1.0,
+   "chars": 0.0
+  }
+ }
+}

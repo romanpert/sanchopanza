@@ -1,0 +1,254 @@
+{
+ "mode": "exploratory, replayed, free (amendment 4)",
+ "questions": 101,
+ "with_evidence_turn": 101,
+ "cascade": {
+  "recall": [
+   0.7292,
+   0.6477,
+   0.8011
+  ],
+  "any_hit": [
+   0.8614,
+   0.7921,
+   0.9208
+  ],
+  "all_hit": [
+   0.6535,
+   0.5545,
+   0.7426
+  ],
+  "evidence": [
+   0.7921,
+   0.7129,
+   0.8614
+  ],
+  "chars": [
+   1730.2,
+   1322.9,
+   2241.5
+  ]
+ },
+ "bm25-passages@paired": {
+  "recall": [
+   0.6302,
+   0.5526,
+   0.7083
+  ],
+  "any_hit": [
+   0.8317,
+   0.7525,
+   0.901
+  ],
+  "all_hit": [
+   0.5347,
+   0.4356,
+   0.6337
+  ],
+  "evidence": [
+   0.703,
+   0.6139,
+   0.7822
+  ],
+  "chars": [
+   1730.2,
+   1322.9,
+   2241.5
+  ]
+ },
+ "bm25-passages@1500": {
+  "recall": [
+   0.6875,
+   0.623,
+   0.7571
+  ],
+  "any_hit": [
+   0.8911,
+   0.8218,
+   0.9505
+  ],
+  "all_hit": [
+   0.5743,
+   0.4752,
+   0.6733
+  ],
+  "evidence": [
+   0.7723,
+   0.6931,
+   0.8515
+  ],
+  "chars": [
+   1500.0,
+   1500.0,
+   1500.0
+  ]
+ },
+ "bm25-sentences@paired": {
+  "recall": [
+   0.8125,
+   0.73,
+   0.8883
+  ],
+  "any_hit": [
+   0.8515,
+   0.7822,
+   0.9208
+  ],
+  "all_hit": [
+   0.7723,
+   0.6931,
+   0.8515
+  ],
+  "evidence": [
+   0.7525,
+   0.6634,
+   0.8317
+  ],
+  "chars": [
+   1730.2,
+   1322.9,
+   2241.5
+  ]
+ },
+ "bm25-sentences@1500": {
+  "recall": [
+   0.901,
+   0.8585,
+   0.9421
+  ],
+  "any_hit": [
+   0.9505,
+   0.901,
+   0.9901
+  ],
+  "all_hit": [
+   0.8218,
+   0.7426,
+   0.8911
+  ],
+  "evidence": [
+   0.8515,
+   0.7822,
+   0.9208
+  ],
+  "chars": [
+   1500.0,
+   1500.0,
+   1500.0
+  ]
+ },
+ "bm25-sessions@paired": {
+  "recall": [
+   0.4219,
+   0.3692,
+   0.4804
+  ],
+  "any_hit": [
+   0.802,
+   0.7228,
+   0.8713
+  ],
+  "all_hit": [
+   0.2871,
+   0.2079,
+   0.3762
+  ],
+  "evidence": [
+   0.495,
+   0.396,
+   0.5941
+  ],
+  "chars": [
+   1730.2,
+   1322.9,
+   2241.5
+  ]
+ },
+ "bm25-sessions@1500": {
+  "recall": [
+   0.4583,
+   0.4115,
+   0.5115
+  ],
+  "any_hit": [
+   0.8713,
+   0.802,
+   0.9307
+  ],
+  "all_hit": [
+   0.2871,
+   0.2079,
+   0.3762
+  ],
+  "evidence": [
+   0.505,
+   0.4158,
+   0.604
+  ],
+  "chars": [
+   1500.0,
+   1500.0,
+   1500.0
+  ]
+ },
+ "cascade_minus_bm25-passages@paired_recall": [
+  0.099,
+  0.0476,
+  0.1517
+ ],
+ "cascade_minus_bm25-passages@paired_evidence": [
+  0.0891,
+  0.0,
+  0.1683
+ ],
+ "cascade_minus_bm25-passages@1500_recall": [
+  0.0417,
+  -0.0508,
+  0.1307
+ ],
+ "cascade_minus_bm25-passages@1500_evidence": [
+  0.0198,
+  -0.0792,
+  0.1188
+ ],
+ "cascade_minus_bm25-sentences@paired_recall": [
+  -0.0833,
+  -0.13,
+  -0.0341
+ ],
+ "cascade_minus_bm25-sentences@paired_evidence": [
+  0.0396,
+  -0.0297,
+  0.1188
+ ],
+ "cascade_minus_bm25-sentences@1500_recall": [
+  -0.1719,
+  -0.2487,
+  -0.0971
+ ],
+ "cascade_minus_bm25-sentences@1500_evidence": [
+  -0.0594,
+  -0.1485,
+  0.0198
+ ],
+ "cascade_minus_bm25-sessions@paired_recall": [
+  0.3073,
+  0.2444,
+  0.3651
+ ],
+ "cascade_minus_bm25-sessions@paired_evidence": [
+  0.297,
+  0.198,
+  0.396
+ ],
+ "cascade_minus_bm25-sessions@1500_recall": [
+  0.2708,
+  0.1921,
+  0.3438
+ ],
+ "cascade_minus_bm25-sessions@1500_evidence": [
+  0.2871,
+  0.1683,
+  0.396
+ ]
+}
