@@ -96,6 +96,12 @@ class Thresholds:
     # loses 7 points against `select_sentences` alone.
     document_paragraphs: float = 0.75
     document_window: int = 2
+    # `Squire.prune_context`: at compaction, an old tool result the decider gives at least this
+    # probability of still being needed keeps its full text; below it, the text goes to the
+    # archive and a one-line stub stays. NOT derived: 0.5 is the cut fast-jev-compaction ships
+    # with, used until a labelled set of coding transcripts exists to derive one on. A stub is
+    # reversible (the archive holds the text), which is why an unmeasured cut is tolerable here.
+    context_keep: float = 0.5
     injection: float = 0.70  # above this, a page is dropped and logged
     citation: float = 0.80  # confidence needed for an automatic citation verdict
     review: float = 0.70  # signal needed before the squire speaks about a report

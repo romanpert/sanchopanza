@@ -35,6 +35,8 @@ wins when both are set (`sanchopanza._env`):
                       twice in a row; any failure lets the stop through). Measured on
                       AgentDojo, not on coding sessions: see docs/results/2026-09-25-completion.
     T_*               any threshold by name, e.g. SANCHOPANZA_T_INJECTION=0.5
+    AUTOPILOT         "1" to cut long tool results on arrival and recall archived output and
+                      memories (`harness.autopilot`, which lists its own knobs)
 
 `sanchopanza install` writes the settings block for all of this.
 
@@ -107,9 +109,10 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
     )
 
 
-def guardian_from_env(env: dict[str, str] | None = None) -> Guardian:
+def squire_from_env(env: dict[str, str] | None = None, *, redact: bool = False) -> Any:
     from ..journal import JsonlJournal
     from ..policy import Thresholds
+    from ..redact import redact_secrets
     from ..squire import Squire
 
     env = env if env is not None else dict(os.environ)
@@ -117,10 +120,17 @@ def guardian_from_env(env: dict[str, str] | None = None) -> Guardian:
     thresholds = Thresholds.from_mapping(
         {k.lower(): v for k, v in _env.with_prefix("T_", env).items()}
     )
-    squire = Squire(
-        decider_from_env(env), thresholds=thresholds, journal=JsonlJournal(journal_path)
+    return Squire(
+        decider_from_env(env),
+        thresholds=thresholds,
+        journal=JsonlJournal(journal_path),
+        redact=redact_secrets if redact else None,
     )
-    return Guardian(squire, config_from_env(env))
+
+
+def guardian_from_env(env: dict[str, str] | None = None) -> Guardian:
+    env = env if env is not None else dict(os.environ)
+    return Guardian(squire_from_env(env), config_from_env(env))
 
 
 TOOL_RESULT_LIMIT = 1_500
@@ -196,15 +206,24 @@ async def stop(input_data: dict[str, Any], guardian: Guardian) -> dict[str, Any]
     }
 
 
-def needs_decision(input_data: Mapping[str, Any], config: HarnessConfig) -> bool:
+def needs_decision(
+    input_data: Mapping[str, Any], config: HarnessConfig, autopilot: Any = None
+) -> bool:
     """False when `handle` would certainly answer `{}` without asking anything. Pure code.
 
     It mirrors the early returns of `Guardian.before_tool` / `after_tool` and `stop`; when in
     doubt it says True, and the full path decides as before.
     """
+    if autopilot is not None and autopilot.any:
+        from .autopilot import wants
+
+        if wants(input_data, autopilot):
+            return True
     event = str(input_data.get("hook_event_name", "PreToolUse"))
     if event == "Stop":
         return config.check_done and not input_data.get("stop_hook_active")
+    if event == "UserPromptSubmit":
+        return False
     name = str(input_data.get("tool_name", ""))
     arguments = input_data.get("tool_input")
     arguments = arguments if isinstance(arguments, Mapping) else {}
@@ -215,14 +234,46 @@ def needs_decision(input_data: Mapping[str, Any], config: HarnessConfig) -> bool
     return name in (config.delegate_tools | config.search_tools | config.shell_tools)
 
 
-async def handle(input_data: dict[str, Any], guardian: Guardian) -> dict[str, Any]:
+def merge_outputs(first: Mapping[str, Any], second: Mapping[str, Any]) -> dict[str, Any]:
+    """Two hook outputs as one: contexts joined, the second's other fields win."""
+    if not first:
+        return dict(second)
+    if not second:
+        return dict(first)
+    a = dict(first.get("hookSpecificOutput") or {})
+    b = dict(second.get("hookSpecificOutput") or {})
+    contexts = (a.get("additionalContext"), b.get("additionalContext"))
+    joined = "\n\n".join(x for x in contexts if x)
+    specific = {**a, **b}
+    if joined:
+        specific["additionalContext"] = joined
+    out = {**dict(first), **dict(second), "hookSpecificOutput": specific}
+    return out
+
+
+async def handle(
+    input_data: dict[str, Any], guardian: Guardian, autopilot_squire: Any = None
+) -> dict[str, Any]:
+    from .autopilot import config_from_env as autopilot_config
+    from .autopilot import post_tool_use as autopilot_post
+    from .autopilot import user_prompt, wants
     from .claude_agent_sdk import post_tool_use, pre_tool_use
 
     event = str(input_data.get("hook_event_name", "PreToolUse"))
+    pilot = autopilot_config()
+    squire = autopilot_squire if autopilot_squire is not None else guardian.squire
     if event == "Stop":
         return await stop(input_data, guardian)
+    if event == "UserPromptSubmit":
+        return await user_prompt(input_data, squire, pilot) if pilot.recall else {}
     if event == "PostToolUse":
-        return await post_tool_use(guardian)(input_data)
+        base = {}
+        if needs_decision(input_data, guardian.config):
+            base = await post_tool_use(guardian)(input_data)
+        extra = {}
+        if pilot.any and wants(input_data, pilot):
+            extra = await autopilot_post(input_data, squire, pilot)
+        return merge_outputs(base, extra)
     return await pre_tool_use(guardian)(input_data)
 
 
@@ -233,12 +284,21 @@ def main(argv: list[str] | None = None) -> int:
     except json.JSONDecodeError:
         return 0  # malformed input: let the tool run; never block on our own bug
     try:
-        if not isinstance(input_data, dict) or not needs_decision(input_data, config_from_env()):
+        from .autopilot import config_from_env as autopilot_config
+
+        pilot = autopilot_config()
+        if not isinstance(input_data, dict) or not needs_decision(
+            input_data, config_from_env(), pilot
+        ):
             return 0
         import asyncio
 
-        output = asyncio.run(handle(input_data, guardian_from_env()))
-    except Exception:  # fail-open at the process boundary as well
+        squire = squire_from_env(redact=True) if pilot.any else None
+        output = asyncio.run(handle(input_data, guardian_from_env(), squire))
+    except Exception as error:  # fail-open at the process boundary, but never silently
+        sys.stderr.write(
+            f"sanchopanza hook: passed through unchanged ({error.__class__.__name__}: {error})\n"
+        )
         return 0
     if output:
         sys.stdout.write(json.dumps(output, ensure_ascii=False))

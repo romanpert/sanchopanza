@@ -173,3 +173,13 @@ def test_the_cli_reports_removals_and_the_real_backup(tmp_path, capsys):
     path.write_text("[]", encoding="utf-8")
     assert main(["install", "--path", str(path), "--write"]) == 2
     assert "not a JSON object" in capsys.readouterr().err
+
+
+def test_hook_commands_use_forward_slashes_on_windows():
+    """A backslash path in a hook command never runs on Windows, silently: Claude Code hands
+    the command to a POSIX shell (measured end to end, 0 events of 1)."""
+    from sanchopanza.harness.install import portable_command
+
+    raw = r"C:\venv\Scripts\python.exe C:\repo\hook.py"
+    assert portable_command(raw, windows=True) == "C:/venv/Scripts/python.exe C:/repo/hook.py"
+    assert portable_command(raw, windows=False) == raw

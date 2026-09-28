@@ -9,6 +9,26 @@ do not favour this package.
 
 ### Added
 
+- **Autopilot for Claude Code, opt-in** (`sanchopanza install --autopilot`,
+  `harness.autopilot`). Measured so far: 6/6 tasks against 2/6 for the built-in `/compact` in a
+  small end-to-end A/B (n=6, synthetic tasks, +12 % input tokens,
+  `docs/results/2026-09-28-context-e2e/`); offline, the arrival cut and the decider in recall
+  did not beat free baselines (`docs/results/2026-09-28-context/`). The agent never asks for
+  context reduction: a tool result over 6,000 characters can be cut on arrival (`PostToolUse`,
+  `updatedToolOutput`, the tool's own output shape) to the blocks the current task needs
+  (`context.arrival`, `context.blocks`), prose blocks at p >= 0.75 down to sentences with window
+  2, the full text archived in `.sanchopanza/archive/` (which ignores itself in git) and named
+  in one line; archived output and memory files are recalled by BM25 then one in-context triage
+  (`memory_gate.recall`, the Amendment 2 "hybrid" shape) on each prompt and after tool calls,
+  as appended context only; and the compaction plugin masks old results into the archive at
+  `SANCHOPANZA_COMPACT_AT_PERCENT` (`turn.complete` trigger, new free `mask` arm). No decider
+  is asked about future need at compaction: that question measured at chance
+  (`docs/results/2026-09-28-context/`); the `tournament` arm exists only to be measured. Memory
+  formation at compaction (`context.formation`, `remember` with `trust="untrusted"`) is off by
+  default. Every hook fails open; a per-session ledger caps the autopilot at
+  `SANCHOPANZA_SESSION_MAX_USD` (0.50). Offline: `benchmarks/context/simulate.py arrival|recall`
+  (`--estimate`, `--dry`; `--live` refuses until registered) and the experimental `tournament`
+  arm of `benchmarks/context/run.py`.
 - **Broader Claude Code evidence, pre-registered** (`docs/results/2026-09-28-claude-code-broad/`).
   Hook level: 1,816 labelled cases through the `sanchopanza hook` process with real Jev. The
   shell-fetch scan noted 121/124 AgentDojo injections in `curl` output with 0/149 false alarms,

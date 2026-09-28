@@ -433,6 +433,28 @@ class Squire:
         answers = iter(done)
         return [None if job is None else next(answers) for job in jobs]
 
+    async def prune_context(
+        self,
+        messages: Sequence[Mapping[str, Any]],
+        *,
+        arm: str = "sanchopanza",
+        keep_recent: int = 6,
+        small: int = 400,
+    ) -> Any:
+        """At compaction, which old tool results to stub. Returns a `context.compact.Plan`.
+
+        Deterministic rules first (`context.rules`), then one in-context decision (point
+        `context`) over the calls they leave, a tournament past `points.context.CALL_MAX`.
+        Below `Thresholds.context_keep` a result is stubbed; unanswered ones are kept. Writes
+        nothing: `context.compact.apply` does, archiving each stubbed text first. NOT measured
+        yet on coding transcripts; `arm` runs the `rules`-only or the `fastjev` replica instead.
+        """
+        from .context import compact
+
+        return await compact.plan(
+            self, list(messages), arm=arm, keep_recent=keep_recent, small=small
+        )
+
     async def triage_results(
         self, results: Sequence[Mapping[str, Any]], *, purpose: str
     ) -> list[dict[str, Any]]:

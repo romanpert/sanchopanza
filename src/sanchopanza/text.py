@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 import unicodedata
 from collections.abc import Iterable
@@ -161,3 +162,40 @@ def mention_present(mention: str, source: str, *, ratio: float = 0.5) -> bool:
         return False
     have = tokens(source_n)
     return len(wanted & have) / len(wanted) >= ratio
+
+
+def _bm25_words(text: str) -> list[str]:
+    plain = unicodedata.normalize("NFKD", (text or "").lower())
+    plain = "".join(c for c in plain if not unicodedata.combining(c))
+    return [t for t in re.findall(r"[a-z0-9_]+", plain) if t not in STOPWORDS and len(t) > 1]
+
+
+def bm25_scores(query: str, docs: list[str], k1: float = 1.5, b: float = 0.75) -> list[float]:
+    """Okapi BM25 of each document against the query. Code, no model: it proposes candidates.
+
+    The same formula as the benches' (`benchmarks/triage_sets/run.py`), with the package's
+    accent-folding tokenizer, so Spanish and English memories score alike.
+    """
+    if not docs:
+        return []
+    tokenised = [_bm25_words(d) for d in docs]
+    average = (sum(len(t) for t in tokenised) / len(tokenised)) or 1.0
+    frequency: dict[str, int] = {}
+    for words in tokenised:
+        for word in set(words):
+            frequency[word] = frequency.get(word, 0) + 1
+    wanted = set(_bm25_words(query))
+    n = len(docs)
+    scores = []
+    for words in tokenised:
+        counts: dict[str, int] = {}
+        for word in words:
+            counts[word] = counts.get(word, 0) + 1
+        score = 0.0
+        for word in wanted & counts.keys():
+            df = frequency[word]
+            idf = math.log(1 + (n - df + 0.5) / (df + 0.5))
+            tf = counts[word]
+            score += idf * tf * (k1 + 1) / (tf + k1 * (1 - b + b * len(words) / average))
+        scores.append(score)
+    return scores
