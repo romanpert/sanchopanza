@@ -119,10 +119,10 @@ def test_openai_guardrail_shape():
 
 def test_claude_code_hook_is_configured_from_the_environment(tmp_path):
     env = {
-        "SANCHO_PROVIDER": "recorded",
-        "SANCHO_FIXTURE": str(tmp_path / "none.jsonl"),
-        "SANCHO_TIERS": "light=fast,default=general-purpose,deep=slow",
-        "SANCHO_CHEAP_SEARCH": "1",
+        "SANCHOPANZA_PROVIDER": "recorded",
+        "SANCHOPANZA_FIXTURE": str(tmp_path / "none.jsonl"),
+        "SANCHOPANZA_TIERS": "light=fast,default=general-purpose,deep=slow",
+        "SANCHOPANZA_CHEAP_SEARCH": "1",
     }
     assert isinstance(decider_from_env(env), RecordedDecider)
     config = config_from_env(env)

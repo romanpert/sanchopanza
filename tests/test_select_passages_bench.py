@@ -3,14 +3,13 @@
 The confirmation (docs/results/2026-09-28-lateral-wholedocs/) wrote its rule by hand over
 `hierarchy.tournament` and `select_sentences`. This replays each of its 219 questions through
 the shipped method, on the same recording, and demands the same sentences kept. Needs the local
-QASPER test export in SANCHO_QASPER (not redistributed), or skips. No network.
+QASPER test export in SANCHOPANZA_QASPER (not redistributed), or skips. No network.
 """
 
 from __future__ import annotations
 
 import asyncio
 import importlib.util
-import os
 import pathlib
 import sys
 from dataclasses import replace
@@ -20,10 +19,12 @@ import pytest
 from sanchopanza import Squire, Thresholds
 from sanchopanza.providers.recorded import RecordedDecider
 
+from .helpers import dataset
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-QASPER = os.environ.get("SANCHO_QASPER", "")
+QASPER = dataset("QASPER")
 pytestmark = pytest.mark.skipif(
-    not QASPER or not pathlib.Path(QASPER).exists(), reason="SANCHO_QASPER not set"
+    not QASPER or not pathlib.Path(QASPER).exists(), reason="SANCHOPANZA_QASPER not set"
 )
 
 

@@ -45,10 +45,10 @@ def test_rerunning_without_scan_content_turns_it_off(tmp_path):
     _write(path, SCANNING)
     settings = plan(path, HarnessConfig())
     assert settings.changed
-    assert any("SANCHO_SCAN_CONTENT" in line for line in settings.removed)
+    assert any("SANCHOPANZA_SCAN_CONTENT" in line for line in settings.removed)
     apply(settings)
     written = json.loads(path.read_text(encoding="utf-8"))
-    assert "SANCHO_SCAN_CONTENT" not in written.get("env", {})
+    assert "SANCHOPANZA_SCAN_CONTENT" not in written.get("env", {})
     post = _ours(written["hooks"]["PostToolUse"])
     assert len(post) == 1 and "WebFetch" not in post[0]["matcher"]
 
@@ -56,10 +56,12 @@ def test_rerunning_without_scan_content_turns_it_off(tmp_path):
 def test_a_custom_content_tools_list_is_dropped_with_scanning(tmp_path):
     path = tmp_path / "settings.json"
     _write(path, HarnessConfig(scan_content=True, content_tools=frozenset({"Fetch"})))
-    assert json.loads(path.read_text(encoding="utf-8"))["env"]["SANCHO_CONTENT_TOOLS"] == "Fetch"
+    assert (
+        json.loads(path.read_text(encoding="utf-8"))["env"]["SANCHOPANZA_CONTENT_TOOLS"] == "Fetch"
+    )
     _write(path, HarnessConfig())
     env = json.loads(path.read_text(encoding="utf-8")).get("env", {})
-    assert "SANCHO_CONTENT_TOOLS" not in env
+    assert "SANCHOPANZA_CONTENT_TOOLS" not in env
 
 
 def test_the_same_install_twice_changes_nothing(tmp_path):
@@ -104,10 +106,10 @@ def test_the_original_file_survives_any_number_of_writes(tmp_path):
     assert json.loads(first.read_text(encoding="utf-8")) == original
     assert second is not None and third is not None and len({first, second, third}) == 3
     # each later backup holds what the write before it produced
-    assert "SANCHO_SCAN_CONTENT" not in json.loads(second.read_text(encoding="utf-8")).get(
+    assert "SANCHOPANZA_SCAN_CONTENT" not in json.loads(second.read_text(encoding="utf-8")).get(
         "env", {}
     )
-    assert json.loads(third.read_text(encoding="utf-8"))["env"]["SANCHO_SCAN_CONTENT"] == "1"
+    assert json.loads(third.read_text(encoding="utf-8"))["env"]["SANCHOPANZA_SCAN_CONTENT"] == "1"
 
 
 def test_a_new_file_needs_no_backup(tmp_path):
@@ -165,7 +167,7 @@ def test_the_cli_reports_removals_and_the_real_backup(tmp_path, capsys):
     assert "settings.json.bak)" in capsys.readouterr().out
     assert main(["install", "--path", str(path), "--write"]) == 0
     out = capsys.readouterr().out
-    assert "- env: SANCHO_SCAN_CONTENT" in out and "settings.json.bak." in out
+    assert "- env: SANCHOPANZA_SCAN_CONTENT" in out and "settings.json.bak." in out
     assert main(["install", "--path", str(path), "--write"]) == 0
     assert "already wired" in capsys.readouterr().out
     path.write_text("[]", encoding="utf-8")

@@ -1,6 +1,6 @@
 """The screen's confirmation harness reproduces the published run, and draws fresh questions.
 
-Needs the local HotpotQA export in SANCHO_HOTPOT (not redistributed), or skips. Free: the
+Needs the local HotpotQA export in SANCHOPANZA_HOTPOT (not redistributed), or skips. Free: the
 published arms replay from recordings, the fresh draw is only built, never asked.
 """
 
@@ -14,10 +14,12 @@ import sys
 
 import pytest
 
+from .helpers import dataset
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-HOTPOT = os.environ.get("SANCHO_HOTPOT", "")
+HOTPOT = dataset("HOTPOT")
 needs_hotpot = pytest.mark.skipif(
-    not HOTPOT or not pathlib.Path(HOTPOT).exists(), reason="SANCHO_HOTPOT not set"
+    not HOTPOT or not pathlib.Path(HOTPOT).exists(), reason="SANCHOPANZA_HOTPOT not set"
 )
 SCRIPT = ROOT / "benchmarks" / "lateral" / "screen" / "confirm.py"
 

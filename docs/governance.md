@@ -62,7 +62,7 @@ PyPI, **Publishing**, **Add a new pending publisher**:
 ```
 PyPI Project Name:  sanchopanza
 Owner:              romanpert
-Repository name:    sancho
+Repository name:    sanchopanza
 Workflow name:      release.yml
 Environment name:   pypi
 ```

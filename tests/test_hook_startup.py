@@ -25,7 +25,7 @@ def _loaded_after(code: str, stdin: str = "") -> set[str]:
         f"{code}\nimport sys, json\n"
         f"sys.stderr.write('MODULES=' + json.dumps(sorted(sys.modules)))\n"
     )
-    env = {**os.environ, "SANCHO_PROVIDER": "null", "SANCHO_JOURNAL": os.devnull}
+    env = {**os.environ, "SANCHOPANZA_PROVIDER": "null", "SANCHOPANZA_JOURNAL": os.devnull}
     env.pop("TYPESAFE_API_KEY", None)
     out = subprocess.run(
         [sys.executable, "-c", probe], input=stdin, text=True, capture_output=True, env=env
@@ -55,7 +55,7 @@ def test_an_event_that_needs_no_decision_never_loads_the_squire():
         "tool_response": {"stdout": "a\nb", "stderr": "", "interrupted": False},
     }
     code = (
-        "import os; os.environ['SANCHO_SCAN_CONTENT'] = '1'\n"
+        "import os; os.environ['SANCHOPANZA_SCAN_CONTENT'] = '1'\n"
         "from sanchopanza.cli import main\nmain(['hook'])"
     )
     assert _heavy(_loaded_after(code, json.dumps(event))) == set()
@@ -67,7 +67,7 @@ def test_an_event_that_needs_a_decision_still_gets_one():
         "tool_name": "Bash",
         "tool_input": {"command": "rm -rf /"},
     }
-    env = {**os.environ, "SANCHO_PROVIDER": "null", "SANCHO_JOURNAL": os.devnull}
+    env = {**os.environ, "SANCHOPANZA_PROVIDER": "null", "SANCHOPANZA_JOURNAL": os.devnull}
     env.pop("TYPESAFE_API_KEY", None)
     out = subprocess.run(
         [sys.executable, "-m", "sanchopanza", "hook"],
@@ -147,7 +147,7 @@ def test_the_fast_path_only_skips_events_that_would_have_answered_nothing():
     from .helpers import squire, yes
 
     decider = FixedDecider({p: yes(0.99) for p in ("injection", "guard", "review", "done")})
-    for env in ({}, {"SANCHO_SCAN_CONTENT": "1", "SANCHO_CHECK_DONE": "1"}):
+    for env in ({}, {"SANCHOPANZA_SCAN_CONTENT": "1", "SANCHOPANZA_CHECK_DONE": "1"}):
         config = config_from_env(env)
         for event in _events():
             if needs_decision(event, config):

@@ -1,6 +1,6 @@
 # Architecture
 
-Sancho is a decision layer between an agent harness and a decision model. It owns nothing
+sanchopanza is a decision layer between an agent harness and a decision model. It owns nothing
 of the agent loop. It observes tool calls and tool results through the extension points the
 harness already has, asks closed questions about them, and turns calibrated probabilities
 into three kinds of effect: rewrite an argument, deny with a reason, or append a note.
@@ -35,7 +35,7 @@ sequenceDiagram
     G-->>H: additionalContext: "it states facts without sources..."
 ```
 
-The classic ReAct loop is *think, act, observe* with one model in all three phases. Sancho
+The classic ReAct loop is *think, act, observe* with one model in all three phases. sanchopanza
 splits *observe* in two: the large model still reads what comes back, but a model of another
 family, without the ability to generate and therefore without the ability to self-confirm,
 emits typed signals first, about what came back (exhausted, unsourced, off-target) and about
@@ -122,7 +122,7 @@ logged-in account; `docs/providers.md` lists what it guarantees and what it does
 
 **Fail-open.** `Squire.decide` never raises. A missing key, an exhausted budget, a network
 error, a provider bug: every one becomes a `Decision` with `error` set and no answers, and
-every policy maps that to the default the harness had before Sancho existed. The squire can
+every policy maps that to the default the harness had before sanchopanza existed. The squire can
 make an agent cheaper or safer; it cannot make it stop.
 
 Fail-open covers a missing *decision*. A missing *answer* inside a decision is a different

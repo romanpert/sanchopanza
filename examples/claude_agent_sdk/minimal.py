@@ -1,4 +1,4 @@
-"""A research agent on the Claude Agent SDK with Sancho attached through hooks.
+"""A research agent on the Claude Agent SDK with sanchopanza attached through hooks.
 
     TYPESAFE_API_KEY=... ANTHROPIC_API_KEY=... python examples/claude_agent_sdk/minimal.py
 

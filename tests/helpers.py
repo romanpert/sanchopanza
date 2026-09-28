@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from sanchopanza import Answer, Decision, Thresholds, truth
+from sanchopanza import Answer, Decision, Thresholds, _env, truth
 from sanchopanza.journal import MemoryJournal
 from sanchopanza.squire import Squire
 
@@ -34,3 +34,21 @@ def squire(decider: Any, **changes: Any) -> tuple[Squire, MemoryJournal]:
     return Squire(
         decider, thresholds=thresholds(**changes), journal=journal, brief="brief"
     ), journal
+
+
+DATASET_FILES = {
+    "HOTPOT": "hotpot.jsonl",
+    "QASPER": "qasper-test.jsonl",
+    "CODEX": "atbench-codex-test.json",
+}
+
+
+def dataset(name: str) -> str:
+    """A local dataset that is not redistributed: `SANCHOPANZA_<name>` (or the old
+    `SANCHO_<name>`), else its file in `~/.cache/sanchopanza` (or the old `~/.cache/sancho`)
+    when it is there, else "" and the test skips."""
+    value = _env.get(name)
+    if value:
+        return value
+    candidate = _env.cache_dir() / DATASET_FILES[name]
+    return str(candidate) if candidate.exists() else ""

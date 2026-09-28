@@ -1,8 +1,8 @@
 """The cascade numbers, replayed from `fixtures/cascade-jev.jsonl` and
 `docs/results/2026-09-25-cascade/llm-answers.jsonl`. No network.
 
-The data is not redistributed. Point SANCHO_RJUDGE at a clone of github.com/Lordog/R-Judge,
-SANCHO_REGISTER at the Indagis register export and SANCHO_ATBENCH_CODEX at ATBench-Codex's
+The data is not redistributed. Point SANCHOPANZA_RJUDGE at a clone of github.com/Lordog/R-Judge,
+SANCHOPANZA_REGISTER at the Indagis register export and SANCHOPANZA_ATBENCH_CODEX at ATBench-Codex's
 test.json, or these tests skip. What they pin is `docs/results/2026-09-25-cascade/`.
 """
 
@@ -11,11 +11,12 @@ from __future__ import annotations
 import argparse
 import asyncio
 import importlib.util
-import os
 import pathlib
 import sys
 
 import pytest
+
+from sanchopanza import _env
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "benchmarks" / "cascade"))
@@ -29,13 +30,13 @@ run = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(run)
 
 PATHS = {
-    "rjudge": os.environ.get("SANCHO_RJUDGE", ""),
-    "register": os.environ.get("SANCHO_REGISTER", ""),
-    "codex": os.environ.get("SANCHO_ATBENCH_CODEX", ""),
+    "rjudge": _env.get("RJUDGE"),
+    "register": _env.get("REGISTER"),
+    "codex": _env.get("ATBENCH_CODEX"),
 }
 pytestmark = pytest.mark.skipif(
     not all(p and pathlib.Path(p).exists() for p in PATHS.values()),
-    reason="SANCHO_RJUDGE, SANCHO_REGISTER and SANCHO_ATBENCH_CODEX not all set",
+    reason="SANCHOPANZA_RJUDGE, SANCHOPANZA_REGISTER and SANCHOPANZA_ATBENCH_CODEX not all set",
 )
 
 

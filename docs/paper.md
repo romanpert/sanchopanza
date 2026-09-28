@@ -1,4 +1,4 @@
-# Sancho: A Calibrated, Non-Generative Evaluator for LLM Agent Harnesses
+# sanchopanza: A Calibrated, Non-Generative Evaluator for LLM Agent Harnesses
 
 **Working paper · version 0.3.0 · 2026-09-27**
 Status: results on small benchmarks, mostly single-annotator, one of them with a second blind
@@ -1870,7 +1870,7 @@ Files: `fixtures/chunks.jsonl`, `fixtures/chunks-confirm.jsonl`, `fixtures/hiera
 `fixtures/cli/`; `docs/results/2026-09-27-chunks/`, `2026-09-27-hierarchy/`,
 `2026-09-27-answers/`. Pinned by `tests/test_memory_write_cut.py`,
 `tests/test_chunks_bench.py` and `tests/test_hierarchy_bench.py` (the last two need
-`SANCHO_HOTPOT`).
+`SANCHOPANZA_HOTPOT`).
 
 **Whole documents, the cascade on ATBench-Codex and the fifth batch (Sections 5.16, 5.17).**
 QASPER and ATBench-Codex are not redistributed: point the scripts at local copies.
@@ -1886,7 +1886,7 @@ python benchmarks/fifth_batch.py                                    # the fifth 
 Files: `fixtures/longdocs.jsonl`, `fixtures/longdocs-sentences.jsonl`,
 `fixtures/cascade-jev.jsonl`, `fixtures/cli/cascade-opus.jsonl`,
 `fixtures/fifth-batch/recording.jsonl`. Pinned by `tests/test_longdocs_bench.py`,
-`tests/test_longdocs_sentences.py` (both need `SANCHO_QASPER`), `tests/test_cascade_confirm.py`
+`tests/test_longdocs_sentences.py` (both need `SANCHOPANZA_QASPER`), `tests/test_cascade_confirm.py`
 and `tests/test_fifth_batch.py`.
 
 **Avoidance on a fixed fetch sequence.**

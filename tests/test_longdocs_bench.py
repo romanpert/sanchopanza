@@ -1,23 +1,24 @@
 """The long-document numbers, replayed from `fixtures/longdocs.jsonl`. No network.
 
-Needs the local QASPER test export in SANCHO_QASPER (not redistributed), or skips. Pins
+Needs the local QASPER test export in SANCHOPANZA_QASPER (not redistributed), or skips. Pins
 `docs/results/2026-09-27-longdocs/README.md`.
 """
 
 from __future__ import annotations
 
 import json
-import os
 import pathlib
 import subprocess
 import sys
 
 import pytest
 
+from .helpers import dataset
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-QASPER = os.environ.get("SANCHO_QASPER", "")
+QASPER = dataset("QASPER")
 pytestmark = pytest.mark.skipif(
-    not QASPER or not pathlib.Path(QASPER).exists(), reason="SANCHO_QASPER not set"
+    not QASPER or not pathlib.Path(QASPER).exists(), reason="SANCHOPANZA_QASPER not set"
 )
 
 

@@ -71,8 +71,8 @@ It needs a BM25 in `sanchopanza.text` (the benches' `bm25_scores` is 15 lines, n
 python benchmarks/lateral/screen/run.py --hotpot HOTPOT.jsonl --qasper QASPER-TEST.jsonl   # free
 ```
 
-`tests/test_lateral_screen.py` pins every number above (needs `SANCHO_HOTPOT`; the boundary also
-`SANCHO_QASPER`).
+`tests/test_lateral_screen.py` pins every number above (needs `SANCHOPANZA_HOTPOT`; the boundary also
+`SANCHOPANZA_QASPER`).
 
 ## Limits
 

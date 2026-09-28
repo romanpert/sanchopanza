@@ -40,7 +40,7 @@ decisions in `fixtures/e2e-window.jsonl` and one row per task in
 The page and sentence selection numbers are not in a `benches/` file either. Their cases are
 HotpotQA distractor questions (validation split, CC BY-SA 4.0), whose `supporting_facts` mark
 the paragraphs and sentences an answer needs, so the labels come by construction. The dataset
-is not redistributed: point `SANCHO_HOTPOT` at a local copy. Recordings:
+is not redistributed: point `SANCHOPANZA_HOTPOT` at a local copy. Recordings:
 `fixtures/triage-sets.jsonl`, `fixtures/chunks.jsonl` and `fixtures/chunks-confirm.jsonl`
 (ten pages per question, `docs/results/2026-09-25-triage/` and `2026-09-27-chunks/`), and
 `fixtures/hierarchy.jsonl` (100 pages per question, `2026-09-27-hierarchy/`). The answering
@@ -48,10 +48,10 @@ runs through the Claude Code CLI keep their sessions in `fixtures/cli/`
 (`2026-09-27-answers/`); free-length replies through the CLI are not comparable with answers
 through the API, and with the reply forced into one short field the path check agrees (67.0 %
 against 67.7 %). Whole documents come from QASPER (test split, CC BY 4.0, not redistributed:
-point `SANCHO_QASPER` at a local JSONL), recorded in `fixtures/longdocs.jsonl`
+point `SANCHOPANZA_QASPER` at a local JSONL), recorded in `fixtures/longdocs.jsonl`
 (`2026-09-27-longdocs/`, replayed with the fixed `triage_many`), with the sentence stage in
 `fixtures/longdocs-sentences.jsonl`. The permission cascade's confirmation reads ATBench-Codex
-(Apache-2.0, not redistributed: point `SANCHO_CODEX` at a local `test.json`); Jev's answers are
+(Apache-2.0, not redistributed: point `SANCHOPANZA_CODEX` at a local `test.json`); Jev's answers are
 in `fixtures/cascade-jev.jsonl` and Opus 5's CLI sessions in `fixtures/cli/cascade-opus.jsonl`
 (`2026-09-27-cascade-frontier/`). The fifth batch of `edge` and `facts` is
 `benches/graph-d.jsonl` and `graph-e.jsonl`, recorded in `fixtures/fifth-batch/`.

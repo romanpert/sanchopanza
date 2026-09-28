@@ -85,4 +85,4 @@ python benchmarks/longdocs/sentences.py --qasper QASPER-TEST.jsonl  # free, sent
 ```
 
 The QASPER test parquet (`allenai/qasper`) is converted to JSONL row by row; it is not
-redistributed here. `tests/test_longdocs_bench.py` and `tests/test_longdocs_sentences.py` pin both runs (need `SANCHO_QASPER`); the sentence calls are in `fixtures/longdocs-sentences.jsonl`.
+redistributed here. `tests/test_longdocs_bench.py` and `tests/test_longdocs_sentences.py` pin both runs (need `SANCHOPANZA_QASPER`); the sentence calls are in `fixtures/longdocs-sentences.jsonl`.

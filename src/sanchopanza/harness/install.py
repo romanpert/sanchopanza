@@ -15,9 +15,11 @@ flags of the last run, and running the same command twice changes nothing:
   `install --scan-content` used to leave two PostToolUse entries and review every `Task`
   result twice (review of 2026-09-25). Every other hook, and every other key in the file, is
   preserved; an entry that also holds someone else's hook keeps that hook.
-- `SANCHO_SCAN_CONTENT` and `SANCHO_CONTENT_TOOLS` follow `--scan-content`: a run without it
-  removes them. `SANCHO_PROVIDER` is only ever set, never removed, since it is also read by
-  other entry points.
+- `SANCHOPANZA_SCAN_CONTENT` and `SANCHOPANZA_CONTENT_TOOLS` follow `--scan-content`: a run
+  without it removes them. `SANCHOPANZA_PROVIDER` is only ever set, never removed, since it is
+  also read by other entry points.
+- A variable written under its new `SANCHOPANZA_*` name replaces the same one under the old
+  `SANCHO_*` name, so a file wired before the rename is migrated rather than doubled.
 - The first write keeps the untouched original in `<file>.bak` and never overwrites it;
   later writes keep what they replaced in `<file>.bak.<UTC timestamp>`.
 - The write is atomic: a temporary file in the same directory, then `os.replace`. An
@@ -46,11 +48,17 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from .. import _env
 from .generic import HarnessConfig
 
 COMMAND = "sanchopanza hook"
 # Owned by `--scan-content`: removed by a run without it.
-SCAN_ENV = ("SANCHO_SCAN_CONTENT", "SANCHO_CONTENT_TOOLS", "SANCHO_CHECK_DONE")
+_SCAN = ("SCAN_CONTENT", "CONTENT_TOOLS", "CHECK_DONE")
+SCAN_ENV = tuple(key for name in _SCAN for key in _env.names(name))
+# New spelling -> old spelling, for every variable this module writes.
+_LEGACY = {
+    new: old for new, old in (_env.names(n) for n in (*_SCAN, "PROVIDER", "SCAN_SHELL_FETCHES"))
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,15 +96,15 @@ def matchers(config: HarnessConfig) -> dict[str, str]:
 def environment(config: HarnessConfig, *, provider: str = "") -> dict[str, str]:
     env: dict[str, str] = {}
     if provider:
-        env["SANCHO_PROVIDER"] = provider
+        env["SANCHOPANZA_PROVIDER"] = provider
     if config.check_done:
-        env["SANCHO_CHECK_DONE"] = "1"
+        env["SANCHOPANZA_CHECK_DONE"] = "1"
     if config.scan_content:
-        env["SANCHO_SCAN_CONTENT"] = "1"
+        env["SANCHOPANZA_SCAN_CONTENT"] = "1"
         if config.content_tools != HarnessConfig().content_tools:
-            env["SANCHO_CONTENT_TOOLS"] = ",".join(sorted(config.content_tools))
+            env["SANCHOPANZA_CONTENT_TOOLS"] = ",".join(sorted(config.content_tools))
         if not config.scan_shell_fetches:
-            env["SANCHO_SCAN_SHELL_FETCHES"] = "0"
+            env["SANCHOPANZA_SCAN_SHELL_FETCHES"] = "0"
     return env
 
 
@@ -178,6 +186,7 @@ def _merge_env(
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     wanted = environment(config, provider=provider)
     stale = [k for k in SCAN_ENV if k in env and k not in wanted]
+    stale += [_LEGACY[k] for k in wanted if _LEGACY.get(k) in env and _LEGACY[k] not in stale]
     changed = {k: v for k, v in wanted.items() if env.get(k) != v}
     out = {**{k: v for k, v in env.items() if k not in stale}, **changed}
     return (
@@ -295,7 +304,7 @@ def _backup_path(path: Path) -> Path:
 def apply(settings: Settings) -> Path | None:
     """Write atomically, keeping a copy of whatever was there. Returns the backup, if any.
 
-    The first backup (`<file>.bak`) is the file as it was before sancho ever wrote to it and
+    The first backup (`<file>.bak`) is the file as it was before sanchopanza ever wrote to it and
     is never overwritten; each later write keeps what it replaced in a timestamped copy.
     """
     path = settings.path

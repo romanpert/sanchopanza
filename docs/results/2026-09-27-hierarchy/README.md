@@ -65,4 +65,4 @@ hierarchy here is free, the order the pages came in; no summary is written by an
 python benchmarks/hierarchy/run.py --hotpot HOTPOT.jsonl      # free, from the recordings
 ```
 
-`tests/test_hierarchy_bench.py` pins these numbers (needs `SANCHO_HOTPOT`).
+`tests/test_hierarchy_bench.py` pins these numbers (needs `SANCHOPANZA_HOTPOT`).

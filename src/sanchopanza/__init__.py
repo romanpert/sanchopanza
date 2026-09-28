@@ -1,4 +1,4 @@
-"""Sancho: a calibrated, non-generative decision layer for LLM agent harnesses.
+"""sanchopanza: a calibrated, non-generative decision layer for LLM agent harnesses.
 
 The knight thinks; the squire reads. A System One decision model (TypeSafe's Jev, a local
 classifier, an LLM forced into a schema) takes the procedural decisions of an agent loop

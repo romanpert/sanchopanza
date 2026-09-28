@@ -45,9 +45,9 @@ null = "sanchopanza.providers.null:NullDecider"
 llm = "sanchopanza.providers.llm:LLMDecider"
 
 [project.urls]
-Homepage = "https://github.com/romanpert/sancho"
-Documentation = "https://github.com/romanpert/sancho/tree/main/docs"
-Paper = "https://github.com/romanpert/sancho/blob/main/docs/paper.md"
+Homepage = "https://github.com/romanpert/sanchopanza"
+Documentation = "https://github.com/romanpert/sanchopanza/tree/main/docs"
+Paper = "https://github.com/romanpert/sanchopanza/blob/main/docs/paper.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sanchopanza"]

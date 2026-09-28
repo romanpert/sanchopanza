@@ -8,30 +8,33 @@ Claude Code runs hooks as processes: JSON on stdin, JSON on stdout. In `settings
       "PostToolUse": [{"matcher": "Agent",
                        "hooks": [{"type": "command", "command": "sanchopanza hook"}]}]}}
 
-Configuration is by environment, because a hook process has nothing else:
+Configuration is by environment, because a hook process has nothing else. Every variable
+below is `SANCHOPANZA_<NAME>`; the old `SANCHO_<NAME>` spelling is still read, and the new one
+wins when both are set (`sanchopanza._env`):
 
-    SANCHO_PROVIDER   jev | recorded | null (default: jev if TYPESAFE_API_KEY is set, else null)
-    TYPESAFE_API_KEY  for the Jev provider
-    SANCHO_FIXTURE    path of a recording for the recorded provider
-    SANCHO_JOURNAL    path of the JSONL journal (default: ~/.sancho/journal.jsonl)
-    SANCHO_TIERS      "light=haiku-agent,default=general-purpose,deep=opus-agent" (optional)
-    SANCHO_CHEAP_SEARCH  "1" when a cheap search tool is available to the agent
-    SANCHO_SCAN_CONTENT  "1" to scan arriving tool results for instructions aimed at the
+    PROVIDER          jev | recorded | null (default: jev if TYPESAFE_API_KEY is set, else null)
+    TYPESAFE_API_KEY  for the Jev provider (this one keeps its own name)
+    FIXTURE           path of a recording for the recorded provider
+    JOURNAL           path of the JSONL journal (default: ~/.sanchopanza/journal.jsonl, or
+                      ~/.sancho/journal.jsonl when only that directory exists)
+    TIERS             "light=haiku-agent,default=general-purpose,deep=opus-agent" (optional)
+    CHEAP_SEARCH      "1" when a cheap search tool is available to the agent
+    SCAN_CONTENT      "1" to scan arriving tool results for instructions aimed at the
                       model. Off by default: it is a DETECTION control, not a barrier - by
                       PostToolUse the text is already in the transcript and no hook can
                       replace a tool result. It warns you, marks the passage as data in
                       front of the model, and journals the event. See `points.injection`.
-    SANCHO_CONTENT_TOOLS  comma-separated tool names to scan (default: WebFetch,WebSearch)
-    SANCHO_SCAN_SHELL_FETCHES  "0" to stop scanning the output of shell commands that fetch
+    CONTENT_TOOLS     comma-separated tool names to scan (default: WebFetch,WebSearch)
+    SCAN_SHELL_FETCHES  "0" to stop scanning the output of shell commands that fetch
                       from the network (curl, wget, Invoke-WebRequest, ...). On by default
-                      whenever SANCHO_SCAN_CONTENT is; other shell output is scanned only
-                      if Bash is named in SANCHO_CONTENT_TOOLS.
-    SANCHO_PURPOSE    what the job is about, so the scan can judge "aimed at changing what?"
-    SANCHO_CHECK_DONE "1" to check, at Stop, that the transcript shows the last request done,
+                      whenever SCAN_CONTENT is; other shell output is scanned only
+                      if Bash is named in CONTENT_TOOLS.
+    PURPOSE           what the job is about, so the scan can judge "aimed at changing what?"
+    CHECK_DONE        "1" to check, at Stop, that the transcript shows the last request done,
                       and send Claude back once if it confidently does not (opt-in; never
                       twice in a row; any failure lets the stop through). Measured on
                       AgentDojo, not on coding sessions: see docs/results/2026-09-25-completion.
-    SANCHO_T_*        any threshold by name, e.g. SANCHO_T_INJECTION=0.5
+    T_*               any threshold by name, e.g. SANCHOPANZA_T_INJECTION=0.5
 
 `sanchopanza install` writes the settings block for all of this.
 
@@ -54,6 +57,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from .. import _env
 from ..points import completion
 from ..points.routing import Tier
 from .generic import Guardian, HarnessConfig, text_of
@@ -66,11 +70,13 @@ def decider_from_env(env: dict[str, str] | None = None) -> Decider:
     env = env if env is not None else dict(os.environ)
     from ..providers import create
 
-    provider = env.get("SANCHO_PROVIDER")
+    provider = _env.get("PROVIDER", env=env)
     if not provider:
         provider = "jev" if env.get("TYPESAFE_API_KEY") else "null"
     if provider == "recorded":
-        return create("recorded", path=env.get("SANCHO_FIXTURE", "fixtures/public-benches.jsonl"))
+        return create(
+            "recorded", path=_env.get("FIXTURE", "fixtures/public-benches.jsonl", env=env)
+        )
     if provider == "jev":
         return create("jev", api_key=env.get("TYPESAFE_API_KEY"))
     return create("null")
@@ -79,16 +85,16 @@ def decider_from_env(env: dict[str, str] | None = None) -> Decider:
 def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
     env = env if env is not None else dict(os.environ)
     tiers: dict[Tier, str] = {}
-    for part in filter(None, env.get("SANCHO_TIERS", "").split(",")):
+    for part in filter(None, _env.get("TIERS", "", env=env).split(",")):
         tier, _, name = part.partition("=")
         if tier.strip() in ("light", "default", "deep") and name.strip():
             tiers[tier.strip()] = name.strip()  # type: ignore[index]
-    cheap = env.get("SANCHO_CHEAP_SEARCH", "") in ("1", "true", "yes")
-    scan = env.get("SANCHO_SCAN_CONTENT", "") in ("1", "true", "yes")
-    check_done = env.get("SANCHO_CHECK_DONE", "") in ("1", "true", "yes")
-    shell_fetches = env.get("SANCHO_SCAN_SHELL_FETCHES", "1") not in ("0", "false", "no")
-    named = {t.strip() for t in env.get("SANCHO_CONTENT_TOOLS", "").split(",") if t.strip()}
-    purpose = env.get("SANCHO_PURPOSE", "").strip()
+    cheap = _env.get("CHEAP_SEARCH", "", env=env) in ("1", "true", "yes")
+    scan = _env.get("SCAN_CONTENT", "", env=env) in ("1", "true", "yes")
+    check_done = _env.get("CHECK_DONE", "", env=env) in ("1", "true", "yes")
+    shell_fetches = _env.get("SCAN_SHELL_FETCHES", "1", env=env) not in ("0", "false", "no")
+    named = {t.strip() for t in _env.get("CONTENT_TOOLS", "", env=env).split(",") if t.strip()}
+    purpose = _env.get("PURPOSE", "", env=env).strip()
     defaults = HarnessConfig()
     return HarnessConfig(
         tiers=tiers,
@@ -107,9 +113,9 @@ def guardian_from_env(env: dict[str, str] | None = None) -> Guardian:
     from ..squire import Squire
 
     env = env if env is not None else dict(os.environ)
-    journal_path = Path(env.get("SANCHO_JOURNAL") or Path.home() / ".sancho" / "journal.jsonl")
+    journal_path = Path(_env.get("JOURNAL", env=env) or _env.home_dir() / "journal.jsonl")
     thresholds = Thresholds.from_mapping(
-        {k[len("SANCHO_T_") :].lower(): v for k, v in env.items() if k.startswith("SANCHO_T_")}
+        {k.lower(): v for k, v in _env.with_prefix("T_", env).items()}
     )
     squire = Squire(
         decider_from_env(env), thresholds=thresholds, journal=JsonlJournal(journal_path)

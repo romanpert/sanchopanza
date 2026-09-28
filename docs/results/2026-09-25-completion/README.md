@@ -52,7 +52,7 @@ Haiku's own trajectories are the hard ones for both judges: its failures look fi
 
 ## The Stop hook
 
-`sanchopanza install --check-done` wires it into Claude Code; `SANCHO_CHECK_DONE=1` turns it
+`sanchopanza install --check-done` wires it into Claude Code; `SANCHOPANZA_CHECK_DONE=1` turns it
 on. It blocks a stop, once, when p(done) < 0.5. That cut is derived on the derivation half to a
 90 % precision target for a block, since a false block costs a turn: on the held-out half it
 blocked 147 stops and 138 of them were unfinished work (93.9 %, Wilson lower bound 88.8 %),

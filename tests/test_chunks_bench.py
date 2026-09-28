@@ -1,23 +1,24 @@
 """The chunk numbers, replayed from `fixtures/chunks*.jsonl`. No network.
 
-Needs the local HotpotQA export in SANCHO_HOTPOT (not redistributed), or skips. Pins
+Needs the local HotpotQA export in SANCHOPANZA_HOTPOT (not redistributed), or skips. Pins
 `docs/results/2026-09-27-chunks/README.md`.
 """
 
 from __future__ import annotations
 
 import json
-import os
 import pathlib
 import subprocess
 import sys
 
 import pytest
 
+from .helpers import dataset
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-HOTPOT = os.environ.get("SANCHO_HOTPOT", "")
+HOTPOT = dataset("HOTPOT")
 pytestmark = pytest.mark.skipif(
-    not HOTPOT or not pathlib.Path(HOTPOT).exists(), reason="SANCHO_HOTPOT not set"
+    not HOTPOT or not pathlib.Path(HOTPOT).exists(), reason="SANCHOPANZA_HOTPOT not set"
 )
 
 

@@ -3,7 +3,7 @@
 Pins `docs/results/2026-09-28-lateral-wholedocs/README.md`: the derivation on the 261 recorded
 questions of 2026-09-27, the confirmation on 219 questions nothing was derived on, and the
 answering run from the CLI cache. The rule itself is tested without any data. The replays need
-the local QASPER test export in SANCHO_QASPER (and HotpotQA in SANCHO_HOTPOT for the
+the local QASPER test export in SANCHOPANZA_QASPER (and HotpotQA in SANCHOPANZA_HOTPOT for the
 descriptive transfer), or skip.
 """
 
@@ -12,20 +12,21 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
-import os
 import pathlib
 import subprocess
 import sys
 
 import pytest
 
+from .helpers import dataset
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "docs" / "results" / "2026-09-28-lateral-wholedocs"
 BENCH = ROOT / "benchmarks" / "lateral"
-QASPER = os.environ.get("SANCHO_QASPER", "")
-HOTPOT = os.environ.get("SANCHO_HOTPOT", "")
+QASPER = dataset("QASPER")
+HOTPOT = dataset("HOTPOT")
 needs_qasper = pytest.mark.skipif(
-    not QASPER or not pathlib.Path(QASPER).exists(), reason="SANCHO_QASPER not set"
+    not QASPER or not pathlib.Path(QASPER).exists(), reason="SANCHOPANZA_QASPER not set"
 )
 
 

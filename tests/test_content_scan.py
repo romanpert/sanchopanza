@@ -112,9 +112,11 @@ def test_the_hook_output_separates_the_two_channels():
 
 def test_the_environment_switches_it_on():
     assert config_from_env({}).scan_content is False
-    config = config_from_env({"SANCHO_SCAN_CONTENT": "1", "SANCHO_CONTENT_TOOLS": "WebFetch,Read"})
+    config = config_from_env(
+        {"SANCHOPANZA_SCAN_CONTENT": "1", "SANCHOPANZA_CONTENT_TOOLS": "WebFetch,Read"}
+    )
     assert config.scan_content and config.content_tools == frozenset({"WebFetch", "Read"})
-    assert config_from_env({"SANCHO_PURPOSE": "p"}).content_purpose() == "p"
+    assert config_from_env({"SANCHOPANZA_PURPOSE": "p"}).content_purpose() == "p"
 
 
 def test_the_keyword_layer_flags_without_calling_the_model():
@@ -177,7 +179,7 @@ def test_the_matcher_follows_the_config_so_the_two_cannot_disagree():
     assert "WebFetch" in matchers(SCANNING)["PostToolUse"]
     assert "Bash" in matchers(HarnessConfig())["PreToolUse"]
     env = block(SCANNING, provider="jev")["env"]
-    assert env["SANCHO_SCAN_CONTENT"] == "1" and env["SANCHO_PROVIDER"] == "jev"
+    assert env["SANCHOPANZA_SCAN_CONTENT"] == "1" and env["SANCHOPANZA_PROVIDER"] == "jev"
 
 
 def test_merging_keeps_what_was_there_and_does_not_duplicate():
@@ -202,7 +204,7 @@ def test_writing_keeps_a_backup_and_leaves_invalid_json_alone(tmp_path):
 
     apply(settings)
     written = json.loads(path.read_text(encoding="utf-8"))
-    assert written["model"] == "opus" and written["env"]["SANCHO_SCAN_CONTENT"] == "1"
+    assert written["model"] == "opus" and written["env"]["SANCHOPANZA_SCAN_CONTENT"] == "1"
     assert json.loads((tmp_path / "settings.json.bak").read_text(encoding="utf-8")) == {
         "model": "opus"
     }

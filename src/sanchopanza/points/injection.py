@@ -186,7 +186,7 @@ def decide(
     not lowered here although the asymmetry argues for it - a missed injection costs more
     than a spurious warning - because moving a threshold on the shape of an argument rather
     than on a sample is how this repository produced thresholds of 0.13 and 0.23 that failed
-    out of sample. Lower it with `SANCHO_T_INJECTION` if you have measured on your traffic.
+    out of sample. Lower it with `SANCHOPANZA_T_INJECTION` if you have measured on your traffic.
     """
     p = 0.0 if decision.failed else probability(decision.answer("injection"))
     if code_reason:

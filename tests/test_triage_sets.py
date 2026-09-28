@@ -1,6 +1,6 @@
 """The HotpotQA triage numbers, replayed from `fixtures/triage-sets.jsonl`. No network.
 
-HotpotQA is not redistributed: set SANCHO_HOTPOT to a local JSONL export of the validation
+HotpotQA is not redistributed: set SANCHOPANZA_HOTPOT to a local JSONL export of the validation
 parquet (see `benchmarks/triage_sets/run.py`) or these tests skip. What they pin is
 `docs/results/2026-09-25-triage/README.md`.
 """
@@ -9,11 +9,12 @@ from __future__ import annotations
 
 import asyncio
 import importlib.util
-import os
 import pathlib
 import sys
 
 import pytest
+
+from .helpers import dataset
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "benchmarks" / "triage_sets"))
@@ -26,9 +27,9 @@ _spec = importlib.util.spec_from_file_location(
 run = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(run)
 
-HOTPOT = os.environ.get("SANCHO_HOTPOT", "")
+HOTPOT = dataset("HOTPOT")
 pytestmark = pytest.mark.skipif(
-    not HOTPOT or not pathlib.Path(HOTPOT).exists(), reason="SANCHO_HOTPOT not set"
+    not HOTPOT or not pathlib.Path(HOTPOT).exists(), reason="SANCHOPANZA_HOTPOT not set"
 )
 
 

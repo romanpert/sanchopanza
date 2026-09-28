@@ -65,7 +65,7 @@ def parse_options(raw: Any) -> dict[str, str]:
     return {}
 
 
-def build_server(squire: Squire, *, name: str = "sancho") -> Any:
+def build_server(squire: Squire, *, name: str = "sanchopanza") -> Any:
     try:
         from mcp.server.fastmcp import FastMCP
     except ImportError as error:  # pragma: no cover

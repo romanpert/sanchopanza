@@ -1,7 +1,7 @@
 """Remembering a group the tournament already judged: same pages kept, fewer calls. No network.
 
 Pins `docs/results/2026-09-28-lateral-memo/README.md`. The candidate is tested without data; the
-replays need SANCHO_QASPER (and SANCHO_HOTPOT for the 100-page sets), or skip.
+replays need SANCHOPANZA_QASPER (and SANCHOPANZA_HOTPOT for the 100-page sets), or skip.
 """
 
 from __future__ import annotations
@@ -9,7 +9,6 @@ from __future__ import annotations
 import asyncio
 import importlib.util
 import json
-import os
 import pathlib
 import subprocess
 import sys
@@ -18,10 +17,12 @@ import pytest
 
 from sanchopanza.points import hierarchy
 
+from .helpers import dataset
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "benchmarks" / "lateral" / "memo" / "run.py"
-QASPER = os.environ.get("SANCHO_QASPER", "")
-HOTPOT = os.environ.get("SANCHO_HOTPOT", "")
+QASPER = dataset("QASPER")
+HOTPOT = dataset("HOTPOT")
 
 _spec = importlib.util.spec_from_file_location("lateral_memo_test", SCRIPT)
 memo = importlib.util.module_from_spec(_spec)
@@ -67,7 +68,9 @@ def test_a_repeated_group_gets_its_first_answers():
     assert other == [0.2, 0.8]
 
 
-@pytest.mark.skipif(not QASPER or not pathlib.Path(QASPER).exists(), reason="SANCHO_QASPER not set")
+@pytest.mark.skipif(
+    not QASPER or not pathlib.Path(QASPER).exists(), reason="SANCHOPANZA_QASPER not set"
+)
 def test_every_recorded_tournament_keeps_the_same_pages_with_fewer_calls():
     argv = [sys.executable, str(SCRIPT), "--qasper", QASPER]
     if HOTPOT and pathlib.Path(HOTPOT).exists():

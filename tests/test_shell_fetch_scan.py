@@ -183,6 +183,6 @@ def test_install_hooks_bash_after_the_fact_when_scanning():
 
 
 def test_the_environment_can_turn_the_fetch_default_off():
-    assert config_from_env({"SANCHO_SCAN_CONTENT": "1"}).scan_shell_fetches is True
-    off = config_from_env({"SANCHO_SCAN_CONTENT": "1", "SANCHO_SCAN_SHELL_FETCHES": "0"})
+    assert config_from_env({"SANCHOPANZA_SCAN_CONTENT": "1"}).scan_shell_fetches is True
+    off = config_from_env({"SANCHOPANZA_SCAN_CONTENT": "1", "SANCHOPANZA_SCAN_SHELL_FETCHES": "0"})
     assert off.scan_shell_fetches is False

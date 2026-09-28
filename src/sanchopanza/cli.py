@@ -1,4 +1,4 @@
-"""`sancho` command line.
+"""`sanchopanza` command line.
 
 sanchopanza bench benches/*.jsonl --provider recorded --fixture fixtures/public-benches.jsonl
 sanchopanza bench benches/*.jsonl --provider jev --record fixtures/new.jsonl --out results/today
@@ -201,7 +201,9 @@ def main(argv: list[str] | None = None) -> int:
         help="with --scan-content, do not scan the output of shell commands that fetch from "
         "the network (curl, wget, ...), which is scanned by default",
     )
-    install.add_argument("--provider", default=None, help="set SANCHO_PROVIDER in the env block")
+    install.add_argument(
+        "--provider", default=None, help="set SANCHOPANZA_PROVIDER in the env block"
+    )
     install.add_argument("--command-line", default="sanchopanza hook", help="the hook command")
     install.add_argument("--write", action="store_true", help="apply instead of printing")
     install.set_defaults(func=_install)

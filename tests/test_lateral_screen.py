@@ -1,24 +1,25 @@
 """A BM25 screen and one in-context call against the five-call tournament, replayed. No network.
 
 Pins `docs/results/2026-09-28-lateral-screen/README.md`. Needs the local HotpotQA export in
-SANCHO_HOTPOT (and QASPER in SANCHO_QASPER for the boundary), or skips.
+SANCHOPANZA_HOTPOT (and QASPER in SANCHOPANZA_QASPER for the boundary), or skips.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
-import os
 import pathlib
 import subprocess
 import sys
 
 import pytest
 
+from .helpers import dataset
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "docs" / "results" / "2026-09-28-lateral-screen"
-HOTPOT = os.environ.get("SANCHO_HOTPOT", "")
-QASPER = os.environ.get("SANCHO_QASPER", "")
+HOTPOT = dataset("HOTPOT")
+QASPER = dataset("QASPER")
 
 
 def test_the_pre_registration_is_the_hashed_one():
@@ -35,7 +36,9 @@ def test_the_recording_is_one_call_per_held_out_question_within_its_cap():
     assert sum(e["cost_usd"] for e in entries) <= 0.12
 
 
-@pytest.mark.skipif(not HOTPOT or not pathlib.Path(HOTPOT).exists(), reason="SANCHO_HOTPOT not set")
+@pytest.mark.skipif(
+    not HOTPOT or not pathlib.Path(HOTPOT).exists(), reason="SANCHOPANZA_HOTPOT not set"
+)
 def test_the_screen_replays_as_published():
     argv = [sys.executable, str(ROOT / "benchmarks/lateral/screen/run.py"), "--hotpot", HOTPOT]
     if QASPER and pathlib.Path(QASPER).exists():

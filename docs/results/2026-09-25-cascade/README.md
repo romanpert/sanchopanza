@@ -86,5 +86,5 @@ one (4.2 points against 15.6).
 ```bash
 python benchmarks/cascade/run.py --analyze --rjudge R-JUDGE-CLONE --register REGISTER.json
 python benchmarks/cascade/run.py --submit sonnet ... --env-file PATH/TO/.env   # the primary arm, ~2.7 USD
-SANCHO_RJUDGE=... SANCHO_REGISTER=... SANCHO_ATBENCH_CODEX=... python -m pytest tests/test_cascade_bench.py
+SANCHOPANZA_RJUDGE=... SANCHOPANZA_REGISTER=... SANCHOPANZA_ATBENCH_CODEX=... python -m pytest tests/test_cascade_bench.py
 ```

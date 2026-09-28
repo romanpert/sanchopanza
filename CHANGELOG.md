@@ -60,7 +60,7 @@ do not favour this package.
   ceiling checked before each spawn, a disk cache (`SessionCache`) that survives torn lines,
   and short prompts passed in argv, because under concurrency the CLI waits only 3 s for stdin.
   Numbers from this path are not interchangeable with API numbers without a check.
-- **`Squire.check_done` and an opt-in Claude Code Stop hook** (`SANCHO_CHECK_DONE=1`,
+- **`Squire.check_done` and an opt-in Claude Code Stop hook** (`SANCHOPANZA_CHECK_DONE=1`,
   `sanchopanza install --check-done` wires it): before the agent may stop, one calibrated
   question over the last request and what followed it. On 655 AgentDojo trajectories labelled
   by the benchmark's own environment check, the agent's word is right 52 % of the time and the
@@ -120,7 +120,7 @@ do not favour this package.
 - **Fetched-content scanning**: `Squire.scan_content` reads the whole text in overlapping
   windows (`max_windows` bounds the cost), with a free keyword layer in front of the question;
   either layer can flag and neither can clear the other. Off unless enabled with
-  `SANCHO_SCAN_CONTENT`, `SANCHO_CONTENT_TOOLS` and `SANCHO_PURPOSE`. Flagged content is
+  `SANCHOPANZA_SCAN_CONTENT`, `SANCHOPANZA_CONTENT_TOOLS` and `SANCHOPANZA_PURPOSE`. Flagged content is
   marked as untrusted in front of the model, never removed.
 - **`sanchopanza install`**: builds the hook configuration from the same `HarnessConfig` the
   Guardian uses at runtime; prints by default and writes only under `--write`.
@@ -180,7 +180,7 @@ do not favour this package.
   Node code naming an HTTP client) is scanned by default, decided in code by
   `harness.fetch.fetches_from_network`; other shell output only if the shell is named.
   `install` hooks Bash at PostToolUse for this; `--no-shell-fetches` or
-  `SANCHO_SCAN_SHELL_FETCHES=0` turns it off. Tested on the recorded Bash result shape with a
+  `SANCHOPANZA_SCAN_SHELL_FETCHES=0` turns it off. Tested on the recorded Bash result shape with a
   fixed decider; **not measured in a live Claude Code session**.
 - **The tournament asked the same group twice** when a round pruned only from later
   groups and the survivors regrouped into an earlier group. Each tournament now reuses the
@@ -251,7 +251,7 @@ do not favour this package.
   (`benchmarks/agentdojo/reprice_shared_prefix.py`, `tests/test_cache_reprice.py`).
 - Page redundancy uses its own `adds_nothing` knob at **0.59**, derived to a 90 % precision
   target (100 % held out), instead of the shared 0.80: more redundant pages are dropped, and
-  `redundant` / `SANCHO_T_REDUNDANT` no longer affect it.
+  `redundant` / `SANCHOPANZA_T_REDUNDANT` no longer affect it.
 - `Guardian.after_tool` returns a `Note` (model context and operator text), not a string; the
   Claude Agent SDK PostToolUse output also sets `systemMessage`.
 - `evaluate_plan` never returns tier `light`: plan lines do not ask `person_risk`, and a

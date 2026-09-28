@@ -2,23 +2,24 @@
 
 `docs/results/2026-09-27-cascade-frontier/README.md` reports it. The registrations must be the
 hashed ones, and the published reports must say what the README says. A replay from the CLI
-cache needs the local ATBench-Codex `test.json` in SANCHO_CODEX (not redistributed), or skips.
+cache needs the local ATBench-Codex `test.json` in SANCHOPANZA_CODEX (not redistributed), or skips.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
-import os
 import pathlib
 import subprocess
 import sys
 
 import pytest
 
+from .helpers import dataset
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs" / "results" / "2026-09-27-cascade-frontier"
-CODEX = os.environ.get("SANCHO_CODEX", "")
+CODEX = dataset("CODEX")
 
 
 @pytest.mark.parametrize("name", ["prereg-confirm", "prereg-confirm-cli", "prereg-confirm-rest"])
@@ -57,7 +58,9 @@ def test_the_published_reports():
         assert block["C1"] and block["C2"] and block["C3"]
 
 
-@pytest.mark.skipif(not CODEX or not pathlib.Path(CODEX).exists(), reason="SANCHO_CODEX not set")
+@pytest.mark.skipif(
+    not CODEX or not pathlib.Path(CODEX).exists(), reason="SANCHOPANZA_CODEX not set"
+)
 def test_both_runs_replay_from_the_cache_without_spending():
     script = str(ROOT / "benchmarks/cascade/confirm_cli.py")
     for extra in (["--rest"], []):

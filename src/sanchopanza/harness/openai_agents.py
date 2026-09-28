@@ -8,7 +8,7 @@ maps one-to-one onto the dict returned here. Wrap it like this:
     check = tool_guardrail(guardian)
 
     @input_guardrail
-    async def sancho_guard(ctx, agent, input):
+    async def sanchopanza_guard(ctx, agent, input):
         result = await check("shell", {"command": str(input)})
         return GuardrailFunctionOutput(result["output_info"], result["tripwire_triggered"])
 

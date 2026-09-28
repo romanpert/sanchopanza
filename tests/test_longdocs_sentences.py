@@ -1,6 +1,6 @@
 """Sentences inside the kept paragraphs on QASPER, replayed. No network.
 
-Needs the local QASPER test export in SANCHO_QASPER (not redistributed), or skips. Pins
+Needs the local QASPER test export in SANCHOPANZA_QASPER (not redistributed), or skips. Pins
 `docs/results/2026-09-27-longdocs/README.md`, section "Sentences inside the kept paragraphs".
 """
 
@@ -8,16 +8,17 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import pathlib
 import subprocess
 import sys
 
 import pytest
 
+from .helpers import dataset
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "docs" / "results" / "2026-09-27-longdocs"
-QASPER = os.environ.get("SANCHO_QASPER", "")
+QASPER = dataset("QASPER")
 
 
 def test_the_pre_registration_is_the_hashed_one():
@@ -26,7 +27,9 @@ def test_the_pre_registration_is_the_hashed_one():
     assert hashlib.sha256(raw).hexdigest() == registered
 
 
-@pytest.mark.skipif(not QASPER or not pathlib.Path(QASPER).exists(), reason="SANCHO_QASPER not set")
+@pytest.mark.skipif(
+    not QASPER or not pathlib.Path(QASPER).exists(), reason="SANCHOPANZA_QASPER not set"
+)
 def test_the_sentence_stage_replays_as_published():
     out = subprocess.run(
         [sys.executable, str(ROOT / "benchmarks/longdocs/sentences.py"), "--qasper", QASPER],

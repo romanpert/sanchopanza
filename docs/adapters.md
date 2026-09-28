@@ -1,4 +1,4 @@
-# Attaching Sancho to a harness
+# Attaching sanchopanza to a harness
 
 Every adapter translates one thing: a tool call into a `Verdict`, and a tool result into an
 optional note. The translation lives in `sanchopanza.harness.generic.Guardian`; the files in
@@ -16,7 +16,7 @@ note = await guardian.after_tool(ToolCall("Agent", {"prompt": "..."}), tool_resu
 
 `HarnessConfig` names what the harness calls things: which tools delegate (`Agent`, `Task`),
 which key carries the subagent tier (`subagent_type`), which tools search (`WebSearch`),
-which run a shell (`Bash`, `shell`, `run_command`), and the map from Sancho's three tiers to
+which run a shell (`Bash`, `shell`, `run_command`), and the map from sanchopanza's three tiers to
 the harness's subagent or model names.
 
 ## Claude Agent SDK
@@ -57,7 +57,7 @@ Status: **run end to end** in Claude Code 2.1, installed with `sanchopanza insta
 nothing on any internal error: it can never block a tool by failing.
 
 Because each event is a new process, the squire is new each time: no cross-call query
-memory, no per-job budget. If that matters, run Sancho as an MCP server instead and let the
+memory, no per-job budget. If that matters, run sanchopanza as an MCP server instead and let the
 agent call the tools, or use the SDK.
 
 ## MCP (any client)

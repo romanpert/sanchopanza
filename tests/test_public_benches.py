@@ -8,16 +8,16 @@ test is skipped rather than failed.
 from __future__ import annotations
 
 import asyncio
-import os
 from pathlib import Path
 
 import pytest
 
+from sanchopanza import _env
 from sanchopanza.eval.bench import load_cases, run_bench, summarize
 from sanchopanza.providers import RecordedDecider
 
 ROOT = Path(__file__).resolve().parents[1]
-BENCHES = Path(os.environ.get("SANCHO_BENCHES_DIR", ROOT / "benches"))
+BENCHES = Path(_env.get("BENCHES_DIR") or ROOT / "benches")
 FIXTURE = ROOT / "fixtures" / "public-benches.jsonl"
 FILES = ["core.jsonl", "safety.jsonl", "graph.jsonl"]
 

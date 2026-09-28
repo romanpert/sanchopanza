@@ -133,7 +133,7 @@ python benchmarks/lateral/wholedocs/answers.py --qasper QASPER-TEST.jsonl     # 
 ```
 
 `tests/test_lateral_wholedocs.py` pins the derivation, the confirmation and the answering run
-(needs `SANCHO_QASPER`; `SANCHO_HOTPOT` for the transfer check). `analysis.json` is the live run
+(needs `SANCHOPANZA_QASPER`; `SANCHOPANZA_HOTPOT` for the transfer check). `analysis.json` is the live run
 of record (855 tournament calls); `answers-analysis.json` the answering run.
 
 ## Applied (2026-09-28)

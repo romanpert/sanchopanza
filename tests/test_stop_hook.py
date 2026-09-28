@@ -132,8 +132,8 @@ def test_install_check_done_writes_the_stop_hook_and_its_env(tmp_path, capsys):
     assert cli.main(["install", "--check-done", "--path", str(settings), "--write"]) == 0
     written = json.loads(settings.read_text(encoding="utf-8"))
     assert written["hooks"]["Stop"][0]["hooks"][0]["command"] == "sanchopanza hook"
-    assert written["env"]["SANCHO_CHECK_DONE"] == "1"
+    assert written["env"]["SANCHOPANZA_CHECK_DONE"] == "1"
     # and running it again without the flag removes both
     assert cli.main(["install", "--path", str(settings), "--write"]) == 0
     again = json.loads(settings.read_text(encoding="utf-8"))
-    assert not again["hooks"].get("Stop") and "SANCHO_CHECK_DONE" not in again.get("env", {})
+    assert not again["hooks"].get("Stop") and "SANCHOPANZA_CHECK_DONE" not in again.get("env", {})

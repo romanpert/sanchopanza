@@ -278,7 +278,7 @@ class ClaudeCLI:
         self._executable = resolved
         self._spawn = spawn or spawn_process
         self._gate = asyncio.Semaphore(concurrency)
-        self._cwd = tempfile.mkdtemp(prefix="sancho-cli-")
+        self._cwd = tempfile.mkdtemp(prefix="sanchopanza-cli-")
 
     async def run(
         self,

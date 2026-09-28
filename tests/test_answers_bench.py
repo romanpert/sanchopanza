@@ -1,6 +1,6 @@
 """The answers numbers, replayed from the CLI session caches in `fixtures/cli/`. No network.
 
-Needs the local HotpotQA export in SANCHO_HOTPOT (not redistributed), or skips. Pins
+Needs the local HotpotQA export in SANCHOPANZA_HOTPOT (not redistributed), or skips. Pins
 `docs/results/2026-09-27-answers/README.md`.
 """
 
@@ -14,10 +14,12 @@ import sys
 
 import pytest
 
+from .helpers import dataset
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-HOTPOT = os.environ.get("SANCHO_HOTPOT", "")
+HOTPOT = dataset("HOTPOT")
 pytestmark = pytest.mark.skipif(
-    not HOTPOT or not pathlib.Path(HOTPOT).exists(), reason="SANCHO_HOTPOT not set"
+    not HOTPOT or not pathlib.Path(HOTPOT).exists(), reason="SANCHOPANZA_HOTPOT not set"
 )
 
 
