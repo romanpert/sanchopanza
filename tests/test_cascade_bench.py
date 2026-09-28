@@ -2,8 +2,9 @@
 `docs/results/2026-09-25-cascade/llm-answers.jsonl`. No network.
 
 The data is not redistributed. Point SANCHOPANZA_RJUDGE at a clone of github.com/Lordog/R-Judge,
-SANCHOPANZA_REGISTER at the Indagis register export and SANCHOPANZA_ATBENCH_CODEX at ATBench-Codex's
-test.json, or these tests skip. What they pin is `docs/results/2026-09-25-cascade/`.
+SANCHOPANZA_REGISTER at the private register's export (not released) and
+SANCHOPANZA_ATBENCH_CODEX at ATBench-Codex's test.json, or these tests skip. What they pin
+is `docs/results/2026-09-25-cascade/`.
 """
 
 from __future__ import annotations

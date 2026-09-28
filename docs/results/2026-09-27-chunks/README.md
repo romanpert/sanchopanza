@@ -7,6 +7,9 @@ Two pre-registered runs on HotpotQA (distractor, validation, CC BY-SA 4.0), whos
   points, P16 failed, P17 held.
 - `prereg-confirm.md`: 300 new questions, every cut fixed from the first 600. **Confirmed.**
 
+The hashed pre-registration names the private production agent this package began in; it is
+left as written, and the agent is not released.
+
 ## The confirmed result
 
 | arm | what it keeps | supporting pieces kept | text kept | Jev calls per question |
@@ -43,7 +46,7 @@ tested it on 300 nobody had seen.
   that `context_questions` shows of each page is judged by its excerpt; long documents need
   chunking first, and sentences past the 40th of a page are kept unjudged (3 pages of 6,000
   here).
-- **English Wikipedia questions.** Indagis's purposes are often Spanish.
+- **English Wikipedia questions.** A production research agent's purposes are often Spanish.
 - **Jev's state limit** (32k tokens) bounds a set: 30 pages of 900 characters fit.
 
 ## Cost and reproducing

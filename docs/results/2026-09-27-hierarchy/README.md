@@ -50,7 +50,7 @@ hierarchy here is free, the order the pages came in; no summary is written by an
   groups do not hurt the judgement; it does not show that hard distractors are separated in a
   crowd of hard distractors. The 8 retrieved distractors of each question are still there.
 - **English Wikipedia paragraphs, about 530 characters.** Search results and long documents are
-  longer and often Spanish in Indagis.
+  longer and often Spanish in a production research agent.
 - **No answering model** on these kept sets. On ten pages the question is open: with free
   replies an answering model scored 4 points lower from the in-context cut than from all pages,
   with a scoring that rewards long replies (`../2026-09-27-answers/`).

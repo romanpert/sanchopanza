@@ -74,7 +74,7 @@ budget, with the budget favouring BM25.
 - The answering model was Haiku 4.5, on Wikipedia text it partly knows.
 - HotpotQA paragraphs are short (about 530 characters each), clean Wikipedia text. A fetched
   web page is longer and noisier; `excerpt` sends a 1,500-character window of it.
-- The questions are English; Indagis's purposes are often Spanish over Spanish pages.
+- The questions are English; a production research agent's purposes are often Spanish over Spanish pages.
 - The confirmed cut, 0.28, is derived to a 95 % joint-recall target on 300 questions. A
   harness with a different recall target derives its own.
 
@@ -83,5 +83,6 @@ budget, with the budget favouring BM25.
 - `sanchopanza`: `triage.contribution_questions` and `Squire.triage_part` (cut
   `Thresholds.contributes = 0.28`); `triage_page`'s docstring now says it must not be used on
   a multi-part purpose at its shipped cut. `set_questions` stays, documented as failed.
-- Indagis: page and search-result triage ask the contribution question in its own call and
-  keep on it (`decisor/politica.py`, `umbral_aporte`), see its `DEUDA.md`.
+- A production research agent (private, not released) now asks the contribution question in
+  its own call for page and search-result triage. The hashed pre-registrations here name it;
+  they are left as written.

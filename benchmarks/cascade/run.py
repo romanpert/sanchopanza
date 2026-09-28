@@ -12,8 +12,8 @@ The design, the split, the threshold rule and the verdict are fixed in
 hash has changed since it was recorded in `prereg.sha256`.
 
 Data is read, not redistributed: R-Judge from the git objects of a clone pinned at the commit
-in the pre-registration, the Indagis register from a local export. What this directory keeps
-is keys, answers, token counts and the analysis.
+in the pre-registration, a private labelled register (not released) from a local export.
+What this directory keeps is keys, answers, token counts and the analysis.
 """
 
 from __future__ import annotations

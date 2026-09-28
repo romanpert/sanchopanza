@@ -6,6 +6,9 @@ read the paper. Papers average 49 paragraphs (up to 290) and 22,000 characters.
 `Squire.triage_many` ran exactly as shipped, with the cuts fixed on HotpotQA (0.18, then 0.40);
 nothing was derived on these papers.
 
+The hashed pre-registration names the private production agent this package began in; it is
+left as written, and the agent is not released.
+
 ## Result: not confirmed
 
 | arm | all evidence kept | any evidence kept | text kept | paragraphs kept |

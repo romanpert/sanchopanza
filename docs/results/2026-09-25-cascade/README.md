@@ -1,6 +1,6 @@
 # A calibrated first stage in front of an LLM judge
 
-Pre-registered in `prereg.md` (R-Judge and the Indagis register) and `prereg-codex.md`
+Pre-registered in `prereg.md` (R-Judge and a private labelled register) and `prereg-codex.md`
 (ATBench-Codex). The question: can a calibrated non-generative model be the first stage of a
 permission or classification gate, the role a single-token Sonnet 4.6 pass plays in Claude
 Code's auto mode, answering alone when confident and handing the rest to an LLM?
@@ -16,8 +16,9 @@ secondary arm).
 
 - **R-Judge** (EMNLP Findings 2024, github.com/Lordog/R-Judge at `83ce301`): 571 agent
   interaction records, human labels, 301 unsafe. The paper's best model, GPT-4o, 74.4 %.
-- **Indagis defamation register**: 298 closed-vocabulary classifications, labels from a
-  register reviewed before these questions existed.
+- **A private labelled register** (defamation litigation, not released): 298 closed-vocabulary
+  classifications, labels from a register reviewed before these questions existed. The
+  pre-registration, fixed by hash, still calls it by the name of the private product it came from.
 - **ATBench-Codex** (arXiv 2604.14858, April 2026, Apache-2.0): 500 trajectories of a
   Codex-style coding agent with MCP tools, 250 unsafe. Published on the full set with the
   authors' own prompts: a guard model fine-tuned for it (AgentDoG-Qwen3-4B) 82.2 %,
