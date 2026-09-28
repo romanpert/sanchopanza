@@ -55,7 +55,8 @@ hook already there and a backup of the file as it was (`settings.json.bak`); wit
 `TYPESAFE_API_KEY`; without one, only a short list of destructive commands written in
 code is still refused, and everything else goes through as it did before. By default it guards
 shell commands, delegations and searches; add `--scan-content` to flag instructions planted
-in what the agent reads and `--check-done` to check "done" before the agent stops. Not on
+in what the agent reads, `--check-done` to check "done" before the agent stops, and
+`--autopilot` for the [context autopilot](#context-autopilot-for-claude-code). Not on
 PyPI yet: install from the repository as above (`sancho` on PyPI is an unrelated package).
 
 ---
@@ -139,6 +140,7 @@ indexes every run, with the main evidence and the negatives apart from the histo
 |---|---|
 | **A tool window where the platform already has tool search** | Sonnet 5, 40 AgentDojo tasks, 74 tools: success shows no detectable difference (loading everything 70/80 over two runs, the window 100/120 over three, the platform's search 31/40). Cost, estimated from recorded usage with the `tools` + `system` prefix shared between tasks: the window **0.77-0.88x** of loading everything, the search 1.48x; the window's time is 0.91x ([e2e](docs/results/2026-09-25-e2e/), [cost basis](docs/results/2026-09-25-cache/)). On a real MCP catalog of 398 tools the platform's search is the cheaper, an estimated **0.34x against the window's 0.54x** of loading everything with the prefix shared, at the same success (8/9 each, 7/9 for loading everything): the window opened the 121-tool Google Workspace server in 11 of 17 tasks ([wide](docs/results/2026-09-25-wide/)). Inside Claude Code, a sanchopanza hook changed nothing measurable over its own deferred tool search |
 | **Saving tokens inside a free agent loop** | In an agent loop that fetched one or two documents per task, 64 paired runs showed no measurable change in cost and 11 to 16 % more wall time ([A/B](benchmarks/ab)): there was little to drop, and inside a warm loop a dropped token is priced at the cache-read rate. The saving above is one answering call over a sequence built to be mostly useless; in a loop it is unmeasured |
+| **Asking what the rest of a session will need** | At compaction, a decider asked which tool results the future will use separated needed from unneeded at AUC 0.53-0.61 on 40 public trajectories; a replica of an existing Jev compaction plugin kept 9 % of what was later used, the same as keeping the last three results ([context](docs/results/2026-09-28-context/)). Masking, which asks nothing, is what the autopilot uses |
 | **A lexical screen (BM25) before one in-context call** | Matched the tournament once (96.0 % against 96.5 %) and did not replicate on 200 fresh HotpotQA questions, pre-registered: 96.5 % against 97.5 %, lower bound -4 points against a registered -3; six of its seven misses were pages BM25 dropped before any call. Retired ([confirmation](docs/results/2026-09-28-lateral-screen-confirm/)) |
 
 The rule that falls out of it: a cheap decision pays reliably when it **replaces** a call,
@@ -154,6 +156,55 @@ and 40 three-task sessions, in-sample) and safe (with the injection scan no payl
 it, also in-sample), and it keeps the prompt cache. Its cost case is weak where the platform offers tool
 search. Use it where the platform has no tool search, or where the catalog is small; the open
 problem is the unit, since a group the size of a whole MCP server is loaded whole.
+
+---
+
+## Context autopilot for Claude Code
+
+```bash
+sanchopanza install --autopilot --write
+```
+
+Opt-in, and the agent never asks for it. When the context reaches
+`SANCHOPANZA_COMPACT_AT_PERCENT` (60), a Claude Code plugin masks old tool results into
+`.sanchopanza/archive/` instead of summarising: every assistant message and the results of
+the last turns stay verbatim, older results become one line naming their archive file. That
+main mechanism needs no decider and makes no model call. Around it, two hooks use the
+decider on content being added, never on what is already in the conversation: a tool result
+over 6,000 characters can be cut on arrival to the blocks the current task needs, and
+archived output and memory files are recalled (BM25, then one in-context triage) on each
+prompt and after tool calls. Every hook fails open, and a per-session ledger caps the
+decider's spend at `SANCHOPANZA_SESSION_MAX_USD` (0.50). Function hooks are early access in
+Claude Code; the install sets `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1`.
+
+**Measured end to end, pre-registered.** In 12 synthetic coding tasks with a forced
+compaction between two phases (Claude Code 2.1.282, Haiku 4.5 as the agent, run through our
+own evaluation harness), the autopilot finished **12 of 12** and the built-in `/compact`
+**6 of 12** (Fisher's exact test, two-sided p = 0.014). A fact seen only in a failing
+command's output survived 12 times against 8, and after compaction the agent re-read 0.25
+files per task against 6. The catch, all of it: we wrote the tasks, and their one-shot facts
+arrive at the end of the first phase, where masking keeps recent turns verbatim, so the
+mechanism is masking and not the decider; a fact made early and needed late, which would
+have to come back through the archive, was not tested. One agent model, one Claude Code
+version, and for half the tasks the native arm was not paired with the autopilot's session.
+The arrival cut never fired. **It did not save tokens**: 13 % more input tokens and 13.5 %
+more cost, mostly recall's injections, so the registered token hypothesis failed. Jev cost
+0.011 USD in all, 0.3 % of the autopilot arm's cost. These figures are not directly
+comparable with figures obtained through the API
+([context end to end](docs/results/2026-09-28-context-e2e/)).
+
+**What did not work, offline and pre-registered.** Asking a decider which tool results the
+rest of a session will need is at chance: AUC 0.53-0.61 for our question and for the
+replica's, dev and test, on 40 public OpenHands trajectories. A replica of an existing Jev
+compaction plugin freed 81 % and kept 9 % of what was later used, the same as keeping only
+the last three results. So no decider is asked about future
+need at compaction. The arrival cut saved 3.7 % of long results and kept no more of what was used
+than a head-and-tail cut of the same size (95.2 % against 97.6 %); recall with the decider found what BM25 top 3 found
+(70.4 % against 68.5 %) with slightly less text ([context](docs/results/2026-09-28-context/)).
+For Claude Code's memory files, a decider gate on LongMemEval injected far less text at
+0.93-0.97 precision but missed its registered recall against BM25 top 3 (0.73 against 0.85),
+and at equal text it was not distinguishable from BM25 over sentences
+([memory gate](docs/results/2026-09-28-memory-gate/)).
 
 ---
 
@@ -526,6 +577,8 @@ benchmarks/mcp_wide/   the tool window against a real 398-tool MCP catalog
 benchmarks/chunks/     pages and sentences in context on HotpotQA, and the answering runs
 benchmarks/hierarchy/  the tournament over 100 pages per question
 benchmarks/cascade/    the permission cascade and its post-hoc frontier
+benchmarks/context/    context pruning on public coding trajectories, arrival and recall
+benchmarks/memory_gate/ the recall gate for memory files on LongMemEval
 skills/sanchopanza/    a skill for coding agents that wire this in
 docs/paper.md          the working paper
 docs/results/          one directory per run, each with the report behind its figures

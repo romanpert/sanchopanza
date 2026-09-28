@@ -24,6 +24,7 @@ The runs behind the README's headline numbers.
 | [2026-09-28-lateral-wholedocs](2026-09-28-lateral-wholedocs/) | One long document: every answer sentence in 87.2 % at 21.0 % of the text (`select_passages`) |
 | [2026-09-27-cascade-frontier](2026-09-27-cascade-frontier/) | The Jev-then-Opus permission cascade, confirmed on unseen ATBench-Codex data |
 | [2026-09-28-cascade-sonnet](2026-09-28-cascade-sonnet/) | The same cascade against Sonnet 5: partial, over the cost bar on R-Judge |
+| [2026-09-28-context-e2e](2026-09-28-context-e2e/) | The context autopilot inside Claude Code: 12 of 12 synthetic coding tasks against 6 of 12 for `/compact` (p = 0.014), by masking, not by the decider; 13 % more input tokens, so its token hypothesis failed |
 
 ## The negatives the README reports with the same weight
 
@@ -37,6 +38,8 @@ The runs behind the README's headline numbers.
 | [2026-09-27-longdocs](2026-09-27-longdocs/) | The tournament on whole papers missed the registered 25 % of the text |
 | [2026-09-25-cascade](2026-09-25-cascade/) | The registered cascade rule on R-Judge reached Opus at 57 % of its cost, over the 50 % bar |
 | [2026-09-28-lateral-screen-confirm](2026-09-28-lateral-screen-confirm/) | The BM25 screen did not replicate on fresh questions and was retired |
+| [2026-09-28-context](2026-09-28-context/) | Asking a decider what the rest of a coding session will need is at chance (AUC 0.53-0.61); the arrival cut saved 3.7 % and did not beat head+tail; recall with the decider matched BM25 top 3 |
+| [2026-09-28-memory-gate](2026-09-28-memory-gate/) | A decider gate over memory files missed its recall criteria against BM25 top 3 on LongMemEval; at equal text, not distinguishable from BM25 over sentences |
 
 ## Supporting runs and history
 

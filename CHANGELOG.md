@@ -10,9 +10,10 @@ do not favour this package.
 ### Added
 
 - **Autopilot for Claude Code, opt-in** (`sanchopanza install --autopilot`,
-  `harness.autopilot`). Measured so far: 6/6 tasks against 2/6 for the built-in `/compact` in a
-  small end-to-end A/B (n=6, synthetic tasks, +12 % input tokens,
-  `docs/results/2026-09-28-context-e2e/`); offline, the arrival cut and the decider in recall
+  `harness.autopilot`). Measured end to end, pre-registered: 12/12 synthetic coding tasks
+  against 6/12 for the built-in `/compact` (n = 12, Fisher two-sided p = 0.014), by masking
+  rather than by the decider, at +13 % input tokens, so the token hypothesis failed
+  (`docs/results/2026-09-28-context-e2e/`); offline, the arrival cut and the decider in recall
   did not beat free baselines (`docs/results/2026-09-28-context/`). The agent never asks for
   context reduction: a tool result over 6,000 characters can be cut on arrival (`PostToolUse`,
   `updatedToolOutput`, the tool's own output shape) to the blocks the current task needs
@@ -187,6 +188,23 @@ do not favour this package.
 
 ### Fixed
 
+- **On Windows the Claude Code hooks never ran.** A hook command written with backslash paths
+  was not executed (0 hook events in the attempt), with no error anywhere.
+  `install.portable_command` now writes forward slashes. Found by the first end-to-end pilot
+  of the autopilot, which is published as invalid (`docs/results/2026-09-28-context-e2e/`).
+- **The compaction plugin could be refused whole, silently.** `compact_hook.ts` read
+  `$.session.usage` as a value; Claude Code's function-hook compiler refuses a module that
+  reads a host capability as a value and says so only in its debug log, so `/compact` fell back
+  to the native summary with no sign in the session. The module now only ever calls
+  `$.session.usage` and `$.session.compact`. Found by the second pilot attempt, also published
+  as invalid.
+- **`sanchopanza compact` left a full copy of the conversation behind when it declined.** With
+  `--out`, a compaction that freed less than the minimum (exit 3) still left the whole
+  conversation, unredacted, in the project directory, where `git add .` would pick it up, and
+  the archive written. Pruned results now go to a staging folder that is discarded unless the
+  compaction is used, `--out` is written only after that, and both ignore themselves in git.
+- **The autopilot's hook passed through silently without a key.** It now says on stderr that it
+  passed the event through unchanged and why (`DeciderUnavailable`).
 - **Content fetched through the shell was never scanned, even when asked for.** Claude Code
   hands PostToolUse a Bash result as `{"stdout", "stderr", "interrupted", ...}` and `text_of`
   read it as empty, so naming `Bash` in `--content-tools` scanned nothing. `text_of` now reads
@@ -266,6 +284,37 @@ do not favour this package.
   downgrade needs it answered.
 
 ### Measured
+
+- **The context autopilot inside Claude Code** (`docs/results/2026-09-28-context-e2e/`,
+  pre-registered, Claude Code 2.1.282 headless with Haiku 4.5 as the agent, run through our own
+  evaluation harness): 12 synthetic coding tasks with a forced compaction between two phases.
+  The autopilot finished 12/12, the built-in `/compact` 6/12 (Fisher two-sided p = 0.014); the
+  failing command's error code survived 12 against 8 and the release token 12 against 11;
+  re-reads after compaction 0.25 per task against 6. Input tokens +13.4 % and cost +13.5 %
+  (3.36 against 2.96 USD at list price), mostly recall's injections: the token hypothesis
+  failed. The mechanism is masking, which keeps recent turns verbatim and makes no model call,
+  not the decider (Jev 0.011 USD, 0.3 % of the arm's cost). Caveats: we wrote the tasks and
+  their one-shot facts arrive where masking keeps them; one agent model; the arrival cut never
+  fired; for t01-t06 the native arm was not paired with the autopilot's session. Cost figures
+  were corrected after round 2 (resumed sessions report cumulative totals). A first rules-only
+  pruning arm always fell back to the native summary and is reported as such.
+- **Pruning a coding agent's context by decision, negative** (`docs/results/2026-09-28-context/`,
+  pre-registered, 40 public OpenHands trajectories, offline): all four criteria fail. Asking
+  which results the rest of the session will use ranks needed against unneeded at AUC 0.57
+  test / 0.61 dev; a replica of the fast-jev-compaction plugin (0.56 / 0.53) frees 81 % and
+  keeps 9 % of what the future used, the same as keeping the last three results. The decision
+  arm keeps 80 % but frees only 25 %. Amendment 2: the arrival cut saved 3.7 % of long results,
+  not better than head+tail at the same size; recall with the decider 70.4 % against BM25
+  top 3's 68.5 % at 7.8 % less text, not a detectable difference. 0.076 + 0.154 USD of Jev.
+- **A recall gate for Claude Code's memory files, negative** (`docs/results/2026-09-28-memory-gate/`,
+  pre-registered, LongMemEval S): BM25 top 3 reaches 0.85 session recall; the gate (0.73),
+  the hybrid (0.69) and the passage cascade (0.73) miss their recall criteria while injecting
+  far less text (a half; 4 % for the cascade) at 0.93-0.97 precision. Exploratory, at equal
+  text: the cascade beats truncated sessions and BM25 paragraphs and is not distinguishable
+  from BM25 over sentences on evidence. A runner bug (an `asyncio.Lock` bound to the first event
+  loop made later decisions fail open into empty answers while the run said complete) was
+  found, fixed with tests, and the run completed; the withdrawn figure is reported. 0.39 USD
+  of Jev. Part B, on the owner's own sessions, was not run.
 
 - **Bench rows hardened for privacy, re-recorded after pseudonymization hardening (2026-09-28).**
   38 rows about pseudonymized persons of the defamation material were generalized (outlet

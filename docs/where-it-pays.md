@@ -338,6 +338,56 @@ on the question's own criteria; both sets of numbers are published, with the rea
 in the bench header. Two other disagreements stand: the model missed them at low confidence,
 and a bench that moves its labels to match the model measures nothing.
 
+**A question about the future is not a closed question.** At compaction, "will the rest of
+this session use this tool result?" reads like a yes/no a decider could answer. It is not
+one: the answer depends on work that has not happened, and nothing in the state says what
+the agent will do next. On 40 public OpenHands trajectories our prune question ranked needed
+against unneeded results at AUC 0.57 on test and 0.61 on dev, with 98 % of its probabilities
+below 0.25; the question of a replica of the fast-jev-compaction plugin scored 0.56 and 0.53
+**[M]**. The replica freed 81 % and kept 9 % of what the future used, exactly what clearing
+all but the last three results keeps (`docs/results/2026-09-28-context/`) **[M]**. So the
+autopilot asks no decider at compaction. A calibrated model is calibrated about what is in
+front of it; a prediction about the rest of the session is not in front of it.
+
+**Decisions pay where the purpose is known, and even there a lexical ranker is the bar.**
+The same autopilot asks the decider two questions whose purpose is in hand: which blocks of
+an arriving result bear on the current task, and which archived entries bear on the current
+prompt. Neither beat a free baseline offline. The arrival cut saved 3.7 % of long results
+and kept every used token of 95.2 % of needed results, against 97.6 % for a head-and-tail cut
+of the same size; recall found 70.4 % of masked needed results against BM25 top 3's 68.5 %,
+at 7.8 % less text, not a detectable difference **[M]**. On LongMemEval a gate over memory
+files injected half of BM25 top 3's text or less at 0.93-0.97 precision and missed its
+registered recall (0.73 against 0.85); at equal text its evidence was not distinguishable
+from BM25 over sentences (`docs/results/2026-09-28-memory-gate/`) **[M]**. Where the decider
+did beat lexical ranking in this package (the tournament over 100 pages, `select_passages`),
+the purpose was stated as the question and the unit was a page or a paragraph, not a line of
+someone else's session.
+
+**Masking into an archive beat summarising, and the decider was not why.** Inside Claude
+Code, on 12 synthetic coding tasks with a forced compaction, the autopilot finished 12 of 12
+and the built-in `/compact` 6 of 12 (Fisher two-sided p = 0.014), pre-registered, run
+through our own evaluation harness (`docs/results/2026-09-28-context-e2e/`) **[M]**. The
+mechanism was the free one: masking keeps every assistant message and the last turns'
+results verbatim and stubs older results into an archive, with no model call, while the
+native summary rewrites everything into about 4k tokens and dropped the one fact that cannot
+be had again (a failing command's error code) in 4 of 12 summaries. The agent almost never
+read the archive. Jev's share was 0.011 USD, 0.3 % of the arm's cost, and the arm used 13 %
+**more** input tokens, mostly recall's injections: the registered token hypothesis failed.
+We wrote the tasks and their one-shot facts arrive late in the first phase, where masking
+keeps them; a fact made early and needed late was not tested. The lesson is narrower than the
+headline: before paying a decider to choose what to keep, try keeping recent turns verbatim
+and archiving the rest.
+
+**Running it for real found two silent product bugs that no test caught.** Both looked like
+a working install: no error, the session ran, and the result was Claude Code's own
+behaviour. On Windows, a hook command written with backslash paths never ran (0 hook events
+in the attempt); `install` now writes forward slashes. And the compaction plugin read
+`$.session.usage` as a value; Claude Code's function-hook compiler refused the whole module
+and said so only in its debug log, so `/compact` fell back to the native summary with no sign
+in the session. Both pilot attempts are published as invalid, and both fixes carry tests.
+This is section 5's failure from the other side: fail-open hides a layer that never ran as
+well as a layer that failed. **Count the hook's own events before scoring an arm.**
+
 ---
 
 ## 4. The catalog: every lever we can argue about, ranked by how sure we are
@@ -384,6 +434,7 @@ implemented with a bench; "designed" means the arithmetic is here and the code i
 |---|---|
 | **Tool selection, per turn, by rewriting `tools`** | Measured at 1.99x to 4.15x the cost of deciding once **[M]**. Decide once per session, or use the channels that append instead of swapping. |
 | **Tool selection on top of a harness that already defers tools behind its own search** | Inside Claude Code, which defers tools behind its own `ToolSearch` and shows the model their names, a `UserPromptSubmit` hook that opens a window on the prompt changed nothing measurable: 4/4 against 4/4 with the built-in tools, 7/8 against 7/8 with 329 MCP tools from 10 servers **[M]** (`docs/results/2026-09-25-wide/`). The model selects exact names in one search without help. Codex CLI likewise defers MCP tools behind a local BM25 search. |
+| **Predicting which context the rest of a session will need** | At chance: AUC 0.53-0.61 on 40 public coding trajectories, and a replica of an existing compaction plugin kept what clearing all but the last three results keeps **[M]** (`docs/results/2026-09-28-context/`). Observation masking into an archive asks nothing and did the work end to end (section 3). |
 | **Deduplicating fetches by URL** | A dict does it. Keep the model for semantic redundancy, which a dict cannot see. |
 | **Reranking retrieved documents** | A dedicated reranker is better and cheaper, and it is steerable too. See the section below: this one is worth spelling out, because the opposite is being marketed. |
 | **Anything arithmetic, or any comparison of dates** | The model class reads numbers and dates as text, and its own card says so. Our memory collision point never asks which fact is newer; the harness's timestamps answer that in code. |
@@ -541,6 +592,12 @@ Each of these is specified enough that a disagreement becomes a measurement.
 10. **`relate_facts` on new cases.** On the fifth batch neither `unrelated` at a plain majority
     nor examples on `unrelated` beat the shipped question (25 right answers each). The `direction`
     question by roles did, and ships.
+11. **The context autopilot on facts that come back through the archive.** The end-to-end
+    tasks put their one-shot facts where masking keeps them (`docs/results/2026-09-28-context-e2e/`).
+    The test that would move the claim: facts made early and needed late, so recall from the
+    archive is the only path; tool results over 6,000 characters, so the arrival cut fires
+    and Claude Code's `updatedToolOutput` for `Read` and `Bash` is exercised end to end;
+    another agent model; and the native arm paired on the same first phase.
 
 ---
 
