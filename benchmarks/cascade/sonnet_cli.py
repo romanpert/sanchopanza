@@ -28,11 +28,10 @@ _spec = importlib.util.spec_from_file_location("cascade_run", HERE / "run.py")
 run = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(run)
 
-from sanchopanza.providers.claude_cli import (  # noqa: E402
-    CeilingReached,
-    ClaudeCLI,
-    SessionCache,
-)
+from sanchopanza.eval import harness as _harness  # noqa: E402
+
+_h = _harness.load()
+CeilingReached, ClaudeCLI, SessionCache = _h.CeilingReached, _h.ClaudeCLI, _h.SessionCache
 from sanchopanza.providers.llm import SYSTEM, answers_from, build_schema  # noqa: E402
 
 ROOT = run.ROOT

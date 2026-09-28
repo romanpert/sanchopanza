@@ -361,7 +361,10 @@ def _responder(args: argparse.Namespace) -> tuple[Answerer, Any]:
     if args.fake:
         return _fake, None
     if args.via == "claude-cli":
-        from sanchopanza.providers.claude_cli import ClaudeCLI, SessionCache
+        from sanchopanza.eval import harness
+
+        _h = harness.load()
+        ClaudeCLI, SessionCache = _h.ClaudeCLI, _h.SessionCache
 
         cache = SessionCache(args.cli_cache) if args.cli_cache else None
         cli = ClaudeCLI(

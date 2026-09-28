@@ -5,8 +5,10 @@ python benchmarks/chunks/answers.py --live --hotpot FILE.jsonl    # Claude Code 
 python benchmarks/chunks/answers.py --hotpot FILE.jsonl           # free, from the session cache
 
 Kept sets are rebuilt from `fixtures/chunks-confirm.jsonl` with the cuts the confirmatory chunk
-run fixed. Every answer goes through `sanchopanza.providers.claude_cli` and is cached in
-`fixtures/cli/answers.jsonl`: without `--live`, a prompt missing from the cache is an error.
+run fixed. Every answer goes through our own evaluation harness (`sanchopanza.eval.harness`,
+not distributed) and is cached in `fixtures/cli/answers.jsonl`: without `--live`, a prompt
+missing from the cache is an error. Not directly comparable with answers obtained through the
+API.
 """
 
 from __future__ import annotations
@@ -34,11 +36,10 @@ confirm = _load("chunk_confirm", HERE / "confirm.py")  # also loads chunks/run.p
 chunk_run = confirm.chunk_run
 triage_answers = _load("triage_answers", HERE.parent / "triage_sets" / "answers.py")
 
-from sanchopanza.providers.claude_cli import (  # noqa: E402
-    CeilingReached,
-    ClaudeCLI,
-    SessionCache,
-)
+from sanchopanza.eval import harness as _harness  # noqa: E402
+
+_h = _harness.load()
+CeilingReached, ClaudeCLI, SessionCache = _h.CeilingReached, _h.ClaudeCLI, _h.SessionCache
 from sanchopanza.providers.recorded import RecordedDecider  # noqa: E402
 
 ROOT = chunk_run.ROOT

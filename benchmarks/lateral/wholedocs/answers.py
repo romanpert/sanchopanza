@@ -6,8 +6,9 @@ python benchmarks/lateral/wholedocs/answers.py --live --qasper QASPER-TEST.jsonl
 python benchmarks/lateral/wholedocs/answers.py --qasper QASPER-TEST.jsonl        # free, cache
 
 Kept sets are rebuilt from `fixtures/lateral-wholedocs.jsonl` with the frozen rule. Every answer
-goes through `sanchopanza.providers.claude_cli` (Claude Code CLI, the logged-in subscription,
-never an API key) and is cached in `fixtures/cli/lateral-wholedocs-answers.jsonl`.
+goes through our own evaluation harness (`sanchopanza.eval.harness`, not distributed) and is
+cached in `fixtures/cli/lateral-wholedocs-answers.jsonl`. Not directly comparable with answers
+obtained through the API.
 """
 
 from __future__ import annotations
@@ -41,8 +42,11 @@ def _load(name: str, path: pathlib.Path) -> Any:
 confirm = _load("wholedocs_confirm", HERE / "confirm.py")
 data, rules, ledger = confirm.data, confirm.rules, confirm.ledger
 
+from sanchopanza.eval import harness as _harness  # noqa: E402
 from sanchopanza.eval.stats import bootstrap_difference  # noqa: E402
-from sanchopanza.providers.claude_cli import CeilingReached, ClaudeCLI, SessionCache  # noqa: E402
+
+_h = _harness.load()
+CeilingReached, ClaudeCLI, SessionCache = _h.CeilingReached, _h.ClaudeCLI, _h.SessionCache
 from sanchopanza.providers.recorded import RecordedDecider  # noqa: E402
 
 RESULTS = confirm.RESULTS
