@@ -9,6 +9,15 @@ do not favour this package.
 
 ### Added
 
+- **Prepared, not run: two confirmations.** `benchmarks/ab/fixed.py --lever pages` runs the
+  fixed-sequence A/B with `triage_many` over passages instead of page-by-page triage, with a
+  pinned corpus (`--corpus-ref`), answers through `claude -p` (`--via claude-cli`), a free
+  pipeline check (`--fake`) and a refusal to reuse a recorded bare arm whose sequences are not
+  today's (the 2026-09-24 one is refused: it matches no commit). Pre-registration in
+  `docs/results/2026-09-28-fixed-pages/`. `benchmarks/lateral/screen/confirm.py` measures the
+  BM25 screen and the tournament live on 200 HotpotQA questions no earlier run drew, and
+  reproduces the published screen from recordings (`--replay-published`). Pre-registration in
+  `docs/results/2026-09-28-lateral-screen-confirm/`. Neither hash is registered yet.
 - **`providers.CachedDecider`, opt-in.** Wraps any decider and answers a repeat of the same
   point, state and questions (option order, provider and model included in the key) within
   `ttl_seconds` with the first answer, at zero cost and latency, journalled as

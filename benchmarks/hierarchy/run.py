@@ -75,11 +75,18 @@ def used_ids(hotpot: pathlib.Path) -> set[str]:
     return {r["id"] for r in old + third}
 
 
-def build(hotpot: pathlib.Path) -> list[dict[str, Any]]:
+def build(
+    hotpot: pathlib.Path,
+    *,
+    seed: int = SEED,
+    n: int = 300,
+    exclude: frozenset[str] = frozenset(),
+) -> list[dict[str, Any]]:
+    """The published 300 by default; `exclude` and another `seed` draw fresh questions."""
     raw = [json.loads(x) for x in hotpot.read_text(encoding="utf-8").splitlines() if x]
-    used = used_ids(hotpot)
+    used = used_ids(hotpot) | exclude
     pool = [r for r in raw if len(r["context"]["title"]) == 10 and r["id"] not in used]
-    chosen = random.Random(SEED).sample(pool, 300)
+    chosen = random.Random(seed).sample(pool, n)
     chosen_ids = {r["id"] for r in chosen}
     donors = [
         (t, " ".join(s.strip() for s in sents))
@@ -89,7 +96,7 @@ def build(hotpot: pathlib.Path) -> list[dict[str, Any]]:
     ]
     rows = []
     for r in chosen:
-        rng = random.Random(f"{SEED}-{r['id']}")
+        rng = random.Random(f"{seed}-{r['id']}")
         own_titles = set(r["context"]["title"])
         gold_titles = set(r["supporting_facts"]["title"])
         own = [

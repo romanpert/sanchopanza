@@ -170,6 +170,9 @@ class Ejecucion:
     lever: str = "triage"
     fetched: list[str] = field(default_factory=list)
     dropped: list[str] = field(default_factory=list)
+    # `fixed.py --lever pages`: passages removed from documents that stayed ("doc-id#n").
+    dropped_passages: list[str] = field(default_factory=list)
+    via: str = "api"
     wall_s: float = 0.0
     error: str | None = None
 

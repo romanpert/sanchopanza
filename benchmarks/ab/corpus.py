@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -67,24 +68,32 @@ def _split_by_heading(
     return fundidas
 
 
-def build(min_chars: int = MIN_SECTION_CHARS) -> list[Document]:
+def _read_here(path: str) -> str:
+    return (RAIZ / path).read_text(encoding="utf-8")
+
+
+def build(
+    min_chars: int = MIN_SECTION_CHARS, read: Callable[[str], str] | None = None
+) -> list[Document]:
+    """`read(path)` returns a repository file; by default the working tree. The documents
+    change almost daily, so a run that must be comparable later reads a pinned commit."""
+    read = read or _read_here
     documentos: list[Document] = []
 
-    paper = (RAIZ / "docs" / "paper.md").read_text(encoding="utf-8")
+    paper = read("docs/paper.md")
     for i, (titulo, cuerpo) in enumerate(_split_by_heading(paper, "paper", min_chars)):
         documentos.append(Document(f"paper-{i:02d}", titulo, cuerpo))
 
     for nombre in DOCS:
-        ruta = RAIZ / "docs" / nombre
         base = nombre.removesuffix(".md")
         for i, (titulo, cuerpo) in enumerate(
-            _split_by_heading(ruta.read_text("utf-8"), base, min_chars)
+            _split_by_heading(read(f"docs/{nombre}"), base, min_chars)
         ):
             documentos.append(Document(f"{base}-{i:02d}", titulo, cuerpo))
 
     casos = [
         json.loads(linea)
-        for linea in (RAIZ / "benches" / "core.jsonl").read_text("utf-8").splitlines()
+        for linea in read("benches/core.jsonl").splitlines()
         if linea.strip() and not linea.lstrip().startswith("#")
     ]
     for caso in (c for c in casos if c["point"] == "triage"):
