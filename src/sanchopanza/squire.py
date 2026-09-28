@@ -355,7 +355,8 @@ class Squire:
         96.5 % at 3.1 % of the text, in five calls (docs/results/2026-09-27-hierarchy/).
         The recommended way to keep documents out of an answering call: over each document's
         passages, 9/9 answers kept at 79.5 % fewer input tokens on a fixed sequence, one call
-        (docs/results/2026-09-28-fixed-pages/). Unanswered pages are kept. The probability returned is the last one the page got.
+        (docs/results/2026-09-28-fixed-pages/). Unanswered pages are kept. The probability
+        returned is the last one the page got.
         """
 
         async def judge(ids: Sequence[int]) -> list[float | None]:
