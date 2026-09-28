@@ -121,7 +121,8 @@ as it did before. That is the point: **the squire can only improve an agent, nev
 
 ## Where it pays, and where it does not
 
-Measured, not argued. Each line links to the run behind it.
+Measured, not argued. Each line links to the run behind it; [docs/results/README.md](docs/results/README.md)
+indexes every run, with the main evidence and the negatives apart from the history.
 
 | It pays | Measured |
 |---|---|
