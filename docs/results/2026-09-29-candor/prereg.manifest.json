@@ -1,0 +1,18 @@
+{
+ "docs/results/2026-09-29-candor/prereg.md": "fc33605e191f74478a133c3b27dbf9b438b737ab1602beff0fbb761214ca5e2e",
+ "benchmarks/candor/analyze.py": "e92bf677b4709350ee7722b36ca9894453c892cb37ebd2808df4b58f7c84f830",
+ "benchmarks/candor/counterfactual.py": "559fdb1775e3623d3a6bda643c204dfe75260d93af6f24c3a91218a14d3c2250",
+ "benchmarks/candor/guard.py": "22d523887513612323662efd985d3c08438d7303fba8ea89a1333976b835357d",
+ "benchmarks/candor/lock_e2e.py": "deede21f78c32537015254bd5fc20b6aea1bb9a72547f38f384c7398c4f423fb",
+ "benchmarks/candor/monitors.py": "fd6c42b686e2ac3e9b9f4a9bf3669a713a92335893642b4e5abe6cd18cba8d31",
+ "benchmarks/candor/sessions.py": "02e8c60fe45cd2c3b6f807064c8f49314aa59fc4bc270234476b00af02d72a2b",
+ "benchmarks/candor/tasks.py": "f8a856f342c9b63137de0311a213216c5e7ac4f272fbe9bc58bdfac0843c16ae",
+ "src/sanchopanza/candor/__init__.py": "cb9194071c042d9e607829604b65c8c11138a9366528397a71279c527861a95b",
+ "src/sanchopanza/candor/__main__.py": "075583999b50475402cbbc04f04f4cff4cb0007ddde046a799268b9500bffad1",
+ "src/sanchopanza/candor/claims.py": "4a51e3030710906a13d31379c0f536d5c2b1b12685343b0a0414ee7576292996",
+ "src/sanchopanza/candor/judge.py": "8cbfed0e3cfc4bf35b3d8fc903b28386e53d7c7a1e37398c67381f2ff4f60075",
+ "src/sanchopanza/candor/ledger.py": "02f9820fd7bfa5468bccf06b679896291cf057faa2b6f8ad6852a3a2a12713ba",
+ "src/sanchopanza/candor/lock.py": "0169eaf9de320ea5fcb8ed5feb05b3460e2c6e6dd7d8f991103ae13b9d68c5f9",
+ "src/sanchopanza/candor/rules.py": "619f9978b72bcbd62d29371613fb65c640a5e14748beb7488ad6348d4810c958",
+ "src/sanchopanza/harness/candor_hook.py": "8ecc55f8f37df0939d190b582cd0353dc2ab41be3baddbf018f9520b73fc279c"
+}

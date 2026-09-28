@@ -1,0 +1,275 @@
+"""Candor inside Claude Code: `python -m sanchopanza.harness.candor_hook` as a command hook.
+
+    {"hooks": {
+      "UserPromptSubmit":   [{"hooks": [{"type": "command", "command": HOOK}]}],
+      "PreToolUse":         [{"matcher": "*", "hooks": [ same ]}],
+      "PostToolUse":        [{"matcher": "*", "hooks": [ same ]}],
+      "PostToolUseFailure": [{"matcher": "*", "hooks": [ same ]}],
+      "Stop":               [{"hooks": [ same ]}]}}
+
+    with HOOK = "<python> -m sanchopanza.harness.candor_hook"
+
+What each event does:
+
+- `UserPromptSubmit`: opens a new request in the session's ledger and, with SNAPSHOT on,
+  hashes the workspace so that Stop can see changes no tool call names.
+- `PreToolUse`: if the lock is engaged, refuses the call (every call, whatever it is). If the
+  call itself touches the monitor, the hooks, the permissions or the trace, engages the lock
+  and refuses it. Pure code and a local file: it cannot time out into a pass.
+- `PostToolUse` / `PostToolUseFailure`: appends the call to the ledger with its outcome.
+- `Stop`: holds the final report (the assistant text after the last tool call) against the
+  ledger. Findings go to the journal; at or above LOCK_ON, in `lock` mode, the lock engages
+  and the user sees the claim beside the action.
+
+Environment (`SANCHOPANZA_CANDOR_<NAME>`):
+
+    MODE      lock (default) | observe: observe records findings and never refuses anything
+    LOCK_ON   critical (default) | high
+    JUDGE     "1" to add the decision model's reading of the report (needs a provider; see
+              `harness.claude_code` for SANCHOPANZA_PROVIDER and TYPESAFE_API_KEY)
+    SNAPSHOT  "1" to diff the workspace between the prompt and the stop
+    DIR       where ledgers and findings live (default ~/.sanchopanza/candor)
+
+The lock file itself is SANCHOPANZA_CANDOR_LOCK (default ~/.sanchopanza/candor-lock.json).
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import sys
+import time
+from collections.abc import Mapping
+from pathlib import Path
+from typing import Any
+
+from .._env import home_dir
+from ..candor import lock as lock_mod
+from ..candor import should_lock
+from ..candor.ledger import RESULT_LIMIT, Action, action, target_of, writes_of
+from ..candor.rules import RANK, Turn, check
+
+SNAPSHOT_FILES = 3_000
+SNAPSHOT_BYTES = 2_000_000
+SKIP_DIRS = frozenset({".git", "node_modules", ".venv", "venv", "__pycache__", ".mypy_cache",
+                       ".pytest_cache", ".ruff_cache", "dist", "build", ".claude"})  # fmt: skip
+
+
+def _setting(name: str, default: str = "") -> str:
+    return os.environ.get(f"SANCHOPANZA_CANDOR_{name}", default).strip()
+
+
+def state_dir() -> Path:
+    override = _setting("DIR")
+    return Path(override) if override else home_dir() / "candor"
+
+
+def _ledger_path(session: str) -> Path:
+    safe = "".join(ch for ch in session if ch.isalnum() or ch in "-_") or "default"
+    return state_dir() / f"{safe}.jsonl"
+
+
+def _append(path: Path, entry: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+
+def snapshot(root: Path) -> dict[str, str]:
+    """sha1 of every file under `root`, skipping caches and the harness's own directories."""
+    out: dict[str, str] = {}
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+        for name in filenames:
+            if len(out) >= SNAPSHOT_FILES:
+                return out
+            path = Path(dirpath) / name
+            try:
+                if path.stat().st_size > SNAPSHOT_BYTES:
+                    continue
+                digest = hashlib.sha1(path.read_bytes()).hexdigest()
+            except OSError:
+                continue
+            out[path.relative_to(root).as_posix()] = digest
+    return out
+
+
+def diff(before: Mapping[str, str], after: Mapping[str, str]) -> list[str]:
+    """Paths added, changed or removed between two snapshots."""
+    keys = set(before) | set(after)
+    return sorted(k for k in keys if before.get(k) != after.get(k))
+
+
+def _response_text(response: Any) -> str:
+    if isinstance(response, str):
+        return response
+    if isinstance(response, Mapping):
+        parts = [str(response.get(k) or "") for k in ("stdout", "stderr", "output", "content",
+                                                        "error", "result")]  # fmt: skip
+        return "\n".join(p for p in parts if p)
+    return ""
+
+
+def load(session: str) -> tuple[str, dict[str, str] | None, list[Action]]:
+    """The current request's task, snapshot and actions from the session ledger."""
+    path = _ledger_path(session)
+    task, shot, actions = "", None, []
+    if not path.exists():
+        return task, shot, actions
+    for line in path.read_text(encoding="utf-8").splitlines():
+        try:
+            entry = json.loads(line)
+        except ValueError:
+            continue
+        if entry.get("kind") == "prompt":
+            task, shot, actions = str(entry.get("task") or ""), entry.get("snapshot"), []
+        elif entry.get("kind") == "action":
+            actions.append(action(entry["tool"], entry["target"], ok=entry.get("ok"),
+                                  result=entry.get("result", ""),
+                                  writes=entry.get("writes", ())))  # fmt: skip
+    return task, shot, actions
+
+
+def final_report(transcript: Path) -> str:
+    """The assistant text after the last tool call of the transcript: what the agent reports."""
+    texts: list[str] = []
+    for line in transcript.read_text(encoding="utf-8").splitlines():
+        try:
+            entry = json.loads(line)
+        except ValueError:
+            continue
+        content = (entry.get("message") or {}).get("content")
+        if entry.get("type") != "assistant" or not isinstance(content, list):
+            continue
+        for block in content:
+            if not isinstance(block, dict):
+                continue
+            if block.get("type") == "tool_use":
+                texts = []
+            elif block.get("type") == "text" and block.get("text"):
+                texts.append(str(block["text"]))
+    return "\n".join(texts)
+
+
+def pre_tool_use(data: Mapping[str, Any]) -> dict[str, Any]:
+    state = lock_mod.read()
+    observe = _setting("MODE", "lock") == "observe"
+    if state.engaged and not observe:
+        return _deny(lock_mod.refusal(state))
+    name = str(data.get("tool_name") or "")
+    arguments = data.get("tool_input") if isinstance(data.get("tool_input"), Mapping) else {}
+    call = action(name, target_of(name, arguments), writes=writes_of(name, arguments))
+    if call.effect != "tamper":
+        return {}
+    report = check(Turn(said="", did=(call,)))
+    _append(state_dir() / "findings.jsonl", {"t": time.time(), "event": "PreToolUse",
+            "session": data.get("session_id"),
+            "findings": [f.to_dict() for f in report.findings]})  # fmt: skip
+    if observe:
+        return {}
+    lock_mod.engage(report.findings, session=str(data.get("session_id") or ""))
+    return _deny(lock_mod.refusal(lock_mod.read()))
+
+
+def _deny(reason: str) -> dict[str, Any]:
+    return {"hookSpecificOutput": {"hookEventName": "PreToolUse",
+                                   "permissionDecision": "deny",
+                                   "permissionDecisionReason": reason}}  # fmt: skip
+
+
+def post_tool_use(data: Mapping[str, Any], *, failed: bool) -> dict[str, Any]:
+    name = str(data.get("tool_name") or "")
+    arguments = data.get("tool_input") if isinstance(data.get("tool_input"), Mapping) else {}
+    text = _response_text(data.get("error") if failed else data.get("tool_response"))
+    _append(_ledger_path(str(data.get("session_id") or "")), {
+        "kind": "action", "t": time.time(), "tool": name,
+        "target": target_of(name, arguments), "ok": not failed,
+        "result": text[-RESULT_LIMIT:], "writes": list(writes_of(name, arguments)),
+    })  # fmt: skip
+    return {}
+
+
+def user_prompt(data: Mapping[str, Any]) -> dict[str, Any]:
+    root = Path(str(data.get("cwd") or os.getcwd()))
+    shot = snapshot(root) if _setting("SNAPSHOT") in ("1", "true", "yes") else None
+    _append(_ledger_path(str(data.get("session_id") or "")),
+            {"kind": "prompt", "t": time.time(), "task": str(data.get("prompt") or "")[:2000],
+             "cwd": str(root), "snapshot": shot})  # fmt: skip
+    state = lock_mod.read()
+    if state.engaged and _setting("MODE", "lock") != "observe":
+        return {"hookSpecificOutput": {"hookEventName": "UserPromptSubmit",
+                                       "additionalContext": lock_mod.refusal(state)}}  # fmt: skip
+    return {}
+
+
+async def stop(data: Mapping[str, Any]) -> dict[str, Any]:
+    session = str(data.get("session_id") or "")
+    task, shot, actions = load(session)
+    try:
+        said = final_report(Path(str(data.get("transcript_path"))))
+    except OSError:
+        said = ""
+    changed: list[str] = []
+    if shot is not None:
+        changed = diff(shot, snapshot(Path(str(data.get("cwd") or os.getcwd()))))
+    turn = Turn(said=said, did=tuple(actions), task=task, changed=tuple(changed))
+    report = check(turn)
+    if _setting("JUDGE") in ("1", "true", "yes"):
+        from ..candor.judge import judge
+        from .claude_code import squire_from_env
+
+        report = await judge(squire_from_env(redact=True), turn, report)
+    findings = sorted(report.findings, key=lambda f: -RANK[f.severity])
+    _append(state_dir() / "findings.jsonl", {"t": time.time(), "event": "Stop",
+            "session": session, "actions": len(actions), "changed": changed,
+            "findings": [f.to_dict() for f in findings]})  # fmt: skip
+    on = _setting("LOCK_ON", "critical")
+    if not findings or not should_lock(findings, on=on) or _setting("MODE", "lock") == "observe":
+        return {}
+    state = lock_mod.engage([f for f in findings if RANK[f.severity] >= RANK[on]],
+                            session=session)  # fmt: skip
+    return {"systemMessage": lock_mod.summary(state)}
+
+
+def handle(data: Mapping[str, Any]) -> dict[str, Any]:
+    event = str(data.get("hook_event_name") or "")
+    if event == "PreToolUse":
+        return pre_tool_use(data)
+    if event in ("PostToolUse", "PostToolUseFailure"):
+        return post_tool_use(data, failed=event == "PostToolUseFailure")
+    if event == "UserPromptSubmit":
+        return user_prompt(data)
+    if event == "Stop":
+        import asyncio
+
+        return asyncio.run(stop(data))
+    return {}
+
+
+def main() -> int:
+    raw = sys.stdin.read()
+    try:
+        data = json.loads(raw) if raw.strip() else {}
+    except ValueError:
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+    try:
+        output = handle(data)
+    except Exception as error:
+        # PreToolUse fails closed while a lock may be engaged: an unreadable state refuses.
+        if data.get("hook_event_name") == "PreToolUse" and lock_mod.read().engaged:
+            output = _deny(lock_mod.refusal(lock_mod.read()))
+        else:
+            sys.stderr.write(
+                f"sanchopanza candor: passed through ({type(error).__name__}: {error})\n"
+            )
+            return 0
+    if output:
+        sys.stdout.write(json.dumps(output, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
