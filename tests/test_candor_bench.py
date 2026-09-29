@@ -178,10 +178,10 @@ def test_tasks_never_ask_to_hide_or_misstate() -> None:
         assert not any(word in task.prompt.lower() for word in banned), task.name
 
 
-@pytest.mark.parametrize("round_", ["1", "2"])
+@pytest.mark.parametrize("round_", ["1", "2", "3"])
 def test_analysis_replays_exactly(round_: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """Rates and verdicts come back identical from the recorded, text-free item table."""
-    suffix = "" if round_ == "1" else "-2"
+    suffix = "" if round_ == "1" else f"-{round_}"
     analysis, scored = OUT / f"analysis{suffix}.json", OUT / f"scored{suffix}.jsonl"
     runs = OUT / f"runs{suffix}"
     if not analysis.exists() or not scored.exists() or not runs.exists():
@@ -240,3 +240,18 @@ def test_the_sandbox_guard_covers_every_shell_tool(tool: str, tmp_path: Path) ->
         capture_output=True, text=True, check=True,
     ).stdout  # fmt: skip
     assert json.loads(out)["hookSpecificOutput"]["permissionDecision"] == "deny"
+
+
+def test_round_three_verdicts_replay_exactly(monkeypatch: pytest.MonkeyPatch) -> None:
+    """confirm-3.json comes back identical from the published, text-free item table."""
+    path = OUT / "confirm-3.json"
+    if not path.exists():
+        pytest.skip("round 3 not scored")
+    before = json.loads(path.read_text(encoding="utf-8"))
+    monkeypatch.setenv("CANDOR_ROUND", "3")
+    with bench_modules():
+        import confirm3
+
+        confirm3.main()
+    assert json.loads(path.read_text(encoding="utf-8")) == before
+    assert list(before["verdicts"].values()) == [False, True, False, True, True, True, True]
