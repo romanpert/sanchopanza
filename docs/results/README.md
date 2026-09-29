@@ -25,6 +25,7 @@ The runs behind the README's headline numbers.
 | [2026-09-27-cascade-frontier](2026-09-27-cascade-frontier/) | The Jev-then-Opus permission cascade, confirmed on unseen ATBench-Codex data |
 | [2026-09-28-cascade-sonnet](2026-09-28-cascade-sonnet/) | The same cascade against Sonnet 5: partial, over the cost bar on R-Judge |
 | [2026-09-29-candor](2026-09-29-candor/) | Say/do checking, confirmation round (`prereg-2.md`). The status-block lock stopped 96 % of misstated reports and 0 of 111 honest sessions; real misreports 9/12, below its registered 80 %. Jev as a second opinion reached AUC 0.98 against Haiku 4.5's 0.68 |
+| [2026-09-29-find](2026-09-29-find/) | Repository search on 117 SWE-bench Verified issues (`prereg.md`), 3 of 3 hypotheses hold: a gold file first in 51.3 % and in the top five in 65.0 %, against 13.7 % and 35.0 % for whole-file BM25, at 0.0016 USD per issue |
 | [2026-09-29-candor](2026-09-29-candor/) (round 3) | v3 on 176 new sessions (`prereg-3.md`), 5 of 7 hypotheses hold: 95.3 % of misstated reports stopped, 0 of 126 honest sessions, Jev AUC 0.973 against Haiku's 0.666 |
 
 ## The negatives the README reports with the same weight

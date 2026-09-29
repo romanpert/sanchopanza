@@ -35,6 +35,18 @@ do not favour this package.
   - **The first round is reported in full.** It was registered and mostly failed.
 
   See `docs/candor.md` and `docs/results/2026-09-29-candor/`.
+- **Repository search and one select-among-many path** (`sanchopanza.select`,
+  `context.repo`, the `find_in_repo` MCP tool, `python -m sanchopanza.context.repo`).
+  The repository is cut into fragments by code, BM25 (`text.BM25Index`, now the package's
+  one BM25) keeps a shortlist, and `triage_many` judges it in context when there is a key.
+  On 117 SWE-bench Verified issues, pre-registered: a gold file first in 51.3 % and in the
+  top five in 65.0 %, against 13.7 % and 35.0 % for whole-file BM25, at 0.0016 USD per issue
+  (`docs/results/2026-09-29-find/`). Also: `python -m sanchopanza.harness.mcp --tools
+  archive,find,decisions` (one server, any sets; the decision tools had no command before),
+  `find_in_repo` in the Codex config (`--find`), an opt-in free hint of likely files on each
+  prompt (`SANCHOPANZA_FIND_ON_PROMPT`), and providers `clm` (a self-hosted CLM through the
+  Jev client; mock-tested only) and `llm` from the environment, which now says so on stderr
+  instead of falling back to no decider in silence. See `docs/what-it-adds.md`.
 - **Autopilot for Claude Code, opt-in and experimental** (`sanchopanza install --autopilot`,
   `harness.autopilot`). Measured end to end, pre-registered, and **worse than Claude Code's own
   compaction on our tasks**: native summary 5/7, lean masking 3/7
