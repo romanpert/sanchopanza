@@ -226,13 +226,18 @@ def _deny(reason: str) -> dict[str, Any]:
                                    "permissionDecisionReason": reason}}  # fmt: skip
 
 
-def post_tool_use(data: Mapping[str, Any], *, failed: bool) -> dict[str, Any]:
+def post_tool_use(
+    data: Mapping[str, Any], *, failed: bool, outcome_known: bool = True
+) -> dict[str, Any]:
+    """Append the call to the ledger. `outcome_known=False` when the harness does not say
+    whether the call failed (Codex hands hooks the output text only): `ok` is then None and
+    the rules leave the run to the frontier instead of reading it as a success."""
     name = str(data.get("tool_name") or "")
     arguments = data.get("tool_input") if isinstance(data.get("tool_input"), Mapping) else {}
     text = _response_text(data.get("error") if failed else data.get("tool_response"))
     _append(_ledger_path(str(data.get("session_id") or "")), {
         "kind": "action", "t": time.time(), "tool": name,
-        "target": target_of(name, arguments), "ok": not failed,
+        "target": target_of(name, arguments), "ok": (not failed) if outcome_known else None,
         "result": text[-RESULT_LIMIT:], "writes": list(writes_of(name, arguments)),
     })  # fmt: skip
     return _slipped(data, name, arguments)
@@ -295,13 +300,22 @@ def _held_for_block(data: Mapping[str, Any], said: str) -> dict[str, Any] | None
     return {"decision": "block", "reason": BLOCK_REQUEST}
 
 
+def _said(data: Mapping[str, Any]) -> str:
+    """The final report: Codex passes it as `last_assistant_message` (its transcript is another
+    format); Claude Code gives the transcript to read it from."""
+    given = data.get("last_assistant_message")
+    if isinstance(given, str):
+        return given
+    try:
+        return final_report(Path(str(data.get("transcript_path"))))
+    except OSError:
+        return ""
+
+
 async def stop(data: Mapping[str, Any]) -> dict[str, Any]:
     session = str(data.get("session_id") or "")
     task, shot, actions = load(session)
-    try:
-        said = final_report(Path(str(data.get("transcript_path"))))
-    except OSError:
-        said = ""
+    said = _said(data)
     held = _held_for_block(data, said)
     if held is not None:
         return held
@@ -330,12 +344,14 @@ async def stop(data: Mapping[str, Any]) -> dict[str, Any]:
     return {"systemMessage": lock_mod.summary(state)}
 
 
-def handle(data: Mapping[str, Any]) -> dict[str, Any]:
+def handle(data: Mapping[str, Any], *, codex: bool = False) -> dict[str, Any]:
+    """One hook event. `codex`: the event comes from Codex CLI, whose PostToolUse carries the
+    output text and no exit, and which has no PostToolUseFailure."""
     event = str(data.get("hook_event_name") or "")
     if event == "PreToolUse":
         return pre_tool_use(data)
     if event in ("PostToolUse", "PostToolUseFailure"):
-        return post_tool_use(data, failed=event == "PostToolUseFailure")
+        return post_tool_use(data, failed=event == "PostToolUseFailure", outcome_known=not codex)
     if event == "UserPromptSubmit":
         return user_prompt(data)
     if event == "Stop":
@@ -345,7 +361,10 @@ def handle(data: Mapping[str, Any]) -> dict[str, Any]:
     return {}
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    codex = "--codex" in (sys.argv[1:] if argv is None else argv)
+    if codex:  # Codex hooks.json sets no environment: the snapshot is on unless turned off
+        os.environ.setdefault("SANCHOPANZA_CANDOR_SNAPSHOT", "1")
     raw = sys.stdin.read()
     try:
         data = json.loads(raw) if raw.strip() else {}
@@ -354,7 +373,7 @@ def main() -> int:
     if not isinstance(data, dict):
         data = {}
     try:
-        output = handle(data)
+        output = handle(data, codex=codex)
     except Exception as error:
         # PreToolUse fails closed while a lock may be engaged: an unreadable state refuses.
         if data.get("hook_event_name") == "PreToolUse" and lock_mod.read().engaged:

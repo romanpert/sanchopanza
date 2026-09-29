@@ -241,11 +241,24 @@ def hook_command(kind: str, python: str | None = None) -> str:
     return f'"{exe}" -m sanchopanza.harness.codex {kind}'
 
 
-def hooks_json(python: str | None = None) -> str:
-    """`.codex/hooks.json`: PostToolUse on every tool, SessionStart on every source."""
+def candor_command(python: str | None = None) -> str:
+    exe = python or sys.executable
+    return f'"{exe}" -m sanchopanza.harness.candor_hook --codex'
 
-    def handler(kind: str, status: str) -> dict[str, Any]:
-        command = hook_command(kind, python)
+
+# Candor in Codex: the same hook as in Claude Code (`harness.candor_hook`), told the events come
+# from Codex. Codex has no PostToolUseFailure and gives PostToolUse the output text only, so a
+# run's outcome is unknown to the ledger and goes to the frontier; its Stop event carries the
+# final message itself (`last_assistant_message`). The hook keeps its own error handling: with
+# the lock engaged, PreToolUse fails closed, which `run_hook` (fail open) would not.
+CANDOR_EVENTS = ("UserPromptSubmit", "PreToolUse", "PostToolUse", "Stop")
+
+
+def hooks_json(python: str | None = None, *, candor: bool = False) -> str:
+    """`.codex/hooks.json`: PostToolUse on every tool, SessionStart on every source; with
+    `candor`, candor's four hooks beside them."""
+
+    def handler(command: str, status: str) -> dict[str, Any]:
         return {
             "type": "command",
             "command": command,
@@ -254,14 +267,17 @@ def hooks_json(python: str | None = None) -> str:
             "statusMessage": status,
         }
 
-    document = {
-        "description": "sanchopanza: archive tool output, point the model at it",
-        "hooks": {
-            "PostToolUse": [{"hooks": [handler("post-tool-use", "archiving tool output")]}],
-            "SessionStart": [{"hooks": [handler("session-start", "checking the archive")]}],
-        },
+    archive = handler(hook_command("post-tool-use", python), "archiving tool output")
+    start = handler(hook_command("session-start", python), "checking the archive")
+    hooks: dict[str, list[dict[str, Any]]] = {
+        "PostToolUse": [{"hooks": [archive]}],
+        "SessionStart": [{"hooks": [start]}],
     }
-    return json.dumps(document, indent=2, ensure_ascii=False) + "\n"
+    if candor:
+        entry = {"hooks": [handler(candor_command(python), "candor: holding the record")]}
+        hooks = {**hooks, **{e: [*hooks.get(e, []), entry] for e in CANDOR_EVENTS}}
+    document = {"description": "sanchopanza: archive tool output, point the model at it"}
+    return json.dumps({**document, "hooks": hooks}, indent=2, ensure_ascii=False) + "\n"
 
 
 def config_toml(
@@ -315,12 +331,13 @@ def project_files(
     archive: str | Path | None = None,
     tool_output_token_limit: int | None = None,
     find: bool = False,
+    candor: bool = False,
 ) -> dict[str, str]:
     """{relative path: text} for a project's `.codex/` folder. Nothing is written: the
     caller decides, and Codex loads project config only for a trusted project."""
     del project  # the paths are relative; kept for symmetry with other installers
     return {
-        ".codex/hooks.json": hooks_json(python),
+        ".codex/hooks.json": hooks_json(python, candor=candor),
         ".codex/config.toml": config_toml(
             python=python,
             archive=archive,
@@ -333,7 +350,8 @@ def project_files(
 # --- entry point ----------------------------------------------------------------------------
 
 USAGE = (
-    "usage: python -m sanchopanza.harness.codex post-tool-use|session-start|config [DIR] [--find]"
+    "usage: python -m sanchopanza.harness.codex post-tool-use|session-start|config [DIR]"
+    " [--find] [--candor]"
 )
 
 
@@ -348,9 +366,10 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.write(run_hook(kind, raw) + "\n")
         return 0
     if kind == "config":
-        find = "--find" in args
-        rest = [a for a in args[1:] if a != "--find"]
-        for path, text in project_files(rest[0] if rest else None, find=find).items():
+        find, candor = "--find" in args, "--candor" in args
+        rest = [a for a in args[1:] if a not in ("--find", "--candor")]
+        files = project_files(rest[0] if rest else None, find=find, candor=candor)
+        for path, text in files.items():
             sys.stdout.write(f"# --- {path}\n{text}\n")
         return 0
     sys.stderr.write(USAGE + "\n")

@@ -226,8 +226,21 @@ def target_of(tool: str, arguments: Mapping[str, Any]) -> str:
     return ""
 
 
+_PATCH_FILE = re.compile(
+    r"^\*\*\* (?:Add|Update|Delete) File: (.+?)\s*$|^\*\*\* Move to: (.+?)\s*$", re.M
+)
+
+
 def writes_of(tool: str, arguments: Mapping[str, Any]) -> tuple[str, ...]:
-    if tool.lower() in WRITE_TOOLS:
-        path = arguments.get("file_path") or arguments.get("notebook_path") or arguments.get("path")
-        return (str(path),) if path else ()
-    return ()
+    """The paths a write tool changes. Codex's `apply_patch` names them inside the patch
+    (`*** Update File: src/app.py`), not in an argument."""
+    if tool.lower() not in WRITE_TOOLS:
+        return ()
+    path = arguments.get("file_path") or arguments.get("notebook_path") or arguments.get("path")
+    if path:
+        return (str(path),)
+    patch = next(
+        (v for k in ("command", "input", "patch") if isinstance(v := arguments.get(k), str)), ""
+    )
+    found = [m.group(1) or m.group(2) for m in _PATCH_FILE.finditer(patch)]
+    return tuple(dict.fromkeys(found))

@@ -172,7 +172,10 @@ def _hidden_exits(turn: Turn, report: Report) -> list[Doubt]:
         for command in required_commands(turn.task, turn.did):
             runs = runs_of(command, turn.did)
             last = runs[-1] if runs else None
-            if last is not None and last.ok is not False and exit_masked(last.target):
+            # An exit hidden by the command, or never reported (Codex gives hooks the output
+            # text only): code cannot tell how the run ended; the output may.
+            unknown = last is not None and (last.ok is None or exit_masked(last.target))
+            if last is not None and last.ok is not False and unknown:
                 out.append(_run_doubt(last, "failed_check"))
     claims_pass = any(c.kind == "checks_pass" for c in claims_mod.extract(turn.said or ""))
     tests = [a for a in turn.did if a.effect == "test"]
