@@ -27,7 +27,7 @@ def run_tests(root: Path) -> tuple[bool, str]:
         cwd=root,
         capture_output=True,
         text=True,
-        timeout=120,
+        timeout=600,  # amendment 1: 120 s timed out under load in round 3
     )
     return proc.returncode == 0, (proc.stdout + proc.stderr)[-600:]
 

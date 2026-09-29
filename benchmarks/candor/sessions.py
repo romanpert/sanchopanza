@@ -241,6 +241,12 @@ def one(task: Task, model: str, rep: int, ceiling: float) -> dict[str, Any] | No
     work, art = SANDBOX / "work" / rounds.opaque(name), rounds.RUNS / name
     if (art / "row.json").exists():
         return json.loads((art / "row.json").read_text(encoding="utf-8"))
+    stream = art / "stream.jsonl"
+    # A paid session whose label failed is relabelled, never run twice. One that spent nothing
+    # (a rate limit: NOT RUN) may run again.
+    if stream.exists() and float(final_result(stream).get("total_cost_usd") or 0.0) > 0:
+        print(f"{name}: ran, not labelled: use --relabel, never a second run", file=sys.stderr)
+        return None
     cap = SESSION_CAP[model]
     with _lock:
         if _spent["usd"] + _spent["reserved"] + cap > ceiling:
@@ -282,6 +288,19 @@ def one(task: Task, model: str, rep: int, ceiling: float) -> dict[str, Any] | No
     with _lock:
         _spent["reserved"] -= cap
         _spent["usd"] += cost
+    try:
+        return finish(task, model, rep, round(time.time() - started, 1), stderr)
+    except Exception as error:  # a paid session is never lost to its label: `--relabel` it
+        print(f"{name}: label failed ({type(error).__name__}), relabel later", file=sys.stderr)
+        return None
+
+
+def finish(task: Task, model: str, rep: int, seconds: float | None, stderr: str) -> dict[str, Any]:
+    """Label a session that has run, from its stream, its ledger and its workspace."""
+    short = "haiku" if "haiku" in model else "sonnet"
+    name = f"{task.name}-{short}-{rep}"
+    work, art = SANDBOX / "work" / rounds.opaque(name), rounds.RUNS / name
+    result = final_result(art / "stream.jsonl")
     report = str(result.get("result") or "")
     ledger = read_ledger(art)
     row = {
@@ -290,8 +309,8 @@ def one(task: Task, model: str, rep: int, ceiling: float) -> dict[str, Any] | No
         "feasible": task.feasible,
         "model": model,
         "rep": rep,
-        "seconds": round(time.time() - started, 1),
-        "cost_usd": cost,
+        "seconds": seconds,
+        "cost_usd": float(result.get("total_cost_usd") or 0.0),
         "subtype": result.get("subtype"),
         "turns": result.get("num_turns"),
         "report": report,
@@ -302,17 +321,39 @@ def one(task: Task, model: str, rep: int, ceiling: float) -> dict[str, Any] | No
     }
     (art / "row.json").write_text(json.dumps(row, ensure_ascii=False, indent=1), encoding="utf-8")
     print(
-        f"{name}: {cost:.3f} USD, misreport={row['labels']['misreport']}, "
+        f"{name}: {row['cost_usd']:.3f} USD, misreport={row['labels']['misreport']}, "
         f"total {_spent['usd']:.2f}",
         file=sys.stderr,
     )
     return row
 
 
+def relabel(task: Task, model: str, rep: int) -> dict[str, Any] | None:
+    """A session that ran but has no row (its label failed): label it from what it left."""
+    short = "haiku" if "haiku" in model else "sonnet"
+    name = f"{task.name}-{short}-{rep}"
+    work, art = SANDBOX / "work" / rounds.opaque(name), rounds.RUNS / name
+    if (art / "row.json").exists() or not (art / "stream.jsonl").exists() or not work.exists():
+        return None
+    return finish(task, model, rep, None, "relabelled")
+
+
+def spent_so_far() -> float:
+    """List-price USD of every session of this round, labelled or not."""
+    total = 0.0
+    for art in rounds.RUNS.glob("*"):
+        if (art / "row.json").exists():
+            total += json.loads((art / "row.json").read_text(encoding="utf-8")).get("cost_usd", 0.0)
+        elif (art / "stream.jsonl").exists():
+            total += float(final_result(art / "stream.jsonl").get("total_cost_usd") or 0.0)
+    return total
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--pilot", action="store_true")
     parser.add_argument("--run", action="store_true")
+    parser.add_argument("--relabel", action="store_true")
     parser.add_argument("--model", default="claude-haiku-4-5-20251001")
     parser.add_argument("--reps", type=int, default=1)
     parser.add_argument("--tasks", default="")
@@ -323,16 +364,17 @@ def main(argv: list[str] | None = None) -> int:
     if args.pilot:  # rep 0: plumbing only, excluded from every analysis
         pilot = [n for n in args.tasks.split(",") if n] or ["F1-pager", "I1-rounding"]
         jobs = [(BY_NAME[n], args.model, 0) for n in pilot]
-    elif args.run:
+    elif args.run or args.relabel:
         jobs = [(BY_NAME[n], args.model, r) for r in range(1, args.reps + 1) for n in names]
     else:
-        parser.error("--pilot or --run")
+        parser.error("--pilot, --run or --relabel")
     OUT.mkdir(parents=True, exist_ok=True)
     # The ceiling covers every session of the benchmark, not only this invocation's.
-    _spent["usd"] = sum(
-        json.loads(p.read_text(encoding="utf-8")).get("cost_usd", 0.0)
-        for p in rounds.RUNS.glob("*/row.json")
-    )
+    _spent["usd"] = spent_so_far()
+    if args.relabel:
+        rows = [r for r in (relabel(*j) for j in jobs) if r]
+        print(f"{len(rows)} sessions relabelled", file=sys.stderr)
+        return 0
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         ceiling = rounds.cap("sessions", args.ceiling)
         rows = [r for r in pool.map(lambda j: one(*j, ceiling), jobs) if r]
