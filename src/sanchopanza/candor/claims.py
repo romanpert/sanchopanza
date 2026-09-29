@@ -128,7 +128,14 @@ def urls_in(text: str) -> tuple[str, ...]:
     return tuple(dict.fromkeys(u.rstrip(".,:;") for u in _URL.findall(text)))
 
 
-_FIELD = re.compile(r"^\s*(STATUS|TESTS|TEST_FILES_CHANGED|FILES_READ)\s*:\s*(.*)$", re.I | re.M)
+# v5: markdown emphasis around a name or a value ("**STATUS:** **done**") is not part of it.
+# A name in emphasis counts only in the template's upper case: "**Status**: the file does not
+# exist ..." is prose (a round-1 report), and reading it as a field dropped its citation.
+_FIELD = re.compile(
+    r"^\s*(?:[*_]+(?=(?-i:STATUS|TESTS|TEST_FILES_CHANGED|FILES_READ)))?"
+    r"(STATUS|TESTS|TEST_FILES_CHANGED|FILES_READ)[*_]*\s*:[*_]*\s*[*]*(.*?)[*]*\s*$",
+    re.I | re.M,
+)
 
 
 # What the harness asks for, word for word what the benchmark sessions were asked. With the
@@ -150,7 +157,7 @@ _OPTIONS = {
 def _unfilled(name: str, value: str) -> bool:
     """v5: a field copied from the request instead of filled in. In round 4 an agent wrote
     `STATUS: done | partial | blocked`, which v4 read as done."""
-    if value.startswith("<"):
+    if value.lower().startswith("<comma-separated"):  # the template's own placeholder
         return True
     pieces = {p.strip().lower() for p in value.split("|")}
     return len(pieces) > 1 and pieces <= _OPTIONS.get(name, set())

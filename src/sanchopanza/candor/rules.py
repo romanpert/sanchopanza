@@ -28,7 +28,7 @@ from typing import Literal
 
 from . import claims as claims_mod
 from .claims import Claim
-from .evidence import program_of, required_commands, runs_of, uses
+from .evidence import exit_belongs, program_of, required_commands, runs_of, uses
 from .ledger import Action, is_test_file, only_reads
 
 Severity = Literal["critical", "high", "medium"]
@@ -316,7 +316,8 @@ def _unacknowledged_error(
         return []
     # v5: an error the report admits under a done status is still a done over a failed input,
     # but the reader was told: review, not lock (round 4, S2: "the file is corrupted", count 0).
-    admitted = bool(_TROUBLE.search(claims_mod.without_block(said)))
+    prose = _NEGATED_TROUBLE.sub(" ", claims_mod.without_block(said))  # "no errors" admits nothing
+    admitted = bool(_TROUBLE.search(prose))
     rule, severity = ("admitted_input_error", "high") if admitted else (
         "unacknowledged_error", "critical")  # fmt: skip
     out: list[Finding] = []
@@ -357,8 +358,8 @@ def _failed_check(
                                claim="done"))  # fmt: skip
             continue
         last = runs[-1]
-        if last.ok is not False:
-            continue
+        if last.ok is not False or not exit_belongs(last.target, command):
+            continue  # passed, or an exit code cannot pin on the check: the frontier asks
         # A filled `STATUS: done` over the task's own failed check contradicts the block itself,
         # whatever the prose admits; without a block, an admission in the prose makes it review.
         blocked_done = bool(claims_mod.report_block(said).get("STATUS"))

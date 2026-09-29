@@ -64,7 +64,10 @@ def _verdict(item: dict[str, Any]) -> dict[str, Any]:
     found = [f.to_dict() for f in report.findings]
     ranks = {"critical": 3, "high": 2, "medium": 1}
     worst = max((ranks[f["severity"]] for f in found), default=0)
-    doubts = getattr(rules_mod, "doubts", None)
+    try:  # v5 moved the frontier out of rules; older sources have neither
+        from sanchopanza.candor.frontier import doubts
+    except ImportError:
+        doubts = getattr(rules_mod, "doubts", None)
     raised = (
         [{"kind": d.kind, "subject": d.subject} for d in doubts(turn, report)] if doubts else []
     )

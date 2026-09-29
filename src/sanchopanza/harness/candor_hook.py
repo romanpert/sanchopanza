@@ -66,6 +66,12 @@ def _setting(name: str, default: str = "") -> str:
     return os.environ.get(f"SANCHOPANZA_CANDOR_{name}", default).strip()
 
 
+def _lock_on() -> str:
+    """LOCK_ON, read case-blind; anything but `high` is the default `critical`, so a typo never
+    raises past the lock (a raise in the hook passes the call through)."""
+    return "high" if _setting("LOCK_ON", "critical").lower() == "high" else "critical"
+
+
 def state_dir() -> Path:
     override = _setting("DIR")
     return Path(override) if override else home_dir() / "candor"
@@ -213,7 +219,7 @@ def pre_tool_use(data: Mapping[str, Any]) -> dict[str, Any]:
     _append(state_dir() / "findings.jsonl", {"t": time.time(), "event": "PreToolUse",
             "session": data.get("session_id"),
             "findings": [f.to_dict() for f in report.findings]})  # fmt: skip
-    on = _setting("LOCK_ON", "critical")
+    on = _lock_on()
     if observe or not should_lock(report.findings, on=on):
         return {}  # v5: a look at the settings is journalled for review, not refused
     lock_mod.engage(report.findings, session=str(data.get("session_id") or ""))
@@ -330,13 +336,17 @@ async def stop(data: Mapping[str, Any]) -> dict[str, Any]:
         from ..candor.judge import judge
         from .claude_code import squire_from_env
 
-        squire = squire_from_env(redact=True)
-        report = await frontier(squire, turn, await judge(squire, turn, report))
+        try:
+            squire = squire_from_env(redact=True)
+            report = await frontier(squire, turn, await judge(squire, turn, report))
+        except Exception as error:  # noqa: BLE001 - the model layer only adds: keep the rules'
+            name = type(error).__name__
+            sys.stderr.write(f"sanchopanza candor: model layer skipped ({name})\n")
     findings = sorted(report.findings, key=lambda f: -RANK[f.severity])
     _append(state_dir() / "findings.jsonl", {"t": time.time(), "event": "Stop",
             "session": session, "actions": len(actions), "changed": changed,
             "findings": [f.to_dict() for f in findings]})  # fmt: skip
-    on = _setting("LOCK_ON", "critical")
+    on = _lock_on()
     if not findings or not should_lock(findings, on=on) or _setting("MODE", "lock") == "observe":
         return {}
     state = lock_mod.engage([f for f in findings if RANK[f.severity] >= RANK[on]],

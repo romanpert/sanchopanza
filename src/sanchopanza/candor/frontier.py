@@ -7,9 +7,11 @@ per turn asks every doubt at once. Adding a kind is registering one (`register`)
 the judge.
 
 A kind's findings go in at `high` (review). They go in at `critical` (the lock) only when its
-question has been measured on labelled data and the lower bound of its precision at the cut
-clears `PRECISION_TARGET` over at least `MIN_FLAGS` flags. The measurement lives in
-`frontier_measured.json`, written by `benchmarks/candor/frontier_v5.py score`, never by hand.
+question has been measured on labelled data from the distribution it is asked on and the lower
+bound of its precision at the cut clears `PRECISION_TARGET` over at least `MIN_FLAGS` flags.
+The measurement lives in `frontier_measured.json`, written by
+`benchmarks/candor/frontier_v5.py score`, never by hand; a proxy measurement is filed under
+`<kind>_proxy` and earns nothing (prereg-frontier amendment 1). Today no kind has earned it.
 
 Where the labels come from, so that a kind can be measured at all (v5, lateral): a question
 about what code cannot see is asked where code *can* see the answer too. `exit` asks whether an
@@ -28,7 +30,7 @@ from typing import Any
 
 from ..contract import Question, Truth
 from . import claims as claims_mod
-from .evidence import exit_masked, required_commands, runs_of
+from .evidence import exit_belongs, exit_masked, required_commands, runs_of
 from .ledger import Action, run_outcome
 from .rules import Finding, Report, Severity, Turn, _claims_task_done, _outputs, _same_path
 
@@ -87,17 +89,24 @@ def wilson_lower(hits: int, n: int, z: float = 1.96) -> float:
 
 
 def measured() -> dict[str, Any]:
+    """The measurement table, or {} when it is missing or is not a JSON object."""
     try:
-        return json.loads(MEASURED.read_text(encoding="utf-8"))
+        table = json.loads(MEASURED.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {}
+    return table if isinstance(table, dict) else {}
 
 
 def severity(kind: str, table: dict[str, Any] | None = None) -> Severity:
     """`critical` once the kind's measured precision has a lower bound at or above the target
     over enough flags; `high` until then, and for a kind never measured."""
-    row = (table if table is not None else measured()).get(kind) or {}
-    flags, hits = int(row.get("flagged") or 0), int(row.get("true_flags") or 0)
+    source = table if table is not None else measured()
+    row = source.get(kind) if isinstance(source, dict) else None
+    if not isinstance(row, dict):
+        return "high"
+    flags, hits = row.get("flagged"), row.get("true_flags")
+    if not isinstance(flags, int) or not isinstance(hits, int) or not 0 <= hits <= flags:
+        return "high"  # a malformed row earns nothing
     if flags >= MIN_FLAGS and wilson_lower(hits, flags) >= PRECISION_TARGET:
         return "critical"
     return "high"
@@ -172,10 +181,11 @@ def _hidden_exits(turn: Turn, report: Report) -> list[Doubt]:
         for command in required_commands(turn.task, turn.did):
             runs = runs_of(command, turn.did)
             last = runs[-1] if runs else None
-            # An exit hidden by the command, or never reported (Codex gives hooks the output
-            # text only): code cannot tell how the run ended; the output may.
-            unknown = last is not None and (last.ok is None or exit_masked(last.target))
-            if last is not None and last.ok is not False and unknown:
+            # Code knows how the check ended only when the call reported an exit and that exit
+            # is the check's. Otherwise (a pipe, `;`, a later command, or no exit reported, as
+            # in Codex), the output may say: a doubt, never the lock.
+            known = last is not None and last.ok is not None and exit_belongs(last.target, command)
+            if last is not None and not known:
                 out.append(_run_doubt(last, "failed_check"))
     claims_pass = any(c.kind == "checks_pass" for c in claims_mod.extract(turn.said or ""))
     tests = [a for a in turn.did if a.effect == "test"]

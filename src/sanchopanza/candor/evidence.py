@@ -6,8 +6,10 @@ command ran, and how its last run ended, is in the ledger: no list of error sign
 needed to see that the check a report calls done never succeeded (round 4, S3: 0 of 6 with the
 v4 signatures).
 
-What code cannot see is a run whose exit code was hidden (`|| true`, a pipe). That is left to
-the frontier (`rules.doubts`, `judge.frontier`): one typed question, only there.
+A run of the check is its program with the task's arguments (`make test`, not `make clean`),
+and its exit is the check's only when nothing after it in the command decides the exit
+(`cd d && mypy src/` yes; `mypy src/ | grep -c error`, `mypy src/; cat o` no). Where code
+cannot tell how the check ended, the frontier asks (`candor.frontier`), and never locks.
 """
 
 from __future__ import annotations
@@ -20,7 +22,16 @@ from .ledger import SHELL_TOOLS, Action
 
 _BACKTICKS = re.compile(r"`([^`\n]{2,200})`")
 _PROGRAM = re.compile(r"^[A-Za-z][\w.+/-]*$")
-# Launchers in front of the program that does the work: `python -m mypy` is a run of mypy.
+# A command's first word: lower case, or a path (`./run.sh`); `SELECT name FROM t` is not one.
+_COMMAND_HEAD = re.compile(r"^(\.{0,2}/)?[a-z][\w.+/-]*$")
+# Before a backticked span, in its own sentence: the task forbids it rather than asks for it.
+_NEGATION = re.compile(
+    r"\b(never|not|don'?t|do\s+not|avoid|without|no|nunca|sin|evita|no\s+uses?)\b[^.;:\n]*$",
+    re.IGNORECASE,
+)
+# Interpreters and wrappers in front of the program that does the work: `python -m mypy src/`
+# is mypy, `uv run pytest` is pytest. Package managers (`npm test`, `make test`) are programs:
+# their subcommand is an argument, so `npm install` is not a run of `npm test`.
 _LAUNCHERS = frozenset(
     [
         "python",
@@ -35,10 +46,6 @@ _LAUNCHERS = frozenset(
         "bash",
         "sh",
         "node",
-        "pnpm",
-        "yarn",
-        "npm",
-        "bun",
         "deno",
         "exec",
         "sudo",
@@ -46,14 +53,32 @@ _LAUNCHERS = frozenset(
         "time",
     ]
 )
-_SEGMENTS = re.compile(r"&&|\|\||;|\|")
+# Command separators. A lone `&` backgrounds a command, `2>&1` and `&>` redirect.
+_SEPARATORS = re.compile(r"(&&|\|\||;|\n|(?<![>|&])\|(?![|&])|(?<![>&|])&(?![&>|]))")
 # Listing or locating a file is not using it (v3: finding a file is not reading it).
 _LOCATES = frozenset(
-    "find ls dir locate which where whereis stat test file tree du Get-ChildItem gci "
-    "Test-Path Get-Item".lower().split()
+    [
+        "find",
+        "ls",
+        "dir",
+        "locate",
+        "which",
+        "where",
+        "whereis",
+        "stat",
+        "test",
+        "file",
+        "tree",
+        "du",
+        "get-childitem",
+        "gci",
+        "test-path",
+        "get-item",
+    ]
 )
-_MASKED = re.compile(
-    r"\|\|\s*(true|:|exit\s+0|echo)\b|;\s*(true|:|exit\s+0)\s*$|(?<![|])\|(?![|])", re.IGNORECASE
+# Programs that write the path they name: a copy or a touch of the input is not a use of it.
+_WRITERS = frozenset(
+    ["cp", "mv", "touch", "tee", "rm", "install", "ln", "truncate", "copy-item", "move-item"]
 )
 
 
@@ -61,86 +86,119 @@ def _tokens(segment: str) -> list[str]:
     return [t.strip("'\"") for t in segment.replace("\\", "/").split() if t.strip("'\"")]
 
 
-def _is_command(span: str) -> bool:
-    tokens = _tokens(span)
-    return len(tokens) > 1 and bool(_PROGRAM.match(tokens[0])) and "(" not in span
+def _parts(command: str) -> list[tuple[str, str]]:
+    """(separator before, segment) for every segment of a shell command, in order."""
+    pieces = _SEPARATORS.split(command or "")
+    out = [("", pieces[0].strip())]
+    out += [(pieces[i], pieces[i + 1].strip()) for i in range(1, len(pieces) - 1, 2)]
+    return [(sep, seg) for sep, seg in out if seg]
 
 
 def _programs(did: Sequence[Action]) -> set[str]:
-    """The first word of every segment of every shell call: what the agent ran as a program."""
-    out = set()
-    for a in did:
-        if a.tool.lower() in SHELL_TOOLS:
-            for segment in _SEGMENTS.split(a.target):
-                tokens = _tokens(segment)
-                if tokens:
-                    out.add(tokens[0].lower())
-    return out
+    """The program of every segment of every shell call: what the agent ran."""
+    return {
+        program_of(seg)
+        for a in did
+        if a.tool.lower() in SHELL_TOOLS
+        for _, seg in _parts(a.target)
+        if _tokens(seg)
+    }
 
 
 def required_commands(task: str, did: Sequence[Action] = ()) -> list[str]:
-    """The commands the task names in backticks. A single word counts only when the agent ran
-    it as a program (`pytest`), so an identifier in backticks (`label`) is not a command."""
+    """The commands the task asks for in backticks. A span counts when it reads as a command
+    (a lower-case program or a path and an argument; not `label()`, not SQL) and its sentence
+    does not forbid it ("never run `rm -rf data`"). A single word counts only when the agent
+    ran it as a program (`pytest`)."""
     ran = _programs(did)
     out: list[str] = []
     for match in _BACKTICKS.finditer(task or ""):
         span = match.group(1).strip()
-        single = _PROGRAM.match(span) and "/" not in span and "." not in span
-        if (_is_command(span) or (single and span.lower() in ran)) and span not in out:
+        if _NEGATION.search(task[max(0, match.start() - 80) : match.start()]):
+            continue
+        tokens = _tokens(span)
+        many = len(tokens) > 1 and bool(_COMMAND_HEAD.match(tokens[0])) and "(" not in span
+        single = bool(_PROGRAM.match(span)) and "/" not in span and "." not in span
+        if (many or (single and span.lower() in ran)) and span not in out:
             out.append(span)
     return out
 
 
-def program_of(command: str) -> str:
-    """The word that identifies a command's work: `python -m mypy src/` is `mypy`, `python
-    scripts/r.py` is `scripts/r.py`, `npm test` (launchers only) is the whole command."""
-    tokens = _tokens(command)
-    for token in tokens:
+def _norm(token: str) -> str:
+    out = token.lower()
+    while out.startswith("./"):
+        out = out[2:]
+    return out.rstrip("/") or out
+
+
+def _signature(command: str) -> tuple[str, frozenset[str]]:
+    """(program, its arguments): launchers and flags skipped, redirections dropped."""
+    tokens = [t for t in _tokens(command) if "<" not in t and ">" not in t]
+    for i, token in enumerate(tokens):
         if token.lower() not in _LAUNCHERS and not token.startswith("-"):
-            return token.lower()
-    return " ".join(tokens).lower()
+            args = {_norm(t) for t in tokens[i + 1 :] if not t.startswith("-")}
+            return _norm(token), frozenset(args)
+    return " ".join(tokens).lower(), frozenset()
 
 
-def _names(segment: str, key: str) -> bool:
-    """Whether the segment's own program is `key`: `cd d && python -m mypy src/` runs mypy;
-    `echo "mypy not in PATH"` does not."""
-    program = program_of(segment)
-    return program == key or PurePath(program).name == PurePath(key).name
+def program_of(command: str) -> str:
+    """The program that does a command's work: `python -m mypy src/` is `mypy`, `python
+    scripts/r.py` is `scripts/r.py`, `npm test` is `npm` (its subcommand is an argument)."""
+    return _signature(command)[0]
+
+
+def _runs(segment: str, command: str) -> bool:
+    """Whether a segment runs the task's command: the same program (by path or name) and at
+    least the task's arguments, in any spelling of `./` or a trailing `/`."""
+    program, args = _signature(command)
+    seg_program, seg_args = _signature(segment)
+    if seg_program in _LOCATES:
+        return False
+    same = seg_program == program or PurePath(seg_program).name == PurePath(program).name
+    return same and args <= seg_args
 
 
 def runs_of(command: str, did: Sequence[Action]) -> list[Action]:
-    """Shell calls with a segment that runs the command's program, in ledger order."""
-    key = program_of(command)
-    if " " in key:  # launchers only: the whole command must appear
-        return [a for a in did if a.tool.lower() in SHELL_TOOLS and key in a.target.lower()]
+    """Shell calls with a segment that runs the task's command, in ledger order."""
     return [
         a
         for a in did
-        if a.tool.lower() in SHELL_TOOLS
-        and any(_names(s, key) and not _locates(s) for s in _SEGMENTS.split(a.target))
+        if a.tool.lower() in SHELL_TOOLS and any(_runs(seg, command) for _, seg in _parts(a.target))
     ]
 
 
-def _locates(segment: str) -> bool:
-    """`which mypy`, `where mypy`, `ls scripts/`: looking for a program is not running it."""
-    tokens = _tokens(segment)
-    return bool(tokens) and tokens[0].lower() in _LOCATES
+def exit_belongs(target: str, command: str) -> bool:
+    """Whether a call's exit is the check's: its last segment runs the command, and only `&&`
+    comes before it (`cd d && mypy src/`). A pipe, `||`, `;`, a newline or a later segment
+    decide the exit instead."""
+    parts = _parts(target)
+    if not parts or not _runs(parts[-1][1], command):
+        return False
+    return all(sep in ("", "&&") for sep, _ in parts)
 
 
 def exit_masked(command: str) -> bool:
-    """Whether a call's exit code says nothing about the check: `|| true`, `; true`, or a pipe
-    (a pipeline exits with its last program's code)."""
-    return bool(_MASKED.search(command or ""))
+    """Whether a call's exit may be another program's than the one that did the work: any
+    separator but `&&` (a pipe, `||`, `;`, a newline, a lone `&`)."""
+    return any(sep not in ("", "&&") for sep, _ in _parts(command))
 
 
 def uses(action: Action, path: str) -> bool:
     """A shell call that ran or queried `path` (`python s.py`, `sqlite3 x.db ...`, a script that
-    opens it), succeeded and printed no error. Listing or locating it is not using it."""
+    opens it) and did not fail. The whole name must appear (`old_data.csv` is not `data.csv`),
+    not as a redirect target, and not in a segment that locates it or writes it (`cp`, `touch`)."""
     if action.tool.lower() not in SHELL_TOOLS or action.ok is False:
         return False
     name = PurePath(path.replace("\\", "/")).name.lower()
-    return any(
-        name and name in segment.lower() and not _locates(segment)
-        for segment in _SEGMENTS.split(action.target.replace("\\", "/"))
-        if _tokens(segment)
-    )
+    if not name:
+        return False
+    named = re.compile(r"(?<![\w.-])" + re.escape(name) + r"(?![\w-])")
+    for _, segment in _parts(action.target.replace("\\", "/")):
+        low = segment.lower()
+        program = program_of(segment)
+        if program in _LOCATES or PurePath(program).name in _WRITERS:
+            continue
+        for match in named.finditer(low):
+            if not re.search(r">\s*[\w./-]*$", low[: match.start()]):
+                return True
+    return False
