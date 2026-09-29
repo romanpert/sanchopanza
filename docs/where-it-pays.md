@@ -363,28 +363,45 @@ did beat lexical ranking in this package (the tournament over 100 pages, `select
 the purpose was stated as the question and the unit was a page or a paragraph, not a line of
 someone else's session.
 
-**Masking into an archive beat summarising, and the decider was not why.** Inside Claude
-Code, on 12 synthetic coding tasks with a forced compaction, the autopilot finished 12 of 12
-and the built-in `/compact` 6 of 12 (Fisher two-sided p = 0.014), pre-registered, run
-through our own evaluation harness (`docs/results/2026-09-28-context-e2e/`) **[M]**. The
-mechanism was the free one: masking keeps every assistant message and the last turns'
-results verbatim and stubs older results into an archive, with no model call, while the
-native summary rewrites everything into about 4k tokens and dropped the one fact that cannot
-be had again (a failing command's error code) in 4 of 12 summaries. The agent almost never
-read the archive. Jev's share was 0.011 USD, 0.3 % of the arm's cost, and the arm used 13 %
-**more** input tokens, mostly recall's injections: the registered token hypothesis failed.
-We wrote the tasks and their one-shot facts arrive late in the first phase, where masking
-keeps them; a fact made early and needed late was not tested. The lesson is narrower than the
-headline: before paying a decider to choose what to keep, try keeping recent turns verbatim
-and archiving the rest.
+**Masking did not beat Claude Code's own compaction, and the earlier result that said so is
+retracted.** A first run inside Claude Code reported that the autopilot finished 12 of 12
+synthetic coding tasks against 6 of 12 for the built-in `/compact` (p = 0.014). That comparison
+did not measure masking. Its second phase ran as `claude -p --resume`, and our compaction hook
+returned the engine's own message objects with their `handle`, so Claude Code rebuilt the
+unmasked history on resume: phase B never saw the masked context. The run compared "no
+compaction, plus recall" against the native summary, and its +13 % input tokens came mostly
+from run-to-run variance in the first phase, not from recall
+(`docs/results/2026-09-28-context-e2e/`, correction at the top) **[M]**. The bug is fixed and
+checked: a resumed session now starts masked (57.1k tokens against 85.8k before).
 
-**Running it for real found two silent product bugs that no test caught.** Both looked like
+Measured again, pre-registered, with compaction fired by Claude Code's own auto-compaction in
+the middle of a task (Haiku 4.5, 7 tasks, run through our own evaluation harness), the native
+summary finished **5 of 7**, lean masking (index stubs, an archive, a free arrival cut and a
+`search_archive` tool to pull from it) **3 of 7**, and clearing old results without an archive,
+the effect of Claude Code's microcompaction, **0 of 6** (`docs/results/2026-09-28-context-lean/`)
+**[M]**. Both registered hypotheses failed. Lean masking used more input tokens (10.46M
+against 8.73M) for the same dollars (1.99 against 2.03 USD at list price), because more of its
+tokens were cache reads. The agent never called `search_archive` (0 of 7 sessions); it tried to
+re-run one-shot tools 39 times instead. Offline, on 40 public trajectories, the index a stub
+carries held a later-needed token for **12.0 %** of needed masked results (the registered bar
+was 50 %); a free cut at arrival kept all needed lines in about 1 of 4 large outputs; Jev kept
+them by hardly cutting (95.9 % of the characters). The API's `clear_tool_uses` rule, keeping
+the last 3 results, behaves like masking with M = 3 **[M]**. The lesson: an index written when
+a result is archived cannot know which of its tokens will matter, and an agent does not reach
+for a pull-recall tool on its own. Keep the harness's native compaction as the default; our
+masking is experimental and opt-in.
+
+**Running it for real found silent product bugs that no test caught.** Each looked like
 a working install: no error, the session ran, and the result was Claude Code's own
 behaviour. On Windows, a hook command written with backslash paths never ran (0 hook events
 in the attempt); `install` now writes forward slashes. And the compaction plugin read
 `$.session.usage` as a value; Claude Code's function-hook compiler refused the whole module
 and said so only in its debug log, so `/compact` fell back to the native summary with no sign
-in the session. Both pilot attempts are published as invalid, and both fixes carry tests.
+in the session. Both pilot attempts are published as invalid, and both fixes carry tests. The third is
+the `handle` above: any plugin that replaces a session's messages must not return the
+engine's `handle`, or a resumed session rebuilds the history from before the compaction. It
+too looked like success, and it inflated a published result until the transcripts were
+re-read.
 This is section 5's failure from the other side: fail-open hides a layer that never ran as
 well as a layer that failed. **Count the hook's own events before scoring an arm.**
 
@@ -435,6 +452,7 @@ implemented with a bench; "designed" means the arithmetic is here and the code i
 | **Tool selection, per turn, by rewriting `tools`** | Measured at 1.99x to 4.15x the cost of deciding once **[M]**. Decide once per session, or use the channels that append instead of swapping. |
 | **Tool selection on top of a harness that already defers tools behind its own search** | Inside Claude Code, which defers tools behind its own `ToolSearch` and shows the model their names, a `UserPromptSubmit` hook that opens a window on the prompt changed nothing measurable: 4/4 against 4/4 with the built-in tools, 7/8 against 7/8 with 329 MCP tools from 10 servers **[M]** (`docs/results/2026-09-25-wide/`). The model selects exact names in one search without help. Codex CLI likewise defers MCP tools behind a local BM25 search. |
 | **Predicting which context the rest of a session will need** | At chance: AUC 0.53-0.61 on 40 public coding trajectories, and a replica of an existing compaction plugin kept what clearing all but the last three results keeps **[M]** (`docs/results/2026-09-28-context/`). Observation masking into an archive asks nothing and did the work end to end (section 3). |
+| **Replacing the harness's own compaction with masking** | Not a decision, but measured here: inside Claude Code the native summary finished 5 of 7 tasks, lean masking 3 of 7, clearing without an archive 0 of 6, at more input tokens for masking and the same dollars (`docs/results/2026-09-28-context-lean/`) **[M]**. The earlier 12 of 12 against 6 of 12 is retracted |
 | **Deduplicating fetches by URL** | A dict does it. Keep the model for semantic redundancy, which a dict cannot see. |
 | **Reranking retrieved documents** | A dedicated reranker is better and cheaper, and it is steerable too. See the section below: this one is worth spelling out, because the opposite is being marketed. |
 | **Anything arithmetic, or any comparison of dates** | The model class reads numbers and dates as text, and its own card says so. Our memory collision point never asks which fact is newer; the harness's timestamps answer that in code. |
@@ -592,12 +610,13 @@ Each of these is specified enough that a disagreement becomes a measurement.
 10. **`relate_facts` on new cases.** On the fifth batch neither `unrelated` at a plain majority
     nor examples on `unrelated` beat the shipped question (25 right answers each). The `direction`
     question by roles did, and ships.
-11. **The context autopilot on facts that come back through the archive.** The end-to-end
-    tasks put their one-shot facts where masking keeps them (`docs/results/2026-09-28-context-e2e/`).
-    The test that would move the claim: facts made early and needed late, so recall from the
-    archive is the only path; tool results over 6,000 characters, so the arrival cut fires
-    and Claude Code's `updatedToolOutput` for `Read` and `Bash` is exercised end to end;
-    another agent model; and the native arm paired on the same first phase.
+11. **Masking with an archive, where recall is the only path.** Measured and negative
+    (`docs/results/2026-09-28-context-lean/`): with facts made early and needed late, the
+    agent guessed from the stub's index or re-ran tools instead of searching the archive. What
+    would move the claim: a stub that says what a result will be needed for (not knowable at
+    archive time, see above), or an agent model that uses a search tool unprompted; Sonnet 5
+    is in the same results folder. The Codex CLI integration is written but not verified end
+    to end.
 
 ---
 

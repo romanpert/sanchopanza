@@ -56,7 +56,7 @@ hook already there and a backup of the file as it was (`settings.json.bak`); wit
 code is still refused, and everything else goes through as it did before. By default it guards
 shell commands, delegations and searches; add `--scan-content` to flag instructions planted
 in what the agent reads, `--check-done` to check "done" before the agent stops, and
-`--autopilot` for the [context autopilot](#context-autopilot-for-claude-code). Not on
+`--autopilot` for the experimental [context autopilot](#context-autopilot-for-claude-code-experimental). Not on
 PyPI yet: install from the repository as above (`sancho` on PyPI is an unrelated package).
 
 ---
@@ -141,6 +141,7 @@ indexes every run, with the main evidence and the negatives apart from the histo
 | **A tool window where the platform already has tool search** | Sonnet 5, 40 AgentDojo tasks, 74 tools: success shows no detectable difference (loading everything 70/80 over two runs, the window 100/120 over three, the platform's search 31/40). Cost, estimated from recorded usage with the `tools` + `system` prefix shared between tasks: the window **0.77-0.88x** of loading everything, the search 1.48x; the window's time is 0.91x ([e2e](docs/results/2026-09-25-e2e/), [cost basis](docs/results/2026-09-25-cache/)). On a real MCP catalog of 398 tools the platform's search is the cheaper, an estimated **0.34x against the window's 0.54x** of loading everything with the prefix shared, at the same success (8/9 each, 7/9 for loading everything): the window opened the 121-tool Google Workspace server in 11 of 17 tasks ([wide](docs/results/2026-09-25-wide/)). Inside Claude Code, a sanchopanza hook changed nothing measurable over its own deferred tool search |
 | **Saving tokens inside a free agent loop** | In an agent loop that fetched one or two documents per task, 64 paired runs showed no measurable change in cost and 11 to 16 % more wall time ([A/B](benchmarks/ab)): there was little to drop, and inside a warm loop a dropped token is priced at the cache-read rate. The saving above is one answering call over a sequence built to be mostly useless; in a loop it is unmeasured |
 | **Asking what the rest of a session will need** | At compaction, a decider asked which tool results the future will use separated needed from unneeded at AUC 0.53-0.61 on 40 public trajectories; a replica of an existing Jev compaction plugin kept 9 % of what was later used, the same as keeping the last three results ([context](docs/results/2026-09-28-context/)). Masking, which asks nothing, is what the autopilot uses |
+| **Replacing Claude Code's own compaction** | Inside Claude Code, with auto-compaction firing mid-task, the native summary finished 5 of 7 tasks, our lean masking 3 of 7 and clearing without an archive 0 of 6; masking used more input tokens at the same dollars, and the agent never called the archive search tool ([context lean](docs/results/2026-09-28-context-lean/)). An earlier 12 of 12 against 6 of 12 is retracted: its second phase never saw the masked history |
 | **A lexical screen (BM25) before one in-context call** | Matched the tournament once (96.0 % against 96.5 %) and did not replicate on 200 fresh HotpotQA questions, pre-registered: 96.5 % against 97.5 %, lower bound -4 points against a registered -3; six of its seven misses were pages BM25 dropped before any call. Retired ([confirmation](docs/results/2026-09-28-lateral-screen-confirm/)) |
 
 The rule that falls out of it: a cheap decision pays reliably when it **replaces** a call,
@@ -159,39 +160,71 @@ problem is the unit, since a group the size of a whole MCP server is loaded whol
 
 ---
 
-## Context autopilot for Claude Code
+## Context autopilot for Claude Code (experimental)
 
 ```bash
-sanchopanza install --autopilot --write
+sanchopanza install --autopilot --write          # arrival cut, recall, masking compaction
+sanchopanza install --autopilot --lean --write   # no decider: index stubs, free cut, search_archive
 ```
 
-Opt-in, and the agent never asks for it. When the context reaches
-`SANCHOPANZA_COMPACT_AT_PERCENT` (60), a Claude Code plugin masks old tool results into
-`.sanchopanza/archive/` instead of summarising: every assistant message and the results of
-the last turns stay verbatim, older results become one line naming their archive file. That
-main mechanism needs no decider and makes no model call. Around it, two hooks use the
-decider on content being added, never on what is already in the conversation: a tool result
-over 6,000 characters can be cut on arrival to the blocks the current task needs, and
-archived output and memory files are recalled (BM25, then one in-context triage) on each
-prompt and after tool calls. Every hook fails open, and a per-session ledger caps the
+Opt-in, experimental, and **measured worse than Claude Code's own compaction on our tasks**:
+keep the native compaction as the default. When the context reaches
+`SANCHOPANZA_COMPACT_AT_PERCENT` (60), or when Claude Code's auto-compaction fires, a Claude
+Code plugin masks old tool results into `.sanchopanza/archive/` instead of summarising: every
+assistant message and the results of the last turns stay verbatim, older results become one
+line naming their archive file. Around it, two hooks use the decider on content being added,
+never on what is already in the conversation: a tool result over 6,000 characters can be cut
+on arrival to the blocks the current task needs, and archived output and memory files are
+recalled (BM25, then one in-context triage) on each prompt and after tool calls. `--lean`
+asks no decider: each stub carries an index of the codes and pairs its result held
+(`SANCHOPANZA_STUB_STYLE=index`), the arrival cut is a free line cut
+(`SANCHOPANZA_ARRIVAL_MODE=free`), nothing is injected (`SANCHOPANZA_RECALL_ON=off`), and a
+`search_archive` MCP server (`sanchopanza archive-mcp`, written to the project's `.mcp.json`)
+lets the agent pull from the archive. Every hook fails open, and a per-session ledger caps the
 decider's spend at `SANCHOPANZA_SESSION_MAX_USD` (0.50). Function hooks are early access in
 Claude Code; the install sets `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1`.
 
-**Measured end to end, pre-registered.** In 12 synthetic coding tasks with a forced
-compaction between two phases (Claude Code 2.1.282, Haiku 4.5 as the agent, run through our
-own evaluation harness), the autopilot finished **12 of 12** and the built-in `/compact`
-**6 of 12** (Fisher's exact test, two-sided p = 0.014). A fact seen only in a failing
-command's output survived 12 times against 8, and after compaction the agent re-read 0.25
-files per task against 6. The catch, all of it: we wrote the tasks, and their one-shot facts
-arrive at the end of the first phase, where masking keeps recent turns verbatim, so the
-mechanism is masking and not the decider; a fact made early and needed late, which would
-have to come back through the archive, was not tested. One agent model, one Claude Code
-version, and for half the tasks the native arm was not paired with the autopilot's session.
-The arrival cut never fired. **It did not save tokens**: 13 % more input tokens and 13.5 %
-more cost, mostly recall's injections, so the registered token hypothesis failed. Jev cost
-0.011 USD in all, 0.3 % of the autopilot arm's cost. These figures are not directly
+**Retracted: "12 of 12 against 6 of 12 for `/compact`".** An earlier version of this section
+reported that the autopilot finished 12 of 12 synthetic coding tasks and the native `/compact`
+6 of 12 (p = 0.014). That run did not measure masking. Its second phase ran as `claude -p
+--resume`, and our compaction hook returned the engine's message objects with their `handle`,
+so Claude Code rebuilt the unmasked history on resume: the second phase never saw the masked
+context, and the comparison was "no compaction, plus recall" against the native summary. The
++13 % input tokens came mostly from run-to-run variance in the first phase, not from recall.
+The bug is fixed and verified (a resumed session now starts masked, 57.1k tokens against 85.8k
+before) ([correction](docs/results/2026-09-28-context-e2e/)).
+
+**Measured again, pre-registered, and negative.** With compaction fired by Claude Code's own
+auto-compaction in the middle of a task (Claude Code 2.1.282, Haiku 4.5 as the agent, 7 tasks
+whose facts are made early or mid-session and needed after the compaction, run through our own evaluation harness):
+
+| | native summary | lean masking | clearing old results, no archive |
+|---|---|---|---|
+| tasks finished | **5/7** | **3/7** | **0/6** |
+| second-phase input tokens, sum | 8.73M | 10.46M | 8.56M (6 tasks) |
+| cost, list price | 2.03 USD | 1.99 USD | 1.68 USD (6 tasks) |
+
+Both registered hypotheses failed: masking finished fewer tasks and used more input tokens,
+at the same dollars because more of its tokens were cache reads. The agent never called
+`search_archive` (0 of 7 sessions); it tried to re-run one-shot tools 39 times instead, and
+where it failed it guessed from a stub's index that did not hold the token it needed.
+Offline, on 40 public trajectories, a 240-character index held a later-needed token for
+**12.0 %** of needed masked results (registered bar 50 %), and a free cut at arrival kept all
+needed lines in about 1 of 4 large outputs; Jev kept them by hardly cutting (95.9 % of the
+characters). Clearing without an archive is what Claude Code's microcompaction does, and it
+never runs under `-p`; the API's `clear_tool_uses` (keep 3) behaves like masking that keeps
+the last 3 results. Sonnet 5, stopped by the spend gate: t01 solved by both; on t02 masking compacted five times (it thrashes: the masked context stays near the threshold) and failed, at 2.04 USD. These figures are not directly
 comparable with figures obtained through the API
-([context end to end](docs/results/2026-09-28-context-e2e/)).
+([context lean](docs/results/2026-09-28-context-lean/)).
+
+**What stays, and why.** The `handle` fix: any plugin that replaces a session's messages must
+not return the engine's `handle`. The mechanics, read from Claude Code 2.1.282 and checked:
+auto-compaction fires mid-turn, before an API call, and runs the `session.compact` function
+hook with trigger `auto`; microcompaction never runs in `-p`; `turn.complete` fires once per
+prompt, so a between-turns trigger never acts inside a long task. The same plugin works
+through the Claude Agent SDK (verified). A hooks module for OpenAI's Codex CLI
+(`sanchopanza.harness.codex`) is written but **not verified end to end**: in four attempts
+its hooks never ran.
 
 **What did not work, offline and pre-registered.** Asking a decider which tool results the
 rest of a session will need is at chance: AUC 0.53-0.61 for our question and for the

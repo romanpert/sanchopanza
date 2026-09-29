@@ -9,12 +9,12 @@ do not favour this package.
 
 ### Added
 
-- **Autopilot for Claude Code, opt-in** (`sanchopanza install --autopilot`,
-  `harness.autopilot`). Measured end to end, pre-registered: 12/12 synthetic coding tasks
-  against 6/12 for the built-in `/compact` (n = 12, Fisher two-sided p = 0.014), by masking
-  rather than by the decider, at +13 % input tokens, so the token hypothesis failed
-  (`docs/results/2026-09-28-context-e2e/`); offline, the arrival cut and the decider in recall
-  did not beat free baselines (`docs/results/2026-09-28-context/`). The agent never asks for
+- **Autopilot for Claude Code, opt-in and experimental** (`sanchopanza install --autopilot`,
+  `harness.autopilot`). Measured end to end, pre-registered, and **worse than Claude Code's own
+  compaction on our tasks**: native summary 5/7, lean masking 3/7
+  (`docs/results/2026-09-28-context-lean/`). Keep the native compaction as the default. The
+  earlier 12/12 against 6/12 is retracted (see Measured). Offline, the arrival cut and the
+  decider in recall did not beat free baselines (`docs/results/2026-09-28-context/`). The agent never asks for
   context reduction: a tool result over 6,000 characters can be cut on arrival (`PostToolUse`,
   `updatedToolOutput`, the tool's own output shape) to the blocks the current task needs
   (`context.arrival`, `context.blocks`), prose blocks at p >= 0.75 down to sentences with window
@@ -30,6 +30,21 @@ do not favour this package.
   `SANCHOPANZA_SESSION_MAX_USD` (0.50). Offline: `benchmarks/context/simulate.py arrival|recall`
   (`--estimate`, `--dry`; `--live` refuses until registered) and the experimental `tournament`
   arm of `benchmarks/context/run.py`.
+- **`sanchopanza install --autopilot --lean`, experimental.** The autopilot with no decider:
+  masked results keep an index of the codes and pairs they held (`--stub-style index` on
+  `sanchopanza compact`, `SANCHOPANZA_STUB_STYLE`; `context.index.index_of`), the arrival cut
+  is a free line cut (`SANCHOPANZA_ARRIVAL_MODE=free`, `arrival.free_cut`: first and last lines,
+  error lines and BM25 lines against the purpose), no recall is injected
+  (`SANCHOPANZA_RECALL_ON=off`), and the `search_archive` MCP server is written to the
+  project's `.mcp.json` and approved by name. Measured: 3/7 against the native summary's 5/7,
+  and the agent never called `search_archive`.
+- **`sanchopanza archive-mcp`**: an MCP server with one tool, `search_archive`, BM25 over
+  `.sanchopanza/archive`; no decider and no key (`harness.mcp.build_archive_server`, mcp 1.x
+  or 2.x).
+- **`sanchopanza.harness.codex`**: hook bodies (`post-tool-use`, `session-start`) and config
+  generators for OpenAI's Codex CLI, archiving tool output and pointing at `search_archive`.
+  Offline tests only; **not verified end to end** (in four `codex exec` attempts the trusted
+  hooks never ran). See `docs/results/2026-09-28-context-lean/codex/`.
 - **Broader Claude Code evidence, pre-registered** (`docs/results/2026-09-28-claude-code-broad/`).
   Hook level: 1,816 labelled cases through the `sanchopanza hook` process with real Jev. The
   shell-fetch scan noted 121/124 AgentDojo injections in `curl` output with 0/149 false alarms,
@@ -188,6 +203,19 @@ do not favour this package.
 
 ### Fixed
 
+- **The compaction hook returned the engine's `handle`, so a resumed session was not
+  compacted.** `compact_hook.ts` handed back the engine's own message objects for the messages
+  it did not change; Claude Code then chained the entries written after the compaction to the
+  old ones, and `claude -p --resume` rebuilt the history from before the compaction, unmasked.
+  Returned messages now never carry `handle`
+  (`test_returned_messages_never_carry_the_engine_handle`); a resumed session starts masked
+  (57.1k tokens against 85.8k before). It invalidated the published 12/12 against 6/12. Any
+  plugin that replaces a session's messages must not return `handle`.
+- **The benchmark runners passed the coordinating session's `CLAUDE_*` variables to the child
+  sessions** (`CLAUDE_EFFORT=medium` and others). The runners now drop them.
+- **A stale `--out` file could survive a declined compaction.** An earlier run's
+  `.sanchopanza/compact-*.json` that nobody blanked kept a copy of the conversation after a
+  fallback (exit 3); it is now blanked, and a fallback archives nothing.
 - **On Windows the Claude Code hooks never ran.** A hook command written with backslash paths
   was not executed (0 hook events in the attempt), with no error anywhere.
   `install.portable_command` now writes forward slashes. Found by the first end-to-end pilot
@@ -285,19 +313,29 @@ do not favour this package.
 
 ### Measured
 
-- **The context autopilot inside Claude Code** (`docs/results/2026-09-28-context-e2e/`,
-  pre-registered, Claude Code 2.1.282 headless with Haiku 4.5 as the agent, run through our own
-  evaluation harness): 12 synthetic coding tasks with a forced compaction between two phases.
-  The autopilot finished 12/12, the built-in `/compact` 6/12 (Fisher two-sided p = 0.014); the
-  failing command's error code survived 12 against 8 and the release token 12 against 11;
-  re-reads after compaction 0.25 per task against 6. Input tokens +13.4 % and cost +13.5 %
-  (3.36 against 2.96 USD at list price), mostly recall's injections: the token hypothesis
-  failed. The mechanism is masking, which keeps recent turns verbatim and makes no model call,
-  not the decider (Jev 0.011 USD, 0.3 % of the arm's cost). Caveats: we wrote the tasks and
-  their one-shot facts arrive where masking keeps them; one agent model; the arrival cut never
-  fired; for t01-t06 the native arm was not paired with the autopilot's session. Cost figures
-  were corrected after round 2 (resumed sessions report cumulative totals). A first rules-only
-  pruning arm always fell back to the native summary and is reported as such.
+- **Compaction mid-session: native summary against lean masking, negative**
+  (`docs/results/2026-09-28-context-lean/`, pre-registered, Claude Code 2.1.282 headless with
+  Haiku 4.5, 7 tasks, compaction fired by Claude Code's own auto-compaction mid-task, run
+  through our own evaluation harness). Native summary 5/7, lean masking (index stubs, archive,
+  free arrival cut, pull `search_archive`) 3/7, clearing old results without an archive
+  (microcompaction-like) 0/6. H1 and H2 failed. Lean used more input tokens (10.46M against
+  8.73M) at the same dollars (1.99 against 2.03 USD, list price) because of cache reads. The
+  agent never called `search_archive` (0 of 7 sessions) and tried to re-run one-shot tools 39
+  times. Offline: index stubs hold a later-needed token for 12.0 % of needed masked results
+  (bar 50 %); free arrival cuts keep all needed lines in about 1 of 4 large outputs; Jev keeps
+  them by hardly cutting (95.9 % of characters); the API's `clear_tool_uses` (keep 3) behaves
+  like masking with M = 3. Mechanics confirmed: auto-compaction fires mid-turn and runs the
+  `session.compact` function hook with trigger `auto`; microcompaction never runs in `-p`;
+  `turn.complete` fires once per prompt; the Agent SDK path works. Sonnet 5 (stopped by the spend
+  gate): t01 solved by both; t02 masking compacted five times, thrashing near the threshold,
+  and failed at 2.04 USD. Spend: probes 2.14, Haiku 6.93, Sonnet 3.75 USD at list price
+  (12.82 in all), Jev 0.081 USD.
+- **Retracted: the context autopilot's 12/12 against 6/12 for `/compact`**
+  (`docs/results/2026-09-28-context-e2e/`, correction at the top). Under `claude -p --resume`
+  the compaction hook returned the engine's `handle`, so Claude Code rebuilt the unmasked
+  history and phase B never saw the masked context: the comparison was "no compaction, plus
+  recall" against the native summary. The +13 % input tokens came mostly from phase-A
+  variance, not from recall. Left in place for the record.
 - **Pruning a coding agent's context by decision, negative** (`docs/results/2026-09-28-context/`,
   pre-registered, 40 public OpenHands trajectories, offline): all four criteria fail. Asking
   which results the rest of the session will use ranks needed against unneeded at AUC 0.57
