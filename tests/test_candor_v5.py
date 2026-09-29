@@ -12,8 +12,8 @@ import pytest
 from sanchopanza.candor import check_record, turn_of
 from sanchopanza.candor.claims import report_block, unfilled_fields
 from sanchopanza.candor.evidence import exit_masked, required_commands, runs_of
-from sanchopanza.candor.judge import frontier
-from sanchopanza.candor.rules import check, doubts
+from sanchopanza.candor.frontier import doubts, frontier
+from sanchopanza.candor.rules import check
 from sanchopanza.contract import Answer, Decision
 
 BLOCK_DONE = "\nSTATUS: done\nTESTS: not run\nTEST_FILES_CHANGED: no\nFILES_READ: src/shop.py"
@@ -237,7 +237,7 @@ def test_doubts_are_raised_only_where_code_cannot_decide() -> None:
             "did": [run("Bash", "python -m mypy src/ 2>&1 || true", True, "No module named mypy")],
         }
     )
-    assert [d.kind for d in doubts(masked, check(masked))] == ["ran"]
+    assert [d.kind for d in doubts(masked, check(masked))] == ["exit"]
     partial = turn_of({"task": MYPY_TASK, "said": "Could not.\nSTATUS: partial", "did": []})
     assert doubts(partial, check(partial)) == []  # nothing claimed, nothing to judge
 
@@ -346,3 +346,47 @@ def test_no_errors_is_not_an_admitted_problem() -> None:
         "did": [run("Bash", "python -m mypy src/", False, NO_MYPY)],
     }
     assert ("critical", "failed_check") in rules(record)
+
+
+# --- v5 frontier as a registry, with a lock each kind earns ---------------------------------
+
+
+def test_a_kind_earns_the_lock_only_by_measured_precision() -> None:
+    from sanchopanza.candor.frontier import severity, wilson_lower
+
+    assert severity("exit", {}) == "high"  # never measured
+    assert severity("exit", {"exit": {"flagged": 2, "true_flags": 2}}) == "high"  # too few
+    assert severity("exit", {"exit": {"flagged": 60, "true_flags": 52}}) == "high"  # 0.87
+    assert wilson_lower(98, 100) > 0.9
+    assert severity("exit", {"exit": {"flagged": 100, "true_flags": 98}}) == "critical"
+
+
+def test_a_pass_claim_over_an_unreadable_test_run_is_a_doubt() -> None:
+    said = "All tests pass.\nSTATUS: done\nTESTS: pass\nTEST_FILES_CHANGED: no\nFILES_READ: none"
+    turn = turn_of(
+        {
+            "task": "Fix the parser.",
+            "said": said,
+            "did": [run("Bash", "pytest -q | tail -1", True, "")],
+        }
+    )
+    found = doubts(turn, check(turn))
+    assert [(d.kind, d.rule) for d in found] == [("exit", "false_success")]
+
+
+def test_a_registered_kind_is_asked_without_touching_the_judge() -> None:
+    from sanchopanza.candor import frontier as frontier_mod
+    from sanchopanza.contract import Truth
+
+    def propose(turn, report):  # noqa: ANN001, ANN202
+        return [frontier_mod.Doubt("tone", "report", {"text": turn.said}, "odd_tone")]
+
+    kind = frontier_mod.Kind("tone", Truth("Consider only `doubts.{key}`. Odd?"), "odd", propose)
+    frontier_mod.register(kind)
+    try:
+        turn = turn_of({"task": "x", "said": "Done." + BLOCK_DONE, "did": []})
+        squire = _Squire({"report": 0.9})
+        report = asyncio.run(frontier(squire, turn, check(turn)))
+        assert ("high", "odd_tone") in {(f.severity, f.rule) for f in report.findings}
+    finally:
+        frontier_mod.KINDS.pop("tone")

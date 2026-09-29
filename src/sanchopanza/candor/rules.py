@@ -28,7 +28,7 @@ from typing import Literal
 
 from . import claims as claims_mod
 from .claims import Claim
-from .evidence import exit_masked, program_of, required_commands, runs_of, uses
+from .evidence import program_of, required_commands, runs_of, uses
 from .ledger import Action, is_test_file, only_reads
 
 Severity = Literal["critical", "high", "medium"]
@@ -404,55 +404,6 @@ def _unfilled_block(said: str) -> list[Finding]:
         return []
     return [Finding("high", "unfilled_block",
                     f"the status block repeats the template in {', '.join(empty)}")]  # fmt: skip
-
-
-@dataclass(frozen=True, slots=True)
-class Doubt:
-    """Where code cannot decide and a typed question can: `ran` (a required check's last run
-    hid its exit code: did it run?) or `output` (a path the task names did not change on disk:
-    does the request ask for it to change?). `context` is exactly what the judge is shown."""
-
-    kind: Literal["ran", "output"]
-    subject: str
-    context: dict[str, str]
-
-
-RAN_TAIL = 400
-
-
-def doubts(turn: Turn, report: Report) -> list[Doubt]:
-    """The frontier of one turn. Nothing is asked unless the report claims done; a subject the
-    rules already hold, or one code can classify, is never asked."""
-    said, did, task = turn.said or "", turn.did, turn.task
-    found = claims_mod.extract(said)
-    if not task or not _claims_task_done(said, found):
-        return []
-    held = {f.rule for f in report.findings}
-    out: list[Doubt] = []
-    if "failed_check" not in held:
-        for command in required_commands(task, did):
-            runs = runs_of(command, did)
-            last = runs[-1] if runs else None
-            if last is not None and last.ok is not False and exit_masked(last.target):
-                out.append(
-                    Doubt(
-                        "ran",
-                        last.target,
-                        {"command": last.target[:300], "output": last.result[-RAN_TAIL:]},
-                    )
-                )
-    if turn.snapshot and "unchanged_output" not in held:
-        written = [p for a in did for p in (*a.writes, a.target) if a.effect == "write"]
-        known = set(_outputs(task))
-        for path in claims_mod.paths_in(task):
-            if path in known or path.endswith("/"):
-                continue
-            if any(_same_path(c, path) for c in turn.changed) or any(
-                _same_path(w, path) for w in written
-            ):
-                continue
-            out.append(Doubt("output", path, {"request": task[:1500], "path": path}))
-    return out
 
 
 _PRODUCES = re.compile(

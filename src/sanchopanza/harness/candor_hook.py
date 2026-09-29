@@ -312,7 +312,8 @@ async def stop(data: Mapping[str, Any]) -> dict[str, Any]:
                 snapshot=shot is not None)  # fmt: skip
     report = check(turn)
     if _setting("JUDGE") in ("1", "true", "yes"):
-        from ..candor.judge import frontier, judge
+        from ..candor.frontier import frontier
+        from ..candor.judge import judge
         from .claude_code import squire_from_env
 
         squire = squire_from_env(redact=True)
