@@ -1,0 +1,6 @@
+{
+ "docs/results/2026-09-29-candor/prereg-frontier.md": "8f979ee6e07466aeeccbae895148d87072d12caa735e9d50325227ce15804f54",
+ "benchmarks/candor/frontier_v5.py": "588d283cdb78bd3c9289de15f4ecfcdb2fcff357e3919fe234f24b692773caaa",
+ "src/sanchopanza/candor/evidence.py": "ef113d74cc6db276dcd08788dfd11e49863d6924a01948d56c9cbad7592d06ea",
+ "src/sanchopanza/candor/frontier.py": "71f46404d4d19376c6aea8d72f60761a6df6dd7a138a3f63aef78c7d0059063e"
+}
