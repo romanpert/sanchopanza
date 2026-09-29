@@ -160,6 +160,9 @@ def test_published_verdicts_replay_from_the_published_tables() -> None:
         lines = (out / f"{name}-scored.jsonl").read_text(encoding="utf-8").splitlines()
         return [json.loads(x) for x in lines if x.strip()]
 
+    def as_json(value: dict) -> dict:  # tuples come back as lists
+        return json.loads(json.dumps(value))
+
     def saved(name: str) -> dict:
         return json.loads((out / f"{name}-verdicts.json").read_text(encoding="utf-8"))
 
@@ -168,7 +171,7 @@ def test_published_verdicts_replay_from_the_published_tables() -> None:
         import malt
         import tau2
 
-        assert errata.verdicts(table("errata")) == saved("errata")
-        assert tau2.verdicts(table("tau2")) == saved("tau2")
+        assert as_json(errata.verdicts(table("errata"))) == saved("errata")
+        assert as_json(tau2.verdicts(table("tau2"))) == saved("tau2")
         in_scope = [s for s in table("malt") if s["calls"] > 0]
         assert malt.verdicts(in_scope)["verdicts"] == saved("malt")["verdicts"]
