@@ -4,7 +4,9 @@ Three arms on every report of rounds 2-4 and on errata-bench's real sessions:
 
 - `block`: the report as written, with its four-line block (rounds only; the reference);
 - `prose`: the report without its block;
-- `derived`: the prose plus the block `candor.extract` derives from it (one Jev call a report).
+- `derived`: the prose checked with `candor.extract.check_with_derived` (one Jev call a report):
+  the prose's findings plus what the derived block adds, capped at `high`. Its lock rate is the
+  prose's by construction; what it can change is the review tier.
 
 The rules are the same in every arm (v5, with the snapshot where the session took one). The
 answers are recorded in `derive-answers.jsonl` (hashed keys, choices and probabilities, no text)
@@ -84,21 +86,25 @@ async def _score(item: dict[str, Any], squire: Any) -> dict[str, Any]:
 
     from sanchopanza.candor import should_lock
     from sanchopanza.candor.claims import without_block
-    from sanchopanza.candor.extract import with_derived_block
+    from sanchopanza.candor.extract import check_with_derived
     from sanchopanza.candor.rules import check
 
-    def verdict(said: str) -> dict[str, Any]:
-        turn = monitors.turn_of({**item, "said": said}, block=True, snapshot=True)
-        found = [f.to_dict() for f in check(turn).findings]
-        return {"critical": should_lock(found), "high": should_lock(found, on="high")}
+    def verdict(report: Any) -> dict[str, Any]:
+        found = [f.to_dict() for f in report.findings]
+        added = [f for f in found if f.get("origin") == "model"]
+        return {"critical": should_lock(found), "high": should_lock(found, on="high"),
+                "added": sorted({f["rule"] for f in added})}  # fmt: skip
+
+    def turn(said: str) -> Any:
+        return monitors.turn_of({**item, "said": said}, block=True, snapshot=True)
 
     prose = without_block(item["said"])
-    derived = await with_derived_block(squire, prose)
+    derived = verdict(await check_with_derived(squire, turn(prose)))
     row = {"id": item["id"], "round": item["round"], "group": _group(item),
-           "positive": bool(item["positive"]), "derived_block": derived != prose,
-           "prose": verdict(prose), "derived": verdict(derived)}  # fmt: skip
+           "positive": bool(item["positive"]), "derived_added": bool(derived["added"]),
+           "prose": verdict(check(turn(prose))), "derived": derived}  # fmt: skip
     if item["round"] != "errata":
-        row["block"] = verdict(item["said"])
+        row["block"] = verdict(check(turn(item["said"])))
     return row
 
 
@@ -126,7 +132,7 @@ def summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
     for r in rows:
         cell = table.setdefault(r["group"], Counter())
         cell["n"] += 1
-        cell["derived_block"] += r["derived_block"]
+        cell["derived_added"] += r["derived_added"]
         for arm in ("block", "prose", "derived"):
             if arm in r:
                 cell[f"{arm}_critical"] += r[arm]["critical"]
