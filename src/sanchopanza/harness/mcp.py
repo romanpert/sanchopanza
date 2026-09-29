@@ -94,8 +94,8 @@ def _server(name: str) -> Any:
 
 
 FIND_DESCRIPTION = (
-    "Find the files and line ranges in this repository that bear on a task, in words or "
-    "identifiers. Returns path:first-last with an excerpt; Read a path for the full text."
+    "Find what bears on a task: kind=code (default), symbol, file, skill, agent, memory, "
+    "archive or tool. Returns keys (path:lines) with an excerpt; Read a path for the full text."
 )
 
 
@@ -137,9 +137,10 @@ def add_find(server: Any, *, repo: Path | None = None, squire: Any = None) -> An
     from ..context.repo import find as find_fragments
 
     @server.tool(description=FIND_DESCRIPTION)
-    async def find_in_repo(query: str, k: int = 8) -> str:
+    async def find_in_repo(query: str, k: int = 8, kind: str = "code") -> str:
         where = repo or Path.cwd()
-        return await find_fragments(query, where, squire=squire or _squire_if_keyed(), k=k)
+        judge = squire or _squire_if_keyed()
+        return await find_fragments(query, where, squire=judge, k=k, kind=kind)
 
     return server
 

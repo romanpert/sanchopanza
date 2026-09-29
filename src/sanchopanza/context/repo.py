@@ -200,15 +200,34 @@ def indexed(root: Path) -> tuple[list[Candidate], BM25Index]:
     return cached.candidates, cached.index
 
 
+def _source(kind: str, root: Path) -> tuple[list[Candidate], BM25Index, str]:
+    """The candidates, index and judge's purpose of one kind (`context.sources`). `code` is the
+    measured path, its own cache and purpose unchanged."""
+    if kind == "code":
+        candidates, index = indexed(root)
+        return candidates, index, PURPOSE
+    from .sources import SOURCES
+    from .sources import indexed as source_indexed
+
+    candidates, index = source_indexed(kind, root)
+    return candidates, index, SOURCES[kind].purpose
+
+
 async def search(
-    query: str, root: Path, *, squire: Any = None, k: int = 8, shortlist_k: int = 60
+    query: str,
+    root: Path,
+    *,
+    squire: Any = None,
+    k: int = 8,
+    shortlist_k: int = 60,
+    kind: str = "code",
 ) -> list[Pick]:
-    candidates, index = indexed(root)
+    candidates, index, purpose = _source(kind, root)
     return await select(
         query,
         candidates,
         squire=squire,
-        purpose=PURPOSE.format(query=query),
+        purpose=purpose.format(query=query),
         shortlist_k=shortlist_k,
         keep=k,
         index=index,
@@ -220,7 +239,7 @@ def render(picks: list[Pick], query: str, *, root: Path, searched: int) -> str:
         return f"Nothing in {root} matches {query!r} ({searched} fragments searched)."
     judged = any(p.p is not None for p in picks)
     head = "judged in context" if judged else "BM25, no judge"
-    lines = [f"{len(picks)} of {searched} fragments ({head}). Read a path for the full text."]
+    lines = [f"{len(picks)} of {searched} candidates ({head}). Read a path for the full text."]
     for n, pick in enumerate(picks, 1):
         mark = f" p={pick.p:.2f}" if pick.p is not None else ""
         excerpt = best_window(pick.candidate.text, query, 300).strip()
@@ -228,13 +247,21 @@ def render(picks: list[Pick], query: str, *, root: Path, searched: int) -> str:
     return "\n\n".join(lines)
 
 
-async def find(query: str, root: Path, *, squire: Any = None, k: int = 8) -> str:
-    """Search `root` and render the result the way `search_archive` does: paths to Read."""
+async def find(
+    query: str, root: Path, *, squire: Any = None, k: int = 8, kind: str = "code"
+) -> str:
+    """Search `root` for candidates of `kind` (`context.sources`: code, symbol, file, skill,
+    agent, memory, archive, tool, or any registered one) and render them as keys to Read."""
+    from .sources import kinds
+
     query = str(query or "").strip()
     if not query:
         return "Give a query: what you are trying to do or find, in words or identifiers."
-    picks = await search(query, root, squire=squire, k=max(1, min(int(k), 20)))
-    return render(picks, query, root=root, searched=len(indexed(root)[0]))
+    kind = str(kind or "code").strip().lower()
+    if kind not in kinds():
+        return f"Unknown kind {kind!r}; known: {', '.join(kinds())}."
+    picks = await search(query, root, squire=squire, k=max(1, min(int(k), 20)), kind=kind)
+    return render(picks, query, root=root, searched=len(_source(kind, root)[0]))
 
 
 HINT_MAX_FILES = 3_000  # a hook is a fresh process: past this, indexing would stall the prompt
@@ -259,13 +286,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--root", default=".")
     parser.add_argument("--k", type=int, default=8)
     parser.add_argument("--free", action="store_true", help="BM25 only, never a decider")
+    parser.add_argument("--kind", default="code", help="code, symbol, file, skill, agent, ...")
     args = parser.parse_args(argv)
     squire = None
     if not args.free:
         from ..harness.claude_code import squire_from_env
 
         squire = squire_from_env()
-    sys.stdout.write(asyncio.run(find(args.query, Path(args.root), squire=squire, k=args.k)))
+    found = find(args.query, Path(args.root), squire=squire, k=args.k, kind=args.kind)
+    sys.stdout.write(asyncio.run(found))
     sys.stdout.write("\n")
     return 0
 
