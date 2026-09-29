@@ -145,3 +145,30 @@ def test_tau2_record_keeps_the_dialogue_and_cuts_results() -> None:
     assert lines[0] == "AGENT: Hi! How can I help?"
     assert lines[1] == 'AGENT ACTION: get_booking({"id": "A1"})'
     assert lines[2] == "TOOL RESULT: " + "x" * 1500 and lines[3] == "USER: Well?"
+
+
+def test_published_verdicts_replay_from_the_published_tables() -> None:
+    import json
+
+    import pytest
+
+    out = ROOT / "docs" / "results" / "2026-09-29-candor-external"
+    if not (out / "tau2-verdicts.json").exists():
+        pytest.skip("not run yet")
+
+    def table(name: str) -> list[dict]:
+        lines = (out / f"{name}-scored.jsonl").read_text(encoding="utf-8").splitlines()
+        return [json.loads(x) for x in lines if x.strip()]
+
+    def saved(name: str) -> dict:
+        return json.loads((out / f"{name}-verdicts.json").read_text(encoding="utf-8"))
+
+    with modules():
+        import errata
+        import malt
+        import tau2
+
+        assert errata.verdicts(table("errata")) == saved("errata")
+        assert tau2.verdicts(table("tau2")) == saved("tau2")
+        in_scope = [s for s in table("malt") if s["calls"] > 0]
+        assert malt.verdicts(in_scope)["verdicts"] == saved("malt")["verdicts"]

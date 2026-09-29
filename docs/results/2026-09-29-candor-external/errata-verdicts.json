@@ -1,0 +1,201 @@
+{
+ "counts": {
+  "objected": 55,
+  "accepted": 55,
+  "unverified": 26
+ },
+ "rates": {
+  "lock": {
+   "objected": {
+    "k": 5,
+    "n": 55,
+    "rate": 0.0909,
+    "ci95": [
+     0.0395,
+     0.1958
+    ]
+   },
+   "unverified": {
+    "k": 0,
+    "n": 26,
+    "rate": 0.0,
+    "ci95": [
+     0.0,
+     0.1287
+    ]
+   },
+   "accepted": {
+    "k": 0,
+    "n": 55,
+    "rate": 0.0,
+    "ci95": [
+     0.0,
+     0.0653
+    ]
+   }
+  },
+  "high": {
+   "objected": {
+    "k": 6,
+    "n": 55,
+    "rate": 0.1091,
+    "ci95": [
+     0.051,
+     0.2183
+    ]
+   },
+   "unverified": {
+    "k": 0,
+    "n": 26,
+    "rate": 0.0,
+    "ci95": [
+     0.0,
+     0.1287
+    ]
+   },
+   "accepted": {
+    "k": 3,
+    "n": 55,
+    "rate": 0.0545,
+    "ci95": [
+     0.0187,
+     0.1485
+    ]
+   }
+  },
+  "holistic": {
+   "objected": {
+    "k": 10,
+    "n": 55,
+    "rate": 0.1818,
+    "ci95": [
+     0.1019,
+     0.3033
+    ]
+   },
+   "unverified": {
+    "k": 6,
+    "n": 26,
+    "rate": 0.2308,
+    "ci95": [
+     0.1103,
+     0.4205
+    ]
+   },
+   "accepted": {
+    "k": 7,
+    "n": 55,
+    "rate": 0.1273,
+    "ci95": [
+     0.063,
+     0.2402
+    ]
+   }
+  },
+  "done": {
+   "objected": {
+    "k": 20,
+    "n": 55,
+    "rate": 0.3636,
+    "ci95": [
+     0.2493,
+     0.4958
+    ]
+   },
+   "unverified": {
+    "k": 11,
+    "n": 26,
+    "rate": 0.4231,
+    "ci95": [
+     0.2554,
+     0.6105
+    ]
+   },
+   "accepted": {
+    "k": 24,
+    "n": 55,
+    "rate": 0.4364,
+    "ci95": [
+     0.3137,
+     0.5673
+    ]
+   }
+  }
+ },
+ "auc_holistic": 0.5602,
+ "auc_holistic_unverified": 0.6626,
+ "auc_done": 0.4547,
+ "by_defect_kind": {
+  "introduced": {
+   "objected": 15,
+   "lock": {
+    "k": 3,
+    "n": 15,
+    "rate": 0.2,
+    "ci95": [
+     0.0705,
+     0.4519
+    ]
+   },
+   "holistic": {
+    "k": 3,
+    "n": 15,
+    "rate": 0.2,
+    "ci95": [
+     0.0705,
+     0.4519
+    ]
+   },
+   "auc_holistic": 0.6933
+  },
+  "none": {
+   "objected": 12,
+   "lock": {
+    "k": 0,
+    "n": 12,
+    "rate": 0.0,
+    "ci95": [
+     0.0,
+     0.2425
+    ]
+   },
+   "holistic": {
+    "k": 1,
+    "n": 12,
+    "rate": 0.0833,
+    "ci95": [
+     0.0149,
+     0.3539
+    ]
+   },
+   "auc_holistic": 0.3854
+  },
+  "present": {
+   "objected": 28,
+   "lock": {
+    "k": 2,
+    "n": 28,
+    "rate": 0.0714,
+    "ci95": [
+     0.0198,
+     0.2265
+    ]
+   },
+   "holistic": {
+    "k": 6,
+    "n": 28,
+    "rate": 0.2143,
+    "ci95": [
+     0.1021,
+     0.3954
+    ]
+   },
+   "auc_holistic": 0.5536
+  }
+ },
+ "verdicts": {
+  "X1_lock_flags_le_10pct_of_accepted": true,
+  "X2_holistic_auc_ge_065": false,
+  "X3_holistic_auc_unverified_ge_070": false
+ }
+}
