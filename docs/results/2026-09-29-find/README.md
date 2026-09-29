@@ -75,3 +75,30 @@ costs and hashed keys, no text) and replays free.
 - **Instances:** SWE-bench issues are public, and the repositories are well known to generative
   models. Jev does not generate. It was asked to judge fragments against the first 400
   characters of the issue.
+
+## Raising the shortlist ceiling (after the registered run; `benchmarks/find/ceiling.py`)
+
+The judge can keep only what the BM25 shortlist holds. Six code-only strategies were compared
+on a dev sample of 48 SWE-bench Verified issues, disjoint from the 117. One was chosen there
+(commit 8aa608f), before it ran on the 117. Free: no model.
+
+| Strategy | Dev (48) | Test (117) |
+|---|---|---|
+| `base`: BM25 over fragments (the registered arm) | 36 | 85 (72.6 %) |
+| `ident`: identifiers repeated in the query | 36 | 85 |
+| `files`: files first, then their fragments | 28 | 72 |
+| `paths`: files the issue names first | 37 | 88 |
+| `rrf`: rank fusion of fragments and files | 39 | 89 |
+| `combo`: `paths` then `rrf` | 38 | 91 |
+| **`rrf_ident`** (chosen on dev): `rrf` plus a query of the issue's identifiers alone | **42** | **88 (75.2 %)** |
+
+- **The chosen strategy does not replicate its dev gain.** It went from +6 on dev to +3 on test
+  (5 issues gained, 2 lost), which is within noise.
+- `combo` scores highest on test. It was not the one chosen, and choosing it now would be
+  choosing on the test.
+- **Why `ident` does nothing.** `BM25Index.scores` counts each query word once, and the
+  tokeniser keeps `snake_case` whole. So repeating identifiers weighs nothing, and
+  `refund_payment` never matches "refund a payment". The symbol source (`context.sources`) splits
+  names into words for that reason.
+- **What stays true:** the ceiling is lexical. An issue that never names the code it breaks
+  leaves every code-only strategy tried here little to find.
