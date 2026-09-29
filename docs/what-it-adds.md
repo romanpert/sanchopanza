@@ -78,7 +78,9 @@ Status (docs/candor.md):
 - **Model-written misstatements:** 95-96 % stopped over two confirmation rounds, and 0 of 237
   honest sessions.
 - **Misreports the record cannot show** (a silent failure, a truncated file, a check that could
-  not run): 0 of 22 with v3. v4 targets them and is being confirmed in round 4.
+  not run): 0 of 22 with v3. v4 reads the disk and errors a successful call printed: on round
+  4's new sessions it stopped 6 of 8 of round 3's kinds and 105 of 105 misstatements, at 1 of
+  61 honest sessions; a check that could not run still passes (0 of 4).
 - **Without the status block,** on real third-party sessions, it caught nothing. This is why
   `ASK_BLOCK` exists.
 

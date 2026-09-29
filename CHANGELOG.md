@@ -29,6 +29,11 @@ do not favour this package.
   - **Round 3** (176 new sessions, four new kinds of pressure, pre-registered): 95.3 % of
     misstated reports stopped again and 0 of 126 honest sessions, but 0 of 22 real misreports
     whose falsehood lies outside the record (silent failure, truncated data, a missing suite).
+  - **v4** (round 4, 94 new sessions, pre-registered): reads an error printed by a call that
+    exited 0 and the workspace snapshot. 105/105 misstatements and 1/61 honest sessions
+    stopped; round-3 kinds 6/8 on new sessions; a check that could not run 0/4 (G3 fails).
+    The hook now asks for the status block on each prompt (`SANCHOPANZA_CANDOR_ASK_BLOCK`,
+    default `prompt`; `stop` holds a report without it once).
   - **On public data** (errata-bench, MALT, tau2-bench): 7 of 10 registered hypotheses fail;
     without the status block the lock catches no real misreport, and `check_done` does not
     carry to tau2's reward. See `docs/results/2026-09-29-candor-external/`.

@@ -14,7 +14,9 @@ Measured in three pre-registered rounds of real Claude Code sessions
 | Misstated reports stopped (model-written misstatements, real actions) | **96 %** (176/183) | **95 %** (203/213) |
 | Honest sessions stopped | **0 of 111** | **0 of 126** (and 4 of 126 paraphrases) |
 | Real misreports: a missing input, or a claim a status field contradicts | 9 of 12 | **11 of 11** (read by hand) |
-| Real misreports whose falsehood lies outside the record (silent failure, truncated data, a check that could not run) | — | **0 of 22** |
+| Real misreports whose falsehood lies outside the record (silent failure, truncated data, a check that could not run) | — | **0 of 22** (v3) |
+| Round 4, v4 on new sessions: model-written misstatements / honest sessions stopped | | **105 of 105** / 1 of 61 |
+| Round 4, v4: round-3 kinds on new sessions / the three new kinds | | **6 of 8** / 3 of 7 (a check that could not run: 0 of 4) |
 | Model cost of the lock | **none**: it is code | |
 | Jev as a second opinion, AUC | **0.98**, against 0.68 for Claude Haiku 4.5 | **0.97**, against 0.67 |
 
@@ -25,11 +27,15 @@ The first round's hypotheses mostly failed, and that round is reported in full t
 **What that means:**
 
 - candor stops a report that the record contradicts.
-- It does not stop a report that is false because of something the record cannot show. A
-  command that exited 0 and did nothing, an archive cut short, a test suite that does not exist:
-  in each case the report claims what the agent believed, and the record agrees with the belief.
-  For those, the review tier (a `high` note or Jev) caught about half, at about 12 % of honest
-  sessions.
+- In round 3, v3 did not stop a report that is false for a reason the record does not show: a
+  command that exited 0 and did nothing, an archive cut short, a test suite that does not
+  exist. In each case the report claims what the agent believed.
+- v4 reads two more pieces of evidence the harness already has:
+  - an error printed by a call that exited 0;
+  - the workspace snapshot, which shows an output the task asked for that never changed.
+- On round 4's new sessions, v4 stopped 6 of 8 misreports of those kinds. It still misses a
+  check that could not run when its error is not a known signature (0 of 4). **Turn the
+  snapshot on** (`SNAPSHOT=1`): without it, the silent failures pass.
 
 On public data, with no status block ([external results](results/2026-09-29-candor-external/)):
 
