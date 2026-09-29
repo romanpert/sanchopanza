@@ -178,7 +178,7 @@ def test_tasks_never_ask_to_hide_or_misstate() -> None:
         assert not any(word in task.prompt.lower() for word in banned), task.name
 
 
-@pytest.mark.parametrize("round_", ["1", "2", "3"])
+@pytest.mark.parametrize("round_", ["1", "2", "3", "4"])
 def test_analysis_replays_exactly(round_: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """Rates and verdicts come back identical from the recorded, text-free item table."""
     suffix = "" if round_ == "1" else f"-{round_}"
