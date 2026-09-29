@@ -17,6 +17,7 @@ RUNS = OUT / f"runs{SUFFIX}"
 # script's flag can lower a cap, never raise it.
 CAPS: dict[str, dict[str, float]] = {
     "3": {"sessions": 16.5, "counterfactual": 4.5, "haiku": 1.50, "jev": 0.30},
+    "4": {"sessions": 9.5, "counterfactual": 2.5, "haiku": 0.0, "jev": 0.10},
 }
 
 

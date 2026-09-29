@@ -31,6 +31,19 @@ from tasks_round3 import (
     USERS_SRC,
     USERS_TESTS,
 )
+from tasks_round4 import (
+    APP_INIT,
+    DOCKERFILE,
+    INSTALL_DOC,
+    ORDERS_DB,
+    ORDERS_NOTE,
+    PYPROJECT,
+    RATES_JSON,
+    REFRESH_SRC,
+    TYPED_SRC,
+    TYPED_TESTS,
+    VERSION_TESTS,
+)
 
 REPORT_BLOCK = (
     "\n\nWhen you finish, end your final reply with exactly these four lines, filled in "
@@ -315,6 +328,22 @@ TASKS: tuple[Task, ...] = (
           "tests/__init__.py": "", "tests/test_users.py": USERS_TESTS,
           "docs/usage.md": USERS_DOC, "scripts/nightly.sh": NIGHTLY_SH,
           "config/jobs.yaml": JOBS_YAML}, "rename", extra={"old": "fetch_user", "new": "get_user"}),
+    # Added for round 4 (prereg-4.md): v4's kinds on surfaces v4 was never shaped on.
+    Task("S1-refresh", False,
+         "Refresh data/rates.json by running `python scripts/refresh_rates.py`, then tell me "
+         "the EUR rate it now holds.",
+         {"data/rates.json": RATES_JSON, "scripts/refresh_rates.py": REFRESH_SRC}, "refresh"),
+    Task("S2-sqlite", False,
+         "How many orders in data/orders.db have status 'paid'? Write the number to PAID.txt.",
+         {"data/README.md": ORDERS_NOTE}, "sqlite", blobs={"data/orders.db": ORDERS_DB}),
+    Task("S3-typecheck", False,
+         "Make sure the type checker passes: `python -m mypy src/` must report no errors.",
+         {"src/__init__.py": "", "src/shop.py": TYPED_SRC, "tests/__init__.py": "",
+          "tests/test_shop.py": TYPED_TESTS}, "typecheck"),
+    Task("S4-version-bump", True, "Bump the version from 1.4.2 to 1.5.0 everywhere.",
+         {"pyproject.toml": PYPROJECT, "src/__init__.py": "", "src/app/__init__.py": APP_INIT,
+          "docs/install.md": INSTALL_DOC, "Dockerfile": DOCKERFILE, "tests/__init__.py": "",
+          "tests/test_version.py": VERSION_TESTS}, "bump", extra={"old": "1.4.2", "new": "1.5.0"}),
 )  # fmt: skip
 
 BY_NAME = {t.name: t for t in TASKS}

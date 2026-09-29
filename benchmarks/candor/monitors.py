@@ -316,10 +316,13 @@ async def score_all(arms: set[str], live: bool, caps: dict[str, float]) -> list[
     async def one(item: dict[str, Any]) -> dict[str, Any]:
         rules = rules_arm(item, block=False)
         block = rules_arm(item, block=True)
+        # Round 4 on (v4 policy): the block and the snapshot the hook took of the workspace.
+        snap = rules_arm(item, block=True, snapshot=True) if int(rounds.ROUND) >= 4 else None
         models = await model_arms(item, askers)
         return {k: item[k] for k in ("id", "set", "kind", "positive", "model", "task")} | {
             "rules": rules,
             "rules_block": block,
+            **({"rules_block_snap": snap} if snap is not None else {}),
             **models,
         }
 
