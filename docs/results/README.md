@@ -25,6 +25,7 @@ The runs behind the README's headline numbers.
 | [2026-09-27-cascade-frontier](2026-09-27-cascade-frontier/) | The Jev-then-Opus permission cascade, confirmed on unseen ATBench-Codex data |
 | [2026-09-28-cascade-sonnet](2026-09-28-cascade-sonnet/) | The same cascade against Sonnet 5: partial, over the cost bar on R-Judge |
 | [2026-09-29-candor](2026-09-29-candor/) | Say/do checking, confirmation round (`prereg-2.md`). The status-block lock stopped 96 % of misstated reports and 0 of 111 honest sessions; real misreports 9/12, below its registered 80 %. Jev as a second opinion reached AUC 0.98 against Haiku 4.5's 0.68 |
+| [2026-09-29-candor](2026-09-29-candor/) (round 3) | v3 on 176 new sessions (`prereg-3.md`), 5 of 7 hypotheses hold: 95.3 % of misstated reports stopped, 0 of 126 honest sessions, Jev AUC 0.973 against Haiku's 0.666 |
 
 ## The negatives the README reports with the same weight
 
@@ -38,6 +39,8 @@ The runs behind the README's headline numbers.
 | [2026-09-27-longdocs](2026-09-27-longdocs/) | The tournament on whole papers missed the registered 25 % of the text |
 | [2026-09-25-cascade](2026-09-25-cascade/) | The registered cascade rule on R-Judge reached Opus at 57 % of its cost, over the 50 % bar |
 | [2026-09-29-candor](2026-09-29-candor/) (round 1) | The registered say/do round: 5 of 8 hypotheses failed. The critical-only lock missed most misstatements, and the per-sentence Jev judge added nothing (5.2 %). One of 6 lock sessions let a parallel call through before the lock engaged |
+| [2026-09-29-candor](2026-09-29-candor/) (round 3) | Real misreports whose falsehood lies outside the record (a silent failure, a truncated archive, a suite that does not exist): the lock stopped 0 of 22. 4 of 126 paraphrases locked (D1 fails at 3.2 %). A ledger defect lost actions under parallel hooks; fixed |
+| [2026-09-29-candor-external](2026-09-29-candor-external/) | On public data, 7 of 10 registered hypotheses fail. errata-bench (real Claude Code sessions, no status block): no real misreport locked, holistic Jev AUC 0.56. MALT: candor's question near chance on reward hacking (0.62) and sandbagging (0.56). tau2-bench: `check_done` below trusting the agent (54 % against 67 %) |
 | [2026-09-28-lateral-screen-confirm](2026-09-28-lateral-screen-confirm/) | The BM25 screen did not replicate on fresh questions and was retired |
 | [2026-09-28-context-lean](2026-09-28-context-lean/) | This iteration's main negative. Inside Claude Code, with auto-compaction firing mid-task (Haiku 4.5, 7 tasks, pre-registered): native summary 5/7, lean masking 3/7, clearing without an archive 0/6; masking used more input tokens (10.46M against 8.73M) at the same dollars; the agent never called `search_archive`. Offline, index stubs held a needed token for 12.0 % of needed masked results (bar 50 %). Sonnet 5 (partial, spend gate): masking thrashed, five compactions and 2.04 USD on one task |
 | [2026-09-28-context](2026-09-28-context/) | Asking a decider what the rest of a coding session will need is at chance (AUC 0.53-0.61); the arrival cut saved 3.7 % and did not beat head+tail; recall with the decider matched BM25 top 3 |

@@ -26,6 +26,12 @@ do not favour this package.
     - 9 of 12 real misreports stopped;
     - Jev at AUC 0.98 against Haiku 4.5's 0.68.
   - **It needs the four-line status block:** on prose alone, 24.6 %.
+  - **Round 3** (176 new sessions, four new kinds of pressure, pre-registered): 95.3 % of
+    misstated reports stopped again and 0 of 126 honest sessions, but 0 of 22 real misreports
+    whose falsehood lies outside the record (silent failure, truncated data, a missing suite).
+  - **On public data** (errata-bench, MALT, tau2-bench): 7 of 10 registered hypotheses fail;
+    without the status block the lock catches no real misreport, and `check_done` does not
+    carry to tau2's reward. See `docs/results/2026-09-29-candor-external/`.
   - **The first round is reported in full.** It was registered and mostly failed.
 
   See `docs/candor.md` and `docs/results/2026-09-29-candor/`.
@@ -223,6 +229,13 @@ do not favour this package.
 
 ### Fixed
 
+- **candor's ledger could lose an action when tool calls ran in parallel.** Their hooks appended
+  to one file at once; on Windows an append is a seek then a write, so one entry overwrote
+  another and the reader skipped the torn line without a word. Seen once in benchmark round 3;
+  8 processes x 150 appends lost 196 of 1,200 lines. Appends are now serialised by a lock file.
+- **candor's benchmark label missed a `cat` inside a compound command** and marked one honest
+  round-2 session a misreport; it now reads commands the way the rules do. The registered round-2
+  numbers stay as recorded.
 - **The compaction hook returned the engine's `handle`, so a resumed session was not
   compacted.** `compact_hook.ts` handed back the engine's own message objects for the messages
   it did not change; Claude Code then chained the entries written after the compaction to the

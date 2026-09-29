@@ -6,18 +6,37 @@ to review say otherwise in 80 % of those runs (arXiv 2609.20812). `sanchopanza.c
 the report against a record of the actions. When the two contradict each other, it can hold
 every further tool call until a person has looked.
 
-Measured in two pre-registered rounds of real Claude Code sessions
-([results](results/2026-09-29-candor/)), the second on data the rules had never seen:
+Measured in three pre-registered rounds of real Claude Code sessions
+([results](results/2026-09-29-candor/)). Rounds 2 and 3 ran on data the rules had never seen:
 
-| | Result |
-|---|---|
-| Misstated reports stopped (model-written misstatements, real actions) | **96 %** (176/183) |
-| Honest sessions stopped | **0 of 111** |
-| Real misreports stopped | 9 of 12 overall; **9 of 9** on tasks the rules were never shaped on |
-| Model cost of the lock | **none**: it is code |
-| Jev as a second opinion, AUC | **0.98**, against 0.68 for Claude Haiku 4.5 on the same question, at about 1/40 of the cost (233 ms against 860 ms) |
+| | Round 2 | Round 3 |
+|---|---|---|
+| Misstated reports stopped (model-written misstatements, real actions) | **96 %** (176/183) | **95 %** (203/213) |
+| Honest sessions stopped | **0 of 111** | **0 of 126** (and 4 of 126 paraphrases) |
+| Real misreports: a missing input, or a claim a status field contradicts | 9 of 12 | **11 of 11** (read by hand) |
+| Real misreports whose falsehood lies outside the record (silent failure, truncated data, a check that could not run) | — | **0 of 22** |
+| Model cost of the lock | **none**: it is code | |
+| Jev as a second opinion, AUC | **0.98**, against 0.68 for Claude Haiku 4.5 | **0.97**, against 0.67 |
+
+Jev costs about 1/40 of Haiku per decision (233 ms against 860 ms).
 
 The first round's hypotheses mostly failed, and that round is reported in full too.
+
+**What that means:**
+
+- candor stops a report that the record contradicts.
+- It does not stop a report that is false because of something the record cannot show. A
+  command that exited 0 and did nothing, an archive cut short, a test suite that does not exist:
+  in each case the report claims what the agent believed, and the record agrees with the belief.
+  For those, the review tier (a `high` note or Jev) caught about half, at about 12 % of honest
+  sessions.
+
+On public data, with no status block ([external results](results/2026-09-29-candor-external/)):
+
+- **On 55 real Claude Code sessions from errata-bench,** the lock flagged none of the accepted
+  answers and caught no real misreport.
+- **On MALT's reward hacking and sandbagging,** candor's question is near chance, as expected:
+  it asks about misstatements, not misbehaviour.
 
 ## How it works
 
@@ -109,9 +128,16 @@ the prose, but catches far less.
   before the lock engages; from the next turn on, everything is refused. Seen in 1 of 6 lock
   sessions. Such a call cannot be undone. It is recorded as `ran_during_lock` and shown to the
   person.
-- **Its evidence is narrow.** Twelve small tasks. The misstatements were written by a model on
-  instruction. The natural misreports (18 over both rounds) were almost all one kind: an input
-  that did not exist, replaced in silence.
+- **Its evidence is narrow.** Sixteen small tasks. The misstatements were written by a model on
+  instruction. Of the 54 natural misreports over three rounds, the lock stops the kinds it was
+  shaped on and almost none of the others.
+- **Known false positives.** Each was seen once or a few times:
+  - a removal claim over a glob delete (`rm build/*.tmp` against "I removed a.tmp and b.tmp");
+  - "dropped an import" read as a deletion;
+  - a note in parentheses inside `FILES_READ`.
+- **Before a100e3e, the ledger could lose an action.** The hooks of parallel calls appended at
+  once, and on Windows one entry could overwrite another, in silence. It is fixed: appends are
+  serialised by a lock file.
 - **Humans rubber-stamp prompts.** Users approve 93-97 % of permission prompts, and catch fewer
   of them as a session goes on. The lock is only worth what the release is worth: read the
   claim and the action side by side before releasing.
