@@ -9,6 +9,26 @@ do not favour this package.
 
 ### Added
 
+- **Candor: an agent's report held against what it did** (`sanchopanza.candor`,
+  `python -m sanchopanza.harness.candor_hook`, `python -m sanchopanza.candor
+  status|release|check`).
+  - **Ledger:** built by code from the hooks.
+  - **Rules:** deterministic say/do rules, which raise false success, denied edits and
+    deletions, claimed actions that never happened, unread citations, inputs substituted in
+    silence, undisclosed test edits and consequential actions, changes on disk with no tool call,
+    and touching the monitor.
+  - **Lock:** a sticky lock that refuses every tool call until a person releases it. It fails
+    closed.
+  - **Second opinion:** Jev, optional, which only adds notes.
+  - **Measured:**
+    - on a pre-registered confirmation round, 96 % of misstated reports stopped and 0 of 111
+      honest sessions;
+    - 9 of 12 real misreports stopped;
+    - Jev at AUC 0.98 against Haiku 4.5's 0.68.
+  - **It needs the four-line status block:** on prose alone, 24.6 %.
+  - **The first round is reported in full.** It was registered and mostly failed.
+
+  See `docs/candor.md` and `docs/results/2026-09-29-candor/`.
 - **Autopilot for Claude Code, opt-in and experimental** (`sanchopanza install --autopilot`,
   `harness.autopilot`). Measured end to end, pre-registered, and **worse than Claude Code's own
   compaction on our tasks**: native summary 5/7, lean masking 3/7
