@@ -60,7 +60,7 @@ from typing import TYPE_CHECKING, Any
 
 from ..points import chunks
 from ..redact import redact_secrets
-from ..text import bm25_scores, excerpt
+from ..text import BM25Index, excerpt
 
 if TYPE_CHECKING:
     from ..squire import Squire
@@ -289,10 +289,9 @@ def conflict_candidates(
 async def triage_memories(
     squire: Squire, prompt: str, memories: Sequence[Memory]
 ) -> list[tuple[bool, float | None]]:
-    pages = pages_of(memories, purpose=prompt)
-    if len(pages) <= chunks.PAGE_MAX:
-        return await squire.triage_pages(purpose=prompt, pages=pages)
-    return await squire.triage_many(purpose=prompt, pages=pages)
+    # `triage_many` is one in-context call up to `chunks.PAGE_MAX` pages and a tournament past
+    # it, so there is no second path to keep in step.
+    return await squire.triage_many(purpose=prompt, pages=pages_of(memories, purpose=prompt))
 
 
 async def _conflicts(
@@ -429,9 +428,8 @@ def bm25_candidates(query: str, store: Sequence[Memory], k: int = K) -> list[int
     """Indexes of the top-`k` entries by BM25 over name, description and body, score > 0."""
     if not store or k <= 0:
         return []
-    scores = bm25_scores(query, [m.search or f"{m.name} {m.text}" for m in store])
-    ranked = sorted((i for i, s in enumerate(scores) if s > 0), key=lambda i: -scores[i])
-    return ranked[:k]
+    index = BM25Index([m.search or f"{m.name} {m.text}" for m in store])
+    return [i for i, _ in index.top(query, k)]
 
 
 async def recall(
