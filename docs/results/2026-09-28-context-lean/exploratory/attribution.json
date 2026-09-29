@@ -1,0 +1,4177 @@
+{
+ "note": "Exploratory; paths relative to ~/.cache/sanchopanza/context-e2e",
+ "price_usd_per_mtok": {
+  "in": 1.0,
+  "cc": 2.0,
+  "cr": 0.1,
+  "out": 5.0
+ },
+ "calibration": {
+  "samples": 432,
+  "intercept": 94.3,
+  "per_prev_output_token": 1.025,
+  "tokens_per_injection_char": 0.39,
+  "tokens_per_tool_result_char": 0.3922
+ },
+ "tasks": [
+  {
+   "task": "t01-orders",
+   "A": {
+    "session": "runs-r2/t01-orders/A/session.jsonl",
+    "phase_a": {
+     "in": 106,
+     "cc": 25065,
+     "cr": 583453,
+     "out": 3849,
+     "input_total": 608624,
+     "cache_read_share": 0.9586,
+     "calls": 13,
+     "usd": 0.127826
+    },
+    "phase_b": {
+     "in": 50,
+     "cc": 38853,
+     "cr": 340335,
+     "out": 4482,
+     "input_total": 379238,
+     "cache_read_share": 0.8974,
+     "calls": 6,
+     "usd": 0.134199
+    },
+    "compaction_input": 0,
+    "compaction_usd": 0.0,
+    "result_json": {
+     "a_input": 609673,
+     "b_input": 379238,
+     "total_input": 988911,
+     "total_usd": 0.26314
+    },
+    "last_a_context": 55158,
+    "first_b_context": 54691,
+    "first_b_call": {
+     "in": 10,
+     "cc": 24596,
+     "cr": 30085
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 55498,
+     "durationMs": 540,
+     "postTokens": 12490,
+     "cumulativeDroppedTokens": 43008
+    },
+    "phase_b_tools": {
+     "reads": 0,
+     "re_reads": 0,
+     "archive_reads": 0,
+     "bash": 2,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2358,
+     2352,
+     2352
+    ],
+    "between_calls": 0,
+    "input_total": 987862,
+    "usd": 0.262026,
+    "injections": [
+     {
+      "index": 263,
+      "phase": "B",
+      "event": "UserPromptSubmit",
+      "chars": 863,
+      "tokens": 337,
+      "calls_in_context": 6,
+      "cc": 337,
+      "cr": 1685
+     },
+     {
+      "index": 271,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5146,
+      "tokens": 2007,
+      "calls_in_context": 5,
+      "cc": 2007,
+      "cr": 8028
+     },
+     {
+      "index": 285,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5837,
+      "tokens": 2277,
+      "calls_in_context": 4,
+      "cc": 2277,
+      "cr": 6831
+     },
+     {
+      "index": 298,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 4563,
+      "tokens": 1780,
+      "calls_in_context": 3,
+      "cc": 1780,
+      "cr": 3560
+     },
+     {
+      "index": 307,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 4999,
+      "tokens": 1950,
+      "calls_in_context": 2,
+      "cc": 1950,
+      "cr": 1950
+     },
+     {
+      "index": 320,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 2679,
+      "tokens": 1045,
+      "calls_in_context": 1,
+      "cc": 1045,
+      "cr": 0
+     }
+    ],
+    "counterfactual": {
+     "no_recall": {
+      "input_total": 956412,
+      "usd": 0.241028
+     },
+     "prompt_recall_only": {
+      "input_total": 958434,
+      "usd": 0.241871
+     },
+     "as_run": {
+      "input_total": 987862,
+      "usd": 0.262026
+     }
+    },
+    "resumed_chain": {
+     "cut_found": false,
+     "pre_boundary_entries": 106,
+     "pre_boundary_tool_results": 22,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 10
+    },
+    "mask_check": {
+     "observed": 54691,
+     "predicted_unmasked": 56077,
+     "predicted_masked": 50129,
+     "stubbed_chars": 15252,
+     "phase_a_thinking_tokens": 1591
+    },
+    "provenance": {
+     "saved_file_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 282,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 267,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 267,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "phase-B tool result (recall also had it)",
+       "kept_in": [],
+       "first_use": {
+        "index": 303,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [
+        285
+       ],
+       "results_before_use": [
+        269
+       ]
+      }
+     },
+     "resumed_chain_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 282,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 267,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 267,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 303,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [
+        285
+       ],
+       "results_before_use": [
+        269
+       ]
+      }
+     }
+    }
+   },
+   "N": {
+    "session": "runs/t01-orders/N/session.jsonl",
+    "phase_a": {
+     "in": 98,
+     "cc": 28404,
+     "cr": 552238,
+     "out": 3738,
+     "input_total": 580740,
+     "cache_read_share": 0.9509,
+     "calls": 12,
+     "usd": 0.13082
+    },
+    "phase_b": {
+     "in": 50,
+     "cc": 23470,
+     "cr": 278773,
+     "out": 6864,
+     "input_total": 302293,
+     "cache_read_share": 0.9222,
+     "calls": 6,
+     "usd": 0.109187
+    },
+    "compaction_input": 55944,
+    "compaction_usd": 0.023388,
+    "result_json": {
+     "a_input": 581789,
+     "b_input": 302293,
+     "total_input": 940026,
+     "total_usd": 0.264504
+    },
+    "last_a_context": 54516,
+    "first_b_context": 42403,
+    "first_b_call": {
+     "in": 10,
+     "cc": 12310,
+     "cr": 30083
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 54914,
+     "durationMs": 34338,
+     "preservedSegment": {
+      "headUuid": "bdbcb57c-48df-4f13-b746-7099641a08da",
+      "anchorUuid": "58329174-bbcb-4cac-8559-0365f9a3f4e4",
+      "tailUuid": "a687e0fd-ad97-4b18-aefc-1ff75e0ccc4e"
+     },
+     "preservedMessages": {
+      "anchorUuid": "58329174-bbcb-4cac-8559-0365f9a3f4e4",
+      "uuids": [
+       "bdbcb57c-48df-4f13-b746-7099641a08da",
+       "a687e0fd-ad97-4b18-aefc-1ff75e0ccc4e"
+      ],
+      "allUuids": [
+       "bdbcb57c-48df-4f13-b746-7099641a08da",
+       "a687e0fd-ad97-4b18-aefc-1ff75e0ccc4e"
+      ]
+     },
+     "postTokens": 4425,
+     "cumulativeDroppedTokens": 50489
+    },
+    "phase_b_tools": {
+     "reads": 7,
+     "re_reads": 7,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2358,
+     2358,
+     2352
+    ],
+    "between_calls": 0,
+    "input_total": 938977,
+    "usd": 0.263395,
+    "resumed_chain": {
+     "cut_found": true,
+     "pre_boundary_entries": 110,
+     "pre_boundary_tool_results": 23,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 0
+    }
+   }
+  },
+  {
+   "task": "t02-shipments",
+   "A": {
+    "session": "runs-r2/t02-shipments/A/session.jsonl",
+    "phase_a": {
+     "in": 98,
+     "cc": 29001,
+     "cr": 544693,
+     "out": 3846,
+     "input_total": 573792,
+     "cache_read_share": 0.9493,
+     "calls": 12,
+     "usd": 0.131799
+    },
+    "phase_b": {
+     "in": 26,
+     "cc": 38727,
+     "cr": 151943,
+     "out": 5223,
+     "input_total": 190696,
+     "cache_read_share": 0.7968,
+     "calls": 3,
+     "usd": 0.118789
+    },
+    "compaction_input": 0,
+    "compaction_usd": 0.0,
+    "result_json": {
+     "a_input": 574841,
+     "b_input": 190696,
+     "total_input": 765537,
+     "total_usd": 0.251698
+    },
+    "last_a_context": 55113,
+    "first_b_context": 55159,
+    "first_b_call": {
+     "in": 10,
+     "cc": 25063,
+     "cr": 30086
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 55449,
+     "durationMs": 412,
+     "postTokens": 12684,
+     "cumulativeDroppedTokens": 42765
+    },
+    "phase_b_tools": {
+     "reads": 0,
+     "re_reads": 0,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2258,
+     2254,
+     2254
+    ],
+    "between_calls": 0,
+    "input_total": 764488,
+    "usd": 0.250589,
+    "injections": [
+     {
+      "index": 254,
+      "phase": "B",
+      "event": "UserPromptSubmit",
+      "chars": 872,
+      "tokens": 340,
+      "calls_in_context": 3,
+      "cc": 340,
+      "cr": 680
+     },
+     {
+      "index": 264,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5078,
+      "tokens": 1981,
+      "calls_in_context": 2,
+      "cc": 1981,
+      "cr": 1981
+     },
+     {
+      "index": 273,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5674,
+      "tokens": 2213,
+      "calls_in_context": 2,
+      "cc": 2213,
+      "cr": 2213
+     },
+     {
+      "index": 277,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5364,
+      "tokens": 2092,
+      "calls_in_context": 2,
+      "cc": 2092,
+      "cr": 2092
+     },
+     {
+      "index": 290,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 4859,
+      "tokens": 1895,
+      "calls_in_context": 1,
+      "cc": 1895,
+      "cr": 0
+     }
+    ],
+    "counterfactual": {
+     "no_recall": {
+      "input_total": 749001,
+      "usd": 0.23285
+     },
+     "prompt_recall_only": {
+      "input_total": 750021,
+      "usd": 0.233598
+     },
+     "as_run": {
+      "input_total": 764488,
+      "usd": 0.250589
+     }
+    },
+    "resumed_chain": {
+     "cut_found": false,
+     "pre_boundary_entries": 100,
+     "pre_boundary_tool_results": 21,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 10
+    },
+    "mask_check": {
+     "observed": 55159,
+     "predicted_unmasked": 56027,
+     "predicted_masked": 49992,
+     "stubbed_chars": 15472,
+     "phase_a_thinking_tokens": 1349
+    },
+    "provenance": {
+     "saved_file_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 260,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 260,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 260,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "unexplained",
+       "kept_in": [],
+       "first_use": {
+        "index": 266,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      }
+     },
+     "resumed_chain_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 260,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 260,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 260,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 266,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      }
+     }
+    }
+   },
+   "N": {
+    "session": "runs/t02-shipments/N/session.jsonl",
+    "phase_a": {
+     "in": 98,
+     "cc": 29257,
+     "cr": 552586,
+     "out": 3946,
+     "input_total": 581941,
+     "cache_read_share": 0.9496,
+     "calls": 12,
+     "usd": 0.133601
+    },
+    "phase_b": {
+     "in": 50,
+     "cc": 16957,
+     "cr": 253374,
+     "out": 2668,
+     "input_total": 270381,
+     "cache_read_share": 0.9371,
+     "calls": 6,
+     "usd": 0.072641
+    },
+    "compaction_input": 56670,
+    "compaction_usd": 0.021936,
+    "result_json": {
+     "a_input": 582990,
+     "b_input": 270381,
+     "total_input": 910041,
+     "total_usd": 0.229192
+    },
+    "last_a_context": 55242,
+    "first_b_context": 41869,
+    "first_b_call": {
+     "in": 10,
+     "cc": 11775,
+     "cr": 30084
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 55532,
+     "durationMs": 31218,
+     "preservedSegment": {
+      "headUuid": "6d784f56-dd91-4cf2-8922-5eeba0fa71e7",
+      "anchorUuid": "073b1235-642c-4758-96a9-9a91515076e3",
+      "tailUuid": "db354ba1-a4dc-4e15-88ee-92ff4cdcbd97"
+     },
+     "preservedMessages": {
+      "anchorUuid": "073b1235-642c-4758-96a9-9a91515076e3",
+      "uuids": [
+       "6d784f56-dd91-4cf2-8922-5eeba0fa71e7",
+       "db354ba1-a4dc-4e15-88ee-92ff4cdcbd97"
+      ],
+      "allUuids": [
+       "6d784f56-dd91-4cf2-8922-5eeba0fa71e7",
+       "db354ba1-a4dc-4e15-88ee-92ff4cdcbd97"
+      ]
+     },
+     "postTokens": 3960,
+     "cumulativeDroppedTokens": 51572
+    },
+    "phase_b_tools": {
+     "reads": 5,
+     "re_reads": 5,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2258,
+     2254,
+     2254
+    ],
+    "between_calls": 0,
+    "input_total": 908992,
+    "usd": 0.228178,
+    "resumed_chain": {
+     "cut_found": true,
+     "pre_boundary_entries": 112,
+     "pre_boundary_tool_results": 23,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 0
+    }
+   }
+  },
+  {
+   "task": "t03-invoices",
+   "A": {
+    "session": "runs-r2/t03-invoices/A/session.jsonl",
+    "phase_a": {
+     "in": 90,
+     "cc": 29174,
+     "cr": 510726,
+     "out": 3882,
+     "input_total": 539990,
+     "cache_read_share": 0.9458,
+     "calls": 11,
+     "usd": 0.128921
+    },
+    "phase_b": {
+     "in": 42,
+     "cc": 38248,
+     "cr": 274069,
+     "out": 4475,
+     "input_total": 312359,
+     "cache_read_share": 0.8774,
+     "calls": 5,
+     "usd": 0.12632
+    },
+    "compaction_input": 0,
+    "compaction_usd": 0.0,
+    "result_json": {
+     "a_input": 541039,
+     "b_input": 312359,
+     "total_input": 853398,
+     "total_usd": 0.25635
+    },
+    "last_a_context": 55286,
+    "first_b_context": 54772,
+    "first_b_call": {
+     "in": 10,
+     "cc": 24676,
+     "cr": 30086
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 55612,
+     "durationMs": 426,
+     "postTokens": 11530,
+     "cumulativeDroppedTokens": 44082
+    },
+    "phase_b_tools": {
+     "reads": 0,
+     "re_reads": 0,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2376,
+     2311,
+     2311
+    ],
+    "between_calls": 0,
+    "input_total": 852349,
+    "usd": 0.25524,
+    "injections": [
+     {
+      "index": 251,
+      "phase": "B",
+      "event": "UserPromptSubmit",
+      "chars": 749,
+      "tokens": 292,
+      "calls_in_context": 5,
+      "cc": 292,
+      "cr": 1168
+     },
+     {
+      "index": 260,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5280,
+      "tokens": 2059,
+      "calls_in_context": 4,
+      "cc": 2059,
+      "cr": 6177
+     },
+     {
+      "index": 273,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5522,
+      "tokens": 2154,
+      "calls_in_context": 3,
+      "cc": 2154,
+      "cr": 4308
+     },
+     {
+      "index": 286,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5303,
+      "tokens": 2068,
+      "calls_in_context": 2,
+      "cc": 2068,
+      "cr": 2068
+     },
+     {
+      "index": 296,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5982,
+      "tokens": 2333,
+      "calls_in_context": 1,
+      "cc": 2333,
+      "cr": 0
+     }
+    ],
+    "counterfactual": {
+     "no_recall": {
+      "input_total": 829722,
+      "usd": 0.236056
+     },
+     "prompt_recall_only": {
+      "input_total": 831182,
+      "usd": 0.236757
+     },
+     "as_run": {
+      "input_total": 852349,
+      "usd": 0.25524
+     }
+    },
+    "resumed_chain": {
+     "cut_found": false,
+     "pre_boundary_entries": 101,
+     "pre_boundary_tool_results": 22,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 12
+    },
+    "mask_check": {
+     "observed": 54772,
+     "predicted_unmasked": 56164,
+     "predicted_masked": 48291,
+     "stubbed_chars": 20185,
+     "phase_a_thinking_tokens": 1540
+    },
+    "provenance": {
+     "saved_file_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 256,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 270,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 270,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 279,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      }
+     },
+     "resumed_chain_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 256,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 270,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 270,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 279,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      }
+     }
+    }
+   },
+   "N": {
+    "session": "runs/t03-invoices/N/session.jsonl",
+    "phase_a": {
+     "in": 114,
+     "cc": 29299,
+     "cr": 634347,
+     "out": 4062,
+     "input_total": 663760,
+     "cache_read_share": 0.9557,
+     "calls": 14,
+     "usd": 0.142457
+    },
+    "phase_b": {
+     "in": 66,
+     "cc": 20868,
+     "cr": 365226,
+     "out": 2942,
+     "input_total": 386160,
+     "cache_read_share": 0.9458,
+     "calls": 8,
+     "usd": 0.093035
+    },
+    "compaction_input": 56839,
+    "compaction_usd": 0.019169,
+    "result_json": {
+     "a_input": 664809,
+     "b_input": 386160,
+     "total_input": 1107808,
+     "total_usd": 0.25577
+    },
+    "last_a_context": 55411,
+    "first_b_context": 43548,
+    "first_b_call": {
+     "in": 10,
+     "cc": 13454,
+     "cr": 30084
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 55694,
+     "durationMs": 25738,
+     "preservedSegment": {
+      "headUuid": "8bf4a85d-ffc0-448a-9729-e69d509b2282",
+      "anchorUuid": "3dc3bbda-577a-4526-8377-c4ed225f21dc",
+      "tailUuid": "573ebc02-3507-488c-8942-ccd78975edeb"
+     },
+     "preservedMessages": {
+      "anchorUuid": "3dc3bbda-577a-4526-8377-c4ed225f21dc",
+      "uuids": [
+       "8bf4a85d-ffc0-448a-9729-e69d509b2282",
+       "573ebc02-3507-488c-8942-ccd78975edeb"
+      ],
+      "allUuids": [
+       "8bf4a85d-ffc0-448a-9729-e69d509b2282",
+       "573ebc02-3507-488c-8942-ccd78975edeb"
+      ]
+     },
+     "postTokens": 5069,
+     "cumulativeDroppedTokens": 50625
+    },
+    "phase_b_tools": {
+     "reads": 7,
+     "re_reads": 7,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 2
+    },
+    "largest_tool_results": [
+     2376,
+     2311,
+     2311
+    ],
+    "between_calls": 0,
+    "input_total": 1106759,
+    "usd": 0.25466,
+    "resumed_chain": {
+     "cut_found": true,
+     "pre_boundary_entries": 117,
+     "pre_boundary_tool_results": 23,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 0
+    }
+   }
+  },
+  {
+   "task": "t04-sensors",
+   "A": {
+    "session": "runs-r2/t04-sensors/A/session.jsonl",
+    "phase_a": {
+     "in": 106,
+     "cc": 29109,
+     "cr": 593548,
+     "out": 4047,
+     "input_total": 622763,
+     "cache_read_share": 0.9531,
+     "calls": 13,
+     "usd": 0.137914
+    },
+    "phase_b": {
+     "in": 26,
+     "cc": 35284,
+     "cr": 148770,
+     "out": 1552,
+     "input_total": 184080,
+     "cache_read_share": 0.8082,
+     "calls": 3,
+     "usd": 0.093231
+    },
+    "compaction_input": 0,
+    "compaction_usd": 0.0,
+    "result_json": {
+     "a_input": 623812,
+     "b_input": 184080,
+     "total_input": 807892,
+     "total_usd": 0.232254
+    },
+    "last_a_context": 55221,
+    "first_b_context": 55450,
+    "first_b_call": {
+     "in": 10,
+     "cc": 25355,
+     "cr": 30085
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 55535,
+     "durationMs": 470,
+     "postTokens": 13100,
+     "cumulativeDroppedTokens": 42435
+    },
+    "phase_b_tools": {
+     "reads": 0,
+     "re_reads": 0,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2335,
+     2335,
+     2295
+    ],
+    "between_calls": 0,
+    "input_total": 806843,
+    "usd": 0.231145,
+    "injections": [
+     {
+      "index": 274,
+      "phase": "B",
+      "event": "UserPromptSubmit",
+      "chars": 1373,
+      "tokens": 536,
+      "calls_in_context": 3,
+      "cc": 536,
+      "cr": 1072
+     },
+     {
+      "index": 284,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5841,
+      "tokens": 2278,
+      "calls_in_context": 2,
+      "cc": 2278,
+      "cr": 2278
+     },
+     {
+      "index": 293,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5305,
+      "tokens": 2069,
+      "calls_in_context": 2,
+      "cc": 2069,
+      "cr": 2069
+     },
+     {
+      "index": 297,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5094,
+      "tokens": 1987,
+      "calls_in_context": 2,
+      "cc": 1987,
+      "cr": 1987
+     },
+     {
+      "index": 310,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 4972,
+      "tokens": 1939,
+      "calls_in_context": 1,
+      "cc": 1939,
+      "cr": 0
+     }
+    ],
+    "counterfactual": {
+     "no_recall": {
+      "input_total": 790628,
+      "usd": 0.212786
+     },
+     "prompt_recall_only": {
+      "input_total": 792236,
+      "usd": 0.213965
+     },
+     "as_run": {
+      "input_total": 806843,
+      "usd": 0.231145
+     }
+    },
+    "resumed_chain": {
+     "cut_found": false,
+     "pre_boundary_entries": 110,
+     "pre_boundary_tool_results": 23,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 11
+    },
+    "mask_check": {
+     "observed": 55450,
+     "predicted_unmasked": 56270,
+     "predicted_masked": 50775,
+     "stubbed_chars": 14089,
+     "phase_a_thinking_tokens": 1345
+    },
+    "provenance": {
+     "saved_file_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 281,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 285,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 285,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "recall only",
+       "kept_in": [],
+       "first_use": {
+        "index": 286,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [
+        284
+       ],
+       "results_before_use": []
+      }
+     },
+     "resumed_chain_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 281,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 285,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 285,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 286,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [
+        284
+       ],
+       "results_before_use": []
+      }
+     }
+    }
+   },
+   "N": {
+    "session": "runs/t04-sensors/N/session.jsonl",
+    "phase_a": {
+     "in": 106,
+     "cc": 28696,
+     "cr": 592646,
+     "out": 3686,
+     "input_total": 621448,
+     "cache_read_share": 0.9537,
+     "calls": 13,
+     "usd": 0.135193
+    },
+    "phase_b": {
+     "in": 50,
+     "cc": 17113,
+     "cr": 251463,
+     "out": 2501,
+     "input_total": 268626,
+     "cache_read_share": 0.9361,
+     "calls": 6,
+     "usd": 0.071927
+    },
+    "compaction_input": 56109,
+    "compaction_usd": 0.023405,
+    "result_json": {
+     "a_input": 622497,
+     "b_input": 268626,
+     "total_input": 947232,
+     "total_usd": 0.231549
+    },
+    "last_a_context": 54681,
+    "first_b_context": 42770,
+    "first_b_call": {
+     "in": 10,
+     "cc": 12677,
+     "cr": 30083
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 54949,
+     "durationMs": 34348,
+     "preservedSegment": {
+      "headUuid": "d28b098b-89fe-487f-a96e-8c231b680859",
+      "anchorUuid": "02e81744-a3b8-4c0a-9d59-fd77aa888668",
+      "tailUuid": "2996ce57-b7b0-4dfb-877d-14decc0d69a4"
+     },
+     "preservedMessages": {
+      "anchorUuid": "02e81744-a3b8-4c0a-9d59-fd77aa888668",
+      "uuids": [
+       "d28b098b-89fe-487f-a96e-8c231b680859",
+       "2996ce57-b7b0-4dfb-877d-14decc0d69a4"
+      ],
+      "allUuids": [
+       "d28b098b-89fe-487f-a96e-8c231b680859",
+       "2996ce57-b7b0-4dfb-877d-14decc0d69a4"
+      ]
+     },
+     "postTokens": 4850,
+     "cumulativeDroppedTokens": 50099
+    },
+    "phase_b_tools": {
+     "reads": 3,
+     "re_reads": 2,
+     "archive_reads": 0,
+     "bash": 2,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2335,
+     2295,
+     2182
+    ],
+    "between_calls": 0,
+    "input_total": 946183,
+    "usd": 0.230525,
+    "resumed_chain": {
+     "cut_found": true,
+     "pre_boundary_entries": 108,
+     "pre_boundary_tool_results": 22,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 0
+    }
+   }
+  },
+  {
+   "task": "t05-tickets",
+   "A": {
+    "session": "runs-r2/t05-tickets/A/session.jsonl",
+    "phase_a": {
+     "in": 114,
+     "cc": 29309,
+     "cr": 659168,
+     "out": 3858,
+     "input_total": 688591,
+     "cache_read_share": 0.9573,
+     "calls": 14,
+     "usd": 0.143939
+    },
+    "phase_b": {
+     "in": 42,
+     "cc": 42185,
+     "cr": 285097,
+     "out": 5859,
+     "input_total": 327324,
+     "cache_read_share": 0.871,
+     "calls": 5,
+     "usd": 0.142217
+    },
+    "compaction_input": 0,
+    "compaction_usd": 0.0,
+    "result_json": {
+     "a_input": 689640,
+     "b_input": 327324,
+     "total_input": 1016964,
+     "total_usd": 0.287265
+    },
+    "last_a_context": 55421,
+    "first_b_context": 55150,
+    "first_b_call": {
+     "in": 10,
+     "cc": 25055,
+     "cr": 30085
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 55719,
+     "durationMs": 593,
+     "postTokens": 11306,
+     "cumulativeDroppedTokens": 44413
+    },
+    "phase_b_tools": {
+     "reads": 0,
+     "re_reads": 0,
+     "archive_reads": 0,
+     "bash": 2,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2218,
+     2161,
+     2128
+    ],
+    "between_calls": 0,
+    "input_total": 1015915,
+    "usd": 0.286156,
+    "injections": [
+     {
+      "index": 278,
+      "phase": "B",
+      "event": "UserPromptSubmit",
+      "chars": 1373,
+      "tokens": 536,
+      "calls_in_context": 5,
+      "cc": 536,
+      "cr": 2144
+     },
+     {
+      "index": 287,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5738,
+      "tokens": 2238,
+      "calls_in_context": 4,
+      "cc": 2238,
+      "cr": 6714
+     },
+     {
+      "index": 296,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5374,
+      "tokens": 2096,
+      "calls_in_context": 4,
+      "cc": 2096,
+      "cr": 6288
+     },
+     {
+      "index": 305,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5450,
+      "tokens": 2126,
+      "calls_in_context": 3,
+      "cc": 2126,
+      "cr": 4252
+     },
+     {
+      "index": 318,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5551,
+      "tokens": 2165,
+      "calls_in_context": 2,
+      "cc": 2165,
+      "cr": 2165
+     },
+     {
+      "index": 331,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5600,
+      "tokens": 2184,
+      "calls_in_context": 1,
+      "cc": 2184,
+      "cr": 0
+     }
+    ],
+    "counterfactual": {
+     "no_recall": {
+      "input_total": 983007,
+      "usd": 0.261309
+     },
+     "prompt_recall_only": {
+      "input_total": 985687,
+      "usd": 0.262596
+     },
+     "as_run": {
+      "input_total": 1015915,
+      "usd": 0.286156
+     }
+    },
+    "resumed_chain": {
+     "cut_found": false,
+     "pre_boundary_entries": 112,
+     "pre_boundary_tool_results": 23,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 15
+    },
+    "mask_check": {
+     "observed": 55150,
+     "predicted_unmasked": 56467,
+     "predicted_masked": 48021,
+     "stubbed_chars": 21654,
+     "phase_a_thinking_tokens": 1365
+    },
+    "provenance": {
+     "saved_file_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 283,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 283,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 283,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "recall only",
+       "kept_in": [],
+       "first_use": {
+        "index": 315,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [
+        305
+       ],
+       "results_before_use": []
+      }
+     },
+     "resumed_chain_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 283,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 283,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 283,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 315,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [
+        305
+       ],
+       "results_before_use": []
+      }
+     }
+    }
+   },
+   "N": {
+    "session": "runs/t05-tickets/N/session.jsonl",
+    "phase_a": {
+     "in": 90,
+     "cc": 29040,
+     "cr": 502006,
+     "out": 3715,
+     "input_total": 531136,
+     "cache_read_share": 0.9452,
+     "calls": 11,
+     "usd": 0.126946
+    },
+    "phase_b": {
+     "in": 34,
+     "cc": 17593,
+     "cr": 167100,
+     "out": 2365,
+     "input_total": 184727,
+     "cache_read_share": 0.9046,
+     "calls": 4,
+     "usd": 0.063755
+    },
+    "compaction_input": 56580,
+    "compaction_usd": 0.022517,
+    "result_json": {
+     "a_input": 532185,
+     "b_input": 184727,
+     "total_input": 773492,
+     "total_usd": 0.214327
+    },
+    "last_a_context": 55152,
+    "first_b_context": 43948,
+    "first_b_call": {
+     "in": 10,
+     "cc": 13855,
+     "cr": 30083
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 55443,
+     "durationMs": 32306,
+     "preservedSegment": {
+      "headUuid": "db890771-a231-45a1-9407-791659856d48",
+      "anchorUuid": "121b6e74-14f9-4217-b783-cf30cfa1e0ee",
+      "tailUuid": "dbaaeea2-c58c-416b-b093-3409b9cbb752"
+     },
+     "preservedMessages": {
+      "anchorUuid": "121b6e74-14f9-4217-b783-cf30cfa1e0ee",
+      "uuids": [
+       "db890771-a231-45a1-9407-791659856d48",
+       "dbaaeea2-c58c-416b-b093-3409b9cbb752"
+      ],
+      "allUuids": [
+       "db890771-a231-45a1-9407-791659856d48",
+       "dbaaeea2-c58c-416b-b093-3409b9cbb752"
+      ]
+     },
+     "postTokens": 5411,
+     "cumulativeDroppedTokens": 50032
+    },
+    "phase_b_tools": {
+     "reads": 4,
+     "re_reads": 4,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2218,
+     2161,
+     2128
+    ],
+    "between_calls": 0,
+    "input_total": 772443,
+    "usd": 0.213218,
+    "resumed_chain": {
+     "cut_found": true,
+     "pre_boundary_entries": 105,
+     "pre_boundary_tool_results": 24,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 0
+    }
+   }
+  },
+  {
+   "task": "t06-bookings",
+   "A": {
+    "session": "runs-r2/t06-bookings/A/session.jsonl",
+    "phase_a": {
+     "in": 186,
+     "cc": 29262,
+     "cr": 1048534,
+     "out": 3940,
+     "input_total": 1077982,
+     "cache_read_share": 0.9727,
+     "calls": 23,
+     "usd": 0.183263
+    },
+    "phase_b": {
+     "in": 42,
+     "cc": 35644,
+     "cr": 266973,
+     "out": 1883,
+     "input_total": 302659,
+     "cache_read_share": 0.8821,
+     "calls": 5,
+     "usd": 0.107442
+    },
+    "compaction_input": 0,
+    "compaction_usd": 0.0,
+    "result_json": {
+     "a_input": 1079031,
+     "b_input": 302659,
+     "total_input": 1381690,
+     "total_usd": 0.29182
+    },
+    "last_a_context": 55374,
+    "first_b_context": 54868,
+    "first_b_call": {
+     "in": 10,
+     "cc": 24772,
+     "cr": 30086
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 55735,
+     "durationMs": 396,
+     "postTokens": 11672,
+     "cumulativeDroppedTokens": 44063
+    },
+    "phase_b_tools": {
+     "reads": 0,
+     "re_reads": 0,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2318,
+     2233,
+     2218
+    ],
+    "between_calls": 0,
+    "input_total": 1380641,
+    "usd": 0.290706,
+    "injections": [
+     {
+      "index": 297,
+      "phase": "B",
+      "event": "UserPromptSubmit",
+      "chars": 749,
+      "tokens": 292,
+      "calls_in_context": 5,
+      "cc": 292,
+      "cr": 1168
+     },
+     {
+      "index": 306,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5727,
+      "tokens": 2234,
+      "calls_in_context": 4,
+      "cc": 2234,
+      "cr": 6702
+     },
+     {
+      "index": 319,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5680,
+      "tokens": 2215,
+      "calls_in_context": 3,
+      "cc": 2215,
+      "cr": 4430
+     },
+     {
+      "index": 333,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5434,
+      "tokens": 2119,
+      "calls_in_context": 2,
+      "cc": 2119,
+      "cr": 2119
+     },
+     {
+      "index": 342,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5590,
+      "tokens": 2180,
+      "calls_in_context": 1,
+      "cc": 2180,
+      "cr": 0
+     }
+    ],
+    "counterfactual": {
+     "no_recall": {
+      "input_total": 1357182,
+      "usd": 0.271184
+     },
+     "prompt_recall_only": {
+      "input_total": 1358642,
+      "usd": 0.271885
+     },
+     "as_run": {
+      "input_total": 1380641,
+      "usd": 0.290706
+     }
+    },
+    "resumed_chain": {
+     "cut_found": false,
+     "pre_boundary_entries": 131,
+     "pre_boundary_tool_results": 21,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 11
+    },
+    "mask_check": {
+     "observed": 54868,
+     "predicted_unmasked": 56244,
+     "predicted_masked": 48984,
+     "stubbed_chars": 18613,
+     "phase_a_thinking_tokens": 1500
+    },
+    "provenance": {
+     "saved_file_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 302,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 315,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 315,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "unexplained",
+       "kept_in": [],
+       "first_use": {
+        "index": 325,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      }
+     },
+     "resumed_chain_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 302,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 315,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 315,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 325,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      }
+     }
+    }
+   },
+   "N": {
+    "session": "runs/t06-bookings/N/session.jsonl",
+    "phase_a": {
+     "in": 90,
+     "cc": 28973,
+     "cr": 509900,
+     "out": 3686,
+     "input_total": 538963,
+     "cache_read_share": 0.9461,
+     "calls": 11,
+     "usd": 0.127456
+    },
+    "phase_b": {
+     "in": 50,
+     "cc": 17265,
+     "cr": 254423,
+     "out": 3063,
+     "input_total": 271738,
+     "cache_read_share": 0.9363,
+     "calls": 6,
+     "usd": 0.075337
+    },
+    "compaction_input": 56386,
+    "compaction_usd": 0.019749,
+    "result_json": {
+     "a_input": 540012,
+     "b_input": 271738,
+     "total_input": 868136,
+     "total_usd": 0.223556
+    },
+    "last_a_context": 54958,
+    "first_b_context": 41730,
+    "first_b_call": {
+     "in": 10,
+     "cc": 11636,
+     "cr": 30084
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 55325,
+     "durationMs": 26752,
+     "preservedSegment": {
+      "headUuid": "a3878ff5-81ee-4a4f-80b4-4e13052ca3fa",
+      "anchorUuid": "8aff2eec-0c84-444b-9bb7-1cc88e134538",
+      "tailUuid": "2245b5c9-2e77-46c8-a230-2e55898cd57f"
+     },
+     "preservedMessages": {
+      "anchorUuid": "8aff2eec-0c84-444b-9bb7-1cc88e134538",
+      "uuids": [
+       "a3878ff5-81ee-4a4f-80b4-4e13052ca3fa",
+       "2245b5c9-2e77-46c8-a230-2e55898cd57f"
+      ],
+      "allUuids": [
+       "a3878ff5-81ee-4a4f-80b4-4e13052ca3fa",
+       "2245b5c9-2e77-46c8-a230-2e55898cd57f"
+      ]
+     },
+     "postTokens": 3814,
+     "cumulativeDroppedTokens": 51511
+    },
+    "phase_b_tools": {
+     "reads": 5,
+     "re_reads": 5,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2318,
+     2233,
+     2218
+    ],
+    "between_calls": 0,
+    "input_total": 867087,
+    "usd": 0.222542,
+    "resumed_chain": {
+     "cut_found": true,
+     "pre_boundary_entries": 105,
+     "pre_boundary_tool_results": 23,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 0
+    }
+   }
+  },
+  {
+   "task": "t07-payroll",
+   "A": {
+    "session": "runs-r2/t07-payroll/A/session.jsonl",
+    "phase_a": {
+     "in": 210,
+     "cc": 29986,
+     "cr": 1201451,
+     "out": 3754,
+     "input_total": 1231647,
+     "cache_read_share": 0.9755,
+     "calls": 26,
+     "usd": 0.199097
+    },
+    "phase_b": {
+     "in": 74,
+     "cc": 44878,
+     "cr": 561494,
+     "out": 5647,
+     "input_total": 606446,
+     "cache_read_share": 0.9259,
+     "calls": 9,
+     "usd": 0.174214
+    },
+    "compaction_input": 0,
+    "compaction_usd": 0.0,
+    "result_json": {
+     "a_input": 1232696,
+     "b_input": 606446,
+     "total_input": 1839142,
+     "total_usd": 0.37442
+    },
+    "last_a_context": 56098,
+    "first_b_context": 55569,
+    "first_b_call": {
+     "in": 10,
+     "cc": 25473,
+     "cr": 30086
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 56421,
+     "durationMs": 476,
+     "postTokens": 11100,
+     "cumulativeDroppedTokens": 45321
+    },
+    "phase_b_tools": {
+     "reads": 2,
+     "re_reads": 1,
+     "archive_reads": 0,
+     "bash": 3,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2156,
+     2153,
+     2150
+    ],
+    "between_calls": 0,
+    "input_total": 1838093,
+    "usd": 0.373312,
+    "injections": [
+     {
+      "index": 316,
+      "phase": "B",
+      "event": "UserPromptSubmit",
+      "chars": 747,
+      "tokens": 291,
+      "calls_in_context": 9,
+      "cc": 291,
+      "cr": 2328
+     },
+     {
+      "index": 324,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5673,
+      "tokens": 2213,
+      "calls_in_context": 8,
+      "cc": 2213,
+      "cr": 15491
+     },
+     {
+      "index": 336,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5427,
+      "tokens": 2117,
+      "calls_in_context": 7,
+      "cc": 2117,
+      "cr": 12702
+     },
+     {
+      "index": 350,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5490,
+      "tokens": 2141,
+      "calls_in_context": 6,
+      "cc": 2141,
+      "cr": 10705
+     },
+     {
+      "index": 363,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5689,
+      "tokens": 2219,
+      "calls_in_context": 5,
+      "cc": 2219,
+      "cr": 8876
+     },
+     {
+      "index": 371,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5342,
+      "tokens": 2084,
+      "calls_in_context": 4,
+      "cc": 2084,
+      "cr": 6252
+     },
+     {
+      "index": 382,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5054,
+      "tokens": 1971,
+      "calls_in_context": 3,
+      "cc": 1971,
+      "cr": 3942
+     }
+    ],
+    "counterfactual": {
+     "no_recall": {
+      "input_total": 1764761,
+      "usd": 0.34121
+     },
+     "prompt_recall_only": {
+      "input_total": 1767380,
+      "usd": 0.342025
+     },
+     "as_run": {
+      "input_total": 1838093,
+      "usd": 0.373312
+     }
+    },
+    "resumed_chain": {
+     "cut_found": false,
+     "pre_boundary_entries": 142,
+     "pre_boundary_tool_results": 24,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 14
+    },
+    "mask_check": {
+     "observed": 55569,
+     "predicted_unmasked": 56962,
+     "predicted_masked": 48473,
+     "stubbed_chars": 21764,
+     "phase_a_thinking_tokens": 1338
+    },
+    "provenance": {
+     "saved_file_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 332,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 342,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 342,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "recall only",
+       "kept_in": [],
+       "first_use": {
+        "index": 388,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [
+        350
+       ],
+       "results_before_use": []
+      }
+     },
+     "resumed_chain_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 332,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 342,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 342,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 388,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [
+        350
+       ],
+       "results_before_use": []
+      }
+     }
+    }
+   },
+   "N": {
+    "session": "runs/t07-payroll/N/session.jsonl",
+    "phase_a": {
+     "in": 98,
+     "cc": 28965,
+     "cr": 535353,
+     "out": 4150,
+     "input_total": 564416,
+     "cache_read_share": 0.9485,
+     "calls": 12,
+     "usd": 0.132313
+    },
+    "phase_b": {
+     "in": 42,
+     "cc": 20599,
+     "cr": 219723,
+     "out": 2129,
+     "input_total": 240364,
+     "cache_read_share": 0.9141,
+     "calls": 5,
+     "usd": 0.073857
+    },
+    "compaction_input": 56505,
+    "compaction_usd": 0.021342,
+    "result_json": {
+     "a_input": 565465,
+     "b_input": 240364,
+     "total_input": 862334,
+     "total_usd": 0.228637
+    },
+    "last_a_context": 55077,
+    "first_b_context": 44441,
+    "first_b_call": {
+     "in": 10,
+     "cc": 14347,
+     "cr": 30084
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 55363,
+     "durationMs": 30223,
+     "preservedSegment": {
+      "headUuid": "b2fce594-8071-423b-8866-d83c0a331424",
+      "anchorUuid": "8214741b-5459-4026-872e-39135fb5d9b9",
+      "tailUuid": "b1b5253c-cf81-4656-80cf-568ddbf1a69d"
+     },
+     "preservedMessages": {
+      "anchorUuid": "8214741b-5459-4026-872e-39135fb5d9b9",
+      "uuids": [
+       "b2fce594-8071-423b-8866-d83c0a331424",
+       "b1b5253c-cf81-4656-80cf-568ddbf1a69d"
+      ],
+      "allUuids": [
+       "b2fce594-8071-423b-8866-d83c0a331424",
+       "b1b5253c-cf81-4656-80cf-568ddbf1a69d"
+      ]
+     },
+     "postTokens": 5779,
+     "cumulativeDroppedTokens": 49584
+    },
+    "phase_b_tools": {
+     "reads": 7,
+     "re_reads": 7,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 1
+    },
+    "largest_tool_results": [
+     2156,
+     2153,
+     2150
+    ],
+    "between_calls": 0,
+    "input_total": 861285,
+    "usd": 0.227513,
+    "resumed_chain": {
+     "cut_found": true,
+     "pre_boundary_entries": 107,
+     "pre_boundary_tool_results": 23,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 0
+    }
+   }
+  },
+  {
+   "task": "t08-loans",
+   "A": {
+    "session": "runs-r2/t08-loans/A/session.jsonl",
+    "phase_a": {
+     "in": 106,
+     "cc": 29509,
+     "cr": 596499,
+     "out": 4256,
+     "input_total": 626114,
+     "cache_read_share": 0.9527,
+     "calls": 13,
+     "usd": 0.140054
+    },
+    "phase_b": {
+     "in": 50,
+     "cc": 39088,
+     "cr": 344857,
+     "out": 4237,
+     "input_total": 383995,
+     "cache_read_share": 0.8981,
+     "calls": 6,
+     "usd": 0.133897
+    },
+    "compaction_input": 0,
+    "compaction_usd": 0.0,
+    "result_json": {
+     "a_input": 627163,
+     "b_input": 383995,
+     "total_input": 1011158,
+     "total_usd": 0.27506
+    },
+    "last_a_context": 55621,
+    "first_b_context": 55915,
+    "first_b_call": {
+     "in": 10,
+     "cc": 25820,
+     "cr": 30085
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 56043,
+     "durationMs": 449,
+     "postTokens": 13182,
+     "cumulativeDroppedTokens": 42861
+    },
+    "phase_b_tools": {
+     "reads": 0,
+     "re_reads": 0,
+     "archive_reads": 0,
+     "bash": 2,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2468,
+     2468,
+     2232
+    ],
+    "between_calls": 0,
+    "input_total": 1010109,
+    "usd": 0.273951,
+    "injections": [
+     {
+      "index": 274,
+      "phase": "B",
+      "event": "UserPromptSubmit",
+      "chars": 1363,
+      "tokens": 532,
+      "calls_in_context": 6,
+      "cc": 532,
+      "cr": 2660
+     },
+     {
+      "index": 283,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5550,
+      "tokens": 2165,
+      "calls_in_context": 5,
+      "cc": 2165,
+      "cr": 8660
+     },
+     {
+      "index": 297,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5561,
+      "tokens": 2169,
+      "calls_in_context": 4,
+      "cc": 2169,
+      "cr": 6507
+     },
+     {
+      "index": 311,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5366,
+      "tokens": 2093,
+      "calls_in_context": 3,
+      "cc": 2093,
+      "cr": 4186
+     },
+     {
+      "index": 320,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5216,
+      "tokens": 2034,
+      "calls_in_context": 2,
+      "cc": 2034,
+      "cr": 2034
+     }
+    ],
+    "counterfactual": {
+     "no_recall": {
+      "input_total": 977069,
+      "usd": 0.25356
+     },
+     "prompt_recall_only": {
+      "input_total": 980261,
+      "usd": 0.25489
+     },
+     "as_run": {
+      "input_total": 1010109,
+      "usd": 0.273951
+     }
+    },
+    "resumed_chain": {
+     "cut_found": false,
+     "pre_boundary_entries": 109,
+     "pre_boundary_tool_results": 22,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 11
+    },
+    "mask_check": {
+     "observed": 55915,
+     "predicted_unmasked": 56804,
+     "predicted_masked": 51093,
+     "stubbed_chars": 14643,
+     "phase_a_thinking_tokens": 1484
+    },
+    "provenance": {
+     "saved_file_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 280,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 293,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 293,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "recall only",
+       "kept_in": [],
+       "first_use": {
+        "index": 303,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [
+        297
+       ],
+       "results_before_use": []
+      }
+     },
+     "resumed_chain_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 280,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 293,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 293,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 303,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [
+        297
+       ],
+       "results_before_use": []
+      }
+     }
+    }
+   },
+   "N": {
+    "session": "runs/t08-loans/N/session.jsonl",
+    "phase_a": {
+     "in": 98,
+     "cc": 29713,
+     "cr": 554744,
+     "out": 4010,
+     "input_total": 584555,
+     "cache_read_share": 0.949,
+     "calls": 12,
+     "usd": 0.135048
+    },
+    "phase_b": {
+     "in": 98,
+     "cc": 30104,
+     "cr": 587519,
+     "out": 4213,
+     "input_total": 617721,
+     "cache_read_share": 0.9511,
+     "calls": 12,
+     "usd": 0.140123
+    },
+    "compaction_input": 57253,
+    "compaction_usd": 0.021671,
+    "result_json": {
+     "a_input": 585604,
+     "b_input": 617721,
+     "total_input": 1260578,
+     "total_usd": 0.297951
+    },
+    "last_a_context": 55825,
+    "first_b_context": 44504,
+    "first_b_call": {
+     "in": 10,
+     "cc": 14411,
+     "cr": 30083
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 56266,
+     "durationMs": 30141,
+     "preservedSegment": {
+      "headUuid": "5bc8cc8b-f419-4d07-bed8-fd64b4c2f96b",
+      "anchorUuid": "a6f91fd5-e7c7-40df-83da-cbbced57a075",
+      "tailUuid": "4d94c991-3ca2-47bc-bad1-621dbc64f6e7"
+     },
+     "preservedMessages": {
+      "anchorUuid": "a6f91fd5-e7c7-40df-83da-cbbced57a075",
+      "uuids": [
+       "5bc8cc8b-f419-4d07-bed8-fd64b4c2f96b",
+       "4d94c991-3ca2-47bc-bad1-621dbc64f6e7"
+      ],
+      "allUuids": [
+       "5bc8cc8b-f419-4d07-bed8-fd64b4c2f96b",
+       "4d94c991-3ca2-47bc-bad1-621dbc64f6e7"
+      ]
+     },
+     "postTokens": 5782,
+     "cumulativeDroppedTokens": 50484
+    },
+    "phase_b_tools": {
+     "reads": 14,
+     "re_reads": 10,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 2
+    },
+    "largest_tool_results": [
+     14499,
+     2468,
+     2232
+    ],
+    "between_calls": 0,
+    "input_total": 1259529,
+    "usd": 0.296842,
+    "resumed_chain": {
+     "cut_found": true,
+     "pre_boundary_entries": 115,
+     "pre_boundary_tool_results": 24,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 0
+    }
+   }
+  },
+  {
+   "task": "t09-fleet",
+   "A": {
+    "session": "runs-r2/t09-fleet/A/session.jsonl",
+    "phase_a": {
+     "in": 202,
+     "cc": 30419,
+     "cr": 1138147,
+     "out": 4440,
+     "input_total": 1168768,
+     "cache_read_share": 0.9738,
+     "calls": 25,
+     "usd": 0.197055
+    },
+    "phase_b": {
+     "in": 42,
+     "cc": 38098,
+     "cr": 275956,
+     "out": 3102,
+     "input_total": 314096,
+     "cache_read_share": 0.8786,
+     "calls": 5,
+     "usd": 0.119344
+    },
+    "compaction_input": 0,
+    "compaction_usd": 0.0,
+    "result_json": {
+     "a_input": 1169817,
+     "b_input": 314096,
+     "total_input": 1483913,
+     "total_usd": 0.317507
+    },
+    "last_a_context": 56531,
+    "first_b_context": 56154,
+    "first_b_call": {
+     "in": 10,
+     "cc": 26059,
+     "cr": 30085
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 56803,
+     "durationMs": 1470,
+     "postTokens": 13208,
+     "cumulativeDroppedTokens": 43595
+    },
+    "phase_b_tools": {
+     "reads": 0,
+     "re_reads": 0,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2243,
+     2243,
+     2227
+    ],
+    "between_calls": 0,
+    "input_total": 1482864,
+    "usd": 0.316398,
+    "injections": [
+     {
+      "index": 334,
+      "phase": "B",
+      "event": "UserPromptSubmit",
+      "chars": 1363,
+      "tokens": 532,
+      "calls_in_context": 5,
+      "cc": 532,
+      "cr": 2128
+     },
+     {
+      "index": 343,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5645,
+      "tokens": 2202,
+      "calls_in_context": 4,
+      "cc": 2202,
+      "cr": 6606
+     },
+     {
+      "index": 356,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5337,
+      "tokens": 2082,
+      "calls_in_context": 3,
+      "cc": 2082,
+      "cr": 4164
+     },
+     {
+      "index": 370,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5713,
+      "tokens": 2228,
+      "calls_in_context": 2,
+      "cc": 2228,
+      "cr": 2228
+     },
+     {
+      "index": 380,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5131,
+      "tokens": 2001,
+      "calls_in_context": 1,
+      "cc": 2001,
+      "cr": 0
+     }
+    ],
+    "counterfactual": {
+     "no_recall": {
+      "input_total": 1458693,
+      "usd": 0.296796
+     },
+     "prompt_recall_only": {
+      "input_total": 1461353,
+      "usd": 0.298073
+     },
+     "as_run": {
+      "input_total": 1482864,
+      "usd": 0.316398
+     }
+    },
+    "resumed_chain": {
+     "cut_found": false,
+     "pre_boundary_entries": 147,
+     "pre_boundary_tool_results": 23,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 11
+    },
+    "mask_check": {
+     "observed": 56154,
+     "predicted_unmasked": 57554,
+     "predicted_masked": 51854,
+     "stubbed_chars": 14615,
+     "phase_a_thinking_tokens": 1673
+    },
+    "provenance": {
+     "saved_file_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 339,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 352,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 352,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "unexplained",
+       "kept_in": [],
+       "first_use": {
+        "index": 362,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      }
+     },
+     "resumed_chain_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 339,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 352,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 352,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 362,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      }
+     }
+    }
+   },
+   "N": {
+    "session": "runs/t09-fleet/N/session.jsonl",
+    "phase_a": {
+     "in": 90,
+     "cc": 29071,
+     "cr": 502253,
+     "out": 4038,
+     "input_total": 531414,
+     "cache_read_share": 0.9451,
+     "calls": 11,
+     "usd": 0.128647
+    },
+    "phase_b": {
+     "in": 42,
+     "cc": 19968,
+     "cr": 219163,
+     "out": 3340,
+     "input_total": 239173,
+     "cache_read_share": 0.9163,
+     "calls": 5,
+     "usd": 0.078594
+    },
+    "compaction_input": 56611,
+    "compaction_usd": 0.024586,
+    "result_json": {
+     "a_input": 532463,
+     "b_input": 239173,
+     "total_input": 828247,
+     "total_usd": 0.232936
+    },
+    "last_a_context": 55183,
+    "first_b_context": 44484,
+    "first_b_call": {
+     "in": 10,
+     "cc": 14391,
+     "cr": 30083
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 55489,
+     "durationMs": 36048,
+     "preservedSegment": {
+      "headUuid": "ee42b24f-ced5-466f-85ff-33384b5f6a3b",
+      "anchorUuid": "3303b15b-1712-48ee-985d-352279c0f59c",
+      "tailUuid": "cb5e6820-1368-46ad-8284-45519a24d175"
+     },
+     "preservedMessages": {
+      "anchorUuid": "3303b15b-1712-48ee-985d-352279c0f59c",
+      "uuids": [
+       "ee42b24f-ced5-466f-85ff-33384b5f6a3b",
+       "cb5e6820-1368-46ad-8284-45519a24d175"
+      ],
+      "allUuids": [
+       "ee42b24f-ced5-466f-85ff-33384b5f6a3b",
+       "cb5e6820-1368-46ad-8284-45519a24d175"
+      ]
+     },
+     "postTokens": 5796,
+     "cumulativeDroppedTokens": 49693
+    },
+    "phase_b_tools": {
+     "reads": 5,
+     "re_reads": 5,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2243,
+     2227,
+     2176
+    ],
+    "between_calls": 0,
+    "input_total": 827198,
+    "usd": 0.231828,
+    "resumed_chain": {
+     "cut_found": true,
+     "pre_boundary_entries": 106,
+     "pre_boundary_tool_results": 24,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 0
+    }
+   }
+  },
+  {
+   "task": "t10-warehouse",
+   "A": {
+    "session": "runs-r2/t10-warehouse/A/session.jsonl",
+    "phase_a": {
+     "in": 122,
+     "cc": 29835,
+     "cr": 702865,
+     "out": 4131,
+     "input_total": 732822,
+     "cache_read_share": 0.9591,
+     "calls": 15,
+     "usd": 0.150733
+    },
+    "phase_b": {
+     "in": 50,
+     "cc": 42678,
+     "cr": 350647,
+     "out": 5075,
+     "input_total": 393375,
+     "cache_read_share": 0.8914,
+     "calls": 6,
+     "usd": 0.145846
+    },
+    "compaction_input": 0,
+    "compaction_usd": 0.0,
+    "result_json": {
+     "a_input": 733871,
+     "b_input": 393375,
+     "total_input": 1127246,
+     "total_usd": 0.297688
+    },
+    "last_a_context": 55947,
+    "first_b_context": 56265,
+    "first_b_call": {
+     "in": 10,
+     "cc": 26170,
+     "cr": 30085
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 56142,
+     "durationMs": 826,
+     "postTokens": 12650,
+     "cumulativeDroppedTokens": 43492
+    },
+    "phase_b_tools": {
+     "reads": 1,
+     "re_reads": 0,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2341,
+     2341,
+     2280
+    ],
+    "between_calls": 0,
+    "input_total": 1126197,
+    "usd": 0.296579,
+    "injections": [
+     {
+      "index": 286,
+      "phase": "B",
+      "event": "UserPromptSubmit",
+      "chars": 1945,
+      "tokens": 759,
+      "calls_in_context": 6,
+      "cc": 759,
+      "cr": 3795
+     },
+     {
+      "index": 294,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5226,
+      "tokens": 2038,
+      "calls_in_context": 5,
+      "cc": 2038,
+      "cr": 8152
+     },
+     {
+      "index": 307,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5423,
+      "tokens": 2115,
+      "calls_in_context": 4,
+      "cc": 2115,
+      "cr": 6345
+     },
+     {
+      "index": 320,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5682,
+      "tokens": 2216,
+      "calls_in_context": 3,
+      "cc": 2216,
+      "cr": 4432
+     },
+     {
+      "index": 334,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5325,
+      "tokens": 2077,
+      "calls_in_context": 2,
+      "cc": 2077,
+      "cr": 2077
+     },
+     {
+      "index": 344,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5329,
+      "tokens": 2078,
+      "calls_in_context": 1,
+      "cc": 2078,
+      "cr": 0
+     }
+    ],
+    "counterfactual": {
+     "no_recall": {
+      "input_total": 1090113,
+      "usd": 0.271533
+     },
+     "prompt_recall_only": {
+      "input_total": 1094667,
+      "usd": 0.273431
+     },
+     "as_run": {
+      "input_total": 1126197,
+      "usd": 0.296579
+     }
+    },
+    "resumed_chain": {
+     "cut_found": false,
+     "pre_boundary_entries": 114,
+     "pre_boundary_tool_results": 24,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 13
+    },
+    "mask_check": {
+     "observed": 56265,
+     "predicted_unmasked": 57163,
+     "predicted_masked": 50036,
+     "stubbed_chars": 18274,
+     "phase_a_thinking_tokens": 1227
+    },
+    "provenance": {
+     "saved_file_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 303,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 317,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 317,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "unexplained",
+       "kept_in": [],
+       "first_use": {
+        "index": 302,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      }
+     },
+     "resumed_chain_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 303,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 317,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 317,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 302,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      }
+     }
+    }
+   },
+   "N": {
+    "session": "runs/t10-warehouse/N/session.jsonl",
+    "phase_a": {
+     "in": 106,
+     "cc": 31767,
+     "cr": 620429,
+     "out": 3840,
+     "input_total": 652302,
+     "cache_read_share": 0.9511,
+     "calls": 13,
+     "usd": 0.144883
+    },
+    "phase_b": {
+     "in": 66,
+     "cc": 22802,
+     "cr": 375758,
+     "out": 3530,
+     "input_total": 398626,
+     "cache_read_share": 0.9426,
+     "calls": 8,
+     "usd": 0.100896
+    },
+    "compaction_input": 59307,
+    "compaction_usd": 0.022262,
+    "result_json": {
+     "a_input": 653351,
+     "b_input": 398626,
+     "total_input": 1111284,
+     "total_usd": 0.269149
+    },
+    "last_a_context": 57879,
+    "first_b_context": 44198,
+    "first_b_call": {
+     "in": 10,
+     "cc": 14105,
+     "cr": 30083
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 58120,
+     "durationMs": 31100,
+     "preservedSegment": {
+      "headUuid": "5867f595-ec41-4184-89de-2741b6b3c296",
+      "anchorUuid": "d3c388d8-1738-4152-a732-d98b08e99a4c",
+      "tailUuid": "ca19af27-4317-41e2-ba1a-52dd50683216"
+     },
+     "preservedMessages": {
+      "anchorUuid": "d3c388d8-1738-4152-a732-d98b08e99a4c",
+      "uuids": [
+       "5867f595-ec41-4184-89de-2741b6b3c296",
+       "ca19af27-4317-41e2-ba1a-52dd50683216"
+      ],
+      "allUuids": [
+       "5867f595-ec41-4184-89de-2741b6b3c296",
+       "ca19af27-4317-41e2-ba1a-52dd50683216"
+      ]
+     },
+     "postTokens": 5309,
+     "cumulativeDroppedTokens": 52811
+    },
+    "phase_b_tools": {
+     "reads": 8,
+     "re_reads": 8,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 1
+    },
+    "largest_tool_results": [
+     2800,
+     2341,
+     2280
+    ],
+    "between_calls": 0,
+    "input_total": 1110235,
+    "usd": 0.268041,
+    "resumed_chain": {
+     "cut_found": true,
+     "pre_boundary_entries": 123,
+     "pre_boundary_tool_results": 26,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 0
+    }
+   }
+  },
+  {
+   "task": "t11-subscriptions",
+   "A": {
+    "session": "runs-r2/t11-subscriptions/A/session.jsonl",
+    "phase_a": {
+     "in": 130,
+     "cc": 29823,
+     "cr": 731451,
+     "out": 4275,
+     "input_total": 761404,
+     "cache_read_share": 0.9607,
+     "calls": 16,
+     "usd": 0.154296
+    },
+    "phase_b": {
+     "in": 42,
+     "cc": 36555,
+     "cr": 270749,
+     "out": 2174,
+     "input_total": 307346,
+     "cache_read_share": 0.8809,
+     "calls": 5,
+     "usd": 0.111097
+    },
+    "compaction_input": 0,
+    "compaction_usd": 0.0,
+    "result_json": {
+     "a_input": 762453,
+     "b_input": 307346,
+     "total_input": 1069799,
+     "total_usd": 0.266507
+    },
+    "last_a_context": 55935,
+    "first_b_context": 55444,
+    "first_b_call": {
+     "in": 10,
+     "cc": 25348,
+     "cr": 30086
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 56345,
+     "durationMs": 980,
+     "postTokens": 12232,
+     "cumulativeDroppedTokens": 44113
+    },
+    "phase_b_tools": {
+     "reads": 0,
+     "re_reads": 0,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2245,
+     2203,
+     2203
+    ],
+    "between_calls": 0,
+    "input_total": 1068750,
+    "usd": 0.265393,
+    "injections": [
+     {
+      "index": 296,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5926,
+      "tokens": 2311,
+      "calls_in_context": 4,
+      "cc": 2311,
+      "cr": 6933
+     },
+     {
+      "index": 309,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5637,
+      "tokens": 2199,
+      "calls_in_context": 3,
+      "cc": 2199,
+      "cr": 4398
+     },
+     {
+      "index": 322,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5633,
+      "tokens": 2197,
+      "calls_in_context": 2,
+      "cc": 2197,
+      "cr": 2197
+     },
+     {
+      "index": 331,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5333,
+      "tokens": 2080,
+      "calls_in_context": 1,
+      "cc": 2080,
+      "cr": 0
+     }
+    ],
+    "counterfactual": {
+     "no_recall": {
+      "input_total": 1046435,
+      "usd": 0.246466
+     },
+     "prompt_recall_only": {
+      "input_total": 1046435,
+      "usd": 0.246466
+     },
+     "as_run": {
+      "input_total": 1068750,
+      "usd": 0.265393
+     }
+    },
+    "resumed_chain": {
+     "cut_found": false,
+     "pre_boundary_entries": 111,
+     "pre_boundary_tool_results": 19,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 11
+    },
+    "mask_check": {
+     "observed": 55444,
+     "predicted_unmasked": 56573,
+     "predicted_masked": 49364,
+     "stubbed_chars": 18483,
+     "phase_a_thinking_tokens": 1595
+    },
+    "provenance": {
+     "saved_file_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 291,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 291,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 291,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 314,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      }
+     },
+     "resumed_chain_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 291,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 291,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 291,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 314,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      }
+     }
+    }
+   },
+   "N": {
+    "session": "runs/t11-subscriptions/N/session.jsonl",
+    "phase_a": {
+     "in": 82,
+     "cc": 31289,
+     "cr": 482852,
+     "out": 4046,
+     "input_total": 514223,
+     "cache_read_share": 0.939,
+     "calls": 10,
+     "usd": 0.131175
+    },
+    "phase_b": {
+     "in": 82,
+     "cc": 21812,
+     "cr": 458701,
+     "out": 3724,
+     "input_total": 480595,
+     "cache_read_share": 0.9544,
+     "calls": 10,
+     "usd": 0.108196
+    },
+    "compaction_input": 58829,
+    "compaction_usd": 0.024751,
+    "result_json": {
+     "a_input": 515272,
+     "b_input": 480595,
+     "total_input": 1054696,
+     "total_usd": 0.265236
+    },
+    "last_a_context": 57401,
+    "first_b_context": 44032,
+    "first_b_call": {
+     "in": 10,
+     "cc": 13938,
+     "cr": 30084
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 57783,
+     "durationMs": 36426,
+     "preservedSegment": {
+      "headUuid": "daa34f1c-215f-4c7f-ac72-f61efb5fd2f1",
+      "anchorUuid": "dd26ae9e-0f90-421f-afc6-6a49e143154c",
+      "tailUuid": "cba9bb47-1d78-4757-9927-7c421a7a0777"
+     },
+     "preservedMessages": {
+      "anchorUuid": "dd26ae9e-0f90-421f-afc6-6a49e143154c",
+      "uuids": [
+       "daa34f1c-215f-4c7f-ac72-f61efb5fd2f1",
+       "cba9bb47-1d78-4757-9927-7c421a7a0777"
+      ],
+      "allUuids": [
+       "daa34f1c-215f-4c7f-ac72-f61efb5fd2f1",
+       "cba9bb47-1d78-4757-9927-7c421a7a0777"
+      ]
+     },
+     "postTokens": 5129,
+     "cumulativeDroppedTokens": 52654
+    },
+    "phase_b_tools": {
+     "reads": 9,
+     "re_reads": 7,
+     "archive_reads": 0,
+     "bash": 4,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2800,
+     2280,
+     2245
+    ],
+    "between_calls": 0,
+    "input_total": 1053647,
+    "usd": 0.264122,
+    "resumed_chain": {
+     "cut_found": true,
+     "pre_boundary_entries": 109,
+     "pre_boundary_tool_results": 26,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 0
+    }
+   }
+  },
+  {
+   "task": "t12-meters",
+   "A": {
+    "session": "runs-r2/t12-meters/A/session.jsonl",
+    "phase_a": {
+     "in": 98,
+     "cc": 28413,
+     "cr": 531024,
+     "out": 3683,
+     "input_total": 559535,
+     "cache_read_share": 0.949,
+     "calls": 12,
+     "usd": 0.128441
+    },
+    "phase_b": {
+     "in": 34,
+     "cc": 36671,
+     "cr": 210128,
+     "out": 3665,
+     "input_total": 246833,
+     "cache_read_share": 0.8513,
+     "calls": 4,
+     "usd": 0.112714
+    },
+    "compaction_input": 0,
+    "compaction_usd": 0.0,
+    "result_json": {
+     "a_input": 560584,
+     "b_input": 246833,
+     "total_input": 807417,
+     "total_usd": 0.242279
+    },
+    "last_a_context": 54525,
+    "first_b_context": 54367,
+    "first_b_call": {
+     "in": 10,
+     "cc": 24272,
+     "cr": 30085
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 54986,
+     "durationMs": 606,
+     "postTokens": 12486,
+     "cumulativeDroppedTokens": 42500
+    },
+    "phase_b_tools": {
+     "reads": 0,
+     "re_reads": 0,
+     "archive_reads": 0,
+     "bash": 2,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2364,
+     2364,
+     2318
+    ],
+    "between_calls": 0,
+    "input_total": 806368,
+    "usd": 0.241155,
+    "injections": [
+     {
+      "index": 250,
+      "phase": "B",
+      "event": "UserPromptSubmit",
+      "chars": 1322,
+      "tokens": 516,
+      "calls_in_context": 4,
+      "cc": 516,
+      "cr": 1548
+     },
+     {
+      "index": 258,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5630,
+      "tokens": 2196,
+      "calls_in_context": 3,
+      "cc": 2196,
+      "cr": 4392
+     },
+     {
+      "index": 274,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5520,
+      "tokens": 2153,
+      "calls_in_context": 2,
+      "cc": 2153,
+      "cr": 2153
+     },
+     {
+      "index": 282,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 5521,
+      "tokens": 2153,
+      "calls_in_context": 2,
+      "cc": 2153,
+      "cr": 2153
+     },
+     {
+      "index": 286,
+      "phase": "B",
+      "event": "PostToolUse",
+      "chars": 4970,
+      "tokens": 1938,
+      "calls_in_context": 2,
+      "cc": 1938,
+      "cr": 1938
+     }
+    ],
+    "counterfactual": {
+     "no_recall": {
+      "input_total": 785228,
+      "usd": 0.222025
+     },
+     "prompt_recall_only": {
+      "input_total": 787292,
+      "usd": 0.223212
+     },
+     "as_run": {
+      "input_total": 806368,
+      "usd": 0.241155
+     }
+    },
+    "resumed_chain": {
+     "cut_found": false,
+     "pre_boundary_entries": 88,
+     "pre_boundary_tool_results": 15,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 10
+    },
+    "mask_check": {
+     "observed": 54367,
+     "predicted_unmasked": 55690,
+     "predicted_masked": 49890,
+     "stubbed_chars": 14871,
+     "phase_a_thinking_tokens": 1432
+    },
+    "provenance": {
+     "saved_file_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 254,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 254,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 254,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "phase-B tool result (recall also had it)",
+       "kept_in": [],
+       "first_use": {
+        "index": 275,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [
+        258
+       ],
+       "results_before_use": [
+        256
+       ]
+      }
+     },
+     "resumed_chain_view": {
+      "token": {
+       "source": "kept context",
+       "kept_in": [
+        "assistant_text",
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 254,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "code": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 254,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "tolerance": {
+       "source": "kept context",
+       "kept_in": [
+        "tool_result"
+       ],
+       "first_use": {
+        "index": 254,
+        "kind": "assistant_text"
+       },
+       "recall_before_use": [],
+       "results_before_use": []
+      },
+      "window": {
+       "source": "phase-B tool result (recall also had it)",
+       "kept_in": [],
+       "first_use": {
+        "index": 275,
+        "kind": "tool_input"
+       },
+       "recall_before_use": [
+        258
+       ],
+       "results_before_use": [
+        256
+       ]
+      }
+     }
+    }
+   },
+   "N": {
+    "session": "runs/t12-meters/N/session.jsonl",
+    "phase_a": {
+     "in": 98,
+     "cc": 29279,
+     "cr": 561632,
+     "out": 3709,
+     "input_total": 591009,
+     "cache_read_share": 0.9503,
+     "calls": 12,
+     "usd": 0.133364
+    },
+    "phase_b": {
+     "in": 50,
+     "cc": 19295,
+     "cr": 263666,
+     "out": 4413,
+     "input_total": 283011,
+     "cache_read_share": 0.9316,
+     "calls": 6,
+     "usd": 0.087072
+    },
+    "compaction_input": 56819,
+    "compaction_usd": 0.02119,
+    "result_json": {
+     "a_input": 592058,
+     "b_input": 283011,
+     "total_input": 931888,
+     "total_usd": 0.242735
+    },
+    "last_a_context": 55391,
+    "first_b_context": 42406,
+    "first_b_call": {
+     "in": 10,
+     "cc": 12313,
+     "cr": 30083
+    },
+    "compact_metadata": {
+     "trigger": "manual",
+     "preTokens": 55779,
+     "durationMs": 30296,
+     "preservedSegment": {
+      "headUuid": "3c2d8e37-4858-437e-99b9-3a765e83046d",
+      "anchorUuid": "901b0e6b-7d7f-49c4-9747-7d4862eaa0ed",
+      "tailUuid": "249cdd95-c3d1-47da-908e-a9c0b5483965"
+     },
+     "preservedMessages": {
+      "anchorUuid": "901b0e6b-7d7f-49c4-9747-7d4862eaa0ed",
+      "uuids": [
+       "3c2d8e37-4858-437e-99b9-3a765e83046d",
+       "249cdd95-c3d1-47da-908e-a9c0b5483965"
+      ],
+      "allUuids": [
+       "3c2d8e37-4858-437e-99b9-3a765e83046d",
+       "249cdd95-c3d1-47da-908e-a9c0b5483965"
+      ]
+     },
+     "postTokens": 4415,
+     "cumulativeDroppedTokens": 51364
+    },
+    "phase_b_tools": {
+     "reads": 5,
+     "re_reads": 5,
+     "archive_reads": 0,
+     "bash": 1,
+     "grep_glob": 0
+    },
+    "largest_tool_results": [
+     2364,
+     2364,
+     2318
+    ],
+    "between_calls": 0,
+    "input_total": 930839,
+    "usd": 0.241626,
+    "resumed_chain": {
+     "cut_found": true,
+     "pre_boundary_entries": 110,
+     "pre_boundary_tool_results": 24,
+     "stubs_on_chain": 0,
+     "stubs_after_boundary": 0
+    }
+   }
+  }
+ ],
+ "pooled": {
+  "A": {
+   "input_total": 13140479.0,
+   "usd": 3.34265,
+   "result_json_input": 13153067.0,
+   "result_json_usd": 3.355988,
+   "compaction_input": 0.0,
+   "first_b_context_mean": 55317,
+   "last_a_context_mean": 55519,
+   "re_reads": 1.0,
+   "phase_a": {
+    "in": 1568.0,
+    "cc": 348905.0,
+    "cr": 8841559.0,
+    "out": 47961.0,
+    "input_total": 9192032.0,
+    "calls": 193.0,
+    "usd": 1.823338,
+    "cache_read_share": 0.9619
+   },
+   "phase_b": {
+    "in": 520.0,
+    "cc": 466909.0,
+    "cr": 3481018.0,
+    "out": 47374.0,
+    "input_total": 3948447.0,
+    "calls": 62.0,
+    "usd": 1.51931,
+    "cache_read_share": 0.8816
+   }
+  },
+  "N": {
+   "input_total": 11583174.0,
+   "usd": 2.94249,
+   "result_json_input": 11595762.0,
+   "result_json_usd": 2.955542,
+   "compaction_input": 683852.0,
+   "first_b_context_mean": 43361,
+   "last_a_context_mean": 55560,
+   "re_reads": 72.0,
+   "phase_a": {
+    "in": 1168.0,
+    "cc": 353753.0,
+    "cr": 6600986.0,
+    "out": 46626.0,
+    "input_total": 6955907.0,
+    "calls": 143.0,
+    "usd": 1.601903,
+    "cache_read_share": 0.949
+   },
+   "phase_b": {
+    "in": 680.0,
+    "cc": 247846.0,
+    "cr": 3694889.0,
+    "out": 41752.0,
+    "input_total": 3943415.0,
+    "calls": 82.0,
+    "usd": 1.07462,
+    "cache_read_share": 0.937
+   }
+  },
+  "injections": {
+   "count": 64,
+   "prompt": 11,
+   "tool": 53,
+   "in_phase_a": 0,
+   "chars": 297710,
+   "tokens": 116117,
+   "input_cost_cc": 116117,
+   "input_cost_cr": 236111
+  },
+  "counterfactual": {
+   "no_recall": {
+    "input_total": 12788251,
+    "usd": 3.0868
+   },
+   "prompt_recall_only": {
+    "input_total": 12813590,
+    "usd": 3.0988
+   },
+   "as_run": {
+    "input_total": 13140479,
+    "usd": 3.3426
+   }
+  },
+  "provenance": {
+   "saved_file_view": {
+    "token": {
+     "kept context": 12
+    },
+    "code": {
+     "kept context": 12
+    },
+    "tolerance": {
+     "kept context": 12
+    },
+    "window": {
+     "phase-B tool result (recall also had it)": 2,
+     "unexplained": 4,
+     "kept context": 2,
+     "recall only": 4
+    }
+   },
+   "resumed_chain_view": {
+    "token": {
+     "kept context": 12
+    },
+    "code": {
+     "kept context": 12
+    },
+    "tolerance": {
+     "kept context": 12
+    },
+    "window": {
+     "kept context": 11,
+     "phase-B tool result (recall also had it)": 1
+    }
+   }
+  },
+  "mask_check": {
+   "observed_mean": 55317,
+   "predicted_unmasked_mean": 56500,
+   "predicted_masked_mean": 49742,
+   "phase_a_thinking_mean": 1453,
+   "cut_found": {
+    "A": 0,
+    "N": 12
+   },
+   "stubs_on_resumed_chain_A": 0,
+   "original_tool_results_on_resumed_chain_A": 259
+  },
+  "largest_tool_result": 14499
+ }
+}

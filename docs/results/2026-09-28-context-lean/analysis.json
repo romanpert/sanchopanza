@@ -1,0 +1,637 @@
+{
+ "models": {
+  "haiku": {
+   "phase_a": {
+    "n": 7,
+    "valid": 7,
+    "usd": 0.7264,
+    "last_context_median": 38164,
+    "token_in_model_text": 2
+   },
+   "arms": {
+    "K": {
+     "n": 6,
+     "success": 0,
+     "success_ci": [
+      0.0,
+      0.3903
+     ],
+     "facts": {
+      "token": 1,
+      "check": 3,
+      "limit": 4,
+      "visible": 6
+     },
+     "facts_ci": {
+      "token": [
+       0.0301,
+       0.5635
+      ],
+      "check": [
+       0.1876,
+       0.8124
+      ],
+      "limit": [
+       0.3,
+       0.9032
+      ],
+      "visible": [
+       0.6097,
+       1.0
+      ]
+     },
+     "b_input_median": 1547507.0,
+     "b_input_sum": 8564916.0,
+     "b_usd_sum": 1.6836,
+     "b_usd_mean": 0.2806,
+     "cache_read_share": 0.9621,
+     "compaction_fired": 6,
+     "compactions": 10,
+     "first_after_vs_last_before": [
+      [
+       50101,
+       35147
+      ],
+      [
+       51085,
+       37724
+      ],
+      [
+       50578,
+       36748
+      ],
+      [
+       50355,
+       31908
+      ],
+      [
+       50093,
+       34948
+      ],
+      [
+       50178,
+       43523
+      ],
+      [
+       50326,
+       33599
+      ],
+      [
+       50410,
+       35067
+      ],
+      [
+       50155,
+       33810
+      ],
+      [
+       50339,
+       45312
+      ]
+     ],
+     "calls_before_first_compaction": [
+      13,
+      2,
+      14,
+      12,
+      15,
+      12
+     ],
+     "search_archive_calls": 0,
+     "archive_reads": 0,
+     "one_shot_reruns": 28,
+     "parallel_batches": 0,
+     "arrival_cuts": 0,
+     "plugin_fallbacks": 1,
+     "capped_or_error": 0
+    },
+    "L": {
+     "n": 7,
+     "success": 3,
+     "success_ci": [
+      0.1582,
+      0.7495
+     ],
+     "facts": {
+      "token": 5,
+      "check": 5,
+      "limit": 7,
+      "visible": 7
+     },
+     "facts_ci": {
+      "token": [
+       0.3589,
+       0.9178
+      ],
+      "check": [
+       0.3589,
+       0.9178
+      ],
+      "limit": [
+       0.6457,
+       1.0
+      ],
+      "visible": [
+       0.6457,
+       1.0
+      ]
+     },
+     "b_input_median": 1319223.0,
+     "b_input_sum": 10463588.0,
+     "b_usd_sum": 1.9883,
+     "b_usd_mean": 0.284,
+     "cache_read_share": 0.9662,
+     "compaction_fired": 7,
+     "compactions": 11,
+     "first_after_vs_last_before": [
+      [
+       50348,
+       37944
+      ],
+      [
+       51053,
+       39603
+      ],
+      [
+       50129,
+       37780
+      ],
+      [
+       50121,
+       36238
+      ],
+      [
+       49905,
+       32472
+      ],
+      [
+       50273,
+       34865
+      ],
+      [
+       50068,
+       31614
+      ],
+      [
+       50499,
+       37856
+      ],
+      [
+       50345,
+       40018
+      ],
+      [
+       50077,
+       36215
+      ],
+      [
+       50490,
+       41131
+      ]
+     ],
+     "calls_before_first_compaction": [
+      13,
+      2,
+      14,
+      12,
+      10,
+      15,
+      12
+     ],
+     "search_archive_calls": 0,
+     "archive_reads": 13,
+     "one_shot_reruns": 39,
+     "parallel_batches": 0,
+     "arrival_cuts": 5,
+     "plugin_fallbacks": 1,
+     "capped_or_error": 0
+    },
+    "N": {
+     "n": 7,
+     "success": 5,
+     "success_ci": [
+      0.3589,
+      0.9178
+     ],
+     "facts": {
+      "token": 7,
+      "check": 5,
+      "limit": 7,
+      "visible": 7
+     },
+     "facts_ci": {
+      "token": [
+       0.6457,
+       1.0
+      ],
+      "check": [
+       0.3589,
+       0.9178
+      ],
+      "limit": [
+       0.6457,
+       1.0
+      ],
+      "visible": [
+       0.6457,
+       1.0
+      ]
+     },
+     "b_input_median": 1203152.0,
+     "b_input_sum": 8725922.0,
+     "b_usd_sum": 2.0267,
+     "b_usd_mean": 0.2895,
+     "cache_read_share": 0.9539,
+     "compaction_fired": 7,
+     "compactions": 12,
+     "first_after_vs_last_before": [
+      [
+       52291,
+       33758
+      ],
+      [
+       50961,
+       36347
+      ],
+      [
+       46508,
+       46037
+      ],
+      [
+       50326,
+       38734
+      ],
+      [
+       48986,
+       44536
+      ],
+      [
+       49974,
+       34083
+      ],
+      [
+       50091,
+       32289
+      ],
+      [
+       45164,
+       41947
+      ],
+      [
+       49685,
+       34571
+      ],
+      [
+       45286,
+       45594
+      ],
+      [
+       50221,
+       33525
+      ],
+      [
+       50000,
+       32096
+      ]
+     ],
+     "calls_before_first_compaction": [
+      14,
+      2,
+      14,
+      12,
+      3,
+      15,
+      12
+     ],
+     "search_archive_calls": 0,
+     "archive_reads": 0,
+     "one_shot_reruns": 2,
+     "parallel_batches": 5,
+     "arrival_cuts": 0,
+     "plugin_fallbacks": 0,
+     "capped_or_error": 0
+    }
+   },
+   "paired": {
+    "N_vs_L": {
+     "tasks": 7,
+     "success_N": 5,
+     "success_L": 3,
+     "input_N_minus_L_mean": -248238.0,
+     "input_diff_ci": [
+      -603958.8571,
+      13457.7143
+     ],
+     "usd_N_minus_L_mean": 0.00548,
+     "usd_diff_ci": [
+      -0.0767,
+      0.1111
+     ],
+     "discordant": {
+      "N_only": 2,
+      "L_only": 0
+     },
+     "mcnemar_exact_p": 0.5,
+     "fisher_p": 0.5921,
+     "per_fact_discordant": {
+      "token": [
+       2,
+       0
+      ],
+      "check": [
+       0,
+       0
+      ],
+      "limit": [
+       0,
+       0
+      ],
+      "visible": [
+       0,
+       0
+      ]
+     }
+    },
+    "N_vs_K": {
+     "tasks": 6,
+     "success_N": 5,
+     "success_K": 0,
+     "input_N_minus_K_mean": -254311.2,
+     "input_diff_ci": [
+      -480597.5,
+      36012.5
+     ],
+     "usd_N_minus_K_mean": -0.01398,
+     "usd_diff_ci": [
+      -0.0683,
+      0.0404
+     ],
+     "discordant": {
+      "N_only": 5,
+      "K_only": 0
+     },
+     "mcnemar_exact_p": 0.0625,
+     "fisher_p": 0.0152,
+     "per_fact_discordant": {
+      "token": [
+       5,
+       0
+      ],
+      "check": [
+       2,
+       0
+      ],
+      "limit": [
+       2,
+       0
+      ],
+      "visible": [
+       0,
+       0
+      ]
+     }
+    },
+    "K_vs_L": {
+     "tasks": 6,
+     "success_K": 0,
+     "success_L": 3,
+     "input_K_minus_L_mean": 167995.5,
+     "input_diff_ci": [
+      -105186.0,
+      458920.5
+     ],
+     "usd_K_minus_L_mean": 0.04666,
+     "usd_diff_ci": [
+      -0.0236,
+      0.1339
+     ],
+     "discordant": {
+      "K_only": 0,
+      "L_only": 3
+     },
+     "mcnemar_exact_p": 0.25,
+     "fisher_p": 0.1818,
+     "per_fact_discordant": {
+      "token": [
+       0,
+       3
+      ],
+      "check": [
+       0,
+       2
+      ],
+      "limit": [
+       0,
+       2
+      ],
+      "visible": [
+       0,
+       0
+      ]
+     }
+    }
+   }
+  },
+  "sonnet": {
+   "phase_a": {
+    "n": 2,
+    "valid": 2,
+    "usd": 0.485,
+    "last_context_median": 48311.0,
+    "token_in_model_text": 2
+   },
+   "arms": {
+    "L": {
+     "n": 2,
+     "success": 1,
+     "success_ci": [
+      0.0945,
+      0.9055
+     ],
+     "facts": {
+      "token": 1,
+      "check": 1,
+      "limit": 1,
+      "visible": 2
+     },
+     "facts_ci": {
+      "token": [
+       0.0945,
+       0.9055
+      ],
+      "check": [
+       0.0945,
+       0.9055
+      ],
+      "limit": [
+       0.0945,
+       0.9055
+      ],
+      "visible": [
+       0.3424,
+       1.0
+      ]
+     },
+     "b_input_median": 2295769.5,
+     "b_input_sum": 4591539.0,
+     "b_usd_sum": 2.5996,
+     "b_usd_mean": 1.2998,
+     "cache_read_share": 0.9454,
+     "compaction_fired": 2,
+     "compactions": 6,
+     "first_after_vs_last_before": [
+      [
+       62890,
+       49613
+      ],
+      [
+       62139,
+       49893
+      ],
+      [
+       64046,
+       50985
+      ],
+      [
+       63767,
+       44577
+      ],
+      [
+       64211,
+       55571
+      ],
+      [
+       63261,
+       52400
+      ]
+     ],
+     "calls_before_first_compaction": [
+      14,
+      8
+     ],
+     "search_archive_calls": 0,
+     "archive_reads": 15,
+     "one_shot_reruns": 15,
+     "parallel_batches": 1,
+     "arrival_cuts": 6,
+     "plugin_fallbacks": 1,
+     "capped_or_error": 1
+    },
+    "N": {
+     "n": 1,
+     "success": 1,
+     "success_ci": [
+      0.2065,
+      1.0
+     ],
+     "facts": {
+      "token": 1,
+      "check": 1,
+      "limit": 1,
+      "visible": 1
+     },
+     "facts_ci": {
+      "token": [
+       0.2065,
+       1.0
+      ],
+      "check": [
+       0.2065,
+       1.0
+      ],
+      "limit": [
+       0.2065,
+       1.0
+      ],
+      "visible": [
+       0.2065,
+       1.0
+      ]
+     },
+     "b_input_median": 1315406.0,
+     "b_input_sum": 1315406.0,
+     "b_usd_sum": 0.6694,
+     "b_usd_mean": 0.6694,
+     "cache_read_share": 0.9466,
+     "compaction_fired": 1,
+     "compactions": 1,
+     "first_after_vs_last_before": [
+      [
+       62687,
+       48495
+      ]
+     ],
+     "calls_before_first_compaction": [
+      14
+     ],
+     "search_archive_calls": 0,
+     "archive_reads": 0,
+     "one_shot_reruns": 0,
+     "parallel_batches": 0,
+     "arrival_cuts": 0,
+     "plugin_fallbacks": 0,
+     "capped_or_error": 0
+    }
+   },
+   "paired": {
+    "N_vs_L": {
+     "tasks": 1,
+     "success_N": 1,
+     "success_L": 1,
+     "input_N_minus_L_mean": -20737.0,
+     "input_diff_ci": [
+      -20737.0,
+      -20737.0
+     ],
+     "usd_N_minus_L_mean": 0.11416,
+     "usd_diff_ci": [
+      0.1142,
+      0.1142
+     ],
+     "discordant": {
+      "N_only": 0,
+      "L_only": 0
+     },
+     "mcnemar_exact_p": null,
+     "fisher_p": 1.0,
+     "per_fact_discordant": {
+      "token": [
+       0,
+       0
+      ],
+      "check": [
+       0,
+       0
+      ],
+      "limit": [
+       0,
+       0
+      ],
+      "visible": [
+       0,
+       0
+      ]
+     }
+    },
+    "N_vs_K": null,
+    "K_vs_L": null
+   }
+  }
+ },
+ "invalid": [
+  {
+   "model": "haiku",
+   "task": "t05-tickets",
+   "arm": "K",
+   "status": "done",
+   "invalid_reasons": [
+    "no compaction happened",
+    "the arm's compaction hook never ran"
+   ]
+  }
+ ],
+ "spend": {
+  "phase_a_usd": 1.2115,
+  "phase_b_usd": 9.0184
+ }
+}

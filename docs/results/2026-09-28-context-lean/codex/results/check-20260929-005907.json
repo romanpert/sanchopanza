@@ -1,0 +1,76 @@
+{
+  "model": "gpt-6-luna",
+  "effort": "low",
+  "compact_at": null,
+  "tool_output_token_limit": null,
+  "exit_codes": [
+    0,
+    2
+  ],
+  "turn_1": {
+    "thread_id": "01a0ea3e-55cc-7f30-a90d-b881aaf542c0",
+    "usage": {
+      "input_tokens": 34061,
+      "cached_input_tokens": 23040,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 124,
+      "reasoning_output_tokens": 0
+    },
+    "failed": [],
+    "final_message": "The build did not run because `python` wasn’t recognized; it printed about 10 lines of error output.",
+    "commands": [
+      {
+        "command": "\"C:\\\\WINDOWS\\\\System32\\\\WindowsPowerShell\\\\v1.0\\\\powershell.exe\" -Command 'python build_log.py'",
+        "exit": 1,
+        "chars": 473
+      }
+    ],
+    "log_runs": 1,
+    "mcp_calls": []
+  },
+  "turn_2": {
+    "thread_id": null,
+    "usage": null,
+    "failed": [],
+    "final_message": "",
+    "commands": [],
+    "log_runs": 0,
+    "mcp_calls": []
+  },
+  "archive": {
+    "entries": [],
+    "post_tool_use_fired": 0,
+    "session_start_fired": 0,
+    "context_emitted": [],
+    "log_archived_whole": false,
+    "archived_tokens": [],
+    "transcripts": []
+  },
+  "rollout": {
+    "rollouts_read": [],
+    "additional_context_in_rollout": false,
+    "last_request_usage": null,
+    "rate_limits": null
+  },
+  "verdict": {
+    "true_token": "",
+    "answer": "",
+    "answer_correct": false,
+    "hooks_fired": false,
+    "session_start_note": false,
+    "archive_holds_true_token": false,
+    "log_archived_whole": false,
+    "additional_context_emitted": false,
+    "additional_context_in_rollout": false,
+    "search_archive_called": false,
+    "tool_rerun": false,
+    "usage_turn_1": {
+      "input_tokens": 34061,
+      "cached_input_tokens": 23040,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 124,
+      "reasoning_output_tokens": 0
+    },
+    "usage_after_turn_2": null
+  }
+}
