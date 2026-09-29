@@ -35,12 +35,13 @@ The lock file itself is SANCHOPANZA_CANDOR_LOCK (default ~/.sanchopanza/candor-l
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
 import sys
 import time
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from pathlib import Path
 from typing import Any
 
@@ -70,10 +71,51 @@ def _ledger_path(session: str) -> Path:
     return state_dir() / f"{safe}.jsonl"
 
 
+LOCK_WAIT_S = 30.0
+
+
+@contextlib.contextmanager
+def _exclusive(path: Path) -> Iterator[None]:
+    """A lock across processes, on `<path>.lock`. The hooks of parallel tool calls run at the
+    same time, and on Windows an append is a seek then a write: without this, two entries
+    overwrite each other (round 3 of the benchmark lost an action that way). Past LOCK_WAIT_S
+    the write goes ahead unlocked, since a torn line is better than a missing one."""
+    with open(path.with_name(path.name + ".lock"), "a+b") as handle:
+        locked = False
+        deadline = time.monotonic() + LOCK_WAIT_S
+        while not locked and time.monotonic() < deadline:
+            try:
+                if os.name == "nt":
+                    import msvcrt
+
+                    handle.seek(0)
+                    msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+
+                    fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                locked = True
+            except OSError:
+                time.sleep(0.005)
+        try:
+            yield
+        finally:
+            if locked and os.name == "nt":
+                import msvcrt
+
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            elif locked:
+                import fcntl
+
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+
+
 def _append(path: Path, entry: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    line = (json.dumps(entry, ensure_ascii=False) + "\n").encode("utf-8")
+    with _exclusive(path), path.open("ab") as handle:
+        handle.write(line)
 
 
 def snapshot(root: Path) -> dict[str, str]:

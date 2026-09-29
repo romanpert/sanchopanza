@@ -500,3 +500,24 @@ def test_decompressing_to_stdout_opens_the_archive() -> None:
     assert opening_segments("zcat a.gz; gzip -dc b.gz") == ["zcat a.gz", "gzip -dc b.gz"]
     assert not any("p.csv.gz" in s for s in opening_segments("find . -name p.csv.gz | head"))
     assert opening_segments("gunzip data/p.csv.gz") == []  # in place: a write, not a read
+
+
+def _hammer(args: tuple[str, int]) -> None:
+    path, worker = args
+    from sanchopanza.harness import candor_hook as hook
+
+    for i in range(150):
+        hook._append(Path(path), {"kind": "action", "worker": worker, "i": i, "pad": "x" * 3000})
+
+
+def test_parallel_hooks_never_tear_a_ledger_line(tmp_path: Path) -> None:
+    """Round 3: two hooks of parallel calls appended at once and tore a line on Windows, and the
+    hook then dropped an action in silence. Every append must land whole."""
+    import multiprocessing
+
+    path = tmp_path / "ledger.jsonl"
+    with multiprocessing.get_context("spawn").Pool(8) as pool:
+        pool.map(_hammer, [(str(path), w) for w in range(8)])
+    lines = path.read_text(encoding="utf-8").splitlines()
+    assert len(lines) == 8 * 150
+    assert len({(json.loads(x)["worker"], json.loads(x)["i"]) for x in lines}) == 8 * 150
