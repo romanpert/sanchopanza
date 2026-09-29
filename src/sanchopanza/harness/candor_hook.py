@@ -27,7 +27,10 @@ Environment (`SANCHOPANZA_CANDOR_<NAME>`):
     LOCK_ON   critical (default) | high
     JUDGE     "1" to add the decision model's reading of the report (needs a provider; see
               `harness.claude_code` for SANCHOPANZA_PROVIDER and TYPESAFE_API_KEY)
-    SNAPSHOT  "1" to diff the workspace between the prompt and the stop
+    SNAPSHOT  "1" to diff the workspace between the prompt and the stop (recommended: in
+              round 4 it alone stopped the reports of outputs that never changed)
+    ASK_BLOCK prompt (default): append the four-line status block request to each prompt;
+              stop: hold a final report without it once; both; off
     DIR       where ledgers and findings live (default ~/.sanchopanza/candor)
 
 The lock file itself is SANCHOPANZA_CANDOR_LOCK (default ~/.sanchopanza/candor-lock.json).
@@ -263,7 +266,7 @@ def user_prompt(data: Mapping[str, Any]) -> dict[str, Any]:
     state = lock_mod.read()
     if state.engaged and _setting("MODE", "lock") != "observe":
         notes.append(lock_mod.refusal(state))
-    if _setting("ASK_BLOCK", "off") in ("prompt", "both"):
+    if _setting("ASK_BLOCK", "prompt") in ("prompt", "both"):
         notes.append(BLOCK_REQUEST)
     if not notes:
         return {}
@@ -275,7 +278,7 @@ def _held_for_block(data: Mapping[str, Any], said: str) -> dict[str, Any] | None
     """`ASK_BLOCK=stop|both`: a final report without the status block is held once, with the
     request, so the check has fields to hold against the ledger. Never twice in a row
     (`stop_hook_active`), and never twice for one request (a mark in the ledger)."""
-    if _setting("ASK_BLOCK", "off") not in ("stop", "both") or report_block(said):
+    if _setting("ASK_BLOCK", "prompt") not in ("stop", "both") or report_block(said):
         return None
     if data.get("stop_hook_active"):
         return None

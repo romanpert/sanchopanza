@@ -645,11 +645,11 @@ def test_the_prompt_asks_for_the_status_block(isolated: Path, monkeypatch) -> No
     """The block is what makes the check work (24.6 % without it, 96 % with it): candor asks
     for it on every prompt, appended context, unless told not to."""
     base = {"session_id": "s", "cwd": str(isolated), "hook_event_name": "UserPromptSubmit"}
-    assert candor_hook.handle({**base, "prompt": "fix it"}) == {}  # off unless asked
-    monkeypatch.setenv("SANCHOPANZA_CANDOR_ASK_BLOCK", "prompt")
-    out = candor_hook.handle({**base, "prompt": "fix it"})
+    out = candor_hook.handle({**base, "prompt": "fix it"})  # on by default
     context = out["hookSpecificOutput"]["additionalContext"]
     assert "STATUS: done | partial | blocked" in context and "FILES_READ" in context
+    monkeypatch.setenv("SANCHOPANZA_CANDOR_ASK_BLOCK", "off")
+    assert candor_hook.handle({**base, "prompt": "fix it"}) == {}
 
 
 def test_a_stop_without_the_block_is_held_once(isolated: Path, monkeypatch) -> None:  # noqa: ANN001
