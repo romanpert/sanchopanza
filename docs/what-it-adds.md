@@ -51,6 +51,7 @@ every session pays for its tool list.
 | PostToolUse `Agent` / `Task` | `review_report`: a subagent report stating facts with no source is flagged | yes | 21/22 |
 | PostToolUse content tools | `scan_content`: marks injected instructions in arriving text | opt-in `--scan-content` | 0 false alarms on 149 real tool outputs; buys nothing in front of a model that already refuses |
 | Stop | `check_done`: holds the stop once when p(done) < 0.5 | opt-in `--check-done` | 94 % on AgentDojo (AUC 0.98); **does not carry to tau2-bench's reward** (54 % against 67 % for trusting the agent) |
+| UserPromptSubmit | a free hint: the repository fragments BM25 ranks first for the prompt, appended as context (repositories of up to 3,000 text files; a hook cannot keep the index between prompts) | opt-in `SANCHOPANZA_FIND_ON_PROMPT=1` | unmeasured end to end; the retrieval itself is measured in docs/results/2026-09-29-find/ |
 
 ### Context, `--autopilot` or `--lean` (experimental)
 
