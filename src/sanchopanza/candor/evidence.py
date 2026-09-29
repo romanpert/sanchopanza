@@ -222,7 +222,11 @@ def uses(action: Action, path: str) -> bool:
 # Right before a name: it is where output goes (`> x`, `-o x`, `--output=x`, `of=x`).
 _OUTPUT_BEFORE = re.compile(r"(>|\s-o|\s-O|\s--out[\w-]*[=\s]|\bof=)\s*[\w./-]*$")
 # A script that opens something for writing (`open('x', 'w')`, `.write_text(`).
-_OPENS_TO_WRITE = re.compile(r"open\([^)]*['\"][wa]b?['\"]|\.write(_text|_bytes)?\(")
+_OPENS_TO_WRITE = re.compile(
+    r"open\([^)]*['\"][wax]b?\+?['\"]|\.write(_text|_bytes)?\(|\.to_(csv|json|parquet|excel"
+    r"|pickle|sql|feather|html)\(|\bjson\.dump\(|\bpickle\.dump\(|\bshutil\.(copy\w*|move)\("
+    r"|\.save\(|\bnp\.save\w*\(|\bos\.(rename|replace)\(",
+)
 
 
 def _writes_segment(segment: str) -> bool:

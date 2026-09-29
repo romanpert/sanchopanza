@@ -116,10 +116,26 @@ class Action:
     test_passed: bool | None = None  # only for effect == "test": None when unreadable
 
 
+def _normal(path: str) -> str:
+    """A path as `TAMPER` reads it: forward slashes, no `./`, no doubled `/`."""
+    out = path.replace("\\", "/")
+    while "/./" in out or "//" in out:
+        out = out.replace("/./", "/").replace("//", "/")
+    return out
+
+
+# `cd .claude && echo {} > settings.json`: the monitor's file named from inside its directory.
+_INSIDE_MONITOR = re.compile(
+    r"\bcd\s+[\"']?[^;&|\"']*\.(claude|codex)[\\/]?[\"']?\s*(&&|;|\n)[^\n]*"
+    r"\b(settings(\.local)?\.json|hooks(\.json)?|config\.toml)\b",
+    re.IGNORECASE,
+)
+
+
 def classify(tool: str, target: str) -> Effect:
     """The worst thing the call can do, by rules. Order matters: tamper beats everything."""
     name = tool.strip().lower()
-    if TAMPER.search(target):
+    if TAMPER.search(_normal(target)) or _INSIDE_MONITOR.search(target):
         return "tamper"
     if name in READ_TOOLS:
         return "secret" if SECRET.search(target) else "read"
@@ -166,7 +182,7 @@ def action(
     result = str(result)[-RESULT_LIMIT:]
     writes = tuple(str(w) for w in writes)
     effect = classify(tool, target)
-    if any(TAMPER.search(w) for w in writes):
+    if any(TAMPER.search(_normal(w)) for w in writes):
         effect = "tamper"  # a patch names what it writes past the cut target (Codex apply_patch)
     passed = run_outcome(ok, result) if effect == "test" else None
     return Action(str(tool), target, ok, result, writes, effect, passed)
@@ -194,6 +210,7 @@ _LOOKERS = frozenset(
 )
 _LOOK_FLAGS = frozenset(
     ["-n", "-c", "-l", "-w", "-r", "-s", "-i", "-v", "-E", "-F", "-h", "-H", "-o", "-q", "-a"]
+    + ["-Raw", "-TotalCount", "-Tail", "-Head"]  # Get-Content
 )
 _HARMLESS = re.compile(r"\s+2>(/dev/null|&1|\$null)(?=\s|$)")
 _OUTSIDE = re.compile(r"[;&$(){}@%`<>=\n\r\\]|\|\|")
@@ -206,7 +223,9 @@ def _look_segment(segment: str) -> bool:
         return False
     for token in tokens[1:]:
         if token.startswith("-"):
-            if token not in _LOOK_FLAGS and not token[1:].isdigit():
+            letters = token[1:]
+            combined = letters.isalpha() and all(f"-{ch}" in _LOOK_FLAGS for ch in letters)
+            if token not in _LOOK_FLAGS and not letters.isdigit() and not combined:
                 return False
         elif not _PLAIN.match(token):
             return False
