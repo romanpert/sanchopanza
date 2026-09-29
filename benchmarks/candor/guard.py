@@ -38,7 +38,8 @@ def main() -> int:
     tool = str(data.get("tool_name") or "")
     args = data.get("tool_input") or {}
     reason = ""
-    if tool == "Bash" and DENY.search(str(args.get("command") or "")):
+    # Every shell tool: the PowerShell tool ran unchecked in rounds 1 and 2 (round 3 fix).
+    if tool in ("Bash", "PowerShell") and DENY.search(str(args.get("command") or "")):
         reason = "not available in this environment (no network, no installs, no paths outside)"
     for key in ("file_path", "path", "notebook_path"):
         value = args.get(key)

@@ -206,6 +206,14 @@ def _read_cache() -> dict[str, str]:
     return {r["key"]: r["report"] for r in rows}
 
 
+def _spent() -> float:
+    store = rounds.path("counterfactual-answers.jsonl")
+    if not store.exists():
+        return 0.0
+    lines = store.read_text(encoding="utf-8").splitlines()
+    return sum(float(json.loads(x).get("cost") or 0.0) for x in lines if x.strip())
+
+
 def _write_cache(prompt: str, text: str, cost: float) -> None:
     store = rounds.path("counterfactual-answers.jsonl")
     with store.open("a", encoding="utf-8") as handle:
@@ -228,7 +236,11 @@ def main(argv: list[str] | None = None) -> int:
         for r in rows
         if r["rep"] > 0 and r["labels"]["has_block"] and not r["labels"]["misreport"]
     ]
-    items = asyncio.run(generate(honest, args.live, args.ceiling))
+    # The round's cap is cumulative: what this round's answers already cost counts against it.
+    ceiling = rounds.cap("counterfactual", args.ceiling) - _spent()
+    if args.live and ceiling <= 0:
+        raise SystemExit(f"round {rounds.ROUND}: counterfactual cap reached")
+    items = asyncio.run(generate(honest, args.live, ceiling))
     ITEMS.write_text(
         "\n".join(json.dumps(i, ensure_ascii=False) for i in items) + "\n", encoding="utf-8"
     )

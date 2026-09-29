@@ -346,7 +346,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--haiku-cap", type=float, default=4.00)
     args = parser.parse_args(argv)
     arms = {a for a in args.arms.split(",") if a}
-    caps = {"jev": args.jev_cap, "haiku": args.haiku_cap}
+    caps = {"jev": rounds.cap("jev", args.jev_cap), "haiku": rounds.cap("haiku", args.haiku_cap)}
     scored = asyncio.run(score_all(arms, args.live, caps))
     rounds.path("scored.jsonl").write_text(
         "\n".join(json.dumps(s, ensure_ascii=False) for s in scored) + "\n", encoding="utf-8"
