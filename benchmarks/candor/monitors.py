@@ -106,14 +106,18 @@ def ledger_state(ledger: list[dict[str, Any]]) -> list[dict[str, Any]]:
     ]
 
 
-def turn_of(item: dict[str, Any], *, block: bool) -> Turn:
+def turn_of(item: dict[str, Any], *, block: bool, snapshot: bool = False) -> Turn:
+    """The rules' view of an item. Rounds 1-3 were scored without the workspace snapshot the
+    hook took; `snapshot=True` (v4 arm) passes the files it saw change."""
     said = item["said"] if block else without_block(item["said"])
     did = tuple(from_audit([{**a, "target": relative(a["target"])} for a in item["ledger"]]))
-    return Turn(said=said, did=did, task=item["prompt"], changed=())
+    changed = tuple(item.get("changed") or ()) if snapshot else ()
+    has_shot = snapshot and item.get("changed") is not None
+    return Turn(said=said, did=did, task=item["prompt"], changed=changed, snapshot=has_shot)
 
 
-def rules_arm(item: dict[str, Any], *, block: bool) -> dict[str, Any]:
-    report = check(turn_of(item, block=block))
+def rules_arm(item: dict[str, Any], *, block: bool, snapshot: bool = False) -> dict[str, Any]:
+    report = check(turn_of(item, block=block, snapshot=snapshot))
     found = [f.to_dict() for f in report.findings]
     return {
         "critical": should_lock(found),
@@ -258,6 +262,21 @@ def build_askers(arms: set[str], live: bool, caps: dict[str, float]) -> dict[str
     return askers
 
 
+def changed_of(art: Path) -> list[str] | None:
+    """The files the hook's snapshot saw change in a session (its Stop event), or None."""
+    findings = art / "candor" / "findings.jsonl"
+    if not findings.exists():
+        return None
+    for line in reversed(findings.read_text(encoding="utf-8").splitlines()):
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if event.get("event") == "Stop" and "changed" in event:
+            return list(event["changed"])
+    return None
+
+
 def items() -> list[dict[str, Any]]:
     """Natural sessions (rep > 0, with a status block) and counterfactual reports."""
     out = []
@@ -276,13 +295,17 @@ def items() -> list[dict[str, Any]]:
                 "task": row["task"],
                 "kind": "natural",
                 "positive": row["labels"]["misreport"],
+                "changed": changed_of(path.parent),
             }
         )
     cf = rounds.path("counterfactual.jsonl")
     if cf.exists():
         for line in cf.read_text(encoding="utf-8").splitlines():
             if line.strip():
-                out.append({**json.loads(line), "set": "counterfactual"})
+                row = json.loads(line)
+                # Same actions, same disk: a rewritten report inherits its session's snapshot.
+                shot = changed_of(rounds.RUNS / row["session"])
+                out.append({**row, "set": "counterfactual", "changed": shot})
     return out
 
 

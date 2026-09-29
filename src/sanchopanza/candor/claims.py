@@ -92,7 +92,9 @@ _DID: tuple[tuple[str, re.Pattern[str]], ...] = tuple(
 )
 _PATH = re.compile(
     r"`([^`\s]{2,160})`|(?<![\w/])((?:[\w.-]+[\\/])+[\w.-]+\.\w{1,6}|[\w-]+\.(?:py|ts|tsx|js|jsx"
-    r"|md|json|ya?ml|toml|ini|cfg|txt|csv|sql|sh|go|rs|java|rb|php|html|css|lock|env))(?![\w/])"
+    r"|md|json|ya?ml|toml|ini|cfg|txt|csv|sql|sh|go|rs|java|rb|php|html|css|lock|env)"
+    # v4: a directory written with its trailing slash ("the suite in tests/integration/").
+    r"|(?:[\w.-]+/)+(?=[\s.,;:)]|$))(?![\w/])"
 )
 _URL = re.compile(r"https?://[^\s)\]>'\"`]+")
 
@@ -105,13 +107,21 @@ class Claim:
     objects: tuple[str, ...] = ()  # paths, URLs or words the claim is about
 
 
-def paths_in(text: str) -> tuple[str, ...]:
-    found: list[str] = []
+def path_spans(text: str) -> list[tuple[str, int]]:
+    """Every path named in `text`, with where it starts, in order and without repeats."""
+    found: list[tuple[str, int]] = []
     for match in _PATH.finditer(text):
         value = (match.group(1) or match.group(2) or "").strip(".,:;")
-        if value and ("." in value or "/" in value or "\\" in value) and value not in found:
-            found.append(value)
-    return tuple(found)
+        if any(ch in value for ch in "() "):  # v4: `f()` in backticks is code, not a path
+            continue
+        seen = any(value == v for v, _ in found)
+        if value and ("." in value or "/" in value or "\\" in value) and not seen:
+            found.append((value, match.start()))
+    return found
+
+
+def paths_in(text: str) -> tuple[str, ...]:
+    return tuple(value for value, _ in path_spans(text))
 
 
 def urls_in(text: str) -> tuple[str, ...]:
@@ -142,11 +152,32 @@ def block_claims(block: dict[str, str]) -> list[Claim]:
         out.append(Claim("done", f"STATUS: {block['STATUS']}"))
     if block.get("TEST_FILES_CHANGED", "").lower().startswith("no"):
         out.append(Claim("denial", "TEST_FILES_CHANGED: no", effect="test_files"))
-    read = [p.strip().strip("`") for p in block.get("FILES_READ", "").split(",")]
+    entries = re.split(r",(?![^()]*\))", block.get("FILES_READ", ""))  # not inside a (note)
+    read = [_listed(p) for p in entries]
     read = [p for p in read if p and p.lower() not in ("none", "-", "n/a")]
     if read:
         out.append(Claim("cited", f"FILES_READ: {block['FILES_READ']}", objects=tuple(read)))
     return out
+
+
+_NOT_READ = re.compile(
+    r"not\s+(read|opened)|listed|listing|only\s+(found|searched)|no\s+le[ií]d", re.IGNORECASE
+)
+# Where the object of an action verb ends: a clause boundary, not the "and" of a list.
+_CLAUSE_END = re.compile(
+    r"[,;:(]|\b(while|leaving|keeping|so|then|which|but|now|mientras|dejando)\b", re.IGNORECASE
+)
+
+
+def _listed(entry: str) -> str:
+    """One `FILES_READ` entry. A note in parentheses is the agent's own qualifier: v4 drops an
+    entry it marks as not read ("data/README.md (listed only, not read)"), and keeps the path of
+    any other."""
+    entry = entry.strip().strip("`")
+    note = re.search(r"\(([^)]*)\)\s*$", entry)
+    if note is None:
+        return entry
+    return "" if _NOT_READ.search(note.group(1)) else entry[: note.start()].strip().strip("`")
 
 
 def extract(said: str) -> list[Claim]:
@@ -175,7 +206,9 @@ def extract(said: str) -> list[Claim]:
             before = sentence[: match.start()] if match else ""
             negated = re.search(r"\b(not|n't|no|never)\b", before, re.IGNORECASE)
             if match and not negated:
-                out.append(Claim("did", sentence, effect=effect, objects=paths_in(sentence)))
+                clause = _CLAUSE_END.split(sentence[match.end() :], maxsplit=1)[0]
+                objects = paths_in(match.group(0) + clause)  # v4: the verb's own clause
+                out.append(Claim("did", sentence, effect=effect, objects=objects))
                 break
         cited = paths_in(sentence) + urls_in(sentence)
         if cited and _CITES.search(sentence):

@@ -275,7 +275,8 @@ async def stop(data: Mapping[str, Any]) -> dict[str, Any]:
     changed: list[str] = []
     if shot is not None:
         changed = diff(shot, snapshot(Path(str(data.get("cwd") or os.getcwd()))))
-    turn = Turn(said=said, did=tuple(actions), task=task, changed=tuple(changed))
+    turn = Turn(said=said, did=tuple(actions), task=task, changed=tuple(changed),
+                snapshot=shot is not None)  # fmt: skip
     report = check(turn)
     if _setting("JUDGE") in ("1", "true", "yes"):
         from ..candor.judge import judge

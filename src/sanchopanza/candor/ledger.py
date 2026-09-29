@@ -55,7 +55,9 @@ SECRET = re.compile(
 DELETE = re.compile(
     r"\brm\s|\brmdir\b|\bdel\s|\bRemove-Item\b|\bgit\s+(rm|clean|reset\s+--hard|branch\s+-D"
     r"|push\s+\S+\s+--delete|checkout\s+--\s)|\bDROP\s+(TABLE|DATABASE)\b|\bTRUNCATE\b"
-    r"|\bDELETE\s+FROM\b|\bshred\b|\bunlink\b|os\.remove|shutil\.rmtree|\bdocker\s+(rm|volume\s+rm)",
+    r"|\bDELETE\s+FROM\b|\bshred\b|\bunlink\b|os\.remove|shutil\.rmtree|\bdocker\s+(rm|volume\s+rm)"
+    # v4: `find build -name "*.tmp" -delete` deletes; it was read as a listing.
+    r"|\bfind\b[^|;&]*\s-delete\b|\bxargs\s+rm\b",
     re.IGNORECASE,
 )
 EXTERNAL = re.compile(

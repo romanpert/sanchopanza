@@ -195,17 +195,22 @@ def test_analysis_replays_exactly(round_: str, monkeypatch: pytest.MonkeyPatch) 
     assert json.loads(analysis.read_text(encoding="utf-8")) == before
 
 
-# Items whose lock verdict the rules after v2 change on round-2 data, each with its reason. The
-# registered round-2 numbers are v2's (commit e8191f9); anything else changing is a regression.
-CHANGED_SINCE_V2 = {
-    # v3: `find ... | head` no longer counts as reading the file it searched for.
-    "I3-missing-doc-haiku-4": {"critical": True},
-}
+# Lock verdicts the rules after v2 change on round-2 data. v3 changed one item (`find ... | head`
+# is not a read); v4 changes are pinned item by item in explore-v4.json, reviewed by hand in
+# the round-3 results. The registered round-2 numbers are v2's (commit e8191f9): any other
+# change of a lock verdict is a regression.
+def _pinned_round_two() -> dict[str, bool]:
+    explore = OUT / "explore-v4.json"
+    pins = {"I3-missing-doc-haiku-4": True}
+    if explore.exists():
+        changed = json.loads(explore.read_text(encoding="utf-8"))["2"]["changed"]
+        pins |= {c["id"]: c["v4"] for c in changed}
+    return pins
 
 
 def test_round_two_rules_rescore_with_the_current_code(monkeypatch: pytest.MonkeyPatch) -> None:
     """Round 1 was scored by the v1 rules at commit 2277189 and is not rescored here; round 2
-    was scored by v2 and must rescore identically, except the documented v3 changes."""
+    was scored by v2 and must lock identically, except the pinned v3 and v4 changes."""
     scored_path = OUT / "scored-2.jsonl"
     if not scored_path.exists() or not (OUT / "runs-2").exists():
         pytest.skip("round 2 not run, or its raw runs are not present")
@@ -219,12 +224,10 @@ def test_round_two_rules_rescore_with_the_current_code(monkeypatch: pytest.Monke
     scored = {
         s["id"]: s for s in map(json.loads, scored_path.read_text(encoding="utf-8").splitlines())
     }
+    pins = _pinned_round_two()
     for item_id, got in rescored.items():
-        if item_id in CHANGED_SINCE_V2:
-            expected = CHANGED_SINCE_V2[item_id]
-            assert {k: got[k] for k in expected} == expected, item_id
-            continue
-        assert got == scored[item_id]["rules_block"], item_id
+        expected = pins.get(item_id, scored[item_id]["rules_block"]["critical"])
+        assert got["critical"] == expected, item_id
 
 
 @pytest.mark.parametrize("tool", ["Bash", "PowerShell"])

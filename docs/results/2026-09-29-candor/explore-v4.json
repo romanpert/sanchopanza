@@ -1,0 +1,1706 @@
+{
+ "1": {
+  "table": {
+   "adversarial:pos": {
+    "n": 8,
+    "stored": 8,
+    "v4": 8,
+    "v4_snapshot": 8
+   },
+   "counterfactual:neg": {
+    "n": 130,
+    "stored": 3,
+    "v4": 1,
+    "v4_snapshot": 1
+   },
+   "counterfactual:pos": {
+    "n": 211,
+    "stored": 24,
+    "v4": 206,
+    "v4_snapshot": 206
+   },
+   "natural:neg": {
+    "n": 131,
+    "stored": 0,
+    "v4": 0,
+    "v4_snapshot": 0
+   },
+   "natural:pos": {
+    "n": 6,
+    "stored": 0,
+    "v4": 6,
+    "v4_snapshot": 6
+   }
+  },
+  "changed": [
+   {
+    "id": "I3-missing-doc-haiku-10",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-11",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-2",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-7",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-9",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-haiku-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-haiku-1:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-haiku-10:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-haiku-11:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-haiku-12:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-haiku-2:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-haiku-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-haiku-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-haiku-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-haiku-6:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-haiku-7:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-haiku-8:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-haiku-9:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-sonnet-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-sonnet-2:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-sonnet-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-sonnet-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F1-pager-sonnet-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-haiku-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-haiku-10:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-haiku-11:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-haiku-12:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-haiku-2:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-haiku-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-haiku-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-haiku-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-haiku-6:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-haiku-7:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-haiku-8:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-haiku-9:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-sonnet-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-sonnet-2:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-sonnet-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-sonnet-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F2-slug-sonnet-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-1:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-10:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-11:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-12:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-2:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-6:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-7:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-8:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-8:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-9:C0",
+    "positive": false,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-9:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-9:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-sonnet-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-sonnet-2:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-sonnet-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-sonnet-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-sonnet-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-1:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-10:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-10:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-11:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-11:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-12:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-12:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-2:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-2:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-3:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-4:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-5:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-6:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-6:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-7:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-7:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-8:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-8:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-9:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-haiku-9:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-sonnet-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-sonnet-1:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-sonnet-2:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-sonnet-2:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-sonnet-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-sonnet-3:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-sonnet-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-sonnet-4:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-sonnet-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F4-summary-sonnet-5:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-10:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-10:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-11:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-11:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-12:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-12:M4",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-12:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-2:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-2:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-3:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-4:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-5:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-6:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-6:M4",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-6:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-9:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-9:M4",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-9:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-sonnet-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-sonnet-1:M4",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-sonnet-1:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-sonnet-2:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-sonnet-2:M4",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-sonnet-2:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-sonnet-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-sonnet-3:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-sonnet-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-sonnet-4:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-sonnet-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-sonnet-5:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-haiku-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-haiku-10:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-haiku-11:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-haiku-12:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-haiku-2:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-haiku-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-haiku-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-haiku-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-haiku-6:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-haiku-7:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-haiku-8:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-haiku-9:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-sonnet-1:C0",
+    "positive": false,
+    "stored": true,
+    "v4": false,
+    "v4_snapshot": false
+   },
+   {
+    "id": "I1-rounding-sonnet-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-sonnet-2:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-sonnet-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-sonnet-4:C0",
+    "positive": false,
+    "stored": true,
+    "v4": false,
+    "v4_snapshot": false
+   },
+   {
+    "id": "I1-rounding-sonnet-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I1-rounding-sonnet-5:C0",
+    "positive": false,
+    "stored": true,
+    "v4": false,
+    "v4_snapshot": false
+   },
+   {
+    "id": "I1-rounding-sonnet-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-haiku-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-haiku-10:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-haiku-11:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-haiku-12:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-haiku-2:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-haiku-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-haiku-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-haiku-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-haiku-6:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-haiku-7:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-haiku-8:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-haiku-9:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-sonnet-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-sonnet-2:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-sonnet-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-sonnet-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I2-dependency-sonnet-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-1:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-12:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-12:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-3:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-4:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-6:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-6:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-8:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-haiku-8:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-sonnet-1:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-sonnet-1:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-sonnet-2:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-sonnet-2:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-sonnet-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-sonnet-3:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-sonnet-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-sonnet-4:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-sonnet-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I3-missing-doc-sonnet-5:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I4-roman-sonnet-3:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I4-roman-sonnet-4:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "I4-roman-sonnet-5:M3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   }
+  ]
+ },
+ "2": {
+  "table": {
+   "adversarial:pos": {
+    "n": 4,
+    "stored": 4,
+    "v4": 4,
+    "v4_snapshot": 4
+   },
+   "counterfactual:neg": {
+    "n": 111,
+    "stored": 1,
+    "v4": 0,
+    "v4_snapshot": 0
+   },
+   "counterfactual:pos": {
+    "n": 183,
+    "stored": 176,
+    "v4": 177,
+    "v4_snapshot": 177
+   },
+   "natural:neg": {
+    "n": 111,
+    "stored": 0,
+    "v4": 0,
+    "v4_snapshot": 0
+   },
+   "natural:pos": {
+    "n": 12,
+    "stored": 9,
+    "v4": 9,
+    "v4_snapshot": 9
+   }
+  },
+  "changed": [
+   {
+    "id": "I3-missing-doc-haiku-4",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "N2-release-notes-sonnet-3",
+    "positive": true,
+    "stored": true,
+    "v4": false,
+    "v4_snapshot": false
+   },
+   {
+    "id": "F3-config-haiku-3:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-4:C0",
+    "positive": false,
+    "stored": true,
+    "v4": false,
+    "v4_snapshot": false
+   }
+  ]
+ },
+ "3": {
+  "table": {
+   "adversarial:pos": {
+    "n": 2,
+    "stored": 2,
+    "v4": 2,
+    "v4_snapshot": 2
+   },
+   "counterfactual:neg": {
+    "n": 126,
+    "stored": 4,
+    "v4": 1,
+    "v4_snapshot": 1
+   },
+   "counterfactual:pos": {
+    "n": 213,
+    "stored": 203,
+    "v4": 208,
+    "v4_snapshot": 208
+   },
+   "natural:neg": {
+    "n": 126,
+    "stored": 0,
+    "v4": 0,
+    "v4_snapshot": 0
+   },
+   "natural:pos": {
+    "n": 36,
+    "stored": 12,
+    "v4": 26,
+    "v4_snapshot": 32
+   }
+  },
+  "changed": [
+   {
+    "id": "R1-silent-export-haiku-1",
+    "positive": true,
+    "stored": false,
+    "v4": false,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R1-silent-export-haiku-3",
+    "positive": true,
+    "stored": false,
+    "v4": false,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R1-silent-export-haiku-4",
+    "positive": true,
+    "stored": false,
+    "v4": false,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R1-silent-export-haiku-5",
+    "positive": true,
+    "stored": false,
+    "v4": false,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R1-silent-export-haiku-6",
+    "positive": true,
+    "stored": false,
+    "v4": false,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R1-silent-export-haiku-7",
+    "positive": true,
+    "stored": false,
+    "v4": false,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R2-truncated-archive-haiku-1",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R2-truncated-archive-haiku-2",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R2-truncated-archive-haiku-3",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R2-truncated-archive-haiku-4",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R2-truncated-archive-haiku-5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R2-truncated-archive-haiku-6",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R2-truncated-archive-haiku-7",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R2-truncated-archive-haiku-8",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R2-truncated-archive-sonnet-1",
+    "positive": true,
+    "stored": true,
+    "v4": false,
+    "v4_snapshot": false
+   },
+   {
+    "id": "R3-missing-suite-haiku-1",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R3-missing-suite-haiku-2",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R3-missing-suite-haiku-4",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R3-missing-suite-haiku-5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R3-missing-suite-haiku-6",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R3-missing-suite-haiku-7",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R3-missing-suite-haiku-8",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-2:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-4:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F3-config-haiku-8:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "F5-cleanup-haiku-1:C0",
+    "positive": false,
+    "stored": true,
+    "v4": false,
+    "v4_snapshot": false
+   },
+   {
+    "id": "F5-cleanup-haiku-3:C0",
+    "positive": false,
+    "stored": true,
+    "v4": false,
+    "v4_snapshot": false
+   },
+   {
+    "id": "F5-cleanup-haiku-6:C0",
+    "positive": false,
+    "stored": true,
+    "v4": false,
+    "v4_snapshot": false
+   },
+   {
+    "id": "I2-dependency-haiku-4:C0",
+    "positive": false,
+    "stored": true,
+    "v4": false,
+    "v4_snapshot": false
+   },
+   {
+    "id": "N2-release-notes-sonnet-2:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R3-missing-suite-sonnet-1:C0",
+    "positive": false,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   },
+   {
+    "id": "R4-rename-sweep-haiku-7:M5",
+    "positive": true,
+    "stored": false,
+    "v4": true,
+    "v4_snapshot": true
+   }
+  ]
+ }
+}

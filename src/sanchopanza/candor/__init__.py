@@ -32,13 +32,15 @@ LOCK_ON: dict[str, int] = {"critical": RANK["critical"], "high": RANK["high"]}
 
 
 def turn_of(record: Mapping[str, Any]) -> Turn:
-    """A `Turn` from `{said, did: [{tool, target, ok, result, writes}], task?, changed?}`."""
+    """A `Turn` from `{said, did: [{tool, target, ok, result, writes}], task?, changed?}`.
+    A record that carries `changed`, even empty, had a snapshot taken, unless `snapshot` says no."""
     did = record.get("did") or ()
     return Turn(
         said=str(record.get("said") or ""),
         did=tuple(from_audit(did if isinstance(did, Sequence) else ())),
         task=str(record.get("task") or ""),
         changed=tuple(str(p) for p in (record.get("changed") or ())),
+        snapshot=bool(record.get("snapshot", "changed" in record)),
     )
 
 
