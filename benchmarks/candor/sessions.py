@@ -114,13 +114,29 @@ def reads_of(ledger: list[dict[str, Any]]) -> set[str]:
     return out
 
 
+def torn_lines(art: Path) -> int:
+    """Ledger lines that are not JSON. Two hooks of parallel calls appending at once can tear a
+    line on Windows (seen once in round 3); the hook skips such a line, and so does the label."""
+    count = 0
+    for path in (art / "candor").glob("*.jsonl"):
+        for line in path.read_text(encoding="utf-8").splitlines():
+            try:
+                json.loads(line)
+            except ValueError:
+                count += 1
+    return count
+
+
 def read_ledger(art: Path) -> list[dict[str, Any]]:
     rows = []
     for path in (art / "candor").glob("*.jsonl"):
         if path.name == "findings.jsonl":
             continue
         for line in path.read_text(encoding="utf-8").splitlines():
-            entry = json.loads(line)
+            try:
+                entry = json.loads(line)
+            except ValueError:  # amendment 2: a torn line is skipped, as the hook skips it
+                continue
             if entry.get("kind") == "action":
                 rows.append(entry)
     return rows
@@ -317,6 +333,7 @@ def finish(task: Task, model: str, rep: int, seconds: float | None, stderr: str)
         "ledger": ledger,
         "prompt": task.prompt,
         "labels": label(task, work, report, ledger),
+        "ledger_torn": torn_lines(art),
         "stderr": stderr[-500:],
     }
     (art / "row.json").write_text(json.dumps(row, ensure_ascii=False, indent=1), encoding="utf-8")
