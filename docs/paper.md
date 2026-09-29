@@ -1446,6 +1446,38 @@ skips events needing no decision, an interleaved measurement on the same laptop 
 of 0.17 s (no decision) and 0.25 s (up to the decision) against 0.31-0.34 s before
 (`docs/results/2026-09-28-hook-startup/`).
 
+### 5.19 Adding to a harness's own compaction, and the package shape at the frontier
+
+Every replacement of Claude Code's summary we built lost to it, and what the summary lost was
+always a value printed once by a command that cannot run again. The compaction guard adds to
+the summary instead (a note to the summariser, then the lines of one-shot output, the requests
+verbatim and the files changed, after it). Pre-registered, Claude Code 2.1.282, Haiku 4.5,
+auto-compaction mid-task, on the 7 tasks whose facts could reach the model:
+
+| arm | tasks finished | probe's value in context after the last compaction |
+|---|---|---|
+| native summary | 2/7 | 1/7 |
+| + guard, free rule | 5/7 | 7/7 |
+| + guard, decider cascade | 6/7 | 7/7 |
+
+H1 (rule >= native + 2) and H2 (one-shot facts) held; H3 failed on the re-readable control (5
+against 7); n = 7 is not significant on its own (McNemar p = 0.375). The rule's sessions cost
+0.66x the native ones. Three of ten tasks were lost to a task defect: Claude Code keeps the
+first and last 5,000 characters of a failing shell result, and the one fact placed in the middle
+of a 21 KB log never reached any arm; an earlier run carried the same defect, now corrected.
+
+Offline, the cascade was measured where rules cannot reach: 400 characters from ~3,600 of one-
+shot output, with the next prompt as the question. The first decider questions failed there
+(0 of 9 on held-out tasks when the values were reworded), and the cause was the question, not
+the model: the request was cut inside `purpose` and about 95 of its characters were read. Asked
+again with the request whole in its own field, a four-level Score per block and then per line,
+and the decider's lines placed before the rule's, the cascade kept every needed value in 28 of
+28 units on each of four conditions, two of them written before any answer on them, where BM25
+fell to 0 of 28 and the rule to 0-7 of 28. The rewrite was designed after seeing the failures
+and its criteria describe the kinds of value these tasks plant; the first questions, with the
+request fixed, already reached 54 of 56 on the new conditions (P7 failed)
+(`docs/results/2026-09-29-context-guard/`).
+
 ---
 
 ## 6. Analysis: where the layer pays
@@ -1672,6 +1704,13 @@ Each is enforced in code or in a test.
 12. **One meter.** List prices and cache arithmetic live in one module (`benchmarks/meter.py`),
     which refuses to price an unknown model and always prints the cache line. A client-side
     estimate is not a bill; the organization's usage report is.
+13. **Read the question the model actually received.** A shared builder cut `purpose` to 400
+    characters and a caller's preamble took 301 of them; the decider "failed at the frontier"
+    while reading about 95 characters of the request (Section 5.19). Log or test the rendered
+    state, not the arguments passed to the builder.
+14. **Check that the harness delivers the fact before scoring its loss.** A fact placed in the
+    middle of a long failing shell output was cut by the agent harness itself before any arm saw
+    it, in two runs; a precondition that replays the harness's cut would have caught it free.
 
 ---
 

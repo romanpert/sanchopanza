@@ -2,6 +2,15 @@
 
 ## Summary
 
+> **Correction (2026-09-29, found in `../2026-09-29-context-guard/`).** Claude Code 2.1.282 keeps
+> only the first and last 5,000 characters of a shell result that exits with an error, and
+> `tools/build_report.py` prints 20-22 KB and exits 1. On the tasks whose failing check sits in
+> the middle of the log (t02 and t05 here) the check line never reached any arm: every arm
+> fails `check` there, and success was impossible. Read on the deliverable tasks only (t01, t03,
+> t04, t06, t07): native summary 5/5 finished, lean masking 3/5, clearing 0/5. The direction of
+> every conclusion below stands; the "mid-session log fact kept" row measured the task, not the
+> arms, on the middle tasks.
+
 Run through our own evaluation harness, inside Claude Code 2.1.282 (headless). Numbers are not
 directly comparable with numbers obtained through the API. Pre-registered in `prereg.md` (hash
 in `prereg.sha256`, pinned by `tests/test_context_lean_prereg.py`) before any paid session of

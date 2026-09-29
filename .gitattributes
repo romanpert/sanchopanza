@@ -1,3 +1,5 @@
 * text=auto eol=lf
 *.png binary
 *.whl binary
+# Registrations are hashed byte for byte (CRLF included): keep their bytes.
+docs/results/2026-09-29-context-guard/prereg*.md -text

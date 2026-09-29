@@ -1,0 +1,9339 @@
+{
+ "mode": "replay",
+ "rows": [
+  {
+   "unit": "e2e/t01-orders",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 288
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 843
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 576
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 576
+    }
+   }
+  },
+  {
+   "unit": "e2e/t02-shipments",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 99,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 291
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 846
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 585
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 585
+    }
+   }
+  },
+  {
+   "unit": "e2e/t03-invoices",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 120,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 240
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 662
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 216
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 718
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 189
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 718
+    }
+   }
+  },
+  {
+   "unit": "e2e/t04-sensors",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 111,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 250
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 771
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 582
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 582
+    }
+   }
+  },
+  {
+   "unit": "e2e/t05-tickets",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 114,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 184
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 634
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 216
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 695
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 189
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 695
+    }
+   }
+  },
+  {
+   "unit": "e2e/t06-bookings",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 99,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 291
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 846
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 584
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 621
+    }
+   }
+  },
+  {
+   "unit": "e2e/t07-payroll",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 111,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 250
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 771
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 580
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 580
+    }
+   }
+  },
+  {
+   "unit": "e2e/t08-loans",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 129,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 285
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 791
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 584
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 584
+    }
+   }
+  },
+  {
+   "unit": "e2e/t09-fleet",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 114,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 253
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 666
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 209
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 741
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 170
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 520
+    }
+   }
+  },
+  {
+   "unit": "e2e/t10-warehouse",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 288
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 843
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 577
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 577
+    }
+   }
+  },
+  {
+   "unit": "e2e/t11-subscriptions",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 288
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 843
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 587
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 587
+    }
+   }
+  },
+  {
+   "unit": "e2e/t12-meters",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 110,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 881
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 177
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 752
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 744
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 744
+    }
+   }
+  },
+  {
+   "unit": "lean/t01-orders",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 284
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 841
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 291
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 845
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 253
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 253
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 253
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 253
+    }
+   }
+  },
+  {
+   "unit": "lean/t02-shipments",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 83,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 295
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 829
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 209
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 783
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 213
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 316
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 213
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 316
+    }
+   }
+  },
+  {
+   "unit": "lean/t03-invoices",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 288
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 823
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 286
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 844
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    }
+   }
+  },
+  {
+   "unit": "lean/t04-sensors",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 287
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 845
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 292
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 829
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 254
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 254
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 254
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 254
+    }
+   }
+  },
+  {
+   "unit": "lean/t05-tickets",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 290
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 819
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 286
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 845
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    }
+   }
+  },
+  {
+   "unit": "lean/t06-bookings",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 293
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 827
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 286
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 822
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    }
+   }
+  },
+  {
+   "unit": "lean/t07-payroll",
+   "split": "dev",
+   "condition": "literal",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 290
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 824
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 294
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 846
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 256
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 256
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 256
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 256
+    }
+   }
+  },
+  {
+   "unit": "guard/t01-orders",
+   "split": "test",
+   "condition": "literal",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 295
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 850
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 298
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 853
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 757
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 757
+    }
+   }
+  },
+  {
+   "unit": "guard/t02-shipments",
+   "split": "test",
+   "condition": "literal",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 298
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 853
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 785
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 859
+    }
+   }
+  },
+  {
+   "unit": "guard/t03-invoices",
+   "split": "test",
+   "condition": "literal",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 298
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 853
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 754
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 754
+    }
+   }
+  },
+  {
+   "unit": "guard/t04-sensors",
+   "split": "test",
+   "condition": "literal",
+   "pieces": 113,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 161
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 626
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 257
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 669
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 200
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 719
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 232
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 688
+    }
+   }
+  },
+  {
+   "unit": "guard/t05-tickets",
+   "split": "test",
+   "condition": "literal",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 295
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 850
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 298
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 853
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 753
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 753
+    }
+   }
+  },
+  {
+   "unit": "guard/t06-bookings",
+   "split": "test",
+   "condition": "literal",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 298
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 853
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 749
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 749
+    }
+   }
+  },
+  {
+   "unit": "guard/t07-payroll",
+   "split": "test",
+   "condition": "literal",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 298
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 853
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 751
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 751
+    }
+   }
+  },
+  {
+   "unit": "guard/t08-loans",
+   "split": "test",
+   "condition": "literal",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 295
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 850
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 298
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 853
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 754
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 754
+    }
+   }
+  },
+  {
+   "unit": "guard/t09-fleet",
+   "split": "test",
+   "condition": "literal",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 298
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 853
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 785
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 785
+    }
+   }
+  },
+  {
+   "unit": "guard/t10-warehouse",
+   "split": "test",
+   "condition": "literal",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep (decider failed: rule only)",
+    "1000": "keep (decider failed: rule only)"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 295
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 850
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 298
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 853
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 752
+    }
+   },
+   "keep": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 752
+    }
+   }
+  },
+  {
+   "unit": "e2e/t01-orders",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 344
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 899
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 304
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 859
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 566
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 282
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 651
+    }
+   }
+  },
+  {
+   "unit": "e2e/t02-shipments",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 99,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 344
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 899
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 304
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 859
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 574
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 659
+    }
+   }
+  },
+  {
+   "unit": "e2e/t03-invoices",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 120,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 344
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 899
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 258
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 813
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 205
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 743
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 227
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 716
+    }
+   }
+  },
+  {
+   "unit": "e2e/t04-sensors",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 111,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 320
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 875
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 247
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 802
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 572
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 283
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 658
+    }
+   }
+  },
+  {
+   "unit": "e2e/t05-tickets",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 114,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 342
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 897
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 197
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 752
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 223
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 683
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 241
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 710
+    }
+   }
+  },
+  {
+   "unit": "e2e/t06-bookings",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 99,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 343
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 898
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 304
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 859
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 572
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 279
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 656
+    }
+   }
+  },
+  {
+   "unit": "e2e/t07-payroll",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 111,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 343
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 898
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 247
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 802
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 570
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 654
+    }
+   }
+  },
+  {
+   "unit": "e2e/t08-loans",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 129,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 344
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 899
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 284
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 839
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 572
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 280
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 657
+    }
+   }
+  },
+  {
+   "unit": "e2e/t09-fleet",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 114,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 343
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 898
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 247
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 802
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 216
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 729
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 279
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 592
+    }
+   }
+  },
+  {
+   "unit": "e2e/t10-warehouse",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 343
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 898
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 304
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 859
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 565
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 279
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 649
+    }
+   }
+  },
+  {
+   "unit": "e2e/t11-subscriptions",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 344
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 899
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 304
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 859
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 574
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 279
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 659
+    }
+   }
+  },
+  {
+   "unit": "e2e/t12-meters",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 110,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 306
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 861
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 184
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 739
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 734
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 735
+    }
+   }
+  },
+  {
+   "unit": "lean/t01-orders",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 284
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 825
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 295
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 821
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 271
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 271
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 271
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 271
+    }
+   }
+  },
+  {
+   "unit": "lean/t02-shipments",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 83,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 295
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 846
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 267
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 821
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 230
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 333
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 230
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 333
+    }
+   }
+  },
+  {
+   "unit": "lean/t03-invoices",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 288
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 823
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 290
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 820
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 267
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 267
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 267
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 267
+    }
+   }
+  },
+  {
+   "unit": "lean/t04-sensors",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 287
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 816
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 848
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 273
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 273
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 273
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 273
+    }
+   }
+  },
+  {
+   "unit": "lean/t05-tickets",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 290
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 819
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 292
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 821
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 267
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 267
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 267
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 267
+    }
+   }
+  },
+  {
+   "unit": "lean/t06-bookings",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 293
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 845
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 289
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 826
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 266
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 266
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 266
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 266
+    }
+   }
+  },
+  {
+   "unit": "lean/t07-payroll",
+   "split": "dev",
+   "condition": "shifted_en",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 290
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 824
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 825
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 274
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 274
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 274
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 274
+    }
+   }
+  },
+  {
+   "unit": "guard/t01-orders",
+   "split": "test",
+   "condition": "shifted_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 302
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 857
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 244
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 799
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 746
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 282
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 832
+    }
+   }
+  },
+  {
+   "unit": "guard/t02-shipments",
+   "split": "test",
+   "condition": "shifted_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 320
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 875
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 287
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 842
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 774
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 282
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 860
+    }
+   }
+  },
+  {
+   "unit": "guard/t03-invoices",
+   "split": "test",
+   "condition": "shifted_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 344
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 899
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 287
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 842
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 742
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 280
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 827
+    }
+   }
+  },
+  {
+   "unit": "guard/t04-sensors",
+   "split": "test",
+   "condition": "shifted_en",
+   "pieces": 113,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 161
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 626
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 177
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 663
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 200
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 728
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 169
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 761
+    }
+   }
+  },
+  {
+   "unit": "guard/t05-tickets",
+   "split": "test",
+   "condition": "shifted_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 300
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 855
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 244
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 799
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 742
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 280
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 826
+    }
+   }
+  },
+  {
+   "unit": "guard/t06-bookings",
+   "split": "test",
+   "condition": "shifted_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 344
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 899
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 287
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 842
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 738
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 823
+    }
+   }
+  },
+  {
+   "unit": "guard/t07-payroll",
+   "split": "test",
+   "condition": "shifted_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 344
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 899
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 287
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 842
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 739
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 280
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 824
+    }
+   }
+  },
+  {
+   "unit": "guard/t08-loans",
+   "split": "test",
+   "condition": "shifted_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 302
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 857
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 244
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 799
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 743
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 282
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 829
+    }
+   }
+  },
+  {
+   "unit": "guard/t09-fleet",
+   "split": "test",
+   "condition": "shifted_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 342
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 897
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 287
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 842
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 773
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 278
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 856
+    }
+   }
+  },
+  {
+   "unit": "guard/t10-warehouse",
+   "split": "test",
+   "condition": "shifted_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep (decider failed: rule only)",
+    "1000": "keep (decider failed: rule only)"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 301
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 856
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 244
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 799
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 740
+    }
+   },
+   "keep": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": true,
+     "probe": false,
+     "tolerance": false,
+     "chars": 740
+    }
+   }
+  },
+  {
+   "unit": "e2e/t01-orders",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 325
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 880
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 304
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 859
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 313
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 643
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 291
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 695
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 303
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 858
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t02-shipments",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 99,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 324
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 879
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 304
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 859
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 312
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 649
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 291
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 702
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 291
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 846
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t03-invoices",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 120,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 324
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 879
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 258
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 813
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 294
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 749
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 291
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 746
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 269
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 824
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t04-sensors",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 111,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 324
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 879
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 247
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 802
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 312
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 648
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 291
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 701
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 291
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 846
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t05-tickets",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 114,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 881
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 197
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 752
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 222
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 728
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 220
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 726
+    }
+   },
+   "judge": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 244
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 754
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t06-bookings",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 99,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 328
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 883
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 304
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 859
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 316
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 653
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 296
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 707
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 296
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 851
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t07-payroll",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 111,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 325
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 880
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 247
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 802
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 313
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 647
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 288
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 696
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 288
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 843
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t08-loans",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 129,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 324
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 879
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 284
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 839
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 312
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 648
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 291
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 701
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 291
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 846
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t09-fleet",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 114,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 325
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 880
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 247
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 802
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 217
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 738
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 291
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 569
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 303
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 858
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t10-warehouse",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 325
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 880
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 304
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 859
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 313
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 641
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 290
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 692
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 302
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 857
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t11-subscriptions",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 327
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 882
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 304
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 859
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 315
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 655
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 293
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 707
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 293
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 848
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t12-meters",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 110,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 311
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 866
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 184
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 739
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 311
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 723
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 289
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 697
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 289
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 844
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "lean/t01-orders",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 284
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 830
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 295
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 821
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 257
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 257
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 309
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 309
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 51
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 51
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "lean/t02-shipments",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 83,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 295
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 849
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 267
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 821
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 219
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 320
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 212
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 369
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 104
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 104
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "lean/t03-invoices",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 288
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 823
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 290
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 820
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 252
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 252
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 302
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 302
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 49
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 49
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "lean/t04-sensors",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 287
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 816
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 847
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 258
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 258
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 308
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 308
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 49
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 49
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "lean/t05-tickets",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 290
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 819
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 292
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 821
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 254
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 254
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 307
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 307
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 52
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 52
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "lean/t06-bookings",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 293
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 849
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 289
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 826
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 251
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 251
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 305
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 305
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 53
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 53
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "lean/t07-payroll",
+   "split": "dev",
+   "condition": "json_en",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 290
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 824
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 825
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 258
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 258
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 308
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 308
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 49
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 49
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t01-orders",
+   "split": "test",
+   "condition": "json_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 307
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 862
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 244
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 799
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 313
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 853
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 289
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 871
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 289
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 844
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t02-shipments",
+   "split": "test",
+   "condition": "json_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 323
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 878
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 287
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 842
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 311
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 875
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 289
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 867
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 289
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 869
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t03-invoices",
+   "split": "test",
+   "condition": "json_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 881
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 287
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 842
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 314
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 848
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 291
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 867
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 303
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 858
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t04-sensors",
+   "split": "test",
+   "condition": "json_en",
+   "pieces": 113,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 161
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 626
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 177
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 663
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 200
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 729
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 216
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 696
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 314
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 880
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t05-tickets",
+   "split": "test",
+   "condition": "json_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 308
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 863
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 244
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 799
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 314
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 846
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 294
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 868
+    }
+   },
+   "judge": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 881
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t06-bookings",
+   "split": "test",
+   "condition": "json_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 323
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 878
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 287
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 842
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 311
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 840
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 290
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 861
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 302
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 869
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t07-payroll",
+   "split": "test",
+   "condition": "json_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 325
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 880
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 287
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 842
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 313
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 843
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 291
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 863
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 315
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 855
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t08-loans",
+   "split": "test",
+   "condition": "json_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 306
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 861
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 244
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 799
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 312
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 846
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 289
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 865
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 289
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 844
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t09-fleet",
+   "split": "test",
+   "condition": "json_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 881
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 287
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 842
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 314
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 850
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 295
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 873
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 307
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 877
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t10-warehouse",
+   "split": "test",
+   "condition": "json_en",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep (decider failed: rule only)",
+    "1000": "keep (decider failed: rule only)"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 307
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 862
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 244
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 799
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 313
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 845
+    }
+   },
+   "keep": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 313
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 845
+    }
+   },
+   "judge": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 301
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 856
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t01-orders",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 307
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 862
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 576
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 576
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 301
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 844
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t02-shipments",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 99,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 316
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 871
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 585
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 585
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 302
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 852
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t03-invoices",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 120,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 316
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 871
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 216
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 718
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 189
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 718
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 298
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 853
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t04-sensors",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 111,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 307
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 862
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 582
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 582
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 300
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 847
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t05-tickets",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 114,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 307
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 862
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 216
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 695
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 189
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 695
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 300
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 763
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t06-bookings",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 99,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 316
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 871
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 584
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 584
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 306
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 854
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t07-payroll",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 111,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 307
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 862
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 580
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 580
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 305
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 851
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t08-loans",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 129,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 315
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 870
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 584
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 584
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 302
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 847
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t09-fleet",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 114,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 307
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 862
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 209
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 741
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 170
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 520
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 302
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 843
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t10-warehouse",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 307
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 862
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 577
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 577
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 296
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 855
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t11-subscriptions",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 307
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 862
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 587
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 587
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 307
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 852
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "e2e/t12-meters",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 110,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 881
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 295
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 850
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 744
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 744
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 272
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 759
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "lean/t01-orders",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 284
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 841
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 295
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 821
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 253
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 253
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 253
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 253
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 327
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 879
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "lean/t02-shipments",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 83,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 295
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 829
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 833
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 213
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 316
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 213
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 316
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 329
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 871
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "lean/t03-invoices",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 288
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 823
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 290
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 820
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 332
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 857
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "lean/t04-sensors",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 287
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 845
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 829
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 254
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 254
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 254
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 254
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 325
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 861
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "lean/t05-tickets",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 290
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 819
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 292
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 821
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 323
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 842
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "lean/t06-bookings",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 293
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 827
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 289
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 826
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 248
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 330
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 862
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "lean/t07-payroll",
+   "split": "dev",
+   "condition": "vague",
+   "pieces": 53,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 290
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 824
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "chars": 296
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "chars": 825
+    }
+   },
+   "rule": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 256
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 256
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 256
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 256
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "chars": 881
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t01-orders",
+   "split": "test",
+   "condition": "vague",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 295
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 850
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 301
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 856
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 757
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 757
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 308
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 877
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t02-shipments",
+   "split": "test",
+   "condition": "vague",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 307
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 862
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 785
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 785
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 299
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 873
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t03-invoices",
+   "split": "test",
+   "condition": "vague",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 307
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 862
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 754
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 754
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 305
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 877
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t04-sensors",
+   "split": "test",
+   "condition": "vague",
+   "pieces": 113,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 161
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 626
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 161
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 620
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 200
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 729
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 232
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 725
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 186
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 756
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t05-tickets",
+   "split": "test",
+   "condition": "vague",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 295
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 850
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 301
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 856
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 753
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 753
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 305
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 876
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t06-bookings",
+   "split": "test",
+   "condition": "vague",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 307
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 862
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 749
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 749
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 306
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 873
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t07-payroll",
+   "split": "test",
+   "condition": "vague",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 307
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 862
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 751
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 751
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 302
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 872
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t08-loans",
+   "split": "test",
+   "condition": "vague",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 295
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 850
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 301
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 856
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 754
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 754
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 300
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 878
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t09-fleet",
+   "split": "test",
+   "condition": "vague",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep",
+    "1000": "keep"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 338
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 893
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 307
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 862
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 785
+    }
+   },
+   "keep": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 281
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 785
+    }
+   },
+   "judge": {
+    "400": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 304
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 874
+    }
+   },
+   "decided_judge": true
+  },
+  {
+   "unit": "guard/t10-warehouse",
+   "split": "test",
+   "condition": "vague",
+   "pieces": 92,
+   "keep_chooser": {
+    "400": "keep (decider failed: rule only)",
+    "1000": "keep (decider failed: rule only)"
+   },
+   "decided_keep": true,
+   "recent": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 295
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 850
+    }
+   },
+   "bm25": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 301
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 856
+    }
+   },
+   "rule": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 752
+    }
+   },
+   "keep": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": true,
+     "tolerance": true,
+     "chars": 326
+    },
+    "1000": {
+     "all": true,
+     "token": true,
+     "probe": true,
+     "tolerance": true,
+     "chars": 752
+    }
+   },
+   "judge": {
+    "400": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 301
+    },
+    "1000": {
+     "all": false,
+     "token": false,
+     "probe": false,
+     "tolerance": false,
+     "chars": 856
+    }
+   },
+   "decided_judge": true
+  }
+ ],
+ "failures": {
+  "keep": 4,
+  "judge": 0
+ },
+ "summary": {
+  "literal/test": {
+   "units": 10,
+   "recent@400": "0/10",
+   "recent@1000": "0/10",
+   "bm25@400": "9/10",
+   "bm25@1000": "9/10",
+   "rule@400": "0/10",
+   "rule@1000": "9/10",
+   "keep@400": "9/10",
+   "keep@1000": "10/10"
+  },
+  "literal/dev": {
+   "units": 19,
+   "recent@400": "0/19",
+   "recent@1000": "4/19",
+   "bm25@400": "19/19",
+   "bm25@1000": "19/19",
+   "rule@400": "7/19",
+   "rule@1000": "19/19",
+   "keep@400": "19/19",
+   "keep@1000": "19/19"
+  },
+  "literal/all": {
+   "units": 29,
+   "recent@400": "0/29",
+   "recent@1000": "4/29",
+   "bm25@400": "28/29",
+   "bm25@1000": "28/29",
+   "rule@400": "7/29",
+   "rule@1000": "28/29",
+   "keep@400": "28/29",
+   "keep@1000": "29/29"
+  },
+  "shifted_en/test": {
+   "units": 10,
+   "recent@400": "0/10",
+   "recent@1000": "0/10",
+   "bm25@400": "0/10",
+   "bm25@1000": "0/10",
+   "rule@400": "0/10",
+   "rule@1000": "0/10",
+   "keep@400": "9/10",
+   "keep@1000": "9/10"
+  },
+  "shifted_en/dev": {
+   "units": 19,
+   "recent@400": "0/19",
+   "recent@1000": "3/19",
+   "bm25@400": "0/19",
+   "bm25@1000": "1/19",
+   "rule@400": "7/19",
+   "rule@1000": "7/19",
+   "keep@400": "19/19",
+   "keep@1000": "19/19"
+  },
+  "shifted_en/all": {
+   "units": 29,
+   "recent@400": "0/29",
+   "recent@1000": "3/29",
+   "bm25@400": "0/29",
+   "bm25@1000": "1/29",
+   "rule@400": "7/29",
+   "rule@1000": "7/29",
+   "keep@400": "28/29",
+   "keep@1000": "28/29"
+  },
+  "json_en/test": {
+   "units": 10,
+   "recent@400": "0/10",
+   "recent@1000": "0/10",
+   "bm25@400": "0/10",
+   "bm25@1000": "0/10",
+   "rule@400": "0/10",
+   "rule@1000": "0/10",
+   "keep@400": "9/10",
+   "keep@1000": "9/10",
+   "judge@400": "8/10",
+   "judge@1000": "8/10"
+  },
+  "json_en/dev": {
+   "units": 19,
+   "recent@400": "0/19",
+   "recent@1000": "3/19",
+   "bm25@400": "0/19",
+   "bm25@1000": "1/19",
+   "rule@400": "0/19",
+   "rule@1000": "0/19",
+   "keep@400": "19/19",
+   "keep@1000": "19/19",
+   "judge@400": "18/19",
+   "judge@1000": "19/19"
+  },
+  "json_en/all": {
+   "units": 29,
+   "recent@400": "0/29",
+   "recent@1000": "3/29",
+   "bm25@400": "0/29",
+   "bm25@1000": "1/29",
+   "rule@400": "0/29",
+   "rule@1000": "0/29",
+   "keep@400": "28/29",
+   "keep@1000": "28/29",
+   "judge@400": "26/29",
+   "judge@1000": "27/29"
+  },
+  "vague/test": {
+   "units": 10,
+   "recent@400": "0/10",
+   "recent@1000": "0/10",
+   "bm25@400": "0/10",
+   "bm25@1000": "0/10",
+   "rule@400": "0/10",
+   "rule@1000": "9/10",
+   "keep@400": "9/10",
+   "keep@1000": "10/10",
+   "judge@400": "9/10",
+   "judge@1000": "9/10"
+  },
+  "vague/dev": {
+   "units": 19,
+   "recent@400": "0/19",
+   "recent@1000": "4/19",
+   "bm25@400": "0/19",
+   "bm25@1000": "1/19",
+   "rule@400": "7/19",
+   "rule@1000": "19/19",
+   "keep@400": "19/19",
+   "keep@1000": "19/19",
+   "judge@400": "19/19",
+   "judge@1000": "19/19"
+  },
+  "vague/all": {
+   "units": 29,
+   "recent@400": "0/29",
+   "recent@1000": "4/29",
+   "bm25@400": "0/29",
+   "bm25@1000": "1/29",
+   "rule@400": "7/29",
+   "rule@1000": "28/29",
+   "keep@400": "28/29",
+   "keep@1000": "29/29",
+   "judge@400": "28/29",
+   "judge@1000": "28/29"
+  }
+ },
+ "jev_usd": 0.174564,
+ "exhausted": false
+}

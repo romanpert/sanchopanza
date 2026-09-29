@@ -1,0 +1,1726 @@
+{
+ "rows": 36,
+ "invalid_rows": 0,
+ "spent_usd": 12.657493,
+ "haiku": {
+  "arms": {
+   "N": {
+    "n": 10,
+    "success": 2,
+    "token": 9,
+    "probe": 2,
+    "check": 7,
+    "rule": 5,
+    "limit": 9,
+    "visible": 10,
+    "one_shot": 23,
+    "usd": 4.2744,
+    "input_tokens": 15648356,
+    "compactions": [
+     3,
+     6,
+     3,
+     2,
+     6,
+     1,
+     1,
+     2,
+     2,
+     1
+    ]
+   },
+   "G": {
+    "n": 10,
+    "success": 5,
+    "token": 9,
+    "probe": 8,
+    "check": 6,
+    "rule": 6,
+    "limit": 7,
+    "visible": 10,
+    "one_shot": 29,
+    "usd": 2.5482,
+    "input_tokens": 9754221,
+    "compactions": [
+     2,
+     1,
+     1,
+     2,
+     2,
+     2,
+     1,
+     3,
+     1,
+     1
+    ]
+   },
+   "GJ": {
+    "n": 9,
+    "success": 6,
+    "token": 9,
+    "probe": 9,
+    "check": 6,
+    "rule": 6,
+    "limit": 9,
+    "visible": 9,
+    "one_shot": 30,
+    "usd": 2.84,
+    "input_tokens": 10500167,
+    "compactions": [
+     2,
+     3,
+     1,
+     1,
+     3,
+     2,
+     1,
+     3,
+     1
+    ]
+   },
+   "K": {
+    "n": 7,
+    "success": 6,
+    "token": 7,
+    "probe": 6,
+    "check": 7,
+    "rule": 6,
+    "limit": 7,
+    "visible": 7,
+    "one_shot": 26,
+    "usd": 1.6815,
+    "input_tokens": 5997783,
+    "compactions": [
+     1,
+     1,
+     1,
+     1,
+     2,
+     1,
+     1
+    ]
+   }
+  },
+  "per_task": {
+   "t01-orders": {
+    "N": {
+     "success": false,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": false,
+      "rule": false,
+      "visible": true
+     },
+     "compactions": 3,
+     "usd": 0.47571,
+     "where": {
+      "token": "summary",
+      "probe": "neither",
+      "check": "summary",
+      "rule": "summary"
+     },
+     "guard": {
+      "events": 0,
+      "precompact": 0,
+      "session_start": 0,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [],
+      "candidates": [],
+      "facts": [],
+      "block_chars": [],
+      "hook_seconds_max": 0
+     }
+    },
+    "G": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 2,
+     "usd": 0.308565,
+     "where": {
+      "token": "both",
+      "probe": "both",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 5,
+      "precompact": 2,
+      "session_start": 2,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "rule",
+       "rule"
+      ],
+      "candidates": [
+       24,
+       24
+      ],
+      "facts": [
+       24,
+       24
+      ],
+      "block_chars": [
+       4240,
+       4336
+      ],
+      "hook_seconds_max": 0.03
+     }
+    },
+    "GJ": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 2,
+     "usd": 0.241791,
+     "where": {
+      "token": "both",
+      "probe": "both",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 5,
+      "precompact": 2,
+      "session_start": 2,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "all",
+       "all"
+      ],
+      "candidates": [
+       24,
+       24
+      ],
+      "facts": [
+       24,
+       24
+      ],
+      "block_chars": [
+       4240,
+       4633
+      ],
+      "hook_seconds_max": 1.242
+     }
+    },
+    "K": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.190594,
+     "where": {
+      "token": "both",
+      "probe": "guard",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 3,
+      "precompact": 1,
+      "session_start": 1,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "keep"
+      ],
+      "candidates": [
+       266
+      ],
+      "facts": [
+       24
+      ],
+      "block_chars": [
+       4443
+      ],
+      "notes_chars": [
+       0
+      ],
+      "hook_seconds_max": 1.364
+     }
+    }
+   },
+   "t02-shipments": {
+    "N": {
+     "success": false,
+     "facts": {
+      "token": false,
+      "check": false,
+      "limit": false,
+      "probe": false,
+      "rule": false,
+      "visible": true
+     },
+     "compactions": 6,
+     "usd": 0.800166,
+     "where": {
+      "token": "neither",
+      "probe": "neither",
+      "check": "neither",
+      "rule": "neither"
+     },
+     "guard": {
+      "events": 0,
+      "precompact": 0,
+      "session_start": 0,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [],
+      "candidates": [],
+      "facts": [],
+      "block_chars": [],
+      "hook_seconds_max": 0
+     }
+    },
+    "G": {
+     "success": false,
+     "facts": {
+      "token": true,
+      "check": false,
+      "limit": true,
+      "probe": true,
+      "rule": false,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.221876,
+     "where": {
+      "token": "both",
+      "probe": "guard",
+      "check": "neither",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 3,
+      "precompact": 1,
+      "session_start": 1,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "rule"
+      ],
+      "candidates": [
+       24
+      ],
+      "facts": [
+       24
+      ],
+      "block_chars": [
+       4284
+      ],
+      "hook_seconds_max": 0.028
+     }
+    },
+    "GJ": {
+     "success": false,
+     "facts": {
+      "token": true,
+      "check": false,
+      "limit": true,
+      "probe": true,
+      "rule": false,
+      "visible": true
+     },
+     "compactions": 3,
+     "usd": 0.510321,
+     "where": {
+      "token": "both",
+      "probe": "both",
+      "check": "neither",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 15,
+      "precompact": 3,
+      "session_start": 3,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "all",
+       "all",
+       "all"
+      ],
+      "candidates": [
+       26,
+       26,
+       28
+      ],
+      "facts": [
+       26,
+       26,
+       28
+      ],
+      "block_chars": [
+       4517,
+       4820,
+       5033
+      ],
+      "hook_seconds_max": 0.984
+     }
+    }
+   },
+   "t03-invoices": {
+    "N": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 3,
+     "usd": 0.530368,
+     "where": {
+      "token": "summary",
+      "probe": "summary",
+      "check": "summary",
+      "rule": "summary"
+     },
+     "guard": {
+      "events": 0,
+      "precompact": 0,
+      "session_start": 0,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [],
+      "candidates": [],
+      "facts": [],
+      "block_chars": [],
+      "hook_seconds_max": 0
+     }
+    },
+    "G": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.234239,
+     "where": {
+      "token": "both",
+      "probe": "guard",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 3,
+      "precompact": 1,
+      "session_start": 1,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "rule"
+      ],
+      "candidates": [
+       24
+      ],
+      "facts": [
+       24
+      ],
+      "block_chars": [
+       4150
+      ],
+      "hook_seconds_max": 0.024
+     }
+    },
+    "GJ": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.23765,
+     "where": {
+      "token": "both",
+      "probe": "guard",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 3,
+      "precompact": 1,
+      "session_start": 1,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "all"
+      ],
+      "candidates": [
+       24
+      ],
+      "facts": [
+       24
+      ],
+      "block_chars": [
+       4150
+      ],
+      "hook_seconds_max": 0.817
+     }
+    },
+    "K": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.261983,
+     "where": {
+      "token": "both",
+      "probe": "guard",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 3,
+      "precompact": 1,
+      "session_start": 1,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "keep"
+      ],
+      "candidates": [
+       262
+      ],
+      "facts": [
+       24
+      ],
+      "block_chars": [
+       4353
+      ],
+      "notes_chars": [
+       0
+      ],
+      "hook_seconds_max": 1.124
+     }
+    }
+   },
+   "t04-sensors": {
+    "N": {
+     "success": false,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": false,
+      "rule": false,
+      "visible": true
+     },
+     "compactions": 2,
+     "usd": 0.229897,
+     "where": {
+      "token": "summary",
+      "probe": "neither",
+      "check": "summary",
+      "rule": "summary"
+     },
+     "guard": {
+      "events": 0,
+      "precompact": 0,
+      "session_start": 0,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [],
+      "candidates": [],
+      "facts": [],
+      "block_chars": [],
+      "hook_seconds_max": 0
+     }
+    },
+    "G": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 2,
+     "usd": 0.275261,
+     "where": {
+      "token": "both",
+      "probe": "both",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 5,
+      "precompact": 2,
+      "session_start": 2,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "rule",
+       "rule"
+      ],
+      "candidates": [
+       41,
+       41
+      ],
+      "facts": [
+       41,
+       41
+      ],
+      "block_chars": [
+       5860,
+       5957
+      ],
+      "hook_seconds_max": 0.041
+     }
+    },
+    "GJ": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.164378,
+     "where": {
+      "token": "both",
+      "probe": "guard",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 3,
+      "precompact": 1,
+      "session_start": 1,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "all"
+      ],
+      "candidates": [
+       41
+      ],
+      "facts": [
+       41
+      ],
+      "block_chars": [
+       5860
+      ],
+      "hook_seconds_max": 0.591
+     }
+    },
+    "K": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 2,
+     "usd": 0.303744,
+     "where": {
+      "token": "both",
+      "probe": "both",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 5,
+      "precompact": 2,
+      "session_start": 2,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "keep",
+       "keep"
+      ],
+      "candidates": [
+       282,
+       282
+      ],
+      "facts": [
+       41,
+       41
+      ],
+      "block_chars": [
+       6061,
+       6458
+      ],
+      "notes_chars": [
+       0,
+       6339
+      ],
+      "hook_seconds_max": 1.42
+     }
+    }
+   },
+   "t05-tickets": {
+    "N": {
+     "success": false,
+     "facts": {
+      "token": true,
+      "check": false,
+      "limit": true,
+      "probe": false,
+      "rule": false,
+      "visible": true
+     },
+     "compactions": 6,
+     "usd": 0.821194,
+     "where": {
+      "token": "summary",
+      "probe": "summary",
+      "check": "neither",
+      "rule": "summary"
+     },
+     "guard": {
+      "events": 0,
+      "precompact": 0,
+      "session_start": 0,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [],
+      "candidates": [],
+      "facts": [],
+      "block_chars": [],
+      "hook_seconds_max": 0
+     }
+    },
+    "G": {
+     "success": false,
+     "facts": {
+      "token": true,
+      "check": false,
+      "limit": true,
+      "probe": true,
+      "rule": false,
+      "visible": true
+     },
+     "compactions": 2,
+     "usd": 0.407384,
+     "where": {
+      "token": "both",
+      "probe": "guard",
+      "check": "neither",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 12,
+      "precompact": 2,
+      "session_start": 2,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "rule",
+       "rule"
+      ],
+      "candidates": [
+       24,
+       25
+      ],
+      "facts": [
+       24,
+       25
+      ],
+      "block_chars": [
+       4248,
+       4563
+      ],
+      "hook_seconds_max": 0.03
+     }
+    },
+    "GJ": {
+     "success": false,
+     "facts": {
+      "token": true,
+      "check": false,
+      "limit": true,
+      "probe": true,
+      "rule": false,
+      "visible": true
+     },
+     "compactions": 3,
+     "usd": 0.433729,
+     "where": {
+      "token": "both",
+      "probe": "guard",
+      "check": "neither",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 10,
+      "precompact": 3,
+      "session_start": 3,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "all",
+       "all",
+       "all"
+      ],
+      "candidates": [
+       24,
+       24,
+       25
+      ],
+      "facts": [
+       24,
+       24,
+       25
+      ],
+      "block_chars": [
+       4248,
+       4248,
+       4391
+      ],
+      "hook_seconds_max": 0.547
+     }
+    }
+   },
+   "t06-bookings": {
+    "N": {
+     "success": false,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": false,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.252632,
+     "where": {
+      "token": "summary",
+      "probe": "neither",
+      "check": "summary",
+      "rule": "summary"
+     },
+     "guard": {
+      "events": 0,
+      "precompact": 0,
+      "session_start": 0,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [],
+      "candidates": [],
+      "facts": [],
+      "block_chars": [],
+      "hook_seconds_max": 0
+     }
+    },
+    "G": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 2,
+     "usd": 0.278754,
+     "where": {
+      "token": "both",
+      "probe": "both",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 5,
+      "precompact": 2,
+      "session_start": 2,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "rule",
+       "rule"
+      ],
+      "candidates": [
+       24,
+       24
+      ],
+      "facts": [
+       24,
+       24
+      ],
+      "block_chars": [
+       4232,
+       4633
+      ],
+      "hook_seconds_max": 0.027
+     }
+    },
+    "GJ": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 2,
+     "usd": 0.303328,
+     "where": {
+      "token": "both",
+      "probe": "both",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 5,
+      "precompact": 2,
+      "session_start": 2,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "all",
+       "all"
+      ],
+      "candidates": [
+       24,
+       24
+      ],
+      "facts": [
+       24,
+       24
+      ],
+      "block_chars": [
+       4232,
+       4633
+      ],
+      "hook_seconds_max": 0.442
+     }
+    },
+    "K": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.268806,
+     "where": {
+      "token": "both",
+      "probe": "guard",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 3,
+      "precompact": 1,
+      "session_start": 1,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "keep"
+      ],
+      "candidates": [
+       264
+      ],
+      "facts": [
+       24
+      ],
+      "block_chars": [
+       4435
+      ],
+      "notes_chars": [
+       0
+      ],
+      "hook_seconds_max": 1.29
+     }
+    }
+   },
+   "t07-payroll": {
+    "N": {
+     "success": false,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": false,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.244114,
+     "where": {
+      "token": "summary",
+      "probe": "neither",
+      "check": "summary",
+      "rule": "summary"
+     },
+     "guard": {
+      "events": 0,
+      "precompact": 0,
+      "session_start": 0,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [],
+      "candidates": [],
+      "facts": [],
+      "block_chars": [],
+      "hook_seconds_max": 0
+     }
+    },
+    "G": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.159023,
+     "where": {
+      "token": "both",
+      "probe": "guard",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 3,
+      "precompact": 1,
+      "session_start": 1,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "rule"
+      ],
+      "candidates": [
+       24
+      ],
+      "facts": [
+       24
+      ],
+      "block_chars": [
+       4146
+      ],
+      "hook_seconds_max": 0.025
+     }
+    },
+    "GJ": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.211153,
+     "where": {
+      "token": "both",
+      "probe": "guard",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 3,
+      "precompact": 1,
+      "session_start": 1,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "all"
+      ],
+      "candidates": [
+       24
+      ],
+      "facts": [
+       24
+      ],
+      "block_chars": [
+       4146
+      ],
+      "hook_seconds_max": 0.74
+     }
+    },
+    "K": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.247559,
+     "where": {
+      "token": "both",
+      "probe": "guard",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 3,
+      "precompact": 1,
+      "session_start": 1,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "keep"
+      ],
+      "candidates": [
+       260
+      ],
+      "facts": [
+       24
+      ],
+      "block_chars": [
+       4349
+      ],
+      "notes_chars": [
+       0
+      ],
+      "hook_seconds_max": 1.388
+     }
+    }
+   },
+   "t08-loans": {
+    "N": {
+     "success": false,
+     "facts": {
+      "token": true,
+      "check": false,
+      "limit": true,
+      "probe": false,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 2,
+     "usd": 0.369381,
+     "where": {
+      "token": "summary",
+      "probe": "neither",
+      "check": "neither",
+      "rule": "summary"
+     },
+     "guard": {
+      "events": 0,
+      "precompact": 0,
+      "session_start": 0,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [],
+      "candidates": [],
+      "facts": [],
+      "block_chars": [],
+      "hook_seconds_max": 0
+     }
+    },
+    "G": {
+     "success": false,
+     "facts": {
+      "token": false,
+      "check": false,
+      "limit": false,
+      "probe": false,
+      "rule": false,
+      "visible": true
+     },
+     "compactions": 3,
+     "usd": 0.408409,
+     "where": {
+      "token": "both",
+      "probe": "both",
+      "check": "neither",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 11,
+      "precompact": 3,
+      "session_start": 3,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "rule",
+       "rule",
+       "rule"
+      ],
+      "candidates": [
+       24,
+       26,
+       26
+      ],
+      "facts": [
+       24,
+       26,
+       26
+      ],
+      "block_chars": [
+       4245,
+       4514,
+       4514
+      ],
+      "hook_seconds_max": 0.033
+     }
+    },
+    "GJ": {
+     "success": false,
+     "facts": {
+      "token": true,
+      "check": false,
+      "limit": true,
+      "probe": true,
+      "rule": false,
+      "visible": true
+     },
+     "compactions": 3,
+     "usd": 0.490753,
+     "where": {
+      "token": "both",
+      "probe": "both",
+      "check": "neither",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 10,
+      "precompact": 3,
+      "session_start": 3,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "all",
+       "all",
+       "all"
+      ],
+      "candidates": [
+       24,
+       24,
+       25
+      ],
+      "facts": [
+       24,
+       24,
+       25
+      ],
+      "block_chars": [
+       4245,
+       4536,
+       4677
+      ],
+      "hook_seconds_max": 0.752
+     }
+    }
+   },
+   "t09-fleet": {
+    "N": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 2,
+     "usd": 0.402502,
+     "where": {
+      "token": "summary",
+      "probe": "neither",
+      "check": "summary",
+      "rule": "summary"
+     },
+     "guard": {
+      "events": 0,
+      "precompact": 0,
+      "session_start": 0,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [],
+      "candidates": [],
+      "facts": [],
+      "block_chars": [],
+      "notes_chars": [],
+      "hook_seconds_max": 0
+     }
+    },
+    "G": {
+     "success": false,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": false,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.181371,
+     "where": {
+      "token": "both",
+      "probe": "both",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 3,
+      "precompact": 1,
+      "session_start": 1,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "rule"
+      ],
+      "candidates": [
+       24
+      ],
+      "facts": [
+       24
+      ],
+      "block_chars": [
+       4370
+      ],
+      "notes_chars": [],
+      "hook_seconds_max": 0.024
+     }
+    },
+    "GJ": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.246911,
+     "where": {
+      "token": "both",
+      "probe": "both",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 3,
+      "precompact": 1,
+      "session_start": 1,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "all"
+      ],
+      "candidates": [
+       24
+      ],
+      "facts": [
+       24
+      ],
+      "block_chars": [
+       4167
+      ],
+      "hook_seconds_max": 0.501
+     }
+    },
+    "K": {
+     "success": true,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": true,
+      "rule": true,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.248927,
+     "where": {
+      "token": "both",
+      "probe": "guard",
+      "check": "both",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 3,
+      "precompact": 1,
+      "session_start": 1,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "keep"
+      ],
+      "candidates": [
+       261
+      ],
+      "facts": [
+       24
+      ],
+      "block_chars": [
+       4370
+      ],
+      "notes_chars": [
+       0
+      ],
+      "hook_seconds_max": 1.82
+     }
+    }
+   },
+   "t10-warehouse": {
+    "N": {
+     "success": false,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": false,
+      "rule": false,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.148472,
+     "where": {
+      "token": "summary",
+      "probe": "neither",
+      "check": "neither",
+      "rule": "summary"
+     },
+     "guard": {
+      "events": 0,
+      "precompact": 0,
+      "session_start": 0,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [],
+      "candidates": [],
+      "facts": [],
+      "block_chars": [],
+      "notes_chars": [],
+      "hook_seconds_max": 0
+     }
+    },
+    "G": {
+     "success": false,
+     "facts": {
+      "token": true,
+      "check": false,
+      "limit": false,
+      "probe": false,
+      "rule": false,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.073276,
+     "where": {
+      "token": "both",
+      "probe": "guard",
+      "check": "neither",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 2,
+      "precompact": 1,
+      "session_start": 1,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "rule"
+      ],
+      "candidates": [
+       16
+      ],
+      "facts": [
+       16
+      ],
+      "block_chars": [
+       4134
+      ],
+      "notes_chars": [],
+      "hook_seconds_max": 0.014
+     }
+    },
+    "K": {
+     "success": false,
+     "facts": {
+      "token": true,
+      "check": true,
+      "limit": true,
+      "probe": false,
+      "rule": false,
+      "visible": true
+     },
+     "compactions": 1,
+     "usd": 0.159933,
+     "where": {
+      "token": "both",
+      "probe": "guard",
+      "check": "neither",
+      "rule": "both"
+     },
+     "guard": {
+      "events": 3,
+      "precompact": 1,
+      "session_start": 1,
+      "echoes": 0,
+      "errors": [],
+      "choosers": [
+       "keep"
+      ],
+      "candidates": [
+       92
+      ],
+      "facts": [
+       16
+      ],
+      "block_chars": [
+       4134
+      ],
+      "notes_chars": [
+       0
+      ],
+      "hook_seconds_max": 1.106
+     }
+    }
+   }
+  },
+  "judged": {
+   "paired_tasks": 7,
+   "H1": {
+    "G": 5,
+    "N": 2,
+    "holds": true,
+    "mcnemar_p": 0.375
+   },
+   "H2": {
+    "G": 25,
+    "N": 20,
+    "worst_single_fact_drop": 1,
+    "holds": true
+   },
+   "H3": {
+    "limit": [
+     5,
+     7
+    ],
+    "visible": [
+     7,
+     7
+    ],
+    "usd": [
+     1.5105,
+     2.2837
+    ],
+    "usd_ratio": 0.661,
+    "usd_paired_diff_ci": [
+     -0.1974,
+     -0.025
+    ],
+    "holds": false
+   },
+   "H6": {
+    "tasks": [
+     "t01-orders",
+     "t03-invoices",
+     "t04-sensors",
+     "t06-bookings",
+     "t07-payroll",
+     "t09-fleet",
+     "t10-warehouse"
+    ],
+    "K": 6,
+    "G": 5,
+    "holds": true,
+    "one_shot": [
+     26,
+     25
+    ],
+    "choosers": [
+     "keep",
+     "keep",
+     "keep",
+     "keep",
+     "keep",
+     "keep",
+     "keep",
+     "keep"
+    ],
+    "notes_chars": [
+     0,
+     0,
+     0,
+     6339,
+     0,
+     0,
+     0,
+     0
+    ],
+    "decider_usd": 0.01447
+   },
+   "H4": {
+    "GJ": 6,
+    "G": 5,
+    "holds": true,
+    "decider_asked": 0,
+    "choosers": [
+     "all",
+     "all",
+     "all",
+     "all",
+     "all",
+     "all",
+     "all",
+     "all"
+    ]
+   }
+  },
+  "judged_all_tasks": {
+   "paired_tasks": 10,
+   "H1": {
+    "G": 5,
+    "N": 2,
+    "holds": true,
+    "mcnemar_p": 0.375
+   },
+   "H2": {
+    "G": 29,
+    "N": 23,
+    "worst_single_fact_drop": 1,
+    "holds": true
+   },
+   "H3": {
+    "limit": [
+     7,
+     9
+    ],
+    "visible": [
+     10,
+     10
+    ],
+    "usd": [
+     2.5482,
+     4.2744
+    ],
+    "usd_ratio": 0.596,
+    "usd_paired_diff_ci": [
+     -0.3004,
+     -0.06
+    ],
+    "holds": false
+   },
+   "H6": {
+    "tasks": [
+     "t01-orders",
+     "t03-invoices",
+     "t04-sensors",
+     "t06-bookings",
+     "t07-payroll",
+     "t09-fleet",
+     "t10-warehouse"
+    ],
+    "K": 6,
+    "G": 5,
+    "holds": true,
+    "one_shot": [
+     26,
+     25
+    ],
+    "choosers": [
+     "keep",
+     "keep",
+     "keep",
+     "keep",
+     "keep",
+     "keep",
+     "keep",
+     "keep"
+    ],
+    "notes_chars": [
+     0,
+     0,
+     0,
+     6339,
+     0,
+     0,
+     0,
+     0
+    ],
+    "decider_usd": 0.01447
+   },
+   "H4": {
+    "GJ": 6,
+    "G": 5,
+    "holds": true,
+    "decider_asked": 0,
+    "choosers": [
+     "all",
+     "all",
+     "all",
+     "all",
+     "all",
+     "all",
+     "all",
+     "all",
+     "all",
+     "all",
+     "all",
+     "all",
+     "all",
+     "all",
+     "all",
+     "all",
+     "all"
+    ]
+   }
+  }
+ }
+}

@@ -60,7 +60,7 @@ flowchart TB
         P1[routing] --- P2[search] --- P3[triage] --- P4[citation] --- P9[tools]
         P5[plan] --- P6[review] --- P7[guard] --- P8[entities] --- P10[injection]
         P11[memory] --- P12[graph] --- P13[loop] --- P14[chunks] --- P15[hierarchy]
-        P16[completion] --- P17[actions]
+        P16[completion] --- P17[actions] --- P18[keep]
     end
     subgraph infra["infrastructure"]
         T[Thresholds] --- B[Meter / budget] --- J[Journal]
@@ -100,6 +100,19 @@ real 398-tool MCP catalog grouped by server, the window opened a 121-tool server
 tasks and cost more than the platform's own tool search, which loads by tool
 (`docs/results/2026-09-25-wide/`). The unit of loading, not the per-group judgment, is the
 open design question.
+
+**The package shape, at a compaction (`context.keep`).** The compaction guard is the clearest
+case of the layering this package argues for: plumbing proposes (`guard.pieces_of`: every line
+of every output that cannot be read again, chosen by the tool that printed it), a free rule
+proposes and is what stands on any failure (`guard.choose`: errors, words shared with the
+requests, rare line shapes), and the decider cuts only when the proposals do not fit
+(`points/keep.py`: a four-level Score per block of output, then per line of the best blocks,
+with the requests whole in their own state field). The decider's lines go first, so the rule
+never takes the room of a line the decider says the work needs; the first cascade, which put
+the rule's lines first, lost to the decider alone at 400 characters. The first questions also
+read only ~95 characters of the request, cut inside `purpose`: a question that cannot see what
+it is asked about fails in a way that looks like a model limit
+(`docs/results/2026-09-29-context-guard/`).
 
 **Sets larger than one call: a tournament.** `triage_pages` asks one Truth per page with every
 page in the same state, so each page is judged among its rivals; one call holds 30 pages

@@ -1,0 +1,887 @@
+{
+ "compactions": 31,
+ "sessions": 26,
+ "block_chars": {
+  "min": 1770,
+  "median": 2536,
+  "max": 4284
+ },
+ "summary_chars_median": 6818,
+ "facts": {
+  "e2e:token": {
+   "n": 18,
+   "summary": 15,
+   "guard": 18,
+   "either": 18
+  },
+  "e2e:probe": {
+   "n": 18,
+   "summary": 13,
+   "guard": 18,
+   "either": 18
+  },
+  "e2e:tolerance": {
+   "n": 18,
+   "summary": 14,
+   "guard": 18,
+   "either": 18
+  },
+  "lean:token": {
+   "n": 13,
+   "summary": 13,
+   "guard": 13,
+   "either": 13
+  },
+  "lean:check": {
+   "n": 6,
+   "summary": 6,
+   "guard": 6,
+   "either": 6
+  },
+  "lean:check_expected": {
+   "n": 6,
+   "summary": 6,
+   "guard": 6,
+   "either": 6
+  }
+ },
+ "rows": [
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t01-orders/N",
+   "compaction": 1,
+   "summary_chars": 6795,
+   "block_chars": 1770,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": false,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": false,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t01-orders/R",
+   "compaction": 1,
+   "summary_chars": 6308,
+   "block_chars": 1770,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": false,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t02-shipments/N",
+   "compaction": 1,
+   "summary_chars": 6160,
+   "block_chars": 1782,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": false,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t02-shipments/R",
+   "compaction": 1,
+   "summary_chars": 6357,
+   "block_chars": 1782,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": false,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t03-invoices/N",
+   "compaction": 1,
+   "summary_chars": 4944,
+   "block_chars": 2085,
+   "candidates": 19,
+   "facts_kept": 19,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": false,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t03-invoices/R",
+   "compaction": 1,
+   "summary_chars": 6369,
+   "block_chars": 2085,
+   "candidates": 19,
+   "facts_kept": 19,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t04-sensors/N",
+   "compaction": 1,
+   "summary_chars": 8131,
+   "block_chars": 1777,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": false,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t04-sensors/R",
+   "compaction": 1,
+   "summary_chars": 6818,
+   "block_chars": 1777,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": false,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t05-tickets/N",
+   "compaction": 1,
+   "summary_chars": 6169,
+   "block_chars": 2782,
+   "candidates": 26,
+   "facts_kept": 26,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t05-tickets/R",
+   "compaction": 1,
+   "summary_chars": 6821,
+   "block_chars": 2782,
+   "candidates": 26,
+   "facts_kept": 26,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t06-bookings/N",
+   "compaction": 1,
+   "summary_chars": 5591,
+   "block_chars": 1780,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t06-bookings/R",
+   "compaction": 1,
+   "summary_chars": 6099,
+   "block_chars": 1780,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": false,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t07-payroll/N",
+   "compaction": 1,
+   "summary_chars": 6369,
+   "block_chars": 1775,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t08-loans/N",
+   "compaction": 1,
+   "summary_chars": 5931,
+   "block_chars": 1777,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": false,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t09-fleet/N",
+   "compaction": 1,
+   "summary_chars": 7778,
+   "block_chars": 2205,
+   "candidates": 18,
+   "facts_kept": 18,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t10-warehouse/N",
+   "compaction": 1,
+   "summary_chars": 6872,
+   "block_chars": 1774,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t11-subscriptions/N",
+   "compaction": 1,
+   "summary_chars": 5986,
+   "block_chars": 1883,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": false,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": false,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "e2e",
+   "model": "haiku",
+   "session": "t12-meters/N",
+   "compaction": 1,
+   "summary_chars": 7890,
+   "block_chars": 2536,
+   "candidates": 24,
+   "facts_kept": 24,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "probe": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "tolerance": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "lean",
+   "model": "haiku",
+   "session": "t01-orders/N",
+   "compaction": 1,
+   "summary_chars": 6637,
+   "block_chars": 3185,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check_expected": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "lean",
+   "model": "sonnet",
+   "session": "t01-orders/N",
+   "compaction": 1,
+   "summary_chars": 16354,
+   "block_chars": 3186,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check_expected": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "lean",
+   "model": "haiku",
+   "session": "t02-shipments/N",
+   "compaction": 1,
+   "summary_chars": 6889,
+   "block_chars": 3341,
+   "candidates": 17,
+   "facts_kept": 17,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check": {
+     "before": false,
+     "summary": false,
+     "guard": false
+    },
+    "check_expected": {
+     "before": false,
+     "summary": false,
+     "guard": false
+    }
+   }
+  },
+  {
+   "run": "lean",
+   "model": "haiku",
+   "session": "t02-shipments/N",
+   "compaction": 2,
+   "summary_chars": 7853,
+   "block_chars": 3752,
+   "candidates": 19,
+   "facts_kept": 19,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check": {
+     "before": false,
+     "summary": false,
+     "guard": false
+    },
+    "check_expected": {
+     "before": false,
+     "summary": false,
+     "guard": false
+    }
+   }
+  },
+  {
+   "run": "lean",
+   "model": "haiku",
+   "session": "t02-shipments/N",
+   "compaction": 3,
+   "summary_chars": 10863,
+   "block_chars": 3752,
+   "candidates": 19,
+   "facts_kept": 19,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check": {
+     "before": false,
+     "summary": false,
+     "guard": false
+    },
+    "check_expected": {
+     "before": false,
+     "summary": false,
+     "guard": false
+    }
+   }
+  },
+  {
+   "run": "lean",
+   "model": "haiku",
+   "session": "t02-shipments/N",
+   "compaction": 4,
+   "summary_chars": 7645,
+   "block_chars": 3955,
+   "candidates": 19,
+   "facts_kept": 19,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check": {
+     "before": false,
+     "summary": false,
+     "guard": false
+    },
+    "check_expected": {
+     "before": false,
+     "summary": false,
+     "guard": false
+    }
+   }
+  },
+  {
+   "run": "lean",
+   "model": "haiku",
+   "session": "t03-invoices/N",
+   "compaction": 1,
+   "summary_chars": 8279,
+   "block_chars": 3182,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check_expected": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "lean",
+   "model": "haiku",
+   "session": "t04-sensors/N",
+   "compaction": 1,
+   "summary_chars": 7739,
+   "block_chars": 3187,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check_expected": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "lean",
+   "model": "haiku",
+   "session": "t05-tickets/N",
+   "compaction": 1,
+   "summary_chars": 9516,
+   "block_chars": 3673,
+   "candidates": 20,
+   "facts_kept": 20,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check": {
+     "before": false,
+     "summary": false,
+     "guard": false
+    },
+    "check_expected": {
+     "before": false,
+     "summary": false,
+     "guard": false
+    }
+   }
+  },
+  {
+   "run": "lean",
+   "model": "haiku",
+   "session": "t05-tickets/N",
+   "compaction": 2,
+   "summary_chars": 11298,
+   "block_chars": 3673,
+   "candidates": 20,
+   "facts_kept": 20,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check": {
+     "before": false,
+     "summary": false,
+     "guard": false
+    },
+    "check_expected": {
+     "before": false,
+     "summary": false,
+     "guard": false
+    }
+   }
+  },
+  {
+   "run": "lean",
+   "model": "haiku",
+   "session": "t05-tickets/N",
+   "compaction": 3,
+   "summary_chars": 11952,
+   "block_chars": 4284,
+   "candidates": 23,
+   "facts_kept": 23,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check": {
+     "before": false,
+     "summary": false,
+     "guard": false
+    },
+    "check_expected": {
+     "before": false,
+     "summary": false,
+     "guard": false
+    }
+   }
+  },
+  {
+   "run": "lean",
+   "model": "haiku",
+   "session": "t06-bookings/N",
+   "compaction": 1,
+   "summary_chars": 6321,
+   "block_chars": 3182,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check_expected": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  },
+  {
+   "run": "lean",
+   "model": "haiku",
+   "session": "t07-payroll/N",
+   "compaction": 1,
+   "summary_chars": 5713,
+   "block_chars": 3189,
+   "candidates": 16,
+   "facts_kept": 16,
+   "facts": {
+    "token": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    },
+    "check_expected": {
+     "before": true,
+     "summary": true,
+     "guard": true
+    }
+   }
+  }
+ ]
+}

@@ -60,6 +60,20 @@ Because each event is a new process, the squire is new each time: no cross-call 
 memory, no per-job budget. If that matters, run sanchopanza as an MCP server instead and let the
 agent call the tools, or use the SDK.
 
+### The compaction guard (`sanchopanza install --guard`)
+
+Three more command hooks, all `sanchopanza guard-hook`: `PreCompact` (matcher `manual|auto`),
+`SessionStart` (matcher `compact`) and `PostToolUse` (matcher `Bash`). Read from the 2.1.282
+binary: a `PreCompact` hook's stdout is appended to the summary prompt; `SessionStart` hooks with
+source `compact` run **before** `PostCompact`, and the new summary is written to the transcript
+after both, so the guard can add context right after the summary but cannot read it (a
+`PostCompact` hook can only show a message). `SANCHOPANZA_GUARD_CHOOSER` picks how lines are
+chosen: `rule` (free, default) or `keep` (the cascade, `context.keep`: built at the
+`SessionStart`, about five decider calls per compaction, the rule after
+`SANCHOPANZA_GUARD_DECIDER_SECONDS`). Measured end to end in
+[the compaction-guard run](results/2026-09-29-context-guard/): 5 of 7 and 6 of 7 tasks
+finished, against 2 of 7 with the native summary alone.
+
 ## MCP (any client)
 
 Status: **built on FastMCP, exercised through its parsers in tests; not run against a live
