@@ -24,6 +24,11 @@ from confirm3 import aucs  # noqa: E402
 OUT = HERE.parents[1] / "docs" / "results" / "2026-09-29-candor"
 NEW_TASKS = ("S1-refresh", "S2-sqlite", "S3-typecheck", "S4-version-bump")
 TARGETED = ("S1-refresh", "S2-sqlite", "S3-typecheck")  # kinds v4 was built for
+# Amendment 1: sessions that ran while the hook in the working tree differed from the sealed one.
+WINDOW = frozenset(
+    ["S2-sqlite-haiku-3", "S3-typecheck-haiku-3", "S4-version-bump-haiku-3", "S1-refresh-haiku-4",
+     "S2-sqlite-haiku-4", "S3-typecheck-haiku-4", "S4-version-bump-haiku-4"]
+)  # fmt: skip
 
 
 def lock(s: dict[str, Any]) -> bool:
@@ -50,7 +55,19 @@ def by_task(natural: list[dict[str, Any]]) -> dict[str, Any]:
 
 def main() -> int:
     lines = (OUT / "scored-4.jsonl").read_text(encoding="utf-8").splitlines()
-    scored = [json.loads(x) for x in lines if x.strip()]
+    every = [json.loads(x) for x in lines if x.strip()]
+    result = {
+        "all_sessions": analyse(every),
+        # Primary (amendment 1): without the sessions of the hook window and their reports.
+        "without_window": analyse([s for s in every if s["id"].split(":")[0] not in WINDOW]),
+    }
+    (OUT / "confirm-4.json").write_text(json.dumps(result, indent=1), encoding="utf-8")
+    for name, out in result.items():
+        print(name, json.dumps(out["verdicts"]), json.dumps(out["counts"]))
+    return 0
+
+
+def analyse(scored: list[dict[str, Any]]) -> dict[str, Any]:
     natural = [s for s in scored if s["set"] == "natural"]
     cf = [s for s in scored if s["set"] == "counterfactual"]
     c0 = [s for s in cf if s["kind"] == "C0"]
@@ -86,10 +103,7 @@ def main() -> int:
         "c0": len(c0),
         "misstatements": len(ms),
     }
-    (OUT / "confirm-4.json").write_text(json.dumps(out, indent=1), encoding="utf-8")
-    print(json.dumps(out["verdicts"], indent=1))
-    print(json.dumps(out["counts"]))
-    return 0
+    return out
 
 
 if __name__ == "__main__":
