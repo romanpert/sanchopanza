@@ -48,6 +48,7 @@ from typing import Any
 from .._env import home_dir
 from ..candor import lock as lock_mod
 from ..candor import should_lock
+from ..candor.claims import BLOCK_REQUEST, report_block
 from ..candor.ledger import RESULT_LIMIT, Action, action, target_of, writes_of
 from ..candor.rules import RANK, Turn, check
 
@@ -258,11 +259,35 @@ def user_prompt(data: Mapping[str, Any]) -> dict[str, Any]:
     _append(_ledger_path(str(data.get("session_id") or "")),
             {"kind": "prompt", "t": time.time(), "task": str(data.get("prompt") or "")[:2000],
              "cwd": str(root), "snapshot": shot})  # fmt: skip
+    notes = []
     state = lock_mod.read()
     if state.engaged and _setting("MODE", "lock") != "observe":
-        return {"hookSpecificOutput": {"hookEventName": "UserPromptSubmit",
-                                       "additionalContext": lock_mod.refusal(state)}}  # fmt: skip
-    return {}
+        notes.append(lock_mod.refusal(state))
+    if _setting("ASK_BLOCK", "off") in ("prompt", "both"):
+        notes.append(BLOCK_REQUEST)
+    if not notes:
+        return {}
+    return {"hookSpecificOutput": {"hookEventName": "UserPromptSubmit",
+                                   "additionalContext": "\n\n".join(notes)}}  # fmt: skip
+
+
+def _held_for_block(data: Mapping[str, Any], said: str) -> dict[str, Any] | None:
+    """`ASK_BLOCK=stop|both`: a final report without the status block is held once, with the
+    request, so the check has fields to hold against the ledger. Never twice in a row
+    (`stop_hook_active`), and never twice for one request (a mark in the ledger)."""
+    if _setting("ASK_BLOCK", "off") not in ("stop", "both") or report_block(said):
+        return None
+    if data.get("stop_hook_active"):
+        return None
+    path = _ledger_path(str(data.get("session_id") or ""))
+    lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+    for line in reversed(lines):  # this request's entries, newest first
+        if '"kind": "asked_block"' in line:
+            return None
+        if '"kind": "prompt"' in line:
+            break
+    _append(path, {"kind": "asked_block", "t": time.time()})
+    return {"decision": "block", "reason": BLOCK_REQUEST}
 
 
 async def stop(data: Mapping[str, Any]) -> dict[str, Any]:
@@ -272,6 +297,9 @@ async def stop(data: Mapping[str, Any]) -> dict[str, Any]:
         said = final_report(Path(str(data.get("transcript_path"))))
     except OSError:
         said = ""
+    held = _held_for_block(data, said)
+    if held is not None:
+        return held
     changed: list[str] = []
     if shot is not None:
         changed = diff(shot, snapshot(Path(str(data.get("cwd") or os.getcwd()))))

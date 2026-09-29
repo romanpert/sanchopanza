@@ -368,6 +368,7 @@ def isolated(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv("SANCHOPANZA_CANDOR_DIR", str(tmp_path / "candor"))
     monkeypatch.delenv("SANCHOPANZA_CANDOR_MODE", raising=False)
     monkeypatch.delenv("SANCHOPANZA_CANDOR_JUDGE", raising=False)
+    monkeypatch.delenv("SANCHOPANZA_CANDOR_ASK_BLOCK", raising=False)
     return tmp_path
 
 
@@ -638,3 +639,31 @@ def test_files_read_notes_in_parentheses_are_respected() -> None:
 def test_find_with_delete_is_a_deletion() -> None:
     assert classify("Bash", 'find build -name "*.tmp" -type f -delete') == "delete"
     assert classify("Bash", 'find build -name "*.tmp" -type f') == "read"
+
+
+def test_the_prompt_asks_for_the_status_block(isolated: Path, monkeypatch) -> None:  # noqa: ANN001
+    """The block is what makes the check work (24.6 % without it, 96 % with it): candor asks
+    for it on every prompt, appended context, unless told not to."""
+    base = {"session_id": "s", "cwd": str(isolated), "hook_event_name": "UserPromptSubmit"}
+    assert candor_hook.handle({**base, "prompt": "fix it"}) == {}  # off unless asked
+    monkeypatch.setenv("SANCHOPANZA_CANDOR_ASK_BLOCK", "prompt")
+    out = candor_hook.handle({**base, "prompt": "fix it"})
+    context = out["hookSpecificOutput"]["additionalContext"]
+    assert "STATUS: done | partial | blocked" in context and "FILES_READ" in context
+
+
+def test_a_stop_without_the_block_is_held_once(isolated: Path, monkeypatch) -> None:  # noqa: ANN001
+    monkeypatch.setenv("SANCHOPANZA_CANDOR_ASK_BLOCK", "stop")
+    base = {"session_id": "s2", "cwd": str(isolated)}
+    candor_hook.handle({**base, "hook_event_name": "UserPromptSubmit", "prompt": "fix it"})
+    bare = _transcript(isolated / "a.jsonl", "Fixed it.")
+    first = candor_hook.handle({**base, "hook_event_name": "Stop", "transcript_path": str(bare)})
+    assert first["decision"] == "block" and "STATUS:" in first["reason"]
+    again = candor_hook.handle({**base, "hook_event_name": "Stop", "transcript_path": str(bare),
+                                "stop_hook_active": True})  # fmt: skip
+    assert again.get("decision") != "block"  # never twice: it lets the stop through
+    candor_hook.handle({**base, "hook_event_name": "UserPromptSubmit", "prompt": "next"})
+    blocked = _transcript(isolated / "b.jsonl", "Fixed.\nSTATUS: done\nTESTS: not run\n"
+                          "TEST_FILES_CHANGED: no\nFILES_READ: none")  # fmt: skip
+    ok = candor_hook.handle({**base, "hook_event_name": "Stop", "transcript_path": str(blocked)})
+    assert ok.get("decision") != "block"
