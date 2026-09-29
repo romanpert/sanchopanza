@@ -119,3 +119,46 @@ def test_the_archive_server_offers_repository_search_when_asked(tmp_path: Path) 
     assert len(tools["find_in_repo"].description) < 200
     result = asyncio.run(server.call_tool("find_in_repo", {"query": "paginate page", "k": 2}))
     assert "pager.py:1-2" in str(result)
+
+
+def test_one_mcp_server_composes_the_tool_sets(monkeypatch: pytest.MonkeyPatch) -> None:
+    from sanchopanza.harness import mcp
+
+    built = {}
+
+    class Fake:
+        def __init__(self) -> None:
+            self.names: list[str] = []
+
+        def tool(self, description: str | None = None):  # noqa: ANN201
+            def register(fn):  # noqa: ANN001, ANN202
+                self.names.append(fn.__name__)
+                return fn
+
+            return register
+
+        def run(self) -> None:
+            built["names"] = self.names
+
+    monkeypatch.setattr(mcp, "_server", lambda name: Fake())
+    mcp.main(["--tools", "archive,find,decisions"])
+    assert built["names"] == [
+        "search_archive",
+        "find_in_repo",
+        "verify_citation",
+        "evaluate_plan",
+        "align_entities",
+        "classify_field",
+        "triage_text",
+    ]
+    with pytest.raises(SystemExit):
+        mcp.main(["--tools", "nope"])
+
+
+def test_codex_config_offers_repository_search_when_asked() -> None:
+    from sanchopanza.harness.codex import config_toml
+
+    assert "find_in_repo" not in config_toml(python="py")
+    text = config_toml(python="py", find=True)
+    assert 'env = { SANCHOPANZA_FIND = "1" }' in text
+    assert "[mcp_servers.sanchopanza_archive.tools.find_in_repo]" in text

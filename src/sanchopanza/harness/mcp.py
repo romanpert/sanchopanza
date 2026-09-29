@@ -112,23 +112,34 @@ def build_archive_server(
     working directory): a BM25 shortlist judged with `squire` when one is given or a key is
     set, BM25 alone otherwise. Off by default, so the lean catalog stays one tool."""
     from .. import _env
-    from ..context.archive import search
 
-    server = _server(name)
+    server = add_archive(_server(name), root)
+    if find is None:
+        find = _env.get("FIND", "") in ("1", "true", "yes")
+    if find:
+        add_find(server, repo=repo, squire=squire)
+    return server
+
+
+def add_archive(server: Any, root: Path) -> Any:
+    """`search_archive`: BM25 over the archive at `root`. No squire, no key."""
+    from ..context.archive import search
 
     @server.tool(description=SEARCH_DESCRIPTION)
     def search_archive(query: str, k: int = 3) -> str:
         return search(root, query, k)
 
-    if find is None:
-        find = _env.get("FIND", "") in ("1", "true", "yes")
-    if find:
-        from ..context.repo import find as find_fragments
+    return server
 
-        @server.tool(description=FIND_DESCRIPTION)
-        async def find_in_repo(query: str, k: int = 8) -> str:
-            where = repo or Path.cwd()
-            return await find_fragments(query, where, squire=squire or _squire_if_keyed(), k=k)
+
+def add_find(server: Any, *, repo: Path | None = None, squire: Any = None) -> Any:
+    """`find_in_repo`: fragments of the repository for a request (`context.repo`)."""
+    from ..context.repo import find as find_fragments
+
+    @server.tool(description=FIND_DESCRIPTION)
+    async def find_in_repo(query: str, k: int = 8) -> str:
+        where = repo or Path.cwd()
+        return await find_fragments(query, where, squire=squire or _squire_if_keyed(), k=k)
 
     return server
 
@@ -142,9 +153,13 @@ def _squire_if_keyed() -> Any:
 
 
 def build_server(squire: Squire, *, name: str = "sanchopanza") -> Any:
-    from ..points.citation import ADVICE
+    """The five decision tools on a server of their own."""
+    return add_decisions(_server(name), squire)
 
-    server = _server(name)
+
+def add_decisions(server: Any, squire: Squire) -> Any:
+    """Register the five decision tools (they need a squire) on `server`."""
+    from ..points.citation import ADVICE
 
     @server.tool()
     async def verify_citation(claim: str, quote: str, source_text: str, url: str = "") -> str:
@@ -213,3 +228,42 @@ def build_server(squire: Squire, *, name: str = "sanchopanza") -> Any:
         )
 
     return server
+
+
+TOOL_SETS = ("archive", "find", "decisions")
+
+
+def main(argv: list[str] | None = None) -> int:
+    """`python -m sanchopanza.harness.mcp --tools archive,find,decisions`: one stdio server with
+    the chosen tool sets, for any MCP client (Claude Code `.mcp.json`, Codex `config.toml`,
+    Cursor). `decisions` needs a provider (`SANCHOPANZA_PROVIDER` or `TYPESAFE_API_KEY`); the
+    other two work without one."""
+    import argparse
+
+    from .. import _env
+    from .claude_code import squire_from_env
+
+    parser = argparse.ArgumentParser(prog="python -m sanchopanza.harness.mcp")
+    parser.add_argument("--tools", default="archive,find")
+    parser.add_argument("--archive", default="")
+    parser.add_argument("--name", default="sanchopanza")
+    args = parser.parse_args(argv)
+    wanted = [t for t in args.tools.split(",") if t]
+    unknown = sorted(set(wanted) - set(TOOL_SETS))
+    if unknown:
+        parser.error(f"unknown tool sets {unknown}; known: {list(TOOL_SETS)}")
+    server = _server(args.name)
+    if "archive" in wanted:
+        from ..context.archive import root_for
+
+        add_archive(server, root_for(Path.cwd(), override=args.archive or _env.get("ARCHIVE")))
+    if "find" in wanted:
+        add_find(server)
+    if "decisions" in wanted:
+        add_decisions(server, squire_from_env())
+    server.run()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -42,6 +42,7 @@ INDEX_LIMIT = 240
 JOURNAL = "codex-hooks.jsonl"  # beside the archive, in the git-ignored .sanchopanza folder
 SERVER = "sanchopanza_archive"
 SEARCH_TOOL = "search_archive"
+FIND_TOOL = "find_in_repo"
 MARK = "sanchopanza archive:"  # the check looks for this in the rollout to prove delivery
 HOOK_TIMEOUT_SEC = 30
 SEARCH_OUTPUT_TOKENS = 2_000
@@ -270,6 +271,7 @@ def config_toml(
     tool_output_token_limit: int | None = None,
     search_output_tokens: int = SEARCH_OUTPUT_TOKENS,
     extra: Mapping[str, str] | None = None,
+    find: bool = False,
 ) -> str:
     """The `config.toml` fragment: the archive MCP server and, if given, the output cap.
 
@@ -289,11 +291,20 @@ def config_toml(
         f"command = {_toml_str(exe)}",
         "args = [" + ", ".join(_toml_str(a) for a in args) + "]",
         "startup_timeout_sec = 30",
+        *(['env = { SANCHOPANZA_FIND = "1" }'] if find else []),
         "",
         f"[mcp_servers.{SERVER}.tools.{SEARCH_TOOL}]",
         'approval_mode = "approve"',
         f"output_token_limit = {int(search_output_tokens)}",
     ]
+    if find:  # `find_in_repo` reads the repository and writes nothing: approved like the search
+        lines = [
+            *lines,
+            "",
+            f"[mcp_servers.{SERVER}.tools.{FIND_TOOL}]",
+            'approval_mode = "approve"',
+            f"output_token_limit = {int(search_output_tokens)}",
+        ]
     return "\n".join(lines).lstrip("\n") + "\n"
 
 
@@ -303,6 +314,7 @@ def project_files(
     python: str | None = None,
     archive: str | Path | None = None,
     tool_output_token_limit: int | None = None,
+    find: bool = False,
 ) -> dict[str, str]:
     """{relative path: text} for a project's `.codex/` folder. Nothing is written: the
     caller decides, and Codex loads project config only for a trusted project."""
@@ -310,14 +322,19 @@ def project_files(
     return {
         ".codex/hooks.json": hooks_json(python),
         ".codex/config.toml": config_toml(
-            python=python, archive=archive, tool_output_token_limit=tool_output_token_limit
+            python=python,
+            archive=archive,
+            tool_output_token_limit=tool_output_token_limit,
+            find=find,
         ),
     }
 
 
 # --- entry point ----------------------------------------------------------------------------
 
-USAGE = "usage: python -m sanchopanza.harness.codex post-tool-use|session-start|config [DIR]"
+USAGE = (
+    "usage: python -m sanchopanza.harness.codex post-tool-use|session-start|config [DIR] [--find]"
+)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -331,7 +348,9 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.write(run_hook(kind, raw) + "\n")
         return 0
     if kind == "config":
-        for path, text in project_files(args[1] if len(args) > 1 else None).items():
+        find = "--find" in args
+        rest = [a for a in args[1:] if a != "--find"]
+        for path, text in project_files(rest[0] if rest else None, find=find).items():
             sys.stdout.write(f"# --- {path}\n{text}\n")
         return 0
     sys.stderr.write(USAGE + "\n")
