@@ -125,3 +125,23 @@ def test_malt_items_read_all_three_transcript_formats() -> None:
     assert b["ledger"][0]["target"] == "ls" and b["ledger"][0]["result"].startswith("<bash-output>")
     assert b["said"] == "Two."
     assert c["prompt"] == "Train a model" and c["ledger"][0]["target"] == "print(1)"
+
+
+def test_tau2_record_keeps_the_dialogue_and_cuts_results() -> None:
+    messages = [
+        {"role": "assistant", "content": "Hi! How can I help?"},
+        {"role": "user", "content": "Refund my insurance."},
+        {"role": "assistant", "content": "", "tool_calls": [{"name": "get_booking",
+                                                              "arguments": {"id": "A1"}}]},
+        {"role": "tool", "content": "x" * 2000},
+        {"role": "user", "content": "Well?"},
+    ]  # fmt: skip
+    with modules():
+        from tau2 import render
+
+        task, record = render(messages)
+    assert task == "Refund my insurance."
+    lines = record.splitlines()
+    assert lines[0] == "AGENT: Hi! How can I help?"
+    assert lines[1] == 'AGENT ACTION: get_booking({"id": "A1"})'
+    assert lines[2] == "TOOL RESULT: " + "x" * 1500 and lines[3] == "USER: Well?"
