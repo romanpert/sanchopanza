@@ -29,6 +29,15 @@ names the file, so the model can `Read` it back verbatim: a re-run is not the sa
 the file changed or the page moved. `apply` never separates a tool_use from its tool_result,
 since a request carrying one without the other is refused by the API; the `fastjev` arm's
 "drop" removes both together, as the original does.
+
+Stub styles (`apply(..., stub_style=)`, `sanchopanza compact --stub-style`):
+
+- `plain`: the stub above, full text archived.
+- `index`: the same stub followed by ` Holds: <index_of(text)>`, the result's codes, pairs,
+  error lines and paths (`context.index`), so the agent knows what the archived text holds
+  without reading it. Archived.
+- `cleared`: exactly `[Old tool result content cleared]`, Claude Code's own microcompact text.
+  Nothing archived, no path: what goes is gone.
 """
 
 from __future__ import annotations
@@ -45,6 +54,7 @@ from ..points import context as questions
 from ..points import hierarchy
 from . import archive as archive_mod
 from . import rules as rules_mod
+from .index import index_of
 from .transcript import Call, Message, blocks_of, calls, chars, task_of, text_of
 
 if TYPE_CHECKING:
@@ -55,6 +65,9 @@ StepAction = Literal["keep", "stub", "truncate", "drop"]
 ARMS: tuple[str, ...] = ("sanchopanza", "fastjev", "rules", "mask", "tournament")
 MASK_TURNS = 10  # arXiv:2508.21433's M
 
+StubStyle = Literal["plain", "index", "cleared"]
+STUB_STYLES: tuple[str, ...] = ("plain", "index", "cleared")
+CLEARED = "[Old tool result content cleared]"
 STUB = (
     "[sanchopanza pruned this {tool} result: {n} chars. Full text saved at {path}; "
     "Read it if you need it.]"
@@ -199,7 +212,7 @@ def _structural(call: Call, total: int, keep_recent: int) -> str | None:
         return "first_message"
     if call.use_msg >= total - keep_recent or call.result_msg >= total - keep_recent:
         return "recent"
-    if call.result.startswith(rules_mod.STUB_PREFIX):
+    if call.result.startswith(rules_mod.STUB_PREFIX) or call.result == CLEARED:
         return "already_pruned"
     if call.chars <= len(STUB) + 80:
         return "small"  # a stub would free nothing
@@ -291,6 +304,19 @@ def stub_text(tool: str, n: int, path: Path) -> str:
     return STUB.format(tool=tool, n=n, path=path)
 
 
+def indexed_stub(tool: str, text: str, path: Path) -> str:
+    """The plain stub and what the text holds; the plain stub when it holds nothing notable."""
+    index = index_of(text)
+    stub = stub_text(tool, len(text), path)
+    return f"{stub} Holds: {index}" if index else stub
+
+
+def check_style(style: str) -> str:
+    if style not in STUB_STYLES:
+        raise ValueError(f"unknown stub style {style!r}; one of {STUB_STYLES}")
+    return style
+
+
 def _about(arguments: Mapping[str, Any] | None) -> str:
     """A short title for an archived result: the input field that names what it was."""
     arguments = arguments or {}
@@ -309,16 +335,27 @@ def _archive(
     return archive_mod.write_entry(archive, step.id, text, meta)
 
 
+def _stubbed(
+    step: Step, text: str, archive: Path | None, arguments: Mapping[str, Any] | None, style: str
+) -> str:
+    if style == "cleared":
+        return CLEARED
+    path = _archive(archive, step, text, arguments)
+    if style == "index":
+        return indexed_stub(step.tool, text, path)
+    return stub_text(step.tool, len(text), path)
+
+
 def _result_block(
     block: Mapping[str, Any],
     step: Step,
     archive: Path | None,
     arguments: Mapping[str, Any] | None = None,
+    style: str = "plain",
 ) -> dict[str, Any]:
     text = text_of(block.get("content"))
     if step.action == "stub":
-        path = _archive(archive, step, text, arguments)
-        return {**block, "content": stub_text(step.tool, len(text), path)}
+        return {**block, "content": _stubbed(step, text, archive, arguments, style)}
     if step.action == "truncate":
         return {**block, "content": questions.fastjev_truncated(text, bool(block.get("is_error")))}
     return dict(block)
@@ -329,6 +366,7 @@ def _rewrite(
     steps: Mapping[str, Step],
     archive: Path | None,
     inputs: Mapping[str, Any] | None = None,
+    style: str = "plain",
 ) -> Message | None:
     blocks = blocks_of(message)
     out = []
@@ -345,7 +383,7 @@ def _rewrite(
         elif step.action == "drop":
             changed = True
         elif kind == "tool_result":
-            out.append(_result_block(block, step, archive, (inputs or {}).get(key)))
+            out.append(_result_block(block, step, archive, (inputs or {}).get(key), style))
             changed = True
         else:
             out.append(block)
@@ -354,18 +392,26 @@ def _rewrite(
     return {**message, "content": out} if out else None
 
 
-def apply(messages: Sequence[Message], plan: Plan, archive: Path | None) -> list[Message]:
+def apply(
+    messages: Sequence[Message],
+    plan: Plan,
+    archive: Path | None,
+    *,
+    stub_style: str = "plain",
+) -> list[Message]:
     """The pruned messages: same order, every tool_use still with its tool_result.
 
     A stub's full text is written to `archive/<tool_use_id>.txt` before the stub replaces
-    it; `is_error` and every other key of the block are kept. A message left with no
-    content by a `drop` goes. Untouched messages come back as the same objects.
+    it (never for `stub_style="cleared"`, whose stub names no file); `is_error` and every
+    other key of the block are kept. A message left with no content by a `drop` goes.
+    Untouched messages come back as the same objects.
     """
+    style = check_style(stub_style)
     steps = {s.id: s for s in plan.steps if s.action != "keep"}
     if not steps:
         return list(messages)
     inputs = {c.id: c.input for c in calls(messages) if c.id in steps}
-    rewritten = (_rewrite(m, steps, archive, inputs) for m in messages)
+    rewritten = (_rewrite(m, steps, archive, inputs, style) for m in messages)
     return [m for m in rewritten if m is not None]
 
 

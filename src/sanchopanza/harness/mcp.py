@@ -9,8 +9,15 @@ guard, thread review). These are the ones the orchestrator calls deliberately:
 - `classify_field`: free text to a closed vocabulary, with `other` and abstention.
 - `triage_text`: is this text worth the large model's context for this purpose?
 
-Requires `pip install sanchopanza[mcp]`. Works with any MCP client: Claude Code, Cursor, Codex,
-Copilot, Hermes or a custom harness.
+And one that needs no decider at all, served on its own (`sanchopanza archive-mcp`):
+
+- `search_archive`: BM25 over `.sanchopanza/archive` (what the autopilot cut on arrival or
+  masked at compaction), returning each hit's path, meta line and best ~600-character window.
+  Pull recall: the agent asks when it needs something, instead of a hook injecting it. Starts
+  without `TYPESAFE_API_KEY` and builds no squire.
+
+Requires `pip install sanchopanza[mcp]` (mcp 1.x `FastMCP` or 2.x `MCPServer`). Works with any
+MCP client: Claude Code, Cursor, Codex, Copilot, Hermes or a custom harness.
 
     from sanchopanza.harness.mcp import build_server
     build_server(squire).run()          # stdio
@@ -20,12 +27,18 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from typing import Any
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
-from ..points.citation import ADVICE
-from ..squire import Squire
+if TYPE_CHECKING:
+    from ..squire import Squire
 
 MAX_LINES = 25
+# Every session pays for this text in its tool list: one line.
+SEARCH_DESCRIPTION = (
+    "Search earlier tool output that was cut or masked out of context (kept on disk). "
+    "Returns up to k (max 5) file paths with a matching excerpt; Read a path for the full text."
+)
 
 
 def parse_lines(raw: Any) -> list[dict[str, str]]:
@@ -65,13 +78,38 @@ def parse_options(raw: Any) -> dict[str, str]:
     return {}
 
 
-def build_server(squire: Squire, *, name: str = "sanchopanza") -> Any:
+def _server(name: str) -> Any:
+    """An MCP server object with a `tool()` decorator and `run()`: mcp 2.x or 1.x."""
+    try:
+        from mcp.server.mcpserver import MCPServer
+
+        return MCPServer(name)
+    except ImportError:
+        pass
     try:
         from mcp.server.fastmcp import FastMCP
     except ImportError as error:  # pragma: no cover
-        raise RuntimeError("install sanchopanza[mcp] to expose the squire as MCP tools") from error
+        raise RuntimeError("install sanchopanza[mcp] to expose MCP tools") from error
+    return FastMCP(name)
 
-    server = FastMCP(name)
+
+def build_archive_server(root: Path, *, name: str = "sanchopanza-archive") -> Any:
+    """One tool, `search_archive`, over the archive at `root`. No squire, no key."""
+    from ..context.archive import search
+
+    server = _server(name)
+
+    @server.tool(description=SEARCH_DESCRIPTION)
+    def search_archive(query: str, k: int = 3) -> str:
+        return search(root, query, k)
+
+    return server
+
+
+def build_server(squire: Squire, *, name: str = "sanchopanza") -> Any:
+    from ..points.citation import ADVICE
+
+    server = _server(name)
 
     @server.tool()
     async def verify_citation(claim: str, quote: str, source_text: str, url: str = "") -> str:

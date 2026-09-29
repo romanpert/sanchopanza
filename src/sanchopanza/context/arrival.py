@@ -27,24 +27,34 @@ Fail open, always: a decider that gave no answer, a cut that saves less than `mi
 or anything unexpected returns `text=None` and the reason; the caller passes the original.
 The decisions read redacted text (`redact.redact_secrets`, and the squire's own redactor);
 the agent gets the real text of what is kept.
+
+`free_cut` is the same cut with no decider (the autopilot's `SANCHOPANZA_ARRIVAL_MODE=free`):
+line by line, it keeps the first and last `FREE_EDGE` lines, every line that reads as an error,
+every line holding a code or identifier (`context.index.codes_of`, rarest first) and the
+`FREE_BM25` lines that score best by BM25 against `purpose`, up to `Settings.target`
+characters, in that order of priority. Same result type, same markers, same fail-open rule.
 """
 
 from __future__ import annotations
 
 import asyncio
+from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from ..redact import redact_secrets
-from ..text import truncate
+from ..text import bm25_scores, truncate
 from . import blocks as blocks_mod
+from .index import ERROR, codes_of
 from .transcript import is_prompt, message_text
 
 if TYPE_CHECKING:
     from ..squire import Squire
 
 MIN_SENTENCES = 3
+FREE_EDGE = 20  # free mode: first and last lines always kept
+FREE_BM25 = 20  # free mode: lines kept for their BM25 score against the purpose
 PURPOSE_LIMIT = 400  # chunks.context_questions truncates `purpose` here
 HEADER = (
     "[sanchopanza cut this {tool} result on arrival to the parts that bear on the current "
@@ -60,6 +70,7 @@ class Settings:
     error_threshold: int = 20_000  # a result that reads as a failure passes under this
     min_saving: float = 0.2  # a cut that saves less is not worth an altered result
     sentences: bool = True  # the sentence stage in prose blocks (3. above)
+    target: int = 8_000  # free mode: characters kept at most
 
 
 @dataclass(frozen=True, slots=True)
@@ -205,3 +216,66 @@ async def cut(
 
 def header(tool: str, kept: int, total: int, omitted: int, path: Any) -> str:
     return HEADER.format(tool=tool, kept=kept, total=total, omitted=omitted, path=path)
+
+
+# --- the free cut: no decider ---------------------------------------------------------------
+
+
+def _line_blocks(text: str) -> tuple[blocks_mod.Block, ...]:
+    """One block per line. Built in a local list (linear), handed out as a tuple."""
+    out: list[blocks_mod.Block] = []
+    offset = 0
+    for number, line in enumerate(text.splitlines(keepends=True), 1):
+        out.append(blocks_mod.Block(offset, offset + len(line), number, number))
+        offset += len(line)
+    return tuple(out)
+
+
+def _by_code(lines: Sequence[str]) -> list[int]:
+    """Lines holding a code or identifier, those whose rarest code is rarest first."""
+    per_line = [codes_of(line) for line in lines]
+    count = Counter(code for codes in per_line for code in codes)
+    rarity = {i: min(count[c] for c in codes) for i, codes in enumerate(per_line) if codes}
+    return sorted(rarity, key=lambda i: (rarity[i], i))
+
+
+def free_priority(lines: Sequence[str], purpose: str) -> list[int]:
+    """Line indexes in the order the free cut keeps them, each once."""
+    n = len(lines)
+    scores = bm25_scores(purpose, list(lines)) if purpose.strip() else [0.0] * n
+    best = sorted((i for i in range(n) if scores[i] > 0), key=lambda i: -scores[i])[:FREE_BM25]
+    errors = [i for i, line in enumerate(lines) if ERROR.search(line)]
+    edges = [*range(min(FREE_EDGE, n)), *range(max(0, n - FREE_EDGE), n)]
+    order = [*best, *errors, *edges, *_by_code(lines)]
+    return list(dict.fromkeys(order))
+
+
+def free_cut(
+    text: str, purpose: str, settings: Settings | None = None, *, line_offset: int = 0
+) -> Cut:
+    """The arrival cut with no decider. Pure and deterministic; never raises on input."""
+    settings = settings or Settings()
+    passed = gate(text, settings)
+    if passed:
+        return Cut(None, passed)
+    found = _line_blocks(text)
+    lines = [b.of(text) for b in found]
+    base = {"kind": "free", "blocks": len(found), "chars": len(text)}
+    if len(found) < 2:
+        return Cut(None, "one line: nothing to choose between", base)
+    keep: set[int] = set()
+    size = 0
+    for i in free_priority(lines, purpose):
+        if size + len(lines[i]) <= settings.target:
+            keep.add(i)
+            size += len(lines[i])
+    kept = [i in keep for i in range(len(found))]
+    out = blocks_mod.assemble(text, found, kept, line_offset=line_offset)
+    saving = 1 - len(out) / len(text)
+    report = {**base, "kept_blocks": len(keep), "kept_chars": len(out), "saving": round(saving, 4)}
+    if saving < settings.min_saving:
+        return Cut(
+            None, f"saves {saving:.0%}, under {settings.min_saving:.0%}: passed whole", report
+        )
+    omitted = sum(1 for k in kept if not k)
+    return Cut(out, f"kept {len(out)} of {len(text)} chars", {**report, "omitted": omitted})

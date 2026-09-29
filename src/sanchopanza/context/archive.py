@@ -116,3 +116,66 @@ def load_entries(root: Path, *, limit: int = LOAD_LIMIT) -> tuple[Entry, ...]:
             continue
         out = [*out, Entry(path.resolve(), text, _meta(path), mtime)]
     return tuple(out)
+
+
+# --- pull recall: the agent searches the archive itself, no decider -------------------------
+
+SEARCH_MAX = 5
+WINDOW = 600
+EMPTY = "The archive at {root} holds no entries yet: nothing was cut or pruned in this project."
+
+
+def _terms(query: str) -> list[str]:
+    from ..text import _bm25_words
+
+    return _bm25_words(query)
+
+
+def best_window(text: str, query: str, size: int = WINDOW) -> str:
+    """The `size`-character slice of `text` with the most query-term hits; the head if none."""
+    if len(text) <= size:
+        return text
+    terms = _terms(query)
+    lowered = text.lower()
+    step = max(1, size // 4)
+    best, best_score = 0, 0
+    for start in range(0, len(text) - size + step, step):
+        chunk = lowered[start : start + size]
+        score = sum(chunk.count(t) for t in terms)
+        if score > best_score:
+            best, best_score = start, score
+    start = min(best, len(text) - size)
+    prefix = "..." if start > 0 else ""
+    suffix = "..." if start + size < len(text) else ""
+    return f"{prefix}{text[start : start + size]}{suffix}"
+
+
+def _meta_line(entry: Entry) -> str:
+    shown = {k: v for k, v in entry.meta.items() if k != "written"}
+    return json.dumps(shown, ensure_ascii=False) if shown else "(no sidecar)"
+
+
+def search(root: Path, query: str, k: int = 3) -> str:
+    """BM25 over every archived entry under `root`: path, meta line and best window per hit.
+
+    Pure code: no decider, no key. `k` is clamped to 1..`SEARCH_MAX`.
+    """
+    from ..text import bm25_scores
+
+    query = str(query or "").strip()
+    if not query:
+        return "Give a query: words, a code or a file name that the archived output holds."
+    entries = load_entries(root)
+    if not entries:
+        return EMPTY.format(root=root)
+    k = max(1, min(int(k), SEARCH_MAX))
+    scores = bm25_scores(query, [f"{e.title}\n{e.text}" for e in entries])
+    ranked = sorted((i for i, s in enumerate(scores) if s > 0), key=lambda i: -scores[i])[:k]
+    if not ranked:
+        return f"No archived entry under {root} matches {query!r} ({len(entries)} searched)."
+    hits = [
+        f"[{n}] {entries[i].path}\nmeta: {_meta_line(entries[i])}\n"
+        f"{best_window(entries[i].text, query)}"
+        for n, i in enumerate(ranked, 1)
+    ]
+    return "\n\n".join(hits) + "\n\nRead a path above for the full text."

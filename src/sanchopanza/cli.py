@@ -9,6 +9,7 @@ sanchopanza install --check-done --write     # and check "done" before a stop
 sanchopanza install --compact --write        # and prune tool results at /compact
 sanchopanza install --autopilot --write      # cut on arrival, recall, mask at a percentage
 sanchopanza compact --transcript session.jsonl --provider null   # plan and apply a pruning
+sanchopanza archive-mcp     # MCP server: search_archive over .sanchopanza/archive, no decider
 sanchopanza providers       # what is installed
 sanchopanza dag plan.json   # clean DAG and waves from {"nodes": [...], "edges": {"A->B": 0.9}}
 """
@@ -83,6 +84,48 @@ def _install_plugin(args: argparse.Namespace, root: Path | None) -> list[str]:
     return write_plugin(root) if args.write else plugin_changes(root)
 
 
+def _plan_mcp_json(args: argparse.Namespace, settings_path: Path) -> tuple[Path, Any] | None:
+    """`--lean`: the archive server into the project's `.mcp.json` (settings files cannot hold
+    MCP servers). Without it, our entry out of that file only if it is there: a plain install
+    never fails on, nor rewrites, a `.mcp.json` that holds nothing of ours."""
+    from .harness.install import mcp_json_changes, mcp_json_path
+
+    target = mcp_json_path(settings_path)
+    content = mcp_json_changes(target, args.lean, args.command_line)
+    return None if content is None else (target, content)
+
+
+def _apply_mcp_json(args: argparse.Namespace, change: tuple[Path, Any] | None) -> None:
+    """Writes the planned `.mcp.json` under `--write`, after the settings file was applied."""
+    from .harness.install import ARCHIVE_SERVER, write_mcp_json
+
+    if change is None:
+        return
+    target, content = change
+    if args.write:
+        write_mcp_json(target, content)
+        verb = "added to" if args.lean else "removed from"
+    else:
+        verb = "to add to" if args.lean else "to remove from"
+    why = (
+        " (Claude Code settings cannot hold MCP servers; the settings approve it by name in "
+        "enabledMcpjsonServers)"
+        if args.lean
+        else ""
+    )
+    sys.stdout.write(f"MCP server {ARCHIVE_SERVER} {verb} {target}{why}\n")
+
+
+def _finish_mcp_json(args: argparse.Namespace, change: tuple[Path, Any] | None) -> int:
+    try:
+        _apply_mcp_json(args, change)
+    except OSError as error:
+        target = change[0] if change else ""
+        sys.stderr.write(f"could not write {target} ({error}); the settings were applied\n")
+        return 2
+    return 0
+
+
 def _install(args: argparse.Namespace) -> int:
     from .harness.generic import HarnessConfig
     from .harness.install import apply, default_path, default_plugin_root, plan
@@ -100,6 +143,8 @@ def _install(args: argparse.Namespace) -> int:
     )
     path = Path(args.path) if args.path else default_path(args.scope)
     root = None
+    if args.lean:
+        args = argparse.Namespace(**{**vars(args), "autopilot": True})
     if args.compact or args.autopilot:
         root = Path(args.plugin_dir) if args.plugin_dir else default_plugin_root()
     try:
@@ -110,7 +155,9 @@ def _install(args: argparse.Namespace) -> int:
             provider=args.provider or "",
             compact_root=root.resolve() if root else None,
             autopilot=args.autopilot,
+            lean=args.lean,
         )
+        mcp_change = _plan_mcp_json(args, path)
         files = _install_plugin(args, root)
     except (ValueError, OSError) as error:
         sys.stderr.write(f"{error}\n")
@@ -120,7 +167,7 @@ def _install(args: argparse.Namespace) -> int:
         sys.stdout.write(f"plugin file {verb}: {root / name}\n")
     if not settings.changed:
         sys.stdout.write(f"{path}: already wired, nothing to do\n")
-        return 0
+        return _finish_mcp_json(args, mcp_change)
     for line in settings.removed:
         sys.stdout.write(f"- {line}\n")
     for line in settings.added:
@@ -130,7 +177,7 @@ def _install(args: argparse.Namespace) -> int:
             "\n" + json.dumps(settings.merged, ensure_ascii=False, indent=2) + "\n\n"
             f"Nothing written. Re-run with --write to apply to {path}.\n"
         )
-        return 0
+        return _finish_mcp_json(args, mcp_change)
     try:
         backup = apply(settings)
     except OSError as error:
@@ -138,6 +185,8 @@ def _install(args: argparse.Namespace) -> int:
         return 2
     kept = f" (previous contents in {backup.name})" if backup else ""
     sys.stdout.write(f"\nwritten to {path}{kept}\n")
+    if _finish_mcp_json(args, mcp_change):
+        return 2
     if config.scan_content:
         sys.stdout.write(
             "Content scanning is on. It is detection, not prevention: by PostToolUse the "
@@ -197,7 +246,41 @@ def _compact_input(args: argparse.Namespace) -> tuple[list[dict[str, Any]], str]
     return [dict(m) for m in messages], str(session)
 
 
+def _stub_style(args: argparse.Namespace) -> str:
+    """`--stub-style`, else `SANCHOPANZA_STUB_STYLE` (how the plugin's command gets it), else
+    `plain`. An unknown value raises: the caller falls back to its own summary and says why."""
+    from . import _env
+    from .context import compact
+
+    return compact.check_style(args.stub_style or _env.get("STUB_STYLE").strip() or "plain")
+
+
+def _blank_out(args: argparse.Namespace) -> None:
+    """A failed compaction leaves no copy of the conversation at `--out`: an earlier run's file
+    that the caller could not blank is blanked here (`{}`, as the plugin does after reading).
+    Only a file that looks like ours is touched: a JSON object with `messages`, or `{}`."""
+    if not args.out:
+        return
+    out = Path(args.out)
+    with contextlib.suppress(OSError, ValueError):
+        if out.is_file() and _looks_like_ours(out.read_text(encoding="utf-8")):
+            out.write_text("{}", encoding="utf-8")
+
+
+def _looks_like_ours(text: str) -> bool:
+    """A compaction output (`{"messages": ...}`) or an already blanked one (`{}`)."""
+    data = json.loads(text)
+    return isinstance(data, dict) and (not data or "messages" in data)
+
+
 def _compact(args: argparse.Namespace) -> int:
+    code = _compact_run(args)
+    if code != 0:
+        _blank_out(args)
+    return code
+
+
+def _compact_run(args: argparse.Namespace) -> int:
     import asyncio
 
     from . import _env
@@ -208,6 +291,7 @@ def _compact(args: argparse.Namespace) -> int:
     from .squire import Squire
 
     try:
+        style = _stub_style(args)
         messages, session = _compact_input(args)
         journal_path = Path(_env.get("JOURNAL") or _env.home_dir() / "journal.jsonl")
         thresholds = Thresholds.from_mapping(
@@ -237,12 +321,16 @@ def _compact(args: argparse.Namespace) -> int:
                 mask_turns=args.mask_turns,
             )
         )
-        pruned = compact.apply(messages, plan, staging)
+        pruned = compact.apply(messages, plan, staging, stub_style=style)
     except Exception as error:  # the caller falls back to its own summary; say why
         _discard(locals().get("staging"))
         sys.stderr.write(f"sanchopanza compact failed: {error.__class__.__name__}: {error}\n")
         return 2
-    summary = {**compact.report(messages, pruned, plan), "archive": str(archive)}
+    summary = {
+        **compact.report(messages, pruned, plan),
+        "archive": str(archive),
+        "stub_style": style,
+    }
     if summary["reduction"] < args.min_reduction:
         _discard(staging)
         # Same shape as a used compaction: the bare report with --out, wrapped without it.
@@ -299,9 +387,10 @@ def _after_compaction(
     from .context.formation import form
     from .harness.memory_gate import memory_dir_for
 
-    stubbed = {
+    archived = {
         s.id: archive / f"{compact.safe_name(s.id)}.txt" for s in plan.steps if s.action == "stub"
     }
+    stubbed = {k: path for k, path in archived.items() if path.exists()}  # none when cleared
     directory = _env.get("MEMORY_DIR") or memory_dir_for({"cwd": str(Path.cwd())})
     try:
         records = asyncio.run(form(squire, messages, stubbed, Path(directory)))
@@ -343,6 +432,16 @@ def _repoint(messages: list[dict[str, Any]], staging: Path, archive: Path) -> li
     """The stubs name the staging folder; point them at the archive the files now live in."""
     old, new = str(staging), str(archive)
     return json.loads(json.dumps(messages).replace(json.dumps(old)[1:-1], json.dumps(new)[1:-1]))
+
+
+def _archive_mcp(args: argparse.Namespace) -> int:
+    from . import _env
+    from .context.archive import root_for
+    from .harness.mcp import build_archive_server
+
+    root = root_for(Path.cwd(), override=args.archive or _env.get("ARCHIVE"))
+    build_archive_server(root).run()
+    return 0
 
 
 def _dag(args: argparse.Namespace) -> int:
@@ -440,6 +539,13 @@ def main(argv: list[str] | None = None) -> int:
         "mask old results into the archive at a context percentage (implies --compact)",
     )
     install.add_argument(
+        "--lean",
+        action="store_true",
+        help="with --autopilot (implied), the configuration that asks no decider: index stubs, "
+        "free arrival cut, no injected recall, and the search_archive MCP server in the "
+        "project's .mcp.json",
+    )
+    install.add_argument(
         "--plugin-dir",
         default=None,
         help="with --compact, where the plugin is written (default ~/.sanchopanza/claude-plugin)",
@@ -480,6 +586,14 @@ def main(argv: list[str] | None = None) -> int:
         "--mask-turns", type=int, default=10, help="mask arm: acting turns whose results stay"
     )
     compact.add_argument(
+        "--stub-style",
+        default=None,
+        choices=("plain", "index", "cleared"),
+        help="plain: the archive stub; index: plus what the result holds; cleared: Claude "
+        "Code's '[Old tool result content cleared]', nothing archived (default "
+        "SANCHOPANZA_STUB_STYLE, else plain)",
+    )
+    compact.add_argument(
         "--form-memories",
         action="store_true",
         help="ask `remember` about stubbed results and write the durable ones as memory files "
@@ -500,6 +614,17 @@ def main(argv: list[str] | None = None) -> int:
         help="below this fraction of characters freed, exit 3 so the caller summarises instead",
     )
     compact.set_defaults(func=_compact)
+
+    archive_mcp = sub.add_parser(
+        "archive-mcp",
+        help="MCP server (stdio) with one tool, search_archive: BM25 over the archive, no decider",
+    )
+    archive_mcp.add_argument(
+        "--archive",
+        default=None,
+        help="archive root (default SANCHOPANZA_ARCHIVE, else ./.sanchopanza/archive)",
+    )
+    archive_mcp.set_defaults(func=_archive_mcp)
 
     dag = sub.add_parser("dag", help="clean DAG and waves from probabilistic pairs")
     dag.add_argument("plan")

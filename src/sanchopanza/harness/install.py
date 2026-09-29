@@ -46,6 +46,16 @@ free `mask` arm and to compact by itself when the context reaches
 `SANCHOPANZA_COMPACT_AT_PERCENT` (60 unless already set). Its variables (`AUTOPILOT`,
 `COMPACT_COMMAND`, `COMPACT_AT_PERCENT`) are owned by the flag: a run without it removes them.
 
+`--lean` (implies `--autopilot`) is the configuration that asks no decider: masked results
+keep an index of what they held (`SANCHOPANZA_STUB_STYLE=index`), arrival is the free line cut
+(`SANCHOPANZA_ARRIVAL_MODE=free`), no recall is injected (`SANCHOPANZA_RECALL_ON=off`) and the
+agent pulls from the archive itself through the `search_archive` MCP tool
+(`sanchopanza archive-mcp`). Claude Code settings files cannot declare MCP servers, so the
+server goes into the project's `.mcp.json` (beside `.claude/`, or the current directory for the
+user scope) and the settings approve it by name in `enabledMcpjsonServers`. The three variables
+and the approval are owned by the flag: a run without it removes them, and our entry in
+`.mcp.json`.
+
 The one decision worth understanding is `--scan-content`, which is off unless asked for. It
 adds a PostToolUse scan of arriving content for instructions aimed at the model. That is a
 detection control and not a barrier - by PostToolUse the bytes are in the transcript and the
@@ -82,6 +92,14 @@ AUTOPILOT_ENV = {
     "SANCHOPANZA_COMPACT_COMMAND": "sanchopanza compact --stdin --arm mask",
     "SANCHOPANZA_COMPACT_AT_PERCENT": "60",
 }
+LEAN_ENV = {
+    "SANCHOPANZA_STUB_STYLE": "index",
+    "SANCHOPANZA_ARRIVAL_MODE": "free",
+    "SANCHOPANZA_RECALL_ON": "off",
+}
+ARCHIVE_SERVER = "sanchopanza-archive"
+MCP_JSON = ".mcp.json"
+APPROVED = "enabledMcpjsonServers"
 # Owned by `--scan-content`: removed by a run without it.
 _SCAN = ("SCAN_CONTENT", "CONTENT_TOOLS", "CHECK_DONE")
 SCAN_ENV = tuple(key for name in _SCAN for key in _env.names(name))
@@ -126,13 +144,20 @@ def matchers(config: HarnessConfig, *, autopilot: bool = False) -> dict[str, str
 
 
 def environment(
-    config: HarnessConfig, *, provider: str = "", autopilot: bool = False, current: Any = None
+    config: HarnessConfig,
+    *,
+    provider: str = "",
+    autopilot: bool = False,
+    current: Any = None,
+    lean: bool = False,
 ) -> dict[str, str]:
     env: dict[str, str] = {}
     if autopilot:
         # A percentage the owner set is theirs; only a missing one gets the default.
         mine = current if isinstance(current, Mapping) else {}
         env.update({k: str(mine.get(k) or v) for k, v in AUTOPILOT_ENV.items()})
+        if lean:
+            env.update(LEAN_ENV)
     if provider:
         env["SANCHOPANZA_PROVIDER"] = provider
     if config.check_done:
@@ -235,10 +260,14 @@ def _merge_hooks(
 
 
 def _merge_env(
-    env: dict[str, Any], config: HarnessConfig, provider: str, autopilot: bool = False
+    env: dict[str, Any],
+    config: HarnessConfig,
+    provider: str,
+    autopilot: bool = False,
+    lean: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
-    wanted = environment(config, provider=provider, autopilot=autopilot, current=env)
-    owned = (*SCAN_ENV, *AUTOPILOT_ENV)
+    wanted = environment(config, provider=provider, autopilot=autopilot, current=env, lean=lean)
+    owned = (*SCAN_ENV, *AUTOPILOT_ENV, *LEAN_ENV)
     stale = [k for k in owned if k in env and k not in wanted]
     stale += [_LEGACY[k] for k in wanted if _LEGACY.get(k) in env and _LEGACY[k] not in stale]
     changed = {k: v for k, v in wanted.items() if env.get(k) != v}
@@ -292,6 +321,82 @@ def _merge_compact(
     if isinstance(merged.get("env", {}), dict):
         out["env"] = {**env, FUNCTION_HOOKS: "1"}
     return out, added, []
+
+
+def _merge_approval(
+    merged: dict[str, Any], lean: bool
+) -> tuple[dict[str, Any], list[str], list[str]]:
+    """Approve the archive server of `.mcp.json` by name (`--lean`), or withdraw it."""
+    approved = merged.get(APPROVED, [])
+    if not isinstance(approved, list):
+        return merged, [], []  # someone put something else there; do not fight it
+    line = f"{APPROVED}: {ARCHIVE_SERVER}"
+    if lean and ARCHIVE_SERVER not in approved:
+        return {**merged, APPROVED: [*approved, ARCHIVE_SERVER]}, [line], []
+    if not lean and ARCHIVE_SERVER in approved:
+        rest = [name for name in approved if name != ARCHIVE_SERVER]
+        out = {**merged, APPROVED: rest} if rest else _without_key(merged, APPROVED)
+        return out, [], [line]
+    return merged, [], []
+
+
+def mcp_json_path(settings_path: Path, cwd: Path | None = None) -> Path:
+    """The project's `.mcp.json`: beside `.claude/` for a project settings file, else `cwd`."""
+    folder = settings_path.parent
+    if folder.name == ".claude" and folder.parent.resolve() != Path.home().resolve():
+        return folder.parent / MCP_JSON
+    return (cwd or Path.cwd()) / MCP_JSON
+
+
+def archive_server_entry(command: str = COMMAND) -> dict[str, Any]:
+    """The `.mcp.json` entry, from the hook command: `<x> hook` becomes `<x> archive-mcp`."""
+    words = portable_command(command).split()
+    if words and words[-1] == "hook":
+        words = words[:-1]
+    words = words or ["sanchopanza"]
+    return {"command": words[0], "args": [*words[1:], "archive-mcp"]}
+
+
+def _read_mcp_json(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        return {}
+    try:
+        current = json.loads(path.read_text(encoding="utf-8") or "{}")
+    except json.JSONDecodeError as error:
+        raise ValueError(f"{path} is not valid JSON ({error}); not touching it") from error
+    servers = current.get("mcpServers", {}) if isinstance(current, dict) else None
+    if not isinstance(servers, dict):
+        raise ValueError(f"{path} has no JSON object of mcpServers; not touching it")
+    return current
+
+
+def mcp_json_changes(path: Path, lean: bool, command: str = COMMAND) -> dict[str, Any] | None:
+    """The new `.mcp.json` content, or None when nothing changes. Only our entry is touched.
+
+    Under `lean` a file that is not a JSON object is refused rather than overwritten. Without
+    it the file is only looked at to take our entry out: one that is missing, unreadable or
+    malformed holds nothing of ours, so it is left alone and never fails the install."""
+    if not lean:
+        try:
+            current = _read_mcp_json(path)
+        except (ValueError, OSError):
+            return None
+        servers = current.get("mcpServers", {})
+        if ARCHIVE_SERVER not in servers:
+            return None
+        return {**current, "mcpServers": _without_key(servers, ARCHIVE_SERVER)}
+    current = _read_mcp_json(path)
+    servers = current.get("mcpServers", {})
+    entry = archive_server_entry(command)
+    if servers.get(ARCHIVE_SERVER) != entry:
+        return {**current, "mcpServers": {**servers, ARCHIVE_SERVER: entry}}
+    return None
+
+
+def write_mcp_json(path: Path, content: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    text = json.dumps(dict(content), ensure_ascii=False, indent=2) + "\n"
+    _atomic_write(path, text.encode("utf-8"), mode_from=path)
 
 
 def default_plugin_root() -> Path:
@@ -382,6 +487,7 @@ def _merge(
     provider: str,
     compact_root: Path | None = None,
     autopilot: bool = False,
+    lean: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
         current = {}
@@ -400,11 +506,13 @@ def _merge(
         added, removed = [*added, *plus], [*removed, *minus]
     env = merged.get("env", {})
     if isinstance(env, dict):
-        new_env, plus, minus = _merge_env(env, config, provider, autopilot)
+        new_env, plus, minus = _merge_env(env, config, provider, autopilot, lean)
         if plus or minus:
             merged = {**merged, "env": new_env}
         added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_compact(merged, compact_root)
+    added, removed = [*added, *plus], [*removed, *minus]
+    merged, plus, minus = _merge_approval(merged, lean)
     return merged, [*added, *plus], [*removed, *minus]
 
 
@@ -425,6 +533,7 @@ def plan(
     provider: str = "",
     compact_root: Path | None = None,
     autopilot: bool = False,
+    lean: bool = False,
 ) -> Settings:
     current: Any = {}
     if path.exists():
@@ -438,6 +547,8 @@ def plan(
             )
     if autopilot and compact_root is None:
         raise ValueError("the autopilot needs the compaction plugin: pass its root")
+    if lean and not autopilot:
+        raise ValueError("--lean is a configuration of the autopilot: pass --autopilot too")
     command = portable_command(command)
     merged, added, removed = _merge(
         current,
@@ -446,6 +557,7 @@ def plan(
         provider=provider,
         compact_root=compact_root,
         autopilot=autopilot,
+        lean=lean,
     )
     return Settings(path, merged, tuple(added), tuple(removed))
 

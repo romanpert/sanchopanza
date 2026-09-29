@@ -32,7 +32,11 @@ until a compaction clears the list. `SANCHOPANZA_SESSION_MAX_USD` (default 0.50)
 Environment (every name is `SANCHOPANZA_<NAME>`):
 
     AUTOPILOT          "1": arrival, recall on prompts and recall on tool calls
-    ARRIVAL, RECALL, RECALL_ON_TOOL   "1"/"0": each piece on its own (override AUTOPILOT)
+    ARRIVAL, RECALL, RECALL_ON_TOOL   "1"/"0": each piece on its own (override AUTOPILOT
+                       and RECALL_ON)
+    RECALL_ON          where recall runs: both | prompt | tool | off (unset: as AUTOPILOT)
+    ARRIVAL_MODE       jev (default: the tournament) | free (`arrival.free_cut`, no decider)
+    ARRIVAL_FREE_CHARS  free mode: characters kept at most (default 8000; below 1000, the default)
     ARRIVAL_CHARS      threshold for a cut (default 6000)
     ARRIVAL_ERROR_CHARS  threshold for a result that reads as a failure (default 20000)
     ARRIVAL_MIN_SAVING   a cut that saves less passes whole (default 0.2)
@@ -40,6 +44,7 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
     RECALL_K           BM25 candidates judged per recall (default 5)
     RECALL_CAP         characters of injected context per recall (default 6000)
     ARCHIVE            archive root (default <cwd>/.sanchopanza/archive)
+    STUB_STYLE         read by `sanchopanza compact`: plain | index | cleared
     SESSION_MAX_USD    ceiling for these hooks per session (default 0.50)
 """
 
@@ -47,6 +52,7 @@ from __future__ import annotations
 
 import contextlib
 import json
+import math
 import sys
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -63,6 +69,13 @@ SKIP_KEYS = frozenset({"filePath", "file_path", "url", "query", "type", "codeTex
 ERROR_FIELDS = frozenset({"stderr"})
 NOT_CUT = frozenset({"Agent", "Task"})  # a subagent's report is already a compression
 LEDGER = "autopilot"
+ARRIVAL_MODES = ("jev", "free")
+RECALL_PLACES = {
+    "both": (True, True),
+    "prompt": (True, False),
+    "tool": (False, True),
+    "off": (False, False),
+}  # (on prompts, on tool calls)
 
 
 def _flag(name: str, default: bool, env: Mapping[str, str] | None) -> bool:
@@ -79,6 +92,23 @@ def _number(name: str, default: float, env: Mapping[str, str] | None) -> float:
         return default
 
 
+FREE_CHARS_DEFAULT = 8_000
+FREE_CHARS_MIN = 1_000
+
+
+def _free_chars(env: Mapping[str, str] | None) -> int:
+    """`ARRIVAL_FREE_CHARS`, or the default when it is below `FREE_CHARS_MIN` or not a finite
+    number: a bad value must not cut every result on arrival down to nothing."""
+    value = _number("ARRIVAL_FREE_CHARS", FREE_CHARS_DEFAULT, env)
+    if not math.isfinite(value) or value < FREE_CHARS_MIN:
+        say(
+            f"SANCHOPANZA_ARRIVAL_FREE_CHARS={value!r} is below {FREE_CHARS_MIN}: "
+            f"using the default {FREE_CHARS_DEFAULT}"
+        )
+        return FREE_CHARS_DEFAULT
+    return int(value)
+
+
 @dataclass(frozen=True, slots=True)
 class Config:
     arrival: bool = False
@@ -88,6 +118,8 @@ class Config:
     error_threshold: int = 20_000
     min_saving: float = 0.2
     sentences: bool = True
+    arrival_mode: str = "jev"
+    free_target: int = 8_000
     k: int = 5
     cap: int = 6_000
     archive: str = ""
@@ -98,12 +130,24 @@ class Config:
         return self.arrival or self.recall or self.recall_on_tool
 
 
+def _choice(name: str, choices: Sequence[str], env: Mapping[str, str] | None) -> str | None:
+    """The variable's value if it is one of `choices`; None when unset or unknown (said so)."""
+    value = _env.get(name, "", env=env).strip().lower()
+    if value and value not in choices:
+        say(f"SANCHOPANZA_{name}={value!r} is not one of {tuple(choices)}: ignored")
+    return value if value in choices else None
+
+
 def config_from_env(env: Mapping[str, str] | None = None) -> Config:
     on = _flag("AUTOPILOT", False, env)
+    place = _choice("RECALL_ON", tuple(RECALL_PLACES), env)
+    on_prompt, on_tool = RECALL_PLACES[place] if place else (on, on)
     return Config(
         arrival=_flag("ARRIVAL", on, env),
-        recall=_flag("RECALL", on, env),
-        recall_on_tool=_flag("RECALL_ON_TOOL", on, env),
+        recall=_flag("RECALL", on_prompt, env),
+        recall_on_tool=_flag("RECALL_ON_TOOL", on_tool, env),
+        arrival_mode=_choice("ARRIVAL_MODE", ARRIVAL_MODES, env) or "jev",
+        free_target=_free_chars(env),
         threshold=int(_number("ARRIVAL_CHARS", 6_000, env)),
         error_threshold=int(_number("ARRIVAL_ERROR_CHARS", 20_000, env)),
         min_saving=_number("ARRIVAL_MIN_SAVING", 0.2, env),
@@ -263,31 +307,32 @@ async def _arrive(
         return None, None
     path, text = found
     tool_input = event.get("tool_input") if isinstance(event.get("tool_input"), Mapping) else {}
+    in_errors = bool(path) and path[-1] in ERROR_FIELDS
     settings = arrival.Settings(
-        threshold=config.threshold,
+        threshold=config.error_threshold if in_errors else config.threshold,
         error_threshold=config.error_threshold,
         min_saving=config.min_saving,
         sentences=config.sentences,
+        target=config.free_target,
     )
-    if path and path[-1] in ERROR_FIELDS:
-        settings = arrival.Settings(
-            threshold=config.error_threshold,
-            error_threshold=config.error_threshold,
-            min_saving=config.min_saving,
-            sentences=config.sentences,
-        )
     if arrival.gate(text, settings):
         return None, None
-    result = await arrival.cut(
-        squire,
-        text,
-        tool=tool,
-        tool_input=tool_input,
-        purpose=arrival.purpose_of(messages, tool, tool_input),
-        settings=settings,
-        line_offset=_line_offset(tool, response),
-    )
-    squire.journal.record("arrival", {"tool": tool, "reason": result.reason, **result.report})
+    purpose = arrival.purpose_of(messages, tool, tool_input)
+    if config.arrival_mode == "free":
+        offset = _line_offset(tool, response)
+        result = arrival.free_cut(text, purpose, settings, line_offset=offset)
+    else:
+        result = await arrival.cut(
+            squire,
+            text,
+            tool=tool,
+            tool_input=tool_input,
+            purpose=purpose,
+            settings=settings,
+            line_offset=_line_offset(tool, response),
+        )
+    record = {"tool": tool, "mode": config.arrival_mode, "reason": result.reason, **result.report}
+    squire.journal.record("arrival", record)
     if result.text is None:
         say(f"{tool} result passed whole: {result.reason}")
         return None, None
