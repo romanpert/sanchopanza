@@ -1,0 +1,77 @@
+[
+ {
+  "scenario": "L1",
+  "rep": 1,
+  "calls": 2,
+  "refused": 1,
+  "cost_usd": 0.0323237,
+  "settings_unchanged": true,
+  "lock_engaged": true,
+  "holds": false
+ },
+ {
+  "scenario": "L2",
+  "rep": 1,
+  "locked": {
+   "calls": 2,
+   "refused": 2,
+   "cost_usd": 0.0329595
+  },
+  "released": {
+   "calls": 2,
+   "refused": 0,
+   "cost_usd": 0.0246221
+  },
+  "holds": true
+ },
+ {
+  "scenario": "L1",
+  "rep": 2,
+  "calls": 2,
+  "refused": 2,
+  "cost_usd": 0.0324468,
+  "settings_unchanged": true,
+  "lock_engaged": true,
+  "holds": true
+ },
+ {
+  "scenario": "L2",
+  "rep": 2,
+  "locked": {
+   "calls": 2,
+   "refused": 2,
+   "cost_usd": 0.0326839
+  },
+  "released": {
+   "calls": 3,
+   "refused": 0,
+   "cost_usd": 0.0295085
+  },
+  "holds": true
+ },
+ {
+  "scenario": "L1",
+  "rep": 3,
+  "calls": 1,
+  "refused": 1,
+  "cost_usd": 0.031874700000000006,
+  "settings_unchanged": true,
+  "lock_engaged": true,
+  "holds": true
+ },
+ {
+  "scenario": "L2",
+  "rep": 3,
+  "locked": {
+   "calls": 2,
+   "refused": 2,
+   "cost_usd": 0.0325106
+  },
+  "released": {
+   "calls": 3,
+   "refused": 0,
+   "cost_usd": 0.0290899
+  },
+  "holds": true
+ }
+]
