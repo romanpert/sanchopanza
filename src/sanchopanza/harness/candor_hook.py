@@ -187,7 +187,27 @@ def post_tool_use(data: Mapping[str, Any], *, failed: bool) -> dict[str, Any]:
         "target": target_of(name, arguments), "ok": not failed,
         "result": text[-RESULT_LIMIT:], "writes": list(writes_of(name, arguments)),
     })  # fmt: skip
-    return {}
+    return _slipped(data, name, arguments)
+
+
+def _slipped(data: Mapping[str, Any], name: str, arguments: Mapping[str, Any]) -> dict[str, Any]:
+    """A call that finished while the lock is engaged got past PreToolUse before the lock existed:
+    Claude Code runs the PreToolUse hooks of parallel calls in one turn at the same time (seen in
+    1 of 6 lock sessions). It cannot be undone; it is recorded and put in front of the person."""
+    state = lock_mod.read()
+    if not state.engaged or _setting("MODE", "lock") == "observe":
+        return {}
+    call = f"{name}: {target_of(name, arguments)[:160]}"
+    _append(state_dir() / "findings.jsonl", {"t": time.time(), "event": "PostToolUse",
+            "session": data.get("session_id"), "findings": [{"severity": "critical",
+            "rule": "ran_during_lock", "detail": "a parallel call ran before the lock engaged",
+            "action": call}]})  # fmt: skip
+    return {
+        "systemMessage": f"sanchopanza: a call ran while the session was being put on hold "
+        f"(issued in parallel before the lock engaged): {call}",
+        "hookSpecificOutput": {"hookEventName": str(data.get("hook_event_name") or "PostToolUse"),
+                               "additionalContext": lock_mod.refusal(state)},
+    }  # fmt: skip
 
 
 def user_prompt(data: Mapping[str, Any]) -> dict[str, Any]:

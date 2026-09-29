@@ -22,3 +22,7 @@ salida/
 # The registered original holds a local path; its line-19-redacted copy is published.
 docs/results/2026-09-28-claude-code-harness/prereg.md
 docs/results/2026-09-28-claude-code-harness/prereg.sha256
+# candor: generated report texts and lock-session transcripts hold local paths.
+docs/results/2026-09-29-candor/counterfactual*.jsonl
+docs/results/2026-09-29-candor/lock-e2e/L*/
+fixtures/cli/candor-*.jsonl

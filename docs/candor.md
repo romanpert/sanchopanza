@@ -107,7 +107,8 @@ the prose, but catches far less.
 - **It sees what the hooks see.** A script's side effects appear only as a snapshot diff.
 - **It has a race with parallel calls.** Tool calls issued in parallel within one turn can pass
   before the lock engages; from the next turn on, everything is refused. Seen in 1 of 6 lock
-  sessions.
+  sessions. Such a call cannot be undone. It is recorded as `ran_during_lock` and shown to the
+  person.
 - **Its evidence is narrow.** Twelve small tasks. The misstatements were written by a model on
   instruction. The natural misreports (18 over both rounds) were almost all one kind: an input
   that did not exist, replaced in silence.

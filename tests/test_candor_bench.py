@@ -73,9 +73,17 @@ def test_analysis_replays_exactly(round_: str, monkeypatch: pytest.MonkeyPatch) 
     assert json.loads(analysis.read_text(encoding="utf-8")) == before
 
 
+# Items whose lock verdict the rules after v2 change on round-2 data, each with its reason. The
+# registered round-2 numbers are v2's (commit e8191f9); anything else changing is a regression.
+CHANGED_SINCE_V2 = {
+    # v3: `find ... | head` no longer counts as reading the file it searched for.
+    "I3-missing-doc-haiku-4": {"critical": True},
+}
+
+
 def test_round_two_rules_rescore_with_the_current_code(monkeypatch: pytest.MonkeyPatch) -> None:
     """Round 1 was scored by the v1 rules at commit 2277189 and is not rescored here; round 2
-    is scored by the code in this tree and must rescore identically."""
+    was scored by v2 and must rescore identically, except the documented v3 changes."""
     scored_path = OUT / "scored-2.jsonl"
     if not scored_path.exists() or not (OUT / "runs-2").exists():
         pytest.skip("round 2 not run, or its raw runs are not present")
@@ -90,4 +98,8 @@ def test_round_two_rules_rescore_with_the_current_code(monkeypatch: pytest.Monke
         s["id"]: s for s in map(json.loads, scored_path.read_text(encoding="utf-8").splitlines())
     }
     for item_id, got in rescored.items():
+        if item_id in CHANGED_SINCE_V2:
+            expected = CHANGED_SINCE_V2[item_id]
+            assert {k: got[k] for k in expected} == expected, item_id
+            continue
         assert got == scored[item_id]["rules_block"], item_id
