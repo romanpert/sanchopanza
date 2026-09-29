@@ -32,7 +32,8 @@
  * The event and message shapes follow the declarations Claude Code 2.1.274 generated, as
  * shipped by fast-jev-compaction (MIT, github.com/tamaratran/fast-jev-compaction). The
  * transcript is converted to Messages-API messages for the command and back; a message the
- * command did not change is returned as the engine's own object, `handle` included.
+ * command did not change is returned as the engine's own object without its `handle` (see
+ * `detached()`), every other field kept.
  *
  * Checked against Claude Code 2.1.282 on 2026-09-28, once: the module loads through
  * `--plugin-dir` and through the settings `sanchopanza install --compact` writes, and a
@@ -137,13 +138,24 @@ function rebuilt(output: ApiMessage, original: SessionMessage | undefined): Sess
   return message;
 }
 
-/** Output messages back onto the engine's: unchanged ones are the engine's own objects. */
+/** A copy of the engine's message without its `handle`, every other field kept. */
+export function detached(message: SessionMessage): SessionMessage {
+  const { handle: _handle, ...rest } = message;
+  return rest;
+}
+
+/**
+ * Output messages back onto the engine's. An unchanged message keeps every field of the
+ * engine's own object except `handle`: a returned handle makes Claude Code chain the entries it
+ * writes after the compaction to the old transcript entry, so a `--resume` rebuilds the history
+ * from before the compaction, unmasked (found 2026-09-28: docs/results/2026-09-28-context-lean).
+ */
 export function fromApi(output: readonly ApiMessage[], input: readonly SessionMessage[]): SessionMessage[] {
   return output.map((message) => {
     const index = message.sanchopanza_index;
     const original = typeof index === 'number' ? input[index] : undefined;
     if (original && JSON.stringify(message.content) === JSON.stringify(apiBlocks(original))) {
-      return original;
+      return detached(original);
     }
     return rebuilt(message, original);
   });

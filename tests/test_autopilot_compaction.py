@@ -284,6 +284,44 @@ def test_the_plugin_compacts_by_itself_at_the_threshold(tmp_path):
     assert out["compacted"] == 1
 
 
+HANDLE_DRIVER = r"""
+import { fromApi, toApi } from './compact_hook.ts';
+const input = [
+  { role: 'user', text: 'task', toolUses: [], handle: 'h0', extra: 1 },
+  { role: 'assistant', text: '', toolUses: [{ tool_use_id: 't1', tool: 'Read', input: {} }], handle: 'h1' },
+  { role: 'user', text: '', toolUses: [], toolResults: [{ tool_use_id: 't1', text: 'long', isError: false }], handle: 'h2' },
+];
+const api = toApi(input);
+api[2].content[0].content = '[stub]';
+const out = fromApi(api, input);
+console.log(JSON.stringify({ handles: out.map((m) => m.handle ?? null), extra: out[0].extra,
+  same: out[0] === input[0], stub: out[2].toolResults[0].text }));
+"""  # noqa: E501
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is not installed")
+def test_returned_messages_never_carry_the_engine_handle(tmp_path):
+    """A returned `handle` makes Claude Code chain what it writes after the compaction to the old
+    transcript entry, so `--resume` rebuilds the unmasked history (found end to end,
+    docs/results/2026-09-28-context-lean/probe). Unchanged messages keep every other field."""
+    source = Path(__file__).parents[1] / "src" / "sanchopanza" / "harness" / install.HOOK_MODULE
+    shutil.copy(source, tmp_path / install.HOOK_MODULE)
+    (tmp_path / "driver.mts").write_text(HANDLE_DRIVER, encoding="utf-8")
+    (tmp_path / "package.json").write_text('{"type": "module"}', encoding="utf-8")
+    run = subprocess.run(
+        ["node", "--experimental-strip-types", "--no-warnings", "driver.mts"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    if run.returncode != 0 and "strip-types" in run.stderr:
+        pytest.skip("this node cannot strip TypeScript types")
+    assert run.returncode == 0, run.stderr
+    out = json.loads(run.stdout.strip().splitlines()[-1])
+    assert out == {"handles": [None, None, None], "extra": 1, "same": False, "stub": "[stub]"}
+
+
 def test_every_host_capability_in_the_hook_module_is_called_never_read():
     """Claude Code's function-hook compiler refuses a module that reads `$.noun.event` as a value
     (e.g. `if (!$.session.usage)`): the plugin silently never loads, and a debug-log line is the

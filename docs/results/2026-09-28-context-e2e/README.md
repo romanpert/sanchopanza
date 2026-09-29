@@ -1,5 +1,37 @@
 # Compaction inside Claude Code: native summary against sanchopanza's pruning
 
+## Correction (2026-09-29): the autopilot's phase B never saw the masked history
+
+**The 12 of 12 against 6 of 12 below does not measure masking.** Re-reading this run's saved
+transcripts (`../2026-09-28-context-lean/exploratory/`) showed that in every arm-A task the
+model received the **unmasked** history in phase B:
+
+- Phase B ran as `claude -p --resume`, and Claude Code rebuilds a resumed history along the
+  transcript's `parentUuid` links. Our compaction hook returned the engine's own message objects
+  (with their `handle`) for the messages it did not change, and the entries Claude Code wrote
+  after the compaction chained to the pre-compaction entries. The chain phase B loaded skipped
+  the compaction: 0 stubs and no `compact_boundary` on it in 12 of 12 tasks (the stubs were in
+  the file, off the chain).
+- The token counts agree: A's first phase-B context was 55.3k tokens on average, the same as at
+  the end of phase A (55.5k), while N's summary brought it to 43.4k.
+- So arm A compared **"no compaction, plus recall"** against the native summary. It is no
+  evidence that masking keeps facts. No A success needed recall either: every planted fact was
+  already in the unmasked context.
+- The **+13.4 % input tokens** did not come from recall as written above. Phase A cost A +2.24M
+  tokens over N, mostly three sessions that read one file per call (run-to-run variance), and
+  recall about 0.35M; compaction plus phase B were 0.68M *lower* than N's. The recall
+  injections were all in phase B, not "in both phases".
+- A possible second confound, found while building the next run: the child sessions inherited
+  environment variables of the coordinating Claude Code session (`CLAUDE_EFFORT=medium` and
+  others). Both arms had the same environment, but the setting was not the default.
+
+The bug is fixed (`compact_hook.ts`: returned messages never carry the engine's `handle`,
+`tests/test_autopilot_compaction.py::test_returned_messages_never_carry_the_engine_handle`)
+and checked end to end: with the fix a resumed session starts from the masked history (57.1k
+tokens against 85.8k before the fix, `../2026-09-28-context-lean/probe/`). The masking
+question is measured again, with compaction firing mid-session, in
+`../2026-09-28-context-lean/`. Everything below is left as it was written, for the record.
+
 ## Summary
 
 This is an end-to-end test inside Claude Code 2.1.282 (headless, agent Haiku 4.5), run
