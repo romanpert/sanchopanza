@@ -132,6 +132,12 @@ def _guard_hook(args: argparse.Namespace) -> int:
     return guard_main()
 
 
+def _candor_hook(args: argparse.Namespace) -> int:
+    from .harness.candor_hook import main as candor_main
+
+    return candor_main()
+
+
 def _install(args: argparse.Namespace) -> int:
     from .harness.generic import HarnessConfig
     from .harness.install import apply, default_path, default_plugin_root, plan
@@ -163,6 +169,7 @@ def _install(args: argparse.Namespace) -> int:
             autopilot=args.autopilot,
             lean=args.lean,
             guard=args.guard,
+            candor=args.candor,
         )
         mcp_change = _plan_mcp_json(args, path)
         files = _install_plugin(args, root)
@@ -212,6 +219,15 @@ def _install(args: argparse.Namespace) -> int:
             "The compaction guard is on: Claude Code still writes its summary, and after it the "
             "guard attaches the exact lines of command output that cannot be read again, the "
             "files changed and your requests verbatim. It asks no model and fails open.\n"
+        )
+    if args.candor:
+        sys.stdout.write(
+            "Candor is on: each prompt asks for a four-line status block, the workspace is "
+            "hashed, every call is recorded, and the final report is held against the record "
+            "and the disk. A critical finding holds every further call until a person runs "
+            "`python -m sanchopanza.candor release --by NAME --why TEXT`. It catches reports "
+            "the record or the disk contradicts, in the tested categories; it is not robust "
+            "to an agent set on beating it.\n"
         )
     if root is not None:
         sys.stdout.write(
@@ -513,6 +529,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     guard_hook.set_defaults(func=_guard_hook)
 
+    candor_hook = sub.add_parser(
+        "candor-hook", help="candor's Claude Code hook (stdin JSON -> stdout JSON)"
+    )
+    candor_hook.set_defaults(func=_candor_hook)
+
     providers = sub.add_parser("providers", help="list installed providers")
     providers.set_defaults(func=_providers)
 
@@ -569,6 +590,13 @@ def main(argv: list[str] | None = None) -> int:
         help="keep Claude Code's own compaction summary and attach after it what summaries "
         "drop: one-shot command output, the files changed and your requests verbatim "
         "(classic hooks, no model)",
+    )
+    install.add_argument(
+        "--candor",
+        action="store_true",
+        help="hold the final report against what the agent did and the disk, and stop the "
+        "session for a person on a contradiction (five classic hooks, no model unless "
+        "SANCHOPANZA_CANDOR_JUDGE=1)",
     )
     install.add_argument(
         "--plugin-dir",

@@ -63,6 +63,12 @@ verbatim (`PreCompact` on `manual|auto`, `SessionStart` on `compact`, `PostToolU
 for the re-run echo). Classic hooks, no plugin and no early-access flag. Our three entries are
 recognised by their command, and a run without the flag takes them out.
 
+`--candor` wires candor (`harness.candor_hook`, `sanchopanza candor-hook`): five command hooks
+(`UserPromptSubmit`, `PreToolUse` and `PostToolUse` and `PostToolUseFailure` on `*`, `Stop`) and
+`SANCHOPANZA_CANDOR_SNAPSHOT=1`. The final report is held against the ledger and the disk, and a
+critical finding holds every further call until a person releases it. Both the hooks and the
+variable are owned by the flag.
+
 The one decision worth understanding is `--scan-content`, which is off unless asked for. It
 adds a PostToolUse scan of arriving content for instructions aimed at the model. That is a
 detection control and not a barrier - by PostToolUse the bytes are in the transcript and the
@@ -97,6 +103,18 @@ COMMAND = "sanchopanza hook"
 GUARD_COMMAND = "sanchopanza guard-hook"
 # Event -> matcher for the compaction guard (`--guard`, `harness.guard_hook`).
 GUARD_HOOKS = {"PreCompact": "manual|auto", "SessionStart": "compact", "PostToolUse": "Bash"}
+CANDOR_COMMAND = "sanchopanza candor-hook"
+# Event -> matcher for candor (`--candor`, `harness.candor_hook`): the request and its snapshot,
+# every call (the lock refuses, the ledger records), and the final report.
+CANDOR_HOOKS = {
+    "UserPromptSubmit": "",
+    "PreToolUse": "*",
+    "PostToolUse": "*",
+    "PostToolUseFailure": "*",
+    "Stop": "",
+}
+# The workspace snapshot: in round 4 it alone stopped reports of outputs that never changed.
+CANDOR_ENV = {"SANCHOPANZA_CANDOR_SNAPSHOT": "1"}
 AUTOPILOT_ENV = {
     "SANCHOPANZA_AUTOPILOT": "1",
     "SANCHOPANZA_COMPACT_COMMAND": "sanchopanza compact --stdin --arm mask",
@@ -333,38 +351,71 @@ def _merge_compact(
     return out, added, []
 
 
-def _merge_guard(
-    merged: dict[str, Any], on: bool, command: str = GUARD_COMMAND
+def _merge_owned(
+    merged: dict[str, Any],
+    on: bool,
+    wanted: Mapping[str, str],
+    command: str,
+    default: str,
+    label: str,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
-    """Wire the compaction guard's three hooks (`--guard`), or take ours out. Other hooks on
-    the same events are kept; our entries are recognised by their command."""
+    """Wire one set of our hooks (event -> matcher), or take ours out. Other hooks on the same
+    events are kept; our entries are recognised by their command (`command` or `default`)."""
     hooks = merged.get("hooks", {})
     if not isinstance(hooks, dict):
         return merged, [], []  # someone put something else there; do not fight it
-    commands = frozenset({command, GUARD_COMMAND})
+    commands = frozenset({command, default})
     out = dict(hooks)
     added: list[str] = []
     removed: list[str] = []
-    for event, matcher in GUARD_HOOKS.items():
+    for event, matcher in wanted.items():
         entries = out.get(event, [])
         if not isinstance(entries, list):
             continue
         if on and _already_wired(entries, matcher, commands):
             continue
         removed.extend(
-            f"{event}: {e.get('matcher', '')} (guard)" for e in _owned(entries, commands)
+            f"{event}: {e.get('matcher', '')} ({label})" for e in _owned(entries, commands)
         )
         kept = _without_ours(entries, commands)
         if on:
             kept = [*kept, _entry(matcher, command)]
-            added.append(f"{event}: {matcher} (guard)")
-        if kept:
-            out = {**out, event: kept}
-        else:
-            out = {k: v for k, v in out.items() if k != event}
+            added.append(f"{event}: {matcher} ({label})")
+        others = {k: v for k, v in out.items() if k != event}
+        out = {**out, event: kept} if kept else others
     if not (added or removed):
         return merged, [], []
     return {**merged, "hooks": out}, added, removed
+
+
+def _merge_guard(
+    merged: dict[str, Any], on: bool, command: str = GUARD_COMMAND
+) -> tuple[dict[str, Any], list[str], list[str]]:
+    """The compaction guard's three hooks (`--guard`)."""
+    return _merge_owned(merged, on, GUARD_HOOKS, command, GUARD_COMMAND, "guard")
+
+
+def _merge_candor(
+    merged: dict[str, Any], on: bool, command: str = CANDOR_COMMAND
+) -> tuple[dict[str, Any], list[str], list[str]]:
+    """Candor's five hooks and its snapshot variable (`--candor`), or ours out of both."""
+    merged, added, removed = _merge_owned(
+        merged, on, CANDOR_HOOKS, command, CANDOR_COMMAND, "candor"
+    )
+    env = merged.get("env", {})
+    if not isinstance(env, dict):
+        return merged, added, removed
+    if on:
+        changed = {k: v for k, v in CANDOR_ENV.items() if env.get(k) != v}
+        if changed:
+            merged = {**merged, "env": {**env, **changed}}
+            added = [*added, *(f"env: {k}={v}" for k, v in changed.items())]
+    else:
+        stale = [k for k in CANDOR_ENV if k in env]
+        if stale:
+            merged = {**merged, "env": {k: v for k, v in env.items() if k not in stale}}
+            removed = [*removed, *(f"env: {k}" for k in stale)]
+    return merged, added, removed
 
 
 def _merge_approval(
@@ -533,6 +584,7 @@ def _merge(
     autopilot: bool = False,
     lean: bool = False,
     guard: bool = False,
+    candor: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
         current = {}
@@ -559,6 +611,8 @@ def _merge(
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_guard(merged, guard)
     added, removed = [*added, *plus], [*removed, *minus]
+    merged, plus, minus = _merge_candor(merged, candor)
+    added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_approval(merged, lean)
     return merged, [*added, *plus], [*removed, *minus]
 
@@ -582,6 +636,7 @@ def plan(
     autopilot: bool = False,
     lean: bool = False,
     guard: bool = False,
+    candor: bool = False,
 ) -> Settings:
     current: Any = {}
     if path.exists():
@@ -607,6 +662,7 @@ def plan(
         autopilot=autopilot,
         lean=lean,
         guard=guard,
+        candor=candor,
     )
     return Settings(path, merged, tuple(added), tuple(removed))
 
