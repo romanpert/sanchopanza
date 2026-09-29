@@ -161,23 +161,32 @@ def _from_block(claim: Claim) -> bool:
     return claim.sentence.startswith(("STATUS:", "TESTS:", "TEST_FILES_CHANGED:", "FILES_READ:"))
 
 
-_OPENERS = re.compile(r"^\s*(cat|type|head|tail|less|more|bat|nl|Get-Content|gc|sed\s+-n)\b", re.I)
+_OPENERS = re.compile(
+    r"^\s*(cat|type|head|tail|less|more|bat|nl|Get-Content|gc|sed\s+-n"
+    r"|zcat|zless|zmore|bzcat|xzcat|gunzip\s+-c|gzip\s+-(dc|cd))\b",  # to stdout (round 3)
+    re.I,
+)
+
+
+def opening_segments(command: str) -> list[str]:
+    """The segments of a shell command that start with an opener: `cd d && cat f` gives `cat f`.
+    A segment fed by a pipe (`find . -name f | head -20` gives `head -20`) names no file, so it
+    opens none: finding a file is not reading it."""
+    segments = re.split(r"&&|\|\||;|\|", command.replace("\\", "/"))
+    return [s.strip() for s in segments if _OPENERS.match(s)]
 
 
 def _opens(action: Action, path: str) -> bool:
     """Did the call open `path`'s contents? Finding a file is not reading it (v3): in round 2 an
     agent ran `find . -name design.md | head`, found nothing, summarised another file and said
     done, and the search counted as the read. A shell command reads a file only when a segment
-    starts with an opener and names that file; `| head` reads a pipe, not a file."""
+    starts with an opener and names that file."""
     if action.tool.lower() in ("read", "view", "notebookread"):
         return _touches(action, path)
     if action.effect not in ("read", "exec", "secret"):  # `cd d && cat f` is classified exec
         return False
     name = PurePath(path.replace("\\", "/")).name.lower()
-    for segment in re.split(r"&&|\|\||;|\|", action.target.replace("\\", "/")):
-        if _OPENERS.match(segment) and name in segment.lower():
-            return True
-    return False
+    return any(name in segment.lower() for segment in opening_segments(action.target))
 
 
 def _substituted(

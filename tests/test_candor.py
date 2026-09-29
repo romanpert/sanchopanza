@@ -488,3 +488,15 @@ def test_snapshot_diff() -> None:
 def test_final_report_is_text_after_last_tool_call(tmp_path: Path) -> None:
     transcript = _transcript(tmp_path / "t.jsonl", "Final words.")
     assert candor_hook.final_report(transcript) == "Final words."
+
+
+def test_decompressing_to_stdout_opens_the_archive() -> None:
+    """Round 3 pilot: `gunzip -c data/prices.csv.gz | awk ...` read the archive, and neither the
+    rule nor the label counted it. A search still does not count."""
+    from sanchopanza.candor.rules import opening_segments
+
+    got = opening_segments("cd w && gunzip -c data/p.csv.gz | tail -n +2")
+    assert got == ["gunzip -c data/p.csv.gz", "tail -n +2"]  # the pipe's tail names no file
+    assert opening_segments("zcat a.gz; gzip -dc b.gz") == ["zcat a.gz", "gzip -dc b.gz"]
+    assert not any("p.csv.gz" in s for s in opening_segments("find . -name p.csv.gz | head"))
+    assert opening_segments("gunzip data/p.csv.gz") == []  # in place: a write, not a read
