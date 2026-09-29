@@ -90,6 +90,8 @@ See `docs/savings.md` and `docs/where-it-pays.md` in the repository.
 | Skip a generative extraction call on a chunk with nothing in it | `gate_extraction` | 15/16, AUC 1.00 |
 | Check a proposed triple before it enters a graph | `verify_edge` | 31/38 when deciding on 50 cases; 17 committed and 1 of them backwards, with the earlier wording. The `direction` question by roles, default since the fifth batch, caught 10 of 12 reversed edges against 5 with no wrong commit on 30 new cases. A filter in front of a person, not an autonomous committer |
 | Drop a source that repeats what you already have | `triage_redundant` | 116/125, AUC 1.00, at a threshold derived to a 90 % precision target (0.59) |
+| Find the files and lines of a repository a request needs | `select` over `context.repo` fragments; the `find_in_repo` MCP tool | Being measured, pre-registered, on SWE-bench Verified file localisation (117 issues, the gold patch's files as the label): docs/results/2026-09-29-find/. Without a key it is a free BM25 search with line numbers |
+| Hold the agent's final report against what it did, and stop it for a person | `candor.check_record`; the candor hook and its sticky lock | With the four-line status block: 95-96 % of model-written misstatements stopped over two confirmation rounds, 0 of 237 honest sessions stopped, no model call. Misreports the record cannot show (a silent failure, a truncated file, a check that could not run): 0 of 22 with v3; v4 reads the disk and swallowed errors and is being confirmed. Without the block, on real third-party sessions, it caught nothing: ask for the block (`SANCHOPANZA_CANDOR_ASK_BLOCK`) |
 
 ## 3. Wire it in
 
@@ -101,7 +103,7 @@ from sanchopanza.providers import create
 from sanchopanza.harness import Guardian, HarnessConfig
 
 squire = Squire(
-    create("jev"),                      # or "null", "recorded", "llm", "local"
+    create("jev"),                      # or "clm" (self-hosted), "llm", "local", "recorded", "null"
     thresholds=Thresholds(),            # the measured defaults
     journal=JsonlJournal("journal.jsonl"),
     brief="what this job is about",
@@ -112,7 +114,7 @@ guardian = Guardian(squire, HarnessConfig(tiers={"light": "...", "deep": "..."})
 - **Claude Agent SDK**: `from sanchopanza.harness.claude_agent_sdk import hook_matchers` and
   pass `hooks=hook_matchers(guardian)`.
 - **Claude Code**: point a `PreToolUse` / `PostToolUse` command hook at `sanchopanza hook`.
-- **MCP client** (Cursor, Codex, Copilot, anything): `build_server(squire).run()`.
+- **MCP client** (Claude Code, Cursor, Codex, anything): one stdio server with the tool sets you choose, `python -m sanchopanza.harness.mcp --tools archive,find,decisions` (`decisions` needs a provider; the other two work without one). For Codex, `python -m sanchopanza.harness.codex config --find` prints the hooks and the `config.toml` fragment.
 - **Anthropic Messages API, large tool catalog**: `ToolWindow(squire, catalog,
   wait_on_deferred=accepts_tool_addition(model))` and
   `WindowedTools(window, tools_by_group, model=model)` from
@@ -132,6 +134,21 @@ by its coarsest group, because an opened group is loaded whole. Size groups as a
 use them, not as a server ships them: a 121-tool server as one group costs about as much as
 loading it. Splitting large servers into sub-groups is the open design question and has not
 been measured.
+
+## 3b. Select a few among many: one shape for pages, passages, memory, archive and code
+
+Every "which of these matter?" in the package is the same two stages (`sanchopanza.select`):
+a BM25 shortlist by code (`text.BM25Index`, the one BM25), then, with a judge, `triage_many`
+in context (a tournament past 30 candidates). Build `Candidate(key, title, text)` for whatever
+you have, keep the index if the candidates serve many queries, and call
+`await select(query, candidates, squire=squire, keep=k)`. Without a squire, or when the judge
+fails, the BM25 order stands: it never returns nothing because a model was down. Do not write
+a second BM25 or a second tournament; extend this one.
+
+Where the candidates are a repository, `context.repo` already builds them (fragments at
+top-level definitions, `git ls-files`, an in-memory index per root). A self-hosted CLM, which
+its authors say is fastest when the same options come back, fits here as the judge
+(`SANCHOPANZA_PROVIDER=clm`); it has not been measured in this repository.
 
 ## 4. Respect the four invariants, or do not bother
 
