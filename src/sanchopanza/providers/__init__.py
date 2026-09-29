@@ -71,6 +71,7 @@ _BUILTIN = {
     "null": "sanchopanza.providers.null:NullDecider",
     "recorded": "sanchopanza.providers.recorded:RecordedDecider",
     "jev": "sanchopanza.providers.jev:JevDecider",
+    "clm": "sanchopanza.providers.jev:clm",
     "llm": "sanchopanza.providers.llm:LLMDecider",
     "local": "sanchopanza.providers.local:LocalDecider",
 }

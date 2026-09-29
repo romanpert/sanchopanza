@@ -208,3 +208,33 @@ class JevDecider:
                 break
             await asyncio.sleep(BASE_WAIT_S * (2**attempt))
         raise DeciderUnavailable(f"jev did not answer: {last}")
+
+
+CLM_URL = "http://localhost:8000"
+CLM_MODEL = "CLM-v0.1-8B"
+
+
+def clm(
+    api_key: str | None = None,
+    *,
+    base_url: str | None = None,
+    model: str | None = None,
+    **kwargs: Any,
+) -> JevDecider:
+    """CLM-8B (Contrastive-LM, Stanford and NVIDIA, Apache-2.0) behind its `clm-serve`, which
+    exposes a TypeSafe-compatible endpoint: this is the Jev client pointed at it, not a second
+    client. Self-hosted, so no price and no key unless the server asks for one.
+
+    `SANCHOPANZA_CLM_URL` (default http://localhost:8000), `SANCHOPANZA_CLM_MODEL` and
+    `CLM_API_KEY` configure it. Tested against a mock of the TypeSafe wire format only: CLM needs
+    a Linux machine with an NVIDIA GPU, and no measurement here has used a real CLM server.
+    """
+    decider = JevDecider(
+        api_key or os.environ.get("CLM_API_KEY") or "local",
+        base_url=base_url or os.environ.get("SANCHOPANZA_CLM_URL") or CLM_URL,
+        model=model or os.environ.get("SANCHOPANZA_CLM_MODEL") or CLM_MODEL,
+        price_per_mtok=0.0,
+        **kwargs,
+    )
+    decider.name = "clm"
+    return decider

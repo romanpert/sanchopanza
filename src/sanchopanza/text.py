@@ -11,7 +11,7 @@ from __future__ import annotations
 import math
 import re
 import unicodedata
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 
 STOPWORDS = frozenset(
     [
@@ -170,32 +170,55 @@ def _bm25_words(text: str) -> list[str]:
     return [t for t in re.findall(r"[a-z0-9_]+", plain) if t not in STOPWORDS and len(t) > 1]
 
 
+class BM25Index:
+    """Okapi BM25 over documents tokenised once, then asked any number of queries.
+
+    The package's one BM25: `bm25_scores` is a one-query wrapper over it, and archive search,
+    memory recall, the free arrival cut and repository search all go through it. Postings keep
+    a query over a large repository to the documents that hold its words.
+    """
+
+    def __init__(self, docs: Sequence[str], k1: float = 1.5, b: float = 0.75) -> None:
+        self.k1, self.b = k1, b
+        self.lengths: list[int] = []
+        self.postings: dict[str, list[tuple[int, int]]] = {}
+        for i, doc in enumerate(docs):
+            words = _bm25_words(doc)
+            self.lengths.append(len(words))
+            counts: dict[str, int] = {}
+            for word in words:
+                counts[word] = counts.get(word, 0) + 1
+            for word, count in counts.items():
+                self.postings.setdefault(word, []).append((i, count))
+        self.n = len(self.lengths)
+        self.average = (sum(self.lengths) / self.n) if self.n else 1.0
+        self.average = self.average or 1.0
+
+    def scores(self, query: str) -> list[float]:
+        out = [0.0] * self.n
+        k1, b = self.k1, self.b
+        for word in set(_bm25_words(query)):
+            posting = self.postings.get(word)
+            if not posting:
+                continue
+            df = len(posting)
+            idf = math.log(1 + (self.n - df + 0.5) / (df + 0.5))
+            for i, tf in posting:
+                norm = 1 - b + b * self.lengths[i] / self.average
+                out[i] += idf * tf * (k1 + 1) / (tf + k1 * norm)
+        return out
+
+    def top(self, query: str, k: int) -> list[tuple[int, float]]:
+        """The `k` best documents with a score above zero, best first."""
+        scores = self.scores(query)
+        ranked = sorted((i for i, s in enumerate(scores) if s > 0), key=lambda i: -scores[i])
+        return [(i, scores[i]) for i in ranked[: max(0, k)]]
+
+
 def bm25_scores(query: str, docs: list[str], k1: float = 1.5, b: float = 0.75) -> list[float]:
     """Okapi BM25 of each document against the query. Code, no model: it proposes candidates.
 
     The same formula as the benches' (`benchmarks/triage_sets/run.py`), with the package's
     accent-folding tokenizer, so Spanish and English memories score alike.
     """
-    if not docs:
-        return []
-    tokenised = [_bm25_words(d) for d in docs]
-    average = (sum(len(t) for t in tokenised) / len(tokenised)) or 1.0
-    frequency: dict[str, int] = {}
-    for words in tokenised:
-        for word in set(words):
-            frequency[word] = frequency.get(word, 0) + 1
-    wanted = set(_bm25_words(query))
-    n = len(docs)
-    scores = []
-    for words in tokenised:
-        counts: dict[str, int] = {}
-        for word in words:
-            counts[word] = counts.get(word, 0) + 1
-        score = 0.0
-        for word in wanted & counts.keys():
-            df = frequency[word]
-            idf = math.log(1 + (n - df + 0.5) / (df + 0.5))
-            tf = counts[word]
-            score += idf * tf * (k1 + 1) / (tf + k1 * (1 - b + b * len(words) / average))
-        scores.append(score)
-    return scores
+    return BM25Index(docs, k1=k1, b=b).scores(query) if docs else []

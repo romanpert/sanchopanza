@@ -93,8 +93,25 @@ def _server(name: str) -> Any:
     return FastMCP(name)
 
 
-def build_archive_server(root: Path, *, name: str = "sanchopanza-archive") -> Any:
-    """One tool, `search_archive`, over the archive at `root`. No squire, no key."""
+FIND_DESCRIPTION = (
+    "Find the files and line ranges in this repository that bear on a task, in words or "
+    "identifiers. Returns path:first-last with an excerpt; Read a path for the full text."
+)
+
+
+def build_archive_server(
+    root: Path,
+    *,
+    name: str = "sanchopanza-archive",
+    find: bool | None = None,
+    repo: Path | None = None,
+    squire: Any = None,
+) -> Any:
+    """`search_archive` over the archive at `root`. With `find` (default: `SANCHOPANZA_FIND`
+    set), also `find_in_repo` over the repository the server runs in (`repo`, default the
+    working directory): a BM25 shortlist judged with `squire` when one is given or a key is
+    set, BM25 alone otherwise. Off by default, so the lean catalog stays one tool."""
+    from .. import _env
     from ..context.archive import search
 
     server = _server(name)
@@ -103,7 +120,25 @@ def build_archive_server(root: Path, *, name: str = "sanchopanza-archive") -> An
     def search_archive(query: str, k: int = 3) -> str:
         return search(root, query, k)
 
+    if find is None:
+        find = _env.get("FIND", "") in ("1", "true", "yes")
+    if find:
+        from ..context.repo import find as find_fragments
+
+        @server.tool(description=FIND_DESCRIPTION)
+        async def find_in_repo(query: str, k: int = 8) -> str:
+            where = repo or Path.cwd()
+            return await find_fragments(query, where, squire=squire or _squire_if_keyed(), k=k)
+
     return server
+
+
+def _squire_if_keyed() -> Any:
+    """A squire from the environment when it names a real provider, else None (free BM25)."""
+    from .claude_code import decider_from_env, squire_from_env
+
+    decider = decider_from_env()
+    return None if getattr(decider, "name", "null") == "null" else squire_from_env()
 
 
 def build_server(squire: Squire, *, name: str = "sanchopanza") -> Any:

@@ -75,13 +75,38 @@ def decider_from_env(env: dict[str, str] | None = None) -> Decider:
     provider = _env.get("PROVIDER", env=env)
     if not provider:
         provider = "jev" if env.get("TYPESAFE_API_KEY") else "null"
-    if provider == "recorded":
-        return create(
-            "recorded", path=_env.get("FIXTURE", "fixtures/public-benches.jsonl", env=env)
-        )
-    if provider == "jev":
-        return create("jev", api_key=env.get("TYPESAFE_API_KEY"))
+    try:
+        if provider == "recorded":
+            return create(
+                "recorded", path=_env.get("FIXTURE", "fixtures/public-benches.jsonl", env=env)
+            )
+        if provider == "jev":
+            url = _env.get("JEV_URL", "", env=env)
+            extra = {"base_url": url} if url else {}
+            return create("jev", api_key=env.get("TYPESAFE_API_KEY"), **extra)
+        if provider == "clm":  # a self-hosted CLM (`clm-serve`): the Jev wire format
+            return create("clm", base_url=_env.get("CLM_URL", "", env=env) or None)
+        if provider == "llm":
+            return _llm_from_env(env)
+        if provider != "null":
+            # Any other name is an installed provider plugin taking no required arguments.
+            return create(provider)
+    except Exception as error:  # noqa: BLE001 - fail open, but never in silence
+        sys.stderr.write(f"sanchopanza: provider {provider!r} unavailable ({error}); no decider\n")
     return create("null")
+
+
+def _llm_from_env(env: dict[str, str]) -> Decider:
+    """A general model answering the typed questions (`providers.llm`), by Anthropic's API:
+    `SANCHOPANZA_LLM_MODEL` (default Claude Haiku 4.5) and `ANTHROPIC_API_KEY`."""
+    from ..providers.llm import LLMDecider, anthropic_completer
+
+    model = _env.get("LLM_MODEL", "claude-haiku-4-5-20251001", env=env)
+    key = env.get("ANTHROPIC_API_KEY") or ""
+    if not key:
+        raise RuntimeError("ANTHROPIC_API_KEY is not set")
+    completer = anthropic_completer(key, model, timeout_s=60)
+    return LLMDecider(completer, model=model, price_in_per_mtok=1.0, price_out_per_mtok=5.0)
 
 
 def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
