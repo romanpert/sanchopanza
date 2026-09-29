@@ -1,0 +1,12 @@
+{
+ "docs/results/2026-09-29-find/prereg.md": "4409cd3fba59f73541be2f8b0ad2cb60099133b58f7d95638ea427a673bf4a34",
+ "benchmarks/find/swebench.py": "8f76bded6974c01acaf297f1a2dd49e03aa77776898b736326024b92677c4f70",
+ "src/sanchopanza/context/archive.py": "27323ab2d130ff9b08685fafc3bf6cf576069513227ad44b8fa9d37bfc73b4ef",
+ "src/sanchopanza/context/blocks.py": "24a7eda2d305bc0bca39a4930a2467480f5cb17bec1b212891bc350af9e245eb",
+ "src/sanchopanza/context/repo.py": "c33928cfb803c3c730795b64722790cd92b5c3c2f38e87969e4aa346a13c17a1",
+ "src/sanchopanza/points/chunks.py": "4a87ef5fdfce769fc25de51084711f18510b5db82f4d0e2e3cd2dbf4096a2de3",
+ "src/sanchopanza/points/hierarchy.py": "6d7016c3b5613653f2b18cdfff8b8a9ec7d7ed9787493b19417be16f114b37e5",
+ "src/sanchopanza/select.py": "c505e582ecaec6a79091c4fe011a412fa1d36793885a225df911e70359b60980",
+ "src/sanchopanza/squire.py": "7f40b45e9ba0cd945344d80ac49a0076cb60dbce01cec1b9450e991d0111f2db",
+ "src/sanchopanza/text.py": "2aed0c9546ccd28ee63c2c0075c3ddabc6201d5d30fef95aac3ce26ad92500ba"
+}
