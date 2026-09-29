@@ -143,6 +143,35 @@ def messages_from_claude_code(path: Path | str) -> list[Message]:
     return merge_consecutive(kept)
 
 
+def history_from_claude_code(path: Path | str) -> tuple[list[Message], int]:
+    """The whole session, compactions included, and where the last compaction falls.
+
+    Every conversational entry in file order, the summaries a compaction wrote left out (they
+    are not the conversation, they replace it). The second value is the index of the first
+    message after the last `compact_boundary` (0 when there was none): what came before it is
+    what the model no longer sees verbatim. Used by the compaction guard
+    (`context.guard`), which needs what the summary replaced.
+    """
+    before: list[Mapping[str, Any]] = []
+    after: list[Mapping[str, Any]] = []
+    for entry in _entries(Path(path)):
+        if _is_boundary(entry):
+            before, after = [*before, *after], []
+        elif _conversational(entry) and not entry.get("isCompactSummary"):
+            after.append(entry["message"])
+    merged_before = merge_consecutive(before)
+    return [*merged_before, *merge_consecutive(after)], len(merged_before)
+
+
+def last_compact_summary(path: Path | str) -> str:
+    """The text of the summary the latest compaction wrote, or "" when there was none."""
+    found = ""
+    for entry in _entries(Path(path)):
+        if entry.get("isCompactSummary") and isinstance(entry.get("message"), Mapping):
+            found = message_text(entry["message"])
+    return found
+
+
 def calls(messages: Sequence[Mapping[str, Any]]) -> list[Call]:
     """Every tool_use paired with its tool_result by id, in the order the calls were made."""
     results: dict[str, tuple[int, Mapping[str, Any]]] = {}

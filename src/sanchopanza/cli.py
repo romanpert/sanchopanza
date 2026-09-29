@@ -126,6 +126,12 @@ def _finish_mcp_json(args: argparse.Namespace, change: tuple[Path, Any] | None) 
     return 0
 
 
+def _guard_hook(args: argparse.Namespace) -> int:
+    from .harness.guard_hook import main as guard_main
+
+    return guard_main()
+
+
 def _install(args: argparse.Namespace) -> int:
     from .harness.generic import HarnessConfig
     from .harness.install import apply, default_path, default_plugin_root, plan
@@ -156,6 +162,7 @@ def _install(args: argparse.Namespace) -> int:
             compact_root=root.resolve() if root else None,
             autopilot=args.autopilot,
             lean=args.lean,
+            guard=args.guard,
         )
         mcp_change = _plan_mcp_json(args, path)
         files = _install_plugin(args, root)
@@ -199,6 +206,12 @@ def _install(args: argparse.Namespace) -> int:
             "when relevant, and the context is masked into the archive at "
             "SANCHOPANZA_COMPACT_AT_PERCENT. Hooks fail open; the per-session ceiling is "
             "SANCHOPANZA_SESSION_MAX_USD (default 0.50).\n"
+        )
+    if args.guard:
+        sys.stdout.write(
+            "The compaction guard is on: Claude Code still writes its summary, and after it the "
+            "guard attaches the exact lines of command output that cannot be read again, the "
+            "files changed and your requests verbatim. It asks no model and fails open.\n"
         )
     if root is not None:
         sys.stdout.write(
@@ -495,6 +508,11 @@ def main(argv: list[str] | None = None) -> int:
     hook = sub.add_parser("hook", help="Claude Code hook (stdin JSON -> stdout JSON)")
     hook.set_defaults(func=_hook)
 
+    guard_hook = sub.add_parser(
+        "guard-hook", help="the compaction guard's Claude Code hook (stdin JSON -> stdout)"
+    )
+    guard_hook.set_defaults(func=_guard_hook)
+
     providers = sub.add_parser("providers", help="list installed providers")
     providers.set_defaults(func=_providers)
 
@@ -544,6 +562,13 @@ def main(argv: list[str] | None = None) -> int:
         help="with --autopilot (implied), the configuration that asks no decider: index stubs, "
         "free arrival cut, no injected recall, and the search_archive MCP server in the "
         "project's .mcp.json",
+    )
+    install.add_argument(
+        "--guard",
+        action="store_true",
+        help="keep Claude Code's own compaction summary and attach after it what summaries "
+        "drop: one-shot command output, the files changed and your requests verbatim "
+        "(classic hooks, no model)",
     )
     install.add_argument(
         "--plugin-dir",

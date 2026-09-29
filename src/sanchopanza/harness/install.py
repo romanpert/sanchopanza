@@ -56,6 +56,13 @@ user scope) and the settings approve it by name in `enabledMcpjsonServers`. The 
 and the approval are owned by the flag: a run without it removes them, and our entry in
 `.mcp.json`.
 
+`--guard` wires the compaction guard (`harness.guard_hook`, `sanchopanza guard-hook`): three
+command hooks that leave Claude Code's own summary in charge and attach, after it, the exact
+lines of command output that cannot be read again, the files changed and the person's requests
+verbatim (`PreCompact` on `manual|auto`, `SessionStart` on `compact`, `PostToolUse` on `Bash`
+for the re-run echo). Classic hooks, no plugin and no early-access flag. Our three entries are
+recognised by their command, and a run without the flag takes them out.
+
 The one decision worth understanding is `--scan-content`, which is off unless asked for. It
 adds a PostToolUse scan of arriving content for instructions aimed at the model. That is a
 detection control and not a barrier - by PostToolUse the bytes are in the transcript and the
@@ -87,6 +94,9 @@ FUNCTION_HOOKS = "CLAUDE_CODE_ENABLE_FUNCTION_HOOKS"
 HOOK_MODULE = "compact_hook.ts"
 
 COMMAND = "sanchopanza hook"
+GUARD_COMMAND = "sanchopanza guard-hook"
+# Event -> matcher for the compaction guard (`--guard`, `harness.guard_hook`).
+GUARD_HOOKS = {"PreCompact": "manual|auto", "SessionStart": "compact", "PostToolUse": "Bash"}
 AUTOPILOT_ENV = {
     "SANCHOPANZA_AUTOPILOT": "1",
     "SANCHOPANZA_COMPACT_COMMAND": "sanchopanza compact --stdin --arm mask",
@@ -323,6 +333,40 @@ def _merge_compact(
     return out, added, []
 
 
+def _merge_guard(
+    merged: dict[str, Any], on: bool, command: str = GUARD_COMMAND
+) -> tuple[dict[str, Any], list[str], list[str]]:
+    """Wire the compaction guard's three hooks (`--guard`), or take ours out. Other hooks on
+    the same events are kept; our entries are recognised by their command."""
+    hooks = merged.get("hooks", {})
+    if not isinstance(hooks, dict):
+        return merged, [], []  # someone put something else there; do not fight it
+    commands = frozenset({command, GUARD_COMMAND})
+    out = dict(hooks)
+    added: list[str] = []
+    removed: list[str] = []
+    for event, matcher in GUARD_HOOKS.items():
+        entries = out.get(event, [])
+        if not isinstance(entries, list):
+            continue
+        if on and _already_wired(entries, matcher, commands):
+            continue
+        removed.extend(
+            f"{event}: {e.get('matcher', '')} (guard)" for e in _owned(entries, commands)
+        )
+        kept = _without_ours(entries, commands)
+        if on:
+            kept = [*kept, _entry(matcher, command)]
+            added.append(f"{event}: {matcher} (guard)")
+        if kept:
+            out = {**out, event: kept}
+        else:
+            out = {k: v for k, v in out.items() if k != event}
+    if not (added or removed):
+        return merged, [], []
+    return {**merged, "hooks": out}, added, removed
+
+
 def _merge_approval(
     merged: dict[str, Any], lean: bool
 ) -> tuple[dict[str, Any], list[str], list[str]]:
@@ -488,6 +532,7 @@ def _merge(
     compact_root: Path | None = None,
     autopilot: bool = False,
     lean: bool = False,
+    guard: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
         current = {}
@@ -512,6 +557,8 @@ def _merge(
         added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_compact(merged, compact_root)
     added, removed = [*added, *plus], [*removed, *minus]
+    merged, plus, minus = _merge_guard(merged, guard)
+    added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_approval(merged, lean)
     return merged, [*added, *plus], [*removed, *minus]
 
@@ -534,6 +581,7 @@ def plan(
     compact_root: Path | None = None,
     autopilot: bool = False,
     lean: bool = False,
+    guard: bool = False,
 ) -> Settings:
     current: Any = {}
     if path.exists():
@@ -558,6 +606,7 @@ def plan(
         compact_root=compact_root,
         autopilot=autopilot,
         lean=lean,
+        guard=guard,
     )
     return Settings(path, merged, tuple(added), tuple(removed))
 

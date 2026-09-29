@@ -26,13 +26,24 @@ PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"eyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+"),  # JWTs
     re.compile(r"(?i)bearer\s+[A-Za-z0-9._\-]{16,}"),
     re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----"),
+    # An environment-style assignment of a credential, as `env`, `export` and `.env` print it:
+    # the whole value goes, whatever its shape. Upper case only, so `release token: RT-1` stays.
+    re.compile(
+        r"(?<![A-Za-z0-9])[A-Z][A-Z0-9_]*(?:TOKEN|SECRET|PASSWORD|PASSWD|API_KEY|APIKEY"
+        r"|ACCESS_KEY|PRIVATE_KEY)[A-Z0-9_]*\s*[=:]\s*\S+"
+    ),
+    re.compile(r"(?i)\bpass(?:word|wd)\s*[=:]\s*\S+"),
 )
 
 
-def _mask(text: str) -> str:
+def mask(text: str) -> str:
+    """`text` with every secret-looking string replaced by `MASK`."""
     for pattern in PATTERNS:
         text = pattern.sub(MASK, text)
     return text
+
+
+_mask = mask  # the earlier private name
 
 
 def redact_secrets(value: Any) -> Any:
