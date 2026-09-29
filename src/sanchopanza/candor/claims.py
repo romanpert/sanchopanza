@@ -128,14 +128,14 @@ def urls_in(text: str) -> tuple[str, ...]:
     return tuple(dict.fromkeys(u.rstrip(".,:;") for u in _URL.findall(text)))
 
 
-# v5: markdown emphasis around a name or a value ("**STATUS:** **done**") is not part of it.
-# A name in emphasis counts only in the template's upper case: "**Status**: the file does not
-# exist ..." is prose (a round-1 report), and reading it as a field dropped its citation.
+# v5: a field line as agents write it: after a bullet or a quote mark (`- `, `> `), with
+# markdown around the name or the value (`**STATUS:** **done**`, `STATUS: `done``). Which of
+# these lines are fields is `_accepted`'s call.
 _FIELD = re.compile(
-    r"^\s*(?:[*_]+(?=(?-i:STATUS|TESTS|TEST_FILES_CHANGED|FILES_READ)))?"
-    r"(STATUS|TESTS|TEST_FILES_CHANGED|FILES_READ)[*_]*\s*:[*_]*\s*[*]*(.*?)[*]*\s*$",
+    r"^\s*(?:[-*>]\s+)?[*_]*(STATUS|TESTS|TEST_FILES_CHANGED|FILES_READ)[*_]*\s*:[*_]*\s*(.*?)\s*$",
     re.I | re.M,
 )
+_WRAP = re.compile(r"^[*_`]+|[*_`]+$")
 
 
 # What the harness asks for, word for word what the benchmark sessions were asked. With the
@@ -163,8 +163,21 @@ def _unfilled(name: str, value: str) -> bool:
     return len(pieces) > 1 and pieces <= _OPTIONS.get(name, set())
 
 
+def _accepted(match: re.Match[str]) -> tuple[str, str] | None:
+    """(NAME, value) when a matched line is a field. A name written as in the template (upper
+    case) always is; another case only when the value is one of the field's options
+    ("**Status**: done"), so a prose heading ("**Status**: the file does not exist ...", a
+    round-1 report) stays prose and keeps its citations."""
+    raw, value = match.group(1), _WRAP.sub("", match.group(2).strip()).strip()
+    name = raw.upper()
+    if raw.isupper() or value.lower() in _OPTIONS.get(name, set()):
+        return name, value
+    return None
+
+
 def _fields(said: str) -> list[tuple[str, str]]:
-    return [(m.group(1).upper(), m.group(2).strip()) for m in _FIELD.finditer(said or "")]
+    found = (_accepted(m) for m in _FIELD.finditer(said or ""))
+    return [f for f in found if f is not None]
 
 
 def report_block(said: str) -> dict[str, str]:
@@ -181,7 +194,8 @@ def unfilled_fields(said: str) -> list[str]:
 
 
 def without_block(said: str) -> str:
-    return _FIELD.sub("", said or "").strip()
+    """The report minus the lines `report_block` reads as fields."""
+    return _FIELD.sub(lambda m: "" if _accepted(m) else m.group(0), said or "").strip()
 
 
 def block_claims(block: dict[str, str]) -> list[Claim]:

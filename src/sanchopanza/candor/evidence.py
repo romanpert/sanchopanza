@@ -24,9 +24,12 @@ _BACKTICKS = re.compile(r"`([^`\n]{2,200})`")
 _PROGRAM = re.compile(r"^[A-Za-z][\w.+/-]*$")
 # A command's first word: lower case, or a path (`./run.sh`); `SELECT name FROM t` is not one.
 _COMMAND_HEAD = re.compile(r"^(\.{0,2}/)?[a-z][\w.+/-]*$")
-# Before a backticked span, in its own sentence: the task forbids it rather than asks for it.
+# Right before a backticked span: a negated verb of running it ("never run `rm -rf data`", "do
+# not use `git push --force`"). Only the verb that governs the span counts: "without changing
+# the tests, make `pytest` pass" and "don't stop until `npm test` passes" ask for the command.
 _NEGATION = re.compile(
-    r"\b(never|not|don'?t|do\s+not|avoid|without|no|nunca|sin|evita|no\s+uses?)\b[^.;:\n]*$",
+    r"\b(never|not|don'?t|do\s+not|avoid|nunca|no)\s+(ever\s+)?(run|use|call|execute|invoke"
+    r"|type|ejecutes|uses|lances|corras)\s+(the\s+|el\s+|la\s+)?(command\s+|comando\s+)?$",
     re.IGNORECASE,
 )
 # Interpreters and wrappers in front of the program that does the work: `python -m mypy src/`
@@ -86,12 +89,21 @@ def _tokens(segment: str) -> list[str]:
     return [t.strip("'\"") for t in segment.replace("\\", "/").split() if t.strip("'\"")]
 
 
+_QUOTED = re.compile(r"'[^']*'|\"(?:[^\"\\]|\\.)*\"")
+
+
 def _parts(command: str) -> list[tuple[str, str]]:
-    """(separator before, segment) for every segment of a shell command, in order."""
-    pieces = _SEPARATORS.split(command or "")
-    out = [("", pieces[0].strip())]
-    out += [(pieces[i], pieces[i + 1].strip()) for i in range(1, len(pieces) - 1, 2)]
-    return [(sep, seg) for sep, seg in out if seg]
+    """(separator before, segment) for every segment of a shell command, in order. A separator
+    inside quotes is text (`git commit -m "wip && pytest"` is one segment)."""
+    command = command or ""
+    masked = _QUOTED.sub(lambda m: "_" * len(m.group(0)), command)
+    out: list[tuple[str, str]] = []
+    sep, start = "", 0
+    for match in _SEPARATORS.finditer(masked):
+        out.append((sep, command[start : match.start()].strip()))
+        sep, start = match.group(0), match.end()
+    out.append((sep, command[start:].strip()))
+    return [(s, seg) for s, seg in out if seg]
 
 
 def _programs(did: Sequence[Action]) -> set[str]:
@@ -148,13 +160,17 @@ def program_of(command: str) -> str:
 
 
 def _runs(segment: str, command: str) -> bool:
-    """Whether a segment runs the task's command: the same program (by path or name) and at
-    least the task's arguments, in any spelling of `./` or a trailing `/`."""
+    """Whether a segment runs the task's command: the same program and at least the task's
+    arguments, in any spelling of `./` or a trailing `/`. A program the task names with a
+    directory (`scripts/check.py`) must match that path; a bare name (`mypy`) matches by name."""
     program, args = _signature(command)
     seg_program, seg_args = _signature(segment)
     if seg_program in _LOCATES:
         return False
-    same = seg_program == program or PurePath(seg_program).name == PurePath(program).name
+    if "/" in program:
+        same = seg_program == program or seg_program.endswith("/" + program)
+    else:
+        same = PurePath(seg_program).name == program
     return same and args <= seg_args
 
 
@@ -192,13 +208,28 @@ def uses(action: Action, path: str) -> bool:
     name = PurePath(path.replace("\\", "/")).name.lower()
     if not name:
         return False
-    named = re.compile(r"(?<![\w.-])" + re.escape(name) + r"(?![\w-])")
+    named = re.compile(r"(?<![\w.-])" + re.escape(name) + r"(?![\w.-])")
     for _, segment in _parts(action.target.replace("\\", "/")):
         low = segment.lower()
-        program = program_of(segment)
-        if program in _LOCATES or PurePath(program).name in _WRITERS:
+        if _writes_segment(low):
             continue
         for match in named.finditer(low):
-            if not re.search(r">\s*[\w./-]*$", low[: match.start()]):
+            if not _OUTPUT_BEFORE.search(low[: match.start()]):
                 return True
     return False
+
+
+# Right before a name: it is where output goes (`> x`, `-o x`, `--output=x`, `of=x`).
+_OUTPUT_BEFORE = re.compile(r"(>|\s-o|\s-O|\s--out[\w-]*[=\s]|\bof=)\s*[\w./-]*$")
+# A script that opens something for writing (`open('x', 'w')`, `.write_text(`).
+_OPENS_TO_WRITE = re.compile(r"open\([^)]*['\"][wa]b?['\"]|\.write(_text|_bytes)?\(")
+
+
+def _writes_segment(segment: str) -> bool:
+    """A segment that locates or writes the names it carries, so none of them is used by it."""
+    program = PurePath(program_of(segment)).name
+    if program in _LOCATES or program in _WRITERS or program in ("dd", "curl", "wget"):
+        return True
+    if program == "sed" and re.search(r"\s-i\b|\s--in-place", segment):
+        return True
+    return bool(_OPENS_TO_WRITE.search(segment))

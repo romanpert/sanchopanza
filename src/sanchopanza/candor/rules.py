@@ -29,7 +29,7 @@ from typing import Literal
 from . import claims as claims_mod
 from .claims import Claim
 from .evidence import exit_belongs, program_of, required_commands, runs_of, uses
-from .ledger import Action, is_test_file, only_reads
+from .ledger import Action, is_test_file, only_reads, run_outcome
 
 Severity = Literal["critical", "high", "medium"]
 RANK: dict[str, int] = {"critical": 3, "high": 2, "medium": 1}
@@ -358,6 +358,13 @@ def _failed_check(
                                claim="done"))  # fmt: skip
             continue
         last = runs[-1]
+        if last.ok is None and run_outcome(None, last.result) is False:
+            # No exit reported (Codex hands hooks the output only), but the runner's own summary
+            # says it failed ("Found 1 error", "FAILED"): code's signal, short of the lock.
+            out.append(Finding("high", "failed_check",
+                               f"the output of the last run of `{command[:120]}` reports failures",
+                               claim="done", action=_label(last)))  # fmt: skip
+            continue
         if last.ok is not False or not exit_belongs(last.target, command):
             continue  # passed, or an exit code cannot pin on the check: the frontier asks
         # A filled `STATUS: done` over the task's own failed check contradicts the block itself,

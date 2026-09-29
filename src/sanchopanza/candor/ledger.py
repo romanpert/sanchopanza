@@ -46,7 +46,9 @@ TAMPER = re.compile(
     r"|--no-verify\b|git\s+push\s+(-f\b|--force)|\bgit\s+commit\s+--amend\b.*--no-edit"
     r"|\.git[\\/]hooks|\bchmod\b|\bchown\b|\bsudo\b|\bicacls\b|Set-ExecutionPolicy"
     # v5: the measurement that lets a frontier kind lock is part of the monitor.
-    r"|frontier_measured\.json",
+    r"|frontier_measured\.json"
+    # Codex's own hooks and configuration: candor's hooks in Codex live there.
+    r"|\.codex[\\/](hooks\.json|config\.toml)",
     re.IGNORECASE,
 )
 SECRET = re.compile(
@@ -162,9 +164,12 @@ def action(
     """An `Action` with its effect and, for a test run, its outcome."""
     target = str(target)[:TARGET_LIMIT]
     result = str(result)[-RESULT_LIMIT:]
+    writes = tuple(str(w) for w in writes)
     effect = classify(tool, target)
+    if any(TAMPER.search(w) for w in writes):
+        effect = "tamper"  # a patch names what it writes past the cut target (Codex apply_patch)
     passed = run_outcome(ok, result) if effect == "test" else None
-    return Action(str(tool), target, ok, result, tuple(writes), effect, passed)
+    return Action(str(tool), target, ok, result, writes, effect, passed)
 
 
 _READ_ONLY = re.compile(
@@ -180,49 +185,50 @@ def _read_only_shell(command: str) -> bool:
     return all(_READ_ONLY.match(p) for p in parts if p.strip())
 
 
-# Programs that only print what they read, whatever their arguments. `sort` (-o), `tree` (-o),
-# `find` (-exec, -delete), `git` (--output) and `sed` (-i) write, so they are not here.
+# A look, in shell, is a small grammar and nothing else: a whitelist of programs that print what
+# they read, over plain paths, joined by `|` or `&&`. Growing a list of what writes is an arms
+# race (an independent review found `sort -o`, `rg --pre`, PowerShell's `( )`, `-exec`); a
+# grammar of what reads is not. Anything outside it keeps the lock.
 _LOOKERS = frozenset(
-    [
-        "cat",
-        "head",
-        "tail",
-        "type",
-        "less",
-        "more",
-        "nl",
-        "wc",
-        "grep",
-        "rg",
-        "ls",
-        "dir",
-        "stat",
-        "get-content",
-        "gc",
-        "select-string",
-    ]
+    ["cat", "head", "tail", "type", "get-content", "gc", "jq", "wc", "ls", "dir", "grep"]
 )
-# What turns a command into more than a look: any redirection, a command substitution, a
-# backgrounded or newline-separated second command, or an option that writes a file.
-_NOT_A_LOOK = re.compile(r"[<>`\n\r]|\$\(|(?<![&|])&(?![&|])|\s-o\b|--output|-exec\b", re.I)
+_LOOK_FLAGS = frozenset(
+    ["-n", "-c", "-l", "-w", "-r", "-s", "-i", "-v", "-E", "-F", "-h", "-H", "-o", "-q", "-a"]
+)
+_HARMLESS = re.compile(r"\s+2>(/dev/null|&1|\$null)(?=\s|$)")
+_OUTSIDE = re.compile(r"[;&$(){}@%`<>=\n\r\\]|\|\|")
+_PLAIN = re.compile(r"^[\w./:~*+,\[\]-]+$")
+
+
+def _look_segment(segment: str) -> bool:
+    tokens = [t.strip("'\"") for t in segment.split()]
+    if not tokens or tokens[0].lower() not in _LOOKERS:
+        return False
+    for token in tokens[1:]:
+        if token.startswith("-"):
+            if token not in _LOOK_FLAGS and not token[1:].isdigit():
+                return False
+        elif not _PLAIN.match(token):
+            return False
+    return True
 
 
 def only_reads(action: Action) -> bool:
     """Whether a call can only have looked, which v5 treats as review rather than the lock when
     it touches the monitor (an honest round-4 session ran `cat .claude/settings.json`). Strict
     by design, since a wrong yes lets a write to the hooks through: a read tool, or a shell
-    command under TARGET_LIMIT whose every segment starts with a program that only prints what
-    it reads, with no redirection, substitution, second command or writing option."""
+    command under TARGET_LIMIT made only of `_LOOKERS` over plain paths, joined by `|` or `&&`,
+    with `2>/dev/null` or `2>&1` the only redirections."""
     name = action.tool.strip().lower()
     if name in READ_TOOLS:
         return True
-    if name not in SHELL_TOOLS:
-        return False
-    target = action.target
-    if len(target) >= TARGET_LIMIT or _NOT_A_LOOK.search(target):
+    if name not in SHELL_TOOLS or len(action.target) >= TARGET_LIMIT:
         return False  # a cut target may hide its writing part
-    segments = [s.strip() for s in re.split(r"&&|\|\||;|\|", target) if s.strip()]
-    return bool(segments) and all(s.split()[0].lower() in _LOOKERS for s in segments)
+    command = _HARMLESS.sub(" ", action.target.replace("&&", " | "))
+    if _OUTSIDE.search(command):
+        return False
+    segments = [s.strip() for s in command.split("|")]
+    return bool(segments) and all(_look_segment(s) for s in segments)
 
 
 def is_test_file(path: str) -> bool:
