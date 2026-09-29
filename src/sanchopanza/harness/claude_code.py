@@ -248,7 +248,7 @@ def needs_decision(
     if event == "Stop":
         return config.check_done and not input_data.get("stop_hook_active")
     if event == "UserPromptSubmit":
-        return False
+        return find_on_prompt()
     name = str(input_data.get("tool_name", ""))
     arguments = input_data.get("tool_input")
     arguments = arguments if isinstance(arguments, Mapping) else {}
@@ -257,6 +257,29 @@ def needs_decision(
         scanned = config.scan_content and config.scans_after(name, arguments)
         return (reviewed or scanned) and bool(text_of(input_data.get("tool_response")).strip())
     return name in (config.delegate_tools | config.search_tools | config.shell_tools)
+
+
+def find_on_prompt() -> bool:
+    return _env.get("FIND_ON_PROMPT", "") in ("1", "true", "yes")
+
+
+def repo_hint(input_data: Mapping[str, Any]) -> dict[str, Any]:
+    """`SANCHOPANZA_FIND_ON_PROMPT=1`: the likely files for the prompt, appended as context.
+    Free (BM25), bounded (`context.repo.hint`), and never fatal."""
+    if not find_on_prompt():
+        return {}
+    from ..context.repo import hint
+
+    try:
+        root = Path(str(input_data.get("cwd") or os.getcwd()))
+        note = hint(str(input_data.get("prompt") or ""), root)
+    except Exception as error:  # noqa: BLE001 - a hint is never worth a failed prompt
+        name = error.__class__.__name__
+        sys.stderr.write(f"sanchopanza: repository hint skipped ({name})\n")
+        return {}
+    if not note:
+        return {}
+    return {"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": note}}
 
 
 def merge_outputs(first: Mapping[str, Any], second: Mapping[str, Any]) -> dict[str, Any]:
@@ -290,7 +313,8 @@ async def handle(
     if event == "Stop":
         return await stop(input_data, guardian)
     if event == "UserPromptSubmit":
-        return await user_prompt(input_data, squire, pilot) if pilot.recall else {}
+        recalled = await user_prompt(input_data, squire, pilot) if pilot.recall else {}
+        return merge_outputs(recalled, repo_hint(input_data))
     if event == "PostToolUse":
         base = {}
         if needs_decision(input_data, guardian.config):

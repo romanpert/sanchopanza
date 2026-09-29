@@ -237,6 +237,22 @@ async def find(query: str, root: Path, *, squire: Any = None, k: int = 8) -> str
     return render(picks, query, root=root, searched=len(indexed(root)[0]))
 
 
+HINT_MAX_FILES = 3_000  # a hook is a fresh process: past this, indexing would stall the prompt
+HINT_HEADER = "Files that may bear on this request (BM25 over the repository; Read to check):"
+
+
+def hint(query: str, root: Path, *, k: int = 5) -> str:
+    """One short appended note for a prompt: the likely files and lines, free (BM25 only), or
+    nothing. Skipped for a repository with more than `HINT_MAX_FILES` text files, because a
+    hook cannot keep the index between prompts. Unmeasured end to end: opt-in."""
+    query = str(query or "").strip()
+    if len(query) < 12 or len(files(root)) > HINT_MAX_FILES:
+        return ""
+    candidates, index = indexed(root)
+    picks = [candidates[i].key for i, _ in index.top(query, k)]
+    return "\n".join([HINT_HEADER, *(f"- {key}" for key in picks)]) if picks else ""
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m sanchopanza.context.repo")
     parser.add_argument("query")

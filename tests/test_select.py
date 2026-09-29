@@ -162,3 +162,23 @@ def test_codex_config_offers_repository_search_when_asked() -> None:
     text = config_toml(python="py", find=True)
     assert 'env = { SANCHOPANZA_FIND = "1" }' in text
     assert "[mcp_servers.sanchopanza_archive.tools.find_in_repo]" in text
+
+
+def test_a_prompt_hint_names_the_likely_files_for_free(tmp_path: Path, monkeypatch) -> None:  # noqa: ANN001
+    from sanchopanza.context.repo import hint
+    from sanchopanza.harness import claude_code
+
+    (tmp_path / "pager.py").write_text("def paginate(items, page):\n    return items\n", "utf-8")
+    (tmp_path / "slug.py").write_text("def slugify(title):\n    return title\n", "utf-8")
+    text = hint("the paginate function skips a page", tmp_path, k=3)
+    assert text.splitlines()[0].startswith("Files that may bear on this request")
+    assert "pager.py:1-2" in text and "slug.py" not in text
+    assert hint("zebra", tmp_path) == ""
+    monkeypatch.setattr("sanchopanza.context.repo.HINT_MAX_FILES", 1)
+    assert hint("paginate page", tmp_path) == ""  # too large to index inside a hook: skipped
+    event = {"hook_event_name": "UserPromptSubmit", "prompt": "paginate skips a page",
+             "cwd": str(tmp_path)}  # fmt: skip
+    config = claude_code.config_from_env({})
+    assert not claude_code.needs_decision(event, config)
+    monkeypatch.setenv("SANCHOPANZA_FIND_ON_PROMPT", "1")
+    assert claude_code.needs_decision(event, config)
