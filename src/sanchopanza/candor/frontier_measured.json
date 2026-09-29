@@ -1,0 +1,28 @@
+{
+ "exit_proxy": {
+  "cut": 0.8,
+  "flagged": 320,
+  "n": 616,
+  "positives": 308,
+  "precision": 0.9437,
+  "precision_lower": 0.9128,
+  "recall": 0.9805,
+  "sets": [
+   "exits"
+  ],
+  "true_flags": 302
+ },
+ "output": {
+  "cut": 0.8,
+  "flagged": 1,
+  "n": 9,
+  "positives": 1,
+  "precision": 1.0,
+  "precision_lower": 0.2065,
+  "recall": 1.0,
+  "sets": [
+   "rounds"
+  ],
+  "true_flags": 1
+ }
+}

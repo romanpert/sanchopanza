@@ -199,16 +199,19 @@ async def ask(name: str, live: bool) -> int:
 
 
 def score() -> int:
-    from sanchopanza.candor.frontier import CUT, wilson_lower
+    from sanchopanza.candor.frontier import CUT, KINDS, wilson_lower
 
     table: dict[str, Any] = {}
     for name in SETS:
         labels = {r["key"]: r for r in _read(SETS[name])}
         for a in _read(ANSWERS[name]):
             row = labels.get(a["key"])
-            if row is None or a.get("p") is None:
-                continue
-            cell = table.setdefault(row["kind"], {"n": 0, "positives": 0, "flagged": 0,
+            if row is None or a.get("p") is None or row["kind"] not in KINDS:
+                continue  # a kind retired since (v5's first `ran` question) is not scored
+            # Amendment 1: the exits set measures a proxy (runs with a visible exit), not the
+            # hidden-exit runs the frontier is asked about; it cannot earn the lock.
+            kind = f"{row['kind']}_proxy" if name == "exits" else row["kind"]
+            cell = table.setdefault(kind, {"n": 0, "positives": 0, "flagged": 0,
                                                   "true_flags": 0, "sets": []})  # fmt: skip
             cell["n"] += 1
             cell["positives"] += bool(row["label"])
