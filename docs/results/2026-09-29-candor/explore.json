@@ -1,0 +1,211 @@
+{
+ "note": "exploratory, after the registered round: not a result",
+ "E1_p1_natural": {
+  "tpr": {
+   "k": 6,
+   "n": 6,
+   "rate": 1.0,
+   "ci95": [
+    0.6097,
+    1.0
+   ]
+  },
+  "fpr": {
+   "k": 3,
+   "n": 131,
+   "rate": 0.0229,
+   "ci95": [
+    0.0078,
+    0.0652
+   ]
+  }
+ },
+ "E3_substitution_natural": {
+  "tpr": {
+   "k": 6,
+   "n": 6,
+   "rate": 1.0,
+   "ci95": [
+    0.6097,
+    1.0
+   ]
+  },
+  "fpr": {
+   "k": 2,
+   "n": 131,
+   "rate": 0.0153,
+   "ci95": [
+    0.0042,
+    0.054
+   ]
+  }
+ },
+ "E1+E3_natural": {
+  "tpr": {
+   "k": 6,
+   "n": 6,
+   "rate": 1.0,
+   "ci95": [
+    0.6097,
+    1.0
+   ]
+  },
+  "fpr": {
+   "k": 5,
+   "n": 131,
+   "rate": 0.0382,
+   "ci95": [
+    0.0164,
+    0.0862
+   ]
+  }
+ },
+ "E2_auc_jev_holistic_natural": 0.7952,
+ "E2_auc_haiku_natural": 0.9364,
+ "E2_auc_jev_done_natural": 0.8938,
+ "E1_p1_counterfactual": {
+  "tpr": {
+   "k": 209,
+   "n": 211,
+   "rate": 0.9905,
+   "ci95": [
+    0.9661,
+    0.9974
+   ]
+  },
+  "fpr": {
+   "k": 4,
+   "n": 130,
+   "rate": 0.0308,
+   "ci95": [
+    0.012,
+    0.0764
+   ]
+  }
+ },
+ "E3_substitution_counterfactual": {
+  "tpr": {
+   "k": 0,
+   "n": 211,
+   "rate": 0.0,
+   "ci95": [
+    0.0,
+    0.0179
+   ]
+  },
+  "fpr": {
+   "k": 0,
+   "n": 130,
+   "rate": 0.0,
+   "ci95": [
+    0.0,
+    0.0287
+   ]
+  }
+ },
+ "E1+E3_counterfactual": {
+  "tpr": {
+   "k": 209,
+   "n": 211,
+   "rate": 0.9905,
+   "ci95": [
+    0.9661,
+    0.9974
+   ]
+  },
+  "fpr": {
+   "k": 4,
+   "n": 130,
+   "rate": 0.0308,
+   "ci95": [
+    0.012,
+    0.0764
+   ]
+  }
+ },
+ "E2_auc_jev_holistic_counterfactual": 0.9795,
+ "E2_auc_haiku_counterfactual": 0.6917,
+ "E2_auc_jev_done_counterfactual": 0.6826,
+ "E2_jev_holistic_cut_from_A": 0.83,
+ "E2_jev_holistic_on_B_natural": {
+  "tpr": {
+   "k": 1,
+   "n": 4,
+   "rate": 0.25,
+   "ci95": [
+    0.0456,
+    0.6994
+   ]
+  },
+  "fpr": {
+   "k": 1,
+   "n": 60,
+   "rate": 0.0167,
+   "ci95": [
+    0.0029,
+    0.0886
+   ]
+  }
+ },
+ "E2_jev_holistic_on_B_counterfactual": {
+  "tpr": {
+   "k": 82,
+   "n": 96,
+   "rate": 0.8542,
+   "ci95": [
+    0.77,
+    0.9111
+   ]
+  },
+  "fpr": {
+   "k": 2,
+   "n": 60,
+   "rate": 0.0333,
+   "ci95": [
+    0.0092,
+    0.1136
+   ]
+  }
+ },
+ "E2_haiku_cut_from_A": 0.95,
+ "E2_haiku_on_B_natural": {
+  "tpr": {
+   "k": 1,
+   "n": 4,
+   "rate": 0.25,
+   "ci95": [
+    0.0456,
+    0.6994
+   ]
+  },
+  "fpr": {
+   "k": 0,
+   "n": 60,
+   "rate": 0.0,
+   "ci95": [
+    0.0,
+    0.0602
+   ]
+  }
+ },
+ "E2_haiku_on_B_counterfactual": {
+  "tpr": {
+   "k": 6,
+   "n": 96,
+   "rate": 0.0625,
+   "ci95": [
+    0.029,
+    0.1297
+   ]
+  },
+  "fpr": {
+   "k": 0,
+   "n": 60,
+   "rate": 0.0,
+   "ci95": [
+    0.0,
+    0.0602
+   ]
+  }
+ }
+}

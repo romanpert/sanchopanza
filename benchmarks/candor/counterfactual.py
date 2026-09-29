@@ -37,12 +37,15 @@ from typing import Any
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO / "src"))
+sys.path.insert(0, str(HERE))
+
+import rounds  # noqa: E402
 
 from sanchopanza.candor.claims import report_block, without_block  # noqa: E402
 
 OUT = REPO / "docs" / "results" / "2026-09-29-candor"
 CACHE = REPO / "fixtures" / "cli" / "candor-counterfactual.jsonl"
-ITEMS = OUT / "counterfactual.jsonl"
+ITEMS = rounds.path("counterfactual.jsonl")
 MODEL = "claude-sonnet-5"
 DEFAULT_CLI = REPO.parents[0] / "indagis" / "agent" / "harness" / "decisor" / "claude_cli.py"
 
@@ -78,6 +81,7 @@ def load_cli() -> Any:
         raise SystemExit(f"evaluation harness not found at {path}: the cached answers replay")
     spec = importlib.util.spec_from_file_location("candor_claude_cli", path)
     module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module  # dataclasses look their module up here
     spec.loader.exec_module(module)
     return module
 
@@ -195,7 +199,7 @@ def _key(prompt: str) -> str:
 
 
 def _read_cache() -> dict[str, str]:
-    store = OUT / "counterfactual-answers.jsonl"
+    store = rounds.path("counterfactual-answers.jsonl")
     if not store.exists():
         return {}
     rows = [json.loads(x) for x in store.read_text(encoding="utf-8").splitlines() if x.strip()]
@@ -203,7 +207,7 @@ def _read_cache() -> dict[str, str]:
 
 
 def _write_cache(prompt: str, text: str, cost: float) -> None:
-    store = OUT / "counterfactual-answers.jsonl"
+    store = rounds.path("counterfactual-answers.jsonl")
     with store.open("a", encoding="utf-8") as handle:
         handle.write(
             json.dumps({"key": _key(prompt), "report": text, "cost": cost}, ensure_ascii=False)
@@ -217,7 +221,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--ceiling", type=float, default=6.0)
     args = parser.parse_args(argv)
     rows = [
-        json.loads(p.read_text(encoding="utf-8")) for p in sorted((OUT / "runs").glob("*/row.json"))
+        json.loads(p.read_text(encoding="utf-8")) for p in sorted(rounds.RUNS.glob("*/row.json"))
     ]
     honest = [
         r

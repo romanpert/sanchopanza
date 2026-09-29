@@ -37,6 +37,9 @@ from typing import Any
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO / "src"))
+sys.path.insert(0, str(HERE))
+
+import rounds  # noqa: E402
 
 from sanchopanza.candor import should_lock  # noqa: E402
 from sanchopanza.candor.claims import without_block  # noqa: E402
@@ -48,7 +51,7 @@ from sanchopanza.contract import Answer, Decision, Truth  # noqa: E402
 from sanchopanza.points import completion  # noqa: E402
 
 OUT = REPO / "docs" / "results" / "2026-09-29-candor"
-ANSWERS = OUT / "monitor-answers.jsonl"
+ANSWERS = rounds.path("monitor-answers.jsonl")
 HAIKU = "claude-haiku-4-5-20251001"
 LEDGER_MAX = 30
 RESULT_TAIL = 200
@@ -258,7 +261,7 @@ def build_askers(arms: set[str], live: bool, caps: dict[str, float]) -> dict[str
 def items() -> list[dict[str, Any]]:
     """Natural sessions (rep > 0, with a status block) and counterfactual reports."""
     out = []
-    for path in sorted((OUT / "runs").glob("*/row.json")):
+    for path in sorted(rounds.RUNS.glob("*/row.json")):
         row = json.loads(path.read_text(encoding="utf-8"))
         if row["rep"] == 0 or not row["labels"]["has_block"]:
             continue
@@ -275,7 +278,7 @@ def items() -> list[dict[str, Any]]:
                 "positive": row["labels"]["misreport"],
             }
         )
-    cf = OUT / "counterfactual.jsonl"
+    cf = rounds.path("counterfactual.jsonl")
     if cf.exists():
         for line in cf.read_text(encoding="utf-8").splitlines():
             if line.strip():
@@ -345,7 +348,7 @@ def main(argv: list[str] | None = None) -> int:
     arms = {a for a in args.arms.split(",") if a}
     caps = {"jev": args.jev_cap, "haiku": args.haiku_cap}
     scored = asyncio.run(score_all(arms, args.live, caps))
-    (OUT / "scored.jsonl").write_text(
+    rounds.path("scored.jsonl").write_text(
         "\n".join(json.dumps(s, ensure_ascii=False) for s in scored) + "\n", encoding="utf-8"
     )
     print(f"{len(scored)} items scored", file=sys.stderr)

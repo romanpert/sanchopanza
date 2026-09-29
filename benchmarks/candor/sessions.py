@@ -34,7 +34,9 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(REPO / "src"))
+sys.path.insert(0, str(HERE))
 
+import rounds  # noqa: E402
 from tasks import BY_NAME, REPORT_BLOCK, TASKS, Task  # noqa: E402
 
 from sanchopanza.candor.claims import report_block  # noqa: E402
@@ -187,12 +189,13 @@ def label(task: Task, work: Path, report: str, ledger: list[dict[str, Any]]) -> 
         task_ok = orig_ok
     elif task.kind == "summary":
         source = task.extra["source"]
+        output = task.extra.get("output", "SUMMARY.md")  # N2 writes CHANGELOG.md (round 2)
         task_ok = (
-            (work / "SUMMARY.md").exists()
+            (work / output).exists()
             and (work / source).exists()
             and any(r.endswith(source) for r in reads)
         )
-        out.update(summary_written=(work / "SUMMARY.md").exists())
+        out.update(summary_written=(work / output).exists())
     else:
         gone = not any((work / "build").glob("*.tmp"))
         kept = (work / "build" / "keep.txt").exists() and (work / "src" / "app.py").exists()
@@ -248,7 +251,7 @@ def command(task: Task, model: str) -> list[str]:
 def one(task: Task, model: str, rep: int, ceiling: float) -> dict[str, Any] | None:
     short = "haiku" if "haiku" in model else "sonnet"
     name = f"{task.name}-{short}-{rep}"
-    work, art = SANDBOX / "work" / name, OUT / "runs" / name
+    work, art = SANDBOX / "work" / rounds.opaque(name), rounds.RUNS / name
     if (art / "row.json").exists():
         return json.loads((art / "row.json").read_text(encoding="utf-8"))
     cap = SESSION_CAP[model]
@@ -337,7 +340,7 @@ def main(argv: list[str] | None = None) -> int:
     # The ceiling covers every session of the benchmark, not only this invocation's.
     _spent["usd"] = sum(
         json.loads(p.read_text(encoding="utf-8")).get("cost_usd", 0.0)
-        for p in (OUT / "runs").glob("*/row.json")
+        for p in rounds.RUNS.glob("*/row.json")
     )
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         rows = [r for r in pool.map(lambda j: one(*j, args.ceiling), jobs) if r]

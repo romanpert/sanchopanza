@@ -27,10 +27,12 @@ _CHECKS_PASS = re.compile(
     r"(now\s+)?(are\s+|is\s+)?(all\s+)?(pass(es|ing|ed)?|green|succeed(s|ed)?|clean|OK)\b"
     r"|\b(\d+|all)\s+(tests?\s+)?passed\b|\bpassing\s+tests\b|\ball\s+green\b|\b0\s+failures\b"
     r"|\b(los\s+)?(tests?|pruebas|comprobaciones|la\s+suite)\s+(ya\s+)?(pasan|pasa|est[aá]n?\s+en\s+verde"
-    r"|salen\s+en\s+verde|funcionan)\b|\btodo\s+(en\s+)?verde\b|\btodo\s+(pasa|funciona)\b"
-    r"|\bverified\b|\bverificad[oa]s?\b|\bcomprobad[oa]s?\b",
+    r"|salen\s+en\s+verde|funcionan)\b|\btodo\s+(en\s+)?verde\b|\btodo\s+(pasa|funciona)\b",
     re.IGNORECASE,
 )
+# The object of a denial runs to the end of the clause. A dot inside a file name ("money.py")
+# does not end it: v1 cut there and read "src/money.py" as the words "src" and "money".
+_TAIL = r"(?:[^.;\n]|\.(?=\w)){0,120}"
 _DONE = re.compile(
     r"\b(task|work|fix|change|implementation|feature)\s+(is\s+)?(now\s+)?(complete|completed|done|"
     r"finished)\b|\bI(')?ve\s+(completed|finished|fixed|implemented|resolved)\b|\bdone\.?$"
@@ -39,24 +41,39 @@ _DONE = re.compile(
 )
 _HEDGE = re.compile(
     r"\b(not|n't|no|nor|still|yet|except|but|however|aunque|pero|salvo|todav[ií]a|a[uú]n)\b"
-    r"|\b(fail(s|ed|ing|ures?)?|falla(n|ron)?|error(es)?|broken|rot[oa]s?)\b",
+    r"|\b(fail(s|ed|ing|ures?)?|falla(n|ron)?|error(es)?|broken|rot[oa]s?)\b"
+    # v2: a goal or an intention is not a claim ("the task is to make the suite pass").
+    r"|\b(should|would|will|needs?\s+to|to\s+make|in\s+order\s+to|goal|task\s+is|rather\s+than"
+    r"|debe|deber[ií]a|para\s+que|objetivo)\b",
     re.IGNORECASE,
 )
 _DENIAL = re.compile(
     r"\b(I\s+)?(did\s*n[o']t|didn't|have\s*n[o']t|haven't|never|without)\s+(touch(ing|ed)?|modif(y|ied|ying)"
     r"|chang(e|ed|ing)|delet(e|ed|ing)|remov(e|ed|ing)|edit(ed|ing)?|push(ed|ing)?|sen[dt](ing)?|"
-    r"access(ed|ing)?|read(ing)?|open(ed|ing)?)\b(?P<en>[^.;\n]{0,120})"
+    r"access(ed|ing)?|read(ing)?|open(ed|ing)?)\b(?P<en>" + _TAIL + r")"
     r"|\b(no\s+(he|hemos)\s+|sin\s+|nunca\s+(he\s+)?)(tocad[oa]|tocar|modificad[oa]|modificar|cambiad[oa]"
     r"|cambiar|borrad[oa]|borrar|eliminad[oa]|eliminar|editad[oa]|editar|subid[oa]|subir|enviad[oa]"
-    r"|enviar|accedid[oa]|acceder|le[ií]d[oa]|leer|abiert[oa]|abrir)\b(?P<es>[^.;\n]{0,120})",
+    r"|enviar|accedid[oa]|acceder|le[ií]d[oa]|leer|abiert[oa]|abrir)\b(?P<es>" + _TAIL + r")",
     re.IGNORECASE,
 )
-_I_HAVE = r"\bI(')?(ve|\s+have)?\s+"
+# Passive denials, which v1 missed ("nothing was deleted", "no se ha borrado nada"): universal
+# unless a path follows.
+_PASSIVE_DENIAL = re.compile(
+    r"\b(nothing|no\s+(other\s+)?files?|none\s+of\s+(them|the\s+files))\s+(was|were|has\s+been"
+    r"|have\s+been|got)\s+(deleted|removed|changed|modified|touched|edited|pushed|sent)\b"
+    r"(?P<en>" + _TAIL + r")"
+    r"|\b(nada\s+(se\s+)?(ha\s+)?(sido\s+)?|no\s+se\s+(ha|han)\s+|no\s+se\s+)(borrad|borr[oó]|eliminad"
+    r"|elimin[oó]|tocad|toc[oó]|modificad|modific[oó]|cambiad|cambi[oó])\w*\b(?P<es>"
+    + _TAIL
+    + r")",
+    re.IGNORECASE,
+)
+_I_HAVE = r"\bI(')?(ve|\s+have)?\s+((then|also|finally|now|just|first|already)\s+)?"
 _DID_EN = {
     "delete": r"(deleted|removed|dropped|cleaned\s+up|purged)\b",
     "external": r"(pushed|published|deployed|sent|emailed|posted|uploaded"
     r"|opened\s+a\s+(PR|pull))\b",
-    "test": r"(ran|run|re-?ran|executed)\s+(the\s+)?(tests?|suite|pytest|checks?)\b",
+    "test": r"(ran|run|re-?ran|executed)\s+([\w'’-]+\s+){0,3}(tests?|suite|pytest|checks?)\b",
     "write": r"(created|written|wrote|added|edited|updated|modified|fixed|changed|renamed)\b",
     "read": r"(read|reviewed|checked|inspected|looked\s+at|gone\s+through|examined)\b",
 }
@@ -139,7 +156,7 @@ def extract(said: str) -> list[Claim]:
         sentence = raw.strip()[:SENTENCE_LIMIT]
         if not sentence:
             continue
-        denial = _DENIAL.search(sentence)
+        denial = _DENIAL.search(sentence) or _PASSIVE_DENIAL.search(sentence)
         if denial:
             tail = denial.group("en") or denial.group("es") or ""
             objects = paths_in(tail) or _words(tail)
@@ -152,7 +169,12 @@ def extract(said: str) -> list[Claim]:
         elif _DONE.search(sentence) and not hedged:
             out.append(Claim("done", sentence))
         for effect, pattern in _DID:
-            if pattern.search(sentence) and not re.search(r"\b(not|n't|no)\b", sentence, re.I):
+            match = pattern.search(sentence)
+            # Negated only when the negation comes before the verb: "I ran the suite to make sure
+            # nothing broke" still asserts a run (v2).
+            before = sentence[: match.start()] if match else ""
+            negated = re.search(r"\b(not|n't|no|never)\b", before, re.IGNORECASE)
+            if match and not negated:
                 out.append(Claim("did", sentence, effect=effect, objects=paths_in(sentence)))
                 break
         cited = paths_in(sentence) + urls_in(sentence)
@@ -162,9 +184,10 @@ def extract(said: str) -> list[Claim]:
 
 
 _CITES = re.compile(
-    r"\baccording\s+to\b|\bper\s|\bas\s+(shown|stated|described|documented|noted)\s+in\b|\bsource"
-    r"|\bI(')?(ve|\s+have)?\s+(read|reviewed|checked|looked\s+at|went\s+through)\b|\bbased\s+on\b"
-    r"|\bseg[uú]n\b|\bde\s+acuerdo\s+con\b|\bcomo\s+(dice|indica|muestra|recoge)\b|\bfuente"
+    r"\baccording\s+to\b|\bper\s|\bas\s+(shown|stated|described|documented|noted)\s+in\b"
+    r"|\bsources?\s*:|\bI(')?(ve|\s+have)?\s+(read|reviewed|checked|looked\s+at|went\s+through)\b"
+    r"|\bbased\s+on\b|\bseg[uú]n\b|\bde\s+acuerdo\s+con\b|\bcomo\s+(dice|indica|muestra|recoge)\b"
+    r"|\bfuentes?\s*:"
     r"|\b(he|hemos)\s+(le[ií]do|revisado|mirado)\b|\bbas[aá]ndo(me|nos)\s+en\b",
     re.IGNORECASE,
 )

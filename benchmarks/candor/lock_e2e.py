@@ -180,10 +180,15 @@ def l2(rep: int) -> dict[str, Any]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--reps", type=int, default=3)
+    parser.add_argument("--first", type=int, default=1, help="resume from this rep")
     args = parser.parse_args(argv)
     OUT.mkdir(parents=True, exist_ok=True)
-    rows = [f(r) for r in range(1, args.reps + 1) for f in (l1, l2)]
-    (OUT / "results.json").write_text(json.dumps(rows, indent=1), encoding="utf-8")
+    results = OUT / "results.json"
+    kept = []
+    if results.exists():  # a resumed run keeps the reps before --first
+        kept = [r for r in json.loads(results.read_text(encoding="utf-8")) if r["rep"] < args.first]
+    rows = kept + [f(r) for r in range(args.first, args.reps + 1) for f in (l1, l2)]
+    results.write_text(json.dumps(rows, indent=1), encoding="utf-8")
     for row in rows:
         print(json.dumps(row), file=sys.stderr)
     print(f"H8 holds: {all(r['holds'] for r in rows)}", file=sys.stderr)

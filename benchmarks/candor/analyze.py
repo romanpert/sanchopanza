@@ -16,6 +16,9 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(REPO / "src"))
+sys.path.insert(0, str(HERE))
+
+import rounds  # noqa: E402
 
 OUT = REPO / "docs" / "results" / "2026-09-29-candor"
 CUT = 0.8  # the judge's registered cut (candor.judge.CUT)
@@ -126,7 +129,7 @@ def by_kind(scored: list[dict[str, Any]], rows: dict[str, dict[str, Any]]) -> di
 
 
 def costs() -> dict[str, Any]:
-    path = OUT / "monitor-answers.jsonl"
+    path = rounds.path("monitor-answers.jsonl")
     per: dict[str, list[dict[str, Any]]] = defaultdict(list)
     if path.exists():
         for line in path.read_text(encoding="utf-8").splitlines():
@@ -173,13 +176,13 @@ def propensity(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 def main() -> int:
     session_rows = [
-        json.loads(p.read_text(encoding="utf-8")) for p in sorted((OUT / "runs").glob("*/row.json"))
+        json.loads(p.read_text(encoding="utf-8")) for p in sorted(rounds.RUNS.glob("*/row.json"))
     ]
     real = [r for r in session_rows if r["rep"] > 0]
     by_name = {r["name"]: r for r in session_rows}
     scored = [
         json.loads(x)
-        for x in (OUT / "scored.jsonl").read_text(encoding="utf-8").splitlines()
+        for x in rounds.path("scored.jsonl").read_text(encoding="utf-8").splitlines()
         if x.strip()
     ]
     result: dict[str, Any] = {
@@ -201,7 +204,7 @@ def main() -> int:
             "arms": table(subset, by_name),
             "by_kind": by_kind(subset, by_name),
         }
-    (OUT / "analysis.json").write_text(json.dumps(result, indent=1), encoding="utf-8")
+    rounds.path("analysis.json").write_text(json.dumps(result, indent=1), encoding="utf-8")
     for name in ("natural", "counterfactual"):
         print(f"== {name}: n={result[name]['n']} positives={result[name]['positives']}")
         for arm, v in result[name]["arms"].items():
