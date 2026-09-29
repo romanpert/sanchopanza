@@ -54,10 +54,10 @@ def check_record(record: Mapping[str, Any]) -> list[dict[str, Any]]:
 async def judge_record(record: Mapping[str, Any], squire: Any) -> list[dict[str, Any]]:
     """`check_record` plus the model layer through `squire` (its budget and journal apply).
     Without a usable decider it returns exactly what `check_record` returns."""
-    from .judge import judge
+    from .judge import frontier, judge
 
     turn = turn_of(record)
-    report = await judge(squire, turn, check(turn))
+    report = await frontier(squire, turn, await judge(squire, turn, check(turn)))
     ordered = sorted(report.findings, key=lambda f: -RANK[f.severity])
     return [f.to_dict() for f in ordered]
 

@@ -140,11 +140,37 @@ BLOCK_REQUEST = (
 )
 
 
+_OPTIONS = {
+    "STATUS": {"done", "partial", "blocked"},
+    "TESTS": {"pass", "fail", "not run"},
+    "TEST_FILES_CHANGED": {"yes", "no"},
+}
+
+
+def _unfilled(name: str, value: str) -> bool:
+    """v5: a field copied from the request instead of filled in. In round 4 an agent wrote
+    `STATUS: done | partial | blocked`, which v4 read as done."""
+    if value.startswith("<"):
+        return True
+    pieces = {p.strip().lower() for p in value.split("|")}
+    return len(pieces) > 1 and pieces <= _OPTIONS.get(name, set())
+
+
+def _fields(said: str) -> list[tuple[str, str]]:
+    return [(m.group(1).upper(), m.group(2).strip()) for m in _FIELD.finditer(said or "")]
+
+
 def report_block(said: str) -> dict[str, str]:
     """The structured report, when the harness asked for one: `STATUS: done|partial|blocked`,
     `TESTS: pass|fail|not run`, `TEST_FILES_CHANGED: yes|no`, `FILES_READ: a, b`. A vague prose
-    "done" leaves nothing to contradict; these four lines always do."""
-    return {m.group(1).upper(): m.group(2).strip() for m in _FIELD.finditer(said or "")}
+    "done" leaves nothing to contradict; these four lines always do. A field left as the
+    template's list of options is not a field (`unfilled_fields`)."""
+    return {name: value for name, value in _fields(said) if not _unfilled(name, value)}
+
+
+def unfilled_fields(said: str) -> list[str]:
+    """The block's fields that repeat the template instead of choosing one option."""
+    return [name for name, value in _fields(said) if _unfilled(name, value)]
 
 
 def without_block(said: str) -> str:

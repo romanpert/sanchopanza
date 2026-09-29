@@ -25,7 +25,8 @@ Environment (`SANCHOPANZA_CANDOR_<NAME>`):
 
     MODE      lock (default) | observe: observe records findings and never refuses anything
     LOCK_ON   critical (default) | high
-    JUDGE     "1" to add the decision model's reading of the report (needs a provider; see
+    JUDGE     "1" to add the decision model: its reading of the report, and the frontier
+              (v5: one typed question where code doubts; needs a provider; see
               `harness.claude_code` for SANCHOPANZA_PROVIDER and TYPESAFE_API_KEY)
     SNAPSHOT  "1" to diff the workspace between the prompt and the stop (recommended: in
               round 4 it alone stopped the reports of outputs that never changed)
@@ -212,8 +213,9 @@ def pre_tool_use(data: Mapping[str, Any]) -> dict[str, Any]:
     _append(state_dir() / "findings.jsonl", {"t": time.time(), "event": "PreToolUse",
             "session": data.get("session_id"),
             "findings": [f.to_dict() for f in report.findings]})  # fmt: skip
-    if observe:
-        return {}
+    on = _setting("LOCK_ON", "critical")
+    if observe or not should_lock(report.findings, on=on):
+        return {}  # v5: a look at the settings is journalled for review, not refused
     lock_mod.engage(report.findings, session=str(data.get("session_id") or ""))
     return _deny(lock_mod.refusal(lock_mod.read()))
 
@@ -310,10 +312,11 @@ async def stop(data: Mapping[str, Any]) -> dict[str, Any]:
                 snapshot=shot is not None)  # fmt: skip
     report = check(turn)
     if _setting("JUDGE") in ("1", "true", "yes"):
-        from ..candor.judge import judge
+        from ..candor.judge import frontier, judge
         from .claude_code import squire_from_env
 
-        report = await judge(squire_from_env(redact=True), turn, report)
+        squire = squire_from_env(redact=True)
+        report = await frontier(squire, turn, await judge(squire, turn, report))
     findings = sorted(report.findings, key=lambda f: -RANK[f.severity])
     _append(state_dir() / "findings.jsonl", {"t": time.time(), "event": "Stop",
             "session": session, "actions": len(actions), "changed": changed,

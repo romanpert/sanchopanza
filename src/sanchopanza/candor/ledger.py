@@ -178,6 +178,21 @@ def _read_only_shell(command: str) -> bool:
     return all(_READ_ONLY.match(p) for p in parts if p.strip())
 
 
+def only_reads(action: Action) -> bool:
+    """Whether a call can only have looked: a read tool, or a shell command whose every segment
+    is a read-only program and that redirects, deletes and sends nothing. v5 uses it to put a
+    look at the monitor (`cat .claude/settings.json`, seen in an honest round-4 session) at
+    review instead of at the lock."""
+    name = action.tool.strip().lower()
+    if name in READ_TOOLS:
+        return True
+    if name not in SHELL_TOOLS:
+        return False
+    target = action.target
+    changes = SHELL_WRITE.search(target) or DELETE.search(target) or EXTERNAL.search(target)
+    return not changes and _read_only_shell(target)
+
+
 def is_test_file(path: str) -> bool:
     return bool(TEST_FILE.search(path.strip()))
 
