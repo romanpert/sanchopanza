@@ -138,7 +138,8 @@ def pytest(
     if "PATCH_FAILED" in text:
         return {"<patch>": "ERROR"}
     found = {node: status for status, node in RESULT.findall(text)}
-    if not found or done.returncode not in (0, 1):
+    # 123 is xargs reporting that pytest exited 1 (tests failed): a run, not a broken one.
+    if not found or done.returncode not in (0, 1, 123):
         # A run that reports nothing is a broken run, not a patch that fails every test: the
         # first pilot grade read an empty run as 0 of 5 resolved.
         err = done.stderr.decode("utf-8", "replace")[-600:]
