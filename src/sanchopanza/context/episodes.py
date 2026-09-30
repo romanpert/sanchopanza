@@ -28,6 +28,7 @@ atomically and readable by this user only.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import re
@@ -53,12 +54,19 @@ PAGE_CHARS = 880  # under `chunks.PAGE_LIMIT` (900): the decider reads the page 
 FILES_MAX = 12
 LOAD_LIMIT = 300  # newest records looked at per project
 KEEP_DAYS = 30  # records older than this are removed when a project's records are saved
+# key -> {"changed", "at"} of every record in a project's folder: the touch reads this one file
+# (300 record files took 0.75-3.2 s to load cold on Windows, 2026-10-01).
+INDEX = "index.json"
 
 # How `guard.trail_of` names its lines.
 CHANGED = "changed: "
 TESTED = "last test run: "
 # Text a hook of ours adds, and messages the harness writes in the person's place.
-NOT_ASKED = (guard_mod.HEADER, "[sanchopanza memory:", "<task-notification>")
+# Not the person's request: our notes, a background task's notification, and Claude Code's mark of
+# an interrupted request (recorded as a request in SWE-chat and scored 0.90 against an unrelated
+# record, 2026-10-01).
+NOT_ASKED = (guard_mod.HEADER, "[sanchopanza memory", "<task-notification>",
+             "[Request interrupted by user")
 UNFINISHED = "(the request ended before the agent finished; its last text follows) "
 _TAGS = re.compile(r"</?[\w-]+>")
 _FENCE = re.compile(r"^(<<<|>>>)", re.M)
@@ -241,6 +249,11 @@ def split_requests(entries: Iterable[Mapping[str, Any]]) -> Split:
     return Split(tuple(tuple(g) for g in groups), tuple(stamps), live)
 
 
+def relative(path: str, cwd: str) -> str:
+    """`path` relative to `cwd` when it lies under it, forward slashes either way."""
+    return _relative(path, cwd)
+
+
 def _relative(path: str, cwd: str) -> str:
     clean = path.replace("\\", "/")
     base = cwd.replace("\\", "/").rstrip("/") + "/"
@@ -333,7 +346,8 @@ def write_private(path: Path, text: str) -> None:
 
 def save(folder: Path, episodes: Iterable[Episode], *, keep_days: int = KEEP_DAYS) -> list[str]:
     """Write each record whose file is missing or differs (the keys written), and remove the
-    project's records older than `keep_days`: they hold command output."""
+    project's records older than `keep_days`: they hold command output. The index follows."""
+    episodes = list(episodes)
     written: list[str] = []
     for episode in episodes:
         path = folder / f"{safe_name(episode.key)}.json"
@@ -347,11 +361,64 @@ def save(folder: Path, episodes: Iterable[Episode], *, keep_days: int = KEEP_DAY
         written.append(episode.key)
     if written and keep_days > 0:
         prune(folder, time.time() - keep_days * 86_400)
+    if written or not (folder / INDEX).exists():
+        by_key = {e.key: e for e in episodes}
+        _update_index(folder, [by_key[k] for k in written if k in by_key], keep_days)
     return written
+
+
+def _entry(episode: Episode) -> dict[str, Any]:
+    return {"changed": list(episode.changed), "at": episode.at}
+
+
+def _read_index(folder: Path) -> dict[str, dict[str, Any]] | None:
+    try:
+        data = json.loads((folder / INDEX).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _update_index(folder: Path, episodes: Sequence[Episode], keep_days: int) -> None:
+    index = _read_index(folder)
+    if index is None:
+        index = {e.key: _entry(e) for e in load(folder)}
+    cutoff = time.time() - keep_days * 86_400 if keep_days > 0 else float("-inf")
+    fresh = {**index, **{e.key: _entry(e) for e in episodes}}
+    kept = {k: v for k, v in fresh.items() if float(v.get("at") or 0.0) >= cutoff
+            or not float(v.get("at") or 0.0)}  # fmt: skip
+    write_private(folder / INDEX, json.dumps(kept, ensure_ascii=False))
+
+
+def index_of(folder: Path) -> dict[str, dict[str, Any]]:
+    """The project's index, rebuilt from its records when missing or unreadable."""
+    index = _read_index(folder)
+    if index is not None:
+        return index
+    if not folder.is_dir():
+        return {}
+    rebuilt = {e.key: _entry(e) for e in load(folder)}
+    with contextlib.suppress(OSError):  # read-only store: the index is only a speed-up
+        write_private(folder / INDEX, json.dumps(rebuilt, ensure_ascii=False))
+    return rebuilt
+
+
+def load_keys(folder: Path, keys: Iterable[str]) -> list[Episode]:
+    """These records only, oldest first; a key whose file is gone is skipped."""
+    out = []
+    for key in keys:
+        try:
+            data = json.loads((folder / f"{safe_name(key)}.json").read_text(encoding="utf-8"))
+            out.append(Episode.from_dict(data))
+        except (OSError, ValueError, TypeError):
+            continue
+    return sorted(out, key=lambda e: (e.at, e.session, e.index))
 
 
 def prune(folder: Path, before: float) -> None:
     for path in folder.glob("*.json"):
+        if path.name == INDEX:
+            continue
         try:
             if path.stat().st_mtime < before:
                 path.unlink()
@@ -366,6 +433,8 @@ def load(folder: Path, *, limit: int = LOAD_LIMIT) -> list[Episode]:
         return []
     stamped: list[tuple[float, Path]] = []
     for path in folder.glob("*.json"):
+        if path.name == INDEX:
+            continue
         try:
             stamped.append((path.stat().st_mtime, path))
         except OSError:

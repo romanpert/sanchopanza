@@ -1,0 +1,546 @@
+{
+ "touch read+edit x1": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.55,
+   "precision": 0.176,
+   "noise": 0.068,
+   "shown_per_request": 0.13
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.925,
+   "precision": 0.588,
+   "noise": 0.037,
+   "shown_per_request": 0.13
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.565,
+   "precision": 0.222,
+   "noise": 0.25,
+   "shown_per_request": 0.48
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.833,
+   "precision": 0.587,
+   "noise": 0.147,
+   "shown_per_request": 0.48
+  }
+ },
+ "touch edit x1": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.483,
+   "precision": 0.245,
+   "noise": 0.049,
+   "shown_per_request": 0.09
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.913,
+   "precision": 1.0,
+   "noise": 0.0,
+   "shown_per_request": 0.09
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.478,
+   "precision": 0.343,
+   "noise": 0.12,
+   "shown_per_request": 0.27
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.806,
+   "precision": 1.0,
+   "noise": 0.0,
+   "shown_per_request": 0.27
+  }
+ },
+ "touch read+edit x2": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.667,
+   "precision": 0.143,
+   "noise": 0.07,
+   "shown_per_request": 0.18
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.932,
+   "precision": 0.571,
+   "noise": 0.038,
+   "shown_per_request": 0.18
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.696,
+   "precision": 0.183,
+   "noise": 0.25,
+   "shown_per_request": 0.71
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.833,
+   "precision": 0.591,
+   "noise": 0.147,
+   "shown_per_request": 0.71
+  }
+ },
+ "touch edit x2": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.617,
+   "precision": 0.215,
+   "noise": 0.048,
+   "shown_per_request": 0.13
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.919,
+   "precision": 1.0,
+   "noise": 0.0,
+   "shown_per_request": 0.13
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.652,
+   "precision": 0.302,
+   "noise": 0.12,
+   "shown_per_request": 0.4
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.806,
+   "precision": 1.0,
+   "noise": 0.0,
+   "shown_per_request": 0.4
+  }
+ },
+ "touch read+edit x3": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.667,
+   "precision": 0.145,
+   "noise": 0.07,
+   "shown_per_request": 0.21
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.932,
+   "precision": 0.58,
+   "noise": 0.038,
+   "shown_per_request": 0.21
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.696,
+   "precision": 0.191,
+   "noise": 0.25,
+   "shown_per_request": 0.84
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.833,
+   "precision": 0.6,
+   "noise": 0.147,
+   "shown_per_request": 0.84
+  }
+ },
+ "touch edit x3": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.617,
+   "precision": 0.22,
+   "noise": 0.048,
+   "shown_per_request": 0.15
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.919,
+   "precision": 1.0,
+   "noise": 0.0,
+   "shown_per_request": 0.15
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.652,
+   "precision": 0.308,
+   "noise": 0.12,
+   "shown_per_request": 0.5
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.806,
+   "precision": 1.0,
+   "noise": 0.0,
+   "shown_per_request": 0.5
+  }
+ },
+ "decider >=0.2 len>=0": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.317,
+   "precision": 0.014,
+   "noise": 0.382,
+   "shown_per_request": 0.89
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.248,
+   "precision": 0.026,
+   "noise": 0.393,
+   "shown_per_request": 0.89
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.304,
+   "precision": 0.096,
+   "noise": 0.315,
+   "shown_per_request": 0.63
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.25,
+   "precision": 0.12,
+   "noise": 0.337,
+   "shown_per_request": 0.63
+  }
+ },
+ "touch x2 + decider >=0.2 len>=0": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.833,
+   "precision": 0.031,
+   "noise": 0.431,
+   "shown_per_request": 1.06
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.963,
+   "precision": 0.114,
+   "noise": 0.421,
+   "shown_per_request": 1.06
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.87,
+   "precision": 0.133,
+   "noise": 0.491,
+   "shown_per_request": 1.27
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.944,
+   "precision": 0.361,
+   "noise": 0.421,
+   "shown_per_request": 1.27
+  }
+ },
+ "decider >=0.5 len>=40": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.233,
+   "precision": 0.039,
+   "noise": 0.115,
+   "shown_per_request": 0.18
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.161,
+   "precision": 0.083,
+   "noise": 0.112,
+   "shown_per_request": 0.18
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.217,
+   "precision": 0.188,
+   "noise": 0.12,
+   "shown_per_request": 0.24
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.167,
+   "precision": 0.219,
+   "noise": 0.126,
+   "shown_per_request": 0.24
+  }
+ },
+ "touch x2 + decider >=0.5 len>=40": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.783,
+   "precision": 0.085,
+   "noise": 0.175,
+   "shown_per_request": 0.36
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.944,
+   "precision": 0.324,
+   "noise": 0.145,
+   "shown_per_request": 0.36
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.783,
+   "precision": 0.167,
+   "noise": 0.333,
+   "shown_per_request": 0.92
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.889,
+   "precision": 0.483,
+   "noise": 0.242,
+   "shown_per_request": 0.92
+  }
+ },
+ "decider >=0.7 len>=40": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.15,
+   "precision": 0.104,
+   "noise": 0.031,
+   "shown_per_request": 0.05
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.099,
+   "precision": 0.146,
+   "noise": 0.03,
+   "shown_per_request": 0.05
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.174,
+   "precision": 0.227,
+   "noise": 0.083,
+   "shown_per_request": 0.17
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.139,
+   "precision": 0.273,
+   "noise": 0.084,
+   "shown_per_request": 0.17
+  }
+ },
+ "touch x2 + decider >=0.7 len>=40": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.783,
+   "precision": 0.129,
+   "noise": 0.095,
+   "shown_per_request": 0.23
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.944,
+   "precision": 0.48,
+   "noise": 0.065,
+   "shown_per_request": 0.23
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.783,
+   "precision": 0.179,
+   "noise": 0.306,
+   "shown_per_request": 0.85
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.889,
+   "precision": 0.518,
+   "noise": 0.211,
+   "shown_per_request": 0.85
+  }
+ },
+ "decider >=0.5 len>=40 first": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.217,
+   "precision": 0.188,
+   "noise": 0.014,
+   "shown_per_request": 0.03
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.099,
+   "precision": 0.219,
+   "noise": 0.014,
+   "shown_per_request": 0.03
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.217,
+   "precision": 0.188,
+   "noise": 0.12,
+   "shown_per_request": 0.24
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.167,
+   "precision": 0.219,
+   "noise": 0.126,
+   "shown_per_request": 0.24
+  }
+ },
+ "touch x2 + decider >=0.5 len>=40 first": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.783,
+   "precision": 0.139,
+   "noise": 0.079,
+   "shown_per_request": 0.21
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.944,
+   "precision": 0.512,
+   "noise": 0.049,
+   "shown_per_request": 0.21
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.783,
+   "precision": 0.167,
+   "noise": 0.333,
+   "shown_per_request": 0.92
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.889,
+   "precision": 0.483,
+   "noise": 0.242,
+   "shown_per_request": 0.92
+  }
+ },
+ "decider >=0.7 len>=0 first": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.15,
+   "precision": 0.227,
+   "noise": 0.01,
+   "shown_per_request": 0.02
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.075,
+   "precision": 0.273,
+   "noise": 0.01,
+   "shown_per_request": 0.02
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.174,
+   "precision": 0.227,
+   "noise": 0.083,
+   "shown_per_request": 0.17
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.139,
+   "precision": 0.273,
+   "noise": 0.084,
+   "shown_per_request": 0.17
+  }
+ },
+ "touch x2 + decider >=0.7 len>=0 first": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.783,
+   "precision": 0.144,
+   "noise": 0.076,
+   "shown_per_request": 0.2
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.944,
+   "precision": 0.532,
+   "noise": 0.046,
+   "shown_per_request": 0.2
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.783,
+   "precision": 0.179,
+   "noise": 0.306,
+   "shown_per_request": 0.85
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.889,
+   "precision": 0.518,
+   "noise": 0.211,
+   "shown_per_request": 0.85
+  }
+ }
+}

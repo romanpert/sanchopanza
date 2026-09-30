@@ -11,6 +11,19 @@ for the orchestrator comes out. Every concrete adapter is a thin translation of 
 - `openai_agents`: a tool guardrail function in the shape the OpenAI Agents SDK expects.
 """
 
-from .generic import Guardian, HarnessConfig, Note, ToolCall, Verdict
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .generic import Guardian, HarnessConfig, Note, ToolCall, Verdict
 
 __all__ = ["Guardian", "HarnessConfig", "Note", "ToolCall", "Verdict"]
+
+
+def __getattr__(name: str) -> Any:
+    """Loaded on first use: a hook that imports one submodule (the memory touch runs on every
+    file the agent opens) must not pay for `generic` and the decision points, ~145 ms."""
+    if name in __all__:
+        from . import generic
+
+        return getattr(generic, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

@@ -99,6 +99,15 @@ def test_a_request_the_agent_has_not_answered_yet_is_not_recorded() -> None:
     assert [e.index for e in found] == [1]
 
 
+def test_an_interruption_marker_is_not_a_request() -> None:
+    # SWE-chat, 2026-10-01: "[Request interrupted by user]" was recorded as a request and scored
+    # 0.90 by the decider against an unrelated record.
+    entries = [*lexer_request(), prompt("[Request interrupted by user]"),
+               prompt([{"type": "text", "text": "[Request interrupted by user for tool use]"}]),
+               say("stopped")]  # fmt: skip
+    assert len(ep.split_requests(entries).groups) == 1
+
+
 def test_harness_notifications_and_our_own_notes_are_not_requests() -> None:
     entries = [*lexer_request(), prompt("<task-notification>\n<task-id>x</task-id>"),
                say("noted"), prompt(f"{mh.HEADER}\nold records")]  # fmt: skip
@@ -238,8 +247,12 @@ class Fake:
 def store(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv("SANCHOPANZA_MEMORY_STORE", str(tmp_path / "memory"))
     monkeypatch.setenv("SANCHOPANZA_MEMORY_STORE_LOG", str(tmp_path / "log.jsonl"))
-    for name in ("SANCHOPANZA_MEMORY_SELECT", "SANCHOPANZA_PROVIDER", "TYPESAFE_API_KEY"):
+    for name in ("SANCHOPANZA_MEMORY_SELECT", "SANCHOPANZA_PROVIDER", "TYPESAFE_API_KEY",
+                 "SANCHOPANZA_MEMORY_TOUCH", "SANCHOPANZA_MEMORY_KEEP_AT"):  # fmt: skip
         monkeypatch.delenv(name, raising=False)
+    # The recall mechanics below (live context, once per compaction, catch-up) at every prompt;
+    # the shipped default (`first`, `off` without a decider) has its own tests.
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_PROMPT", "every")
     return tmp_path
 
 
@@ -256,7 +269,8 @@ def test_stop_records_and_a_new_session_recalls_by_bm25_without_a_key(store: Pat
     project = store / "projects" / "C--work-repo"
     old = write_transcript(project / "s1.jsonl", [*lexer_request(), *starlette_request()])
     assert mh.handle(event(old, "Stop", "s1")) == {}
-    assert len(list((store / "memory" / "C--work-repo").glob("*.json"))) == 2
+    saved = (store / "memory" / "C--work-repo").glob("*.json")
+    assert len([p for p in saved if p.name != ep.INDEX]) == 2
     new = write_transcript(project / "s2.jsonl", [])
     context = context_of(mh.handle(event(new, "UserPromptSubmit", "s2", "Carbon lexer octal")))
     assert context.startswith(mh.HEADER) and "carbon.py" in context
@@ -371,6 +385,134 @@ def test_off_records_but_injects_nothing(store: Path, monkeypatch: pytest.Monkey
     assert mh.handle(event(new, "UserPromptSubmit", "s2", "Carbon lexer")) == {}
 
 
+# ---- v3: just in time on a file, and at a session's start (SWE-chat, 2026-10-01) ---------------
+
+
+def touch_event(path: Path, session: str, tool_name: str, file_path: str) -> dict[str, Any]:
+    return {"hook_event_name": "PostToolUse", "session_id": session, "transcript_path": str(path),
+            "cwd": CWD, "tool_name": tool_name, "tool_input": {"file_path": file_path},
+            "tool_response": {}}  # fmt: skip
+
+
+def test_opening_a_file_an_earlier_session_changed_gives_its_record_once(store: Path) -> None:
+    project = store / "projects" / "p"
+    old = write_transcript(project / "s1.jsonl", [*lexer_request(), *starlette_request()])
+    mh.handle(event(old, "Stop", "s1"))
+    new = write_transcript(project / "s2.jsonl", [prompt("fix it"), say("looking")])
+    mh.handle(event(new, "UserPromptSubmit", "s2", "fix it"))
+    carbon = f"{CWD}/pygments/lexers/carbon.py"
+    out = mh.handle(touch_event(new, "s2", "Read", carbon))
+    assert out["hookSpecificOutput"]["hookEventName"] == "PostToolUse"
+    context = context_of(out)
+    assert "pygments/lexers/carbon.py" in context.splitlines()[0]
+    assert "request 1 of session s1" in context and "StaticFiles" not in context
+    assert mh.handle(touch_event(new, "s2", "Edit", carbon)) == {}  # given once
+    assert mh.handle(touch_event(new, "s2", "Read", f"{CWD}/README.md")) == {}
+    assert mh.handle(touch_event(new, "s2", "Bash", carbon)) == {}
+
+
+def test_a_touch_never_gives_a_record_of_the_live_context(store: Path) -> None:
+    project = store / "projects" / "p"
+    path = write_transcript(project / "s1.jsonl", [*lexer_request(), *starlette_request()])
+    mh.handle(event(path, "UserPromptSubmit", "s1", "and now"))
+    carbon = f"{CWD}/pygments/lexers/carbon.py"
+    assert mh.handle(touch_event(path, "s1", "Read", carbon)) == {}
+    write_transcript(project / "s1.jsonl", [*lexer_request(), BOUNDARY, SUMMARY,
+                                            *starlette_request()])  # fmt: skip
+    mh.handle(event(path, "UserPromptSubmit", "s1", "and now"))
+    given = context_of(mh.handle(touch_event(path, "s1", "Read", carbon)))
+    assert "request 1 of session s1" in given
+
+
+def test_a_touch_gives_the_two_newest_records_of_a_file(store: Path) -> None:
+    project = store / "projects" / "p"
+    for n, stamp in enumerate(("2026-09-28T10:00:00Z", "2026-09-29T10:00:00Z",
+                               "2026-09-30T10:00:00Z")):  # fmt: skip
+        entries = [{**e, "timestamp": stamp} if e.get("type") == "user" and "cwd" in e else e
+                   for e in lexer_request(10 * n)]  # fmt: skip
+        mh.handle(event(write_transcript(project / f"old{n}.jsonl", entries), "Stop", f"old{n}"))
+    new = write_transcript(project / "s2.jsonl", [])
+    mh.handle(event(new, "UserPromptSubmit", "s2", "x"))
+    context = context_of(mh.handle(touch_event(new, "s2", "Edit",
+                                               f"{CWD}/pygments/lexers/carbon.py")))  # fmt: skip
+    assert "session old2" in context and "session old1" in context and "old0" not in context
+
+
+def test_the_default_recalls_at_a_prompt_only_with_a_decider_and_only_at_the_start(
+    store: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("SANCHOPANZA_MEMORY_PROMPT")
+    project = store / "projects" / "p"
+    old = write_transcript(project / "s1.jsonl", lexer_request())
+    mh.handle(event(old, "Stop", "s1"))
+    new = write_transcript(project / "s2.jsonl", [])
+    assert mh.prompt_mode() == "off"  # no decider: BM25 at a prompt was noise in 82 % of starts
+    assert mh.handle(event(new, "UserPromptSubmit", "s2", "Carbon lexer octal")) == {}
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_SELECT", "decider")
+    assert mh.prompt_mode() == "first"
+    s, _ = squire(Fake(lambda i: 0.95))
+    start = event(new, "UserPromptSubmit", "s3", "Carbon lexer octal")
+    assert "session s1" in context_of(asyncio.run(mh.recall(start, s)))
+    later = write_transcript(project / "s4.jsonl", [prompt("hi"), say("hello")])
+    s, _ = squire(Fake(lambda i: 0.95))
+    assert asyncio.run(mh.recall(event(later, "UserPromptSubmit", "s4", "Carbon lexer"), s)) == {}
+
+
+def test_the_decider_s_cut_is_0_7(store: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    project = store / "projects" / "p"
+    mh.handle(event(write_transcript(project / "s1.jsonl", lexer_request()), "Stop", "s1"))
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_SELECT", "decider")
+    new = event(write_transcript(project / "s2.jsonl", []), "UserPromptSubmit", "s2", "Carbon")
+    s, _ = squire(Fake(lambda i: 0.65))
+    assert asyncio.run(mh.recall(new, s)) == {}
+    s, _ = squire(Fake(lambda i: 0.72))
+    assert "session s1" in context_of(asyncio.run(mh.recall({**new, "session_id": "s3"}, s)))
+
+
+def test_save_keeps_an_index_of_changed_files_and_a_missing_one_is_rebuilt(tmp_path: Path) -> None:
+    # Loading 300 record files took 0.75-3.2 s cold on Windows; the touch reads one index.
+    found, _ = ep.episodes_of([*lexer_request(), *starlette_request()], session="s", cwd=CWD)
+    ep.save(tmp_path, found[:1])
+    ep.save(tmp_path, found[1:])
+    index = ep.index_of(tmp_path)
+    assert index["s-001"]["changed"] == ["pygments/lexers/carbon.py"]
+    assert index["s-002"]["changed"] == ["starlette/staticfiles.py"]
+    (tmp_path / ep.INDEX).unlink()
+    assert ep.index_of(tmp_path) == index and (tmp_path / ep.INDEX).exists()
+    assert [e.key for e in ep.load_keys(tmp_path, ["s-002", "gone"])] == ["s-002"]
+
+
+def test_a_touch_event_imports_nothing_heavy(store: Path) -> None:
+    import subprocess
+    import sys
+
+    project = store / "projects" / "p"
+    old = write_transcript(project / "s1.jsonl", lexer_request())
+    mh.handle(event(old, "Stop", "s1"))
+    payload = json.dumps(touch_event(project / "s2.jsonl", "s2", "Read",
+                                     f"{CWD}/pygments/lexers/carbon.py"))  # fmt: skip
+    probe = "\n".join([
+        "import sys, json",
+        "from sanchopanza.cli import main",
+        "try:",
+        "    main(['memory-hook'])",
+        "finally:",
+        "    sys.stderr.write('MODULES=' + json.dumps(sorted(sys.modules)))",
+    ])
+    done = subprocess.run([sys.executable, "-c", probe], input=payload, text=True,
+                          capture_output=True)  # fmt: skip
+    assert "request 1 of session s1" in done.stdout
+    modules = set(json.loads(done.stderr.rsplit("MODULES=", 1)[1]))
+    # A new process per file the agent opens: 0.61 s median before, 0.14 s after (2026-10-01).
+    heavy = {"asyncio", "importlib.metadata", "sanchopanza.squire", "sanchopanza.harness.generic",
+             "sanchopanza.points"}  # fmt: skip
+    assert not {m for m in modules if any(m == h or m.startswith(h + ".") for h in heavy)}
+
+
+def test_install_memory_wires_the_touch_hook_on_file_tools() -> None:
+    assert MEMORY_HOOKS["PostToolUse"] == "Read|Edit|MultiEdit|Write|NotebookEdit"
+
+
 class _Stdin:
     def __init__(self, text: str) -> None:
         self.buffer = _Buffer(text.encode("utf-8"))
@@ -387,7 +529,7 @@ class _Buffer:
 # ---- install -------------------------------------------------------------------------------------
 
 
-def test_install_memory_wires_three_hooks_once_and_takes_them_out(tmp_path: Path) -> None:
+def test_install_memory_wires_its_hooks_once_and_takes_them_out(tmp_path: Path) -> None:
     path = tmp_path / "settings.json"
     path.write_text(json.dumps({"hooks": {}}), encoding="utf-8")
     apply(plan(path, HarnessConfig(), memory=True, candor=True))

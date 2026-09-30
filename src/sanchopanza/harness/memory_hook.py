@@ -5,33 +5,47 @@ fire in `claude -p` as in an interactive session. What a record holds is `contex
 
 - `Stop` and `SessionEnd`: every finished request of the session is recorded verbatim, by
   code, in the project's store. Idempotent: a record is rewritten only when it changed.
+- `PostToolUse` on `Read|Edit|MultiEdit|Write|NotebookEdit` (**just in time**, code only):
+  when the agent opens or changes a file, the `MEMORY_TOUCH_K` newest records of earlier
+  requests that changed that file, once per session until the next compaction. This is where
+  memory pays in people's sessions: a prompt often names nothing ("fix it", "push"), but the
+  file the agent opens does. It reads one index file (`episodes.INDEX`), not every record.
 - `UserPromptSubmit`: first the same recording (a `Stop` that did not run is caught up, for
-  this session and for the project's other recent sessions), then recall. The candidates are
-  the project's records that are **not in the live context** (`episodes.Split.live`): those of
-  other sessions, and those of this session wholly before its last compaction; and not already
-  given to this session since that compaction. BM25 proposes the top `MEMORY_K`, and the decider
-  says which are about the same code as the request (`points.memory.related_questions`, one
-  in-context call, one Truth per record, over pages that hold each record's files, request and
-  outcome). Only records the decider judged at `MEMORY_KEEP_AT` or above enter, oldest first,
-  under `MEMORY_CHARS`.
+  this session and for the project's other recent sessions), then, when `MEMORY_PROMPT` says
+  so, recall at the prompt. By default that is only at the session's first live request (its
+  start, or after a compaction took every earlier request out) and only with a decider: BM25
+  proposes `MEMORY_K`, the decider says which are about the same code as the request
+  (`points.memory.related_questions`), and records at `MEMORY_KEEP_AT` or above enter.
 
-Nothing already in the conversation is rewritten: the records are appended with the prompt,
-so no cached prefix is invalidated. Records live outside the project (`MEMORY_STORE`, default
-`~/.sanchopanza/memory-store/<project>/`), readable by this user only, and are removed after
-30 days: they hold command output.
+Candidates are always the project's records **not in the live context** (`episodes.Split.live`)
+and not already given to this session since its last compaction.
+
+Measured on real people's sessions (SWE-chat, 60 groups of one person on one public
+repository, 953 development requests, docs/results/2026-10-01-memory-real), the shipped hook
+replayed through this code: 94 % of the requests with a related earlier record had one in view,
+60 % of what was given was related, and 4.9 % of the requests with nothing related were given
+anything. The previous design (every prompt, BM25 then the decider at 0.2): 25 %, 2.6 % and 39 %.
+
+Nothing already in the conversation is rewritten: records are appended with the prompt or the
+tool result, so no cached prefix is invalidated. Records live outside the project
+(`MEMORY_STORE`, default `~/.sanchopanza/memory-store/<project>/`), readable by this user only,
+and are removed after 30 days: they hold command output.
 
 Environment (every name is `SANCHOPANZA_<NAME>`):
 
     MEMORY_SELECT            decider (default when a provider or a TypeSafe key is set) | bm25
-                             (the top MEMORY_BM25_KEEP by score, no model) | off (record only)
+                             (the top MEMORY_BM25_KEEP by score, no model) | off (record only;
+                             no touch either)
+    MEMORY_PROMPT            first (default with a decider) | every | off (default without one)
+    MEMORY_TOUCH             on (default) | off;  MEMORY_TOUCH_K  2
     MEMORY_K, MEMORY_BM25_KEEP   5 and 2
-    MEMORY_KEEP_AT           the decider's probability a record needs to enter (default
-                             0.2, derived on development data: see KEEP_AT)
+    MEMORY_KEEP_AT           the decider's probability a record needs at a prompt (default 0.7)
     MEMORY_CHARS             cap of the injected text (default 6000)
     MEMORY_DECIDER_SECONDS   the decider's time (default 15); past it, nothing is injected
     MEMORY_STORE             the store's root; MEMORY_STORE_LOG a JSONL file, one line per event
 
-Cost: at most one decider call per prompt, and none when BM25 finds no candidate.
+Cost: the touch calls no model; at most one decider call at a session's first prompt.
+Latency: a touch is a new process, 0.14 s median on the maintainer's Windows laptop.
 
 Fail open: any error writes one line to stderr and injects nothing. A decider that answers no
 page injects nothing either.
@@ -39,7 +53,6 @@ page injects nothing either.
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 import json
 import os
@@ -54,10 +67,7 @@ from .. import _env
 from ..context import episodes as ep
 from ..context.archive import safe_name
 from ..context.transcript import _is_boundary
-from ..redact import redact_secrets
-from ..text import BM25Index
 from .hookio import stdin_text, stdout_json
-from .memory_gate import project_key
 
 if TYPE_CHECKING:
     from ..squire import Squire
@@ -70,12 +80,23 @@ CATCH_UP = 3  # the project's other sessions caught up per prompt, most recent f
 CATCH_UP_BYTES = 20_000_000
 CATCH_UP_SECONDS = 86_400
 SHOWN = "shown"  # per-session record of what was given since the last compaction
-# Derived on development data (2026-09-30), not confirmed: the recall question on 10 records
-# related to the request (the agent changed a file the new bug's patch touches) and 60
-# unrelated ones scored related 0.07-0.56 and unrelated 0.02-0.09. At 0.2, 8 of 10 related
-# enter and none of the 60 unrelated (at 0.5, 4 of 10). The provider moves by up to 0.09
-# between runs, so the margin to the highest unrelated score is thin.
-KEEP_AT = 0.2
+# The decider's cut at a prompt. 0.2 was derived on 70 records of one development chain; on
+# real people's sessions (SWE-chat, 60 groups, 993 development requests, 2026-10-01) it kept 1,220
+# of 1,918 candidates at 2.6 % precision and gave something to 39 % of the requests that had
+# nothing related. Only 2 % of BM25's candidates are related there, and a short prompt ("fix it",
+# "push") is judged below chance (AUC 0.38). At a session's first request and 0.7 it adds recall
+# to the touch with noise on 1 % of requests (docs/results/2026-10-01-memory-real).
+KEEP_AT = 0.7
+# Just in time: a file the agent opens or changes gives the records of earlier requests that
+# changed it, the TOUCH_K newest, once per session. On the same data: 93 % of the requests with a
+# related record had one in view, 57 % of what was given was related, 3.8 % of the requests with
+# nothing related were given anything; 90 % arrived before the request's first edit.
+TOUCH_TOOLS = ("Read", "Edit", "MultiEdit", "Write", "NotebookEdit")
+TOUCH_K = 2
+TOUCH_HEADER = (
+    "[sanchopanza memory, earlier work on {path}: verbatim records of earlier requests in this "
+    "project that changed this file, written by code from the transcripts, oldest first]"
+)
 HEADER = (
     "[sanchopanza memory: records of earlier requests in this project that may bear on this "
     "one, written by code from the transcripts, oldest first]"
@@ -120,12 +141,30 @@ def mode() -> str:
     return "decider" if has_decider else "bm25"
 
 
+def prompt_mode() -> str:
+    """When recall runs at a prompt: `first` (no earlier request of the session is in the live
+    context: its start, or after a compaction), `every`, or `off`. By default `first` with a
+    decider and `off` without one: BM25 alone gave something to 82 % of real session starts that
+    had nothing related (SWE-chat, 2026-10-01). The touch runs either way."""
+    chosen = str(_env.get("MEMORY_PROMPT", "") or "").strip().lower()
+    if mode() == "off":
+        return "off"
+    if chosen in ("first", "every", "off"):
+        return chosen
+    return "first" if mode() == "decider" else "off"
+
+
 def store_for(event: Mapping[str, Any]) -> Path:
     """The project's folder: named as Claude Code names the project (the transcript's folder),
     else from the working directory."""
     root = Path(_env.get("MEMORY_STORE", "") or _env.home_dir() / "memory-store")
     transcript = str(event.get("transcript_path") or "")
-    name = Path(transcript).parent.name if transcript else project_key(str(event.get("cwd", "")))
+    if transcript:
+        name = Path(transcript).parent.name
+    else:
+        from .memory_gate import project_key  # loads the decision points: only without a path
+
+        name = project_key(str(event.get("cwd", "")))
     return root / (name or "project")
 
 
@@ -189,11 +228,16 @@ def _shown_path(store: Path, session: str) -> Path:
     return store / SHOWN / f"{safe_name(session)}.json"
 
 
-def shown_since_compaction(store: Path, session: str, boundaries: int) -> frozenset[str]:
+def _state(store: Path, session: str) -> dict[str, Any]:
     try:
         data = json.loads(_shown_path(store, session).read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        return frozenset()
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def shown_since_compaction(store: Path, session: str, boundaries: int) -> frozenset[str]:
+    data = _state(store, session)
     if data.get("boundaries") != boundaries:
         return frozenset()  # a compaction since: what was given is no longer verbatim
     return frozenset(str(k) for k in data.get("keys") or [])
@@ -201,8 +245,24 @@ def shown_since_compaction(store: Path, session: str, boundaries: int) -> frozen
 
 def remember_shown(store: Path, session: str, boundaries: int, keys: Sequence[str]) -> None:
     before = shown_since_compaction(store, session, boundaries)
-    payload = {"boundaries": boundaries, "keys": sorted(before | set(keys))}
+    payload = {**_state(store, session), "boundaries": boundaries,
+               "keys": sorted(before | set(keys))}  # fmt: skip
     ep.write_private(_shown_path(store, session), json.dumps(payload))
+
+
+def note_live(store: Path, session: str, boundaries: int, live: frozenset[int] | None) -> None:
+    """What the session had in its live context at its last prompt, for the touch, which must
+    not read the whole transcript on every file the agent opens."""
+    kept = shown_since_compaction(store, session, boundaries)
+    payload = {"boundaries": boundaries, "keys": sorted(kept),
+               "live": None if live is None else sorted(live)}  # fmt: skip
+    ep.write_private(_shown_path(store, session), json.dumps(payload))
+
+
+def live_at_last_prompt(store: Path, session: str) -> tuple[int, frozenset[int] | None]:
+    data = _state(store, session)
+    live = data.get("live")
+    return int(data.get("boundaries") or 0), None if live is None else frozenset(live)
 
 
 # ---- recall ----------------------------------------------------------------------------------
@@ -227,6 +287,8 @@ def pool_of(
 def candidates(prompt: str, pool: Sequence[ep.Episode], k: int = K) -> list[ep.Episode]:
     if not pool or k <= 0:
         return []
+    from ..text import BM25Index
+
     index = BM25Index([e.search() for e in pool])
     return [pool[i] for i, _ in index.top(prompt, k)]
 
@@ -278,6 +340,8 @@ async def _choose(
         squire = squire_from_env(redact=True)
     seconds = _int("MEMORY_DECIDER_SECONDS", 15)
     try:
+        import asyncio
+
         chosen, probabilities = await asyncio.wait_for(
             keep_by_decider(squire, prompt, found), seconds
         )
@@ -288,21 +352,32 @@ async def _choose(
 
 
 async def recall(event: Mapping[str, Any], squire: Squire | None = None) -> dict[str, Any]:
+    from ..redact import redact_secrets
+
     prompt = redact_secrets(str(event.get("prompt") or "")).strip()
     session = str(event.get("session_id") or "session")
     store = store_for(event)
     live: frozenset[int] | None = None
     boundaries = 0
     row: dict[str, Any] = {"event": "UserPromptSubmit", "mode": mode()}
+    earlier_live = False
     try:
         seen = record(event)
         live, boundaries = seen.live, seen.boundaries
+        earlier_live = any(e.index in live for e in seen.episodes)
         row = {**row, "written": list(seen.written)}
+    except FileNotFoundError:
+        pass  # a new session's first prompt: its transcript is not written yet
     except Exception as error:  # noqa: BLE001 - other sessions' records still count
         row = {**row, "record_error": f"{error.__class__.__name__}: {error}"}
-    row = {**row, "caught_up": catch_up(event)}
-    if row["mode"] == "off" or not prompt:
+    with contextlib.suppress(OSError):
+        note_live(store, session, boundaries, live)
+    row = {**row, "caught_up": catch_up(event), "prompt_mode": prompt_mode()}
+    if row["prompt_mode"] == "off" or not prompt:
         _log({**row, "reason": "off" if prompt else "empty prompt"})
+        return {}
+    if row["prompt_mode"] == "first" and earlier_live:
+        _log({**row, "reason": "not the session's first live request"})
         return {}
     shown_before = shown_since_compaction(store, session, boundaries)
     pool = pool_of(ep.load(store), session, live, shown_before)
@@ -324,6 +399,60 @@ async def recall(event: Mapping[str, Any], squire: Squire | None = None) -> dict
     return {"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": text}}
 
 
+# ---- just in time: a file the agent opens or changes ------------------------------------------
+
+
+def _norm(path: str) -> str:
+    clean = path.replace("\\", "/")
+    return clean.casefold() if os.name == "nt" else clean
+
+
+def render_touch(
+    chosen: Sequence[ep.Episode], path: str, cap: int = CHARS
+) -> tuple[str, list[str]]:
+    text, keys = render(chosen, cap)
+    if not keys:
+        return "", []
+    return text.replace(HEADER, TOUCH_HEADER.format(path=path), 1), keys
+
+
+def touch(event: Mapping[str, Any]) -> dict[str, Any]:
+    """PostToolUse on a file tool: the TOUCH_K newest records of earlier requests that changed
+    that file, outside the live context at the last prompt and not given since the last
+    compaction. Code only: no decider."""
+    if mode() == "off" or str(_env.get("MEMORY_TOUCH", "") or "on").lower() in ("off", "0"):
+        return {}
+    if event.get("tool_name") not in TOUCH_TOOLS:
+        return {}
+    data = event.get("tool_input") if isinstance(event.get("tool_input"), Mapping) else {}
+    raw = data.get("file_path") or data.get("notebook_path")
+    if not isinstance(raw, str) or not raw:
+        return {}
+    session = str(event.get("session_id") or "session")
+    store = store_for(event)
+    rel = ep.relative(raw, str(event.get("cwd") or ""))
+    wanted = {_norm(rel), _norm(raw)}
+    boundaries, live = live_at_last_prompt(store, session)
+    shown = shown_since_compaction(store, session, boundaries)
+    keys = [k for k, v in ep.index_of(store).items()
+            if wanted & {_norm(str(c)) for c in v.get("changed") or []}]  # fmt: skip
+    if not keys:
+        return {}
+    matching = pool_of(ep.load_keys(store, keys), session, live, shown)
+    if not matching:
+        return {}
+    newest = sorted(matching, key=lambda e: (-e.at, e.session, -e.index))
+    chosen = newest[: _int("MEMORY_TOUCH_K", TOUCH_K)]
+    text, keys = render_touch(chosen, rel, _int("MEMORY_CHARS", CHARS))
+    _log({"event": "PostToolUse", "tool": event.get("tool_name"), "path": rel,
+          "matching": [e.key for e in matching], "shown": keys, "chars": len(text)})  # fmt: skip
+    if not text:
+        return {}
+    with contextlib.suppress(OSError):
+        remember_shown(store, session, boundaries, keys)
+    return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": text}}
+
+
 # ---- entry -------------------------------------------------------------------------------------
 
 
@@ -334,7 +463,11 @@ def handle(event: Mapping[str, Any]) -> dict[str, Any]:
         _log({"event": name, "episodes": len(seen.episodes), "written": list(seen.written)})
         return {}
     if name == "UserPromptSubmit":
+        import asyncio  # a prompt may ask the decider; the touch never does
+
         return asyncio.run(recall(event))
+    if name == "PostToolUse":
+        return touch(event)
     return {}
 
 

@@ -39,7 +39,6 @@ Pure functions over Messages-API messages (`context.transcript`); the hook is
 
 from __future__ import annotations
 
-import asyncio
 import json
 import re
 import shlex
@@ -419,6 +418,8 @@ async def judge_verdicts(
     (`Squire.select_passages`): a tournament over blocks of output titled by their command,
     then every line of a kept block judged inside that block. A line of a block not kept is not
     kept. Raises on a decider failure; the callers decide what stands then."""
+    import asyncio  # only a judged compaction needs it; the memory touch imports this module
+
     purpose = JUDGE_PURPOSE.format(task=task)
     groups = blocks_of(pieces)
     pages = [(pieces[g[0]].source, "\n".join(pieces[i].line for i in g)) for g in groups]

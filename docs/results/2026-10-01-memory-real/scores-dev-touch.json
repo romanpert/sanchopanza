@@ -1,0 +1,40 @@
+{
+ "touch": {
+  "all/lineage": {
+   "requests": 993,
+   "with_related": 60,
+   "recall": 0.417,
+   "precision": 0.143,
+   "noise": 0.07,
+   "shown_per_request": 0.18
+  },
+  "all/any": {
+   "requests": 993,
+   "with_related": 161,
+   "recall": 0.385,
+   "precision": 0.571,
+   "noise": 0.038,
+   "shown_per_request": 0.18
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.696,
+   "precision": 0.183,
+   "noise": 0.25,
+   "shown_per_request": 0.71
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 36,
+   "recall": 0.833,
+   "precision": 0.591,
+   "noise": 0.147,
+   "shown_per_request": 0.71
+  },
+  "timing": {
+   "related_given_before_first_edit": 94,
+   "related_given_after": 10
+  }
+ }
+}

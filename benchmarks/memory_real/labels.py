@@ -71,6 +71,25 @@ def edits_of(messages: Iterable[Mapping[str, Any]], cwd: str) -> list[Edit]:
     return out
 
 
+TOUCHING = ("Read", "Edit", "MultiEdit", "Write", "NotebookEdit")
+
+
+def touched_of(messages: Iterable[Mapping[str, Any]], cwd: str) -> list[list[str]]:
+    """[tool, path] of every call that opens or changes a file, in the order they were made."""
+    out = []
+    for message in messages:
+        if message.get("role") != "assistant":
+            continue
+        for block in blocks_of(message):
+            if (isinstance(block, Mapping) and block.get("type") == "tool_use"
+                    and block.get("name") in TOUCHING):  # fmt: skip
+                path = (block.get("input") or {}).get("file_path") or (
+                    block.get("input") or {}).get("notebook_path")
+                if isinstance(path, str):
+                    out.append([str(block["name"]), _relative(path, cwd)])
+    return out
+
+
 def written_lines(edits: Sequence[Edit]) -> set[str]:
     return {line for e in edits for line in e.added}
 

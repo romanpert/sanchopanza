@@ -34,7 +34,7 @@ REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(REPO / "benchmarks" / "candor_external"))
 
-from labels import edits_of, lineage, written_lines  # noqa: E402
+from labels import edits_of, lineage, touched_of, written_lines  # noqa: E402
 
 from sanchopanza.context import episodes as ep  # noqa: E402
 
@@ -84,7 +84,8 @@ def select() -> None:
         start = rng.randrange(0, len(rows) - width + 1)
         chosen.append({"group": n, "split": "dev" if n < GROUPS // 2 else "held",
                        "repo_id": key[0],
-                       "sessions": [r["session_id"] for r in rows[start:start + width]]})  # fmt: skip
+                       "sessions": [r["session_id"] for r in rows[start:start + width]],
+                       })  # fmt: skip
     OUT.mkdir(parents=True, exist_ok=True)
     payload = {"source": DATASET, "seed": SEED, "groups": chosen,
                "eligible_groups": len(eligible)}  # fmt: skip
@@ -136,7 +137,8 @@ def session_parts(sid: str) -> dict[str, Any] | None:
         per_request.append({"index": index, "request": ep._request(group[0]),
                             "changed": sorted({e.path for e in edits}),
                             "removed": sorted({ln for e in edits for ln in e.removed}),
-                            "written": sorted(written_lines(edits))})  # fmt: skip
+                            "written": sorted(written_lines(edits)),
+                            "touched": touched_of(group, cwd)})  # fmt: skip
     return {"sid": sid, "records": records, "requests": per_request}
 
 
@@ -171,6 +173,7 @@ def items() -> None:
                         "group": group["group"], "split": group["split"],
                         "session": group["sessions"][position], "index": request["index"],
                         "first": request["index"] == 1, "request": request["request"],
+                        "touched": request["touched"],
                         "pool": [r.to_dict() for r in pool], "labels": labels,
                     }, ensure_ascii=False) + "\n")  # fmt: skip
     print(dict(counts))
