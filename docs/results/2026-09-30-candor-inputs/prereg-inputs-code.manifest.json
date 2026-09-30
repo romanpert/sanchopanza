@@ -1,0 +1,5 @@
+{
+ "docs/results/2026-09-30-candor-inputs/prereg-inputs-code.md": "22af99fd213ff31ff9023851270229aa959d7cdd01714d105ce95195db2d4888",
+ "benchmarks/candor/analyze.py": "ceaa9b39774d8896d3b1bac9a6ac902535ec7f37090074783ccc3f6e960528fe",
+ "benchmarks/candor_external/swechat.py": "827fc916b629fed42dd7f92e31f2734d60d5cbade4558c2088c06debe4f052e8"
+}
