@@ -1,0 +1,10 @@
+{
+ "docs/results/2026-09-30-find-e2e/prereg-find-e2e.md": "318f0a793bcbea5612b70308da79c40e739a517fc17550d1f770d0127cc64051",
+ "benchmarks/find/ceiling.py": "48bb653d53c78c122a69efd97b60808e9545251812ebdd7c6891971fe0ad6fd9",
+ "benchmarks/find/e2e.py": "db5be5252cd04351e3745b38480dcfb1380a365d5185804f4cef568c4073a490",
+ "benchmarks/find/e2e_score.py": "97b5fad057fe5d5003a60c0ea2177025ca0ce5597a24bf03f4c6d07a3fe1183f",
+ "benchmarks/find/swebench.py": "8f76bded6974c01acaf297f1a2dd49e03aa77776898b736326024b92677c4f70",
+ "src/sanchopanza/context/repo.py": "4a95e4ccdaf593feddc1b7e60d358db7d97a1ac36220c795d4956b44ec85815c",
+ "src/sanchopanza/context/sources.py": "2bb78d6fc43f22328e66982c4cede1d003829d4213b748736e71c684d7eed19f",
+ "src/sanchopanza/harness/mcp.py": "061fd533f7efc4b2e6fb13efe4c40808a7c971d134de12fe5d9f3daf4f9780d6"
+}
