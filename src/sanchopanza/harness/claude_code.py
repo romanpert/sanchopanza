@@ -122,7 +122,8 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
     shell_fetches = _env.get("SCAN_SHELL_FETCHES", "1", env=env) not in ("0", "false", "no")
     named = {t.strip() for t in _env.get("CONTENT_TOOLS", "", env=env).split(",") if t.strip()}
     purpose = _env.get("PURPOSE", "", env=env).strip()
-    profile = "coding" if _env.get("GUARD_PROFILE", "", env=env).strip() == "coding" else "sandbox"
+    chosen = _env.get("GUARD_PROFILE", "", env=env).strip().lower()
+    profile = "coding" if chosen == "coding" else "sandbox"
     defaults = HarnessConfig()
     return HarnessConfig(
         tiers=tiers,
@@ -301,6 +302,19 @@ def merge_outputs(first: Mapping[str, Any], second: Mapping[str, Any]) -> dict[s
     return out
 
 
+def project_dir(input_data: Mapping[str, Any]) -> str:
+    """The project the session was started in, not the live `cwd`: a `cd ~` earlier in the
+    session would otherwise tell the decider the whole home is writable."""
+    fixed = os.environ.get("CLAUDE_PROJECT_DIR", "").strip()
+    if fixed:
+        return fixed
+    start = Path(str(input_data.get("cwd") or os.getcwd()))
+    for folder in (start, *start.parents):
+        if (folder / ".git").exists():
+            return str(folder)
+    return str(start)
+
+
 def with_workspace(guardian: Guardian, input_data: Mapping[str, Any]) -> Guardian:
     """The coding profile's guard asks with the session's own working directory as the place it
     may write; the sandbox profile keeps its configured environment."""
@@ -311,7 +325,7 @@ def with_workspace(guardian: Guardian, input_data: Mapping[str, Any]) -> Guardia
 
     from ..points.guard import coding_environment
 
-    workspace = str(input_data.get("cwd") or os.getcwd())
+    workspace = project_dir(input_data)
     coding = replace(config, guard_environment=coding_environment(workspace))
     return Guardian(guardian.squire, coding)
 

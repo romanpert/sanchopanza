@@ -623,7 +623,7 @@ def main(argv: list[str] | None = None) -> int:
     install.add_argument(
         "--guard-profile",
         choices=("coding", "sandbox"),
-        default="coding",
+        default=None,
         help="what the shell guard protects: a person's repository (coding, default: a narrow "
         "deny-list and the session's directory as its workspace) or a research sandbox",
     )

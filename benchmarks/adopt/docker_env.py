@@ -58,9 +58,21 @@ def bake(image: str, patches: list[str], tag: str) -> None:
         docker("rm", "-f", name)
 
 
-def export(tag: str, dest: Path) -> str:
+def export(tag: str, dest: Path, attempts: int = 2) -> str:
     """The image's /testbed as a fresh repository at `dest`, one commit, LF endings. Returns the
-    commit id the agent's diff is taken against."""
+    commit id the agent's diff is taken against. A failed export is removed and done again."""
+    for attempt in range(attempts):
+        try:
+            return _export_once(tag, dest)
+        except RuntimeError:
+            remove_tree(dest)
+            if attempt + 1 == attempts:
+                raise
+            time.sleep(10)
+    raise AssertionError("unreachable")
+
+
+def _export_once(tag: str, dest: Path) -> str:
     tar = ok(docker("run", "--rm", tag, "git", "-C", "/testbed", "archive", "--format=tar", "HEAD"),
              "archive")  # fmt: skip
     dest.mkdir(parents=True, exist_ok=False)
@@ -75,16 +87,17 @@ def export(tag: str, dest: Path) -> str:
     return _git_retry([*git, "rev-parse", "HEAD"]).strip()
 
 
-def _git_retry(cmd: list[str], attempts: int = 3) -> str:
+def _git_retry(cmd: list[str], attempts: int = 5) -> str:
     """Git on freshly written files on Windows fails now and then (a scanner holding a file, a
-    stale index.lock): three tries, two seconds apart, then the error as it was."""
+    stale index.lock): five tries, 2 to 16 seconds apart, then the error as it was. Three tries
+    two seconds apart were not enough when two arms exported at once (dev round 1)."""
     for attempt in range(attempts):
         done = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8",
                               errors="replace")  # fmt: skip
         if done.returncode == 0:
             return done.stdout
         if attempt + 1 < attempts:
-            time.sleep(2)
+            time.sleep(2 ** (attempt + 1))
     raise RuntimeError(f"{' '.join(cmd[3:6])}: {done.stderr.strip()[-400:]}")
 
 

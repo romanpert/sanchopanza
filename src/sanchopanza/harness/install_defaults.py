@@ -64,28 +64,33 @@ def merge_budget(
 
 
 PROFILE = "SANCHOPANZA_GUARD_PROFILE"
+LEGACY_PROFILE = "SANCHO_GUARD_PROFILE"  # read too by `_env.get`: it must not outlive a change
 
 
 def merge_profile(
-    merged: dict[str, Any], profile: str
+    merged: dict[str, Any], profile: str | None
 ) -> tuple[dict[str, Any], list[str], list[str]]:
-    """`coding` (default): the shell guard judges a person's repository, not a research sandbox
-    (points.guard: the sandbox list denied 12.3 % of the owner's real Bash commands). `sandbox`
-    takes our variable out, and the hook falls back to the sandbox profile."""
+    """`coding`: the shell guard judges a person's repository, not a research sandbox
+    (points.guard: the sandbox list denied 12.2 % of the owner's real Bash commands); `sandbox`
+    takes our variable out, and the hook falls back to the sandbox profile. `None` (no flag):
+    `coding`, unless the settings already name a profile, which is then the owner's to keep."""
     env = merged.get("env", {})
     if not isinstance(env, dict):
         return merged, [], []
-    if profile == "coding":
-        if env.get(PROFILE) == "coding":
+    current = str(env.get(PROFILE) or env.get(LEGACY_PROFILE) or "").strip().lower()
+    if profile is None:
+        if current:
             return merged, [], []
-        return {**merged, "env": {**env, PROFILE: "coding"}}, [f"env: {PROFILE}=coding"], []
-    if PROFILE not in env:
+        profile = "coding"
+    rest = {k: v for k, v in env.items() if k not in (PROFILE, LEGACY_PROFILE)}
+    if profile == "coding":
+        if env.get(PROFILE) == "coding" and LEGACY_PROFILE not in env:
+            return merged, [], []
+        return {**merged, "env": {**rest, PROFILE: "coding"}}, [f"env: {PROFILE}=coding"], []
+    gone = [k for k in (PROFILE, LEGACY_PROFILE) if k in env]
+    if not gone:
         return merged, [], []
-    return (
-        {**merged, "env": {k: v for k, v in env.items() if k != PROFILE}},
-        [],
-        [f"env: {PROFILE}"],
-    )
+    return {**merged, "env": rest}, [], [f"env: {k}" for k in gone]
 
 
 def find_server_entry(command: str) -> dict[str, Any]:

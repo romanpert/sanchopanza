@@ -59,18 +59,43 @@ DEFAULT_ENVIRONMENT: dict[str, Any] = {
 # home or the whole working tree, running what was just downloaded, sending key or secret files
 # out, writing to a device, a fork bomb. Everything else is the decider's to add, asked with the
 # session's own working directory as the writable path.
+# A root, a home or a drive: `/`, `/*`, `~`, `$HOME`, `${HOME}`, `$USERPROFILE`, `..`, `../..`,
+# `C:\`, and Git Bash's `/c/` or `/c/Users/<name>`. A bare `*` or `.` is left to the decider: after
+# `cd build` they are ordinary cleanup, and code cannot know the directory.
+_ROOT = (r"[\"']?(/\*?|~/?\*?|\$\{?(HOME|USERPROFILE)\}?[\"']?/?\*?|\$env:USERPROFILE\\?|"
+         r"(\.\./)*\.\./?|[A-Za-z]:[\\/]?\*?|/[a-zA-Z]/?|/[a-zA-Z]/Users/[^/\s\"']+/?)[\"']?")
+# Key and credential files; a public key (`.pub`) is not a secret.
+_KEY = (r"(\.ssh[\\/](?![^\s\"']*\.pub\b)|\bid_(rsa|ed25519|ecdsa|dsa)\b(?!\.pub)"
+        r"|\.aws[\\/]credentials|\.npmrc|\.pypirc|\.netrc|\.docker[\\/]config\.json"
+        r"|\.kube[\\/]config)")
+_SECRET_FILE = rf"({_KEY}|\.env(?![\w.]))"
+_END = r"(?=\s|;|&|\||\)|$)"
 CODING_DENY_PATTERNS: tuple[tuple[str, str], ...] = (
-    (r"\brm\s+(-[a-zA-Z]*\s+)*-[a-zA-Z]*[rR][a-zA-Z]*\s+(-[a-zA-Z]+\s+)*"
-     r"[\"']?(/|/\*|~|~/|~/\*|\$HOME/?|\.\.?/?|\*|[A-Za-z]:[\\/]?)[\"']?(\s|;|&|\||$)",
-     "recursive delete of a root, a home or the whole working tree"),
-    (r"\b(curl|wget)\b[^|;&]*\|\s*(sudo\s+)?(ba|z|da)?sh\b", "download and execute"),
-    (r"\b(curl|wget|scp|rsync|nc)\b[^;&|]*(\.ssh[\\/]|id_rsa|id_ed25519|id_ecdsa|\.aws[\\/]"
-     r"|\.npmrc|\.pypirc|\.netrc)", "key or credential file sent over the network"),
-    (r"\bcurl\b[^|;&]*(-d\s*@|--data-binary\s*@|--data\s*@|-F\s*\S*=@|-T\s|--upload-file)"
-     r"[^|;&]*\.env\b", "secrets file uploaded"),
-    (r"\bdd\b[^|;&]*\bof=/dev/(sd|nvme|hd|disk)|\bmkfs(\.\w+)?\s+/dev/", "write to a device"),
+    (rf"\brm\b(?=[^;&|\n]*\s(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)(\s|$))[^;&|\n]*\s{_ROOT}{_END}",
+     "recursive delete of a root, a home or a drive"),
+    (rf"\b(Remove-Item|ri|rd|rmdir|del)\b(?=[^;\n]*\s-r(ecurse)?\b)[^;\n]*\s{_ROOT}{_END}",
+     "recursive delete of a root, a home or a drive"),
+    (rf"\bfind\s+{_ROOT}\s[^;&|\n]*-(delete\b|exec\s+rm\b)", "delete across a root or a home"),
+    # Piped into a shell, or into an interpreter that reads its program from stdin (`python` or
+    # `python -`, not `python -m json.tool` nor `python -c ...`, which take the data as data).
+    (r"\b(curl|wget|iwr|irm|Invoke-WebRequest|Invoke-RestMethod)\b[^;&\n]*(?<!\|)\|(?!\|)\s*"
+     r"(sudo(\s+-\S+)*\s+)?(env\s+)?(\S*/)?((ba|z|da|k)?sh(?![\w-])(?!\s+-c\b)"
+     r"|(python\d*(\.\d+)?|node|perl|ruby)(\s+-)?(?=\s*($|;|&|\|))|iex\b|Invoke-Expression\b)",
+     "download and execute"),
+    (r"\b((ba|z|da)?sh|source)\s+(-c\s+)?[\"']?(<\(|\$\()\s*(curl|wget)\b", "download and execute"),
+    (rf"\b(curl|wget)\b[^;&\n]*(-T\s*|--upload-file[= ]\s*|-d\s*@|--data(-binary|-raw|-urlencode)?"
+     rf"[= ]\s*@|-F\s*\S*=@|--post-file[= ]\s*)[\"']?[^\s\"']*{_SECRET_FILE}",
+     "key or secrets file sent over the network"),
+    (rf"\b(scp|rsync|sftp)\b[^;&|\n]*{_KEY}", "key or credential file sent over the network"),
+    (rf"(<\s*|\b(cat|type|gc|Get-Content)\s+)[\"']?[^\s\"']*{_SECRET_FILE}[^;&\n]*\|\s*"
+     r"(curl|wget|nc|ncat|socat)\b", "key or secrets file sent over the network"),
+    (rf"\b(nc|ncat|socat)\b[^;&|\n]*<\s*[\"']?[^\s\"']*{_SECRET_FILE}",
+     "key or secrets file sent over the network"),
+    (r"\bdd\b[^|;&\n]*\bof=/dev/(sd|nvme|hd|disk|mmcblk|vd|xvd)|\bmkfs(\.\w+)?\b[^;&|\n]*/dev/",
+     "write to a device"),
     (r":\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:", "fork bomb"),
-    (r"\bchmod\s+(-R\s+)?[0-7]*777\s+/(\s|$)", "world-writable root"),
+    (r"\bchmod\b[^;&|\n]*\s(-R\s+[^;&|\n]*)?(0?777|a\+rwx|o\+w)\b[^;&|\n]*\s[\"']?/[\"']?(\s|;|$)",
+     "world-writable root"),
 )  # fmt: skip
 CODING_COMPILED = tuple((re.compile(p, re.IGNORECASE), why) for p, why in CODING_DENY_PATTERNS)
 
@@ -99,15 +124,28 @@ def code_denial(command: str, patterns: tuple[tuple[str, str], ...] | None = Non
     return None
 
 
-# A key named to authenticate (`scp -i ~/.ssh/k`, `-o IdentityFile=...`, rsync's `-e "ssh -i k"`)
-# is not a key sent anywhere: 52 of the first 58 coding-list denials on real commands were that.
-_IDENTITY = re.compile(
-    r"-i\s+\S+|IdentityFile[= ]\S+|-e\s+([\"']).*?\1|--rsh[= ]([\"']).*?\2", re.IGNORECASE
+# A key named to authenticate is not a key sent anywhere: 52 of the first 58 coding-list denials
+# on real commands were `scp -i ~/.ssh/k`. Only there: in curl `-i` shows headers and in rsync it
+# itemizes, so `curl -i -d @.env` must stay visible (adversarial review, 2026-09-30).
+_SSH_IDENTITY = re.compile(
+    r"(\b(ssh|scp|sftp)\b[^|;&\n]*?\s)(-i\s*\S+|-o\s*IdentityFile[= ]\S+)", re.IGNORECASE
 )
+# rsync's remote shell, when it is a plain `ssh ...` (no pipe, no substitution): its own `-i`.
+_RSYNC_SHELL = re.compile(r"(-e|--rsh[= ])\s*([\"'])\s*ssh\b[^\"'|;&`$]*\2", re.IGNORECASE)
+_NETRC_AUTH = re.compile(r"--netrc-file[= ]\S+", re.IGNORECASE)
+
+
+def _without_identity(command: str) -> str:
+    bare = _RSYNC_SHELL.sub(" -e SSH ", command)
+    bare = _NETRC_AUTH.sub(" ", bare)
+    previous = None
+    while previous != bare:  # every -i of a segment, not only the first
+        previous, bare = bare, _SSH_IDENTITY.sub(r"\1", bare)
+    return bare
 
 
 def coding_denial(command: str) -> str | None:
-    bare = _IDENTITY.sub(" ", command)
+    bare = _without_identity(command)
     for pattern, why in CODING_COMPILED:
         if pattern.search(bare):
             return why

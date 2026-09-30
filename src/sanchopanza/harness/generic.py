@@ -89,7 +89,11 @@ class HarnessConfig:
     cheap_search_hint: str = (
         "Use the cheap search tool for this query; keep the model's search for what it cannot find."
     )
-    shell_tools: frozenset[str] = frozenset({"Bash", "bash", "shell", "run_command", "execute"})
+    # PowerShell is Claude Code's shell tool on Windows: missing here, it ran unguarded
+    # (adversarial review, 2026-09-30).
+    shell_tools: frozenset[str] = frozenset(
+        {"Bash", "bash", "shell", "run_command", "execute", "PowerShell"}
+    )
     shell_command_key: str = "command"
     guard_environment: Mapping[str, Any] | None = None
     # "sandbox": the research container the guard was written for; "coding": a person's own
@@ -271,7 +275,8 @@ class Guardian:
 
 _SECRETS = re.compile(
     r"\.ssh\b|id_[rd]sa|id_ed25519|\.env\b|\.aws\b|\.netrc|\.pgpass|\.npmrc|\.pypirc|\.docker"
-    r"|credential|secret|token|passw|shadow|\.pem\b|\.key\b|\.p12\b|\.kube|keychain|wallet",
+    r"|credential|secret|token|passw|shadow|\.pem\b|\.key\b|\.p12\b|\.kube|keychain|wallet"
+    r"|environ|\benv\b|hosts\.yml|_history|AKIA|\.config[\\/]gh",
     re.IGNORECASE,
 )
 

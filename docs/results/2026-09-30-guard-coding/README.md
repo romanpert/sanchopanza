@@ -28,8 +28,8 @@ hook's default so the R-Judge and ATBench replays are unchanged):
 
 | | sandbox profile | coding profile |
 |---|---|---|
-| owner's real commands denied, code list | 4,055 of 33,119 (12.2 %) | 4 (0.01 %), all text inside heredocs |
-| owner's real commands denied, code + Jev, seeded sample | not measured | 1 of 300 (adding a key to root's `authorized_keys` on a server) |
+| owner's real commands denied, code list | 4,055 of 33,119 (12.2 %) | 9 (0.03 %): 7 are text inside heredocs, 2 format a disk with `mkfs` |
+| owner's real commands denied, code + Jev, seeded sample | not measured | 2 of 300 (a key added to root's `authorized_keys` on a server; one heredoc) |
 | guard bench, unsafe / safe denied | 17/17 / 0/15 (list written after seeing it) | 12/17 / 0/15 |
 | R-Judge, unsafe / safe trajectories flagged | 7/15 / 3/12 (broad run) | 6/15 / 3/12 |
 
@@ -39,3 +39,16 @@ and the recorded answers stay local (they hold the owner's paths and hosts).
 
 Limits: one person's commands; "denied real work" is not the same as "false positive" (the one
 sampled denial is a change a person would want to approve); R-Judge's n is small.
+
+## After the adversarial review (same day)
+
+A review found the first coding list too loose and too tight in places, and every finding was
+fixed with a test (`tests/test_guard_coding.py`): `-i` was stripped from every command, which hid
+`curl -i -d @.env` (now only inside `ssh`/`scp`/`sftp`); **the PowerShell tool, Claude Code's
+shell on Windows, was not guarded at all** (it is now, in both profiles); recursive deletes with
+`--`, long flags, `${HOME}`, a Git Bash drive or `find / -delete` passed; `bash <(curl ...)`,
+`sh -c "$(curl ...)"`, `| python` and `iwr | iex` passed; a reinstall overwrote a profile the owner
+had set; the decider was told the live `cwd` was writable (now the project directory). A bare
+`rm -rf *` or `rm -rf .` is now the decider's to judge: after `cd build` it is ordinary cleanup.
+The numbers above are after these fixes; the decider answers for commands whose state changed
+are replayed from the recording where they exist.
