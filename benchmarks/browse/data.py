@@ -2,6 +2,8 @@
 
 python benchmarks/browse/data.py            # fetch the registered sample (free, network)
 python benchmarks/browse/data.py --confirm  # the confirmation sample: half a step further on
+python benchmarks/browse/data.py --hints [--confirm]  # the same steps, unnamed elements described
+                                                     # (Phase 1d: steps[-confirm]-hints.jsonl)
 
 Source: osunlp/Multimodal-Mind2Web through the Hugging Face datasets server (rows API, no
 screenshots kept). The sample is fixed before any model sees it: `PER_SPLIT` steps from each of
@@ -74,10 +76,13 @@ def node_id(candidate: str) -> str:
     return str(json.loads(candidate)["backend_node_id"])
 
 
-def compact(row: dict[str, Any], split: str) -> dict[str, Any] | None:
+def compact(
+    row: dict[str, Any], split: str, *, describe_unnamed: bool = False
+) -> dict[str, Any] | None:
     positives = {node_id(c) for c in row["pos_candidates"]}
     candidates = positives | {node_id(c) for c in row["neg_candidates"]}
-    elements = [e for e in elements_from_html(row["cleaned_html"]) if e.key in candidates]
+    read = elements_from_html(row["cleaned_html"], describe_unnamed=describe_unnamed)
+    elements = [e for e in read if e.key in candidates]
     found = {e.key for e in elements}
     if not positives & found:
         return None  # the positive is not in the cleaned HTML: nothing to rank
@@ -101,10 +106,33 @@ def main() -> int:
 
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--confirm", action="store_true")
+    ap.add_argument("--hints", action="store_true", help="re-read the same steps, described")
     args = ap.parse_args()
     out = CONFIRM if args.confirm else OUT
     shift = 0.5 if args.confirm else 0.0
+    if args.hints:
+        return refetch_described(out, shift)
     return fetch_all(out, shift)
+
+
+def refetch_described(source: pathlib.Path, shift: float) -> int:
+    """The steps already in `source`, read again with `describe_unnamed` (Phase 1d)."""
+    wanted = {json.loads(x)["id"] for x in source.read_text(encoding="utf-8").splitlines() if x}
+    out = source.with_name(source.stem + "-hints.jsonl")
+    kept = 0
+    with out.open("w", encoding="utf-8") as sink:
+        for split, total in SPLITS.items():
+            for offset in offsets(total, PER_SPLIT, shift=shift):
+                row = fetch(split, offset, 1)[0]
+                if row["action_uid"] not in wanted:
+                    continue
+                record = compact(row, split, describe_unnamed=True)
+                if record is not None:
+                    sink.write(json.dumps(record, ensure_ascii=False) + "\n")
+                    sink.flush()
+                    kept += 1
+    print(f"kept {kept} of {len(wanted)}; file {out}", file=sys.stderr)
+    return 0 if kept == len(wanted) else 1
 
 
 def fetch_all(out_path: pathlib.Path, shift: float) -> int:

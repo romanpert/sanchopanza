@@ -228,12 +228,19 @@ def _unnamed_hints(record: Mapping[str, Any], records: Sequence[Mapping[str, Any
     return hints
 
 
-def elements_from_html(html: str, *, all_with_ids: bool | None = None) -> list[Element]:
+def elements_from_html(
+    html: str, *, all_with_ids: bool | None = None, describe_unnamed: bool = False
+) -> list[Element]:
     """Every element of an HTML page an agent could act on, in document order.
 
     With `backend_node_id` attributes in the page (Mind2Web's cleaned HTML, a CDP dump) every
     element carrying one is read, because the page's own candidate list decides what counts;
     otherwise the interactive ones (links, buttons, fields, ARIA widgets, click handlers).
+
+    `describe_unnamed` adds, to an element with no name, what its classes say and the element
+    holding it. Opt-in: on 142 new Mind2Web steps (Phase 1d, registered) it lifted the targets
+    it described (5 of 6 up or level) but Jev's R@20 moved -1.4 points [-3.5, 0.0], past the
+    registered -3 bound, on steps it did not touch.
     """
     if all_with_ids is None:
         all_with_ids = "backend_node_id=" in html
@@ -245,7 +252,7 @@ def elements_from_html(html: str, *, all_with_ids: bool | None = None) -> list[E
         attrs = record["attrs"]
         name = " ".join(str(record["text"]).split())
         shown = [f"{k}={attrs[k]}" for k in _ATTRS_SHOWN if attrs.get(k) and attrs[k] not in name]
-        hints = [] if name else _unnamed_hints(record, parser.records)
+        hints = _unnamed_hints(record, parser.records) if describe_unnamed and not name else []
         context = "; ".join(
             part for part in (f"under {record['under']}" if record["under"] else "",
                               " ".join(shown), *hints) if part

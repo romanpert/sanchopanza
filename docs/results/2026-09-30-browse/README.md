@@ -208,6 +208,27 @@ R@20 85.8 %, R@30 90.5 %. Chosen on the data it scored, so it claimed nothing; i
 sample. Reading the 25 first misses: unnamed text fields, `div`s holding a whole paragraph, SVG
 icons, and targets named differently from the task's words.
 
+## Phase 1d: registered, failed at 20, opt-in (`prereg-hints.md`, `hints-jev-confirm.json`)
+
+Five of the 23 development targets Jev ranked below 20 (`misses.py`) were unnamed SVG icons whose
+classes said what they do (`add-wishlist-new__icon`; `save-icon-favorite` inside a "Save"
+button). `elements_from_html(..., describe_unnamed=True)` adds, to an element with no name, the
+useful words of its classes and the name of the element holding it. Development (169 seen steps,
+0.42 USD of Jev): R@10 +3.0 [0.0, +5.9], R@20 +0.6; the wishlist and Save icons went from
+outside the top 50 to 1st and 2nd. Confirmation on the 142 Phase 1c steps (0.36 USD of Jev):
+
+| Arm | R@1 | R@10 | R@20 |
+|---|---|---|---|
+| BEFORE (Phase 1c) | 42.3 % | 82.4 % | 89.4 % |
+| DESCRIBED | 45.1 % | 83.8 % | 88.0 % |
+
+R@10 +1.4 [-1.4, +4.2] passes; **R@20 -1.4 [-3.5, 0.0] fails** the registered -3 bound, so the
+description stays opt-in. Where it described the target (6 steps) it lifted or kept 5 (the
+unnamed "$ Max" field of Phase 2c's Amy Grant step went from 6th to 1st); the two steps that fell
+out of the top 20 (20th to 23rd, 19th to 26th) were ones whose target it did not touch: Jev asked
+again about a group where another line changed, which is noise this design cannot separate from
+the change. A cleaner test would hold every unchanged call fixed, and is not run.
+
 ## Phase 1c: registered, confirmed (`prereg-confirm.md`, `analysis-confirm.json`)
 
 142 new steps: half a step on from Phase 1's offsets, dropping 28 rows whose task was already in

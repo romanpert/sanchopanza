@@ -1,0 +1,37 @@
+{
+ "steps": 142,
+ "dev": false,
+ "BEFORE": {
+  "recall@1": 0.4225,
+  "recall@5": 0.7535,
+  "recall@10": 0.8239,
+  "recall@20": 0.8944,
+  "recall@30": 0.9155,
+  "usd_per_step": 0.006468
+ },
+ "HINTS": {
+  "recall@1": 0.4507,
+  "recall@5": 0.7606,
+  "recall@10": 0.838,
+  "recall@20": 0.8803,
+  "recall@30": 0.9085,
+  "usd_per_step": 0.006483
+ },
+ "HINTS-minus-BEFORE@10": {
+  "value": 0.0141,
+  "bootstrap95": [
+   -0.0141,
+   0.0423
+  ]
+ },
+ "HINTS-minus-BEFORE@20": {
+  "value": -0.0141,
+  "bootstrap95": [
+   -0.0352,
+   0.0
+  ]
+ },
+ "live_calls": 1043,
+ "missing": 0,
+ "jev_usd_spent": 0.358
+}

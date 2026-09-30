@@ -91,14 +91,16 @@ def test_an_unnamed_element_is_described_by_its_classes_and_what_holds_it():
         "</svg></button>"
         '<a backend_node_id="6" class="nav-link">Home</a>'
     )
-    els = {e.key: e for e in elements_from_html(html)}
+    assert not any("looks like" in e.context for e in elements_from_html(html)), "opt-in"
+    els = {e.key: e for e in elements_from_html(html, describe_unnamed=True)}
     assert "looks like: add wishlist" in els["2"].context
     assert "looks like: save favorite" in els["5"].context
     assert 'inside button "Save"' in els["5"].context
     assert "jsx" not in els["5"].context and "mntl" not in els["5"].context
     assert "looks like" not in els["6"].context, "a named element is left as it was"
     camel = elements_from_html(
-        '<div backend_node_id="1"><i backend_node_id="2" class="shareButtonIcon"/></div>'
+        '<div backend_node_id="1"><i backend_node_id="2" class="shareButtonIcon"/></div>',
+        describe_unnamed=True,
     )
     assert "looks like: share" in camel[1].context
 
