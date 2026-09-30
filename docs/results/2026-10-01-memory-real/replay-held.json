@@ -1,0 +1,104 @@
+{
+ "v3 touch (hook code)": {
+  "all/lineage": {
+   "requests": 1490,
+   "with_related": 57,
+   "recall": 0.737,
+   "precision": 0.1,
+   "noise": 0.061,
+   "shown_per_request": 0.23
+  },
+  "all/any": {
+   "requests": 1490,
+   "with_related": 180,
+   "recall": 0.944,
+   "precision": 0.581,
+   "noise": 0.031,
+   "shown_per_request": 0.23
+  },
+  "first/lineage": {
+   "requests": 128,
+   "with_related": 16,
+   "recall": 0.688,
+   "precision": 0.12,
+   "noise": 0.277,
+   "shown_per_request": 1.23
+  },
+  "first/any": {
+   "requests": 128,
+   "with_related": 35,
+   "recall": 0.914,
+   "precision": 0.627,
+   "noise": 0.129,
+   "shown_per_request": 1.23
+  }
+ },
+ "v3 prompt, first request": {
+  "all/lineage": {
+   "requests": 1490,
+   "with_related": 57,
+   "recall": 0.158,
+   "precision": 0.25,
+   "noise": 0.008,
+   "shown_per_request": 0.02
+  },
+  "all/any": {
+   "requests": 1490,
+   "with_related": 180,
+   "recall": 0.189,
+   "precision": 0.429,
+   "noise": 0.005,
+   "shown_per_request": 0.02
+  },
+  "first/lineage": {
+   "requests": 128,
+   "with_related": 16,
+   "recall": 0.438,
+   "precision": 0.25,
+   "noise": 0.098,
+   "shown_per_request": 0.22
+  },
+  "first/any": {
+   "requests": 128,
+   "with_related": 35,
+   "recall": 0.314,
+   "precision": 0.429,
+   "noise": 0.065,
+   "shown_per_request": 0.22
+  }
+ },
+ "v3 shipped (touch + first-request prompt)": {
+  "all/lineage": {
+   "requests": 1490,
+   "with_related": 57,
+   "recall": 0.754,
+   "precision": 0.099,
+   "noise": 0.064,
+   "shown_per_request": 0.24
+  },
+  "all/any": {
+   "requests": 1490,
+   "with_related": 180,
+   "recall": 0.95,
+   "precision": 0.559,
+   "noise": 0.034,
+   "shown_per_request": 0.24
+  },
+  "first/lineage": {
+   "requests": 128,
+   "with_related": 16,
+   "recall": 0.75,
+   "precision": 0.116,
+   "noise": 0.312,
+   "shown_per_request": 1.35
+  },
+  "first/any": {
+   "requests": 128,
+   "with_related": 35,
+   "recall": 0.943,
+   "precision": 0.578,
+   "noise": 0.172,
+   "shown_per_request": 1.35
+  }
+ }
+}

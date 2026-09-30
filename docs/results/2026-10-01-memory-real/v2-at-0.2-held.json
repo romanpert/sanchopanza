@@ -1,0 +1,34 @@
+{
+ "all/lineage": {
+  "requests": 1490,
+  "with_related": 57,
+  "recall": 0.544,
+  "precision": 0.019,
+  "noise": 0.282,
+  "shown_per_request": 0.67
+ },
+ "all/any": {
+  "requests": 1490,
+  "with_related": 180,
+  "recall": 0.622,
+  "precision": 0.066,
+  "noise": 0.263,
+  "shown_per_request": 0.67
+ },
+ "first/lineage": {
+  "requests": 128,
+  "with_related": 16,
+  "recall": 0.75,
+  "precision": 0.071,
+  "noise": 0.607,
+  "shown_per_request": 1.43
+ },
+ "first/any": {
+  "requests": 128,
+  "with_related": 35,
+  "recall": 0.714,
+  "precision": 0.18,
+  "noise": 0.559,
+  "shown_per_request": 1.43
+ }
+}

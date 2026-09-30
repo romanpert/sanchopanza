@@ -1,0 +1,39 @@
+{
+ "groups": 13,
+ "requests": 197,
+ "with_related_any": 48,
+ "v3 touch (hook code)": {
+  "all/lineage": {
+   "requests": 197,
+   "with_related": 26,
+   "recall": 0.885,
+   "precision": 0.25,
+   "noise": 0.082,
+   "shown_per_request": 0.41
+  },
+  "all/any": {
+   "requests": 197,
+   "with_related": 48,
+   "recall": 0.958,
+   "precision": 0.938,
+   "noise": 0.0,
+   "shown_per_request": 0.41
+  },
+  "first/lineage": {
+   "requests": 57,
+   "with_related": 10,
+   "recall": 0.8,
+   "precision": 0.222,
+   "noise": 0.085,
+   "shown_per_request": 0.79
+  },
+  "first/any": {
+   "requests": 57,
+   "with_related": 14,
+   "recall": 0.929,
+   "precision": 0.889,
+   "noise": 0.0,
+   "shown_per_request": 0.79
+  }
+ }
+}
