@@ -98,3 +98,35 @@ Not adopted, measured on development (`variants-v4b-dev.json`): a floor of two l
 the newest record at a Read that shows none of its lines, at a partial Read, and the edit
 fallback once per file each lowered precision or recall. Latency is the same as v3's on the
 same machine state (a 2,000-line Read hashes in a few milliseconds; the process start dominates).
+
+## v5: the name gate at a first prompt (confirmed on a third fresh set)
+
+At a session's first prompt, with a decider, a record that changed files enters only if the
+prompt names one of them (base name, or a stem of four or more characters); a record that
+changed nothing is judged as in v4.1, since the labels cannot credit it. The decider is not
+asked when no candidate could enter. Designed on the three sets already seen, reviewed
+adversarially first (the first version removed change-less records by construction, missed
+names before a full stop and in CJK or Korean text, and was measured on prompts cut to 1,000
+characters; all fixed), confirmed on `selection-3.json` (amendment 3, sealed before building):
+101 groups nobody had scored, 82 of them runs of sessions outside the windows of used groups
+(the same people and repositories as seen data) and 19 groups of two sessions.
+
+| third set (3,127 requests, 531 with a related record) | recall | precision | noise | first-request noise | decider calls |
+|---|---|---|---|---|---|
+| v4.1 | 0.979 | 0.749 | 0.034 | 0.142 | 265 |
+| **v5** | **0.979** | **0.758** | **0.031** | **0.118** | **223** |
+| touch alone (no recall at a prompt) | 0.979 | 0.763 | 0.031 | 0.114 | 0 |
+
+All four criteria met. `lineage` only: recall 0.862 in both, precision 0.148 -> 0.149. Decider
+spend 0.012 USD.
+
+**What the numbers also say:** the decider at a first prompt recovered no request here, none on
+either earlier held-out set and one on development (about 8,700 requests in all): the touch
+finds the same records. The metric does not credit a record that arrives before the agent
+opens the file, which is the only place recall at a prompt could pay. Whether to turn it off by
+default is left open: it is already off without a decider, which is how most people run it.
+
+Measured along the way, not acted on: a record's text is a median 1,450 characters (35 % of it
+recorded command output) and the touch injects 448 characters per request, so compacting it
+cannot pay in cost; 12.8 % of SWE-chat sessions compact at least once (195 compactions in 719),
+and no pass so far simulates a compaction.

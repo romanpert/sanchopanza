@@ -1,0 +1,155 @@
+{
+ "requests": 3127,
+ "rows": {
+  "v5": {
+   "all/lineage": {
+    "requests": 3127,
+    "with_related": 188,
+    "recall": 0.862,
+    "precision": 0.149,
+    "noise": 0.08,
+    "shown_per_request": 0.27
+   },
+   "all/any": {
+    "requests": 3127,
+    "with_related": 531,
+    "recall": 0.979,
+    "precision": 0.758,
+    "noise": 0.031,
+    "shown_per_request": 0.27
+   },
+   "first/lineage": {
+    "requests": 328,
+    "with_related": 23,
+    "recall": 1.0,
+    "precision": 0.135,
+    "noise": 0.266,
+    "shown_per_request": 0.77
+   },
+   "first/any": {
+    "requests": 328,
+    "with_related": 74,
+    "recall": 1.0,
+    "precision": 0.679,
+    "noise": 0.118,
+    "shown_per_request": 0.77
+   },
+   "decider_calls": 223,
+   "no_cached_answer": 0,
+   "prompt_records": 14,
+   "by_kind": {
+    "outside-window": {
+     "requests": 2853,
+     "with_related": 507,
+     "recall": 0.978,
+     "precision": 0.758,
+     "noise": 0.033,
+     "shown_per_request": 0.29
+    },
+    "two-sessions": {
+     "requests": 274,
+     "with_related": 24,
+     "recall": 1.0,
+     "precision": 0.769,
+     "noise": 0.016,
+     "shown_per_request": 0.09
+    }
+   }
+  },
+  "v4.1": {
+   "all/lineage": {
+    "requests": 3127,
+    "with_related": 188,
+    "recall": 0.862,
+    "precision": 0.148,
+    "noise": 0.082,
+    "shown_per_request": 0.27
+   },
+   "all/any": {
+    "requests": 3127,
+    "with_related": 531,
+    "recall": 0.979,
+    "precision": 0.749,
+    "noise": 0.034,
+    "shown_per_request": 0.27
+   },
+   "first/lineage": {
+    "requests": 328,
+    "with_related": 23,
+    "recall": 1.0,
+    "precision": 0.13,
+    "noise": 0.285,
+    "shown_per_request": 0.8
+   },
+   "first/any": {
+    "requests": 328,
+    "with_related": 74,
+    "recall": 1.0,
+    "precision": 0.653,
+    "noise": 0.142,
+    "shown_per_request": 0.8
+   },
+   "decider_calls": 265,
+   "no_cached_answer": 0,
+   "prompt_records": 25,
+   "by_kind": {
+    "outside-window": {
+     "requests": 2853,
+     "with_related": 507,
+     "recall": 0.978,
+     "precision": 0.75,
+     "noise": 0.035,
+     "shown_per_request": 0.29
+    },
+    "two-sessions": {
+     "requests": 274,
+     "with_related": 24,
+     "recall": 1.0,
+     "precision": 0.741,
+     "noise": 0.02,
+     "shown_per_request": 0.1
+    }
+   }
+  },
+  "touch alone": {
+   "all/lineage": {
+    "requests": 3127,
+    "with_related": 188,
+    "recall": 0.862,
+    "precision": 0.151,
+    "noise": 0.08,
+    "shown_per_request": 0.27
+   },
+   "all/any": {
+    "requests": 3127,
+    "with_related": 531,
+    "recall": 0.979,
+    "precision": 0.763,
+    "noise": 0.031,
+    "shown_per_request": 0.27
+   },
+   "first/lineage": {
+    "requests": 328,
+    "with_related": 23,
+    "recall": 1.0,
+    "precision": 0.139,
+    "noise": 0.262,
+    "shown_per_request": 0.74
+   },
+   "first/any": {
+    "requests": 328,
+    "with_related": 74,
+    "recall": 1.0,
+    "precision": 0.693,
+    "noise": 0.114,
+    "shown_per_request": 0.74
+   }
+  }
+ },
+ "verdicts": {
+  "1 first requests not worse, better in one": true,
+  "2 recall within 0.005 of v4.1": true,
+  "3 precision not below, noise not above v4.1": true,
+  "4 recall >= 0.80, precision >= 0.50, noise <= 0.10": true
+ }
+}
