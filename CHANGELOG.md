@@ -18,7 +18,9 @@ do not favour this package.
     it sees none, and at an edit the one whose lines it edits, else the newest. On SWE-chat
     development against v3 (the two newest per file): precision 0.603 to 0.730, recall 0.944
     unchanged, noise 0.049 to 0.038, 13 % fewer characters. The decider's cut at a session's
-    first request moves from 0.7 to 0.8 (same recall, higher precision).
+    first request moves from 0.7 to 0.8 (same recall, higher precision). After a review: prints
+    per file, words only (a formatter's quotes and commas do not count), no imports, decorators,
+    secret-like lines or failed edits, and a line belongs to its newest writer.
   - **Measured on real people's sessions** (SWE-chat: 60 groups of one person on one public
     repository, sealed; `docs/results/2026-10-01-memory-real`): on the held-out half, 95.0 % of
     requests with a related earlier record had one in view, 55.9 % of what was given was

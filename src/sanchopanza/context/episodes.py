@@ -33,6 +33,7 @@ import hashlib
 import json
 import os
 import re
+import sys
 import tempfile
 import time
 from collections.abc import Iterable, Iterator, Mapping, Sequence
@@ -58,10 +59,13 @@ KEEP_DAYS = 30  # records older than this are removed when a project's records a
 # key -> {"changed", "at"} of every record in a project's folder: the touch reads this one file
 # (300 record files took 0.75-3.2 s to load cold on Windows, 2026-10-01).
 INDEX = "index.json"
-# v4: a record keeps prints of the lines its request wrote (16+ characters, at most WROTE_MAX),
-# never shown, so that a later Read or Edit can say whose code it is looking at.
+# v4: a record keeps, per file, prints of the lines its request wrote (16+ characters, the last
+# WROTE_MAX per file), never shown, so that a later Read or Edit can say whose code it is at.
 LINE_MIN = 16
-WROTE_MAX = 400
+WROTE_MAX = 200
+COMMON = re.compile(r"^(import |from \S+ import |#include|using |require\(|package |@\w|"
+                    r"export \* from|const \w+ = require\()")  # fmt: skip
+_WORDS = re.compile(r"\w+")
 
 # How `guard.trail_of` names its lines.
 CHANGED = "changed: "
@@ -105,8 +109,8 @@ class Episode:
     # The changed paths before secret masking, for the index only (never shown): the mask's
     # `sk-...` rule rewrites folder names such as `task-management-service` (review, 2026-10-01).
     changed_raw: tuple[str, ...] = ()
-    # Prints of the lines this request wrote (`line_print`); None for a record saved before v4.
-    wrote: tuple[str, ...] | None = None
+    # Per file, prints of the lines this request wrote (`line_print`); None before v4.
+    wrote: tuple[tuple[str, tuple[str, ...]], ...] | None = None
 
     @property
     def key(self) -> str:
@@ -125,6 +129,10 @@ class Episode:
         request = truncate(self.request, max(80, room // 2 - 6))
         report = truncate(self.report, max(80, room - len(request) - 6))
         return f"{head}{request}\nOutcome: {report}"[:PAGE_CHARS]
+
+    def prints_for(self, path: str) -> set[str]:
+        """Prints of the lines this request wrote in `path` (empty before v4 or elsewhere)."""
+        return {p for rel, prints in self.wrote or () if same_path(rel, path) for p in prints}
 
     def search(self) -> str:
         """What BM25 scores: everything, file paths included."""
@@ -152,7 +160,7 @@ class Episode:
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> Episode:
         tuples = ("changed", "read", "facts", "changed_raw")
-        data = {**data, "wrote": tuple(data["wrote"])} if data.get("wrote") is not None else data
+        data = {**data, "wrote": _prints_from(data.get("wrote"))}
         fields = {k: (tuple(v) if k in tuples else v) for k, v in data.items()
                   if k in cls.__dataclass_fields__}  # fmt: skip
         return cls(**fields)
@@ -266,41 +274,85 @@ def relative(path: str, cwd: str) -> str:
 
 
 def line_print(line: str) -> str:
-    """One line's print: its words joined by single spaces, hashed (the text is not kept)."""
-    return hashlib.sha1(" ".join(line.split()).encode("utf-8")).hexdigest()[:12]
+    """One line's print: its words only, joined by single spaces, hashed (the text is not kept).
+    Quotes, commas, brackets and spacing, which formatters rewrite after an edit, do not count."""
+    return hashlib.sha1(" ".join(_WORDS.findall(line)).encode("utf-8")).hexdigest()[:12]
+
+
+def _counts(raw: str) -> str:
+    """The line collapsed, or "" when it cannot tell code apart: shorter than LINE_MIN, no word,
+    an import or a decorator (in every file of a project), or a line holding a secret (the
+    mask changes it: its print could be checked against a dictionary offline)."""
+    line = " ".join(raw.split())
+    if len(line) < LINE_MIN or not any(c.isalnum() for c in line) or COMMON.match(line):
+        return ""
+    return line if mask(line) == line else ""
+
+
+def _ordered_prints(text: Any) -> list[str]:
+    if not isinstance(text, str):
+        return []
+    return list(dict.fromkeys(line_print(x) for raw in text.split("\n") if (x := _counts(raw))))
 
 
 def line_prints(text: Any) -> set[str]:
-    """Prints of the lines of `text` long enough to tell code apart (`}` or `return None` are in
-    every file and would join unrelated requests)."""
-    if not isinstance(text, str):
-        return set()
-    out = set()
-    for raw in text.split("\n"):
-        line = " ".join(raw.split())
-        if len(line) >= LINE_MIN and any(c.isalnum() for c in line):
-            out.add(line_print(line))
-    return out
+    """Prints of the lines of `text` that can tell code apart (see `_counts`)."""
+    return set(_ordered_prints(text))
 
 
-def _wrote(history: Sequence[Any]) -> tuple[str, ...]:
-    """Prints of the lines the request's edits really added (context lines of an `old_string`
-    excluded)."""
-    added: list[str] = []
+_NUMBERED = re.compile(r"^\s*\d+[\u2192\t]", re.M)
+
+
+def _wrote(history: Sequence[Any], cwd: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Per file, prints of the lines the request's successful edits left added, in the order
+    written: a line the request later took out goes again, and a Write over a file the request
+    had read counts only the lines that read did not show (review of v4, 2026-10-01). The last
+    WROTE_MAX lines per file are kept."""
+    per: dict[str, list[str]] = {}
+    last_read: dict[str, str] = {}
     for call in history:
         data = call.input if isinstance(call.input, Mapping) else {}
+        path = data.get("file_path")
+        if not isinstance(path, str) or call.is_error:
+            continue
+        rel = _relative(path, cwd)
+        if call.tool == "Read":
+            last_read[rel] = _NUMBERED.sub("", call.result)
+            continue
         if call.tool == "Edit":
             pairs = [(data.get("old_string"), data.get("new_string"))]
         elif call.tool == "MultiEdit":
             pairs = [(e.get("old_string"), e.get("new_string"))
                      for e in data.get("edits") or [] if isinstance(e, Mapping)]  # fmt: skip
         elif call.tool == "Write":
-            pairs = [("", data.get("content"))]
+            pairs = [(last_read.get(rel, ""), data.get("content"))]
         else:
             continue
         for old, new in pairs:
-            added.extend(sorted(line_prints(new) - line_prints(old)))
-    return tuple(dict.fromkeys(added))[:WROTE_MAX]
+            before, after = set(_ordered_prints(old)), _ordered_prints(new)
+            kept = [p for p in per.get(rel, []) if p not in before - set(after)]
+            per[rel] = kept + [p for p in after if p not in before and p not in kept]
+    return tuple((rel, tuple(prints[-WROTE_MAX:])) for rel, prints in per.items() if prints)
+
+
+def _prints_from(value: Any) -> tuple[tuple[str, tuple[str, ...]], ...] | None:
+    """Stored prints back, or None (treated as a record saved before v4) when malformed."""
+    if not isinstance(value, list | tuple):
+        return None
+    out = []
+    for pair in value:
+        if not (isinstance(pair, list | tuple) and len(pair) == 2 and isinstance(pair[0], str)
+                and isinstance(pair[1], list | tuple)
+                and all(isinstance(p, str) for p in pair[1])):  # fmt: skip
+            return None
+        out.append((pair[0], tuple(pair[1])))
+    return tuple(out)
+
+
+def same_path(a: str, b: str) -> bool:
+    fold = os.name == "nt" or sys.platform == "darwin"
+    x, y = a.replace("\\", "/"), b.replace("\\", "/")
+    return x.casefold() == y.casefold() if fold else x == y
 
 
 def _relative(path: str, cwd: str) -> str:
@@ -360,7 +412,7 @@ def episode_of(
     return Episode(
         session=session, index=index, request=request, report=report,
         changed=tuple(changed[:FILES_MAX]), changed_raw=tuple(raw[:FILES_MAX]),
-        wrote=_wrote(history),
+        wrote=_wrote(history, cwd),
         read=tuple(p for p in read if p not in changed)[:FILES_MAX], tests=tests,
         facts=tuple(f"{f.source}: {f.line}" for f in chosen), tool_calls=len(history), at=at,
     )  # fmt: skip

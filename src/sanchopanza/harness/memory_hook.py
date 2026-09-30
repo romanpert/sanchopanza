@@ -25,7 +25,7 @@ and not already given to this session since its last compaction.
 Measured on real people's sessions (SWE-chat, 60 groups of one person on one public
 repository, 953 development requests, docs/results/2026-10-01-memory-real), the shipped hook
 replayed through this code: 94 % of the requests with a related earlier record had one in view,
-73 % of what was given was related, and 3.8 % of the requests with nothing related were given
+73 % of what was given was related, and 3.7 % of the requests with nothing related were given
 anything (v3, the two newest records per file: 94 %, 60 %, 4.9 %; v2, recall at every prompt
 with the decider at 0.2: 25 %, 2.6 %, 39 %).
 
@@ -104,6 +104,9 @@ TOUCH_TOOLS = ("Read", "Edit", "MultiEdit", "Write", "NotebookEdit")
 # else the newest. Against v3 (the two newest): precision 0.643 -> 0.766 (lineage 0.150 ->
 # 0.188), recall unchanged (0.932), 13 % fewer characters.
 TOUCH_K = 1
+# Records opened per touch: the newest that changed the file. A file changed by 300 requests
+# made a touch 0.40 s (opening every record); the pools measured on SWE-chat never exceed 50.
+TOUCH_LOAD = 30
 TOUCH_HEADER = (
     "[sanchopanza memory, earlier work on {path}: verbatim records of earlier requests in this "
     "project that changed this file, written by code from the transcripts, oldest first]"
@@ -488,17 +491,19 @@ def touch(event: Mapping[str, Any]) -> dict[str, Any]:
     store = store_for(event)
     state = _state(store, session)
     wanted = _wanted(raw, str(event.get("cwd") or ""), str(state.get("cwd") or ""))
-    keys = [k for k, v in ep.index_of(store).items()
-            if wanted & {_norm(str(c)) for c in v.get("changed") or []}]  # fmt: skip
-    if not keys:
+    found = [(float(v.get("at") or 0.0), k) for k, v in ep.index_of(store).items()
+             if wanted & {_norm(str(c)) for c in v.get("changed") or []}]  # fmt: skip
+    if not found:
         return {}
+    keys = [k for _, k in sorted(found, reverse=True)[:TOUCH_LOAD]]
     shown_as = ep.relative(raw, str(state.get("cwd") or event.get("cwd") or ""))
     with ep.locked(_shown_path(store, session)):  # parallel tool calls: one gives, others see it
         boundaries, live = live_at_last_prompt(store, session)
         shown = shown_since_compaction(store, session, boundaries)
-        matching = pool_of(ep.load_keys(store, keys), session, live, shown)
+        loaded = ep.load_keys(store, keys)
+        matching = pool_of(loaded, session, live, shown)
         chosen = choose_touched(matching, str(event.get("tool_name")), seen_prints(event),
-                                _int("MEMORY_TOUCH_K", TOUCH_K))  # fmt: skip
+                                _int("MEMORY_TOUCH_K", TOUCH_K), wanted, loaded)  # fmt: skip
         text, given = render_touch(chosen, shown_as, _int("MEMORY_CHARS", CHARS))
         if text:
             with contextlib.suppress(OSError):
@@ -530,15 +535,27 @@ def seen_prints(event: Mapping[str, Any]) -> set[str]:
 
 
 def choose_touched(
-    matching: Sequence[ep.Episode], tool: str, seen: set[str], k: int = TOUCH_K
-) -> list[ep.Episode]:
-    """The records whose written lines are in view, most first (newest on a tie). With none in
-    view: at an edit, the newest; at a Read, only records saved before v4 (no prints), newest."""
+    matching: Sequence[ep.Episode], tool: str, seen: set[str], k: int = TOUCH_K,
+    wanted: set[str] | None = None, writers: Sequence[ep.Episode] = (),
+) -> list[ep.Episode]:  # fmt: skip
+    """The records whose written lines in this file are in view, most first (newest on a tie).
+    A line belongs to the newest record that wrote it among `writers` (every record of the
+    file, given or not): a request that rewrote a file takes over the lines it rewrote. With
+    none in view: at an edit, the newest; at a Read, only records saved before v4, newest."""
     def newest(pool: Sequence[ep.Episode]) -> list[ep.Episode]:
         return sorted(pool, key=lambda e: (-e.at, e.session, -e.index))
 
-    overlap = {e.key: len(seen & set(e.wrote)) for e in matching if e.wrote is not None}
-    hits = [e for e in matching if overlap.get(e.key, 0) > 0]
+    def lines(e: ep.Episode) -> set[str]:
+        paths = wanted if wanted else {rel for rel, _ in e.wrote or ()}
+        return {p for rel, prints in e.wrote or () if _norm(rel) in {_norm(x) for x in paths}
+                for p in prints} & seen  # fmt: skip
+
+    owner: dict[str, str] = {}
+    for e in sorted({*writers, *matching}, key=lambda e: (e.at, e.session, e.index)):
+        for p in lines(e):
+            owner[p] = e.key
+    overlap = {e.key: sum(1 for o in owner.values() if o == e.key) for e in matching}
+    hits = [e for e in matching if e.wrote is not None and overlap[e.key] > 0]
     if hits:
         return sorted(newest(hits), key=lambda e: -overlap[e.key])[:k]
     if tool != "Read":

@@ -1,0 +1,71 @@
+{
+ "v4.1 touch (hook code)": {
+  "all/lineage": {
+   "requests": 953,
+   "with_related": 60,
+   "recall": 0.767,
+   "precision": 0.188,
+   "noise": 0.078,
+   "shown_per_request": 0.2
+  },
+  "all/any": {
+   "requests": 953,
+   "with_related": 161,
+   "recall": 0.932,
+   "precision": 0.77,
+   "noise": 0.032,
+   "shown_per_request": 0.2
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.739,
+   "precision": 0.258,
+   "noise": 0.241,
+   "shown_per_request": 0.71
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 37,
+   "recall": 0.838,
+   "precision": 0.742,
+   "noise": 0.128,
+   "shown_per_request": 0.71
+  },
+  "chars_per_request": 448
+ },
+ "v4.1 shipped (touch + first-request prompt)": {
+  "all/lineage": {
+   "requests": 953,
+   "with_related": 60,
+   "recall": 0.8,
+   "precision": 0.187,
+   "noise": 0.083,
+   "shown_per_request": 0.21
+  },
+  "all/any": {
+   "requests": 953,
+   "with_related": 161,
+   "recall": 0.944,
+   "precision": 0.734,
+   "noise": 0.037,
+   "shown_per_request": 0.21
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.826,
+   "precision": 0.248,
+   "noise": 0.278,
+   "shown_per_request": 0.8
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 37,
+   "recall": 0.892,
+   "precision": 0.676,
+   "noise": 0.17,
+   "shown_per_request": 0.8
+  }
+ }
+}

@@ -480,20 +480,110 @@ def test_v4_an_edit_of_an_earlier_line_gives_the_record_that_wrote_it(store: Pat
     assert "session old1" in context and "old2" not in context
 
 
-def test_v4_a_record_keeps_prints_of_the_lines_it_wrote_and_never_shows_them() -> None:
+def failed(name: str, arguments: Mapping[str, Any], n: int) -> list[dict[str, Any]]:
+    use = {"type": "tool_use", "id": f"t{n}", "name": name, "input": dict(arguments)}
+    result = {"type": "tool_result", "tool_use_id": f"t{n}", "content": "String not found",
+              "is_error": True}  # fmt: skip
+    return [{"type": "assistant", "message": {"role": "assistant", "content": [use]}},
+            {"type": "user", "message": {"role": "user", "content": [result]}}]  # fmt: skip
+
+
+def test_v4_a_record_keeps_prints_of_the_lines_it_wrote_per_file_and_never_shows_them() -> None:
+    # v4 review (2026-10-01), H2/H3/L1/L2/L3: per file; common lines, secret-like lines, failed
+    # calls and lines the same request took out again are not prints.
     entries = [prompt("add a module"),
                *tool("Write", {"file_path": f"{CWD}/src/new.py",
-                               "content": "def compute_totals(rows):\n    return sum(rows)\n"},
-                     "ok", 1),
+                               "content": "from typing import Any\ndef compute_totals(rows):\n"
+                                          "    return sum(rows)\n"
+                                          "API_KEY = 'sk-abcdefghijklmnopqrstuvwx'\n"}, "ok", 1),
                *tool("Edit", {"file_path": f"{CWD}/src/old.py", "old_string": "x = 1",
-                              "new_string": f"x = 1\n{HEX_LINE}"}, "ok", 2),
+                              "new_string": f"x = 1\n{HEX_LINE}\ntemporary_debug_print(x)"},
+                     "ok", 2),
+               *failed("Edit", {"file_path": f"{CWD}/src/old.py", "old_string": "nope",
+                                "new_string": "never_written_line = compute(1)"}, 3),
+               *tool("Edit", {"file_path": f"{CWD}/src/old.py",
+                              "old_string": "temporary_debug_print(x)", "new_string": ""}, "ok", 4),
                say("Added.")]  # fmt: skip
     record = ep.episodes_of(entries, session="s", cwd=CWD)[0][0]
-    assert record.wrote is not None and len(record.wrote) == 3  # three lines of 16+ characters
-    assert ep.line_print("def compute_totals(rows):") in record.wrote
-    assert ep.line_print(f"  {HEX_LINE}  ") in record.wrote  # whitespace does not matter
-    assert not any(p in record.text() for p in record.wrote)
-    assert ep.Episode.from_dict(record.to_dict()).wrote == record.wrote
+    new, old = record.prints_for("src/new.py"), record.prints_for("src/old.py")
+    assert new == {ep.line_print("def compute_totals(rows):"), ep.line_print("return sum(rows)")}
+    assert old == {ep.line_print(HEX_LINE)}
+    assert ep.line_print(f"  {HEX_LINE}  ") in old  # spacing does not matter
+    assert not any(p in record.text() for p in new | old)
+    again = ep.Episode.from_dict(record.to_dict())
+    assert again.prints_for("src/old.py") == old and again.wrote == record.wrote
+
+
+def test_v4_a_formatter_s_quotes_commas_and_spaces_do_not_change_a_print() -> None:
+    # M1: Prettier, black and ruff rewrite quotes, commas and spacing after an edit.
+    assert ep.line_print("result = compute( a,b , 'name' )") == ep.line_print(
+        'result = compute(a, b, "name",)')
+    assert ep.line_print("result = compute(a, b)") != ep.line_print("result = compute(a, c)")
+
+
+def test_v4_the_newest_writer_of_a_line_owns_it(store: Path) -> None:
+    # H1: a request that rewrote lines another wrote takes them over; the older one keeps only
+    # the lines still its own.
+    project = store / "projects" / "p"
+    first = [prompt("create the lexer", "2026-09-28T10:00:00Z"),
+             *tool("Write", {"file_path": f"{CWD}/pygments/lexers/carbon.py",
+                             "content": f"{LINES[0]}\n{LINES[1]}\n{LINES[2]}"}, "ok", 1),
+             say("Created.")]  # fmt: skip
+    rewrite = [prompt("rewrite the number rules", "2026-09-29T10:00:00Z"),
+               *tool("Read", {"file_path": f"{CWD}/pygments/lexers/carbon.py"},
+                     f"{LINES[0]}\n{LINES[1]}\n{LINES[2]}", 1),
+               *tool("Write", {"file_path": f"{CWD}/pygments/lexers/carbon.py",
+                               "content": f"{LINES[0]}\n{LINES[1]}\n{LINES[2]}\n{HEX_LINE}"},
+                     "ok", 2),
+               say("Rewritten.")]  # fmt: skip
+    mh.handle(event(write_transcript(project / "a.jsonl", first), "Stop", "a"))
+    mh.handle(event(write_transcript(project / "b.jsonl", rewrite), "Stop", "b"))
+    records = {e.session: e for e in ep.load(store / "memory" / "p")}
+    assert records["b"].prints_for("pygments/lexers/carbon.py") == {ep.line_print(HEX_LINE)}
+    new = write_transcript(project / "s2.jsonl", [])
+    mh.handle(event(new, "UserPromptSubmit", "s2", "x"))
+    shown = "\n".join([*LINES, HEX_LINE])
+    first_read = context_of(mh.handle(touch_event(new, "s2", "Read",
+                                                  f"{CWD}/pygments/lexers/carbon.py", shown)))
+    assert "session a" in first_read  # three of its lines in view against one  # fmt: skip
+
+
+def test_v4_a_line_written_to_another_file_does_not_count(store: Path) -> None:
+    project = store / "projects" / "p"
+    other = [prompt("add the helper"),
+             *tool("Edit", {"file_path": f"{CWD}/pygments/lexers/carbon.py", "old_string": "a",
+                            "new_string": "b"}, "ok", 1),
+             *tool("Edit", {"file_path": f"{CWD}/pygments/util.py", "old_string": "x = 1",
+                            "new_string": LINES[2]}, "ok", 2),
+             say("Done.")]  # fmt: skip
+    mh.handle(event(write_transcript(project / "o.jsonl", other), "Stop", "o"))
+    new = write_transcript(project / "s2.jsonl", [])
+    mh.handle(event(new, "UserPromptSubmit", "s2", "x"))
+    touched = touch_event(new, "s2", "Read", f"{CWD}/pygments/lexers/carbon.py", LINES[2])
+    assert mh.handle(touched) == {}
+
+
+def test_v4_a_record_with_no_lines_in_the_file_is_not_given_at_a_read(store: Path) -> None:
+    # H4, pinned on purpose: at a Read that shows none of its lines nothing is given (on
+    # SWE-chat development, giving the newest such record lowered precision 0.770 -> 0.753).
+    project = store / "projects" / "p"
+    deletion = [prompt("delete the dead branch"),
+                *tool("Edit", {"file_path": f"{CWD}/pygments/lexers/carbon.py",
+                               "old_string": "if legacy_mode_enabled(): return", "new_string": ""},
+                      "ok", 1),
+                say("Deleted.")]  # fmt: skip
+    mh.handle(event(write_transcript(project / "d.jsonl", deletion), "Stop", "d"))
+    new = write_transcript(project / "s2.jsonl", [])
+    mh.handle(event(new, "UserPromptSubmit", "s2", "x"))
+    carbon = f"{CWD}/pygments/lexers/carbon.py"
+    assert mh.handle(touch_event(new, "s2", "Read", carbon, "class CarbonLexer: pass")) == {}
+    assert "session d" in context_of(mh.handle(touch_event(new, "s2", "Edit", carbon, "x = 1")))
+
+
+def test_v4_bad_prints_in_a_stored_record_are_ignored() -> None:
+    base = ep.Episode(session="s", index=1, request="r", report="d").to_dict()
+    assert ep.Episode.from_dict({**base, "wrote": "abc"}).wrote is None
+    assert ep.Episode.from_dict({**base, "wrote": [["a.py", "not-a-list"]]}).wrote is None
 
 
 def test_v4_a_record_saved_before_v4_has_no_prints_and_a_read_still_gives_it(
@@ -502,7 +592,7 @@ def test_v4_a_record_saved_before_v4_has_no_prints_and_a_read_still_gives_it(
     legacy = ep.Episode(session="old", index=1, request="fix carbon", report="done",
                         changed=("pygments/lexers/carbon.py",), at=1_790_000_000.0)  # fmt: skip
     data = legacy.to_dict()
-    data.pop("wrote")
+    data.pop("wrote", None)
     folder = store / "memory" / "p"
     ep.write_private(folder / "old-001.json", __import__("json").dumps(data))
     project = store / "projects" / "p"
