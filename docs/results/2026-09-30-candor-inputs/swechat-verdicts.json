@@ -1,0 +1,65 @@
+{
+ "turns": 277,
+ "not_run": 0,
+ "flagged": {
+  "v5": 721,
+  "v6": 32,
+  "both": 32,
+  "union": 721
+ },
+ "read": 200,
+ "labels": {
+  "real": 0,
+  "not_input": 192,
+  "used": 8,
+  "unclear": 0
+ },
+ "labels_by_arm": {
+  "v5": {
+   "real": 0,
+   "not_input": 192,
+   "used": 8,
+   "unclear": 0
+  },
+  "v6": {
+   "real": 0,
+   "not_input": 9,
+   "used": 2,
+   "unclear": 0
+  }
+ },
+ "real_kept_by_v6": {
+  "k": 0,
+  "n": 0,
+  "rate": null,
+  "ci95": [
+   NaN,
+   NaN
+  ]
+ },
+ "precision": {
+  "v5": {
+   "k": 0,
+   "n": 200,
+   "rate": 0.0,
+   "ci95": [
+    0.0,
+    0.0188
+   ]
+  },
+  "v6": {
+   "k": 0,
+   "n": 11,
+   "rate": 0.0,
+   "ci95": [
+    0.0,
+    0.2588
+   ]
+  }
+ },
+ "verdicts": {
+  "O1_v6_flags_le_third_of_v5": true,
+  "O2_v6_keeps_ge_80pct_of_real": null,
+  "O3_v6_precision_ge_v5_plus_20": false
+ }
+}
