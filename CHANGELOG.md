@@ -9,6 +9,18 @@ do not favour this package.
 
 ### Added
 
+- **Memory v3, just in time** (`install --memory`, still off by default). When the agent opens
+  or changes a file, it is given the records of earlier requests that changed that file (the
+  two newest, once per session, code only); recall at a prompt now runs only at a session's
+  first live request, with the decider at 0.7, and not at all without a decider.
+  - **Measured on real people's sessions** (SWE-chat: 60 groups of one person on one public
+    repository, sealed; `docs/results/2026-10-01-memory-real`): on the held-out half, 95.0 % of
+    requests with a related earlier record had one in view, 55.9 % of what was given was
+    related, and 3.4 % of requests with nothing related were given anything. The previous
+    design (recall at every prompt, decider at 0.2): 62.2 %, 6.6 % and 26.3 %.
+  - **Upgrading:** run `sanchopanza install --memory` again. The new `PostToolUse` and
+    `SessionStart: compact` entries are only written by install; without them an existing
+    install records and, with a decider, recalls at a session's start only.
 - **Label a corpus** (`sanchopanza.label`, `sanchopanza label`, the `label_file` MCP tool in
   `--tools label`). One closed rubric over a `.jsonl`, `.csv` or `.txt`, `classify`'s question
   and p1 gate per item, columns out (label, p, margin, provider, reason), a cache with an age, a

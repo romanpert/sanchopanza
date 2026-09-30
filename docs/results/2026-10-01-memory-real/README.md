@@ -3,7 +3,7 @@
 **Confirmed on held-out groups: memory v3 (a record given just in time, when the agent opens or
 changes a file an earlier request changed) meets all four sealed criteria. v2 (recall at every
 prompt) does not come close.** Protocol, selection and amendment sealed before the data they
-govern: `protocol.md` (6ff0ebc), `amendment-1.md` (6abbb2e).
+govern: `protocol.md` (877c1ac), `amendment-1.md` (631f0ad).
 
 ## Why this benchmark
 
