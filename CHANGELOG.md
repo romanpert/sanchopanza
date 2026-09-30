@@ -272,6 +272,14 @@ do not favour this package.
 
 ### Fixed
 
+- **Retracted: "Jev's Truth confidence is exactly |2p - 1|, 651 answers, zero deviation"**
+  (0.2.0, the paper, `where-it-pays.md`). The Truth wire carries only the probability
+  (`noul`); `providers.jev.from_wire` computes the confidence, and the recordings store the
+  converted answer, so they could not show anything else, and the test presented as a canary
+  on the provider could not fail. The policy lesson stands: two gates on one number are one
+  gate. `from_wire` now says once if Jev ever sends a Truth confidence of its own that
+  differs (and keeps ours), and the test says what it checks. Found by another session
+  deriving how Jev computes confidence.
 - **candor's ledger could lose an action when tool calls ran in parallel.** Their hooks appended
   to one file at once; on Windows an append is a seek then a write, so one entry overwrote
   another and the reader skipped the torn line without a word. Seen once in benchmark round 3;
@@ -561,15 +569,16 @@ contract change that admits an image.
 
 ### Fixed, and the most important line in this release
 
-- **Two gates on one number were one gate at the stricter value.** For a Truth answer from
-  this model class, `confidence` is exactly `|2p - 1|`: 651 recorded answers across three
-  independent runs, zero deviation. So a policy asking for both `p >= a` and
+- **Two gates on one number were one gate at the stricter value.** For a Truth answer,
+  `confidence` is `|2p - 1|` by construction (the adapter computes it from the probability;
+  "651 recorded answers, zero deviation" was circular and is retracted in 0.3.0).
+  So a policy asking for both `p >= a` and
   `confidence >= c` was asking for `p >= max(a, (1 + c) / 2)`, and the threshold named in the
   configuration was not the one in force. `memory_write` was configured at 0.70 and enforcing
   0.80; source redundancy at 0.80 and enforcing 0.875; the recall and extraction gates had a
   dead clause. The redundant gates are gone, **no threshold value changed**, and the gap
   between the shipped policy and a plain 0.5 cut fell from eight decisions to three
-  (78/88 to 85/88, AUC 1.00 throughout). `tests/test_policy.py` pins the identity as a canary.
+  (78/88 to 85/88, AUC 1.00 throughout).
 - **The default model is pinned, not an alias.** `jev-1.13.0` rather than `jev-latest`, which
   is what the vendor's own model page asks for when thresholds have been tuned, and this
   package is nothing but tuned thresholds. The squire also warns once if two model versions

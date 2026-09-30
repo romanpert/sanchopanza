@@ -313,9 +313,10 @@ and at equal text it was not distinguishable from BM25 over sentences
 |---|---|---|
 | `ToolWindow` | Which tool groups the agent holds as the work moves: opened from the request, widened on each new user turn and after each tool result it reads, once that result passes the injection scan. It never swaps or removes, so the prompt cache survives | 0 missed groups on 97 trajectories and 40 three-task sessions, where selecting once misses 6 and 124 (in-sample). End to end, see the table above ([results](docs/results/2026-09-25-e2e/), [mechanism](docs/results/2026-09-25-window/)) |
 
-> **Two gates on one number are one gate.** For a Truth answer from this model,
-> `confidence` is exactly `|2p - 1|` (651 recorded answers, zero deviation), so a policy that
-> asks for both a probability and a confidence is asking for one stricter probability. The
+> **Two gates on one number are one gate.** For a Truth answer, `confidence` is `|2p - 1|` by
+> construction (the adapter computes it from the probability; an earlier "651 recorded
+> answers, zero deviation" was circular and is retracted), so a policy that asks for both a
+> probability and a confidence is asking for one stricter probability. The
 > shipped policy gates each probability once. On the six binary points of the 124-case bench
 > it is right **82 times out of 88**, with **AUC 1.00 on every one**: no error is an ordering
 > error, and every error is a refusal to act. A Choice answer follows the same identity,

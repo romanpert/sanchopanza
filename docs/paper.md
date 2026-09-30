@@ -280,9 +280,9 @@ dropping a page needs an explicit low relevance and doubt keeps it; a citation v
 0.80 and otherwise abstains; the guard can deny but never approve. The direction of each
 asymmetry follows the cost of the error the operator sees.
 
-*One gate per number.* For a Truth answer from this model class, the reported confidence is
-exactly `|2p - 1|` (Section 5.10), so a policy gates each Truth answer on its probability
-alone. A confidence gate is kept only where it is the sole gate and the point wants an
+*One gate per number.* For a Truth answer the confidence is `|2p - 1|` by construction: the
+wire carries only the probability and the provider adapter computes the confidence (Section
+5.10), so a policy gates each Truth answer on its probability alone. A confidence gate is kept only where it is the sole gate and the point wants an
 abstention band: the citation verdict, the entity alignment band, the edge check.
 
 *Traceability.* Every decision is an event in the append-only log with its probabilities,
@@ -698,18 +698,21 @@ band is stronger here than in Section 5.8 because the policy gates each Truth an
 so decides cases a doubled gate would have left to the default, and most of those are right:
 the separation is 99 % against 72 %.
 
-**Two gates on one number are one gate.** For a Truth answer from this model class,
-`confidence` is exactly `|2p - 1|`: 651 answers across three independent recordings in this
-repository, zero deviation. A policy asking for both `p >= a` and `confidence >= c` is
+**Two gates on one number are one gate.** For a Truth answer, `confidence` is `|2p - 1|` by
+construction: the Truth wire carries only the probability (`noul`), and
+`providers.jev.from_wire` computes the confidence from it. An earlier version of this section
+attributed the identity to the provider, "651 answers across three independent recordings,
+zero deviation"; the recordings store the converted answer, so they could not show anything
+else, and that evidence is retracted (2026-09-30). The consequence stands. A policy asking for both `p >= a` and `confidence >= c` is
 therefore asking for `p >= max(a, (1 + c) / 2)`, and the threshold named in the configuration
 is not the one in force. Written with both gates, `memory_write` configured at 0.70 enforces
 0.80 and rejects facts scoring 0.75 and 0.76; on the first recording of this bench the
 double-gated policy loses eight decisions a plain cut gets right (78 against 86 of 88, with
 the loop points read at 0.5). Gating on the
 probability alone moves no threshold value; the values in the configuration are the ones that
-bind. `tests/test_policy.py` pins the identity as a canary, so a provider whose confidence
-begins to carry information the probability does not will fail a test rather than silently
-change every policy.
+bind. The test once presented as a canary on the provider could not fail; what watches the
+provider now is `from_wire`, which says so once if Jev ever sends a Truth confidence of its
+own that differs from `|2p - 1|` (and keeps ours, against which every threshold was set).
 
 **Fifty cases per binary point and a blind second annotator.** 212 new and deliberately
 harder cases take the six binary points to 50 each (`fixtures/new-points-50-v2.jsonl`, 0.0060
@@ -1987,7 +1990,9 @@ Each is enforced in code or in a test.
    threshold its policy does not use, including strict against inclusive comparisons.
 3. **Check whether two signals are one signal.** Confidence equal to `|2p - 1|` turns two
    gates into one gate at the stricter value, silently. Before concluding a model is
-   under-confident, check the identity; pin it as a canary.
+   under-confident, check where its confidence comes from: ours was computed from the
+   probability, and a canary over recordings of the converted answer could not fail (we
+   shipped one; retracted 2026-09-30). Watch the raw wire instead.
 4. **Share the cache prefix, and know whose cache an arm reads.** The prefix cache is keyed by
    the bytes of the prefix, not by the conversation, so an arm inherits whatever an earlier
    arm wrote, and a harness that never puts a breakpoint on `system` makes every task pay a

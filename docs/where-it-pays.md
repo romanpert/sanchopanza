@@ -276,9 +276,11 @@ request barely notices. The end-to-end harness puts a breakpoint on `system` for
 pre-warms the shared prefixes before launching tasks in parallel
 (`docs/results/2026-09-25-cache/`). **If a result favours you, find whose cache it inherited.**
 
-**Check whether your two signals are one signal.** For a Truth answer from this model class,
-`confidence` is exactly `|2p - 1|` - verified on 651 recorded answers across three independent
-runs, with zero deviation **[M]**. Probability and confidence are the same number. So a policy
+**Check whether your two signals are one signal.** For a Truth answer, `confidence` is
+`|2p - 1|` by construction: the wire carries only the probability, and the provider adapter
+computes the confidence from it. (This page used to say the identity was "verified on 651
+recorded answers"; the recordings hold the converted answer, so that was circular, and it is
+retracted, 2026-09-30.) Probability and confidence are the same number. So a policy
 asking for both `p >= 0.70` and `confidence >= 0.60` is asking for `p >= 0.80`: a
 `memory_write` configured at 0.70 with both gates enforces 0.80 and rejects facts that score
 0.75 and 0.76. **Two gates on one number is one gate at the stricter value.** The shipped
