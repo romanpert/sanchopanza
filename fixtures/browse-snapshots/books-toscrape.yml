@@ -1,0 +1,590 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e5]:
+      - link "Books to Scrape" [ref=e6] [cursor=pointer]:
+        - /url: index.html
+      - text: We love being scraped!
+  - generic [ref=e8]:
+    - list [ref=e9]:
+      - listitem [ref=e10]:
+        - link "Home" [ref=e11] [cursor=pointer]:
+          - /url: index.html
+      - listitem [ref=e12]: / All products
+    - generic [ref=e13]:
+      - complementary [ref=e14]:
+        - list [ref=e16]:
+          - listitem [ref=e17]:
+            - link "Books" [ref=e18] [cursor=pointer]:
+              - /url: catalogue/category/books_1/index.html
+            - list [ref=e19]:
+              - listitem [ref=e20]:
+                - link "Travel" [ref=e21] [cursor=pointer]:
+                  - /url: catalogue/category/books/travel_2/index.html
+              - listitem [ref=e22]:
+                - link "Mystery" [ref=e23] [cursor=pointer]:
+                  - /url: catalogue/category/books/mystery_3/index.html
+              - listitem [ref=e24]:
+                - link "Historical Fiction" [ref=e25] [cursor=pointer]:
+                  - /url: catalogue/category/books/historical-fiction_4/index.html
+              - listitem [ref=e26]:
+                - link "Sequential Art" [ref=e27] [cursor=pointer]:
+                  - /url: catalogue/category/books/sequential-art_5/index.html
+              - listitem [ref=e28]:
+                - link "Classics" [ref=e29] [cursor=pointer]:
+                  - /url: catalogue/category/books/classics_6/index.html
+              - listitem [ref=e30]:
+                - link "Philosophy" [ref=e31] [cursor=pointer]:
+                  - /url: catalogue/category/books/philosophy_7/index.html
+              - listitem [ref=e32]:
+                - link "Romance" [ref=e33] [cursor=pointer]:
+                  - /url: catalogue/category/books/romance_8/index.html
+              - listitem [ref=e34]:
+                - link "Womens Fiction" [ref=e35] [cursor=pointer]:
+                  - /url: catalogue/category/books/womens-fiction_9/index.html
+              - listitem [ref=e36]:
+                - link "Fiction" [ref=e37] [cursor=pointer]:
+                  - /url: catalogue/category/books/fiction_10/index.html
+              - listitem [ref=e38]:
+                - link "Childrens" [ref=e39] [cursor=pointer]:
+                  - /url: catalogue/category/books/childrens_11/index.html
+              - listitem [ref=e40]:
+                - link "Religion" [ref=e41] [cursor=pointer]:
+                  - /url: catalogue/category/books/religion_12/index.html
+              - listitem [ref=e42]:
+                - link "Nonfiction" [ref=e43] [cursor=pointer]:
+                  - /url: catalogue/category/books/nonfiction_13/index.html
+              - listitem [ref=e44]:
+                - link "Music" [ref=e45] [cursor=pointer]:
+                  - /url: catalogue/category/books/music_14/index.html
+              - listitem [ref=e46]:
+                - link "Default" [ref=e47] [cursor=pointer]:
+                  - /url: catalogue/category/books/default_15/index.html
+              - listitem [ref=e48]:
+                - link "Science Fiction" [ref=e49] [cursor=pointer]:
+                  - /url: catalogue/category/books/science-fiction_16/index.html
+              - listitem [ref=e50]:
+                - link "Sports and Games" [ref=e51] [cursor=pointer]:
+                  - /url: catalogue/category/books/sports-and-games_17/index.html
+              - listitem [ref=e52]:
+                - link "Add a comment" [ref=e53] [cursor=pointer]:
+                  - /url: catalogue/category/books/add-a-comment_18/index.html
+              - listitem [ref=e54]:
+                - link "Fantasy" [ref=e55] [cursor=pointer]:
+                  - /url: catalogue/category/books/fantasy_19/index.html
+              - listitem [ref=e56]:
+                - link "New Adult" [ref=e57] [cursor=pointer]:
+                  - /url: catalogue/category/books/new-adult_20/index.html
+              - listitem [ref=e58]:
+                - link "Young Adult" [ref=e59] [cursor=pointer]:
+                  - /url: catalogue/category/books/young-adult_21/index.html
+              - listitem [ref=e60]:
+                - link "Science" [ref=e61] [cursor=pointer]:
+                  - /url: catalogue/category/books/science_22/index.html
+              - listitem [ref=e62]:
+                - link "Poetry" [ref=e63] [cursor=pointer]:
+                  - /url: catalogue/category/books/poetry_23/index.html
+              - listitem [ref=e64]:
+                - link "Paranormal" [ref=e65] [cursor=pointer]:
+                  - /url: catalogue/category/books/paranormal_24/index.html
+              - listitem [ref=e66]:
+                - link "Art" [ref=e67] [cursor=pointer]:
+                  - /url: catalogue/category/books/art_25/index.html
+              - listitem [ref=e68]:
+                - link "Psychology" [ref=e69] [cursor=pointer]:
+                  - /url: catalogue/category/books/psychology_26/index.html
+              - listitem [ref=e70]:
+                - link "Autobiography" [ref=e71] [cursor=pointer]:
+                  - /url: catalogue/category/books/autobiography_27/index.html
+              - listitem [ref=e72]:
+                - link "Parenting" [ref=e73] [cursor=pointer]:
+                  - /url: catalogue/category/books/parenting_28/index.html
+              - listitem [ref=e74]:
+                - link "Adult Fiction" [ref=e75] [cursor=pointer]:
+                  - /url: catalogue/category/books/adult-fiction_29/index.html
+              - listitem [ref=e76]:
+                - link "Humor" [ref=e77] [cursor=pointer]:
+                  - /url: catalogue/category/books/humor_30/index.html
+              - listitem [ref=e78]:
+                - link "Horror" [ref=e79] [cursor=pointer]:
+                  - /url: catalogue/category/books/horror_31/index.html
+              - listitem [ref=e80]:
+                - link "History" [ref=e81] [cursor=pointer]:
+                  - /url: catalogue/category/books/history_32/index.html
+              - listitem [ref=e82]:
+                - link "Food and Drink" [ref=e83] [cursor=pointer]:
+                  - /url: catalogue/category/books/food-and-drink_33/index.html
+              - listitem [ref=e84]:
+                - link "Christian Fiction" [ref=e85] [cursor=pointer]:
+                  - /url: catalogue/category/books/christian-fiction_34/index.html
+              - listitem [ref=e86]:
+                - link "Business" [ref=e87] [cursor=pointer]:
+                  - /url: catalogue/category/books/business_35/index.html
+              - listitem [ref=e88]:
+                - link "Biography" [ref=e89] [cursor=pointer]:
+                  - /url: catalogue/category/books/biography_36/index.html
+              - listitem [ref=e90]:
+                - link "Thriller" [ref=e91] [cursor=pointer]:
+                  - /url: catalogue/category/books/thriller_37/index.html
+              - listitem [ref=e92]:
+                - link "Contemporary" [ref=e93] [cursor=pointer]:
+                  - /url: catalogue/category/books/contemporary_38/index.html
+              - listitem [ref=e94]:
+                - link "Spirituality" [ref=e95] [cursor=pointer]:
+                  - /url: catalogue/category/books/spirituality_39/index.html
+              - listitem [ref=e96]:
+                - link "Academic" [ref=e97] [cursor=pointer]:
+                  - /url: catalogue/category/books/academic_40/index.html
+              - listitem [ref=e98]:
+                - link "Self Help" [ref=e99] [cursor=pointer]:
+                  - /url: catalogue/category/books/self-help_41/index.html
+              - listitem [ref=e100]:
+                - link "Historical" [ref=e101] [cursor=pointer]:
+                  - /url: catalogue/category/books/historical_42/index.html
+              - listitem [ref=e102]:
+                - link "Christian" [ref=e103] [cursor=pointer]:
+                  - /url: catalogue/category/books/christian_43/index.html
+              - listitem [ref=e104]:
+                - link "Suspense" [ref=e105] [cursor=pointer]:
+                  - /url: catalogue/category/books/suspense_44/index.html
+              - listitem [ref=e106]:
+                - link "Short Stories" [ref=e107] [cursor=pointer]:
+                  - /url: catalogue/category/books/short-stories_45/index.html
+              - listitem [ref=e108]:
+                - link "Novels" [ref=e109] [cursor=pointer]:
+                  - /url: catalogue/category/books/novels_46/index.html
+              - listitem [ref=e110]:
+                - link "Health" [ref=e111] [cursor=pointer]:
+                  - /url: catalogue/category/books/health_47/index.html
+              - listitem [ref=e112]:
+                - link "Politics" [ref=e113] [cursor=pointer]:
+                  - /url: catalogue/category/books/politics_48/index.html
+              - listitem [ref=e114]:
+                - link "Cultural" [ref=e115] [cursor=pointer]:
+                  - /url: catalogue/category/books/cultural_49/index.html
+              - listitem [ref=e116]:
+                - link "Erotica" [ref=e117] [cursor=pointer]:
+                  - /url: catalogue/category/books/erotica_50/index.html
+              - listitem [ref=e118]:
+                - link "Crime" [ref=e119] [cursor=pointer]:
+                  - /url: catalogue/category/books/crime_51/index.html
+      - generic [ref=e120]:
+        - heading "All products" [level=1] [ref=e122]
+        - generic [ref=e123]:
+          - strong [ref=e124]: "1000"
+          - text: results - showing
+          - strong [ref=e125]: "1"
+          - text: to
+          - strong [ref=e126]: "20"
+          - text: .
+        - generic [ref=e127]:
+          - alert [ref=e128]:
+            - strong [ref=e129]: Warning!
+            - text: This is a demo website for web scraping purposes. Prices and ratings here were randomly assigned and have no real meaning.
+          - generic [ref=e130]:
+            - list [ref=e131]:
+              - listitem [ref=e132]:
+                - article [ref=e133]:
+                  - link [ref=e135] [cursor=pointer]:
+                    - /url: catalogue/a-light-in-the-attic_1000/index.html
+                    - img "A Light in the Attic" [ref=e136]
+                  - paragraph [ref=e137]:
+                    - generic [ref=e138]: 
+                    - generic [ref=e139]: 
+                    - generic [ref=e140]: 
+                    - generic [ref=e141]: 
+                    - generic [ref=e142]: 
+                  - heading [level=3] [ref=e143]:
+                    - link "A Light in the ..." [ref=e144] [cursor=pointer]:
+                      - /url: catalogue/a-light-in-the-attic_1000/index.html
+                  - generic [ref=e145]:
+                    - paragraph [ref=e146]: £51.77
+                    - paragraph [ref=e147]:
+                      - generic [ref=e148]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e150] [cursor=pointer]
+              - listitem [ref=e151]:
+                - article [ref=e152]:
+                  - link [ref=e154] [cursor=pointer]:
+                    - /url: catalogue/tipping-the-velvet_999/index.html
+                    - img "Tipping the Velvet" [ref=e155]
+                  - paragraph [ref=e156]:
+                    - generic [ref=e157]: 
+                    - generic [ref=e158]: 
+                    - generic [ref=e159]: 
+                    - generic [ref=e160]: 
+                    - generic [ref=e161]: 
+                  - heading [level=3] [ref=e162]:
+                    - link "Tipping the Velvet" [ref=e163] [cursor=pointer]:
+                      - /url: catalogue/tipping-the-velvet_999/index.html
+                  - generic [ref=e164]:
+                    - paragraph [ref=e165]: £53.74
+                    - paragraph [ref=e166]:
+                      - generic [ref=e167]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e169] [cursor=pointer]
+              - listitem [ref=e170]:
+                - article [ref=e171]:
+                  - link [ref=e173] [cursor=pointer]:
+                    - /url: catalogue/soumission_998/index.html
+                    - img "Soumission" [ref=e174]
+                  - paragraph [ref=e175]:
+                    - generic [ref=e176]: 
+                    - generic [ref=e177]: 
+                    - generic [ref=e178]: 
+                    - generic [ref=e179]: 
+                    - generic [ref=e180]: 
+                  - heading [level=3] [ref=e181]:
+                    - link "Soumission" [ref=e182] [cursor=pointer]:
+                      - /url: catalogue/soumission_998/index.html
+                  - generic [ref=e183]:
+                    - paragraph [ref=e184]: £50.10
+                    - paragraph [ref=e185]:
+                      - generic [ref=e186]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e188] [cursor=pointer]
+              - listitem [ref=e189]:
+                - article [ref=e190]:
+                  - link [ref=e192] [cursor=pointer]:
+                    - /url: catalogue/sharp-objects_997/index.html
+                    - img "Sharp Objects" [ref=e193]
+                  - paragraph [ref=e194]:
+                    - generic [ref=e195]: 
+                    - generic [ref=e196]: 
+                    - generic [ref=e197]: 
+                    - generic [ref=e198]: 
+                    - generic [ref=e199]: 
+                  - heading [level=3] [ref=e200]:
+                    - link "Sharp Objects" [ref=e201] [cursor=pointer]:
+                      - /url: catalogue/sharp-objects_997/index.html
+                  - generic [ref=e202]:
+                    - paragraph [ref=e203]: £47.82
+                    - paragraph [ref=e204]:
+                      - generic [ref=e205]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e207] [cursor=pointer]
+              - listitem [ref=e208]:
+                - article [ref=e209]:
+                  - link [ref=e211] [cursor=pointer]:
+                    - /url: catalogue/sapiens-a-brief-history-of-humankind_996/index.html
+                    - 'img "Sapiens: A Brief History of Humankind" [ref=e212]'
+                  - paragraph [ref=e213]:
+                    - generic [ref=e214]: 
+                    - generic [ref=e215]: 
+                    - generic [ref=e216]: 
+                    - generic [ref=e217]: 
+                    - generic [ref=e218]: 
+                  - heading [level=3] [ref=e219]:
+                    - 'link "Sapiens: A Brief History ..." [ref=e220] [cursor=pointer]':
+                      - /url: catalogue/sapiens-a-brief-history-of-humankind_996/index.html
+                  - generic [ref=e221]:
+                    - paragraph [ref=e222]: £54.23
+                    - paragraph [ref=e223]:
+                      - generic [ref=e224]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e226] [cursor=pointer]
+              - listitem [ref=e227]:
+                - article [ref=e228]:
+                  - link [ref=e230] [cursor=pointer]:
+                    - /url: catalogue/the-requiem-red_995/index.html
+                    - img "The Requiem Red" [ref=e231]
+                  - paragraph [ref=e232]:
+                    - generic [ref=e233]: 
+                    - generic [ref=e234]: 
+                    - generic [ref=e235]: 
+                    - generic [ref=e236]: 
+                    - generic [ref=e237]: 
+                  - heading [level=3] [ref=e238]:
+                    - link "The Requiem Red" [ref=e239] [cursor=pointer]:
+                      - /url: catalogue/the-requiem-red_995/index.html
+                  - generic [ref=e240]:
+                    - paragraph [ref=e241]: £22.65
+                    - paragraph [ref=e242]:
+                      - generic [ref=e243]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e245] [cursor=pointer]
+              - listitem [ref=e246]:
+                - article [ref=e247]:
+                  - link [ref=e249] [cursor=pointer]:
+                    - /url: catalogue/the-dirty-little-secrets-of-getting-your-dream-job_994/index.html
+                    - img "The Dirty Little Secrets of Getting Your Dream Job" [ref=e250]
+                  - paragraph [ref=e251]:
+                    - generic [ref=e252]: 
+                    - generic [ref=e253]: 
+                    - generic [ref=e254]: 
+                    - generic [ref=e255]: 
+                    - generic [ref=e256]: 
+                  - heading [level=3] [ref=e257]:
+                    - link "The Dirty Little Secrets ..." [ref=e258] [cursor=pointer]:
+                      - /url: catalogue/the-dirty-little-secrets-of-getting-your-dream-job_994/index.html
+                  - generic [ref=e259]:
+                    - paragraph [ref=e260]: £33.34
+                    - paragraph [ref=e261]:
+                      - generic [ref=e262]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e264] [cursor=pointer]
+              - listitem [ref=e265]:
+                - article [ref=e266]:
+                  - link [ref=e268] [cursor=pointer]:
+                    - /url: catalogue/the-coming-woman-a-novel-based-on-the-life-of-the-infamous-feminist-victoria-woodhull_993/index.html
+                    - 'img "The Coming Woman: A Novel Based on the Life of the Infamous Feminist, Victoria Woodhull" [ref=e269]'
+                  - paragraph [ref=e270]:
+                    - generic [ref=e271]: 
+                    - generic [ref=e272]: 
+                    - generic [ref=e273]: 
+                    - generic [ref=e274]: 
+                    - generic [ref=e275]: 
+                  - heading [level=3] [ref=e276]:
+                    - 'link "The Coming Woman: A ..." [ref=e277] [cursor=pointer]':
+                      - /url: catalogue/the-coming-woman-a-novel-based-on-the-life-of-the-infamous-feminist-victoria-woodhull_993/index.html
+                  - generic [ref=e278]:
+                    - paragraph [ref=e279]: £17.93
+                    - paragraph [ref=e280]:
+                      - generic [ref=e281]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e283] [cursor=pointer]
+              - listitem [ref=e284]:
+                - article [ref=e285]:
+                  - link [ref=e287] [cursor=pointer]:
+                    - /url: catalogue/the-boys-in-the-boat-nine-americans-and-their-epic-quest-for-gold-at-the-1936-berlin-olympics_992/index.html
+                    - 'img "The Boys in the Boat: Nine Americans and Their Epic Quest for Gold at the 1936 Berlin Olympics" [ref=e288]'
+                  - paragraph [ref=e289]:
+                    - generic [ref=e290]: 
+                    - generic [ref=e291]: 
+                    - generic [ref=e292]: 
+                    - generic [ref=e293]: 
+                    - generic [ref=e294]: 
+                  - heading [level=3] [ref=e295]:
+                    - link "The Boys in the ..." [ref=e296] [cursor=pointer]:
+                      - /url: catalogue/the-boys-in-the-boat-nine-americans-and-their-epic-quest-for-gold-at-the-1936-berlin-olympics_992/index.html
+                  - generic [ref=e297]:
+                    - paragraph [ref=e298]: £22.60
+                    - paragraph [ref=e299]:
+                      - generic [ref=e300]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e302] [cursor=pointer]
+              - listitem [ref=e303]:
+                - article [ref=e304]:
+                  - link [ref=e306] [cursor=pointer]:
+                    - /url: catalogue/the-black-maria_991/index.html
+                    - img "The Black Maria" [ref=e307]
+                  - paragraph [ref=e308]:
+                    - generic [ref=e309]: 
+                    - generic [ref=e310]: 
+                    - generic [ref=e311]: 
+                    - generic [ref=e312]: 
+                    - generic [ref=e313]: 
+                  - heading [level=3] [ref=e314]:
+                    - link "The Black Maria" [ref=e315] [cursor=pointer]:
+                      - /url: catalogue/the-black-maria_991/index.html
+                  - generic [ref=e316]:
+                    - paragraph [ref=e317]: £52.15
+                    - paragraph [ref=e318]:
+                      - generic [ref=e319]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e321] [cursor=pointer]
+              - listitem [ref=e322]:
+                - article [ref=e323]:
+                  - link [ref=e325] [cursor=pointer]:
+                    - /url: catalogue/starving-hearts-triangular-trade-trilogy-1_990/index.html
+                    - 'img "Starving Hearts (Triangular Trade Trilogy, #1)" [ref=e326]'
+                  - paragraph [ref=e327]:
+                    - generic [ref=e328]: 
+                    - generic [ref=e329]: 
+                    - generic [ref=e330]: 
+                    - generic [ref=e331]: 
+                    - generic [ref=e332]: 
+                  - heading [level=3] [ref=e333]:
+                    - link "Starving Hearts (Triangular Trade ..." [ref=e334] [cursor=pointer]:
+                      - /url: catalogue/starving-hearts-triangular-trade-trilogy-1_990/index.html
+                  - generic [ref=e335]:
+                    - paragraph [ref=e336]: £13.99
+                    - paragraph [ref=e337]:
+                      - generic [ref=e338]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e340] [cursor=pointer]
+              - listitem [ref=e341]:
+                - article [ref=e342]:
+                  - link [ref=e344] [cursor=pointer]:
+                    - /url: catalogue/shakespeares-sonnets_989/index.html
+                    - img "Shakespeare's Sonnets" [ref=e345]
+                  - paragraph [ref=e346]:
+                    - generic [ref=e347]: 
+                    - generic [ref=e348]: 
+                    - generic [ref=e349]: 
+                    - generic [ref=e350]: 
+                    - generic [ref=e351]: 
+                  - heading [level=3] [ref=e352]:
+                    - link "Shakespeare's Sonnets" [ref=e353] [cursor=pointer]:
+                      - /url: catalogue/shakespeares-sonnets_989/index.html
+                  - generic [ref=e354]:
+                    - paragraph [ref=e355]: £20.66
+                    - paragraph [ref=e356]:
+                      - generic [ref=e357]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e359] [cursor=pointer]
+              - listitem [ref=e360]:
+                - article [ref=e361]:
+                  - link [ref=e363] [cursor=pointer]:
+                    - /url: catalogue/set-me-free_988/index.html
+                    - img "Set Me Free" [ref=e364]
+                  - paragraph [ref=e365]:
+                    - generic [ref=e366]: 
+                    - generic [ref=e367]: 
+                    - generic [ref=e368]: 
+                    - generic [ref=e369]: 
+                    - generic [ref=e370]: 
+                  - heading [level=3] [ref=e371]:
+                    - link "Set Me Free" [ref=e372] [cursor=pointer]:
+                      - /url: catalogue/set-me-free_988/index.html
+                  - generic [ref=e373]:
+                    - paragraph [ref=e374]: £17.46
+                    - paragraph [ref=e375]:
+                      - generic [ref=e376]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e378] [cursor=pointer]
+              - listitem [ref=e379]:
+                - article [ref=e380]:
+                  - link [ref=e382] [cursor=pointer]:
+                    - /url: catalogue/scott-pilgrims-precious-little-life-scott-pilgrim-1_987/index.html
+                    - 'img "Scott Pilgrim''s Precious Little Life (Scott Pilgrim #1)" [ref=e383]'
+                  - paragraph [ref=e384]:
+                    - generic [ref=e385]: 
+                    - generic [ref=e386]: 
+                    - generic [ref=e387]: 
+                    - generic [ref=e388]: 
+                    - generic [ref=e389]: 
+                  - heading [level=3] [ref=e390]:
+                    - link "Scott Pilgrim's Precious Little ..." [ref=e391] [cursor=pointer]:
+                      - /url: catalogue/scott-pilgrims-precious-little-life-scott-pilgrim-1_987/index.html
+                  - generic [ref=e392]:
+                    - paragraph [ref=e393]: £52.29
+                    - paragraph [ref=e394]:
+                      - generic [ref=e395]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e397] [cursor=pointer]
+              - listitem [ref=e398]:
+                - article [ref=e399]:
+                  - link [ref=e401] [cursor=pointer]:
+                    - /url: catalogue/rip-it-up-and-start-again_986/index.html
+                    - img "Rip it Up and Start Again" [ref=e402]
+                  - paragraph [ref=e403]:
+                    - generic [ref=e404]: 
+                    - generic [ref=e405]: 
+                    - generic [ref=e406]: 
+                    - generic [ref=e407]: 
+                    - generic [ref=e408]: 
+                  - heading [level=3] [ref=e409]:
+                    - link "Rip it Up and ..." [ref=e410] [cursor=pointer]:
+                      - /url: catalogue/rip-it-up-and-start-again_986/index.html
+                  - generic [ref=e411]:
+                    - paragraph [ref=e412]: £35.02
+                    - paragraph [ref=e413]:
+                      - generic [ref=e414]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e416] [cursor=pointer]
+              - listitem [ref=e417]:
+                - article [ref=e418]:
+                  - link [ref=e420] [cursor=pointer]:
+                    - /url: catalogue/our-band-could-be-your-life-scenes-from-the-american-indie-underground-1981-1991_985/index.html
+                    - 'img "Our Band Could Be Your Life: Scenes from the American Indie Underground, 1981-1991" [ref=e421]'
+                  - paragraph [ref=e422]:
+                    - generic [ref=e423]: 
+                    - generic [ref=e424]: 
+                    - generic [ref=e425]: 
+                    - generic [ref=e426]: 
+                    - generic [ref=e427]: 
+                  - heading [level=3] [ref=e428]:
+                    - link "Our Band Could Be ..." [ref=e429] [cursor=pointer]:
+                      - /url: catalogue/our-band-could-be-your-life-scenes-from-the-american-indie-underground-1981-1991_985/index.html
+                  - generic [ref=e430]:
+                    - paragraph [ref=e431]: £57.25
+                    - paragraph [ref=e432]:
+                      - generic [ref=e433]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e435] [cursor=pointer]
+              - listitem [ref=e436]:
+                - article [ref=e437]:
+                  - link [ref=e439] [cursor=pointer]:
+                    - /url: catalogue/olio_984/index.html
+                    - img "Olio" [ref=e440]
+                  - paragraph [ref=e441]:
+                    - generic [ref=e442]: 
+                    - generic [ref=e443]: 
+                    - generic [ref=e444]: 
+                    - generic [ref=e445]: 
+                    - generic [ref=e446]: 
+                  - heading [level=3] [ref=e447]:
+                    - link "Olio" [ref=e448] [cursor=pointer]:
+                      - /url: catalogue/olio_984/index.html
+                  - generic [ref=e449]:
+                    - paragraph [ref=e450]: £23.88
+                    - paragraph [ref=e451]:
+                      - generic [ref=e452]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e454] [cursor=pointer]
+              - listitem [ref=e455]:
+                - article [ref=e456]:
+                  - link [ref=e458] [cursor=pointer]:
+                    - /url: catalogue/mesaerion-the-best-science-fiction-stories-1800-1849_983/index.html
+                    - 'img "Mesaerion: The Best Science Fiction Stories 1800-1849" [ref=e459]'
+                  - paragraph [ref=e460]:
+                    - generic [ref=e461]: 
+                    - generic [ref=e462]: 
+                    - generic [ref=e463]: 
+                    - generic [ref=e464]: 
+                    - generic [ref=e465]: 
+                  - heading [level=3] [ref=e466]:
+                    - 'link "Mesaerion: The Best Science ..." [ref=e467] [cursor=pointer]':
+                      - /url: catalogue/mesaerion-the-best-science-fiction-stories-1800-1849_983/index.html
+                  - generic [ref=e468]:
+                    - paragraph [ref=e469]: £37.59
+                    - paragraph [ref=e470]:
+                      - generic [ref=e471]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e473] [cursor=pointer]
+              - listitem [ref=e474]:
+                - article [ref=e475]:
+                  - link [ref=e477] [cursor=pointer]:
+                    - /url: catalogue/libertarianism-for-beginners_982/index.html
+                    - img "Libertarianism for Beginners" [ref=e478]
+                  - paragraph [ref=e479]:
+                    - generic [ref=e480]: 
+                    - generic [ref=e481]: 
+                    - generic [ref=e482]: 
+                    - generic [ref=e483]: 
+                    - generic [ref=e484]: 
+                  - heading [level=3] [ref=e485]:
+                    - link "Libertarianism for Beginners" [ref=e486] [cursor=pointer]:
+                      - /url: catalogue/libertarianism-for-beginners_982/index.html
+                  - generic [ref=e487]:
+                    - paragraph [ref=e488]: £51.33
+                    - paragraph [ref=e489]:
+                      - generic [ref=e490]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e492] [cursor=pointer]
+              - listitem [ref=e493]:
+                - article [ref=e494]:
+                  - link [ref=e496] [cursor=pointer]:
+                    - /url: catalogue/its-only-the-himalayas_981/index.html
+                    - img "It's Only the Himalayas" [ref=e497]
+                  - paragraph [ref=e498]:
+                    - generic [ref=e499]: 
+                    - generic [ref=e500]: 
+                    - generic [ref=e501]: 
+                    - generic [ref=e502]: 
+                    - generic [ref=e503]: 
+                  - heading [level=3] [ref=e504]:
+                    - link "It's Only the Himalayas" [ref=e505] [cursor=pointer]:
+                      - /url: catalogue/its-only-the-himalayas_981/index.html
+                  - generic [ref=e506]:
+                    - paragraph [ref=e507]: £45.17
+                    - paragraph [ref=e508]:
+                      - generic [ref=e509]: 
+                      - text: In stock
+                    - button "Add to basket" [ref=e511] [cursor=pointer]
+            - list [ref=e513]:
+              - listitem [ref=e514]: Page 1 of 50
+              - listitem:
+                - link "next" [ref=e515] [cursor=pointer]:
+                  - /url: catalogue/page-2.html
+  - contentinfo

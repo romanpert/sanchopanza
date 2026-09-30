@@ -1,0 +1,106 @@
+{
+ "sessions": 36,
+ "PLAIN": {
+  "runs": 18,
+  "success": 15,
+  "list_usd_mean": 0.1154,
+  "jev_usd_mean": 0.0,
+  "turns_mean": 5.17,
+  "cache_read_mean": 237846,
+  "cache_write_mean": 15355,
+  "snapshots_pruned": 0
+ },
+ "LEAN": {
+  "runs": 18,
+  "success": 14,
+  "list_usd_mean": 0.1246,
+  "jev_usd_mean": 0.00033,
+  "turns_mean": 6.06,
+  "cache_read_mean": 284811,
+  "cache_write_mean": 15101,
+  "snapshots_pruned": 8
+ },
+ "LEAN_minus_PLAIN_usd_per_task": {
+  "value": 0.0095,
+  "bootstrap95": [
+   -0.0063,
+   0.0273
+  ],
+  "by_task": {
+   "T1": 0.046,
+   "T2": 0.0036,
+   "T3": 0.0085,
+   "T4": 0.011,
+   "T5": 0.0109,
+   "T6": -0.0228
+  }
+ },
+ "pilot": [
+  {
+   "task": "T1",
+   "run": 0,
+   "arm": "PLAIN",
+   "ok": true,
+   "subtype": "success",
+   "success": false,
+   "answer": "\"Sharp Objects\" in the Mystery category is priced at **\u00a347.82** with a **4-star** rating.",
+   "list_usd": 0.2716298,
+   "turns": 6,
+   "input_tokens": 12,
+   "cache_read": 246929,
+   "cache_write": 53151,
+   "output_tokens": 863,
+   "jev_usd": 0.0,
+   "jev_calls": 0,
+   "pruned": [],
+   "workdir": "C:\\Users\\roman\\AppData\\Local\\Temp\\sp-e2e-t1r0plain-gv6rtyms"
+  },
+  {
+   "task": "T1",
+   "run": 0,
+   "arm": "LEAN",
+   "ok": true,
+   "subtype": "success",
+   "success": false,
+   "answer": "\"Sharp Objects\" in the Mystery category is priced at **\u00a347.82** with a **4-star** rating.",
+   "list_usd": 0.1843974,
+   "turns": 9,
+   "input_tokens": 18,
+   "cache_read": 439217,
+   "cache_write": 20263,
+   "output_tokens": 1447,
+   "jev_usd": 0.0001533,
+   "jev_calls": 1,
+   "pruned": [],
+   "workdir": "C:\\Users\\roman\\AppData\\Local\\Temp\\sp-e2e-t1r0lean-8keh3pdf"
+  },
+  {
+   "task": "T1",
+   "run": -1,
+   "arm": "LEAN",
+   "ok": true,
+   "subtype": "success",
+   "success": true,
+   "answer": "**Sharp Objects** (Mystery category): Price \u00a347.82, rated **4 stars**.",
+   "list_usd": 0.222802,
+   "turns": 11,
+   "input_tokens": 22,
+   "cache_read": 565835,
+   "cache_write": 22890,
+   "output_tokens": 1704,
+   "jev_usd": 0.000153384,
+   "jev_calls": 1,
+   "pruned": [
+    {
+     "tool": "Bash",
+     "elements": 13,
+     "kept": 13,
+     "chars": 7060,
+     "kept_chars": 4605,
+     "ranked_by": "jev"
+    }
+   ],
+   "workdir": "C:\\Users\\roman\\AppData\\Local\\Temp\\sp-e2e-t1r-1lean-fvylc4r0"
+  }
+ ]
+}

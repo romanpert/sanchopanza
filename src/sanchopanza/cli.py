@@ -767,6 +767,9 @@ def main(argv: list[str] | None = None) -> int:
     dag.add_argument("--threshold", type=float, default=0.5)
     dag.set_defaults(func=_dag)
 
+    from .cli_corpus import register as register_corpus
+
+    register_corpus(sub)
     args = parser.parse_args(argv)
     return int(args.func(args))
 

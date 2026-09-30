@@ -231,7 +231,66 @@ def add_decisions(server: Any, squire: Squire) -> Any:
     return server
 
 
-TOOL_SETS = ("archive", "find", "decisions")
+LABEL_DESCRIPTION = (
+    "Label every item of a file (.jsonl/.csv/.txt) with a closed rubric JSON {field, options}; "
+    "writes out (csv/jsonl) with label, p, margin. Cached; max_usd caps spend."
+)
+RANK_DESCRIPTION = (
+    "Rank a page's elements for the next action toward goal. page: Playwright snapshot text, "
+    "HTML, or a file path. Returns the top elements with their refs."
+)
+
+
+def add_label(server: Any, squire: Any = None) -> Any:
+    """`label_file`: `sanchopanza.label` over a file, for an agent that has a corpus to tag."""
+
+    @server.tool(description=LABEL_DESCRIPTION)
+    async def label_file(path: str, rubric: str, out: str, max_usd: float = 0.5) -> str:
+        from dataclasses import replace
+
+        from ..label import LabelCache, Rubric, label, read_items, summary, write_rows
+
+        base = squire or _squire_if_keyed()
+        if base is None:
+            return "No decision provider is configured (TYPESAFE_API_KEY): nothing labelled."
+        judge = base.fork(thresholds=replace(base.thresholds, max_usd=max_usd))
+        try:
+            parsed = Rubric.from_mapping(json.loads(rubric))
+            items = read_items(path)
+        except (OSError, ValueError) as error:
+            return f"Could not read the rubric or the items: {error}"
+        cache = LabelCache(Path(path).with_name(".sanchopanza-label-cache.jsonl"))
+        rows = await label(items, parsed, squire=judge, cache=cache)
+        write_rows(out, rows)
+        report = {**summary(rows), "spent_usd": round(judge.meter.cost_usd, 6), "out": out}
+        return json.dumps(report, ensure_ascii=False)
+
+    return server
+
+
+def add_browse(server: Any, squire: Any = None) -> Any:
+    """`rank_elements`: `sanchopanza.browse.rank` over a snapshot or HTML the agent holds."""
+
+    @server.tool(description=RANK_DESCRIPTION)
+    async def rank_elements(goal: str, page: str, done: str = "", keep: int = 15) -> str:
+        from ..browse import rank, render
+        from ..cli_corpus import page_elements
+
+        candidate = Path(page) if len(page) < 400 and "\n" not in page else None
+        if candidate is not None and candidate.is_file():
+            page = candidate.read_text(encoding="utf-8", errors="replace")
+        elements = page_elements(page)
+        if not elements:
+            return "No elements found: pass a Playwright snapshot (with [ref=...]) or HTML."
+        steps = [line.strip() for line in done.splitlines() if line.strip()]
+        judge = squire or _squire_if_keyed()
+        ranked = await rank(goal, elements, squire=judge, done=steps, keep=max(1, keep))
+        return render(ranked, total=len(elements))
+
+    return server
+
+
+TOOL_SETS = ("archive", "find", "decisions", "label", "browse")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -262,6 +321,10 @@ def main(argv: list[str] | None = None) -> int:
         add_find(server)
     if "decisions" in wanted:
         add_decisions(server, squire_from_env())
+    if "label" in wanted:
+        add_label(server)
+    if "browse" in wanted:
+        add_browse(server)
     server.run()
     return 0
 

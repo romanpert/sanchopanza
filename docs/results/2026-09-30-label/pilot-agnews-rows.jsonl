@@ -1,0 +1,5 @@
+{"key": "agnews-0", "gold": "Business", "label": "Business", "gated": "Business", "p": 1.0, "margin": 1.0, "provider": "recorded", "haiku": "Business"}
+{"key": "agnews-25", "gold": "Sci/Tech", "label": "Sci/Tech", "gated": "Sci/Tech", "p": 0.99, "margin": 0.98, "provider": "recorded", "haiku": "Sci/Tech"}
+{"key": "agnews-50", "gold": "World", "label": "World", "gated": "World", "p": 1.0, "margin": 1.0, "provider": "recorded", "haiku": "World"}
+{"key": "agnews-76", "gold": "World", "label": "World", "gated": "World", "p": 1.0, "margin": 1.0, "provider": "recorded", "haiku": "World"}
+{"key": "agnews-101", "gold": "Business", "label": "Business", "gated": "Business", "p": 1.0, "margin": 1.0, "provider": "recorded", "haiku": "Business"}

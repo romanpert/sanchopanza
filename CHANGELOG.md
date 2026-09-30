@@ -9,6 +9,26 @@ do not favour this package.
 
 ### Added
 
+- **Label a corpus** (`sanchopanza.label`, `sanchopanza label`, the `label_file` MCP tool in
+  `--tools label`). One closed rubric over a `.jsonl`, `.csv` or `.txt`, `classify`'s question
+  and p1 gate per item, columns out (label, p, margin, provider, reason), a cache with an age, a
+  spend cap, and a cascade when a `CascadeDecider` is behind the squire.
+  - **Measured, pre-registered:** 89.3 % on AG News and 98.0 % on DBpedia-14, against Claude
+    Haiku 4.5's 83.0 % and 98.0 % on the same questions, at 1/70 to 1/95 of its cost.
+  - **The margin is not a second signal:** p1 - p2 separated right from wrong labels no better
+    than p1 (AUROC 0.722 against 0.723, 0.902 against 0.903), so the gate stays on p1.
+- **Rank a page's elements for the next action** (`sanchopanza.browse`, `sanchopanza browse`, the
+  `rank_elements` MCP tool in `--tools browse`). Reads a Playwright accessibility snapshot or HTML
+  into elements by code, with no dependency, and ranks them with a top-k tournament of in-context
+  questions.
+  - **Measured on Mind2Web:** the registered first design failed (R@10 71.0 %, bar 80 %); its
+    final round was the fault. With the two rounds mixed (`blend=0.5`), confirmed on 142 new
+    steps: 89.4 % in the top 20 and 82.4 % in the top 10, against 38.7 % and 23.2 % for BM25.
+  - **Two negatives, registered:** an answering model given only the top 20 scored 5 points
+    under the whole page, and a hook that prunes snapshots (`harness.browse_hook`, opt-in) saved
+    nothing in 36 real Claude Code sessions with `playwright-cli`.
+- `Squire.fork(thresholds=...)`: a copy with another ceiling for one job.
+
 - **Candor: an agent's report held against what it did** (`sanchopanza.candor`,
   `python -m sanchopanza.harness.candor_hook`, `python -m sanchopanza.candor
   status|release|check`).

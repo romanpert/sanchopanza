@@ -1,0 +1,115 @@
+{
+ "agnews": {
+  "items": 5,
+  "jev": {
+   "accuracy": 1.0,
+   "wilson95": [
+    0.5655,
+    1.0
+   ],
+   "at_classify_0.60": {
+    "coverage": 1.0,
+    "accuracy": 1.0
+   },
+   "usd_per_1000": 0.01935
+  },
+  "question3": {
+   "auroc_p1": NaN,
+   "auroc_margin": NaN,
+   "selective@0.8": {
+    "p1": 1.0,
+    "margin": 1.0,
+    "margin_minus_p1_bootstrap95": [
+     0.0,
+     0.0
+    ]
+   },
+   "selective@0.6": {
+    "p1": 1.0,
+    "margin": 1.0,
+    "margin_minus_p1_bootstrap95": [
+     0.0,
+     0.0
+    ]
+   }
+  },
+  "haiku": {
+   "accuracy": 1.0,
+   "wilson95": [
+    0.5655,
+    1.0
+   ],
+   "unanswered": 0
+  },
+  "cascade": {
+   "tau_from_first_half": 0.99,
+   "held_out_items": 3,
+   "escalated_share": 0.0,
+   "accuracy": 1.0,
+   "haiku_accuracy_held_out": 1.0,
+   "jev_accuracy_held_out": 1.0
+  },
+  "jev_live_calls": 0,
+  "jev_unanswered": 0
+ },
+ "dbpedia": {
+  "items": 5,
+  "jev": {
+   "accuracy": 1.0,
+   "wilson95": [
+    0.5655,
+    1.0
+   ],
+   "at_classify_0.60": {
+    "coverage": 1.0,
+    "accuracy": 1.0
+   },
+   "usd_per_1000": 0.02787
+  },
+  "question3": {
+   "auroc_p1": NaN,
+   "auroc_margin": NaN,
+   "selective@0.8": {
+    "p1": 1.0,
+    "margin": 1.0,
+    "margin_minus_p1_bootstrap95": [
+     0.0,
+     0.0
+    ]
+   },
+   "selective@0.6": {
+    "p1": 1.0,
+    "margin": 1.0,
+    "margin_minus_p1_bootstrap95": [
+     0.0,
+     0.0
+    ]
+   }
+  },
+  "haiku": {
+   "accuracy": 1.0,
+   "wilson95": [
+    0.5655,
+    1.0
+   ],
+   "unanswered": 0
+  },
+  "cascade": {
+   "tau_from_first_half": 1.0,
+   "held_out_items": 3,
+   "escalated_share": 0.0,
+   "accuracy": 1.0,
+   "haiku_accuracy_held_out": 1.0,
+   "jev_accuracy_held_out": 1.0
+  },
+  "jev_live_calls": 3,
+  "jev_unanswered": 0
+ },
+ "haiku_cost": {
+  "sessions": 10,
+  "list_usd": 0.029330000000000002,
+  "api_equivalent_usd": 0.018873
+ },
+ "jev_missing": 0,
+ "incomplete": false
+}

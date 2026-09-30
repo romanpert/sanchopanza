@@ -1,0 +1,115 @@
+{
+ "agnews": {
+  "items": 300,
+  "jev": {
+   "accuracy": 0.8933,
+   "wilson95": [
+    0.8533,
+    0.9234
+   ],
+   "at_classify_0.60": {
+    "coverage": 0.9833,
+    "accuracy": 0.9017
+   },
+   "usd_per_1000": 0.01955
+  },
+  "question3": {
+   "auroc_p1": 0.7232,
+   "auroc_margin": 0.7224,
+   "selective@0.8": {
+    "p1": 0.9458,
+    "margin": 0.9458,
+    "margin_minus_p1_bootstrap95": [
+     0.0,
+     0.0
+    ]
+   },
+   "selective@0.6": {
+    "p1": 0.9444,
+    "margin": 0.9444,
+    "margin_minus_p1_bootstrap95": [
+     0.0,
+     0.0
+    ]
+   }
+  },
+  "haiku": {
+   "accuracy": 0.83,
+   "wilson95": [
+    0.7834,
+    0.8683
+   ],
+   "unanswered": 0
+  },
+  "cascade": {
+   "tau_from_first_half": 0.48,
+   "held_out_items": 150,
+   "escalated_share": 0.0,
+   "accuracy": 0.9333,
+   "haiku_accuracy_held_out": 0.8667,
+   "jev_accuracy_held_out": 0.9333
+  },
+  "jev_live_calls": 295,
+  "jev_unanswered": 0
+ },
+ "dbpedia": {
+  "items": 300,
+  "jev": {
+   "accuracy": 0.98,
+   "wilson95": [
+    0.9571,
+    0.9908
+   ],
+   "at_classify_0.60": {
+    "coverage": 0.9967,
+    "accuracy": 0.9833
+   },
+   "usd_per_1000": 0.02794
+  },
+  "question3": {
+   "auroc_p1": 0.9033,
+   "auroc_margin": 0.9022,
+   "selective@0.8": {
+    "p1": 0.9958,
+    "margin": 0.9958,
+    "margin_minus_p1_bootstrap95": [
+     0.0,
+     0.0
+    ]
+   },
+   "selective@0.6": {
+    "p1": 0.9944,
+    "margin": 0.9944,
+    "margin_minus_p1_bootstrap95": [
+     0.0,
+     0.0
+    ]
+   }
+  },
+  "haiku": {
+   "accuracy": 0.98,
+   "wilson95": [
+    0.9571,
+    0.9908
+   ],
+   "unanswered": 0
+  },
+  "cascade": {
+   "tau_from_first_half": 0.5,
+   "held_out_items": 150,
+   "escalated_share": 0.0,
+   "accuracy": 1.0,
+   "haiku_accuracy_held_out": 1.0,
+   "jev_accuracy_held_out": 1.0
+  },
+  "jev_live_calls": 295,
+  "jev_unanswered": 0
+ },
+ "haiku_cost": {
+  "sessions": 600,
+  "list_usd": 1.758791,
+  "api_equivalent_usd": 1.136224
+ },
+ "jev_missing": 0,
+ "incomplete": false
+}

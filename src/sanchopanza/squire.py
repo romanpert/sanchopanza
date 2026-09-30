@@ -88,8 +88,9 @@ class Squire:
         self._model_seen: str | None = None
         self._model_warned = False
 
-    def fork(self) -> Squire:
-        """A fresh squire - new meter, no history - with this one's configuration.
+    def fork(self, *, thresholds: Thresholds | None = None) -> Squire:
+        """A fresh squire - new meter, no history - with this one's configuration, or with
+        `thresholds` in place of its own (a tighter ceiling for one job, say).
 
         Same decider, thresholds, journal, brief, profile and redactor. For a harness that
         serves several users or conversations from one template: each gets its own budget and
@@ -98,7 +99,7 @@ class Squire:
         """
         return Squire(
             self._decider,
-            thresholds=self._t,
+            thresholds=thresholds if thresholds is not None else self._t,
             journal=self._journal,
             brief=self._brief,
             profile=self._profile,

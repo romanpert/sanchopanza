@@ -1,0 +1,9 @@
+{"id": "79c4a963-4aa9-49c1-9257-6b0d5069c551", "split": "test_website", "arm": "BM25", "elements": 493, "position": null, "cost_usd": 0.0, "calls": 0, "answered": 0}
+{"id": "0d4c0b62-bc0e-42fc-a126-4f48eb67ad51", "split": "test_website", "arm": "BM25", "elements": 273, "position": null, "cost_usd": 0.0, "calls": 0, "answered": 0}
+{"id": "b4f27498-cd0a-4dce-895c-b1631cb58b27", "split": "test_website", "arm": "BM25", "elements": 888, "position": null, "cost_usd": 0.0, "calls": 0, "answered": 0}
+{"id": "79c4a963-4aa9-49c1-9257-6b0d5069c551", "split": "test_website", "arm": "JEV", "elements": 493, "position": 12, "cost_usd": 0.006084708000000001, "calls": 18, "answered": 50}
+{"id": "0d4c0b62-bc0e-42fc-a126-4f48eb67ad51", "split": "test_website", "arm": "JEV", "elements": 273, "position": null, "cost_usd": 0.0035178360000000003, "calls": 11, "answered": 50}
+{"id": "b4f27498-cd0a-4dce-895c-b1631cb58b27", "split": "test_website", "arm": "JEV", "elements": 888, "position": 6, "cost_usd": 0.010453716, "calls": 31, "answered": 50}
+{"id": "79c4a963-4aa9-49c1-9257-6b0d5069c551", "split": "test_website", "arm": "JEV-SHORT", "elements": 493, "position": null, "cost_usd": 0.001401456, "calls": 4, "answered": 50}
+{"id": "0d4c0b62-bc0e-42fc-a126-4f48eb67ad51", "split": "test_website", "arm": "JEV-SHORT", "elements": 273, "position": null, "cost_usd": 0.001371216, "calls": 4, "answered": 50}
+{"id": "b4f27498-cd0a-4dce-895c-b1631cb58b27", "split": "test_website", "arm": "JEV-SHORT", "elements": 888, "position": null, "cost_usd": 0.0013869239999999999, "calls": 4, "answered": 50}

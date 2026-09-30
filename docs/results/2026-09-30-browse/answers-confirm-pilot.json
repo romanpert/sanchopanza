@@ -1,0 +1,27 @@
+{
+ "steps": 9,
+ "pilot": true,
+ "FULL": {
+  "accuracy": 0.6667,
+  "failed_sessions": 0,
+  "positive_shown": 1.0,
+  "input_tokens_mean": 35257,
+  "list_usd_total": 1.5002
+ },
+ "TOP": {
+  "accuracy": 0.5556,
+  "failed_sessions": 0,
+  "positive_shown": 0.7778,
+  "input_tokens_mean": 2268,
+  "list_usd_total": 0.102
+ },
+ "TOP_minus_FULL": {
+  "value": -0.1111,
+  "bootstrap95": [
+   -0.3333,
+   0.0
+  ]
+ },
+ "cli_spent_usd": 1.6022,
+ "jev_usd_per_step_phase1c": 0.006468
+}

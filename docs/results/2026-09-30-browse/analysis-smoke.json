@@ -1,0 +1,157 @@
+{
+ "steps": 3,
+ "BM25": {
+  "recall@1": {
+   "value": 0.0,
+   "wilson95": [
+    0.0,
+    0.5615
+   ]
+  },
+  "recall@5": {
+   "value": 0.0,
+   "wilson95": [
+    0.0,
+    0.5615
+   ]
+  },
+  "recall@10": {
+   "value": 0.0,
+   "wilson95": [
+    0.0,
+    0.5615
+   ]
+  },
+  "recall@20": {
+   "value": 0.0,
+   "wilson95": [
+    0.0,
+    0.5615
+   ]
+  },
+  "recall@30": {
+   "value": 0.0,
+   "wilson95": [
+    0.0,
+    0.5615
+   ]
+  },
+  "usd_per_step": 0.0,
+  "calls_per_step": 0.0,
+  "by_split": {
+   "test_website": {
+    "recall@1": 0.0,
+    "recall@10": 0.0,
+    "recall@30": 0.0
+   }
+  }
+ },
+ "JEV": {
+  "recall@1": {
+   "value": 0.0,
+   "wilson95": [
+    0.0,
+    0.5615
+   ]
+  },
+  "recall@5": {
+   "value": 0.0,
+   "wilson95": [
+    0.0,
+    0.5615
+   ]
+  },
+  "recall@10": {
+   "value": 0.3333,
+   "wilson95": [
+    0.0615,
+    0.7923
+   ]
+  },
+  "recall@20": {
+   "value": 0.6667,
+   "wilson95": [
+    0.2077,
+    0.9385
+   ]
+  },
+  "recall@30": {
+   "value": 0.6667,
+   "wilson95": [
+    0.2077,
+    0.9385
+   ]
+  },
+  "usd_per_step": 0.006685,
+  "calls_per_step": 20.0,
+  "by_split": {
+   "test_website": {
+    "recall@1": 0.0,
+    "recall@10": 0.3333,
+    "recall@30": 0.6667
+   }
+  }
+ },
+ "JEV-SHORT": {
+  "recall@1": {
+   "value": 0.0,
+   "wilson95": [
+    0.0,
+    0.5615
+   ]
+  },
+  "recall@5": {
+   "value": 0.0,
+   "wilson95": [
+    0.0,
+    0.5615
+   ]
+  },
+  "recall@10": {
+   "value": 0.0,
+   "wilson95": [
+    0.0,
+    0.5615
+   ]
+  },
+  "recall@20": {
+   "value": 0.0,
+   "wilson95": [
+    0.0,
+    0.5615
+   ]
+  },
+  "recall@30": {
+   "value": 0.0,
+   "wilson95": [
+    0.0,
+    0.5615
+   ]
+  },
+  "usd_per_step": 0.001387,
+  "calls_per_step": 4.0,
+  "by_split": {
+   "test_website": {
+    "recall@1": 0.0,
+    "recall@10": 0.0,
+    "recall@30": 0.0
+   }
+  }
+ },
+ "elements_per_step_mean": 551.3,
+ "JEV-minus-BM25@10": {
+  "value": 0.3333,
+  "bootstrap95": [
+   0.0,
+   1.0
+  ]
+ },
+ "JEV-SHORT-minus-BM25@10": {
+  "value": 0.0,
+  "bootstrap95": [
+   0.0,
+   0.0
+  ]
+ },
+ "incomplete": false
+}

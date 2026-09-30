@@ -28,6 +28,8 @@ The "status" column says what is measured. It links nothing that was not run.
 |---|---|---|---|---|
 | `search_archive(query, k)` | BM25 over tool output that was cut or masked out of context and kept on disk; returns paths with the matching excerpt | no | archive MCP server: `sanchopanza archive-mcp` (installed by `--lean`), Codex `config.toml`, or `python -m sanchopanza.harness.mcp --tools archive` | shipped; the agent did not call it in the lean end-to-end run (docs/results/2026-09-28-context-lean/) |
 | `find_in_repo(query, k)` | the files and line ranges of the repository that bear on a request: a BM25 shortlist of code fragments, judged in context when a key is set | no (better with one) | archive MCP server with `SANCHOPANZA_FIND=1`, `--tools find`, or Codex `config --find` | on 117 SWE-bench Verified issues: a file the fix edits first in 51 %, top five in 65 % (whole-file BM25: 14 %, 35 %), 0.0016 USD per issue (docs/results/2026-09-29-find/) |
+| `label_file(path, rubric, out, max_usd)` | labels every item of a `.jsonl`/`.csv`/`.txt` with a closed rubric and writes columns (label, p, margin, provider, reason); cached for 30 days, capped | yes | `--tools label` | 89.3 % on AG News and 98.0 % on DBpedia-14 against Haiku 4.5's 83.0 % and 98.0 %, at 1/70 to 1/95 of its cost (docs/results/2026-09-30-label/) |
+| `rank_elements(goal, page, done, keep)` | the elements of a page (Playwright snapshot, HTML or a file) most likely to be acted on next, with their refs | no (better with one) | `--tools browse`; also `sanchopanza browse PAGE --goal ...` from a shell | on 142 new Mind2Web steps (559 elements a page), the element acted on is in the top 20 in 89.4 % and the top 10 in 82.4 %, BM25 38.7 % and 23.2 %, 0.0065 USD a step; an answering model given only the top 20 scored 5 points under the whole page, not recommended as a replacement (docs/results/2026-09-30-browse/) |
 | `verify_citation`, `evaluate_plan`, `align_entities`, `classify_field`, `triage_text` | the decision points an orchestrator asks on purpose: does this source support this claim, the waves of a plan, same entity or not, a closed vocabulary, is this text worth reading | yes | `python -m sanchopanza.harness.mcp --tools decisions` | each measured at decision level (SKILL.md, section 2) |
 | `load_tools(need)` | grows the tool set when the model needs a tool that is not loaded yet, by appending, so the cache stays valid | yes | `harness.messages_api.WindowedTools` (Messages API) | measured; where the platform has tool search, its search is cheaper (docs/results/2026-09-25-wide/) |
 
@@ -50,6 +52,7 @@ every session pays for its tool list.
 | PreToolUse shell (`Bash`, `run_command`...) | `guard_command`: a code deny-list first; the decider can add a denial, never grant | yes | 31/32 with the deny-list, 0 false positives; 16/16 destructive commands stopped inside Claude Code, 0 false alarms in 93 events |
 | PostToolUse `Agent` / `Task` | `review_report`: a subagent report stating facts with no source is flagged | yes | 21/22 |
 | PostToolUse content tools | `scan_content`: marks injected instructions in arriving text | opt-in `--scan-content` | 0 false alarms on 149 real tool outputs; buys nothing in front of a model that already refuses |
+| PostToolUse `Bash`, `Read`, Playwright MCP | `browse_hook`: a large accessibility snapshot (MCP result, `playwright-cli snapshot`, or a `.yml` snapshot file) pruned to the elements ranked for the task, headings and relevant text, full copy archived | opt-in `python -m sanchopanza.harness.browse_hook` | **saved nothing** in 36 real sessions with playwright-cli (+0.0095 USD, [-0.006, +0.027]), same answers; it acted in 8 of 18 |
 | Stop | `check_done`: holds the stop once when p(done) < 0.5 | opt-in `--check-done` | 94 % on AgentDojo (AUC 0.98); **does not carry to tau2-bench's reward** (54 % against 67 % for trusting the agent) |
 | UserPromptSubmit | a free hint: the repository fragments BM25 ranks first for the prompt, appended as context (repositories of up to 3,000 text files; a hook cannot keep the index between prompts) | opt-in `SANCHOPANZA_FIND_ON_PROMPT=1` | unmeasured end to end; the retrieval itself is measured in docs/results/2026-09-29-find/ |
 
@@ -114,6 +117,10 @@ Status (docs/candor.md):
 
   Each one has typed questions, measured thresholds, a meter (`max_usd`, `max_decisions`) and a
   journal. The measured figures are in `skills/sanchopanza/SKILL.md`, section 2.
+- **`sanchopanza.label`**: a closed rubric over a corpus (`label`, `read_items`, `write_rows`,
+  `LabelCache` with an age), `Squire.classify`'s question and gate per item; `sanchopanza label`.
+- **`sanchopanza.browse`**: a page into elements by code (`elements_from_snapshot`,
+  `elements_from_html`), `rank` for the next action, `prune_snapshot`; `sanchopanza browse`.
 - **`sanchopanza.select`**: "a few among many", the one shape behind pages, passages, memory,
   archive and repository search. A BM25 shortlist by code (`text.BM25Index`, the package's one
   BM25), then `triage_many` in context when there is a judge.

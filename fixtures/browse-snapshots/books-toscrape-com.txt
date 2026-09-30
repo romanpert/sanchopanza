@@ -1,0 +1,12 @@
+### Ran Playwright code
+```js
+await page.goto('https://books.toscrape.com/');
+```
+### Page
+- Page URL: https://books.toscrape.com/
+- Page Title: All products | Books to Scrape - Sandbox
+- Console: 1 errors, 0 warnings
+### Snapshot
+- [Snapshot](.playwright-mcp\page-2026-09-30T16-34-35-749Z.yml)
+### Events
+- New console entries: .playwright-mcp\console-2026-09-30T16-34-34-718Z.log#L1

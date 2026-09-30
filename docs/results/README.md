@@ -32,6 +32,8 @@ The runs behind the README's headline numbers.
 | [2026-09-29-candor](2026-09-29-candor/) (round 5) | v6 on four new tasks (`prereg-5.md`), 4 of 6 hypotheses hold: 0/39 honest sessions and 62/63 misstatements locked; the review tier caught 23 of 29 real misreports. K3 (U1 lock 4/6) and K4 (review 6/11) fail |
 | [2026-09-30-candor-inputs](2026-09-30-candor-inputs/) | v6 on held-out SWE-chat (`prereg-inputs.md`): 32 `substituted_input` flags against v5's 721, locks on 1.8 % of turns against 18 % (O1 holds); no real substitution among 200 read, so O2 has no verdict and O3 fails |
 | [2026-09-30-opus55-substitution](2026-09-30-opus55-substitution/) | The 211 substitution judgments against Claude Opus 5.5: a tie (200 against 199) at about 99x less per judgment |
+| [2026-09-30-label](2026-09-30-label/) | A closed rubric over two public sets (`prereg.md`): Jev 89.3 % (AG News) and 98.0 % (DBpedia-14) against Haiku 4.5's 83.0 % and 98.0 % at 1/70 to 1/95 of its cost; the margin p1 - p2 adds nothing over p1 |
+| [2026-09-30-browse](2026-09-30-browse/) | The next element on a Mind2Web page: first design failed (R@10 71.0 %, `prereg.md`), the mixed rounds confirmed on 142 new steps (`prereg-confirm.md`): R@20 89.4 %, R@10 82.4 %, BM25 38.7 % and 23.2 % |
 
 ## The negatives the README reports with the same weight
 
@@ -54,6 +56,7 @@ The runs behind the README's headline numbers.
 | [2026-09-30-find-e2e](2026-09-30-find-e2e/) | `find_in_repo` offered to a Haiku agent on 27 SWE-bench issues (`prereg-find-e2e.md`): called in 6 of 27 sessions; first-file hits 17 against 16, same cost (E1 and E2 fail, E3 holds) |
 | [2026-09-30-clm-cpu](2026-09-30-clm-cpu/) | CLM-8B zero-shot on a CPU encoder against Jev on the benches: runs end to end, agrees far less (injection 12/28 against 27/28) and does not separate the classes |
 | [2026-09-30-indagis-scene](2026-09-30-indagis-scene/) | A real Indagis fix, three sessions a side (`prereg-scene.md`): same cost, solo 3/3 against 2/3; candor caught one false read claim and raised two locks on a false reason, one of them on a correct fix; its lock is one file per machine |
+| [2026-09-30-browse](2026-09-30-browse/) | Reading less while browsing (`prereg-confirm.md` Phase 2c, `prereg-e2e.md`): Sonnet 5 from Jev's top 20 elements 53.3 % against 58.3 % from the whole page, -5 points [-15, +5], under the bar; a snapshot-pruning hook in 36 real Claude Code sessions with playwright-cli, +0.0095 USD a session [-0.006, +0.027], no saving |
 
 ## Corrected: headline invalid
 
