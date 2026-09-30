@@ -198,8 +198,15 @@ def one(row: dict[str, Any], arm: str) -> dict[str, Any] | None:
     started = time.time()
     try:
         with stream.open("w", encoding="utf-8") as out:
-            subprocess.run(command(row, arm, art), cwd=work, env=child_env(), stdout=out,
-                           stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, timeout=1200)  # fmt: skip
+            subprocess.run(
+                command(row, arm, art),
+                cwd=work,
+                env=child_env(),
+                stdout=out,
+                stderr=subprocess.DEVNULL,
+                stdin=subprocess.DEVNULL,
+                timeout=1200,
+            )
     except subprocess.TimeoutExpired:
         pass
     result = _result(stream)
