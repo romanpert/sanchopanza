@@ -77,6 +77,9 @@ ARM_SPECS = {
     "Sfn": Arm((), fresh=True),
     "Sb": Arm(("--context-budget", "100000")),
 }
+# Chains that run only when named, on a model named (combined.py, long.py): a default run must
+# not spend them on the wrong model, since a chain never runs twice.
+NAMED_ONLY = ("combined", "long")
 CALL_CAP_USD = 1.50  # binds only on a runaway call: at 1.20 it cut a normal pilot request
 CHAIN_CAP_USD = 6.00
 CALL_TIMEOUT_S = 2700
@@ -486,14 +489,13 @@ def main(argv: list[str] | None = None) -> int:
     if unknown := [a for a in arms if a not in ARM_SPECS]:
         raise SystemExit(f"unknown arms {unknown}; known: {sorted(ARM_SPECS)}")
     named = [c for c in args.chains.split(",") if c]
-    # Combined chains (combined.py) run only when named, on a model named: a default run must
-    # not spend them on the wrong model, since a chain never runs twice.
+    # NAMED_ONLY chains run only when named, on a model named.
     wanted = named or [n for n, c in known.items()
-                       if c["split"] == args.split and c.get("kind") != "combined"]  # fmt: skip
+                       if c["split"] == args.split and c.get("kind") not in NAMED_ONLY]  # fmt: skip
     if args.action == "run" and args.model is None and any(
-        known[n].get("kind") == "combined" for n in wanted
+        known[n].get("kind") in NAMED_ONLY for n in wanted
     ):
-        raise SystemExit("a combined chain needs --model")
+        raise SystemExit("a combined or long chain needs --model")
     model = MODELS[args.model or "haiku"]
     if args.action == "plan":
         for n in wanted:
@@ -529,7 +531,7 @@ def main(argv: list[str] | None = None) -> int:
             # All or nothing (held-out and combined chains always): every arm's whole chain cap
             # is held before any arm starts, so no pair ever has one arm run and not the other
             # (the shared ledger let one arm take the room of another in development).
-            whole = args.whole or chain["split"] == "held" or chain.get("kind") == "combined"
+            whole = args.whole or chain["split"] == "held" or chain.get("kind") in NAMED_ONLY
             hold = CHAIN_CAP_USD * len(arms) if whole else 0.0
             if whole and not reserve(args.ceiling, hold):
                 print(f"{n}: not run, its arms' chain caps ({hold:.2f} USD) do not fit")
