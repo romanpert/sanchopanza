@@ -52,3 +52,14 @@ had set; the decider was told the live `cwd` was writable (now the project direc
 `rm -rf *` or `rm -rf .` is now the decider's to judge: after `cd build` it is ordinary cleanup.
 The numbers above are after these fixes; the decider answers for commands whose state changed
 are replayed from the recording where they exist.
+
+## Asking only when there is something to deny (same day)
+
+In the adoption study's second pygments session the shell guard took **1.23 s per shell call**
+(median; 139 s in one session) and asked the decider on 92 of 102 calls without denying one. The
+coding profile now asks only when the command carries a risk signal (`points.guard.CODING_ASK`: a
+delete, permission or process command where a command stands, network tools, device writes,
+`python -c` or `node -e` that touches the network, the environment or `exec`, pushes and hard
+resets, secret file shapes, redirects outside the tree, pipes into a shell). It asks on **2.2 %**
+of the study's 552 shell commands and **12.5 %** of the owner's real ones, and the bench and
+R-Judge numbers above are unchanged with it (12/17 and 0/15; 6/15 and 3/12).

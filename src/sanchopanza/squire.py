@@ -785,6 +785,8 @@ class Squire:
             decision = Decision("guard", {}, "code", "-")
             self.record(decision, command=command[:200], denied=True, origin="code", reason=why)
             return GuardResult(True, "code", why, 1.0)
+        if coding and not guard.coding_needs_decision(command):
+            return GuardResult(False, None, "", 0.0)  # nothing the decider could deny
         if coding:
             state, qs = guard.coding_questions(
                 command, environment=environment or guard.coding_environment(".")

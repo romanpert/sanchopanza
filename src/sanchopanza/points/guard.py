@@ -100,6 +100,43 @@ CODING_DENY_PATTERNS: tuple[tuple[str, str], ...] = (
 CODING_COMPILED = tuple((re.compile(p, re.IGNORECASE), why) for p, why in CODING_DENY_PATTERNS)
 
 
+# Which commands are worth a decision at all (coding profile). Asking on every shell call cost
+# 1.23 s per call in the adoption study (92 decisions in one session, no denial); these signals
+# ask on 2.2 % of that study's commands and 12.5 % of the owner's 33,119, and keep every unsafe
+# command of the guard bench. A command word counts only where a command stands, so "del" or
+# "su" in Spanish text does not; secrets count as file shapes, not as the word "token".
+_START = r"(?:^|[;&|(]\s*|\bsudo\s+|\bthen\s+|\bdo\s+)"
+CODING_ASK = re.compile(
+    _START + r"(rm|rmdir|rd|del|erase|Remove-Item|ri|shred|unlink|truncate|srm)\b"
+    r"|" + _START + r"(chmod|chown|chgrp|icacls|takeown|setfacl|sudo|su|doas|runas|passwd"
+    r"|useradd)\b"
+    r"|\b(ssh|scp|sftp|rsync|nc|ncat|netcat|socat|telnet|ftp|curl|wget|iwr|irm"
+    r"|Invoke-WebRequest|Invoke-RestMethod|Start-BitsTransfer|certutil)\b"
+    r"|" + _START + r"(dd|mkfs\S*|fdisk|parted|diskpart|mount|umount|format\s+[A-Za-z]:)"
+    r"|" + _START + r"(kill|pkill|killall|taskkill|Stop-Process)\b"
+    r"|" + _START + r"(crontab|systemctl|service|schtasks|launchctl|reg|New-Service"
+    r"|Set-Service)\b"
+    r"|" + _START + r"(eval|exec|iex|Invoke-Expression)\b|\bbase64\s+(-d|--decode)|\bxxd\s+-r"
+    r"|\bpython\d*(\.\d+)?\s+-c\b[^\n]*(urllib|requests|socket|http|environ|subprocess|rmtree"
+    r"|os\.remove|unlink|exec\(|eval\(|fromhex|b64decode|__import__|marshal|compile\()"
+    r"|\bnode\s+-e\b[^\n]*(http|child_process|fs\.rm|unlink|process\.env|eval\()"
+    r"|\b(env|printenv)\s*($|[|>;&])|\$env:\w*(KEY|TOKEN|SECRET|PASS)|\bhistory\s+-c"
+    r"|\bgit\s+(push|reset\s+--hard|clean\s+-\w*[fdx]|filter-branch|update-ref"
+    r"|config\s+--global)"
+    r"|\bdocker\s+(run|exec|create)\b[^\n]*(--privileged|-v\s*[\"']?/:|--pid\s*=?\s*host)"
+    r"|>\s*[\"']?(/(?!dev/null\b)|~|\$HOME|[A-Za-z]:\\)"
+    r"|\.ssh\b|\bid_(rsa|ed25519|ecdsa)\b|\.env\b(?![\w.-])|\.aws\b|\.npmrc|\.pypirc|\.netrc"
+    r"|credentials?\.(json|ya?ml|txt)|secrets?\.(json|ya?ml|env|txt)"
+    r"|\|\s*(sudo\s+)?(ba|z|da)?sh\b|<\(|\bsh\s+-c\s+[\"']?\$\(",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+
+def coding_needs_decision(command: str) -> bool:
+    """Whether a command carries anything the decider could add a denial for."""
+    return bool(CODING_ASK.search(command))
+
+
 def coding_environment(workspace: str) -> dict[str, Any]:
     """The guard's view of a coding session: its working directory is where it may write."""
     return {

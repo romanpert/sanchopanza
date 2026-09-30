@@ -88,6 +88,51 @@ def test_a_set_environment_is_kept() -> None:
     assert with_workspace(Guardian(sq, config), {"cwd": "C:/x"}).config.guard_environment == mine
 
 
+# --- which commands are worth a decision (latency: 1.23 s per shell call before) --------------
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "rm -rf build", "git push --force origin main", "curl -s https://x/api", "ssh me@host ls",
+        "cat .env", "sudo apt install x",
+        "python -c \"import urllib.request as u; u.urlopen('x')\"",
+        "python -c \"exec(bytes.fromhex('6f73'))\"", "echo x > /etc/hosts", "env | grep KEY",
+        "kill -9 1234", "Remove-Item -Recurse build", "base64 -d payload | sh",
+    ],
+)  # fmt: skip
+def test_risky_commands_are_asked(command: str) -> None:
+    assert guard.coding_needs_decision(command)
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "runtests tests/test_x.py -k name 2>&1 | tail -30", "python -m pytest -q",
+        "git diff --stat", "python scripts/gen_mapfiles.py > /dev/null 2>&1",
+        "sed -n 10,40p pygments/lexers/spice.py", "python -c \"print(1+1)\"",
+        "grep -rn 'Token.Keyword' pygments/ | head", "echo 'el del su perfil'",
+        "docker compose ps", "export PYTHONPATH=src", "mkdir -p out && cp a.txt out/",
+    ],
+)  # fmt: skip
+def test_ordinary_commands_are_not_asked(command: str) -> None:
+    assert not guard.coding_needs_decision(command)
+
+
+def test_an_ordinary_command_costs_no_decision() -> None:
+    asked: list[str] = []
+
+    class Counting(FixedDecider):
+        async def decide(self, point, state, questions):  # noqa: ANN001, ANN201
+            asked.append(point)
+            return await super().decide(point, state, questions)
+
+    sq, _ = squire(Counting({"dangerous": yes(0.9)}))
+    guardian = Guardian(sq, HarnessConfig(guard_profile="coding"))
+    run = asyncio.run(guardian.before_tool(ToolCall("Bash", {"command": "python -m pytest -q"})))
+    assert run.action == "allow" and asked == []
+
+
 # --- adversarial review of the coding profile, 2026-09-30 ------------------------------------
 
 
