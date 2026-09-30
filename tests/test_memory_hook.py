@@ -51,11 +51,16 @@ SUMMARY = {"type": "user", "isCompactSummary": True,
            "message": {"role": "user", "content": "This session is continued..."}}  # fmt: skip
 
 
-def lexer_request(n: int = 0) -> list[dict[str, Any]]:
+HEX_LINE = "(r'0[xX][0-9a-fA-F]+', Number.Hex),"
+
+
+def lexer_request(n: int = 0, line: str = HEX_LINE) -> list[dict[str, Any]]:
     return [
         prompt("The Carbon lexer mishandles hex literals like 0xFF"),
         *tool("Read", {"file_path": f"{CWD}/pygments/lexers/carbon.py"}, "class CarbonLexer", n),
-        *tool("Edit", {"file_path": f"{CWD}/pygments/lexers/carbon.py"}, "ok", n + 1),
+        *tool("Edit", {"file_path": f"{CWD}/pygments/lexers/carbon.py",
+                       "old_string": "tokens = {}", "new_string": f"tokens = {{\n    {line}\n}}"},
+              "ok", n + 1),
         *tool("Bash", {"command": "./probe --once"}, f"issued token RT-6Z4F\ntoken={GH_TOKEN}",
               n + 2),  # fmt: skip
         *tool("Bash", {"command": "pytest tests/test_carbon.py"}, "3 passed in 0.2s", n + 3),
@@ -388,10 +393,20 @@ def test_off_records_but_injects_nothing(store: Path, monkeypatch: pytest.Monkey
 # ---- v3: just in time on a file, and at a session's start (SWE-chat, 2026-10-01) ---------------
 
 
-def touch_event(path: Path, session: str, tool_name: str, file_path: str) -> dict[str, Any]:
+def touch_event(
+    path: Path, session: str, tool_name: str, file_path: str, content: str = HEX_LINE
+) -> dict[str, Any]:
+    """A PostToolUse as Claude Code sends it: a Read's response holds the file's content, an
+    Edit's input its old_string."""
+    arguments: dict[str, Any] = {"file_path": file_path}
+    response: dict[str, Any] = {}
+    if tool_name == "Read":
+        response = {"type": "text", "file": {"filePath": file_path, "content": content}}
+    elif tool_name == "Edit":
+        arguments = {**arguments, "old_string": content, "new_string": "x"}
     return {"hook_event_name": "PostToolUse", "session_id": session, "transcript_path": str(path),
-            "cwd": CWD, "tool_name": tool_name, "tool_input": {"file_path": file_path},
-            "tool_response": {}}  # fmt: skip
+            "cwd": CWD, "tool_name": tool_name, "tool_input": arguments,
+            "tool_response": response}  # fmt: skip
 
 
 def test_opening_a_file_an_earlier_session_changed_gives_its_record_once(store: Path) -> None:
@@ -424,18 +439,77 @@ def test_a_touch_never_gives_a_record_of_the_live_context(store: Path) -> None:
     assert "request 1 of session s1" in given
 
 
-def test_a_touch_gives_the_two_newest_records_of_a_file(store: Path) -> None:
+LINES = ("(r'0[oO][0-7]+', Number.Oct),", "(r'0[bB][01]+', Number.Bin),",
+         "(r'[0-9]+\\.[0-9]*', Number.Float),")  # fmt: skip
+
+
+def three_sessions(store: Path) -> tuple[Path, str]:
+    """Three earlier sessions changed carbon.py, each writing its own line, oldest first."""
     project = store / "projects" / "p"
     for n, stamp in enumerate(("2026-09-28T10:00:00Z", "2026-09-29T10:00:00Z",
                                "2026-09-30T10:00:00Z")):  # fmt: skip
         entries = [{**e, "timestamp": stamp} if e.get("type") == "user" and "cwd" in e else e
-                   for e in lexer_request(10 * n)]  # fmt: skip
+                   for e in lexer_request(10 * n, LINES[n])]  # fmt: skip
         mh.handle(event(write_transcript(project / f"old{n}.jsonl", entries), "Stop", f"old{n}"))
     new = write_transcript(project / "s2.jsonl", [])
     mh.handle(event(new, "UserPromptSubmit", "s2", "x"))
-    context = context_of(mh.handle(touch_event(new, "s2", "Edit",
-                                               f"{CWD}/pygments/lexers/carbon.py")))  # fmt: skip
-    assert "session old2" in context and "session old1" in context and "old0" not in context
+    return new, f"{CWD}/pygments/lexers/carbon.py"
+
+
+def test_v4_a_read_gives_the_record_whose_lines_it_shows_not_the_newest(store: Path) -> None:
+    # SWE-chat development (2026-10-01): precision 0.643 -> 0.766, same recall, 13 % fewer
+    # characters, against "the two newest records of the file" (v3).
+    new, carbon = three_sessions(store)
+    shown = f"class CarbonLexer:\n    tokens = {{\n        {LINES[0]}\n    }}"
+    context = context_of(mh.handle(touch_event(new, "s2", "Read", carbon, shown)))
+    assert "session old0" in context and "old1" not in context and "old2" not in context
+
+
+def test_v4_a_read_that_shows_no_earlier_line_gives_nothing_an_edit_gives_the_newest(
+    store: Path,
+) -> None:
+    new, carbon = three_sessions(store)
+    assert mh.handle(touch_event(new, "s2", "Read", carbon, "class CarbonLexer: pass")) == {}
+    context = context_of(mh.handle(touch_event(new, "s2", "Edit", carbon, "class CarbonLexer")))
+    assert "session old2" in context and "old1" not in context and "old0" not in context
+
+
+def test_v4_an_edit_of_an_earlier_line_gives_the_record_that_wrote_it(store: Path) -> None:
+    new, carbon = three_sessions(store)
+    context = context_of(mh.handle(touch_event(new, "s2", "Edit", carbon, LINES[1])))
+    assert "session old1" in context and "old2" not in context
+
+
+def test_v4_a_record_keeps_prints_of_the_lines_it_wrote_and_never_shows_them() -> None:
+    entries = [prompt("add a module"),
+               *tool("Write", {"file_path": f"{CWD}/src/new.py",
+                               "content": "def compute_totals(rows):\n    return sum(rows)\n"},
+                     "ok", 1),
+               *tool("Edit", {"file_path": f"{CWD}/src/old.py", "old_string": "x = 1",
+                              "new_string": f"x = 1\n{HEX_LINE}"}, "ok", 2),
+               say("Added.")]  # fmt: skip
+    record = ep.episodes_of(entries, session="s", cwd=CWD)[0][0]
+    assert record.wrote is not None and len(record.wrote) == 3  # three lines of 16+ characters
+    assert ep.line_print("def compute_totals(rows):") in record.wrote
+    assert ep.line_print(f"  {HEX_LINE}  ") in record.wrote  # whitespace does not matter
+    assert not any(p in record.text() for p in record.wrote)
+    assert ep.Episode.from_dict(record.to_dict()).wrote == record.wrote
+
+
+def test_v4_a_record_saved_before_v4_has_no_prints_and_a_read_still_gives_it(
+    store: Path,
+) -> None:
+    legacy = ep.Episode(session="old", index=1, request="fix carbon", report="done",
+                        changed=("pygments/lexers/carbon.py",), at=1_790_000_000.0)  # fmt: skip
+    data = legacy.to_dict()
+    data.pop("wrote")
+    folder = store / "memory" / "p"
+    ep.write_private(folder / "old-001.json", __import__("json").dumps(data))
+    project = store / "projects" / "p"
+    new = write_transcript(project / "s2.jsonl", [])
+    mh.handle(event(new, "UserPromptSubmit", "s2", "x"))
+    touched = touch_event(new, "s2", "Read", f"{CWD}/pygments/lexers/carbon.py", "anything")
+    assert "session old" in context_of(mh.handle(touched))
 
 
 def test_the_default_recalls_at_a_prompt_only_with_a_decider_and_only_at_the_start(
@@ -458,14 +532,14 @@ def test_the_default_recalls_at_a_prompt_only_with_a_decider_and_only_at_the_sta
     assert asyncio.run(mh.recall(event(later, "UserPromptSubmit", "s4", "Carbon lexer"), s)) == {}
 
 
-def test_the_decider_s_cut_is_0_7(store: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_the_decider_s_cut_is_0_8(store: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     project = store / "projects" / "p"
     mh.handle(event(write_transcript(project / "s1.jsonl", lexer_request()), "Stop", "s1"))
     monkeypatch.setenv("SANCHOPANZA_MEMORY_SELECT", "decider")
     new = event(write_transcript(project / "s2.jsonl", []), "UserPromptSubmit", "s2", "Carbon")
-    s, _ = squire(Fake(lambda i: 0.65))
+    s, _ = squire(Fake(lambda i: 0.75))
     assert asyncio.run(mh.recall(new, s)) == {}
-    s, _ = squire(Fake(lambda i: 0.72))
+    s, _ = squire(Fake(lambda i: 0.82))
     assert "session s1" in context_of(asyncio.run(mh.recall({**new, "session_id": "s3"}, s)))
 
 
@@ -634,7 +708,7 @@ def test_l1_a_path_the_secret_mask_rewrites_still_matches(store: Path) -> None:
     mh.handle(event(write_transcript(project / "s1.jsonl", entries), "Stop", "s1"))
     new = write_transcript(project / "s2.jsonl", [])
     mh.handle(event(new, "UserPromptSubmit", "s2", "x"))
-    touched = touch_event(new, "s2", "Read", f"{CWD}/task-management-service/app.py")
+    touched = touch_event(new, "s2", "Edit", f"{CWD}/task-management-service/app.py")
     assert "session s1" in context_of(mh.handle(touched))
 
 

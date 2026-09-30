@@ -29,6 +29,7 @@ atomically and readable by this user only.
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import json
 import os
 import re
@@ -57,6 +58,10 @@ KEEP_DAYS = 30  # records older than this are removed when a project's records a
 # key -> {"changed", "at"} of every record in a project's folder: the touch reads this one file
 # (300 record files took 0.75-3.2 s to load cold on Windows, 2026-10-01).
 INDEX = "index.json"
+# v4: a record keeps prints of the lines its request wrote (16+ characters, at most WROTE_MAX),
+# never shown, so that a later Read or Edit can say whose code it is looking at.
+LINE_MIN = 16
+WROTE_MAX = 400
 
 # How `guard.trail_of` names its lines.
 CHANGED = "changed: "
@@ -100,6 +105,8 @@ class Episode:
     # The changed paths before secret masking, for the index only (never shown): the mask's
     # `sk-...` rule rewrites folder names such as `task-management-service` (review, 2026-10-01).
     changed_raw: tuple[str, ...] = ()
+    # Prints of the lines this request wrote (`line_print`); None for a record saved before v4.
+    wrote: tuple[str, ...] | None = None
 
     @property
     def key(self) -> str:
@@ -145,6 +152,7 @@ class Episode:
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> Episode:
         tuples = ("changed", "read", "facts", "changed_raw")
+        data = {**data, "wrote": tuple(data["wrote"])} if data.get("wrote") is not None else data
         fields = {k: (tuple(v) if k in tuples else v) for k, v in data.items()
                   if k in cls.__dataclass_fields__}  # fmt: skip
         return cls(**fields)
@@ -257,6 +265,44 @@ def relative(path: str, cwd: str) -> str:
     return _relative(path, cwd)
 
 
+def line_print(line: str) -> str:
+    """One line's print: its words joined by single spaces, hashed (the text is not kept)."""
+    return hashlib.sha1(" ".join(line.split()).encode("utf-8")).hexdigest()[:12]
+
+
+def line_prints(text: Any) -> set[str]:
+    """Prints of the lines of `text` long enough to tell code apart (`}` or `return None` are in
+    every file and would join unrelated requests)."""
+    if not isinstance(text, str):
+        return set()
+    out = set()
+    for raw in text.split("\n"):
+        line = " ".join(raw.split())
+        if len(line) >= LINE_MIN and any(c.isalnum() for c in line):
+            out.add(line_print(line))
+    return out
+
+
+def _wrote(history: Sequence[Any]) -> tuple[str, ...]:
+    """Prints of the lines the request's edits really added (context lines of an `old_string`
+    excluded)."""
+    added: list[str] = []
+    for call in history:
+        data = call.input if isinstance(call.input, Mapping) else {}
+        if call.tool == "Edit":
+            pairs = [(data.get("old_string"), data.get("new_string"))]
+        elif call.tool == "MultiEdit":
+            pairs = [(e.get("old_string"), e.get("new_string"))
+                     for e in data.get("edits") or [] if isinstance(e, Mapping)]  # fmt: skip
+        elif call.tool == "Write":
+            pairs = [("", data.get("content"))]
+        else:
+            continue
+        for old, new in pairs:
+            added.extend(sorted(line_prints(new) - line_prints(old)))
+    return tuple(dict.fromkeys(added))[:WROTE_MAX]
+
+
 def _relative(path: str, cwd: str) -> str:
     clean = path.replace("\\", "/")
     base = cwd.replace("\\", "/").rstrip("/") + "/"
@@ -314,6 +360,7 @@ def episode_of(
     return Episode(
         session=session, index=index, request=request, report=report,
         changed=tuple(changed[:FILES_MAX]), changed_raw=tuple(raw[:FILES_MAX]),
+        wrote=_wrote(history),
         read=tuple(p for p in read if p not in changed)[:FILES_MAX], tests=tests,
         facts=tuple(f"{f.source}: {f.line}" for f in chosen), tool_calls=len(history), at=at,
     )  # fmt: skip

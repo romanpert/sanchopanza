@@ -12,7 +12,13 @@ do not favour this package.
 - **Memory v3, just in time** (`install --memory`, still off by default). When the agent opens
   or changes a file, it is given the records of earlier requests that changed that file (the
   two newest, once per session, code only); recall at a prompt now runs only at a session's
-  first live request, with the decider at 0.7, and not at all without a decider.
+  first live request, with the decider at 0.8, and not at all without a decider.
+  - **v4: which record, by the lines in view.** Each record keeps prints of the lines it wrote
+    (never shown); at a Read the record whose lines the agent sees most is given, nothing when
+    it sees none, and at an edit the one whose lines it edits, else the newest. On SWE-chat
+    development against v3 (the two newest per file): precision 0.603 to 0.730, recall 0.944
+    unchanged, noise 0.049 to 0.038, 13 % fewer characters. The decider's cut at a session's
+    first request moves from 0.7 to 0.8 (same recall, higher precision).
   - **Measured on real people's sessions** (SWE-chat: 60 groups of one person on one public
     repository, sealed; `docs/results/2026-10-01-memory-real`): on the held-out half, 95.0 % of
     requests with a related earlier record had one in view, 55.9 % of what was given was

@@ -6,8 +6,10 @@ fire in `claude -p` as in an interactive session. What a record holds is `contex
 - `Stop` and `SessionEnd`: every finished request of the session is recorded verbatim, by
   code, in the project's store. Idempotent: a record is rewritten only when it changed.
 - `PostToolUse` on `Read|Edit|MultiEdit|Write|NotebookEdit` (**just in time**, code only):
-  when the agent opens or changes a file, the `MEMORY_TOUCH_K` newest records of earlier
-  requests that changed that file, once per session until the next compaction. This is where
+  when the agent opens or changes a file, a record of an earlier request that changed it, once
+  per session until the next compaction. Which one (v4): the record whose written lines the
+  agent is looking at (a Read's content, an Edit's old_string; each record keeps prints of the
+  lines it wrote), and at an edit with none in view the newest. This is where
   memory pays in people's sessions: a prompt often names nothing ("fix it", "push"), but the
   file the agent opens does. It reads one index file (`episodes.INDEX`), not every record.
 - `UserPromptSubmit`: first the same recording (a `Stop` that did not run is caught up, for
@@ -23,8 +25,9 @@ and not already given to this session since its last compaction.
 Measured on real people's sessions (SWE-chat, 60 groups of one person on one public
 repository, 953 development requests, docs/results/2026-10-01-memory-real), the shipped hook
 replayed through this code: 94 % of the requests with a related earlier record had one in view,
-60 % of what was given was related, and 4.9 % of the requests with nothing related were given
-anything. The previous design (every prompt, BM25 then the decider at 0.2): 25 %, 2.6 % and 39 %.
+73 % of what was given was related, and 3.8 % of the requests with nothing related were given
+anything (v3, the two newest records per file: 94 %, 60 %, 4.9 %; v2, recall at every prompt
+with the decider at 0.2: 25 %, 2.6 %, 39 %).
 
 Nothing already in the conversation is rewritten: records are appended with the prompt or the
 tool result, so no cached prefix is invalidated. Records live outside the project
@@ -37,15 +40,15 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
                              (the top MEMORY_BM25_KEEP by score, no model) | off (record only;
                              no touch either)
     MEMORY_PROMPT            first (default with a decider) | every | off (default without one)
-    MEMORY_TOUCH             on (default) | off;  MEMORY_TOUCH_K  2
+    MEMORY_TOUCH             on (default) | off;  MEMORY_TOUCH_K  1
     MEMORY_K, MEMORY_BM25_KEEP   5 and 2
-    MEMORY_KEEP_AT           the decider's probability a record needs at a prompt (default 0.7)
+    MEMORY_KEEP_AT           the decider's probability a record needs at a prompt (default 0.8)
     MEMORY_CHARS             cap of the injected text (default 6000)
     MEMORY_DECIDER_SECONDS   the decider's time (default 15); past it, nothing is injected
     MEMORY_STORE             the store's root; MEMORY_STORE_LOG a JSONL file, one line per event
 
 Cost: the touch calls no model; at most one decider call at a session's first prompt.
-Latency: a touch is a new process, 0.14 s median on the maintainer's Windows laptop.
+Latency: a touch is a new process, 0.17 s median on the maintainer's Windows laptop.
 
 Fail open: any error writes one line to stderr and injects nothing. A decider that answers no
 page injects nothing either.
@@ -86,15 +89,21 @@ SHOWN = "shown"  # per-session record of what was given since the last compactio
 # real people's sessions (SWE-chat, 60 groups, 993 development requests, 2026-10-01) it kept 1,220
 # of 1,918 candidates at 2.6 % precision and gave something to 39 % of the requests that had
 # nothing related. Only 2 % of BM25's candidates are related there, and a short prompt ("fix it",
-# "push") is judged below chance (AUC 0.38). At a session's first request and 0.7 it adds recall
-# to the touch with noise on 1 % of requests (docs/results/2026-10-01-memory-real).
-KEEP_AT = 0.7
+# "push") is judged below chance (AUC 0.38). At a session's first request it adds recall to the
+# touch (docs/results/2026-10-01-memory-real). v4: with the touch ranking by lines in view, 0.8
+# keeps 0.7's recall (0.944) at higher precision (0.730 against 0.706) and less noise (0.038
+# against 0.043); at 0.9 it adds nothing to the touch alone.
+KEEP_AT = 0.8
 # Just in time: a file the agent opens or changes gives the records of earlier requests that
 # changed it, the TOUCH_K newest, once per session. On the same data: 93 % of the requests with a
 # related record had one in view, 57 % of what was given was related, 3.8 % of the requests with
 # nothing related were given anything; 90 % arrived before the request's first edit.
 TOUCH_TOOLS = ("Read", "Edit", "MultiEdit", "Write", "NotebookEdit")
-TOUCH_K = 2
+# v4 (SWE-chat development, 2026-10-01): at a Read, the one record whose written lines the
+# agent sees most, and nothing when it sees none; at an edit, the record whose lines it edits,
+# else the newest. Against v3 (the two newest): precision 0.643 -> 0.766 (lineage 0.150 ->
+# 0.188), recall unchanged (0.932), 13 % fewer characters.
+TOUCH_K = 1
 TOUCH_HEADER = (
     "[sanchopanza memory, earlier work on {path}: verbatim records of earlier requests in this "
     "project that changed this file, written by code from the transcripts, oldest first]"
@@ -488,8 +497,8 @@ def touch(event: Mapping[str, Any]) -> dict[str, Any]:
         boundaries, live = live_at_last_prompt(store, session)
         shown = shown_since_compaction(store, session, boundaries)
         matching = pool_of(ep.load_keys(store, keys), session, live, shown)
-        newest = sorted(matching, key=lambda e: (-e.at, e.session, -e.index))
-        chosen = newest[: _int("MEMORY_TOUCH_K", TOUCH_K)]
+        chosen = choose_touched(matching, str(event.get("tool_name")), seen_prints(event),
+                                _int("MEMORY_TOUCH_K", TOUCH_K))  # fmt: skip
         text, given = render_touch(chosen, shown_as, _int("MEMORY_CHARS", CHARS))
         if text:
             with contextlib.suppress(OSError):
@@ -499,6 +508,42 @@ def touch(event: Mapping[str, Any]) -> dict[str, Any]:
     if not text:
         return {}
     return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": text}}
+
+
+def seen_prints(event: Mapping[str, Any]) -> set[str]:
+    """Prints of the lines the agent is looking at: what a Read returned, what an Edit or a
+    MultiEdit replaces. Nothing for a Write (it replaces the file whole) or a notebook."""
+    tool = event.get("tool_name")
+    data = event.get("tool_input") if isinstance(event.get("tool_input"), Mapping) else {}
+    if tool == "Read":
+        response = event.get("tool_response")
+        if isinstance(response, Mapping):
+            file = response.get("file") if isinstance(response.get("file"), Mapping) else {}
+            return ep.line_prints(file.get("content") or response.get("content"))
+        return ep.line_prints(response)
+    if tool == "Edit":
+        return ep.line_prints(data.get("old_string"))
+    if tool == "MultiEdit":
+        return {p for e in data.get("edits") or [] if isinstance(e, Mapping)
+                for p in ep.line_prints(e.get("old_string"))}  # fmt: skip
+    return set()
+
+
+def choose_touched(
+    matching: Sequence[ep.Episode], tool: str, seen: set[str], k: int = TOUCH_K
+) -> list[ep.Episode]:
+    """The records whose written lines are in view, most first (newest on a tie). With none in
+    view: at an edit, the newest; at a Read, only records saved before v4 (no prints), newest."""
+    def newest(pool: Sequence[ep.Episode]) -> list[ep.Episode]:
+        return sorted(pool, key=lambda e: (-e.at, e.session, -e.index))
+
+    overlap = {e.key: len(seen & set(e.wrote)) for e in matching if e.wrote is not None}
+    hits = [e for e in matching if overlap.get(e.key, 0) > 0]
+    if hits:
+        return sorted(newest(hits), key=lambda e: -overlap[e.key])[:k]
+    if tool != "Read":
+        return newest(matching)[:k]
+    return newest([e for e in matching if e.wrote is None])[:k]
 
 
 def after_compaction(event: Mapping[str, Any]) -> dict[str, Any]:
