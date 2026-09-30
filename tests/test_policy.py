@@ -169,17 +169,18 @@ def test_the_sample_is_roughly_the_fraction_asked_for():
 
 
 def test_truth_confidence_is_a_function_of_the_probability_in_every_recording():
-    """A canary on the provider, and the reason several policies had a hidden threshold.
+    """Why several policies had a hidden threshold. Not a canary on the provider.
 
     For every Truth answer in every recording in this repository, `confidence` is exactly
-    `|2p - 1|`: 651 answers, zero deviation. So on a Truth-driven point, probability and
-    confidence are the same number, and asking for both `p >= a` and `confidence >= c` is
-    asking for `p >= max(a, (1 + c) / 2)`. That is how `memory_write` came to enforce 0.80
-    while its configuration said 0.70.
+    `|2p - 1|`. That is by construction: the Truth wire carries only `noul`, and
+    `providers.jev.from_wire` computes the confidence (`contract.truth_confidence`), so the
+    recordings could not show anything else. An earlier docstring called this a canary on the
+    provider; it cannot fail, and the provider is watched by `from_wire` instead
+    (`test_a_truth_confidence_sent_by_the_provider_is_ignored_and_said_once`).
 
-    If this test ever fails, the provider has started reporting a confidence that carries
-    information the probability does not, and every policy built on the identity is worth
-    revisiting. That is a good thing to be told loudly.
+    What stands: on a Truth-driven point, probability and confidence are the same number, and
+    asking for both `p >= a` and `confidence >= c` is asking for `p >= max(a, (1 + c) / 2)`.
+    That is how `memory_write` came to enforce 0.80 while its configuration said 0.70.
     """
     import json
 
@@ -199,6 +200,25 @@ def test_truth_confidence_is_a_function_of_the_probability_in_every_recording():
     if seen == 0:
         pytest.skip("no recordings present")
     assert seen > 600
+
+
+def test_a_truth_confidence_sent_by_the_provider_is_ignored_and_said_once():
+    """The watch the canary above could not be: a Truth confidence on the wire is not ours."""
+    import warnings
+
+    from sanchopanza.providers import jev
+
+    jev._warn_truth_wire_confidence.cache_clear()
+    plain = jev.from_wire({"type": "noul", "noul": 0.8})
+    assert plain.confidence == pytest.approx(0.6)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        sent = jev.from_wire({"type": "noul", "noul": 0.8, "confidence": 0.95})
+        jev.from_wire({"type": "noul", "noul": 0.3, "confidence": 0.99})
+        jev.from_wire({"type": "noul", "noul": 0.8, "confidence": 0.6})  # agrees: silent
+    assert sent.confidence == pytest.approx(0.6)  # ours, whatever the wire says
+    assert len([w for w in caught if "Truth answer" in str(w.message)]) == 1
+    jev._warn_truth_wire_confidence.cache_clear()
 
 
 def test_the_effective_threshold_of_a_confidence_gate_on_a_truth():

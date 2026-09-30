@@ -13,9 +13,11 @@ Retries: 429 and 529 with bounded exponential backoff. No unbounded loops.
 from __future__ import annotations
 
 import asyncio
+import functools
 import math
 import os
 import time
+import warnings
 from collections.abc import Mapping
 from typing import Any
 
@@ -76,6 +78,29 @@ def to_wire(question: Question) -> dict[str, Any]:
     raise TypeError(f"unknown question type: {type(question)!r}")
 
 
+def truth_wire_confidence_differs(raw: Mapping[str, Any], truth: float | None) -> bool:
+    """Whether the provider sent its own confidence for a Truth answer, other than |2p - 1|.
+
+    The Truth wire carries only `noul`; the confidence of a yes/no is computed here
+    (`truth_confidence`), so every recording in this repository shows confidence = |2p - 1|
+    by construction, not because the provider says so. Should the provider start sending a
+    Truth confidence that carries information the probability does not, the answer still uses
+    ours (every threshold was set against it), and `from_wire` says so once.
+    """
+    given = as_number(raw.get("confidence"))
+    return given is not None and truth is not None and abs(given - truth_confidence(truth)) > 1e-6
+
+
+@functools.cache
+def _warn_truth_wire_confidence() -> None:
+    warnings.warn(
+        "Jev sent a confidence for a Truth answer that differs from |2p - 1|; sanchopanza "
+        "ignores it. Policies that ask for both p and confidence may deserve a second look.",
+        RuntimeWarning,
+        stacklevel=3,
+    )
+
+
 def from_wire(raw: Mapping[str, Any]) -> Answer:
     """TypeSafe answer to contract. Tolerates missing fields.
 
@@ -87,6 +112,8 @@ def from_wire(raw: Mapping[str, Any]) -> Answer:
     probabilities = {str(k): _required(v) for k, v in (raw.get("probabilities") or {}).items()}
     if kind == "truth":
         truth = as_number(raw.get("noul"))
+        if truth_wire_confidence_differs(raw, truth):
+            _warn_truth_wire_confidence()
         return usable(
             Answer(
                 kind="truth",
