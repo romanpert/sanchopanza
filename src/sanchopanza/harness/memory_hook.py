@@ -56,6 +56,8 @@ from __future__ import annotations
 import contextlib
 import json
 import os
+import posixpath
+import re
 import sys
 import time
 from collections.abc import Mapping, Sequence
@@ -181,14 +183,16 @@ class Recorded:
     live: frozenset[int]
     boundaries: int
     written: tuple[str, ...]
+    cwd: str = ""
 
 
 def record_transcript(path: Path, session: str, store: Path, cwd: str = "") -> Recorded:
     entries = ep.entries_of(path)
-    found, live = ep.episodes_of(entries, session=session, cwd=session_cwd(entries, cwd))
+    start = session_cwd(entries, cwd)
+    found, live = ep.episodes_of(entries, session=session, cwd=start)
     boundaries = sum(1 for e in entries if _is_boundary(e))
-    written = ep.save(store, found)
-    return Recorded(tuple(found), live, boundaries, tuple(written))
+    written = ep.save(store, found, session=session)
+    return Recorded(tuple(found), live, boundaries, tuple(written), start)
 
 
 def record(event: Mapping[str, Any]) -> Recorded:
@@ -244,19 +248,23 @@ def shown_since_compaction(store: Path, session: str, boundaries: int) -> frozen
 
 
 def remember_shown(store: Path, session: str, boundaries: int, keys: Sequence[str]) -> None:
+    """Add `keys` to what this session was given. The caller holds `ep.locked` on the state."""
     before = shown_since_compaction(store, session, boundaries)
     payload = {**_state(store, session), "boundaries": boundaries,
                "keys": sorted(before | set(keys))}  # fmt: skip
     ep.write_private(_shown_path(store, session), json.dumps(payload))
 
 
-def note_live(store: Path, session: str, boundaries: int, live: frozenset[int] | None) -> None:
-    """What the session had in its live context at its last prompt, for the touch, which must
-    not read the whole transcript on every file the agent opens."""
-    kept = shown_since_compaction(store, session, boundaries)
-    payload = {"boundaries": boundaries, "keys": sorted(kept),
-               "live": None if live is None else sorted(live)}  # fmt: skip
-    ep.write_private(_shown_path(store, session), json.dumps(payload))
+def note_live(
+    store: Path, session: str, boundaries: int, live: frozenset[int] | None, cwd: str = ""
+) -> None:
+    """What the session had in its live context at its last prompt or compaction, and where it
+    started, for the touch, which must not read the whole transcript on every file opened."""
+    with ep.locked(_shown_path(store, session)):
+        kept = shown_since_compaction(store, session, boundaries)
+        payload = {"boundaries": boundaries, "keys": sorted(kept), "cwd": cwd,
+                   "live": None if live is None else sorted(live)}  # fmt: skip
+        ep.write_private(_shown_path(store, session), json.dumps(payload))
 
 
 def live_at_last_prompt(store: Path, session: str) -> tuple[int, frozenset[int] | None]:
@@ -361,17 +369,25 @@ async def recall(event: Mapping[str, Any], squire: Squire | None = None) -> dict
     boundaries = 0
     row: dict[str, Any] = {"event": "UserPromptSubmit", "mode": mode()}
     earlier_live = False
+    known = True
+    start = str(event.get("cwd") or "")
     try:
         seen = record(event)
-        live, boundaries = seen.live, seen.boundaries
-        earlier_live = any(e.index in live for e in seen.episodes)
+        live, boundaries, start = seen.live, seen.boundaries, seen.cwd or start
+        # The prompt being submitted is not in the transcript yet: any live request is earlier,
+        # answered or not.
+        earlier_live = bool(live)
         row = {**row, "written": list(seen.written)}
     except FileNotFoundError:
         pass  # a new session's first prompt: its transcript is not written yet
     except Exception as error:  # noqa: BLE001 - other sessions' records still count
+        known = False  # what is live is unknown: keep the state, and do not treat it as a start
+        earlier_live = True
+        boundaries, _ = live_at_last_prompt(store, session)
         row = {**row, "record_error": f"{error.__class__.__name__}: {error}"}
-    with contextlib.suppress(OSError):
-        note_live(store, session, boundaries, live)
+    if known:
+        with contextlib.suppress(OSError):
+            note_live(store, session, boundaries, live, start)
     row = {**row, "caught_up": catch_up(event), "prompt_mode": prompt_mode()}
     if row["prompt_mode"] == "off" or not prompt:
         _log({**row, "reason": "off" if prompt else "empty prompt"})
@@ -394,63 +410,105 @@ async def recall(event: Mapping[str, Any], squire: Squire | None = None) -> dict
     _log({**row, "shown": shown, "chars": len(text)})
     if not text:
         return {}
-    with contextlib.suppress(OSError):  # a lost note only means a record may come back once
-        remember_shown(store, session, boundaries, shown)
+    with contextlib.suppress(OSError), ep.locked(_shown_path(store, session)):
+        remember_shown(store, session, boundaries, shown)  # a lost note: it may come back once
     return {"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": text}}
 
 
 # ---- just in time: a file the agent opens or changes ------------------------------------------
 
 
+_BASH_DRIVE = re.compile(r"^/([a-zA-Z])/")
+_HEADER_UNSAFE = re.compile(r"[\[\]\r\n\u2028\u2029]")
+PATH_IN_HEADER = 200
+
+
 def _norm(path: str) -> str:
-    clean = path.replace("\\", "/")
-    return clean.casefold() if os.name == "nt" else clean
+    """One spelling of a path: forward slashes, `.` and `..` resolved, a Git Bash `/c/` drive
+    as `c:/`, and case folded where the file system folds it (Windows, macOS)."""
+    clean = path.strip().replace("\\", "/")
+    if os.name == "nt":
+        clean = _BASH_DRIVE.sub(r"\1:/", clean)
+    clean = posixpath.normpath(clean) if clean else clean
+    return clean.casefold() if os.name == "nt" or sys.platform == "darwin" else clean
+
+
+def _absolute(path: str) -> bool:
+    return path.startswith(("/", "\\")) or bool(re.match(r"^[a-zA-Z]:", path))
+
+
+def _wanted(raw: str, event_cwd: str, start: str) -> set[str]:
+    """The spellings a record may hold for `raw`: relative to where the session started (as
+    records are written), and absolute. A relative `raw` is resolved against the event's cwd
+    (the agent may have changed directory since the session started)."""
+    base = event_cwd or start
+    full = raw if _absolute(raw) or not base else f"{base.rstrip('/').rstrip(chr(92))}/{raw}"
+    full = _norm(full)
+    anchor = start or event_cwd  # no state yet (no prompt seen): the event's own cwd
+    rel = _norm(ep.relative(full, _norm(anchor))) if anchor else full
+    return {full, rel}
 
 
 def render_touch(
     chosen: Sequence[ep.Episode], path: str, cap: int = CHARS
 ) -> tuple[str, list[str]]:
-    text, keys = render(chosen, cap)
+    """The records under a header naming the file: one line, the path cleaned of brackets and
+    line breaks and cut to PATH_IN_HEADER (the agent chose it), and the whole within `cap`."""
+    shown_path = _HEADER_UNSAFE.sub(" ", path)[:PATH_IN_HEADER]
+    header = TOUCH_HEADER.format(path=shown_path)
+    text, keys = render(chosen, cap - max(0, len(header) - len(HEADER)))
     if not keys:
         return "", []
-    return text.replace(HEADER, TOUCH_HEADER.format(path=path), 1), keys
+    return text.replace(HEADER, header, 1), keys
 
 
 def touch(event: Mapping[str, Any]) -> dict[str, Any]:
     """PostToolUse on a file tool: the TOUCH_K newest records of earlier requests that changed
-    that file, outside the live context at the last prompt and not given since the last
-    compaction. Code only: no decider."""
+    that file, outside the live context and not given since the last compaction. Not inside a
+    subagent (its context is thrown away, and it would use up the main agent's once). Code
+    only: no decider."""
     if mode() == "off" or str(_env.get("MEMORY_TOUCH", "") or "on").lower() in ("off", "0"):
         return {}
-    if event.get("tool_name") not in TOUCH_TOOLS:
+    if event.get("tool_name") not in TOUCH_TOOLS or event.get("agent_id"):
         return {}
     data = event.get("tool_input") if isinstance(event.get("tool_input"), Mapping) else {}
     raw = data.get("file_path") or data.get("notebook_path")
-    if not isinstance(raw, str) or not raw:
+    if not isinstance(raw, str) or not raw.strip():
         return {}
     session = str(event.get("session_id") or "session")
     store = store_for(event)
-    rel = ep.relative(raw, str(event.get("cwd") or ""))
-    wanted = {_norm(rel), _norm(raw)}
-    boundaries, live = live_at_last_prompt(store, session)
-    shown = shown_since_compaction(store, session, boundaries)
+    state = _state(store, session)
+    wanted = _wanted(raw, str(event.get("cwd") or ""), str(state.get("cwd") or ""))
     keys = [k for k, v in ep.index_of(store).items()
             if wanted & {_norm(str(c)) for c in v.get("changed") or []}]  # fmt: skip
     if not keys:
         return {}
-    matching = pool_of(ep.load_keys(store, keys), session, live, shown)
-    if not matching:
-        return {}
-    newest = sorted(matching, key=lambda e: (-e.at, e.session, -e.index))
-    chosen = newest[: _int("MEMORY_TOUCH_K", TOUCH_K)]
-    text, keys = render_touch(chosen, rel, _int("MEMORY_CHARS", CHARS))
-    _log({"event": "PostToolUse", "tool": event.get("tool_name"), "path": rel,
-          "matching": [e.key for e in matching], "shown": keys, "chars": len(text)})  # fmt: skip
+    shown_as = ep.relative(raw, str(state.get("cwd") or event.get("cwd") or ""))
+    with ep.locked(_shown_path(store, session)):  # parallel tool calls: one gives, others see it
+        boundaries, live = live_at_last_prompt(store, session)
+        shown = shown_since_compaction(store, session, boundaries)
+        matching = pool_of(ep.load_keys(store, keys), session, live, shown)
+        newest = sorted(matching, key=lambda e: (-e.at, e.session, -e.index))
+        chosen = newest[: _int("MEMORY_TOUCH_K", TOUCH_K)]
+        text, given = render_touch(chosen, shown_as, _int("MEMORY_CHARS", CHARS))
+        if text:
+            with contextlib.suppress(OSError):
+                remember_shown(store, session, boundaries, given)
+    _log({"event": "PostToolUse", "tool": event.get("tool_name"), "path": shown_as,
+          "matching": [e.key for e in matching], "shown": given, "chars": len(text)})  # fmt: skip
     if not text:
         return {}
-    with contextlib.suppress(OSError):
-        remember_shown(store, session, boundaries, keys)
     return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": text}}
+
+
+def after_compaction(event: Mapping[str, Any]) -> dict[str, Any]:
+    """SessionStart after a compaction: what is live changed in the middle of a request, and what
+    was given before it is gone with the summary; the touch must know before the next prompt."""
+    seen = record(event)
+    note_live(store_for(event), str(event.get("session_id") or "session"), seen.boundaries,
+              seen.live, seen.cwd)  # fmt: skip
+    _log({"event": "SessionStart", "boundaries": seen.boundaries, "live": sorted(seen.live)})
+    return {}
 
 
 # ---- entry -------------------------------------------------------------------------------------
@@ -468,6 +526,8 @@ def handle(event: Mapping[str, Any]) -> dict[str, Any]:
         return asyncio.run(recall(event))
     if name == "PostToolUse":
         return touch(event)
+    if name == "SessionStart" and event.get("source") == "compact":
+        return after_compaction(event)
     return {}
 
 

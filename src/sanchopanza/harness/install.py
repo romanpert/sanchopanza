@@ -68,7 +68,7 @@ recognised by their command, and a run without the flag takes them out.
 code, outside the project; `PostToolUse` on the file tools gives the agent, when it opens or
 changes a file, the records of earlier requests that changed it (code only); `UserPromptSubmit`
 catches up and, at a session's first live request with a decider, adds the records the decider
-judges about the same code. Off by default until confirmed; our four entries are recognised by
+judges about the same code. Off by default until confirmed; our five entries are recognised by
 their command, and a run without the flag takes them out.
 
 `--candor` wires candor (`harness.candor_hook`, `sanchopanza candor-hook`): five command hooks
@@ -115,7 +115,7 @@ GUARD_HOOKS = {"PreCompact": "manual|auto", "SessionStart": "compact", "PostTool
 MEMORY_COMMAND = "sanchopanza memory-hook"
 # Event -> matcher for memory between requests and sessions (`--memory`, `harness.memory_hook`).
 MEMORY_HOOKS = {"UserPromptSubmit": "", "Stop": "", "SessionEnd": "",
-                "PostToolUse": "Read|Edit|MultiEdit|Write|NotebookEdit"}
+                "PostToolUse": "Read|Edit|MultiEdit|Write|NotebookEdit", "SessionStart": "compact"}
 CANDOR_COMMAND = "sanchopanza candor-hook"
 # Event -> matcher for candor (`--candor`, `harness.candor_hook`): the request and its snapshot,
 # every call (the lock refuses, the ledger records), and the final report.

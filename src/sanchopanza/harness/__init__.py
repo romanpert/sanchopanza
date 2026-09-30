@@ -22,8 +22,12 @@ __all__ = ["Guardian", "HarnessConfig", "Note", "ToolCall", "Verdict"]
 def __getattr__(name: str) -> Any:
     """Loaded on first use: a hook that imports one submodule (the memory touch runs on every
     file the agent opens) must not pay for `generic` and the decision points, ~145 ms."""
-    if name in __all__:
+    if name in __all__ or name == "generic":
         from . import generic
 
-        return getattr(generic, name)
+        return generic if name == "generic" else getattr(generic, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    return sorted({*globals(), *__all__})
