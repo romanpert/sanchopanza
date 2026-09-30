@@ -1,0 +1,1244 @@
+{
+ "source": "SALT-NLP/SWE-chat",
+ "seed": 20261003,
+ "groups": [
+  {
+   "group": 300,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "135yshr/documents",
+   "sessions": [
+    "008d0ecf-0046-4993-ba13-6370601ece23",
+    "a4b0171f-8d5f-4a83-93f9-91b2d9f0f131",
+    "95881294-2e1a-49db-b826-057204fe33b6",
+    "4ef87098-bca4-42b1-92ff-1e7c694087bb",
+    "66fc6ec7-4b9d-4499-a769-fef41d1ba69f",
+    "59820925-c8af-4756-9a84-847d3b058e95"
+   ]
+  },
+  {
+   "group": 301,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "135yshr/savanna-vet-go",
+   "sessions": [
+    "839d51b5-c698-45fe-989c-33ec19f12e04",
+    "01f8fbba-b38c-42bc-912b-c999c0700ec2"
+   ]
+  },
+  {
+   "group": 302,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "1natsu-vacation/agent-skills",
+   "sessions": [
+    "185c3f54-7a3b-41ce-8e3f-04397817e177",
+    "6a8b148c-0d7c-4245-86e5-6435fd5542de",
+    "4a4cec5b-7d9b-4eed-ad37-c65aba23d8f8",
+    "5eb1b55e-5034-451d-8c63-a05218abec11"
+   ]
+  },
+  {
+   "group": 303,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "4gray/iptvnator",
+   "sessions": [
+    "03864394-1085-432c-a261-484b3547126b",
+    "6d8abbfe-ae0d-4e8f-a9e6-be06fad5cd10",
+    "9bdfbec6-977a-410e-a1c3-97af564a811c",
+    "6864ff97-5db6-4c77-9d56-2e75e89488a0",
+    "724f6ca6-33e2-4d82-9eb3-250c77cf26c9",
+    "546d90a2-1403-4daa-9eb6-b46af8983d86"
+   ]
+  },
+  {
+   "group": 305,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "ASRagab/optimize-anything",
+   "sessions": [
+    "0c25aab6-b74a-487f-a6cb-4c8db5b4480b",
+    "988f32c9-e0e8-4f2c-9dd7-f8e0f5c6817e"
+   ]
+  },
+  {
+   "group": 306,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "AndreaPT1/mkdownEditor",
+   "sessions": [
+    "c963f12f-bb95-420d-99d0-502127b38442",
+    "f9fd2be5-bcad-4992-bccb-583faf262171"
+   ]
+  },
+  {
+   "group": 308,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "BIDEquity/outbid-dirigent",
+   "sessions": [
+    "ce380e04-0149-4b43-9a62-7b8808d3c6bc",
+    "046e7195-6950-42b2-8f28-4428d398952f",
+    "84022ca8-f90c-42c0-9c5c-538ddd82343c"
+   ]
+  },
+  {
+   "group": 311,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "ChetanReddyC/Shila-Murti",
+   "sessions": [
+    "56b4a299-7615-4e82-985c-76e481ea071a",
+    "d5fc5e73-8728-4a30-bd9a-3e71cb652cdc",
+    "18eedf78-a903-4220-8a95-5bb1776cff57"
+   ]
+  },
+  {
+   "group": 312,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "ClusterCockpit/cc-backend",
+   "sessions": [
+    "c31c699a-f492-48f7-bcf0-35d3ceeac243",
+    "520afa6a-6a70-437b-96c1-35c40ed3ec48",
+    "ac43c90b-5a96-48c4-893e-7c737c2c1c84",
+    "50b2b10a-1be0-441f-aafb-3c5828f0fcc9",
+    "c85f0d9d-5ec7-4e08-a07a-be075090ec2d",
+    "ff9dfa67-f76a-4fef-88c2-6f742aa095ee"
+   ]
+  },
+  {
+   "group": 316,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "FSM1/cipher-box",
+   "sessions": [
+    "99e32e72-a055-4cce-9c29-b71fafd9d6fd",
+    "0fe553fc-e62a-4c1e-8ccc-9e67ef72c414",
+    "3e110024-118b-478e-9c21-6b0c1dc2c45a",
+    "2095544c-fa50-4027-b664-c37e578957ce",
+    "7d2ac826-d010-4236-a188-fa2f49390cae"
+   ]
+  },
+  {
+   "group": 318,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "Guibibi/Fireside",
+   "sessions": [
+    "cc582d50-a282-4219-96df-1c33c4aaaeaa",
+    "f164f4cd-e8fa-4508-9641-4f0d5f14e729"
+   ]
+  },
+  {
+   "group": 321,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "LitMc/gc-playground",
+   "sessions": [
+    "66c7fb81-5488-41bc-8818-7e9de77b4df6",
+    "26cd749e-9e51-4592-a2f3-e0a2736c7380",
+    "f9f50b02-e5bb-4ec8-bc57-465f9e2b1e06",
+    "636e2eb6-3399-4fd4-92fc-1cad83ba9bf3"
+   ]
+  },
+  {
+   "group": 324,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "Nagi-ovo/gemini-voyager",
+   "sessions": [
+    "856d828b-dacb-41c5-9d73-5d8b2c059010",
+    "7ecaf75b-4972-4b20-a815-0d9399b76b4e",
+    "10692c1c-6c91-4eb1-b576-68f235861118",
+    "64c72f02-bd94-45d3-9334-74fbb19bdba7",
+    "cf7554a3-bee3-4818-84c0-bc7ae686076d",
+    "8e25ce3c-427a-4749-b571-742f1052dce8"
+   ]
+  },
+  {
+   "group": 328,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "PackmindHub/context-evaluator",
+   "sessions": [
+    "4e2cd28b-836b-4ffe-9839-dad8fc220e0a",
+    "d0c07c08-0bd1-4add-a82d-58ed5152399e",
+    "c72bdaa1-327c-49ed-be66-671cd9b815c3",
+    "8fd17d3d-5e4d-40c9-811e-63c7ecdcdf1e",
+    "fcac5b01-130c-4b77-9020-10ebc50d3eca",
+    "27940602-ca7b-46d4-b3b3-d020dc3f5c10"
+   ]
+  },
+  {
+   "group": 330,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "Pavel401/BugViper",
+   "sessions": [
+    "cfdde919-9d3f-41b8-a36c-d07c99b0d33a",
+    "43d7178a-205b-4e6a-b636-5e52534e8ae6"
+   ]
+  },
+  {
+   "group": 333,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "Safecast/safecast-map-MCP",
+   "sessions": [
+    "20f9319f-a0e1-43f7-92da-b744b96c95d9",
+    "960e1199-4c77-4e97-9fa1-33fb9498a0a9",
+    "b6847497-f5f3-4b52-a8dd-39eafaa75c69",
+    "9140e479-d2cf-4f2a-83d2-c43dcac70eee",
+    "a851941e-91ed-4706-a4e2-39177a334681",
+    "b35d0ffa-3758-4c6a-a9d2-44ffa4ecf1ee"
+   ]
+  },
+  {
+   "group": 334,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "Safecast/safecast-new-map",
+   "sessions": [
+    "92f84a15-fb1b-48bf-8e02-185db21f9943",
+    "55675b68-75a8-4bf9-865d-de945758cb09",
+    "48a5f2be-0855-4c4d-83e1-cd38eee6cd6d",
+    "24ce5784-84e4-4702-a274-065775a73a6d",
+    "9ac58a69-cb94-410b-b5fa-767ad6f4946a",
+    "f545d8e7-cd4a-43e3-ac79-38154aa98851"
+   ]
+  },
+  {
+   "group": 338,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "adhishthite/anthropic-clio-impl",
+   "sessions": [
+    "1e33ec92-f32f-45d2-b766-1f22fdab2b71",
+    "0280ad20-e7c6-45cf-98e4-3e2766d16438"
+   ]
+  },
+  {
+   "group": 340,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "adrientaudiere/MiscMetabar",
+   "sessions": [
+    "92a1730c-431e-43a1-a0c2-e227930a4186",
+    "8f402629-4cfe-4a29-bff5-a3dd28584b83",
+    "397d9e78-30c1-44f7-b2cd-4f7fcf232097",
+    "ec3855fc-796b-476a-8e06-0dce98036d15"
+   ]
+  },
+  {
+   "group": 342,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "anchoo2kewl/SprintSpark",
+   "sessions": [
+    "f825aa2e-55c5-483f-9330-8c774c3f137a",
+    "89ff8673-63e0-409e-8bbd-7f43c3def59e",
+    "d6a5c177-a08e-4371-8f03-d1dfbbe30ae2",
+    "8eaf7e04-fe8c-4569-be0b-90f7fc351be4",
+    "affc255e-c712-4765-bd09-c841a86fbb86",
+    "dcd24ecb-95b3-44ef-baed-910021a03433"
+   ]
+  },
+  {
+   "group": 347,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "araitatsuya-code/atena-print",
+   "sessions": [
+    "78d3218c-3314-4f52-8167-7d374ad28756",
+    "aeab8eb7-d796-4285-a848-f13aab0b96bd",
+    "715c3a27-15a5-49b0-918a-62b14aebecb7",
+    "c5c5349c-65bf-4c2a-9dbb-9c589b4c1ac8",
+    "7bf01a22-7ad5-46c0-bdd1-d7d928796704",
+    "40b77316-98a4-4105-8328-90cc5d333775"
+   ]
+  },
+  {
+   "group": 348,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "armelhbobdad/bmad-module-skill-forge",
+   "sessions": [
+    "0c24d52c-be50-454e-bf80-4c3f2482a440",
+    "53914eaa-60cb-49e5-b2c3-ba7853f95a2a",
+    "c8eacccf-52fa-41af-8d12-1e64db4a81d5",
+    "e21259de-5cf3-4ae3-89ee-4f13081f4f3a",
+    "94721c6d-b20d-46b5-bed2-b54d83a5695d",
+    "dc111b2e-26e2-4294-b357-d68998d17e29"
+   ]
+  },
+  {
+   "group": 350,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "balkhaev/yep",
+   "sessions": [
+    "89c66565-2227-4ece-a594-8ee853b05942",
+    "fe66651f-0da5-45d0-a44d-7ce4e9c06f96"
+   ]
+  },
+  {
+   "group": 351,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "baotoq/micro-commerce",
+   "sessions": [
+    "992843a2-3e29-4edc-984f-3fa8f0e978d7",
+    "be1d9f38-0ba5-4162-8f87-ceecc129ae17",
+    "35a29e84-6a45-4643-a1d4-03b6a34b703a",
+    "5ac4e07d-baa3-454b-947f-a6fcb7e3f1e3",
+    "f4e9a5d6-fd45-4142-aea2-039574fb10d0",
+    "360ce001-8b96-4e42-acaa-493e3d4a3443"
+   ]
+  },
+  {
+   "group": 356,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "bids-standard/bids-utils",
+   "sessions": [
+    "cd98fb15-92b9-4570-976f-1306b858dbeb",
+    "cbb683f8-f0c9-4df1-8ec9-482a0c044820",
+    "09bd4402-d1a9-4874-a390-e6d6136e1b62",
+    "8f259d63-07df-463f-b066-9242891b53e8",
+    "fe4d08f3-621d-4f1e-b95d-15a1eb49ef12",
+    "4fd82c02-1ee6-4b9a-b305-9ee382243440"
+   ]
+  },
+  {
+   "group": 357,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "blittle/pressy",
+   "sessions": [
+    "bbcf6632-e298-4d78-8891-fa85cc3af9bd",
+    "7760d207-3d6e-416f-8944-7793cfe648ff",
+    "dbd64d5c-c7b9-462f-98bd-540026a588fa",
+    "004407cd-4bb6-40a4-9ab1-445b085e4dfe"
+   ]
+  },
+  {
+   "group": 359,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "camkeith/cameronkeithgolf",
+   "sessions": [
+    "96c948db-a24c-427f-b1e5-07a11d02d60d",
+    "cca3d436-20ee-4eb4-aad2-aeb816cb1093"
+   ]
+  },
+  {
+   "group": 360,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "chuhemiao/portfolio",
+   "sessions": [
+    "406ebb5f-8acc-41a0-ac39-64444034a6a0",
+    "96713a57-ca04-4437-8eba-539b32a0481c",
+    "18ad9a78-ca88-4395-8375-e11b312ed6b6",
+    "b87fd1f8-04af-4031-bfeb-2a57d393cf9e"
+   ]
+  },
+  {
+   "group": 363,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "cyyeh/duckdb-data-agent",
+   "sessions": [
+    "4088626b-986e-496c-8935-d269ee081298",
+    "aee5e07d-3eae-424c-a082-9e83e6aabf9a",
+    "5e4a1a28-82a8-42e7-bf0c-adcb4b462569",
+    "07925398-0b08-4478-ae56-069aa9f8f96e",
+    "37b86dd0-a8a0-40c2-8ea9-dd2922a2fa35",
+    "461ba56a-7522-4f86-b092-1ee717c86a18"
+   ]
+  },
+  {
+   "group": 364,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "cyyeh/duckdb-web",
+   "sessions": [
+    "00f660ab-937e-42ff-b8ad-ea61c47d51c9",
+    "05368b51-cd4f-41b5-b214-b25c1ed97b68",
+    "3b78fe58-59dd-46f2-8ad2-34d6503ee3ff"
+   ]
+  },
+  {
+   "group": 366,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "desplega-ai/agent-swarm",
+   "sessions": [
+    "e71acfcb-86f0-47d5-ab4b-87bbdaf6d5fa",
+    "26d7108c-8e8e-44a7-8a8a-a836fcf7c0f6",
+    "ea4bd83a-342a-478d-8ad6-14afe2adc5ca",
+    "2396c246-82c2-4e4a-b123-f25498a4224b",
+    "265674b4-6d46-4639-9b23-3e4f0f06d33c",
+    "4a881bb4-433e-4400-9d44-e77806f19dd7"
+   ]
+  },
+  {
+   "group": 367,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "dipasqualew/vibereq",
+   "sessions": [
+    "9b6eaedc-c088-4b6d-98f1-c9b3ca943b0a",
+    "47e9fa2b-d5f9-4814-916a-911b7a705b17",
+    "6b456b37-e4bc-419a-9abe-f674784b3066",
+    "b0299cf2-7fd3-432d-b0be-76986fb25afc",
+    "f5283913-4698-4165-8b08-6391c712a90c",
+    "b8c959ee-5e72-486c-8451-f65cbcbadb8d"
+   ]
+  },
+  {
+   "group": 369,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "2026-01-24-4fec7ea0-3335-43ec-a178-d4ab47d5aef3",
+    "2026-01-25-f736da47-b2ca-4f86-bb32-a1bbe582e464",
+    "2026-01-26-b42aaf1f-96ad-4f7a-9f52-783eb0847649",
+    "2026-01-26-5dd7775c-3161-4ad5-bf25-eb59a6ffa8e6",
+    "2026-01-26-4fec7ea0-3335-43ec-a178-d4ab47d5aef3",
+    "2026-01-27-87a7858d-3f94-4c65-a2d5-307e9337b041"
+   ]
+  },
+  {
+   "group": 370,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "27c32185-d6b5-4e81-8e04-86a9a34cbf1b",
+    "e60b00ec-d617-4551-ba2c-9f8a21189553",
+    "4aa2075b-b2a1-4509-b2e6-7ba344c524f7"
+   ]
+  },
+  {
+   "group": 372,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "56de1726-04db-4439-a5f5-190cdb62f2dc",
+    "266b3f40-6f1d-491c-aeca-825cbb3fcbc5",
+    "45ba035c-93ee-46e8-b83c-9d8a3a1cb05b",
+    "e75fc7f5-30dc-4288-a579-5e1c14a107f8",
+    "acdd84ab-e724-42c8-925d-420b2a4f1861",
+    "e9ed7f61-eb79-4415-b660-c03f9143723a"
+   ]
+  },
+  {
+   "group": 374,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "7e347585-fd5a-457c-a58b-6a2af0aeef24",
+    "20bfcd4a-f133-4981-8712-228da5357d19",
+    "2b47f0e1-cbe2-4531-8916-a2cd4d2d944d",
+    "563c3b26-0e69-4446-9626-efb0969a07c3"
+   ]
+  },
+  {
+   "group": 375,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "85773b9f-c9f9-4153-ab5d-0e75abb9005a",
+    "5a7f62f5-b098-489e-a89a-d120fea31732"
+   ]
+  },
+  {
+   "group": 376,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "2026-01-28-cc432c40-914a-4c1a-a972-0103199a736a",
+    "2026-01-28-207fdd40-14c8-4574-84c1-fde3de256177",
+    "2026-01-28-fff6617b-2974-4b80-8344-bb87e325a67b",
+    "2026-01-28-7f78a542-6201-447a-8277-213165356894",
+    "2026-01-29-0f6074fc-a0f5-4d56-8de0-f4a592ddcf3b",
+    "d64b50bb-125b-4b54-867a-e59841e553d8"
+   ]
+  },
+  {
+   "group": 377,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "056d2eda-6037-4f4f-a98d-f2f78f650be4",
+    "062a8bdd-4322-4ffa-bc38-3e8b8bfb5a56",
+    "1e0816ef-6f89-4f05-b331-dab09bb14485",
+    "ddf36c6d-77ad-4900-9c50-1ea2c4cd932b",
+    "0c97beba-bfcb-4f84-9950-e0354bfc808b",
+    "4b3ddf27-d7f7-4773-b4f2-b94b999c661d"
+   ]
+  },
+  {
+   "group": 379,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "11eae7e9-6229-40b6-aa06-cf7b2c0062ce",
+    "441a671f-0f14-41d3-a690-fac5db6cb0ec",
+    "3ceb5787-28e5-49ed-99dc-1bd0f74049b0",
+    "2832c472-b2a9-40d6-9e19-24ba22a98e6d",
+    "346df3a7-eac7-40c2-be61-4882cb1988c5",
+    "cdd82089-8854-4af2-b175-50ac8f3d5e02"
+   ]
+  },
+  {
+   "group": 381,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "a1dd4cfa-57e0-4f5c-86c7-40aba0df678b",
+    "7b61ce6f-2b9a-4e37-8527-229cc2bcbfe9",
+    "b36040df-1ad8-4a0d-8367-7c4f48a29c9c",
+    "ca225909-5b1f-4ec6-908d-ba14ab2183e4"
+   ]
+  },
+  {
+   "group": 383,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "b017613f-5e57-4224-b298-1d0e425dcd51",
+    "e8bf732b-f70d-4f04-a51a-0a75a82f6817",
+    "724dc2d0-e0fb-40ad-8df4-50f936d2c8a7"
+   ]
+  },
+  {
+   "group": 384,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "abc0b1d7-b597-47f5-8c2a-fbffce4d853a",
+    "34b1e2a4-8cec-4bb9-94a0-ec9e9c639c8e",
+    "595f7a87-dd6e-4eb7-943a-b2b009259be7",
+    "9265dc4e-fa94-4c08-9932-fca495724501",
+    "c3afafd7-9a94-4316-80d3-ad6f8a1e4d80",
+    "15a48867-a078-4afc-afaa-c00798fc36e8"
+   ]
+  },
+  {
+   "group": 389,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "gagan114662/openfang",
+   "sessions": [
+    "31476103-fb50-49ac-83e7-861eaec425a9",
+    "39711c2c-ba98-4ce6-b2f9-fcc9013d3f92"
+   ]
+  },
+  {
+   "group": 392,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "gregszero/open-fang",
+   "sessions": [
+    "7a84ce81-4ba6-4a76-ab99-2fa59b889589",
+    "0dd1b3ae-3f77-5552-9cbe-eedc6c506f19",
+    "7d5b4c29-a933-4d7a-b3a8-43c1b84f5b14",
+    "fd48f006-d958-4917-9eb0-28e0385bfbeb",
+    "635f2c4f-0f18-4652-bf0a-072a726071cc",
+    "153f7e94-8173-4281-adb4-7358f0ad8adb"
+   ]
+  },
+  {
+   "group": 393,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "hackers-pub/android",
+   "sessions": [
+    "cb12b5ed-e985-4d70-bb98-d8cb287dbb9a",
+    "9e0aee94-da36-40b7-af3f-d35bc05e67cb",
+    "453dd38c-c9fc-4dc9-aa41-a2237cc7b777"
+   ]
+  },
+  {
+   "group": 394,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "heath0xFF/hChat",
+   "sessions": [
+    "9a07290e-a8a5-4d69-9a46-2088f7c7d18b",
+    "5e022861-5b77-4989-b00c-851abe3460bd"
+   ]
+  },
+  {
+   "group": 395,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "henryph24/neuralips26",
+   "sessions": [
+    "d9612cf9-2dca-4f71-ba26-57b8c14b6a02",
+    "73a5c0b0-23f7-4be3-8d21-7cf844164879",
+    "f3f01f8a-049d-46a6-b1f7-b471fbddefdb",
+    "babd13cc-122e-4583-b952-a91d96fc96b3",
+    "b3c16d33-6b0f-4862-af2e-5404aafb6989"
+   ]
+  },
+  {
+   "group": 396,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "hutusi/amytis",
+   "sessions": [
+    "22db4cc7-3a8d-47f9-8aee-843343c96c31",
+    "3b6cb501-a37a-462a-9683-9fa6ca43f894",
+    "63dfa74a-67ff-4264-a147-b2db99bebd31",
+    "103a94c7-40d8-413a-aef8-c6b19a19ce01",
+    "163302c1-854d-4c1f-b63b-d551d8cecf46"
+   ]
+  },
+  {
+   "group": 403,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "jbouder/acolyte",
+   "sessions": [
+    "767785ac-7b52-4c65-aafd-4f10753517a9",
+    "0b8a4140-199b-4978-92ec-9ae85ff55dfd"
+   ]
+  },
+  {
+   "group": 404,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "jdblackstar/relay",
+   "sessions": [
+    "a46f3abb-b703-410f-a833-cc3d1fb7e76a",
+    "f046ed27-bb25-48b7-aa6d-20901e621659"
+   ]
+  },
+  {
+   "group": 405,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "jdsingh122918/forge",
+   "sessions": [
+    "29705622-8e64-4deb-baeb-87a63468d4fc",
+    "9ace9886-f4dc-437f-83a1-f704b9dc7c1e",
+    "2cf0f732-a119-40a0-ac2e-19b0b70af533",
+    "e7799edb-9dc0-4f56-a518-7cbe653229f8",
+    "1b0bfbee-228f-49ed-be22-b03e1b0be539",
+    "461d4111-482d-45db-80a0-d616b7cdac23"
+   ]
+  },
+  {
+   "group": 409,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "jukellam/dispersal-draft",
+   "sessions": [
+    "6b8939da-9f41-46bf-9354-dc27fda208a0",
+    "342a9830-f995-4678-80ff-74b1045491dc"
+   ]
+  },
+  {
+   "group": 411,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "kgcrom/agent-foundry",
+   "sessions": [
+    "3b16dbbc-7ab5-4f9b-9c7f-400bbcd327fa",
+    "bb2674db-6047-4930-995a-d658cd414169",
+    "afbe151b-901e-4615-94f3-367477c6aa78",
+    "e059aebe-19ef-4faa-a554-3fc1849d553c"
+   ]
+  },
+  {
+   "group": 412,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "kgcrom/cluefin",
+   "sessions": [
+    "0aa626fb-a261-47f6-a52e-2f5ba5fdd5a8",
+    "17273f4f-763f-4c73-a51c-641fb3c3268c",
+    "3986f4a0-e213-4c57-98d2-04579757811f",
+    "87bd6c67-719e-45bf-a604-5bee04304abb",
+    "bf01289a-667a-495e-8314-96bdbacc6adb",
+    "6f812d70-0a8e-4eaa-8375-124bfad64a25"
+   ]
+  },
+  {
+   "group": 414,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "kubokawa-dev/million-pocket-orchestra",
+   "sessions": [
+    "eadad5b0-e62f-408d-9731-bed665c293ae",
+    "3cd750af-bae3-4177-92ad-834522ca7cc1"
+   ]
+  },
+  {
+   "group": 416,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "lightfastai/climode",
+   "sessions": [
+    "24ceb7d3-841d-435c-ab07-36d53a25b30d",
+    "8e32a861-a50d-499c-aa77-df1d7dde8b7e",
+    "08f68454-dde4-488e-8755-c8b828eeb86b",
+    "d60ec9b5-577a-4137-a47e-d7437e266f71"
+   ]
+  },
+  {
+   "group": 417,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "lightfastai/lightfast",
+   "sessions": [
+    "36cc9e63-2ad3-4e06-81ed-c7f7d0273647",
+    "e286820a-affa-4b9c-9d18-d63a10ca47b1",
+    "53f207c9-c4cb-4494-884f-75003ac628d8",
+    "7596272b-4e69-4141-8c7c-ac47e9f935e1",
+    "4e694877-7f93-4ac2-880a-69a98deeb097",
+    "774abf42-0a29-4f89-8ef8-51be502da5c3"
+   ]
+  },
+  {
+   "group": 418,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "loyal-labs/solana-telegram-transactions",
+   "sessions": [
+    "54f7c913-6cd2-41ba-8ac5-cac794ad9524",
+    "5578c985-dc03-4bdb-b9cc-0f00e464a6fd"
+   ]
+  },
+  {
+   "group": 422,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "marcus-sa/brain",
+   "sessions": [
+    "0c6ad649-e712-4ef2-818d-4773d6729041",
+    "613dd8a4-a238-4837-8c7b-d00b176305f0",
+    "7aaa245f-ae28-4cb0-9bc2-0f560648366d",
+    "1f30ef84-ecd9-4d10-9305-741a75c0a1b1",
+    "a37b45cf-b21a-413d-83c2-49c7aa1c10df",
+    "fdd20aff-905b-4eac-83b0-97c05c3b4bcc"
+   ]
+  },
+  {
+   "group": 423,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "marin-community/marin",
+   "sessions": [
+    "5aa28b51-d3e0-4d80-b18a-b1f4a22e76aa",
+    "0bc8148b-2e5a-476e-be1e-cf08b88d6fd8",
+    "06f2740c-cc70-4b27-899a-b9a587939655",
+    "1f5eb52a-b5a1-4da2-b867-f8463b609bed",
+    "9a3bb547-fe3d-49a6-bfd3-ad97176b4ba9",
+    "bd15ad4a-502c-4511-8dba-776fec8bfac2"
+   ]
+  },
+  {
+   "group": 425,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "matthsena/reef-coder",
+   "sessions": [
+    "1f795ffe-cbac-4aef-8984-f7612c249561",
+    "01811a4c-25be-4a6a-bca9-42f6e0634ffa",
+    "115fac72-437c-443d-b559-6d07a4e42301",
+    "36257088-d059-4356-b83c-1982b2262592",
+    "f26cbbb8-9179-4b37-b5a7-5dcd5fcbc3be",
+    "e6fab8f0-9fdd-4576-825e-58bffeda86c8"
+   ]
+  },
+  {
+   "group": 426,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "melagiri/code-insights",
+   "sessions": [
+    "383d4f6b-d8ea-44e9-a12b-5e53a9b7c4fe",
+    "28cb2a20-eed2-485a-933b-df88f71f2fb9",
+    "8a05cca1-5ba6-4426-8e13-8021431e8765",
+    "7d36588f-43e0-41fb-9741-d7b4cb4bee32",
+    "2f9faf61-9306-49a6-80c2-09bbe1f978a0",
+    "b6e8a4a3-078d-42a6-bedb-6dbbe65c0c51"
+   ]
+  },
+  {
+   "group": 428,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "moltis-org/moltis",
+   "sessions": [
+    "6ce656a2-a6ab-435f-aab9-e5eae5a484c0",
+    "ffe6a727-d13c-409c-9a1d-81538d8916e0",
+    "336722ff-bab8-42b8-b5cc-1496eaab8ae4",
+    "41cda726-51e1-4a6b-8ce7-2682c2bec6fc",
+    "ffe9ecd3-e9a2-4c9c-bcfb-25cb69f3d29f"
+   ]
+  },
+  {
+   "group": 430,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "musicofhel/dev-loop",
+   "sessions": [
+    "dd561c41-4e06-404f-b031-3f5e6337d2a0",
+    "e2fd2fb1-5a6f-4159-829a-d8540fc522a5"
+   ]
+  },
+  {
+   "group": 433,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "nosman/gossamer",
+   "sessions": [
+    "01576012-78b8-41e4-8605-a6c241062e5d",
+    "87999cec-29b4-4238-9f19-bd2f2b8b5390",
+    "c15bd67e-428b-4a17-a658-3952485c9375",
+    "fe35d57b-b594-401b-9d47-2c6fb3bf4b76",
+    "a36395cc-12c3-4df3-9e89-63a1835410ad",
+    "7d0ed455-8cec-48bb-954a-032a40e36c99"
+   ]
+  },
+  {
+   "group": 435,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "nsega/.emacs.d",
+   "sessions": [
+    "9c274b07-208d-4d25-8fff-5a24950ac7d2",
+    "3662272f-90eb-4f6d-acc3-1b561237eac1"
+   ]
+  },
+  {
+   "group": 438,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "nuri428/patent_board_full",
+   "sessions": [
+    "08993363-7e32-42fc-9de4-83eb360b096b",
+    "500444ca-4c3e-4f2a-bbf9-5f6ccf604114",
+    "882a2c75-47ff-41bf-8b0a-7a46c7631253",
+    "10c84299-220a-4445-ad5c-5c3339bed289",
+    "57c3d902-bf27-4333-bda9-c7677910c209",
+    "995c0a21-623b-4f65-a4d9-64aefdc19bfb"
+   ]
+  },
+  {
+   "group": 440,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "nylanalyn/jeeves",
+   "sessions": [
+    "838fc04b-888f-4141-bd02-4778d5db8779",
+    "c896dd0a-a2f9-4151-8b9e-2001cd0296ac"
+   ]
+  },
+  {
+   "group": 441,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "obsessiondb/rudel",
+   "sessions": [
+    "79f65801-9298-4201-ae96-5ca486c7a7e3",
+    "a500a672-4cec-42d7-a651-09d10990e1c9",
+    "b0451141-5cdc-40df-b8a1-ea91a892f36b",
+    "8b9bce41-eac4-4f55-8f60-56fcb6a69136",
+    "5beaa8db-74b5-4864-9fd7-09ffa04e4425",
+    "7d6cc729-fd12-4e11-b536-574683d384bb"
+   ]
+  },
+  {
+   "group": 442,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "obsessiondb/rudel",
+   "sessions": [
+    "6ece161c-31e7-4439-873f-bf6d62375c5a",
+    "8e0bd61c-0332-4bb5-b76c-7a342db7d775"
+   ]
+  },
+  {
+   "group": 443,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "obsessiondb/rudel",
+   "sessions": [
+    "01d8797c-6704-43c1-8d9a-ee67f0bfbf0b",
+    "6c4daa34-f968-416f-a5ec-7bf4a15ee0d8",
+    "e44a25dd-d05e-4283-8ef7-e5d588bd2c21",
+    "e44e88a1-2d58-4bcd-9fbb-382a6e86f986",
+    "4682893d-3cfc-46f3-a655-115f08a18bfb",
+    "76edf8dd-e033-44a5-933e-4aa869612237"
+   ]
+  },
+  {
+   "group": 444,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "oddessentials/ado-git-repo-insights",
+   "sessions": [
+    "24249d8a-a1ec-400c-9643-43d89830383b",
+    "cd3779f7-28ed-4d5e-8941-ef058b321998",
+    "76f33c0e-fe4b-4aeb-a862-68ba0a02545e",
+    "65d63295-a03f-4e20-b60e-4217deebcb05",
+    "90374d91-e656-482e-bbe8-25de5b80e44b",
+    "f0cea57b-ddd6-4388-a859-bc1f23d8c864"
+   ]
+  },
+  {
+   "group": 446,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "osabiohq/osabio",
+   "sessions": [
+    "a19bae90-afdc-413b-aae0-a457e503d3b0",
+    "243ed31d-52ed-4ec6-9801-90ea1ea21215",
+    "ef72fca5-3c40-4b27-8c4f-bde088970e07",
+    "c3637448-e813-4f3e-b24f-74c42376cca3",
+    "18bd5c42-9991-4ab1-8cca-66cac9329198",
+    "7571e54d-a912-46c1-90fe-19b95e22a5d9"
+   ]
+  },
+  {
+   "group": 447,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "osvauld/osvauld",
+   "sessions": [
+    "2c3b9c50-a062-4c8e-bad6-eeae7fa14bcd",
+    "653edb4b-0eeb-4134-9fc5-f09ec1ddb1f6",
+    "68c63752-e3e0-40a5-85b0-b00307d34424",
+    "7876beae-237f-4938-926e-87161808e73e",
+    "7ba29771-bed6-4f1d-8b15-e6902b1a1fe1",
+    "b3342ff7-4bc3-4c55-b570-ff9cc1373790"
+   ]
+  },
+  {
+   "group": 448,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "otomarukanta/slk",
+   "sessions": [
+    "8e21e86c-b5a5-44fe-882e-0d96433591fc",
+    "63e864be-2cd6-4701-a64f-4b4383f5fe6c"
+   ]
+  },
+  {
+   "group": 449,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "pablo-health/pablo-companion",
+   "sessions": [
+    "e1dd37b6-e118-4c60-9b12-3c3635d2780b",
+    "230bbd1b-4ec0-4fe2-b9f6-9e40f2e3eda2",
+    "4f6a1636-218b-4c6c-bc80-07735d995632",
+    "5b5a2350-445b-42d8-9e4b-eb1d8b893d2d",
+    "b84ff8de-226f-40ea-9788-d89e8972099c",
+    "a190cfe0-1233-4e63-ab47-4e79b9fdb70a"
+   ]
+  },
+  {
+   "group": 450,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "pambrose/srcref",
+   "sessions": [
+    "6837b282-17f5-48c2-8d64-332f627ed812",
+    "077be599-62ce-49c2-8a61-13580d8da095"
+   ]
+  },
+  {
+   "group": 453,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "pc035860/agent-tail",
+   "sessions": [
+    "19288b02-e3dc-47ee-8d8c-6da04672012c",
+    "e92e4f89-b702-495a-8b08-17b669fb04a5",
+    "fb2b82a8-a33a-4ab2-873c-4429adde06a2",
+    "1ff6f320-260d-4185-8677-fa7c1dbaf03e",
+    "2716a7a1-758b-40c0-9ba5-730f2397973f"
+   ]
+  },
+  {
+   "group": 454,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "pc035860/cee",
+   "sessions": [
+    "eed00cff-824e-49d8-b7bd-cda98c627b26",
+    "2fe40a5a-1ae9-45a4-96b9-9bcb4e7dd99e",
+    "51ec2c92-3ff1-48bd-a78b-6e618533a008",
+    "26e847bd-37da-4f4c-85e7-71a498fbc4f2",
+    "09edeff1-00e4-46d8-b85d-8a17ec7c18df",
+    "382b642f-825c-4620-979d-7a75cdc99845"
+   ]
+  },
+  {
+   "group": 456,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "pskoett/measuring-ai-proficiency",
+   "sessions": [
+    "573e479b-9c6e-4352-b100-7ad59f96b07d",
+    "fe94d82a-cffb-4ce0-b9c0-cc50e527c442"
+   ]
+  },
+  {
+   "group": 462,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "ronnnnn/cc",
+   "sessions": [
+    "1d1abced-8813-4124-9db5-44fab5e30f41",
+    "e35e6e1a-d5a5-4242-9ec7-0f594de42856",
+    "b14e11fb-7669-4a4b-a3ba-6114f70ac23f",
+    "9d8034d0-fd45-4109-b7bf-6e2bca91412d",
+    "aa268fb1-361a-44d7-ade4-5c523fbe3cc5",
+    "0f9a2dd6-4b90-4243-9598-cbb65ca8d0ea"
+   ]
+  },
+  {
+   "group": 466,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "schmalle/secman",
+   "sessions": [
+    "c68a4b90-e4be-4867-93e2-495979b49f36",
+    "f1a231d5-e275-4d20-95cd-2686951c041c",
+    "7c76f1e9-2c68-4dd2-baaa-d9587bace19a",
+    "998386b5-c1a2-4ef1-8174-a92c124d4115",
+    "51bb8f34-54e9-494c-a10e-f81ba909251e",
+    "112ca1bb-3234-4466-8a4e-32155874c91b"
+   ]
+  },
+  {
+   "group": 468,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "shunkakinoki/dotfiles",
+   "sessions": [
+    "45369b8c-9ea7-4dc4-aaf9-953bd3d6d1df",
+    "4e998541-4f1d-4a79-851e-9f9c898d8a0d",
+    "e356a42b-25ce-4da8-b03f-7fd11a183c80",
+    "88d4e0ee-a711-4832-b79a-651beecf5f87",
+    "1e7f5ffe-1491-42c4-a41d-0175630da8c1",
+    "288c73e7-6096-45e7-b900-68184f94077d"
+   ]
+  },
+  {
+   "group": 469,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "sintezcs/jetcodesync",
+   "sessions": [
+    "6c9704c1-c956-462e-bad8-6426135f5e20",
+    "b6203de3-c71f-4645-837a-6350b30a918e"
+   ]
+  },
+  {
+   "group": 471,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "stat-guy/imessage-mail",
+   "sessions": [
+    "66f8ec73-c22d-4671-81ba-22c60b81f161",
+    "b3a407be-a166-40f5-b6cb-13afd73525a1"
+   ]
+  },
+  {
+   "group": 474,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "ta93abe/dbt-jobs",
+   "sessions": [
+    "4a9487bb-ba6a-444a-ae20-cacd10e73d26",
+    "204e0ffc-469c-4a6f-a366-b5042682e50a"
+   ]
+  },
+  {
+   "group": 475,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "terryso/polymarket-trader",
+   "sessions": [
+    "550b7568-fb9d-484e-abe6-20575b472194",
+    "c9056426-9142-415d-aeba-5b4a8b8b9402",
+    "11ec37bf-be4c-4425-bef4-e3dfaf66ba54",
+    "cb108540-0e9e-4148-8315-cacc95ae115f",
+    "d2ca6573-b70c-41c3-b768-0a825cc6bfa1"
+   ]
+  },
+  {
+   "group": 478,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "tpmjs/tpmjs",
+   "sessions": [
+    "2e048284-22b8-41bf-8b93-10283248fb5c",
+    "1e3d6988-e6c2-4e7b-92a5-47e46e390af3",
+    "01f2e980-7b4f-4888-ae9e-2542f465f399",
+    "137b0ff7-ddfb-4540-8364-1be1bf4e853c",
+    "1e10fd39-2684-46ea-bb0b-01bb0d43c940",
+    "f6312e90-c5a0-4f57-91e2-b814949f6f53"
+   ]
+  },
+  {
+   "group": 479,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "tslateman/duet",
+   "sessions": [
+    "7c03c5fa-7295-40f0-9dd9-ffb43edecf1f",
+    "cd680c64-9724-4fd5-a7dd-f0a396efb0eb"
+   ]
+  },
+  {
+   "group": 480,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "tslateman/reck",
+   "sessions": [
+    "9d722890-0cb9-4148-be87-d949aca27100",
+    "ea34717b-0f27-417d-9958-92cce720acb6",
+    "e5e47a15-840b-4514-8bea-d8dd28393bca",
+    "65286b52-d45d-4134-96bd-d9407378dd48",
+    "a8ebae0a-d2a0-45e0-8651-dc2fa20fb7b7",
+    "e10ca72d-a4cf-49f7-b3e3-3dfec1230a1e"
+   ]
+  },
+  {
+   "group": 482,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "ujuc/agent-stuff",
+   "sessions": [
+    "b37d8cd5-41f3-43c7-ada0-17050cb42d7f",
+    "16e76550-0d80-441e-b289-9cd441fae07a"
+   ]
+  },
+  {
+   "group": 485,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "vaayne/agent-kit",
+   "sessions": [
+    "2c6fd2f9-51a5-4621-aebb-7120cc242cba",
+    "161aef0f-f909-47fc-93ff-9b8a1a75783c"
+   ]
+  },
+  {
+   "group": 486,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "vaayne/anna",
+   "sessions": [
+    "be1bbb2a-08b3-4319-9a74-6e91217059b2",
+    "510746c8-fd54-4101-b785-5084faac344d",
+    "754aca72-64c8-4bc7-a685-f3a9b3483593",
+    "8b03ee8d-bdac-4142-be43-d5b8a541e0a7",
+    "61bed09d-611a-4423-854a-e917fd8c7dd8"
+   ]
+  },
+  {
+   "group": 488,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "vfaraji89/tokalator",
+   "sessions": [
+    "06602c4e-958c-4eaa-a2c8-05f2cba95b21",
+    "02032fcb-8a49-4df4-ad11-95a09320f254"
+   ]
+  },
+  {
+   "group": 489,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "wanshicheng/duckdb-data-agent",
+   "sessions": [
+    "acf1e095-3703-4df6-81d9-5e7ea90631f2",
+    "e782888f-9781-4ba9-8668-1ff54eb9862f",
+    "375cb152-5491-4494-9534-23a5830a09b2",
+    "b27d5bd9-d5c8-455e-a5ea-ddab9e32afc3",
+    "7073cc15-dcd1-4d49-9ed2-f879d5e7c71d",
+    "841fa029-723c-470b-8569-363960b82e48"
+   ]
+  },
+  {
+   "group": 490,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "wodsmith/thewodapp",
+   "sessions": [
+    "2e32ea3c-14ec-49f5-9398-960d65bd8f06",
+    "26d733a8-6066-4276-91d2-3c87f831c004",
+    "0d9384c7-4265-4ef6-a37c-bd0b3ff6dbec",
+    "c4d3dbfa-e6a6-49de-b344-ca356875b9b7",
+    "1de3023a-2ecf-44bc-95f8-7880ac1bfb19",
+    "4d0e1418-f979-4991-a3e9-4f3ac029c4e2"
+   ]
+  },
+  {
+   "group": 491,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "yonyon-web/sodateru-wiki",
+   "sessions": [
+    "35991986-4c6e-4f69-99bf-ec94df22d4be",
+    "650e3d03-6d37-4dc7-a13b-3c348a0fa703"
+   ]
+  },
+  {
+   "group": 492,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "yorrick/claude-code-plugins",
+   "sessions": [
+    "f2a56d41-bfd1-4fdb-ab4e-069fe811ea01",
+    "6cd5bdb5-b372-433c-a358-1379d0cd7f9c"
+   ]
+  },
+  {
+   "group": 493,
+   "split": "held3",
+   "kind": "two-sessions",
+   "repo_id": "zchee/agent",
+   "sessions": [
+    "2dbefcb1-9a0f-40c1-8363-061128a2b8ab",
+    "1b83239a-c2f7-4dbc-994b-7118a039cdc9"
+   ]
+  },
+  {
+   "group": 494,
+   "split": "held3",
+   "kind": "outside-window",
+   "repo_id": "zchee/zmux",
+   "sessions": [
+    "65973094-e58f-4d43-ad0e-e9fecd0ce7f1",
+    "93882979-a53e-42dc-a6b8-912ab2a56328",
+    "d0f971b2-3ff2-4666-b43e-7cd9e2a6b2f5",
+    "cf4618ba-7f51-4a75-bef9-5fa32a9f003b",
+    "715a3c97-eb4e-41f0-85c6-aba05ad3f169"
+   ]
+  }
+ ]
+}
