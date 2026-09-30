@@ -209,10 +209,11 @@ def not_run(row: dict[str, Any]) -> bool:
 def one_chain(
     chain: dict[str, Any], arm: str, model: str, ceiling: float, keyfile: Path,
     carry_on: bool = False,
+    rep: int = 1,
 ) -> None:  # fmt: skip
     """The chain's requests in one session. With `carry_on`, a chain whose later requests were
     NOT RUN (a cap) goes on from the first of them, in the same session and working copy."""
-    name = chain["chain"]
+    name = run_name(chain["chain"], rep)
     evidence = RUNS / name / arm
     work = WORK / f"{name}-{arm}"
     done_row = evidence / "row.json"
@@ -280,8 +281,13 @@ def one_chain(
 # ---- grading -------------------------------------------------------------------------------------
 
 
-def grade_chain(chain: dict[str, Any], arm: str) -> dict[str, Any]:
-    evidence = RUNS / chain["chain"] / arm
+def run_name(chain: str, rep: int) -> str:
+    """Repetition 1 keeps the chain's name (the pilot); later ones get `-r<rep>`."""
+    return chain if rep == 1 else f"{chain}-r{rep}"
+
+
+def grade_chain(chain: dict[str, Any], arm: str, rep: int = 1) -> dict[str, Any]:
+    evidence = RUNS / run_name(chain["chain"], rep) / arm
     patch = (evidence / "final.patch").read_text(encoding="utf-8")
     nodes = [n for b in chain["bugs"] for n in (*b["FAIL_TO_PASS"], *b["PASS_TO_PASS_STAR"])]
     outcome = docker_env.pytest(chain["tag"], patch, list(dict.fromkeys(nodes)))
@@ -323,6 +329,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--split", default="dev")
     parser.add_argument("--model", default="haiku", choices=sorted(MODELS))
     parser.add_argument("--ceiling", type=float, default=0.0)
+    parser.add_argument("--rep", type=int, default=1, help="repetition of the chains (1..)")
     parser.add_argument("--continue", dest="carry_on", action="store_true",
                         help="go on with chains whose later requests were NOT RUN")
     args = parser.parse_args(argv)
@@ -340,8 +347,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.action == "grade":
         for n in wanted:
             for arm in ARMS:
-                if (RUNS / n / arm / "final.patch").exists():
-                    g = grade_chain(known[n], arm)
+                if (RUNS / run_name(n, args.rep) / arm / "final.patch").exists():
+                    g = grade_chain(known[n], arm, args.rep)
                     print(n, arm, g["resolved"], "of", len(g["bugs"]))
         return 0
     if args.ceiling <= 0:
@@ -358,7 +365,7 @@ def main(argv: list[str] | None = None) -> int:
             with ThreadPoolExecutor(max_workers=len(ARMS)) as pool:
                 list(pool.map(lambda arm, c=chain: one_chain(c, arm, MODELS[args.model],
                                                              args.ceiling, keyfile,
-                                                             args.carry_on), ARMS))
+                                                             args.carry_on, args.rep), ARMS))
     finally:
         keyfile.unlink(missing_ok=True)
     print(f"spent {_ledger['spent']:.2f} USD (list price)")
