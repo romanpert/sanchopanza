@@ -54,7 +54,7 @@ measured. Full account: `docs/results/2026-09-24-third-batch/`.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Literal
 
@@ -417,6 +417,60 @@ def recall_questions(
             },
         )
     }
+    return state, qs
+
+
+# --- M4: which records of earlier requests bear on a new one? ---------------------------
+
+REQUEST_LIMIT = 1_500
+RECORD_LIMIT = 900
+RELATED = {
+    "true": {
+        "what": "The new request is about code the earlier request changed or read: the same "
+        "function, class or module, or behaviour that code produces, or it depends on or could "
+        "undo the earlier change",
+        "examples": [
+            "earlier: fixed FileResponse's Content-Range header; new: FileResponse sends the "
+            "wrong Content-Length for a range",
+            "earlier: added a hex rule to the Carbon lexer; new: the Carbon lexer mishandles "
+            "octal literals",
+        ],
+    },
+    "false": {
+        "what": "Only the same repository, language, test command or broad area; a different "
+        "feature of the same library",
+        "examples": [
+            "earlier: fixed the Carbon lexer; new: the Dylan lexer mishandles comments",
+            "earlier: fixed StaticFiles; new: the test client drops cookies",
+        ],
+    },
+}
+
+
+def record_id(index: int) -> str:
+    return f"R{index + 1}"
+
+
+def related_questions(
+    *, request: str, records: Sequence[str]
+) -> tuple[Mapping[str, Any], dict[str, Question]]:
+    """One call, one Truth per earlier record, all records in view.
+
+    The request goes in its own field, whole up to `REQUEST_LIMIT`: as a triage `purpose` it
+    was cut at 400 characters. Asked about shared code, not about "a fact the answer would
+    use": the fix of another bug in the same file holds no such fact, and triage kept no
+    record of a related chain (p 0.09-0.32, development, 2026-09-30).
+    """
+    ids = [record_id(i) for i in range(len(records))]
+    state = {"request": truncate(request, REQUEST_LIMIT),
+             "records": "\n\n".join(f"{i}| {truncate(r, RECORD_LIMIT)}"
+                                     for i, r in zip(ids, records, strict=True))}  # fmt: skip
+    qs: dict[str, Question] = {
+        i: Truth(f"Is the new `request` about the same code as earlier record {i} in "
+                 "`records`, so that what was found or changed there helps with it?",
+                 criteria=RELATED)
+        for i in ids
+    }  # fmt: skip
     return state, qs
 
 

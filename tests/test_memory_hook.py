@@ -179,6 +179,19 @@ def test_h3_a_prompt_written_again_after_a_boundary_is_the_same_request() -> Non
     assert found[0].report == "one done"
 
 
+def test_tool_results_carrying_their_request_s_prompt_id_are_kept() -> None:
+    """In `claude -p` transcripts every tool result carries its request's `promptId`: taking
+    that for the identity of any user entry dropped them all, and records of real sessions had
+    no files, tests or output (found by the dry test of the recall question, 2026-09-30)."""
+    stamped = [{**e, "promptId": "p1", "timestamp": f"2026-09-30T10:00:{i:02d}Z"}
+               if e["type"] == "user" else {**e, "timestamp": f"2026-09-30T10:00:{i:02d}Z"}
+               for i, e in enumerate(lexer_request())]  # fmt: skip
+    found, live = ep.episodes_of(stamped, session="s", cwd=CWD)
+    assert live == {1} and len(found) == 1
+    assert found[0].changed == ("pygments/lexers/carbon.py",) and "3 passed" in found[0].tests
+    assert found[0].tool_calls == 4
+
+
 def test_save_is_idempotent_atomic_and_load_orders_by_time(tmp_path: Path) -> None:
     found, _ = ep.episodes_of([*lexer_request(), *starlette_request()], session="s")
     assert ep.save(tmp_path, found) == ["s-001", "s-002"]
@@ -304,9 +317,10 @@ def test_the_decider_keeps_what_it_judges_and_injects_nothing_when_it_answers_no
     s, _ = squire(fake)
     context = context_of(asyncio.run(mh.recall(new, s)))
     assert context.count("### Earlier") == 1
-    assert "Request:" in json.dumps(fake.states[0])  # the decider read the pages
-    # and the new request as the purpose, from its first word: a purpose keeps 400 characters
-    assert fake.states[0]["purpose"].startswith("Carbon lexer and StaticFiles")
+    records = fake.states[0]["records"]  # the decider read each record's page, files first
+    assert "R1| Changed: pygments/lexers/carbon.py" in records and "R2| " in records
+    # and the new request whole, from its first word (a triage purpose kept 400 characters)
+    assert fake.states[0]["request"].startswith("Carbon lexer and StaticFiles")
     silent, _ = squire(Fake(lambda i: None))
     assert asyncio.run(mh.recall({**new, "session_id": "s3"}, silent)) == {}
 

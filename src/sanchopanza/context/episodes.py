@@ -195,10 +195,12 @@ def _stamp(entry: Mapping[str, Any]) -> float:
         return 0.0
 
 
-def _identity(entry: Mapping[str, Any], position: int) -> str:
-    """The same prompt or message when Claude Code writes it again after a boundary (same
-    `promptId`, or same time and content). An entry without a time is never taken for another."""
-    if entry.get("promptId") and entry.get("type") == "user":
+def _identity(entry: Mapping[str, Any], position: int, request: bool) -> str:
+    """The same prompt or message when Claude Code writes it again after a boundary: a
+    request by its `promptId`, anything else by time and content. Only a request: in
+    `claude -p` every tool result carries its request's `promptId` too. An entry without a
+    time is never taken for another."""
+    if request and entry.get("promptId"):
         return f"prompt:{entry['promptId']}"
     if not entry.get("timestamp"):
         return f"at:{position}"
@@ -219,9 +221,10 @@ def split_requests(entries: Iterable[Mapping[str, Any]]) -> Split:
             continue
         if not _conversational(entry):
             continue
-        identity = _identity(entry, position)
         message = entry["message"]
-        if is_request(message):
+        request = is_request(message)
+        identity = _identity(entry, position, request)
+        if request:
             if identity in opened:  # written again after a boundary: the same request
                 current = opened[identity]
             else:

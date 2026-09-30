@@ -10,10 +10,10 @@ fire in `claude -p` as in an interactive session. What a record holds is `contex
   the project's records that are **not in the live context** (`episodes.Split.live`): those of
   other sessions, and those of this session wholly before its last compaction; and not already
   given to this session since that compaction. BM25 proposes the top `MEMORY_K`, and the decider
-  keeps what bears on the request with the request in hand (`Squire.triage_pages`, one
-  in-context call over pages that hold each record's request and outcome whole, the request
-  itself as the purpose). Only records the decider judged and kept enter, oldest first, under
-  `MEMORY_CHARS`.
+  says which are about the same code as the request (`points.memory.related_questions`, one
+  in-context call, one Truth per record, over pages that hold each record's files, request and
+  outcome). Only records the decider judged at `MEMORY_KEEP_AT` or above enter, oldest first,
+  under `MEMORY_CHARS`.
 
 Nothing already in the conversation is rewritten: the records are appended with the prompt,
 so no cached prefix is invalidated. Records live outside the project (`MEMORY_STORE`, default
@@ -25,6 +25,8 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
     MEMORY_SELECT            decider (default when a provider or a TypeSafe key is set) | bm25
                              (the top MEMORY_BM25_KEEP by score, no model) | off (record only)
     MEMORY_K, MEMORY_BM25_KEEP   5 and 2
+    MEMORY_KEEP_AT           the decider's probability a record needs to enter (default
+                             0.5; not derived yet: development data holds too few cases)
     MEMORY_CHARS             cap of the injected text (default 6000)
     MEMORY_DECIDER_SECONDS   the decider's time (default 15); past it, nothing is injected
     MEMORY_STORE             the store's root; MEMORY_STORE_LOG a JSONL file, one line per event
@@ -67,10 +69,7 @@ CATCH_UP = 3  # the project's other sessions caught up per prompt, most recent f
 CATCH_UP_BYTES = 20_000_000
 CATCH_UP_SECONDS = 86_400
 SHOWN = "shown"  # per-session record of what was given since the last compaction
-# The request itself is the purpose, with nothing in front of it: `chunks.context_questions`
-# keeps only the first 400 characters of a purpose, and a framing sentence ahead of the request
-# left the decider its first line (development replay, 2026-09-30: every record at p 0.5-0.9).
-PURPOSE = "{prompt}"
+KEEP_AT = 0.5
 HEADER = (
     "[sanchopanza memory: records of earlier requests in this project that may bear on this "
     "one, written by code from the transcripts, oldest first]"
@@ -87,6 +86,14 @@ def _int(name: str, default: int) -> int:
     except ValueError:
         return default
     return value if value > 0 else default
+
+
+def _float(name: str, default: float) -> float:
+    try:
+        value = float(_env.get(name, "") or default)
+    except ValueError:
+        return default
+    return value if 0.0 <= value <= 1.0 else default
 
 
 def _log(row: Mapping[str, Any]) -> None:
@@ -222,12 +229,18 @@ async def keep_by_decider(
     squire: Squire, prompt: str, found: Sequence[ep.Episode]
 ) -> tuple[list[ep.Episode], dict[str, float | None]]:
     """The decider's picks, most probable first, and every probability. Only a record the
-    decider judged and kept enters: triage keeps unanswered pages, and a record nobody judged
-    must not."""
-    pages = [(e.title, e.page()) for e in found]
-    verdicts = await squire.triage_pages(purpose=PURPOSE.format(prompt=prompt), pages=pages)
-    probabilities = {e.key: p for e, (_, p) in zip(found, verdicts, strict=True)}
-    kept = [(e, p) for e, (keep, p) in zip(found, verdicts, strict=True) if keep and p is not None]
+    decider judged at `MEMORY_KEEP_AT` or above enters: a record nobody judged must not."""
+    from ..points.memory import record_id, related_questions
+
+    state, qs = related_questions(request=prompt, records=[e.page() for e in found])
+    decision = await squire.decide("memory_recall", state, qs)
+    ids = [record_id(i) for i in range(len(found))]
+    probabilities = {e.key: (decision.answers[i].truth if i in decision.answers else None)
+                     for e, i in zip(found, ids, strict=True)}  # fmt: skip
+    keep_at = _float("MEMORY_KEEP_AT", KEEP_AT)
+    kept = [(e, p) for e, p in ((e, probabilities[e.key]) for e in found)
+            if p is not None and p >= keep_at]  # fmt: skip
+    squire.record(decision, kept=len(kept), records=len(found))
     return [e for e, _ in sorted(kept, key=lambda item: -item[1])], probabilities
 
 
