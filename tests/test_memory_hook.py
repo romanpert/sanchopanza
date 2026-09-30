@@ -573,6 +573,25 @@ def test_m2_a_compaction_mid_request_resets_what_is_live_and_what_was_given(stor
                                                                          carbon)))  # fmt: skip
 
 
+def test_m2_the_compaction_s_boundary_is_written_after_session_start(store: Path) -> None:
+    # Measured 2026-10-01 (adoption smoke test, Sm): the summary at 19:18:57.389, the
+    # SessionStart hooks at 57.960, the compact_boundary entry at 58.021. At SessionStart the
+    # transcript does not show the compaction yet; the event says it happened.
+    project = store / "projects" / "p"
+    in_progress = [prompt("and the websocket too", "2026-09-30T12:00:00Z"), say("looking")]
+    entries = [*lexer_request(), *starlette_request(), *in_progress]
+    path = write_transcript(project / "s1.jsonl", entries)
+    mh.handle(event(path, "UserPromptSubmit", "s1", "and now"))
+    carbon = f"{CWD}/pygments/lexers/carbon.py"
+    assert mh.handle(touch_event(path, "s1", "Read", carbon)) == {}
+    mh.handle({**event(path, "SessionStart", "s1"), "source": "compact"})  # no boundary yet
+    assert "request 1 of session s1" in context_of(mh.handle(touch_event(path, "s1", "Read",
+                                                                         carbon)))  # fmt: skip
+    write_transcript(project / "s1.jsonl", [*entries, BOUNDARY, SUMMARY])
+    mh.handle(event(path, "UserPromptSubmit", "s1", "next"))  # the boundary is written now
+    assert mh.handle(touch_event(path, "s1", "Edit", carbon)) == {}  # already given: kept
+
+
 def test_m3_a_recording_error_leaves_the_state_alone(
     store: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

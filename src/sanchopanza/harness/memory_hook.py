@@ -503,11 +503,23 @@ def touch(event: Mapping[str, Any]) -> dict[str, Any]:
 
 def after_compaction(event: Mapping[str, Any]) -> dict[str, Any]:
     """SessionStart after a compaction: what is live changed in the middle of a request, and what
-    was given before it is gone with the summary; the touch must know before the next prompt."""
+    was given before it is gone with the summary; the touch must know before the next prompt.
+
+    Claude Code writes the `compact_boundary` entry after the SessionStart hooks run (measured
+    2026-10-01: summary 57.389, hooks 57.960, boundary 58.021), so the transcript does not show
+    this compaction yet. When it does not, the event is taken at its word: one boundary more,
+    and only the request in progress (cut by the compaction, H1) still live. The next prompt
+    reads the boundary from the transcript and finds the same count."""
+    store, session = store_for(event), str(event.get("session_id") or "session")
+    before, _ = live_at_last_prompt(store, session)
     seen = record(event)
-    note_live(store_for(event), str(event.get("session_id") or "session"), seen.boundaries,
-              seen.live, seen.cwd)  # fmt: skip
-    _log({"event": "SessionStart", "boundaries": seen.boundaries, "live": sorted(seen.live)})
+    boundaries, live = seen.boundaries, seen.live
+    if boundaries <= before:
+        boundaries = before + 1
+        live = frozenset({max(seen.live)}) if seen.live else frozenset()
+    note_live(store, session, boundaries, live, seen.cwd)
+    _log({"event": "SessionStart", "boundaries": boundaries, "live": sorted(live),
+          "boundary_in_transcript": seen.boundaries > before})  # fmt: skip
     return {}
 
 
