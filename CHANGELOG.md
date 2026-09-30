@@ -24,8 +24,13 @@ do not favour this package.
   - **Measured on Mind2Web:** the registered first design failed (R@10 71.0 %, bar 80 %); its
     final round was the fault. With the two rounds mixed (`blend=0.5`), confirmed on 142 new
     steps: 89.4 % in the top 20 and 82.4 % in the top 10, against 38.7 % and 23.2 % for BM25.
-  - **Two negatives, registered:** an answering model given only the top 20 scored 5 points
-    under the whole page, and a hook that prunes snapshots (`harness.browse_hook`, opt-in) saved
+  - **Given only the top 20 or 30, in page order, an answering model chooses as well as from
+    the whole page** (registered, 82 new steps): Claude Sonnet 5 52.4 % and 50.0 % against
+    51.2 %, within the registered bound, at an eighth of the cost. The first try showed them in
+    rank order and lost 5 points; in 6 of its 7 lost steps the target was shown, so the fix was
+    the presentation: `browse.in_page_order` keeps the page's order and says which of a repeated
+    line each element is. `render`, the CLI and `rank_elements` use it.
+  - **A negative, registered:** a hook that prunes snapshots (`harness.browse_hook`, opt-in) saved
     nothing in 36 real Claude Code sessions with `playwright-cli`.
 - `Squire.fork(thresholds=...)`: a copy with another ceiling for one job.
 
