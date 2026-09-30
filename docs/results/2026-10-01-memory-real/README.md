@@ -71,3 +71,30 @@ model, so no text left the machine; `local.py`): recall 0.958, precision 0.938, 
 - The metric credits a record already given to an earlier request of the same session; no
   compaction is simulated (SWE-chat sessions rarely reach one).
 - Decider spend: development 0.04 USD, held out 0.04 USD.
+
+## v4.1: the record whose lines the agent is looking at (confirmed on a fresh set)
+
+v3 gave the two newest records that changed a file. v4 keeps, per record and per file, prints
+of the lines the request wrote, and gives at a Read the record whose lines the content shows
+(nothing when none), at an edit the one whose lines it replaces, else the newest; the
+decider's cut at a session's first request moves to 0.8. v4.1 adds an adversarial review's
+fixes that held on development data (per file, words only, no imports, decorators, secrets or
+failed edits, newest writer owns a line). Designed on development groups; confirmed on 74
+groups nobody had looked at (`selection-2.json`, amendment 2, sealed before building).
+
+| fresh set (3,117 requests, 624 with a related record) | recall | precision | noise | records per request |
+|---|---|---|---|---|
+| v3 shipped | 0.987 | 0.631 | 0.057 | 0.39 |
+| **v4.1 shipped** | **0.978** | **0.753** | **0.045** | **0.32** |
+| v3 touch alone | 0.986 | 0.659 | 0.050 | |
+| v4.1 touch alone | 0.978 | 0.778 | 0.039 | |
+
+All five criteria met: precision above v3, recall within 0.01 of v3, noise not above v3,
+recall >= 0.80 with precision >= 0.50, noise <= 0.10. With `lineage` only there is a small cost
+beside the gain: recall 0.876 against 0.890 and noise 0.104 against 0.100, precision 0.103
+against 0.078. Decider spend 0.025 USD.
+
+Not adopted, measured on development (`variants-v4b-dev.json`): a floor of two lines in view,
+the newest record at a Read that shows none of its lines, at a partial Read, and the edit
+fallback once per file each lowered precision or recall. Latency is the same as v3's on the
+same machine state (a 2,000-line Read hashes in a few milliseconds; the process start dominates).

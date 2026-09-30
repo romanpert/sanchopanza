@@ -1,0 +1,148 @@
+{
+ "requests": 3117,
+ "rows": {
+  "v4 shipped": {
+   "all/lineage": {
+    "requests": 3117,
+    "with_related": 209,
+    "recall": 0.876,
+    "precision": 0.103,
+    "noise": 0.104,
+    "shown_per_request": 0.32
+   },
+   "all/any": {
+    "requests": 3117,
+    "with_related": 624,
+    "recall": 0.978,
+    "precision": 0.753,
+    "noise": 0.045,
+    "shown_per_request": 0.32
+   },
+   "first/lineage": {
+    "requests": 322,
+    "with_related": 33,
+    "recall": 0.939,
+    "precision": 0.122,
+    "noise": 0.291,
+    "shown_per_request": 1.15
+   },
+   "first/any": {
+    "requests": 322,
+    "with_related": 75,
+    "recall": 0.987,
+    "precision": 0.686,
+    "noise": 0.17,
+    "shown_per_request": 1.15
+   }
+  },
+  "v3 shipped": {
+   "all/lineage": {
+    "requests": 3117,
+    "with_related": 209,
+    "recall": 0.89,
+    "precision": 0.078,
+    "noise": 0.1,
+    "shown_per_request": 0.39
+   },
+   "all/any": {
+    "requests": 3117,
+    "with_related": 624,
+    "recall": 0.987,
+    "precision": 0.631,
+    "noise": 0.057,
+    "shown_per_request": 0.39
+   },
+   "first/lineage": {
+    "requests": 322,
+    "with_related": 33,
+    "recall": 0.909,
+    "precision": 0.091,
+    "noise": 0.329,
+    "shown_per_request": 1.57
+   },
+   "first/any": {
+    "requests": 322,
+    "with_related": 75,
+    "recall": 0.987,
+    "precision": 0.621,
+    "noise": 0.215,
+    "shown_per_request": 1.57
+   }
+  },
+  "v4 touch": {
+   "all/lineage": {
+    "requests": 3117,
+    "with_related": 209,
+    "recall": 0.871,
+    "precision": 0.106,
+    "noise": 0.099,
+    "shown_per_request": 0.31
+   },
+   "all/any": {
+    "requests": 3117,
+    "with_related": 624,
+    "recall": 0.978,
+    "precision": 0.778,
+    "noise": 0.039,
+    "shown_per_request": 0.31
+   },
+   "first/lineage": {
+    "requests": 322,
+    "with_related": 33,
+    "recall": 0.909,
+    "precision": 0.131,
+    "noise": 0.239,
+    "shown_per_request": 1.04
+   },
+   "first/any": {
+    "requests": 322,
+    "with_related": 75,
+    "recall": 0.987,
+    "precision": 0.75,
+    "noise": 0.109,
+    "shown_per_request": 1.04
+   }
+  },
+  "v3 touch": {
+   "all/lineage": {
+    "requests": 3117,
+    "with_related": 209,
+    "recall": 0.876,
+    "precision": 0.08,
+    "noise": 0.094,
+    "shown_per_request": 0.37
+   },
+   "all/any": {
+    "requests": 3117,
+    "with_related": 624,
+    "recall": 0.986,
+    "precision": 0.659,
+    "noise": 0.05,
+    "shown_per_request": 0.37
+   },
+   "first/lineage": {
+    "requests": 322,
+    "with_related": 33,
+    "recall": 0.848,
+    "precision": 0.098,
+    "noise": 0.263,
+    "shown_per_request": 1.39
+   },
+   "first/any": {
+    "requests": 322,
+    "with_related": 75,
+    "recall": 0.987,
+    "precision": 0.691,
+    "noise": 0.138,
+    "shown_per_request": 1.39
+   }
+  }
+ },
+ "verdicts": {
+  "1 precision above v3": true,
+  "2 recall within 0.01 of v3": true,
+  "3 noise not above v3": true,
+  "4 recall >= 0.80 and precision >= 0.50": true,
+  "5 noise <= 0.10": true
+ }
+}
