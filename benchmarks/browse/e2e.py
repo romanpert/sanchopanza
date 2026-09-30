@@ -75,12 +75,38 @@ def require_prereg() -> None:
     """Both registrations, the design and its amendment. (The amendment's check was missing when
     the counted sessions ran: a failed edit. Its file predates them and is unchanged; see the
     README.)"""
-    for path in (PREREG, AMENDMENT):
+    for path in REGISTRATIONS:
         registered = path.with_suffix(".sha256")
         if not registered.exists() or registered.read_text().strip() != digest(path):
             raise SystemExit(
                 f"{path.name} missing or changed since it was registered: nothing spent"
             )
+
+
+REGISTRATIONS = (PREREG, AMENDMENT)
+NEW_PREREG = RESULTS / "prereg-e2e-cli-new.md"  # Phase 3e: the fixed hook, new tasks
+
+
+def use_new_tasks() -> None:
+    """Phase 3e: Phase 3d's six new tasks with playwright-cli, four runs, its own files."""
+    global PREREG, SESSIONS, REGISTRATIONS, RUNS, TASKS, REPORT
+    mcp = _load_sibling("browse_e2e_mcp", HERE / "e2e_mcp.py")
+    PREREG, REGISTRATIONS = NEW_PREREG, (NEW_PREREG,)
+    SESSIONS, REPORT = RESULTS / "e2e-cli-new-sessions.jsonl", "e2e-cli-new.json"
+    RUNS, TASKS = 4, mcp.NEW_TASKS
+
+
+def _load_sibling(name: str, path: pathlib.Path) -> Any:
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+REPORT = "e2e.json"
 
 
 def normal(text: str) -> str:
@@ -232,9 +258,12 @@ def main() -> int:
     ap.add_argument("--env-file", default=None)
     ap.add_argument("--pilot", action="store_true", help="T1 once per arm (run 0), excluded")
     ap.add_argument("--pilot2", action="store_true", help="T1 LEAN once more (run -1), excluded")
+    ap.add_argument("--new", action="store_true", help="Phase 3e (prereg-e2e-cli-new.md)")
     args = ap.parse_args()
+    if args.new:
+        use_new_tasks()
     if args.record_hash:
-        for path in (PREREG, AMENDMENT):
+        for path in REGISTRATIONS:
             registered = path.with_suffix(".sha256")
             if registered.exists() and registered.read_text().strip() != digest(path):
                 raise SystemExit(f"{registered.name} holds a different hash: nothing written")
@@ -279,7 +308,7 @@ def main() -> int:
                           "list_usd", "turns", "jev_usd")}), file=sys.stderr)  # fmt: skip
     report = analyze([r for r in rows if r["run"] > 0])
     report["pilot"] = [r for r in rows if r["run"] <= 0]
-    (RESULTS / "e2e.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
+    (RESULTS / REPORT).write_text(json.dumps(report, indent=1), encoding="utf-8")
     print(json.dumps(report, indent=1))
     return 0
 
