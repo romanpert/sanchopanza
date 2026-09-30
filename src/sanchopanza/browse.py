@@ -428,6 +428,49 @@ def prune_snapshot(
 
 # --- a lean page ----------------------------------------------------------------------------
 
+AFTER_LIMIT = 60
+
+
+def _ordinal(n: int) -> str:
+    suffix = "th" if 10 <= n % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{suffix}"
+
+
+def in_page_order(ranked: Sequence[Ranked], page: Sequence[Element]) -> list[tuple[Ranked, str]]:
+    """The kept elements in the order the page has them, each with a note when its line is not
+    unique on the page: which of the alike it is, and the nearest different element before it.
+
+    Why: on Phase 2c's 60 steps (docs/results/2026-09-30-browse/, diagnose-2c.jsonl) Sonnet
+    shown Jev's top 20 in rank order lost 7 steps the whole page won, and in 6 of them the target
+    was among the 20. Two were identical lines (two "View more" buttons, two unnamed phone
+    fields) that the page's order tells apart and a ranked list does not; three picked one of the
+    first three rows. Elements not on `page` keep their rank order at the end.
+    """
+    where = {e.key: i for i, e in enumerate(page)}
+    seen: dict[str, int] = {}
+    ordinal: dict[int, int] = {}
+    for i, e in enumerate(page):
+        seen[e.line()] = seen.get(e.line(), 0) + 1
+        ordinal[i] = seen[e.line()]
+    on_page = sorted(
+        (r for r in ranked if r.element.key in where), key=lambda r: where[r.element.key]
+    )
+    off_page = [r for r in ranked if r.element.key not in where]
+    out: list[tuple[Ranked, str]] = []
+    for r in on_page:
+        i = where[r.element.key]
+        line = r.element.line()
+        if seen[line] < 2:
+            out.append((r, ""))
+            continue
+        note = f"{_ordinal(ordinal[i])} of {seen[line]} alike"
+        before = next((page[j] for j in range(i - 1, -1, -1) if page[j].line() != line), None)
+        if before is not None:
+            name = f' "{truncate(before.name, AFTER_LIMIT)}"' if before.name else ""
+            note += f", after {before.role}{name}"
+        out.append((r, note))
+    return out + [(r, "") for r in off_page]
+
 
 def render(
     ranked: Sequence[Ranked],
@@ -436,18 +479,24 @@ def render(
     title: str = "",
     url: str = "",
     archive: str = "",
+    page: Sequence[Element] | None = None,
 ) -> str:
-    """The kept elements as the agent will read them, refs intact, plus what was left out."""
+    """The kept elements as the agent will read them, refs intact, plus what was left out.
+    Given the `page` they came from, they follow its order and repeated lines say which one
+    they are (`in_page_order`); without it, rank order."""
     head = " ".join(part for part in (title, url) if part)
     lines = [f"Page: {head}"] if head else []
+    order = "in page order" if page is not None else "best first"
     lines.append(
-        f"Elements most likely needed next ({len(ranked)} of {total}, ranked by sanchopanza; "
-        "refs are the page's own):"
+        f"Elements most likely needed next ({len(ranked)} of {total}, chosen by sanchopanza, "
+        f"{order}; refs are the page's own):"
     )
-    for r in ranked:
+    shown = in_page_order(ranked, page) if page is not None else [(r, "") for r in ranked]
+    for r, note in shown:
         e = r.element
         name = f' "{e.name}"' if e.name else ""
-        where = f"  ({e.context})" if e.context else ""
+        extra = "; ".join(part for part in (e.context, note) if part)
+        where = f"  ({extra})" if extra else ""
         lines.append(f"- {e.role}{name} [ref={e.key}]{where}")
     left = total - len(ranked)
     if left > 0:

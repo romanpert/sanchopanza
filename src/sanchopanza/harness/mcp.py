@@ -285,7 +285,7 @@ def add_browse(server: Any, squire: Any = None) -> Any:
         steps = [line.strip() for line in done.splitlines() if line.strip()]
         judge = squire or _squire_if_keyed()
         ranked = await rank(goal, elements, squire=judge, done=steps, keep=max(1, keep))
-        return render(ranked, total=len(elements))
+        return render(ranked, total=len(elements), page=elements)
 
     return server
 

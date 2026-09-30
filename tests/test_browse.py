@@ -142,6 +142,45 @@ def test_render_keeps_refs_and_says_what_was_left_out():
     assert "4 other elements not shown" in text and "a/b.txt" in text
 
 
+def test_kept_elements_are_shown_in_page_order_not_rank_order():
+    from sanchopanza.browse import Ranked, in_page_order
+
+    page = [Element(f"k{i}", "link", f"item {i}") for i in range(6)]
+    ranked = [Ranked(page[4], 0.9, 0.0), Ranked(page[1], 0.8, 0.0), Ranked(page[3], 0.7, 0.0)]
+    assert [r.element.key for r, _ in in_page_order(ranked, page)] == ["k1", "k3", "k4"]
+    assert all(note == "" for _, note in in_page_order(ranked, page)), "unique lines need no note"
+
+
+def test_a_repeated_line_says_which_one_it_is_and_what_precedes_it():
+    from sanchopanza.browse import Ranked, in_page_order
+
+    page = [
+        Element("a", "label", "Min price"),
+        Element("b", "textbox", "", "type=tel"),
+        Element("c", "label", "Max price"),
+        Element("d", "textbox", "", "type=tel"),
+    ]
+    shown = in_page_order([Ranked(page[3], 0.9, 0.0), Ranked(page[1], 0.8, 0.0)], page)
+    assert [note for _, note in shown] == [
+        '1st of 2 alike, after label "Min price"',
+        '2nd of 2 alike, after label "Max price"',
+    ]
+
+
+def test_render_follows_the_page_when_given_it():
+    from sanchopanza.browse import Ranked
+
+    page = [Element("x", "button", "View more"), Element("y", "link", "Home"),
+            Element("z", "button", "View more")]  # fmt: skip
+    text = render([Ranked(page[2], 0.9, 0.0), Ranked(page[1], 0.5, 0.0)], total=3, page=page)
+    body = [line for line in text.splitlines() if line.startswith("- ")]
+    assert body == [
+        '- link "Home" [ref=y]',
+        '- button "View more" [ref=z]  (2nd of 2 alike, after link "Home")',
+    ]
+    assert "in page order" in text
+
+
 def _big_snapshot(n: int = 400) -> str:
     rows = ["- generic [ref=e1]:", '  - heading "Results" [level=1] [ref=e2]']
     for i in range(n):

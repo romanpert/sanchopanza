@@ -93,5 +93,5 @@ def _browse(args: argparse.Namespace) -> int:
     squire = _squire()
     judge = None if squire.provider == "null" else squire
     ranked = asyncio.run(rank(args.goal, elements, squire=judge, done=args.done, keep=args.keep))
-    print(render(ranked, total=len(elements)))
+    print(render(ranked, total=len(elements), page=elements))
     return 0
