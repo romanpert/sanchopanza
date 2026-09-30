@@ -122,5 +122,67 @@
     "p2p_star": 800
    }
   ]
+ },
+ "encode__starlette-rel-1": {
+  "valid": true,
+  "bugs": [
+   "encode__starlette.db5063c2.pr_2576",
+   "encode__starlette.db5063c2.pr_2041",
+   "encode__starlette.db5063c2.pr_2341",
+   "encode__starlette.db5063c2.pr_2732",
+   "encode__starlette.db5063c2.pr_2761"
+  ],
+  "history": [
+   [
+    "encode__starlette.db5063c2.pr_2576 ok",
+    "encode__starlette.db5063c2.pr_2041 ok",
+    "encode__starlette.db5063c2.pr_2341 ok",
+    "encode__starlette.db5063c2.pr_2732 ok",
+    "encode__starlette.db5063c2.pr_2761 ok"
+   ]
+  ],
+  "seconds": 106,
+  "records": [
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2576",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 807
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2041",
+    "valid": true,
+    "f2p_failing_with_bugs": 10,
+    "f2p_passing_when_fixed": 10,
+    "f2p": 10,
+    "p2p_star": 807
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2341",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 807
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2732",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 807
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2761",
+    "valid": true,
+    "f2p_failing_with_bugs": 18,
+    "f2p_passing_when_fixed": 18,
+    "f2p": 18,
+    "p2p_star": 807
+   }
+  ]
  }
 }

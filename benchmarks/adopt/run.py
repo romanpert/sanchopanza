@@ -3,12 +3,20 @@
     python benchmarks/adopt/run.py plan  [--split dev]           # free: tasks, arms, caps
     python benchmarks/adopt/run.py run   --chains a,b --ceiling 6.0 [--model haiku]
     python benchmarks/adopt/run.py grade --chains a,b            # Docker, free
+    ... --arms Nf,Sf                                             # other arms (ARM_SPECS)
 
 One chain = one Claude Code session per arm: the chain's bugs are asked one after another, each
 as its own `claude -p` call resuming the same session. Both arms get the same working copy (the
 chain's image exported, one commit), the same model, tools, budget and prompts, and the same
 `runtests` command. S differs by what `sanchopanza install --scope project --write` writes in
 its working copy, run through `hook_env.py` for state per session and the TypeSafe key.
+
+Other arms (`--arms`, `ARM_SPECS`): `Nf` and `Sf` ask each request in a NEW session in the
+same working copy (Claude Code alone; with the default install plus `--memory`), and `Sm`
+keeps one session with the default install plus `--memory` and a 100k context budget, so
+memory between messages works after the compactions that budget causes. `Sfn` and `Sb` are
+their controls without memory (the default install fresh; the 100k budget alone). N and S are
+as they were.
 
 Caps (list price, subscription): `--max-budget-usd` per call; CHAIN_CAP_USD per chain and arm;
 `--ceiling` for the whole run, charged with each call's cap before it starts and settled with
@@ -27,6 +35,7 @@ import threading
 import time
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -44,6 +53,24 @@ WORK = ROOT / "work"
 BIN = ROOT / "bin"
 MODELS = {"haiku": "claude-haiku-4-5-20251001", "sonnet": "claude-sonnet-5-5"}
 ARMS = ("N", "S")
+
+
+@dataclass(frozen=True)
+class Arm:
+    install: tuple[str, ...] | None  # None: Claude Code alone; else extra `install` flags
+    fresh: bool = False  # each request in a new session
+
+
+ARM_SPECS = {
+    "N": Arm(None),
+    "S": Arm(()),
+    "Nf": Arm(None, fresh=True),
+    "Sf": Arm(("--memory",), fresh=True),
+    "Sm": Arm(("--memory", "--context-budget", "100000")),
+    # Controls, so that a difference can be put down to memory alone: Sf against Sfn, Sm against Sb.
+    "Sfn": Arm((), fresh=True),
+    "Sb": Arm(("--context-budget", "100000")),
+}
 CALL_CAP_USD = 1.50  # binds only on a runaway call: at 1.20 it cut a normal pilot request
 CHAIN_CAP_USD = 6.00
 CALL_TIMEOUT_S = 2700
@@ -93,12 +120,15 @@ def child_env(tag: str, base: str) -> dict[str, str]:
     return {**env, "PATH": path, "ADOPT_TAG": tag, "ADOPT_BASE": base}
 
 
-def install_sancho(work: Path, evidence: Path, keyfile: Path) -> Path:
-    """`sanchopanza install --scope project --write` as a user would run it, then each hook and
-    the MCP server through hook_env.py (state per session, the key out of the agent's reach)."""
+def install_sancho(
+    work: Path, evidence: Path, keyfile: Path, extra: tuple[str, ...] = ()
+) -> Path:
+    """`sanchopanza install --scope project --write [extra]` as a user would run it, then each
+    hook and the MCP server through hook_env.py (state per session, the key out of the agent's
+    reach)."""
     env = child_env("", "")
-    done = subprocess.run([str(SANCHO), "install", "--scope", "project", "--write"], cwd=work,
-                          env=env, capture_output=True, text=True)  # fmt: skip
+    done = subprocess.run([str(SANCHO), "install", "--scope", "project", "--write", *extra],
+                          cwd=work, env=env, capture_output=True, text=True)  # fmt: skip
     (evidence / "install.txt").write_text(done.stdout + done.stderr, encoding="utf-8")
     if done.returncode != 0:
         raise RuntimeError(f"install failed: {done.stderr[-400:]}")
@@ -202,6 +232,20 @@ def jev_usd(evidence: Path) -> float:
     return total
 
 
+def call_cost(
+    seen: dict[str, Any], rows: list[dict[str, Any]], *, fresh: bool, code: int
+) -> dict[str, Any]:
+    """`seen` with this call's own cost. A resumed session reports its cost so far, not this
+    call's (pilot, 2026-09-30); a fresh session reports its own. A call cut before its result
+    (timeout) is charged its cap."""
+    earlier = (r.get("cost_cumulative", 0.0) for r in rows)
+    before = 0.0 if fresh else max(earlier, default=0.0)
+    if seen["cost_usd"]:
+        return {**seen, "cost_cumulative": seen["cost_usd"],
+                "cost_usd": round(seen["cost_usd"] - before, 6)}  # fmt: skip
+    return {**seen, "cost_cumulative": before, "cost_usd": CALL_CAP_USD if code == -9 else 0.0}
+
+
 def not_run(row: dict[str, Any]) -> bool:
     return str(row.get("status", "")).startswith("NOT RUN")
 
@@ -214,6 +258,7 @@ def one_chain(
     """The chain's requests in one session. With `carry_on`, a chain whose later requests were
     NOT RUN (a cap) goes on from the first of them, in the same session and working copy."""
     name = run_name(chain["chain"], rep)
+    spec = ARM_SPECS[arm]
     evidence = RUNS / name / arm
     work = WORK / f"{name}-{arm}"
     done_row = evidence / "row.json"
@@ -225,13 +270,15 @@ def one_chain(
             return  # done before: never run twice
         rows = [r for r in previous["calls"] if not not_run(r)]
         session, base = previous["session"], previous["base"]
-        mcp = work / ".mcp.json" if arm == "S" else None
+        mcp = work / ".mcp.json" if spec.install is not None else None
     else:
         docker_env.remove_tree(evidence)
         evidence.mkdir(parents=True)
         docker_env.remove_tree(work)
         base = docker_env.export(chain["tag"], work)
-        mcp = install_sancho(work, evidence, keyfile) if arm == "S" else None
+        mcp = None
+        if spec.install is not None:
+            mcp = install_sancho(work, evidence, keyfile, spec.install)
     env = child_env(chain["tag"], base)
     for k, bug in enumerate(chain["bugs"], start=1):
         if k <= len(rows):
@@ -242,6 +289,8 @@ def one_chain(
             continue
         stream = evidence / f"stream-{k}.jsonl"
         prompt = PROMPT.format(issue=bug["problem_statement"].strip())
+        if spec.fresh:
+            session = None  # a new session per request, in the same working copy
         began = time.time()
         with stream.open("wb") as out:
             try:
@@ -250,15 +299,7 @@ def one_chain(
                                       timeout=CALL_TIMEOUT_S).returncode  # fmt: skip
             except subprocess.TimeoutExpired:
                 code = -9
-        seen = facts(stream)
-        # A resumed session reports its cost so far, not this call's (pilot, 2026-09-30).
-        before = max((r.get("cost_cumulative", 0.0) for r in rows), default=0.0)
-        if seen["cost_usd"]:
-            seen = {**seen, "cost_cumulative": seen["cost_usd"],
-                    "cost_usd": round(seen["cost_usd"] - before, 6)}  # fmt: skip
-        else:  # no result: the call was cut; charge its cap
-            seen = {**seen, "cost_cumulative": before,
-                    "cost_usd": CALL_CAP_USD if code == -9 else 0.0}  # fmt: skip
+        seen = call_cost(facts(stream), rows, fresh=spec.fresh, code=code)
         settle(seen["cost_usd"])
         session = seen["session"] or session
         (evidence / f"diff-{k}.patch").write_text(docker_env.agent_diff(work, base),
@@ -269,9 +310,12 @@ def one_chain(
               f"{len(seen['compactions'])} compactions", flush=True)
     final = docker_env.agent_diff(work, base)
     (evidence / "final.patch").write_text(final, encoding="utf-8", newline="\n")
-    transcript = next(Path.home().joinpath(".claude", "projects").glob(f"*/{session}.jsonl"), None)
-    if session and transcript:
-        shutil.copy(transcript, evidence / "transcript.jsonl")
+    sessions = list(dict.fromkeys(r["session"] for r in rows if r.get("session")))
+    for n, one in enumerate(sessions, start=1):
+        found = next(Path.home().joinpath(".claude", "projects").glob(f"*/{one}.jsonl"), None)
+        if found:
+            suffix = "" if len(sessions) == 1 else f"-{n}"
+            shutil.copy(found, evidence / f"transcript{suffix}.jsonl")
     row = {"chain": name, "arm": arm, "model": model, "base": base, "session": session,
            "wall_s": round(sum(r.get("wall_s") or 0.0 for r in rows), 1),
            "jev_usd": jev_usd(evidence), "calls": rows}  # fmt: skip
@@ -330,10 +374,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--model", default="haiku", choices=sorted(MODELS))
     parser.add_argument("--ceiling", type=float, default=0.0)
     parser.add_argument("--rep", type=int, default=1, help="repetition of the chains (1..)")
+    parser.add_argument("--arms", default=",".join(ARMS), help="arms of ARM_SPECS to run")
     parser.add_argument("--continue", dest="carry_on", action="store_true",
                         help="go on with chains whose later requests were NOT RUN")
     args = parser.parse_args(argv)
     known = chains()
+    arms = tuple(a for a in args.arms.split(",") if a)
+    if unknown := [a for a in arms if a not in ARM_SPECS]:
+        raise SystemExit(f"unknown arms {unknown}; known: {sorted(ARM_SPECS)}")
     wanted = [c for c in args.chains.split(",") if c] or [
         n for n, c in known.items() if c["split"] == args.split
     ]
@@ -341,12 +389,12 @@ def main(argv: list[str] | None = None) -> int:
         for n in wanted:
             c = known[n]
             print(n, c["split"], "valid" if c["valid"] else "INVALID", len(c["bugs"]), "bugs")
-        print(f"arms {ARMS}; per call {CALL_CAP_USD} USD; per chain and arm {CHAIN_CAP_USD} USD; "
+        print(f"arms {arms}; per call {CALL_CAP_USD} USD; per chain and arm {CHAIN_CAP_USD} USD; "
               f"spent so far {spent_so_far():.2f} USD")  # fmt: skip
         return 0
     if args.action == "grade":
         for n in wanted:
-            for arm in ARMS:
+            for arm in arms:
                 if (RUNS / run_name(n, args.rep) / arm / "final.patch").exists():
                     g = grade_chain(known[n], arm, args.rep)
                     print(n, arm, g["resolved"], "of", len(g["bugs"]))
@@ -362,10 +410,10 @@ def main(argv: list[str] | None = None) -> int:
             if not chain["valid"]:
                 print(f"{n}: invalid, skipped")
                 continue
-            with ThreadPoolExecutor(max_workers=len(ARMS)) as pool:
+            with ThreadPoolExecutor(max_workers=len(arms)) as pool:
                 list(pool.map(lambda arm, c=chain: one_chain(c, arm, MODELS[args.model],
                                                              args.ceiling, keyfile,
-                                                             args.carry_on, args.rep), ARMS))
+                                                             args.carry_on, args.rep), arms))
     finally:
         keyfile.unlink(missing_ok=True)
     print(f"spent {_ledger['spent']:.2f} USD (list price)")

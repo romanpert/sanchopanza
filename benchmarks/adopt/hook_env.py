@@ -32,6 +32,8 @@ def environment(evidence: Path, keyfile: Path) -> dict[str, str]:
             "SANCHOPANZA_SESSION_MAX_USD": SESSION_MAX_USD,
             "SANCHOPANZA_CANDOR_LOCK": str(evidence / "candor-lock.json"),
             "SANCHOPANZA_CANDOR_DIR": str(evidence / "candor"),
+            "SANCHOPANZA_MEMORY_STORE": str(evidence / "memory"),
+            "SANCHOPANZA_MEMORY_STORE_LOG": str(evidence / "memory.jsonl"),
             **({"TYPESAFE_API_KEY": key} if key else {})}  # fmt: skip
 
 

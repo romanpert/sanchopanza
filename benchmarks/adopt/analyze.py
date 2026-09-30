@@ -15,7 +15,7 @@ from typing import Any
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from run import ARMS, RUNS  # noqa: E402
+from run import ARM_SPECS, RUNS  # noqa: E402
 
 
 def denials(evidence: Path) -> int:
@@ -28,6 +28,25 @@ def denials(evidence: Path) -> int:
             ):
                 count += 1
     return count
+
+
+def memory_log(evidence: Path) -> dict[str, Any]:
+    """What memory gave each request: prompts with records injected, records, characters."""
+    path = evidence / "memory.jsonl"
+    out: dict[str, Any] = {"memory_prompts": 0, "memory_injected": 0, "memory_records": 0,
+                           "memory_chars": 0}  # fmt: skip
+    if not path.exists():
+        return out
+    for line in path.read_text(encoding="utf-8").splitlines():
+        event = json.loads(line)
+        if event.get("event") != "UserPromptSubmit":
+            continue
+        out["memory_prompts"] += 1
+        shown = event.get("shown") or []
+        out["memory_injected"] += bool(shown)
+        out["memory_records"] += len(shown)
+        out["memory_chars"] += int(event.get("chars") or 0)
+    return out
 
 
 def hook_log(evidence: Path) -> dict[str, int]:
@@ -77,6 +96,7 @@ def summarise(chain: str, arm: str) -> dict[str, Any] | None:
         "tool_calls": sum(tools.values()),
         "denials": denials(evidence),
         **hook_log(evidence),
+        **memory_log(evidence),
     }  # fmt: skip
 
 
@@ -85,7 +105,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--chains", default="")
     args = parser.parse_args(argv)
     names = [c for c in args.chains.split(",") if c] or sorted(p.name for p in RUNS.iterdir())
-    rows = [r for n in names for a in ARMS if (r := summarise(n, a))]
+    rows = [r for n in names for a in ARM_SPECS if (r := summarise(n, a))]
     for r in rows:
         print(json.dumps(r))
     return 0
