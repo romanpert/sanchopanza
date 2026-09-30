@@ -144,6 +144,12 @@ def _guard_hook(args: argparse.Namespace) -> int:
     return guard_main()
 
 
+def _memory_hook(args: argparse.Namespace) -> int:
+    from .harness.memory_hook import main as memory_main
+
+    return memory_main()
+
+
 def _candor_hook(args: argparse.Namespace) -> int:
     from .harness.candor_hook import main as candor_main
 
@@ -184,6 +190,7 @@ def _install(args: argparse.Namespace) -> int:
             lean=args.lean,
             guard=args.guard,
             candor=args.candor,
+            memory=args.memory,
             budget=DEFAULT_BUDGET if args.context_budget is None else args.context_budget,
             find=args.find,
             profile=args.guard_profile,
@@ -557,6 +564,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     guard_hook.set_defaults(func=_guard_hook)
 
+    memory_hook = sub.add_parser(
+        "memory-hook",
+        help="memory between requests and sessions: Claude Code hook (stdin JSON -> stdout)",
+    )
+    memory_hook.set_defaults(func=_memory_hook)
+
     candor_hook = sub.add_parser(
         "candor-hook", help="candor's Claude Code hook (stdin JSON -> stdout JSON)"
     )
@@ -654,6 +667,13 @@ def main(argv: list[str] | None = None) -> int:
         help="hold the final report against what the agent did and the disk, and stop the "
         "session for a person on a contradiction (five classic hooks, no model unless "
         "SANCHOPANZA_CANDOR_JUDGE=1)",
+    )
+    install.add_argument(
+        "--memory",
+        action="store_true",
+        help="record each finished request verbatim (no model) and give a later request, in "
+        "this session after a compaction or in a new session, the records that bear on it "
+        "(Stop, SessionEnd and UserPromptSubmit hooks; not measured yet, so off by default)",
     )
     install.add_argument(
         "--plugin-dir",

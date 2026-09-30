@@ -63,6 +63,12 @@ verbatim (`PreCompact` on `manual|auto`, `SessionStart` on `compact`, `PostToolU
 for the re-run echo). Classic hooks, no plugin and no early-access flag. Our three entries are
 recognised by their command, and a run without the flag takes them out.
 
+`--memory` wires memory between requests and sessions (`harness.memory_hook`,
+`sanchopanza memory-hook`): `Stop` and `SessionEnd` record each finished request verbatim, by
+code, outside the project; `UserPromptSubmit` gives the request the records not in the live
+context that bear on it (BM25 proposes, the decider keeps). Off by default until measured; our
+three entries are recognised by their command, and a run without the flag takes them out.
+
 `--candor` wires candor (`harness.candor_hook`, `sanchopanza candor-hook`): five command hooks
 (`UserPromptSubmit`, `PreToolUse` and `PostToolUse` and `PostToolUseFailure` on `*`, `Stop`) and
 `SANCHOPANZA_CANDOR_SNAPSHOT=1`. The final report is held against the ledger and the disk, and a
@@ -104,6 +110,9 @@ COMMAND = "sanchopanza hook"
 GUARD_COMMAND = "sanchopanza guard-hook"
 # Event -> matcher for the compaction guard (`--guard`, `harness.guard_hook`).
 GUARD_HOOKS = {"PreCompact": "manual|auto", "SessionStart": "compact", "PostToolUse": "Bash"}
+MEMORY_COMMAND = "sanchopanza memory-hook"
+# Event -> matcher for memory between requests and sessions (`--memory`, `harness.memory_hook`).
+MEMORY_HOOKS = {"UserPromptSubmit": "", "Stop": "", "SessionEnd": ""}
 CANDOR_COMMAND = "sanchopanza candor-hook"
 # Event -> matcher for candor (`--candor`, `harness.candor_hook`): the request and its snapshot,
 # every call (the lock refuses, the ledger records), and the final report.
@@ -396,6 +405,13 @@ def _merge_guard(
     return _merge_owned(merged, on, GUARD_HOOKS, command, GUARD_COMMAND, "guard")
 
 
+def _merge_memory(
+    merged: dict[str, Any], on: bool, command: str = MEMORY_COMMAND
+) -> tuple[dict[str, Any], list[str], list[str]]:
+    """Memory's three hooks (`--memory`)."""
+    return _merge_owned(merged, on, MEMORY_HOOKS, command, MEMORY_COMMAND, "memory")
+
+
 def _merge_candor(
     merged: dict[str, Any], on: bool, command: str = CANDOR_COMMAND
 ) -> tuple[dict[str, Any], list[str], list[str]]:
@@ -603,6 +619,7 @@ def _merge(
     lean: bool = False,
     guard: bool = False,
     candor: bool = False,
+    memory: bool = False,
     budget: int = 0,
     find: bool = False,
     profile: str = "sandbox",
@@ -634,6 +651,8 @@ def _merge(
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_candor(merged, candor)
     added, removed = [*added, *plus], [*removed, *minus]
+    merged, plus, minus = _merge_memory(merged, memory)
+    added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_budget(merged, budget)
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_profile(merged, profile)
@@ -662,6 +681,7 @@ def plan(
     lean: bool = False,
     guard: bool = False,
     candor: bool = False,
+    memory: bool = False,
     budget: int = 0,
     find: bool = False,
     profile: str = "sandbox",
@@ -691,6 +711,7 @@ def plan(
         lean=lean,
         guard=guard,
         candor=candor,
+        memory=memory,
         budget=budget,
         find=find,
         profile=profile,
