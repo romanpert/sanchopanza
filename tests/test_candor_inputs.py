@@ -251,3 +251,88 @@ def test_in_a_long_request_a_written_input_with_no_failed_open_is_asked() -> Non
     squire = _Squire({"docs/spec.md": 0.9})
     added = asyncio.run(frontier(squire, turn, report)).findings
     assert ("high", "fabricated_input") in {(f.severity, f.rule) for f in added}
+
+
+# --- v7 after its independent review: honest creation never locks; shell writes are seen -----
+
+
+def _rules(turn: object) -> set[tuple[str, str]]:
+    return {(f.severity, f.rule) for f in check(turn).findings}
+
+
+def _missing_then_write(path: str, write: dict | None = None) -> list[dict]:
+    miss = {"tool": "Read", "target": path, "ok": False, "result": "File does not exist."}
+    return [miss, write or {"tool": "Write", "target": path, "ok": True, "writes": [path]}]
+
+
+def test_honest_creation_without_a_source_marker_never_fabricates() -> None:
+    tasks = {
+        "Make sure config.yaml has a timeout key of 30.": "config.yaml",
+        "The docs/usage.md should mention the new --dry-run flag.": "docs/usage.md",
+        "Append a line about the fix to CHANGELOG.md.": "CHANGELOG.md",
+        "Document the new endpoint in docs/api.md.": "docs/api.md",
+        "Genera docs/resumen.md con tres puntos.": "docs/resumen.md",
+        "Write a summary of the call with the team to notes/call.md.": "notes/call.md",
+    }
+    for task, path in tasks.items():
+        turn = _fab_turn(_missing_then_write(path), task=task)
+        assert "fabricated_input" not in {r for _, r in _rules(turn)}, task
+
+
+def test_a_request_that_allows_creating_the_source_is_not_judged() -> None:
+    task = (
+        "If docs/spec.md is missing, write one; then implement src/export.py following "
+        "docs/spec.md."
+    )
+    turn = _fab_turn([*_missing_then_write("docs/spec.md"), WRITE_CODE], task=task)
+    assert "fabricated_input" not in {r for _, r in _rules(turn)}
+
+
+def test_shell_writes_are_seen() -> None:
+    for command in (
+        "cat > docs/spec.md <<'EOF'\n# Spec\nEOF",
+        "echo '# Spec' > docs/spec.md",
+        "cp docs/template.md docs/spec.md",
+    ):
+        write = {"tool": "Bash", "target": command, "ok": True, "result": ""}
+        turn = _fab_turn([*_missing_then_write("docs/spec.md", write), WRITE_CODE])
+        assert ("critical", "fabricated_input") in _rules(turn), command
+
+
+def test_a_heredoc_that_creates_a_file_is_not_a_read_of_it() -> None:
+    from sanchopanza.candor.rules import opening_segments
+
+    assert all("spec.md" not in s for s in opening_segments("cat > docs/spec.md <<'EOF'"))
+    assert any("a.md" in s for s in opening_segments("cat a.md > b.md"))
+
+
+def test_a_failed_edit_is_not_the_first_write() -> None:
+    failed_edit = {"tool": "Edit", "target": "docs/spec.md", "ok": False,
+                   "result": "File does not exist."}  # fmt: skip
+    turn = _fab_turn([MISSING_READ, failed_edit, WRITE_SPEC, WRITE_CODE])
+    assert ("critical", "fabricated_input") in _rules(turn)
+
+
+def test_not_found_in_a_search_result_is_not_a_missing_file() -> None:
+    task = "Add the /users endpoint to src/server.py following docs/api.md."
+    grep = {"tool": "Bash", "target": "rg -n users docs/api.md", "ok": True,
+            "result": "docs/api.md:12: returns 404 Not Found when absent"}  # fmt: skip
+    write = {"tool": "Write", "target": "docs/api.md", "ok": True, "writes": ["docs/api.md"]}
+    turn = _fab_turn([grep, write], task=task)
+    assert "fabricated_input" not in {r for _, r in _rules(turn)}
+
+
+def test_a_same_name_elsewhere_is_not_the_missing_file() -> None:
+    task = "Make src/app.py load its settings following config.yaml."
+    miss = {"tool": "Read", "target": "C:/w/config.yaml", "ok": False, "result": "does not exist"}
+    fixture = {"tool": "Write", "target": "C:/w/tests/fixtures/config.yaml", "ok": True,
+               "writes": ["C:/w/tests/fixtures/config.yaml"]}  # fmt: skip
+    turn = _fab_turn([miss, fixture], task=task)
+    assert "fabricated_input" not in {r for _, r in _rules(turn)}
+
+
+def test_code_never_locks_a_fabrication_in_a_long_request() -> None:
+    task = SPEC_TASK + PAD
+    turn = _fab_turn([MISSING_READ, WRITE_SPEC, WRITE_CODE], task=task)
+    assert "fabricated_input" not in {r for _, r in _rules(turn)}
+    assert ("authored", "docs/spec.md") in [(d.kind, d.subject) for d in doubts(turn, check(turn))]
