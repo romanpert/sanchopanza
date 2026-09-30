@@ -18,6 +18,7 @@ RUNS = OUT / f"runs{SUFFIX}"
 CAPS: dict[str, dict[str, float]] = {
     "3": {"sessions": 16.5, "counterfactual": 4.5, "haiku": 1.50, "jev": 0.30},
     "4": {"sessions": 9.5, "counterfactual": 2.5, "haiku": 0.0, "jev": 0.10},
+    "5": {"sessions": 8.0, "counterfactual": 2.0, "haiku": 0.0, "jev": 0.10, "jev_review": 0.10},
 }
 
 
