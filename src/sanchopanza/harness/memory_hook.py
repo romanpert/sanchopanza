@@ -26,7 +26,7 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
                              (the top MEMORY_BM25_KEEP by score, no model) | off (record only)
     MEMORY_K, MEMORY_BM25_KEEP   5 and 2
     MEMORY_KEEP_AT           the decider's probability a record needs to enter (default
-                             0.5; not derived yet: development data holds too few cases)
+                             0.2, derived on development data: see KEEP_AT)
     MEMORY_CHARS             cap of the injected text (default 6000)
     MEMORY_DECIDER_SECONDS   the decider's time (default 15); past it, nothing is injected
     MEMORY_STORE             the store's root; MEMORY_STORE_LOG a JSONL file, one line per event
@@ -56,6 +56,7 @@ from ..context.archive import safe_name
 from ..context.transcript import _is_boundary
 from ..redact import redact_secrets
 from ..text import BM25Index
+from .hookio import stdin_text, stdout_json
 from .memory_gate import project_key
 
 if TYPE_CHECKING:
@@ -69,7 +70,12 @@ CATCH_UP = 3  # the project's other sessions caught up per prompt, most recent f
 CATCH_UP_BYTES = 20_000_000
 CATCH_UP_SECONDS = 86_400
 SHOWN = "shown"  # per-session record of what was given since the last compaction
-KEEP_AT = 0.5
+# Derived on development data (2026-09-30), not confirmed: the recall question on 10 records
+# related to the request (the agent changed a file the new bug's patch touches) and 60
+# unrelated ones scored related 0.07-0.56 and unrelated 0.02-0.09. At 0.2, 8 of 10 related
+# enter and none of the 60 unrelated (at 0.5, 4 of 10). The provider moves by up to 0.09
+# between runs, so the margin to the highest unrelated score is thin.
+KEEP_AT = 0.2
 HEADER = (
     "[sanchopanza memory: records of earlier requests in this project that may bear on this "
     "one, written by code from the transcripts, oldest first]"
@@ -335,15 +341,12 @@ def handle(event: Mapping[str, Any]) -> dict[str, Any]:
 def main(argv: list[str] | None = None) -> int:
     del argv
     try:
-        buffer = getattr(sys.stdin, "buffer", None)
-        raw = buffer.read().decode("utf-8", "replace") if buffer is not None else sys.stdin.read()
-        event = json.loads(raw or "{}")
+        event = json.loads(stdin_text() or "{}")
         if not isinstance(event, Mapping):
             raise ValueError("the event is not a JSON object")
         payload = handle(event)
         if payload:
-            sys.stdout.write(json.dumps(payload))  # ASCII-escaped: safe on any console code page
-            sys.stdout.flush()
+            stdout_json(payload)
     except Exception as error:  # noqa: BLE001 - fail open, and say so
         with contextlib.suppress(Exception):
             sys.stderr.write(f"{PREFIX}: added nothing ({error.__class__.__name__}: {error})\n")
