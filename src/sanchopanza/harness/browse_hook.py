@@ -30,8 +30,11 @@ and the agent used `find` and `eval`. It paid on the one large snapshot. With Pl
 replaces an MCP result past its token limit with a notice before any `PostToolUse` hook runs, so
 the hook now reads the saved result behind the notice (only from its own session's
 `tool-results` folder) and returns it pruned; the agent's own `find` results pass untouched; and
-the goal is `browse_goal`, which keeps the question at the end of a request. Opt-in, no
-recommendation until the fixed hook is measured.
+the goal is `browse_goal`, which keeps the question at the end of a request. Phase 3c found
+two more (a `Read` with a limit and a targeted snapshot were cut; recovery read the whole
+archive), fixed too. **Phase 3d, registered, six new tasks: 12.9 % cheaper with Playwright
+MCP, -0.0144 USD a session [-0.0270, -0.0025], no answer lost.** Recommended with Playwright
+MCP; with playwright-cli, whose snapshots are moderate, it was not measured again.
 """
 
 from __future__ import annotations

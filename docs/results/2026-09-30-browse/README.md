@@ -16,20 +16,7 @@ registered bound, at an eighth of the cost. The first try (Phase 2c) showed them
 and lost 5 points; in 6 of its 7 lost steps the target was among those shown, and the fix was
 the order and a note on repeated lines, not the ranking.
 
-**One thing this has not bought so far:**
-
-- **A hook that prunes snapshots inside a real Claude Code session saved nothing** (Phase 3).
-  36 sessions of Sonnet 5 browsing six tasks with `playwright-cli`: the hook cost 0.0095 USD a
-  session more [-0.006, +0.027] and answered as often. It acted in 8 of 18 sessions:
-  `playwright-cli` already serves moderate snapshots (7,000-29,000 characters here, where
-  Playwright MCP's snapshot file for one of the same Wikipedia articles holds 512,000), and the agent reached for
-  `find` and `eval` more than for snapshots. The one task with a large snapshot (29,179
-  characters pruned to about 5,600) was the one where it saved. With Playwright MCP (Phase 3b,
-  48 sessions) it saved nothing either, but for three faults of the hook's, found in the
-  transcripts and fixed: Claude Code replaces a large MCP result with a notice before the hook
-  sees it, the hook cut the agent's own `find` results, and its goal lost the user's question.
-  Where it did cut a snapshot the agent read (M1, a GitHub page) the session cost a quarter
-  less. Opt-in, without a recommendation until the fixed hook is measured.
+**A hook that prunes snapshots inside a real Claude Code session with Playwright MCP makes it 12.9 % cheaper** (Phase 3d, registered, 48 sessions on six new tasks): -0.0144 USD a session [-0.0270, -0.0025], 24 of 24 answers in both arms. It took four phases. With `playwright-cli` (Phase 3) and in its first Playwright MCP run (3b) it saved nothing, and reading the transcripts found five faults of the hook, not of the ranking: Claude Code replaces a large MCP result with a notice before any hook runs, the hook cut the agent's own searches and narrowed reads, its goal lost the user's question, and its note sent the agent to read the whole archive. With them fixed it passed on tasks it was never fixed on.
 
 What stands is the ranking as a tool: `sanchopanza browse PAGE --goal ...` from a shell, or the
 `rank_elements` MCP tool, returns the elements a step needs with their refs, confirmed at 89 % in
@@ -86,6 +73,31 @@ steps FULL answered, descriptively: FULL 61.4 %, TOP 56.1 %, the same gap. Two a
 written before the counted sessions: the per-session cap (0.25 to 0.60 USD, sized on the pages)
 and the phase ceiling (8 to 12 USD, sized on the pilot); the pilot (FULL 6/9, TOP 5/9) is outside
 every count. 8.61 USD spent in all.
+
+## Phase 3d: registered, passed: 12.9 % cheaper on six new tasks (`prereg-e2e-mcp-new.md`)
+
+The hook with Phase 3c's two further faults fixed (0e8f5fd: what the agent narrowed passes, and
+the note points recovery at `Grep`), on six tasks it was never fixed on: a GitHub repository
+(Flask), two Wikipedia infoboxes (the Eiffel Tower, Guido van Rossum), the Python `json` docs,
+quotes.toscrape and a books.toscrape category. Same design and rule as 3b and 3c.
+
+| Arm | Success | List USD / session | Turns | Cache write / session |
+|---|---|---|---|---|
+| PLAIN | 24/24 | 0.1114 | 4.75 | 17,673 |
+| LEAN | 24/24 | 0.0954 (+0.0016 Jev) | 4.58 | 14,133 |
+
+LEAN minus PLAIN per task: **-0.0144 USD a session [-0.0270, -0.0025]**, the whole interval below
+zero; by task N1 -0.035, N5 -0.032, N3 -0.017, N4 -0.008, N6 -0.001, N2 +0.006. **The rule is
+met: the hook is recommended with Playwright MCP.** 14 cuts: GitHub's 32,685-character snapshot to
+about 7,100 (all four runs), a 96,917-character Wikipedia snapshot to about 9,400, one of 350,134
+to 11,791 that Claude Code would have replaced with its notice. 4.96 USD at list price, 0.04 of Jev.
+
+What it took, in order: Phase 3 (playwright-cli) and 3b (Playwright MCP) found nothing; reading
+their transcripts found five faults of the hook, not of the ranking (Claude Code hides a large MCP
+result behind a notice before any hook runs; the agent's own searches were cut; the goal lost the
+question; narrowed reads and targeted snapshots were cut; recovery read the whole archive); 3c
+measured the first three fixed on the same tasks (-8.5 %, interval crossing zero); 3d measured all
+five on new tasks. Six tasks is a small sample and the interval is over six task means.
 
 ## Phase 3c: registered, 8.5 % cheaper but not yet below zero (`prereg-e2e-mcp-fixed.md`)
 

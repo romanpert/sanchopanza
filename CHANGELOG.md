@@ -42,8 +42,18 @@ do not favour this package.
     rank order and lost 5 points; in 6 of its 7 lost steps the target was shown, so the fix was
     the presentation: `browse.in_page_order` keeps the page's order and says which of a repeated
     line each element is. `render`, the CLI and `rank_elements` use it.
-  - **A negative, registered:** a hook that prunes snapshots (`harness.browse_hook`, opt-in) saved
-    nothing in 36 real Claude Code sessions with `playwright-cli`.
+  - **A hook that prunes browser snapshots makes a Claude Code session with Playwright MCP 12.9 %
+    cheaper** (`harness.browse_hook`; registered, 48 sessions on six new tasks: -0.0144 USD a
+    session [-0.0270, -0.0025], no answer lost). It saved nothing at first, with `playwright-cli`
+    and in its first Playwright MCP run; the transcripts showed five faults of the hook, all
+    fixed with tests: Claude Code replaces an MCP result past its token limit with a notice before
+    any hook runs (the hook now reads the saved result from its own session's `tool-results`
+    folder), the agent's own searches, narrowed reads and targeted snapshots were cut, the goal
+    lost the user's question (`browse_goal`), and recovery read the whole archive instead of
+    grepping it.
+  - `elements_from_html(describe_unnamed=True)`, opt-in: an unnamed element described by its
+    classes and its holder. It lifted the targets it described, but Jev's R@20 moved -1.4
+    [-3.5, 0.0] on new steps, past the registered bound.
 - `Squire.fork(thresholds=...)`: a copy with another ceiling for one job.
 
 - **Candor: an agent's report held against what it did** (`sanchopanza.candor`,
