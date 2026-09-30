@@ -1,9 +1,9 @@
 {
  "sessions": 6,
- "spent_usd": 1.5124,
+ "spent_usd": 2.194,
  "solo": {
   "n": 3,
-  "success": 0,
+  "success": 3,
   "median_cost_usd": 0.3098,
   "median_seconds": 50.7,
   "median_turns": 9.0,
@@ -15,14 +15,14 @@
  },
  "sancho": {
   "n": 3,
-  "success": 1,
-  "median_cost_usd": 0.1243,
-  "median_seconds": 14.5,
-  "median_turns": 1.0,
-  "median_tool_calls": 0.0,
+  "success": 2,
+  "median_cost_usd": 0.3123,
+  "median_seconds": 67.6,
+  "median_turns": 10.0,
+  "median_tool_calls": 9.0,
   "median_rereads": 0.0,
-  "median_output_tokens": 554.0,
-  "median_cache_read": 6446.0,
-  "jev_usd": 0.00013
+  "median_output_tokens": 4967.0,
+  "median_cache_read": 294200.0,
+  "jev_usd": 0.00034
  }
 }
