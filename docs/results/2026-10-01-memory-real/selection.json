@@ -1,0 +1,746 @@
+{
+ "source": "SALT-NLP/SWE-chat",
+ "seed": 20261001,
+ "groups": [
+  {
+   "group": 0,
+   "split": "dev",
+   "repo_id": "kgcrom/cluefin",
+   "sessions": [
+    "5907fd4b-3bfc-475a-966d-8a4e86d8a8e9",
+    "863250da-833a-4243-8b44-b36a68da1b3f",
+    "2d4d4ee7-99d3-45fb-a390-7b3edf25102b",
+    "d998bcb0-d1fd-432d-b4ca-479eca341dd5",
+    "44c37ad3-f40c-41b9-8b74-127f3f88cc96",
+    "52eab92b-3088-4190-a9fe-5bb948fc82c9"
+   ]
+  },
+  {
+   "group": 1,
+   "split": "dev",
+   "repo_id": "punt-labs/langlearn-tts",
+   "sessions": [
+    "0742cd3c-db27-4429-8ec3-839db1c6c5e2",
+    "52518bed-3ae7-49cb-834f-c2d1d9231e9e",
+    "9c700ca1-c97a-4025-8a87-88a047b1ad8c"
+   ]
+  },
+  {
+   "group": 2,
+   "split": "dev",
+   "repo_id": "135yshr/documents",
+   "sessions": [
+    "47d3262c-59ca-4f84-bf8c-8e26e61d789c",
+    "08fc0b70-024d-46b6-b6c6-0eb958dd581a",
+    "4fd0ef18-7579-4e26-8f6b-d5a5cb2e2cd0",
+    "98d16305-4c08-437b-9830-5da31df2534b",
+    "f90b7ca5-9445-4343-9c42-7bef03bf5e45",
+    "047bee65-b8a8-41d2-8a95-c7b38c956985"
+   ]
+  },
+  {
+   "group": 3,
+   "split": "dev",
+   "repo_id": "ClusterCockpit/cc-metric-store",
+   "sessions": [
+    "5bdec311-7e4d-4543-91ea-fce0dbab2f32",
+    "2ae52553-8b77-41f7-ac23-2703eee15145",
+    "115dd1c6-c94f-4019-8b97-3e2f24b9321b",
+    "5f3efb98-8d26-43c1-9c36-c7bc61eaf22b"
+   ]
+  },
+  {
+   "group": 4,
+   "split": "dev",
+   "repo_id": "lightfastai/lightfast",
+   "sessions": [
+    "dd6ff417-e34e-4263-8c6d-1d451954c4a9",
+    "289ecb79-26df-4c19-b144-a98275720d82",
+    "c080f1d6-625e-4cf2-8fa2-3004f900b372",
+    "c7bfdbc9-356b-4fc5-b641-a192f8336a04",
+    "e2acd781-c502-4749-ad14-7a77deb00146",
+    "1ceb7827-ff3a-42fd-986d-00c573ac02d0"
+   ]
+  },
+  {
+   "group": 5,
+   "split": "dev",
+   "repo_id": "Whiteknight07/AiTutor",
+   "sessions": [
+    "c0245e67-1147-4a20-ad0a-0ec63f306cd0",
+    "7197993b-b101-4d41-9787-1537050bb9e3",
+    "a3e49a1b-75cc-4508-a321-6c2b026b2337",
+    "9177cf1b-c54f-45b3-bb43-094147f9031d",
+    "5636595b-eb68-46cc-9b5f-b2f4bd351b00",
+    "209b21c9-9c3a-43d3-8711-9acb2dc5879b"
+   ]
+  },
+  {
+   "group": 6,
+   "split": "dev",
+   "repo_id": "pablo-health/pablo-companion",
+   "sessions": [
+    "56999dfa-e06f-4ed1-94a5-41bf3c29e70d",
+    "492f08c2-8379-49dd-aa02-682248aab99f",
+    "d4dc5a49-1a2f-4d53-924b-cb5dc6eab247",
+    "dd24876f-11a8-43ca-b8ec-87503dce0f72",
+    "5aebd317-3362-428d-aea7-50bb50942fbe",
+    "676227dd-fe71-4eb9-9f1e-a9939fb36871"
+   ]
+  },
+  {
+   "group": 7,
+   "split": "dev",
+   "repo_id": "m0nhawk/poeman",
+   "sessions": [
+    "1b3690fe-335f-4eaa-b364-6ebfef856e97",
+    "01ebb128-1837-4a71-9418-266b63434ce7",
+    "292faa9d-a2f5-4821-92ff-a157459c45a2"
+   ]
+  },
+  {
+   "group": 8,
+   "split": "dev",
+   "repo_id": "cyyeh/duckdb-web",
+   "sessions": [
+    "6aca4eae-0220-426b-887e-785973f04557",
+    "ae28281e-e889-4af5-a406-41fdd10d8e44",
+    "09bf6b16-573b-4363-8714-0516d5942779",
+    "abe05606-eecf-447b-b28c-f99da01110e9",
+    "bf55a836-e528-43f1-a509-f9fad33efc81",
+    "ce2e2fa7-8d84-4543-a3a1-79243b2c95ce"
+   ]
+  },
+  {
+   "group": 9,
+   "split": "dev",
+   "repo_id": "shunkakinoki/dotfiles",
+   "sessions": [
+    "0b357d26-588a-4a5d-b667-417cb20a4226",
+    "4876b4fb-326e-461f-8f81-debcbcd8c0e4",
+    "75f34ce2-3a81-40fb-99e5-97828e1ce30e",
+    "fe3b0a59-f613-4101-99f5-59efe5a68687",
+    "e10c22d6-870b-468a-87ed-1038a03231ad",
+    "6ea75ebe-b348-407c-9781-8b65b31df6e6"
+   ]
+  },
+  {
+   "group": 10,
+   "split": "dev",
+   "repo_id": "DrDonik/ai-recipe-planner",
+   "sessions": [
+    "d779c2d4-e27c-474f-8f70-85101bf2a9f0",
+    "2b4f1a79-4f51-43c9-9404-b7301d2038e4",
+    "427e6344-9250-4ed0-aa0d-1affd97759f2"
+   ]
+  },
+  {
+   "group": 11,
+   "split": "dev",
+   "repo_id": "Obmondo/gfetch",
+   "sessions": [
+    "e1d1a4fe-f181-4017-b9d8-bbec4debe90b",
+    "55318418-7658-4df6-84aa-0eb8030e5406",
+    "df81d449-7633-485b-a888-a28cef5ab489",
+    "320f2249-5a49-408c-b584-11eddf820fb0",
+    "452c1f21-1e66-463a-8365-ef7ca431eb35",
+    "c23d0f0d-9469-4467-81b1-345ef7b39768"
+   ]
+  },
+  {
+   "group": 12,
+   "split": "dev",
+   "repo_id": "ChetanReddyC/Shila-Murti",
+   "sessions": [
+    "fbf8a980-1c70-4d54-bd2e-4b0518e8d099",
+    "0c87872f-9b97-490f-96b0-d83802090840",
+    "1a5567dc-a1de-463b-8cf7-4481bc2b6c05",
+    "29dcda5f-f166-4207-921b-97c694c7e5f3",
+    "cbb8aeed-f602-48d8-9969-113941d6d9f2",
+    "3aa943ce-434c-4afa-a7fd-941c0fba4810"
+   ]
+  },
+  {
+   "group": 13,
+   "split": "dev",
+   "repo_id": "bravegeek/ai-workshop",
+   "sessions": [
+    "5535b7a7-8761-4c60-9a9f-87d3dc7fe4d1",
+    "f24562a9-0413-4745-b732-5cae78f555c7",
+    "5ca09d8b-7d0f-481b-9f1d-4e067f8ac8c1",
+    "f32774d5-c6c2-40c4-90aa-e98ed03c11d8"
+   ]
+  },
+  {
+   "group": 14,
+   "split": "dev",
+   "repo_id": "ronnnnn/cc",
+   "sessions": [
+    "f0160711-ea4d-4788-a023-b9e29f1a3687",
+    "53968c84-e2d3-4831-99e0-2f50123cc59a",
+    "0370b2a2-36a8-43b4-ab68-c48361e38c2e",
+    "e2c83e46-c019-4215-9fec-1e832b7a75f5",
+    "cbebe8dc-4ebc-4985-bf94-b0496665560e",
+    "b9382fe5-90aa-4058-83b0-8081713ba22b"
+   ]
+  },
+  {
+   "group": 15,
+   "split": "dev",
+   "repo_id": "PackmindHub/context-evaluator",
+   "sessions": [
+    "b1fc4610-ba60-44d9-b9b5-f3f393e86f96",
+    "e016b713-bf96-4a39-b72d-e431d4d576f8",
+    "a79e8577-088e-4020-be7a-d941574b478c",
+    "d3c029a9-e149-4ea7-be95-6b5487a2303e",
+    "95dc735b-0187-4533-a3ed-5b46bdfa8689",
+    "054bd433-cf13-416a-af41-48f036301c08"
+   ]
+  },
+  {
+   "group": 16,
+   "split": "dev",
+   "repo_id": "yonyon-web/sodateru-wiki",
+   "sessions": [
+    "ac4b013c-0afc-43e3-8d0a-54875cee3346",
+    "09d48dd4-fbf3-4dcc-99ac-6c6c405146db",
+    "696079d3-7e5a-46cd-9064-716407d698f3",
+    "1cfb0102-503c-4261-bf8b-158185825feb",
+    "5ba8e521-a3d4-44e6-93bd-fb77ba0ed2e1",
+    "05edaa6c-7f95-4833-8e39-31fe0a376c28"
+   ]
+  },
+  {
+   "group": 17,
+   "split": "dev",
+   "repo_id": "matthsena/reef-coder",
+   "sessions": [
+    "acb7cf3f-a00b-48b6-9be7-543b3c560e36",
+    "f5863152-483c-44a2-81c9-307bca3fceaf",
+    "f4c392cf-0256-4012-ad4b-fc14082f37c6",
+    "69d364ec-2931-4930-a4b1-b03d9d7a5df9",
+    "6dad2dbe-58bc-44d8-b7b0-0a9d4968219d",
+    "9e65099a-7933-4509-804d-9cd97b346752"
+   ]
+  },
+  {
+   "group": 18,
+   "split": "dev",
+   "repo_id": "eneakllomollari/mpad",
+   "sessions": [
+    "79d0dfc9-e527-4a3d-868a-8f57a3b6d16f",
+    "1c83d95c-5732-498c-835d-6a27b2606569",
+    "6c23aa7b-95d3-43b2-8c0b-85e934a74d67",
+    "da0e8695-cd2e-44dd-b9da-495f34836f59",
+    "57e8a3e4-c692-42db-bad3-8d7bbdcf4d0a",
+    "86c2ee9a-2f96-495d-bdc4-b8d77bb91e8e"
+   ]
+  },
+  {
+   "group": 19,
+   "split": "dev",
+   "repo_id": "snhryt-neo/dotfiles",
+   "sessions": [
+    "255d17df-8768-452f-9b58-43d14ffac341",
+    "aba4a2c6-c75e-48a5-af54-ea4f168c6006",
+    "349c2ef9-189e-4aa5-b24c-3530a228d0f9"
+   ]
+  },
+  {
+   "group": 20,
+   "split": "dev",
+   "repo_id": "jukellam/dispersal-draft",
+   "sessions": [
+    "23c0e4a3-3bca-40a6-9903-888635a4544a",
+    "c1e32544-08a6-453a-a118-600b6ece37f1",
+    "a97d26ea-94e4-4920-9463-8a78882f25f0",
+    "debf8bba-81b9-4581-8f65-dd68c9dc86e3",
+    "ec3424cf-198f-4d1c-8ef8-e10dc232bcc8",
+    "16fa97af-480c-4f71-8baf-2f22cc900489"
+   ]
+  },
+  {
+   "group": 21,
+   "split": "dev",
+   "repo_id": "tslateman/duet",
+   "sessions": [
+    "410c9611-5a08-49a3-9520-28e347223e15",
+    "7d911558-dda5-49e9-bf9b-f5cc6f1be85a",
+    "9687d852-3702-4920-8581-a960cdb68a79",
+    "5878fb3b-eb34-452d-8b45-81daa35d54f0",
+    "af7a02f5-87b4-4d85-95ad-e9a874931de4",
+    "a2475764-7148-4bd9-9f81-526b7114274e"
+   ]
+  },
+  {
+   "group": 22,
+   "split": "dev",
+   "repo_id": "jamesdanielwhitford/docusign-ax-test",
+   "sessions": [
+    "23d17a6e-89a6-4615-8ddb-ec29c54694f3",
+    "36d6b8d6-1d12-452f-9af0-face942f4156",
+    "b5fffd30-ff81-465b-9354-a4332e6ec8ee"
+   ]
+  },
+  {
+   "group": 23,
+   "split": "dev",
+   "repo_id": "bids-standard/bids-utils",
+   "sessions": [
+    "0fa21506-9de3-4295-9a8b-188ac719d2ec",
+    "a77aeac1-48f9-46fc-95e1-64e97cbbe7a1",
+    "09006296-669b-4161-a3c3-d9847ff0b319",
+    "7d921a36-0a0d-425d-97db-4c0e69a1a622",
+    "12b970e8-63a4-43a5-8c4f-9a1c3e6b860e",
+    "10c42c9c-4f61-47ee-bb66-bae576db3230"
+   ]
+  },
+  {
+   "group": 24,
+   "split": "dev",
+   "repo_id": "vfaraji89/tokalator",
+   "sessions": [
+    "652b9aec-bf5e-4340-9b6d-aa3cf6875d82",
+    "9871108c-da3f-4bd2-987f-3da50616f22b",
+    "e7eaedd0-1fe8-4b61-9e2f-3511730c015e",
+    "36cccd59-fa6f-49b1-ac90-84b1fcd1c9f3",
+    "8411c189-57d1-4a50-9bb4-fbe336a59229",
+    "d7d2b32f-b704-4791-8c78-182de21cc2c6"
+   ]
+  },
+  {
+   "group": 25,
+   "split": "dev",
+   "repo_id": "1natsu-vacation/agent-skills",
+   "sessions": [
+    "ccc183c2-a187-4380-b7c7-8913ee8b3ce8",
+    "3dc5c97c-c85e-4265-860f-62696281e5fa",
+    "6243e907-52f2-45ff-a9f9-b313955bd72a",
+    "e99b5b2d-b730-4894-8091-7f3e765e0f92",
+    "7143f478-a577-4d93-b6b1-81acb36e8635",
+    "4052debd-bb46-4ce7-9dae-2cd9ecd1b8be"
+   ]
+  },
+  {
+   "group": 26,
+   "split": "dev",
+   "repo_id": "itsmaleen/dispatch",
+   "sessions": [
+    "b9aa266a-5393-4556-a666-45698c3e00d6",
+    "367e5cf1-e310-473a-9739-11f97e42f743",
+    "e9438cd5-d5a5-415a-8501-a517c969fc23",
+    "f8733b32-87b4-49b3-a583-4b1f30d09a91",
+    "26796def-dca5-4567-a1ea-c01ae4fe61e9",
+    "3de2a69a-bf95-472d-804d-5c295b9a07e4"
+   ]
+  },
+  {
+   "group": 27,
+   "split": "dev",
+   "repo_id": "roo-oliv/monodreams",
+   "sessions": [
+    "70c38db1-f0a1-4f65-ae22-db030224a3e8",
+    "03eb9553-f5ae-4605-b8ac-39195aabe5db",
+    "27f77ea1-21fa-4229-8ccf-3e8548c9e529",
+    "ea3890fe-45dd-42fd-95cd-6e6f4b118ec3",
+    "4cd872e6-118f-4508-97c4-257b1e1e18a0",
+    "b5928c70-d66b-43ff-9d67-64913f2869ce"
+   ]
+  },
+  {
+   "group": 28,
+   "split": "dev",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "caf5767a-ea2a-4f09-8e0d-62909e970d48",
+    "df09af96-617f-400f-a681-7a4607d664d0",
+    "40deeb4a-c3d0-4fec-888a-cc649360baba",
+    "408b8c7a-970e-44d6-97d2-5055b778a417",
+    "9b76417d-a646-4737-a9ec-8aa94abe0a1c",
+    "258a514e-cd22-4513-94b6-49095182e3fa"
+   ]
+  },
+  {
+   "group": 29,
+   "split": "dev",
+   "repo_id": "tpmjs/tpmjs",
+   "sessions": [
+    "8f1ee6f8-197f-4dea-9f83-0f2fe088e5b9",
+    "11140ccc-ae16-4013-9d53-5b24b3d9cdc0",
+    "526f2e99-089f-466b-98d7-566241baabab",
+    "4cb1740c-3626-4f33-aa8c-42843e39dc6b",
+    "5dfd6189-dead-49c2-bf77-84247314695e",
+    "d97f8efb-cd61-4886-8b15-80025211a722"
+   ]
+  },
+  {
+   "group": 30,
+   "split": "held",
+   "repo_id": "Lightprotocol/light-protocol",
+   "sessions": [
+    "23d79622-85e3-4884-8002-e422e8552c8f",
+    "64568731-ddbb-4092-bc6f-b1f4785c79c6",
+    "0ef7c7a2-ddd7-4d65-b59b-c0a965ebec25"
+   ]
+  },
+  {
+   "group": 31,
+   "split": "held",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "7656c478-fe43-4309-ab60-16f66beceb9b",
+    "781eb8d6-8104-41a8-9d75-778c1c92ce88",
+    "5f5f2575-33f8-4ec5-a8f9-717c4f68fb00",
+    "d2fe852a-ff0e-4e0c-bf6e-86a7fda940df",
+    "639237ef-b97f-4b82-b7ec-abda1e9b4bfa",
+    "0a6fa8ce-14c1-4d76-b8cd-3e2d721777e9"
+   ]
+  },
+  {
+   "group": 32,
+   "split": "held",
+   "repo_id": "desplega-ai/agent-swarm",
+   "sessions": [
+    "13944b11-b28a-4837-80f2-59ef9a0e4bb1",
+    "be682b93-49d4-4a49-8a55-bf55a8e7c430",
+    "fc539ee8-59c4-4516-85af-a8fad94c3455",
+    "76635906-8f79-4506-8276-ab1de19186c3",
+    "7a934dc4-42d5-4afb-bec7-e9ac49c7ee0e",
+    "7c91ef5f-f705-420b-b451-93fea9ef9ace"
+   ]
+  },
+  {
+   "group": 33,
+   "split": "held",
+   "repo_id": "petercr/ccw",
+   "sessions": [
+    "4907b76a-ee81-4034-b60f-91bccc84a4a6",
+    "ba40f717-f702-4a9e-9f76-b57a4768e4c0",
+    "bd404006-541d-465d-a7f4-7f8f6d16ffd0",
+    "3d1e096c-e8d9-4255-81b0-aa3baae6384e",
+    "9b0c44bf-9cf5-4279-ae93-73914a85f7a0",
+    "e4d2a949-d40f-45f6-8d98-4a6c8ee456c0"
+   ]
+  },
+  {
+   "group": 34,
+   "split": "held",
+   "repo_id": "henryph24/neuralips26",
+   "sessions": [
+    "1afea02a-acd8-4499-9d25-279b3a0c11a9",
+    "db4a8d3b-caab-4f7d-92a6-ade807e32f39",
+    "582b8944-aace-48ed-853a-155dd9b5ff68",
+    "9fde1548-1a2b-4dc8-b9fa-6150f8d3d21d",
+    "5ab2777b-c8a9-4ab2-8d84-364c71597977",
+    "b2b5366b-6963-4be6-be4a-ce094982febd"
+   ]
+  },
+  {
+   "group": 35,
+   "split": "held",
+   "repo_id": "wodsmith/thewodapp",
+   "sessions": [
+    "6c2e4d72-9227-48c5-818b-34331110fdcd",
+    "ee520aa7-a751-4c55-801e-5de0607a85b0",
+    "bbaf5868-fac4-4d87-9aab-98e3020b6572",
+    "54d68864-f678-4735-8e4f-85e47acb7433",
+    "635b54c6-befd-43f4-98f2-1ead26671238",
+    "1bd8fa7a-9ed7-4cb4-b013-33d6f45d0bef"
+   ]
+  },
+  {
+   "group": 36,
+   "split": "held",
+   "repo_id": "basher83/lunar-claude",
+   "sessions": [
+    "3a74de16-0d69-4427-b8d8-2a62f10c49e9",
+    "240b285b-b905-411a-8b50-31dc37b7b18e",
+    "e00ba8a8-08be-4e5c-9b63-7244d241309c"
+   ]
+  },
+  {
+   "group": 37,
+   "split": "held",
+   "repo_id": "hackers-pub/android",
+   "sessions": [
+    "948a3954-6196-4010-8a1f-80c4cef48fcc",
+    "8a9ec257-cad9-4634-866d-d0bffa235e37",
+    "0a446b72-6e8a-4d02-9bf3-dae7f8778d9e",
+    "92078f8f-8361-4268-b3ae-1601a70e6fff",
+    "cc81e0ed-c963-4809-a554-91bf6324b9ec",
+    "b84b4550-9115-413b-a730-8a0a51a0c0c7"
+   ]
+  },
+  {
+   "group": 38,
+   "split": "held",
+   "repo_id": "Mathews-Tom/no-magic",
+   "sessions": [
+    "ce67d562-2214-46e6-80e0-a9b99d4a3215",
+    "8a35bf3e-b280-4b5d-bb0f-ccde53426ee5",
+    "809e358e-f9d8-4d9d-a17a-6cfc524cc4b6",
+    "1190138a-68bc-410f-8a52-511881d4efc8",
+    "dad11b7b-a4b2-4820-bccd-e68339a6e22c",
+    "2224e5cf-582c-437b-bc86-7ca8cb6a8362"
+   ]
+  },
+  {
+   "group": 39,
+   "split": "held",
+   "repo_id": "ckeith26/cameronkeithgolf",
+   "sessions": [
+    "9cf354b9-b3a0-4ccd-a54b-bcf0b148d850",
+    "b8d1ce58-93e5-4b93-af3e-695a35c9223d",
+    "e3c72601-36f2-4dc1-b239-436be8953be5",
+    "f9bbb98e-d0ad-4f92-9305-39b848a53a18",
+    "443d9387-9119-4760-a36b-33768f03ff49"
+   ]
+  },
+  {
+   "group": 40,
+   "split": "held",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "e02252b7-64e6-4954-bb37-85f97e296176",
+    "229c0af5-5604-44a0-a6ae-795bdcb0d95b",
+    "42e0519f-9103-4bac-8c5e-804338fd82f2",
+    "ae3fd4eb-1bb7-4e7b-8986-8c5944422068"
+   ]
+  },
+  {
+   "group": 41,
+   "split": "held",
+   "repo_id": "osabiohq/osabio",
+   "sessions": [
+    "cfecfb5d-9b85-491c-84e3-0371cc468c1f",
+    "70fec463-9665-4950-b343-180fcd47cd5a",
+    "e8bcd827-cc18-46ee-aed9-a6478c901af6",
+    "fe96e03e-e1bb-4543-8fca-21184f728e51",
+    "5111bc26-8463-4894-b963-671afe566fba",
+    "55df5720-c531-4a14-92aa-72d04fb9d90b"
+   ]
+  },
+  {
+   "group": 42,
+   "split": "held",
+   "repo_id": "marin-community/marin",
+   "sessions": [
+    "87367253-99b8-4329-9227-fc66abed1b20",
+    "951bbfd9-a05f-49d7-af58-85149e06d580",
+    "b865f733-4731-43a3-9a4b-a541823fbebc",
+    "cf0107b9-1f41-482c-9707-b703dbf1dfe9",
+    "d102621c-4149-4f92-9ca3-040ab593893e",
+    "0148c829-b666-424a-aaa9-11ebefd23a83"
+   ]
+  },
+  {
+   "group": 43,
+   "split": "held",
+   "repo_id": "ravencloak-org/ravencloak",
+   "sessions": [
+    "b5280b46-cf69-428d-8d41-a1aa8a0897ed",
+    "f5f37e1e-0f3a-42e3-ad72-5e07b9313ead",
+    "8d69995d-cfa8-4a57-b7ee-9dcdcc3f7bab",
+    "0dec1d80-ca41-4a70-8938-0d4304246229",
+    "a1fcd2a6-391b-4e22-a7e8-9e74409530f4"
+   ]
+  },
+  {
+   "group": 44,
+   "split": "held",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "de9d811e-e805-4efa-b15d-9e642a549543",
+    "dccb059e-a37d-4287-9fa3-471a6aa16f44",
+    "69ad7369-3964-488e-ba03-8a50df8467e5",
+    "dbd2bfe1-bc12-4d4c-be2e-e2ec6b92170f",
+    "8eb56424-fa6c-4639-a6de-6012afb6f316",
+    "03df2882-a2af-44d2-ad9e-d4dee3f44781"
+   ]
+  },
+  {
+   "group": 45,
+   "split": "held",
+   "repo_id": "entireio/cli",
+   "sessions": [
+    "0556d021-8890-4bba-989f-d7bc05283e50",
+    "f4a723a3-f761-475d-9b45-5fa0a3282374",
+    "d988c923-0ba4-4e6e-a84c-594c2c73f768",
+    "14ee15d2-fbee-40f3-b61a-fd98f0bbf18e",
+    "fed731da-f6c2-4597-8913-6f415974c950",
+    "0d411808-78e1-4abb-b5da-ab760ebccc55"
+   ]
+  },
+  {
+   "group": 46,
+   "split": "held",
+   "repo_id": "ujuc/dotrc",
+   "sessions": [
+    "c5ee95d1-03b2-4571-938e-b145c5144301",
+    "784711e3-8a70-4942-859e-2e94f0db2389",
+    "0e19590c-2126-45e2-bc59-81d76d9da168",
+    "a90c57b6-17f7-4b39-abb5-aac76dcd618d",
+    "c712b6d4-5d02-4aa8-bb23-79742d957fb4",
+    "dbaec118-8eb9-4041-a00b-2671ad909f90"
+   ]
+  },
+  {
+   "group": 47,
+   "split": "held",
+   "repo_id": "moltis-org/moltis",
+   "sessions": [
+    "09bd60f9-f475-4225-9827-59553b18e81e",
+    "2e8fa532-7593-4653-b156-5023f797891e",
+    "c30a760b-775f-4ceb-bb2d-970393abc9df",
+    "8769bd03-3e97-426a-a0b2-21ac11110443",
+    "108d2ff0-c3d9-45f9-b93e-639ac9ce9321",
+    "67a590c6-7847-4e57-bd53-0f160940e7e2"
+   ]
+  },
+  {
+   "group": 48,
+   "split": "held",
+   "repo_id": "chuhemiao/portfolio",
+   "sessions": [
+    "ac6d8013-c658-42de-b181-95fba548b63c",
+    "071bf253-f643-44cc-a0be-9c844f484e20",
+    "74f8c7cf-018e-4eae-9a4a-dea5d32514df",
+    "979b8d5d-6132-43f3-8169-c1eb40b835e3",
+    "76f3305e-dab9-424b-bd04-45fc38b44255",
+    "6169ee9c-197b-4e13-bd67-6b054df93cd2"
+   ]
+  },
+  {
+   "group": 49,
+   "split": "held",
+   "repo_id": "iamngoni/WhatTheLoad",
+   "sessions": [
+    "3c9c6a1b-b1ed-4785-a41b-fbf7d0c24ca8",
+    "c5b13f4d-5d79-4d50-9dca-88800c25251c",
+    "cead13cc-91f7-494a-9e9d-d07947b6698d"
+   ]
+  },
+  {
+   "group": 50,
+   "split": "held",
+   "repo_id": "PanthroCorp-Limited/openclaw-skills",
+   "sessions": [
+    "90487d3c-617f-439c-a355-ea71ce63a3a1",
+    "c3126a8e-835a-47af-9240-56a17f278432",
+    "735d638f-6cdf-43ab-a835-72cc7d395a44"
+   ]
+  },
+  {
+   "group": 51,
+   "split": "held",
+   "repo_id": "obsessiondb/rudel",
+   "sessions": [
+    "556ed7a5-85ab-4309-b3e0-a65650cda8ae",
+    "151db166-1a88-4767-880d-19da6d6851c7",
+    "af88448f-2eec-4dc1-84ab-1531eb6a97af",
+    "a8a7d4a9-edcd-4a32-808a-2d9c8359107e",
+    "491983cb-b3ca-448f-b386-3fc23bbd8d05",
+    "3ed5ef56-9d0b-4e63-8ce5-c2abbc23ae5b"
+   ]
+  },
+  {
+   "group": 52,
+   "split": "held",
+   "repo_id": "nosman/gossamer",
+   "sessions": [
+    "92a08780-3876-451b-96ad-e6e28138f904",
+    "46ec137b-9d27-48e3-bf35-f80e56b2ac21",
+    "696259a7-a797-4337-8bdc-0376d4967e8b",
+    "3693a81d-438c-4d21-ace4-6b95ab818f0a",
+    "57e902ad-8ce2-4ebe-9f50-5d9d642910de",
+    "5ebf362b-c0de-4a60-ab1c-a4fdb161c99e"
+   ]
+  },
+  {
+   "group": 53,
+   "split": "held",
+   "repo_id": "upamune/xi",
+   "sessions": [
+    "d5f837dd-ff28-4765-b386-5e41dbd14183",
+    "a74122c0-642f-4325-83e3-391b51bb1913",
+    "76318311-015d-49f8-be01-771f677d0419",
+    "b80ab639-3af2-4e9f-a0de-b52f18e0edd2",
+    "af1b7ac4-205f-4494-8076-b25834ef2c28",
+    "feef78be-d531-4969-95d9-8daa2d63e7d6"
+   ]
+  },
+  {
+   "group": 54,
+   "split": "held",
+   "repo_id": "timelabs-npo/rhea-project",
+   "sessions": [
+    "5e8ca6db-c55e-4d6d-aa15-4bc9fb29a388",
+    "15ffa5d1-c7f7-44fe-a777-0648f3b4c3ed",
+    "2a84a5a3-0636-4047-aa95-342b1ebe7d83",
+    "29460dc4-bc34-4b0d-933f-4c6e7a63cca8"
+   ]
+  },
+  {
+   "group": 55,
+   "split": "held",
+   "repo_id": "mhavelock/white-hat-label",
+   "sessions": [
+    "ff59ee3a-9865-4175-b8c4-d2202bee688c",
+    "60639794-6077-4e88-a4d3-70aa566f1233",
+    "c985c16b-f128-43c1-8ef1-99a367466a4a",
+    "11808275-fbc9-4eb4-a3f3-e5ac2c255d88",
+    "c38c3684-7e27-4cad-96f9-1d050850dbed"
+   ]
+  },
+  {
+   "group": 56,
+   "split": "held",
+   "repo_id": "Pavel401/BugViper",
+   "sessions": [
+    "8be6e28e-c5fe-4fa5-a34d-fe638c51c3ca",
+    "e3dd2b64-b8b8-46cd-a089-ce9fc4ac4b52",
+    "46b2b246-f940-4c5c-a908-79edd836ffd6",
+    "8b7d5491-3da6-4cb8-a8b0-25af454e902c",
+    "b8facdab-a493-4b3d-8a2a-9baa79b1d579",
+    "b0273ced-89a6-4b81-89a4-eac94e094db0"
+   ]
+  },
+  {
+   "group": 57,
+   "split": "held",
+   "repo_id": "kubokawa-dev/million-pocket-orchestra",
+   "sessions": [
+    "401b29ff-0b1a-4810-913c-8ba68028182e",
+    "49b5ddb2-f588-4cac-9395-237c2098ef76",
+    "2e102eae-1742-4a88-aa93-2ffe595e61ec",
+    "ff862d16-2823-4423-a2de-37b68ec7b758",
+    "e59f7640-1788-4953-9a4e-69ce48354035",
+    "c2287c67-64b3-4acd-8d08-01aa4c60c8ff"
+   ]
+  },
+  {
+   "group": 58,
+   "split": "held",
+   "repo_id": "roo-oliv/claude-assisted-review-plugin",
+   "sessions": [
+    "1142c080-1422-4a7b-9af2-a1a89b7a6fe5",
+    "67018481-54c9-4d93-a1c4-30ccd146e654",
+    "84f797ce-ec38-49fd-a8da-1723598a4627"
+   ]
+  },
+  {
+   "group": 59,
+   "split": "held",
+   "repo_id": "marin-community/marin",
+   "sessions": [
+    "d623950b-3747-44e9-80cd-7606d1262a66",
+    "ddf33627-f45d-423d-ba09-1b633d30ed87",
+    "78d84e7f-f2f4-4f71-aa4f-24714a03058c",
+    "f8b8d887-0f05-4c4e-a1ac-a8750cee1ca8",
+    "3aa08a54-1716-41fc-91a1-75e2066265d3",
+    "fde9c945-00d8-40fd-8e55-30fdacab5d16"
+   ]
+  }
+ ],
+ "eligible_groups": 134
+}
