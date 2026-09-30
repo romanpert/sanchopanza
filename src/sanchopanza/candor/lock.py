@@ -17,6 +17,7 @@ screen shows the claim beside the action, not a yes/no.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import time
@@ -29,11 +30,66 @@ from .._env import home_dir
 from .rules import Finding
 
 LOCK_NAME = "candor-lock.json"
+LOCKS_DIR = "candor-locks"
+SCOPES = ("session", "project", "machine")
 
 
-def default_path() -> Path:
+def scope() -> str:
+    """SANCHOPANZA_CANDOR_LOCK_SCOPE: `session` (default), `project` or `machine`.
+
+    One file for the whole machine held every other candor session on it, in other projects,
+    from their first call, until a person looked (the Indagis scene, 2026-09-30). A flagged
+    session is what needs a person; other work is not evidence against it. `project` is for
+    an orchestrator that starts sessions on its own, where a new session must not walk past
+    the hold; `machine` keeps the old behaviour. Anything else reads as `session`."""
+    chosen = os.environ.get("SANCHOPANZA_CANDOR_LOCK_SCOPE", "session").strip().lower()
+    return chosen if chosen in SCOPES else "session"
+
+
+def project_root(cwd: str | os.PathLike[str] | None) -> Path:
+    """The git root above `cwd`, or `cwd` itself: worktrees of one repository stay apart,
+    since each has its own root."""
+    start = Path(cwd or os.getcwd()).resolve()
+    for folder in (start, *start.parents):
+        if (folder / ".git").exists():
+            return folder
+    return start
+
+
+def _safe(text: str) -> str:
+    return "".join(ch for ch in text if ch.isalnum() or ch in "-_")[:80]
+
+
+def default_path(session: str = "", cwd: str | os.PathLike[str] | None = None) -> Path:
+    """Where the lock for this session lives. SANCHOPANZA_CANDOR_LOCK, a file, wins over the
+    scope. A session with no id falls back to its project, never to the machine."""
     override = os.environ.get("SANCHOPANZA_CANDOR_LOCK")
-    return Path(override) if override else home_dir() / LOCK_NAME
+    if override:
+        return Path(override)
+    chosen = scope()
+    if chosen == "machine":
+        return home_dir() / LOCK_NAME
+    if chosen == "session" and _safe(session):
+        return home_dir() / LOCKS_DIR / f"session-{_safe(session)}.json"
+    root = str(project_root(cwd)).lower() if os.name == "nt" else str(project_root(cwd))
+    digest = hashlib.sha1(root.encode("utf-8")).hexdigest()[:16]
+    return home_dir() / LOCKS_DIR / f"project-{digest}.json"
+
+
+def engaged_paths() -> list[Path]:
+    """Every lock file that is engaged on this machine, for the person's `status` and
+    `release`: the explicit file, the machine file and each scoped one."""
+    override = os.environ.get("SANCHOPANZA_CANDOR_LOCK")
+    candidates = [Path(override)] if override else []
+    candidates.append(home_dir() / LOCK_NAME)
+    folder = home_dir() / LOCKS_DIR
+    if folder.is_dir():
+        candidates.extend(sorted(folder.glob("*.json")))
+    seen: list[Path] = []
+    for path in candidates:
+        if path not in seen and read(path).engaged:
+            seen.append(path)
+    return seen
 
 
 @dataclass(frozen=True, slots=True)

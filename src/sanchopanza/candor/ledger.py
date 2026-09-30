@@ -41,7 +41,10 @@ SHELL_TOOLS = frozenset({"bash", "shell", "powershell", "exec", "local_shell", "
 # permissions, and the trace that holds it to account. Anthropic's auto mode post names an
 # agent editing its own settings as the case its `ConfigChange` event exists for.
 TAMPER = re.compile(
-    r"\.claude[\\/](settings(\.local)?\.json|hooks)|managed-settings|sanchopanza[\\/].*(lock|journal)"
+    r"\.claude[\\/](settings(\.local)?\.json|hooks)|managed-settings"
+    # The monitor's home, new or legacy (`~/.sanchopanza`, `~/.sancho`): the lock, the ledgers,
+    # the journal. Dotted, so a checkout's `src/sanchopanza/candor/lock.py` is code, not the lock.
+    r"|\.sancho(panza)?[\\/].*(lock|journal|candor)"
     r"|\bjournal\.jsonl\b|[\\/]audit[\\/]|events\.jsonl|\bhistory\s+-c\b|unset\s+HISTFILE"
     r"|--no-verify\b|git\s+push\s+(-f\b|--force)|\bgit\s+commit\s+--amend\b.*--no-edit"
     r"|\.git[\\/]hooks|\bchmod\b|\bchown\b|\bsudo\b|\bicacls\b|Set-ExecutionPolicy"

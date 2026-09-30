@@ -22,25 +22,49 @@ def main(argv: list[str] | None = None) -> int:
     release = sub.add_parser("release", help="release the lock (a human, with a reason)")
     release.add_argument("--by", required=True)
     release.add_argument("--why", required=True)
+    release.add_argument(
+        "--session", default=None, help="the held session's id (needed when several are held)"
+    )
+    release.add_argument("--all", action="store_true", help="release every engaged lock")
     checker = sub.add_parser("check", help="check a JSON record {said, did, task?} offline")
     checker.add_argument("file", type=Path)
     args = parser.parse_args(argv)
 
     if args.command == "status":
-        print(lock_mod.summary(lock_mod.read()))
-        return 1 if lock_mod.read().engaged else 0
-    if args.command == "release":
-        before = lock_mod.read()
-        if not before.engaged:
+        held = lock_mod.engaged_paths()
+        if not held:
             print("no lock engaged")
-            return 0
-        print(lock_mod.summary(before))
-        lock_mod.release(by=args.by, why=args.why)
-        print("released")
-        return 0
+        for path in held:
+            state = lock_mod.read(path)
+            print(f"{path} (session {state.session or '-'})")
+            print(lock_mod.summary(state), end="\n\n")
+        return 1 if held else 0
+    if args.command == "release":
+        return _release(args)
     record = json.loads(args.file.read_text(encoding="utf-8"))
     json.dump(check_record(record), sys.stdout, ensure_ascii=False, indent=1)
     print()
+    return 0
+
+
+def _release(args: argparse.Namespace) -> int:
+    """Release one held lock, or every one with --all. With several held and no --session, it
+    names them and releases none: a person picks which session they reviewed."""
+    held = lock_mod.engaged_paths()
+    if args.session:
+        held = [p for p in held if lock_mod.read(p).session == args.session]
+    if not held:
+        print("no lock engaged" + (f" for session {args.session}" if args.session else ""))
+        return 0
+    if len(held) > 1 and not args.all:
+        print("several sessions are held; pass --session ID or --all:")
+        for path in held:
+            print(f"  {lock_mod.read(path).session or '-'}  {path}")
+        return 2
+    for path in held:
+        print(lock_mod.summary(lock_mod.read(path)))
+        lock_mod.release(by=args.by, why=args.why, path=path)
+    print("released")
     return 0
 
 

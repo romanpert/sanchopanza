@@ -34,7 +34,10 @@ Environment (`SANCHOPANZA_CANDOR_<NAME>`):
               stop: hold a final report without it once; both; off
     DIR       where ledgers and findings live (default ~/.sanchopanza/candor)
 
-The lock file itself is SANCHOPANZA_CANDOR_LOCK (default ~/.sanchopanza/candor-lock.json).
+    LOCK_SCOPE session (default) | project | machine: which calls one lock holds (`candor.lock`)
+
+The lock file is SANCHOPANZA_CANDOR_LOCK when set; otherwise one per session under
+~/.sanchopanza/candor-locks/ (per project, or `candor-lock.json` for the machine, by LOCK_SCOPE).
 """
 
 from __future__ import annotations
@@ -205,8 +208,15 @@ def final_report(transcript: Path) -> str:
     return "\n".join(texts)
 
 
+def _lock_path(data: Mapping[str, Any]) -> Path:
+    """This session's lock file (`candor.lock.default_path`: per session unless the scope says
+    otherwise)."""
+    return lock_mod.default_path(str(data.get("session_id") or ""), data.get("cwd") or None)
+
+
 def pre_tool_use(data: Mapping[str, Any]) -> dict[str, Any]:
-    state = lock_mod.read()
+    where = _lock_path(data)
+    state = lock_mod.read(where)
     observe = _setting("MODE", "lock") == "observe"
     if state.engaged and not observe:
         return _deny(lock_mod.refusal(state))
@@ -222,8 +232,8 @@ def pre_tool_use(data: Mapping[str, Any]) -> dict[str, Any]:
     on = _lock_on()
     if observe or not should_lock(report.findings, on=on):
         return {}  # v5: a look at the settings is journalled for review, not refused
-    lock_mod.engage(report.findings, session=str(data.get("session_id") or ""))
-    return _deny(lock_mod.refusal(lock_mod.read()))
+    lock_mod.engage(report.findings, session=str(data.get("session_id") or ""), path=where)
+    return _deny(lock_mod.refusal(lock_mod.read(where)))
 
 
 def _deny(reason: str) -> dict[str, Any]:
@@ -253,7 +263,7 @@ def _slipped(data: Mapping[str, Any], name: str, arguments: Mapping[str, Any]) -
     """A call that finished while the lock is engaged got past PreToolUse before the lock existed:
     Claude Code runs the PreToolUse hooks of parallel calls in one turn at the same time (seen in
     1 of 6 lock sessions). It cannot be undone; it is recorded and put in front of the person."""
-    state = lock_mod.read()
+    state = lock_mod.read(_lock_path(data))
     if not state.engaged or _setting("MODE", "lock") == "observe":
         return {}
     call = f"{name}: {target_of(name, arguments)[:160]}"
@@ -276,7 +286,7 @@ def user_prompt(data: Mapping[str, Any]) -> dict[str, Any]:
             {"kind": "prompt", "t": time.time(), "task": str(data.get("prompt") or "")[:2000],
              "cwd": str(root), "snapshot": shot})  # fmt: skip
     notes = []
-    state = lock_mod.read()
+    state = lock_mod.read(_lock_path(data))
     if state.engaged and _setting("MODE", "lock") != "observe":
         notes.append(lock_mod.refusal(state))
     if _setting("ASK_BLOCK", "prompt") in ("prompt", "both"):
@@ -350,7 +360,7 @@ async def stop(data: Mapping[str, Any]) -> dict[str, Any]:
     if not findings or not should_lock(findings, on=on) or _setting("MODE", "lock") == "observe":
         return {}
     state = lock_mod.engage([f for f in findings if RANK[f.severity] >= RANK[on]],
-                            session=session)  # fmt: skip
+                            session=session, path=_lock_path(data))  # fmt: skip
     return {"systemMessage": lock_mod.summary(state)}
 
 
@@ -386,8 +396,9 @@ def main(argv: list[str] | None = None) -> int:
         output = handle(data, codex=codex)
     except Exception as error:
         # PreToolUse fails closed while a lock may be engaged: an unreadable state refuses.
-        if data.get("hook_event_name") == "PreToolUse" and lock_mod.read().engaged:
-            output = _deny(lock_mod.refusal(lock_mod.read()))
+        held = lock_mod.read(_lock_path(data)) if data.get("hook_event_name") == "PreToolUse" else None
+        if held is not None and held.engaged:
+            output = _deny(lock_mod.refusal(held))
         else:
             sys.stderr.write(
                 f"sanchopanza candor: passed through ({type(error).__name__}: {error})\n"
