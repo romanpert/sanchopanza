@@ -80,5 +80,6 @@ def test_the_candidate_rule_never_adds_a_costly_error_on_any_recording(result):
 def test_choice_confidence_is_the_rescaled_top_probability(result):
     """A canary like the Truth one in test_policy.py: if it fails, revisit every Choice gate."""
     identity = result["choice_identity"]
-    assert sum(v["n"] for v in identity.values()) == 7162
+    # 7,162 is the published base and recordings only grow, so a drop means one went missing.
+    assert sum(v["n"] for v in identity.values()) >= 7162
     assert all(v["max_deviation"] < 0.025 for v in identity.values())

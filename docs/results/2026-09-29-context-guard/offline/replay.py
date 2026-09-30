@@ -92,7 +92,9 @@ def facts_e2e(f: Any) -> dict[str, str]:
     return {"token": f.token, "probe": f.code, "tolerance": f.tolerance}
 
 
-def score(kind: str, found: dict[str, str], summary: str, block: str, messages: list) -> dict[str, Any]:
+def score(
+    kind: str, found: dict[str, str], summary: str, block: str, messages: list
+) -> dict[str, Any]:
     seen = "\n".join(json.dumps(m, ensure_ascii=False) for m in messages)
     row: dict[str, Any] = {}
     for name, value in found.items():
@@ -141,7 +143,9 @@ def main() -> int:
         for name, s in row["facts"].items():
             if not s["before"]:
                 continue  # not yet produced at this compaction: nothing to keep
-            t = totals.setdefault(f"{row['run']}:{name}", {"n": 0, "summary": 0, "guard": 0, "either": 0})
+            t = totals.setdefault(
+                f"{row['run']}:{name}", {"n": 0, "summary": 0, "guard": 0, "either": 0}
+            )
             t["n"] += 1
             t["summary"] += s["summary"]
             t["guard"] += s["guard"]
@@ -150,7 +154,11 @@ def main() -> int:
     report = {
         "compactions": len(rows),
         "sessions": len({(r["run"], r["model"], r["session"]) for r in rows}),
-        "block_chars": {"min": min(blocks), "median": sorted(blocks)[len(blocks) // 2], "max": max(blocks)},
+        "block_chars": {
+            "min": min(blocks),
+            "median": sorted(blocks)[len(blocks) // 2],
+            "max": max(blocks),
+        },
         "summary_chars_median": sorted(r["summary_chars"] for r in rows)[len(rows) // 2],
         "facts": totals,
         "rows": rows,

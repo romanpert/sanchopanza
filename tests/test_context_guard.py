@@ -41,26 +41,38 @@ def conversation() -> list[dict[str, Any]]:
     return [
         {"role": "user", "content": "Issue the release token, run the probe. Rule: every error "
                                     "message ends with [ref OPS-4471]."},  # fmt: skip
-        {"role": "assistant", "content": [_use("t1", "Bash", command="python tools/issue_token.py")]},
+        {"role": "assistant",
+         "content": [_use("t1", "Bash", command="python tools/issue_token.py")]},
         {"role": "user", "content": [_result("t1", MANIFEST)]},
         {"role": "assistant", "content": [_use("t2", "Read", file_path="pkg/a.py")]},
         {"role": "user", "content": [_result("t2", "A_SECRET_ID = 'ZX-1234'\n")]},
         {"role": "assistant", "content": [_use("t3", "Bash", command="python tools/probe.py")]},
         {"role": "user", "content": [_result("t3", PROBE, error=True)]},
         {"role": "assistant", "content": [_use("t4", "Bash", command="python -m pytest -q")]},
-        {"role": "user", "content": [_result("t4", "FAILED tests/t.py::test_x - assert 1 == 2\n1 failed", error=True)]},
-        {"role": "assistant", "content": [_use("t5", "Edit", file_path="pkg/pricing.py", old_string="a", new_string="b")]},
+        {"role": "user",
+         "content": [_result("t4", "FAILED tests/t.py::test_x - assert 1 == 2\n1 failed",
+                             error=True)]},
+        {"role": "assistant",
+         "content": [_use("t5", "Edit", file_path="pkg/pricing.py", old_string="a",
+                          new_string="b")]},
         {"role": "user", "content": [_result("t5", "updated")]},
         {"role": "assistant", "content": [_use("t6", "Bash", command="python -m pytest -q")]},
         {"role": "user", "content": [_result("t6", "5 passed in 0.10s")]},
-        {"role": "assistant", "content": [_use("t7", "Bash", command="python tools/issue_token.py")]},
-        {"role": "user", "content": [_result("t7", "error: the release token was already issued", error=True)]},
+        {"role": "assistant",
+         "content": [_use("t7", "Bash", command="python tools/issue_token.py")]},
+        {"role": "user",
+         "content": [_result("t7", "error: the release token was already issued",
+                             error=True)]},
     ]  # fmt: skip
 
 
 def test_shape_groups_lines_printed_in_a_loop():
-    assert guard.shape("SKU-20712 east qty= 95 bin=B27") == guard.shape("SKU-53041 north qty= 628 bin=B34")
-    assert guard.shape("release token: RT-6Z4FRFLG7W") != guard.shape("SKU-20712 east qty= 95 bin=B27")
+    assert guard.shape("SKU-20712 east qty= 95 bin=B27") == guard.shape(
+        "SKU-53041 north qty= 628 bin=B34"
+    )
+    assert guard.shape("release token: RT-6Z4FRFLG7W") != guard.shape(
+        "SKU-20712 east qty= 95 bin=B27"
+    )
 
 
 def test_the_single_line_beats_the_records_printed_in_a_loop():
@@ -114,12 +126,15 @@ def test_the_guard_carries_the_one_shot_values_the_rule_and_the_trail():
 
 def test_the_budget_is_respected_and_errors_win_it():
     many = conversation() + [
-        {"role": "assistant", "content": [_use(f"x{i}", "Bash", command=f"echo {i}")]} if k == 0 else
+        {"role": "assistant",
+         "content": [_use(f"x{i}", "Bash", command=f"echo {i}")]} if k == 0 else
         {"role": "user", "content": [_result(f"x{i}", f"value V-{i:04d}A\n" * 3)]}
         for i in range(40) for k in (0, 1)
     ]  # fmt: skip
     g = guard.build(many, facts_chars=600)
-    used = sum(len(f.line) + 4 for f in g.facts) + sum(len(s) + 2 for s in {f.source for f in g.facts})
+    used = sum(len(f.line) + 4 for f in g.facts) + sum(
+        len(s) + 2 for s in {f.source for f in g.facts}
+    )
     assert used <= 600
     assert any("PRB-9015" in f.line for f in g.facts)
 
@@ -167,7 +182,9 @@ def test_the_decider_ranks_commands_when_they_do_not_fit():
 
 def test_a_failing_decider_falls_back_to_the_rule():
     facts = guard.candidates(calls(conversation()))
-    kept, chooser = asyncio.run(guard.choose_by_decider(FakeSquire(RuntimeError("down")), facts, "t", budget=120))
+    kept, chooser = asyncio.run(
+        guard.choose_by_decider(FakeSquire(RuntimeError("down")), facts, "t", budget=120)
+    )
     assert chooser.startswith("rule") and kept == guard.choose(facts, 120)
 
 
@@ -182,15 +199,21 @@ def write_session(path: Path, *, compacted: bool) -> Path:
     lines = [_entry(m) for m in conversation()]
     if compacted:
         lines.append(json.dumps({"type": "system", "subtype": "compact_boundary"}))
-        lines.append(_entry({"role": "user", "content": "Summary: work so far."}, isCompactSummary=True))
-        lines.append(_entry({"role": "assistant", "content": [_use("t9", "Bash", command="python tools/probe.py")]}))
-        lines.append(_entry({"role": "user", "content": [_result("t9", "error: probe state already consumed", error=True)]}))
+        lines.append(
+            _entry({"role": "user", "content": "Summary: work so far."}, isCompactSummary=True)
+        )
+        lines.append(_entry({"role": "assistant", "content": [
+            _use("t9", "Bash", command="python tools/probe.py")]}))
+        lines.append(_entry({"role": "user", "content": [
+            _result("t9", "error: probe state already consumed", error=True)]}))
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path
 
 
 def test_history_keeps_what_the_compaction_replaced_and_marks_where(tmp_path):
-    messages, boundary = history_from_claude_code(write_session(tmp_path / "s.jsonl", compacted=True))
+    messages, boundary = history_from_claude_code(
+        write_session(tmp_path / "s.jsonl", compacted=True)
+    )
     assert boundary == len(conversation())
     assert "Summary: work so far." not in json.dumps(messages)
     assert [c.id for c in calls(messages)][-1] == "t9"
@@ -219,14 +242,16 @@ def test_precompact_prints_the_note_and_the_session_start_attaches_the_block(env
     note = _run({"hook_event_name": "PreCompact", "trigger": "auto", "session_id": "abc",
                  "transcript_path": str(path)}, monkeypatch)  # fmt: skip
     assert note == guard.INSTRUCTIONS
-    out = json.loads(_run({"hook_event_name": "SessionStart", "source": "compact", "session_id": "abc",
+    out = json.loads(_run({"hook_event_name": "SessionStart", "source": "compact",
+                           "session_id": "abc",
                            "transcript_path": str(path)}, monkeypatch))  # fmt: skip
     context = out["hookSpecificOutput"]["additionalContext"]
     assert out["hookSpecificOutput"]["hookEventName"] == "SessionStart"
     assert "RT-6Z4FRFLG7W" in context and "PRB-9015" in context
     assert not (env / "kept" / "abc.json").exists()  # used once
     log = [json.loads(x) for x in (env / "log.jsonl").read_text("utf-8").splitlines()]
-    assert [r["event"] for r in log] == ["PreCompact", "SessionStart"] and log[1]["origin"] == "kept"
+    assert [r["event"] for r in log] == ["PreCompact", "SessionStart"]
+    assert log[1]["origin"] == "kept"
 
 
 def test_a_session_start_that_is_not_a_compaction_adds_nothing(env, monkeypatch):
@@ -237,7 +262,8 @@ def test_a_session_start_that_is_not_a_compaction_adds_nothing(env, monkeypatch)
 
 def test_a_rerun_after_the_compaction_gets_the_earlier_output(env, monkeypatch):
     path = write_session(env / "s.jsonl", compacted=True)
-    out = json.loads(_run({"hook_event_name": "PostToolUse", "tool_name": "Bash", "session_id": "abc",
+    out = json.loads(_run({"hook_event_name": "PostToolUse", "tool_name": "Bash",
+                           "session_id": "abc",
                            "tool_input": {"command": "python  tools/probe.py"},
                            "transcript_path": str(path)}, monkeypatch))  # fmt: skip
     note = out["hookSpecificOutput"]["additionalContext"]
@@ -246,7 +272,11 @@ def test_a_rerun_after_the_compaction_gets_the_earlier_output(env, monkeypatch):
 
 def test_no_echo_without_a_compaction_or_for_a_new_command(env, monkeypatch):
     plain = write_session(env / "p.jsonl", compacted=False)
-    event = {"hook_event_name": "PostToolUse", "tool_name": "Bash", "tool_input": {"command": "python tools/probe.py"}}
+    event = {
+        "hook_event_name": "PostToolUse",
+        "tool_name": "Bash",
+        "tool_input": {"command": "python tools/probe.py"},
+    }
     assert _run({**event, "transcript_path": str(plain)}, monkeypatch) == ""
     compacted = write_session(env / "c.jsonl", compacted=True)
     fresh = {**event, "tool_input": {"command": "ls"}, "transcript_path": str(compacted)}
@@ -255,7 +285,8 @@ def test_no_echo_without_a_compaction_or_for_a_new_command(env, monkeypatch):
 
 def test_any_failure_adds_nothing_and_says_why(env, monkeypatch, capsys):
     monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps(
-        {"hook_event_name": "PreCompact", "transcript_path": str(env / "missing.jsonl")})))  # fmt: skip
+        {"hook_event_name": "PreCompact",
+         "transcript_path": str(env / "missing.jsonl")})))  # fmt: skip
     assert guard_hook.main() == 0
     captured = capsys.readouterr()
     assert captured.out == "" and "sanchopanza guard: added nothing" in captured.err
@@ -270,7 +301,8 @@ def test_install_guard_wires_three_hooks_once_and_takes_them_out(tmp_path):
 
     path = tmp_path / "settings.json"
     path.write_text(json.dumps({"hooks": {"SessionStart": [
-        {"matcher": "startup", "hooks": [{"type": "command", "command": "theirs"}]}]}}), "utf-8")  # fmt: skip
+        {"matcher": "startup",
+         "hooks": [{"type": "command", "command": "theirs"}]}]}}), "utf-8")  # fmt: skip
     wired = plan(path, HarnessConfig(), guard=True)
     apply(wired)
     hooks = json.loads(path.read_text("utf-8"))["hooks"]

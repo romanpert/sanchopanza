@@ -105,12 +105,15 @@ def units() -> list[dict[str, Any]]:
         prompt = _phase_b_prompt(CACHE / "context-e2e" / "runs" / f.task / "N" / "session.jsonl")
         if path.exists() and prompt:
             out.append({"unit": f"e2e/{f.task}", "split": "dev", "path": path, "prompt": prompt,
-                        "needed": {"token": f.token, "probe": f.code, "tolerance": f.tolerance}})  # fmt: skip
+                        "needed": {"token": f.token, "probe": f.code,
+                                   "tolerance": f.tolerance}})  # fmt: skip
     lean = _module(RESULTS / "2026-09-28-context-lean" / "tasks.py", "pr_lean_tasks")
     for i in range(8):
         f, *_ = lean.facts_for(i)
         path = CACHE / "context-lean" / "haiku" / "runs" / f.task / "A" / "session.jsonl"
-        prompt = _phase_b_prompt(CACHE / "context-lean" / "haiku" / "runs" / f.task / "N" / "session.jsonl")
+        prompt = _phase_b_prompt(
+            CACHE / "context-lean" / "haiku" / "runs" / f.task / "N" / "session.jsonl"
+        )
         if path.exists() and prompt:
             out.append({"unit": f"lean/{f.task}", "split": "dev", "path": path,
                         "prompt": prompt, "needed": {"token": f.token}})  # fmt: skip
@@ -119,7 +122,8 @@ def units() -> list[dict[str, Any]]:
         if path.exists():
             out.append({"unit": f"guard/{task}", "split": "test", "path": path,
                         "prompt": guard_run.PROMPT_B,
-                        "needed": {"token": f["token"], "probe": f["probe_code"], "tolerance": f["tolerance"]}})  # fmt: skip
+                        "needed": {"token": f["token"], "probe": f["probe_code"],
+                                   "tolerance": f["tolerance"]}})  # fmt: skip
     return out
 
 
@@ -133,11 +137,14 @@ def shifted(unit: dict[str, Any], history: list[Call]) -> tuple[list[Call], dict
         needed = {**needed, "probe": code, "tolerance": unit["needed"]["tolerance"]}
 
     def rewrite(text: str) -> str:
-        text = text.replace("release token: " + unit["needed"]["token"], "identificador de publicacion: " + token)
+        text = text.replace(
+            "release token: " + unit["needed"]["token"], "identificador de publicacion: " + token
+        )
         text = text.replace(unit["needed"]["token"], token)
         if "probe" in unit["needed"]:
-            text = PROBE_LINE.sub(lambda m: f"La sonda se desvio {m.group(1)}, por encima del margen "
-                                  f"{m.group(2)} (referencia {code})", text)  # fmt: skip
+            text = PROBE_LINE.sub(
+                lambda m: f"La sonda se desvio {m.group(1)}, por encima del margen "
+                          f"{m.group(2)} (referencia {code})", text)  # fmt: skip
             text = text.replace(unit["needed"]["probe"], code)
         return text.replace("FAIL", "MAL")
 
@@ -196,10 +203,15 @@ def rule_at(history: list[Call], prompt: str, budget: int) -> tuple[guard.Fact, 
     return guard.choose(guard.candidates(history, guard.focus_of([prompt])), budget)
 
 
-def free_arms(history: list[Call], prompt: str, pieces: list[guard.Fact]) -> dict[str, dict[int, str]]:
+def free_arms(
+    history: list[Call], prompt: str, pieces: list[guard.Fact]
+) -> dict[str, dict[int, str]]:
     recent = sorted(pieces, key=lambda f: (-f.call, -f.rank))
     scores = bm25_scores(prompt, [f.line for f in pieces])
-    bm25 = [pieces[i] for i in sorted(range(len(pieces)), key=lambda i: (-scores[i], -pieces[i].call))]
+    bm25 = [
+        pieces[i]
+        for i in sorted(range(len(pieces)), key=lambda i: (-scores[i], -pieces[i].call))
+    ]
     return {
         "recent": {b: text_of(guard._fit(recent, b)) for b in BUDGETS},
         "bm25": {b: text_of(guard._fit(bm25, b)) for b in BUDGETS},
@@ -208,7 +220,8 @@ def free_arms(history: list[Call], prompt: str, pieces: list[guard.Fact]) -> dic
 
 
 def decided_arms(history: list[Call], prompt: str, pieces: list[guard.Fact],
-                 verdicts: Sequence[tuple[bool, float | None]] | None) -> dict[str, dict[int, str]]:  # fmt: skip
+                 verdicts: Sequence[tuple[bool, float | None]] | None
+                 ) -> dict[str, dict[int, str]]:  # fmt: skip
     out: dict[str, dict[int, str]] = {"judge": {}, "cascade": {}}
     for b in BUDGETS:
         judged: list[guard.Fact] = []
@@ -217,7 +230,9 @@ def decided_arms(history: list[Call], prompt: str, pieces: list[guard.Fact],
             judged = [pieces[i] for _, i in sorted(kept, key=lambda x: (-x[0], -pieces[x[1]].call))]
         out["judge"][b] = text_of(guard._fit(judged, b))
         rule_lines = frozenset(f.line for f in rule_at(history, prompt, b))
-        out["cascade"][b] = text_of(guard._fit(guard.cascade_order(pieces, rule_lines, verdicts), b))
+        out["cascade"][b] = text_of(
+            guard._fit(guard.cascade_order(pieces, rule_lines, verdicts), b)
+        )
     return out
 
 
@@ -225,8 +240,10 @@ def summarize(rows: list[dict[str, Any]], arms: Sequence[str]) -> dict[str, Any]
     out: dict[str, Any] = {}
     for condition in CONDITIONS:
         for split in ("test", "dev", "all"):
-            part = [r for r in rows if r["condition"] == condition and (split == "all" or r["split"] == split)
-                    and r.get("decided", True) is not False]  # rows past an exhausted cap are not scored
+            part = [r for r in rows if r["condition"] == condition
+                    and (split == "all" or r["split"] == split)
+                    # rows past an exhausted cap are not scored
+                    and r.get("decided", True) is not False]
             block: dict[str, Any] = {"units": len(part)}
             for arm in arms:
                 for b in BUDGETS:
@@ -287,14 +304,20 @@ def run(mode: str, replay: bool, env_file: Path | None, cap: float) -> dict[str,
                 rows.append({"unit": unit["unit"], "split": unit["split"], "condition": condition,
                              "pieces": len(pieces),
                              "decided": (not squire.exhausted) if squire is not None else None,
-                             **{arm: {str(b): score(needed, t[b]) for b in BUDGETS} for arm, t in texts.items()}})  # fmt: skip
+                             **{arm: {str(b): score(needed, t[b]) for b in BUDGETS}
+                                for arm, t in texts.items()}})  # fmt: skip
 
     asyncio.run(go())
     arms = ("recent", "bm25", "rule") + (("judge", "cascade") if squire is not None else ())
     report: dict[str, Any] = {"mode": "replay" if replay else mode, "rows": rows,
-                              "summary": summarize(rows, arms), "decider_failures": failures}  # fmt: skip
+                              "summary": summarize(rows, arms),
+                              "decider_failures": failures}  # fmt: skip
     if squire is not None:
-        report = {**report, "jev_usd": round(squire.meter.cost_usd, 6), "exhausted": squire.exhausted}
+        report = {
+            **report,
+            "jev_usd": round(squire.meter.cost_usd, 6),
+            "exhausted": squire.exhausted,
+        }
     return report
 
 

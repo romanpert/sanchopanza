@@ -124,7 +124,9 @@ def share(k: int, n: int) -> dict[str, Any]:
     return {"k": k, "n": n, "share": round(k / n, 3) if n else None}
 
 
-def boot_diff(rows: Sequence[Mapping[str, Any]], a: str, b: str, seed: int = 20260929) -> list[float]:
+def boot_diff(
+    rows: Sequence[Mapping[str, Any]], a: str, b: str, seed: int = 20260929
+) -> list[float]:
     units = sorted({r["unit"] for r in rows})
     groups = {u: [r for r in rows if r["unit"] == u] for u in units}
     rng = random.Random(seed)
