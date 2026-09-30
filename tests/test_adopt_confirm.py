@@ -198,5 +198,25 @@ def test_nothing_but_b_is_read_without_the_seal(monkeypatch: pytest.MonkeyPatch,
 
 
 def test_held_lists_come_from_the_sealed_selections() -> None:
-    assert len(confirm.held("chains")) == 8 and len(confirm.held("related")) == 5
+    assert len(confirm.held("chains", valid_only=False)) == 8
+    assert len(confirm.held("related", valid_only=False)) == 5
     assert len(confirm.held("singles")) == 26
+
+
+def test_the_chains_margin_is_five_percent_of_their_bugs_and_at_least_one() -> None:
+    assert confirm.margin(65) == 3 and confirm.margin(45) == 2 and confirm.margin(15) == 1
+    assert confirm.margin(5) == 1
+
+
+def test_memory_counts_prompt_and_touch_injections_apart(tmp_path: pathlib.Path) -> None:
+    events = [{"event": "UserPromptSubmit", "shown": ["r1"], "chars": 100},
+              {"event": "UserPromptSubmit", "shown": [], "chars": 0},
+              {"event": "PostToolUse", "shown": ["r1", "r2"], "path": "a.py", "chars": 300},
+              {"event": "PostToolUse", "shown": []},
+              {"event": "Stop", "written": ["x"]}]  # fmt: skip
+    (tmp_path / "memory.jsonl").write_text("\n".join(json.dumps(e) for e in events) + "\n",
+                                           encoding="utf-8")  # fmt: skip
+    out = confirm.memory_log(tmp_path)
+    assert (out["memory_prompts"], out["memory_injected"], out["memory_records"]) == (2, 1, 1)
+    assert (out["memory_touch_given"], out["memory_touch_records"],
+            out["memory_touch_chars"]) == (1, 2, 300)  # fmt: skip

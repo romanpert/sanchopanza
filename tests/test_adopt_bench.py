@@ -151,3 +151,31 @@ def test_install_files_the_agent_emptied_are_restored_and_named(tmp_path: pathli
     (work / ".claude" / "skills" / "s" / "SKILL.md").unlink()
     assert run.restore_install(work, evidence) == [".claude/skills/s/SKILL.md", ".mcp.json"]
     assert (work / ".mcp.json").read_text(encoding="utf-8") == '{"mcpServers": {}}'
+
+
+def test_the_frozen_copy_is_named_in_every_row(tmp_path: pathlib.Path, monkeypatch) -> None:  # noqa: ANN001
+    exe = tmp_path / "frozen" / "abc" / "Scripts" / "sanchopanza.exe"
+    exe.parent.mkdir(parents=True)
+    monkeypatch.setattr(run, "SANCHO", exe)
+    assert run.frozen_stamp() is None and run.provenance()["frozen"] is None
+    (exe.parents[1] / "stamp.json").write_text('{"commit": "abc", "version": "0.3.0"}',
+                                               encoding="utf-8")  # fmt: skip
+    assert run.provenance() == {"exe": str(exe), "frozen": {"commit": "abc", "version": "0.3.0"}}
+
+
+masking = _load("adopt_masking", "masking.py")
+
+
+def test_maskers_are_found_by_bisection_and_a_broken_bug_is_its_own_culprit() -> None:
+    # bug 0 passes only when bug 5 is fixed with it
+    calls: list[list[int]] = []
+
+    def passes(i: int, fixed: list[int]) -> bool:
+        calls.append(fixed)
+        return 5 in fixed
+
+    assert masking.maskers(0, list(range(1, 9)), passes) == [5]
+    assert len(calls) <= 5  # all, then halves: log2(8) + 1
+    assert masking.maskers(0, [1, 2, 3], lambda i, fixed: False) == [0]  # broken on its own
+    # needs 2 and 7 together: the halves both fail, the group is kept whole
+    assert masking.maskers(0, [2, 7], lambda i, fixed: {2, 7} <= set(fixed)) == [2, 7]

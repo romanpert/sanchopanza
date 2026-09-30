@@ -31,6 +31,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import docker_env  # noqa: E402
+import long  # noqa: E402
+import masking  # noqa: E402
 import related  # noqa: E402
 from chains import CACHE, files_of, full  # noqa: E402
 
@@ -77,7 +79,8 @@ def check(chain: dict[str, Any], bugs: list[dict[str, Any]]) -> tuple[list[dict]
 def swap(chain: dict[str, Any], bugs: list[dict], index: int, tried: set[str]) -> bool:
     rest = [b for j, b in enumerate(bugs) if j != index]
     linked = chain.get("kind") == "related"
-    of = related.code_files if linked else (lambda row: files_of(row["patch"]))
+    loose = chain.get("kind") == "long"  # long chains (long.py) may share files
+    of = related.code_files if linked or loose else (lambda row: files_of(row["patch"]))
     files = set().union(*(of(b) for b in rest))
     tests = {t for b in rest for t in b["FAIL_TO_PASS"]}
     for spare in chain["spares"]:
@@ -85,9 +88,9 @@ def swap(chain: dict[str, Any], bugs: list[dict], index: int, tried: set[str]) -
             continue
         tried.add(spare["instance_id"])
         shares = bool(of(spare) & files)
-        if shares != linked or set(spare["FAIL_TO_PASS"]) & tests:
+        if (not loose and shares != linked) or set(spare["FAIL_TO_PASS"]) & tests:
             continue
-        if linked and any(related.overlaps(related.spans(spare["patch"]),
+        if (linked or loose) and any(related.overlaps(related.spans(spare["patch"]),
                                            related.spans(b["patch"])) for b in rest):  # fmt: skip
             continue
         bugs[index] = spare
@@ -106,8 +109,17 @@ def validate(chain: dict[str, Any]) -> dict[str, Any]:
         history.append([r["instance_id"] + (" ok" if r["valid"] else " INVALID") for r in records])
         if not bad:
             break
-        if not all(swap(chain, bugs, i, tried) for i in bad):
+        # Replace the culprits, not the victims: a bug that breaks a path every test goes
+        # through failed its neighbours too (conan, dvc), and swapping those lost good bugs and
+        # kept it. `masking.culprits` names it, or the failing bug itself when nothing does.
+        out = masking.culprits(tag_of(chain["chain"]), bugs, bad)
+        history.append([f"replace {masking.short(bugs[k])}" for k in out])
+        # Swaps on a copy, kept only when every culprit found a spare: a partial swap left the
+        # stored bugs out of step with the records of the bake they came from (conan-2, rel-1).
+        trial = list(bugs)
+        if not all(swap(chain, trial, i, tried) for i in out):
             break
+        bugs = trial
     valid = not bad
     for bug, record in zip(bugs, records, strict=True):
         bug["PASS_TO_PASS_STAR"] = record.pop("PASS_TO_PASS_STAR")
@@ -162,7 +174,7 @@ def _locked(lock: Path, wait_s: float = 120.0) -> Iterator[None]:
 
 def main() -> int:
     wanted = sys.argv[1]
-    chains = [*full(), *related.full()]
+    chains = [*full(), *related.full(), *long.full()]
     for chain in chains:
         if wanted not in ("all", chain["chain"]):
             continue

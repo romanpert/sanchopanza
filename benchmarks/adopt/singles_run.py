@@ -100,6 +100,7 @@ def one(row: dict[str, Any], arm: str, model: str, ceiling: float, keyfile: Path
         shutil.copy(transcript, evidence / "transcript.jsonl")
     (evidence / "row.json").write_text(json.dumps({"instance": name, "arm": arm, "model": model,
                                                    "base": base, "jev_usd": run.jev_usd(evidence),
+                                                   "sanchopanza": run.provenance(),
                                                    "calls": [call]}, indent=1),
                                        encoding="utf-8")  # fmt: skip
 
@@ -152,6 +153,8 @@ def main(argv: list[str] | None = None) -> int:
         encoding="utf-8")) if r["split"] == "held"}  # fmt: skip
     if held & set(ids) and not run.sealed():
         raise SystemExit("held-out singles run only once the confirmation is sealed")
+    if held & set(ids) and run.frozen_stamp() is None:
+        raise SystemExit("held-out singles run a frozen sanchopanza: set ADOPT_SANCHO")
     with run._lock:
         run._ledger["spent"] = run.spent_so_far() + spent_singles()
     keyfile = run.keyfile_from_indagis()

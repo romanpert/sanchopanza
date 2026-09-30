@@ -20,7 +20,8 @@ import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-SANCHO = str(REPO / ".venv" / "Scripts" / "sanchopanza.exe")
+# The runner passes the sanchopanza it installed (a frozen copy for held-out tasks).
+SANCHO = os.environ.get("ADOPT_SANCHO") or str(REPO / ".venv" / "Scripts" / "sanchopanza.exe")
 SESSION_MAX_USD = "0.10"  # Jev, per Claude Code session
 
 

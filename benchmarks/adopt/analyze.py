@@ -31,21 +31,28 @@ def denials(evidence: Path) -> int:
 
 
 def memory_log(evidence: Path) -> dict[str, Any]:
-    """What memory gave each request: prompts with records injected, records, characters."""
+    """What memory gave: on prompts (records injected when a request arrives) and on touch
+    (memory v3: records given when the agent opens or edits a file an earlier session changed,
+    logged as `PostToolUse` events with `shown`)."""
     path = evidence / "memory.jsonl"
     out: dict[str, Any] = {"memory_prompts": 0, "memory_injected": 0, "memory_records": 0,
-                           "memory_chars": 0}  # fmt: skip
+                           "memory_chars": 0, "memory_touch_given": 0,
+                           "memory_touch_records": 0, "memory_touch_chars": 0}  # fmt: skip
     if not path.exists():
         return out
     for line in path.read_text(encoding="utf-8").splitlines():
         event = json.loads(line)
-        if event.get("event") != "UserPromptSubmit":
-            continue
-        out["memory_prompts"] += 1
         shown = event.get("shown") or []
-        out["memory_injected"] += bool(shown)
-        out["memory_records"] += len(shown)
-        out["memory_chars"] += int(event.get("chars") or 0)
+        chars = int(event.get("chars") or 0)
+        if event.get("event") == "UserPromptSubmit":
+            out = {**out, "memory_prompts": out["memory_prompts"] + 1,
+                   "memory_injected": out["memory_injected"] + bool(shown),
+                   "memory_records": out["memory_records"] + len(shown),
+                   "memory_chars": out["memory_chars"] + chars}  # fmt: skip
+        elif event.get("event") == "PostToolUse" and shown:
+            out = {**out, "memory_touch_given": out["memory_touch_given"] + 1,
+                   "memory_touch_records": out["memory_touch_records"] + len(shown),
+                   "memory_touch_chars": out["memory_touch_chars"] + chars}  # fmt: skip
     return out
 
 

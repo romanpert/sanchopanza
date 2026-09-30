@@ -50,7 +50,9 @@ sys.path.insert(0, str(HERE))
 import docker_env  # noqa: E402
 
 PYTHON = REPO / ".venv" / "Scripts" / "python.exe"
-SANCHO = REPO / ".venv" / "Scripts" / "sanchopanza.exe"
+# The sanchopanza the S arms install and run: the editable development one unless ADOPT_SANCHO
+# names a frozen copy (`freeze.py`), which held-out tasks require.
+SANCHO = Path(os.environ.get("ADOPT_SANCHO") or REPO / ".venv" / "Scripts" / "sanchopanza.exe")
 ROOT = Path.home() / ".cache" / "sanchopanza" / "adopt"
 RUNS = ROOT / "runs"
 WORK = ROOT / "work"
@@ -130,7 +132,7 @@ def child_env(tag: str, base: str) -> dict[str, str]:
     # Not the sanchopanza venv: its `python` (pytest 9, no project deps) was on the agents' PATH
     # in the pilot and they ran the tests locally against it. Hooks use absolute paths.
     path = os.pathsep.join([*(str(p) for p in shim()), env.get("PATH", "")])
-    return {**env, "PATH": path, "ADOPT_TAG": tag, "ADOPT_BASE": base}
+    return {**env, "PATH": path, "ADOPT_TAG": tag, "ADOPT_BASE": base, "ADOPT_SANCHO": str(SANCHO)}
 
 
 def install_sancho(
@@ -395,7 +397,7 @@ def one_chain(
             shutil.copy(found, evidence / f"transcript{suffix}.jsonl")
     row = {"chain": name, "arm": arm, "model": model, "base": base, "session": session,
            "wall_s": round(sum(r.get("wall_s") or 0.0 for r in rows), 1),
-           "jev_usd": jev_usd(evidence), "calls": rows}  # fmt: skip
+           "jev_usd": jev_usd(evidence), "sanchopanza": provenance(), "calls": rows}  # fmt: skip
     (evidence / "row.json").write_text(json.dumps(row, indent=1), encoding="utf-8")
 
 
@@ -426,6 +428,16 @@ def grade_chain(chain: dict[str, Any], arm: str, rep: int = 1) -> dict[str, Any]
 
 
 # ---- entry -----------------------------------------------------------------------------------
+
+
+def frozen_stamp() -> dict[str, Any] | None:
+    """The stamp of the frozen copy SANCHO belongs to, or None for the editable one."""
+    stamp = SANCHO.parents[1] / "stamp.json"
+    return json.loads(stamp.read_text(encoding="utf-8")) if stamp.exists() else None
+
+
+def provenance() -> dict[str, Any]:
+    return {"exe": str(SANCHO), "frozen": frozen_stamp()}
 
 
 def sealed() -> bool:
@@ -499,8 +511,12 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.ceiling <= 0:
         raise SystemExit("--ceiling is required and must be positive")
-    if any(known[n]["split"] == "held" for n in wanted) and not sealed():
-        raise SystemExit("held-out chains run only once the confirmation is sealed")
+    if any(known[n]["split"] == "held" for n in wanted):
+        if not sealed():
+            raise SystemExit("held-out chains run only once the confirmation is sealed")
+        if frozen_stamp() is None:
+            raise SystemExit("held-out chains run a frozen sanchopanza: set ADOPT_SANCHO to the "
+                             "path `freeze.py <commit>` prints")  # fmt: skip
     with _lock:
         _ledger["spent"] = spent_so_far()
     keyfile = keyfile_from_indagis()

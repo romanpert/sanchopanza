@@ -6,7 +6,10 @@ It becomes binding only when `prereg-confirm.sha256` exists (sealed with
 (`confirm.seal_holds`). Until then anything here may change, and each change is said in the dev
 log. After sealing, a change is an amendment written here, dated, before any verdict is read.
 
-Points still open in this draft are marked **OPEN**.
+Points still open in this draft are marked **OPEN**. **OPEN, the owner's decision of
+2026-09-30**: the memory arms (`Sm`, `Sf`) wait for memory v3 (indagis-72: v2 measured on 319
+real Claude Code sessions of SWE-chat, 2.6 % precision; v3 recalls a record when the agent opens
+or edits a file an earlier session changed). The seal names the commit of v3 it runs.
 
 ## The question
 
@@ -50,10 +53,15 @@ could be said of `sanchopanza install` as it ships. The singles (below) test the
   own, no swap; `pydantic__pydantic-long-1r1` INVALID combined (with the ten bugs in, one of pr_5869's
   two FAIL_TO_PASS already passes: a bug of pydantic-1 hides it), so the rule takes
   `pydantic__pydantic-long-2r1` (pydantic-2 + pydantic-rel-1), valid, 10 of 10.
-  **conan, 2026-09-30**: conan-1 INVALID by the sealed procedure (pr_13364, pr_13631 and
-  pr_15705: fixing the bug alone does not make its FAIL_TO_PASS pass; pr_13364's are
-  functional cmake tests), with no spare that fits; it leaves phase A as an invalid chain.
-  **OPEN**: the rest of conan and the other repositories.
+  **conan, 2026-09-30: all four chains INVALID** by the sealed procedure (conan-1: 3 of 5 bugs;
+  conan-2: 3 of 5, and 3 of 5 again after its swaps; conan-rel-1: 5 of 5; conan-rel-2: 3 of 5).
+  Checked by hand, not a harness fault: with pr_16289 alone undone its test still fails on
+  `'LocalAPI' object has no attribute 'editable_packages'`, another bug of the chain breaking a
+  path every `TestClient` test goes through. conan's bugs hide each other, so no conan chain
+  and no conan pair is used. (Found on the way: a swap that succeeded for one bad bug and not
+  the next left the stored bugs out of step with the bake's records; `validate.py` now swaps on
+  a copy, and conan-2 and conan-rel-1 were validated again with it, same verdict.)
+  **OPEN**: starlette, dvc, pygments-2, astroid.
 
 Every held-out chain is validated in Docker (`validate.py`, then `combined.py validate held`)
 before sealing, one repository at a time. Validation runs no session. Harness fixes it needed,
@@ -68,7 +76,7 @@ lines the grader reads). **OPEN**: validation results.
 |---|---|---|---|---|
 | B, development | `encode__starlette-long-1r1`: starlette-1, then starlette-rel-1 with pr_2041 swapped for its spare pr_2443 by the combining rule (pr_2041 overlaps pr_2141 and shares its six FAIL_TO_PASS); validated, 10 of 10 | N, Sm | Sonnet 5.5 (`claude-sonnet-5-5`, 1M window) | 25-30 USD |
 | C, confirmation stratum | the two combined held-out chains above | N, Sm | Sonnet 5.5 | 55-60 USD |
-| A, confirmation | 13 held-out chains: N, Sm. 5 held-out related chains: also Nf, Sf. 26 singles: N, S | as listed | Haiku 4.5 (`claude-haiku-4-5-20251001`) | ~105 USD |
+| A, confirmation | the held-out chains that validate (13 drawn; without conan, at most 9): N, Sm. The held-out related chains that validate (5 drawn; without conan, at most 3): also Nf, Sf. 26 singles: N, S | as listed | Haiku 4.5 (`claude-haiku-4-5-20251001`) | ~105 USD for all 13; less with fewer |
 
 One repetition per task and arm. Claude Code 2.1.285, `claude -p` on the subscription, the
 coordinating session's environment stripped (`run.child_env`); Jev `jev-1.13.0` for the decider.
@@ -114,8 +122,10 @@ Bootstrap: 10,000 paired resamples over tasks (over requests for exploration), s
 percentile 95 % intervals.
 
 - **H1 (non-inferior success).** The point difference decides, its paired interval is
-  reported. On the 13 chains, bugs resolved by `Sm` >= bugs resolved by `N` minus 3 (5 % of 65).
-  On the 5 related chains, `Sf` >= `Nf` minus 1 (of 25). On the singles, `S` >= `N` minus 2 (of
+  reported. Only chains that validated take part (`confirm.held`). On the chains, bugs resolved
+  by `Sm` >= bugs resolved by `N` minus 5 % of their bugs, rounded, at least one
+  (`confirm.margin`: 3 of 65, 2 of 45); on the related chains, `Sf` >= `Nf` minus the same share
+  of theirs. On the singles, `S` >= `N` minus 2 (of
   26). A task missing an arm leaves that H1 undecided, and says which.
 - **H2 (cheaper).** Over the chains where both arms are complete, the median of
   cost(`Sm`)/cost(`N`) is below 1 and its 95 % interval lies below 1: confirmed. Median below 1

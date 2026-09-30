@@ -120,6 +120,12 @@ def agent_diff(work: Path, base: str) -> str:
 
 
 FULL_SUITE_OVER = 1500  # more nodes than this: run the whole suite once and read them from it
+BATCH = 400  # nodes per pytest process when the whole suite in one process runs out of memory
+# Virtual memory per pytest process on that retry: a test a bug sends into a runaway gets a
+# MemoryError and fails as a test, instead of the kernel killing every test with it (astroid-1:
+# a batch of 400 was still killed at 36 %).
+MEMORY_KB = 6_000_000
+KILLED = 137  # the container's process killed (out of memory)
 
 
 def pytest(
@@ -128,21 +134,16 @@ def pytest(
     """node id -> outcome of `nodes` (None or too many: the whole suite) in `tag` with `patch`
     applied first, or reversed with `reverse` (an empty patch runs the image as it is). A patch
     that does not apply yields {"<patch>": "ERROR"}. `-p no:pretty`: pytest-pretty (pydantic)
-    replaces the `-rA` lines this reads with a table."""
+    replaces the `-rA` lines this reads with a table. A whole-suite run killed for memory
+    (astroid with its chain's bugs in, at 54 % and at 84 %) is run again over the nodes in
+    batches of `BATCH`, one pytest process each; other runs are as they were."""
     listed = bool(nodes) and len(nodes or []) <= FULL_SUITE_OVER
-    apply = "git apply -R" if reverse else "git apply"
     select = "xargs -a /io/nodes.txt -d '\\n' python -m pytest" if listed else "python -m pytest"
-    with tempfile.TemporaryDirectory() as io_dir:
-        folder = Path(io_dir)
-        (folder / "work.patch").write_bytes(patch.encode("utf-8"))
-        (folder / "nodes.txt").write_text("\n".join(nodes or []) + "\n", encoding="utf-8",
-                                          newline="\n")  # fmt: skip
-        script = (f"cd /testbed && {VENV}(test ! -s /io/work.patch || {apply} --whitespace=nowarn "
-                  "/io/work.patch || { echo PATCH_FAILED; exit 3; }) && "
-                  f"{select} -rA -p no:cacheprovider -p no:pretty --tb=no -q 2>&1")  # fmt: skip
-        done = docker("run", "--rm", "-v", f"{folder.as_posix()}:/io:ro", tag, "bash", "-lc",
-                      script, timeout=timeout)  # fmt: skip
-    text = done.stdout.decode("utf-8", "replace")
+    done, text = _run(tag, patch, nodes, select, reverse, timeout)
+    if not listed and nodes and done.returncode == KILLED:
+        batched = (f"ulimit -v {MEMORY_KB} && "
+                   f"xargs -a /io/nodes.txt -d '\\n' -n {BATCH} python -m pytest")
+        done, text = _run(tag, patch, nodes, batched, reverse, timeout)
     if "PATCH_FAILED" in text:
         return {"<patch>": "ERROR"}
     found = {node: status for status, node in RESULT.findall(text)}
@@ -154,6 +155,23 @@ def pytest(
         raise RuntimeError(f"pytest in {tag} gave no results (exit {done.returncode}): "
                            f"{text[-600:]} {err}")  # fmt: skip
     return found
+
+
+def _run(
+    tag: str, patch: str, nodes: list[str] | None, select: str, reverse: bool, timeout: int
+) -> tuple[subprocess.CompletedProcess, str]:
+    apply = "git apply -R" if reverse else "git apply"
+    with tempfile.TemporaryDirectory() as io_dir:
+        folder = Path(io_dir)
+        (folder / "work.patch").write_bytes(patch.encode("utf-8"))
+        (folder / "nodes.txt").write_text("\n".join(nodes or []) + "\n", encoding="utf-8",
+                                          newline="\n")  # fmt: skip
+        script = (f"cd /testbed && {VENV}(test ! -s /io/work.patch || {apply} --whitespace=nowarn "
+                  "/io/work.patch || { echo PATCH_FAILED; exit 3; }) && "
+                  f"{select} -rA -p no:cacheprovider -p no:pretty --tb=no -q 2>&1")  # fmt: skip
+        done = docker("run", "--rm", "-v", f"{folder.as_posix()}:/io:ro", tag, "bash", "-lc",
+                      script, timeout=timeout)  # fmt: skip
+    return done, done.stdout.decode("utf-8", "replace")
 
 
 def remove_tree(path: Path) -> None:

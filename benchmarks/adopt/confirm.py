@@ -35,6 +35,7 @@ from typing import Any
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
+from analyze import memory_log  # noqa: E402
 from run import MODELS, ROOT, RUNS  # noqa: E402
 
 REPO = HERE.parents[1]
@@ -47,7 +48,12 @@ SEED, RESAMPLES = 20261002, 10_000
 EDITS = ("Edit", "Write", "MultiEdit", "NotebookEdit")
 SHELLS = ("Bash", "PowerShell")
 RULE_COST, RULE_BUGS = 0.90, 1  # B -> run C, and C's "lever shown": Sm <= 0.90 of N, >= N - 1
-MARGIN = {"chains": 3, "related": 1, "singles": 2}  # H1: bugs the S arm may resolve fewer
+SINGLES_MARGIN = 2  # H1 on the 26 singles: bugs the S arm may resolve fewer
+
+
+def margin(bugs: int) -> int:
+    """H1 on chains: 5 % of the bugs of the valid chains, at least one (65 bugs: 3)."""
+    return max(1, round(0.05 * bugs))
 B_CHAIN = "encode__starlette-long-1r1"
 PHASE_MODEL = {"A": MODELS["haiku"], "B": MODELS["sonnet"], "C": MODELS["sonnet"]}
 CONTROL = {"Sm": "N", "Sf": "Nf", "S": "N"}
@@ -172,7 +178,7 @@ def arm_result(evidence: Path, model: str) -> dict[str, Any] | None:
                             if (evidence / f"stream-{k}.jsonl").exists()},
             "find_calls": tools.get("mcp__sanchopanza__find_in_repo", 0),
             "skill_calls": tools.get("Skill", 0),
-            "memory": memory_shown(evidence)}  # fmt: skip
+            "memory": memory_log(evidence)}  # fmt: skip
 
 
 def common_cost(treat: dict[str, Any], control: dict[str, Any]) -> tuple[float, float, list]:
@@ -181,18 +187,6 @@ def common_cost(treat: dict[str, Any], control: dict[str, Any]) -> tuple[float, 
     t = sum(treat["request_cost"][k] for k in both) + treat["jev"]
     c = sum(control["request_cost"][k] for k in both) + control["jev"]
     return t, c, both
-
-
-def memory_shown(evidence: Path) -> dict[str, int]:
-    path, out = evidence / "memory.jsonl", {"prompts": 0, "injected": 0, "records": 0}
-    if path.exists():
-        for line in path.read_text(encoding="utf-8").splitlines():
-            event = json.loads(line)
-            if event.get("event") == "UserPromptSubmit":
-                shown = event.get("shown") or []
-                out = {"prompts": out["prompts"] + 1, "injected": out["injected"] + bool(shown),
-                       "records": out["records"] + len(shown)}  # fmt: skip
-    return out
 
 
 def pairs_of(
@@ -312,13 +306,21 @@ def long_session(row: dict[str, Any] | None) -> dict[str, Any]:
             "common_requests": both, "complete": [t["complete"], c["complete"]]}  # fmt: skip
 
 
-def held(kind: str) -> list[str]:
+def held(kind: str, valid_only: bool = True) -> list[str]:
+    """The held-out tasks of `kind` in sealed order; chains only if they validated (an
+    invalid chain is not run: `run.py` skips it)."""
     if kind == "singles":
         rows = json.loads((HERE / "singles-selected.json").read_text(encoding="utf-8"))
         return [r["instance_id"] for r in rows if r["split"] == "held"]
     name = "related-selected.json" if kind == "related" else "chains-selected.json"
     chains = json.loads((HERE / name).read_text(encoding="utf-8"))["chains"]
-    return [c["chain"] for c in chains if c["split"] == "held"]
+    names = [c["chain"] for c in chains if c["split"] == "held"]
+    if not valid_only:
+        return names
+    import validate
+
+    done = validate.validated()
+    return [n for n in names if done.get(n, {}).get("valid")]
 
 
 def c_tasks() -> list[str]:
@@ -358,9 +360,9 @@ def phase_a() -> dict[str, Any]:
     rel, rel_missing = pairs_of(held("related"), "Sf", "Nf", RUNS, model)
     si, si_missing = pairs_of(held("singles"), "S", "N", SINGLES, model)
     found, shells = blocks_in(a_arms(), model)
-    h1 = {"chains": success(ch, MARGIN["chains"], ch_missing),
-          "related": success(rel, MARGIN["related"], rel_missing),
-          "singles": success(si, MARGIN["singles"], si_missing)}  # fmt: skip
+    h1 = {"chains": success(ch, margin(5 * len(ch + ch_missing)), ch_missing),
+          "related": success(rel, margin(5 * len(rel + rel_missing)), rel_missing),
+          "singles": success(si, SINGLES_MARGIN, si_missing)}  # fmt: skip
     h2, explore = cheaper(ch), explores_less(apart(rel)[0])
     return {"missing": {"chains": ch_missing, "related": rel_missing, "singles": si_missing},
             "H1": h1, "H2": h2, "H2_singles_reported": cheaper(si),
@@ -377,11 +379,9 @@ def decided(success_holds: bool | None, other: bool) -> bool | None:
 
 def adoption(rows: list[dict[str, Any]]) -> dict[str, int]:
     t = [r["treat"] for r in rows]
+    memory = {k: sum(x["memory"][k] for x in t) for k in (t[0]["memory"] if t else {})}
     return {"find_calls": sum(x["find_calls"] for x in t),
-            "skill_calls": sum(x["skill_calls"] for x in t),
-            "memory_prompts": sum(x["memory"]["prompts"] for x in t),
-            "memory_injected": sum(x["memory"]["injected"] for x in t),
-            "memory_records": sum(x["memory"]["records"] for x in t)}  # fmt: skip
+            "skill_calls": sum(x["skill_calls"] for x in t), **memory}  # fmt: skip
 
 
 # ---- the seal ------------------------------------------------------------------------------------

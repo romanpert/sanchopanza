@@ -768,5 +768,515 @@
     "p2p_star": 83
    }
   ]
+ },
+ "conan-io__conan-2": {
+  "valid": false,
+  "bugs": [
+   "conan-io__conan.86f29e13.pr_17582",
+   "conan-io__conan.86f29e13.pr_15312",
+   "conan-io__conan.86f29e13.pr_17647",
+   "conan-io__conan.86f29e13.pr_13270",
+   "conan-io__conan.86f29e13.pr_13267"
+  ],
+  "history": [
+   [
+    "conan-io__conan.86f29e13.pr_11788 INVALID",
+    "conan-io__conan.86f29e13.pr_15312 ok",
+    "conan-io__conan.86f29e13.pr_11921 INVALID",
+    "conan-io__conan.86f29e13.pr_13270 ok",
+    "conan-io__conan.86f29e13.pr_11114 INVALID"
+   ],
+   [
+    "conan-io__conan.86f29e13.pr_17582 INVALID",
+    "conan-io__conan.86f29e13.pr_15312 INVALID",
+    "conan-io__conan.86f29e13.pr_17647 ok",
+    "conan-io__conan.86f29e13.pr_13270 ok",
+    "conan-io__conan.86f29e13.pr_13267 INVALID"
+   ]
+  ],
+  "seconds": 638,
+  "records": [
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_17582",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_15312",
+    "valid": false,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 2,
+    "p2p_star": 5
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_17647",
+    "valid": true,
+    "f2p_failing_with_bugs": 4,
+    "f2p_passing_when_fixed": 4,
+    "f2p": 4,
+    "p2p_star": 4
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_13270",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 37
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_13267",
+    "valid": false,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 2,
+    "p2p_star": 0
+   }
+  ]
+ },
+ "conan-io__conan-rel-1": {
+  "valid": false,
+  "bugs": [
+   "conan-io__conan.86f29e13.pr_16289",
+   "conan-io__conan.86f29e13.pr_15368",
+   "conan-io__conan.86f29e13.pr_14526",
+   "conan-io__conan.86f29e13.pr_12243",
+   "conan-io__conan.86f29e13.pr_12913"
+  ],
+  "history": [
+   [
+    "conan-io__conan.86f29e13.pr_16289 INVALID",
+    "conan-io__conan.86f29e13.pr_15368 INVALID",
+    "conan-io__conan.86f29e13.pr_14526 INVALID",
+    "conan-io__conan.86f29e13.pr_12243 INVALID",
+    "conan-io__conan.86f29e13.pr_12913 INVALID"
+   ]
+  ],
+  "seconds": 76,
+  "records": [
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_16289",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 32
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_15368",
+    "valid": false,
+    "f2p_failing_with_bugs": 26,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 26,
+    "p2p_star": 288
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_14526",
+    "valid": false,
+    "f2p_failing_with_bugs": 8,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 8,
+    "p2p_star": 2
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_12243",
+    "valid": false,
+    "f2p_failing_with_bugs": 23,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 23,
+    "p2p_star": 7
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_12913",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   }
+  ]
+ },
+ "conan-io__conan-rel-2": {
+  "valid": false,
+  "bugs": [
+   "conan-io__conan.86f29e13.pr_14781",
+   "conan-io__conan.86f29e13.pr_11618",
+   "conan-io__conan.86f29e13.pr_17629",
+   "conan-io__conan.86f29e13.pr_13450",
+   "conan-io__conan.86f29e13.pr_16973"
+  ],
+  "history": [
+   [
+    "conan-io__conan.86f29e13.pr_13346 INVALID",
+    "conan-io__conan.86f29e13.pr_11618 INVALID",
+    "conan-io__conan.86f29e13.pr_17629 INVALID",
+    "conan-io__conan.86f29e13.pr_13450 ok",
+    "conan-io__conan.86f29e13.pr_16973 ok"
+   ]
+  ],
+  "seconds": 43,
+  "records": [
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_13346",
+    "valid": false,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 2,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_11618",
+    "valid": false,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 2,
+    "p2p_star": 1
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_17629",
+    "valid": false,
+    "f2p_failing_with_bugs": 4,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 4,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_13450",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 9
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_16973",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 9
+   }
+  ]
+ },
+ "encode__starlette-2": {
+  "valid": true,
+  "bugs": [
+   "encode__starlette.db5063c2.pr_2381",
+   "encode__starlette.db5063c2.pr_2406",
+   "encode__starlette.db5063c2.pr_2672",
+   "encode__starlette.db5063c2.pr_2362",
+   "encode__starlette.db5063c2.pr_2191"
+  ],
+  "history": [
+   [
+    "encode__starlette.db5063c2.pr_2381 ok",
+    "encode__starlette.db5063c2.pr_2406 ok",
+    "encode__starlette.db5063c2.pr_2672 ok",
+    "encode__starlette.db5063c2.pr_2362 ok",
+    "encode__starlette.db5063c2.pr_2191 ok"
+   ]
+  ],
+  "seconds": 80,
+  "records": [
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2381",
+    "valid": true,
+    "f2p_failing_with_bugs": 6,
+    "f2p_passing_when_fixed": 6,
+    "f2p": 6,
+    "p2p_star": 777
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2406",
+    "valid": true,
+    "f2p_failing_with_bugs": 32,
+    "f2p_passing_when_fixed": 32,
+    "f2p": 32,
+    "p2p_star": 777
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2672",
+    "valid": true,
+    "f2p_failing_with_bugs": 4,
+    "f2p_passing_when_fixed": 4,
+    "f2p": 4,
+    "p2p_star": 777
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2362",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 777
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2191",
+    "valid": true,
+    "f2p_failing_with_bugs": 20,
+    "f2p_passing_when_fixed": 20,
+    "f2p": 20,
+    "p2p_star": 777
+   }
+  ]
+ },
+ "encode__starlette-rel-2": {
+  "valid": true,
+  "bugs": [
+   "encode__starlette.db5063c2.pr_2351",
+   "encode__starlette.db5063c2.pr_2352",
+   "encode__starlette.db5063c2.pr_2366",
+   "encode__starlette.db5063c2.pr_2703",
+   "encode__starlette.db5063c2.pr_2264"
+  ],
+  "history": [
+   [
+    "encode__starlette.db5063c2.pr_2351 ok",
+    "encode__starlette.db5063c2.pr_2352 ok",
+    "encode__starlette.db5063c2.pr_2366 ok",
+    "encode__starlette.db5063c2.pr_2703 ok",
+    "encode__starlette.db5063c2.pr_2264 ok"
+   ]
+  ],
+  "seconds": 91,
+  "records": [
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2351",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 828
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2352",
+    "valid": true,
+    "f2p_failing_with_bugs": 6,
+    "f2p_passing_when_fixed": 6,
+    "f2p": 6,
+    "p2p_star": 828
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2366",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 828
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2703",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 828
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2264",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 828
+   }
+  ]
+ },
+ "iterative__dvc-1": {
+  "valid": false,
+  "bugs": [
+   "iterative__dvc.1d6ea681.pr_9827",
+   "iterative__dvc.1d6ea681.pr_8947",
+   "iterative__dvc.1d6ea681.pr_7803",
+   "iterative__dvc.1d6ea681.pr_9250",
+   "iterative__dvc.1d6ea681.pr_8690"
+  ],
+  "history": [
+   [
+    "iterative__dvc.1d6ea681.pr_9827 ok",
+    "iterative__dvc.1d6ea681.pr_8947 INVALID",
+    "iterative__dvc.1d6ea681.pr_7803 INVALID",
+    "iterative__dvc.1d6ea681.pr_9250 INVALID",
+    "iterative__dvc.1d6ea681.pr_8690 INVALID"
+   ]
+  ],
+  "seconds": 301,
+  "records": [
+   {
+    "instance_id": "iterative__dvc.1d6ea681.pr_9827",
+    "valid": true,
+    "f2p_failing_with_bugs": 4,
+    "f2p_passing_when_fixed": 4,
+    "f2p": 4,
+    "p2p_star": 68
+   },
+   {
+    "instance_id": "iterative__dvc.1d6ea681.pr_8947",
+    "valid": false,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 3,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "iterative__dvc.1d6ea681.pr_7803",
+    "valid": false,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 2,
+    "p2p_star": 1
+   },
+   {
+    "instance_id": "iterative__dvc.1d6ea681.pr_9250",
+    "valid": false,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 2,
+    "p2p_star": 2
+   },
+   {
+    "instance_id": "iterative__dvc.1d6ea681.pr_8690",
+    "valid": false,
+    "f2p_failing_with_bugs": 13,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 13,
+    "p2p_star": 44
+   }
+  ]
+ },
+ "iterative__dvc-rel-1": {
+  "valid": false,
+  "bugs": [
+   "iterative__dvc.1d6ea681.pr_9277",
+   "iterative__dvc.1d6ea681.pr_9261",
+   "iterative__dvc.1d6ea681.pr_9825",
+   "iterative__dvc.1d6ea681.pr_9298",
+   "iterative__dvc.1d6ea681.pr_10240"
+  ],
+  "history": [
+   [
+    "iterative__dvc.1d6ea681.pr_9277 ok",
+    "iterative__dvc.1d6ea681.pr_10303 INVALID",
+    "iterative__dvc.1d6ea681.pr_9354 INVALID",
+    "iterative__dvc.1d6ea681.pr_9298 ok",
+    "iterative__dvc.1d6ea681.pr_10240 ok"
+   ],
+   [
+    "iterative__dvc.1d6ea681.pr_9277 ok",
+    "iterative__dvc.1d6ea681.pr_9261 INVALID",
+    "iterative__dvc.1d6ea681.pr_9825 INVALID",
+    "iterative__dvc.1d6ea681.pr_9298 INVALID",
+    "iterative__dvc.1d6ea681.pr_10240 ok"
+   ]
+  ],
+  "seconds": 208,
+  "records": [
+   {
+    "instance_id": "iterative__dvc.1d6ea681.pr_9277",
+    "valid": true,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 3,
+    "p2p_star": 2
+   },
+   {
+    "instance_id": "iterative__dvc.1d6ea681.pr_9261",
+    "valid": false,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 2,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "iterative__dvc.1d6ea681.pr_9825",
+    "valid": false,
+    "f2p_failing_with_bugs": 18,
+    "f2p_passing_when_fixed": 9,
+    "f2p": 18,
+    "p2p_star": 5
+   },
+   {
+    "instance_id": "iterative__dvc.1d6ea681.pr_9298",
+    "valid": false,
+    "f2p_failing_with_bugs": 4,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 4,
+    "p2p_star": 69
+   },
+   {
+    "instance_id": "iterative__dvc.1d6ea681.pr_10240",
+    "valid": true,
+    "f2p_failing_with_bugs": 15,
+    "f2p_passing_when_fixed": 15,
+    "f2p": 15,
+    "p2p_star": 44
+   }
+  ]
+ },
+ "pygments__pygments-2": {
+  "valid": true,
+  "bugs": [
+   "pygments__pygments.27649ebb.pr_2367",
+   "pygments__pygments.27649ebb.pr_2712",
+   "pygments__pygments.27649ebb.pr_2383",
+   "pygments__pygments.27649ebb.pr_2740",
+   "pygments__pygments.27649ebb.pr_2449"
+  ],
+  "history": [
+   [
+    "pygments__pygments.27649ebb.pr_2367 ok",
+    "pygments__pygments.27649ebb.pr_2712 ok",
+    "pygments__pygments.27649ebb.pr_2383 ok",
+    "pygments__pygments.27649ebb.pr_2740 ok",
+    "pygments__pygments.27649ebb.pr_2449 ok"
+   ]
+  ],
+  "seconds": 178,
+  "records": [
+   {
+    "instance_id": "pygments__pygments.27649ebb.pr_2367",
+    "valid": true,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 3,
+    "p2p_star": 5041
+   },
+   {
+    "instance_id": "pygments__pygments.27649ebb.pr_2712",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5041
+   },
+   {
+    "instance_id": "pygments__pygments.27649ebb.pr_2383",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5041
+   },
+   {
+    "instance_id": "pygments__pygments.27649ebb.pr_2740",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5041
+   },
+   {
+    "instance_id": "pygments__pygments.27649ebb.pr_2449",
+    "valid": true,
+    "f2p_failing_with_bugs": 13,
+    "f2p_passing_when_fixed": 13,
+    "f2p": 13,
+    "p2p_star": 5041
+   }
+  ]
  }
 }
