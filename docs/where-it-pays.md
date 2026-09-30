@@ -288,7 +288,7 @@ six** and every policy error a refusal to act **[M]**. A confidence gate earns i
 it is the only gate and the point wants an abstention band - the citation verdict, the entity
 band, the edge check - and nowhere else.
 
-The same holds for a Choice, rescaled: across 7,162 recorded Choice answers,
+The same holds for a Choice, rescaled: across 11,595 recorded Choice answers,
 `confidence = (p_top - 1/k) / (1 - 1/k)` to within 0.022, the rounding of the reported
 probabilities **[M]** (`docs/results/2026-09-27-edge-facts/`). So a confidence gate on a
 Choice is a cut on the top probability that depends on the number of options, and it is one

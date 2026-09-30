@@ -1736,7 +1736,7 @@ Each is enforced in code or in a test.
    instruction-following reranker and a plain cross-encoder, with more exclusion criteria.
 6. **The `other` option in closed vocabularies**: abstention with and without it on the
    register cases (about 0.005 USD). For a Choice the confidence is the rescaled top
-   probability, `(p_top - 1/k) / (1 - 1/k)`, within 0.022 over 7,162 answers, so one gate
+   probability, `(p_top - 1/k) / (1 - 1/k)`, within 0.022 over 11,595 answers, so one gate
    serves every option alike; a lower gate for `unrelated`, which triggers nothing, did not
    pay on the fifth batch (Section 5.17), and the fact relation's errors remain as documented.
 7. **Harvested, multilingual, encoded and multi-page injections**, and payloads that read

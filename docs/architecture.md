@@ -232,7 +232,7 @@ selection cuts (`docs/benches.md`, "The rule"). The rule: 50 cases per point and
 annotator first.
 
 For a Truth answer `confidence = |2p - 1|`, and for a Choice answer over k options
-`confidence = (p_top - 1/k) / (1 - 1/k)` to within 0.022 across 7,162 recorded answers
+`confidence = (p_top - 1/k) / (1 - 1/k)` to within 0.022 across 11,595 recorded answers
 (`docs/results/2026-09-27-edge-facts/`). In both cases the confidence is the probability
 rescaled, so a policy gates each answer on one number.
 
