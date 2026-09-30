@@ -29,6 +29,9 @@ The runs behind the README's headline numbers.
 | [2026-09-29-find](2026-09-29-find/) | Repository search on 117 SWE-bench Verified issues (`prereg.md`), 3 of 3 hypotheses hold: a gold file first in 51.3 % and in the top five in 65.0 %, against 13.7 % and 35.0 % for whole-file BM25, at 0.0016 USD per issue |
 | [2026-09-29-context-guard](2026-09-29-context-guard/) | The compaction guard next to Claude Code's summary (`prereg.md`, A2-A3; Haiku 4.5, 7 tasks whose facts could reach the model): 2/7 finished with the summary alone, 5/7 with the free rule, 6/7 with the decider cascade (McNemar p = 0.375); H3 fails on a re-readable control. Offline, the cascade kept every needed value in 28/28 on four conditions where BM25 fell to 0/28 once values were reworded; the first decider questions had read ~95 characters of the request |
 | [2026-09-29-candor](2026-09-29-candor/) (round 3) | v3 on 176 new sessions (`prereg-3.md`), 5 of 7 hypotheses hold: 95.3 % of misstated reports stopped, 0 of 126 honest sessions, Jev AUC 0.973 against Haiku's 0.666 |
+| [2026-09-29-candor](2026-09-29-candor/) (round 5) | v6 on four new tasks (`prereg-5.md`), 4 of 6 hypotheses hold: 0/39 honest sessions and 62/63 misstatements locked; the review tier caught 23 of 29 real misreports. K3 (U1 lock 4/6) and K4 (review 6/11) fail |
+| [2026-09-30-candor-inputs](2026-09-30-candor-inputs/) | v6 on held-out SWE-chat (`prereg-inputs.md`): 32 `substituted_input` flags against v5's 721, locks on 1.8 % of turns against 18 % (O1 holds); no real substitution among 200 read, so O2 has no verdict and O3 fails |
+| [2026-09-30-opus55-substitution](2026-09-30-opus55-substitution/) | The 211 substitution judgments against Claude Opus 5.5: a tie (200 against 199) at about 99x less per judgment |
 
 ## The negatives the README reports with the same weight
 
@@ -48,6 +51,9 @@ The runs behind the README's headline numbers.
 | [2026-09-28-context-lean](2026-09-28-context-lean/) | This iteration's main negative. Inside Claude Code, with auto-compaction firing mid-task (Haiku 4.5, 7 tasks, pre-registered): native summary 5/7, lean masking 3/7, clearing without an archive 0/6; masking used more input tokens (10.46M against 8.73M) at the same dollars; the agent never called `search_archive`. Offline, index stubs held a needed token for 12.0 % of needed masked results (bar 50 %). Sonnet 5 (partial, spend gate): masking thrashed, five compactions and 2.04 USD on one task |
 | [2026-09-28-context](2026-09-28-context/) | Asking a decider what the rest of a coding session will need is at chance (AUC 0.53-0.61); the arrival cut saved 3.7 % and did not beat head+tail; recall with the decider matched BM25 top 3 |
 | [2026-09-28-memory-gate](2026-09-28-memory-gate/) | A decider gate over memory files missed its recall criteria against BM25 top 3 on LongMemEval; at equal text, not distinguishable from BM25 over sentences |
+| [2026-09-30-find-e2e](2026-09-30-find-e2e/) | `find_in_repo` offered to a Haiku agent on 27 SWE-bench issues (`prereg-find-e2e.md`): called in 6 of 27 sessions; first-file hits 17 against 16, same cost (E1 and E2 fail, E3 holds) |
+| [2026-09-30-clm-cpu](2026-09-30-clm-cpu/) | CLM-8B zero-shot on a CPU encoder against Jev on the benches: runs end to end, agrees far less (injection 12/28 against 27/28) and does not separate the classes |
+| [2026-09-30-indagis-scene](2026-09-30-indagis-scene/) | A real Indagis fix, three sessions a side (`prereg-scene.md`): same cost, solo 3/3 against 2/3; candor caught one false read claim and raised two locks on a false reason, one of them on a correct fix; its lock is one file per machine |
 
 ## Corrected: headline invalid
 

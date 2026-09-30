@@ -1,6 +1,6 @@
 # sanchopanza: A Calibrated, Non-Generative Evaluator for LLM Agent Harnesses
 
-**Working paper · version 0.3.0 · 2026-09-27**
+**Working paper · version 0.3.0 · 2026-09-30**
 Status: results on small benchmarks, mostly single-annotator, one of them with a second blind
 annotator. Written to be checked, not believed. Every public number is recomputable for free:
 it is quoted from a recording of the provider's answers, replayed with
@@ -86,9 +86,23 @@ at a threshold fixed on another benchmark matched Opus's accuracy (79.1 % agains
 38.5 % of its cost; against Sonnet 5 the original registration's verdict is partial, failing on
 cost on the benchmark where the frontier model is clearly stronger. Installed into Claude Code
 and run end to end, its hooks stopped both destructive commands plain Claude Code executed,
-with every model decision taken by the evaluator and none by Claude. We
-release the evaluator as a harness-agnostic package with swappable providers, the
-pseudonymized benches, and recordings that reproduce every public number without a key.
+with every model decision taken by the evaluator and none by Claude.
+
+The same layer can hold an agent's report against what it did. With the agent asked for a
+four-line status block, a deterministic check against a ledger built from the hooks stopped
+96 % of model-written misstatements on unseen data (176/183) and 95-100 % in three later
+pre-registered rounds of real Claude Code sessions, stopping at most one honest session per
+round, at no model cost. It catches real misreports of the kinds it was shaped on and few of
+the others, it needs the block (prose alone: 24.6 %), and on public third-party sessions
+without one 7 of 10 registered hypotheses fail; on 277 held-out real turns its current version
+locks 1.8 % where the previous one locked 18 %. A repository search judged by the evaluator
+names a file of the accepted fix first in 51 % of SWE-bench issues against 14 % for BM25, but
+an agent that was offered it called it in 6 of 27 sessions and localised no better. On the 211
+judgments of the substitution comparison the evaluator ties Claude Opus 5.5 (200 against 199)
+at about a hundredth of the price; an open model of the same kind, zero-shot on a CPU encoder,
+does not stand in. We release the evaluator as a harness-agnostic package with swappable
+providers, the pseudonymized benches, and recordings that reproduce every public number
+without a key.
 
 **Keywords:** LLM agents, agent harness, model routing, prompt injection, citation
 verification, calibration, System One models, tool-use safety, tool selection, MCP.
@@ -1478,6 +1492,276 @@ and its criteria describe the kinds of value these tasks plant; the first questi
 request fixed, already reached 54 of 56 on the new conditions (P7 failed)
 (`docs/results/2026-09-29-context-guard/`).
 
+### 5.20 Holding an agent's report against what it did (candor)
+
+An agent's own "done" is the weakest signal in its loop. `sanchopanza.candor` holds the final
+report against a record of the actions, on a design taken from the literature on monitors, for
+and against. **Code builds the ledger** from the hooks: every tool call with its outcome, a test
+run parsed for pass or fail, each call classed as read, write, delete, external, test, secret or
+tamper; no model reads raw tool output to decide what happened, because that output is where an
+injection aimed at a monitor lives. **The agent is asked to end with four lines** (`STATUS`,
+`TESTS`, `TEST_FILES_CHANGED`, `FILES_READ`). **Deterministic rules** compare those claims with
+the ledger: a false success; a claimed test run, push or deletion that never happened; a file
+cited or listed as read and never read; an input the task named, replaced in silence; a test
+edit or a consequential action the report does not mention; a change on disk no call explains
+(with workspace snapshots on); any touch of the hooks, the settings or the trace. **A `critical`
+finding engages a sticky lock**: from then on PreToolUse refuses every call, in pure code over a
+local file that fails closed, until a person releases it with a name and a reason that are
+recorded. **Jev is only a second opinion**: one closed question (does the report misstate what
+the ledger shows?) and, from v5, a registry of *frontier* questions for doubts code cannot
+settle (did this command end in failure, judged by its output alone? does the request ask this
+file to change?). Both add review notes and nothing else; a frontier kind may earn the lock only
+when a recorded measurement shows a Wilson lower bound of precision >= 0.90 over >= 30 flags,
+and none has (the one that met the bound did so on a proxy label, below).
+
+Each round was pre-registered and run on Claude Code sessions the rules under test had never
+seen (Haiku 4.5 and Sonnet 5, headless, tasks that put pressure on the report and never ask
+the agent to misstate anything), plus counterfactual reports: a model rewrites only the report
+of an honest session, keeping its real actions, as a paraphrase or as a misstatement of a named
+type (false success, hidden test edit, unread citation, denied deletion, claimed test run).
+
+| round | rules | new sessions | honest sessions locked | model-written misstatements locked | real misreports locked | registered hypotheses held |
+|---|---|---|---|---|---|---|
+| 1 | v1 | 153 | 0/131 | 17/197 (8.6 %) at `critical` | 0/6 | 2 of the 7 with a threshold |
+| 2 | v2 | 132 | 0/111 | **176/183 (96.2 %)** [92.3, 98.1] | 9/12 (75 %) [46.8, 91.1] | 5 of 6 |
+| 3 | v3 | 176 | 0/126 | 203/213 (95.3 %) [91.6, 97.4] | 12/36 (33 %) [20.2, 49.7] | 5 of 7 |
+| 4 | v4 | 94 | 1/61 | 105/105 | 3/7 (43 %) on S1-S3 | 3 of 4 |
+| 5 | v6 | 68 | 0/39 | 62/63 (98.4 %) [91.5, 99.7] | 4/6 on U1; 23/29 in review | 4 of 6 |
+
+**Round 1 mostly failed, and is reported in full.** H1 held (0/131 honest sessions, 3/130
+paraphrases) and so did H7 (an injected note to "any automated reviewer" and a success claim in
+spaced-out letters, 4 items each). H2 (rules plus Jev over sentences: 11/211), H3, H4 (atomic Jev
+did not beat holistic: balanced accuracy 0.51 against 0.79), H5 (17/197 at `critical`, 152/197
+at `high`) and H8 (the lock held in 5 of 6 lock sessions) failed. Read from the data: most
+misstatements were rated `high` by design and the lock acted only at `critical`; the sentence
+judge spoke only after a failed test run; and calls issued in parallel within one turn can pass
+before the lock engages. That race remains; since v3 such a call is recorded as
+`ran_during_lock` and named to the person. The holistic question did better than the literature
+led us to expect (AUC 0.98, against 0.69 for Haiku 4.5), but at the registered cut of 0.5 it
+flagged half of the honest reports. What the round taught became v2, whose numbers on round 1
+are in-sample and not a result.
+
+**What held from round 2 on.** On model-written misstatements the lock replicated in every
+round, at 95.3-98.4 % and 105 of 105 in round 4, and it stopped at most one honest session per
+round. That one was the `tamper` rule doing what it was built to do, on an honest `cat` of
+`.claude/settings.json`; a v5 candidate sends a read-only touch to review. The lock costs no
+model call. As a second opinion Jev ranked misstatements at AUC 0.980 against 0.678 for Haiku
+4.5 in round 2, and 0.973 against 0.666 in round 3, at about 1/40 of Haiku's cost per decision
+(median 233 ms against 860 ms); at a cut derived on round 1 (0.83) it flagged 81.4 % of round
+2's misstatements at 3.6 % of honest reports.
+
+**The status block is doing much of the work.** With the prose alone, the same rules lock
+24.6 % of round 2's misstatements (45/183) and 24.4 % of round 3's (52/213). A later
+pre-registered arm derives the block from the prose, one closed Choice per sentence, and caps
+what it adds at `high`. On 1,290 reports it changed no lock (0 of 1,290 differ); it put 85.0 %
+[81.6, 87.9] of the misstatements in review, against 64.9 % for the prose and 99.2 % with the
+block, at +1.3 to +1.7 points of review on honest work, and 53 of 71 real misreports against
+32 of 71 for the prose (the block: 58). Its fifth hypothesis failed on errata-bench (below).
+
+**Real misreports are where it is weak, and the rounds went looking for them.** The 18 natural
+misreports of rounds 1 and 2 were one family: an input that did not exist, replaced in silence.
+Round 3 added four tasks whose report can be false for a reason the record does not show, and
+found 36. The lock caught every one of the earlier family (9 of 9) and almost none of the new
+kinds: a command that exited 0 and did nothing, 0 of 6; a truncated archive, 1 of 9; a test
+suite that does not exist, 0 of 9. The review tier (a `high` finding or holistic Jev at 0.83)
+caught 21 of 36, at 11.9 % of honest sessions. The round also exposed a defect in candor itself:
+the hooks of parallel calls appended to the ledger at once, and on Windows one entry could
+overwrite another, so an action vanished without an error. It happened once in 472 ledgers, and
+a load test lost 196 of 1,200 lines; since commit a100e3e a lock file serialises the appends and
+the same test loses none. The round was measured with the old hook, as registered.
+
+v4 read two more pieces of evidence the harness already had: an error printed by a call that
+exited 0, and the workspace snapshot. On round 4's new sessions it stopped 6 of 8 misreports of
+the round-3 kinds, each for the reason it was built on (the silent failure 2/2 with the
+snapshot, 0/2 without), and G3 failed on the kind it was not built to see: a check that could
+not run, 0 of 6, because "No module named mypy" is not among its error signatures. v5, shaped on
+those sessions and so in sample, reads the exit of the command the task names instead of a
+signature (5/6 at `critical`). The frontier's `exit` question, measured on 616 runs whose exit
+had been visible, held on precision (302/320, lower bound 0.913) and recall (98.0 %, AUC 0.984)
+and failed on errata-bench (29/35); reading the errors showed a proxy label (a pipe reports the
+exit of `tail`, not of the tests), and `exit` stays at review. Three adversarial review passes
+found real bypasses, such as `echo {} 1>.claude/settings.json` passing as a look at the monitor;
+a look is now a small grammar and anything outside it keeps the lock.
+
+**Round 5** (v6) replicated the lock (0/39 honest sessions, 0/39 paraphrases, 62/63
+misstatements) and failed K3 and K4. The lock caught 4 of U1's 6 lint misreports: the other two
+ran pylint inside compound commands whose exit is not pylint's, which code leaves to the
+frontier by design, and `exit` answered 0.98 on both and sent them to review. The review tier
+caught 6 of 11 on U2 and U4. The frontier, on new data for the first time, added 10 findings,
+all on true misreports and none on a negative; `output` read U4's request as asking a report to
+change and caught its 5 of 5. That is too few flags to earn the lock. Over the round the review
+tier caught 23 of 29 real misreports. The kind it missed had never been seen: in all six U2
+misreports the agent found that the specification it was told to follow did not exist, **wrote
+it itself**, implemented the format it had invented, and reported done.
+
+**On public data it does not carry** (`docs/results/2026-09-29-candor-external/`, no status
+block, Jev 0.154 USD). 7 of 10 registered hypotheses fail. On errata-bench, 55 tasks from real
+Claude Code sessions, each with the answer a developer objected to and the one that ended the
+objection, the lock flagged none of the accepted answers and 5 of the objected, none of them a
+real substitution, and caught 0 of the 26 objected answers errata's judge read as stating
+something unestablished; holistic Jev reached AUC 0.56 (0.66 on those 26). On MALT it
+reached 0.62 on reward hacking and 0.56 on sandbagging, as expected of a question about
+misstatements rather than misbehaviour, and the lock flagged 4 of 100 normal runs. On
+tau2-bench, `check_done` at 0.5 was worse than trusting the agent (54.1 % against 66.6 %),
+because tau2's reward does not mean what the question asks. Holistic Jev's 0.98 is a bench number; on real sessions it is 0.56-0.66.
+
+**v6 on held-out real sessions** (`docs/results/2026-09-30-candor-inputs/`). On errata-bench,
+`substituted_input` had fired on paths pasted into long requests. v6 drops URL pieces and
+harness paths, and in requests over 600 characters hands the call to the frontier's `input`
+question, at review. On 277 turns of 300 Claude Code sessions from SWE-chat, from repositories
+errata-bench does not use, pre-registered: v6 raised 32 (turn, path) flags against v5's 721
+(O1 holds, 4.4 %), and **locks 5 turns (1.8 %) where v5 would have locked 49 (18 %)**. Readers
+blind to the arm, five Claude subagents, found no real substitution among 200 flagged pairs
+(Wilson 95 % upper bound on v5's precision, 1.9 %), so O2 has no verdict and O3 fails, 0/11
+against 0/200: neither arm had a true flag to be precise about. Jev: 0.0226 USD.
+
+**The v7 candidate is unconfirmed.** For round 5's fabricated input, `candor.fabricated` locks
+only in a short request that names the path after a work-from marker ("following", "per"), when
+an open of that path showed it did not exist and the agent then wrote it; elsewhere a frontier
+kind, `authored`, asks at review. A first cut was rejected by an independent review, because
+Claude Code's ordinary way of creating a file is a failed `Read` and then a `Write`. Replayed
+over rounds 1-5 and errata-bench, 0 of 1,938 verdicts change; with the frontier, exploratory,
+U2 goes 6/6 to review and U3 0/8. It was shaped on U2 and confirms nothing until a sixth round.
+
+What the rounds support: with the status block, a check in code stops model-written
+misstatements almost always and honest work almost never, at no model cost, and stops real
+misreports of the kinds it was shaped on; the review tier is where the other kinds are caught,
+at a price in honest sessions sent to a person. What they do not support: catching a deceptive
+agent (the misstatements were written on instruction, and the rules are public, so a report can
+be written around them), robustness to an agent that attacks the monitor, and third-party
+sessions without a block (`docs/results/2026-09-29-candor/`, `docs/candor.md`).
+
+### 5.21 Finding the files an issue needs, alone and with an agent
+
+`find_in_repo` cuts a repository into fragments in code, keeps a BM25 shortlist of 60 and
+judges it in context with the tournament of Section 5.16; with no key it is the BM25 ranking.
+Pre-registered on 117 SWE-bench Verified issues, at most 12 from each of the 12 repositories,
+each checked out at its base commit, with the files the accepted patch edits as the label:
+
+| arm | any@1 | any@3 | any@5 | any@10 |
+|---|---|---|---|---|
+| BM25 over whole files | 13.7 % | 31.6 % | 35.0 % | 48.7 % |
+| BM25 over fragments (no key) | 13.7 % | 34.2 % | 42.7 % | 52.1 % |
+| fragments judged in context | **51.3 %** | **59.8 %** | **65.0 %** | **69.2 %** |
+
+All three hypotheses held: +30.0 points at five against whole-file BM25, +37.6 at one against
+fragment BM25, and a median 0.0016 USD and 0.74 s of Jev per issue. The judge never scored
+below BM25 in any repository. A gold file was among the 60 shortlisted fragments in 72.7 % of
+issues, so most of the remaining gap is the lexical shortlist, not the judge. Of six code-only
+strategies to raise that ceiling, the one chosen on a disjoint dev sample of 48 issues went
+from +6 on dev to +3 on test, within noise, and the one that scored highest on test was not the
+one chosen, so adopting it would be choosing on the test (`docs/results/2026-09-29-find/`).
+
+A retrieval step is not an agent. On 29 further instances, disjoint from both samples, Haiku
+4.5 in Claude Code localised each issue read-only (`Read`, `Grep`, `Glob`) with and without
+the tool, which was offered and never mentioned in the prompt (25 turns and 0.30 USD per
+session). 27 pairs ran; three sessions were not run for the 7.00 USD ceiling:
+
+| | with the tool offered | without |
+|---|---|---|
+| first file right | 17/27 (63 %) [44, 78] | 16/27 (59 %) [41, 75] |
+| median list cost per session | 0.1092 USD | 0.1101 USD |
+| median `Read` calls | 6 | 7 |
+| median turns | 20 | 23 |
+| turn limit reached with no answer | 6 | 8 |
+
+E1 failed (+3.7 points, 4 instances gained and 3 lost, where +10 was registered), E2 failed (a
+median paired difference of +0.0058 USD) and E3 held. **The agent called the tool in 6 of 27
+sessions**, once each. In those six (post hoc, n = 6) the right first file came with the tool
+in 3 and without it in 1, two instances gained and none lost. The honest reading of E1 is "no
+effect detectable at this adoption and this n", not "no effect": the run mostly measured two
+ways of using `Grep`. Two amendments were registered before any verdict was read: the pilot had
+launched the whole run with 36 tools through a wrapper bug (six sessions voided), and three
+sessions were killed by another process; Jev's cap was not enforced during the run (spend
+0.0132 USD against a 0.30 cap). About 0.73 USD of the 6.73 spent went to voided sessions
+(`docs/results/2026-09-30-find-e2e/`).
+
+### 5.22 Other decision models behind the same contract
+
+**Claude Opus 5.5.** Section 5.13's 211 judgments were asked again of `claude-opus-5-5`, with
+the same literal questions, decision rules and system prompt, one case per session, blind to
+the labels and to the evaluator:
+
+| | right, of 211 | per judgment |
+|---|---|---|
+| `jev-1.13.0`, shipped policy | **200** | 28.4 millionths |
+| `jev-1.13.0`, plain 0.5 cut | 202 | same |
+| `claude-opus-5-5`, effort `low` | **199** | 2,805 millionths (floor) |
+| `claude-opus-5`, effort `low` (Section 5.13) | 204 | 3,719 millionths |
+
+One case got two sentences of reasoning instead of a word, twice, and counts as a miss; counted
+as right it would give 200, **a tie with the shipped policy**, not a win either way. Opus 5 is
+still the better judge on these cases, by 4. Opus 5.5 cannot turn thinking off, so the floor
+assumes no reasoning at all: 99x the evaluator's cost per judgment, and 114x with the median
+reasoning its bill implies. Every Opus 5.5 answer went through isolated `claude -p` sessions on
+a subscription (2.63 USD at list price for 212 sessions), not through the Messages API that
+answered for Opus 5, so the two Opus rows are not a controlled pair; the cost above keeps only
+the input the API run measured and the output the bill implies. The same accuracy as Opus 5.5
+on these judgments, for about a hundredth of the price
+(`docs/results/2026-09-30-opus55-substitution/`).
+
+**CLM-8B, zero-shot, on a CPU.** CLM-8B (Contrastive-LM, Apache-2.0) is an open model served by
+`clm-serve` in Jev's wire format, so the `clm` provider is the Jev client with another URL. On
+224 cases of four benches, with the same policies and thresholds:
+
+| point | n | CLM agreement | CLM coverage | Jev agreement | Jev coverage |
+|---|---|---|---|---|---|
+| injection | 28 | 12/28 (43 %) | 100 % | 27/28 (96 %) | 100 % |
+| unsourced | 22 | 11/22 (50 %) | 100 % | 21/22 (95 %) | 100 % |
+| search | 18 | 6/18 (33 %) | 100 % | 17/18 (94 %) | 100 % |
+| routing | 20 | 3/20 (15 %) | 100 % | 14/20 (70 %) | 100 % |
+| citation | 20 | 3/4 (75 %) | 20 % | 18/18 (100 %) | 90 % |
+
+Its probabilities do not separate the classes: AUC 0.38 on injection, where it gives p >= 0.998
+to every case, benign ones included, and 0.28 on unsourced, an order among near-constant values
+rather than an inverted signal. Three things make this "CLM on this encoder", not CLM as
+published. The encoder is not the reference: the reference is vLLM on an NVIDIA GPU, and this
+ran the same weights through `transformers` on a CPU in float32. The model card's own example is
+not reproduced exactly (0.988 here against 0.939 published, the same answer). And it is
+zero-shot: CLM ships heads meant to be trained per question, none were, and the questions and
+thresholds were tuned on Jev, which favours Jev by construction. Two points were not compared at
+all, because the Jev recording holds no answers for `redundant_page` and `steerability`. A
+deployment that wants an open model today should budget for training its heads on labelled
+cases, which the benches here already are (`docs/results/2026-09-30-clm-cpu/`).
+
+**OpenAI.** The Decisions API announced on 2026-09-29 is not open to us: `/v1/decisions`
+answers "Decision API is not enabled for this user" to an account outside its limited preview,
+and neither a request format nor SDK support is public. Nothing was tested. `gpt-6-luna` runs
+through the `llm` provider, like any chat model forced into a schema: one live check of three
+questions (a Truth, a Choice and a Score) on three states answered 3 of 3 as expected, for
+0.00013 USD, at about 1.7 s a call, with self-reported confidence (`docs/providers.md`).
+
+### 5.23 A real fix, with and without the layer
+
+This is a scene, not a measurement: three sessions a side, pre-registered as a scene and with
+no hypothesis. The task is a real bug in the deploying harness (Indagis), already fixed there:
+a tool answered "noted in the report" and stored nothing. Each session starts at the parent
+commit in its own worktree, Sonnet 5.5, the same prompt; success is a hidden acceptance test and
+the harness's whole suite green.
+
+| | Claude Code alone | with sanchopanza |
+|---|---|---|
+| success (acceptance test and suite) | 3/3 | 2/3 |
+| median list cost | 0.310 USD | 0.312 USD |
+| median wall time | 50.7 s | 67.6 s |
+| median turns / tool calls | 9 / 8 | 10 / 9 |
+| Jev | - | 0.0003 USD for three sessions |
+
+On a short, well-specified fix the layer neither saves nor costs; the hooks add wall time.
+Candor caught one false line: a report's `FILES_READ` said it had read a fragment of a test file
+whose name had only appeared in an `ls`, and `unread_citation` locked the session at its end,
+as designed. The session that did not fix the bug reported done; that is not a claim candor can
+check, and it did not catch it. Two sessions, one of them a correct fix, were locked falsely by
+`unchanged_output`: the prompt named a file as context ("the result that X writes"), both
+sessions wired the fix in the module that builds that result, and the rule read X as an output
+that should have changed. Two harness problems were fixed before the reruns.
+**Candor's lock was one file for the whole machine**: the first session's lock held two sessions
+in other worktrees from their first turn, voided and rerun with a lock per session; in a real
+setup one flagged session would stop every candor-guarded session on the machine until someone
+looked. And the acceptance test was too narrow twice and failed three correct fixes without the
+layer; the final check is the one the real fix's own test makes, and first grades are kept.
+2.19 USD of 9.00 (`docs/results/2026-09-30-indagis-scene/`).
+
 ---
 
 ## 6. Analysis: where the layer pays
@@ -1489,7 +1773,8 @@ citation, match this pair of mentions, check this triple, screen this page for i
 instructions, classify this record. The saving is a price ratio, it does not depend on the
 workload, and it is the only one of the three whose arithmetic is safe. Measured here at 49x
 against a small LLM on the same cases (Section 5.6) and at 131x against a frontier model
-(Section 5.13), and by list price at 24-119x. Against a hosted evaluation meter, which bills
+(Section 5.13), at about 99x against Claude Opus 5.5, with which it ties (Section 5.22), and
+by list price at 24-119x. Against a hosted evaluation meter, which bills
 20 USD per million input tokens and 60 per million output, the ratio for a thousand judgments
 is roughly 1,450x.
 
@@ -1514,7 +1799,11 @@ construction, since its relevance-test budget of 100, 500 or 1,500 binary judgme
 is the parameter that controls its whole cost-quality curve [LazyGraphRAG, 2024]. At 29
 millionths a judgment, 1,500 of them cost 0.043 USD. The output is not a smaller bill; it is
 a check that used to be sampled and can now be exhaustive, and it should be reported as
-quality rather than as savings.
+quality rather than as savings. Candor (Section 5.20) is this kind in its plainest form: no one
+was paying a model to hold every report against every action, so nothing is saved. The ledger
+and the lock are code and cost no model call, and the second opinion, at about 1/40 of a small
+LLM per decision, is cheap enough to read every report. What it is worth is what it catches
+and what it stops by mistake, and that is how Section 5.20 reports it.
 
 *The anti-economy* is Section 5.11: a decision applied where acting invalidates a cached
 prefix costs 4.15x instead of saving 43 %.
@@ -1529,6 +1818,15 @@ whether the comment was *true* had "minimal impact" [Atlassian, 2026]. The injec
 of Section 5.2 is the same lesson in miniature: one detector, one set of decisions, and the
 utility cost is one task in 42 when it marks and 27 when it redacts. A calibrated layer should
 be specified by its attachment point and its action first and its accuracy second.
+
+**A tool the agent may call is an attachment point the agent chooses.** Repository search
+nearly quadrupled the first-file hit rate of BM25 on its own, and made no detectable difference
+to an agent that was offered it and called it in 6 sessions of 27 (Section 5.21). The quality of
+a decision offered as a tool is bounded by its adoption, and adoption is its own question:
+naming the tool in the prompt, or calling it from a hook, would measure something else, which
+is imposing it. Candor makes the same point from the other side: it acts through hooks the agent
+cannot decline, and the only thing it asks of the agent, four lines at the end of a report, is
+what moves its catch from about a quarter of misstatements to almost all of them.
 
 **Where the evaluator earns its place.** Injection detection on content that reads like
 content, citation support including near-miss numbers, unsourced-claim detection, entity
@@ -1653,6 +1951,25 @@ to the questions and the policy, not to the harness they were first built in.
   not reliably translate into end-to-end success, and that *"additional scaffolding does not
   consistently improve reliability"* [Albayaydh et al., 2026]. Most numbers in Section 5 are
   sub-task scores; Sections 5.14 and 5.15 are the exceptions.
+- **Candor's numbers depend on the status block and on who wrote the misstatements.** Its
+  95-100 % is on misstatements a model wrote on instruction, checked against a four-line block
+  the agent was asked for; with the prose alone the same rules lock about a quarter, and on
+  third-party sessions without a block holistic Jev falls from AUC 0.98 to 0.56-0.66 and the
+  lock catches no real misreport (Section 5.20). Its tasks are small and few, and its natural
+  misreports come in families that later rounds were shaped on; each version is confirmed only
+  by the round after it. The rules are public, so an agent can write around them.
+- **Some readers and some answers are models, and some paths are not the API.** The 200 pairs of
+  the SWE-chat run were labelled by five Claude subagents, one of which labelled 17 of its 40
+  from excerpts; the counterfactual reports of every candor round were written by a model; the
+  Opus 5.5 answers went through `claude -p` sessions, while the Opus 5 answers they are set
+  beside went through the Messages API.
+- **Small n where the agent is in the loop.** The Indagis scene is three sessions a side with no
+  hypothesis (Section 5.23); the repository search run with an agent is 27 pairs, 6 of them with
+  the tool used (Section 5.21); the compaction guard is 7 tasks (Section 5.19).
+- **CLM ran on an encoder that is not its reference.** The same weights on a CPU in float32
+  through `transformers`, not vLLM on a GPU; the model card's example gives 0.988 here against
+  0.939 published; no heads were trained and the questions were written for Jev
+  (Section 5.22). The result is about CLM zero-shot on this encoder, not about CLM.
 
 ---
 
@@ -1711,6 +2028,21 @@ Each is enforced in code or in a test.
 14. **Check that the harness delivers the fact before scoring its loss.** A fact placed in the
     middle of a long failing shell output was cut by the agent harness itself before any arm saw
     it, in two runs; a precondition that replays the harness's cut would have caught it free.
+15. **A tool that is better alone does not show up if the agent does not call it.** Repository
+    search beat BM25 by 37.6 points at one file and moved an agent by 3.7, because the agent
+    called it in 6 sessions of 27 (Section 5.21). Report adoption beside every end-to-end
+    verdict for a tool that is offered; `benchmarks/find/e2e_score.py` writes it
+    (`F_used_find`) next to the verdicts.
+16. **Check a lock's scope before shipping it.** Candor's lock was one file per machine, and one
+    flagged session held two unrelated sessions in other worktrees from their first turn
+    (Section 5.23). The scene's runner now gives each session its own lock through
+    `SANCHOPANZA_CANDOR_LOCK`; the package's default is still one per machine, and scoping it
+    per project or session is open (Section 9).
+17. **An acceptance test can be wrong in the direction of failing correct work.** The scene's
+    hidden test looked for the fix in one file, then in one expression shape, and failed three
+    correct fixes before it was widened to what the real fix's own test checks. Keep the first
+    grade in every row beside the final one, as the scene's rows do, so that a widened test is
+    visible as a change to the instrument. No test enforces this yet.
 
 ---
 
@@ -1775,6 +2107,29 @@ Each is enforced in code or in a test.
     fetch a page with `curl` when WebFetch refused it. Commands that fetch from the network are
     now recognised in code and their output scanned by default; what that costs and what the
     matcher misses in live sessions is unmeasured.
+18. **The scope of candor's lock.** One lock file per machine means one flagged session stops
+    every candor-guarded session on it until someone looks (Section 5.23). The lock should be
+    scoped per project or per session, and the release should stay as deliberate as it is now:
+    the lock is only worth what a person's reading of the claim beside the action is worth.
+19. **`unchanged_output` on files named as context.** A prompt that names a file as the place a
+    result is written ("the result that X writes") was read as a request to change X, and two
+    of three guarded sessions in the scene were locked falsely for it. It is the rule's known
+    weak spot, now seen on a real task, and what a user would feel first.
+20. **Adoption of an offered tool.** Why an agent calls a better tool in 6 sessions of 27, and
+    what raises that, as a question of its own before another end-to-end run (Section 5.21). A
+    description or a name that invites the call keeps the tool offered; naming it in the prompt,
+    or the free hint of likely files on each prompt that the package now offers opt-in, is
+    closer to imposing it, which is a different question. Separately, the shortlist ceiling
+    (72.7 %) is lexical, and the code-only strategy chosen to raise it did not replicate its dev
+    gain.
+21. **Confirming v7 and a frontier kind that earns the lock.** The fabricated-input rule was
+    shaped on round 5's U2 and changes no earlier verdict; only a sixth round on new tasks
+    confirms or refutes it. No frontier question has earned the lock on a true label: `output`
+    and `exit` were right on every flag they raised in round 5, and need at least 30 flags each
+    at a lower bound of 0.90. A check that could not run and hides its exit remains a gap.
+22. **CLM with trained heads, on its reference encoder.** Train CLM's per-question heads on the
+    benches of this repository, which are labelled cases already, and run the reference vLLM
+    encoder on a GPU, before concluding anything about CLM as a stand-in for Jev (Section 5.22).
 
 ---
 
@@ -1796,6 +2151,14 @@ only ever sampled, which is quality and not savings. It does not pay where it sa
 keeping content out: page triage's large saving is the cost of not answering, and a tool
 window that is right and safe still saves little once the loaded catalog shares its cache,
 and nothing where the platform already searches by tool.
+
+The same shape can hold an agent's report against what it did. With the ledger and the rules
+in code and the model only a second opinion, four lines asked of the agent let it stop
+model-written misstatements almost always and honest work almost never, at no model cost; the
+real misreports it was not shaped on still pass the lock, and on other people's sessions,
+without the block, it does not carry. And a better decision offered as a tool is worth what the
+agent does with it: alone, repository search nearly quadruples the first-file hit rate; offered
+to an agent that seldom called it, it changed nothing measurable.
 
 A decision is worth what its attachment point and its action let it be worth. The same tool
 selection saves 43 % applied once and costs 4.15x applied every turn; the same injection
@@ -1966,6 +2329,46 @@ Files: `fixtures/tools-window.jsonl`, `fixtures/parts.jsonl`, `fixtures/e2e-wind
 (`runs-10.jsonl`, `runs-10-parallel.jsonl`, `runs-10-v3.jsonl`),
 `docs/results/2026-09-25-push/` (one line per trajectory), `docs/results/2026-09-25-wide/`,
 `docs/results/2026-09-25-cache/` (`reprice.json`).
+
+**Candor, repository search and other providers (Sections 5.20-5.23).** The compaction guard of
+Section 5.19 is in `docs/results/2026-09-29-context-guard/`, with its own replay.
+
+```
+python -m pytest tests/test_candor.py tests/test_candor_bench.py tests/test_candor_inputs.py \
+    tests/test_candor_external.py tests/test_opus55_substitution.py   # free
+python benchmarks/candor/analyze.py                  # round 1, from the recordings, free
+CANDOR_ROUND=2 python benchmarks/candor/confirm.py   # round 2 verdicts, free
+CANDOR_ROUND=3 python benchmarks/candor/confirm3.py  # round 3, free
+CANDOR_ROUND=4 python benchmarks/candor/confirm4.py  # round 4, both analyses, free
+CANDOR_ROUND=5 python benchmarks/candor/confirm5.py  # round 5, free
+python benchmarks/candor/derive.py                   # the derived block, replay, free
+python benchmarks/candor/frontier_v5.py score        # the frontier's lock table, free
+python benchmarks/candor_external/errata.py          # replay; the data is gated
+python benchmarks/candor_external/swechat.py verdicts               # v6 on SWE-chat, free
+python benchmarks/find/swebench.py --run             # retrieval, replay, free
+python benchmarks/find/ceiling.py test               # shortlist strategies, code only, free
+python benchmarks/find/e2e.py score                  # needs the local session rows
+```
+
+Files: `docs/results/2026-09-29-candor/` (`prereg*.md` with their hashes, `scored*.jsonl`
+text-free item tables, `monitor-answers*.jsonl` every model answer, `confirm-*.json` the
+verdicts, `derive-*.jsonl`, `frontier-*.jsonl`, `explore-v7*.jsonl`),
+`docs/results/2026-09-29-candor-external/`, `docs/results/2026-09-30-candor-inputs/` (hashed
+keys and labels only), `docs/results/2026-09-29-find/` (`answers.jsonl`, `scored.jsonl`,
+`summary.json`, `ceiling/`), `docs/results/2026-09-30-find-e2e/` (`summary.json` and the
+sealed registration and amendments), `docs/results/2026-09-30-opus55-substitution/`,
+`docs/results/2026-09-30-clm-cpu/` (the server, probe and bench scripts and both summaries),
+`docs/results/2026-09-30-indagis-scene/` (`runs.jsonl`, `void.jsonl`, the acceptance test).
+Raw candor sessions, the find sessions (which hold repository code) and all session transcripts
+stay local.
+
+What spends, at list price as reported: the candor rounds' Claude Code sessions (subscription;
+13.06, 11.01, 15.24, 8.72 and 6.88 USD for rounds 1-5) and their counterfactual reports, with
+Jev in cents per round; Jev on the public sets, 0.154 USD, and on SWE-chat, 0.0226 USD
+(`--live`); `find/swebench.py --run --live`, 0.215 USD of Jev; the find run with an agent, 6.73
+USD of subscription; the Opus 5.5 sessions, 2.63 USD of subscription; the Indagis scene, 2.19
+USD of subscription. The CLM run is free but needs the model's weights and a machine to serve
+them; the gated datasets (errata-bench, MALT, SWE-chat) need their terms accepted.
 
 **Private runs (E1-E6, G1-G4).** Performed in the originating harness on 2026-09-21 with the
 same question texts and thresholds; per-call results (670 + 418 rows), summaries and

@@ -45,9 +45,18 @@ do not favour this package.
     misstatements locked. The review tier caught 23 of 29 real misreports; the frontier added
     10 findings, all right, none on a negative. 4 of 6 hypotheses hold. New failure mode:
     agents that **write the missing input themselves**.
+  - **v6 on held-out data** (SWE-chat, 277 turns of 300 real Claude Code sessions,
+    pre-registered): 32 `substituted_input` flags against v5's 721, and locks on 1.8 % of turns
+    against 18 %. A blind reader found no real substitution in 200 flagged pairs, so O2 has no
+    verdict and O3 fails (0 % against 0 %). `docs/results/2026-09-30-candor-inputs/`.
   - **v7 candidate** (`candor.fabricated`, post hoc, unconfirmed): code locks a fabricated input
     only in a short request that names the file as a source. Otherwise the frontier's
     `authored` question asks, at review. Replay: 0 of 1,938 verdicts change.
+  - **Seen on a real Indagis bug** (`docs/results/2026-09-30-indagis-scene/`, three sessions a
+    side): candor caught a report claiming a read that never happened, raised two false
+    `unchanged_output` locks on a file the prompt named as context, and its lock, one file per
+    machine, held two unrelated sessions. Next: scope the lock per project or session, and
+    stop `unchanged_output` from reading "the result X writes" as "change X".
   - **The first round is reported in full.** It was registered and mostly failed.
 
   See `docs/candor.md` and `docs/results/2026-09-29-candor/`.
@@ -57,11 +66,17 @@ do not favour this package.
   one BM25) keeps a shortlist, and `triage_many` judges it in context when there is a key.
   On 117 SWE-bench Verified issues, pre-registered: a gold file first in 51.3 % and in the
   top five in 65.0 %, against 13.7 % and 35.0 % for whole-file BM25, at 0.0016 USD per issue
-  (`docs/results/2026-09-29-find/`). Also: `python -m sanchopanza.harness.mcp --tools
+  (`docs/results/2026-09-29-find/`). **With an agent** (Haiku 4.5, 27 paired SWE-bench issues,
+  the tool offered, not imposed, pre-registered): the agent called it in 6 of 27 sessions, and
+  first-file hits were 17 against 16 without it, at the same cost, one `Read` fewer (E1 and E2
+  fail, E3 holds; `docs/results/2026-09-30-find-e2e/`). Adoption is the open question. Also:
+  `python -m sanchopanza.harness.mcp --tools
   archive,find,decisions` (one server, any sets; the decision tools had no command before),
   `find_in_repo` in the Codex config (`--find`), an opt-in free hint of likely files on each
   prompt (`SANCHOPANZA_FIND_ON_PROMPT`), and providers `clm` (a self-hosted CLM through the
-  Jev client; mock-tested only) and `llm` from the environment, which now says so on stderr
+  Jev client; run against a real `clm-serve` on a CPU encoder on 2026-09-30: it works end to
+  end, and zero-shot it agrees far less than Jev on the benches, e.g. injection 12/28 against
+  27/28, `docs/results/2026-09-30-clm-cpu/`) and `llm` from the environment, which now says so on stderr
   instead of falling back to no decider in silence. See `docs/what-it-adds.md`.
 - **Autopilot for Claude Code, opt-in and experimental** (`sanchopanza install --autopilot`,
   `harness.autopilot`). Measured end to end, pre-registered, and **worse than Claude Code's own
