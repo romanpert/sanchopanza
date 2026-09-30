@@ -57,8 +57,10 @@ def main() -> int:
             "--output-format", "stream-json", "--verbose", "--setting-sources", "project",
             "--strict-mcp-config", "--permission-mode", "bypassPermissions",
             "--plugin-dir", str(plugin)]  # fmt: skip
-    first = subprocess.run([*base, "Read README.md, then read part1.txt to part6.txt one by one with the Read tool, then tell me the secret word in one line."],
-                           cwd=work, env=env, capture_output=True, text=True, timeout=600)  # fmt: skip
+    ask = ("Read README.md, then read part1.txt to part6.txt one by one with the Read tool, "
+           "then tell me the secret word in one line.")
+    first = subprocess.run([*base, ask], cwd=work, env=env, capture_output=True, text=True,
+                           timeout=600)  # fmt: skip
     (evidence / "stream-1.jsonl").write_text(first.stdout, encoding="utf-8")
     session = next((json.loads(x).get("session_id") for x in first.stdout.splitlines()
                     if x.startswith("{") and "session_id" in x), "")  # fmt: skip
@@ -75,16 +77,18 @@ def main() -> int:
                 print(name, "compact_boundary", event.get("compact_metadata")
                       or event.get("compactMetadata"))  # fmt: skip
             if event.get("type") == "result":
-                print(name, "result:", event.get("subtype"), round(event.get("total_cost_usd", 0), 4),
-                      "|", str(event.get("result"))[:120].replace("\n", " "))  # fmt: skip
+                cost = round(event.get("total_cost_usd", 0), 4)
+                answer = str(event.get("result"))[:120].replace("\n", " ")
+                print(name, "result:", event.get("subtype"), cost, "|", answer)
     marker = evidence / "marker.log"
     print("marker:", marker.read_text(encoding="utf-8") if marker.exists() else "(none)")
     hooks = evidence / "hooks.jsonl"
     print("hooks:", hooks.read_text(encoding="utf-8") if hooks.exists() else "(none)")
     transcript = next(Path.home().joinpath(".claude", "projects").glob(f"*/{session}.jsonl"), None)
     if transcript:
-        boundaries = [json.loads(x).get("compactMetadata") for x in
-                      transcript.read_text(encoding="utf-8").splitlines() if "compact_boundary" in x]  # fmt: skip
+        lines = transcript.read_text(encoding="utf-8").splitlines()
+        boundaries = [json.loads(x).get("compactMetadata") for x in lines
+                      if "compact_boundary" in x]  # fmt: skip
         print("transcript boundaries:", boundaries)
     print("stderr:", first.stderr[-400:], second.stderr[-400:])
     return 0
