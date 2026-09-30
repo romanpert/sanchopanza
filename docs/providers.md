@@ -23,7 +23,7 @@ For `Choice`, the provider's own confidence if it has one, else top minus runner
 | `jev` | `JevDecider` | TypeSafe Jev over HTTP; the model the paper measures | a property of the output distribution |
 | `recorded` | `RecordedDecider` | replay of real decisions; tests, dry runs, CI | recorded |
 | `null` | `NullDecider` | no provider; every policy uses its default | none |
-| `clm` | `JevDecider` | CLM-8B (Contrastive-LM, Apache-2.0) behind its self-hosted `clm-serve`, which speaks Jev's wire format; needs Linux and an NVIDIA GPU. **Tested only against a mock of the format**, never against a real server | CLM's own probabilities |
+| `clm` | `JevDecider` | CLM-8B (Contrastive-LM, Apache-2.0) behind its self-hosted `clm-serve`, which speaks Jev's wire format. **Run against a real server** on 2026-09-30, on a CPU encoder (transformers, float32) instead of the reference vLLM on NVIDIA: it works end to end, but zero-shot on sanchopanza's benches it agrees far less than Jev (injection 12/28 against 27/28, routing 3/20 against 14/20) and its probabilities do not separate the classes (`results/2026-09-30-clm-cpu/`). Needs its heads trained before it can stand in for Jev; pass `timeout_s` high on a CPU | CLM's own probabilities; zero-shot, measured not to separate on these questions |
 | `llm` | `LLMDecider` | any LLM forced into a JSON schema; the paper's baseline | **self-reported**, and measured not to separate errors |
 | `local` | `LocalDecider` | your classifiers, embeddings, vision models | whatever you compute |
 | | `FallbackDecider` | first provider that answers each question wins | merged |
