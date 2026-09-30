@@ -185,3 +185,12 @@ def test_a_group_bisection_cannot_split_is_narrowed_to_the_bugs_it_needs() -> No
     # bug 0 passes only with 1 and 6 fixed: the halves [1..4] and [5..8] both fail
     group = masking.maskers(0, list(range(1, 9)), lambda i, fixed: {1, 6} <= set(fixed))
     assert group == [1, 6]
+
+
+def test_a_run_where_nothing_ran_counts_as_not_passing(monkeypatch) -> None:  # noqa: ANN001
+    def broken(*_args, **_kwargs):  # noqa: ANN002, ANN003, ANN202
+        raise RuntimeError("pytest gave no results (exit 123): no tests ran")
+
+    monkeypatch.setattr(masking.docker_env, "pytest", broken)
+    bugs = [{"patch": "p0\n", "FAIL_TO_PASS": ["t::a[x]"]}, {"patch": "p1\n", "FAIL_TO_PASS": []}]
+    assert masking.passes_with("tag", bugs, 0, [1]) is False

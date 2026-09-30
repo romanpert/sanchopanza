@@ -38,7 +38,13 @@ def passes_with(tag: str, bugs: list[dict[str, Any]], i: int, fixed: list[int]) 
     nodes = bugs[i]["FAIL_TO_PASS"]
     patch = "".join(p if p.endswith("\n") else p + "\n"
                     for p in (bugs[k]["patch"] for k in [i, *fixed]))  # fmt: skip
-    result = docker_env.pytest(tag, patch, nodes, reverse=True)
+    try:
+        result = docker_env.pytest(tag, patch, nodes, reverse=True)
+    except RuntimeError:
+        # Nothing ran: with some bugs undone a parametrised test can be named differently or
+        # not exist (pydantic-long40-1: `test_removed_on_v2[pydantic:BaseSettings]`, "no tests
+        # ran"). For this question that is "does not pass", not a broken validation.
+        return False
     return all(result.get(n) == "PASSED" for n in nodes)
 
 
