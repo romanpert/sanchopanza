@@ -437,6 +437,32 @@ async def test_the_agents_own_search_results_are_never_pruned(tmp_path, monkeypa
     assert await browse_hook.post_tool_use(cli, Squire()) == {}
 
 
+async def test_what_the_agent_narrowed_itself_is_never_pruned(tmp_path, monkeypatch):
+    """Phase 3c: a `Read` with a limit and a snapshot of one element were cut, and the agent
+    went looking for what the cut removed (M4)."""
+    from sanchopanza.harness import browse_hook
+
+    monkeypatch.setenv("SANCHOPANZA_ARCHIVE", str(tmp_path / "archive"))
+    text = REAL.read_text(encoding="utf-8")
+    read = {
+        "hook_event_name": "PostToolUse",
+        "tool_name": "Read",
+        "tool_input": {"file_path": "page.yml", "limit": 150},
+        "tool_response": {"type": "text", "file": {"filePath": "page.yml", "content": text}},
+        "session_id": "s5",
+        "cwd": str(tmp_path),
+        "transcript_path": "",
+    }
+    assert await browse_hook.post_tool_use(read, Squire()) == {}
+    targeted = _playwright_event(tmp_path, _big_snapshot(400))
+    targeted["tool_name"] = "mcp__playwright__browser_snapshot"
+    targeted["tool_input"] = {"target": "e166"}
+    assert await browse_hook.post_tool_use(targeted, Squire()) == {}
+    whole = {**targeted, "tool_input": {}}
+    note = (await browse_hook.post_tool_use(whole, Squire()))["hookSpecificOutput"]
+    assert "Grep" in note["updatedToolOutput"][0]["text"], "recovery starts with a search"
+
+
 def test_the_goal_keeps_the_question_at_the_end_of_a_long_request():
     """A 2026-09-30 probe: the shared purpose kept the first 130 characters of the request, the
     URL and the instructions, and cut "which license" off; the ranking never saw the question."""

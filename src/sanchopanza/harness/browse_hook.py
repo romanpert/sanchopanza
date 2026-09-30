@@ -84,11 +84,20 @@ def _reads_the_archive(event: Mapping[str, Any], root: Any) -> bool:
         return False
 
 
+_NARROWING = frozenset({"target", "ref", "selector", "element", "depth"})
+
+
 def _is_search(tool: str, tool_input: Mapping[str, Any]) -> bool:
-    """The agent's own narrowed query: `browser_find`, or a browser CLI's `find`. Pruning its
-    answer sent the agent to read the whole archive in 3 of 4 cases (Phase 3b)."""
+    """What the agent narrowed itself: `browser_find` or a browser CLI's `find` (pruning its
+    answer sent the agent to the whole archive in 3 of 4 cases, Phase 3b), a `Read` of part of a
+    file, and a snapshot of one element or depth (both cut in Phase 3c's M4, and the agent went
+    looking for what the cut removed)."""
     if tool.endswith("browser_find"):
         return True
+    if tool == "Read":
+        return any(tool_input.get(k) not in (None, "") for k in ("offset", "limit"))
+    if tool.endswith("browser_snapshot"):
+        return any(tool_input.get(k) not in (None, "") for k in _NARROWING)
     return tool == "Bash" and bool(_CLI_FIND.search(str(tool_input.get("command") or "")))
 
 
@@ -207,7 +216,8 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
     )
     note = (
         f"# sanchopanza kept {len(ranked)} of {len(elements)} elements and {left_out} snapshot "
-        f"lines were left out. If what you need is not here, Read {saved} (never pruned).\n"
+        f"lines were left out. If what you need is not here, Grep {saved} for it (never "
+        "pruned; Read it whole only if a search will not do).\n"
     )
     squire.journal.record(
         "browse",
