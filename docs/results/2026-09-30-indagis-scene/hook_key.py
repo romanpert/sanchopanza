@@ -28,8 +28,12 @@ def main(argv: list[str]) -> int:
     evidence.mkdir(parents=True, exist_ok=True)
     env = {k: v for k, v in os.environ.items() if not k.startswith(("ANTHROPIC_", "TYPESAFE_"))}
     key = keyfile.read_text(encoding="utf-8").strip() if keyfile.exists() else ""
+    # Amendment 1: candor's lock and ledgers per session. By default the lock is one file for
+    # the whole machine, and sancho-1's lock held sancho-2 and sancho-3 in other worktrees.
     env = {**env, "SANCHOPANZA_JOURNAL": str(evidence / "journal.jsonl"),
            "SANCHOPANZA_SESSION_MAX_USD": SESSION_MAX_USD,
+           "SANCHOPANZA_CANDOR_LOCK": str(evidence / "candor-lock.json"),
+           "SANCHOPANZA_CANDOR_DIR": str(evidence / "candor"),
            **({"TYPESAFE_API_KEY": key} if key else {})}  # fmt: skip
     payload = sys.stdin.buffer.read()
     try:

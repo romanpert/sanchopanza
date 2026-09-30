@@ -1,4 +1,4 @@
-"""The Indagis scene: Claude Code alone against Claude Code with sanchopanza, on a real Indagis bug.
+﻿"""The Indagis scene: Claude Code alone against Claude Code with sanchopanza, on a real Indagis bug.
 
     python run.py plan                 # free: arms, reps, caps, the estimate
     python run.py check                # free: the acceptance test fails at base, passes on the fix
@@ -63,7 +63,11 @@ def _rows() -> list[dict[str, Any]]:
 
 
 def spent() -> float:
-    return sum(float(r.get("cost_usd") or 0.0) for r in _rows())
+    """Every session paid, the voided ones of amendment 1 (`void.jsonl`) included."""
+    void = HERE / "void.jsonl"
+    voided = [json.loads(x) for x in void.read_text(encoding="utf-8").splitlines()
+              if x.strip()] if void.exists() else []  # fmt: skip
+    return sum(float(r.get("cost_usd") or 0.0) for r in [*_rows(), *voided])
 
 
 def worktree(name: str) -> Path:
@@ -252,6 +256,30 @@ def score() -> dict[str, Any]:
     return out
 
 
+def regrade() -> None:
+    """Amendment 1: grade every kept session again with the amended acceptance test, keeping
+    the first grade beside it. Voids the rows named in VOID (moved to `void.jsonl`)."""
+    kept, voided = [], []
+    for row in _rows():
+        if row["name"] in VOID:
+            voided.append({**row, "void": VOID[row["name"]]})
+            continue
+        work = ROOT / "work" / row["name"]
+        first = {k: row[k] for k in ("acceptance", "suite", "acceptance_tail", "suite_tail")}
+        kept.append({**row, **grade(work), "first_grade": row.get("first_grade", first)})
+    (HERE / "runs.jsonl").write_text(
+        "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in kept), encoding="utf-8")
+    if voided:
+        with (HERE / "void.jsonl").open("a", encoding="utf-8") as handle:
+            handle.writelines(json.dumps(r, ensure_ascii=False) + "\n" for r in voided)
+
+
+VOID = {
+    "sancho-2": "held from its first turn by sancho-1's candor lock (one lock file per machine)",
+    "sancho-3": "held from its first turn by sancho-1's candor lock (one lock file per machine)",
+}
+
+
 def cleanup() -> None:
     for work in (ROOT / "work").glob("*"):
         subprocess.run(["git", "-C", str(INDAGIS), "worktree", "remove", "--force", str(work)],
@@ -261,7 +289,7 @@ def cleanup() -> None:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="run.py")
-    parser.add_argument("step", choices=["plan", "check", "run", "score", "cleanup"])
+    parser.add_argument("step", choices=["plan", "check", "run", "score", "cleanup", "regrade"])
     parser.add_argument("--workers", type=int, default=2)
     args = parser.parse_args(argv)
     if args.step == "plan":
@@ -274,6 +302,8 @@ def main(argv: list[str]) -> int:
         print(json.dumps(score(), indent=1))
     elif args.step == "cleanup":
         cleanup()
+    elif args.step == "regrade":
+        regrade()
     else:
         key = os.environ.get("TYPESAFE_API_KEY", "").strip()
         if not key:

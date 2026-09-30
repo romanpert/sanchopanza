@@ -59,13 +59,31 @@ def _calls_named(node: ast.AST, name: str) -> bool:
     return False
 
 
-def test_el_resultado_lleva_las_paradas_declaradas() -> None:
-    """entrada.py builds `avisos_parada` with what `paradas_declaradas()` returns."""
-    tree = ast.parse((RAIZ / "agent/harness/entrada.py").read_text(encoding="utf-8"))
-    found = False
+def _feeds_avisos(tree: ast.AST) -> bool:
+    """`avisos_parada` built with `paradas_declaradas()`: a dict key, a keyword argument or an
+    assignment to a name or attribute called `avisos_parada`."""
     for node in ast.walk(tree):
         if isinstance(node, ast.Dict):
             for key, value in zip(node.keys, node.values, strict=True):
-                if isinstance(key, ast.Constant) and key.value == "avisos_parada":
-                    found = found or _calls_named(value, "paradas_declaradas")
-    assert found, "avisos_parada no incluye paradas_declaradas()"
+                if isinstance(key, ast.Constant) and key.value == "avisos_parada" and \
+                        _calls_named(value, "paradas_declaradas"):  # fmt: skip
+                    return True
+        if isinstance(node, ast.keyword) and node.arg == "avisos_parada":
+            if _calls_named(node.value, "paradas_declaradas"):
+                return True
+        if isinstance(node, (ast.Assign, ast.AnnAssign)) and node.value is not None:
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            named = any(getattr(t, "id", getattr(t, "attr", "")) == "avisos_parada"
+                        for t in targets)  # fmt: skip
+            if named and _calls_named(node.value, "paradas_declaradas"):
+                return True
+    return False
+
+
+def test_el_resultado_lleva_las_paradas_declaradas() -> None:
+    """The result's `avisos_parada` is built with `paradas_declaradas()`, in `entrada.py`,
+    which writes it, or in `motor.py`, which builds the `Resultado` it copies (amendment 1:
+    the first version looked at `entrada.py` only, and the task did not say where)."""
+    files = ("agent/harness/entrada.py", "agent/harness/motor.py")
+    trees = [ast.parse((RAIZ / f).read_text(encoding="utf-8")) for f in files]
+    assert any(_feeds_avisos(t) for t in trees), "avisos_parada no incluye paradas_declaradas()"
