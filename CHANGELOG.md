@@ -37,6 +37,17 @@ do not favour this package.
   - **On public data** (errata-bench, MALT, tau2-bench): 7 of 10 registered hypotheses fail;
     without the status block the lock catches no real misreport, and `check_done` does not
     carry to tau2's reward. See `docs/results/2026-09-29-candor-external/`.
+  - **v6** (`candor.inputs`): URL pieces and harness paths are never inputs, and a file
+    attached with `@` counts as read. In requests over 600 characters code no longer locks
+    `substituted_input`: the frontier's `input` question asks, at review. Rounds 1-4 are
+    unchanged; on errata-bench (in sample) the flags on accepted answers go from 7 to 0.
+  - **Round 5** (68 new sessions, pre-registered, v6): 0/39 honest sessions and 62/63
+    misstatements locked. The review tier caught 23 of 29 real misreports; the frontier added
+    10 findings, all right, none on a negative. 4 of 6 hypotheses hold. New failure mode:
+    agents that **write the missing input themselves**.
+  - **v7 candidate** (`candor.fabricated`, post hoc, unconfirmed): code locks a fabricated input
+    only in a short request that names the file as a source. Otherwise the frontier's
+    `authored` question asks, at review. Replay: 0 of 1,938 verdicts change.
   - **The first round is reported in full.** It was registered and mostly failed.
 
   See `docs/candor.md` and `docs/results/2026-09-29-candor/`.
