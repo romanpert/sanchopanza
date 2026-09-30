@@ -1,0 +1,36 @@
+{
+ "paired_instances": 27,
+ "N": {
+  "sessions": 27,
+  "answered": 19,
+  "any@1": 16,
+  "any@5": 16,
+  "median_cost_usd": 0.1101,
+  "total_cost_usd": 2.9545,
+  "median_reads": 7,
+  "median_turns": 23,
+  "jev_usd": 0.0
+ },
+ "F": {
+  "sessions": 27,
+  "answered": 21,
+  "any@1": 17,
+  "any@5": 17,
+  "median_cost_usd": 0.1092,
+  "total_cost_usd": 2.9774,
+  "median_reads": 6,
+  "median_turns": 20,
+  "jev_usd": 0.0132
+ },
+ "F_used_find": 6,
+ "median_paired_cost_delta_usd": 0.0058,
+ "any@1_gained_lost": [
+  4,
+  3
+ ],
+ "verdicts": {
+  "E1_F_any1_ge_N_plus_10_points": false,
+  "E2_F_median_paired_cost_le_N": false,
+  "E3_F_median_reads_le_N": true
+ }
+}

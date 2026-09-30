@@ -148,8 +148,12 @@ def jev_spent(art: Path) -> float:
     total = 0.0
     for line in path.read_text(encoding="utf-8").splitlines():
         try:
-            total += float(json.loads(line).get("cost_usd") or 0.0)
-        except (ValueError, AttributeError):
+            # Amendment 2: the journal nests it (`{"kind", "data": {"cost_usd"}}`); the run read
+            # the top level, saw 0 and never enforced JEV_CAP_USD (actual spend 0.013 USD).
+            event = json.loads(line)
+            data = event.get("data") or {}
+            total += float(data.get("cost_usd") or event.get("cost_usd") or 0.0)
+        except (ValueError, AttributeError, TypeError):
             continue
     return total
 
