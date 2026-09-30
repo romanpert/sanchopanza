@@ -12,7 +12,23 @@ run. Every number here is from development and does not count toward any confirm
 | starlette-1 | N | 4/5 | 1.86 USD | 0 | |
 | starlette-1 | S | 4/5 | 1.90 USD | 1 (160.6k, guard block attached) | |
 
-Same bugs resolved in every pair. Neither arm ever called `find_in_repo` or the skill: these
+| pygments-1 r2 | N | 4/5 | 1.99 USD | 0 | |
+| pygments-1 r2 | S | 3/5 | 1.97 USD | 0 | S ran alone after its export failed (fixed); the difference is the noisy bug pr_2434 (6/9 tests; 7/9, 8/9, 9/9 in the other sessions); sanchopanza made no decision that changed anything |
+
+Singles (SWE-bench Verified, development, official harness):
+
+| instance | N resolved / cost | S resolved / cost |
+|---|---|---|
+| django-15315 | yes / 0.49 | yes / 0.59 |
+| django-14752 | yes / 0.18 | yes / 0.16 |
+| matplotlib-23412 | yes / 0.51 | yes / 0.64 |
+| django-11206 | no / 0.71 | no / 0.51 |
+| django-12708 (hard) | yes / 0.67 | yes / 0.49 |
+| django-16631 (hard) | no / 0.51 | no / 0.39 |
+
+4/6 in both arms; total 3.08 against 2.77 USD, paired median ratio S/N about 0.82: n = 6, noise.
+
+Same bugs resolved in every chain pair but pygments r2. Neither arm ever called `find_in_repo` or the skill: these
 issues name the module or the function, and `Grep` finds it (what the skill itself says).
 
 ## What the pilot found in the harness and in sanchopanza, all fixed
