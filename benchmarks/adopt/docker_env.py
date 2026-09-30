@@ -19,6 +19,11 @@ import time
 from pathlib import Path
 
 LOGIN = "bash -lc"  # SWE-smith and SWE-bench images activate the `testbed` env in a login shell
+# Some SWE-smith images keep the project's test environment in /testbed/.venv (uv) and leave the
+# conda `testbed` env without its dependencies (pydantic: no jsonschema, conftest fails). Where
+# that venv exists it is the environment; the images without one (pygments, starlette) are as
+# they were.
+VENV = "if [ -x /testbed/.venv/bin/python ]; then . /testbed/.venv/bin/activate; fi; "
 RESULT = re.compile(r"^(PASSED|FAILED|ERROR|XFAIL|XPASS|SKIPPED) (\S+)", re.M)
 GIT_ID = "-c user.name=adopt -c user.email=adopt@localhost"
 
@@ -43,12 +48,13 @@ def pull(image: str) -> None:
 
 def bake(image: str, patches: list[str], tag: str) -> None:
     """`tag`: `image` with `patches` applied inside its single commit (amended: no trace in
-    history). A patch that does not apply fails the bake."""
+    history). A patch that does not apply fails the bake. `--no-verify`: the pydantic image
+    carries a pre-commit hook that rewrites files and then fails for want of `uv`."""
     name = f"bake-{tag.replace('/', '-').replace(':', '-')}"
     docker("rm", "-f", name)
     ok(docker("create", "--name", name, "-i", image, "bash", "-lc",
               f"cd /testbed && git apply --whitespace=nowarn - && git add -A && "
-              f"git {GIT_ID} commit -q --amend --no-edit && git gc -q --prune=now"),
+              f"git {GIT_ID} commit -q --amend --no-edit --no-verify && git gc -q --prune=now"),
        "create")  # fmt: skip
     try:
         combined = "".join(p if p.endswith("\n") else p + "\n" for p in patches).encode()
@@ -103,12 +109,13 @@ def _git_retry(cmd: list[str], attempts: int = 5) -> str:
 
 def agent_diff(work: Path, base: str) -> str:
     """Everything the agent changed since `base`, new files included, as one patch. Our own
-    install files (.claude/, .mcp.json) and sanchopanza's state are not part of the work."""
+    install files (.claude/, .mcp.json) and sanchopanza's state are not part of the work, and
+    stay out of the index too: marked intent-to-add, an agent's `git checkout .` emptied them
+    and left an S arm without its hooks (development batch 2)."""
     git = ["git", "-C", str(work)]
-    subprocess.run([*git, "add", "-A", "-N", "."], capture_output=True)
-    out = subprocess.run([*git, "diff", "--binary", base, "--", ".", ":(exclude).claude",
-                          ":(exclude).mcp.json", ":(exclude).sanchopanza"],
-                         capture_output=True)  # fmt: skip
+    ours = (":(exclude).claude", ":(exclude).mcp.json", ":(exclude).sanchopanza")
+    subprocess.run([*git, "add", "-A", "-N", "--", ".", *ours], capture_output=True)
+    out = subprocess.run([*git, "diff", "--binary", base, "--", ".", *ours], capture_output=True)
     return out.stdout.decode("utf-8", "replace")
 
 
@@ -120,7 +127,8 @@ def pytest(
 ) -> dict[str, str]:
     """node id -> outcome of `nodes` (None or too many: the whole suite) in `tag` with `patch`
     applied first, or reversed with `reverse` (an empty patch runs the image as it is). A patch
-    that does not apply yields {"<patch>": "ERROR"}."""
+    that does not apply yields {"<patch>": "ERROR"}. `-p no:pretty`: pytest-pretty (pydantic)
+    replaces the `-rA` lines this reads with a table."""
     listed = bool(nodes) and len(nodes or []) <= FULL_SUITE_OVER
     apply = "git apply -R" if reverse else "git apply"
     select = "xargs -a /io/nodes.txt -d '\\n' python -m pytest" if listed else "python -m pytest"
@@ -129,9 +137,9 @@ def pytest(
         (folder / "work.patch").write_bytes(patch.encode("utf-8"))
         (folder / "nodes.txt").write_text("\n".join(nodes or []) + "\n", encoding="utf-8",
                                           newline="\n")  # fmt: skip
-        script = (f"cd /testbed && (test ! -s /io/work.patch || {apply} --whitespace=nowarn "
+        script = (f"cd /testbed && {VENV}(test ! -s /io/work.patch || {apply} --whitespace=nowarn "
                   "/io/work.patch || { echo PATCH_FAILED; exit 3; }) && "
-                  f"{select} -rA -p no:cacheprovider --tb=no -q 2>&1")  # fmt: skip
+                  f"{select} -rA -p no:cacheprovider -p no:pretty --tb=no -q 2>&1")  # fmt: skip
         done = docker("run", "--rm", "-v", f"{folder.as_posix()}:/io:ro", tag, "bash", "-lc",
                       script, timeout=timeout)  # fmt: skip
     text = done.stdout.decode("utf-8", "replace")

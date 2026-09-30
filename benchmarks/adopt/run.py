@@ -18,9 +18,13 @@ memory between messages works after the compactions that budget causes. `Sfn` an
 their controls without memory (the default install fresh; the 100k budget alone). N and S are
 as they were.
 
-Caps (list price, subscription): `--max-budget-usd` per call; CHAIN_CAP_USD per chain and arm;
-`--ceiling` for the whole run, charged with each call's cap before it starts and settled with
-its reported cost after. No retries: a call that fails is recorded as it ended.
+Caps (list price, subscription): `--max-budget-usd` per call (`--call-cap`, CALL_CAP_USD by
+default); `--chain-cap` per chain and arm (CHAIN_CAP_USD); `--ceiling` for everything under
+RUNS, earlier runs included, charged with each call's cap before it starts and settled with its
+reported cost after. Held-out and combined chains (and any with `--whole`) go all or nothing:
+the chain cap of every arm is held before any arm starts, or the chain is not run. Held-out
+chains run only once the confirmation is sealed (`confirm.seal_holds`); combined chains only
+when named, with `--model`. No retries: a call that fails is recorded as it ended.
 """
 
 from __future__ import annotations
@@ -87,6 +91,15 @@ _lock = threading.Lock()
 _ledger = {"spent": 0.0, "reserved": 0.0}
 
 
+def set_caps(call: float, chain: float) -> None:
+    """The run's caps, from the command line (the defaults above unless given). A call cap
+    above the chain cap could never let a call start, so it is refused."""
+    global CALL_CAP_USD, CHAIN_CAP_USD
+    if not 0 < call <= chain:
+        raise SystemExit(f"caps must satisfy 0 < call ({call}) <= chain ({chain})")
+    CALL_CAP_USD, CHAIN_CAP_USD = call, chain
+
+
 # ---- setup -------------------------------------------------------------------------------------
 
 
@@ -146,7 +159,36 @@ def install_sancho(
     mcp.write_text(json.dumps(data, indent=2), encoding="utf-8", newline="\n")
     shutil.copy(settings, evidence / "settings.json")
     shutil.copy(mcp, evidence / "mcp.json")
+    snapshot_install(work, evidence)
     return mcp
+
+
+INSTALL_COPY = "install"  # under the evidence: the install files as written, to check against
+
+
+def install_files(work: Path) -> list[Path]:
+    return sorted(p for p in [*(work / ".claude").rglob("*"), work / ".mcp.json"] if p.is_file())
+
+
+def snapshot_install(work: Path, evidence: Path) -> None:
+    for path in install_files(work):
+        copy = evidence / INSTALL_COPY / path.relative_to(work)
+        copy.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(path, copy)
+
+
+def restore_install(work: Path, evidence: Path) -> list[str]:
+    """Put back any install file the agent changed or removed (a `git checkout .` or a clean
+    in development batch 2 left an S arm without hooks mid-chain), and say which."""
+    saved = evidence / INSTALL_COPY
+    restored = []
+    for copy in sorted(p for p in saved.rglob("*") if p.is_file()):
+        target = work / copy.relative_to(saved)
+        if not target.is_file() or target.read_bytes() != copy.read_bytes():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(copy, target)
+            restored.append(copy.relative_to(saved).as_posix())
+    return restored
 
 
 def command(model: str, prompt: str, session: str | None, mcp: Path | None) -> list[str]:
@@ -164,12 +206,19 @@ def command(model: str, prompt: str, session: str | None, mcp: Path | None) -> l
 # ---- money ---------------------------------------------------------------------------------------
 
 
-def reserve(ceiling: float) -> bool:
+def reserve(ceiling: float, amount: float | None = None) -> bool:
+    """Hold `amount` (a call's cap by default) against the ceiling, or say it does not fit."""
+    amount = CALL_CAP_USD if amount is None else amount
     with _lock:
-        if _ledger["spent"] + _ledger["reserved"] + CALL_CAP_USD > ceiling:
+        if _ledger["spent"] + _ledger["reserved"] + amount > ceiling:
             return False
-        _ledger["reserved"] += CALL_CAP_USD
+        _ledger["reserved"] += amount
         return True
+
+
+def release(amount: float) -> None:
+    with _lock:
+        _ledger["reserved"] -= amount
 
 
 def settle(cost: float) -> None:
@@ -242,8 +291,21 @@ def call_cost(
     before = 0.0 if fresh else max(earlier, default=0.0)
     if seen["cost_usd"]:
         return {**seen, "cost_cumulative": seen["cost_usd"],
-                "cost_usd": round(seen["cost_usd"] - before, 6)}  # fmt: skip
-    return {**seen, "cost_cumulative": before, "cost_usd": CALL_CAP_USD if code == -9 else 0.0}
+                "cost_usd": round(max(seen["cost_usd"] - before, 0.0), 6)}  # fmt: skip
+    if code == -9:
+        # Charged its cap, and counted as spent in the session's running total: the next call
+        # of a resumed session reports the cut call's partial cost inside its cumulative one,
+        # which would otherwise be charged a second time.
+        return {**seen, "cost_cumulative": before + CALL_CAP_USD, "cost_usd": CALL_CAP_USD}
+    return {**seen, "cost_cumulative": before, "cost_usd": 0.0}
+
+
+def harness_failed(code: int, seen: dict[str, Any]) -> bool:
+    """`claude -p` exited without opening a session: no session id, no result, nothing spent.
+    Not a result of the arm: recorded NOT RUN (harness), its stderr kept, for `--continue`."""
+    return code not in (0, -9) and not seen["session"] and seen["subtype"] is None and not (
+        seen["cost_usd"]
+    )
 
 
 def not_run(row: dict[str, Any]) -> bool:
@@ -291,21 +353,36 @@ def one_chain(
         prompt = PROMPT.format(issue=bug["problem_statement"].strip())
         if spec.fresh:
             session = None  # a new session per request, in the same working copy
+        restored = restore_install(work, evidence) if spec.install is not None else []
+        if restored:
+            print(f"{name} {arm} request {k}: install files restored {restored}", flush=True)
         began = time.time()
-        with stream.open("wb") as out:
+        err = evidence / f"stream-{k}.err"
+        with stream.open("wb") as out, err.open("wb") as errors:
             try:
                 code = subprocess.run(command(model, prompt, session, mcp), cwd=work, env=env,
-                                      stdout=out, stderr=subprocess.PIPE,
+                                      stdout=out, stderr=errors,
                                       timeout=CALL_TIMEOUT_S).returncode  # fmt: skip
             except subprocess.TimeoutExpired:
                 code = -9
-        seen = call_cost(facts(stream), rows, fresh=spec.fresh, code=code)
+        observed = facts(stream)
+        if harness_failed(code, observed):
+            settle(0.0)  # its reservation back: nothing was spent
+            tail = err.read_text(encoding="utf-8", errors="replace")[-400:]
+            rows.extend({"request": j, "instance_id": b["instance_id"], "exit": code,
+                         "status": "NOT RUN (harness)", "cost_usd": 0.0, "stderr": tail}
+                        for j, b in enumerate(chain["bugs"][k - 1:], start=k))  # fmt: skip
+            print(f"{name} {arm} request {k}: claude -p did not start (exit {code}); the arm "
+                  "stops here, --continue goes on from it", flush=True)  # fmt: skip
+            break
+        seen = call_cost(observed, rows, fresh=spec.fresh, code=code)
         settle(seen["cost_usd"])
         session = seen["session"] or session
         (evidence / f"diff-{k}.patch").write_text(docker_env.agent_diff(work, base),
                                                    encoding="utf-8", newline="\n")  # fmt: skip
         rows.append({"request": k, "instance_id": bug["instance_id"], "exit": code,
-                     "wall_s": round(time.time() - began, 1), **seen})  # fmt: skip
+                     "wall_s": round(time.time() - began, 1), "install_restored": restored,
+                     **seen})  # fmt: skip
         print(f"{name} {arm} request {k}: {seen['subtype']} {seen['cost_usd']:.3f} USD "
               f"{len(seen['compactions'])} compactions", flush=True)
     final = docker_env.agent_diff(work, base)
@@ -351,6 +428,12 @@ def grade_chain(chain: dict[str, Any], arm: str, rep: int = 1) -> dict[str, Any]
 # ---- entry -----------------------------------------------------------------------------------
 
 
+def sealed() -> bool:
+    import confirm
+
+    return confirm.seal_holds()
+
+
 def keyfile_from_indagis() -> Path:
     """The TypeSafe key for the S arm's hooks, from the owner's Indagis .env; never printed."""
     key = os.environ.get("TYPESAFE_API_KEY", "").strip()
@@ -371,20 +454,35 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("action", choices=("plan", "run", "grade"))
     parser.add_argument("--chains", default="")
     parser.add_argument("--split", default="dev")
-    parser.add_argument("--model", default="haiku", choices=sorted(MODELS))
+    parser.add_argument("--model", default=None, choices=sorted(MODELS),
+                        help="haiku by default; required for combined chains")
     parser.add_argument("--ceiling", type=float, default=0.0)
     parser.add_argument("--rep", type=int, default=1, help="repetition of the chains (1..)")
     parser.add_argument("--arms", default=",".join(ARMS), help="arms of ARM_SPECS to run")
     parser.add_argument("--continue", dest="carry_on", action="store_true",
                         help="go on with chains whose later requests were NOT RUN")
+    parser.add_argument("--call-cap", type=float, default=CALL_CAP_USD,
+                        help="USD per call (a larger model or context needs more)")
+    parser.add_argument("--chain-cap", type=float, default=CHAIN_CAP_USD,
+                        help="USD per chain and arm")
+    parser.add_argument("--whole", action="store_true",
+                        help="all or nothing per chain (always on for held-out and combined)")
     args = parser.parse_args(argv)
+    set_caps(args.call_cap, args.chain_cap)
     known = chains()
     arms = tuple(a for a in args.arms.split(",") if a)
     if unknown := [a for a in arms if a not in ARM_SPECS]:
         raise SystemExit(f"unknown arms {unknown}; known: {sorted(ARM_SPECS)}")
-    wanted = [c for c in args.chains.split(",") if c] or [
-        n for n, c in known.items() if c["split"] == args.split
-    ]
+    named = [c for c in args.chains.split(",") if c]
+    # Combined chains (combined.py) run only when named, on a model named: a default run must
+    # not spend them on the wrong model, since a chain never runs twice.
+    wanted = named or [n for n, c in known.items()
+                       if c["split"] == args.split and c.get("kind") != "combined"]  # fmt: skip
+    if args.action == "run" and args.model is None and any(
+        known[n].get("kind") == "combined" for n in wanted
+    ):
+        raise SystemExit("a combined chain needs --model")
+    model = MODELS[args.model or "haiku"]
     if args.action == "plan":
         for n in wanted:
             c = known[n]
@@ -401,6 +499,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.ceiling <= 0:
         raise SystemExit("--ceiling is required and must be positive")
+    if any(known[n]["split"] == "held" for n in wanted) and not sealed():
+        raise SystemExit("held-out chains run only once the confirmation is sealed")
     with _lock:
         _ledger["spent"] = spent_so_far()
     keyfile = keyfile_from_indagis()
@@ -410,10 +510,21 @@ def main(argv: list[str] | None = None) -> int:
             if not chain["valid"]:
                 print(f"{n}: invalid, skipped")
                 continue
-            with ThreadPoolExecutor(max_workers=len(arms)) as pool:
-                list(pool.map(lambda arm, c=chain: one_chain(c, arm, MODELS[args.model],
-                                                             args.ceiling, keyfile,
-                                                             args.carry_on, args.rep), arms))
+            # All or nothing (held-out and combined chains always): every arm's whole chain cap
+            # is held before any arm starts, so no pair ever has one arm run and not the other
+            # (the shared ledger let one arm take the room of another in development).
+            whole = args.whole or chain["split"] == "held" or chain.get("kind") == "combined"
+            hold = CHAIN_CAP_USD * len(arms) if whole else 0.0
+            if whole and not reserve(args.ceiling, hold):
+                print(f"{n}: not run, its arms' chain caps ({hold:.2f} USD) do not fit")
+                continue
+            ceiling = float("inf") if whole else args.ceiling  # bounded by the chain caps
+            try:
+                with ThreadPoolExecutor(max_workers=len(arms)) as pool:
+                    list(pool.map(lambda arm, c=chain, top=ceiling: one_chain(
+                        c, arm, model, top, keyfile, args.carry_on, args.rep), arms))
+            finally:
+                release(hold)
     finally:
         keyfile.unlink(missing_ok=True)
     print(f"spent {_ledger['spent']:.2f} USD (list price)")

@@ -184,5 +184,589 @@
     "p2p_star": 807
    }
   ]
+ },
+ "encode__starlette-long-1r1": {
+  "valid": true,
+  "bugs": [
+   "encode__starlette.db5063c2.pr_2159",
+   "encode__starlette.db5063c2.pr_2400",
+   "encode__starlette.db5063c2.pr_2141",
+   "encode__starlette.db5063c2.pr_2577",
+   "encode__starlette.db5063c2.pr_2017",
+   "encode__starlette.db5063c2.pr_2576",
+   "encode__starlette.db5063c2.pr_2443",
+   "encode__starlette.db5063c2.pr_2341",
+   "encode__starlette.db5063c2.pr_2732",
+   "encode__starlette.db5063c2.pr_2761"
+  ],
+  "history": [
+   [
+    "encode__starlette.db5063c2.pr_2159 ok",
+    "encode__starlette.db5063c2.pr_2400 ok",
+    "encode__starlette.db5063c2.pr_2141 ok",
+    "encode__starlette.db5063c2.pr_2577 ok",
+    "encode__starlette.db5063c2.pr_2017 ok",
+    "encode__starlette.db5063c2.pr_2576 ok",
+    "encode__starlette.db5063c2.pr_2443 ok",
+    "encode__starlette.db5063c2.pr_2341 ok",
+    "encode__starlette.db5063c2.pr_2732 ok",
+    "encode__starlette.db5063c2.pr_2761 ok"
+   ]
+  ],
+  "seconds": 171,
+  "records": [
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2159",
+    "valid": true,
+    "f2p_failing_with_bugs": 7,
+    "f2p_passing_when_fixed": 7,
+    "f2p": 7,
+    "p2p_star": 774
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2400",
+    "valid": true,
+    "f2p_failing_with_bugs": 19,
+    "f2p_passing_when_fixed": 19,
+    "f2p": 19,
+    "p2p_star": 774
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2141",
+    "valid": true,
+    "f2p_failing_with_bugs": 6,
+    "f2p_passing_when_fixed": 6,
+    "f2p": 6,
+    "p2p_star": 774
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2577",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 774
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2017",
+    "valid": true,
+    "f2p_failing_with_bugs": 7,
+    "f2p_passing_when_fixed": 7,
+    "f2p": 7,
+    "p2p_star": 774
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2576",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 774
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2443",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 774
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2341",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 774
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2732",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 774
+   },
+   {
+    "instance_id": "encode__starlette.db5063c2.pr_2761",
+    "valid": true,
+    "f2p_failing_with_bugs": 18,
+    "f2p_passing_when_fixed": 18,
+    "f2p": 18,
+    "p2p_star": 774
+   }
+  ]
+ },
+ "pydantic__pydantic-1": {
+  "valid": true,
+  "bugs": [
+   "pydantic__pydantic.acb0f10f.pr_6797",
+   "pydantic__pydantic.acb0f10f.pr_6570",
+   "pydantic__pydantic.acb0f10f.pr_8316",
+   "pydantic__pydantic.acb0f10f.pr_11364",
+   "pydantic__pydantic.acb0f10f.pr_7976"
+  ],
+  "history": [
+   [
+    "pydantic__pydantic.acb0f10f.pr_6797 ok",
+    "pydantic__pydantic.acb0f10f.pr_6570 ok",
+    "pydantic__pydantic.acb0f10f.pr_8316 ok",
+    "pydantic__pydantic.acb0f10f.pr_11364 ok",
+    "pydantic__pydantic.acb0f10f.pr_7976 ok"
+   ]
+  ],
+  "seconds": 445,
+  "records": [
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_6797",
+    "valid": true,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 3,
+    "p2p_star": 5425
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_6570",
+    "valid": true,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 3,
+    "p2p_star": 5425
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_8316",
+    "valid": true,
+    "f2p_failing_with_bugs": 5,
+    "f2p_passing_when_fixed": 5,
+    "f2p": 5,
+    "p2p_star": 5425
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_11364",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5425
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_7976",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5425
+   }
+  ]
+ },
+ "pydantic__pydantic-2": {
+  "valid": true,
+  "bugs": [
+   "pydantic__pydantic.acb0f10f.pr_5424",
+   "pydantic__pydantic.acb0f10f.pr_8678",
+   "pydantic__pydantic.acb0f10f.pr_7346",
+   "pydantic__pydantic.acb0f10f.pr_3646",
+   "pydantic__pydantic.acb0f10f.pr_10391"
+  ],
+  "history": [
+   [
+    "pydantic__pydantic.acb0f10f.pr_5424 ok",
+    "pydantic__pydantic.acb0f10f.pr_8678 ok",
+    "pydantic__pydantic.acb0f10f.pr_7346 ok",
+    "pydantic__pydantic.acb0f10f.pr_3646 ok",
+    "pydantic__pydantic.acb0f10f.pr_10391 ok"
+   ]
+  ],
+  "seconds": 372,
+  "records": [
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_5424",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5431
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_8678",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5431
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_7346",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5431
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_3646",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5431
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_10391",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5431
+   }
+  ]
+ },
+ "pydantic__pydantic-rel-1": {
+  "valid": true,
+  "bugs": [
+   "pydantic__pydantic.acb0f10f.pr_7891",
+   "pydantic__pydantic.acb0f10f.pr_10347",
+   "pydantic__pydantic.acb0f10f.pr_11116",
+   "pydantic__pydantic.acb0f10f.pr_5869",
+   "pydantic__pydantic.acb0f10f.pr_7786"
+  ],
+  "history": [
+   [
+    "pydantic__pydantic.acb0f10f.pr_7891 ok",
+    "pydantic__pydantic.acb0f10f.pr_10347 ok",
+    "pydantic__pydantic.acb0f10f.pr_11116 ok",
+    "pydantic__pydantic.acb0f10f.pr_5869 ok",
+    "pydantic__pydantic.acb0f10f.pr_7786 ok"
+   ]
+  ],
+  "seconds": 472,
+  "records": [
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_7891",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5415
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_10347",
+    "valid": true,
+    "f2p_failing_with_bugs": 10,
+    "f2p_passing_when_fixed": 10,
+    "f2p": 10,
+    "p2p_star": 5415
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_11116",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5415
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_5869",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5415
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_7786",
+    "valid": true,
+    "f2p_failing_with_bugs": 8,
+    "f2p_passing_when_fixed": 8,
+    "f2p": 8,
+    "p2p_star": 5415
+   }
+  ]
+ },
+ "pydantic__pydantic-long-1r1": {
+  "valid": false,
+  "bugs": [
+   "pydantic__pydantic.acb0f10f.pr_6797",
+   "pydantic__pydantic.acb0f10f.pr_6570",
+   "pydantic__pydantic.acb0f10f.pr_8316",
+   "pydantic__pydantic.acb0f10f.pr_11364",
+   "pydantic__pydantic.acb0f10f.pr_7976",
+   "pydantic__pydantic.acb0f10f.pr_7891",
+   "pydantic__pydantic.acb0f10f.pr_10347",
+   "pydantic__pydantic.acb0f10f.pr_11116",
+   "pydantic__pydantic.acb0f10f.pr_5869",
+   "pydantic__pydantic.acb0f10f.pr_7786"
+  ],
+  "history": [
+   [
+    "pydantic__pydantic.acb0f10f.pr_6797 ok",
+    "pydantic__pydantic.acb0f10f.pr_6570 ok",
+    "pydantic__pydantic.acb0f10f.pr_8316 ok",
+    "pydantic__pydantic.acb0f10f.pr_11364 ok",
+    "pydantic__pydantic.acb0f10f.pr_7976 ok",
+    "pydantic__pydantic.acb0f10f.pr_7891 ok",
+    "pydantic__pydantic.acb0f10f.pr_10347 ok",
+    "pydantic__pydantic.acb0f10f.pr_11116 ok",
+    "pydantic__pydantic.acb0f10f.pr_5869 INVALID",
+    "pydantic__pydantic.acb0f10f.pr_7786 ok"
+   ]
+  ],
+  "seconds": 664,
+  "records": [
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_6797",
+    "valid": true,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 3,
+    "p2p_star": 5402
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_6570",
+    "valid": true,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 3,
+    "p2p_star": 5403
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_8316",
+    "valid": true,
+    "f2p_failing_with_bugs": 5,
+    "f2p_passing_when_fixed": 5,
+    "f2p": 5,
+    "p2p_star": 5403
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_11364",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5403
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_7976",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5403
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_7891",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5403
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_10347",
+    "valid": true,
+    "f2p_failing_with_bugs": 10,
+    "f2p_passing_when_fixed": 10,
+    "f2p": 10,
+    "p2p_star": 5403
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_11116",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5403
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_5869",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5402
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_7786",
+    "valid": true,
+    "f2p_failing_with_bugs": 8,
+    "f2p_passing_when_fixed": 8,
+    "f2p": 8,
+    "p2p_star": 5403
+   }
+  ]
+ },
+ "pydantic__pydantic-long-2r1": {
+  "valid": true,
+  "bugs": [
+   "pydantic__pydantic.acb0f10f.pr_5424",
+   "pydantic__pydantic.acb0f10f.pr_8678",
+   "pydantic__pydantic.acb0f10f.pr_7346",
+   "pydantic__pydantic.acb0f10f.pr_3646",
+   "pydantic__pydantic.acb0f10f.pr_10391",
+   "pydantic__pydantic.acb0f10f.pr_7891",
+   "pydantic__pydantic.acb0f10f.pr_10347",
+   "pydantic__pydantic.acb0f10f.pr_11116",
+   "pydantic__pydantic.acb0f10f.pr_5869",
+   "pydantic__pydantic.acb0f10f.pr_7786"
+  ],
+  "history": [
+   [
+    "pydantic__pydantic.acb0f10f.pr_5424 ok",
+    "pydantic__pydantic.acb0f10f.pr_8678 ok",
+    "pydantic__pydantic.acb0f10f.pr_7346 ok",
+    "pydantic__pydantic.acb0f10f.pr_3646 ok",
+    "pydantic__pydantic.acb0f10f.pr_10391 ok",
+    "pydantic__pydantic.acb0f10f.pr_7891 ok",
+    "pydantic__pydantic.acb0f10f.pr_10347 ok",
+    "pydantic__pydantic.acb0f10f.pr_11116 ok",
+    "pydantic__pydantic.acb0f10f.pr_5869 ok",
+    "pydantic__pydantic.acb0f10f.pr_7786 ok"
+   ]
+  ],
+  "seconds": 610,
+  "records": [
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_5424",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5408
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_8678",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5408
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_7346",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5408
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_3646",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5408
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_10391",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5408
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_7891",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5408
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_10347",
+    "valid": true,
+    "f2p_failing_with_bugs": 10,
+    "f2p_passing_when_fixed": 10,
+    "f2p": 10,
+    "p2p_star": 5408
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_11116",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5408
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_5869",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5408
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_7786",
+    "valid": true,
+    "f2p_failing_with_bugs": 8,
+    "f2p_passing_when_fixed": 8,
+    "f2p": 8,
+    "p2p_star": 5408
+   }
+  ]
+ },
+ "conan-io__conan-1": {
+  "valid": false,
+  "bugs": [
+   "conan-io__conan.86f29e13.pr_14441",
+   "conan-io__conan.86f29e13.pr_13230",
+   "conan-io__conan.86f29e13.pr_14078",
+   "conan-io__conan.86f29e13.pr_13762",
+   "conan-io__conan.86f29e13.pr_15705"
+  ],
+  "history": [
+   [
+    "conan-io__conan.86f29e13.pr_13364 INVALID",
+    "conan-io__conan.86f29e13.pr_13230 ok",
+    "conan-io__conan.86f29e13.pr_14078 ok",
+    "conan-io__conan.86f29e13.pr_13631 INVALID",
+    "conan-io__conan.86f29e13.pr_15705 INVALID"
+   ]
+  ],
+  "seconds": 344,
+  "records": [
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_13364",
+    "valid": false,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 3,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_13230",
+    "valid": true,
+    "f2p_failing_with_bugs": 38,
+    "f2p_passing_when_fixed": 38,
+    "f2p": 38,
+    "p2p_star": 1
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_14078",
+    "valid": true,
+    "f2p_failing_with_bugs": 22,
+    "f2p_passing_when_fixed": 22,
+    "f2p": 22,
+    "p2p_star": 23
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_13631",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 3
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_15705",
+    "valid": false,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 2,
+    "p2p_star": 83
+   }
+  ]
  }
 }

@@ -252,3 +252,55 @@ record, and once it saved a request that was already done; in one session with c
 so far (1.46 USD, 123 calls, against 1.57-2.43 and 149-180), with the `git checkout .` costing
 it a bug; that is a hint for H-new-session, not a result. Chain spend at the end: 30.47 USD
 (development total with singles, probes and Jev: ~36.6 of 42 USD).
+
+## Phase B, the long-session pilot on Sonnet 5.5 (indagis-45, 2026-09-30 evening)
+
+Development, approved as part of the three-phase plan (B 25-30 USD, C 55-60 USD, A ~105 USD).
+Written by the session that ran it; the pre-registration draft is `prereg-confirm.md`.
+
+**The task.** `encode__starlette-long-1r1`: starlette-1 then starlette-rel-1 asked in ONE
+session, one working copy, ten requests, graded per chain (`benchmarks/adopt/combined.py`). The
+two chains did not fit in one image as drawn: pr_2141 (starlette-1) and pr_2041 (rel-1) change
+the same lines of `websockets.py` (61-75) and share their six FAIL_TO_PASS. The combining rule,
+written in `combined.py` before any session and agreed with indagis-6b: the first chain as it
+is; a bug of the second that conflicts is replaced by that chain's first spare that conflicts
+with nothing and shares a code file. pr_2041 -> pr_2443. Validated in Docker, 10 of 10 (171 s).
+
+**Harness changes before B** (all tested; none changes a run already made):
+- `run.py`: `--call-cap` and `--chain-cap`; combined chains run only when named and with
+  `--model`; a timeout is charged its cap once (a resumed call after it no longer charges the
+  cut part again); all or nothing per chain for held-out and combined tasks (every arm's chain
+  cap held before any arm starts); held-out tasks refuse to run before the seal holds; each
+  call's stderr kept in `stream-<k>.err`, and a call that never opened a session is recorded
+  `NOT RUN (harness)` with the arm stopped there for `--continue`; install files snapshot after
+  `install` and restored (and named in the row) if an agent changed them.
+- `docker_env.py`: the install files stay out of the index (`git add -N` excluded them from the
+  diff but not from the index: that is what emptied `Sf`'s install in batch 2); bake with
+  `--no-verify`, `/testbed/.venv` where an image has one, grading with `-p no:pretty` (all three
+  found validating pydantic; inert for pygments and starlette, checked).
+- `confirm.py`, the verdict code the prereg will seal, reviewed adversarially before B (a
+  code-reviewer subagent: two ways to read held-out runs before the seal, incomplete arms
+  entering the cost ratio as zero, subagent calls counted as exploration; all fixed).
+
+**Run** (`--model sonnet --call-cap 4.5 --chain-cap 15 --ceiling 60.5`, arms `N`, `Sm`):
+
+| arm | resolved (starlette-1 + rel-1) | list cost | peak context | compactions | tool calls | wall |
+|---|---|---|---|---|---|---|
+| N | 9/10 (4 + 5) | 0.972 USD | 80.3k | 0 | 44 | 715 s |
+| Sm | 9/10 (4 + 5) | 0.931 USD | 77.5k | 0 | 43 | 965 s |
+
+Spent 1.90 USD (runs total 30.47 -> 32.37). The same bug unresolved in both arms. Memory offered
+nothing on any of the ten prompts (no candidate: records are offered only once they leave the
+live context, and nothing was compacted); hooks took 123 s of `Sm`'s wall time.
+
+**The rule to run C** (fixed in the draft before B): `Sm` <= 0.90 of `N` and resolved >= N - 1.
+Cost ratio 0.958: **not met, C is not run.**
+
+**What B shows, plainly.** Not the lever: the premise was wrong. Sonnet 5.5 solved ten real bugs
+in 44 tool calls and ended at 80k tokens of context, not the 300k-400k the plan expected from
+Haiku's ~160k per five bugs. With a 100k budget nothing compacts below 80k, so `Sm` behaved as
+the default install that never acts, and the 4 % difference is noise. These SWE-smith chains
+do not produce the long sessions where the owner's spend sits (median context 308k-419k in 160
+sessions of 100+ calls); a test of the budget lever needs tasks that do, which this benchmark
+does not have. On Haiku (phase A), five bugs reach ~160k and a 100k budget does compact, so A
+still tests `Sm` where it can act.

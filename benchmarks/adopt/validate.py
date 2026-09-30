@@ -19,8 +19,11 @@ Writes chains-validated.json; the Docker tags stay for the sessions (`docker_env
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -113,21 +116,58 @@ def validate(chain: dict[str, Any]) -> dict[str, Any]:
             "history": history, "seconds": round(time.time() - started)}  # fmt: skip
 
 
+def validated() -> dict[str, dict[str, Any]]:
+    return json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
+
+
+def save(result: dict[str, Any]) -> None:
+    """`result` into chains-validated.json and the summary kept in the repository. Read again
+    under a lock (other chains stay as they are; two validations at once lose nothing) and
+    written whole through a temporary file (a run reading it never sees half of it)."""
+    with _locked(OUT.with_suffix(".lock")):
+        done = {**validated(), result["chain"]: result}
+        OUT.parent.mkdir(parents=True, exist_ok=True)
+        _write(OUT, json.dumps(done, ensure_ascii=False))
+        summary = {name: {"valid": c["valid"], "bugs": [b["instance_id"] for b in c["bugs"]],
+                          "history": c["history"], "seconds": c["seconds"],
+                          "records": c["records"]} for name, c in done.items()}  # fmt: skip
+        _write(SUMMARY, json.dumps(summary, indent=1))
+
+
+def _write(path: Path, text: str) -> None:
+    temp = path.with_suffix(path.suffix + ".tmp")
+    temp.write_text(text, encoding="utf-8", newline="\n")
+    os.replace(temp, path)
+
+
+@contextmanager
+def _locked(lock: Path, wait_s: float = 120.0) -> Iterator[None]:
+    """An exclusive lock file: waits for another validation to finish, then says so."""
+    started = time.time()
+    while True:
+        try:
+            handle = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            break
+        except FileExistsError:
+            if time.time() - started > wait_s:
+                raise SystemExit(f"{lock} held for {wait_s:.0f} s: another validation? "
+                                 "remove it if none runs") from None  # fmt: skip
+            time.sleep(1)
+    try:
+        yield
+    finally:
+        os.close(handle)
+        lock.unlink(missing_ok=True)
+
+
 def main() -> int:
     wanted = sys.argv[1]
     chains = [*full(), *related.full()]
-    done = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
     for chain in chains:
         if wanted not in ("all", chain["chain"]):
             continue
         result = validate(chain)
-        done[chain["chain"]] = result
-        OUT.parent.mkdir(parents=True, exist_ok=True)
-        OUT.write_text(json.dumps(done, ensure_ascii=False), encoding="utf-8")
-        summary = {name: {"valid": c["valid"], "bugs": [b["instance_id"] for b in c["bugs"]],
-                          "history": c["history"], "seconds": c["seconds"],
-                          "records": c["records"]} for name, c in done.items()}  # fmt: skip
-        SUMMARY.write_text(json.dumps(summary, indent=1), encoding="utf-8", newline="\n")
+        save(result)
         print(chain["chain"], "valid" if result["valid"] else "INVALID", result["history"],
               f"{result['seconds']} s", flush=True)
     return 0

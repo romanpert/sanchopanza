@@ -16,7 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from docker_env import agent_diff  # noqa: E402
+from docker_env import VENV, agent_diff  # noqa: E402
 
 TIMEOUT_S = 1200
 
@@ -33,7 +33,7 @@ def main(argv: list[str]) -> int:
     test_cmd = os.environ.get("ADOPT_TEST_CMD", "python -m pytest -p no:cacheprovider")
     with tempfile.TemporaryDirectory() as io_dir:
         (Path(io_dir) / "work.patch").write_bytes(patch.encode("utf-8"))
-        script = (f"{prefix}cd /testbed && (test ! -s /io/work.patch || git apply "
+        script = (f"{prefix}cd /testbed && {VENV}(test ! -s /io/work.patch || git apply "
                   "--whitespace=nowarn /io/work.patch || { echo 'runtests: your changes did not "
                   f"apply'; exit 3; }}) && {test_cmd} \"$@\"")  # fmt: skip
         cmd = ["docker", "run", "--rm", "-v", f"{Path(io_dir).as_posix()}:/io:ro", tag,

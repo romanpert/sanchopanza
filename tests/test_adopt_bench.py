@@ -9,6 +9,8 @@ import random
 import sys
 from types import ModuleType
 
+import pytest
+
 ADOPT = pathlib.Path(__file__).resolve().parents[1] / "benchmarks" / "adopt"
 sys.path.append(str(ADOPT))  # for their own imports (chains, docker_env); appended, not first
 
@@ -68,6 +70,22 @@ def test_a_call_cut_before_its_result_is_charged_its_cap() -> None:
     assert run.call_cost({"cost_usd": 0.0}, [], fresh=True, code=1)["cost_usd"] == 0.0
 
 
+def test_a_cut_call_then_a_resumed_one_are_not_charged_the_cut_part_twice() -> None:
+    cap = run.CALL_CAP_USD
+    rows = [{"cost_cumulative": 0.40, "cost_usd": 0.40}]
+    cut = run.call_cost({"cost_usd": 0.0}, rows, fresh=False, code=-9)
+    assert cut["cost_usd"] == cap and cut["cost_cumulative"] == 0.40 + cap
+    # the session's own total now holds the cut call's partial cost and the next call's (0.30)
+    partial = cap - 0.10
+    after = run.call_cost({"cost_usd": 0.40 + partial + 0.30}, [*rows, cut], fresh=False, code=0)
+    assert after["cost_usd"] == pytest.approx(0.20)  # the cap charged 0.10 more than the partial
+    assert rows[0]["cost_usd"] + cut["cost_usd"] + after["cost_usd"] == pytest.approx(
+        0.40 + partial + 0.30)  # the session's true total, charged once  # fmt: skip
+    # a partial well below the cap leaves a negative difference: charged 0, never less
+    low = run.call_cost({"cost_usd": 0.40 + 0.10}, [*rows, cut], fresh=False, code=0)
+    assert low["cost_usd"] == 0.0
+
+
 # ---- related chains -----------------------------------------------------------------------------
 
 
@@ -110,3 +128,26 @@ def test_draw_is_seeded_and_every_later_bug_shares_a_file_with_an_earlier_one() 
     for k in range(1, len(bugs)):
         earlier = set().union(*(related.code_files(b) for b in bugs[:k]))
         assert related.code_files(bugs[k]) & earlier
+
+
+def test_a_call_that_never_opened_a_session_is_a_harness_failure_not_a_result() -> None:
+    empty = {"session": "", "subtype": None, "cost_usd": 0.0}
+    assert run.harness_failed(1, empty)
+    assert not run.harness_failed(-9, empty)  # the timeout: charged its cap, a result
+    assert not run.harness_failed(0, empty)
+    assert not run.harness_failed(1, {**empty, "session": "abc"})
+    assert not run.harness_failed(1, {**empty, "subtype": "error_max_budget_usd"})
+
+
+def test_install_files_the_agent_emptied_are_restored_and_named(tmp_path: pathlib.Path) -> None:
+    work, evidence = tmp_path / "work", tmp_path / "evidence"
+    (work / ".claude" / "skills" / "s").mkdir(parents=True)
+    (work / ".claude" / "settings.json").write_text('{"hooks": {}}', encoding="utf-8")
+    (work / ".claude" / "skills" / "s" / "SKILL.md").write_text("skill", encoding="utf-8")
+    (work / ".mcp.json").write_text('{"mcpServers": {}}', encoding="utf-8")
+    run.snapshot_install(work, evidence)
+    assert run.restore_install(work, evidence) == []
+    (work / ".mcp.json").write_text("", encoding="utf-8")  # what `git checkout .` left
+    (work / ".claude" / "skills" / "s" / "SKILL.md").unlink()
+    assert run.restore_install(work, evidence) == [".claude/skills/s/SKILL.md", ".mcp.json"]
+    assert (work / ".mcp.json").read_text(encoding="utf-8") == '{"mcpServers": {}}'

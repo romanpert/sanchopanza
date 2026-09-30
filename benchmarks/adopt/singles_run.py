@@ -86,7 +86,10 @@ def one(row: dict[str, Any], arm: str, model: str, ceiling: float, keyfile: Path
             except subprocess.TimeoutExpired:
                 code = -9
         seen = run.facts(stream)
-        run.settle(seen["cost_usd"] or (run.CALL_CAP_USD if code == -9 else 0.0))
+        # A call cut by the timeout is charged its cap in the row as in the ledger (a fresh
+        # session: no cumulative cost to take a difference from).
+        seen = {**seen, "cost_usd": seen["cost_usd"] or (run.CALL_CAP_USD if code == -9 else 0.0)}
+        run.settle(seen["cost_usd"])
         call = {"request": 1, "exit": code, "wall_s": round(time.time() - began, 1), **seen}
         print(f"{name} {arm}: {seen['subtype']} {seen['cost_usd']:.3f} USD", flush=True)
     patch = docker_env.agent_diff(work, base)
@@ -145,16 +148,28 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.ceiling <= 0:
         raise SystemExit("--ceiling is required and must be positive")
+    held = {r["instance_id"] for r in json.loads((HERE / "singles-selected.json").read_text(
+        encoding="utf-8")) if r["split"] == "held"}  # fmt: skip
+    if held & set(ids) and not run.sealed():
+        raise SystemExit("held-out singles run only once the confirmation is sealed")
     with run._lock:
         run._ledger["spent"] = run.spent_so_far() + spent_singles()
     keyfile = run.keyfile_from_indagis()
     try:
         for name in ids:
             row = known[name]
+            # All or nothing, as the chains: both arms' caps held before either starts.
+            hold = run.CALL_CAP_USD * len(run.ARMS)
+            if not run.reserve(args.ceiling, hold):
+                print(f"{name}: not run, both arms' caps ({hold:.2f} USD) do not fit")
+                continue
             docker_env.pull(row["image"])
-            with ThreadPoolExecutor(max_workers=len(run.ARMS)) as pool:
-                list(pool.map(lambda arm, r=row: one(r, arm, run.MODELS[args.model],
-                                                     args.ceiling, keyfile), run.ARMS))
+            try:
+                with ThreadPoolExecutor(max_workers=len(run.ARMS)) as pool:
+                    list(pool.map(lambda arm, r=row: one(r, arm, run.MODELS[args.model],
+                                                         float("inf"), keyfile), run.ARMS))
+            finally:
+                run.release(hold)
             print(name, grade(name), flush=True)
             docker_env.drop(row["image"])
     finally:
