@@ -1,0 +1,35 @@
+{
+ "steps": 142,
+ "reused_calls": 1684,
+ "DESCRIBED": {
+  "recall@1": 0.4507,
+  "recall@5": 0.7606,
+  "recall@10": 0.838,
+  "recall@20": 0.8803,
+  "recall@30": 0.9085
+ },
+ "REASK": {
+  "recall@1": 0.4155,
+  "recall@5": 0.7606,
+  "recall@10": 0.8239,
+  "recall@20": 0.8803,
+  "recall@30": 0.9085
+ },
+ "DESCRIBED-minus-REASK@10": {
+  "value": 0.0141,
+  "bootstrap95": [
+   -0.0141,
+   0.0423
+  ]
+ },
+ "DESCRIBED-minus-REASK@20": {
+  "value": 0.0,
+  "bootstrap95": [
+   0.0,
+   0.0
+  ]
+ },
+ "live_calls": 1045,
+ "missing": 0,
+ "jev_usd_spent": 0.3566
+}

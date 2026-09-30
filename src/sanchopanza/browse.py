@@ -229,7 +229,7 @@ def _unnamed_hints(record: Mapping[str, Any], records: Sequence[Mapping[str, Any
 
 
 def elements_from_html(
-    html: str, *, all_with_ids: bool | None = None, describe_unnamed: bool = False
+    html: str, *, all_with_ids: bool | None = None, describe_unnamed: bool = True
 ) -> list[Element]:
     """Every element of an HTML page an agent could act on, in document order.
 
@@ -237,10 +237,10 @@ def elements_from_html(
     element carrying one is read, because the page's own candidate list decides what counts;
     otherwise the interactive ones (links, buttons, fields, ARIA widgets, click handlers).
 
-    `describe_unnamed` adds, to an element with no name, what its classes say and the element
-    holding it. Opt-in: on 142 new Mind2Web steps (Phase 1d, registered) it lifted the targets
-    it described (5 of 6 up or level) but Jev's R@20 moved -1.4 points [-3.5, 0.0], past the
-    registered -3 bound, on steps it did not touch.
+    `describe_unnamed` (default) adds, to an element with no name, what its classes say and the
+    element holding it. Registered on 142 new Mind2Web steps against a control asked again on
+    the same groups (Phase 1e): R@1 +3.5, R@10 +1.4 [-1.4, +4.2], R@20 0.0; Phase 1d's -1.4 at
+    R@20 was the noise of asking Jev again, which the control shows too.
     """
     if all_with_ids is None:
         all_with_ids = "backend_node_id=" in html

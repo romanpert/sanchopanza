@@ -59,9 +59,12 @@ do not favour this package.
     folder), the agent's own searches, narrowed reads and targeted snapshots were cut, the goal
     lost the user's question (`browse_goal`), and recovery read the whole archive instead of
     grepping it.
-  - `elements_from_html(describe_unnamed=True)`, opt-in: an unnamed element described by its
-    classes and its holder. It lifted the targets it described, but Jev's R@20 moved -1.4
-    [-3.5, 0.0] on new steps, past the registered bound.
+  - **An unnamed element is described by its classes and the element holding it**
+    (`elements_from_html`, default; `describe_unnamed=False` turns it off): an SVG with class
+    `add-wishlist-new__icon` reads "looks like: add wishlist". Registered against a control that
+    asks Jev again on the same groups: R@1 +3.5, R@10 +1.4 [-1.4, +4.2], R@20 0.0 on 142 new
+    steps. A first registered test without that control failed its bound at R@20 (-1.4
+    [-3.5, 0.0]); the control fell exactly as far, so that drop was the noise of asking again.
 - `Squire.fork(thresholds=...)`: a copy with another ceiling for one job.
 
 - **Candor: an agent's report held against what it did** (`sanchopanza.candor`,

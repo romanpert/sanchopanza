@@ -220,7 +220,24 @@ R@20 85.8 %, R@30 90.5 %. Chosen on the data it scored, so it claimed nothing; i
 sample. Reading the 25 first misses: unnamed text fields, `div`s holding a whole paragraph, SVG
 icons, and targets named differently from the task's words.
 
-## Phase 1d: registered, failed at 20, opt-in (`prereg-hints.md`, `hints-jev-confirm.json`)
+## Phase 1e: registered, passed: the description is the default (`prereg-hints-reask.md`)
+
+Phase 1d could not tell the description from the noise of asking Jev again. Phase 1e keeps
+DESCRIBED as it was and builds a control, REASK, on the reading without the description, where
+the 1,684 calls DESCRIBED replayed are replayed too and the other 1,045 are asked again live
+(0.36 USD of Jev), so both arms carry the same noise on the same groups:
+
+| Arm | R@1 | R@5 | R@10 | R@20 | R@30 |
+|---|---|---|---|---|---|
+| REASK (no description, asked again) | 41.5 % | 76.1 % | 82.4 % | 88.0 % | 90.8 % |
+| DESCRIBED | 45.1 % | 76.1 % | 83.8 % | 88.0 % | 90.8 % |
+
+DESCRIBED minus REASK: R@10 +1.4 [-1.4, +4.2], R@20 0.0 [0.0, 0.0]. **Passed: the description
+is `elements_from_html`'s default.** Phase 1d's -1.4 at R@20 was the noise of asking again: the
+control without any description fell to the same 88.0 %. A second look at the same 142 steps with
+a better control, not a new sample.
+
+## Phase 1d: registered, failed at 20 (`prereg-hints.md`, `hints-jev-confirm.json`)
 
 Five of the 23 development targets Jev ranked below 20 (`misses.py`) were unnamed SVG icons whose
 classes said what they do (`add-wishlist-new__icon`; `save-icon-favorite` inside a "Save"
@@ -239,7 +256,7 @@ description stays opt-in. Where it described the target (6 steps) it lifted or k
 unnamed "$ Max" field of Phase 2c's Amy Grant step went from 6th to 1st); the two steps that fell
 out of the top 20 (20th to 23rd, 19th to 26th) were ones whose target it did not touch: Jev asked
 again about a group where another line changed, which is noise this design cannot separate from
-the change. A cleaner test would hold every unchanged call fixed, and is not run.
+the change. Phase 1e separated it.
 
 ## Phase 1c: registered, confirmed (`prereg-confirm.md`, `analysis-confirm.json`)
 

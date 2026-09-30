@@ -91,8 +91,9 @@ def test_an_unnamed_element_is_described_by_its_classes_and_what_holds_it():
         "</svg></button>"
         '<a backend_node_id="6" class="nav-link">Home</a>'
     )
-    assert not any("looks like" in e.context for e in elements_from_html(html)), "opt-in"
-    els = {e.key: e for e in elements_from_html(html, describe_unnamed=True)}
+    plain = elements_from_html(html, describe_unnamed=False)
+    assert not any("looks like" in e.context for e in plain), "it can be turned off"
+    els = {e.key: e for e in elements_from_html(html)}
     assert "looks like: add wishlist" in els["2"].context
     assert "looks like: save favorite" in els["5"].context
     assert 'inside button "Save"' in els["5"].context
