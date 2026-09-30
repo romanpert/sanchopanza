@@ -57,6 +57,7 @@ from typing import Any
 from .. import _env
 from ..context import guard as guard_mod
 from ..context.transcript import Call, calls, history_from_claude_code, last_compact_summary
+from .hookio import stdin_text, stdout_json, stdout_text
 
 PREFIX = "sanchopanza guard"
 KEPT_SECONDS = 3_600
@@ -278,31 +279,17 @@ def handle(event: Mapping[str, Any]) -> tuple[str, dict[str, Any] | None]:
     return "", None
 
 
-def _stdin() -> str:
-    buffer = getattr(sys.stdin, "buffer", None)
-    return buffer.read().decode("utf-8", "replace") if buffer is not None else sys.stdin.read()
-
-
-def _stdout(text: str) -> None:
-    buffer = getattr(sys.stdout, "buffer", None)
-    if buffer is not None:
-        buffer.write(text.encode("utf-8"))
-        buffer.flush()
-    else:
-        sys.stdout.write(text)
-
-
 def main(argv: list[str] | None = None) -> int:
     del argv
     try:
-        event = json.loads(_stdin() or "{}")
+        event = json.loads(stdin_text() or "{}")
         if not isinstance(event, Mapping):
             raise ValueError("the event is not a JSON object")
         text, payload = handle(event)
         if payload is not None:
-            _stdout(json.dumps(payload))  # ASCII-escaped: safe on any console code page
+            stdout_json(payload)
         elif text:
-            _stdout(text)
+            stdout_text(text)
     except Exception as error:  # noqa: BLE001 - fail open, and say so
         with contextlib.suppress(Exception):
             sys.stderr.write(f"{PREFIX}: added nothing ({error.__class__.__name__}: {error})\n")

@@ -359,7 +359,9 @@ async def handle(
 
 
 def main(argv: list[str] | None = None) -> int:
-    raw = sys.stdin.read()
+    from .hookio import stdin_text, stdout_json
+
+    raw = stdin_text()
     try:
         input_data = json.loads(raw) if raw.strip() else {}
     except json.JSONDecodeError:
@@ -382,5 +384,5 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 0
     if output:
-        sys.stdout.write(json.dumps(output, ensure_ascii=False))
+        stdout_json(output)
     return 0

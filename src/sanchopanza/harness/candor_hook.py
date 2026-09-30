@@ -451,7 +451,9 @@ def main(argv: list[str] | None = None) -> int:
     codex = "--codex" in (sys.argv[1:] if argv is None else argv)
     if codex:  # Codex hooks.json sets no environment: the snapshot is on unless turned off
         os.environ.setdefault("SANCHOPANZA_CANDOR_SNAPSHOT", "1")
-    raw = sys.stdin.read()
+    from .hookio import stdin_text, stdout_json
+
+    raw = stdin_text()
     try:
         data = json.loads(raw) if raw.strip() else {}
     except ValueError:
@@ -472,7 +474,7 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 0
     if output:
-        sys.stdout.write(json.dumps(output, ensure_ascii=False))
+        stdout_json(output)
     return 0
 
 
