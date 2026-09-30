@@ -8,6 +8,8 @@ A chain is valid when, with its five bugs baked into the image:
   FAIL_TO_PASS pass.
 A bug that fails either check is swapped for the chain's next spare that shares no file and no
 failing test with the rest, in the drawn order, and the chain is baked again (at most `SWAPS`).
+Related chains (`related.py`, `kind: related`) take a spare that shares a code file with the rest
+instead, no failing test, and no overlapping hunk.
 
 What grades a bug later: its FAIL_TO_PASS, and PASS_TO_PASS* = the PASS_TO_PASS tests that pass
 when only that bug is fixed (tests another open bug breaks are not held against this one).
@@ -26,6 +28,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import docker_env  # noqa: E402
+import related  # noqa: E402
 from chains import CACHE, files_of, full  # noqa: E402
 
 SWAPS = 4
@@ -70,13 +73,19 @@ def check(chain: dict[str, Any], bugs: list[dict[str, Any]]) -> tuple[list[dict]
 
 def swap(chain: dict[str, Any], bugs: list[dict], index: int, tried: set[str]) -> bool:
     rest = [b for j, b in enumerate(bugs) if j != index]
-    files = set().union(*(files_of(b["patch"]) for b in rest))
+    linked = chain.get("kind") == "related"
+    of = related.code_files if linked else (lambda row: files_of(row["patch"]))
+    files = set().union(*(of(b) for b in rest))
     tests = {t for b in rest for t in b["FAIL_TO_PASS"]}
     for spare in chain["spares"]:
         if spare["instance_id"] in tried:
             continue
         tried.add(spare["instance_id"])
-        if files_of(spare["patch"]) & files or set(spare["FAIL_TO_PASS"]) & tests:
+        shares = bool(of(spare) & files)
+        if shares != linked or set(spare["FAIL_TO_PASS"]) & tests:
+            continue
+        if linked and any(related.overlaps(related.spans(spare["patch"]),
+                                           related.spans(b["patch"])) for b in rest):  # fmt: skip
             continue
         bugs[index] = spare
         return True
@@ -106,7 +115,7 @@ def validate(chain: dict[str, Any]) -> dict[str, Any]:
 
 def main() -> int:
     wanted = sys.argv[1]
-    chains = full()
+    chains = [*full(), *related.full()]
     done = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
     for chain in chains:
         if wanted not in ("all", chain["chain"]):

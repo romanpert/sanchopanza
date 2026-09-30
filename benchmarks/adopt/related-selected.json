@@ -1,0 +1,236 @@
+{
+ "source": "SWE-bench/SWE-smith, pr_mirror rows",
+ "source_sha256": "5128440c2c0acda5c743359add5ade03577b0e552c4e431ec971d1ab484c3d5a",
+ "seed": 20261001,
+ "kind": "related",
+ "chains": [
+  {
+   "chain": "encode__starlette-rel-1",
+   "repo": "swesmith/encode__starlette.db5063c2",
+   "image": "jyangballin/swesmith.x86_64.encode_1776_starlette.db5063c2",
+   "split": "dev",
+   "bugs": [
+    "encode__starlette.db5063c2.pr_2576",
+    "encode__starlette.db5063c2.pr_2041",
+    "encode__starlette.db5063c2.pr_2341",
+    "encode__starlette.db5063c2.pr_2732",
+    "encode__starlette.db5063c2.pr_2761"
+   ],
+   "spares": [
+    "encode__starlette.db5063c2.pr_2334",
+    "encode__starlette.db5063c2.pr_2583",
+    "encode__starlette.db5063c2.pr_2443"
+   ],
+   "files": [
+    [
+     "starlette/responses.py"
+    ],
+    [
+     "starlette/responses.py",
+     "starlette/websockets.py"
+    ],
+    [
+     "starlette/websockets.py"
+    ],
+    [
+     "starlette/responses.py"
+    ],
+    [
+     "starlette/responses.py"
+    ]
+   ]
+  },
+  {
+   "chain": "encode__starlette-rel-2",
+   "repo": "swesmith/encode__starlette.db5063c2",
+   "image": "jyangballin/swesmith.x86_64.encode_1776_starlette.db5063c2",
+   "split": "held",
+   "bugs": [
+    "encode__starlette.db5063c2.pr_2351",
+    "encode__starlette.db5063c2.pr_2352",
+    "encode__starlette.db5063c2.pr_2366",
+    "encode__starlette.db5063c2.pr_2703",
+    "encode__starlette.db5063c2.pr_2264"
+   ],
+   "spares": [],
+   "files": [
+    [
+     "starlette/routing.py"
+    ],
+    [
+     "starlette/requests.py",
+     "starlette/routing.py",
+     "starlette/staticfiles.py"
+    ],
+    [
+     "starlette/responses.py",
+     "starlette/staticfiles.py"
+    ],
+    [
+     "starlette/responses.py"
+    ],
+    [
+     "starlette/responses.py"
+    ]
+   ]
+  },
+  {
+   "chain": "pydantic__pydantic-rel-1",
+   "repo": "swesmith/pydantic__pydantic.acb0f10f",
+   "image": "jyangballin/swesmith.x86_64.pydantic_1776_pydantic.acb0f10f",
+   "split": "held",
+   "bugs": [
+    "pydantic__pydantic.acb0f10f.pr_7891",
+    "pydantic__pydantic.acb0f10f.pr_10347",
+    "pydantic__pydantic.acb0f10f.pr_11116",
+    "pydantic__pydantic.acb0f10f.pr_5869",
+    "pydantic__pydantic.acb0f10f.pr_7786"
+   ],
+   "spares": [
+    "pydantic__pydantic.acb0f10f.pr_8262",
+    "pydantic__pydantic.acb0f10f.pr_10242",
+    "pydantic__pydantic.acb0f10f.pr_6287"
+   ],
+   "files": [
+    [
+     "pydantic/_internal/_model_construction.py"
+    ],
+    [
+     "pydantic/_internal/_model_construction.py"
+    ],
+    [
+     "pydantic/_internal/_generics.py",
+     "pydantic/_internal/_model_construction.py"
+    ],
+    [
+     "pydantic/_internal/_model_construction.py"
+    ],
+    [
+     "pydantic/_internal/_model_construction.py"
+    ]
+   ]
+  },
+  {
+   "chain": "conan-io__conan-rel-1",
+   "repo": "swesmith/conan-io__conan.86f29e13",
+   "image": "jyangballin/swesmith.x86_64.conan-io_1776_conan.86f29e13",
+   "split": "held",
+   "bugs": [
+    "conan-io__conan.86f29e13.pr_16289",
+    "conan-io__conan.86f29e13.pr_15368",
+    "conan-io__conan.86f29e13.pr_14526",
+    "conan-io__conan.86f29e13.pr_12243",
+    "conan-io__conan.86f29e13.pr_12913"
+   ],
+   "spares": [
+    "conan-io__conan.86f29e13.pr_12536",
+    "conan-io__conan.86f29e13.pr_15153",
+    "conan-io__conan.86f29e13.pr_14555"
+   ],
+   "files": [
+    [
+     "conans/client/graph/range_resolver.py"
+    ],
+    [
+     "conan/api/subapi/install.py",
+     "conan/api/subapi/local.py",
+     "conan/internal/conan_app.py",
+     "conans/client/graph/proxy.py",
+     "conans/client/graph/range_resolver.py",
+     "conans/client/installer.py"
+    ],
+    [
+     "conan/api/subapi/download.py",
+     "conan/internal/cache/db/cache_database.py",
+     "conan/internal/cache/db/recipes_table.py",
+     "conans/client/graph/graph.py",
+     "conans/client/graph/graph_binaries.py",
+     "conans/client/graph/proxy.py",
+     "conans/client/remote_manager.py"
+    ],
+    [
+     "conan/api/subapi/install.py"
+    ],
+    [
+     "conan/cli/commands/remote.py",
+     "conans/client/remote_manager.py"
+    ]
+   ]
+  },
+  {
+   "chain": "conan-io__conan-rel-2",
+   "repo": "swesmith/conan-io__conan.86f29e13",
+   "image": "jyangballin/swesmith.x86_64.conan-io_1776_conan.86f29e13",
+   "split": "held",
+   "bugs": [
+    "conan-io__conan.86f29e13.pr_13346",
+    "conan-io__conan.86f29e13.pr_11618",
+    "conan-io__conan.86f29e13.pr_17629",
+    "conan-io__conan.86f29e13.pr_13450",
+    "conan-io__conan.86f29e13.pr_16973"
+   ],
+   "spares": [
+    "conan-io__conan.86f29e13.pr_14781"
+   ],
+   "files": [
+    [
+     "conan/tools/meson/toolchain.py"
+    ],
+    [
+     "conan/tools/meson/toolchain.py"
+    ],
+    [
+     "conan/tools/meson/toolchain.py"
+    ],
+    [
+     "conan/tools/build/flags.py",
+     "conan/tools/meson/helpers.py",
+     "conan/tools/meson/toolchain.py"
+    ],
+    [
+     "conan/tools/build/flags.py"
+    ]
+   ]
+  },
+  {
+   "chain": "iterative__dvc-rel-1",
+   "repo": "swesmith/iterative__dvc.1d6ea681",
+   "image": "jyangballin/swesmith.x86_64.iterative_1776_dvc.1d6ea681",
+   "split": "held",
+   "bugs": [
+    "iterative__dvc.1d6ea681.pr_9277",
+    "iterative__dvc.1d6ea681.pr_10303",
+    "iterative__dvc.1d6ea681.pr_9354",
+    "iterative__dvc.1d6ea681.pr_9298",
+    "iterative__dvc.1d6ea681.pr_10240"
+   ],
+   "spares": [
+    "iterative__dvc.1d6ea681.pr_9261",
+    "iterative__dvc.1d6ea681.pr_9825"
+   ],
+   "files": [
+    [
+     "dvc/utils/studio.py"
+    ],
+    [
+     "dvc/repo/__init__.py",
+     "dvc/repo/experiments/executor/base.py",
+     "dvc/utils/studio.py"
+    ],
+    [
+     "dvc/repo/experiments/executor/base.py",
+     "dvc/repo/reproduce.py"
+    ],
+    [
+     "dvc/config_schema.py",
+     "dvc/repo/__init__.py"
+    ],
+    [
+     "dvc/config_schema.py",
+     "dvc/repo/experiments/queue/base.py",
+     "dvc/utils/hydra.py"
+    ]
+   ]
+  }
+ ]
+}

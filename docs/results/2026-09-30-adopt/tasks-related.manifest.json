@@ -1,0 +1,7 @@
+{
+ "docs/results/2026-09-30-adopt/tasks-related.md": "2cd246fe03a21653c24cd5f08fcd8b858e6eeca7734d544f80f0205422a1a6d7",
+ "benchmarks/adopt/chains.py": "5eb28d1a97d9dcb1c7e08901d2fc4e3cac1761f7cfcdace14baf216bdb6a95fe",
+ "benchmarks/adopt/related-selected.json": "8e57844773bf2dac48d5815430036de52a4cc4dc2a7703339cd50d999bd73da5",
+ "benchmarks/adopt/related.py": "682ec79620e46c46ce09a66d30d3ac6b9d1055340d21551fca6136243302484f",
+ "benchmarks/adopt/validate.py": "a73573110f7e88917206e91784931888bf0774dcfaf09ad37690e4c39c02f7b0"
+}
