@@ -27,6 +27,13 @@ astropy-8707 N and F).
   through `--mcp-config` and `--allowedTools`, as registered.
 - The six sessions above are voided (moved to `find-e2e/void/`) and rerun under the fixed
   command. Their cost stays counted against the 7 USD ceiling: the finished ones at their
-  reported cost, the three cut ones at their whole 0.30 cap, since they never reported one.
+  reported cost, the cut ones at `cut_estimate` (their messages' usage at Haiku list price,
+  times 1.5: on the finished sessions that usage is 70-77 % of the reported cost).
+- A second launch was stopped seconds in, because the tool running it would have killed it at
+  ten minutes. Its three cut sessions (astropy-12907 N and F, astropy-13236 N) are voided the
+  same way (`void/*-cut2`). The run is now launched as a detached process.
+- The first session under the fixed command (django-14559 F) is the pilot and stays in the run:
+  4 tools offered, `sanchopanza` connected, a `FILES:` line, 0.131 USD. It did not call the
+  tool.
 
 Nothing else changes: instances, arms, prompt, hypotheses, caps, scoring.

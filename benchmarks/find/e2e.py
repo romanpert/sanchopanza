@@ -238,15 +238,39 @@ def one(row: dict[str, Any], arm: str) -> dict[str, Any] | None:
     return record
 
 
+PRICES_PER_MTOK = {"input_tokens": 1.0, "output_tokens": 5.0, "cache_read_input_tokens": 0.1,
+                   "cache_creation_input_tokens": 1.25}  # fmt: skip
+CUT_MARKUP = 1.5  # per-message usage undercounts a finished session's reported cost by ~30 %
+
+
+def cut_estimate(stream: Path) -> float:
+    """A session cut before its result: its assistant messages' usage at list price, marked up."""
+    seen: set[str] = set()
+    usd = 0.0
+    for line in stream.read_text(encoding="utf-8").splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        message = event.get("message") or {}
+        if event.get("type") != "assistant" or message.get("id") in seen:
+            continue
+        seen.add(message.get("id"))
+        usage = message.get("usage") or {}
+        usd += sum(float(usage.get(k) or 0) * p / 1e6 for k, p in PRICES_PER_MTOK.items())
+    return usd * CUT_MARKUP
+
+
 def spent_so_far() -> tuple[float, float]:
     """Every paid session counts against the ceiling, the voided ones of amendment 1 included;
-    a voided session cut before its result is charged its whole cap."""
+    a session cut before its result is charged `cut_estimate`."""
     usd = jev = 0.0
     for folder in ("runs", "void"):
         for art in (ROOT / folder).glob("*"):
-            if (art / "stream.jsonl").exists():
-                paid = float(_result(art / "stream.jsonl").get("total_cost_usd") or 0.0)
-                usd += paid or (SESSION_CAP_USD if folder == "void" else 0.0)
+            stream = art / "stream.jsonl"
+            if stream.exists():
+                paid = float(_result(stream).get("total_cost_usd") or 0.0)
+                usd += paid or cut_estimate(stream)
             jev += jev_spent(art)
     return usd, jev
 
