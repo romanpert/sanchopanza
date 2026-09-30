@@ -396,7 +396,8 @@ def main(argv: list[str] | None = None) -> int:
         output = handle(data, codex=codex)
     except Exception as error:
         # PreToolUse fails closed while a lock may be engaged: an unreadable state refuses.
-        held = lock_mod.read(_lock_path(data)) if data.get("hook_event_name") == "PreToolUse" else None
+        pre = data.get("hook_event_name") == "PreToolUse"
+        held = lock_mod.read(_lock_path(data)) if pre else None
         if held is not None and held.engaged:
             output = _deny(lock_mod.refusal(held))
         else:
