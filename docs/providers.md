@@ -23,6 +23,7 @@ For `Choice`, the provider's own confidence if it has one, else top minus runner
 | `jev` | `JevDecider` | TypeSafe Jev over HTTP; the model the paper measures | a property of the output distribution |
 | `recorded` | `RecordedDecider` | replay of real decisions; tests, dry runs, CI | recorded |
 | `null` | `NullDecider` | no provider; every policy uses its default | none |
+| `clm` | `JevDecider` | CLM-8B (Contrastive-LM, Apache-2.0) behind its self-hosted `clm-serve`, which speaks Jev's wire format; needs Linux and an NVIDIA GPU. **Tested only against a mock of the format**, never against a real server | CLM's own probabilities |
 | `llm` | `LLMDecider` | any LLM forced into a JSON schema; the paper's baseline | **self-reported**, and measured not to separate errors |
 | `local` | `LocalDecider` | your classifiers, embeddings, vision models | whatever you compute |
 | | `FallbackDecider` | first provider that answers each question wins | merged |
@@ -61,6 +62,23 @@ inspect `question.options` or `question.levels`. Sync or async both work.
 For an LLM you do not have a completer for, write `async def complete(system, user, schema)
 -> (payload, tokens_in, tokens_out)` and pass it to `LLMDecider`. Two are included:
 `anthropic_completer` (tool-forced) and `openai_completer` (json_schema).
+
+### OpenAI (checked 2026-09-30)
+
+- **`gpt-6-luna` through `llm` works.** One live check, three questions (a Truth, a Choice and
+  a Score) on three states: 3 of 3 answered as expected, 0.00013 USD in all, about 1.7 s per
+  call. Its confidence is the model's own, as for any `llm` provider.
+
+  ```python
+  from sanchopanza.providers import create
+  from sanchopanza.providers.llm import openai_completer
+
+  decider = create("llm", complete=openai_completer(key, "gpt-6-luna"), model="gpt-6-luna")
+  ```
+- **The Decisions API (DevDay, 2026-09-29) is not supported yet.** `/v1/decisions` exists but
+  answers "Decision API is not enabled for this user" to an account outside the limited
+  preview, and neither a request format nor SDK support is public. A provider will be written
+  against the documented format once there is one, and measured before it is recommended.
 
 ## Results answered by a generative model
 
