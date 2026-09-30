@@ -1,0 +1,8 @@
+{
+ "docs/results/2026-09-30-adopt/tasks.md": "821a02c6473fb4e6af7672960657883f70a32db3b030730dcd945cd84563c77f",
+ "benchmarks/adopt/chains-selected.json": "abf9886f06b412afb263fb117b39625347e59d388f76ec506da2e1e3c0470e6d",
+ "benchmarks/adopt/chains.py": "5eb28d1a97d9dcb1c7e08901d2fc4e3cac1761f7cfcdace14baf216bdb6a95fe",
+ "benchmarks/adopt/singles-selected.json": "3f95adeb69bf100b79ad0d346bb8c00b3c89a7bb08b4f3624af204929443ec95",
+ "benchmarks/adopt/singles.py": "02bf3e5546c086f945c2d34226d0838f87bc626e8cf78c7119795ba678a965ce",
+ "benchmarks/adopt/validate.py": "05e0a39416da03655a9b5f4a4c4911d34742ad3099353478b954696cce8a5820"
+}

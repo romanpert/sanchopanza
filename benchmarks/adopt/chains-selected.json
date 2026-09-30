@@ -1,0 +1,187 @@
+{
+ "source": "SWE-bench/SWE-smith, pr_mirror rows",
+ "source_sha256": "5128440c2c0acda5c743359add5ade03577b0e552c4e431ec971d1ab484c3d5a",
+ "seed": 20260930,
+ "chains": [
+  {
+   "chain": "pygments__pygments-1",
+   "repo": "swesmith/pygments__pygments.27649ebb",
+   "image": "jyangballin/swesmith.x86_64.pygments_1776_pygments.27649ebb",
+   "split": "dev",
+   "bugs": [
+    "pygments__pygments.27649ebb.pr_2476",
+    "pygments__pygments.27649ebb.pr_2434",
+    "pygments__pygments.27649ebb.pr_2727",
+    "pygments__pygments.27649ebb.pr_2456",
+    "pygments__pygments.27649ebb.pr_2713"
+   ],
+   "spares": [
+    "pygments__pygments.27649ebb.pr_2362",
+    "pygments__pygments.27649ebb.pr_2581",
+    "pygments__pygments.27649ebb.pr_2357"
+   ]
+  },
+  {
+   "chain": "pygments__pygments-2",
+   "repo": "swesmith/pygments__pygments.27649ebb",
+   "image": "jyangballin/swesmith.x86_64.pygments_1776_pygments.27649ebb",
+   "split": "held",
+   "bugs": [
+    "pygments__pygments.27649ebb.pr_2367",
+    "pygments__pygments.27649ebb.pr_2712",
+    "pygments__pygments.27649ebb.pr_2383",
+    "pygments__pygments.27649ebb.pr_2740",
+    "pygments__pygments.27649ebb.pr_2449"
+   ],
+   "spares": [
+    "pygments__pygments.27649ebb.pr_2474",
+    "pygments__pygments.27649ebb.pr_2600",
+    "pygments__pygments.27649ebb.pr_2462"
+   ]
+  },
+  {
+   "chain": "encode__starlette-1",
+   "repo": "swesmith/encode__starlette.db5063c2",
+   "image": "jyangballin/swesmith.x86_64.encode_1776_starlette.db5063c2",
+   "split": "dev",
+   "bugs": [
+    "encode__starlette.db5063c2.pr_2159",
+    "encode__starlette.db5063c2.pr_2400",
+    "encode__starlette.db5063c2.pr_2141",
+    "encode__starlette.db5063c2.pr_2577",
+    "encode__starlette.db5063c2.pr_2017"
+   ],
+   "spares": [
+    "encode__starlette.db5063c2.pr_2183",
+    "encode__starlette.db5063c2.pr_2280",
+    "encode__starlette.db5063c2.pr_2360"
+   ]
+  },
+  {
+   "chain": "encode__starlette-2",
+   "repo": "swesmith/encode__starlette.db5063c2",
+   "image": "jyangballin/swesmith.x86_64.encode_1776_starlette.db5063c2",
+   "split": "held",
+   "bugs": [
+    "encode__starlette.db5063c2.pr_2381",
+    "encode__starlette.db5063c2.pr_2406",
+    "encode__starlette.db5063c2.pr_2672",
+    "encode__starlette.db5063c2.pr_2362",
+    "encode__starlette.db5063c2.pr_2191"
+   ],
+   "spares": [
+    "encode__starlette.db5063c2.pr_2860",
+    "encode__starlette.db5063c2.pr_2070",
+    "encode__starlette.db5063c2.pr_2309"
+   ]
+  },
+  {
+   "chain": "pydantic__pydantic-1",
+   "repo": "swesmith/pydantic__pydantic.acb0f10f",
+   "image": "jyangballin/swesmith.x86_64.pydantic_1776_pydantic.acb0f10f",
+   "split": "held",
+   "bugs": [
+    "pydantic__pydantic.acb0f10f.pr_6797",
+    "pydantic__pydantic.acb0f10f.pr_6570",
+    "pydantic__pydantic.acb0f10f.pr_8316",
+    "pydantic__pydantic.acb0f10f.pr_11364",
+    "pydantic__pydantic.acb0f10f.pr_7976"
+   ],
+   "spares": [
+    "pydantic__pydantic.acb0f10f.pr_8027",
+    "pydantic__pydantic.acb0f10f.pr_10809",
+    "pydantic__pydantic.acb0f10f.pr_7046"
+   ]
+  },
+  {
+   "chain": "pydantic__pydantic-2",
+   "repo": "swesmith/pydantic__pydantic.acb0f10f",
+   "image": "jyangballin/swesmith.x86_64.pydantic_1776_pydantic.acb0f10f",
+   "split": "held",
+   "bugs": [
+    "pydantic__pydantic.acb0f10f.pr_5424",
+    "pydantic__pydantic.acb0f10f.pr_8678",
+    "pydantic__pydantic.acb0f10f.pr_7346",
+    "pydantic__pydantic.acb0f10f.pr_3646",
+    "pydantic__pydantic.acb0f10f.pr_10391"
+   ],
+   "spares": [
+    "pydantic__pydantic.acb0f10f.pr_7780",
+    "pydantic__pydantic.acb0f10f.pr_10358",
+    "pydantic__pydantic.acb0f10f.pr_6785"
+   ]
+  },
+  {
+   "chain": "conan-io__conan-1",
+   "repo": "swesmith/conan-io__conan.86f29e13",
+   "image": "jyangballin/swesmith.x86_64.conan-io_1776_conan.86f29e13",
+   "split": "held",
+   "bugs": [
+    "conan-io__conan.86f29e13.pr_13364",
+    "conan-io__conan.86f29e13.pr_13230",
+    "conan-io__conan.86f29e13.pr_14078",
+    "conan-io__conan.86f29e13.pr_13631",
+    "conan-io__conan.86f29e13.pr_15705"
+   ],
+   "spares": [
+    "conan-io__conan.86f29e13.pr_14441",
+    "conan-io__conan.86f29e13.pr_13762",
+    "conan-io__conan.86f29e13.pr_10656"
+   ]
+  },
+  {
+   "chain": "conan-io__conan-2",
+   "repo": "swesmith/conan-io__conan.86f29e13",
+   "image": "jyangballin/swesmith.x86_64.conan-io_1776_conan.86f29e13",
+   "split": "held",
+   "bugs": [
+    "conan-io__conan.86f29e13.pr_11788",
+    "conan-io__conan.86f29e13.pr_15312",
+    "conan-io__conan.86f29e13.pr_11921",
+    "conan-io__conan.86f29e13.pr_13270",
+    "conan-io__conan.86f29e13.pr_11114"
+   ],
+   "spares": [
+    "conan-io__conan.86f29e13.pr_17582",
+    "conan-io__conan.86f29e13.pr_17647",
+    "conan-io__conan.86f29e13.pr_13267"
+   ]
+  },
+  {
+   "chain": "iterative__dvc-1",
+   "repo": "swesmith/iterative__dvc.1d6ea681",
+   "image": "jyangballin/swesmith.x86_64.iterative_1776_dvc.1d6ea681",
+   "split": "held",
+   "bugs": [
+    "iterative__dvc.1d6ea681.pr_9827",
+    "iterative__dvc.1d6ea681.pr_8947",
+    "iterative__dvc.1d6ea681.pr_7803",
+    "iterative__dvc.1d6ea681.pr_9250",
+    "iterative__dvc.1d6ea681.pr_8690"
+   ],
+   "spares": [
+    "iterative__dvc.1d6ea681.pr_8938",
+    "iterative__dvc.1d6ea681.pr_8063",
+    "iterative__dvc.1d6ea681.pr_9898"
+   ]
+  },
+  {
+   "chain": "pylint-dev__astroid-1",
+   "repo": "swesmith/pylint-dev__astroid.b114f6b5",
+   "image": "jyangballin/swesmith.x86_64.pylint-dev_1776_astroid.b114f6b5",
+   "split": "held",
+   "bugs": [
+    "pylint-dev__astroid.b114f6b5.pr_2665",
+    "pylint-dev__astroid.b114f6b5.pr_2399",
+    "pylint-dev__astroid.b114f6b5.pr_2515",
+    "pylint-dev__astroid.b114f6b5.pr_1976",
+    "pylint-dev__astroid.b114f6b5.pr_2596"
+   ],
+   "spares": [
+    "pylint-dev__astroid.b114f6b5.pr_2203",
+    "pylint-dev__astroid.b114f6b5.pr_1978",
+    "pylint-dev__astroid.b114f6b5.pr_1972"
+   ]
+  }
+ ]
+}
