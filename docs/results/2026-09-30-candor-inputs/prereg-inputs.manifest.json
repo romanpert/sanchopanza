@@ -1,0 +1,15 @@
+{
+ "docs/results/2026-09-30-candor-inputs/prereg-inputs.md": "fc88061c99a9391f9796f027064e6f755b1bf73d01551801bd6fb5a195432980",
+ "src/sanchopanza/candor/__init__.py": "607d8873c0c416c5c48ba36e6e76d748affe712016b3dc90f936f51172d2d13b",
+ "src/sanchopanza/candor/__main__.py": "075583999b50475402cbbc04f04f4cff4cb0007ddde046a799268b9500bffad1",
+ "src/sanchopanza/candor/claims.py": "cac428face562f67835d792bc69b9cd05ebebd60c1d0e01ac084c758d70ea8c9",
+ "src/sanchopanza/candor/evidence.py": "f3cd7a85324521588ab32c93666c88bb65ea5b7cd975aa3f970fb0df9f3d5eab",
+ "src/sanchopanza/candor/extract.py": "bfb6647e7e07655e55522e89de41189e7ee5f9ea2cbc6b0b23c9f83d6f7795df",
+ "src/sanchopanza/candor/frontier.py": "0ba2eae06e3283b40fec502d14507852a8330672b4d89475f51da1da4df6e27b",
+ "src/sanchopanza/candor/inputs.py": "fa3944e217e3412f2fadc9203f253360b8d0adff05a68a70b548de87064777e7",
+ "src/sanchopanza/candor/judge.py": "572568882b585e4352b17f7d2af2512f6a5605a504d1457f4d09f8c8ad9b0f9d",
+ "src/sanchopanza/candor/ledger.py": "30fdcbc47e7e57448e567b2821f087bd4e0f435b933d27db248fd457cbcc2f47",
+ "src/sanchopanza/candor/lock.py": "0169eaf9de320ea5fcb8ed5feb05b3460e2c6e6dd7d8f991103ae13b9d68c5f9",
+ "src/sanchopanza/candor/rules.py": "e2d37e9587cbee387155b76c7a8b5902b7cbc0bfab270b28137afa1e492e5b7d",
+ "src/sanchopanza/harness/candor_hook.py": "ea01833fd99e40ba05d1b1af685281bccbb4413deddef8a5f52fb52c62ad25dd"
+}

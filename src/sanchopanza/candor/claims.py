@@ -110,14 +110,27 @@ class Claim:
 def path_spans(text: str) -> list[tuple[str, int]]:
     """Every path named in `text`, with where it starts, in order and without repeats."""
     found: list[tuple[str, int]] = []
+    for value, _start, _end, match_start in path_occurrences(text):
+        if not any(value == v for v, _ in found):
+            found.append((value, match_start))
+    return found
+
+
+def path_occurrences(text: str) -> list[tuple[str, int, int, int]]:
+    """Every occurrence of a path in `text`, repeats included: (value, where the value starts,
+    where it ends, where its match starts, a backtick included). v6 reads each occurrence
+    apart: `src/app.py:42` in a trace does not hide `src/app.py` named later."""
+    out: list[tuple[str, int, int, int]] = []
     for match in _PATH.finditer(text):
-        value = (match.group(1) or match.group(2) or "").strip(".,:;")
+        group = 1 if match.group(1) else 2
+        raw = match.group(group) or ""
+        value = raw.strip(".,:;")
         if any(ch in value for ch in "() "):  # v4: `f()` in backticks is code, not a path
             continue
-        seen = any(value == v for v, _ in found)
-        if value and ("." in value or "/" in value or "\\" in value) and not seen:
-            found.append((value, match.start()))
-    return found
+        if value and ("." in value or "/" in value or "\\" in value):
+            start = match.start(group) + raw.index(value)
+            out.append((value, start, start + len(value), match.start()))
+    return out
 
 
 def paths_in(text: str) -> tuple[str, ...]:
