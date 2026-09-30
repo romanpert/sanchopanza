@@ -304,3 +304,41 @@ do not produce the long sessions where the owner's spend sits (median context 30
 sessions of 100+ calls); a test of the budget lever needs tasks that do, which this benchmark
 does not have. On Haiku (phase A), five bugs reach ~160k and a 100k budget does compact, so A
 still tests `Sm` where it can act.
+
+## Memory v3, measured on real sessions, and its smoke test here (indagis-72, 2026-10-01)
+
+Batch 2 showed memory v2 picking the related record in these chains, but a chain of SWE-smith
+issues is not how people ask. Measured on real people's Claude Code sessions (SWE-chat, 60 groups
+of one person on one public repository, sealed; `docs/results/2026-10-01-memory-real`), v2
+(recall at every prompt, decider at 0.2) gave something to 26-39 % of the requests that had
+nothing related, at 3-7 % precision: only 2 % of BM25's candidates are related there, and a short
+prompt ("fix it") is judged below chance. The Sm "miss" of batch 2 was a label artifact too: the
+record Jev scored 0.16 was a different feature of the same file, which our own criteria call
+unrelated.
+
+v3 (in main, d5f8a25): when the agent opens or changes a file, the records of earlier requests
+that changed it (the two newest, once per session, code only; `PostToolUse` on the file tools),
+and recall at a prompt only at a session's first live request with the decider at 0.7.
+Confirmed on the held-out half of SWE-chat: recall 0.950, precision 0.559, noise 0.034 (v2:
+0.622 / 0.066 / 0.263). An adversarial review found 3 high and 7 medium issues first; all fixed
+with tests (subagents, a lock on the index, stale records, compaction, paths after `cd`).
+
+Smoke test on `encode__starlette-rel-1` repetition 3 (Haiku, n=1, to see the hooks work in
+`claude -p`, not to measure an effect):
+
+| arm | resolved | list cost | tool calls | records given by the touch |
+|---|---|---|---|---|
+| Sf (v3, new session per request) | 4/5 | 2.35 USD | 180 | 7 (29,302 characters) |
+| Sm (v3, one session, 100k budget) | 4/5 | 1.35 USD | 115 | 1, after its compaction |
+
+- No hook error in either arm; both lose only pr_2041, as every arm has.
+- Sf's cost is its request 4 (pr_2732, 1.43 USD, 97 calls), the same bug that cost Sf v1 1.36
+  USD in batch 1. In request 3 the decider scored the related record 0.49 (under 0.7, not given
+  at the prompt) and the touch gave it when the agent opened websockets.py.
+- **Found and fixed:** after Sm's compaction, `SessionStart: compact` read no boundary and every
+  request live. Claude Code writes the `compact_boundary` entry after the SessionStart hooks
+  (summary 19:18:57.389, hooks 57.960, boundary 58.021). Here it cost nothing (request 5's
+  prompt read the boundary and the touch gave record 1), but the rest of a compacted request
+  went without memory. Fixed in d5f8a25.
+- Both request 5s were first cut by the ceiling (36.90, after Sf's 1.43 USD request 4) and run
+  with `--continue` (ceiling 38.60). Chain spend: 32.37 to 36.08 USD (3.71 for this test).
