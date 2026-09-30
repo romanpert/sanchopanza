@@ -94,7 +94,8 @@ def main() -> int:
         "misstatements": len(ms),
         "adversarial": len(adv),
     }
-    (OUT / "confirm-3.json").write_text(json.dumps(out, indent=1), encoding="utf-8")
+    (OUT / "confirm-3.json").write_text(json.dumps(out, indent=1), encoding="utf-8",
+                                        newline="\n")  # fmt: skip
     print(json.dumps(out["verdicts"], indent=1))
     print(json.dumps(out["counts"]))
     return 0
