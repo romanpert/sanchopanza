@@ -1,0 +1,33 @@
+{
+ "steps": 82,
+ "dev": false,
+ "FULL": {
+  "accuracy": 0.5122,
+  "failed_sessions": 3,
+  "list_usd_total": 7.9434,
+  "source": "asked anew"
+ },
+ "PAGE20": {
+  "accuracy": 0.5244,
+  "failed_sessions": 0,
+  "positive_shown": 0.8659,
+  "list_usd_total": 0.9853,
+  "minus_FULL": 0.0122,
+  "bootstrap95": [
+   -0.0732,
+   0.0976
+  ]
+ },
+ "PAGE30": {
+  "accuracy": 0.5,
+  "failed_sessions": 0,
+  "positive_shown": 0.8902,
+  "list_usd_total": 1.1948,
+  "minus_FULL": -0.0122,
+  "bootstrap95": [
+   -0.0976,
+   0.0732
+  ]
+ },
+ "cli_spent_usd": 14.9861
+}

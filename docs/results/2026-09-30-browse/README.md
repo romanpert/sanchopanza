@@ -10,13 +10,14 @@ DeBERTa-v3 reports 93.8-95.3 % at 20 (a model card, not a paper; not re-run here
 ranker is better; this one needs no labels and no GPU. It took two tries: the registered first
 design failed its bar, and the reason it failed is part of the result.
 
-**Two things this does not buy, both registered and both negative:**
+**Handing an answering model only the top 20 or 30, in page order, chooses as well as the whole
+page** (Phase 2d, registered, 82 new steps): 52.4 % and 50.0 % against 51.2 %, both within the
+registered bound, at an eighth of the cost. The first try (Phase 2c) showed them in rank order
+and lost 5 points; in 6 of its 7 lost steps the target was among those shown, and the fix was
+the order and a note on repeated lines, not the ranking.
 
-- **Handing an answering model only the top 20 is not as good as the whole page** (Phase 2c).
-  Sonnet 5 picked the right element in 58.3 % of 60 new steps from every element and 53.3 % from
-  Jev's top 20: -5 points, bootstrap interval [-15, +5], under the registered lower bound of -10.
-  It cost a tenth as much per step (0.011 USD against 0.113, plus 0.0065 of Jev), and 7 % of the
-  time the right element was not among the 20. Not recommended as a replacement for the page.
+**One thing this has not bought so far:**
+
 - **A hook that prunes snapshots inside a real Claude Code session saved nothing** (Phase 3).
   36 sessions of Sonnet 5 browsing six tasks with `playwright-cli`: the hook cost 0.0095 USD a
   session more [-0.006, +0.027] and answered as often. It acted in 8 of 18 sessions:
@@ -29,6 +30,38 @@ design failed its bar, and the reason it failed is part of the result.
 What stands is the ranking as a tool: `sanchopanza browse PAGE --goal ...` from a shell, or the
 `rank_elements` MCP tool, returns the elements a step needs with their refs, confirmed at 89 % in
 the top 20.
+
+## Phase 2d: registered, passed (`prereg-present.md`, `present-confirm.json`)
+
+Phase 2c's loss was the presentation, not the ranking. `diagnose.py` (free, replays 2c) found the
+target **among the 20 shown in 6 of the 7 steps TOP lost**: two were identical lines ("View
+more", an unnamed phone field) that the page's order tells apart and a ranked list does not;
+three were picks from the first three rows of a list sorted by Jev's score; one picked a `div`
+holding the right `span`. Only one lost step had the target outside the 20 (it was 28th).
+`browse.in_page_order` now shows the kept elements in the page's order, and a line repeated on
+the page says which of the alike it is and what precedes it (`2nd of 2 alike, after label "Max
+price"`). `render`, and so `sanchopanza browse` and `rank_elements`, use it.
+
+Development, on 2c's own 60 steps (seen data, claims nothing): FULL 58.3 %, PAGE20 58.3 %, PAGE30
+61.7 %. Registered confirmation on the **82 Phase 1c steps 2c never used**, with 2c's rule:
+
+| Arm | Accuracy | Minus FULL [95 %] | Right element shown | List USD / step |
+|---|---|---|---|---|
+| FULL (every element) | 51.2 % | | 100 % | 0.097 |
+| PAGE30 (primary) | 50.0 % | -1.2 [-9.8, +7.3] | 89.0 % | 0.015 |
+| PAGE20 | 52.4 % | +1.2 [-7.3, +9.8] | 86.6 % | 0.012 |
+
+**Both pass** (difference at least -5 points, lower bound above -10); PAGE30 only just (-9.76).
+Showing Sonnet the top 20 or 30 in page order chooses as well as the whole page within the
+precision 82 steps allow, at an eighth of the cost. Three FULL sessions ended in a CLI exit at
+no cost, as in 2c, and count as wrong. 10.12 USD at list price spent (FULL 7.94, the two PAGE arms
+2.18), no Jev.
+
+**A registration fault, stated plainly.** The runner used two harness clients (a 0.10 cap for
+PAGE sessions, 0.60 for FULL), each with the registered 15 USD ceiling, so the phase as a whole
+was not held to 15 by code; and each client starts from the cache's total, so its reported
+`cli_spent_usd` (14.99) counts the development run twice and imputes 0.60 to each failed session.
+What was spent is the sum of the sessions' own costs, 10.12 USD, within the registration.
 
 ## Phase 2c: registered, negative (`prereg-confirm.md`, amendments, `answers-confirm.json`)
 
