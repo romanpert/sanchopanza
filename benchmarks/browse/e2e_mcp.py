@@ -50,6 +50,7 @@ SESSION_MAX_USD = 1.50
 CEILING_USD = 20.00
 TIMEOUT_S = 900
 TOOLS = "mcp__playwright Read Grep Glob"
+JEV_SESSION_MAX_USD = 0.20  # the hook's per-session Jev ceiling (the autopilot's, shared)
 
 TASKS = [
     ("M1", "https://github.com/microsoft/playwright",
@@ -126,7 +127,7 @@ def one_session(task: tuple, run: int, arm: str, key: str) -> dict[str, Any]:
     env["SANCHOPANZA_ARCHIVE"] = str(work / "archive")
     if arm == "LEAN":
         env["TYPESAFE_API_KEY"] = key
-        env["SANCHOPANZA_SESSION_MAX_USD"] = "0.20"
+        env["SANCHOPANZA_SESSION_MAX_USD"] = f"{JEV_SESSION_MAX_USD:g}"
     else:
         env.pop("TYPESAFE_API_KEY", None)
     argv = [
@@ -186,13 +187,26 @@ def key_from(env_file: str | None) -> str:
     return key
 
 
+FIXED = {  # Phase 3c: the same design, the hook with Phase 3b's three faults fixed
+    "prereg": RESULTS / "prereg-e2e-mcp-fixed.md",
+    "sessions": RESULTS / "e2e-mcp-fixed-sessions.jsonl",
+    "report": "e2e-mcp-fixed.json",
+}
+JEV_CEILING_USD = 2.00  # Phase 3c: the hook now sees snapshots of up to ~2,700 elements
+
+
 def main() -> int:
+    global PREREG, SESSIONS
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--record-hash", action="store_true")
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--env-file", default=None)
     ap.add_argument("--pilot", action="store_true", help="M1 and M2 once per arm (run 0), excluded")
+    ap.add_argument("--fixed", action="store_true", help="Phase 3c (prereg-e2e-mcp-fixed.md)")
     args = ap.parse_args()
+    report_name = "e2e-mcp.json"
+    if args.fixed:
+        PREREG, SESSIONS, report_name = FIXED["prereg"], FIXED["sessions"], FIXED["report"]
     if args.record_hash:
         registered = PREREG.with_suffix(".sha256")
         if registered.exists() and registered.read_text().strip() != base.digest(PREREG):
@@ -218,6 +232,10 @@ def main() -> int:
                     if spent + SESSION_MAX_USD > CEILING_USD:
                         print(f"ceiling: {spent:.2f} USD spent", file=sys.stderr)
                         return 1
+                    jev = sum(r["jev_usd"] for r in rows)
+                    if args.fixed and jev + JEV_SESSION_MAX_USD > JEV_CEILING_USD:
+                        print(f"Jev ceiling: {jev:.4f} USD spent", file=sys.stderr)
+                        return 1
                     row = one_session(task, run, arm, key)
                     rows.append(row)
                     with SESSIONS.open("a", encoding="utf-8") as sink:
@@ -230,7 +248,7 @@ def main() -> int:
         for r in rows
         if r["run"] <= 0
     ]
-    (RESULTS / "e2e-mcp.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
+    (RESULTS / report_name).write_text(json.dumps(report, indent=1), encoding="utf-8")
     print(json.dumps(report, indent=1))
     return 0
 
