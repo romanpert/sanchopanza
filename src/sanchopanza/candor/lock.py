@@ -26,6 +26,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .. import _env
 from .._env import home_dir
 from .rules import Finding
 
@@ -60,31 +61,50 @@ def _safe(text: str) -> str:
     return "".join(ch for ch in text if ch.isalnum() or ch in "-_")[:80]
 
 
+def _homes() -> list[Path]:
+    """The monitor's home first, then the other spelling: `home_dir()` moves from `~/.sancho`
+    to `~/.sanchopanza` the moment the new one exists, and a lock engaged under the old home
+    must not vanish when that happens."""
+    first = home_dir()
+    others = [Path.home() / f".{name}" for name in (_env.NAME, _env.LEGACY_NAME)]
+    return [first, *(h for h in others if h != first)]
+
+
+def _relative(session: str, cwd: str | os.PathLike[str] | None) -> Path:
+    chosen = scope()
+    if chosen == "machine":
+        return Path(LOCK_NAME)
+    if chosen == "session" and _safe(session):
+        return Path(LOCKS_DIR) / f"session-{_safe(session)}.json"
+    root = str(project_root(cwd)).lower() if os.name == "nt" else str(project_root(cwd))
+    digest = hashlib.sha1(root.encode("utf-8")).hexdigest()[:16]
+    return Path(LOCKS_DIR) / f"project-{digest}.json"
+
+
 def default_path(session: str = "", cwd: str | os.PathLike[str] | None = None) -> Path:
     """Where the lock for this session lives. SANCHOPANZA_CANDOR_LOCK, a file, wins over the
-    scope. A session with no id falls back to its project, never to the machine."""
+    scope. A session with no id falls back to its project, never to the machine. A lock that
+    already exists under either home is that one."""
     override = os.environ.get("SANCHOPANZA_CANDOR_LOCK")
     if override:
         return Path(override)
-    chosen = scope()
-    if chosen == "machine":
-        return home_dir() / LOCK_NAME
-    if chosen == "session" and _safe(session):
-        return home_dir() / LOCKS_DIR / f"session-{_safe(session)}.json"
-    root = str(project_root(cwd)).lower() if os.name == "nt" else str(project_root(cwd))
-    digest = hashlib.sha1(root.encode("utf-8")).hexdigest()[:16]
-    return home_dir() / LOCKS_DIR / f"project-{digest}.json"
+    relative = _relative(session, cwd)
+    for home in _homes():
+        if (home / relative).exists():
+            return home / relative
+    return home_dir() / relative
 
 
 def engaged_paths() -> list[Path]:
     """Every lock file that is engaged on this machine, for the person's `status` and
-    `release`: the explicit file, the machine file and each scoped one."""
+    `release`: the explicit file, the machine files and each scoped one, under both homes."""
     override = os.environ.get("SANCHOPANZA_CANDOR_LOCK")
     candidates = [Path(override)] if override else []
-    candidates.append(home_dir() / LOCK_NAME)
-    folder = home_dir() / LOCKS_DIR
-    if folder.is_dir():
-        candidates.extend(sorted(folder.glob("*.json")))
+    for home in _homes():
+        candidates.append(home / LOCK_NAME)
+        folder = home / LOCKS_DIR
+        if folder.is_dir():
+            candidates.extend(sorted(folder.glob("*.json")))
     seen: list[Path] = []
     for path in candidates:
         if path not in seen and read(path).engaged:

@@ -132,22 +132,64 @@ def _append(path: Path, entry: Mapping[str, Any]) -> None:
         handle.write(line)
 
 
+def _stat_cache_path(root: Path) -> Path:
+    key = hashlib.sha1(str(root.resolve()).lower().encode("utf-8")).hexdigest()[:16]
+    return state_dir() / "snapshot-cache" / f"{key}.json"
+
+
+def _load_stat_cache(path: Path) -> dict[str, list[Any]]:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _save_stat_cache(path: Path, cache: Mapping[str, list[Any]]) -> None:
+    """Best effort: a lost write costs one re-hash next time, never a wrong snapshot."""
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+        temporary.write_text(json.dumps(cache), encoding="utf-8")
+        temporary.replace(path)
+    except OSError:
+        pass
+
+
 def snapshot(root: Path) -> dict[str, str]:
-    """sha1 of every file under `root`, skipping caches and the harness's own directories."""
+    """sha1 of every file under `root`, skipping caches and the harness's own directories.
+
+    A file whose size and mtime match the last snapshot of this root keeps its recorded sha1,
+    as git's index does: hashing all of Indagis (1,879 files) took 11.9 s on every prompt and
+    every stop, a walk with `stat` 0.13 s. The cache lives in the monitor's own directory, which
+    the ledger classes as tamper. What it cannot see is a same-size rewrite with the mtime set
+    back, which only a call that sets times on purpose does, and that call is in the ledger."""
+    cache_path = _stat_cache_path(root)
+    cache = _load_stat_cache(cache_path)
+    fresh: dict[str, list[Any]] = {}
     out: dict[str, str] = {}
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
         for name in filenames:
             if len(out) >= SNAPSHOT_FILES:
+                _save_stat_cache(cache_path, fresh)
                 return out
             path = Path(dirpath) / name
+            rel = path.relative_to(root).as_posix()
             try:
-                if path.stat().st_size > SNAPSHOT_BYTES:
+                info = path.stat()
+                if info.st_size > SNAPSHOT_BYTES:
                     continue
-                digest = hashlib.sha1(path.read_bytes()).hexdigest()
+                known = cache.get(rel)
+                if known and known[0] == info.st_size and known[1] == info.st_mtime_ns:
+                    digest = str(known[2])
+                else:
+                    digest = hashlib.sha1(path.read_bytes()).hexdigest()
             except OSError:
                 continue
-            out[path.relative_to(root).as_posix()] = digest
+            fresh[rel] = [info.st_size, info.st_mtime_ns, digest]
+            out[rel] = digest
+    _save_stat_cache(cache_path, fresh)
     return out
 
 
@@ -187,6 +229,23 @@ def load(session: str) -> tuple[str, dict[str, str] | None, list[Action]]:
     return task, shot, actions
 
 
+def prompt_cwd(session: str) -> str:
+    """Where the current request's snapshot was taken: Stop's own `cwd` moves with a `cd`, and a
+    snapshot of a subdirectory set beside one of the root lists every file as changed, which
+    hides an output that never moved."""
+    path = _ledger_path(session)
+    cwd = ""
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if '"kind": "prompt"' not in line:
+                continue
+            try:
+                cwd = str(json.loads(line).get("cwd") or "")
+            except ValueError:
+                continue
+    return cwd
+
+
 def final_report(transcript: Path) -> str:
     """The assistant text after the last tool call of the transcript: what the agent reports."""
     texts: list[str] = []
@@ -211,7 +270,13 @@ def final_report(transcript: Path) -> str:
 def _lock_path(data: Mapping[str, Any]) -> Path:
     """This session's lock file (`candor.lock.default_path`: per session unless the scope says
     otherwise)."""
-    return lock_mod.default_path(str(data.get("session_id") or ""), data.get("cwd") or None)
+    session = str(data.get("session_id") or "")
+    try:
+        return lock_mod.default_path(session, str(data.get("cwd") or "") or None)
+    except (OSError, ValueError, TypeError, RuntimeError):
+        # Never raise here: the fail-closed path in `main` calls this again, and a raise there
+        # exits the hook, which Claude Code reads as a pass. The process's own cwd is a place.
+        return lock_mod.default_path(session, None)
 
 
 def pre_tool_use(data: Mapping[str, Any]) -> dict[str, Any]:
@@ -337,7 +402,8 @@ async def stop(data: Mapping[str, Any]) -> dict[str, Any]:
         return held
     changed: list[str] = []
     if shot is not None:
-        changed = diff(shot, snapshot(Path(str(data.get("cwd") or os.getcwd()))))
+        root = prompt_cwd(session) or str(data.get("cwd") or os.getcwd())
+        changed = diff(shot, snapshot(Path(root)))
     turn = Turn(said=said, did=tuple(actions), task=task, changed=tuple(changed),
                 snapshot=shot is not None)  # fmt: skip
     report = check(turn)

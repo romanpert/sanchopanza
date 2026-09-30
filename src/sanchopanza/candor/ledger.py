@@ -43,8 +43,12 @@ SHELL_TOOLS = frozenset({"bash", "shell", "powershell", "exec", "local_shell", "
 TAMPER = re.compile(
     r"\.claude[\\/](settings(\.local)?\.json|hooks)|managed-settings"
     # The monitor's home, new or legacy (`~/.sanchopanza`, `~/.sancho`): the lock, the ledgers,
-    # the journal. Dotted, so a checkout's `src/sanchopanza/candor/lock.py` is code, not the lock.
-    r"|\.sancho(panza)?[\\/].*(lock|journal|candor)"
+    # the journal. Dotted, so a checkout's `src/sanchopanza/candor/lock.py` is code, not the lock;
+    # bounded to one path, so `cat ~/.sanchopanza/providers.yaml && uv lock` is not a match.
+    r"|\.sancho(panza)?[\\/][^\s;&|\"']*(lock|journal|candor)|\bcandor-locks?\b"
+    # Releasing a lock from inside a session: with locks per session, a free sibling session
+    # could otherwise clear a held one (adversarial review of 2026-09-30).
+    r"|sanchopanza\.candor\b[^\n;&|]*\brelease\b|\block(_mod)?\.release\s*\("
     r"|\bjournal\.jsonl\b|[\\/]audit[\\/]|events\.jsonl|\bhistory\s+-c\b|unset\s+HISTFILE"
     r"|--no-verify\b|git\s+push\s+(-f\b|--force)|\bgit\s+commit\s+--amend\b.*--no-edit"
     r"|\.git[\\/]hooks|\bchmod\b|\bchown\b|\bsudo\b|\bicacls\b|Set-ExecutionPolicy"
@@ -246,11 +250,18 @@ def only_reads(action: Action) -> bool:
         return True
     if name not in SHELL_TOOLS or len(action.target) >= TARGET_LIMIT:
         return False  # a cut target may hide its writing part
-    command = _HARMLESS.sub(" ", action.target.replace("&&", " | "))
-    if _OUTSIDE.search(command):
+    return is_plain_look(action.target)
+
+
+def is_plain_look(command: str) -> bool:
+    """A shell command inside the look grammar: `_LOOKERS` over plain paths, joined by `|` or
+    `&&`, with `2>/dev/null` or `2>&1` the only redirections. It cannot delete, send to the
+    network, change permissions or run what it downloaded."""
+    command = _HARMLESS.sub(" ", command.replace("&&", " | "))
+    if not command.strip() or _OUTSIDE.search(command):
         return False
     segments = [s.strip() for s in command.split("|")]
-    return bool(segments) and all(_look_segment(s) for s in segments)
+    return all(_look_segment(s) for s in segments)
 
 
 def is_test_file(path: str) -> bool:

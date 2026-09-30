@@ -18,7 +18,10 @@ from sanchopanza.harness import candor_hook
 def home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.delenv("SANCHOPANZA_CANDOR_LOCK", raising=False)
     monkeypatch.delenv("SANCHOPANZA_CANDOR_LOCK_SCOPE", raising=False)
+    for name in candor_cli.AGENT_ENV:  # these tests may run inside an agent's own shell
+        monkeypatch.delenv(name, raising=False)
     monkeypatch.setattr(lock_mod, "home_dir", lambda: tmp_path / "home")
+    monkeypatch.setattr(lock_mod, "_homes", lambda: [tmp_path / "home", tmp_path / "legacy"])
     monkeypatch.setenv("SANCHOPANZA_CANDOR_DIR", str(tmp_path / "state"))
     return tmp_path
 
@@ -123,3 +126,48 @@ def test_the_monitor_home_is_tamper_new_or_legacy(target: str) -> None:
 @pytest.mark.parametrize("target", ["src/sanchopanza/candor/lock.py", "src/sanchopanza/journal.py"])
 def test_the_package_source_is_code_not_the_monitor(target: str) -> None:
     assert classify("Edit", target) == "write"
+
+
+# --- adversarial review of 2026-09-30 ------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "python -m sanchopanza.candor release --all --by agent --why ok",
+        'python -c "from sanchopanza.candor import lock; lock.release(by=1, why=2)"',
+        "cd ~/.sanchopanza && rm -r candor-locks",
+    ],
+)
+def test_releasing_a_lock_from_a_session_is_tamper(command: str) -> None:
+    assert classify("Bash", command) == "tamper"
+
+
+def test_a_monitor_path_does_not_spill_over_the_rest_of_the_command() -> None:
+    assert classify("Bash", "cat ~/.sanchopanza/providers.yaml && uv lock") != "tamper"
+
+
+def test_release_refuses_inside_an_agent_shell(
+    home: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    lock_mod.engage([Finding("critical", "tamper", "x")], session="aaa",
+                    path=lock_mod.default_path("aaa", home))  # fmt: skip
+    monkeypatch.setenv("CLAUDECODE", "1")
+    assert candor_cli.main(["release", "--by", "agent", "--why", "x", "--all"]) == 3
+    assert "refused" in capsys.readouterr().out
+    assert len(lock_mod.engaged_paths()) == 1
+
+
+def test_a_lock_under_the_other_home_is_still_found(home: Path) -> None:
+    legacy = home / "legacy" / lock_mod.LOCKS_DIR / "session-aaa.json"
+    lock_mod.engage([Finding("critical", "tamper", "x")], session="aaa", path=legacy)
+    assert lock_mod.default_path("aaa", home) == legacy
+    assert lock_mod.engaged_paths() == [legacy]
+
+
+def test_an_odd_cwd_still_finds_the_session_lock(home: Path) -> None:
+    lock_mod.engage([Finding("critical", "tamper", "x")], session="aaa",
+                    path=lock_mod.default_path("aaa", home))  # fmt: skip
+    odd = {"hook_event_name": "PreToolUse", "session_id": "aaa", "cwd": 42, "tool_name": "Read",
+           "tool_input": {"file_path": "x"}}  # fmt: skip
+    assert _denied(candor_hook.handle(odd))

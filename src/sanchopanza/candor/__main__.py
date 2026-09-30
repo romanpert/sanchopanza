@@ -8,11 +8,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
 from . import check_record
 from . import lock as lock_mod
+
+# Set in the shells an agent runs (Claude Code's Bash tool, Codex's exec): a release from there
+# is an agent releasing a lock, its own or a sibling's.
+AGENT_ENV = ("CLAUDECODE", "CLAUDE_CODE_ENTRYPOINT", "CODEX_SANDBOX", "CODEX_THREAD_ID")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -50,6 +55,11 @@ def main(argv: list[str] | None = None) -> int:
 def _release(args: argparse.Namespace) -> int:
     """Release one held lock, or every one with --all. With several held and no --session, it
     names them and releases none: a person picks which session they reviewed."""
+    agent = [name for name in AGENT_ENV if os.environ.get(name)]
+    if agent:
+        print(f"refused: this shell belongs to an agent session ({agent[0]} is set). A lock is "
+              "released by a person, from a terminal of their own.")  # fmt: skip
+        return 3
     held = lock_mod.engaged_paths()
     if args.session:
         held = [p for p in held if lock_mod.read(p).session == args.session]

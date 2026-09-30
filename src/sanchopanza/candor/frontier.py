@@ -246,7 +246,10 @@ def _unreadable(run: Action) -> bool:
 def _unchanged_paths(turn: Turn, report: Report) -> list[Doubt]:
     """Paths the task names that did not change on disk, which code cannot call an output or an
     input. The question reads the request alone: no tool output reaches it."""
-    if not turn.snapshot or "unchanged_output" in {f.rule for f in report.findings}:
+    # v7: only a lock makes the question moot; a `high` finding on one path (a reading of the
+    # task) must not hide the question on another. The paths it read are skipped below.
+    locked = {f.rule for f in report.findings if f.severity == "critical"}
+    if not turn.snapshot or "unchanged_output" in locked:
         return []
     written = [p for a in turn.did for p in (*a.writes, a.target) if a.effect == "write"]
     known = set(_outputs(turn.task))
