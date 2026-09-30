@@ -24,8 +24,12 @@ the order and a note on repeated lines, not the ranking.
   `playwright-cli` already serves moderate snapshots (7,000-29,000 characters here, where
   Playwright MCP's snapshot file for one of the same Wikipedia articles holds 512,000), and the agent reached for
   `find` and `eval` more than for snapshots. The one task with a large snapshot (29,179
-  characters pruned to about 5,600) was the one where it saved. The hook ships opt-in, without a
-  recommendation.
+  characters pruned to about 5,600) was the one where it saved. With Playwright MCP (Phase 3b,
+  48 sessions) it saved nothing either, but for three faults of the hook's, found in the
+  transcripts and fixed: Claude Code replaces a large MCP result with a notice before the hook
+  sees it, the hook cut the agent's own `find` results, and its goal lost the user's question.
+  Where it did cut a snapshot the agent read (M1, a GitHub page) the session cost a quarter
+  less. Opt-in, without a recommendation until the fixed hook is measured.
 
 What stands is the ranking as a tool: `sanchopanza browse PAGE --goal ...` from a shell, or the
 `rank_elements` MCP tool, returns the elements a step needs with their refs, confirmed at 89 % in
@@ -82,6 +86,44 @@ steps FULL answered, descriptively: FULL 61.4 %, TOP 56.1 %, the same gap. Two a
 written before the counted sessions: the per-session cap (0.25 to 0.60 USD, sized on the pages)
 and the phase ceiling (8 to 12 USD, sized on the pilot); the pilot (FULL 6/9, TOP 5/9) is outside
 every count. 8.61 USD spent in all.
+
+## Phase 3b: registered, no saving, and three faults found (`prereg-e2e-mcp.md`, `e2e-mcp.json`)
+
+The same question with what most people install: Playwright MCP 0.0.83, `Read`/`Grep`/`Glob`,
+no instruction about tools, six tasks on ordinary pages (a GitHub repository, two Wikipedia
+articles, the Python docs, npm, books.toscrape), four runs per task and arm.
+
+| Arm | Success | List USD / session | Turns | Snapshots cut |
+|---|---|---|---|---|
+| PLAIN | 24/24 | 0.1268 | 6.54 | |
+| LEAN | 24/24 | 0.1255 (+0.0004 Jev) | 6.83 | 8 |
+
+LEAN minus PLAIN per task: -0.0009 USD [-0.0185, +0.0126]; by task M1 -0.042, M2 +0.014, M3
++0.021, M4 -0.004, M5 +0.003, M6 +0.001. The rule (cheaper, interval below zero) **fails**. 6.06
+USD at list price (the pilot 0.64 more), 0.01 of Jev.
+
+Reading the transcripts found why, and none of it is the ranking:
+
+- **Claude Code hid every large snapshot from the hook.** An MCP result past its token limit
+  (72,000 characters for the GitHub page, 505,000 and 860,000 for the Wikipedia articles) is
+  replaced by a notice ("exceeds maximum allowed tokens. Output has been saved to ...") **before**
+  `PostToolUse` runs: a recording hook, 2026-09-30, received the 1,617-character notice, never
+  the snapshot. The model then reads the saved file in chunks or greps it. The hook never cut a
+  `browser_snapshot`. It cut the `.yml` files the agent `Read` (M1, M6), and on M1 that paid:
+  -0.042 USD a session, a quarter.
+- **The hook cut the agent's own searches.** Four `browser_find` results were pruned (M2, M3),
+  and after three of them the agent read the whole archive: it pays twice. M2 and M3 are the two
+  tasks where LEAN cost more.
+- **The goal lost the question.** The hook ranked for `purpose_of`'s summary, which keeps the
+  first 130 characters of the request; a request that opens with a URL and instructions ends
+  with its question. A probe asking for the license kept 20 elements without the license link.
+
+Fixed, each with a test (`harness/browse_hook.py`): the hook reads the saved result behind
+Claude Code's notice (only from its own session's `tool-results` folder, since a page can print
+a fake notice) and returns it pruned in its place, which a live probe confirmed Claude Code
+accepts; `browser_find` and a browser CLI's `find` pass untouched; the goal is `browse_goal`,
+the request's start and end with URLs cut to their host, plus the agent's last step. Not yet
+measured again.
 
 ## Phase 3: registered, no saving (`prereg-e2e.md`, amendment, `e2e.json`)
 
