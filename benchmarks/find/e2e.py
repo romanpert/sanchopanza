@@ -115,10 +115,12 @@ def mcp_config(art: Path) -> Path:
 
 def command(row: dict[str, Any], arm: str, art: Path) -> list[str]:
     prompt = PROMPT.format(repo=row["repo"], issue=row["problem_statement"].strip())
+    # Amendment 1: `--tools` limits the built-in set; `--allowedTools` alone left all 36 offered,
+    # and dontAsk let read-only Bash through.
     cmd = ["claude", "-p", prompt, "--model", MODEL, "--max-budget-usd", str(SESSION_CAP_USD),
            "--max-turns", str(MAX_TURNS), "--output-format", "stream-json", "--verbose",
            "--setting-sources", "project", "--strict-mcp-config", "--permission-mode", "dontAsk",
-           "--allowedTools", *TOOLS[arm]]  # fmt: skip
+           "--tools", ",".join(TOOLS["N"]), "--allowedTools", *TOOLS[arm]]  # fmt: skip
     if arm == "F":
         cmd += ["--mcp-config", str(mcp_config(art))]
     return cmd
@@ -237,11 +239,15 @@ def one(row: dict[str, Any], arm: str) -> dict[str, Any] | None:
 
 
 def spent_so_far() -> tuple[float, float]:
+    """Every paid session counts against the ceiling, the voided ones of amendment 1 included;
+    a voided session cut before its result is charged its whole cap."""
     usd = jev = 0.0
-    for art in (ROOT / "runs").glob("*"):
-        if (art / "stream.jsonl").exists():
-            usd += float(_result(art / "stream.jsonl").get("total_cost_usd") or 0.0)
-        jev += jev_spent(art)
+    for folder in ("runs", "void"):
+        for art in (ROOT / folder).glob("*"):
+            if (art / "stream.jsonl").exists():
+                paid = float(_result(art / "stream.jsonl").get("total_cost_usd") or 0.0)
+                usd += paid or (SESSION_CAP_USD if folder == "void" else 0.0)
+            jev += jev_spent(art)
     return usd, jev
 
 
