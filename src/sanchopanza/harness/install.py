@@ -441,11 +441,16 @@ def _merge_approval(
     return merged, added, removed
 
 
+def project_settings(settings_path: Path) -> bool:
+    """Whether the settings file is a project's (`<project>/.claude/...`), not the user's."""
+    folder = settings_path.parent
+    return folder.name == ".claude" and folder.parent.resolve() != Path.home().resolve()
+
+
 def mcp_json_path(settings_path: Path, cwd: Path | None = None) -> Path:
     """The project's `.mcp.json`: beside `.claude/` for a project settings file, else `cwd`."""
-    folder = settings_path.parent
-    if folder.name == ".claude" and folder.parent.resolve() != Path.home().resolve():
-        return folder.parent / MCP_JSON
+    if project_settings(settings_path):
+        return settings_path.parent.parent / MCP_JSON
     return (cwd or Path.cwd()) / MCP_JSON
 
 

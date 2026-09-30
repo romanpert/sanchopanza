@@ -104,3 +104,18 @@ def test_the_install_is_idempotent(tmp_path: Path, capsys: pytest.CaptureFixture
 def test_the_find_server_command_follows_the_hook_command() -> None:
     entry = defaults.find_server_entry("C:/venv/python.exe -m sanchopanza hook")
     assert entry == {"command": "C:/venv/python.exe", "args": ["-m", "sanchopanza", "find-mcp"]}
+
+
+def test_a_user_install_writes_no_mcp_json_where_it_is_run(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """find is on by default only for a project: a user install once dropped a .mcp.json into
+    whatever directory it was run from (this repository's root, from the test suite)."""
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    monkeypatch.chdir(elsewhere)
+    settings = tmp_path / "user" / "settings.json"
+    assert _install(settings) == 0
+    assert not (elsewhere / ".mcp.json").exists()
+    assert "enabledMcpjsonServers" not in json.loads(settings.read_text("utf-8"))
+    assert "claude mcp add --scope user" in capsys.readouterr().out

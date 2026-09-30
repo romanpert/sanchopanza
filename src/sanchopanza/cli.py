@@ -88,9 +88,16 @@ def _plan_mcp_json(args: argparse.Namespace, settings_path: Path) -> tuple[Path,
     """`--lean`: the archive server into the project's `.mcp.json` (settings files cannot hold
     MCP servers). Without it, our entry out of that file only if it is there: a plain install
     never fails on, nor rewrites, a `.mcp.json` that holds nothing of ours."""
-    from .harness.install import mcp_json_changes, mcp_json_path
+    from .harness.install import mcp_json_changes, mcp_json_path, project_settings
 
     target = mcp_json_path(settings_path)
+    if args.find is None:
+        # On by default only where a project's .mcp.json exists to hold it: a user-scope install
+        # would otherwise drop one into whatever directory it was run from.
+        args.find = project_settings(settings_path)
+        if not args.find:
+            sys.stdout.write("find_in_repo for every project: claude mcp add --scope user "
+                             "sanchopanza -- sanchopanza find-mcp\n")  # fmt: skip
     try:
         content = mcp_json_changes(target, args.lean, args.command_line, find=args.find)
     except (ValueError, OSError) as error:
@@ -623,8 +630,9 @@ def main(argv: list[str] | None = None) -> int:
     install.add_argument(
         "--find",
         action=argparse.BooleanOptionalAction,
-        default=True,
-        help="register the find_in_repo MCP server in the project's .mcp.json (on by default)",
+        default=None,
+        help="register the find_in_repo MCP server in the project's .mcp.json (on by default for "
+        "a project or local install; a user install prints the `claude mcp add` line instead)",
     )
     install.add_argument(
         "--skill",
