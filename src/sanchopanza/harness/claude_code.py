@@ -122,6 +122,7 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
     shell_fetches = _env.get("SCAN_SHELL_FETCHES", "1", env=env) not in ("0", "false", "no")
     named = {t.strip() for t in _env.get("CONTENT_TOOLS", "", env=env).split(",") if t.strip()}
     purpose = _env.get("PURPOSE", "", env=env).strip()
+    profile = "coding" if _env.get("GUARD_PROFILE", "", env=env).strip() == "coding" else "sandbox"
     defaults = HarnessConfig()
     return HarnessConfig(
         tiers=tiers,
@@ -131,6 +132,7 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
         scan_shell_fetches=shell_fetches,
         content_tools=frozenset(named) if named else defaults.content_tools,
         content_purpose=(lambda: purpose) if purpose else defaults.content_purpose,
+        guard_profile=profile,
     )
 
 
@@ -299,6 +301,21 @@ def merge_outputs(first: Mapping[str, Any], second: Mapping[str, Any]) -> dict[s
     return out
 
 
+def with_workspace(guardian: Guardian, input_data: Mapping[str, Any]) -> Guardian:
+    """The coding profile's guard asks with the session's own working directory as the place it
+    may write; the sandbox profile keeps its configured environment."""
+    config = guardian.config
+    if config.guard_profile != "coding" or config.guard_environment is not None:
+        return guardian
+    from dataclasses import replace
+
+    from ..points.guard import coding_environment
+
+    workspace = str(input_data.get("cwd") or os.getcwd())
+    coding = replace(config, guard_environment=coding_environment(workspace))
+    return Guardian(guardian.squire, coding)
+
+
 async def handle(
     input_data: dict[str, Any], guardian: Guardian, autopilot_squire: Any = None
 ) -> dict[str, Any]:
@@ -310,6 +327,7 @@ async def handle(
     event = str(input_data.get("hook_event_name", "PreToolUse"))
     pilot = autopilot_config()
     squire = autopilot_squire if autopilot_squire is not None else guardian.squire
+    guardian = with_workspace(guardian, input_data)
     if event == "Stop":
         return await stop(input_data, guardian)
     if event == "UserPromptSubmit":

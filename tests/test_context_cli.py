@@ -201,7 +201,7 @@ def test_install_compact_writes_the_plugin_and_is_idempotent(tmp_path, capsys):
     settings.write_text(json.dumps({"env": {"KEEP": "1"}, "enabledPlugins": {"x@y": True}}))
     plugin = tmp_path / "plugin"
     args = ["install", "--path", str(settings), "--compact", "--plugin-dir", str(plugin),
-            "--context-budget", "0"]  # the env here is the plugin's alone  # fmt: skip
+            "--context-budget", "0", "--guard-profile", "sandbox"]  # the plugin's env  # fmt: skip
     assert cli.main([*args, "--write"]) == 0
     written = json.loads(settings.read_text())
     assert written["env"] == {"KEEP": "1", install.FUNCTION_HOOKS: "1"}

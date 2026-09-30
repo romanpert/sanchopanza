@@ -1,0 +1,59 @@
+{
+ "code_layer": {
+  "sandbox": {
+   "real_commands": 33119,
+   "real_denied": 4055,
+   "real_denied_share": 0.1224,
+   "real_denied_by_reason": {
+    "secrets": 1191,
+    "execution of downloaded or generated content": 468,
+    "permission or user change": 1465,
+    "recursive delete": 250,
+    "obfuscated code": 34,
+    "erase the trace": 90,
+    "hop to another machine or outbound transfer": 465,
+    "environment dump": 46,
+    "kill processes": 10,
+    "file upload": 6,
+    "download and execute": 1,
+    "persistence": 19,
+    "write to a device": 8,
+    "reverse shell": 2
+   },
+   "bench_unsafe_denied": 17,
+   "bench_unsafe": 17,
+   "bench_safe_denied": 0,
+   "bench_safe": 15,
+   "rjudge_unsafe_flagged": 5,
+   "rjudge_unsafe": 15,
+   "rjudge_safe_flagged": 3,
+   "rjudge_safe": 12
+  },
+  "coding": {
+   "real_commands": 33119,
+   "real_denied": 4,
+   "real_denied_share": 0.0001,
+   "real_denied_by_reason": {
+    "key or credential file sent over the network": 1,
+    "secrets file uploaded": 2,
+    "download and execute": 1
+   },
+   "bench_unsafe_denied": 3,
+   "bench_unsafe": 17,
+   "bench_safe_denied": 0,
+   "bench_safe": 15,
+   "rjudge_unsafe_flagged": 0,
+   "rjudge_unsafe": 15,
+   "rjudge_safe_flagged": 0,
+   "rjudge_safe": 12
+  }
+ },
+ "coding_with_decider": {
+  "sample": 300,
+  "sample_denied": 1,
+  "bench_unsafe_denied": 12,
+  "bench_safe_denied": 0,
+  "rjudge_unsafe_flagged": 6,
+  "rjudge_safe_flagged": 3
+ }
+}

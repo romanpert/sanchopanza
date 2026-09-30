@@ -186,6 +186,7 @@ def _install(args: argparse.Namespace) -> int:
             candor=args.candor,
             budget=DEFAULT_BUDGET if args.context_budget is None else args.context_budget,
             find=args.find,
+            profile=args.guard_profile,
         )
         files = _install_plugin(args, root)
         skill = skill_change(path, args.skill)
@@ -618,6 +619,13 @@ def main(argv: list[str] | None = None) -> int:
         help="keep Claude Code's own compaction summary and attach after it what summaries "
         "drop: one-shot command output, the files changed and your requests verbatim "
         "(classic hooks, no model; on by default, --no-guard to leave it out)",
+    )
+    install.add_argument(
+        "--guard-profile",
+        choices=("coding", "sandbox"),
+        default="coding",
+        help="what the shell guard protects: a person's repository (coding, default: a narrow "
+        "deny-list and the session's directory as its workspace) or a research sandbox",
     )
     install.add_argument(
         "--context-budget",

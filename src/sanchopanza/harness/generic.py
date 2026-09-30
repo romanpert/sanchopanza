@@ -92,6 +92,9 @@ class HarnessConfig:
     shell_tools: frozenset[str] = frozenset({"Bash", "bash", "shell", "run_command", "execute"})
     shell_command_key: str = "command"
     guard_environment: Mapping[str, Any] | None = None
+    # "sandbox": the research container the guard was written for; "coding": a person's own
+    # repository (Claude Code, Codex), set by `sanchopanza install` (points.guard).
+    guard_profile: str = "sandbox"
     result_limit: int = 4000
     # --- content that arrives from outside, scanned after the fact -----------------------
     # Off by default. It costs one decision per tool result and, unlike every other family
@@ -246,7 +249,9 @@ class Guardian:
             # A look at secrets is still asked: in R-Judge it is the first step of an exfiltration
             # the decider denied (Program/terminal/32, `ls ... ~/.ssh/id_rsa`).
             return ALLOW
-        result = await self.squire.guard_command(command, environment=c.guard_environment)
+        result = await self.squire.guard_command(
+            command, environment=c.guard_environment, profile=c.guard_profile
+        )
         if not result.denied:
             return ALLOW
         return Verdict(

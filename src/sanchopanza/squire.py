@@ -768,15 +768,29 @@ class Squire:
         return flag
 
     async def guard_command(
-        self, command: str, *, environment: Mapping[str, Any] | None = None
+        self,
+        command: str,
+        *,
+        environment: Mapping[str, Any] | None = None,
+        profile: str = "sandbox",
     ) -> GuardResult:
-        """Deny-list in code first; the decider can add a denial, never an approval."""
-        why = guard.code_denial(command)
+        """Deny-list in code first; the decider can add a denial, never an approval.
+
+        `profile="coding"` (Claude Code and Codex on a person's repository): the narrow list and
+        the coding question, with `environment` from `guard.coding_environment`. The default
+        `sandbox` is the research container the list and the question were written for."""
+        coding = profile == "coding"
+        why = guard.coding_denial(command) if coding else guard.code_denial(command)
         if why:
             decision = Decision("guard", {}, "code", "-")
             self.record(decision, command=command[:200], denied=True, origin="code", reason=why)
             return GuardResult(True, "code", why, 1.0)
-        state, qs = guard.questions(command, environment=environment)
+        if coding:
+            state, qs = guard.coding_questions(
+                command, environment=environment or guard.coding_environment(".")
+            )
+        else:
+            state, qs = guard.questions(command, environment=environment)
         decision = await self.decide("guard", state, qs)
         dangerous, p = guard.decide(decision, self._t)
         reason = f"the decision model flags it as dangerous ({p:.2f})" if dangerous else ""

@@ -63,6 +63,31 @@ def merge_budget(
     return {**merged, "env": {**env, **changed}}, [f"env: {k}={v}" for k, v in changed.items()], []
 
 
+PROFILE = "SANCHOPANZA_GUARD_PROFILE"
+
+
+def merge_profile(
+    merged: dict[str, Any], profile: str
+) -> tuple[dict[str, Any], list[str], list[str]]:
+    """`coding` (default): the shell guard judges a person's repository, not a research sandbox
+    (points.guard: the sandbox list denied 12.3 % of the owner's real Bash commands). `sandbox`
+    takes our variable out, and the hook falls back to the sandbox profile."""
+    env = merged.get("env", {})
+    if not isinstance(env, dict):
+        return merged, [], []
+    if profile == "coding":
+        if env.get(PROFILE) == "coding":
+            return merged, [], []
+        return {**merged, "env": {**env, PROFILE: "coding"}}, [f"env: {PROFILE}=coding"], []
+    if PROFILE not in env:
+        return merged, [], []
+    return (
+        {**merged, "env": {k: v for k, v in env.items() if k != PROFILE}},
+        [],
+        [f"env: {PROFILE}"],
+    )
+
+
 def find_server_entry(command: str) -> dict[str, Any]:
     """The `.mcp.json` entry, from the hook command: `<x> hook` becomes `<x> find-mcp`."""
     words = command.split()

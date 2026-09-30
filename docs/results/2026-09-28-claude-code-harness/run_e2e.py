@@ -30,7 +30,8 @@ from pathlib import Path
 
 # `sanchopanza install` as it was when this ran: the defaults grew on 2026-09-30 (guard,
 # context budget, find_in_repo, skill), so a rerun opts out of them to measure the same arms.
-PRE_0930 = ["--no-guard", "--no-find", "--no-skill", "--context-budget", "0"]
+PRE_0930 = ["--no-guard", "--no-find", "--no-skill", "--context-budget", "0",
+            "--guard-profile", "sandbox"]
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]

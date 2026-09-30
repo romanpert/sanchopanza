@@ -92,7 +92,7 @@ from typing import Any
 
 from .. import _env
 from .generic import HarnessConfig
-from .install_defaults import FIND_SERVER, find_server_entry, merge_budget
+from .install_defaults import FIND_SERVER, find_server_entry, merge_budget, merge_profile
 
 PLUGIN = "sanchopanza-compact"
 MARKETPLACE = "sanchopanza-local"
@@ -605,6 +605,7 @@ def _merge(
     candor: bool = False,
     budget: int = 0,
     find: bool = False,
+    profile: str = "sandbox",
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
         current = {}
@@ -635,6 +636,8 @@ def _merge(
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_budget(merged, budget)
     added, removed = [*added, *plus], [*removed, *minus]
+    merged, plus, minus = merge_profile(merged, profile)
+    added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_approval(merged, lean, find)
     return merged, [*added, *plus], [*removed, *minus]
 
@@ -661,6 +664,7 @@ def plan(
     candor: bool = False,
     budget: int = 0,
     find: bool = False,
+    profile: str = "sandbox",
 ) -> Settings:
     current: Any = {}
     if path.exists():
@@ -689,6 +693,7 @@ def plan(
         candor=candor,
         budget=budget,
         find=find,
+        profile=profile,
     )
     return Settings(path, merged, tuple(added), tuple(removed))
 
