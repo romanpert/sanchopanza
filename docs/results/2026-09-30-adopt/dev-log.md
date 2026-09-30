@@ -342,3 +342,38 @@ Smoke test on `encode__starlette-rel-1` repetition 3 (Haiku, n=1, to see the hoo
   went without memory. Fixed in d5f8a25.
 - Both request 5s were first cut by the ceiling (36.90, after Sf's 1.43 USD request 4) and run
   with `--continue` (ceiling 38.60). Chain spend: 32.37 to 36.08 USD (3.71 for this test).
+
+## After phase B: what failed, why, and what changed (indagis-45, 2026-09-30 night)
+
+The owner's instruction: when something fails, find why, fix it, measure again; do not drop it.
+
+- **Hooks were slow, and it was not the decider.** `Sm`'s hooks took 123 s of 965 s in phase B,
+  61.5 s of it in 38 `PreToolUse` calls on Bash that asked nothing. Timed alone: 1.70 s with a
+  TypeSafe key, 0.38 s without; the profile put 0.6 s in building Jev's HTTP client (httpx import
+  and `load_verify_locations`, 0.46 s) on every hook, while the guard asks on 2 % of commands.
+  The client is now built on the first question (c378afe): 0.26 s with a key. A risky command
+  (`rm -rf build`) still reaches Jev, checked live (jev-1.13.0, 1.1 s, 0.00003 USD).
+- **The held-out chains that did not validate** (conan: all four; dvc: both) were not dropped. A
+  pairwise diagnosis (`masking.py`) showed a few bugs breaking a path other bugs' tests go
+  through: in conan-rel-1 pr_15368 hides pr_16289 and pr_12913 and pr_12243 hides pr_15368; in
+  conan-2 pr_17647 hides three; in dvc-rel-1 two hide each other. Validation used to replace the
+  victims, losing good bugs and keeping the one that broke them. It now replaces the culprits
+  (`masking.culprits`: a failing bug that still fails with every other bug fixed is its own
+  culprit, else the smallest group whose fix lets it pass, by bisection), on a copy, kept only
+  when every culprit finds a spare. conan-1 and conan-2 stayed invalid after it (their spares
+  hide each other too); the rest are running.
+- **astroid-1 was killed for memory** twice (whole suite, at 54 % and 84 %), then in batches of
+  400 (at 36 % of one): one test runs away with a bug baked in. A killed whole-suite run is now
+  run again in batches under `ulimit -v 6000000`, so that test fails as a test. Other images are
+  graded as before.
+- **Phase B could not reach a long session** (80k after ten bugs, about 5k per bug on Sonnet).
+  `long.py` draws `pydantic__pydantic-long40-1`: 40 bugs and 12 spares, no overlapping hunks, no
+  FAIL_TO_PASS in common, none in any sealed chain (pydantic allows up to 53). Approved by the
+  owner as phase B2 (development, 30-45 USD, ceiling 45, from phase C's unspent money): arms
+  `N`, `S` (the default install, 160k budget) and `Sm` (memory, 100k budget), on Sonnet 5.5.
+- **The package under test is frozen.** Other sessions kept editing `src/` while arms ran (the
+  development arms ran the editable install, declared above). `freeze.py <commit>` builds a
+  non-editable install in its own venv; `ADOPT_SANCHO` points `run.py` and `hook_env.py` at it,
+  every row records its path and commit, and held-out tasks refuse to run without one. B2 and A
+  will run eebdfa6 (memory v4.1, confirmed by indagis-72 on held-out real sessions: precision
+  0.753 against v3's 0.631).

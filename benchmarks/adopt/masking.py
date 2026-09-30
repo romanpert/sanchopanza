@@ -57,6 +57,12 @@ def maskers(i: int, others: list[int], passes: Callable[[int, list[int]], bool])
             group = right
         else:
             break
+    # When both halves are needed, bisection stops with the whole group and every bug in it
+    # would be replaced (dvc-1: all five, with three spares). One pass dropping each member it
+    # can do without leaves a group from which no single bug can go.
+    for k in list(group):
+        if len(group) > 1 and passes(i, [g for g in group if g != k]):
+            group = [g for g in group if g != k]
     return group
 
 

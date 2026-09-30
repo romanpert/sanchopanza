@@ -179,3 +179,9 @@ def test_maskers_are_found_by_bisection_and_a_broken_bug_is_its_own_culprit() ->
     assert masking.maskers(0, [1, 2, 3], lambda i, fixed: False) == [0]  # broken on its own
     # needs 2 and 7 together: the halves both fail, the group is kept whole
     assert masking.maskers(0, [2, 7], lambda i, fixed: {2, 7} <= set(fixed)) == [2, 7]
+
+
+def test_a_group_bisection_cannot_split_is_narrowed_to_the_bugs_it_needs() -> None:
+    # bug 0 passes only with 1 and 6 fixed: the halves [1..4] and [5..8] both fail
+    group = masking.maskers(0, list(range(1, 9)), lambda i, fixed: {1, 6} <= set(fixed))
+    assert group == [1, 6]
