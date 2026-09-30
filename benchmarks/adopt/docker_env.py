@@ -124,7 +124,14 @@ def pytest(
     text = done.stdout.decode("utf-8", "replace")
     if "PATCH_FAILED" in text:
         return {"<patch>": "ERROR"}
-    return {node: status for status, node in RESULT.findall(text)}
+    found = {node: status for status, node in RESULT.findall(text)}
+    if not found or done.returncode not in (0, 1):
+        # A run that reports nothing is a broken run, not a patch that fails every test: the
+        # first pilot grade read an empty run as 0 of 5 resolved.
+        err = done.stderr.decode("utf-8", "replace")[-600:]
+        raise RuntimeError(f"pytest in {tag} gave no results (exit {done.returncode}): "
+                           f"{text[-600:]} {err}")  # fmt: skip
+    return found
 
 
 def remove_tree(path: Path) -> None:

@@ -44,8 +44,8 @@ WORK = ROOT / "work"
 BIN = ROOT / "bin"
 MODELS = {"haiku": "claude-haiku-4-5-20251001", "sonnet": "claude-sonnet-5-5"}
 ARMS = ("N", "S")
-CALL_CAP_USD = 1.20
-CHAIN_CAP_USD = 4.00
+CALL_CAP_USD = 1.50  # binds only on a runaway call: at 1.20 it cut a normal pilot request
+CHAIN_CAP_USD = 6.00
 CALL_TIMEOUT_S = 2700
 DISALLOWED = ("WebFetch", "WebSearch")  # the fix is on the web: neither arm may look it up
 PROMPT = (
@@ -67,13 +67,19 @@ def chains() -> dict[str, dict[str, Any]]:
     return json.loads((ROOT / "chains-validated.json").read_text(encoding="utf-8"))
 
 
-def shim() -> Path:
-    """`runtests` on the agents' PATH (Git Bash runs a file that starts with #!)."""
+def shim() -> list[Path]:
+    """`runtests` on the agents' PATH: a `#!` file for Git Bash, and `runtests.cmd` in a folder
+    ahead of it for PowerShell, which treats the extensionless file as a document and makes
+    Windows ask the person at the desk which program should open it (seen in the pilot)."""
+    script = (HERE / "runtests.py").as_posix()
     BIN.mkdir(parents=True, exist_ok=True)
-    target = BIN / "runtests"
-    target.write_text(f'#!/bin/sh\nexec "{PYTHON.as_posix()}" "{(HERE / "runtests.py").as_posix()}"'
-                      ' "$@"\n', encoding="utf-8", newline="\n")  # fmt: skip
-    return BIN
+    (BIN / "runtests").write_text(f'#!/bin/sh\nexec "{PYTHON.as_posix()}" "{script}" "$@"\n',
+                                  encoding="utf-8", newline="\n")  # fmt: skip
+    windows = BIN / "win"
+    windows.mkdir(exist_ok=True)
+    (windows / "runtests.cmd").write_text(f'@"{PYTHON}" "{HERE / "runtests.py"}" %*\r\n',
+                                          encoding="utf-8", newline="")  # fmt: skip
+    return [windows, BIN]
 
 
 def child_env(tag: str, base: str) -> dict[str, str]:
@@ -81,7 +87,9 @@ def child_env(tag: str, base: str) -> dict[str, str]:
     drop = ("ANTHROPIC_", "CLAUDE_CODE_", "CLAUDE_EFFORT", "CLAUDECODE", "CLAUDE_AGENT_SDK",
             "CLAUDE_PID", "SANCHOPANZA_", "SANCHO_", "TYPESAFE_")  # fmt: skip
     env = {k: v for k, v in os.environ.items() if not k.startswith(drop)}
-    path = os.pathsep.join([str(shim()), str(SANCHO.parent), env.get("PATH", "")])
+    # Not the sanchopanza venv: its `python` (pytest 9, no project deps) was on the agents' PATH
+    # in the pilot and they ran the tests locally against it. Hooks use absolute paths.
+    path = os.pathsep.join([*(str(p) for p in shim()), env.get("PATH", "")])
     return {**env, "PATH": path, "ADOPT_TAG": tag, "ADOPT_BASE": base}
 
 
@@ -194,22 +202,39 @@ def jev_usd(evidence: Path) -> float:
     return total
 
 
-def one_chain(chain: dict[str, Any], arm: str, model: str, ceiling: float, keyfile: Path) -> None:
+def not_run(row: dict[str, Any]) -> bool:
+    return str(row.get("status", "")).startswith("NOT RUN")
+
+
+def one_chain(
+    chain: dict[str, Any], arm: str, model: str, ceiling: float, keyfile: Path,
+    carry_on: bool = False,
+) -> None:  # fmt: skip
+    """The chain's requests in one session. With `carry_on`, a chain whose later requests were
+    NOT RUN (a cap) goes on from the first of them, in the same session and working copy."""
     name = chain["chain"]
     evidence = RUNS / name / arm
-    if (evidence / "row.json").exists():
-        return  # done before: never run twice
-    docker_env.remove_tree(evidence)
-    evidence.mkdir(parents=True)
     work = WORK / f"{name}-{arm}"
-    docker_env.remove_tree(work)
-    base = docker_env.export(chain["tag"], work)
-    mcp = install_sancho(work, evidence, keyfile) if arm == "S" else None
-    env = child_env(chain["tag"], base)
-    session: str | None = None
+    done_row = evidence / "row.json"
     rows: list[dict[str, Any]] = []
-    started = time.time()
+    session: str | None = None
+    if done_row.exists():
+        previous = json.loads(done_row.read_text(encoding="utf-8"))
+        if not carry_on or not any(not_run(r) for r in previous["calls"]):
+            return  # done before: never run twice
+        rows = [r for r in previous["calls"] if not not_run(r)]
+        session, base = previous["session"], previous["base"]
+        mcp = work / ".mcp.json" if arm == "S" else None
+    else:
+        docker_env.remove_tree(evidence)
+        evidence.mkdir(parents=True)
+        docker_env.remove_tree(work)
+        base = docker_env.export(chain["tag"], work)
+        mcp = install_sancho(work, evidence, keyfile) if arm == "S" else None
+    env = child_env(chain["tag"], base)
     for k, bug in enumerate(chain["bugs"], start=1):
+        if k <= len(rows):
+            continue
         chain_cost = sum(r["cost_usd"] for r in rows)
         if chain_cost + CALL_CAP_USD > CHAIN_CAP_USD or not reserve(ceiling):
             rows.append({"request": k, "status": "NOT RUN (cap)", "cost_usd": 0.0})
@@ -225,7 +250,15 @@ def one_chain(chain: dict[str, Any], arm: str, model: str, ceiling: float, keyfi
             except subprocess.TimeoutExpired:
                 code = -9
         seen = facts(stream)
-        settle(seen["cost_usd"] or (CALL_CAP_USD if code == -9 else 0.0))
+        # A resumed session reports its cost so far, not this call's (pilot, 2026-09-30).
+        before = max((r.get("cost_cumulative", 0.0) for r in rows), default=0.0)
+        if seen["cost_usd"]:
+            seen = {**seen, "cost_cumulative": seen["cost_usd"],
+                    "cost_usd": round(seen["cost_usd"] - before, 6)}  # fmt: skip
+        else:  # no result: the call was cut; charge its cap
+            seen = {**seen, "cost_cumulative": before,
+                    "cost_usd": CALL_CAP_USD if code == -9 else 0.0}  # fmt: skip
+        settle(seen["cost_usd"])
         session = seen["session"] or session
         (evidence / f"diff-{k}.patch").write_text(docker_env.agent_diff(work, base),
                                                    encoding="utf-8", newline="\n")  # fmt: skip
@@ -239,8 +272,8 @@ def one_chain(chain: dict[str, Any], arm: str, model: str, ceiling: float, keyfi
     if session and transcript:
         shutil.copy(transcript, evidence / "transcript.jsonl")
     row = {"chain": name, "arm": arm, "model": model, "base": base, "session": session,
-           "wall_s": round(time.time() - started, 1), "jev_usd": jev_usd(evidence),
-           "calls": rows}  # fmt: skip
+           "wall_s": round(sum(r.get("wall_s") or 0.0 for r in rows), 1),
+           "jev_usd": jev_usd(evidence), "calls": rows}  # fmt: skip
     (evidence / "row.json").write_text(json.dumps(row, indent=1), encoding="utf-8")
 
 
@@ -290,6 +323,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--split", default="dev")
     parser.add_argument("--model", default="haiku", choices=sorted(MODELS))
     parser.add_argument("--ceiling", type=float, default=0.0)
+    parser.add_argument("--continue", dest="carry_on", action="store_true",
+                        help="go on with chains whose later requests were NOT RUN")
     args = parser.parse_args(argv)
     known = chains()
     wanted = [c for c in args.chains.split(",") if c] or [
@@ -322,7 +357,8 @@ def main(argv: list[str] | None = None) -> int:
                 continue
             with ThreadPoolExecutor(max_workers=len(ARMS)) as pool:
                 list(pool.map(lambda arm, c=chain: one_chain(c, arm, MODELS[args.model],
-                                                             args.ceiling, keyfile), ARMS))
+                                                             args.ceiling, keyfile,
+                                                             args.carry_on), ARMS))
     finally:
         keyfile.unlink(missing_ok=True)
     print(f"spent {_ledger['spent']:.2f} USD (list price)")

@@ -29,11 +29,13 @@ def main(argv: list[str]) -> int:
     top = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
     root = Path(top.stdout.strip() or os.getcwd())
     patch = agent_diff(root, base)
+    prefix = os.environ.get("ADOPT_PREFIX", "")  # e.g. SWE-bench's conda activation
+    test_cmd = os.environ.get("ADOPT_TEST_CMD", "python -m pytest -p no:cacheprovider")
     with tempfile.TemporaryDirectory() as io_dir:
         (Path(io_dir) / "work.patch").write_bytes(patch.encode("utf-8"))
-        script = ("cd /testbed && (test ! -s /io/work.patch || git apply --whitespace=nowarn "
-                  "/io/work.patch || { echo 'runtests: your changes did not apply'; exit 3; }) "
-                  '&& python -m pytest -p no:cacheprovider "$@"')  # fmt: skip
+        script = (f"{prefix}cd /testbed && (test ! -s /io/work.patch || git apply "
+                  "--whitespace=nowarn /io/work.patch || { echo 'runtests: your changes did not "
+                  f"apply'; exit 3; }}) && {test_cmd} \"$@\"")  # fmt: skip
         cmd = ["docker", "run", "--rm", "-v", f"{Path(io_dir).as_posix()}:/io:ro", tag,
                "bash", "-lc", script, "runtests", *argv]  # fmt: skip
         try:
