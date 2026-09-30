@@ -1,0 +1,76 @@
+{
+ "v4.1": {
+  "all/lineage": {
+   "requests": 953,
+   "with_related": 60,
+   "recall": 0.783,
+   "precision": 0.184,
+   "noise": 0.083,
+   "shown_per_request": 0.21
+  },
+  "all/any": {
+   "requests": 953,
+   "with_related": 161,
+   "recall": 0.938,
+   "precision": 0.736,
+   "noise": 0.037,
+   "shown_per_request": 0.21
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.783,
+   "precision": 0.243,
+   "noise": 0.278,
+   "shown_per_request": 0.79
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 37,
+   "recall": 0.865,
+   "precision": 0.68,
+   "noise": 0.17,
+   "shown_per_request": 0.79
+  },
+  "prompt_records": 11,
+  "decider_calls": 114,
+  "no_cached_answer": 0
+ },
+ "v5": {
+  "all/lineage": {
+   "requests": 953,
+   "with_related": 60,
+   "recall": 0.783,
+   "precision": 0.186,
+   "noise": 0.081,
+   "shown_per_request": 0.21
+  },
+  "all/any": {
+   "requests": 953,
+   "with_related": 161,
+   "recall": 0.938,
+   "precision": 0.744,
+   "noise": 0.034,
+   "shown_per_request": 0.21
+  },
+  "first/lineage": {
+   "requests": 131,
+   "with_related": 23,
+   "recall": 0.783,
+   "precision": 0.248,
+   "noise": 0.259,
+   "shown_per_request": 0.77
+  },
+  "first/any": {
+   "requests": 131,
+   "with_related": 37,
+   "recall": 0.865,
+   "precision": 0.693,
+   "noise": 0.149,
+   "shown_per_request": 0.77
+  },
+  "prompt_records": 9,
+  "decider_calls": 102,
+  "no_cached_answer": 0
+ }
+}

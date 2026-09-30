@@ -253,7 +253,8 @@ def store(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv("SANCHOPANZA_MEMORY_STORE", str(tmp_path / "memory"))
     monkeypatch.setenv("SANCHOPANZA_MEMORY_STORE_LOG", str(tmp_path / "log.jsonl"))
     for name in ("SANCHOPANZA_MEMORY_SELECT", "SANCHOPANZA_PROVIDER", "TYPESAFE_API_KEY",
-                 "SANCHOPANZA_MEMORY_TOUCH", "SANCHOPANZA_MEMORY_KEEP_AT"):  # fmt: skip
+                 "SANCHOPANZA_MEMORY_TOUCH", "SANCHOPANZA_MEMORY_KEEP_AT",
+                 "SANCHOPANZA_MEMORY_PROMPT_NAMED", "SANCHO_MEMORY_PROMPT_NAMED"):  # fmt: skip
         monkeypatch.delenv(name, raising=False)
     # The recall mechanics below (live context, once per compaction, catch-up) at every prompt;
     # the shipped default (`first`, `off` without a decider) has its own tests.
@@ -631,6 +632,118 @@ def test_the_decider_s_cut_is_0_8(store: Path, monkeypatch: pytest.MonkeyPatch) 
     assert asyncio.run(mh.recall(new, s)) == {}
     s, _ = squire(Fake(lambda i: 0.82))
     assert "session s1" in context_of(asyncio.run(mh.recall({**new, "session_id": "s3"}, s)))
+
+
+def test_v5_the_decider_is_not_asked_when_the_prompt_names_no_file_a_candidate_changed(
+    store: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # v5: on three sets of real sessions the decider at a first prompt added no recall where the
+    # prompt named none of the record's files, and most of the first-request noise.
+    project = store / "projects" / "p"
+    mh.handle(event(write_transcript(project / "s1.jsonl", lexer_request()), "Stop", "s1"))
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_PROMPT", "first")
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_SELECT", "decider")
+    new = write_transcript(project / "s2.jsonl", [])
+    fake = Fake(lambda i: 0.99)
+    s, _ = squire(fake)
+    vague = event(new, "UserPromptSubmit", "s2", "the lexer mishandles hex literals, fix it")
+    assert asyncio.run(mh.recall(vague, s)) == {} and fake.states == []
+    named = event(new, "UserPromptSubmit", "s3", "hex literals are wrong in lexers/carbon.py")
+    assert "session s1" in context_of(asyncio.run(mh.recall(named, s)))
+    assert len(fake.states) == 1
+
+
+def test_v5_the_decider_judges_every_candidate_but_only_named_ones_enter(
+    store: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    project = store / "projects" / "p"
+    old = write_transcript(project / "s1.jsonl", [*lexer_request(), *starlette_request()])
+    mh.handle(event(old, "Stop", "s1"))
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_PROMPT", "first")
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_SELECT", "decider")
+    new = event(write_transcript(project / "s2.jsonl", []), "UserPromptSubmit", "s2",
+                "carbon.py fails, and a missing directory gives a 500")  # fmt: skip
+    fake = Fake(lambda i: 0.95)
+    s, _ = squire(fake)
+    context = context_of(asyncio.run(mh.recall(new, s)))
+    # judged as measured, both records in one state; the unnamed one does not enter
+    assert "R1| " in fake.states[0]["records"] and "R2| " in fake.states[0]["records"]
+    assert "carbon.py" in context and "staticfiles.py" not in context
+
+
+def test_v5_a_record_that_changed_no_file_is_judged_as_in_v4_1(
+    store: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The labels cannot call a record that changed nothing related (an investigation, a
+    # question, a plan), so the gate leaves such records as v4.1 had them (review of v5, H1).
+    project = store / "projects" / "p"
+    question = [prompt("why does checkout return 401 after login?"),
+                say("The session cookie is dropped by the proxy; nothing changed.")]  # fmt: skip
+    mh.handle(event(write_transcript(project / "s1.jsonl", question), "Stop", "s1"))
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_PROMPT", "first")
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_SELECT", "decider")
+    new = event(write_transcript(project / "s2.jsonl", []), "UserPromptSubmit", "s2",
+                "getting 401 on checkout again, check it")  # fmt: skip
+    fake = Fake(lambda i: 0.9)
+    s, _ = squire(fake)
+    assert "session s1" in context_of(asyncio.run(mh.recall(new, s)))
+
+
+def test_v5_the_gate_is_only_at_a_first_prompt_and_only_with_a_decider(
+    store: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # bm25 at every prompt (the store fixture's mode) is not gated (review of v5, M3)
+    project = store / "projects" / "p"
+    mh.handle(event(write_transcript(project / "s1.jsonl", lexer_request()), "Stop", "s1"))
+    new = write_transcript(project / "s2.jsonl", [])
+    vague = event(new, "UserPromptSubmit", "s2", "the lexer mishandles hex literals")
+    assert "session s1" in context_of(mh.handle(vague))
+    # a decider at every prompt: measured neither way, so not gated (M4)
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_SELECT", "decider")
+    s, _ = squire(Fake(lambda i: 0.99))
+    assert "session s1" in context_of(asyncio.run(mh.recall({**vague, "session_id": "s3"}, s)))
+
+
+def test_v5_the_gate_can_be_turned_off_to_run_v4_1(
+    store: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    project = store / "projects" / "p"
+    mh.handle(event(write_transcript(project / "s1.jsonl", lexer_request()), "Stop", "s1"))
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_PROMPT", "first")
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_SELECT", "decider")
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_PROMPT_NAMED", "off")
+    new = event(write_transcript(project / "s2.jsonl", []), "UserPromptSubmit", "s2",
+                "the lexer mishandles hex literals")  # fmt: skip
+    s, _ = squire(Fake(lambda i: 0.99))
+    assert "session s1" in context_of(asyncio.run(mh.recall(new, s)))
+
+
+@pytest.mark.parametrize(
+    ("prompt_text", "changed", "expected"),
+    [
+        ("fix pygments/lexers/carbon.py please", "pygments/lexers/carbon.py", True),
+        ("the Carbon lexer is wrong", "pygments/lexers/carbon.py", True),  # stem, any case
+        ("`Carbon.PY` breaks", "pygments\\lexers\\carbon.py", True),  # backslashes, quotes
+        ("fix it", "pygments/lexers/carbon.py", False),
+        ("the io is slow", "src/io.py", False),  # a stem under 4 characters is not a name
+        ("see io.py", "src/io.py", True),  # the base name always is
+        ("carbonate the lexer", "pygments/lexers/carbon.py", False),  # whole words only
+        # review of v5, H2-H3: a sentence's full stop, text in other scripts glued to the name
+        ("updated the props in WaterShader.tsx. what next", "src/WaterShader.tsx", True),
+        ("the bug is in carbon.", "pygments/lexers/carbon.py", True),
+        ("请修复carbon.py中的错误", "pygments/lexers/carbon.py", True),
+        ("carbon.pyのバグを直して", "pygments/lexers/carbon.py", True),
+        ("carbon.py를 고쳐줘", "pygments/lexers/carbon.py", True),
+        ("die carbon.py-Datei", "pygments/lexers/carbon.py", True),
+        ("fix café.py", "src/café.py", True),  # NFD on disk, NFC typed
+        ("see mycarbon.py", "pygments/lexers/carbon.py", False),
+        ("carbon_lexer is wrong", "pygments/lexers/carbon.py", False),
+    ],
+)
+def test_v5_named_in(prompt_text: str, changed: str, expected: bool) -> None:
+    record = ep.Episode(session="s", index=1, request="r", report="", changed=(changed,),
+                        at=1.0)  # fmt: skip
+    assert mh.named_in(prompt_text, record) is expected
 
 
 def test_save_keeps_an_index_of_changed_files_and_a_missing_one_is_rebuilt(tmp_path: Path) -> None:

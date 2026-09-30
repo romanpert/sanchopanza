@@ -17,7 +17,10 @@ fire in `claude -p` as in an interactive session. What a record holds is `contex
   so, recall at the prompt. By default that is only at the session's first live request (its
   start, or after a compaction took every earlier request out) and only with a decider: BM25
   proposes `MEMORY_K`, the decider says which are about the same code as the request
-  (`points.memory.related_questions`), and records at `MEMORY_KEEP_AT` or above enter.
+  (`points.memory.related_questions`), and records at `MEMORY_KEEP_AT` or above enter. v5:
+  there, a record that changed files enters only if the prompt names one of them
+  (`named_in`), and the decider is not asked when no candidate can enter; a record that
+  changed nothing (a question, an investigation) is judged as before.
 
 Candidates are always the project's records **not in the live context** (`episodes.Split.live`)
 and not already given to this session since its last compaction.
@@ -43,6 +46,7 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
     MEMORY_TOUCH             on (default) | off;  MEMORY_TOUCH_K  1
     MEMORY_K, MEMORY_BM25_KEEP   5 and 2
     MEMORY_KEEP_AT           the decider's probability a record needs at a prompt (default 0.8)
+    MEMORY_PROMPT_NAMED      on (default) | off: the v5 gate at a first prompt; off is v4.1
     MEMORY_CHARS             cap of the injected text (default 6000)
     MEMORY_DECIDER_SECONDS   the decider's time (default 15); past it, nothing is injected
     MEMORY_STORE             the store's root; MEMORY_STORE_LOG a JSONL file, one line per event
@@ -304,6 +308,43 @@ def pool_of(
     return [e for e in stored if offered(e)]
 
 
+NAMED_STEM = 4
+# A name is whole when no ASCII name character touches it: a sentence's full stop may follow
+# it, and so may text in a script without spaces (`carbon.pyのバグ`, `请修复carbon.py中`).
+_BEFORE = r"(?<![a-z0-9_.-])"
+_AFTER = r"(?![a-z0-9_-])"
+
+
+def _fold(text: str) -> str:
+    import unicodedata
+
+    return unicodedata.normalize("NFC", text).casefold()
+
+
+def named_in(prompt: str, record: ep.Episode, folded: str | None = None) -> bool:
+    """The prompt names a file the record changed: its base name (`carbon.py`), or its stem
+    (`carbon`) when that is at least NAMED_STEM characters, whole, in any case. `folded` is the
+    prompt already through `_fold`, to fold it once for several records."""
+    text = _fold(prompt) if folded is None else folded
+    for path in record.changed:
+        base = _fold(path.replace("\\", "/").rsplit("/", 1)[-1])
+        stem = base.rsplit(".", 1)[0]
+        names = [base, stem] if len(stem) >= NAMED_STEM and stem != base else [base]
+        if any(re.search(_BEFORE + re.escape(n) + _AFTER, text) for n in names if n):
+            return True
+    return False
+
+
+def gate_named() -> bool:
+    return str(_env.get("MEMORY_PROMPT_NAMED", "") or "on").strip().lower() not in ("off", "0")
+
+
+def gate_passes(prompt: str, record: ep.Episode, folded: str | None = None) -> bool:
+    """v5 at a first prompt: a record that changed files enters only if the prompt names one;
+    a record that changed nothing (a question, an investigation) is judged as in v4.1."""
+    return not record.changed or named_in(prompt, record, folded)
+
+
 def candidates(prompt: str, pool: Sequence[ep.Episode], k: int = K) -> list[ep.Episode]:
     if not pool or k <= 0:
         return []
@@ -414,10 +455,19 @@ async def recall(event: Mapping[str, Any], squire: Squire | None = None) -> dict
     if not found:
         _log({**row, "reason": "no candidate"})
         return {}
+    gated = row["mode"] == "decider" and row["prompt_mode"] == "first" and gate_named()
+    folded = _fold(prompt)
+    if gated and not any(gate_passes(prompt, e, folded) for e in found):
+        _log({**row, "reason": "the prompt names no file a candidate changed"})
+        return {}
     picked = await _choose(squire, prompt, found, row)
     if picked is None:
         return {}
     chosen, row = picked
+    if gated:  # judged together, as measured; the gate only drops what it can name or not
+        dropped = [e.key for e in chosen if not gate_passes(prompt, e, folded)]
+        chosen = [e for e in chosen if e.key not in dropped]
+        row = {**row, "gate_dropped": dropped}
     text, shown = render(chosen, _int("MEMORY_CHARS", CHARS))
     _log({**row, "shown": shown, "chars": len(text)})
     if not text:
