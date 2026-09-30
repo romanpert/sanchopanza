@@ -1204,8 +1204,8 @@
   "bugs": [
    "iterative__dvc.1d6ea681.pr_9277",
    "iterative__dvc.1d6ea681.pr_10303",
-   "iterative__dvc.1d6ea681.pr_9354",
-   "iterative__dvc.1d6ea681.pr_9298",
+   "iterative__dvc.1d6ea681.pr_9261",
+   "iterative__dvc.1d6ea681.pr_9825",
    "iterative__dvc.1d6ea681.pr_10240"
   ],
   "history": [
@@ -1217,13 +1217,21 @@
     "iterative__dvc.1d6ea681.pr_10240 ok"
    ],
    [
-    "replace pr_9277",
     "replace pr_9354",
-    "replace pr_9298",
-    "replace pr_10240"
+    "replace pr_9298"
+   ],
+   [
+    "iterative__dvc.1d6ea681.pr_9277 ok",
+    "iterative__dvc.1d6ea681.pr_10303 INVALID",
+    "iterative__dvc.1d6ea681.pr_9261 INVALID",
+    "iterative__dvc.1d6ea681.pr_9825 ok",
+    "iterative__dvc.1d6ea681.pr_10240 ok"
+   ],
+   [
+    "replace pr_9825"
    ]
   ],
-  "seconds": 203,
+  "seconds": 674,
   "records": [
    {
     "instance_id": "iterative__dvc.1d6ea681.pr_9277",
@@ -1242,20 +1250,20 @@
     "p2p_star": 71
    },
    {
-    "instance_id": "iterative__dvc.1d6ea681.pr_9354",
+    "instance_id": "iterative__dvc.1d6ea681.pr_9261",
     "valid": false,
-    "f2p_failing_with_bugs": 1,
+    "f2p_failing_with_bugs": 2,
     "f2p_passing_when_fixed": 0,
-    "f2p": 1,
-    "p2p_star": 2
+    "f2p": 2,
+    "p2p_star": 0
    },
    {
-    "instance_id": "iterative__dvc.1d6ea681.pr_9298",
+    "instance_id": "iterative__dvc.1d6ea681.pr_9825",
     "valid": true,
-    "f2p_failing_with_bugs": 4,
-    "f2p_passing_when_fixed": 4,
-    "f2p": 4,
-    "p2p_star": 69
+    "f2p_failing_with_bugs": 18,
+    "f2p_passing_when_fixed": 18,
+    "f2p": 18,
+    "p2p_star": 5
    },
    {
     "instance_id": "iterative__dvc.1d6ea681.pr_10240",
