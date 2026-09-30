@@ -250,8 +250,8 @@ with `triage_many` over passages of at most 900 characters, the others in view, 
 shipped cuts, both arms rerun through our own evaluation harness on a pinned corpus: **9/9**
 correct in both arms, input tokens **-79.5 % [-86.5 %, -72.9 %]**, 81 of 173 documents
 withheld whole and 2,042 passages cut from the rest, and no passage holding an answer pin
-withheld in any of the ten tasks, the two compound ones included **[M]**. Pre-registered at
->= 9 of 10 and >= 50 % fewer tokens; the tenth task was stopped by the 3 USD cap, and it
+withheld in any of the ten tasks, the two compound ones included **[M]**. Pre-registered
+at >= 9 of 10 and >= 50 % fewer tokens; the tenth task was stopped by the 3 USD cap, and it
 cannot overturn either bar (`docs/results/2026-09-28-fixed-pages/`). Both failure shapes of
 the first run, a compound purpose and a long document judged by its head, are addressed by
 the question and the unit, not by a threshold.

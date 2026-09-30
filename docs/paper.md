@@ -42,8 +42,8 @@ complexity (17/20 against 8/20). Against a frontier model (Claude Opus 5) asked 
 questions it agrees with the labels 202 times at a plain cut against 204, at 131x lower cost
 per judgment.
 
-The central result is **separation by confidence**: 131 of 132 decisions at confidence
->= 0.75 were right against 11 of 24 below; 13 of the evaluator's 14 errors carried confidence
+The central result is **separation by confidence**: 131 of 132 decisions at
+confidence >= 0.75 were right against 11 of 24 below; 13 of the evaluator's 14 errors carried confidence
 below 0.75, whereas 9 of the LLM's 17 errors carried self-reported confidence >= 0.75.
 Calibration differs by primitive: Truth answers are under-confident (ECE 0.14 on 182
 decisions), Choice answers are well calibrated (ECE 0.035 on 392), and the Score primitive is
