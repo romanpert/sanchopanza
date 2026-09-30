@@ -193,6 +193,28 @@ FIXED = {  # Phase 3c: the same design, the hook with Phase 3b's three faults fi
     "report": "e2e-mcp-fixed.json",
 }
 JEV_CEILING_USD = 2.00  # Phase 3c: the hook now sees snapshots of up to ~2,700 elements
+NEW = {  # Phase 3d: new tasks, so the hook is not measured on the pages it was fixed on
+    "prereg": RESULTS / "prereg-e2e-mcp-new.md",
+    "sessions": RESULTS / "e2e-mcp-new-sessions.jsonl",
+    "report": "e2e-mcp-new.json",
+}
+NEW_TASKS = [
+    ("N1", "https://github.com/pallets/flask",
+     "Which license is this repository under, and which language makes up the largest share "
+     "of its code?", [["bsd"], ["python"]]),
+    ("N2", "https://en.wikipedia.org/wiki/Eiffel_Tower",
+     "What height to the tip, in metres, does the infobox give?", ["330"]),
+    ("N3", "https://docs.python.org/3/library/json.html",
+     "According to this page, what is the default value of the indent parameter of "
+     "json.dumps()?", [["none"]]),
+    ("N4", "https://quotes.toscrape.com/",
+     "Who is the author of the first quote on the page?", ["einstein"]),
+    ("N5", "https://books.toscrape.com/catalogue/category/books/poetry_23/index.html",
+     "What is the title of the first book listed in this category?", ["a light in the attic"]),
+    ("N6", "https://en.wikipedia.org/wiki/Guido_van_Rossum",
+     "According to the infobox, in which year and in which city was he born?",
+     ["1956", ["hague"]]),
+]  # fmt: skip
 
 
 def main() -> int:
@@ -203,10 +225,14 @@ def main() -> int:
     ap.add_argument("--env-file", default=None)
     ap.add_argument("--pilot", action="store_true", help="M1 and M2 once per arm (run 0), excluded")
     ap.add_argument("--fixed", action="store_true", help="Phase 3c (prereg-e2e-mcp-fixed.md)")
+    ap.add_argument("--new", action="store_true", help="Phase 3d (prereg-e2e-mcp-new.md)")
     args = ap.parse_args()
-    report_name = "e2e-mcp.json"
+    report_name, tasks = "e2e-mcp.json", TASKS
     if args.fixed:
         PREREG, SESSIONS, report_name = FIXED["prereg"], FIXED["sessions"], FIXED["report"]
+    if args.new:
+        PREREG, SESSIONS, report_name = NEW["prereg"], NEW["sessions"], NEW["report"]
+        tasks = NEW_TASKS
     if args.record_hash:
         registered = PREREG.with_suffix(".sha256")
         if registered.exists() and registered.read_text().strip() != base.digest(PREREG):
@@ -223,7 +249,7 @@ def main() -> int:
             raise SystemExit("LEAN ranks with Jev: no TYPESAFE_API_KEY, nothing spent")
         seen = {(r["task"], r["run"], r["arm"]) for r in rows}
         runs = [0] if args.pilot else list(range(1, RUNS + 1))
-        for task in TASKS[:2] if args.pilot else TASKS:
+        for task in tasks[:2] if args.pilot else tasks:
             for run in runs:
                 for arm in ("PLAIN", "LEAN"):
                     if (task[0], run, arm) in seen:
@@ -233,7 +259,7 @@ def main() -> int:
                         print(f"ceiling: {spent:.2f} USD spent", file=sys.stderr)
                         return 1
                     jev = sum(r["jev_usd"] for r in rows)
-                    if args.fixed and jev + JEV_SESSION_MAX_USD > JEV_CEILING_USD:
+                    if (args.fixed or args.new) and jev + JEV_SESSION_MAX_USD > JEV_CEILING_USD:
                         print(f"Jev ceiling: {jev:.4f} USD spent", file=sys.stderr)
                         return 1
                     row = one_session(task, run, arm, key)
