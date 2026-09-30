@@ -87,6 +87,33 @@ written before the counted sessions: the per-session cap (0.25 to 0.60 USD, size
 and the phase ceiling (8 to 12 USD, sized on the pilot); the pilot (FULL 6/9, TOP 5/9) is outside
 every count. 8.61 USD spent in all.
 
+## Phase 3c: registered, 8.5 % cheaper but not yet below zero (`prereg-e2e-mcp-fixed.md`)
+
+Phase 3b's design again, same day, with the three faults fixed (a17dc5b). The hook now acts where
+it could not: 14 cuts, ten of them `browser_snapshot` results Claude Code had replaced with its
+notice (72,192 characters to 11,842 on GitHub; 859,973 to 13,464 on Mount Everest).
+
+| Arm | Success | List USD / session | Turns | Cache write / session |
+|---|---|---|---|---|
+| PLAIN | 24/24 | 0.1362 | 6.17 | 20,169 |
+| LEAN | 24/24 | 0.1209 (+0.0037 Jev) | 6.25 | 16,183 |
+
+LEAN minus PLAIN per task: **-0.0116 USD a session [-0.0466, +0.0154]**; by task M1 -0.090 (39 %
+cheaper, all four runs), M3 -0.025, M5 -0.004, M2 +0.008, M6 +0.009, M4 +0.034. The rule
+(interval below zero) **fails**; no answer was lost. 6.17 USD at list price, 0.09 of Jev.
+
+What the transcripts of the tasks that cost more show:
+
+- **The hook cut what the agent had already narrowed.** M4 run 1 `Read` the snapshot file with
+  `limit: 150`; the hook halved that chunk, and the agent grepped twice, read the archive twice
+  and fell back to `evaluate` (0.167 USD against PLAIN's 0.095). M4 run 2 asked for a snapshot of
+  one element (`target: e166`, the infobox) and the hook cut that too.
+- **A positional answer is not a next action.** M6 asks for the first book listed; the cut kept
+  the elements to act on and dropped the first title, and in run 1 the agent then read the whole
+  33,541-character archive.
+- **On pages past Claude Code's limit that the agent greps (M2, M4), the cut is neutral**: without
+  the hook the saved file plus one `Grep` is already cheap.
+
 ## Phase 3b: registered, no saving, and three faults found (`prereg-e2e-mcp.md`, `e2e-mcp.json`)
 
 The same question with what most people install: Playwright MCP 0.0.83, `Read`/`Grep`/`Glob`,

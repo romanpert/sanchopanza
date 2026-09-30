@@ -1,0 +1,39 @@
+{
+ "sessions": 48,
+ "PLAIN": {
+  "runs": 24,
+  "success": 24,
+  "list_usd_mean": 0.1362,
+  "jev_usd_mean": 0.0,
+  "turns_mean": 6.17,
+  "cache_read_mean": 238408,
+  "cache_write_mean": 20169,
+  "snapshots_pruned": 0
+ },
+ "LEAN": {
+  "runs": 24,
+  "success": 24,
+  "list_usd_mean": 0.1209,
+  "jev_usd_mean": 0.00369,
+  "turns_mean": 6.25,
+  "cache_read_mean": 238506,
+  "cache_write_mean": 16183,
+  "snapshots_pruned": 14
+ },
+ "LEAN_minus_PLAIN_usd_per_task": {
+  "value": -0.0116,
+  "bootstrap95": [
+   -0.0466,
+   0.0154
+  ],
+  "by_task": {
+   "M1": -0.0903,
+   "M2": 0.0083,
+   "M3": -0.0252,
+   "M4": 0.0336,
+   "M5": -0.0044,
+   "M6": 0.0085
+  }
+ },
+ "pilot": []
+}
