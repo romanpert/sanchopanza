@@ -74,6 +74,26 @@ written before the counted sessions: the per-session cap (0.25 to 0.60 USD, size
 and the phase ceiling (8 to 12 USD, sized on the pilot); the pilot (FULL 6/9, TOP 5/9) is outside
 every count. 8.61 USD spent in all.
 
+## Phase 3e: registered, passed, with a caveat: playwright-cli (`prereg-e2e-cli-new.md`)
+
+The fixed hook with `playwright-cli` (Phase 3's setup) on Phase 3d's six new tasks, four runs per
+task and arm.
+
+| Arm | Registered success | List USD / session | Turns | Snapshots cut |
+|---|---|---|---|---|
+| PLAIN | 20/24 | 0.1097 | 4.25 | |
+| LEAN | 19/24 | 0.0999 (+0.0004 Jev) | 4.21 | 8 |
+
+LEAN minus PLAIN per task: **-0.0094 USD a session [-0.0184, -0.0036]**; by task N1 -0.031, N5
+-0.009, N2 -0.006, N4 -0.005, N3 -0.003, N6 -0.002. The rule (success at least PLAIN's minus one,
+interval below zero) **is met**. Every registered failure in both arms is Phase 3's artefact: the
+agent answered, closed the browser as asked, and ended on "Done - browser closed."; the grader
+reads the final message only. **The caveat:** the hook cut only on N4 and N5 (quotes.toscrape
+8,732 characters to about 3,350; the Poetry category about 29,000 to 5,900), yet LEAN was also
+cheaper on tasks it never touched (N1 by 0.031, where one PLAIN run cost 0.231), so part of the
+8.6 % is noise between sessions; what the hook itself did is on N4 and N5. 5.03 USD at list price,
+0.01 of Jev.
+
 ## Phase 3d: registered, passed: 12.9 % cheaper on six new tasks (`prereg-e2e-mcp-new.md`)
 
 The hook with Phase 3c's two further faults fixed (0e8f5fd: what the agent narrowed passes, and

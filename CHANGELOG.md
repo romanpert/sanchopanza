@@ -58,7 +58,8 @@ do not favour this package.
     any hook runs (the hook now reads the saved result from its own session's `tool-results`
     folder), the agent's own searches, narrowed reads and targeted snapshots were cut, the goal
     lost the user's question (`browse_goal`), and recovery read the whole archive instead of
-    grepping it.
+    grepping it. With `playwright-cli` on the same new tasks: -0.0094 USD a session [-0.0184,
+    -0.0036], rule met, though it cut on two of six tasks and part of that is session noise.
   - **An unnamed element is described by its classes and the element holding it**
     (`elements_from_html`, default; `describe_unnamed=False` turns it off): an SVG with class
     `add-wishlist-new__icon` reads "looks like: add wishlist". Registered against a control that

@@ -34,7 +34,8 @@ the goal is `browse_goal`, which keeps the question at the end of a request. Pha
 two more (a `Read` with a limit and a targeted snapshot were cut; recovery read the whole
 archive), fixed too. **Phase 3d, registered, six new tasks: 12.9 % cheaper with Playwright
 MCP, -0.0144 USD a session [-0.0270, -0.0025], no answer lost.** Recommended with Playwright
-MCP; with playwright-cli, whose snapshots are moderate, it was not measured again.
+MCP. With playwright-cli (Phase 3e, same tasks): -0.0094 USD a session [-0.0184, -0.0036],
+rule met, though it cut on two of the six tasks and part of that saving is noise.
 """
 
 from __future__ import annotations
