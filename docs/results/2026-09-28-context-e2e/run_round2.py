@@ -35,6 +35,10 @@ import run_e2e as r1  # noqa: E402
 import tasks as gen  # noqa: E402
 import transcripts  # noqa: E402
 
+# `sanchopanza install` as it was when this ran: the defaults grew on 2026-09-30 (guard,
+# context budget, find_in_repo, skill), so a rerun opts out of them to measure the same arms.
+PRE_0930 = ["--no-guard", "--no-find", "--no-skill", "--context-budget", "0"]
+
 ROOT = r1.ROOT
 TASKS = [f"t{i + 1:02d}-{gen.DOMAINS[i][0]}" for i in range(12)]  # R3: t07-t12 added
 ROWS = HERE / "runs-r2.jsonl"
@@ -68,7 +72,8 @@ def settings_for(ev: Path, keyfile: Path) -> Path:
     if any(" " in p for p in parts):
         raise SystemExit("a path has a space; the hook command would split")
     subprocess.run(
-        [r1.SANCHO, "install", "--autopilot", "--plugin-dir", str(PLUGIN), "--path", str(path),
+        [r1.SANCHO, "install", *PRE_0930, "--autopilot", "--plugin-dir", str(PLUGIN),
+         "--path", str(path),
          "--provider", "jev", "--command-line", hook, "--write"],
         check=True, capture_output=True, text=True,
     )  # fmt: skip

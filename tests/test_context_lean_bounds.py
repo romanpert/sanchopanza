@@ -94,7 +94,8 @@ def test_a_plain_install_does_not_rewrite_an_mcp_json_without_our_entry(tmp_path
     mcp_file.parent.mkdir(parents=True)
     original = '{"mcpServers":{"other":{"command":"x"}}}'
     mcp_file.write_text(original, encoding="utf-8")
-    args = ["install", "--autopilot", "--path", str(settings), "--plugin-dir", str(plugin)]
+    args = ["install", "--autopilot", "--no-find", "--path", str(settings), "--plugin-dir",
+            str(plugin)]  # fmt: skip
     assert cli.main([*args, "--write"]) == 0
     assert mcp_file.read_text(encoding="utf-8") == original
 

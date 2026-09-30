@@ -28,6 +28,10 @@ import sys
 import time
 from pathlib import Path
 
+# `sanchopanza install` as it was when this ran: the defaults grew on 2026-09-30 (guard,
+# context budget, find_in_repo, skill), so a rerun opts out of them to measure the same arms.
+PRE_0930 = ["--no-guard", "--no-find", "--no-skill", "--context-budget", "0"]
+
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
 VENV = REPO / ".venv" / "Scripts"
@@ -142,7 +146,7 @@ def install(run: Path, arm: str) -> str:
         return ""
     out = subprocess.run(
         [
-            SANCHO, "install", "--path", str(settings), "--provider", "jev",
+            SANCHO, "install", *PRE_0930, "--path", str(settings), "--provider", "jev",
             "--scan-content", "--content-tools", "Read,WebFetch,WebSearch", "--check-done",
             "--command-line", HOOKED[arm], "--write",
         ],

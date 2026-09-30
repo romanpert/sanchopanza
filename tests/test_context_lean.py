@@ -349,7 +349,10 @@ def test_archive_mcp_is_a_subcommand():
 def _install(tmp_path: Path, *flags: str) -> dict:
     settings = tmp_path / "proj" / ".claude" / "settings.json"
     plugin = tmp_path / "plugin"
-    args = ["install", *flags, "--path", str(settings), "--plugin-dir", str(plugin), "--write"]
+    # --no-find: these tests are about the archive server alone (find is on by default since
+    # 2026-09-30).
+    args = ["install", *flags, "--no-find", "--path", str(settings), "--plugin-dir", str(plugin),
+            "--write"]  # fmt: skip
     assert cli.main(args) == 0
     return json.loads(settings.read_text(encoding="utf-8"))
 

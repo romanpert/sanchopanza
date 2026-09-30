@@ -23,6 +23,10 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+# `sanchopanza install` as it was when this ran: the defaults grew on 2026-09-30 (guard,
+# context budget, find_in_repo, skill), so a rerun opts out of them to measure the same arms.
+PRE_0930 = ["--no-guard", "--no-find", "--no-skill", "--context-budget", "0"]
+
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
 INDAGIS = Path(r"C:\Users\roman\Desktop\proyectos\apps\indagis")
@@ -86,7 +90,8 @@ def settings(evidence: Path, keyfile: Path) -> Path:
     """`sanchopanza install --candor` settings, each hook run through hook_key.py."""
     raw = ROOT / "install-settings.json"
     if not raw.exists():
-        subprocess.run([str(SANCHO), "install", "--candor", "--path", str(raw), "--write"],
+        subprocess.run([str(SANCHO), "install", *PRE_0930, "--candor", "--path", str(raw),
+                        "--write"],
                        check=True, capture_output=True)  # fmt: skip
     data = json.loads(raw.read_text(encoding="utf-8"))
     prefix = " ".join(p.as_posix() for p in (PYTHON, HERE / "hook_key.py", evidence, keyfile))

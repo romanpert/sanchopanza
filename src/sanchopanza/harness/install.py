@@ -92,6 +92,7 @@ from typing import Any
 
 from .. import _env
 from .generic import HarnessConfig
+from .install_defaults import FIND_SERVER, find_server_entry, merge_budget
 
 PLUGIN = "sanchopanza-compact"
 MARKETPLACE = "sanchopanza-local"
@@ -419,20 +420,25 @@ def _merge_candor(
 
 
 def _merge_approval(
-    merged: dict[str, Any], lean: bool
+    merged: dict[str, Any], lean: bool, find: bool = False
 ) -> tuple[dict[str, Any], list[str], list[str]]:
-    """Approve the archive server of `.mcp.json` by name (`--lean`), or withdraw it."""
-    approved = merged.get(APPROVED, [])
-    if not isinstance(approved, list):
-        return merged, [], []  # someone put something else there; do not fight it
-    line = f"{APPROVED}: {ARCHIVE_SERVER}"
-    if lean and ARCHIVE_SERVER not in approved:
-        return {**merged, APPROVED: [*approved, ARCHIVE_SERVER]}, [line], []
-    if not lean and ARCHIVE_SERVER in approved:
-        rest = [name for name in approved if name != ARCHIVE_SERVER]
-        out = {**merged, APPROVED: rest} if rest else _without_key(merged, APPROVED)
-        return out, [], [line]
-    return merged, [], []
+    """Approve our servers of `.mcp.json` by name (the archive under `--lean`, find by default),
+    or withdraw them."""
+    added: list[str] = []
+    removed: list[str] = []
+    for server, on in ((ARCHIVE_SERVER, lean), (FIND_SERVER, find)):
+        approved = merged.get(APPROVED, [])
+        if not isinstance(approved, list):
+            return merged, added, removed  # someone put something else there; do not fight it
+        line = f"{APPROVED}: {server}"
+        if on and server not in approved:
+            merged = {**merged, APPROVED: [*approved, server]}
+            added.append(line)
+        elif not on and server in approved:
+            rest = [name for name in approved if name != server]
+            merged = {**merged, APPROVED: rest} if rest else _without_key(merged, APPROVED)
+            removed.append(line)
+    return merged, added, removed
 
 
 def mcp_json_path(settings_path: Path, cwd: Path | None = None) -> Path:
@@ -465,27 +471,34 @@ def _read_mcp_json(path: Path) -> dict[str, Any]:
     return current
 
 
-def mcp_json_changes(path: Path, lean: bool, command: str = COMMAND) -> dict[str, Any] | None:
-    """The new `.mcp.json` content, or None when nothing changes. Only our entry is touched.
+def mcp_json_changes(
+    path: Path, lean: bool, command: str = COMMAND, find: bool = False
+) -> dict[str, Any] | None:
+    """The new `.mcp.json` content, or None when nothing changes. Only our entries are touched.
 
-    Under `lean` a file that is not a JSON object is refused rather than overwritten. Without
-    it the file is only looked at to take our entry out: one that is missing, unreadable or
-    malformed holds nothing of ours, so it is left alone and never fails the install."""
-    if not lean:
+    When a server of ours is wanted, a file that is not a JSON object is refused rather than
+    overwritten. Otherwise the file is only looked at to take our entries out: one that is
+    missing, unreadable or malformed holds nothing of ours, so it is left alone and never fails
+    the install."""
+    find_entry = find_server_entry(portable_command(command)) if find else None
+    wanted = {ARCHIVE_SERVER: archive_server_entry(command) if lean else None,
+              FIND_SERVER: find_entry}  # fmt: skip
+    if not lean and not find:
         try:
             current = _read_mcp_json(path)
         except (ValueError, OSError):
             return None
-        servers = current.get("mcpServers", {})
-        if ARCHIVE_SERVER not in servers:
-            return None
-        return {**current, "mcpServers": _without_key(servers, ARCHIVE_SERVER)}
-    current = _read_mcp_json(path)
-    servers = current.get("mcpServers", {})
-    entry = archive_server_entry(command)
-    if servers.get(ARCHIVE_SERVER) != entry:
-        return {**current, "mcpServers": {**servers, ARCHIVE_SERVER: entry}}
-    return None
+    else:
+        current = _read_mcp_json(path)
+    servers = dict(current.get("mcpServers", {}))
+    for name, entry in wanted.items():
+        if entry is None:
+            servers.pop(name, None)
+        else:
+            servers[name] = entry
+    if servers == current.get("mcpServers", {}):
+        return None
+    return {**current, "mcpServers": servers}
 
 
 def write_mcp_json(path: Path, content: Mapping[str, Any]) -> None:
@@ -585,6 +598,8 @@ def _merge(
     lean: bool = False,
     guard: bool = False,
     candor: bool = False,
+    budget: int = 0,
+    find: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
         current = {}
@@ -613,7 +628,9 @@ def _merge(
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_candor(merged, candor)
     added, removed = [*added, *plus], [*removed, *minus]
-    merged, plus, minus = _merge_approval(merged, lean)
+    merged, plus, minus = merge_budget(merged, budget)
+    added, removed = [*added, *plus], [*removed, *minus]
+    merged, plus, minus = _merge_approval(merged, lean, find)
     return merged, [*added, *plus], [*removed, *minus]
 
 
@@ -637,6 +654,8 @@ def plan(
     lean: bool = False,
     guard: bool = False,
     candor: bool = False,
+    budget: int = 0,
+    find: bool = False,
 ) -> Settings:
     current: Any = {}
     if path.exists():
@@ -663,6 +682,8 @@ def plan(
         lean=lean,
         guard=guard,
         candor=candor,
+        budget=budget,
+        find=find,
     )
     return Settings(path, merged, tuple(added), tuple(removed))
 

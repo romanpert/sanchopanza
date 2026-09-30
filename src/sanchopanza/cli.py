@@ -91,29 +91,34 @@ def _plan_mcp_json(args: argparse.Namespace, settings_path: Path) -> tuple[Path,
     from .harness.install import mcp_json_changes, mcp_json_path
 
     target = mcp_json_path(settings_path)
-    content = mcp_json_changes(target, args.lean, args.command_line)
+    try:
+        content = mcp_json_changes(target, args.lean, args.command_line, find=args.find)
+    except (ValueError, OSError) as error:
+        if args.lean:
+            raise
+        # find is on by default, not asked for: an unreadable .mcp.json is left alone and find
+        # is not registered (nor approved), rather than failing the whole install.
+        sys.stderr.write(f"{error}; find_in_repo not registered\n")
+        args.find = False
+        content = mcp_json_changes(target, args.lean, args.command_line, find=False)
     return None if content is None else (target, content)
 
 
 def _apply_mcp_json(args: argparse.Namespace, change: tuple[Path, Any] | None) -> None:
     """Writes the planned `.mcp.json` under `--write`, after the settings file was applied."""
-    from .harness.install import ARCHIVE_SERVER, write_mcp_json
+    from .harness.install import write_mcp_json
 
     if change is None:
         return
     target, content = change
     if args.write:
         write_mcp_json(target, content)
-        verb = "added to" if args.lean else "removed from"
-    else:
-        verb = "to add to" if args.lean else "to remove from"
-    why = (
-        " (Claude Code settings cannot hold MCP servers; the settings approve it by name in "
-        "enabledMcpjsonServers)"
-        if args.lean
-        else ""
+    servers = sorted(content.get("mcpServers", {}))
+    verb = "written" if args.write else "to write"
+    sys.stdout.write(
+        f"{target} {verb}, servers: {', '.join(servers) or 'none'} (Claude Code settings cannot "
+        "hold MCP servers; the settings approve ours by name in enabledMcpjsonServers)\n"
     )
-    sys.stdout.write(f"MCP server {ARCHIVE_SERVER} {verb} {target}{why}\n")
 
 
 def _finish_mcp_json(args: argparse.Namespace, change: tuple[Path, Any] | None) -> int:
@@ -141,6 +146,7 @@ def _candor_hook(args: argparse.Namespace) -> int:
 def _install(args: argparse.Namespace) -> int:
     from .harness.generic import HarnessConfig
     from .harness.install import apply, default_path, default_plugin_root, plan
+    from .harness.install_defaults import DEFAULT_BUDGET, apply_skill, skill_change
 
     defaults = HarnessConfig()
     config = HarnessConfig(
@@ -160,6 +166,7 @@ def _install(args: argparse.Namespace) -> int:
     if args.compact or args.autopilot:
         root = Path(args.plugin_dir) if args.plugin_dir else default_plugin_root()
     try:
+        mcp_change = _plan_mcp_json(args, path)  # first: it may turn find off
         settings = plan(
             path,
             config,
@@ -170,15 +177,22 @@ def _install(args: argparse.Namespace) -> int:
             lean=args.lean,
             guard=args.guard,
             candor=args.candor,
+            budget=DEFAULT_BUDGET if args.context_budget is None else args.context_budget,
+            find=args.find,
         )
-        mcp_change = _plan_mcp_json(args, path)
         files = _install_plugin(args, root)
+        skill = skill_change(path, args.skill)
     except (ValueError, OSError) as error:
         sys.stderr.write(f"{error}\n")
         return 2
     for name in files:
         verb = "written" if args.write else "to write"
         sys.stdout.write(f"plugin file {verb}: {root / name}\n")
+    if skill is not None:
+        if args.write:
+            apply_skill(skill)
+        what = "skill written" if skill[1] is not None else "skill removed"
+        sys.stdout.write(f"{what if args.write else what.replace(' ', ' to be ', 1)}: {skill[0]}\n")
     if not settings.changed:
         sys.stdout.write(f"{path}: already wired, nothing to do\n")
         return _finish_mcp_json(args, mcp_change)
@@ -463,6 +477,12 @@ def _repoint(messages: list[dict[str, Any]], staging: Path, archive: Path) -> li
     return json.loads(json.dumps(messages).replace(json.dumps(old)[1:-1], json.dumps(new)[1:-1]))
 
 
+def _find_mcp(_args: argparse.Namespace) -> int:
+    from .harness.mcp import main as mcp_main
+
+    return mcp_main(["--tools", "find"])
+
+
 def _archive_mcp(args: argparse.Namespace) -> int:
     from . import _env
     from .context.archive import root_for
@@ -586,10 +606,31 @@ def main(argv: list[str] | None = None) -> int:
     )
     install.add_argument(
         "--guard",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
+        default=True,
         help="keep Claude Code's own compaction summary and attach after it what summaries "
         "drop: one-shot command output, the files changed and your requests verbatim "
-        "(classic hooks, no model)",
+        "(classic hooks, no model; on by default, --no-guard to leave it out)",
+    )
+    install.add_argument(
+        "--context-budget",
+        type=int,
+        default=None,
+        help="compact the conversation when it reaches this many tokens (default 160000; 0 "
+        "leaves the compaction where Claude Code puts it). Sets CLAUDE_CODE_AUTO_COMPACT_WINDOW "
+        "unless you set it yourself",
+    )
+    install.add_argument(
+        "--find",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="register the find_in_repo MCP server in the project's .mcp.json (on by default)",
+    )
+    install.add_argument(
+        "--skill",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="copy the sanchopanza-code skill (when to use each part) beside the settings",
     )
     install.add_argument(
         "--candor",
@@ -678,6 +719,12 @@ def main(argv: list[str] | None = None) -> int:
         help="archive root (default SANCHOPANZA_ARCHIVE, else ./.sanchopanza/archive)",
     )
     archive_mcp.set_defaults(func=_archive_mcp)
+
+    find_mcp = sub.add_parser(
+        "find-mcp",
+        help="MCP server (stdio) with one tool, find_in_repo, over the current directory",
+    )
+    find_mcp.set_defaults(func=_find_mcp)
 
     dag = sub.add_parser("dag", help="clean DAG and waves from probabilistic pairs")
     dag.add_argument("plan")

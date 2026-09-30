@@ -29,6 +29,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+# `sanchopanza install` as it was when this ran: the defaults grew on 2026-09-30 (guard,
+# context budget, find_in_repo, skill), so a rerun opts out of them to measure the same arms.
+PRE_0930 = ["--no-guard", "--no-find", "--no-skill", "--context-budget", "0"]
+
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
 E2E = HERE.parent / "2026-09-28-context-e2e"
@@ -133,7 +137,7 @@ def _function_hook_env(arm: str, ev: Path) -> dict[str, str]:
 def _install(ev: Path, flags: list[str], hook: str) -> tuple[Path, dict[str, Any], str]:
     """Run `sanchopanza install ... --write` into the run's evidence folder."""
     path = ev / "settings.json"
-    cmd = [SANCHO, "install", *flags, "--plugin-dir", str(ev / "install-plugin"),
+    cmd = [SANCHO, "install", *PRE_0930, *flags, "--plugin-dir", str(ev / "install-plugin"),
            "--path", str(path), "--command-line", hook, "--write"]  # fmt: skip
     proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", cwd=ev,
                           env={k: v for k, v in os.environ.items() if not k.startswith(DROP)})  # fmt: skip
