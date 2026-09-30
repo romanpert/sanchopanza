@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import functools
+import importlib.util
 import math
 import os
 import time
@@ -166,21 +167,31 @@ class JevDecider:
         key = api_key or os.environ.get("TYPESAFE_API_KEY", "")
         if not key:
             raise DeciderUnavailable("TYPESAFE_API_KEY is not set")
-        try:
-            import httpx
-        except ImportError as error:  # pragma: no cover - exercised only without the extra
-            raise DeciderUnavailable("install sanchopanza[jev] to use the Jev provider") from error
+        if client is None and importlib.util.find_spec("httpx") is None:  # pragma: no cover
+            raise DeciderUnavailable("install sanchopanza[jev] to use the Jev provider")
         self._model = model
         self._price = price_per_mtok
-        self._client = client or httpx.AsyncClient(
-            base_url=base_url.rstrip("/"),
-            headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
-            timeout=timeout_s,
-        )
-        self._httpx = httpx
+        self._key, self._base_url, self._timeout_s = key, base_url.rstrip("/"), timeout_s
+        # Built on the first question, not here: importing httpx and loading the CA bundle took
+        # 0.6 s, and a hook builds its decider on every shell command while it asks on 2 % of
+        # them (the adoption study's phase B: 1.3-1.7 s per PreToolUse with a key, 0.4 s without).
+        self._made: Any | None = client
+
+    def _client(self) -> Any:
+        if self._made is None:
+            import httpx
+
+            self._made = httpx.AsyncClient(
+                base_url=self._base_url,
+                headers={"Authorization": f"Bearer {self._key}",
+                         "Content-Type": "application/json"},
+                timeout=self._timeout_s,
+            )  # fmt: skip
+        return self._made
 
     async def aclose(self) -> None:
-        await self._client.aclose()
+        if self._made is not None:
+            await self._made.aclose()
 
     accepts_attachments = False
 
@@ -221,9 +232,12 @@ class JevDecider:
     async def _send(self, body: dict[str, Any]) -> dict[str, Any]:
         last = "no response"
         for attempt in range(MAX_RETRIES + 1):
+            client = self._client()
+            import httpx
+
             try:
-                response = await self._client.post(PATH, json=body)
-            except self._httpx.HTTPError as error:
+                response = await client.post(PATH, json=body)
+            except httpx.HTTPError as error:
                 raise DeciderUnavailable(f"jev unreachable: {error.__class__.__name__}") from error
             if response.status_code == 200:
                 try:
