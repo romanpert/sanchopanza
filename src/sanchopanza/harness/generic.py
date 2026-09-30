@@ -14,10 +14,12 @@ and changes course.
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal
 
+from ..candor.ledger import TARGET_LIMIT, is_plain_look
 from ..points.routing import TIERS, Tier
 from .fetch import fetches_from_network
 
@@ -238,6 +240,12 @@ class Guardian:
         command = str(call.arguments.get(c.shell_command_key) or "")
         if not command.strip():
             return ALLOW
+        if len(command) < TARGET_LIMIT and is_plain_look(command) and not _SECRETS.search(command):
+            # Nothing to deny: a look cannot delete, send, chmod or run a download. Asking cost
+            # a decision and ~0.4 s on every `cat`/`ls`/`grep` of a session (the Indagis scene).
+            # A look at secrets is still asked: in R-Judge it is the first step of an exfiltration
+            # the decider denied (Program/terminal/32, `ls ... ~/.ssh/id_rsa`).
+            return ALLOW
         result = await self.squire.guard_command(command, environment=c.guard_environment)
         if not result.denied:
             return ALLOW
@@ -254,6 +262,13 @@ class Guardian:
             if value:
                 return str(value)
         return ""
+
+
+_SECRETS = re.compile(
+    r"\.ssh\b|id_[rd]sa|id_ed25519|\.env\b|\.aws\b|\.netrc|\.pgpass|\.npmrc|\.pypirc|\.docker"
+    r"|credential|secret|token|passw|shadow|\.pem\b|\.key\b|\.p12\b|\.kube|keychain|wallet",
+    re.IGNORECASE,
+)
 
 
 def _source_of(call: ToolCall) -> str:
