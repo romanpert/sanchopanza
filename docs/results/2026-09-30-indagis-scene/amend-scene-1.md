@@ -24,7 +24,13 @@ wrong for a machine running unrelated sessions.
 All three `solo` sessions made the declared stops reach the result in `motor.py`, which builds
 the `Resultado` whose `avisos_parada` `entrada.py` copies. The task said the result "que escribe
 entrada.py" and did not say where to wire it; the first acceptance test required the call
-inside `entrada.py`'s dict and failed them on that alone (3 of 4 tests passed each time). The
-amended test accepts `avisos_parada` built with `paradas_declaradas()` in `entrada.py` or
-`motor.py` (dict key, keyword argument or assignment). Checked again: it fails 4/4 at the base
-commit and passes on the real fix. Every kept session is graded again with it (`regrade`).
+inside `entrada.py`'s dict and failed them on that alone (3 of 4 tests passed each time).
+
+A first amendment accepted `avisos_parada` built with the call in `entrada.py` or `motor.py`
+(dict key, keyword argument or assignment). Regrading showed it still failed solo-2, which
+wires it through a helper (`avisos_parada=_avisos_parada(presupuesto)`, the helper calling
+`paradas_declaradas()`): as correct as the others, read by hand. No static shape covers every
+correct wiring, so the check is now the one the real fix's own test makes: `entrada.py` or
+`motor.py` calls `paradas_declaradas()`. The three behavioural tests carry the weight.
+Checked again: 4/4 fail at the base commit, 4/4 pass on the real fix. Every kept session is
+graded again with it (`regrade`), the first grade kept.

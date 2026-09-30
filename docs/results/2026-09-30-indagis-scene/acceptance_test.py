@@ -59,31 +59,13 @@ def _calls_named(node: ast.AST, name: str) -> bool:
     return False
 
 
-def _feeds_avisos(tree: ast.AST) -> bool:
-    """`avisos_parada` built with `paradas_declaradas()`: a dict key, a keyword argument or an
-    assignment to a name or attribute called `avisos_parada`."""
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Dict):
-            for key, value in zip(node.keys, node.values, strict=True):
-                if isinstance(key, ast.Constant) and key.value == "avisos_parada" and \
-                        _calls_named(value, "paradas_declaradas"):  # fmt: skip
-                    return True
-        if isinstance(node, ast.keyword) and node.arg == "avisos_parada":
-            if _calls_named(node.value, "paradas_declaradas"):
-                return True
-        if isinstance(node, (ast.Assign, ast.AnnAssign)) and node.value is not None:
-            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
-            named = any(getattr(t, "id", getattr(t, "attr", "")) == "avisos_parada"
-                        for t in targets)  # fmt: skip
-            if named and _calls_named(node.value, "paradas_declaradas"):
-                return True
-    return False
-
-
 def test_el_resultado_lleva_las_paradas_declaradas() -> None:
-    """The result's `avisos_parada` is built with `paradas_declaradas()`, in `entrada.py`,
-    which writes it, or in `motor.py`, which builds the `Resultado` it copies (amendment 1:
-    the first version looked at `entrada.py` only, and the task did not say where)."""
+    """`entrada.py`, which writes the result, or `motor.py`, which builds the `Resultado` it
+    copies, calls `paradas_declaradas()` (amendment 1: the first version looked at `entrada.py`
+    only and at one expression shape; the task said neither where nor how, and a helper
+    function is as good). The same check the real fix's own test makes."""
     files = ("agent/harness/entrada.py", "agent/harness/motor.py")
     trees = [ast.parse((RAIZ / f).read_text(encoding="utf-8")) for f in files]
-    assert any(_feeds_avisos(t) for t in trees), "avisos_parada no incluye paradas_declaradas()"
+    assert any(_calls_named(t, "paradas_declaradas") for t in trees), (
+        "ni entrada.py ni motor.py llaman a paradas_declaradas()"
+    )
