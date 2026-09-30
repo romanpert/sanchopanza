@@ -59,6 +59,14 @@ _VOID = frozenset(
 _HEADINGS = frozenset({"h1", "h2", "h3", "h4", "h5", "h6"})
 _SKIP_TEXT = frozenset({"script", "style", "noscript", "template"})
 _ATTRS_SHOWN = ("type", "name", "placeholder", "aria-label", "title", "alt", "value", "role")
+# Class words that say nothing about what an element does. A word with no vowel is dropped too
+# (`svg`, `btn`, `jsx`, library prefixes like `mntl`), as is any with a digit (build hashes).
+_CLASS_NOISE = frozenset(
+    {"icon", "icons", "button", "new", "item", "items", "wrapper", "container", "inner",
+     "outer", "component", "element", "block", "content", "active", "default", "small",
+     "large", "medium", "left", "right", "image", "img", "link", "text", "label"}
+)  # fmt: skip
+CLASS_WORDS = 4
 
 
 @dataclass(frozen=True, slots=True)
@@ -133,8 +141,9 @@ class _Collector(HTMLParser):
         if self._wanted(tag, attrs):
             self._counter += 1
             key = attrs.get("backend_node_id") or f"h{self._counter}"
+            parent = next((i for _, i in reversed(self.stack) if i is not None), None)
             self.records.append({"key": key, "tag": tag, "attrs": attrs, "text": "",
-                                 "under": self.heading.strip()})  # fmt: skip
+                                 "under": self.heading.strip(), "parent": parent})  # fmt: skip
             index = len(self.records) - 1
         for label in ("alt", "aria-label", "placeholder", "value", "title"):
             if attrs.get(label) and (tag in _VOID or label == "aria-label"):
@@ -182,6 +191,43 @@ def _role_of(tag: str, attrs: Mapping[str, str]) -> str:
     return tag
 
 
+def _class_words(classes: str) -> list[str]:
+    """What an element's CSS classes say it does: `add-wishlist-new__icon` -> add, wishlist."""
+    words: list[str] = []
+    for raw in re.split(r"[\s_\-]+", re.sub(r"([a-z])([A-Z])", r"\1 \2", classes)):
+        word = raw.lower()
+        if (
+            len(word) < 3
+            or word in _CLASS_NOISE
+            or word in words
+            or any(c.isdigit() for c in word)
+            or not any(c in "aeiouy" for c in word)
+        ):
+            continue  # fmt: skip
+        words.append(word)
+    return words[:CLASS_WORDS]
+
+
+def _unnamed_hints(record: Mapping[str, Any], records: Sequence[Mapping[str, Any]]) -> list[str]:
+    """For an element with no name: what its classes say, and the element holding it.
+
+    Mind2Web's development misses (docs/results/2026-09-30-browse/, misses.py) included unnamed
+    SVG icons whose classes said what they do (`add-wishlist-new__icon` for "save to
+    wishlist", `save-icon-favorite` inside a "Save" button) and the reader threw that away."""
+    hints = []
+    words = _class_words(str(record["attrs"].get("class", "")))
+    if words:
+        hints.append("looks like: " + " ".join(words))
+    parent = record.get("parent")
+    if parent is not None:
+        holder = records[parent]
+        name = " ".join(str(holder["text"]).split())
+        if name:
+            role = _role_of(holder["tag"], holder["attrs"])
+            hints.append(f'inside {role} "{truncate(name, 60)}"')
+    return hints
+
+
 def elements_from_html(html: str, *, all_with_ids: bool | None = None) -> list[Element]:
     """Every element of an HTML page an agent could act on, in document order.
 
@@ -199,9 +245,10 @@ def elements_from_html(html: str, *, all_with_ids: bool | None = None) -> list[E
         attrs = record["attrs"]
         name = " ".join(str(record["text"]).split())
         shown = [f"{k}={attrs[k]}" for k in _ATTRS_SHOWN if attrs.get(k) and attrs[k] not in name]
+        hints = [] if name else _unnamed_hints(record, parser.records)
         context = "; ".join(
             part for part in (f"under {record['under']}" if record["under"] else "",
-                              " ".join(shown)) if part
+                              " ".join(shown), *hints) if part
         )  # fmt: skip
         out.append(
             Element(

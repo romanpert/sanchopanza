@@ -81,6 +81,28 @@ def test_html_with_backend_node_ids_reads_every_element_carrying_one():
     assert [(e.key, e.name) for e in els] == [("1", "Andorra"), ("2", "Andorra")]
 
 
+def test_an_unnamed_element_is_described_by_its_classes_and_what_holds_it():
+    """Mind2Web development misses (misses.py): unnamed SVG icons whose class said what they do
+    (`add-wishlist-new__icon`, `save-icon-favorite`) and the reader threw it away."""
+    html = (
+        '<div backend_node_id="1"><svg backend_node_id="2" class="add-wishlist-new__icon"/></div>'
+        '<button backend_node_id="3"><span backend_node_id="4">Save</span>'
+        '<svg backend_node_id="5" class="icon save-icon-favorite mntl-button__icon jsx-1785568775">'
+        "</svg></button>"
+        '<a backend_node_id="6" class="nav-link">Home</a>'
+    )
+    els = {e.key: e for e in elements_from_html(html)}
+    assert "looks like: add wishlist" in els["2"].context
+    assert "looks like: save favorite" in els["5"].context
+    assert 'inside button "Save"' in els["5"].context
+    assert "jsx" not in els["5"].context and "mntl" not in els["5"].context
+    assert "looks like" not in els["6"].context, "a named element is left as it was"
+    camel = elements_from_html(
+        '<div backend_node_id="1"><i backend_node_id="2" class="shareButtonIcon"/></div>'
+    )
+    assert "looks like: share" in camel[1].context
+
+
 async def test_without_a_squire_the_ranking_is_bm25_and_free():
     els = elements_from_snapshot(SNAPSHOT)
     ranked = await rank("search for headphones", els, keep=2)
