@@ -99,6 +99,9 @@ def main(argv: list[str] | None = None) -> int:
             if g["split"] != args.split:
                 continue
             for item in build_v4b.items_for(g["sessions"], g["group"], g["split"]):
+                # the folder the session started in, as the hook keeps it (missing until
+                # 2026-10-01: an absolute path in a shell command never matched)
+                item = {**item, "cwd": cwd_of(item["session"])}
                 handle.write(json.dumps(item, ensure_ascii=False) + "\n")
                 n += 1
     print(f"{n} {args.split} requests")

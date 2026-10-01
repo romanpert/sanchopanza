@@ -436,5 +436,185 @@
    }
   },
   "failed_patches": 0
+ },
+ "tree-timing": {
+  "arms": "pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 26,
+    "with_related": 13,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.88
+   },
+   "v6": {
+    "requests": 26,
+    "with_related": 13,
+    "recall": 0.846,
+    "precision": 1.0,
+    "noise": 0.0,
+    "given": 13,
+    "chars_per_request": 1336.885,
+    "records_changing_nothing": 0.11
+   }
+  },
+  "failed_patches": 0
+ },
+ "v62-candidates": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.927,
+    "noise": 0.091,
+    "given": 41,
+    "chars_per_request": 1777.851,
+    "records_changing_nothing": 0.03
+   },
+   "reads:none": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.973,
+    "noise": 0.03,
+    "given": 37,
+    "chars_per_request": 1614.582,
+    "records_changing_nothing": 0.03
+   },
+   "reads:after_edit": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.973,
+    "noise": 0.03,
+    "given": 37,
+    "chars_per_request": 1614.582,
+    "records_changing_nothing": 0.03
+   },
+   "reads:focused": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.973,
+    "noise": 0.03,
+    "given": 37,
+    "chars_per_request": 1614.582,
+    "records_changing_nothing": 0.03
+   }
+  },
+  "failed_patches": 0
+ },
+ "tree-deadline": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.927,
+    "noise": 0.091,
+    "given": 41,
+    "chars_per_request": 1777.851,
+    "records_changing_nothing": 0.03
+   }
+  },
+  "failed_patches": 0
+ },
+ "v62": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.973,
+    "noise": 0.03,
+    "given": 37,
+    "chars_per_request": 1614.582,
+    "records_changing_nothing": 0.03
+   },
+   "reads:none_nogate": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.973,
+    "noise": 0.03,
+    "given": 37,
+    "chars_per_request": 1614.582,
+    "records_changing_nothing": 0.03
+   },
+   "reads:all": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.927,
+    "noise": 0.091,
+    "given": 41,
+    "chars_per_request": 1777.851,
+    "records_changing_nothing": 0.03
+   }
+  },
+  "failed_patches": 0
+ },
+ "v62-final": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.973,
+    "noise": 0.03,
+    "given": 37,
+    "chars_per_request": 1614.582,
+    "records_changing_nothing": 0.03
+   }
+  },
+  "failed_patches": 0
  }
 }

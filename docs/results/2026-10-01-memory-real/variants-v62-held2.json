@@ -1,0 +1,96 @@
+{
+ "held2": {
+  "v5": {
+   "all/lineage": {
+    "requests": 3117,
+    "with_related": 209,
+    "recall": 0.871,
+    "precision": 0.107,
+    "noise": 0.1,
+    "shown_per_request": 0.31
+   },
+   "all/any": {
+    "requests": 3117,
+    "with_related": 624,
+    "recall": 0.978,
+    "precision": 0.769,
+    "noise": 0.04,
+    "shown_per_request": 0.31
+   },
+   "first/lineage": {
+    "requests": 322,
+    "with_related": 33,
+    "recall": 0.909,
+    "precision": 0.131,
+    "noise": 0.242,
+    "shown_per_request": 1.05
+   },
+   "first/any": {
+    "requests": 322,
+    "with_related": 75,
+    "recall": 0.987,
+    "precision": 0.748,
+    "noise": 0.113,
+    "shown_per_request": 1.05
+   },
+   "+shell/all/any": {
+    "requests": 3117,
+    "with_related": 625,
+    "recall": 0.978,
+    "precision": 0.769,
+    "noise": 0.04,
+    "shown_per_request": 0.31
+   },
+   "chars_per_request": 744,
+   "given_by_shell": 0,
+   "related_given_by_shell": 0,
+   "related_given_by_shell_+shell": 0
+  },
+  "none": {
+   "all/lineage": {
+    "requests": 3117,
+    "with_related": 209,
+    "recall": 0.871,
+    "precision": 0.107,
+    "noise": 0.1,
+    "shown_per_request": 0.31
+   },
+   "all/any": {
+    "requests": 3117,
+    "with_related": 624,
+    "recall": 0.978,
+    "precision": 0.769,
+    "noise": 0.04,
+    "shown_per_request": 0.31
+   },
+   "first/lineage": {
+    "requests": 322,
+    "with_related": 33,
+    "recall": 0.909,
+    "precision": 0.131,
+    "noise": 0.242,
+    "shown_per_request": 1.05
+   },
+   "first/any": {
+    "requests": 322,
+    "with_related": 75,
+    "recall": 0.987,
+    "precision": 0.748,
+    "noise": 0.113,
+    "shown_per_request": 1.05
+   },
+   "+shell/all/any": {
+    "requests": 3117,
+    "with_related": 625,
+    "recall": 0.978,
+    "precision": 0.769,
+    "noise": 0.04,
+    "shown_per_request": 0.31
+   },
+   "chars_per_request": 744,
+   "given_by_shell": 0,
+   "related_given_by_shell": 0,
+   "related_given_by_shell_+shell": 0
+  }
+ }
+}

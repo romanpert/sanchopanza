@@ -171,7 +171,12 @@ def score(arms: list[tuple[dict[str, Any], dict[str, Any]]], bash: bool) -> dict
 
 
 def _view(name: str) -> Any:
-    """The shell view of a v6.1 variant (`variants_v61.VARIANTS`) while scoring."""
+    """The shell view of a v6.1 variant (`variants_v61.VARIANTS`), or a v6.2 one
+    (`reads:<mode>`, variants_v62.reads), while scoring."""
+    if name.startswith("reads:"):
+        import variants_v62 as v62
+
+        return v62.reads(name.split(":", 1)[1])
     import variants_v61 as v61
 
     return v61.variant(*v61.VARIANTS[name])

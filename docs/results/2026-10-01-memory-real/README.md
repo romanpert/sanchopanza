@@ -237,3 +237,43 @@ not most.
 
 Declared: 157 target sessions were counted before sealing and 153 were built: four
 transcripts disappeared from disk in between (a cleanup freed about 128 GB of C: at that time).
+
+## v6.2: the shell touch on writes only (amendment 6, sealed, waiting for its data)
+
+After amendment 5 the candidates were measured on the now-seen local sessions, SWE-chat (each
+session's folder) and B2 (`variants_v62.py`, `v6_chain_real.py --views reads:...`): no shell
+read at all; reads only after the session wrote through the shell; reads of one named file
+only. No shell reads won everywhere, and with reads off v6.1's file-edit gate only removed
+records of files the request wrote, so it went. `shell.written` was then hardened after an
+adversarial review (heredoc bodies only when something runs them, `perl -M`, `cp -t`, `->`,
+comments, PowerShell parameters and variables).
+
+**How to read the local numbers.** The sealed label sees edits made with file tools only, so a
+record given when the request writes its file through the shell always counts as noise under
+it. A label that also counts shell writes (`+shell`) is circular for the shell touch: it and the
+touch both ask `shell.written` what a command writes, so every shell give is related under it
+and a request it reaches can never be noise. The truth is between the two; B2, whose truth
+comes from the run's patches, is the one measure independent of the parser.
+
+| local, 632 requests | sealed label: recall / precision / noise | `+shell` (circular for the shell touch) | shell gives (related: sealed / `+shell`) |
+|---|---|---|---|
+| v5 | 0.923 / 0.858 / 0.019 | 0.667 / 0.892 / 0.019 | 0 |
+| shell reads on, no gate | 0.968 / 0.329 / 0.221 | 0.985 / 0.594 / 0.149 | 416 (97 / 230) |
+| **v6.2** | **0.949 / 0.536 / 0.126** | **0.977 / 0.931 / 0.019** | 152 (16 / 152) |
+
+B2's 67 fresh requests (post hoc, truth from patches): v6.0 0.941 / 0.889 / 0.121, v6.1 0.941 /
+0.927 / 0.091, **v6.2 0.941 / 0.973 / 0.030**. SWE-chat: v6.2 equals v5 on held out 2; held out 3 0.977 / 0.760 / 0.031 against 0.977 / 0.761 / 0.031 (two shell gives); held out 1 0.972 / 0.718 / 0.034 against 0.972 / 0.727 / 0.032 (four shell gives, one related by the sealed label, all four by `+shell`).
+
+Also measured: on the local sessions 125 of 152 shell gives arrive at the request's first write
+of that file, after the edit was made (27 at a later write): for an agent that edits through
+the shell, memory mostly arrives right after its first change, not before. A hand audit of 48
+shell-write records: 43 clear writes, 5 doubtful, 0 false.
+
+Also found: the tree's snapshot is not the cause of the small run-to-run variation in records
+that changed nothing (0.030 against 0.034 on B2): measured with the CPU loaded, no git call came
+near its 3 s limit (max 1.97 s) and no Stop passed its 4 s deadline (0 of 119). Cause open.
+
+Amendment 6 confirms on data that does not exist yet: part A, the first Sonnet 5.5 adoption
+chain run after the seal (truth from its patches); part B, the maintainer's sessions started
+2026-10-01 12:00 to 2026-10-04 00:00 (the sealed label for the file tools' touch, and an
+independent blind audit of the write detector).
