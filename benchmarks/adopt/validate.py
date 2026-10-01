@@ -1,6 +1,7 @@
 """Validate each selected chain in Docker, before any session and before sealing. Free.
 
     python benchmarks/adopt/validate.py <chain-name|all>
+    python benchmarks/adopt/validate.py --bake <chain> [...]   # rebuild images only, after the seal
 
 A chain is valid when, with its five bugs baked into the image:
 - every bug's FAIL_TO_PASS fails (none of them PASSED);
@@ -175,12 +176,28 @@ def _locked(lock: Path, wait_s: float = 120.0) -> Iterator[None]:
         lock.unlink(missing_ok=True)
 
 
+def bake_only(name: str) -> None:
+    """`name`'s image baked again from the bugs it validated with: no check, nothing saved. The
+    validation summary is sealed with the confirmation, so after the seal images are only
+    rebuilt (`validate.py --bake <chain>`), never validated again."""
+    chain = validated().get(name)
+    if not chain or not chain.get("valid"):
+        raise SystemExit(f"{name}: not a valid chain in {OUT}")
+    docker_env.pull(chain["image"])
+    docker_env.bake(chain["image"], [b["patch"] for b in chain["bugs"]], chain["tag"])
+
+
 def with_extra(chains: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Each chain with the amendment's extra spares (`extra.py`) after its drawn ones."""
     return [{**c, "spares": [*c["spares"], *extra.spares(c["chain"])]} for c in chains]
 
 
 def main() -> int:
+    if sys.argv[1] == "--bake":
+        for name in sys.argv[2:]:
+            bake_only(name)
+            print(name, "baked", flush=True)
+        return 0
     wanted = sys.argv[1]
     chains = with_extra([*full(), *related.full(), *long.full()])
     for chain in chains:

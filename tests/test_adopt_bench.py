@@ -305,3 +305,22 @@ def test_extra_spares_come_after_the_drawn_ones(monkeypatch) -> None:  # noqa: A
     assert [s["instance_id"] for s in got[0]["spares"]] == ["a", "x"]
     assert [s["instance_id"] for s in got[1]["spares"]] == ["b"]
     assert [s["instance_id"] for s in drawn["spares"]] == ["a"]  # the drawn chain is not changed
+
+
+def test_bake_only_rebuilds_the_image_from_the_validated_bugs_and_saves_nothing(monkeypatch) -> None:  # noqa: ANN001, E501
+    # After the seal the summary must not change: A's images are baked again without validating.
+    validate = _load("adopt_validate_bake", "validate.py")
+    done = {"r-1": {"image": "img", "tag": "adopt-r-1:bugs", "valid": True,
+                    "bugs": [{"patch": "p0\n"}, {"patch": "p1\n"}]}}  # fmt: skip
+    baked: list[tuple] = []
+    monkeypatch.setattr(validate, "validated", lambda: done)
+    monkeypatch.setattr(validate.docker_env, "pull", lambda _image: None)
+    def bake(image, patches, tag):  # noqa: ANN001, ANN202
+        baked.append((image, patches, tag))
+
+    monkeypatch.setattr(validate.docker_env, "bake", bake)
+    monkeypatch.setattr(validate, "save", lambda _r: (_ for _ in ()).throw(AssertionError("saved")))
+    validate.bake_only("r-1")
+    assert baked == [("img", ["p0\n", "p1\n"], "adopt-r-1:bugs")]
+    with pytest.raises(SystemExit):
+        validate.bake_only("not-validated")
