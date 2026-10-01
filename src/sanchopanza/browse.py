@@ -64,7 +64,12 @@ _ATTRS_SHOWN = ("type", "name", "placeholder", "aria-label", "title", "alt", "va
 _CLASS_NOISE = frozenset(
     {"icon", "icons", "button", "new", "item", "items", "wrapper", "container", "inner",
      "outer", "component", "element", "block", "content", "active", "default", "small",
-     "large", "medium", "left", "right", "image", "img", "link", "text", "label"}
+     "large", "medium", "left", "right", "image", "img", "link", "text", "label",
+     # utility-class layout words (Tailwind and the like), review 2026-10-01
+     "flex", "center", "justify", "between", "hidden", "rounded", "shadow", "hover", "grid",
+     "gap", "inline", "relative", "absolute", "full", "auto", "border", "bold", "font",
+     "wrap", "cursor", "pointer", "transition", "duration", "ease", "opacity", "focus",
+     "outline", "none", "visible", "overflow", "start", "end", "col", "row", "base"}
 )  # fmt: skip
 CLASS_WORDS = 4
 
@@ -194,7 +199,9 @@ def _role_of(tag: str, attrs: Mapping[str, str]) -> str:
 def _class_words(classes: str) -> list[str]:
     """What an element's CSS classes say it does: `add-wishlist-new__icon` -> add, wishlist."""
     words: list[str] = []
-    for raw in re.split(r"[\s_\-]+", re.sub(r"([a-z])([A-Z])", r"\1 \2", classes)):
+    camel = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", classes)  # SVGIcon -> SVG Icon
+    camel = re.sub(r"([a-z])([A-Z])", r"\1 \2", camel)  # heartIcon -> heart Icon
+    for raw in re.split(r"[\s_\-]+", camel):
         word = raw.lower()
         if (
             len(word) < 3
@@ -501,11 +508,12 @@ def in_page_order(ranked: Sequence[Ranked], page: Sequence[Element]) -> list[tup
     first three rows. Elements not on `page` keep their rank order at the end.
     """
     where = {e.key: i for i, e in enumerate(page)}
+    lines = [e.line() for e in page]  # the page's own lines: a ranked copy may differ
     seen: dict[str, int] = {}
     ordinal: dict[int, int] = {}
-    for i, e in enumerate(page):
-        seen[e.line()] = seen.get(e.line(), 0) + 1
-        ordinal[i] = seen[e.line()]
+    for i, line in enumerate(lines):
+        seen[line] = seen.get(line, 0) + 1
+        ordinal[i] = seen[line]
     on_page = sorted(
         (r for r in ranked if r.element.key in where), key=lambda r: where[r.element.key]
     )
@@ -513,12 +521,12 @@ def in_page_order(ranked: Sequence[Ranked], page: Sequence[Element]) -> list[tup
     out: list[tuple[Ranked, str]] = []
     for r in on_page:
         i = where[r.element.key]
-        line = r.element.line()
+        line = lines[i]
         if seen[line] < 2:
             out.append((r, ""))
             continue
         note = f"{_ordinal(ordinal[i])} of {seen[line]} alike"
-        before = next((page[j] for j in range(i - 1, -1, -1) if page[j].line() != line), None)
+        before = next((page[j] for j in range(i - 1, -1, -1) if lines[j] != line), None)
         if before is not None:
             name = f' "{truncate(before.name, AFTER_LIMIT)}"' if before.name else ""
             note += f", after {before.role}{name}"

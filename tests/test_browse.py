@@ -239,6 +239,16 @@ def test_prune_keeps_text_lines_that_match_the_purpose_within_budget():
     assert sum("paragraph" in line for line in pruned.splitlines()) <= 5
 
 
+def _transcript(tmp_path, prompt: str = "Find the price of the blue widget and check out") -> str:
+    """A Claude Code transcript with one user prompt: a hook in a real session always has one."""
+    import json
+
+    path = tmp_path / "transcript.jsonl"
+    entry = {"type": "user", "message": {"role": "user", "content": prompt}}
+    path.write_text(json.dumps(entry) + "\n", encoding="utf-8")
+    return str(path)
+
+
 def _playwright_event(tmp_path, snapshot: str) -> dict:
     text = (
         "### Ran Playwright code\n```js\nawait page.goto('https://shop.example/');\n```\n"
@@ -253,7 +263,7 @@ def _playwright_event(tmp_path, snapshot: str) -> dict:
         "tool_use_id": "toolu_1",
         "session_id": "s1",
         "cwd": str(tmp_path),
-        "transcript_path": "",
+        "transcript_path": _transcript(tmp_path),
     }
 
 
@@ -322,7 +332,7 @@ async def test_hook_prunes_a_snapshot_read_from_a_file(tmp_path, monkeypatch):
         "tool_use_id": "toolu_2",
         "session_id": "s2",
         "cwd": str(tmp_path),
-        "transcript_path": "",
+        "transcript_path": _transcript(tmp_path),
     }
     out = await browse_hook.post_tool_use(event, Squire())
     new = out["hookSpecificOutput"]["updatedToolOutput"]["file"]["content"]
@@ -344,7 +354,7 @@ async def test_hook_prunes_playwright_cli_stdout(tmp_path, monkeypatch):
         "tool_use_id": "toolu_3",
         "session_id": "s3",
         "cwd": str(tmp_path),
-        "transcript_path": "",
+        "transcript_path": _transcript(tmp_path),
     }
     out = await browse_hook.post_tool_use(event, Squire())
     new = out["hookSpecificOutput"]["updatedToolOutput"]["stdout"]
@@ -365,7 +375,7 @@ async def test_reading_the_archived_snapshot_is_never_pruned_again(tmp_path, mon
         "tool_response": {"type": "text", "file": {"filePath": str(kept), "content": text}},
         "session_id": "s4",
         "cwd": str(tmp_path),
-        "transcript_path": "",
+        "transcript_path": _transcript(tmp_path),
     }
     assert await browse_hook.post_tool_use(event, Squire()) == {}
     event["tool_input"] = {"file_path": str(tmp_path / "page.yml")}
@@ -399,11 +409,8 @@ async def test_an_oversized_mcp_result_comes_back_pruned_instead_of_the_notice(
     from sanchopanza.harness import browse_hook
 
     monkeypatch.setenv("SANCHOPANZA_ARCHIVE", str(tmp_path / "archive"))
-    transcript = tmp_path / "project" / "sess.jsonl"
-    saved = tmp_path / "project" / "sess" / "tool-results" / "mcp-playwright-browser_snapshot-1.txt"
-    saved.parent.mkdir(parents=True)
     page = "### Page\n- Page URL: https://shop.example/\n### Snapshot\n```yaml\n"
-    saved.write_text(page + _big_snapshot(400) + "```\n", encoding="utf-8")
+    saved, transcript = _saved_snapshot(tmp_path, page + _big_snapshot(400) + "```\n")
     out = await browse_hook.post_tool_use(_oversize_event(tmp_path, saved, transcript=transcript),
                                           Squire())  # fmt: skip
     new = out["hookSpecificOutput"]["updatedToolOutput"]
@@ -452,7 +459,7 @@ async def test_what_the_agent_narrowed_itself_is_never_pruned(tmp_path, monkeypa
         "tool_response": {"type": "text", "file": {"filePath": "page.yml", "content": text}},
         "session_id": "s5",
         "cwd": str(tmp_path),
-        "transcript_path": "",
+        "transcript_path": _transcript(tmp_path),
     }
     assert await browse_hook.post_tool_use(read, Squire()) == {}
     targeted = _playwright_event(tmp_path, _big_snapshot(400))
@@ -462,6 +469,100 @@ async def test_what_the_agent_narrowed_itself_is_never_pruned(tmp_path, monkeypa
     whole = {**targeted, "tool_input": {}}
     note = (await browse_hook.post_tool_use(whole, Squire()))["hookSpecificOutput"]
     assert "Grep" in note["updatedToolOutput"][0]["text"], "recovery starts with a search"
+
+
+def test_the_goal_keeps_every_part_when_there_is_a_follow_up():
+    """Review 2026-10-01: a long request plus a follow-up pushed the agent's step past 400."""
+    from sanchopanza.harness.browse_hook import GOAL_LIMIT, browse_goal
+
+    long = "Please open the page and look around carefully. " * 12 + "Which license is it?"
+    messages = [
+        {"role": "user", "content": [{"type": "text", "text": long}]},
+        {"role": "assistant", "content": [{"type": "text", "text": "Opening it"}]},
+        {"role": "user", "content": [{"type": "text", "text": "And the main language too?"}]},
+        {"role": "assistant", "content": [{"type": "text", "text": "Taking the snapshot now"}]},
+    ]
+    goal = browse_goal(messages)
+    assert len(goal) <= GOAL_LIMIT
+    assert "Which license is it?" in goal and "main language" in goal
+    assert "Taking the snapshot now" in goal
+
+
+async def test_with_no_goal_the_hook_does_not_rank(tmp_path, monkeypatch):
+    from sanchopanza.harness import browse_hook
+
+    monkeypatch.setenv("SANCHOPANZA_ARCHIVE", str(tmp_path / "archive"))
+    event = _playwright_event(tmp_path, _big_snapshot(400))
+    event["transcript_path"] = str(tmp_path / "missing.jsonl")
+    assert browse_hook.browse_goal([]) == ""
+    assert await browse_hook.post_tool_use(event, Squire()) == {}
+
+
+def _saved_snapshot(tmp_path, body: str) -> tuple:
+    transcript = tmp_path / "project" / "sess.jsonl"
+    saved = tmp_path / "project" / "sess" / "tool-results" / "mcp-playwright-browser_snapshot-2.txt"
+    saved.parent.mkdir(parents=True, exist_ok=True)
+    saved.write_text(body, encoding="utf-8")
+    transcript.write_text(
+        '{"type": "user", "message": {"role": "user", "content": "find the blue widget"}}\n',
+        encoding="utf-8",
+    )
+    return saved, transcript
+
+
+async def test_only_an_mcp_result_is_read_from_the_saved_file(tmp_path, monkeypatch):
+    """Review 2026-10-01: a page printed by `cat` could carry a notice naming another file."""
+    from sanchopanza.harness import browse_hook
+
+    monkeypatch.setenv("SANCHOPANZA_ARCHIVE", str(tmp_path / "archive"))
+    page = "### Page\n### Snapshot\n```yaml\n" + _big_snapshot(400) + "```\n"
+    saved, transcript = _saved_snapshot(tmp_path, page)
+    event = _oversize_event(tmp_path, saved, transcript=transcript)
+    bash = {**event, "tool_name": "Bash", "tool_input": {"command": "cat page.txt"},
+            "tool_response": {"stdout": event["tool_response"], "stderr": ""}}  # fmt: skip
+    assert await browse_hook.post_tool_use(bash, Squire()) == {}
+    wrapped = {**event, "tool_response": [{"type": "text", "text": event["tool_response"]}]}
+    out = await browse_hook.post_tool_use(wrapped, Squire())
+    new = out["hookSpecificOutput"]["updatedToolOutput"]
+    assert isinstance(new, list) and "# sanchopanza kept" in new[0]["text"], "the shape is kept"
+
+
+async def test_a_pruned_result_past_claude_codes_limit_is_not_returned(tmp_path, monkeypatch):
+    """Review 2026-10-01: text outside the YAML passes untouched, so a saved result can still
+    be past the limit after pruning; the notice stays."""
+    from sanchopanza.harness import browse_hook
+
+    monkeypatch.setenv("SANCHOPANZA_ARCHIVE", str(tmp_path / "archive"))
+    huge = "### Console\n" + ("log line\n" * 20000)
+    page = huge + "### Snapshot\n```yaml\n" + _big_snapshot(400) + "```\n"
+    saved, transcript = _saved_snapshot(tmp_path, page)
+    event = _oversize_event(tmp_path, saved, transcript=transcript)
+    assert await browse_hook.post_tool_use(event, Squire()) == {}
+
+
+def test_page_order_uses_the_pages_own_lines():
+    """A ranked element whose line differs from the page's (same key) must not crash."""
+    from sanchopanza.browse import Ranked, in_page_order
+
+    page = [Element("a", "button", "Go"), Element("b", "button", "Go")]
+    stale = Element("b", "button", "Go now")
+    shown = in_page_order([Ranked(stale, 0.9, 0.0)], page)
+    assert shown[0][1] == '2nd of 2 alike, after button "Go"' or shown[0][1].startswith("2nd")
+
+
+def test_layout_classes_say_nothing():
+    from sanchopanza.browse import _class_words
+
+    assert _class_words("flex items-center justify-between rounded shadow hover") == []
+    assert _class_words("SVGIcon heartIcon") == ["heart"]
+
+
+def test_a_cli_url_containing_find_is_not_a_search():
+    from sanchopanza.harness.browse_hook import _is_search
+
+    assert not _is_search("Bash", {"command": "playwright-cli goto https://x.com/find-a-store"})
+    assert _is_search("Bash", {"command": "playwright-cli -s=t1 find Price"})
+    assert _is_search("Bash", {"command": "agent-browser find 'Add to cart'"})
 
 
 def test_the_goal_keeps_the_question_at_the_end_of_a_long_request():
@@ -503,7 +604,7 @@ def test_the_hook_process_reads_and_writes_utf8_whatever_the_console(tmp_path):
         "tool_use_id": "toolu_9",
         "session_id": "s9",
         "cwd": str(tmp_path),
-        "transcript_path": "",
+        "transcript_path": _transcript(tmp_path),
     }
     env = {**os.environ, "SANCHOPANZA_PROVIDER": "null", "PYTHONIOENCODING": "cp1252",
            "SANCHOPANZA_ARCHIVE": str(tmp_path / "archive"), "PYTHONUTF8": "0"}  # fmt: skip

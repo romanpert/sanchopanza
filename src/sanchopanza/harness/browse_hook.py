@@ -55,6 +55,9 @@ DEFAULT_CHARS = 6000
 DEFAULT_KEEP = 20
 DEFAULT_TEXT = 3000
 SAVED_MAX_BYTES = 20_000_000
+# What may replace Claude Code's notice. Its limit is 25,000 tokens by default, and the GitHub
+# page it refused was 72,000 characters; past this the notice stays (review 2026-10-01).
+OVERSIZE_RETURN_MAX = 60_000
 # Claude Code's notice when an MCP result passes its token limit. The hook is handed this
 # notice, never the result (probed 2026-09-30 with a recording hook and Playwright MCP 0.0.83).
 _OVERSIZE = re.compile(
@@ -62,7 +65,8 @@ _OVERSIZE = re.compile(
     r"Output has been saved to (?P<path>.+?\.txt)\.\s*$",
     re.M,
 )
-_CLI_FIND = re.compile(r"\b(?:playwright-cli|agent-browser)\b[^|;&]*\bfind\b")
+# The CLI's `find` subcommand, after any flags; not the word inside a URL (`goto .../find-a-store`).
+_CLI_FIND = re.compile(r"\b(?:playwright-cli|agent-browser)(?:\s+-\S+)*\s+find\b")
 
 
 def _int(name: str, default: int) -> int:
@@ -107,7 +111,8 @@ def _is_search(tool: str, tool_input: Mapping[str, Any]) -> bool:
 
 _URL = re.compile(r"https?://([^/\s?#]+)\S*")
 GOAL_LIMIT = 400  # what `points.browse` shows of the goal
-GOAL_TASK = 280
+STEP_LIMIT = 90
+FOLLOW_UP_LIMIT = 110
 
 
 def browse_goal(messages: Any) -> str:
@@ -115,7 +120,9 @@ def browse_goal(messages: Any) -> str:
     stated step. Not `purpose_of`, which the arrival cut shares and was measured with: it keeps
     the first 130 characters of the request, and a request that opens with a URL and
     instructions ends with its question (a 2026-09-30 probe lost "which license" that way).
-    URLs are cut to their host; a long request keeps its start and its end."""
+    URLs are cut to their host; a long request keeps its start and its end. The follow-up and
+    the step are sized first and the request takes what is left, so no part falls off the end
+    (review 2026-10-01: a long request and a follow-up used to push the step out)."""
     from ..context.transcript import is_prompt, message_text
     from ..points.context import head_tail
     from ..text import truncate
@@ -123,20 +130,25 @@ def browse_goal(messages: Any) -> str:
     def clean(text: str) -> str:
         return " ".join(_URL.sub(r"\1", text).split())
 
+    def fit(text: str, limit: int) -> str:
+        # head_tail adds a marker of about 30 characters to what it keeps
+        return text if len(text) <= limit else head_tail(text, max(40, limit - 32))
+
     prompts = [clean(message_text(m)) for m in messages if is_prompt(m)]
     intent = next(
         (message_text(m) for m in reversed(messages)
          if m.get("role") == "assistant" and message_text(m)),
         "",
     )  # fmt: skip
-    parts = []
-    if prompts:
-        parts.append(f"Task: {head_tail(prompts[0], GOAL_TASK)}")
-        if len(prompts) > 1 and prompts[-1] != prompts[0]:
-            parts.append(f"Now asked: {head_tail(prompts[-1], 110)}")
+    if not prompts:
+        return ""
+    tail = []
+    if len(prompts) > 1 and prompts[-1] != prompts[0]:
+        tail.append(f"Now asked: {fit(prompts[-1], FOLLOW_UP_LIMIT)}")
     if intent:
-        parts.append(f"Agent's step: {truncate(clean(intent), 90)}")
-    return truncate("\n".join(parts), GOAL_LIMIT)
+        tail.append(f"Agent's step: {truncate(clean(intent), STEP_LIMIT)}")
+    room = GOAL_LIMIT - len("Task: ") - sum(len(t) + 1 for t in tail)
+    return "\n".join([f"Task: {fit(prompts[0], room)}", *tail])
 
 
 def _oversized(text: str, event: Mapping[str, Any]) -> str | None:
@@ -180,9 +192,11 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
     tool_input = event.get("tool_input") if isinstance(event.get("tool_input"), Mapping) else {}
     if _is_search(tool, tool_input):
         return {}
-    saved_text = _oversized(text, event)
-    if saved_text is not None:  # the result itself replaces the notice, pruned
-        path, text = (), saved_text
+    # Only an MCP result is ever replaced by Claude Code's notice; a `cat` or `curl` of a page
+    # that prints one must not pull another file in (review 2026-10-01).
+    saved_text = _oversized(text, event) if tool.startswith("mcp__") else None
+    if saved_text is not None:  # the result itself replaces the notice, pruned, in its place
+        text = saved_text
     span = snapshot_block(text)
     if span is None or span[1] - span[0] < _int("BROWSE_CHARS", DEFAULT_CHARS):
         return {}
@@ -195,8 +209,10 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
     elements = elements_from_snapshot(body)
     if not elements:
         return {}
-    over = autopilot._over_ceiling(ledger, config)
     purpose = browse_goal(autopilot._messages(event))
+    if not purpose:
+        return {}  # nothing to rank for: cutting blind could drop what the agent needs
+    over = autopilot._over_ceiling(ledger, config)
     ranked = await rank(
         purpose,
         elements,
@@ -211,6 +227,9 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
     )
     if len(pruned) >= 0.8 * len(body):
         return {}
+    new_text_chars = len(text) - len(body) + len(pruned)
+    if saved_text is not None and new_text_chars > OVERSIZE_RETURN_MAX:
+        return {}  # still past Claude Code's limit: its notice and saved file stay
     meta = {"tool": tool, "about": f"{tool} snapshot", "by": "browse"}
     saved = archive_mod.write_entry(
         archive_mod.session_dir(root, session),
