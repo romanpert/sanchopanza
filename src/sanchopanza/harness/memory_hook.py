@@ -76,7 +76,9 @@ from .. import _env
 from ..context import episodes as ep
 from ..context.archive import safe_name
 from ..context.transcript import _is_boundary
+from . import memory_tree
 from .hookio import stdin_text, stdout_json
+from .memory_tree import TREE, finish_tree, with_tree  # noqa: F401 - re-exported
 
 if TYPE_CHECKING:
     from ..squire import Squire
@@ -200,15 +202,21 @@ class Recorded:
     boundaries: int
     written: tuple[str, ...]
     cwd: str = ""
+    requests: int = 0
 
 
-def record_transcript(path: Path, session: str, store: Path, cwd: str = "") -> Recorded:
-    entries = ep.entries_of(path)
+def record_transcript(
+    path: Path, session: str, store: Path, cwd: str = "",
+    entries: Sequence[Mapping[str, Any]] | None = None,
+) -> Recorded:  # fmt: skip
+    entries = ep.entries_of(path) if entries is None else entries
     start = session_cwd(entries, cwd)
     found, live = ep.episodes_of(entries, session=session, cwd=start)
+    found = [with_tree(store, e) for e in found]
     boundaries = sum(1 for e in entries if _is_boundary(e))
     written = ep.save(store, found, session=session)
-    return Recorded(tuple(found), live, boundaries, tuple(written), start)
+    requests = len(ep.split_requests(entries).groups)
+    return Recorded(tuple(found), live, boundaries, tuple(written), start, requests)
 
 
 def record(event: Mapping[str, Any]) -> Recorded:
@@ -239,6 +247,37 @@ def catch_up(event: Mapping[str, Any]) -> list[str]:
         with contextlib.suppress(Exception):  # someone else's transcript is never our failure
             written.extend(record_transcript(path, path.stem, store).written)
     return written
+
+
+def tree_at_prompt(
+    event: Mapping[str, Any], store: Path, session: str, cwd: str, requests: int
+) -> None:
+    """A request that ended without its Stop (Esc) is finished first (review of v6, M6); then
+    the new request's start snapshot is kept."""
+    if not memory_tree.tree_on():
+        return
+    opened = memory_tree.open_request(store, session)
+    if opened is not None and opened == requests and requests > 0:
+        entries = ep.entries_of(Path(str(event["transcript_path"])))
+        if memory_tree.finish_tree(store, session, entries, opened):
+            found, _ = ep.episodes_of(entries, session=session, cwd=cwd)
+            ep.save(store, [with_tree(store, e) for e in found if e.index == opened])
+    memory_tree.start_tree(store, session, cwd, requests + 1)
+
+
+def stop(event: Mapping[str, Any]) -> Recorded:
+    """Stop: the record first (a slow tree never costs it), then what the tree says the request
+    wrote, merged into its record (review of v6, H1)."""
+    path = Path(str(event["transcript_path"]))
+    session, store = str(event.get("session_id") or "session"), store_for(event)
+    entries = ep.entries_of(path)
+    seen = record_transcript(path, session, store, str(event.get("cwd") or ""), entries)
+    with contextlib.suppress(Exception):  # the tree is extra; it never costs the record
+        if memory_tree.finish_tree(store, session, entries):
+            last = [e for e in seen.episodes if e.index == seen.requests]
+            ep.save(store, [with_tree(store, e) for e in last])
+        memory_tree.prune(store)
+    return seen
 
 
 # ---- what this session was already given ------------------------------------------------------
@@ -423,10 +462,12 @@ async def recall(event: Mapping[str, Any], squire: Squire | None = None) -> dict
     row: dict[str, Any] = {"event": "UserPromptSubmit", "mode": mode()}
     earlier_live = False
     known = True
+    requests = 0
     start = str(event.get("cwd") or "")
     try:
         seen = record(event)
         live, boundaries, start = seen.live, seen.boundaries, seen.cwd or start
+        requests = seen.requests
         # The prompt being submitted is not in the transcript yet: any live request is earlier,
         # answered or not.
         earlier_live = bool(live)
@@ -441,6 +482,8 @@ async def recall(event: Mapping[str, Any], squire: Squire | None = None) -> dict
     if known:
         with contextlib.suppress(OSError):
             note_live(store, session, boundaries, live, start)
+        with contextlib.suppress(Exception):  # the tree is extra; it never costs the recall
+            tree_at_prompt(event, store, session, start, requests)
     row = {**row, "caught_up": catch_up(event), "prompt_mode": prompt_mode()}
     if row["prompt_mode"] == "off" or not prompt:
         _log({**row, "reason": "off" if prompt else "empty prompt"})
@@ -525,35 +568,59 @@ def render_touch(
 
 
 def touch(event: Mapping[str, Any]) -> dict[str, Any]:
-    """PostToolUse on a file tool: the TOUCH_K newest records of earlier requests that changed
-    that file, outside the live context and not given since the last compaction. Not inside a
-    subagent (its context is thrown away, and it would use up the main agent's once). Code
-    only: no decider."""
+    """PostToolUse on a file tool, or on Bash (v6): the record of an earlier request whose
+    lines the agent is looking at, outside the live context and not given since the last
+    compaction. Not inside a subagent (its context is thrown away, and it would use up the main
+    agent's once). Code only: no decider."""
     if mode() == "off" or str(_env.get("MEMORY_TOUCH", "") or "on").lower() in ("off", "0"):
         return {}
-    if event.get("tool_name") not in TOUCH_TOOLS or event.get("agent_id"):
+    tool = event.get("tool_name")
+    if tool not in (*TOUCH_TOOLS, *SHELL_TOOLS) or event.get("agent_id"):
         return {}
     data = event.get("tool_input") if isinstance(event.get("tool_input"), Mapping) else {}
+    if tool in SHELL_TOOLS:
+        command = data.get("command")
+        raws, seen, base = bash_view(command, event.get("tool_response"),
+                                     str(event.get("cwd") or ""))  # fmt: skip
+        written = shell_written(command) if SHELL_EDIT_RULE else []
+        given = _give(event, written, "Edit", seen, base) if written else {}
+        return given or _give(event, [r for r in raws if r not in written], "Read", seen, base)
     raw = data.get("file_path") or data.get("notebook_path")
     if not isinstance(raw, str) or not raw.strip():
+        return {}
+    return _give(event, [raw], str(tool), seen_prints(event), str(event.get("cwd") or ""))
+
+
+def _give(
+    event: Mapping[str, Any], raws: Sequence[str], rule: str, seen: set[str], base: str
+) -> dict[str, Any]:  # fmt: skip
+    """The record for files `raws` (spelt as the agent wrote them, relative to `base`) by the
+    v4 rule of tool `rule`, with `seen` the prints of the lines in view."""
+    if not raws:
         return {}
     session = str(event.get("session_id") or "session")
     store = store_for(event)
     state = _state(store, session)
-    wanted = _wanted(raw, str(event.get("cwd") or ""), str(state.get("cwd") or ""))
-    found = [(float(v.get("at") or 0.0), k) for k, v in ep.index_of(store).items()
-             if wanted & {_norm(str(c)) for c in v.get("changed") or []}]  # fmt: skip
-    if not found:
+    start = str(state.get("cwd") or "")
+    index = ep.index_of(store)
+    per_raw = [(raw, _wanted(raw, base, start)) for raw in raws]
+    changed = {k: {_norm(str(c)) for c in v.get("changed") or []} for k, v in index.items()}
+    hits = [(raw, wanted) for raw, wanted in per_raw if any(wanted & c for c in changed.values())]
+    if not hits:
         return {}
+    wanted = {w for _, ws in hits for w in ws}
+    found = [(float(index[k].get("at") or 0.0), k) for k, c in changed.items() if wanted & c]
     keys = [k for _, k in sorted(found, reverse=True)[:TOUCH_LOAD]]
-    shown_as = ep.relative(raw, str(state.get("cwd") or event.get("cwd") or ""))
     with ep.locked(_shown_path(store, session)):  # parallel tool calls: one gives, others see it
         boundaries, live = live_at_last_prompt(store, session)
         shown = shown_since_compaction(store, session, boundaries)
         loaded = ep.load_keys(store, keys)
         matching = pool_of(loaded, session, live, shown)
-        chosen = choose_touched(matching, str(event.get("tool_name")), seen_prints(event),
-                                _int("MEMORY_TOUCH_K", TOUCH_K), wanted, loaded)  # fmt: skip
+        chosen = choose_touched(matching, rule, seen, _int("MEMORY_TOUCH_K", TOUCH_K), wanted,
+                                loaded)  # fmt: skip
+        named = next((raw for raw, ws in hits if chosen and ws & changed[chosen[0].key]),
+                     hits[0][0])  # fmt: skip
+        shown_as = ep.relative(named, start or base)
         text, given = render_touch(chosen, shown_as, _int("MEMORY_CHARS", CHARS))
         if text:
             with contextlib.suppress(OSError):
@@ -563,6 +630,22 @@ def touch(event: Mapping[str, Any]) -> dict[str, Any]:
     if not text:
         return {}
     return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": text}}
+
+
+SHELL_TOOLS = memory_tree.SHELL_TOOLS  # PowerShell: Claude Code on Windows
+SHELL_EDIT_RULE = True  # a file the command writes takes the edit rule (newest, no line in view)
+
+
+def shell_written(command: Any) -> list[str]:
+    from ..context import shell
+
+    return shell.written(command)
+
+
+def bash_view(command: Any, response: Any, cwd: str) -> tuple[list[str], set[str], str]:
+    from ..context import shell
+
+    return shell.view(command, response, cwd)
 
 
 def seen_prints(event: Mapping[str, Any]) -> set[str]:
@@ -641,7 +724,9 @@ def after_compaction(event: Mapping[str, Any]) -> dict[str, Any]:
 def handle(event: Mapping[str, Any]) -> dict[str, Any]:
     name = event.get("hook_event_name")
     if name in ("Stop", "SessionEnd"):
-        seen = record(event)
+        seen = stop(event) if name == "Stop" else record(event)
+        if name == "SessionEnd":
+            memory_tree.forget_open(store_for(event), str(event.get("session_id") or "session"))
         _log({"event": name, "episodes": len(seen.episodes), "written": list(seen.written)})
         return {}
     if name == "UserPromptSubmit":

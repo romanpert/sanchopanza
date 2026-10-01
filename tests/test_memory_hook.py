@@ -254,7 +254,8 @@ def store(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv("SANCHOPANZA_MEMORY_STORE_LOG", str(tmp_path / "log.jsonl"))
     for name in ("SANCHOPANZA_MEMORY_SELECT", "SANCHOPANZA_PROVIDER", "TYPESAFE_API_KEY",
                  "SANCHOPANZA_MEMORY_TOUCH", "SANCHOPANZA_MEMORY_KEEP_AT",
-                 "SANCHOPANZA_MEMORY_PROMPT_NAMED", "SANCHO_MEMORY_PROMPT_NAMED"):  # fmt: skip
+                 "SANCHOPANZA_MEMORY_PROMPT_NAMED", "SANCHO_MEMORY_PROMPT_NAMED",
+                 "SANCHOPANZA_MEMORY_TREE"):  # fmt: skip
         monkeypatch.delenv(name, raising=False)
     # The recall mechanics below (live context, once per compaction, catch-up) at every prompt;
     # the shipped default (`first`, `off` without a decider) has its own tests.
@@ -982,7 +983,106 @@ def test_a_notebook_touch_and_the_touch_switch(
 
 
 def test_install_memory_wires_the_touch_hook_on_file_tools() -> None:
-    assert MEMORY_HOOKS["PostToolUse"] == "Read|Edit|MultiEdit|Write|NotebookEdit"
+    assert MEMORY_HOOKS["PostToolUse"] == "Read|Edit|MultiEdit|Write|NotebookEdit|Bash|PowerShell"
+
+
+# ---- v6: files read or changed through Bash (B2, 2026-10-01: Sonnet 5.5 read and edited
+# through the shell in 70-100 % of its requests, and the touch never fired) -------------------
+
+
+def bash_event(path: Path, session: str, command: str, stdout: str = "") -> dict[str, Any]:
+    return {"hook_event_name": "PostToolUse", "session_id": session, "transcript_path": str(path),
+            "cwd": CWD, "tool_name": "Bash", "tool_input": {"command": command},
+            "tool_response": {"stdout": stdout, "stderr": "", "interrupted": False}}  # fmt: skip
+
+
+def _bash_setup(store: Path) -> Path:
+    project = store / "projects" / "p"
+    old = write_transcript(project / "s1.jsonl", [*lexer_request(), *starlette_request()])
+    mh.handle(event(old, "Stop", "s1"))
+    new = write_transcript(project / "s2.jsonl", [prompt("fix it"), say("looking")])
+    mh.handle(event(new, "UserPromptSubmit", "s2", "fix it"))
+    return new
+
+
+def test_v6_a_shell_read_that_shows_a_record_s_lines_gives_it_once(store: Path) -> None:
+    new = _bash_setup(store)
+    shown = f"tokens = {{\n    {HEX_LINE}\n}}"
+    out = mh.handle(bash_event(new, "s2", "sed -n 1,40p pygments/lexers/carbon.py", shown))
+    context = context_of(out)
+    assert "request 1 of session s1" in context and "pygments/lexers/carbon.py" in context
+    assert mh.handle(bash_event(new, "s2", "cat pygments/lexers/carbon.py", shown)) == {}
+
+
+def test_v6_a_shell_read_that_shows_none_of_its_lines_gives_nothing(store: Path) -> None:
+    new = _bash_setup(store)
+    out = mh.handle(bash_event(new, "s2", "head pygments/lexers/carbon.py", "class CarbonLexer:"))
+    assert out == {}
+
+
+def test_v6_numbered_and_grep_prefixed_output_still_matches(store: Path) -> None:
+    new = _bash_setup(store)
+    numbered = f"    12\t    {HEX_LINE}"
+    assert "session s1" in context_of(mh.handle(
+        bash_event(new, "s2", "cat -n pygments/lexers/carbon.py", numbered)))
+    other = write_transcript(store / "projects" / "p" / "s3.jsonl", [prompt("x"), say("y")])
+    mh.handle(event(other, "UserPromptSubmit", "s3", "x"))
+    # no path in the command: grep names the file in its output
+    grepped = f"pygments/lexers/carbon.py:12:    {HEX_LINE}"
+    assert "session s1" in context_of(mh.handle(
+        bash_event(other, "s3", "grep -rn Number.Hex .", grepped)))
+
+
+def test_v6_a_shell_edit_whose_command_holds_the_old_lines_gives_the_record(store: Path) -> None:
+    new = _bash_setup(store)
+    command = ("python - <<'E'\np='pygments/lexers/carbon.py'\ns=open(p).read()\n"
+               f's=s.replace("""{HEX_LINE}""", """(r\'0x[0-9a-f]+\', Number.Hex),""")\n'
+               "open(p,'w').write(s)\nE")
+    assert "session s1" in context_of(mh.handle(bash_event(new, "s2", command)))
+
+
+def test_v6_a_shell_write_gives_the_newest_record_of_the_file_it_writes(store: Path) -> None:
+    new = _bash_setup(store)
+    out = mh.handle(bash_event(new, "s2", "sed -i 's/Hex/Hexadecimal/' pygments/lexers/carbon.py"))
+    assert "request 1 of session s1" in context_of(out)  # the edit rule: no line in view
+
+
+def test_v6_a_file_named_only_in_a_traceback_of_a_writing_command_needs_its_lines(
+    store: Path,
+) -> None:
+    # B2 noise: `cat > t_tmp.py` wrote a scratch test, and the traceback in its output named
+    # a module whose newest record entered under the edit rule.
+    new = _bash_setup(store)
+    command = "cat > t_tmp.py <<'E'\ndef test_x():\n    assert lex('0xFF')\nE\npytest t_tmp.py"
+    traceback = "pygments/lexers/carbon.py:40: in get_tokens\n    raise ValueError(text)"
+    assert mh.handle(bash_event(new, "s2", command, traceback)) == {}
+    shows = f"pygments/lexers/carbon.py:12: in tokens\n    {HEX_LINE}"
+    assert "session s1" in context_of(mh.handle(bash_event(new, "s2", command, shows)))
+
+
+@pytest.mark.parametrize(
+    ("command", "written"),
+    [
+        ("sed -i 's/a/b/' pkg/a.py pkg/b.py && cat pkg/c.py", ["pkg/a.py", "pkg/b.py"]),
+        ("echo x > out/log.txt; cat pkg/c.py", ["out/log.txt"]),
+        ("cat pkg/c.py | tee -a notes.md", ["notes.md"]),
+        ("python - <<'E'\np='pkg/a.py'\ns=open(p).read()\nopen(p,'w').write(s)\nE", ["pkg/a.py"]),
+        ("python - <<'E'\nprint(open('pkg/a.py').read())\nE", []),
+        ("grep -n x pkg/a.py 2>&1 | head", []),
+        ("Set-Content -Path pkg/a.py -Value $x", ["pkg/a.py"]),
+    ],
+)
+def test_v6_shell_written(command: str, written: list[str]) -> None:
+    assert mh.shell_written(command) == written
+
+
+def test_v6_a_command_naming_no_recorded_file_gives_nothing(store: Path) -> None:
+    new = _bash_setup(store)
+    assert mh.handle(bash_event(new, "s2", "pytest -q tests/test_other.py", "1 passed")) == {}
+    assert mh.handle(bash_event(new, "s2", "ls", HEX_LINE)) == {}  # lines alone name no file
+    assert mh.handle({**bash_event(new, "s2", "cat pygments/lexers/carbon.py", HEX_LINE),
+                      "agent_id": "sub-1"}) == {}  # fmt: skip
+    assert mh.handle({**bash_event(new, "s2", "x"), "tool_input": {"command": 7}}) == {}
 
 
 class _Stdin:
@@ -1013,3 +1113,225 @@ def test_install_memory_wires_its_hooks_once_and_takes_them_out(tmp_path: Path) 
     apply(plan(path, HarnessConfig(), memory=False, candor=True))
     flat = path.read_text("utf-8")
     assert MEMORY_COMMAND not in flat and "candor-hook" in flat
+
+
+# ---- v6: what a request changed, read from the git working tree --------------------------------
+
+
+def _git_repo(root: Path) -> str:
+    import subprocess
+
+    (root / "pkg").mkdir(parents=True)
+    (root / "pkg" / "parse.py").write_text("def parse(text):\n    return text.split(',')\n",
+                                           encoding="utf-8")  # fmt: skip
+    for args in (["init", "-q"], ["config", "user.email", "t@example.com"],
+                 ["config", "user.name", "t"], ["add", "."], ["commit", "-qm", "base"]):
+        subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
+    return str(root).replace("\\", "/")
+
+
+PARSED = "    return [part.strip() for part in text.split(',')]"
+
+
+def _shell_fix(store: Path, tmp_path: Path, command: str) -> tuple[str, Path]:
+    cwd = _git_repo(tmp_path / "repo")
+    project = store / "projects" / "p"
+    t1 = project / "s1.jsonl"
+    first = {"hook_event_name": "UserPromptSubmit", "session_id": "s1",
+             "transcript_path": str(t1), "cwd": cwd, "prompt": "parse should strip spaces"}
+    mh.handle(first)  # the transcript is not written yet: a new session's first prompt
+    (tmp_path / "repo" / "pkg" / "parse.py").write_text(f"def parse(text):\n{PARSED}\n",
+                                                        encoding="utf-8")  # fmt: skip
+    entries = [{**prompt("parse should strip spaces"), "cwd": cwd},
+               *tool("Bash", {"command": command}, "ok", 1),
+               say("parse now strips the spaces around each part.")]  # fmt: skip
+    write_transcript(t1, entries)
+    mh.handle({**first, "hook_event_name": "Stop"})
+    return cwd, project
+
+
+@pytest.mark.skipif(__import__("shutil").which("git") is None, reason="no git")
+def test_v6_a_shell_edit_is_recorded_from_the_tree_and_a_later_shell_read_finds_it(
+    store: Path, tmp_path: Path
+) -> None:
+    edit = "python - <<'E'\np='pkg/parse.py'\ns=open(p).read()\nopen(p,'w').write(s)\nE"
+    cwd, project = _shell_fix(store, tmp_path, edit)
+    index = ep.index_of(store / "memory" / "p")
+    assert index["s1-001"]["changed"] == ["pkg/parse.py"]
+    t2 = write_transcript(project / "s2.jsonl", [{**prompt("again"), "cwd": cwd}, say("ok")])
+    mh.handle({"hook_event_name": "UserPromptSubmit", "session_id": "s2",
+               "transcript_path": str(t2), "cwd": cwd, "prompt": "again"})  # fmt: skip
+    read = {"hook_event_name": "PostToolUse", "session_id": "s2", "transcript_path": str(t2),
+            "cwd": cwd, "tool_name": "Bash",
+            "tool_input": {"command": "sed -n 1,5p pkg/parse.py"},
+            "tool_response": {"stdout": f"def parse(text):\n{PARSED}\n"}}  # fmt: skip
+    assert "request 1 of session s1" in context_of(mh.handle(read))
+
+
+@pytest.mark.skipif(__import__("shutil").which("git") is None, reason="no git")
+def test_v6_a_tree_change_the_request_never_named_is_not_its_own(
+    store: Path, tmp_path: Path
+) -> None:
+    _shell_fix(store, tmp_path, "make fix")  # another session, or the person, changed it
+    assert ep.index_of(store / "memory" / "p")["s1-001"]["changed"] == []
+
+
+@pytest.mark.skipif(__import__("shutil").which("git") is None, reason="no git")
+def test_v6_the_tree_can_be_turned_off(
+    store: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_TREE", "off")
+    _shell_fix(store, tmp_path, "python - <<'E'\np='pkg/parse.py'\nE")
+    assert ep.index_of(store / "memory" / "p")["s1-001"]["changed"] == []
+    assert not (store / "memory" / "p" / mh.TREE).exists()
+
+
+def test_v6_powershell_reads_with_backslashes_count_like_bash(store: Path) -> None:
+    # Claude Code on Windows has a PowerShell tool: 178 of 1,918 shell calls in phase B/B2
+    new = _bash_setup(store)
+    shell = {**bash_event(new, "s2", r"Get-Content pygments\lexers\carbon.py", HEX_LINE),
+             "tool_name": "PowerShell"}  # fmt: skip
+    assert "request 1 of session s1" in context_of(mh.handle(shell))
+
+
+# ---- review of v6 (2026-10-01): H1-H2, M1-M8, L ---------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("command", "written"),
+    [
+        ("python - <<'E'\ncfg=open('pkg/config.py').read()\nopen('out.txt','w').write(cfg)\nE",
+         ["out.txt"]),
+        ("Get-Content a.py | Out-File b.txt", ["b.txt"]),
+        ('echo "see a > pkg/parse.py"', []),
+        ("python -c \"open('pkg/a.py','w').write('x')\"", ["pkg/a.py"]),
+        ("node -e \"require('fs').writeFileSync('web/app.js', s)\"", ["web/app.js"]),
+        ("sed -E -i 's/a/b/' pkg/a.py", ["pkg/a.py"]),
+        ("cp pkg/a.py pkg/b.py", ["pkg/b.py"]),
+        ("cat <<< \"abc\"\nsed -i 's/a/b/' pkg/parse.py", ["pkg/parse.py"]),
+        ("python - <<'E'\nfrom pathlib import Path\nPath('pkg/x.py').write_text(s)\nE",
+         ["pkg/x.py"]),
+    ],
+)
+def test_v6_review_m4_shell_written(command: str, written: list[str]) -> None:
+    assert mh.shell_written(command) == written
+
+
+def test_v6_review_l_a_long_command_parses_quickly() -> None:
+    import time
+
+    start = time.perf_counter()
+    mh.shell_written("python - <<'E'\n" + "open(x" * 40_000 + "\nE")
+    mh.bash_view("cat " + "a" * 200_000, {"stdout": "b" * 200_000}, CWD)
+    assert time.perf_counter() - start < 2.0
+
+
+def test_v6_review_m1_an_absolute_windows_path_in_a_shell_read(store: Path) -> None:
+    new = _bash_setup(store)
+    out = mh.handle(bash_event(new, "s2", f"cat {CWD}/pygments/lexers/carbon.py", HEX_LINE))
+    assert "request 1 of session s1" in context_of(out)
+    other = write_transcript(store / "projects" / "p" / "s3.jsonl", [prompt("x"), say("y")])
+    mh.handle(event(other, "UserPromptSubmit", "s3", "x"))
+    windows = CWD.replace("/", "\\") + r"\pygments\lexers\carbon.py"
+    shell = {**bash_event(other, "s3", f"Get-Content {windows}", HEX_LINE),
+             "tool_name": "PowerShell"}  # fmt: skip
+    assert "request 1 of session s1" in context_of(mh.handle(shell))
+
+
+def test_v6_review_m5_the_header_names_the_file_of_the_record_given(store: Path) -> None:
+    new = _bash_setup(store)
+    out = context_of(mh.handle(bash_event(
+        new, "s2", "cat README.md starlette/staticfiles.py pygments/lexers/carbon.py", HEX_LINE)))
+    assert "pygments/lexers/carbon.py" in out.splitlines()[0]
+
+
+def test_v6_review_m8_the_command_s_own_lines_are_in_view(store: Path) -> None:
+    new = _bash_setup(store)  # a read, no write: only the command shows the line
+    command = f'grep -nF "{HEX_LINE}" pygments/lexers/carbon.py'
+    assert "session s1" in context_of(mh.handle(bash_event(new, "s2", command, "")))
+
+
+def test_v6_review_m8_a_leading_cd_moves_the_folder(store: Path) -> None:
+    new = _bash_setup(store)
+    out = mh.handle(bash_event(new, "s2", "cd pygments && cat lexers/carbon.py", HEX_LINE))
+    assert "session s1" in context_of(out)
+
+
+needs_git = pytest.mark.skipif(__import__("shutil").which("git") is None, reason="no git")
+
+
+@needs_git
+def test_v6_review_h2_a_file_only_read_while_another_writer_changed_it_is_not_claimed(
+    store: Path, tmp_path: Path
+) -> None:
+    cwd, _ = _shell_fix(store, tmp_path, "cat pkg/parse.py")  # read only; the file changed
+    assert ep.index_of(store / "memory" / "p")["s1-001"]["changed"] == []
+
+
+@needs_git
+def test_v6_review_h2_a_write_claims_its_own_path_only(store: Path, tmp_path: Path) -> None:
+    edit = "python - <<'E'\nopen('lib/parse.py','w').write('x')\nE"  # another parse.py
+    _shell_fix(store, tmp_path, edit)
+    assert ep.index_of(store / "memory" / "p")["s1-001"]["changed"] == []
+
+
+@needs_git
+def test_v6_review_m8_a_snapshot_of_another_request_is_not_compared(
+    store: Path, tmp_path: Path
+) -> None:
+    cwd = _git_repo(tmp_path / "repo")
+    project = store / "projects" / "p"
+    t1 = project / "s1.jsonl"
+    edit = "python - <<'E'\np='pkg/parse.py'\nopen(p,'w').write(s)\nE"
+    done = [{**prompt("first"), "cwd": cwd}, say("nothing to do")]
+    write_transcript(t1, done)
+    base = {"session_id": "s1", "transcript_path": str(t1), "cwd": cwd}
+    mh.handle({**base, "hook_event_name": "UserPromptSubmit", "prompt": "second"})  # index 2
+    (tmp_path / "repo" / "pkg" / "parse.py").write_text(f"def parse(text):\n{PARSED}\n", "utf-8")
+    # request 2's prompt never reached the transcript; request 1 gets the edit command
+    write_transcript(t1, [*done[:1], *tool("Bash", {"command": edit}, "ok", 1), done[1]])
+    mh.handle({**base, "hook_event_name": "Stop"})
+    assert ep.index_of(store / "memory" / "p")["s1-001"]["changed"] == []
+
+
+@needs_git
+def test_v6_review_m6_an_interrupted_request_is_finished_at_the_next_prompt(
+    store: Path, tmp_path: Path
+) -> None:
+    cwd = _git_repo(tmp_path / "repo")
+    t1 = store / "projects" / "p" / "s1.jsonl"
+    base = {"session_id": "s1", "transcript_path": str(t1), "cwd": cwd}
+    mh.handle({**base, "hook_event_name": "UserPromptSubmit", "prompt": "fix parse"})
+    (tmp_path / "repo" / "pkg" / "parse.py").write_text(f"def parse(text):\n{PARSED}\n", "utf-8")
+    edit = "sed -i 's/split/rsplit/' pkg/parse.py"
+    write_transcript(t1, [{**prompt("fix parse"), "cwd": cwd},
+                          *tool("Bash", {"command": edit}, "ok", 1),
+                          say("stopped halfway")])  # Esc: no Stop ran  # fmt: skip
+    mh.handle({**base, "hook_event_name": "UserPromptSubmit", "prompt": "go on"})
+    assert ep.index_of(store / "memory" / "p")["s1-001"]["changed"] == ["pkg/parse.py"]
+
+
+@needs_git
+def test_v6_review_m7_the_open_snapshot_goes_at_session_end_and_old_tree_files_go(
+    store: Path, tmp_path: Path
+) -> None:
+    import os
+    import time
+
+    cwd = _git_repo(tmp_path / "repo")
+    t1 = write_transcript(store / "projects" / "p" / "s1.jsonl", [])
+    base = {"session_id": "s1", "transcript_path": str(t1), "cwd": cwd}
+    mh.handle({**base, "hook_event_name": "UserPromptSubmit", "prompt": "x"})
+    folder = store / "memory" / "p" / mh.TREE
+    assert (folder / "s1.json").exists()
+    old = folder / "gone-001.json"
+    old.write_text("{}", encoding="utf-8")
+    stamp = time.time() - 40 * 86_400
+    os.utime(old, (stamp, stamp))
+    from sanchopanza.harness import memory_tree
+
+    memory_tree.prune(store / "memory" / "p")
+    assert not old.exists()
+    write_transcript(t1, [{**prompt("x"), "cwd": cwd}, say("y")])
+    mh.handle({**base, "hook_event_name": "SessionEnd"})
+    assert not (folder / "s1.json").exists()

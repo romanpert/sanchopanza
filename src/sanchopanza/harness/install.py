@@ -115,7 +115,8 @@ GUARD_HOOKS = {"PreCompact": "manual|auto", "SessionStart": "compact", "PostTool
 MEMORY_COMMAND = "sanchopanza memory-hook"
 # Event -> matcher for memory between requests and sessions (`--memory`, `harness.memory_hook`).
 MEMORY_HOOKS = {"UserPromptSubmit": "", "Stop": "", "SessionEnd": "",
-                "PostToolUse": "Read|Edit|MultiEdit|Write|NotebookEdit", "SessionStart": "compact"}
+                "PostToolUse": "Read|Edit|MultiEdit|Write|NotebookEdit|Bash|PowerShell",
+                "SessionStart": "compact"}
 CANDOR_COMMAND = "sanchopanza candor-hook"
 # Event -> matcher for candor (`--candor`, `harness.candor_hook`): the request and its snapshot,
 # every call (the lock refuses, the ledger records), and the final report.
