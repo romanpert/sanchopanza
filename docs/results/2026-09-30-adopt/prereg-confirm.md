@@ -293,3 +293,22 @@ changes. The rule below applies to every arm an error result stopped, whatever i
    session; setting an attempt aside moves the folder with it.
 3. What this costs: pydantic-2 is run a third time whole (estimated 3-4 USD more than going on
    from request 3); the ceilings stay as they are.
+
+## Amendment 3, 2026-10-01, during phase A, before any verdict is read
+
+Written after pydantic-rel-1's runner was killed and before it ran again; `confirm.py A` has not
+been run and no arm of that attempt was graded. Sealed again; no code changes.
+
+1. **pydantic-rel-1 is run again whole, as pydantic-2 was in amendment 1.** At 16:56 a subagent of
+   another session on this machine ran `taskkill /F /IM python.exe`, which killed every Python
+   process: the coordinating script and `run.py`, while all four arms (N, Nf, Sm, Sf) were in
+   request 4. Their `claude -p` calls finished on their own, but no arm wrote its row. The rule
+   "an arm that started and left no row is not run again" is there so attempts are not mixed and
+   spend is not lost. Here every arm fell at the same point for a reason outside the arms, and
+   nothing of that attempt was graded or seen. So the attempt is set aside under
+   `runs/pydantic__pydantic-rel-1-killed1/` with its Claude Code session folders, and each arm's
+   row is rebuilt from its four streams with the runner's own `facts` and `call_cost`, so its
+   7.50 USD is counted in the ceilings' ledger.
+2. **Order.** The remaining chains run with dvc-rel-1 before conan-1 and conan-2. That way the
+   all-or-nothing hold (every arm's chain cap against the absolute ceiling of 133.51) does not
+   refuse a four-arm task for want of room. The ceiling stays as it is.
