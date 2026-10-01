@@ -444,3 +444,30 @@ What it answers: on a 1M-window model a long session does reach the lever (263k 
 default 160k budget makes it cheaper at no visible loss in resolved bugs, on one chain. A smaller
 budget is cheaper again, but here its one regression wiped the strict count; whether a 100k
 budget invites more regressions cannot be told from n = 1. Nothing here counts toward a verdict.
+
+## Phase A, the confirmation on Haiku (2026-10-01, sealed 6f2162f4 at 08ec3fb)
+
+Launched per repository (bake, run, grade, drop) with the absolute ceilings of the prereg
+(chains 133.51; singles 169.36). Estimated aloud ~73 USD (chains ~48, singles ~25).
+
+**Deviation, to go into the prereg as an amendment before any verdict is read** (the prereg
+cannot change while A runs: `run.py` refuses held-out runs when the seal does not hold).
+`validate.py --bake` checks after baking that every FAIL_TO_PASS still fails, but it runs only
+those nodes, and a parametrised test that does not exist with the bugs in (pygments-2:
+`test_lexer_classes[OrgLexer]`, its lexer removed by the bug) makes pytest exit with "not found"
+and no results: the check raised instead of counting the test as failing, which validation's
+own check (`check`, the F2P and PASS_TO_PASS* nodes together, absent = not passing) does. The
+image had been baked before the check, from the same local base image validation used (`pull`
+pulls only when absent), and the coordinating script did not stop, so pygments-2 ran without the
+check. From starlette on, a separate read-only script checks every baked image exactly as
+`check` does, while the arms run (`A-verify.log`); pygments-2 is baked again after A and checked
+the same way. The sealed code is not changed.
+
+**pydantic-2 crashed the runner** (14:1x): its second issue (34,215 characters) is over Windows'
+command-line limit; CreateProcess raised in both arms before request 2 and `run.py` died with no
+row for either. The coordinating script was stopped before pydantic-rel-1 (the running grade of
+pydantic-1 was left to finish: N 3/5, Sm 4/5). Fixed and amended before any verdict (prereg,
+"Amendment 1"): long prompts through stdin (probe: one Haiku call, STDIN-OK, 0.03 USD, outside
+`runs/`), a call that cannot start is NOT RUN (harness) with the row written, pydantic-2 run again
+whole, its first attempt (0.22 USD) kept under `runs/pydantic__pydantic-2-crashed1/`. Spent under
+`runs/` now 77.51 USD.

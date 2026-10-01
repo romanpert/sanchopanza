@@ -247,8 +247,18 @@ def restore_install(work: Path, evidence: Path) -> list[str]:
     return restored
 
 
+# Windows caps a command line at 32,767 characters: a longer prompt failed CreateProcess
+# (pydantic-2's second issue, 34,215, phase A). Over this it goes through stdin, the same text.
+ARGV_PROMPT_MAX = 16_000
+
+
+def stdin_for(prompt: str) -> bytes | None:
+    return prompt.encode("utf-8") if len(prompt) > ARGV_PROMPT_MAX else None
+
+
 def command(model: str, prompt: str, session: str | None, mcp: Path | None) -> list[str]:
-    cmd = ["claude", "-p", prompt, "--model", model, "--max-budget-usd", f"{CALL_CAP_USD:.2f}",
+    asked = [] if stdin_for(prompt) else [prompt]
+    cmd = ["claude", "-p", *asked, "--model", model, "--max-budget-usd", f"{CALL_CAP_USD:.2f}",
            "--output-format", "stream-json", "--verbose", "--setting-sources", "project",
            "--strict-mcp-config", "--permission-mode", "bypassPermissions",
            "--disallowedTools", *DISALLOWED]  # fmt: skip
@@ -425,10 +435,13 @@ def one_chain(
         with stream.open("wb") as out, err.open("wb") as errors:
             try:
                 code = subprocess.run(command(model, prompt, session, mcp), cwd=work, env=env,
-                                      stdout=out, stderr=errors,
+                                      input=stdin_for(prompt), stdout=out, stderr=errors,
                                       timeout=CALL_TIMEOUT_S).returncode  # fmt: skip
             except subprocess.TimeoutExpired:
                 code = -9
+            except OSError as exc:  # could not even start `claude`: the harness, not the arm
+                errors.write(f"{type(exc).__name__}: {exc}".encode())
+                code = -1
         observed = facts(stream)
         if harness_failed(code, observed):
             settle(0.0)  # its reservation back: nothing was spent

@@ -86,16 +86,21 @@ def one(
         with stream.open("wb") as out:
             try:
                 code = subprocess.run(run.command(model, prompt, None, mcp), cwd=work, env=env,
+                                      input=run.stdin_for(prompt),
                                       stdout=out, stderr=subprocess.PIPE,
                                       timeout=run.CALL_TIMEOUT_S).returncode  # fmt: skip
             except subprocess.TimeoutExpired:
                 code = -9
+            except OSError:  # could not even start `claude`: the harness, not the arm
+                code = -1
         seen = run.facts(stream)
         # A call cut by the timeout is charged its cap in the row as in the ledger (a fresh
         # session: no cumulative cost to take a difference from).
         seen = {**seen, "cost_usd": seen["cost_usd"] or (run.CALL_CAP_USD if code == -9 else 0.0)}
         run.settle(seen["cost_usd"])
         call = {"request": 1, "exit": code, "wall_s": round(time.time() - began, 1), **seen}
+        if code == -1:
+            call = {**call, "status": "NOT RUN (harness)"}
         if seen.get("api_error"):
             call = {**call, "status": "NOT RUN (error result)"}  # an API error, not a result
         print(f"{name} {arm}: {seen['subtype']} {seen['cost_usd']:.3f} USD", flush=True)

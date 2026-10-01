@@ -231,3 +231,32 @@ watched live; no retries. A request stopped by its arm's chain cap is NOT RUN, i
 not resolved, and the pair goes to "listed apart" for cost.
 
 Whatever does not hold is reported as not holding.
+
+## Amendment 1, 2026-10-01, during phase A, before any verdict is read
+
+Written after pygments-2, starlette-2, starlette-rel-2 and pydantic-1 ran (their per-task grades
+were printed by the runner while watching it; `confirm.py A` has not been run) and before any
+other held-out task; sealed again with the code it changes.
+
+1. **A prompt too long for Windows' command line.** `run.py` passed each issue to `claude -p` as
+   an argument; pydantic-2's second issue has 34,215 characters, over Windows' 32,767, and
+   CreateProcess failed in both arms with an exception that ended `run.py` before either arm
+   wrote its row (each had run request 1). Changed: a prompt over 16,000 characters goes through
+   stdin, the same text (checked live: one Haiku call, 0.03 USD); a call that cannot be started
+   is NOT RUN (harness) with the row written, as designed for a `claude -p` that never opens a
+   session. No held-out issue but that one is over 4,100 characters (singles: 3,710).
+2. **pydantic-2 is run again, both arms, from request 1.** The rule "an arm that left no row is
+   not run again" exists so attempts are not mixed and spend is not lost. Here both arms fell at
+   the same point for the harness's reason, no result of either was graded or seen, and the
+   whole pair is run again; the first attempt (0.22 USD) is kept, counted in the ledger and the
+   ceiling, under `runs/pydantic__pydantic-2-crashed1/`, which no verdict reads.
+3. **Baking the held-out images.** `validate.py --bake` checks only the FAIL_TO_PASS nodes, and a
+   parametrised test absent with the bugs in (pygments-2: `test_lexer_classes[OrgLexer]`;
+   pydantic-1: a docstring example) makes pytest exit with "not found" and no results, so the
+   check raised (for pydantic it raised before baking pydantic-2 and pydantic-rel-1, which were
+   then baked by hand with the same `docker_env.bake` and the validated bugs). From here on images
+   are baked with `docker_env.bake` and checked as validation's `check` does (the FAIL_TO_PASS and
+   PASS_TO_PASS* nodes together, an absent test counting as failing); a chain whose check fails is
+   not run. Results so far: starlette-2, starlette-rel-2, pydantic-1, pydantic-2, pydantic-rel-1
+   OK. pygments-2 ran before this check existed; its image is baked again after A and checked the
+   same way, and the result is reported with it.
