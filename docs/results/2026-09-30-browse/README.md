@@ -77,9 +77,25 @@ every count. 8.61 USD spent in all.
 
 LEAN minus PLAIN per task: **+0.0014 USD a session [-0.0067, +0.0109]**; the rule **is not met**
 (success is within it, cost is not). Phase 3g's saving with playwright-cli does not repeat here.
-Both LEAN failures are X12, the positional question again: two runs named Steve Martin. Losses
-on X2 (React's GitHub page, +0.031) and X4 (France, +0.032); not yet read. 8.84 USD at list price,
-0.02 of Jev.
+Both LEAN failures are X12, the positional question again: two runs named Steve Martin. 8.84 USD
+at list price, 0.02 of Jev.
+
+The losses on X2 (React's GitHub page, +0.031) and X4 (France, +0.032) are one fault of the hook
+with playwright-cli. Past 30,000 characters Claude Code saves a `Bash` output to a file, hands the
+hook only its first 30,000 characters, and shows the model the first 2,000 of the hook's reply
+(probed with a recording hook, one session). So the hook ranked a prefix (128 of France's 3,569
+elements), archived that prefix as the whole page, and the model saw the note and a few
+navigation lines; it searched the archive, found nothing (the infobox's currency and GitHub's
+language bar were past the prefix) and went back to the page. The same three LEAN sessions of X2
+and run 3 of X4. X4's other two LEAN runs cut nothing and differ by the agent alone. Fixed: the
+hook reads the whole saved output (from its own session's folder only), ranks all of it,
+archives all of it, writes the cut to a file it names, and replies with what fits in 2,000
+characters, the ranked elements first. Replayed on the two saved pages with Jev, the reply holds
+Paris and the euro, and the MIT license and JavaScript 49.5 %. Not yet measured.
+
+In Phase 3h, X4 run 1 and X8 run 1 cost more in LEAN with nothing cut; X1 run 2 kept the
+"Languages" heading of a page whose snapshot has no percentages and the agent went for a
+screenshot, while X1's other LEAN runs were cheaper than PLAIN.
 
 **After 3h and 3i the hook does not cut for a question about position** (`asks_for_position`:
 "the first one", "the 3rd book", "the last entry", but not "when did it first appear"). It cost

@@ -37,7 +37,10 @@ archive), fixed too. Registered results since, each on tasks it was not fixed on
 Playwright MCP 12.9 % cheaper on six tasks (3d), 12.4 % on twelve with the interval crossing
 zero (3h), nothing clear on twelve more (3f); with playwright-cli about 5 % on twelve (3g),
 nothing on twelve more (3i). Questions about position cost answers in 3h and 3i and are now
-passed through. Opt-in, not recommended.
+passed through. 3i's losses (X2, X4) were a `Bash` output past 30,000 characters: Claude Code
+hands the hook that prefix and shows the model 2,000 characters of the reply, so the hook now
+ranks the whole saved output and replies with what fits (`_persisted`, `_preview`).
+Opt-in, not recommended.
 """
 
 from __future__ import annotations
@@ -61,6 +64,9 @@ SAVED_MAX_BYTES = 20_000_000
 # What may replace Claude Code's notice. Its limit is 25,000 tokens by default, and the GitHub
 # page it refused was 72,000 characters; past this the notice stays (review 2026-10-01).
 OVERSIZE_RETURN_MAX = 60_000
+# What Claude Code shows the model of a hook's output for a `Bash` result it saved to a file
+# ("Preview (first 2KB)"; probed 2026-10-01: a marker at 3,000 characters was not seen).
+PREVIEW_CHARS = 2000
 # Claude Code's notice when an MCP result passes its token limit. The hook is handed this
 # notice, never the result (probed 2026-09-30 with a recording hook and Playwright MCP 0.0.83).
 _OVERSIZE = re.compile(
@@ -174,17 +180,31 @@ def asks_for_position(goal: str) -> bool:
 
 
 def _oversized(text: str, event: Mapping[str, Any]) -> str | None:
-    """The saved result behind Claude Code's too-large notice, or None.
-
-    Read only from this session's own `tool-results` folder, next to its transcript: the notice
-    is text, and a page can print one naming any file."""
+    """The saved result behind Claude Code's too-large notice, or None."""
     match = _OVERSIZE.match(text.strip())
+    return None if match is None else _session_file(match["path"], event)
+
+
+def _persisted(response: Any, event: Mapping[str, Any]) -> tuple[bool, str | None]:
+    """Whether Claude Code saved this output to a file, and the whole output if so.
+
+    Past 30,000 characters a `Bash` output is saved to `tool-results`; the hook is handed
+    `stdout` cut at 30,000 with `persistedOutputPath` (probed 2026-10-01). Phase 3i ranked and
+    archived that prefix: 128 of France's 3,569 elements, and an archive without the answer."""
+    if not isinstance(response, Mapping) or not response.get("persistedOutputPath"):
+        return False, None
+    return True, _session_file(str(response["persistedOutputPath"]), event)
+
+
+def _session_file(path: str, event: Mapping[str, Any]) -> str | None:
+    """A file Claude Code saved, read only from this session's own `tool-results` folder, next
+    to its transcript: a notice is text, and a page can print one naming any file."""
     transcript = str(event.get("transcript_path") or "")
-    if match is None or not transcript:
+    if not transcript:
         return None
     allowed = Path(transcript).with_suffix("") / "tool-results"
     try:
-        saved = Path(match["path"]).resolve()
+        saved = Path(path).resolve()
         if not saved.is_relative_to(allowed.resolve()) or not saved.is_file():
             return None
         if saved.stat().st_size > SAVED_MAX_BYTES:
@@ -192,6 +212,44 @@ def _oversized(text: str, event: Mapping[str, Any]) -> str | None:
         return saved.read_text(encoding="utf-8", errors="replace")
     except (OSError, ValueError):
         return None
+
+
+_CONTAINER = re.compile(r"^- [a-z]+(?: \[[^\]]*\])*:$")
+_REF = re.compile(r"\[ref=([^\]]+)\]")
+
+
+def preview_lines(pruned: str, first: frozenset[str] = frozenset()) -> list[str]:
+    """The pruned snapshot's lines that carry something, flat: no bare containers, no `/url`,
+    no `[cursor=pointer]`. The tree's shape costs characters a 2,000-character preview lacks.
+    Lines of the elements in `first` (the ranked ones) come before the rest, each in page order:
+    text lines that match the task can fill the preview before the element it needs."""
+    ranked, rest = [], []
+    for raw in pruned.splitlines():
+        line = raw.strip()
+        if not line.startswith("- ") or line.startswith("- /url:") or _CONTAINER.match(line):
+            continue
+        line = line[2:].replace(" [cursor=pointer]", "").removesuffix(":")
+        ref = _REF.search(line)
+        (ranked if ref and ref[1] in first else rest).append(line)
+    return ranked + rest
+
+
+def _preview(text: str, span: tuple[int, int], pruned: str, saved: Path, whole: Path,
+             kept: frozenset[str], total: int) -> str:  # fmt: skip
+    """What fits in the 2,000 characters Claude Code shows of a `Bash` output it saved: where
+    the cut and the whole page are, then the kept lines that carry content, in page order."""
+    page = [line for line in text[: span[0]].splitlines() if line.startswith("- Page ")]
+    head = (
+        f"# sanchopanza: the page ({total} elements) is too large to show here. The lines it "
+        f"most likely needs are below; all {len(kept)} kept elements in context: Read {saved}; the "
+        f"whole page: Grep {whole}.\n"
+    )
+    out = head + "".join(f"{line}\n" for line in page)
+    for line in preview_lines(pruned, kept):
+        if len(out) + len(line) + 1 > PREVIEW_CHARS:
+            break
+        out += line + "\n"
+    return out
 
 
 def say(text: str) -> None:
@@ -219,6 +277,11 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
     saved_text = _oversized(text, event) if tool.startswith("mcp__") else None
     if saved_text is not None:  # the result itself replaces the notice, pruned, in its place
         text = saved_text
+    persisted, whole = _persisted(response, event)
+    if persisted:
+        if whole is None:
+            return {}  # only a 30,000-character prefix: never rank or archive a fragment
+        text = whole
     span = snapshot_block(text)
     if span is None or span[1] - span[0] < _int("BROWSE_CHARS", DEFAULT_CHARS):
         return {}
@@ -279,11 +342,22 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
             "chars": len(body),
             "kept_chars": len(pruned),
             "ranked_by": "bm25" if over else squire.provider,
+            "preview": persisted,
         },
     )
     with contextlib.suppress(OSError):
         autopilot.write_ledger(root, session, autopilot._charged(ledger, squire))
-    new_text = text[: span[0]] + note + pruned + text[span[1] :]
+    if persisted:  # the model sees 2,000 characters of this: the cut goes to a file it can Read
+        cut = archive_mod.write_entry(
+            archive_mod.session_dir(root, session),
+            f"browse-{event.get('tool_use_id') or tool}-pruned",
+            pruned,
+            {**meta, "about": f"{tool} snapshot, pruned"},
+        )
+        keys = frozenset(r.element.key for r in ranked)
+        new_text = _preview(text, span, pruned, cut, saved, keys, len(elements))
+    else:
+        new_text = text[: span[0]] + note + pruned + text[span[1] :]
     updated = autopilot.replaced(response, path, new_text)
     return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "updatedToolOutput": updated}}
 
