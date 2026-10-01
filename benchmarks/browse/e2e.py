@@ -142,6 +142,19 @@ def use_y_tasks() -> None:
     RUNS, TASKS, APPEND = mcp.WIDE_RUNS, mcp.Y_TASKS, APPEND_ANSWER_LAST
 
 
+Z_PREREG = RESULTS / "prereg-e2e-z.md"  # Phase 3m: Phase 3l's twelve tasks, playwright-cli
+
+
+def use_z_tasks() -> None:
+    """Phase 3m: Phase 3l's twelve tasks with playwright-cli, three runs, answer last."""
+    global PREREG, SESSIONS, REGISTRATIONS, RUNS, TASKS, REPORT, APPEND, JEV_CEILING_USD
+    mcp = _load_sibling("browse_e2e_mcp", HERE / "e2e_mcp.py")
+    JEV_CEILING_USD = mcp.JEV_CEILING_Y_USD
+    PREREG, REGISTRATIONS = Z_PREREG, (Z_PREREG,)
+    SESSIONS, REPORT = RESULTS / "e2e-cli-z-sessions.jsonl", "e2e-cli-z.json"
+    RUNS, TASKS, APPEND = mcp.WIDE_RUNS, mcp.Z_TASKS, APPEND_ANSWER_LAST
+
+
 def _load_sibling(name: str, path: pathlib.Path) -> Any:
     import importlib.util
 
@@ -316,6 +329,7 @@ def main() -> int:
     ap.add_argument("--wide", action="store_true", help="Phase 3g (prereg-e2e-wide.md)")
     ap.add_argument("--x", action="store_true", help="Phase 3i (prereg-e2e-x.md)")
     ap.add_argument("--y", action="store_true", help="Phase 3k (prereg-e2e-y.md)")
+    ap.add_argument("--z", action="store_true", help="Phase 3m (prereg-e2e-z.md)")
     args = ap.parse_args()
     if args.new:
         use_new_tasks()
@@ -325,6 +339,8 @@ def main() -> int:
         use_x_tasks()
     if args.y:
         use_y_tasks()
+    if args.z:
+        use_z_tasks()
     if args.record_hash:
         for path in REGISTRATIONS:
             registered = path.with_suffix(".sha256")
@@ -350,7 +366,7 @@ def main() -> int:
         limits = phase.Limits(
             session_max_usd=SESSION_MAX_USD, ceiling_usd=CEILING_USD,
             jev_session_max_usd=LEAN_JEV_MAX_USD,
-            jev_ceiling_usd=JEV_CEILING_USD if args.wide or args.x or args.y else None,
+            jev_ceiling_usd=JEV_CEILING_USD if args.wide or args.x or args.y or args.z else None,
             early_stop_usd=EARLY_STOP_USD, early_tasks=frozenset(t[0] for t in TASKS[:2]),
         )  # fmt: skip
         code, rows = phase.run_phase(

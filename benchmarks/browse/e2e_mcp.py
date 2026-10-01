@@ -314,6 +314,43 @@ Y_TASKS = [
      "Go to the Philosophy category, find the book 'The Stranger', and report its price.",
      ["17.44"]),
 ]  # fmt: skip
+Z = {  # Phase 3l: twelve new tasks for the infobox and page-order fixes (0138a2d)
+    "prereg": RESULTS / "prereg-e2e-z.md",
+    "sessions": RESULTS / "e2e-mcp-z-sessions.jsonl",
+    "report": "e2e-mcp-z.json",
+}
+Z_TASKS = [
+    ("Z1", "https://en.wikipedia.org/wiki/Nile",
+     "According to the infobox, how long is the river in kilometres, and where is its mouth?",
+     ["7088", ["mediterranean"]]),
+    ("Z2", "https://en.wikipedia.org/wiki/Mont_Blanc",
+     "According to the infobox, in which year was the first ascent?", ["1786"]),
+    ("Z3", "https://en.wikipedia.org/wiki/Italy",
+     "According to the infobox, what is the capital and what is the currency?",
+     ["rome", ["euro"]]),
+    ("Z4", "https://en.wikipedia.org/wiki/Amazon_River",
+     "According to the infobox, how long is the river in kilometres?", [["6575", "6400"]]),
+    ("Z5", "https://en.wikipedia.org/wiki/List_of_largest_cities",
+     "Which city is listed first in the table?", ["jakarta"]),
+    ("Z6", "https://en.wikipedia.org/wiki/List_of_river_systems_by_length",
+     "Which river is ranked first in the table?", ["nile"]),
+    ("Z7", "https://github.com/django/django",
+     "Which license is this repository under, and which language makes up the largest share "
+     "of its code?", [["bsd"], ["python"]]),
+    ("Z8", "https://github.com/vuejs/core",
+     "Which license is this repository under, and which language makes up the largest share "
+     "of its code?", [["mit"], ["typescript"]]),
+    ("Z9", "https://books.toscrape.com/",
+     "Go to the Fantasy category and report the title of the last book listed on its first "
+     "page.", ["folly"]),
+    ("Z10", "https://quotes.toscrape.com/",
+     "Open the quotes tagged 'inspirational' and report the author of the third one.",
+     ["edison"]),
+    ("Z11", "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/301",
+     "What is the name of this HTTP status code?", [["moved permanently"]]),
+    ("Z12", "https://www.rfc-editor.org/rfc/rfc9112.html",
+     "What is the title of section 3.2?", [["request target", "request-target"]]),
+]  # fmt: skip
 NEW_TASKS = [
     ("N1", "https://github.com/pallets/flask",
      "Which license is this repository under, and which language makes up the largest share "
@@ -353,6 +390,7 @@ def main() -> int:
     ap.add_argument("--wide", action="store_true", help="Phase 3f (prereg-e2e-wide.md)")
     ap.add_argument("--x", action="store_true", help="Phase 3h (prereg-e2e-x.md)")
     ap.add_argument("--y", action="store_true", help="Phase 3j (prereg-e2e-y.md)")
+    ap.add_argument("--z", action="store_true", help="Phase 3l (prereg-e2e-z.md)")
     args = ap.parse_args()
     report_name, tasks, n_runs = "e2e-mcp.json", TASKS, RUNS
     if args.fixed:
@@ -369,6 +407,9 @@ def main() -> int:
     if args.y:
         PREREG, SESSIONS, report_name = Y["prereg"], Y["sessions"], Y["report"]
         tasks, n_runs = Y_TASKS, WIDE_RUNS
+    if args.z:
+        PREREG, SESSIONS, report_name = Z["prereg"], Z["sessions"], Z["report"]
+        tasks, n_runs = Z_TASKS, WIDE_RUNS
     if args.record_hash:
         registered = PREREG.with_suffix(".sha256")
         if registered.exists() and registered.read_text().strip() != base.digest(PREREG):
@@ -384,11 +425,12 @@ def main() -> int:
         if not key:
             raise SystemExit("LEAN ranks with Jev: no TYPESAFE_API_KEY, nothing spent")
         runs = [0] if args.pilot else list(range(1, n_runs + 1))
-        guarded = args.fixed or args.new or args.wide or args.x or args.y
+        guarded = args.fixed or args.new or args.wide or args.x or args.y or args.z
         limits = phase.Limits(
             session_max_usd=SESSION_MAX_USD, ceiling_usd=CEILING_USD,
             jev_session_max_usd=JEV_SESSION_MAX_USD,
-            jev_ceiling_usd=(JEV_CEILING_Y_USD if args.y else JEV_CEILING_USD) if guarded else None,
+            jev_ceiling_usd=(JEV_CEILING_Y_USD if args.y or args.z else JEV_CEILING_USD)
+            if guarded else None,
         )  # fmt: skip
         code, rows = phase.run_phase(
             phase.planned(tasks[:2] if args.pilot else tasks, runs, ("PLAIN", "LEAN")), rows,
