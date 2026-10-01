@@ -128,6 +128,19 @@ def test_m4_a_prompt_that_quotes_our_header_or_is_only_an_image_is_a_request() -
     assert found[2].request == "(an image, no text)"
 
 
+def test_v6_a_compaction_summary_in_an_sdk_stream_is_not_a_request() -> None:
+    # `claude -p --output-format stream-json` writes the summary as a synthetic user message, not
+    # `isCompactSummary`; counted as a request it shifted every later request's number (B2)
+    text = "This session is being continued from a previous conversation that ran out of context."
+    summary = {"type": "user", "isSynthetic": True, "message": {
+        "role": "user", "content": [{"type": "text", "text": text}]}}  # fmt: skip
+    plain = {"type": "user", "message": {
+        "role": "user", "content": [{"type": "text", "text": text}]}}  # fmt: skip
+    found, _ = ep.episodes_of([*lexer_request(), summary, plain, *starlette_request()],
+                              session="s")  # fmt: skip
+    assert [e.index for e in found] == [1, 2]
+
+
 def test_m4_a_line_separator_inside_a_message_does_not_drop_it(tmp_path: Path) -> None:
     entries = [prompt("one"), say("one done"), prompt("two\u2028lines", "2026-09-30T10:05:00Z"),
                say("two done")]  # fmt: skip

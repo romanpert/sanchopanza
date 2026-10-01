@@ -37,6 +37,7 @@ from sanchopanza.harness import memory_hook as mh  # noqa: E402
 
 OUT = vc.OUT.with_name("chain-v6-real.json")
 GIT_ENV = {**os.environ, "GIT_OPTIONAL_LOCKS": "0"}
+DUMP: list[dict[str, Any]] = []  # with --dump: every record given, for diagnosis (local only)
 
 
 def git(cwd: Path | str, *args: str, check: bool = True) -> subprocess.CompletedProcess:
@@ -135,7 +136,17 @@ def score(arms: list[tuple[dict[str, Any], dict[str, Any]]], bash: bool) -> dict
                                     "transcript_path": str(transcript), "cwd": rec["a"], **t})
                     text = out["hookSpecificOutput"]["additionalContext"] if out else ""
                     n["chars"] += len(text)
-                    given.extend(shown_in(text, pool))
+                    keys = shown_in(text, pool)
+                    given.extend(keys)
+                    for key in keys if DUMP else ():
+                        record = next(x for x in pool if x.key == key)
+                        DUMP.append({"arm": chain["cwd"][-24:], "target": target["i"],
+                                     "given": record.index, "label": labels[key],
+                                     "tool": t["tool_name"], "input": str(
+                                         t["tool_input"].get("command")
+                                         or t["tool_input"].get("file_path"))[:300],
+                                     "record_changed": list(record.changed),
+                                     "target_changed": sorted(target["changed"])})  # fmt: skip
             related = {key for key, v in labels.items() if v != "none"}
             n["requests"] += 1
             n["given"] += len(given)
@@ -163,12 +174,15 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--arms", required=True, help="chain/arm[:from-to],... scored range")
     parser.add_argument("--tag", required=True)
+    parser.add_argument("--dump", default="", help="a local file for every record given")
     args = parser.parse_args(argv)
     for name in ("SANCHOPANZA_MEMORY_SELECT", "SANCHOPANZA_PROVIDER", "TYPESAFE_API_KEY"):
         os.environ.pop(name, None)
     rows: dict[str, Any] = {}
     done: dict[str, list[Any]] = {"v5": [], "v6": []}
     failed = 0
+    if args.dump:
+        DUMP.append({"start": True})
     for spec in args.arms.split(","):
         name, _, span = spec.partition(":")
         lo, hi = (int(x) for x in span.split("-")) if span else (1, 10**6)
@@ -189,6 +203,9 @@ def main(argv: list[str] | None = None) -> int:
         print(spec, {k: v[-1] for k, v in rows.items()}, flush=True)
     total = {"v5": score(done["v5"], bash=False), "v6": score(done["v6"], bash=True)}
     print("failed patches", failed)
+    if args.dump:
+        rows_out = "\n".join(json.dumps(r) for r in DUMP[1:])
+        Path(args.dump).write_text(rows_out, encoding="utf-8")
     for name, m in total.items():
         print(name, json.dumps(m))
     out = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
