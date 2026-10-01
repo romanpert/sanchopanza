@@ -1,0 +1,24 @@
+{"goal": "Report the headline at the top of the news list.", "position": true}
+{"goal": "What is the final item in the shopping list on this page?", "position": true}
+{"goal": "Give the name of the most recent post shown on the blog's front page.", "position": true}
+{"goal": "Which comment is at the bottom of the thread?", "position": true}
+{"goal": "Report the penultimate entry in the release table.", "position": true}
+{"goal": "What is the topmost result for this search?", "position": true}
+{"goal": "Name the latest version listed at the top of the changelog.", "position": true}
+{"goal": "Report the next-to-last book shown in the category.", "position": true}
+{"goal": "Which repository is at the top of the trending list?", "position": true}
+{"goal": "What is the 2nd link in the sidebar?", "position": true}
+{"goal": "Report the title of the fourth video on the channel page.", "position": true}
+{"goal": "What is the last row of the medal table?", "position": true}
+{"goal": "What is the top speed of the car according to the infobox?", "position": false}
+{"goal": "What was the final score of the match?", "position": false}
+{"goal": "What is the latest version of the software according to the infobox?", "position": false}
+{"goal": "Who finished in first place in the 2020 race, according to the article?", "position": false}
+{"goal": "When was the top floor of the tower completed?", "position": false}
+{"goal": "Report the final year of the war given on the page.", "position": false}
+{"goal": "Who was the last emperor of the dynasty?", "position": false}
+{"goal": "What is the top-level domain of the country?", "position": false}
+{"goal": "When was the most recent census taken?", "position": false}
+{"goal": "Which film won the first Academy Award for Best Picture?", "position": false}
+{"goal": "What was the first single from the album, per the infobox?", "position": false}
+{"goal": "How many results does the search return?", "position": false}
