@@ -377,3 +377,70 @@ The owner's instruction: when something fails, find why, fix it, measure again; 
   every row records its path and commit, and held-out tasks refuse to run without one. B2 and A
   will run eebdfa6 (memory v4.1, confirmed by indagis-72 on held-out real sessions: precision
   0.753 against v3's 0.631).
+
+## Phase B2, one long chain on Sonnet 5.5 (2026-10-01)
+
+**The chain had not validated, and the fault was the harness's.** `pydantic__pydantic-long40-1`
+came out invalid after five rounds (10,527 s), always on pr_7827 and pr_6633, while each round
+replaced a different bug: the one sitting first in the chain. Those two failed the first check
+(some of their FAIL_TO_PASS pass with the 40 bugs in: 1 of 2, 4 of 6), and the culprit search,
+written for the second check ("does it pass when fixed with this group?"), says yes to any
+group, so bisection kept the left half down to position 0. Five spares went to innocent bugs.
+Found on the way: the fifth swap was made with no check after it and saved beside the records of
+the bug it replaced (image and stored chain disagreed), and undoing a bug the image did not hold
+gave `{"<patch>": "ERROR"}`, which both questions read as an answer. All three fixed with tests
+(04f2d9d): a bug whose tests pass with every bug in gets the group whose undoing makes them fail
+again; a patch that does not apply stops the search; no swap after the last check. In Docker,
+on the image of the last round: pr_6633 hides pr_7827 and pr_6616 hides pr_6633. Validated
+again from the drawn chain: **valid, 40 of 40, one round** (pr_6633, pr_6616 and pr_6229, broken
+on its own, replaced; 2,825 s). conan and dvc are not affected: every invalid bug there failed
+the second check, the one the search was built for.
+
+**Read before B2's numbers: on Sonnet 5.5 memory v4.1 was nearly blind** (found by indagis-fe
+reading `runs/` while B2 ran). Memory records a request's changed files and recalls on Read,
+Edit and Write; Sonnet 5.5 edited only through Bash (`sed -i`, Python heredocs) in 78 % (N),
+100 % (S) and 71 % (Sm) of the requests of phases B and B2, and read only through Bash in
+57-72 %. `Sm`'s records came out with no changed file and nothing was recalled, even after its
+first compaction. So in B2 `Sm` against `S` measures a 100k budget against 160k, not memory.
+Haiku, A's model, edits with Edit/Write in 95-100 % of the requests of every arm in `runs/` and
+in none only through Bash, so A's memory arms see what is edited and A reads as designed. Real
+people in SWE-chat edit only through Bash in 2.2 % of requests and read only through Bash in
+14.9 %. The fix (changed files read from the git tree at the end of a request, and the touch on
+Bash reads) is indagis-fe's, in `src/`, measured before it reaches main; A stays on eebdfa6.
+
+**Run** (2026-10-01, development, approved 30-45 USD, ceiling 45 over the 36.08 already spent):
+`--model sonnet --call-cap 4.5 --chain-cap 15 --ceiling 81.08`, arms `N`, `S` (default install,
+160k budget) and `Sm` (memory, 100k budget), all three on the frozen eebdfa6
+(`ADOPT_SANCHO`). 120 of 120 requests ran, none NOT RUN, no install file restored, no cap hit.
+Spent **22.43 USD** (runs total 36.08 -> 58.51); estimated 15-30 aloud before launching.
+
+| arm | resolved | resolved without its one regression | list cost | ratio to N | peak context | compactions | tool calls | wall | hook time |
+|---|---|---|---|---|---|---|---|---|---|
+| N | 27/40 | 27 | 8.74 USD | 1 | 263k | 0 | 186 | 2,374 s | 0 |
+| S | 30/40 | 30 | 7.32 USD | 0.837 | 160k | 2 (at 161k, 160k) | 222 | 3,217 s | 106 s |
+| Sm | **0/40** | 26 | 6.37 USD | 0.729 | 101k | 4 (at ~100k) | 249 | 3,449 s | 138 s |
+
+- **Sm's 0 is one regression, graded by the rule.** Fixing the "multiple field serializers" bug,
+  Sm's agent put the check back raising `TypeError` where pydantic raises
+  `PydanticUserError(code='multiple-field-serializers')`, so
+  `tests/test_docs.py::test_docs_examples[docs/errors/usage_errors.md:977-996]` fails. That test
+  is in all 40 bugs' PASS_TO_PASS*, so one wrong exception class leaves every bug unresolved. Not
+  a harness fault (checked: the patch applies; N's diff passes all 5,259 common PASS_TO_PASS*;
+  Sm's breaks only that one). With 40 bugs in one working copy the rule turns one regression into
+  forty; the same rule holds for every arm and is reported as it is. Read leniently, Sm resolves
+  26, one fewer than N.
+- **The budget lever shows on Sonnet at last.** N reached 263k without compacting; the default
+  install (S) compacted twice at 160k and cost 0.837 of N, with 3 bugs more; Sm at 100k cost
+  0.729 of N. n = 1 chain: a 3-bug difference is within what one repetition can move.
+- **Memory did nothing** (above: Sonnet edits through Bash; 40 prompts, nothing injected, no
+  touch). `Sm` against `S` is a 100k budget against 160k.
+- **Time is the cost.** S took 35 % and Sm 45 % more wall time than N, more than the hooks
+  explain (106-138 s): more turns after each compaction (222 and 249 tool calls against 186).
+  The study's criterion "no more time than it saves" does not hold here.
+- Adoption: `find_in_repo` 0 calls, skill 0 calls in every arm; the shell guard attached notes
+  2 (S) and 4 (Sm) times, no denial.
+
+What it answers: on a 1M-window model a long session does reach the lever (263k for N), and the
+default 160k budget makes it cheaper at no visible loss in resolved bugs, on one chain. A smaller
+budget is cheaper again, but here its one regression wiped the strict count; whether a 100k
+budget invites more regressions cannot be told from n = 1. Nothing here counts toward a verdict.
