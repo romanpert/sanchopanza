@@ -74,6 +74,28 @@ written before the counted sessions: the per-session cap (0.25 to 0.60 USD, size
 and the phase ceiling (8 to 12 USD, sized on the pilot); the pilot (FULL 6/9, TOP 5/9) is outside
 every count. 8.61 USD spent in all.
 
+## Phase 3h: Playwright MCP after 3f's fixes, twelve new tasks (`prereg-e2e-x.md`)
+
+The hook at fccc06a (huge pages shortlisted before Jev; a matching heading keeps its section),
+a warm-up session first, three runs per task and arm.
+
+| Arm | Success | List USD / session | Turns | Cuts |
+|---|---|---|---|---|
+| PLAIN | 36/36 | 0.1289 | 5.69 | |
+| LEAN | 35/36 | 0.1114 (+0.0015 Jev) | 5.39 | 25 |
+
+LEAN minus PLAIN per task: **-0.0160 USD a session [-0.0409, +0.0044]**: 12.4 % cheaper on
+average, the interval still crossing zero, so the rule **is not met**. 8.77 USD at list price
+with the warm-up, 0.06 of Jev. Both fixes did their part: France's 1,001,580-character snapshot
+(3,569 elements) cost 0.0075 USD of Jev instead of about 0.035; GitHub's React page saved 0.051 a
+session and the Poetry several-step task 0.131.
+
+What kept it from passing is the one fault left from 3c and 3f, and here it cost an answer:
+**a question about position**. X12 asks for the author of the first quote tagged "humor"; the cut
+kept the elements to act on and dropped the first quote, one run answered "Steve Martin" (the
+answer is Jane Austen) and another cost 0.233 USD going back for it (X12: +0.046). Nothing in a
+snapshot line says it comes first.
+
 ## Phases 3f and 3g: twelve more tasks; playwright-cli passes, Playwright MCP does not (`prereg-e2e-wide.md`, amendment)
 
 The reviewed hook (1476d12) on twelve new tasks, five of them several steps long, three runs per
