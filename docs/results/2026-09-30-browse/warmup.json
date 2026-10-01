@@ -1,0 +1,156 @@
+{
+ "3 (playwright-cli)": {
+  "first_session": {
+   "task": "T1",
+   "arm": "PLAIN",
+   "list_usd": 0.1850852,
+   "cache_write": 18183
+  },
+  "all": {
+   "value": 0.0095,
+   "bootstrap95": [
+    -0.0063,
+    0.0273
+   ]
+  },
+  "without_warmup": {
+   "value": 0.017,
+   "bootstrap95": [
+    -0.0063,
+    0.0498
+   ]
+  }
+ },
+ "3b (Playwright MCP)": {
+  "first_session": {
+   "task": "M1",
+   "arm": "PLAIN",
+   "list_usd": 0.110627,
+   "cache_write": 14103
+  },
+  "all": {
+   "value": -0.0009,
+   "bootstrap95": [
+    -0.0185,
+    0.0126
+   ]
+  },
+  "without_warmup": {
+   "value": -0.0024,
+   "bootstrap95": [
+    -0.0229,
+    0.0126
+   ]
+  }
+ },
+ "3c (Playwright MCP, fixed)": {
+  "first_session": {
+   "task": "M1",
+   "arm": "PLAIN",
+   "list_usd": 0.2706194,
+   "cache_write": 59601
+  },
+  "all": {
+   "value": -0.0116,
+   "bootstrap95": [
+    -0.0466,
+    0.0154
+   ]
+  },
+  "without_warmup": {
+   "value": -0.0087,
+   "bootstrap95": [
+    -0.0378,
+    0.0154
+   ]
+  }
+ },
+ "3d (Playwright MCP, new tasks)": {
+  "first_session": {
+   "task": "N1",
+   "arm": "PLAIN",
+   "list_usd": 0.1305832,
+   "cache_write": 24391
+  },
+  "all": {
+   "value": -0.0144,
+   "bootstrap95": [
+    -0.027,
+    -0.0025
+   ]
+  },
+  "without_warmup": {
+   "value": -0.0143,
+   "bootstrap95": [
+    -0.0266,
+    -0.0025
+   ]
+  }
+ },
+ "3e (playwright-cli, new tasks)": {
+  "first_session": {
+   "task": "N1",
+   "arm": "PLAIN",
+   "list_usd": 0.230783,
+   "cache_write": 49489
+  },
+  "all": {
+   "value": -0.0094,
+   "bootstrap95": [
+    -0.0184,
+    -0.0036
+   ]
+  },
+  "without_warmup": {
+   "value": -0.0037,
+   "bootstrap95": [
+    -0.0066,
+    -0.0004
+   ]
+  }
+ },
+ "3f (Playwright MCP, wide)": {
+  "first_session": {
+   "task": "W1",
+   "arm": "PLAIN",
+   "list_usd": 0.2527162,
+   "cache_write": 56323
+  },
+  "all": {
+   "value": -0.0879,
+   "bootstrap95": [
+    -0.0879,
+    -0.0879
+   ]
+  },
+  "without_warmup": {
+   "value": -0.0527,
+   "bootstrap95": [
+    -0.0527,
+    -0.0527
+   ]
+  }
+ },
+ "3g (playwright-cli, wide)": {
+  "first_session": {
+   "task": "W1",
+   "arm": "PLAIN",
+   "list_usd": 0.2395902,
+   "cache_write": 51655
+  },
+  "all": {
+   "value": -0.0727,
+   "bootstrap95": [
+    -0.0727,
+    -0.0727
+   ]
+  },
+  "without_warmup": {
+   "value": -0.0107,
+   "bootstrap95": [
+    -0.0107,
+    -0.0107
+   ]
+  }
+ }
+}
