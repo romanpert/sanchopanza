@@ -129,7 +129,8 @@ would show the model: whether every required answer of the task is in it.
 | none | 143 | 1 |
 | a31edd3 (before 2026-10-01's fixes) | 152 | 1 |
 | 07f6a72 (saved output ranked whole) | 154 | 3 |
-| 0138a2d (infobox rows; page order for position and search) | **173** | **15** |
+| 0138a2d (infobox rows; page order for position and search) | 173 | 15 |
+| now (nearest infobox rows first; a kept element's card) | **177** | **15** |
 
 None of the 152 is lost. The 21 gained: 14 saved `Bash` outputs (questions about position and the
 agent's own `find`, which used to pass through and show the model the first 2,000 raw
@@ -137,6 +138,16 @@ characters) and 7 MCP snapshots of infoboxes (Everest, Guido van Rossum, France)
 plain text. Of the 5 saved outputs still missed, 3 do not hold the answer at all (W9) and 2 are
 React's page, which BM25 misses and Jev finds. Designed on these snapshots, so it claims nothing;
 Phases 3l and 3m measure it on new tasks (`visible-dev-*.json`).
+
+**Ranked by Jev** (`visible.py score OUT --jev`, as the hook ranks; 0.25 USD of Jev a run), the
+hook at 0138a2d shows the answer in 185 of 239 (`visible-dev-jev.json`), saved `Bash` outputs 17
+of 20. Of the 17 snapshots it cut without the answer in view, 13 do not hold it (a step before
+the page that does). The other four were two faults, fixed since: the Danube's "Length" was the
+23rd of 52 infobox rows and the 3,000-character budget ran out in page order, so the rows nearest
+the kept one now come first; and Y12's price "£17.44" sat beside the kept link "The Stranger" in
+its product card, so a kept element now brings up to four lines that say something from its
+list item, article or row (when the card has at most 24 lines; star glyphs say nothing). By BM25:
+177, the four gained, none lost; three marginal cuts of T1 now pass through whole.
 
 ## Phases 3j and 3k: twelve new tasks after the saved-output and position fixes (`prereg-e2e-y.md`)
 

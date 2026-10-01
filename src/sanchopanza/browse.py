@@ -479,10 +479,16 @@ def _role(line: str) -> str:
     return match["role"] if match else ""
 
 
-def _has_content(line: str) -> bool:
-    """A line that says something: a name or text, not a `/url` or a bare container."""
+def _name(line: str) -> str | None:
     match = _SNAPSHOT_LINE.match(line)
-    return bool(match and (match["name"] or match["text"]))
+    return match["name"] if match else None
+
+
+def _has_content(line: str) -> bool:
+    """A line that says something: a name or text with a letter or digit, not a `/url`, a bare
+    container, or a star icon's glyph (books.toscrape's rating is five of them)."""
+    match = _SNAPSHOT_LINE.match(line)
+    return bool(match and re.search(r"[^\W_]", (match["name"] or "") + (match["text"] or "")))
 
 
 def _key_value_rows(lines: Sequence[str], depth: Sequence[int], keep: set[int]) -> set[int]:
@@ -513,7 +519,7 @@ def _key_value_rows(lines: Sequence[str], depth: Sequence[int], keep: set[int]) 
     touched = [t for t in tables if any(t < k < end(t) for k in keep)]
     extra: set[int] = set()
     for t in touched:
-        used = 0
+        rows = []  # (row start, its kept lines when key-value)
         for r in range(t + 1, end(t)):
             if _role(lines[r]) != "row":
                 continue
@@ -522,12 +528,59 @@ def _key_value_rows(lines: Sequence[str], depth: Sequence[int], keep: set[int]) 
                 continue
             header, cell = kids
             content = [j for j in range(cell + 1, end(cell)) if _has_content(lines[j])]
-            row = [r, *range(header, end(header)), cell, *content[: KEY_VALUE_LINES - 1]]
+            rows.append(
+                (r, [r, *range(header, end(header)), cell, *content[: KEY_VALUE_LINES - 1]])
+            )
+        # Nearest the rows the cut kept first: an infobox groups related facts ("Mouth",
+        # "location", "Length"), and in page order the budget ran out 23 rows in (Danube, Y4).
+        held = [n for n, (r, _) in enumerate(rows) if any(r <= k < end(r) for k in keep)]
+        order = sorted(range(len(rows)), key=lambda n: min((abs(n - h) for h in held), default=n))
+        used = 0
+        for n in order:
+            row = rows[n][1]
             cost = sum(len(lines[j]) for j in row if j not in keep)
             if used + cost > KEY_VALUE_CHARS:
                 break
             extra.update(row)
             used += cost
+    return extra
+
+
+CARD_ROLES = frozenset({"listitem", "article", "row"})
+CARD_MAX_LINES = 24  # books.toscrape's product card is 18
+CARD_LINES = 4
+
+
+def _card_facts(lines: Sequence[str], depth: Sequence[int], elements: set[int]) -> set[int]:
+    """The facts beside a kept element in its card: the price next to a product's title.
+
+    3j/3k Y12: the cut kept the link "The Stranger" and dropped "£17.44", a paragraph beside it in
+    the same product card, with no word of the question. A kept element's nearest list item,
+    article or row brings up to `CARD_LINES` lines that say something, when the card is small
+    (`CARD_MAX_LINES`), so a long section never comes in whole."""
+    extra: set[int] = set()
+    for i in elements:
+        card, level = None, depth[i]
+        for j in range(i - 1, -1, -1):
+            if depth[j] < level:
+                if _role(lines[j]) in CARD_ROLES:
+                    card = j
+                    break
+                level = depth[j]
+        if card is None:
+            continue
+        end = card + 1
+        while end < len(lines) and depth[end] > depth[card]:
+            end += 1
+        if end - card > CARD_MAX_LINES:
+            continue
+        name = _name(lines[i])
+        facts = [
+            j
+            for j in range(card + 1, end)
+            if j != i and _has_content(lines[j]) and _name(lines[j]) != name
+        ]
+        extra.update(facts[:CARD_LINES])
     return extra
 
 
@@ -576,6 +629,8 @@ def prune_snapshot(
             keep.add(text_lines[k])
             used += cost
     keep |= _sections_for(lines, purpose)
+    elements = {i for i in keep if (ref := _REF.search(lines[i])) and ref.group(1) in wanted}
+    keep |= _card_facts(lines, depth, elements)
     keep |= _key_value_rows(lines, depth, keep)
     for i in sorted(keep):  # bring every ancestor, nearest first
         level = depth[i]

@@ -724,11 +724,13 @@ def test_a_key_value_table_the_cut_touches_keeps_its_keys_and_values():
     assert "Lake 3" not in pruned, "a table of several cells a row is not a key-value table"
 
 
-def test_key_value_rows_stop_at_their_budget():
+def test_key_value_rows_nearest_the_kept_one_come_first_within_the_budget():
+    """The Danube's "Length" is the 23rd of 52 rows, three after "Mouth" (the kept one); in page
+    order the budget ran out before it. An infobox groups related facts, so nearest first."""
     from sanchopanza.browse import KEY_VALUE_CHARS, prune_snapshot
 
     pruned, _ = prune_snapshot(_infobox(400), ["lm"], purpose="length", text_budget=0)
-    assert "Key 0" in pruned and "Key 399" not in pruned
+    assert "Key 399" in pruned and "Key 380" in pruned and "Key 0" not in pruned
     assert len(pruned) < 2 * KEY_VALUE_CHARS
 
 
@@ -737,3 +739,34 @@ def test_an_untouched_key_value_table_stays_out():
 
     pruned, _ = prune_snapshot(_infobox(), [], purpose="nothing", text_budget=0)
     assert "Key 5" not in pruned
+
+
+def _catalogue(n: int = 40) -> str:
+    out = ["- generic [ref=e1]:", "  - list [ref=l0]:"]
+    for i in range(n):
+        out += [
+            f"    - listitem [ref=li{i}]:",
+            f"      - article [ref=a{i}]:",
+            f"        - link [ref=im{i}] [cursor=pointer]:",
+            f"          - /url: /b/{i}",
+            f'          - img "Book {i}" [ref=g{i}]',
+            f"        - paragraph [ref=st{i}]:",
+            *[f"          - generic [ref=st{i}x{k}]: " for k in range(5)],
+            f'        - heading "Book {i}" [level=3] [ref=h{i}]:',
+            f'          - link "Book {i}" [ref=k{i}] [cursor=pointer]:',
+            f"            - /url: /b/{i}",
+            f"        - paragraph [ref=p{i}]: £{i}.44",
+            f"        - paragraph [ref=s{i}]: In stock",
+            f'        - button "Add to basket" [ref=b{i}]',
+        ]
+    return "\n".join(out) + "\n"
+
+
+def test_a_kept_element_brings_the_facts_of_its_card():
+    """3j/3k Y12: the cut kept the link "The Stranger" and dropped its price, a paragraph beside
+    it in the same product card."""
+    from sanchopanza.browse import prune_snapshot
+
+    pruned, _ = prune_snapshot(_catalogue(), ["k7"], purpose="price of Book 7", text_budget=0)
+    assert "£7.44" in pruned and "In stock" in pruned
+    assert "£8.44" not in pruned, "only the kept element's own card"

@@ -2,6 +2,7 @@
 
 python benchmarks/browse/visible.py collect         # from the PLAIN sessions' transcripts
 python benchmarks/browse/visible.py score OUT.json  # with the sanchopanza on sys.path
+python benchmarks/browse/visible.py score OUT.json --jev  # ranked by Jev, at most JEV_MAX_USD
 
 Every large snapshot a PLAIN session of the end-to-end phases received (PLAIN results are never
 touched by the hook) is replayed through the hook, ranked by BM25 (free, no Jev), and scored by
@@ -32,6 +33,7 @@ CORPUS = pathlib.Path.home() / ".cache" / "sanchopanza" / "browse-visible" / "co
 BASH_SAVE_CHARS = 30_000  # past this Claude Code saves a Bash output and shows 2,000 characters
 PREVIEW_CHARS = 2_000
 MIN_CHARS = 6_000  # the hook's default trigger
+JEV_MAX_USD = 0.60  # --jev: a hard ceiling, checked before each snapshot
 PHASES = {  # sessions file -> tool
     "e2e-sessions.jsonl": "cli", "e2e-cli-new-sessions.jsonl": "cli",
     "e2e-cli-wide-sessions.jsonl": "cli", "e2e-cli-x-sessions.jsonl": "cli",
@@ -173,21 +175,31 @@ def _shown(out: dict[str, Any], row: dict[str, Any], saved: bool) -> tuple[str, 
     return ("(notice only)" if saved else row["whole"]), acted
 
 
-def score(out_path: str) -> int:
+def _jev_spent(journal: pathlib.Path) -> float:
+    if not journal.exists():
+        return 0.0
+    events = [json.loads(x) for x in journal.read_text(encoding="utf-8").splitlines() if x]
+    return sum(float((e.get("data") or {}).get("cost_usd") or 0.0) for e in events
+               if e.get("kind") == "decision")  # fmt: skip
+
+
+def _replay(rows: list[dict[str, Any]], jev: bool, journal: pathlib.Path) -> list[dict[str, Any]]:
     import tempfile
 
-    from sanchopanza import browse
     from sanchopanza.harness import browse_hook
+    from sanchopanza.harness.claude_code import squire_from_env
     from sanchopanza.squire import Squire
 
     e2e = _load("browse_e2e", HERE / "e2e.py")
-    rows = [json.loads(x) for x in CORPUS.read_text(encoding="utf-8").splitlines()]
-    os.environ["SANCHOPANZA_ARCHIVE"] = tempfile.mkdtemp(prefix="sp-visible-")
     scored = []
-    for row in rows:
+    for index, row in enumerate(rows):
+        if jev and _jev_spent(journal) > JEV_MAX_USD - 0.04:  # 0.04: the dearest snapshot seen
+            raise SystemExit(f"Jev ceiling: {_jev_spent(journal):.4f} USD spent, stopped")
+        squire = squire_from_env(redact=True) if jev else Squire()
         with tempfile.TemporaryDirectory() as tmp:
             event, saved = _event(row, pathlib.Path(tmp))
-            out = asyncio.run(browse_hook.post_tool_use(event, Squire()))
+            event = {**event, "session_id": f"v{index}"}  # each its own session ceiling
+            out = asyncio.run(browse_hook.post_tool_use(event, squire))
             text, acted = _shown(out, row, saved)
         plain = row["whole"][:PREVIEW_CHARS] if saved and row["tool"] == "Bash" else (
             "(notice only)" if saved else row["whole"])  # fmt: skip
@@ -198,7 +210,29 @@ def score(out_path: str) -> int:
             "visible": e2e.graded(text, row["required"]),
             "visible_plain": e2e.graded(plain, row["required"]),
         })  # fmt: skip
-    summary = {"source": str(pathlib.Path(browse.__file__).parent), "snapshots": len(scored)}
+    return scored
+
+
+def score(out_path: str, jev: bool = False) -> int:
+    """Replay every snapshot; the archive and the journal live in a folder removed at the end."""
+    import tempfile
+
+    from sanchopanza import browse
+
+    if jev and not os.environ.get("TYPESAFE_API_KEY"):
+        raise SystemExit("--jev ranks with Jev: no TYPESAFE_API_KEY, nothing spent")
+    rows = [json.loads(x) for x in CORPUS.read_text(encoding="utf-8").splitlines()]
+    with tempfile.TemporaryDirectory(prefix="sp-visible-") as work:
+        journal = pathlib.Path(work) / "journal.jsonl"
+        os.environ["SANCHOPANZA_ARCHIVE"] = str(pathlib.Path(work) / "archive")
+        if jev:
+            os.environ["SANCHOPANZA_JOURNAL"] = str(journal)
+        scored = _replay(rows, jev, journal)
+        jev_usd = round(_jev_spent(journal), 4)
+    summary: dict[str, Any] = {
+        "source": str(pathlib.Path(browse.__file__).parent), "snapshots": len(scored),
+        "ranked_by": "jev" if jev else "bm25", "jev_usd": jev_usd,
+    }  # fmt: skip
     for key in ("all", "saved Bash", "acted"):
         part = [s for s in scored if key == "all" or (key == "acted" and s["acted"])
                 or (key == "saved Bash" and s["saved"] and s["tool"] == "Bash")]  # fmt: skip
@@ -217,6 +251,6 @@ def score(out_path: str) -> int:
 if __name__ == "__main__":
     if sys.argv[1:2] == ["collect"]:
         raise SystemExit(collect())
-    if sys.argv[1:2] == ["score"] and len(sys.argv) == 3:
-        raise SystemExit(score(sys.argv[2]))
+    if sys.argv[1:2] == ["score"] and len(sys.argv) in (3, 4):
+        raise SystemExit(score(sys.argv[2], jev=sys.argv[3:4] == ["--jev"]))
     raise SystemExit(__doc__)

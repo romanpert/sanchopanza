@@ -1,26 +1,26 @@
 {
  "summary": {
-  "source": "working tree",
+  "source": "C:\\Users\\roman\\Desktop\\proyectos\\apps\\sanchopanza\\src\\sanchopanza",
   "snapshots": 239,
-  "ranked_by": "bm25",
-  "jev_usd": 0.0,
+  "ranked_by": "jev",
+  "jev_usd": 0.2462,
   "all": {
    "n": 239,
-   "visible_with_hook": 177,
+   "visible_with_hook": 185,
    "visible_without": 143,
-   "chars_shown_mean": 14518
+   "chars_shown_mean": 14188
   },
   "saved Bash": {
    "n": 20,
-   "visible_with_hook": 15,
+   "visible_with_hook": 17,
    "visible_without": 1,
-   "chars_shown_mean": 1971
+   "chars_shown_mean": 1958
   },
   "acted": {
-   "n": 72,
-   "visible_with_hook": 50,
+   "n": 75,
+   "visible_with_hook": 58,
    "visible_without": 16,
-   "chars_shown_mean": 10833
+   "chars_shown_mean": 9662
   }
  },
  "rows": [
@@ -30,9 +30,9 @@
    "task": "T1",
    "tool": "Bash",
    "saved": false,
-   "acted": false,
+   "acted": true,
    "chars_whole": 7615,
-   "chars_shown": 7615,
+   "chars_shown": 6249,
    "visible": false,
    "visible_plain": false
   },
@@ -42,9 +42,9 @@
    "task": "T1",
    "tool": "Bash",
    "saved": false,
-   "acted": false,
+   "acted": true,
    "chars_whole": 7615,
-   "chars_shown": 7615,
+   "chars_shown": 6249,
    "visible": false,
    "visible_plain": false
   },
@@ -54,9 +54,9 @@
    "task": "T1",
    "tool": "Bash",
    "saved": false,
-   "acted": false,
+   "acted": true,
    "chars_whole": 8443,
-   "chars_shown": 8443,
+   "chars_shown": 7077,
    "visible": false,
    "visible_plain": false
   },
@@ -656,7 +656,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 32362,
-   "chars_shown": 1998,
+   "chars_shown": 1990,
    "visible": true,
    "visible_plain": false
   },
@@ -668,8 +668,8 @@
    "saved": true,
    "acted": true,
    "chars_whole": 65340,
-   "chars_shown": 1890,
-   "visible": false,
+   "chars_shown": 1754,
+   "visible": true,
    "visible_plain": false
   },
   {
@@ -692,8 +692,8 @@
    "saved": true,
    "acted": true,
    "chars_whole": 65343,
-   "chars_shown": 1890,
-   "visible": false,
+   "chars_shown": 1754,
+   "visible": true,
    "visible_plain": false
   },
   {
@@ -1004,7 +1004,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 55397,
-   "chars_shown": 1988,
+   "chars_shown": 1997,
    "visible": true,
    "visible_plain": false
   },
@@ -1304,8 +1304,8 @@
    "saved": true,
    "acted": true,
    "chars_whole": 72461,
-   "chars_shown": 13405,
-   "visible": false,
+   "chars_shown": 13314,
+   "visible": true,
    "visible_plain": false
   },
   {
@@ -1316,7 +1316,7 @@
    "saved": false,
    "acted": true,
    "chars_whole": 48653,
-   "chars_shown": 12774,
+   "chars_shown": 12307,
    "visible": false,
    "visible_plain": false
   },
@@ -1328,8 +1328,8 @@
    "saved": true,
    "acted": true,
    "chars_whole": 72465,
-   "chars_shown": 13405,
-   "visible": false,
+   "chars_shown": 13716,
+   "visible": true,
    "visible_plain": false
   },
   {
@@ -1340,7 +1340,7 @@
    "saved": false,
    "acted": true,
    "chars_whole": 48653,
-   "chars_shown": 12774,
+   "chars_shown": 12461,
    "visible": false,
    "visible_plain": false
   },
@@ -1352,19 +1352,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 72483,
-   "chars_shown": 13405,
-   "visible": false,
-   "visible_plain": false
-  },
-  {
-   "id": "51fdaf88dc8f",
-   "phase": "e2e-mcp-sessions.jsonl",
-   "task": "M2",
-   "tool": "mcp__playwright__browser_snapshot",
-   "saved": true,
-   "acted": true,
-   "chars_whole": 860106,
-   "chars_shown": 20738,
+   "chars_shown": 13446,
    "visible": true,
    "visible_plain": false
   },
@@ -1376,7 +1364,19 @@
    "saved": true,
    "acted": true,
    "chars_whole": 860106,
-   "chars_shown": 20738,
+   "chars_shown": 16892,
+   "visible": true,
+   "visible_plain": false
+  },
+  {
+   "id": "51fdaf88dc8f",
+   "phase": "e2e-mcp-sessions.jsonl",
+   "task": "M2",
+   "tool": "mcp__playwright__browser_snapshot",
+   "saved": true,
+   "acted": true,
+   "chars_whole": 860106,
+   "chars_shown": 17032,
    "visible": true,
    "visible_plain": false
   },
@@ -1400,7 +1400,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 505062,
-   "chars_shown": 20179,
+   "chars_shown": 18503,
    "visible": true,
    "visible_plain": false
   },
@@ -1424,7 +1424,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 505048,
-   "chars_shown": 20174,
+   "chars_shown": 18499,
    "visible": true,
    "visible_plain": false
   },
@@ -1460,7 +1460,7 @@
    "saved": false,
    "acted": true,
    "chars_whole": 48653,
-   "chars_shown": 12774,
+   "chars_shown": 12349,
    "visible": false,
    "visible_plain": false
   },
@@ -1472,7 +1472,7 @@
    "saved": false,
    "acted": true,
    "chars_whole": 48653,
-   "chars_shown": 12774,
+   "chars_shown": 12225,
    "visible": false,
    "visible_plain": false
   },
@@ -1484,7 +1484,7 @@
    "saved": false,
    "acted": true,
    "chars_whole": 52180,
-   "chars_shown": 13420,
+   "chars_shown": 12766,
    "visible": false,
    "visible_plain": false
   },
@@ -1496,7 +1496,7 @@
    "saved": false,
    "acted": true,
    "chars_whole": 48653,
-   "chars_shown": 12774,
+   "chars_shown": 12560,
    "visible": false,
    "visible_plain": false
   },
@@ -1568,7 +1568,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 505048,
-   "chars_shown": 20174,
+   "chars_shown": 18499,
    "visible": true,
    "visible_plain": false
   },
@@ -1580,7 +1580,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 505048,
-   "chars_shown": 20174,
+   "chars_shown": 18499,
    "visible": true,
    "visible_plain": false
   },
@@ -1592,7 +1592,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 505048,
-   "chars_shown": 20174,
+   "chars_shown": 18740,
    "visible": true,
    "visible_plain": false
   },
@@ -1640,7 +1640,7 @@
    "saved": false,
    "acted": true,
    "chars_whole": 32866,
-   "chars_shown": 9936,
+   "chars_shown": 8516,
    "visible": true,
    "visible_plain": true
   },
@@ -1652,7 +1652,7 @@
    "saved": false,
    "acted": true,
    "chars_whole": 32868,
-   "chars_shown": 9939,
+   "chars_shown": 8550,
    "visible": true,
    "visible_plain": true
   },
@@ -1664,7 +1664,7 @@
    "saved": false,
    "acted": true,
    "chars_whole": 32868,
-   "chars_shown": 9939,
+   "chars_shown": 8521,
    "visible": true,
    "visible_plain": true
   },
@@ -1676,7 +1676,7 @@
    "saved": false,
    "acted": true,
    "chars_whole": 32868,
-   "chars_shown": 9939,
+   "chars_shown": 8533,
    "visible": true,
    "visible_plain": true
   },
@@ -1832,7 +1832,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 97052,
-   "chars_shown": 14880,
+   "chars_shown": 11390,
    "visible": true,
    "visible_plain": false
   },
@@ -1844,7 +1844,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 97052,
-   "chars_shown": 14880,
+   "chars_shown": 11184,
    "visible": true,
    "visible_plain": false
   },
@@ -1856,8 +1856,8 @@
    "saved": false,
    "acted": true,
    "chars_whole": 43912,
-   "chars_shown": 9169,
-   "visible": false,
+   "chars_shown": 8954,
+   "visible": true,
    "visible_plain": true
   },
   {
@@ -1868,8 +1868,8 @@
    "saved": false,
    "acted": true,
    "chars_whole": 43914,
-   "chars_shown": 9172,
-   "visible": false,
+   "chars_shown": 9001,
+   "visible": true,
    "visible_plain": true
   },
   {
@@ -1880,8 +1880,8 @@
    "saved": false,
    "acted": true,
    "chars_whole": 43914,
-   "chars_shown": 9172,
-   "visible": false,
+   "chars_shown": 9052,
+   "visible": true,
    "visible_plain": true
   },
   {
@@ -1892,8 +1892,8 @@
    "saved": true,
    "acted": true,
    "chars_whole": 73257,
-   "chars_shown": 12218,
-   "visible": false,
+   "chars_shown": 12291,
+   "visible": true,
    "visible_plain": false
   },
   {
@@ -1904,8 +1904,8 @@
    "saved": false,
    "acted": true,
    "chars_whole": 43212,
-   "chars_shown": 11575,
-   "visible": false,
+   "chars_shown": 11418,
+   "visible": true,
    "visible_plain": true
   },
   {
@@ -1916,8 +1916,8 @@
    "saved": true,
    "acted": true,
    "chars_whole": 73257,
-   "chars_shown": 12218,
-   "visible": false,
+   "chars_shown": 12420,
+   "visible": true,
    "visible_plain": false
   },
   {
@@ -1928,7 +1928,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 391820,
-   "chars_shown": 17992,
+   "chars_shown": 16274,
    "visible": true,
    "visible_plain": false
   },
@@ -1964,7 +1964,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 951787,
-   "chars_shown": 21831,
+   "chars_shown": 17852,
    "visible": true,
    "visible_plain": false
   },
@@ -1976,8 +1976,8 @@
    "saved": true,
    "acted": true,
    "chars_whole": 561204,
-   "chars_shown": 16690,
-   "visible": false,
+   "chars_shown": 13677,
+   "visible": true,
    "visible_plain": false
   },
   {
@@ -2204,7 +2204,7 @@
    "saved": false,
    "acted": true,
    "chars_whole": 32034,
-   "chars_shown": 9456,
+   "chars_shown": 8289,
    "visible": true,
    "visible_plain": true
   },
@@ -2216,7 +2216,7 @@
    "saved": false,
    "acted": true,
    "chars_whole": 32034,
-   "chars_shown": 9456,
+   "chars_shown": 8311,
    "visible": true,
    "visible_plain": true
   },
@@ -2228,7 +2228,7 @@
    "saved": false,
    "acted": true,
    "chars_whole": 32032,
-   "chars_shown": 9453,
+   "chars_shown": 8122,
    "visible": true,
    "visible_plain": true
   },
@@ -2240,7 +2240,7 @@
    "saved": false,
    "acted": true,
    "chars_whole": 31787,
-   "chars_shown": 7411,
+   "chars_shown": 6910,
    "visible": true,
    "visible_plain": true
   },
@@ -2252,7 +2252,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 1001679,
-   "chars_shown": 21539,
+   "chars_shown": 18930,
    "visible": true,
    "visible_plain": false
   },
@@ -2264,7 +2264,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 1001679,
-   "chars_shown": 21539,
+   "chars_shown": 18897,
    "visible": true,
    "visible_plain": false
   },
@@ -2276,7 +2276,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 1001645,
-   "chars_shown": 21539,
+   "chars_shown": 18937,
    "visible": true,
    "visible_plain": false
   },
@@ -2288,7 +2288,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 275952,
-   "chars_shown": 13720,
+   "chars_shown": 14000,
    "visible": true,
    "visible_plain": false
   },
@@ -2300,7 +2300,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 275952,
-   "chars_shown": 13720,
+   "chars_shown": 14007,
    "visible": true,
    "visible_plain": false
   },
@@ -2312,7 +2312,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 275956,
-   "chars_shown": 13722,
+   "chars_shown": 14020,
    "visible": true,
    "visible_plain": false
   },
@@ -2324,7 +2324,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 326339,
-   "chars_shown": 14314,
+   "chars_shown": 11927,
    "visible": true,
    "visible_plain": false
   },
@@ -2336,7 +2336,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 326339,
-   "chars_shown": 14313,
+   "chars_shown": 11820,
    "visible": true,
    "visible_plain": false
   },
@@ -2564,7 +2564,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 821907,
-   "chars_shown": 17952,
+   "chars_shown": 15157,
    "visible": true,
    "visible_plain": false
   },
@@ -2576,7 +2576,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 821907,
-   "chars_shown": 17952,
+   "chars_shown": 15228,
    "visible": true,
    "visible_plain": false
   },
@@ -2588,8 +2588,8 @@
    "saved": true,
    "acted": true,
    "chars_whole": 476996,
-   "chars_shown": 23105,
-   "visible": true,
+   "chars_shown": 17483,
+   "visible": false,
    "visible_plain": false
   },
   {
@@ -2600,8 +2600,8 @@
    "saved": true,
    "acted": true,
    "chars_whole": 476986,
-   "chars_shown": 23105,
-   "visible": true,
+   "chars_shown": 17500,
+   "visible": false,
    "visible_plain": false
   },
   {
@@ -2660,7 +2660,7 @@
    "saved": true,
    "acted": true,
    "chars_whole": 198361,
-   "chars_shown": 13259,
+   "chars_shown": 13402,
    "visible": true,
    "visible_plain": false
   },
@@ -2864,7 +2864,7 @@
    "saved": false,
    "acted": true,
    "chars_whole": 31777,
-   "chars_shown": 7168,
+   "chars_shown": 6392,
    "visible": false,
    "visible_plain": false
   },
@@ -2876,8 +2876,8 @@
    "saved": false,
    "acted": true,
    "chars_whole": 21401,
-   "chars_shown": 6128,
-   "visible": true,
+   "chars_shown": 5505,
+   "visible": false,
    "visible_plain": true
   },
   {
@@ -2888,8 +2888,8 @@
    "saved": false,
    "acted": true,
    "chars_whole": 21401,
-   "chars_shown": 6128,
-   "visible": true,
+   "chars_shown": 5503,
+   "visible": false,
    "visible_plain": true
   }
  ]
