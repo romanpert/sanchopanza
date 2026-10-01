@@ -33,10 +33,11 @@ the hook now reads the saved result behind the notice (only from its own session
 `tool-results` folder) and returns it pruned; the agent's own `find` results pass untouched; and
 the goal is `browse_goal`, which keeps the question at the end of a request. Phase 3c found
 two more (a `Read` with a limit and a targeted snapshot were cut; recovery read the whole
-archive), fixed too. **Phase 3d, registered, six new tasks: 12.9 % cheaper with Playwright
-MCP, -0.0144 USD a session [-0.0270, -0.0025], no answer lost.** Recommended with Playwright
-MCP. With playwright-cli (Phase 3e, same tasks): -0.0094 USD a session [-0.0184, -0.0036],
-rule met, though it cut on two of the six tasks and part of that saving is noise.
+archive), fixed too. Registered results: with playwright-cli about 5 % cheaper on twelve
+tasks (Phase 3g, -0.0058 USD a session [-0.0115, -0.0012] without the cache-warming first
+run); with Playwright MCP 12.9 % on six tasks (3d) but not settled on twelve more (3f,
+-0.0061 [-0.0257, +0.0101]), whose causes (Jev on huge pages, a section cut short) are
+fixed and not re-measured. No answer lost in any phase.
 """
 
 from __future__ import annotations

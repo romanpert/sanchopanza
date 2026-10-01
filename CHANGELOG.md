@@ -50,16 +50,18 @@ do not favour this package.
     rank order and lost 5 points; in 6 of its 7 lost steps the target was shown, so the fix was
     the presentation: `browse.in_page_order` keeps the page's order and says which of a repeated
     line each element is. `render`, the CLI and `rank_elements` use it.
-  - **A hook that prunes browser snapshots makes a Claude Code session with Playwright MCP 12.9 %
-    cheaper** (`harness.browse_hook`; registered, 48 sessions on six new tasks: -0.0144 USD a
-    session [-0.0270, -0.0025], no answer lost). It saved nothing at first, with `playwright-cli`
+  - **A hook that prunes browser snapshots** (`harness.browse_hook`): with `playwright-cli`
+    about 5 % cheaper per Claude Code session (registered, twelve tasks: -0.0058 USD [-0.0115,
+    -0.0012] without the cache-warming first run); with Playwright MCP 12.9 % cheaper on six
+    tasks (-0.0144 [-0.0270, -0.0025]) but not on twelve more (-0.0061 [-0.0257, +0.0101]),
+    where Jev's cost on huge pages and a section cut short ate the gain (both fixed since, not
+    re-measured). No answer lost in any of them. It saved nothing at first, with `playwright-cli`
     and in its first Playwright MCP run; the transcripts showed five faults of the hook, all
     fixed with tests: Claude Code replaces an MCP result past its token limit with a notice before
     any hook runs (the hook now reads the saved result from its own session's `tool-results`
     folder), the agent's own searches, narrowed reads and targeted snapshots were cut, the goal
     lost the user's question (`browse_goal`), and recovery read the whole archive instead of
-    grepping it. With `playwright-cli` on the same new tasks: -0.0094 USD a session [-0.0184,
-    -0.0036], rule met, though it cut on two of six tasks and part of that is session noise.
+    grepping it.
   - **An unnamed element is described by its classes and the element holding it**
     (`elements_from_html`, default; `describe_unnamed=False` turns it off): an SVG with class
     `add-wishlist-new__icon` reads "looks like: add wishlist". Registered against a control that

@@ -16,7 +16,7 @@ registered bound, at an eighth of the cost. The first try (Phase 2c) showed them
 and lost 5 points; in 6 of its 7 lost steps the target was among those shown, and the fix was
 the order and a note on repeated lines, not the ranking.
 
-**A hook that prunes snapshots inside a real Claude Code session with Playwright MCP makes it 12.9 % cheaper** (Phase 3d, registered, 48 sessions on six new tasks): -0.0144 USD a session [-0.0270, -0.0025], 24 of 24 answers in both arms. It took four phases. With `playwright-cli` (Phase 3) and in its first Playwright MCP run (3b) it saved nothing, and reading the transcripts found five faults of the hook, not of the ranking: Claude Code replaces a large MCP result with a notice before any hook runs, the hook cut the agent's own searches and narrowed reads, its goal lost the user's question, and its note sent the agent to read the whole archive. With them fixed it passed on tasks it was never fixed on.
+**A hook that prunes snapshots inside a real Claude Code session**: with `playwright-cli` about 5 % cheaper on twelve tasks (Phase 3g, registered: -0.0058 USD a session [-0.0115, -0.0012] without the cache-warming first run), no answer lost. With Playwright MCP 12.9 % cheaper on six tasks (3d, -0.0144 [-0.0270, -0.0025]) and not settled on twelve more (3f, -0.0061 [-0.0257, +0.0101]); the two causes found there are fixed and not yet re-measured. It took several phases: at first it saved nothing, and the transcripts found the faults, all of the hook, none of the ranking.
 
 What stands is the ranking as a tool: `sanchopanza browse PAGE --goal ...` from a shell, or the
 `rank_elements` MCP tool, returns the elements a step needs with their refs, confirmed at 89 % in
