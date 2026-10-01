@@ -4,9 +4,9 @@
 
 The amendment of 2026-10-01 (`prereg-confirm.md`), approved by the owner before sealing the
 confirmation and before any held-out session: conan-1, conan-2, dvc-1, conan-rel-1, conan-rel-2
-and dvc-rel-1 stayed invalid because their three spares hide each other too. Nothing drawn before changes:
-this replays the sealed draws (`chains.select`, `related.select`) with their seeds, checks it
-gets exactly the spares they drew, and takes the next ones after them:
+and dvc-rel-1 stayed invalid because their three spares hide each other too. Nothing drawn
+before changes: this replays the sealed draws (`chains.select`, `related.select`) with their
+seeds, checks it gets exactly the spares they drew, and takes the next ones after them:
 
 - a chain of `tasks.md`: the next bugs of the same shuffled list its spares came from, after the
   last chain's spares, `EXTRA` per chain in chain order, skipping any bug used anywhere;
