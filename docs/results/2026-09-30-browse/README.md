@@ -16,7 +16,7 @@ registered bound, at an eighth of the cost. The first try (Phase 2c) showed them
 and lost 5 points; in 6 of its 7 lost steps the target was among those shown, and the fix was
 the order and a note on repeated lines, not the ranking.
 
-**A hook that prunes snapshots inside a real Claude Code session**: with `playwright-cli` about 5 % cheaper on twelve tasks (Phase 3g, registered: -0.0058 USD a session [-0.0115, -0.0012] without the cache-warming first run), no answer lost. With Playwright MCP 12.9 % cheaper on six tasks (3d, -0.0144 [-0.0270, -0.0025]) and not settled on twelve more (3f, -0.0061 [-0.0257, +0.0101]); the two causes found there are fixed and not yet re-measured. It took several phases: at first it saved nothing, and the transcripts found the faults, all of the hook, none of the ranking.
+**A hook that prunes snapshots inside a real Claude Code session saves money on some samples and not on others, so it is not recommended.** Registered results, each on tasks the hook was not fixed on: with Playwright MCP 12.9 % cheaper on six tasks (3d, interval below zero), 12.4 % on twelve more (3h, interval crossing zero) and no clear saving on another twelve (3f); with playwright-cli about 5 % on twelve tasks (3g, below zero) and nothing on twelve more (3i). It never lost an answer except to questions about position ("the first quote listed"), where the cut dropped the first item; for those it now passes through, not yet measured. Every fault the phases found was in the hook, none in the ranking.
 
 What stands is the ranking as a tool: `sanchopanza browse PAGE --goal ...` from a shell, or the
 `rank_elements` MCP tool, returns the elements a step needs with their refs, confirmed at 89 % in
@@ -73,6 +73,30 @@ steps FULL answered, descriptively: FULL 61.4 %, TOP 56.1 %, the same gap. Two a
 written before the counted sessions: the per-session cap (0.25 to 0.60 USD, sized on the pages)
 and the phase ceiling (8 to 12 USD, sized on the pilot); the pilot (FULL 6/9, TOP 5/9) is outside
 every count. 8.61 USD spent in all.
+
+## Phase 3i: playwright-cli on the same twelve tasks: no saving (`prereg-e2e-x.md`)
+
+| Arm | Success | List USD / session | Turns | Cuts |
+|---|---|---|---|---|
+| PLAIN | 36/36 | 0.1210 | 5.22 | |
+| LEAN | 34/36 | 0.1218 (+0.0006 Jev) | 5.47 | 16 |
+
+LEAN minus PLAIN per task: **+0.0014 USD a session [-0.0067, +0.0109]**; the rule **is not met**
+(success is within it, cost is not). Phase 3g's saving with playwright-cli does not repeat here.
+Both LEAN failures are X12, the positional question again: two runs named Steve Martin. Losses
+on X2 (React's GitHub page, +0.031) and X4 (France, +0.032); not yet read. 8.84 USD at list price,
+0.02 of Jev.
+
+**Two faults of the runner, stated plainly.** The two phases were launched from one shell line in
+which the log path existed only in the first background job, so 3i did not start with 3h; it was
+started on its own minutes later, nothing spent in between. And Phase 3's early stop ("the first
+two tasks passed 8 USD") summed every row, so 3i stopped at 64 of 72 sessions with 8.08 USD
+spent; fixed (9a8e45f, the first two tasks only) and resumed, the cache cold again for the first
+resumed session (X11 run 3): without that run the difference is +0.0016 [-0.0065, +0.0110].
+
+**After 3h and 3i the hook does not cut for a question about position** (`asks_for_position`:
+"the first one", "the 3rd book", "the last entry", but not "when did it first appear"). It cost
+answers in 3h and 3i and extra turns in 3c and 3f. Not yet measured.
 
 ## Phase 3h: Playwright MCP after 3f's fixes, twelve new tasks (`prereg-e2e-x.md`)
 

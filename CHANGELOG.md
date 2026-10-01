@@ -50,12 +50,11 @@ do not favour this package.
     rank order and lost 5 points; in 6 of its 7 lost steps the target was shown, so the fix was
     the presentation: `browse.in_page_order` keeps the page's order and says which of a repeated
     line each element is. `render`, the CLI and `rank_elements` use it.
-  - **A hook that prunes browser snapshots** (`harness.browse_hook`): with `playwright-cli`
-    about 5 % cheaper per Claude Code session (registered, twelve tasks: -0.0058 USD [-0.0115,
-    -0.0012] without the cache-warming first run); with Playwright MCP 12.9 % cheaper on six
-    tasks (-0.0144 [-0.0270, -0.0025]) but not on twelve more (-0.0061 [-0.0257, +0.0101]),
-    where Jev's cost on huge pages and a section cut short ate the gain (both fixed since, not
-    re-measured). No answer lost in any of them. It saved nothing at first, with `playwright-cli`
+  - **A hook that prunes browser snapshots** (`harness.browse_hook`, opt-in, not
+    recommended): in registered Claude Code sessions it saved on some samples and not on others
+    (Playwright MCP: 12.9 % on six tasks, 12.4 % on twelve with the interval crossing zero,
+    nothing clear on twelve more; playwright-cli: about 5 % on twelve, nothing on twelve more).
+    Questions about position cost answers; it now passes them through (`asks_for_position`). It saved nothing at first, with `playwright-cli`
     and in its first Playwright MCP run; the transcripts showed five faults of the hook, all
     fixed with tests: Claude Code replaces an MCP result past its token limit with a notice before
     any hook runs (the hook now reads the saved result from its own session's `tool-results`

@@ -1,0 +1,65 @@
+{
+ "sessions": 72,
+ "PLAIN": {
+  "runs": 36,
+  "success": 36,
+  "list_usd_mean": 0.121,
+  "jev_usd_mean": 0.0,
+  "turns_mean": 5.22,
+  "cache_read_mean": 243016,
+  "cache_write_mean": 16496,
+  "snapshots_pruned": 0
+ },
+ "LEAN": {
+  "runs": 36,
+  "success": 34,
+  "list_usd_mean": 0.1218,
+  "jev_usd_mean": 0.00062,
+  "turns_mean": 5.47,
+  "cache_read_mean": 251936,
+  "cache_write_mean": 15925,
+  "snapshots_pruned": 16
+ },
+ "LEAN_minus_PLAIN_usd_per_task": {
+  "value": 0.0014,
+  "bootstrap95": [
+   -0.0067,
+   0.0109
+  ],
+  "by_task": {
+   "X1": -0.0192,
+   "X10": -0.0128,
+   "X11": -0.0058,
+   "X12": -0.0061,
+   "X2": 0.0312,
+   "X3": 0.0005,
+   "X4": 0.0321,
+   "X5": -0.0011,
+   "X6": -0.01,
+   "X7": 0.0142,
+   "X8": -0.0006,
+   "X9": -0.0054
+  }
+ },
+ "pilot": [
+  {
+   "task": "X1",
+   "run": -9,
+   "arm": "PLAIN",
+   "ok": true,
+   "subtype": "success",
+   "success": true,
+   "answer": "The pallets/click repository is licensed under the **BSD-3-Clause license**, and **Python** makes up 100% of the code.",
+   "list_usd": 0.0984686,
+   "turns": 5,
+   "input_tokens": 8,
+   "cache_read": 178383,
+   "cache_write": 14583,
+   "output_tokens": 345,
+   "jev_usd": 0.0,
+   "jev_calls": 0,
+   "pruned": [],
+   "workdir": "C:\\Users\\roman\\AppData\\Local\\Temp\\sp-e2e-x1r-9plain-jnz4a_3a"
+  }
+ ]
+}
