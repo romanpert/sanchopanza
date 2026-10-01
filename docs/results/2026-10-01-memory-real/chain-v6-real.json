@@ -1,0 +1,54 @@
+{
+ "dev-starlette": {
+  "arms": "encode__starlette-long-1r1/N,encode__starlette-long-1r1/Sm",
+  "total": {
+   "v5": {
+    "requests": 18,
+    "with_related": 7,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.8
+   },
+   "v6": {
+    "requests": 18,
+    "with_related": 7,
+    "recall": 1.0,
+    "precision": 0.786,
+    "noise": 0.273,
+    "given": 14,
+    "chars_per_request": 2182.444,
+    "records_changing_nothing": 0.089
+   }
+  },
+  "failed_patches": 0
+ },
+ "dev-pydantic": {
+  "arms": "pydantic__pydantic-long40-1/N:1-25,pydantic__pydantic-long40-1/S:1-14,pydantic__pydantic-long40-1/Sm:1-14",
+  "total": {
+   "v5": {
+    "requests": 50,
+    "with_related": 13,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.892
+   },
+   "v6": {
+    "requests": 50,
+    "with_related": 13,
+    "recall": 0.846,
+    "precision": 0.786,
+    "noise": 0.027,
+    "given": 14,
+    "chars_per_request": 792.66,
+    "records_changing_nothing": 0.021
+   }
+  },
+  "failed_patches": 0
+ }
+}

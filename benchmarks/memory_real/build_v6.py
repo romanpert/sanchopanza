@@ -24,8 +24,8 @@ from build_v4 import _NUMBERED, _result_text  # noqa: E402
 from labels import TOUCHING, _relative  # noqa: E402
 
 from sanchopanza.context import episodes as ep  # noqa: E402
+from sanchopanza.context import shell  # noqa: E402
 from sanchopanza.context.transcript import blocks_of  # noqa: E402
-from sanchopanza.harness import memory_hook as mh  # noqa: E402
 
 COMMAND_CHARS = 8_000
 
@@ -51,7 +51,7 @@ def views(messages: Sequence[Mapping[str, Any]], cwd: str) -> list[dict[str, Any
                 command = data.get("command")
                 if isinstance(command, str) and not result.get("is_error"):
                     out.append({"tool": "Bash", "seen": [], "command": command[:COMMAND_CHARS],
-                                "output": text[:mh.SHELL_SCAN]})  # fmt: skip
+                                "output": text[:shell.SCAN]})  # fmt: skip
                 continue
             if name not in TOUCHING:
                 continue
