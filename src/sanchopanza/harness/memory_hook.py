@@ -591,7 +591,7 @@ def touch(event: Mapping[str, Any]) -> dict[str, Any]:
         written = shell_written(command) if SHELL_EDIT_RULE else []
         given = _give(event, written, "Edit", seen, base) if written else {}
         return given or _give(event, [r for r in raws if r not in written], "Read", seen, base)
-    if SHELL_UNTIL_FILE_EDIT and tool in memory_tree.FILE_TOOLS:
+    if SHELL_UNTIL_FILE_EDIT and tool in GATE_EDITS:
         with contextlib.suppress(OSError):
             note_file_edit(store, session)
     raw = data.get("file_path") or data.get("notebook_path")
@@ -655,6 +655,8 @@ SHELL_EDIT_RULE = True  # a file the command writes takes the edit rule (newest,
 # v6.1: once a session edits through a file tool, its shell touch gives nothing (SWE-chat: there
 # the shell touch added no recall and most of what it gave was unrelated).
 SHELL_UNTIL_FILE_EDIT = True
+# An edit of an existing file; not Write, which a shell editor may use once to create one.
+GATE_EDITS = ("Edit", "MultiEdit", "NotebookEdit")
 
 
 def shell_written(command: Any) -> list[str]:

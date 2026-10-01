@@ -162,7 +162,13 @@ def _row(items: list[dict[str, Any]], bash: bool) -> dict[str, Any]:
 
 def score() -> dict[str, Any]:
     """v5's touch (file tools) against v6.1's (file tools and shell), on all fresh items and on
-    those of sessions started after the v3 pass. Counts only, to the repository."""
+    those of sessions started after the v3 pass. Counts only, to the repository. A PowerShell
+    call is replayed as PowerShell (its escape is a backtick)."""
+    as_bash = rv.bash_event
+    rv.bash_event = lambda item, transcript, touch: {
+        **as_bash(item, transcript, touch),
+        "tool_name": touch.get("shell", "Bash"),
+    }
     items = load(ITEMS)
     after = [it for it in items if it["stamp"] >= CUT]
     shell_calls = [t.get("shell", "Bash") for it in items for t in it["touches"] if "command" in t]

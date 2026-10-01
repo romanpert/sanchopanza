@@ -88,7 +88,7 @@ def variant(view: str, least: int, gate: str = "") -> Iterator[None]:
         in_shell["on"] = event.get("tool_name") in mh.SHELL_TOOLS
         key = (str(event.get("session_id")), str(event.get("transcript_path")))
         files, shells, edits = calls.get(key, [0, 0, 0])
-        edit = event.get("tool_name") in ("Edit", "MultiEdit", "Write", "NotebookEdit")
+        edit = event.get("tool_name") in mh.GATE_EDITS
         calls[key] = [files + (not in_shell["on"]), shells + in_shell["on"], edits + edit]
         closed = ((gate == "until_file" and files > 0) or (gate == "habit" and files > shells)
                   or (gate == "until_edit" and edits > 0))  # fmt: skip

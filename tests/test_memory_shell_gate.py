@@ -47,9 +47,32 @@ def test_the_closed_shell_touch_stays_closed_after_the_next_prompt(
 ) -> None:
     monkeypatch.setenv("SANCHOPANZA_MEMORY_PROMPT", "off")  # the prompt itself gives nothing
     new = _bash_setup(store)
-    mh.handle(touch_event(new, "s2", "Write", f"{CWD}/notes.txt", ""))
+    mh.handle(touch_event(new, "s2", "Edit", f"{CWD}/notes.txt", "nothing of s1"))
     mh.handle(event(new, "UserPromptSubmit", "s2", "and now the lexer"))
     assert mh.handle(bash_event(new, "s2", f"cat {CARBON}", HEX_LINE)) == {}
+
+
+def test_a_write_does_not_close_the_shell_touch(store: Path) -> None:
+    # review of the gate: a shell editor may create one file with Write and edit on with sed
+    new = _bash_setup(store)
+    mh.handle(touch_event(new, "s2", "Write", f"{CWD}/notes.txt", ""))
+    assert "session s1" in context_of(mh.handle(bash_event(new, "s2", f"cat {CARBON}", HEX_LINE)))
+
+
+def test_the_flag_survives_a_record_given_and_a_compaction(store: Path) -> None:
+    new = _bash_setup(store)
+    mh.handle(touch_event(new, "s2", "Edit", f"{CWD}/README.md", "nothing of s1"))
+    assert "session s1" in context_of(mh.handle(touch_event(new, "s2", "Read", f"{CWD}/{CARBON}")))
+    mh.handle({**event(new, "SessionStart", "s2"), "source": "compact"})
+    assert mh.handle(bash_event(new, "s2", f"cat {CARBON}", HEX_LINE)) == {}
+    assert mh._state(mh.store_for({"transcript_path": str(new)}), "s2").get("file_edit")
+
+
+def test_a_subagent_s_edit_does_not_close_the_shell_touch(store: Path) -> None:
+    new = _bash_setup(store)
+    edit = touch_event(new, "s2", "Edit", f"{CWD}/README.md", "nothing of s1")
+    mh.handle({**edit, "agent_id": "sub-1"})
+    assert "session s1" in context_of(mh.handle(bash_event(new, "s2", f"cat {CARBON}", HEX_LINE)))
 
 
 def test_another_session_s_edit_does_not_close_this_one(store: Path) -> None:
