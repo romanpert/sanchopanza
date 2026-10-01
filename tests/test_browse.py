@@ -684,3 +684,56 @@ async def test_the_hook_passes_a_positional_goal_through(tmp_path, monkeypatch):
     event = _playwright_event(tmp_path, _big_snapshot(400))
     event["transcript_path"] = _transcript(tmp_path, "Report the title of the first product listed")
     assert await browse_hook.post_tool_use(event, Squire()) == {}
+
+
+def _infobox(rows: int = 30) -> str:
+    out = ["- generic [ref=e1]:", "  - table [ref=t1]:", "    - rowgroup [ref=g1]:"]
+    for i in range(rows):
+        out += [
+            f"      - row [ref=r{i}]:",
+            f'        - rowheader "Key {i}" [ref=h{i}]',
+            f"        - cell [ref=c{i}]:",
+            f"          - text: value {i} km",
+        ]
+    out += [
+        "      - row [ref=rm]:",
+        "        - rowheader [ref=hm]:",
+        '          - link "Mouth" [ref=lm] [cursor=pointer]:',
+        "            - /url: /mouth",
+        "        - cell [ref=cm]:",
+        '          - link "Delta" [ref=ld] [cursor=pointer]:',
+    ]
+    out += ["  - table [ref=t2]:"]
+    for i in range(30):
+        out += [
+            f"    - row [ref=d{i}]:",
+            f'      - rowheader "Lake {i}" [ref=dh{i}]',
+            f'      - cell "Area {i}" [ref=da{i}]',
+            f'      - cell "Depth {i}" [ref=dd{i}]',
+        ]
+    return "\n".join(out) + "\n"
+
+
+def test_a_key_value_table_the_cut_touches_keeps_its_keys_and_values():
+    """Phase 3j, Y4: the cut kept the infobox row "Mouth" (its header is a link) and dropped
+    "Length 2,850 km", plain text the ranking never sees and with no word of "how long"."""
+    from sanchopanza.browse import prune_snapshot
+
+    pruned, _ = prune_snapshot(_infobox(), ["lm"], purpose="how long is the river", text_budget=0)
+    assert '- rowheader "Key 17" [ref=h17]' in pruned and "- text: value 17 km" in pruned
+    assert "Lake 3" not in pruned, "a table of several cells a row is not a key-value table"
+
+
+def test_key_value_rows_stop_at_their_budget():
+    from sanchopanza.browse import KEY_VALUE_CHARS, prune_snapshot
+
+    pruned, _ = prune_snapshot(_infobox(400), ["lm"], purpose="length", text_budget=0)
+    assert "Key 0" in pruned and "Key 399" not in pruned
+    assert len(pruned) < 2 * KEY_VALUE_CHARS
+
+
+def test_an_untouched_key_value_table_stays_out():
+    from sanchopanza.browse import prune_snapshot
+
+    pruned, _ = prune_snapshot(_infobox(), [], purpose="nothing", text_budget=0)
+    assert "Key 5" not in pruned

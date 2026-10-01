@@ -128,3 +128,77 @@ def test_the_ranked_elements_come_before_the_text_that_fills_the_preview():
 
     pruned = '- paragraph [ref=t1]: Price 1\n- paragraph [ref=t2]: Price 2\n- link "Buy" [ref=b9]\n'
     assert preview_lines(pruned, frozenset({"b9"}))[0] == 'link "Buy" [ref=b9]'
+
+
+async def test_a_question_about_position_on_a_saved_output_gets_the_page_in_its_order(
+    tmp_path, monkeypatch
+):
+    """Passing through a saved output shows the model its first 2,000 characters: the banner and
+    the navigation (T6, W12, Y5, Y9). The page's content lines in their own order keep "the
+    first" first and skip what is not content."""
+    from sanchopanza.harness import browse_hook
+
+    monkeypatch.setenv("SANCHOPANZA_ARCHIVE", str(tmp_path / "archive"))
+    transcript, results = _session(tmp_path, "Report the title of the first product listed")
+    nav = "".join(f'  - link "Menu entry {i}" [ref=n{i}] [cursor=pointer]:\n    - /url: /m{i}\n'
+                  for i in range(300))  # fmt: skip
+    page = "- generic [ref=e0]:\n- navigation [ref=nav]:\n" + nav + "- main [ref=m]:\n"
+    body = "".join(f'  - link "Product {i}" [ref=p{i}] [cursor=pointer]:\n' for i in range(400))
+    full = BANNER + PAGE + page + body + "```\n"
+    saved = results / "b3.txt"
+    saved.write_text(full, encoding="utf-8")
+    out = await browse_hook.post_tool_use(_persisted_event(tmp_path, full, saved, transcript),
+                                          Squire())  # fmt: skip
+    shown = out["hookSpecificOutput"]["updatedToolOutput"]["stdout"]
+    assert len(shown) <= browse_hook.PREVIEW_CHARS
+    assert 'link "Product 0" [ref=p0]' in shown and "Menu entry" not in shown
+    assert shown.index("Product 0") < shown.index("Product 1"), "the page's own order"
+    assert "Grep" in shown
+
+
+async def test_a_question_about_position_under_the_limit_still_passes_through(tmp_path):
+    from sanchopanza.harness import browse_hook
+
+    transcript, _ = _session(tmp_path, "Report the title of the first product listed")
+    full = PAGE + _big_snapshot(150) + "```\n"
+    event = _persisted_event(tmp_path, full, None, transcript)
+    assert await browse_hook.post_tool_use(event, Squire()) == {}
+
+
+def test_the_position_preview_reads_from_the_end_for_the_last_and_from_the_table_it_names():
+    from sanchopanza.harness.browse_hook import position_lines
+
+    body = (
+        "- main [ref=m]:\n  - paragraph [ref=p]: A long introduction that fills the space\n"
+        "  - generic [ref=g]: \n  - table [ref=t]:\n"
+        + "".join(f'    - row "Item {i}" [ref=r{i}]\n' for i in range(5))
+    )
+    first_in_table = position_lines(body, "Which item is listed first in the table?")
+    assert first_in_table[0] == 'row "Item 0" [ref=r0]', "from the table the question names"
+    last = position_lines(body, "Report the last item listed")
+    assert last[-1] == 'row "Item 4" [ref=r4]' and "introduction" in last[0]
+    assert not any("" in line for line in last), "a line with no letter or digit is noise"
+
+
+async def test_the_agents_own_search_saved_to_a_file_comes_back_in_page_order(
+    tmp_path, monkeypatch
+):
+    """Y2, Y7: a `find` past 30,000 characters passed through and the model saw 2,000 raw
+    characters. Its matches in page order, uncut, are what fits instead."""
+    from sanchopanza.harness import browse_hook
+
+    monkeypatch.setenv("SANCHOPANZA_ARCHIVE", str(tmp_path / "archive"))
+    transcript, results = _session(tmp_path)
+    full = _full_page()
+    saved = results / "b4.txt"
+    saved.write_text(full, encoding="utf-8")
+    event = _persisted_event(tmp_path, full, saved, transcript)
+    event["tool_input"] = {"command": "playwright-cli -s=x find Product"}
+    shown = (await browse_hook.post_tool_use(event, Squire()))["hookSpecificOutput"][
+        "updatedToolOutput"
+    ]["stdout"]
+    assert len(shown) <= browse_hook.PREVIEW_CHARS and "page order" in shown
+    assert shown.index("Product 0 blue") < shown.index("Product 1 blue")
+    small = _persisted_event(tmp_path, full[:20000], None, transcript)
+    small["tool_input"] = event["tool_input"]
+    assert await browse_hook.post_tool_use(small, Squire()) == {}, "unsaved: never touched"

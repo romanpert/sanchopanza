@@ -38,10 +38,11 @@ Playwright MCP 12.9 % cheaper on six tasks (3d), 12.4 % on twelve with the inter
 zero (3h), nothing clear on twelve more (3f), 13.4 % on twelve more (3j); with playwright-cli
 about 5 % on twelve (3g), nothing on twelve more (3i, 3k: in 3k the agent used `find` and the
 hook cut nothing). Questions about position cost answers in 3h and 3i and now pass through
-(3j, 3k: 30 of 30 right in each arm). 3i's losses (X2, X4) were a `Bash` output past 30,000 characters: Claude Code
-hands the hook that prefix and shows the model 2,000 characters of the reply, so the hook now
-ranks the whole saved output and replies with what fits (`_persisted`, `_preview`).
-Opt-in, not recommended.
+uncut (3j, 3k: 30 of 30 right in each arm). 3i's losses (X2, X4) were a `Bash` output past
+30,000 characters: Claude Code hands the hook that prefix and shows the model 2,000 characters
+of the reply, so the hook ranks the whole saved output and replies with what fits
+(`_persisted`, `_preview`; for a question about position, the content in page order). An infobox
+the cut touches keeps its keys and values (`browse._key_value_rows`). Opt-in.
 """
 
 from __future__ import annotations
@@ -246,11 +247,88 @@ def _preview(text: str, span: tuple[int, int], pruned: str, saved: Path, whole: 
         f"whole page: Grep {whole}.\n"
     )
     out = head + "".join(f"{line}\n" for line in page)
-    for line in preview_lines(pruned, kept):
+    for line in filter(_says_something, preview_lines(pruned, kept)):
         if len(out) + len(line) + 1 > PREVIEW_CHARS:
             break
         out += line + "\n"
     return out
+
+
+_NOT_CONTENT = frozenset({"banner", "navigation", "contentinfo", "complementary", "search"})
+
+
+def content_in_order(body: str) -> str:
+    """The snapshot without the subtrees of its banner, navigation, footer and sidebars."""
+    lines, out, skip_below = body.splitlines(), [], None
+    for line in lines:
+        depth = len(line) - len(line.lstrip())
+        if skip_below is not None and depth > skip_below:
+            continue
+        skip_below = None
+        role = re.match(r"\s*- ([a-z]+)", line)
+        if role and role[1] in _NOT_CONTENT:
+            skip_below = depth
+            continue
+        out.append(line)
+    return "\n".join(out)
+
+
+_SAYS_NOTHING = re.compile(r"^[a-z]+(?: \[[^\]]*\])*:?\s*(?P<rest>.*)$")
+_NAMES_STRUCTURE = re.compile(r"\b(table|list)\b", re.I)
+_ASKS_FOR_LAST = re.compile(r"\blast\b", re.I)
+
+
+def _says_something(line: str) -> bool:
+    """A flat preview line with a letter or digit in its name or text: not a row of star icons."""
+    match = _SAYS_NOTHING.match(line)
+    rest = match["rest"] if match else line
+    return bool(re.search(r"[^\W_]", rest))
+
+
+def position_lines(body: str, goal: str) -> list[str]:
+    """The content lines a question about position reads, in page order: without navigation,
+    from the first table or list when the question names one (Y5: Wikipedia's introduction
+    filled the preview before "the first lake in the table")."""
+    lines = content_in_order(body).splitlines()
+    named = _NAMES_STRUCTURE.search(goal)
+    if named:
+        role = named[1].lower()
+        start = next((i for i, line in enumerate(lines)
+                      if re.match(rf"\s*- {role}\b", line)), 0)  # fmt: skip
+        lines = lines[start:]
+    return [line for line in preview_lines("\n".join(lines)) if _says_something(line)]
+
+
+def _position_preview(text: str, span: tuple[int, int], whole: Path, total: int, goal: str) -> str:
+    """For a question about position on a saved output: no ranking, the page's content lines in
+    their own order, so the first stays first; for "the last", the end of the page. Passing it
+    through would show the model the first 2,000 characters, which are the banner and the
+    navigation (T6, W12, Y5, Y9)."""
+    page = list(dict.fromkeys(
+        line for line in text[: span[0]].splitlines() if line.startswith("- Page ")
+    ))  # fmt: skip
+    head = (
+        f"# sanchopanza: the page ({total} elements) is too large to show here. Its content in "
+        f"page order, without navigation, is below; the whole page: Grep {whole}.\n"
+        + "".join(f"{line}\n" for line in page)
+    )
+    lines = position_lines(text[span[0] : span[1]], goal)
+    room, shown = PREVIEW_CHARS - len(head), []
+    for line in reversed(lines) if _ASKS_FOR_LAST.search(goal) else lines:
+        if len(line) + 1 > room:
+            break
+        shown.append(line)
+        room -= len(line) + 1
+    if _ASKS_FOR_LAST.search(goal):
+        shown.reverse()
+    return head + "".join(f"{line}\n" for line in shown)
+
+
+def _reply(response: Any, path: Any, new_text: str) -> dict[str, Any]:
+    from . import autopilot
+
+    updated = autopilot.replaced(response, path, new_text)
+    return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "updatedToolOutput": updated}}
 
 
 def say(text: str) -> None:
@@ -271,8 +349,9 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
     path, text = found
     tool = str(event.get("tool_name", ""))
     tool_input = event.get("tool_input") if isinstance(event.get("tool_input"), Mapping) else {}
-    if _is_search(tool, tool_input):
-        return {}
+    searched = _is_search(tool, tool_input)
+    if searched and not (isinstance(response, Mapping) and response.get("persistedOutputPath")):
+        return {}  # the agent's own search: never cut (unless saved, where it is never seen)
     # Only an MCP result is ever replaced by Claude Code's notice; a `cat` or `curl` of a page
     # that prints one must not pull another file in (review 2026-10-01).
     saved_text = _oversized(text, event) if tool.startswith("mcp__") else None
@@ -296,10 +375,26 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
     if not elements:
         return {}
     purpose = browse_goal(autopilot._messages(event))
+    meta = {"tool": tool, "about": f"{tool} snapshot", "by": "browse"}
+    # The first, the third, the last, or the agent's own search: an order a cut cannot keep.
+    # Uncut unless Claude Code saved the output, where the model would see 2,000 characters.
+    if searched or asks_for_position(purpose):
+        if not persisted:
+            return {}
+        saved = archive_mod.write_entry(
+            archive_mod.session_dir(root, session),
+            f"browse-{event.get('tool_use_id') or tool}",
+            text,
+            meta,
+        )
+        squire.journal.record(
+            "browse", {"tool": tool, "elements": len(elements), "kept": 0, "chars": len(body),
+                       "kept_chars": 0, "ranked_by": "page order", "preview": True},
+        )  # fmt: skip
+        new_text = _position_preview(text, span, saved, len(elements), purpose)
+        return _reply(response, path, new_text)
     if not purpose:
         return {}  # nothing to rank for: cutting blind could drop what the agent needs
-    if asks_for_position(purpose):
-        return {}  # the first, the third, the last: an order the cut cannot keep
     over = autopilot._over_ceiling(ledger, config)
     # Phase 3f (W4, W7): ranking every one of 2,000-3,000 elements cost Jev more than the cut
     # saved; past this many, BM25 shortlists what the decider sees (about 21 calls at most).
@@ -322,7 +417,6 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
     new_text_chars = len(text) - len(body) + len(pruned)
     if saved_text is not None and new_text_chars > OVERSIZE_RETURN_MAX:
         return {}  # still past Claude Code's limit: its notice and saved file stay
-    meta = {"tool": tool, "about": f"{tool} snapshot", "by": "browse"}
     saved = archive_mod.write_entry(
         archive_mod.session_dir(root, session),
         f"browse-{event.get('tool_use_id') or tool}",

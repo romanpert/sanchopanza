@@ -470,6 +470,67 @@ def _sections_for(lines: Sequence[str], purpose: str) -> set[int]:
     return keep
 
 
+KEY_VALUE_CHARS = 3000
+KEY_VALUE_LINES = 2  # of a value: the cell and its first line with content
+
+
+def _role(line: str) -> str:
+    match = _SNAPSHOT_LINE.match(line)
+    return match["role"] if match else ""
+
+
+def _has_content(line: str) -> bool:
+    """A line that says something: a name or text, not a `/url` or a bare container."""
+    match = _SNAPSHOT_LINE.match(line)
+    return bool(match and (match["name"] or match["text"]))
+
+
+def _key_value_rows(lines: Sequence[str], depth: Sequence[int], keep: set[int]) -> set[int]:
+    """The keys and values of a key-value table (an infobox) the cut already touches.
+
+    Phase 3j, Y4: the cut kept the Danube's infobox row "Mouth", whose header is a link, and
+    dropped "Length 2,850 km", plain text the ranking never sees and with no word of "how long";
+    the agent searched the archive for it. A row is key-value when its children are one
+    `rowheader` and one `cell`, so a table of data (several cells a row) is left alone. Each
+    touched table brings its rows' header and first value line, in page order, up to
+    `KEY_VALUE_CHARS` characters."""
+
+    def children(i: int) -> list[int]:
+        out, j = [], i + 1
+        while j < len(lines) and depth[j] > depth[i]:
+            if not out or depth[j] <= depth[out[0]]:
+                out.append(j)
+            j += 1
+        return out
+
+    def end(i: int) -> int:
+        j = i + 1
+        while j < len(lines) and depth[j] > depth[i]:
+            j += 1
+        return j
+
+    tables = [i for i, line in enumerate(lines) if _role(line) == "table"]
+    touched = [t for t in tables if any(t < k < end(t) for k in keep)]
+    extra: set[int] = set()
+    for t in touched:
+        used = 0
+        for r in range(t + 1, end(t)):
+            if _role(lines[r]) != "row":
+                continue
+            kids = children(r)
+            if [_role(lines[k]) for k in kids] != ["rowheader", "cell"]:
+                continue
+            header, cell = kids
+            content = [j for j in range(cell + 1, end(cell)) if _has_content(lines[j])]
+            row = [r, *range(header, end(header)), cell, *content[: KEY_VALUE_LINES - 1]]
+            cost = sum(len(lines[j]) for j in row if j not in keep)
+            if used + cost > KEY_VALUE_CHARS:
+                break
+            extra.update(row)
+            used += cost
+    return extra
+
+
 def prune_snapshot(
     snapshot: str,
     keep_refs: Sequence[str],
@@ -515,6 +576,7 @@ def prune_snapshot(
             keep.add(text_lines[k])
             used += cost
     keep |= _sections_for(lines, purpose)
+    keep |= _key_value_rows(lines, depth, keep)
     for i in sorted(keep):  # bring every ancestor, nearest first
         level = depth[i]
         for j in range(i - 1, -1, -1):
