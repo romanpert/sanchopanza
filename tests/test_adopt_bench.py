@@ -194,3 +194,99 @@ def test_a_run_where_nothing_ran_counts_as_not_passing(monkeypatch) -> None:  # 
     monkeypatch.setattr(masking.docker_env, "pytest", broken)
     bugs = [{"patch": "p0\n", "FAIL_TO_PASS": ["t::a[x]"]}, {"patch": "p1\n", "FAIL_TO_PASS": []}]
     assert masking.passes_with("tag", bugs, 0, [1]) is False
+    assert masking.fails_with("tag", bugs, 0, [1]) is False
+
+
+def _world(masker: int, n: int = 8):  # noqa: ANN202
+    """Docker faked: bug 0's test passes with every bug in because bug `masker` hides it (the
+    bug undoes the path 0 breaks); it fails with 0 in and `masker` undone, and passes with 0
+    undone. The patch names the undone bugs ("p<k>")."""
+    bugs = [{"patch": f"p{k}\n", "FAIL_TO_PASS": [f"t::b{k}"]} for k in range(n)]
+
+    def pytest(_tag, patch, nodes, reverse=False):  # noqa: ANN001, ANN202
+        undone = {int(x[1:]) for x in patch.split()}
+        baked = set(range(n)) - undone
+        failed = 0 in baked and masker not in baked
+        return {node: "FAILED" if node == "t::b0" and failed else "PASSED" for node in nodes}
+
+    return bugs, pytest
+
+
+def test_a_bug_another_hides_with_every_bug_in_blames_the_bug_that_hides_it(monkeypatch) -> None:  # noqa: ANN001
+    # pydantic-long40-1: pr_7827's test passed with the 40 bugs in, and the search built for the
+    # other direction blamed whatever bug sat first in the chain, five rounds running.
+    bugs, fake = _world(masker=5)
+    monkeypatch.setattr(masking.docker_env, "pytest", fake)
+    forward = {"f2p": 1, "f2p_failing_with_bugs": 0, "f2p_passing_when_fixed": 1}
+    fine = {"f2p": 1, "f2p_failing_with_bugs": 1, "f2p_passing_when_fixed": 1}
+    records = [forward, *[fine] * 7]
+    assert masking.culprits("tag", bugs, [0], records) == [5]
+    assert masking.fails_with("tag", bugs, 0, [5]) is True
+    assert masking.fails_with("tag", bugs, 0, []) is False
+
+
+def test_a_bug_that_does_not_fail_even_alone_is_its_own_culprit(monkeypatch) -> None:  # noqa: ANN001
+    bugs = [{"patch": f"p{k}\n", "FAIL_TO_PASS": [f"t::b{k}"]} for k in range(4)]
+    def pytest(_tag, _patch, nodes, reverse=False):  # noqa: ANN001, ANN202
+        return dict.fromkeys(nodes, "PASSED")
+
+    monkeypatch.setattr(masking.docker_env, "pytest", pytest)
+    forward = {"f2p": 1, "f2p_failing_with_bugs": 0, "f2p_passing_when_fixed": 1}
+    assert masking.culprits("tag", bugs, [0], [forward, forward, forward, forward]) == [0]
+
+
+def test_the_direction_comes_from_the_record(monkeypatch) -> None:  # noqa: ANN001
+    # backward (fails with the bugs in, does not pass fixed alone): the maskers of the fix
+    bugs = [{"patch": f"p{k}\n", "FAIL_TO_PASS": [f"t::b{k}"]} for k in range(8)]
+
+    def pytest(_tag, patch, nodes, reverse=False):  # noqa: ANN001, ANN202
+        undone = {int(x[1:]) for x in patch.split()}
+        ok = 0 in undone and 3 in undone
+        return {node: "PASSED" if node != "t::b0" or ok else "FAILED" for node in nodes}
+
+    monkeypatch.setattr(masking.docker_env, "pytest", pytest)
+    backward = {"f2p": 1, "f2p_failing_with_bugs": 1, "f2p_passing_when_fixed": 0}
+    fine = {"f2p": 1, "f2p_failing_with_bugs": 1, "f2p_passing_when_fixed": 1}
+    assert masking.culprits("tag", bugs, [0], [backward, *[fine] * 7]) == [3]
+
+
+def test_a_patch_that_does_not_apply_stops_the_search(monkeypatch) -> None:  # noqa: ANN001
+    # pydantic-long40-1: undoing a bug the image did not hold gave {"<patch>": "ERROR"}, and
+    # both questions read it as an answer ("does not pass", "fails").
+    monkeypatch.setattr(masking.docker_env, "pytest",
+                        lambda *_a, **_k: {"<patch>": "ERROR"})  # fmt: skip
+    bugs = [{"patch": "p0\n", "FAIL_TO_PASS": ["t::a"]}, {"patch": "p1\n", "FAIL_TO_PASS": []}]
+    with pytest.raises(ValueError, match="does not apply"):
+        masking.passes_with("tag", bugs, 0, [1])
+    with pytest.raises(ValueError, match="does not apply"):
+        masking.fails_with("tag", bugs, 0, [1])
+
+
+def test_validation_keeps_the_bugs_of_its_last_check(monkeypatch) -> None:  # noqa: ANN001
+    # pydantic-long40-1: the fifth check failed, a fifth swap was made with no check after it,
+    # and the chain was saved with the new bug beside the records of the one it replaced.
+    validate = _load("adopt_validate", "validate.py")
+    bug = {"instance_id": "r.b0", "patch": "p0\n", "FAIL_TO_PASS": ["t::a"], "PASS_TO_PASS": []}
+    spares = [{**bug, "instance_id": f"r.s{k}"} for k in range(9)]
+    chain = {"chain": "r-long", "image": "img", "bugs": [bug], "spares": spares}
+    checks: list[str] = []
+
+    def check(_chain, bugs):  # noqa: ANN001, ANN202
+        checks.append(bugs[0]["instance_id"])
+        return [{"instance_id": bugs[0]["instance_id"], "valid": False,
+                 "PASS_TO_PASS_STAR": []}], [0]  # fmt: skip
+
+    def swap(_chain, bugs, index, _tried):  # noqa: ANN001, ANN202
+        bugs[index] = spares[len(checks)]
+        return True
+
+    monkeypatch.setattr(validate.docker_env, "pull", lambda _image: None)
+    monkeypatch.setattr(validate, "check", check)
+    monkeypatch.setattr(validate, "swap", swap)
+    monkeypatch.setattr(validate.masking, "culprits", lambda *_a: [0])
+    result = validate.validate(chain)
+    assert len(checks) == validate.SWAPS + 1
+    kept = [b["instance_id"] for b in result["bugs"]]
+    assert kept == [r["instance_id"] for r in result["records"]]
+    assert result["bugs"][0]["instance_id"] == checks[-1]
+    assert not result["history"][-1][0].startswith("replace")  # no swap after the last check

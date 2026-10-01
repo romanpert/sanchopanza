@@ -104,15 +104,17 @@ def validate(chain: dict[str, Any]) -> dict[str, Any]:
     bugs = list(chain["bugs"])
     tried = {b["instance_id"] for b in bugs}
     history = []
-    for _ in range(SWAPS + 1):
+    for attempt in range(SWAPS + 1):
         records, bad = check(chain, bugs)
         history.append([r["instance_id"] + (" ok" if r["valid"] else " INVALID") for r in records])
-        if not bad:
+        # No swap after the last check: one with no check after it was saved beside the records
+        # of the bug it replaced (pydantic-long40-1).
+        if not bad or attempt == SWAPS:
             break
         # Replace the culprits, not the victims: a bug that breaks a path every test goes
         # through failed its neighbours too (conan, dvc), and swapping those lost good bugs and
         # kept it. `masking.culprits` names it, or the failing bug itself when nothing does.
-        out = masking.culprits(tag_of(chain["chain"]), bugs, bad)
+        out = masking.culprits(tag_of(chain["chain"]), bugs, bad, records)
         history.append([f"replace {masking.short(bugs[k])}" for k in out])
         # Swaps on a copy, kept only when every culprit found a spare: a partial swap left the
         # stored bugs out of step with the records of the bake they came from (conan-2, rel-1).

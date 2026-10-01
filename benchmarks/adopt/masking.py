@@ -11,6 +11,8 @@ rest; `culprits` finds the ones to replace instead, and `validate.py` swaps thos
 - a failing bug that still fails with every other bug fixed too is broken on its own: itself;
 - otherwise the smallest group whose fix, with its own, makes it pass, found by bisection
   (log2(n) runs of its FAIL_TO_PASS only): those maskers.
+- a bug whose FAIL_TO_PASS pass with every bug in (the other check): the smallest group whose
+  undoing, with it still in, makes them fail again; itself when they pass even with it alone.
 
 `main` runs the pairwise version (fix `i` with each `j`) and writes `masking-<chain>.json`.
 """
@@ -39,13 +41,35 @@ def passes_with(tag: str, bugs: list[dict[str, Any]], i: int, fixed: list[int]) 
     patch = "".join(p if p.endswith("\n") else p + "\n"
                     for p in (bugs[k]["patch"] for k in [i, *fixed]))  # fmt: skip
     try:
-        result = docker_env.pytest(tag, patch, nodes, reverse=True)
+        result = _undone(tag, patch, nodes)
     except RuntimeError:
         # Nothing ran: with some bugs undone a parametrised test can be named differently or
         # not exist (pydantic-long40-1: `test_removed_on_v2[pydantic:BaseSettings]`, "no tests
         # ran"). For this question that is "does not pass", not a broken validation.
         return False
     return all(result.get(n) == "PASSED" for n in nodes)
+
+
+def _undone(tag: str, patch: str, nodes: list[str]) -> dict[str, str]:
+    """`nodes` with `patch` reversed. A patch that does not apply is no answer to either
+    question (a bug the image does not hold, pydantic-long40-1): it stops the search."""
+    result = docker_env.pytest(tag, patch, nodes, reverse=True)
+    if result.get("<patch>") == "ERROR":
+        raise ValueError(f"undoing the bugs does not apply in {tag}: is the image the chain's?")
+    return result
+
+
+def fails_with(tag: str, bugs: list[dict[str, Any]], i: int, fixed: list[int]) -> bool:
+    """Bug `i`'s FAIL_TO_PASS all fail with `i` still in and `fixed` undone in the chain's
+    image: the other direction, for a bug whose tests pass with every bug in."""
+    nodes = bugs[i]["FAIL_TO_PASS"]
+    patch = "".join(p if p.endswith("\n") else p + "\n"
+                    for p in (bugs[k]["patch"] for k in fixed))  # fmt: skip
+    try:
+        result = _undone(tag, patch, nodes)
+    except RuntimeError:
+        return False  # nothing ran: not "they fail", as in passes_with
+    return all(result.get(n) != "PASSED" for n in nodes)
 
 
 def maskers(i: int, others: list[int], passes: Callable[[int, list[int]], bool]) -> list[int]:
@@ -72,12 +96,22 @@ def maskers(i: int, others: list[int], passes: Callable[[int, list[int]], bool])
     return group
 
 
-def culprits(tag: str, bugs: list[dict[str, Any]], bad: list[int]) -> list[int]:
-    """The bugs to replace for the failing ones: their maskers, or themselves."""
+def culprits(
+    tag: str, bugs: list[dict[str, Any]], bad: list[int], records: list[dict[str, Any]]
+) -> list[int]:
+    """The bugs to replace for the failing ones: their maskers, or themselves. The record says
+    which check a bug failed. Some FAIL_TO_PASS passing with every bug in: the bugs whose undoing
+    makes them fail again. Not passing when fixed alone: the bugs whose fix lets them pass. Each
+    direction needs its own question; asking the second of a bug that failed the first passes
+    with any group, and bisection then blamed the chain's first bug (pydantic-long40-1)."""
     found: set[int] = set()
     for i in bad:
         others = [k for k in range(len(bugs)) if k != i]
-        found |= set(maskers(i, others, lambda j, fixed: passes_with(tag, bugs, j, fixed)))
+        record = records[i]
+        if record["f2p_failing_with_bugs"] < record["f2p"]:
+            found |= set(maskers(i, others, lambda j, fixed: fails_with(tag, bugs, j, fixed)))
+        if record["f2p_passing_when_fixed"] < record["f2p"]:
+            found |= set(maskers(i, others, lambda j, fixed: passes_with(tag, bugs, j, fixed)))
     return sorted(found)
 
 
