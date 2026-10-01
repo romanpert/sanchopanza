@@ -1408,5 +1408,464 @@
     "p2p_star": 1586
    }
   ]
+ },
+ "pydantic__pydantic-long40-1": {
+  "valid": true,
+  "bugs": [
+   "pydantic__pydantic.acb0f10f.pr_11161",
+   "pydantic__pydantic.acb0f10f.pr_9659",
+   "pydantic__pydantic.acb0f10f.pr_9566",
+   "pydantic__pydantic.acb0f10f.pr_10984",
+   "pydantic__pydantic.acb0f10f.pr_6514",
+   "pydantic__pydantic.acb0f10f.pr_6995",
+   "pydantic__pydantic.acb0f10f.pr_9170",
+   "pydantic__pydantic.acb0f10f.pr_5983",
+   "pydantic__pydantic.acb0f10f.pr_11226",
+   "pydantic__pydantic.acb0f10f.pr_9892",
+   "pydantic__pydantic.acb0f10f.pr_6776",
+   "pydantic__pydantic.acb0f10f.pr_6151",
+   "pydantic__pydantic.acb0f10f.pr_11384",
+   "pydantic__pydantic.acb0f10f.pr_9747",
+   "pydantic__pydantic.acb0f10f.pr_7775",
+   "pydantic__pydantic.acb0f10f.pr_8018",
+   "pydantic__pydantic.acb0f10f.pr_6809",
+   "pydantic__pydantic.acb0f10f.pr_9848",
+   "pydantic__pydantic.acb0f10f.pr_7827",
+   "pydantic__pydantic.acb0f10f.pr_5378",
+   "pydantic__pydantic.acb0f10f.pr_8763",
+   "pydantic__pydantic.acb0f10f.pr_6155",
+   "pydantic__pydantic.acb0f10f.pr_5617",
+   "pydantic__pydantic.acb0f10f.pr_9105",
+   "pydantic__pydantic.acb0f10f.pr_9839",
+   "pydantic__pydantic.acb0f10f.pr_5538",
+   "pydantic__pydantic.acb0f10f.pr_7183",
+   "pydantic__pydantic.acb0f10f.pr_9843",
+   "pydantic__pydantic.acb0f10f.pr_7119",
+   "pydantic__pydantic.acb0f10f.pr_5735",
+   "pydantic__pydantic.acb0f10f.pr_10479",
+   "pydantic__pydantic.acb0f10f.pr_8965",
+   "pydantic__pydantic.acb0f10f.pr_8767",
+   "pydantic__pydantic.acb0f10f.pr_11145",
+   "pydantic__pydantic.acb0f10f.pr_10412",
+   "pydantic__pydantic.acb0f10f.pr_9561",
+   "pydantic__pydantic.acb0f10f.pr_6009",
+   "pydantic__pydantic.acb0f10f.pr_11271",
+   "pydantic__pydantic.acb0f10f.pr_6789",
+   "pydantic__pydantic.acb0f10f.pr_11251"
+  ],
+  "history": [
+   [
+    "pydantic__pydantic.acb0f10f.pr_11161 ok",
+    "pydantic__pydantic.acb0f10f.pr_9659 ok",
+    "pydantic__pydantic.acb0f10f.pr_9566 ok",
+    "pydantic__pydantic.acb0f10f.pr_10984 ok",
+    "pydantic__pydantic.acb0f10f.pr_6514 ok",
+    "pydantic__pydantic.acb0f10f.pr_6995 ok",
+    "pydantic__pydantic.acb0f10f.pr_9170 ok",
+    "pydantic__pydantic.acb0f10f.pr_5983 ok",
+    "pydantic__pydantic.acb0f10f.pr_11226 ok",
+    "pydantic__pydantic.acb0f10f.pr_9892 ok",
+    "pydantic__pydantic.acb0f10f.pr_6776 ok",
+    "pydantic__pydantic.acb0f10f.pr_6151 ok",
+    "pydantic__pydantic.acb0f10f.pr_11384 ok",
+    "pydantic__pydantic.acb0f10f.pr_9747 ok",
+    "pydantic__pydantic.acb0f10f.pr_7775 ok",
+    "pydantic__pydantic.acb0f10f.pr_8018 ok",
+    "pydantic__pydantic.acb0f10f.pr_6809 ok",
+    "pydantic__pydantic.acb0f10f.pr_9848 ok",
+    "pydantic__pydantic.acb0f10f.pr_7827 INVALID",
+    "pydantic__pydantic.acb0f10f.pr_5378 ok",
+    "pydantic__pydantic.acb0f10f.pr_8763 ok",
+    "pydantic__pydantic.acb0f10f.pr_6155 ok",
+    "pydantic__pydantic.acb0f10f.pr_6633 INVALID",
+    "pydantic__pydantic.acb0f10f.pr_9105 ok",
+    "pydantic__pydantic.acb0f10f.pr_6616 ok",
+    "pydantic__pydantic.acb0f10f.pr_5538 ok",
+    "pydantic__pydantic.acb0f10f.pr_7183 ok",
+    "pydantic__pydantic.acb0f10f.pr_9843 ok",
+    "pydantic__pydantic.acb0f10f.pr_6229 INVALID",
+    "pydantic__pydantic.acb0f10f.pr_5735 ok",
+    "pydantic__pydantic.acb0f10f.pr_10479 ok",
+    "pydantic__pydantic.acb0f10f.pr_8965 ok",
+    "pydantic__pydantic.acb0f10f.pr_8767 ok",
+    "pydantic__pydantic.acb0f10f.pr_11145 ok",
+    "pydantic__pydantic.acb0f10f.pr_10412 ok",
+    "pydantic__pydantic.acb0f10f.pr_9561 ok",
+    "pydantic__pydantic.acb0f10f.pr_6009 ok",
+    "pydantic__pydantic.acb0f10f.pr_11271 ok",
+    "pydantic__pydantic.acb0f10f.pr_6789 ok",
+    "pydantic__pydantic.acb0f10f.pr_11251 ok"
+   ],
+   [
+    "replace pr_6633",
+    "replace pr_6616",
+    "replace pr_6229"
+   ],
+   [
+    "pydantic__pydantic.acb0f10f.pr_11161 ok",
+    "pydantic__pydantic.acb0f10f.pr_9659 ok",
+    "pydantic__pydantic.acb0f10f.pr_9566 ok",
+    "pydantic__pydantic.acb0f10f.pr_10984 ok",
+    "pydantic__pydantic.acb0f10f.pr_6514 ok",
+    "pydantic__pydantic.acb0f10f.pr_6995 ok",
+    "pydantic__pydantic.acb0f10f.pr_9170 ok",
+    "pydantic__pydantic.acb0f10f.pr_5983 ok",
+    "pydantic__pydantic.acb0f10f.pr_11226 ok",
+    "pydantic__pydantic.acb0f10f.pr_9892 ok",
+    "pydantic__pydantic.acb0f10f.pr_6776 ok",
+    "pydantic__pydantic.acb0f10f.pr_6151 ok",
+    "pydantic__pydantic.acb0f10f.pr_11384 ok",
+    "pydantic__pydantic.acb0f10f.pr_9747 ok",
+    "pydantic__pydantic.acb0f10f.pr_7775 ok",
+    "pydantic__pydantic.acb0f10f.pr_8018 ok",
+    "pydantic__pydantic.acb0f10f.pr_6809 ok",
+    "pydantic__pydantic.acb0f10f.pr_9848 ok",
+    "pydantic__pydantic.acb0f10f.pr_7827 ok",
+    "pydantic__pydantic.acb0f10f.pr_5378 ok",
+    "pydantic__pydantic.acb0f10f.pr_8763 ok",
+    "pydantic__pydantic.acb0f10f.pr_6155 ok",
+    "pydantic__pydantic.acb0f10f.pr_5617 ok",
+    "pydantic__pydantic.acb0f10f.pr_9105 ok",
+    "pydantic__pydantic.acb0f10f.pr_9839 ok",
+    "pydantic__pydantic.acb0f10f.pr_5538 ok",
+    "pydantic__pydantic.acb0f10f.pr_7183 ok",
+    "pydantic__pydantic.acb0f10f.pr_9843 ok",
+    "pydantic__pydantic.acb0f10f.pr_7119 ok",
+    "pydantic__pydantic.acb0f10f.pr_5735 ok",
+    "pydantic__pydantic.acb0f10f.pr_10479 ok",
+    "pydantic__pydantic.acb0f10f.pr_8965 ok",
+    "pydantic__pydantic.acb0f10f.pr_8767 ok",
+    "pydantic__pydantic.acb0f10f.pr_11145 ok",
+    "pydantic__pydantic.acb0f10f.pr_10412 ok",
+    "pydantic__pydantic.acb0f10f.pr_9561 ok",
+    "pydantic__pydantic.acb0f10f.pr_6009 ok",
+    "pydantic__pydantic.acb0f10f.pr_11271 ok",
+    "pydantic__pydantic.acb0f10f.pr_6789 ok",
+    "pydantic__pydantic.acb0f10f.pr_11251 ok"
+   ]
+  ],
+  "seconds": 2825,
+  "records": [
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_11161",
+    "valid": true,
+    "f2p_failing_with_bugs": 9,
+    "f2p_passing_when_fixed": 9,
+    "f2p": 9,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_9659",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_9566",
+    "valid": true,
+    "f2p_failing_with_bugs": 20,
+    "f2p_passing_when_fixed": 20,
+    "f2p": 20,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_10984",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_6514",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_6995",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_9170",
+    "valid": true,
+    "f2p_failing_with_bugs": 16,
+    "f2p_passing_when_fixed": 16,
+    "f2p": 16,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_5983",
+    "valid": true,
+    "f2p_failing_with_bugs": 31,
+    "f2p_passing_when_fixed": 31,
+    "f2p": 31,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_11226",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_9892",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_6776",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_6151",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_11384",
+    "valid": true,
+    "f2p_failing_with_bugs": 25,
+    "f2p_passing_when_fixed": 25,
+    "f2p": 25,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_9747",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_7775",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_8018",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_6809",
+    "valid": true,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 3,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_9848",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_7827",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_5378",
+    "valid": true,
+    "f2p_failing_with_bugs": 5,
+    "f2p_passing_when_fixed": 5,
+    "f2p": 5,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_8763",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_6155",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_5617",
+    "valid": true,
+    "f2p_failing_with_bugs": 4,
+    "f2p_passing_when_fixed": 4,
+    "f2p": 4,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_9105",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_9839",
+    "valid": true,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 3,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_5538",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_7183",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_9843",
+    "valid": true,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 3,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_7119",
+    "valid": true,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 3,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_5735",
+    "valid": true,
+    "f2p_failing_with_bugs": 6,
+    "f2p_passing_when_fixed": 6,
+    "f2p": 6,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_10479",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_8965",
+    "valid": true,
+    "f2p_failing_with_bugs": 4,
+    "f2p_passing_when_fixed": 4,
+    "f2p": 4,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_8767",
+    "valid": true,
+    "f2p_failing_with_bugs": 5,
+    "f2p_passing_when_fixed": 5,
+    "f2p": 5,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_11145",
+    "valid": true,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 3,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_10412",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_9561",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_6009",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_11271",
+    "valid": true,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 3,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_6789",
+    "valid": true,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 3,
+    "p2p_star": 5259
+   },
+   {
+    "instance_id": "pydantic__pydantic.acb0f10f.pr_11251",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 5259
+   }
+  ]
  }
 }
