@@ -293,7 +293,7 @@ NEW_TASKS = [
 ]  # fmt: skip
 
 
-WARMUP_RUN = -9  # excluded from every count: run <= 0
+phase = base.phase
 
 
 def main() -> int:
@@ -308,7 +308,7 @@ def main() -> int:
     ap.add_argument(
         "--warmup",
         action="store_true",
-        help="one uncounted PLAIN session first (run -9), to warm the prompt cache",
+        help="one uncounted PLAIN session first (run -9, -10 on a resume), to warm the cache",
     )
     ap.add_argument("--wide", action="store_true", help="Phase 3f (prereg-e2e-wide.md)")
     ap.add_argument("--x", action="store_true", help="Phase 3h (prereg-e2e-x.md)")
@@ -339,34 +339,20 @@ def main() -> int:
         key = key_from(args.env_file)
         if not key:
             raise SystemExit("LEAN ranks with Jev: no TYPESAFE_API_KEY, nothing spent")
-        if args.warmup and not any(r["run"] == WARMUP_RUN for r in rows):
-            row = one_session(tasks[0], WARMUP_RUN, "PLAIN", key)
-            rows.append(row)
-            with SESSIONS.open("a", encoding="utf-8") as sink:
-                sink.write(json.dumps(row, ensure_ascii=False) + "\n")
-        seen = {(r["task"], r["run"], r["arm"]) for r in rows}
         runs = [0] if args.pilot else list(range(1, n_runs + 1))
-        for task in tasks[:2] if args.pilot else tasks:
-            for run in runs:
-                for arm in ("PLAIN", "LEAN"):
-                    if (task[0], run, arm) in seen:
-                        continue
-                    spent = sum(r["list_usd"] for r in rows)
-                    if spent + SESSION_MAX_USD > CEILING_USD:
-                        print(f"ceiling: {spent:.2f} USD spent", file=sys.stderr)
-                        return 1
-                    jev = sum(r["jev_usd"] for r in rows)
-                    if (
-                        args.fixed or args.new or args.wide or args.x
-                    ) and jev + JEV_SESSION_MAX_USD > JEV_CEILING_USD:
-                        print(f"Jev ceiling: {jev:.4f} USD spent", file=sys.stderr)
-                        return 1
-                    row = one_session(task, run, arm, key)
-                    rows.append(row)
-                    with SESSIONS.open("a", encoding="utf-8") as sink:
-                        sink.write(json.dumps(row, ensure_ascii=False) + "\n")
-                    print(json.dumps({k: row[k] for k in ("task", "run", "arm", "success",
-                          "list_usd", "turns", "tools")}), file=sys.stderr)  # fmt: skip
+        guarded = args.fixed or args.new or args.wide or args.x
+        limits = phase.Limits(
+            session_max_usd=SESSION_MAX_USD, ceiling_usd=CEILING_USD,
+            jev_session_max_usd=JEV_SESSION_MAX_USD,
+            jev_ceiling_usd=JEV_CEILING_USD if guarded else None,
+        )  # fmt: skip
+        code, rows = phase.run_phase(
+            phase.planned(tasks[:2] if args.pilot else tasks, runs, ("PLAIN", "LEAN")), rows,
+            limits, lambda task, run, arm: one_session(task, run, arm, key), SESSIONS,
+            warmup_task=tasks[0] if args.warmup else None,
+        )  # fmt: skip
+        if code:
+            return code
     report = base.analyze([r for r in rows if r["run"] > 0])
     report["pilot"] = [
         {k: r[k] for k in ("task", "arm", "success", "list_usd", "turns", "tools", "pruned")}

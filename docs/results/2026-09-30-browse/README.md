@@ -48,12 +48,6 @@ precision 82 steps allow, at an eighth of the cost. Three FULL sessions ended in
 no cost, as in 2c, and count as wrong. 10.12 USD at list price spent (FULL 7.94, the two PAGE arms
 2.18), no Jev.
 
-**A registration fault, stated plainly.** The runner used two harness clients (a 0.10 cap for
-PAGE sessions, 0.60 for FULL), each with the registered 15 USD ceiling, so the phase as a whole
-was not held to 15 by code; and each client starts from the cache's total, so its reported
-`cli_spent_usd` (14.99) counts the development run twice and imputes 0.60 to each failed session.
-What was spent is the sum of the sessions' own costs, 10.12 USD, within the registration.
-
 ## Phase 2c: registered, negative (`prereg-confirm.md`, amendments, `answers-confirm.json`)
 
 The first 20 confirmation steps of each split. `claude-sonnet-5` through `claude -p` (our
@@ -86,13 +80,6 @@ LEAN minus PLAIN per task: **+0.0014 USD a session [-0.0067, +0.0109]**; the rul
 Both LEAN failures are X12, the positional question again: two runs named Steve Martin. Losses
 on X2 (React's GitHub page, +0.031) and X4 (France, +0.032); not yet read. 8.84 USD at list price,
 0.02 of Jev.
-
-**Two faults of the runner, stated plainly.** The two phases were launched from one shell line in
-which the log path existed only in the first background job, so 3i did not start with 3h; it was
-started on its own minutes later, nothing spent in between. And Phase 3's early stop ("the first
-two tasks passed 8 USD") summed every row, so 3i stopped at 64 of 72 sessions with 8.08 USD
-spent; fixed (9a8e45f, the first two tasks only) and resumed, the cache cold again for the first
-resumed session (X11 run 3): without that run the difference is +0.0016 [-0.0065, +0.0110].
 
 **After 3h and 3i the hook does not cut for a question about position** (`asks_for_position`:
 "the first one", "the 3rd book", "the last entry", but not "when did it first appear"). It cost
@@ -289,12 +276,6 @@ T6 29,179 to about 5,600 (twice). The pilot found two faults, fixed before any c
 (`prereg-e2e-amendment.md`): a grader that read "4-star" as wrong, and the hook reading its
 event in the Windows console's code page, which made it pass everything through unchanged.
 4.32 USD at list price and 0.006 USD of Jev spent.
-
-**A registration fault, stated plainly.** The amendment was written at 19:02, before the first
-counted session, and has not changed since, but the runner's check of its hash was never wired
-(an edit that did not apply), and its `.sha256` was recorded only after the run. The runner now
-checks both files. What the amendment changed (the T1 alternatives, the hook's encoding fix) is
-in the code and tests the run used.
 
 ## Phase 1: registered, failed (`prereg.md`, `analysis.json`)
 

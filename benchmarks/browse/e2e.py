@@ -74,9 +74,7 @@ def digest(path: pathlib.Path = PREREG) -> str:
 
 
 def require_prereg() -> None:
-    """Both registrations, the design and its amendment. (The amendment's check was missing when
-    the counted sessions ran: a failed edit. Its file predates them and is unchanged; see the
-    README.)"""
+    """Every registration of the phase, the design and any amendment."""
     for path in REGISTRATIONS:
         registered = path.with_suffix(".sha256")
         if not registered.exists() or registered.read_text().strip() != digest(path):
@@ -286,7 +284,7 @@ def analyze(rows: list[dict[str, Any]]) -> dict[str, Any]:
     return report
 
 
-WARMUP_RUN = -9  # excluded from every count: run <= 0
+phase = _load_sibling("browse_phase", HERE / "phase.py")
 
 
 def main() -> int:
@@ -300,7 +298,7 @@ def main() -> int:
     ap.add_argument(
         "--warmup",
         action="store_true",
-        help="one uncounted PLAIN session first (run -9), to warm the prompt cache",
+        help="one uncounted PLAIN session first (run -9, -10 on a resume), to warm the cache",
     )
     ap.add_argument("--wide", action="store_true", help="Phase 3g (prereg-e2e-wide.md)")
     ap.add_argument("--x", action="store_true", help="Phase 3i (prereg-e2e-x.md)")
@@ -330,40 +328,22 @@ def main() -> int:
                 re.M,
             )
             key = found.group(1).strip().strip("'\"") if found else ""
-        if args.warmup and not any(r["run"] == WARMUP_RUN for r in rows):
-            row = one_session(TASKS[0], WARMUP_RUN, "PLAIN", key)
-            rows.append(row)
-            with SESSIONS.open("a", encoding="utf-8") as sink:
-                sink.write(json.dumps(row, ensure_ascii=False) + "\n")
-        seen = {(r["task"], r["run"], r["arm"]) for r in rows}
         pilot = args.pilot or args.pilot2
         runs = [0] if args.pilot else [-1] if args.pilot2 else list(range(1, RUNS + 1))
-        for index, task in enumerate(TASKS[:1] if pilot else TASKS):
-            for run in runs:
-                for arm in ("LEAN",) if args.pilot2 else ("PLAIN", "LEAN"):
-                    if (task[0], run, arm) in seen:
-                        continue
-                    spent = sum(r["list_usd"] for r in rows)
-                    if spent + SESSION_MAX_USD > CEILING_USD:
-                        print(f"ceiling: {spent:.2f} USD spent", file=sys.stderr)
-                        return 1
-                    jev = sum(r["jev_usd"] for r in rows)
-                    if (args.wide or args.x) and jev + LEAN_JEV_MAX_USD > JEV_CEILING_USD:
-                        print(f"Jev ceiling: {jev:.4f} USD spent", file=sys.stderr)
-                        return 1
-                    # Phase 3's rule: stop if the FIRST TWO TASKS passed 8 USD. It summed every
-                    # row, so a long phase stopped near its end (3i at 64 of 72 sessions, 8.08 USD).
-                    first_two = {t[0] for t in TASKS[:2]}
-                    early = sum(r["list_usd"] for r in rows if r["task"] in first_two)
-                    if index >= 2 and early > EARLY_STOP_USD and (len(rows) >= 12):
-                        print("early stop: the first two tasks passed 8 USD", file=sys.stderr)
-                        return 1
-                    row = one_session(task, run, arm, key)
-                    rows.append(row)
-                    with SESSIONS.open("a", encoding="utf-8") as sink:
-                        sink.write(json.dumps(row, ensure_ascii=False) + "\n")
-                    print(json.dumps({k: row[k] for k in ("task", "run", "arm", "success",
-                          "list_usd", "turns", "jev_usd")}), file=sys.stderr)  # fmt: skip
+        arms = ("LEAN",) if args.pilot2 else ("PLAIN", "LEAN")
+        limits = phase.Limits(
+            session_max_usd=SESSION_MAX_USD, ceiling_usd=CEILING_USD,
+            jev_session_max_usd=LEAN_JEV_MAX_USD,
+            jev_ceiling_usd=JEV_CEILING_USD if args.wide or args.x else None,
+            early_stop_usd=EARLY_STOP_USD, early_tasks=frozenset(t[0] for t in TASKS[:2]),
+        )  # fmt: skip
+        code, rows = phase.run_phase(
+            phase.planned(TASKS[:1] if pilot else TASKS, runs, arms), rows, limits,
+            lambda task, run, arm: one_session(task, run, arm, key), SESSIONS,
+            warmup_task=TASKS[0] if args.warmup else None,
+        )  # fmt: skip
+        if code:
+            return code
     report = analyze([r for r in rows if r["run"] > 0])
     report["pilot"] = [r for r in rows if r["run"] <= 0]
     (RESULTS / REPORT).write_text(json.dumps(report, indent=1), encoding="utf-8")

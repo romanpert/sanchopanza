@@ -43,6 +43,7 @@ def _load(name: str, path: pathlib.Path) -> Any:
 
 
 answers = _load("browse_answers", HERE / "answers.py")
+phase = _load("browse_phase", HERE / "phase.py")
 phase1 = answers.phase1
 RESULTS = answers.RESULTS
 CACHE = ROOT / "fixtures" / "cli" / "browse-answers-present.jsonl"
@@ -111,6 +112,7 @@ async def run(live: bool, confirm: bool) -> dict[str, Any]:
         )  # fmt: skip
 
     cli, full_cli = client(SESSION_MAX_USD), client(FULL_SESSION_MAX_USD)
+    budget = phase.PhaseBudget(ceiling, concurrency=answers.CONCURRENCY)  # one, for both
     recorded = phase1.InOrder(phase1.CONFIRM_FIXTURE)
     phase1.STEPS = phase1.CONFIRM_STEPS  # Phase 1c's steps, not Phase 1's
     all_steps = phase1.load_steps()
@@ -125,13 +127,13 @@ async def run(live: bool, confirm: bool) -> dict[str, Any]:
         page = [Element.from_dict(e) for e in step["elements"]]
         if arm == "FULL":
             shown = [(Ranked(e, None, 0.0), "") for e in page]
-            text, runner = answers.prompt(step, page), full_cli
+            text, runner, cap = answers.prompt(step, page), full_cli, FULL_SESSION_MAX_USD
         else:
             shown = in_page_order(ranked[: ARMS[arm]], page)
-            text, runner = prompt(step, shown), cli
+            text, runner, cap = prompt(step, shown), cli, SESSION_MAX_USD
         pos = set(step["positives"])
         try:
-            session = await runner.run(text, schema=answers.SCHEMA)
+            session = await budget.run(runner, cap, text, schema=answers.SCHEMA)
         except RuntimeError as error:
             return {"id": step["id"], "arm": arm, "ok": False, "reason": str(error)}
         pick = (session.structured or {}).get("element")
@@ -167,7 +169,7 @@ async def run(live: bool, confirm: bool) -> dict[str, Any]:
             "minus_FULL": round(sum(diffs) / len(diffs), 4),
             "bootstrap95": answers.bootstrap(diffs),
         }
-    report["cli_spent_usd"] = round(cli.spent_usd + full_cli.spent_usd, 4)
+    report["list_usd_spent"] = round(sum(r.get("list_usd", 0.0) for r in rows), 4)
     (RESULTS / ("present-confirm.jsonl" if confirm else "present-dev.jsonl")).write_text(
         "".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8"
     )
