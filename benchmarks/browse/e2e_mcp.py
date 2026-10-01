@@ -198,6 +198,45 @@ NEW = {  # Phase 3d: new tasks, so the hook is not measured on the pages it was 
     "sessions": RESULTS / "e2e-mcp-new-sessions.jsonl",
     "report": "e2e-mcp-new.json",
 }
+WIDE = {  # Phase 3f: twelve more tasks, five of them several steps long
+    "prereg": RESULTS / "prereg-e2e-wide.md",
+    "sessions": RESULTS / "e2e-mcp-wide-sessions.jsonl",
+    "report": "e2e-mcp-wide.json",
+}
+WIDE_RUNS = 3
+WIDE_TASKS = [
+    ("W1", "https://github.com/psf/requests",
+     "Which license is this repository under, and which language makes up the largest share "
+     "of its code?", [["apache"], ["python"]]),
+    ("W2", "https://github.com/microsoft/vscode",
+     "Which license is this repository under, and which language makes up the largest share "
+     "of its code?", [["mit"], ["typescript"]]),
+    ("W3", "https://en.wikipedia.org/wiki/Mount_Kilimanjaro",
+     "What elevation in metres does the infobox give?", ["5895"]),
+    ("W4", "https://en.wikipedia.org/wiki/Spain",
+     "According to the infobox, what is the capital and what is the currency?",
+     ["madrid", ["euro"]]),
+    ("W5", "https://www.rfc-editor.org/rfc/rfc9110.html",
+     "What is the title of section 15.5.5?", [["not found"]]),
+    ("W6", "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/418",
+     "What is the name of this HTTP status code?", ["teapot"]),
+    ("W7", "https://en.wikipedia.org/wiki/List_of_tallest_buildings",
+     "Which building is the tallest in the world according to this page?", ["burj khalifa"]),
+    ("W8", "https://books.toscrape.com/",
+     "Go to the Travel category and report the price of the third book listed there.",
+     ["48.87"]),
+    ("W9", "https://books.toscrape.com/",
+     "Go to the Mystery category, open the second book listed, and report its UPC.",
+     ["19ed25f4641d5efd"]),
+    ("W10", "https://quotes.toscrape.com/",
+     "Go to page 3 of the quotes and report the author of the first quote there.",
+     ["neruda"]),
+    ("W11", "https://quotes.toscrape.com/",
+     "Open the quotes tagged 'love' and report the author of the first one.", ["gide"]),
+    ("W12", "https://books.toscrape.com/",
+     "Go to page 3 of the catalogue and report the title of the first book on it.",
+     ["slow states of collapse"]),
+]  # fmt: skip
 NEW_TASKS = [
     ("N1", "https://github.com/pallets/flask",
      "Which license is this repository under, and which language makes up the largest share "
@@ -226,13 +265,17 @@ def main() -> int:
     ap.add_argument("--pilot", action="store_true", help="M1 and M2 once per arm (run 0), excluded")
     ap.add_argument("--fixed", action="store_true", help="Phase 3c (prereg-e2e-mcp-fixed.md)")
     ap.add_argument("--new", action="store_true", help="Phase 3d (prereg-e2e-mcp-new.md)")
+    ap.add_argument("--wide", action="store_true", help="Phase 3f (prereg-e2e-wide.md)")
     args = ap.parse_args()
-    report_name, tasks = "e2e-mcp.json", TASKS
+    report_name, tasks, n_runs = "e2e-mcp.json", TASKS, RUNS
     if args.fixed:
         PREREG, SESSIONS, report_name = FIXED["prereg"], FIXED["sessions"], FIXED["report"]
     if args.new:
         PREREG, SESSIONS, report_name = NEW["prereg"], NEW["sessions"], NEW["report"]
         tasks = NEW_TASKS
+    if args.wide:
+        PREREG, SESSIONS, report_name = WIDE["prereg"], WIDE["sessions"], WIDE["report"]
+        tasks, n_runs = WIDE_TASKS, WIDE_RUNS
     if args.record_hash:
         registered = PREREG.with_suffix(".sha256")
         if registered.exists() and registered.read_text().strip() != base.digest(PREREG):
@@ -248,7 +291,7 @@ def main() -> int:
         if not key:
             raise SystemExit("LEAN ranks with Jev: no TYPESAFE_API_KEY, nothing spent")
         seen = {(r["task"], r["run"], r["arm"]) for r in rows}
-        runs = [0] if args.pilot else list(range(1, RUNS + 1))
+        runs = [0] if args.pilot else list(range(1, n_runs + 1))
         for task in tasks[:2] if args.pilot else tasks:
             for run in runs:
                 for arm in ("PLAIN", "LEAN"):
@@ -259,7 +302,9 @@ def main() -> int:
                         print(f"ceiling: {spent:.2f} USD spent", file=sys.stderr)
                         return 1
                     jev = sum(r["jev_usd"] for r in rows)
-                    if (args.fixed or args.new) and jev + JEV_SESSION_MAX_USD > JEV_CEILING_USD:
+                    if (
+                        args.fixed or args.new or args.wide
+                    ) and jev + JEV_SESSION_MAX_USD > JEV_CEILING_USD:
                         print(f"Jev ceiling: {jev:.4f} USD spent", file=sys.stderr)
                         return 1
                     row = one_session(task, run, arm, key)

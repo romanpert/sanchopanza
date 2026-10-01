@@ -36,6 +36,8 @@ MODEL = "claude-sonnet-5"
 RUNS = 3
 SESSION_MAX_USD = 1.00
 CEILING_USD = 20.00
+LEAN_JEV_MAX_USD = 0.20  # SANCHOPANZA_SESSION_MAX_USD in a LEAN session
+JEV_CEILING_USD = 2.00  # Phase 3g (prereg-e2e-wide.md)
 EARLY_STOP_USD = 8.00
 TIMEOUT_S = 900
 
@@ -94,6 +96,27 @@ def use_new_tasks() -> None:
     PREREG, REGISTRATIONS = NEW_PREREG, (NEW_PREREG,)
     SESSIONS, REPORT = RESULTS / "e2e-cli-new-sessions.jsonl", "e2e-cli-new.json"
     RUNS, TASKS = 4, mcp.NEW_TASKS
+
+
+WIDE_PREREG = RESULTS / "prereg-e2e-wide.md"  # Phase 3g: twelve more tasks, playwright-cli
+# Phases 3 and 3e lost runs to "Done - browser closed." as the final message; here the agent
+# closes the browser first and answers last, so the final message is the answer.
+APPEND_ANSWER_LAST = (
+    "You browse the web with the `playwright-cli` command in Bash. Useful commands: "
+    "`playwright-cli -s={session} open <url>`, `goto <url>`, `snapshot` (prints the page's "
+    "elements with refs like e12), `click <ref>`, `fill <ref> <text>`, `find <text>`, "
+    "`close`. Always pass `-s={session}`. When you have the facts, close the browser first, "
+    "then give the answer briefly as your final message."
+)
+
+
+def use_wide_tasks() -> None:
+    """Phase 3g: Phase 3f's twelve tasks with playwright-cli, three runs, answer last."""
+    global PREREG, SESSIONS, REGISTRATIONS, RUNS, TASKS, REPORT, APPEND
+    mcp = _load_sibling("browse_e2e_mcp", HERE / "e2e_mcp.py")
+    PREREG, REGISTRATIONS = WIDE_PREREG, (WIDE_PREREG,)
+    SESSIONS, REPORT = RESULTS / "e2e-cli-wide-sessions.jsonl", "e2e-cli-wide.json"
+    RUNS, TASKS, APPEND = mcp.WIDE_RUNS, mcp.WIDE_TASKS, APPEND_ANSWER_LAST
 
 
 def _load_sibling(name: str, path: pathlib.Path) -> Any:
@@ -165,7 +188,7 @@ def one_session(task: tuple, run: int, arm: str, key: str) -> dict[str, Any]:
     env["SANCHOPANZA_ARCHIVE"] = str(work / "archive")
     if arm == "LEAN":
         env["TYPESAFE_API_KEY"] = key
-        env["SANCHOPANZA_SESSION_MAX_USD"] = "0.20"
+        env["SANCHOPANZA_SESSION_MAX_USD"] = f"{LEAN_JEV_MAX_USD:.2f}"
     else:
         env.pop("TYPESAFE_API_KEY", None)
     argv = [
@@ -259,9 +282,12 @@ def main() -> int:
     ap.add_argument("--pilot", action="store_true", help="T1 once per arm (run 0), excluded")
     ap.add_argument("--pilot2", action="store_true", help="T1 LEAN once more (run -1), excluded")
     ap.add_argument("--new", action="store_true", help="Phase 3e (prereg-e2e-cli-new.md)")
+    ap.add_argument("--wide", action="store_true", help="Phase 3g (prereg-e2e-wide.md)")
     args = ap.parse_args()
     if args.new:
         use_new_tasks()
+    if args.wide:
+        use_wide_tasks()
     if args.record_hash:
         for path in REGISTRATIONS:
             registered = path.with_suffix(".sha256")
@@ -292,6 +318,10 @@ def main() -> int:
                     spent = sum(r["list_usd"] for r in rows)
                     if spent + SESSION_MAX_USD > CEILING_USD:
                         print(f"ceiling: {spent:.2f} USD spent", file=sys.stderr)
+                        return 1
+                    jev = sum(r["jev_usd"] for r in rows)
+                    if args.wide and jev + LEAN_JEV_MAX_USD > JEV_CEILING_USD:
+                        print(f"Jev ceiling: {jev:.4f} USD spent", file=sys.stderr)
                         return 1
                     if (
                         index >= 2
