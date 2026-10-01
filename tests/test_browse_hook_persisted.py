@@ -202,3 +202,19 @@ async def test_the_agents_own_search_saved_to_a_file_comes_back_in_page_order(
     small = _persisted_event(tmp_path, full[:20000], None, transcript)
     small["tool_input"] = event["tool_input"]
     assert await browse_hook.post_tool_use(small, Squire()) == {}, "unsaved: never touched"
+
+
+def test_position_needs_a_listing_word_and_reads_the_request_only():
+    """Z2 (3l): "in which year was the first ascent" counted as a position, so the hook left
+    the page uncut; and the agent's own step ("First I'll open the page") was read too."""
+    from sanchopanza.harness.browse_hook import asks_for_position
+
+    assert not asks_for_position(
+        "Task: According to the infobox, in which year was the first ascent?"
+    )
+    assert asks_for_position(
+        "Task: Open the quotes tagged 'humor' and report the author of the first one."
+    )
+    assert asks_for_position("Task: Which lake is listed first in the table?")
+    step = "Task: What is the capital of France?\nAgent's step: First I'll open the page"
+    assert not asks_for_position(step)

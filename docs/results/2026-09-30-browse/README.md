@@ -90,6 +90,25 @@ that tried `snapshot | grep | awk`, was refused for approval and fetched the who
 Counted as recorded, 35/36 and 34/36, -0.0024 [-0.0072, +0.0022]: the same conclusion. 8.71 and
 7.65 USD at list price, 0.045 USD of Jev.
 
+## Which questions ask for a position (`benchmarks/browse/position.py`)
+
+Phase 3l's Z2 ("in which year was the first ascent") counted as a position, so the hook left
+Mont Blanc's page uncut; and the rule also read the agent's own step, where "First I'll open the
+page" would have counted too. The rule now reads the request only and needs a word of listing
+beside the ordinal ("listed", "table", "page", "there", "the first one"...). Written on the 66
+task questions (right on all 66), then scored once on 30 goals labelled by hand and sealed
+before the change (2e2cf73):
+
+| Rule | Precision | Recall | False positives | Missed |
+|---|---|---|---|---|
+| 0138a2d | 0.50 | 0.80 | 12 | 3 |
+| now | **0.86** | 0.80 | 2 | 3 |
+
+A false positive only costs a saving (the page is left uncut). The three missed are worse, since a
+cut can drop what was asked for: "the latest release listed at the top", "the final chapter",
+"the top answer", none with an ordinal. Fixing them now would be fitting the held-out set; they
+go to a new one. What the model sees (below) is unchanged by this: 173 of 239.
+
 ## What the model sees, replayed (`benchmarks/browse/visible.py`, development)
 
 Every large snapshot the PLAIN sessions of Phases 3-3k received (239, never touched by a hook) is

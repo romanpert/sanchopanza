@@ -1,0 +1,24 @@
+{
+ "goals": 30,
+ "precision": 0.5,
+ "recall": 0.8,
+ "false_positives": [
+  "In which year did the first manned Moon landing happen, according to the infobox?",
+  "When was the first edition of the novel published?",
+  "Who was the first President of the United States?",
+  "What was the date of the first ascent of K2?",
+  "When was the company's first store opened?",
+  "Report the second largest city of Australia according to the infobox.",
+  "What is the release date of the first film in the series?",
+  "When did the bridge first open to traffic?",
+  "Who won the last World Cup according to the page?",
+  "Report the date the page was last edited.",
+  "Who was the second person to walk on the Moon?",
+  "What was the first language of the author, per her biography?"
+ ],
+ "missed": [
+  "Open the releases page and give the version of the latest release listed at the top.",
+  "Give the title of the final chapter in the table of contents.",
+  "Who wrote the top answer on this question?"
+ ]
+}

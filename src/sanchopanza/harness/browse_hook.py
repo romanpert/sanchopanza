@@ -172,13 +172,27 @@ _NOT_A_PLACE = frozenset(
 )  # fmt: skip
 
 
+# A word that says the ordinal counts things on the page: "the first book listed", "the third
+# one", "ranked first in the table". Without one, "the first ascent" is an event, not a place.
+_LISTING = re.compile(
+    r"\b(?:listed|lists?|table|page|there|on it|one|ranked|rank|rows?|entry|entries|items?"
+    r"|results?|shown|appears?|category)\b",
+    re.I,
+)
+
+
 def asks_for_position(goal: str) -> bool:
-    """Whether the goal asks for an element by its place: the first book listed, the 3rd quote.
+    """Whether the request asks for an element by its place: the first book listed, the 3rd quote.
 
     Phases 3c (M6), 3f (W12), 3h and 3i (X12): the cut kept the elements to act on and dropped
     the first one listed; in 3h and 3i three runs answered with the wrong author. Nothing in a
-    snapshot line says it comes first, so for such a goal the hook does not cut."""
-    return any(m["next"].lower() not in _NOT_A_PLACE for m in _ORDINAL.finditer(goal))
+    snapshot line says it comes first, so for such a goal the hook does not cut. Only the
+    request is read, never the agent's step ("First I'll open the page"), and the ordinal needs
+    a word of listing beside it: Z2's "the first ascent" (3l) left a page uncut."""
+    asked = "\n".join(line for line in goal.splitlines() if not line.startswith("Agent's step:"))
+    if not _LISTING.search(asked):
+        return False
+    return any(m["next"].lower() not in _NOT_A_PLACE for m in _ORDINAL.finditer(asked))
 
 
 def _oversized(text: str, event: Mapping[str, Any]) -> str | None:

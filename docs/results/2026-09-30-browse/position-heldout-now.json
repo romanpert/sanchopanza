@@ -1,0 +1,14 @@
+{
+ "goals": 30,
+ "precision": 0.857,
+ "recall": 0.8,
+ "false_positives": [
+  "Who won the last World Cup according to the page?",
+  "Report the date the page was last edited."
+ ],
+ "missed": [
+  "Open the releases page and give the version of the latest release listed at the top.",
+  "Give the title of the final chapter in the table of contents.",
+  "Who wrote the top answer on this question?"
+ ]
+}
