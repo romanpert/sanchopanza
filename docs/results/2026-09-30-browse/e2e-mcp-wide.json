@@ -1,0 +1,45 @@
+{
+ "sessions": 72,
+ "PLAIN": {
+  "runs": 36,
+  "success": 36,
+  "list_usd_mean": 0.1253,
+  "jev_usd_mean": 0.0,
+  "turns_mean": 5.19,
+  "cache_read_mean": 198466,
+  "cache_write_mean": 19804,
+  "snapshots_pruned": 0
+ },
+ "LEAN": {
+  "runs": 36,
+  "success": 36,
+  "list_usd_mean": 0.1114,
+  "jev_usd_mean": 0.0049,
+  "turns_mean": 5.44,
+  "cache_read_mean": 207044,
+  "cache_write_mean": 15730,
+  "snapshots_pruned": 30
+ },
+ "LEAN_minus_PLAIN_usd_per_task": {
+  "value": -0.009,
+  "bootstrap95": [
+   -0.0321,
+   0.0099
+  ],
+  "by_task": {
+   "W1": -0.0879,
+   "W10": -0.0042,
+   "W11": -0.0117,
+   "W12": 0.0214,
+   "W2": 0.0345,
+   "W3": -0.0079,
+   "W4": 0.0165,
+   "W5": 0.0067,
+   "W6": -0.0004,
+   "W7": 0.0139,
+   "W8": -0.0005,
+   "W9": -0.0886
+  }
+ },
+ "pilot": []
+}

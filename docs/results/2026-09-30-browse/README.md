@@ -74,6 +74,43 @@ written before the counted sessions: the per-session cap (0.25 to 0.60 USD, size
 and the phase ceiling (8 to 12 USD, sized on the pilot); the pilot (FULL 6/9, TOP 5/9) is outside
 every count. 8.61 USD spent in all.
 
+## Phases 3f and 3g: twelve more tasks; playwright-cli passes, Playwright MCP does not (`prereg-e2e-wide.md`, amendment)
+
+The reviewed hook (1476d12) on twelve new tasks, five of them several steps long, three runs per
+task and arm, both tools at once. Amendment 1, written before any analysis: the rule must also
+hold without the first, cache-warming run (`warmup.py`).
+
+| Tool | Success PLAIN / LEAN | List USD / session PLAIN / LEAN | LEAN minus PLAIN, all | without the warm-up run |
+|---|---|---|---|---|
+| playwright-cli (3g) | 35/36 / 36/36 | 0.1143 / 0.1044 | **-0.0094 [-0.0189, -0.0019]** | **-0.0058 [-0.0115, -0.0012]** |
+| Playwright MCP (3f) | 36/36 / 36/36 | 0.1253 / 0.1114 | -0.0090 [-0.0321, +0.0099] | -0.0061 [-0.0257, +0.0101] |
+
+**With playwright-cli the hook passes both versions of the rule** (5 % cheaper without the
+warm-up run, 8.7 % with it); the one failure is a PLAIN run that opened the wrong book. **With
+Playwright MCP it does not pass on this wider sample**: big savings on W1 (-0.088) and W9
+(-0.089), losses on W2 (+0.035), W12 (+0.021), W4 (+0.017) and W7 (+0.014). 8.52 and 7.87 USD at
+list price, 0.18 and 0.02 of Jev.
+
+What the transcripts of the losing tasks show:
+
+- **On huge pages Jev cost more than the cut saved.** W4 (Spain, 951,684 characters) and W7 (the
+  tallest buildings, 561,045): LEAN's sessions were as cheap or cheaper in tokens, but ranking
+  2,000-3,000 elements is 60-100 Jev calls, 0.02-0.035 USD a snapshot. Fixed: past
+  `BROWSE_MAX_ELEMENTS` (600) BM25 shortlists what Jev ranks, about 21 calls at most.
+- **A section the question points at lost its body.** W2 (the VS Code repository): the cut kept
+  the heading "Languages" and dropped "TypeScript 95.6%" under it, a list item with no word of
+  the question; the agent grepped the archive, asked for a targeted snapshot and fell back to
+  `evaluate` (+0.05-0.07 a session). Fixed: a heading that shares a word with the goal (a plural
+  `s` aside) brings up to 12 lines of its section.
+- **A positional answer, again** (W12, the first book on catalogue page 3), as M6 in Phase 3c. Not
+  fixed: nothing in a line says it is first.
+
+Both fixes were designed on these tasks, so they are measured next on new ones.
+
+Re-reading the earlier phases for the warm-up (`warmup.json`): 3d does not move (-0.0143
+[-0.0266, -0.0025]); 3e shrinks from -0.0094 to -0.0037 [-0.0066, -0.0004], still below zero, so
+its 8.6 % was mostly the first session's cache write and the honest figure is about 3 %.
+
 ## Phase 3e: registered, passed, with a caveat: playwright-cli (`prereg-e2e-cli-new.md`)
 
 The fixed hook with `playwright-cli` (Phase 3's setup) on Phase 3d's six new tasks, four runs per
