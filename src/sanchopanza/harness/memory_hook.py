@@ -581,7 +581,8 @@ def touch(event: Mapping[str, Any]) -> dict[str, Any]:
     if tool in SHELL_TOOLS:
         command = data.get("command")
         raws, seen, base = bash_view(command, event.get("tool_response"),
-                                     str(event.get("cwd") or ""))  # fmt: skip
+                                     str(event.get("cwd") or ""),
+                                     powershell=tool == "PowerShell")  # fmt: skip
         written = shell_written(command) if SHELL_EDIT_RULE else []
         given = _give(event, written, "Edit", seen, base) if written else {}
         return given or _give(event, [r for r in raws if r not in written], "Read", seen, base)
@@ -642,10 +643,12 @@ def shell_written(command: Any) -> list[str]:
     return shell.written(command)
 
 
-def bash_view(command: Any, response: Any, cwd: str) -> tuple[list[str], set[str], str]:
+def bash_view(
+    command: Any, response: Any, cwd: str, powershell: bool = False
+) -> tuple[list[str], set[str], str]:
     from ..context import shell
 
-    return shell.view(command, response, cwd)
+    return shell.view(command, response, cwd, powershell)
 
 
 def seen_prints(event: Mapping[str, Any]) -> set[str]:

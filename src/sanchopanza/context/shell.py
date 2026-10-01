@@ -14,6 +14,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from . import episodes as ep
+from . import statements as st
 
 SCAN = 200_000  # characters of a command's output read for lines in view
 PATHS = 20
@@ -47,24 +48,54 @@ _COPY = re.compile(r"\b(?:cp|mv|Copy-Item|Move-Item)\b[^|;&\n]{0,2000}?\s['\"]?"
 _QUOTED = re.compile(r"\"(?:[^\"\\\n]|\\.){0,2000}\"|'[^'\n]{0,2000}'")
 
 
-def _parts(command: str) -> tuple[list[str], list[str]]:
-    """(the shell's own lines, the bodies of its heredocs); a here-string `<<<` is shell."""
+_HERE_STRING = re.compile(r"@(['\"])[ \t]*\r?$")  # PowerShell: `@'` ends the line, `'@` closes
+
+
+def _opening(line: str, escape: str) -> tuple[str, int] | None:
+    """(the line that closes the heredoc this line opens, where its marker is), or None. A
+    `<<` inside quotes or a comment opens nothing (`grep -n "<<EOF" run.sh`); `<<<` is shell."""
+    found: list[tuple[str, int]] = []
+    if "<<" in line:
+        found = [(m.group(1), m.start()) for m in _HEREDOC.finditer(line)]
+    here = _HERE_STRING.search(line) if escape == "`" else None
+    if here:
+        found.append((here.group(1) + "@", here.start()))
+    if not found:
+        return None
+    parts = st.split(line, escape)
+    for closing, position in found:
+        inside = [s for s in parts if s.start <= position < s.end]
+        if inside and not any(a <= position < b for a, b in inside[0].quotes):
+            return closing, position
+    return None
+
+
+def _heredocs(command: str, escape: str = "\\") -> tuple[list[str], list[tuple[str, int, str]]]:
+    """(the shell's own lines, (opening line, marker position, body) of each heredoc or
+    PowerShell here-string)."""
     shell: list[str] = []
-    bodies: list[str] = []
+    bodies: list[tuple[str, int, list[str]]] = []
     closing = ""
     for line in command.split("\n"):
         if closing:
-            if line.strip() == closing:
+            done = line.startswith(closing) if closing.endswith("@") else line.strip() == closing
+            if done:
                 closing = ""
             else:
-                bodies[-1] += line + "\n"
+                bodies[-1][2].append(line + "\n")
             continue
         shell.append(line)
-        marker = _HEREDOC.search(line)
-        if marker:
-            closing = marker.group(1)
-            bodies.append("")
-    return shell, bodies
+        opened = _opening(line, escape)
+        if opened:
+            closing = opened[0]
+            bodies.append((line, opened[1], []))
+    return shell, [(opener, at, "".join(body)) for opener, at, body in bodies]
+
+
+def _parts(command: str) -> tuple[list[str], list[str]]:
+    """(the shell's own lines, the bodies of its heredocs)."""
+    shell, bodies = _heredocs(command)
+    return shell, [body for _, _, body in bodies]
 
 
 def _target(argument: str, code: str) -> str | None:
@@ -116,25 +147,52 @@ def written(command: Any) -> list[str]:
     return list(dict.fromkeys(out))
 
 
-def view(command: Any, response: Any, cwd: str) -> tuple[list[str], set[str], str]:
+def view(
+    command: Any, response: Any, cwd: str, powershell: bool = False
+) -> tuple[list[str], set[str], str]:
     """(the files a command names, prints of the lines it shows, the folder it ran in).
     Files: paths with an extension in the command and at the head of grep-style output lines.
     Lines: the output's (`stdout`), without grep's `path:12:` or `cat -n`'s numbering, and the
     command's own, split at triple quotes, and what it quotes (a `python - <<E` edit carries the
     old lines in its `s.replace`, a `grep -F "line"` the line). A leading `cd DIR &&` moves
-    the folder."""
+    the folder. Not in view (v6.1): the output of a history command (`git diff/show/log`,
+    `gh pr diff`), a heredoc body no interpreter runs (`gh pr create --body "$(cat <<EOF`),
+    and the quoted strings of a messaging command (`git commit -m`, `gh`, `curl -d`). PowerShell
+    escapes with a backtick and has here-strings (`@'...'@`)."""
     if not isinstance(command, str) or not command.strip():
         return [], set(), cwd
+    own, quoted, history, extra = _own(command[:SCAN], "`" if powershell else "\\")
     out = response.get("stdout") if isinstance(response, Mapping) else response
-    out = out[:SCAN] if isinstance(out, str) else ""
+    out = out[:SCAN] if isinstance(out, str) and not history else ""
     base = cwd
     moved = _CD.match(command)
     if moved:
         folder = moved.group(1).strip("\"'")
         absolute = folder.startswith(("/", "\\")) or bool(re.match(r"^[A-Za-z]:", folder))
         base = folder if absolute or not cwd else f"{cwd.rstrip('/')}/{folder}"
-    raws = list(dict.fromkeys([*PATH.findall(command[:SCAN]), *_GREP_PREFIX.findall(out)]))
-    own = command[:SCAN]
-    quoted = [q[1:-1] for q in _QUOTED.findall(own)]  # a `grep -F "whole line"` shows the line
+    raws = list(dict.fromkeys([*PATH.findall(own), *extra, *_GREP_PREFIX.findall(out)]))
     lines = "\n".join([_LINE_PREFIX.sub("", out), *_TRIPLE.split(own), *quoted])
     return raws[:PATHS], ep.line_prints(lines), base
+
+
+def _own(command: str, escape: str) -> tuple[str, list[str], bool, list[str]]:
+    """(the command's own text in view, its quoted strings in view, whether its output is history
+    only, paths `git show <rev>:<path>` prints). A heredoc's body is source when an interpreter
+    runs it and more shell when a shell does; anything else (`cat > f`, a commit or PR body) is
+    not in view, and neither are the quoted strings of a messaging statement (v6.1)."""
+    shell_lines, bodies = _heredocs(command, escape)
+    kinds = [(st.body_kind(opener, at, escape), body) for opener, at, body in bodies]
+    text = "\n".join([*shell_lines, *(body for kind, body in kinds if kind == "shell")])
+    code = [body for kind, body in kinds if kind == "code"]
+    parts = st.split(text, escape)
+    own: list[str] = []
+    quoted: list[str] = []
+    for s in parts:
+        if st.messenger(st.words(text, s)):
+            own.append(st.blanked(text, s))
+            continue
+        own.append(text[s.start : s.end])
+        quoted += [text[a + 1 : b - 1] for a, b in s.quotes if b - a <= 2002]
+    quoted += [q[1:-1] for body in code for q in _QUOTED.findall(body)]
+    history = st.output_is_history(text, parts)
+    return "\n".join([*own, *code]), quoted, history, st.git_show_paths(text, parts)

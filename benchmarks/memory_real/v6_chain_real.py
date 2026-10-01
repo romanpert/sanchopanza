@@ -170,12 +170,22 @@ def score(arms: list[tuple[dict[str, Any], dict[str, Any]]], bash: bool) -> dict
             "records_changing_nothing": ratio("pool_empty", "pool")}  # fmt: skip
 
 
+def _view(name: str) -> Any:
+    """The shell view of a v6.1 variant (`variants_v61.VARIANTS`) while scoring."""
+    import variants_v61 as v61
+
+    return v61.variant(*v61.VARIANTS[name])
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--arms", required=True, help="chain/arm[:from-to],... scored range")
     parser.add_argument("--tag", required=True)
     parser.add_argument("--dump", default="", help="a local file for every record given")
+    parser.add_argument("--views", default="", help="variants_v61 views to score v6's recording "
+                        "with as well (v6.1, comma-separated)")
     args = parser.parse_args(argv)
+    views = [v for v in args.views.split(",") if v]
     for name in ("SANCHOPANZA_MEMORY_SELECT", "SANCHOPANZA_PROVIDER", "TYPESAFE_API_KEY"):
         os.environ.pop(name, None)
     rows: dict[str, Any] = {}
@@ -200,8 +210,14 @@ def main(argv: list[str] | None = None) -> int:
                 done[label].append((chain, rec))
                 # phase 2 needs the clone's files only through the records: score now
                 rows.setdefault(label, []).append(score([(chain, rec)], bash=tree))
+                for view in views if tree else ():
+                    with _view(view):
+                        rows.setdefault(view, []).append(score([(chain, rec)], bash=True))
         print(spec, {k: v[-1] for k, v in rows.items()}, flush=True)
     total = {"v5": score(done["v5"], bash=False), "v6": score(done["v6"], bash=True)}
+    for view in views:
+        with _view(view):
+            total[view] = score(done["v6"], bash=True)
     print("failed patches", failed)
     if args.dump:
         rows_out = "\n".join(json.dumps(r) for r in DUMP[1:])

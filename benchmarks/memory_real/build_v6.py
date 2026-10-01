@@ -47,10 +47,11 @@ def views(messages: Sequence[Mapping[str, Any]], cwd: str) -> list[dict[str, Any
             name, data = str(block.get("name")), block.get("input") or {}
             result = results.get(str(block.get("id"))) or {}
             text = _result_text(result.get("content")) if result else ""
-            if name == "Bash":
+            if name in ("Bash", "PowerShell"):  # the hook reads both alike; replayed as Bash
                 command = data.get("command")
                 if isinstance(command, str) and not result.get("is_error"):
-                    out.append({"tool": "Bash", "seen": [], "command": command[:COMMAND_CHARS],
+                    out.append({"tool": "Bash", "shell": name, "seen": [],
+                                "command": command[:COMMAND_CHARS],
                                 "output": text[:shell.SCAN]})  # fmt: skip
                 continue
             if name not in TOUCHING:
