@@ -199,3 +199,41 @@ precision 0.818 on its 15 fresh requests. The verdict stays "not confirmed": a c
 the same requests would be post hoc, and the SWE-chat precision drop (criterion 5) is real.
 Diagnosis of that drop on seen data (dev + held out 1): of the shell touch's 14 unrelated
 records, 6 came from `git diff` output and 2 from `gh api ... "$(cat <<EOF ...)"` bodies.
+
+## v6.1: the shell touch without history, message bodies or file-tool editors (amendment 5: NOT confirmed)
+
+v6.1 (`context/statements.py`, `context/shell.py`, `memory_hook.SHELL_UNTIL_FILE_EDIT`; three
+adversarial reviews, all fixed with tests) leaves out of a shell call's view the output of
+`git diff/show/log` (whole when nothing else prints code, only the diff blocks when something
+does), heredoc bodies that no interpreter or shell runs, and the quoted strings of `git commit`,
+`gh`, `curl` and the like; and once a session edits an existing file with a file tool, its
+shell touch gives nothing. Design and development numbers are in `amendment-5.md`: on SWE-chat
+(with each session's folder, which the bench had been leaving out) precision within 0.005 of
+v5, recall equal; on B2's fresh requests, post hoc, recall 0.941 and precision 0.927.
+
+Confirmation, run once on the maintainer's own sessions that no pass had scored
+(`local_v6.py`, 12 folders, 153 sessions, 632 requests, 156 with a related record; counts only,
+`local-v61.json`):
+
+| | recall | precision | noise | records given through the shell (related) |
+|---|---|---|---|---|
+| v5 | 0.923 | 0.858 | 0.019 | |
+| v6.1 | 0.949 | **0.421** | **0.153** | 258 (62) |
+
+Criterion 1 met (recall up 0.026), 2 and 3 failed by far (precision -0.437, noise +0.134),
+4 failed (24 % of the shell's records related, 50 % required). On the 40 requests of sessions
+started after the v3 pass: precision 0.774 -> 0.694, noise 0.087 -> 0.174. Not shipped.
+
+**Why** (`v61_diag_local.py`, after the sealed run, so now seen data): all 258 records came
+while the gate was open, before any file-tool edit in their session, and almost all from
+reads: `sed -n` (47 unrelated, 11 related), `grep -n` (29, 6), `echo "==="; ...` blocks (20,
+11), `grep -rn`, `cat`. These agents (Claude Code in auto mode, whose prompt suggests reading
+with `cat`, `head` or `sed -n`) make about 38 shell calls per request (23,736 Bash and 952
+PowerShell in 632 requests) and read far more than they edit; a shell read is rarely followed
+by an edit of that file. SWE-chat's agents read with the Read tool, so its shell reads were few
+and the development numbers could not show this. The label cannot see shell edits (17 of the
+unrelated records came from `python -` or `sed -i` writes), which explains a little of it,
+not most.
+
+Declared: 157 target sessions were counted before sealing and 153 were built: four
+transcripts disappeared from disk in between (a cleanup freed about 128 GB of C: at that time).
