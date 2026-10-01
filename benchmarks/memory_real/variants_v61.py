@@ -64,13 +64,15 @@ VIEWS = {"v6.0": view_v60, "v6.1": shell.view}
 
 
 @contextlib.contextmanager
-def variant(view: str, least: int, until_file: bool = False) -> Iterator[None]:
+def variant(view: str, least: int, gate: str = "") -> Iterator[None]:
     """Patch the hook's view of a shell call, and with `least` > 1 drop a shell read's record
-    with fewer of its written lines in view. With `until_file`, the shell touch gives nothing
-    once the session (session id and transcript) has called a file tool."""
+    with fewer of its written lines in view. `gate` "until_file": the shell touch gives nothing
+    once the session (session id and transcript) has called a file tool; "habit": only while
+    the session has made at least as many shell calls as file-tool calls; "until_edit": until
+    the session has edited through a file tool."""
     original_view, original_choose, original_touch = mh.bash_view, mh.choose_touched, mh.touch
     in_shell = {"on": False}
-    filed: set[tuple[str, str]] = set()
+    calls: dict[tuple[str, str], list[int]] = {}  # [file tools, shell, file edits] so far
 
     def choose(matching: Any, tool: str, seen: set[str], *args: Any, **kwargs: Any) -> Any:
         chosen = original_choose(matching, tool, seen, *args, **kwargs)
@@ -85,9 +87,12 @@ def variant(view: str, least: int, until_file: bool = False) -> Iterator[None]:
     def touch(event: Any) -> Any:
         in_shell["on"] = event.get("tool_name") in mh.SHELL_TOOLS
         key = (str(event.get("session_id")), str(event.get("transcript_path")))
-        if not in_shell["on"]:
-            filed.add(key)
-        elif until_file and key in filed:
+        files, shells, edits = calls.get(key, [0, 0, 0])
+        edit = event.get("tool_name") in ("Edit", "MultiEdit", "Write", "NotebookEdit")
+        calls[key] = [files + (not in_shell["on"]), shells + in_shell["on"], edits + edit]
+        closed = ((gate == "until_file" and files > 0) or (gate == "habit" and files > shells)
+                  or (gate == "until_edit" and edits > 0))  # fmt: skip
+        if in_shell["on"] and closed:
             in_shell["on"] = False
             return {}
         try:
@@ -107,8 +112,9 @@ def variant(view: str, least: int, until_file: bool = False) -> Iterator[None]:
         )
 
 
-VARIANTS = {"v6.0": ("v6.0", 1, False), "v6.1": ("v6.1", 1, False), "v6.1+2": ("v6.1", 2, False),
-            "v6.1-e": ("v6.1", 1, True)}  # fmt: skip
+VARIANTS = {"v6.0": ("v6.0", 1, ""), "v6.1": ("v6.1", 1, ""), "v6.1+2": ("v6.1", 2, ""),
+            "v6.1-e": ("v6.1", 1, "until_file"), "v6.1-h": ("v6.1", 1, "habit"),
+            "v6.1-k": ("v6.1", 1, "until_edit")}  # fmt: skip
 
 
 def row(items: list[dict[str, Any]], bash: bool) -> dict[str, Any]:
@@ -123,10 +129,12 @@ def row(items: list[dict[str, Any]], bash: bool) -> dict[str, Any]:
 
 def main() -> int:
     results: dict[str, Any] = {}
-    for name in sys.argv[1:]:
+    only = [a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--only=")]
+    chosen = {k: v for k, v in VARIANTS.items() if not only or k in only[0].split(",")}
+    for name in [a for a in sys.argv[1:] if not a.startswith("--")]:
         items = with_cwd(load(CACHE / f"items-v6-{name}.jsonl"))
         rows = {"v5": row(items, False)}
-        for label, spec in VARIANTS.items():
+        for label, spec in chosen.items():
             with variant(*spec):
                 rows[label] = row(items, True)
         results[name] = rows
@@ -139,8 +147,8 @@ def main() -> int:
                 f"bash {r['given_by_bash']} ({r['related_given_by_bash']})",
                 flush=True,
             )
-    (OUT / "variants-v61.json").write_text(json.dumps(results, indent=1), encoding="utf-8",
-                                           newline="\n")  # fmt: skip
+    target = OUT / ("variants-v61.json" if not only else f"variants-v61-{only[0]}.json")
+    target.write_text(json.dumps(results, indent=1), encoding="utf-8", newline="\n")
     return 0
 
 
