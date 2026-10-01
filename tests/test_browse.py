@@ -658,3 +658,29 @@ def test_the_hook_process_reads_and_writes_utf8_whatever_the_console(tmp_path):
     out = json.loads(done.stdout.decode("utf-8"))
     new = out["hookSpecificOutput"]["updatedToolOutput"]["stdout"]
     assert new.startswith(banner) and "# sanchopanza kept" in new
+
+
+def test_a_question_about_position_is_never_cut():
+    """Phases 3c (M6), 3f (W12) and 3h (X12): asked for the first book or quote listed, the cut
+    kept the elements to act on and dropped the first one; in 3h a run answered with the wrong
+    author. Nothing in a line says it is first, so the hook does not cut for such a goal."""
+    from sanchopanza.harness.browse_hook import asks_for_position
+
+    assert asks_for_position(
+        "Open the quotes tagged 'humor' and report the author of the first one."
+    )
+    assert asks_for_position("What is the title of the 3rd book on page 2?")
+    assert asks_for_position("Report the last entry in the table")
+    assert asks_for_position("Go to page 3 and report the title of the first book on it.")
+    assert not asks_for_position("Which license is this repository under?")
+    assert not asks_for_position("Who designed Python and in which year did it first appear?")
+    assert not asks_for_position("When was it first released?")
+
+
+async def test_the_hook_passes_a_positional_goal_through(tmp_path, monkeypatch):
+    from sanchopanza.harness import browse_hook
+
+    monkeypatch.setenv("SANCHOPANZA_ARCHIVE", str(tmp_path / "archive"))
+    event = _playwright_event(tmp_path, _big_snapshot(400))
+    event["transcript_path"] = _transcript(tmp_path, "Report the title of the first product listed")
+    assert await browse_hook.post_tool_use(event, Squire()) == {}

@@ -33,11 +33,11 @@ the hook now reads the saved result behind the notice (only from its own session
 `tool-results` folder) and returns it pruned; the agent's own `find` results pass untouched; and
 the goal is `browse_goal`, which keeps the question at the end of a request. Phase 3c found
 two more (a `Read` with a limit and a targeted snapshot were cut; recovery read the whole
-archive), fixed too. Registered results: with playwright-cli about 5 % cheaper on twelve
-tasks (Phase 3g, -0.0058 USD a session [-0.0115, -0.0012] without the cache-warming first
-run); with Playwright MCP 12.9 % on six tasks (3d) but not settled on twelve more (3f,
--0.0061 [-0.0257, +0.0101]), whose causes (Jev on huge pages, a section cut short) are
-fixed and not re-measured. No answer lost in any phase.
+archive), fixed too. Registered results since, each on tasks it was not fixed on: with
+Playwright MCP 12.9 % cheaper on six tasks (3d), 12.4 % on twelve with the interval crossing
+zero (3h), nothing clear on twelve more (3f); with playwright-cli about 5 % on twelve (3g),
+nothing on twelve more (3i). Questions about position cost answers in 3h and 3i and are now
+passed through. Opt-in, not recommended.
 """
 
 from __future__ import annotations
@@ -154,6 +154,25 @@ def browse_goal(messages: Any) -> str:
     return "\n".join([f"Task: {fit(prompts[0], room)}", *tail])
 
 
+_ORDINAL = re.compile(
+    r"\b(?:first|second|third|fourth|fifth|last|\d+(?:st|nd|rd|th))\b\s+(?P<next>[a-z]+)", re.I
+)
+# What follows an ordinal when it is about time, not place in a list ("when did it first appear").
+_NOT_A_PLACE = frozenset(
+    {"appear", "appeared", "appears", "released", "release", "published", "introduced",
+     "announced", "launched", "seen", "used", "written", "time", "came", "became"}
+)  # fmt: skip
+
+
+def asks_for_position(goal: str) -> bool:
+    """Whether the goal asks for an element by its place: the first book listed, the 3rd quote.
+
+    Phases 3c (M6), 3f (W12), 3h and 3i (X12): the cut kept the elements to act on and dropped
+    the first one listed; in 3h and 3i three runs answered with the wrong author. Nothing in a
+    snapshot line says it comes first, so for such a goal the hook does not cut."""
+    return any(m["next"].lower() not in _NOT_A_PLACE for m in _ORDINAL.finditer(goal))
+
+
 def _oversized(text: str, event: Mapping[str, Any]) -> str | None:
     """The saved result behind Claude Code's too-large notice, or None.
 
@@ -215,6 +234,8 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
     purpose = browse_goal(autopilot._messages(event))
     if not purpose:
         return {}  # nothing to rank for: cutting blind could drop what the agent needs
+    if asks_for_position(purpose):
+        return {}  # the first, the third, the last: an order the cut cannot keep
     over = autopilot._over_ceiling(ledger, config)
     # Phase 3f (W4, W7): ranking every one of 2,000-3,000 elements cost Jev more than the cut
     # saved; past this many, BM25 shortlists what the decider sees (about 21 calls at most).
