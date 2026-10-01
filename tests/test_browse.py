@@ -550,6 +550,43 @@ def test_page_order_uses_the_pages_own_lines():
     assert shown[0][1] == '2nd of 2 alike, after button "Go"' or shown[0][1].startswith("2nd")
 
 
+def test_a_heading_that_matches_the_goal_brings_the_start_of_its_section():
+    """Phase 3f, W2: the cut kept "Languages" and dropped "TypeScript 95.6%" under it, and the
+    agent went looking for it (+0.05 USD a session)."""
+    from sanchopanza.browse import prune_snapshot
+
+    rows = ["- generic [ref=e1]:", '  - heading "About" [level=2] [ref=e2]']
+    rows += [f"  - paragraph [ref=p{i}]: filler line number {i}" for i in range(300)]
+    rows += ['  - heading "Languages" [level=2] [ref=e3]', "  - list [ref=e4]:"]
+    rows += ["    - listitem [ref=e5]: TypeScript 95.6%", "    - listitem [ref=e6]: CSS 1.4%"]
+    rows += ['  - heading "Footer" [level=2] [ref=e7]']
+    rows += [f"  - paragraph [ref=f{i}]: footer text {i}" for i in range(50)]
+    snapshot = "\n".join(rows) + "\n"
+    pruned, _ = prune_snapshot(snapshot, [], purpose="Which language makes up most of the code?")
+    assert "TypeScript 95.6%" in pruned and "CSS 1.4%" in pruned
+    assert "footer text 3" not in pruned and "filler line number 7" not in pruned
+
+
+async def test_a_huge_page_is_shortlisted_before_the_decider(tmp_path, monkeypatch):
+    """Phase 3f, W4 and W7: ranking 2,000-3,000 elements cost Jev 0.02-0.035 USD a snapshot,
+    more than the cut saved. Past BROWSE_MAX_ELEMENTS, BM25 shortlists first."""
+    from sanchopanza.harness import browse_hook
+
+    monkeypatch.setenv("SANCHOPANZA_ARCHIVE", str(tmp_path / "archive"))
+    monkeypatch.setenv("SANCHOPANZA_BROWSE_MAX_ELEMENTS", "120")
+    calls = []
+
+    def judge(state, question):
+        calls.append(1)
+        return answers.truth(0.5)
+
+    squire = Squire(LocalDecider(judge, cost_usd_per_call=0.0001))
+    event = _playwright_event(tmp_path, _big_snapshot(400))
+    out = await browse_hook.post_tool_use(event, squire)
+    assert out, "it still cuts"
+    assert squire.meter.decisions <= 120 // points.GROUP_MAX + 1
+
+
 def test_layout_classes_say_nothing():
     from sanchopanza.browse import _class_words
 

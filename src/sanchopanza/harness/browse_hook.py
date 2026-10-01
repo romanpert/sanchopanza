@@ -19,7 +19,8 @@ Opt-in. In `.claude/settings.json`:
 
 Environment (`SANCHOPANZA_<NAME>`): BROWSE_CHARS (snapshot size that triggers a cut, default
 6000), BROWSE_KEEP (elements kept, default 20), BROWSE_TEXT (characters of text lines kept,
-default 3000), SESSION_MAX_USD (the autopilot's per-session ceiling, shared), and the usual
+default 3000), BROWSE_MAX_ELEMENTS (past this many, BM25 shortlists what the decider ranks,
+default 600), SESSION_MAX_USD (the autopilot's per-session ceiling, shared), and the usual
 provider settings. Without a provider the ranking is BM25 (free). Fail open everywhere.
 
 Measured (`docs/results/2026-09-30-browse/`, Phase 3): in 36 real Claude Code sessions browsing
@@ -54,6 +55,7 @@ from .. import _env
 DEFAULT_CHARS = 6000
 DEFAULT_KEEP = 20
 DEFAULT_TEXT = 3000
+DEFAULT_MAX_ELEMENTS = 600
 SAVED_MAX_BYTES = 20_000_000
 # What may replace Claude Code's notice. Its limit is 25,000 tokens by default, and the GitHub
 # page it refused was 72,000 characters; past this the notice stays (review 2026-10-01).
@@ -213,11 +215,15 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
     if not purpose:
         return {}  # nothing to rank for: cutting blind could drop what the agent needs
     over = autopilot._over_ceiling(ledger, config)
+    # Phase 3f (W4, W7): ranking every one of 2,000-3,000 elements cost Jev more than the cut
+    # saved; past this many, BM25 shortlists what the decider sees (about 21 calls at most).
+    most = _int("BROWSE_MAX_ELEMENTS", DEFAULT_MAX_ELEMENTS)
     ranked = await rank(
         purpose,
         elements,
         squire=None if over else squire,
         keep=_int("BROWSE_KEEP", DEFAULT_KEEP),
+        shortlist=most if most and len(elements) > most else None,
     )
     pruned, left_out = prune_snapshot(
         body,

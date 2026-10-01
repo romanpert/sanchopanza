@@ -431,6 +431,45 @@ def snapshot_block(text: str) -> tuple[int, int] | None:
     return None
 
 
+SECTION_LINES = 12
+SECTION_HEADINGS = 3
+
+
+def _stems(text: str) -> set[str]:
+    """Words of a text, a plural `s` dropped: "Languages" meets "language". Local to the cut;
+    the package's BM25 does no stemming and is measured as it is elsewhere."""
+    from .text import _bm25_words
+
+    return {w[:-1] if len(w) > 3 and w.endswith("s") else w for w in _bm25_words(text)}
+
+
+def _sections_for(lines: Sequence[str], purpose: str) -> set[int]:
+    """The first lines under the headings that share a word with the goal.
+
+    Phase 3f's W2: the cut kept the heading "Languages" and dropped "TypeScript 95.6%" under it
+    (a list item with no word of the question), and the agent went back for it. Up to
+    `SECTION_HEADINGS` headings, best overlap first, each bringing up to `SECTION_LINES` lines
+    until the next heading."""
+    goal = _stems(purpose)
+    if not goal:
+        return set()
+    scored = []
+    for i, line in enumerate(lines):
+        match = _SNAPSHOT_LINE.match(line)
+        if match and match["role"] == "heading":
+            overlap = len(goal & _stems(match["name"] or match["text"] or ""))
+            if overlap:
+                scored.append((-overlap, i))
+    keep: set[int] = set()
+    for _, i in sorted(scored)[:SECTION_HEADINGS]:
+        for j in range(i + 1, min(len(lines), i + 1 + SECTION_LINES)):
+            match = _SNAPSHOT_LINE.match(lines[j])
+            if match and match["role"] == "heading":
+                break
+            keep.add(j)
+    return keep
+
+
 def prune_snapshot(
     snapshot: str,
     keep_refs: Sequence[str],
@@ -475,6 +514,7 @@ def prune_snapshot(
                 continue
             keep.add(text_lines[k])
             used += cost
+    keep |= _sections_for(lines, purpose)
     for i in sorted(keep):  # bring every ancestor, nearest first
         level = depth[i]
         for j in range(i - 1, -1, -1):
