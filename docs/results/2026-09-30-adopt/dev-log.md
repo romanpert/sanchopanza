@@ -471,3 +471,23 @@ pydantic-1 was left to finish: N 3/5, Sm 4/5). Fixed and amended before any verd
 `runs/`), a call that cannot start is NOT RUN (harness) with the row written, pydantic-2 run again
 whole, its first attempt (0.22 USD) kept under `runs/pydantic__pydantic-2-crashed1/`. Spent under
 `runs/` now 77.51 USD.
+
+**Paused by the subscription's weekly limit (2026-10-01 ~14:40).** From pydantic-2's request 3 on,
+every `claude -p` returned `api_error_status 429`, "You've hit your weekly limit · resets Oct 5,
+10pm (Europe/Madrid)" (other sessions on the account hit it at the same time). The runner did what
+the review fix asked: each such request is NOT RUN (error result) with its row written, and the
+arm stops; the coordinating script was stopped by hand. State, nothing graded counts yet:
+
+| task | arms complete | where it stopped |
+|---|---|---|
+| pygments-2, starlette-2, pydantic-1 | N, Sm | done |
+| starlette-rel-2 | N, Sm, Nf, Sf | done |
+| pydantic-2 | none | N and Sm ran requests 1-2; request 3 started and was cut by the 429 in both (N after 0.76 USD of work) |
+| pydantic-rel-1, conan-1, conan-2 | none | every arm at request 1, nothing spent |
+| dvc-rel-1, astroid-1, the 26 singles | not started | |
+
+Spent under `runs/` 78.96 USD (A so far 20.45, with the crashed attempt and the 429s). To go on
+after the reset: `run.py run --continue` per task (the same command, the same ceiling 133.51),
+which resumes each arm from its first NOT RUN request in the same session and working copy; then
+dvc-rel-1 and astroid-1, then the singles (ceiling 169.36). pydantic-2's request 3 is run again in
+both arms over whatever the cut call left in the working copy; that is said with its result.
