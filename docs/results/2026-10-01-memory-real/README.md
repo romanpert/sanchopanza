@@ -130,3 +130,37 @@ Measured along the way, not acted on: a record's text is a median 1,450 characte
 recorded command output) and the touch injects 448 characters per request, so compacting it
 cannot pay in cost; 12.8 % of SWE-chat sessions compact at least once (195 compactions in 719),
 and no pass so far simulates a compaction.
+
+## Across a compaction (v5, the touch only, as most people run it)
+
+12.8 % of SWE-chat sessions compact at least once, and no earlier pass simulated it. Every
+cached session with a `compact_boundary` was replayed event by event through the hook's own
+code (`v5_compact.py`): each prompt, each compaction's SessionStart (before the boundary is in
+the transcript, as Claude Code writes it), each file tool's PostToolUse with its real input and
+result. Only the session's own records are in the store. Items are the requests after the
+session's first compaction; labels as above. Sessions split by id hash before scoring.
+
+| split | sessions | requests after a compaction | recall | precision | noise | records / chars per request |
+|---|---|---|---|---|---|---|
+| development | 69 | 1,103 (283 with a related record compacted out) | 0.929 | 0.816 | 0.041 | 0.38 / 870 |
+| held out | 73 | 1,251 (266) | 0.906 | 0.807 | 0.039 | 0.28 / 656 |
+
+`lineage` only: recall 0.882 / 0.752, precision 0.210 / 0.204. The misses looked at one by one
+are definitional (a related record compacted out by a later compaction was given instead, or
+a Read that shows none of a record's lines, where v4 gives nothing on purpose), not a fault. Of
+the related records given, 80 % (dev) and 93 % (held) name a file the compaction summary already
+names: whether the verbatim record adds to the summary is not measurable offline.
+
+Not adopted (development): after a compaction, the edit fallback only once per file. Repeated
+edits of one file each release one older record of it; limiting that cut characters per request
+by 25 % (870 to 651) and raised `lineage` precision (0.210 to 0.288), but lowered precision on
+the main label (0.816 to 0.751) and `lineage` recall (0.882 to 0.874). The same rule lowered
+precision across sessions too (v4.1 review).
+
+Replay artifact found and handled: the store removes records older than 30 days when it saves,
+and SWE-chat sessions are months old, so a replay through the hook's recording kept nothing
+until retention was lifted in the replay (`ep.save` default). Earlier passes saved pools with
+`keep_days=10_000` and never recorded through the hook, so they were not affected.
+
+Latency of a touch, worst case measured (a Read of 2,000 lines over 300 records of that file),
+20 runs with the CPU at 56 % from other work: median 0.130 s, max 0.225 s.
