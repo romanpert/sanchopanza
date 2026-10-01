@@ -393,7 +393,7 @@ def main() -> int:
         )  # fmt: skip
         if code:
             return code
-    report = analyze([r for r in rows if r["run"] > 0])
+    report = analyze(phase.counted(rows))
     report["pilot"] = [r for r in rows if r["run"] <= 0]
     (RESULTS / REPORT).write_text(json.dumps(report, indent=1), encoding="utf-8")
     print(json.dumps(report, indent=1))

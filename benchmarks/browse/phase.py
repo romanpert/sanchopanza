@@ -11,12 +11,15 @@ from __future__ import annotations
 import asyncio
 import json
 import pathlib
+import re
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
 WARMUP_RUN = -9  # warm-ups are runs -9, -10, ...: excluded from every count (run <= 0)
+# The subscription's answer instead of a session (3m: "You've hit your weekly limit").
+_USAGE_LIMIT = re.compile(r"hit your (?:\w+ )?limit", re.I)
 SHOWN = ("task", "run", "arm", "success", "list_usd", "turns", "jev_usd", "tools")
 
 Task = tuple[str, str, str, list[Any]]
@@ -36,6 +39,15 @@ class Limits:
 def planned(tasks: list[Task], runs: list[int], arms: tuple[str, ...]) -> list[tuple]:
     """(task index, task, run, arm) in the order the phase runs them."""
     return [(i, task, run, arm) for i, task in enumerate(tasks) for run in runs for arm in arms]
+
+
+def usage_limited(row: dict[str, Any]) -> bool:
+    return bool(_USAGE_LIMIT.search(str(row.get("answer") or "")))
+
+
+def counted(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The sessions a phase reports: not the warm-ups, not the ones the usage limit stopped."""
+    return [r for r in rows if r["run"] > 0 and not r.get("not_run")]
 
 
 def next_warmup_run(rows: list[dict[str, Any]]) -> int:
@@ -110,7 +122,7 @@ def run_phase(
 ) -> tuple[int, list[dict[str, Any]]]:
     """Run what the plan still lacks; (exit code, every row). The caller's list is not changed."""
     rows = list(done)
-    seen = {(r["task"], r["run"], r["arm"]) for r in rows}
+    seen = {(r["task"], r["run"], r["arm"]) for r in rows if not r.get("not_run")}
     todo = [p for p in plan if (p[1][0], p[2], p[3]) not in seen]
     if not todo:
         return 0, rows
@@ -121,6 +133,12 @@ def run_phase(
             _log(sessions, reason)
             return 1, rows
         row = session(task, run, arm)
+        if usage_limited(row):  # NOT RUN: recorded as such, run again on a resume
+            row = {**row, "not_run": True}
+            rows = [*rows, row]
+            _record(sessions, row)
+            _log(sessions, "usage limit: the subscription refused the session; stopped")
+            return 2, rows
         rows = [*rows, row]
         _record(sessions, row)
     return 0, rows

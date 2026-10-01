@@ -482,7 +482,7 @@ def main() -> int:
         )  # fmt: skip
         if code:
             return code
-    report = base.analyze([r for r in rows if r["run"] > 0])
+    report = base.analyze(phase.counted(rows))
     report["pilot"] = [
         {k: r[k] for k in ("task", "arm", "success", "list_usd", "turns", "tools", "pruned")}
         for r in rows

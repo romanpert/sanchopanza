@@ -154,3 +154,26 @@ def test_a_stop_is_logged_and_spends_nothing_more(tmp_path):
     code, rows = phase.run_phase(plan, [], limits(ceiling_usd=2.0), session, sink)
     assert code == 1 and len(calls) == 2  # 1.2 spent; a third could pass 2.0
     assert "ceiling" in sink.with_suffix(".log").read_text(encoding="utf-8")
+
+
+def test_a_usage_limit_stops_the_phase_and_is_run_again_on_resume(tmp_path):
+    # 3m: three sessions answered "You've hit your weekly limit" and were graded as failures.
+    sink = tmp_path / "s.jsonl"
+    calls = []
+
+    def session(task, run, arm):
+        calls.append((task[0], run, arm))
+        out = row(task[0], run, arm)
+        if len(calls) == 2:
+            out = {**out, "success": False, "list_usd": 0.0,
+                   "answer": "You've hit your weekly limit · resets Oct 5, 10pm"}  # fmt: skip
+        return out
+
+    plan = phase.planned(TASKS[:2], [1], ("PLAIN", "LEAN"))
+    code, rows = phase.run_phase(plan, [], limits(), session, sink)
+    assert code == 2 and len(calls) == 2, "stops at the first notice"
+    assert rows[-1]["not_run"] is True
+    assert "usage limit" in sink.with_suffix(".log").read_text(encoding="utf-8")
+    calls.clear()
+    code, rows = phase.run_phase(plan, rows, limits(), lambda t, r, a: row(t[0], r, a), sink)
+    assert code == 0 and len(phase.counted(rows)) == 4, "run again, and only real sessions count"
