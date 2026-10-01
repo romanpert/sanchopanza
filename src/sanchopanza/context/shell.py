@@ -163,7 +163,8 @@ def view(
         return [], set(), cwd
     own, quoted, history, extra = _own(command[:SCAN], "`" if powershell else "\\")
     out = response.get("stdout") if isinstance(response, Mapping) else response
-    out = out[:SCAN] if isinstance(out, str) and not history else ""
+    out = out[:SCAN] if isinstance(out, str) and history != "only" else ""
+    out = without_diffs(out) if history == "mixed" else out
     base = cwd
     moved = _CD.match(command)
     if moved:
@@ -175,11 +176,12 @@ def view(
     return raws[:PATHS], ep.line_prints(lines), base
 
 
-def _own(command: str, escape: str) -> tuple[str, list[str], bool, list[str]]:
-    """(the command's own text in view, its quoted strings in view, whether its output is history
-    only, paths `git show <rev>:<path>` prints). A heredoc's body is source when an interpreter
-    runs it and more shell when a shell does; anything else (`cat > f`, a commit or PR body) is
-    not in view, and neither are the quoted strings of a messaging statement (v6.1)."""
+def _own(command: str, escape: str) -> tuple[str, list[str], str, list[str]]:
+    """(the command's own text in view, its quoted strings in view, whether history is in its
+    output (`statements.history_in`), paths `git show <rev>:<path>` prints). A heredoc's body is
+    source when an interpreter runs it and more shell when a shell does; anything else (`cat >
+    f`, a commit or PR body) is not in view, and neither are the quoted strings of a messaging
+    statement (v6.1)."""
     shell_lines, bodies = _heredocs(command, escape)
     kinds = [(st.body_kind(opener, at, escape), body) for opener, at, body in bodies]
     text = "\n".join([*shell_lines, *(body for kind, body in kinds if kind == "shell")])
@@ -194,5 +196,28 @@ def _own(command: str, escape: str) -> tuple[str, list[str], bool, list[str]]:
         own.append(text[s.start : s.end])
         quoted += [text[a + 1 : b - 1] for a, b in s.quotes if b - a <= 2002]
     quoted += [q[1:-1] for body in code for q in _QUOTED.findall(body)]
-    history = st.output_is_history(text, parts)
+    history = st.history_in(text, parts)
     return "\n".join([*own, *code]), quoted, history, st.git_show_paths(text, parts)
+
+
+_DIFF_START = re.compile(r"^(?:diff --git |@@ )")
+_DIFF_LINE = re.compile(
+    r"^(?:[ +\-]|index |new file|deleted file|similarity|rename |old mode|new mode)"
+)
+
+
+def without_diffs(out: str) -> str:
+    """The output without its unified-diff blocks: from a `diff --git` or `@@` line, every line
+    a diff writes (context, `+`, `-`, headers) until one it would not (v6.1: in B2, `sed -n
+    176,200p f; git diff g` showed f's lines and g's history in one output)."""
+    keep: list[str] = []
+    inside = False
+    for line in out.split("\n"):
+        if _DIFF_START.match(line):
+            inside = True
+            continue
+        if inside and _DIFF_LINE.match(line):
+            continue
+        inside = False
+        keep.append(line)
+    return "\n".join(keep)

@@ -199,18 +199,31 @@ def messenger(ws: list[str]) -> bool:
     return program(ws) in _MESSENGERS
 
 
+_SEARCHES = frozenset({"grep", "egrep", "fgrep", "rg", "ag", "git-grep"})
+_COUNTING = frozenset({"--count", "--files-with-matches", "--files-without-match", "--quiet"})
+
+
+def _counting(ws: list[str]) -> bool:
+    """A search that prints counts or file names, not lines (`grep -c`, `grep -l`, `rg -q`)."""
+    return any(w in _COUNTING or (w.startswith("-") and not w.startswith("--")
+                                  and any(f in w[1:] for f in "clLq")) for w in ws[1:])  # fmt: skip
+
+
 def silent(ws: list[str]) -> bool:
     if not ws:
         return True
     if _is_git(ws):
         return git_subcommand(ws)[0] in _GIT_SILENT
-    return program(ws) in _SILENT
+    name = program(ws)
+    return name in _SILENT or (name in _SEARCHES and _counting(ws))
 
 
-def output_is_history(text: str, statements: list[Statement]) -> bool:
-    """The output shows history only: a history command ran, and every other statement either
-    reads its output through a pipe or prints no code (`cd`, `echo`, `git status`, `head`)."""
-    seen_history = in_history_pipe = False
+def history_in(text: str, statements: list[Statement]) -> str:
+    """ "only": a history command ran, and every other statement either reads its output through
+    a pipe or prints no code (`cd`, `echo`, `git status`, `grep -c`, `head` in the pipe);
+    "mixed": a history command ran beside one that prints code (`sed -n 1,9p f; git diff g`);
+    "": none ran."""
+    seen_history = in_history_pipe = mixed = False
     for s in statements:
         ws = words(text, s)
         if ws and ws[0].startswith("-"):
@@ -219,9 +232,8 @@ def output_is_history(text: str, statements: list[Statement]) -> bool:
             seen_history = in_history_pipe = True
             continue
         in_history_pipe = in_history_pipe and s.piped
-        if not in_history_pipe and not silent(ws):
-            return False
-    return seen_history
+        mixed = mixed or not (in_history_pipe or silent(ws))
+    return "" if not seen_history else "mixed" if mixed else "only"
 
 
 def _kind(ws: list[str]) -> str:

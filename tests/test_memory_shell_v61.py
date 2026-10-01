@@ -244,3 +244,39 @@ def test_second_review_git_show_paths_are_files_only() -> None:
     assert "/w" not in paths and "f.py" in paths
     paths, _, _ = shell.view('git show HEAD:"a b.py"', "", "")
     assert '""' not in paths and "" not in paths
+
+
+# ---- B2, post hoc (2026-10-01): a read and a diff in one command ----------------------------
+
+OTHER = "class OtherThing:\n    def method_with_a_long_name(self):"
+GIT_DIFF = (
+    "diff --git a/pkg/other.py b/pkg/other.py\nindex 1..2 100644\n--- a/pkg/other.py\n"
+    f"+++ b/pkg/other.py\n@@ -1,3 +1,3 @@\n     {HEX_LINE}\n-    old_line_of_the_other_file = 1\n"
+    "+    new_line_of_the_other_file = 2\n"
+)
+
+
+def test_counts_and_a_diff_are_history_only(store: Path) -> None:
+    new = _bash_setup(store)  # Sonnet in B2: `wc -l a b; grep -c t a b; git diff f | head -60`
+    command = f"wc -l /tmp/b.txt /tmp/a.txt; grep -c test_main /tmp/b.txt; git diff {CARBON} | head"
+    assert mh.handle(bash_event(new, "s2", command, "3 /tmp/b.txt\n" + GIT_DIFF)) == {}
+
+
+def test_a_read_beside_a_diff_keeps_the_read_and_drops_the_diff(store: Path) -> None:
+    # `sed -n 176,200p f; git diff g`: the sed lines are in view, the diff's are not
+    new = _bash_setup(store)
+    command = f"sed -n 1,40p {CARBON}; git diff pkg/other.py"
+    shown = f"tokens = {{\n    {HEX_LINE}\n}}\n"
+    assert "session s1" in context_of(mh.handle(bash_event(new, "s2", command, shown + GIT_DIFF)))
+
+
+def test_a_read_beside_a_diff_does_not_give_from_the_diff(store: Path) -> None:
+    new = _bash_setup(store)  # the sed shows other code; only the diff shows the record's line
+    command = f"sed -n 1,5p README.md; git diff {CARBON}"
+    assert mh.handle(bash_event(new, "s2", command, OTHER + "\n" + GIT_DIFF)) == {}
+
+
+def test_without_history_a_unified_diff_in_the_output_stays() -> None:
+    # `diff -u a b` compares files on disk: no history command, nothing stripped
+    _, seen, _ = shell.view(f"diff -u {CARBON} /tmp/carbon.orig", GIT_DIFF, "")
+    assert ep.line_prints(HEX_LINE) <= seen
