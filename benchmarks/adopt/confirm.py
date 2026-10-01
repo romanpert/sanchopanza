@@ -308,7 +308,8 @@ def long_session(row: dict[str, Any] | None) -> dict[str, Any]:
 
 def held(kind: str, valid_only: bool = True) -> list[str]:
     """The held-out tasks of `kind` in sealed order; chains only if they validated (an
-    invalid chain is not run: `run.py` skips it)."""
+    invalid chain is not run: `run.py` skips it), as the summary in the repository says: it is
+    sealed with the prereg, the cache file is not."""
     if kind == "singles":
         rows = json.loads((HERE / "singles-selected.json").read_text(encoding="utf-8"))
         return [r["instance_id"] for r in rows if r["split"] == "held"]
@@ -317,9 +318,7 @@ def held(kind: str, valid_only: bool = True) -> list[str]:
     names = [c["chain"] for c in chains if c["split"] == "held"]
     if not valid_only:
         return names
-    import validate
-
-    done = validate.validated()
+    done = json.loads((HERE / "chains-validated-summary.json").read_text(encoding="utf-8"))
     return [n for n in names if done.get(n, {}).get("valid")]
 
 

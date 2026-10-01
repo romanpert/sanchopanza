@@ -203,6 +203,16 @@ def test_held_lists_come_from_the_sealed_selections() -> None:
     assert len(confirm.held("singles")) == 26
 
 
+def test_which_chains_are_valid_comes_from_the_summary_in_the_repository(monkeypatch) -> None:  # noqa: ANN001
+    # The cache file is not sealed: a validation run after the seal must not change who counts.
+    import validate
+
+    monkeypatch.setattr(validate, "validated", lambda: {})  # the cache says nothing is valid
+    summary = json.loads((ADOPT / "chains-validated-summary.json").read_text(encoding="utf-8"))
+    names = confirm.held("chains", valid_only=False)
+    assert confirm.held("chains") == [n for n in names if summary.get(n, {}).get("valid")]
+
+
 def test_the_chains_margin_is_five_percent_of_their_bugs_and_at_least_one() -> None:
     assert confirm.margin(65) == 3 and confirm.margin(45) == 2 and confirm.margin(15) == 1
     assert confirm.margin(5) == 1
