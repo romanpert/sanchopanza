@@ -16,7 +16,7 @@ registered bound, at an eighth of the cost. The first try (Phase 2c) showed them
 and lost 5 points; in 6 of its 7 lost steps the target was among those shown, and the fix was
 the order and a note on repeated lines, not the ranking.
 
-**A hook that prunes snapshots inside a real Claude Code session saves money on some samples and not on others, so it is not recommended.** Registered results, each on tasks the hook was not fixed on: with Playwright MCP 12.9 % cheaper on six tasks (3d, interval below zero), 12.4 % on twelve more (3h, interval crossing zero) and no clear saving on another twelve (3f); with playwright-cli about 5 % on twelve tasks (3g, below zero) and nothing on twelve more (3i). It never lost an answer except to questions about position ("the first quote listed"), where the cut dropped the first item; for those it now passes through, not yet measured. Every fault the phases found was in the hook, none in the ranking.
+**A hook that prunes snapshots inside a real Claude Code session: with Playwright MCP it came out cheaper in every registered phase, with playwright-cli it rarely has anything to cut.** Registered results, each on tasks the hook was not fixed on. With Playwright MCP: 12.9 % cheaper on six tasks (3d, interval below zero), about 7 % on twelve (3f, crossing zero), 12.4 % on twelve (3h, crossing zero) and 13.4 % on twelve more (3j, below zero). With playwright-cli: about 5 % on twelve tasks (3g, below zero), nothing on twelve (3i), and nothing on twelve more (3k), where the agent searched with `find` instead of taking snapshots and the hook cut nothing at all. It stays opt-in. Questions about position ("the first quote listed") cost answers in 3h and 3i; since they pass through uncut, 3j and 3k answered all 30 such runs in both arms. Every fault the phases found was in the hook, none in the ranking.
 
 What stands is the ranking as a tool: `sanchopanza browse PAGE --goal ...` from a shell, or the
 `rank_elements` MCP tool, returns the elements a step needs with their refs, confirmed at 89 % in
@@ -68,6 +68,29 @@ written before the counted sessions: the per-session cap (0.25 to 0.60 USD, size
 and the phase ceiling (8 to 12 USD, sized on the pilot); the pilot (FULL 6/9, TOP 5/9) is outside
 every count. 8.61 USD spent in all.
 
+## Phases 3j and 3k: twelve new tasks after the saved-output and position fixes (`prereg-e2e-y.md`)
+
+The hook at 07f6a72, a warm-up session first, three runs per task and arm, both tools at once.
+Five of the twelve tasks ask for a position.
+
+| Tool | Success PLAIN / LEAN | List USD / session PLAIN / LEAN | Cuts | LEAN minus PLAIN |
+|---|---|---|---|---|
+| Playwright MCP (3j) | 36/36 / 36/36 | 0.1339 / 0.1147 (+0.0013 Jev) | 10 | **-0.0179 [-0.0357, -0.0025]** |
+| playwright-cli (3k) | 36/36 / 36/36 | 0.1080 / 0.1062 (no Jev) | 0 | -0.0018 [-0.0082, +0.0033] |
+
+**With Playwright MCP the rule is met**: 13.4 % cheaper with the interval below zero. The hook cut
+on the four large pages (Y1-Y4) and saved where it cut on GitHub (Y1 -0.087, Y2 -0.055 a session,
+all six runs); LEAN was also cheaper on three tasks it never touched (Y8, Y9, Y12), which is noise
+between sessions. It lost on Y4 (the Danube, +0.022): the cut kept the infobox's "Mouth" row,
+whose header is a link, and dropped "Length 2,850 km", which is plain text the ranking never sees
+and shares no word with "how long"; the agent searched the archive after reading a 16,000-character
+cut. **With playwright-cli the rule is not met, and the hook did nothing**: in 36 LEAN sessions the
+agent took five snapshots, all on positional tasks, which pass through, and its large outputs came
+from `find` (the agent's own search, passed through by design), once chained after `open`. 3k is
+in effect an A/A comparison: two identical arms differ by up to 0.03 USD on a task. The fix for
+large `Bash` outputs was not exercised. Position check, both tools: no cut on Y5 and Y8-Y11, and
+15 of 15 right in each arm. 9.25 and 7.81 USD at list price, 0.046 USD of Jev.
+
 ## Phase 3i: playwright-cli on the same twelve tasks: no saving (`prereg-e2e-x.md`)
 
 | Arm | Success | List USD / session | Turns | Cuts |
@@ -91,7 +114,8 @@ and run 3 of X4. X4's other two LEAN runs cut nothing and differ by the agent al
 hook reads the whole saved output (from its own session's folder only), ranks all of it,
 archives all of it, writes the cut to a file it names, and replies with what fits in 2,000
 characters, the ranked elements first. Replayed on the two saved pages with Jev, the reply holds
-Paris and the euro, and the MIT license and JavaScript 49.5 %. Not yet measured.
+Paris and the euro, and the MIT license and JavaScript 49.5 %. Phase 3k did not exercise it:
+its agent took no large snapshot outside the positional tasks.
 
 In Phase 3h, X4 run 1 and X8 run 1 cost more in LEAN with nothing cut; X1 run 2 kept the
 "Languages" heading of a page whose snapshot has no percentages and the agent went for a
@@ -99,7 +123,8 @@ screenshot, while X1's other LEAN runs were cheaper than PLAIN.
 
 **After 3h and 3i the hook does not cut for a question about position** (`asks_for_position`:
 "the first one", "the 3rd book", "the last entry", but not "when did it first appear"). It cost
-answers in 3h and 3i and extra turns in 3c and 3f. Not yet measured.
+answers in 3h and 3i and extra turns in 3c and 3f. Measured in 3j and 3k: 30 of 30 right in each
+arm, no cut.
 
 ## Phase 3h: Playwright MCP after 3f's fixes, twelve new tasks (`prereg-e2e-x.md`)
 

@@ -1,0 +1,65 @@
+{
+ "sessions": 72,
+ "PLAIN": {
+  "runs": 36,
+  "success": 36,
+  "list_usd_mean": 0.108,
+  "jev_usd_mean": 0.0,
+  "turns_mean": 4.64,
+  "cache_read_mean": 206670,
+  "cache_write_mean": 15354,
+  "snapshots_pruned": 0
+ },
+ "LEAN": {
+  "runs": 36,
+  "success": 36,
+  "list_usd_mean": 0.1062,
+  "jev_usd_mean": 0.0,
+  "turns_mean": 4.39,
+  "cache_read_mean": 193685,
+  "cache_write_mean": 15671,
+  "snapshots_pruned": 0
+ },
+ "LEAN_minus_PLAIN_usd_per_task": {
+  "value": -0.0018,
+  "bootstrap95": [
+   -0.0082,
+   0.0033
+  ],
+  "by_task": {
+   "Y1": -0.0014,
+   "Y10": 0.0,
+   "Y11": -0.0035,
+   "Y12": -0.0033,
+   "Y2": 0.0097,
+   "Y3": -0.0001,
+   "Y4": -0.0004,
+   "Y5": -0.0053,
+   "Y6": -0.0054,
+   "Y7": -0.0305,
+   "Y8": 0.0122,
+   "Y9": 0.0061
+  }
+ },
+ "pilot": [
+  {
+   "task": "Y1",
+   "run": -9,
+   "arm": "PLAIN",
+   "ok": true,
+   "subtype": "success",
+   "success": true,
+   "answer": "The expressjs/express repository is licensed under the **MIT License**, and its code is **100% JavaScript**.",
+   "list_usd": 0.0957618,
+   "turns": 5,
+   "input_tokens": 8,
+   "cache_read": 177774,
+   "cache_write": 13988,
+   "output_tokens": 325,
+   "jev_usd": 0.0,
+   "jev_calls": 0,
+   "pruned": [],
+   "workdir": "C:\\Users\\roman\\AppData\\Local\\Temp\\sp-e2e-y1r-9plain-fijz8ise"
+  }
+ ]
+}

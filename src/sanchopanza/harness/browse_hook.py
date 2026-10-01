@@ -35,9 +35,10 @@ the goal is `browse_goal`, which keeps the question at the end of a request. Pha
 two more (a `Read` with a limit and a targeted snapshot were cut; recovery read the whole
 archive), fixed too. Registered results since, each on tasks it was not fixed on: with
 Playwright MCP 12.9 % cheaper on six tasks (3d), 12.4 % on twelve with the interval crossing
-zero (3h), nothing clear on twelve more (3f); with playwright-cli about 5 % on twelve (3g),
-nothing on twelve more (3i). Questions about position cost answers in 3h and 3i and are now
-passed through. 3i's losses (X2, X4) were a `Bash` output past 30,000 characters: Claude Code
+zero (3h), nothing clear on twelve more (3f), 13.4 % on twelve more (3j); with playwright-cli
+about 5 % on twelve (3g), nothing on twelve more (3i, 3k: in 3k the agent used `find` and the
+hook cut nothing). Questions about position cost answers in 3h and 3i and now pass through
+(3j, 3k: 30 of 30 right in each arm). 3i's losses (X2, X4) were a `Bash` output past 30,000 characters: Claude Code
 hands the hook that prefix and shows the model 2,000 characters of the reply, so the hook now
 ranks the whole saved output and replies with what fits (`_persisted`, `_preview`).
 Opt-in, not recommended.
