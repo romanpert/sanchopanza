@@ -237,6 +237,43 @@ WIDE_TASKS = [
      "Go to page 3 of the catalogue and report the title of the first book on it.",
      ["slow states of collapse"]),
 ]  # fmt: skip
+X = {  # Phase 3h: twelve more tasks for the two fixes designed on 3f's (fccc06a)
+    "prereg": RESULTS / "prereg-e2e-x.md",
+    "sessions": RESULTS / "e2e-mcp-x-sessions.jsonl",
+    "report": "e2e-mcp-x.json",
+}
+X_TASKS = [
+    ("X1", "https://github.com/pallets/click",
+     "Which license is this repository under, and which language makes up the largest share "
+     "of its code?", [["bsd"], ["python"]]),
+    ("X2", "https://github.com/facebook/react",
+     "Which license is this repository under, and which language makes up the largest share "
+     "of its code?", [["mit"], ["javascript"]]),
+    ("X3", "https://github.com/golang/go", "Which license is this repository under?",
+     [["bsd"]]),
+    ("X4", "https://en.wikipedia.org/wiki/France",
+     "According to the infobox, what is the capital and what is the currency?",
+     ["paris", ["euro"]]),
+    ("X5", "https://en.wikipedia.org/wiki/Mount_Fuji",
+     "How high is its highest point in metres, according to the infobox?", ["3776"]),
+    ("X6", "https://en.wikipedia.org/wiki/List_of_highest_mountains_on_Earth",
+     "Which mountain is the highest according to this page?", ["everest"]),
+    ("X7", "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404",
+     "What is the name of this HTTP status code?", [["not found"]]),
+    ("X8", "https://www.rfc-editor.org/rfc/rfc9110.html",
+     "What is the title of section 15.3.1?", [["200 ok"]]),
+    ("X9", "https://books.toscrape.com/",
+     "Go to the Science category and report the price of the first book listed there.",
+     ["42.96"]),
+    ("X10", "https://books.toscrape.com/",
+     "Go to the Poetry category, open the second book listed, and report its UPC.",
+     ["1dfe412b8ac00530"]),
+    ("X11", "https://quotes.toscrape.com/",
+     "Go to page 2 of the quotes and report the author of the first quote there.",
+     ["monroe"]),
+    ("X12", "https://quotes.toscrape.com/",
+     "Open the quotes tagged 'humor' and report the author of the first one.", ["austen"]),
+]  # fmt: skip
 NEW_TASKS = [
     ("N1", "https://github.com/pallets/flask",
      "Which license is this repository under, and which language makes up the largest share "
@@ -274,6 +311,7 @@ def main() -> int:
         help="one uncounted PLAIN session first (run -9), to warm the prompt cache",
     )
     ap.add_argument("--wide", action="store_true", help="Phase 3f (prereg-e2e-wide.md)")
+    ap.add_argument("--x", action="store_true", help="Phase 3h (prereg-e2e-x.md)")
     args = ap.parse_args()
     report_name, tasks, n_runs = "e2e-mcp.json", TASKS, RUNS
     if args.fixed:
@@ -284,6 +322,9 @@ def main() -> int:
     if args.wide:
         PREREG, SESSIONS, report_name = WIDE["prereg"], WIDE["sessions"], WIDE["report"]
         tasks, n_runs = WIDE_TASKS, WIDE_RUNS
+    if args.x:
+        PREREG, SESSIONS, report_name = X["prereg"], X["sessions"], X["report"]
+        tasks, n_runs = X_TASKS, WIDE_RUNS
     if args.record_hash:
         registered = PREREG.with_suffix(".sha256")
         if registered.exists() and registered.read_text().strip() != base.digest(PREREG):
@@ -316,7 +357,7 @@ def main() -> int:
                         return 1
                     jev = sum(r["jev_usd"] for r in rows)
                     if (
-                        args.fixed or args.new or args.wide
+                        args.fixed or args.new or args.wide or args.x
                     ) and jev + JEV_SESSION_MAX_USD > JEV_CEILING_USD:
                         print(f"Jev ceiling: {jev:.4f} USD spent", file=sys.stderr)
                         return 1

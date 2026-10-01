@@ -119,6 +119,18 @@ def use_wide_tasks() -> None:
     RUNS, TASKS, APPEND = mcp.WIDE_RUNS, mcp.WIDE_TASKS, APPEND_ANSWER_LAST
 
 
+X_PREREG = RESULTS / "prereg-e2e-x.md"  # Phase 3i: Phase 3h's twelve tasks, playwright-cli
+
+
+def use_x_tasks() -> None:
+    """Phase 3i: Phase 3h's twelve tasks with playwright-cli, three runs, answer last."""
+    global PREREG, SESSIONS, REGISTRATIONS, RUNS, TASKS, REPORT, APPEND
+    mcp = _load_sibling("browse_e2e_mcp", HERE / "e2e_mcp.py")
+    PREREG, REGISTRATIONS = X_PREREG, (X_PREREG,)
+    SESSIONS, REPORT = RESULTS / "e2e-cli-x-sessions.jsonl", "e2e-cli-x.json"
+    RUNS, TASKS, APPEND = mcp.WIDE_RUNS, mcp.X_TASKS, APPEND_ANSWER_LAST
+
+
 def _load_sibling(name: str, path: pathlib.Path) -> Any:
     import importlib.util
 
@@ -291,11 +303,14 @@ def main() -> int:
         help="one uncounted PLAIN session first (run -9), to warm the prompt cache",
     )
     ap.add_argument("--wide", action="store_true", help="Phase 3g (prereg-e2e-wide.md)")
+    ap.add_argument("--x", action="store_true", help="Phase 3i (prereg-e2e-x.md)")
     args = ap.parse_args()
     if args.new:
         use_new_tasks()
     if args.wide:
         use_wide_tasks()
+    if args.x:
+        use_x_tasks()
     if args.record_hash:
         for path in REGISTRATIONS:
             registered = path.with_suffix(".sha256")
@@ -333,7 +348,7 @@ def main() -> int:
                         print(f"ceiling: {spent:.2f} USD spent", file=sys.stderr)
                         return 1
                     jev = sum(r["jev_usd"] for r in rows)
-                    if args.wide and jev + LEAN_JEV_MAX_USD > JEV_CEILING_USD:
+                    if (args.wide or args.x) and jev + LEAN_JEV_MAX_USD > JEV_CEILING_USD:
                         print(f"Jev ceiling: {jev:.4f} USD spent", file=sys.stderr)
                         return 1
                     if (
