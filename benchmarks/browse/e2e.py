@@ -274,6 +274,9 @@ def analyze(rows: list[dict[str, Any]]) -> dict[str, Any]:
     return report
 
 
+WARMUP_RUN = -9  # excluded from every count: run <= 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--record-hash", action="store_true")
@@ -282,6 +285,11 @@ def main() -> int:
     ap.add_argument("--pilot", action="store_true", help="T1 once per arm (run 0), excluded")
     ap.add_argument("--pilot2", action="store_true", help="T1 LEAN once more (run -1), excluded")
     ap.add_argument("--new", action="store_true", help="Phase 3e (prereg-e2e-cli-new.md)")
+    ap.add_argument(
+        "--warmup",
+        action="store_true",
+        help="one uncounted PLAIN session first (run -9), to warm the prompt cache",
+    )
     ap.add_argument("--wide", action="store_true", help="Phase 3g (prereg-e2e-wide.md)")
     args = ap.parse_args()
     if args.new:
@@ -307,6 +315,11 @@ def main() -> int:
                 re.M,
             )
             key = found.group(1).strip().strip("'\"") if found else ""
+        if args.warmup and not any(r["run"] == WARMUP_RUN for r in rows):
+            row = one_session(TASKS[0], WARMUP_RUN, "PLAIN", key)
+            rows.append(row)
+            with SESSIONS.open("a", encoding="utf-8") as sink:
+                sink.write(json.dumps(row, ensure_ascii=False) + "\n")
         seen = {(r["task"], r["run"], r["arm"]) for r in rows}
         pilot = args.pilot or args.pilot2
         runs = [0] if args.pilot else [-1] if args.pilot2 else list(range(1, RUNS + 1))

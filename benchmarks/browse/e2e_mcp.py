@@ -256,6 +256,9 @@ NEW_TASKS = [
 ]  # fmt: skip
 
 
+WARMUP_RUN = -9  # excluded from every count: run <= 0
+
+
 def main() -> int:
     global PREREG, SESSIONS
     ap = argparse.ArgumentParser(description=__doc__)
@@ -265,6 +268,11 @@ def main() -> int:
     ap.add_argument("--pilot", action="store_true", help="M1 and M2 once per arm (run 0), excluded")
     ap.add_argument("--fixed", action="store_true", help="Phase 3c (prereg-e2e-mcp-fixed.md)")
     ap.add_argument("--new", action="store_true", help="Phase 3d (prereg-e2e-mcp-new.md)")
+    ap.add_argument(
+        "--warmup",
+        action="store_true",
+        help="one uncounted PLAIN session first (run -9), to warm the prompt cache",
+    )
     ap.add_argument("--wide", action="store_true", help="Phase 3f (prereg-e2e-wide.md)")
     args = ap.parse_args()
     report_name, tasks, n_runs = "e2e-mcp.json", TASKS, RUNS
@@ -290,6 +298,11 @@ def main() -> int:
         key = key_from(args.env_file)
         if not key:
             raise SystemExit("LEAN ranks with Jev: no TYPESAFE_API_KEY, nothing spent")
+        if args.warmup and not any(r["run"] == WARMUP_RUN for r in rows):
+            row = one_session(tasks[0], WARMUP_RUN, "PLAIN", key)
+            rows.append(row)
+            with SESSIONS.open("a", encoding="utf-8") as sink:
+                sink.write(json.dumps(row, ensure_ascii=False) + "\n")
         seen = {(r["task"], r["run"], r["arm"]) for r in rows}
         runs = [0] if args.pilot else list(range(1, n_runs + 1))
         for task in tasks[:2] if args.pilot else tasks:
