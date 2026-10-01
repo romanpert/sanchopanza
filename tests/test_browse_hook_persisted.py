@@ -218,3 +218,17 @@ def test_position_needs_a_listing_word_and_reads_the_request_only():
     assert asks_for_position("Task: Which lake is listed first in the table?")
     step = "Task: What is the capital of France?\nAgent's step: First I'll open the page"
     assert not asks_for_position(step)
+
+
+def test_position_words_that_are_not_ordinals_and_sources_that_are_not_lists():
+    """Missed and wrongly flagged on the first held-out set (2e2cf73), fixed on it, measured on
+    a second one (c75a1dd)."""
+    from sanchopanza.harness.browse_hook import asks_for_position
+
+    for goal in ("Open the releases page and give the version of the latest release listed at "
+                 "the top.", "Give the title of the final chapter in the table of contents.",
+                 "Who wrote the top answer on this question?"):  # fmt: skip
+        assert asks_for_position("Task: " + goal), goal
+    for goal in ("Who won the last World Cup according to the page?",
+                 "Report the date the page was last edited."):  # fmt: skip
+        assert not asks_for_position("Task: " + goal), goal

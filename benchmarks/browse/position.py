@@ -1,8 +1,9 @@
 """Browse: `asks_for_position` on hand-labelled goals the rule was not written on.
 
-python benchmarks/browse/position.py OUT.json   # with the sanchopanza to test on sys.path
+python benchmarks/browse/position.py OUT.json [GOALS.jsonl]  # the sanchopanza to test on sys.path
 
-`position_heldout.jsonl` (30 goals, sealed in 2e2cf73 before the rule changed): does the answer
+`position_heldout.jsonl` (30 goals, sealed in 2e2cf73 before the rule changed; the second set,
+`position_heldout2.jsonl`, 24 goals sealed in c75a1dd): does the answer
 depend on the order the page lists things? Prints and writes precision and recall of the rule
 and the goals it gets wrong. Free: no model.
 """
@@ -17,10 +18,10 @@ HERE = pathlib.Path(__file__).resolve().parent
 HELD_OUT = HERE / "position_heldout.jsonl"
 
 
-def main(out: str) -> int:
+def main(out: str, held_out: pathlib.Path = HELD_OUT) -> int:
     from sanchopanza.harness.browse_hook import asks_for_position
 
-    goals = [json.loads(x) for x in HELD_OUT.read_text(encoding="utf-8").splitlines() if x]
+    goals = [json.loads(x) for x in held_out.read_text(encoding="utf-8").splitlines() if x]
     said = [asks_for_position("Task: " + g["goal"]) for g in goals]
     hits = sum(s and g["position"] for s, g in zip(said, goals, strict=True))
     report = {
@@ -37,4 +38,6 @@ def main(out: str) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1]) if len(sys.argv) == 2 else __doc__)
+    if len(sys.argv) not in (2, 3):
+        raise SystemExit(__doc__)
+    raise SystemExit(main(*sys.argv[1:2], *map(pathlib.Path, sys.argv[2:3])))

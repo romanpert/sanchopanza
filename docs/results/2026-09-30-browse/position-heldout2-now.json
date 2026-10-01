@@ -1,0 +1,11 @@
+{
+ "goals": 24,
+ "precision": 0.917,
+ "recall": 0.917,
+ "false_positives": [
+  "Report the final year of the war given on the page."
+ ],
+ "missed": [
+  "What is the 2nd link in the sidebar?"
+ ]
+}

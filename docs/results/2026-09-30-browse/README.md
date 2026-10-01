@@ -106,8 +106,17 @@ before the change (2e2cf73):
 
 A false positive only costs a saving (the page is left uncut). The three missed are worse, since a
 cut can drop what was asked for: "the latest release listed at the top", "the final chapter",
-"the top answer", none with an ordinal. Fixing them now would be fitting the held-out set; they
-go to a new one. What the model sees (below) is unchanged by this: 173 of 239.
+"the top answer", none with an ordinal. So a second set of 24 goals was sealed (c75a1dd) before
+fixing them on the first: "final", "penultimate", "top", "most recent" count as ordinals, "at
+the top/bottom" counts alone, and "according to the page" is a source, not a list. Scored once
+on the second set:
+
+| Rule | Precision | Recall | Wrong |
+|---|---|---|---|
+| d2a6fda | 1.00 | **0.25** | 9 missed |
+| now | 0.92 | **0.92** | "the final year of the war given on the page" (false positive), "the 2nd link in the sidebar" (missed) |
+
+What the model sees (below) is unchanged by either: 173 of 239.
 
 ## What the model sees, replayed (`benchmarks/browse/visible.py`, development)
 

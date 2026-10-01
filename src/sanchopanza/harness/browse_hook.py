@@ -163,12 +163,19 @@ def browse_goal(messages: Any) -> str:
 
 
 _ORDINAL = re.compile(
-    r"\b(?:first|second|third|fourth|fifth|last|\d+(?:st|nd|rd|th))\b\s+(?P<next>[a-z]+)", re.I
+    r"\b(?:first|second|third|fourth|fifth|last|final|penultimate|next-to-last|topmost|top"
+    r"|most recent|\d+(?:st|nd|rd|th))\b\s+(?P<next>[a-z]+)",
+    re.I,
 )
+# A place on its own, whatever the words around it.
+_AT_AN_END = re.compile(r"\bat the (?:top|bottom)\b", re.I)
+# Where the facts come from, not a list: "according to the page", "per the infobox".
+_SOURCE = re.compile(r"\b(?:according to|per)\s+(?:the|this|its|her|his)\s+\w+", re.I)
 # What follows an ordinal when it is about time, not place in a list ("when did it first appear").
 _NOT_A_PLACE = frozenset(
     {"appear", "appeared", "appears", "released", "release", "published", "introduced",
-     "announced", "launched", "seen", "used", "written", "time", "came", "became"}
+     "announced", "launched", "seen", "used", "written", "time", "came", "became",
+     "edited", "updated", "modified"}
 )  # fmt: skip
 
 
@@ -176,7 +183,7 @@ _NOT_A_PLACE = frozenset(
 # one", "ranked first in the table". Without one, "the first ascent" is an event, not a place.
 _LISTING = re.compile(
     r"\b(?:listed|lists?|table|page|there|on it|one|ranked|rank|rows?|entry|entries|items?"
-    r"|results?|shown|appears?|category)\b",
+    r"|results?|shown|appears?|category|answers?|comments?|posts?)\b",
     re.I,
 )
 
@@ -190,7 +197,9 @@ def asks_for_position(goal: str) -> bool:
     request is read, never the agent's step ("First I'll open the page"), and the ordinal needs
     a word of listing beside it: Z2's "the first ascent" (3l) left a page uncut."""
     asked = "\n".join(line for line in goal.splitlines() if not line.startswith("Agent's step:"))
-    if not _LISTING.search(asked):
+    if _AT_AN_END.search(asked):
+        return True
+    if not _LISTING.search(_SOURCE.sub(" ", asked)):
         return False
     return any(m["next"].lower() not in _NOT_A_PLACE for m in _ORDINAL.finditer(asked))
 

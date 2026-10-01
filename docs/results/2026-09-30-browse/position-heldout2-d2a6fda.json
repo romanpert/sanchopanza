@@ -1,0 +1,17 @@
+{
+ "goals": 24,
+ "precision": 1.0,
+ "recall": 0.25,
+ "false_positives": [],
+ "missed": [
+  "Report the headline at the top of the news list.",
+  "What is the final item in the shopping list on this page?",
+  "Give the name of the most recent post shown on the blog's front page.",
+  "Which comment is at the bottom of the thread?",
+  "Report the penultimate entry in the release table.",
+  "What is the topmost result for this search?",
+  "Name the latest version listed at the top of the changelog.",
+  "Which repository is at the top of the trending list?",
+  "What is the 2nd link in the sidebar?"
+ ]
+}
