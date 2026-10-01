@@ -351,11 +351,11 @@ def main() -> int:
                     if (args.wide or args.x) and jev + LEAN_JEV_MAX_USD > JEV_CEILING_USD:
                         print(f"Jev ceiling: {jev:.4f} USD spent", file=sys.stderr)
                         return 1
-                    if (
-                        index >= 2
-                        and sum(r["list_usd"] for r in rows) > EARLY_STOP_USD
-                        and (len(rows) >= 12)
-                    ):
+                    # Phase 3's rule: stop if the FIRST TWO TASKS passed 8 USD. It summed every
+                    # row, so a long phase stopped near its end (3i at 64 of 72 sessions, 8.08 USD).
+                    first_two = {t[0] for t in TASKS[:2]}
+                    early = sum(r["list_usd"] for r in rows if r["task"] in first_two)
+                    if index >= 2 and early > EARLY_STOP_USD and (len(rows) >= 12):
                         print("early stop: the first two tasks passed 8 USD", file=sys.stderr)
                         return 1
                     row = one_session(task, run, arm, key)
