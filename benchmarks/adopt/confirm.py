@@ -169,7 +169,13 @@ def arm_result(evidence: Path, model: str) -> dict[str, Any] | None:
         for name, n in (requests[k].get("tools") or {}).items():
             tools[name] = tools.get(name, 0) + n
     resolved = grade["resolved"]
-    return {"resolved": int(resolved) if isinstance(resolved, bool) else resolved,
+    resolved = int(resolved) if isinstance(resolved, bool) else resolved
+    # Reported beside the strict count, never deciding: bugs whose FAIL_TO_PASS all pass, so one
+    # broken PASS_TO_PASS test every bug shares does not hide the rest (phase B2's Sm: 0 and 26).
+    bugs = grade.get("bugs") or []
+    f2p = (sum(b["f2p_passed"] == b["f2p"] if "f2p" in b else bool(b["resolved"]) for b in bugs)
+           if bugs else resolved)  # fmt: skip
+    return {"resolved": resolved, "f2p_resolved": f2p,
             "complete": len(done) == len(requests), "ran": sorted(done),
             "request_cost": {k: c.get("cost_usd", 0.0) for k, c in requests.items()},
             "jev": row.get("jev_usd", 0.0),
@@ -215,8 +221,9 @@ def success(rows: list[dict[str, Any]], margin: int, missing: list[str]) -> dict
     point, low, high = paired_interval(pairs, total_difference) if pairs else (0.0, 0.0, 0.0)
     holds = None if missing or not pairs else point >= -margin
     return {"treat": sum(p[0] for p in pairs), "control": sum(p[1] for p in pairs),
-            "difference": point, "interval": [low, high], "margin": -margin,
-            "holds": holds}  # fmt: skip
+            "difference": point, "interval": [low, high], "margin": -margin, "holds": holds,
+            "treat_f2p": sum(r["treat"].get("f2p_resolved", 0) for r in rows),
+            "control_f2p": sum(r["control"].get("f2p_resolved", 0) for r in rows)}  # fmt: skip
 
 
 def apart(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
