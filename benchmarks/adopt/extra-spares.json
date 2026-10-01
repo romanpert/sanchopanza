@@ -1,0 +1,65 @@
+{
+ "seeds": [
+  20260930,
+  20261001
+ ],
+ "extra": 9,
+ "chains": {
+  "conan-io__conan-1": [
+   "conan-io__conan.86f29e13.pr_12880",
+   "conan-io__conan.86f29e13.pr_12876",
+   "conan-io__conan.86f29e13.pr_17577",
+   "conan-io__conan.86f29e13.pr_15568",
+   "conan-io__conan.86f29e13.pr_11669",
+   "conan-io__conan.86f29e13.pr_15026",
+   "conan-io__conan.86f29e13.pr_16308",
+   "conan-io__conan.86f29e13.pr_12875",
+   "conan-io__conan.86f29e13.pr_16211"
+  ],
+  "conan-io__conan-2": [
+   "conan-io__conan.86f29e13.pr_14808",
+   "conan-io__conan.86f29e13.pr_11911",
+   "conan-io__conan.86f29e13.pr_17829",
+   "conan-io__conan.86f29e13.pr_17708",
+   "conan-io__conan.86f29e13.pr_15501",
+   "conan-io__conan.86f29e13.pr_14177",
+   "conan-io__conan.86f29e13.pr_13757",
+   "conan-io__conan.86f29e13.pr_15126",
+   "conan-io__conan.86f29e13.pr_12165"
+  ],
+  "iterative__dvc-1": [
+   "iterative__dvc.1d6ea681.pr_9490",
+   "iterative__dvc.1d6ea681.pr_9028",
+   "iterative__dvc.1d6ea681.pr_9123",
+   "iterative__dvc.1d6ea681.pr_9712",
+   "iterative__dvc.1d6ea681.pr_8241",
+   "iterative__dvc.1d6ea681.pr_7899",
+   "iterative__dvc.1d6ea681.pr_10318",
+   "iterative__dvc.1d6ea681.pr_10017",
+   "iterative__dvc.1d6ea681.pr_7479"
+  ],
+  "conan-io__conan-rel-1": [
+   "conan-io__conan.86f29e13.pr_13680",
+   "conan-io__conan.86f29e13.pr_13718",
+   "conan-io__conan.86f29e13.pr_13778",
+   "conan-io__conan.86f29e13.pr_12397",
+   "conan-io__conan.86f29e13.pr_17514",
+   "conan-io__conan.86f29e13.pr_14231",
+   "conan-io__conan.86f29e13.pr_16252",
+   "conan-io__conan.86f29e13.pr_15274",
+   "conan-io__conan.86f29e13.pr_13564"
+  ],
+  "conan-io__conan-rel-2": [],
+  "iterative__dvc-rel-1": [
+   "iterative__dvc.1d6ea681.pr_9193",
+   "iterative__dvc.1d6ea681.pr_7886",
+   "iterative__dvc.1d6ea681.pr_7911",
+   "iterative__dvc.1d6ea681.pr_3891",
+   "iterative__dvc.1d6ea681.pr_9017",
+   "iterative__dvc.1d6ea681.pr_10340",
+   "iterative__dvc.1d6ea681.pr_8833",
+   "iterative__dvc.1d6ea681.pr_9963",
+   "iterative__dvc.1d6ea681.pr_9003"
+  ]
+ }
+}

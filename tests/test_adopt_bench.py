@@ -290,3 +290,18 @@ def test_validation_keeps_the_bugs_of_its_last_check(monkeypatch) -> None:  # no
     assert kept == [r["instance_id"] for r in result["records"]]
     assert result["bugs"][0]["instance_id"] == checks[-1]
     assert not result["history"][-1][0].startswith("replace")  # no swap after the last check
+
+
+def test_extra_spares_come_after_the_drawn_ones(monkeypatch) -> None:  # noqa: ANN001
+    # The amendment of 2026-10-01: a chain it names tries its drawn spares first, then the extra.
+    validate = _load("adopt_validate_extra", "validate.py")
+    drawn = {"chain": "conan-io__conan-1", "spares": [{"instance_id": "a"}]}
+    other = {"chain": "pygments__pygments-2", "spares": [{"instance_id": "b"}]}
+    def spares(name: str) -> list[dict[str, str]]:
+        return [{"instance_id": "x"}] if name == drawn["chain"] else []
+
+    monkeypatch.setattr(validate.extra, "spares", spares)
+    got = validate.with_extra([drawn, other])
+    assert [s["instance_id"] for s in got[0]["spares"]] == ["a", "x"]
+    assert [s["instance_id"] for s in got[1]["spares"]] == ["b"]
+    assert [s["instance_id"] for s in drawn["spares"]] == ["a"]  # the drawn chain is not changed

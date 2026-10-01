@@ -6,10 +6,12 @@ It becomes binding only when `prereg-confirm.sha256` exists (sealed with
 (`confirm.seal_holds`). Until then anything here may change, and each change is said in the dev
 log. After sealing, a change is an amendment written here, dated, before any verdict is read.
 
-Points still open in this draft are marked **OPEN**. **OPEN, the owner's decision of
-2026-09-30**: the memory arms (`Sm`, `Sf`) wait for memory v3 (indagis-72: v2 measured on 319
-real Claude Code sessions of SWE-chat, 2.6 % precision; v3 recalls a record when the agent opens
-or edits a file an earlier session changed). The seal names the commit of v3 it runs.
+Points still open in this draft are marked **OPEN**. The owner decided on 2026-09-30 that the
+memory arms (`Sm`, `Sf`) wait for memory v3 (v2 measured on 319 real Claude Code sessions of
+SWE-chat, 2.6 % precision). v4.1 superseded v3 on held-out real sessions (precision 0.753
+against 0.631), and **on 2026-10-01 the owner approved running A on v4.1**: the frozen,
+non-editable install of eebdfa6 (`freeze.py`, `ADOPT_SANCHO`), the same one phase B2 runs.
+Memory v5, merged into main later that day, is not used (owner, 2026-10-01).
 
 ## The question
 
@@ -62,6 +64,20 @@ could be said of `sanchopanza install` as it ships. The singles (below) test the
   the next left the stored bugs out of step with the bake's records; `validate.py` now swaps on
   a copy, and conan-2 and conan-rel-1 were validated again with it, same verdict.)
   **OPEN**: starlette, dvc, pygments-2, astroid.
+
+**Amendment of 2026-10-01: extra spares (approved by the owner, written before any held-out
+session and before any validation with them).** After replacing culprits instead of victims
+(dev log, "After phase B"), conan-1, conan-2, conan-rel-1, conan-rel-2, dvc-1 and dvc-rel-1
+were still invalid for want of spares: theirs hide each other too. `benchmarks/adopt/extra.py`
+draws up to 9 more per chain without changing any draw already made: it replays `chains.select`
+and `related.select` with their seeds, checks they give exactly the sealed spares, and takes the
+next bugs of the same shuffled lists (independent chains: after the last chain's spares, 9 per
+chain in chain order; related chains: the next pool bugs `grow` would take, with the chain's
+spares counted as part of it), skipping every bug used anywhere. The ids are in
+`benchmarks/adopt/extra-spares.json`; conan-rel-2 gets none (no unused bug shares a code file
+with it: meson's toolchain), so it stays invalid. `validate.py` tries them after the drawn
+spares, by the same rules (culprits, swaps on a copy, at most four rounds). Every chain then
+validates again, and only chains that validate take part.
 
 Every held-out chain is validated in Docker (`validate.py`, then `combined.py validate held`)
 before sealing, one repository at a time. Validation runs no session. Harness fixes it needed,

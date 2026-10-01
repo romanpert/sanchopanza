@@ -31,6 +31,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import docker_env  # noqa: E402
+import extra  # noqa: E402
 import long  # noqa: E402
 import masking  # noqa: E402
 import related  # noqa: E402
@@ -174,9 +175,14 @@ def _locked(lock: Path, wait_s: float = 120.0) -> Iterator[None]:
         lock.unlink(missing_ok=True)
 
 
+def with_extra(chains: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Each chain with the amendment's extra spares (`extra.py`) after its drawn ones."""
+    return [{**c, "spares": [*c["spares"], *extra.spares(c["chain"])]} for c in chains]
+
+
 def main() -> int:
     wanted = sys.argv[1]
-    chains = [*full(), *related.full(), *long.full()]
+    chains = with_extra([*full(), *related.full(), *long.full()])
     for chain in chains:
         if wanted not in ("all", chain["chain"]):
             continue
