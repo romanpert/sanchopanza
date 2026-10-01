@@ -164,3 +164,29 @@ until retention was lifted in the replay (`ep.save` default). Earlier passes sav
 
 Latency of a touch, worst case measured (a Read of 2,000 lines over 300 records of that file),
 20 runs with the CPU at 56 % from other work: median 0.130 s, max 0.225 s.
+
+## v6: the working tree and the shell (amendment 4: NOT confirmed)
+
+In phase B2 Sonnet 5.5 read and edited through Bash; Sm had 40 memory prompts, 0 injections, 0
+touches; 86-95 % of its records said they changed nothing. v6 reads what a request wrote from the
+git working tree and sends Bash and PowerShell calls to the touch (amendment 4 has the design and
+the development numbers). Confirmation, run once (`v6_chain_real.py --tag confirm`,
+`replay_v6.py` on three held-out sets):
+
+| fresh B2 requests (67, 34 with a related record) | recall | precision | noise | records that changed nothing |
+|---|---|---|---|---|
+| v5 | 0 | - | 0 | 0.948 |
+| v6 | **0.412** | **0.395** | 0.121 | 0.097 |
+| by arm, v6: N 26-40 / S 15-40 / Sm 15-40 | 1.000 / 0.500 / 0.000 | 0.818 / 0.421 / 0.000 | 0.250 / 0.083 / 0.077 | |
+
+| SWE-chat, v5 -> v6 touch | recall | precision | noise | records given through the shell (related) |
+|---|---|---|---|---|
+| held out 1 (1,490) | 0.950 -> 0.956 | 0.748 -> **0.724** | 0.030 -> 0.033 | 15 (5) |
+| held out 2 (3,117) | 0.978 -> 0.978 | 0.778 -> 0.768 | 0.039 -> 0.041 | 17 (5) |
+| held out 3 (3,127) | 0.979 -> 0.979 | 0.763 -> **0.749** | 0.031 -> 0.034 | 21 (5) |
+
+Criteria: 1 (recall >= 0.60) **failed**, 2 (precision >= 0.50) **failed**, 3 and 4 met, 5 failed
+on held out 1 and 3 (precision down 0.024 and 0.014, allowed 0.01). v6 is not shipped as
+confirmed. What it fixes is real (records now know what a shell edit changed: 95 % to 10 % that
+"changed nothing"), but what the shell touch gives is too often unrelated: about 30 % of its
+records are related on SWE-chat, and none of Sm's 13. The causes are the next round.

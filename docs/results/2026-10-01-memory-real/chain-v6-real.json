@@ -50,5 +50,31 @@
    }
   },
   "failed_patches": 0
+ },
+ "confirm": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.948
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.412,
+    "precision": 0.395,
+    "noise": 0.121,
+    "given": 43,
+    "chars_per_request": 1884.851,
+    "records_changing_nothing": 0.097
+   }
+  },
+  "failed_patches": 0
  }
 }
