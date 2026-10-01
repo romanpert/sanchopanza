@@ -1,0 +1,30 @@
+{"goal": "Report the title of the second article on the front page.", "position": true}
+{"goal": "Which product appears first in the search results?", "position": true}
+{"goal": "Open the releases page and give the version of the latest release listed at the top.", "position": true}
+{"goal": "What is the third item in the navigation menu?", "position": true}
+{"goal": "Name the last speaker listed in the programme.", "position": true}
+{"goal": "Who is the first author listed on the paper?", "position": true}
+{"goal": "Report the price of the 5th product on the page.", "position": true}
+{"goal": "Which team is in first place in the table?", "position": true}
+{"goal": "What is the second entry in the changelog?", "position": true}
+{"goal": "Give the title of the final chapter in the table of contents.", "position": true}
+{"goal": "Which country is ranked third in the list?", "position": true}
+{"goal": "Report the name of the first restaurant shown.", "position": true}
+{"goal": "Who wrote the top answer on this question?", "position": true}
+{"goal": "What does the first row of the table say in its Status column?", "position": true}
+{"goal": "Report the last commit message listed on the repository page.", "position": true}
+{"goal": "In which year did the first manned Moon landing happen, according to the infobox?", "position": false}
+{"goal": "When was the first edition of the novel published?", "position": false}
+{"goal": "Who was the first President of the United States?", "position": false}
+{"goal": "What was the date of the first ascent of K2?", "position": false}
+{"goal": "When was the company's first store opened?", "position": false}
+{"goal": "Report the second largest city of Australia according to the infobox.", "position": false}
+{"goal": "What is the release date of the first film in the series?", "position": false}
+{"goal": "When did the bridge first open to traffic?", "position": false}
+{"goal": "Which license does the project use?", "position": false}
+{"goal": "How many stars does the repository have?", "position": false}
+{"goal": "What is the population given in the infobox?", "position": false}
+{"goal": "Who won the last World Cup according to the page?", "position": false}
+{"goal": "Report the date the page was last edited.", "position": false}
+{"goal": "Who was the second person to walk on the Moon?", "position": false}
+{"goal": "What was the first language of the author, per her biography?", "position": false}
