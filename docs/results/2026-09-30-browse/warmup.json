@@ -108,49 +108,5 @@
     -0.0004
    ]
   }
- },
- "3f (Playwright MCP, wide)": {
-  "first_session": {
-   "task": "W1",
-   "arm": "PLAIN",
-   "list_usd": 0.2527162,
-   "cache_write": 56323
-  },
-  "all": {
-   "value": -0.0879,
-   "bootstrap95": [
-    -0.0879,
-    -0.0879
-   ]
-  },
-  "without_warmup": {
-   "value": -0.0527,
-   "bootstrap95": [
-    -0.0527,
-    -0.0527
-   ]
-  }
- },
- "3g (playwright-cli, wide)": {
-  "first_session": {
-   "task": "W1",
-   "arm": "PLAIN",
-   "list_usd": 0.2395902,
-   "cache_write": 51655
-  },
-  "all": {
-   "value": -0.0727,
-   "bootstrap95": [
-    -0.0727,
-    -0.0727
-   ]
-  },
-  "without_warmup": {
-   "value": -0.0107,
-   "bootstrap95": [
-    -0.0107,
-    -0.0107
-   ]
-  }
  }
 }
