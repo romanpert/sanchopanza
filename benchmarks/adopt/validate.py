@@ -2,6 +2,7 @@
 
     python benchmarks/adopt/validate.py <chain-name|all>
     python benchmarks/adopt/validate.py --bake <chain> [...]   # rebuild images only, after the seal
+    python benchmarks/adopt/validate.py --summary   # rewrite the summary from the cache
 
 A chain is valid when, with its five bugs baked into the image:
 - every bug's FAIL_TO_PASS fails (none of them PASSED);
@@ -36,6 +37,7 @@ import extra  # noqa: E402
 import long  # noqa: E402
 import masking  # noqa: E402
 import related  # noqa: E402
+import run  # noqa: E402
 from chains import CACHE, files_of, full  # noqa: E402
 
 SWAPS = 4
@@ -144,10 +146,16 @@ def save(result: dict[str, Any]) -> None:
         done = {**validated(), result["chain"]: result}
         OUT.parent.mkdir(parents=True, exist_ok=True)
         _write(OUT, json.dumps(done, ensure_ascii=False))
-        summary = {name: {"valid": c["valid"], "bugs": [b["instance_id"] for b in c["bugs"]],
-                          "history": c["history"], "seconds": c["seconds"],
-                          "records": c["records"]} for name, c in done.items()}  # fmt: skip
-        _write(SUMMARY, json.dumps(summary, indent=1))
+        _write(SUMMARY, json.dumps(summarize(done), indent=1))
+
+
+def summarize(done: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """The summary kept in the repository. `sha256` hashes what sessions and grading read from
+    the cache (`run.chain_digest`): sealed with it, a changed cache entry is refused."""
+    return {name: {"valid": c["valid"], "bugs": [b["instance_id"] for b in c["bugs"]],
+                   "sha256": run.chain_digest(c), "history": c["history"],
+                   "seconds": c["seconds"], "records": c["records"]}
+            for name, c in done.items()}  # fmt: skip
 
 
 def _write(path: Path, text: str) -> None:
@@ -185,6 +193,12 @@ def bake_only(name: str) -> None:
         raise SystemExit(f"{name}: not a valid chain in {OUT}")
     docker_env.pull(chain["image"])
     docker_env.bake(chain["image"], [b["patch"] for b in chain["bugs"]], chain["tag"])
+    # The image is pulled by name, not digest: check the baked bugs still break their tests.
+    nodes = [t for b in chain["bugs"] for t in b["FAIL_TO_PASS"]]
+    passing = [t for t, status in docker_env.pytest(chain["tag"], "", nodes).items()
+               if status == "PASSED"]  # fmt: skip
+    if passing:
+        raise SystemExit(f"{name}: baked again, FAIL_TO_PASS that pass: {passing[:5]}")
 
 
 def with_extra(chains: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -197,6 +211,12 @@ def main() -> int:
         for name in sys.argv[2:]:
             bake_only(name)
             print(name, "baked", flush=True)
+        return 0
+    if run.sealed():
+        # The summary is sealed with the confirmation: validating again would rewrite it.
+        raise SystemExit("the confirmation is sealed: only `--bake` runs now")
+    if sys.argv[1] == "--summary":
+        _write(SUMMARY, json.dumps(summarize(validated()), indent=1))
         return 0
     wanted = sys.argv[1]
     chains = with_extra([*full(), *related.full(), *long.full()])

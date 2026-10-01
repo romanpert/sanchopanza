@@ -311,16 +311,23 @@ def test_bake_only_rebuilds_the_image_from_the_validated_bugs_and_saves_nothing(
     # After the seal the summary must not change: A's images are baked again without validating.
     validate = _load("adopt_validate_bake", "validate.py")
     done = {"r-1": {"image": "img", "tag": "adopt-r-1:bugs", "valid": True,
-                    "bugs": [{"patch": "p0\n"}, {"patch": "p1\n"}]}}  # fmt: skip
+                    "bugs": [{"patch": "p0\n", "FAIL_TO_PASS": ["t::a"]},
+                             {"patch": "p1\n", "FAIL_TO_PASS": ["t::b"]}]}}  # fmt: skip
     baked: list[tuple] = []
+    outcome = {"t::a": "FAILED", "t::b": "FAILED"}
     monkeypatch.setattr(validate, "validated", lambda: done)
     monkeypatch.setattr(validate.docker_env, "pull", lambda _image: None)
+
     def bake(image, patches, tag):  # noqa: ANN001, ANN202
         baked.append((image, patches, tag))
 
     monkeypatch.setattr(validate.docker_env, "bake", bake)
+    monkeypatch.setattr(validate.docker_env, "pytest", lambda *_a, **_k: dict(outcome))
     monkeypatch.setattr(validate, "save", lambda _r: (_ for _ in ()).throw(AssertionError("saved")))
     validate.bake_only("r-1")
     assert baked == [("img", ["p0\n", "p1\n"], "adopt-r-1:bugs")]
     with pytest.raises(SystemExit):
         validate.bake_only("not-validated")
+    outcome["t::b"] = "PASSED"  # a base image that changed under the same name
+    with pytest.raises(SystemExit, match="FAIL_TO_PASS that pass"):
+        validate.bake_only("r-1")

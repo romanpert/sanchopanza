@@ -30,6 +30,7 @@ when named, with `--model`. No retries: a call that fails is recorded as it ende
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -59,6 +60,11 @@ WORK = ROOT / "work"
 BIN = ROOT / "bin"
 MODELS = {"haiku": "claude-haiku-4-5-20251001", "sonnet": "claude-sonnet-5-5"}
 ARMS = ("N", "S")
+# What held-out tasks run with, as `prereg-confirm.md` fixes it, enforced here and not left to
+# the command line: the frozen sanchopanza, phase A's model and caps, and Claude Code's version.
+HELD_COMMIT = "eebdfa692f53ce4198b467649b7ae1845f0d68fc"
+HELD_MODEL, HELD_CALL_CAP, HELD_CHAIN_CAP = "haiku", 1.50, 6.00
+CLAUDE_VERSION = "2.1.285"
 
 
 @dataclass(frozen=True)
@@ -112,6 +118,49 @@ def chains() -> dict[str, dict[str, Any]]:
     return json.loads((ROOT / "chains-validated.json").read_text(encoding="utf-8"))
 
 
+def chain_digest(chain: dict[str, Any]) -> str:
+    """sha256 of what a chain's sessions and grade read from the cache: image, tag and bugs
+    (prompts, patches, FAIL_TO_PASS, PASS_TO_PASS*). The sealed summary keeps it."""
+    body = {k: chain.get(k) for k in ("image", "tag", "bugs")}
+    return hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+def summary_digest(name: str) -> str | None:
+    summary = json.loads((HERE / "chains-validated-summary.json").read_text(encoding="utf-8"))
+    return summary.get(name, {}).get("sha256")
+
+
+def claude_version() -> str:
+    try:
+        done = subprocess.run(["claude", "--version"], capture_output=True, text=True, timeout=60,
+                              shell=os.name == "nt")  # fmt: skip
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+    return done.stdout.strip().split(" ", 1)[0]
+
+
+def held_refusal(model: str | None, call_cap: float, chain_cap: float) -> str | None:
+    """Why held-out tasks may not run with these settings, or None."""
+    stamp = frozen_stamp() or {}
+    if not sealed():
+        return "held-out tasks run only once the confirmation is sealed"
+    if stamp.get("commit") != HELD_COMMIT:
+        return f"held-out tasks run the frozen sanchopanza {HELD_COMMIT[:12]}: set ADOPT_SANCHO"
+    if (model or HELD_MODEL) != HELD_MODEL:
+        return f"held-out tasks run on {HELD_MODEL}"
+    if call_cap > HELD_CALL_CAP or chain_cap > HELD_CHAIN_CAP:
+        return f"held-out caps are {HELD_CALL_CAP} per call and {HELD_CHAIN_CAP} per chain and arm"
+    if (found := claude_version()) != CLAUDE_VERSION:
+        return f"held-out tasks run Claude Code {CLAUDE_VERSION}, found {found or 'none'}"
+    return None
+
+
+def stale_held(known: dict[str, dict[str, Any]], names: list[str]) -> list[str]:
+    """Held-out chains whose cache entry is not the one the sealed summary hashed."""
+    return [n for n in names if known[n]["split"] == "held"
+            and chain_digest(known[n]) != summary_digest(n)]  # fmt: skip
+
+
 def shim() -> list[Path]:
     """`runtests` on the agents' PATH: a `#!` file for Git Bash, and `runtests.cmd` in a folder
     ahead of it for PowerShell, which treats the extensionless file as a document and makes
@@ -135,7 +184,9 @@ def child_env(tag: str, base: str) -> dict[str, str]:
     # Not the sanchopanza venv: its `python` (pytest 9, no project deps) was on the agents' PATH
     # in the pilot and they ran the tests locally against it. Hooks use absolute paths.
     path = os.pathsep.join([*(str(p) for p in shim()), env.get("PATH", "")])
-    return {**env, "PATH": path, "ADOPT_TAG": tag, "ADOPT_BASE": base, "ADOPT_SANCHO": str(SANCHO)}
+    # DISABLE_AUTOUPDATER: Claude Code must not update itself in the middle of a batch.
+    return {**env, "PATH": path, "ADOPT_TAG": tag, "ADOPT_BASE": base, "ADOPT_SANCHO": str(SANCHO),
+            "DISABLE_AUTOUPDATER": "1"}  # fmt: skip
 
 
 def install_sancho(
@@ -264,6 +315,10 @@ def facts(stream: Path) -> dict[str, Any]:
                     calls[str(block.get("name"))] += 1
     usage = result.get("usage") or {}
     return {"session": session, "subtype": result.get("subtype"), "turns": result.get("num_turns"),
+            # An API or usage-limit error, not a cap: `error_max_budget_usd` and
+            # `error_max_turns` also carry is_error, and those requests did run.
+            "api_error": bool(result.get("is_error"))
+            and result.get("subtype") in ("success", "error_during_execution"),
             "cost_usd": float(result.get("total_cost_usd") or 0.0),
             "duration_s": round(float(result.get("duration_ms") or 0) / 1000, 1),
             "input_tokens": int(usage.get("input_tokens") or 0),
@@ -339,6 +394,10 @@ def one_chain(
         session, base = previous["session"], previous["base"]
         mcp = work / ".mcp.json" if spec.install is not None else None
     else:
+        if chain["split"] == "held" and evidence.exists():
+            # A held-out arm started before and left no row (a crash): never run again, its
+            # spend would go uncounted and the pair would mix attempts. Look at it by hand.
+            raise RuntimeError(f"{name} {arm}: evidence of an earlier attempt and no row.json")
         docker_env.remove_tree(evidence)
         evidence.mkdir(parents=True)
         docker_env.remove_tree(work)
@@ -383,6 +442,16 @@ def one_chain(
         seen = call_cost(observed, rows, fresh=spec.fresh, code=code)
         settle(seen["cost_usd"])
         session = seen["session"] or session
+        if seen["api_error"]:
+            # An API or usage-limit error reported as a result: not a request the arm ran. Its
+            # cost is kept; the arm stops here, as when `claude -p` does not start.
+            rows.append({"request": k, "instance_id": bug["instance_id"], "exit": code,
+                         "status": "NOT RUN (error result)", **seen})  # fmt: skip
+            rows.extend({"request": j, "instance_id": b["instance_id"], "cost_usd": 0.0,
+                         "status": "NOT RUN (harness)"}
+                        for j, b in enumerate(chain["bugs"][k:], start=k + 1))  # fmt: skip
+            print(f"{name} {arm} request {k}: error result, the arm stops here", flush=True)
+            break
         (evidence / f"diff-{k}.patch").write_text(docker_env.agent_diff(work, base),
                                                    encoding="utf-8", newline="\n")  # fmt: skip
         rows.append({"request": k, "instance_id": bug["instance_id"], "exit": code,
@@ -400,7 +469,8 @@ def one_chain(
             shutil.copy(found, evidence / f"transcript{suffix}.jsonl")
     row = {"chain": name, "arm": arm, "model": model, "base": base, "session": session,
            "wall_s": round(sum(r.get("wall_s") or 0.0 for r in rows), 1),
-           "jev_usd": jev_usd(evidence), "sanchopanza": provenance(), "calls": rows}  # fmt: skip
+           "jev_usd": jev_usd(evidence), "sanchopanza": provenance(),
+           "claude_version": claude_version(), "calls": rows}  # fmt: skip
     (evidence / "row.json").write_text(json.dumps(row, indent=1), encoding="utf-8")
 
 
@@ -426,6 +496,8 @@ def grade_chain(chain: dict[str, Any], arm: str, rep: int = 1) -> dict[str, Any]
                      "patch_applied": "<patch>" not in outcome})  # fmt: skip
     grade = {"chain": chain["chain"], "arm": arm, "resolved": sum(b["resolved"] for b in bugs),
              "bugs": bugs}  # fmt: skip
+    seal = REPO / "docs" / "results" / "2026-09-30-adopt" / "prereg-confirm.sha256"
+    grade = {**grade, "seal": seal.read_text(encoding="utf-8").strip() if seal.exists() else None}
     (evidence / "grade.json").write_text(json.dumps(grade, indent=1), encoding="utf-8")
     return grade
 
@@ -504,6 +576,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"arms {arms}; per call {CALL_CAP_USD} USD; per chain and arm {CHAIN_CAP_USD} USD; "
               f"spent so far {spent_so_far():.2f} USD")  # fmt: skip
         return 0
+    held_named = [n for n in wanted if known[n]["split"] == "held"]
+    if held_named and args.action in ("run", "grade"):
+        if args.action == "grade" and not sealed():
+            raise SystemExit("held-out chains are graded only once the confirmation is sealed")
+        if stale := stale_held(known, held_named):
+            raise SystemExit(f"cache entries differ from the sealed summary: {stale}")
     if args.action == "grade":
         for n in wanted:
             for arm in arms:
@@ -513,12 +591,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.ceiling <= 0:
         raise SystemExit("--ceiling is required and must be positive")
-    if any(known[n]["split"] == "held" for n in wanted):
-        if not sealed():
-            raise SystemExit("held-out chains run only once the confirmation is sealed")
-        if frozen_stamp() is None:
-            raise SystemExit("held-out chains run a frozen sanchopanza: set ADOPT_SANCHO to the "
-                             "path `freeze.py <commit>` prints")  # fmt: skip
+    if held_named and (why := held_refusal(args.model, CALL_CAP_USD, CHAIN_CAP_USD)):
+        raise SystemExit(why)
     with _lock:
         _ledger["spent"] = spent_so_far()
     keyfile = keyfile_from_indagis()

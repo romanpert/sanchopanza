@@ -168,6 +168,7 @@ def seal_at(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> pathlib.
     (tmp_path / "s.sha256").write_text(combined.hexdigest() + "\n", encoding="utf-8")
     monkeypatch.setattr(confirm, "MANIFEST", tmp_path / "m.json")
     monkeypatch.setattr(confirm, "SEAL", tmp_path / "s.sha256")
+    monkeypatch.setattr(confirm, "REQUIRED", ("doc.md",))
     return doc
 
 
@@ -244,3 +245,55 @@ def test_the_fail_to_pass_count_is_reported_beside_the_strict_one(tmp_path: path
     rows = [{"treat": got, "control": {**got, "resolved": 2, "f2p_resolved": 2}}]
     out = confirm.success(rows, 1, [])
     assert out["treat"] == 0 and out["treat_f2p"] == 1 and out["control_f2p"] == 2
+
+
+def _sealed_repo(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> pathlib.Path:
+    doc = seal_at(tmp_path, monkeypatch)
+    (tmp_path / "benchmarks" / "candor").mkdir(parents=True)
+    (tmp_path / "benchmarks" / "candor" / "seal.py").write_text(
+        (ADOPT.parents[1] / "benchmarks" / "candor" / "seal.py").read_text(encoding="utf-8"),
+        encoding="utf-8")  # fmt: skip
+    return doc
+
+
+def test_the_seal_fails_when_it_does_not_name_what_decides(tmp_path, monkeypatch) -> None:  # noqa: ANN001
+    _sealed_repo(tmp_path, monkeypatch)
+    assert confirm.seal_holds()
+    monkeypatch.setattr(confirm, "REQUIRED", ("doc.md", "benchmarks/adopt/confirm.py"))
+    assert not confirm.seal_holds()  # the manifest does not name the verdicts' code
+
+
+def test_a_module_added_after_the_seal_breaks_it(tmp_path, monkeypatch) -> None:  # noqa: ANN001
+    _sealed_repo(tmp_path, monkeypatch)
+    (tmp_path / "benchmarks" / "adopt").mkdir(parents=True)
+    assert confirm.seal_holds()
+    (tmp_path / "benchmarks" / "adopt" / "statistics.py").write_text("x = 1", encoding="utf-8")
+    assert not confirm.seal_holds()
+
+
+def test_only_bugs_of_requests_that_ran_count(tmp_path: pathlib.Path) -> None:
+    # Request 2 hit the chain cap; the final diff fixed its bug while working on request 1.
+    calls = [call(1, 0.5), {"request": 2, "status": "NOT RUN (cap)", "cost_usd": 0.0}]
+    folder = arm(tmp_path / "N", calls, [True, True])
+    got = confirm.arm_result(folder, SONNET)
+    assert got is not None and got["resolved"] == 1 and got["f2p_resolved"] == 1
+    assert not got["complete"]
+
+
+def test_a_sanchopanza_arm_counts_only_on_the_frozen_commit(tmp_path: pathlib.Path) -> None:
+    folder = arm(tmp_path / "Sm", [call(1, 0.5)], [True])
+    assert confirm.arm_result(folder, SONNET, "abc") is None  # no frozen install recorded
+    row = json.loads((folder / "row.json").read_text(encoding="utf-8"))
+    row["sanchopanza"] = {"exe": "x", "frozen": {"commit": "abc"}}
+    (folder / "row.json").write_text(json.dumps(row), encoding="utf-8")
+    assert confirm.arm_result(folder, SONNET, "abc") is not None
+    assert confirm.arm_result(folder, SONNET, "other") is None
+    control = arm(tmp_path / "N", [call(1, 0.5)], [True])
+    assert confirm.arm_result(control, SONNET, "abc") is not None  # Claude Code alone: no install
+
+
+def test_a_hypothesis_with_no_data_is_undecided_not_false() -> None:
+    assert confirm.decided(True, "no data") is None
+    assert confirm.decided(None, "confirmed") is None
+    assert confirm.decided(True, "confirmed") is True
+    assert confirm.decided(True, "direction only, not confirmed") is False

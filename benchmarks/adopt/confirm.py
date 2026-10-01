@@ -36,7 +36,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from analyze import memory_log  # noqa: E402
-from run import MODELS, ROOT, RUNS  # noqa: E402
+from run import HELD_COMMIT, MODELS, ROOT, RUNS  # noqa: E402
 
 REPO = HERE.parents[1]
 RESULTS = REPO / "docs" / "results" / "2026-09-30-adopt"
@@ -51,9 +51,24 @@ RULE_COST, RULE_BUGS = 0.90, 1  # B -> run C, and C's "lever shown": Sm <= 0.90 
 SINGLES_MARGIN = 2  # H1 on the 26 singles: bugs the S arm may resolve fewer
 
 
+# What a seal must name, besides itself: the verdicts' code, the runners, the validation summary
+# that says which chains take part, and the hashing code `seal_holds` relies on.
+REQUIRED = (
+    "docs/results/2026-09-30-adopt/prereg-confirm.md",
+    "benchmarks/adopt/confirm.py",
+    "benchmarks/adopt/run.py",
+    "benchmarks/adopt/singles_run.py",
+    "benchmarks/adopt/validate.py",
+    "benchmarks/adopt/chains-validated-summary.json",
+    "benchmarks/candor/seal.py",
+)
+
+
 def margin(bugs: int) -> int:
-    """H1 on chains: 5 % of the bugs of the valid chains, at least one (65 bugs: 3)."""
+    """H1 on chains: 5 % of the bugs of the valid chains, at least one (50 bugs: 2; 15: 1)."""
     return max(1, round(0.05 * bugs))
+
+
 B_CHAIN = "encode__starlette-long-1r1"
 PHASE_MODEL = {"A": MODELS["haiku"], "B": MODELS["sonnet"], "C": MODELS["sonnet"]}
 CONTROL = {"Sm": "N", "Sf": "Nf", "S": "N"}
@@ -152,14 +167,18 @@ def ran(call: dict[str, Any]) -> bool:
             and call.get("subtype") is not None)  # fmt: skip
 
 
-def arm_result(evidence: Path, model: str) -> dict[str, Any] | None:
+def arm_result(evidence: Path, model: str, commit: str | None = None) -> dict[str, Any] | None:
     """Resolved bugs, cost and exploration per request, completeness and adoption of one task
-    and arm; None when it has not run or been graded, or ran with another model."""
+    and arm; None when it has not run or been graded, ran with another model, or (with
+    `commit`) is a sanchopanza arm that did not run that frozen commit."""
     row_path, grade_path = evidence / "row.json", evidence / "grade.json"
     if not row_path.exists() or not grade_path.exists():
         return None
     row = json.loads(row_path.read_text(encoding="utf-8"))
     if row.get("model") != model:
+        return None
+    frozen = (row.get("sanchopanza") or {}).get("frozen") or {}
+    if commit and evidence.name in CONTROL and frozen.get("commit") != commit:
         return None
     grade = json.loads(grade_path.read_text(encoding="utf-8"))
     requests = {c["request"]: c for c in row["calls"]}
@@ -168,13 +187,16 @@ def arm_result(evidence: Path, model: str) -> dict[str, Any] | None:
     for k in done:
         for name, n in (requests[k].get("tools") or {}).items():
             tools[name] = tools.get(name, 0) + n
-    resolved = grade["resolved"]
-    resolved = int(resolved) if isinstance(resolved, bool) else resolved
+    # Only the bugs of requests that ran count: the final diff can hold a fix made while working
+    # on an earlier request, and "a request that did not run leaves its bug unresolved".
+    bugs = grade.get("bugs") or []
+    ran_bugs = [b for k, b in enumerate(bugs, start=1) if k in done]
+    resolved = (sum(bool(b["resolved"]) for b in ran_bugs) if bugs
+                else int(bool(grade["resolved"]) and 1 in done))  # fmt: skip
     # Reported beside the strict count, never deciding: bugs whose FAIL_TO_PASS all pass, so one
     # broken PASS_TO_PASS test every bug shares does not hide the rest (phase B2's Sm: 0 and 26).
-    bugs = grade.get("bugs") or []
-    f2p = (sum(b["f2p_passed"] == b["f2p"] if "f2p" in b else bool(b["resolved"]) for b in bugs)
-           if bugs else resolved)  # fmt: skip
+    f2p = (sum(b["f2p_passed"] == b["f2p"] if "f2p" in b else bool(b["resolved"])
+               for b in ran_bugs) if bugs else resolved)  # fmt: skip
     return {"resolved": resolved, "f2p_resolved": f2p,
             "complete": len(done) == len(requests), "ran": sorted(done),
             "request_cost": {k: c.get("cost_usd", 0.0) for k, c in requests.items()},
@@ -196,13 +218,13 @@ def common_cost(treat: dict[str, Any], control: dict[str, Any]) -> tuple[float, 
 
 
 def pairs_of(
-    tasks: list[str], treat: str, control: str, root: Path, model: str
+    tasks: list[str], treat: str, control: str, root: Path, model: str, commit: str | None = None
 ) -> tuple[list[dict[str, Any]], list[str]]:
     """Per task the two arms' results; and the tasks missing an arm (not run, not graded, or
     another model), which leave the verdicts that need them undecided."""
     rows, missing = [], []
     for task in tasks:
-        t = arm_result(root / task / treat, model)
+        t = arm_result(root / task / treat, model, commit)
         c = arm_result(root / task / control, model)
         if t is None or c is None:
             missing.append(task)
@@ -344,10 +366,12 @@ def c_tasks() -> list[str]:
     return out
 
 
-def blocks_in(arms: list[tuple[str, str, Path]], model: str) -> tuple[list[dict], int]:
+def blocks_in(
+    arms: list[tuple[str, str, Path]], model: str, commit: str | None = None
+) -> tuple[list[dict], int]:
     found, shells = [], 0
     for task, arm, root in arms:
-        result = arm_result(root / task / arm, model)
+        result = arm_result(root / task / arm, model, commit)
         for k in result["ran"] if result else []:
             f, s = guard_blocks(root / task / arm / f"stream-{k}.jsonl", f"{task}/{arm}")
             found, shells = [*found, *f], shells + s
@@ -362,10 +386,11 @@ def a_arms() -> list[tuple[str, str, Path]]:
 
 def phase_a() -> dict[str, Any]:
     model = PHASE_MODEL["A"]
-    ch, ch_missing = pairs_of([*held("chains"), *held("related")], "Sm", "N", RUNS, model)
-    rel, rel_missing = pairs_of(held("related"), "Sf", "Nf", RUNS, model)
-    si, si_missing = pairs_of(held("singles"), "S", "N", SINGLES, model)
-    found, shells = blocks_in(a_arms(), model)
+    chains = [*held("chains"), *held("related")]
+    ch, ch_missing = pairs_of(chains, "Sm", "N", RUNS, model, HELD_COMMIT)
+    rel, rel_missing = pairs_of(held("related"), "Sf", "Nf", RUNS, model, HELD_COMMIT)
+    si, si_missing = pairs_of(held("singles"), "S", "N", SINGLES, model, HELD_COMMIT)
+    found, shells = blocks_in(a_arms(), model, HELD_COMMIT)
     h1 = {"chains": success(ch, margin(5 * len(ch + ch_missing)), ch_missing),
           "related": success(rel, margin(5 * len(rel + rel_missing)), rel_missing),
           "singles": success(si, SINGLES_MARGIN, si_missing)}  # fmt: skip
@@ -374,13 +399,15 @@ def phase_a() -> dict[str, Any]:
             "H1": h1, "H2": h2, "H2_singles_reported": cheaper(si),
             "H_new_session_exploration": explore, "H3": false_blocks(found, shells),
             "H4": adoption([*ch, *rel, *si]),
-            "H_session": decided(h1["chains"]["holds"], h2["verdict"] == "confirmed"),
-            "H_new_session": decided(h1["related"]["holds"],
-                                     explore["verdict"] == "confirmed")}  # fmt: skip
+            "H_session": decided(h1["chains"]["holds"], h2["verdict"]),
+            "H_new_session": decided(h1["related"]["holds"], explore["verdict"])}  # fmt: skip
 
 
-def decided(success_holds: bool | None, other: bool) -> bool | None:
-    return None if success_holds is None else success_holds and other
+def decided(success_holds: bool | None, verdict: str) -> bool | None:
+    """Undecided (None) when H1 is, or when the other hypothesis had no data to judge."""
+    if success_holds is None or verdict == "no data":
+        return None
+    return success_holds and verdict == "confirmed"
 
 
 def adoption(rows: list[dict[str, Any]]) -> dict[str, int]:
@@ -403,6 +430,11 @@ def seal_holds() -> bool:
     seal = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(seal)
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    # It must name what decides, and every module of the benchmark: one added after the seal
+    # (a `statistics.py` would shadow the standard library's) is code nobody sealed.
+    modules = {p.relative_to(REPO).as_posix() for p in (REPO / "benchmarks" / "adopt").glob("*.py")}
+    if not (set(REQUIRED) | modules) <= set(manifest):
+        return False
     for path, digest in manifest.items():
         if not (REPO / path).exists() or seal.digest(REPO / path) != digest:
             return False

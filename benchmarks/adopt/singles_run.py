@@ -57,11 +57,16 @@ def test_command(repo: str) -> str:
     return DJANGO if repo == "django/django" else PYTEST
 
 
-def one(row: dict[str, Any], arm: str, model: str, ceiling: float, keyfile: Path) -> None:
+def one(
+    row: dict[str, Any], arm: str, model: str, ceiling: float, keyfile: Path, held: bool = False
+) -> None:
     name = row["instance_id"]
     evidence = RUNS / name / arm
     if (evidence / "row.json").exists():
         return
+    if held and evidence.exists():
+        # Started before and left no row (a crash): never run again, as with the chains.
+        raise RuntimeError(f"{name} {arm}: evidence of an earlier attempt and no row.json")
     docker_env.remove_tree(evidence)
     evidence.mkdir(parents=True)
     work = run.WORK / f"{name}-{arm}"
@@ -91,6 +96,8 @@ def one(row: dict[str, Any], arm: str, model: str, ceiling: float, keyfile: Path
         seen = {**seen, "cost_usd": seen["cost_usd"] or (run.CALL_CAP_USD if code == -9 else 0.0)}
         run.settle(seen["cost_usd"])
         call = {"request": 1, "exit": code, "wall_s": round(time.time() - began, 1), **seen}
+        if seen.get("api_error"):
+            call = {**call, "status": "NOT RUN (error result)"}  # an API error, not a result
         print(f"{name} {arm}: {seen['subtype']} {seen['cost_usd']:.3f} USD", flush=True)
     patch = docker_env.agent_diff(work, base)
     (evidence / "final.patch").write_text(patch, encoding="utf-8", newline="\n")
@@ -101,6 +108,7 @@ def one(row: dict[str, Any], arm: str, model: str, ceiling: float, keyfile: Path
     (evidence / "row.json").write_text(json.dumps({"instance": name, "arm": arm, "model": model,
                                                    "base": base, "jev_usd": run.jev_usd(evidence),
                                                    "sanchopanza": run.provenance(),
+                                                   "claude_version": run.claude_version(),
                                                    "calls": [call]}, indent=1),
                                        encoding="utf-8")  # fmt: skip
 
@@ -124,8 +132,11 @@ def grade(name: str) -> dict[str, bool]:
                         "--max_workers", "1", "-id", run_id], cwd=SWE, capture_output=True,
                        env={**os.environ, "PYTHONUTF8": "1"}, timeout=3600)  # fmt: skip
         report = SWE / "logs" / "run_evaluation" / run_id / model / name / "report.json"
-        resolved = bool(report.exists() and json.loads(report.read_text("utf-8"))
-                        .get(name, {}).get("resolved"))  # fmt: skip
+        if not report.exists():
+            # The harness failed (Docker, disk): missing, not a loss. No grade.json is written.
+            print(f"{name} {arm}: no report from the harness, not graded", flush=True)
+            continue
+        resolved = bool(json.loads(report.read_text("utf-8")).get(name, {}).get("resolved"))
         (evidence / "grade.json").write_text(json.dumps({"resolved": resolved,
                                                          "report": str(report)}),
                                              encoding="utf-8")  # fmt: skip
@@ -151,10 +162,9 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit("--ceiling is required and must be positive")
     held = {r["instance_id"] for r in json.loads((HERE / "singles-selected.json").read_text(
         encoding="utf-8")) if r["split"] == "held"}  # fmt: skip
-    if held & set(ids) and not run.sealed():
-        raise SystemExit("held-out singles run only once the confirmation is sealed")
-    if held & set(ids) and run.frozen_stamp() is None:
-        raise SystemExit("held-out singles run a frozen sanchopanza: set ADOPT_SANCHO")
+    if held & set(ids) and (why := run.held_refusal(args.model, run.CALL_CAP_USD,
+                                                     run.HELD_CHAIN_CAP)):  # fmt: skip
+        raise SystemExit(why)
     with run._lock:
         run._ledger["spent"] = run.spent_so_far() + spent_singles()
     keyfile = run.keyfile_from_indagis()
@@ -169,8 +179,8 @@ def main(argv: list[str] | None = None) -> int:
             docker_env.pull(row["image"])
             try:
                 with ThreadPoolExecutor(max_workers=len(run.ARMS)) as pool:
-                    list(pool.map(lambda arm, r=row: one(r, arm, run.MODELS[args.model],
-                                                         float("inf"), keyfile), run.ARMS))
+                    list(pool.map(lambda arm, r=row, h=name in held: one(
+                        r, arm, run.MODELS[args.model], float("inf"), keyfile, h), run.ARMS))
             finally:
                 run.release(hold)
             print(name, grade(name), flush=True)
