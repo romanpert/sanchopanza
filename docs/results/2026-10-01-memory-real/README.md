@@ -190,3 +190,12 @@ on held out 1 and 3 (precision down 0.024 and 0.014, allowed 0.01). v6 is not sh
 confirmed. What it fixes is real (records now know what a shell edit changed: 95 % to 10 % that
 "changed nothing"), but what the shell touch gives is too often unrelated: about 30 % of its
 records are related on SWE-chat, and none of Sm's 13. The causes are the next round.
+
+**Declared after the sealed run (6073ae6):** the replay of amendment 4 paired records with the
+wrong requests in arms S (from request 13) and Sm (from request 5): `claude -p` stream-json writes
+a compaction summary as an `isSynthetic` user message, which the parser counted as a request.
+Their figures above are therefore invalid; N (no compaction) is not affected: recall 1.000,
+precision 0.818 on its 15 fresh requests. The verdict stays "not confirmed": a corrected rerun on
+the same requests would be post hoc, and the SWE-chat precision drop (criterion 5) is real.
+Diagnosis of that drop on seen data (dev + held out 1): of the shell touch's 14 unrelated
+records, 6 came from `git diff` output and 2 from `gh api ... "$(cat <<EOF ...)"` bodies.
