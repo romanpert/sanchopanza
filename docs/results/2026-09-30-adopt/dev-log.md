@@ -491,3 +491,16 @@ after the reset: `run.py run --continue` per task (the same command, the same ce
 which resumes each arm from its first NOT RUN request in the same session and working copy; then
 dvc-rel-1 and astroid-1, then the singles (ceiling 169.36). pydantic-2's request 3 is run again in
 both arms over whatever the cut call left in the working copy; that is said with its result.
+
+**Amendment 2 (2026-10-01, indagis-53, before going on; sealed 74aa28c7).** The handoff said to go
+on with `--continue`. Checked free on copies of the real rows and reviewed adversarially, it would
+have resumed the 429's own session for the arms stopped at request 1, and for pydantic-2 a session
+holding a request 3 cut after real work (N 42 tool calls, 3 Edits and a Write; Sm 29, 2 Edits) over
+the edits it left. The review also found that pydantic-2's second attempt was not clean: `Sm`'s
+memory caught up and showed the crashed first attempt's record of request 1 (same bug, from
+Claude Code's session folder for the working copy, which a fresh start did not clear). No other
+held-out S arm saw a record from outside its own sessions. So every arm of pydantic-2,
+pydantic-rel-1, conan-1 and conan-2 moved to `runs/<task>-limit1/` with its session folder
+(1.46 USD set aside, counted; spent under `runs/` still 78.96), and those tasks run again whole.
+`run.py` refuses `--continue` on a held-out arm an error result stopped, and `run.py` and
+`singles_run.py` refuse a held-out start over earlier sessions.

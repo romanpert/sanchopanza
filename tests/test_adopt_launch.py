@@ -70,5 +70,54 @@ def test_a_call_that_cannot_start_is_not_run_and_the_row_is_written(tmp_path, mo
     assert "too long" in row["calls"][0]["stderr"]
 
 
+# ---- amendment 2: an arm an error result stopped is set aside and run whole -------------------
+
+
+def _isolate(tmp_path, monkeypatch) -> None:  # noqa: ANN001
+    monkeypatch.setattr(run, "RUNS", tmp_path / "runs")
+    monkeypatch.setattr(run, "WORK", tmp_path / "work")
+    monkeypatch.setattr(run, "CLAUDE_PROJECTS", tmp_path / "projects")
+    monkeypatch.setattr(run.docker_env, "export", lambda tag, work: "base")
+
+    def no_call(*_a, **_k):  # noqa: ANN002, ANN003, ANN202
+        raise AssertionError("claude -p must not be called")
+
+    monkeypatch.setattr(run.subprocess, "run", no_call)
+
+
+def test_the_projects_folder_is_the_one_claude_code_names_for_the_working_copy() -> None:
+    work = pathlib.Path(r"C:\Users\roman\.cache\sanchopanza\adopt\work\pydantic__pydantic-2-Sm")
+    assert run.projects_dir(work).name == (
+        "C--Users-roman--cache-sanchopanza-adopt-work-pydantic--pydantic-2-Sm"
+    )
+
+
+def test_continue_refuses_a_held_out_arm_an_error_result_stopped(tmp_path, monkeypatch) -> None:  # noqa: ANN001
+    _isolate(tmp_path, monkeypatch)
+    evidence = tmp_path / "runs" / "c" / "N"
+    evidence.mkdir(parents=True)
+    calls = [{"request": 1, "status": "NOT RUN (error result)", "session": "dead"},
+             {"request": 2, "status": "NOT RUN (harness)"}]  # fmt: skip
+    (evidence / "row.json").write_text(json.dumps({"session": "dead", "base": "b",
+                                                   "calls": calls}), encoding="utf-8")  # fmt: skip
+    chain = {"chain": "c", "split": "held", "tag": "t", "bugs": [{}, {}]}
+    with pytest.raises(RuntimeError, match="set the attempt aside"):
+        run.one_chain(chain, "N", "m", 10.0, tmp_path / "key", carry_on=True)
+
+
+def test_a_held_out_arm_does_not_start_over_sessions_of_an_earlier_attempt(
+    tmp_path, monkeypatch
+) -> None:  # noqa: ANN001
+    _isolate(tmp_path, monkeypatch)
+    # pydantic-2 Sm, phase A: memory caught up the crashed attempt's session from this folder.
+    old = run.projects_dir(tmp_path / "work" / "c-Sm")
+    old.mkdir(parents=True)
+    (old / "6a5b1218.jsonl").write_text("{}", encoding="utf-8")
+    chain = {"chain": "c", "split": "held", "tag": "t", "bugs": [{}]}
+    with pytest.raises(RuntimeError, match="earlier sessions"):
+        run.one_chain(chain, "Sm", "m", 10.0, tmp_path / "key")
+    assert not (tmp_path / "runs" / "c" / "Sm").exists()  # refused before any evidence
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__]))

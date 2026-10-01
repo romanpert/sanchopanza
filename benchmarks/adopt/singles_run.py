@@ -67,9 +67,11 @@ def one(
     if held and evidence.exists():
         # Started before and left no row (a crash): never run again, as with the chains.
         raise RuntimeError(f"{name} {arm}: evidence of an earlier attempt and no row.json")
+    work = run.WORK / f"{name}-{arm}"
+    if held and any(run.projects_dir(work).glob("*.jsonl")):  # amendment 2
+        raise RuntimeError(f"{name} {arm}: earlier sessions in {run.projects_dir(work)}")
     docker_env.remove_tree(evidence)
     evidence.mkdir(parents=True)
-    work = run.WORK / f"{name}-{arm}"
     docker_env.remove_tree(work)
     base = docker_env.export(row["image"], work)
     mcp = run.install_sancho(work, evidence, keyfile) if arm == "S" else None

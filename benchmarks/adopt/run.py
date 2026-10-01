@@ -382,6 +382,28 @@ def not_run(row: dict[str, Any]) -> bool:
     return str(row.get("status", "")).startswith("NOT RUN")
 
 
+CLAUDE_PROJECTS = Path.home() / ".claude" / "projects"
+
+
+def projects_dir(work: Path) -> Path:
+    """Where Claude Code keeps the sessions of a working copy; memory catches up from it."""
+    return CLAUDE_PROJECTS / "".join(c if c.isascii() and c.isalnum() else "-" for c in str(work))
+
+
+def held_start_refusal(chain: dict[str, Any], work: Path, previous: dict[str, Any] | None) -> str:
+    """Amendment 2. A held-out arm an error result stopped is set aside and run whole, never
+    continued (a cut request leaves its context and edits behind); and no held-out arm starts
+    over sessions an earlier attempt left in its Claude Code folder (pydantic-2 Sm, phase A: its
+    memory caught up the crashed attempt's session of the same chain)."""
+    if chain["split"] != "held":
+        return ""
+    if previous and any(c.get("status") == "NOT RUN (error result)" for c in previous["calls"]):
+        return "an error result stopped it: set the attempt aside and run it whole"
+    if not previous and any(projects_dir(work).glob("*.jsonl")):
+        return f"earlier sessions in {projects_dir(work)}: set them aside first"
+    return ""
+
+
 def one_chain(
     chain: dict[str, Any], arm: str, model: str, ceiling: float, keyfile: Path,
     carry_on: bool = False,
@@ -396,10 +418,12 @@ def one_chain(
     done_row = evidence / "row.json"
     rows: list[dict[str, Any]] = []
     session: str | None = None
-    if done_row.exists():
-        previous = json.loads(done_row.read_text(encoding="utf-8"))
-        if not carry_on or not any(not_run(r) for r in previous["calls"]):
-            return  # done before: never run twice
+    previous = json.loads(done_row.read_text(encoding="utf-8")) if done_row.exists() else None
+    if previous and (not carry_on or not any(not_run(r) for r in previous["calls"])):
+        return  # done before: never run twice
+    if why := held_start_refusal(chain, work, previous):
+        raise RuntimeError(f"{name} {arm}: {why}")
+    if previous:
         rows = [r for r in previous["calls"] if not not_run(r)]
         session, base = previous["session"], previous["base"]
         mcp = work / ".mcp.json" if spec.install is not None else None

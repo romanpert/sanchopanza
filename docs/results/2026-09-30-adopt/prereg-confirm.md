@@ -260,3 +260,36 @@ other held-out task; sealed again with the code it changes.
    not run. Results so far: starlette-2, starlette-rel-2, pydantic-1, pydantic-2, pydantic-rel-1
    OK. pygments-2 ran before this check existed; its image is baked again after A and checked the
    same way, and the result is reported with it.
+
+
+## Amendment 2, 2026-10-01, during phase A, before any verdict is read
+
+Written after phase A stopped at the subscription's weekly limit and before any held-out task
+ran again; `confirm.py A` has not been run (the runner's per-task grades of the stopped arms, in
+its log, were seen while preparing this, as in amendment 1). Sealed again with the code it
+changes. The rule below applies to every arm an error result stopped, whatever its grade.
+
+1. **An arm an error result stopped is set aside and its task is run again whole.** The
+   handoff's plan was `run.py run --continue`. Checked free on copies of the real rows, and
+   reviewed adversarially, it would not have given clean requests: for an arm stopped at request
+   1 it resumed the session the 429 had opened (only that prompt and the error); for pydantic-2,
+   cut inside request 3 after real work (N: 42 tool calls with 3 Edits and a Write, 0.45 USD; Sm:
+   29 with 2 Edits, 0.37 USD), the rerun would resume a session holding that attempt over the
+   edits it left, and its exploration would be counted from the rerun alone. So, as amendment 1
+   did for pydantic-2's crash: every arm of a task with an arm stopped by an error result moves
+   to `runs/<task>-limit1/` (counted in the ceilings' ledger, read by no verdict), together with
+   its working copy's Claude Code session folder, and the task runs again from request 1 in fresh
+   working copies. Today: pydantic-2 (N, Sm), pydantic-rel-1 (N, Sm, Nf, Sf), conan-1 and conan-2
+   (N, Sm); 1.46 USD set aside, all of it pydantic-2's. A held-out single an error result stopped
+   is set aside the same way under `singles/<instance>-limit1/` and run again. `run.py` now
+   refuses `--continue` on a held-out arm with an error result.
+2. **No held-out arm starts over an earlier attempt's sessions.** Memory catches up past
+   sessions from Claude Code's folder for the working copy (`~/.claude/projects/<path>`), and a
+   fresh start did not clear it. In pydantic-2's second attempt, `Sm`'s first request caught up
+   and was shown the record of the crashed first attempt's request 1 (`6a5b1218-...-001`, the same
+   bug), which `N` could not see. Every other held-out S arm that ran (pygments-2, starlette-2,
+   pydantic-1, starlette-rel-2 Sm and Sf) was checked: no record from outside its own sessions.
+   `run.py` and `singles_run.py` now refuse to start a held-out arm whose folder already holds a
+   session; setting an attempt aside moves the folder with it.
+3. What this costs: pydantic-2 is run a third time whole (estimated 3-4 USD more than going on
+   from request 3); the ceilings stay as they are.

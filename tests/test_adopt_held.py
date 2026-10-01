@@ -115,5 +115,17 @@ def test_a_singles_harness_failure_writes_no_grade(tmp_path, monkeypatch) -> Non
     assert not list((tmp_path / "runs").rglob("grade.json"))
 
 
+def test_a_held_out_single_does_not_start_over_earlier_sessions(tmp_path, monkeypatch) -> None:  # noqa: ANN001
+    monkeypatch.setattr(singles_run, "RUNS", tmp_path / "runs")
+    monkeypatch.setattr(singles_run.run, "WORK", tmp_path / "work")
+    monkeypatch.setattr(singles_run.run, "CLAUDE_PROJECTS", tmp_path / "projects")
+    old = singles_run.run.projects_dir(tmp_path / "work" / "x__y-1-N")
+    old.mkdir(parents=True)
+    (old / "s.jsonl").write_text("{}", encoding="utf-8")
+    with pytest.raises(RuntimeError, match="earlier sessions"):
+        singles_run.one({"instance_id": "x__y-1"}, "N", "m", 1.0, tmp_path / "k", held=True)
+    assert not (tmp_path / "runs" / "x__y-1").exists()
+
+
 def test_child_sessions_never_update_claude_code() -> None:
     assert run.child_env("t", "b")["DISABLE_AUTOUPDATER"] == "1"
