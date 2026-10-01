@@ -29,22 +29,22 @@ _LINE_PREFIX = re.compile(
 _CD = re.compile(r"^\s*cd\s+(\"[^\"]+\"|'[^']+'|\S+)\s*(?:&&|;)")
 _TRIPLE = re.compile(r"\"\"\"|'''")
 _HEREDOC = re.compile(r"(?<!<)<<(?!<)-?\s*['\"]?(\w+)['\"]?")
-_INTERPRETER = re.compile(r"\b(python[\d.]*|py|node|deno|ruby|perl|php)\b")
-_INLINE = re.compile(r"\s-[ce]\s+(\"(?:[^\"\\]|\\.){0,20000}\"|'[^']{0,20000}')")
 _OPEN = re.compile(r"\bopen\(\s*([^,()\n]{1,300}?)\s*,\s*['\"](?:w|a|x|r\+)b?\+?['\"]")
 _METHOD = re.compile(r"(Path\(\s*['\"][^'\"\n]{1,300}['\"]\s*\)|[A-Za-z_]\w{0,60})\s*"
                      r"\.write_(?:text|bytes)\(")  # fmt: skip
 _NODE = re.compile(r"\b(?:writeFileSync|appendFileSync|writeFile)\(\s*([^,()\n]{1,300}?)\s*,")
 _LITERAL = re.compile(r"^(?:Path\(\s*)?['\"]([^'\"\n]{1,300})['\"]\s*\)?$")
 _IN_PLACE = re.compile(r"\bsed\s+(?:-\S+\s+){0,6}?(?:-\w*i\S*|--in-place\S*)|"
-                       r"\bperl\s+(?:-\S+\s+){0,6}?-\w*i")  # fmt: skip
-_PS_WRITE = re.compile(r"\b(?:Set-Content|Out-File|Add-Content)\b"
-                       r"(?:\s+-(?:Path|FilePath|LiteralPath))?\s+['\"]?([^\s'\"|;]{1,400})",
-                       re.I)  # fmt: skip
-_REDIRECT = re.compile(r"(?<![<>&\d])>>?\s*['\"]?([\w@~./\\:-]{1,400})|"
+                       r"\bperl\s+(?:-\S+\s+){0,6}?-(?![MI])\w*i")  # fmt: skip
+_PS_WRITE = re.compile(r"\b(?:Set-Content|Out-File|Add-Content)\b", re.I)
+_PS_PATH = frozenset({"-path", "-filepath", "-literalpath"})
+_PS_SWITCHES = frozenset({"-nonewline", "-force", "-append", "-noclobber", "-passthru",
+                          "-whatif", "-confirm"})  # fmt: skip
+_REDIRECT = re.compile(r"(?<![<>&\d=-])>>?\s*['\"]?([\w@~./\\:-]{1,400})|"
                        r"\btee\s+(?:-a\s+)?['\"]?([\w@~./\\:-]{1,400})")  # fmt: skip
 _COPY = re.compile(r"\b(?:cp|mv|Copy-Item|Move-Item)\b[^|;&\n]{0,2000}?\s['\"]?"
                    rf"((?:[A-Za-z]:)?[\w@~./\\-]{{1,400}}{_EXT})['\"]?\s*$")  # fmt: skip
+_TARGET_DIR = re.compile(r"\s(?:-t|--target-directory)(?:\s|=)")  # `cp -t DIR file`
 _QUOTED = re.compile(r"\"(?:[^\"\\\n]|\\.){0,2000}\"|'[^'\n]{0,2000}'")
 
 
@@ -125,26 +125,57 @@ def written(command: Any) -> list[str]:
     A file the code only reads is not written."""
     if not isinstance(command, str):
         return []
-    shell, bodies = _parts(command)
-    text = "\n".join(shell)
+    shell_lines, bodies = _heredocs(command[:SCAN])
+    shells = [body for opener, at, body in bodies if st.body_kind(opener, at) == "shell"]
+    text = "\n".join([*shell_lines, *shells])
+    parts = st.split(text)
+    run = {w for s in parts if _runs_code(st.words(text, s)) for w in st.words(text, s)}
     out: list[str] = []
-    if _INTERPRETER.search(text):
-        codes = [*bodies, *(m.group(1)[1:-1] for m in _INLINE.finditer(text))]
-        for code in codes:
-            out += _code_targets(code)
-    bare = _QUOTED.sub('""', text)  # a `>` or a path inside quotes is not the shell's
-    for segment in re.split(r"&&|\|\||;|\||\n", bare):
-        if _IN_PLACE.search(segment):
-            out += PATH.findall(segment)
-        out += [m.group(1) for m in _PS_WRITE.finditer(segment)]
-        for match in _REDIRECT.finditer(segment):
-            target = match.group(1) or match.group(2)
-            if PATH.fullmatch(target):
-                out.append(target)
-        copied = _COPY.search(segment)
-        if copied:
-            out.append(copied.group(1))
+    for opener, at, body in bodies:
+        # a body an interpreter runs, or a script it writes that a later statement runs
+        kind = st.body_kind(opener, at)
+        if kind == "code" or (kind == "" and set(_shell_targets(opener)) & run):
+            out += _code_targets(body)
+    for s in parts:
+        if _runs_code(st.words(text, s)):  # `python -c "..."`, `node -e '...'`
+            out += [t for a, b in s.quotes if re.search(r"\s-[ce]\s*$", text[s.start : a])
+                    for t in _code_targets(text[a + 1 : b - 1])]  # fmt: skip
+        out += _shell_targets(st.blanked(text, s))  # quotes and comments are not the shell's
     return list(dict.fromkeys(out))
+
+
+def _runs_code(words: list[str]) -> bool:
+    return any(st.INTERPRETER.fullmatch(st.program([w])) for w in words)
+
+
+def _ps_target(rest: str) -> str:
+    """The file a PowerShell write cmdlet names: its -Path, else its first positional word
+    (parameters such as `-Encoding utf8` take a value, switches such as `-Force` do not)."""
+    words = rest.split()[:40]
+    k = 0
+    while k < len(words):
+        word = words[k].strip("'\"")
+        low = word.lower()
+        if low in _PS_PATH:
+            return words[k + 1].strip("'\"") if k + 1 < len(words) else ""
+        if word.startswith("-"):
+            k += 1 if low in _PS_SWITCHES else 2
+            continue
+        return word
+    return ""
+
+
+def _shell_targets(segment: str) -> list[str]:
+    """What one statement (its quotes blanked) writes as the shell does it: a redirection or
+    `tee`, an in-place `sed`/`perl`, PowerShell's `Set-Content`/`Out-File`, `cp`/`mv`."""
+    out: list[str] = []
+    if _IN_PLACE.search(segment):
+        out += PATH.findall(segment)
+    out += [t for m in _PS_WRITE.finditer(segment) if (t := _ps_target(segment[m.end() :]))]
+    out += [m.group(1) or m.group(2) for m in _REDIRECT.finditer(segment)]
+    copied = None if _TARGET_DIR.search(segment) else _COPY.search(segment)
+    out += [copied.group(1)] if copied else []
+    return [t for t in out if PATH.fullmatch(t)]
 
 
 def view(

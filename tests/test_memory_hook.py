@@ -54,6 +54,13 @@ SUMMARY = {"type": "user", "isCompactSummary": True,
 HEX_LINE = "(r'0[xX][0-9a-fA-F]+', Number.Hex),"
 
 
+@pytest.fixture(autouse=True)
+def _shell_reads_on(monkeypatch: pytest.MonkeyPatch) -> None:
+    """These tests exercise what a shell read shows (v6, v6.1); v6.2 turns reads off by
+    default (tests/test_memory_shell_v62.py)."""
+    monkeypatch.setattr(mh, "SHELL_READS", True)
+
+
 def lexer_request(n: int = 0, line: str = HEX_LINE) -> list[dict[str, Any]]:
     return [
         prompt("The Carbon lexer mishandles hex literals like 0xFF"),

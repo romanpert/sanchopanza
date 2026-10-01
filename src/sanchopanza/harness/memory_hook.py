@@ -317,10 +317,8 @@ def note_live(
     started, for the touch, which must not read the whole transcript on every file opened."""
     with ep.locked(_shown_path(store, session)):
         kept = shown_since_compaction(store, session, boundaries)
-        edited = bool(_state(store, session).get("file_edit"))
         payload = {"boundaries": boundaries, "keys": sorted(kept), "cwd": cwd,
-                   "live": None if live is None else sorted(live),
-                   **({"file_edit": True} if edited else {})}  # fmt: skip
+                   "live": None if live is None else sorted(live)}  # fmt: skip
         ep.write_private(_shown_path(store, session), json.dumps(payload))
 
 
@@ -580,33 +578,20 @@ def touch(event: Mapping[str, Any]) -> dict[str, Any]:
     if tool not in (*TOUCH_TOOLS, *SHELL_TOOLS) or event.get("agent_id"):
         return {}
     data = event.get("tool_input") if isinstance(event.get("tool_input"), Mapping) else {}
-    store, session = store_for(event), str(event.get("session_id") or "session")
     if tool in SHELL_TOOLS:
-        if SHELL_UNTIL_FILE_EDIT and _state(store, session).get("file_edit"):
-            return {}  # this agent edits with file tools: their touch gives its records
         command = data.get("command")
         raws, seen, base = bash_view(command, event.get("tool_response"),
                                      str(event.get("cwd") or ""),
                                      powershell=tool == "PowerShell")  # fmt: skip
         written = shell_written(command) if SHELL_EDIT_RULE else []
         given = _give(event, written, "Edit", seen, base) if written else {}
-        return given or _give(event, [r for r in raws if r not in written], "Read", seen, base)
-    if SHELL_UNTIL_FILE_EDIT and tool in GATE_EDITS:
-        with contextlib.suppress(OSError):
-            note_file_edit(store, session)
+        if given or not SHELL_READS:
+            return given
+        return _give(event, [r for r in raws if r not in written], "Read", seen, base)
     raw = data.get("file_path") or data.get("notebook_path")
     if not isinstance(raw, str) or not raw.strip():
         return {}
     return _give(event, [raw], str(tool), seen_prints(event), str(event.get("cwd") or ""))
-
-
-def note_file_edit(store: Path, session: str) -> None:
-    """The session edited through a file tool: from now on its shell touch gives nothing."""
-    if _state(store, session).get("file_edit"):
-        return
-    with ep.locked(_shown_path(store, session)):
-        payload = {**_state(store, session), "file_edit": True}
-        ep.write_private(_shown_path(store, session), json.dumps(payload))
 
 
 def _give(
@@ -652,11 +637,12 @@ def _give(
 
 SHELL_TOOLS = memory_tree.SHELL_TOOLS  # PowerShell: Claude Code on Windows
 SHELL_EDIT_RULE = True  # a file the command writes takes the edit rule (newest, no line in view)
-# v6.1: once a session edits through a file tool, its shell touch gives nothing (SWE-chat: there
-# the shell touch added no recall and most of what it gave was unrelated).
-SHELL_UNTIL_FILE_EDIT = True
-# An edit of an existing file; not Write, which a shell editor may use once to create one.
-GATE_EDITS = ("Edit", "MultiEdit", "NotebookEdit")
+# v6.2: a shell READ gives nothing. Amendment 5: agents in auto mode read through `sed -n` and
+# `grep -n` dozens of times per request and 196 of 258 records were unrelated, all from reads;
+# B2 lost no recall without them (Sonnet's records arrive at its shell edits), and every record
+# a shell write gave on the maintainer's sessions was of a file the request wrote. (v6.1's gate,
+# no shell touch once a session edits with a file tool, only removed such records: gone.)
+SHELL_READS = False
 
 
 def shell_written(command: Any) -> list[str]:

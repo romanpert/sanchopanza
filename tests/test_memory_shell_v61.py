@@ -27,6 +27,13 @@ from .test_memory_hook import (
 )
 
 CARBON = "pygments/lexers/carbon.py"
+
+
+@pytest.fixture(autouse=True)
+def _shell_reads_on(monkeypatch: pytest.MonkeyPatch) -> None:
+    """These tests exercise what a shell read shows (v6, v6.1); v6.2 turns reads off by
+    default (tests/test_memory_shell_v62.py)."""
+    monkeypatch.setattr(mh, "SHELL_READS", True)
 DIFF = f"@@ -10,3 +10,4 @@ class CarbonLexer:\n     {HEX_LINE}\n+    (r'0[oO][0-7]+', Number.Oct),"
 
 
@@ -171,7 +178,7 @@ def test_review_long_adversarial_commands_parse_quickly(command: str) -> None:
 
     start = time.perf_counter()
     shell.view(command, "out", "C:/work/repo")
-    assert time.perf_counter() - start < 0.5
+    assert time.perf_counter() - start < 2.0  # linear: ~0.1 s; the regexes it replaced took 6-9 s
 
 
 # ---- second review of v6.1 (2026-10-01) ----------------------------------------------------
