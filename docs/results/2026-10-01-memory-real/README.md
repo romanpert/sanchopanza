@@ -277,3 +277,57 @@ Amendment 6 confirms on data that does not exist yet: part A, the first Sonnet 5
 chain run after the seal (truth from its patches); part B, the maintainer's sessions started
 2026-10-01 12:00 to 2026-10-04 00:00 (the sealed label for the file tools' touch, and an
 independent blind audit of the write detector).
+
+## After the seal of amendment 6, while its data does not exist (branch memoria-v63)
+
+Nothing below touches the sealed code or changes amendment 6; it is development on seen data
+(the 644 requests of `local_v6.py`, 632 when amendment 5 ran: sessions started before its cut
+grew after it) and B2.
+
+**A label independent of the shell parser** (`commit_label.py`): a record is also related when
+the request committed one of its files. A commit counts as the request's only if its hash is in
+the request's output (`[branch sha]`, or a `git log --oneline` line whose subject, whole, is in
+one of the request's `git commit` commands) and in the HEAD reflog of that worktree as a plain
+`commit` inside the request's window (an adversarial review found amends, cherry-picks, older
+commits and a sibling worktree's commits getting in; all refused now, with tests). 485 of 1,386
+hashes accepted, 198 requests commit.
+
+| local, 644 requests | sealed | `+commit` (independent) | `+shell` (circular) | chars | shell gives |
+|---|---|---|---|---|---|
+| v5 | 0.924 / 0.858 / 0.019 | 0.748 / 0.888 / 0.018 | 0.669 / 0.893 / 0.019 | | 0 |
+| v6.2 | 0.949 / 0.537 / 0.123 | 0.876 / 0.628 / 0.101 | 0.977 / 0.931 / 0.019 | 2,080 | 152 |
+
+Of the 76 shell gives in committing requests, 38 are related under `+commit` (11 sealed, 76
+`+shell`). By where the file is (`commit_label_diag.py`): 33 committed in the request, 25 ignored
+by git, 9 outside any repository, 9 tracked and not committed in the session. So at most 12 % of
+them can be a write the detector invented; the rest of the gap is files git does not see.
+
+**Two filters measured and not taken** (`variants_v63.py`): no record for a pure append (`>>`,
+`tee -a`, `Add-Content`, `open(p, 'a')`), and no record for a file outside the session's
+repository. 56 of the 152 shell gives were of notes under `~/.claude` (an errors log,
+auto-memory, ADRs), but the only two requests where the shell touch adds recall over v5 are both
+`lineage` and both go with the repository filter (a sibling repository edited from another
+folder, and an auto-memory `MEMORY.md`):
+
+| local | sealed | `+commit` | `+shell` | chars | shell gives |
+|---|---|---|---|---|---|
+| v6.2 | 0.949 / 0.537 / 0.123 | 0.876 / 0.628 / 0.101 | 0.977 / 0.931 / 0.019 | 2,080 | 152 |
+| no appends | 0.949 / 0.546 / 0.121 | 0.871 / 0.632 / 0.104 | 0.974 / 0.930 / 0.019 | 2,059 | 147 |
+| repository only | 0.924 / 0.572 / 0.105 | 0.848 / 0.645 / 0.092 | 0.929 / 0.927 / 0.019 | 1,963 | 123 |
+| both | 0.924 / 0.580 / 0.103 | 0.843 / 0.651 / 0.092 | 0.925 / 0.926 / 0.019 | 1,946 | 119 |
+
+B2 is the same under all four (0.941 / 0.973 / 0.030).
+
+**Records that changed nothing, run to run** (`v63_tree_repeat.py`): B2's three arms recorded
+again (N three times, S and Sm twice) give identical records, no git failure (slowest call
+1.25 s) and no read past the snapshot's byte budget. The two outlying passes in
+`chain-v6-real.json` (determinism-2 0.034, corrected-v61-habit 0.045, against 0.030-0.031
+elsewhere) do not reproduce; the likeliest cause is a git call past its 3 s limit on a loaded
+machine, which `worktree.snapshot` turns into no snapshot without a trace (not shown). On the 13
+repositories of the maintainer's sessions `git status -uall` takes 0.05-0.47 s.
+
+**The record before the first shell write** (`memory_hook.shell_first`, off by default,
+`SANCHOPANZA_MEMORY_SHELL_FIRST=deny`): a PreToolUse hook denies once a command that writes a
+file with a record not yet given, the record as the reason (Claude Code feeds it back, in every
+permission mode); the same command is never denied twice. Built and tested; its value can only
+be measured live (`shell_first_pilot.py`, 16 short sessions, about 2 USD at list price): not run.

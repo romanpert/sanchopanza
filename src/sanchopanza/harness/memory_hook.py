@@ -629,7 +629,8 @@ def _give(
             with contextlib.suppress(OSError):
                 remember_shown(store, session, boundaries, given)
     _log({"event": "PostToolUse", "tool": event.get("tool_name"), "path": shown_as,
-          "matching": [e.key for e in matching], "shown": given, "chars": len(text)})  # fmt: skip
+          "matching": [e.key for e in matching], "shown": given, "chars": len(text),
+          "phase": "pre" if event.get("hook_event_name") == "PreToolUse" else "post"})  # fmt: skip
     if not text:
         return {}
     return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": text}}
@@ -643,6 +644,51 @@ SHELL_EDIT_RULE = True  # a file the command writes takes the edit rule (newest,
 # a shell write gave on the maintainer's sessions was of a file the request wrote. (v6.1's gate,
 # no shell touch once a session edits with a file tool, only removed such records: gone.)
 SHELL_READS = False
+
+
+SHELL_FIRST_NOTE = (
+    "[sanchopanza memory] Not run yet, and not refused: this command changes a file that an "
+    "earlier request changed too, and its record is below so that you see it before the change "
+    "rather than after. Run the same command again (or a changed one) to go on; this happens "
+    "once per command."
+)
+DENIED = "denied"  # per-session, in the shown state: hashes of commands denied once
+
+
+def shell_first_on() -> bool:
+    """v6.3 candidate, off by default: `SANCHOPANZA_MEMORY_SHELL_FIRST=deny`."""
+    return str(_env.get("MEMORY_SHELL_FIRST", "") or "off").strip().lower() == "deny"
+
+
+def shell_first(event: Mapping[str, Any]) -> dict[str, Any]:
+    """PreToolUse on Bash or PowerShell: when the command writes a file with a record this
+    session was not given, deny it once with the record as the reason (Claude Code feeds the
+    reason back to the agent, in every permission mode), so the record arrives before the
+    change. The same command is never denied twice; a command that writes nothing with a
+    record, a read, a file tool or a subagent's call is never denied."""
+    if not shell_first_on() or event.get("tool_name") not in SHELL_TOOLS:
+        return {}
+    data = event.get("tool_input") if isinstance(event.get("tool_input"), Mapping) else {}
+    command = data.get("command")
+    if not isinstance(command, str) or not shell_written(command) or event.get("agent_id"):
+        return {}
+    import hashlib
+
+    digest = hashlib.sha1(command.encode("utf-8", "surrogateescape")).hexdigest()[:16]
+    store, session = store_for(event), str(event.get("session_id") or "session")
+    if digest in (_state(store, session).get(DENIED) or []):
+        return {}
+    text = (touch({**event, "tool_response": {}}).get("hookSpecificOutput") or {}).get(
+        "additionalContext", "")  # fmt: skip
+    if not text:
+        return {}
+    with contextlib.suppress(OSError), ep.locked(_shown_path(store, session)):
+        state = _state(store, session)
+        denied = [*(state.get(DENIED) or []), digest][-200:]
+        ep.write_private(_shown_path(store, session), json.dumps({**state, DENIED: denied}))
+    reason = f"{SHELL_FIRST_NOTE}\n\n{text}"
+    return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
+                                   "permissionDecisionReason": reason}}  # fmt: skip
 
 
 def shell_written(command: Any) -> list[str]:
@@ -746,6 +792,8 @@ def handle(event: Mapping[str, Any]) -> dict[str, Any]:
         return asyncio.run(recall(event))
     if name == "PostToolUse":
         return touch(event)
+    if name == "PreToolUse":
+        return shell_first(event)
     if name == "SessionStart" and event.get("source") == "compact":
         return after_compaction(event)
     return {}
