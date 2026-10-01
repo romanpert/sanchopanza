@@ -16,7 +16,7 @@ registered bound, at an eighth of the cost. The first try (Phase 2c) showed them
 and lost 5 points; in 6 of its 7 lost steps the target was among those shown, and the fix was
 the order and a note on repeated lines, not the ranking.
 
-**A hook that prunes snapshots inside a real Claude Code session: with Playwright MCP it came out cheaper in every registered phase, with playwright-cli it rarely has anything to cut.** Registered results, each on tasks the hook was not fixed on. With Playwright MCP: 12.9 % cheaper on six tasks (3d, interval below zero), about 7 % on twelve (3f, crossing zero), 12.4 % on twelve (3h, crossing zero) and 13.4 % on twelve more (3j, below zero). With playwright-cli: about 5 % on twelve tasks (3g, below zero), nothing on twelve (3i), and nothing on twelve more (3k), where the agent searched with `find` instead of taking snapshots and the hook cut nothing at all. It stays opt-in. Questions about position ("the first quote listed") cost answers in 3h and 3i; since they pass through uncut, 3j and 3k answered all 30 such runs in both arms. Every fault the phases found was in the hook, none in the ranking.
+**A hook that prunes snapshots inside a real Claude Code session: with Playwright MCP it came out cheaper in every registered phase, with playwright-cli it rarely has anything to cut.** Registered results, each on tasks the hook was not fixed on. With Playwright MCP: 12.9 % cheaper on six tasks (3d, interval below zero), about 7 % on twelve (3f, crossing zero), 12.4 % on twelve (3h, crossing zero), 13.4 % on twelve (3j, below zero) and 8 % on twelve more (3l, below zero). With playwright-cli: about 5 % on twelve tasks (3g, below zero) and nothing on 36 more (3i, 3k, 3m): the agent narrows with `find` and `grep` itself, and on an output Claude Code saves both arms see 2,000 characters. It stays opt-in. Questions about position ("the first quote listed") cost answers in 3h and 3i; since they pass through uncut (or, on a saved output, come back in page order), 3j to 3m answered all 54 such runs in both arms. Every fault the phases found was in the hook, none in the ranking.
 
 What stands is the ranking as a tool: `sanchopanza browse PAGE --goal ...` from a shell, or the
 `rank_elements` MCP tool, returns the elements a step needs with their refs, confirmed at 89 % in
@@ -67,6 +67,48 @@ steps FULL answered, descriptively: FULL 61.4 %, TOP 56.1 %, the same gap. Two a
 written before the counted sessions: the per-session cap (0.25 to 0.60 USD, sized on the pages)
 and the phase ceiling (8 to 12 USD, sized on the pilot); the pilot (FULL 6/9, TOP 5/9) is outside
 every count. 8.61 USD spent in all.
+
+## Phases 3l and 3m: twelve new tasks after the infobox and page-order fixes (`prereg-e2e-z.md`)
+
+The hook at 0138a2d, a warm-up session first, three runs per task and arm, both tools at once.
+
+| Tool | Success PLAIN / LEAN | List USD / session PLAIN / LEAN | Cuts | LEAN minus PLAIN |
+|---|---|---|---|---|
+| Playwright MCP (3l) | 36/36 / 36/36 | 0.1235 / 0.1124 (+0.0012 Jev) | 12 | **-0.0098 [-0.0219, -0.0011]** |
+| playwright-cli (3m) | 35/35 / 34/34 | 0.1088 / 0.1080 (no Jev) | 9 | -0.0005 [-0.0043, +0.0032] |
+
+**With Playwright MCP the rule is met again**, 8 % cheaper: it cut on the Nile's infobox (Z1,
+-0.017 a session), the two GitHub pages (Z7 -0.026, Z8 -0.064) and the RFC (Z12, +0.005). The
+infobox and position checks hold: 12 of 12 in each arm for both. **With playwright-cli the rule
+is not met**, and this time the hook acted: nine page-order previews of saved outputs (the
+agent's own `find` on Z4 and Z8, the position questions Z5 and Z9), the first time that path ran
+end to end; no answer was lost and nothing was saved, because the agent narrows with `find` and
+`grep` itself and on a saved output both arms see 2,000 characters. Z5's +0.013 is one LEAN run
+that tried `snapshot | grep | awk`, was refused for approval and fetched the whole snapshot.
+**The subscription's weekly limit was reached during 3m's last task:** three sessions of Z12 (run
+2 LEAN, run 3 both arms) returned the limit notice instead of running; they are left out above.
+Counted as recorded, 35/36 and 34/36, -0.0024 [-0.0072, +0.0022]: the same conclusion. 8.71 and
+7.65 USD at list price, 0.045 USD of Jev.
+
+## What the model sees, replayed (`benchmarks/browse/visible.py`, development)
+
+Every large snapshot the PLAIN sessions of Phases 3-3k received (239, never touched by a hook) is
+replayed through a version of the hook, ranked by BM25 (free), and scored by what Claude Code
+would show the model: whether every required answer of the task is in it.
+
+| Hook | Answer in what the model sees (239) | Saved `Bash` outputs (20) |
+|---|---|---|
+| none | 143 | 1 |
+| a31edd3 (before 2026-10-01's fixes) | 152 | 1 |
+| 07f6a72 (saved output ranked whole) | 154 | 3 |
+| 0138a2d (infobox rows; page order for position and search) | **173** | **15** |
+
+None of the 152 is lost. The 21 gained: 14 saved `Bash` outputs (questions about position and the
+agent's own `find`, which used to pass through and show the model the first 2,000 raw
+characters) and 7 MCP snapshots of infoboxes (Everest, Guido van Rossum, France) whose values are
+plain text. Of the 5 saved outputs still missed, 3 do not hold the answer at all (W9) and 2 are
+React's page, which BM25 misses and Jev finds. Designed on these snapshots, so it claims nothing;
+Phases 3l and 3m measure it on new tasks (`visible-dev-*.json`).
 
 ## Phases 3j and 3k: twelve new tasks after the saved-output and position fixes (`prereg-e2e-y.md`)
 

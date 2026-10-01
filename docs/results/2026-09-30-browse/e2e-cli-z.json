@@ -1,0 +1,65 @@
+{
+ "sessions": 72,
+ "PLAIN": {
+  "runs": 36,
+  "success": 35,
+  "list_usd_mean": 0.1058,
+  "jev_usd_mean": 0.0,
+  "turns_mean": 4.5,
+  "cache_read_mean": 199265,
+  "cache_write_mean": 15256,
+  "snapshots_pruned": 0
+ },
+ "LEAN": {
+  "runs": 36,
+  "success": 34,
+  "list_usd_mean": 0.1034,
+  "jev_usd_mean": 0.0,
+  "turns_mean": 4.36,
+  "cache_read_mean": 190146,
+  "cache_write_mean": 15231,
+  "snapshots_pruned": 9
+ },
+ "LEAN_minus_PLAIN_usd_per_task": {
+  "value": -0.0024,
+  "bootstrap95": [
+   -0.0072,
+   0.0022
+  ],
+  "by_task": {
+   "Z1": -0.0153,
+   "Z10": -0.0001,
+   "Z11": 0.0022,
+   "Z12": -0.0199,
+   "Z2": -0.0033,
+   "Z3": -0.0003,
+   "Z4": 0.0001,
+   "Z5": 0.0132,
+   "Z6": 0.0001,
+   "Z7": -0.0071,
+   "Z8": -0.0032,
+   "Z9": 0.0048
+  }
+ },
+ "pilot": [
+  {
+   "task": "Z1",
+   "run": -9,
+   "arm": "PLAIN",
+   "ok": true,
+   "subtype": "success",
+   "success": true,
+   "answer": "According to the infobox on the Nile's Wikipedia page:\n\n- **Length:** 7,088 km (4,404 mi)\n- **Mouth:** Mediterranean Sea",
+   "list_usd": 0.11271139999999999,
+   "turns": 5,
+   "input_tokens": 10,
+   "cache_read": 228297,
+   "cache_write": 15532,
+   "output_tokens": 391,
+   "jev_usd": 0.0,
+   "jev_calls": 0,
+   "pruned": [],
+   "workdir": "C:\\Users\\roman\\AppData\\Local\\Temp\\sp-e2e-z1r-9plain-am27pkhc"
+  }
+ ]
+}
