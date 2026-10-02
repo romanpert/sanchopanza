@@ -214,10 +214,19 @@ def decoys(name: str) -> list[str]:
     return [ALL_RULES[k] for k in (pool[start:] + pool[:start])[:DECOYS]]
 
 
+def said_while(text: str) -> list[str]:
+    """The files a decoy's own scene changes in its session 1, as `memory_rules.extract` would
+    have recorded them (v8: the audit shows where each rule was said; v7 seeded `app/other.py`
+    for every decoy, the audit bench used these, and so does v8's run)."""
+    scene = SCENES[next(k for k, v in ALL_RULES.items() if v == text)]
+    return sorted(f for f in scene["files"]
+                  if f.startswith(("app/", "tests/")) and not f.endswith("__init__.py"))
+
+
 def seed(run: Path, repo: Path, name: str) -> None:
     """The decoy rules in V's store, as earlier sessions of this project left them."""
     rules = [{"text": text, "p": 0.9, "session": f"earlier-{i}", "index": 1,
-              "at": 1_790_000_000.0 + i * 3600, "files": ["app/other.py"]}
+              "at": 1_790_000_000.0 + i * 3600, "files": said_while(text)}
              for i, text in enumerate(decoys(name))]  # fmt: skip
     payload = json.dumps({"rules": rules[::-1], "asked": [], "audited": []})
     key = project_name(repo)
