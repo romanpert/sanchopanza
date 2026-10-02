@@ -1,0 +1,23 @@
+{
+ "sessions_read": 275,
+ "browser_evaluate": {
+  "calls": 1314,
+  "never_answered": 2,
+  "median_s": 0.5,
+  "p95_s": 6.3,
+  "max_s": 76.0,
+  "over_60_s": 1,
+  "over_120_s": 0,
+  "over_120_s_and_returned_data": 0
+ },
+ "browser_run_code_unsafe": {
+  "calls": 2,
+  "never_answered": 0,
+  "median_s": 6.9,
+  "p95_s": 6.4,
+  "max_s": 7.4,
+  "over_60_s": 0,
+  "over_120_s": 0,
+  "over_120_s_and_returned_data": 0
+ }
+}

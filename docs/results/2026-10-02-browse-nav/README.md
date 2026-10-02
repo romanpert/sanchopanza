@@ -598,3 +598,12 @@ So the check stays out of the "with sanchopanza" arm of the next confirmation, a
 said it would. What would change that is not a better question but a better result: an
 extraction that says how much it read, which the line asks for and the cheap model does not
 always give.
+
+## 19. The time limit's default, against every recorded call
+
+The crawl hook (`sanchopanza install --crawl`) races every `browser_evaluate` against 120 s. From
+the transcripts' own timestamps (`call_durations.py`, all 275 sessions of this line): 1,314
+evaluates, median 0.5 s, 95th percentile 6.3 s, slowest that returned 76 s; none over 120 s. The
+two that never returned are the two recorded hangs. So the default would have stopped both hangs
+and no extraction that was going to return. `browser_run_code`, which the hook does not watch,
+was called twice in 275 sessions, 7 s each.
