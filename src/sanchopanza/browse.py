@@ -550,14 +550,22 @@ DATA_ROWS = 6  # rows of one data table a cut may bring whole
 DATA_ROW_MAX_LINES = 24
 
 
-def _data_rows(lines: Sequence[str], depth: Sequence[int], keep: set[int]) -> set[int]:
-    """The whole row, and the table's column headers, of a cell the cut kept in a data table.
+def _data_rows(
+    lines: Sequence[str], depth: Sequence[int], keep: set[int]
+) -> tuple[set[int], dict[int, str]]:
+    """The whole row, and the table's column headers, of a cell the cut kept in a data table,
+    and for each such row a line pairing every cell with its header (`_row_label`).
 
     3p, V9: the cut kept PostgreSQL's cell "14" and dropped "November 12, 2026" beside it in the
     same row (no word of the question), and the column header "Final Release" that says what it
     is; the agent searched the archive for it. A data row has two or more children other than
     one `rowheader` and one `cell` (a key-value row: `_key_value_rows`). Up to `DATA_ROWS` rows a
-    table, in page order, each small (`DATA_ROW_MAX_LINES`)."""
+    table, in page order, each small (`DATA_ROW_MAX_LINES`).
+
+    3q, T4: with Django 5.2's row and the headers in front of it, the model read "Active
+    Support" as "Security Support" in all three runs: the second header has no name (a link
+    "Python" inside it) and five named headers met six cells. The whole page's other rows had
+    let it line them up."""
 
     def end(i: int) -> int:
         j = i + 1
@@ -584,10 +592,13 @@ def _data_rows(lines: Sequence[str], depth: Sequence[int], keep: set[int]) -> se
         )
 
     extra: set[int] = set()
+    labels: dict[int, str] = {}
     per_table: dict[int, int] = {}
     for r in sorted({row for i in keep if (row := row_of(i)) is not None}):
         roles = [_role(lines[k]) for k in kids(r)]
         if len(roles) < 2 or roles == ["rowheader", "cell"] or end(r) - r > DATA_ROW_MAX_LINES:
+            continue
+        if set(roles) == {"columnheader"}:  # the header row: it comes with every data row
             continue
         table = next((j for j in range(r - 1, -1, -1) if _role(lines[j]) == "table"), None)
         if table is None or end(table) <= r or per_table.get(table, 0) >= DATA_ROWS:
@@ -598,7 +609,33 @@ def _data_rows(lines: Sequence[str], depth: Sequence[int], keep: set[int]) -> se
                        and "columnheader" in {_role(lines[k]) for k in kids(j)}), None)  # fmt: skip
         if header is not None:
             extra.update(range(header, end(header)))
-    return extra
+            label = _row_label(lines, kids(header), kids(r), end)
+            if label:
+                labels[r] = label
+    return extra, labels
+
+
+def _said(lines: Sequence[str], i: int, stop: int) -> str:
+    """What a cell or header says: its own name or text, else its first line that says something
+    (a header holding only a link "Python" is "Python")."""
+    for j in range(i, stop):
+        match = _SNAPSHOT_LINE.match(lines[j])
+        if match and (match["name"] or match["text"]) and _has_content(lines[j]):
+            return " ".join((match["name"] or match["text"] or "").split()).strip('"')
+    return ""
+
+
+def _row_label(lines: Sequence[str], heads: list[int], cells: list[int], end: Any) -> str:
+    """`# <first cell>: <header>: <cell> | ...`, only when every cell has a header to go with."""
+    if len(heads) != len(cells) or len(cells) < 2:
+        return ""
+    pairs = [
+        (_said(lines, h, end(h)), _said(lines, c, end(c)))
+        for h, c in zip(heads, cells, strict=True)
+    ]
+    if not all(name for name, _ in pairs):
+        return ""
+    return f"# {pairs[0][1]}: " + " | ".join(f"{name}: {value}" for name, value in pairs)
 
 
 CARD_ROLES = frozenset({"listitem", "article", "row"})
@@ -687,7 +724,8 @@ def prune_snapshot(
     elements = {i for i in keep if (ref := _REF.search(lines[i])) and ref.group(1) in wanted}
     keep |= _card_facts(lines, depth, elements)
     keep |= _key_value_rows(lines, depth, keep)
-    keep |= _data_rows(lines, depth, keep)
+    rows, labels = _data_rows(lines, depth, keep)
+    keep |= rows
     for i in sorted(keep):  # bring every ancestor, nearest first
         level = depth[i]
         for j in range(i - 1, -1, -1):
@@ -696,7 +734,11 @@ def prune_snapshot(
                 level = depth[j]
                 if level == 0:
                     break
-    kept = [lines[i] for i in sorted(keep)]
+    kept = []
+    for i in sorted(keep):
+        kept.append(lines[i])
+        if i in labels:  # what each cell of a row brought whole is, said once beside it
+            kept.append(" " * (depth[i] + 2) + labels[i])
     return "\n".join(kept) + ("\n" if snapshot.endswith("\n") else ""), len(lines) - len(kept)
 
 

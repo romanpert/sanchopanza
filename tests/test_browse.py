@@ -808,3 +808,60 @@ def test_a_data_table_with_many_matching_rows_is_capped():
     # every row has a kept "Yes"/"No" cell; only a row brought whole has its date
     whole = [line for line in pruned.splitlines() if 'cell "November' in line]
     assert 0 < len(whole) <= DATA_ROWS
+
+
+def _django_table() -> str:
+    """endoflife.date/django as Playwright MCP gives it (3q, T4): the second column header has
+    no name, only a link "Python" inside it."""
+    rows = [
+        "- generic [ref=e1]:", "  - table [ref=t]:", "    - rowgroup [ref=g1]:",
+        "      - row [ref=h]:", '        - columnheader "Release" [ref=h1]',
+        "        - columnheader [ref=h2]:", '          - link "Python" [ref=h3] [cursor=pointer]:',
+        "            - /url: /faq", '        - columnheader "Released" [ref=h4]',
+        '        - columnheader "Active Support" [ref=h5]',
+        '        - columnheader "Security Support" [ref=h6]', "    - rowgroup [ref=g2]:",
+    ]  # fmt: skip
+    for v, dates in (("6.0", ("Dec 2025", "Aug 2026", "Apr 2027")),
+                     ("5.2 (LTS)", ("Apr 2025", "Dec 2025", "Apr 2028"))):  # fmt: skip
+        rows += [f"      - row [ref=r{v[0]}]:", f'        - cell "{v}" [ref=c{v[0]}a]',
+                 f'        - cell "3.10 - 3.14" [ref=c{v[0]}b]']  # fmt: skip
+        for k, d in enumerate(dates):
+            rows += [f'        - cell "({d})" [ref=c{v[0]}{k}]:', f"          - text: ({d})"]
+    rows += [f"  - paragraph [ref=p{i}]: filler line number {i}" for i in range(60)]
+    return "\n".join(rows) + "\n"
+
+
+def test_a_row_brought_whole_says_which_header_each_cell_is_under():
+    """3q, T4: the cut brought Django 5.2's row and the headers, and in all three LEAN runs the
+    model read "Active Support" as "Security Support": the second header has no name, and it
+    counted five headers against six cells. A row brought whole now says it plainly."""
+    from sanchopanza.browse import prune_snapshot
+
+    goal = "According to the table, when does security support for Django 5.2 end?"
+    pruned, _ = prune_snapshot(_django_table(), ["c5a"], purpose=goal)  # as the ranking kept it
+    label = next(line for line in pruned.splitlines() if line.strip().startswith("# 5.2"))
+    assert "Security Support: (Apr 2028)" in label and "Active Support: (Dec 2025)" in label
+    assert "Python: 3.10 - 3.14" in label, "a header with no name is named by what it holds"
+    assert label.index("Release:") < label.index("Security Support:")
+
+
+def test_a_row_whose_cells_do_not_match_the_headers_gets_no_label():
+    from sanchopanza.browse import prune_snapshot
+
+    lopsided = _django_table().replace('        - columnheader "Released" [ref=h4]\n', "")
+    pruned, _ = prune_snapshot(lopsided, ["c5a"], purpose="security support for Django 5.2")
+    assert "(Apr 2028)" in pruned, "the row still comes whole"
+    assert not any(line.strip().startswith("# 5.2") for line in pruned.splitlines())
+
+
+def test_the_header_row_is_not_labelled_and_quotes_are_dropped():
+    """devguide.python.org/versions: the header row was labelled as a row ("# Branch: Branch:
+    Branch"), and a cell holding the paragraph '"3.11"' kept YAML's quotes."""
+    from sanchopanza.browse import prune_snapshot
+
+    nested = '- cell [ref=c5a]:\n          - paragraph [ref=c5p]: "5.2"'
+    table = _django_table().replace('- cell "5.2 (LTS)" [ref=c5a]', nested)
+    pruned, _ = prune_snapshot(table, ["c5p", "h1"], purpose="security support for Django 5.2")
+    labels = [line.strip() for line in pruned.splitlines() if line.strip().startswith("#")]
+    assert labels and all(not label.startswith("# Release") for label in labels)
+    assert any(label.startswith("# 5.2: Release: 5.2 |") for label in labels), labels
