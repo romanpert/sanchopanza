@@ -771,3 +771,40 @@ def test_a_kept_element_brings_the_facts_of_its_card():
     pruned, _ = prune_snapshot(_catalogue(), ["k7"], purpose="price of Book 7", text_budget=0)
     assert "£7.44" in pruned and "In stock" in pruned
     assert "£8.44" not in pruned, "only the kept element's own card"
+
+
+def _versions(n: int = 12) -> str:
+    """PostgreSQL's version table, as Playwright MCP gives it (3p, V9)."""
+    out = ["- generic [ref=e1]:", '  - heading "Releases" [level=2] [ref=e2]', "  - table [ref=t]:"]
+    out += ["    - rowgroup [ref=g1]:", "      - row [ref=h]:"]
+    for k, name in enumerate(("Version", "Current minor", "Supported", "Final Release")):
+        out.append(f'        - columnheader "{name}" [ref=h{k}]')
+    out.append("    - rowgroup [ref=g2]:")
+    for v in range(18, 18 - n, -1):
+        out.append(f"      - row [ref=r{v}]:")
+        out.append(f'        - cell "{v}" [ref=c{v}a]')
+        out.append(f'        - cell "{v}.{v + 3}" [ref=c{v}b]')
+        out.append(f'        - cell "{"Yes" if v > 13 else "No"}" [ref=c{v}c]')
+        out.append(f'        - cell "November {v - 2}, {v + 2012}" [ref=c{v}d]')
+    out += [f"  - paragraph [ref=p{i}]: filler line number {i}" for i in range(40)]
+    return "\n".join(out) + "\n"
+
+
+def test_a_kept_cell_brings_its_row_and_the_column_headers():
+    """3p, V9: the cut kept the cell "14" and dropped "November 12, 2026" beside it in the same
+    row of a data table (no word of the question), so the agent searched the archive for it."""
+    from sanchopanza.browse import prune_snapshot
+
+    pruned, _ = prune_snapshot(_versions(), [], purpose="final release date of PostgreSQL 14")
+    assert 'cell "14"' in pruned and "November 12, 2026" in pruned, "the whole row"
+    assert 'columnheader "Final Release"' in pruned, "what each value is"
+    assert "November 13, 2027" not in pruned, "not the row of 15"
+
+
+def test_a_data_table_with_many_matching_rows_is_capped():
+    from sanchopanza.browse import DATA_ROWS, prune_snapshot
+
+    pruned, _ = prune_snapshot(_versions(), [], purpose="Which versions are supported: Yes or No")
+    # every row has a kept "Yes"/"No" cell; only a row brought whole has its date
+    whole = [line for line in pruned.splitlines() if 'cell "November' in line]
+    assert 0 < len(whole) <= DATA_ROWS

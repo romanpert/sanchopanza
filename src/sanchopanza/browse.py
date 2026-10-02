@@ -546,6 +546,61 @@ def _key_value_rows(lines: Sequence[str], depth: Sequence[int], keep: set[int]) 
     return extra
 
 
+DATA_ROWS = 6  # rows of one data table a cut may bring whole
+DATA_ROW_MAX_LINES = 24
+
+
+def _data_rows(lines: Sequence[str], depth: Sequence[int], keep: set[int]) -> set[int]:
+    """The whole row, and the table's column headers, of a cell the cut kept in a data table.
+
+    3p, V9: the cut kept PostgreSQL's cell "14" and dropped "November 12, 2026" beside it in the
+    same row (no word of the question), and the column header "Final Release" that says what it
+    is; the agent searched the archive for it. A data row has two or more children other than
+    one `rowheader` and one `cell` (a key-value row: `_key_value_rows`). Up to `DATA_ROWS` rows a
+    table, in page order, each small (`DATA_ROW_MAX_LINES`)."""
+
+    def end(i: int) -> int:
+        j = i + 1
+        while j < len(lines) and depth[j] > depth[i]:
+            j += 1
+        return j
+
+    def row_of(i: int) -> int | None:
+        level = depth[i]
+        for j in range(i, -1, -1):
+            if depth[j] < level or j == i:
+                if _role(lines[j]) == "row":
+                    return j
+                if _role(lines[j]) == "table":
+                    return None
+                level = min(level, depth[j])
+        return None
+
+    def kids(r: int) -> list[int]:
+        return (
+            [j for j in range(r + 1, end(r)) if depth[j] == depth[r + 1]]
+            if r + 1 < len(lines)
+            else []
+        )
+
+    extra: set[int] = set()
+    per_table: dict[int, int] = {}
+    for r in sorted({row for i in keep if (row := row_of(i)) is not None}):
+        roles = [_role(lines[k]) for k in kids(r)]
+        if len(roles) < 2 or roles == ["rowheader", "cell"] or end(r) - r > DATA_ROW_MAX_LINES:
+            continue
+        table = next((j for j in range(r - 1, -1, -1) if _role(lines[j]) == "table"), None)
+        if table is None or end(table) <= r or per_table.get(table, 0) >= DATA_ROWS:
+            continue
+        per_table[table] = per_table.get(table, 0) + 1
+        extra.update(j for j in range(r, end(r)) if j == r or _has_content(lines[j]))
+        header = next((j for j in range(table + 1, end(table)) if _role(lines[j]) == "row"
+                       and "columnheader" in {_role(lines[k]) for k in kids(j)}), None)  # fmt: skip
+        if header is not None:
+            extra.update(range(header, end(header)))
+    return extra
+
+
 CARD_ROLES = frozenset({"listitem", "article", "row"})
 CARD_MAX_LINES = 24  # books.toscrape's product card is 18
 CARD_LINES = 4
@@ -632,6 +687,7 @@ def prune_snapshot(
     elements = {i for i in keep if (ref := _REF.search(lines[i])) and ref.group(1) in wanted}
     keep |= _card_facts(lines, depth, elements)
     keep |= _key_value_rows(lines, depth, keep)
+    keep |= _data_rows(lines, depth, keep)
     for i in sorted(keep):  # bring every ancestor, nearest first
         level = depth[i]
         for j in range(i - 1, -1, -1):

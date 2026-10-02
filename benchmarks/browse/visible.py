@@ -40,7 +40,9 @@ PHASES = {  # sessions file -> tool
     "e2e-cli-y-sessions.jsonl": "cli", "e2e-mcp-sessions.jsonl": "mcp",
     "e2e-mcp-fixed-sessions.jsonl": "mcp", "e2e-mcp-new-sessions.jsonl": "mcp",
     "e2e-mcp-wide-sessions.jsonl": "mcp", "e2e-mcp-x-sessions.jsonl": "mcp",
-    "e2e-mcp-y-sessions.jsonl": "mcp",
+    "e2e-mcp-y-sessions.jsonl": "mcp", "e2e-mcp-z-sessions.jsonl": "mcp",
+    "e2e-cli-z-sessions.jsonl": "cli", "e2e-mcp-u-sessions.jsonl": "mcp",
+    "e2e-cli-u-sessions.jsonl": "cli", "e2e-mcp-v-sessions.jsonl": "mcp",
 }  # fmt: skip
 
 
@@ -55,7 +57,7 @@ def _load(name: str, path: pathlib.Path) -> Any:
 def _tasks() -> dict[str, tuple]:
     mcp = _load("browse_e2e_mcp", HERE / "e2e_mcp.py")
     every = [*mcp.base.TASKS, *mcp.TASKS, *mcp.NEW_TASKS, *mcp.WIDE_TASKS, *mcp.X_TASKS,
-             *mcp.Y_TASKS]  # fmt: skip
+             *mcp.Y_TASKS, *mcp.Z_TASKS, *mcp.U_TASKS, *mcp.V_TASKS]  # fmt: skip
     return {t[0]: t for t in every}
 
 
