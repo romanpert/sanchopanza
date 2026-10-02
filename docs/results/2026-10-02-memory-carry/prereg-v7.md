@@ -51,3 +51,9 @@ The arms:
 
 Usage limit, or a session that ended before its result, means NOT RUN. No retries, except a
 pair cut by a runner bug, which runs again whole and goes in an amendment.
+
+## Amendment 1 (2026-10-02, while `v7-cross` runs, before any verdict)
+
+The runner's `wip` commit after session 1 now retries three times. On the Opus generalization
+run, git once returned 128 there and the run stopped. Nothing measured changes. `v7-all` and
+`placebo` load the runner with the retry; the `v7-cross` process already running does not.

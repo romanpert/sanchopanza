@@ -77,6 +77,20 @@ def git(cwd: Path, *args: str) -> None:
     subprocess.run(["git", "-C", str(cwd), *args], check=True, capture_output=True, env=env)
 
 
+def commit_wip(repo: Path, tries: int = 3) -> None:
+    """Session 1's work as one commit. Retried: on Opus, 2026-10-02, the commit right after the
+    session exited failed once with git's 128 (the index still held), and the run stopped."""
+    for attempt in range(tries):
+        try:
+            git(repo, "add", "-A")
+            git(repo, "commit", "-q", "--allow-empty", "-m", "wip")
+            return
+        except subprocess.CalledProcessError:
+            if attempt == tries - 1:
+                raise
+            time.sleep(3 * (attempt + 1))
+
+
 def build(run: Path, scene: dict[str, Any]) -> Path:
     repo = run / "repo"
     for rel, text in scene["files"].items():
@@ -224,8 +238,7 @@ def pair(out: Path, name: str, model: str, arm: str, rep: int, keyfile: Path,
     row: dict[str, Any] = {"scene": name, "model": model, "arm": arm, "repeat": rep}
     if dry:
         return {**row, "dry": True, "repo": str(repo)}
-    git(repo, "add", "-A")
-    git(repo, "commit", "-q", "--allow-empty", "-m", "wip")
+    commit_wip(repo)
     after_first = native_memory(repo)
     second = {} if first["limit_hit"] else session(run, repo, scene["second"], model, arm,
                                                    "session-2", keyfile, dry)  # fmt: skip
