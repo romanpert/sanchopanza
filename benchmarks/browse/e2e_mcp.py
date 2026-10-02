@@ -427,6 +427,49 @@ V_TASKS = [
     ("V12", "https://en.wikipedia.org/wiki/Lake_Jasna",
      "According to the infobox, in which region does the lake lie?", [["upper carniola"]]),
 ]  # fmt: skip
+T = {  # Phase 3q: one row of a data table, pages whose snapshot arrives inline (890d3f1)
+    "prereg": RESULTS / "prereg-e2e-t.md",
+    "sessions": RESULTS / "e2e-mcp-t-sessions.jsonl",
+    "report": "e2e-mcp-t.json",
+}
+
+
+def _date(day: int, month: str, year: int) -> list[str]:
+    """A date's usual spellings: 31 Oct 2028, 31 October 2028, October 31, 2028, 2028-10-31."""
+    months = ["january", "february", "march", "april", "may", "june", "july", "august",
+              "september", "october", "november", "december"]  # fmt: skip
+    full = next(m for m in months if m.startswith(month.lower()))
+    iso = f"{year}-{months.index(full) + 1:02d}-{day:02d}"
+    return [f"{day} {month} {year}", f"{day} {full} {year}", f"{full} {day}, {year}",
+            f"{full} {day} {year}", iso]  # fmt: skip
+
+
+_EOL = "https://endoflife.date/"
+T_TASKS = [
+    ("T1", _EOL + "python", "According to the table, when does security support for Python "
+     "3.12 end?", [_date(31, "Oct", 2028)]),
+    ("T2", _EOL + "nodejs", "According to the table, when did security support for Node.js 20 "
+     "end?", [_date(30, "Apr", 2026)]),
+    ("T3", _EOL + "ubuntu", "According to the table, when does Expanded Security Maintenance "
+     "for Ubuntu 22.04 end?", [_date(21, "Apr", 2032)]),
+    ("T4", _EOL + "django", "According to the table, when does security support for Django 5.2 "
+     "end?", [_date(30, "Apr", 2028)]),
+    ("T5", _EOL + "debian", "According to the table, when does Debian LTS for Debian 12 end?",
+     [_date(30, "Jun", 2028)]),
+    ("T6", _EOL + "ruby", "According to the table, when did support for Ruby 3.2 end?",
+     [_date(31, "Mar", 2026)]),
+    ("T7", _EOL + "go", "According to the table, when was Go 1.25 released?",
+     [_date(12, "Aug", 2025)]),
+    ("T8", _EOL + "mysql", "According to the table, when does Extended Support for MySQL 8.4 "
+     "end?", [_date(30, "Apr", 2032)]),
+    ("T9", "https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml",
+     "In this registry, what is the description of status code 418?", ["unused"]),
+    ("T10", "https://devguide.python.org/versions/",
+     "According to the table, who is the release manager of Python 3.11?", ["galindo"]),
+    ("T11", "https://www.php.net/supported-versions.php",
+     "According to the table, until when does PHP 8.2 receive security support?",
+     [_date(31, "Dec", 2026)]),
+]  # fmt: skip
 NEW_TASKS = [
     ("N1", "https://github.com/pallets/flask",
      "Which license is this repository under, and which language makes up the largest share "
@@ -469,6 +512,7 @@ def main() -> int:
     ap.add_argument("--z", action="store_true", help="Phase 3l (prereg-e2e-z.md)")
     ap.add_argument("--u", action="store_true", help="Phase 3n (prereg-e2e-u.md)")
     ap.add_argument("--v", action="store_true", help="Phase 3p (prereg-e2e-v.md)")
+    ap.add_argument("--t", action="store_true", help="Phase 3q (prereg-e2e-t.md)")
     args = ap.parse_args()
     report_name, tasks, n_runs = "e2e-mcp.json", TASKS, RUNS
     if args.fixed:
@@ -494,6 +538,9 @@ def main() -> int:
     if args.v:
         PREREG, SESSIONS, report_name = V["prereg"], V["sessions"], V["report"]
         tasks, n_runs = V_TASKS, WIDE_RUNS
+    if args.t:
+        PREREG, SESSIONS, report_name = T["prereg"], T["sessions"], T["report"]
+        tasks, n_runs = T_TASKS, WIDE_RUNS
     if args.record_hash:
         registered = PREREG.with_suffix(".sha256")
         if registered.exists() and registered.read_text().strip() != base.digest(PREREG):
@@ -509,12 +556,13 @@ def main() -> int:
         if not key:
             raise SystemExit("LEAN ranks with Jev: no TYPESAFE_API_KEY, nothing spent")
         runs = [0] if args.pilot else list(range(1, n_runs + 1))
-        guarded = any((args.fixed, args.new, args.wide, args.x, args.y, args.z, args.u, args.v))
+        late = (args.y, args.z, args.u, args.v, args.t)  # phases with JEV_CEILING_Y_USD
+        guarded = any((args.fixed, args.new, args.wide, args.x, *late))
         limits = phase.Limits(
             session_max_usd=SESSION_MAX_USD, ceiling_usd=CEILING_USD,
             jev_session_max_usd=JEV_SESSION_MAX_USD,
-            jev_ceiling_usd=(JEV_CEILING_Y_USD if any((args.y, args.z, args.u, args.v))
-                             else JEV_CEILING_USD) if guarded else None,
+            jev_ceiling_usd=(JEV_CEILING_Y_USD if any(late) else JEV_CEILING_USD)
+            if guarded else None,
         )  # fmt: skip
         code, rows = phase.run_phase(
             phase.planned(tasks[:2] if args.pilot else tasks, runs, ("PLAIN", "LEAN")), rows,
