@@ -126,3 +126,43 @@ gives the table.
   - Sonnet 5.5: 23/24 against 14/24, p = 0.002.
   - Haiku: 11/16 against 8/16; delivered facts still broken.
   - Opus: 16/16 against 14/16.
+
+## Memory v7, standing rules (`prereg-v7.md`, sealed in 2ca027c, amendment 1)
+
+Runs: `v7-cross` (8 cross-file scenes, N/M/V, repetitions 0 and 1), `v7-all` (V on the 16
+pilot and held-out scenes) and `placebo` (P on the same 16). Sonnet 5.5, no pair excluded. M and
+N on the 16 scenes are the confirmation's repetition 0.
+
+| criterion | result | verdict |
+|---|---|---|
+| 1. cross-file: V vs M, fact kept | 14/16 vs 10/16; 6 discordant for V, 2 for M; p = 0.145 | **not met** |
+| 2. cross-file: V vs N (reported) | 14/16 vs 9/16; 7 to 2; p = 0.090 | direction |
+| 3. no harm on the 16 scenes | V 16/16 vs M 15/16; tests 16 and 16; task 13 and 13 | **met** |
+| 4. false sends-back, V second sessions | 6 of 32 (limit 4); also 3 in first sessions | **not met** |
+| 5. placebo P vs N (reported) | 6/16 vs 9/16 | the content does the work |
+
+- **Where v7 gained.** Cross-file, M (v6.2) broke the fact in `x_tz` x2, `x_stdlib` x2,
+  `x_cents` and `x_trash`, where no file match finds the earlier request. V kept all six.
+  `wording`, the one fact v6.2 still broke on the 16 scenes, V kept.
+- **Why criterion 1 failed: `x_camel` x2, an instrument artifact, counted as written.** V kept
+  camelCase (`userId`, `displayName`, `lastLogin`). It also applied a decoy rule, "any
+  timestamp this project produces must be naive UTC", and wrote `profile_response` to take a
+  `datetime`. The scene's checks pass a string, so both task and fact raise. The checks are
+  strict as sealed. Excluding the scene would give 6 to 0 (p = 0.016), but that is post hoc
+  and not claimed.
+- **False sends-back.** All are decoy rules judged broken by a diff they plausibly touch:
+  - camelCase against `audit.py`'s dict keys;
+  - Latin-1 against reading `config.yaml`;
+  - CRM ids, integer cents, and the importer's wording against `ids`'s loader.
+  Some are arguable in a real project, but the criterion counts them. Each costs a turn: the
+  median cost of V against M is 1.07x on the 16 scenes and 1.00x cross-file. No send-back made
+  a result worse.
+- **Placebo.** With memory on and no rule ever said, the fact is kept no more often than
+  without memory (6/16 against 9/16). What helps is the earlier request's content, not the
+  hook's presence.
+- **Cost.** Total of the three runs at list price: about 31 USD.
+
+**Verdict: v7 does not pass its prereg.** Its retrieval gain is real where v6.2 has nothing to
+match: 6 of 6 breaks avoided, but with two artifact losses the primary test misses. Its audit
+sends back too often when a project carries unrelated rules. Next: the false sends-back first,
+then a cross-file rerun with the `x_camel` check taking a datetime too, as a new scene version.
