@@ -53,3 +53,39 @@ fact? Does sanchopanza's memory change that?
 
 What this does not show: with two discordant pairs, McNemar's exact p = 0.5. Direction only.
 Rows are in `~/.cache/sanchopanza/memory-carry/2026-10-02-sonnet/carry.json`.
+
+## Confirmation (sealed in fddff84 before its data; run 2026-10-02)
+
+The run followed `prereg-confirm.md`:
+- held-out scenes, repetitions 0 and 1;
+- pilot scenes, one new repetition;
+- Sonnet 5.5 on Claude Code 2.1.285, 96 sessions, 18.37 USD at list price;
+- no pair excluded, no amendment.
+
+| 24 pairs | fact kept | tests | task (20 with a check) | median cost M/N |
+|---|---|---|---|---|
+| N, Claude Code as it ships | 14 / 24 | 24 / 24 | 20 / 20 | |
+| M, with sanchopanza's memory | **23 / 24** | 24 / 24 | 20 / 20 | 0.971 |
+
+- **Primary test.** There were 9 discordant pairs, all for M, none for N. One-sided exact
+  McNemar p = 0.0020.
+- **Held-out scenes alone.** M kept the fact in 16 of 16 pairs, N in 10 of 16.
+- **Tests and task.** Equal in both arms.
+- **Verdict: confirmed on all four criteria.**
+- **Where N broke the fact:**
+  - `envvar` x2 and `rename` x2 (both renamed what ops or other repositories use by name);
+  - `nulls` x2 (dropped the None keys);
+  - `legacy`, `naive`, `fields` and `wording`.
+- **M broke it once**, in `wording`: it kept the prefix and appended detail, as in the pilot.
+- **The memory gave the earlier request in every M session**, and M's code cites the fact. For
+  example: "Set by Ops under these exact names in every deployment; do not rename or prefix" and
+  "Deprecated alias: three other repositories import make_client by name". The gain comes from
+  the record's content, not from a hook that only makes the model more careful.
+- **Claude Code's own auto memory** was on in all 48 runs and saved nothing in any first
+  session.
+
+Limits:
+- One model, headless `claude -p`. Interactive sessions might save auto memory more often.
+- The scenes are built for the case memory serves: a fact said earlier, not in the
+  repository, that a later task tempts breaking.
+- No placebo arm (a record unrelated to the task).
