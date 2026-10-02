@@ -1,0 +1,28 @@
+{"goal": "Which article is shown second under 'Latest news'?", "position": true}
+{"goal": "Open the bottom entry of the changelog and tell me its version.", "position": true}
+{"goal": "What's the name on the leftmost tab?", "position": true}
+{"goal": "Report the heading of the final section of the article.", "position": true}
+{"goal": "Which repository is pinned first on the profile?", "position": true}
+{"goal": "What does the opening sentence of the review say?", "position": true}
+{"goal": "Tell me the value in the 4th row of the results table.", "position": true}
+{"goal": "Which city appears last in the list of host cities?", "position": true}
+{"goal": "What is the label of the right-most button in the toolbar?", "position": true}
+{"goal": "Name the product shown at position 7 in the search results.", "position": true}
+{"goal": "Which FAQ question comes right after the one about refunds?", "position": true}
+{"goal": "Report the earliest-listed sponsor in the footer.", "position": true}
+{"goal": "What is the newest comment at the top of the discussion?", "position": true}
+{"goal": "Who placed first in the 100 m final at the 2012 Olympics, according to the article?", "position": false}
+{"goal": "When did the city first host the games, per the page?", "position": false}
+{"goal": "What was the last known address of the museum, as given on the page?", "position": false}
+{"goal": "What is the top-level domain of the country shown in the infobox?", "position": false}
+{"goal": "Report the first-quarter revenue figure from the earnings table.", "position": false}
+{"goal": "How many people attended the final concert, according to the article?", "position": false}
+{"goal": "What is the name of the company's first product, as described on the page?", "position": false}
+{"goal": "Which sport did she play last before retiring, per her biography?", "position": false}
+{"goal": "What is the top prize in the lottery, as shown on the page?", "position": false}
+{"goal": "How tall is the second-tallest building in the city, according to the table?", "position": false}
+{"goal": "What did the minister say in her last speech, as reported on the page?", "position": false}
+{"goal": "When was the earliest recorded flood of the river, per the article?", "position": false}
+{"goal": "Read me the price of the 'Basic' plan.", "position": false}
+{"goal": "What year did the team win its third championship, according to the page?", "position": false}
+{"goal": "Find the last-minute deals section and tell me its heading.", "position": false}
