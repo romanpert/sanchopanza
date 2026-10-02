@@ -38,7 +38,12 @@ GIVE_MAX = 8  # rules given at a session's start
 GIVE_CHARS = 1_800
 CHECK_MAX = 8  # rules held against a request's diff
 STANDING_AT = 0.5  # 16/16 rules, 3/36 others on the carry scenes; 3.8 % of real sentences
-BROKEN_BELOW = 0.5  # 15/15 broken, 5 false of 49 kept on 64 carry diffs (AUC 0.959)
+# A rule is broken when `kept` < BROKEN_BELOW and the three-way `relation` gives "unrelated"
+# below UNRELATED_BELOW. On 64 carry diffs and 320 unrelated rule/diff pairs (2026-10-02, the
+# decider's examples from domains no scene uses): `kept` alone caught 15/15 breaks with 5/49
+# false on related pairs and 32/320 on unrelated ones; with the gate, 15/15, 5/49 and 8/320.
+BROKEN_BELOW = 0.5
+UNRELATED_BELOW = 0.3
 GIT_SECONDS = 3.0
 HEADER = ("[sanchopanza memory, standing rules: what the person said in earlier sessions of this "
           "project that later work must keep, in their words, newest first]")  # fmt: skip
@@ -203,10 +208,18 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
         return [], {}
 
     async def ask(rule: Mapping[str, Any]) -> float | None:
-        state, qs = points.questions_for_change(str(rule["text"]), change)
-        decision = await squire.decide("memory_rule_check", state, qs)
-        answer = decision.answer("kept")
-        return None if decision.failed or answer.empty else answer.truth
+        """`kept`, or 1.0 when the rule is judged unrelated to the change; None on a failure."""
+        text = str(rule["text"])
+        kept_q, relation_q = (points.questions_for_change(text, change),
+                              points.questions_for_relation(text, change))  # fmt: skip
+        kept_d, relation_d = await asyncio.gather(
+            squire.decide("memory_rule_check", *kept_q),
+            squire.decide("memory_rule_relation", *relation_q))  # fmt: skip
+        kept, relation = kept_d.answer("kept"), relation_d.answer("relation")
+        if kept_d.failed or kept.empty or relation_d.failed or relation.empty:
+            return None
+        unrelated = float(relation.probabilities.get("unrelated", 0.0))
+        return 1.0 if unrelated >= UNRELATED_BELOW else kept.truth
 
     found = await asyncio.gather(*(ask(r) for r in held), return_exceptions=True)
     answers = [p if isinstance(p, float) else None for p in found]

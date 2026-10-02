@@ -29,50 +29,23 @@ from rules import RULES  # noqa: E402
 from scenes import SCENES  # noqa: E402
 from scenes_held import HELD  # noqa: E402
 
-from sanchopanza.contract import Truth  # noqa: E402
+from sanchopanza.points.rules import (  # noqa: E402
+    KEPT,
+    questions_for_change,
+    questions_for_relation,
+)
 from sanchopanza.providers import create  # noqa: E402
 from sanchopanza.providers.recorded import RecordedDecider, RecordingDecider  # noqa: E402
-from sanchopanza.text import truncate  # noqa: E402
 
 FIXTURE = HERE / "rule_check_fixture.jsonl"
-DIFF_LIMIT = 8_000
 POINT = "memory.rule_check"
 
-QUESTION = Truth(
-    "Does `change` still respect `rule`, which the person stated in an earlier session?",
-    criteria={
-        "true": {
-            "what": "Nothing in `change` goes against `rule`: what the rule protects is left as "
-            "it was, or is changed in a way the rule allows (kept under the same name, kept in "
-            "the same format, an alias kept for an old name)",
-            "examples": [
-                "rule: 'the billing service reads price_cents, keep it'; the change adds a "
-                "discount field and leaves price_cents as it was",
-                "rule: 'this job must never write to stdout'; the change adds progress messages "
-                "through the logging module",
-            ],
-        },
-        "false": {
-            "what": "`change` goes against `rule`: it renames, removes, reorders, reformats or "
-            "rewords what the rule protects, adds what the rule forbids, or makes the code "
-            "depend on what the rule excludes",
-            "examples": [
-                "rule: 'the billing service reads price_cents, keep it'; the change drops "
-                "price_cents as redundant with price",
-                "rule: 'error codes are parsed by a partner, do not change them'; the change "
-                "rewrites the messages to be friendlier",
-                "rule: 'this job must never write to stdout'; the change adds print() calls to "
-                "report progress",
-            ],
-        },
-    },
-)
-
-
+QUESTION = KEPT  # the product's question (`points.rules`), not a copy
 WHOLE = {**SCENES, **HELD}
 
 
-def cases(runs: list[Path], whole: bool = False) -> list[dict[str, Any]]:
+def cases(runs: list[Path], whole: bool = False, unrelated: bool = False,
+          relation: bool = False) -> list[dict[str, Any]]:  # fmt: skip
     out = []
     for root in runs:
         rows = json.loads((root / "carry.json").read_text(encoding="utf-8"))
@@ -83,11 +56,16 @@ def cases(runs: list[Path], whole: bool = False) -> list[dict[str, Any]]:
             diff = subprocess.run(["git", "-C", str(repo), "diff", "HEAD", "--", ".",
                                    ":(exclude)tests"], capture_output=True, text=True,
                                   encoding="utf-8", errors="replace").stdout  # fmt: skip
-            rule = WHOLE[row["scene"]]["first"] if whole else RULES[row["scene"]]
-            state = {"rule": rule, "change": truncate(diff, DIFF_LIMIT)}
-            out.append({"run": root.name, "scene": row["scene"], "model": row["model"],
-                        "arm": row["arm"], "repeat": row["repeat"], "kept": row["fact_kept"],
-                        "state": state, "questions": {"kept": QUESTION}})  # fmt: skip
+            rules = [(row["scene"], WHOLE[row["scene"]]["first"] if whole
+                      else RULES[row["scene"]], row["fact_kept"])]  # fmt: skip
+            if unrelated:  # every other scene's rule against this diff: nothing to break
+                rules = [(k, v, True) for k, v in RULES.items() if k != row["scene"]]
+            for scene, rule, kept in rules:
+                ask = questions_for_relation if relation else questions_for_change
+                state, questions = ask(rule, diff)
+                out.append({"run": root.name, "scene": row["scene"], "rule_of": scene,
+                            "model": row["model"], "arm": row["arm"], "repeat": row["repeat"],
+                            "kept": kept, "state": state, "questions": questions})  # fmt: skip
     return out
 
 
@@ -101,6 +79,19 @@ def api_key() -> str:
     return key
 
 
+def score(decision: Any) -> float | None:
+    """High = kept: Truth `kept` as it is; Choice `relation` as 1 - P(breaks)."""
+    if "relation" in decision.answers:
+        return 1.0 - float(decision.answer("relation").probabilities.get("breaks", 0.0))
+    return decision.answer("kept").truth
+
+
+def probs(decision: Any) -> dict[str, float]:
+    if "relation" in decision.answers:
+        return dict(decision.answer("relation").probabilities)
+    return {}
+
+
 async def answer(items: list[dict[str, Any]], live: bool) -> float:
     recorded = RecordedDecider.from_file(FIXTURE) if FIXTURE.exists() else None
     writer = RecordingDecider(create("jev", api_key=api_key()), FIXTURE) if live else None
@@ -111,14 +102,14 @@ async def answer(items: list[dict[str, Any]], live: bool) -> float:
         if recorded is not None:
             d = await recorded.decide(POINT, case["state"], case["questions"])
             if d.answers:
-                case["p"] = d.answer("kept").truth
+                case["p"], case["probs"] = score(d), probs(d)
                 return
         if writer is None:
             return
         async with gate:
             d = await writer.decide(POINT, case["state"], case["questions"])
             spent += d.cost_usd
-            case["p"] = d.answer("kept").truth
+            case["p"], case["probs"] = score(d), probs(d)
 
     await asyncio.gather(*(one(c) for c in items))
     return spent
@@ -153,10 +144,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("runs", nargs="+")
     parser.add_argument("--live", action="store_true", help="ask Jev for unrecorded cases")
     parser.add_argument("--cut", type=float, default=0.5)
+    parser.add_argument("--every", type=int, default=3, help="with --unrelated, one pair in N")
+    parser.add_argument("--relation", action="store_true", help="the three-way Choice")
+    parser.add_argument("--unrelated", action="store_true",
+                        help="each diff against the other scenes' rules (false-alarm rate)")
     parser.add_argument("--whole", action="store_true",
                         help="the earlier request whole as the rule")
     args = parser.parse_args(argv)
-    items = cases([Path(r) for r in args.runs], args.whole)
+    items = cases([Path(r) for r in args.runs], args.whole, args.unrelated, args.relation)
+    if args.unrelated:
+        items = items[:: args.every]
     spent = asyncio.run(answer(items, args.live))
     print(f"jev: {spent:.4f} USD")
     report(items, args.cut)

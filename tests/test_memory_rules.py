@@ -13,6 +13,7 @@ from typing import Any
 
 import pytest
 
+from sanchopanza import Decision
 from sanchopanza.context import episodes as ep
 from sanchopanza.harness import memory_hook as mh
 from sanchopanza.harness import memory_rules as mr
@@ -20,6 +21,7 @@ from sanchopanza.points.rules import sentences
 from sanchopanza.squire import Squire
 
 from .context_helpers import ScriptedDecider
+from .helpers import choice, yes
 
 needs_git = pytest.mark.skipif(shutil.which("git") is None, reason="no git")
 RULE = "Ops sets PAYMENT_TIMEOUT by that exact name in every deployment, it can't be renamed."
@@ -36,8 +38,33 @@ def by_words(point: str, key: str, state: Any) -> float | None:
     return None
 
 
-def squire() -> Squire:
-    return Squire(ScriptedDecider(by_words))
+class RuleDecider:
+    """`by_words` for the Truth questions; the three-way `relation` with a fixed P(unrelated)."""
+
+    name = "scripted"
+    accepts_attachments = False
+
+    def __init__(self, unrelated: float = 0.0) -> None:
+        self.unrelated = unrelated
+        self.calls: list[tuple[str, Any, dict[str, Any]]] = []
+
+    async def decide(self, point: str, state: Any, questions: Any) -> Decision:
+        self.calls.append((point, state, dict(questions)))
+        answers = {}
+        for key in questions:
+            if key == "relation":
+                rest = (1 - self.unrelated) / 2
+                answers[key] = choice("breaks", 0.5, breaks=rest, keeps=rest,
+                                      unrelated=self.unrelated)  # fmt: skip
+            else:
+                p = by_words(point, key, state)
+                if p is not None:
+                    answers[key] = yes(p)
+        return Decision(point=point, answers=answers, provider=self.name, model="scripted-1")
+
+
+def squire(unrelated: float = 0.0) -> Squire:
+    return Squire(RuleDecider(unrelated))
 
 
 def episode(text: str, session: str = "s1", index: int = 1) -> ep.Episode:
@@ -127,7 +154,7 @@ def test_no_change_no_question(tmp_path: Path) -> None:
     repo, store = tmp_path / "repo", tmp_path / "store"
     head = _repo(repo)
     asyncio.run(mr.extract(squire(), store, [episode(RULE, session="old")]))
-    decider = ScriptedDecider(by_words)
+    decider = RuleDecider()
     assert asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head, MINE)) == (
         [], {})
     assert decider.calls == []
@@ -213,7 +240,7 @@ def test_review_h1_a_persons_uncommitted_edit_is_not_the_requests(tmp_path: Path
     asyncio.run(mr.extract(squire(), store, [episode(RULE, session="old")]))
     (repo / "app" / "config.py").write_text("x = env('APP_PAYMENT_TIMEOUT')\n", "utf-8")
     (repo / "app" / "other.py").write_text("y = 1\n", "utf-8")
-    decider = ScriptedDecider(by_words)
+    decider = RuleDecider()
     out = asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head,
                                ["app/other.py"]))  # fmt: skip
     assert out[0] == [] and all("APP_PAYMENT" not in c[1]["change"] for c in decider.calls)
@@ -240,3 +267,15 @@ def test_review_m7_a_request_the_decider_failed_on_is_asked_again(tmp_path: Path
     asyncio.run(mr.extract(Squire(ScriptedDecider(down)), tmp_path, [episode(RULE)]))
     assert mr.load(tmp_path)["asked"] == []
     assert asyncio.run(mr.extract(squire(), tmp_path, [episode(RULE)])) == [RULE]
+
+
+@needs_git
+def test_a_rule_judged_unrelated_to_the_change_sends_nothing_back(tmp_path: Path) -> None:
+    # 32 of 320 unrelated rule/diff pairs were "broken" by `kept` alone (2026-10-02)
+    repo, store = tmp_path / "repo", tmp_path / "store"
+    head = _repo(repo)
+    asyncio.run(mr.extract(squire(), store, [episode(RULE, session="old")]))
+    (repo / "app" / "config.py").write_text("x = env('APP_PAYMENT_TIMEOUT')\n", "utf-8")
+    broken, found = asyncio.run(mr.audit(squire(unrelated=0.6), store, "new", 1, str(repo),
+                                         head, MINE))  # fmt: skip
+    assert broken == [] and list(found.values()) == [1.0]

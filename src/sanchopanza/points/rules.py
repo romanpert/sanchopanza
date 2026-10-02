@@ -25,7 +25,7 @@ import re
 from collections.abc import Mapping
 from typing import Any
 
-from ..contract import Question, Truth
+from ..contract import Choice, Question, Truth
 from ..text import truncate
 
 SENTENCE_MIN = 20
@@ -98,6 +98,22 @@ KEPT = Truth(
     },
 )
 
+# The audit asks one of three, not a yes/no: with a Truth `kept`, a rule that has nothing to do
+# with the change was judged "broken" in 32 of 320 unrelated pairs (10 %; 8 rules per request
+# would send most requests back), while the breaks it must catch sit between 0.03 and 0.42.
+RELATION = Choice(
+    "How does `change` relate to `rule`, which the person stated in an earlier session?",
+    {
+        "breaks": "The change goes against the rule: it renames, removes, reorders, reformats or "
+        "rewords what the rule protects, adds what the rule forbids, or makes the code depend on "
+        "what the rule excludes",
+        "keeps": "The change touches what the rule is about and respects it (left as it was, "
+        "kept under the same name or format, an alias kept for an old name)",
+        "unrelated": "The change does not touch anything the rule is about",
+    },
+)
+
+
 # Split after a full stop whatever case follows ("...with a test. legacy_total stays." was one
 # sentence before, 2026-10-02), except after a few abbreviations.
 _SPLIT = re.compile(r"(?<!\be\.g\.)(?<!\bi\.e\.)(?<!\betc\.)(?<!\bvs\.)(?<=[.!?])\s+|\n+")
@@ -126,3 +142,9 @@ def questions_for_change(rule: str, change: str) -> tuple[Mapping[str, Any],
                                                           dict[str, Question]]:  # fmt: skip
     state = {"rule": truncate(rule, SENTENCE_MAX), "change": truncate(change, CHANGE_LIMIT)}
     return state, {"kept": KEPT}
+
+
+def questions_for_relation(rule: str, change: str) -> tuple[Mapping[str, Any],
+                                                            dict[str, Question]]:  # fmt: skip
+    state = {"rule": truncate(rule, SENTENCE_MAX), "change": truncate(change, CHANGE_LIMIT)}
+    return state, {"relation": RELATION}
