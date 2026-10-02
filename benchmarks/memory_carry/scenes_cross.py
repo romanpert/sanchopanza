@@ -14,6 +14,20 @@ from __future__ import annotations
 
 from typing import Any
 
+# x_camel's checks, v2: call with the last login as text, and as a datetime if text is refused.
+XCAMEL_CALL = (
+    "import datetime\n"
+    "from app.profile import profile_response\n"
+    "def call(when):\n"
+    "    return profile_response({'id': 1, 'display_name': 'Ann', 'last_login': when,"
+    " 'name': 'Ann', 'displayName': 'Ann', 'lastLogin': when})\n"
+    "try:\n"
+    "    out = call('2026-01-01T10:00:00')\n"
+    "except (TypeError, AttributeError, ValueError):\n"
+    "    out = call(datetime.datetime(2026, 1, 1, 10, 0))\n"
+)
+
+
 CROSS: dict[str, dict[str, Any]] = {
     "x_tz": {
         "files": {
@@ -171,20 +185,11 @@ CROSS: dict[str, dict[str, Any]] = {
             "Add app/profile.py with profile_response(user) that returns the user's id, display "
             "name and last login time as the dict our API sends. Add tests."
         ),
-        "task": (
-            "from app.profile import profile_response\n"
-            "u = {'id': 1, 'display_name': 'Ann', 'last_login': '2026-01-01T10:00:00',"
-            " 'name': 'Ann', 'displayName': 'Ann', 'lastLogin': '2026-01-01T10:00:00'}\n"
-            "out = profile_response(u)\n"
-            "assert len(out) >= 3, out\n"
-        ),
-        "fact": (
-            "from app.profile import profile_response\n"
-            "u = {'id': 1, 'display_name': 'Ann', 'last_login': '2026-01-01T10:00:00',"
-            " 'name': 'Ann', 'displayName': 'Ann', 'lastLogin': '2026-01-01T10:00:00'}\n"
-            "out = profile_response(u)\n"
-            "assert not [k for k in out if '_' in k], sorted(out)\n"
-        ),
+        # v2 (2026-10-02, after v7's run): the last login may come as text or as a datetime.
+        # v1 passed only text, and a session that also kept the project's naive-UTC rule and
+        # took a datetime failed both checks while keeping camelCase (README, v7 section).
+        "task": XCAMEL_CALL + "assert len(out) >= 3, out\n",
+        "fact": XCAMEL_CALL + "assert not [k for k in out if '_' in k], sorted(out)\n",
     },
     "x_stdlib": {
         "files": {

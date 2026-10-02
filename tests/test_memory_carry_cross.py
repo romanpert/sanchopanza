@@ -137,6 +137,26 @@ def test_the_checks_tell_keeping_the_rule_from_breaking_it(name: str, tmp_path: 
         assert passes(root, scene["fact"]) is fact, (label, "fact")
 
 
+TAKES_DATETIME = (
+    "def profile_response(user):\n    when = user['last_login']\n"
+    "    return {'id': user['id'], '%s': user['display_name'],"
+    " '%s': when.replace(tzinfo=None).isoformat()}\n"
+)
+
+
+@pytest.mark.parametrize(("keys", "fact"), [(("displayName", "lastLogin"), True),
+                                            (("display_name", "last_login"), False)])  # fmt: skip
+def test_x_camel_v2_checks_a_session_that_takes_a_datetime(keys: tuple[str, str], fact: bool,
+                                                           tmp_path: Path) -> None:  # fmt: skip
+    """v7's x_camel sessions kept camelCase and also the project's naive-UTC rule, taking a
+    datetime: v1's checks passed only text and failed both. v2 retries with a datetime."""
+    scene = CROSS["x_camel"]
+    root = build(tmp_path, scene)
+    (root / "app/profile.py").write_text(TAKES_DATETIME % keys, encoding="utf-8")
+    assert passes(root, scene["task"])
+    assert passes(root, scene["fact"]) is fact
+
+
 @pytest.mark.parametrize("name", sorted(RESULTS))
 def test_the_repository_passes_and_tells_nothing_and_session_2_names_no_earlier_file(
     name: str, tmp_path: Path
