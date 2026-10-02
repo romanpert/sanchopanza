@@ -634,6 +634,28 @@ Each of these is specified enough that a disagreement becomes a measurement.
     later turn. Then the same substitution on crawling: which link to follow next, which result
     to fetch, which page to keep, decided by the ranking and `triage_many` instead of the model.
 
+    **Run, in development, and three of its claims failed** (`docs/results/2026-10-02-browse-nav/`,
+    all development, nothing confirmed). The ranking cannot act alone: at the strictest cut worth
+    a tenth of the steps its best element is right about 70 % of the time. The probability cannot
+    say when to escalate - below and above a 0.85 cut, the top 20 holds the target 89.5 % and
+    89.2 % of the time, the same number - though the **margin** `p1 - p2` can, and reads the same
+    on both sets. And the ranking does not make a cheap model able, which was the argument the
+    whole design rested on: `claude-haiku-4-5` answers 17-turn browsing tasks as well as
+    `claude-sonnet-5` at 2.4x less with nothing of ours in the session, and on the hard Mind2Web
+    pages it picks as well from the whole page as from the top 20 (54.2 % against 50.0 %, Sonnet
+    51.2 / 52.4 %), four numbers inside three points.
+
+    Two prices to keep, because they bound anything else proposed here. A warm browsing turn in
+    Claude Code costs 0.0143 USD and **0.0135 of it is the session's own context read back from
+    cache** (344 recorded sessions), so the page is not where the money is and a ranking at
+    0.0065 a step cannot pay by replacing a turn. And an isolated `claude -p` session costs
+    0.0196 USD with no tools and a one-line prompt, so a stateless loop of one session per step
+    is dearer than the turn it replaces: that shape can only live inside a cheap subagent of the
+    host. What is left in browsing is the price of **who** takes the turn - 0.0045 on Haiku,
+    0.0135 on Sonnet, 0.0673 on Opus for the same 44,881 tokens - and that is the price list, not
+    a decision of ours. Said plainly: in browsing, choosing who takes the turn beats anything we
+    do to what they read.
+
 ---
 
 ## Sources

@@ -1,0 +1,68 @@
+{
+ "sessions": 4,
+ "all_of_them_ended_with_the_answer": true,
+ "saturated_threshold": 0.7,
+ "goal_met_narration_only": {
+  "mean": 0.19,
+  "above_threshold": 0
+ },
+ "goal_met_with_the_page": {
+  "mean": 0.5,
+  "above_threshold": 1
+ },
+ "jev_usd": 0.00033,
+ "rows": [
+  {
+   "task": "B1",
+   "arm": "SONNET",
+   "narration_only": {
+    "goal_met": 0.62,
+    "repeats_check": 0.75
+   },
+   "with_the_page": {
+    "goal_met": 0.54,
+    "repeats_check": 0.69
+   },
+   "page_chars": 239
+  },
+  {
+   "task": "B1",
+   "arm": "HAIKU",
+   "narration_only": {
+    "goal_met": 0.05,
+    "repeats_check": 0.55
+   },
+   "with_the_page": {
+    "goal_met": 0.05,
+    "repeats_check": 0.38
+   },
+   "page_chars": 239
+  },
+  {
+   "task": "B2",
+   "arm": "SONNET",
+   "narration_only": {
+    "goal_met": 0.04,
+    "repeats_check": 0.52
+   },
+   "with_the_page": {
+    "goal_met": 0.83,
+    "repeats_check": 0.55
+   },
+   "page_chars": 471
+  },
+  {
+   "task": "B2",
+   "arm": "HAIKU",
+   "narration_only": {
+    "goal_met": 0.05,
+    "repeats_check": 0.48
+   },
+   "with_the_page": {
+    "goal_met": 0.58,
+    "repeats_check": 0.54
+   },
+   "page_chars": 451
+  }
+ ]
+}

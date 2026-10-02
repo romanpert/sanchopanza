@@ -152,3 +152,59 @@ def test_what_the_agent_says_it_has_is_what_is_judged(tmp_path):
     assert "Item total 9.99, tax 0.80" in text
     assert "ok" not in text.split("\n")[-1] or "step" in text
     assert len(text) < 2000
+
+
+SNAPSHOT_RESULT = """### Page
+- Page URL: https://shop.example/checkout-step-two.html
+- Page Title: Swag Labs
+### Snapshot
+```yaml
+- generic [ref=e1]:
+  - heading "Checkout: Overview" [level=2] [ref=e2]
+  - generic [ref=e3]: "Item total: $9.99"
+  - generic [ref=e4]: "Tax: $0.80"
+  - generic [ref=e5]: "Total: $10.79"
+  - link "Twitter" [ref=e9]:
+    - /url: https://twitter.com/saucelabs
+  - button "Finish" [ref=e6] [cursor=pointer]
+```"""
+
+
+def test_what_the_page_says_is_part_of_what_the_agent_has():
+    """The fix of 2026-10-02: narration alone held no findings, so `goal_met` saw none."""
+    facts = loop_hook.facts_seen(SNAPSHOT_RESULT, GOAL)
+    assert "Item total: $9.99" in facts
+    assert "Total: $10.79" in facts
+    assert "/url:" not in facts, "a url is not a finding"
+    assert len(facts) <= loop_hook.FACTS_LIMIT + 8
+
+
+def test_a_result_that_is_not_a_snapshot_is_just_shortened():
+    assert loop_hook.facts_seen("The total is 10.79 dollars", GOAL) == "The total is 10.79 dollars"
+    assert loop_hook.facts_seen("", GOAL) == ""
+    long = loop_hook.facts_seen("x" * 5000, GOAL)
+    # `truncate` marks the cut with " [...]", which it adds past the limit it was given.
+    assert "[...]" in long and len(long) <= loop_hook.FACTS_LIMIT + 8
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        SNAPSHOT_RESULT,
+        {"content": [{"type": "text", "text": SNAPSHOT_RESULT}]},
+        [{"type": "text", "text": SNAPSHOT_RESULT}],
+        {"stdout": SNAPSHOT_RESULT},
+    ],
+)
+def test_the_result_is_found_whatever_shape_the_tool_returns(response):
+    assert "Item total" in loop_hook.result_text({"tool_response": response})
+
+
+def test_no_result_leaves_only_the_narration(tmp_path):
+    from sanchopanza.context.transcript import messages_from_claude_code
+
+    transcript = _transcript(tmp_path, calls=3, narration="Opened the overview")
+    messages = messages_from_claude_code(str(transcript))
+    assert loop_hook.established(messages) == loop_hook.narration(messages)
+    with_page = loop_hook.established(messages, SNAPSHOT_RESULT, GOAL)
+    assert "On the page now:" in with_page and "Opened the overview" in with_page

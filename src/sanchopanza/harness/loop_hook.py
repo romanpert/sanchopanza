@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import sys
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -48,6 +49,7 @@ from . import hookio
 
 NARRATION = 8  # the last few things the agent said it had found
 NARRATION_LIMIT = 170
+FACTS_LIMIT = 600
 ACTIONS = 6
 ACTION_LIMIT = 70
 READ_ONLY = (
@@ -90,13 +92,8 @@ def short_input(tool: str, arguments: Mapping[str, Any]) -> str:
     return ""
 
 
-def established(messages: Sequence[Mapping[str, Any]]) -> str:
-    """What the agent says it has: its own narration, which is where findings are stated.
-
-    Not the tool results: a snapshot is 50,000 characters of page and the point's `done` holds
-    1,600. The agent's prose between calls is both the shortest and the most faithful record of
-    what it believes it has established.
-    """
+def narration(messages: Sequence[Mapping[str, Any]]) -> str:
+    """What the agent says it is doing: its prose between calls."""
     from ..context.transcript import message_text
 
     lines = [
@@ -104,8 +101,49 @@ def established(messages: Sequence[Mapping[str, Any]]) -> str:
         for m in messages
         if m.get("role") == "assistant" and message_text(m).strip()
     ]
-    kept = [truncate(line, NARRATION_LIMIT) for line in lines[-NARRATION:]]
-    return "\n".join(kept)
+    return "\n".join(truncate(line, NARRATION_LIMIT) for line in lines[-NARRATION:])
+
+
+def _says_something(line: str) -> bool:
+    """A snapshot line with words in it, not a bare container and not a url."""
+    body = line.strip().strip("- ").strip()
+    if not body or body.startswith("/url:"):
+        return False
+    return bool(re.search(r'[:"]\s*\S', body))
+
+
+def facts_seen(result: str, goal: str, budget: int = FACTS_LIMIT) -> str:
+    """What the page in front of the agent says, short enough to be part of `done`.
+
+    Measured reason this exists: with `done` built from the narration alone, `goal_met` stayed
+    at 0.01-0.03 right through a session that ended with the answer in hand (the first
+    HAIKU-LOOP run of 2026-10-02: twelve decisions, the guard silent in every one). A small
+    model narrates its intent - "let me take a screenshot" - and not its findings, so the
+    question was being asked about a record that held none. The page is where the findings are.
+
+    A snapshot is reduced by `browse.prune_snapshot` with no kept refs, which leaves the
+    headings and the text lines that bear on the goal: the same pruning the browse hook was
+    measured with, not a second copy of it.
+    """
+    from ..browse import prune_snapshot, snapshot_block
+
+    if not result.strip():
+        return ""
+    span = snapshot_block(result)
+    if span is None:
+        return truncate(" ".join(result.split()), budget)
+    body, _ = prune_snapshot(result[span[0] : span[1]], [], purpose=goal, text_budget=budget)
+    lines = [x.strip().strip("- ").strip() for x in body.splitlines() if _says_something(x)]
+    return truncate("\n".join(lines), budget)
+
+
+def established(messages: Sequence[Mapping[str, Any]], result: str = "", goal: str = "") -> str:
+    """What the agent has: what it said, and what the last page it looked at says."""
+    said = narration(messages)
+    facts = facts_seen(result, goal)
+    if not facts:
+        return said
+    return f"{said}\n\nOn the page now:\n{facts}" if said else f"On the page now:\n{facts}"
 
 
 def actions_taken(calls: Sequence[Any]) -> str:
@@ -115,6 +153,26 @@ def actions_taken(calls: Sequence[Any]) -> str:
         what = short_input(name, call.input)
         out.append(f"{name} {what}".strip() + (" [failed]" if call.is_error else ""))
     return "\n".join(out)
+
+
+def result_text(event: Mapping[str, Any]) -> str:
+    """The text of the result just returned, whatever shape the tool uses to hold it."""
+    response = event.get("tool_response")
+    if isinstance(response, str):
+        return response
+    if isinstance(response, Mapping):
+        for key in ("stdout", "result", "content", "text"):
+            value = response.get(key)
+            if isinstance(value, str) and value.strip():
+                return value
+            if isinstance(value, list):
+                parts = [b.get("text", "") for b in value if isinstance(b, Mapping)]
+                if any(parts):
+                    return "\n".join(parts)
+        return ""
+    if isinstance(response, list):
+        return "\n".join(b.get("text", "") for b in response if isinstance(b, Mapping))
+    return ""
 
 
 def pending_of(event: Mapping[str, Any]) -> str:
@@ -145,7 +203,7 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
     if len(calls) % every:
         return {}
     goal = task_of(messages)
-    done = established(messages)
+    done = established(messages, result_text(event), goal)
     if not goal or not done:
         return {}
     root = _ledger_root()
