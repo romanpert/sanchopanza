@@ -16,7 +16,7 @@ registered bound, at an eighth of the cost. The first try (Phase 2c) showed them
 and lost 5 points; in 6 of its 7 lost steps the target was among those shown, and the fix was
 the order and a note on repeated lines, not the ranking.
 
-**A hook that prunes snapshots inside a real Claude Code session: with Playwright MCP it came out cheaper in every registered phase, with playwright-cli it rarely has anything to cut.** Registered results, each on tasks the hook was not fixed on. With Playwright MCP: 12.9 % cheaper on six tasks (3d, interval below zero), about 7 % on twelve (3f, crossing zero), 12.4 % on twelve (3h, crossing zero), 13.4 % on twelve (3j, below zero), 8 % on twelve more (3l, below zero) and 3 % on twelve more (3n, crossing zero). It pays where a large snapshot arrives inline: **17 % cheaper on twelve tasks chosen that way (3p, registered, below zero, every answer right)**; a page past Claude Code's own limit was already cheap without it. With playwright-cli: about 5 % on twelve tasks (3g, below zero) and nothing on 48 more (3i, 3k, 3m, 3o): page content is about 16 % of such a session, the agent narrows with `find` and `grep` itself, and on an output Claude Code saves both arms see 2,000 characters. It stays opt-in. Questions about position ("the first quote listed") cost answers in 3h and 3i; since they pass through uncut (or, on a saved output, come back in page order), 3j to 3m answered all 54 such runs in both arms. Every fault the phases found was in the hook, none in the ranking.
+**A hook that prunes snapshots inside a real Claude Code session: with Playwright MCP it came out cheaper in every registered phase, with playwright-cli it rarely has anything to cut.** Registered results, each on tasks the hook was not fixed on. With Playwright MCP: 12.9 % cheaper on six tasks (3d, interval below zero), about 7 % on twelve (3f, crossing zero), 12.4 % on twelve (3h, crossing zero), 13.4 % on twelve (3j, below zero), 8 % on twelve more (3l, below zero) and 3 % on twelve more (3n, crossing zero). It pays where a large snapshot arrives inline: **17 % cheaper on twelve tasks chosen that way (3p) and 22 % on twelve data tables (3r), both registered, below zero, every answer right** (3q, in between, was 16 % cheaper but misread one table three times, the fault 3r fixed); a page past Claude Code's own limit was already cheap without it. With playwright-cli: about 5 % on twelve tasks (3g, below zero) and nothing on 48 more (3i, 3k, 3m, 3o): page content is about 16 % of such a session, the agent narrows with `find` and `grep` itself, and on an output Claude Code saves both arms see 2,000 characters. It stays opt-in. Questions about position ("the first quote listed") cost answers in 3h and 3i; since they pass through uncut (or, on a saved output, come back in page order), 3j to 3m answered all 54 such runs in both arms. Every fault the phases found was in the hook, none in the ranking.
 
 What stands is the ranking as a tool: `sanchopanza browse PAGE --goal ...` from a shell, or the
 `rank_elements` MCP tool, returns the elements a step needs with their refs, confirmed at 89 % in
@@ -67,6 +67,24 @@ steps FULL answered, descriptively: FULL 61.4 %, TOP 56.1 %, the same gap. Two a
 written before the counted sessions: the per-session cap (0.25 to 0.60 USD, sized on the pages)
 and the phase ceiling (8 to 12 USD, sized on the pilot); the pilot (FULL 6/9, TOP 5/9) is outside
 every count. 8.61 USD spent in all.
+
+## Phase 3r: registered, passed: 22 % cheaper on data tables, every answer right (`prereg-e2e-r.md`)
+
+Twelve new endoflife.date tables whose columns look alike (two support end dates side by side),
+each question one cell of one row; the hook at 2dd0bc8, where a row the cut brings whole carries
+a comment pairing each cell with its header. Rule on R1-R12, computed by the runner's `analyze`
+(`e2e-mcp-r-rule.json`); 3q's T4 run again as R0, reported apart. Claude Code 2.1.287.
+
+| R1-R12 | Success | List USD / session | Cuts | LEAN minus PLAIN |
+|---|---|---|---|---|
+| PLAIN | 36/36 | 0.1235 | | |
+| LEAN | 36/36 | 0.0946 (+0.0018 Jev) | 35 | **-0.0271 [-0.0326, -0.0213]** |
+
+**The rule is met: 22 % cheaper, all twelve tasks cheaper, every answer right in both arms.**
+The checks: the hook cut in 35 of 36 runs; LEAN answered 36 of 36; and R0, Django 5.2's table that
+all three LEAN runs of 3q misread, was cut and answered right in all three LEAN runs. 8.60 USD at
+list price, 0.071 USD of Jev. Twelve tasks from one site, chosen for alike columns: it says the
+label holds on such tables, not on every table.
 
 ## Phase 3q: registered, not met: 16 % cheaper, and one table read wrong three times (`prereg-e2e-t.md`)
 

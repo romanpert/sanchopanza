@@ -1,0 +1,83 @@
+{
+ "rule_on": "R1-R12",
+ "sessions": 72,
+ "PLAIN": {
+  "runs": 36,
+  "success": 36,
+  "list_usd_mean": 0.1235,
+  "jev_usd_mean": 0.0,
+  "turns_mean": 4.22,
+  "cache_read_mean": 152844,
+  "cache_write_mean": 22029,
+  "snapshots_pruned": 0
+ },
+ "LEAN": {
+  "runs": 36,
+  "success": 36,
+  "list_usd_mean": 0.0946,
+  "jev_usd_mean": 0.00181,
+  "turns_mean": 4.33,
+  "cache_read_mean": 157179,
+  "cache_write_mean": 14640,
+  "snapshots_pruned": 35
+ },
+ "LEAN_minus_PLAIN_usd_per_task": {
+  "value": -0.0271,
+  "bootstrap95": [
+   -0.0326,
+   -0.0213
+  ],
+  "by_task": {
+   "R1": -0.0281,
+   "R10": -0.0225,
+   "R11": -0.0439,
+   "R12": -0.0199,
+   "R2": -0.0145,
+   "R3": -0.0413,
+   "R4": -0.0351,
+   "R5": -0.0246,
+   "R6": -0.0364,
+   "R7": -0.0275,
+   "R8": -0.0229,
+   "R9": -0.0081
+  }
+ },
+ "R0": [
+  {
+   "arm": "PLAIN",
+   "run": 1,
+   "success": true,
+   "list_usd": 0.1152376
+  },
+  {
+   "arm": "LEAN",
+   "run": 1,
+   "success": true,
+   "list_usd": 0.0902836
+  },
+  {
+   "arm": "PLAIN",
+   "run": 2,
+   "success": true,
+   "list_usd": 0.1148428
+  },
+  {
+   "arm": "LEAN",
+   "run": 2,
+   "success": true,
+   "list_usd": 0.0914338
+  },
+  {
+   "arm": "PLAIN",
+   "run": 3,
+   "success": true,
+   "list_usd": 0.1293048
+  },
+  {
+   "arm": "LEAN",
+   "run": 3,
+   "success": true,
+   "list_usd": 0.09251039999999999
+  }
+ ]
+}
