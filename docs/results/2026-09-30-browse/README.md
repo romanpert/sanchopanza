@@ -16,7 +16,7 @@ registered bound, at an eighth of the cost. The first try (Phase 2c) showed them
 and lost 5 points; in 6 of its 7 lost steps the target was among those shown, and the fix was
 the order and a note on repeated lines, not the ranking.
 
-**A hook that prunes snapshots inside a real Claude Code session: with Playwright MCP it came out cheaper in every registered phase, with playwright-cli it rarely has anything to cut.** Registered results, each on tasks the hook was not fixed on. With Playwright MCP: 12.9 % cheaper on six tasks (3d, interval below zero), about 7 % on twelve (3f, crossing zero), 12.4 % on twelve (3h, crossing zero), 13.4 % on twelve (3j, below zero), 8 % on twelve more (3l, below zero) and 3 % on twelve more (3n, crossing zero). It pays where a large snapshot arrives inline (30-40 % of those sessions); a page past Claude Code's own limit was already cheap without it. With playwright-cli: about 5 % on twelve tasks (3g, below zero) and nothing on 48 more (3i, 3k, 3m, 3o): page content is about 16 % of such a session, the agent narrows with `find` and `grep` itself, and on an output Claude Code saves both arms see 2,000 characters. It stays opt-in. Questions about position ("the first quote listed") cost answers in 3h and 3i; since they pass through uncut (or, on a saved output, come back in page order), 3j to 3m answered all 54 such runs in both arms. Every fault the phases found was in the hook, none in the ranking.
+**A hook that prunes snapshots inside a real Claude Code session: with Playwright MCP it came out cheaper in every registered phase, with playwright-cli it rarely has anything to cut.** Registered results, each on tasks the hook was not fixed on. With Playwright MCP: 12.9 % cheaper on six tasks (3d, interval below zero), about 7 % on twelve (3f, crossing zero), 12.4 % on twelve (3h, crossing zero), 13.4 % on twelve (3j, below zero), 8 % on twelve more (3l, below zero) and 3 % on twelve more (3n, crossing zero). It pays where a large snapshot arrives inline: **17 % cheaper on twelve tasks chosen that way (3p, registered, below zero, every answer right)**; a page past Claude Code's own limit was already cheap without it. With playwright-cli: about 5 % on twelve tasks (3g, below zero) and nothing on 48 more (3i, 3k, 3m, 3o): page content is about 16 % of such a session, the agent narrows with `find` and `grep` itself, and on an output Claude Code saves both arms see 2,000 characters. It stays opt-in. Questions about position ("the first quote listed") cost answers in 3h and 3i; since they pass through uncut (or, on a saved output, come back in page order), 3j to 3m answered all 54 such runs in both arms. Every fault the phases found was in the hook, none in the ranking.
 
 What stands is the ranking as a tool: `sanchopanza browse PAGE --goal ...` from a shell, or the
 `rank_elements` MCP tool, returns the elements a step needs with their refs, confirmed at 89 % in
@@ -67,6 +67,32 @@ steps FULL answered, descriptively: FULL 61.4 %, TOP 56.1 %, the same gap. Two a
 written before the counted sessions: the per-session cap (0.25 to 0.60 USD, sized on the pages)
 and the phase ceiling (8 to 12 USD, sized on the pilot); the pilot (FULL 6/9, TOP 5/9) is outside
 every count. 8.61 USD spent in all.
+
+## Phase 3p: registered, passed: 17 % cheaper on pages whose snapshot arrives inline (`prereg-e2e-v.md`)
+
+Twelve new tasks chosen for the claim read across 3j, 3l and 3n: each page's snapshot measured
+beforehand at 11,000-75,000 characters, inline but large. Playwright MCP, the hook at 5dead40
+(with the Jev position judge), three runs per task and arm.
+
+| | Success | List USD / session | Cuts | LEAN minus PLAIN |
+|---|---|---|---|---|
+| PLAIN | 36/36 | 0.1270 | | |
+| LEAN | 36/36 | 0.1042 (+0.0015 Jev) | 29 | **-0.0213 [-0.0334, -0.0096]** |
+
+**The rule is met: 17 % cheaper, every answer right in both arms.** The checks: the hook cut in
+27 of the 30 LEAN runs of the ten tasks that are not about position (the three it did not cut
+are V7, where the agent asked `browser_find` and never took a snapshot); on V4 and V5, the two
+position questions the word rule missed ("the third chapter in the tutorial's contents", "the
+link right after Install"), Jev judged them a place, the hook cut none of the six runs and all
+twelve answered; and the ten tasks saved -0.026 USD a session on average, half the -0.047 read
+after the fact from 3j, 3l and 3n, as a confirmation on new tasks should expect. Seven of the ten
+saved 0.009-0.053 a session; V9 cost +0.008: PostgreSQL's version table was cut from 14,000 to
+5,400 characters and the row for version 14 was left out, so the agent `Grep`ped the archive
+for it (one or two more turns, the answer right). 8.54 USD at list price, 0.055 USD of Jev.
+
+So the hook is worth turning on with Playwright MCP when the pages a session reads give large
+snapshots that still fit inline; on pages past Claude Code's limit, and with playwright-cli, it
+has little to do.
 
 ## Phases 3n and 3o: twelve new tasks after the card, nearest-row and position-word fixes (`prereg-e2e-u.md`)
 
