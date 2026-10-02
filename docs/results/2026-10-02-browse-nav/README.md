@@ -558,3 +558,38 @@ What the two confirmations say together, plainly:
   hooks can rewrite a tool's input), turning a hang into an error the agent sees and fixes. The
   partial result is where a check belongs, and section 15's offline probe says what it needs: the
   site's own size beside the result.
+
+## 18. A Jev check of the extraction's result: it ranks, and it cannot warn
+
+Section 17 left the partial result as the failure mode that needs judgment: "82 of 117" and
+"3 pages" of 50, believed. The candidate is a substitution: the question the agent should have
+asked of a tool result it already holds, asked by Jev where the result lands. Offline, on every
+recorded session that answered from one extraction (at most three navigations), exploratory and
+post hoc (confirmation sessions included, read after their verdicts):
+
+| version (`benchmarks/browse/`) | cases | AUC right vs wrong | at the cut 0.5: wrong caught / right flagged |
+|---|---|---|---|
+| request, code and result (`extract_replay.py`) | 125 | 0.602 | 10/17 / 70/108 |
+| **plus what the site's first page declares** (`extract_replay2.py`) | 155 | **0.727** (0.82 where the site declares a size) | 15/19 / **79/136** |
+| no model: the site declares a size and no number in the result equals it | 155 | - | 8/19 / 40/136 |
+
+The second version's filter was committed before its first Jev call (f08a9fe): AUC >= 0.80, half
+the wrong caught, at most 10 % of the right flagged. **It does not pass**, and no cut would: at 0.1
+it catches 10 of 19 and flags 21 of 136. 0.0074 USD of Jev.
+
+Why, read case by case:
+
+- **The site's size answers a different question from the request's.** "Page 1 of 50" is the
+  catalogue; a request over one category reads 8 pages and is right. "25 items" on the hockey
+  table is one page's worth. The rule with no model fails on exactly this; Jev sorts much of it
+  out, which is where the AUC gain comes from.
+- **A third of the right extractions return only the figure** ("42"), with no account of what was
+  read. Jev rightly cannot trust them, so its median on right results is 0.43 (wrong: 0.08): it
+  ranks, but every cut that catches the wrong ones flags many right ones.
+- **The four wrong results it misses are the infinite scroll** (S5), whose first page declares
+  nothing.
+
+So the check stays out of the "with sanchopanza" arm of the next confirmation, as the filter
+said it would. What would change that is not a better question but a better result: an
+extraction that says how much it read, which the line asks for and the cheap model does not
+always give.
