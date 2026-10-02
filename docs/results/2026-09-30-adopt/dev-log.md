@@ -504,3 +504,84 @@ pydantic-rel-1, conan-1 and conan-2 moved to `runs/<task>-limit1/` with its sess
 (1.46 USD set aside, counted; spent under `runs/` still 78.96), and those tasks run again whole.
 `run.py` refuses `--continue` on a held-out arm an error result stopped, and `run.py` and
 `singles_run.py` refuse a held-out start over earlier sessions.
+
+## Phase A, results (2026-10-02, `confirm.py A` on seal 147b1599)
+
+Finished 2026-10-02 15:49 (singles) after four amendments, none read after a verdict. Spent in
+phase A, list price: chains 62.73 USD (`runs/` 58.51 -> 121.24, with the four set-aside attempts:
+1.46 for the 429, 7.50 for the killed runner, 3.52 for the session that died, 0.22 for the
+crash of amendment 1), singles 24.20 (`singles/` 5.85 -> 30.05): **86.93 USD of the 105 approved**.
+Nothing is missing: every chain and single that takes part has both arms complete.
+
+| hypothesis | result | verdict |
+|---|---|---|
+| H1 chains (Sm vs N, 10 chains, 50 bugs, margin 2) | Sm 29, N 35; difference -6, 95 % [-18, 4]; by FAIL_TO_PASS only 35 vs 38 | **does not hold** |
+| H1 related (Sf vs Nf, 3 chains, 15 bugs, margin 1) | Sf 9, Nf 12; -3 [-6, 0] | **does not hold** |
+| H1 singles (S vs N, 26, margin 2) | S 17, N 16; +1 [0, 3] | holds |
+| H2 chains, median cost Sm/N (10 pairs) | 0.890 [0.770, 1.140]; 17.28 vs 18.76 USD | direction only, not confirmed |
+| H2 singles, S/N, reported | 1.084 [0.842, 1.158]; 12.22 vs 11.99 USD | not confirmed (S dearer) |
+| H-new-session exploration, Sf/Nf (12 request pairs) | 0.786 [0.471, 1.317] | direction only, not confirmed |
+| H3 false blocks | 0 blocks in 1,944 shell commands of the S arms | holds |
+| H4 adoption | find_in_repo 0, skill 0; memory: 89 prompts, **0 records injected**; recall on touch 27 times (106,310 characters) | reported |
+| **H-session** (H1 and H2 on the chains) | | **does not hold** |
+| **H-new-session** (H1 related and exploration) | | **does not hold** |
+
+Per task (resolved / requests that ran, cost with Jev):
+
+| task | N | Sm | Nf | Sf |
+|---|---|---|---|---|
+| pygments-2 | 4/5, 1.46 | 3/5, 1.15 | | |
+| starlette-2 | 5/5, 1.97 | 5/5, 2.08 | | |
+| pydantic-1 | 3/5, 1.98 | 4/5, 2.44 | | |
+| pydantic-2 | 0/5 (F2P 3), 1.42 | 0/5 (F2P 5), 1.24 | | |
+| conan-1 | 5/5, 1.63 | 3/5, 1.48 | | |
+| conan-2 | 2/5, 1.51 | 3/5, 2.46 | | |
+| astroid-1 | 5/5, 1.37 | 4/5, 0.97 | | |
+| starlette-rel-2 | 3/5, 1.81 | 5/5, 1.90 | 5/5, 1.75 | 5/5, 2.23 |
+| pydantic-rel-1 | 3/5, 3.50 | 2/5, 1.82 | 2/5, 3.09 | 0/5, 2.36 |
+| dvc-rel-1 | 5/5, 2.09 | 0/5 (F2P 1), 1.74 | 5/5, 2.79 | 4/5, 1.78 |
+
+What the numbers say, read one by one before writing them:
+
+- **Sm resolves fewer bugs than N, and the 6-bug gap is mostly two chains.** dvc-rel-1 (Sm 0/5)
+  is one regression: Sm added a bare-repository check to `open_repo` that opens every local path
+  with GitPython, breaking up to 27 PASS_TO_PASS tests per bug. conan-1 (3 vs 5) and
+  pydantic-rel-1 (2 vs 3) are smaller. Sm wins pydantic-1, conan-2 and starlette-rel-2. Even
+  by FAIL_TO_PASS alone, which leaves regressions aside, Sm is 3 behind (35 vs 38). With one
+  repetition per chain the interval [-18, 4] is wide, but the point lies outside the margin, and
+  the prereg says the point decides.
+- **pydantic-2 is 0/5 in both arms for the same reason.** The second request asks to fix tests
+  that break under pytest 8. N and Sm made the same edit to
+  `tests/test_validators.py::test_use_no_fields` (a `pytest.warns` around a class that raises
+  before it warns), and that test is in every bug's PASS_TO_PASS*. It is not a harness fault:
+  checked in Docker, the test passes with no diff and fails with either arm's diff.
+- **pydantic-rel-1 Sf 0/5 is not a harness fault:** its patches apply and break no
+  PASS_TO_PASS test. Its final diff fixes nothing that N, Nf and Sm fix (0/10 FAIL_TO_PASS on
+  pr_10347, where the others pass 9).
+- **Sm is cheaper in direction (median 0.89), not confirmed.** The interval reaches 1.14. As
+  power was said beforehand to allow, a ~10 % saving at n = 10 comes out "direction only".
+- **Memory injected nothing in 89 prompts.** In Sm, memory injects only on a session's first
+  live request. In Sf the new session per request did not inject either. What memory did was
+  recall on touch: 27 records shown when the agent opened a file already worked on. So in A,
+  "memory between sessions" is the touch alone. The UserPromptSubmit selection never fired.
+  This is the most useful fact for the memory line (indagis-2d), not a verdict.
+- **The default install (S) on the singles** resolves one more than N (17 vs 16) and costs about
+  8 % more per task at the median. Not confirmed either way.
+- No block by the shell guard in 1,944 commands. The install files of conan-2 Sm were restored
+  once before request 3 (the agent's own `git checkout`/`clean` had removed them), as designed.
+
+Checks done along the way, so that what the numbers read is what they claim to:
+
+- Every call of 2026-10-02 ran on Claude Code 2.1.285, per its own stream's init event. The
+  global install updated itself to 2.1.287 at 12:58; the runner's guard refused the next single
+  and nothing ran. The rest ran on a private copy of the 2.1.285 binary (same sha256 as
+  `~/.local/share/claude/versions/2.1.285`), placed first on PATH for that process only. The two
+  rows of django-13807 say `claude_version: 2.1.287`: the row records the global binary when it
+  is written, not the one that ran. `confirm.py` does not read that field.
+- A CTRL_C reached the singles' console at 13:18 while scikit-learn-13779 was being graded. Both
+  arms had run and written their rows, so its S arm was graded again (no session).
+- **pygments-2's image, baked again after A and checked as `check` does** (amendment 1): result
+  below when it ends (its pytest is the whole suite, over 1,500 nodes).
+- Exploratory, not preregistered (suggested by the browse line): whether a cheaper arm is cheaper
+  because it replaces turns or because it trims context. With find 0 and skill 0, nothing in A
+  replaced turns; Sm's lever is the 100k context budget (compactions).
