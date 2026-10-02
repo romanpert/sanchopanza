@@ -437,3 +437,46 @@ for twenty turns - but what pulls it is a sentence, not a decision of ours.** Wi
 tasks where it does not apply, a gate in front of the line would only add cost. This is
 development on the tasks the line was written on; the confirmation is registered in
 `prereg-strategy.md` and runs on eight crawls and two interactive tasks it has never seen.
+
+## 15. Why the line was not taken up, and the version that is: v5
+
+Section 14 left the line taken up unevenly: on S4 both versions walked two runs in three. Every
+hint session that walked was read to see why, rather than counted (`strategy_lines.py` holds each
+version and its reason). In 9 of 13 the agent **had** followed the line: its first extraction
+clicked Next or set `location` inside the `browser_evaluate`, which destroys the call
+("Execution context was destroyed"), and it then fell back to walking instead of fixing the
+code. In the other four the first call errored or read nothing, with the same fallback. The line
+was not ignored; the cheap model wrote the one-call extraction the wrong way and gave up on it.
+
+So v3 says how: never click or change location inside the call; `fetch()` each page and parse it
+with `DOMParser`, or fetch the data the page loads; if it errors or falls short, fix the code
+rather than walking. Its one miss was its own cap - "a cap on every loop" became 10 pages on a site
+of 20, and the half was taken for the whole. v4 fixed that in more words and was taken up worse
+(3 walks in 12 against v3's 0); **v5 is v3 with only the cap clause changed** ("far above the
+site's size; a loop that reaches its cap fell short"). Development, Claude Code 2.1.287:
+
+| S1-S5, 3 runs (Sonnet: 3 on S3/S4, 1 elsewhere) | right | mean list USD | worst session |
+|---|---|---|---|
+| `claude-haiku-4-5`, unaided | 11/15 | 0.265 | 0.889 |
+| Haiku + v2 (in the first confirmation) | 13/15 | 0.136 | 0.397 |
+| **Haiku + v5** | **14/15** | **0.066** | 0.118 |
+| `claude-sonnet-5`, unaided | 9/9 | 0.222 | 0.522 |
+| **Sonnet + v5** | 9/9 | **0.123** | 0.210 |
+
+With H1 added, Haiku + v5 is 17/18 and **no session walked**. The one miss read by hand: it fetched
+all 20 pages and its first count was right (65), then "refined" it with a pattern that wanted
+cents, lost every round price ($1,399) and answered 44 over 81 laptops of 117 - the account the line
+asks for would have caught it, and the agent did not check.
+
+What this says, plainly:
+
+- **One sentence makes the cheap model 3.4 times cheaper than the expensive one unaided**, on
+  these crawls, and more often right than either unaided Haiku or v2.
+- **The same sentence halves Sonnet** where Sonnet walked (S3, S4: 0.36-0.52 USD a session down to
+  0.10-0.21) and changes nothing where it already extracted (S1, S2, S5). It is not a crutch for
+  a weak model; it is the strategy, said.
+- The page-walking misses are arithmetic and the extraction's misses are parsing; the line moves
+  failures from the first kind to the second, and the second is rarer.
+
+Still development, on the tasks v3-v5 were written on. v5 has its own registered confirmation on
+eight crawls over mechanisms no line has met (`prereg-strategy2.md`, `nav_confirm2.py`).
