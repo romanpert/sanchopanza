@@ -166,3 +166,38 @@ N on the 16 scenes are the confirmation's repetition 0.
 match: 6 of 6 breaks avoided, but with two artifact losses the primary test misses. Its audit
 sends back too often when a project carries unrelated rules. Next: the false sends-back first,
 then a cross-file rerun with the `x_camel` check taking a datetime too, as a new scene version.
+
+## Memory v8, the audit sees every rule side by side (`prereg-v8.md`, sealed in f1ffa20)
+
+Runs `v8-cross` (M and V on the 8 cross-file scenes, repetitions 0-2) and `v8-all` (V on the 16
+pilot and held-out scenes). Sonnet 5.5, Claude Code 2.1.287, 2026-10-03 00:19-01:40, no pair
+excluded, no usage limit. 23.26 USD at list price (cross 17.31, all 5.95), the subscription paid.
+
+| criterion | result | verdict |
+|---|---|---|
+| 1. cross-file: V vs M, fact kept | 24/24 vs 19/24; 5 discordant, all for V; p = 0.031 | **met** |
+| 2. false sends-back, V second sessions | 0 of 40 (limit 2; v7: 6 of 32) | **met** |
+| 3. no harm on the 16 scenes | V 16/16 vs M 15/16; tests 16 and 16; task 13 and 13 | **met** |
+
+- **Where M broke the fact:** `x_stdlib` r1 and r2, `x_trash` r0 and r1, and `x_tz` r0. V kept
+  all five.
+- **Tests and task:** 24/24 in both arms on the cross scenes.
+- **Cost:** the paired median V/M is 0.98 cross-file and 1.00 on the 16 scenes.
+- **The audit sent work back twice in 80 V sessions**, both read by hand:
+  - **`sms`, second session, its own rule** (Choice 0.77, `kept` 0.16). The agent had added the
+    delivery window, the courier and a link to the SMS text. After the send-back it said "the
+    change can break the rule" and made the text shed details (never the id or the link) until it
+    fits in 160 characters, with a new test. The send-back made the work better.
+  - **`nulls`, first session, a decoy** ("rounding half up, never banker's rounding, for every
+    amount we print on an invoice"; Choice 0.44, `kept` 0.29). The session added
+    `round(order['total'], 2)`, and Python's `round` is banker's rounding. Whether a payload
+    total is an amount printed on an invoice is arguable, but it is not noise.
+- **`x_camel` v2:** both arms kept camelCase in all three repetitions (no discordant pair), as
+  expected.
+
+**Verdict: v8 passes its prereg.** A rule said while changing one file is kept when a later
+session, in a new file the session does not name, could break it: 24 of 24 against 19 of 24
+with v6.2, at the same cost. The audit no longer sends work back for rules that do not apply,
+and the one time it sent back for the session's own rule, the fix was real. Limits, as for the
+confirmation: one model (Sonnet 5.5), headless sessions, scenes built for this case, and decoys
+from other scenes rather than a real project's rule history.
