@@ -197,6 +197,12 @@ def pair(out: Path, name: str, model: str, arm: str, rep: int, keyfile: Path,
             "limit_hit": first["limit_hit"] or bool(second.get("limit_hit"))}  # fmt: skip
 
 
+def _writable(func: Any, path: str, _error: BaseException) -> None:
+    """git keeps its objects read-only, and Windows will not unlink those."""
+    os.chmod(path, 0o700)
+    func(path)
+
+
 def earlier(out: Path) -> list[dict[str, Any]]:
     path = out / "carry.json"
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
@@ -236,7 +242,7 @@ def run_plan(out: Path, plan: list[tuple[str, str, str, int]], keyfile: Path, dr
             continue
         cut = out / f"{name}-{model}-{arm}-{rep}"
         if cut.exists():  # a pair the runner itself cut (no row): it runs again, whole
-            shutil.rmtree(cut)
+            shutil.rmtree(cut, onexc=_writable)
         if spent + 2 * CALL_CAP > total_cap:
             print(f"stop: {spent:.2f} USD spent, the next pair could pass {total_cap}", flush=True)
             break
