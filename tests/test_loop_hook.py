@@ -184,6 +184,61 @@ def test_what_the_page_says_is_part_of_what_the_agent_has():
     assert len(facts) <= loop_hook.FACTS_LIMIT + 8
 
 
+FIXTURES = Path(__file__).with_name("fixtures_loop")  # real results, B2 smoke, 2026-10-02
+
+
+def test_a_find_result_gives_the_lines_that_say_something_however_deep():
+    """Ten levels of `generic [ref=...]:` before the totals; the first fix kept the levels."""
+    facts = loop_hook.facts_seen((FIXTURES / "find_item_total.txt").read_text("utf-8"), GOAL)
+    assert "Item total: $9.99" in facts
+    assert "Tax: $0.80" in facts and "Total: $10.79" in facts
+    assert "[ref=" not in facts and "generic" not in facts
+
+
+def test_a_screenshot_has_nothing_the_guard_can_read():
+    """Playwright's code and an image path are not the page: the decision is recorded blind."""
+    assert loop_hook.facts_seen((FIXTURES / "screenshot.txt").read_text("utf-8"), GOAL) == ""
+
+
+def test_a_click_result_gives_where_the_agent_is_and_nothing_else():
+    """Playwright MCP 0.0.83 saves the snapshot of an action to a file: only the URL is left."""
+    facts = loop_hook.facts_seen((FIXTURES / "click_finish.txt").read_text("utf-8"), GOAL)
+    assert facts.splitlines() == [
+        "Page URL: https://www.saucedemo.com/checkout-step-two.html",
+        "Page Title: Swag Labs",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("line", "said"),
+    [
+        ('- generic [ref=e276]: "Item total: $55.97"', "Item total: $55.97"),
+        ('  - button "Finish" [ref=e255] [cursor=pointer]', "button Finish"),
+        ('- heading "Checkout: Overview" [level=2] [ref=e2]', "heading Checkout: Overview"),
+        ('- textbox "First Name" [ref=e198]: Ada', "textbox First Name Ada"),
+        ("- text: We love being scraped!", "We love being scraped!"),
+        ("- generic [ref=e217]:", ""),
+        ("- /url: index.html", ""),
+        ("await page.locator('x').click();", ""),
+        ("- Console: 8 errors, 0 warnings", ""),
+        ("The total is 10.79 dollars", "The total is 10.79 dollars"),
+    ],
+)
+def test_one_line_as_what_it_says(line, said):
+    assert loop_hook.page_line(line) == said
+
+
+def test_over_budget_the_lines_about_the_goal_stay_in_page_order():
+    filler = [f'- generic [ref=e{i}]: "Footer link number {i} about careers"' for i in range(40)]
+    lines = [*filler[:20], '- generic [ref=e900]: "Item total: $9.99"', *filler[20:],
+             '- generic [ref=e901]: "Total: $10.79"']  # fmt: skip
+    facts = loop_hook.facts_seen("\n".join(lines), GOAL, budget=200)
+    kept = facts.splitlines()
+    assert "Item total: $9.99" in kept and "Total: $10.79" in kept
+    assert kept.index("Item total: $9.99") < kept.index("Total: $10.79")
+    assert len(facts) <= 200
+
+
 def test_a_result_that_is_not_a_snapshot_is_just_shortened():
     assert loop_hook.facts_seen("The total is 10.79 dollars", GOAL) == "The total is 10.79 dollars"
     assert loop_hook.facts_seen("", GOAL) == ""

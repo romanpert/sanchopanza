@@ -1,0 +1,15 @@
+### Result
+Found 1 match for "item total":
+
+- generic [ref=e217]:
+  - generic [ref=e218]:
+    - main [ref=e231]:
+      - generic [ref=e232]:
+        - generic [ref=e244]:
+          - generic [ref=e247]: "Shipping Information:"
+          - generic [ref=e248]: Free Pony Express Delivery!
+          - generic [ref=e249]: Price Total
+          - generic [ref=e250]: "Item total: $9.99"
+          - generic [ref=e251]: "Tax: $0.80"
+          - generic [ref=e252]: "Total: $10.79"
+          - generic [ref=e253]:

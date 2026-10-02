@@ -1,0 +1,13 @@
+### Result
+- [Screenshot of viewport](.playwright-mcp\page-2026-10-02T14-42-09-325Z.png)
+### Ran Playwright code
+```js
+// Screenshot viewport and save it as .playwright-mcp\page-2026-10-02T14-42-09-325Z.png
+await page.screenshot({
+  path: '.playwright-mcp\\page-2026-10-02T14-42-09-325Z.png',
+  scale: 'css',
+  type: 'png'
+});
+```
+[image]
+[Image: source: C:\Users\someone\.claude\projects\SESSION\tool-results\mcp-playwright-blob.png]

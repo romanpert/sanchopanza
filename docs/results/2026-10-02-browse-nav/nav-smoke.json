@@ -1,0 +1,43 @@
+{
+ "sessions": 2,
+ "by_arm": {
+  "HAIKU": {
+   "model": "claude-haiku-4-5",
+   "sessions": 1,
+   "finished": 1,
+   "success": "1/1",
+   "median_turns": 22,
+   "mean_list_usd": 0.145,
+   "total_list_usd": 0.145,
+   "mean_turns": 22.0
+  },
+  "HAIKU-LOOP": {
+   "model": "claude-haiku-4-5",
+   "sessions": 1,
+   "finished": 1,
+   "success": "1/1",
+   "median_turns": 23,
+   "mean_list_usd": 0.1358,
+   "total_list_usd": 0.1358,
+   "mean_turns": 23.0,
+   "hook": {
+    "hook_decisions": 18,
+    "hook_spoke": 0,
+    "hook_blind": 0,
+    "hook_error_notes": 0,
+    "hook_errors": 0
+   }
+  }
+ },
+ "by_task": {
+  "B2": {
+   "HAIKU": "1/1",
+   "HAIKU-LOOP": "1/1"
+  }
+ },
+ "versions": [
+  "2.1.287"
+ ],
+ "list_usd_total": 0.2808,
+ "not_run": []
+}

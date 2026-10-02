@@ -1,0 +1,288 @@
+{
+ "sessions": 22,
+ "calls": 415,
+ "failed_calls": 17,
+ "failed_share": 0.041,
+ "sessions_with_a_streak_of_2_or_more": "2/22",
+ "by_arm_model": {
+  "claude-haiku-4-5": {
+   "sessions": 18,
+   "failed_calls": 15,
+   "calls": 346,
+   "with_a_streak": 2
+  },
+  "claude-sonnet-5": {
+   "sessions": 4,
+   "failed_calls": 2,
+   "calls": 69,
+   "with_a_streak": 0
+  }
+ },
+ "sessions_detail": [
+  {
+   "source": "nav-pilot",
+   "task": "A1",
+   "arm": "SONNET",
+   "run": 1,
+   "turns": 17,
+   "calls": 16,
+   "failed": 0,
+   "streaks": [],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-pilot",
+   "task": "A1",
+   "arm": "HAIKU",
+   "run": 1,
+   "turns": 18,
+   "calls": 17,
+   "failed": 0,
+   "streaks": [],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-pilot",
+   "task": "A4",
+   "arm": "SONNET",
+   "run": 1,
+   "turns": 18,
+   "calls": 17,
+   "failed": 0,
+   "streaks": [],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-pilot",
+   "task": "A4",
+   "arm": "HAIKU",
+   "run": 1,
+   "turns": 16,
+   "calls": 15,
+   "failed": 0,
+   "streaks": [],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-traps",
+   "task": "B1",
+   "arm": "SONNET",
+   "run": 1,
+   "turns": 17,
+   "calls": 16,
+   "failed": 1,
+   "streaks": [
+    1
+   ],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-traps",
+   "task": "B1",
+   "arm": "HAIKU",
+   "run": 1,
+   "turns": 26,
+   "calls": 25,
+   "failed": 0,
+   "streaks": [],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-traps",
+   "task": "B2",
+   "arm": "SONNET",
+   "run": 1,
+   "turns": 21,
+   "calls": 20,
+   "failed": 1,
+   "streaks": [
+    1
+   ],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-traps",
+   "task": "B2",
+   "arm": "HAIKU",
+   "run": 1,
+   "turns": 20,
+   "calls": 19,
+   "failed": 1,
+   "streaks": [
+    1
+   ],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-loop",
+   "task": "B1",
+   "arm": "HAIKU",
+   "run": 1,
+   "turns": 14,
+   "calls": 13,
+   "failed": 0,
+   "streaks": [],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-loop",
+   "task": "B1",
+   "arm": "HAIKU-LOOP",
+   "run": 1,
+   "turns": 18,
+   "calls": 17,
+   "failed": 0,
+   "streaks": [],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-loop",
+   "task": "B1",
+   "arm": "HAIKU",
+   "run": 2,
+   "turns": 17,
+   "calls": 16,
+   "failed": 2,
+   "streaks": [
+    1,
+    1
+   ],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-loop",
+   "task": "B1",
+   "arm": "HAIKU-LOOP",
+   "run": 2,
+   "turns": 18,
+   "calls": 17,
+   "failed": 0,
+   "streaks": [],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-loop",
+   "task": "B1",
+   "arm": "HAIKU",
+   "run": 3,
+   "turns": 17,
+   "calls": 16,
+   "failed": 0,
+   "streaks": [],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-loop",
+   "task": "B1",
+   "arm": "HAIKU-LOOP",
+   "run": 3,
+   "turns": 18,
+   "calls": 17,
+   "failed": 0,
+   "streaks": [],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-loop",
+   "task": "B2",
+   "arm": "HAIKU",
+   "run": 1,
+   "turns": 37,
+   "calls": 36,
+   "failed": 5,
+   "streaks": [
+    1,
+    1,
+    1,
+    2
+   ],
+   "notes_it_would_say": 1
+  },
+  {
+   "source": "nav-loop",
+   "task": "B2",
+   "arm": "HAIKU-LOOP",
+   "run": 1,
+   "turns": 19,
+   "calls": 18,
+   "failed": 0,
+   "streaks": [],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-loop",
+   "task": "B2",
+   "arm": "HAIKU",
+   "run": 2,
+   "turns": 20,
+   "calls": 19,
+   "failed": 0,
+   "streaks": [],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-loop",
+   "task": "B2",
+   "arm": "HAIKU-LOOP",
+   "run": 2,
+   "turns": 21,
+   "calls": 20,
+   "failed": 0,
+   "streaks": [],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-loop",
+   "task": "B2",
+   "arm": "HAIKU",
+   "run": 3,
+   "turns": 19,
+   "calls": 18,
+   "failed": 1,
+   "streaks": [
+    1
+   ],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-loop",
+   "task": "B2",
+   "arm": "HAIKU-LOOP",
+   "run": 3,
+   "turns": 21,
+   "calls": 20,
+   "failed": 3,
+   "streaks": [
+    1,
+    1,
+    1
+   ],
+   "notes_it_would_say": 0
+  },
+  {
+   "source": "nav-smoke",
+   "task": "B2",
+   "arm": "HAIKU",
+   "run": 1,
+   "turns": 22,
+   "calls": 21,
+   "failed": 3,
+   "streaks": [
+    1,
+    2
+   ],
+   "notes_it_would_say": 1
+  },
+  {
+   "source": "nav-smoke",
+   "task": "B2",
+   "arm": "HAIKU-LOOP",
+   "run": 1,
+   "turns": 23,
+   "calls": 22,
+   "failed": 0,
+   "streaks": [],
+   "notes_it_would_say": 0
+  }
+ ]
+}

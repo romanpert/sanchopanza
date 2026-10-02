@@ -54,6 +54,7 @@ from . import hookio
 NARRATION = 8  # the last few things the agent said it had found
 NARRATION_LIMIT = 170
 FACTS_LIMIT = 600
+LINE_LIMIT = 240  # one line of a page: long enough for a sentence, short of a whole paragraph
 ACTIONS = 6
 ACTION_LIMIT = 70
 ERROR_NOTES_AT = (2, 4)  # a failed streak of this length gets one deterministic note
@@ -106,37 +107,93 @@ def narration(messages: Sequence[Mapping[str, Any]]) -> str:
     return "\n".join(truncate(line, NARRATION_LIMIT) for line in lines[-NARRATION:])
 
 
-def _says_something(line: str) -> bool:
-    """A snapshot line with words in it, not a bare container and not a url."""
-    body = line.strip().strip("- ").strip()
-    if not body or body.startswith("/url:"):
-        return False
-    return bool(re.search(r'[:"]\s*\S', body))
+_CODE = re.compile(r"```(?:js|javascript|ts|typescript)\b.*?```", re.S)
+# A snapshot line: `- role "name" [attr] [ref=e12] [cursor=pointer]: text`. Groups: role, name,
+# and whatever follows the colon.
+_TREE = re.compile(
+    r"^-\s*(?P<role>[\w-]+)"  # the role
+    r'(?:\s+"(?P<name>(?:[^"\\]|\\.)*)")?'  # its quoted name, if any
+    r"(?:\s*\[[^\]]*\])*"  # [ref=e12] [cursor=pointer] [level=2] ...
+    r"\s*:?\s*(?P<text>.*)$"  # and what follows the colon
+)
+_NOISE = (
+    "###", "```", "[image]", "[Image", "- [Screenshot", "- Console:", "- New console",
+    "/url:", "Found ", "await page", "//",
+)  # fmt: skip
+_CONTAINERS = frozenset({"generic", "group", "list", "listitem", "main", "banner", "navigation",
+                         "contentinfo", "complementary", "region", "document", "img", "row",
+                         "rowgroup", "table", "cell", "form", "article", "section"})  # fmt: skip
+
+
+def page_line(line: str) -> str:
+    """One line of a tool result as what it says, or "" when it says nothing.
+
+    `- generic [ref=e276]: "Item total: $55.97"` becomes `Item total: $55.97`;
+    `- button "Finish" [ref=e255] [cursor=pointer]` becomes `button Finish`; a bare container,
+    Playwright's own code, a screenshot's path and a console count become nothing.
+    """
+    raw = line.strip()
+    if not raw:
+        return ""
+    if raw.startswith(("- Page URL:", "- Page Title:")):
+        return raw[2:].strip()
+    if raw.startswith(_NOISE):
+        return ""
+    match = _TREE.match(raw)
+    if not match:
+        return "" if raw.startswith("-") else raw
+    role, name = match["role"], (match["name"] or "").replace('\\"', '"')
+    text = match["text"].strip().strip('"').strip()
+    if role == "text":
+        return text
+    if role in _CONTAINERS:
+        return " ".join(part for part in (name, text) if part)
+    return " ".join(part for part in (role, name, text) if part) if (name or text) else ""
 
 
 def facts_seen(result: str, goal: str, budget: int = FACTS_LIMIT) -> str:
-    """What the page in front of the agent says, short enough to be part of `done`.
+    """What the result in front of the agent says, short enough to be part of `done`.
 
-    Measured reason this exists: with `done` built from the narration alone, `goal_met` stayed
-    at 0.01-0.03 right through a session that ended with the answer in hand (the first
-    HAIKU-LOOP run of 2026-10-02: twelve decisions, the guard silent in every one). A small
-    model narrates its intent - "let me take a screenshot" - and not its findings, so the
-    question was being asked about a record that held none. The page is where the findings are.
+    Measured reasons, both from 2026-10-02:
 
-    A snapshot is reduced by `browse.prune_snapshot` with no kept refs, which leaves the
-    headings and the text lines that bear on the goal: the same pruning the browse hook was
-    measured with, not a second copy of it.
+    - With `done` built from the narration alone, `goal_met` stayed at 0.01-0.03 right through
+      sessions that ended with the answer in hand: a small model narrates its intent ("let me
+      take a screenshot"), not its findings.
+    - The first fix passed anything that was not a snapshot through whole, cut at 600
+      characters. For a screenshot that was Playwright's code and an image path; for a
+      `browser_find` it was ten levels of `generic [ref=...]:` before the line that held the
+      total, which the cut then dropped. The guard counted that as having seen the page, and
+      stayed at 0.01-0.04 through a live session that ended with the totals on screen.
+
+    So every result - snapshot, `find`, click, screenshot - is reduced to the lines that say
+    something, in page order. A large snapshot is first pruned by `browse.prune_snapshot` (the
+    pruning the browse hook was measured with). If what is left is over `budget`, BM25 against
+    the goal picks which lines stay. A result with nothing to say returns "", and the guard
+    records that decision as blind.
     """
     from ..browse import prune_snapshot, snapshot_block
+    from ..text import BM25Index
 
     if not result.strip():
         return ""
-    span = snapshot_block(result)
-    if span is None:
-        return truncate(" ".join(result.split()), budget)
-    body, _ = prune_snapshot(result[span[0] : span[1]], [], purpose=goal, text_budget=budget)
-    lines = [x.strip().strip("- ").strip() for x in body.splitlines() if _says_something(x)]
-    return truncate("\n".join(lines), budget)
+    body = _CODE.sub("", result)
+    span = snapshot_block(body)
+    if span is not None and span[1] - span[0] > budget * 4:
+        pruned, _ = prune_snapshot(body[span[0] : span[1]], [], purpose=goal, text_budget=budget)
+        body = body[: span[0]] + pruned + body[span[1] :]
+    lines = list(
+        dict.fromkeys(truncate(x, LINE_LIMIT) for x in map(page_line, body.splitlines()) if x)
+    )
+    if sum(len(x) + 1 for x in lines) <= budget:
+        return "\n".join(lines)
+    scores = BM25Index(lines).scores(goal) if goal else [0.0] * len(lines)
+    keep, used = set(), 0
+    for i in sorted(range(len(lines)), key=lambda k: (-scores[k], k)):
+        if used + len(lines[i]) + 1 > budget:
+            continue
+        keep.add(i)
+        used += len(lines[i]) + 1
+    return "\n".join(lines[i] for i in sorted(keep))
 
 
 def established(messages: Sequence[Mapping[str, Any]], result: str = "", goal: str = "") -> str:

@@ -1,0 +1,12 @@
+### Ran Playwright code
+```js
+await page.locator('[data-test="finish"]').click();
+```
+### Page
+- Page URL: https://www.saucedemo.com/checkout-step-two.html
+- Page Title: Swag Labs
+- Console: 8 errors, 0 warnings
+### Snapshot
+- [Snapshot](.playwright-mcp\page-2026-10-02T14-42-06-433Z.yml)
+### Events
+- New console entries: .playwright-mcp\console-2026-10-02T14-41-10-419Z.log#L14-L24
