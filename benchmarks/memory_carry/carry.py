@@ -53,6 +53,13 @@ ALL_RULES = {**RULES, **CROSS_RULES}
 # memory v6.2, and session 1 says a neutral sentence where the rule was (nothing to remember).
 ARMS = ("N", "M", "V", "P")
 NEUTRAL = "For context: this module was written last spring by the platform team."
+# V starts with DECOYS standing rules of other scenes already in its store, as a project that has
+# been worked on carries rules unrelated to the task: the injection is not one conspicuous line,
+# and every unrelated rule is held against the diff (the false sends-back a real project pays).
+# A decoy never states the scene's own fact or a near one (SAME groups).
+DECOYS = 7
+SAME = ({"naive", "x_tz"}, {"stdlib", "x_stdlib"}, {"stdout", "x_print"}, {"ids", "x_zeros"},
+        {"envvar", "x_prefix"}, {"legacy", "nulls"})  # fmt: skip
 MODELS = {"haiku": "claude-haiku-4-5-20251001", "sonnet": "claude-sonnet-5-5"}
 PYTHON = sys.executable
 TOOLS = ["Bash", "Read", "Edit", "Write", "Glob", "Grep"]
@@ -185,11 +192,33 @@ def given(run: Path) -> list[str]:
     return [f"{r.get('event')}:{','.join(r['shown'])}" for r in rows if r.get("shown")]
 
 
+def decoys(name: str) -> list[str]:
+    """DECOYS other scenes' rules, the same ones for a scene at every repetition."""
+    near = set().union(*(group for group in SAME if name in group)) | {name}
+    pool = sorted(k for k in ALL_RULES if k not in near)
+    start = sum(map(ord, name)) % len(pool)
+    return [ALL_RULES[k] for k in (pool[start:] + pool[:start])[:DECOYS]]
+
+
+def seed(run: Path, repo: Path, name: str) -> None:
+    """The decoy rules in V's store, as earlier sessions of this project left them."""
+    rules = [{"text": text, "p": 0.9, "session": f"earlier-{i}", "index": 1,
+              "at": 1_790_000_000.0 + i * 3600, "files": ["app/other.py"]}
+             for i, text in enumerate(decoys(name))]  # fmt: skip
+    payload = json.dumps({"rules": rules[::-1], "asked": [], "audited": []})
+    key = project_name(repo)
+    for folder in {key, key[:1].lower() + key[1:], key[:1].upper() + key[1:]}:
+        (run / "store" / folder).mkdir(parents=True, exist_ok=True)
+        (run / "store" / folder / "rules.json").write_text(payload, encoding="utf-8")
+
+
 def pair(out: Path, name: str, model: str, arm: str, rep: int, keyfile: Path,
          dry: bool) -> dict[str, Any]:  # fmt: skip
     run = out / f"{name}-{model}-{arm}-{rep}"
     scene = SCENES[name]
     repo = build(run, scene)
+    if arm == "V":
+        seed(run, repo, name)
     said = scene["first"].replace(ALL_RULES[name], NEUTRAL) if arm == "P" else scene["first"]
     first = session(run, repo, said, model, arm, "session-1", keyfile, dry)
     row: dict[str, Any] = {"scene": name, "model": model, "arm": arm, "repeat": rep}
