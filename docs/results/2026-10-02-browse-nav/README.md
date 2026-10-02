@@ -458,7 +458,7 @@ site's size; a loop that reaches its cap fell short"). Development, Claude Code 
 | S1-S5, 3 runs (Sonnet: 3 on S3/S4, 1 elsewhere) | right | mean list USD | worst session |
 |---|---|---|---|
 | `claude-haiku-4-5`, unaided | 11/15 | 0.265 | 0.889 |
-| Haiku + v2 (in the first confirmation) | 13/15 | 0.136 | 0.397 |
+| Haiku + v2 (in the first confirmation) | 13/15 | 0.136 | 0.374 |
 | **Haiku + v5** | **14/15** | **0.066** | 0.118 |
 | `claude-sonnet-5`, unaided | 9/9 | 0.222 | 0.522 |
 | **Sonnet + v5** | 9/9 | **0.123** | 0.210 |
