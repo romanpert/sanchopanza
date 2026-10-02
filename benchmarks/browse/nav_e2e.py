@@ -204,11 +204,14 @@ def one_session(task: tuple, run: int, arm: str) -> dict[str, Any]:
     try:
         done = subprocess.run(argv, cwd=work, env=env, capture_output=True, timeout=TIMEOUT_S)
         out = json.loads(done.stdout.decode("utf-8", errors="replace") or "{}")
+        # The hook writes its reasons to stderr and the runner used to throw them away, which
+        # left a session whose hook never ran (B2 run 2, 2026-10-02) with nothing to read.
+        (work / "stderr.txt").write_bytes(done.stderr)
     except (subprocess.TimeoutExpired, ValueError) as error:
         out = {"is_error": True, "subtype": f"runner: {error.__class__.__name__}"}
     usage = out.get("usage") or {}
     answer = str(out.get("result") or "")
-    return {
+    row = {
         "task": tid, "run": run, "arm": arm, "model": MODELS[arm],
         "ok": not out.get("is_error", True), "subtype": out.get("subtype"),
         "success": base.graded(answer, required), "answer": answer[:800],
@@ -222,6 +225,13 @@ def one_session(task: tuple, run: int, arm: str) -> dict[str, Any]:
         "tools": mcp.tool_calls(work), "version": claude_version(work),
         "workdir": str(work),
     }  # fmt: skip
+    # A `-LOOP` session whose hook never decided is not a `-LOOP` session. One of the five run
+    # on 2026-10-02 had no journal at all with twenty tool calls in it, and the runner counted
+    # it as treated. A treatment that is not exercised is not a treatment: it is marked here
+    # and `counted()` drops it, so a resume runs it again.
+    if arm.endswith("-LOOP") and not row["jev_calls"]:
+        return {**row, "not_run": True, "subtype": "the hook never decided: hook absent"}
+    return row
 
 
 def claude_version(work: pathlib.Path) -> str:

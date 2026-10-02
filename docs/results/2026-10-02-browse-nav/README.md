@@ -285,3 +285,45 @@ extra turns getting out. **That is the only live signal left in this line**, and
 loop guard is now wired to attack (`harness/loop_hook.py`, a `PostToolUse` hook that advises and
 never denies). Whether it cuts those turns is the next measurement; the arms are HAIKU and
 HAIKU-LOOP on B1 and B2.
+
+## 11. The loop guard, run: it never spoke, and that is the result
+
+Arms HAIKU and HAIKU-LOOP on the two trap tasks, three runs each, 12 sessions, Claude Code
+2.1.287 throughout, 1.61 USD of subscription at list price and 0.00238 USD of Jev
+(`nav-loop.json`). Every session answered correctly in both arms, 12/12.
+
+| Task | HAIKU turns | HAIKU-LOOP turns | HAIKU USD | HAIKU-LOOP USD |
+|---|---|---|---|---|
+| B1 | 14, 17, 17 (16.0) | 18, 18, 18 (18.0) | 0.1123 | 0.1206 |
+| B2 | 37, 20, 19 (25.3) | 19, 21, 21 (20.3) | 0.1701 | 0.1340 |
+
+**The phase cannot inform on the hook, and saying so is the result.** The guard asked its two
+questions 12 to 14 times a session and `goal_met` came back 0.01-0.03 **every single time**,
+with `repeats_check` never over 0.35: across all 65 decisions of the five sessions where the hook
+ran, **none** was above the 0.70 the advice speaks over. (The sixth HAIKU-LOOP session, B2 run 2,
+has no journal: the hook never ran in it at all - see the commit, it is a runner fault - so that
+row is an untreated session under a treated label.) A guard that
+stays silent is the same treatment as no guard, so the two arms differ only by noise - and the
+difference flips sign between the tasks, which is what noise does. The 10 % lower mean cost of
+the LOOP arm rests entirely on one 37-turn HAIKU run on B2; drop it and the arms are the same.
+
+What the phase does establish, and it is worth having:
+
+- **The variance is enormous.** The same arm on the same task took 19, 20 and 37 turns. Three
+  runs is nowhere near enough for a turn-count comparison here; a future phase needs many more
+  runs, or pairing, or a measure less noisy than turns.
+- **The hook is cheap and harmless.** 12-14 decisions a session at 0.000037 USD each, 0.00045 to
+  0.00051 USD a session, which is 0.35 % of a 0.13 USD session, and it never changed an answer.
+- **Why it was silent is a diagnosis, not a tie**, and it had a fix within the hour: `done` held
+  the agent's narration, and a small model narrates intent rather than findings. With what the
+  page says added, the same question on the last step of four sessions that all ended with the
+  answer goes from a mean 0.19 to 0.50, and on the two whose answer was a figure on screen from
+  0.04 and 0.05 to **0.83 and 0.58** (`loop-probe.json`, 0.00033 USD of Jev). One of four crosses
+  the shipped threshold. That is a development read on four sessions; nothing is confirmed, and
+  the threshold has not been moved - this is the sample it was examined on.
+
+The fix ships unmeasured end to end, which is stated here rather than implied. What it needs is
+the thing this whole line now lacks, and section 9's conclusion stands: **no task set in which a
+Claude model of this class actually fails.** Both traps were solved first time by both models;
+all 20 sessions over the pilot, the mining run and this phase answered correctly. Every lever
+measures zero where nothing goes wrong.

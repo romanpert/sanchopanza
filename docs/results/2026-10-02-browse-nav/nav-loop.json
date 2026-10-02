@@ -1,0 +1,37 @@
+{
+ "sessions": 12,
+ "by_arm": {
+  "HAIKU": {
+   "model": "claude-haiku-4-5",
+   "sessions": 6,
+   "finished": 6,
+   "success": "6/6",
+   "median_turns": 19,
+   "mean_list_usd": 0.1412,
+   "total_list_usd": 0.8473
+  },
+  "HAIKU-LOOP": {
+   "model": "claude-haiku-4-5",
+   "sessions": 6,
+   "finished": 6,
+   "success": "6/6",
+   "median_turns": 19,
+   "mean_list_usd": 0.1273,
+   "total_list_usd": 0.7636
+  }
+ },
+ "by_task": {
+  "B1": {
+   "HAIKU": "3/3",
+   "HAIKU-LOOP": "3/3"
+  },
+  "B2": {
+   "HAIKU": "3/3",
+   "HAIKU-LOOP": "3/3"
+  }
+ },
+ "versions": [
+  "2.1.287"
+ ],
+ "list_usd_total": 1.6109
+}
