@@ -1,0 +1,44 @@
+{
+ "steps": 24,
+ "development": true,
+ "HAIKU-FULL": {
+  "model": "claude-haiku-4-5",
+  "steps": 24,
+  "accuracy": 0.5417,
+  "wilson95": [
+   0.3507,
+   0.7211
+  ],
+  "failed_sessions": 0,
+  "positive_shown": 1.0,
+  "list_usd_total": 1.8397,
+  "list_usd_per_step": 0.07665
+ },
+ "HAIKU20": {
+  "model": "claude-haiku-4-5",
+  "steps": 24,
+  "accuracy": 0.5,
+  "wilson95": [
+   0.3143,
+   0.6857
+  ],
+  "failed_sessions": 0,
+  "positive_shown": 0.9167,
+  "list_usd_total": 0.4177,
+  "list_usd_per_step": 0.0174
+ },
+ "HAIKU20-minus-HAIKU-FULL": {
+  "value": -0.0417,
+  "bootstrap95": [
+   -0.25,
+   0.1667
+  ],
+  "steps": 24
+ },
+ "reference_phase_2d_sonnet": {
+  "FULL": 0.5122,
+  "PAGE20": 0.5244,
+  "note": "through our evaluation harness with a forced schema, not this spawner"
+ },
+ "list_usd_spent_total": 2.5651
+}

@@ -168,13 +168,13 @@ async def test_a_browser_that_dies_is_not_a_measurement_of_the_loop():
 
 
 @pytest.mark.asyncio
-async def test_the_big_model_is_asked_only_below_the_cut():
-    """With no decider every element's probability is None, which counts as unsure."""
+async def test_the_big_model_is_asked_only_below_the_margin_cut():
+    """With no decider there is no margin at all, which counts as unsure."""
     browser = FakeBrowser(pages())
     small, small_seen = scripted(['{"act":"give_up","answer":"small"}'])
     big, big_seen = scripted(['{"act":"give_up","answer":"big"}'])
     out = await navigate("anything", browser=browser, actor=small, big_actor=big,
-                         escalate_below=0.8)  # fmt: skip
+                         escalate_margin_below=0.2)  # fmt: skip
     assert out.answer == "big"
     assert (len(small_seen), len(big_seen)) == (0, 1)
     assert out.steps[0].escalated is True
@@ -183,7 +183,7 @@ async def test_the_big_model_is_asked_only_below_the_cut():
     small, small_seen = scripted(['{"act":"give_up","answer":"small"}'])
     big, big_seen = scripted(['{"act":"give_up","answer":"big"}'])
     out = await navigate("anything", browser=browser, actor=small, big_actor=big,
-                         escalate_below=None)  # fmt: skip
+                         escalate_margin_below=None)  # fmt: skip
     assert out.answer == "small"
     assert (len(small_seen), len(big_seen)) == (1, 0)
 
@@ -208,3 +208,46 @@ def test_a_key_press_is_an_action_and_needs_a_key():
     assert (pressed.kind, pressed.text, pressed.line()) == ("press", "Enter", "press Enter")
     assert parse_action('{"act":"press","text":"Enter"}').text == "Enter"
     assert parse_action('{"act":"press"}').kind == ""
+
+
+class FakeSquire:
+    """A squire whose ranking hands back the probabilities a test wants, in element order."""
+
+    def __init__(self, probabilities: list[float]) -> None:
+        self.probabilities = probabilities
+
+    async def decide(self, point, state, questions):
+        from sanchopanza.answers import truth
+        from sanchopanza.contract import Decision
+
+        keys = list(questions)
+        return Decision(
+            point=point,
+            answers={k: truth(p) for k, p in zip(keys, self.probabilities, strict=False)},
+            provider="fake",
+            model="fake",
+        )
+
+    def record(self, decision, **_: object) -> None:
+        return None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("probabilities", "escalates"),
+    [
+        ([0.90, 0.40, 0.30, 0.20, 0.10], False),  # a wide margin: the small model acts
+        ([0.90, 0.88, 0.30, 0.20, 0.10], True),  # as high a p1, no margin: the big one does
+    ],
+)
+async def test_the_margin_decides_the_escalation_and_not_the_probability(probabilities, escalates):
+    """Section 2 of docs/results/2026-10-02-browse-nav: p1 says nothing, the margin does."""
+    browser = FakeBrowser(pages())
+    small, small_seen = scripted(['{"act":"give_up","answer":"small"}'])
+    big, big_seen = scripted(['{"act":"give_up","answer":"big"}'])
+    out = await navigate("anything", browser=browser, actor=small, big_actor=big,
+                         squire=FakeSquire(probabilities), escalate_margin_below=0.15)  # fmt: skip
+    assert out.answer == ("big" if escalates else "small")
+    assert bool(big_seen) is escalates
+    assert bool(small_seen) is not escalates
+    assert out.steps[0].top_p == pytest.approx(0.90, abs=0.05)

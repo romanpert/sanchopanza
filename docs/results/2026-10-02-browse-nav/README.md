@@ -112,6 +112,8 @@ page) and what nobody has measured for Haiku.
 
 ## 5. What the live phase has to be, then, and the control that can kill it
 
+(Sections 6 and 7 are what running it found; read them with this one.)
+
 Arms, on multi-step tasks (10-30 steps) on stable sites, graded by required substrings:
 
 1. **Baseline**: a `claude-sonnet-5` Claude Code session with Playwright MCP (the harness
@@ -141,3 +143,95 @@ the sessions go through the subscription at list price, 7-9 USD a phase, which i
   package has no LLM client and no browser dependency, and does not grow one for this. In the
   live phase the small model is Claude Code's own subagent and the browser is Playwright MCP.
 - `tests/test_navigate.py`: 15 tests, no model and no browser.
+
+## 6. The pilot: on tasks a cheap model can already do, there is nothing to add
+
+Two of the six tasks, one run each, both arms, 2026-10-02, Claude Code 2.1.287 throughout
+(`nav-pilot.json`). A smoke run: one session per cell, so it settles direction and not size.
+
+| Arm | Success | Median turns | Mean list USD |
+|---|---|---|---|
+| SONNET (`claude-sonnet-5`) | 2/2 | 18 | 0.4454 |
+| HAIKU (`claude-haiku-4-5`) | 2/2 | 18 | 0.1864 |
+
+**Haiku answered both, in the same number of turns, for 2.4 times less, with nothing of ours in
+the session.** The tasks are in the regime this phase went looking for (17 and 18 turns, against
+the four turns of everything in `2026-09-30-browse`), and the cheap model needed no help in it.
+So the honest reading of the pilot is the one that costs us the claim: on tasks like these the
+ranking has nothing to add, and the advice is "use the cheap model".
+
+Two things the pilot found that no cost table shows:
+
+- **Haiku navigated A1 by screenshots**: six `browser_take_screenshot` and no
+  `browser_snapshot`. Our ranking and our hook read the accessibility snapshot. A model that
+  looks at pixels never reaches the lever, whatever the lever is worth. Where a cut or a ranking
+  attaches is not a detail of the design; on that task it decided whether it ran at all.
+- A session at 17-18 turns costs 0.36-0.53 USD, above the 0.30 the 3-12 turn curve predicts:
+  the growth is slightly superlinear, as a history that is re-read should be.
+
+## 7. Why the stateless loop cannot be one Claude Code session per step
+
+Measured, and it changes the shape of the thing: a `claude -p` session on `claude-haiku-4-5`
+with **no tools and the prompt "Reply with the number 7 and nothing else"** costs **0.0196 USD**
+(26,523 tokens read from cache, 7,865 written, 48 out). That is the floor of a session, before
+any page.
+
+A warm turn of a browsing session costs 0.0143 USD (section 4). **So a loop that spends one
+isolated session per step pays more per step than the agent turn it is replacing**, on the
+cheapest model there is, with an empty prompt. The stateless loop is still the right idea - a
+step whose price does not grow with the step number - but it can only be paid for inside one
+long-lived cheap context: a subagent of the host harness, whose turns are the small model's and
+whose history never enters the main model's. That is item 3 of the handover, and it turns out to
+be the only shape of the four that the arithmetic allows.
+
+It also means the per-step costs in `pick.json` are this floor plus a prompt, and are **not**
+comparable with Phase 2d's 0.012-0.097 USD a step through our evaluation harness (which is not
+installed on this machine). Only the accuracies there are read.
+
+## 8. And the cheap model does not need the ranking to pick well either
+
+The pilot's tasks were easy, so the claim was taken to where picking is hard: the 82 Mind2Web
+steps of Phase 2d, real pages of 552 elements with the needed action known. `pick.py`, first 24
+of them, development, `claude -p` with no tools, the rankings replayed free:
+
+| Arm | Accuracy [95 %] | Right element shown | List USD / step |
+|---|---|---|---|
+| HAIKU-FULL (every element) | 54.2 % [35.1, 72.1] | 100 % | 0.0767 |
+| HAIKU20 (Jev's top 20, page order) | 50.0 % [31.4, 68.6] | 91.7 % | 0.0174 |
+| HAIKU20 - HAIKU-FULL | **-4.2 points [-25.0, +16.7]** | | |
+| *Sonnet, Phase 2d, other elicitation* | *FULL 51.2 %, PAGE20 52.4 %* | | |
+
+**Haiku picks as well as Sonnet, from the whole page or from the top twenty, and the ranking
+does not make it better.** 24 steps cannot confirm an equality - the interval is 41 points wide -
+but there is no sign of the effect the claim needs, and the four numbers sit within three points
+of each other. Both models at about 50 % also looks like this benchmark's own ceiling, which
+Phase 2c noted: several elements can be right and one is labelled.
+
+So the capability argument of section 4 does not hold where it was supposed to hold. What the
+ranking still does, measured here, is make the prompt **4.4 times cheaper** at no accuracy cost
+that 24 steps can see, with the right element in view in 91.7 % of them. That is avoidance
+again, with the ceiling avoidance has.
+
+## 9. Where this leaves browsing, said plainly
+
+Three claims of the handed-over design were tested against data that already existed or cost
+little, and three failed:
+
+1. The ranking cannot act alone (no cut, section 1).
+2. The probability cannot say when to escalate (section 2; the margin can, section 3, and the
+   loop now uses the margin).
+3. The ranking does not make a cheap model able - not on multi-step tasks it can already do
+   (section 6), and not on hard pages where it picks as well as the expensive one (section 8).
+
+What stands from the whole line is what `2026-09-30-browse/` already published: the ranking is a
+good tool on its own terms (the step's element in its top 20 in 89.4 % of new steps, 0.0065 USD),
+and the hook makes a session 17-22 % cheaper where a large snapshot arrives inline. Both are
+avoidance, and avoidance is the lever that pays least.
+
+**The number nobody has measured is not ours.** A navigation turn costs what the model taking it
+costs: 0.0045 USD on Haiku, 0.0135 on Sonnet, 0.0673 on Opus, for the same 44,881 tokens. A
+17-turn task inside the main session therefore costs an Opus user about 1.14 USD and a Haiku
+subagent about 0.08. That is 15x, it comes from the price list rather than from any decision of
+ours, and the pilot says the cheap model does the task. If that is the finding, it belongs in
+`where-it-pays` as a limit on our own claims: **in browsing, choosing who takes the turn beats
+anything we do to what they read.**

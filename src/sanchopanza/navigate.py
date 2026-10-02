@@ -221,7 +221,7 @@ async def navigate(
     actor: Actor,
     squire: Any = None,
     big_actor: Actor | None = None,
-    escalate_below: float | None = None,
+    escalate_margin_below: float | None = None,
     keep: int = KEEP,
     max_steps: int = MAX_STEPS,
     text_budget: int = TEXT_BUDGET,
@@ -230,10 +230,16 @@ async def navigate(
 ) -> Outcome:
     """Act towards `goal` until the page answers it, the steps run out or the loop is stuck.
 
-    `escalate_below` sends the step to `big_actor` when the ranking's best element scores below
-    it (so the shortlist is probably missing the right element), and `big_actor` is also the
-    one asked for the final answer when it is given. With no `squire` the ranking is BM25,
-    which is the control arm.
+    `escalate_margin_below` sends the step to `big_actor` when the distance between the best
+    element's probability and the second's falls below it. **It is the margin and not the
+    probability on purpose**: on 311 recorded steps the probability of the best element says
+    nothing about whether the top 20 even holds the right one (89.5 % below a 0.85 cut against
+    89.2 % above it), while the margin predicts the best element being right and gives the same
+    reading on both sets - 77-82 % on the fifth of steps above 0.20, where the probability gave
+    68-72 % (`docs/results/2026-10-02-browse-nav/`, sections 2 and 3). A step whose ranking has
+    no probabilities at all escalates too, since there is nothing to be sure from.
+
+    With no `squire` the ranking is BM25, which is the control arm.
     """
     out = Outcome(goal=goal)
     done: list[str] = []
@@ -248,7 +254,9 @@ async def navigate(
         page = elements_from_snapshot(snapshot)
         ranked = await rank(goal, page, squire=squire, done=done, keep=keep, shortlist=shortlist)
         top_p, margin = _margin(ranked)
-        unsure = escalate_below is not None and (top_p is None or top_p < escalate_below)
+        unsure = escalate_margin_below is not None and (
+            margin is None or margin < escalate_margin_below
+        )
         ask = big_actor if (unsure and big_actor is not None) else actor
         body = render(ranked, total=len(page), title=title, url=url, page=page)
         text = await ask(
