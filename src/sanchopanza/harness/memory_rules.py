@@ -74,13 +74,13 @@ def _norm(text: str) -> str:
 
 
 async def extract(squire: Squire, store: Path, episodes: Sequence[ep.Episode]) -> list[str]:
-    """New standing rules from the requests not asked yet; the texts added."""
+    """New standing rules from the requests not asked yet; the texts added. A request is marked
+    asked only when every one of its sentences got an answer (a decider error retries later)."""
     import asyncio
 
     from ..points import rules as points
 
-    data = load(store)
-    asked = set(data["asked"])
+    asked = set(load(store)["asked"])
     fresh = [e for e in episodes if e.key not in asked and e.request.strip()]
     if not fresh:
         return []
@@ -92,17 +92,23 @@ async def extract(squire: Squire, store: Path, episodes: Sequence[ep.Episode]) -
         answer = decision.answer("rule")
         return None if decision.failed or answer.empty else answer.truth
 
-    found = await asyncio.gather(*(ask(s, e.request) for e, s in pending))
-    known = {_norm(r["text"]) for r in data["rules"]}
-    added: list[dict[str, Any]] = []
-    for (episode, sentence), p in zip(pending, found, strict=True):
-        if p is not None and p >= STANDING_AT and _norm(sentence) not in known:
-            known.add(_norm(sentence))
-            added.append({"text": sentence, "p": round(p, 3), "session": episode.session,
-                          "index": episode.index, "at": episode.at or time.time(),
-                          "files": list(episode.changed[:4])})  # fmt: skip
-    rules = sorted([*data["rules"], *added], key=lambda r: -float(r.get("at") or 0))[:KEEP_MAX]
-    _save(store, {**data, "rules": rules, "asked": [*data["asked"], *(e.key for e in fresh)]})
+    found = await asyncio.gather(*(ask(s, e.request) for e, s in pending),
+                                 return_exceptions=True)  # fmt: skip
+    answers = [p if isinstance(p, float) else None for p in found]
+    unanswered = {e.key for (e, _), p in zip(pending, answers, strict=True) if p is None}
+    with ep.locked(_path(store)):  # another session's Stop may have written meanwhile
+        data = load(store)
+        known = {_norm(r["text"]) for r in data["rules"]}
+        added: list[dict[str, Any]] = []
+        for (episode, sentence), p in zip(pending, answers, strict=True):
+            if p is not None and p >= STANDING_AT and _norm(sentence) not in known:
+                known.add(_norm(sentence))
+                added.append({"text": sentence, "p": round(p, 3), "session": episode.session,
+                              "index": episode.index, "at": episode.at or time.time(),
+                              "files": list(episode.changed[:4])})  # fmt: skip
+        rules = sorted([*data["rules"], *added], key=lambda r: -float(r.get("at") or 0))
+        done = [e.key for e in fresh if e.key not in unanswered and e.key not in data["asked"]]
+        _save(store, {**data, "rules": rules[:KEEP_MAX], "asked": [*data["asked"], *done][-2000:]})
     return [r["text"] for r in added]
 
 
@@ -138,37 +144,49 @@ def _git(cwd: str, *args: str) -> str | None:
     return done.stdout.decode("utf-8", errors="replace") if done.returncode == 0 else None
 
 
-def _new_files(cwd: str) -> str:
-    """Files the request created and git does not track yet, as added lines: `git diff` leaves
+def _new_files(cwd: str, paths: Sequence[str]) -> str:
+    """Of the request's files, those git does not track yet, as added lines: `git diff` leaves
     them out, and a new module is where a rule is most often broken (the cross-file scenes).
     Read without touching the index (no `git add -N`); secrets-like names are skipped."""
     from ..context.worktree import _secret
 
-    listed = _git(cwd, "ls-files", "--others", "--exclude-standard", "-z", "--", ".", *_SKIP)
+    listed = _git(cwd, "ls-files", "--others", "--exclude-standard", "-z", "--", *paths)
     out, room = [], NEW_FILE_BYTES
     for rel in (listed or "").split("\0"):
         path = Path(cwd) / rel
-        if not rel or _secret(rel) or not path.is_file() or path.stat().st_size > room:
+        try:
+            if not rel or _secret(rel) or not path.is_file() or path.stat().st_size > room:
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
             continue
-        text = path.read_text(encoding="utf-8", errors="replace")
         room -= len(text)
         added = "".join(f"+{line}\n" for line in text.splitlines())
         out.append(f"+++ b/{rel} (new file)\n{added}")
     return "".join(out)
 
 
-def _diff(cwd: str, head: str) -> str:
-    """The request's change since its start: the working tree against the commit it began at
-    (commits made during the request included) and the files it created, tests left out."""
-    if not cwd or not head:
+def _tested(rel: str) -> bool:
+    name = rel.replace("\\", "/")
+    return bool(re.search(r"(^|/)tests?/|(^|/)test_[^/]*$|_test\.[^/]+$", name))
+
+
+def _diff(cwd: str, head: str, paths: Sequence[str]) -> str:
+    """The request's own change: the files it wrote (`paths`, relative to `cwd`), against the
+    commit it began at (commits made during the request included), plus the ones it created.
+    Never the rest of the tree: a person's uncommitted edit is not the request's (review, H1)."""
+    mine = [p for p in dict.fromkeys(paths) if p and not _tested(p)]
+    if not cwd or not head or not mine:
         return ""
-    tracked = _git(cwd, "diff", "--no-color", head, "--", ".", *_SKIP)
-    return (tracked or "") + _new_files(cwd)
+    tracked = _git(cwd, "diff", "--no-color", head, "--", *mine)
+    return (tracked or "") + _new_files(cwd, mine)
 
 
-async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
-                head: str) -> tuple[list[dict[str, Any]], dict[str, float | None]]:  # fmt: skip
-    """(rules the request's diff confidently breaks, every probability). Once per request."""
+async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str, head: str,
+                paths: Sequence[str],
+                ) -> tuple[list[dict[str, Any]], dict[str, float | None]]:  # fmt: skip
+    """(rules the request's diff confidently breaks, every probability). Once per request: the
+    mark is written when the answers are in, so a timeout leaves the request to be asked."""
     import asyncio
 
     from ..points import rules as points
@@ -180,10 +198,9 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
     own = [r for r in data["rules"]
            if not (r.get("session") == session and r.get("index") == index)]
     held = own[:CHECK_MAX]
-    change = _diff(cwd, head) if held else ""
+    change = _diff(cwd, head, paths) if held else ""
     if not change.strip():
         return [], {}
-    _save(store, {**data, AUDITED: [*data[AUDITED], key][-500:]})
 
     async def ask(rule: Mapping[str, Any]) -> float | None:
         state, qs = points.questions_for_change(str(rule["text"]), change)
@@ -191,9 +208,15 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
         answer = decision.answer("kept")
         return None if decision.failed or answer.empty else answer.truth
 
-    found = await asyncio.gather(*(ask(r) for r in held))
-    probabilities = {str(r["text"])[:80]: p for r, p in zip(held, found, strict=True)}
-    broken = [r for r, p in zip(held, found, strict=True) if p is not None and p < BROKEN_BELOW]
+    found = await asyncio.gather(*(ask(r) for r in held), return_exceptions=True)
+    answers = [p if isinstance(p, float) else None for p in found]
+    with ep.locked(_path(store)):
+        latest = load(store)
+        if key in latest[AUDITED]:  # another Stop of this request got here first
+            return [], {}
+        _save(store, {**latest, AUDITED: [*latest[AUDITED], key][-500:]})
+    probabilities = {str(r["text"])[:80]: p for r, p in zip(held, answers, strict=True)}
+    broken = [r for r, p in zip(held, answers, strict=True) if p is not None and p < BROKEN_BELOW]
     return broken, probabilities
 
 

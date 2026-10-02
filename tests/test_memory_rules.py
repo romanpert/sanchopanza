@@ -23,6 +23,7 @@ from .context_helpers import ScriptedDecider
 
 needs_git = pytest.mark.skipif(shutil.which("git") is None, reason="no git")
 RULE = "Ops sets PAYMENT_TIMEOUT by that exact name in every deployment, it can't be renamed."
+MINE = ["app/config.py"]
 
 
 def by_words(point: str, key: str, state: Any) -> float | None:
@@ -91,9 +92,9 @@ def test_a_diff_that_breaks_a_rule_is_found_once_per_request(tmp_path: Path) -> 
     asyncio.run(mr.extract(squire(), store, [episode(RULE, session="old")]))
     (repo / "app" / "config.py").write_text(
         "def load():\n    return {\n    'timeout': env('APP_PAYMENT_TIMEOUT'),\n    }\n", "utf-8")
-    broken, found = asyncio.run(mr.audit(squire(), store, "new", 1, str(repo), head))
+    broken, found = asyncio.run(mr.audit(squire(), store, "new", 1, str(repo), head, MINE))
     assert [r["text"] for r in broken] == [RULE] and list(found.values()) == [0.1]
-    assert asyncio.run(mr.audit(squire(), store, "new", 1, str(repo), head)) == ([], {})
+    assert asyncio.run(mr.audit(squire(), store, "new", 1, str(repo), head, MINE)) == ([], {})
     assert "in their words" in mr.block_reason(broken) and RULE in mr.block_reason(broken)
 
 
@@ -105,9 +106,10 @@ def test_a_new_file_git_does_not_track_is_part_of_the_change(tmp_path: Path) -> 
     asyncio.run(mr.extract(squire(), store, [episode(RULE, session="old")]))
     (repo / "app" / "mailer.py").write_text("HOST = env('APP_PAYMENT_TIMEOUT')\n", "utf-8")
     (repo / ".env.local").write_text("SECRET=1\n", "utf-8")
-    assert "+++ b/app/mailer.py (new file)" in mr._diff(str(repo), head)
-    assert ".env.local" not in mr._diff(str(repo), head)
-    broken, _ = asyncio.run(mr.audit(squire(), store, "new", 1, str(repo), head))
+    mine = ["app/mailer.py", ".env.local"]
+    assert "+++ b/app/mailer.py (new file)" in mr._diff(str(repo), head, mine)
+    assert ".env.local" not in mr._diff(str(repo), head, mine)
+    broken, _ = asyncio.run(mr.audit(squire(), store, "new", 1, str(repo), head, mine))
     assert [r["text"] for r in broken] == [RULE]
 
 
@@ -117,7 +119,7 @@ def test_a_rule_is_not_held_against_the_request_that_stated_it(tmp_path: Path) -
     head = _repo(repo)
     asyncio.run(mr.extract(squire(), store, [episode(RULE, session="s1", index=1)]))
     (repo / "app" / "config.py").write_text("def load():\n    return {}\n", "utf-8")
-    assert asyncio.run(mr.audit(squire(), store, "s1", 1, str(repo), head)) == ([], {})
+    assert asyncio.run(mr.audit(squire(), store, "s1", 1, str(repo), head, MINE)) == ([], {})
 
 
 @needs_git
@@ -126,7 +128,8 @@ def test_no_change_no_question(tmp_path: Path) -> None:
     head = _repo(repo)
     asyncio.run(mr.extract(squire(), store, [episode(RULE, session="old")]))
     decider = ScriptedDecider(by_words)
-    assert asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head)) == ([], {})
+    assert asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head, MINE)) == (
+        [], {})
     assert decider.calls == []
 
 
@@ -198,3 +201,42 @@ def test_the_rules_can_be_turned_off(hook_env: Path, monkeypatch: pytest.MonkeyP
     event = {"session_id": "s", "cwd": "C:/x", "transcript_path": str(hook_env / "projects" /
              "p" / "s.jsonl"), "hook_event_name": "SessionStart", "source": "startup"}  # fmt: skip
     assert mh.handle(event) == {}
+
+
+# ---- review of v7 (2026-10-02): H1, M4, M7 -------------------------------------------------------
+
+
+@needs_git
+def test_review_h1_a_persons_uncommitted_edit_is_not_the_requests(tmp_path: Path) -> None:
+    repo, store = tmp_path / "repo", tmp_path / "store"
+    head = _repo(repo)
+    asyncio.run(mr.extract(squire(), store, [episode(RULE, session="old")]))
+    (repo / "app" / "config.py").write_text("x = env('APP_PAYMENT_TIMEOUT')\n", "utf-8")
+    (repo / "app" / "other.py").write_text("y = 1\n", "utf-8")
+    decider = ScriptedDecider(by_words)
+    out = asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head,
+                               ["app/other.py"]))  # fmt: skip
+    assert out[0] == [] and all("APP_PAYMENT" not in c[1]["change"] for c in decider.calls)
+    assert asyncio.run(mr.audit(squire(), store, "new", 2, str(repo), head, [])) == ([], {})
+
+
+def test_review_m4_tagged_blocks_and_long_pastes_give_no_rule() -> None:
+    text = ("Fix the importer for empty rows.\n<bash-stdout>\n"
+            "Always run ./setup.sh before committing.\n</bash-stdout>\n"
+            "<ide_selection>Never use the cache layer anywhere.</ide_selection>")
+    assert sentences(text) == ["Fix the importer for empty rows."]
+    paste = "Look at this log:\n" + "\n".join(f"line {i}: never retry the call" for i in range(40))
+    assert len(sentences(paste)) <= 20
+
+
+def test_review_m4_the_stop_hooks_own_feedback_is_not_a_request() -> None:
+    assert not ep.is_request({"role": "user", "content": "Stop hook feedback: [sanchopanza ..."})
+
+
+def test_review_m7_a_request_the_decider_failed_on_is_asked_again(tmp_path: Path) -> None:
+    def down(point: str, key: str, state: Any) -> float | None:
+        return None
+
+    asyncio.run(mr.extract(Squire(ScriptedDecider(down)), tmp_path, [episode(RULE)]))
+    assert mr.load(tmp_path)["asked"] == []
+    assert asyncio.run(mr.extract(squire(), tmp_path, [episode(RULE)])) == [RULE]

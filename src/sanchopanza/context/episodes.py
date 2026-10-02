@@ -75,7 +75,7 @@ TESTED = "last test run: "
 # an interrupted request (recorded as a request in SWE-chat and scored 0.90 against an unrelated
 # record, 2026-10-01).
 NOT_ASKED = (guard_mod.HEADER, "[sanchopanza memory", "<task-notification>",
-             "[Request interrupted by user",
+             "[Request interrupted by user", "Stop hook feedback:",
              "This session is being continued from a previous conversation")  # a summary
 UNFINISHED = "(the request ended before the agent finished; its last text follows) "
 _TAGS = re.compile(r"</?[\w-]+>")

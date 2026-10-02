@@ -795,24 +795,39 @@ def rules_at_stop(event: Mapping[str, Any], seen: Recorded,
     check = bool(start) and start.get("index") == seen.requests \
         and not event.get("stop_hook_active")  # fmt: skip
 
-    async def both() -> tuple[list[str], list[dict[str, Any]], dict[str, float | None]]:
-        added = await memory_rules.extract(squire, store, seen.episodes[-3:])
-        if not check or start is None:
-            return added, [], {}
-        broken, found = await memory_rules.audit(
-            squire, store, session, seen.requests, str(start.get("root") or start.get("cwd")),
-            str(start.get("head") or ""))  # fmt: skip
-        return added, broken, found
+    seconds = _int("MEMORY_RULES_SECONDS", 20)
 
-    seconds = _int("MEMORY_RULES_SECONDS", 25)
-    try:
-        added, broken, found = asyncio.run(asyncio.wait_for(both(), seconds))
-    except TimeoutError:
-        _log({"event": "rules", "reason": f"timed out after {seconds} s"})
-        return {}
+    async def checked() -> tuple[list[dict[str, Any]], dict[str, float | None]]:
+        if not check or start is None:
+            return [], {}
+        return await memory_rules.audit(
+            squire, store, session, seen.requests, str(start.get("cwd") or ""),
+            str(start.get("head") or ""), wrote_by(store, session, seen.requests))  # fmt: skip
+
+    async def both() -> tuple[Any, Any]:
+        return await asyncio.gather(  # side by side, each with its own deadline
+            asyncio.wait_for(memory_rules.extract(squire, store, seen.episodes[-3:]), seconds),
+            asyncio.wait_for(checked(), seconds), return_exceptions=True)  # fmt: skip
+
+    extracted, audited = asyncio.run(both())
+    added = extracted if isinstance(extracted, list) else []
+    broken, found = audited if isinstance(audited, tuple) else ([], {})
+    for part, value in (("extract", extracted), ("audit", audited)):
+        if isinstance(value, BaseException):
+            _log({"event": "rules", "part": part, "error": f"{value.__class__.__name__}"})
     _log({"event": "rules", "added": added, "checked": found,
           "broken": [r["text"] for r in broken]})  # fmt: skip
     return {"decision": "block", "reason": memory_rules.block_reason(broken)} if broken else {}
+
+
+def wrote_by(store: Path, session: str, index: int) -> list[str]:
+    """The files request `index` wrote (`memory_tree.finish_tree`, relative to where its
+    session started): the only ones its audit reads."""
+    try:
+        data = json.loads(memory_tree.tree_path(store, session, index).read_text("utf-8"))
+    except (OSError, ValueError):
+        return []
+    return [str(x) for x in data.get("changed") or []] if isinstance(data, dict) else []
 
 
 def at_session_start(event: Mapping[str, Any]) -> dict[str, Any]:
@@ -821,7 +836,8 @@ def at_session_start(event: Mapping[str, Any]) -> dict[str, Any]:
     from . import memory_rules
 
     if event.get("source") == "compact":
-        after_compaction(event)
+        with contextlib.suppress(Exception):  # the rules still come if this fails
+            after_compaction(event)
     text = memory_rules.render(store_for(event)) if memory_rules.rules_on() else ""
     _log({"event": "SessionStart", "source": event.get("source"), "rules_chars": len(text)})
     if not text:

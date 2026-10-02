@@ -33,6 +33,10 @@ SENTENCE_MAX = 400
 REQUEST_LIMIT = 1_500
 CHANGE_LIMIT = 8_000
 SENTENCES_MAX = 16
+PROMPT_LINES = 20  # past these, a request is a paste: a rule is said in its first lines
+# Tagged blocks are not the person typing: bash-mode output, an IDE selection, a notification,
+# another session's message (review of v7, M4). Removed whole before splitting.
+_TAGGED = re.compile(r"<([A-Za-z][\w-]*)\b[^>]*>.*?</\1\s*>", re.S)
 
 STANDING = Truth(
     "Is `sentence`, written by the person directing a coding agent in `request`, a standing "
@@ -44,10 +48,10 @@ STANDING = Truth(
             "runs (versions, platforms, no network, allowed libraries); or an 'always' or "
             "'never' about how the project may be changed",
             "examples": [
-                "The billing service parses these CSV headers, so they can't change.",
-                "We still deploy on Node 18, nothing newer.",
+                "Every database migration has to be reversible, with a working down step.",
+                "User-facing strings always go through t() so the translators can find them.",
                 "Never commit straight to main; everything goes through a pull request.",
-                "Keep the old /v1/orders route: two partners still call it.",
+                "New feature flags must default to off in production.",
             ],
         },
         "false": {
@@ -72,10 +76,11 @@ KEPT = Truth(
             "it was, or is changed in a way the rule allows (kept under the same name, kept in "
             "the same format, an alias kept for an old name)",
             "examples": [
-                "rule: 'the billing service reads price_cents, keep it'; the change adds a "
-                "discount field and leaves price_cents as it was",
-                "rule: 'this job must never write to stdout'; the change adds progress messages "
-                "through the logging module",
+                "rule: 'every migration must be reversible'; the change adds a migration whose "
+                "down step drops the column the up step adds",
+                "rule: 'user-facing strings go through t()'; the change adds a button labelled "
+                "t('Save draft')",
+                "rule: 'feature flags default to off'; the change edits a flag's description only",
             ],
         },
         "false": {
@@ -83,12 +88,11 @@ KEPT = Truth(
             "rewords what the rule protects, adds what the rule forbids, or makes the code "
             "depend on what the rule excludes",
             "examples": [
-                "rule: 'the billing service reads price_cents, keep it'; the change drops "
-                "price_cents as redundant with price",
-                "rule: 'error codes are parsed by a partner, do not change them'; the change "
-                "rewrites the messages to be friendlier",
-                "rule: 'this job must never write to stdout'; the change adds print() calls to "
-                "report progress",
+                "rule: 'every migration must be reversible'; the change adds a migration that "
+                "drops a table and has no down step",
+                "rule: 'user-facing strings go through t()'; the change adds a button labelled "
+                "'Save draft' written directly in the template",
+                "rule: 'feature flags default to off'; the change adds a flag whose default is on",
             ],
         },
     },
@@ -102,9 +106,10 @@ _SPLIT = re.compile(r"(?<!\be\.g\.)(?<!\bi\.e\.)(?<!\betc\.)(?<!\bvs\.)(?<=[.!?]
 def sentences(text: str) -> list[str]:
     """The person's sentences worth asking about, in order (code blocks and long pastes left
     out: a rule is said, not pasted)."""
-    clean = re.sub(r"```.*?```", " ", text or "", flags=re.S)
+    clean = _TAGGED.sub(" ", re.sub(r"```.*?```", " ", text or "", flags=re.S))
+    lines = [line for line in clean.splitlines() if line.strip()][:PROMPT_LINES]
     out = []
-    for part in _SPLIT.split(clean):
+    for part in _SPLIT.split("\n".join(lines)):
         part = part.strip(" -*\t")
         if SENTENCE_MIN <= len(part) <= SENTENCE_MAX and not part.startswith(("<", "{", "[")):
             out.append(part)
