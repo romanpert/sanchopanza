@@ -236,17 +236,21 @@ async def judged_position(goal: str, squire: Any, cache_dir: Path, *, over: bool
     """`asks_for_position`, decided by the decider when there is one and the session is under
     its ceiling. Asked once per request and session (`cache_dir/position.json`); a provider
     that is absent, down or out of budget leaves the word rule to decide."""
+    from ..context import archive as archive_mod
     from ..contract import Truth
 
     request = _request_of(goal)
-    if over or not request:
+    if not request:
         return asks_for_position(goal)
     cache = cache_dir / "position.json"
     known: dict[str, Any] = {}
-    with contextlib.suppress(OSError, ValueError):
+    with contextlib.suppress(OSError, ValueError, TypeError):  # unreadable: ask again
         known = dict(json.loads(cache.read_text(encoding="utf-8")))
     if isinstance(known.get(request), (int, float)):
+        # read even past the ceiling: a request judged a place stays one for the session
         return float(known[request]) >= POSITION_CUT
+    if over:
+        return asks_for_position(goal)
     question = Truth(instructions=POSITION_INSTRUCTIONS, criteria=POSITION_CRITERIA)
     decision = await squire.decide(POSITION_POINT, {"request": request}, {"position": question})
     answer = decision.answer("position")
@@ -255,7 +259,10 @@ async def judged_position(goal: str, squire: Any, cache_dir: Path, *, over: bool
     squire.record(decision, request_chars=len(request))
     with contextlib.suppress(OSError):
         cache_dir.mkdir(parents=True, exist_ok=True)
-        cache.write_text(json.dumps({**known, request: answer.truth}), encoding="utf-8")
+        archive_mod.keep_out_of_git(cache)  # it holds the user's words
+        partial = cache.with_suffix(f".{id(decision)}.tmp")
+        partial.write_text(json.dumps({**known, request: answer.truth}), encoding="utf-8")
+        partial.replace(cache)  # a hook running beside this one never reads half a file
     return answer.truth >= POSITION_CUT
 
 

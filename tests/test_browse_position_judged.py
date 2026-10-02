@@ -47,6 +47,29 @@ def test_without_a_decider_or_past_the_ceiling_the_rule_decides(tmp_path: Path) 
     assert yes.calls == 0, "past the ceiling nothing is asked"
 
 
+def test_a_verdict_holds_past_the_ceiling(tmp_path: Path) -> None:
+    """Review of 38a5dab: past the ceiling the rule used to overrule the cached verdict, and a
+    request judged a place got its next snapshot cut."""
+    assert _judge(SIDEBAR, FixedDecider({"position": _truth(0.95)}), tmp_path)
+    assert _judge(SIDEBAR, None, tmp_path, over=True), "the cached verdict, not the rule"
+
+
+def test_an_unreadable_cache_is_asked_again(tmp_path: Path) -> None:
+    for junk in ("[1, 2]", "3", "{half"):
+        (tmp_path / "position.json").write_text(junk, encoding="utf-8")
+        decider = FixedDecider({"position": _truth(0.95)})
+        assert _judge(SIDEBAR, decider, tmp_path), junk
+        assert decider.calls == 1, junk
+        (tmp_path / "position.json").unlink()
+
+
+def test_the_cache_stays_out_of_git(tmp_path: Path) -> None:
+    folder = tmp_path / ".sanchopanza" / "archive" / "s1"
+    assert _judge(SIDEBAR, FixedDecider({"position": _truth(0.95)}), folder)
+    assert (tmp_path / ".sanchopanza" / ".gitignore").read_text(encoding="utf-8") == "*\n"
+    assert not list(folder.glob("*.tmp")), "the partial file was renamed into place"
+
+
 def test_one_call_per_request_and_session(tmp_path: Path) -> None:
     decider = FixedDecider({"position": _truth(0.95)})
     for step in ("First I'll open the page", "Now I'll read the snapshot"):
@@ -64,10 +87,15 @@ async def test_the_hook_follows_the_decider_on_a_real_snapshot(tmp_path: Path, m
     (tmp_path / "a").mkdir()
     (tmp_path / "b").mkdir()
 
+    asked: list[str] = []
+
     def squire(position: float) -> Squire:
         # every ranking question gets 0.5; the request's own question gets `position`
         def judge(state, question):  # type: ignore[no-untyped-def]
-            return _truth(position if "request" in state else 0.5)
+            if "request" in state:
+                asked.append(state["request"])
+                return _truth(position)
+            return _truth(0.5)
 
         from sanchopanza.providers.local import LocalDecider
 
@@ -76,9 +104,11 @@ async def test_the_hook_follows_the_decider_on_a_real_snapshot(tmp_path: Path, m
     place = _playwright_event(tmp_path / "a", _big_snapshot(400))
     place["transcript_path"] = _transcript(tmp_path / "a", SIDEBAR.removeprefix("Task: "))
     assert await browse_hook.post_tool_use(place, squire(0.95)) == {}, "a place: uncut"
+    assert asked == [SIDEBAR.removeprefix("Task: ")], "uncut because the decider said so"
     name = _playwright_event(tmp_path / "b", _big_snapshot(400))
     name["transcript_path"] = _transcript(tmp_path / "b", NAME.removeprefix("Task: "))
     assert await browse_hook.post_tool_use(name, squire(0.05)), "not a place: cut as usual"
+    assert len(asked) == 2
 
 
 def test_only_the_request_is_sent(tmp_path: Path) -> None:
