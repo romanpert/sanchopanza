@@ -390,6 +390,43 @@ U_TASKS = [
     ("U12", "https://www.rfc-editor.org/rfc/rfc9113.html",
      "What is the title of section 6.5?", [["settings"]]),
 ]  # fmt: skip
+V = {  # Phase 3p: pages whose snapshot arrives inline, chosen by size (5dead40)
+    "prereg": RESULTS / "prereg-e2e-v.md",
+    "sessions": RESULTS / "e2e-mcp-v-sessions.jsonl",
+    "report": "e2e-mcp-v.json",
+}
+V_TASKS = [
+    ("V1", "https://github.com/psf/requests",
+     "Which license is this repository under, and which language makes up the largest share "
+     "of its code?", [["apache"], ["python"]]),
+    ("V2", "https://en.wikipedia.org/wiki/Lake_Bled",
+     "According to the infobox, what is the lake's surface area in square kilometres and its "
+     "maximum depth in metres?", ["1.45", "29.5"]),
+    ("V3", "https://www.iana.org/domains/reserved",
+     "Which RFC does this page cite for special-use domain names?", ["6761"]),
+    ("V4", "https://docs.python.org/3/tutorial/index.html",
+     "What is the third chapter in the tutorial's contents?", [["informal introduction"]]),
+    ("V5", "https://www.rust-lang.org/",
+     "Which link comes right after 'Install' in the navigation menu?", ["learn"]),
+    ("V6", "https://nodejs.org/en/about/previous-releases",
+     "What is the codename of Node.js 20?", ["iron"]),
+    ("V7", "https://docs.python.org/3/library/os.path.html",
+     "According to this page, in which Python version was os.path.isjunction added?",
+     ["3.12"]),
+    ("V8", "https://github.com/encode/httpx",
+     "Which license is this repository under, and which language makes up the largest share "
+     "of its code?", [["bsd"], ["python"]]),
+    ("V9", "https://www.postgresql.org/support/versioning/",
+     "According to the table, what is the final release date of PostgreSQL 14?",
+     [["november 12, 2026", "12 november 2026", "2026-11-12", "nov 12, 2026"]]),
+    ("V10", "https://en.wikipedia.org/wiki/Bled",
+     "According to the infobox, what is the elevation of Bled in metres?", ["507.7"]),
+    ("V11", "https://en.wikipedia.org/wiki/Lake_Bohinj",
+     "According to the infobox, what is the lake's maximum depth and its surface elevation?",
+     [["45 m", "45 metres", "45 meters", "45m"], "526"]),
+    ("V12", "https://en.wikipedia.org/wiki/Lake_Jasna",
+     "According to the infobox, in which region does the lake lie?", [["upper carniola"]]),
+]  # fmt: skip
 NEW_TASKS = [
     ("N1", "https://github.com/pallets/flask",
      "Which license is this repository under, and which language makes up the largest share "
@@ -431,6 +468,7 @@ def main() -> int:
     ap.add_argument("--y", action="store_true", help="Phase 3j (prereg-e2e-y.md)")
     ap.add_argument("--z", action="store_true", help="Phase 3l (prereg-e2e-z.md)")
     ap.add_argument("--u", action="store_true", help="Phase 3n (prereg-e2e-u.md)")
+    ap.add_argument("--v", action="store_true", help="Phase 3p (prereg-e2e-v.md)")
     args = ap.parse_args()
     report_name, tasks, n_runs = "e2e-mcp.json", TASKS, RUNS
     if args.fixed:
@@ -453,6 +491,9 @@ def main() -> int:
     if args.u:
         PREREG, SESSIONS, report_name = U["prereg"], U["sessions"], U["report"]
         tasks, n_runs = U_TASKS, WIDE_RUNS
+    if args.v:
+        PREREG, SESSIONS, report_name = V["prereg"], V["sessions"], V["report"]
+        tasks, n_runs = V_TASKS, WIDE_RUNS
     if args.record_hash:
         registered = PREREG.with_suffix(".sha256")
         if registered.exists() and registered.read_text().strip() != base.digest(PREREG):
@@ -468,12 +509,12 @@ def main() -> int:
         if not key:
             raise SystemExit("LEAN ranks with Jev: no TYPESAFE_API_KEY, nothing spent")
         runs = [0] if args.pilot else list(range(1, n_runs + 1))
-        guarded = any((args.fixed, args.new, args.wide, args.x, args.y, args.z, args.u))
+        guarded = any((args.fixed, args.new, args.wide, args.x, args.y, args.z, args.u, args.v))
         limits = phase.Limits(
             session_max_usd=SESSION_MAX_USD, ceiling_usd=CEILING_USD,
             jev_session_max_usd=JEV_SESSION_MAX_USD,
-            jev_ceiling_usd=(JEV_CEILING_Y_USD if args.y or args.z or args.u else JEV_CEILING_USD)
-            if guarded else None,
+            jev_ceiling_usd=(JEV_CEILING_Y_USD if any((args.y, args.z, args.u, args.v))
+                             else JEV_CEILING_USD) if guarded else None,
         )  # fmt: skip
         code, rows = phase.run_phase(
             phase.planned(tasks[:2] if args.pilot else tasks, runs, ("PLAIN", "LEAN")), rows,
