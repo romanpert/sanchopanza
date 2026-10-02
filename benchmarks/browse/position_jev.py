@@ -25,29 +25,20 @@ ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from sanchopanza.contract import Truth  # noqa: E402
-from sanchopanza.harness.browse_hook import asks_for_position  # noqa: E402
+from sanchopanza.harness.browse_hook import (  # noqa: E402
+    POSITION_CRITERIA,
+    POSITION_INSTRUCTIONS,
+    POSITION_POINT,
+    asks_for_position,
+)
 from sanchopanza.providers import create  # noqa: E402
 from sanchopanza.providers.recorded import RecordedDecider, RecordingDecider  # noqa: E402
 
 SETS = sorted(HERE.glob("position_heldout*.jsonl"))
 FIXTURE = ROOT / "fixtures" / "browse-jev-position.jsonl"
 CEILING_USD = 0.10
-POINT = "browse_position"
-QUESTION = Truth(
-    instructions=(
-        "Does this browsing request pick out an element by its place on the web page: the "
-        "first, second, last, top or bottom one of a list, menu, table, sidebar, footer, grid "
-        "or set of tabs, so that answering needs the order in which the page shows things?"
-    ),
-    criteria={
-        "true": "The element wanted is identified by where it sits among others on the page "
-        "(the 3rd link in the sidebar, the final item in the list, the story at the top).",
-        "false": "An ordinal word describes something else: a time or an event (the first "
-        "ascent, the final year, the last album), part of a name or a quantity (last name, "
-        "top speed, first-class), or a fact the text states (the first president). Or there "
-        "is no ordinal at all.",
-    },
-)
+POINT = POSITION_POINT
+QUESTION = Truth(instructions=POSITION_INSTRUCTIONS, criteria=POSITION_CRITERIA)  # the hook's
 
 
 def spent() -> float:

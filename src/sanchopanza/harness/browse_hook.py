@@ -38,7 +38,10 @@ Playwright MCP 12.9 % cheaper on six tasks (3d), 12.4 % on twelve with the inter
 zero (3h), nothing clear on twelve more (3f), 13.4 % on twelve more (3j); with playwright-cli
 about 5 % on twelve (3g), nothing on twelve more (3i, 3k: in 3k the agent used `find` and the
 hook cut nothing). Questions about position cost answers in 3h and 3i and now pass through
-uncut (3j, 3k: 30 of 30 right in each arm). 3i's losses (X2, X4) were a `Bash` output past
+uncut (3j, 3k: 30 of 30 right in each arm). Which questions those are, the decider says
+(`judged_position`, one Truth per request and session: 0.93 / 1.0 on goals sealed after it was
+frozen, where the word rule `asks_for_position` scored 0.50 / 0.31); the rule decides without
+one. 3i's losses (X2, X4) were a `Bash` output past
 30,000 characters: Claude Code hands the hook that prefix and shows the model 2,000 characters
 of the reply, so the hook ranks the whole saved output and replies with what fits
 (`_persisted`, `_preview`; for a question about position, the content in page order). An infobox
@@ -202,6 +205,58 @@ def asks_for_position(goal: str) -> bool:
     if not _LISTING.search(_SOURCE.sub(" ", asked)):
         return False
     return any(m["next"].lower() not in _NOT_A_PLACE for m in _ORDINAL.finditer(asked))
+
+
+POSITION_POINT = "browse_position"
+POSITION_CUT = 0.5
+# Frozen in 6d3bbe5 and confirmed on goals sealed after it (14085fe, df595ba): precision 0.929,
+# recall 1.0, where the word rule above scored 0.50 / 0.31 (and 0.30 / 0.20 on the set before).
+POSITION_INSTRUCTIONS = (
+    "Does this browsing request pick out an element by its place on the web page: the "
+    "first, second, last, top or bottom one of a list, menu, table, sidebar, footer, grid "
+    "or set of tabs, so that answering needs the order in which the page shows things?"
+)
+POSITION_CRITERIA = {
+    "true": "The element wanted is identified by where it sits among others on the page "
+    "(the 3rd link in the sidebar, the final item in the list, the story at the top).",
+    "false": "An ordinal word describes something else: a time or an event (the first "
+    "ascent, the final year, the last album), part of a name or a quantity (last name, "
+    "top speed, first-class), or a fact the text states (the first president). Or there "
+    "is no ordinal at all.",
+}
+
+
+def _request_of(goal: str) -> str:
+    """The user's words in a `browse_goal`: never the agent's step, without the labels."""
+    lines = [line for line in goal.splitlines() if not line.startswith("Agent's step:")]
+    return "\n".join(line.removeprefix("Task: ") for line in lines).strip()
+
+
+async def judged_position(goal: str, squire: Any, cache_dir: Path, *, over: bool) -> bool:
+    """`asks_for_position`, decided by the decider when there is one and the session is under
+    its ceiling. Asked once per request and session (`cache_dir/position.json`); a provider
+    that is absent, down or out of budget leaves the word rule to decide."""
+    from ..contract import Truth
+
+    request = _request_of(goal)
+    if over or not request:
+        return asks_for_position(goal)
+    cache = cache_dir / "position.json"
+    known: dict[str, Any] = {}
+    with contextlib.suppress(OSError, ValueError):
+        known = dict(json.loads(cache.read_text(encoding="utf-8")))
+    if isinstance(known.get(request), (int, float)):
+        return float(known[request]) >= POSITION_CUT
+    question = Truth(instructions=POSITION_INSTRUCTIONS, criteria=POSITION_CRITERIA)
+    decision = await squire.decide(POSITION_POINT, {"request": request}, {"position": question})
+    answer = decision.answer("position")
+    if answer.empty or answer.truth is None:
+        return asks_for_position(goal)
+    squire.record(decision, request_chars=len(request))
+    with contextlib.suppress(OSError):
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        cache.write_text(json.dumps({**known, request: answer.truth}), encoding="utf-8")
+    return answer.truth >= POSITION_CUT
 
 
 def _oversized(text: str, event: Mapping[str, Any]) -> str | None:
@@ -399,9 +454,16 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
         return {}
     purpose = browse_goal(autopilot._messages(event))
     meta = {"tool": tool, "about": f"{tool} snapshot", "by": "browse"}
+    over = autopilot._over_ceiling(ledger, config)
+    position = not searched and await judged_position(
+        purpose, squire, archive_mod.session_dir(root, session), over=over
+    )
+    if squire.meter.decisions:
+        with contextlib.suppress(OSError):
+            autopilot.write_ledger(root, session, autopilot._charged(ledger, squire))
     # The first, the third, the last, or the agent's own search: an order a cut cannot keep.
     # Uncut unless Claude Code saved the output, where the model would see 2,000 characters.
-    if searched or asks_for_position(purpose):
+    if searched or position:
         if not persisted:
             return {}
         saved = archive_mod.write_entry(
@@ -418,7 +480,6 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
         return _reply(response, path, new_text)
     if not purpose:
         return {}  # nothing to rank for: cutting blind could drop what the agent needs
-    over = autopilot._over_ceiling(ledger, config)
     # Phase 3f (W4, W7): ranking every one of 2,000-3,000 elements cost Jev more than the cut
     # saved; past this many, BM25 shortlists what the decider sees (about 21 calls at most).
     most = _int("BROWSE_MAX_ELEMENTS", DEFAULT_MAX_ELEMENTS)

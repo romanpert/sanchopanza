@@ -578,13 +578,14 @@ async def test_a_huge_page_is_shortlisted_before_the_decider(tmp_path, monkeypat
 
     def judge(state, question):
         calls.append(1)
-        return answers.truth(0.5)
+        # the request's own question (`judged_position`) gets a no: this goal is not a place
+        return answers.truth(0.0 if "request" in state else 0.5)
 
     squire = Squire(LocalDecider(judge, cost_usd_per_call=0.0001))
     event = _playwright_event(tmp_path, _big_snapshot(400))
     out = await browse_hook.post_tool_use(event, squire)
     assert out, "it still cuts"
-    assert squire.meter.decisions <= 120 // points.GROUP_MAX + 1
+    assert squire.meter.decisions <= 120 // points.GROUP_MAX + 1 + 1, "ranking, plus position"
 
 
 def test_layout_classes_say_nothing():
