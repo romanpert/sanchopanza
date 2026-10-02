@@ -89,3 +89,22 @@ Limits:
 - The scenes are built for the case memory serves: a fact said earlier, not in the
   repository, that a later task tempts breaking.
 - No placebo arm (a record unrelated to the task).
+
+## Other models: Haiku 4.5 (`prereg-generalize.md`, amendment 1)
+
+16 pairs (all 16 scenes, repetition 0), 5.30 USD at list price. `benchmarks/memory_carry/analyze.py`
+gives the table.
+
+| 16 pairs | fact kept | tests | task (13 with a check) | median cost M/N |
+|---|---|---|---|---|
+| N, Claude Code as it ships | 8 / 16 | 16 / 16 | 13 / 13 | |
+| M, with sanchopanza's memory | 11 / 16 | 16 / 16 | 13 / 13 | 0.98 |
+
+- **Does not hold.** There were 3 discordant pairs, all for M, but one-sided exact McNemar
+  p = 0.125, above the 0.05 the prereg asks. Direction only.
+- **Haiku breaks a fact it was given.** M gave the earlier request in all 16 second sessions, and
+  Haiku still broke the fact in five of them: `fields`, `legacy`, `nulls`, `rename` and
+  `wording`. Sonnet broke one in 24. Delivery is not enough on a small model; the check that v7
+  adds at Stop is aimed at exactly this.
+- **Claude Code's own auto memory saved twice, both times in M runs** (`naive`, `envvar`; files
+  `warehouse_timestamp_format.md` and `ops_config_constraints.md`). It saved 0 of 16 times in N.
