@@ -15,6 +15,11 @@ so no timer can fire. Both recorded hangs awaited inside their loops.
 What it does not do: kill the loop. The agent gets its turn back, but an abandoned asynchronous
 loop keeps running in the page until the page navigates or closes.
 
+Superseded by `sanchopanza.harness.crawl_hook`, kept as the version that was verified first.
+Two faults this one has and the packaged one does not: it answers `permissionDecision: "allow"`,
+which approves an evaluate the user's rules would have refused (`crawl_hook_probe.py`, measured),
+and a function ending in a `//` comment comments out the closing parenthesis.
+
 `SANCHOPANZA_EVALUATE_LIMIT_S` sets the limit (default 120 s: a 50-page fetch crawl measured here
 takes well under that). No model, no network, no decision: a rewrite.
 """

@@ -156,6 +156,12 @@ def _candor_hook(args: argparse.Namespace) -> int:
     return candor_main()
 
 
+def _crawl_hook(args: argparse.Namespace) -> int:
+    from .harness.crawl_hook import main as crawl_main
+
+    return crawl_main()
+
+
 def _install(args: argparse.Namespace) -> int:
     from .harness.generic import HarnessConfig
     from .harness.install import apply, default_path, default_plugin_root, plan
@@ -574,6 +580,12 @@ def main(argv: list[str] | None = None) -> int:
         "candor-hook", help="candor's Claude Code hook (stdin JSON -> stdout JSON)"
     )
     candor_hook.set_defaults(func=_candor_hook)
+
+    crawl_hook = sub.add_parser(
+        "crawl-hook",
+        help="crawl strategy line and browser_evaluate time limit: Claude Code hook (stdin JSON)",
+    )
+    crawl_hook.set_defaults(func=_crawl_hook)
 
     providers = sub.add_parser("providers", help="list installed providers")
     providers.set_defaults(func=_providers)
