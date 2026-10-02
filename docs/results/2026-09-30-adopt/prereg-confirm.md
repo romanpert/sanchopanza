@@ -312,3 +312,28 @@ been run and no arm of that attempt was graded. Sealed again; no code changes.
 2. **Order.** The remaining chains run with dvc-rel-1 before conan-1 and conan-2. That way the
    all-or-nothing hold (every arm's chain cap against the absolute ceiling of 133.51) does not
    refuse a four-arm task for want of room. The ceiling stays as it is.
+
+## Amendment 4, 2026-10-02, during phase A, before any verdict is read
+
+Written after the coordinating Claude Code session died (2026-10-01 ~22:05; the machine was
+restarted the next morning) and before anything else ran; `confirm.py A` has not been run, and
+conan-1 and conan-2 had not been graded. Sealed again; no code changes.
+
+1. **conan-2 `Sm` alone is run again.** The coordinating script and `run.py` died with the
+   session while conan-2 `Sm` was in request 5. Processes launched from a session can end with
+   it. conan-1 (N, Sm) and conan-2 `N` had finished and written their rows; conan-2 `Sm` wrote
+   none. Its attempt is set aside under `runs/conan-io__conan-2-killed1/Sm` with its session
+   folder, and its row is rebuilt from its five streams with the runner's `facts` and
+   `call_cost`. Requests 1-4 come to the cent of the runner's log. Request 5 has no result with
+   turns, so it was cut, and it is charged its cap (1.50 USD) as the runner charges a cut call:
+   3.52 USD counted. Only `Sm` runs again, not the pair. `N` finished under the same conditions,
+   the arms are independent (separate working copies), and running the pair again would put the
+   last chain at risk: with the absolute ceiling of 133.51, the all-or-nothing hold could refuse
+   astroid-1 for a couple of dollars. This differs from amendments 1 and 3, where every arm of
+   the task had fallen.
+2. **Order:** astroid-1 runs before conan-2 `Sm`, so the hold fits. From here on, long runs are
+   started outside the session (`Win32_Process.Create`), so they do not die with it.
+3. **Found while rebuilding:** a resumed `claude -p` writes, when it starts, a result event with
+   no turns and the earlier cumulative cost, so `facts` on a cut stream reads a "success" of
+   0 USD. The runner is not affected (a cut call is caught by its exit code), but no stream is
+   to be read as finished on its result event alone.
