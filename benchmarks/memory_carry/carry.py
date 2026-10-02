@@ -25,6 +25,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -134,7 +135,10 @@ def read_stream(path: Path) -> dict[str, Any]:
         if event.get("type") == "result":
             cost = float(event.get("total_cost_usd") or 0.0)
             turns, final = event.get("num_turns") or 0, str(event.get("result") or "")
-        content = (event.get("message") or {}).get("content")
+        if not isinstance(event, dict):
+            continue
+        message = event.get("message")
+        content = message.get("content") if isinstance(message, dict) else None
         tools += sum(1 for b in content if isinstance(b, dict) and b.get("type") == "tool_use") \
             if isinstance(content, list) else 0
         limit = limit or "usage limit" in line.lower() or '"status":429' in line
@@ -193,6 +197,11 @@ def pair(out: Path, name: str, model: str, arm: str, rep: int, keyfile: Path,
             "limit_hit": first["limit_hit"] or bool(second.get("limit_hit"))}  # fmt: skip
 
 
+def earlier(out: Path) -> list[dict[str, Any]]:
+    path = out / "carry.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", required=True)
@@ -201,6 +210,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--total-cap", type=float, default=TOTAL_CAP)
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--dry", action="store_true")
+    parser.add_argument("--continue", dest="carry_on", action="store_true",
+                        help="keep the rows of carry.json; a pair cut by the runner runs again")
     args = parser.parse_args(argv)
     out = Path(args.out)
     plan = [(name, model, arm, rep) for rep in range(args.repeats)
@@ -209,16 +220,23 @@ def main(argv: list[str] | None = None) -> int:
             for arm in ("N", "M")]  # fmt: skip
     keyfile = out / "typesafe.key" if args.dry else keyfile_from_indagis(out)
     try:
-        run_plan(out, plan, keyfile, args.dry, args.total_cap)
+        run_plan(out, plan, keyfile, args.dry, args.total_cap, args.carry_on)
     finally:
         keyfile.unlink(missing_ok=True)
     return 0
 
 
 def run_plan(out: Path, plan: list[tuple[str, str, str, int]], keyfile: Path, dry: bool,
-             total_cap: float) -> None:  # fmt: skip
-    spent, rows = 0.0, []
+             total_cap: float, carry_on: bool = False) -> None:  # fmt: skip
+    rows = earlier(out) if carry_on else []
+    done = {(r["scene"], r["model"], r["arm"], r["repeat"]) for r in rows}
+    spent = sum(float(r.get("cost") or 0.0) for r in rows)
     for name, model, arm, rep in plan:
+        if (name, model, arm, rep) in done:
+            continue
+        cut = out / f"{name}-{model}-{arm}-{rep}"
+        if cut.exists():  # a pair the runner itself cut (no row): it runs again, whole
+            shutil.rmtree(cut)
         if spent + 2 * CALL_CAP > total_cap:
             print(f"stop: {spent:.2f} USD spent, the next pair could pass {total_cap}", flush=True)
             break

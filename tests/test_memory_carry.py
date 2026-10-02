@@ -169,3 +169,14 @@ def test_the_repository_passes_its_tests_and_does_not_tell_the_fact(
     assert not [w for w in TELLS[name] if w.lower() in text]
     assert all(w.lower() in scene["first"].lower() for w in TELLS[name][:1])
     assert not [w for w in TELLS[name] if w.lower() in scene["second"].lower()]
+
+
+def test_the_stream_reader_takes_events_whose_message_is_text(tmp_path: Path) -> None:
+    # Haiku, 2026-10-02: a permission_denied event carries `message` as a string
+    carry = bench_module(ROOT / "benchmarks" / "memory_carry", "carry")
+    path = tmp_path / "s.jsonl"
+    rows = ['{"type":"system","subtype":"permission_denied","message":"Compound command"}',
+            '{"type":"result","total_cost_usd":0.1,"num_turns":3,"result":"ok"}']
+    path.write_text("\n".join(rows), encoding="utf-8")
+    seen = carry.read_stream(path)
+    assert seen["cost"] == 0.1 and seen["turns"] == 3 and seen["tools"] == 0
