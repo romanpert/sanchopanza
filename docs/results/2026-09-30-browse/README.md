@@ -85,8 +85,8 @@ are V7, where the agent asked `browser_find` and never took a snapshot); on V4 a
 position questions the word rule missed ("the third chapter in the tutorial's contents", "the
 link right after Install"), Jev judged them a place, the hook cut none of the six runs and all
 twelve answered; and the ten tasks saved -0.026 USD a session on average, half the -0.047 read
-after the fact from 3j, 3l and 3n, as a confirmation on new tasks should expect. Seven of the ten
-saved 0.009-0.053 a session; V9 cost +0.008: PostgreSQL's version table was cut from 14,000 to
+after the fact from 3j, 3l and 3n, as a confirmation on new tasks should expect. Nine of the ten
+were cheaper, by 0.008-0.053 a session (V7 with nothing cut, so by chance); V9 cost +0.008: PostgreSQL's version table was cut from 14,000 to
 5,400 characters and the row for version 14 was left out, so the agent `Grep`ped the archive
 for it (one or two more turns, the answer right). 8.54 USD at list price, 0.055 USD of Jev.
 
