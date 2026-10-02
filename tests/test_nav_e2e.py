@@ -18,7 +18,7 @@ nav = importlib.util.module_from_spec(spec)
 sys.modules["browse_nav_e2e"] = nav
 spec.loader.exec_module(nav)
 
-EVERY = nav.TASKS + nav.TRAP_TASKS + nav.HARD_TASKS
+EVERY = nav.TASKS + nav.TRAP_TASKS + nav.HARD_TASKS + nav.STRATEGY_TASKS
 
 
 def test_task_ids_are_unique_and_every_task_has_an_answer_to_grade_on():
@@ -150,3 +150,102 @@ def test_a_plain_session_is_never_judged_by_the_hook(tmp_path, monkeypatch):
     row = nav.one_session(task, 1, "HAIKU")
     assert not row.get("not_run") and "hook_decisions" not in row
     assert row["success"] is True
+
+
+def _strategy(tid: str) -> tuple:
+    return next(t for t in nav.STRATEGY_TASKS if t[0] == tid)
+
+
+def test_a_strategy_task_is_read_from_its_answer_line_like_an_aggregation():
+    s1 = _strategy("S1")
+    assert nav.grade("Fetched all 50 pages.\nANSWER: 42", s1[3], "S1")
+    assert not nav.grade("ANSWER: 420", s1[3], "S1")
+    assert not nav.grade("Found 42 of them.", s1[3], "S1")  # no ANSWER line
+
+
+def _argv_of(monkeypatch, arm: str) -> tuple[list[str], dict]:
+    seen: dict = {}
+
+    class Done:
+        stdout = json.dumps({"is_error": False, "result": "ANSWER: 42", "num_turns": 3}).encode()
+        stderr = b""
+
+    def fake_run(argv, cwd, env, capture_output, timeout):
+        seen["argv"], seen["env"] = argv, env
+        return Done()
+
+    monkeypatch.setattr(nav.subprocess, "run", fake_run)
+    monkeypatch.setattr(nav.mcp, "tool_calls", lambda work: {})
+    monkeypatch.setattr(nav.mcp, "mcp_config", lambda work: work / "mcp.json")
+    row = nav.one_session(_strategy("S1"), 1, arm)
+    assert row["success"] is True
+    return seen["argv"], seen["env"]
+
+
+def _appended(argv: list[str]) -> str:
+    return argv[argv.index("--append-system-prompt") + 1]
+
+
+def test_the_hint_arm_carries_the_strategy_line_and_nothing_else_of_ours(monkeypatch):
+    argv, env = _argv_of(monkeypatch, "HAIKU-HINT")
+    assert nav.STRATEGY_HINT in _appended(argv)
+    assert _appended(argv).startswith(nav.APPEND)
+    assert argv[argv.index("--model") + 1] == "claude-haiku-4-5"
+    assert "TYPESAFE_API_KEY" not in env, "a static line decides nothing and needs no key"
+    settings = json.loads(pathlib.Path(argv[argv.index("--settings") + 1]).read_text())
+    assert "hooks" not in settings
+
+
+@pytest.mark.parametrize("arm", ["HAIKU", "SONNET", "HAIKU-LOOP"])
+def test_no_other_arm_sees_the_strategy_line(monkeypatch, arm):
+    monkeypatch.setattr(nav, "KEY", "test-key")
+    argv, _ = _argv_of(monkeypatch, arm)
+    assert nav.STRATEGY_HINT not in _appended(argv)
+
+
+def test_the_strategy_line_is_ascii_because_it_travels_on_argv():
+    assert nav.STRATEGY_HINT.isascii()
+
+
+@pytest.mark.parametrize(("built", "refused"), [("JevDecider", False), ("NullDecider", True),
+                                                ("", True)])  # fmt: skip
+def test_preflight_refuses_a_key_that_builds_no_decider(monkeypatch, built, refused):
+    """A key with no `httpx` beside it builds the null decider in silence (adopt, 2026-10-02)."""
+    monkeypatch.setattr(nav, "KEY", "test-key")
+    monkeypatch.setattr(nav, "decider_class", lambda: built)
+    problems = [p for p in nav.preflight() if "decider" in p]
+    assert bool(problems) is refused
+
+
+def test_the_decider_probe_builds_jev_from_a_key_in_this_environment(monkeypatch):
+    """Builds, does not call: constructing the client spends nothing."""
+    monkeypatch.setattr(nav, "KEY", "test-key")
+    assert nav.decider_class().startswith("Jev")
+
+
+@pytest.mark.parametrize("arm", ["HAIKU", "HAIKU-HINT", "SONNET"])
+def test_a_bench_session_cannot_reach_the_real_sessions_on_this_machine(monkeypatch, arm):
+    argv, _ = _argv_of(monkeypatch, arm)
+    denied = argv[argv.index("--disallowedTools") + 1].split()
+    assert {"SendMessage", "ListAgents", "Bash"} <= set(denied)
+
+
+def test_the_second_hint_arm_carries_the_second_line_only(monkeypatch):
+    argv, env = _argv_of(monkeypatch, "HAIKU-HINT2")
+    assert nav.STRATEGY_HINT_V2 in _appended(argv)
+    assert nav.STRATEGY_HINT not in _appended(argv)
+    assert argv[argv.index("--model") + 1] == "claude-haiku-4-5"
+    assert "TYPESAFE_API_KEY" not in env
+
+
+def test_the_second_line_asks_the_extraction_to_account_for_what_it_read():
+    """S5, 2026-10-02: with the first line Haiku took one partial scroll as final, 0/3, where
+    unaided it kept going when the result looked short, 3/3. The line is ASCII (argv)."""
+    line = nav.STRATEGY_HINT_V2.lower()
+    assert nav.STRATEGY_HINT_V2.isascii()
+    assert "how many" in line and "before you answer" in line
+
+
+def test_the_second_line_caps_every_loop():
+    """H1, 2026-10-02: one evaluate looped on page 2 for 30 minutes; nothing stops an evaluate."""
+    assert "cap on every loop" in nav.STRATEGY_HINT_V2
