@@ -1,0 +1,239 @@
+{
+ "cut": 0.5,
+ "position_heldout": {
+  "goals": 30,
+  "unanswered": 0,
+  "rule": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "wrong": []
+  },
+  "jev": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "wrong": []
+  },
+  "jev_else_rule": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "wrong": []
+  },
+  "truths": [
+   0.98,
+   0.97,
+   0.96,
+   0.98,
+   0.91,
+   0.66,
+   0.98,
+   0.86,
+   0.92,
+   0.93,
+   0.92,
+   0.97,
+   0.89,
+   0.97,
+   0.96,
+   0.06,
+   0.04,
+   0.03,
+   0.02,
+   0.04,
+   0.37,
+   0.12,
+   0.04,
+   0.04,
+   0.04,
+   0.07,
+   0.1,
+   0.07,
+   0.04,
+   0.05
+  ]
+ },
+ "position_heldout2": {
+  "goals": 24,
+  "unanswered": 0,
+  "rule": {
+   "precision": 0.917,
+   "recall": 0.917,
+   "wrong": [
+    "What is the 2nd link in the sidebar?",
+    "Report the final year of the war given on the page."
+   ]
+  },
+  "jev": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "wrong": []
+  },
+  "jev_else_rule": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "wrong": []
+  },
+  "truths": [
+   0.98,
+   0.97,
+   0.91,
+   0.97,
+   0.96,
+   0.95,
+   0.93,
+   0.97,
+   0.95,
+   0.98,
+   0.98,
+   0.97,
+   0.07,
+   0.06,
+   0.1,
+   0.06,
+   0.08,
+   0.1,
+   0.07,
+   0.08,
+   0.04,
+   0.04,
+   0.18,
+   0.04
+  ]
+ },
+ "position_heldout3": {
+  "goals": 28,
+  "unanswered": 0,
+  "rule": {
+   "precision": 0.3,
+   "recall": 0.2,
+   "wrong": [
+    "Click the first button in the footer and tell me where it leads.",
+    "Report the text of the last tab in the settings panel.",
+    "Which heading comes second in the article's contents box?",
+    "Name the fourth card in the pricing section.",
+    "What is the final link in the footer?",
+    "Report the first column header of the comparison grid.",
+    "Give the label of the last breadcrumb.",
+    "Which product is in the top-left tile of the grid?",
+    "What does the 5th bullet under 'Features' say?",
+    "Read me the second paragraph of the introduction.",
+    "What is the first option in the country dropdown?",
+    "Tell me the name in the last line of the sidebar's 'Top contributors' box.",
+    "In which year did the band release its last album, as stated on the page?",
+    "Who won the first season of the show, as listed on the page?",
+    "What did the company report for its final quarter on the page?",
+    "What is the last name of the author shown on the page?",
+    "What was the top speed of the car, per the specifications table?",
+    "What did the final report on the page conclude?",
+    "What is the last date to apply, as shown on the page?"
+   ]
+  },
+  "jev": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "wrong": []
+  },
+  "jev_else_rule": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "wrong": []
+  },
+  "truths": [
+   0.98,
+   0.98,
+   0.98,
+   0.98,
+   0.97,
+   0.97,
+   0.97,
+   0.95,
+   0.96,
+   0.98,
+   0.97,
+   0.52,
+   0.96,
+   0.98,
+   0.96,
+   0.07,
+   0.09,
+   0.09,
+   0.18,
+   0.13,
+   0.07,
+   0.1,
+   0.09,
+   0.1,
+   0.46,
+   0.08,
+   0.29,
+   0.14
+  ]
+ },
+ "position_heldout4": {
+  "goals": 28,
+  "unanswered": 0,
+  "rule": {
+   "precision": 0.5,
+   "recall": 0.308,
+   "wrong": [
+    "Open the bottom entry of the changelog and tell me its version.",
+    "What's the name on the leftmost tab?",
+    "Report the heading of the final section of the article.",
+    "Which repository is pinned first on the profile?",
+    "What does the opening sentence of the review say?",
+    "What is the label of the right-most button in the toolbar?",
+    "Name the product shown at position 7 in the search results.",
+    "Which FAQ question comes right after the one about refunds?",
+    "Report the earliest-listed sponsor in the footer.",
+    "What was the last known address of the museum, as given on the page?",
+    "What is the name of the company's first product, as described on the page?",
+    "What is the top prize in the lottery, as shown on the page?",
+    "What did the minister say in her last speech, as reported on the page?"
+   ]
+  },
+  "jev": {
+   "precision": 0.929,
+   "recall": 1.0,
+   "wrong": [
+    "How tall is the second-tallest building in the city, according to the table?"
+   ]
+  },
+  "jev_else_rule": {
+   "precision": 0.929,
+   "recall": 1.0,
+   "wrong": [
+    "How tall is the second-tallest building in the city, according to the table?"
+   ]
+  },
+  "truths": [
+   0.98,
+   0.96,
+   0.97,
+   0.9,
+   0.94,
+   0.58,
+   0.97,
+   0.96,
+   0.97,
+   0.98,
+   0.93,
+   0.96,
+   0.88,
+   0.06,
+   0.09,
+   0.2,
+   0.2,
+   0.21,
+   0.07,
+   0.18,
+   0.06,
+   0.45,
+   0.78,
+   0.13,
+   0.06,
+   0.05,
+   0.08,
+   0.19
+  ]
+ },
+ "jev_usd_spent": 0.00211
+}
