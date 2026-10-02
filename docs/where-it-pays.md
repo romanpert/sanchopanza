@@ -620,6 +620,19 @@ Each of these is specified enough that a disagreement becomes a measurement.
     archive time, see above), or an agent model that uses a search tool unprompted; Sonnet 5
     is in the same results folder. The Codex CLI integration is written but not verified end
     to end.
+12. **Browsing by substitution, not avoidance** (`docs/results/2026-09-30-browse/`). Pruning
+    what a browsing Claude reads is avoidance, and it measured as avoidance should: 17-22 %
+    cheaper on pages whose snapshot arrives inline (3p, 3r), nothing on pages past Claude
+    Code's limit or with playwright-cli, where about 75 % of a session is Claude Code's own
+    prefix read back every turn. The ranking that drives the cut already substitutes: it puts
+    the step's element in its top 20 in 89 % of Mind2Web steps, and Sonnet choosing from those
+    20 in page order is as accurate as from the whole page at an eighth of the cost (2d). The
+    experiment: a navigation loop where Jev ranks each step's elements, a small model acts on
+    the top ones, and the large model is called only below a confidence cut and for the final
+    answer (the permission cascade's shape), against a large-model agent on the same tasks.
+    Multi-step tasks (10-30 steps), where an element a step did not need is not re-read on every
+    later turn. Then the same substitution on crawling: which link to follow next, which result
+    to fetch, which page to keep, decided by the ranking and `triage_many` instead of the model.
 
 ---
 

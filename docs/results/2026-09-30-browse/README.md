@@ -22,6 +22,29 @@ What stands is the ranking as a tool: `sanchopanza browse PAGE --goal ...` from 
 `rank_elements` MCP tool, returns the elements a step needs with their refs, confirmed at 89 % in
 the top 20.
 
+## What this adds up to, and what it does not
+
+**What is measured.** Two things hold on data they were not built on. The ranking substitutes
+for a large model's choice: Sonnet choosing from Jev's top 20 or 30 in page order is as accurate
+as from the whole page, at an eighth of the cost (2d). The hook, with Playwright MCP, makes a
+session 17-22 % cheaper on pages whose snapshot is large and still arrives inline, with the same
+answers (3p, 3r), for about 0.002 USD of Jev a session against 0.02-0.03 saved.
+
+**What is not.** The hook does not navigate: Claude still takes every step and the hook only
+trims what it reads. That is avoidance, the lever that pays least (`docs/where-it-pays.md`),
+and its ceiling showed: about 75 % of a session is Claude Code's own prefix, read again every
+turn, which a cut cannot touch; on pages past Claude Code's limit and with playwright-cli it
+saves nothing. Every task here is one or two pages and about four turns, the case where a cut
+saves least; nothing here measures an agent that reaches a goal over 10-30 steps, which is what
+browsing agents are for.
+
+**Where it goes next** (`docs/where-it-pays.md`, section 6, item 12): substitution. A loop in
+which Jev ranks each step's elements, a small model acts, and the large model is asked only
+when the ranking is unsure and for the answer; measured on multi-step tasks against a
+large-model agent. The same for crawling and search: which link to follow, which result to
+fetch, which page to keep. The hook, the ranking, row labels and the position judge carry over
+as parts of it.
+
 ## Phase 2d: registered, passed (`prereg-present.md`, `present-confirm.json`)
 
 Phase 2c's loss was the presentation, not the ranking. `diagnose.py` (free, replays 2c) found the
