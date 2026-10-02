@@ -203,7 +203,7 @@ def _world(masker: int, n: int = 8):  # noqa: ANN202
     undone. The patch names the undone bugs ("p<k>")."""
     bugs = [{"patch": f"p{k}\n", "FAIL_TO_PASS": [f"t::b{k}"]} for k in range(n)]
 
-    def pytest(_tag, patch, nodes, reverse=False):  # noqa: ANN001, ANN202
+    def pytest(_tag, patch, nodes, reverse=False, keep_collecting=False):  # noqa: ANN001, ANN202
         undone = {int(x[1:]) for x in patch.split()}
         baked = set(range(n)) - undone
         failed = 0 in baked and masker not in baked
@@ -227,7 +227,7 @@ def test_a_bug_another_hides_with_every_bug_in_blames_the_bug_that_hides_it(monk
 
 def test_a_bug_that_does_not_fail_even_alone_is_its_own_culprit(monkeypatch) -> None:  # noqa: ANN001
     bugs = [{"patch": f"p{k}\n", "FAIL_TO_PASS": [f"t::b{k}"]} for k in range(4)]
-    def pytest(_tag, _patch, nodes, reverse=False):  # noqa: ANN001, ANN202
+    def pytest(_tag, _patch, nodes, reverse=False, keep_collecting=False):  # noqa: ANN001, ANN202
         return dict.fromkeys(nodes, "PASSED")
 
     monkeypatch.setattr(masking.docker_env, "pytest", pytest)
@@ -239,7 +239,7 @@ def test_the_direction_comes_from_the_record(monkeypatch) -> None:  # noqa: ANN0
     # backward (fails with the bugs in, does not pass fixed alone): the maskers of the fix
     bugs = [{"patch": f"p{k}\n", "FAIL_TO_PASS": [f"t::b{k}"]} for k in range(8)]
 
-    def pytest(_tag, patch, nodes, reverse=False):  # noqa: ANN001, ANN202
+    def pytest(_tag, patch, nodes, reverse=False, keep_collecting=False):  # noqa: ANN001, ANN202
         undone = {int(x[1:]) for x in patch.split()}
         ok = 0 in undone and 3 in undone
         return {node: "PASSED" if node != "t::b0" or ok else "FAILED" for node in nodes}
@@ -283,7 +283,7 @@ def test_validation_keeps_the_bugs_of_its_last_check(monkeypatch) -> None:  # no
     monkeypatch.setattr(validate.docker_env, "pull", lambda _image: None)
     monkeypatch.setattr(validate, "check", check)
     monkeypatch.setattr(validate, "swap", swap)
-    monkeypatch.setattr(validate.masking, "culprits", lambda *_a: [0])
+    monkeypatch.setattr(validate.masking, "culprits", lambda *_a, **_k: [0])
     result = validate.validate(chain)
     assert len(checks) == validate.SWAPS + 1
     kept = [b["instance_id"] for b in result["bugs"]]

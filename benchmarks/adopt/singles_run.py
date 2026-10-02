@@ -70,6 +70,12 @@ def one(
     work = run.WORK / f"{name}-{arm}"
     if held and any(run.projects_dir(work).glob("*.jsonl")):  # amendment 2
         raise RuntimeError(f"{name} {arm}: earlier sessions in {run.projects_dir(work)}")
+    probes: list[str] = []
+    if arm == "S":  # amendment 5: the arm's own key path, and what its hooks would build
+        keyfile = run.arm_keyfile(keyfile, name, arm)
+        probes = [run.decider_probe(keyfile)]
+        if held and probes[-1] != run.HELD_DECIDER:
+            raise RuntimeError(f"{name} {arm}: its hooks would build {probes[-1]} (amendment 5)")
     docker_env.remove_tree(evidence)
     evidence.mkdir(parents=True)
     docker_env.remove_tree(work)
@@ -116,17 +122,20 @@ def one(
                                                    "base": base, "jev_usd": run.jev_usd(evidence),
                                                    "sanchopanza": run.provenance(),
                                                    "claude_version": run.claude_version(),
+                                                   **({"decider": probes} if probes else {}),
                                                    "calls": [call]}, indent=1),
                                        encoding="utf-8")  # fmt: skip
 
 
-def grade(name: str) -> dict[str, bool]:
-    """Both arms through the official harness; the instance image is removed afterwards."""
+def grade(name: str, regrade: bool = True) -> dict[str, bool]:
+    """Both arms through the official harness; the instance image is removed afterwards. Without
+    `regrade` an arm already graded keeps its grade (amendment 5: a run of the S arm again never
+    grades the N arm a second time)."""
     out: dict[str, bool] = {}
     for arm in run.ARMS:
         evidence = RUNS / name / arm
         patch_path = evidence / "final.patch"
-        if not patch_path.exists():
+        if not patch_path.exists() or (not regrade and (evidence / "grade.json").exists()):
             continue
         model = f"adopt-{arm}"
         preds = evidence / "preds.jsonl"
@@ -176,6 +185,8 @@ def main(argv: list[str] | None = None) -> int:
         run._ledger["spent"] = run.spent_so_far() + spent_singles()
     keyfile = run.keyfile_from_indagis()
     try:
+        if held & set(ids) and (why := run.decider_refusal(keyfile)):
+            raise SystemExit(why)
         for name in ids:
             row = known[name]
             # All or nothing, as the chains: both arms' caps held before either starts.
@@ -190,10 +201,11 @@ def main(argv: list[str] | None = None) -> int:
                         r, arm, run.MODELS[args.model], float("inf"), keyfile, h), run.ARMS))
             finally:
                 run.release(hold)
-            print(name, grade(name), flush=True)
+            print(name, grade(name, regrade=False), flush=True)
             docker_env.drop(row["image"])
     finally:
         keyfile.unlink(missing_ok=True)
+        run.drop_arm_keys()
     return 0
 
 

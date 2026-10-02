@@ -65,6 +65,9 @@ ARMS = ("N", "S")
 HELD_COMMIT = "eebdfa692f53ce4198b467649b7ae1845f0d68fc"
 HELD_MODEL, HELD_CALL_CAP, HELD_CHAIN_CAP = "haiku", 1.50, 6.00
 CLAUDE_VERSION = "2.1.285"
+# Amendment 5: the S arms' hooks build this decider (the pre-registration's Jev), checked before
+# any held-out run. Phase A's frozen copy built the null decider in every hook, unseen.
+HELD_DECIDER = "JevDecider"
 
 
 @dataclass(frozen=True)
@@ -152,6 +155,70 @@ def held_refusal(model: str | None, call_cap: float, chain_cap: float) -> str | 
         return f"held-out caps are {HELD_CALL_CAP} per call and {HELD_CHAIN_CAP} per chain and arm"
     if (found := claude_version()) != CLAUDE_VERSION:
         return f"held-out tasks run Claude Code {CLAUDE_VERSION}, found {found or 'none'}"
+    return None
+
+
+def decider_probe(keyfile: Path) -> str:
+    """The decider the S arms' hooks build: asked of the sanchopanza they run (`SANCHO`'s own
+    Python) in the environment `hook_env` gives them. Building it sends no question (the Jev
+    client is made on the first), so the probe is free. On failure, why."""
+    import tempfile
+
+    import hook_env
+
+    ask = ("import sanchopanza; from sanchopanza.harness.claude_code import decider_from_env; "
+           "print(sanchopanza.__file__); print(type(decider_from_env()).__name__)")  # fmt: skip
+    with tempfile.TemporaryDirectory() as evidence:
+        # The environment Claude Code gives the hooks: `child_env` drops SANCHOPANZA_* and the
+        # like, which the runner's own environment may hold.
+        env = hook_env.environment(Path(evidence), keyfile, base=child_env("", ""))
+        try:
+            done = subprocess.run([str(SANCHO.parent / "python.exe"), "-c", ask], env=env,
+                                  capture_output=True, text=True, timeout=120)  # fmt: skip
+        except (OSError, subprocess.TimeoutExpired) as error:
+            return f"no probe ({error})"
+    lines = (done.stdout or "").strip().splitlines()
+    if done.returncode != 0 or len(lines) < 2:
+        return f"no probe ({(done.stderr or '').strip()[-300:]})"
+    where, name = Path(lines[-2].strip()), lines[-1].strip()
+    if SANCHO.parents[1] not in where.parents:  # a PYTHONPATH or another install answered
+        return f"{name} from {where}"
+    return name
+
+
+KEYS = ROOT / "keys"
+_arm_keys: set[Path] = set()
+
+
+def arm_keyfile(source: Path, name: str, arm: str) -> Path:
+    """Amendment 5: an S arm's hooks read the key at a path fixed per arm, written each time the
+    arm starts or resumes, so a `--continue` by a later runner finds it (a path per runner went
+    with the runner that wrote it, and the hooks fell to the null decider without a word).
+    Removed by the runner that wrote it (`drop_arm_keys`)."""
+    path = KEYS / f"{name}-{arm}.key"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    key = source.read_text(encoding="utf-8") if source.exists() else ""
+    path.write_text(key, encoding="utf-8")
+    with _lock:
+        _arm_keys.add(path)
+    return path
+
+
+def drop_arm_keys() -> None:
+    with _lock:
+        for path in _arm_keys:
+            path.unlink(missing_ok=True)
+        _arm_keys.clear()
+
+
+def decider_refusal(keyfile: Path) -> str | None:
+    """Amendment 5. Why the held-out S arms may not run with this frozen copy and key, or None."""
+    stamp = frozen_stamp() or {}
+    if "jev" not in (stamp.get("extras") or []):
+        return ("the frozen sanchopanza was installed without the jev extra: the S arms would run "
+                "with no decider (amendment 5); freeze it again")  # fmt: skip
+    if (found := decider_probe(keyfile)) != HELD_DECIDER:
+        return f"the S arms' hooks would build {found}, not {HELD_DECIDER} (amendment 5)"
     return None
 
 
@@ -423,6 +490,12 @@ def one_chain(
         return  # done before: never run twice
     if why := held_start_refusal(chain, work, previous):
         raise RuntimeError(f"{name} {arm}: {why}")
+    probes: list[str] = list((previous or {}).get("decider", []))
+    if spec.install is not None:
+        keyfile = arm_keyfile(keyfile, name, arm)
+        probes = [*probes, decider_probe(keyfile)]
+        if chain["split"] == "held" and probes[-1] != HELD_DECIDER:
+            raise RuntimeError(f"{name} {arm}: its hooks would build {probes[-1]} (amendment 5)")
     if previous:
         rows = [r for r in previous["calls"] if not not_run(r)]
         session, base = previous["session"], previous["base"]
@@ -507,7 +580,8 @@ def one_chain(
     row = {"chain": name, "arm": arm, "model": model, "base": base, "session": session,
            "wall_s": round(sum(r.get("wall_s") or 0.0 for r in rows), 1),
            "jev_usd": jev_usd(evidence), "sanchopanza": provenance(),
-           "claude_version": claude_version(), "calls": rows}  # fmt: skip
+           "claude_version": claude_version(), "calls": rows,
+           **({"decider": probes} if probes else {})}  # fmt: skip
     (evidence / "row.json").write_text(json.dumps(row, indent=1), encoding="utf-8")
 
 
@@ -523,7 +597,9 @@ def grade_chain(chain: dict[str, Any], arm: str, rep: int = 1) -> dict[str, Any]
     evidence = RUNS / run_name(chain["chain"], rep) / arm
     patch = (evidence / "final.patch").read_text(encoding="utf-8")
     nodes = [n for b in chain["bugs"] for n in (*b["FAIL_TO_PASS"], *b["PASS_TO_PASS_STAR"])]
-    outcome = docker_env.pytest(chain["tag"], patch, list(dict.fromkeys(nodes)))
+    keep = chain["split"] != "held"  # amendment 5: held-out chains keep the sealed command
+    outcome = docker_env.pytest(chain["tag"], patch, list(dict.fromkeys(nodes)),
+                                keep_collecting=keep)  # fmt: skip
     bugs = []
     for bug in chain["bugs"]:
         f2p = [outcome.get(t) == "PASSED" for t in bug["FAIL_TO_PASS"]]
@@ -532,7 +608,7 @@ def grade_chain(chain: dict[str, Any], arm: str, rep: int = 1) -> dict[str, Any]
                      "f2p_passed": sum(f2p), "f2p": len(f2p), "p2p_broken": p2p.count(False),
                      "patch_applied": "<patch>" not in outcome})  # fmt: skip
     grade = {"chain": chain["chain"], "arm": arm, "resolved": sum(b["resolved"] for b in bugs),
-             "bugs": bugs}  # fmt: skip
+             "bugs": bugs, "collection": "continue" if keep else "stop"}  # fmt: skip
     seal = REPO / "docs" / "results" / "2026-09-30-adopt" / "prereg-confirm.sha256"
     grade = {**grade, "seal": seal.read_text(encoding="utf-8").strip() if seal.exists() else None}
     (evidence / "grade.json").write_text(json.dumps(grade, indent=1), encoding="utf-8")
@@ -568,7 +644,9 @@ def keyfile_from_indagis() -> Path:
                 key = line.split("=", 1)[1].strip().strip('"')
     if not key:
         raise SystemExit("no TypeSafe key: the S arm would run without its decider")
-    path = ROOT / "typesafe.key"
+    # One per runner (amendment 5): a shared file was taken from every other runner by the first
+    # one's `finally`, and their hooks fell to the null decider mid-session (starlette-1, 09-30).
+    path = ROOT / f"typesafe-{os.getpid()}.key"
     path.write_text(key, encoding="utf-8")
     return path
 
@@ -634,6 +712,9 @@ def main(argv: list[str] | None = None) -> int:
         _ledger["spent"] = spent_so_far()
     keyfile = keyfile_from_indagis()
     try:
+        treated = any(ARM_SPECS[a].install is not None for a in arms)
+        if held_named and treated and (why := decider_refusal(keyfile)):
+            raise SystemExit(why)
         for n in wanted:
             chain = known[n]
             if not chain["valid"]:
@@ -656,6 +737,7 @@ def main(argv: list[str] | None = None) -> int:
                 release(hold)
     finally:
         keyfile.unlink(missing_ok=True)
+        drop_arm_keys()
     print(f"spent {_ledger['spent']:.2f} USD (list price)")
     return 0
 

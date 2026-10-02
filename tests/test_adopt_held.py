@@ -129,3 +129,21 @@ def test_a_held_out_single_does_not_start_over_earlier_sessions(tmp_path, monkey
 
 def test_child_sessions_never_update_claude_code() -> None:
     assert run.child_env("t", "b")["DISABLE_AUTOUPDATER"] == "1"
+
+
+def test_a_rerun_grades_only_the_arm_that_ran_again(tmp_path, monkeypatch) -> None:  # noqa: ANN001
+    """Amendment 5: the S arm of a single runs again with the decider; its N arm keeps the
+    grade it had, never graded a second time by the run that follows."""
+    monkeypatch.setattr(singles_run, "RUNS", tmp_path / "runs")
+    monkeypatch.setattr(singles_run, "SWE", tmp_path / "swe")
+    for arm in singles_run.run.ARMS:
+        folder = tmp_path / "runs" / "x__y-1" / arm
+        folder.mkdir(parents=True)
+        (folder / "final.patch").write_text("", encoding="utf-8")
+    graded = tmp_path / "runs" / "x__y-1" / "N" / "grade.json"
+    graded.write_text('{"resolved": true}', encoding="utf-8")
+    harness: list[str] = []
+    monkeypatch.setattr(singles_run.subprocess, "run", lambda argv, **k: harness.append(argv[-1]))
+    singles_run.grade("x__y-1", regrade=False)
+    assert len(harness) == 1 and harness[0].startswith("adopt-S")  # the run id names the arm
+    assert graded.read_text(encoding="utf-8") == '{"resolved": true}'

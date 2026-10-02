@@ -6,6 +6,9 @@ The development arms ran the package installed editable from the working tree, s
 session changed the S arms mid-batch (declared in the dev log). The held-out arms run this copy
 instead: `ADOPT_SANCHO=<path printed>` makes `run.py` install and `hook_env.py` run hooks from it.
 `stamp.json` beside it records the commit, the package version and the tree it was built from.
+
+Amendment 5: installed with the `jev` extra, into `<commit>-jev`. Phase A's copy had no extra, so
+no `httpx`, so every hook built the null decider; that copy is left as it was.
 """
 
 from __future__ import annotations
@@ -19,6 +22,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 ROOT = Path.home() / ".cache" / "sanchopanza" / "adopt" / "frozen"
+EXTRAS = "jev"  # the decider the pre-registration names; without it the S arms have none
 
 
 def git(*args: str) -> str:
@@ -28,7 +32,7 @@ def git(*args: str) -> str:
 
 def freeze(commit: str) -> Path:
     full = git("rev-parse", "--verify", f"{commit}^{{commit}}")
-    target = ROOT / full[:12]
+    target = ROOT / f"{full[:12]}-{EXTRAS}"
     exe = target / "Scripts" / "sanchopanza.exe"
     if exe.exists():
         return exe
@@ -39,11 +43,16 @@ def freeze(commit: str) -> Path:
     subprocess.run(["tar", "-x", "-C", str(source)], input=archive, check=True)
     venv.create(target, with_pip=True)
     python = target / "Scripts" / "python.exe"
-    subprocess.run([str(python), "-m", "pip", "install", "-q", str(source)], check=True)
+    subprocess.run([str(python), "-m", "pip", "install", "-q", f"{source}[{EXTRAS}]"], check=True)
     ask = "import sanchopanza; print(sanchopanza.__version__)"
     version = subprocess.run([str(python), "-c", ask], capture_output=True, text=True,
                              check=True).stdout.strip()  # fmt: skip
-    stamp = {"commit": full, "version": version, "tree": git("rev-parse", f"{full}^{{tree}}")}
+    stamp = {
+        "commit": full,
+        "version": version,
+        "tree": git("rev-parse", f"{full}^{{tree}}"),
+        "extras": [EXTRAS],
+    }
     (target / "stamp.json").write_text(json.dumps(stamp, indent=1), encoding="utf-8")
     return exe
 

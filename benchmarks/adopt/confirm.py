@@ -167,6 +167,45 @@ def ran(call: dict[str, Any]) -> bool:
             and call.get("subtype") is not None)  # fmt: skip
 
 
+DECIDER_PROVIDERS = {"jev", "budget"}  # "budget": the hooks' own cap per session, as installed
+DECIDER_ERRORS = 0.10  # decisions Jev did not answer (`error` set), at most this share of them
+
+
+def _jsonl(path: Path) -> list[dict[str, Any]]:
+    out = []
+    for line in path.read_text(encoding="utf-8").splitlines() if path.exists() else []:
+        try:
+            entry = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(entry, dict):
+            out.append(entry)
+    return out
+
+
+def with_decider(evidence: Path, frozen: dict[str, Any], row: dict[str, Any]) -> bool:
+    """Amendment 5: a sanchopanza arm is the treatment only with the decider the
+    pre-registration names, shown positively (phase A's S arms: 163 decisions, all `null`, and
+    several arms with none journalled at all, since memory and find fall back without a word):
+    its frozen copy installed with the jev extra; the runner's probe found `JevDecider` each time
+    the arm started; every hook it logged had the key; no decision by another provider; and at
+    most `DECIDER_ERRORS` of its decisions left unanswered by Jev."""
+    if "jev" not in (frozen.get("extras") or []):
+        return False
+    probes = row.get("decider") or []
+    if not probes or any(p != "JevDecider" for p in probes):
+        return False
+    hooks = _jsonl(evidence / "hooks.jsonl")
+    if not hooks or not all(h.get("key") is True for h in hooks):
+        return False
+    decisions = [e.get("data") or {} for e in _jsonl(evidence / "journal.jsonl")
+                 if e.get("kind") == "decision"]  # fmt: skip
+    if any(d.get("provider") not in DECIDER_PROVIDERS for d in decisions):
+        return False
+    errors = sum(bool(d.get("error")) for d in decisions)
+    return errors <= DECIDER_ERRORS * len(decisions)
+
+
 def arm_result(evidence: Path, model: str, commit: str | None = None) -> dict[str, Any] | None:
     """Resolved bugs, cost and exploration per request, completeness and adoption of one task
     and arm; None when it has not run or been graded, ran with another model, or (with
@@ -178,7 +217,11 @@ def arm_result(evidence: Path, model: str, commit: str | None = None) -> dict[st
     if row.get("model") != model:
         return None
     frozen = (row.get("sanchopanza") or {}).get("frozen") or {}
-    if commit and evidence.name in CONTROL and frozen.get("commit") != commit:
+    if (
+        commit
+        and evidence.name in CONTROL
+        and (frozen.get("commit") != commit or not with_decider(evidence, frozen, row))
+    ):
         return None
     grade = json.loads(grade_path.read_text(encoding="utf-8"))
     requests = {c["request"]: c for c in row["calls"]}

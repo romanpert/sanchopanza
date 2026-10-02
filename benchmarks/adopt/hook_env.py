@@ -25,8 +25,13 @@ SANCHO = os.environ.get("ADOPT_SANCHO") or str(REPO / ".venv" / "Scripts" / "san
 SESSION_MAX_USD = "0.10"  # Jev, per Claude Code session
 
 
-def environment(evidence: Path, keyfile: Path) -> dict[str, str]:
-    env = {k: v for k, v in os.environ.items() if not k.startswith(("ANTHROPIC_", "TYPESAFE_"))}
+def environment(
+    evidence: Path, keyfile: Path, base: dict[str, str] | None = None
+) -> dict[str, str]:
+    """The hooks' environment over `base` (this process's by default: Claude Code's, which the
+    runner built with `run.child_env`; the decider probe passes that same one)."""
+    source = os.environ if base is None else base
+    env = {k: v for k, v in source.items() if not k.startswith(("ANTHROPIC_", "TYPESAFE_"))}
     key = keyfile.read_text(encoding="utf-8").strip() if keyfile.exists() else ""
     return {**env, "SANCHOPANZA_JOURNAL": str(evidence / "journal.jsonl"),
             "SANCHOPANZA_GUARD_DIR": str(evidence / "guard"),
@@ -42,7 +47,10 @@ def main(argv: list[str]) -> int:
     evidence, keyfile, sub, rest = Path(argv[0]), Path(argv[1]), argv[2], argv[3:]
     evidence.mkdir(parents=True, exist_ok=True)
     env = environment(evidence, keyfile)
+    key = "TYPESAFE_API_KEY" in env  # amendment 5: positive evidence the decider could be built
     if sub.endswith("-mcp"):  # a server: the client's stdio, for as long as it runs
+        with (evidence / "hooks.jsonl").open("a", encoding="utf-8") as log:
+            log.write(json.dumps({"sub": sub, "event": "server start", "key": key}) + "\n")
         return subprocess.run([SANCHO, sub, *rest], env=env).returncode
     payload = sys.stdin.buffer.read()
     try:
@@ -55,7 +63,10 @@ def main(argv: list[str]) -> int:
         log.write(json.dumps({"sub": sub, "event": event.get("hook_event_name"),
                               "source": event.get("source"), "tool": event.get("tool_name"),
                               "exit": done.returncode, "seconds": round(time.time() - started, 2),
-                              "out_chars": len(done.stdout)}) + "\n")  # fmt: skip
+                              "out_chars": len(done.stdout), "key": key,
+                              # amendment 5: "no decider" was said here, and nobody kept it
+                              **({"stderr": done.stderr.decode("utf-8", "replace")[-500:]}
+                                 if done.stderr else {})}) + "\n")  # fmt: skip
     sys.stdout.buffer.write(done.stdout)
     sys.stderr.buffer.write(done.stderr)
     return done.returncode

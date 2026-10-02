@@ -62,11 +62,12 @@ def check(chain: dict[str, Any], bugs: list[dict[str, Any]]) -> tuple[list[dict]
     tag = tag_of(chain["chain"])
     docker_env.bake(chain["image"], [b["patch"] for b in bugs], tag)
     nodes = nodes_of(bugs)
-    broken = docker_env.pytest(tag, "", nodes)
+    keep = chain.get("split") != "held"  # amendment 5: held-out chains keep the sealed command
+    broken = docker_env.pytest(tag, "", nodes, keep_collecting=keep)
     records, bad = [], []
     for i, bug in enumerate(bugs):
         failing = [t for t in bug["FAIL_TO_PASS"] if broken.get(t) != "PASSED"]
-        fixed = docker_env.pytest(tag, bug["patch"], nodes, reverse=True)
+        fixed = docker_env.pytest(tag, bug["patch"], nodes, reverse=True, keep_collecting=keep)
         passing = [t for t in bug["FAIL_TO_PASS"] if fixed.get(t) == "PASSED"]
         kept_p2p = [t for t in bug["PASS_TO_PASS"] if fixed.get(t) == "PASSED"]
         valid = len(failing) == len(bug["FAIL_TO_PASS"]) and len(passing) == len(failing)
@@ -118,7 +119,8 @@ def validate(chain: dict[str, Any]) -> dict[str, Any]:
         # Replace the culprits, not the victims: a bug that breaks a path every test goes
         # through failed its neighbours too (conan, dvc), and swapping those lost good bugs and
         # kept it. `masking.culprits` names it, or the failing bug itself when nothing does.
-        out = masking.culprits(tag_of(chain["chain"]), bugs, bad, records)
+        out = masking.culprits(tag_of(chain["chain"]), bugs, bad, records,
+                               keep=chain.get("split") != "held")  # amendment 5
         history.append([f"replace {masking.short(bugs[k])}" for k in out])
         # Swaps on a copy, kept only when every culprit found a spare: a partial swap left the
         # stored bugs out of step with the records of the bake they came from (conan-2, rel-1).
@@ -195,7 +197,9 @@ def bake_only(name: str) -> None:
     docker_env.bake(chain["image"], [b["patch"] for b in chain["bugs"]], chain["tag"])
     # The image is pulled by name, not digest: check the baked bugs still break their tests.
     nodes = [t for b in chain["bugs"] for t in b["FAIL_TO_PASS"]]
-    passing = [t for t, status in docker_env.pytest(chain["tag"], "", nodes).items()
+    keep = chain.get("split") != "held"  # amendment 5: held-out chains keep the sealed command
+    passing = [t for t, status in docker_env.pytest(chain["tag"], "", nodes,
+                                                    keep_collecting=keep).items()
                if status == "PASSED"]  # fmt: skip
     if passing:
         raise SystemExit(f"{name}: baked again, FAIL_TO_PASS that pass: {passing[:5]}")

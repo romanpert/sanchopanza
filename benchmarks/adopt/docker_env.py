@@ -129,20 +129,28 @@ KILLED = 137  # the container's process killed (out of memory)
 
 
 def pytest(
-    tag: str, patch: str, nodes: list[str] | None, *, reverse: bool = False, timeout: int = 3600
+    tag: str, patch: str, nodes: list[str] | None, *, reverse: bool = False, timeout: int = 3600,
+    keep_collecting: bool = False,
 ) -> dict[str, str]:
     """node id -> outcome of `nodes` (None or too many: the whole suite) in `tag` with `patch`
     applied first, or reversed with `reverse` (an empty patch runs the image as it is). A patch
     that does not apply yields {"<patch>": "ERROR"}. `-p no:pretty`: pytest-pretty (pydantic)
     replaces the `-rA` lines this reads with a table. A whole-suite run killed for memory
     (astroid with its chain's bugs in, at 54 % and at 84 %) is run again over the nodes in
-    batches of `BATCH`, one pytest process each; other runs are as they were."""
+    batches of `BATCH`, one pytest process each; other runs are as they were.
+
+    `keep_collecting` (amendment 5, development chains only): a file that cannot be collected
+    stops pytest whole and every other node comes out absent, read as not passing (a bug of
+    conan-long40-1 removes `rm` and test_rm.py does not import). Held-out chains keep the sealed
+    command, so the confirmation's arms are all graded the same way."""
     listed = bool(nodes) and len(nodes or []) <= FULL_SUITE_OVER
-    select = "xargs -a /io/nodes.txt -d '\\n' python -m pytest" if listed else "python -m pytest"
+    keep = " --continue-on-collection-errors" if keep_collecting else ""
+    pytest_cmd = f"python -m pytest{keep}"
+    select = f"xargs -a /io/nodes.txt -d '\\n' {pytest_cmd}" if listed else pytest_cmd
     done, text = _run(tag, patch, nodes, select, reverse, timeout)
     if not listed and nodes and done.returncode == KILLED:
         batched = (f"ulimit -v {MEMORY_KB} && "
-                   f"xargs -a /io/nodes.txt -d '\\n' -n {BATCH} python -m pytest")
+                   f"xargs -a /io/nodes.txt -d '\\n' -n {BATCH} {pytest_cmd}")
         done, text = _run(tag, patch, nodes, batched, reverse, timeout)
     if "PATCH_FAILED" in text:
         return {"<patch>": "ERROR"}
