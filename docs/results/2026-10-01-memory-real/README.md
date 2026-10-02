@@ -323,7 +323,8 @@ again (N three times, S and Sm twice) give identical records, no git failure (sl
 1.25 s) and no read past the snapshot's byte budget. The two outlying passes in
 `chain-v6-real.json` (determinism-2 0.034, corrected-v61-habit 0.045, against 0.030-0.031
 elsewhere) do not reproduce; the likeliest cause is a git call past its 3 s limit on a loaded
-machine, which `worktree.snapshot` turns into no snapshot without a trace (not shown). On the 13
+machine, which `worktree.snapshot` turned into no snapshot without a trace (not shown; since
+43714fd `worktree.probe` gives the reason and the hook logs it as a `tree` row). On the 13
 repositories of the maintainer's sessions `git status -uall` takes 0.05-0.47 s.
 
 **The record before the first shell write** (`memory_hook.shell_first`, off by default,
