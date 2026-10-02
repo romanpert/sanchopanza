@@ -488,13 +488,14 @@ def answer_line(answer: str) -> str:
 
 
 def grade(answer: str, required: list[Any], tid: str) -> bool:
-    """Every required item present. For the aggregation and strategy tasks (H*, S*) only the
-    ANSWER line counts, and a number counts as a whole number: "10" is met by "There are 10
-    quotes" and not by "page 10 of 100" elsewhere in the reply, nor by "100" in the line.
+    """Every required item present. For the aggregation, strategy and confirmation tasks (H*,
+    S*, C*) only the ANSWER line counts, and a number counts as a whole number: "10" is met
+    by "There are 10 quotes" and not by "page 10 of 100" elsewhere in the reply, nor by "100"
+    in the line.
 
     The first version required the literal "answer: 10", and graded "ANSWER: There are 10
     quotes by Albert Einstein" - which is right - as a failure (H1, Sonnet, 2026-10-02)."""
-    if not tid.startswith(("H", "S")):
+    if not tid.startswith(("H", "S", "C")):
         return base.graded(answer, required)
     line = base.normal(answer_line(answer))
     if not line:

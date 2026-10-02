@@ -389,3 +389,51 @@ the new one. Both fixed before a number was written down.
 
 Across the day, 32 sessions on 9 tasks (A1, A4, B1, B2, H1-H5) - easy, trapped and aggregating - and every one answered
 correctly once graded correctly. The blocker of section 9 is now measured three ways.
+
+## 14. The strategy lever: one fixed line halves a crawl, and it is not a decision
+
+Section 13 left one live lever: on H1 Sonnet wrote one `browser_evaluate` that fetched and
+parsed every page and Haiku walked them. Before buying a decision that says "this is a crawl,
+extract it in one call", the cheaper control was run first: **the same advice as one fixed line
+in the system prompt, for every request, with no decider at all**. A gate earns its place only
+where the line does harm.
+
+Five new crawls of 20 to 50 pages (`truth_strategy.py`: answers from the sites, each checked by
+a second route), Claude Code 2.1.287 throughout, development, three runs on Haiku
+(`nav-strategy.json`; Sonnet one run, for reference):
+
+| arm (S1-S5) | right | mean / median list USD | mean turns |
+|---|---|---|---|
+| `claude-sonnet-5`, unaided (1 run) | 5/5 | 0.232 / 0.094 | 14.2 |
+| `claude-haiku-4-5`, unaided | 11/15 | 0.265 / 0.261 | 23.2 |
+| Haiku + line v1 | 12/15 | 0.130 / 0.101 | 17.3 |
+| Haiku + line v2 | **13/15** | **0.136 / 0.105** | 19.2 |
+
+**The line halves what a long crawl costs the cheap model, and it does not cost answers.** Every
+failure was read by hand before being counted; they are of two kinds, and they say what each
+strategy risks:
+
+- **Walking fails by arithmetic.** Unaided Haiku's four misses: a tag `live-death-love` counted
+  as `love` (twice), a running total that dropped one page (60 for 65), one row in 582 missed (33
+  for 34). Counting in code removes exactly this.
+- **One call fails in silence.** Line v1 on S5, the infinite-scroll page: **0/3**, against 3/3
+  unaided. The code was no worse - both arms wrote scroll loops - but with the line Haiku took
+  its single call's answer as final (8 authors of 50), where unaided it saw a short result and
+  tried again. "Do it in one call" had switched off the check. And on H1 one call never returned:
+  it read Next from the open page rather than the fetched one, looped on page 2, and **Playwright
+  MCP never stops an evaluate**; the session hung for 30 minutes until the runner killed it.
+
+Line v2 answers both: the extraction must return how many pages and items it read and whether
+more remained, the agent must hold that against the site before answering, and every loop gets a
+cap. S5 went from 0/3 to 2/3 and H1 from one hang in three to 3/3 (4, 24 and 6 turns, against 23
+unaided). The line is taken up unevenly: on S4 both versions extracted in one call once in three
+and walked the other two.
+
+**No harm where it does not apply**: line v1 on two interactive tasks, a cart (A1) and the
+silent-failure trap (B2), three runs each: 6/6 right, 13-27 turns, 0.09-0.18 USD, as unaided.
+
+So, plainly, against where this line set out: **the strategy lever is substitution - one call
+for twenty turns - but what pulls it is a sentence, not a decision of ours.** With no harm on the
+tasks where it does not apply, a gate in front of the line would only add cost. This is
+development on the tasks the line was written on; the confirmation is registered in
+`prereg-strategy.md` and runs on eight crawls and two interactive tasks it has never seen.
