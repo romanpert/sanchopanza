@@ -197,6 +197,7 @@ def _install(args: argparse.Namespace) -> int:
             guard=args.guard,
             candor=args.candor,
             memory=args.memory,
+            crawl=args.crawl,
             budget=DEFAULT_BUDGET if args.context_budget is None else args.context_budget,
             find=args.find,
             profile=args.guard_profile,
@@ -263,6 +264,13 @@ def _install(args: argparse.Namespace) -> int:
             "`python -m sanchopanza.candor release --by NAME --why TEXT`. It catches reports "
             "the record or the disk contradicts, in the tested categories; it is not robust "
             "to an agent set on beating it.\n"
+        )
+    if args.crawl:
+        sys.stdout.write(
+            "Crawl is on: each session starts with one line on extracting multi-page data in a "
+            "single browser_evaluate, and every browser_evaluate gets a time limit "
+            "(SANCHOPANZA_EVALUATE_LIMIT_S, default 120). It asks no model and approves no call "
+            "your permission rules would not.\n"
         )
     if root is not None:
         sys.stdout.write(
@@ -686,6 +694,13 @@ def main(argv: list[str] | None = None) -> int:
         help="record each finished request verbatim (no model) and give a later request, in "
         "this session after a compaction or in a new session, the records that bear on it "
         "(Stop, SessionEnd and UserPromptSubmit hooks; not measured yet, so off by default)",
+    )
+    install.add_argument(
+        "--crawl",
+        action="store_true",
+        help="for browsing agents: a strategy line for multi-page crawls at session start, and a "
+        "time limit on every browser_evaluate (two classic hooks, no model; not confirmed yet, "
+        "so off by default)",
     )
     install.add_argument(
         "--plugin-dir",

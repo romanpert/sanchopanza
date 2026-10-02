@@ -77,6 +77,13 @@ their command, and a run without the flag takes them out.
 critical finding holds every further call until a person releases it. Both the hooks and the
 variable are owned by the flag.
 
+`--crawl` wires crawl (`harness.crawl_hook`, `sanchopanza crawl-hook`): `SessionStart` adds one
+line of strategy for requests that gather data across many pages (extract them in one
+`browser_evaluate` that fetches and parses each page), and `PreToolUse` on any MCP server's
+`browser_evaluate` races the function against a time limit, so a loop that cannot end becomes an
+error instead of a hung session. No model; the guard rewrites the call's input and approves
+nothing. Off by default until confirmed; both entries are owned by the flag.
+
 The one decision worth understanding is `--scan-content`, which is off unless asked for. It
 adds a PostToolUse scan of arriving content for instructions aimed at the model. That is a
 detection control and not a barrier - by PostToolUse the bytes are in the transcript and the
@@ -128,6 +135,10 @@ CANDOR_HOOKS = {
 }
 # The workspace snapshot: in round 4 it alone stopped reports of outputs that never changed.
 CANDOR_ENV = {"SANCHOPANZA_CANDOR_SNAPSHOT": "1"}
+CRAWL_COMMAND = "sanchopanza crawl-hook"
+# Event -> matcher for crawl (`--crawl`, `harness.crawl_hook`): the strategy line at every session
+# start, and the time limit on any MCP server's browser_evaluate.
+CRAWL_HOOKS = {"SessionStart": "", "PreToolUse": r"mcp__.*__browser_evaluate"}
 AUTOPILOT_ENV = {
     "SANCHOPANZA_AUTOPILOT": "1",
     "SANCHOPANZA_COMPACT_COMMAND": "sanchopanza compact --stdin --arm mask",
@@ -438,6 +449,13 @@ def _merge_candor(
     return merged, added, removed
 
 
+def _merge_crawl(
+    merged: dict[str, Any], on: bool, command: str = CRAWL_COMMAND
+) -> tuple[dict[str, Any], list[str], list[str]]:
+    """Crawl's two hooks (`--crawl`)."""
+    return _merge_owned(merged, on, CRAWL_HOOKS, command, CRAWL_COMMAND, "crawl")
+
+
 def _merge_approval(
     merged: dict[str, Any], lean: bool, find: bool = False
 ) -> tuple[dict[str, Any], list[str], list[str]]:
@@ -626,6 +644,7 @@ def _merge(
     budget: int = 0,
     find: bool = False,
     profile: str = "sandbox",
+    crawl: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
         current = {}
@@ -655,6 +674,8 @@ def _merge(
     merged, plus, minus = _merge_candor(merged, candor)
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_memory(merged, memory)
+    added, removed = [*added, *plus], [*removed, *minus]
+    merged, plus, minus = _merge_crawl(merged, crawl)
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_budget(merged, budget)
     added, removed = [*added, *plus], [*removed, *minus]
@@ -688,6 +709,7 @@ def plan(
     budget: int = 0,
     find: bool = False,
     profile: str = "sandbox",
+    crawl: bool = False,
 ) -> Settings:
     current: Any = {}
     if path.exists():
@@ -718,6 +740,7 @@ def plan(
         budget=budget,
         find=find,
         profile=profile,
+        crawl=crawl,
     )
     return Settings(path, merged, tuple(added), tuple(removed))
 
