@@ -580,8 +580,10 @@ Checks done along the way, so that what the numbers read is what they claim to:
   is written, not the one that ran. `confirm.py` does not read that field.
 - A CTRL_C reached the singles' console at 13:18 while scikit-learn-13779 was being graded. Both
   arms had run and written their rows, so its S arm was graded again (no session).
-- **pygments-2's image, baked again after A and checked as `check` does** (amendment 1): result
-  below when it ends (its pytest is the whole suite, over 1,500 nodes).
+- **pygments-2's image, baked again after A and checked as `check` does** (amendment 1): **OK**.
+  With its five bugs in, no FAIL_TO_PASS test passes; the parametrised tests of pr_2449, absent
+  because the bug removes their lexers, count as failing, as `check` counts them. So pygments-2
+  was a valid chain when it ran (2026-10-02 16:30, whole suite, about 40 minutes).
 - Exploratory, not preregistered (suggested by the browse line): whether a cheaper arm is cheaper
   because it replaces turns or because it trims context. With find 0 and skill 0, nothing in A
   replaced turns; Sm's lever is the 100k context budget (compactions).
