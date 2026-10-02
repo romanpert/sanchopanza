@@ -108,3 +108,21 @@ gives the table.
   adds at Stop is aimed at exactly this.
 - **Claude Code's own auto memory saved twice, both times in M runs** (`naive`, `envvar`; files
   `warehouse_timestamp_format.md` and `ops_config_constraints.md`). It saved 0 of 16 times in N.
+
+## Other models: Opus 5.5 (`prereg-generalize.md`, amendments 2 and 3)
+
+16 pairs, 22.97 USD at list price.
+
+| 16 pairs | fact kept | tests | task (13 with a check) | median cost M/N |
+|---|---|---|---|---|
+| N, Claude Code as it ships | 14 / 16 | 16 / 16 | 13 / 13 | |
+| M, with sanchopanza's memory | **16 / 16** | 16 / 16 | 13 / 13 | 0.97 |
+
+- **No room.** There were 2 discordant pairs (`fields`, `rename`), both for M; p = 0.25. N keeps
+  nearly every fact already, which the prereg reports as "no room" and not as a failure.
+- **Opus uses its own auto memory**, unlike Sonnet (0 of 48 runs): it saved in 7 of 32 first
+  sessions, 3 in N and 4 in M. Even so, N broke two facts.
+- **Across models:** the gain is largest where the model is mid-range.
+  - Sonnet 5.5: 23/24 against 14/24, p = 0.002.
+  - Haiku: 11/16 against 8/16; delivered facts still broken.
+  - Opus: 16/16 against 14/16.
