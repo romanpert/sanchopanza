@@ -200,7 +200,7 @@ def _order(seed: str, n: int) -> list[int]:
 
 async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str, head: str,
                 paths: Sequence[str],
-                ) -> tuple[list[dict[str, Any]], dict[str, float | None]]:  # fmt: skip
+                ) -> tuple[list[dict[str, Any]], dict[str, Any]]:  # fmt: skip
     """(rules the request's diff confidently breaks, every probability). Once per request: the
     mark is written when the answers are in, so a timeout leaves the request to be asked."""
     import asyncio
@@ -218,13 +218,18 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
     if not change.strip():
         return [], {}
 
+    from ..redact import redact_secrets
+
     order = _order(key, len(held))
+    # The rules travel in the Choice's options, which the squire's redaction (of `state` only)
+    # never reaches: masked here (review of v8, H1). A rule with no secret is sent as measured.
     state, questions = points.questions_for_rules(
-        [(str(held[i]["text"]), list(held[i].get("files") or [])) for i in order], change)
+        [(redact_secrets(str(held[i]["text"])),
+          [redact_secrets(str(f)) for f in held[i].get("files") or []]) for i in order], change)
     seen = await squire.decide("memory_rule_all", state, questions)
     answer = seen.answer("broken")
     if seen.failed or answer.empty:  # nothing named: the request stays as it was, asked again
-        return [], {}
+        return [], {"_failed": "memory_rule_all"}
     named = [0.0] * len(held)
     for k, i in enumerate(order, 1):
         named[i] = float(answer.probabilities.get(f"rule_{k}", 0.0))
@@ -238,16 +243,21 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
 
     asked = [i for i in range(len(held)) if named[i] >= CANDIDATE_AT]
     found = await asyncio.gather(*(ask(held[i]) for i in asked), return_exceptions=True)
-    answers: list[float | None] = [1.0] * len(held)  # not named: kept
-    for i, p in zip(asked, found, strict=True):
-        answers[i] = p if isinstance(p, float) else None
+    kept: dict[int, float] = {i: p for i, p in zip(asked, found, strict=True)
+                              if isinstance(p, float)}  # fmt: skip
+    if len(kept) < len(asked):  # a named rule went unanswered: no mark, asked again (M1)
+        return [], {"_failed": "memory_rule_check"}
     with ep.locked(_path(store)):
         latest = load(store)
         if key in latest[AUDITED]:  # another Stop of this request got here first
             return [], {}
         _save(store, {**latest, AUDITED: [*latest[AUDITED], key][-500:]})
-    probabilities = {str(r["text"])[:80]: p for r, p in zip(held, answers, strict=True)}
-    broken = [r for r, p in zip(held, answers, strict=True) if p is not None and p < BROKEN_BELOW]
+    # Per rule, what the Choice named and what `kept` said (None: not asked), so CANDIDATE_AT
+    # can be checked again on real sessions (L1).
+    probabilities = {f"{i}:{str(r['text'])[:80]}": {"named": round(named[i], 3),
+                                                    "kept": kept.get(i)}
+                     for i, r in enumerate(held)}  # fmt: skip
+    broken = [held[i] for i, p in kept.items() if p < BROKEN_BELOW]
     return broken, probabilities
 
 

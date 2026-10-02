@@ -797,7 +797,7 @@ def rules_at_stop(event: Mapping[str, Any], seen: Recorded,
 
     seconds = _int("MEMORY_RULES_SECONDS", 20)
 
-    async def checked() -> tuple[list[dict[str, Any]], dict[str, float | None]]:
+    async def checked() -> tuple[list[dict[str, Any]], dict[str, Any]]:
         if not check or start is None:
             return [], {}
         return await memory_rules.audit(

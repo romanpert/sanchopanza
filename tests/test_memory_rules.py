@@ -125,7 +125,8 @@ def test_a_diff_that_breaks_a_rule_is_found_once_per_request(tmp_path: Path) -> 
     (repo / "app" / "config.py").write_text(
         "def load():\n    return {\n    'timeout': env('APP_PAYMENT_TIMEOUT'),\n    }\n", "utf-8")
     broken, found = asyncio.run(mr.audit(squire(), store, "new", 1, str(repo), head, MINE))
-    assert [r["text"] for r in broken] == [RULE] and list(found.values()) == [0.1]
+    assert [r["text"] for r in broken] == [RULE]
+    assert list(found.values()) == [{"named": 0.9, "kept": 0.1}]
     assert asyncio.run(mr.audit(squire(), store, "new", 1, str(repo), head, MINE)) == ([], {})
     assert "in their words" in mr.block_reason(broken) and RULE in mr.block_reason(broken)
 
@@ -285,7 +286,7 @@ def test_a_rule_the_side_by_side_choice_does_not_name_is_never_asked(tmp_path: P
     decider = RuleDecider(named=0.3)
     broken, found = asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head,
                                          MINE))  # fmt: skip
-    assert broken == [] and list(found.values()) == [1.0]
+    assert broken == [] and list(found.values()) == [{"named": 0.3, "kept": None}]
     assert [c[0] for c in decider.calls] == ["memory_rule_all"]
 
 
@@ -311,3 +312,86 @@ def test_the_shuffle_is_fixed_per_request_and_moves_rules() -> None:
     assert mr._order("s-001", 8) == mr._order("s-001", 8)
     assert sorted(mr._order("s-001", 8)) == list(range(8))
     assert len({tuple(mr._order(f"s-{n:03d}", 8)) for n in range(20)}) > 10
+
+
+LETTERS = "ABCDEFGH"
+
+
+class PickDecider(RuleDecider):
+    """The side-by-side Choice names the option quoting rule `pick` (by its words, wherever the
+    shuffle put it); `kept` says that rule is broken and every other kept."""
+
+    def __init__(self, pick: str, kept_fails: bool = False) -> None:
+        super().__init__()
+        self.pick, self.kept_fails = pick, kept_fails
+
+    async def decide(self, point: str, state: Any, questions: Any) -> Decision:
+        self.calls.append((point, state, dict(questions)))
+        if "broken" in questions:
+            options = questions["broken"].options
+            probs = {k: (0.9 if f"Rule {self.pick} " in v else 0.0) for k in options
+                     for v in [options[k]]}  # fmt: skip
+            probs["none"] = 0.1
+            return Decision(point=point, answers={"broken": choice(max(probs, key=probs.get),
+                                                                     0.8, **probs)},
+                            provider=self.name, model="scripted-1")  # fmt: skip
+        if self.kept_fails:
+            return Decision(point=point, answers={}, provider=self.name, model="scripted-1",
+                            error="down")  # fmt: skip
+        hit = state["rule"].startswith(f"Rule {self.pick} ")
+        return Decision(point=point, answers={"kept": yes(0.1 if hit else 0.9)},
+                        provider=self.name, model="scripted-1")  # fmt: skip
+
+
+def _eight_rules(store: Path) -> None:
+    rules = [{"text": f"Rule {c} can never change in this project.", "session": f"old{c}",
+              "index": 1, "at": 1_790_000_000.0 + n, "files": [f"app/{c.lower()}.py"]}
+             for n, c in enumerate(LETTERS)]  # fmt: skip
+    mr._save(store, {"rules": rules, "asked": [], mr.AUDITED: []})
+
+
+@needs_git
+def test_review_m2_the_rule_sent_back_is_the_one_named_wherever_the_shuffle_puts_it(
+        tmp_path: Path) -> None:  # fmt: skip
+    repo, store = tmp_path / "repo", tmp_path / "store"
+    head = _repo(repo)
+    (repo / "app" / "config.py").write_text("x = 1\n", "utf-8")
+    moved = 0
+    for n, pick in enumerate("CFAH"):
+        _eight_rules(store)
+        decider = PickDecider(pick)
+        broken, _ = asyncio.run(mr.audit(Squire(decider), store, f"s{n}", 1, str(repo), head,
+                                         MINE))  # fmt: skip
+        assert [r["text"] for r in broken] == [f"Rule {pick} can never change in this project."]
+        options = list(decider.calls[0][2]["broken"].options.values())
+        moved += not options[LETTERS.index(pick)].startswith(f'"Rule {pick} ')
+    assert moved  # the shuffle really moved the picked rule in at least one request
+
+
+@needs_git
+def test_review_m1_a_named_rule_kept_failed_on_is_asked_again(tmp_path: Path) -> None:
+    repo, store = tmp_path / "repo", tmp_path / "store"
+    head = _repo(repo)
+    (repo / "app" / "config.py").write_text("x = 1\n", "utf-8")
+    _eight_rules(store)
+    out = asyncio.run(mr.audit(Squire(PickDecider("C", kept_fails=True)), store, "new", 1,
+                               str(repo), head, MINE))  # fmt: skip
+    assert out == ([], {"_failed": "memory_rule_check"}) and mr.load(store)[mr.AUDITED] == []
+    broken, _ = asyncio.run(mr.audit(Squire(PickDecider("C")), store, "new", 1, str(repo), head,
+                                     MINE))  # fmt: skip
+    assert [r["text"] for r in broken] == ["Rule C can never change in this project."]
+
+
+@needs_git
+def test_review_h1_a_secret_in_a_rule_never_reaches_the_decider(tmp_path: Path) -> None:
+    repo, store = tmp_path / "repo", tmp_path / "store"
+    head = _repo(repo)
+    secret = "sk-abcdefghijklmnopqrstuvwxyz123456"
+    mr._save(store, {"rules": [{"text": f"Never rotate the key {secret}, ops depends on it.",
+                                "session": "old", "index": 1, "at": 1.0,
+                                "files": ["app/config.py"]}], "asked": [], mr.AUDITED: []})
+    (repo / "app" / "config.py").write_text("x = 1\n", "utf-8")
+    decider = RuleDecider()
+    asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head, MINE))
+    sent = json.dumps([str(c[2]["broken"].options) for c in decider.calls if "broken" in c[2]])
+    assert decider.calls and secret not in sent
