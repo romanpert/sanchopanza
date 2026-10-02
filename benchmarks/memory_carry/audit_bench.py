@@ -35,6 +35,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parents[1] / "src"))
 
 import audit_judges as judges  # noqa: E402
+import audit_truth  # noqa: E402
 from carry import ALL_RULES, decoys  # noqa: E402
 from rule_check_eval import api_key  # noqa: E402
 
@@ -87,7 +88,10 @@ def collect(runs: tuple[str, ...] = RUNS) -> list[dict[str, Any]]:
                              "change": _diff(str(repo), "HEAD", second)})  # fmt: skip
     for s in sessions:
         own = {"text": ALL_RULES[s["scene"]], "files": origin[s["scene"]], "own": True}
-        lures = [{"text": t, "files": origin.get(_scene_of(t), []), "own": False}
+        # A decoy the session breaks for real (audit_truth, read by hand) is ambiguous: the
+        # repositories themselves use 3.10 annotations, so it is neither a catch nor a false alarm.
+        lures = [{"text": t, "files": origin.get(_scene_of(t), []), "own": False,
+                  "ambiguous": audit_truth.breaks(_scene_of(t), s["change"])}
                  for t in decoys(s["scene"])]  # fmt: skip
         s["rules"] = [own, *lures]
     return [s for s in sessions if s["change"].strip()]
@@ -107,7 +111,8 @@ class Spend:
 CLI_FILE = (Path.home() / "Desktop" / "proyectos" / "apps" / "indagis" / "agent" / "harness"
             / "decisor" / "claude_cli.py")  # fmt: skip
 CLI_MODELS = {"haiku": "claude-haiku-4-5", "sonnet": "claude-sonnet-5-5"}
-CLI_CACHE = HERE / "audit_bench_cli.jsonl"
+CLI_CACHE = (HERE.parents[1] / "docs" / "results" / "2026-10-02-memory-carry"
+             / "audit-cli-sessions.jsonl")  # fmt: skip
 
 
 def _cli_module() -> Any:
@@ -128,10 +133,13 @@ def cli_decide(model: str, live: bool, spend: Spend) -> Any:
 
     cli_mod = _cli_module()
     # Below MIN_SESSION_USD the CLI refuses to spawn: without --live only the cache answers.
-    ceiling = spend.cap if live and spend.cap > 0 else cli_mod.MIN_SESSION_USD / 2
+    # One ClaudeCLI per judge: its ceiling is what the run's cap has left, never the whole cap.
+    left = spend.cap - spend.used
+    ceiling = left if live and left > cli_mod.MIN_SESSION_USD else cli_mod.MIN_SESSION_USD / 2
     cli = cli_mod.ClaudeCLI(model=CLI_MODELS[model], system="", ceiling_usd=ceiling,
                             cache=cli_mod.SessionCache(CLI_CACHE), concurrency=8)  # fmt: skip
     decider = LLMDecider(cli.completer(), model=f"claude-cli:{CLI_MODELS[model]}")
+    base = spend.used
 
     async def decide(point: str, state: Any, questions: Any) -> Any:
         try:
@@ -139,7 +147,7 @@ def cli_decide(model: str, live: bool, spend: Spend) -> Any:
         except DeciderUnavailable:  # the ceiling (or no --live): unanswered, never a guess
             return None
         finally:
-            spend.used = cli.spent_usd
+            spend.used = base + cli.spent_usd
         return None if d.failed or not d.answers else d
 
     return decide
@@ -178,7 +186,9 @@ def report(name: str, sessions: list[dict[str, Any]], cut: float) -> dict[str, A
     answered = [s for s in sessions if _answered(s.get("score", {}).get(name))]
     for s in answered:
         scores = s["score"][name]
-        own_sent, lure_sent = scores[0] >= cut, any(v >= cut for v in scores[1:])
+        own_sent = scores[0] >= cut
+        lure_sent = any(v >= cut for v, r in zip(scores[1:], s["rules"][1:], strict=True)
+                        if not r.get("ambiguous"))  # fmt: skip
         if not s["own_kept"]:
             caught += own_sent
             missed += not own_sent

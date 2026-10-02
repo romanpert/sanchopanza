@@ -160,26 +160,15 @@ def _order(session_id: str, n: int) -> list[int]:
     return sorted(range(n), key=lambda i: hashlib.sha256(f"{session_id}{i}".encode()).hexdigest())
 
 
-ALL_INSTRUCTIONS = (
-    "The person stated each rule below in an earlier session of this project; each says what "
-    "files were being changed when it was said. Which rule, if any, do the lines `change` adds "
-    "or alters go against?"
-)
-NONE = ("None of them: the change respects every rule, touches nothing a rule is about, or only "
-        "carries over code that was already there; a rule about one particular file, module or "
-        "text does not reach other files")  # fmt: skip
-
-
 async def all_in_view(sessions: list[dict[str, Any]], decide: Decide) -> None:
     """One Choice per session over every rule and `none`, the rules side by side."""
 
     async def session(s: dict[str, Any]) -> None:
         order = _order(s["id"], len(s["rules"]))
-        options = {f"rule_{k + 1}": f'"{s["rules"][i]["text"]}" (said while changing '
-                   f'{_files(s["rules"][i])})' for k, i in enumerate(order)}  # fmt: skip
-        question = Choice(ALL_INSTRUCTIONS, {**options, "none": NONE})
-        state = {"change": truncate(s["change"], points.CHANGE_LIMIT)}
-        d = await decide("memory_rule_all", state, {"broken": question})
+        # the product's own question (points.rules.questions_for_rules), not a copy
+        state, questions = points.questions_for_rules(
+            [(s["rules"][i]["text"], s["rules"][i]["files"]) for i in order], s["change"])
+        d = await decide("memory_rule_all", state, questions)
         if d is None or d.answer("broken").empty:
             s.setdefault("score", {})["all"] = None
             return
@@ -192,7 +181,40 @@ async def all_in_view(sessions: list[dict[str, Any]], decide: Decide) -> None:
     await asyncio.gather(*(session(s) for s in sessions))
 
 
+CANDIDATE_AT = 0.3  # the all-in-view probability that makes a rule a candidate to confirm
+
+
+def _confirm(first: str) -> Callable[..., Awaitable[None]]:
+    """Ask the product's `kept` only of the rules `first` (saved scores, Jev's all-in-view) named
+    as candidates; every other rule scores 0. The sister line's cascade: the cheap judge looks at
+    everything, the expensive one only at what it flagged."""
+
+    async def judge(sessions: list[dict[str, Any]], decide: Decide) -> None:
+        import json
+        from pathlib import Path
+
+        saved = json.loads((Path(__file__).resolve().parent / "audit_scores" / f"{first}.json")
+                           .read_text(encoding="utf-8"))  # fmt: skip
+
+        async def one(s: dict[str, Any], rule: dict[str, Any]) -> float | None:
+            scores = (saved.get(s["id"]) or {}).get("score")
+            if not scores or None in scores:
+                return None
+            if scores[s["rules"].index(rule)] < CANDIDATE_AT:
+                return 0.0
+            d = await decide("memory_rule_check",
+                             *points.questions_for_change(rule["text"], s["change"]))  # fmt: skip
+            if d is None or d.answer("kept").empty:
+                return None
+            return 1.0 - float(d.answer("kept").truth)
+
+        await _per_rule(sessions, "confirm", one)
+
+    return judge
+
+
 JUDGES: dict[str, Callable[..., Awaitable[None]]] = {
+    "confirm": _confirm("jev-all"),
     "v7": v7,
     "scoped": _choice_judge("scoped", SCOPED),
     "scoped3": _choice_judge("scoped3", SCOPED3),

@@ -38,12 +38,15 @@ GIVE_MAX = 8  # rules given at a session's start
 GIVE_CHARS = 1_800
 CHECK_MAX = 8  # rules held against a request's diff
 STANDING_AT = 0.5  # 16/16 rules, 3/36 others on the carry scenes; 3.8 % of real sentences
-# A rule is broken when `kept` < BROKEN_BELOW and the three-way `relation` gives "unrelated"
-# below UNRELATED_BELOW. On 64 carry diffs and 320 unrelated rule/diff pairs (2026-10-02, the
-# decider's examples from domains no scene uses): `kept` alone caught 15/15 breaks with 5/49
-# false on related pairs and 32/320 on unrelated ones; with the gate, 15/15, 5/49 and 8/320.
+# v8 audit, a cascade: every rule side by side in one Choice (`points.questions_for_rules`), and
+# `kept` asked only of a rule it names at CANDIDATE_AT or more; broken when `kept` <
+# BROKEN_BELOW. On 175 recorded carry sessions, each with its own rule and seven decoys
+# (`audit_bench.py`, 2026-10-02): 43/43 breaks caught, 0 sessions sent back for a decoy (v7's
+# per-rule audit: 31), 10 of 132 for an own rule it kept (v7: 11). Flat for CANDIDATE_AT 0.4-0.5.
+# A generative second judge did not pay: Haiku 42/43 with 18 own, Sonnet 42/43 with 6, at about
+# 130 and 250 times the price of a decision.
+CANDIDATE_AT = 0.4
 BROKEN_BELOW = 0.5
-UNRELATED_BELOW = 0.3
 GIT_SECONDS = 3.0
 HEADER = ("[sanchopanza memory, standing rules: what the person said in earlier sessions of this "
           "project that later work must keep, in their words, newest first]")  # fmt: skip
@@ -187,6 +190,14 @@ def _diff(cwd: str, head: str, paths: Sequence[str]) -> str:
     return (tracked or "") + _new_files(cwd, mine)
 
 
+def _order(seed: str, n: int) -> list[int]:
+    """A fixed shuffle per request, as measured: the side-by-side Choice must not see the newest
+    rule always first."""
+    import hashlib
+
+    return sorted(range(n), key=lambda i: hashlib.sha256(f"{seed}{i}".encode()).hexdigest())
+
+
 async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str, head: str,
                 paths: Sequence[str],
                 ) -> tuple[list[dict[str, Any]], dict[str, float | None]]:  # fmt: skip
@@ -207,22 +218,29 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
     if not change.strip():
         return [], {}
 
-    async def ask(rule: Mapping[str, Any]) -> float | None:
-        """`kept`, or 1.0 when the rule is judged unrelated to the change; None on a failure."""
-        text = str(rule["text"])
-        kept_q, relation_q = (points.questions_for_change(text, change),
-                              points.questions_for_relation(text, change))  # fmt: skip
-        kept_d, relation_d = await asyncio.gather(
-            squire.decide("memory_rule_check", *kept_q),
-            squire.decide("memory_rule_relation", *relation_q))  # fmt: skip
-        kept, relation = kept_d.answer("kept"), relation_d.answer("relation")
-        if kept_d.failed or kept.empty or relation_d.failed or relation.empty:
-            return None
-        unrelated = float(relation.probabilities.get("unrelated", 0.0))
-        return 1.0 if unrelated >= UNRELATED_BELOW else kept.truth
+    order = _order(key, len(held))
+    state, questions = points.questions_for_rules(
+        [(str(held[i]["text"]), list(held[i].get("files") or [])) for i in order], change)
+    seen = await squire.decide("memory_rule_all", state, questions)
+    answer = seen.answer("broken")
+    if seen.failed or answer.empty:  # nothing named: the request stays as it was, asked again
+        return [], {}
+    named = [0.0] * len(held)
+    for k, i in enumerate(order, 1):
+        named[i] = float(answer.probabilities.get(f"rule_{k}", 0.0))
 
-    found = await asyncio.gather(*(ask(r) for r in held), return_exceptions=True)
-    answers = [p if isinstance(p, float) else None for p in found]
+    async def ask(rule: Mapping[str, Any]) -> float | None:
+        """`kept` of a rule the side-by-side Choice named; None on a failure."""
+        decision = await squire.decide("memory_rule_check",
+                                       *points.questions_for_change(str(rule["text"]), change))
+        kept = decision.answer("kept")
+        return None if decision.failed or kept.empty else kept.truth
+
+    asked = [i for i in range(len(held)) if named[i] >= CANDIDATE_AT]
+    found = await asyncio.gather(*(ask(held[i]) for i in asked), return_exceptions=True)
+    answers: list[float | None] = [1.0] * len(held)  # not named: kept
+    for i, p in zip(asked, found, strict=True):
+        answers[i] = p if isinstance(p, float) else None
     with ep.locked(_path(store)):
         latest = load(store)
         if key in latest[AUDITED]:  # another Stop of this request got here first

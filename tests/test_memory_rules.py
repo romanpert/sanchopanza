@@ -39,23 +39,28 @@ def by_words(point: str, key: str, state: Any) -> float | None:
 
 
 class RuleDecider:
-    """`by_words` for the Truth questions; the three-way `relation` with a fixed P(unrelated)."""
+    """`by_words` for the Truth questions. The side-by-side `broken` Choice names, with
+    probability `named`, every option that quotes a rule the change drops the name of; else
+    `none`."""
 
     name = "scripted"
     accepts_attachments = False
 
-    def __init__(self, unrelated: float = 0.0) -> None:
-        self.unrelated = unrelated
+    def __init__(self, named: float = 0.9) -> None:
+        self.named = named
         self.calls: list[tuple[str, Any, dict[str, Any]]] = []
 
     async def decide(self, point: str, state: Any, questions: Any) -> Decision:
         self.calls.append((point, state, dict(questions)))
         answers = {}
-        for key in questions:
-            if key == "relation":
-                rest = (1 - self.unrelated) / 2
-                answers[key] = choice("breaks", 0.5, breaks=rest, keeps=rest,
-                                      unrelated=self.unrelated)  # fmt: skip
+        for key, question in questions.items():
+            if key == "broken":
+                hit = [k for k, v in question.options.items()
+                       if "PAYMENT_TIMEOUT" in v and "APP_PAYMENT_TIMEOUT" in state["change"]]
+                probs = {k: 0.0 for k in question.options}
+                probs.update({k: self.named for k in hit})
+                probs["none"] = 1.0 - sum(probs.values())
+                answers[key] = choice(max(probs, key=probs.get), 0.5, **probs)
             else:
                 p = by_words(point, key, state)
                 if p is not None:
@@ -63,8 +68,8 @@ class RuleDecider:
         return Decision(point=point, answers=answers, provider=self.name, model="scripted-1")
 
 
-def squire(unrelated: float = 0.0) -> Squire:
-    return Squire(RuleDecider(unrelated))
+def squire(named: float = 0.9) -> Squire:
+    return Squire(RuleDecider(named))
 
 
 def episode(text: str, session: str = "s1", index: int = 1) -> ep.Episode:
@@ -270,12 +275,39 @@ def test_review_m7_a_request_the_decider_failed_on_is_asked_again(tmp_path: Path
 
 
 @needs_git
-def test_a_rule_judged_unrelated_to_the_change_sends_nothing_back(tmp_path: Path) -> None:
-    # 32 of 320 unrelated rule/diff pairs were "broken" by `kept` alone (2026-10-02)
+def test_a_rule_the_side_by_side_choice_does_not_name_is_never_asked(tmp_path: Path) -> None:
+    # v7 asked `kept` of every rule and sent 31 of 175 recorded sessions back for a decoy;
+    # side by side, 0 (2026-10-02, audit_bench.py)
     repo, store = tmp_path / "repo", tmp_path / "store"
     head = _repo(repo)
     asyncio.run(mr.extract(squire(), store, [episode(RULE, session="old")]))
     (repo / "app" / "config.py").write_text("x = env('APP_PAYMENT_TIMEOUT')\n", "utf-8")
-    broken, found = asyncio.run(mr.audit(squire(unrelated=0.6), store, "new", 1, str(repo),
-                                         head, MINE))  # fmt: skip
+    decider = RuleDecider(named=0.3)
+    broken, found = asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head,
+                                         MINE))  # fmt: skip
     assert broken == [] and list(found.values()) == [1.0]
+    assert [c[0] for c in decider.calls] == ["memory_rule_all"]
+
+
+@needs_git
+def test_only_the_named_rule_is_asked_kept_among_others(tmp_path: Path) -> None:
+    repo, store = tmp_path / "repo", tmp_path / "store"
+    head = _repo(repo)
+    other = "Every database migration has to be reversible, with a working down step."
+    asyncio.run(mr.extract(squire(), store, [episode(RULE, session="old"),
+                                             episode(other + " It can't change.", "old2")]))
+    (repo / "app" / "config.py").write_text("x = env('APP_PAYMENT_TIMEOUT')\n", "utf-8")
+    decider = RuleDecider()
+    broken, _ = asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head, MINE))
+    assert [r["text"] for r in broken] == [RULE]
+    checked = [c for c in decider.calls if c[0] == "memory_rule_check"]
+    assert len(checked) == 1 and checked[0][1]["rule"] == RULE
+    options = decider.calls[0][2]["broken"].options
+    assert "none" in options and any("(said while changing app/config.py)" in v
+                                     for v in options.values())  # fmt: skip
+
+
+def test_the_shuffle_is_fixed_per_request_and_moves_rules() -> None:
+    assert mr._order("s-001", 8) == mr._order("s-001", 8)
+    assert sorted(mr._order("s-001", 8)) == list(range(8))
+    assert len({tuple(mr._order(f"s-{n:03d}", 8)) for n in range(20)}) > 10

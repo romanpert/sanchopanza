@@ -114,6 +114,38 @@ RELATION = Choice(
 )
 
 
+# v8: the audit first looks at every rule side by side, in one Choice, and only the rules it names
+# are asked `kept`. Measured on 175 recorded carry sessions, each against its own rule and seven
+# decoys (`benchmarks/memory_carry/audit_bench.py`, 2026-10-02): per-rule judging (v7) sent 31
+# sessions back for a decoy; side by side, none, with all 43 breaks still caught. A rule about one
+# file is said while changing it, so each option carries where it was said.
+AUDIT_INSTRUCTIONS = (
+    "The person stated each rule below in an earlier session of this project; each says what "
+    "files were being changed when it was said. Which rule, if any, do the lines `change` adds "
+    "or alters go against?"
+)
+AUDIT_NONE = (
+    "None of them: the change respects every rule, touches nothing a rule is about, or only "
+    "carries over code that was already there; a rule about one particular file, module or "
+    "text does not reach other files"
+)
+
+
+def audit_option(text: str, files: list[str]) -> str:
+    where = ", ".join(files) or "(not recorded)"
+    return f'"{text}" (said while changing {where})'
+
+
+def questions_for_rules(rules: list[tuple[str, list[str]]], change: str,
+                        ) -> tuple[Mapping[str, Any], dict[str, Question]]:  # fmt: skip
+    """One Choice over `rules` (text, files where it was said), in the order given, and `none`:
+    option `rule_<k>` is `rules[k - 1]`."""
+    options = {f"rule_{k}": audit_option(truncate(text, SENTENCE_MAX), files)
+               for k, (text, files) in enumerate(rules, 1)}  # fmt: skip
+    question = Choice(AUDIT_INSTRUCTIONS, {**options, "none": AUDIT_NONE})
+    return {"change": truncate(change, CHANGE_LIMIT)}, {"broken": question}
+
+
 # Split after a full stop whatever case follows ("...with a test. legacy_total stays." was one
 # sentence before, 2026-10-02), except after a few abbreviations.
 _SPLIT = re.compile(r"(?<!\be\.g\.)(?<!\bi\.e\.)(?<!\betc\.)(?<!\bvs\.)(?<=[.!?])\s+|\n+")
