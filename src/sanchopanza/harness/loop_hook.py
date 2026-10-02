@@ -19,7 +19,11 @@ What it asks, once per acted-on tool result (`points.loop.questions`):
 - `goal_met`: does what the agent has established already answer the whole request?
 - `repeats_check`: is the call it just made one it has already made, to the same end?
 
-It speaks only above the `saturated` threshold, and only ever one sentence per question. An
+It speaks only above the `saturated` threshold, and only ever one sentence per question.
+
+And one thing it counts rather than asks: a streak of failed tool calls. At two failures in a
+row, and again at four, it says so once, and for browser calls it points at `browser_snapshot`
+(`error_note`, with the session that showed why). An
 agent told "you already have this" that disagrees carries on, which is correct: stopping too
 early is the expensive mistake and the person sees it.
 
@@ -52,10 +56,8 @@ NARRATION_LIMIT = 170
 FACTS_LIMIT = 600
 ACTIONS = 6
 ACTION_LIMIT = 70
-READ_ONLY = (
-    "browser_snapshot", "browser_take_screenshot", "browser_console_messages",
-    "browser_network_requests", "Read", "Grep", "Glob", "WebFetch", "find",
-)  # fmt: skip
+ERROR_NOTES_AT = (2, 4)  # a failed streak of this length gets one deterministic note
+REASON_LIMIT = 90
 
 
 def say(text: str) -> None:
@@ -186,6 +188,69 @@ def advice_text(advice: Any) -> str:
     return f"sanchopanza, on the loop: {advice.message}."
 
 
+def failed(text: str, is_error: bool = False) -> bool:
+    """A tool result that reports a failure: Playwright MCP returns its errors as text that
+    starts `### Error`, with the call itself not marked as an error."""
+    return is_error or text.lstrip().startswith(("### Error", "Error:"))
+
+
+def _reason(text: str) -> str:
+    line = next((x for x in text.splitlines() if x.strip().startswith("Error")), text)
+    return truncate(" ".join(line.split()), REASON_LIMIT)
+
+
+def _is_browser(tool: str) -> bool:
+    return str(tool).split("__")[-1].startswith("browser_")
+
+
+def error_streak(
+    calls: Sequence[Any], result: str, tool: str = "", use_id: str = ""
+) -> tuple[int, list[str], bool]:
+    """How many tool calls in a row have failed, ending with the one just returned; their
+    reasons; and whether they were all browser calls.
+
+    The transcript may or may not hold the call this event is about yet. It is recognised by
+    the event's `tool_use_id`; only when the event carries none is it recognised by its text,
+    which undercounts a retry that fails with the same message (the first version of this
+    compared text alone, and a streak of two identical misses counted as one). A result that
+    did not fail ends any streak: the note is about what is happening now."""
+    if not failed(result):
+        return 0, [], False
+    earlier = [c for c in calls if not (use_id and getattr(c, "id", "") == use_id)]
+    trail: list[Any] = []
+    for call in reversed(earlier):
+        if not failed(call.result, call.is_error):
+            break
+        trail.append(call)
+    trail.reverse()
+    if not use_id and trail and trail[-1].result.strip() == result.strip():
+        trail = trail[:-1]  # no id to go by: the last failure is taken to be this one
+    reasons = [_reason(c.result) for c in trail] + [_reason(result)]
+    tools = [c.tool for c in trail] + [tool]
+    return len(reasons), reasons, all(_is_browser(t) for t in tools)
+
+
+def error_note(streak: int, reasons: Sequence[str], browser: bool) -> str:
+    """Said once at a streak of 2 and once at 4, never on every failure.
+
+    Why it exists, measured: in the longest session of 2026-10-02 (37 turns on B2, against 19-21
+    for the same task elsewhere) the agent never took a snapshot. It worked from screenshots,
+    guessed CSS selectors, and five of its calls failed with "does not match any elements" or a
+    selector it could not parse. That waste is not a repeat and not a goal already met, so the
+    two questions above cannot see it; a streak of failures can be counted for free.
+    """
+    if streak not in ERROR_NOTES_AT:
+        return ""
+    last = "; ".join(dict.fromkeys(reasons[-2:]))
+    if browser:
+        return (
+            f"sanchopanza, on the loop: your last {streak} browser actions failed ({last}). "
+            "`browser_snapshot` lists the page's elements with refs you can act on directly, "
+            "which is more reliable than guessing selectors."
+        )
+    return f"sanchopanza, on the loop: your last {streak} tool calls failed ({last})."
+
+
 async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]:
     """`additionalContext` when the loop guard has something to say, otherwise nothing."""
     from ..context.transcript import calls as calls_of
@@ -197,37 +262,48 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
         return {}
     messages = messages_from_claude_code(str(path))
     calls = calls_of(messages)
-    if len(calls) < _int("LOOP_MIN_CALLS", 4):
-        return {}
-    every = max(1, _int("LOOP_EVERY", 1))
-    if len(calls) % every:
-        return {}
-    goal = task_of(messages)
-    done = established(messages, result_text(event), goal)
-    if not goal or not done:
-        return {}
+    result = result_text(event)
+    notes: list[str] = []
+    streak, reasons, browser = error_streak(
+        calls, result, str(event.get("tool_name") or ""), str(event.get("tool_use_id") or "")
+    )
+    note = error_note(streak, reasons, browser)
+    if note:
+        notes.append(note)
+        squire.journal.record(
+            "loop_note", {"kind": "errors", "streak": streak, "calls": len(calls)}
+        )
+    asked = len(calls) >= _int("LOOP_MIN_CALLS", 4) and not len(calls) % max(
+        1, _int("LOOP_EVERY", 1)
+    )
+    goal = task_of(messages) if asked else ""
+    facts = facts_seen(result, goal) if goal else ""
+    done = established(messages, result, goal) if goal else ""
     root = _ledger_root()
     session = str(event.get("session_id") or "")
     ledger = read_ledger(root, session)
     ceiling = float(_env.get("SESSION_MAX_USD", "0.50") or 0.50)
-    if float(ledger.get("usd", 0.0)) >= ceiling:
+    if goal and done and float(ledger.get("usd", 0.0)) >= ceiling:
         say(f"session ceiling reached ({ledger.get('usd'):.4f} of {ceiling:g} USD): silent")
-        return {}
-    state, questions = point.questions(
-        goal=goal,
-        done=f"{done}\n\nActions taken:\n{actions_taken(calls)}",
-        pending=pending_of(event),
-    )
-    decision = await squire.decide("loop", state, questions)
-    squire.record(decision, calls=len(calls))
-    write_ledger(root, session, _charged(ledger, squire))
-    advice = point.decide(decision, squire.thresholds)
-    if not advice.speaks:
+    elif goal and done:
+        state, questions = point.questions(
+            goal=goal,
+            done=f"{done}\n\nActions taken:\n{actions_taken(calls)}",
+            pending=pending_of(event),
+        )
+        decision = await squire.decide("loop", state, questions)
+        advice = point.decide(decision, squire.thresholds)
+        # What the guard saw and said, so a phase can tell a silent guard from a blind one.
+        squire.record(decision, calls=len(calls), page_chars=len(facts), spoke=advice.speaks)
+        write_ledger(root, session, _charged(ledger, squire))
+        if advice.speaks:
+            notes.append(advice_text(advice))
+    if not notes:
         return {}
     return {
         "hookSpecificOutput": {
             "hookEventName": "PostToolUse",
-            "additionalContext": advice_text(advice),
+            "additionalContext": "\n".join(notes),
         }
     }
 
@@ -240,16 +316,36 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if not isinstance(event, dict) or event.get("hook_event_name") != "PostToolUse":
         return 0
+    squire = None
     try:
         from .claude_code import squire_from_env
 
-        output = asyncio.run(post_tool_use(event, squire_from_env(redact=True)))
+        squire = squire_from_env(redact=True)
+        output = asyncio.run(post_tool_use(event, squire))
     except Exception as error:  # fail open at the process boundary, never silently
         say(f"said nothing ({error.__class__.__name__}: {error})")
+        _journal_failure(squire, error)
         return 0
     if output:
         hookio.stdout_json(output)
     return 0
+
+
+def _journal_failure(squire: Any, error: Exception) -> None:
+    """Leave a trace of a failure where the session's decisions go, not only on stderr.
+
+    A hook that fails on every call and writes nothing to the journal looks, from outside,
+    exactly like a hook that never ran: that is what one HAIKU-LOOP session of 2026-10-02 looked
+    like, twenty tool calls and no journal, with its stderr thrown away. With this, "the
+    decider was down" and "the hook was absent" are two different records."""
+    if squire is None:
+        return
+    try:
+        squire.journal.record(
+            "loop_error", {"error": f"{error.__class__.__name__}: {truncate(str(error), 200)}"}
+        )
+    except Exception as journal_error:  # noqa: BLE001 - nothing left to fail open to
+        say(f"and could not write that down ({journal_error.__class__.__name__})")
 
 
 if __name__ == "__main__":

@@ -19,10 +19,15 @@ from sanchopanza.squire import Squire
 GOAL = "Open the shop and report the item total, the tax and the total at checkout."
 
 
-def _transcript(tmp_path: Path, *, calls: int, narration: str) -> Path:
-    """A Claude Code transcript with `calls` paired tool calls and the agent's own prose."""
+def _transcript(
+    tmp_path: Path, *, calls: int, narration: str, results: list[str] | None = None
+) -> Path:
+    """A Claude Code transcript with `calls` paired tool calls and the agent's own prose.
+    `results` gives each call's result text, oldest first; the rest are "ok"."""
     path = tmp_path / "sess.jsonl"
     lines = [{"type": "user", "message": {"role": "user", "content": GOAL}}]
+    texts = list(results or [])
+    texts = ["ok"] * (calls - len(texts)) + texts
     for i in range(calls):
         use = {
             "type": "assistant",
@@ -43,7 +48,7 @@ def _transcript(tmp_path: Path, *, calls: int, narration: str) -> Path:
             "type": "user",
             "message": {
                 "role": "user",
-                "content": [{"type": "tool_result", "tool_use_id": f"t{i}", "content": "ok"}],
+                "content": [{"type": "tool_result", "tool_use_id": f"t{i}", "content": texts[i]}],
             },
         }
         lines += [use, result]
@@ -208,3 +213,124 @@ def test_no_result_leaves_only_the_narration(tmp_path):
     assert loop_hook.established(messages) == loop_hook.narration(messages)
     with_page = loop_hook.established(messages, SNAPSHOT_RESULT, GOAL)
     assert "On the page now:" in with_page and "Opened the overview" in with_page
+
+
+MISS = "### Error\nError: \"button[data-test='continue']\" does not match any elements."
+
+
+def _error_event(transcript: Path, result: str = MISS) -> dict:
+    """A call the transcript does not hold yet, the same identical failure as before it."""
+    return {
+        **_event(transcript),
+        "tool_use_id": "t-new",
+        "tool_response": [{"type": "text", "text": result}],
+    }
+
+
+@pytest.mark.asyncio
+async def test_two_failed_browser_actions_in_a_row_get_one_note(tmp_path, monkeypatch):
+    """The 37-turn session: guessed selectors failing, and no snapshot ever taken. The two
+    failures here carry the same message, which a text-only dedupe used to count as one."""
+    monkeypatch.setenv("SANCHOPANZA_LOOP_HOME", str(tmp_path / "loop"))
+    transcript = _transcript(tmp_path, calls=5, narration="Trying Continue", results=[MISS])
+    out = await loop_hook.post_tool_use(_error_event(transcript), _squire(0.05, 0.05))
+    text = _context(out)
+    assert "last 2 browser actions failed" in text
+    assert "browser_snapshot" in text
+    assert "does not match any elements" in text
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("before", "speaks"), [(0, False), (2, False), (3, True), (4, False)])
+async def test_the_error_note_is_said_at_two_and_at_four_only(
+    tmp_path, monkeypatch, before, speaks
+):
+    """Not on every failure: a note repeated on each turn is a cost, not advice."""
+    monkeypatch.setenv("SANCHOPANZA_LOOP_HOME", str(tmp_path / "loop"))
+    transcript = _transcript(tmp_path, calls=6, narration="again", results=[MISS] * before)
+    out = await loop_hook.post_tool_use(_error_event(transcript), _squire(0.05, 0.05))
+    assert ("browser actions failed" in _context(out)) is speaks
+
+
+@pytest.mark.asyncio
+async def test_a_success_ends_the_streak(tmp_path, monkeypatch):
+    monkeypatch.setenv("SANCHOPANZA_LOOP_HOME", str(tmp_path / "loop"))
+    transcript = _transcript(tmp_path, calls=5, narration="clicked", results=[MISS, MISS])
+    event = _error_event(transcript, "### Page\n- ok")
+    out = await loop_hook.post_tool_use(event, _squire(0.05, 0.05))
+    assert "failed" not in _context(out)
+
+
+CLICK = "mcp__playwright__browser_click"
+
+
+class _Call:
+    def __init__(self, result: str, id_: str = "", tool: str = CLICK) -> None:
+        self.result, self.is_error, self.tool, self.id = result, False, tool, id_
+
+
+def test_the_streak_does_not_count_the_same_failure_twice():
+    """The transcript may already hold the call this event is about: it is found by its id."""
+    held = [_Call("ok", "a"), _Call(MISS, "b"), _Call(MISS, "c")]
+    assert loop_hook.error_streak(held, MISS, CLICK, use_id="c")[0] == 2
+    assert loop_hook.error_streak(held, MISS, CLICK, use_id="d")[0] == 3
+    # With no id at all, the last identical failure is taken to be this one.
+    assert loop_hook.error_streak(held, MISS, CLICK)[0] == 2
+
+
+def test_a_streak_with_a_call_outside_the_browser_is_not_called_a_browser_streak():
+    streak, _, browser = loop_hook.error_streak([_Call(MISS, "a")], "Error: no file", "Read", "b")
+    assert (streak, browser) == (2, False)
+    assert "browser_snapshot" not in loop_hook.error_note(streak, ["x", "y"], browser)
+
+
+@pytest.mark.asyncio
+async def test_the_error_note_needs_no_decider(tmp_path, monkeypatch):
+    """It is counted, not asked: a dead decider does not silence it."""
+    monkeypatch.setenv("SANCHOPANZA_LOOP_HOME", str(tmp_path / "loop"))
+    transcript = _transcript(tmp_path, calls=5, narration="again", results=[MISS])
+    squire = Squire(BrokenDecider(), thresholds=Thresholds(max_usd=1.0, max_decisions=50))
+    out = await loop_hook.post_tool_use(_error_event(transcript), squire)
+    assert "browser actions failed" in _context(out)
+
+
+@pytest.mark.asyncio
+async def test_the_journal_says_what_the_guard_saw_and_whether_it_spoke(tmp_path, monkeypatch):
+    """So a phase can tell a silent guard from a blind one."""
+    from sanchopanza.journal import JsonlJournal
+
+    monkeypatch.setenv("SANCHOPANZA_LOOP_HOME", str(tmp_path / "loop"))
+    path = tmp_path / "journal.jsonl"
+    transcript = _transcript(tmp_path, calls=6, narration="On the overview")
+    decider = FixedDecider({"goal_met": answers.truth(0.95), "repeats_check": answers.truth(0.1)})
+    squire = Squire(decider, thresholds=Thresholds(max_usd=1.0, max_decisions=50),
+                    journal=JsonlJournal(path))  # fmt: skip
+    event = {**_event(transcript), "tool_response": SNAPSHOT_RESULT}
+    await loop_hook.post_tool_use(event, squire)
+    records = [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x]
+    decision = next(r for r in records if r.get("kind") == "decision")
+    assert decision["data"]["outcome"]["spoke"] is True
+    assert decision["data"]["outcome"]["page_chars"] > 0
+
+
+def test_a_hook_that_fails_leaves_a_trace_in_the_journal(tmp_path, monkeypatch, capsys):
+    """A failing hook and an absent one used to look the same: no journal at all."""
+    from sanchopanza.harness import claude_code
+    from sanchopanza.journal import JsonlJournal
+
+    path = tmp_path / "journal.jsonl"
+    squire = Squire(BrokenDecider(), thresholds=Thresholds(max_usd=1.0, max_decisions=5),
+                    journal=JsonlJournal(path))  # fmt: skip
+
+    async def boom(event, squire):
+        raise TimeoutError("the decider did not answer in 10 s")
+
+    monkeypatch.setattr(claude_code, "squire_from_env", lambda redact=False: squire)
+    monkeypatch.setattr(loop_hook, "post_tool_use", boom)
+    event = {"hook_event_name": "PostToolUse", "tool_name": CLICK, "transcript_path": "x"}
+    monkeypatch.setattr(loop_hook.hookio, "stdin_text", lambda: json.dumps(event))
+    assert loop_hook.main() == 0, "it still fails open"
+    assert capsys.readouterr().out == "", "and says nothing to the agent"
+    records = [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x]
+    assert [r["kind"] for r in records] == ["loop_error"]
+    assert "did not answer" in records[0]["data"]["error"]

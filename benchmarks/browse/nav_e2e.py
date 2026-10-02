@@ -158,7 +158,99 @@ TRAP_TASKS: list[tuple[str, str, str, list[Any]]] = [
 ]
 TRAP_WRONG_B2 = ["39.98", "3.20", "43.18"]  # what an agent reports if the removal silently failed
 
+# Aggregation over many pages: a count or a sum, where an agent fails by stopping early, counting
+# a page twice or misreading one price in thirty. Every answer was computed from the sites' own
+# HTML by `truth_hard.py` on 2026-10-02, not by a model. The request ends with an ANSWER line so
+# a number elsewhere in the reply ("page 10") cannot pass for the count.
+ANSWER_LINE = " End your reply with one line: ANSWER: <your answer>."
+HARD_TASKS: list[tuple[str, str, str, list[Any]]] = [
+    (
+        "H1",
+        "https://quotes.toscrape.com/",
+        "How many quotes by Albert Einstein are there on this site, across all of its pages?"
+        + ANSWER_LINE,
+        [["answer: 10", "answer:10"]],
+    ),
+    (
+        "H2",
+        "https://books.toscrape.com/",
+        "In the Mystery category, across all of its pages, how many books cost more than "
+        "40.00 (the price shown, in pounds)?" + ANSWER_LINE,
+        [["answer: 11", "answer:11"]],
+    ),
+    (
+        "H3",
+        "https://quotes.toscrape.com/",
+        "How many quotes on this site are tagged 'inspirational', counting every page of that "
+        "tag, and which author has the most of them?" + ANSWER_LINE,
+        [["answer: 13", "answer:13"], "monroe"],
+    ),
+    (
+        "H4",
+        "https://books.toscrape.com/",
+        "What do the prices of all the books in the Travel category add up to?" + ANSWER_LINE,
+        ["437.74"],
+    ),
+    (
+        "H5",
+        "https://books.toscrape.com/",
+        "Which book in the Poetry category is the cheapest, and what does it cost?" + ANSWER_LINE,
+        ["poems that make grown women cry", "14.19"],
+    ),
+]
+
 PILOT_TASKS = [TASKS[0], TASKS[3]]
+
+
+VENV_PYTHON = base.ROOT / ".venv" / "Scripts" / "python.exe"
+# The interpreter the hook runs under: the project's own environment, the one the suite passes
+# in, rather than whatever Python launched the runner.
+HOOK_PYTHON = VENV_PYTHON if VENV_PYTHON.exists() else base.PYTHON
+HOOK_TIMEOUT_S = 30  # Jev's client gives up at 10 s; a hook killed by Claude Code leaves no trace
+HOOK_NEEDS = ("facts_seen", "error_note", "_journal_failure")  # the version this phase measures
+
+
+def preflight() -> list[str]:
+    """Probe, before anything is spent, that the hook every `-LOOP` session will load is the one
+    this phase means to measure, that it starts, and that it answers an event the way it should.
+
+    A flag says what was meant; a probe says what will run. Today's two faults were of that kind:
+    a session whose hook never ran, and a phase that ran the version from before the fix."""
+    problems: list[str] = []
+    probe = (
+        "import json, sanchopanza.harness.loop_hook as h; "
+        f"print(json.dumps({{'file': h.__file__, 'has': [n for n in {list(HOOK_NEEDS)!r} "
+        "if hasattr(h, n)]}))"
+    )
+    try:
+        done = subprocess.run([str(HOOK_PYTHON), "-c", probe], capture_output=True, timeout=60)
+        seen = json.loads(done.stdout.decode("utf-8", errors="replace") or "{}")
+    except (subprocess.TimeoutExpired, ValueError, OSError) as error:
+        return [f"the hook's interpreter could not import it: {error.__class__.__name__}"]
+    missing = [n for n in HOOK_NEEDS if n not in seen.get("has", [])]
+    if missing:
+        problems.append(f"the hook at {seen.get('file')} is not this version: lacks {missing}")
+    event = {"hook_event_name": "PostToolUse", "tool_name": "mcp__playwright__browser_click",
+             "transcript_path": "does-not-exist.jsonl", "session_id": "preflight"}  # fmt: skip
+    with tempfile.TemporaryDirectory() as home:
+        env = {**base.clean_env(dict(os.environ)), "SANCHOPANZA_LOOP_HOME": home,
+               "SANCHOPANZA_JOURNAL": str(pathlib.Path(home) / "j.jsonl")}  # fmt: skip
+        env.pop("TYPESAFE_API_KEY", None)
+        try:
+            ran = subprocess.run(
+                [str(HOOK_PYTHON), "-m", "sanchopanza.harness.loop_hook"],
+                input=json.dumps(event).encode(), env=env, capture_output=True, timeout=60,
+            )  # fmt: skip
+        except (subprocess.TimeoutExpired, OSError) as error:
+            return [*problems, f"the hook did not run: {error.__class__.__name__}"]
+    if ran.returncode != 0 or ran.stdout.strip():
+        problems.append(
+            f"the hook on an event with no transcript should exit 0 and say nothing; it exited "
+            f"{ran.returncode} with {ran.stdout[:120]!r}"
+        )
+    if not KEY:
+        problems.append("no TYPESAFE_API_KEY for the -LOOP arm (--env-file)")
+    return problems
 
 
 def settings_for(arm: str, work: pathlib.Path) -> pathlib.Path:
@@ -166,11 +258,11 @@ def settings_for(arm: str, work: pathlib.Path) -> pathlib.Path:
     phase compares models, and then one model with and without that one hook."""
     settings: dict[str, Any] = {"permissions": {"allow": TOOLS.split()}}
     if arm.endswith("-LOOP"):
-        command = f'"{base.PYTHON.as_posix()}" -m sanchopanza.harness.loop_hook'
+        command = f'"{HOOK_PYTHON.as_posix()}" -m sanchopanza.harness.loop_hook'
         settings["hooks"] = {
             "PostToolUse": [
                 {"matcher": "mcp__playwright__.*|Read|Grep",
-                 "hooks": [{"type": "command", "command": command}]}
+                 "hooks": [{"type": "command", "command": command, "timeout": HOOK_TIMEOUT_S}]}
             ]
         }  # fmt: skip
     path = work / "settings.json"
@@ -225,13 +317,44 @@ def one_session(task: tuple, run: int, arm: str) -> dict[str, Any]:
         "tools": mcp.tool_calls(work), "version": claude_version(work),
         "workdir": str(work),
     }  # fmt: skip
-    # A `-LOOP` session whose hook never decided is not a `-LOOP` session. One of the five run
-    # on 2026-10-02 had no journal at all with twenty tool calls in it, and the runner counted
-    # it as treated. A treatment that is not exercised is not a treatment: it is marked here
-    # and `counted()` drops it, so a resume runs it again.
-    if arm.endswith("-LOOP") and not row["jev_calls"]:
-        return {**row, "not_run": True, "subtype": "the hook never decided: hook absent"}
+    if not arm.endswith("-LOOP"):
+        return row
+    hook = hook_record(journal)
+    row = {**row, **hook}
+    # A `-LOOP` session whose hook never asked is not a `-LOOP` session. One of the six run on
+    # 2026-10-02 had no journal at all with twenty tool calls in it, and the runner counted it
+    # as treated. A treatment that is not exercised is not a treatment: it is marked here, and
+    # `counted()` drops it, so a resume runs it again. Which way it failed is kept.
+    if not hook["hook_decisions"]:
+        why = "the decider failed on every call" if hook["hook_errors"] else "hook absent"
+        return {**row, "not_run": True, "subtype": f"the hook never decided: {why}"}
     return row
+
+
+def hook_record(journal: pathlib.Path) -> dict[str, int]:
+    """What the loop guard did in one session, from its own journal: how often it asked, how
+    often it spoke, how often it had no page in front of it, its error notes and its failures.
+    A guard that is silent and a guard that is blind are different findings."""
+    out = {"hook_decisions": 0, "hook_spoke": 0, "hook_blind": 0, "hook_error_notes": 0,
+           "hook_errors": 0}  # fmt: skip
+    if not journal.exists():
+        return out
+    for line in journal.read_text(encoding="utf-8").splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        kind, data = event.get("kind"), event.get("data") or {}
+        if kind == "decision" and data.get("point") == "loop":
+            outcome = data.get("outcome") or {}
+            out["hook_decisions"] += 1
+            out["hook_spoke"] += int(bool(outcome.get("spoke")))
+            out["hook_blind"] += int(not outcome.get("page_chars"))
+        elif kind == "loop_note":
+            out["hook_error_notes"] += 1
+        elif kind == "loop_error":
+            out["hook_errors"] += 1
+    return out
 
 
 def claude_version(work: pathlib.Path) -> str:
@@ -267,7 +390,14 @@ def analyse(rows: list[dict[str, Any]]) -> dict[str, Any]:
             "median_turns": sorted(r["turns"] or 0 for r in ok)[len(ok) // 2] if ok else None,
             "mean_list_usd": round(sum(r["list_usd"] for r in part) / len(part), 4),
             "total_list_usd": round(sum(r["list_usd"] for r in part), 4),
+            "mean_turns": round(sum(r["turns"] or 0 for r in ok) / len(ok), 2) if ok else None,
         }
+        if arm.endswith("-LOOP"):  # what the guard did: silent, blind and wrong are different
+            out["by_arm"][arm]["hook"] = {
+                key: sum(int(r.get(key) or 0) for r in part)
+                for key in ("hook_decisions", "hook_spoke", "hook_blind", "hook_error_notes",
+                            "hook_errors")
+            }  # fmt: skip
 
     def for_task(tid: str) -> dict[str, str]:
         out: dict[str, str] = {}
@@ -289,13 +419,18 @@ def main() -> int:
     ap.add_argument("--pilot", action="store_true", help="two tasks, one run, its own file")
     ap.add_argument("--traps", action="store_true", help="the trap tasks, mining for failures")
     ap.add_argument("--loop", action="store_true", help="arms HAIKU and HAIKU-LOOP")
+    ap.add_argument("--hard", action="store_true", help="the aggregation tasks")
+    ap.add_argument("--only", default="", help="comma-separated task ids, from any set")
+    ap.add_argument("--runs", type=int, default=0, help="runs per task and arm")
+    ap.add_argument("--tag", default="", help="a development round with its own files")
+    ap.add_argument("--ceiling", type=float, default=0.0, help="list USD for this round")
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--env-file", default=None, help="a .env holding TYPESAFE_API_KEY")
     ap.add_argument("--record-hash", action="store_true")
     args = ap.parse_args()
 
     if args.tasks:
-        for tid, url, question, required in TASKS + TRAP_TASKS:
+        for tid, url, question, required in TASKS + TRAP_TASKS + HARD_TASKS:
             print(f"{tid}  {url}\n    {question}\n    required: {required}\n")
         return 0
     if args.record_hash:
@@ -305,23 +440,49 @@ def main() -> int:
 
     global KEY
     KEY = mcp.key_from(args.env_file)  # e2e_mcp's reader, not a second copy of it
-    tasks = TRAP_TASKS if args.traps else (PILOT_TASKS if args.pilot else TASKS)
+    tasks = HARD_TASKS if args.hard else (
+        TRAP_TASKS if args.traps else (PILOT_TASKS if args.pilot else TASKS)
+    )  # fmt: skip
+    if args.only:
+        wanted = {t.strip().upper() for t in args.only.split(",")}
+        pool = {t[0]: t for t in TASKS + TRAP_TASKS + HARD_TASKS}
+        unknown = sorted(wanted - set(pool))
+        if unknown:
+            raise SystemExit(f"no such task: {unknown}")
+        tasks = [pool[t] for t in sorted(wanted)]
     arms = TRAP_ARMS if args.loop else ARMS
-    one_run = (args.pilot or args.traps) and not args.loop
-    runs = [1] if one_run else list(range(1, RUNS + 1))
-    sessions = (
-        LOOP_SESSIONS
-        if args.loop
-        else (TRAP_SESSIONS if args.traps else (PILOT_SESSIONS if args.pilot else SESSIONS))
-    )
-    ceiling = PILOT_CEILING_USD if (args.pilot or args.traps) else CEILING_USD
+    one_run = (args.pilot or args.traps or args.hard) and not args.loop
+    runs = list(range(1, (args.runs or (1 if one_run else RUNS)) + 1))
+    if args.tag:  # a development round of its own, with its own files
+        sessions = RESULTS / f"nav-{args.tag}-sessions.jsonl"
+        name = f"nav-{args.tag}.json"
+    else:
+        sessions = (
+            LOOP_SESSIONS
+            if args.loop
+            else (TRAP_SESSIONS if args.traps else (PILOT_SESSIONS if args.pilot else SESSIONS))
+        )
+        name = (
+            "nav-loop.json"
+            if args.loop
+            else (
+                "nav-traps.json" if args.traps else ("nav-pilot.json" if args.pilot else "nav.json")
+            )
+        )
+    development = args.pilot or args.traps or args.hard or bool(args.tag)
+    ceiling = args.ceiling or (PILOT_CEILING_USD if development else CEILING_USD)
     rows = done_sessions(sessions)
     code = 0
     if args.live:
-        if not (args.pilot or args.traps):
+        if not development:
             registered = PREREG.with_suffix(".sha256")
             if not registered.exists() or registered.read_text().strip() != base.digest(PREREG):
                 raise SystemExit(f"{PREREG.name} is not registered as it stands: nothing spent")
+        if any(a.endswith("-LOOP") for a in arms):
+            problems = preflight()
+            if problems:
+                raise SystemExit("preflight failed, nothing spent:\n- " + "\n- ".join(problems))
+            print(f"preflight: hook {HOOK_PYTHON.name} ok", file=sys.stderr)
         RESULTS.mkdir(parents=True, exist_ok=True)
         limits = phase.Limits(
             session_max_usd=SESSION_MAX_USD, ceiling_usd=ceiling,
@@ -334,11 +495,9 @@ def main() -> int:
         print("nothing recorded yet")
         return code
     report = analyse(phase.counted(rows))
-    name = (
-        "nav-loop.json"
-        if args.loop
-        else ("nav-traps.json" if args.traps else ("nav-pilot.json" if args.pilot else "nav.json"))
-    )
+    report["not_run"] = [
+        {k: r.get(k) for k in ("task", "run", "arm", "subtype")} for r in rows if r.get("not_run")
+    ]
     (RESULTS / name).write_text(json.dumps(report, indent=1), encoding="utf-8")
     print(json.dumps(report, indent=1))
     return code
