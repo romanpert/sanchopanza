@@ -481,6 +481,11 @@ def answer_line(answer: str) -> str:
     return found[-1].strip().strip("*").strip() if found else ""
 
 
+# Task ids graded on their ANSWER line. D and E were added after D5 run 2 of the second
+# confirmation answered "ANSWER: 36" (truth 38) and passed on a "38" elsewhere in its reply.
+ANSWER_LINE_TASKS = ("H", "S", "C", "D", "E")
+
+
 def grade(answer: str, required: list[Any], tid: str) -> bool:
     """Every required item present. For the aggregation, strategy and confirmation tasks (H*,
     S*, C*) only the ANSWER line counts, and a number counts as a whole number: "10" is met
@@ -489,7 +494,7 @@ def grade(answer: str, required: list[Any], tid: str) -> bool:
 
     The first version required the literal "answer: 10", and graded "ANSWER: There are 10
     quotes by Albert Einstein" - which is right - as a failure (H1, Sonnet, 2026-10-02)."""
-    if not tid.startswith(("H", "S", "C")):
+    if not tid.startswith(ANSWER_LINE_TASKS):
         return base.graded(answer, required)
     line = base.normal(answer_line(answer))
     if not line:

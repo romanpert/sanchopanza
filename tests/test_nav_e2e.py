@@ -73,6 +73,14 @@ def test_a_sum_and_a_name_are_read_from_the_answer_line():
     assert not nav.grade("ANSWER: 13 quotes.\nMonroe has most.", _req("H3"), "H3")
 
 
+def test_confirmation_crawls_are_graded_on_their_answer_line():
+    # D5 run 2, confirmation 2: the real reply listed prices and ended "ANSWER: 36"; truth 38.
+    reply = "$379.38, $488.78 and more.\n\nANSWER: 36"
+    assert not nav.grade(reply, ["38"], "D5")
+    assert nav.grade("ANSWER: 38", ["38"], "D5")
+    assert not nav.grade("There are 208 of them.", ["208"], "E6")  # no ANSWER line
+
+
 def test_tasks_that_are_not_aggregations_keep_the_substring_grader():
     a1 = next(t for t in nav.TASKS if t[0] == "A1")
     assert nav.grade("Item total $55.97, tax $4.48, total $60.45", a1[3], "A1")
