@@ -513,3 +513,48 @@ What changed since v2 is the question confirmation 2 answers: v5 forbids clickin
 inside the call and says to fetch the data the page loads, which is C4's and C5's failure exactly
 (found in development on S3/S4 before these results were seen, `strategy_lines.py`). Whether that
 is enough on new mechanisms, and whether Haiku then checks its account, is `prereg-strategy2.md`.
+
+## 17. Confirmation 2 (line v5): NOT confirmed - answers held, and one hang decided the cost
+
+Registered in `prereg-strategy2.md` (sealed 5e03627) before any session; 60 sessions, Claude Code
+2.1.287 throughout, 7.01 USD of subscription at list price; the verdicts are the first
+confirmation's registered function over v5's arms (`nav-confirm2.json`):
+
+| hypothesis | result | holds |
+|---|---|---|
+| H1 cost: total ratio <= 0.75 **and** cheaper on >= 6 of 8 crawls | ratio **1.027**, cheaper on **5 of 8** | **no** |
+| H2 answers: v5 >= unaided - 2, of 24 | v5 **21/24**, unaided **22/24** | yes |
+| H3 no harm on A2, B2 | 6/6 and 6/6, cost ratio 0.79 | yes |
+
+**v5 is not confirmed.** What it did fix is what sank v2: on new mechanisms it lost no answers
+that matter (21 against 22; v2 had 15 against 22). What it did not fix is the cost, and the
+reason is one session. All five misses read by hand, none a grader fault:
+
+- **D5 run 3, v5: a hang.** `while (true)` with no cap, a selector that found nothing, and an exit
+  condition that needed more than zero items; Playwright MCP never stops an evaluate, so the
+  runner killed it at 30 minutes and the registered rule charged it the 1.00 USD session cap.
+- D5 run 1, v5: a scroll that stopped at 82 of 117 laptops, believed. D3 run 1, v5: read each
+  delayed page before its ten seconds were up, so pages 2-10 held nothing.
+- Unaided: `better-life-empathy` counted as `life` (14 for 13), and one session ended on "API
+  Error: Output blocked by content filtering policy", which the registered rules count as wrong.
+
+Described, not tested: without that one hang the crawl ratio would be 0.73 and v5 cheaper on 6 of
+8, so H1 would have held. That is reported because it is true, not to soften the verdict: a
+hang is a real cost of the one-call strategy (a user waits forever), and the rule charging it was
+registered for exactly that reason after H1 of development hung.
+
+What the two confirmations say together, plainly:
+
+- **The line is not a free lunch on any crawl.** Where unaided Haiku walks a long pagination it
+  is a large saving (development, S1-S5: 0.265 to 0.066 USD); on these sixteen new tasks unaided
+  Haiku often extracted on its own already (most D tasks at three navigations or fewer), and the
+  line had less to save than its failure modes cost.
+- **Its failure modes are of the strategy, not of the wording**: a silent partial result, and a
+  loop that never returns. v5 named both (account for what you read; cap every loop) and the
+  cheap model still wrote `while (true)` and believed 82 of 117. **Clauses the model must obey
+  are the wrong place for a safety property.**
+- So the next step is not v6 of the sentence. The hang can be removed by the harness rather than
+  asked for: a `PreToolUse` hook that wraps every `browser_evaluate` in a time limit (Claude Code
+  hooks can rewrite a tool's input), turning a hang into an error the agent sees and fixes. The
+  partial result is where a check belongs, and section 15's offline probe says what it needs: the
+  site's own size beside the result.
