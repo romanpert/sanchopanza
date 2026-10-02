@@ -616,3 +616,20 @@ owner's call):
 - Not changed here: `freeze.py` and the runners are sealed. A fix (install `.[jev]`, and a
   runner that refuses a held-out S arm whose hooks resolve no provider, as Indagis's
   `ab_encargos.py` probes its image) waits for an amendment and the owner's decision.
+
+**And no find_in_repo either** (found by the second review of amendment 5's code). The frozen
+copy had no `mcp` either, so find_in_repo's server failed to start in every session: the init
+line of all 46 frozen-copy arms says `"status":"failed"`, development's `connected`. So A's
+"find_in_repo 0" is not an adoption result: the tool was not there. Phase A's S arms were
+sanchopanza with neither its decider nor find, only what needs neither (the touch, the 160k
+budget, the compaction guard, the skill).
+
+## Amendment 5 (2026-10-02, seal bf1e3dc2): the S arms again, as installed
+
+The owner decided to run the 39 S arms again with the decider (prereg, "Amendment 5"; code in
+fff04b6, cfee645 and 611bd7b, two adversarial reviews). Copy `frozen/eebdfa692f53-jev-mcp`. A
+smoke test through `hook_env.py` asked Jev one real guard question (jev-1.13.0, 0.00003 USD) and
+started find's server (initialize answered, exit 0). The first reading stays as it was. conan-long40-1
+was validated again under the new development rule (keep_collecting) by the memory line (0fc242a):
+still invalid, for a bug that breaks an import every ConanAPI start goes through, not for the
+collection stop.

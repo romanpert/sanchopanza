@@ -337,3 +337,93 @@ conan-1 and conan-2 had not been graded. Sealed again; no code changes.
    no turns and the earlier cumulative cost, so `facts` on a cut stream reads a "success" of
    0 USD. The runner is not affected (a cut call is caught by its exit code), but no stream is
    to be read as finished on its result event alone.
+
+## Amendment 5, 2026-10-02, after phase A's verdict was read, before any S arm runs again
+
+Written by indagis-e3 on the owner's decision of 2026-10-02 ("1.2": fix the frozen install and
+run the S arms again). Unlike amendments 1-4, this one comes **after** `confirm.py A` was read
+(seal 147b1599). It does not change that reading, which stands in the dev log as what it was:
+sanchopanza **without its decider and without find_in_repo**. It registers a second reading,
+with the install this document describes, before any of its sessions exist. Sealed again with the
+code it changes (fff04b6, cfee645, 611bd7b, each reviewed adversarially, the last after a second
+review).
+
+1. **What happened.** `freeze.py` installed eebdfa6 with no extras. With no `httpx`,
+   `decider_from_env` built the null decider in every hook and said so on stderr, which
+   `hook_env.py` swallowed. All 163 decisions journalled under `runs/` and `singles/` on
+   2026-10-01 and 2026-10-02 have provider `null`. With no `mcp`, find_in_repo's server failed to
+   start in every session: `"status":"failed"` in the init line of all 46 frozen-copy arms,
+   against `connected` in development. Memory's selection could keep nothing, the guard ran on its
+   rules alone, and find was not there. The line above, "Jev `jev-1.13.0` for the decider", did
+   not hold, and neither did "the default install". Separately, every runner shared one key file
+   and deleted it at its end; on 2026-09-30 a development S arm switched from `jev` to `null`
+   mid-session.
+2. **Code.**
+   - `freeze.py` installs `[jev,mcp]` into `frozen/<commit>-jev-mcp` and stamps both extras.
+     Phase A's copy is left as it was.
+   - A held-out run with an S arm is refused unless both extras are stamped and the probe finds
+     `JevDecider`. The probe imports `mcp`, builds the decider from the frozen copy's Python in
+     the environment Claude Code gives the hooks (`child_env`), and checks which sanchopanza
+     answered. Building the decider sends no question.
+   - Each S arm is probed again when it starts or resumes, and its row records every probe. The
+     key sits at a path fixed per arm, written on each start or resume. A resumed arm whose hooks
+     name another key path is refused.
+   - `hook_env.py` logs, on every line, whether the hook had the key. It also logs the MCP
+     server's start and end (with its exit code) and the hook's stderr.
+3. **When an S arm counts as the treatment.** `confirm.py` requires positive evidence, all of:
+   - (a) the frozen copy stamped with `jev` and `mcp`;
+   - (b) every probe in its row is `JevDecider`;
+   - (c) find_in_repo's server shows `connected` in the init line of every request that has one,
+     and at least one request has one;
+   - (d) every line its hooks logged had the key, and there is at least one;
+   - (e) every journalled decision comes from `jev`, `budget` (the hooks' own cap per session,
+     which answers with an error and no model) or `code` (the guard's deny list, which decides
+     before any model);
+   - (f) at most 10 % of the decisions asked of Jev came back with an error.
+   An arm that fails any of these is not the treatment, and its task misses an arm, as for an arm
+   that did not run. These thresholds are fixed here, before any of the arms exist.
+4. **Grading is unchanged for held-out chains.** Development chains now run pytest with
+   `--continue-on-collection-errors` in grading, validation, the culprit search and the bake
+   check (conan-long40-1: one bug removes `rm`, and a test file that does not import stopped the
+   whole run). Held-out chains keep the sealed command byte for byte (checked against the code
+   before the change), and each grade records which command it used. Under the sealed command
+   none of phase A's grades shows the stop: grading is one pytest run per arm, a stopped run
+   reports no PASSED at all, and all 24 graded chain arms of A have PASSED nodes. A singles run
+   grades only arms without a grade, so `N` keeps phase A's grade.
+5. **Which arms run again.** `Sm` on the ten chains, `Sf` on the three related chains, `S` on
+   the 26 singles: 39 arms.
+   - Each is set aside first under `<root>/<task>-nojev1/<arm>` with its Claude Code session
+     folder. The ledgers keep counting it; no verdict reads it.
+   - `N` and `Nf` are not run again. They ran Claude Code alone, which the fault did not touch,
+     on the same seal, model, caps and Claude Code 2.1.285. The S arms run with that same
+     private 2.1.285 binary and the same prompts.
+   - Order: the three related chains, then the seven chains, then the singles. Per repository,
+     as in A: bake, check the image with the sealed command, run, grade the S arms only, drop.
+6. **Spend** (estimated from what these arms cost in A: Sm 17.28, Sf 6.37, S 12.22; with find
+   now present the sessions may differ): about 36 USD of Claude Code at list price, plus Jev.
+   Hard caps in the driver, fixed at its start from the ledgers:
+   - chains: `runs/` + 30 USD;
+   - everything: `runs/` + `singles/` + 40 USD.
+   Jev is capped by the hooks at 0.10 USD per Claude Code session, so 5.10 at most over 51
+   sessions; a few cents expected. A smoke test through `hook_env.py` and the new copy asked
+   Jev one real guard question (jev-1.13.0, 0.00003 USD, no error) and started find's server
+   (initialize answered, exit 0). Run outside the session (`Win32_Process.Create`), and not
+   alongside another session's run on the subscription (agreed with indagis-48). An error
+   result stops it, and amendment 2 applies.
+7. **Verdict.** `confirm.py A` as sealed, with the rule of point 3, gives the second reading.
+   It is reported beside the first, and neither replaces the other.
+   - **H3:** the false blocks this document defines are those of the guard as installed with its
+     decider. `false-blocks.jsonl` is built from this reading's blocks (`confirm.py A --blocks`),
+     one verdict per block, before H3 is read. The first reading's "0 blocks in 1,944 commands"
+     is the guard's rules alone and gets no file.
+   - **Memory in `Sm`:** prompt selection still acts only on a session's first request, where the
+     pool is empty. That is the product as installed, unchanged and reported.
+   - **H4** now includes find_in_repo, available this time.
+8. **Threats.**
+   - The control arms' results are known before the treated arms run again. The tasks, prompts,
+     model, caps and verdict code (apart from point 3) are fixed here, so nothing in the S arms
+     can be shaped by them.
+   - The S arms run a day or two after the controls, on the same pinned binary.
+   - Ideas suggested after reading A (for example, whether an edit weakens an existing test,
+     from the browse line) are exploration and reported apart. They are not part of this
+     verdict.
