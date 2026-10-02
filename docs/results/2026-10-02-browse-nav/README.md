@@ -523,12 +523,12 @@ confirmation's registered function over v5's arms (`nav-confirm2.json`):
 | hypothesis | result | holds |
 |---|---|---|
 | H1 cost: total ratio <= 0.75 **and** cheaper on >= 6 of 8 crawls | ratio **1.027**, cheaper on **5 of 8** | **no** |
-| H2 answers: v5 >= unaided - 2, of 24 | v5 **21/24**, unaided **22/24** | yes |
+| H2 answers: v5 >= unaided - 2, of 24 | v5 **20/24** (21 as first graded, see below), unaided **22/24** | yes |
 | H3 no harm on A2, B2 | 6/6 and 6/6, cost ratio 0.79 | yes |
 
 **v5 is not confirmed.** What it did fix is what sank v2: on new mechanisms it lost no answers
-that matter (21 against 22; v2 had 15 against 22). What it did not fix is the cost, and the
-reason is one session. All five misses read by hand, none a grader fault:
+that matter (20 against 22; v2 had 15 against 22). What it did not fix is the cost, and the
+reason is one session. The misses, read by hand:
 
 - **D5 run 3, v5: a hang.** `while (true)` with no cap, a selector that found nothing, and an exit
   condition that needed more than zero items; Playwright MCP never stops an evaluate, so the
@@ -537,6 +537,11 @@ reason is one session. All five misses read by hand, none a grader fault:
   delayed page before its ten seconds were up, so pages 2-10 held nothing.
 - Unaided: `better-life-empathy` counted as `life` (14 for 13), and one session ended on "API
   Error: Output blocked by content filtering policy", which the registered rules count as wrong.
+- **A sixth miss, found after this section was first written**: D5 run 2, v5, answered
+  `ANSWER: 36` (truth 38, over "121 laptops") and was graded right, because the grader read only
+  the ANSWER line for task ids starting H, S or C and the D tasks fell through to a match
+  anywhere in the reply. Graded by its ANSWER line, as the C tasks were, v5 is 20/24; no other
+  session of the phase changes. H2 holds at its threshold either way (20 >= 22 - 2).
 
 Described, not tested: without that one hang the crawl ratio would be 0.73 and v5 cheaper on 6 of
 8, so H1 would have held. That is reported because it is true, not to soften the verdict: a
