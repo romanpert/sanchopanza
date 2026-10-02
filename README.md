@@ -55,10 +55,13 @@ hook already there and a backup of the file as it was (`settings.json.bak`); wit
 `--write` it only prints what it would change. The decisions need a TypeSafe key in
 `TYPESAFE_API_KEY`; without one, only a short list of destructive commands written in
 code is still refused, and everything else goes through as it did before. By default it guards
-shell commands, delegations and searches; add `--scan-content` to flag instructions planted
-in what the agent reads, `--check-done` to check "done" before the agent stops, and
-`--guard` for the [compaction guard](#compaction-guard-for-claude-code), and `--autopilot` for the
-experimental [context autopilot](#context-autopilot-for-claude-code-experimental). Not on
+shell commands, delegations and searches, installs the
+[compaction guard](#compaction-guard-for-claude-code) (`--no-guard` leaves it out), compacts at
+160,000 tokens (`--context-budget 0` leaves it where Claude Code puts it), copies the
+`sanchopanza-code` skill and, for a project install, registers `find_in_repo`. Add `--scan-content`
+to flag instructions planted in what the agent reads, `--check-done` to check "done" before the
+agent stops, and `--autopilot` for the experimental
+[context autopilot](#context-autopilot-for-claude-code-experimental). Not on
 PyPI yet: install from the repository as above (`sancho` on PyPI is an unrelated package).
 
 ---
