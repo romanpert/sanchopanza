@@ -633,3 +633,67 @@ started find's server (initialize answered, exit 0). The first reading stays as 
 was validated again under the new development rule (keep_collecting) by the memory line (0fc242a):
 still invalid, for a bug that breaks an import every ConanAPI start goes through, not for the
 collection stop.
+
+## Phase A, second reading: the S arms as installed (2026-10-03, amendments 5 and 6, seal 705b0383)
+
+All 39 S arms ran again (13 chain arms and 26 singles), each with positive evidence of the
+treatment. Every probe was `JevDecider`; find_in_repo's server was `connected` in every request;
+every hook line had the key; there were 158 Jev decisions with no error and none `null`. Claude
+Code 2.1.285, frozen `eebdfa692f53-jev-mcp`. Spent 40.81 USD at list price: chains 24.31,
+singles 16.50 (one single under amendment 6). Jev cost 0.0034 USD. No 429 during the whole run,
+including while other sessions ran their own batches on the subscription (with the owner's OK).
+`confirm-A5.json`; the first reading stays in `confirm-A.json`.
+
+| hypothesis | first reading (no decider, no find) | second reading (as installed) |
+|---|---|---|
+| H1 chains (margin 2) | Sm 29 vs N 35, does not hold | **Sm 33 vs N 35, -2 [-10, 5], holds**; by FAIL_TO_PASS 42 vs 38 |
+| H1 related (margin 1) | Sf 9 vs Nf 12, does not hold | Sf 10 vs Nf 12, -2 [-6, 0], **does not hold** |
+| H1 singles (margin 2) | S 17 vs N 16, holds | **S 18 vs N 16**, +2 [0, 5], holds |
+| H2 chains, Sm/N median | 0.890 [0.770, 1.140] | 0.902 [0.759, 1.143], direction only |
+| H2 singles, S/N (reported) | 1.084 | **1.225 [1.014, 1.309]: S dearer** |
+| Exploration Sf/Nf | 0.786 [0.471, 1.317] | 0.811 [0.679, 1.129], direction only |
+| H3 false blocks | 0 in 1,944 (rules only) | **0 blocks in 2,091**: 140 guard decisions on Jev, none denied; `false-blocks.jsonl` empty because there is nothing to judge |
+| H4 | find 0 (server failed), memory 0 | find 0 (server connected, never called), skill 0, memory injected 0 in 70 prompts, touch 24 |
+| **H-session** | does not hold | **does not hold** (H1 holds, H2 direction only) |
+| **H-new-session** | does not hold | **does not hold** (H1 related fails) |
+
+Per task (resolved of 5, cost with Jev; A's S arm under `<task>-nojev1`):
+
+| task | N | Sm (A) | Sm (2nd) | Nf | Sf (A) | Sf (2nd) |
+|---|---|---|---|---|---|---|
+| pygments-2 | 4, 1.46 | 3, 1.15 | 4, 1.19 | | | |
+| starlette-2 | 5, 1.97 | 5, 2.08 | 5, 1.22 | | | |
+| pydantic-1 | 3, 1.98 | 4, 2.44 | 3, 1.70 | | | |
+| pydantic-2 | 0, 1.42 | 0, 1.24 | 0, 1.63 | | | |
+| conan-1 | 5, 1.63 | 3, 1.48 | 4, 1.94 | | | |
+| conan-2 | 2, 1.51 | 3, 2.46 | 4, 1.96 | | | |
+| astroid-1 | 5, 1.37 | 4, 0.97 | 5, 1.30 | | | |
+| starlette-rel-2 | 3, 1.81 | 5, 1.90 | 0, 1.81 | 5, 1.75 | 5, 2.23 | 3, 2.76 |
+| pydantic-rel-1 | 3, 3.50 | 2, 1.82 | 3, 2.31 | 2, 3.09 | 0, 2.36 | 2, 3.08 |
+| dvc-rel-1 | 5, 2.09 | 0, 1.74 | 5, 1.59 | 5, 2.79 | 4, 1.78 | 5, 1.83 |
+
+Read one by one before writing:
+
+- **The installed product is non-inferior on the chains and the singles, and does not save.** Sm
+  sits within the margin of N (33 vs 35), and is ahead on FAIL_TO_PASS (42 vs 38). The gap that
+  remains is mostly two zeros, both with all FAIL_TO_PASS passing and a PASS_TO_PASS regression
+  shared by every bug: starlette-rel-2 (0/5, 6 tests broken in each bug, 11 of 13 FAIL_TO_PASS
+  passing) and pydantic-2 (0/5 again, 4 broken, the same `test_use_no_fields` edit as in A, in
+  every arm of both readings). The cost of the chains is ~10 % lower in direction only. The singles
+  cost 23 % more, with the interval above 1. That is the price of the hooks and of a skill nobody
+  called, on one-request tasks.
+- **Between runs, the same arm moves a lot.** dvc-rel-1 Sm went from 0/5 to 5/5, and
+  starlette-rel-2 Sm from 5/5 to 0/5. With one repetition per chain, a single regression decides
+  a chain. The intervals say the same: [-10, 5] on the chains.
+- **Memory still injected nothing, and now we know why.** With Jev answering, `memory_recall`
+  scored 12 prompts with candidates in Sf. The highest probability was 0.57, against the frozen
+  copy's `KEEP_AT = 0.8`. At the 0.2 cut the memory line derived in development (7036ee3), 11 of
+  the 12 would have injected. In Sm, prompt selection only acts on a session's first request,
+  where the pool is empty, by design. So "memory between sessions" was again the touch alone (24
+  records). For the memory line, not a verdict.
+- **find_in_repo was available and Haiku never called it**, in 39 arms. The skill was not called
+  either. Adoption by the agent, not availability, is the lever there.
+- **The guard never denied a command** in 2,091 shell commands with Jev deciding on the risky
+  ones. H3 holds, with no block to judge.
+- Not preregistered, for the next phase: whether an edit that weakens an existing test separates
+  the regressions (the browse line's suggestion). Both zeros above edit or add test files.

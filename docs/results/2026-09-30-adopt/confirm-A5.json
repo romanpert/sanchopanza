@@ -1,0 +1,103 @@
+{
+ "missing": {
+  "chains": [],
+  "related": [],
+  "singles": []
+ },
+ "H1": {
+  "chains": {
+   "treat": 33.0,
+   "control": 35.0,
+   "difference": -2.0,
+   "interval": [
+    -10.0,
+    5.0
+   ],
+   "margin": -2,
+   "holds": true,
+   "treat_f2p": 42,
+   "control_f2p": 38
+  },
+  "related": {
+   "treat": 10.0,
+   "control": 12.0,
+   "difference": -2.0,
+   "interval": [
+    -6.0,
+    0.0
+   ],
+   "margin": -1,
+   "holds": false,
+   "treat_f2p": 10,
+   "control_f2p": 12
+  },
+  "singles": {
+   "treat": 18.0,
+   "control": 16.0,
+   "difference": 2.0,
+   "interval": [
+    0.0,
+    5.0
+   ],
+   "margin": -2,
+   "holds": true,
+   "treat_f2p": 18,
+   "control_f2p": 16
+  }
+ },
+ "H2": {
+  "pairs": 10,
+  "median_ratio": 0.9018,
+  "interval": [
+   0.7585,
+   1.1428
+  ],
+  "treat_usd": 16.64,
+  "control_usd": 18.76,
+  "verdict": "direction only, not confirmed",
+  "incomplete": []
+ },
+ "H2_singles_reported": {
+  "pairs": 26,
+  "median_ratio": 1.2252,
+  "interval": [
+   1.0138,
+   1.3092
+  ],
+  "treat_usd": 13.73,
+  "control_usd": 11.99,
+  "verdict": "not confirmed",
+  "incomplete": []
+ },
+ "H_new_session_exploration": {
+  "requests": 12,
+  "median_ratio": 0.8114,
+  "interval": [
+   0.6786,
+   1.1294
+  ],
+  "verdict": "direction only, not confirmed"
+ },
+ "H3": {
+  "blocks": 0,
+  "false": 0,
+  "shell_commands": 2091,
+  "rate": 0.0,
+  "lost_bugs": [],
+  "pending": [],
+  "holds": true
+ },
+ "H4": {
+  "find_calls": 0,
+  "skill_calls": 0,
+  "memory_prompts": 70,
+  "memory_injected": 0,
+  "memory_records": 0,
+  "memory_chars": 0,
+  "memory_touch_given": 24,
+  "memory_touch_records": 24,
+  "memory_touch_chars": 95043
+ },
+ "H_session": false,
+ "H_new_session": false
+}
