@@ -427,3 +427,22 @@ review).
    - Ideas suggested after reading A (for example, whether an edit weakens an existing test,
      from the browse line) are exploration and reported apart. They are not part of this
      verdict.
+
+## Amendment 6, 2026-10-03, before the last single runs and before the second reading
+
+Written by indagis-e3 after amendment 5's driver stopped at its own cap, with the owner's OK
+("acaba esta tirada", 2026-10-03). `confirm.py A` has not been run on the second reading, and no
+verdict of it has been read.
+
+1. **What happened.** 38 of the 39 S arms ran: 24.31 USD for the chains and 15.61 USD for 25
+   singles, 39.92 of the 40 the driver allowed. The last single, django__django-14007, was not
+   started. `singles_run.py` holds both arms' caps (3.00 USD) before a single starts, even when
+   `N` already has its row and will not run, and 2.84 USD were left. Its `S` folder holds
+   nothing, and no session of it exists.
+2. **What changes.** That single alone runs with the total cap raised from `runs/` + `singles/`
+   + 40 to + 41.5 USD (absolute ceiling 192.79). Its `S` arm is capped at 1.50 per call as
+   before, so the amendment's spend stays at or below 41.42 USD at list price. Nothing else
+   changes: same sealed code, frozen copy, Claude Code 2.1.285 and checks.
+3. **Why not leave it missing.** A missing single leaves H1 on the singles undecided. Running it
+   costs one Haiku session, and the decision was taken before reading anything of the second
+   reading.
