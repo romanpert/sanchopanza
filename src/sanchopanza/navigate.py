@@ -37,7 +37,8 @@ from typing import Any, Protocol, runtime_checkable
 
 from .browse import Element, Ranked, elements_from_snapshot, prune_snapshot, rank, render
 
-KINDS = ("click", "fill", "select", "back", "answer", "give_up")
+KINDS = ("click", "fill", "select", "press", "back", "answer", "give_up")
+NEEDS_REF = ("click", "fill", "select")
 TEXT_BUDGET = 3000
 KEEP = 20
 MAX_STEPS = 20
@@ -64,6 +65,8 @@ class Action:
             return f'fill {self.ref} "{self.text}"'
         if self.kind == "select":
             return f'select {self.ref} "{self.text}"'
+        if self.kind == "press":
+            return f"press {self.text}"
         if self.kind in ("click", "back"):
             return f"{self.kind} {self.ref}".strip()
         return self.kind
@@ -114,6 +117,7 @@ REPLY_RULES = """Reply with one line of JSON and nothing else, one of:
 {"act": "click", "ref": "e12"}                 click that element
 {"act": "fill", "ref": "e12", "text": "..."}   type into that field
 {"act": "select", "ref": "e12", "text": "..."} choose that option in that dropdown
+{"act": "press", "text": "Enter"}              press that key
 {"act": "back"}                                go back to the previous page
 {"act": "answer", "answer": "...", "quote": "..."}   the page answers the goal; quote text \
 copied from the page that shows it
@@ -175,15 +179,17 @@ def parse_action(text: str) -> Action:
     if kind not in KINDS:
         return Action(kind="", raw=raw)
     ref = str(data.get("ref") or "").strip()
-    if kind in ("click", "fill", "select"):
+    if kind in NEEDS_REF:
         word = _REF_WORD.search(ref)
         if word is None:
             return Action(kind="", raw=raw)
         ref = word.group(1)
+    if kind == "press" and not str(data.get("text") or data.get("key") or "").strip():
+        return Action(kind="", raw=raw)
     return Action(
         kind=kind,
         ref=ref,
-        text=str(data.get("text") or ""),
+        text=str(data.get("text") or data.get("key") or ""),
         answer=str(data.get("answer") or ""),
         quote=str(data.get("quote") or ""),
         raw=raw,

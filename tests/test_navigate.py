@@ -201,3 +201,10 @@ def test_the_prompt_says_the_step_and_what_was_done():
 
 def test_a_browser_satisfies_the_protocol():
     assert isinstance(FakeBrowser(pages()), Browser)
+
+
+def test_a_key_press_is_an_action_and_needs_a_key():
+    pressed = parse_action('{"act":"press","key":"Enter"}')
+    assert (pressed.kind, pressed.text, pressed.line()) == ("press", "Enter", "press Enter")
+    assert parse_action('{"act":"press","text":"Enter"}').text == "Enter"
+    assert parse_action('{"act":"press"}').kind == ""
