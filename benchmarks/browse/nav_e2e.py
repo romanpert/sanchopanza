@@ -63,6 +63,10 @@ MODELS = {
     "HAIKU-LOOP": "claude-haiku-4-5",  # the same model, with the loop guard hooked in
     "HAIKU-HINT": "claude-haiku-4-5",  # the same model, told the strategy in one fixed line
     "HAIKU-HINT2": "claude-haiku-4-5",  # the same, with the line that asks for an account
+    "HAIKU-HINT3": "claude-haiku-4-5",  # the same, told never to navigate inside the call
+    "HAIKU-HINT4": "claude-haiku-4-5",  # the same, with the cap far above the site
+    "HAIKU-HINT5": "claude-haiku-4-5",  # v3 with only the cap fixed
+    "SONNET-HINT5": "claude-sonnet-5",  # does the line help the larger model too?
 }
 ARMS = ("SONNET", "HAIKU")
 TRAP_ARMS = ("HAIKU", "HAIKU-LOOP")  # the trap tasks: does the loop guard save the floundering?
@@ -71,28 +75,12 @@ TRAP_ARMS = ("HAIKU", "HAIKU-LOOP")  # the trap tasks: does the loop guard save 
 # moves Haiku to the extraction, a decider that says when to say it has to beat that line, and
 # can only do so where the line does harm (a page drawn by JavaScript, an interactive task).
 STRATEGY_ARMS = ("SONNET", "HAIKU", "HAIKU-HINT")
-STRATEGY_HINT = (
-    "If the request needs data gathered from many pages of a site (counting, summing, comparing "
-    "or listing across pagination), do not open the pages one by one: write one browser_evaluate "
-    "that fetches and parses them all and returns the result. If that finds nothing, the content "
-    "is probably drawn by JavaScript: read it in the browser instead."
-)
-# The second line, after S5 (2026-10-02): with the first one Haiku took a single partial scroll
-# as final, 0/3, where unaided it kept going when the result looked short, 3/3. "Do it in one
-# call" had suppressed the check. So the extraction now has to say how much it read, and the agent
-# has to hold that against the site before answering. And H1 (2026-10-02) hung for 30 minutes: a
-# loop that read Next from the open page, not the fetched one, and Playwright MCP never stops an
-# evaluate - so every loop gets a cap.
-STRATEGY_HINT_V2 = (
-    "If the request needs data gathered from many pages of a site (counting, summing, comparing "
-    "or listing across pagination or infinite scroll), do not open the pages one by one: write "
-    "one browser_evaluate that collects them all (fetching each page, or the data the page loads) "
-    "and computes the answer in code, with a cap on every loop so it cannot run forever. Make it "
-    "also return how many pages and items it read and whether more remained, and check that "
-    "against what the site shows before you answer; if it fell short, fix the code and run it "
-    "again. If it finds nothing, the content is probably drawn by JavaScript: read it in the "
-    "browser instead."
-)
+strategy_lines = _load("browse_strategy_lines", HERE / "strategy_lines.py")
+STRATEGY_HINT = strategy_lines.STRATEGY_HINT
+STRATEGY_HINT_V2 = strategy_lines.STRATEGY_HINT_V2  # sealed by prereg-strategy.md
+STRATEGY_HINT_V3 = strategy_lines.STRATEGY_HINT_V3
+STRATEGY_HINT_V4 = strategy_lines.STRATEGY_HINT_V4
+STRATEGY_HINT_V5 = strategy_lines.STRATEGY_HINT_V5
 JEV_SESSION_MAX_USD = 0.05
 JEV_CEILING_USD = 0.40  # for a whole loop phase, over the Jev budget this line was given
 KEY = ""  # set in main() from --env-file; the -LOOP arm refuses to run without it
@@ -371,7 +359,13 @@ def settings_for(arm: str, work: pathlib.Path) -> pathlib.Path:
 
 
 def appended(arm: str) -> str:
-    """The system prompt every arm shares, plus a strategy line for `-HINT` and `-HINT2` only."""
+    """The system prompt every arm shares, plus a strategy line for `-HINT*` arms only."""
+    if arm.endswith("-HINT5"):
+        return f"{APPEND} {STRATEGY_HINT_V5}"
+    if arm.endswith("-HINT4"):
+        return f"{APPEND} {STRATEGY_HINT_V4}"
+    if arm.endswith("-HINT3"):
+        return f"{APPEND} {STRATEGY_HINT_V3}"
     if arm.endswith("-HINT2"):
         return f"{APPEND} {STRATEGY_HINT_V2}"
     return f"{APPEND} {STRATEGY_HINT}" if arm.endswith("-HINT") else APPEND

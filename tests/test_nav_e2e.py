@@ -19,6 +19,8 @@ sys.modules["browse_nav_e2e"] = nav
 spec.loader.exec_module(nav)
 
 EVERY = nav.TASKS + nav.TRAP_TASKS + nav.HARD_TASKS + nav.STRATEGY_TASKS
+# sha256 of STRATEGY_HINT_V2 as sealed with prereg-strategy.md (d5f42ad).
+SEALED_V2 = "32c1cafb05b33f80829b51bca24bee7f74490cf1c6687c7e62b3be1ab4b903aa"
 
 
 def test_task_ids_are_unique_and_every_task_has_an_answer_to_grade_on():
@@ -249,3 +251,64 @@ def test_the_second_line_asks_the_extraction_to_account_for_what_it_read():
 def test_the_second_line_caps_every_loop():
     """H1, 2026-10-02: one evaluate looped on page 2 for 30 minutes; nothing stops an evaluate."""
     assert "cap on every loop" in nav.STRATEGY_HINT_V2
+
+
+def test_the_third_hint_arm_carries_the_third_line_only(monkeypatch):
+    argv, env = _argv_of(monkeypatch, "HAIKU-HINT3")
+    assert nav.STRATEGY_HINT_V3 in _appended(argv)
+    assert nav.STRATEGY_HINT_V2 not in _appended(argv)
+    assert nav.STRATEGY_HINT not in _appended(argv)
+    assert "TYPESAFE_API_KEY" not in env
+
+
+def test_the_third_line_forbids_navigating_inside_the_call_and_walking_as_a_fallback():
+    """Development, 2026-10-02: 9 of the 13 hint sessions that ended up walking had first written
+    an extraction that clicked Next or set location inside the evaluate, which destroys it."""
+    line = nav.STRATEGY_HINT_V3
+    assert line.isascii()
+    for phrase in (
+        "never click",
+        "fetch()",
+        "DOMParser",
+        "cap on every loop",
+        "rather than walking",
+    ):
+        assert phrase in line
+
+
+def test_the_sealed_second_line_is_unchanged():
+    """prereg-strategy.md seals the second line verbatim; a third one must not edit it."""
+    import hashlib
+
+    digest = hashlib.sha256(nav.STRATEGY_HINT_V2.encode()).hexdigest()
+    assert digest == SEALED_V2
+
+
+def test_the_fourth_line_puts_the_cap_far_above_the_site_and_counts_hitting_it_as_short(
+    monkeypatch,
+):
+    """v3 on S4 run 3 capped its loop at 10 pages of 20 and answered 11 for 65 (2026-10-02)."""
+    argv, _ = _argv_of(monkeypatch, "HAIKU-HINT4")
+    assert nav.STRATEGY_HINT_V4 in _appended(argv)
+    assert nav.STRATEGY_HINT_V3 not in _appended(argv)
+    line = nav.STRATEGY_HINT_V4
+    assert line.isascii() and "never click" in line and "rather than walking" in line
+    assert "far above" in line and "stopped at its cap" in line
+
+
+def test_the_fifth_line_is_the_third_with_only_the_cap_fixed(monkeypatch):
+    """v4 added the cap fix and more words, and was taken up worse (3 walks in 12 against v3's 0):
+    v5 keeps v3's wording and changes only the cap clause."""
+    argv, _ = _argv_of(monkeypatch, "HAIKU-HINT5")
+    assert nav.STRATEGY_HINT_V5 in _appended(argv)
+    v3_cap = "with a cap on every loop. "
+    assert v3_cap in nav.STRATEGY_HINT_V3
+    head, tail = nav.STRATEGY_HINT_V3.split(v3_cap)
+    assert nav.STRATEGY_HINT_V5.startswith(head) and nav.STRATEGY_HINT_V5.endswith(tail)
+    assert "far above" in nav.STRATEGY_HINT_V5 and nav.STRATEGY_HINT_V5.isascii()
+
+
+def test_the_line_can_be_given_to_sonnet_too(monkeypatch):
+    argv, _ = _argv_of(monkeypatch, "SONNET-HINT5")
+    assert nav.STRATEGY_HINT_V5 in _appended(argv)
+    assert argv[argv.index("--model") + 1] == "claude-sonnet-5"
