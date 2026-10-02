@@ -587,3 +587,32 @@ Checks done along the way, so that what the numbers read is what they claim to:
 - Exploratory, not preregistered (suggested by the browse line): whether a cheaper arm is cheaper
   because it replaces turns or because it trims context. With find 0 and skill 0, nothing in A
   replaced turns; Sm's lever is the 100k context budget (compactions).
+
+## Found after the verdict: phase A's S arms ran without the decider (2026-10-02, indagis-e3)
+
+Read-only check, no spend, made while passing the memory line the "memory injected nothing" fact.
+**The frozen install has no Jev.** `freeze.py` installs the commit with `pip install <source>`,
+without the `[jev]` extra, so `httpx` is absent in all three frozen venvs (eebdfa692f53,
+88c12d97ed05, 94487923c5ac). There `decider_from_env` with a key returns `NullDecider` and writes
+"provider 'jev' unavailable (install sanchopanza[jev] ...)" to stderr, which `hook_env.py`
+captures, so no log showed it. Every decision journalled under `runs/` and `singles/` on
+2026-10-01 and 2026-10-02 has provider `null`: 163 in all (guard 140, memory_recall 16, routing 7),
+B2's pydantic-long40-1 included. On 2026-09-30, from the editable `.venv`, the same points ran on
+Jev. Jev spend over every adopt row: 0.0072 USD.
+
+What this changes in reading A (not a new verdict; the prereg at line 120 says "Jev `jev-1.13.0`
+for the decider", so this is a deviation found after the verdict, and what to do with A is the
+owner's call):
+
+- `S`/`Sm`/`Sf` were sanchopanza's default install **with the null decider**: the guard on its
+  rules only, memory's selection unable to keep anything, routing at its default. What needs no
+  decider ran as designed: the touch (27 records), the 160k budget and compaction guard, the
+  skill and find_in_repo (unused).
+- **Memory's 0 injections in 89 prompts have two causes.** In `Sm`, `prompt_mode` "first" acts
+  only on a session's first request, and there the pool is empty (0 in all ten chains): with one
+  session per chain the selection cannot fire, by design. In `Sf`, 12 prompts reached candidates
+  (pool 1-4) and every probability came back `null` from the null decider.
+- H3's "0 blocks in 1,944 commands" is the guard's rules alone.
+- Not changed here: `freeze.py` and the runners are sealed. A fix (install `.[jev]`, and a
+  runner that refuses a held-out S arm whose hooks resolve no provider, as Indagis's
+  `ab_encargos.py` probes its image) waits for an amendment and the owner's decision.
