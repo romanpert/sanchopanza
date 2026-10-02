@@ -67,7 +67,8 @@ SEED = 20261003
 SESSION_MAX_USD = 1.50
 TIMEOUT_S = 1800
 TOOLS = "WebSearch WebFetch mcp__playwright Read Grep Glob Write Edit Task Agent TodoWrite"
-DISALLOWED = "Bash SendMessage ListAgents"
+# The pilot's BC693 called ScheduleWakeup: a bench session must not schedule anything.
+DISALLOWED = "Bash SendMessage ListAgents ScheduleWakeup CronCreate RemoteTrigger"
 ANSWER = (
     " Work it out with whatever tools you need. End your reply with one line: "
     "ANSWER: <your answer>."
