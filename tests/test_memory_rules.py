@@ -98,6 +98,20 @@ def test_a_diff_that_breaks_a_rule_is_found_once_per_request(tmp_path: Path) -> 
 
 
 @needs_git
+def test_a_new_file_git_does_not_track_is_part_of_the_change(tmp_path: Path) -> None:
+    # sim of 2026-10-02: a new module was invisible to `git diff`, so the check never ran
+    repo, store = tmp_path / "repo", tmp_path / "store"
+    head = _repo(repo)
+    asyncio.run(mr.extract(squire(), store, [episode(RULE, session="old")]))
+    (repo / "app" / "mailer.py").write_text("HOST = env('APP_PAYMENT_TIMEOUT')\n", "utf-8")
+    (repo / ".env.local").write_text("SECRET=1\n", "utf-8")
+    assert "+++ b/app/mailer.py (new file)" in mr._diff(str(repo), head)
+    assert ".env.local" not in mr._diff(str(repo), head)
+    broken, _ = asyncio.run(mr.audit(squire(), store, "new", 1, str(repo), head))
+    assert [r["text"] for r in broken] == [RULE]
+
+
+@needs_git
 def test_a_rule_is_not_held_against_the_request_that_stated_it(tmp_path: Path) -> None:
     repo, store = tmp_path / "repo", tmp_path / "store"
     head = _repo(repo)

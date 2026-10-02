@@ -125,18 +125,45 @@ def render(store: Path) -> str:
     return "\n".join([HEADER, *lines, CLOSING]) if lines else ""
 
 
-def _diff(cwd: str, head: str) -> str:
-    """The request's change since its start: the working tree against the commit it began at
-    (commits made during the request included), tests left out."""
-    if not cwd or not head:
-        return ""
+NEW_FILE_BYTES = 40_000
+_SKIP = (":(exclude)tests", ":(exclude)test")
+
+
+def _git(cwd: str, *args: str) -> str | None:
     try:
-        done = subprocess.run(["git", "-C", cwd, "diff", "--no-color", head, "--", ".",
-                               ":(exclude)tests", ":(exclude)test"], capture_output=True,
+        done = subprocess.run(["git", "-C", cwd, *args], capture_output=True,
                               timeout=GIT_SECONDS, check=False)  # fmt: skip
     except (OSError, subprocess.SubprocessError):
+        return None
+    return done.stdout.decode("utf-8", errors="replace") if done.returncode == 0 else None
+
+
+def _new_files(cwd: str) -> str:
+    """Files the request created and git does not track yet, as added lines: `git diff` leaves
+    them out, and a new module is where a rule is most often broken (the cross-file scenes).
+    Read without touching the index (no `git add -N`); secrets-like names are skipped."""
+    from ..context.worktree import _secret
+
+    listed = _git(cwd, "ls-files", "--others", "--exclude-standard", "-z", "--", ".", *_SKIP)
+    out, room = [], NEW_FILE_BYTES
+    for rel in (listed or "").split("\0"):
+        path = Path(cwd) / rel
+        if not rel or _secret(rel) or not path.is_file() or path.stat().st_size > room:
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        room -= len(text)
+        added = "".join(f"+{line}\n" for line in text.splitlines())
+        out.append(f"+++ b/{rel} (new file)\n{added}")
+    return "".join(out)
+
+
+def _diff(cwd: str, head: str) -> str:
+    """The request's change since its start: the working tree against the commit it began at
+    (commits made during the request included) and the files it created, tests left out."""
+    if not cwd or not head:
         return ""
-    return done.stdout.decode("utf-8", errors="replace") if done.returncode == 0 else ""
+    tracked = _git(cwd, "diff", "--no-color", head, "--", ".", *_SKIP)
+    return (tracked or "") + _new_files(cwd)
 
 
 async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,

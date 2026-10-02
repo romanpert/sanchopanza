@@ -37,15 +37,22 @@ SRC = HERE.parents[1] / "src"
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(SRC))
 
+from rules import RULES  # noqa: E402
 from scenes import SCENES as PILOT  # noqa: E402
+from scenes_cross import CROSS, CROSS_RULES  # noqa: E402
 from scenes_held import HELD  # noqa: E402
 
 from sanchopanza.harness.install import MEMORY_HOOKS  # noqa: E402
 
 CALL_CAP = 0.60
 TOTAL_CAP = 9.00  # default; --total-cap raises it for a run the owner approved
-SCENES = {**PILOT, **HELD}
-SETS = {"pilot": list(PILOT), "held": list(HELD), "all": list(SCENES)}
+SCENES = {**PILOT, **HELD, **CROSS}
+SETS = {"pilot": list(PILOT), "held": list(HELD), "all": [*PILOT, *HELD], "cross": list(CROSS)}
+ALL_RULES = {**RULES, **CROSS_RULES}
+# Arms: N plain; M memory with standing rules off (v6.2 behaviour); V memory v7; P placebo:
+# memory v6.2, and session 1 says a neutral sentence where the rule was (nothing to remember).
+ARMS = ("N", "M", "V", "P")
+NEUTRAL = "For context: this module was written last spring by the platform team."
 MODELS = {"haiku": "claude-haiku-4-5-20251001", "sonnet": "claude-sonnet-5-5"}
 PYTHON = sys.executable
 TOOLS = ["Bash", "Read", "Edit", "Write", "Glob", "Grep"]
@@ -78,8 +85,9 @@ def settings(run: Path, arm: str, keyfile: Path) -> str:
     if arm == "N":
         return "{}"
     launcher = (HERE / "carry_hook.py").as_posix()
+    rules = "rules-on" if arm == "V" else "rules-off"
     hook = {"type": "command", "command": f'"{Path(PYTHON).as_posix()}" "{launcher}" '
-            f'"{run.as_posix()}" "{keyfile.as_posix()}"'}  # fmt: skip
+            f'"{run.as_posix()}" "{keyfile.as_posix()}" {rules}'}  # fmt: skip
     return json.dumps({"hooks": {event: [{"matcher": matcher, "hooks": [hook]}]
                                  for event, matcher in MEMORY_HOOKS.items()}})  # fmt: skip
 
@@ -182,7 +190,8 @@ def pair(out: Path, name: str, model: str, arm: str, rep: int, keyfile: Path,
     run = out / f"{name}-{model}-{arm}-{rep}"
     scene = SCENES[name]
     repo = build(run, scene)
-    first = session(run, repo, scene["first"], model, arm, "session-1", keyfile, dry)
+    said = scene["first"].replace(ALL_RULES[name], NEUTRAL) if arm == "P" else scene["first"]
+    first = session(run, repo, said, model, arm, "session-1", keyfile, dry)
     row: dict[str, Any] = {"scene": name, "model": model, "arm": arm, "repeat": rep}
     if dry:
         return {**row, "dry": True, "repo": str(repo)}
@@ -212,7 +221,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", required=True)
     parser.add_argument("--models", default="sonnet")
-    parser.add_argument("--scenes", default="pilot", help="pilot, held, all or names")
+    parser.add_argument("--scenes", default="pilot", help="pilot, held, all, cross or names")
+    parser.add_argument("--arms", default="N,M", help=f"of {','.join(ARMS)}")
     parser.add_argument("--total-cap", type=float, default=TOTAL_CAP)
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--dry", action="store_true")
@@ -223,7 +233,7 @@ def main(argv: list[str] | None = None) -> int:
     plan = [(name, model, arm, rep) for rep in range(args.repeats)
             for model in args.models.split(",")
             for name in SETS.get(args.scenes, args.scenes.split(","))
-            for arm in ("N", "M")]  # fmt: skip
+            for arm in args.arms.split(",")]  # fmt: skip
     keyfile = out / "typesafe.key" if args.dry else keyfile_from_indagis(out)
     try:
         run_plan(out, plan, keyfile, args.dry, args.total_cap, args.carry_on)
