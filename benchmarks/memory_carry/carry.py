@@ -16,6 +16,7 @@ one at a time; a usage limit stops the run. `--dry` builds every repository and 
 would run, calling nothing.
 
     python benchmarks/memory_carry/carry.py --out DIR [--dry] [--models sonnet] [--repeats 1]
+        [--scenes pilot|held|all|a,b] [--total-cap USD]
 """
 
 from __future__ import annotations
@@ -35,12 +36,15 @@ SRC = HERE.parents[1] / "src"
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(SRC))
 
-from scenes import SCENES  # noqa: E402
+from scenes import SCENES as PILOT  # noqa: E402
+from scenes_held import HELD  # noqa: E402
 
 from sanchopanza.harness.install import MEMORY_HOOKS  # noqa: E402
 
 CALL_CAP = 0.60
-TOTAL_CAP = 9.00
+TOTAL_CAP = 9.00  # default; --total-cap raises it for a run the owner approved
+SCENES = {**PILOT, **HELD}
+SETS = {"pilot": list(PILOT), "held": list(HELD), "all": list(SCENES)}
 MODELS = {"haiku": "claude-haiku-4-5-20251001", "sonnet": "claude-sonnet-5-5"}
 PYTHON = sys.executable
 TOOLS = ["Bash", "Read", "Edit", "Write", "Glob", "Grep"]
@@ -193,27 +197,30 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", required=True)
     parser.add_argument("--models", default="sonnet")
-    parser.add_argument("--scenes", default=",".join(SCENES))
+    parser.add_argument("--scenes", default="pilot", help="pilot, held, all or names")
+    parser.add_argument("--total-cap", type=float, default=TOTAL_CAP)
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--dry", action="store_true")
     args = parser.parse_args(argv)
     out = Path(args.out)
     plan = [(name, model, arm, rep) for rep in range(args.repeats)
-            for model in args.models.split(",") for name in args.scenes.split(",")
+            for model in args.models.split(",")
+            for name in SETS.get(args.scenes, args.scenes.split(","))
             for arm in ("N", "M")]  # fmt: skip
     keyfile = out / "typesafe.key" if args.dry else keyfile_from_indagis(out)
     try:
-        run_plan(out, plan, keyfile, args.dry)
+        run_plan(out, plan, keyfile, args.dry, args.total_cap)
     finally:
         keyfile.unlink(missing_ok=True)
     return 0
 
 
-def run_plan(out: Path, plan: list[tuple[str, str, str, int]], keyfile: Path, dry: bool) -> None:
+def run_plan(out: Path, plan: list[tuple[str, str, str, int]], keyfile: Path, dry: bool,
+             total_cap: float) -> None:  # fmt: skip
     spent, rows = 0.0, []
     for name, model, arm, rep in plan:
-        if spent + 2 * CALL_CAP > TOTAL_CAP:
-            print(f"stop: {spent:.2f} USD spent, the next pair could pass {TOTAL_CAP}", flush=True)
+        if spent + 2 * CALL_CAP > total_cap:
+            print(f"stop: {spent:.2f} USD spent, the next pair could pass {total_cap}", flush=True)
             break
         row = pair(out, name, model, arm, rep, keyfile, dry)
         spent += float(row.get("cost") or 0.0)
