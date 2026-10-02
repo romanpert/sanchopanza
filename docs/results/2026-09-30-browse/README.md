@@ -68,6 +68,34 @@ written before the counted sessions: the per-session cap (0.25 to 0.60 USD, size
 and the phase ceiling (8 to 12 USD, sized on the pilot); the pilot (FULL 6/9, TOP 5/9) is outside
 every count. 8.61 USD spent in all.
 
+## Phase 3q: registered, not met: 16 % cheaper, and one table read wrong three times (`prereg-e2e-t.md`)
+
+Eleven new inline pages that are data tables (eight from endoflife.date, IANA's status code
+registry, Python's devguide, PHP's supported versions), each question one cell of one row. The
+hook at 890d3f1 (a kept cell brings its whole row and the column headers). Claude Code 2.1.287
+in every session (2.1.285 in 3n-3p).
+
+| | Success | List USD / session | Cuts | LEAN minus PLAIN |
+|---|---|---|---|---|
+| PLAIN | 33/33 | 0.1160 | | |
+| LEAN | 30/33 | 0.0962 (+0.0012 Jev) | 26 | -0.0185 [-0.0284, -0.0097] |
+
+**The rule is not met: the cost would pass, the answers do not** (30 against at least 31). The
+checks: the hook cut in 26 of 33 runs (check 1 met); LEAN used `Grep` or `Read` in 13 runs, PLAIN
+in 12 (check 2 met: the row now comes with the cut); LEAN answered 30 of 33 (check 3 not met).
+All three misses are T4, Django 5.2: every LEAN run answered "03 Dec 2025", the end of Active
+Support, for Security Support (30 Apr 2028). What the model was shown held the header row and the
+whole 5.2 row, in order and right; but the second header has no name (only a link "Python"
+inside it), and with five named headers against six cells the model slid one column. Shown the
+whole table, the other rows let it line them up, and PLAIN answered all three. 7.21 USD at list
+price, 0.040 USD of Jev.
+
+The fix (`_row_label`, on the `browse-row-labels` branch until merged): a row the cut brings whole
+carries one YAML comment beside it pairing each cell with its header, a header with no name
+named by what it holds (`# 5.2 (LTS): Release: 5.2 (LTS) | Python: 3.10 - 3.14 ... | Active
+Support: ... (03 Dec 2025) | Security Support: ... (30 Apr 2028) | ...`), and none when cells and
+headers do not pair up. Not yet measured on new tasks.
+
 ## Phase 3p: registered, passed: 17 % cheaper on pages whose snapshot arrives inline (`prereg-e2e-v.md`)
 
 Twelve new tasks chosen for the claim read across 3j, 3l and 3n: each page's snapshot measured

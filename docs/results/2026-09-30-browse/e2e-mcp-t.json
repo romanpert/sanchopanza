@@ -1,0 +1,58 @@
+{
+ "sessions": 66,
+ "PLAIN": {
+  "runs": 33,
+  "success": 33,
+  "list_usd_mean": 0.116,
+  "jev_usd_mean": 0.0,
+  "turns_mean": 4.3,
+  "cache_read_mean": 155985,
+  "cache_write_mean": 20028,
+  "snapshots_pruned": 0
+ },
+ "LEAN": {
+  "runs": 33,
+  "success": 30,
+  "list_usd_mean": 0.0962,
+  "jev_usd_mean": 0.00122,
+  "turns_mean": 4.39,
+  "cache_read_mean": 159054,
+  "cache_write_mean": 14875,
+  "snapshots_pruned": 26
+ },
+ "LEAN_minus_PLAIN_usd_per_task": {
+  "value": -0.0185,
+  "bootstrap95": [
+   -0.0284,
+   -0.0097
+  ],
+  "by_task": {
+   "T1": -0.0199,
+   "T10": 0.0007,
+   "T11": -0.0013,
+   "T2": -0.018,
+   "T3": -0.0562,
+   "T4": -0.0213,
+   "T5": -0.0285,
+   "T6": -0.0149,
+   "T7": -0.0145,
+   "T8": -0.0304,
+   "T9": 0.0007
+  }
+ },
+ "pilot": [
+  {
+   "task": "T1",
+   "arm": "PLAIN",
+   "success": true,
+   "list_usd": 0.2117462,
+   "turns": 4,
+   "tools": {
+    "ToolSearch": 1,
+    "mcp__playwright__browser_navigate": 1,
+    "mcp__playwright__browser_snapshot": 1
+   },
+   "pruned": []
+  }
+ ]
+}
