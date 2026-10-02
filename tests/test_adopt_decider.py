@@ -229,6 +229,8 @@ def _counts(folder: pathlib.Path) -> bool:
 
 def test_a_sanchopanza_arm_counts_only_with_the_decider_shown(tmp_path: pathlib.Path) -> None:
     assert _counts(_arm(tmp_path / "a" / "Sm", providers=("jev", "jev", "budget")))
+    # the guard's own deny list journals as "code" (seen in the smoke test of 2026-10-02)
+    assert _counts(_arm(tmp_path / "a2" / "Sm", providers=("code", "jev")))
     assert _counts(_arm(tmp_path / "b" / "Sm", providers=()))  # no decision, but shown wired
     # phase A as it ran: no extra, every decision on the null decider
     assert not _counts(_arm(tmp_path / "c" / "Sm", extras=None, providers=("null",)))
@@ -247,3 +249,6 @@ def test_decisions_jev_did_not_answer_are_bounded(tmp_path: pathlib.Path) -> Non
     ten = ("jev",) * 10
     assert _counts(_arm(tmp_path / "a" / "Sm", providers=ten, errors=1))
     assert not _counts(_arm(tmp_path / "b" / "Sm", providers=ten, errors=2))  # a revoked key
+    # the hooks' cap answers "budget" with an error: the product as installed, not Jev failing
+    capped = _arm(tmp_path / "c" / "Sm", providers=("budget", "budget", *ten), errors=2)
+    assert _counts(capped)

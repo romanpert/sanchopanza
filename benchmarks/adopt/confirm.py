@@ -167,7 +167,9 @@ def ran(call: dict[str, Any]) -> bool:
             and call.get("subtype") is not None)  # fmt: skip
 
 
-DECIDER_PROVIDERS = {"jev", "budget"}  # "budget": the hooks' own cap per session, as installed
+# As installed: Jev; "budget", the hooks' own cap per session; "code", the guard's deny list,
+# which decides before any model (seen in the smoke test of 2026-10-02).
+DECIDER_PROVIDERS = {"jev", "budget", "code"}
 DECIDER_ERRORS = 0.10  # decisions Jev did not answer (`error` set), at most this share of them
 
 
@@ -202,8 +204,8 @@ def with_decider(evidence: Path, frozen: dict[str, Any], row: dict[str, Any]) ->
                  if e.get("kind") == "decision"]  # fmt: skip
     if any(d.get("provider") not in DECIDER_PROVIDERS for d in decisions):
         return False
-    errors = sum(bool(d.get("error")) for d in decisions)
-    return errors <= DECIDER_ERRORS * len(decisions)
+    asked = [d for d in decisions if d.get("provider") == "jev"]  # budget carries an error too
+    return sum(bool(d.get("error")) for d in asked) <= DECIDER_ERRORS * len(asked)
 
 
 def arm_result(evidence: Path, model: str, commit: str | None = None) -> dict[str, Any] | None:
