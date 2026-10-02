@@ -284,10 +284,12 @@ def test_a_sanchopanza_arm_counts_only_on_the_frozen_commit(tmp_path: pathlib.Pa
     folder = arm(tmp_path / "Sm", [call(1, 0.5)], [True])
     assert confirm.arm_result(folder, SONNET, "abc") is None  # no frozen install recorded
     row = json.loads((folder / "row.json").read_text(encoding="utf-8"))
-    row["sanchopanza"] = {"exe": "x", "frozen": {"commit": "abc", "extras": ["jev"]}}
+    row["sanchopanza"] = {"exe": "x", "frozen": {"commit": "abc", "extras": ["jev", "mcp"]}}
     row["decider"] = ["JevDecider"]  # amendment 5: the decider shown, not assumed
     (folder / "row.json").write_text(json.dumps(row), encoding="utf-8")
     (folder / "hooks.jsonl").write_text('{"sub": "hook", "key": true}\n', encoding="utf-8")
+    init = {"subtype": "init", "mcp_servers": [{"name": "sanchopanza", "status": "connected"}]}
+    (folder / "stream-1.jsonl").write_text(json.dumps(init) + "\n", encoding="utf-8")
     assert confirm.arm_result(folder, SONNET, "abc") is not None
     assert confirm.arm_result(folder, SONNET, "other") is None
     control = arm(tmp_path / "N", [call(1, 0.5)], [True])

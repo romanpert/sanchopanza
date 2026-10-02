@@ -166,7 +166,8 @@ def decider_probe(keyfile: Path) -> str:
 
     import hook_env
 
-    ask = ("import sanchopanza; from sanchopanza.harness.claude_code import decider_from_env; "
+    ask = ("import mcp, sanchopanza; "  # mcp: find_in_repo's server (amendment 5)
+           "from sanchopanza.harness.claude_code import decider_from_env; "
            "print(sanchopanza.__file__); print(type(decider_from_env()).__name__)")  # fmt: skip
     with tempfile.TemporaryDirectory() as evidence:
         # The environment Claude Code gives the hooks: `child_env` drops SANCHOPANZA_* and the
@@ -213,10 +214,10 @@ def drop_arm_keys() -> None:
 
 def decider_refusal(keyfile: Path) -> str | None:
     """Amendment 5. Why the held-out S arms may not run with this frozen copy and key, or None."""
-    stamp = frozen_stamp() or {}
-    if "jev" not in (stamp.get("extras") or []):
-        return ("the frozen sanchopanza was installed without the jev extra: the S arms would run "
-                "with no decider (amendment 5); freeze it again")  # fmt: skip
+    extras = (frozen_stamp() or {}).get("extras") or []
+    if missing := [e for e in ("jev", "mcp") if e not in extras]:
+        return (f"the frozen sanchopanza was installed without {missing}: the S arms would run "
+                "with no decider or no find_in_repo (amendment 5); freeze it again")  # fmt: skip
     if (found := decider_probe(keyfile)) != HELD_DECIDER:
         return f"the S arms' hooks would build {found}, not {HELD_DECIDER} (amendment 5)"
     return None
@@ -496,6 +497,11 @@ def one_chain(
         probes = [*probes, decider_probe(keyfile)]
         if chain["split"] == "held" and probes[-1] != HELD_DECIDER:
             raise RuntimeError(f"{name} {arm}: its hooks would build {probes[-1]} (amendment 5)")
+        settings = work / ".claude" / "settings.json"
+        if previous and (not settings.exists() or keyfile.as_posix() not in settings.read_text(
+                encoding="utf-8")):  # fmt: skip
+            # Installed before amendment 5: its hooks name a key path nobody writes any more.
+            raise RuntimeError(f"{name} {arm}: its hooks name another key path; run it whole")
     if previous:
         rows = [r for r in previous["calls"] if not not_run(r)]
         session, base = previous["session"], previous["base"]

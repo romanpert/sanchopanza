@@ -51,7 +51,11 @@ def main(argv: list[str]) -> int:
     if sub.endswith("-mcp"):  # a server: the client's stdio, for as long as it runs
         with (evidence / "hooks.jsonl").open("a", encoding="utf-8") as log:
             log.write(json.dumps({"sub": sub, "event": "server start", "key": key}) + "\n")
-        return subprocess.run([SANCHO, sub, *rest], env=env).returncode
+        code = subprocess.run([SANCHO, sub, *rest], env=env).returncode
+        with (evidence / "hooks.jsonl").open("a", encoding="utf-8") as log:
+            end = {"sub": sub, "event": "server end", "key": key, "exit": code}
+            log.write(json.dumps(end) + "\n")
+        return code
     payload = sys.stdin.buffer.read()
     try:
         event = json.loads(payload.decode("utf-8"))

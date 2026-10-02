@@ -185,14 +185,33 @@ def _jsonl(path: Path) -> list[dict[str, Any]]:
     return out
 
 
+def find_connected(evidence: Path) -> bool:
+    """Amendment 5: find_in_repo's server shows `connected` in every request's init line, and at
+    least one request shows it (phase A's frozen copy had no `mcp`: `failed` in all 46 arms)."""
+    seen = 0
+    for stream in sorted(evidence.glob("stream-*.jsonl")):
+        init = next((e for e in _jsonl(stream) if e.get("subtype") == "init"), None)
+        if init is None:
+            continue
+        servers = {s.get("name"): s.get("status") for s in init.get("mcp_servers") or []
+                   if isinstance(s, dict)}  # fmt: skip
+        if servers.get("sanchopanza") != "connected":
+            return False
+        seen += 1
+    return seen > 0
+
+
 def with_decider(evidence: Path, frozen: dict[str, Any], row: dict[str, Any]) -> bool:
     """Amendment 5: a sanchopanza arm is the treatment only with the decider the
     pre-registration names, shown positively (phase A's S arms: 163 decisions, all `null`, and
     several arms with none journalled at all, since memory and find fall back without a word):
-    its frozen copy installed with the jev extra; the runner's probe found `JevDecider` each time
+    its frozen copy installed with the jev and mcp extras, find_in_repo's server connected in
+    every request; the runner's probe found `JevDecider` each time
     the arm started; every hook it logged had the key; no decision by another provider; and at
     most `DECIDER_ERRORS` of its decisions left unanswered by Jev."""
-    if "jev" not in (frozen.get("extras") or []):
+    if not {"jev", "mcp"} <= set(frozen.get("extras") or []):
+        return False
+    if not find_connected(evidence):
         return False
     probes = row.get("decider") or []
     if not probes or any(p != "JevDecider" for p in probes):

@@ -65,10 +65,10 @@ def test_the_frozen_copy_is_installed_with_the_jev_extra(tmp_path, monkeypatch) 
     monkeypatch.setattr(freeze.subprocess, "run", fake_run)
     exe = freeze.freeze("eebdfa6")
     pip = next(c for c in calls if "pip" in c)
-    assert pip[-1].endswith("[jev]")
-    assert exe.parents[1].name == "e" * 12 + "-jev"  # never the copy phase A ran
+    assert pip[-1].endswith("[jev,mcp]")
+    assert exe.parents[1].name == "e" * 12 + "-jev-mcp"  # never the copy phase A ran
     stamp = json.loads((exe.parents[1] / "stamp.json").read_text(encoding="utf-8"))
-    assert stamp["extras"] == ["jev"]
+    assert stamp["extras"] == ["jev", "mcp"]
 
 
 # ---- run.py --------------------------------------------------------------------------------------
@@ -81,11 +81,13 @@ def _frozen(monkeypatch: pytest.MonkeyPatch, extras: list[str], probe: str) -> N
 
 def test_a_held_out_run_refuses_a_frozen_copy_without_the_decider(monkeypatch, tmp_path) -> None:  # noqa: ANN001
     key = tmp_path / "k"
-    _frozen(monkeypatch, ["jev"], "JevDecider")
+    _frozen(monkeypatch, ["jev", "mcp"], "JevDecider")
     assert run.decider_refusal(key) is None
     _frozen(monkeypatch, [], "JevDecider")  # phase A's copy: no extra recorded
     assert "jev" in run.decider_refusal(key)
-    _frozen(monkeypatch, ["jev"], "NullDecider")
+    _frozen(monkeypatch, ["jev"], "JevDecider")  # find_in_repo's server cannot start
+    assert "mcp" in run.decider_refusal(key)
+    _frozen(monkeypatch, ["jev", "mcp"], "NullDecider")
     assert "NullDecider" in run.decider_refusal(key)
 
 
@@ -185,8 +187,10 @@ def test_an_mcp_server_start_is_logged_with_its_key(tmp_path, monkeypatch) -> No
     (tmp_path / "k").write_text("secret", encoding="utf-8")
     monkeypatch.setattr(hook_env.subprocess, "run", lambda *a, **k: SimpleNamespace(returncode=0))
     assert hook_env.main([str(tmp_path), str(tmp_path / "k"), "find-mcp"]) == 0
-    row = json.loads((tmp_path / "hooks.jsonl").read_text(encoding="utf-8"))
-    assert row == {"sub": "find-mcp", "event": "server start", "key": True}
+    lines = (tmp_path / "hooks.jsonl").read_text(encoding="utf-8").splitlines()
+    start, end = (json.loads(x) for x in lines)
+    assert start == {"sub": "find-mcp", "event": "server start", "key": True}
+    assert end == {"sub": "find-mcp", "event": "server end", "key": True, "exit": 0}
 
 
 # ---- confirm.py ----------------------------------------------------------------------------------
@@ -194,13 +198,18 @@ def test_an_mcp_server_start_is_logged_with_its_key(tmp_path, monkeypatch) -> No
 
 def _arm(
     folder: pathlib.Path,
-    extras: list[str] | None = ("jev",),  # type: ignore[assignment]
+    extras: list[str] | None = ("jev", "mcp"),  # type: ignore[assignment]
     providers: tuple[str, ...] = ("jev",),
     probes: tuple[str, ...] = ("JevDecider",),
     keys: tuple[bool, ...] = (True,),
     errors: int = 0,
+    servers: tuple[str, ...] = ("connected",),
 ) -> pathlib.Path:
     folder.mkdir(parents=True, exist_ok=True)
+    for k, status in enumerate(servers, start=1):  # each request's init line
+        init = {"type": "system", "subtype": "init",
+                "mcp_servers": [{"name": "sanchopanza", "status": status}]}  # fmt: skip
+        (folder / f"stream-{k}.jsonl").write_text(json.dumps(init) + "\n", encoding="utf-8")
     frozen = {"commit": "abc", **({"extras": list(extras)} if extras is not None else {})}
     row = {
         "model": HAIKU,
@@ -241,7 +250,11 @@ def test_a_sanchopanza_arm_counts_only_with_the_decider_shown(tmp_path: pathlib.
     assert not _counts(_arm(tmp_path / "f" / "Sm", probes=("JevDecider", "NullDecider")))
     assert not _counts(_arm(tmp_path / "g" / "Sm", keys=(True, False)))  # a hook with no key
     assert not _counts(_arm(tmp_path / "h" / "Sm", keys=()))
-    control = _arm(tmp_path / "i" / "N", extras=None, providers=(), probes=(), keys=())
+    # phase A as it ran: find_in_repo's server failed in every request (no mcp in the copy)
+    assert not _counts(_arm(tmp_path / "h2" / "Sm", servers=("failed",)))
+    assert not _counts(_arm(tmp_path / "h3" / "Sm", servers=()))  # no init line to show it
+    control = _arm(tmp_path / "i" / "N", extras=None, providers=(), probes=(), keys=(),
+                   servers=())  # fmt: skip
     assert _counts(control)  # Claude Code alone
 
 
@@ -252,3 +265,24 @@ def test_decisions_jev_did_not_answer_are_bounded(tmp_path: pathlib.Path) -> Non
     # the hooks' cap answers "budget" with an error: the product as installed, not Jev failing
     capped = _arm(tmp_path / "c" / "Sm", providers=("budget", "budget", *ten), errors=2)
     assert _counts(capped)
+
+
+def test_a_resumed_arm_installed_before_amendment_5_is_refused(tmp_path, monkeypatch) -> None:  # noqa: ANN001
+    """Its hooks name a key path no runner writes any more: the probe would pass on the arm's
+    path while every resumed call ran keyless (the review of fff04b6)."""
+    monkeypatch.setattr(run, "RUNS", tmp_path / "runs")
+    monkeypatch.setattr(run, "WORK", tmp_path / "work")
+    monkeypatch.setattr(run, "KEYS", tmp_path / "keys")
+    monkeypatch.setattr(run, "decider_probe", lambda keyfile: "JevDecider")
+    evidence = tmp_path / "runs" / "c" / "Sm"
+    evidence.mkdir(parents=True)
+    calls = [{"request": 1, "status": "NOT RUN (cap)", "cost_usd": 0.0}]
+    (evidence / "row.json").write_text(json.dumps({"calls": calls, "session": "s", "base": "b"}),
+                                       encoding="utf-8")  # fmt: skip
+    settings = tmp_path / "work" / "c-Sm" / ".claude" / "settings.json"
+    settings.parent.mkdir(parents=True)
+    settings.write_text('{"hooks": "... C:/old/typesafe.key hook"}', encoding="utf-8")
+    chain = {"chain": "c", "split": "dev", "tag": "t", "bugs": [{"instance_id": "b"}]}
+    with pytest.raises(RuntimeError, match="key"):
+        run.one_chain(chain, "Sm", "m", 1.0, tmp_path / "key", carry_on=True)
+    run.drop_arm_keys()
