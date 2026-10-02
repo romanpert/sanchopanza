@@ -1,0 +1,719 @@
+{
+ "by_file": {
+  "e2e-cli-new-sessions.jsonl": {
+   "sessions": 48,
+   "covered": 48,
+   "calls_total": 155,
+   "calls_median": 3.0,
+   "read_after_read": {
+    "calls": 8,
+    "share_of_calls": 0.0516,
+    "sessions_with_any": "3/48",
+    "worst_session": 3
+   },
+   "revisits": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/48",
+    "worst_session": 0
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/48",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/48",
+    "worst_session": 0
+   },
+   "any_waste_sessions": "3/48"
+  },
+  "e2e-cli-u-sessions.jsonl": {
+   "sessions": 72,
+   "covered": 71,
+   "calls_total": 259,
+   "calls_median": 4,
+   "read_after_read": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/71",
+    "worst_session": 0
+   },
+   "revisits": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/71",
+    "worst_session": 0
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/71",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/71",
+    "worst_session": 0
+   },
+   "any_waste_sessions": "0/71"
+  },
+  "e2e-cli-wide-sessions.jsonl": {
+   "sessions": 72,
+   "covered": 70,
+   "calls_total": 269,
+   "calls_median": 3.0,
+   "read_after_read": {
+    "calls": 5,
+    "share_of_calls": 0.0186,
+    "sessions_with_any": "5/70",
+    "worst_session": 1
+   },
+   "revisits": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/70",
+    "worst_session": 0
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/70",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/70",
+    "worst_session": 0
+   },
+   "any_waste_sessions": "5/70"
+  },
+  "e2e-cli-x-sessions.jsonl": {
+   "sessions": 72,
+   "covered": 71,
+   "calls_total": 313,
+   "calls_median": 3,
+   "read_after_read": {
+    "calls": 10,
+    "share_of_calls": 0.0319,
+    "sessions_with_any": "8/71",
+    "worst_session": 3
+   },
+   "revisits": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/71",
+    "worst_session": 0
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/71",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/71",
+    "worst_session": 0
+   },
+   "any_waste_sessions": "8/71"
+  },
+  "e2e-cli-y-sessions.jsonl": {
+   "sessions": 72,
+   "covered": 70,
+   "calls_total": 253,
+   "calls_median": 3.0,
+   "read_after_read": {
+    "calls": 3,
+    "share_of_calls": 0.0119,
+    "sessions_with_any": "3/70",
+    "worst_session": 1
+   },
+   "revisits": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/70",
+    "worst_session": 0
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/70",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/70",
+    "worst_session": 0
+   },
+   "any_waste_sessions": "3/70"
+  },
+  "e2e-cli-z-sessions.jsonl": {
+   "sessions": 72,
+   "covered": 70,
+   "calls_total": 247,
+   "calls_median": 3.0,
+   "read_after_read": {
+    "calls": 4,
+    "share_of_calls": 0.0162,
+    "sessions_with_any": "4/70",
+    "worst_session": 1
+   },
+   "revisits": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/70",
+    "worst_session": 0
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/70",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 1,
+    "share_of_calls": 0.004,
+    "sessions_with_any": "1/70",
+    "worst_session": 1
+   },
+   "any_waste_sessions": "4/70"
+  },
+  "e2e-mcp-fixed-sessions.jsonl": {
+   "sessions": 48,
+   "covered": 48,
+   "calls_total": 250,
+   "calls_median": 5.0,
+   "read_after_read": {
+    "calls": 41,
+    "share_of_calls": 0.164,
+    "sessions_with_any": "27/48",
+    "worst_session": 5
+   },
+   "revisits": {
+    "calls": 7,
+    "share_of_calls": 0.028,
+    "sessions_with_any": "7/48",
+    "worst_session": 1
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/48",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 86,
+    "share_of_calls": 0.344,
+    "sessions_with_any": "35/48",
+    "worst_session": 7
+   },
+   "any_waste_sessions": "40/48"
+  },
+  "e2e-mcp-new-sessions.jsonl": {
+   "sessions": 48,
+   "covered": 48,
+   "calls_total": 176,
+   "calls_median": 3.0,
+   "read_after_read": {
+    "calls": 15,
+    "share_of_calls": 0.0852,
+    "sessions_with_any": "11/48",
+    "worst_session": 2
+   },
+   "revisits": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/48",
+    "worst_session": 0
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/48",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 32,
+    "share_of_calls": 0.1818,
+    "sessions_with_any": "21/48",
+    "worst_session": 3
+   },
+   "any_waste_sessions": "21/48"
+  },
+  "e2e-mcp-r-sessions.jsonl": {
+   "sessions": 78,
+   "covered": 78,
+   "calls_total": 255,
+   "calls_median": 3.0,
+   "read_after_read": {
+    "calls": 4,
+    "share_of_calls": 0.0157,
+    "sessions_with_any": "3/78",
+    "worst_session": 2
+   },
+   "revisits": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/78",
+    "worst_session": 0
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/78",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 21,
+    "share_of_calls": 0.0824,
+    "sessions_with_any": "18/78",
+    "worst_session": 3
+   },
+   "any_waste_sessions": "18/78"
+  },
+  "e2e-mcp-sessions.jsonl": {
+   "sessions": 48,
+   "covered": 48,
+   "calls_total": 273,
+   "calls_median": 5.0,
+   "read_after_read": {
+    "calls": 52,
+    "share_of_calls": 0.1905,
+    "sessions_with_any": "32/48",
+    "worst_session": 4
+   },
+   "revisits": {
+    "calls": 10,
+    "share_of_calls": 0.0366,
+    "sessions_with_any": "8/48",
+    "worst_session": 2
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/48",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 102,
+    "share_of_calls": 0.3736,
+    "sessions_with_any": "38/48",
+    "worst_session": 13
+   },
+   "any_waste_sessions": "44/48"
+  },
+  "e2e-mcp-t-sessions.jsonl": {
+   "sessions": 66,
+   "covered": 66,
+   "calls_total": 221,
+   "calls_median": 3.0,
+   "read_after_read": {
+    "calls": 13,
+    "share_of_calls": 0.0588,
+    "sessions_with_any": "10/66",
+    "worst_session": 2
+   },
+   "revisits": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/66",
+    "worst_session": 0
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/66",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 23,
+    "share_of_calls": 0.1041,
+    "sessions_with_any": "20/66",
+    "worst_session": 2
+   },
+   "any_waste_sessions": "20/66"
+  },
+  "e2e-mcp-u-sessions.jsonl": {
+   "sessions": 72,
+   "covered": 72,
+   "calls_total": 300,
+   "calls_median": 4.5,
+   "read_after_read": {
+    "calls": 41,
+    "share_of_calls": 0.1367,
+    "sessions_with_any": "23/72",
+    "worst_session": 3
+   },
+   "revisits": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/72",
+    "worst_session": 0
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/72",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 48,
+    "share_of_calls": 0.16,
+    "sessions_with_any": "28/72",
+    "worst_session": 3
+   },
+   "any_waste_sessions": "28/72"
+  },
+  "e2e-mcp-v-sessions.jsonl": {
+   "sessions": 72,
+   "covered": 72,
+   "calls_total": 243,
+   "calls_median": 3.0,
+   "read_after_read": {
+    "calls": 14,
+    "share_of_calls": 0.0576,
+    "sessions_with_any": "7/72",
+    "worst_session": 4
+   },
+   "revisits": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/72",
+    "worst_session": 0
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/72",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 27,
+    "share_of_calls": 0.1111,
+    "sessions_with_any": "16/72",
+    "worst_session": 4
+   },
+   "any_waste_sessions": "16/72"
+  },
+  "e2e-mcp-wide-sessions.jsonl": {
+   "sessions": 72,
+   "covered": 72,
+   "calls_total": 311,
+   "calls_median": 4.0,
+   "read_after_read": {
+    "calls": 51,
+    "share_of_calls": 0.164,
+    "sessions_with_any": "25/72",
+    "worst_session": 6
+   },
+   "revisits": {
+    "calls": 1,
+    "share_of_calls": 0.0032,
+    "sessions_with_any": "1/72",
+    "worst_session": 1
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/72",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 63,
+    "share_of_calls": 0.2026,
+    "sessions_with_any": "32/72",
+    "worst_session": 6
+   },
+   "any_waste_sessions": "32/72"
+  },
+  "e2e-mcp-x-sessions.jsonl": {
+   "sessions": 72,
+   "covered": 72,
+   "calls_total": 327,
+   "calls_median": 4.0,
+   "read_after_read": {
+    "calls": 64,
+    "share_of_calls": 0.1957,
+    "sessions_with_any": "27/72",
+    "worst_session": 8
+   },
+   "revisits": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/72",
+    "worst_session": 0
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/72",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 76,
+    "share_of_calls": 0.2324,
+    "sessions_with_any": "32/72",
+    "worst_session": 8
+   },
+   "any_waste_sessions": "32/72"
+  },
+  "e2e-mcp-y-sessions.jsonl": {
+   "sessions": 72,
+   "covered": 72,
+   "calls_total": 313,
+   "calls_median": 5.0,
+   "read_after_read": {
+    "calls": 53,
+    "share_of_calls": 0.1693,
+    "sessions_with_any": "24/72",
+    "worst_session": 5
+   },
+   "revisits": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/72",
+    "worst_session": 0
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/72",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 64,
+    "share_of_calls": 0.2045,
+    "sessions_with_any": "29/72",
+    "worst_session": 5
+   },
+   "any_waste_sessions": "29/72"
+  },
+  "e2e-mcp-z-sessions.jsonl": {
+   "sessions": 72,
+   "covered": 72,
+   "calls_total": 306,
+   "calls_median": 5.0,
+   "read_after_read": {
+    "calls": 71,
+    "share_of_calls": 0.232,
+    "sessions_with_any": "37/72",
+    "worst_session": 4
+   },
+   "revisits": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/72",
+    "worst_session": 0
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/72",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 79,
+    "share_of_calls": 0.2582,
+    "sessions_with_any": "41/72",
+    "worst_session": 4
+   },
+   "any_waste_sessions": "41/72"
+  },
+  "nav-pilot-sessions.jsonl": {
+   "sessions": 4,
+   "covered": 4,
+   "calls_total": 65,
+   "calls_median": 16.5,
+   "read_after_read": {
+    "calls": 1,
+    "share_of_calls": 0.0154,
+    "sessions_with_any": "1/4",
+    "worst_session": 1
+   },
+   "revisits": {
+    "calls": 2,
+    "share_of_calls": 0.0308,
+    "sessions_with_any": "1/4",
+    "worst_session": 2
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/4",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/4",
+    "worst_session": 0
+   },
+   "any_waste_sessions": "2/4"
+  }
+ },
+ "all": {
+  "sessions": 1132,
+  "covered": 1124,
+  "calls_total": 4536,
+  "calls_median": 4.0,
+  "read_after_read": {
+   "calls": 450,
+   "share_of_calls": 0.0992,
+   "sessions_with_any": "250/1124",
+   "worst_session": 8
+  },
+  "revisits": {
+   "calls": 20,
+   "share_of_calls": 0.0044,
+   "sessions_with_any": "17/1124",
+   "worst_session": 2
+  },
+  "repeated_actions": {
+   "calls": 0,
+   "share_of_calls": 0.0,
+   "sessions_with_any": "0/1124",
+   "worst_session": 0
+  },
+  "tail_calls": {
+   "calls": 622,
+   "share_of_calls": 0.1371,
+   "sessions_with_any": "311/1124",
+   "worst_session": 13
+  },
+  "any_waste_sessions": "346/1124"
+ },
+ "by_arm": {
+  "HAIKU": {
+   "sessions": 2,
+   "covered": 2,
+   "calls_total": 32,
+   "calls_median": 16.0,
+   "read_after_read": {
+    "calls": 1,
+    "share_of_calls": 0.0312,
+    "sessions_with_any": "1/2",
+    "worst_session": 1
+   },
+   "revisits": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/2",
+    "worst_session": 0
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/2",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/2",
+    "worst_session": 0
+   },
+   "any_waste_sessions": "1/2"
+  },
+  "LEAN": {
+   "sessions": 564,
+   "covered": 560,
+   "calls_total": 2220,
+   "calls_median": 3.0,
+   "read_after_read": {
+    "calls": 202,
+    "share_of_calls": 0.091,
+    "sessions_with_any": "110/560",
+    "worst_session": 6
+   },
+   "revisits": {
+    "calls": 10,
+    "share_of_calls": 0.0045,
+    "sessions_with_any": "8/560",
+    "worst_session": 2
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/560",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 300,
+    "share_of_calls": 0.1351,
+    "sessions_with_any": "150/560",
+    "worst_session": 13
+   },
+   "any_waste_sessions": "164/560"
+  },
+  "PLAIN": {
+   "sessions": 564,
+   "covered": 560,
+   "calls_total": 2251,
+   "calls_median": 4.0,
+   "read_after_read": {
+    "calls": 247,
+    "share_of_calls": 0.1097,
+    "sessions_with_any": "139/560",
+    "worst_session": 8
+   },
+   "revisits": {
+    "calls": 8,
+    "share_of_calls": 0.0036,
+    "sessions_with_any": "8/560",
+    "worst_session": 1
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/560",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 322,
+    "share_of_calls": 0.143,
+    "sessions_with_any": "161/560",
+    "worst_session": 9
+   },
+   "any_waste_sessions": "180/560"
+  },
+  "SONNET": {
+   "sessions": 2,
+   "covered": 2,
+   "calls_total": 33,
+   "calls_median": 16.5,
+   "read_after_read": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/2",
+    "worst_session": 0
+   },
+   "revisits": {
+    "calls": 2,
+    "share_of_calls": 0.0606,
+    "sessions_with_any": "1/2",
+    "worst_session": 2
+   },
+   "repeated_actions": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/2",
+    "worst_session": 0
+   },
+   "tail_calls": {
+    "calls": 0,
+    "share_of_calls": 0.0,
+    "sessions_with_any": "0/2",
+    "worst_session": 0
+   },
+   "any_waste_sessions": "1/2"
+  }
+ }
+}

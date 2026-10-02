@@ -235,3 +235,53 @@ subagent about 0.08. That is 15x, it comes from the price list rather than from 
 ours, and the pilot says the cheap model does the task. If that is the finding, it belongs in
 `where-it-pays` as a limit on our own claims: **in browsing, choosing who takes the turn beats
 anything we do to what they read.**
+
+## 10. Loop waste in a browsing session: an upper bound, and two traps that nobody falls into
+
+The owner's choice after section 9 was to stop optimising the pick and look at the loop: what
+breaks a long navigation is not which element you click, it is repeating yourself, losing a
+sub-goal and not knowing you are done. `points/loop.py` has existed for weeks with `goal_met`
+and `repeats_check`, measured on a single-author bench, and **wired to nothing**.
+
+**First, free: is there any waste to supervise?** `waste.py` reads the transcript of every
+recorded browsing session (1,124 of them with a transcript still on disk, 4,536 tool calls) and
+counts what a cheap check could have caught:
+
+| | calls | share | sessions with any | worst |
+|---|---|---|---|---|
+| a read of a page nothing had changed | 450 | 9.9 % | 250/1124 | 8 |
+| reading past the first read after the last action | 622 | 13.7 % | 311/1124 | 13 |
+| navigating to a URL already asked for | 20 | 0.4 % | 17/1124 | 2 |
+| the same action with identical input, twice | 0 | 0 % | 0/1124 | 0 |
+| any of the four | | | **346/1124 (31 %)** | |
+
+**That is an upper bound and not waste**: no counter can tell a redundant read from a necessary
+second one, and Claude Code saves a large result to a file the agent then has to `Grep` and
+`Read`, which is three legitimate reads of one page. The first version of this script also
+counted the first read after the last action and reported 28.9 % of all calls as "tail"; that
+is reading, and the number was wrong rather than large.
+
+**Second: two traps built to make an agent flounder.** saucedemo ships accounts that misbehave
+the same way every run, so a failure is reproducible rather than lucky. Both walked by hand:
+
+- **B1, `problem_user`**: typing into *Last Name* writes into *First Name*. The field cannot be
+  filled from the keyboard at all, so the agent either reports the fault or loops on it.
+- **B2, `error_user`**: *Remove* on the inventory page silently does nothing (the cart keeps the
+  item); on the cart page it works. An agent that trusts the first one reports the totals for
+  two items (39.98 / 3.20 / 43.18) rather than one (9.99 / 0.80 / 10.79) - a wrong answer, not
+  a wasted turn.
+
+One run of each, both arms, no hooks: **all four succeeded.** Sonnet's own answer to B2 says it
+"had to remove it a second time directly from the cart", so it hit the trap, saw it and
+recovered. What the traps cost is turns, not answers:
+
+| Task | SONNET | HAIKU |
+|---|---|---|
+| B1 (impossible field) | ok, 17 turns, 0.2628 USD | ok, **26 turns**, 0.1676 USD |
+| B2 (silent no-op) | ok, 21 turns, 0.3250 USD | ok, 20 turns, 0.1266 USD |
+
+So a deterministic trap does not break a model of this class; it makes the cheap one spend nine
+extra turns getting out. **That is the only live signal left in this line**, and it is what the
+loop guard is now wired to attack (`harness/loop_hook.py`, a `PostToolUse` hook that advises and
+never denies). Whether it cuts those turns is the next measurement; the arms are HAIKU and
+HAIKU-LOOP on B1 and B2.

@@ -55,8 +55,18 @@ RESULTS = base.ROOT / "docs" / "results" / "2026-10-02-browse-nav"
 PREREG = RESULTS / "prereg-nav.md"
 SESSIONS = RESULTS / "nav-sessions.jsonl"
 PILOT_SESSIONS = RESULTS / "nav-pilot-sessions.jsonl"
-MODELS = {"SONNET": "claude-sonnet-5", "HAIKU": "claude-haiku-4-5"}
+TRAP_SESSIONS = RESULTS / "nav-traps-sessions.jsonl"
+LOOP_SESSIONS = RESULTS / "nav-loop-sessions.jsonl"
+MODELS = {
+    "SONNET": "claude-sonnet-5",
+    "HAIKU": "claude-haiku-4-5",
+    "HAIKU-LOOP": "claude-haiku-4-5",  # the same model, with the loop guard hooked in
+}
 ARMS = ("SONNET", "HAIKU")
+TRAP_ARMS = ("HAIKU", "HAIKU-LOOP")  # the trap tasks: does the loop guard save the floundering?
+JEV_SESSION_MAX_USD = 0.05
+JEV_CEILING_USD = 0.40  # for a whole loop phase, over the Jev budget this line was given
+KEY = ""  # set in main() from --env-file; the -LOOP arm refuses to run without it
 RUNS = 3
 SESSION_MAX_USD = 1.00  # a 20-turn Sonnet session costs about 0.34 by the recorded curve
 CEILING_USD = 14.00
@@ -118,13 +128,53 @@ TASKS: list[tuple[str, str, str, list[Any]]] = [
         ["38d45839cb1c83c1", "30.81"],
     ),
 ]
+# Tasks with a deterministic trap, for measuring loop supervision: a cheap check only pays where
+# a session goes wrong. saucedemo ships accounts built to misbehave, so the same fault happens
+# every run. Both walked by hand on 2026-10-02.
+#   B1: as `problem_user`, typing into Last Name writes into First Name instead. There is no way
+#       to fill it from the keyboard, so the agent either reports the fault or loops on it.
+#   B2: as `error_user`, Remove on the inventory page does nothing (the cart keeps the item);
+#       Remove on the cart page works. An agent that believes the first one reports the totals
+#       for two items (39.98 / 3.20 / 43.18) instead of one. That is a wrong answer, not a
+#       wasted turn, which is what makes it worth measuring.
+TRAP_TASKS: list[tuple[str, str, str, list[Any]]] = [
+    (
+        "B1",
+        "https://www.saucedemo.com/",
+        "Log in as problem_user with the password secret_sauce, put the Sauce Labs Backpack in the "
+        "cart and start the checkout. Report exactly what happens when you try to enter the last "
+        "name Lovelace in the checkout form, and which field the value ends up in.",
+        [["first name", "firstname", "first-name"]],
+    ),
+    (
+        "B2",
+        "https://www.saucedemo.com/",
+        "Log in as error_user with the password secret_sauce, put the Sauce Labs Backpack and the "
+        "Sauce Labs Bike Light in the cart, then remove the Backpack so that only the Bike Light "
+        "is left, go through the checkout as Ada Lovelace with postal code 28001 and report the "
+        "item total, the tax and the total on the overview page.",
+        ["9.99", "0.80", "10.79"],
+    ),
+]
+TRAP_WRONG_B2 = ["39.98", "3.20", "43.18"]  # what an agent reports if the removal silently failed
+
 PILOT_TASKS = [TASKS[0], TASKS[3]]
 
 
-def settings_for(work: pathlib.Path) -> pathlib.Path:
-    """No hook in either arm: this phase compares models, not our cut."""
+def settings_for(arm: str, work: pathlib.Path) -> pathlib.Path:
+    """No hook except in the `-LOOP` arm, which gets the loop guard and nothing else: this
+    phase compares models, and then one model with and without that one hook."""
+    settings: dict[str, Any] = {"permissions": {"allow": TOOLS.split()}}
+    if arm.endswith("-LOOP"):
+        command = f'"{base.PYTHON.as_posix()}" -m sanchopanza.harness.loop_hook'
+        settings["hooks"] = {
+            "PostToolUse": [
+                {"matcher": "mcp__playwright__.*|Read|Grep",
+                 "hooks": [{"type": "command", "command": command}]}
+            ]
+        }  # fmt: skip
     path = work / "settings.json"
-    path.write_text(json.dumps({"permissions": {"allow": TOOLS.split()}}), encoding="utf-8")
+    path.write_text(json.dumps(settings), encoding="utf-8")
     return path
 
 
@@ -132,11 +182,20 @@ def one_session(task: tuple, run: int, arm: str) -> dict[str, Any]:
     tid, url, question, required = task
     work = pathlib.Path(tempfile.mkdtemp(prefix=f"sp-nav-{tid.lower()}r{run}{arm.lower()}-"))
     env = base.clean_env(dict(os.environ))
-    env.pop("TYPESAFE_API_KEY", None)  # neither arm decides anything
+    journal = work / "journal.jsonl"
+    if arm.endswith("-LOOP"):
+        env["SANCHOPANZA_JOURNAL"] = str(journal)
+        env["SANCHOPANZA_LOOP_HOME"] = str(work / "loop")
+        env["SANCHOPANZA_SESSION_MAX_USD"] = f"{JEV_SESSION_MAX_USD:g}"
+        if not KEY:
+            raise SystemExit("the -LOOP arm needs TYPESAFE_API_KEY (--env-file): nothing spent")
+        env["TYPESAFE_API_KEY"] = KEY
+    else:
+        env.pop("TYPESAFE_API_KEY", None)  # an arm with no hook decides nothing
     argv = [
         shutil.which("claude") or "claude", "-p", "--model", MODELS[arm],
         "--append-system-prompt", APPEND,
-        "--settings", str(settings_for(work)), "--setting-sources", "",
+        "--settings", str(settings_for(arm, work)), "--setting-sources", "",
         "--mcp-config", str(mcp.mcp_config(work)), "--strict-mcp-config",
         "--allowedTools", TOOLS, "--disallowedTools", "WebFetch WebSearch Bash",
         "--output-format", "json", "--max-budget-usd", f"{SESSION_MAX_USD:g}",
@@ -159,7 +218,7 @@ def one_session(task: tuple, run: int, arm: str) -> dict[str, Any]:
         "cache_read": int(usage.get("cache_read_input_tokens") or 0),
         "cache_write": int(usage.get("cache_creation_input_tokens") or 0),
         "output_tokens": int(usage.get("output_tokens") or 0),
-        "jev_usd": 0.0, "jev_calls": 0,
+        **dict(zip(("jev_usd", "jev_calls"), base.journal_usd(journal), strict=True)),
         "tools": mcp.tool_calls(work), "version": claude_version(work),
         "workdir": str(work),
     }  # fmt: skip
@@ -185,7 +244,7 @@ def done_sessions(path: pathlib.Path) -> list[dict[str, Any]]:
 
 def analyse(rows: list[dict[str, Any]]) -> dict[str, Any]:
     out: dict[str, Any] = {"sessions": len(rows), "by_arm": {}}
-    for arm in ARMS:
+    for arm in MODELS:
         part = [r for r in rows if r["arm"] == arm]
         if not part:
             continue
@@ -202,7 +261,7 @@ def analyse(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
     def for_task(tid: str) -> dict[str, str]:
         out: dict[str, str] = {}
-        for arm in ARMS:
+        for arm in MODELS:
             part = [r for r in rows if r["task"] == tid and r["arm"] == arm]
             if part:
                 out[arm] = f"{sum(r['success'] for r in part)}/{len(part)}"
@@ -218,12 +277,15 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--tasks", action="store_true", help="print the task set and stop")
     ap.add_argument("--pilot", action="store_true", help="two tasks, one run, its own file")
+    ap.add_argument("--traps", action="store_true", help="the trap tasks, mining for failures")
+    ap.add_argument("--loop", action="store_true", help="arms HAIKU and HAIKU-LOOP")
     ap.add_argument("--live", action="store_true")
+    ap.add_argument("--env-file", default=None, help="a .env holding TYPESAFE_API_KEY")
     ap.add_argument("--record-hash", action="store_true")
     args = ap.parse_args()
 
     if args.tasks:
-        for tid, url, question, required in TASKS:
+        for tid, url, question, required in TASKS + TRAP_TASKS:
             print(f"{tid}  {url}\n    {question}\n    required: {required}\n")
         return 0
     if args.record_hash:
@@ -231,26 +293,42 @@ def main() -> int:
         print(f"registered {PREREG.name}: {base.digest(PREREG)}")
         return 0
 
-    tasks = PILOT_TASKS if args.pilot else TASKS
-    runs = [1] if args.pilot else list(range(1, RUNS + 1))
-    sessions = PILOT_SESSIONS if args.pilot else SESSIONS
-    ceiling = PILOT_CEILING_USD if args.pilot else CEILING_USD
+    global KEY
+    KEY = mcp.key_from(args.env_file)  # e2e_mcp's reader, not a second copy of it
+    tasks = TRAP_TASKS if args.traps else (PILOT_TASKS if args.pilot else TASKS)
+    arms = TRAP_ARMS if args.loop else ARMS
+    one_run = (args.pilot or args.traps) and not args.loop
+    runs = [1] if one_run else list(range(1, RUNS + 1))
+    sessions = (
+        LOOP_SESSIONS
+        if args.loop
+        else (TRAP_SESSIONS if args.traps else (PILOT_SESSIONS if args.pilot else SESSIONS))
+    )
+    ceiling = PILOT_CEILING_USD if (args.pilot or args.traps) else CEILING_USD
     rows = done_sessions(sessions)
     code = 0
     if args.live:
-        if not args.pilot:
+        if not (args.pilot or args.traps):
             registered = PREREG.with_suffix(".sha256")
             if not registered.exists() or registered.read_text().strip() != base.digest(PREREG):
                 raise SystemExit(f"{PREREG.name} is not registered as it stands: nothing spent")
         RESULTS.mkdir(parents=True, exist_ok=True)
-        limits = phase.Limits(session_max_usd=SESSION_MAX_USD, ceiling_usd=ceiling)
-        plan = phase.planned(tasks, runs, ARMS)
+        limits = phase.Limits(
+            session_max_usd=SESSION_MAX_USD, ceiling_usd=ceiling,
+            jev_session_max_usd=JEV_SESSION_MAX_USD,
+            jev_ceiling_usd=JEV_CEILING_USD if args.loop else None,
+        )  # fmt: skip
+        plan = phase.planned(tasks, runs, arms)
         code, rows = phase.run_phase(plan, rows, limits, one_session, sessions)
     if not rows:
         print("nothing recorded yet")
         return code
     report = analyse(phase.counted(rows))
-    name = "nav-pilot.json" if args.pilot else "nav.json"
+    name = (
+        "nav-loop.json"
+        if args.loop
+        else ("nav-traps.json" if args.traps else ("nav-pilot.json" if args.pilot else "nav.json"))
+    )
     (RESULTS / name).write_text(json.dumps(report, indent=1), encoding="utf-8")
     print(json.dumps(report, indent=1))
     return code

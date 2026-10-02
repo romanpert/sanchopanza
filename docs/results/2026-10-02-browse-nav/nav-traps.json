@@ -1,0 +1,37 @@
+{
+ "sessions": 4,
+ "by_arm": {
+  "SONNET": {
+   "model": "claude-sonnet-5",
+   "sessions": 2,
+   "finished": 2,
+   "success": "2/2",
+   "median_turns": 21,
+   "mean_list_usd": 0.2939,
+   "total_list_usd": 0.5878
+  },
+  "HAIKU": {
+   "model": "claude-haiku-4-5",
+   "sessions": 2,
+   "finished": 2,
+   "success": "2/2",
+   "median_turns": 26,
+   "mean_list_usd": 0.1471,
+   "total_list_usd": 0.2942
+  }
+ },
+ "by_task": {
+  "B1": {
+   "SONNET": "1/1",
+   "HAIKU": "1/1"
+  },
+  "B2": {
+   "SONNET": "1/1",
+   "HAIKU": "1/1"
+  }
+ },
+ "versions": [
+  "2.1.287"
+ ],
+ "list_usd_total": 0.8821
+}
