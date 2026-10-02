@@ -25,8 +25,15 @@ HERE = Path(__file__).resolve().parent
 SEED = 20261003
 SIZE = 40
 SPARES = 12
-# (repo, name, split): development only for now; the owner decides on a held-out one.
-PLAN = (("swesmith/pydantic__pydantic.acb0f10f", "pydantic__pydantic-long40-1", "dev"),)
+# (repo, name, split): development only for now; the owner decides on a held-out one. A later
+# chain never changes an earlier one (the generator runs them in this order) and takes none of
+# their bugs or spares. conan-long40-1 is the new Sonnet 5.5 chain of memory amendment 6, part
+# A (pydantic-long40-1 was spent in B2, and pydantic has 26 compatible bugs left): of the five
+# repositories with 40 bugs and 12 spares left, the one whose base image is already local.
+PLAN = (
+    ("swesmith/pydantic__pydantic.acb0f10f", "pydantic__pydantic-long40-1", "dev"),
+    ("swesmith/conan-io__conan.86f29e13", "conan-io__conan-long40-1", "dev"),
+)
 
 
 def fits(row: dict[str, Any], taken: list[dict[str, Any]]) -> bool:
@@ -49,17 +56,18 @@ def draw(
     return picked[:size], picked[size:]
 
 
-def select() -> list[dict[str, Any]]:
+def select(plan: tuple[tuple[str, str, str], ...] = PLAN) -> list[dict[str, Any]]:
     by_repo = chains.load()
     sealed = {b["instance_id"] for c in [*chains.full(), *related.full()]
               for b in [*c["bugs"], *c["spares"]]}  # fmt: skip
     rng = random.Random(SEED)
     out = []
-    for repo, name, split in PLAN:
+    for repo, name, split in plan:
         rows = [r for r in by_repo[repo] if r["instance_id"] not in sealed]
         bugs, spares = draw(rows, SIZE, SPARES, rng)
         if len(bugs) < SIZE:
             raise SystemExit(f"{repo}: only {len(bugs)} compatible bugs of {SIZE}")
+        sealed = sealed | {b["instance_id"] for b in [*bugs, *spares]}
         out.append({"chain": name, "repo": repo, "image": bugs[0]["image_name"], "split": split,
                     "kind": "long", "bugs": bugs, "spares": spares})  # fmt: skip
     return out
