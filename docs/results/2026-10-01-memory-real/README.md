@@ -332,3 +332,14 @@ repositories of the maintainer's sessions `git status -uall` takes 0.05-0.47 s.
 file with a record not yet given, the record as the reason (Claude Code feeds it back, in every
 permission mode); the same command is never denied twice. Built and tested; its value can only
 be measured live (`shell_first_pilot.py`, 16 short sessions, about 2 USD at list price): not run.
+
+**The pilot, run on 2026-10-02** (`shell_first_pilot.py`, 16 sessions, 2.10 USD at list price,
+the subscription paid; rows in `~/.cache/sanchopanza/memory-real/shell-first-pilot-2026-10-02/`):
+every session passed its tests and its trap check in both arms, so the pilot does not tell the
+arms apart; what it measures is the price. Denying costs 1.27x (1.174 against 0.924 USD; 1.27x on
+Sonnet and on Haiku alike), one more turn on Sonnet and three to five more on Haiku's rename,
+which ran the denied `sed` again. The deny fired in 6 of 8 sessions; in the other two (Haiku,
+hex) the model had read the file with `Read` first and the record had come then. Both traps
+can be found in the repository (a `grep retry_limit` lists `deploy/check.py`; the underscore
+handling is in the code being edited), which is why neither arm missed them: a trap that tests
+memory has to be a fact only the earlier conversation holds. `shell_first` stays off.
