@@ -1,0 +1,1278 @@
+{
+ "cases": 125,
+ "judged": 125,
+ "right": 108,
+ "wrong": 17,
+ "jev_usd_this_run": 0.00525,
+ "auc_extract_ok_vs_right": 0.602,
+ "by_cut": {
+  "0.3": {
+   "wrong_caught": "10/17",
+   "right_flagged": "40/108"
+  },
+  "0.5": {
+   "wrong_caught": "10/17",
+   "right_flagged": "70/108"
+  },
+  "0.7": {
+   "wrong_caught": "17/17",
+   "right_flagged": "105/108"
+  }
+ },
+ "rule_over_all_cases": {
+  "wrong_caught": "0/17",
+  "right_flagged": "2/108"
+ },
+ "detail": [
+  {
+   "source": "nav-strategy",
+   "task": "S1",
+   "arm": "SONNET",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.44,
+   "rule_flags": false,
+   "result": "{\n  \"total\": 1000,\n  \"count\": 42\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S1",
+   "arm": "HAIKU-HINT",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.29,
+   "rule_flags": false,
+   "result": "42"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S2",
+   "arm": "SONNET",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.57,
+   "rule_flags": false,
+   "result": "{\n  \"total\": 582,\n  \"count50\": 34,\n  \"pages\": 24\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S2",
+   "arm": "HAIKU-HINT",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.5,
+   "rule_flags": false,
+   "result": "{\n  \"totalSeasons\": 582,\n  \"count50Plus\": 34,\n  \"winsWith50Plus\": [\n    50,\n    51,\n    56,\n    52,\n    62,\n    51,\n    51,\n    52,\n    51,\n    52,\n    52,\n    52,\n    53,\n    58,\n    52,\n    53,\n    "
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "HAIKU",
+   "run": 1,
+   "right": false,
+   "extract_ok": 0.05,
+   "rule_flags": false,
+   "result": "{\n  \"quotes\": [\n    {\n      \"text\": \"\u201cThe truth.\\\" Dumbledore sighed. \\\"It is a beautiful and terrible thing, and should therefore be treated with great caution.\u201d\",\n      \"author\": \"J.K. Rowling\",\n   "
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "HAIKU-HINT",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.32,
+   "rule_flags": false,
+   "result": "14"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "SONNET",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.53,
+   "rule_flags": false,
+   "result": "{\n  \"totalQuotes\": 100,\n  \"totalAuthorsMentions\": 100,\n  \"uniqueAuthors\": [\n    \"Albert Einstein\",\n    \"J.K. Rowling\",\n    \"Jane Austen\",\n    \"Marilyn Monroe\",\n    \"Andr\u00e9 Gide\",\n    \"Thomas A. Edison\""
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.67,
+   "rule_flags": false,
+   "result": "{\n  \"totalQuotes\": 100,\n  \"uniqueAuthors\": [\n    \"Albert Einstein\",\n    \"Alexandre Dumas fils\",\n    \"Alfred Tennyson\",\n    \"Allen Saunders\",\n    \"Andr\u00e9 Gide\",\n    \"Ayn Rand\",\n    \"Bob Marley\",\n    \"C."
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU-HINT",
+   "run": 1,
+   "right": false,
+   "extract_ok": 0.55,
+   "rule_flags": false,
+   "result": "{\n  \"count\": 8,\n  \"authors\": [\n    \"Albert Einstein\",\n    \"Andr\u00e9 Gide\",\n    \"Eleanor Roosevelt\",\n    \"J.K. Rowling\",\n    \"Jane Austen\",\n    \"Marilyn Monroe\",\n    \"Steve Martin\",\n    \"Thomas A. Edison\""
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S1",
+   "arm": "HAIKU",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.49,
+   "rule_flags": false,
+   "result": "{\n  \"totalBooks\": 1000,\n  \"qualifyingBooks\": 42,\n  \"allQualifying\": [\n    {\n      \"rating\": 5,\n      \"price\": 17.46\n    },\n    {\n      \"rating\": 5,\n      \"price\": 17.66\n    },\n    {\n      \"rating\": 5,"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S1",
+   "arm": "HAIKU-HINT",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.5,
+   "rule_flags": false,
+   "result": "{\n  \"totalBooks\": 1000,\n  \"fiveStarUnder20\": 42,\n  \"details\": [\n    {\n      \"title\": \"Set Me Free\",\n      \"price\": 17.46,\n      \"rating\": 5\n    },\n    {\n      \"title\": \"The Four Agreements: A Practica"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S2",
+   "arm": "HAIKU-HINT",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.49,
+   "rule_flags": false,
+   "result": "{\n  \"totalSeasons\": 582,\n  \"seasonsWithAtLeast50Wins\": 34,\n  \"winsValues\": [\n    62,\n    58,\n    56,\n    54,\n    54,\n    54,\n    53,\n    53,\n    53,\n    53,\n    52,\n    52,\n    52,\n    52,\n    52,\n   "
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "HAIKU",
+   "run": 2,
+   "right": false,
+   "extract_ok": 0.04,
+   "rule_flags": false,
+   "result": "{\n  \"loveCountCurrentPage\": 1,\n  \"hasNextPage\": true,\n  \"currentUrl\": \"https://quotes.toscrape.com/js/page/10/\"\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S4",
+   "arm": "HAIKU",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.15,
+   "rule_flags": false,
+   "result": "[\n  1366.32,\n  1381.13,\n  1399\n]"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S4",
+   "arm": "HAIKU-HINT",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.5,
+   "rule_flags": false,
+   "result": "{\n  \"totalLaptops\": 117,\n  \"above1000\": 65,\n  \"allPrices\": [\n    1799,\n    1769,\n    1769,\n    1399,\n    1399,\n    1381.13,\n    1366.32,\n    1362.24,\n    1349.23,\n    1347.78,\n    1341.22,\n    1338.37"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.59,
+   "rule_flags": false,
+   "result": "{\n  \"totalQuotes\": 101,\n  \"uniqueAuthorCount\": 50,\n  \"uniqueAuthors\": [\n    \"Albert Einstein\",\n    \"Alexandre Dumas fils\",\n    \"Alfred Tennyson\",\n    \"Allen Saunders\",\n    \"Andr\u00e9 Gide\",\n    \"Ayn Rand\""
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU-HINT",
+   "run": 2,
+   "right": false,
+   "extract_ok": 0.63,
+   "rule_flags": false,
+   "result": "{\n  \"totalAuthors\": 15,\n  \"authors\": [\n    \"Albert Einstein\",\n    \"Allen Saunders\",\n    \"Andr\u00e9 Gide\",\n    \"Bob Marley\",\n    \"Douglas Adams\",\n    \"Dr. Seuss\",\n    \"Eleanor Roosevelt\",\n    \"Elie Wiesel\""
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.51,
+   "rule_flags": false,
+   "result": "[\n  \"Albert Einstein\",\n  \"Alexandre Dumas fils\",\n  \"Alfred Tennyson\",\n  \"Allen Saunders\",\n  \"Andr\u00e9 Gide\",\n  \"Ayn Rand\",\n  \"Bob Marley\",\n  \"C.S. Lewis\",\n  \"Charles Bukowski\",\n  \"Charles M. Schulz\",\n  \""
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU-HINT",
+   "run": 3,
+   "right": false,
+   "extract_ok": 0.66,
+   "rule_flags": false,
+   "result": "{\n  \"uniqueAuthors\": [\n    \"Albert Einstein\",\n    \"Andr\u00e9 Gide\",\n    \"Eleanor Roosevelt\",\n    \"J.K. Rowling\",\n    \"Jane Austen\",\n    \"Marilyn Monroe\",\n    \"Steve Martin\",\n    \"Thomas A. Edison\"\n  ],\n  "
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S1",
+   "arm": "HAIKU-HINT2",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.27,
+   "rule_flags": false,
+   "result": "42"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S1",
+   "arm": "HAIKU-HINT2",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.3,
+   "rule_flags": false,
+   "result": "42"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S1",
+   "arm": "HAIKU-HINT2",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.54,
+   "rule_flags": false,
+   "result": "{\n  \"totalBooks\": 1000,\n  \"totalPages\": 50,\n  \"fiveStarUnder20Count\": 42,\n  \"fiveStarUnder20Books\": [\n    {\n      \"title\": \"Set Me Free\",\n      \"price\": 17.46,\n      \"rating\": 5\n    },\n    {\n      \"ti"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S2",
+   "arm": "HAIKU-HINT2",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.29,
+   "rule_flags": false,
+   "result": "34"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S2",
+   "arm": "HAIKU-HINT2",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.27,
+   "rule_flags": false,
+   "result": "{\n  \"totalSeasons\": 582,\n  \"with50Plus\": 34,\n  \"sample\": [\n    44,\n    31,\n    46,\n    49,\n    34,\n    37,\n    31,\n    46,\n    27,\n    39\n  ]\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "HAIKU-HINT2",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.38,
+   "rule_flags": false,
+   "result": "14"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU-HINT2",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.62,
+   "rule_flags": false,
+   "result": "{\n  \"uniqueAuthors\": [\n    \"Albert Einstein\",\n    \"Alexandre Dumas fils\",\n    \"Alfred Tennyson\",\n    \"Allen Saunders\",\n    \"Andr\u00e9 Gide\",\n    \"Ayn Rand\",\n    \"Bob Marley\",\n    \"C.S. Lewis\",\n    \"Charle"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU-HINT2",
+   "run": 2,
+   "right": false,
+   "extract_ok": 0.64,
+   "rule_flags": false,
+   "result": "{\n  \"uniqueAuthors\": [\n    \"Albert Einstein\",\n    \"Alexandre Dumas fils\",\n    \"Alfred Tennyson\",\n    \"Allen Saunders\",\n    \"Andr\u00e9 Gide\",\n    \"Ayn Rand\",\n    \"Bob Marley\",\n    \"C.S. Lewis\",\n    \"Charle"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU-HINT2",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.65,
+   "rule_flags": false,
+   "result": "{\n  \"uniqueAuthors\": [\n    \"Albert Einstein\",\n    \"Alexandre Dumas fils\",\n    \"Alfred Tennyson\",\n    \"Allen Saunders\",\n    \"Andr\u00e9 Gide\",\n    \"Ayn Rand\",\n    \"Bob Marley\",\n    \"C.S. Lewis\",\n    \"Charle"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "HAIKU-HINT3",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.29,
+   "rule_flags": false,
+   "result": "{\n  \"totalLoveQuotes\": 14,\n  \"pagesProcessed\": 10\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "HAIKU-HINT3",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.11,
+   "rule_flags": false,
+   "result": "{\n  \"totalLoveQuotes\": 14,\n  \"pagesChecked\": 10\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "HAIKU-HINT3",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.34,
+   "rule_flags": false,
+   "result": "{\n  \"totalPages\": 10,\n  \"totalQuotes\": 100,\n  \"loveTagCount\": 14,\n  \"pagesRead\": 10\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S4",
+   "arm": "HAIKU-HINT3",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.25,
+   "rule_flags": false,
+   "result": "{\n  \"totalLaptopsOver1000\": 65,\n  \"totalPagesChecked\": 20\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S4",
+   "arm": "HAIKU-HINT3",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.5,
+   "rule_flags": false,
+   "result": "{\n  \"totalLaptops\": 117,\n  \"laptopsOver1000\": 65,\n  \"sampleExpensive\": [\n    {\n      \"title\": \"ThinkPad T540p\",\n      \"price\": 1178.99,\n      \"priceText\": \"$1178.99\"\n    },\n    {\n      \"title\": \"Think"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S4",
+   "arm": "HAIKU-HINT3",
+   "run": 3,
+   "right": false,
+   "extract_ok": 0.56,
+   "rule_flags": false,
+   "result": "{\n  \"count\": 11,\n  \"prices\": [\n    1178.99,\n    1311.99,\n    1033.99,\n    1281.99,\n    1244.99,\n    1223.99,\n    1149,\n    1399,\n    1769,\n    1769,\n    1799\n  ]\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU-HINT3",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.62,
+   "rule_flags": false,
+   "result": "{\n  \"uniqueAuthors\": [\n    \"Albert Einstein\",\n    \"Alexandre Dumas fils\",\n    \"Alfred Tennyson\",\n    \"Allen Saunders\",\n    \"Andr\u00e9 Gide\",\n    \"Ayn Rand\",\n    \"Bob Marley\",\n    \"C.S. Lewis\",\n    \"Charle"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU-HINT3",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.66,
+   "rule_flags": false,
+   "result": "{\n  \"uniqueAuthors\": [\n    \"Albert Einstein\",\n    \"Alexandre Dumas fils\",\n    \"Alfred Tennyson\",\n    \"Allen Saunders\",\n    \"Andr\u00e9 Gide\",\n    \"Ayn Rand\",\n    \"Bob Marley\",\n    \"C.S. Lewis\",\n    \"Charle"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU-HINT3",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.6,
+   "rule_flags": false,
+   "result": "{\n  \"authorList\": [\n    \"Albert Einstein\",\n    \"Alexandre Dumas fils\",\n    \"Alfred Tennyson\",\n    \"Allen Saunders\",\n    \"Andr\u00e9 Gide\",\n    \"Ayn Rand\",\n    \"Bob Marley\",\n    \"C.S. Lewis\",\n    \"Charles B"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S1",
+   "arm": "HAIKU-HINT4",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.31,
+   "rule_flags": false,
+   "result": "{\n  \"totalBooks\": 1000,\n  \"totalPages\": 50,\n  \"fiveStarUnder20\": 42,\n  \"sampleFiltered\": [\n    {\n      \"title\": \"Set Me Free\",\n      \"rating\": 5,\n      \"price\": 17.46\n    },\n    {\n      \"title\": \"The "
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S1",
+   "arm": "HAIKU-HINT4",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.24,
+   "rule_flags": false,
+   "result": "{\n  \"totalBooks\": 1000,\n  \"totalPages\": 50,\n  \"fiveStarBooks\": 42,\n  \"books\": [\n    {\n      \"rating\": 5,\n      \"price\": 17.46\n    },\n    {\n      \"rating\": 5,\n      \"price\": 17.66\n    },\n    {\n      \"r"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S1",
+   "arm": "HAIKU-HINT4",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.26,
+   "rule_flags": false,
+   "result": "{\n  \"count\": 42,\n  \"books\": [\n    {\n      \"title\": \"Set Me Free\",\n      \"rating\": 5,\n      \"price\": 17.46\n    },\n    {\n      \"title\": \"The Four Agreements: A Practical Guide to Personal Freedom\",\n    "
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S2",
+   "arm": "HAIKU-HINT4",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.38,
+   "rule_flags": false,
+   "result": "{\n  \"totalTeams\": 607,\n  \"teamsWithFiftyPlusWins\": 34,\n  \"fiftyPlusWinsList\": [\n    {\n      \"team\": \"Detroit Red Wings\",\n      \"year\": \"1995\",\n      \"wins\": 62\n    },\n    {\n      \"team\": \"Detroit Red "
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S2",
+   "arm": "HAIKU-HINT4",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.39,
+   "rule_flags": false,
+   "result": "{\n  \"totalSeasons\": 582,\n  \"wins50OrMore\": 34\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S2",
+   "arm": "HAIKU-HINT4",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.56,
+   "rule_flags": false,
+   "result": "{\n  \"totalRows\": 582,\n  \"wins50Plus\": 34,\n  \"maxPage\": 24\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "HAIKU-HINT4",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.18,
+   "rule_flags": false,
+   "result": "{\n  \"totalLoveQuotes\": 14,\n  \"allQuotes\": [\n    {\n      \"author\": {\n        \"goodreads_link\": \"/author/show/7617.Andr_Gide\",\n        \"name\": \"Andr\u00e9 Gide\",\n        \"slug\": \"Andre-Gide\"\n      },\n      \""
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "HAIKU-HINT4",
+   "run": 3,
+   "right": false,
+   "extract_ok": 0.15,
+   "rule_flags": false,
+   "result": "{\n  \"loveQuotesCount\": 1,\n  \"hasNextPage\": false\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S4",
+   "arm": "HAIKU-HINT4",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.62,
+   "rule_flags": false,
+   "result": "{\n  \"totalLaptops\": 117,\n  \"laptopsOver1000\": 65,\n  \"allPrices\": [\n    295.99,\n    299,\n    299,\n    306.99,\n    321.94,\n    356.49,\n    364.46,\n    372.7,\n    379.94,\n    379.95,\n    391.48,\n    393."
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU-HINT4",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.65,
+   "rule_flags": false,
+   "result": "{\n  \"uniqueAuthors\": [\n    \"Albert Einstein\",\n    \"Alexandre Dumas fils\",\n    \"Alfred Tennyson\",\n    \"Allen Saunders\",\n    \"Andr\u00e9 Gide\",\n    \"Ayn Rand\",\n    \"Bob Marley\",\n    \"C.S. Lewis\",\n    \"Charle"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU-HINT4",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.63,
+   "rule_flags": false,
+   "result": "{\n  \"uniqueAuthors\": [\n    \"Albert Einstein\",\n    \"J.K. Rowling\",\n    \"Jane Austen\",\n    \"Marilyn Monroe\",\n    \"Andr\u00e9 Gide\",\n    \"Thomas A. Edison\",\n    \"Eleanor Roosevelt\",\n    \"Steve Martin\",\n    \"B"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU-HINT4",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.37,
+   "rule_flags": false,
+   "result": "{\n  \"totalQuotes\": 100,\n  \"uniqueAuthors\": 50,\n  \"authors\": [\n    \"Albert Einstein\",\n    \"Alexandre Dumas fils\",\n    \"Alfred Tennyson\",\n    \"Allen Saunders\",\n    \"Andr\u00e9 Gide\",\n    \"Ayn Rand\",\n    \"Bob"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S1",
+   "arm": "HAIKU-HINT5",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.6,
+   "rule_flags": false,
+   "result": "{\n  \"count\": 42,\n  \"pagesRead\": 50,\n  \"moreRemained\": false\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S1",
+   "arm": "HAIKU-HINT5",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.49,
+   "rule_flags": false,
+   "result": "{\n  \"totalBooks\": 1000,\n  \"pagesScanned\": 50,\n  \"count5StarUnder20\": 42\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S1",
+   "arm": "HAIKU-HINT5",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.7,
+   "rule_flags": false,
+   "result": "{\n  \"totalBooks\": 1000,\n  \"booksByRating\": {\n    \"1\": 226,\n    \"2\": 196,\n    \"3\": 203,\n    \"4\": 179,\n    \"5\": 196\n  },\n  \"fiveStarCount\": 196,\n  \"fiveStarUnder20Count\": 42,\n  \"examples\": [\n    \"Set Me"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S2",
+   "arm": "HAIKU-HINT5",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.32,
+   "rule_flags": false,
+   "result": "{\n  \"totalWins50Plus\": 34,\n  \"pagesChecked\": [\n    1,\n    2,\n    3,\n    4,\n    5,\n    6,\n    7,\n    8,\n    9,\n    10,\n    11,\n    12,\n    13,\n    14,\n    15,\n    16,\n    17,\n    18,\n    19,\n    20,\n  "
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S2",
+   "arm": "HAIKU-HINT5",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.32,
+   "rule_flags": false,
+   "result": "{\n  \"totalWins50Plus\": 34,\n  \"totalItems\": 582\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S2",
+   "arm": "HAIKU-HINT5",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.47,
+   "rule_flags": false,
+   "result": "<persisted-output>\nOutput too large (59.9KB). Full output saved to: C:\\Users\\roman\\.claude\\projects\\C--Users-roman-AppData-Local-Temp-sp-nav-s2r3haiku-hint5-l9flc8f8\\7f89e577-e909-446a-93d3-58acec86cb"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "HAIKU-HINT5",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.3,
+   "rule_flags": false,
+   "result": "{\n  \"loveQuoteCount\": 14,\n  \"pagesProcessed\": 10,\n  \"method\": \"API fetch\"\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "HAIKU-HINT5",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.13,
+   "rule_flags": false,
+   "result": "{\n  \"totalQuotesWithLoveTag\": 14,\n  \"pagesRead\": 10,\n  \"totalQuotesProcessed\": 100,\n  \"reachedMaxPages\": false,\n  \"allQuotesWithLove\": [\n    {\n      \"text\": \"\u201cIt is better to be hated for what you are"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "HAIKU-HINT5",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.55,
+   "rule_flags": true,
+   "result": "{\n  \"totalLoveQuotes\": 14,\n  \"pagesData\": [\n    {\n      \"pageNum\": 1,\n      \"count\": 1,\n      \"totalOnPage\": 10\n    },\n    {\n      \"pageNum\": 2,\n      \"count\": 4,\n      \"totalOnPage\": 10\n    },\n    {\n"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S4",
+   "arm": "HAIKU-HINT5",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.14,
+   "rule_flags": false,
+   "result": "{\n  \"totalCount\": 65,\n  \"allPages\": 20\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S4",
+   "arm": "HAIKU-HINT5",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.28,
+   "rule_flags": false,
+   "result": "{\n  \"totalLaptops\": 117,\n  \"laptopsOver1000\": 65,\n  \"pagesFetched\": 20,\n  \"allPrices\": [\n    416.99,\n    306.99,\n    1178.99,\n    739.99,\n    1311.99,\n    581.99,\n    1033.99,\n    609.99,\n    745.99,\n"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S4",
+   "arm": "HAIKU-HINT5",
+   "run": 3,
+   "right": false,
+   "extract_ok": 0.69,
+   "rule_flags": false,
+   "result": "{\n  \"totalLaptops\": 81,\n  \"laptopsOver1000\": 44,\n  \"minPrice\": 295.99,\n  \"maxPrice\": 1381.13,\n  \"pricesOver1000\": [\n    1033.99,\n    1096.02,\n    1098.42,\n    1101.83,\n    1102.66,\n    1110.14,\n    11"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU-HINT5",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.56,
+   "rule_flags": false,
+   "result": "{\n  \"totalQuotes\": 100,\n  \"uniqueAuthors\": [\n    \"Albert Einstein\",\n    \"Alexandre Dumas fils\",\n    \"Alfred Tennyson\",\n    \"Allen Saunders\",\n    \"Andr\u00e9 Gide\",\n    \"Ayn Rand\",\n    \"Bob Marley\",\n    \"C."
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU-HINT5",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.57,
+   "rule_flags": false,
+   "result": "{\n  \"unique_authors\": [\n    \"Albert Einstein\",\n    \"Alexandre Dumas fils\",\n    \"Alfred Tennyson\",\n    \"Allen Saunders\",\n    \"Andr\u00e9 Gide\",\n    \"Ayn Rand\",\n    \"Bob Marley\",\n    \"C.S. Lewis\",\n    \"Charl"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "HAIKU-HINT5",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.34,
+   "rule_flags": false,
+   "result": "{\n  \"count\": 50,\n  \"authors\": [\n    \"Albert Einstein\",\n    \"Alexandre Dumas fils\",\n    \"Alfred Tennyson\",\n    \"Allen Saunders\",\n    \"Andr\u00e9 Gide\",\n    \"Ayn Rand\",\n    \"Bob Marley\",\n    \"C.S. Lewis\",\n  "
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "SONNET-HINT5",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.27,
+   "rule_flags": false,
+   "result": "{\n  \"pagesRead\": 10,\n  \"totalQuotes\": 100,\n  \"totalLove\": 14,\n  \"stoppedAtCap\": false\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "SONNET",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.29,
+   "rule_flags": false,
+   "result": "{\n  \"total\": 14,\n  \"pageCounts\": [\n    [\n      1,\n      10,\n      1\n    ],\n    [\n      2,\n      10,\n      4\n    ],\n    [\n      3,\n      10,\n      1\n    ],\n    [\n      4,\n      10,\n      0\n    ],\n    ["
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "SONNET-HINT5",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.33,
+   "rule_flags": false,
+   "result": "{\n  \"totalLove\": 14,\n  \"totalQuotes\": 100,\n  \"pagesRead\": 10,\n  \"hasNext\": false,\n  \"cap\": 50\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S3",
+   "arm": "SONNET-HINT5",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.2,
+   "rule_flags": false,
+   "result": "{\n  \"pagesRead\": 10,\n  \"totalQuotes\": 100,\n  \"loveCount\": 14,\n  \"stoppedAtPage\": 10,\n  \"hitCap\": false\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S4",
+   "arm": "SONNET-HINT5",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.23,
+   "rule_flags": false,
+   "result": "{\n  \"pagesRead\": 20,\n  \"totalItems\": 117,\n  \"over1000Count\": 65,\n  \"over1000\": [\n    {\n      \"title\": \"ThinkPad T540p\",\n      \"price\": 1178.99\n    },\n    {\n      \"title\": \"ThinkPad X240\",\n      \"price"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S4",
+   "arm": "SONNET",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.46,
+   "rule_flags": false,
+   "result": "{\n  \"totalLaptops\": 117,\n  \"over1000Count\": 65,\n  \"over1000Prices\": [\n    1178.99,\n    1311.99,\n    1033.99,\n    1281.99,\n    1244.99,\n    1223.99,\n    1149,\n    1399,\n    1769,\n    1769,\n    1799,\n  "
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S4",
+   "arm": "SONNET-HINT5",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.26,
+   "rule_flags": false,
+   "result": "{\n  \"pagesRead\": 20,\n  \"totalItems\": 117,\n  \"over1000Count\": 65,\n  \"over1000\": [\n    {\n      \"title\": \"ThinkPad T540p\",\n      \"price\": 1178.99\n    },\n    {\n      \"title\": \"ThinkPad X240\",\n      \"price"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S4",
+   "arm": "SONNET",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.1,
+   "rule_flags": false,
+   "result": "[\n  {\n    \"page\": 1,\n    \"count\": 6,\n    \"prices\": [\n      \"$416.99\",\n      \"$306.99\",\n      \"$1178.99\",\n      \"$739.99\",\n      \"$1311.99\",\n      \"$581.99\"\n    ],\n    \"titles\": [\n      \"Packard 255 G2"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S4",
+   "arm": "SONNET-HINT5",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.06,
+   "rule_flags": false,
+   "result": "[\n  \"https://webscraper.io/test-sites/e-commerce/static/computers/laptops?page=2\",\n  \"https://webscraper.io/test-sites/e-commerce/static/computers/laptops?page=3\",\n  \"https://webscraper.io/test-sites/"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S1",
+   "arm": "SONNET-HINT5",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.6,
+   "rule_flags": false,
+   "result": "{\n  \"pagesRead\": 50,\n  \"totalBooks\": 1000,\n  \"fiveStarUnder20\": 42,\n  \"morePagesRemaining\": false\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S2",
+   "arm": "SONNET-HINT5",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.47,
+   "rule_flags": false,
+   "result": "{\n  \"pagesRead\": 24,\n  \"itemsRead\": 582,\n  \"count50\": 34\n}"
+  },
+  {
+   "source": "nav-strategy",
+   "task": "S5",
+   "arm": "SONNET-HINT5",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.45,
+   "rule_flags": false,
+   "result": "{\n  \"authors\": [\n    \"Albert Einstein\",\n    \"Alexandre Dumas fils\",\n    \"Alfred Tennyson\",\n    \"Allen Saunders\",\n    \"Andr\u00e9 Gide\",\n    \"Ayn Rand\",\n    \"Bob Marley\",\n    \"C.S. Lewis\",\n    \"Charles Buko"
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "A1",
+   "arm": "HAIKU-HINT",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.77,
+   "rule_flags": false,
+   "result": "{\n  \"subtotal\": \"Item total: $55.97\",\n  \"tax\": \"Tax: $4.48\",\n  \"total\": \"Total: $60.45\"\n}"
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "A1",
+   "arm": "HAIKU-HINT",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.75,
+   "rule_flags": false,
+   "result": "{\n  \"itemTotal\": \"Item total: $55.97\",\n  \"tax\": \"Tax: $4.48\",\n  \"total\": \"Total: $60.45\"\n}"
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "A1",
+   "arm": "HAIKU-HINT",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.68,
+   "rule_flags": false,
+   "result": "{\n  \"total-info-label\": \"Price Total\",\n  \"subtotal-label\": \"Item total: $55.97\",\n  \"tax-label\": \"Tax: $4.48\",\n  \"total-label\": \"Total: $60.45\"\n}"
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "B2",
+   "arm": "HAIKU-HINT",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.05,
+   "rule_flags": false,
+   "result": "[\n  {\n    \"tag\": \"BUTTON\",\n    \"type\": \"button\",\n    \"text\": \"Open Menu\",\n    \"value\": \"\",\n    \"dataTest\": null,\n    \"id\": \"react-burger-menu-btn\"\n  },\n  {\n    \"tag\": \"A\",\n    \"type\": \"button\",\n    \"t"
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "H1",
+   "arm": "HAIKU-HINT",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.51,
+   "rule_flags": false,
+   "result": "{\n  \"einsteinCount\": 3,\n  \"quotes\": [\n    {\n      \"text\": \"\u201cThe world as we have created it is a process of our thinking. It cannot be changed without changing our thinking.\u201d\",\n      \"author\": \"Albert"
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "H1",
+   "arm": "HAIKU-HINT2",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.3,
+   "rule_flags": false,
+   "result": "{\n  \"totalEinsteinQuotes\": 10,\n  \"pagesChecked\": 10\n}"
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "H1",
+   "arm": "HAIKU-HINT2",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.6,
+   "rule_flags": true,
+   "result": "{\n  \"totalEinsteinQuotes\": 10,\n  \"pageCount\": 10,\n  \"details\": [\n    {\n      \"page\": 1,\n      \"einsteinCount\": 3,\n      \"totalQuotes\": 10\n    },\n    {\n      \"page\": 2,\n      \"einsteinCount\": 1,\n      "
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "H1",
+   "arm": "HAIKU-HINT3",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.26,
+   "rule_flags": false,
+   "result": "{\n  \"totalEinsteinQuotes\": 10,\n  \"pagesScraped\": 10\n}"
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "H1",
+   "arm": "HAIKU-HINT3",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.32,
+   "rule_flags": false,
+   "result": "{\n  \"totalQuotes\": 10,\n  \"quotes\": [\n    {\n      \"text\": \"\u201cThe world as we have created it is a process of our thinking. It cannot be changed without changing our thinking.\u201d\",\n      \"author\": \"Albert "
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "H1",
+   "arm": "HAIKU-HINT3",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.17,
+   "rule_flags": false,
+   "result": "10"
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "H1",
+   "arm": "HAIKU-HINT4",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.11,
+   "rule_flags": false,
+   "result": "{\n  \"count\": 10,\n  \"quotes\": [\n    {\n      \"text\": \"\u201cThe world as we have created it is a process of our thinking. It cannot be changed without changing our thinking.\u201d\",\n      \"author\": \"Albert Einste"
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "H1",
+   "arm": "HAIKU-HINT4",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.22,
+   "rule_flags": false,
+   "result": "{\n  \"totalEinsteinQuotes\": 10,\n  \"pagesSearched\": 10\n}"
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "H1",
+   "arm": "HAIKU-HINT4",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.13,
+   "rule_flags": false,
+   "result": "{\n  \"einsteenQuoteCount\": 10,\n  \"pagesChecked\": 10\n}"
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "H1",
+   "arm": "HAIKU-HINT5",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.2,
+   "rule_flags": false,
+   "result": "{\n  \"einsteinCount\": 10,\n  \"pageCount\": 10,\n  \"itemCount\": 100,\n  \"pagesChecked\": 10\n}"
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "H1",
+   "arm": "HAIKU-HINT5",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.24,
+   "rule_flags": false,
+   "result": "{\n  \"totalEinsteinQuotes\": 10,\n  \"pagesChecked\": 10,\n  \"message\": \"Found 10 Albert Einstein quotes across 10 pages\"\n}"
+  },
+  {
+   "source": "nav-strategy-harm",
+   "task": "H1",
+   "arm": "HAIKU-HINT5",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.2,
+   "rule_flags": false,
+   "result": "{\n  \"einsteinQuotes\": 10,\n  \"totalPages\": 10,\n  \"totalQuotes\": 100\n}"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C1",
+   "arm": "HAIKU-HINT2",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.59,
+   "rule_flags": false,
+   "result": "{\n  \"totalBooks\": 110,\n  \"booksUnder20\": 23,\n  \"prices\": [\n    11.68,\n    11.89,\n    12.23,\n    12.51,\n    12.55,\n    13.2,\n    13.51,\n    14.16,\n    14.4,\n    15.06,\n    15.28,\n    15.77,\n    16.77,\n"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C2",
+   "arm": "HAIKU",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.26,
+   "rule_flags": false,
+   "result": "{\n  \"totalCount\": 40,\n  \"pageStats\": [\n    {\n      \"page\": 1,\n      \"articlesFound\": 20,\n      \"matchingBooks\": 3\n    },\n    {\n      \"page\": 3,\n      \"articlesFound\": 20,\n      \"matchingBooks\": 2\n    "
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C2",
+   "arm": "HAIKU-HINT2",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.47,
+   "rule_flags": false,
+   "result": "{\n  \"count\": 40,\n  \"pagesScraped\": 50\n}"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C2",
+   "arm": "HAIKU-HINT2",
+   "run": 2,
+   "right": false,
+   "extract_ok": 0.23,
+   "rule_flags": false,
+   "result": "{\n  \"totalBooks\": 40,\n  \"pagesProcessed\": 3,\n  \"matchingCount\": 3,\n  \"matchingBooks\": [\n    {\n      \"title\": \"Tipping the Velvet\",\n      \"price\": 53.74,\n      \"rating\": \"One\"\n    },\n    {\n      \"title"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C2",
+   "arm": "HAIKU",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.19,
+   "rule_flags": false,
+   "result": "0"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C3",
+   "arm": "HAIKU-HINT2",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.29,
+   "rule_flags": false,
+   "result": "{\n  \"count\": 31,\n  \"largeCountries\": [\n    {\n      \"name\": \"Russia\",\n      \"area\": 17100000\n    },\n    {\n      \"name\": \"Antarctica\",\n      \"area\": 14000000\n    },\n    {\n      \"name\": \"Canada\",\n      \""
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C3",
+   "arm": "HAIKU-HINT2",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.43,
+   "rule_flags": false,
+   "result": "{\n  \"totalCountries\": 251,\n  \"countriesOver1M\": 31,\n  \"sample\": [\n    {\n      \"name\": \"Angola\",\n      \"area\": 1246700\n    },\n    {\n      \"name\": \"Antarctica\",\n      \"area\": 14000000\n    },\n    {\n     "
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C3",
+   "arm": "HAIKU-HINT2",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.34,
+   "rule_flags": false,
+   "result": "{\n  \"count\": 31,\n  \"total\": 250,\n  \"largeCountries\": [\n    {\n      \"name\": \"Angola\",\n      \"areaStr\": \"1246700.0\",\n      \"area\": 1246700\n    },\n    {\n      \"name\": \"Antarctica\",\n      \"areaStr\": \"1.4E"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C4",
+   "arm": "HAIKU",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.59,
+   "rule_flags": false,
+   "result": "[\n  {\n    \"title\": \"The King's Speech\",\n    \"awards\": 4\n  },\n  {\n    \"title\": \"Inception\",\n    \"awards\": 4\n  },\n  {\n    \"title\": \"The Social Network\",\n    \"awards\": 3\n  },\n  {\n    \"title\": \"The Fighte"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C4",
+   "arm": "HAIKU-HINT2",
+   "run": 1,
+   "right": false,
+   "extract_ok": 0.1,
+   "rule_flags": false,
+   "result": "{\n  \"totalFilms\": 74,\n  \"films\": [\n    {\n      \"year\": \"2014\",\n      \"title\": \"Spotlight\",\n      \"wins\": 2\n    },\n    {\n      \"year\": \"2014\",\n      \"title\": \"Mad Max: Fury Road\",\n      \"wins\": 6\n    }"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C4",
+   "arm": "HAIKU",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.58,
+   "rule_flags": false,
+   "result": "[\n  {\n    \"title\": \"The King's Speech\",\n    \"awards\": 4\n  },\n  {\n    \"title\": \"Inception\",\n    \"awards\": 4\n  },\n  {\n    \"title\": \"The Social Network\",\n    \"awards\": 3\n  },\n  {\n    \"title\": \"The Fighte"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C4",
+   "arm": "HAIKU-HINT2",
+   "run": 2,
+   "right": false,
+   "extract_ok": 0.1,
+   "rule_flags": false,
+   "result": "{\n  \"totalFilms\": 91,\n  \"filmsWithThreeOrMore\": 15,\n  \"threeOrMoreList\": [\n    {\n      \"year\": \"2015\",\n      \"title\": \"Mad Max: Fury Road\",\n      \"awards\": 6\n    },\n    {\n      \"year\": \"2015\",\n      \""
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C4",
+   "arm": "HAIKU",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.54,
+   "rule_flags": false,
+   "result": "[\n  {\n    \"title\": \"The King's Speech\",\n    \"awards\": 4\n  },\n  {\n    \"title\": \"Inception\",\n    \"awards\": 4\n  },\n  {\n    \"title\": \"The Social Network\",\n    \"awards\": 3\n  },\n  {\n    \"title\": \"The Fighte"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C4",
+   "arm": "HAIKU-HINT2",
+   "run": 3,
+   "right": false,
+   "extract_ok": 0.53,
+   "rule_flags": false,
+   "result": "{\n  \"yearsProcessed\": [\n    \"2010\",\n    \"2011\",\n    \"2012\",\n    \"2013\",\n    \"2014\",\n    \"2015\"\n  ],\n  \"totalUniqueFilms\": 55,\n  \"filmsWithThreePlusAwards\": 11,\n  \"films3Plus\": [\n    {\n      \"title\": \""
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C5",
+   "arm": "HAIKU",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.06,
+   "rule_flags": false,
+   "result": "[\n  537.99,\n  587.99,\n  603.99\n]"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C5",
+   "arm": "HAIKU-HINT2",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.13,
+   "rule_flags": false,
+   "result": "[\n  {\n    \"price\": 537.99\n  },\n  {\n    \"price\": 587.99\n  },\n  {\n    \"price\": 603.99\n  }\n]"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C5",
+   "arm": "HAIKU",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.41,
+   "rule_flags": false,
+   "result": "{\n  \"totalProducts\": 6,\n  \"prices\": [\n    69.99,\n    88.99,\n    96.99,\n    97.99,\n    99.99,\n    101.99\n  ],\n  \"under300\": 6\n}"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C5",
+   "arm": "HAIKU-HINT2",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.48,
+   "rule_flags": false,
+   "result": "{\n  \"totalTablets\": 21,\n  \"tabletsUnder300\": 15,\n  \"allTablets\": [\n    {\n      \"name\": \"Lenovo IdeaTab\",\n      \"price\": 69.99\n    },\n    {\n      \"name\": \"IdeaTab A3500L\",\n      \"price\": 88.99\n    },\n "
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C5",
+   "arm": "HAIKU-HINT2",
+   "run": 3,
+   "right": false,
+   "extract_ok": 0.05,
+   "rule_flags": false,
+   "result": "[\n  {\n    \"title\": \"Lenovo IdeaTab\",\n    \"price\": 69.99\n  },\n  {\n    \"title\": \"IdeaTab A3500L\",\n    \"price\": 88.99\n  },\n  {\n    \"title\": \"Acer Iconia\",\n    \"price\": 96.99\n  },\n  {\n    \"title\": \"Galaxy"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C6",
+   "arm": "HAIKU",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.41,
+   "rule_flags": false,
+   "result": "{\n  \"totalPricesFound\": 117,\n  \"over1500\": 3,\n  \"allPrices\": [\n    295.99,\n    299,\n    299,\n    306.99,\n    321.94,\n    356.49,\n    364.46,\n    372.7,\n    379.94,\n    379.95,\n    391.48,\n    393.88,\n"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C6",
+   "arm": "HAIKU-HINT2",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.18,
+   "rule_flags": false,
+   "result": "{\n  \"total\": 117,\n  \"over1500\": [\n    1769,\n    1769,\n    1799\n  ],\n  \"count\": 3\n}"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C6",
+   "arm": "HAIKU",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.69,
+   "rule_flags": false,
+   "result": "{\n  \"totalItems\": 117,\n  \"over1500Count\": 3,\n  \"over1500Prices\": [\n    1769,\n    1769,\n    1799\n  ],\n  \"allPrices\": [\n    295.99,\n    299,\n    299,\n    306.99,\n    321.94,\n    356.49,\n    364.46,\n    "
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C6",
+   "arm": "HAIKU-HINT2",
+   "run": 2,
+   "right": false,
+   "extract_ok": 0.19,
+   "rule_flags": false,
+   "result": "{\n  \"totalLaptops\": 108,\n  \"laptopsOver1500\": 2,\n  \"pricesOver1500\": [\n    1769,\n    1799\n  ],\n  \"totalItemsReported\": 117,\n  \"clicksPerformed\": 0\n}"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C6",
+   "arm": "HAIKU",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.41,
+   "rule_flags": false,
+   "result": "{\n  \"total\": 117,\n  \"over1500\": 3,\n  \"prices\": [\n    1799,\n    1769,\n    1769,\n    1399,\n    1399,\n    1381.13,\n    1366.32,\n    1362.24,\n    1349.23,\n    1347.78,\n    1341.22,\n    1338.37,\n    1337.2"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C6",
+   "arm": "HAIKU-HINT2",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.2,
+   "rule_flags": false,
+   "result": "{\n  \"totalOver1500\": 3,\n  \"laptopsOver1500\": [\n    {\n      \"name\": \"$1769\",\n      \"price\": 1769\n    },\n    {\n      \"name\": \"$1769\",\n      \"price\": 1769\n    },\n    {\n      \"name\": \"$1799\",\n      \"price"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C7",
+   "arm": "HAIKU-HINT2",
+   "run": 1,
+   "right": false,
+   "extract_ok": 0.06,
+   "rule_flags": false,
+   "result": "{\n  \"totalHumorQuotes\": 14,\n  \"pagesVisited\": 1\n}"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C8",
+   "arm": "HAIKU",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.05,
+   "rule_flags": false,
+   "result": "- [Evaluation result](./page1_data.json)"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C8",
+   "arm": "HAIKU",
+   "run": 2,
+   "right": false,
+   "extract_ok": 0.21,
+   "rule_flags": false,
+   "result": "[\n  {\n    \"teamName\": \"New York Islanders\",\n    \"year\": \"1990\",\n    \"losses\": 45\n  },\n  {\n    \"teamName\": \"Quebec Nordiques\",\n    \"year\": \"1990\",\n    \"losses\": 50\n  },\n  {\n    \"teamName\": \"Toronto Map"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "C8",
+   "arm": "HAIKU-HINT2",
+   "run": 3,
+   "right": true,
+   "extract_ok": 0.2,
+   "rule_flags": false,
+   "result": "{\n  \"teamsWithLosses40Plus\": 111\n}"
+  },
+  {
+   "source": "nav-confirm",
+   "task": "A2",
+   "arm": "HAIKU-HINT2",
+   "run": 2,
+   "right": true,
+   "extract_ok": 0.61,
+   "rule_flags": false,
+   "result": "{\n  \"count\": 3,\n  \"items\": [\n    \"walk the dog\",\n    \"pay the VPS\",\n    \"read QASPER\"\n  ]\n}"
+  },
+  {
+   "source": "nav-hard",
+   "task": "H1",
+   "arm": "SONNET",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.51,
+   "rule_flags": false,
+   "result": "{\n  \"count\": 10,\n  \"quotes\": [\n    \"\u201cThe world as we have created it is a process of our thinking. It cannot be changed without changing our thinking.\u201d\",\n    \"\u201cThere are only two ways to live your lif"
+  },
+  {
+   "source": "nav-hard",
+   "task": "H2",
+   "arm": "SONNET",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.2,
+   "rule_flags": false,
+   "result": "{\n  \"count\": 32,\n  \"prices\": [\n    \"\u00a347.82\",\n    \"\u00a319.63\",\n    \"\u00a356.50\",\n    \"\u00a316.64\",\n    \"\u00a344.10\",\n    \"\u00a354.21\",\n    \"\u00a313.92\",\n    \"\u00a310.69\",\n    \"\u00a348.35\",\n    \"\u00a316.73\",\n    \"\u00a326.80\",\n    \"\u00a354.36\",\n "
+  },
+  {
+   "source": "nav-hard",
+   "task": "H4",
+   "arm": "HAIKU",
+   "run": 1,
+   "right": true,
+   "extract_ok": 0.61,
+   "rule_flags": false,
+   "result": "{\n  \"prices\": [\n    45.17,\n    49.43,\n    48.87,\n    36.94,\n    37.33,\n    44.34,\n    30.54,\n    56.88,\n    23.21,\n    38.95,\n    26.08\n  ],\n  \"count\": 11,\n  \"total\": \"437.74\"\n}"
+  }
+ ]
+}
