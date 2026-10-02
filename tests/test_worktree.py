@@ -188,3 +188,46 @@ def test_the_read_budget_turns_content_keys_into_stat_keys(
     (repo / "pkg" / "parse.py").write_text(f"def parse(text):\n{NEW_LINE}\n", encoding="utf-8")
     snap = wt.snapshot(str(repo))
     assert snap is not None and snap.files["pkg/parse.py"].startswith("stat:")
+
+
+# ---- why a snapshot is missing (v6.3: two B2 passes lost theirs and left no trace) -----------
+
+
+def test_probe_says_why_there_is_no_snapshot(tmp_path: Path) -> None:
+    assert wt.probe(str(tmp_path)) == (None, "not a git working tree")
+
+
+def test_probe_of_a_repository_gives_the_snapshot_and_no_reason(repo: Path) -> None:
+    snap, why = wt.probe(str(repo))
+    assert snap is not None and why == ""
+    assert wt.snapshot(str(repo)) == snap
+
+
+@pytest.mark.parametrize(("error", "why"), [
+    (subprocess.TimeoutExpired(["git"], wt.SECONDS), f"git timed out after {wt.SECONDS} s"),
+    (FileNotFoundError("git"), "git not found"),
+])  # fmt: skip
+def test_probe_names_a_slow_or_missing_git_and_the_step(
+    repo: Path, monkeypatch: pytest.MonkeyPatch, error: Exception, why: str
+) -> None:
+    real = subprocess.run
+
+    def flaky(args, **kwargs):  # type: ignore[no-untyped-def]
+        if "status" in args:
+            raise error
+        return real(args, **kwargs)
+
+    monkeypatch.setattr(wt.subprocess, "run", flaky)
+    snap, reason = wt.probe(str(repo))
+    assert snap is None and reason == f"{why} (status)"
+
+
+def test_probe_names_a_failed_status(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    real = subprocess.run
+
+    def failing(args, **kwargs):  # type: ignore[no-untyped-def]
+        done = real(args, **kwargs)
+        return subprocess.CompletedProcess(args, 128, b"", b"") if "status" in args else done
+
+    monkeypatch.setattr(wt.subprocess, "run", failing)
+    assert wt.probe(str(repo)) == (None, "git status failed")

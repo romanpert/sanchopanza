@@ -120,16 +120,36 @@ def _status(item: str) -> str | None:
 
 def snapshot(cwd: str) -> Snapshot | None:
     """The tree of the repository holding `cwd`, or None (not git, git missing or too slow)."""
+    return probe(cwd)[0]
+
+
+def _failure(error: Exception, step: str) -> str:
+    if isinstance(error, subprocess.TimeoutExpired):
+        return f"git timed out after {SECONDS} s ({step})"
+    if isinstance(error, FileNotFoundError):
+        return f"git not found ({step})"
+    return f"{error.__class__.__name__} ({step})"
+
+
+def probe(cwd: str) -> tuple[Snapshot | None, str]:
+    """`snapshot`, and when there is none why not (v6.3: two B2 passes lost a snapshot and left
+    no trace; the hook logs this reason). The reason is "" when there is a snapshot."""
+    step = "rev-parse"
     try:
         root = (_git(cwd, "rev-parse", "--show-toplevel") or "").strip()
         if not root:
-            return None
+            return None, "not a git working tree"
+        step = "status"
         status = _git(root, "status", "--porcelain=v2", "-z", "--branch", "-uall",
                       "--no-renames")  # fmt: skip
-    except (OSError, subprocess.SubprocessError):
-        return None
+    except (OSError, subprocess.SubprocessError) as error:
+        return None, _failure(error, step)
     if status is None:
-        return None
+        return None, "git status failed"
+    return _parse(root, status), ""
+
+
+def _parse(root: str, status: str) -> Snapshot:
     head = ""
     files: dict[str, str] = {}
     prints: dict[str, tuple[str, ...]] = {}

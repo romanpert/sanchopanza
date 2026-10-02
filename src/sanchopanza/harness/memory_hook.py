@@ -259,10 +259,10 @@ def tree_at_prompt(
     opened = memory_tree.open_request(store, session)
     if opened is not None and opened == requests and requests > 0:
         entries = ep.entries_of(Path(str(event["transcript_path"])))
-        if memory_tree.finish_tree(store, session, entries, opened):
+        if memory_tree.finish_tree(store, session, entries, opened, note=_log):
             found, _ = ep.episodes_of(entries, session=session, cwd=cwd)
             ep.save(store, [with_tree(store, e) for e in found if e.index == opened])
-    memory_tree.start_tree(store, session, cwd, requests + 1)
+    memory_tree.start_tree(store, session, cwd, requests + 1, note=_log)
 
 
 def stop(event: Mapping[str, Any]) -> Recorded:
@@ -273,7 +273,7 @@ def stop(event: Mapping[str, Any]) -> Recorded:
     entries = ep.entries_of(path)
     seen = record_transcript(path, session, store, str(event.get("cwd") or ""), entries)
     with contextlib.suppress(Exception):  # the tree is extra; it never costs the record
-        if memory_tree.finish_tree(store, session, entries):
+        if memory_tree.finish_tree(store, session, entries, note=_log):
             last = [e for e in seen.episodes if e.index == seen.requests]
             ep.save(store, [with_tree(store, e) for e in last])
         memory_tree.prune(store)

@@ -1355,3 +1355,53 @@ def test_v6_review_m7_the_open_snapshot_goes_at_session_end_and_old_tree_files_g
     write_transcript(t1, [{**prompt("x"), "cwd": cwd}, say("y")])
     mh.handle({**base, "hook_event_name": "SessionEnd"})
     assert not (folder / "s1.json").exists()
+
+
+SHELL_EDIT = "python - <<'E'\np='pkg/parse.py'\ns=open(p).read()\nopen(p,'w').write(s)\nE"
+
+
+def _tree_log(store: Path) -> list[dict[str, Any]]:
+    lines = (store / "log.jsonl").read_text(encoding="utf-8").splitlines()
+    return [row for row in map(json.loads, lines) if row.get("event") == "tree"]
+
+
+@needs_git
+def test_v63_a_start_snapshot_that_fails_says_why_in_the_log(
+    store: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from sanchopanza.context import worktree
+
+    monkeypatch.setattr(worktree, "probe", lambda cwd: (None, "git timed out after 3.0 s (status)"))
+    edit = "python - <<'E'\np='pkg/parse.py'\nE"
+    _shell_fix(store, tmp_path, edit)
+    rows = _tree_log(store)
+    assert [(r["at"], r["index"], r["why"]) for r in rows] == [
+        ("start", 1, "git timed out after 3.0 s (status)")]  # fmt: skip
+    assert rows[0]["session"] == "s1" and "seconds" in rows[0]
+
+
+@needs_git
+def test_v63_a_stop_snapshot_that_fails_says_why_and_the_record_keeps_it(
+    store: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from sanchopanza.context import worktree
+
+    real = worktree.probe
+    calls: list[str] = []
+
+    def second_fails(cwd: str):  # type: ignore[no-untyped-def]
+        calls.append(cwd)
+        return real(cwd) if len(calls) == 1 else (None, "git status failed")
+
+    monkeypatch.setattr(worktree, "probe", second_fails)
+    _shell_fix(store, tmp_path, SHELL_EDIT)
+    assert [(r["at"], r["why"]) for r in _tree_log(store)] == [("stop", "git status failed")]
+    kept = json.loads((store / "memory" / "p" / mh.TREE / "s1-001.json").read_text("utf-8"))
+    assert kept["changed"] == [] and kept["why"] == "git status failed"
+
+
+@needs_git
+def test_v63_a_tree_that_works_logs_nothing(store: Path, tmp_path: Path) -> None:
+    _shell_fix(store, tmp_path, SHELL_EDIT)
+    assert ep.index_of(store / "memory" / "p")["s1-001"]["changed"] == ["pkg/parse.py"]
+    assert _tree_log(store) == []

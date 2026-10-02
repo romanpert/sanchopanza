@@ -21,7 +21,7 @@ import json
 import os
 import sys
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -34,6 +34,26 @@ TREE = "tree"
 FILE_TOOLS = ("Edit", "MultiEdit", "Write", "NotebookEdit")
 SHELL_TOOLS = ("Bash", "PowerShell")
 DEADLINE = 4.0  # seconds a Stop may spend on the tree before it gives what it found
+EXPECTED = "not a git working tree"  # no snapshot by design: nothing to log
+
+Note = Callable[[Mapping[str, Any]], None]
+
+
+def _quiet(row: Mapping[str, Any]) -> None:
+    return None
+
+
+def _snap(cwd: str, note: Note, row: Mapping[str, Any]) -> tuple[Any, str]:
+    """`worktree.probe`, and a `tree` row through `note` when a snapshot is missing for a
+    reason other than the folder not being git (v6.3)."""
+    from ..context import worktree
+
+    began = time.monotonic()
+    snap, why = worktree.probe(cwd)
+    if snap is None and why != EXPECTED:
+        note({"event": "tree", **row, "why": why,
+              "seconds": round(time.monotonic() - began, 3)})  # fmt: skip
+    return snap, why
 
 
 def tree_on() -> bool:
@@ -93,13 +113,13 @@ def _under(path: str, root: str) -> str | None:
     return clean[len(base):] if clean.startswith(base) else None
 
 
-def start_tree(store: Path, session: str, cwd: str, index: int) -> None:
+def start_tree(
+    store: Path, session: str, cwd: str, index: int, note: Note = _quiet
+) -> None:
     """At a request's start: the working tree, for `finish_tree` to compare against."""
     if not tree_on() or not cwd:
         return
-    from ..context import worktree
-
-    snap = worktree.snapshot(cwd)
+    snap, _ = _snap(cwd, note, {"at": "start", "session": session, "index": index})
     if snap is not None:
         payload = {"index": index, "cwd": cwd, **snap.to_dict()}
         ep.write_private(tree_path(store, session), json.dumps(payload))
@@ -115,7 +135,8 @@ def open_request(store: Path, session: str) -> int | None:
 
 
 def finish_tree(
-    store: Path, session: str, entries: Sequence[Mapping[str, Any]], index: int | None = None
+    store: Path, session: str, entries: Sequence[Mapping[str, Any]], index: int | None = None,
+    note: Note = _quiet,
 ) -> bool:
     """At request `index`'s end (default: the transcript's last request): what it wrote in the
     tree since its start, kept beside its record. True when something was kept."""
@@ -144,10 +165,11 @@ def finish_tree(
     payload: dict[str, Any] = {"changed": [], "wrote": []}
     if claimed:
         deadline = time.monotonic() + DEADLINE
-        found = worktree.changes(before, worktree.snapshot(cwd), only=list(claimed),
-                                 deadline=deadline)  # fmt: skip
+        after, why = _snap(cwd, note, {"at": "stop", "session": session, "index": index})
+        found = worktree.changes(before, after, only=list(claimed), deadline=deadline)
         kept = [(_session_path(before.root, rel, cwd, real), prints) for rel, prints in found]
-        payload = {"changed": [r for r, _ in kept], "wrote": [[r, list(p)] for r, p in kept]}
+        payload = {"changed": [r for r, _ in kept], "wrote": [[r, list(p)] for r, p in kept],
+                   **({"why": why} if after is None else {})}  # fmt: skip
     ep.write_private(tree_path(store, session, index), json.dumps(payload))
     with contextlib.suppress(OSError):
         tree_path(store, session).unlink()
