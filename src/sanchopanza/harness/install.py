@@ -116,7 +116,7 @@ MEMORY_COMMAND = "sanchopanza memory-hook"
 # Event -> matcher for memory between requests and sessions (`--memory`, `harness.memory_hook`).
 MEMORY_HOOKS = {"UserPromptSubmit": "", "Stop": "", "SessionEnd": "",
                 "PostToolUse": "Read|Edit|MultiEdit|Write|NotebookEdit|Bash|PowerShell",
-                "SessionStart": "compact"}
+                "SessionStart": ""}  # v7: standing rules at every start, live after compaction
 CANDOR_COMMAND = "sanchopanza candor-hook"
 # Event -> matcher for candor (`--candor`, `harness.candor_hook`): the request and its snapshot,
 # every call (the lock refuses, the ledger records), and the final report.

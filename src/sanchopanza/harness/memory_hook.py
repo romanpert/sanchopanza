@@ -778,14 +778,67 @@ def after_compaction(event: Mapping[str, Any]) -> dict[str, Any]:
 # ---- entry -------------------------------------------------------------------------------------
 
 
+def rules_at_stop(event: Mapping[str, Any], seen: Recorded,
+                  start: Mapping[str, Any] | None) -> dict[str, Any]:  # fmt: skip
+    """v7 at Stop: new standing rules from the request, then its diff held against the rules
+    it did not state; a confident break sends the agent back once (`memory_rules`)."""
+    from . import memory_rules  # not at import: a touch event must stay light
+
+    if not memory_rules.rules_on() or mode() != "decider" or not seen.episodes:
+        return {}
+    import asyncio
+
+    from .claude_code import squire_from_env
+
+    store, session = store_for(event), str(event.get("session_id") or "session")
+    squire = squire_from_env(redact=True)
+    check = bool(start) and start.get("index") == seen.requests \
+        and not event.get("stop_hook_active")  # fmt: skip
+
+    async def both() -> tuple[list[str], list[dict[str, Any]], dict[str, float | None]]:
+        added = await memory_rules.extract(squire, store, seen.episodes[-3:])
+        if not check or start is None:
+            return added, [], {}
+        broken, found = await memory_rules.audit(
+            squire, store, session, seen.requests, str(start.get("root") or start.get("cwd")),
+            str(start.get("head") or ""))  # fmt: skip
+        return added, broken, found
+
+    seconds = _int("MEMORY_RULES_SECONDS", 25)
+    try:
+        added, broken, found = asyncio.run(asyncio.wait_for(both(), seconds))
+    except TimeoutError:
+        _log({"event": "rules", "reason": f"timed out after {seconds} s"})
+        return {}
+    _log({"event": "rules", "added": added, "checked": found,
+          "broken": [r["text"] for r in broken]})  # fmt: skip
+    return {"decision": "block", "reason": memory_rules.block_reason(broken)} if broken else {}
+
+
+def at_session_start(event: Mapping[str, Any]) -> dict[str, Any]:
+    """Any SessionStart: the project's standing rules (v7); after a compaction, also what is
+    live (`after_compaction`)."""
+    from . import memory_rules
+
+    if event.get("source") == "compact":
+        after_compaction(event)
+    text = memory_rules.render(store_for(event)) if memory_rules.rules_on() else ""
+    _log({"event": "SessionStart", "source": event.get("source"), "rules_chars": len(text)})
+    if not text:
+        return {}
+    return {"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": text}}
+
+
 def handle(event: Mapping[str, Any]) -> dict[str, Any]:
     name = event.get("hook_event_name")
     if name in ("Stop", "SessionEnd"):
+        session = str(event.get("session_id") or "session")
+        start = memory_tree.start_of(store_for(event), session) if name == "Stop" else None
         seen = stop(event) if name == "Stop" else record(event)
         if name == "SessionEnd":
-            memory_tree.forget_open(store_for(event), str(event.get("session_id") or "session"))
+            memory_tree.forget_open(store_for(event), session)
         _log({"event": name, "episodes": len(seen.episodes), "written": list(seen.written)})
-        return {}
+        return rules_at_stop(event, seen, start) if name == "Stop" else {}
     if name == "UserPromptSubmit":
         import asyncio  # a prompt may ask the decider; the touch never does
 
@@ -794,8 +847,8 @@ def handle(event: Mapping[str, Any]) -> dict[str, Any]:
         return touch(event)
     if name == "PreToolUse":
         return shell_first(event)
-    if name == "SessionStart" and event.get("source") == "compact":
-        return after_compaction(event)
+    if name == "SessionStart":
+        return at_session_start(event)
     return {}
 
 

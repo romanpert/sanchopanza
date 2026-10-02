@@ -125,6 +125,15 @@ def start_tree(
         ep.write_private(tree_path(store, session), json.dumps(payload))
 
 
+def start_of(store: Path, session: str) -> dict[str, Any] | None:
+    """The open request's start snapshot as kept (index, cwd, root, head), or None."""
+    try:
+        start = json.loads(tree_path(store, session).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return start if isinstance(start, dict) else None
+
+
 def open_request(store: Path, session: str) -> int | None:
     """The request whose start snapshot is kept and not finished yet (no Stop ran)."""
     try:
