@@ -1,0 +1,28 @@
+{"goal": "Follow the 3rd link in the left sidebar and report the title of the page it opens.", "position": true}
+{"goal": "What does the third item in the navigation menu say?", "position": true}
+{"goal": "Click the first button in the footer and tell me where it leads.", "position": true}
+{"goal": "Report the text of the last tab in the settings panel.", "position": true}
+{"goal": "Which heading comes second in the article's contents box?", "position": true}
+{"goal": "Name the fourth card in the pricing section.", "position": true}
+{"goal": "What is the final link in the footer?", "position": true}
+{"goal": "Report the first column header of the comparison grid.", "position": true}
+{"goal": "Give the label of the last breadcrumb.", "position": true}
+{"goal": "Which product is in the top-left tile of the grid?", "position": true}
+{"goal": "What does the 5th bullet under 'Features' say?", "position": true}
+{"goal": "Read me the second paragraph of the introduction.", "position": true}
+{"goal": "What is the first option in the country dropdown?", "position": true}
+{"goal": "Tell me the name in the last line of the sidebar's 'Top contributors' box.", "position": true}
+{"goal": "What is the top story on the front page?", "position": true}
+{"goal": "What was the final year of the war, according to the page?", "position": false}
+{"goal": "In which year did the band release its last album, as stated on the page?", "position": false}
+{"goal": "When was the first edition published, per the page?", "position": false}
+{"goal": "Who won the first season of the show, as listed on the page?", "position": false}
+{"goal": "What did the company report for its final quarter on the page?", "position": false}
+{"goal": "How long was the first flight, according to the article?", "position": false}
+{"goal": "What is the last name of the author shown on the page?", "position": false}
+{"goal": "What was the top speed of the car, per the specifications table?", "position": false}
+{"goal": "Report the first-class fare shown in the table.", "position": false}
+{"goal": "What did the final report on the page conclude?", "position": false}
+{"goal": "Who was the first president of the country, according to the infobox?", "position": false}
+{"goal": "What is the last date to apply, as shown on the page?", "position": false}
+{"goal": "In the sidebar, what does the link to 'Contact' say?", "position": false}
