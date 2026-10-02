@@ -480,3 +480,36 @@ What this says, plainly:
 
 Still development, on the tasks v3-v5 were written on. v5 has its own registered confirmation on
 eight crawls over mechanisms no line has met (`prereg-strategy2.md`, `nav_confirm2.py`).
+
+## 16. Confirmation 1 (line v2): NOT confirmed
+
+Registered in `prereg-strategy.md` (sealed d5f42ad) before any session; 60 sessions, all on Claude
+Code 2.1.287, 8.46 USD of subscription at list price; verdicts computed by the registered
+`nav_confirm.verdicts` (`nav-confirm.json`):
+
+| hypothesis | result | holds |
+|---|---|---|
+| H1 cost: total ratio <= 0.75 **and** cheaper on >= 6 of 8 crawls | ratio **0.546**, cheaper on **5 of 8** | **no** |
+| H2 answers: v2 >= unaided - 2, of 24 | v2 **15/24**, unaided **22/24** | **no** |
+| H3 no harm on A2, A3 | 6/6 and 6/6, cost ratio 1.06 | yes |
+
+**Line v2 is not confirmed, and the reason is not cost: it lost answers.** Every one of the eleven
+misses was read by hand; none is a grader fault (each ANSWER line is a wrong number). The nine of
+v2 are one kind - **an extraction whose result was implausible on its face, and believed**:
+
+- C4 (year tabs filled by AJAX), 0/3: it clicked the tabs inside the call and read the table before
+  each request returned, so the years shifted by one and the totals mixed.
+- C5 (pagination done in the browser): it fetched the "pages", got the same six tablets four times,
+  and answered 6 x 4 = 24.
+- C7: "60 pages of 22 quotes, 180 tagged humor" on a 10-page site; and 14 for 12.
+- C2: "40 books across 3 pages" of a 1,000-book catalogue. C6: 108 of 117 laptops. C1: 22 for 23.
+
+The line asked for exactly the check that would have caught each of these (how much it read,
+against what the site shows), and the cheap model did not make it. Unaided Haiku missed twice (one
+page read as the whole table, one country dropped). So on mechanisms the line was not written on,
+v2 trades answers for cost; development had not shown it, because S1-S5 are plain paginations.
+
+What changed since v2 is the question confirmation 2 answers: v5 forbids clicking or navigating
+inside the call and says to fetch the data the page loads, which is C4's and C5's failure exactly
+(found in development on S3/S4 before these results were seen, `strategy_lines.py`). Whether that
+is enough on new mechanisms, and whether Haiku then checks its account, is `prereg-strategy2.md`.
