@@ -470,6 +470,38 @@ T_TASKS = [
      "According to the table, until when does PHP 8.2 receive security support?",
      [_date(31, "Dec", 2026)]),
 ]  # fmt: skip
+R = {  # Phase 3r: rows that say which header each cell is under (2dd0bc8)
+    "prereg": RESULTS / "prereg-e2e-r.md",
+    "sessions": RESULTS / "e2e-mcp-r-sessions.jsonl",
+    "report": "e2e-mcp-r.json",
+}
+R_TASKS = [
+    ("R0", *T_TASKS[3][1:]),  # 3q's T4, the task the fix was written on: reported apart
+    ("R1", _EOL + "laravel", "According to the table, when did security support for Laravel "
+     "11 end?", [_date(12, "Mar", 2026)]),
+    ("R2", _EOL + "rails", "According to the table, when did security support for Rails 7.2 "
+     "end?", [_date(9, "Aug", 2026) + ["august 09, 2026"]]),
+    ("R3", _EOL + "symfony", "According to the table, when does security support for Symfony "
+     "6.4 end?", [_date(30, "Nov", 2027)]),
+    ("R4", _EOL + "spring-boot", "According to the table, when does commercial support for "
+     "Spring Boot 3.4 end?", [_date(31, "Dec", 2026)]),
+    ("R5", _EOL + "angular", "According to the table, when did active support for Angular 19 "
+     "end?", [_date(28, "May", 2025)]),
+    ("R6", _EOL + "nginx", "According to the table, when was nginx 1.29 released?",
+     [_date(24, "Jun", 2025)]),
+    ("R7", _EOL + "redis", "According to the table, when does security support for Redis 7.4 "
+     "end?", [_date(1, "Dec", 2029) + ["december 01, 2029"]]),
+    ("R8", _EOL + "mongodb", "According to the table, when does security support for MongoDB "
+     "7.0 end?", [_date(31, "Aug", 2027)]),
+    ("R9", _EOL + "electron", "According to the table, which Chrome version does Electron 43 "
+     "ship with?", ["150"]),
+    ("R10", _EOL + "dotnet", "According to the table, when does support for .NET 9 end?",
+     [_date(10, "Nov", 2026)]),
+    ("R11", _EOL + "kubernetes", "According to the table, when did maintenance support for "
+     "Kubernetes 1.33 end?", [_date(28, "Jun", 2026)]),
+    ("R12", _EOL + "elasticsearch", "According to the table, until when is Elasticsearch 8.19 "
+     "supported?", [_date(15, "Jul", 2027)]),
+]  # fmt: skip
 NEW_TASKS = [
     ("N1", "https://github.com/pallets/flask",
      "Which license is this repository under, and which language makes up the largest share "
@@ -513,6 +545,7 @@ def main() -> int:
     ap.add_argument("--u", action="store_true", help="Phase 3n (prereg-e2e-u.md)")
     ap.add_argument("--v", action="store_true", help="Phase 3p (prereg-e2e-v.md)")
     ap.add_argument("--t", action="store_true", help="Phase 3q (prereg-e2e-t.md)")
+    ap.add_argument("--r", action="store_true", help="Phase 3r (prereg-e2e-r.md)")
     args = ap.parse_args()
     report_name, tasks, n_runs = "e2e-mcp.json", TASKS, RUNS
     if args.fixed:
@@ -541,6 +574,9 @@ def main() -> int:
     if args.t:
         PREREG, SESSIONS, report_name = T["prereg"], T["sessions"], T["report"]
         tasks, n_runs = T_TASKS, WIDE_RUNS
+    if args.r:
+        PREREG, SESSIONS, report_name = R["prereg"], R["sessions"], R["report"]
+        tasks, n_runs = R_TASKS, WIDE_RUNS
     if args.record_hash:
         registered = PREREG.with_suffix(".sha256")
         if registered.exists() and registered.read_text().strip() != base.digest(PREREG):
@@ -556,7 +592,7 @@ def main() -> int:
         if not key:
             raise SystemExit("LEAN ranks with Jev: no TYPESAFE_API_KEY, nothing spent")
         runs = [0] if args.pilot else list(range(1, n_runs + 1))
-        late = (args.y, args.z, args.u, args.v, args.t)  # phases with JEV_CEILING_Y_USD
+        late = (args.y, args.z, args.u, args.v, args.t, args.r)  # phases with JEV_CEILING_Y_USD
         guarded = any((args.fixed, args.new, args.wide, args.x, *late))
         limits = phase.Limits(
             session_max_usd=SESSION_MAX_USD, ceiling_usd=CEILING_USD,
