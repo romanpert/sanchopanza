@@ -78,7 +78,7 @@ The hook at 4416aa4, a warm-up session first, three runs per task and arm, both 
 | playwright-cli (3o) | 36/36 / 36/36 | 0.1096 / 0.1116 (+0.00005 Jev) | 2 | +0.0021 [-0.0023, +0.0071] |
 
 **The rule is not met with either tool.** With Playwright MCP the estimate is again negative (3
-% cheaper; the sixth MCP phase in six with a negative estimate, three of them below zero), but
+% cheaper; every MCP phase since 3d, six of them, has a negative estimate, three below zero), but
 the interval crosses zero. The checks: infobox and cards (U1-U6) 18 of 18 in both arms with both
 tools; position (U7-U9) 9 of 9 likewise; U2 ("the first ascent") was cut with Playwright MCP
 (check 3 met) and never reached the hook with playwright-cli, where every run asked `find "First
