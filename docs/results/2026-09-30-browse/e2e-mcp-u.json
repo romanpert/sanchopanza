@@ -1,0 +1,76 @@
+{
+ "sessions": 72,
+ "PLAIN": {
+  "runs": 36,
+  "success": 36,
+  "list_usd_mean": 0.1163,
+  "jev_usd_mean": 0.0,
+  "turns_mean": 5.28,
+  "cache_read_mean": 198925,
+  "cache_write_mean": 17500,
+  "snapshots_pruned": 0
+ },
+ "LEAN": {
+  "runs": 36,
+  "success": 36,
+  "list_usd_mean": 0.1114,
+  "jev_usd_mean": 0.00166,
+  "turns_mean": 5.06,
+  "cache_read_mean": 189676,
+  "cache_write_mean": 16825,
+  "snapshots_pruned": 12
+ },
+ "LEAN_minus_PLAIN_usd_per_task": {
+  "value": -0.0033,
+  "bootstrap95": [
+   -0.0104,
+   0.0028
+  ],
+  "by_task": {
+   "U1": 0.0047,
+   "U10": -0.0334,
+   "U11": -0.0001,
+   "U12": -0.0047,
+   "U2": 0.0011,
+   "U3": 0.0117,
+   "U4": -0.0138,
+   "U5": -0.0126,
+   "U6": -0.007,
+   "U7": 0.0015,
+   "U8": 0.0038,
+   "U9": 0.0094
+  }
+ },
+ "pilot": [
+  {
+   "task": "U1",
+   "arm": "PLAIN",
+   "success": true,
+   "list_usd": 0.21902739999999998,
+   "turns": 6,
+   "tools": {
+    "ToolSearch": 1,
+    "mcp__playwright__browser_navigate": 1,
+    "mcp__playwright__browser_snapshot": 1,
+    "Grep": 1,
+    "Read": 1
+   },
+   "pruned": []
+  },
+  {
+   "task": "U1",
+   "arm": "PLAIN",
+   "success": true,
+   "list_usd": 0.1149754,
+   "turns": 6,
+   "tools": {
+    "ToolSearch": 1,
+    "mcp__playwright__browser_navigate": 1,
+    "mcp__playwright__browser_snapshot": 1,
+    "Grep": 1,
+    "Read": 1
+   },
+   "pruned": []
+  }
+ ]
+}

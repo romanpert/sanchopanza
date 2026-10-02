@@ -1,0 +1,84 @@
+{
+ "sessions": 72,
+ "PLAIN": {
+  "runs": 36,
+  "success": 36,
+  "list_usd_mean": 0.1096,
+  "jev_usd_mean": 0.0,
+  "turns_mean": 4.58,
+  "cache_read_mean": 206205,
+  "cache_write_mean": 15874,
+  "snapshots_pruned": 0
+ },
+ "LEAN": {
+  "runs": 36,
+  "success": 36,
+  "list_usd_mean": 0.1116,
+  "jev_usd_mean": 5e-05,
+  "turns_mean": 4.61,
+  "cache_read_mean": 206704,
+  "cache_write_mean": 16391,
+  "snapshots_pruned": 2
+ },
+ "LEAN_minus_PLAIN_usd_per_task": {
+  "value": 0.0021,
+  "bootstrap95": [
+   -0.0023,
+   0.0071
+  ],
+  "by_task": {
+   "U1": -0.0038,
+   "U10": -0.003,
+   "U11": 0.007,
+   "U12": 0.0063,
+   "U2": 0.013,
+   "U3": -0.0003,
+   "U4": -0.0002,
+   "U5": -0.0052,
+   "U6": -0.0071,
+   "U7": 0.0001,
+   "U8": 0.023,
+   "U9": -0.005
+  }
+ },
+ "pilot": [
+  {
+   "task": "U1",
+   "run": -9,
+   "arm": "PLAIN",
+   "ok": true,
+   "subtype": "success",
+   "success": true,
+   "answer": "According to the infobox on the Wikipedia Rhine article:\n\n- **Length:** 1,230 km (760 mi)\n- **Mouth:** North Sea",
+   "list_usd": 0.27392120000000003,
+   "turns": 5,
+   "input_tokens": 10,
+   "cache_read": 202796,
+   "cache_write": 57115,
+   "output_tokens": 390,
+   "jev_usd": 0.0,
+   "jev_calls": 0,
+   "pruned": [],
+   "workdir": "C:\\Users\\roman\\AppData\\Local\\Temp\\sp-e2e-u1r-9plain-ac9x9wph"
+  },
+  {
+   "task": "U1",
+   "run": -10,
+   "arm": "PLAIN",
+   "ok": true,
+   "subtype": "success",
+   "success": true,
+   "answer": "According to the Wikipedia infobox, the Rhine is **1,230 km (760 mi)** long, and its mouth is the **North Sea**.",
+   "list_usd": 0.1273194,
+   "turns": 5,
+   "input_tokens": 8,
+   "cache_read": 185227,
+   "cache_write": 21379,
+   "output_tokens": 376,
+   "jev_usd": 0.0,
+   "jev_calls": 0,
+   "pruned": [],
+   "workdir": "C:\\Users\\roman\\AppData\\Local\\Temp\\sp-e2e-u1r-10plain-jm4qxeqp"
+  }
+ ]
+}

@@ -16,7 +16,7 @@ registered bound, at an eighth of the cost. The first try (Phase 2c) showed them
 and lost 5 points; in 6 of its 7 lost steps the target was among those shown, and the fix was
 the order and a note on repeated lines, not the ranking.
 
-**A hook that prunes snapshots inside a real Claude Code session: with Playwright MCP it came out cheaper in every registered phase, with playwright-cli it rarely has anything to cut.** Registered results, each on tasks the hook was not fixed on. With Playwright MCP: 12.9 % cheaper on six tasks (3d, interval below zero), about 7 % on twelve (3f, crossing zero), 12.4 % on twelve (3h, crossing zero), 13.4 % on twelve (3j, below zero) and 8 % on twelve more (3l, below zero). With playwright-cli: about 5 % on twelve tasks (3g, below zero) and nothing on 36 more (3i, 3k, 3m): the agent narrows with `find` and `grep` itself, and on an output Claude Code saves both arms see 2,000 characters. It stays opt-in. Questions about position ("the first quote listed") cost answers in 3h and 3i; since they pass through uncut (or, on a saved output, come back in page order), 3j to 3m answered all 54 such runs in both arms. Every fault the phases found was in the hook, none in the ranking.
+**A hook that prunes snapshots inside a real Claude Code session: with Playwright MCP it came out cheaper in every registered phase, with playwright-cli it rarely has anything to cut.** Registered results, each on tasks the hook was not fixed on. With Playwright MCP: 12.9 % cheaper on six tasks (3d, interval below zero), about 7 % on twelve (3f, crossing zero), 12.4 % on twelve (3h, crossing zero), 13.4 % on twelve (3j, below zero), 8 % on twelve more (3l, below zero) and 3 % on twelve more (3n, crossing zero). It pays where a large snapshot arrives inline (30-40 % of those sessions); a page past Claude Code's own limit was already cheap without it. With playwright-cli: about 5 % on twelve tasks (3g, below zero) and nothing on 48 more (3i, 3k, 3m, 3o): page content is about 16 % of such a session, the agent narrows with `find` and `grep` itself, and on an output Claude Code saves both arms see 2,000 characters. It stays opt-in. Questions about position ("the first quote listed") cost answers in 3h and 3i; since they pass through uncut (or, on a saved output, come back in page order), 3j to 3m answered all 54 such runs in both arms. Every fault the phases found was in the hook, none in the ranking.
 
 What stands is the ranking as a tool: `sanchopanza browse PAGE --goal ...` from a shell, or the
 `rank_elements` MCP tool, returns the elements a step needs with their refs, confirmed at 89 % in
@@ -68,6 +68,49 @@ written before the counted sessions: the per-session cap (0.25 to 0.60 USD, size
 and the phase ceiling (8 to 12 USD, sized on the pilot); the pilot (FULL 6/9, TOP 5/9) is outside
 every count. 8.61 USD spent in all.
 
+## Phases 3n and 3o: twelve new tasks after the card, nearest-row and position-word fixes (`prereg-e2e-u.md`)
+
+The hook at 4416aa4, a warm-up session first, three runs per task and arm, both tools at once.
+
+| Tool | Success PLAIN / LEAN | List USD / session PLAIN / LEAN | Cuts | LEAN minus PLAIN |
+|---|---|---|---|---|
+| Playwright MCP (3n) | 36/36 / 36/36 | 0.1163 / 0.1114 (+0.0017 Jev) | 12 | -0.0033 [-0.0104, +0.0028] |
+| playwright-cli (3o) | 36/36 / 36/36 | 0.1096 / 0.1116 (+0.00005 Jev) | 2 | +0.0021 [-0.0023, +0.0071] |
+
+**The rule is not met with either tool.** With Playwright MCP the estimate is again negative (3
+% cheaper; the sixth MCP phase in six with a negative estimate, three of them below zero), but
+the interval crosses zero. The checks: infobox and cards (U1-U6) 18 of 18 in both arms with both
+tools; position (U7-U9) 9 of 9 likewise; U2 ("the first ascent") was cut with Playwright MCP
+(check 3 met) and never reached the hook with playwright-cli, where every run asked `find "First
+ascent"`, the agent's own search, which is never cut (check 3 not met, and not for the reason it
+tests). No session was NOT RUN. 8.53 and 8.36 USD at list price, 0.062 USD of Jev.
+
+**Where it pays, read across the last three MCP phases (3j, 3l, 3n; development, not
+registered).** Grouping their 36 tasks by what the hook received:
+
+| What the hook got (LEAN) | Tasks | LEAN minus PLAIN, USD / session |
+|---|---|---|
+| A snapshot under 100,000 characters, inline | 6 | **-0.047** (all six cheaper) |
+| A snapshot past Claude Code's limit (400,000-620,000 characters) | 8 | +0.001 |
+| Nothing to cut | 22 | -0.005 |
+
+The hook saves where the page arrives inline: there it cuts 30-40 % of a session (Y1, Y2, Z7, Z8,
+U5, U10). On a page past Claude Code's limit the unhooked agent already pays little: Claude Code
+saves the result and shows a notice, the agent `Grep`s the file, and the hook's 18,000 pruned
+characters (13,700 in 3j, 16,700 in 3l, 17,800 in 3n, as the infobox rows and card facts were
+added) cost about what the extra turn did. 3n drew four such pages and two inline ones, so its
+total is small; how much the hook saves depends on how many pages a user's tasks meet that fit
+inline and are large.
+
+**Why playwright-cli leaves nothing to cut (development, the 144 sessions of 3k and 3m, `cli_cost.py`).**
+Priced per turn at list rates (reproducing 15.10 of 15.24 USD): a session spends about 75 % on
+Claude Code's own prefix (written once, then read back on every turn), 16 % on page content
+(`find` 8.9, `snapshot` 2.4, the rest under 1.2 each) and 4 % on the model's output. Everything a
+pruning hook could touch is that 16 %, and the agent already narrows with `find`; the smallest
+effect 72 pairs can see is about 6 % (paired SD 0.0185 USD). U8 (+0.023) in 3o is the agent, not
+the hook: in two LEAN runs it opened the category and asked for the whole snapshot, which the hook
+rightly left whole (a question about the bottom of the page), where PLAIN's runs used `grep`.
+
 ## Phases 3l and 3m: twelve new tasks after the infobox and page-order fixes (`prereg-e2e-z.md`)
 
 The hook at 0138a2d, a warm-up session first, three runs per task and arm, both tools at once.
@@ -117,6 +160,25 @@ on the second set:
 | now | 0.92 | **0.92** | "the final year of the war given on the page" (false positive), "the 2nd link in the sidebar" (missed) |
 
 What the model sees (below) is unchanged by either: 173 of 239.
+
+**The word rule does not carry to new goals; a question to Jev does**
+(`benchmarks/browse/position_jev.py`, `position-jev.json`). A third set of 28 goals, sealed
+(d69ce09) with an ordinal on a link, tab or card and no word of listing, and with ordinals of
+time or of a name ("the final year", "last name", "top speed", "the first president"), scored
+the rule at 0.30 / 0.20. Rather than add words again, one Truth question to Jev per request
+(does it pick an element by its place on the page?) was written, tried on the three sets it had
+seen (82 of 82, its criteria name set 3's examples, so that proves nothing), frozen with its cut
+of 0.5 (6d3bbe5), and then scored once on a fourth set of 28 goals sealed after it (14085fe),
+in words it does not use:
+
+| On the fourth set | Precision | Recall | Wrong |
+|---|---|---|---|
+| word rule (da4711d) | 0.50 | 0.31 | 13 |
+| Jev, one Truth per request | **0.93** | **1.00** | "the second-tallest building ... according to the table" (p 0.78) |
+
+The bar fixed at the freeze was 0.85 for both. 0.002 USD of Jev for all 110 goals. The hook
+uses it on the `browse-position-jev` branch (one call per request and session, cached; the
+word rule without a provider), not yet in any registered phase.
 
 ## What the model sees, replayed (`benchmarks/browse/visible.py`, development)
 
