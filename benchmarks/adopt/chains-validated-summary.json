@@ -1981,5 +1981,433 @@
     "p2p_star": 5259
    }
   ]
+ },
+ "conan-io__conan-long40-1": {
+  "valid": false,
+  "bugs": [
+   "conan-io__conan.86f29e13.pr_12515",
+   "conan-io__conan.86f29e13.pr_16728",
+   "conan-io__conan.86f29e13.pr_15846",
+   "conan-io__conan.86f29e13.pr_17377",
+   "conan-io__conan.86f29e13.pr_11804",
+   "conan-io__conan.86f29e13.pr_11310",
+   "conan-io__conan.86f29e13.pr_14825",
+   "conan-io__conan.86f29e13.pr_17524",
+   "conan-io__conan.86f29e13.pr_16818",
+   "conan-io__conan.86f29e13.pr_14004",
+   "conan-io__conan.86f29e13.pr_13049",
+   "conan-io__conan.86f29e13.pr_13090",
+   "conan-io__conan.86f29e13.pr_11088",
+   "conan-io__conan.86f29e13.pr_12889",
+   "conan-io__conan.86f29e13.pr_13880",
+   "conan-io__conan.86f29e13.pr_11593",
+   "conan-io__conan.86f29e13.pr_15044",
+   "conan-io__conan.86f29e13.pr_13354",
+   "conan-io__conan.86f29e13.pr_15211",
+   "conan-io__conan.86f29e13.pr_11977",
+   "conan-io__conan.86f29e13.pr_14020",
+   "conan-io__conan.86f29e13.pr_11054",
+   "conan-io__conan.86f29e13.pr_13050",
+   "conan-io__conan.86f29e13.pr_13867",
+   "conan-io__conan.86f29e13.pr_15950",
+   "conan-io__conan.86f29e13.pr_14000",
+   "conan-io__conan.86f29e13.pr_17838",
+   "conan-io__conan.86f29e13.pr_12165",
+   "conan-io__conan.86f29e13.pr_15005",
+   "conan-io__conan.86f29e13.pr_17217",
+   "conan-io__conan.86f29e13.pr_14378",
+   "conan-io__conan.86f29e13.pr_12529",
+   "conan-io__conan.86f29e13.pr_10874",
+   "conan-io__conan.86f29e13.pr_14177",
+   "conan-io__conan.86f29e13.pr_17294",
+   "conan-io__conan.86f29e13.pr_16451",
+   "conan-io__conan.86f29e13.pr_17132",
+   "conan-io__conan.86f29e13.pr_15575",
+   "conan-io__conan.86f29e13.pr_15665",
+   "conan-io__conan.86f29e13.pr_17659"
+  ],
+  "sha256": "c9f7bc22f2fcb774c157a94d6ec1d89afd28c24605e111caae8c414383678751",
+  "history": [
+   [
+    "conan-io__conan.86f29e13.pr_12515 ok",
+    "conan-io__conan.86f29e13.pr_16728 ok",
+    "conan-io__conan.86f29e13.pr_15846 INVALID",
+    "conan-io__conan.86f29e13.pr_17377 ok",
+    "conan-io__conan.86f29e13.pr_11804 INVALID",
+    "conan-io__conan.86f29e13.pr_11310 INVALID",
+    "conan-io__conan.86f29e13.pr_14825 INVALID",
+    "conan-io__conan.86f29e13.pr_17524 INVALID",
+    "conan-io__conan.86f29e13.pr_16818 INVALID",
+    "conan-io__conan.86f29e13.pr_14004 INVALID",
+    "conan-io__conan.86f29e13.pr_13049 INVALID",
+    "conan-io__conan.86f29e13.pr_13090 INVALID",
+    "conan-io__conan.86f29e13.pr_11088 INVALID",
+    "conan-io__conan.86f29e13.pr_12889 INVALID",
+    "conan-io__conan.86f29e13.pr_13880 INVALID",
+    "conan-io__conan.86f29e13.pr_11593 INVALID",
+    "conan-io__conan.86f29e13.pr_15044 INVALID",
+    "conan-io__conan.86f29e13.pr_13354 INVALID",
+    "conan-io__conan.86f29e13.pr_15211 INVALID",
+    "conan-io__conan.86f29e13.pr_11977 INVALID",
+    "conan-io__conan.86f29e13.pr_14020 INVALID",
+    "conan-io__conan.86f29e13.pr_11054 INVALID",
+    "conan-io__conan.86f29e13.pr_13050 INVALID",
+    "conan-io__conan.86f29e13.pr_13867 ok",
+    "conan-io__conan.86f29e13.pr_15950 INVALID",
+    "conan-io__conan.86f29e13.pr_14000 INVALID",
+    "conan-io__conan.86f29e13.pr_17838 INVALID",
+    "conan-io__conan.86f29e13.pr_12165 INVALID",
+    "conan-io__conan.86f29e13.pr_15005 INVALID",
+    "conan-io__conan.86f29e13.pr_17217 INVALID",
+    "conan-io__conan.86f29e13.pr_14378 INVALID",
+    "conan-io__conan.86f29e13.pr_12529 INVALID",
+    "conan-io__conan.86f29e13.pr_10874 INVALID",
+    "conan-io__conan.86f29e13.pr_14177 ok",
+    "conan-io__conan.86f29e13.pr_17294 INVALID",
+    "conan-io__conan.86f29e13.pr_16451 INVALID",
+    "conan-io__conan.86f29e13.pr_17132 ok",
+    "conan-io__conan.86f29e13.pr_15575 INVALID",
+    "conan-io__conan.86f29e13.pr_15665 INVALID",
+    "conan-io__conan.86f29e13.pr_17659 INVALID"
+   ],
+   [
+    "replace pr_11804",
+    "replace pr_11310",
+    "replace pr_13049",
+    "replace pr_13090",
+    "replace pr_11088",
+    "replace pr_11593",
+    "replace pr_15044",
+    "replace pr_13354",
+    "replace pr_11977",
+    "replace pr_13867",
+    "replace pr_12165",
+    "replace pr_12529",
+    "replace pr_16451"
+   ]
+  ],
+  "seconds": 2283,
+  "records": [
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_12515",
+    "valid": true,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 3,
+    "p2p_star": 17
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_16728",
+    "valid": true,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p": 1,
+    "p2p_star": 1
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_15846",
+    "valid": false,
+    "f2p_failing_with_bugs": 5,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 5,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_17377",
+    "valid": true,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 2,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_11804",
+    "valid": false,
+    "f2p_failing_with_bugs": 26,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 26,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_11310",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_14825",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_17524",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_16818",
+    "valid": false,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 2,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_14004",
+    "valid": false,
+    "f2p_failing_with_bugs": 11,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 11,
+    "p2p_star": 3
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_13049",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_13090",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_11088",
+    "valid": false,
+    "f2p_failing_with_bugs": 32,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 32,
+    "p2p_star": 42
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_12889",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_13880",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_11593",
+    "valid": false,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 2,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_15044",
+    "valid": false,
+    "f2p_failing_with_bugs": 7,
+    "f2p_passing_when_fixed": 6,
+    "f2p": 7,
+    "p2p_star": 1
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_13354",
+    "valid": false,
+    "f2p_failing_with_bugs": 4,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 4,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_15211",
+    "valid": false,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 2,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_11977",
+    "valid": false,
+    "f2p_failing_with_bugs": 10,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 10,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_14020",
+    "valid": false,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 2,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_11054",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_13050",
+    "valid": false,
+    "f2p_failing_with_bugs": 5,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 5,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_13867",
+    "valid": true,
+    "f2p_failing_with_bugs": 39,
+    "f2p_passing_when_fixed": 39,
+    "f2p": 39,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_15950",
+    "valid": false,
+    "f2p_failing_with_bugs": 10,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 10,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_14000",
+    "valid": false,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 2,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_17838",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_12165",
+    "valid": false,
+    "f2p_failing_with_bugs": 29,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 29,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_15005",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_17217",
+    "valid": false,
+    "f2p_failing_with_bugs": 8,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 8,
+    "p2p_star": 1
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_14378",
+    "valid": false,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 2,
+    "f2p": 3,
+    "p2p_star": 10
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_12529",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_10874",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 2
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_14177",
+    "valid": true,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p": 3,
+    "p2p_star": 11
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_17294",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_16451",
+    "valid": false,
+    "f2p_failing_with_bugs": 9,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 9,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_17132",
+    "valid": true,
+    "f2p_failing_with_bugs": 4,
+    "f2p_passing_when_fixed": 4,
+    "f2p": 4,
+    "p2p_star": 19
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_15575",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_15665",
+    "valid": false,
+    "f2p_failing_with_bugs": 25,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 25,
+    "p2p_star": 0
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_17659",
+    "valid": false,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p": 1,
+    "p2p_star": 0
+   }
+  ]
  }
 }
