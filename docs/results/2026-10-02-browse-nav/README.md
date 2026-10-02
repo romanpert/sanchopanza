@@ -327,3 +327,65 @@ the thing this whole line now lacks, and section 9's conclusion stands: **no tas
 Claude model of this class actually fails.** Both traps were solved first time by both models;
 all 20 sessions over the pilot, the mining run and this phase answered correctly. Every lever
 measures zero where nothing goes wrong.
+
+## 12. The guard again, improved, and measured offline instead of by noise
+
+A live smoke run of the improved guard (B2, one run each arm, `nav-smoke.json`) showed it had
+page text in front of it at all 18 decisions and still never spoke. Reading what it was given
+found why: anything that was not a snapshot went in whole, cut at 600 characters - a
+screenshot's Playwright code and image path, or ten levels of `generic [ref=...]:` from a
+`browser_find` before the line with the total. `loop_hook.page_line` now reduces every result to
+the lines that say something, and a result with nothing to say is recorded as blind. It also
+found that in Playwright MCP 0.0.83 **an action's result carries no page text**: a click saves
+its snapshot to a file, and only `browser_snapshot` and `browser_find` return what the page
+says.
+
+Rather than another live phase whose arms differ by noise, `loop_replay.py` asks the guard's
+question at every step of the 20 recorded sessions whose answer sits on one page, labelled with
+no model - is the answer already in what the agent has in front of it? (B1's label is the
+field's value, not its "First Name" label, which is on the form before anything is typed.)
+383 steps, 0.0148 USD of Jev (`loop-replay.json`):
+
+| | |
+|---|---|
+| AUC of `goal_met` against "the answer is visible" | **0.999** |
+| Early "you already have it" at the shipped 0.70 | **0 of 372** |
+| Spoke when the answer was visible | 2 of 11 |
+| Mean `goal_met`, visible / not yet | 0.55 / 0.016 |
+| Steps with nothing readable (screenshots, actions) | 69 of 383 |
+
+The guard is near perfect and safe; its threshold is strict, and stays where it is (11 positives
+is under the 16 this repo requires for an 80 % precision target, and this is the sample it was
+examined on). **And it has almost nothing to cut**: after the answer was first visible, agents
+made 0, 0, 0, 0, 0, 1, 2, 0 and 0 more calls. They already stop. The error note is no better
+placed: 17 of 415 recorded calls failed (4.1 %), and 2 of 22 sessions had a streak of two or
+more (`streaks.json`).
+
+## 13. Aggregation over many pages: no failures either, and the cheap model is not cheaper
+
+Five tasks counted or summed over many pages, every answer computed from the sites' HTML by
+`truth_hard.py`, one run each on both models (`nav-hard.json`, Claude Code 2.1.287, 1.22 USD of
+subscription at list price):
+
+| | right | mean turns | mean list USD |
+|---|---|---|---|
+| `claude-sonnet-5` | 5/5 | **4.8** | 0.1288 |
+| `claude-haiku-4-5` | 5/5 | 11.4 | 0.1148 |
+
+Both models answered all five. What differs is **how**: on the counts Sonnet wrote one
+`browser_evaluate` that fetched and parsed every page in a single call (four turns, 0.09 USD for
+ten pages of quotes), while Haiku walked the pages with snapshots and clicks (23 turns, 0.20 USD
+for the same task). On H1 the expensive model was **2.2x cheaper** than the cheap one, and
+across the five Haiku saved 11 %, against the 2.4x of section 6. Where a task is a crawl, the
+lever is the strategy - one extraction instead of a walk - and neither a model's price nor a
+cut to what it reads reaches it.
+
+Two faults of the grader, found by reading the two "failures" rather than reporting them: it
+required the literal `answer: 10` and failed Sonnet's right "ANSWER: There are 10 quotes by
+Albert Einstein"; and the runner kept 800 characters of a reply whose ANSWER line comes last.
+`grade` now reads the last ANSWER line, numbers as whole numbers, and `--regrade` grades a round
+again from each session's whole final answer in its transcript, keeping the first grade beside
+the new one. Both fixed before a number was written down.
+
+Across the day, 32 sessions on 9 tasks (A1, A4, B1, B2, H1-H5) - easy, trapped and aggregating - and every one answered
+correctly once graded correctly. The blocker of section 9 is now measured three ways.

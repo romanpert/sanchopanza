@@ -37,13 +37,43 @@ def test_every_request_is_ascii():
         assert question.isascii(), f"{tid}: {question!r}"
 
 
-def test_an_aggregation_answer_is_read_from_its_answer_line_only():
-    """The count must come from the ANSWER line: "page 10" elsewhere is not "10 quotes"."""
-    h1 = next(t for t in nav.HARD_TASKS if t[0] == "H1")
-    required = h1[3]
-    assert nav.base.graded("Walked all 10 pages.\nANSWER: 10", required)
-    assert nav.base.graded("Walked all 10 pages.\n**ANSWER:10**", required)
-    assert not nav.base.graded("Walked all 10 pages and found 9.\nANSWER: 9", required)
+def _req(tid: str) -> list:
+    return next(t for t in nav.HARD_TASKS if t[0] == tid)[3]
+
+
+@pytest.mark.parametrize(
+    ("answer", "right"),
+    [
+        ("Walked all 10 pages.\nANSWER: 10", True),
+        ("Walked all 10 pages.\n**ANSWER:10**", True),
+        # Sonnet's real reply, H1, 2026-10-02: right, and failed by the first grader.
+        (
+            "I crawled all 10 pages.\n\nANSWER: There are 10 quotes by Albert Einstein across all "
+            "pages of quotes.toscrape.com.",
+            True,
+        ),  # fmt: skip
+        ("Walked all 10 pages and found 9.\nANSWER: 9", False),
+        ("ANSWER: 100", False),
+        ("ANSWER: 10.5", False),
+        ("There are 10 of them.", False),  # no ANSWER line at all
+        ("ANSWER: 10\n...then on reflection...\nANSWER: 9", False),  # the last line counts
+    ],
+)
+def test_an_aggregation_answer_is_read_from_its_answer_line_only(answer, right):
+    """ "page 10" elsewhere in the reply is not "10 quotes", and 100 is not 10."""
+    assert nav.grade(answer, _req("H1"), "H1") is right
+
+
+def test_a_sum_and_a_name_are_read_from_the_answer_line():
+    assert nav.grade("ANSWER: The total is £437.74.", _req("H4"), "H4")
+    assert not nav.grade("ANSWER: £437.745", _req("H4"), "H4")
+    assert nav.grade("ANSWER: 13 quotes; Marilyn Monroe has the most (2).", _req("H3"), "H3")
+    assert not nav.grade("ANSWER: 13 quotes.\nMonroe has most.", _req("H3"), "H3")
+
+
+def test_tasks_that_are_not_aggregations_keep_the_substring_grader():
+    a1 = next(t for t in nav.TASKS if t[0] == "A1")
+    assert nav.grade("Item total $55.97, tax $4.48, total $60.45", a1[3], "A1")
 
 
 def _journal(path: pathlib.Path, events: list[dict]) -> pathlib.Path:

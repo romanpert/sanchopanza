@@ -160,8 +160,9 @@ TRAP_WRONG_B2 = ["39.98", "3.20", "43.18"]  # what an agent reports if the remov
 
 # Aggregation over many pages: a count or a sum, where an agent fails by stopping early, counting
 # a page twice or misreading one price in thirty. Every answer was computed from the sites' own
-# HTML by `truth_hard.py` on 2026-10-02, not by a model. The request ends with an ANSWER line so
-# a number elsewhere in the reply ("page 10") cannot pass for the count.
+# HTML by `truth_hard.py` on 2026-10-02, not by a model. The request ends with an ANSWER line and
+# `grade` reads only that line, numbers as whole numbers, so "page 10" elsewhere in a reply
+# cannot pass for the count.
 ANSWER_LINE = " End your reply with one line: ANSWER: <your answer>."
 HARD_TASKS: list[tuple[str, str, str, list[Any]]] = [
     (
@@ -169,21 +170,21 @@ HARD_TASKS: list[tuple[str, str, str, list[Any]]] = [
         "https://quotes.toscrape.com/",
         "How many quotes by Albert Einstein are there on this site, across all of its pages?"
         + ANSWER_LINE,
-        [["answer: 10", "answer:10"]],
+        ["10"],
     ),
     (
         "H2",
         "https://books.toscrape.com/",
         "In the Mystery category, across all of its pages, how many books cost more than "
         "40.00 (the price shown, in pounds)?" + ANSWER_LINE,
-        [["answer: 11", "answer:11"]],
+        ["11"],
     ),
     (
         "H3",
         "https://quotes.toscrape.com/",
         "How many quotes on this site are tagged 'inspirational', counting every page of that "
         "tag, and which author has the most of them?" + ANSWER_LINE,
-        [["answer: 13", "answer:13"], "monroe"],
+        ["13", "monroe"],
     ),
     (
         "H4",
@@ -306,7 +307,7 @@ def one_session(task: tuple, run: int, arm: str) -> dict[str, Any]:
     row = {
         "task": tid, "run": run, "arm": arm, "model": MODELS[arm],
         "ok": not out.get("is_error", True), "subtype": out.get("subtype"),
-        "success": base.graded(answer, required), "answer": answer[:800],
+        "success": grade(answer, required, tid), "answer": answer[:ANSWER_KEPT],
         "list_usd": float(out.get("total_cost_usd") or 0.0),
         "turns": out.get("num_turns"),
         "input_tokens": int(usage.get("input_tokens") or 0),
@@ -369,6 +370,79 @@ def claude_version(work: pathlib.Path) -> str:
     return ""
 
 
+ANSWER_KEPT = 4000  # was 800, and an aggregation task puts its ANSWER line last
+_ANSWER = re.compile(r"answer\s*:\s*(.*)", re.I)
+_NUMBER = re.compile(r"^\d+(?:\.\d+)?$")
+
+
+def answer_line(answer: str) -> str:
+    """The text after the last `ANSWER:` in a reply, or "" when there is none."""
+    found = [m.group(1) for m in _ANSWER.finditer(answer or "")]
+    return found[-1].strip().strip("*").strip() if found else ""
+
+
+def grade(answer: str, required: list[Any], tid: str) -> bool:
+    """Every required item present. For the aggregation tasks (H*) only the ANSWER line counts,
+    and a number counts as a whole number: "10" is met by "There are 10 quotes" and not by
+    "page 10 of 100" elsewhere in the reply, nor by "100" in the line.
+
+    The first version required the literal "answer: 10", and graded "ANSWER: There are 10
+    quotes by Albert Einstein" - which is right - as a failure (H1, Sonnet, 2026-10-02)."""
+    if not tid.startswith("H"):
+        return base.graded(answer, required)
+    line = base.normal(answer_line(answer))
+    if not line:
+        return False
+
+    def met(alternative: str) -> bool:
+        wanted = base.normal(alternative)
+        if _NUMBER.match(wanted):
+            return re.search(rf"(?<![\d.]){re.escape(wanted)}(?![\d]|\.\d)", line) is not None
+        return wanted in line
+
+    return all(
+        any(met(alt) for alt in (item if isinstance(item, list) else [item])) for item in required
+    )
+
+
+def final_answer(workdir: str) -> str:
+    """The session's last assistant text, whole, from Claude Code's own transcript: the row
+    kept only 800 characters before 2026-10-02, and an ANSWER line comes last."""
+    from sanchopanza.context.transcript import message_text, messages_from_claude_code
+
+    slug = re.sub(r"[^A-Za-z0-9]", "-", workdir)
+    folder = pathlib.Path.home() / ".claude" / "projects" / slug
+    for path in sorted(folder.glob("*.jsonl")) if folder.is_dir() else []:
+        texts = [message_text(m) for m in messages_from_claude_code(str(path))
+                 if m.get("role") == "assistant" and message_text(m).strip()]  # fmt: skip
+        if texts:
+            return texts[-1]
+    return ""
+
+
+def regrade(sessions: pathlib.Path, name: str) -> int:
+    """Grade every recorded session again with `grade`, from its whole final answer, and say
+    which verdicts changed. The first grade is kept beside the new one, never overwritten."""
+    required = {t[0]: t[3] for t in TASKS + TRAP_TASKS + HARD_TASKS}
+    rows = done_sessions(sessions)
+    out, changed = [], []
+    for row in rows:
+        whole = final_answer(row.get("workdir", "")) or row.get("answer", "")
+        verdict = grade(whole, required[row["task"]], row["task"])
+        if verdict != row.get("success"):
+            changed.append(f"{row['task']} {row['arm']} run{row['run']}: "
+                           f"{row.get('success')} -> {verdict}")  # fmt: skip
+        first = row.get("success_first_grade", row.get("success"))
+        out.append({**row, "success_first_grade": first, "success": verdict,
+                    "answer": whole[:ANSWER_KEPT], "regraded": True})  # fmt: skip
+    sessions.write_text("".join(json.dumps(r) + "\n" for r in out), encoding="utf-8")
+    report = analyse(phase.counted(out))
+    report["regraded"] = changed
+    (RESULTS / name).write_text(json.dumps(report, indent=1), encoding="utf-8")
+    print(json.dumps(report, indent=1))
+    return 0
+
+
 def done_sessions(path: pathlib.Path) -> list[dict[str, Any]]:
     if not path.exists():
         return []
@@ -424,6 +498,9 @@ def main() -> int:
     ap.add_argument("--runs", type=int, default=0, help="runs per task and arm")
     ap.add_argument("--tag", default="", help="a development round with its own files")
     ap.add_argument("--ceiling", type=float, default=0.0, help="list USD for this round")
+    ap.add_argument(
+        "--regrade", action="store_true", help="grade a --tag round again from whole answers"
+    )
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--env-file", default=None, help="a .env holding TYPESAFE_API_KEY")
     ap.add_argument("--record-hash", action="store_true")
@@ -469,6 +546,10 @@ def main() -> int:
                 "nav-traps.json" if args.traps else ("nav-pilot.json" if args.pilot else "nav.json")
             )
         )
+    if args.regrade:
+        if not args.tag or args.live:
+            raise SystemExit("--regrade takes a --tag and spends nothing: drop --live")
+        return regrade(sessions, name)
     development = args.pilot or args.traps or args.hard or bool(args.tag)
     ceiling = args.ceiling or (PILOT_CEILING_USD if development else CEILING_USD)
     rows = done_sessions(sessions)

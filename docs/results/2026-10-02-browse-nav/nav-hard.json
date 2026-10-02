@@ -1,0 +1,55 @@
+{
+ "sessions": 10,
+ "by_arm": {
+  "SONNET": {
+   "model": "claude-sonnet-5",
+   "sessions": 5,
+   "finished": 5,
+   "success": "5/5",
+   "median_turns": 4,
+   "mean_list_usd": 0.1288,
+   "total_list_usd": 0.6439,
+   "mean_turns": 4.8
+  },
+  "HAIKU": {
+   "model": "claude-haiku-4-5",
+   "sessions": 5,
+   "finished": 5,
+   "success": "5/5",
+   "median_turns": 9,
+   "mean_list_usd": 0.1148,
+   "total_list_usd": 0.574,
+   "mean_turns": 11.4
+  }
+ },
+ "by_task": {
+  "H1": {
+   "SONNET": "1/1",
+   "HAIKU": "1/1"
+  },
+  "H2": {
+   "SONNET": "1/1",
+   "HAIKU": "1/1"
+  },
+  "H3": {
+   "SONNET": "1/1",
+   "HAIKU": "1/1"
+  },
+  "H4": {
+   "SONNET": "1/1",
+   "HAIKU": "1/1"
+  },
+  "H5": {
+   "SONNET": "1/1",
+   "HAIKU": "1/1"
+  }
+ },
+ "versions": [
+  "2.1.287"
+ ],
+ "list_usd_total": 1.2178,
+ "regraded": [
+  "H1 SONNET run1: False -> True",
+  "H3 HAIKU run1: False -> True"
+ ]
+}
