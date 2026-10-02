@@ -24,3 +24,11 @@ confirmation's commit (fddff84), unchanged.
   is reported as "no room", not as a failure of the memory.
 - **Exclusions.** As in the confirmation: usage limit, or a session that ended before its result,
   means NOT RUN. No retries.
+
+## Amendment 1 (2026-10-02, during the Haiku run, before any verdict)
+
+The runner crashed reading Haiku's `legacy` M session 1. The stream had a `permission_denied`
+event, from Haiku trying the PowerShell tool, which neither arm allows, and its `message` was a
+string. This was a runner bug, not a session's end. The reader is fixed, with a test. The run
+continues with `--continue`, which keeps the three pairs recorded and runs the cut pair (legacy
+M) again whole.

@@ -138,7 +138,8 @@ def report(items: list[dict[str, Any]], cut: float) -> None:
     broken = [c for c in scored if not c["kept"]]
     flagged = [c for c in scored if c["p"] < cut]
     caught = [c for c in flagged if not c["kept"]]
-    print(f"cases {len(items)}, answered {len(scored)}, broken {len(broken)}; AUC {auc(scored):.3f}")
+    print(f"cases {len(items)}, answered {len(scored)}, broken {len(broken)}; "
+          f"AUC {auc(scored):.3f}")
     print(f"cut {cut}: flagged {len(flagged)}, of them broken {len(caught)} "
           f"(precision {len(caught) / max(len(flagged), 1):.2f}, "
           f"recall {len(caught) / max(len(broken), 1):.2f})")  # fmt: skip
@@ -152,7 +153,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("runs", nargs="+")
     parser.add_argument("--live", action="store_true", help="ask Jev for unrecorded cases")
     parser.add_argument("--cut", type=float, default=0.5)
-    parser.add_argument("--whole", action="store_true", help="the earlier request whole as the rule")
+    parser.add_argument("--whole", action="store_true",
+                        help="the earlier request whole as the rule")
     args = parser.parse_args(argv)
     items = cases([Path(r) for r in args.runs], args.whole)
     spent = asyncio.run(answer(items, args.live))
