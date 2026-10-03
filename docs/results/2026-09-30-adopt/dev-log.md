@@ -697,3 +697,45 @@ Read one by one before writing:
   ones. H3 holds, with no block to judge.
 - Not preregistered, for the next phase: whether an edit that weakens an existing test separates
   the regressions (the browse line's suggestion). Both zeros above edit or add test files.
+
+## Exploration after the second reading (2026-10-03, indagis-04; post hoc, no verdict, no spend)
+
+Read-only over phase A's rows, streams and patches. Scripts in that session's scratchpad.
+
+- **find_in_repo was never reachable in practice.** With Claude Code's default tools the init
+  line lists `ToolSearch`, and the transcript's `deferred_tools_delta` puts
+  `mcp__sanchopanza__find_in_repo` among the deferred tools: the model sees the bare name. Over
+  all 108 S arms under `runs/` and `singles/` (development included) there are 0 calls to
+  ToolSearch, 0 to find and 0 to the skill. In find-e2e (2.1.282, `--tools Read,Grep,Glob`, no
+  ToolSearch) the tool came with its schema and Haiku used it in 6 of 27. A request captured on a
+  local port (dummy key, no API call) shows that by default the tool is not even in the first
+  request (the server connects after it is built), and that with `"alwaysLoad": true` on the
+  server entry it is there, not deferred. 2.1.282, 2.1.285 and 2.1.287 accept the key. Fixed in
+  1ea9302 (install writes it; the user-scope line uses `claude mcp add-json`). So H4's "find 0"
+  in both readings measured a tool the agent could not see, not one it declined.
+- **The singles' +23 % is more turns, not overhead.** Over the 26 pairs, S cost 13.73 against
+  11.99 USD. The turn-1 prefix grows by 98-222 tokens (about 0.03 USD in all), the hooks injected
+  nothing (`out_chars` 0 in 1,697 hook calls), and cost per turn is the same (0.0092 vs 0.0093);
+  S took 1,449 turns against 1,288. The first reading's S took 1,313 turns and cost 1.08 of N, and
+  the same S arm's cost moves between runs with a ln sd of 0.48, so the 1.225 is plausibly part
+  noise. Hook latency: about 10 s per single (PreToolUse 0.22 s, PostToolUse guard 0.13 s a call).
+- **"Does this edit weaken an existing test?" does not separate the zeros.** Over 39 graded chain
+  arms: 3 of 5 arms with a P2P regression edit an existing test, and 2 of 34 without one do. In
+  pydantic-2 the breaking edit makes `test_use_no_fields` stricter (it wraps the validator in
+  `pytest.warns`), not weaker; every arm makes it because pr_8678's statement lists that test as
+  failing upstream (pytest 8), while it passes at base here. starlette-rel-2 Sm (second reading)
+  touches no existing test: its 6 broken P2P tests come from source edits. The two arms flagged
+  with no regression (pygments-2 N regenerates a golden file, dvc-rel-1 Nf inverts `test_open_bare`)
+  each got a FAIL_TO_PASS resolution they did not earn. **The chain grader applies the agent's
+  edits to test files** (`which-p2p-pydantic-2.log`: the edited test fails, and passes with no
+  diff), unlike SWE-bench's harness, which runs the reference tests. A regrade with test files
+  reset to base is free (Docker, no session) and would show how much of pydantic-2's 0/5 is the
+  edited test; it is exploration, not a verdict.
+- **Power.** The same Sm arm, run twice (first and second reading), moves by 1, 0, -1, 0, 1, 1,
+  1, -5, 1, 5 bugs per chain: a per-run sd of 1.74 bugs of 5, because one regression sinks a
+  chain. Simulated from these runs (resampling chains, each run drawn from that chain's observed
+  runs): the sealed point rule says H1 holds in 44 % of draws when S is truly 10 % worse, and a
+  one-sided 95 % interval rule reaches only 19 % (10 chains), 34 % (20 x 2 runs) or 46 %
+  (40 x 2) power when the arms are equal. The singles are stable (S first and second reading
+  disagree on 1 of 26): 26 singles x 3 runs give 92 % power at equality and 3 % "holds" when S is
+  15 % worse. Cost: paired ln(S/N) sd 0.25 on chains, 0.38 on singles.
