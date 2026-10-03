@@ -141,9 +141,69 @@ inflated field, and this README gives the counted figure. Confirmation 3's `desc
 `guard_stops` should be recounted the same way before it is cited. Its verdicts do not use that
 field.
 
+## v7: the check moved into the result (development, same day)
+
+**v7 is line v6 plus the crawl notes** (`harness/crawl_notes.py`, `SANCHOPANZA_CRAWL_NOTES=1`,
+off by default). They come from the evaluate guard: no model, and still a rewrite of the call's
+input that approves nothing. PreToolUse can change a call's input but not its result, so the
+wrapper computes the notes itself. While the function runs, `window.fetch` is replaced by a
+counting copy, and the original goes back in `finally`. If there is something to say, the value
+comes back as `{result, sanchopanza}`; otherwise it comes back unchanged. If the function throws,
+the notes are added to its error message. No PostToolUse hook is needed, so nothing collides
+with memory's or prune's hooks. The notes say:
+
+- **when the call fetched nothing**, what the open page states about its size: the first of a
+  "Showing x to y of N" line, "Page n of N" or "N results/entries/records"; JSON counts
+  (`count`, `total`, `pages`, ...); numbered pagination links; and the `rel=next` link;
+- failed fetches by status, network errors included;
+- fetched pages whose visible text equals that of an earlier, different URL.
+
+The wrapper grows to about 3,300 characters, and Playwright MCP echoes it in every evaluate's
+result. The cost figures below already include that.
+
+Round (`nav_v7.py`): F1, F2, F3, F5 and F8, which held 15 of the 28 line misses above. Three
+runs, 45 sessions, Claude Code 2.1.287, ceiling 6 USD. It cost 4.50 USD, plus 0.19 for a smoke
+session (F5, right; the note quoted "Showing 1 to 10 of 57 entries" and the agent went on to all
+57 rows). The fresh Haiku arm ran at the same hour as v7.
+
+| arm (F1 F2 F3 F5 F8) | right | mean / median USD | mean turns |
+|---|---|---|---|
+| Haiku, no hook | 11/15 | 0.177 / 0.196 | 20.1 |
+| **Haiku + v7** | **11/15** | **0.066** / 0.055 | 7.7 |
+| Haiku + v6 (no notes) | 3/15 | 0.058 / 0.046 | 7.4 |
+
+Per task, v7 / alone / v6: F1 2/2/1, F2 2/2/0, F3 1/3/1, F5 **3**/3/0, F8 **3**/1/1. In the
+morning round, Haiku alone scored 12/15 on the same five tasks.
+
+**The notes close the gap that line v6 left, and v7 keeps the price**: as many right answers as
+Haiku with no hook, at 0.37 of its cost. Without the notes, the same line scored 3/15. Reading
+only the open page fell from 6 of 6 (F5 under v5 and v6) to none: F5 went 3/3 and F8 3/3. All
+four v7 misses were read by hand, and they are of another kind. The data was all fetched, the
+count was wrong, and the code never compared it with the total the page stated:
+
+- F3 runs 1 and 2: every card counted twice by a nested selector (155 and 150 of 75 products)
+  → **structure**.
+- F2 run 2: the note named 99 repeated pages; the agent then followed the real links and
+  double-counted 454 cards → **structure**.
+- F1 run 3: 767 products where the page says 755, because the 404 page past the end shows a
+  product widget, and the note's 404 count was not acted on → **ran past the end**.
+
+That suggests the next note: quote the stated size on calls that do fetch, too, so that "155"
+appears beside "of 75". It is not part of what is registered below. The confirmation tests v7
+exactly as it was measured here.
+
+This is development on tasks seen before, with three runs: an 11 against 11 is a tie, not a win.
+Because it meets the bar on these tasks, a confirmation on new tasks is registered in
+`prereg-crawl4.md` (`nav_confirm4.py`, `truth_confirm4.py`). It is sealed and **not launched**,
+and its expected cost is about 18 USD.
+
 ## Files
 
 - `nav-v6-sessions.jsonl` / `.log`, `nav-v6.json`: the phase. `nav-v6-smoke-sessions.jsonl`: the
   smoke session (F4, v6, right, 0.16 USD).
+- `nav-v7-sessions.jsonl` / `.log`, `nav-v7.json`, `nav-v7-smoke-sessions.jsonl`: the v7 round.
 - `truth-v6.json`: the answers recomputed after the phase.
-- `benchmarks/browse/nav_v6.py`, `truth_v6.py`, `repeat_fingerprint.py`; `tests/test_nav_v6.py`.
+- `prereg-crawl4.md` / `.sha256`: confirmation 4, sealed, not run.
+- `benchmarks/browse/nav_v6.py`, `nav_v7.py`, `nav_confirm4.py`, `truth_v6.py`,
+  `truth_confirm4.py`, `repeat_fingerprint.py`; `tests/test_nav_v6.py`, `test_nav_v7.py`,
+  `test_nav_confirm4.py`, `test_crawl_notes.py`.
