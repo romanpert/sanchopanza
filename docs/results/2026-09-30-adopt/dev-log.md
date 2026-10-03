@@ -739,3 +739,37 @@ Read-only over phase A's rows, streams and patches. Scripts in that session's sc
   (40 x 2) power when the arms are equal. The singles are stable (S first and second reading
   disagree on 1 of 26): 26 singles x 3 runs give 92 % power at equality and 3 % "holds" when S is
   15 % worse. Cost: paired ln(S/N) sd 0.25 on chains, 0.38 on singles.
+
+## Development probe: find with alwaysLoad (2026-10-03)
+
+`benchmarks/adopt_dev/probe_alwaysload.py`, frozen copy of 1ea9302 (find's server registered with
+`"alwaysLoad": true`), Haiku 4.5, Claude Code 2.1.285; data in
+`~/.cache/sanchopanza/adopt/dev-alwaysload/`. Development only, no verdict.
+
+- 14 sessions, 5.68 USD list price. Find was in turn 1 with its schema in 10 of 10 S sessions
+  (never deferred), its server connected, prompt caching intact, init in 4.3-5.9 s.
+- **Haiku called find 0 times in 10 S sessions.** S resolved 7 of 10, N 6 of 10; median cost S/N
+  0.82, with large noise: dev1's S on the same six singles cost 2.77 USD, now 2.40.
+- Causes, read from the transcripts:
+  (a) the tool never said when to use it. Its description ("Find what bears on a task:
+  kind=code (default), symbol, file, skill, agent, memory, archive or tool...") listed what it
+  finds; its parameters had no descriptions and `kind` no enum; the server sent no MCP
+  instructions. The when-rule lived only in the skill body (`skill_code.md`), which was never
+  loaded, while Claude Code's own Grep description says "ALWAYS use Grep for search tasks".
+  (b) 9 of 10 issues named the symbol or file to change, so find was not needed: a median of 2
+  searches reached a gold file.
+  (c) 37 of 61 pre-edit searches were Bash/PowerShell `find|grep|head -20` pipelines; the
+  "20-file" results were head-truncated listings, not the size of the match. In find-e2e (Read,
+  Grep, Glob and find only) Haiku used find in 6 of 27 sessions: 2 at turn 1 (a behaviour-only
+  statement; right after a 27-file Glob) and 4 as late fallbacks after 8-22 failed greps.
+
+Next iteration (e57c374, prepared, not run): the description, each parameter's description,
+`kind` as an enum and MCP server instructions now carry the when-rule (behaviour described and
+nothing named to grep, or a search that listed many files or nothing useful: find; a named
+identifier: Grep), all fixed at session start (Claude Code 2.1.285 puts server instructions in the
+first user message). A PostToolUse nudge (`sanchopanza find-hook`, on by default with find in this
+development copy, `SANCHOPANZA_FIND_NUDGE=0` turns it off) adds one line of context suggesting find
+once per session, after one of the first 3 searches, before any edit, when the result lists 15 or
+more files or fills a `head -K` cut (K >= 10). The probe (`probe_nudge.py`, cap 14.00 USD) runs N
+and S on a new development set drawn by a rule fixed before the draw (`behaviour_set.py`): 7
+Verified issues where no statement token greps to a gold file within 5 hits, and 3 controls.
