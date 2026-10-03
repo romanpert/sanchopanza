@@ -24,7 +24,7 @@ def _used_urls() -> set[str]:
     """Every URL any other benchmark file names: a v6 task must be on none of them."""
     found: set[str] = set()
     for path in (ROOT / "benchmarks").rglob("*.py"):
-        if path.name in {"nav_v6.py", "truth_v6.py"}:
+        if path.name in {"nav_v6.py", "truth_v6.py", "repeat_fingerprint.py"}:  # this phase's own
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
         found |= {u.rstrip(".,)'\"") for u in re.findall(r"https?://[^\s\"'<>)]+", text)}
