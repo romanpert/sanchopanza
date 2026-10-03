@@ -42,7 +42,7 @@ if common.PROFILE != "nudge":
     raise RuntimeError(f"common.py was pinned to {common.PROFILE!r} first: run this on its own")
 
 from . import probe_alwaysload as base  # noqa: E402
-from .nudge_facts import describe  # noqa: E402
+from .nudge_facts import describe, find_hook_ran  # noqa: E402
 
 OUT, PLAN = common.OUT, common.PLAN
 
@@ -74,6 +74,17 @@ def report_nudge(record: dict[str, Any]) -> None:
              f"{len(facts.get('nudge', {}).get('journal', []))} searches before gold read "
              f"{gold.get('searches')} first edit at call "
              f"{facts.get('first_edit_call')}")  # fmt: skip
+
+
+def guard_find_hook(record: dict[str, Any], checked: list[str]) -> None:
+    """After the first S session that ran: if Claude Code never invoked `find-hook` in it (no
+    hooks.jsonl line at all, not merely no nudge), the nudge is not wired and the probe stops."""
+    if record["arm"] != "S" or record["calls"][0].get("status") or checked:
+        return
+    checked.append(record["instance"])
+    if not find_hook_ran(OUT / record["instance"] / "S"):
+        raise base.Stop(f"find-hook never ran ({record['instance']} S: no find-hook line in "
+                        "hooks.jsonl)")  # fmt: skip
 
 
 def _median(values: list[float]) -> float | None:
@@ -122,9 +133,12 @@ def main(argv: list[str] | None = None) -> int:
     signal.signal(signal.SIGINT, signal.SIG_IGN)  # a stray Ctrl+C killed phase A mid-grade
     if hasattr(signal, "SIGBREAK"):
         signal.signal(signal.SIGBREAK, signal.SIG_IGN)
-    base.AFTER_SESSION.append(report_nudge)
+    checked: list[str] = []
+    base.AFTER_SESSION.extend([report_nudge, lambda record: guard_find_hook(record, checked)])
+    stamp = common.run.frozen_stamp() or {}
     base.log(f"PROBE START nudge plan {[(n, a) for n, a in PLAN]} spent {base.spent():.2f} USD "
-             f"cap {common.TOTAL_CAP_USD:.2f}")  # fmt: skip
+             f"cap {common.TOTAL_CAP_USD:.2f} frozen {stamp.get('commit')} "
+             f"extras {stamp.get('extras')}")  # fmt: skip
     try:
         base.probe()
     except base.Stop as why:

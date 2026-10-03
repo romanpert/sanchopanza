@@ -73,6 +73,12 @@ def firings(evidence: Path) -> dict[str, Any]:
             "hook_seconds": round(sum(float(e.get("seconds") or 0) for e in hooks), 2)}  # fmt: skip
 
 
+def find_hook_ran(evidence: Path) -> bool:
+    """Whether Claude Code invoked `find-hook` at all in this session (a hooks.jsonl line of
+    it, fired or not): never means it was not wired, not that it stayed quiet."""
+    return any(e.get("sub") == "find-hook" for e in _lines(evidence / "hooks.jsonl"))
+
+
 def describe(evidence: Path, gold: list[str]) -> dict[str, Any]:
     calls = tool_calls(evidence / "transcript.jsonl")
     finds = [{"api_call": c["api_call"], "call": n, "query": c["input"].get("query"),

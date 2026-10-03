@@ -64,3 +64,49 @@ def test_describe_one_session(tmp_path: Path) -> None:
     assert seen["find_calls"] == [{"api_call": 2, "call": 3, "query": "drops the last row",
                                    "kind": "code"}]  # fmt: skip
     assert seen["first_edit_call"] == 5 and seen["searches_before_edit"] == 2
+
+
+def test_find_hook_ran_reads_invocations_not_firings(tmp_path: Path) -> None:
+    from .nudge_facts import find_hook_ran
+
+    assert find_hook_ran(tmp_path) is False  # no hooks.jsonl at all
+    _write(tmp_path / "hooks.jsonl", [{"sub": "hook", "event": "PreToolUse"},
+                                      {"sub": "find-mcp", "event": "server start"}])  # fmt: skip
+    assert find_hook_ran(tmp_path) is False
+    _write(tmp_path / "hooks.jsonl", [{"sub": "find-hook", "event": "PostToolUse",
+                                       "out_chars": 0}])  # fmt: skip
+    assert find_hook_ran(tmp_path) is True  # ran, did not fire: enough
+
+
+GUARD = """
+import json, sys
+from pathlib import Path
+from benchmarks.adopt_dev import probe_nudge as p
+p.OUT = Path(sys.argv[1])
+row = {"instance": "x", "arm": "S", "calls": [{}]}
+checked = []
+p.guard_find_hook({**row, "arm": "N"}, checked)  # an N session is never checked
+try:
+    p.guard_find_hook(row, checked)
+except p.base.Stop as why:
+    print("STOP", why)
+p.guard_find_hook(row, checked)  # only the first S session is checked
+print("checked", checked)
+"""
+
+
+def test_the_probe_stops_when_find_hook_never_ran(tmp_path: Path) -> None:
+    """In a process of its own: probe_nudge pins common.py to the nudge profile."""
+    import os
+    import subprocess
+    import sys
+
+    (tmp_path / "x" / "S").mkdir(parents=True)
+    _write(tmp_path / "x" / "S" / "hooks.jsonl", [{"sub": "hook", "event": "PreToolUse"}])
+    root = Path(__file__).resolve().parents[2]
+    env = {**os.environ, "ADOPT_DEV_PROFILE": "nudge"}
+    out = subprocess.run([sys.executable, "-c", GUARD, str(tmp_path)], cwd=root, env=env,
+                         capture_output=True, text=True, timeout=120)  # fmt: skip
+    assert out.returncode == 0, out.stderr[-2000:]
+    assert "STOP find-hook never ran (x S" in out.stdout
+    assert "checked ['x']" in out.stdout

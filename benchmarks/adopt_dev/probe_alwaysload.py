@@ -54,6 +54,7 @@ from .common import (
 from .session_facts import Clock, describe
 
 MIN_DISK_GB = 15.0
+NOT_RUN_ERROR = "NOT RUN (error result)"  # an API or usage-limit error: run again on resume
 # Called with each new row after its log line (probe_nudge.py adds the nudge's facts).
 AFTER_SESSION: list[Any] = []
 
@@ -75,11 +76,22 @@ def kill_tree(pid: int) -> None:
 
 
 def spent() -> float:
-    """List price so far: every row's calls, and the charge of every abandoned attempt."""
-    total = sum(c.get("cost_usd", 0.0) for p in OUT.glob("*/*/row.json")
-                for c in read_json(p)["calls"])  # fmt: skip
-    total += sum(read_json(p)["charged_usd"] for p in OUT.glob("*/*/abandoned.json"))
+    """List price so far, Jev's included: every row's calls (set-aside `<arm>-notrun<N>` rows
+    too, the glob reaches them), and the charge of every abandoned attempt."""
+    total = 0.0
+    for path in OUT.glob("*/*/row.json"):
+        row = read_json(path)
+        total += sum(c.get("cost_usd", 0.0) for c in row["calls"]) + row.get("jev_usd", 0.0)
+    for path in OUT.glob("*/*/abandoned.json"):
+        aside = read_json(path)
+        total += aside["charged_usd"] + aside.get("jev_usd", 0.0)
     return round(total, 6)
+
+
+def charge_for(code: int, aborted: str, seen: dict[str, Any]) -> float:
+    """What a session costs when its stream reports no cost: its cap when it was cut (timeout,
+    abort) or ended without a result line (subtype None), since it may have spent; else 0."""
+    return CALL_CAP_USD if (code == -9 or aborted or seen.get("subtype") is None) else 0.0
 
 
 def set_aside(evidence: Path) -> None:
@@ -90,7 +102,9 @@ def set_aside(evidence: Path) -> None:
     charged = (run.facts(stream)["cost_usd"] or CALL_CAP_USD) if launched else 0.0
     aside = evidence.with_name(f"{evidence.name}-abandoned-{int(time.time())}")
     evidence.rename(aside)
-    (aside / "abandoned.json").write_text(json.dumps({"charged_usd": charged}), encoding="utf-8")
+    jev = run.jev_usd(aside)
+    (aside / "abandoned.json").write_text(json.dumps({"charged_usd": charged, "jev_usd": jev}),
+                                          encoding="utf-8")  # fmt: skip
     log(f"{evidence.parent.name} {evidence.name}: earlier attempt without a row set aside, "
         f"charged {charged:.2f} USD")  # fmt: skip
 
@@ -185,8 +199,7 @@ def session(row: dict[str, Any], arm: str, keyfile: Path) -> dict[str, Any]:
         (evidence / "stream-1.err").write_text(f"{type(exc).__name__}: {exc}", encoding="utf-8")
         code, aborted = -1, ""
     seen = run.facts(evidence / "stream-1.jsonl")
-    charge = CALL_CAP_USD if (code == -9 or aborted) else 0.0
-    seen = {**seen, "cost_usd": seen["cost_usd"] or charge}
+    seen = {**seen, "cost_usd": seen["cost_usd"] or charge_for(code, aborted, seen)}
     call: dict[str, Any] = {"request": 1, "exit": code, "wall_s": round(time.time() - began, 1),
                             **seen}  # fmt: skip
     if aborted:
@@ -194,7 +207,7 @@ def session(row: dict[str, Any], arm: str, keyfile: Path) -> dict[str, Any]:
     elif code == -1 or (not seen["session"] and seen["subtype"] is None):
         call = {**call, "status": "NOT RUN (harness)"}
     elif seen.get("api_error"):
-        call = {**call, "status": "NOT RUN (error result)"}
+        call = {**call, "status": NOT_RUN_ERROR}
     (evidence / "final.patch").write_text(docker_env.agent_diff(work, base), encoding="utf-8",
                                           newline="\n")  # fmt: skip
     found = next(run.CLAUDE_PROJECTS.glob(f"*/{seen['session']}.jsonl"), None) \
@@ -249,8 +262,10 @@ def preflight() -> None:
         raise RuntimeError(why)
     if (found := run.claude_version()) != CLAUDE_VERSION:
         raise RuntimeError(f"Claude Code {CLAUDE_VERSION} expected first on PATH, found {found}")
-    if (run.frozen_stamp() or {}).get("commit") != FROZEN_COMMIT:
-        raise RuntimeError(f"ADOPT_SANCHO is not the frozen copy of {FROZEN_COMMIT[:12]}")
+    stamp = run.frozen_stamp() or {}
+    if stamp.get("commit") != FROZEN_COMMIT or not {"jev", "mcp"} <= set(stamp.get("extras", [])):
+        raise RuntimeError(f"ADOPT_SANCHO is not the frozen copy of {FROZEN_COMMIT[:12]} with "
+                           f"jev and mcp: {stamp}")  # fmt: skip
     run.set_caps(CALL_CAP_USD, CALL_CAP_USD)
 
 
@@ -263,9 +278,30 @@ def report_session(record: dict[str, Any]) -> None:
         f"{probe['latency']['to_first_assistant_s']} s")  # fmt: skip
 
 
+def not_run(name: str, arm: str) -> bool:
+    """A row whose session an API or usage-limit error stopped: run again on resume."""
+    path = OUT / name / arm / "row.json"
+    return path.exists() and read_json(path)["calls"][0].get("status") == NOT_RUN_ERROR
+
+
+def todo_arms(name: str, arms: tuple[str, ...]) -> list[str]:
+    return [a for a in arms if not (OUT / name / a / "row.json").exists() or not_run(name, a)]
+
+
+def set_notrun_aside(evidence: Path) -> Path:
+    """Move an error-result arm to `<arm>-notrun<N>`; `spent` still counts its row."""
+    n = 1
+    while (aside := evidence.with_name(f"{evidence.name}-notrun{n}")).exists():
+        n += 1
+    evidence.rename(aside)
+    log(f"{evidence.parent.name} {evidence.name}: error-result row set aside as {aside.name}, "
+        "run again")  # fmt: skip
+    return aside
+
+
 def one_instance(row: dict[str, Any], arms: tuple[str, ...], keyfile: Path) -> None:
     name = row["instance_id"]
-    todo = [a for a in arms if not (OUT / name / a / "row.json").exists()]
+    todo = todo_arms(name, arms)
     ungraded = [a for a in arms if a not in todo and gradable(name, a)]
     if not todo and not ungraded:
         return
@@ -282,7 +318,9 @@ def one_instance(row: dict[str, Any], arms: tuple[str, ...], keyfile: Path) -> N
 
 def run_arm(row: dict[str, Any], arm: str, keyfile: Path) -> None:
     name = row["instance_id"]
-    if (OUT / name / arm).exists():
+    if not_run(name, arm):
+        set_notrun_aside(OUT / name / arm)
+    elif (OUT / name / arm).exists():
         set_aside(OUT / name / arm)
     if docker_env.disk_free_gb() < MIN_DISK_GB:
         raise Stop(f"under {MIN_DISK_GB} GB free on C:")
@@ -297,7 +335,7 @@ def run_arm(row: dict[str, Any], arm: str, keyfile: Path) -> None:
     status = str(record["calls"][0].get("status", ""))
     if status.startswith("ABORTED") or status == "NOT RUN (harness)":
         raise RuntimeError(f"{name} {arm}: {status}")
-    if status == "NOT RUN (error result)":
+    if status == NOT_RUN_ERROR:
         raise Stop(f"{name} {arm}: an API or usage-limit error result")
     if arm == "S" and record["probe"]["deferral"]["find_deferred"]:
         raise Stop(f"{name} S: find_in_repo was deferred despite alwaysLoad")

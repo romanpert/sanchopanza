@@ -72,3 +72,52 @@ def test_hook_seconds_by_event(tmp_path: Path) -> None:
     seen = hook_seconds(tmp_path)
     assert seen["first_user_prompt_submit_s"] == 0.5
     assert seen["by_event"]["UserPromptSubmit"]["n"] == 2 and seen["server"] == ["server start"]
+
+
+# ---- money and resume ----------------------------------------------------------------------------
+
+
+def test_a_session_without_a_result_line_is_charged_its_cap() -> None:
+    from .probe_alwaysload import CALL_CAP_USD, charge_for
+
+    ended = {"subtype": "success", "cost_usd": 0.0}
+    assert charge_for(0, "", ended) == 0.0
+    assert charge_for(0, "", {"subtype": None, "cost_usd": 0.0}) == CALL_CAP_USD
+    assert charge_for(1, "", {"subtype": None, "cost_usd": 0.0}) == CALL_CAP_USD
+    assert charge_for(-9, "", ended) == CALL_CAP_USD
+    assert charge_for(0, "server failed", ended) == CALL_CAP_USD
+
+
+def _row(folder: Path, cost: float, jev: float = 0.0, status: str = "") -> None:
+    folder.mkdir(parents=True, exist_ok=True)
+    call = {"cost_usd": cost, **({"status": status} if status else {})}
+    (folder / "row.json").write_text(json.dumps({"calls": [call], "jev_usd": jev}), "utf-8")
+
+
+def test_spent_counts_jev_and_every_set_aside_folder(tmp_path: Path, monkeypatch) -> None:
+    from . import probe_alwaysload as probe
+
+    monkeypatch.setattr(probe, "OUT", tmp_path)
+    _row(tmp_path / "a" / "S", 0.40, jev=0.02)
+    _row(tmp_path / "a" / "S-notrun1", 0.10, jev=0.01, status="NOT RUN (error result)")
+    aside = tmp_path / "a" / "N-abandoned-1"
+    aside.mkdir(parents=True)
+    (aside / "abandoned.json").write_text(json.dumps({"charged_usd": 1.5, "jev_usd": 0.03}))
+    assert probe.spent() == round(0.40 + 0.02 + 0.10 + 0.01 + 1.5 + 0.03, 6)
+
+
+def test_a_usage_limited_arm_is_set_aside_and_run_again(tmp_path: Path, monkeypatch) -> None:
+    from . import probe_alwaysload as probe
+
+    monkeypatch.setattr(probe, "OUT", tmp_path)
+    _row(tmp_path / "a" / "S", 0.10, status="NOT RUN (error result)")
+    _row(tmp_path / "a" / "N", 0.30)
+    assert probe.todo_arms("a", ("S", "N")) == ["S"]
+    before = probe.spent()
+    assert probe.set_notrun_aside(tmp_path / "a" / "S").name == "S-notrun1"
+    assert not (tmp_path / "a" / "S").exists() and probe.spent() == before
+    _row(tmp_path / "a" / "S", 0.20, status="NOT RUN (error result)")
+    assert probe.set_notrun_aside(tmp_path / "a" / "S").name == "S-notrun2"
+    assert probe.todo_arms("a", ("S", "N")) == ["S"]
+    _row(tmp_path / "a" / "S", 0.50)
+    assert probe.todo_arms("a", ("S", "N")) == []
