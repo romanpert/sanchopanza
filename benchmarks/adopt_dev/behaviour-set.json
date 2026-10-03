@@ -1,0 +1,162 @@
+{
+ "dataset": {
+  "file": "~/.cache/sanchopanza/find/swebench/verified.parquet",
+  "sha256": "a45b1fe4e2f0c8390b2b2938ac83e92ed5979000856808f3679c07812e9e6dcd"
+ },
+ "rule": "(written before the draw, not changed after):\n\n- Data: `verified.parquet` of the find line (`benchmarks/find/swebench.py`), the file phase D's\n  `draw.py` read; rows with an image in `singles_run`'s cached Verified rows; difficulty\n  \"<15 min fix\" or \"15 min - 1 hour\" (one probe session should cost about 0.5-0.7 USD).\n- Excluded: every id of `benchmarks/adopt_d/used-ids.json` (300, which hold phase A's singles and\n  the find line's samples), every id anywhere in `benchmarks/adopt_d/singles-d.json` (phase D,\n  held out and spares), every id of `benchmarks/adopt/singles-selected.json`, and the alwaysLoad\n  probe's 10.\n- Order: the pool sorted by id, shuffled whole with `random.Random(SEED)`.\n- Tokens of a problem statement, in order of appearance, at most `MAX_TOKENS`: backtick spans\n  with no space (trailing `()` cut), CamelCase and camelCase words, words with an underscore,\n  dotted names (and the last part of each), each at least 3 characters.\n- A token *points at the gold* when `git grep -l -F -I` at the base commit lists 1 to `MAX_HITS`\n  files and one of them is changed by the gold patch, or when a gold file's path ends with it.\n- Behaviour-only: no token points at the gold. Control: some token does.\n- Walk the order, classify each, take the first 7 behaviour-only and the first 3 controls; every\n  instance classified is recorded with its evidence.",
+ "seed": "20261003-dev-nudge",
+ "levels": [
+  "<15 min fix",
+  "15 min - 1 hour"
+ ],
+ "max_tokens": 40,
+ "max_hits": 5,
+ "pool": 143,
+ "excluded": 357,
+ "behaviour": [
+  "django__django-13569",
+  "django__django-11790",
+  "django__django-13343",
+  "django__django-16642",
+  "sympy__sympy-16766",
+  "sympy__sympy-12419",
+  "django__django-16100"
+ ],
+ "control": [
+  "django__django-13195",
+  "django__django-12039",
+  "django__django-12774"
+ ],
+ "images": {
+  "django__django-13569": "swebench/sweb.eval.x86_64.django_1776_django-13569:latest",
+  "django__django-11790": "swebench/sweb.eval.x86_64.django_1776_django-11790:latest",
+  "django__django-13343": "swebench/sweb.eval.x86_64.django_1776_django-13343:latest",
+  "django__django-16642": "swebench/sweb.eval.x86_64.django_1776_django-16642:latest",
+  "sympy__sympy-16766": "swebench/sweb.eval.x86_64.sympy_1776_sympy-16766:latest",
+  "sympy__sympy-12419": "swebench/sweb.eval.x86_64.sympy_1776_sympy-12419:latest",
+  "django__django-16100": "swebench/sweb.eval.x86_64.django_1776_django-16100:latest",
+  "django__django-13195": "swebench/sweb.eval.x86_64.django_1776_django-13195:latest",
+  "django__django-12039": "swebench/sweb.eval.x86_64.django_1776_django-12039:latest",
+  "django__django-12774": "swebench/sweb.eval.x86_64.django_1776_django-12774:latest"
+ },
+ "classified": [
+  {
+   "instance_id": "django__django-13569",
+   "class": "behaviour",
+   "gold": [
+    "django/db/models/functions/math.py"
+   ],
+   "tokens": 23
+  },
+  {
+   "instance_id": "django__django-11790",
+   "class": "behaviour",
+   "gold": [
+    "django/contrib/auth/forms.py"
+   ],
+   "tokens": 7
+  },
+  {
+   "instance_id": "django__django-13343",
+   "class": "behaviour",
+   "gold": [
+    "django/db/models/fields/files.py"
+   ],
+   "tokens": 8
+  },
+  {
+   "instance_id": "django__django-13195",
+   "class": "control",
+   "gold": [
+    "django/contrib/messages/storage/cookie.py",
+    "django/contrib/sessions/middleware.py",
+    "django/http/response.py"
+   ],
+   "tokens": 24,
+   "token": "delete_cookie",
+   "by": "git grep",
+   "hits": [
+    "django/contrib/messages/storage/cookie.py",
+    "django/contrib/sessions/middleware.py",
+    "django/http/response.py",
+    "docs/ref/request-response.txt",
+    "tests/responses/test_cookie.py"
+   ]
+  },
+  {
+   "instance_id": "django__django-16642",
+   "class": "behaviour",
+   "gold": [
+    "django/http/response.py"
+   ],
+   "tokens": 2
+  },
+  {
+   "instance_id": "sympy__sympy-16766",
+   "class": "behaviour",
+   "gold": [
+    "sympy/printing/pycode.py"
+   ],
+   "tokens": 9
+  },
+  {
+   "instance_id": "sympy__sympy-12419",
+   "class": "behaviour",
+   "gold": [
+    "sympy/matrices/expressions/matexpr.py"
+   ],
+   "tokens": 8
+  },
+  {
+   "instance_id": "django__django-16100",
+   "class": "behaviour",
+   "gold": [
+    "django/contrib/admin/options.py"
+   ],
+   "tokens": 2
+  },
+  {
+   "instance_id": "django__django-13028",
+   "class": "behaviour",
+   "gold": [
+    "django/db/models/sql/query.py"
+   ],
+   "tokens": 40
+  },
+  {
+   "instance_id": "django__django-12039",
+   "class": "control",
+   "gold": [
+    "django/db/backends/ddl_references.py"
+   ],
+   "tokens": 10,
+   "token": "col_suffixes",
+   "by": "git grep",
+   "hits": [
+    "django/db/backends/base/schema.py",
+    "django/db/backends/ddl_references.py",
+    "django/db/backends/postgresql/schema.py",
+    "django/db/models/indexes.py"
+   ]
+  },
+  {
+   "instance_id": "django__django-13512",
+   "class": "behaviour",
+   "gold": [
+    "django/contrib/admin/utils.py",
+    "django/forms/fields.py"
+   ],
+   "tokens": 6
+  },
+  {
+   "instance_id": "django__django-12774",
+   "class": "control",
+   "gold": [
+    "django/db/models/query.py"
+   ],
+   "tokens": 24,
+   "token": "query.py",
+   "by": "path"
+  }
+ ]
+}
