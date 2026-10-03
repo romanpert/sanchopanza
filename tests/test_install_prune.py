@@ -44,12 +44,14 @@ def test_install_prune_wires_one_hook_once_and_keeps_theirs(tmp_path: Path) -> N
 
 
 def test_the_matcher_reaches_what_the_confirmed_arm_saw_on_any_server() -> None:
-    """3p and 3r ran `Read|mcp__playwright__.*`; every Playwright MCP tool is `browser_*`."""
+    """3p and 3r measured inline snapshots of `mcp__playwright__browser_*`. `Read` stays out:
+    memory's hook chooses records by the lines a read returns, and a replaced read would leave
+    it choosing by lines the agent never saw (indagis-70, 2026-10-03)."""
     matcher = re.compile(PRUNE_HOOKS["PostToolUse"])
-    for tool in ("Read", "mcp__playwright__browser_snapshot", "mcp__playwright__browser_click",
+    for tool in ("mcp__playwright__browser_snapshot", "mcp__playwright__browser_click",
                  "mcp__plugin_playwright_playwright__browser_navigate"):  # fmt: skip
         assert matcher.fullmatch(tool), tool
-    for tool in ("Bash", "Edit", "WebFetch", "mcp__github__get_file_contents"):
+    for tool in ("Read", "Bash", "Edit", "WebFetch", "mcp__github__get_file_contents"):
         assert not matcher.fullmatch(tool), tool
 
 

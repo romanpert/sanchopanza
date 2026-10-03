@@ -85,9 +85,10 @@ error instead of a hung session. No model; the guard rewrites the call's input a
 nothing. Off by default until confirmed; both entries are owned by the flag.
 
 `--prune` wires snapshot pruning (`harness.browse_hook`, `sanchopanza browse-hook`): `PostToolUse`
-on `Read` and any MCP server's `browser_*` tools cuts a large page snapshot to what the task
-needs and archives the rest. Registered 17-22 % cheaper on large inline snapshots with Jev ranking
-(`--provider jev`); without a provider it ranks by BM25. Off by default; owned by the flag.
+on any MCP server's `browser_*` tools cuts a large page snapshot to what the task needs and
+archives the rest. Registered 17-22 % cheaper on large inline snapshots with Jev ranking
+(`--provider jev`); without a provider it ranks by BM25. Not on `Read`: it would replace a read
+that memory's hook chooses records by. Off by default; owned by the flag.
 
 The one decision worth understanding is `--scan-content`, which is off unless asked for. It
 adds a PostToolUse scan of arriving content for instructions aimed at the model. That is a
@@ -146,8 +147,8 @@ CRAWL_COMMAND = "sanchopanza crawl-hook"
 CRAWL_HOOKS = {"SessionStart": "", "PreToolUse": r"mcp__.*__browser_evaluate"}
 PRUNE_COMMAND = "sanchopanza browse-hook"
 # Event -> matcher for snapshot pruning (`--prune`, `harness.browse_hook`): inline snapshots on any
-# MCP server's browser tools, and the saved ones Claude Code hands back through `Read`.
-PRUNE_HOOKS = {"PostToolUse": r"Read|mcp__.*__browser_.*"}
+# MCP server's browser tools (a result past Claude Code's limit is read back by the hook itself).
+PRUNE_HOOKS = {"PostToolUse": r"mcp__.*__browser_.*"}
 AUTOPILOT_ENV = {
     "SANCHOPANZA_AUTOPILOT": "1",
     "SANCHOPANZA_COMPACT_COMMAND": "sanchopanza compact --stdin --arm mask",

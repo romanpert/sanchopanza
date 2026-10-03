@@ -282,7 +282,7 @@ def _install(args: argparse.Namespace) -> int:
     if args.prune:
         ranker = "Jev" if args.provider == "jev" else "BM25 (pass --provider jev, as measured)"
         sys.stdout.write(
-            "Snapshot pruning is on: a large page snapshot from Read or a browser_* MCP tool is "
+            "Snapshot pruning is on: a large page snapshot from a browser_* MCP tool is "
             f"cut to what the task needs, ranked by {ranker}; the whole page goes to the archive "
             "and the reply says where.\n"
         )
