@@ -23,14 +23,21 @@ def project(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     (repo / ".mcp.json").write_text(
         json.dumps({"mcpServers": {"sanchopanza": {"command": "sanchopanza"}}}), "utf-8"
     )
+    approve(repo, {"enabledMcpjsonServers": ["sanchopanza"]})
     monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(repo))
     monkeypatch.setenv("SANCHOPANZA_GUARD_DIR", str(tmp_path / "state"))
     monkeypatch.setenv("SANCHOPANZA_JOURNAL", str(tmp_path / "journal.jsonl"))
     monkeypatch.delenv("SANCHOPANZA_FIND_NUDGE", raising=False)
     monkeypatch.delenv("SANCHO_FIND_NUDGE", raising=False)
     monkeypatch.setattr(find_nudge, "user_config", lambda: tmp_path / "no-claude.json")
+    monkeypatch.setattr(find_nudge, "user_settings", lambda: tmp_path / "no-settings.json")
     (tmp_path / "transcript.jsonl").write_text("", "utf-8")
     return repo
+
+
+def approve(repo: Path, settings: dict[str, Any], name: str = "settings.json") -> None:
+    (repo / ".claude").mkdir(exist_ok=True)
+    (repo / ".claude" / name).write_text(json.dumps(settings), "utf-8")
 
 
 def event(tool: str, tool_input: dict[str, Any], response: Any, project: Path) -> dict[str, Any]:
@@ -124,6 +131,79 @@ def test_a_user_scope_find_counts_as_installed(
     user.write_text(json.dumps({"mcpServers": {"sanchopanza": {"command": "x"}}}), "utf-8")
     monkeypatch.setattr(find_nudge, "user_config", lambda: user)
     assert context(find_nudge.handle(grep(project, FILES)))
+
+
+def test_a_project_server_nobody_approved_is_not_loaded(project: Path) -> None:
+    """Claude Code loads a `.mcp.json` server only once it is approved: unapproved, find is not
+    there and the nudge would point at a tool the agent does not have."""
+    (project / ".claude" / "settings.json").unlink()
+    assert find_nudge.handle(grep(project, FILES)) is None
+
+
+@pytest.mark.parametrize(
+    ("name", "settings"),
+    [
+        ("settings.local.json", {"enabledMcpjsonServers": ["sanchopanza"]}),
+        ("settings.json", {"enableAllProjectMcpServers": True}),
+    ],
+)
+def test_other_approvals_of_the_project_server(
+    project: Path, name: str, settings: dict[str, Any]
+) -> None:
+    (project / ".claude" / "settings.json").unlink()
+    approve(project, settings, name)
+    assert context(find_nudge.handle(grep(project, FILES)))
+
+
+def test_a_disabled_project_server_is_not_loaded(project: Path) -> None:
+    approve(project, {"enableAllProjectMcpServers": True}, "settings.json")
+    approve(project, {"disabledMcpjsonServers": ["sanchopanza"]}, "settings.local.json")
+    assert find_nudge.handle(grep(project, FILES)) is None
+
+
+def test_an_approval_kept_in_the_user_config_counts(
+    project: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Approved at Claude Code's prompt: the answer lives in ~/.claude.json, by project."""
+    (project / ".claude" / "settings.json").unlink()
+    user = tmp_path / "claude.json"
+    entry = {"enabledMcpjsonServers": ["sanchopanza"]}
+    user.write_text(json.dumps({"projects": {project.as_posix(): entry}}), "utf-8")
+    monkeypatch.setattr(find_nudge, "user_config", lambda: user)
+    assert context(find_nudge.handle(grep(project, FILES)))
+
+
+def test_an_approval_without_the_server_is_not_enough(project: Path) -> None:
+    (project / ".mcp.json").unlink()
+    assert find_nudge.handle(grep(project, FILES)) is None
+
+
+def test_two_concurrent_calls_nudge_once(project: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Claude Code runs hooks of parallel tool calls at once: both read the state before either
+    writes it. The `fired` marker is created exclusively, and only its creator nudges."""
+    import threading
+
+    both = threading.Barrier(2, timeout=10)
+    real = find_nudge.find_installed
+
+    def installed_together(event: dict[str, Any]) -> bool:
+        both.wait()  # each has loaded an open state and found a wide search
+        return real(event)
+
+    monkeypatch.setattr(find_nudge, "find_installed", installed_together)
+    outs: list[dict[str, Any] | None] = [None, None]
+
+    def call(i: int) -> None:
+        outs[i] = find_nudge.handle(grep(project, FILES))
+
+    threads = [threading.Thread(target=call, args=(i,)) for i in range(2)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=30)
+    assert sum(bool(context(out)) for out in outs) == 1
+    assert [r["kind"] for r in journal(project)] == ["find_nudge"]
+    assert find_nudge.handle(grep(project, FILES)) is None
 
 
 def test_the_off_switch(project: Path, monkeypatch: pytest.MonkeyPatch) -> None:

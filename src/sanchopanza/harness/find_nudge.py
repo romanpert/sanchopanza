@@ -6,8 +6,10 @@ listings, and the "20 files" it saw were head-truncated. In find-e2e, where it w
 six calls came right after a search that listed many files. So the suggestion goes where the need
 shows: once per session, after one of the first `MAX_SEARCHES` searches, before any edit, when it
 listed `MIN_LISTED` or more files or filled a `head -K` (K >= `MIN_HEAD`) cut, and only when
-find_in_repo is installed. One line of `additionalContext`, added to the messages: the tools and
-the system prompt never change, so no cached prefix is invalidated.
+Claude Code would load find_in_repo (a `.mcp.json` server counts once approved). One line of
+`additionalContext`, added to the messages: the tools and the system prompt never change, so no
+cached prefix is invalidated. "Once" holds under concurrent hook calls: only the call that creates
+the session's `fired` marker (O_CREAT|O_EXCL) nudges.
 
 Wired by `sanchopanza install` with find (matcher `MATCHER`). Environment (`SANCHOPANZA_<NAME>`):
 
@@ -22,6 +24,7 @@ from __future__ import annotations
 
 import contextlib
 import json
+import os
 import re
 import sys
 from collections.abc import Mapping
@@ -163,6 +166,18 @@ def save(path: Path, state: State) -> None:
     write_private(path, json.dumps({"searches": state.searches, "closed": state.closed}))
 
 
+def claim(path: Path) -> bool:
+    """Create the session's `fired` marker beside its state, exclusively: of two hooks running
+    at once, only the one whose create succeeds may nudge."""
+    marker = path.with_suffix(".fired")
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        os.close(os.open(marker, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600))
+    except FileExistsError:
+        return False
+    return True
+
+
 # ---- conditions checked only when it would fire --------------------------------------------------
 
 
@@ -187,26 +202,60 @@ def user_config() -> Path:
     return Path.home() / ".claude.json"
 
 
-def _servers(path: Path, project: str) -> set[str]:
+def user_settings() -> Path:
+    return Path.home() / ".claude" / "settings.json"
+
+
+def _json(path: Path) -> Mapping[str, Any]:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        return set()
-    if not isinstance(data, Mapping):
-        return set()
-    entry = (data.get("projects") or {}).get(project) or {}
-    scopes = (data.get("mcpServers"), entry.get("mcpServers") if isinstance(entry, Mapping) else 0)
-    return {str(name) for scope in scopes if isinstance(scope, Mapping) for name in scope}
+        return {}
+    return data if isinstance(data, Mapping) else {}
+
+
+def _names(value: Any) -> set[str]:
+    if isinstance(value, Mapping):
+        return {str(name) for name in value}
+    return {str(name) for name in value} if isinstance(value, list) else set()
+
+
+def _approved(settings: list[Mapping[str, Any]]) -> bool:
+    """Whether settings let Claude Code load our `.mcp.json` server: approved by name or all at
+    once, and not disabled by name."""
+    if any(FIND_SERVER in _names(s.get("disabledMcpjsonServers")) for s in settings):
+        return False
+    return any(FIND_SERVER in _names(s.get("enabledMcpjsonServers"))
+               or s.get("enableAllProjectMcpServers") is True for s in settings)  # fmt: skip
+
+
+def _project_entry(config: Mapping[str, Any], project: str) -> Mapping[str, Any]:
+    projects = config.get("projects")
+    if not isinstance(projects, Mapping):
+        return {}
+    for key in (project, project.replace("\\", "/")):
+        entry = projects.get(key)
+        if isinstance(entry, Mapping):
+            return entry
+    return {}
 
 
 def find_installed(event: Mapping[str, Any]) -> bool:
-    """find_in_repo's server in the project's `.mcp.json`, or added for the user or project in
-    Claude Code's own config."""
+    """find_in_repo's server as Claude Code would load it: in the user's or the project's (local)
+    scope of `~/.claude.json`, or in the project's `.mcp.json` once the settings, or the answer
+    to Claude Code's prompt kept in `~/.claude.json`, approve it. Read only when it would fire."""
     from .claude_code import project_dir
 
     project = project_dir(event)
-    found = _servers(Path(project) / ".mcp.json", project) | _servers(user_config(), project)
-    return FIND_SERVER in found
+    config = _json(user_config())
+    entry = _project_entry(config, project)
+    if FIND_SERVER in _names(config.get("mcpServers")) | _names(entry.get("mcpServers")):
+        return True
+    if FIND_SERVER not in _names(_json(Path(project) / ".mcp.json").get("mcpServers")):
+        return False
+    folder = Path(project) / ".claude"
+    files = (folder / "settings.json", folder / "settings.local.json", user_settings())
+    return _approved([entry, *(_json(path) for path in files)])
 
 
 def note(wide: Wide) -> str:
@@ -249,6 +298,8 @@ def handle(event: Mapping[str, Any]) -> dict[str, Any] | None:
         wide = None
     if wide is not None:
         after = replace(after, closed="fired")
+        if not claim(path):  # another call of this session nudged already
+            wide = None
     if after != state:
         save(path, after)
     if wide is None:
