@@ -26,6 +26,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -268,7 +269,14 @@ def earlier(out: Path) -> list[dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
 
 
+def ignore_interrupts() -> None:
+    """A stray Ctrl+C does not end a paid, sealed run: phase A lost a batch to one reaching its
+    console mid-grade (2026-10-02). The run is stopped by PID, never by a signal from a console."""
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+
 def main(argv: list[str] | None = None) -> int:
+    ignore_interrupts()
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", required=True)
     parser.add_argument("--models", default="sonnet")

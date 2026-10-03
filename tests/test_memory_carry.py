@@ -180,3 +180,13 @@ def test_the_stream_reader_takes_events_whose_message_is_text(tmp_path: Path) ->
     path.write_text("\n".join(rows), encoding="utf-8")
     seen = carry.read_stream(path)
     assert seen["cost"] == 0.1 and seen["turns"] == 3 and seen["tools"] == 0
+
+
+def test_the_driver_ignores_sigint_before_it_runs_anything(tmp_path: Path, monkeypatch) -> None:
+    # Phase A, 2026-10-02: a stray Ctrl+C reached a paid batch's console and ended it mid-grade
+    carry = bench_module(ROOT / "benchmarks" / "memory_carry", "carry")
+    calls: list[tuple[object, object]] = []
+    monkeypatch.setattr(carry.signal, "signal", lambda sig, handler: calls.append((sig, handler)))
+    monkeypatch.setattr(carry, "run_plan", lambda *a, **k: calls.append(("run_plan", None)))
+    assert carry.main(["--out", str(tmp_path), "--dry"]) == 0
+    assert calls == [(carry.signal.SIGINT, carry.signal.SIG_IGN), ("run_plan", None)]
