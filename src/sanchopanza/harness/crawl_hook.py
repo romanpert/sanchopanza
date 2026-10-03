@@ -27,7 +27,8 @@ against 22/24) and one hang charged at the session cap decided the cost. Without
 would have been 0.73 and cheaper on 6 of 8. The guard is the answer to that hang, verified live.
 
 Environment: `SANCHOPANZA_EVALUATE_LIMIT_S` (default 120; a 50-page fetch crawl measured here
-takes well under that), `SANCHOPANZA_CRAWL_LINE=0` to keep the guard and drop the line.
+takes well under that), `SANCHOPANZA_CRAWL_LINE=0` to keep the guard and drop the line,
+`SANCHOPANZA_CRAWL_LINE_VERSION=6` for line v6 (in development; v5 stays the default).
 Standard library only; fail open everywhere.
 """
 
@@ -48,7 +49,7 @@ EVALUATE = re.compile(r"^mcp__.+__browser_evaluate$")
 MARK = "/* sanchopanza evaluate guard */"
 DEFAULT_LIMIT_S = 120
 
-STRATEGY_LINE = (
+STRATEGY_LINE_V5 = (
     "If the request needs data gathered from many pages of a site (counting, summing, comparing "
     "or listing across pagination or infinite scroll), do not open the pages one by one: write "
     "one browser_evaluate that collects them all and computes the answer in code, with a cap on "
@@ -60,6 +61,22 @@ STRATEGY_LINE = (
     "what the site shows before you answer. If the call errors or falls short, fix the code and "
     "run it again rather than walking the pages."
 )
+# v6 (development, not confirmed): v5 with four clauses for confirmation 3's misses, each an
+# extraction the agent never checked - a guessed `?page=N` scheme, a "nothing remained" it never
+# computed, a word matched anywhere in a card, products merged by name (README 2026-10-03).
+STRATEGY_LINE_V6 = STRATEGY_LINE_V5.replace(
+    "Make it also return how many pages and items it read and whether more remained, and check "
+    "that against what the site shows before you answer. ",
+    "Follow the pages through the site's own links or data, never a URL pattern you guessed. "
+    "Make it also return how many pages and items it read and whether more remained, each "
+    "computed by the code and not assumed, and before you answer check them against what the "
+    "site states (a total, a last page). Match the field the request names, read from its own "
+    "element or a parser, not a word or a regex anywhere in an item's text. Count each item once "
+    "by its URL or id, never by its name. ",
+)
+LINES = {"5": STRATEGY_LINE_V5, "6": STRATEGY_LINE_V6}
+DEFAULT_VERSION = "5"
+STRATEGY_LINE = LINES[DEFAULT_VERSION]
 
 
 def wrap(function: str, limit_s: int) -> str:
@@ -113,8 +130,15 @@ def strategy(env: Mapping[str, str] | None = None) -> dict[str, Any] | None:
     if _env.get("CRAWL_LINE", "1", env).strip().lower() in {"0", "false", "no", "off"}:
         return None
     return {
-        "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": STRATEGY_LINE}
+        "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": line_for(env)}
     }
+
+
+def line_for(env: Mapping[str, str] | None = None) -> str:
+    """The line `SANCHOPANZA_CRAWL_LINE_VERSION` names (5 or 6); v5, the default, for anything
+    else, so a typo cannot switch the line off."""
+    version = _env.get("CRAWL_LINE_VERSION", DEFAULT_VERSION, env).strip().lstrip("vV")
+    return LINES.get(version, LINES[DEFAULT_VERSION])
 
 
 def handle(event: Mapping[str, Any], env: Mapping[str, str] | None = None) -> dict | None:
