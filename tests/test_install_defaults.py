@@ -136,17 +136,38 @@ def _nudge_entries(settings: Path) -> list[dict]:
     return [e for e in post if any("find-hook" in h["command"] for h in e["hooks"])]
 
 
-def test_find_comes_with_its_nudge_and_goes_with_it(tmp_path: Path) -> None:
+def test_the_default_install_wires_no_nudge(tmp_path: Path) -> None:
+    """The nudge is opt-in: in the development probe (2026-10-03) it fired in 5 of 10 S sessions,
+    always on Haiku's opening listing of file names, and turned none of them into a find call."""
+    settings, _, _ = _paths(tmp_path)
+    assert _install(settings) == 0
+    assert "enabledMcpjsonServers" in json.loads(settings.read_text("utf-8"))  # find is on
+    assert _nudge_entries(settings) == []
+
+
+def test_find_nudge_wires_it_once_and_goes_without_the_flag_or_find(tmp_path: Path) -> None:
     from sanchopanza.harness.find_nudge import MATCHER
 
     settings, _, _ = _paths(tmp_path)
-    assert _install(settings) == 0
+    assert _install(settings, "--find-nudge") == 0
     [entry] = _nudge_entries(settings)
     assert entry["matcher"] == MATCHER
     assert entry["hooks"] == [{"type": "command", "command": "sanchopanza find-hook"}]
-    assert _install(settings) == 0 and len(_nudge_entries(settings)) == 1
-    assert _install(settings, "--no-find") == 0
+    assert _install(settings, "--find-nudge") == 0 and len(_nudge_entries(settings)) == 1
+    assert _install(settings, "--find-nudge", "--no-find") == 0
     assert _nudge_entries(settings) == []
+    assert _install(settings, "--find-nudge") == 0 and len(_nudge_entries(settings)) == 1
+    assert _install(settings) == 0  # an earlier default install's nudge is taken out
+    assert _nudge_entries(settings) == []
+
+
+def test_find_nudge_without_find_says_so(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    settings, _, _ = _paths(tmp_path)
+    assert _install(settings, "--find-nudge", "--no-find") == 0
+    assert _nudge_entries(settings) == []
+    assert "the find nudge needs find_in_repo" in capsys.readouterr().err
 
 
 def test_the_nudge_command_follows_the_hook_command() -> None:
@@ -160,4 +181,6 @@ def test_a_user_install_wires_no_nudge(tmp_path: Path, monkeypatch: pytest.Monke
     monkeypatch.chdir(tmp_path)
     settings = tmp_path / "user" / "settings.json"
     assert _install(settings) == 0
+    assert _nudge_entries(settings) == []
+    assert _install(settings, "--find-nudge") == 0  # find is not in a user install's .mcp.json
     assert _nudge_entries(settings) == []

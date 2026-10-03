@@ -187,6 +187,8 @@ def _install(args: argparse.Namespace) -> int:
         root = Path(args.plugin_dir) if args.plugin_dir else default_plugin_root()
     try:
         mcp_change = _plan_mcp_json(args, path)  # first: it may turn find off
+        if args.find_nudge and not args.find:
+            sys.stderr.write("the find nudge needs find_in_repo in this install; not wired\n")
         settings = plan(
             path,
             config,
@@ -200,6 +202,7 @@ def _install(args: argparse.Namespace) -> int:
             memory=args.memory,
             budget=DEFAULT_BUDGET if args.context_budget is None else args.context_budget,
             find=args.find,
+            find_nudge=args.find_nudge,
             profile=args.guard_profile,
         )
         files = _install_plugin(args, root)
@@ -663,6 +666,13 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="register the find_in_repo MCP server in the project's .mcp.json (on by default for "
         "a project or local install; a user install prints the `claude mcp add` line instead)",
+    )
+    install.add_argument(
+        "--find-nudge",
+        action="store_true",
+        help="with find, suggest find_in_repo once per session after a wide early search "
+        "(PostToolUse hook; off by default: in its development probe it fired on opening "
+        "listings and was never followed; SANCHOPANZA_FIND_NUDGE=0 silences it once wired)",
     )
     install.add_argument(
         "--skill",

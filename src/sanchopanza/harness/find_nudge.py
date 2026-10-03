@@ -11,9 +11,13 @@ Claude Code would load find_in_repo (a `.mcp.json` server counts once approved).
 cached prefix is invalidated. "Once" holds under concurrent hook calls: only the call that creates
 the session's `fired` marker (O_CREAT|O_EXCL) nudges.
 
-Wired by `sanchopanza install` with find (matcher `MATCHER`). Environment (`SANCHOPANZA_<NAME>`):
+Opt-in: wired by `sanchopanza install --find-nudge`, and only with find (matcher `MATCHER`). In
+its development probe (2026-10-03, 10 S sessions) it fired 5 times, always on the opening
+listing of file names, and was followed by a find call 0 times. Environment
+(`SANCHOPANZA_<NAME>`):
 
-    FIND_NUDGE   "0" turns it off (on by default wherever it is wired)
+    FIND_NUDGE   "0" turns it off; unset or "1", it runs wherever it is wired (an install
+                 without --find-nudge does not wire it, and no variable wires it)
     GUARD_DIR    the per-session state folder, shared with the compaction guard (`hookio`)
     JOURNAL      each firing is journalled there as kind `find_nudge`
 

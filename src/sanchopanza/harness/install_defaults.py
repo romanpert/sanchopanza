@@ -15,10 +15,12 @@
 - **find_in_repo** (`--no-find` to leave it out): the `sanchopanza` server in the project's
   `.mcp.json`, approved by name in the settings. BM25 fragments without a key; judged by the
   decision model when one is configured.
-- **The find nudge**, with find (`harness.find_nudge`, `SANCHOPANZA_FIND_NUDGE=0` turns it off):
-  `sanchopanza find-hook` on PostToolUse for the search tools, which suggests find_in_repo once
-  per session when an early search before any edit lists many files. On by default while the
-  development probe of 2026-10-03 measures it; it adds to the messages only.
+- **The find nudge** is not a default: `--find-nudge`, with find (`harness.find_nudge`,
+  `SANCHOPANZA_FIND_NUDGE=0` silences it once wired), puts `sanchopanza find-hook` on PostToolUse
+  for the search tools, which suggests find_in_repo once per session when an early search before
+  any edit lists many files. Its development probe of 2026-10-03 did not justify it: it fired in
+  5 of 10 sessions, always on the opening listing of file names, and converted none. An install
+  without the flag takes out a nudge an earlier install wired.
 - **The skill** (`--no-skill`): `sanchopanza-code`, copied to `<scope>/.claude/skills/`.
 """
 

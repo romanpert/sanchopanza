@@ -58,8 +58,11 @@ code is still refused, and everything else goes through as it did before. By def
 shell commands, delegations and searches, installs the
 [compaction guard](#compaction-guard-for-claude-code) (`--no-guard` leaves it out), compacts at
 160,000 tokens (`--context-budget 0` leaves it where Claude Code puts it), copies the
-`sanchopanza-code` skill and, for a project install, registers `find_in_repo` with a once-per-session
-nudge toward it after a wide early search (`SANCHOPANZA_FIND_NUDGE=0` turns the nudge off). Add `--scan-content`
+`sanchopanza-code` skill and, for a project install, registers `find_in_repo` (always loaded, with a
+description of when to use it). `--find-nudge` adds a once-per-session suggestion toward it after a
+wide early search; it is off by default because its development probe did not justify it (fired in
+5 of 10 sessions on the opening file listing, followed 0 times), and `SANCHOPANZA_FIND_NUDGE=0`
+silences it where it is wired. Add `--scan-content`
 to flag instructions planted in what the agent reads, `--check-done` to check "done" before the
 agent stops, and `--autopilot` for the experimental
 [context autopilot](#context-autopilot-for-claude-code-experimental). Not on
