@@ -73,7 +73,7 @@ wrong, 27.1 USD spent on the wrong ones), at every API call, and counts what a s
 saved on wrong sessions against the right answers it would have thrown away. Jev was asked the
 loop guard's own question (`points.loop` `goal_met`, on what the agent said and the result in
 front of it, as `loop_hook.established` builds it) at every call with a tool result:
-judgements (558 distinct states), 0.025 USD, cached by state hash in `calib-cut-jev.jsonl`.
+558 distinct states, 0.025 USD, cached by state hash in `calib-cut-jev.jsonl`.
 
 | rule (pooled, 65 sessions) | wrong sessions cut | USD saved on wrong | right answers lost |
 |---|---|---|---|
