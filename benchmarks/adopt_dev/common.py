@@ -1,0 +1,113 @@
+"""What the alwaysLoad probe runs with, pinned before the sealed modules are imported.
+
+`run.py` and `hook_env.py` read `ADOPT_SANCHO` when they are imported, so the frozen copy of
+1ea9302 (find_in_repo's server registered with `"alwaysLoad": true`) is set here first, and the
+private Claude Code 2.1.285 goes first on PATH for this process and its children. Import the
+sealed modules from this file only (`from .common import run, ...`), never before it.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import random
+import re
+import sys
+from pathlib import Path
+from typing import Any
+
+ADOPT = Path(__file__).resolve().parents[1] / "adopt"
+ROOT = Path.home() / ".cache" / "sanchopanza" / "adopt"
+FROZEN_COMMIT = "1ea9302c8b4c3e63b908b5cd84b5c0204ba5eae1"
+FROZEN = ROOT / "frozen" / f"{FROZEN_COMMIT[:12]}-jev-mcp"
+FROZEN_EXE = FROZEN / "Scripts" / "sanchopanza.exe"
+CLAUDE_DIR = ROOT / "claude-2.1.285"
+CLAUDE_VERSION = "2.1.285"
+OUT = ROOT / "dev-alwaysload"  # evidence and rows of this probe, nothing else
+WORK = ROOT / "work-dal"  # working copies (short: Django's paths are deep)
+SINGLES = ROOT / "singles"  # read only: the development N rows of batch dev1
+FIND_TOOL = "mcp__sanchopanza__find_in_repo"
+
+os.environ["ADOPT_SANCHO"] = str(FROZEN_EXE)
+os.environ["DISABLE_AUTOUPDATER"] = "1"
+_path = os.environ.get("PATH", "").split(os.pathsep)
+if not _path or Path(_path[0]) != CLAUDE_DIR:
+    os.environ["PATH"] = os.pathsep.join([str(CLAUDE_DIR), *_path])
+sys.path.insert(0, str(ADOPT))
+
+import docker_env  # noqa: E402
+import hook_env  # noqa: E402
+import run  # noqa: E402
+import singles  # noqa: E402
+import singles_run  # noqa: E402
+
+__all__ = ["docker_env", "hook_env", "run", "singles", "singles_run"]  # the sealed modules
+
+MODEL = run.MODELS["haiku"]
+CALL_CAP_USD = 1.50
+TOTAL_CAP_USD = 8.00
+
+# Development singles of `singles-selected.json` (dev1 ran N and S on them, 2026-09-30): only S
+# runs again. Then four new development draws (`draw_new`), S and N each.
+DEV1 = ("django__django-15315", "django__django-14752", "matplotlib__matplotlib-23412",
+        "django__django-11206", "django__django-12708", "django__django-16631")  # fmt: skip
+NEW = ("django__django-15104", "sympy__sympy-18763", "django__django-15563",
+       "django__django-12143")  # fmt: skip
+# S before N: the question is whether Haiku calls find; if the cap binds, an N goes first.
+PLAN: tuple[tuple[str, tuple[str, ...]], ...] = (
+    *((name, ("S",)) for name in DEV1),
+    *((name, ("S", "N")) for name in NEW),
+)
+
+
+def held_out() -> set[str]:
+    chosen = json.loads((ADOPT / "singles-selected.json").read_text(encoding="utf-8"))
+    return {r["instance_id"] for r in chosen if r["split"] == "held"}
+
+
+def draw_new() -> list[str]:
+    """Two "<15 min fix" and two "15 min - 1 hour" Verified issues, seeded, outside everything the
+    find runs used, every single of `singles-selected.json` and every chain's bugs."""
+    import pyarrow.parquet as pq
+    import swebench  # benchmarks/find, put on the path by `singles`
+
+    chosen = json.loads((ADOPT / "singles-selected.json").read_text(encoding="utf-8"))
+    taken = singles.used_by_find() | {r["instance_id"] for r in chosen}
+    taken |= {b["instance_id"] for c in run.chains().values() for b in c["bugs"]}
+    table = pq.read_table(swebench.DATA / "verified.parquet").to_pylist()
+    rows = sorted((r for r in table if r["instance_id"] not in taken),
+                  key=lambda r: r["instance_id"])  # fmt: skip
+    rng = random.Random(f"{singles.SEED}-dev-alwaysload")
+    out: list[str] = []
+    for level in ("<15 min fix", "15 min - 1 hour"):
+        out += [r["instance_id"] for r in rng.sample([r for r in rows
+                                                      if r["difficulty"] == level], 2)]  # fmt: skip
+    return out
+
+
+PHASE_D = ADOPT.parent / "adopt_d" / "singles-d.json"
+INSTANCE_ID = re.compile(r"[A-Za-z0-9_.-]+__[A-Za-z0-9_.-]+-\d+")
+
+
+def phase_d_ids() -> set[str]:
+    """Every instance id anywhere in phase D's draw (held out and spares): never run here."""
+    if not PHASE_D.exists():
+        return set()
+    return set(INSTANCE_ID.findall(PHASE_D.read_text(encoding="utf-8")))
+
+
+def plan_refusal() -> str | None:
+    """Why the plan may not run: a held-out single in it (the confirmation's or phase D's), or
+    the draw no longer gives NEW."""
+    names = {name for name, _ in PLAN}
+    if bad := sorted(names & held_out()):
+        return f"held-out singles in the plan: {bad}"
+    if bad := sorted(names & phase_d_ids()):
+        return f"phase D singles in the plan: {bad}"
+    if list(NEW) != draw_new():
+        return f"the seeded draw gives {draw_new()}, the plan names {list(NEW)}"
+    return None
+
+
+def read_json(path: Path) -> Any:
+    return json.loads(path.read_text(encoding="utf-8"))
