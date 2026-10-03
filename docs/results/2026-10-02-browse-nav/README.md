@@ -607,3 +607,116 @@ evaluates, median 0.5 s, 95th percentile 6.3 s, slowest that returned 76 s; none
 two that never returned are the two recorded hangs. So the default would have stopped both hangs
 and no extraction that was going to return. `browser_run_code`, which the hook does not watch,
 was called twice in 275 sessions, 7 s each.
+
+## 20. Confirmation 3 (`install --crawl`): NOT confirmed on either model - cheaper, and one answer short
+
+Registered in `prereg-crawl3.md` (sealed 63b21a5, sha256 `36dea66c...` unchanged) before any
+session; 120 sessions, Claude Code 2.1.287 throughout, every `-SP` transcript showing the line,
+18.16 USD of subscription at list price (about 25 expected); verdicts by the registered
+`nav_confirm3.verdicts` (`nav-confirm3.json`):
+
+| model | Price: crawl ratio <= 0.75 **and** cheaper on >= 6 of 8 | Answers: >= unaided, of 24 | No harm: I1+I2 >= unaided - 1, cost <= 1.25 | beats the harness |
+|---|---|---|---|---|
+| Haiku | ratio **0.377**, cheaper on **8 of 8**: yes | **17** vs 18: **no** | 6/6 vs 6/6, ratio 0.838: yes | **no** |
+| Sonnet | ratio **0.835**, cheaper on **5 of 8**: **no** | **21** vs 22: **no** | 6/6 vs 6/6, ratio 1.026: yes | **no** |
+
+**sanchopanza does not beat Claude Code alone on either model.** On Haiku it is the price bar
+passed by a wide margin and the answers bar missed by one session; on Sonnet both fail. Crawl
+totals: Haiku 5.58 USD, Haiku-SP 2.11, Sonnet 3.85, Sonnet-SP 3.21. Sonnet-SP was dearer by mean
+on E2, E5 and E8.
+
+### Every miss, read by hand
+
+Eighteen crawl misses (Haiku 6, Haiku-SP 7, Sonnet 2, Sonnet-SP 3); none is a grader fault, each
+ANSWER line is a wrong number. Two tasks hold twelve of them.
+
+- **E5 (gold 27), the page's own loader shows duplicates.** The page renders 12 products, and its
+  scroll handler then fetches `/ajax/products?offset=0` (the same 12 again) and steps the offset
+  by 10 while each batch returns 12, so every batch repeats two. Scrolled to the end the page
+  shows **187 cards of 147 products**; 41 cards and 27 products are over $60 (rebuilt from the
+  page's script, `?offset=` 0, 10 ... 140). Five sessions counted cards and answered 41 (Haiku r1
+  r2, Haiku-SP r1 r2, Sonnet r3); Haiku r3 accumulated 247 cards and answered 60. Sonnet r1 saw
+  the 187 and deduplicated to 147. The gold counts products by their URL, as in E1 (whose ten
+  products under $10 are ten product pages, 2-6 and 14-18, under five names; Haiku-SP r3 counted
+  names and answered 5). Counting 41 as right would make the crawl counts 20, 19, 23 and 21:
+  Answers fails on both models either way.
+- **E5 run 1, Sonnet-SP: the one guard stop.** It invented `?page=N` on a page that ignores it,
+  got the same 12 products from every "page", wrote a loop up to 2,000 pages that the time limit
+  stopped at 120 s, then concluded "12 distinct products cycling forever" and answered 6. The
+  guard did its job; the account that followed was wrong.
+- **E4 run 2, Haiku-SP: the same invented parameter.** WooCommerce pages by `/page/N/`; it
+  fetched `?page=N` fifty times, hit its own cap of 50, said "the products repeat in a pattern"
+  and answered 200 of "800" (gold 55 of 188).
+- **E6 (gold 208), the genre.** Haiku-SP r1 and r2 tested "Fantasy" anywhere in the card text,
+  titles and descriptions included: 283 cards case-insensitive, 234 case-sensitive, exactly their
+  answers. Haiku-SP r3 capped its loop at 20 pages of 94 (the line says far above the site),
+  returned `moreRemained: false` without ever setting it, and answered 72. Unaided Haiku r1
+  counted 13 pages and extrapolated the rest at 32 a page (2,580); r2 walked all 94 by snapshots
+  and miscounted (223).
+- **E6, 207, three Sonnet sessions (Sonnet r2, Sonnet-SP r2 r3).** All read `/api/products` and
+  parsed each genre string by turning `'` into `"` and calling `JSON.parse`, or by a regex over
+  quotes. One Fantasy game, *Burn Zombie Burn*, lists `"Shoot-'Em-Up"`: the parse throws (or the
+  regex splits it) and the game drops out. The truth was rechecked by three routes - each card's
+  genre tags, each page's Next.js data, and `/api/products` parsed as the Python list it is - and
+  all give 208 with the same games. A favourable re-reading was looked for and rejected.
+- **E2 run 3, Haiku**: a scroll that stopped at 51 of 60 testimonials, believed (31 for 36).
+
+Three of the eight prompts name the page's mechanism (E2 and E5 "loads more as you scroll", E3
+"its Load More button") and two say where the answer sits (E7, E8): those are guided tasks, not
+free ones. E1, E4 and E6 say only that there are several pages, and they are exactly where
+Haiku-SP lost to Haiku (one session each); it gained one each on E2 and E5, two guided tasks.
+Sonnet-SP lost its one session to Sonnet on E6.
+
+### Described, not tested
+
+| arm | runner kills | guard stops | median wall | all 30 sessions |
+|---|---|---|---|---|
+| Haiku | 0 | 0 | 93.5 s | 6.15 USD |
+| Haiku-SP | 0 | 0 | 52.2 s | 2.59 USD |
+| Sonnet | 0 | 0 | 50.0 s | 5.02 USD |
+| Sonnet-SP | 0 | 1 | 40.7 s | 4.41 USD |
+
+Guard stops are recounted from the tool results that start with the guard's error. The
+`guard_stops` field in `nav-confirm3.json` (425 and 265 for the `-SP` arms) is wrong: the
+guard's message is part of the wrapper it puts around every evaluate, and Playwright MCP echoes
+that wrapper in each result, so the field counts wrapped calls, not stops.
+
+Per task, right / mean USD / median turns:
+
+| task | Haiku | Haiku-SP | Sonnet | Sonnet-SP |
+|---|---|---|---|---|
+| E1 listing, 5 pages (10) | 3/3 0.207 28 | 2/3 0.203 18 | 3/3 0.220 13 | 3/3 0.182 9 |
+| E2 htmx scroll (36) | 2/3 0.151 18 | 3/3 0.105 10 | 3/3 0.123 8 | 3/3 0.182 9 |
+| E3 GraphQL Load More (51) | 3/3 0.199 26 | 3/3 0.106 10 | 3/3 0.138 8 | 3/3 0.117 7 |
+| E4 WooCommerce, 12 pages (55) | 3/3 0.283 28 | 2/3 0.053 6 | 3/3 0.183 7 | 3/3 0.090 4 |
+| E5 AJAX offset scroll (27) | 0/3 0.140 8 | 1/3 0.051 6 | 2/3 0.113 6 | 2/3 0.164 9 |
+| E6 Next.js, 94 pages (208) | 1/3 0.374 20 | 0/3 0.058 7 | 2/3 0.244 13 | 1/3 0.127 6 |
+| E7 iframe + detail (7) | 3/3 0.217 44 | 3/3 0.062 9 | 3/3 0.181 11 | 3/3 0.125 6 |
+| E8 19 detail pages (235) | 3/3 0.290 17 | 3/3 0.064 6 | 3/3 0.080 4 | 3/3 0.084 4 |
+| I1 log in and out | 3/3 0.068 12 | 3/3 0.052 9 | 3/3 0.118 9 | 3/3 0.139 9 |
+| I2 sort, buy, totals | 3/3 0.123 20 | 3/3 0.108 20 | 3/3 0.270 23 | 3/3 0.259 21 |
+
+**Haiku with sanchopanza against Sonnet alone**: crawl cost ratio 0.547, right 17 against 22.
+Cheaper by almost half and five answers worse; not a substitute.
+
+**Computed after the fact, not registered: an oracle answer cascade.** Haiku-SP first, and
+Sonnet-SP on exactly the seven crawl sessions where Haiku-SP was wrong (same task and run), as if
+a perfect judge knew which answers to escalate: **21 right for 3.02 USD, against Sonnet's 22 for
+3.85** (ratio 0.784). Four of the seven escalations come back right; the other three are E5 r1
+and the two E6 207s, where Sonnet-SP misses too. So even a judge that never errs would not pass
+the answers bar against Sonnet here, and no real judge is perfect (section 18).
+
+What this phase says, plainly:
+
+- **The time limit stopped one loop and harmed nothing**, but no session hung in any arm, so this
+  phase cannot show what it saves; the stopped session went on and answered (wrongly, for the
+  reason above). It is the part of `install --crawl` with no downside found.
+- **The line saves money on Haiku (0.38 of the crawl cost) and, on these tasks, not reliably on
+  Sonnet**, which already extracts in few turns on its own.
+- **The answers it loses are the ones confirmations 1 and 2 named**: an extraction whose account
+  is implausible on its face ("800 products, they repeat", "12 cycling forever", "20 pages,
+  nothing remained") and is believed. Two of them come from guessing a `?page=` parameter the
+  site ignores. Asking for an account in the line has now failed to get it checked in three
+  confirmations, and here Sonnet believed one too.
+- **E6's 207 is a miss of the strong model, with and without the line**, from a parse no strategy
+  sentence touches.
