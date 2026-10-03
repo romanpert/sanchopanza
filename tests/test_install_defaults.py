@@ -129,3 +129,35 @@ def test_a_user_install_writes_no_mcp_json_where_it_is_run(
     assert not (elsewhere / ".mcp.json").exists()
     assert "enabledMcpjsonServers" not in json.loads(settings.read_text("utf-8"))
     assert "claude mcp add-json --scope user" in capsys.readouterr().out
+
+
+def _nudge_entries(settings: Path) -> list[dict]:
+    post = json.loads(settings.read_text("utf-8")).get("hooks", {}).get("PostToolUse", [])
+    return [e for e in post if any("find-hook" in h["command"] for h in e["hooks"])]
+
+
+def test_find_comes_with_its_nudge_and_goes_with_it(tmp_path: Path) -> None:
+    from sanchopanza.harness.find_nudge import MATCHER
+
+    settings, _, _ = _paths(tmp_path)
+    assert _install(settings) == 0
+    [entry] = _nudge_entries(settings)
+    assert entry["matcher"] == MATCHER
+    assert entry["hooks"] == [{"type": "command", "command": "sanchopanza find-hook"}]
+    assert _install(settings) == 0 and len(_nudge_entries(settings)) == 1
+    assert _install(settings, "--no-find") == 0
+    assert _nudge_entries(settings) == []
+
+
+def test_the_nudge_command_follows_the_hook_command() -> None:
+    assert defaults.find_hook_command("C:/venv/python.exe -m sanchopanza hook") == (
+        "C:/venv/python.exe -m sanchopanza find-hook"
+    )
+    assert defaults.find_hook_command("sanchopanza hook") == "sanchopanza find-hook"
+
+
+def test_a_user_install_wires_no_nudge(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    settings = tmp_path / "user" / "settings.json"
+    assert _install(settings) == 0
+    assert _nudge_entries(settings) == []

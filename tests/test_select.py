@@ -116,7 +116,7 @@ def test_the_archive_server_offers_repository_search_when_asked(tmp_path: Path) 
     server = build_archive_server(tmp_path / "archive", find=True, repo=tmp_path)
     tools = {t.name: t for t in asyncio.run(server.list_tools())}
     assert set(tools) == {"search_archive", "find_in_repo"}
-    assert len(tools["find_in_repo"].description) < 200
+    assert len(tools["find_in_repo"].description) < 450
     result = asyncio.run(server.call_tool("find_in_repo", {"query": "paginate page", "k": 2}))
     assert "pager.py:1-2" in str(result)
 
@@ -140,7 +140,7 @@ def test_one_mcp_server_composes_the_tool_sets(monkeypatch: pytest.MonkeyPatch) 
         def run(self) -> None:
             built["names"] = self.names
 
-    monkeypatch.setattr(mcp, "_server", lambda name: Fake())
+    monkeypatch.setattr(mcp, "_server", lambda name, instructions="": Fake())
     mcp.main(["--tools", "archive,find,decisions"])
     assert built["names"] == [
         "search_archive",

@@ -99,8 +99,15 @@ from pathlib import Path
 from typing import Any
 
 from .. import _env
+from .find_nudge import MATCHER as NUDGE_MATCHER
 from .generic import HarnessConfig
-from .install_defaults import FIND_SERVER, find_server_entry, merge_budget, merge_profile
+from .install_defaults import (
+    FIND_SERVER,
+    find_hook_command,
+    find_server_entry,
+    merge_budget,
+    merge_profile,
+)
 
 PLUGIN = "sanchopanza-compact"
 MARKETPLACE = "sanchopanza-local"
@@ -655,6 +662,10 @@ def _merge(
     merged, plus, minus = _merge_candor(merged, candor)
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_memory(merged, memory)
+    added, removed = [*added, *plus], [*removed, *minus]
+    nudge = find_hook_command(command)  # find's nudge: wired with find, out without it
+    merged, plus, minus = _merge_owned(merged, find, {"PostToolUse": NUDGE_MATCHER}, nudge,
+                                       find_hook_command(COMMAND), "find nudge")  # fmt: skip
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_budget(merged, budget)
     added, removed = [*added, *plus], [*removed, *minus]

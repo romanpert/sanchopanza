@@ -78,24 +78,44 @@ def parse_options(raw: Any) -> dict[str, str]:
     return {}
 
 
-def _server(name: str) -> Any:
-    """An MCP server object with a `tool()` decorator and `run()`: mcp 2.x or 1.x."""
+def _server(name: str, instructions: str = "") -> Any:
+    """An MCP server object with a `tool()` decorator and `run()`: mcp 2.x or 1.x. Its
+    `instructions` reach the client at initialisation (Claude Code puts them in the system
+    prompt), so they are fixed for the session and never invalidate a cached prefix."""
     try:
         from mcp.server.mcpserver import MCPServer
 
-        return MCPServer(name)
+        return MCPServer(name, instructions=instructions or None)
     except ImportError:
         pass
     try:
         from mcp.server.fastmcp import FastMCP
     except ImportError as error:  # pragma: no cover
         raise RuntimeError("install sanchopanza[mcp] to expose MCP tools") from error
-    return FastMCP(name)
+    return FastMCP(name, instructions=instructions or None)
 
 
+# When to use it, in the description itself: the alwaysLoad probe (2026-10-03) showed find in turn
+# 1 with its schema and Haiku called it 0 times in 10 sessions; the old text said only what it
+# finds, and the when-rule lived in a skill body that was never loaded. Paid every turn: short.
 FIND_DESCRIPTION = (
-    "Find what bears on a task: kind=code (default), symbol, file, skill, agent, memory, "
-    "archive or tool. Returns keys (path:lines) with an excerpt; Read a path for the full text."
+    "Find the code for a request that describes behaviour (what goes wrong, what should happen) "
+    "and names no function, class, error text or file to grep; or after a Grep/Glob/find listed "
+    "many files or nothing useful. If the request names one, Grep for it instead. Returns "
+    "path:lines keys with an excerpt; Read the lines it points to."
+)
+FIND_INSTRUCTIONS = (
+    "find_in_repo: when a request describes behaviour and names no identifier to grep, or a "
+    "search listed many files or nothing useful, call find_in_repo(query=<the symptom in the "
+    "request's words>) before more searching. When it names a function, class, error text or "
+    "file, Grep for that instead."
+)
+QUERY_HELP = "The symptom in the request's own words, e.g. 'the export drops the last row'."
+K_HELP = "How many fragments to return."
+KIND_HELP = (
+    "code (default): code and text to read. symbol: definitions by name. file: files by path "
+    "words. skill, agent, memory, archive, tool: this project's skills, agents, saved notes, "
+    "earlier tool output, tools."
 )
 
 
@@ -113,9 +133,9 @@ def build_archive_server(
     set, BM25 alone otherwise. Off by default, so the lean catalog stays one tool."""
     from .. import _env
 
-    server = add_archive(_server(name), root)
     if find is None:
         find = _env.get("FIND", "") in ("1", "true", "yes")
+    server = add_archive(_server(name, FIND_INSTRUCTIONS) if find else _server(name), root)
     if find:
         add_find(server, repo=repo, squire=squire)
     return server
@@ -136,13 +156,33 @@ def add_find(server: Any, *, repo: Path | None = None, squire: Any = None) -> An
     """`find_in_repo`: fragments of the repository for a request (`context.repo`)."""
     from ..context.repo import find as find_fragments
 
-    @server.tool(description=FIND_DESCRIPTION)
     async def find_in_repo(query: str, k: int = 8, kind: str = "code") -> str:
         where = repo or Path.cwd()
         judge = squire or _squire_if_keyed()
         return await find_fragments(query, where, squire=judge, k=k, kind=kind)
 
+    find_in_repo.__annotations__ = find_annotations()
+    server.tool(description=FIND_DESCRIPTION)(find_in_repo)
     return server
+
+
+def find_annotations() -> dict[str, Any]:
+    """The parameters' schema: a description each, and `kind` as an enum of the registered
+    kinds (every one stays callable; the help names code first). Real objects, not strings, so
+    the server builds the schema from them whatever this module's `__future__` imports."""
+    from typing import Annotated, Literal
+
+    from pydantic import Field
+
+    from ..context.sources import kinds
+
+    kind = Literal[tuple(kinds())]  # type: ignore[valid-type]
+    return {
+        "query": Annotated[str, Field(description=QUERY_HELP)],
+        "k": Annotated[int, Field(description=K_HELP)],
+        "kind": Annotated[kind, Field(description=KIND_HELP)],
+        "return": str,
+    }
 
 
 def _squire_if_keyed() -> Any:
@@ -312,7 +352,7 @@ def main(argv: list[str] | None = None) -> int:
     unknown = sorted(set(wanted) - set(TOOL_SETS))
     if unknown:
         parser.error(f"unknown tool sets {unknown}; known: {list(TOOL_SETS)}")
-    server = _server(args.name)
+    server = _server(args.name, FIND_INSTRUCTIONS) if "find" in wanted else _server(args.name)
     if "archive" in wanted:
         from ..context.archive import root_for
 

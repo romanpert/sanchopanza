@@ -15,6 +15,10 @@
 - **find_in_repo** (`--no-find` to leave it out): the `sanchopanza` server in the project's
   `.mcp.json`, approved by name in the settings. BM25 fragments without a key; judged by the
   decision model when one is configured.
+- **The find nudge**, with find (`harness.find_nudge`, `SANCHOPANZA_FIND_NUDGE=0` turns it off):
+  `sanchopanza find-hook` on PostToolUse for the search tools, which suggests find_in_repo once
+  per session when an early search before any edit lists many files. On by default while the
+  development probe of 2026-10-03 measures it; it adds to the messages only.
 - **The skill** (`--no-skill`): `sanchopanza-code`, copied to `<scope>/.claude/skills/`.
 """
 
@@ -103,6 +107,14 @@ def find_server_entry(command: str) -> dict[str, Any]:
         words = words[:-1]
     words = words or ["sanchopanza"]
     return {"command": words[0], "args": [*words[1:], "find-mcp"], "alwaysLoad": True}
+
+
+def find_hook_command(command: str) -> str:
+    """The nudge's hook command, from the hook command: `<x> hook` becomes `<x> find-hook`."""
+    words = command.split()
+    if words and words[-1] == "hook":
+        words = words[:-1]
+    return " ".join([*(words or ["sanchopanza"]), "find-hook"])
 
 
 def skill_text() -> str:

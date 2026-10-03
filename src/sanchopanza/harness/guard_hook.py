@@ -47,7 +47,6 @@ import asyncio
 import contextlib
 import dataclasses
 import json
-import os
 import sys
 import time
 from collections.abc import Mapping
@@ -57,7 +56,7 @@ from typing import Any
 from .. import _env
 from ..context import guard as guard_mod
 from ..context.transcript import Call, calls, history_from_claude_code, last_compact_summary
-from .hookio import stdin_text, stdout_json, stdout_text
+from .hookio import safe_name, state_dir, stdin_text, stdout_json, stdout_text, write_private
 
 PREFIX = "sanchopanza guard"
 KEPT_SECONDS = 3_600
@@ -75,12 +74,8 @@ def _on(name: str, default: str) -> bool:
     return _env.get(name, default).strip() not in ("0", "", "false", "no")
 
 
-def _dir() -> Path:
-    return Path(_env.get("GUARD_DIR", "") or _env.home_dir() / "guard")
-
-
-def _safe(session: str) -> str:
-    return "".join(c if c.isalnum() or c in "-_." else "_" for c in session) or "session"
+_dir = state_dir
+_safe = safe_name
 
 
 def _log(row: Mapping[str, Any]) -> None:
@@ -94,12 +89,7 @@ def _log(row: Mapping[str, Any]) -> None:
         pass  # a debugging aid never changes what the hook does
 
 
-def _write_private(path: Path, text: str) -> None:
-    """Write `text` readable by this user only (the guard can hold command output)."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(fd, "w", encoding="utf-8") as handle:
-        handle.write(text)
+_write_private = write_private
 
 
 def _sweep(folder: Path) -> None:

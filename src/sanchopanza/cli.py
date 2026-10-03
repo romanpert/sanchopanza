@@ -139,6 +139,12 @@ def _finish_mcp_json(args: argparse.Namespace, change: tuple[Path, Any] | None) 
     return 0
 
 
+def _find_hook(_args: argparse.Namespace) -> int:
+    from .harness.find_nudge import main as nudge_main
+
+    return nudge_main()
+
+
 def _guard_hook(args: argparse.Namespace) -> int:
     from .harness.guard_hook import main as guard_main
 
@@ -564,6 +570,8 @@ def main(argv: list[str] | None = None) -> int:
         "guard-hook", help="the compaction guard's Claude Code hook (stdin JSON -> stdout)"
     )
     guard_hook.set_defaults(func=_guard_hook)
+    sub.add_parser("find-hook", help="find_in_repo's nudge after a wide early search (Claude "
+                   "Code PostToolUse hook)").set_defaults(func=_find_hook)  # fmt: skip
 
     memory_hook = sub.add_parser(
         "memory-hook",
