@@ -116,3 +116,112 @@ What it says, plainly:
 Not shown: whether a cut that tells the agent to change strategy (rather than stop) would turn a
 wrong session right; and anything held out - the 25 AssistantBench tasks with short answers are
 all used, so a confirmation of the 70 % stop needs a new task set with mixed outcomes.
+
+## Selection: would a "another candidate fits" pushback have fixed a wrong answer? (offline)
+
+The cut analysis left one place where a decision could raise answers instead of cutting spend:
+wrong sessions in which the gold reached the agent in a tool result and the agent answered
+something else. The bet: a Stop hook, before the final answer is accepted, collects the candidate
+answers in the session's tool results, asks Jev which one the evidence supports, and if that is
+not the agent's answer pushes back once ("candidate X, seen in <source>, also fits; check it
+against every constraint before answering"). That is capability, not saving. `free_select.py`
+tests it offline on the same 65 sessions, no Claude session, development, not a confirmation.
+
+**Candidates, mechanically** (no model; `candidates`, tested in `tests/test_free_select.py`):
+from all tool results of a session (main agent and subagents, URLs and the WebSearch trailer
+removed), spans of the kind of the agent's own ANSWER - figures with their unit, or capitalised
+names joined by connectors, colons and spaced dashes - minus the question's own words, ranked by
+occurrences weighted by how many question words sit within 150 characters. The top 30 go to Jev,
+plus the agent's own answer when it occurs in the results.
+
+| sessions | gold reached the agent | gold in the candidate pool | gold in the top 30 | median pool |
+|---|---|---|---|---|
+| AssistantBench, right (9) | 8 | 8 | 6 | 110 |
+| AssistantBench, wrong, gold reached (18) | 18 | 17 | **15** | 198 |
+| AssistantBench, wrong, gold not reached (23) | 0 | 1 | 0 | 72 |
+| BrowseComp (15) | 0 | 2 (loose partial matches) | 0 | 256 |
+
+So the extraction is not the bottleneck: of the 14 wrong sessions whose gold is a name, 12 have
+it in the top 30. Its blind spots: the agent's answer sets the kind, so a declined answer
+("I could not verify...") makes a numeric gold invisible (one session), and a question that lists
+its own options (VGT, MGK or VONG) has them filtered out as question words (only the agent's own
+pick is scored then).
+
+**Jev, reusing two points as they are** (cached by state hash in `calib-select-jev.jsonl` and
+`calib-select-set-jev.jsonl`, numbers only; 1,886 + 64 decisions, **0.075 USD**):
+
+- `claim`: `points.citation` per candidate, the claim "X is the answer to this question: ..."
+  against three evidence windows around X; Jev's pick is the highest P(supports).
+- `set`: `points.triage.set_questions`, one Choice over all candidates (the candidate as the page
+  title, its evidence as the text); the pick is the largest share.
+
+| | Jev's pick is the gold, wrong sessions with gold in top 30 | ... right sessions with gold in top 30 | right sessions where the pick is the agent's (right) answer |
+|---|---|---|---|
+| claim | 3/15 | 1/6 | 1/9 |
+| set | 2/15 | 0/6 | - |
+
+On the wrong sessions the gold's P(supports) has a median of 0.29 and the pick's 0.75: Jev gives
+high support to things that are not answers at all. The pushback rule (the session gave an
+ANSWER, Jev's pick differs from it, its probability >= t), all 65 sessions; the extra cost is one
+call, or five, at each fired session's mean call cost (median 0.039 USD):
+
+| shape, t | fires | on wrong | would fix (upper bound) | on right (risk) | extra USD, 1 / 5 calls |
+|---|---|---|---|---|---|
+| claim, 0.5 | 44 | 38 | 3 | 6 | 1.97 / 9.85 |
+| claim, 0.7 | 34 | 31 | 3 | 3 | 1.54 / 7.71 |
+| claim, 0.9 | 15 | 15 | 3 | **0** | 0.65 / 3.26 |
+| set, 0.5 | 24 | 19 | 1 | 5 | 0.96 / 4.79 |
+| set, 0.7 | 7 | 4 | 0 | 3 | 0.20 / 0.99 |
+| set, 0.9 | 2 | 0 | 0 | 2 | 0.05 / 0.26 |
+
+The lower bound of every row is zero fixes: the agent may not switch.
+
+**The 15 fires of `claim` at 0.9, read by hand** (all AssistantBench; none on BrowseComp):
+
+- Three picks are the gold, on two tasks. The martial-arts task (AB6e3be83d), on
+  Sonnet and Haiku: the pick is Renzo Gracie Jiu-Jitsu Wall Street; Haiku had answered Equinox
+  Wall Street, and Sonnet had seen Renzo Gracie and declined it because it could not confirm the
+  five-minute walk, so a pushback asks it to reconsider what it already rejected. AB9baaa267 on
+  Haiku: the pick, 31.67 %, comes from a WebSearch summary that repeats the question's own wording
+  and states the figure - the gold leaking through the search reader, not evidence. Counted
+  honestly, that is **one task, two sessions** that a pushback could plausibly fix.
+- Twelve point at something that is not an answer, or a wrong one: names of sites or services
+  (Realtor.com, "Visit Zillow.com", "Multiple Listing Service" twice, a USPS service name twice
+  for a question that asks for sender and price), a time span ("Monday-Sunday", whose snippet
+  happens to name the gold), and wrong answers of the right type (Trader Joe's, Delice, Sentir,
+  Simone Nardi, 7 %). Each is a turn spent checking a bad lead.
+- None fired on a right session at 0.9. With nine right sessions that bounds the risk loosely:
+  0/9 is compatible with a true rate near 30 %.
+
+BrowseComp, as ids and booleans: the ten Haiku sessions gave no ANSWER (all at their cap), so the
+rule cannot fire; the five Sonnet pilot sessions fire at 0.5 (BC57, BC10, BC693, BC293, BC1248)
+and at 0.7 (the first four), never at 0.9, and none can be a fix since the gold reached none of
+them.
+
+What it says, plainly:
+
+- **The selection failure is real and the candidates are there, but Jev does not find the right
+  one.** The citation question asks whether a snippet supports "X is the answer"; the AssistantBench
+  questions are conjunctions (rated highest on IMDb, under 150 minutes, on Netflix US; within five
+  minutes of the NYSE, open 7-9 pm). Whether one candidate meets every constraint is a composed
+  judgement, and a typed head reads it as "the snippet is about this": site names and wrong
+  answers of the right type score 0.9 and above, and the agent's own right answer scores low
+  (picked in 1 of 9 right sessions). The one Choice over all candidates is worse, not better.
+- **Not worth a registered live arm as it stands.** The upper bound is three fixes on two tasks,
+  one of them a leaked gold; the realistic count is one task. A pushback adds turns, so on its own
+  it cannot meet the owner's bar (cheaper and at least as many right); paired with the 70 %
+  budget stop (14 % saved on wrong sessions) it might, but not on this evidence.
+- **What would have to change first, offline and on these same sessions** (the extraction and its
+  cache are free to re-run): type the candidates (a closed-vocabulary Choice - is X a bar, a film,
+  a person, a site - is the kind of judgement a typed head does well), and split the question into
+  its constraints so Jev answers one Truth per candidate and constraint, with the AND done in code.
+  Only if that picks the gold in most of the 15 sessions where it is in the top 30, and the agent's
+  answer in the right ones, is a live arm worth registering.
+- **It needs fresh tasks with mixed outcomes**: the 25 AssistantBench dev tasks are burned. As far
+  as we know AssistantBench's test answers are not public (leaderboard), so it cannot be graded
+  here. GAIA validation (public answers; the text-only, web-reliant level 1-2 tasks) is the
+  closest fit, with the same contamination risk seen twice here (a leaked gold in a search
+  summary, a figure recognised as "an AI-benchmark dataset"). BrowseComp-Plus (BrowseComp queries
+  over a fixed corpus with labelled evidence documents) would make "the gold reached the agent"
+  controllable and remove web leaks, at the price of a local retriever instead of Claude Code's own
+  WebSearch. Mind2Web-Live grades actions, not a final answer, so it does not fit this lever.
