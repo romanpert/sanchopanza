@@ -28,7 +28,8 @@ would have been 0.73 and cheaper on 6 of 8. The guard is the answer to that hang
 
 Environment: `SANCHOPANZA_EVALUATE_LIMIT_S` (default 120; a 50-page fetch crawl measured here
 takes well under that), `SANCHOPANZA_CRAWL_LINE=0` to keep the guard and drop the line,
-`SANCHOPANZA_CRAWL_LINE_VERSION=6` for line v6 (in development; v5 stays the default).
+`SANCHOPANZA_CRAWL_LINE_VERSION=6` for line v6 (in development; v5 stays the default),
+`SANCHOPANZA_CRAWL_NOTES=1` for notes in each evaluate's result (`crawl_notes`, in development).
 Standard library only; fail open everywhere.
 """
 
@@ -42,6 +43,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from .. import _env
+from .crawl_notes import wrap_with_notes
 from .hookio import stdin_text, stdout_json
 
 PREFIX = "sanchopanza crawl"
@@ -79,15 +81,18 @@ DEFAULT_VERSION = "5"
 STRATEGY_LINE = LINES[DEFAULT_VERSION]
 
 
-def wrap(function: str, limit_s: int) -> str:
+def wrap(function: str, limit_s: int, notes: bool = False) -> str:
     """The same function, raced against a timer. Its arguments pass through untouched.
 
     The function sits on lines of its own, so a trailing `// comment` in it cannot swallow the
-    parenthesis that closes it."""
+    parenthesis that closes it. With `notes`, the result also carries what the page and the
+    network said during the call (`crawl_notes`)."""
     message = (
         f"evaluate stopped after {limit_s} s: the code did not return. Cap its loops, or fetch "
         "the data the page loads instead of waiting on the page."
     )
+    if notes:
+        return wrap_with_notes(function, limit_s, message, MARK)
     return (
         f"{MARK} async (...args) => {{ const run = (\n{function}\n); "
         f"let timer; const limit = new Promise((_, reject) => {{ timer = setTimeout("
@@ -107,7 +112,12 @@ def limit_seconds(env: Mapping[str, str] | None = None) -> int:
     return value if value > 0 else DEFAULT_LIMIT_S
 
 
-def guard(event: Mapping[str, Any], limit_s: int) -> dict[str, Any] | None:
+def notes_on(env: Mapping[str, str] | None = None) -> bool:
+    """`SANCHOPANZA_CRAWL_NOTES=1` turns the result notes on (in development; off by default)."""
+    return _env.get("CRAWL_NOTES", "", env).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def guard(event: Mapping[str, Any], limit_s: int, notes: bool = False) -> dict[str, Any] | None:
     """`PreToolUse`: the evaluate with its function wrapped, or None to leave the call alone."""
     if not EVALUATE.match(str(event.get("tool_name") or "")):
         return None
@@ -120,7 +130,7 @@ def guard(event: Mapping[str, Any], limit_s: int) -> dict[str, Any] | None:
     return {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
-            "updatedInput": {**tool_input, "function": wrap(function, limit_s)},
+            "updatedInput": {**tool_input, "function": wrap(function, limit_s, notes)},
         }
     }
 
@@ -146,7 +156,7 @@ def handle(event: Mapping[str, Any], env: Mapping[str, str] | None = None) -> di
     if name == "SessionStart":
         return strategy(env)
     if name == "PreToolUse":
-        return guard(event, limit_seconds(env))
+        return guard(event, limit_seconds(env), notes_on(env))
     return None
 
 
