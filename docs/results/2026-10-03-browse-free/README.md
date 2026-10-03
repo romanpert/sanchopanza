@@ -211,7 +211,7 @@ What it says, plainly:
   one of them a leaked gold; the realistic count is one task. A pushback adds turns, so on its own
   it cannot meet the owner's bar (cheaper and at least as many right); paired with the 70 %
   budget stop (14 % saved on wrong sessions) it might, but not on this evidence.
-- **What would have to change first, offline and on these same sessions** (the extraction and its
+- **What would have to change first (tried in the second pass below; it does not separate either), offline and on these same sessions** (the extraction and its
   cache are free to re-run): type the candidates (a closed-vocabulary Choice - is X a bar, a film,
   a person, a site - is the kind of judgement a typed head does well), and split the question into
   its constraints so Jev answers one Truth per candidate and constraint, with the AND done in code.
@@ -225,3 +225,78 @@ What it says, plainly:
   over a fixed corpus with labelled evidence documents) would make "the gold reached the agent"
   controllable and remove web leaks, at the price of a local retriever instead of Claude Code's own
   WebSearch. Mind2Web-Live grades actions, not a final answer, so it does not fit this lever.
+
+### Second pass: type the candidates, then one judgement per condition (offline)
+
+The two changes the first pass pointed at, on the same 65 sessions and the same pool
+(`free_select_typed.py`, tests in `tests/test_free_select_typed.py`):
+
+1. **Type first.** Jev reads the question and names the expected answer type (a closed Choice,
+   `points.entities.classification_questions`: person, place, organisation, title, number with
+   unit, date, website, other). A question that asks for a figure gets figure candidates, whatever
+   the agent answered (this closes the blind spot of the declined answer). Every name candidate is
+   typed the same way from its evidence, and code drops it when both types are said at p >= 0.5
+   and are incompatible (a venue may also be typed organisation, a platform website).
+2. **One judgement per condition.** Each surviving candidate gets one `points.citation`
+   judgement per condition ("X is within a five-minute walk of the New York Stock Exchange.",
+   against the evidence windows sharing most words with that condition); code takes the product.
+   **The AssistantBench conditions are written by hand**, two to four per task
+   (`HAND_CONSTRAINTS`): an offline ceiling, not a live mechanism. BrowseComp's come from a
+   mechanical clause split, in memory, never written.
+
+Jev: 1,411 type Choices and 2,882 condition judgements, **0.124 USD** (0.199 USD for the whole
+selection study), cached in `calib-select-type-jev.jsonl` and `calib-select-constraint-jev.jsonl`.
+
+The type filter is the part that works: it drops 354 of 1,345 AssistantBench candidates and 296
+of 450 BrowseComp ones, and keeps the gold in all 25 sessions where the gold is in the set (the
+set now counts the agent's own answer, so right sessions are in it). Then the table, all 65
+sessions ("gold picked" is over those 25), against two baselines with no model:
+
+| method | t | fires | on wrong | would fix (upper bound) | on right (risk) | gold picked | extra USD, 1 / 5 calls |
+|---|---|---|---|---|---|---|---|
+| typed, product over conditions | 0.3 | 21 | 19 | 2 | 2 | 7/25 | 0.86 / 4.28 |
+| | 0.5 | 13 | 12 | 2 | 1 | 7/25 | 0.52 / 2.58 |
+| | 0.7 | 7 | 7 | 1 | 0 | 7/25 | 0.30 / 1.49 |
+| | 0.9 | 3 | 3 | 1 | 0 | 7/25 | 0.14 / 0.71 |
+| typed, comparisons left out | 0.5 | 22 | 17 | 2 | 5 | 6/25 | 0.84 / 4.17 |
+| | 0.9 | 9 | 7 | 1 | 2 | 6/25 | 0.34 / 1.70 |
+| baseline: top-ranked candidate | - | 48 | 40 | 1 | 8 | 5/25 | 2.11 / 10.52 |
+| baseline: top-ranked after the type filter | - | 46 | 40 | 2 | 6 | **8/25** | 2.05 / 10.26 |
+| baseline: most named in the agent's narration | - | 28 | 20 | 0 | 8 | 0/25 | 1.35 / 6.77 |
+
+Read by hand, the 13 fires at 0.5 (all AssistantBench; BrowseComp never fires under the typed
+rule): one plausible fix, Fubo's management team on Haiku (it answered four names, three of them
+wrong; the pick is the gold alone); one leaked gold (31.67 % in a search summary, as before); one
+"risk" that is an artifact (on the right Sonnet session the pick is the agent's own answer, which
+`answer_head` failed to cut out of a sentence); and ten wrong leads - 7 % and 0.2 for a snow
+percentage, a page heading for the shipping question (its expected type is "other", so nothing is
+filtered), Knives Out for Glass Onion, 866 sq ft, 5.2 million USD for an apartment its own snippet
+places outside Mission Bay, Casey George, one of the three gold names on its own, Red Bamboo. The
+martial-arts gold of the first pass is lost: "has classes between 7 and 9 pm" scores 0.16 and 0.07.
+
+What it says, plainly:
+
+- **It still does not separate.** The typed per-condition shape picks the gold in 7 of 25
+  sessions; ranking the type-filtered candidates by occurrences near the question's words picks it
+  in 8. Jev's condition judgements add nothing over that baseline; the type Choice is the one Jev
+  step that helps (5/25 to 8/25, no gold lost).
+- **Why: what Jev cannot see from here.** Per condition, the gold's P(supports) is high on
+  membership ("is a film starring Isabelle Adjani" 1.00, "is a bar" 0.99) and low on the rest:
+  comparisons across candidates (highest rated among those, lowest rated among those: 0.00-0.18 for
+  the gold in 12 of 14 sessions), because one snippet about one candidate cannot settle a comparison; and conditions whose
+  fact lives on another page or nowhere (runtime, a catalogue, evening hours, a walking distance),
+  because the evidence is the windows around the candidate's mentions, and an unstated fact reads
+  as "says nothing". The product then sinks the gold with everything else. Leaving the comparisons
+  out does not help: many candidates meet every membership condition (6/25, more risk). And six of
+  the 25 tasks ask for a computed figure (a saving, a share of days) that no page states, so there
+  is nothing to select.
+- **What kind of decision would.** Comparisons and unstated facts need values, not verdicts: per
+  candidate and attribute, the value a page gives (the runtime, the rating, the distance, the
+  closing hour), from wherever it is stated, and then code applies the thresholds and the
+  superlative. That is extraction, which a typed head does not do; it is a generative step (a small
+  extractor) or, more simply, asking the agent itself at the Stop hook to list each condition with
+  the source that meets it for its answer and for the leading alternative - a composed judgement
+  made by the model that holds the evidence, with code only checking that every condition has a
+  source. Neither is a substitution for Jev, and neither has been measured here.
+- **Still not worth a registered live arm.** Best case at 0.5: one plausible fix and one leaked
+  gold in 47 answered sessions, for 13 extra turns.
