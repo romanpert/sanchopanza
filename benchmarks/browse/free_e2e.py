@@ -60,6 +60,7 @@ def _load(name: str, path: pathlib.Path) -> Any:
 
 
 nav = _load("browse_nav_e2e", HERE / "nav_e2e.py")
+trace = _load("browse_free_trace", HERE / "free_trace.py")
 RESULTS = nav.base.ROOT / "docs" / "results" / "2026-10-03-browse-free"
 SESSIONS = RESULTS / "free-sessions.jsonl"
 REPORT = RESULTS / "free.json"
@@ -74,6 +75,10 @@ ANSWER = (
     "ANSWER: <your answer>."
 )
 MODELS = {"SONNET": "claude-sonnet-5", "HAIKU": "claude-haiku-4-5"}
+# The subscription refusing a session, said in the reply or on stderr. The row's `answer` is
+# empty here (no BrowseComp text is kept), so `phase.usage_limited` needs a marker to see it.
+_REFUSED = re.compile(r"hit your (?:\w+ )?limit|weekly limit|\b429\b|rate.?limit", re.I)
+LIMIT_MARKER = "usage limit: hit your limit"
 
 
 def _xor(text_b64: str, password: str) -> str:
@@ -137,7 +142,17 @@ def tool_calls(work: pathlib.Path) -> dict[str, int]:
     return counts
 
 
-def one_session(task: tuple, run: int, arm: str) -> dict[str, Any]:
+def refused(reply: str, stderr: str, is_error: bool) -> bool:
+    """The subscription's refusal rather than a session. A 429 counts only on an error: a
+    successful reply may well contain the number."""
+    if nav.phase.usage_limited({"answer": reply}):
+        return True
+    return is_error and bool(_REFUSED.search(f"{reply} {stderr}"))
+
+
+def one_session(
+    task: tuple, run: int, arm: str, session_max_usd: float = SESSION_MAX_USD
+) -> dict[str, Any]:
     tid, _url, question, gold = task
     work = pathlib.Path(tempfile.mkdtemp(prefix=f"sp-free-{tid.lower()}r{run}-"))
     settings = work / "settings.json"
@@ -163,17 +178,23 @@ def one_session(task: tuple, run: int, arm: str) -> dict[str, Any]:
         "--output-format",
         "json",
         "--max-budget-usd",
-        f"{SESSION_MAX_USD:g}",
+        f"{session_max_usd:g}",
         "--",
         question + ANSWER,
     ]
     started = time.monotonic()
     try:
         done = subprocess.run(argv, cwd=work, env=env, capture_output=True, timeout=TIMEOUT_S)
+        stderr = done.stderr.decode("utf-8", errors="replace")
         out = json.loads(done.stdout.decode("utf-8", errors="replace") or "{}")
     except (subprocess.TimeoutExpired, ValueError) as error:
+        stderr = ""
         out = {"is_error": True, "subtype": f"runner: {error.__class__.__name__}"}
     reply = str(out.get("result") or "")
+    usd = float(out.get("total_cost_usd") or 0.0)
+    by_model = {
+        m: round(float(u.get("costUSD") or 0), 5) for m, u in (out.get("modelUsage") or {}).items()
+    }
     return {
         "task": tid,
         "run": run,
@@ -181,18 +202,17 @@ def one_session(task: tuple, run: int, arm: str) -> dict[str, Any]:
         "ok": not out.get("is_error", True),
         "subtype": out.get("subtype"),
         "success": graded(reply, gold),
-        "answer": "",
+        "answer": LIMIT_MARKER if refused(reply, stderr, bool(out.get("is_error", True))) else "",
         "answered": bool(nav.answer_line(reply)),
-        "list_usd": float(out.get("total_cost_usd") or 0.0),
+        "list_usd": usd,
+        "cap_usd": session_max_usd,
         "turns": out.get("num_turns"),
-        "usd_by_model": {
-            m: round(float(u.get("costUSD") or 0), 5)
-            for m, u in (out.get("modelUsage") or {}).items()
-        },
+        "usd_by_model": by_model,
         "wall_s": round(time.monotonic() - started, 1),
         "tools": tool_calls(work),
         "version": nav.claude_version(work),
         "workdir": str(work),
+        **trace.summary(str(work), usd, by_model),
     }
 
 
