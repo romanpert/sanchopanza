@@ -773,3 +773,85 @@ once per session, after one of the first 3 searches, before any edit, when the r
 more files or fills a `head -K` cut (K >= 10). The probe (`probe_nudge.py`, cap 14.00 USD) runs N
 and S on a new development set drawn by a rule fixed before the draw (`behaviour_set.py`): 7
 Verified issues where no statement token greps to a gold file within 5 hits, and 3 controls.
+
+## Development probe 2: find description, instructions and nudge (2026-10-03)
+
+`benchmarks/adopt_dev/probe_nudge.py`, frozen copy of 4ee2901 (e57c374's description, parameter
+descriptions, `kind` enum and MCP server instructions, plus the PostToolUse nudge; extras jev and
+mcp), Haiku 4.5, Claude Code 2.1.285, set `behaviour-set.json`; data in
+`~/.cache/sanchopanza/adopt/dev-nudge/`. 20 sessions, 10.29 USD list price (cap 14.00). Development
+only, no verdict.
+
+| Instance | Class | Resolved S/N | Cost S/N (USD) | Turns S/N | Nudge (S) | Find (S) | Searches before gold Read S/N |
+|---|---|---|---|---|---|---|---|
+| django-13569 | behaviour | yes/yes | 0.64/0.59 | 66/67 | no | 0 | 2/3 |
+| django-11790 | behaviour | yes/no | 0.25/0.55 | 32/63 | call 1, name listing | 0 | 1/2 |
+| django-13343 | behaviour | yes/yes | 0.60/0.46 | 63/56 | call 1, name listing | 1 (call 16) | 3/3 |
+| django-16642 | behaviour | no/no | 0.36/0.19 | 42/20 | no | 0 | 2/1 |
+| sympy-16766 | behaviour | yes/yes | 0.39/0.28 | 45/32 | no | 0 | 2/2 |
+| sympy-12419 | behaviour | yes/yes | 1.42/1.48 | 124/119 | no (window closed at call 3) | 0 | 12/10 |
+| django-16100 | behaviour | no/yes | 0.41/0.46 | 34/38 | call 1, name listing | 0 | 2/2 |
+| django-13195 | control | no/no | 0.31/0.29 | 37/36 | call 1, name listing | 0 | 1/1 |
+| django-12039 | control | yes/yes | 0.41/0.50 | 50/55 | no | 0 | 2/1 |
+| django-12774 | control | no/no | 0.28/0.39 | 38/52 | call 1, name listing | 0 | 2/2 |
+
+- **Totals.** Resolved S 6/10, N 6/10 (behaviour 5/7 each, one swap each way: 11790 to S, 16100 to
+  N; controls 1/3 each). Cost 5.08 USD S, 5.21 N; median cost ratio S/N 1.01 (1.09 on the 7
+  behaviour issues). Median searches before the first gold Read: 2 in both arms. Find calls in
+  controls: 0.
+- **Adoption 0/10 to 1/10.** Find was called once, in django-13343 S, at tool call 16 (API call 15)
+  with query `FileField callable storage deconstruct`, kind code. Its top two results were exactly
+  the two hunks of the gold patch: `django/db/models/fields/files.py:276-287` (`deconstruct`,
+  p=0.93) and `files.py:222-239` (the `callable(self.storage)` branch of `__init__`, p=0.90); the
+  rest were docs and tests about callable storage. But the agent had already Read `files.py` at
+  call 4 (3 searches, the same as N). The call came 14 API calls after the nudge, after 11 calls
+  in the tests folder ending in three empty greps: the late-fallback pattern of find-e2e, so it
+  cannot be credited to the nudge rather than to the description and instructions. After it, two
+  greps of `files.py`, a reproduction script and the edit at call 21; N edited at call 17. Both
+  resolved; S cost 1.30x N. Find was precise and late: it did not shorten the way to the gold file.
+- **The nudge fired on Haiku's opening move, not on a need.** It fired in 5 S sessions (11790,
+  13343, 16100, controls 13195 and 12774), each time on the first search, the same
+  `find . -type f -name "*.py" | grep -E "(word|word)" | head -20` file-name listing (20 lines
+  filling `head -20`, or 19 files). In all five the gold file was Read 1 to 3 calls later (calls 2,
+  4, 3, 2, 3) without find; Haiku's next step was a Read of a file from the listing or one
+  targeted Grep. These are false fires: a truncated listing of names, not a search with many
+  matches. In 12419 S, the one session that needed help (12 searches before the gold Read at call
+  27; N 10 at call 15), the window closed at call 3 with the Write of a new `reproduce_bug.py`.
+  The same session also tried to delegate the search to an Explore subagent four times (calls
+  13-16) and each failed with "Agent type 'default' not found", a harness issue to check.
+- **Offline replay of the trigger** (scratch script, both probes, 34 sessions: these 20 and the 14
+  of the alwaysLoad probe; gold files from the Verified patches). The current rule reproduces the
+  five live firings exactly and would fire in 18 of 34 sessions, 16 of them on a name listing.
+  Only 5 of 34 sessions needed 5 or more searches before the gold Read (12419 S and N, 15563 S and
+  N, matplotlib-23412 S). Variants:
+
+  | Variant | Fires (of 34) | Hard sessions hit before the gold Read (of 5) |
+  |---|---|---|
+  | now: first 3 searches, any edit closes | 18 | 4 (all on the call-1 listing) |
+  | first 3 searches, closed only by an edit of an existing non-test file | 19 | 5 |
+  | first 6 searches, any edit closes | 22 | 4 |
+  | first 6 searches, existing non-test edit closes | 23 | 5 |
+  | either of the last two, name listings not counted as wide | 7 / 2 | 0 |
+  | second empty search, no source edit yet | 11 | 2 (3 fires before the gold Read) |
+
+  "Before the first edit of an existing non-test file" would have caught 12419 S at call 7 (on
+  `ls -la | head -20`, again a listing) for one extra fire in 34 sessions; "within the first 6
+  searches" alone would not have (the Write at call 3 still closes it) and adds four fires after
+  the gold Read. No signal read from the shape of a search result separates the 5 hard sessions
+  from the 29 easy ones: the wide listing appears in both, and without listings the rule misses
+  all five.
+- **The test bed.** The behaviour-only rule (no statement token greps to a gold file within 5
+  hits) does not make an issue hard for Haiku: in 6 of 7 it reached the gold file in 1 to 3
+  searches by guessing directory and file names from the statement's words (auth to
+  `contrib/auth/forms.py`, changelist to `admin/options.py`, FileField to `fields/files.py`).
+  Across both probes the need for find arose in 5 of 34 sessions. That ceiling belongs to this
+  test bed (Django and SymPy statements over well-named trees), not to find: where the need
+  existed once and find was called, it returned the gold lines first.
+
+Next iteration (not run): select development tasks by measured need, not by statement tokens:
+issues where recorded N sessions (phase A, D, find-e2e and both dev probes) took 5 or more
+searches to the gold Read or never read it, plus larger repositories and behaviour-described
+requests from real user sessions. On that set, try the trigger closed only by an edit of an
+existing non-test file, plus a struggle signal (the second empty search before a source edit),
+and look at the Agent-type failure in S. Find stays opt-in, not a default, until a set where the
+need is common shows a gain.
