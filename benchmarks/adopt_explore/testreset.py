@@ -91,8 +91,8 @@ def can_change(dropped: list[dict[str, str]]) -> bool:
 
 
 def nodes_of(chain: dict[str, Any]) -> list[str]:
-    bugs = chain["bugs"]
-    return list(dict.fromkeys(n for b in bugs for n in (*b["FAIL_TO_PASS"], *b["PASS_TO_PASS_STAR"])))
+    every = (n for b in chain["bugs"] for n in (*b["FAIL_TO_PASS"], *b["PASS_TO_PASS_STAR"]))
+    return list(dict.fromkeys(every))
 
 
 def score(chain: dict[str, Any], outcome: dict[str, str]) -> dict[str, Any]:
@@ -104,7 +104,8 @@ def score(chain: dict[str, Any], outcome: dict[str, str]) -> dict[str, Any]:
         broken = [t for t, ok in zip(bug["PASS_TO_PASS_STAR"], p2p, strict=True) if not ok]
         bugs.append({"instance_id": bug["instance_id"], "resolved": all(f2p) and all(p2p),
                      "f2p_passed": sum(f2p), "f2p": len(f2p), "p2p_broken": len(broken),
-                     "p2p_broken_ids": broken[:20], "patch_applied": "<patch>" not in outcome})  # fmt: skip
+                     "p2p_broken_ids": broken[:20],
+                     "patch_applied": "<patch>" not in outcome})  # fmt: skip
     return {"resolved": sum(b["resolved"] for b in bugs), "bugs": bugs}
 
 

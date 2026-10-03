@@ -48,8 +48,10 @@ def row(chain: str, arm: str, grade: dict[str, Any]) -> str:
     dropped = ", ".join(f"{d['path']} ({d['status']})" for d in grade["dropped"]) or "-"
     mode = "regraded" if grade["mode"] == "tests-reset" else "unchanged (inspection)"
     changes = "; ".join(bug_changes(grade)) or "-"
-    return (f"| {chain} | {LABEL[arm]} | {grade['original']['resolved']} -> {grade['resolved']} | "
-            f"{repro} | {f0}->{f1}/{n1} | {p0}->{p1} | {mode} | {dropped} | {changes} |")
+    return (
+        f"| {chain} | {LABEL[arm]} | {grade['original']['resolved']} -> {grade['resolved']} | "
+        f"{repro} | {f0}->{f1}/{n1} | {p0}->{p1} | {mode} | {dropped} | {changes} |"
+    )
 
 
 def totals(grades: dict[tuple[str, str], dict[str, Any]], arms: tuple[str, ...]) -> list[str]:
@@ -79,7 +81,8 @@ def write(chains: list[str]) -> None:
              "bug changes |", "|---|---|---|---|---|---|---|---|---|"]  # fmt: skip
     lines += [row(c, a, g) for (c, a), g in grades.items()]
     for arms in TOTALS:
-        lines += ["", f"## Totals: {' vs '.join(LABEL[a] for a in arms)}", "", *totals(grades, arms)]
+        title = " vs ".join(LABEL[a] for a in arms)
+        lines += ["", f"## Totals: {title}", "", *totals(grades, arms)]
     missing = [f"{c}/{a}" for c in chains for a in arms_of(c) if (c, a) not in grades]
     if missing:
         lines += ["", f"Missing: {', '.join(missing)}"]
