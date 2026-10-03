@@ -72,6 +72,24 @@ FRACTIONS = (0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
 STREAKS = (3, 4, 5, 6, 8, 10, 12)
 JEV_CUTS = (0.1, 0.25, 0.5, 0.75)
 AT_CAP = 0.9  # a session that spent this share of its cap is "at its cap"
+# Every AssistantBench reply read by hand (2026-10-03) against the gold and the question. The
+# runner's substring grade passes a reply that names the gold while answering something else,
+# and fails one that adds a ticker. The analysis runs on these verdicts; `grade_runner` keeps the
+# runner's. Only verdicts that differ are listed.
+HAND: dict[tuple[str, str], tuple[bool, str]] = {
+    ("AB4e615af6", "SONNET"): (False, "answers 'None'; names the gold only as a venue too far"),
+    ("AB4dbedc5e", "SONNET"): (False, "answers 130-210 USD saved; 55 is a ticket price in it"),
+    ("AB55f42584", "SONNET"): (False, "answers Damages; names CSI: Cyber as not on Prime"),
+    ("ABe6bc9808", "SONNET"): (False, "no figure; cites the gold as a 'suspicious benchmark' leak"),
+    ("AB6f224e77", "HAIKU"): (False, "four names, three of them wrong"),
+    ("ABefc0f3a4", "SONNET"): (True, "the gold fund, with 'ticker FPADX/FPEMX' added"),
+}
+# Wrong against the gold, plausibly right today (AssistantBench answers drift): not regraded.
+DRIFT = {
+    ("ABc7afe008", "SONNET"): "a Knives Out film released in 2025, after the gold was written",
+    ("ABc7afe008", "HAIKU"): "the same 2025 film",
+    ("AB9e31099f", "SONNET"): "includes the gold's people plus executives who joined in 2024-25",
+}
 
 
 # --- pure: matching, views, rules -------------------------------------------------------------
@@ -171,6 +189,9 @@ def view_of(
         "set": row["task"][:2],
         "arm": row["arm"],
         "success": bool(row["success"]),
+        "grade_runner": bool(row.get("grade_runner", row["success"])),
+        "drift": bool(row.get("drift")),
+        "answered": bool(own),
         "list_usd": row["list_usd"],
         "cap": cap,
         "at_cap": row["list_usd"] >= AT_CAP * cap,
@@ -287,7 +308,10 @@ def sessions() -> list[dict[str, Any]]:
     rows = []
     for source, path in SOURCES.items():
         for row in free.nav.phase.counted(nav.done_sessions(path)):
-            rows.append({**row, "_source": source})
+            key = (row["task"], row["arm"])
+            hand = HAND.get(key, (bool(row["success"]), ""))[0]
+            rows.append({**row, "_source": source, "grade_runner": row["success"],
+                         "success": hand, "drift": key in DRIFT})  # fmt: skip
     return rows
 
 
@@ -378,11 +402,14 @@ async def main_async(key: str) -> dict[str, Any]:
         if not calls:
             continue
         view = view_of(row, calls, gold, float(row.get("cap_usd") or free.SESSION_MAX_USD))
-        judged = await judge_all(jev_states(calls, question), squire, cache)
+        states = jev_states(calls, question)
+        judged = await judge_all(states, squire, cache)
+        view["jev_states"] = sum(x is not None for x in states)
         view["jev"] = carry(judged) if any(j is not None for j in judged) else None
         view["jev_judged"] = sum(j is not None for j in judged)
         views.append(view)
-    with_jev = all(v["jev"] is not None for v in views) and bool(views)
+    # A session with no tool result (one reply, no call) has nothing to judge and is never cut.
+    with_jev = bool(views) and all(v["jev_judged"] == v["jev_states"] for v in views)
     groups = {
         f"{arm}-{s}": [v for v in views if v["arm"] == arm and v["set"] == s]
         for arm in ("SONNET", "HAIKU")
@@ -394,6 +421,8 @@ async def main_async(key: str) -> dict[str, Any]:
         "sessions": len(views),
         "jev_usd_this_run": round(squire.meter.cost_usd, 5) if squire else 0.0,
         "jev_complete": with_jev,
+        "regraded_by_hand": {f"{t}-{a}": f"{v} ({why})" for (t, a), (v, why) in HAND.items()},
+        "drift_flagged": {f"{t}-{a}": why for (t, a), why in DRIFT.items()},
         "describe": {k: describe(g) for k, g in groups.items()},
         "best_live": {k: best(sweep(g, with_jev), live=True) for k, g in groups.items()},
         "best_any": {k: best(sweep(g, with_jev), live=False) for k, g in groups.items()},
@@ -408,6 +437,9 @@ async def main_async(key: str) -> dict[str, Any]:
                     "task",
                     "arm",
                     "success",
+                    "grade_runner",
+                    "drift",
+                    "answered",
                     "list_usd",
                     "cap",
                     "at_cap",
