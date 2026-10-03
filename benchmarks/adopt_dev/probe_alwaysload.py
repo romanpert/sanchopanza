@@ -54,6 +54,8 @@ from .common import (
 from .session_facts import Clock, describe
 
 MIN_DISK_GB = 15.0
+# Called with each new row after its log line (probe_nudge.py adds the nudge's facts).
+AFTER_SESSION: list[Any] = []
 
 
 class Stop(Exception):
@@ -290,6 +292,8 @@ def run_arm(row: dict[str, Any], arm: str, keyfile: Path) -> None:
     log(f"{name} {arm}: start ({so_far:.2f} USD spent)")
     record = session(row, arm, keyfile)
     report_session(record)
+    for after in AFTER_SESSION:
+        after(record)
     status = str(record["calls"][0].get("status", ""))
     if status.startswith("ABORTED") or status == "NOT RUN (harness)":
         raise RuntimeError(f"{name} {arm}: {status}")

@@ -1,9 +1,15 @@
-"""What the alwaysLoad probe runs with, pinned before the sealed modules are imported.
+"""What a development probe runs with, pinned before the sealed modules are imported.
 
-`run.py` and `hook_env.py` read `ADOPT_SANCHO` when they are imported, so the frozen copy of
-1ea9302 (find_in_repo's server registered with `"alwaysLoad": true`) is set here first, and the
-private Claude Code 2.1.285 goes first on PATH for this process and its children. Import the
-sealed modules from this file only (`from .common import run, ...`), never before it.
+`run.py` and `hook_env.py` read `ADOPT_SANCHO` when they are imported, so the frozen copy is set
+here first, and the private Claude Code 2.1.285 goes first on PATH for this process and its
+children. Import the sealed modules from this file only (`from .common import run, ...`), never
+before it.
+
+One process, one probe: `ADOPT_DEV_PROFILE` picks it when this module is first imported.
+- `alwaysload` (default): the frozen copy of 1ea9302 (find_in_repo's server registered with
+  `"alwaysLoad": true`), output dev-alwaysload/, 8.00 USD.
+- `nudge`: the frozen copy of e57c374 (find's description, server instructions and nudge),
+  output dev-nudge/, 14.00 USD, plan from `behaviour-set.json` (`probe_nudge.py`).
 """
 
 from __future__ import annotations
@@ -18,13 +24,21 @@ from typing import Any
 
 ADOPT = Path(__file__).resolve().parents[1] / "adopt"
 ROOT = Path.home() / ".cache" / "sanchopanza" / "adopt"
-FROZEN_COMMIT = "1ea9302c8b4c3e63b908b5cd84b5c0204ba5eae1"
+PROFILE = os.environ.get("ADOPT_DEV_PROFILE", "alwaysload")
+# profile -> (frozen commit, output folder, working copies folder, total cap in USD)
+PROFILES = {
+    "alwaysload": ("1ea9302c8b4c3e63b908b5cd84b5c0204ba5eae1", "dev-alwaysload", "work-dal", 8.00),
+    "nudge": ("e57c374c2bc947a86a0c08f3c9021688b9d33cb8", "dev-nudge", "work-dn", 14.00),
+}
+if PROFILE not in PROFILES:
+    raise RuntimeError(f"ADOPT_DEV_PROFILE={PROFILE!r}; known: {sorted(PROFILES)}")
+FROZEN_COMMIT, _OUT, _WORK, TOTAL_CAP_USD = PROFILES[PROFILE]
 FROZEN = ROOT / "frozen" / f"{FROZEN_COMMIT[:12]}-jev-mcp"
 FROZEN_EXE = FROZEN / "Scripts" / "sanchopanza.exe"
 CLAUDE_DIR = ROOT / "claude-2.1.285"
 CLAUDE_VERSION = "2.1.285"
-OUT = ROOT / "dev-alwaysload"  # evidence and rows of this probe, nothing else
-WORK = ROOT / "work-dal"  # working copies (short: Django's paths are deep)
+OUT = ROOT / _OUT  # evidence and rows of this probe, nothing else
+WORK = ROOT / _WORK  # working copies (short: Django's paths are deep)
 SINGLES = ROOT / "singles"  # read only: the development N rows of batch dev1
 FIND_TOOL = "mcp__sanchopanza__find_in_repo"
 
@@ -45,7 +59,6 @@ __all__ = ["docker_env", "hook_env", "run", "singles", "singles_run"]  # the sea
 
 MODEL = run.MODELS["haiku"]
 CALL_CAP_USD = 1.50
-TOTAL_CAP_USD = 8.00
 
 # Development singles of `singles-selected.json` (dev1 ran N and S on them, 2026-09-30): only S
 # runs again. Then four new development draws (`draw_new`), S and N each.
@@ -53,10 +66,23 @@ DEV1 = ("django__django-15315", "django__django-14752", "matplotlib__matplotlib-
         "django__django-11206", "django__django-12708", "django__django-16631")  # fmt: skip
 NEW = ("django__django-15104", "sympy__sympy-18763", "django__django-15563",
        "django__django-12143")  # fmt: skip
-# S before N: the question is whether Haiku calls find; if the cap binds, an N goes first.
+BEHAVIOUR_SET = Path(__file__).resolve().parent / "behaviour-set.json"
+
+
+def nudge_plan() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """The behaviour-only issues first, then the controls; S then N on each."""
+    if not BEHAVIOUR_SET.exists():
+        return ()
+    drawn = json.loads(BEHAVIOUR_SET.read_text(encoding="utf-8"))
+    return tuple((name, ("S", "N")) for name in [*drawn["behaviour"], *drawn["control"]])
+
+
+# alwaysload: S before N, the question is whether Haiku calls find; if the cap binds, an N goes
+# first. nudge: both arms on every issue of the behaviour set.
 PLAN: tuple[tuple[str, tuple[str, ...]], ...] = (
-    *((name, ("S",)) for name in DEV1),
-    *((name, ("S", "N")) for name in NEW),
+    nudge_plan()
+    if PROFILE == "nudge"
+    else (*((name, ("S",)) for name in DEV1), *((name, ("S", "N")) for name in NEW))
 )
 
 
@@ -104,8 +130,21 @@ def plan_refusal() -> str | None:
         return f"held-out singles in the plan: {bad}"
     if bad := sorted(names & phase_d_ids()):
         return f"phase D singles in the plan: {bad}"
+    if PROFILE == "nudge":
+        return nudge_refusal(names)
     if list(NEW) != draw_new():
         return f"the seeded draw gives {draw_new()}, the plan names {list(NEW)}"
+    return None
+
+
+def nudge_refusal(names: set[str]) -> str | None:
+    """The nudge plan: ten issues, none excluded by the behaviour set's own rule."""
+    from .behaviour_set import check
+
+    if len(names) != 10:
+        return f"the nudge plan has {len(names)} issues, not 10 (behaviour-set.json drawn?)"
+    if problems := check():
+        return "; ".join(problems)
     return None
 
 
