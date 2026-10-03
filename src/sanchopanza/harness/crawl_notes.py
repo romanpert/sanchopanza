@@ -61,8 +61,7 @@ if (!sp.n && document.body) {
 const t = document.body.innerText || document.body.textContent || ''; const said = [];
 for (const re of [/Showing\s+\d[\d,]*\s*(?:-|\u2013|to)\s*\d[\d,]*\s+of\s+\d[\d,]*[^\n]{0,24}/i,
 /\bPage\s+\d+\s+of\s+\d+/i, /\b\d[\d,]*\s+(?:results|entries|records)\b/i]) {
-const m = t.match(re); const s = m ? m[0].trim() : '';
-if (s && !said.some((x) => x.includes(s))) said.push(s); }
+const m = t.match(re); if (m) { said.push(m[0].trim()); break; } }
 const keys = 'count|total|totalCount|total_count|pages|last_page|total_pages|recordsTotal';
 const js = t.match(new RegExp('"(?:' + keys + ')"\\s*:\\s*\\d+', 'g'));
 if (js) said.push(js.slice(0, 3).join(', '));
