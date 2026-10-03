@@ -30,7 +30,7 @@ def test_the_default_install_wires_guard_budget_find_and_skill(tmp_path: Path) -
     assert set(data["hooks"]) >= {"PreCompact", "SessionStart", "PreToolUse", "PostToolUse"}
     assert data["enabledMcpjsonServers"] == ["sanchopanza"]
     server = json.loads(mcp_file.read_text("utf-8"))["mcpServers"]["sanchopanza"]
-    assert server == {"command": "sanchopanza", "args": ["find-mcp"]}
+    assert server == {"command": "sanchopanza", "args": ["find-mcp"], "alwaysLoad": True}
     skill = (skills / "sanchopanza-code" / "SKILL.md").read_text("utf-8")
     assert skill.startswith("---\nname: sanchopanza-code\n")
 
@@ -103,7 +103,17 @@ def test_the_install_is_idempotent(tmp_path: Path, capsys: pytest.CaptureFixture
 
 def test_the_find_server_command_follows_the_hook_command() -> None:
     entry = defaults.find_server_entry("C:/venv/python.exe -m sanchopanza hook")
-    assert entry == {"command": "C:/venv/python.exe", "args": ["-m", "sanchopanza", "find-mcp"]}
+    assert entry["command"] == "C:/venv/python.exe"
+    assert entry["args"] == ["-m", "sanchopanza", "find-mcp"]
+
+
+def test_the_find_server_is_never_deferred_behind_tool_search() -> None:
+    """With Claude Code's default tools, tool search defers MCP tools: the model sees the bare
+    name and must call ToolSearch first. In the adoption study's 108 S arms Haiku never called
+    ToolSearch, so find_in_repo was never used; offered with its schema (find-e2e) it was used in
+    6 of 27 sessions. `alwaysLoad` keeps it in the turn-1 prompt (2.1.282-2.1.287 accept it)."""
+    entry = defaults.find_server_entry("sanchopanza hook")
+    assert entry["alwaysLoad"] is True
 
 
 def test_a_user_install_writes_no_mcp_json_where_it_is_run(
@@ -118,4 +128,4 @@ def test_a_user_install_writes_no_mcp_json_where_it_is_run(
     assert _install(settings) == 0
     assert not (elsewhere / ".mcp.json").exists()
     assert "enabledMcpjsonServers" not in json.loads(settings.read_text("utf-8"))
-    assert "claude mcp add --scope user" in capsys.readouterr().out
+    assert "claude mcp add-json --scope user" in capsys.readouterr().out

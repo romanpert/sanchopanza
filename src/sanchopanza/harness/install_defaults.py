@@ -94,12 +94,15 @@ def merge_profile(
 
 
 def find_server_entry(command: str) -> dict[str, Any]:
-    """The `.mcp.json` entry, from the hook command: `<x> hook` becomes `<x> find-mcp`."""
+    """The `.mcp.json` entry, from the hook command: `<x> hook` becomes `<x> find-mcp`.
+
+    `alwaysLoad` keeps the tool out of tool search: deferred, the model sees only its name and
+    in the adoption study never called it (0 of 108 sessions)."""
     words = command.split()
     if words and words[-1] == "hook":
         words = words[:-1]
     words = words or ["sanchopanza"]
-    return {"command": words[0], "args": [*words[1:], "find-mcp"]}
+    return {"command": words[0], "args": [*words[1:], "find-mcp"], "alwaysLoad": True}
 
 
 def skill_text() -> str:

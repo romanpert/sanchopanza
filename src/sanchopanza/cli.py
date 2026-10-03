@@ -96,8 +96,9 @@ def _plan_mcp_json(args: argparse.Namespace, settings_path: Path) -> tuple[Path,
         # would otherwise drop one into whatever directory it was run from.
         args.find = project_settings(settings_path)
         if not args.find:
-            sys.stdout.write("find_in_repo for every project: claude mcp add --scope user "
-                             "sanchopanza -- sanchopanza find-mcp\n")  # fmt: skip
+            sys.stdout.write("find_in_repo for every project: claude mcp add-json --scope user "
+                             "sanchopanza '{\"command\":\"sanchopanza\",\"args\":[\"find-mcp\"],"
+                             "\"alwaysLoad\":true}'\n")  # fmt: skip
     try:
         content = mcp_json_changes(target, args.lean, args.command_line, find=args.find)
     except (ValueError, OSError) as error:
