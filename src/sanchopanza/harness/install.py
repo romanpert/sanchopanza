@@ -84,6 +84,11 @@ line of strategy for requests that gather data across many pages (extract them i
 error instead of a hung session. No model; the guard rewrites the call's input and approves
 nothing. Off by default until confirmed; both entries are owned by the flag.
 
+`--prune` wires snapshot pruning (`harness.browse_hook`, `sanchopanza browse-hook`): `PostToolUse`
+on `Read` and any MCP server's `browser_*` tools cuts a large page snapshot to what the task
+needs and archives the rest. Registered 17-22 % cheaper on large inline snapshots with Jev ranking
+(`--provider jev`); without a provider it ranks by BM25. Off by default; owned by the flag.
+
 The one decision worth understanding is `--scan-content`, which is off unless asked for. It
 adds a PostToolUse scan of arriving content for instructions aimed at the model. That is a
 detection control and not a barrier - by PostToolUse the bytes are in the transcript and the
@@ -139,6 +144,10 @@ CRAWL_COMMAND = "sanchopanza crawl-hook"
 # Event -> matcher for crawl (`--crawl`, `harness.crawl_hook`): the strategy line at every session
 # start, and the time limit on any MCP server's browser_evaluate.
 CRAWL_HOOKS = {"SessionStart": "", "PreToolUse": r"mcp__.*__browser_evaluate"}
+PRUNE_COMMAND = "sanchopanza browse-hook"
+# Event -> matcher for snapshot pruning (`--prune`, `harness.browse_hook`): inline snapshots on any
+# MCP server's browser tools, and the saved ones Claude Code hands back through `Read`.
+PRUNE_HOOKS = {"PostToolUse": r"Read|mcp__.*__browser_.*"}
 AUTOPILOT_ENV = {
     "SANCHOPANZA_AUTOPILOT": "1",
     "SANCHOPANZA_COMPACT_COMMAND": "sanchopanza compact --stdin --arm mask",
@@ -456,6 +465,13 @@ def _merge_crawl(
     return _merge_owned(merged, on, CRAWL_HOOKS, command, CRAWL_COMMAND, "crawl")
 
 
+def _merge_prune(
+    merged: dict[str, Any], on: bool, command: str = PRUNE_COMMAND
+) -> tuple[dict[str, Any], list[str], list[str]]:
+    """Snapshot pruning's hook (`--prune`)."""
+    return _merge_owned(merged, on, PRUNE_HOOKS, command, PRUNE_COMMAND, "prune")
+
+
 def _merge_approval(
     merged: dict[str, Any], lean: bool, find: bool = False
 ) -> tuple[dict[str, Any], list[str], list[str]]:
@@ -645,6 +661,7 @@ def _merge(
     find: bool = False,
     profile: str = "sandbox",
     crawl: bool = False,
+    prune: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
         current = {}
@@ -676,6 +693,8 @@ def _merge(
     merged, plus, minus = _merge_memory(merged, memory)
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_crawl(merged, crawl)
+    added, removed = [*added, *plus], [*removed, *minus]
+    merged, plus, minus = _merge_prune(merged, prune)
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_budget(merged, budget)
     added, removed = [*added, *plus], [*removed, *minus]
@@ -710,6 +729,7 @@ def plan(
     find: bool = False,
     profile: str = "sandbox",
     crawl: bool = False,
+    prune: bool = False,
 ) -> Settings:
     current: Any = {}
     if path.exists():
@@ -741,6 +761,7 @@ def plan(
         find=find,
         profile=profile,
         crawl=crawl,
+        prune=prune,
     )
     return Settings(path, merged, tuple(added), tuple(removed))
 
