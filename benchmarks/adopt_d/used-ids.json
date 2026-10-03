@@ -1,0 +1,2941 @@
+{
+ "dataset": {
+  "name": "princeton-nlp/SWE-bench_Verified",
+  "revision": "c104f840cc67f8b6eec6f759ebc8b2693d585d4a",
+  "file": "~/.cache/sanchopanza/find/swebench/verified.parquet",
+  "sha256": "a45b1fe4e2f0c8390b2b2938ac83e92ed5979000856808f3679c07812e9e6dcd"
+ },
+ "used_count": 300,
+ "by_code": [
+  "astropy__astropy-12907",
+  "astropy__astropy-13033",
+  "astropy__astropy-13236",
+  "astropy__astropy-13398",
+  "astropy__astropy-13453",
+  "astropy__astropy-13579",
+  "astropy__astropy-13977",
+  "astropy__astropy-14096",
+  "astropy__astropy-14182",
+  "astropy__astropy-14309",
+  "astropy__astropy-14365",
+  "astropy__astropy-14369",
+  "astropy__astropy-14508",
+  "astropy__astropy-14539",
+  "astropy__astropy-14598",
+  "astropy__astropy-14995",
+  "astropy__astropy-7166",
+  "astropy__astropy-7336",
+  "astropy__astropy-7606",
+  "astropy__astropy-7671",
+  "astropy__astropy-8707",
+  "astropy__astropy-8872",
+  "django__django-10880",
+  "django__django-11066",
+  "django__django-11206",
+  "django__django-11211",
+  "django__django-11333",
+  "django__django-11400",
+  "django__django-11532",
+  "django__django-11603",
+  "django__django-11999",
+  "django__django-12708",
+  "django__django-13109",
+  "django__django-13158",
+  "django__django-13807",
+  "django__django-13810",
+  "django__django-13837",
+  "django__django-13933",
+  "django__django-13964",
+  "django__django-14007",
+  "django__django-14011",
+  "django__django-14017",
+  "django__django-14349",
+  "django__django-14559",
+  "django__django-14631",
+  "django__django-14752",
+  "django__django-14855",
+  "django__django-14999",
+  "django__django-15022",
+  "django__django-15315",
+  "django__django-15503",
+  "django__django-15561",
+  "django__django-15569",
+  "django__django-15572",
+  "django__django-16082",
+  "django__django-16116",
+  "django__django-16145",
+  "django__django-16256",
+  "django__django-16263",
+  "django__django-16631",
+  "django__django-16877",
+  "django__django-17029",
+  "django__django-17087",
+  "django__django-7530",
+  "matplotlib__matplotlib-13989",
+  "matplotlib__matplotlib-14623",
+  "matplotlib__matplotlib-20488",
+  "matplotlib__matplotlib-20676",
+  "matplotlib__matplotlib-20826",
+  "matplotlib__matplotlib-20859",
+  "matplotlib__matplotlib-21568",
+  "matplotlib__matplotlib-22865",
+  "matplotlib__matplotlib-23299",
+  "matplotlib__matplotlib-23314",
+  "matplotlib__matplotlib-23412",
+  "matplotlib__matplotlib-23476",
+  "matplotlib__matplotlib-24149",
+  "matplotlib__matplotlib-24570",
+  "matplotlib__matplotlib-24637",
+  "matplotlib__matplotlib-24870",
+  "matplotlib__matplotlib-25287",
+  "matplotlib__matplotlib-25311",
+  "matplotlib__matplotlib-25332",
+  "matplotlib__matplotlib-25960",
+  "matplotlib__matplotlib-26113",
+  "matplotlib__matplotlib-26208",
+  "matplotlib__matplotlib-26291",
+  "matplotlib__matplotlib-26342",
+  "matplotlib__matplotlib-26466",
+  "mwaskom__seaborn-3069",
+  "mwaskom__seaborn-3187",
+  "pallets__flask-5014",
+  "psf__requests-1142",
+  "psf__requests-1724",
+  "psf__requests-1766",
+  "psf__requests-1921",
+  "psf__requests-2317",
+  "psf__requests-2931",
+  "psf__requests-5414",
+  "psf__requests-6028",
+  "pydata__xarray-2905",
+  "pydata__xarray-3095",
+  "pydata__xarray-3151",
+  "pydata__xarray-3305",
+  "pydata__xarray-3677",
+  "pydata__xarray-3993",
+  "pydata__xarray-4075",
+  "pydata__xarray-4094",
+  "pydata__xarray-4356",
+  "pydata__xarray-4629",
+  "pydata__xarray-4687",
+  "pydata__xarray-4695",
+  "pydata__xarray-4966",
+  "pydata__xarray-6461",
+  "pydata__xarray-6599",
+  "pydata__xarray-6721",
+  "pydata__xarray-6744",
+  "pydata__xarray-6938",
+  "pydata__xarray-6992",
+  "pydata__xarray-7229",
+  "pydata__xarray-7233",
+  "pydata__xarray-7393",
+  "pylint-dev__pylint-4551",
+  "pylint-dev__pylint-4604",
+  "pylint-dev__pylint-4661",
+  "pylint-dev__pylint-4970",
+  "pylint-dev__pylint-6386",
+  "pylint-dev__pylint-6528",
+  "pylint-dev__pylint-6903",
+  "pylint-dev__pylint-7080",
+  "pylint-dev__pylint-7277",
+  "pylint-dev__pylint-8898",
+  "pytest-dev__pytest-10051",
+  "pytest-dev__pytest-10081",
+  "pytest-dev__pytest-10356",
+  "pytest-dev__pytest-5262",
+  "pytest-dev__pytest-5631",
+  "pytest-dev__pytest-5787",
+  "pytest-dev__pytest-5809",
+  "pytest-dev__pytest-5840",
+  "pytest-dev__pytest-6197",
+  "pytest-dev__pytest-6202",
+  "pytest-dev__pytest-7205",
+  "pytest-dev__pytest-7236",
+  "pytest-dev__pytest-7324",
+  "pytest-dev__pytest-7432",
+  "pytest-dev__pytest-7490",
+  "pytest-dev__pytest-7521",
+  "pytest-dev__pytest-7571",
+  "pytest-dev__pytest-7982",
+  "pytest-dev__pytest-8399",
+  "scikit-learn__scikit-learn-10297",
+  "scikit-learn__scikit-learn-10844",
+  "scikit-learn__scikit-learn-10908",
+  "scikit-learn__scikit-learn-11310",
+  "scikit-learn__scikit-learn-11578",
+  "scikit-learn__scikit-learn-12682",
+  "scikit-learn__scikit-learn-12973",
+  "scikit-learn__scikit-learn-13142",
+  "scikit-learn__scikit-learn-13328",
+  "scikit-learn__scikit-learn-13496",
+  "scikit-learn__scikit-learn-13779",
+  "scikit-learn__scikit-learn-14053",
+  "scikit-learn__scikit-learn-14141",
+  "scikit-learn__scikit-learn-14496",
+  "scikit-learn__scikit-learn-14629",
+  "scikit-learn__scikit-learn-14983",
+  "scikit-learn__scikit-learn-25102",
+  "scikit-learn__scikit-learn-25232",
+  "scikit-learn__scikit-learn-25747",
+  "scikit-learn__scikit-learn-25931",
+  "scikit-learn__scikit-learn-25973",
+  "scikit-learn__scikit-learn-26323",
+  "scikit-learn__scikit-learn-9288",
+  "sphinx-doc__sphinx-10323",
+  "sphinx-doc__sphinx-10435",
+  "sphinx-doc__sphinx-10449",
+  "sphinx-doc__sphinx-10466",
+  "sphinx-doc__sphinx-10614",
+  "sphinx-doc__sphinx-11445",
+  "sphinx-doc__sphinx-7440",
+  "sphinx-doc__sphinx-7454",
+  "sphinx-doc__sphinx-7590",
+  "sphinx-doc__sphinx-7910",
+  "sphinx-doc__sphinx-7985",
+  "sphinx-doc__sphinx-8035",
+  "sphinx-doc__sphinx-8120",
+  "sphinx-doc__sphinx-8459",
+  "sphinx-doc__sphinx-8548",
+  "sphinx-doc__sphinx-8551",
+  "sphinx-doc__sphinx-8621",
+  "sphinx-doc__sphinx-8638",
+  "sphinx-doc__sphinx-9229",
+  "sphinx-doc__sphinx-9258",
+  "sphinx-doc__sphinx-9320",
+  "sphinx-doc__sphinx-9591",
+  "sphinx-doc__sphinx-9658",
+  "sphinx-doc__sphinx-9673",
+  "sphinx-doc__sphinx-9698",
+  "sphinx-doc__sphinx-9711",
+  "sympy__sympy-11618",
+  "sympy__sympy-13615",
+  "sympy__sympy-13877",
+  "sympy__sympy-13878",
+  "sympy__sympy-13974",
+  "sympy__sympy-14711",
+  "sympy__sympy-15599",
+  "sympy__sympy-15809",
+  "sympy__sympy-16597",
+  "sympy__sympy-16792",
+  "sympy__sympy-16886",
+  "sympy__sympy-18698",
+  "sympy__sympy-20428",
+  "sympy__sympy-20801",
+  "sympy__sympy-20916",
+  "sympy__sympy-21379",
+  "sympy__sympy-21596",
+  "sympy__sympy-21930",
+  "sympy__sympy-22456",
+  "sympy__sympy-22714",
+  "sympy__sympy-23413",
+  "sympy__sympy-23534",
+  "sympy__sympy-23824",
+  "sympy__sympy-23950",
+  "sympy__sympy-24213",
+  "sympy__sympy-24443"
+ ],
+ "dumps": [
+  "~/.cache/sanchopanza/swe-eval/verified-rows.json (500 ids)"
+ ],
+ "skipped": [],
+ "used": {
+  "astropy__astropy-12907": {
+   "count": 15,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/astropy__astropy-12907-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/astropy__astropy-12907-N",
+    "name:~/.cache/sanchopanza/find-e2e/void/astropy__astropy-12907-F",
+    "name:~/.cache/sanchopanza/find-e2e/void/astropy__astropy-12907-F-cut2"
+   ]
+  },
+  "astropy__astropy-13033": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "astropy__astropy-13236": {
+   "count": 20,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/astropy__astropy-13236-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/astropy__astropy-13236-N",
+    "name:~/.cache/sanchopanza/find-e2e/void/astropy__astropy-13236-F",
+    "name:~/.cache/sanchopanza/find-e2e/void/astropy__astropy-13236-N"
+   ]
+  },
+  "astropy__astropy-13398": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "astropy__astropy-13453": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "astropy__astropy-13579": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "astropy__astropy-13977": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "astropy__astropy-14096": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "astropy__astropy-14182": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "astropy__astropy-14309": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "astropy__astropy-14365": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "astropy__astropy-14369": {
+   "count": 9,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl"
+   ]
+  },
+  "astropy__astropy-14508": {
+   "count": 8,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl"
+   ]
+  },
+  "astropy__astropy-14539": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "astropy__astropy-14598": {
+   "count": 8,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl"
+   ]
+  },
+  "astropy__astropy-14995": {
+   "count": 8,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl"
+   ]
+  },
+  "astropy__astropy-7166": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "astropy__astropy-7336": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "astropy__astropy-7606": {
+   "count": 5,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "astropy__astropy-7671": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "astropy__astropy-8707": {
+   "count": 15,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/astropy__astropy-8707-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/astropy__astropy-8707-N",
+    "name:~/.cache/sanchopanza/find-e2e/void/astropy__astropy-8707-F",
+    "name:~/.cache/sanchopanza/find-e2e/void/astropy__astropy-8707-N"
+   ]
+  },
+  "astropy__astropy-8872": {
+   "count": 17,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/astropy__astropy-8872-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/astropy__astropy-8872-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/astropy__astropy-8872-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/astropy__astropy-8872-N"
+   ]
+  },
+  "django__django-10097": {
+   "count": 6,
+   "first": [
+    "text:docs/results/2026-09-29-find/prereg.md",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "django__django-10880": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "django__django-11066": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "django__django-11087": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "django__django-11099": {
+   "count": 6,
+   "first": [
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/feas/gold/django__django-11099",
+    "text:~/.cache/sanchopanza/guard-coding/denied-sandbox.json",
+    "text:~/.cache/sanchopanza/guard-coding/real.json",
+    "text:~/.cache/sanchopanza/swe-eval/gold.feas.json",
+    "text:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/feas/gold/django__django-11099/report.json"
+   ]
+  },
+  "django__django-11138": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-11141": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-11206": {
+   "count": 46,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-11206",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-11206-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-11206-N;C",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-11206-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790782046/adopt-N/django__django-11206"
+   ]
+  },
+  "django__django-11211": {
+   "count": 53,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-11211",
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-11211-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-11211-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-11211-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790944060/adopt-N/django__django-11211"
+   ]
+  },
+  "django__django-11276": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-11333": {
+   "count": 59,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-11333",
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-11333-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-11333-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-11333-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790944440/adopt-N/django__django-11333"
+   ]
+  },
+  "django__django-11400": {
+   "count": 49,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-11400",
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-11400-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-11400-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-11400-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790947240/adopt-N/django__django-11400"
+   ]
+  },
+  "django__django-11433": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-11477": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-11490": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-11532": {
+   "count": 53,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-11532",
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-11532-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-11532-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-11532-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790941037/adopt-N/django__django-11532"
+   ]
+  },
+  "django__django-11603": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "django__django-11728": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-11820": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-11999": {
+   "count": 54,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-11999",
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-11999-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-11999-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-11999-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790945489/adopt-N/django__django-11999"
+   ]
+  },
+  "django__django-12050": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-12143": {
+   "count": 1,
+   "first": [
+    "text:benchmarks/adopt_dev/common.py"
+   ]
+  },
+  "django__django-12193": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "django__django-12276": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-12308": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-12406": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-12708": {
+   "count": 40,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-12708",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-12708-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-12708-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790782591/adopt-N/django__django-12708",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-S-1790782635/adopt-S/django__django-12708"
+   ]
+  },
+  "django__django-13109": {
+   "count": 103,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-13109",
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-13109-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-13109-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-13109-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790937159/adopt-N/django__django-13109"
+   ]
+  },
+  "django__django-13128": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-13158": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "django__django-13297": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "django__django-13315": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-13346": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-13363": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-13401": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-13410": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-13449": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-13513": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "django__django-13516": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-13670": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-13741": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "django__django-13807": {
+   "count": 55,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-13807",
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-13807-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-13807-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-13807-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790938718/adopt-N/django__django-13807"
+   ]
+  },
+  "django__django-13810": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "django__django-13821": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "django__django-13837": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "django__django-13925": {
+   "count": 6,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "django__django-13933": {
+   "count": 8,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl"
+   ]
+  },
+  "django__django-13964": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "django__django-14007": {
+   "count": 73,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-14007",
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-14007-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-14007-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-14007-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790948872/adopt-N/django__django-14007"
+   ]
+  },
+  "django__django-14011": {
+   "count": 51,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-14011",
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-14011-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-14011-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-14011-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790946913/adopt-N/django__django-14011"
+   ]
+  },
+  "django__django-14017": {
+   "count": 8,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl"
+   ]
+  },
+  "django__django-14053": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-14238": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-14315": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-14349": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "django__django-14559": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/django__django-14559-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/django__django-14559-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/django__django-14559-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/django__django-14559-N"
+   ]
+  },
+  "django__django-14631": {
+   "count": 54,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-14631",
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-14631-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-14631-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-14631-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790947716/adopt-N/django__django-14631"
+   ]
+  },
+  "django__django-14752": {
+   "count": 51,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-14752",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-14752-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-14752-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790780503/adopt-N/django__django-14752",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-S-1790780543/adopt-S/django__django-14752"
+   ]
+  },
+  "django__django-14855": {
+   "count": 8,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl"
+   ]
+  },
+  "django__django-14999": {
+   "count": 8,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl"
+   ]
+  },
+  "django__django-15022": {
+   "count": 53,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-15022",
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-15022-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-15022-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-15022-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790941941/adopt-N/django__django-15022"
+   ]
+  },
+  "django__django-15037": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-15098": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "django__django-15104": {
+   "count": 1,
+   "first": [
+    "text:benchmarks/adopt_dev/common.py"
+   ]
+  },
+  "django__django-15128": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-15252": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-15277": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-15278": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-15315": {
+   "count": 52,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-15315",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-15315-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-15315-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790779989/adopt-N/django__django-15315",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-S-1790780027/adopt-S/django__django-15315"
+   ]
+  },
+  "django__django-15368": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-15467": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-15499": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-15503": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "django__django-15561": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "django__django-15563": {
+   "count": 1,
+   "first": [
+    "text:benchmarks/adopt_dev/common.py"
+   ]
+  },
+  "django__django-15569": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/django__django-15569-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/django__django-15569-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/django__django-15569-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/django__django-15569-N"
+   ]
+  },
+  "django__django-15572": {
+   "count": 55,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-15572",
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-15572-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-15572-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-15572-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790939507/adopt-N/django__django-15572"
+   ]
+  },
+  "django__django-15695": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "django__django-15987": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-16082": {
+   "count": 8,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl"
+   ]
+  },
+  "django__django-16116": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "django__django-16145": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/django__django-16145-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/django__django-16145-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/django__django-16145-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/django__django-16145-N"
+   ]
+  },
+  "django__django-16256": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/django__django-16256-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/django__django-16256-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/django__django-16256-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/django__django-16256-N"
+   ]
+  },
+  "django__django-16263": {
+   "count": 53,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-16263",
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-16263-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-16263-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-16263-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790946345/adopt-N/django__django-16263"
+   ]
+  },
+  "django__django-16485": {
+   "count": 5,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-16527": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-16595": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "django__django-16631": {
+   "count": 39,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-16631",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-16631-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-16631-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790783126/adopt-N/django__django-16631",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-S-1790783188/adopt-S/django__django-16631"
+   ]
+  },
+  "django__django-16877": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "django__django-17029": {
+   "count": 59,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-17029",
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-17029-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-17029-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-17029-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790936548/adopt-N/django__django-17029"
+   ]
+  },
+  "django__django-17084": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "django__django-17087": {
+   "count": 55,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-17087",
+    "name:~/.cache/sanchopanza/adopt/singles/django__django-17087-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-17087-N",
+    "name:~/.cache/sanchopanza/adopt/work/django__django-17087-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790939279/adopt-N/django__django-17087"
+   ]
+  },
+  "django__django-7530": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-13989": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-14623": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-20488": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-20676": {
+   "count": 6,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-20826": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-20859": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-21568": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/matplotlib__matplotlib-21568-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/matplotlib__matplotlib-21568-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/matplotlib__matplotlib-21568-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/matplotlib__matplotlib-21568-N"
+   ]
+  },
+  "matplotlib__matplotlib-22865": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-23299": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-23314": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-23412": {
+   "count": 35,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/matplotlib__matplotlib-23412",
+    "name:~/.cache/sanchopanza/adopt/work/matplotlib__matplotlib-23412-N",
+    "name:~/.cache/sanchopanza/adopt/work/matplotlib__matplotlib-23412-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790781387/adopt-N/matplotlib__matplotlib-23412",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-S-1790781428/adopt-S/matplotlib__matplotlib-23412"
+   ]
+  },
+  "matplotlib__matplotlib-23476": {
+   "count": 6,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-24149": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-24570": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-24637": {
+   "count": 53,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/matplotlib__matplotlib-24637",
+    "name:~/.cache/sanchopanza/adopt/singles/matplotlib__matplotlib-24637-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/matplotlib__matplotlib-24637-N",
+    "name:~/.cache/sanchopanza/adopt/work/matplotlib__matplotlib-24637-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790943553/adopt-N/matplotlib__matplotlib-24637"
+   ]
+  },
+  "matplotlib__matplotlib-24870": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-25287": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-25311": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-25332": {
+   "count": 58,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/matplotlib__matplotlib-25332",
+    "name:~/.cache/sanchopanza/adopt/singles/matplotlib__matplotlib-25332-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/matplotlib__matplotlib-25332-N",
+    "name:~/.cache/sanchopanza/adopt/work/matplotlib__matplotlib-25332-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790938272/adopt-N/matplotlib__matplotlib-25332"
+   ]
+  },
+  "matplotlib__matplotlib-25960": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-26113": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-26208": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/matplotlib__matplotlib-26208-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/matplotlib__matplotlib-26208-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/matplotlib__matplotlib-26208-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/matplotlib__matplotlib-26208-N"
+   ]
+  },
+  "matplotlib__matplotlib-26291": {
+   "count": 4,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "matplotlib__matplotlib-26342": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/matplotlib__matplotlib-26342-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/matplotlib__matplotlib-26342-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/matplotlib__matplotlib-26342-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/matplotlib__matplotlib-26342-N"
+   ]
+  },
+  "matplotlib__matplotlib-26466": {
+   "count": 14,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/matplotlib__matplotlib-26466-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/matplotlib__matplotlib-26466-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/matplotlib__matplotlib-26466-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/matplotlib__matplotlib-26466-N"
+   ]
+  },
+  "mwaskom__seaborn-3069": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "mwaskom__seaborn-3187": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pallets__flask-5014": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "psf__requests-1142": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "psf__requests-1724": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "psf__requests-1766": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "psf__requests-1921": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "psf__requests-2317": {
+   "count": 8,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/README.md",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl"
+   ]
+  },
+  "psf__requests-2931": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "psf__requests-5414": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "psf__requests-6028": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pydata__xarray-2905": {
+   "count": 4,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/README.md",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pydata__xarray-3095": {
+   "count": 6,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl"
+   ]
+  },
+  "pydata__xarray-3151": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "pydata__xarray-3305": {
+   "count": 14,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/pydata__xarray-3305-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/pydata__xarray-3305-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/pydata__xarray-3305-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/pydata__xarray-3305-N"
+   ]
+  },
+  "pydata__xarray-3677": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/pydata__xarray-3677-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/pydata__xarray-3677-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/pydata__xarray-3677-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/pydata__xarray-3677-N"
+   ]
+  },
+  "pydata__xarray-3993": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pydata__xarray-4075": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pydata__xarray-4094": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pydata__xarray-4356": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pydata__xarray-4629": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "pydata__xarray-4687": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "pydata__xarray-4695": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pydata__xarray-4966": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "pydata__xarray-6461": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pydata__xarray-6599": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/pydata__xarray-6599-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/pydata__xarray-6599-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/pydata__xarray-6599-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/pydata__xarray-6599-N"
+   ]
+  },
+  "pydata__xarray-6721": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pydata__xarray-6744": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pydata__xarray-6938": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "pydata__xarray-6992": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pydata__xarray-7229": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "pydata__xarray-7233": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pydata__xarray-7393": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/pydata__xarray-7393-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/pydata__xarray-7393-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/pydata__xarray-7393-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/pydata__xarray-7393-N"
+   ]
+  },
+  "pylint-dev__pylint-4551": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "pylint-dev__pylint-4604": {
+   "count": 6,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl"
+   ]
+  },
+  "pylint-dev__pylint-4661": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pylint-dev__pylint-4970": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pylint-dev__pylint-6386": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "pylint-dev__pylint-6528": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pylint-dev__pylint-6903": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "pylint-dev__pylint-7080": {
+   "count": 4,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/README.md",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pylint-dev__pylint-7277": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pylint-dev__pylint-8898": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-10051": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-10081": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-10356": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-5262": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-5631": {
+   "count": 6,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-5787": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-5809": {
+   "count": 6,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-5840": {
+   "count": 9,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-6197": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-6202": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-7205": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-7236": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-7324": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-7432": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-7490": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/pytest-dev__pytest-7490-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/pytest-dev__pytest-7490-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/pytest-dev__pytest-7490-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/pytest-dev__pytest-7490-N"
+   ]
+  },
+  "pytest-dev__pytest-7521": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-7571": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-7982": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "pytest-dev__pytest-8399": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-10297": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-10844": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-10908": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-11310": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-11578": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-12682": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/scikit-learn__scikit-learn-12682-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/scikit-learn__scikit-learn-12682-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/scikit-learn__scikit-learn-12682-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/scikit-learn__scikit-learn-12682-N"
+   ]
+  },
+  "scikit-learn__scikit-learn-12973": {
+   "count": 14,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/scikit-learn__scikit-learn-12973-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/scikit-learn__scikit-learn-12973-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/scikit-learn__scikit-learn-12973-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/scikit-learn__scikit-learn-12973-N"
+   ]
+  },
+  "scikit-learn__scikit-learn-13135": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-13142": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-13328": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-13496": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-13779": {
+   "count": 58,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/scikit-learn__scikit-learn-13779",
+    "name:~/.cache/sanchopanza/adopt/singles/scikit-learn__scikit-learn-13779-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/scikit-learn__scikit-learn-13779-N",
+    "name:~/.cache/sanchopanza/adopt/work/scikit-learn__scikit-learn-13779-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790939826/adopt-N/scikit-learn__scikit-learn-13779"
+   ]
+  },
+  "scikit-learn__scikit-learn-14053": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/scikit-learn__scikit-learn-14053-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/scikit-learn__scikit-learn-14053-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/scikit-learn__scikit-learn-14053-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/scikit-learn__scikit-learn-14053-N"
+   ]
+  },
+  "scikit-learn__scikit-learn-14087": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-14141": {
+   "count": 11,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/scikit-learn__scikit-learn-14141-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/scikit-learn__scikit-learn-14141-N",
+    "name:~/.cache/sanchopanza/find-e2e/void/scikit-learn__scikit-learn-14141-F-killed",
+    "name:~/.cache/sanchopanza/find-e2e/work/scikit-learn__scikit-learn-14141-F"
+   ]
+  },
+  "scikit-learn__scikit-learn-14496": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-14629": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-14983": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-15100": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-25102": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-25232": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-25747": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-25931": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-25973": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-26194": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-26323": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "scikit-learn__scikit-learn-9288": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-10323": {
+   "count": 54,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/sphinx-doc__sphinx-10323",
+    "name:~/.cache/sanchopanza/adopt/singles/sphinx-doc__sphinx-10323-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/sphinx-doc__sphinx-10323-N",
+    "name:~/.cache/sanchopanza/adopt/work/sphinx-doc__sphinx-10323-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790940712/adopt-N/sphinx-doc__sphinx-10323"
+   ]
+  },
+  "sphinx-doc__sphinx-10435": {
+   "count": 53,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/sphinx-doc__sphinx-10435",
+    "name:~/.cache/sanchopanza/adopt/singles/sphinx-doc__sphinx-10435-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/sphinx-doc__sphinx-10435-N",
+    "name:~/.cache/sanchopanza/adopt/work/sphinx-doc__sphinx-10435-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790936868/adopt-N/sphinx-doc__sphinx-10435"
+   ]
+  },
+  "sphinx-doc__sphinx-10449": {
+   "count": 12,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/sphinx-doc__sphinx-10449-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/sphinx-doc__sphinx-10449-N",
+    "name:~/.cache/sanchopanza/find-e2e/void/sphinx-doc__sphinx-10449-F-killed",
+    "name:~/.cache/sanchopanza/find-e2e/void/sphinx-doc__sphinx-10449-N-killed"
+   ]
+  },
+  "sphinx-doc__sphinx-10466": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-10614": {
+   "count": 52,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/sphinx-doc__sphinx-10614",
+    "name:~/.cache/sanchopanza/adopt/singles/sphinx-doc__sphinx-10614-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/sphinx-doc__sphinx-10614-N",
+    "name:~/.cache/sanchopanza/adopt/work/sphinx-doc__sphinx-10614-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790942491/adopt-N/sphinx-doc__sphinx-10614"
+   ]
+  },
+  "sphinx-doc__sphinx-11445": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-7440": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-7454": {
+   "count": 6,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-7590": {
+   "count": 46,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/sphinx-doc__sphinx-7590",
+    "name:~/.cache/sanchopanza/adopt/singles/sphinx-doc__sphinx-7590-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/sphinx-doc__sphinx-7590-N",
+    "name:~/.cache/sanchopanza/adopt/work/sphinx-doc__sphinx-7590-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790948215/adopt-N/sphinx-doc__sphinx-7590"
+   ]
+  },
+  "sphinx-doc__sphinx-7757": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-7910": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/sphinx-doc__sphinx-7910-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/sphinx-doc__sphinx-7910-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/sphinx-doc__sphinx-7910-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/sphinx-doc__sphinx-7910-N"
+   ]
+  },
+  "sphinx-doc__sphinx-7985": {
+   "count": 11,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/sphinx-doc__sphinx-7985-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/sphinx-doc__sphinx-7985-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/sphinx-doc__sphinx-7985-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/sphinx-doc__sphinx-7985-N"
+   ]
+  },
+  "sphinx-doc__sphinx-8035": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-8120": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-8459": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-8548": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-8551": {
+   "count": 11,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/sphinx-doc__sphinx-8551-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/sphinx-doc__sphinx-8551-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/sphinx-doc__sphinx-8551-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/sphinx-doc__sphinx-8551-N"
+   ]
+  },
+  "sphinx-doc__sphinx-8593": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-8621": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-8638": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-8721": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-9229": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-9230": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-9258": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-9320": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-9591": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-9658": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-9673": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-9698": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "sphinx-doc__sphinx-9711": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sympy__sympy-11618": {
+   "count": 55,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/sympy__sympy-11618",
+    "name:~/.cache/sanchopanza/adopt/singles/sympy__sympy-11618-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/sympy__sympy-11618-N",
+    "name:~/.cache/sanchopanza/adopt/work/sympy__sympy-11618-N;C",
+    "name:~/.cache/sanchopanza/adopt/work/sympy__sympy-11618-S"
+   ]
+  },
+  "sympy__sympy-13372": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "sympy__sympy-13480": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "sympy__sympy-13551": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "sympy__sympy-13615": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "sympy__sympy-13798": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "sympy__sympy-13852": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "sympy__sympy-13877": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sympy__sympy-13878": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sympy__sympy-13974": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sympy__sympy-14531": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "sympy__sympy-14711": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "sympy__sympy-15017": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "sympy__sympy-15599": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "sympy__sympy-15809": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/sympy__sympy-15809-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/sympy__sympy-15809-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/sympy__sympy-15809-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/sympy__sympy-15809-N"
+   ]
+  },
+  "sympy__sympy-15976": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "sympy__sympy-16450": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "sympy__sympy-16597": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "sympy__sympy-16792": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sympy__sympy-16886": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sympy__sympy-17630": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "sympy__sympy-18199": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "sympy__sympy-18211": {
+   "count": 3,
+   "first": [
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl"
+   ]
+  },
+  "sympy__sympy-18698": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sympy__sympy-18763": {
+   "count": 1,
+   "first": [
+    "text:benchmarks/adopt_dev/common.py"
+   ]
+  },
+  "sympy__sympy-19495": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "sympy__sympy-20428": {
+   "count": 53,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/sympy__sympy-20428",
+    "name:~/.cache/sanchopanza/adopt/singles/sympy__sympy-20428-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/sympy__sympy-20428-N",
+    "name:~/.cache/sanchopanza/adopt/work/sympy__sympy-20428-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790941439/adopt-N/sympy__sympy-20428"
+   ]
+  },
+  "sympy__sympy-20801": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "sympy__sympy-20916": {
+   "count": 10,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/sympy__sympy-20916-F",
+    "name:~/.cache/sanchopanza/find-e2e/runs/sympy__sympy-20916-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/sympy__sympy-20916-F",
+    "name:~/.cache/sanchopanza/find-e2e/work/sympy__sympy-20916-N"
+   ]
+  },
+  "sympy__sympy-21379": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "sympy__sympy-21596": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "sympy__sympy-21847": {
+   "count": 4,
+   "first": [
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/b865f733-4731-43a3-9a4b-a541823fbebc.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/bd15ad4a-502c-4511-8dba-776fec8bfac2.jsonl"
+   ]
+  },
+  "sympy__sympy-21930": {
+   "count": 54,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/sympy__sympy-21930",
+    "name:~/.cache/sanchopanza/adopt/singles/sympy__sympy-21930-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/sympy__sympy-21930-N",
+    "name:~/.cache/sanchopanza/adopt/work/sympy__sympy-21930-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790942880/adopt-N/sympy__sympy-21930"
+   ]
+  },
+  "sympy__sympy-22456": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  },
+  "sympy__sympy-22714": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sympy__sympy-23413": {
+   "count": 9,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "name:~/.cache/sanchopanza/find-e2e/runs/sympy__sympy-23413-N",
+    "name:~/.cache/sanchopanza/find-e2e/work/sympy__sympy-23413-N",
+    "text:~/.cache/sanchopanza/find-e2e/runs/sympy__sympy-23413-N/row.json",
+    "text:~/.cache/sanchopanza/find-e2e/runs/sympy__sympy-23413-N/stream.jsonl"
+   ]
+  },
+  "sympy__sympy-23534": {
+   "count": 53,
+   "first": [
+    "name:~/.cache/sanchopanza/adopt/singles/sympy__sympy-23534",
+    "name:~/.cache/sanchopanza/adopt/singles/sympy__sympy-23534-nojev1",
+    "name:~/.cache/sanchopanza/adopt/work/sympy__sympy-23534-N",
+    "name:~/.cache/sanchopanza/adopt/work/sympy__sympy-23534-S",
+    "name:~/.cache/sanchopanza/swe-eval/logs/run_evaluation/adopt-N-1790940346/adopt-N/sympy__sympy-23534"
+   ]
+  },
+  "sympy__sympy-23824": {
+   "count": 6,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl"
+   ]
+  },
+  "sympy__sympy-23950": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/dev-2.jsonl",
+    "text:docs/results/2026-09-29-find/ceiling/dev.jsonl"
+   ]
+  },
+  "sympy__sympy-24213": {
+   "count": 3,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:docs/results/2026-09-29-find/ceiling/test.jsonl",
+    "text:docs/results/2026-09-29-find/scored.jsonl"
+   ]
+  },
+  "sympy__sympy-24443": {
+   "count": 7,
+   "first": [
+    "find: retrieval, its development sample or find-e2e",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/items.json",
+    "text:~/.cache/sanchopanza/candor-external/swe-chat/transcripts/a62695f0-6ea5-402e-b957-549bce17a1a8.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0148c829-b666-424a-aaa9-11ebefd23a83.jsonl",
+    "text:~/.cache/sanchopanza/memory-real/transcripts/0bc8148b-2e5a-476e-be1e-cf08b88d6fd8.jsonl"
+   ]
+  }
+ }
+}

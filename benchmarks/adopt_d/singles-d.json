@@ -1,0 +1,446 @@
+{
+ "dataset": {
+  "name": "princeton-nlp/SWE-bench_Verified",
+  "revision": "c104f840cc67f8b6eec6f759ebc8b2693d585d4a",
+  "file": "~/.cache/sanchopanza/find/swebench/verified.parquet",
+  "sha256": "a45b1fe4e2f0c8390b2b2938ac83e92ed5979000856808f3679c07812e9e6dcd"
+ },
+ "used_ids_sha256": "b2aca6207395872fa86dd0ce65d1ab89ebda7bdc99fef67977dfd7d107ff41a6",
+ "seed": 20261003,
+ "plan": {
+  "general-easy": {
+   "difficulties": [
+    "<15 min fix"
+   ],
+   "drawn": 10
+  },
+  "general-medium": {
+   "difficulties": [
+    "15 min - 1 hour"
+   ],
+   "drawn": 10
+  },
+  "hard": {
+   "difficulties": [
+    "1-4 hours",
+    ">4 hours"
+   ],
+   "drawn": 6
+  }
+ },
+ "pool_after_exclusion": {
+  "general-easy": 80,
+  "general-medium": 107,
+  "hard": 13
+ },
+ "excluded": 300,
+ "held": [
+  {
+   "instance_id": "django__django-11133",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "stratum": "general-easy",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-11133:latest"
+  },
+  {
+   "instance_id": "sympy__sympy-24539",
+   "repo": "sympy/sympy",
+   "difficulty": "<15 min fix",
+   "stratum": "general-easy",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-24539:latest"
+  },
+  {
+   "instance_id": "django__django-10914",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "stratum": "general-easy",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-10914:latest"
+  },
+  {
+   "instance_id": "django__django-15863",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "stratum": "general-easy",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-15863:latest"
+  },
+  {
+   "instance_id": "django__django-13023",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "stratum": "general-easy",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-13023:latest"
+  },
+  {
+   "instance_id": "sphinx-doc__sphinx-8269",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "<15 min fix",
+   "stratum": "general-easy",
+   "image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8269:latest"
+  },
+  {
+   "instance_id": "django__django-14787",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "stratum": "general-easy",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-14787:latest"
+  },
+  {
+   "instance_id": "sphinx-doc__sphinx-9367",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "<15 min fix",
+   "stratum": "general-easy",
+   "image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9367:latest"
+  },
+  {
+   "instance_id": "django__django-12125",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "stratum": "general-easy",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-12125:latest"
+  },
+  {
+   "instance_id": "django__django-16429",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "stratum": "general-easy",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-16429:latest"
+  },
+  {
+   "instance_id": "django__django-16819",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "stratum": "general-medium",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-16819:latest"
+  },
+  {
+   "instance_id": "sympy__sympy-14976",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "stratum": "general-medium",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-14976:latest"
+  },
+  {
+   "instance_id": "sympy__sympy-13091",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "stratum": "general-medium",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-13091:latest"
+  },
+  {
+   "instance_id": "sympy__sympy-22914",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "stratum": "general-medium",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-22914:latest"
+  },
+  {
+   "instance_id": "django__django-11848",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "stratum": "general-medium",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-11848:latest"
+  },
+  {
+   "instance_id": "sphinx-doc__sphinx-7748",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "15 min - 1 hour",
+   "stratum": "general-medium",
+   "image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7748:latest"
+  },
+  {
+   "instance_id": "django__django-16454",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "stratum": "general-medium",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-16454:latest"
+  },
+  {
+   "instance_id": "sympy__sympy-20438",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "stratum": "general-medium",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-20438:latest"
+  },
+  {
+   "instance_id": "django__django-11551",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "stratum": "general-medium",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-11551:latest"
+  },
+  {
+   "instance_id": "sympy__sympy-19040",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "stratum": "general-medium",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-19040:latest"
+  },
+  {
+   "instance_id": "sympy__sympy-12489",
+   "repo": "sympy/sympy",
+   "difficulty": "1-4 hours",
+   "stratum": "hard",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-12489:latest"
+  },
+  {
+   "instance_id": "django__django-12325",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "stratum": "hard",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-12325:latest"
+  },
+  {
+   "instance_id": "django__django-15629",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "stratum": "hard",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-15629:latest"
+  },
+  {
+   "instance_id": "django__django-15268",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "stratum": "hard",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-15268:latest"
+  },
+  {
+   "instance_id": "django__django-13344",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "stratum": "hard",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-13344:latest"
+  },
+  {
+   "instance_id": "django__django-10554",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "stratum": "hard",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-10554:latest"
+  }
+ ],
+ "spares": {
+  "general-easy": [
+   {
+    "instance_id": "sphinx-doc__sphinx-9281",
+    "repo": "sphinx-doc/sphinx",
+    "difficulty": "<15 min fix",
+    "stratum": "general-easy",
+    "image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9281:latest"
+   },
+   {
+    "instance_id": "django__django-14915",
+    "repo": "django/django",
+    "difficulty": "<15 min fix",
+    "stratum": "general-easy",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-14915:latest"
+   },
+   {
+    "instance_id": "django__django-11239",
+    "repo": "django/django",
+    "difficulty": "<15 min fix",
+    "stratum": "general-easy",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-11239:latest"
+   },
+   {
+    "instance_id": "django__django-11119",
+    "repo": "django/django",
+    "difficulty": "<15 min fix",
+    "stratum": "general-easy",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-11119:latest"
+   },
+   {
+    "instance_id": "scikit-learn__scikit-learn-13439",
+    "repo": "scikit-learn/scikit-learn",
+    "difficulty": "<15 min fix",
+    "stratum": "general-easy",
+    "image": "swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-13439:latest"
+   },
+   {
+    "instance_id": "django__django-16333",
+    "repo": "django/django",
+    "difficulty": "<15 min fix",
+    "stratum": "general-easy",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-16333:latest"
+   },
+   {
+    "instance_id": "django__django-12304",
+    "repo": "django/django",
+    "difficulty": "<15 min fix",
+    "stratum": "general-easy",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-12304:latest"
+   },
+   {
+    "instance_id": "django__django-15380",
+    "repo": "django/django",
+    "difficulty": "<15 min fix",
+    "stratum": "general-easy",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-15380:latest"
+   },
+   {
+    "instance_id": "matplotlib__matplotlib-24177",
+    "repo": "matplotlib/matplotlib",
+    "difficulty": "<15 min fix",
+    "stratum": "general-easy",
+    "image": "swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-24177:latest"
+   },
+   {
+    "instance_id": "sphinx-doc__sphinx-8475",
+    "repo": "sphinx-doc/sphinx",
+    "difficulty": "<15 min fix",
+    "stratum": "general-easy",
+    "image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8475:latest"
+   },
+   {
+    "instance_id": "django__django-11451",
+    "repo": "django/django",
+    "difficulty": "<15 min fix",
+    "stratum": "general-easy",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-11451:latest"
+   },
+   {
+    "instance_id": "django__django-16801",
+    "repo": "django/django",
+    "difficulty": "<15 min fix",
+    "stratum": "general-easy",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-16801:latest"
+   }
+  ],
+  "general-medium": [
+   {
+    "instance_id": "django__django-15382",
+    "repo": "django/django",
+    "difficulty": "15 min - 1 hour",
+    "stratum": "general-medium",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-15382:latest"
+   },
+   {
+    "instance_id": "sympy__sympy-20590",
+    "repo": "sympy/sympy",
+    "difficulty": "15 min - 1 hour",
+    "stratum": "general-medium",
+    "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-20590:latest"
+   },
+   {
+    "instance_id": "django__django-16493",
+    "repo": "django/django",
+    "difficulty": "15 min - 1 hour",
+    "stratum": "general-medium",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-16493:latest"
+   },
+   {
+    "instance_id": "django__django-16612",
+    "repo": "django/django",
+    "difficulty": "15 min - 1 hour",
+    "stratum": "general-medium",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-16612:latest"
+   },
+   {
+    "instance_id": "django__django-13590",
+    "repo": "django/django",
+    "difficulty": "15 min - 1 hour",
+    "stratum": "general-medium",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-13590:latest"
+   },
+   {
+    "instance_id": "django__django-16661",
+    "repo": "django/django",
+    "difficulty": "15 min - 1 hour",
+    "stratum": "general-medium",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-16661:latest"
+   },
+   {
+    "instance_id": "django__django-14351",
+    "repo": "django/django",
+    "difficulty": "15 min - 1 hour",
+    "stratum": "general-medium",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-14351:latest"
+   },
+   {
+    "instance_id": "matplotlib__matplotlib-24026",
+    "repo": "matplotlib/matplotlib",
+    "difficulty": "15 min - 1 hour",
+    "stratum": "general-medium",
+    "image": "swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-24026:latest"
+   },
+   {
+    "instance_id": "django__django-15525",
+    "repo": "django/django",
+    "difficulty": "15 min - 1 hour",
+    "stratum": "general-medium",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-15525:latest"
+   },
+   {
+    "instance_id": "django__django-13786",
+    "repo": "django/django",
+    "difficulty": "15 min - 1 hour",
+    "stratum": "general-medium",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-13786:latest"
+   },
+   {
+    "instance_id": "sympy__sympy-22080",
+    "repo": "sympy/sympy",
+    "difficulty": "15 min - 1 hour",
+    "stratum": "general-medium",
+    "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-22080:latest"
+   },
+   {
+    "instance_id": "django__django-12965",
+    "repo": "django/django",
+    "difficulty": "15 min - 1 hour",
+    "stratum": "general-medium",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-12965:latest"
+   }
+  ],
+  "hard": [
+   {
+    "instance_id": "sphinx-doc__sphinx-11510",
+    "repo": "sphinx-doc/sphinx",
+    "difficulty": "1-4 hours",
+    "stratum": "hard",
+    "image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-11510:latest"
+   },
+   {
+    "instance_id": "sphinx-doc__sphinx-9461",
+    "repo": "sphinx-doc/sphinx",
+    "difficulty": "1-4 hours",
+    "stratum": "hard",
+    "image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9461:latest"
+   },
+   {
+    "instance_id": "django__django-16560",
+    "repo": "django/django",
+    "difficulty": "1-4 hours",
+    "stratum": "hard",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-16560:latest"
+   },
+   {
+    "instance_id": "django__django-13212",
+    "repo": "django/django",
+    "difficulty": "1-4 hours",
+    "stratum": "hard",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-13212:latest"
+   },
+   {
+    "instance_id": "django__django-11885",
+    "repo": "django/django",
+    "difficulty": "1-4 hours",
+    "stratum": "hard",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-11885:latest"
+   },
+   {
+    "instance_id": "sympy__sympy-14248",
+    "repo": "sympy/sympy",
+    "difficulty": "1-4 hours",
+    "stratum": "hard",
+    "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-14248:latest"
+   },
+   {
+    "instance_id": "django__django-15957",
+    "repo": "django/django",
+    "difficulty": "1-4 hours",
+    "stratum": "hard",
+    "image": "swebench/sweb.eval.x86_64.django_1776_django-15957:latest"
+   }
+  ]
+ }
+}
