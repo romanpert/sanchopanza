@@ -8,7 +8,8 @@ before it.
 One process, one probe: `ADOPT_DEV_PROFILE` picks it when this module is first imported.
 - `alwaysload` (default): the frozen copy of 1ea9302 (find_in_repo's server registered with
   `"alwaysLoad": true`), output dev-alwaysload/, 8.00 USD.
-- `nudge`: the frozen copy of e57c374 (find's description, server instructions and nudge),
+- `nudge`: the frozen copy of 4ee2901 (e57c374's find description, server instructions and
+  nudge, with the nudge's once-per-session lock and approval check),
   output dev-nudge/, 14.00 USD, plan from `behaviour-set.json` (`probe_nudge.py`).
 """
 
@@ -28,7 +29,7 @@ PROFILE = os.environ.get("ADOPT_DEV_PROFILE", "alwaysload")
 # profile -> (frozen commit, output folder, working copies folder, total cap in USD)
 PROFILES = {
     "alwaysload": ("1ea9302c8b4c3e63b908b5cd84b5c0204ba5eae1", "dev-alwaysload", "work-dal", 8.00),
-    "nudge": ("e57c374c2bc947a86a0c08f3c9021688b9d33cb8", "dev-nudge", "work-dn", 14.00),
+    "nudge": ("4ee2901d2cc10fc4967bda6bc915bd33c785eff4", "dev-nudge", "work-dn", 14.00),
 }
 if PROFILE not in PROFILES:
     raise RuntimeError(f"ADOPT_DEV_PROFILE={PROFILE!r}; known: {sorted(PROFILES)}")
@@ -42,6 +43,9 @@ WORK = ROOT / _WORK  # working copies (short: Django's paths are deep)
 SINGLES = ROOT / "singles"  # read only: the development N rows of batch dev1
 FIND_TOOL = "mcp__sanchopanza__find_in_repo"
 
+_given = os.environ.get("ADOPT_SANCHO")
+if _given and Path(_given).resolve() != FROZEN_EXE.resolve():
+    raise RuntimeError(f"ADOPT_SANCHO={_given} is not this profile's frozen copy {FROZEN_EXE}")
 os.environ["ADOPT_SANCHO"] = str(FROZEN_EXE)
 os.environ["DISABLE_AUTOUPDATER"] = "1"
 _path = os.environ.get("PATH", "").split(os.pathsep)

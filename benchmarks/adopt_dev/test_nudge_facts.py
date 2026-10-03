@@ -104,7 +104,9 @@ def test_the_probe_stops_when_find_hook_never_ran(tmp_path: Path) -> None:
     (tmp_path / "x" / "S").mkdir(parents=True)
     _write(tmp_path / "x" / "S" / "hooks.jsonl", [{"sub": "hook", "event": "PreToolUse"}])
     root = Path(__file__).resolve().parents[2]
-    env = {**os.environ, "ADOPT_DEV_PROFILE": "nudge"}
+    # common.py, imported here for another profile, set ADOPT_SANCHO to that profile's copy
+    env = {k: v for k, v in os.environ.items() if k != "ADOPT_SANCHO"}
+    env = {**env, "ADOPT_DEV_PROFILE": "nudge"}
     out = subprocess.run([sys.executable, "-c", GUARD, str(tmp_path)], cwd=root, env=env,
                          capture_output=True, text=True, timeout=120)  # fmt: skip
     assert out.returncode == 0, out.stderr[-2000:]

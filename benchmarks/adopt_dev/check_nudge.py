@@ -4,7 +4,7 @@
 
 1. the confirmation's seal holds; the plan is the behaviour set's ten, none held out, used or in
    phase D;
-2. Claude Code 2.1.285 is first on PATH; ADOPT_SANCHO is the frozen e57c374 copy with jev and mcp;
+2. Claude Code 2.1.285 is first on PATH; ADOPT_SANCHO is the frozen 4ee2901 copy with jev and mcp;
 3. the S arms' hooks build JevDecider (`run.decider_probe`: building it sends no question);
 4. `run.install_sancho` in a scratch repository wires find (alwaysLoad) and its nudge
    (`find-hook` on PostToolUse); a `claude -p` of the S arm against a local endpoint that answers

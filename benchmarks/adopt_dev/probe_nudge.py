@@ -8,7 +8,7 @@ behaviour set (`behaviour-set.json`: 7 issues no statement token greps to the go
     python -m benchmarks.adopt_dev.probe_nudge summary   # tables from the rows, free
 
 Everything but the pins is the alwaysLoad probe's driver (`probe_alwaysload.py`, reused as is):
-arm S is `sanchopanza install --scope project --write` from the frozen copy of e57c374 (extras jev
+arm S is `sanchopanza install --scope project --write` from the frozen copy of 4ee2901 (extras jev
 and mcp; find, its description, instructions and nudge all on by default there), wired through
 `hook_env.py` as the sealed runner does; arm N is Claude Code alone. Claude Code 2.1.285, Haiku
 4.5, 1.50 USD per call; a session starts only if the rows' cost so far plus its cap fits under

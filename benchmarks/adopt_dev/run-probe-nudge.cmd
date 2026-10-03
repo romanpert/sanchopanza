@@ -6,7 +6,7 @@ rem Ends with a log line PROBE DONE, PROBE STOP: <why> or PROBE FAILED: <why>, t
 set PATH=C:\Users\roman\.cache\sanchopanza\adopt\claude-2.1.285;%PATH%
 set DISABLE_AUTOUPDATER=1
 set ADOPT_DEV_PROFILE=nudge
-set ADOPT_SANCHO=C:\Users\roman\.cache\sanchopanza\adopt\frozen\e57c374c2bc9-jev-mcp\Scripts\sanchopanza.exe
+set ADOPT_SANCHO=C:\Users\roman\.cache\sanchopanza\adopt\frozen\4ee2901d2cc1-jev-mcp\Scripts\sanchopanza.exe
 set PYTHONIOENCODING=utf-8
 set PY=C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts\python.exe
 set L=C:\Users\roman\.cache\sanchopanza\adopt\dev-nudge
