@@ -157,12 +157,17 @@ def v2_calls(folder: pathlib.Path) -> dict[str, Any]:
             "disambiguation": sum(DISAMBIGUATION[:30] in t for t in texts)}  # fmt: skip
 
 
-def session_for(log_to: pathlib.Path):
+def session_for(log_to: pathlib.Path, caps: Mapping[str, float] | None = None, options=None):
+    """One session of an arm; `caps` and `options` (arm, marks folder -> `arm_options`) default
+    to this pilot's, and a later run on the same runner passes its own."""
+    caps = CAPS if caps is None else caps
+    options = arm_options if options is None else options
+
     def session(task: tuple, run: int, arm: str) -> dict[str, Any]:
         marks = pathlib.Path(tempfile.mkdtemp(prefix=f"sp-fetch2-{task[0].lower()}-"))
-        row = free.one_session(task, run, arm, session_max_usd=CAPS[arm], deny=frames.DENY,
-                               **arm_options(arm, marks))  # fmt: skip
-        found = frames.inspect(row, task[3], CAPS[arm], marks)
+        row = free.one_session(task, run, arm, session_max_usd=caps[arm], deny=frames.DENY,
+                               **options(arm, marks))  # fmt: skip
+        found = frames.inspect(row, task[3], caps[arm], marks)
         folder = trace.folder_of(row["workdir"])
         by_model = row.get("usd_by_model") or {}
         out = {**row, **found, "success_reply": row["success"], "success": found["ok_auto"],
@@ -225,17 +230,17 @@ def replay_budget(rows: Sequence[Mapping[str, Any]], ns: Sequence[int] = REPLAY_
 # --- free checks --------------------------------------------------------------------------------
 
 
-def check_load() -> dict[str, Any]:
+def check_load(arm: str = "HAIKU-FETCH2", options: Mapping[str, Any] | None = None) -> dict:
     """Free: the -FETCH2 session's first request offers fetch_passages up front (as the pilot's
-    `--check-load`, on this arm's options)."""
+    `--check-load`, on this arm's options, or on `options` when a later run passes its own)."""
     sink: list[dict[str, Any]] = []
     server = pilot.capture_server(sink)
     marks = pathlib.Path(tempfile.mkdtemp(prefix="sp-fetch2-check-"))
-    options = arm_options("HAIKU-FETCH2", marks)
+    options = dict(options) if options is not None else arm_options(arm, marks)
     env = {**options["env_extra"], "ANTHROPIC_BASE_URL": f"http://127.0.0.1:{server.server_port}",
            "ANTHROPIC_API_KEY": "dummy", "ENABLE_TOOL_SEARCH": "true"}  # fmt: skip
     try:
-        free.one_session(("CHECK", "", "Say hi.", ""), 1, "HAIKU-FETCH2", session_max_usd=0.01,
+        free.one_session(("CHECK", "", "Say hi.", ""), 1, arm, session_max_usd=0.01,
                          deny=frames.DENY, **{**options, "env_extra": env})  # fmt: skip
     finally:
         server.shutdown()

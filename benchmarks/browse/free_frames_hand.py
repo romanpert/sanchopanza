@@ -194,18 +194,22 @@ def report(rows: Sequence[Mapping[str, Any]], leaks: Mapping[str, int] | None) -
 # --- reading (local only) -----------------------------------------------------------------------
 
 
+def session_leak(row: Mapping[str, Any]) -> bool | None:
+    """Do the session's tool inputs or results name a host that serves the set or the set
+    itself? None when its transcript is gone."""
+    calls = trace.load_calls(trace.folder_of(row["workdir"]))
+    if not calls:
+        return None
+    return bool(_LEAK.search(" ".join(c["results"] + json.dumps(c["inputs"]) for c in calls)))
+
+
 def leak_scan(rows: Sequence[Mapping[str, Any]]) -> dict[str, int] | None:
     """Sessions whose tool inputs or results name a host that serves the set or the set itself;
     None when a transcript is gone."""
-    hits, missing = 0, 0
-    for row in rows:
-        calls = trace.load_calls(trace.folder_of(row["workdir"]))
-        if not calls:
-            missing += 1
-            continue
-        text = " ".join(c["results"] + json.dumps(c["inputs"]) for c in calls)
-        hits += bool(_LEAK.search(text))
-    return None if missing else {"sessions": len(rows), "naming_the_set_or_its_hosts": hits}
+    found = [session_leak(row) for row in rows]
+    if any(x is None for x in found):
+        return None
+    return {"sessions": len(rows), "naming_the_set_or_its_hosts": sum(found)}
 
 
 def main() -> int:
