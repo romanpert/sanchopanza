@@ -238,3 +238,12 @@ with an id is unchanged, and so is the fallback when `CLAUDE_CONFIG_DIR` is unse
   a second run of the same line changes nothing). Overhead probe: `C:\sp-runs\s-seal-dry\overhead.py`.
 - Full suite on `s-seal` at `cef2310`: 2,918 passed, 40 skipped (rerun after `1f3499e` before the
   merge).
+
+## Update 2026-10-06 (early): check-done and candor gate decided
+
+Branch `gate` fd398c6 (indagis-a1). The gate opens when the request changed something **or** asks for an action (`change_gate.asks_action`, a deterministic imperative-vs-question rule, no Jev). Free replays:
+- AgentDojo keeps 266 of check-done's 286 correct blocks (the files-only gate kept 23) and adds no false block.
+- BrowseComp-Plus and LongBench still avoid 17/17 send-backs and 20/20 candor block requests; none of the 87 h2h requests reads as an action.
+- The alternatives lost: B (the final answer claims an action, indagis-95's proposal) kept 24/286 and let one send-back through; the union C gave 266 and 16/17.
+
+Decision (indagis-95, line owner of the seal): gate A enters S, `--check-done` and `--candor` stay in the line, `SANCHOPANZA_ON_CHANGE` at its default (on). Merge `gate` into main before the seal and run the single suite (a1 reports 3081 passed, 42 skipped on the branch).
