@@ -35,7 +35,7 @@ PROFILE = os.environ.get("ADOPT_DEV_PROFILE", "alwaysload")
 # The find-auto probe's commit (full hash), set once the owner has committed the src work and
 # frozen it (`python benchmarks/adopt/freeze.py <commit>`). Empty: nothing frozen yet, and the
 # probe refuses to run (`auto_refusal`).
-AUTO_COMMIT = ""
+AUTO_COMMIT = "87611e1d4bfda8353c739643a7976579ff6cbf20"
 # profile -> (frozen commit, output folder, working copies folder, total cap in USD)
 PROFILES = {
     "alwaysload": ("1ea9302c8b4c3e63b908b5cd84b5c0204ba5eae1", "dev-alwaysload", "work-dal", 8.00),
