@@ -221,8 +221,9 @@ async def stop(input_data: dict[str, Any], guardian: Guardian) -> dict[str, Any]
     path = Path(str(input_data.get("transcript_path")))
     try:
         task, record = transcript_task_and_record(path)
-        if change_gate.on() and not change_gate.transcript_changed(path):
-            return {}  # a request that only read: nothing to hold "done" against
+        opened = change_gate.transcript_changed(path) or change_gate.asks_action(task)
+        if change_gate.on() and not opened:
+            return {}  # a request that only read and asked for no action: nothing to hold
     except OSError:
         return {}
     if not task:

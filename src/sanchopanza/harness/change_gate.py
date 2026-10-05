@@ -60,6 +60,54 @@ _INSTALLS = re.compile(
 )
 
 
+# --- did the request ask for an action? ---------------------------------------------------------
+# Without a change there is still something to hold "done" against when the request asked for
+# one: on AgentDojo 263 of check-done's 286 right blocks were requests to send, pay or invite in
+# which the agent stopped to ask, refused or never called the action. A verb that acts on the
+# world, in the imperative, and no question anywhere in the request.
+_ACTION_VERBS = (
+    r"send|e-?mail|mail|reply|respond|forward|post|message|write|book|reserve|pay|transfer|refund"
+    r"|create|add|invite|remove|delete|cancel|update|change|edit|modify|set|schedule|reschedule"
+    r"|share|move|rename|fix|install|deploy|commit|push|upload|order|buy|purchase|submit|publish"
+    r"|register|subscribe|unsubscribe|approve|assign|archive|perform|do|complete|make|organi[sz]e"
+    r"|refactor|implement|run|save|put|append|insert|replace|kick|block|unblock|grant|revoke"
+    r"|env[ií]a|env[ií]e|manda|mande|reserva|paga|pague|transfiere|crea|cree|a[nñ]ade|agrega"
+    r"|borra|elimina|actualiza|cambia|programa|arregla|corrige|escribe|invita|publica|comparte"
+    r"|cancela|mueve|instala|guarda|haz|haga|completa|ejecuta|sube|compra|modifica"
+)
+# A clause starts at the start of a sentence, after a list marker, a comma, a colon or a joining
+# word; a polite lead-in may come before the verb.
+_IMPERATIVE = re.compile(
+    r"(?:^|[;:]\s*|\d+[.)]\s*|,\s*|\b(?:and|then|also|y|luego|despu[eé]s)\s+)"
+    r"(?:please\s+|kindly\s+|(?:can|could|would|will)\s+you\s+(?:please\s+)?"
+    r"|i\s+(?:need|want|would\s+like|'d\s+like)\s+you\s+to\s+|your\s+task\s+is\s+to\s+"
+    r"|por\s+favor,?\s+|puedes\s+|podr[ií]as\s+|quiero\s+que\s+|tu\s+tarea\s+es\s+)?"
+    r"(?:" + _ACTION_VERBS + r")\b",
+    re.IGNORECASE,
+)
+_QUESTION = re.compile(
+    r"[?¿]|\bquestion\b|\bpregunta\b|^\W*(?:what|which|how|who|whom|whose|when|where|why"
+    r"|qu[eé]|cu[aá]l(?:es)?|cu[aá]nt[oa]s?|qui[eé]n(?:es)?|cu[aá]ndo|d[oó]nde|por\s+qu[eé])\b",
+    re.IGNORECASE,
+)
+_QUOTED = re.compile(r"'[^'\n]*'|\"[^\"\n]*\"|“[^”\n]*”|«[^»\n]*»")
+_ABBREVIATION = re.compile(r"\b(?:e\.g|i\.e|etc|vs|p\.ej)\.", re.IGNORECASE)
+_SENTENCE = re.compile(r"(?<=[.!?])\s+|\n+")
+_CONDITIONAL = re.compile(r"^\W*(?:if|si)\b", re.IGNORECASE)  # "If you are asked for a number"
+
+
+def asks_action(request: str) -> bool:
+    """Whether the request asks for an action rather than an answer. Quoted text (a message to
+    send) and conditional sentences (an answer template's "if you are asked for a string, ...
+    write the digits") do not count; a question anywhere makes the request a question."""
+    text = _ABBREVIATION.sub(" ", _QUOTED.sub(" ", str(request or "")))
+    sentences = [s.strip() for s in _SENTENCE.split(text) if s.strip()]
+    sentences = [s for s in sentences if not _CONDITIONAL.match(s)]
+    if any(_QUESTION.search(s) for s in sentences):
+        return False
+    return any(_IMPERATIVE.search(s) for s in sentences)
+
+
 def on(env: Mapping[str, str] | None = None) -> bool:
     """`SANCHOPANZA_ON_CHANGE`: on unless set to 0, false, no or off."""
     return _env.get("ON_CHANGE", "1", env=env).strip().lower() not in ("0", "false", "no", "off")

@@ -409,8 +409,14 @@ def user_prompt(data: Mapping[str, Any], *, codex: bool = False) -> dict[str, An
     state = lock_mod.read(_lock_path(data))
     if state.engaged and _setting("MODE", "lock") != "observe":
         notes.append(lock_mod.refusal(state))
-    if _setting("ASK_BLOCK", "prompt") in ("prompt", "both") and not _block_deferred(codex=codex):
-        notes.append(BLOCK_REQUEST)
+    if _setting("ASK_BLOCK", "prompt") in ("prompt", "both"):
+        if not _block_deferred(codex=codex):
+            notes.append(BLOCK_REQUEST)
+        elif change_gate.asks_action(str(data.get("prompt") or "")):
+            # a request for an action opens the gate at once; the mark stops a second request
+            notes.append(BLOCK_REQUEST)
+            _append(_ledger_path(str(data.get("session_id") or "")),
+                    {"kind": "block_asked", "t": time.time()})  # fmt: skip
     if not notes:
         return {}
     return {"hookSpecificOutput": {"hookEventName": "UserPromptSubmit",
@@ -456,7 +462,8 @@ async def stop(data: Mapping[str, Any]) -> dict[str, Any]:
     if shot is not None:
         root = prompt_cwd(session) or str(data.get("cwd") or os.getcwd())
         changed = diff(shot, snapshot(Path(root)))
-    if change_gate.on() and not changed and not request_acted(session):
+    opened = changed or request_acted(session) or change_gate.asks_action(task)
+    if change_gate.on() and not opened:
         return _gated(session, said, task, actions, shot is not None)
     held = _held_for_block(data, said)
     if held is not None:

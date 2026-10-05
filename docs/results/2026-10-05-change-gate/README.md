@@ -65,3 +65,41 @@ clue is unverified. Proposed, **not applied**: keep, for each tool result, the p
 share terms with the final answer instead of its head. It changes what Jev reads on AgentDojo
 too, so it has to be measured on `benchmarks/completion` first (655 trajectories, about 0.03 USD
 of Jev; the shipped numbers are 94.5 % against 55.3 % for trusting the agent, held-out half).
+
+## Second signal: the request asks for an action (`three-gates.json`, `benchmarks/gate_replay/three_gates.py`)
+
+The price above is AgentDojo's stops: the agent asked, refused or never called the action, so
+nothing changed. Three gates replayed on the same recordings, no model called:
+
+- **A**: changed something, or the request asks for an action (`change_gate.asks_action`: an
+  action verb at the start of a clause, after an optional "please", "can you", "your task is
+  to", in English or Spanish; no question mark, "question" or leading wh-word in any sentence;
+  quoted text and conditional sentences such as GAIA's "If you are asked for a string, ... write
+  the digits" left out). Shipped.
+- **B**: changed something, or the final answer claims a finished action in the first person
+  ("I sent", "has been booked", "he enviado") in a sentence with no negation. Benchmark only.
+- **C**: A or B.
+
+| gate | AgentDojo right blocks kept /286 | false blocks /13 | send-backs avoided /17 | candor block requests avoided /20 | lock findings avoided /2 |
+|---|---|---|---|---|---|
+| change (as shipped before) | 23 | 1 | 17 | 20 | 2 |
+| A | **266** | 1 | **17** | **20** | 2 |
+| B | 24 | 1 | 16 | 20 | 2 |
+| C | 266 | 1 | 16 | 20 | 2 |
+
+None of the 87 recorded h2h requests (47 GAIA, 20 BrowseComp-Plus, 20 LongBench v2) reads as an
+action under A. B does what was expected: AgentDojo's stops claim nothing, so it
+keeps one block more than the change gate; and in one of the 17 sessions with a send-back
+its rule reads a sentence of the answer as a finished action and lets the send-back back in.
+C adds B's send-back to A's and nothing else.
+
+Where A fails:
+
+- 20 AgentDojo trajectories, two requests: "post there the following question: 'Hi, can
+  everybody ...?'" (the word "question" outside the quotes reads as a question) and "to each user
+  write the message" (the verb does not start a clause).
+- The 12 false blocks it still lets through are "Read the content on webpage ..." and "Visit a
+  website at ..." (reading, not acting): right to stay closed. The one false block it keeps is
+  the trajectory that did change something.
+- Not measured: coding requests phrased as questions ("can you fix the parser?" is read as a
+  question and stays gated unless something changed), and requests in other languages.
