@@ -17,8 +17,8 @@ decider when TYPESAFE_API_KEY is set. All arms get the same tools, model, prompt
 `--clean-user`: each pair gets its own fresh CLAUDE_CONFIG_DIR (`<pair>/claude-config`, kept
 across that pair's sessions so auto memory can carry), with no plugins, skills, MCP servers,
 hooks or user CLAUDE.md. It signs in with CLAUDE_CODE_OAUTH_TOKEN from the launcher's
-environment, passed only in the claude process's environment: never written, logged or put in
-the run folder (a pair's files are scanned for it at its end and scrubbed if found).
+environment or the owner's Indagis .env, passed only in the claude process's environment:
+never written, logged or put in the run folder (a pair's files are scanned for it at its end and scrubbed if found).
 
 Caps: `--max-budget-usd` per session (CALL_CAPS, per model) and TOTAL_CAP over the run, checked
 before each pair against that pair's sessions at the cap, from the sessions' own `total_cost_usd`
@@ -114,6 +114,7 @@ TOOLS = ["Bash", "Read", "Edit", "Write", "Glob", "Grep"]
 PROJECTS = Path.home() / ".claude" / "projects"
 ORDER = ("thread", "first", "between", "second")
 TOKEN = "CLAUDE_CODE_OAUTH_TOKEN"
+INDAGIS_ENV = Path(r"C:\Users\roman\Desktop\proyectos\apps\indagis\.env")
 BUDGET_STOP = "error_max_budget_usd"
 PIN = "2.1.287"  # the pinned Claude Code (v8.1 Haiku and F1); a clean-user run refuses another
 SESSION_TIMEOUT = 900
@@ -214,12 +215,24 @@ def environment(config: Path | None = None) -> dict[str, str]:
     return {**env, "CLAUDE_CONFIG_DIR": str(config), TOKEN: clean_token()}
 
 
+def from_indagis_env(name: str) -> str:
+    """A secret from the environment, else from the owner's Indagis .env (a launcher started by
+    WMI outside the session gets no window variables). Never printed."""
+    value = os.environ.get(name, "").strip()
+    if not value and INDAGIS_ENV.exists():
+        for line in INDAGIS_ENV.read_text(encoding="utf-8").splitlines():
+            if line.startswith(f"{name}="):
+                value = line.split("=", 1)[1].strip().strip('"')
+    return value
+
+
 def clean_token() -> str:
     """The subscription's token for clean-user runs (`claude setup-token`), from the launcher's
-    environment. Never printed: the refusal names the variable only."""
-    token = os.environ.get(TOKEN, "").strip()
+    environment or the Indagis .env. Never printed: the refusal names the variable only."""
+    token = from_indagis_env(TOKEN)
     if not token:
-        raise SystemExit(f"--clean-user needs {TOKEN} in the environment; refusing to start")
+        raise SystemExit(f"--clean-user needs {TOKEN} in the environment or {INDAGIS_ENV}; "
+                         "refusing to start")  # fmt: skip
     return token
 
 
@@ -249,12 +262,7 @@ def ancestors_memory(path: Path) -> list[str]:
 def keyfile_from_indagis(out: Path) -> Path:
     """The TypeSafe key for the M arm's hook, from the owner's Indagis .env; never printed, and
     removed when the run ends."""
-    key = os.environ.get("TYPESAFE_API_KEY", "").strip()
-    env_file = Path(r"C:\Users\roman\Desktop\proyectos\apps\indagis\.env")
-    if not key and env_file.exists():
-        for line in env_file.read_text(encoding="utf-8").splitlines():
-            if line.startswith("TYPESAFE_API_KEY="):
-                key = line.split("=", 1)[1].strip().strip('"')
+    key = from_indagis_env("TYPESAFE_API_KEY")
     if not key:
         raise SystemExit("no TypeSafe key: the M arm would run without its decider")
     out.mkdir(parents=True, exist_ok=True)

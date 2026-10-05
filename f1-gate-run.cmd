@@ -1,11 +1,10 @@
 @echo off
-rem F1 headroom gate (docs/results/2026-10-05-memory-frontier/prereg-f1-correctness.md, DRAFT: not
-rem sealed until its commit adds the sha256). Arm N only, clean user, repetition 0: Sonnet 5.5
-rem (cap 16.5 USD), then Opus 5.5 (cap 31 USD) only if Sonnet exits 0 (carry.py exits 2 on a cap
-rem stop or the usage limit, 3 on a session timeout), then the gate table. Started outside the
-rem Claude Code session. Never run it twice.
-rem Needs CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`) set in this window only: carry.py
-rem passes it to the claude processes and never writes it anywhere. OUT is outside the home
+rem F1 headroom gate, sealed in docs/results/2026-10-05-memory-frontier/prereg-f1-gate.md.
+rem Arm N only, clean user, repetition 0: Sonnet 5.5 (cap 16.5 USD), then Opus 5.5 (cap 31 USD)
+rem only if Sonnet exits 0 (carry.py exits 1 when it refuses, 2 on a cap stop or the usage limit,
+rem 3 on a session timeout), then the gate table. Started outside the Claude Code session (WMI).
+rem Never run it twice. carry.py reads CLAUDE_CODE_OAUTH_TOKEN from this window or from the
+rem owner's Indagis .env, passes it only to the claude processes and never writes it. OUT is outside the home
 rem folder: under it, Claude Code's upward CLAUDE.md search would reach ~/.claude/CLAUDE.md and
 rem ~/.claude/rules, and carry.py refuses a clean user there.
 cd /d C:\Users\roman\Desktop\proyectos\apps\sanchopanza-memoria-f1
@@ -17,10 +16,6 @@ set PYTHONPATH=C:\Users\roman\Desktop\proyectos\apps\sanchopanza-memoria-f1\src
 set DISABLE_AUTOUPDATER=1
 if not exist "%OUT%" mkdir "%OUT%"
 set STATUS=%OUT%\f1-gate-run.status
-if not defined CLAUDE_CODE_OAUTH_TOKEN (
-  echo refused %DATE% %TIME% CLAUDE_CODE_OAUTH_TOKEN is not set >> "%STATUS%"
-  exit /b 1
-)
 if exist "%OUT%\f1-gate-sonnet\carry.json" (
   echo refused %DATE% %TIME% f1-gate-sonnet already has rows >> "%STATUS%"
   exit /b 1

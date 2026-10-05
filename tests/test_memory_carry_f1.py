@@ -167,10 +167,22 @@ def test_a_token_claude_code_wrote_into_the_pair_is_scrubbed(tmp_path: Path,
 def test_clean_user_without_a_token_refuses_before_building_anything(
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:  # fmt: skip
     monkeypatch.delenv(carry.TOKEN, raising=False)
+    monkeypatch.setattr(carry, "INDAGIS_ENV", tmp_path / "no.env")
     with pytest.raises(SystemExit, match=carry.TOKEN):
         carry.main(["--out", str(tmp_path / "out"), "--scenes", "parallel", "--arms", "N",
                     "--clean-user", "--dry"])  # fmt: skip
     assert not (tmp_path / "out").exists()
+
+
+def test_clean_user_token_comes_from_the_indagis_env_when_the_window_has_none(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:  # fmt: skip
+    monkeypatch.delenv(carry.TOKEN, raising=False)
+    env_file = tmp_path / ".env"
+    env_file.write_text(f'OTHER=1\n{carry.TOKEN}="{FAKE}"\n', encoding="utf-8")
+    monkeypatch.setattr(carry, "INDAGIS_ENV", env_file)
+    assert carry.clean_token() == FAKE
+    monkeypatch.setenv(carry.TOKEN, "from-window")
+    assert carry.clean_token() == "from-window"
 
 
 def test_without_clean_user_the_config_and_token_are_left_as_they_were(
