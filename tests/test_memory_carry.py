@@ -190,3 +190,22 @@ def test_the_driver_ignores_sigint_before_it_runs_anything(tmp_path: Path, monke
     monkeypatch.setattr(carry, "run_plan", lambda *a, **k: calls.append(("run_plan", None)))
     assert carry.main(["--out", str(tmp_path), "--dry"]) == 0
     assert calls == [(carry.signal.SIGINT, carry.signal.SIG_IGN), ("run_plan", None)]
+
+
+def test_building_a_repository_survives_one_held_index(tmp_path: Path, monkeypatch) -> None:
+    # v81h-all, 2026-10-05: `git add -A` on a fresh repository exited 128 once and ended the run
+    carry = bench_module(ROOT / "benchmarks" / "memory_carry", "carry")
+    real, failed = carry.git, []
+
+    def flaky(cwd: Path, *args: str) -> None:
+        if args[0] == "add" and not failed:
+            failed.append(args)
+            raise subprocess.CalledProcessError(128, ["git", *args])
+        real(cwd, *args)
+
+    monkeypatch.setattr(carry, "git", flaky)
+    monkeypatch.setattr(carry.time, "sleep", lambda s: None)
+    repo = carry.build(tmp_path / "run", {"files": {"app/a.py": "x = 1\n"}})
+    log = subprocess.run(["git", "-C", str(repo), "log", "--oneline"], capture_output=True,
+                         text=True, check=True).stdout
+    assert failed and "start" in log

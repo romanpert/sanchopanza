@@ -75,16 +75,20 @@ def project_name(cwd: Path) -> str:
 def git(cwd: Path, *args: str) -> None:
     env = {**os.environ, "GIT_AUTHOR_NAME": "dev", "GIT_AUTHOR_EMAIL": "dev@example.org",
            "GIT_COMMITTER_NAME": "dev", "GIT_COMMITTER_EMAIL": "dev@example.org"}  # fmt: skip
-    subprocess.run(["git", "-C", str(cwd), *args], check=True, capture_output=True, env=env)
+    done = subprocess.run(["git", "-C", str(cwd), *args], capture_output=True, env=env)
+    if done.returncode:  # git's own words go to the log: v81h-all lost them on 2026-10-05
+        sys.stderr.write(done.stderr.decode("utf-8", "replace"))
+        raise subprocess.CalledProcessError(done.returncode, done.args, done.stdout, done.stderr)
 
 
-def commit_wip(repo: Path, tries: int = 3) -> None:
-    """Session 1's work as one commit. Retried: on Opus, 2026-10-02, the commit right after the
-    session exited failed once with git's 128 (the index still held), and the run stopped."""
+def held(repo: Path, steps: list[tuple[str, ...]], tries: int = 3) -> None:
+    """Git steps run again while git reports the index held (its 128). On Opus, 2026-10-02, the
+    commit after a session failed once that way; on Haiku, 2026-10-05, the `add` that builds a
+    fresh repository did, before any session, and the run stopped."""
     for attempt in range(tries):
         try:
-            git(repo, "add", "-A")
-            git(repo, "commit", "-q", "--allow-empty", "-m", "wip")
+            for step in steps:
+                git(repo, *step)
             return
         except subprocess.CalledProcessError:
             if attempt == tries - 1:
@@ -92,14 +96,17 @@ def commit_wip(repo: Path, tries: int = 3) -> None:
             time.sleep(3 * (attempt + 1))
 
 
+def commit_wip(repo: Path, tries: int = 3) -> None:
+    """Session 1's work as one commit."""
+    held(repo, [("add", "-A"), ("commit", "-q", "--allow-empty", "-m", "wip")], tries)
+
+
 def build(run: Path, scene: dict[str, Any]) -> Path:
     repo = run / "repo"
     for rel, text in scene["files"].items():
         (repo / rel).parent.mkdir(parents=True, exist_ok=True)
         (repo / rel).write_text(text, encoding="utf-8", newline="\n")
-    git(repo, "init", "-q", "-b", "main")
-    git(repo, "add", "-A")
-    git(repo, "commit", "-q", "-m", "start")
+    held(repo, [("init", "-q", "-b", "main"), ("add", "-A"), ("commit", "-q", "-m", "start")])
     return repo
 
 
