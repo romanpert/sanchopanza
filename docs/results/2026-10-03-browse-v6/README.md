@@ -300,11 +300,89 @@ Development, not registered. Each item is opt-in and leaves v7 as it is:
 3. **The line only on crawl requests**, so that I1 and I2 never carry it. The guard and the notes
    stay on for every request.
 
+## v8 development (2026-10-05)
+
+Development, not a confirmation: the tasks are confirmation 4's own. v8 is three switches
+(`harness/crawl_hook.py`, all off by default): `SANCHOPANZA_CRAWL_NOTES=2` (v7's notes plus clicks
+that never changed the page text and fetched JSON rows against distinct rows),
+`SANCHOPANZA_CRAWL_ECHO=short` (a PostToolUse hook replaces the wrapper Playwright MCP echoes with
+one line) and `SANCHOPANZA_CRAWL_LINE_AT=prompt` (the line moves to UserPromptSubmit, and only on
+prompts that gather and do not act). The `-V8` arms get `install --crawl`'s hooks, the two events
+in `crawl_hook.V8_HOOKS`, and line v6. `-V7` is confirmation 4's `-SP`.
+
+Round (`nav_v8.py`): G3, G6, I2 (the misses and the cost), G4, G8 (where Sonnet with v7 cost
+more) and G1 (no regression); five arms, two runs, 60 sessions, Claude Code 2.1.287, ceiling 12
+USD. It cost **5.87 USD** at list price, smoke included. Every transcript was checked: each `-V8`
+session on a G task carried the line, neither `-V8` session on I2 did, and no `-V8` result echoed
+the wrapper. The `-V8` transcripts hold 110 cut echoes and none left whole; the `-V7` transcripts
+hold the whole wrapper 62 times. The guard stopped nothing.
+
+| task | Haiku | Haiku-V7 | Haiku-V8 | Sonnet | Sonnet-V8 |
+|---|---|---|---|---|---|
+| G3 | 2/2, 0.051 | 2/2, 0.070 | 2/2, 0.038 | 0/2, 0.094 | **2/2**, 0.078 |
+| G6 | 2/2, 0.169 | 2/2, 0.084 | 1/2, 0.079 | 2/2, 0.178 | 2/2, 0.084 |
+| G4 | 0/2, 0.033 | 2/2, 0.040 | **2/2**, 0.037 | 1/2, 0.074 | 2/2, 0.081 |
+| G8 | 2/2, 0.094 | 2/2, 0.036 | 2/2, 0.032 | 2/2, 0.079 | 2/2, 0.078 |
+| G1 | 0/2, 0.030 | 2/2, 0.043 | 1/2, 0.035 | 2/2, 0.068 | 2/2, 0.072 |
+| I2 | 2/2, 0.131 | 2/2, 0.140 | 2/2, 0.183 | 2/2, 0.257 | 2/2, 0.265 |
+| crawls right / sum of means | 6/10, 0.378 | **10/10**, 0.272 | 8/10, **0.221** | 7/10, 0.493 | **10/10**, 0.392 |
+
+Mean USD per session. The ratios v8 was for:
+
+- **Sonnet on the JSON APIs (G4 + G8): 1.034** (G4 1.093, G8 0.978). The echo cut closed the
+  cache-write gap: Sonnet-V8 now writes 12,224 to 12,703 tokens to cache against 11,967 to
+  12,825 for Sonnet alone. What is left is output: 980 to 1,258 tokens against 708 to 1,660,
+  because the line asks for code that also returns pages read and the stated total. On G4 that
+  code is the right answer (2/2 against 1/2). There is no walk to remove on these tasks. Plain
+  Sonnet writes one evaluate in 4 turns, and so does Sonnet-V8. So **v8 brings the JSON APIs to
+  parity, not below it**. Over the five crawls Sonnet-V8 costs 0.795 of Sonnet alone and is
+  cheaper on G3, G6 and G8. G3's plain mean includes the round's first Sonnet session, which paid
+  a cold cache (25,220 tokens written against about 11,300 in run 2).
+- **Haiku on I2: 1.394**, and v8 is not in those sessions. On I2, no `-V8` session ran an
+  evaluate, so no hook returned anything: no line, no wrapper, no echo. The session is Claude
+  Code alone. The cost follows the path Haiku takes. When it checks each step with
+  `browser_take_screenshot`, the session runs 26 to 37 turns and 0.149 to 0.217 USD. When it
+  checks with `browser_snapshot`, it runs 19 to 20 turns and 0.104 to 0.124. Both `-V8` sessions
+  took the screenshot path, and so did one of the two plain ones (0.158). **v8 removes what v7
+  added to the interactive tasks.** The remaining cost difference is the model's own choice
+  between these two paths, and two runs cannot measure it.
+- Haiku-V8 against Haiku-V7 on the crawls: **0.81**, cheaper on 5 of 5. That is the echo cut.
+  Against Haiku alone: 0.585 with 8 right against 6.
+
+Every miss, read in its transcript:
+
+| session | answer | what happened |
+|---|---|---|
+| G4 r1, r2 Haiku; G4 r1 Sonnet | 0 | read only the open page: 20 names of 1,351 |
+| G1 r1, r2 Haiku | 6 | read only the open page: 30 products of 194 |
+| G3 r1, r2 Sonnet | 1 | read only the open page: 10 facts of 332 |
+| G6 r2 Haiku-V8 | 8 | read the first-name column (`cells[1]`, "Maddie") and clicked the 8 pager buttons inside one evaluate, reading the same 40 rows each time (320). The click note fired: "8 clicks did not change the page text: the rows were already loaded". The agent answered without acting on it |
+| G1 r1 Haiku-V8 | 6 | the note fired ("read only the open page, which says: "total":194") but the agent never saw it. The evaluate returned all 30 products, 64,577 characters. Claude Code saved that result to a file and showed a 2 KB preview, and the note sat at character 64,295 |
+
+What this says:
+
+- **As in confirmation 4, every "read only the open page" miss is in a plain arm.** None of
+  them happened with v7 or v8.
+- **The two v8 misses are of new kinds, and neither has a counter-note.** In G6, a note that is
+  right is ignored, and the column is the wrong one. In G1, a note is lost because a result over
+  Claude Code's size limit is persisted and only its head is shown. The notes go after the
+  value, so a large value hides them. **The next fix is placement**: put the notes before the
+  value. The PostToolUse hook that already rewrites the result could do this, or the wrapper
+  could return `{sanchopanza, result}` in that order.
+- **The rows note had a bug, now fixed.** On catfact.ninja each page holds 10 facts under `data`
+  and 15 pagination links under `links`. The note took the largest array of objects and counted
+  the links: "fetched JSON rows 510, distinct 137" for 34 pages of 332 facts. No answer was hurt,
+  and G3 was 4/4 right with v8. `crawl_notes._V2` now skips a `links`/`_links` key
+  (`test_a_paginators_links_are_not_taken_for_the_rows`). The round ran before the fix. On G1,
+  G4 and G8 the rows note was right (194/194, 1,351/1,351, 60/60).
+
 ## Files
 
 - `nav-v6-sessions.jsonl` / `.log`, `nav-v6.json`: the phase. `nav-v6-smoke-sessions.jsonl`: the
   smoke session (F4, v6, right, 0.16 USD).
 - `nav-v7-sessions.jsonl` / `.log`, `nav-v7.json`, `nav-v7-smoke-sessions.jsonl`: the v7 round.
+- `nav-v8-sessions.jsonl` / `.log`, `nav-v8.json`, `nav-v8-smoke-sessions.jsonl`: the v8 round
+  (`benchmarks/browse/nav_v8.py`, `tests/test_nav_v8.py`).
 - `truth-v6.json`: the answers recomputed after the phase.
 - `prereg-crawl4.md` / `.sha256`: confirmation 4, sealed before it ran.
 - `nav-confirm4-sessions.jsonl`, `nav-confirm4.json`: confirmation 4's 120 sessions and its
