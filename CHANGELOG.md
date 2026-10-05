@@ -9,6 +9,21 @@ do not favour this package.
 
 ### Added
 
+- **The knowledge layer** (`install --knowledge`, off by default until confirmed live;
+  `docs/results/2026-10-05-knowledge`). One MCP server, `sanchopanza knowledge-mcp`, loaded up
+  front: `search` (Wikipedia's search API and a free web chain, a day of cache, breakers moved
+  only by real answers), `read` (fetch v2's passages for pages and for local PDF, DOCX, XLSX,
+  CSV and text files, each under its page or section; a long document judged by
+  `select_passages` when a provider is set) and `pick` (the documents of a folder or a list that
+  serve a purpose, and their passages). A hook sends the first WebSearch of a query and the first
+  WebFetch of a URL to it and lets the second run. Offline: on the pilots' own 193 queries the
+  task's gold article came back 70-73 % of the time against 44-48 % for WebSearch, at the same
+  size (539 against 530 tokens) and with no reader; on QASPER the judged cascade, replayed from
+  recordings, kept every answer sentence in 88.7 % at about 1,000 tokens where fetch v2 kept
+  81.0 % at 1,800. A BM25 cascade of places, passages and sentences lost to fetch v2 at every
+  budget and is not shipped. After three guessed addresses in a row that come back 404 or as a
+  disambiguation page, `read` searches for the purpose instead of fetching the next one.
+  Optional extras: `sanchopanza[documents]` (pypdf), `sanchopanza[search]` (ddgs).
 - **Memory v3, just in time** (`install --memory`, still off by default). When the agent opens
   or changes a file, it is given the records of earlier requests that changed that file (the
   two newest, once per session, code only); recall at a prompt now runs only at a session's

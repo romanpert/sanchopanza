@@ -607,6 +607,8 @@ def _merge(
     sources: bool = False,
     fetch: bool = False,
     fetch_server: bool = False,
+    knowledge: bool = False,
+    knowledge_server: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
         current = {}
@@ -647,7 +649,8 @@ def _merge(
                                        "", "", "find auto", hook=auto_hook())  # fmt: skip
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_browse(merged, crawl=crawl, prune=prune, sources=sources,
-                                       fetch=fetch)  # fmt: skip
+                                       fetch=fetch, knowledge=knowledge,
+                                       knowledge_server=knowledge_server)  # fmt: skip
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_budget(merged, budget)
     added, removed = [*added, *plus], [*removed, *minus]
@@ -687,6 +690,7 @@ def plan(
     prune: bool = False,
     sources: bool = False,
     fetch: bool = False,
+    knowledge: bool = False,
 ) -> Settings:
     current: Any = {}
     if path.exists():
@@ -725,7 +729,10 @@ def plan(
         fetch=fetch,
         # The fetch server goes in a project's .mcp.json only (`cli._plan_mcp_json`); a user
         # install prints the `claude mcp add-json` line instead, so nothing to approve here.
-        fetch_server=fetch and project_settings(path),
+        # Knowledge reads pages itself: with it, neither the fetch hook nor its server is wired.
+        fetch_server=fetch and not knowledge and project_settings(path),
+        knowledge=knowledge,
+        knowledge_server=knowledge and project_settings(path),
     )
     return Settings(path, merged, tuple(added), tuple(removed))
 
