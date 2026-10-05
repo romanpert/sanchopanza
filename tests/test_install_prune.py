@@ -117,3 +117,40 @@ def test_the_installed_command_runs_the_browse_hook(tmp_path: Path) -> None:
     assert out["hookEventName"] == "PostToolUse"
     kept = json.dumps(out["updatedToolOutput"])
     assert len(kept) < len(text) / 2 and "Item number 377 of" in kept
+
+
+# --- S seal (2026-10-05, indagis-a1): crawl owns browser_evaluate, prune never touches it -----
+
+
+def test_the_matcher_leaves_browser_evaluate_to_crawl() -> None:
+    """Crawl rewrites an evaluate's result (echo cut, notes at the head); prune's confirmed
+    result is about page snapshots. Two hooks replacing one result have no documented merge."""
+    matcher = re.compile(PRUNE_HOOKS["PostToolUse"])
+    for tool in ("mcp__playwright__browser_evaluate",
+                 "mcp__plugin_playwright_playwright__browser_evaluate"):  # fmt: skip
+        assert not matcher.fullmatch(tool), tool
+        assert not matcher.match(tool), tool  # read as a prefix search too
+    for tool in ("mcp__playwright__browser_evaluate_later", "mcp__playwright__browser_snapshot"):
+        assert matcher.fullmatch(tool), tool
+
+
+def test_the_handler_leaves_browser_evaluate_alone_even_if_wired_by_hand(
+    tmp_path: Path, monkeypatch
+) -> None:
+    import asyncio
+
+    from sanchopanza.harness import browse_hook
+
+    rows = "\n".join(f'- button "Item {n}" [ref=e{n}]' for n in range(600))
+    snapshot = f"### Page state\n```yaml\n{rows}\n```"
+    event = {"hook_event_name": "PostToolUse", "tool_name": "mcp__playwright__browser_evaluate",
+             "tool_input": {"function": "() => 1"}, "session_id": "s", "cwd": str(tmp_path),
+             "tool_response": [{"type": "text", "text": snapshot}]}  # fmt: skip
+
+    monkeypatch.setenv("SANCHOPANZA_ARCHIVE", str(tmp_path / "archive"))
+
+    class Untouchable:
+        def __getattr__(self, name: str) -> object:
+            raise AssertionError(f"the squire was used ({name})")
+
+    assert asyncio.run(browse_hook.post_tool_use(event, Untouchable())) == {}

@@ -16,12 +16,14 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from .crawl_hook import V8_HOOKS, V81_HOOKS
 from .fetch_hook import FETCH_COMMAND, FETCH_HOOKS
 from .sources_hook import SOURCES_COMMAND, SOURCES_HOOKS
 
 __all__ = [
     "CRAWL_COMMAND",
     "CRAWL_HOOKS",
+    "CRAWL_INSTALL_HOOKS",
     "FETCH_COMMAND",
     "FETCH_HOOKS",
     "PRUNE_COMMAND",
@@ -38,10 +40,18 @@ CRAWL_COMMAND = "sanchopanza crawl-hook"
 # Event -> matcher for crawl (`--crawl`, `harness.crawl_hook`): the strategy line at every session
 # start, and the time limit on any MCP server's browser_evaluate.
 CRAWL_HOOKS = {"SessionStart": "", "PreToolUse": r"mcp__.*__browser_evaluate"}
+# What `install --crawl` wires: every event the crawl hook answers. v8 and v8.1 (the line on
+# gathering prompts, the echo cut, the notes at the head, the first screenshot denied) are switched
+# on by env alone, and with only `CRAWL_HOOKS` wired their env did nothing, or (`LINE_AT=prompt`)
+# took the line away. Without that env the extra events answer nothing. `CRAWL_HOOKS` and
+# `_merge_crawl` stay as sealed benchmarks import them.
+CRAWL_INSTALL_HOOKS = {**CRAWL_HOOKS, **V8_HOOKS, **V81_HOOKS}
 PRUNE_COMMAND = "sanchopanza browse-hook"
 # Event -> matcher for snapshot pruning (`--prune`, `harness.browse_hook`): inline snapshots on any
 # MCP server's browser tools (a result past Claude Code's limit is read back by the hook itself).
-PRUNE_HOOKS = {"PostToolUse": r"mcp__.*__browser_.*"}
+# Never `browser_evaluate`: crawl owns its result (echo cut, notes at the head), and prune's
+# confirmed result is about page snapshots (indagis-a1, S seal 2026-10-05).
+PRUNE_HOOKS = {"PostToolUse": r"mcp__.*__browser_(?!evaluate$).*"}
 
 
 def _entry(matcher: str, command: str) -> dict[str, Any]:
@@ -143,6 +153,11 @@ def _merge_crawl(merged: dict[str, Any], on: bool, command: str = CRAWL_COMMAND)
     return _merge_owned(merged, on, CRAWL_HOOKS, command, CRAWL_COMMAND, "crawl")
 
 
+def _merge_crawl_all(merged: dict[str, Any], on: bool, command: str = CRAWL_COMMAND) -> Merged:
+    """Every event crawl answers (`--crawl`), its v8 and v8.1 behaviour left to the env."""
+    return _merge_owned(merged, on, CRAWL_INSTALL_HOOKS, command, CRAWL_COMMAND, "crawl")
+
+
 def _merge_prune(merged: dict[str, Any], on: bool, command: str = PRUNE_COMMAND) -> Merged:
     """Snapshot pruning's hook (`--prune`)."""
     return _merge_owned(merged, on, PRUNE_HOOKS, command, PRUNE_COMMAND, "prune")
@@ -164,7 +179,7 @@ def merge_browse(
     """The four browse sets, in order: crawl, prune, sources, fetch (each wired or taken out)."""
     added: list[str] = []
     removed: list[str] = []
-    steps = ((_merge_crawl, crawl), (_merge_prune, prune), (_merge_sources, sources),
+    steps = ((_merge_crawl_all, crawl), (_merge_prune, prune), (_merge_sources, sources),
              (_merge_fetch, fetch))  # fmt: skip
     for step, on in steps:
         merged, plus, minus = step(merged, on)

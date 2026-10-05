@@ -14,6 +14,7 @@ from sanchopanza.harness.generic import HarnessConfig
 from sanchopanza.harness.install import (
     CRAWL_COMMAND,
     CRAWL_HOOKS,
+    CRAWL_INSTALL_HOOKS,
     MEMORY_COMMAND,
     apply,
     plan,
@@ -33,11 +34,11 @@ def _commands(doc: dict, event: str) -> list[str]:
     return [h["command"] for e in doc["hooks"].get(event, []) for h in e["hooks"]]
 
 
-def test_install_crawl_wires_two_hooks_once_and_keeps_theirs(tmp_path: Path) -> None:
+def test_install_crawl_wires_its_hooks_once_and_keeps_theirs(tmp_path: Path) -> None:
     path = _settings(tmp_path)
     apply(plan(path, HarnessConfig(), crawl=True))
     doc = json.loads(path.read_text("utf-8"))
-    for event, matcher in CRAWL_HOOKS.items():
+    for event, matcher in CRAWL_INSTALL_HOOKS.items():
         ours = [e for e in doc["hooks"][event] if e["hooks"][0]["command"] == CRAWL_COMMAND]
         assert len(ours) == 1 and ours[0]["matcher"] == matcher
     assert "theirs" in _commands(doc, "SessionStart") and doc["env"]["KEEP"] == "1"
@@ -97,3 +98,42 @@ def test_the_installed_command_runs_the_crawl_hook(tmp_path: Path) -> None:
     )
     assert run.returncode == 0, run.stderr
     assert json.loads(run.stdout)["hookSpecificOutput"]["additionalContext"] == STRATEGY_LINE
+
+
+# --- S seal (2026-10-05): every event the crawl hook answers, inert without its env ----------
+
+
+def test_install_crawl_wires_every_event_the_hook_answers(tmp_path: Path) -> None:
+    """v8 and v8.1 (`LINE_AT=prompt`, `ECHO=short`, `NOTES_AT=front`, `SHOT=snapshot-first`) are
+    switched on by env alone; with only SessionStart and the evaluate wired, `LINE_AT=prompt`
+    dropped the line altogether and the other three did nothing (S seal draft)."""
+    from sanchopanza.harness.crawl_hook import V8_HOOKS, V81_HOOKS
+
+    path = _settings(tmp_path)
+    apply(plan(path, HarnessConfig(), crawl=True))
+    doc = json.loads(path.read_text("utf-8"))
+    wired = {
+        event: [e["matcher"] for e in entries if e["hooks"][0]["command"] == CRAWL_COMMAND]
+        for event, entries in doc["hooks"].items()
+    }
+    assert {e: m for e, m in wired.items() if m} == {
+        e: [m] for e, m in {**CRAWL_HOOKS, **V8_HOOKS, **V81_HOOKS}.items()
+    }
+    again = plan(path, HarnessConfig(), crawl=True)
+    assert not again.added and not again.removed
+    apply(plan(path, HarnessConfig(), crawl=False))
+    assert CRAWL_COMMAND not in path.read_text("utf-8")
+
+
+def test_the_extra_crawl_events_do_nothing_without_their_env() -> None:
+    from sanchopanza.harness import crawl_hook
+
+    events = [
+        {"hook_event_name": "UserPromptSubmit", "prompt": "count every product across pages"},
+        {"hook_event_name": "PostToolUse", "tool_name": "mcp__playwright__browser_evaluate",
+         "tool_response": [{"type": "text", "text": "### Ran Playwright code\n```js\nx\n```"}]},
+        {"hook_event_name": "PreToolUse", "tool_name": "mcp__playwright__browser_take_screenshot",
+         "tool_input": {}, "session_id": "s"},
+    ]  # fmt: skip
+    for event in events:
+        assert crawl_hook.handle(event, {}) is None

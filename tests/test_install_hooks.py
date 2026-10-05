@@ -37,7 +37,9 @@ PLAN_PARAMETERS = (
 MEMORY = "sanchopanza memory-hook"
 HOOK = "sanchopanza hook"
 PRE = "Agent|Bash|PowerShell|Task|WebSearch|bash|execute|run_command|shell"
-FILES = "Read|Edit|MultiEdit|Write|NotebookEdit"
+# Memory v6 (894f650) added Bash and PowerShell to the touch; v7 (3f9d719) moved SessionStart
+# from "compact" to every start (standing rules). Pinned again after memory v8.3 was merged.
+FILES = "Read|Edit|MultiEdit|Write|NotebookEdit|Bash|PowerShell"
 
 
 def _entry(matcher: str, command: str) -> dict:
@@ -64,7 +66,7 @@ def test_plan_output_is_unchanged_by_the_split(tmp_path: Path) -> None:
         "Stop:  (memory)",
         "SessionEnd:  (memory)",
         f"PostToolUse: {FILES} (memory)",
-        "SessionStart: compact (memory)",
+        "SessionStart:  (memory)",
         "env: SANCHOPANZA_CONTEXT_BUDGET=200000",
         "env: CLAUDE_CODE_AUTO_COMPACT_WINDOW=233000",
         "env: SANCHOPANZA_GUARD_PROFILE=coding",
@@ -85,7 +87,7 @@ def test_plan_output_is_unchanged_by_the_split(tmp_path: Path) -> None:
             "UserPromptSubmit": [_entry("", MEMORY)],
             "Stop": [_entry("", MEMORY)],
             "SessionEnd": [_entry("", MEMORY)],
-            "SessionStart": [_entry("compact", MEMORY)],
+            "SessionStart": [_entry("", MEMORY)],
         },
     }
 
@@ -95,8 +97,11 @@ def test_browse_sets_are_wired_and_removed_in_order(tmp_path: Path) -> None:
     on = install.plan(path, HarnessConfig(), crawl=True, prune=True, sources=True, fetch=True)
     browse = (
         "SessionStart:  (crawl)",
-        "PreToolUse: mcp__.*__browser_evaluate (crawl)",
-        "PostToolUse: mcp__.*__browser_.* (prune)",
+        # S seal: install --crawl wires every event crawl answers (CRAWL_INSTALL_HOOKS)
+        "PreToolUse: mcp__.*__browser_(evaluate|take_screenshot) (crawl)",
+        "PostToolUse: mcp__.*__browser_evaluate (crawl)",
+        "UserPromptSubmit:  (crawl)",
+        "PostToolUse: mcp__.*__browser_(?!evaluate$).* (prune)",
         "Stop:  (sources)",
         "PreToolUse: WebFetch (fetch)",
     )
