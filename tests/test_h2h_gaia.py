@@ -627,3 +627,11 @@ def test_paired_stats_mcnemar_and_cost_bootstrap():
     assert out["by_arm"]["SONNET-SP"]["jev_usd"] == 0.01
     assert runner.stats.mcnemar([True] * 7, [False] * 7)[2] == pytest.approx(2 / 128)
     assert runner.stats.paired(rows, {}, "X-SP", "X-CC") == {"tasks": 0}
+
+
+def test_session_folders_name_neither_the_task_nor_the_arm():
+    root = runner.session_root("dev", "abc-123", "SONNET-SP", 1)
+    assert "abc-123" not in str(root) and "SP" not in root.name and "SONNET" not in str(root)
+    assert root == runner.session_root("dev", "abc-123", "SONNET-SP", 1)
+    assert root != runner.session_root("dev", "abc-123", "SONNET-CC", 1)
+    assert root.parent == runner.RUNS / "dev"

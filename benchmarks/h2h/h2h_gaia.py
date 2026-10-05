@@ -41,6 +41,7 @@ in its own process group (CreateFlags 512); `--live` ignores SIGINT.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
 import pathlib
@@ -246,7 +247,11 @@ def build_row(task: Any, run: int, arm: str, out: Mapping[str, Any], stderr: str
 
 
 def session_root(phase_name: str, task_id: str, arm: str, run: int) -> pathlib.Path:
-    return RUNS / phase_name / task_id / f"{arm}-{run}"
+    """A neutral folder name: the agent sees its working folder (and an attachment's path in the
+    prompt), so neither the task id (searchable) nor the arm may be in it. The dev phase of
+    2026-10-05 ran with `<task id>/<arm>-<run>`; the row keeps the folder either way."""
+    digest = hashlib.sha256(f"{phase_name}|{task_id}|{arm}|{run}".encode()).hexdigest()[:16]
+    return RUNS / phase_name / digest
 
 
 def one_session(task: Any, run: int, arm: str, ctx: Mapping[str, Any]) -> dict[str, Any]:
