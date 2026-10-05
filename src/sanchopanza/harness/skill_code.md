@@ -48,7 +48,5 @@ and again. sanchopanza sets the session to compact at a fixed budget; you help b
 - A denied shell command comes with its reason (deletes outside the work, sends files or secrets
   to the network, changes permissions, runs something downloaded). Do not retry it reworded; do
   the same thing another way or tell the person why you cannot.
-- A note after one of your first searches that listed many files suggests `find_in_repo`, once
-  per session; use it if the request describes behaviour, ignore it if it names the code.
 - A note on a delegated task's result (unsourced claims, a search that repeats) is advice to
   check before you rely on that result.

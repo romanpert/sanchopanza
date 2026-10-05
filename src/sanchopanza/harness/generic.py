@@ -214,11 +214,18 @@ class Guardian:
     async def _before_delegate(self, call: ToolCall) -> Verdict:
         c = self.config
         task = self._task_text(call.arguments)
-        if not task.strip():
+        # **Probe, do not declare.** A tier is only somewhere to send a task when the harness
+        # has a name for it. Without `tiers` the bare tier name went out as the subagent type
+        # (`"default"`), Claude Code has no agent by that name, and every named delegation
+        # failed: 13 of 13 in the adoption study's S arms (2026-10-05). Unconfigured, nothing
+        # is asked and nothing is rewritten.
+        if not c.tiers or not task.strip():
             return ALLOW
         requested = call.arguments.get(c.delegate_tier_key)
         default = c.tier_of(requested if isinstance(requested, str) else None) or "default"
         result = await self.squire.route_task(task, requested=requested, default=default)
+        if result.tier not in c.tiers:
+            return ALLOW
         chosen = c.tier_name(result.tier)
         if chosen == requested or (requested is None and result.tier == default):
             return ALLOW

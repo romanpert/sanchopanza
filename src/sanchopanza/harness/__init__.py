@@ -11,6 +11,7 @@ for the orchestrator comes out. Every concrete adapter is a thin translation of 
 - `openai_agents`: a tool guardrail function in the shape the OpenAI Agents SDK expects.
 """
 
+import importlib
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -23,8 +24,10 @@ def __getattr__(name: str) -> Any:
     """Loaded on first use: a hook that imports one submodule (the memory touch runs on every
     file the agent opens) must not pay for `generic` and the decision points, ~145 ms."""
     if name in __all__ or name == "generic":
-        from . import generic
-
+        # Not `from . import generic`: that asks this package for `generic`, which lands here
+        # again before the submodule is bound, and recursed until RecursionError. The bound
+        # submodule first, so that a second import never makes a second `Guardian`.
+        generic = globals().get("generic") or importlib.import_module(f"{__name__}.generic")
         return generic if name == "generic" else getattr(generic, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 

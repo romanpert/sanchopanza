@@ -154,3 +154,12 @@ def test_the_fast_path_only_skips_events_that_would_have_answered_nothing():
                 continue
             sq, _ = squire(decider)
             assert asyncio.run(handle(event, Guardian(sq, config))) == {}, (env, event)
+
+
+def test_the_lazy_harness_names_import_in_a_fresh_interpreter():
+    # `from . import generic` inside the package's `__getattr__` asked the package for
+    # `generic` again and recursed until RecursionError, so `from sanchopanza.harness import
+    # Guardian` failed in any process that had not imported `generic` first (2026-10-05).
+    for name in ("Guardian", "HarnessConfig", "generic"):
+        modules = _loaded_after(f"from sanchopanza.harness import {name}")
+        assert "sanchopanza.harness.generic" in modules, name

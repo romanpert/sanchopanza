@@ -44,6 +44,32 @@ def test_the_hook_rewrites_only_the_tier_and_does_not_mutate_the_input():
     assert entry["tool_input"]["subagent_type"] == "researcher"
 
 
+def test_without_tiers_a_named_delegation_is_left_alone():
+    # The default install sets no SANCHOPANZA_TIERS. The hook used to rewrite every named
+    # delegation to the bare tier name, `subagent_type: "default"`, which Claude Code does not
+    # have: 13 of 13 S delegations in the adoption study failed with "Agent type 'default' not
+    # found" (2026-10-05). With nothing configured there is nothing to route to.
+    sq, _ = squire(
+        FixedDecider({"complexity": score(1.9, 0.9), "person_risk": yes(0.0)}), allow_upgrade=True
+    )
+    hook = pre_tool_use(Guardian(sq, HarnessConfig()))
+    for requested in ("Explore", "general-purpose", "default", "deep", None):
+        tool_input = {"prompt": "find where the bug is", "description": "x"}
+        if requested:
+            tool_input["subagent_type"] = requested
+        out = asyncio.run(hook({"tool_name": "Agent", "tool_input": tool_input}, None, None))
+        assert out == {}, requested
+
+
+def test_a_tier_with_no_configured_name_is_not_written():
+    sq, _ = squire(
+        FixedDecider({"complexity": score(1.9, 0.9), "person_risk": yes(0.0)}), allow_upgrade=True
+    )
+    g = Guardian(sq, HarnessConfig(tiers={"light": "researcher-light"}))
+    entry = {"tool_name": "Agent", "tool_input": {"subagent_type": "Explore", "prompt": "t"}}
+    assert asyncio.run(pre_tool_use(g)(entry, None, None)) == {}
+
+
 def test_no_change_means_an_empty_hook_output():
     g = _guardian(FixedDecider({"complexity": score(1.0, 0.9), "person_risk": yes(0.0)}))
     out = asyncio.run(
