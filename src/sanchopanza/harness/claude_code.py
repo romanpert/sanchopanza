@@ -34,6 +34,9 @@ wins when both are set (`sanchopanza._env`):
                       and send Claude back once if it confidently does not (opt-in; never
                       twice in a row; any failure lets the stop through). Measured on
                       AgentDojo, not on coding sessions: see docs/results/2026-09-25-completion.
+    ON_CHANGE         "0" to run CHECK_DONE (and candor) on every request. By default they act
+                      only on a request that changed something (`harness.change_gate`): on
+                      question-and-answer sessions the send-back never changed a grade.
     T_*               any threshold by name, e.g. SANCHOPANZA_T_INJECTION=0.5
     AUTOPILOT         "1" to cut long tool results on arrival and recall archived output and
                       memories (`harness.autopilot`, which lists its own knobs)
@@ -62,6 +65,7 @@ from typing import TYPE_CHECKING, Any
 from .. import _env
 from ..points import completion
 from ..points.routing import Tier
+from . import change_gate
 from .generic import Guardian, HarnessConfig, text_of
 
 if TYPE_CHECKING:
@@ -194,7 +198,7 @@ def transcript_task_and_record(path: Path) -> tuple[str, str]:
             if results:
                 for b in results:
                     lines.append(f"TOOL RESULT: {_text_of(b.get('content'))[:TOOL_RESULT_LIMIT]}")
-            elif _text_of(content).strip():
+            elif change_gate.is_request(entry):  # not hook feedback, not a compaction summary
                 task, lines = _text_of(content).strip(), []  # a new request starts the record
         elif entry.get("type") == "assistant" and isinstance(content, list):
             for b in content:
@@ -214,8 +218,11 @@ async def stop(input_data: dict[str, Any], guardian: Guardian) -> dict[str, Any]
     config = guardian.config
     if not config.check_done or input_data.get("stop_hook_active"):
         return {}
+    path = Path(str(input_data.get("transcript_path")))
     try:
-        task, record = transcript_task_and_record(Path(str(input_data.get("transcript_path"))))
+        task, record = transcript_task_and_record(path)
+        if change_gate.on() and not change_gate.transcript_changed(path):
+            return {}  # a request that only read: nothing to hold "done" against
     except OSError:
         return {}
     if not task:

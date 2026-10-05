@@ -137,3 +137,22 @@ def test_install_check_done_writes_the_stop_hook_and_its_env(tmp_path, capsys):
     assert cli.main(["install", "--path", str(settings), "--write"]) == 0
     again = json.loads(settings.read_text(encoding="utf-8"))
     assert not again["hooks"].get("Stop") and "SANCHOPANZA_CHECK_DONE" not in again.get("env", {})
+
+
+def test_a_compaction_summary_or_hook_feedback_is_not_the_task(tmp_path):
+    """Two BrowseComp-Plus sessions of the h2h run were compacted before their stop, and the
+    check judged "did the agent do <the compaction summary>": the summary became the task."""
+    path = _transcript(tmp_path)
+    extra = [
+        {"type": "user", "isCompactSummary": True, "isVisibleInTranscriptOnly": True,
+         "message": {"role": "user", "content": "This session is being continued..."}},
+        {"type": "user", "isMeta": True,
+         "message": {"role": "user", "content": "Stop hook feedback:\nsomething"}},
+        {"type": "assistant",
+         "message": {"role": "assistant", "content": [{"type": "text", "text": "Sent it."}]}},
+    ]  # fmt: skip
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write("\n" + "\n".join(json.dumps(x) for x in extra))
+    task, record = transcript_task_and_record(path)
+    assert task == "Invite Dora and tell her the date"
+    assert "AGENT ACTION: invite" in record and "Sent it." in record

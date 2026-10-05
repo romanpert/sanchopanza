@@ -36,6 +36,12 @@ Environment (`SANCHOPANZA_CANDOR_<NAME>`):
 
     LOCK_SCOPE session (default) | project | machine: which calls one lock holds (`candor.lock`)
 
+`SANCHOPANZA_ON_CHANGE` (on by default, `harness.change_gate`): candor acts only on a request
+that changed something or ran tests. The status block is asked for at the first such call
+(PostToolUse context) instead of at the prompt, and a Stop on a request that only read journals
+its findings marked `gated` and neither holds, judges nor locks. Codex keeps the request at the
+prompt. `SANCHOPANZA_ON_CHANGE=0` restores acting on every request.
+
 The lock file is SANCHOPANZA_CANDOR_LOCK when set; otherwise one per session under
 ~/.sanchopanza/candor-locks/ (per project, or `candor-lock.json` for the machine, by LOCK_SCOPE).
 """
@@ -58,6 +64,7 @@ from ..candor import should_lock
 from ..candor.claims import BLOCK_REQUEST, report_block
 from ..candor.ledger import RESULT_LIMIT, Action, action, target_of, writes_of
 from ..candor.rules import RANK, Turn, check
+from . import change_gate
 
 SNAPSHOT_FILES = 3_000
 SNAPSHOT_BYTES = 2_000_000
@@ -316,12 +323,60 @@ def post_tool_use(
     name = str(data.get("tool_name") or "")
     arguments = data.get("tool_input") if isinstance(data.get("tool_input"), Mapping) else {}
     text = _response_text(data.get("error") if failed else data.get("tool_response"))
-    _append(_ledger_path(str(data.get("session_id") or "")), {
+    acted = change_gate.acted(name, arguments)
+    path = _ledger_path(str(data.get("session_id") or ""))
+    _append(path, {
         "kind": "action", "t": time.time(), "tool": name,
         "target": target_of(name, arguments), "ok": (not failed) if outcome_known else None,
         "result": text[-RESULT_LIMIT:], "writes": list(writes_of(name, arguments)),
+        "acted": acted,
     })  # fmt: skip
-    return _slipped(data, name, arguments)
+    slipped = _slipped(data, name, arguments)
+    if slipped or not acted or not _block_deferred(codex=not outcome_known):
+        return slipped
+    return _ask_block_once(data, path)
+
+
+def _block_deferred(*, codex: bool) -> bool:
+    """Whether the status block is asked for at the first call that acts, not at the prompt."""
+    return change_gate.on() and not codex and _setting("ASK_BLOCK", "prompt") in ("prompt", "both")
+
+
+def _ask_block_once(data: Mapping[str, Any], path: Path) -> dict[str, Any]:
+    """The block request as this call's context, once per request (a mark in the ledger)."""
+    lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+    for line in reversed(lines):  # this request's entries, newest first
+        if '"kind": "block_asked"' in line:
+            return {}
+        if '"kind": "prompt"' in line:
+            break
+    _append(path, {"kind": "block_asked", "t": time.time()})
+    event = str(data.get("hook_event_name") or "PostToolUse")
+    return {"hookSpecificOutput": {"hookEventName": event, "additionalContext": BLOCK_REQUEST}}
+
+
+def request_acted(session: str) -> bool:
+    """Whether a call of the current request changed something or ran tests. An entry written
+    before the gate existed carries no `acted`: its effect decides."""
+    path = _ledger_path(session)
+    acted = False
+    if not path.exists():
+        return acted
+    for line in path.read_text(encoding="utf-8").splitlines():
+        try:
+            entry = json.loads(line)
+        except ValueError:
+            continue
+        if entry.get("kind") == "prompt":
+            acted = False
+        elif entry.get("kind") == "action":
+            known = entry.get("acted")
+            if known is None:
+                effect = action(entry.get("tool", ""), entry.get("target", "")).effect
+                opens = (*change_gate.CHANGING_EFFECTS, "test")
+                known = effect in opens or bool(entry.get("writes"))
+            acted = acted or bool(known)
+    return acted
 
 
 def _slipped(data: Mapping[str, Any], name: str, arguments: Mapping[str, Any]) -> dict[str, Any]:
@@ -344,7 +399,7 @@ def _slipped(data: Mapping[str, Any], name: str, arguments: Mapping[str, Any]) -
     }  # fmt: skip
 
 
-def user_prompt(data: Mapping[str, Any]) -> dict[str, Any]:
+def user_prompt(data: Mapping[str, Any], *, codex: bool = False) -> dict[str, Any]:
     root = Path(str(data.get("cwd") or os.getcwd()))
     shot = snapshot(root) if _setting("SNAPSHOT") in ("1", "true", "yes") else None
     _append(_ledger_path(str(data.get("session_id") or "")),
@@ -354,7 +409,7 @@ def user_prompt(data: Mapping[str, Any]) -> dict[str, Any]:
     state = lock_mod.read(_lock_path(data))
     if state.engaged and _setting("MODE", "lock") != "observe":
         notes.append(lock_mod.refusal(state))
-    if _setting("ASK_BLOCK", "prompt") in ("prompt", "both"):
+    if _setting("ASK_BLOCK", "prompt") in ("prompt", "both") and not _block_deferred(codex=codex):
         notes.append(BLOCK_REQUEST)
     if not notes:
         return {}
@@ -397,13 +452,15 @@ async def stop(data: Mapping[str, Any]) -> dict[str, Any]:
     session = str(data.get("session_id") or "")
     task, shot, actions = load(session)
     said = _said(data)
-    held = _held_for_block(data, said)
-    if held is not None:
-        return held
     changed: list[str] = []
     if shot is not None:
         root = prompt_cwd(session) or str(data.get("cwd") or os.getcwd())
         changed = diff(shot, snapshot(Path(root)))
+    if change_gate.on() and not changed and not request_acted(session):
+        return _gated(session, said, task, actions, shot is not None)
+    held = _held_for_block(data, said)
+    if held is not None:
+        return held
     turn = Turn(said=said, did=tuple(actions), task=task, changed=tuple(changed),
                 snapshot=shot is not None)  # fmt: skip
     report = check(turn)
@@ -430,6 +487,19 @@ async def stop(data: Mapping[str, Any]) -> dict[str, Any]:
     return {"systemMessage": lock_mod.summary(state)}
 
 
+def _gated(
+    session: str, said: str, task: str, actions: list[Action], snapshot_taken: bool
+) -> dict[str, Any]:
+    """A request that only read: the rules' findings are journalled for review, marked, and
+    nothing is held, judged, locked or said (`change_gate`)."""
+    turn = Turn(said=said, did=tuple(actions), task=task, snapshot=snapshot_taken)
+    findings = sorted(check(turn).findings, key=lambda f: -RANK[f.severity])
+    _append(state_dir() / "findings.jsonl", {"t": time.time(), "event": "Stop",
+            "session": session, "actions": len(actions), "changed": [], "gated": "no_change",
+            "findings": [f.to_dict() for f in findings]})  # fmt: skip
+    return {}
+
+
 def handle(data: Mapping[str, Any], *, codex: bool = False) -> dict[str, Any]:
     """One hook event. `codex`: the event comes from Codex CLI, whose PostToolUse carries the
     output text and no exit, and which has no PostToolUseFailure."""
@@ -439,7 +509,7 @@ def handle(data: Mapping[str, Any], *, codex: bool = False) -> dict[str, Any]:
     if event in ("PostToolUse", "PostToolUseFailure"):
         return post_tool_use(data, failed=event == "PostToolUseFailure", outcome_known=not codex)
     if event == "UserPromptSubmit":
-        return user_prompt(data)
+        return user_prompt(data, codex=codex)
     if event == "Stop":
         import asyncio
 
