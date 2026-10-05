@@ -96,27 +96,64 @@ def _export_once(tag: str, dest: Path) -> str:
 def _git_retry(cmd: list[str], attempts: int = 5) -> str:
     """Git on freshly written files on Windows fails now and then (a scanner holding a file, a
     stale index.lock): five tries, 2 to 16 seconds apart, then the error as it was. Three tries
-    two seconds apart were not enough when two arms exported at once (dev round 1)."""
+    two seconds apart were not enough when two arms exported at once (dev round 1). Output is
+    read as bytes and decoded, so a patch keeps the CRLF its files hold."""
     for attempt in range(attempts):
-        done = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8",
-                              errors="replace")  # fmt: skip
+        done = subprocess.run(cmd, capture_output=True)
         if done.returncode == 0:
-            return done.stdout
+            return (done.stdout or b"").decode("utf-8", "replace")
         if attempt + 1 < attempts:
             time.sleep(2 ** (attempt + 1))
-    raise RuntimeError(f"{' '.join(cmd[3:6])}: {done.stderr.strip()[-400:]}")
+    err = (done.stderr or b"").decode("utf-8", "replace").strip()[-400:]
+    raise RuntimeError(f"{' '.join(cmd[3:6])}: {err}")
 
 
 def agent_diff(work: Path, base: str) -> str:
     """Everything the agent changed since `base`, new files included, as one patch. Our own
     install files (.claude/, .mcp.json) and sanchopanza's state are not part of the work, and
     stay out of the index too: marked intent-to-add, an agent's `git checkout .` emptied them
-    and left an S arm without its hooks (development batch 2)."""
+    and left an S arm without its hooks (development batch 2). Both git calls are checked and
+    retried: an antivirus "Permission denied" once left an empty patch that graded as nothing
+    fixed, in silence (long-session pre-mortem, b)."""
     git = ["git", "-C", str(work)]
     ours = (":(exclude).claude", ":(exclude).mcp.json", ":(exclude).sanchopanza")
-    subprocess.run([*git, "add", "-A", "-N", "--", ".", *ours], capture_output=True)
-    out = subprocess.run([*git, "diff", "--binary", base, "--", ".", *ours], capture_output=True)
-    return out.stdout.decode("utf-8", "replace")
+    _git_retry([*git, "add", "-A", "-N", "--", ".", *ours])
+    return _git_retry([*git, "diff", "--binary", base, "--", ".", *ours])
+
+
+LABEL = "sp.long"  # every container a long-chain call starts carries `sp.long=<chain>-<arm>`
+
+
+def label_args() -> list[str]:
+    """`--label sp.long=<value>` for `docker run` when the runner set ADOPT_LABEL, else none."""
+    value = os.environ.get("ADOPT_LABEL", "")
+    return ["--label", f"{LABEL}={value}"] if value else []
+
+
+def labelled(value: str) -> list[str]:
+    """Ids of the containers, running or not, that carry `sp.long=<value>`."""
+    done = docker("ps", "-aq", "--filter", f"label={LABEL}={value}", timeout=120)
+    return ok(done, "docker ps").decode().split()
+
+
+def remove_labelled(value: str) -> list[str]:
+    """Remove what a call left behind (a runtests the kill orphaned); returns the ids removed."""
+    found = labelled(value)
+    if found:
+        ok(docker("rm", "-f", *found, timeout=300), "docker rm")
+    return found
+
+
+def health() -> str:
+    """Why Docker cannot serve a call now ("" when `docker info` answers). A daemon error is a
+    fault of the harness, not of an arm: the runner stops on it."""
+    try:
+        done = docker("info", "--format", "{{.ServerVersion}}", timeout=120)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        return f"docker info: {error}"
+    if done.returncode != 0:
+        return f"docker info: {done.stderr.decode('utf-8', 'replace').strip()[-300:]}"
+    return ""
 
 
 FULL_SUITE_OVER = 1500  # more nodes than this: run the whole suite once and read them from it

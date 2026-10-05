@@ -16,7 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from docker_env import VENV, agent_diff  # noqa: E402
+from docker_env import VENV, agent_diff, label_args  # noqa: E402
 
 TIMEOUT_S = 1200
 
@@ -36,8 +36,9 @@ def main(argv: list[str]) -> int:
         script = (f"{prefix}cd /testbed && {VENV}(test ! -s /io/work.patch || git apply "
                   "--whitespace=nowarn /io/work.patch || { echo 'runtests: your changes did not "
                   f"apply'; exit 3; }}) && {test_cmd} \"$@\"")  # fmt: skip
-        cmd = ["docker", "run", "--rm", "-v", f"{Path(io_dir).as_posix()}:/io:ro", tag,
-               "bash", "-lc", script, "runtests", *argv]  # fmt: skip
+        # The runner's label (ADOPT_LABEL) lets it remove a container a killed call orphaned.
+        cmd = ["docker", "run", "--rm", *label_args(), "-v", f"{Path(io_dir).as_posix()}:/io:ro",
+               tag, "bash", "-lc", script, "runtests", *argv]  # fmt: skip
         try:
             return subprocess.run(cmd, timeout=TIMEOUT_S).returncode
         except subprocess.TimeoutExpired:

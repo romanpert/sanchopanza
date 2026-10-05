@@ -201,16 +201,19 @@ def settings(run: Path, arm: str, keyfile: Path) -> str:
                                  for event, matcher in MEMORY_HOOKS.items()}})  # fmt: skip
 
 
-def environment(config: Path | None = None) -> dict[str, str]:
+def environment(config: Path | None = None,
+                base: dict[str, str] | None = None) -> dict[str, str]:  # fmt: skip
     """The agent's environment, the same in every arm: no API key (the subscription pays), no
     TypeSafe key (only the hook arms read it, from a file), Claude Code's own memory on. With a
     clean user's `config`: no ANTHROPIC_* or CLAUDE_CODE_USE_* variable at all (no other
     endpoint, key or provider), that CLAUDE_CONFIG_DIR, and the OAuth token from this process's
-    own environment, here and nowhere else."""
+    own environment, here and nowhere else. Over `base` when given (the long-chain runner passes
+    `run.child_env`'s), else over this process's environment."""
     drop = ("ANTHROPIC_API_KEY", "TYPESAFE_", "SANCHOPANZA_", "CLAUDE_CODE_DISABLE_AUTO_MEMORY")
     if config is not None:
         drop = (*drop, "ANTHROPIC_", "CLAUDE_CODE_USE_", "CLAUDE_CONFIG_DIR", TOKEN)
-    env = {k: v for k, v in os.environ.items() if not k.upper().startswith(drop)}
+    source = os.environ if base is None else base
+    env = {k: v for k, v in source.items() if not k.upper().startswith(drop)}
     if config is None:
         return env
     return {**env, "CLAUDE_CONFIG_DIR": str(config), TOKEN: clean_token()}
@@ -306,14 +309,18 @@ def session_ran(result: dict[str, Any]) -> bool:
     return result.get("returncode") == 0 or result.get("subtype") == BUDGET_STOP
 
 
-def _init(event: dict[str, Any]) -> dict[str, Any]:
+def init_facts(event: dict[str, Any]) -> dict[str, Any]:
     """What a session loaded, from its `init` event: model, version, and how much came from the
-    user's setup (a clean user has no MCP servers, plugins or skills of its own)."""
+    user's setup (a clean user has no MCP servers, plugins or skills of its own). `mcp` names
+    each server with its status ("connected", "failed", ...): the long-chain runner stops a chain
+    whose S arm loses a server (B2's S ran with `sanchopanza` failed at init, unseen)."""
     paths = event.get("memory_paths")
     count = {k: len(event.get(k) or []) for k in ("mcp_servers", "plugins", "skills", "agents")}
+    servers = [s for s in event.get("mcp_servers") or [] if isinstance(s, dict)]
     return {"model": event.get("model"), "version": event.get("claude_code_version"),
             "permission_mode": event.get("permissionMode"),
             "api_key_source": event.get("apiKeySource"), **count,
+            "mcp": {str(s.get("name")): str(s.get("status")) for s in servers},
             "memory_auto": paths.get("auto") if isinstance(paths, dict) else None}  # fmt: skip
 
 
@@ -349,7 +356,7 @@ def read_stream(path: Path) -> dict[str, Any]:
             subtype = str(event.get("subtype") or "")
             result = {k: event.get(k) for k in ("is_error", "api_error_status", "terminal_reason")}
         if event.get("type") == "system" and event.get("subtype") == "init" and not init:
-            init = _init(event)
+            init = init_facts(event)
         message = event.get("message")
         content = message.get("content") if isinstance(message, dict) else None
         tools += sum(1 for b in content if isinstance(b, dict) and b.get("type") == "tool_use") \
@@ -624,20 +631,23 @@ def refuse_unclean(out: Path) -> None:
                          + ", ".join(found) + ". Put --out where no folder above holds one.")
 
 
-def record_claude(out: Path, dry: bool, clean: bool) -> None:
-    """Which `claude` the run starts, and its version, once, in `claude.txt`. A dry run calls
-    nothing, so it records the path only. A clean-user run refuses any version but PIN."""
+def record_claude(out: Path, dry: bool, clean: bool,
+                  claude: tuple[str, ...] = ("claude",)) -> str:  # fmt: skip
+    """Which `claude` the run starts, and its version, once, in `claude.txt`; returns the
+    version. A dry run calls nothing, so it records the path only. A clean-user run refuses any
+    version but PIN. `claude`: the command (a test passes a stand-in)."""
     out.mkdir(parents=True, exist_ok=True)
-    where = shutil.which("claude") or "not found"
+    where = shutil.which(claude[0]) or claude[0]
     version = "not asked (dry run)"
     if not dry:
-        asked = subprocess.run(["claude", "--version"], capture_output=True, text=True,
+        asked = subprocess.run([*claude, "--version"], capture_output=True, text=True,
                                timeout=120, env=environment(), check=False)  # fmt: skip
         version = (asked.stdout or asked.stderr).strip()
     with (out / "claude.txt").open("a", encoding="utf-8") as f:
         f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {where} {version}\n")
     if clean and not dry and not version.startswith(f"{PIN} "):
         raise SystemExit(f"--clean-user refused: claude on PATH is {version!r}, not {PIN}")
+    return version
 
 
 def build_plan(scenes: str, models: str, arms: str, repeats: int,

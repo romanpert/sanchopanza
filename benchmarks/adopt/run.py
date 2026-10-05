@@ -49,9 +49,10 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 
+import arm_files  # noqa: E402
 import docker_env  # noqa: E402
 
-PYTHON = REPO / ".venv" / "Scripts" / "python.exe"
+PYTHON = Path(os.environ.get("ADOPT_PYTHON") or REPO / ".venv" / "Scripts" / "python.exe")
 # The sanchopanza the S arms install and run: the editable development one unless ADOPT_SANCHO
 # names a frozen copy (`freeze.py`), which held-out tasks require.
 SANCHO = Path(os.environ.get("ADOPT_SANCHO") or REPO / ".venv" / "Scripts" / "sanchopanza.exe")
@@ -59,7 +60,8 @@ ROOT = Path.home() / ".cache" / "sanchopanza" / "adopt"
 RUNS = ROOT / "runs"
 WORK = ROOT / "work"
 BIN = ROOT / "bin"
-MODELS = {"haiku": "claude-haiku-4-5-20251001", "sonnet": "claude-sonnet-5-5"}
+MODELS = {"haiku": "claude-haiku-4-5-20251001", "sonnet": "claude-sonnet-5-5",
+          "opus": "claude-opus-5-5"}  # fmt: skip
 ARMS = ("N", "S")
 # What held-out tasks run with, as `prereg-confirm.md` fixes it, enforced here and not left to
 # the command line: the frozen sanchopanza, phase A's model and caps, and Claude Code's version.
@@ -75,6 +77,7 @@ HELD_DECIDER = "JevDecider"
 class Arm:
     install: tuple[str, ...] | None  # None: Claude Code alone; else extra `install` flags
     fresh: bool = False  # each request in a new session
+    env: tuple[tuple[str, str], ...] = ()  # into the project settings' `env` block
 
 
 ARM_SPECS = {
@@ -86,6 +89,7 @@ ARM_SPECS = {
     # Controls, so that a difference can be put down to memory alone: Sf against Sfn, Sm against Sb.
     "Sfn": Arm((), fresh=True),
     "Sb": Arm(("--context-budget", "100000")),
+    "Ne": Arm(None, env=(("CLAUDE_CODE_AUTO_COMPACT_WINDOW", "193000"),)),  # S's window, alone
 }
 # Chains that run only when named, on a model named (combined.py, long.py): a default run must
 # not spend them on the wrong model, since a chain never runs twice.
@@ -490,7 +494,10 @@ def one_chain(
     rows: list[dict[str, Any]] = []
     session: str | None = None
     previous = json.loads(done_row.read_text(encoding="utf-8")) if done_row.exists() else None
-    if previous and (not carry_on or not any(not_run(r) for r in previous["calls"])):
+    if previous and previous.get("partial"):  # the runner stopped mid-chain
+        if chain["split"] == "held" or not carry_on:
+            raise RuntimeError(f"{name} {arm}: partial row.json (held: set aside; else --continue)")
+    elif previous and (not carry_on or not any(not_run(r) for r in previous["calls"])):
         return  # done before: never run twice
     if why := held_start_refusal(chain, work, previous):
         raise RuntimeError(f"{name} {arm}: {why}")
@@ -521,6 +528,8 @@ def one_chain(
         mcp = None
         if spec.install is not None:
             mcp = install_sancho(work, evidence, keyfile, spec.install)
+        if spec.env:
+            arm_files.write_env_settings(work, spec.env)
     env = child_env(chain["tag"], base)
     asks = requests_of(chain)
     for k, bug in enumerate(asks, start=1):
@@ -579,20 +588,18 @@ def one_chain(
                      **seen})  # fmt: skip
         print(f"{name} {arm} request {k}: {seen['subtype']} {seen['cost_usd']:.3f} USD "
               f"{len(seen['compactions'])} compactions", flush=True)
+        arm_files.write_row(evidence, arm_files.partial_row(
+            {"chain": name, "arm": arm, "model": model, "base": base, "session": session}, rows))
     final = docker_env.agent_diff(work, base)
     (evidence / "final.patch").write_text(final, encoding="utf-8", newline="\n")
-    sessions = list(dict.fromkeys(r["session"] for r in rows if r.get("session")))
-    for n, one in enumerate(sessions, start=1):
-        found = next(Path.home().joinpath(".claude", "projects").glob(f"*/{one}.jsonl"), None)
-        if found:
-            suffix = "" if len(sessions) == 1 else f"-{n}"
-            shutil.copy(found, evidence / f"transcript{suffix}.jsonl")
+    arm_files.copy_transcripts((r.get("session") or "" for r in rows), evidence,
+                               arm_files.projects_root(env))  # fmt: skip
     row = {"chain": name, "arm": arm, "model": model, "base": base, "session": session,
            "wall_s": round(sum(r.get("wall_s") or 0.0 for r in rows), 1),
            "jev_usd": jev_usd(evidence), "sanchopanza": provenance(),
            "claude_version": claude_version(), "calls": rows,
            **({"decider": probes} if probes else {})}  # fmt: skip
-    (evidence / "row.json").write_text(json.dumps(row, indent=1), encoding="utf-8")
+    arm_files.write_row(evidence, row)
 
 
 def requests_of(chain: dict[str, Any]) -> list[dict[str, Any]]:
@@ -622,19 +629,27 @@ def grade_chain(chain: dict[str, Any], arm: str, rep: int = 1) -> dict[str, Any]
     keep = chain["split"] != "held"  # amendment 5: held-out chains keep the sealed command
     outcome = docker_env.pytest(chain["tag"], patch, list(dict.fromkeys(nodes)),
                                 keep_collecting=keep)  # fmt: skip
-    bugs = []
-    for bug in chain["bugs"]:
-        f2p = [outcome.get(t) == "PASSED" for t in bug["FAIL_TO_PASS"]]
-        p2p = [outcome.get(t) == "PASSED" for t in bug["PASS_TO_PASS_STAR"]]
-        bugs.append({"instance_id": bug["instance_id"], "resolved": all(f2p) and all(p2p),
-                     "f2p_passed": sum(f2p), "f2p": len(f2p), "p2p_broken": p2p.count(False),
-                     "patch_applied": "<patch>" not in outcome})  # fmt: skip
+    bugs = [bug_result(bug, outcome) for bug in chain["bugs"]]
+    broken = sorted({t for b in chain["bugs"] for t in b["PASS_TO_PASS_STAR"]
+                     if outcome.get(t) != "PASSED"})  # fmt: skip
+    # Primary: the bug's own FAIL_TO_PASS (pre-mortem a); `resolved` stays phase A's strict rule
     grade = {"chain": chain["chain"], "arm": arm, "resolved": sum(b["resolved"] for b in bugs),
+             "primary": "resolved_f2p", "resolved_f2p": sum(b["resolved_f2p"] for b in bugs),
+             "resolved_strict": sum(b["resolved"] for b in bugs), "regressions": broken,
              "bugs": bugs, "collection": "continue" if keep else "stop"}  # fmt: skip
     seal = REPO / "docs" / "results" / "2026-09-30-adopt" / "prereg-confirm.sha256"
     grade = {**grade, "seal": seal.read_text(encoding="utf-8").strip() if seal.exists() else None}
     (evidence / "grade.json").write_text(json.dumps(grade, indent=1), encoding="utf-8")
     return grade
+
+
+def bug_result(bug: dict[str, Any], outcome: dict[str, str]) -> dict[str, Any]:
+    f2p = [outcome.get(t) == "PASSED" for t in bug["FAIL_TO_PASS"]]
+    p2p = [outcome.get(t) == "PASSED" for t in bug["PASS_TO_PASS_STAR"]]
+    applied = "<patch>" not in outcome
+    return {"instance_id": bug["instance_id"], "resolved": all(f2p) and all(p2p),
+            "resolved_f2p": all(f2p) and applied, "f2p_passed": sum(f2p), "f2p": len(f2p),
+            "p2p_broken": p2p.count(False), "patch_applied": applied}  # fmt: skip
 
 
 # ---- entry -----------------------------------------------------------------------------------
