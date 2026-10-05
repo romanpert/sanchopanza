@@ -45,11 +45,20 @@ def durations(path: pathlib.Path) -> list[dict[str, Any]]:
             elif block.get("type") == "tool_result" and block.get("tool_use_id") in started:
                 tool, at = started.pop(block["tool_use_id"])
                 text = json.dumps(block.get("content"))
-                out.append({"tool": tool, "seconds": (when - at).total_seconds(),
-                            "error": '"### Error' in text or "is_error" in text and block.get("is_error"),
-                            "stopped": "evaluate stopped after" in text})  # fmt: skip
-    out += [{"tool": tool, "seconds": None, "error": True, "stopped": False, "unanswered": True}
-            for tool, _ in started.values()]  # fmt: skip
+                out.append(
+                    {
+                        "tool": tool,
+                        "seconds": (when - at).total_seconds(),
+                        "error": '"### Error' in text
+                        or "is_error" in text
+                        and block.get("is_error"),
+                        "stopped": "evaluate stopped after" in text,
+                    }
+                )
+    out += [
+        {"tool": tool, "seconds": None, "error": True, "stopped": False, "unanswered": True}
+        for tool, _ in started.values()
+    ]
     return out
 
 

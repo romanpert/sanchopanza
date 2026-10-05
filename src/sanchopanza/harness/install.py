@@ -84,6 +84,16 @@ line of strategy for requests that gather data across many pages (extract them i
 error instead of a hung session. No model; the guard rewrites the call's input and approves
 nothing. Off by default until confirmed; both entries are owned by the flag.
 
+`--prune` wires snapshot pruning (`harness.browse_hook`, `sanchopanza browse-hook`): `PostToolUse`
+on any MCP server's `browser_*` tools cuts a large page snapshot to what the task needs and
+archives the rest. Registered 17-22 % cheaper on large inline snapshots with Jev ranking
+(`--provider jev`); without a provider it ranks by BM25. Not on `Read`: it would replace a read
+that memory's hook chooses records by. Off by default; owned by the flag.
+
+`--sources` wires sources (`harness.sources_hook`, `sanchopanza sources-hook`): at the first
+`Stop` of a session that used the web, one request to name the source of every condition in the
+question and repeat the answer line. No model; once per session. Not measured; off by default.
+
 The one decision worth understanding is `--scan-content`, which is off unless asked for. It
 adds a PostToolUse scan of arriving content for instructions aimed at the model. That is a
 detection control and not a barrier - by PostToolUse the bytes are in the transcript and the
@@ -106,6 +116,7 @@ from pathlib import Path
 from typing import Any
 
 from .. import _env
+from .fetch_hook import FETCH_COMMAND, FETCH_HOOKS
 from .find_auto import EVENTS as AUTO_EVENTS
 from .find_auto import MATCHER as AUTO_MATCHER
 from .find_auto import hook as auto_hook
@@ -118,6 +129,7 @@ from .install_defaults import (
     merge_budget,
     merge_profile,
 )
+from .sources_hook import SOURCES_COMMAND, SOURCES_HOOKS
 
 PLUGIN = "sanchopanza-compact"
 MARKETPLACE = "sanchopanza-local"
@@ -149,6 +161,10 @@ CRAWL_COMMAND = "sanchopanza crawl-hook"
 # Event -> matcher for crawl (`--crawl`, `harness.crawl_hook`): the strategy line at every session
 # start, and the time limit on any MCP server's browser_evaluate.
 CRAWL_HOOKS = {"SessionStart": "", "PreToolUse": r"mcp__.*__browser_evaluate"}
+PRUNE_COMMAND = "sanchopanza browse-hook"
+# Event -> matcher for snapshot pruning (`--prune`, `harness.browse_hook`): inline snapshots on any
+# MCP server's browser tools (a result past Claude Code's limit is read back by the hook itself).
+PRUNE_HOOKS = {"PostToolUse": r"mcp__.*__browser_.*"}
 AUTOPILOT_ENV = {
     "SANCHOPANZA_AUTOPILOT": "1",
     "SANCHOPANZA_COMPACT_COMMAND": "sanchopanza compact --stdin --arm mask",
@@ -484,6 +500,27 @@ def _merge_crawl(
     return _merge_owned(merged, on, CRAWL_HOOKS, command, CRAWL_COMMAND, "crawl")
 
 
+def _merge_prune(
+    merged: dict[str, Any], on: bool, command: str = PRUNE_COMMAND
+) -> tuple[dict[str, Any], list[str], list[str]]:
+    """Snapshot pruning's hook (`--prune`)."""
+    return _merge_owned(merged, on, PRUNE_HOOKS, command, PRUNE_COMMAND, "prune")
+
+
+def _merge_sources(
+    merged: dict[str, Any], on: bool, command: str = SOURCES_COMMAND
+) -> tuple[dict[str, Any], list[str], list[str]]:
+    """The sources request at the main agent's stop (`--sources`)."""
+    return _merge_owned(merged, on, SOURCES_HOOKS, command, SOURCES_COMMAND, "sources")
+
+
+def _merge_fetch(
+    merged: dict[str, Any], on: bool, command: str = FETCH_COMMAND
+) -> tuple[dict[str, Any], list[str], list[str]]:
+    """WebFetch sent to `fetch_passages` once per URL (`--fetch`)."""
+    return _merge_owned(merged, on, FETCH_HOOKS, command, FETCH_COMMAND, "fetch")
+
+
 def _merge_approval(
     merged: dict[str, Any], lean: bool, find: bool = False
 ) -> tuple[dict[str, Any], list[str], list[str]]:
@@ -675,6 +712,9 @@ def _merge(
     find_auto: bool = False,
     profile: str = "sandbox",
     crawl: bool = False,
+    prune: bool = False,
+    sources: bool = False,
+    fetch: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
         current = {}
@@ -716,6 +756,12 @@ def _merge(
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_crawl(merged, crawl)
     added, removed = [*added, *plus], [*removed, *minus]
+    merged, plus, minus = _merge_prune(merged, prune)
+    added, removed = [*added, *plus], [*removed, *minus]
+    merged, plus, minus = _merge_sources(merged, sources)
+    added, removed = [*added, *plus], [*removed, *minus]
+    merged, plus, minus = _merge_fetch(merged, fetch)
+    added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_budget(merged, budget)
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_profile(merged, profile)
@@ -751,6 +797,9 @@ def plan(
     find_auto: bool = False,
     profile: str = "sandbox",
     crawl: bool = False,
+    prune: bool = False,
+    sources: bool = False,
+    fetch: bool = False,
 ) -> Settings:
     current: Any = {}
     if path.exists():
@@ -784,6 +833,9 @@ def plan(
         find_auto=find_auto,
         profile=profile,
         crawl=crawl,
+        prune=prune,
+        sources=sources,
+        fetch=fetch,
     )
     return Settings(path, merged, tuple(added), tuple(removed))
 

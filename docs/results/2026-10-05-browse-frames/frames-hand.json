@@ -1,0 +1,179 @@
+{
+ "sessions": 80,
+ "list_usd": 20.31,
+ "regraded_by_hand": {
+  "FR121-SONNET": "True (the gold's name; the gold string appends a year)",
+  "FR121-SONNET-SRC": "True (the gold's name; the gold string appends a year)",
+  "FR121-HAIKU": "True (the gold's name; the gold string appends a year)",
+  "FR121-HAIKU-SRC": "True (the gold's name; the gold string appends a year)",
+  "FR623-SONNET": "True (the gold career named as the activity, not the job title)",
+  "FR524-HAIKU": "True (the gold exactly; the runner normalises a dots-and-dashes gold to an empty string)",
+  "FR187-HAIKU-SRC": "False (after the block the ANSWER line withdraws the answer: it names the gold only as unverified)"
+ },
+ "regraded_before_block": {
+  "FR121-SONNET-SRC": "True (as HAND_AFTER)",
+  "FR121-HAIKU-SRC": "True (as HAND_AFTER)"
+ },
+ "disputed_gold": {
+  "FR633": "one of the figures the answer is computed from differs between two sources; the gold follows one, both Sonnet arms the other"
+ },
+ "leak_hand_scan": {
+  "sessions": 80,
+  "naming_the_set_or_its_hosts": 0
+ },
+ "by_arm": {
+  "SONNET": {
+   "sessions": 20,
+   "right_hand": 16,
+   "right_runner": 14,
+   "mean_usd": 0.2253,
+   "median_usd": 0.1676,
+   "total_usd": 4.507,
+   "hit_cap": 0,
+   "at_90pct_of_cap": 0,
+   "leak_runner": 0,
+   "hook_fired": 0,
+   "no_tool_call": 4
+  },
+  "SONNET-SRC": {
+   "sessions": 20,
+   "right_hand": 16,
+   "right_runner": 15,
+   "mean_usd": 0.3435,
+   "median_usd": 0.2661,
+   "total_usd": 6.87,
+   "hit_cap": 0,
+   "at_90pct_of_cap": 2,
+   "leak_runner": 0,
+   "hook_fired": 15,
+   "no_tool_call": 5,
+   "before_after_hand": {
+    "right->right": 11,
+    "right->wrong": 0,
+    "wrong->right": 0,
+    "wrong->wrong": 4
+   },
+   "before_after_runner": {
+    "right->right": 11,
+    "right->wrong": 0,
+    "wrong->right": 0,
+    "wrong->wrong": 4
+   },
+   "usd_after_block_total": 2.326,
+   "mean_usd_before_block": 0.2272,
+   "mean_usd_after_block": 0.1163
+  },
+  "HAIKU": {
+   "sessions": 20,
+   "right_hand": 16,
+   "right_runner": 14,
+   "mean_usd": 0.2017,
+   "median_usd": 0.1302,
+   "total_usd": 4.034,
+   "hit_cap": 0,
+   "at_90pct_of_cap": 2,
+   "leak_runner": 0,
+   "hook_fired": 0,
+   "no_tool_call": 0
+  },
+  "HAIKU-SRC": {
+   "sessions": 20,
+   "right_hand": 13,
+   "right_runner": 13,
+   "mean_usd": 0.2449,
+   "median_usd": 0.1899,
+   "total_usd": 4.898,
+   "hit_cap": 5,
+   "at_90pct_of_cap": 5,
+   "leak_runner": 0,
+   "hook_fired": 18,
+   "no_tool_call": 0,
+   "before_after_hand": {
+    "right->right": 12,
+    "right->wrong": 1,
+    "wrong->right": 0,
+    "wrong->wrong": 5
+   },
+   "before_after_runner": {
+    "right->right": 12,
+    "right->wrong": 0,
+    "wrong->right": 0,
+    "wrong->wrong": 6
+   },
+   "usd_after_block_total": 1.645,
+   "mean_usd_before_block": 0.1626,
+   "mean_usd_after_block": 0.0823
+  },
+  "SONNET-CUT70": {
+   "sessions": 20,
+   "right_hand": 16,
+   "right_runner": 14,
+   "mean_usd": 0.2253,
+   "median_usd": 0.1676,
+   "total_usd": 4.507,
+   "hit_cap": 0,
+   "at_90pct_of_cap": 0,
+   "leak_runner": 0,
+   "hook_fired": 0,
+   "no_tool_call": 4,
+   "cut": []
+  },
+  "HAIKU-CUT70": {
+   "sessions": 20,
+   "right_hand": 16,
+   "right_runner": 14,
+   "mean_usd": 0.1866,
+   "median_usd": 0.1302,
+   "total_usd": 3.733,
+   "hit_cap": 0,
+   "at_90pct_of_cap": 0,
+   "leak_runner": 0,
+   "hook_fired": 0,
+   "no_tool_call": 0,
+   "cut": [
+    "FR368",
+    "FR186"
+   ]
+  }
+ },
+ "paired_SONNET-SRC_vs_SONNET": {
+  "tasks": 20,
+  "a_only": 0,
+  "b_only": 0,
+  "p_exact": 1.0,
+  "a_only_tasks": [],
+  "b_only_tasks": []
+ },
+ "paired_SONNET-SRC_vs_SONNET-CUT70": {
+  "tasks": 20,
+  "a_only": 0,
+  "b_only": 0,
+  "p_exact": 1.0,
+  "a_only_tasks": [],
+  "b_only_tasks": []
+ },
+ "paired_HAIKU-SRC_vs_HAIKU": {
+  "tasks": 20,
+  "a_only": 3,
+  "b_only": 0,
+  "p_exact": 0.25,
+  "a_only_tasks": [
+   "FR187",
+   "FR633",
+   "FR524"
+  ],
+  "b_only_tasks": []
+ },
+ "paired_HAIKU-SRC_vs_HAIKU-CUT70": {
+  "tasks": 20,
+  "a_only": 3,
+  "b_only": 0,
+  "p_exact": 0.25,
+  "a_only_tasks": [
+   "FR187",
+   "FR633",
+   "FR524"
+  ],
+  "b_only_tasks": []
+ }
+}

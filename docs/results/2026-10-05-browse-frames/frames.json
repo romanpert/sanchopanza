@@ -1,0 +1,57 @@
+{
+ "provisional_grades": true,
+ "sessions": 80,
+ "list_usd": 20.31,
+ "by_arm": {
+  "SONNET": {
+   "sessions": 20,
+   "ok_auto": 14,
+   "mean_usd": 0.2253,
+   "median_usd": 0.1676,
+   "hit_cap": 0,
+   "leak": 0,
+   "hook_fired": 0
+  },
+  "SONNET-SRC": {
+   "sessions": 20,
+   "ok_auto": 15,
+   "mean_usd": 0.3435,
+   "median_usd": 0.2661,
+   "hit_cap": 0,
+   "leak": 0,
+   "hook_fired": 15,
+   "before_after": {
+    "right->right": 11,
+    "right->wrong": 0,
+    "wrong->right": 0,
+    "wrong->wrong": 4
+   },
+   "mean_usd_after_block": 0.1551
+  },
+  "HAIKU": {
+   "sessions": 20,
+   "ok_auto": 14,
+   "mean_usd": 0.2017,
+   "median_usd": 0.1302,
+   "hit_cap": 0,
+   "leak": 0,
+   "hook_fired": 0
+  },
+  "HAIKU-SRC": {
+   "sessions": 20,
+   "ok_auto": 13,
+   "mean_usd": 0.2449,
+   "median_usd": 0.1899,
+   "hit_cap": 5,
+   "leak": 0,
+   "hook_fired": 18,
+   "before_after": {
+    "right->right": 12,
+    "right->wrong": 0,
+    "wrong->right": 0,
+    "wrong->wrong": 6
+   },
+   "mean_usd_after_block": 0.0914
+  }
+ }
+}

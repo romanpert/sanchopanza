@@ -1,0 +1,355 @@
+{
+ "fit_usd_per_call": {
+  "all": {
+   "search": 0.0237,
+   "fetch": 0.0154
+  },
+  "frames": {
+   "search": 0.0227,
+   "fetch": 0.0241
+  },
+  "cal": {
+   "search": 0.024,
+   "fetch": 0.0067
+  },
+  "search_only": {
+   "search": 0.0231,
+   "fetch": 0.0
+  }
+ },
+ "costs": {
+  "CAL HAIKU": {
+   "sessions": 35,
+   "list_usd": 12.454,
+   "reader_usd": 9.758,
+   "searches": 410,
+   "fetches_ok": 2,
+   "search_usd": 9.851,
+   "search_fee_usd": 4.1,
+   "fetch_usd": 0.013
+  },
+  "CAL SONNET": {
+   "sessions": 25,
+   "list_usd": 10.686,
+   "reader_usd": 4.916,
+   "searches": 161,
+   "fetches_ok": 96,
+   "search_usd": 3.868,
+   "search_fee_usd": 1.61,
+   "fetch_usd": 0.639
+  },
+  "FRAMES HAIKU": {
+   "sessions": 40,
+   "list_usd": 8.63,
+   "reader_usd": 6.356,
+   "searches": 279,
+   "fetches_ok": 0,
+   "search_usd": 6.336,
+   "search_fee_usd": 2.79,
+   "fetch_usd": 0.0
+  },
+  "FRAMES HAIKU-SRC": {
+   "sessions": 20,
+   "list_usd": 4.898,
+   "reader_usd": 3.58,
+   "searches": 154,
+   "fetches_ok": 6,
+   "search_usd": 3.497,
+   "search_fee_usd": 1.54,
+   "fetch_usd": 0.145
+  },
+  "FRAMES HAIKU-SRC2": {
+   "sessions": 20,
+   "list_usd": 3.779,
+   "reader_usd": 2.754,
+   "searches": 118,
+   "fetches_ok": 3,
+   "search_usd": 2.68,
+   "search_fee_usd": 1.18,
+   "fetch_usd": 0.072
+  },
+  "FRAMES SONNET": {
+   "sessions": 40,
+   "list_usd": 10.124,
+   "reader_usd": 4.908,
+   "searches": 160,
+   "fetches_ok": 54,
+   "search_usd": 3.634,
+   "search_fee_usd": 1.6,
+   "fetch_usd": 1.302
+  },
+  "FRAMES SONNET-SRC": {
+   "sessions": 20,
+   "list_usd": 6.87,
+   "reader_usd": 3.536,
+   "searches": 77,
+   "fetches_ok": 85,
+   "search_usd": 1.749,
+   "search_fee_usd": 0.77,
+   "fetch_usd": 2.05
+  },
+  "FRAMES SONNET-SRC2": {
+   "sessions": 20,
+   "list_usd": 5.599,
+   "reader_usd": 2.677,
+   "searches": 76,
+   "fetches_ok": 46,
+   "search_usd": 1.726,
+   "search_fee_usd": 0.76,
+   "fetch_usd": 1.109
+  }
+ },
+ "replay_frames": {
+  "fetches": 187,
+  "page_tokens_median": 2212,
+  "page_tokens_p90": 8558,
+  "summary_tokens_mean": 140,
+  "later_calls_mean": 4.16,
+  "gold_on_page": 71,
+  "gold_in_summary": 22,
+  "summary_facts_on_page": 2509,
+  "budget_4000": {
+   "tokens_mean": 843,
+   "tokens_p90": 1021,
+   "gold": 55,
+   "gold_where_summary_had_it_lost": 1,
+   "summary_facts_kept": 1942,
+   "net_usd_per_fetch_mean": 0.0208,
+   "fetches_net_negative": 0
+  },
+  "budget_8000": {
+   "tokens_mean": 1467,
+   "tokens_p90": 2036,
+   "gold": 67,
+   "gold_where_summary_had_it_lost": 0,
+   "summary_facts_kept": 2347,
+   "net_usd_per_fetch_mean": 0.0179,
+   "fetches_net_negative": 0
+  },
+  "budget_16000": {
+   "tokens_mean": 2317,
+   "tokens_p90": 4008,
+   "gold": 68,
+   "gold_where_summary_had_it_lost": 0,
+   "summary_facts_kept": 2452,
+   "net_usd_per_fetch_mean": 0.014,
+   "fetches_net_negative": 4
+  },
+  "whole_page_net_usd_per_fetch_mean": 0.0044
+ },
+ "replay_cal": {
+  "fetches": 54,
+  "page_tokens_median": 1164,
+  "page_tokens_p90": 4096,
+  "summary_tokens_mean": 139,
+  "later_calls_mean": 4.43,
+  "gold_on_page": 6,
+  "gold_in_summary": 3,
+  "summary_facts_on_page": 579,
+  "budget_4000": {
+   "tokens_mean": 686,
+   "tokens_p90": 1067,
+   "gold": 4,
+   "gold_where_summary_had_it_lost": 2,
+   "summary_facts_kept": 482,
+   "net_usd_per_fetch_mean": 0.0041,
+   "fetches_net_negative": 0
+  },
+  "budget_8000": {
+   "tokens_mean": 1057,
+   "tokens_p90": 1975,
+   "gold": 4,
+   "gold_where_summary_had_it_lost": 2,
+   "summary_facts_kept": 538,
+   "net_usd_per_fetch_mean": 0.0023,
+   "fetches_net_negative": 15
+  },
+  "budget_16000": {
+   "tokens_mean": 1352,
+   "tokens_p90": 3988,
+   "gold": 5,
+   "gold_where_summary_had_it_lost": 1,
+   "summary_facts_kept": 568,
+   "net_usd_per_fetch_mean": 0.001,
+   "fetches_net_negative": 15
+  },
+  "whole_page_net_usd_per_fetch_mean": -0.0032
+ },
+ "skipped_fetches": 51,
+ "fetch_v2": {
+  "webfetch_pages_at_8000": {
+   "calls": 187,
+   "gold_on_page": 71,
+   "v1": {
+    "tokens_mean": 1467,
+    "tokens_median": 1826,
+    "tokens_p90": 2036,
+    "gold": 67
+   },
+   "v2": {
+    "tokens_mean": 1313,
+    "tokens_median": 1407,
+    "tokens_p90": 2044,
+    "gold": 62
+   },
+   "gold_v2_only": 0,
+   "gold_v1_only": 5
+  },
+  "pilot_calls": {
+   "calls": 75,
+   "gold_on_page": 50,
+   "v1": {
+    "tokens_mean": 1800,
+    "tokens_median": 1960,
+    "tokens_p90": 2042,
+    "gold": 28
+   },
+   "v2": {
+    "tokens_mean": 1702,
+    "tokens_median": 1953,
+    "tokens_p90": 2062,
+    "gold": 24
+   },
+   "gold_v2_only": 2,
+   "gold_v1_only": 6
+  },
+  "pilot_calls_haiku": {
+   "calls": 72,
+   "gold_on_page": 47,
+   "v1": {
+    "tokens_mean": 1793,
+    "tokens_median": 1960,
+    "tokens_p90": 2042,
+    "gold": 25
+   },
+   "v2": {
+    "tokens_mean": 1714,
+    "tokens_median": 1967,
+    "tokens_p90": 2062,
+    "gold": 23
+   },
+   "gold_v2_only": 2,
+   "gold_v1_only": 4
+  },
+  "pilot_calls_by_task": {
+   "FR110": [
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 26,
+     "gold_v1": false,
+     "tok_v2": 4,
+     "gold_v2": false,
+     "gold_on_page": false
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 2372,
+     "gold_v1": false,
+     "tok_v2": 2454,
+     "gold_v2": false,
+     "gold_on_page": false
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 2397,
+     "gold_v1": false,
+     "tok_v2": 2529,
+     "gold_v2": false,
+     "gold_on_page": false
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 2398,
+     "gold_v1": false,
+     "tok_v2": 1817,
+     "gold_v2": false,
+     "gold_on_page": false
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 1160,
+     "gold_v1": false,
+     "tok_v2": 1176,
+     "gold_v2": false,
+     "gold_on_page": false
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 1152,
+     "gold_v1": false,
+     "tok_v2": 559,
+     "gold_v2": false,
+     "gold_on_page": false
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 926,
+     "gold_v1": false,
+     "tok_v2": 748,
+     "gold_v2": false,
+     "gold_on_page": false
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 1261,
+     "gold_v1": false,
+     "tok_v2": 1193,
+     "gold_v2": false,
+     "gold_on_page": false
+    }
+   ],
+   "FR314": [
+    {
+     "arm": "SONNET-FETCH",
+     "tok_v1": 2034,
+     "gold_v1": true,
+     "tok_v2": 884,
+     "gold_v2": false,
+     "gold_on_page": true
+    },
+    {
+     "arm": "SONNET-FETCH",
+     "tok_v1": 1939,
+     "gold_v1": true,
+     "tok_v2": 1945,
+     "gold_v2": true,
+     "gold_on_page": true
+    },
+    {
+     "arm": "SONNET-FETCH",
+     "tok_v1": 1904,
+     "gold_v1": true,
+     "tok_v2": 1440,
+     "gold_v2": false,
+     "gold_on_page": true
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 1218,
+     "gold_v1": true,
+     "tok_v2": 1140,
+     "gold_v2": true,
+     "gold_on_page": true
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 892,
+     "gold_v1": true,
+     "tok_v2": 884,
+     "gold_v2": false,
+     "gold_on_page": true
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 1982,
+     "gold_v1": true,
+     "tok_v2": 1981,
+     "gold_v2": true,
+     "gold_on_page": true
+    }
+   ]
+  },
+  "pilot_calls_skipped": 0
+ },
+ "chars_per_token": 4.0
+}

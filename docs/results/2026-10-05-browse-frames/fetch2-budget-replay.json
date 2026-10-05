@@ -1,0 +1,303 @@
+{
+ "sessions": 40,
+ "by_n": {
+  "2": {
+   "sessions_noted": 9,
+   "right_noted": 8,
+   "wrong_noted": 1,
+   "pages_noted": 50,
+   "noted": [
+    {
+     "task": "FR314",
+     "arm": "SONNET-FETCH",
+     "right": true,
+     "pages_noted": 1
+    },
+    {
+     "task": "FR31",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 26
+    },
+    {
+     "task": "FR161",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 2
+    },
+    {
+     "task": "FR75",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 2
+    },
+    {
+     "task": "FR314",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 1
+    },
+    {
+     "task": "FR419",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 6
+    },
+    {
+     "task": "FR110",
+     "arm": "HAIKU-FETCH",
+     "right": false,
+     "pages_noted": 7
+    },
+    {
+     "task": "FR19",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 1
+    },
+    {
+     "task": "FR248",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 4
+    }
+   ]
+  },
+  "3": {
+   "sessions_noted": 6,
+   "right_noted": 5,
+   "wrong_noted": 1,
+   "pages_noted": 41,
+   "noted": [
+    {
+     "task": "FR31",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 25
+    },
+    {
+     "task": "FR161",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 1
+    },
+    {
+     "task": "FR75",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 1
+    },
+    {
+     "task": "FR419",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 5
+    },
+    {
+     "task": "FR110",
+     "arm": "HAIKU-FETCH",
+     "right": false,
+     "pages_noted": 6
+    },
+    {
+     "task": "FR248",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 3
+    }
+   ]
+  },
+  "4": {
+   "sessions_noted": 4,
+   "right_noted": 3,
+   "wrong_noted": 1,
+   "pages_noted": 35,
+   "noted": [
+    {
+     "task": "FR31",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 24
+    },
+    {
+     "task": "FR419",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 4
+    },
+    {
+     "task": "FR110",
+     "arm": "HAIKU-FETCH",
+     "right": false,
+     "pages_noted": 5
+    },
+    {
+     "task": "FR248",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 2
+    }
+   ]
+  },
+  "5": {
+   "sessions_noted": 4,
+   "right_noted": 3,
+   "wrong_noted": 1,
+   "pages_noted": 31,
+   "noted": [
+    {
+     "task": "FR31",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 23
+    },
+    {
+     "task": "FR419",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 3
+    },
+    {
+     "task": "FR110",
+     "arm": "HAIKU-FETCH",
+     "right": false,
+     "pages_noted": 4
+    },
+    {
+     "task": "FR248",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 1
+    }
+   ]
+  },
+  "6": {
+   "sessions_noted": 3,
+   "right_noted": 2,
+   "wrong_noted": 1,
+   "pages_noted": 27,
+   "noted": [
+    {
+     "task": "FR31",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 22
+    },
+    {
+     "task": "FR419",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 2
+    },
+    {
+     "task": "FR110",
+     "arm": "HAIKU-FETCH",
+     "right": false,
+     "pages_noted": 3
+    }
+   ]
+  },
+  "7": {
+   "sessions_noted": 3,
+   "right_noted": 2,
+   "wrong_noted": 1,
+   "pages_noted": 24,
+   "noted": [
+    {
+     "task": "FR31",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 21
+    },
+    {
+     "task": "FR419",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 1
+    },
+    {
+     "task": "FR110",
+     "arm": "HAIKU-FETCH",
+     "right": false,
+     "pages_noted": 2
+    }
+   ]
+  },
+  "8": {
+   "sessions_noted": 2,
+   "right_noted": 1,
+   "wrong_noted": 1,
+   "pages_noted": 21,
+   "noted": [
+    {
+     "task": "FR31",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 20
+    },
+    {
+     "task": "FR110",
+     "arm": "HAIKU-FETCH",
+     "right": false,
+     "pages_noted": 1
+    }
+   ]
+  },
+  "9": {
+   "sessions_noted": 1,
+   "right_noted": 1,
+   "wrong_noted": 0,
+   "pages_noted": 19,
+   "noted": [
+    {
+     "task": "FR31",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 19
+    }
+   ]
+  },
+  "10": {
+   "sessions_noted": 1,
+   "right_noted": 1,
+   "wrong_noted": 0,
+   "pages_noted": 18,
+   "noted": [
+    {
+     "task": "FR31",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 18
+    }
+   ]
+  },
+  "11": {
+   "sessions_noted": 1,
+   "right_noted": 1,
+   "wrong_noted": 0,
+   "pages_noted": 17,
+   "noted": [
+    {
+     "task": "FR31",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 17
+    }
+   ]
+  },
+  "12": {
+   "sessions_noted": 1,
+   "right_noted": 1,
+   "wrong_noted": 0,
+   "pages_noted": 16,
+   "noted": [
+    {
+     "task": "FR31",
+     "arm": "HAIKU-FETCH",
+     "right": true,
+     "pages_noted": 16
+    }
+   ]
+  }
+ }
+}
