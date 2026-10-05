@@ -937,3 +937,19 @@ price (cap 12.00), Jev 0.007. Development, one session each, no verdict.
   Struggling agents read wrong files; a rule closed by any source Read misses them. Next: replay
   offline a window closed only by an edit (or by reading a file the agent then edits), with the
   same once-per-session fire, on the 179 recorded singles, before another paid probe.
+
+### Correction, the same evening: the window is not the limit (offline, 0.06 USD of Jev)
+
+The entry above said "the limit is the window, not the ranking". Replayed offline on the 179
+singles and both probes (`benchmarks/find_auto/windows.py`, `windows_judge.py`), that does not
+hold:
+
+- Windows that a wrong-file Read does not close (Nth search before the first edit; R4 or else the
+  5th search before an edit) do reach the sessions R4 misses, but at those fires the gold file is
+  in the free top 5 in 2 of 22 (W1-4) and 4 of 20 (W4-5), and in the Jev-judged top 5 in 7 of 22
+  and 8 of 20 (live pass, 0.06 USD).
+- They also fire after the gold Read in about half of all sessions (95-100 of 179; 52 with a
+  "top-1 not yet Read" gate), which R4 never does, and their precision outside SWE-bench is the
+  same 11-14 %.
+- So where the agent reads wrong files, the request is also hard for find. R4 stays; a wider
+  window is not shipped.
