@@ -70,9 +70,11 @@ other sites.
 - **Leaks.** A session is marked leak when the runner flags it (a tool result names the set) or the
   wider scan (`free_frames_hand.session_leak`: the set's hosts or names in any tool input or
   result, main agent and subagents) finds it. A leak makes both arms of that model wrong on that
-  task. Every leak is reported by task and arm.
-- **Cost** is each session's list-price `total_cost_usd`; a session the runner killed (30 min)
-  reports none and is charged its arm's cap.
+  task. Every leak is reported by task and arm. A session whose transcript is gone cannot be
+  scanned: it counts on the runner's flag alone, and is reported.
+- **Cost** is each session's list-price `total_cost_usd`; a session the runner ended (`subtype`
+  starting `runner:`: killed at 30 min, or Claude Code's output unreadable) reports none and is
+  charged its arm's cap.
 
 ## Hypotheses (`free_fetch_confirm_hand.verdicts`), for each model m in {Haiku, Sonnet}, `m-FETCH2` against `m`
 
@@ -101,9 +103,12 @@ USD; HAIKU-FETCH2 0.114 (the fetch v2 pilot, 20 sessions), 6.8 USD; SONNET-FETCH
 (SONNET-FETCH at version 1, the fetch pilot; version 2 has not run on Sonnet), 6.3 USD.
 **About 38 USD**; 45 if SONNET-FETCH2 costs what its base does. **Hard ceiling 55 USD in code**
 (`free_fetch_confirm.CEILING_USD`, `phase.Limits`, which counts the whole sessions file and keeps
-1.50 USD free before each session). Resumable: a resume runs only what is missing. A 429 or
-"weekly limit" from Anthropic in a session stops the run at once (STOP-LIMIT); that session is
-recorded as not run and runs again on resume. Nothing else stops it before the ceiling. Launched
+1.50 USD free before each session). Resumable: a resume runs only what is missing. A usage limit
+from Anthropic in a session stops the run at once (STOP-LIMIT): a `429` token in Claude Code's
+stderr, or "weekly limit", "hit your ... limit" or "rate limit" in a session that ended in error
+(`free_frames.limit_hit`, `free_e2e._REFUSED`); that session is recorded as not run and runs again
+on resume. Nothing else stops it before the ceiling (a crash of the runner itself would end the
+process; a resume runs what is missing). Launched
 outside the agent's session (WMI, its own process group, SIGINT ignored).
 
 ## Whatever the outcome
