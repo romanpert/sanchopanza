@@ -116,7 +116,6 @@ from pathlib import Path
 from typing import Any
 
 from .. import _env
-from .fetch_hook import FETCH_COMMAND, FETCH_HOOKS
 from .find_auto import EVENTS as AUTO_EVENTS
 from .find_auto import MATCHER as AUTO_MATCHER
 from .find_auto import hook as auto_hook
@@ -129,7 +128,19 @@ from .install_defaults import (
     merge_budget,
     merge_profile,
 )
-from .sources_hook import SOURCES_COMMAND, SOURCES_HOOKS
+
+# The hook-set machinery and the browse sets live in `install_hooks`. The names below are
+# re-exported because sealed benchmarks and tests import them from here.
+from .install_hooks import CRAWL_COMMAND as CRAWL_COMMAND
+from .install_hooks import CRAWL_HOOKS as CRAWL_HOOKS
+from .install_hooks import FETCH_COMMAND as FETCH_COMMAND
+from .install_hooks import FETCH_HOOKS as FETCH_HOOKS
+from .install_hooks import PRUNE_COMMAND as PRUNE_COMMAND
+from .install_hooks import PRUNE_HOOKS as PRUNE_HOOKS
+from .install_hooks import _already_wired, _entry, _owned, _without_ours, merge_browse
+from .install_hooks import _merge_crawl as _merge_crawl
+from .install_hooks import _merge_owned as _merge_owned
+from .install_hooks import hook_key as hook_key
 
 PLUGIN = "sanchopanza-compact"
 MARKETPLACE = "sanchopanza-local"
@@ -157,14 +168,6 @@ CANDOR_HOOKS = {
 }
 # The workspace snapshot: in round 4 it alone stopped reports of outputs that never changed.
 CANDOR_ENV = {"SANCHOPANZA_CANDOR_SNAPSHOT": "1"}
-CRAWL_COMMAND = "sanchopanza crawl-hook"
-# Event -> matcher for crawl (`--crawl`, `harness.crawl_hook`): the strategy line at every session
-# start, and the time limit on any MCP server's browser_evaluate.
-CRAWL_HOOKS = {"SessionStart": "", "PreToolUse": r"mcp__.*__browser_evaluate"}
-PRUNE_COMMAND = "sanchopanza browse-hook"
-# Event -> matcher for snapshot pruning (`--prune`, `harness.browse_hook`): inline snapshots on any
-# MCP server's browser tools (a result past Claude Code's limit is read back by the hook itself).
-PRUNE_HOOKS = {"PostToolUse": r"mcp__.*__browser_.*"}
 AUTOPILOT_ENV = {
     "SANCHOPANZA_AUTOPILOT": "1",
     "SANCHOPANZA_COMPACT_COMMAND": "sanchopanza compact --stdin --arm mask",
@@ -260,10 +263,6 @@ def portable_command(command: str, *, windows: bool | None = None) -> str:
     return command.replace("\\", "/") if windows else command
 
 
-def _entry(matcher: str, command: str) -> dict[str, Any]:
-    return {"matcher": matcher, "hooks": [{"type": "command", "command": command}]}
-
-
 def block(
     config: HarnessConfig, *, command: str = COMMAND, provider: str = "", autopilot: bool = False
 ) -> dict[str, Any]:
@@ -278,55 +277,6 @@ def block(
     if env:
         fragment["env"] = env
     return fragment
-
-
-def hook_key(hook: Mapping[str, Any]) -> Any:
-    """What makes a hook ours: its command, or for an `mcp_tool` hook its server and tool."""
-    if hook.get("type") == "mcp_tool":
-        return f"mcp_tool:{hook.get('server')}/{hook.get('tool')}"
-    return hook.get("command")
-
-
-def _is_ours(hook: Any, commands: frozenset[str]) -> bool:
-    return isinstance(hook, Mapping) and hook_key(hook) in commands
-
-
-def _owned(entries: list[Any], commands: frozenset[str]) -> list[Mapping[str, Any]]:
-    """Entries holding at least one of our hooks."""
-    return [
-        e
-        for e in entries
-        if isinstance(e, Mapping) and any(_is_ours(h, commands) for h in e.get("hooks") or [])
-    ]
-
-
-def _already_wired(
-    entries: list[Any],
-    matcher: str,
-    commands: frozenset[str],
-    wanted: Mapping[str, Any] | None = None,
-) -> bool:
-    """Exactly one hook of ours, in an entry with the wanted matcher (and equal to `wanted`
-    when the hook is more than a command)."""
-    owned = _owned(entries, commands)
-    if len(owned) != 1 or owned[0].get("matcher") != matcher:
-        return False
-    ours = [h for h in owned[0].get("hooks") or [] if _is_ours(h, commands)]
-    return len(ours) == 1 and (wanted is None or ours[0] == wanted)
-
-
-def _without_ours(entries: list[Any], commands: frozenset[str]) -> list[Any]:
-    """The entries minus our hooks; an entry left with no hooks goes too."""
-    out: list[Any] = []
-    for entry in entries:
-        hooks = entry.get("hooks") if isinstance(entry, Mapping) else None
-        if not isinstance(hooks, list) or not any(_is_ours(h, commands) for h in hooks):
-            out.append(entry)
-            continue
-        rest = [h for h in hooks if not _is_ours(h, commands)]
-        if rest:
-            out.append({**entry, "hooks": rest})
-    return out
 
 
 def _merge_hooks(
@@ -415,47 +365,6 @@ def _merge_compact(
     return out, added, []
 
 
-def _merge_owned(
-    merged: dict[str, Any],
-    on: bool,
-    wanted: Mapping[str, str],
-    command: str,
-    default: str,
-    label: str,
-    hook: Mapping[str, Any] | None = None,
-) -> tuple[dict[str, Any], list[str], list[str]]:
-    """Wire one set of our hooks (event -> matcher), or take ours out. Other hooks on the same
-    events are kept; our entries are recognised by their command (`command` or `default`), or
-    for a `hook` that is not a command (`mcp_tool`) by its `hook_key`."""
-    hooks = merged.get("hooks", {})
-    if not isinstance(hooks, dict):
-        return merged, [], []  # someone put something else there; do not fight it
-    commands = frozenset({command, default} if hook is None else {hook_key(hook)})
-    out = dict(hooks)
-    added: list[str] = []
-    removed: list[str] = []
-    for event, matcher in wanted.items():
-        entries = out.get(event, [])
-        if not isinstance(entries, list):
-            continue
-        if on and _already_wired(entries, matcher, commands, hook):
-            continue
-        removed.extend(
-            f"{event}: {e.get('matcher', '')} ({label})" for e in _owned(entries, commands)
-        )
-        kept = _without_ours(entries, commands)
-        if on:
-            wired = _entry(matcher, command) if hook is None else {
-                "matcher": matcher, "hooks": [dict(hook)]}  # fmt: skip
-            kept = [*kept, wired]
-            added.append(f"{event}: {matcher} ({label})")
-        others = {k: v for k, v in out.items() if k != event}
-        out = {**out, event: kept} if kept else others
-    if not (added or removed):
-        return merged, [], []
-    return {**merged, "hooks": out}, added, removed
-
-
 def _merge_guard(
     merged: dict[str, Any], on: bool, command: str = GUARD_COMMAND
 ) -> tuple[dict[str, Any], list[str], list[str]]:
@@ -491,34 +400,6 @@ def _merge_candor(
             merged = {**merged, "env": {k: v for k, v in env.items() if k not in stale}}
             removed = [*removed, *(f"env: {k}" for k in stale)]
     return merged, added, removed
-
-
-def _merge_crawl(
-    merged: dict[str, Any], on: bool, command: str = CRAWL_COMMAND
-) -> tuple[dict[str, Any], list[str], list[str]]:
-    """Crawl's two hooks (`--crawl`)."""
-    return _merge_owned(merged, on, CRAWL_HOOKS, command, CRAWL_COMMAND, "crawl")
-
-
-def _merge_prune(
-    merged: dict[str, Any], on: bool, command: str = PRUNE_COMMAND
-) -> tuple[dict[str, Any], list[str], list[str]]:
-    """Snapshot pruning's hook (`--prune`)."""
-    return _merge_owned(merged, on, PRUNE_HOOKS, command, PRUNE_COMMAND, "prune")
-
-
-def _merge_sources(
-    merged: dict[str, Any], on: bool, command: str = SOURCES_COMMAND
-) -> tuple[dict[str, Any], list[str], list[str]]:
-    """The sources request at the main agent's stop (`--sources`)."""
-    return _merge_owned(merged, on, SOURCES_HOOKS, command, SOURCES_COMMAND, "sources")
-
-
-def _merge_fetch(
-    merged: dict[str, Any], on: bool, command: str = FETCH_COMMAND
-) -> tuple[dict[str, Any], list[str], list[str]]:
-    """WebFetch sent to `fetch_passages` once per URL (`--fetch`)."""
-    return _merge_owned(merged, on, FETCH_HOOKS, command, FETCH_COMMAND, "fetch")
 
 
 def _merge_approval(
@@ -710,7 +591,7 @@ def _merge(
     find: bool = False,
     find_nudge: bool = False,
     find_auto: bool = False,
-    profile: str = "sandbox",
+    profile: str | None = "sandbox",
     crawl: bool = False,
     prune: bool = False,
     sources: bool = False,
@@ -754,13 +635,8 @@ def _merge(
     merged, plus, minus = _merge_owned(merged, auto, dict.fromkeys(AUTO_EVENTS, AUTO_MATCHER),
                                        "", "", "find auto", hook=auto_hook())  # fmt: skip
     added, removed = [*added, *plus], [*removed, *minus]
-    merged, plus, minus = _merge_crawl(merged, crawl)
-    added, removed = [*added, *plus], [*removed, *minus]
-    merged, plus, minus = _merge_prune(merged, prune)
-    added, removed = [*added, *plus], [*removed, *minus]
-    merged, plus, minus = _merge_sources(merged, sources)
-    added, removed = [*added, *plus], [*removed, *minus]
-    merged, plus, minus = _merge_fetch(merged, fetch)
+    merged, plus, minus = merge_browse(merged, crawl=crawl, prune=prune, sources=sources,
+                                       fetch=fetch)  # fmt: skip
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_budget(merged, budget)
     added, removed = [*added, *plus], [*removed, *minus]
@@ -795,7 +671,7 @@ def plan(
     find: bool = False,
     find_nudge: bool = False,
     find_auto: bool = False,
-    profile: str = "sandbox",
+    profile: str | None = "sandbox",
     crawl: bool = False,
     prune: bool = False,
     sources: bool = False,
