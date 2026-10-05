@@ -1,0 +1,1975 @@
+{
+ "prereg": "docs/results/2026-10-03-adopt-d/prereg.md, 'Validation before sealing'",
+ "drawn": "benchmarks/adopt_d/singles-d.json (sha256 38bcb9bea04154689c55641ee22eeddc9a34825075ada40cc696e7ae32c3206b)",
+ "harness": {
+  "run_swe.py_sha256": "d9555ce5b853e4630287c94f3fb80dd4057697a721255b08c72463117b65e991",
+  "dist": [
+   "swebench-5.0.2.dist-info"
+  ],
+  "dataset": "SWE-bench/SWE-bench_Verified"
+ },
+ "noop_patch": "diff --git a/adopt_d_noop_patch.txt b/adopt_d_noop_patch.txt\nnew file mode 100644\nindex 0000000..0b8ef2b\n--- /dev/null\n+++ b/adopt_d_noop_patch.txt\n@@ -0,0 +1 @@\n+no-op patch: the image's code unchanged\n",
+ "complete": true,
+ "next": null,
+ "selected": [
+  {
+   "instance_id": "django__django-11133",
+   "stratum": "general-easy",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-11133:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "sympy__sympy-24539",
+   "stratum": "general-easy",
+   "repo": "sympy/sympy",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-24539:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "django__django-10914",
+   "stratum": "general-easy",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-10914:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "django__django-15863",
+   "stratum": "general-easy",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-15863:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "django__django-13023",
+   "stratum": "general-easy",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-13023:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "sphinx-doc__sphinx-8269",
+   "stratum": "general-easy",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8269:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "django__django-14787",
+   "stratum": "general-easy",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-14787:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "sphinx-doc__sphinx-9367",
+   "stratum": "general-easy",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9367:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "django__django-12125",
+   "stratum": "general-easy",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-12125:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "django__django-16429",
+   "stratum": "general-easy",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-16429:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "django__django-16819",
+   "stratum": "general-medium",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-16819:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "sympy__sympy-14976",
+   "stratum": "general-medium",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-14976:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "sympy__sympy-13091",
+   "stratum": "general-medium",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-13091:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "sympy__sympy-22914",
+   "stratum": "general-medium",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-22914:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "django__django-11848",
+   "stratum": "general-medium",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-11848:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "sphinx-doc__sphinx-7748",
+   "stratum": "general-medium",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7748:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "django__django-16454",
+   "stratum": "general-medium",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-16454:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "sympy__sympy-20438",
+   "stratum": "general-medium",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-20438:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "django__django-11551",
+   "stratum": "general-medium",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-11551:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "sympy__sympy-19040",
+   "stratum": "general-medium",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-19040:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "sympy__sympy-12489",
+   "stratum": "hard",
+   "repo": "sympy/sympy",
+   "difficulty": "1-4 hours",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-12489:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "django__django-12325",
+   "stratum": "hard",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-12325:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "django__django-15629",
+   "stratum": "hard",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-15629:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "django__django-15268",
+   "stratum": "hard",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-15268:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "django__django-13344",
+   "stratum": "hard",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-13344:latest",
+   "drawn_as": "held",
+   "replaces": null
+  },
+  {
+   "instance_id": "django__django-10554",
+   "stratum": "hard",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-10554:latest",
+   "drawn_as": "held",
+   "replaces": null
+  }
+ ],
+ "replacements": [],
+ "shortfall": {},
+ "selected_per_stratum": {
+  "general-easy": 10,
+  "general-medium": 10,
+  "hard": 6
+ },
+ "results": [
+  {
+   "instance_id": "django__django-11133",
+   "stratum": "general-easy",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-11133:latest",
+   "role": "held",
+   "order": 1,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.87,
+     "s": 118.4
+    },
+    "export": {
+     "ok": true,
+     "base": "a5fbb44f08a93474e49b2127936ba208bb5a2df8",
+     "files": 6063,
+     "gold_applies_to_export": true,
+     "s": 71.1
+    },
+    "gold": {
+     "run_id": "vd-gold-1791189741",
+     "exit": 0,
+     "s": 67.7,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 1,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 64,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791189808",
+     "exit": 0,
+     "s": 16.8,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791189825",
+     "exit": 0,
+     "s": 55.2,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 1,
+     "pass_to_pass_success": 64,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.87,
+   "dropped": true,
+   "duration_s": 332.4,
+   "disk_free_gb_after": 47.2,
+   "at": "2026-10-05T10:44:43"
+  },
+  {
+   "instance_id": "sympy__sympy-24539",
+   "stratum": "general-easy",
+   "repo": "sympy/sympy",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-24539:latest",
+   "role": "held",
+   "order": 2,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.79,
+     "s": 46.4
+    },
+    "export": {
+     "ok": true,
+     "base": "9b92faab013d50bccda4a02d1a48291ba287ab9e",
+     "files": 1944,
+     "gold_applies_to_export": true,
+     "s": 38.4
+    },
+    "gold": {
+     "run_id": "vd-gold-1791190055",
+     "exit": 0,
+     "s": 61.2,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 1,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 62,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791190116",
+     "exit": 0,
+     "s": 14.5,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791190131",
+     "exit": 0,
+     "s": 66.0,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 1,
+     "pass_to_pass_success": 62,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.79,
+   "dropped": true,
+   "duration_s": 227.1,
+   "disk_free_gb_after": 46.7,
+   "at": "2026-10-05T10:49:57"
+  },
+  {
+   "instance_id": "django__django-10914",
+   "stratum": "general-easy",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-10914:latest",
+   "role": "held",
+   "order": 3,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.87,
+     "s": 176.5
+    },
+    "export": {
+     "ok": true,
+     "base": "852621b5a85e4db1bdbec31d1a7945a14db5cd42",
+     "files": 6050,
+     "gold_applies_to_export": true,
+     "s": 79.0
+    },
+    "gold": {
+     "run_id": "vd-gold-1791190454",
+     "exit": 0,
+     "s": 58.0,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 1,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 98,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791190512",
+     "exit": 0,
+     "s": 20.5,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791190532",
+     "exit": 0,
+     "s": 68.5,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 1,
+     "pass_to_pass_success": 98,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.87,
+   "dropped": true,
+   "duration_s": 405.1,
+   "disk_free_gb_after": 46.1,
+   "at": "2026-10-05T10:56:44"
+  },
+  {
+   "instance_id": "django__django-15863",
+   "stratum": "general-easy",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-15863:latest",
+   "role": "held",
+   "order": 4,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 3.01,
+     "s": 228.8
+    },
+    "export": {
+     "ok": true,
+     "base": "08a5456ba2d45a83e2d6e02a4b36e16bb868a692",
+     "files": 6645,
+     "gold_applies_to_export": true,
+     "s": 75.6
+    },
+    "gold": {
+     "run_id": "vd-gold-1791190909",
+     "exit": 0,
+     "s": 70.3,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 1,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 9,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791190979",
+     "exit": 0,
+     "s": 15.3,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791190995",
+     "exit": 0,
+     "s": 45.9,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 1,
+     "pass_to_pass_success": 9,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 3.01,
+   "dropped": true,
+   "duration_s": 438.3,
+   "disk_free_gb_after": 61.8,
+   "at": "2026-10-05T11:04:03"
+  },
+  {
+   "instance_id": "django__django-13023",
+   "stratum": "general-easy",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-13023:latest",
+   "role": "held",
+   "order": 5,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.88,
+     "s": 294.5
+    },
+    "export": {
+     "ok": true,
+     "base": "c0956fdf44f42663f8009c2099c4a1a37d6af0ee",
+     "files": 6255,
+     "gold_applies_to_export": true,
+     "s": 140.8
+    },
+    "gold": {
+     "run_id": "vd-gold-1791191481",
+     "exit": 0,
+     "s": 113.4,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 2,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 9,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791191594",
+     "exit": 0,
+     "s": 32.7,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791191627",
+     "exit": 0,
+     "s": 80.4,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 2,
+     "pass_to_pass_success": 9,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.88,
+   "dropped": true,
+   "duration_s": 663.5,
+   "disk_free_gb_after": 60.8,
+   "at": "2026-10-05T11:15:09"
+  },
+  {
+   "instance_id": "sphinx-doc__sphinx-8269",
+   "stratum": "general-easy",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8269:latest",
+   "role": "held",
+   "order": 6,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.81,
+     "s": 176.8
+    },
+    "export": {
+     "ok": true,
+     "base": "fa94842e9083070ead12731e97ed21d8603f90cd",
+     "files": 1440,
+     "gold_applies_to_export": true,
+     "s": 23.2
+    },
+    "gold": {
+     "run_id": "vd-gold-1791191910",
+     "exit": 0,
+     "s": 47.7,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 1,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 5,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791191958",
+     "exit": 0,
+     "s": 16.7,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791191975",
+     "exit": 0,
+     "s": 40.1,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 1,
+     "pass_to_pass_success": 5,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.81,
+   "dropped": true,
+   "duration_s": 305.8,
+   "disk_free_gb_after": 60.3,
+   "at": "2026-10-05T11:20:16"
+  },
+  {
+   "instance_id": "django__django-14787",
+   "stratum": "general-easy",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-14787:latest",
+   "role": "held",
+   "order": 7,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 3.01,
+     "s": 105.2
+    },
+    "export": {
+     "ok": true,
+     "base": "2c7c01cc4904216e52f1eb4b5dd904d98e9b6622",
+     "files": 6535,
+     "gold_applies_to_export": true,
+     "s": 89.4
+    },
+    "gold": {
+     "run_id": "vd-gold-1791192212",
+     "exit": 0,
+     "s": 43.9,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 1,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 20,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791192255",
+     "exit": 0,
+     "s": 10.5,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791192266",
+     "exit": 0,
+     "s": 56.3,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 1,
+     "pass_to_pass_success": 20,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 3.01,
+   "dropped": true,
+   "duration_s": 308.3,
+   "disk_free_gb_after": 59.7,
+   "at": "2026-10-05T11:25:25"
+  },
+  {
+   "instance_id": "sphinx-doc__sphinx-9367",
+   "stratum": "general-easy",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9367:latest",
+   "role": "held",
+   "order": 8,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.81,
+     "s": 125.4
+    },
+    "export": {
+     "ok": true,
+     "base": "b89b5d483cd4ad15f73a745e1fd2ff31c61be376",
+     "files": 1528,
+     "gold_applies_to_export": true,
+     "s": 27.8
+    },
+    "gold": {
+     "run_id": "vd-gold-1791192479",
+     "exit": 0,
+     "s": 47.0,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 1,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 25,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791192526",
+     "exit": 0,
+     "s": 10.6,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791192537",
+     "exit": 0,
+     "s": 39.2,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 1,
+     "pass_to_pass_success": 24,
+     "pass_to_pass_failure": 1
+    }
+   },
+   "image_size_gb": 2.81,
+   "dropped": true,
+   "duration_s": 251.5,
+   "disk_free_gb_after": 59.4,
+   "at": "2026-10-05T11:29:38"
+  },
+  {
+   "instance_id": "django__django-12125",
+   "stratum": "general-easy",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-12125:latest",
+   "role": "held",
+   "order": 9,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.88,
+     "s": 180.7
+    },
+    "export": {
+     "ok": true,
+     "base": "3950195000e7f0a1e09c4271f8d9b6a95f6d3dd3",
+     "files": 6155,
+     "gold_applies_to_export": true,
+     "s": 81.2
+    },
+    "gold": {
+     "run_id": "vd-gold-1791192841",
+     "exit": 0,
+     "s": 57.8,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 2,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 45,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791192899",
+     "exit": 0,
+     "s": 16.8,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791192915",
+     "exit": 0,
+     "s": 60.2,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 2,
+     "pass_to_pass_success": 45,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.88,
+   "dropped": true,
+   "duration_s": 400.6,
+   "disk_free_gb_after": 58.2,
+   "at": "2026-10-05T11:36:20"
+  },
+  {
+   "instance_id": "django__django-16429",
+   "stratum": "general-easy",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-16429:latest",
+   "role": "held",
+   "order": 10,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 3.01,
+     "s": 164.6
+    },
+    "export": {
+     "ok": true,
+     "base": "e933984761232c3a47b12282b559adf24a79fc2a",
+     "files": 6659,
+     "gold_applies_to_export": true,
+     "s": 100.5
+    },
+    "gold": {
+     "run_id": "vd-gold-1791193245",
+     "exit": 0,
+     "s": 55.5,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 4,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 21,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791193301",
+     "exit": 0,
+     "s": 16.7,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791193318",
+     "exit": 0,
+     "s": 37.3,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 1,
+     "fail_to_pass_failure": 3,
+     "pass_to_pass_success": 21,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 3.01,
+   "dropped": true,
+   "duration_s": 376.7,
+   "disk_free_gb_after": 57.9,
+   "at": "2026-10-05T11:42:37"
+  },
+  {
+   "instance_id": "django__django-16819",
+   "stratum": "general-medium",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-16819:latest",
+   "role": "held",
+   "order": 11,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 3.07,
+     "s": 214.4
+    },
+    "export": {
+     "ok": true,
+     "base": "2b0e6cf6820b909f679b8d742a7e9f5dd3602784",
+     "files": 6694,
+     "gold_applies_to_export": true,
+     "s": 161.8
+    },
+    "gold": {
+     "run_id": "vd-gold-1791193734",
+     "exit": 0,
+     "s": 85.5,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 1,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 38,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791193819",
+     "exit": 0,
+     "s": 39.6,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791193859",
+     "exit": 0,
+     "s": 61.9,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 1,
+     "pass_to_pass_success": 38,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 3.07,
+   "dropped": true,
+   "duration_s": 566.8,
+   "disk_free_gb_after": 57.3,
+   "at": "2026-10-05T11:52:04"
+  },
+  {
+   "instance_id": "sympy__sympy-14976",
+   "stratum": "general-medium",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-14976:latest",
+   "role": "held",
+   "order": 12,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.75,
+     "s": 23.6
+    },
+    "export": {
+     "ok": true,
+     "base": "1fb1020d80df814b57da907773d0888417fe5024",
+     "files": 1582,
+     "gold_applies_to_export": true,
+     "s": 35.7
+    },
+    "gold": {
+     "run_id": "vd-gold-1791193986",
+     "exit": 0,
+     "s": 54.8,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 1,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 13,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791194040",
+     "exit": 0,
+     "s": 14.1,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791194055",
+     "exit": 0,
+     "s": 55.9,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 1,
+     "pass_to_pass_success": 13,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.75,
+   "dropped": true,
+   "duration_s": 184.9,
+   "disk_free_gb_after": 57.3,
+   "at": "2026-10-05T11:55:11"
+  },
+  {
+   "instance_id": "sympy__sympy-13091",
+   "stratum": "general-medium",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-13091:latest",
+   "role": "held",
+   "order": 13,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.73,
+     "s": 22.3
+    },
+    "export": {
+     "ok": true,
+     "base": "84d6badfec5d4fa34e5f47f569d6bdd981c8c1f7",
+     "files": 1459,
+     "gold_applies_to_export": true,
+     "s": 18.2
+    },
+    "gold": {
+     "run_id": "vd-gold-1791194153",
+     "exit": 0,
+     "s": 55.3,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 2,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 89,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791194208",
+     "exit": 0,
+     "s": 18.9,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791194227",
+     "exit": 0,
+     "s": 43.5,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 2,
+     "pass_to_pass_success": 89,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.73,
+   "dropped": true,
+   "duration_s": 158.6,
+   "disk_free_gb_after": 57.0,
+   "at": "2026-10-05T11:57:51"
+  },
+  {
+   "instance_id": "sympy__sympy-22914",
+   "stratum": "general-medium",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-22914:latest",
+   "role": "held",
+   "order": 14,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.78,
+     "s": 32.8
+    },
+    "export": {
+     "ok": true,
+     "base": "bfffeb99e7cd7136ed6dd14df67e136741a6a465",
+     "files": 1961,
+     "gold_applies_to_export": true,
+     "s": 36.3
+    },
+    "gold": {
+     "run_id": "vd-gold-1791194340",
+     "exit": 0,
+     "s": 60.0,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 1,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 17,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791194400",
+     "exit": 0,
+     "s": 22.5,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791194423",
+     "exit": 0,
+     "s": 57.9,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 1,
+     "pass_to_pass_success": 17,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.78,
+   "dropped": true,
+   "duration_s": 210.1,
+   "disk_free_gb_after": 56.9,
+   "at": "2026-10-05T12:01:21"
+  },
+  {
+   "instance_id": "django__django-11848",
+   "stratum": "general-medium",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-11848:latest",
+   "role": "held",
+   "order": 15,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.88,
+     "s": 307.0
+    },
+    "export": {
+     "ok": true,
+     "base": "124531c3e9f5a34ead52a57450197c64c75937b7",
+     "files": 6137,
+     "gold_applies_to_export": true,
+     "s": 164.4
+    },
+    "gold": {
+     "run_id": "vd-gold-1791194953",
+     "exit": 0,
+     "s": 79.3,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 2,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 43,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791195033",
+     "exit": 0,
+     "s": 33.3,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791195066",
+     "exit": 1,
+     "s": 81.5,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 2,
+     "pass_to_pass_success": 43,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.88,
+   "dropped": true,
+   "duration_s": 669.1,
+   "disk_free_gb_after": 54.9,
+   "at": "2026-10-05T12:12:31"
+  },
+  {
+   "instance_id": "sphinx-doc__sphinx-7748",
+   "stratum": "general-medium",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7748:latest",
+   "role": "held",
+   "order": 16,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.81,
+     "s": 143.7
+    },
+    "export": {
+     "ok": true,
+     "base": "a839a53f7c032d0f12afe43e92a59bd6ffc55b75",
+     "files": 1417,
+     "gold_applies_to_export": true,
+     "s": 31.9
+    },
+    "gold": {
+     "run_id": "vd-gold-1791195327",
+     "exit": 0,
+     "s": 41.0,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 2,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 12,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791195368",
+     "exit": 0,
+     "s": 12.0,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791195380",
+     "exit": 0,
+     "s": 32.8,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 2,
+     "pass_to_pass_success": 12,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.81,
+   "dropped": true,
+   "duration_s": 265.4,
+   "disk_free_gb_after": 54.4,
+   "at": "2026-10-05T12:16:57"
+  },
+  {
+   "instance_id": "django__django-16454",
+   "stratum": "general-medium",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-16454:latest",
+   "role": "held",
+   "order": 17,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 3.07,
+     "s": 139.5
+    },
+    "export": {
+     "ok": true,
+     "base": "cdb7178c1d981472d604c2b613b5e06f4773bf24",
+     "files": 6643,
+     "gold_applies_to_export": true,
+     "s": 61.6
+    },
+    "gold": {
+     "run_id": "vd-gold-1791195620",
+     "exit": 0,
+     "s": 41.1,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 1,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 45,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791195661",
+     "exit": 0,
+     "s": 15.9,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791195677",
+     "exit": 0,
+     "s": 50.4,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 1,
+     "pass_to_pass_success": 45,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 3.07,
+   "dropped": true,
+   "duration_s": 311.5,
+   "disk_free_gb_after": 54.2,
+   "at": "2026-10-05T12:22:10"
+  },
+  {
+   "instance_id": "sympy__sympy-20438",
+   "stratum": "general-medium",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-20438:latest",
+   "role": "held",
+   "order": 18,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.77,
+     "s": 24.4
+    },
+    "export": {
+     "ok": true,
+     "base": "f575a3305f9689fcac9b3d00545326bf61a99502",
+     "files": 1830,
+     "gold_applies_to_export": true,
+     "s": 23.9
+    },
+    "gold": {
+     "run_id": "vd-gold-1791195779",
+     "exit": 0,
+     "s": 137.3,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 2,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 93,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791195917",
+     "exit": 0,
+     "s": 11.2,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791195928",
+     "exit": 0,
+     "s": 99.3,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 2,
+     "pass_to_pass_success": 93,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.77,
+   "dropped": true,
+   "duration_s": 296.8,
+   "disk_free_gb_after": 53.5,
+   "at": "2026-10-05T12:27:08"
+  },
+  {
+   "instance_id": "django__django-11551",
+   "stratum": "general-medium",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-11551:latest",
+   "role": "held",
+   "order": 19,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.87,
+     "s": 262.0
+    },
+    "export": {
+     "ok": true,
+     "base": "646dce1391b5779549dc0c32e435450d046d7f5e",
+     "files": 6104,
+     "gold_applies_to_export": true,
+     "s": 116.6
+    },
+    "gold": {
+     "run_id": "vd-gold-1791196408",
+     "exit": 0,
+     "s": 62.5,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 1,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 119,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791196470",
+     "exit": 0,
+     "s": 10.6,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791196481",
+     "exit": 0,
+     "s": 54.9,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 1,
+     "pass_to_pass_success": 119,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.87,
+   "dropped": true,
+   "duration_s": 508.7,
+   "disk_free_gb_after": 50.6,
+   "at": "2026-10-05T12:35:38"
+  },
+  {
+   "instance_id": "sympy__sympy-19040",
+   "stratum": "general-medium",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-19040:latest",
+   "role": "held",
+   "order": 20,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.77,
+     "s": 15.9
+    },
+    "export": {
+     "ok": true,
+     "base": "00f318300cd213b2675828de62917d886373c345",
+     "files": 1761,
+     "gold_applies_to_export": true,
+     "s": 36.3
+    },
+    "gold": {
+     "run_id": "vd-gold-1791196592",
+     "exit": 0,
+     "s": 61.2,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 1,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 148,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791196653",
+     "exit": 0,
+     "s": 11.9,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791196665",
+     "exit": 0,
+     "s": 51.9,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 1,
+     "pass_to_pass_success": 148,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.77,
+   "dropped": true,
+   "duration_s": 177.6,
+   "disk_free_gb_after": 50.4,
+   "at": "2026-10-05T12:38:37"
+  },
+  {
+   "instance_id": "sympy__sympy-12489",
+   "stratum": "hard",
+   "repo": "sympy/sympy",
+   "difficulty": "1-4 hours",
+   "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-12489:latest",
+   "role": "held",
+   "order": 21,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.73,
+     "s": 29.6
+    },
+    "export": {
+     "ok": true,
+     "base": "abe06aed37f2dda57cf2e26a94ad4e29e9af6adc",
+     "files": 1429,
+     "gold_applies_to_export": true,
+     "s": 34.1
+    },
+    "gold": {
+     "run_id": "vd-gold-1791196782",
+     "exit": 0,
+     "s": 45.6,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 1,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 8,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791196827",
+     "exit": 0,
+     "s": 10.9,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791196838",
+     "exit": 0,
+     "s": 46.1,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 1,
+     "pass_to_pass_success": 8,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.73,
+   "dropped": true,
+   "duration_s": 166.6,
+   "disk_free_gb_after": 49.2,
+   "at": "2026-10-05T12:41:25"
+  },
+  {
+   "instance_id": "django__django-12325",
+   "stratum": "hard",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-12325:latest",
+   "role": "held",
+   "order": 22,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.88,
+     "s": 236.3
+    },
+    "export": {
+     "ok": true,
+     "base": "eaebcded8deac7d162998bc93300a38c29936ec8",
+     "files": 6174,
+     "gold_applies_to_export": true,
+     "s": 68.2
+    },
+    "gold": {
+     "run_id": "vd-gold-1791197189",
+     "exit": 0,
+     "s": 79.4,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 2,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 201,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791197269",
+     "exit": 0,
+     "s": 13.1,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791197282",
+     "exit": 0,
+     "s": 63.5,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 2,
+     "pass_to_pass_success": 201,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.88,
+   "dropped": true,
+   "duration_s": 461.9,
+   "disk_free_gb_after": 78.7,
+   "at": "2026-10-05T12:49:07"
+  },
+  {
+   "instance_id": "django__django-15629",
+   "stratum": "hard",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-15629:latest",
+   "role": "held",
+   "order": 23,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 3.01,
+     "s": 103.8
+    },
+    "export": {
+     "ok": true,
+     "base": "7dfd8aba874bc46cc27d074b3fadad2c2c060685",
+     "files": 6625,
+     "gold_applies_to_export": true,
+     "s": 231.8
+    },
+    "gold": {
+     "run_id": "vd-gold-1791197684",
+     "exit": 0,
+     "s": 97.7,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 2,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 115,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791197782",
+     "exit": 0,
+     "s": 8.5,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791197790",
+     "exit": 0,
+     "s": 66.3,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 2,
+     "pass_to_pass_success": 115,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 3.01,
+   "dropped": true,
+   "duration_s": 510.1,
+   "disk_free_gb_after": 77.7,
+   "at": "2026-10-05T12:57:38"
+  },
+  {
+   "instance_id": "django__django-15268",
+   "stratum": "hard",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-15268:latest",
+   "role": "held",
+   "order": 24,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 3.01,
+     "s": 149.1
+    },
+    "export": {
+     "ok": true,
+     "base": "2cbebfa6f447425aaabf304a3b8b3e9854f9c583",
+     "files": 6587,
+     "gold_applies_to_export": true,
+     "s": 102.7
+    },
+    "gold": {
+     "run_id": "vd-gold-1791198111",
+     "exit": 0,
+     "s": 39.3,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 3,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 130,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791198150",
+     "exit": 0,
+     "s": 10.8,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791198161",
+     "exit": 0,
+     "s": 39.1,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 3,
+     "pass_to_pass_success": 130,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 3.01,
+   "dropped": true,
+   "duration_s": 342.8,
+   "disk_free_gb_after": 82.0,
+   "at": "2026-10-05T13:03:22"
+  },
+  {
+   "instance_id": "django__django-13344",
+   "stratum": "hard",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-13344:latest",
+   "role": "held",
+   "order": 25,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.88,
+     "s": 84.5
+    },
+    "export": {
+     "ok": true,
+     "base": "b743803a5a6aaab88a213b8b86fcef77b9c13b54",
+     "files": 6395,
+     "gold_applies_to_export": true,
+     "s": 80.2
+    },
+    "gold": {
+     "run_id": "vd-gold-1791198367",
+     "exit": 0,
+     "s": 124.9,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 2,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 356,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791198492",
+     "exit": 0,
+     "s": 11.3,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791198503",
+     "exit": 0,
+     "s": 120.5,
+     "report": true,
+     "resolved": false,
+     "applied": true,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 2,
+     "pass_to_pass_success": 356,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.88,
+   "dropped": true,
+   "duration_s": 424.2,
+   "disk_free_gb_after": 81.9,
+   "at": "2026-10-05T13:10:27"
+  },
+  {
+   "instance_id": "django__django-10554",
+   "stratum": "hard",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "image": "swebench/sweb.eval.x86_64.django_1776_django-10554:latest",
+   "role": "held",
+   "order": 26,
+   "pass": true,
+   "reason": null,
+   "steps": {
+    "pull": {
+     "ok": true,
+     "existed_before": false,
+     "ours": true,
+     "size_gb": 2.87,
+     "s": 114.6
+    },
+    "export": {
+     "ok": true,
+     "base": "eb00cdeb7cd30b6815348f2cb5731c0591e04ee3",
+     "files": 6075,
+     "gold_applies_to_export": true,
+     "s": 72.2
+    },
+    "gold": {
+     "run_id": "vd-gold-1791198816",
+     "exit": 0,
+     "s": 47.1,
+     "report": true,
+     "resolved": true,
+     "applied": true,
+     "fail_to_pass_success": 2,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 23,
+     "pass_to_pass_failure": 0
+    },
+    "empty_literal": {
+     "run_id": "vd-empty_literal-1791198863",
+     "exit": 0,
+     "s": 10.6,
+     "report": true,
+     "resolved": false,
+     "in_empty_patch_ids": true,
+     "submitted": 1,
+     "completed": 0
+    },
+    "empty": {
+     "run_id": "vd-empty-1791198874",
+     "exit": 0,
+     "s": 37.5,
+     "report": true,
+     "resolved": false,
+     "applied": false,
+     "fail_to_pass_success": 0,
+     "fail_to_pass_failure": 0,
+     "pass_to_pass_success": 0,
+     "pass_to_pass_failure": 0
+    }
+   },
+   "image_size_gb": 2.87,
+   "dropped": true,
+   "duration_s": 283.9,
+   "disk_free_gb_after": 81.9,
+   "at": "2026-10-05T13:15:13"
+  }
+ ]
+}

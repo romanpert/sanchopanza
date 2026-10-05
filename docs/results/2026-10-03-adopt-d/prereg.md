@@ -198,7 +198,11 @@ which the harness runs (FAIL_TO_PASS must fail; its PASS_TO_PASS counts are reco
 only pulled: an image counts as failed only when the registry says it does not exist; a network
 error stops the run with nothing recorded. A harness that gives no report twice fails the
 instance. Whether the gold patch applies to the exported copy is recorded, not a criterion.
-Result: _(to fill in from `singles-validated.json`)_
+Result (2026-10-05, 10:44-13:15, `singles-validated.json`): **26 of 26 drawn instances pass**,
+no replacement, no spare tried, no shortfall. Every image pulled; the gold patch resolved, the
+literal empty patch was listed unrun and the no-op patch did not resolve in all 26; the gold patch
+applied to the exported copy in all 26. 166 to 664 s per instance. The selected list is the table
+above, unchanged.
 
 **Disjointness, again, right before sealing:** `draw.py check` scans again and fails if any drawn
 or spare id is now named anywhere else (for example by a development probe written after the
