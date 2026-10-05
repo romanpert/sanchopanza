@@ -171,3 +171,61 @@ def test_an_odd_cwd_still_finds_the_session_lock(home: Path) -> None:
     odd = {"hook_event_name": "PreToolUse", "session_id": "aaa", "cwd": 42, "tool_name": "Read",
            "tool_input": {"file_path": "x"}}  # fmt: skip
     assert _denied(candor_hook.handle(odd))
+
+
+# --- S seal (2026-10-05): parallel sessions never hold each other --------------------------
+
+
+def test_two_parallel_sessions_in_one_repository_never_hold_each_other(home: Path) -> None:
+    """The comparison runs S sessions side by side, several in one checkout: each keeps its own
+    lock, and a session that was never flagged runs every call."""
+    repo = home / "repo"
+    (repo / ".git").mkdir(parents=True)
+    for session in ("aaa", "bbb"):
+        assert candor_hook.handle(_read(session, repo)) == {}
+    assert _denied(candor_hook.handle(_tamper("aaa", repo)))
+    for _ in range(3):
+        assert _denied(candor_hook.handle(_read("aaa", repo)))
+        assert candor_hook.handle(_read("bbb", repo)) == {}
+
+
+def test_without_an_id_sessions_of_two_claude_configs_stay_apart(
+    home: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A session with no id falls back to its project; two harnesses running from one checkout
+    with their own CLAUDE_CONFIG_DIR are two sessions, not one."""
+    repo = home / "repo"
+    (repo / ".git").mkdir(parents=True)
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(home / "cfg-a"))
+    first = lock_mod.default_path("", repo)
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(home / "cfg-b"))
+    second = lock_mod.default_path("", repo)
+    assert first != second
+    assert lock_mod.default_path("", repo) == second  # stable for one config
+
+
+def test_without_a_config_dir_the_fallback_is_where_it_was(
+    home: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A lock engaged before this change, by a session with no id and no CLAUDE_CONFIG_DIR, is
+    still found."""
+    import hashlib
+
+    monkeypatch.delenv("CLAUDE_CONFIG_DIR", raising=False)
+    repo = home / "repo"
+    (repo / ".git").mkdir(parents=True)
+    root = str(repo.resolve())
+    root = root.lower() if __import__("os").name == "nt" else root
+    digest = hashlib.sha1(root.encode("utf-8")).hexdigest()[:16]
+    assert lock_mod.default_path("", repo).name == f"project-{digest}.json"
+
+
+def test_project_scope_ignores_the_config_dir(home: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """`project` holds every session of the repository on purpose, whatever its config."""
+    monkeypatch.setenv("SANCHOPANZA_CANDOR_LOCK_SCOPE", "project")
+    repo = home / "repo"
+    (repo / ".git").mkdir(parents=True)
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(home / "cfg-a"))
+    first = lock_mod.default_path("aaa", repo)
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(home / "cfg-b"))
+    assert lock_mod.default_path("bbb", repo) == first

@@ -77,13 +77,21 @@ def _relative(session: str, cwd: str | os.PathLike[str] | None) -> Path:
     if chosen == "session" and _safe(session):
         return Path(LOCKS_DIR) / f"session-{_safe(session)}.json"
     root = str(project_root(cwd)).lower() if os.name == "nt" else str(project_root(cwd))
+    if chosen == "session":
+        # No session id: the project stands in for the session, and two harnesses running from
+        # one checkout with their own Claude Code configuration are two sessions, not one. Unset,
+        # the key is the project's alone, where it always was.
+        config = os.environ.get("CLAUDE_CONFIG_DIR", "").strip()
+        if config:
+            root = f"{root}|{config.lower() if os.name == 'nt' else config}"
     digest = hashlib.sha1(root.encode("utf-8")).hexdigest()[:16]
     return Path(LOCKS_DIR) / f"project-{digest}.json"
 
 
 def default_path(session: str = "", cwd: str | os.PathLike[str] | None = None) -> Path:
     """Where the lock for this session lives. SANCHOPANZA_CANDOR_LOCK, a file, wins over the
-    scope. A session with no id falls back to its project, never to the machine. A lock that
+    scope. A session with no id falls back to its project (and its CLAUDE_CONFIG_DIR, when set),
+    never to the machine. A lock that
     already exists under either home is that one."""
     override = os.environ.get("SANCHOPANZA_CANDOR_LOCK")
     if override:

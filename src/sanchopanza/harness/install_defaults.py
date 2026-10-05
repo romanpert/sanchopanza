@@ -43,6 +43,8 @@ COMPACT_MARGIN = 33_000  # 20k reserved for the summary + the 13k Claude Code ke
 MIN_BUDGET = 100_000 - COMPACT_MARGIN  # Claude Code floors the window at 100k
 
 FIND_SERVER = "sanchopanza"
+# `fetch_hook.TOOL_NAME` is `mcp__<this>__fetch_passages`: the hook names the tool by this server.
+FETCH_SERVER = "sanchopanza-fetch"
 SKILL_NAME = "sanchopanza-code"
 
 
@@ -117,6 +119,16 @@ def find_server_entry(command: str, *, auto: bool = False) -> dict[str, Any]:
     words = words or ["sanchopanza"]
     args = [*words[1:], "find-mcp", *(["--auto"] if auto else [])]
     return {"command": words[0], "args": args, "alwaysLoad": True}
+
+
+def fetch_server_entry(command: str) -> dict[str, Any]:
+    """The `.mcp.json` entry for `--fetch`: `<x> hook` becomes `<x> fetch-mcp`, loaded up front
+    (`alwaysLoad`) for the reason `find_server_entry` gives."""
+    words = command.split()
+    if words and words[-1] == "hook":
+        words = words[:-1]
+    words = words or ["sanchopanza"]
+    return {"command": words[0], "args": [*words[1:], "fetch-mcp"], "alwaysLoad": True}
 
 
 def find_hook_command(command: str) -> str:
