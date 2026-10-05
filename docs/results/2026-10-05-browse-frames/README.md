@@ -660,7 +660,8 @@ pilot does not separate version 2 from the task mix (the fetch pilot ran other t
 ### Next fix (not measured)
 
 1. The disambiguation mark from the page's own markers only (the next commit, with the live case
-   as a test).
+   as a test). Done: on the 13 pages behind the 14 lines, downloaded again, only the two real
+   disambiguation pages are flagged.
 2. Drop the page budget's line or make it act: as additional context Haiku ignored it 34 times,
    and the one long run it fired on was the right work.
 3. To separate version 2 from the task mix: a sealed run with three arms (HAIKU, HAIKU-FETCH at

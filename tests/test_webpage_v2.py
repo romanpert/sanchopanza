@@ -141,3 +141,18 @@ def test_a_disambiguation_page_is_flagged() -> None:
     by_text = "<h1>Jumper</h1><p>Jumper or Jumpers may refer to:</p><li>Jumper (novel)</li>"
     assert webpage_v2.page_from_html(by_text).disambiguation
     assert not webpage_v2.page_from_html(WIKI).disambiguation
+    only_box = '<h1>Jumper</h1><div class="metadata dmbox dmbox-disambig">x</div><li>Jumper</li>'
+    assert webpage_v2.page_from_html(only_box).disambiguation
+
+
+def test_an_article_that_links_to_a_disambiguation_page_is_not_one() -> None:
+    """The fetch v2 pilot: 12 of 14 lines on ordinary articles, from the hatnote's link class."""
+    hatnote = (
+        '<div class="hatnote">For other uses, see <a class="mw-disambig" '
+        'href="/wiki/Jane_(disambiguation)">Jane (disambiguation)</a>.</div>'
+    )
+    page = webpage_v2.page_from_html(
+        WIKI.replace('<div id="siteSub">', f'{hatnote}<div id="siteSub">')
+    )
+    assert "For other uses" in "\n".join(c.text for c in page.chunks)
+    assert not page.disambiguation

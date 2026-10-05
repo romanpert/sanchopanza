@@ -77,6 +77,7 @@ _CHROME_PREFIXES = ("cdx-", "interlanguage", "navbox", "uls-", "cookie")
 _MARKS = re.compile(
     r"\[(?:\d{1,3}|[a-z]{1,2}|edit|citation needed|note \d+|nb \d+)\]|\[\s*\]", re.IGNORECASE
 )
+_DISAMBIGUATION_MARKS = frozenset(["disambigbox", "dmbox-disambig", "setindexbox"])
 _MAY_REFER = re.compile(r"\bmay (?:also )?refer to:?\s*$", re.IGNORECASE)
 _BACK_MATTER = (
     "references",
@@ -131,8 +132,10 @@ def _is_chrome(attrs: Sequence[tuple[str, str | None]]) -> bool:
 
 
 def _is_disambiguation_mark(tag: str, attrs: Sequence[tuple[str, str | None]]) -> bool:
+    """The page's own mark (MediaWiki's box), never a link to a disambiguation page: on the fetch
+    v2 pilot a hatnote link's `mw-disambig` class flagged 12 ordinary articles of 14."""
     found, _role, _hidden = _tokens(attrs)
-    if any("disambig" in t for t in found):
+    if found & _DISAMBIGUATION_MARKS:
         return True
     return tag == "link" and "disambiguation" in str(dict(attrs).get("rel") or "").lower()
 
