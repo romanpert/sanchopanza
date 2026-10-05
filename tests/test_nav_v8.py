@@ -172,3 +172,97 @@ def test_the_analysis_gives_the_two_ratios_v8_is_for():
     assert out["ratios"]["G4+G8 SONNET-V8/SONNET"] == 0.75
     assert out["tasks"]["G6"]["HAIKU"] == {"right": "2/2", "mean_usd": 0.1, "turns": [4, 4]}
     assert out["arms"]["SONNET-V8"]["sessions"] == 12
+
+
+# --- v8.1's round: the same runner, another round ----------------------------------------------
+
+
+def test_the_v81_round_is_64_sessions_four_arms_under_10_usd():
+    r = v8.ROUNDS["v81"]
+    assert r.arms == ("HAIKU", "HAIKU-V81", "SONNET", "SONNET-V81")
+    assert dict(r.task_runs) == {"G1": 2, "G3": 2, "G6": 2, "G5": 2, "I1": 4, "I2": 4}
+    assert len(v8.plan_of(r)) == 64 and r.ceiling_usd <= 10.00
+    assert r.smoke == (("G1", "HAIKU-V81"), ("I2", "HAIKU-V81"))
+    assert r.sessions.name == "nav-v81-sessions.jsonl" and r.report.name == "nav-v81.json"
+    assert {nav.MODELS[a] for a in r.arms} == {"claude-haiku-4-5", "claude-sonnet-5"}
+    assert len(v8.plan_of(v8.ROUNDS["v8"])) == 60
+
+
+def test_the_v81_arms_get_v8_plus_the_screenshot_matcher_and_the_two_switches(tmp_path):
+    from sanchopanza.harness.crawl_hook import V8_HOOKS, V81_HOOKS
+    from sanchopanza.harness.install import CRAWL_HOOKS
+
+    for arm in ("HAIKU-V81", "SONNET-V81"):
+        got = json.loads(v8.settings_for(arm, tmp_path).read_text("utf-8"))
+        matchers = {e: [x["matcher"] for x in v] for e, v in got["hooks"].items()}
+        assert matchers == {e: [m] for e, m in {**CRAWL_HOOKS, **V8_HOOKS, **V81_HOOKS}.items()}
+        assert got["env"] == {**v8.V8_ENV, "SANCHOPANZA_CRAWL_NOTES_AT": "front",
+                              "SANCHOPANZA_CRAWL_SHOT": "snapshot-first"}  # fmt: skip
+
+
+def _line(**message):
+    return json.dumps({"message": message})
+
+
+def _result_line(text, full=None):
+    block = {"type": "tool_result", "tool_use_id": "t", "content": [{"type": "text", "text": text}]}
+    return json.dumps({"message": {"role": "user", "content": [block]},
+                       "toolUseResult": [{"type": "text", "text": full or text}]})  # fmt: skip
+
+
+def _shot_use():
+    block = {"type": "tool_use", "name": "mcp__playwright__browser_take_screenshot", "input": {}}
+    return _line(role="assistant", content=[block])
+
+
+def test_the_v81_counts_read_denials_screenshots_and_where_the_notes_landed():
+    from sanchopanza.harness.crawl_hook import NOTES_HEAD, SHOT_REASON
+
+    at_end = '### Result\n{\n  "result": 1,\n  "sanchopanza": "sanchopanza: x."\n}'
+    text = "\n".join([
+        _shot_use(), _result_line(f"Error: {SHOT_REASON}"), _shot_use(), _result_line("png"),
+        _result_line(f"{NOTES_HEAD}\nsanchopanza: y.\n### Result\n2"),
+        _result_line("<persisted-output>\nPreview (first 2KB):\n" + NOTES_HEAD, full="z"),
+        _result_line("<persisted-output>\nPreview", full=at_end),
+    ])  # fmt: skip
+    got = v8.v81_counts(text)
+    assert got == {"shots": 2, "shots_denied": 1, "notes_front": 2, "notes_end": 1,
+                   "persisted": 2, "persisted_front": 1}  # fmt: skip
+
+
+@pytest.mark.parametrize(
+    ("counts", "why"),
+    [
+        ({"shots": 2, "shots_denied": 1, "notes_end": 0}, None),
+        ({"shots": 0, "shots_denied": 0, "notes_end": 0}, None),
+        ({"shots": 1, "shots_denied": 0, "notes_end": 0}, "v8.1: the first screenshot passed"),
+        ({"shots": 0, "shots_denied": 0, "notes_end": 1}, "v8.1: a note left at the end"),
+    ],
+)
+def test_a_v81_session_counts_only_with_the_screenshot_rule_and_the_notes_in_front(
+    monkeypatch, counts, why
+):
+    monkeypatch.setattr(nav, "one_session", lambda t, run, a: _row(a))
+    monkeypatch.setattr(v8.conf3, "_transcript", lambda workdir: f"{LINE} {GUARD} {CUT}")
+    monkeypatch.setattr(
+        v8,
+        "v81_counts",
+        lambda text: {**counts, "notes_front": 0, "persisted": 0, "persisted_front": 0},
+    )
+    g6 = next(t for t in v8.TASKS if t[0] == "G6")
+    row = v8.one_session(g6, 1, "HAIKU-V81")
+    assert row.get("subtype") == why if why else not row.get("not_run")
+
+
+def test_the_v81_analysis_gives_the_interactive_and_crawl_ratios():
+    r = v8.ROUNDS["v81"]
+    rows = [{"task": t, "run": run, "arm": arm, "success": True, "list_usd": usd, "turns": 4,
+             "shots_denied": 1}
+            for t, n in r.task_runs for run in range(1, n + 1)
+            for arm, usd in (("HAIKU", 0.10), ("HAIKU-V81", 0.08), ("SONNET", 0.20),
+                             ("SONNET-V81", 0.30))]  # fmt: skip
+    out = v8.analyse(rows, r)
+    assert out["ratios"]["I1+I2 HAIKU-V81/HAIKU"] == 0.8
+    assert out["ratios"]["crawls SONNET-V81/SONNET"] == 1.5
+    assert out["arms"]["HAIKU-V81"]["shots_denied"] == 16
+    assert set(out["tasks"]) == {"G1", "G3", "G6", "G5", "I1", "I2"}

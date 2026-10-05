@@ -376,6 +376,90 @@ What this says:
   (`test_a_paginators_links_are_not_taken_for_the_rows`). The round ran before the fix. On G1,
   G4 and G8 the rows note was right (194/194, 1,351/1,351, 60/60).
 
+## v8.1 development (2026-10-05)
+
+Development, not a confirmation: the tasks are confirmation 4's own. v8.1 is v8 plus two switches
+(`harness/crawl_hook.py`, both off by default), one for each finding of v8's round:
+
+- `SANCHOPANZA_CRAWL_NOTES_AT=front`: the PostToolUse hook that cuts the echo also moves the notes
+  from the end of the evaluate's result to its head, under `### sanchopanza note`. The note is
+  taken from the last key of the returned value, or from the tail of an error message, and is
+  moved, not copied. A test builds a 60,000-character result and finds the note in its first 500
+  characters.
+- `SANCHOPANZA_CRAWL_SHOT=snapshot-first`: a PreToolUse hook denies the session's first
+  `browser_take_screenshot`, with the reason "browser_snapshot gives the page text and element
+  refs for clicks at a fraction of the tokens; call browser_take_screenshot again if you need to
+  see the visual layout." Every later screenshot passes, so a task that has to see the page
+  still can. There is no model in it. There is one mark per `session_id`, and with no session or
+  no writable mark the call passes. `crawl_hook.V81_HOOKS` widens the PreToolUse matcher to
+  `mcp__.*__browser_(evaluate|take_screenshot)`.
+
+Round (`nav_v8.py --round v81`): Claude Code alone against `-V81` (v8's hooks and env plus these
+two), Haiku and Sonnet, on G1, G3, G6 and G5 with two runs each, and on I1 and I2 with four. That
+makes 64 sessions on Claude Code 2.1.287, with a ceiling of 10 USD. It cost **7.29 USD** at list
+price, plus 0.23 for two smoke sessions. In the smoke, G1 got the note at the head of both results
+and I2's first screenshot was denied. No session was `not_run`, no 429 came back, and the guard
+stopped nothing. Every `-V81` transcript had the line on the crawls and none on I1 and I2. None
+echoed the wrapper. The notes came first in all 18 noted results (12 Haiku, 6 Sonnet), and none
+was left at the end.
+
+| task | Haiku | Haiku-V81 | Sonnet | Sonnet-V81 |
+|---|---|---|---|---|
+| G1 | 1/2, 0.076 | 2/2, 0.033 | 2/2, 0.067 | 2/2, 0.072 |
+| G3 | 1/2, 0.056 | 2/2, 0.039 | 0/2, 0.067 | **2/2**, 0.092 |
+| G6 | 2/2, 0.181 | 2/2, 0.089 | 2/2, 0.192 | 2/2, 0.082 |
+| G5 | 0/2, 0.109 | **2/2**, 0.038 | 2/2, 0.168 | 2/2, 0.077 |
+| crawls right / sum of means | 4/8, 0.422 | **8/8**, 0.200 | 6/8, 0.493 | **8/8**, 0.323 |
+| I1 | 4/4, 0.049 | 3/4, 0.044 | 4/4, 0.112 | 4/4, 0.112 |
+| I2 | 4/4, 0.157 | 4/4, 0.111 | 4/4, 0.256 | 4/4, 0.263 |
+
+Mean USD per session. Ratios (sum of means, treated over plain): crawls **0.473** Haiku and
+**0.655** Sonnet; I1+I2 **0.749** Haiku and 1.020 Sonnet; I2 alone 0.703 Haiku.
+
+**The screenshot rule, read in the transcripts.** It fired in 3 of the 16 Haiku-V81 sessions (I1
+r4, I2 r1, I2 r2) and in no Sonnet session: Sonnet never asks for a screenshot on these tasks.
+After each denial the agent switched to snapshots, or to reading the snapshot file Playwright MCP
+had already saved. It never asked for the screenshot again. The I2 sessions the rule touched ran 22
+and 20 turns, at 0.121 and 0.109 USD. All four Haiku-V81 I2 sessions ran 19-22 turns, at
+0.104-0.121. Plain Haiku took screenshots in 2 of its 4 I2 sessions: 26 turns at 0.141, and 40
+turns at 0.248. Its two snapshot sessions ran 20 and 27 turns, at 0.113 and 0.127. So the I2 ratio
+rests mostly on plain Haiku's r4. Without it, plain Haiku's I2 mean is 0.127 and the ratio 0.871.
+Four runs per arm still cannot separate the rule from the path Haiku happens to choose. What they
+show is that every Haiku-V81 I2 session stayed on the cheap path, and that the rule never cost a
+right answer.
+
+**G5 is not broken.** Neither Haiku-V81 G5 session asked for a screenshot. The line sent both
+into one evaluate that read the star classes (2/2, 5 turns, 0.038). The two plain Haiku misses on
+G5 were the screenshot path itself: three full-page screenshots, stars counted by eye, and 31 and
+36 books where the truth is 21. So the rule has not yet met a task that needs to see the page.
+That case, the second call passing, is covered by tests and the preflight only.
+
+**The notes at the head, read in the transcripts.** In both Haiku-V81 G1 sessions the first
+evaluate parsed the open page, and the result began "this call fetched nothing, so it read only the
+open page, which says: "total":194". The next evaluate fetched `?limit=200`, and the note read
+"fetched JSON rows 194, distinct 194" (44, right). No result in this round was large enough for
+Claude Code to persist it (0 of 64 sessions). So the case that caused v8's G1 miss, a note behind a
+2 KB preview, has not been seen live with the move. What was seen live is that the hook's rewritten
+text is the text the agent reads.
+
+Every miss, read in its transcript:
+
+| session | answer | what happened |
+|---|---|---|
+| G1 r1 Haiku | 6 | read only the open page: 30 products of 194 |
+| G3 r2 Haiku; G3 r1, r2 Sonnet | 1 | read only the open page: 10 facts of 332 (Sonnet's replies say "default page size") |
+| G5 r1, r2 Haiku | 31, 36 | counted stars by eye in full-page screenshots of the three pages |
+| I1 r3 Haiku-V81 | none | the-internet.herokuapp.com answered 503 ("Application Error"); the agent reported the outage, 4 turns. The other three Haiku-V81 I1 sessions averaged 0.049, the same as plain Haiku |
+
+As in confirmation 4 and v8, every "read only the open page" miss is in a plain arm. The one
+`-V81` miss is the site being down, the same outage that cost confirmation 4's I1 r1 Haiku-SP.
+
+**What v8.1 does not fix: Sonnet on the JSON APIs.** These four crawls include one JSON API (G3),
+and there Sonnet-V81 costs more than Sonnet alone (0.092 against 0.067). It is right 2/2 where
+Sonnet alone is 0/2, and the extra cost is the second, paginating evaluate. v8's round measured
+G4+G8 at 1.034. Confirmation 4's Sonnet price criterion counts crawls cheaper by mean (at least
+6/8), and on a mix with four JSON APIs that count is still at risk.
+
 ## Files
 
 - `nav-v6-sessions.jsonl` / `.log`, `nav-v6.json`: the phase. `nav-v6-smoke-sessions.jsonl`: the
@@ -383,6 +467,8 @@ What this says:
 - `nav-v7-sessions.jsonl` / `.log`, `nav-v7.json`, `nav-v7-smoke-sessions.jsonl`: the v7 round.
 - `nav-v8-sessions.jsonl` / `.log`, `nav-v8.json`, `nav-v8-smoke-sessions.jsonl`: the v8 round
   (`benchmarks/browse/nav_v8.py`, `tests/test_nav_v8.py`).
+- `nav-v81-sessions.jsonl` / `.log`, `nav-v81.json`, `nav-v81-smoke-sessions.jsonl`: the v8.1
+  round (`nav_v8.py --round v81`, `tests/test_crawl_v81.py`).
 - `truth-v6.json`: the answers recomputed after the phase.
 - `prereg-crawl4.md` / `.sha256`: confirmation 4, sealed before it ran.
 - `nav-confirm4-sessions.jsonl`, `nav-confirm4.json`: confirmation 4's 120 sessions and its

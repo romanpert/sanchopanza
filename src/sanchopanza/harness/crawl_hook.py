@@ -48,6 +48,19 @@ v8, in development and off by default, from confirmation 4's misses (README 2026
 `install --crawl` wires only `SessionStart` and `PreToolUse`. The two events v8 adds are in
 `V8_HOOKS`. Whoever turns the echo cut or `LINE_AT=prompt` on must wire them too, or the echo is
 left alone and the line is never added.
+
+v8.1, in development and off by default, from v8's round (README 2026-10-03, "v8 development"):
+
+- `SANCHOPANZA_CRAWL_NOTES_AT=front`: the `PostToolUse` hook moves the notes from the end of the
+  evaluate's result to its head. In G1 a note sat at character 64,295 of 64,577; Claude Code
+  persisted the result and showed the agent a 2 KB preview, so the note was never read.
+- `SANCHOPANZA_CRAWL_SHOT=snapshot-first`: the first `browser_take_screenshot` of a session is
+  denied with a short reason that names `browser_snapshot`; every later one passes, so a task
+  that must see the page still can. On I2 Haiku's cost followed that choice: 26-37 turns down
+  the screenshot path, 19-20 down the snapshot path. One mark per `session_id` in
+  `SANCHOPANZA_CRAWL_DIR` (default `~/.sanchopanza/crawl`). `V81_HOOKS` widens the `PreToolUse`
+  matcher to take the screenshot tool beside the evaluate.
+
 Standard library only (the echo cut reuses `autopilot`'s response walk); fail open everywhere.
 """
 
@@ -57,7 +70,9 @@ import contextlib
 import json
 import re
 import sys
+import time
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
 
 from .. import _env
@@ -108,6 +123,18 @@ ECHO = re.compile(r"### Ran Playwright code\n```js\n(.*?)\n```", re.S)
 ECHO_LINE = (
     "### Ran Playwright code\nyour function, inside sanchopanza's evaluate guard (not repeated)"
 )
+# v8.1 (development): one PreToolUse entry for the evaluate guard and the screenshot rule.
+V81_HOOKS = {"PreToolUse": r"mcp__.*__browser_(evaluate|take_screenshot)"}
+SHOT = re.compile(r"^mcp__.+__browser_take_screenshot$")
+SHOT_REASON = (
+    "browser_snapshot gives the page text and element refs for clicks at a fraction of the "
+    "tokens; call browser_take_screenshot again if you need to see the visual layout."
+)
+# The notes as the wrapper leaves them: the last key of the value it returns (`{result,
+# sanchopanza}`, pretty-printed by Playwright MCP), or the tail of an error message.
+NOTES_KEY = re.compile(r',\s*"sanchopanza":\s*("sanchopanza: (?:[^"\\]|\\.)*")(\s*\})')
+NOTES_ERROR = re.compile(r" \| (sanchopanza: [^\n]*)")
+NOTES_HEAD = "### sanchopanza note"
 DEFAULT_VERSION = "5"
 STRATEGY_LINE = LINES[DEFAULT_VERSION]
 
@@ -196,10 +223,37 @@ def echo_cut_on(env: Mapping[str, str] | None = None) -> bool:
     return _env.get("CRAWL_ECHO", "", env).strip().lower() == "short"
 
 
-def cut_echo(event: Mapping[str, Any]) -> dict[str, Any] | None:
-    """`PostToolUse` on an evaluate: the result with the echoed wrapper replaced by one line, or
-    None when no echo of our wrapper is in it (never an identity rewrite, which would race other
-    hooks' rewrites of the same result)."""
+def notes_first_on(env: Mapping[str, str] | None = None) -> bool:
+    """`SANCHOPANZA_CRAWL_NOTES_AT=front` (v8.1, development): the notes at the result's head."""
+    return _env.get("CRAWL_NOTES_AT", "", env).strip().lower() == "front"
+
+
+def cut_text(text: str) -> str:
+    """The text with each echo of our wrapper replaced by one line."""
+    return ECHO.sub(lambda m: ECHO_LINE if MARK in m.group(1) else m.group(0), text)
+
+
+def notes_first(text: str) -> str:
+    """The text with the wrapper's notes moved to its head, under `NOTES_HEAD`: from the last
+    key of the returned value, else from the tail of an error message. Unchanged with none."""
+    keyed = list(NOTES_KEY.finditer(text))
+    if keyed:
+        last = keyed[-1]
+        note = json.loads(last.group(1))
+        rest = text[: last.start()] + last.group(2) + text[last.end() :]
+    else:
+        found = NOTES_ERROR.search(text)
+        if not found:
+            return text
+        note = found.group(1)
+        rest = text[: found.start()] + text[found.end() :]
+    return f"{NOTES_HEAD}\n{note}\n{rest}"
+
+
+def rewrite_result(event: Mapping[str, Any], env: Mapping[str, str] | None = None) -> dict | None:
+    """`PostToolUse` on an evaluate: the result with the echoed wrapper cut (`ECHO=short`) and
+    the notes moved to its head (`NOTES_AT=front`), or None when neither changes it (never an
+    identity rewrite, which would race other hooks' rewrites of the same result)."""
     from .autopilot import replaced, text_field
 
     if not EVALUATE.match(str(event.get("tool_name") or "")):
@@ -209,13 +263,55 @@ def cut_echo(event: Mapping[str, Any]) -> dict[str, Any] | None:
     if found is None:
         return None
     path, text = found
-    new = ECHO.sub(lambda m: ECHO_LINE if MARK in m.group(1) else m.group(0), text)
+    new = cut_text(text) if echo_cut_on(env) else text
+    new = notes_first(new) if notes_first_on(env) else new
     if new == text:
         return None
     return {
         "hookSpecificOutput": {
             "hookEventName": "PostToolUse",
             "updatedToolOutput": replaced(response, path, new),
+        }
+    }
+
+
+def cut_echo(event: Mapping[str, Any]) -> dict[str, Any] | None:
+    """v8's echo cut alone (`rewrite_result` with only `ECHO=short`)."""
+    return rewrite_result(event, {"SANCHOPANZA_CRAWL_ECHO": "short"})
+
+
+def shot_first_on(env: Mapping[str, str] | None = None) -> bool:
+    """`SANCHOPANZA_CRAWL_SHOT=snapshot-first` (v8.1, development)."""
+    return _env.get("CRAWL_SHOT", "", env).strip().lower() == "snapshot-first"
+
+
+def state_dir(env: Mapping[str, str] | None = None) -> Path:
+    override = _env.get("CRAWL_DIR", "", env).strip()
+    return Path(override) if override else _env.home_dir() / "crawl"
+
+
+def first_shot(event: Mapping[str, Any], env: Mapping[str, str] | None = None) -> dict | None:
+    """`PreToolUse` on a screenshot: deny the session's first one with `SHOT_REASON`, let every
+    later one pass. The mark is written before the denial, so no session is denied twice; with
+    no session to remember it by, or a mark that cannot be written, the call passes."""
+    from ..context.archive import safe_name
+    from ..context.episodes import write_private
+
+    session = str(event.get("session_id") or "")
+    if not session or not SHOT.match(str(event.get("tool_name") or "")):
+        return None
+    mark = state_dir(env) / f"shot-{safe_name(session)}.json"
+    try:
+        if mark.exists():
+            return None
+        write_private(mark, json.dumps({"denied_at": time.time()}))
+    except OSError:
+        return None
+    return {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": SHOT_REASON,
         }
     }
 
@@ -232,12 +328,14 @@ def handle(event: Mapping[str, Any], env: Mapping[str, str] | None = None) -> di
     if name == "SessionStart":
         return None if line_at_prompt(env) else strategy(env)
     if name == "PreToolUse":
+        if shot_first_on(env) and SHOT.match(str(event.get("tool_name") or "")):
+            return first_shot(event, env)
         return guard(event, limit_seconds(env), notes_on(env))
     if name == "UserPromptSubmit" and line_at_prompt(env):
         prompt = event.get("prompt")
         return strategy(env, name) if isinstance(prompt, str) and gathers(prompt) else None
-    if name == "PostToolUse" and echo_cut_on(env):
-        return cut_echo(event)
+    if name == "PostToolUse" and (echo_cut_on(env) or notes_first_on(env)):
+        return rewrite_result(event, env)
     return None
 
 
