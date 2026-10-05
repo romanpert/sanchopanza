@@ -87,7 +87,7 @@ was checked by a second route:
 | H4 | NYC Central Park squirrel census (3,023 rows, 1,000 on the open page, no total, no link): primary fur Cinnamon | 392 |
 | H5 | potterdb characters (5,410 stated, 55 pages by `next`): house exactly Ravenclaw (21 more contain the word) | 203 |
 | H6 | books.toscrape Young Adult (54 results, 3 pages): over 35.00 | 29 |
-| H7 | demoblaze (15 products, 9 then a Next button; 4 at exactly 700): over $700 | 6 |
+| H7 | demoblaze (15 products, 9 then a Next button; 2 of the 4 on the first nine): under $500 | 4 |
 | H8 | testautomationpractice Pagination Web Table (20 rows, 5 drawn at a time by JS): over $15.00 | 10 |
 
 The second routes: H1 by the API's region filter, H2 by the income-level endpoint, H3 by the
@@ -156,6 +156,16 @@ sessions file, the site-down repeats included, and reserves the 1.00 session cap
 session). That is 1.4 times the expected cost, the same headroom as confirmation 4 (26 against
 18). The most expensive session of those two rounds cost 0.28. Every session must run on one
 Claude Code version, read from its transcript, and the version is reported.
+
+## Amended before the first session
+
+The first seal (264b843) asked H7 for the products over $700 (truth 6). An independent check of
+the sealed text, before any session, found that demoblaze's product names hold the digit 6
+("Nexus 6", "Iphone 6 32gb", "Samsung galaxy s6"). The registered grading counts a whole number
+anywhere on the ANSWER line, so a wrong count that named one of those products would have passed.
+The grading is left as registered. H7's question changed to the products under $500 (truth 4, by
+both routes). No product name holds a whole 4. Nothing else changed, and the amended text is
+sealed again before the first session.
 
 ## Described, not tested
 

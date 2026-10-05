@@ -47,7 +47,7 @@ REPORT = RESULTS / "nav-confirm5.json"
 ARMS = conf3.ARMS  # HAIKU, HAIKU-SP, SONNET, SONNET-SP
 CRAWL_RUNS = 3
 INTERACTIVE_RUNS = 4
-# List price, through the subscription; about 17 expected (prereg). The phase reserves one session
+# List price, through the subscription; about 18 expected (prereg). The phase reserves one session
 # cap (1.00) before each session, so the last one starts with at most 24.00 spent.
 CEILING_USD = 25.00
 SP_ENV = dict(v8.V81_ENV)  # v8.1, set in the session's own --settings and nowhere else
@@ -78,8 +78,8 @@ CRAWLS: list[tuple[str, str, str, list[Any]]] = [
      "How many books in this category cost more than 35.00 (the price shown, in pounds)?" + A,
      ["29"]),
     ("H7", "https://www.demoblaze.com/",
-     "Across all of this store's products, on every page of its list, how many cost more than "
-     "$700?" + A, ["6"]),
+     "Across all of this store's products, on every page of its list, how many cost less than "
+     "$500?" + A, ["4"]),
     ("H8", "https://testautomationpractice.blogspot.com/",
      "In this page's Pagination Web Table, across all of its pages, how many products cost more "
      "than $15.00?" + A, ["10"]),

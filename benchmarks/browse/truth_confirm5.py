@@ -164,8 +164,8 @@ def answers() -> dict[str, object]:
         "H6_books": len(young),
         "H6_over_35": sum(p > 35 for _, _, p in young),
         "H7_products": len(blaze),
-        "H7_over_700": sum(float(i["price"]) > 700 for i in blaze),
-        "H7_700_or_more": sum(float(i["price"]) >= 700 for i in blaze),
+        "H7_under_500": sum(float(i["price"]) < 500 for i in blaze),
+        "H7_under_500_in_the_first_nine": sum(float(i["price"]) < 500 for i in blaze[:9]),
         "H8_products": len(products),
         "H8_over_15": sum(p > 15 for _, _, p in products),
     }
@@ -195,7 +195,7 @@ def second_route() -> dict[str, object]:
         "H4_cinnamon_by_count": int(cinnamon[0]["count"]),
         "H5_house_exactly_ravenclaw_by_filter": int(ravenclaw["meta"]["pagination"]["records"]),
         "H6_over_35_by_book_page": sum(p > 35 for p in young_prices),
-        "H7_over_700_by_category": sum(float(i["price"]) > 700 for i in by_category),
+        "H7_under_500_by_category": sum(float(i["price"]) < 500 for i in by_category),
         "H7_products_by_category": len(by_category),
     }
 

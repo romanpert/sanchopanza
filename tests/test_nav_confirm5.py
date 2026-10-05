@@ -58,6 +58,22 @@ def test_crawls_are_graded_on_their_answer_line_and_interactive_tasks_on_substri
     assert not nav.grade("Checkbox 1, radio 3, Drop Down Item 5", i4[3], "I4")
 
 
+# demoblaze's 15 product names (api.demoblaze.com, 2026-10-05). The first seal asked H7 for a count
+# of 6, which a wrong ANSWER line naming "Nexus 6" would have passed.
+BLAZE_NAMES = (
+    "Samsung galaxy s6, Nokia lumia 1520, Nexus 6, Samsung galaxy s7, Iphone 6 32gb, Sony xperia "
+    "z5, HTC One M9, Sony vaio i5, Sony vaio i7, Apple monitor 24, MacBook air, Dell i7 8gb, 2017 "
+    "Dell 15.6 Inch, ASUS Full HD, MacBook Pro"
+)
+
+
+def test_no_product_name_on_an_answer_line_can_pass_h7():
+    h7 = next(t for t in conf5.CRAWLS if t[0] == "H7")
+    assert h7[3] == ["4"] and "less than $500" in h7[2]
+    for wrong in ("2", "3", "5", "7"):
+        assert not nav.grade(f"ANSWER: {wrong} ({BLAZE_NAMES}; $400, $360)", h7[3], "H7"), wrong
+
+
 def test_the_plan_is_160_sessions_three_runs_a_crawl_and_four_an_interactive_task():
     plan = conf5.planned()
     assert len(plan) == 4 * (8 * 3 + 4 * 4) == 160
