@@ -68,6 +68,7 @@ phase = free.nav.phase
 trace = free.trace
 
 from sanchopanza.harness.sources_hook import REQUEST  # noqa: E402 (src is on the path now)
+from sanchopanza.harness.sources_v2 import REQUEST_V2  # noqa: E402
 
 FRAMES = free.CACHE / "frames-test.tsv"
 RESULTS = free.nav.base.ROOT / "docs" / "results" / "2026-10-05-browse-frames"
@@ -96,6 +97,9 @@ DENIED_HOSTS = (
 DENY = tuple(f"WebFetch(domain:{host})" for host in DENIED_HOSTS)
 HOOK_TIMEOUT_S = 30
 MARK = REQUEST[:48]  # the block's reason as it lands in the transcript
+MARKS = (MARK, REQUEST_V2[:48])  # either version's
+_YEAR_ADDED = re.compile(r"^(.*[a-z].*?)\s+(?:1\d{3}|20\d{2})$")
+_PARENS_ADDED = re.compile(r"\s*\([^()]*\)\s*$")
 _LEAK_ANY_CASE = re.compile(r"frames-benchmark|frames-test\.tsv|sanchopanza[\\/]+free", re.I)
 _NUMBER = re.compile(r"(?<![\w.])-?\d+(?:\.\d+)?(?!\w)")  # a whole token: not 1990s
 _LIMIT = re.compile(r"\b429\b|weekly limit", re.I)
@@ -182,15 +186,40 @@ def normal(text: str) -> str:
     return " ".join(t.split())
 
 
+def _symbols(answer: str, gold: str) -> bool:
+    """A gold of symbols alone (the normaliser leaves nothing of it): the gold, spaces dropped,
+    as one token of the answer, emphasis and a final full stop stripped."""
+    want = "".join(str(gold or "").split())
+    tokens = [t.strip("*`'\"") for t in str(answer or "").split()]
+    return bool(want) and any(t in (want, want + ".") for t in tokens)
+
+
+def golds(gold: str) -> list[str]:
+    """The gold, and the gold without what a FRAMES gold sometimes appends to the answer: a
+    trailing year after a name, or a trailing parenthesis."""
+    want = normal(gold)
+    out = [want]
+    year = _YEAR_ADDED.match(want)
+    if year:
+        out.append(year.group(1))
+    bare = normal(_PARENS_ADDED.sub("", str(gold or "")))
+    if bare and bare != want:
+        out.append(bare)
+    return out
+
+
 def graded(answer: str, gold: str) -> bool:
     """Provisional: the normalised gold inside the normalised ANSWER; a numeric gold must equal
-    a number in it."""
+    a number in it. A gold with a year or a parenthesis appended also passes without it; a gold
+    of symbols alone is matched as symbols."""
     got, want = normal(answer), normal(gold)
-    if not got or not want:
+    if not want:
+        return _symbols(answer, gold)
+    if not got:
         return False
     if re.fullmatch(r"-?\d+(?:\.\d+)?", want):
         return any(float(x) == float(want) for x in _NUMBER.findall(got))
-    return f" {want} " in f" {got} "
+    return any(f" {g} " in f" {got} " for g in golds(gold))
 
 
 def leaked(text: str) -> bool:
@@ -223,7 +252,7 @@ def _texts(entry: Mapping[str, Any]) -> list[str]:
 
 def answers(entries: Sequence[tuple[str, Mapping[str, Any]]]) -> dict[str, Any]:
     """The last ANSWER before the hook's block, the last overall, and when the block came."""
-    block = next((i for i, (line, _e) in enumerate(entries) if MARK in line), None)
+    block = next((i for i, (line, _e) in enumerate(entries) if any(m in line for m in MARKS)), None)
     before = after = ""
     for i, (_line, entry) in enumerate(entries):
         if entry.get("type") != "assistant":
@@ -260,7 +289,7 @@ def inspect(row: Mapping[str, Any], gold: str, cap: float, sources_dir: pathlib.
         "ok_before": graded(seen["answer_before"], gold),
         "provisional": True,
         "hook_fired": seen["hook_fired"],
-        "hook_marked": sources_dir.is_dir() and any(sources_dir.iterdir()),
+        "hook_marked": sources_dir.is_dir() and any(sources_dir.glob("sources-*.json")),
         "usd_after_block": usd_after(calls, path, seen["block_ts"]) if seen["block_ts"] else None,
         "answer_before": seen["answer_before"][:ANSWER_KEPT],
         "answer_after": seen["answer_after"][:ANSWER_KEPT],
@@ -277,8 +306,13 @@ def hook_command() -> str:
     return f'"{free.nav.HOOK_PYTHON.as_posix()}" -m sanchopanza.harness.sources_hook'
 
 
+def is_src(arm: str) -> bool:
+    """An arm with the sources hook, of either version (-SRC, -SRC2)."""
+    return "-SRC" in arm
+
+
 def hooks_for(arm: str) -> dict[str, Any] | None:
-    if not arm.endswith("-SRC"):
+    if not is_src(arm):
         return None
     hook = {"type": "command", "command": hook_command(), "timeout": HOOK_TIMEOUT_S}
     return {"Stop": [{"matcher": "", "hooks": [hook]}]}
@@ -331,26 +365,31 @@ def preflight() -> list[str]:
     return problems
 
 
-def web_transcript(path: pathlib.Path) -> pathlib.Path:
-    """A one-search transcript in Claude Code's shape: the hook counts a call with its result."""
+def web_transcript(path: pathlib.Path, final: str = "") -> pathlib.Path:
+    """A one-search transcript in Claude Code's shape: the hook counts a call with its result;
+    `final`, when given, is the agent's last reply."""
     use = {"type": "tool_use", "id": "t0", "name": "WebSearch", "input": {"query": "x"}}
     result = {"type": "tool_result", "tool_use_id": "t0", "content": "found"}
     entries = [
         {"type": "assistant", "message": {"role": "assistant", "content": [use]}},
         {"type": "user", "message": {"role": "user", "content": [result]}},
     ]
+    if final:
+        text = [{"type": "text", "text": final}]
+        entries.append({"type": "assistant", "message": {"role": "assistant", "content": text}})
     path.write_text("".join(json.dumps(e) + "\n" for e in entries), encoding="utf-8")
     return path
 
 
-def hook_twice() -> list[str]:
+def hook_twice(env_extra: Mapping[str, str] | None = None, final: str = "") -> list[str]:
     """The hook's stdout on the same Stop event twice, run the way a -SRC session runs it."""
     with tempfile.TemporaryDirectory() as tmp:
-        transcript = web_transcript(pathlib.Path(tmp) / "t.jsonl")
+        transcript = web_transcript(pathlib.Path(tmp) / "t.jsonl", final)
         event = {"hook_event_name": "Stop", "session_id": "preflight", "stop_hook_active": False,
                  "transcript_path": str(transcript)}  # fmt: skip
         env = {**free.nav.base.clean_env(dict(os.environ)), "PYTHONPATH": str(free.SRC),
-               "SANCHOPANZA_SOURCES_DIR": str(pathlib.Path(tmp) / "m")}  # fmt: skip
+               "SANCHOPANZA_SOURCES_DIR": str(pathlib.Path(tmp) / "m"),
+               **(env_extra or {})}  # fmt: skip
         outs = []
         for _ in range(2):
             ran = subprocess.run(
@@ -383,11 +422,11 @@ def deny_probe() -> dict[str, Any]:
 # --- report -------------------------------------------------------------------------------------
 
 
-def report(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+def report(rows: Sequence[Mapping[str, Any]], arms: Sequence[str] = ARMS) -> dict[str, Any]:
     spent = round(sum(r["list_usd"] for r in rows), 2)
     out: dict[str, Any] = {"provisional_grades": True, "sessions": len(rows), "list_usd": spent}
     out["by_arm"] = {}
-    for arm in ARMS:
+    for arm in arms:
         mine = [r for r in rows if r["arm"] == arm]
         if not mine:
             continue
@@ -401,7 +440,7 @@ def report(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
             "leak": sum(bool(r.get("leak")) for r in mine),
             "hook_fired": len(fired),
         }
-        if arm.endswith("-SRC"):
+        if is_src(arm):
             pairs = [(bool(r.get("ok_before")), bool(r.get("ok_auto"))) for r in fired]
             cell["before_after"] = {
                 f"{'right' if b else 'wrong'}->{'right' if a else 'wrong'}": pairs.count((b, a))

@@ -295,3 +295,42 @@ def test_report_counts_the_matrix_on_fired_sessions():
     assert cell["before_after"]["wrong->right"] == 1 and cell["before_after"]["right->right"] == 1
     assert cell["mean_usd_after_block"] == 0.2
     assert out["by_arm"]["SONNET"]["ok_auto"] == 0 and out["provisional_grades"]
+
+
+# --- grading: golds with an addition, golds made of symbols (fixed after the first pilot) -------
+
+
+@pytest.mark.parametrize(
+    ("answer", "gold", "ok"),
+    [
+        ("Lyon Circuit", "Lyon Circuit 1999", True),  # the gold appends a year
+        ("Lyon Circuit 1999", "Lyon Circuit 1999", True),
+        ("Lyon", "Lyon Circuit 1999", False),
+        ("1999", "Lyon Circuit 1999", False),
+        ("Paris", "Paris (France)", True),  # the gold appends a parenthesis
+        ("-.--", "-.--", True),  # a gold of symbols alone
+        ("-.--.", "-.--", True),  # the sentence's full stop
+        ("**-.--**", "-.--", True),
+        ("-..-", "-.--", False),
+        ("--.--", "-.--", False),
+        ("", "-.--", False),
+    ],
+)
+def test_grade_golds_with_an_addition_or_of_symbols(answer: str, gold: str, ok: bool):
+    assert frames.graded(answer, gold) is ok
+
+
+def test_the_block_of_either_version_is_found():
+    from sanchopanza.harness.sources_v2 import REQUEST_V2
+
+    for request in (frames.REQUEST, REQUEST_V2 + " (Why: your reply has words of doubt.)"):
+        entries = [_entry("assistant", "ANSWER: Lyon", "t2"),
+                   _entry("user", "Stop hook feedback:\n" + request, "t3"),
+                   _entry("assistant", "ANSWER: Paris", "t4")]  # fmt: skip
+        seen = frames.answers(entries)
+        assert seen["hook_fired"] and seen["answer_before"] == "Lyon"
+
+
+def test_src_arms_of_either_version():
+    assert frames.is_src("SONNET-SRC") and frames.is_src("HAIKU-SRC2")
+    assert not frames.is_src("SONNET") and not frames.is_src("HAIKU")

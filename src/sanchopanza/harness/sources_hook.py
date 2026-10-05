@@ -15,7 +15,12 @@ Environment: `SANCHOPANZA_SOURCES=0` switches it off; `SANCHOPANZA_SOURCES_DIR` 
 (default `~/.sanchopanza/sources`). Fail open everywhere: any error lets the session stop and
 leaves one line on stderr.
 
-Not measured yet: wired by `sanchopanza install --sources`, off by default.
+`SANCHOPANZA_SOURCES_VERSION=2` switches to version 2 (`sources_v2`): subagents counted, no block
+past 60 % of `SANCHOPANZA_SOURCES_CAP_USD`, a block only on a sign of a weak answer, and a request
+that keeps the answer. Version 1 stays the default.
+
+Version 1 measured on 80 FRAMES sessions (`docs/results/2026-10-05-browse-frames`): it did not
+pay. Wired by `sanchopanza install --sources`, off by default.
 """
 
 from __future__ import annotations
@@ -33,6 +38,7 @@ from .. import _env
 from ..context.archive import safe_name
 from ..context.episodes import write_private
 from ..context.transcript import calls, messages_from_claude_code
+from . import sources_v2
 from .hookio import stdin_text, stdout_json
 
 PREFIX = "sanchopanza sources"
@@ -64,6 +70,24 @@ def web_calls(transcript: Path) -> int:
     return sum(1 for c in calls(messages_from_claude_code(transcript)) if WEB_TOOL.match(c.tool))
 
 
+def version(env: Mapping[str, str] | None) -> int:
+    return 2 if _env.get("SOURCES_VERSION", "1", env).strip() == "2" else 1
+
+
+def _handle_v2(event: Mapping[str, Any], mark: Path, env: Mapping[str, str] | None) -> dict | None:
+    last = event.get("last_assistant_message")
+    seen = sources_v2.assess(
+        Path(str(event.get("transcript_path") or "")), last if isinstance(last, str) else "", env
+    )
+    with contextlib.suppress(OSError):  # what it saw at this stop, for whoever measures it
+        checked = mark.with_name(mark.name.replace("sources-", "checked-", 1))
+        write_private(checked, json.dumps(seen))
+    if not seen["block"]:
+        return None
+    write_private(mark, json.dumps({"asked_at": time.time(), **seen}))  # first: never ask twice
+    return {"decision": "block", "reason": sources_v2.reason(seen["signs"])}
+
+
 def handle(event: Mapping[str, Any], env: Mapping[str, str] | None = None) -> dict | None:
     """`Stop`: the block with the request, or None to let the session stop."""
     if event.get("hook_event_name") != "Stop" or event.get("stop_hook_active") or _off(env):
@@ -71,6 +95,8 @@ def handle(event: Mapping[str, Any], env: Mapping[str, str] | None = None) -> di
     mark = state_dir() / f"sources-{safe_name(str(event.get('session_id') or ''))}.json"
     if mark.exists():
         return None
+    if version(env) == 2:
+        return _handle_v2(event, mark, env)
     if web_calls(Path(str(event.get("transcript_path") or ""))) < MIN_WEB_CALLS:
         return None
     write_private(mark, json.dumps({"asked_at": time.time()}))  # first: never ask twice

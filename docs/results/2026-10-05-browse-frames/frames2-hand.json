@@ -1,0 +1,228 @@
+{
+ "sessions": 80,
+ "list_usd": 19.59,
+ "regraded_by_hand": {
+  "FR425-HAIKU": "True (the gold's name with the initials run together)",
+  "FR55-SONNET": "True (the two gold items named as the ones survived, the third as the cause of death)",
+  "FR142-HAIKU": "True (the gold law under its short name, with the section)",
+  "FR142-HAIKU-SRC2": "True (the gold law without the leading article)"
+ },
+ "regraded_before_block": {},
+ "disputed_gold": {},
+ "leak_hand_scan": {
+  "sessions": 80,
+  "naming_the_set_or_its_hosts": 0
+ },
+ "by_arm": {
+  "SONNET": {
+   "sessions": 20,
+   "right_hand": 16,
+   "right_runner": 15,
+   "mean_usd": 0.2809,
+   "median_usd": 0.1449,
+   "total_usd": 5.617,
+   "hit_cap": 0,
+   "at_90pct_of_cap": 1,
+   "leak_runner": 0,
+   "hook_fired": 0,
+   "no_tool_call": 4
+  },
+  "SONNET-SRC2": {
+   "sessions": 20,
+   "right_hand": 15,
+   "right_runner": 15,
+   "mean_usd": 0.28,
+   "median_usd": 0.1978,
+   "total_usd": 5.599,
+   "hit_cap": 1,
+   "at_90pct_of_cap": 1,
+   "leak_runner": 0,
+   "hook_fired": 6,
+   "no_tool_call": 4,
+   "before_after_hand": {
+    "right->right": 4,
+    "right->wrong": 0,
+    "wrong->right": 1,
+    "wrong->wrong": 1
+   },
+   "before_after_runner": {
+    "right->right": 4,
+    "right->wrong": 0,
+    "wrong->right": 1,
+    "wrong->wrong": 1
+   },
+   "trigger": {
+    "checked": 19,
+    "fires_right": 4,
+    "fires_wrong": 2,
+    "silent_right": 10,
+    "silent_wrong": 3,
+    "signs_when_fired": {
+     "number": 6,
+     "doubt": 1
+    },
+    "silent_over_cap": 1,
+    "silent_over_cap_with_signs": 0,
+    "silent_no_web": 4,
+    "fired_tasks": [
+     "FR111",
+     "FR2",
+     "FR347",
+     "FR363",
+     "FR504",
+     "FR686"
+    ]
+   },
+   "usd_after_block_total": 0.921,
+   "mean_usd_before_block": 0.2339,
+   "mean_usd_after_block": 0.0461
+  },
+  "HAIKU": {
+   "sessions": 20,
+   "right_hand": 15,
+   "right_runner": 13,
+   "mean_usd": 0.2298,
+   "median_usd": 0.1465,
+   "total_usd": 4.596,
+   "hit_cap": 1,
+   "at_90pct_of_cap": 2,
+   "leak_runner": 0,
+   "hook_fired": 0,
+   "no_tool_call": 0
+  },
+  "HAIKU-SRC2": {
+   "sessions": 20,
+   "right_hand": 15,
+   "right_runner": 14,
+   "mean_usd": 0.189,
+   "median_usd": 0.15,
+   "total_usd": 3.779,
+   "hit_cap": 1,
+   "at_90pct_of_cap": 2,
+   "leak_runner": 0,
+   "hook_fired": 3,
+   "no_tool_call": 0,
+   "before_after_hand": {
+    "right->right": 0,
+    "right->wrong": 0,
+    "wrong->right": 1,
+    "wrong->wrong": 2
+   },
+   "before_after_runner": {
+    "right->right": 0,
+    "right->wrong": 0,
+    "wrong->right": 1,
+    "wrong->wrong": 2
+   },
+   "trigger": {
+    "checked": 19,
+    "fires_right": 0,
+    "fires_wrong": 3,
+    "silent_right": 14,
+    "silent_wrong": 2,
+    "signs_when_fired": {
+     "number": 2,
+     "doubt": 1
+    },
+    "silent_over_cap": 4,
+    "silent_over_cap_with_signs": 1,
+    "silent_no_web": 0,
+    "fired_tasks": [
+     "FR2",
+     "FR363",
+     "FR55"
+    ]
+   },
+   "usd_after_block_total": 0.167,
+   "mean_usd_before_block": 0.1806,
+   "mean_usd_after_block": 0.0084
+  },
+  "SONNET-CUT70": {
+   "sessions": 20,
+   "right_hand": 16,
+   "right_runner": 15,
+   "mean_usd": 0.2639,
+   "median_usd": 0.1449,
+   "total_usd": 5.277,
+   "hit_cap": 0,
+   "at_90pct_of_cap": 0,
+   "leak_runner": 0,
+   "hook_fired": 0,
+   "no_tool_call": 4,
+   "cut": [
+    "FR666"
+   ]
+  },
+  "HAIKU-CUT70": {
+   "sessions": 20,
+   "right_hand": 13,
+   "right_runner": 13,
+   "mean_usd": 0.2107,
+   "median_usd": 0.1465,
+   "total_usd": 4.214,
+   "hit_cap": 1,
+   "at_90pct_of_cap": 0,
+   "leak_runner": 0,
+   "hook_fired": 0,
+   "no_tool_call": 0,
+   "cut": [
+    "FR686",
+    "FR139",
+    "FR666",
+    "FR142"
+   ]
+  }
+ },
+ "paired_SONNET-SRC2_vs_SONNET": {
+  "tasks": 20,
+  "a_only": 2,
+  "b_only": 1,
+  "p_exact": 1.0,
+  "a_only_tasks": [
+   "FR139",
+   "FR55"
+  ],
+  "b_only_tasks": [
+   "FR2"
+  ]
+ },
+ "paired_SONNET-SRC2_vs_SONNET-CUT70": {
+  "tasks": 20,
+  "a_only": 2,
+  "b_only": 1,
+  "p_exact": 1.0,
+  "a_only_tasks": [
+   "FR139",
+   "FR55"
+  ],
+  "b_only_tasks": [
+   "FR2"
+  ]
+ },
+ "paired_HAIKU-SRC2_vs_HAIKU": {
+  "tasks": 20,
+  "a_only": 1,
+  "b_only": 1,
+  "p_exact": 1.0,
+  "a_only_tasks": [
+   "FR347"
+  ],
+  "b_only_tasks": [
+   "FR774"
+  ]
+ },
+ "paired_HAIKU-SRC2_vs_HAIKU-CUT70": {
+  "tasks": 20,
+  "a_only": 1,
+  "b_only": 3,
+  "p_exact": 0.625,
+  "a_only_tasks": [
+   "FR347"
+  ],
+  "b_only_tasks": [
+   "FR139",
+   "FR774",
+   "FR142"
+  ]
+ }
+}
