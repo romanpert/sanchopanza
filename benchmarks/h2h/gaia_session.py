@@ -19,6 +19,8 @@ import re
 from collections.abc import Iterator, Mapping
 from typing import Any
 
+from sanchopanza.candor.claims import without_block
+
 PROJECTS = pathlib.Path.home() / ".claude" / "projects"
 # USD per million tokens: input, cache write (1 h), cache read, output. Source: the claude-api
 # skill's model table (cached 2026-09-25) for Fable 5.1, Opus 5.5, Sonnet 5.5 and Haiku 4.5.
@@ -143,16 +145,31 @@ def leaks(folder: pathlib.Path, task_id: str, word: str = LEAK_WORD) -> list[str
 FINAL_MARKER = re.compile(r"FINAL ANSWER[ \t]*:", re.I)
 
 
+def is_status_line(line: str) -> bool:
+    """A line of candor's status block (`candor.claims.BLOCK_REQUEST`: STATUS, TESTS,
+    TEST_FILES_CHANGED, FILES_READ), read as candor reads it (`without_block`)."""
+    return bool(line.strip()) and not without_block(line)
+
+
 def marker_line(text: str | None, marker: re.Pattern[str] = FINAL_MARKER) -> str | None:
     """The text after the LAST `marker` in `text`, up to the end of that line (CR dropped), or
     None without a marker. The rule every h2h extractor follows in both arms: in S, candor appends
-    a status block of a few lines after the answer, and none of it belongs to the answer."""
+    a status block of a few lines after the answer, and none of it belongs to the answer.
+
+    When the marker's own line is empty (`FINAL ANSWER:` and the answer below it), the answer is
+    the next non-empty line, unless that line is candor's status block: then it is empty."""
     found = None
     for match in marker.finditer(text or ""):
         found = match
     if found is None:
         return None
-    return (text or "")[found.end() :].split("\n", 1)[0].rstrip("\r").strip()
+    first, _, below = (text or "")[found.end() :].partition("\n")
+    own = first.rstrip("\r").strip()
+    if own:
+        return own
+    following = (line.rstrip("\r").strip() for line in below.split("\n"))
+    nxt = next((line for line in following if line), "")
+    return "" if is_status_line(nxt) else nxt
 
 
 def last_assistant_texts(folder: pathlib.Path) -> list[str]:

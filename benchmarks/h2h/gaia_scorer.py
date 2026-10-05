@@ -20,13 +20,16 @@ replaces it.
 
 from __future__ import annotations
 
+import importlib.util
+import pathlib
 import re
 import string
+import sys
+from types import ModuleType
 
 _LIST_SPLIT = re.compile(r"[,;]")
-# The marker's own line only: in S, candor appends a status block of a few lines after the
-# answer, and an answer never runs past its line (`gaia_session.marker_line`, the same rule).
-_FINAL = re.compile(r"FINAL ANSWER[ \t]*:[ \t]*([^\r\n]*)", re.I)
+# The answer is `gaia_session.marker_line`'s: the last marker's own line or, when that is empty,
+# the next line that is not candor's status block. One rule for every h2h extractor.
 _WRAPPERS = "*`\"' "
 
 
@@ -81,13 +84,25 @@ def question_scorer(model_answer: str | None, ground_truth: str) -> bool:
     return normalize_str(model_answer) == normalize_str(ground_truth)
 
 
+def _reading() -> ModuleType:
+    """`gaia_session`, beside this file, whichever name the runner loaded it under."""
+    name = "h2h_gaia_session"
+    if name not in sys.modules:
+        spec = importlib.util.spec_from_file_location(
+            name, pathlib.Path(__file__).with_name("gaia_session.py"))  # fmt: skip
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+    return sys.modules[name]
+
+
 def final_answer(reply: str) -> str | None:
-    """The text after the last "FINAL ANSWER:" in the reply, on its line, with markdown emphasis,
-    backticks and quotes around it stripped; None when the reply has no such line."""
-    found = [m.group(1) for m in _FINAL.finditer(reply or "")]
-    if not found:
+    """The answer `gaia_session.marker_line` reads after the last "FINAL ANSWER:", with markdown
+    emphasis, backticks and quotes around it stripped; None when the reply has no such marker."""
+    found = _reading().marker_line(reply)
+    if found is None:
         return None
-    text = found[-1].strip()
+    text = found.strip()
     if text.startswith("[") and text.endswith("]"):  # the template's own brackets, echoed
         text = text[1:-1]
     return text.strip(_WRAPPERS).strip()

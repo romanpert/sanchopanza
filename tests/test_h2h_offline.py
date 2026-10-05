@@ -561,6 +561,28 @@ def test_the_answer_is_the_last_markers_line_only(reply, want):
     assert gaia.scorer.final_answer(reply) == want
 
 
+# candor's real block: the four lines `candor.claims.BLOCK_REQUEST` asks for, as agents write them.
+STATUS_BLOCK = "STATUS: done\nTESTS: not run\nTEST_FILES_CHANGED: no\nFILES_READ: none\n"
+
+
+@pytest.mark.parametrize(
+    ("reply", "want"),
+    [
+        ("Work...\nFINAL ANSWER:\n\n  Paris  \n" + STATUS_BLOCK, "Paris"),
+        ("FINAL ANSWER: \r\n**42**\r\n" + STATUS_BLOCK.replace("\n", "\r\n"), "42"),
+        ("FINAL ANSWER:\n\n" + STATUS_BLOCK, ""),
+        ("FINAL ANSWER:\n- **STATUS:** done\nTESTS: not run\n", ""),
+        ("FINAL ANSWER:", ""),
+        ("FINAL ANSWER: x\nFINAL ANSWER:\nRome\n" + STATUS_BLOCK, "Rome"),
+        ("FINAL ANSWER: 7\n" + STATUS_BLOCK, "7"),
+    ],
+)
+def test_an_empty_marker_line_takes_the_next_line_but_never_candors_block(reply, want):
+    assert gaia.reading.marker_line(reply) is not None
+    assert gaia.reading.marker_line(reply).strip("*") == want
+    assert gaia.scorer.final_answer(reply) == want
+
+
 def test_bcp_and_longdoc_answers_ignore_a_candor_block():
     reply = "Explanation: x [1]\nExact Answer: The Rovers\nConfidence: 80%" + CANDOR
     assert grade.exact_answer(reply) == "The Rovers" and grade.confidence(reply) == 80.0
