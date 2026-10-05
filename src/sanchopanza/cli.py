@@ -162,6 +162,12 @@ def _crawl_hook(args: argparse.Namespace) -> int:
     return crawl_main()
 
 
+def _sources_hook(args: argparse.Namespace) -> int:
+    from .harness.sources_hook import main as sources_main
+
+    return sources_main()
+
+
 def _browse_hook(args: argparse.Namespace) -> int:
     from .harness.browse_hook import main as browse_main
 
@@ -205,6 +211,7 @@ def _install(args: argparse.Namespace) -> int:
             memory=args.memory,
             crawl=args.crawl,
             prune=args.prune,
+            sources=args.sources,
             budget=DEFAULT_BUDGET if args.context_budget is None else args.context_budget,
             find=args.find,
             profile=args.guard_profile,
@@ -285,6 +292,12 @@ def _install(args: argparse.Namespace) -> int:
             "Snapshot pruning is on: a large page snapshot from a browser_* MCP tool is "
             f"cut to what the task needs, ranked by {ranker}; the whole page goes to the archive "
             "and the reply says where.\n"
+        )
+    if args.sources:
+        sys.stdout.write(
+            "Sources is on: at the first stop of a session that used the web, the agent is "
+            "asked once to give the source (URL and exact sentence) of every condition in the "
+            "question and to repeat its answer line. It asks no model.\n"
         )
     if root is not None:
         sys.stdout.write(
@@ -609,6 +622,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     crawl_hook.set_defaults(func=_crawl_hook)
 
+    sources_hook = sub.add_parser(
+        "sources-hook",
+        help="ask a web-research session once for the source of each condition: Claude Code "
+        "Stop hook (stdin JSON)",
+    )
+    sources_hook.set_defaults(func=_sources_hook)
+
     browse_hook = sub.add_parser(
         "browse-hook",
         help="snapshot pruning for browsing agents: Claude Code PostToolUse hook (stdin JSON)",
@@ -728,6 +748,13 @@ def main(argv: list[str] | None = None) -> int:
         help="for browsing agents: cut large page snapshots to what the task needs, the rest "
         "archived (one PostToolUse hook; registered 17-22 %% cheaper on large inline snapshots "
         "with --provider jev; off by default)",
+    )
+    install.add_argument(
+        "--sources",
+        action="store_true",
+        help="for research agents: at the first stop of a session that used the web, ask once "
+        "for the source of every condition in the question (one Stop hook, no model; not "
+        "measured yet, so off by default)",
     )
     install.add_argument(
         "--plugin-dir",

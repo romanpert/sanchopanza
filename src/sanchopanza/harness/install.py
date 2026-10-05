@@ -90,6 +90,10 @@ archives the rest. Registered 17-22 % cheaper on large inline snapshots with Jev
 (`--provider jev`); without a provider it ranks by BM25. Not on `Read`: it would replace a read
 that memory's hook chooses records by. Off by default; owned by the flag.
 
+`--sources` wires sources (`harness.sources_hook`, `sanchopanza sources-hook`): at the first
+`Stop` of a session that used the web, one request to name the source of every condition in the
+question and repeat the answer line. No model; once per session. Not measured; off by default.
+
 The one decision worth understanding is `--scan-content`, which is off unless asked for. It
 adds a PostToolUse scan of arriving content for instructions aimed at the model. That is a
 detection control and not a barrier - by PostToolUse the bytes are in the transcript and the
@@ -114,6 +118,7 @@ from typing import Any
 from .. import _env
 from .generic import HarnessConfig
 from .install_defaults import FIND_SERVER, find_server_entry, merge_budget, merge_profile
+from .sources_hook import SOURCES_COMMAND, SOURCES_HOOKS
 
 PLUGIN = "sanchopanza-compact"
 MARKETPLACE = "sanchopanza-local"
@@ -473,6 +478,13 @@ def _merge_prune(
     return _merge_owned(merged, on, PRUNE_HOOKS, command, PRUNE_COMMAND, "prune")
 
 
+def _merge_sources(
+    merged: dict[str, Any], on: bool, command: str = SOURCES_COMMAND
+) -> tuple[dict[str, Any], list[str], list[str]]:
+    """The sources request at the main agent's stop (`--sources`)."""
+    return _merge_owned(merged, on, SOURCES_HOOKS, command, SOURCES_COMMAND, "sources")
+
+
 def _merge_approval(
     merged: dict[str, Any], lean: bool, find: bool = False
 ) -> tuple[dict[str, Any], list[str], list[str]]:
@@ -663,6 +675,7 @@ def _merge(
     profile: str = "sandbox",
     crawl: bool = False,
     prune: bool = False,
+    sources: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
         current = {}
@@ -696,6 +709,8 @@ def _merge(
     merged, plus, minus = _merge_crawl(merged, crawl)
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_prune(merged, prune)
+    added, removed = [*added, *plus], [*removed, *minus]
+    merged, plus, minus = _merge_sources(merged, sources)
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_budget(merged, budget)
     added, removed = [*added, *plus], [*removed, *minus]
@@ -731,6 +746,7 @@ def plan(
     profile: str = "sandbox",
     crawl: bool = False,
     prune: bool = False,
+    sources: bool = False,
 ) -> Settings:
     current: Any = {}
     if path.exists():
@@ -763,6 +779,7 @@ def plan(
         profile=profile,
         crawl=crawl,
         prune=prune,
+        sources=sources,
     )
     return Settings(path, merged, tuple(added), tuple(removed))
 
