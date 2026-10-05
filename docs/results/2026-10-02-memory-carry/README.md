@@ -201,3 +201,80 @@ with v6.2, at the same cost. The audit no longer sends work back for rules that 
 and the one time it sent back for the session's own rule, the fix was real. Limits, as for the
 confirmation: one model (Sonnet 5.5), headless sessions, scenes built for this case, and decoys
 from other scenes rather than a real project's rule history.
+
+## Memory v8.1 on Haiku 4.5 (`prereg-v81-haiku.md`, sealed in e4a3ec1, amendments 1 and 2)
+
+Runs `v81h-all` (M and V on the 16 pilot and held-out scenes, repetitions 0-2, 48 pairs) and
+`v81h-cross` (M and V on the 8 cross-file scenes, repetitions 0-2, 24 pairs). Haiku 4.5, Claude
+Code 2.1.287, 2026-10-05 10:46-17:43, the subscription paid. Every `init` event of all 288
+sessions shows `claude-haiku-4-5-20251001` and 2.1.287: no pair NOT RUN, no usage limit, no cap
+hit. Amendment 1 ran two pairs cut by a runner crash again whole (`wording` V 1, `x_tz` M 0).
+Cost at list price: `v81h-all` 16.68 USD (expected 19.3), `v81h-cross` 9.56 USD (expected 9.7),
+26.24 USD in all, plus the cut `x_tz` M 0 session of amendment 1 (at most 0.60 USD, not in any row).
+
+| criterion | result | verdict |
+|---|---|---|
+| 1. the 16 scenes: V vs M, fact kept | 44/48 vs 36/48; 9 discordant for V, 1 for M; p = 0.011 | **met** |
+| 2. cross-file: V vs M, fact kept | 22/24 vs 19/24; 4 discordant for V, 1 for M; p = 0.19 | **not met** |
+| 3. false sends-back, V second sessions | 1 of 72 by the definition (containment, amendment 2); 4 of 72 by the tool as sealed (equality) | **met**, on amendment 2 |
+| 4. no harm on the 16 scenes | tests 48 and 48; task 39 and 39 | **met** |
+
+- **Criterion 2.** V kept the fact where M broke it in `x_stdlib` r0-r2 and `x_cents` r0; M kept
+  it where V broke it in `x_tz` r2. Tests 24/24 and task 23/24 in both arms. The audit sent
+  nothing back for a scene's own rule in the cross run: V's gain there came from the standing
+  rules given at the session's start, not from the send-back.
+- **`x_tz` r2, the one pair for M.** V wrote
+  `datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + 'Z'` and said "Naive UTC
+  timestamp in ISO format (ends with `Z`) per your warehouse requirement": it held the rule and
+  then appended a UTC designator, which the check rejects. The audit scored the rule
+  `named` 0.49, `kept` 0.49, above `BROKEN_BELOW` 0.45, so it did not send back. M was not given
+  the memory in that pair and used `datetime.now().isoformat()`: naive local time, which passes
+  the check (it looks for offsets, not for UTC).
+- **`x_camel` r2 broke in both arms, an instrument artifact counted as written.** Both kept
+  camelCase (`displayName`, `lastLoginTime`) but read `user['last_login_time']`; the v2 check
+  passes `last_login` and `lastLogin`, so the call raises `KeyError`, which it does not catch, and
+  fact and task both fail. The pair is concordant; counted by hand as kept it gives 23/24 vs
+  20/24 with the same 4 to 1 discordant pairs. Not claimed.
+- **Criterion 3, both counts as amendment 2 requires.** The only cross send-back by a rule other
+  than the scene's own is `x_camel` r2, session 2, quoting `x_tz`'s rule: "Everything we store
+  ends up in a warehouse that rejects timezone offsets, so any timestamp this project produces
+  must be naive UTC." The session had added a timestamp (`isoformat()` of the login time), so the
+  rule is not unrelated; the agent answered in one line that it already respects it and stopped,
+  and nothing changed. The other three by equality are `columns` r0-r2 in `v81h-all`, which quote
+  `columns`' own fact after "For context: ". **Under the tool as sealed in e4a3ec1 the count is 4,
+  above the limit of 3; the verdict rests on amendment 2**, sealed after `v81h-all`'s data was read
+  and before the cross run's V rows.
+- **Send-backs for the scene's own rule (all in `v81h-all`, second sessions), 11:**
+  - repaired a break, 2: `rename` r2 (kept `make_client` as an alias), `nulls` r2 (put the
+    missing keys back as `None`);
+  - declined, fact broken, 2: `rename` r0 and r1, "User explicitly requested renaming ... despite
+    knowing it breaks imports"; the send-back offers that way out;
+  - confirmed already kept, 7: `columns` r0-r2, `wording` r0 and r2, `sms` r1, `stdout` r2.
+- **Delivered, broken** (`given` and fact broken): the 16 scenes, M 12 (`wording`, `fields`,
+  `rename`, `nulls`, each r0-r2) and V 4 (`rename` r0 and r1, `wording` r1, `latin1` r2);
+  cross-file, M 4 (`x_stdlib` r0-r2, `x_camel` r2) and V 2 (`x_tz` r2, `x_camel` r2).
+- **First-session send-backs by a decoy, 4, all in `v81h-all`:** `columns` r0-r2 by the
+  integer-cents rule and `nulls` r0 by the rounding rule (reported in amendment 2). None in the
+  cross run.
+- **The decider:** no `error` event, no failed `rules` part and no timeout in either arm of
+  either run. Jev's calls are not recorded per session; the hook logs score 354 values in the
+  cross run and 711 on the 16 scenes, plus 103 prompt probabilities and the extraction at each of
+  162 `rules` events. At about 29 millionths of a dollar a decision that is roughly 0.01 USD for
+  the cross run and 0.04 USD for both.
+- **Median cost V/M:** 1.02 on the 16 scenes, 1.03 cross-file.
+- **V against gen-haiku's N, repetition 0, the 16 scenes:** 15/16 against 8/16.
+- **Claude Code's own auto memory saved 3 times, all in V:** `envvar` r0, `x_prefix` r0,
+  `x_camel` r2. Never in M.
+- **Subagents:** two sessions called `code-reviewer`, which ran on Opus 5.5 while each `init`
+  showed Haiku: `rounding` V r1 session 2 (0.19 of 0.38 USD on Opus) and `x_cents` M r0
+  session 1 (0.14 of 0.27 USD). Both stay in: the seal excludes on the `init` event.
+- **Runner:** the cross run's git index was held twice while building `x_camel` r0; the retries of
+  amendment 1 took it, and both rows are whole.
+
+**Verdict: v8.1 on Haiku passes its primary criterion and misses the cross-file one.** On the
+16 scenes the memory with its audit turns facts Haiku broke into kept ones (44 against 36 of 48)
+at the same cost and with no harm; two of those came from a send-back for the scene's own rule,
+and two own-rule send-backs were declined. Cross-file the direction holds (4 to 1) but 24 pairs
+do not reach p < 0.05, and the audit missed the one V break by 0.04. False sends-back stay under
+the limit only by the definition amendment 2 sealed; by the tool as first sealed they are 4 of 72.
+Limits: one model, headless sessions, scenes built for this case, decoys from other scenes.
