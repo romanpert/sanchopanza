@@ -1,0 +1,37 @@
+{
+ "answers": {
+  "H1_houses": 444,
+  "H1_region_the_reach": 72,
+  "H2_declared_total": 295,
+  "H2_economies": 295,
+  "H2_high_income": 86,
+  "H2_aggregates": 78,
+  "H3_monsters": 334,
+  "H3_challenge_10_or_more": 55,
+  "H4_rows": 3023,
+  "H4_distinct_ids": 3018,
+  "H4_cinnamon": 392,
+  "H4_cinnamon_in_the_open_page": 126,
+  "H5_declared_total": 5410,
+  "H5_characters": 5410,
+  "H5_house_exactly_ravenclaw": 203,
+  "H5_house_naming_ravenclaw": 224,
+  "H6_books": 54,
+  "H6_over_35": 29,
+  "H7_products": 15,
+  "H7_under_500": 4,
+  "H7_under_500_in_the_first_nine": 2,
+  "H8_products": 20,
+  "H8_over_15": 10
+ },
+ "second_route": {
+  "H1_region_the_reach_by_filter": 72,
+  "H2_high_income_by_income_level": 86,
+  "H3_challenge_10_or_more_by_filter": 55,
+  "H4_cinnamon_by_count": 392,
+  "H5_house_exactly_ravenclaw_by_filter": 203,
+  "H6_over_35_by_book_page": 29,
+  "H7_under_500_by_category": 4,
+  "H7_products_by_category": 15
+ }
+}

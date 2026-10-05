@@ -460,6 +460,103 @@ Sonnet alone is 0/2, and the extra cost is the second, paginating evaluate. v8's
 G4+G8 at 1.034. Confirmation 4's Sonnet price criterion counts crawls cheaper by mean (at least
 6/8), and on a mix with four JSON APIs that count is still at risk.
 
+## Confirmation 5: v8.1 against Claude Code alone, Haiku and Sonnet (registered, 2026-10-05)
+
+This was run as `prereg-crawl5.md` registered it (`nav_confirm5.py --live`), with confirmation 4's
+criteria. There were eight new crawls (H1-H8) on hosts no earlier phase used, three runs each,
+and four interactive tasks (I1-I4), four runs each. That makes 160 counted sessions, every one on
+Claude Code 2.1.287. One more session ran because of the site-down rule. I1 run 2 of plain Haiku
+got a 503 from the-internet on both of its page loads. It was repeated at the end and was right.
+
+No session was `not_run` for its treatment. Every `-SP` transcript had line v6 on all 24 crawls
+and on none of the 32 interactive sessions, no echoed wrapper was left whole, and no note was left
+at the end of a result. No plain transcript showed any of it. The runner killed nothing, and the
+guard stopped nothing. The phase cost **18.38 USD** at list price through the subscription,
+against 18 expected and a ceiling of 25. The answers, recomputed after the phase by both routes,
+were unchanged (`truth-confirm5.json`).
+
+### Verdicts, as computed (`nav-confirm5.json`)
+
+| | Haiku | Sonnet |
+|---|---|---|
+| price: total crawl ratio (at most 0.75) | 0.802 (1.54 / 1.92 USD) | 1.055 (2.43 / 2.30 USD) |
+| price: crawls cheaper by mean (at least 6/8) | 5/8 | 4/8 |
+| answers: right on 24 crawls (at least the plain arm) | **19** against 12 | **24** against 23 |
+| no harm: right on I1-I4 (plain minus 1) | 16/16 against 16/16 | 16/16 against 16/16 |
+| no harm: cost ratio (at most 1.25) | **0.917** | 1.006 |
+| **beats the harness** | **no** (price) | **no** (price) |
+
+**Not confirmed, on either model.** Both models fail price and hold answers and no harm. This is
+the first confirmation in which Haiku holds no harm on cost: 0.917, where confirmation 4 gave
+1.394.
+
+Per task, right answers and mean USD:
+
+| task | Haiku | Haiku-SP | Sonnet | Sonnet-SP |
+|---|---|---|---|---|
+| H1 | 1/3, 0.042 | 2/3, 0.035 | 3/3, 0.103 | 3/3, 0.077 |
+| H2 | 1/3, 0.041 | **3/3**, 0.034 | 3/3, 0.070 | 3/3, 0.075 |
+| H3 | 3/3, 0.073 | 3/3, 0.056 | 3/3, 0.087 | 3/3, 0.084 |
+| H4 | 0/3, 0.029 | 1/3, 0.040 | 3/3, 0.070 | 3/3, 0.084 |
+| H5 | 0/3, 0.049 | 2/3, 0.050 | 2/3, 0.083 | 3/3, 0.088 |
+| H6 | 1/3, 0.119 | **3/3**, 0.041 | 3/3, 0.095 | 3/3, 0.076 |
+| H7 | 3/3, 0.158 | 2/3, 0.127 | 3/3, 0.114 | 3/3, 0.212 |
+| H8 | 3/3, 0.131 | 3/3, 0.132 | 3/3, 0.146 | 3/3, 0.112 |
+| I1 | 4/4, 0.050 | 4/4, 0.048 | 4/4, 0.117 | 4/4, 0.115 |
+| I2 | 4/4, 0.110 | 4/4, 0.118 | 4/4, 0.258 | 4/4, 0.257 |
+| I3 | 4/4, 0.150 | 4/4, 0.107 | 4/4, 0.211 | 4/4, 0.213 |
+| I4 | 4/4, 0.131 | 4/4, 0.131 | 4/4, 0.259 | 4/4, 0.265 |
+
+Described, not tested:
+
+- **Haiku with sanchopanza against Sonnet alone:** 19 right against 23, at 0.671 of the crawl
+  cost.
+- **Median wall time:** 48.5 s against 51.8 s (Haiku) and 41.8 s against 49.2 s (Sonnet).
+- **Mean turns on crawls:** 9.5 against 9.2 (Haiku) and 5.8 against 5.9 (Sonnet).
+- **What the hooks did in Haiku-SP:** 345 echo cuts, 63 notes at the head of a result, and 12
+  screenshots asked for and 12 denied, each the first of its session. No session asked again,
+  and every one of those 12 sessions was right.
+- **What the hooks did in Sonnet-SP:** 153 echo cuts and 35 notes at the head. It asked for no
+  screenshot.
+- **The preview case was not met live again.** No result in the 160 sessions was large enough
+  for Claude Code to save it behind its preview. H4's open page is 785 KB, but every session
+  parsed it in the page and returned only counts.
+
+Every right crawl answer was checked by hand: in each one, the first number on the ANSWER line is
+the truth.
+
+### Every miss, read by hand
+
+| session | answer | what happened |
+|---|---|---|
+| H1 r1, r2 Haiku; H1 r3 Haiku-SP | 3 | read only the open page: 10 houses of 444. The next page is named only in the `Link` header, and the page states no size, so the Haiku-SP session got no note |
+| H2 r1, r2 Haiku | 18 | read only the open page: 50 of the 295 the JSON states. No Haiku-SP session missed it: the note quoted `"pages":6, "total":295` |
+| H4 r1, r2, r3 Haiku; H4 r2, r3 Haiku-SP | 126 | read only the open page: 1,000 rows of 3,023. Socrata states no total and gives no link, so the two Haiku-SP sessions got no note. The Haiku-SP session that paged on its own (r1) was right |
+| H5 r1, r2, r3 Haiku; H5 r1 Haiku-SP | 2 | read only the open page: 100 characters of 5,410. The page states `"last":55, "records":5410` under `meta.pagination`, and neither key is among those the note reads (`count`, `total`, `pages`, `last_page`, ...), so it stayed silent |
+| H5 r2 Sonnet | 64 | paged with its own cap of 20 pages and stopped at 2,000 of 5,410 |
+| H6 r2, r3 Haiku | 30, 32 | counted prices by eye in snapshots of the three pages |
+| H7 r3 Haiku-SP | 100 | clicked Next inside one evaluate up to 50 times. On the last page the button reloads items, so the code read 303 cards. Its own result listed 4 distinct products under $500, but the reply answered 100. No note: demoblaze loads its list by XHR, which the notes do not count, and the clicks did change the page text |
+| I1 r2 Haiku (first try) | none | the-internet answered 503 on both loads (`site_down`). The repeat at the end was right |
+
+What this says:
+
+- **The notes and the line still remove "read only the open page" when the page says how big it
+  is.** On H2 and H6, Haiku went from 1/3 to 3/3. There were 14 open-page misses. The 2 on a
+  page whose size the note can read (H2) are both in the plain arm. The other 12 are on pages that
+  state no size the note can read: a `Link` header (H1), no total at all (H4), or keys the note
+  does not know (H5). There the note is silent by construction, and 4 of those 12 misses are in
+  Haiku-SP.
+- **Haiku fails price because a wrong answer from the open page is cheap.** Haiku-SP is cheaper on
+  H1, H2, H3, H6 and H7, ties H8 (0.1315 against 0.1314), and costs a little more on H4 and H5. On
+  those two, plain Haiku read one page and was wrong 6 times out of 6. The criterion compares cost
+  whatever the answer.
+- **Sonnet fails price on the JSON APIs and on H7.** On H2, H4 and H5 both arms mostly write one
+  evaluate in 4 or 5 turns, and the treated arm's output is longer: +0.005 to +0.014 USD per
+  session by mean, as in v8 and v8.1. H7 is new. Line v6 says to fetch the data the page loads, and on a 15-product list
+  with one Next button, Sonnet-SP went looking for the API with `browser_network_requests` and
+  replayed it: 22 and 16 turns in r2 and r3, against 6 to 9 for Sonnet alone, which clicked Next.
+  Without H7 the Sonnet ratio, as a sum of means, would be 0.915.
+
 ## Files
 
 - `nav-v6-sessions.jsonl` / `.log`, `nav-v6.json`: the phase. `nav-v6-smoke-sessions.jsonl`: the
@@ -473,6 +570,11 @@ G4+G8 at 1.034. Confirmation 4's Sonnet price criterion counts crawls cheaper by
 - `prereg-crawl4.md` / `.sha256`: confirmation 4, sealed before it ran.
 - `nav-confirm4-sessions.jsonl`, `nav-confirm4.json`: confirmation 4's 120 sessions and its
   verdicts.
+- `prereg-crawl5.md` / `.sha256`: confirmation 5, sealed before it ran.
+- `nav-confirm5-sessions.jsonl` / `.log`, `nav-confirm5.json`: confirmation 5's 161 sessions
+  (160 counted) and its verdicts; `truth-confirm5.json`: its answers recomputed after the phase.
+  Code: `benchmarks/browse/nav_confirm5.py`, `truth_confirm5.py`, `check_tasks5.py`,
+  `tests/test_nav_confirm5.py`.
 - `benchmarks/browse/nav_v6.py`, `nav_v7.py`, `nav_confirm4.py`, `truth_v6.py`,
   `truth_confirm4.py`, `repeat_fingerprint.py`; `tests/test_nav_v6.py`, `test_nav_v7.py`,
   `test_nav_confirm4.py`, `test_crawl_notes.py`.
