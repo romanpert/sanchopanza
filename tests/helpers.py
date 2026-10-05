@@ -43,6 +43,32 @@ DATASET_FILES = {
 }
 
 
+def bench_module(folder: Any, name: str) -> Any:
+    """Import benchmark module `name` from `folder` without leaving the folder's modules in
+    `sys.modules`: benchmark folders reuse names (`labels`, `score`, `run`) and a later test of
+    another benchmark would import the wrong one."""
+    import importlib
+    import pathlib
+    import sys
+
+    path = str(folder)
+    own = {p.stem for p in pathlib.Path(path).glob("*.py")}
+    # another benchmark's module of the same name, imported earlier, must not answer for ours
+    saved = {n: sys.modules.pop(n) for n in own if n in sys.modules}
+    before = set(sys.modules)
+    sys.path.insert(0, path)
+    try:
+        module = importlib.import_module(name)
+    finally:
+        sys.path.remove(path)
+        for added in set(sys.modules) - before:
+            source = str(getattr(sys.modules[added], "__file__", "") or "")
+            if source.startswith(path):
+                del sys.modules[added]
+        sys.modules.update(saved)
+    return module
+
+
 def dataset(name: str) -> str:
     """A local dataset that is not redistributed: `SANCHOPANZA_<name>` (or the old
     `SANCHO_<name>`), else its file in `~/.cache/sanchopanza` (or the old `~/.cache/sancho`)

@@ -75,7 +75,8 @@ TESTED = "last test run: "
 # an interrupted request (recorded as a request in SWE-chat and scored 0.90 against an unrelated
 # record, 2026-10-01).
 NOT_ASKED = (guard_mod.HEADER, "[sanchopanza memory", "<task-notification>",
-             "[Request interrupted by user")
+             "[Request interrupted by user", "Stop hook feedback:",
+             "This session is being continued from a previous conversation")  # a summary
 UNFINISHED = "(the request ended before the agent finished; its last text follows) "
 _TAGS = re.compile(r"</?[\w-]+>")
 _FENCE = re.compile(r"^(<<<|>>>)", re.M)
@@ -196,6 +197,8 @@ def _conversational(entry: Mapping[str, Any]) -> bool:
     if entry.get("type") not in ("user", "assistant") or entry.get("isSidechain"):
         return False
     if entry.get("isMeta") or entry.get("isCompactSummary") or entry.get("isApiErrorMessage"):
+        return False
+    if entry.get("isSynthetic"):  # an SDK stream's compaction summary (B2, 2026-10-01)
         return False
     message = entry.get("message")
     if not isinstance(message, Mapping) or message.get("role") not in ("user", "assistant"):

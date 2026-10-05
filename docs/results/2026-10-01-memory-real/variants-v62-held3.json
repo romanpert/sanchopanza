@@ -1,0 +1,96 @@
+{
+ "held3": {
+  "v5": {
+   "all/lineage": {
+    "requests": 3127,
+    "with_related": 188,
+    "recall": 0.862,
+    "precision": 0.15,
+    "noise": 0.08,
+    "shown_per_request": 0.27
+   },
+   "all/any": {
+    "requests": 3127,
+    "with_related": 531,
+    "recall": 0.977,
+    "precision": 0.761,
+    "noise": 0.031,
+    "shown_per_request": 0.27
+   },
+   "first/lineage": {
+    "requests": 328,
+    "with_related": 23,
+    "recall": 1.0,
+    "precision": 0.139,
+    "noise": 0.262,
+    "shown_per_request": 0.74
+   },
+   "first/any": {
+    "requests": 328,
+    "with_related": 74,
+    "recall": 0.986,
+    "precision": 0.689,
+    "noise": 0.114,
+    "shown_per_request": 0.74
+   },
+   "+shell/all/any": {
+    "requests": 3127,
+    "with_related": 539,
+    "recall": 0.97,
+    "precision": 0.764,
+    "noise": 0.03,
+    "shown_per_request": 0.27
+   },
+   "chars_per_request": 601,
+   "given_by_shell": 0,
+   "related_given_by_shell": 0,
+   "related_given_by_shell_+shell": 0
+  },
+  "none": {
+   "all/lineage": {
+    "requests": 3127,
+    "with_related": 188,
+    "recall": 0.862,
+    "precision": 0.15,
+    "noise": 0.08,
+    "shown_per_request": 0.27
+   },
+   "all/any": {
+    "requests": 3127,
+    "with_related": 531,
+    "recall": 0.977,
+    "precision": 0.76,
+    "noise": 0.031,
+    "shown_per_request": 0.27
+   },
+   "first/lineage": {
+    "requests": 328,
+    "with_related": 23,
+    "recall": 1.0,
+    "precision": 0.139,
+    "noise": 0.262,
+    "shown_per_request": 0.75
+   },
+   "first/any": {
+    "requests": 328,
+    "with_related": 74,
+    "recall": 0.986,
+    "precision": 0.686,
+    "noise": 0.114,
+    "shown_per_request": 0.75
+   },
+   "+shell/all/any": {
+    "requests": 3127,
+    "with_related": 539,
+    "recall": 0.978,
+    "precision": 0.764,
+    "noise": 0.03,
+    "shown_per_request": 0.27
+   },
+   "chars_per_request": 602,
+   "given_by_shell": 2,
+   "related_given_by_shell": 0,
+   "related_given_by_shell_+shell": 2
+  }
+ }
+}

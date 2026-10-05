@@ -1,0 +1,166 @@
+{
+ "requests": 644,
+ "committing": 198,
+ "commits": {
+  "considered": 1386,
+  "found": 485,
+  "refused: not this worktree's commit in the window": 695,
+  "refused: not this worktree's commit in the window (checkout)": 23,
+  "refused: not this worktree's commit in the window (rebase (pick))": 20,
+  "refused: not this worktree's commit in the window (rebase (start))": 8,
+  "refused: log line whose subject no commit command carries": 116,
+  "refused: not in a repository": 0,
+  "refused: not this worktree's commit in the window (commit (amend))": 9,
+  "refused: not this worktree's commit in the window (merge)": 16,
+  "refused: not this worktree's commit in the window (rebase (finish))": 13,
+  "refused: not this worktree's commit in the window (reset)": 1
+ },
+ "git_errors": {
+  "git rev-parse exit 1": 240,
+  "git rev-parse exit 128": 6
+ },
+ "v5": {
+  "given_by_shell": 0,
+  "given_by_shell (committing)": 0,
+  "sealed": {
+   "requests": 644,
+   "with_related": 158,
+   "recall": 0.924,
+   "precision": 0.858,
+   "noise": 0.019,
+   "shown_per_request": 0.36
+  },
+  "sealed (committing)": {
+   "requests": 198,
+   "with_related": 80,
+   "recall": 0.838,
+   "precision": 0.883,
+   "noise": 0.017,
+   "shown_per_request": 0.56
+  },
+  "sealed: related shell gives (committing)": 0,
+  "+commit": {
+   "requests": 644,
+   "with_related": 210,
+   "recall": 0.748,
+   "precision": 0.888,
+   "noise": 0.018,
+   "shown_per_request": 0.36
+  },
+  "+commit (committing)": {
+   "requests": 198,
+   "with_related": 132,
+   "recall": 0.568,
+   "precision": 0.946,
+   "noise": 0.015,
+   "shown_per_request": 0.56
+  },
+  "+commit: related shell gives (committing)": 0,
+  "+shell": {
+   "requests": 644,
+   "with_related": 266,
+   "recall": 0.669,
+   "precision": 0.893,
+   "noise": 0.019,
+   "shown_per_request": 0.36
+  },
+  "+shell (committing)": {
+   "requests": 198,
+   "with_related": 120,
+   "recall": 0.608,
+   "precision": 0.937,
+   "noise": 0.013,
+   "shown_per_request": 0.56
+  },
+  "+shell: related shell gives (committing)": 0,
+  "+shell+commit": {
+   "requests": 644,
+   "with_related": 291,
+   "recall": 0.632,
+   "precision": 0.897,
+   "noise": 0.02,
+   "shown_per_request": 0.36
+  },
+  "+shell+commit (committing)": {
+   "requests": 198,
+   "with_related": 145,
+   "recall": 0.531,
+   "precision": 0.946,
+   "noise": 0.019,
+   "shown_per_request": 0.56
+  },
+  "+shell+commit: related shell gives (committing)": 0
+ },
+ "v6.2": {
+  "given_by_shell": 152,
+  "given_by_shell (committing)": 76,
+  "sealed": {
+   "requests": 644,
+   "with_related": 158,
+   "recall": 0.949,
+   "precision": 0.537,
+   "noise": 0.123,
+   "shown_per_request": 0.56
+  },
+  "sealed (committing)": {
+   "requests": 198,
+   "with_related": 80,
+   "recall": 0.875,
+   "precision": 0.557,
+   "noise": 0.195,
+   "shown_per_request": 0.89
+  },
+  "sealed: related shell gives (committing)": 11,
+  "+commit": {
+   "requests": 644,
+   "with_related": 210,
+   "recall": 0.876,
+   "precision": 0.628,
+   "noise": 0.101,
+   "shown_per_request": 0.56
+  },
+  "+commit (committing)": {
+   "requests": 198,
+   "with_related": 132,
+   "recall": 0.742,
+   "precision": 0.744,
+   "noise": 0.106,
+   "shown_per_request": 0.89
+  },
+  "+commit: related shell gives (committing)": 38,
+  "+shell": {
+   "requests": 644,
+   "with_related": 266,
+   "recall": 0.977,
+   "precision": 0.931,
+   "noise": 0.019,
+   "shown_per_request": 0.56
+  },
+  "+shell (committing)": {
+   "requests": 198,
+   "with_related": 120,
+   "recall": 0.908,
+   "precision": 0.955,
+   "noise": 0.013,
+   "shown_per_request": 0.89
+  },
+  "+shell: related shell gives (committing)": 76,
+  "+shell+commit": {
+   "requests": 644,
+   "with_related": 291,
+   "recall": 0.924,
+   "precision": 0.934,
+   "noise": 0.02,
+   "shown_per_request": 0.56
+  },
+  "+shell+commit (committing)": {
+   "requests": 198,
+   "with_related": 145,
+   "recall": 0.793,
+   "precision": 0.96,
+   "noise": 0.019,
+   "shown_per_request": 0.89
+  },
+  "+shell+commit: related shell gives (committing)": 76
+ }
+}

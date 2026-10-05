@@ -1,0 +1,125 @@
+{
+ "local": {
+  "requests": 644,
+  "v6.2": {
+   "sealed": {
+    "requests": 644,
+    "with_related": 158,
+    "recall": 0.949,
+    "precision": 0.537,
+    "noise": 0.123,
+    "shown_per_request": 0.56
+   },
+   "+commit": {
+    "requests": 644,
+    "with_related": 210,
+    "recall": 0.876,
+    "precision": 0.628,
+    "noise": 0.101,
+    "shown_per_request": 0.56
+   },
+   "+shell": {
+    "requests": 644,
+    "with_related": 266,
+    "recall": 0.977,
+    "precision": 0.931,
+    "noise": 0.019,
+    "shown_per_request": 0.56
+   },
+   "chars_per_request": 2080,
+   "shell_gives": 152,
+   "shell_gives_in_committing": 76,
+   "of_those_committed": 38
+  },
+  "append": {
+   "sealed": {
+    "requests": 644,
+    "with_related": 158,
+    "recall": 0.949,
+    "precision": 0.546,
+    "noise": 0.121,
+    "shown_per_request": 0.56
+   },
+   "+commit": {
+    "requests": 644,
+    "with_related": 210,
+    "recall": 0.871,
+    "precision": 0.632,
+    "noise": 0.104,
+    "shown_per_request": 0.56
+   },
+   "+shell": {
+    "requests": 644,
+    "with_related": 266,
+    "recall": 0.974,
+    "precision": 0.93,
+    "noise": 0.019,
+    "shown_per_request": 0.56
+   },
+   "chars_per_request": 2059,
+   "shell_gives": 147,
+   "shell_gives_in_committing": 73,
+   "of_those_committed": 36
+  },
+  "repo": {
+   "sealed": {
+    "requests": 644,
+    "with_related": 158,
+    "recall": 0.924,
+    "precision": 0.572,
+    "noise": 0.105,
+    "shown_per_request": 0.53
+   },
+   "+commit": {
+    "requests": 644,
+    "with_related": 210,
+    "recall": 0.848,
+    "precision": 0.645,
+    "noise": 0.092,
+    "shown_per_request": 0.53
+   },
+   "+shell": {
+    "requests": 644,
+    "with_related": 266,
+    "recall": 0.929,
+    "precision": 0.927,
+    "noise": 0.019,
+    "shown_per_request": 0.53
+   },
+   "chars_per_request": 1963,
+   "shell_gives": 123,
+   "shell_gives_in_committing": 53,
+   "of_those_committed": 23
+  },
+  "both": {
+   "sealed": {
+    "requests": 644,
+    "with_related": 158,
+    "recall": 0.924,
+    "precision": 0.58,
+    "noise": 0.103,
+    "shown_per_request": 0.52
+   },
+   "+commit": {
+    "requests": 644,
+    "with_related": 210,
+    "recall": 0.843,
+    "precision": 0.651,
+    "noise": 0.092,
+    "shown_per_request": 0.52
+   },
+   "+shell": {
+    "requests": 644,
+    "with_related": 266,
+    "recall": 0.925,
+    "precision": 0.926,
+    "noise": 0.019,
+    "shown_per_request": 0.52
+   },
+   "chars_per_request": 1946,
+   "shell_gives": 119,
+   "shell_gives_in_committing": 51,
+   "of_those_committed": 22
+  }
+ }
+}

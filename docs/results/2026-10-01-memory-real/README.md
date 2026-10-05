@@ -164,3 +164,182 @@ until retention was lifted in the replay (`ep.save` default). Earlier passes sav
 
 Latency of a touch, worst case measured (a Read of 2,000 lines over 300 records of that file),
 20 runs with the CPU at 56 % from other work: median 0.130 s, max 0.225 s.
+
+## v6: the working tree and the shell (amendment 4: NOT confirmed)
+
+In phase B2 Sonnet 5.5 read and edited through Bash; Sm had 40 memory prompts, 0 injections, 0
+touches; 86-95 % of its records said they changed nothing. v6 reads what a request wrote from the
+git working tree and sends Bash and PowerShell calls to the touch (amendment 4 has the design and
+the development numbers). Confirmation, run once (`v6_chain_real.py --tag confirm`,
+`replay_v6.py` on three held-out sets):
+
+| fresh B2 requests (67, 34 with a related record) | recall | precision | noise | records that changed nothing |
+|---|---|---|---|---|
+| v5 | 0 | - | 0 | 0.948 |
+| v6 | **0.412** | **0.395** | 0.121 | 0.097 |
+| by arm, v6: N 26-40 / S 15-40 / Sm 15-40 | 1.000 / 0.500 / 0.000 | 0.818 / 0.421 / 0.000 | 0.250 / 0.083 / 0.077 | |
+
+| SWE-chat, v5 -> v6 touch | recall | precision | noise | records given through the shell (related) |
+|---|---|---|---|---|
+| held out 1 (1,490) | 0.950 -> 0.956 | 0.748 -> **0.724** | 0.030 -> 0.033 | 15 (5) |
+| held out 2 (3,117) | 0.978 -> 0.978 | 0.778 -> 0.768 | 0.039 -> 0.041 | 17 (5) |
+| held out 3 (3,127) | 0.979 -> 0.979 | 0.763 -> **0.749** | 0.031 -> 0.034 | 21 (5) |
+
+Criteria: 1 (recall >= 0.60) **failed**, 2 (precision >= 0.50) **failed**, 3 and 4 met, 5 failed
+on held out 1 and 3 (precision down 0.024 and 0.014, allowed 0.01). v6 is not shipped as
+confirmed. What it fixes is real (records now know what a shell edit changed: 95 % to 10 % that
+"changed nothing"), but what the shell touch gives is too often unrelated: about 30 % of its
+records are related on SWE-chat, and none of Sm's 13. The causes are the next round.
+
+**Declared after the sealed run (6073ae6):** the replay of amendment 4 paired records with the
+wrong requests in arms S (from request 13) and Sm (from request 5): `claude -p` stream-json writes
+a compaction summary as an `isSynthetic` user message, which the parser counted as a request.
+Their figures above are therefore invalid; N (no compaction) is not affected: recall 1.000,
+precision 0.818 on its 15 fresh requests. The verdict stays "not confirmed": a corrected rerun on
+the same requests would be post hoc, and the SWE-chat precision drop (criterion 5) is real.
+Diagnosis of that drop on seen data (dev + held out 1): of the shell touch's 14 unrelated
+records, 6 came from `git diff` output and 2 from `gh api ... "$(cat <<EOF ...)"` bodies.
+
+## v6.1: the shell touch without history, message bodies or file-tool editors (amendment 5: NOT confirmed)
+
+v6.1 (`context/statements.py`, `context/shell.py`, `memory_hook.SHELL_UNTIL_FILE_EDIT`; three
+adversarial reviews, all fixed with tests) leaves out of a shell call's view the output of
+`git diff/show/log` (whole when nothing else prints code, only the diff blocks when something
+does), heredoc bodies that no interpreter or shell runs, and the quoted strings of `git commit`,
+`gh`, `curl` and the like; and once a session edits an existing file with a file tool, its
+shell touch gives nothing. Design and development numbers are in `amendment-5.md`: on SWE-chat
+(with each session's folder, which the bench had been leaving out) precision within 0.005 of
+v5, recall equal; on B2's fresh requests, post hoc, recall 0.941 and precision 0.927.
+
+Confirmation, run once on the maintainer's own sessions that no pass had scored
+(`local_v6.py`, 12 folders, 153 sessions, 632 requests, 156 with a related record; counts only,
+`local-v61.json`):
+
+| | recall | precision | noise | records given through the shell (related) |
+|---|---|---|---|---|
+| v5 | 0.923 | 0.858 | 0.019 | |
+| v6.1 | 0.949 | **0.421** | **0.153** | 258 (62) |
+
+Criterion 1 met (recall up 0.026), 2 and 3 failed by far (precision -0.437, noise +0.134),
+4 failed (24 % of the shell's records related, 50 % required). On the 40 requests of sessions
+started after the v3 pass: precision 0.774 -> 0.694, noise 0.087 -> 0.174. Not shipped.
+
+**Why** (`v61_diag_local.py`, after the sealed run, so now seen data): all 258 records came
+while the gate was open, before any file-tool edit in their session, and almost all from
+reads: `sed -n` (47 unrelated, 11 related), `grep -n` (29, 6), `echo "==="; ...` blocks (20,
+11), `grep -rn`, `cat`. These agents (Claude Code in auto mode, whose prompt suggests reading
+with `cat`, `head` or `sed -n`) make about 38 shell calls per request (23,736 Bash and 952
+PowerShell in 632 requests) and read far more than they edit; a shell read is rarely followed
+by an edit of that file. SWE-chat's agents read with the Read tool, so its shell reads were few
+and the development numbers could not show this. The label cannot see shell edits (17 of the
+unrelated records came from `python -` or `sed -i` writes), which explains a little of it,
+not most.
+
+Declared: 157 target sessions were counted before sealing and 153 were built: four
+transcripts disappeared from disk in between (a cleanup freed about 128 GB of C: at that time).
+
+## v6.2: the shell touch on writes only (amendment 6, sealed, waiting for its data)
+
+After amendment 5 the candidates were measured on the now-seen local sessions, SWE-chat (each
+session's folder) and B2 (`variants_v62.py`, `v6_chain_real.py --views reads:...`): no shell
+read at all; reads only after the session wrote through the shell; reads of one named file
+only. No shell reads won everywhere, and with reads off v6.1's file-edit gate only removed
+records of files the request wrote, so it went. `shell.written` was then hardened after an
+adversarial review (heredoc bodies only when something runs them, `perl -M`, `cp -t`, `->`,
+comments, PowerShell parameters and variables).
+
+**How to read the local numbers.** The sealed label sees edits made with file tools only, so a
+record given when the request writes its file through the shell always counts as noise under
+it. A label that also counts shell writes (`+shell`) is circular for the shell touch: it and the
+touch both ask `shell.written` what a command writes, so every shell give is related under it
+and a request it reaches can never be noise. The truth is between the two; B2, whose truth
+comes from the run's patches, is the one measure independent of the parser.
+
+| local, 632 requests | sealed label: recall / precision / noise | `+shell` (circular for the shell touch) | shell gives (related: sealed / `+shell`) |
+|---|---|---|---|
+| v5 | 0.923 / 0.858 / 0.019 | 0.667 / 0.892 / 0.019 | 0 |
+| shell reads on, no gate | 0.968 / 0.329 / 0.221 | 0.985 / 0.594 / 0.149 | 416 (97 / 230) |
+| **v6.2** | **0.949 / 0.536 / 0.126** | **0.977 / 0.931 / 0.019** | 152 (16 / 152) |
+
+B2's 67 fresh requests (post hoc, truth from patches): v6.0 0.941 / 0.889 / 0.121, v6.1 0.941 /
+0.927 / 0.091, **v6.2 0.941 / 0.973 / 0.030**. SWE-chat: v6.2 equals v5 on held out 2; held out 3 0.977 / 0.760 / 0.031 against 0.977 / 0.761 / 0.031 (two shell gives); held out 1 0.972 / 0.718 / 0.034 against 0.972 / 0.727 / 0.032 (four shell gives, one related by the sealed label, all four by `+shell`).
+
+Also measured: on the local sessions 125 of 152 shell gives arrive at the request's first write
+of that file, after the edit was made (27 at a later write): for an agent that edits through
+the shell, memory mostly arrives right after its first change, not before. A hand audit of 48
+shell-write records: 43 clear writes, 5 doubtful, 0 false.
+
+Also found: the tree's snapshot is not the cause of the small run-to-run variation in records
+that changed nothing (0.030 against 0.034 on B2): measured with the CPU loaded, no git call came
+near its 3 s limit (max 1.97 s) and no Stop passed its 4 s deadline (0 of 119). Cause open.
+
+Amendment 6 confirms on data that does not exist yet: part A, the first Sonnet 5.5 adoption
+chain run after the seal (truth from its patches); part B, the maintainer's sessions started
+2026-10-01 12:00 to 2026-10-04 00:00 (the sealed label for the file tools' touch, and an
+independent blind audit of the write detector).
+
+## After the seal of amendment 6, while its data does not exist (branch memoria-v63)
+
+Nothing below touches the sealed code or changes amendment 6; it is development on seen data
+(the 644 requests of `local_v6.py`, 632 when amendment 5 ran: sessions started before its cut
+grew after it) and B2.
+
+**A label independent of the shell parser** (`commit_label.py`): a record is also related when
+the request committed one of its files. A commit counts as the request's only if its hash is in
+the request's output (`[branch sha]`, or a `git log --oneline` line whose subject, whole, is in
+one of the request's `git commit` commands) and in the HEAD reflog of that worktree as a plain
+`commit` inside the request's window (an adversarial review found amends, cherry-picks, older
+commits and a sibling worktree's commits getting in; all refused now, with tests). 485 of 1,386
+hashes accepted, 198 requests commit.
+
+| local, 644 requests | sealed | `+commit` (independent) | `+shell` (circular) | chars | shell gives |
+|---|---|---|---|---|---|
+| v5 | 0.924 / 0.858 / 0.019 | 0.748 / 0.888 / 0.018 | 0.669 / 0.893 / 0.019 | | 0 |
+| v6.2 | 0.949 / 0.537 / 0.123 | 0.876 / 0.628 / 0.101 | 0.977 / 0.931 / 0.019 | 2,080 | 152 |
+
+Of the 76 shell gives in committing requests, 38 are related under `+commit` (11 sealed, 76
+`+shell`). By where the file is (`commit_label_diag.py`): 33 committed in the request, 25 ignored
+by git, 9 outside any repository, 9 tracked and not committed in the session. So at most 12 % of
+them can be a write the detector invented; the rest of the gap is files git does not see.
+
+**Two filters measured and not taken** (`variants_v63.py`): no record for a pure append (`>>`,
+`tee -a`, `Add-Content`, `open(p, 'a')`), and no record for a file outside the session's
+repository. 56 of the 152 shell gives were of notes under `~/.claude` (an errors log,
+auto-memory, ADRs), but the only two requests where the shell touch adds recall over v5 are both
+`lineage` and both go with the repository filter (a sibling repository edited from another
+folder, and an auto-memory `MEMORY.md`):
+
+| local | sealed | `+commit` | `+shell` | chars | shell gives |
+|---|---|---|---|---|---|
+| v6.2 | 0.949 / 0.537 / 0.123 | 0.876 / 0.628 / 0.101 | 0.977 / 0.931 / 0.019 | 2,080 | 152 |
+| no appends | 0.949 / 0.546 / 0.121 | 0.871 / 0.632 / 0.104 | 0.974 / 0.930 / 0.019 | 2,059 | 147 |
+| repository only | 0.924 / 0.572 / 0.105 | 0.848 / 0.645 / 0.092 | 0.929 / 0.927 / 0.019 | 1,963 | 123 |
+| both | 0.924 / 0.580 / 0.103 | 0.843 / 0.651 / 0.092 | 0.925 / 0.926 / 0.019 | 1,946 | 119 |
+
+B2 is the same under all four (0.941 / 0.973 / 0.030).
+
+**Records that changed nothing, run to run** (`v63_tree_repeat.py`): B2's three arms recorded
+again (N three times, S and Sm twice) give identical records, no git failure (slowest call
+1.25 s) and no read past the snapshot's byte budget. The two outlying passes in
+`chain-v6-real.json` (determinism-2 0.034, corrected-v61-habit 0.045, against 0.030-0.031
+elsewhere) do not reproduce; the likeliest cause is a git call past its 3 s limit on a loaded
+machine, which `worktree.snapshot` turned into no snapshot without a trace (not shown; since
+43714fd `worktree.probe` gives the reason and the hook logs it as a `tree` row). On the 13
+repositories of the maintainer's sessions `git status -uall` takes 0.05-0.47 s.
+
+**The record before the first shell write** (`memory_hook.shell_first`, off by default,
+`SANCHOPANZA_MEMORY_SHELL_FIRST=deny`): a PreToolUse hook denies once a command that writes a
+file with a record not yet given, the record as the reason (Claude Code feeds it back, in every
+permission mode); the same command is never denied twice. Built and tested; its value can only
+be measured live (`shell_first_pilot.py`, 16 short sessions, about 2 USD at list price): not run.
+
+**The pilot, run on 2026-10-02** (`shell_first_pilot.py`, 16 sessions, 2.10 USD at list price,
+the subscription paid; rows in `~/.cache/sanchopanza/memory-real/shell-first-pilot-2026-10-02/`):
+every session passed its tests and its trap check in both arms, so the pilot does not tell the
+arms apart; what it measures is the price. Denying costs 1.27x (1.174 against 0.924 USD; 1.27x on
+Sonnet and on Haiku alike), one more turn on Sonnet and three to five more on Haiku's rename,
+which ran the denied `sed` again. The deny fired in 6 of 8 sessions; in the other two (Haiku,
+hex) the model had read the file with `Read` first and the record had come then. Both traps
+can be found in the repository (a `grep retry_limit` lists `deploy/check.py`; the underscore
+handling is in the code being edited), which is why neither arm missed them: a trap that tests
+memory has to be a fact only the earlier conversation holds. `shell_first` stays off.
