@@ -53,8 +53,6 @@ from typing import Any
 
 from benchmarks.find_need.real import names_code
 from benchmarks.find_need.replay import (
-    SEARCH_TOOLS,
-    SHELL_TOOLS,
     Call,
     Fire,
     is_empty,
@@ -63,9 +61,13 @@ from benchmarks.find_need.replay import (
     jsonl,
     replay_count,
     replay_empty,
-    source_edits,
     stream_calls,
 )
+
+from sanchopanza.harness.find_auto import WORD
+from sanchopanza.harness.find_auto import State as AutoState
+from sanchopanza.harness.find_auto import search_words as auto_search_words
+from sanchopanza.harness.find_auto import step as auto_step
 
 HERE = Path(__file__).resolve().parent
 CACHE = Path.home() / ".cache" / "sanchopanza"
@@ -99,13 +101,6 @@ CACHE_WRITE, CACHE_READ = 2.0e-6, 0.10e-6
 # ceiling (72.7 %). Used only to extrapolate a Jev-judged hook from the measured shortlist.
 JUDGE_OVER_CEILING = {1: 51.3 / 72.7, 3: 59.8 / 72.7, 5: 65.0 / 72.7}
 HEADER = "sanchopanza ran find_in_repo on the request; places that may bear on it (Read to check):"
-_SHELL_WORDS = (
-    "grep egrep rg ag ack find fd ls tree head tail xargs cat sed awk sort uniq wc echo cd type "
-    "name iname include exclude path print null testbed dev usr lib python python3 site packages "
-    "and the for not with from import def class self return none true false"
-)
-SHELL_WORDS = frozenset(_SHELL_WORDS.split())
-WORD = re.compile(r"[A-Za-z_][A-Za-z0-9_]{2,}")
 HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+\d+(?:,\d+)? @@")
 
 
@@ -159,15 +154,8 @@ def hits(keys: list[str], lines: Mapping[str, set[int]]) -> dict[str, bool]:
 
 
 def search_words(call: Call) -> list[str]:
-    """The words an agent searched for: Grep/Glob patterns, a shell search's arguments."""
-    if call.name in SEARCH_TOOLS:
-        text = " ".join(str(call.input.get(k) or "") for k in ("pattern", "glob"))
-    elif call.name in SHELL_TOOLS:
-        text = re.sub(r"(?:^|\s)--?[\w-]+(?:=\S+)?", " ", str(call.input.get("command") or ""))
-    else:
-        return []
-    words = [w for w in WORD.findall(text) if w.lower() not in SHELL_WORDS]
-    return list(dict.fromkeys(words))
+    """The words an agent searched for: the live hook's own (`harness.find_auto`)."""
+    return auto_search_words(call.name, call.input)
 
 
 def queries(statement: str, calls: list[Call], fire: int) -> dict[str, str]:
@@ -208,16 +196,22 @@ def repo_path(path: str) -> str:
 
 def replay_untouched(calls: list[Call], nth: int) -> Fire | None:
     """The `nth` search while no source file has been Read or edited yet: searching without
-    having opened any code (computable live, no gold)."""
-    closes, count = set(source_edits(calls)), 0
+    having opened any code (computable live, no gold). Steps the live hook's own rule
+    (`harness.find_auto.step`). f1ef58e's own replay differed in 3 of 179 sessions: it read a
+    `./django/...` path as a hidden folder, so a Read of source written with `./` did not close the
+    window. Corrected, R4 fires in 24/35 hard and 5/144 easy sessions (was 25 and 7), and the
+    judged replay of ca6033a's recorded answers gives a gold file in the top 5 at 16/24 (the lost
+    fire was a miss); auto-table.json and judged-table.json are the uncorrected run."""
+    state = AutoState()
     for i, call in enumerate(calls):
-        path = str(call.input.get("file_path") or "")
-        if i in closes or (call.name == "Read" and path and is_source(repo_path(path) + ":1-1")):
+        path = str(call.input.get("file_path") or call.input.get("notebook_path") or "")
+        arguments = {**call.input, "file_path": repo_path(path)} if path else call.input
+        before = state.searches
+        state, _ = auto_step(state, call.name, arguments, failed=call.error)
+        if state.closed:
             return None
-        if is_search(call.name, call.input):
-            count += 1
-            if count == nth:
-                return Fire(i + 1, count, "untouched")
+        if state.searches == nth and before < nth:
+            return Fire(i + 1, nth, "untouched")
     return None
 
 

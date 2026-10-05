@@ -22,6 +22,10 @@ listing of file names, and was followed by a find call 0 times. Environment
     JOURNAL      each firing is journalled there as kind `find_nudge`
 
 Fail open: any error writes one line to stderr and adds nothing.
+
+Its substitute mode, `install --find-auto` (`harness.find_auto`), runs find for the agent instead
+of suggesting it: same place (PostToolUse after searches), this module's search test, edit tools
+and once-per-session marker, served by the find server as an `mcp_tool` hook so the index is warm.
 """
 
 from __future__ import annotations

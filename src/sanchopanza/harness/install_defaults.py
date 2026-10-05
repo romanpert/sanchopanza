@@ -21,6 +21,12 @@
   any edit lists many files. Its development probe of 2026-10-03 did not justify it: it fired in
   5 of 10 sessions, always on the opening listing of file names, and converted none. An install
   without the flag takes out a nudge an earlier install wired.
+- **The find substitute** is not a default either: `--find-auto`, with find, puts an `mcp_tool`
+  hook on PostToolUse and PostToolUseFailure that calls the find server's hidden `find_auto`
+  tool (`harness.find_auto`; the server, started as `find-mcp --auto`, warms the index): at the
+  4th search before any source file is Read or edited, once per session, it runs find for the
+  agent and adds the five likeliest places. It takes the nudge's place when both are asked
+  for; an install without the flag takes it out.
 - **The skill** (`--no-skill`): `sanchopanza-code`, copied to `<scope>/.claude/skills/`.
 """
 
@@ -99,8 +105,9 @@ def merge_profile(
     return {**merged, "env": rest}, [], [f"env: {k}" for k in gone]
 
 
-def find_server_entry(command: str) -> dict[str, Any]:
-    """The `.mcp.json` entry, from the hook command: `<x> hook` becomes `<x> find-mcp`.
+def find_server_entry(command: str, *, auto: bool = False) -> dict[str, Any]:
+    """The `.mcp.json` entry, from the hook command: `<x> hook` becomes `<x> find-mcp`, and
+    `<x> find-mcp --auto` with the find-auto hook (the hook's tool, the index warmed at start).
 
     `alwaysLoad` keeps the tool out of tool search: deferred, the model sees only its name and
     in the adoption study never called it (0 of 108 sessions)."""
@@ -108,7 +115,8 @@ def find_server_entry(command: str) -> dict[str, Any]:
     if words and words[-1] == "hook":
         words = words[:-1]
     words = words or ["sanchopanza"]
-    return {"command": words[0], "args": [*words[1:], "find-mcp"], "alwaysLoad": True}
+    args = [*words[1:], "find-mcp", *(["--auto"] if auto else [])]
+    return {"command": words[0], "args": args, "alwaysLoad": True}
 
 
 def find_hook_command(command: str) -> str:

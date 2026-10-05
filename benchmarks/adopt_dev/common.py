@@ -14,6 +14,9 @@ One process, one probe: `ADOPT_DEV_PROFILE` picks it when this module is first i
 - `need`: the frozen copy of 7a39a1f (phase D's: the default install, find alwaysLoad, no nudge,
   the delegation fix), output dev-need/, 12.00 USD, S only on the need-ranked development set of
   `benchmarks/find_need/need-table.json` (`probe_need.py`).
+- `auto`: the frozen copy of `AUTO_COMMIT` (the find-auto hook, `harness.find_auto`), installed
+  with `--find-auto`, output dev-auto/, 12.00 USD, S only on the need set again
+  (`probe_auto.py`). Empty until the owner commits that work and freezes it.
 """
 
 from __future__ import annotations
@@ -29,11 +32,16 @@ from typing import Any
 ADOPT = Path(__file__).resolve().parents[1] / "adopt"
 ROOT = Path.home() / ".cache" / "sanchopanza" / "adopt"
 PROFILE = os.environ.get("ADOPT_DEV_PROFILE", "alwaysload")
+# The find-auto probe's commit (full hash), set once the owner has committed the src work and
+# frozen it (`python benchmarks/adopt/freeze.py <commit>`). Empty: nothing frozen yet, and the
+# probe refuses to run (`auto_refusal`).
+AUTO_COMMIT = ""
 # profile -> (frozen commit, output folder, working copies folder, total cap in USD)
 PROFILES = {
     "alwaysload": ("1ea9302c8b4c3e63b908b5cd84b5c0204ba5eae1", "dev-alwaysload", "work-dal", 8.00),
     "nudge": ("4ee2901d2cc10fc4967bda6bc915bd33c785eff4", "dev-nudge", "work-dn", 14.00),
     "need": ("7a39a1f0d4ff8e9cf5c99046ee0aa818ffe955d9", "dev-need", "work-dnd", 12.00),
+    "auto": (AUTO_COMMIT, "dev-auto", "work-dau", 12.00),
 }
 if PROFILE not in PROFILES:
     raise RuntimeError(f"ADOPT_DEV_PROFILE={PROFILE!r}; known: {sorted(PROFILES)}")
@@ -96,11 +104,12 @@ def nudge_plan() -> tuple[tuple[str, tuple[str, ...]], ...]:
 # alwaysload: S before N, the question is whether Haiku calls find; if the cap binds, an N goes
 # first. nudge: both arms on every issue of the behaviour set.
 # need: S only, one session each; the N reference is the recorded sessions of the need table.
+# auto: the same, with the find-auto hook; the reference is the need probe's rows.
 PLAN: tuple[tuple[str, tuple[str, ...]], ...] = (
     nudge_plan()
     if PROFILE == "nudge"
     else tuple((name, ("S",)) for name in NEED)
-    if PROFILE == "need"
+    if PROFILE in ("need", "auto")
     else (*((name, ("S",)) for name in DEV1), *((name, ("S", "N")) for name in NEW))
 )
 
@@ -145,12 +154,14 @@ def plan_refusal() -> str | None:
     """Why the plan may not run: a held-out single in it (the confirmation's or phase D's), or
     the draw no longer gives NEW."""
     names = {name for name, _ in PLAN}
-    if PROFILE != "need" and (bad := sorted(names & held_out())):
+    if PROFILE not in ("need", "auto") and (bad := sorted(names & held_out())):
         return f"held-out singles in the plan: {bad}"
     if bad := sorted(names & phase_d_ids()):
         return f"phase D singles in the plan: {bad}"
     if PROFILE == "need":
         return need_refusal()
+    if PROFILE == "auto":
+        return auto_refusal() or need_refusal()
     if PROFILE == "nudge":
         return nudge_refusal(names)
     if list(NEW) != draw_new():
@@ -166,6 +177,16 @@ def nudge_refusal(names: set[str]) -> str | None:
         return f"the nudge plan has {len(names)} issues, not 10 (behaviour-set.json drawn?)"
     if problems := check():
         return "; ".join(problems)
+    return None
+
+
+def auto_refusal() -> str | None:
+    """The find-auto probe needs its own frozen copy: a commit, frozen with jev and mcp."""
+    if len(AUTO_COMMIT) != 40:
+        return ("AUTO_COMMIT is not set: commit the find-auto work, freeze it "
+                "(benchmarks/adopt/freeze.py <commit>) and write its full hash in common.py")
+    if not FROZEN_EXE.exists():
+        return f"no frozen copy at {FROZEN_EXE}: run benchmarks/adopt/freeze.py {AUTO_COMMIT}"
     return None
 
 

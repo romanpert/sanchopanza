@@ -167,6 +167,44 @@ def add_find(server: Any, *, repo: Path | None = None, squire: Any = None) -> An
     return server
 
 
+def add_find_auto(server: Any, *, repo: Path | None = None, warm: bool = True) -> Any:
+    """`find_auto`: the find-auto hook's tool (`harness.find_auto`), hidden from the model. The
+    repository's index is warmed on a background thread now, so a fire later is a query."""
+    import inspect
+
+    from ..context.repo import warm as warm_index
+    from .find_auto import DESCRIPTION, HIDDEN, TOOL, respond
+
+    where = repo or Path.cwd()
+    if warm:
+        warm_index(where)
+
+    async def find_auto(
+        hook_event_name: str = "",
+        session_id: str = "",
+        tool_name: str = "",
+        tool_use_id: str = "",
+        agent_id: str = "",
+        transcript_path: str = "",
+        cwd: str = "",
+        file_path: str = "",
+        notebook_path: str = "",
+        command: str = "",
+        pattern: str = "",
+        glob: str = "",
+    ) -> str:
+        values = {k: v for k, v in locals().items() if isinstance(v, str)}
+        return await respond(values, where)
+
+    names = inspect.signature(find_auto).parameters
+    find_auto.__annotations__ = {**dict.fromkeys(names, str), "return": str}  # objects, not text
+    options: dict[str, Any] = {"name": TOOL, "description": DESCRIPTION}
+    if "meta" in inspect.signature(server.tool).parameters:
+        options["meta"] = HIDDEN
+    server.tool(**options)(find_auto)
+    return server
+
+
 def find_annotations() -> dict[str, Any]:
     """The parameters' schema: a description each, and `kind` as an enum of the registered
     kinds (every one stays callable; the help names code first). Real objects, not strings, so
@@ -331,7 +369,7 @@ def add_browse(server: Any, squire: Any = None) -> Any:
     return server
 
 
-TOOL_SETS = ("archive", "find", "decisions", "label", "browse")
+TOOL_SETS = ("archive", "find", "find_auto", "decisions", "label", "browse")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -360,6 +398,8 @@ def main(argv: list[str] | None = None) -> int:
         add_archive(server, root_for(Path.cwd(), override=args.archive or _env.get("ARCHIVE")))
     if "find" in wanted:
         add_find(server)
+    if "find_auto" in wanted:  # the find-auto hook's tool: warms the index now
+        add_find_auto(server)
     if "decisions" in wanted:
         add_decisions(server, squire_from_env())
     if "label" in wanted:

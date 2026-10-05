@@ -100,7 +100,8 @@ def _plan_mcp_json(args: argparse.Namespace, settings_path: Path) -> tuple[Path,
                              "sanchopanza '{\"command\":\"sanchopanza\",\"args\":[\"find-mcp\"],"
                              "\"alwaysLoad\":true}'\n")  # fmt: skip
     try:
-        content = mcp_json_changes(target, args.lean, args.command_line, find=args.find)
+        content = mcp_json_changes(target, args.lean, args.command_line, find=args.find,
+                                   find_auto=args.find_auto)  # fmt: skip
     except (ValueError, OSError) as error:
         if args.lean:
             raise
@@ -189,6 +190,10 @@ def _install(args: argparse.Namespace) -> int:
         mcp_change = _plan_mcp_json(args, path)  # first: it may turn find off
         if args.find_nudge and not args.find:
             sys.stderr.write("the find nudge needs find_in_repo in this install; not wired\n")
+        if args.find_auto and not args.find:
+            sys.stderr.write("the find-auto hook needs find_in_repo in this install; not wired\n")
+        elif args.find_auto and args.find_nudge:
+            sys.stderr.write("--find-auto runs find for the agent: the nudge is not wired\n")
         settings = plan(
             path,
             config,
@@ -203,6 +208,7 @@ def _install(args: argparse.Namespace) -> int:
             budget=DEFAULT_BUDGET if args.context_budget is None else args.context_budget,
             find=args.find,
             find_nudge=args.find_nudge,
+            find_auto=args.find_auto,
             profile=args.guard_profile,
         )
         files = _install_plugin(args, root)
@@ -502,10 +508,10 @@ def _repoint(messages: list[dict[str, Any]], staging: Path, archive: Path) -> li
     return json.loads(json.dumps(messages).replace(json.dumps(old)[1:-1], json.dumps(new)[1:-1]))
 
 
-def _find_mcp(_args: argparse.Namespace) -> int:
+def _find_mcp(args: argparse.Namespace) -> int:
     from .harness.mcp import main as mcp_main
 
-    return mcp_main(["--tools", "find"])
+    return mcp_main(["--tools", "find,find_auto" if getattr(args, "auto", False) else "find"])
 
 
 def _archive_mcp(args: argparse.Namespace) -> int:
@@ -675,6 +681,14 @@ def main(argv: list[str] | None = None) -> int:
         "listings and was never followed; SANCHOPANZA_FIND_NUDGE=0 silences it once wired)",
     )
     install.add_argument(
+        "--find-auto",
+        action="store_true",
+        help="with find, run find_in_repo for the agent at the 4th search before any source "
+        "file is Read or edited, once per session, and add the five likeliest places (mcp_tool "
+        "hook served by the find server, which warms the index at start; off by default, "
+        "unmeasured end to end; SANCHOPANZA_FIND_AUTO=0 silences it once wired)",
+    )
+    install.add_argument(
         "--skill",
         action=argparse.BooleanOptionalAction,
         default=True,
@@ -778,6 +792,12 @@ def main(argv: list[str] | None = None) -> int:
     find_mcp = sub.add_parser(
         "find-mcp",
         help="MCP server (stdio) with one tool, find_in_repo, over the current directory",
+    )
+    find_mcp.add_argument(
+        "--auto",
+        action="store_true",
+        help="also serve find_auto, the find-auto hook's tool (hidden from the model), and warm "
+        "the index at start",
     )
     find_mcp.set_defaults(func=_find_mcp)
 

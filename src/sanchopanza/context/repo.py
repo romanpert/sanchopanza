@@ -26,9 +26,11 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 import os
 import subprocess
 import sys
+import threading
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath
 from typing import Any
@@ -271,6 +273,29 @@ def source_first(root: Path) -> tuple[list[Candidate], SourceFirst]:
     """Every fragment of `root`, and the index `kind="code"` ranks them with."""
     candidates, index = indexed(root)
     return candidates, SourceFirst(index, _CACHE[str(root.resolve())].source)
+
+
+def warm(root: Path) -> threading.Thread:
+    """Build `root`'s index on a daemon thread (a server warms it at start, so a hook that fires
+    later does not wait the build: 35 s median on 74 SWE-bench repositories before the ASCII
+    tokeniser path). A failure leaves nothing ready; `ready_index` then says None."""
+
+    def build() -> None:
+        with contextlib.suppress(Exception):
+            source_first(root)
+
+    thread = threading.Thread(target=build, name="sanchopanza-find-warm", daemon=True)
+    thread.start()
+    return thread
+
+
+def ready_index(root: Path) -> tuple[list[Candidate], SourceFirst] | None:
+    """The index built for `root` as it is, never a build: None when nothing is built yet. No
+    fingerprint check either: a scratch file the agent wrote does not cost a rebuild here."""
+    cached = _CACHE.get(str(root.resolve()))
+    if cached is None:
+        return None
+    return cached.candidates, SourceFirst(cached.index, cached.source)
 
 
 def _source(kind: str, root: Path) -> tuple[list[Candidate], Any, str]:

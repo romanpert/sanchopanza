@@ -62,7 +62,10 @@ shell commands, delegations and searches, installs the
 description of when to use it). `--find-nudge` adds a once-per-session suggestion toward it after a
 wide early search; it is off by default because its development probe did not justify it (fired in
 5 of 10 sessions on the opening file listing, followed 0 times), and `SANCHOPANZA_FIND_NUDGE=0`
-silences it where it is wired. Add `--scan-content`
+silences it where it is wired. `--find-auto` runs find for the agent instead: at the 4th search
+before any source file is Read or edited, once per session, it adds the five likeliest places
+(an `mcp_tool` hook on the find server, which warms the index at start); off by default and not
+yet measured end to end (`SANCHOPANZA_FIND_AUTO=0` silences it). Add `--scan-content`
 to flag instructions planted in what the agent reads, `--check-done` to check "done" before the
 agent stops, and `--autopilot` for the experimental
 [context autopilot](#context-autopilot-for-claude-code-experimental). Not on

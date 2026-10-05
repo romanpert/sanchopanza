@@ -165,8 +165,10 @@ def mention_present(mention: str, source: str, *, ratio: float = 0.5) -> bool:
 
 
 def _bm25_words(text: str) -> list[str]:
-    plain = unicodedata.normalize("NFKD", (text or "").lower())
-    plain = "".join(c for c in plain if not unicodedata.combining(c))
+    plain = (text or "").lower()
+    if not plain.isascii():  # ASCII has no decomposition and no combining mark: same words
+        plain = unicodedata.normalize("NFKD", plain)
+        plain = "".join(c for c in plain if not unicodedata.combining(c))
     return [t for t in re.findall(r"[a-z0-9_]+", plain) if t not in STOPWORDS and len(t) > 1]
 
 

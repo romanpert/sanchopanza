@@ -99,6 +99,9 @@ from pathlib import Path
 from typing import Any
 
 from .. import _env
+from .find_auto import EVENTS as AUTO_EVENTS
+from .find_auto import MATCHER as AUTO_MATCHER
+from .find_auto import hook as auto_hook
 from .find_nudge import MATCHER as NUDGE_MATCHER
 from .generic import HarnessConfig
 from .install_defaults import (
@@ -250,8 +253,15 @@ def block(
     return fragment
 
 
+def hook_key(hook: Mapping[str, Any]) -> Any:
+    """What makes a hook ours: its command, or for an `mcp_tool` hook its server and tool."""
+    if hook.get("type") == "mcp_tool":
+        return f"mcp_tool:{hook.get('server')}/{hook.get('tool')}"
+    return hook.get("command")
+
+
 def _is_ours(hook: Any, commands: frozenset[str]) -> bool:
-    return isinstance(hook, Mapping) and hook.get("command") in commands
+    return isinstance(hook, Mapping) and hook_key(hook) in commands
 
 
 def _owned(entries: list[Any], commands: frozenset[str]) -> list[Mapping[str, Any]]:
@@ -263,12 +273,19 @@ def _owned(entries: list[Any], commands: frozenset[str]) -> list[Mapping[str, An
     ]
 
 
-def _already_wired(entries: list[Any], matcher: str, commands: frozenset[str]) -> bool:
-    """Exactly one hook of ours, in an entry with the wanted matcher."""
+def _already_wired(
+    entries: list[Any],
+    matcher: str,
+    commands: frozenset[str],
+    wanted: Mapping[str, Any] | None = None,
+) -> bool:
+    """Exactly one hook of ours, in an entry with the wanted matcher (and equal to `wanted`
+    when the hook is more than a command)."""
     owned = _owned(entries, commands)
     if len(owned) != 1 or owned[0].get("matcher") != matcher:
         return False
-    return sum(_is_ours(h, commands) for h in owned[0].get("hooks") or []) == 1
+    ours = [h for h in owned[0].get("hooks") or [] if _is_ours(h, commands)]
+    return len(ours) == 1 and (wanted is None or ours[0] == wanted)
 
 
 def _without_ours(entries: list[Any], commands: frozenset[str]) -> list[Any]:
@@ -378,13 +395,15 @@ def _merge_owned(
     command: str,
     default: str,
     label: str,
+    hook: Mapping[str, Any] | None = None,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     """Wire one set of our hooks (event -> matcher), or take ours out. Other hooks on the same
-    events are kept; our entries are recognised by their command (`command` or `default`)."""
+    events are kept; our entries are recognised by their command (`command` or `default`), or
+    for a `hook` that is not a command (`mcp_tool`) by its `hook_key`."""
     hooks = merged.get("hooks", {})
     if not isinstance(hooks, dict):
         return merged, [], []  # someone put something else there; do not fight it
-    commands = frozenset({command, default})
+    commands = frozenset({command, default} if hook is None else {hook_key(hook)})
     out = dict(hooks)
     added: list[str] = []
     removed: list[str] = []
@@ -392,14 +411,16 @@ def _merge_owned(
         entries = out.get(event, [])
         if not isinstance(entries, list):
             continue
-        if on and _already_wired(entries, matcher, commands):
+        if on and _already_wired(entries, matcher, commands, hook):
             continue
         removed.extend(
             f"{event}: {e.get('matcher', '')} ({label})" for e in _owned(entries, commands)
         )
         kept = _without_ours(entries, commands)
         if on:
-            kept = [*kept, _entry(matcher, command)]
+            wired = _entry(matcher, command) if hook is None else {
+                "matcher": matcher, "hooks": [dict(hook)]}  # fmt: skip
+            kept = [*kept, wired]
             added.append(f"{event}: {matcher} ({label})")
         others = {k: v for k, v in out.items() if k != event}
         out = {**out, event: kept} if kept else others
@@ -503,7 +524,7 @@ def _read_mcp_json(path: Path) -> dict[str, Any]:
 
 
 def mcp_json_changes(
-    path: Path, lean: bool, command: str = COMMAND, find: bool = False
+    path: Path, lean: bool, command: str = COMMAND, find: bool = False, find_auto: bool = False
 ) -> dict[str, Any] | None:
     """The new `.mcp.json` content, or None when nothing changes. Only our entries are touched.
 
@@ -511,7 +532,7 @@ def mcp_json_changes(
     overwritten. Otherwise the file is only looked at to take our entries out: one that is
     missing, unreadable or malformed holds nothing of ours, so it is left alone and never fails
     the install."""
-    find_entry = find_server_entry(portable_command(command)) if find else None
+    find_entry = find_server_entry(portable_command(command), auto=find_auto) if find else None
     wanted = {ARCHIVE_SERVER: archive_server_entry(command) if lean else None,
               FIND_SERVER: find_entry}  # fmt: skip
     if not lean and not find:
@@ -633,6 +654,7 @@ def _merge(
     budget: int = 0,
     find: bool = False,
     find_nudge: bool = False,
+    find_auto: bool = False,
     profile: str = "sandbox",
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
@@ -664,9 +686,14 @@ def _merge(
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_memory(merged, memory)
     added, removed = [*added, *plus], [*removed, *minus]
+    auto = find and find_auto  # find's substitute: opt-in, only with find, in the nudge's place
     nudge = find_hook_command(command)  # find's nudge: opt-in, and only with find
-    merged, plus, minus = _merge_owned(merged, find and find_nudge, {"PostToolUse": NUDGE_MATCHER},
-                                       nudge, find_hook_command(COMMAND), "find nudge")  # fmt: skip
+    merged, plus, minus = _merge_owned(merged, find and find_nudge and not auto,
+                                       {"PostToolUse": NUDGE_MATCHER}, nudge,
+                                       find_hook_command(COMMAND), "find nudge")  # fmt: skip
+    added, removed = [*added, *plus], [*removed, *minus]
+    merged, plus, minus = _merge_owned(merged, auto, dict.fromkeys(AUTO_EVENTS, AUTO_MATCHER),
+                                       "", "", "find auto", hook=auto_hook())  # fmt: skip
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_budget(merged, budget)
     added, removed = [*added, *plus], [*removed, *minus]
@@ -700,6 +727,7 @@ def plan(
     budget: int = 0,
     find: bool = False,
     find_nudge: bool = False,
+    find_auto: bool = False,
     profile: str = "sandbox",
 ) -> Settings:
     current: Any = {}
@@ -731,6 +759,7 @@ def plan(
         budget=budget,
         find=find,
         find_nudge=find_nudge,
+        find_auto=find_auto,
         profile=profile,
     )
     return Settings(path, merged, tuple(added), tuple(removed))
