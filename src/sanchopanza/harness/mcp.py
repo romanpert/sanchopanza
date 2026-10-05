@@ -113,7 +113,8 @@ FIND_INSTRUCTIONS = (
 QUERY_HELP = "The symptom in the request's own words, e.g. 'the export drops the last row'."
 K_HELP = "How many fragments to return."
 KIND_HELP = (
-    "code (default): code and text to read. symbol: definitions by name. file: files by path "
+    "code (default): source code to read; docs, config and tests left out. all: code, docs "
+    "and config. symbol: definitions by name. file: files by path "
     "words. skill, agent, memory, archive, tool: this project's skills, agents, saved notes, "
     "earlier tool output, tools."
 )

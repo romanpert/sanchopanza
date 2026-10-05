@@ -52,8 +52,9 @@ def test_every_parameter_has_a_description_and_kind_is_an_enum(tmp_path: Path) -
 def test_the_kind_help_leads_with_code_and_keeps_the_other_kinds() -> None:
     help_ = mcp.KIND_HELP
     assert help_.startswith("code")
-    for name in ("symbol", "file", "memory", "archive"):
+    for name in ("all", "symbol", "file", "memory", "archive"):
         assert name in help_
+    assert "docs" in help_  # code leaves docs and config out; the help says where they are
 
 
 def test_the_server_carries_the_same_rule_as_instructions(tmp_path: Path) -> None:

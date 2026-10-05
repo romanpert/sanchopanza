@@ -10,7 +10,9 @@ writing a tool.
     python -m sanchopanza.context.repo "request" --kind symbol|file|skill|agent|memory|archive|tool
 
 Built-in kinds:
-- `code`: fragments at top-level definitions and paragraphs (`context.repo`), the default;
+- `code`: fragments at top-level definitions and paragraphs (`context.repo`), the default,
+  ranked over source files only (docs, config, tests, examples left out: `repo.is_source`);
+- `all`: the same fragments ranked over every text file, docs and config included;
 - `symbol`: every Python function, method and class with its line range (`ast`);
 - `file`: whole files, their path and head;
 - `skill`: `SKILL.md` files (project `.claude/skills`, `skills/`, and `~/.claude/skills`);
@@ -262,6 +264,8 @@ def _catalog(root: Path, paths: list[Path]) -> list[Candidate]:
 
 
 register(Source("code", "Find the code or text a developer must read to work on this: {query}",
+                _code_paths, _code))  # fmt: skip
+register(Source("all", "Find the code or text a developer must read to work on this: {query}",
                 _code_paths, _code))  # fmt: skip
 register(Source("symbol", "Find the functions, methods or classes to read or change for this: "
                 "{query}", _code_paths, _symbols))  # fmt: skip

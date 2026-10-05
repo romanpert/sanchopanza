@@ -17,7 +17,8 @@ for you. What it changes for you:
   excerpt; then `Read` the lines it points to.
 - **Do not use it** when the request already names a function, class, error message or file:
   `Grep` for that name is faster and exact.
-- `kind="symbol"` finds definitions by name; `kind="file"` finds files by path words.
+- `kind="symbol"` finds definitions by name; `kind="file"` finds files by path words. The
+  default ranks source files only; `kind="all"` also searches docs, config and tests.
 
 ## 2. After a compaction
 
