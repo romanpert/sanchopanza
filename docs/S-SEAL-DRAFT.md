@@ -65,8 +65,23 @@ so it wins over `~/.sanchopanza`).
 
 ### With and without `--knowledge`
 
-`--knowledge` does not exist yet: no worktree has the flag (the `knowledge` worktree is at
-`a86c2b9`, a find_auto dev log, with no uncommitted work). Two versions of the line:
+**Update 2026-10-05 night:** `--knowledge` is on main (merge 5da2635 of knowledge 402021e onto
+7752471; indagis-a1's suite 3032 passed, 0 failed). It registers `sanchopanza-knowledge`
+(`search`, `read`, `pick`, alwaysLoad). Decision for coherence (indagis-a1, recorded here by
+indagis-95): with `--fetch` and `--knowledge` together, knowledge is the **only** page reader. The
+fetch hook, the `sanchopanza-fetch` server and its approval are not wired, and install says so
+once on stderr; pinned by
+`tests/test_install_knowledge.py::test_fetch_and_knowledge_together_leave_one_hook_and_one_reader_server`.
+So **S1 drops `--fetch`**, and `--content-tools` carries the three
+`mcp__sanchopanza-knowledge__*` tools instead of `fetch_passages`. A dry run of S1 (in `C:\tmp`) left
+on WebFetch only the knowledge hook (plus candor's, which only records), on WebSearch the
+knowledge hook and the generic guardian (repeat-query check, no redirect), and no fetch server.
+Offline evidence (a1): search puts the gold article in 70-73 % vs WebSearch's 44-48 %; read
+delivers the gold in 62/66 vs WebFetch's summary 22/66; QASPER 88.7 % at 995 tokens. Live dev
+of S1 against N runs before 12:00. Per-session overhead of the three tools: to count, as in
+section 4.
+
+The text below predates the merge. Two versions of the line:
 
 - **S0, sealable today:** the line above.
 - **S1, if knowledge lands before the seal:** the line above plus `--knowledge`, and only if, at
