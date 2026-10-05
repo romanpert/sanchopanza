@@ -158,18 +158,31 @@ def version_of(folder: pathlib.Path) -> str:
 
 
 def hook_runs(folder: pathlib.Path) -> dict[str, int]:
-    """Hooks Claude Code ran, from the transcript's hook attachments: `<event> <whose>`, where
-    whose is `sanchopanza` (its command names it), `deny` (the runner's deny hook) or `other`."""
+    """Hooks whose output reached the transcript (Claude Code 2.1.287 writes an attachment only
+    for a hook that printed something): `<event> <whose>`, where whose is `deny` (the runner's
+    deny hook), `sanchopanza` (an installed `sanchopanza ...` command) or `other`. Every call of
+    an SP hook, silent ones included, is in the shim's log (`shim_runs`)."""
     counts: dict[str, int] = {}
     for entry in entries(folder):
         hook = entry.get("attachment") if entry.get("type") == "attachment" else None
         if not isinstance(hook, dict) or not str(hook.get("type", "")).startswith("hook_"):
             continue
         command = str(hook.get("command") or "")
-        whose = "sanchopanza" if "sanchopanza" in command else (
-            "deny" if "deny_hook" in command else "other")  # fmt: skip
+        # The deny hook's path runs through the sanchopanza checkout: test it first.
+        whose = "deny" if "deny_hook" in command else (
+            "sanchopanza" if command.startswith("sanchopanza ") else "other")  # fmt: skip
         key = f"{hook.get('hookName') or hook.get('hookEvent')} {whose}"
         counts = {**counts, key: counts.get(key, 0) + 1}
+    return counts
+
+
+def shim_runs(path: pathlib.Path) -> dict[str, int]:
+    """The SP shim's log: one line per `sanchopanza` call, by subcommand (`hook`, `guard-hook`)."""
+    counts: dict[str, int] = {}
+    lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+    for line in lines:
+        name = line.split()[0] if line.split() else "?"
+        counts = {**counts, name: counts.get(name, 0) + 1}
     return counts
 
 

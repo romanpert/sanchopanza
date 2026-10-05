@@ -199,6 +199,19 @@ def test_deny_hook_output_and_log(tmp_path, monkeypatch, capsys):
     assert hook.main() == 0 and capsys.readouterr().out == ""
 
 
+def test_web_search_is_let_through_with_the_sets_hosts_blocked(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("H2H_DENY_LOG", str(tmp_path / "denied.jsonl"))
+    event = {"tool_name": "WebSearch", "tool_input": {"query": "q", "blocked_domains": ["a.com"]}}
+    monkeypatch.setattr(sys, "stdin", types.SimpleNamespace(read=lambda: json.dumps(event)))
+    assert hook.main() == 0
+    out = json.loads(capsys.readouterr().out)["hookSpecificOutput"]
+    assert out["permissionDecision"] == "allow" and out["updatedInput"]["query"] == "q"
+    assert out["updatedInput"]["blocked_domains"] == ["a.com", *hook.SEARCH_BLOCKED]
+    assert not (tmp_path / "denied.jsonl").exists()  # a rewrite is not a denial
+    assert hook.search_input({"query": "q", "allowed_domains": ["b.org"]}) is None
+    assert set(hook.SEARCH_BLOCKED) <= {h.removeprefix("www.") for h in hook.DENIED_HOSTS}
+
+
 # --- reading a session --------------------------------------------------------------------------
 
 # Claude Code 2.1.287's modelUsage from a real one-turn Haiku session (2026-10-05).
@@ -579,9 +592,13 @@ def test_hook_runs_and_journal(tmp_path):
     lines = [{"type": "attachment", "attachment": {"type": "hook_success", "hookName":
               "PreToolUse:Bash", "command": "sanchopanza hook"}},
              {"type": "attachment", "attachment": {"type": "hook_success", "hookName":
-              "PreToolUse:Bash", "command": '"py" "deny_hook.py"'}},
+              "PreToolUse:Bash", "command": '"sanchopanza/py" "deny_hook.py"'}},
              {"type": "attachment", "attachment": {"type": "file"}}]  # fmt: skip
     (folder / "s.jsonl").write_text("\n".join(json.dumps(x) for x in lines), encoding="utf-8")
+    shim = tmp_path / "shim.log"
+    shim.write_text("hook\nguard-hook\nhook\n", encoding="utf-8")
+    assert reading.shim_runs(shim) == {"hook": 2, "guard-hook": 1}
+    assert reading.shim_runs(tmp_path / "none") == {}
     assert reading.hook_runs(folder) == {"PreToolUse:Bash sanchopanza": 1,
                                          "PreToolUse:Bash deny": 1}  # fmt: skip
     journal = tmp_path / "j.jsonl"

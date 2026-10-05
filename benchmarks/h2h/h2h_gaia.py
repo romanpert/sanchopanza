@@ -274,10 +274,15 @@ def one_session(task: Any, run: int, arm: str, ctx: Mapping[str, Any]) -> dict[s
     wall = time.monotonic() - started
     row = build_row(task, run, arm, out, stderr, work, side, wall, config / "projects")
     scrubbed = arms.scrub(root, arms.secrets_of(env))
-    shim = side / "shim.log"
-    calls = len(shim.read_text(encoding="utf-8").splitlines()) if shim.exists() else 0
-    return {**row, "phase": ctx["phase"], "sp_commit": ctx.get("commit", ""),
-            "shim_calls": calls, "scrubbed_files": scrubbed}  # fmt: skip
+    shim = reading.shim_runs(side / "shim.log")
+    return {
+        **row,
+        "phase": ctx["phase"],
+        "sp_commit": ctx.get("commit", ""),
+        "shim_calls": sum(shim.values()),
+        "shim_runs": shim,
+        "scrubbed_files": scrubbed,
+    }
 
 
 def session_for(log_to: pathlib.Path, ctx: Mapping[str, Any]):
