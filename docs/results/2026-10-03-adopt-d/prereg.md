@@ -435,8 +435,8 @@ Caveats on these numbers, said now:
 | what | cap |
 |---|---|
 | per call (`--max-budget-usd`) | 1.50 |
-| per instance, held before it starts | its six sessions' caps, 9.00 (all or nothing: no instance runs some pairs and not others for want of room) |
-| total, absolute | `CEILING_BASE_USD` + `CEILING_ADDED_USD` (`run_d.py`): the base **205.682391** (`run_d.py ledger` at sealing, 2026-10-05: runs 145.55, singles 43.78, singles-d 0, dev 16.35 with the need probe's first session), so the absolute ceiling is **315.682391**, plus 110.00 (the owner's call, 2026-10-05: at +90 the ceiling would stop the batch before the last instance in about 13 % of resamples of phase A's costs, 40 % if sessions cost 10 % more) |
+| per instance, held before it starts | its six sessions' caps plus Jev's cap on its three S sessions, 6 x 1.50 + 3 x 0.10 = 9.30 (all or nothing: no instance runs some pairs and not others for want of room) |
+| total, absolute | `CEILING_BASE_USD` + `CEILING_ADDED_USD` (`run_d.py`): the base **206.418008** (`run_d.py ledger` at sealing, 2026-10-05: runs 145.55, singles 43.78, singles-d 0, dev 17.08 with the need probe's first two sessions), plus 110.00, so the ceiling is **316.418008** (the 110.00 is the owner's call, 2026-10-05: at +90 the ceiling would stop the batch before the last instance in about 13 % of resamples of phase A's costs, 40 % if sessions cost 10 % more) |
 
 - **The ledger** (`run_d.py ledger`, free): every row under `adopt/runs/` (`run.spent_so_far`),
   `adopt/singles/` (`singles_run.spent_singles`), `adopt/singles-d/` (set-aside `-limit<k>`
@@ -447,8 +447,12 @@ Caveats on these numbers, said now:
   before the need probe: 205.30 (runs 145.55, singles 43.78, singles-d 0, dev 15.97). The base is
   what it says at sealing.
 - **The hold:** before an instance starts, the ledger is read again and the instance's six
-  sessions' caps (9.00) must fit under the ceiling with it; if they do not, the batch stops before
+  sessions' caps and Jev's (9.30) must fit under the ceiling with it; if they do not, the batch stops before
   that instance and nothing of it runs.
+- **Not quite absolute.** The hold is checked when an instance starts. Batches of other
+  sessions do not reserve in D's process: the need probe's spend while D's last instance runs
+  can carry the final ledger past the ceiling by at most what it spends in that time (its cap is
+  12.00 in all). Claude Code's last turn can pass the 1.50 call cap by cents (1.512 seen).
 - **If the ceiling binds**, the instances it leaves out have no complete pair: H1 is undecided
   (it needs every instance) and they are listed by name; H2 is read over the instances with a
   complete pair, and said as such (n of 26), the others listed.
@@ -473,17 +477,25 @@ whatever ran and has no grade. What ran is graded even when the batch stops in t
 instance, and the instance's image is dropped.
 
 - **Run again whole, only when no outcome was seen:** an error result that names a usage limit
-  (`api_error_status` 429, or "usage limit", "weekly limit", "rate limit", "hit your ... limit" in
-  its text), recorded `NOT RUN (error result)`; a session `claude -p` never started (`NOT RUN
-  (harness)`: no session id, no result, nothing spent); or an evidence folder with no row and no
-  stream. Every session of that instance that started, except in a missing repetition (below),
+  (`api_error_status` 429 or 529, or "usage limit", "weekly limit", "rate limit", "overloaded",
+  "hit your ... limit" in its text), recorded `NOT RUN (error result)`; a session `claude -p` never started (`NOT RUN
+  (harness)`: no session id, no result, nothing spent); or a stream with no `result` event (the
+  session or the runner was killed before the end; no outcome seen: the batch stops and asks for
+  orphaned `claude` processes to be killed by PID before resuming). Every session of that instance that started, except in a missing repetition (below),
   is set aside with its working copy's Claude Code folder under `singles-d/<instance>-limit<k>/`
   (counted in the ledger, read by no verdict), the batch stops, and on the next run the instance
   runs again whole, as amendment 2 did.
-- **Missing, never run again:** a folder with a stream and no row (a session that started and
-  crashed). Its pair is missing, the other arm of that repetition is not started if it had not
+- **Missing, never run again:** a folder with a stream that has a `result` event and no row (a
+  session that ended and whose row was not written). Its pair is missing, the other arm of that repetition is not started if it had not
   been. A set-aside of the instance leaves that repetition in place and never runs it again (only
   a session in it that is to be run again is moved aside).
+- **A setup leftover is redone:** an evidence folder with no stream (setup ran, `claude` never
+  started) is cleaned and set up again; nothing of it was spent.
+- **Setup before spend.** The six working copies are exported and S's install written, one at a
+  time, before any session of the instance starts; a setup fault stops the batch with nothing
+  spent and no folder a sibling could be set aside for.
+- **A usage limit in one pair** does not stop its sibling pairs, which run to their end and are
+  then set aside with the rest of the instance (up to about 7.50 USD per event, in the ledger).
 - **Any other error result counts as ran:** recorded `error result (not a usage limit)`, graded on
   its diff like any session, and it stops the batch so that it is looked at.
 - **A systemic treatment failure stops the batch** at the first S session that fails D's commit,

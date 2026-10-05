@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -36,6 +37,10 @@ def roots(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     return tmp_path
 
 
+RESULT = '{"type": "result", "subtype": "success"}\n'
+SETUP_ALL = run_d.setup_all
+
+
 def _row(evidence: Path, cost: float = 0.3, jev: float = 0.0, status: str = "") -> None:
     evidence.mkdir(parents=True, exist_ok=True)
     call = {"cost_usd": cost, "subtype": "success", **({"status": status} if status else {})}
@@ -58,25 +63,29 @@ def test_paths_carry_the_repetition(roots: Path) -> None:
     assert len({run.projects_dir(w) for w in works}) == 6
 
 
-def test_one_keeps_phase_as_refusals(roots: Path) -> None:
+def test_prepare_keeps_phase_as_refusals(roots: Path) -> None:
     _row(run_d.evidence_of(NAME, 1, "N"))
-    run_d.one(ROW, "N", 1, roots / "key")  # a row: done before, nothing happens
+    with pytest.raises(RuntimeError, match="earlier session"):
+        run_d.prepare(ROW, "N", 1, roots / "key")
     run_d.evidence_of(NAME, 2, "N").mkdir(parents=True)
-    with pytest.raises(RuntimeError, match="no row.json"):
-        run_d.one(ROW, "N", 2, roots / "key")
+    (run_d.evidence_of(NAME, 2, "N") / "stream-1.jsonl").write_text("{}\n", encoding="utf-8")
+    with pytest.raises(RuntimeError, match="earlier session"):
+        run_d.prepare(ROW, "N", 2, roots / "key")
     projects = run.projects_dir(run_d.work_of(NAME, 3, "N"))
     projects.mkdir(parents=True)
     (projects / "earlier.jsonl").write_text("{}", encoding="utf-8")
     with pytest.raises(RuntimeError, match="earlier sessions"):
-        run_d.one(ROW, "N", 3, roots / "key")
+        run_d.prepare(ROW, "N", 3, roots / "key")
 
 
 # ---- the hold and the ledger ---------------------------------------------------------------------
 
 
-def test_the_hold_is_six_sessions_caps() -> None:
+def test_the_hold_is_six_sessions_caps_and_three_jev_caps() -> None:
     hold, cap, sealed_cap = run_d.HOLD_USD, run_d.CALL_CAP_USD, run.CALL_CAP_USD
-    assert hold == pytest.approx(9.00) and cap == pytest.approx(1.50) and sealed_cap == cap
+    jev = run_d.JEV_SESSION_USD  # hook_env's cap per S session
+    assert jev == pytest.approx(0.10)
+    assert hold == 9.30 and cap == pytest.approx(1.50) and sealed_cap == cap
 
 
 def _no_docker(monkeypatch: pytest.MonkeyPatch, calls: list[str]) -> None:
@@ -85,6 +94,8 @@ def _no_docker(monkeypatch: pytest.MonkeyPatch, calls: list[str]) -> None:
     monkeypatch.setattr(run_d.docker_env, "drop", lambda *tags: calls.append("drop"))
     monkeypatch.setattr(run_d, "grade_instance", lambda name: calls.append("grade"))
     monkeypatch.setattr(run_d, "pair_refusal", lambda inputs: None)
+    monkeypatch.setattr(run_d, "setup_all", lambda row, plan, key: [
+        (rep, [{"arm": a, "rep": rep} for a in arms]) for rep, arms in plan])  # fmt: skip
 
 
 def test_an_instance_starts_only_if_its_hold_fits(roots: Path, monkeypatch) -> None:
@@ -92,12 +103,12 @@ def test_an_instance_starts_only_if_its_hold_fits(roots: Path, monkeypatch) -> N
     _no_docker(monkeypatch, calls)
     monkeypatch.setattr(run_d, "ledger", lambda: 100.0)
     monkeypatch.setattr(run_d, "run_pair",
-                        lambda row, rep, arms, key, inputs: calls.append(f"r{rep}"))  # fmt: skip
+                        lambda row, rep, setups, inputs: calls.append(f"r{rep}"))  # fmt: skip
     monkeypatch.setitem(run._ledger, "reserved", 0.0)
     with pytest.raises(run_d.Stop, match="do not fit"):
-        run_d.run_instance(ROW, roots / "key", 108.99, {})
+        run_d.run_instance(ROW, roots / "key", 109.29, {})
     assert calls == [] and run._ledger["reserved"] == 0.0
-    run_d.run_instance(ROW, roots / "key", 109.00, {})  # exactly room for 9.00
+    run_d.run_instance(ROW, roots / "key", 109.30, {})  # exactly room for 9.30
     assert calls[0] == "pull" and sorted(calls[1:4]) == ["r1", "r2", "r3"]
     assert calls[4:] == ["grade", "drop"]
     assert run._ledger["reserved"] == 0.0  # released after the instance
@@ -109,7 +120,7 @@ def test_the_hold_is_released_when_a_pair_stops_the_batch(roots: Path, monkeypat
     monkeypatch.setattr(run_d, "ledger", lambda: 0.0)
     monkeypatch.setitem(run._ledger, "reserved", 0.0)
 
-    def limited(row: dict, rep: int, arms: list, key: Path, inputs: dict) -> None:
+    def limited(row: dict, rep: int, setups: list, inputs: dict) -> None:
         raise run_d.Stop("usage limit")
 
     monkeypatch.setattr(run_d, "run_pair", limited)
@@ -180,8 +191,8 @@ def test_an_error_result_sets_the_instance_aside_and_keeps_missing_pairs(roots: 
     _row(ev(NAME, 1, "S"))
     _row(ev(NAME, 2, "N"))
     _row(ev(NAME, 2, "S"), status=run_d.NOT_RUN_ERROR)
-    ev(NAME, 3, "S").mkdir(parents=True)  # started (its stream), no row: missing for good
-    (ev(NAME, 3, "S") / "stream-1.jsonl").write_text("{}\n", encoding="utf-8")
+    ev(NAME, 3, "S").mkdir(parents=True)  # ended (a result), no row: missing for good
+    (ev(NAME, 3, "S") / "stream-1.jsonl").write_text(RESULT, encoding="utf-8")
     _row(ev(NAME, 3, "N"))
     projects = run.projects_dir(run_d.work_of(NAME, 2, "S"))
     projects.mkdir(parents=True)
@@ -198,17 +209,16 @@ def test_an_error_result_sets_the_instance_aside_and_keeps_missing_pairs(roots: 
 
 
 def test_a_pair_with_an_error_result_stops_the_batch(roots: Path, monkeypatch) -> None:
-    def fake_one(row: dict, arm: str, rep: int, key: Path) -> None:
-        _row(run_d.evidence_of(NAME, rep, arm),
-             status=run_d.NOT_RUN_ERROR if arm == "S" else "")  # fmt: skip
+    def fake_one(setup: dict) -> None:
+        _row(run_d.evidence_of(NAME, setup["rep"], setup["arm"]),
+             status=run_d.NOT_RUN_ERROR if setup["arm"] == "S" else "")  # fmt: skip
 
     monkeypatch.setattr(run_d, "one", fake_one)
     monkeypatch.setattr(run_d, "ledger", lambda: 0.0)
     monkeypatch.setattr(run, "decider_probe", lambda key: run_d.DECIDER)
     monkeypatch.setattr(run_d, "pair_refusal", lambda inputs: None)
     with pytest.raises(run_d.Stop, match="usage limit"):
-        run_d.run_pair(ROW, 1, ["N", "S"], roots / "key", {})
-    run.drop_arm_keys()
+        run_d.run_pair(ROW, 1, [{"arm": "N", "rep": 1}, {"arm": "S", "rep": 1}], {})
     assert run_d.state(NAME, 1, "S") == "rerun"  # siblings may still run: set aside after them
     run_d.set_aside_limit(NAME)
     assert (roots / "singles-d" / f"{NAME}-limit1" / "r1" / "S" / "row.json").exists()
@@ -225,7 +235,7 @@ def _patch(name: str, rep: int, arm: str, text: str, graded: bool = False) -> Pa
 
 
 def _no_harness(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(run_d.subprocess, "run", lambda *a, **k: pytest.fail("harness started"))
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: pytest.fail("harness started"))
     monkeypatch.setattr(run_d.docker_env, "pull", lambda image: pytest.fail("image pulled"))
     monkeypatch.setattr(run_d.docker_env, "drop", lambda *tags: pytest.fail("image dropped"))
 
@@ -461,7 +471,7 @@ def test_a_pair_does_not_start_once_an_input_changed(monkeypatch, tmp_path: Path
     assert "rules/new.md" in run_d.pair_refusal(recorded)
     monkeypatch.setattr(run_d, "seal_refusal", lambda: "phase D is not sealed")
     with pytest.raises(run_d.Stop, match="not sealed"):
-        run_d.run_pair(ROW, 1, ["N", "S"], tmp_path / "key", recorded)
+        run_d.run_pair(ROW, 1, [], recorded)
 
 
 def test_one_batch_at_a_time(roots: Path) -> None:
@@ -485,8 +495,11 @@ def _fake_claude(result: dict) -> list[str]:
       "result": "You've hit your weekly limit"}, run_d.NOT_RUN_ERROR),
     ({"subtype": "success", "is_error": True, "result": "Claude AI usage limit reached"},
      run_d.NOT_RUN_ERROR),
-    ({"subtype": "success", "is_error": True, "result": "API Error: 500 overloaded"},
+    ({"subtype": "success", "is_error": True, "result": "API Error: 500 Internal server error"},
      run_d.ERROR_OTHER),
+    ({"subtype": "success", "is_error": True, "api_error_status": 529,
+      "result": "API Error: 529 Overloaded"}, run_d.NOT_RUN_ERROR),
+    ({"subtype": "success", "is_error": True, "result": "overloaded_error"}, run_d.NOT_RUN_ERROR),
     ({"subtype": "success", "is_error": False, "total_cost_usd": 0.2, "result": "done"}, None),
 ])  # fmt: skip
 def test_only_a_usage_limit_is_not_run(tmp_path: Path, monkeypatch, result, status) -> None:
@@ -503,8 +516,9 @@ def test_sessions_that_never_started_are_run_again(roots: Path) -> None:
     _row(ev(NAME, 1, "N"))
     _row(ev(NAME, 1, "S"), status=run_d.NOT_RUN_HARNESS)  # claude -p never started
     assert run_d.state(NAME, 1, "S") == "rerun"
-    ev(NAME, 2, "N").mkdir(parents=True)  # a folder, no stream, no row (an export that failed)
-    assert run_d.state(NAME, 2, "N") == "rerun"
+    ev(NAME, 2, "N").mkdir(parents=True)  # a stream with no result: killed before its end
+    (ev(NAME, 2, "N") / "stream-1.jsonl").write_text('{"type": "system"}\n', encoding="utf-8")
+    assert run_d.state(NAME, 2, "N") == "killed"
     _row(ev(NAME, 3, "N"), status=run_d.ERROR_OTHER)
     assert run_d.state(NAME, 3, "N") == "done"  # ran: graded, never run again
     aside = run_d.set_aside_limit(NAME)
@@ -517,7 +531,7 @@ def test_sessions_that_never_started_are_run_again(roots: Path) -> None:
 def test_an_error_in_a_missing_repetition_still_sets_aside(roots: Path) -> None:
     ev = run_d.evidence_of
     ev(NAME, 1, "N").mkdir(parents=True)
-    (ev(NAME, 1, "N") / "stream-1.jsonl").write_text("{}\n", encoding="utf-8")  # missing
+    (ev(NAME, 1, "N") / "stream-1.jsonl").write_text(RESULT, encoding="utf-8")  # missing
     _row(ev(NAME, 1, "S"), status=run_d.NOT_RUN_ERROR)
     _row(ev(NAME, 2, "N"))
     _row(ev(NAME, 2, "S"))
@@ -528,16 +542,16 @@ def test_an_error_in_a_missing_repetition_still_sets_aside(roots: Path) -> None:
 
 
 def test_an_other_error_result_stops_the_batch_unset_aside(roots: Path, monkeypatch) -> None:
-    def fake_one(row: dict, arm: str, rep: int, key: Path) -> None:
-        _row(run_d.evidence_of(NAME, rep, arm), status=run_d.ERROR_OTHER if arm == "N" else "")
+    def fake_one(setup: dict) -> None:
+        arm = setup["arm"]
+        _row(run_d.evidence_of(NAME, 1, arm), status=run_d.ERROR_OTHER if arm == "N" else "")
 
     monkeypatch.setattr(run_d, "one", fake_one)
     monkeypatch.setattr(run, "decider_probe", lambda key: run_d.DECIDER)
     monkeypatch.setattr(run_d, "pair_refusal", lambda inputs: None)
     monkeypatch.setattr(run_d, "ledger", lambda: 0.0)
     with pytest.raises(run_d.Stop, match="not a usage limit"):
-        run_d.run_pair(ROW, 1, ["N", "S"], roots / "key", {})
-    run.drop_arm_keys()
+        run_d.run_pair(ROW, 1, [{"arm": "N", "rep": 1}, {"arm": "S", "rep": 1}], {})
     assert run_d.todo(NAME) == [(2, ["N", "S"]), (3, ["N", "S"])]  # r1 stays, graded later
 
 
@@ -618,10 +632,10 @@ def test_an_instances_repetitions_run_at_once(roots: Path, monkeypatch) -> None:
     together = threading.Barrier(run_d.CONCURRENT_REPS, timeout=10)
     held: list[float] = []
 
-    def fake_pair(row: dict, rep: int, arms: list, key: Path, inputs: dict) -> None:
+    def fake_pair(row: dict, rep: int, setups: list, inputs: dict) -> None:
         held.append(run._ledger["reserved"])
         together.wait()  # breaks (and fails the test) unless the three are in flight together
-        for arm in arms:
+        for arm in (s["arm"] for s in setups):
             _row(run_d.evidence_of(NAME, rep, arm))
 
     monkeypatch.setattr(run_d, "run_pair", fake_pair)
@@ -642,7 +656,7 @@ def test_a_stop_mid_instance_lets_its_siblings_finish(roots: Path, monkeypatch) 
     started = threading.Barrier(3, timeout=10)
     finished: list[int] = []
 
-    def fake_pair(row: dict, rep: int, arms: list, key: Path, inputs: dict) -> None:
+    def fake_pair(row: dict, rep: int, setups: list, inputs: dict) -> None:
         started.wait()
         if rep == 1:
             raise run_d.Stop("r1 S fails the treatment's ['d']")
@@ -662,8 +676,8 @@ def test_a_usage_limit_sets_aside_after_the_pairs_end(roots: Path, monkeypatch) 
     monkeypatch.setattr(run_d, "ledger", lambda: 0.0)
     monkeypatch.setitem(run._ledger, "reserved", 0.0)
 
-    def fake_pair(row: dict, rep: int, arms: list, key: Path, inputs: dict) -> None:
-        for arm in arms:
+    def fake_pair(row: dict, rep: int, setups: list, inputs: dict) -> None:
+        for arm in (s["arm"] for s in setups):
             limited = rep == 2 and arm == "S"
             _row(run_d.evidence_of(NAME, rep, arm), status=run_d.NOT_RUN_ERROR if limited else "")
         if rep == 2:
@@ -703,3 +717,124 @@ def test_the_ledgers_reserve_is_thread_safe(monkeypatch) -> None:
         list(pool.map(call, range(600)))
     assert run._ledger["reserved"] == pytest.approx(0.0)
     assert run._ledger["spent"] == pytest.approx(6.0)
+
+
+# ---- the focused review: killed streams, setup before spend, errors, writes ----------------------
+
+
+def test_a_stream_without_a_result_is_run_again_and_pauses(roots: Path, monkeypatch) -> None:
+    calls: list[str] = []
+    _no_docker(monkeypatch, calls)
+    ev = run_d.evidence_of
+    _row(ev(NAME, 1, "N"))
+    _row(ev(NAME, 1, "S"))
+    ev(NAME, 2, "S").mkdir(parents=True)
+    (ev(NAME, 2, "S") / "stream-1.jsonl").write_text('{"type": "assistant"}\n', encoding="utf-8")
+    _row(ev(NAME, 2, "N"))
+    assert run_d.state(NAME, 2, "S") == "killed"
+    with pytest.raises(run_d.Stop, match="orphaned `claude` process by its PID"):
+        run_d.run_instance(ROW, roots / "key", 50.0, {})
+    assert calls == [] and (roots / "singles-d" / f"{NAME}-limit1" / "r2" / "S").exists()
+    assert run_d.todo(NAME) == [(r, ["N", "S"]) for r in (1, 2, 3)]  # run again whole
+
+
+def test_a_setup_fault_spends_nothing_and_leaves_no_session(roots: Path, monkeypatch) -> None:
+    calls: list[str] = []
+    _no_docker(monkeypatch, calls)
+    monkeypatch.setattr(run_d, "setup_all", SETUP_ALL)  # the real one; prepare is faked below
+    monkeypatch.setattr(run_d, "ledger", lambda: 0.0)
+    monkeypatch.setitem(run._ledger, "reserved", 0.0)
+    _row(run_d.evidence_of(NAME, 1, "N"))  # finished earlier: must stay where it is
+    _row(run_d.evidence_of(NAME, 1, "S"))
+    made: list[Path] = []
+
+    def fake_prepare(row: dict, arm: str, rep: int, key: Path) -> dict:
+        if len(made) == 3:
+            raise RuntimeError("git add: Permission denied")
+        evidence, work = run_d.evidence_of(NAME, rep, arm), run_d.work_of(NAME, rep, arm)
+        evidence.mkdir(parents=True)
+        work.mkdir(parents=True)
+        made.append(evidence)
+        return {"arm": arm, "rep": rep, "evidence": evidence, "work": work}
+
+    monkeypatch.setattr(run_d, "prepare", fake_prepare)
+    monkeypatch.setattr(run_d, "run_pair", lambda *a: pytest.fail("a session started"))
+    with pytest.raises(RuntimeError, match="Permission denied"):
+        run_d.run_instance(ROW, roots / "key", 50.0, {})
+    assert len(made) == 3 and not any(p.exists() for p in made)
+    assert not any(run_d.work_of(NAME, r, a).exists() for r in (2, 3) for a in ("N", "S"))
+    assert run_d.state(NAME, 1, "N") == "done" and run_d.state(NAME, 1, "S") == "done"
+    assert not list((roots / "singles-d").glob("*-limit*")) and run._ledger["reserved"] == 0.0
+    assert run_d.todo(NAME) == [(2, ["N", "S"]), (3, ["N", "S"])]
+
+
+def test_prepare_cleans_up_when_the_export_fails(roots: Path, monkeypatch) -> None:
+    def refused(image: str, dest: Path, attempts: int = 2) -> str:
+        dest.mkdir(parents=True)
+        raise RuntimeError("add -A: Permission denied")
+
+    monkeypatch.setattr(run_d.docker_env, "export", refused)
+    with pytest.raises(RuntimeError, match="Permission denied"):
+        run_d.prepare(ROW, "N", 1, roots / "key")
+    assert not run_d.evidence_of(NAME, 1, "N").exists()
+    assert not run_d.work_of(NAME, 1, "N").exists() and run_d.state(NAME, 1, "N") == "absent"
+
+
+def test_a_leftover_setup_folder_reads_as_never_started(roots: Path) -> None:
+    run_d.evidence_of(NAME, 1, "S").mkdir(parents=True)  # a setup that never reached its session
+    assert run_d.state(NAME, 1, "S") == "absent" and run_d.set_aside_limit(NAME) is None
+
+
+def test_every_error_of_an_instance_is_logged(roots: Path, monkeypatch, capsys) -> None:
+    calls: list[str] = []
+    _no_docker(monkeypatch, calls)
+    monkeypatch.setattr(run_d, "ledger", lambda: 0.0)
+    monkeypatch.setitem(run._ledger, "reserved", 0.0)
+
+    def fake_pair(row: dict, rep: int, setups: list, inputs: dict) -> None:
+        if rep == 1:
+            raise run_d.Stop("r1 S fails the treatment's ['d']")
+        if rep == 2:
+            raise ValueError("a broken stream")
+
+    monkeypatch.setattr(run_d, "run_pair", fake_pair)
+    with pytest.raises(ValueError, match="broken stream"):
+        run_d.run_instance(ROW, roots / "key", 50.0, {})
+    out = capsys.readouterr().out
+    assert "stop: r1 S fails" in out and "fault: ValueError: a broken stream" in out
+    assert "Traceback" in out
+
+
+def test_rows_and_grades_are_written_atomically(tmp_path: Path) -> None:
+    run_d.write_json(tmp_path / "row.json", {"calls": []})
+    assert json.loads((tmp_path / "row.json").read_text(encoding="utf-8")) == {"calls": []}
+    assert not list(tmp_path.glob("*.tmp"))
+
+
+def test_the_ledger_reads_again_once_on_a_half_written_file(monkeypatch) -> None:
+    monkeypatch.setattr(run_d.time, "sleep", lambda s: None)
+    answers = iter([ValueError("half a row"), {"runs": 1.0, "dev": 0.5}])
+
+    def parts() -> dict:
+        answer = next(answers)
+        if isinstance(answer, Exception):
+            raise answer
+        return answer
+
+    monkeypatch.setattr(run_d, "ledger_parts", parts)
+    assert run_d.ledger() == 1.5
+
+
+def test_last_s_sessions_reads_again_once(roots: Path, monkeypatch) -> None:
+    monkeypatch.setattr(run_d.time, "sleep", lambda s: None)
+    _row(run_d.evidence_of(NAME, 1, "S"))
+    real, failed = run_d.read_json, []
+
+    def flaky(path: Path) -> dict:
+        if not failed:
+            failed.append(path)
+            raise ValueError("half a row")
+        return real(path)
+
+    monkeypatch.setattr(run_d, "read_json", flaky)
+    assert run_d.last_s_sessions(3) == [run_d.evidence_of(NAME, 1, "S")] and failed
