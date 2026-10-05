@@ -1,0 +1,25 @@
+{
+ "serp_tokens_per_search": 539,
+ "reader_usd_per_search": 0.0227,
+ "reader_usd_per_fetch": 0.0241,
+ "SONNET": {
+  "sessions": 16,
+  "searches": 70,
+  "fetches_200": 27,
+  "context_tokens_per_session": {
+   "WebSearch+WebFetch": 2515,
+   "search+read": 4144
+  },
+  "reader_usd_per_session_avoided": 0.14
+ },
+ "HAIKU": {
+  "sessions": 20,
+  "searches": 126,
+  "fetches_200": 0,
+  "context_tokens_per_session": {
+   "WebSearch+WebFetch": 3378,
+   "search+read": 3396
+  },
+  "reader_usd_per_session_avoided": 0.143
+ }
+}

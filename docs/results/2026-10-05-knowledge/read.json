@@ -1,0 +1,89 @@
+{
+ "fetches": 187,
+ "calls": 187,
+ "gold_on_page": 66,
+ "summary": {
+  "gold": 22,
+  "tokens": {
+   "mean": 140,
+   "median": 129,
+   "p90": 230
+  }
+ },
+ "v2_4000": {
+  "gold": 57,
+  "tokens": {
+   "mean": 839,
+   "median": 991,
+   "p90": 1084
+  }
+ },
+ "read_4000": {
+  "gold": 57,
+  "tokens": {
+   "mean": 841,
+   "median": 994,
+   "p90": 1088
+  }
+ },
+ "v2_8000": {
+  "gold": 62,
+  "tokens": {
+   "mean": 1344,
+   "median": 1448,
+   "p90": 2089
+  }
+ },
+ "read_8000": {
+  "gold": 62,
+  "tokens": {
+   "mean": 1346,
+   "median": 1448,
+   "p90": 2102
+  }
+ },
+ "long_pages": {
+  "calls": 29,
+  "gold_on_page": 6,
+  "summary": {
+   "gold": 1,
+   "tokens": {
+    "mean": 124,
+    "median": 105,
+    "p90": 230
+   }
+  },
+  "v2_4000": {
+   "gold": 3,
+   "tokens": {
+    "mean": 1026,
+    "median": 1019,
+    "p90": 1077
+   }
+  },
+  "read_4000": {
+   "gold": 3,
+   "tokens": {
+    "mean": 1039,
+    "median": 1032,
+    "p90": 1090
+   }
+  },
+  "v2_8000": {
+   "gold": 4,
+   "tokens": {
+    "mean": 2001,
+    "median": 2025,
+    "p90": 2113
+   }
+  },
+  "read_8000": {
+   "gold": 4,
+   "tokens": {
+    "mean": 2014,
+    "median": 2038,
+    "p90": 2126
+   }
+  }
+ }
+}

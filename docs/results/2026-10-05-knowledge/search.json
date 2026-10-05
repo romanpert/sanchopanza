@@ -1,0 +1,102 @@
+{
+ "calls": 196,
+ "queries": 193,
+ "queries_without_cached_answers": 0,
+ "sessions": 36,
+ "search_empty_queries": 1,
+ "recall": {
+  "WebSearch": {
+   "SONNET": {
+    "gold_found": 22,
+    "gold": 50,
+    "recall": 0.44,
+    "tasks_with_one": 12
+   },
+   "HAIKU": {
+    "gold_found": 30,
+    "gold": 63,
+    "recall": 0.476,
+    "tasks_with_one": 15
+   }
+  },
+  "search k=8 (wikipedia + web chain)": {
+   "SONNET": {
+    "gold_found": 35,
+    "gold": 50,
+    "recall": 0.7,
+    "tasks_with_one": 16
+   },
+   "HAIKU": {
+    "gold_found": 46,
+    "gold": 63,
+    "recall": 0.73,
+    "tasks_with_one": 19
+   }
+  },
+  "search k=10 (wikipedia + web chain)": {
+   "SONNET": {
+    "gold_found": 35,
+    "gold": 50,
+    "recall": 0.7,
+    "tasks_with_one": 16
+   },
+   "HAIKU": {
+    "gold_found": 46,
+    "gold": 63,
+    "recall": 0.73,
+    "tasks_with_one": 19
+   }
+  },
+  "wikipedia alone k=8": {
+   "SONNET": {
+    "gold_found": 28,
+    "gold": 50,
+    "recall": 0.56,
+    "tasks_with_one": 15
+   },
+   "HAIKU": {
+    "gold_found": 38,
+    "gold": 63,
+    "recall": 0.603,
+    "tasks_with_one": 18
+   }
+  },
+  "search k=8 or WebSearch's (union)": {
+   "SONNET": {
+    "gold_found": 37,
+    "gold": 50,
+    "recall": 0.74,
+    "tasks_with_one": 16
+   },
+   "HAIKU": {
+    "gold_found": 48,
+    "gold": 63,
+    "recall": 0.762,
+    "tasks_with_one": 19
+   }
+  }
+ },
+ "websearch_tokens": {
+  "mean": 530,
+  "median": 521,
+  "p90": 656
+ },
+ "search_live_sample": {
+  "queries": 40,
+  "down": 0,
+  "tokens": {
+   "mean": 539,
+   "median": 532,
+   "p90": 605
+  },
+  "results_mean": 7.88,
+  "empty": 0,
+  "seconds_median": 3.03,
+  "breakers": {
+   "wikipedia": 0,
+   "bing": 0,
+   "yahoo": 0,
+   "searxng": 2
+  }
+ }
+}

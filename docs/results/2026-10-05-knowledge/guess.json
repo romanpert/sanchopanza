@@ -1,0 +1,35 @@
+{
+ "limit": 3,
+ "HAIKU-FETCH2": {
+  "sessions": 60,
+  "page_calls": 243,
+  "page_calls_missed": 44,
+  "sessions_where_it_fires": 1,
+  "fires": 3,
+  "page_calls_after_first_fire": 32,
+  "misses_after_first_fire": 13,
+  "usd_after_first_fire": 0.27,
+  "arm_usd": 7.58,
+  "most_saved_share_of_arm": 0.036,
+  "per_session": [
+   {
+    "fires": 3,
+    "page_calls_after": 32,
+    "usd_after": 0.27
+   }
+  ]
+ },
+ "SONNET-FETCH2": {
+  "sessions": 60,
+  "page_calls": 49,
+  "page_calls_missed": 0,
+  "sessions_where_it_fires": 0,
+  "fires": 0,
+  "page_calls_after_first_fire": 0,
+  "misses_after_first_fire": 0,
+  "usd_after_first_fire": 0.0,
+  "arm_usd": 9.681,
+  "most_saved_share_of_arm": 0.0,
+  "per_session": []
+ }
+}

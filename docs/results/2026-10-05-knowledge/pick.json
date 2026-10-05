@@ -1,0 +1,13 @@
+{
+ "documents": 116,
+ "tasks": 18,
+ "a_chosen_document_is_one_of_the_tasks_own_answer_pages": 17,
+ "chosen_from_the_tasks_own_pages_mean": 3.33,
+ "chosen_mean": 5,
+ "answer_in_returned_passages": 14,
+ "tokens": {
+  "mean": 2113,
+  "median": 2118,
+  "p90": 2222
+ }
+}
