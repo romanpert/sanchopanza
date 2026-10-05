@@ -4,6 +4,7 @@
     python benchmarks/adopt_d/run_d.py ledger   # free: list price spent so far, per root
     python benchmarks/adopt_d/run_d.py run      # the batch, resumable (start it with run-d.cmd)
     python benchmarks/adopt_d/run_d.py grade    # Docker, free: grades what ran, starts nothing
+    python benchmarks/adopt_d/run_d.py selftest <id>  # Docker, free: the grading path (selftest_d)
 
 As `docs/results/2026-10-03-adopt-d/prereg.md` fixes it ("Arms, model, sessions", "Caps, in
 code", "The runner", items 1-5). Phase A's modules are imported as a library and never edited:
@@ -14,17 +15,25 @@ Claude Code 2.1.285 goes first on PATH for this process and its children.
   `run.WORK/<id>-r<k>-<arm>`, its evidence at `singles-d/<id>/r<k>/<arm>`, its key at
   `run.arm_keyfile(key, "<id>-r<k>", "S")`. N and S of a repetition start together; an instance's
   three pairs run before the next instance; its image is pulled once and dropped after its
-  sessions are graded. Instances in table order of `singles-validated.json`.
-- Money (list price): `--max-budget-usd 1.50` per call; before an instance starts, its six
-  sessions' caps (9.00) are held against the absolute ceiling, all or nothing; the ledger is every
-  row under `adopt/runs/`, `adopt/singles/`, `adopt/singles-d/` and the development probes' roots.
-- Phase A's refusals stay: an evidence folder with no row (a session that started and left no
-  row is never run again: its pair is missing), a working copy whose Claude Code folder already
-  holds a session.
-- The batch stops (and `run` again resumes it, grading for free what already ran) on: an error
-  result (429, the weekly limit), after setting the instance's pairs aside under
-  `singles-d/<id>-limit<k>/` to run them again whole; `claude -p` not starting; find_in_repo not
-  visible in an S session; the ceiling; under 15 GB free. No retries. Ctrl+C is ignored.
+  sessions are graded. Instances in a seeded order interleaving the strata (`order`, seed
+  20261005), computed from `singles-validated.json`.
+- Before each pair: D's seal holds, and the inputs both arms load that no seal covers
+  (`~/.claude/CLAUDE.md`, `~/.claude/rules/*.md`, the harness's `verified-rows.json` and
+  `run_swe.py`) still have the hashes recorded at the batch's start (logged, and kept in every
+  row; `run_swe.py`'s in every grade.json). One batch at a time (`singles-d/batch.lock`).
+- Money (list price): `--max-budget-usd 1.50` per call; an instance's six sessions' caps (9.00)
+  held against the absolute ceiling before it starts, all or nothing; the ledger is every row
+  under `adopt/runs/`, `adopt/singles/`, `adopt/singles-d/` and the development probes' roots.
+- Phase A's refusals stay: a session that started (its stream exists) and left no row is never
+  run again (its pair is missing); a working copy whose Claude Code folder already holds a session.
+- Run again whole, since no outcome was seen: an instance with a usage-limit error result (a 429
+  or the weekly limit named in the result), a session `claude -p` never started (no session, no
+  result, nothing spent) or a folder with no row and no stream. Its sessions are set aside under
+  `singles-d/<id>-limit<k>/` (counted in the ledger, read by no verdict) and the batch stops.
+- The batch also stops (a pause: `run` again resumes it, grading for free what already ran) on:
+  any other error result (it counts as run and is graded); an S session failing a systemic
+  treatment criterion ((a) to (e), (g), or D's commit), or (f) in 2 of the last 3 S sessions; a
+  changed seal or input; the ceiling; under 15 GB free. No retries. Ctrl+C is ignored.
 """
 
 from __future__ import annotations
@@ -34,6 +43,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -70,12 +80,15 @@ _path = os.environ.get("PATH", "").split(os.pathsep)
 if not _path or Path(_path[0]) != CLAUDE_DIR:
     os.environ["PATH"] = os.pathsep.join([str(CLAUDE_DIR), *_path])
 sys.path.insert(0, str(ADOPT))
+sys.path.append(str(HERE))
 
 import confirm  # noqa: E402
 import docker_env  # noqa: E402
+import guard_d  # noqa: E402
 import hook_env  # noqa: E402
 import run  # noqa: E402
 import singles_run  # noqa: E402
+from plan_d import VALIDATED, instances, order  # noqa: E402,F401  (run_d.instances, .order)
 
 if run.SANCHO != D_EXE or Path(hook_env.SANCHO) != D_EXE:
     # `run` was imported before this module, with another ADOPT_SANCHO.
@@ -93,15 +106,24 @@ REPS = 3
 HOLD_USD = CALL_CAP_USD * len(ARMS) * REPS  # an instance's six sessions, 9.00
 RUNS_D = run.ROOT / "singles-d"
 # The development probes' outputs (`benchmarks/adopt_dev/common.py`, PROFILES), read only.
-DEV_ROOTS = (ROOT / "dev-alwaysload", ROOT / "dev-nudge")
-VALIDATED = HERE / "singles-validated.json"
+DEV_ROOTS = (ROOT / "dev-alwaysload", ROOT / "dev-need", ROOT / "dev-nudge")
 PREREG = REPO / "docs" / "results" / "2026-10-03-adopt-d"
 A_MANIFEST = REPO / "docs" / "results" / "2026-09-30-adopt" / "prereg-confirm.manifest.json"
 FIND_TOOL = "mcp__sanchopanza__find_in_repo"
-NOT_RUN_ERROR = "NOT RUN (error result)"
-NOT_RUN_HARNESS = "NOT RUN (harness)"
+NOT_RUN_ERROR = "NOT RUN (error result)"  # a usage limit: run again whole
+NOT_RUN_HARNESS = "NOT RUN (harness)"  # `claude -p` never started: run again whole
+ERROR_OTHER = "error result (not a usage limit)"  # ran: graded on its diff, and the batch stops
+# What makes an error result a usage limit: the 429 the API reports, or the limit named in the
+# result's text ("You've hit your weekly limit", phase A's ten).
+LIMIT_TEXT = re.compile(r"\b429\b|usage limit|weekly limit|rate limit|hit your [\w ]*limit", re.I)
 EMPTY_DIFF = "empty diff"
 MIN_DISK_GB = 15.0
+CLAUDE_HOME = Path.home() / ".claude"
+# Treatment criteria whose failure says the install or the harness is broken for every session to
+# come: the batch stops at the first. (f), Jev's error rate, can be one bad session: it excludes
+# that session, and stops the batch only when it fails in F_STOP of the last F_WINDOW S sessions.
+SYSTEMIC = ("commit", "a", "b", "c", "d", "e", "g")
+F_STOP, F_WINDOW = 2, 3
 # What D's seal must name, besides every file of benchmarks/adopt_d/*.py, *.json and
 # benchmarks/adopt/*.py as they are now.
 REQUIRED = (
@@ -202,28 +224,6 @@ def d_refusal(keyfile: Path, model: str = D_MODEL) -> str | None:
 # ---- the plan ------------------------------------------------------------------------------------
 
 
-def instances(path: Path = VALIDATED) -> list[dict[str, Any]]:
-    """The held-out singles in table order, as `validate_d.py` writes them: a complete
-    validation's `selected` list (each with `instance_id` and `stratum`; a bare id is taken as
-    one with no stratum). Everything that reads the plan reads it here."""
-    if not path.exists():
-        raise SystemExit(f"no {path.name}: validate the images first (validate_d.py)")
-    data = read_json(path)
-    if isinstance(data, dict) and data.get("complete") is False:
-        raise SystemExit(f"{path.name}: the validation is not complete")
-    chosen = data.get("selected") if isinstance(data, dict) else data
-    if not isinstance(chosen, list) or not chosen:
-        raise SystemExit(f"{path.name}: no `selected` list")
-    out = [{"instance_id": item, "stratum": None, "image": None} if isinstance(item, str)
-           else {"instance_id": item["instance_id"], "stratum": item.get("stratum"),
-                 "image": item.get("image")}
-           for item in chosen]  # fmt: skip
-    names = [i["instance_id"] for i in out]
-    if len(set(names)) != len(names):
-        raise SystemExit(f"{path.name}: an instance is listed twice")
-    return out
-
-
 def evidence_of(name: str, rep: int, arm: str) -> Path:
     return RUNS_D / name / f"r{rep}" / arm
 
@@ -235,6 +235,26 @@ def work_of(name: str, rep: int, arm: str) -> Path:
 def key_name(name: str, rep: int) -> str:
     """The name `run.arm_keyfile` keys an S session's key path by: one per repetition."""
     return f"{name}-r{rep}"
+
+
+# ---- what no seal covers: inputs both arms load, and one batch at a time -----------------------
+
+
+def unsealed_inputs() -> dict[str, str | None]:
+    return guard_d.inputs(CLAUDE_HOME, singles_run.SWE)
+
+
+def pair_refusal(recorded: dict[str, str | None]) -> str | None:
+    """Why the next pair may not start: the seal, or an input changed since the batch started."""
+    if why := seal_refusal():
+        return why
+    if moved := guard_d.changed(recorded, unsealed_inputs()):
+        return f"inputs changed since the batch started: {moved}"
+    return None
+
+
+def take_lock() -> Path:
+    return guard_d.take_lock(RUNS_D / "batch.lock", log)
 
 
 # ---- money ---------------------------------------------------------------------------------------
@@ -291,7 +311,8 @@ def ceiling() -> float:
 def find_hidden(evidence: Path) -> str:
     """Why find_in_repo was not visible to the session (prereg (g)), or "" when it was: in the
     init line's tools, the transcript copied, named by no `deferred_tools_delta` attachment of
-    it, and the copied mcp.json registering its server with `"alwaysLoad": true`."""
+    it (its `addedNames` and `addedLines`), and the copied mcp.json registering its server with
+    `"alwaysLoad": true`."""
     stream = evidence / "stream-1.jsonl"
     events = confirm.events(stream) if stream.exists() else []
     init = next((e for e in events if e.get("type") == "system" and e.get("subtype") == "init"),
@@ -305,9 +326,11 @@ def find_hidden(evidence: Path) -> str:
         return "transcript not copied"
     for entry in confirm.events(transcript):
         attachment = entry.get("attachment")
-        if (isinstance(attachment, dict) and attachment.get("type") == "deferred_tools_delta"
-                and FIND_TOOL in json.dumps(attachment)):  # fmt: skip
-            return "deferred: a deferred_tools_delta names it"
+        if not isinstance(attachment, dict) or attachment.get("type") != "deferred_tools_delta":
+            continue
+        added = [*(attachment.get("addedNames") or []), *(attachment.get("addedLines") or [])]
+        if any(FIND_TOOL in str(name) for name in added):
+            return "deferred: a deferred_tools_delta adds it"
     mcp = evidence / "mcp.json"
     if not mcp.exists():
         return "no copied mcp.json"
@@ -330,7 +353,7 @@ def one(row: dict[str, Any], arm: str, rep: int, keyfile: Path) -> None:
     if (evidence / "row.json").exists():
         return
     if evidence.exists():
-        # Started before and left no row (a crash): never run again, its pair is missing.
+        # An earlier attempt left no row: never started here; the runner sets it aside first.
         raise RuntimeError(f"{name} r{rep} {arm}: evidence of an earlier attempt and no row.json")
     if any(run.projects_dir(work).glob("*.jsonl")):  # amendment 2
         raise RuntimeError(f"{name} r{rep} {arm}: earlier sessions in {run.projects_dir(work)}")
@@ -348,10 +371,10 @@ def one(row: dict[str, Any], arm: str, rep: int, keyfile: Path) -> None:
     env = {**run.child_env(row["image"], base), "ADOPT_PREFIX": singles_run.CONDA,
            "ADOPT_TEST_CMD": command}  # fmt: skip
     prompt = singles_run.PROMPT.format(issue=row["problem_statement"].strip(), command=command)
+    started = time.time()
     call = session_call(run.command(D_MODEL, prompt, None, mcp), work, env, prompt, evidence)
     log(f"{name} r{rep} {arm}: {call.get('status') or call.get('subtype')} "
-        f"{call['cost_usd']:.3f} USD turns {call.get('turns')} "
-        f"tools {call.get('tools')}")  # fmt: skip
+        f"{call['cost_usd']:.3f} USD turns {call.get('turns')}")  # fmt: skip
     (evidence / "final.patch").write_text(docker_env.agent_diff(work, base), encoding="utf-8",
                                           newline="\n")  # fmt: skip
     session = call.get("session")
@@ -359,12 +382,21 @@ def one(row: dict[str, Any], arm: str, rep: int, keyfile: Path) -> None:
     if source:
         shutil.copy(source, evidence / "transcript.jsonl")
     record = {"instance": name, "rep": rep, "arm": arm, "model": D_MODEL, "image": row["image"],
-              "base": base, "jev_usd": run.jev_usd(evidence), "sanchopanza": run.provenance(),
-              "claude_version": run.claude_version(),
+              "base": base, "started": started, "jev_usd": run.jev_usd(evidence),
+              "sanchopanza": run.provenance(), "claude_version": run.claude_version(),
+              "inputs": unsealed_inputs(),
               "transcript": {"source": str(source) if source else None, "copied": bool(source)},
               **({"decider": probes, "find_hidden": find_hidden(evidence)} if probes else {}),
               "calls": [call]}  # fmt: skip
     (evidence / "row.json").write_text(json.dumps(record, indent=1), encoding="utf-8")
+
+
+def limit_error(stream: Path) -> bool:
+    """An error result that names a usage limit: the API's 429, or the limit in its text."""
+    result = next((e for e in reversed(confirm.events(stream)) if e.get("type") == "result"), {})
+    return result.get("api_error_status") == 429 or bool(
+        LIMIT_TEXT.search(str(result.get("result") or ""))
+    )
 
 
 def session_call(
@@ -372,29 +404,36 @@ def session_call(
 ) -> dict[str, Any]:
     """The `claude -p` call as singles_run.one makes it (stderr kept beside the stream)."""
     # The instance's hold (HOLD_USD) is what bounds the call against the ceiling; it is
-    # reserved and settled as in singles_run.one so the in-process ledger moves with it.
+    # reserved and settled as in singles_run.one so the in-process ledger moves with it, and
+    # settled whatever happens.
     if not run.reserve(float("inf")):
         return {"request": 1, "status": "NOT RUN (ceiling)", "cost_usd": 0.0}
-    stream, began = evidence / "stream-1.jsonl", time.time()
-    with stream.open("wb") as out, (evidence / "stream-1.err").open("wb") as err:
-        try:
-            code = subprocess.run(cmd, cwd=work, env=env, input=run.stdin_for(prompt), stdout=out,
-                                  stderr=err, timeout=run.CALL_TIMEOUT_S).returncode  # fmt: skip
-        except subprocess.TimeoutExpired:
-            code = -9
-        except OSError as exc:  # could not even start `claude`: the harness, not the arm
-            err.write(f"{type(exc).__name__}: {exc}".encode())
-            code = -1
-    seen = run.facts(stream)
-    # A call cut by the timeout is charged its cap (a fresh session: nothing to take a
-    # difference from).
-    seen = {**seen, "cost_usd": seen["cost_usd"] or (run.CALL_CAP_USD if code == -9 else 0.0)}
-    run.settle(seen["cost_usd"])
-    call = {"request": 1, "exit": code, "wall_s": round(time.time() - began, 1), **seen}
+    stream, began, cost = evidence / "stream-1.jsonl", time.time(), 0.0
+    try:
+        with stream.open("wb") as out, (evidence / "stream-1.err").open("wb") as err:
+            try:
+                code = subprocess.run(cmd, cwd=work, env=env, input=run.stdin_for(prompt),
+                                      stdout=out, stderr=err,
+                                      timeout=run.CALL_TIMEOUT_S).returncode  # fmt: skip
+            except subprocess.TimeoutExpired:
+                code = -9
+            except OSError as exc:  # could not even start `claude`: the harness, not the arm
+                err.write(f"{type(exc).__name__}: {exc}".encode())
+                code = -1
+        seen = run.facts(stream)
+        # A call cut by the timeout is charged its cap (a fresh session: nothing to take a
+        # difference from).
+        cost = seen["cost_usd"] or (run.CALL_CAP_USD if code == -9 else 0.0)
+    finally:
+        run.settle(cost)
+    call = {"request": 1, "exit": code, "wall_s": round(time.time() - began, 1), **seen,
+            "cost_usd": cost}  # fmt: skip
     if code == -1 or run.harness_failed(code, seen):
         return {**call, "status": NOT_RUN_HARNESS}
     if seen.get("api_error"):
-        return {**call, "status": NOT_RUN_ERROR}  # an API or usage-limit error, not a result
+        # A usage limit is not a result of the arm; any other error result ran (graded on its
+        # diff) and stops the batch so that it is looked at.
+        return {**call, "status": NOT_RUN_ERROR if limit_error(stream) else ERROR_OTHER}
     return call
 
 
@@ -405,12 +444,15 @@ def grade_arm(name: str, evidence: Path, label: str) -> bool | None:
     """The official harness on the session's final diff; None (and no grade.json) when the
     harness gives no report: missing, not a loss. An empty diff is not resolved, without the
     harness (prereg, "Measures"): swebench drops an empty prediction before running it and writes
-    no report, and the official leaderboard counts it unresolved."""
+    no report, and the official leaderboard counts it unresolved. Every grade.json records the
+    sha256 of `run_swe.py`."""
+    swe = singles_run.SWE
+    wrapper = {"run_swe_sha256": guard_d.file_sha(swe / "run_swe.py")}
     patch = (evidence / "final.patch").read_text(encoding="utf-8")
     if patch == "":  # the harness's own test: `model_patch in ["", None]`
-        (evidence / "grade.json").write_text(json.dumps({"resolved": False, "reason": EMPTY_DIFF}),
+        (evidence / "grade.json").write_text(json.dumps({"resolved": False, "reason": EMPTY_DIFF,
+                                                         **wrapper}),
                                              encoding="utf-8")  # fmt: skip
-        log(f"{name} {label}: {EMPTY_DIFF}, not resolved")
         return False
     model = f"adopt-d-{label}"
     preds = evidence / "preds.jsonl"
@@ -418,7 +460,6 @@ def grade_arm(name: str, evidence: Path, label: str) -> bool | None:
                                  "model_patch": patch}) + "\n",
                      encoding="utf-8", newline="\n")  # fmt: skip
     run_id = f"{model}-{int(time.time())}"
-    swe = singles_run.SWE
     subprocess.run([str(singles_run.SWE_PYTHON), str(swe / "run_swe.py"), "-d",
                     "SWE-bench/SWE-bench_Verified", "-p", str(preds), "-i", name,
                     "--max_workers", "1", "-id", run_id], cwd=swe, capture_output=True,
@@ -428,18 +469,17 @@ def grade_arm(name: str, evidence: Path, label: str) -> bool | None:
         log(f"{name} {label}: no report from the harness, not graded")
         return None
     resolved = bool(read_json(report).get(name, {}).get("resolved"))
-    (evidence / "grade.json").write_text(json.dumps({"resolved": resolved, "report": str(report)}),
+    (evidence / "grade.json").write_text(json.dumps({"resolved": resolved, "report": str(report),
+                                                     **wrapper}),
                                          encoding="utf-8")  # fmt: skip
     return resolved
 
 
-def grade(name: str, rep: int, regrade: bool = False) -> dict[str, bool]:
-    """Both sessions of a repetition; one already graded keeps its grade unless `regrade`."""
+def grade(name: str, rep: int) -> dict[str, bool]:
+    """Both sessions of a repetition; one already graded keeps its grade."""
     out: dict[str, bool] = {}
     for arm in ARMS:
         evidence = evidence_of(name, rep, arm)
-        if regrade:
-            (evidence / "grade.json").unlink(missing_ok=True)
         if not gradable(evidence):
             continue
         if (resolved := grade_arm(name, evidence, f"{arm}-r{rep}")) is not None:
@@ -465,24 +505,29 @@ def ungraded(name: str) -> list[int]:
 
 
 def grade_instance(name: str) -> None:
+    """Grades what waits; the log says that it graded, never what (no outcome is seen live)."""
     for rep in dict.fromkeys(ungraded(name)):
         try:
-            log(f"{name} r{rep}: graded {grade(name, rep)}")
+            grade(name, rep)
+            log(f"graded {name} r{rep}")
         except (OSError, RuntimeError, subprocess.SubprocessError) as exc:
             log(f"{name} r{rep}: grading failed ({exc}); `run` or `grade` again grades it")
 
 
-# ---- state, set-aside, the batch -----------------------------------------------------------------
+# ---- state, set-aside, the stops -----------------------------------------------------------------
 
 
 def state(name: str, rep: int, arm: str) -> str:
-    """absent (never started), rowless (started, no row: missing for good), error (an error
-    result: set aside and run again), or done."""
+    """absent (never started); missing (its stream exists and no row: a crash after it started,
+    never run again); rerun (a usage limit, a `claude -p` that never started, or a folder with no
+    row and no stream: no outcome seen, set aside and run again whole); or done."""
     evidence = evidence_of(name, rep, arm)
     if not (evidence / "row.json").exists():
-        return "rowless" if evidence.exists() else "absent"
+        if not evidence.exists():
+            return "absent"
+        return "missing" if (evidence / "stream-1.jsonl").exists() else "rerun"
     status = str(read_json(evidence / "row.json")["calls"][0].get("status", ""))
-    return "error" if status == NOT_RUN_ERROR else "done"
+    return "rerun" if status in (NOT_RUN_ERROR, NOT_RUN_HARNESS) else "done"
 
 
 def states(name: str, rep: int) -> dict[str, str]:
@@ -491,7 +536,7 @@ def states(name: str, rep: int) -> dict[str, str]:
 
 def missing_reps(name: str) -> list[int]:
     """Repetitions with a session that started and left no row: never run again."""
-    return [rep for rep in range(1, REPS + 1) if "rowless" in states(name, rep).values()]
+    return [rep for rep in range(1, REPS + 1) if "missing" in states(name, rep).values()]
 
 
 def todo(name: str) -> list[tuple[int, list[str]]]:
@@ -499,19 +544,22 @@ def todo(name: str) -> list[tuple[int, list[str]]]:
     out = []
     for rep in range(1, REPS + 1):
         now = states(name, rep)
-        if "rowless" not in now and (arms := [a for a in ARMS if now[a] == "absent"]):
+        if "missing" not in now.values() and (arms := [a for a in ARMS if now[a] == "absent"]):
             out.append((rep, arms))
     return out
 
 
 def set_aside_limit(name: str) -> Path | None:
-    """An error result stopped the instance: every repetition of it, with the Claude Code folders
-    of its working copies, moves to `<id>-limit<k>` (counted in the ledger, read by no verdict)
-    and the instance runs again whole. A missing repetition stays where it is (never run again)."""
-    moving = [(rep, arm) for rep in range(1, REPS + 1) if rep not in missing_reps(name)
-              for arm in ARMS if state(name, rep, arm) != "absent"]  # fmt: skip
-    if not any(state(name, rep, arm) == "error" for rep, arm in moving):
+    """A session to run again (any repetition, the missing ones included): every repetition of
+    the instance, with the Claude Code folders of its working copies, moves to `<id>-limit<k>`
+    (counted in the ledger, read by no verdict) and the instance runs again whole. A missing
+    repetition stays where it is (never run again), all but its sessions to run again."""
+    missing = missing_reps(name)
+    found = [(rep, arm, state(name, rep, arm)) for rep in range(1, REPS + 1) for arm in ARMS]
+    if not any(s == "rerun" for _, _, s in found):
         return None
+    moving = [(rep, arm) for rep, arm, s in found
+              if s == "rerun" or (rep not in missing and s != "absent")]  # fmt: skip
     k = 1
     while (RUNS_D / f"{name}-limit{k}").exists():
         k += 1
@@ -523,14 +571,42 @@ def set_aside_limit(name: str) -> Path | None:
         projects = run.projects_dir(work_of(name, rep, arm))
         if projects.exists():
             shutil.move(str(projects), str(target / "claude-projects"))
-    log(f"{name}: an error result; {[f'r{r}/{a}' for r, a in moving]} set aside as {aside.name}, "
-        "run again whole")  # fmt: skip
+    log(f"{name}: {[f'r{r}/{a}' for r, a in moving]} set aside as {aside.name}, run again whole")
     return aside
 
 
-def run_pair(row: dict[str, Any], rep: int, arms: list[str], keyfile: Path) -> None:
+def last_s_sessions(n: int) -> list[Path]:
+    """The last `n` S sessions of the batch that ran to a row, by start (set-asides excluded)."""
+    done = [e for e in RUNS_D.glob("*/r*/S") if "-limit" not in e.parent.parent.name
+            and (e / "row.json").exists()]  # fmt: skip
+    started = {e: read_json(e / "row.json").get("started") or (e / "row.json").stat().st_mtime
+               for e in done}  # fmt: skip
+    return sorted(done, key=started.__getitem__)[-n:]
+
+
+def treatment_stop(name: str, rep: int) -> str:
+    """Why the batch stops after this pair's S session (prereg, the treatment's criteria): a
+    systemic criterion failed, or (f) failed here and in F_STOP of the last F_WINDOW."""
+    import confirm_d  # the verdicts' own reading of the criteria (it imports this module)
+
+    failed = [c for c, ok in confirm_d.criteria(evidence_of(name, rep, "S")).items() if not ok]
+    if systemic := [c for c in failed if c in SYSTEMIC]:
+        return f"{name} r{rep} S fails the treatment's {systemic}"
+    if "f" in failed:
+        recent = last_s_sessions(F_WINDOW)
+        bad = sum(not confirm_d.criteria(e)["f"] for e in recent)
+        if bad >= F_STOP:
+            return f"(f) Jev's errors in {bad} of the last {len(recent)} S sessions"
+    return ""
+
+
+def run_pair(
+    row: dict[str, Any], rep: int, arms: list[str], keyfile: Path, inputs: dict[str, str | None]
+) -> None:
     """N and S of one repetition, started together; then the stops a pair can call."""
     name = row["instance_id"]
+    if why := pair_refusal(inputs):
+        raise Stop(f"{name} r{rep} not started: {why}")
     if "S" in arms and (found := run.decider_probe(run.arm_keyfile(keyfile, key_name(name, rep),
                                                                    "S"))) != DECIDER:  # fmt: skip
         raise Stop(f"{name} r{rep}: the S arm's hooks would build {found}")
@@ -539,20 +615,24 @@ def run_pair(row: dict[str, Any], rep: int, arms: list[str], keyfile: Path) -> N
     log(f"{name} r{rep}: start {arms} ({ledger():.2f} USD spent)")
     with ThreadPoolExecutor(max_workers=len(arms)) as pool:
         list(pool.map(lambda arm: one(row, arm, rep, keyfile), arms))
-    rows = {arm: read_json(evidence_of(name, rep, arm) / "row.json") for arm in arms}
-    statuses = {arm: str(r["calls"][0].get("status", "")) for arm, r in rows.items()}
-    if NOT_RUN_ERROR in statuses.values():
+    now = {arm: state(name, rep, arm) for arm in arms}
+    rows = {arm: evidence_of(name, rep, arm) / "row.json" for arm in arms}
+    statuses = {arm: str(read_json(path)["calls"][0].get("status", "")) if path.exists()
+                else "no row" for arm, path in rows.items()}  # fmt: skip
+    if "rerun" in now.values():
         set_aside_limit(name)
-        raise Stop(f"{name} r{rep}: an API or usage-limit error result {statuses}")
-    if NOT_RUN_HARNESS in statuses.values():
-        raise Stop(f"{name} r{rep}: claude -p did not start {statuses}")
-    if "S" in rows and rows["S"].get("find_hidden"):
-        raise Stop(f"{name} r{rep} S: find_in_repo not visible ({rows['S']['find_hidden']})")
+        raise Stop(f"{name} r{rep}: a usage limit or a session that never started {statuses}")
+    if ERROR_OTHER in statuses.values():
+        raise Stop(f"{name} r{rep}: an error result that is not a usage limit {statuses}")
+    if "S" in arms and (why := treatment_stop(name, rep)):
+        raise Stop(why)
 
 
-def run_instance(row: dict[str, Any], keyfile: Path, top: float) -> None:
+def run_instance(
+    row: dict[str, Any], keyfile: Path, top: float, inputs: dict[str, str | None]
+) -> None:
     name = row["instance_id"]
-    set_aside_limit(name)  # an error result an earlier run left in place
+    set_aside_limit(name)  # a session to run again that an earlier run left in place
     if missing := missing_reps(name):
         log(f"{name}: repetitions {missing} have a session with no row: their pairs are missing")
     plan = todo(name)
@@ -561,33 +641,38 @@ def run_instance(row: dict[str, Any], keyfile: Path, top: float) -> None:
     if not plan and not needs_harness(name):
         grade_instance(name)  # only empty diffs wait: graded without the image
         return
-    if plan:
-        if docker_env.disk_free_gb() < MIN_DISK_GB:
-            raise Stop(f"under {MIN_DISK_GB} GB free on C:")
-        with run._lock:
-            run._ledger["spent"] = ledger()
-        if not run.reserve(top, HOLD_USD):  # all or nothing: its six sessions' caps
-            raise Stop(f"{name}: its sessions' caps ({HOLD_USD:.2f} USD) do not fit under the "
-                       f"ceiling ({run._ledger['spent']:.2f} of {top:.2f} spent)")  # fmt: skip
+    held = 0.0
     try:
+        if plan:
+            if docker_env.disk_free_gb() < MIN_DISK_GB:
+                raise Stop(f"under {MIN_DISK_GB} GB free on C:")
+            with run._lock:
+                run._ledger["spent"] = ledger()
+            if not run.reserve(top, HOLD_USD):  # all or nothing: its six sessions' caps
+                spent = run._ledger["spent"]
+                raise Stop(f"{name}: its sessions' caps ({HOLD_USD:.2f} USD) do not fit under "
+                           f"the ceiling ({spent:.2f} of {top:.2f} spent)")  # fmt: skip
+            held = HOLD_USD
         docker_env.pull(row["image"])
         try:
             for rep, arms in plan:
-                run_pair(row, rep, arms, keyfile)
+                run_pair(row, rep, arms, keyfile, inputs)
         finally:
             grade_instance(name)  # what ran is graded even when the batch stops here
             docker_env.drop(row["image"])
     finally:
-        if plan:
-            run.release(HOLD_USD)
+        run.release(held)
+
+
+# ---- the batch -----------------------------------------------------------------------------------
 
 
 def plan_rows() -> list[dict[str, Any]]:
-    """The validated instances in table order with their `singles_run.rows()` row (image and
-    statement); refuses an image other than the one validated."""
+    """The validated instances in run order (`order`) with their `singles_run.rows()` row (image
+    and statement); refuses an image other than the one validated."""
     known = singles_run.rows()
     out = []
-    for item in instances():
+    for item in order(instances()):
         name = item["instance_id"]
         if name not in known:
             raise SystemExit(f"{name} has no row in singles_run.rows()")
@@ -598,28 +683,38 @@ def plan_rows() -> list[dict[str, Any]]:
 
 
 def batch() -> None:
-    rows = plan_rows()
-    keyfile = run.keyfile_from_indagis()
+    lock = take_lock()
     try:
-        if why := d_refusal(keyfile):
-            raise SystemExit(why)
-        top = ceiling()
-        log(f"D START {len(rows)} instances x {REPS} repetitions; spent {ledger():.2f} USD, "
-            f"ceiling {top:.2f}")  # fmt: skip
-        for row in rows:
-            run_instance(row, keyfile, top)
+        rows = plan_rows()
+        keyfile = run.keyfile_from_indagis()
+        try:
+            if why := d_refusal(keyfile):
+                raise SystemExit(why)
+            top, inputs = ceiling(), unsealed_inputs()
+            log(f"D START {len(rows)} instances x {REPS} repetitions; spent {ledger():.2f} USD, "
+                f"ceiling {top:.2f}; order {[r['instance_id'] for r in rows]}")  # fmt: skip
+            log(f"D INPUTS {json.dumps(inputs)}")
+            for row in rows:
+                run_instance(row, keyfile, top, inputs)
+        finally:
+            keyfile.unlink(missing_ok=True)
+            run.drop_arm_keys()
     finally:
-        keyfile.unlink(missing_ok=True)
-        run.drop_arm_keys()
+        lock.unlink(missing_ok=True)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=("check", "ledger", "run", "grade"))
+    parser.add_argument("action", choices=("check", "ledger", "run", "grade", "selftest"))
+    parser.add_argument("instance", nargs="?", help="selftest: one validated instance")
     args = parser.parse_args(argv)
     if args.action == "ledger":
         print(json.dumps({**ledger_parts(), "total": ledger()}, indent=1))
         return 0
+    if args.action == "selftest":
+        import selftest_d
+
+        return selftest_d.main(args.instance)
     if args.action == "check":
         keyfile = run.keyfile_from_indagis()
         try:
@@ -627,8 +722,9 @@ def main(argv: list[str] | None = None) -> int:
         finally:
             keyfile.unlink(missing_ok=True)
             run.drop_arm_keys()
-        plan = {"plan": [r["instance_id"] for r in plan_rows()], "spent": ledger(),
-                "ceiling": None if CEILING_BASE_USD is None else ceiling()}  # fmt: skip
+        plan = {"order": [r["instance_id"] for r in plan_rows()], "spent": ledger(),
+                "ceiling": None if CEILING_BASE_USD is None else ceiling(),
+                "inputs": unsealed_inputs()}  # fmt: skip
         print(json.dumps(plan, indent=1))
         return 0
     if args.action == "grade":
@@ -666,4 +762,6 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    # One module, not two: confirm_d and selftest_d import `run_d`, which must be this one.
+    sys.modules["run_d"] = sys.modules[__name__]
     raise SystemExit(main())

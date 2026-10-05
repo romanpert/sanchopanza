@@ -20,8 +20,9 @@ import run_d  # noqa: E402
 
 def pair(res_n: int, res_s: int, cost_n: float = 1.0, cost_s: float = 1.0, turns_n: int = 10,
          turns_s: int = 10, find: int = 0) -> dict:  # fmt: skip
-    n = {"why": "", "resolved": res_n, "cost": cost_n, "turns": turns_n, "jev": 0.0, "find": 0,
-         "tool_search": 0, "skill": 0}  # fmt: skip
+    n = {"why": "", "codes": [], "resolved": res_n, "cost": cost_n, "turns": turns_n, "jev": 0.0,
+         "find": 0, "tool_search": 0, "skill": 0, "skill_other": 0, "agent": 0,
+         "delegation_failed": 0, "agent_not_found": 0}  # fmt: skip
     s = {**n, "resolved": res_s, "cost": cost_s, "turns": turns_s, "find": find}
     return {"N": n, "S": s, "complete": True}
 
@@ -32,7 +33,7 @@ def item(name: str, pairs: list[dict], stratum: str = "general-easy") -> dict:
 
 
 def missing(name: str) -> dict:
-    gone = {"why": "no row"}
+    gone = {"why": "no row", "codes": ["no row"]}
     return item(name, [{"N": gone, "S": gone, "complete": False}])
 
 
@@ -41,7 +42,7 @@ def missing(name: str) -> dict:
 
 def test_percentiles_by_index() -> None:
     draws = list(range(10_000))
-    assert confirm_d.lower_bound(draws) == 500  # the 5th percentile, one-sided
+    assert confirm_d.lower_bound(draws) == 100  # draws[100]: the 1st percentile, one-sided
     assert confirm_d.interval(draws) == (250, 9749)  # as confirm.paired_interval
 
 
@@ -67,7 +68,7 @@ def test_bootstrap_on_two_values_stays_in_its_lattice() -> None:
 def test_h1_holds_when_the_arms_resolve_alike() -> None:
     table = [item(f"i{k}", [pair(k % 2, k % 2)] * 3) for k in range(26)]
     out = confirm_d.h1(table)
-    assert out["difference"] == 0.0 and out["lower_bound_5pct"] == 0.0 and out["holds"] is True
+    assert out["difference"] == 0.0 and out["lower_bound_1pct"] == 0.0 and out["holds"] is True
 
 
 def test_h1_does_not_hold_when_s_loses_one_in_three_everywhere() -> None:
@@ -170,7 +171,10 @@ def test_why_not_reads_a_session(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     evidence = tmp_path / "N"
     evidence.mkdir()
     call = {"subtype": "success", "exit": 0, "cost_usd": 0.3, "turns": 5}
-    row = {"model": run_d.D_MODEL, "calls": [call], "jev_usd": 0.0}
+    row = {"model": run_d.D_MODEL, "calls": [call], "jev_usd": 0.0, "claude_version": "2.1.300"}
+    (evidence / "row.json").write_text(json.dumps(row), encoding="utf-8")
+    assert confirm_d.why_not(evidence, "N") == "claude version"
+    row["claude_version"] = run_d.CLAUDE_VERSION
     (evidence / "row.json").write_text(json.dumps(row), encoding="utf-8")
     assert confirm_d.why_not(evidence, "N") == "not graded"
     (evidence / "grade.json").write_text('{"resolved": true}', encoding="utf-8")
@@ -185,7 +189,8 @@ def test_an_empty_diff_session_counts_as_a_loss(tmp_path: Path) -> None:
     evidence = tmp_path / "N"
     evidence.mkdir()
     call = {"request": 1, "subtype": "success", "exit": 0, "cost_usd": 0.3, "turns": 5}
-    row = {"model": run_d.D_MODEL, "calls": [call], "jev_usd": 0.0}
+    row = {"model": run_d.D_MODEL, "calls": [call], "jev_usd": 0.0,
+           "claude_version": run_d.CLAUDE_VERSION}  # fmt: skip
     (evidence / "row.json").write_text(json.dumps(row), encoding="utf-8")
     (evidence / "final.patch").write_text("", encoding="utf-8")
     (evidence / "grade.json").write_text(json.dumps({"resolved": False,
@@ -202,3 +207,66 @@ def test_verdicts_refuse_to_read_until_sealed(monkeypatch: pytest.MonkeyPatch) -
     monkeypatch.setattr(run_d, "instances", lambda: pytest.fail("read before the seal"))
     with pytest.raises(SystemExit, match="not sealed"):
         confirm_d.main([])
+
+
+# ---- H2's unrounded bound, delegation, exclusions, the criteria ----------------------------------
+
+
+def test_h2_compares_the_unrounded_bound() -> None:
+    """A ratio of 1.09999 rounds to 1.1 in the report and is still below 1.10."""
+    table = [item(f"i{k}", [pair(1, 1, 1.0, 1.09999)] * 3) for k in range(26)]
+    out = confirm_d.h2(table)
+    assert out["interval"] == [1.1, 1.1] and out["non_inferior"] is True
+
+
+def _stream(path: Path, events: list[dict]) -> Path:
+    path.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
+    return path
+
+
+def _use(uid: str, name: str, given: dict) -> dict:
+    return {"type": "assistant", "message": {"content": [
+        {"type": "tool_use", "id": uid, "name": name, "input": given}]}}  # fmt: skip
+
+
+def _result(uid: str, text: str) -> dict:
+    block = {"type": "tool_result", "tool_use_id": uid, "is_error": True, "content": text}
+    return {"type": "user", "message": {"content": [block]}}
+
+
+def test_uses_counts_skills_and_failed_delegations(tmp_path: Path) -> None:
+    gone = "Agent type '{}' not found. Available agents: claude, Explore, general-purpose"
+    stream = _stream(tmp_path / "s.jsonl", [
+        _use("1", "Agent", {"subagent_type": "Explore"}), _result("1", gone.format("default")),
+        _use("2", "Task", {"subagent_type": "nonesuch"}), _result("2", gone.format("nonesuch")),
+        _use("3", "Agent", {"subagent_type": "Explore"}),
+        _use("4", "Skill", {"skill": "sanchopanza-code"}), _use("5", "Skill", {"skill": "pdf"}),
+        _use("6", run_d.FIND_TOOL, {}), _use("7", "ToolSearch", {})])  # fmt: skip
+    out = confirm_d.uses(stream)
+    assert out == {"find": 1, "tool_search": 1, "skill": 1, "skill_other": 1, "agent": 3,
+                   "delegation_failed": 1, "agent_not_found": 2}  # fmt: skip
+
+
+def test_delegation_and_exclusions_per_arm() -> None:
+    failed = pair(1, 1)
+    failed["S"] = {**failed["S"], "agent": 2, "delegation_failed": 2, "agent_not_found": 2}
+    untreated = {"why": "(g); not graded", "codes": ["(g)", "not graded"]}
+    table = [item("a", [failed, {"N": pair(1, 1)["N"], "S": untreated, "complete": False}])]
+    out = confirm_d.delegation(table)
+    assert out["S"] == {"sessions": 1, "agent_calls": 2, "agent_per_session": 2.0,
+                        "delegation_failed": 2, "sessions_with_failed": 1,
+                        "agent_not_found": 2}  # fmt: skip
+    assert out["N"]["sessions"] == 2 and out["N"]["delegation_failed"] == 0
+    gone = confirm_d.excluded(table)
+    assert gone["S"] == {"sessions": 2, "counted": 1, "(g)": 1, "not graded": 1}
+    assert gone["N"] == {"sessions": 2, "counted": 2}
+
+
+def test_criteria_agree_with_with_decider_on_a_recorded_probe() -> None:
+    probe = Path.home() / ".cache" / "sanchopanza" / "adopt" / "dev-nudge"
+    found = sorted(p for p in probe.glob("*/S") if (p / "transcript.jsonl").exists())
+    if not found:
+        pytest.skip("recorded sessions not on this machine")
+    out = confirm_d.criteria(found[0])
+    assert out["commit"] is False  # 4ee2901's copy, not D's
+    assert all(out[c] for c in "abcdefg")

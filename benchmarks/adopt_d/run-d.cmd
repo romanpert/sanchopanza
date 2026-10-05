@@ -1,6 +1,7 @@
 @echo off
 rem Phase D of the adoption study (benchmarks/adopt_d/run_d.py). Paid: list price under the
-rem ceiling sealed in run_d.py (CEILING_BASE_USD + 90.00), 1.50 per call, 9.00 held per instance.
+rem ceiling sealed in run_d.py (CEILING_BASE_USD + CEILING_ADDED_USD), 1.50 per call, 9.00 held
+rem per instance.
 rem Only once the prereg is sealed. Start it outside any Claude Code session, and not alongside
 rem another run on the subscription:
 rem   Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='cmd.exe /c "C:\Users\roman\Desktop\proyectos\apps\sanchopanza\benchmarks\adopt_d\run-d.cmd"'}

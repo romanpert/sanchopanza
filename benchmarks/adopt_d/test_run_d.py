@@ -90,12 +90,13 @@ def test_an_instance_starts_only_if_its_hold_fits(roots: Path, monkeypatch) -> N
     calls: list[str] = []
     _no_docker(monkeypatch, calls)
     monkeypatch.setattr(run_d, "ledger", lambda: 100.0)
-    monkeypatch.setattr(run_d, "run_pair", lambda row, rep, arms, key: calls.append(f"r{rep}"))
+    monkeypatch.setattr(run_d, "run_pair",
+                        lambda row, rep, arms, key, inputs: calls.append(f"r{rep}"))  # fmt: skip
     monkeypatch.setitem(run._ledger, "reserved", 0.0)
     with pytest.raises(run_d.Stop, match="do not fit"):
-        run_d.run_instance(ROW, roots / "key", top=108.99)
+        run_d.run_instance(ROW, roots / "key", 108.99, {})
     assert calls == [] and run._ledger["reserved"] == 0.0
-    run_d.run_instance(ROW, roots / "key", top=109.00)  # exactly room for 9.00
+    run_d.run_instance(ROW, roots / "key", 109.00, {})  # exactly room for 9.00
     assert calls == ["pull", "r1", "r2", "r3", "grade", "drop"]
     assert run._ledger["reserved"] == 0.0  # released after the instance
 
@@ -106,13 +107,28 @@ def test_the_hold_is_released_when_a_pair_stops_the_batch(roots: Path, monkeypat
     monkeypatch.setattr(run_d, "ledger", lambda: 0.0)
     monkeypatch.setitem(run._ledger, "reserved", 0.0)
 
-    def limited(row: dict, rep: int, arms: list, key: Path) -> None:
+    def limited(row: dict, rep: int, arms: list, key: Path, inputs: dict) -> None:
         raise run_d.Stop("usage limit")
 
     monkeypatch.setattr(run_d, "run_pair", limited)
     with pytest.raises(run_d.Stop):
-        run_d.run_instance(ROW, roots / "key", top=50.0)
+        run_d.run_instance(ROW, roots / "key", 50.0, {})
     assert calls == ["pull", "grade", "drop"] and run._ledger["reserved"] == 0.0
+
+
+def test_the_hold_is_released_on_any_exception(roots: Path, monkeypatch) -> None:
+    calls: list[str] = []
+    _no_docker(monkeypatch, calls)
+    monkeypatch.setattr(run_d, "ledger", lambda: 0.0)
+    monkeypatch.setitem(run._ledger, "reserved", 0.0)
+
+    def broken(image: str) -> None:
+        raise RuntimeError("pull failed")
+
+    monkeypatch.setattr(run_d.docker_env, "pull", broken)
+    with pytest.raises(RuntimeError, match="pull failed"):
+        run_d.run_instance(ROW, roots / "key", 50.0, {})
+    assert run._ledger["reserved"] == 0.0
 
 
 def test_spent_d_counts_rows_jev_set_asides_and_crashes(roots: Path) -> None:
@@ -135,6 +151,16 @@ def test_spent_dev_counts_rows_and_abandoned_attempts(tmp_path: Path) -> None:
     assert run_d.spent_dev((tmp_path / "a", tmp_path / "none")) == pytest.approx(1.93)
 
 
+def test_the_need_probe_is_in_the_ledger(tmp_path: Path, monkeypatch) -> None:
+    assert [r.name for r in run_d.DEV_ROOTS] == ["dev-alwaysload", "dev-need", "dev-nudge"]
+    need = tmp_path / "dev-need"
+    _row(need / "x" / "S", 0.70, jev=0.01)
+    (need / "y" / "S-abandoned-1").mkdir(parents=True)
+    (need / "y" / "S-abandoned-1" / "abandoned.json").write_text(json.dumps({"charged_usd": 1.5}))
+    monkeypatch.setattr(run_d, "DEV_ROOTS", (tmp_path / "dev-alwaysload", need))
+    assert run_d.spent_dev(run_d.DEV_ROOTS) == pytest.approx(2.21)
+
+
 def test_the_ceiling_needs_its_base(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(run_d, "CEILING_BASE_USD", None)
     with pytest.raises(SystemExit):
@@ -152,7 +178,8 @@ def test_an_error_result_sets_the_instance_aside_and_keeps_missing_pairs(roots: 
     _row(ev(NAME, 1, "S"))
     _row(ev(NAME, 2, "N"))
     _row(ev(NAME, 2, "S"), status=run_d.NOT_RUN_ERROR)
-    ev(NAME, 3, "S").mkdir(parents=True)  # started, no row: missing for good
+    ev(NAME, 3, "S").mkdir(parents=True)  # started (its stream), no row: missing for good
+    (ev(NAME, 3, "S") / "stream-1.jsonl").write_text("{}\n", encoding="utf-8")
     _row(ev(NAME, 3, "N"))
     projects = run.projects_dir(run_d.work_of(NAME, 2, "S"))
     projects.mkdir(parents=True)
@@ -176,8 +203,9 @@ def test_a_pair_with_an_error_result_stops_the_batch(roots: Path, monkeypatch) -
     monkeypatch.setattr(run_d, "one", fake_one)
     monkeypatch.setattr(run_d, "ledger", lambda: 0.0)
     monkeypatch.setattr(run, "decider_probe", lambda key: run_d.DECIDER)
-    with pytest.raises(run_d.Stop, match="error result"):
-        run_d.run_pair(ROW, 1, ["N", "S"], roots / "key")
+    monkeypatch.setattr(run_d, "pair_refusal", lambda inputs: None)
+    with pytest.raises(run_d.Stop, match="usage limit"):
+        run_d.run_pair(ROW, 1, ["N", "S"], roots / "key", {})
     run.drop_arm_keys()
     assert (roots / "singles-d" / f"{NAME}-limit1" / "r1" / "S" / "row.json").exists()
     assert run_d.todo(NAME)[0] == (1, ["N", "S"])
@@ -207,7 +235,8 @@ def test_an_empty_diff_is_graded_not_resolved_without_the_harness(roots: Path, m
     assert run_d.ungraded(NAME) == [1, 1] and run_d.needs_harness(NAME)
     assert run_d.grade_arm(NAME, empty, "N-r1") is False
     assert json.loads((empty / "grade.json").read_text(encoding="utf-8")) == {
-        "resolved": False, "reason": "empty diff"}  # fmt: skip
+        "resolved": False, "reason": "empty diff",
+        "run_swe_sha256": run_d.guard_d.file_sha(run_d.singles_run.SWE / "run_swe.py")}  # fmt: skip
     assert not (empty / "preds.jsonl").exists()
     assert run_d.ungraded(NAME) == [1]  # the non-empty diff still waits for the harness
     (run_d.evidence_of(NAME, 1, "S") / "grade.json").write_text('{"resolved": true}')
@@ -227,7 +256,7 @@ def test_only_empty_diffs_waiting_pull_no_image(roots: Path, monkeypatch) -> Non
             _patch(NAME, rep, arm, "diff --git a/x b/x\n", graded=True)
     (run_d.evidence_of(NAME, 2, "S") / "grade.json").unlink()
     (run_d.evidence_of(NAME, 2, "S") / "final.patch").write_text("", encoding="utf-8")
-    run_d.run_instance(ROW, roots / "key", top=0.0)  # nothing to run, one empty diff to grade
+    run_d.run_instance(ROW, roots / "key", 0.0, {})  # nothing to run, one empty diff to grade
     assert json.loads((run_d.evidence_of(NAME, 2, "S") / "grade.json").read_text())["reason"] == (
         "empty diff")  # fmt: skip
     (run_d.evidence_of(NAME, 2, "S") / "grade.json").unlink()
@@ -400,3 +429,173 @@ def test_sealed_but_another_frozen_copy_is_refused(monkeypatch, tmp_path: Path) 
     assert "without ['mcp']" in run_d.d_refusal(tmp_path / "key")
     monkeypatch.setattr(run, "frozen_stamp", lambda: {"commit": "0" * 40, "extras": ["jev", "mcp"]})
     assert "phase D runs claude" in run_d.d_refusal(tmp_path / "key", model="claude-sonnet-5-5")
+
+
+# ---- review fixes: order, inputs, lock, error kinds, treatment stops, logs -----------------------
+
+
+def test_order_is_seeded_and_spreads_the_strata() -> None:
+    items = [{"instance_id": f"e{k}", "stratum": "general-easy"} for k in range(10)]
+    items += [{"instance_id": f"m{k}", "stratum": "general-medium"} for k in range(10)]
+    items += [{"instance_id": f"h{k}", "stratum": "hard"} for k in range(6)]
+    first, again = run_d.order(items), run_d.order(items)
+    assert first == again and sorted(map(str, first)) == sorted(map(str, items))
+    hard = [k for k, i in enumerate(first) if i["stratum"] == "hard"]
+    assert max(b - a for a, b in zip(hard, hard[1:], strict=False)) <= 5
+    assert hard[0] <= 4 and hard[-1] >= 21  # neither bunched at the start nor at the end
+    assert run_d.order(items, seed=1) != first
+
+
+def test_a_pair_does_not_start_once_an_input_changed(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(run_d, "CLAUDE_HOME", tmp_path / "home")
+    (tmp_path / "home" / "rules").mkdir(parents=True)
+    (tmp_path / "home" / "CLAUDE.md").write_text("a", encoding="utf-8")
+    monkeypatch.setattr(run_d, "seal_refusal", lambda: None)
+    recorded = run_d.unsealed_inputs()
+    assert run_d.pair_refusal(recorded) is None
+    (tmp_path / "home" / "rules" / "new.md").write_text("b", encoding="utf-8")
+    assert "rules/new.md" in run_d.pair_refusal(recorded)
+    monkeypatch.setattr(run_d, "seal_refusal", lambda: "phase D is not sealed")
+    with pytest.raises(run_d.Stop, match="not sealed"):
+        run_d.run_pair(ROW, 1, ["N", "S"], tmp_path / "key", recorded)
+
+
+def test_one_batch_at_a_time(roots: Path) -> None:
+    lock = run_d.take_lock()
+    with pytest.raises(SystemExit, match="another batch"):
+        run_d.take_lock()  # this process holds it
+    lock.write_text("999999999", encoding="utf-8")  # a process that is gone
+    assert run_d.take_lock() == lock
+    lock.unlink()
+
+
+def _fake_claude(result: dict) -> list[str]:
+    lines = [{"type": "system", "subtype": "init", "session_id": "s1"},
+             {"type": "result", "session_id": "s1", **result}]  # fmt: skip
+    body = "".join(f"print({json.dumps(json.dumps(x))})\n" for x in lines)
+    return [sys.executable, "-c", body]
+
+
+@pytest.mark.parametrize(("result", "status"), [
+    ({"subtype": "success", "is_error": True, "api_error_status": 429,
+      "result": "You've hit your weekly limit"}, run_d.NOT_RUN_ERROR),
+    ({"subtype": "success", "is_error": True, "result": "Claude AI usage limit reached"},
+     run_d.NOT_RUN_ERROR),
+    ({"subtype": "success", "is_error": True, "result": "API Error: 500 overloaded"},
+     run_d.ERROR_OTHER),
+    ({"subtype": "success", "is_error": False, "total_cost_usd": 0.2, "result": "done"}, None),
+])  # fmt: skip
+def test_only_a_usage_limit_is_not_run(tmp_path: Path, monkeypatch, result, status) -> None:
+    monkeypatch.setitem(run._ledger, "reserved", 0.0)
+    call = run_d.session_call(_fake_claude(result), tmp_path, dict(run_d.os.environ), "p",
+                              tmp_path)  # fmt: skip
+    assert call.get("status") == status and run._ledger["reserved"] == 0.0
+    ran = run_d.confirm.ran(call)
+    assert ran is (status != run_d.NOT_RUN_ERROR)  # any other error result counts as run
+
+
+def test_sessions_that_never_started_are_run_again(roots: Path) -> None:
+    ev = run_d.evidence_of
+    _row(ev(NAME, 1, "N"))
+    _row(ev(NAME, 1, "S"), status=run_d.NOT_RUN_HARNESS)  # claude -p never started
+    assert run_d.state(NAME, 1, "S") == "rerun"
+    ev(NAME, 2, "N").mkdir(parents=True)  # a folder, no stream, no row (an export that failed)
+    assert run_d.state(NAME, 2, "N") == "rerun"
+    _row(ev(NAME, 3, "N"), status=run_d.ERROR_OTHER)
+    assert run_d.state(NAME, 3, "N") == "done"  # ran: graded, never run again
+    aside = run_d.set_aside_limit(NAME)
+    assert aside is not None
+    assert {p.relative_to(aside).as_posix() for p in aside.glob("r*/*")} == {
+        "r1/N", "r1/S", "r2/N", "r3/N"}  # fmt: skip
+    assert run_d.todo(NAME) == [(1, ["N", "S"]), (2, ["N", "S"]), (3, ["N", "S"])]
+
+
+def test_an_error_in_a_missing_repetition_still_sets_aside(roots: Path) -> None:
+    ev = run_d.evidence_of
+    ev(NAME, 1, "N").mkdir(parents=True)
+    (ev(NAME, 1, "N") / "stream-1.jsonl").write_text("{}\n", encoding="utf-8")  # missing
+    _row(ev(NAME, 1, "S"), status=run_d.NOT_RUN_ERROR)
+    _row(ev(NAME, 2, "N"))
+    _row(ev(NAME, 2, "S"))
+    aside = run_d.set_aside_limit(NAME)
+    assert aside is not None and (aside / "r1" / "S" / "row.json").exists()
+    assert (aside / "r2" / "N").exists() and ev(NAME, 1, "N").exists()  # missing stays
+    assert run_d.missing_reps(NAME) == [1] and run_d.set_aside_limit(NAME) is None
+
+
+def test_an_other_error_result_stops_the_batch_unset_aside(roots: Path, monkeypatch) -> None:
+    def fake_one(row: dict, arm: str, rep: int, key: Path) -> None:
+        _row(run_d.evidence_of(NAME, rep, arm), status=run_d.ERROR_OTHER if arm == "N" else "")
+
+    monkeypatch.setattr(run_d, "one", fake_one)
+    monkeypatch.setattr(run, "decider_probe", lambda key: run_d.DECIDER)
+    monkeypatch.setattr(run_d, "pair_refusal", lambda inputs: None)
+    monkeypatch.setattr(run_d, "ledger", lambda: 0.0)
+    with pytest.raises(run_d.Stop, match="not a usage limit"):
+        run_d.run_pair(ROW, 1, ["N", "S"], roots / "key", {})
+    run.drop_arm_keys()
+    assert run_d.todo(NAME) == [(2, ["N", "S"]), (3, ["N", "S"])]  # r1 stays, graded later
+
+
+def _criteria(monkeypatch, outcomes: dict[str, dict[str, bool]]) -> None:
+    import confirm_d
+
+    good = dict.fromkeys(("commit", "a", "b", "c", "d", "e", "f", "g"), True)
+    monkeypatch.setattr(confirm_d, "criteria",
+                        lambda e: {**good, **outcomes.get(e.parent.parent.name, {})})  # fmt: skip
+
+
+def test_a_systemic_criterion_stops_at_once(roots: Path, monkeypatch) -> None:
+    _row(run_d.evidence_of(NAME, 1, "S"))
+    _criteria(monkeypatch, {NAME: {"d": False}})
+    assert "['d']" in run_d.treatment_stop(NAME, 1)
+    _criteria(monkeypatch, {NAME: {"g": False}})
+    assert "['g']" in run_d.treatment_stop(NAME, 1)
+
+
+def test_f_stops_only_in_two_of_the_last_three(roots: Path, monkeypatch) -> None:
+    names = ["a__a-1", "b__b-2", "c__c-3", "d__d-4"]
+    for k, name in enumerate(names):
+        evidence = run_d.evidence_of(name, 1, "S")
+        _row(evidence)
+        row = json.loads((evidence / "row.json").read_text(encoding="utf-8"))
+        (evidence / "row.json").write_text(json.dumps({**row, "started": 100 + k}), "utf-8")
+    _criteria(monkeypatch, {"a__a-1": {"f": False}, "d__d-4": {"f": False}})
+    assert run_d.treatment_stop("d__d-4", 1) == ""  # a is outside the last three
+    _criteria(monkeypatch, {"c__c-3": {"f": False}, "d__d-4": {"f": False}})
+    assert "2 of the last 3" in run_d.treatment_stop("d__d-4", 1)
+    assert run_d.treatment_stop("b__b-2", 1) == ""  # (f) passes here: only excluded elsewhere
+
+
+def test_the_log_never_says_a_grade(roots: Path, monkeypatch, capsys) -> None:
+    _patch(NAME, 1, "N", "")
+    monkeypatch.setattr(run_d.singles_run, "SWE", roots)
+    run_d.grade_instance(NAME)
+    out = capsys.readouterr().out
+    assert f"graded {NAME} r1" in out and "False" not in out and "resolved" not in out
+
+
+def test_g_reads_only_the_added_names(tmp_path: Path) -> None:
+    init = {"type": "system", "subtype": "init", "tools": [run_d.FIND_TOOL]}
+    (tmp_path / "stream-1.jsonl").write_text(json.dumps(init) + "\n", encoding="utf-8")
+    server = {"mcpServers": {"sanchopanza": {"alwaysLoad": True}}}
+    (tmp_path / "mcp.json").write_text(json.dumps(server), encoding="utf-8")
+    removed = {"attachment": {"type": "deferred_tools_delta", "addedNames": ["Monitor"],
+                              "removedNames": [run_d.FIND_TOOL]}}  # fmt: skip
+    (tmp_path / "transcript.jsonl").write_text(json.dumps(removed) + "\n", encoding="utf-8")
+    assert run_d.find_visible(tmp_path)
+    added = {"attachment": {"type": "deferred_tools_delta", "addedLines": [run_d.FIND_TOOL]}}
+    (tmp_path / "transcript.jsonl").write_text(json.dumps(added) + "\n", encoding="utf-8")
+    assert run_d.find_hidden(tmp_path).startswith("deferred")
+
+
+def test_selftest_names_the_fail_to_pass_tests() -> None:
+    import selftest_d
+
+    django = selftest_d.test_args("django/django", ["test_x (app.tests.Case)", "a docstring"], "")
+    assert django == ["app.tests.Case.test_x"]
+    nodes = ["tests/test_a.py::test_b"]
+    assert selftest_d.test_args("sphinx-doc/sphinx", nodes, "") == nodes
+    patch = "+++ b/sympy/core/tests/test_x.py\n"
+    assert selftest_d.test_args("sympy/sympy", ["test_y", "test_z"], patch) == [
+        "sympy/core/tests/test_x.py", "-k", "test_y or test_z"]  # fmt: skip

@@ -3,6 +3,7 @@
     python benchmarks/adopt_d/draw.py scan    # every Verified id used before -> used-ids.json
     python benchmarks/adopt_d/draw.py draw    # the seeded draw -> singles-d.json (once only)
     python benchmarks/adopt_d/draw.py check   # scan again: is any drawn id now used elsewhere?
+                                              # (phase D's own folders skipped: CHECK_SKIP)
 
 Written before the draw (`docs/results/2026-10-03-adopt-d/prereg.md`, "Tasks").
 
@@ -64,6 +65,12 @@ BINARY = {".parquet", ".arrow", ".pyc", ".png", ".jpg", ".jpeg", ".gif", ".webp"
           ".webm", ".zip", ".gz", ".tar", ".whl", ".db", ".sqlite", ".pdf", ".exe", ".dll",
           ".pyd", ".so", ".bin", ".safetensors", ".pt", ".onnx", ".npy", ".npz"}  # fmt: skip
 MAX_BYTES = 400 * 1024 * 1024
+# Not read by `check`: phase D's own image validation (`validate_d.py`), its capture, its grading
+# self-test (`selftest_d.py`) and its results folder (the prereg's table) name drawn and spare ids
+# by design, after the draw. Their names are still read; nothing inside.
+CHECK_SKIP = (CACHE / "adopt" / "validate-d", CACHE / "adopt" / "d-capture",
+              CACHE / "adopt" / "d-selftest",
+              REPO / "docs" / "results" / "2026-10-03-adopt-d")  # fmt: skip
 
 
 def sha256(path: Path) -> str:
@@ -161,10 +168,10 @@ def by_code() -> dict[str, list[str]]:
     return {i: sorted(w) for i, w in out.items()}
 
 
-def scan() -> dict[str, Any]:
+def scan(also_skip: tuple[Path, ...] = ()) -> dict[str, Any]:
     rows = verified()
     ids = {r["instance_id"] for r in rows}
-    skip = {HERE}
+    skip = {HERE, *also_skip}
     cache = scan_tree(CACHE, ids, skip)
     repo: dict[str, Any] = {"hits": {}, "dumps": [], "skipped": []}
     for sub in ("benchmarks", "docs"):
@@ -267,7 +274,7 @@ def main(argv: list[str] | None = None) -> int:
     drawn = json.loads(OUT.read_text(encoding="utf-8"))
     names = {r["instance_id"] for r in drawn["held"]}
     names |= {r["instance_id"] for rows in drawn["spares"].values() for r in rows}
-    now = scan()["used"]
+    now = scan(CHECK_SKIP)["used"]
     clash = {i: now[i] for i in sorted(names & set(now))}
     print(json.dumps({"drawn_or_spare_now_used_elsewhere": clash}, indent=1))
     return 1 if clash else 0
