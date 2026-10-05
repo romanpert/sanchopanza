@@ -884,3 +884,34 @@ Free work, no session.
   Read. Replay of the dev log's 34 sessions reproduces its table. A gain test is not justified
   while the best trigger reaches a fifth of the need; next is a better trigger, or find with no
   nudge on 1-4 h and matplotlib issues, measuring adoption first.
+
+## The need probe: find where it is needed, on phase D's copy (2026-10-05)
+
+`benchmarks/adopt_dev/probe_need.py` (e51f7ca), S only, frozen copy of 7a39a1f (phase D's: the
+default install, find always loaded, no nudge, the delegation fix), Haiku 4.5, Claude Code
+2.1.285, one session on each of the 10 need-ranked instances of `benchmarks/find_need/`. 6.98 USD
+list price (cap 12.00). Development, no verdict; it ran alongside phase D (the owner's call made
+it non-blocking for D).
+
+| Instance | Resolved | Turns | Cost (USD) | Searches before gold Read |
+|---|---|---|---|---|
+| sympy-20428 | no | 41 | 0.38 | never |
+| sympy-20916 | no | 69 | 0.74 | never |
+| xarray-7393 | no | 128 | 1.22 | 12 |
+| sympy-12419 | yes | 104 | 1.09 | 8 |
+| django-14007 | yes | 109 | 0.97 | 22 |
+| django-15563 | no | 95 | 0.94 | 5 |
+| django-11211 | yes | 42 | 0.37 | never (edited after grep/sed, no Read) |
+| django-14011 | no | 46 | 0.34 | 5 |
+| matplotlib-25332 | yes | 61 | 0.51 | 13 |
+| matplotlib-26342 | yes | 37 | 0.42 | 6 |
+
+- **find visible 10/10, called 0/10**, ToolSearch 0, delegations 0 (none failed). Every session
+  was the treatment (JevDecider, server connected at init). Need was there: 7 of 10 took 5 or more
+  searches to the gold file or never Read it. So the description and instructions do not make
+  Haiku reach for find when it struggles; the agent keeps grepping.
+- "Searches before the gold Read" misses one path: django-11211 resolved without ever Reading the
+  gold file (it located and edited it through grep and sed in Bash).
+- Next (benchmarks/find_auto, f1ef58e, offline): stop asking the agent to choose find. Run it for
+  the agent at the struggle point and inject the places. Offline this only pays with a
+  source-only ranking, because find as shipped ranks docs, issue templates and yml first.
