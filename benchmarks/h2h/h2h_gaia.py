@@ -397,12 +397,15 @@ def phase_context(phase_name: str, brazos: Sequence[str], line: Any = None) -> d
             "line": chosen, "s_digest": digest, "s_hints": hints}  # fmt: skip
 
 
-def arms_preflight(brazos: Sequence[str], line: Any = None) -> list[str]:
-    """Both arms' user folders made as a session makes them; S's line proved flag by flag."""
+def arms_preflight(brazos: Sequence[str], line: Any = None, phase_name: str = "") -> list[str]:
+    """Both arms' user folders made as a session makes them; S's line proved flag by flag. In
+    folders of the phase's own (`preflight-<phase>`): suites started together shared one and
+    stopped each other (WinError 32, 2026-10-06)."""
+    name = f"preflight-{phase_name}" if phase_name else "preflight"
     try:
-        ctx = phase_context("preflight", brazos, line)
+        ctx = phase_context(name, brazos, line)
         for brazo in brazos:
-            config = RUNS / "preflight" / brazo / "config"
+            config = RUNS / name / brazo / "config"
             if config.parent.exists():
                 shutil.rmtree(config.parent)
             chosen = ctx.get("line")
@@ -491,12 +494,12 @@ def claude_problems() -> list[str]:
     return []
 
 
-def preflight(brazos: Sequence[str], line: Any = None) -> list[str]:
+def preflight(brazos: Sequence[str], line: Any = None, phase_name: str = "") -> list[str]:
     """Free. `line` is the S line the run will use (`--s-line`); None proves `s_install.json`."""
     problems = claude_problems()
     if not data.TASKS.exists():
         problems.append("no GAIA tasks in the cache: gaia_data.py --fetch")
-    problems.extend(arms_preflight(brazos, line))
+    problems.extend(arms_preflight(brazos, line, phase_name))
     probe_argv = argv_for("SONNET", RUNS / "s.json", RUNS / "m.json", 1.0, "q")
     for brazo in brazos:
         problems.extend(isolation_problems(settings_for(brazo)["flag"], probe_argv))
@@ -637,7 +640,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"{len(steps)} sessions; caps sum {sum(CAPS[split_arm(s[3])[0]] for s in steps):g}")
         return 0
     if args.preflight or args.live:
-        problems = preflight(args.brazos, arms.s_line.load(pathlib.Path(args.s_line)))
+        line = arms.s_line.load(pathlib.Path(args.s_line))
+        problems = preflight(args.brazos, line, args.phase)
         if problems:
             print("preflight: " + "; ".join(problems), file=sys.stderr)
             return 3

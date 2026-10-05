@@ -192,11 +192,16 @@ def local_hook_problems() -> list[str]:
 
 
 def preflight(brazos: Sequence[str], flag_settings: Mapping[str, Any],
-              data_problems: Sequence[str], line: Any = None) -> list[str]:  # fmt: skip
+              data_problems: Sequence[str], line: Any = None,
+              phase_name: str = "") -> list[str]:  # fmt: skip
     """Free: the pinned claude, the suite's data, both arms' user folders and S's line (`line`,
     the run's `--s-line`; None proves `s_install.json`), the permission mode and the user folder
     per session, the local hook."""
-    problems = [*gaia.claude_problems(), *data_problems, *gaia.arms_preflight(brazos, line)]
+    problems = [
+        *gaia.claude_problems(),
+        *data_problems,
+        *gaia.arms_preflight(brazos, line, phase_name),
+    ]
     probe = gaia.argv_for("SONNET", gaia.RUNS / "s.json", gaia.RUNS / "m.json", 1.0, "q",
                           tools=TOOLS, disallowed=DISALLOWED)  # fmt: skip
     return [*problems, *gaia.isolation_problems(flag_settings, probe), *local_hook_problems()]

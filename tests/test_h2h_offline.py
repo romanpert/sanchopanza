@@ -735,9 +735,15 @@ def test_the_preflight_proves_the_line_the_run_uses(monkeypatch):
     """`--s-line` reaches the preflight: before 2026-10-06 it proved s_install.json whatever the
     run was given, and an S1 line the live run refused passed it."""
     seen = []
-    monkeypatch.setattr(gaia, "arms_preflight", lambda brazos, line=None: seen.append(line) or [])
+
+    def arms_preflight(brazos, line=None, phase_name=""):
+        seen.append((line, phase_name))
+        return []
+
+    monkeypatch.setattr(gaia, "arms_preflight", arms_preflight)
     monkeypatch.setattr(gaia, "claude_problems", lambda: [])
     line = s_line.load(H2H / "s1_install.json")
-    common.preflight(["SP"], {}, [], line)
-    gaia.preflight(["SP"], line)
-    assert seen == [line, line]
+    common.preflight(["SP"], {}, [], line, "bcp-dev-s1")
+    gaia.preflight(["SP"], line, "dev-s1")
+    # and each phase proves it in folders of its own, so suites started together do not collide
+    assert seen == [(line, "bcp-dev-s1"), (line, "dev-s1")]

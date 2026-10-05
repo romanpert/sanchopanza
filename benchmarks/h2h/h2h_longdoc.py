@@ -198,7 +198,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return 0
     line = gaia.arms.s_line.load(pathlib.Path(args.s_line))
-    problems = (common.preflight(args.brazos, flag_settings(), data_problems(), line)
+    problems = (common.preflight(args.brazos, flag_settings(), data_problems(), line,
+                                 args.phase)
                 if args.preflight or args.live else [])  # fmt: skip
     if args.preflight:
         print("preflight: " + ("; ".join(problems) or "ok"), file=sys.stderr)
