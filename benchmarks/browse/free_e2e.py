@@ -151,13 +151,26 @@ def refused(reply: str, stderr: str, is_error: bool) -> bool:
     return is_error and bool(_REFUSED.search(f"{reply} {stderr}"))
 
 
-def session_settings(deny: Sequence[str] = (), hooks: Mapping[str, Any] | None = None) -> dict:
-    """The session's own settings file: the calibration's allow list, plus the deny rules and
-    hooks an arm adds (`free_frames.py`). Never a user or global setting: `--setting-sources ""`."""
-    permissions: dict[str, Any] = {"allow": TOOLS.split()}
+def session_settings(
+    deny: Sequence[str] = (), hooks: Mapping[str, Any] | None = None, tools: str | None = None
+) -> dict:
+    """The session's own settings file: the calibration's allow list (or `tools`), plus the deny
+    rules and hooks an arm adds (`free_frames.py`). Never a user or global setting:
+    `--setting-sources ""`."""
+    permissions: dict[str, Any] = {"allow": (tools or TOOLS).split()}
     if deny:
         permissions["deny"] = list(deny)
     return {"permissions": permissions, **({"hooks": dict(hooks)} if hooks else {})}
+
+
+def session_mcp_config(work: pathlib.Path, extra: Mapping[str, Any] | None = None) -> pathlib.Path:
+    """The calibration's MCP config (Playwright), with `extra` servers added when given."""
+    path = nav.mcp.mcp_config(work)
+    if extra:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        doc = {**doc, "mcpServers": {**doc.get("mcpServers", {}), **extra}}
+        path.write_text(json.dumps(doc), encoding="utf-8")
+    return path
 
 
 def one_session(
@@ -168,11 +181,15 @@ def one_session(
     deny: Sequence[str] = (),
     hooks: Mapping[str, Any] | None = None,
     env_extra: Mapping[str, str] | None = None,
+    mcp_servers: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """One session; `mcp_servers`, when given, are added to the session's MCP config and their
+    tools (`mcp__<name>`) to its allow list."""
     tid, _url, question, gold = task
     work = pathlib.Path(tempfile.mkdtemp(prefix=f"sp-free-{tid.lower()}r{run}-"))
+    tools = " ".join([TOOLS, *(f"mcp__{name}" for name in mcp_servers or {})])
     settings = work / "settings.json"
-    settings.write_text(json.dumps(session_settings(deny, hooks)), encoding="utf-8")
+    settings.write_text(json.dumps(session_settings(deny, hooks, tools)), encoding="utf-8")
     env = {**nav.base.clean_env(dict(os.environ)), "PYTHONPATH": str(SRC), **(env_extra or {})}
     env.pop("TYPESAFE_API_KEY", None)
     argv = [
@@ -185,10 +202,10 @@ def one_session(
         "--setting-sources",
         "",
         "--mcp-config",
-        str(nav.mcp.mcp_config(work)),
+        str(session_mcp_config(work, mcp_servers)),
         "--strict-mcp-config",
         "--allowedTools",
-        TOOLS,
+        tools,
         "--disallowedTools",
         DISALLOWED,
         "--output-format",

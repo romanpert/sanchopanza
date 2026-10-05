@@ -317,8 +317,9 @@ def _install(args: argparse.Namespace) -> int:
         sys.stdout.write(
             "Fetch is on: the first WebFetch of each URL is sent to fetch_passages, which "
             "returns the page's passages for the agent's purpose without a reader model; a "
-            "second WebFetch of the same URL runs. Register the server once: claude mcp add "
-            "--scope user sanchopanza-fetch -- sanchopanza fetch-mcp\n"
+            "second WebFetch of the same URL runs. Register the server once, loaded up front so "
+            "tool search does not defer it: claude mcp add-json --scope user sanchopanza-fetch "
+            '\'{"command":"sanchopanza","args":["fetch-mcp"],"alwaysLoad":true}\'\n'
         )
     if root is not None:
         sys.stdout.write(

@@ -1,0 +1,107 @@
+{
+ "sessions": 80,
+ "list_usd": 11.49,
+ "grades": "ok_auto",
+ "by_arm": {
+  "SONNET": {
+   "sessions": 20,
+   "right": 18,
+   "mean_usd": 0.1753,
+   "median_usd": 0.1168,
+   "total_usd": 3.505,
+   "mean_reader_usd": 0.0719,
+   "mean_haiku_usd": 0.0719,
+   "hit_cap": 0,
+   "leak": 0,
+   "calls": {
+    "web_search": 57,
+    "web_fetch": 10,
+    "web_fetch_denied_by_hook": 0,
+    "web_fetch_ran": 10,
+    "web_fetch_error": 0,
+    "web_fetch_back": 0,
+    "fetch_passages": 0,
+    "fetch_passages_unread": 0,
+    "passage_tokens": 0,
+    "tool_search": 18,
+    "subagents": 1
+   },
+   "passage_tokens_per_read": 0
+  },
+  "SONNET-FETCH": {
+   "sessions": 20,
+   "right": 18,
+   "mean_usd": 0.1051,
+   "median_usd": 0.1097,
+   "total_usd": 2.102,
+   "mean_reader_usd": 0.0335,
+   "mean_haiku_usd": 0.0335,
+   "hit_cap": 0,
+   "leak": 0,
+   "calls": {
+    "web_search": 30,
+    "web_fetch": 0,
+    "web_fetch_denied_by_hook": 0,
+    "web_fetch_ran": 0,
+    "web_fetch_error": 0,
+    "web_fetch_back": 0,
+    "fetch_passages": 3,
+    "fetch_passages_unread": 0,
+    "passage_tokens": 5976,
+    "tool_search": 12,
+    "subagents": 0
+   },
+   "passage_tokens_per_read": 1992
+  },
+  "HAIKU": {
+   "sessions": 20,
+   "right": 14,
+   "mean_usd": 0.1474,
+   "median_usd": 0.1007,
+   "total_usd": 2.947,
+   "mean_reader_usd": 0.1036,
+   "mean_haiku_usd": 0.1474,
+   "hit_cap": 1,
+   "leak": 0,
+   "calls": {
+    "web_search": 92,
+    "web_fetch": 1,
+    "web_fetch_denied_by_hook": 0,
+    "web_fetch_ran": 1,
+    "web_fetch_error": 0,
+    "web_fetch_back": 0,
+    "fetch_passages": 0,
+    "fetch_passages_unread": 0,
+    "passage_tokens": 0,
+    "tool_search": 22,
+    "subagents": 3
+   },
+   "passage_tokens_per_read": 0
+  },
+  "HAIKU-FETCH": {
+   "sessions": 20,
+   "right": 15,
+   "mean_usd": 0.1468,
+   "median_usd": 0.0811,
+   "total_usd": 2.937,
+   "mean_reader_usd": 0.0742,
+   "mean_haiku_usd": 0.1468,
+   "hit_cap": 1,
+   "leak": 0,
+   "calls": {
+    "web_search": 61,
+    "web_fetch": 2,
+    "web_fetch_denied_by_hook": 2,
+    "web_fetch_ran": 0,
+    "web_fetch_error": 0,
+    "web_fetch_back": 0,
+    "fetch_passages": 79,
+    "fetch_passages_unread": 7,
+    "passage_tokens": 131993,
+    "tool_search": 10,
+    "subagents": 1
+   },
+   "passage_tokens_per_read": 1833
+  }
+ }
+}

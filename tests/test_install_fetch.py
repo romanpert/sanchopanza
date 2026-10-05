@@ -57,4 +57,6 @@ def test_the_cli_prints_the_server_line(tmp_path: Path, capsys) -> None:
                  "--context-budget", "0", "--write"])  # fmt: skip
     assert code == 0
     out = capsys.readouterr().out
-    assert "sanchopanza fetch-mcp" in out and "claude mcp add" in out
+    assert "claude mcp add-json --scope user sanchopanza-fetch" in out
+    entry = json.loads(out.split("sanchopanza-fetch '", 1)[1].split("'", 1)[0])
+    assert entry == {"command": "sanchopanza", "args": ["fetch-mcp"], "alwaysLoad": True}

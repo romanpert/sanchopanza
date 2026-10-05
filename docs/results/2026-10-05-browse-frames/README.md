@@ -457,3 +457,99 @@ its money opening ten pages.
 - Not measured: whether sessions open more or fewer pages with passages, and what the deny's
   extra round trip costs over a session. Loading the tool up front (`alwaysLoad`) would remove the
   ToolSearch.
+
+## Fetch pilot: fetch by passages in free sessions, Sonnet and Haiku (80 sessions)
+
+### Set-up
+
+Twenty FRAMES test tasks none of the earlier pilots ran, chosen by metadata alone (an answer of at
+most four words and three or more Wikipedia links, so the question touches more pages; seeded;
+`fetch-pilot-ids.txt`). The first pilots' runner otherwise: the question and the ANSWER line,
+Claude Code 2.1.287 with its normal tools, Bash denied, WebFetch denied to the hosts that serve the
+set. Four arms, interleaved by task: SONNET and SONNET-FETCH (cap 1.50 USD each), then HAIKU and
+HAIKU-FETCH (0.60 each), the Haiku pair only because the Sonnet pair left room under the 20 USD
+ceiling. A -FETCH arm adds the `sanchopanza-fetch` server and `fetch_hook` through the session's
+own MCP config and `--settings` (`free_fetch_pilot.py`). Same cap within a model: the question is
+the same answers for less, not a tighter budget. Hand grades in `free_fetch_pilot_hand.py` and
+`fetch-pilot-hand.json`; the runner's report in `fetch-pilot.json`.
+
+The server is registered with `alwaysLoad`. Checked for free before any session: Claude Code's
+first request, captured on a local endpoint that answers 400, offers `fetch_passages` with its
+schema and not behind ToolSearch when the key is set, and does not offer it without the key
+(`--check-load`). With tool search on, WebSearch and WebFetch themselves are deferred, so in a
+-FETCH arm the page tool is the only web tool the model sees at the start. `install --fetch` now
+prints the `claude mcp add-json` line with the key.
+
+### Results (hand grades)
+
+| arm | right | mean USD | median USD | readers USD / session | WebSearch | WebFetch (denied, back) | fetch_passages (unread) | passage tokens / read | ToolSearch |
+|---|---|---|---|---|---|---|---|---|---|
+| SONNET | 19/20 | 0.175 | 0.117 | 0.072 | 57 | 10 (-, -) | - | - | 18 |
+| SONNET-FETCH | 19/20 | 0.105 | 0.110 | 0.034 | 30 | 0 (0, 0) | 3 (0) | 1,992 | 12 |
+| HAIKU | 16/20 | 0.147 | 0.101 | 0.104 | 92 | 1 (-, -) | - | - | 22 |
+| HAIKU-FETCH | 16/20 | 0.147 | 0.081 | 0.074 | 61 | 2 (2, 0) | 79 (7) | 1,833 | 10 |
+
+Readers: `modelUsage` less the transcripts' own calls at list rates (the Haiku inside WebSearch
+and WebFetch). 80 sessions, 11.49 USD, plus 0.23 for two smoke sessions. No leak (the wider scan:
+0 of 80). Five verdicts differ from the runner's (the gold's yes and its item without a detail
+the gold adds, three times; a number without its unit, twice); one gold is disputed and left as it
+is (FR502: the question reads two ways, and both Sonnet arms gave the other reading's item).
+
+Paired by task, exact McNemar: Sonnet 0 against 0 (p = 1); Haiku 3 against 3 (p = 1).
+
+### Read by hand: every number that favours FETCH, every FETCH miss
+
+- **Sonnet's lower mean is one session.** On FR644 the base ran a subagent through 28 searches and
+  7 fetches (1.43 USD); the -FETCH session answered from memory with no tool (0.05). Without that
+  task the means are 0.109 and 0.108 and the readers 0.036 and 0.035 a session. Sonnet answered
+  6 (base) and 7 (-FETCH) tasks with no tool at all; on the 13 tasks where both arms used the web,
+  12 right each, mean 0.135 against 0.137. The tool was called in one Sonnet session (FR314: three
+  pages, no search, right, 0.105 against the base's 0.146), and Sonnet never reached for WebFetch,
+  so the hook never fired. On these tasks Sonnet searches and stops: there was little reader money
+  to take.
+- **Haiku changes how it works.** With the page tool loaded and search deferred, Haiku opened pages
+  in 16 of 20 sessions and in 11 never searched: it guessed the Wikipedia URL. Those 11 cost 0.89
+  against 1.08 USD and got 9 right against 10; without FR31 (below) 0.56 against 0.98. The 5
+  sessions that mixed search and pages cost 1.18 against 0.49 (FR231 hit the cap in a 16-search
+  loop the page tool did not cause; FR502 searched 8 times). The -FETCH session was cheaper on 13 of
+  20 tasks (median paired difference -0.022 USD), and the arm's total equal to the base's (2.94 and
+  2.95): the passages move money from the reader to the main model (0.073 against 0.044 a session
+  outside the readers).
+- **Haiku's three gains.** FR419 is the tool's: the passages of two pages led, link by link, to
+  what the question asks for, where the base settled on a guess from search snippets. FR285 is not
+  (no page fetched; the base looped through 23 searches into the cap). FR502 is mostly not (the
+  answer came from searches and from reading the question the gold's way, not from the one page
+  read).
+- **Haiku's three losses.** FR450: no search, two guessed pages, passages that held what it
+  needed, and a wrong step in the date logic (it took the event after the one the question anchors
+  on). FR110: on one page, for a purpose that named a section, the passages kept the section's
+  heading and a reference title but not the prose sentence or the table row that state the fact;
+  a second page stated it too, and the agent answered no. FR644: no page fetched, a 21-search loop
+  to a wrong answer (noise).
+- **A loop the tool makes cheap.** FR31: 28 pages, one per candidate of a list, about 50,000
+  tokens of passages, 0.334 USD against the base's 0.099 for three searches; right in both.
+- Wikipedia pages under the budget come back whole, with the language list, "Jump to content" and
+  "[edit]" marks (FR314, FR110): words the agent pays for and BM25 can rank.
+
+### Against the bar (cheaper and at least as many right as Claude Code alone, model by model)
+
+- **Sonnet: not met.** Same answers; the cost difference is one session that did not use the tool.
+  On these tasks Sonnet fetches too little for the tool to matter (10 WebFetch calls in 20 base
+  sessions, 7 of them in FR644).
+- **Haiku: not met.** Same answers (3 against 3, two of each side not the tool's doing) and the same
+  total; the median session is 20 % cheaper because Haiku trades searches for pages, but a page
+  loop (FR31) and a wrong guessed page (FR450) give it back. Phase A said Haiku had nothing to save
+  on fetches; live, the tool did not save on fetches but replaced searches, which is where Haiku's
+  money is.
+
+### Next fix (not measured)
+
+From the misses, in order:
+
+1. Section-aware passages: when a heading matches the purpose (a table of works, a list), keep
+   that section's rows together, and do not let a heading or a reference title stand in for
+   the body (FR110).
+2. Strip a page's chrome before cutting: language lists, skip links, edit marks (FR314, FR110).
+3. A fetch budget per session for the small model: past N pages with no search, the tool's reply
+   says to search first (FR31, and the guessed page of FR450). The pages-instead-of-searches
+   pattern is the lever on Haiku, so it is worth keeping and bounding, not removing.
