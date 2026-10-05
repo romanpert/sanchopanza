@@ -373,6 +373,12 @@ def verified_line(line: Any, src: pathlib.Path, scratch: pathlib.Path) -> tuple:
     return digest, list(problems), hints
 
 
+def verify_scratch(commit: str, phase_name: str) -> pathlib.Path:
+    """Where a phase proves the line: one folder per phase, so suites started side by side do
+    not delete each other's proof (two runners shared one on 2026-10-05: WinError 32)."""
+    return RUNS / "verify" / f"{commit}-{phase_name}"
+
+
 def phase_context(phase_name: str, brazos: Sequence[str], line: Any = None) -> dict[str, Any]:
     """Refuse an unclean user; for SP, freeze the line's source at its commit, write the shim
     and prove the line installs whole (free). Any problem with the line stops the phase."""
@@ -383,7 +389,8 @@ def phase_context(phase_name: str, brazos: Sequence[str], line: Any = None) -> d
     chosen = line if line is not None else arms.s_line.load()
     source = pathlib.Path(chosen.source) if chosen.source else ROOT
     frozen = arms.freeze(source, RUNS, chosen.commit)
-    digest, problems, hints = verified_line(chosen, frozen / "src", RUNS / "verify" / frozen.name)
+    scratch = verify_scratch(frozen.name, phase_name)
+    digest, problems, hints = verified_line(chosen, frozen / "src", scratch)
     if problems:
         raise SystemExit("the S install line does not install whole: " + "; ".join(problems))
     return {**ctx, "src": frozen / "src", "shim": arms.write_shim(frozen), "commit": frozen.name,

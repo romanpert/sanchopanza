@@ -677,3 +677,36 @@ def test_longdoc_runs_an_ids_file_in_order_and_leaves_the_dev_ids_out(tmp_path, 
     rest = [t.task_id for t in longdoc.chosen(tasks, None)]
     assert rest == [t.task_id for t in tasks if t.task_id not in dev_ids]
     assert [t.task_id for t in longdoc.chosen(tasks, str(dev))] == dev_ids
+
+
+def test_suites_run_side_by_side_prove_the_line_in_folders_of_their_own():
+    one, two = gaia.verify_scratch("abc", "bcp-dev"), gaia.verify_scratch("abc", "longdoc-dev")
+    assert one != two and one.parent == two.parent == gaia.RUNS / "verify"
+
+
+def test_an_install_a_busy_file_stopped_is_tried_again_a_few_times(tmp_path, monkeypatch):
+    real = s_line.subprocess.run
+    calls = []
+
+    def flaky(argv, **kw):
+        calls.append(argv)
+        if len(calls) == 1:
+            return s_line.subprocess.CompletedProcess(
+                argv, 2, "", "could not write x ([WinError 32] ...)"
+            )
+        return real(argv, **kw)
+
+    monkeypatch.setattr(s_line.subprocess, "run", flaky)
+    monkeypatch.setattr(s_line, "BUSY_WAIT_S", 0.0)
+    assert s_line.run_install(tmp_path / "c", SRC, ["--candor"], tmp_path / "cwd").settings
+    assert len(calls) == 2
+
+    def busy(argv, **kw):
+        calls.append(argv)
+        return s_line.subprocess.CompletedProcess(argv, 2, "", "WinError 32")
+
+    monkeypatch.setattr(s_line.subprocess, "run", busy)
+    calls.clear()
+    with pytest.raises(RuntimeError, match="install failed"):
+        s_line.run_install(tmp_path / "d", SRC, ["--candor"], tmp_path / "cwd2")
+    assert len(calls) == s_line.INSTALL_TRIES

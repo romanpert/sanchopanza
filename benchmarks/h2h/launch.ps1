@@ -10,7 +10,8 @@
 #   powershell -File benchmarks/h2h/launch.ps1 -RunnerArgs "--phase dev --ids ... --ceiling 25" `
 #       -Log C:\sp-runs\h2h\dev.log -PidFile C:\sp-runs\h2h\dev.pids
 #
-# Stop it by those PIDs only (Stop-Process -Id), never by image name.
+# Stop it by those PIDs only (Stop-Process -Id), never by image name. PowerShell names are
+# case-blind: no variable here may be called $runner, which would be the validated -Runner.
 param(
     [Parameter(Mandatory = $true)][string]$RunnerArgs,
     [ValidateSet('h2h_gaia.py', 'h2h_bcp.py', 'h2h_longdoc.py')][string]$Runner = 'h2h_gaia.py',
@@ -38,16 +39,16 @@ $startup = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property
 $r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
     CommandLine = "cmd.exe /c `"$cmdFile`""; CurrentDirectory = $worktree; ProcessStartupInformation = $startup
 }
-$runner = $null
+$runnerProc = $null
 foreach ($i in 1..20) {
-    $runner = Get-CimInstance Win32_Process -Filter "ParentProcessId=$($r.ProcessId) AND Name='python.exe'"
-    if ($runner) { break }
+    $runnerProc = Get-CimInstance Win32_Process -Filter "ParentProcessId=$($r.ProcessId) AND Name='python.exe'"
+    if ($runnerProc) { break }
     Start-Sleep -Milliseconds 500
 }
-$runnerPid = if ($runner) { ($runner | Select-Object -First 1).ProcessId } else { 'not-found' }
+$runnerPid = if ($runnerProc) { ($runnerProc | Select-Object -First 1).ProcessId } else { 'not-found' }
 # A venv's python.exe is a launcher that starts the base interpreter as its child: record both.
 $base = 'none'
-if ($runner) {
+if ($runnerProc) {
     foreach ($i in 1..10) {
         $child = Get-CimInstance Win32_Process -Filter "ParentProcessId=$runnerPid AND Name='python.exe'"
         if ($child) { $base = ($child | Select-Object -First 1).ProcessId; break }

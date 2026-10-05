@@ -42,6 +42,7 @@ import re
 import shlex
 import subprocess
 import sys
+import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
@@ -58,6 +59,11 @@ DROPPED = ("ANTHROPIC_", "AWS_BEARER_TOKEN_BEDROCK", "CLAUDE", "TYPESAFE_", "SAN
 REFUSAL = re.compile(r"not wired|not registered|could not write", re.I)
 MCP_LINE = re.compile(r"claude mcp add-json(?:\s+--scope\s+\S+)?\s+(\S+)\s+'(\{.*\})'")
 INSTALL_TIMEOUT_S = 180
+# A file another process holds for a moment (on this PC, a scanner reading the settings file the
+# runner has just written): the install is tried again, a few times, never more.
+BUSY = re.compile(r"WinError 32|being used by another process|utilizado por otro proceso", re.I)
+INSTALL_TRIES = 4
+BUSY_WAIT_S = 2.0
 
 
 @dataclass(frozen=True)
@@ -193,15 +199,20 @@ def run_install(
     cwd.mkdir(parents=True, exist_ok=True)
     argv = [python, "-m", "sanchopanza", "install", "--path", str(config / "settings.json"),
             "--write", *flags]  # fmt: skip
-    done = subprocess.run(
-        argv,
-        cwd=cwd,
-        env=_clean_env(src),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=INSTALL_TIMEOUT_S,
-    )
+    for attempt in range(INSTALL_TRIES):
+        done = subprocess.run(
+            argv,
+            cwd=cwd,
+            env=_clean_env(src),
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=INSTALL_TIMEOUT_S,
+        )
+        if done.returncode == 0 or not BUSY.search(done.stderr or ""):
+            break
+        if attempt + 1 < INSTALL_TRIES:
+            time.sleep(BUSY_WAIT_S)
     if done.returncode != 0:
         raise RuntimeError(f"sanchopanza install failed ({done.returncode}): {done.stderr[-500:]}")
     refused = [x for x in done.stderr.splitlines() if REFUSAL.search(x)]
