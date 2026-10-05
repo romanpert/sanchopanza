@@ -1,8 +1,33 @@
 {
   "sealed": false,
-  "note": "The S arm of every h2h suite: `sanchopanza install --path <user>/settings.json --write <flags>` from a frozen copy of `source` at `commit`, plus `env` in the claude process. Unsealed, the runners refuse --live. Sealed by the owner's session (2026-10-06 12:00) with the full line, e.g. --memory --guard --find --find-auto --skill --candor --scan-content --check-done --crawl --prune --fetch --knowledge, and the SANCHOPANZA_* of the best versions. Empty flags and a null source give the default install of this worktree's HEAD (the GAIA dev phase of 2026-10-05).",
+  "note": "The S arm of every h2h suite: `sanchopanza install --path <user>/settings.json --write <flags>` from a frozen copy of `source` at `commit`, plus `env` in the claude process. Unsealed, the runners refuse --live without --unsealed-ok. This is S0 (no --knowledge), the line the seal draft (docs/S-SEAL-DRAFT.md, agreed with indagis-a1 on 2026-10-05) recommends, with --guard-profile coding; filled for the BrowseComp-Plus and LongBench v2 dev phase of 2026-10-05 and sealed by the owner's session (2026-10-06 12:00). A null source and commit give this worktree's HEAD, frozen at the preflight.",
   "source": null,
   "commit": null,
-  "flags": [],
-  "env": {}
+  "flags": [
+    "--guard",
+    "--guard-profile", "coding",
+    "--context-budget", "160000",
+    "--memory",
+    "--candor",
+    "--find",
+    "--find-auto",
+    "--skill",
+    "--scan-content",
+    "--check-done",
+    "--content-tools", "WebFetch,WebSearch,mcp__sanchopanza-fetch__fetch_passages",
+    "--crawl",
+    "--prune",
+    "--fetch",
+    "--provider", "jev"
+  ],
+  "env": {
+    "SANCHOPANZA_CRAWL_LINE_VERSION": "6",
+    "SANCHOPANZA_CRAWL_NOTES": "3",
+    "SANCHOPANZA_CRAWL_ECHO": "short",
+    "SANCHOPANZA_CRAWL_LINE_AT": "prompt",
+    "SANCHOPANZA_CRAWL_NOTES_AT": "front",
+    "SANCHOPANZA_CRAWL_SHOT": "snapshot-first",
+    "SANCHOPANZA_FETCH_VERSION": "2",
+    "SANCHOPANZA_GUARD_CHOOSER": "keep"
+  }
 }

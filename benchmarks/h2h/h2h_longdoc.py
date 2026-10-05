@@ -2,6 +2,7 @@
 Code with the sanchopanza install line (SP, S).
 
 python benchmarks/h2h/h2h_longdoc.py --plan [--limit 10]         # free: the run order and caps
+python benchmarks/h2h/h2h_longdoc.py --draw-dev                  # free: 10 of the 60 for dev
 python benchmarks/h2h/h2h_longdoc.py --preflight                 # free: data, arms, hooks
 python benchmarks/h2h/h2h_longdoc.py --live --limit 10 --ceiling 25   # PAID (through launch.ps1)
 python benchmarks/h2h/h2h_longdoc.py                             # free: the report
@@ -39,12 +40,14 @@ gaia, phase, reading, stats = common.gaia, common.phase, common.reading, common.
 
 PRIVATE = longdoc_data.CACHE / "h2h"
 RESULTS = ROOT / "docs" / "results" / "2026-10-06-h2h-longdoc"
+DEV_IDS = HERE / "longdoc-dev-ids.txt"  # out of every phase that does not name it with --ids
 DOC_NAME = "document.txt"
 LEAK_WORD = "LongBench"
 # A median context of 330K characters is ~80K tokens: reading much of it costs more than a GAIA
 # task, so the caps are twice GAIA's.
 CAPS = {key: round(2 * value, 2) for key, value in gaia.CAPS.items()}
-PHASE_CEILINGS = {"longdoc-dev": 25.0}
+# longdoc-dev runs beside bcp-dev under one ceiling for both (--joint-with), at most this.
+PHASE_CEILINGS = {"longdoc-dev": 50.0}
 # LongBench v2's prompts/0shot.txt, with the <text> block replaced by the file's place.
 TEMPLATE = (
     "Please read the text in the file {doc} (in your working directory) and answer the question "
@@ -57,6 +60,22 @@ TEMPLATE = (
 def prompt(task: longdoc_data.Task) -> str:
     a, b, c, d = task.choices
     return TEMPLATE.format(doc=DOC_NAME, question=task.question.strip(), a=a, b=b, c=c, d=d)
+
+
+def write_dev_ids(tasks: Sequence[longdoc_data.Task]) -> list[str]:
+    ids = common.draw_dev([t.task_id for t in tasks])
+    common.write_ids(DEV_IDS, ids, f"{len(ids)} of the {len(tasks)} long-document tasks for the "
+                     f"dev phase: random.Random({common.DEV_SEED}).sample of the sorted ids. Out "
+                     "of every other phase.")  # fmt: skip
+    return ids
+
+
+def chosen(tasks: Sequence[longdoc_data.Task], ids: str | None) -> list[longdoc_data.Task]:
+    """The tasks of `ids` in its order (all, in the draw's order, without one), dev ids out."""
+    by_id = {t.task_id: t for t in tasks}
+    path = pathlib.Path(ids) if ids else None
+    order = gaia.read_ids(path) if path else [t.task_id for t in tasks]
+    return [by_id[i] for i in common.leave_out_dev(order, path, DEV_IDS) if i in by_id]
 
 
 def flag_settings() -> dict[str, Any]:
@@ -136,13 +155,15 @@ def report(rows: Sequence[Mapping]) -> dict[str, Any]:
 def parse(argv: Sequence[str] | None = None) -> argparse.Namespace:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     mode = ap.add_mutually_exclusive_group()
-    for flag in ("--plan", "--preflight", "--live"):
+    for flag in ("--plan", "--preflight", "--live", "--draw-dev"):
         mode.add_argument(flag, action="store_true")
     ap.add_argument("--phase", default="longdoc-dev")
     ap.add_argument("--models", nargs="+", default=["SONNET"], choices=sorted(gaia.MODELS))
     ap.add_argument("--brazos", nargs="+", default=["CC", "SP"], choices=gaia.ARMS)
+    ap.add_argument("--ids", default=None, help="a file of task ids: only these, in its order")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--ceiling", type=float, default=gaia.DEFAULT_CEILING_USD)
+    common.add_joint_args(ap)
     gaia.add_line_args(ap)
     return ap.parse_args(argv)
 
@@ -164,7 +185,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse(argv)
     files = paths(args.phase)
     files["sessions"].parent.mkdir(parents=True, exist_ok=True)
-    tasks = longdoc_data.load()
+    if args.draw_dev:
+        print(f"{len(write_dev_ids(longdoc_data.load()))} ids written to {DEV_IDS}")
+        return 0
+    tasks = chosen(longdoc_data.load(), args.ids)
     steps = planned(tasks[: args.limit] if args.limit else tasks, args.models, args.brazos)
     if args.plan:
         for i, item, run, arm in steps:

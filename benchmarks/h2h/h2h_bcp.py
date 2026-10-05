@@ -2,6 +2,7 @@
 sanchopanza install line (SP, S), over a fixed corpus instead of the web.
 
 python benchmarks/h2h/h2h_bcp.py --draw                       # free: the seeded 100 ids
+python benchmarks/h2h/h2h_bcp.py --draw-dev                   # free: 10 of them for dev
 python benchmarks/h2h/h2h_bcp.py --plan [--limit 10]          # free: the run order and caps
 python benchmarks/h2h/h2h_bcp.py --preflight                  # free: data, index, arms, hooks
 python benchmarks/h2h/h2h_bcp.py --live --limit 10 --ceiling 25   # PAID (through launch.ps1)
@@ -56,13 +57,15 @@ gaia, phase, arms, reading, stats = (
 PRIVATE = bcp_data.CACHE / "h2h"  # rows keep answers: never in the repository
 RESULTS = ROOT / "docs" / "results" / "2026-10-06-h2h-bcp"
 IDS = HERE / "bcp-ids.txt"
+DEV_IDS = HERE / "bcp-dev-ids.txt"  # out of every phase that does not name it with --ids
 SEED = 20261006
 SIZE = 100
 LEAK_WORD = "BrowseComp"
 # Per-session caps, USD at list. BrowseComp with WebSearch hit GAIA's Sonnet cap of 1.50; with a
 # local retriever a session reads more and searches more, so S and N get twice GAIA's caps.
 CAPS = {key: round(2 * value, 2) for key, value in gaia.CAPS.items()}
-PHASE_CEILINGS = {"bcp-dev": 25.0}
+# bcp-dev runs beside longdoc-dev under one ceiling for both (--joint-with), at most this.
+PHASE_CEILINGS = {"bcp-dev": 50.0}
 EXTRA_ALLOW = ("mcp__bcp__search", "mcp__bcp__get_document")
 
 
@@ -78,6 +81,14 @@ def write_ids() -> list[str]:
     head = (f"# {SIZE} of the 830 BrowseComp-Plus query ids: random.Random({SEED}).sample of the "
             "sorted ids. Ids only: the queries stay encrypted in the private cache.\n")  # fmt: skip
     IDS.write_text(head + "\n".join(ids) + "\n", encoding="utf-8")
+    return ids
+
+
+def write_dev_ids() -> list[str]:
+    ids = common.draw_dev(gaia.read_ids(IDS))
+    common.write_ids(DEV_IDS, ids, f"{len(ids)} of the {SIZE} ids of bcp-ids.txt for the dev "
+                     f"phase: random.Random({common.DEV_SEED}).sample of the sorted ids. Out of "
+                     "every other phase.")  # fmt: skip
     return ids
 
 
@@ -319,7 +330,7 @@ def report(rows: Sequence[Mapping], hand: Mapping[tuple, bool]) -> dict[str, Any
 def parse(argv: Sequence[str] | None = None) -> argparse.Namespace:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     mode = ap.add_mutually_exclusive_group()
-    for flag in ("--plan", "--preflight", "--live", "--judge", "--review", "--draw"):
+    for flag in ("--plan", "--preflight", "--live", "--judge", "--review", "--draw", "--draw-dev"):
         mode.add_argument(flag, action="store_true")
     mode.add_argument("--verdict", nargs=4, metavar=("QID", "ARM", "RUN", "YES_NO"))
     ap.add_argument("--phase", default="bcp-dev")
@@ -329,13 +340,15 @@ def parse(argv: Sequence[str] | None = None) -> argparse.Namespace:
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--ceiling", type=float, default=gaia.DEFAULT_CEILING_USD)
     ap.add_argument("--judge-ceiling", type=float, default=3.0)
+    common.add_joint_args(ap)
     gaia.add_line_args(ap)
     return ap.parse_args(argv)
 
 
 def chosen(args: argparse.Namespace) -> list[bcp_data.Query]:
     by_id = {q.query_id: q for q in bcp_data.load()}
-    order = [i for i in gaia.read_ids(pathlib.Path(args.ids)) if i in by_id]
+    path = pathlib.Path(args.ids)
+    order = [i for i in common.leave_out_dev(gaia.read_ids(path), path, DEV_IDS) if i in by_id]
     picked = [by_id[i] for i in order]
     return picked[: args.limit] if args.limit else picked
 
@@ -363,6 +376,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     files["sessions"].parent.mkdir(parents=True, exist_ok=True)
     if args.draw:
         print(f"{len(write_ids())} ids written to {IDS}")
+        return 0
+    if args.draw_dev:
+        print(f"{len(write_dev_ids())} ids written to {DEV_IDS}")
         return 0
     if args.verdict:
         qid, arm, run, yes = args.verdict

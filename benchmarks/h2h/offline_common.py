@@ -5,12 +5,19 @@ Both suites take the web away from both arms (WebSearch and WebFetch disallowed,
 `local_hook.py` denies a shell's network and any path outside the session's folder), so the
 evidence is the suite's own: a retrieval server or a file in the working folder. Everything else
 is GAIA's runner (`h2h_gaia.py`): clean users, the S line, caps, the ceiling, STOP-LIMIT, resume.
+
+Dev phases run a seeded draw of `DEV_SIZE` ids written to the suite's `*-dev-ids.txt`; every
+other phase leaves those ids out (`leave_out_dev`). Two suites run side by side can share one
+ceiling: with `--joint-with` the other suites' session files count against `--ceiling`, and so
+does one session in flight per suite (`joint_guard`).
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import pathlib
+import random
 import signal
 import sys
 from collections.abc import Callable, Mapping, Sequence
@@ -29,6 +36,72 @@ phase, arms, reading, stats = gaia.phase, gaia.arms, gaia.reading, gaia.stats
 
 TOOLS = "Bash Read Grep Glob Write Edit NotebookEdit Task Agent TodoWrite"
 DISALLOWED = f"{gaia.DISALLOWED} WebSearch WebFetch"
+DEV_SEED = 20261005
+DEV_SIZE = 10
+
+
+# --- the dev draw ---------------------------------------------------------------------------------
+
+
+def draw_dev(pool: Sequence[str], size: int = DEV_SIZE, seed: int = DEV_SEED) -> list[str]:
+    return random.Random(seed).sample(sorted(pool), size)
+
+
+def write_ids(path: pathlib.Path, ids: Sequence[str], head: str) -> None:
+    path.write_text(f"# {head}\n" + "\n".join(ids) + "\n", encoding="utf-8")
+
+
+def leave_out_dev(ids: Sequence[str], chosen_from: pathlib.Path | None,
+                  dev_file: pathlib.Path) -> list[str]:  # fmt: skip
+    """`ids` without the dev phase's, unless they were chosen from the dev file itself."""
+    if chosen_from is not None and chosen_from.resolve() == dev_file.resolve():
+        return list(ids)
+    dev = set(gaia.read_ids(dev_file))
+    return [i for i in ids if i not in dev]
+
+
+# --- one ceiling for suites run side by side ------------------------------------------------------
+
+
+class JointCeiling(RuntimeError):
+    """Raised before a session the shared ceiling cannot hold."""
+
+
+def joint_guard(session: Callable, own: pathlib.Path, others: Sequence[pathlib.Path],
+                cap: float, ceiling: float) -> Callable:  # fmt: skip
+    """`session`, refused when what every suite has spent (their session files) plus one session
+    in flight per suite at `cap` could pass `ceiling`."""
+
+    def guarded(item: tuple, run: int, arm: str) -> dict[str, Any]:
+        spent = sum(float(r.get("list_usd") or 0.0)
+                    for path in (own, *others) for r in gaia.read_rows(path))  # fmt: skip
+        reserved = cap * (1 + len(others))
+        if spent + reserved > ceiling:
+            raise JointCeiling(f"STOP joint ceiling: {spent:.2f} USD spent by the suites + "
+                               f"{reserved:.2f} in flight > {ceiling:g}")  # fmt: skip
+        return session(item, run, arm)
+
+    return guarded
+
+
+def run_guarded(steps: list, rows: list, limits: Any, session: Callable,
+                sessions: pathlib.Path) -> tuple[int, list]:  # fmt: skip
+    """GAIA's phase loop; a joint-ceiling stop ends it like its own ceiling (exit 1)."""
+    try:
+        return phase.run_phase(steps, rows, limits, session, sessions)
+    except JointCeiling as stop:
+        phase._log(sessions, str(stop))
+        return 1, gaia.read_rows(sessions)
+
+
+def add_joint_args(ap: argparse.ArgumentParser) -> None:
+    ap.add_argument(
+        "--joint-with",
+        nargs="+",
+        default=[],
+        metavar="SESSIONS_JSONL",
+        help="other suites' session files that share --ceiling with this one",
+    )
 
 
 def hook_command() -> str:
@@ -99,6 +172,7 @@ def local_hook_problems() -> list[str]:
         ("Read", {"file_path": "C:/sp-runs/h2h/probe/work/document.txt"}, False),
         ("Grep", {"pattern": "revenue", "path": "document.txt"}, False),
         ("mcp__bcp__search", {"query": "x"}, False),
+        ("mcp__sanchopanza-fetch__fetch_passages", {"url": "https://example.com"}, True),
     ]
     return [f"local hook: {tool} {args} not {'denied' if want else 'allowed'}"
             for tool, args, want in cases if hook.denied(tool, args, cwd) is not want]  # fmt: skip
@@ -130,7 +204,11 @@ def run_live(args: Any, steps: list, rows: list, make_session: Callable,
     ctx = gaia.phase_context(args.phase, args.brazos, gaia.live_line(args))
     cap = max(caps[m] for m in args.models)
     limits = phase.Limits(session_max_usd=cap, ceiling_usd=args.ceiling)
-    return phase.run_phase(steps, rows, limits, make_session(ctx), sessions)
+    session = make_session(ctx)
+    others = [pathlib.Path(p) for p in getattr(args, "joint_with", None) or []]
+    if others:
+        session = joint_guard(session, sessions, others, cap, args.ceiling)
+    return run_guarded(steps, rows, limits, session, sessions)
 
 
 def write_report(result: Mapping[str, Any], path: pathlib.Path) -> None:

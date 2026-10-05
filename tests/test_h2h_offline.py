@@ -96,6 +96,27 @@ def test_verify_proves_an_empty_line_and_a_default_on_flag(tmp_path):
     assert problems == []  # on by default: proved through --no-guard
 
 
+HELP = (
+    "usage: sanchopanza install [--guard-profile {coding,sandbox}]\n"
+    "  --guard-profile {coding,sandbox}\n  --context-budget CONTEXT_BUDGET\n"
+    "  --provider PROVIDER\n"
+)
+
+
+def test_an_option_at_its_default_value_gets_another_value_to_prove_it():
+    assert s_line.alternate(("--guard-profile", "coding"), HELP) == ("--guard-profile", "sandbox")
+    assert s_line.alternate(("--guard-profile", "sandbox"), HELP) == ("--guard-profile", "coding")
+    assert s_line.alternate(("--context-budget", "160000"), HELP) == ("--context-budget", "160001")
+    assert s_line.alternate(("--provider", "jev"), HELP) is None  # free text: no other value
+    assert s_line.alternate(("--memory",), HELP) is None
+
+
+def test_verify_proves_valued_options_written_at_their_defaults(tmp_path):
+    line = s_line.parse({"flags": ["--guard-profile", "coding", "--context-budget", "160000"]})
+    _, problems, _ = s_line.verify(line, SRC, tmp_path)
+    assert problems == []  # each one changes the install with another value
+
+
 def test_verify_catches_an_unread_variable_and_registers_asked_servers(tmp_path):
     line = s_line.parse({"flags": ["--candor", "--fetch"],
                          "env": {"SANCHOPANZA_NO_SUCH_KNOB": "1"}})  # fmt: skip
@@ -137,6 +158,12 @@ def test_a_dropped_option_fails_the_full_install(tmp_path):
         ("Glob", {"pattern": "C:/Users/**/*.jsonl"}, True),
         ("WebFetch", {"url": "https://x"}, True),
         ("mcp__bcp__get_document", {"docid": "1"}, False),
+        ("mcp__bcp__search", {"query": "a 1990s band from Leeds"}, False),
+        # S's web tools: the fetch server is the web by another name, a URL to any server too
+        ("mcp__sanchopanza-fetch__fetch_passages", {"url": "https://x", "purpose": "y"}, True),
+        ("mcp__sanchopanza-fetch__fetch_passages", {"purpose": "y"}, True),
+        ("mcp__other__open", {"target": "see https://x.org/a"}, True),
+        ("mcp__sanchopanza__find_in_repo", {"query": "revenue table"}, False),
         ("Task", {"prompt": "read ../x"}, False),
     ],
 )
@@ -588,3 +615,65 @@ def test_bcp_and_longdoc_answers_ignore_a_candor_block():
     assert grade.exact_answer(reply) == "The Rovers" and grade.confidence(reply) == 80.0
     assert grade.exact_answer("Exact Answer: A\nExact Answer: B" + CANDOR) == "B"
     assert ld_data.last_answer("The correct answer is (C)" + CANDOR) == "C"
+
+
+# --- the dev draw and the joint ceiling of suites run side by side --------------------------------
+
+
+def test_the_dev_draw_is_seeded_and_left_out_of_every_other_phase(tmp_path):
+    pool = [str(i) for i in range(100)]
+    dev = common.draw_dev(pool)
+    assert dev == common.draw_dev(list(reversed(pool))) and len(set(dev)) == common.DEV_SIZE
+    path = tmp_path / "x-dev-ids.txt"
+    common.write_ids(path, dev, "ten dev ids")
+    assert gaia.read_ids(path) == dev
+    assert common.leave_out_dev(pool, tmp_path / "all.txt", path) == [
+        i for i in pool if i not in dev
+    ]
+    assert common.leave_out_dev(dev, path, path) == dev  # the dev phase itself
+    assert common.leave_out_dev(pool, None, tmp_path / "none.txt") == pool
+
+
+def _spend(path, *usd):
+    path.write_text("".join(json.dumps({"list_usd": u}) + "\n" for u in usd), encoding="utf-8")
+
+
+def test_the_joint_ceiling_counts_the_other_suites_spend_and_its_session_in_flight(tmp_path):
+    own, other = tmp_path / "a.jsonl", tmp_path / "b.jsonl"
+    _spend(own, 10.0, 10.0)
+    _spend(other, 23.0)
+    calls = []
+    guarded = common.joint_guard(lambda *a: calls.append(a) or {"ok": 1}, own, [other], 3.0, 50.0)
+    assert guarded("t", 1, "SONNET-CC") == {"ok": 1}  # 43 spent + 2 x 3 reserved = 49
+    _spend(other, 24.5)
+    with pytest.raises(common.JointCeiling, match="joint ceiling"):
+        guarded("t", 1, "SONNET-SP")  # 44.5 + 6 > 50
+    assert len(calls) == 1
+
+
+def test_a_joint_stop_ends_the_phase_with_its_rows(tmp_path):
+    sessions, other = tmp_path / "s.jsonl", tmp_path / "o.jsonl"
+    _spend(other, 45.0)
+    limits = gaia.phase.Limits(session_max_usd=3.0, ceiling_usd=50.0)
+    item = ("q1", "", "", None)
+    steps = [(0, item, 1, "SONNET-CC"), (0, item, 1, "SONNET-SP")]
+
+    def session(task, run, arm):
+        return {"task": task[0], "run": run, "arm": arm, "list_usd": 0.5}
+
+    guarded = common.joint_guard(session, sessions, [other], 3.0, 50.0)
+    code, rows = common.run_guarded(steps, [], limits, guarded, sessions)
+    assert code == 1 and rows == []
+    assert "joint ceiling" in sessions.with_suffix(".log").read_text(encoding="utf-8")
+
+
+def test_longdoc_runs_an_ids_file_in_order_and_leaves_the_dev_ids_out(tmp_path, monkeypatch):
+    tasks = ld_data.write_draw([_ld_row(i) for i in range(60)], tmp_path / "d",
+                               tmp_path / "t.jsonl")  # fmt: skip
+    dev_ids = [tasks[5].task_id, tasks[0].task_id]
+    dev = tmp_path / "longdoc-dev-ids.txt"
+    common.write_ids(dev, dev_ids, "dev")
+    monkeypatch.setattr(longdoc, "DEV_IDS", dev)
+    rest = [t.task_id for t in longdoc.chosen(tasks, None)]
+    assert rest == [t.task_id for t in tasks if t.task_id not in dev_ids]
+    assert [t.task_id for t in longdoc.chosen(tasks, str(dev))] == dev_ids

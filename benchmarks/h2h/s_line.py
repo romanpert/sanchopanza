@@ -12,7 +12,9 @@ what each flag should write (a new flag such as `--knowledge` needs no edit here
   registered" refusals (an option it dropped);
 - leave one out: for every option on the line, the install without it must differ from the full
   one (settings, files beside them, MCP servers it prints or writes); an option that is on by
-  default (`--guard`, `--skill`) must differ from the install with its `--no-` form instead;
+  default (`--guard`, `--skill`) must differ from the install with its `--no-` form instead,
+  and an option the line writes at its default value (`--guard-profile coding`,
+  `--context-budget 160000`) must differ with another value (`alternate`);
 - every `sanchopanza <sub>` the settings or the MCP servers run is a subcommand of the frozen
   copy (`<sub> --help` exits 0);
 - every variable in `env` is read somewhere in the frozen `src` (a misspelt name would be
@@ -133,6 +135,20 @@ def without(flags: Sequence[str], group: tuple[str, ...]) -> list[str]:
     return [t for g in options(flags) if g != group for t in g]
 
 
+def alternate(group: tuple[str, ...], help_text: str) -> tuple[str, ...] | None:
+    """Another value for a one-value option, to prove it is wired when the line writes its
+    default (leaving it out then changes nothing): the first other choice `--help` lists for it,
+    or the integer plus one; None for a flag or a free-text value."""
+    if len(group) != 2:
+        return None
+    head, value = group
+    listed = re.search(re.escape(head) + r"\s+\{([^}]*)\}", help_text)
+    if listed:
+        others = [c for c in listed.group(1).split(",") if c and c != value]
+        return (head, others[0]) if others else None
+    return (head, str(int(value) + 1)) if re.fullmatch(r"-?\d+", value) else None
+
+
 def negation(group: tuple[str, ...]) -> tuple[str, ...] | None:
     head = group[0]
     if len(group) == 1 and "=" not in head and not head.startswith("--no-"):
@@ -247,10 +263,14 @@ def env_unread(line: SLine, src: pathlib.Path) -> list[str]:
     return missing
 
 
+def _help(sub: str, src: pathlib.Path, python: str) -> subprocess.CompletedProcess:
+    return subprocess.run([python, "-m", "sanchopanza", sub, "--help"], env=_clean_env(src),
+                          capture_output=True, encoding="utf-8", errors="replace",
+                          timeout=60)  # fmt: skip
+
+
 def _help_ok(sub: str, src: pathlib.Path, python: str) -> bool:
-    done = subprocess.run([python, "-m", "sanchopanza", sub, "--help"], env=_clean_env(src),
-                          capture_output=True, timeout=60)  # fmt: skip
-    return done.returncode == 0
+    return _help(sub, src, python).returncode == 0
 
 
 def asked_hints(full: Installed, bare: Installed) -> tuple[str, ...]:
@@ -275,6 +295,7 @@ def verify(line: SLine, src: pathlib.Path, scratch: pathlib.Path,
     bare = run_install(scratch / "bare" / "config", src, [], scratch / "bare" / "cwd", python,
                        strict=False)  # fmt: skip
     hints = asked_hints(full, bare)
+    install_help = _help("install", src, python).stdout
     problems: list[str] = []
     for i, group in enumerate(options(line.flags)):
         rest = without(line.flags, group)
@@ -288,6 +309,13 @@ def verify(line: SLine, src: pathlib.Path, scratch: pathlib.Path,
             flipped = run_install(base / "config", src, [*rest, *neg], base / "cwd", python,
                                   strict=False)  # fmt: skip
             if flipped.digest != full.digest:
+                continue
+        other_value = alternate(group, install_help)
+        if other_value is not None:  # the line writes the default: another value must show
+            base = scratch / f"alt{i}"
+            moved = run_install(base / "config", src, [*rest, *other_value], base / "cwd", python,
+                                strict=False)  # fmt: skip
+            if moved.digest != full.digest:
                 continue
         problems.append(f"{shlex.join(group)} changes nothing in the install")
     for sub in sorted(subcommands(full)):

@@ -10,8 +10,10 @@ shuts the other two ways out:
   shell command with `..`, `~`, a home variable or an absolute path outside it (the set's
   answers, the corpus and other sessions' transcripts are all on this disk).
 
-MCP tools (the suite's retrieval server and the S install's servers) and subagent launches pass:
-a subagent's own tool calls come through this hook again. A denial is logged to `H2H_DENY_LOG`
+MCP tools (the suite's retrieval server and the S install's local servers) and subagent launches
+pass: a subagent's own tool calls come through this hook again. Two kinds of MCP call do not: S's
+fetch server (`fetch_passages` reads the web, it is WebFetch by another name) and any MCP call
+with a URL in its input. A denial is logged to `H2H_DENY_LOG`
 by tool name. Heuristic, on purpose loose towards denial; the reason names no benchmark.
 """
 
@@ -39,6 +41,8 @@ _HOME = re.compile(
 )
 _ABS = re.compile(r"(?i)(?<![\w.])(?:[a-z]:[\\/]|/[a-z]/|\\\\|/)[^\s\"'|;&<>()]*")
 _SAFE_POSIX = ("/dev/null", "/tmp/", "/tmp")
+WEB_MCP = ("mcp__sanchopanza-fetch__",)
+_URL = re.compile(r"(?:https?|ftp)://", re.I)
 
 
 def _norm(path: str) -> str:
@@ -71,7 +75,9 @@ def shell_denied(command: str, cwd: str) -> bool:
 
 
 def denied(tool: str, tool_input: Mapping[str, Any], cwd: str) -> bool:
-    if tool.startswith("mcp__") or tool in ("Task", "Agent", "TodoWrite"):
+    if tool.startswith("mcp__"):
+        return tool.startswith(WEB_MCP) or bool(_URL.search(json.dumps(tool_input)))
+    if tool in ("Task", "Agent", "TodoWrite"):
         return False
     if tool in ("WebSearch", "WebFetch"):
         return True
