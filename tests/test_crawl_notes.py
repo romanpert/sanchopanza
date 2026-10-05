@@ -213,6 +213,24 @@ def test_fetched_json_rows_are_counted_total_and_distinct_with_no_advice():
     assert "should" not in note and "dedup" not in note
 
 
+def test_a_paginators_links_are_not_taken_for_the_rows():
+    """The v8 development round (G3, catfact.ninja): each page holds 10 facts under `data` and 15
+    pagination links under `links`, and the note counted the links - 'fetched JSON rows 510,
+    distinct 137' for 34 pages of 332 facts."""
+    links = [{"url": f"/f?page={i}", "label": str(i), "active": False} for i in range(15)]
+    routes = {
+        f"/f?page={p}": [200, json.dumps({"data": [{"fact": f"{p}-{i}"} for i in range(10)],
+                                          "links": links, "total": 20})]
+        for p in (1, 2)
+    }  # fmt: skip
+    code = (
+        "async () => { for (const u of ['/f?page=1', '/f?page=2'])"
+        " await (await fetch(u)).text(); return 1; }"
+    )
+    note = _run(code, routes, notes_version=2)["ok"]["sanchopanza"]
+    assert "fetched JSON rows 20, distinct 20." in note
+
+
 def test_html_and_json_with_no_rows_are_not_counted():
     routes = {"/p": [200, "<body>one</body>"], "/n": [200, json.dumps({"count": 2})]}
     code = "async () => { for (const u of ['/p', '/n']) await (await fetch(u)).text(); return 1; }"

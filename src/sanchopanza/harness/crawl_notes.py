@@ -91,6 +91,8 @@ finally { clearTimeout(timer); window.fetch = of; } }
 # the DOM, paged by CSS, and were read again after every click), and the rows of the fetched JSON
 # against the distinct ones (G3: overlapping guessed pages, 332 rows of which 298 distinct). Both
 # give numbers and no advice. `click` is only observed: the original runs, and is put back.
+# The rows are the largest array of objects in the response, never a `links` (or `_links`) key:
+# a paginator's links array outgrew the facts on catfact.ninja (v8's development round, G3).
 # Each (anchor, insertion, before) goes into v1's code beside the anchor, so v1's wrapper stays
 # byte for byte what confirmation 4 sealed.
 _V2 = (
@@ -107,7 +109,8 @@ _V2 = (
         "const isRows = (a) => Array.isArray(a) && a.length > 0 "
         "&& a.every((x) => x && typeof x === 'object' && !Array.isArray(x)); "
         "let best = isRows(j) ? j : null; "
-        "if (!best && j && typeof j === 'object') for (const v of Object.values(j)) { "
+        "if (!best && j && typeof j === 'object') for (const [k, v] of Object.entries(j)) { "
+        "if (/^_?links$/i.test(k)) continue; "
         "if (isRows(v) && (!best || v.length > best.length)) best = v; } "
         "if (best) for (const x of best) { sp.rows++; sp.uniq.add(JSON.stringify(x)); } };",
         False,
