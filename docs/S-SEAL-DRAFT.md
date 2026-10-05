@@ -13,15 +13,19 @@ Commits on `s-seal` that S depends on (all local, nothing pushed):
 | `91d2728` | test re-pinned: `plan`'s output after memory v8.3 (only memory's own matchers changed) |
 | `ca8bdfe` | candor's lock: no-id fallback kept per `CLAUDE_CONFIG_DIR`; parallel sessions tested apart |
 | `cef2310` | `install --crawl` wires every event crawl answers; `--fetch` registers its server |
+| `1f3499e` | prune never touches `browser_evaluate` (matcher and handler), which crawl owns |
 
-**Seal S at `cef2310` or later on `s-seal`, not at main `ee81d0d`**: on main, the browse env below
-does nothing or removes the crawl line, and `--fetch` sends the agent to a tool that is not there
+**Seal S at `1f3499e` or later** (`s-seal`, merged into main after this draft), not at main
+`ee81d0d`: there the browse env below does nothing or removes the crawl line, `--fetch` sends the
+agent to a tool that is not there, and prune can rewrite an evaluate crawl has rewritten
 (section 3).
 
 ## 1. The recommended line
 
-One command per suite, run from the task's working folder, into a settings file the session
-loads. The only difference between the suites is `--guard-profile`.
+**Agreed with indagis-a1 (browse owner) on 2026-10-05**: a1's candidate line, plus
+`SANCHOPANZA_GUARD_CHOOSER=keep` and a store and state folder per session. One command per suite,
+run from the task's working folder, into a settings file the session loads. The only difference
+between the suites is `--guard-profile`.
 
 ```
 sanchopanza install --path <settings.json> \
@@ -105,7 +109,7 @@ schemas, server instructions, the skill's listed description. Counted from what 
 | Content scan (`--scan-content`) | in | PostToolUse on WebFetch, WebSearch, fetch_passages, shell fetches; `SANCHOPANZA_SCAN_CONTENT=1` | Detection only, never a barrier; needs the provider to decide anything | 0 |
 | Check done (`--check-done`) | in | Stop `*`, `SANCHOPANZA_CHECK_DONE=1` | 94 % vs 52 % for the agent's own word on 655 AgentDojo trajectories; not measured on coding; needs the provider | 0 (one send-back at most) |
 | Crawl (`--crawl` + v9 env) | in | SessionStart, UserPromptSubmit, PreToolUse on `browser_(evaluate\|take_screenshot)`, PostToolUse on `browser_evaluate` | Confirmations 3, 4, 5 NOT confirmed, all on price; answers and no-harm held (conf 5, Haiku 19 vs 12). v9 in development (Haiku 10/12 vs 6/12) | 0 fixed; line v6 (298) only on prompts that gather (`LINE_AT=prompt`) |
-| Prune (`--prune`) | in | PostToolUse on `mcp__.*__browser_.*` | Registered 12.4-13.4 % cheaper with Playwright MCP in three rounds (one interval crossing zero), nothing clear in a fourth; about 5 % then nothing with playwright-cli (`browse_hook` docstring, `2026-09-30-browse`) | 0 |
+| Prune (`--prune`) | in | PostToolUse on `mcp__.*__browser_(?!evaluate$).*` | Registered 12.4-13.4 % cheaper with Playwright MCP in three rounds (one interval crossing zero), nothing clear in a fourth; about 5 % then nothing with playwright-cli (`browse_hook` docstring, `2026-09-30-browse`) | 0 |
 | Fetch (`--fetch` + `FETCH_VERSION=2`) | in | PreToolUse on WebFetch; `sanchopanza-fetch` server, `alwaysLoad` | Dev: Haiku 16/20 vs 15/20 at 0.114 vs 0.177 USD; confirmation fetch1 sealed and running (blind verdict pending) | 176 (tool) |
 | Sources (`--sources`) | **out** | Stop hook | indagis-a1: v1 +52 % cost and no more right answers; v2 ceiling +2..+5 per 100 sessions, closed. In only if the owner wants "everything" literally, then with `SANCHOPANZA_SOURCES_VERSION=2` | 0 |
 | Autopilot (`--autopilot`) | **out** | compaction plugin (early-access function hooks), PostToolUse `*` arrival cut, masking at 60 % | The 12/12 was retracted (handle bug); redone: native 5/7, lean masking 3/7, delete 0/6. It replaces the summary the guard is built around | - |
@@ -141,12 +145,12 @@ event in parallel, and a Bash call reaches five of them (base, guard, candor, me
    WebFetch to `fetch_passages`, which `--scan-content` did not watch. The line names it in
    `--content-tools`. The regex escapes the `-` in the server name (`\-`), which Claude Code's
    non-unicode regex reads as `-`; to check in the preflight.
-4. **Two rewrites of one result (open, D4).** On a `browser_evaluate` result, crawl
-   (`ECHO=short`, `NOTES_AT=front`) and prune (`mcp__.*__browser_.*`) can both return a replaced
-   output. Claude Code runs them in parallel and does not document how two replacements merge.
-   Prune acts only on a result that holds a page snapshot of 6,000+ characters, which an evaluate
-   rarely returns. Proposed fix, not applied: prune's matcher without the evaluate,
-   `mcp__.*__browser_(?!evaluate$).*`. Crawl and prune were never measured together.
+4. **Two rewrites of one result (resolved, `1f3499e`).** On a `browser_evaluate` result, crawl
+   (`ECHO=short`, `NOTES_AT=front`) and prune (`mcp__.*__browser_.*`) could both return a replaced
+   output, and Claude Code does not document how two replacements merge. indagis-a1 decided: crawl
+   owns the evaluate, prune's confirmed result is about snapshots. Prune's matcher is now
+   `mcp__.*__browser_(?!evaluate$).*` and its handler returns early on an evaluate even if wired by
+   hand. Crawl and prune were never measured together.
 5. **Several Stop hooks may send the agent back at once (accepted).** check-done, memory's rule
    audit and (if in) sources can each return a block on the same Stop; Claude Code joins the
    reasons into one more turn. Candor at Stop does not block (`ASK_BLOCK=prompt`); it may lock.
@@ -166,10 +170,10 @@ event in parallel, and a Bash call reaches five of them (base, guard, candor, me
    wrong; on PreToolUse a deny from any hook wins over the evaluate guard's rewrite.
 9. **Env.** No two components write the same variable. `CLAUDE_CODE_AUTO_COMPACT_WINDOW` is kept if
    the config already sets one (N's clean config does not).
-10. **Grader collision (open, D3).** Candor asks every prompt for four status lines at the end of
-    the final reply. GAIA's scorer reads the answer after `FINAL ANSWER:`; the lines would follow
-    it. Strip the block before grading, or run candor with `ASK_BLOCK=off` (candor then catches
-    less).
+10. **Grader collision (resolved by the runner).** Candor asks every prompt for four status lines
+    at the end of the final reply, which would follow GAIA's `FINAL ANSWER:`. indagis-a1's GAIA
+    extractor takes only the `FINAL ANSWER` line, in both arms, so the block never reaches the
+    scorer and candor stays in S as it ships (`ASK_BLOCK=prompt`).
 11. **Silent without a provider.** check-done, the content scan, the guard's `keep`, prune's Jev
     ranking, memory's recall judged at a session's first request and the candor judge decide
     nothing on the null decider. Phase A's S arms ran without Jev without anyone noticing
@@ -201,14 +205,14 @@ with an id is unchanged, and so is the fallback when `CLAUDE_CONFIG_DIR` is unse
 - **D2. Candor in lock mode.** The product locks the session on a critical finding, and in an
   unattended run a lock ends the task. The rate on real turns is 1.8 %; the Indagis scene had 2
   false alarms in 3. Lock (the product) or `MODE=observe` (findings only).
-- **D3. Candor's status block and GAIA's grader** (conflict 10): strip or `ASK_BLOCK=off`.
-- **D4. Crawl and prune on one evaluate result** (conflict 4): take the proposed matcher or leave it.
+- ~~D3. Candor's status block and GAIA's grader~~: resolved by a1's extractor (conflict 10).
+- ~~D4. Crawl and prune on one evaluate result~~: decided by a1, applied in `1f3499e` (conflict 4).
 - **D5. Project or config install** (section 1), and memory: per-session stores (independent
   tasks, nothing to carry) or one store per suite (memory works across tasks of a repository, but
   order and parallelism then matter).
 - **D6. `--sources`**: out, unless "everything" is meant literally (then `SOURCES_VERSION=2`).
 - **D7. `--knowledge`**: S0 now, or wait for it under the three conditions of section 1.
-- **D8. Seal from `s-seal` (`cef2310`+)**: the fixes are on this branch, not on main.
+- **D8. Seal at `1f3499e` or later**: the fixes came from `s-seal`.
 
 ## 6. Notes for the seal itself
 
@@ -217,4 +221,5 @@ with an id is unchanged, and so is the fallback when `CLAUDE_CONFIG_DIR` is unse
   provider from inside a hook, as Indagis's `procedencia.py` does.
 - Dry runs: `C:\sp-runs\s-seal-dry\{coding,sandbox}-{plain,sources}\` (settings, `.mcp.json`, skill;
   a second run of the same line changes nothing). Overhead probe: `C:\sp-runs\s-seal-dry\overhead.py`.
-- Full suite on `s-seal` at `cef2310`: 2,918 passed, 40 skipped.
+- Full suite on `s-seal` at `cef2310`: 2,918 passed, 40 skipped (rerun after `1f3499e` before the
+  merge).
