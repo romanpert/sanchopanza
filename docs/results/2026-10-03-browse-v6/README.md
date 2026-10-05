@@ -557,6 +557,172 @@ What this says:
   replayed it: 22 and 16 turns in r2 and r3, against 6 to 9 for Sonnet alone, which clicked Next.
   Without H7 the Sonnet ratio, as a sum of means, would be 0.915.
 
+## v9 development (2026-10-05)
+
+Development, not a confirmation: the tasks are confirmation 5's own. v9 is v8.1 plus one switch,
+`SANCHOPANZA_CRAWL_NOTES=3` (`harness/crawl_notes._V3`, off by default; v8.1's wrapper is
+unchanged and its sha256 is tested). It answers the four kinds of confirmation 5 miss that the
+notes could not see:
+
+- **H1, the `Link` header.** When the call fetched nothing, the wrapper asks for the open page's
+  URL again with the original `fetch` (HEAD, or GET when HEAD answers 405 or 501, aborted once
+  the headers arrive, 3 s at most) and quotes its `next` and `last` links. That request is not
+  counted as the agent's.
+- **H5, size keys the note did not read.** The open page's JSON is walked outside its rows, and
+  `records`, `last`, `next`, `total_results` and similar keys are quoted with their path
+  (`meta.pagination.records: 5410`). Keys the v7 text match already quotes are not repeated.
+- **H4, no size at all.** A JSON array of a round size (10, 20, 25, 50, 100 or 1,000) on a page
+  that states no size key and no `Link` is named: "a JSON array of exactly 1000 items and no
+  total". So is a single fetched response like it.
+- **H7, XMLHttpRequest.** `open` and `send` are observed like `fetch`: an XHR counts as a fetch,
+  its failures by status, and its JSON rows with the fetched rows. Both are put back afterwards.
+
+The notes stay neutral, with numbers, at the head of the result (`NOTES_AT=front`).
+
+Before any session, the wrapper ran in Chrome against the real pages, at no cost. H1 said "Link
+header: next ...page=2&pageSize=10, last ...page=45&pageSize=10". H4 said "a JSON array of exactly
+1000 items and no total". H5 quoted `meta.pagination.next: 2, ... last: 55, ... records: 5410`
+and the two `links`. Three clicks on H7's Next gave "fetched JSON rows 18, distinct 6". H2's note
+was the same as before.
+
+Round (`benchmarks/browse/nav_v9.py`): H1, H4, H5 and H7, the misses, plus H2 and H8 for no
+regression, with two runs each. There were five arms: Claude Code alone (`HAIKU`, `SONNET`),
+v8.1's hooks with notes v3 (`HAIKU-V9`, `SONNET-V9`), and `SONNET-NOTES`, which is the same
+without the line (`SANCHOPANZA_CRAWL_LINE=0`). That last arm was added because on H7 line v6 sent
+Sonnet hunting the list's API. All 60 sessions ran on Claude Code 2.1.287, with a ceiling of 10
+USD. The round cost **5.37 USD** at list price, plus 0.09 for two smoke sessions. In the smoke,
+HAIKU-V9 was right on H1 and H5, and the `Link` and `meta.pagination` notes came first.
+
+All 24 `-V9` transcripts held the line, and the 12 `-NOTES` transcripts did not. No wrapper was
+echoed in an agent-visible result, the guard stopped nothing, the subscription refused nothing
+and no site was down. One session was `not_run` and ran again: H8 run 1 of HAIKU-V9, whose note stayed at the end
+of a result (see below).
+
+| task | Haiku | Haiku-V9 | Sonnet | Sonnet-V9 | Sonnet-notes |
+|---|---|---|---|---|---|
+| H1 | 1/2, 0.053 | **2/2**, 0.040 | 2/2, 0.078 | 2/2, 0.075 | 2/2, 0.088 |
+| H4 | 0/2, 0.028 | **2/2**, 0.035 | 2/2, 0.069 | 2/2, 0.076 | 2/2, 0.069 |
+| H5 | 0/2, 0.055 | **2/2**, 0.054 | 2/2, 0.080 | 2/2, 0.073 | 2/2, 0.097 |
+| H7 | 2/2, 0.126 | 1/2, 0.156 | 2/2, 0.131 | 2/2, 0.195 | 2/2, 0.136 |
+| H2 | 1/2, 0.045 | 2/2, 0.038 | 2/2, 0.073 | 2/2, 0.080 | 2/2, 0.074 |
+| H8 | 2/2, 0.135 | 1/2, 0.059 | 2/2, 0.124 | 2/2, 0.131 | 2/2, 0.167 |
+| right / sum of means | 6/12, 0.441 | **10/12**, 0.382 | 12/12, 0.554 | 12/12, 0.629 | 12/12, 0.631 |
+
+Mean USD per session. Confirmation 4's price and answers, computed the same way over these six
+crawls. This is not a verdict, because the tasks were seen:
+
+| | total crawl ratio | crawls cheaper by mean | right | cost per right answer, ratio |
+|---|---|---|---|---|
+| Haiku-V9 / Haiku | 0.864 | 4/6 | 10 vs 6 | 0.519 |
+| Sonnet-V9 / Sonnet | 1.136 | 2/6 | 12 vs 12 | 1.136 |
+| Sonnet-notes / Sonnet | 1.140 | 0/6 | 12 vs 12 | 1.140 |
+| Sonnet-notes / Sonnet-V9 | 1.003 | 3/6 | 12 vs 12 | 1.003 |
+
+By task group: the misses (H1 H4 H5 H7) give 1.085 for Haiku, 1.173 for Sonnet-V9 and 1.092 for
+Sonnet-notes. H2+H8 give 0.543, 1.069 and 1.227. Haiku-V9's H8 counts its repeat (0.065). With
+the first attempt counted instead (0.093, right), the Haiku crawl ratio is 0.896.
+
+**What the v3 notes did, read in the transcripts.** The round note fired in both HAIKU-V9 H4
+sessions. Each time the agent fetched `?$limit=50000` next and answered 392. The size-key note
+fired in HAIKU-V9 H5 run 1, as in the smoke, and the agent paged the 55 pages. The other H5
+session and both H1 sessions fetched from their first evaluate, so no open-page note was
+needed. The `Link` note fired twice, in SONNET-NOTES H1 run 2. That session opened the API filtered
+by region, and the note gave it the next page and then the last. The XHR rows note fired on H7 (below).
+**No `-V9` or `-NOTES` session read only the open page.** In confirmation 5, 4 of the 9 HAIKU-SP
+sessions on H1, H4 and H5 did.
+
+Every miss, read in its transcript:
+
+| session | answer | what happened |
+|---|---|---|
+| H1 r2, H4 r1, r2, H5 r1, r2, H2 r2 Haiku | 3, 126, 126, 2, 2, 18 | read only the open page, as in confirmation 5. In H5 r2 and H2 r2 it did so through `browser_run_code_unsafe`, a tool no hook watches |
+| H7 r1 Haiku-V9 | 200 | clicked Next inside one evaluate up to 100 times and read 603 cards. The note at the head said "fetched JSON rows 600, distinct 6", and the agent answered from the 603 without acting on it. This is the same kind as v8's G6: a note that is right, ignored |
+| H8 r2 Haiku-V9 | 26 | counted `table tbody tr` over every table on the page, not the product table, while clicking the four page links. No note speaks to it. The note it got, "this call fetched nothing, so it read only the open page ... pagination links up to page 4", was wrong, because the call had clicked through the pages |
+
+Neither Haiku-V9 miss is an open-page miss, and both are cheap (0.048, 0.053).
+
+What this says:
+
+- **The four new notes do what they were built for.** On the three pages whose size v8.1 could
+  not read, they fired when the agent read only the open page, and the agent then fetched the
+  rest every time. Haiku-V9 was right on H1, H4 and H5 6/6, where plain Haiku was 1/6.
+- **Haiku's price is still the open-page miss's price.** On H1, H4 and H5, plain Haiku read one
+  page in 4 turns, at 0.028 to 0.055, and was wrong. Haiku-V9 paid 0.035 to 0.054 to be right.
+  Over the six crawls that gives 0.864 and 4 of 6 cheaper. Per right answer it is 0.519.
+  Confirmation 5's crawls give 0.507 on the same measure.
+- **Removing the line does not make Sonnet cheaper.** Sonnet-notes against Sonnet-V9 is 1.003 on
+  the crawls. The line's cost on H7 is real: Sonnet-V9 went to the API (POSTs answered 405, then
+  `network_requests`, then the site's `index.js`) at 0.195, against 0.136 for Sonnet-notes, which
+  clicked Next. But without the line Sonnet costs more on H8 (0.167 against 0.131) and on H5
+  (0.097 against 0.073). On H8 the open-page note is said again on every evaluate of a table
+  paged in the browser ("fetched nothing ... pagination links up to page 4"), six times in run 1,
+  and Sonnet-notes walked the four pages by clicks in 13 turns. **Sonnet's price is not a line
+  problem.** Sonnet alone reads these JSON APIs in 4 or 5 turns, and every arm with hooks adds
+  output to that.
+- **The open-page note is wrong on a page paged in the browser.** It fires whenever the call made
+  no request, including when the call clicked through the pages and the text changed (H8). That
+  makes it noise on H8 for every arm. A fix would leave it out when the call's clicks changed the
+  page, and say it once per page rather than on every evaluate. It is not in v9.
+- **A result too large for Claude Code bypasses the hook that moves the notes.** In H1 run 2 of
+  HAIKU-V9, the evaluate returned all 444 houses, 380 KB. Claude Code answered "exceeds maximum
+  allowed tokens" and saved the output to a file. That file is the raw output: the wrapper is
+  echoed whole, and the note sits on line 10,830 of 10,835. The `PostToolUse` rewrite never
+  reached it. The agent grepped the file and was right. This is a second form of v8's G1 case
+  (v8 saw a 2 KB preview, and this time there was no preview). `nav_v8.v81_counts` does not count
+  it, so `persisted` reads 0. The fix that survives both forms is for the wrapper to return the
+  notes as the first key of its value, `{sanchopanza, result}`, so any reader of the file or
+  preview meets them first. It is not in v9.
+- **A note that is the whole value was not moved.** A function that returns nothing comes back
+  as `{"sanchopanza": ...}`, with no comma before the key, so `NOTES_KEY` missed it. That
+  happened in H8 run 1 of HAIKU-V9, which the treatment check marked `not_run`. After the round,
+  `notes_first` moves such a note and leaves `undefined` in its place, but only with
+  `NOTES=3`; v8.1 is left as it was measured (`test_a_note_that_is_the_whole_value_comes_first_with_v9`).
+
+### Confirmation 6: DRAFT, not sealed
+
+Not registered, not sealed and not launched. Roman has to decide the price criterion first
+(note below). The text follows confirmation 5's prereg. Only what is listed changes.
+
+- **What is tested.** The crawl hook as v9 left it, `install --crawl` plus `V8_HOOKS` and
+  `V81_HOOKS` with the same command, and seven variables in the session's own `--settings` only:
+  `CRAWL_LINE_VERSION=6`, `CRAWL_NOTES=3`, `CRAWL_ECHO=short`, `CRAWL_LINE_AT=prompt`,
+  `CRAWL_NOTES_AT=front`, `CRAWL_SHOT=snapshot-first` (each with the `SANCHOPANZA_` prefix). The
+  wrapper is sealed by the sha256 of `wrap("() => 1", 120, notes=3)`, and the texts as in
+  confirmation 5. Line v6 stays on both models. v9's round gives no reason to drop it for
+  Sonnet.
+- **Arms.** `HAIKU`, `HAIKU-SP`, `SONNET`, `SONNET-SP`, on Claude Code 2.1.287 with Playwright MCP,
+  with the same tools and denials as confirmation 5. `not_run` follows `nav_v8.treatment`, as in
+  confirmation 5. A session refused by the subscription stops the phase only on Anthropic's 429
+  or a usage limit (`nav_v9.api_limit_hit`). A site's 429 is the agent's to handle.
+- **Tasks.** These are to be chosen and walked by hand before sealing: eight new crawls (J1-J8)
+  on hosts no earlier phase used, with confirmation 4's mix (five JSON APIs, one server-paged
+  listing with a stated total, one list paged by a Next button over an API, one table paged in
+  the browser). Each truth is checked by a second route. At least one API states its size only in
+  a `Link` header, and one states none. There are also four interactive tasks for no harm: I1-I4
+  again, or four new ones walked by hand. Crawls run three times per arm and interactive tasks
+  four times, for 160 sessions.
+- **Hypotheses.** Confirmation 4's criteria, word for word: price (total crawl ratio at most 0.75
+  and cheaper by mean on at least 6 of 8), answers (at least as many right of 24) and no harm (of
+  16, minus 1, at a cost ratio of at most 1.25). They are computed by `nav_confirm3._compare`.
+- **Rules carried over.** The site-down rule (a), the spend about 18 USD expected with the ceiling
+  at 25 USD in code, the 30-minute kill charged at the cap, and every miss read by hand.
+- **What development predicts, said before sealing.** Under these criteria both models are
+  expected to fail price again. Haiku-V9 was at 0.864 with 4 of 6 cheaper on seen tasks, and
+  Sonnet-V9 at 1.136 with 2 of 6. Answers and no harm are expected to hold.
+
+**Note for Roman: the price criterion punishes being right more often.** It compares cost
+whatever the answer. Where plain Haiku reads one page, it is cheap and wrong: in confirmation 5,
+H4 and H5 were 6 of 6 wrong, at 0.029 and 0.049. Getting those right costs a second evaluate, so
+an arm that fixes Haiku's misses looks more expensive on exactly the tasks it fixes. A proposal,
+**not applied**: price on **cost per right crawl answer**, (total crawl USD of `m-SP` / its right
+crawl answers) divided by (the same for `m`), at most 0.75, with the answers criterion unchanged.
+On that measure, confirmation 5 gives Haiku 0.507 and Sonnet 1.011. v9's round gives Haiku 0.519,
+Sonnet-V9 1.136 and Sonnet-notes 1.140. So Haiku would pass and Sonnet would not, either way. Its
+own weakness is that an arm that costs more in dollars passes if it is right often enough: 1.3
+times the cost with twice the right answers gives 0.65. Charging every wrong answer at the
+session cap (1.00 USD) is a stricter alternative. Either must be chosen and written before the
+seal, not after the results.
+
 ## Files
 
 - `nav-v6-sessions.jsonl` / `.log`, `nav-v6.json`: the phase. `nav-v6-smoke-sessions.jsonl`: the
@@ -575,6 +741,8 @@ What this says:
   (160 counted) and its verdicts; `truth-confirm5.json`: its answers recomputed after the phase.
   Code: `benchmarks/browse/nav_confirm5.py`, `truth_confirm5.py`, `check_tasks5.py`,
   `tests/test_nav_confirm5.py`.
+- `nav-v9-sessions.jsonl` / `.log`, `nav-v9.json`, `nav-v9-smoke-sessions.jsonl`: the v9 round
+  (`benchmarks/browse/nav_v9.py`, `tests/test_nav_v9.py`, `tests/test_crawl_v9.py`).
 - `benchmarks/browse/nav_v6.py`, `nav_v7.py`, `nav_confirm4.py`, `truth_v6.py`,
   `truth_confirm4.py`, `repeat_fingerprint.py`; `tests/test_nav_v6.py`, `test_nav_v7.py`,
   `test_nav_confirm4.py`, `test_crawl_notes.py`.

@@ -134,6 +134,9 @@ SHOT_REASON = (
 # sanchopanza}`, pretty-printed by Playwright MCP), or the tail of an error message.
 NOTES_KEY = re.compile(r',\s*"sanchopanza":\s*("sanchopanza: (?:[^"\\]|\\.)*")(\s*\})')
 NOTES_ERROR = re.compile(r" \| (sanchopanza: [^\n]*)")
+# v9: a function that returned nothing comes back as the note alone, `{"sanchopanza": ...}`, with
+# no comma before the key (v9's round, H8 run 1 of HAIKU-V9); the value it stands for is undefined.
+NOTES_LONE = re.compile(r'\{\s*"sanchopanza":\s*("sanchopanza: (?:[^"\\]|\\.)*")\s*\}')
 NOTES_HEAD = "### sanchopanza note"
 DEFAULT_VERSION = "5"
 STRATEGY_LINE = LINES[DEFAULT_VERSION]
@@ -172,10 +175,10 @@ def limit_seconds(env: Mapping[str, str] | None = None) -> int:
 
 def notes_on(env: Mapping[str, str] | None = None) -> int:
     """`SANCHOPANZA_CRAWL_NOTES=1` turns the result notes on (in development; off by default),
-    `2` turns on v8's: 0, 1 or 2."""
+    `2` turns on v8's and `3` v9's (in development): 0, 1, 2 or 3."""
     raw = _env.get("CRAWL_NOTES", "", env).strip().lower()
-    if raw == "2":
-        return 2
+    if raw in {"2", "3"}:
+        return int(raw)
     return 1 if raw in {"1", "true", "yes", "on"} else 0
 
 
@@ -233,14 +236,19 @@ def cut_text(text: str) -> str:
     return ECHO.sub(lambda m: ECHO_LINE if MARK in m.group(1) else m.group(0), text)
 
 
-def notes_first(text: str) -> str:
+def notes_first(text: str, lone: bool = False) -> str:
     """The text with the wrapper's notes moved to its head, under `NOTES_HEAD`: from the last
-    key of the returned value, else from the tail of an error message. Unchanged with none."""
+    key of the returned value, else from the tail of an error message, else (with `lone`, v9)
+    from a value that is the note alone, left as `undefined`. Unchanged with none."""
     keyed = list(NOTES_KEY.finditer(text))
+    alone = NOTES_LONE.search(text) if lone and not keyed else None
     if keyed:
         last = keyed[-1]
         note = json.loads(last.group(1))
         rest = text[: last.start()] + last.group(2) + text[last.end() :]
+    elif alone:
+        note = json.loads(alone.group(1))
+        rest = text[: alone.start()] + "undefined" + text[alone.end() :]
     else:
         found = NOTES_ERROR.search(text)
         if not found:
@@ -264,7 +272,7 @@ def rewrite_result(event: Mapping[str, Any], env: Mapping[str, str] | None = Non
         return None
     path, text = found
     new = cut_text(text) if echo_cut_on(env) else text
-    new = notes_first(new) if notes_first_on(env) else new
+    new = notes_first(new, lone=notes_on(env) >= 3) if notes_first_on(env) else new
     if new == text:
         return None
     return {
