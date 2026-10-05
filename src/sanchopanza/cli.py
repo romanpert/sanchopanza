@@ -164,6 +164,12 @@ def _candor_hook(args: argparse.Namespace) -> int:
     return candor_main()
 
 
+def _crawl_hook(args: argparse.Namespace) -> int:
+    from .harness.crawl_hook import main as crawl_main
+
+    return crawl_main()
+
+
 def _install(args: argparse.Namespace) -> int:
     from .harness.generic import HarnessConfig
     from .harness.install import apply, default_path, default_plugin_root, plan
@@ -205,6 +211,7 @@ def _install(args: argparse.Namespace) -> int:
             guard=args.guard,
             candor=args.candor,
             memory=args.memory,
+            crawl=args.crawl,
             budget=DEFAULT_BUDGET if args.context_budget is None else args.context_budget,
             find=args.find,
             find_nudge=args.find_nudge,
@@ -273,6 +280,13 @@ def _install(args: argparse.Namespace) -> int:
             "`python -m sanchopanza.candor release --by NAME --why TEXT`. It catches reports "
             "the record or the disk contradicts, in the tested categories; it is not robust "
             "to an agent set on beating it.\n"
+        )
+    if args.crawl:
+        sys.stdout.write(
+            "Crawl is on: each session starts with one line on extracting multi-page data in a "
+            "single browser_evaluate, and every browser_evaluate gets a time limit "
+            "(SANCHOPANZA_EVALUATE_LIMIT_S, default 120). It asks no model and approves no call "
+            "your permission rules would not.\n"
         )
     if root is not None:
         sys.stdout.write(
@@ -593,6 +607,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     candor_hook.set_defaults(func=_candor_hook)
 
+    crawl_hook = sub.add_parser(
+        "crawl-hook",
+        help="crawl strategy line and browser_evaluate time limit: Claude Code hook (stdin JSON)",
+    )
+    crawl_hook.set_defaults(func=_crawl_hook)
+
     providers = sub.add_parser("providers", help="list installed providers")
     providers.set_defaults(func=_providers)
 
@@ -707,6 +727,13 @@ def main(argv: list[str] | None = None) -> int:
         help="record each finished request verbatim (no model) and give a later request, in "
         "this session after a compaction or in a new session, the records that bear on it "
         "(Stop, SessionEnd and UserPromptSubmit hooks; not measured yet, so off by default)",
+    )
+    install.add_argument(
+        "--crawl",
+        action="store_true",
+        help="for browsing agents: a strategy line for multi-page crawls at session start, and a "
+        "time limit on every browser_evaluate (two classic hooks, no model; not confirmed yet, "
+        "so off by default)",
     )
     install.add_argument(
         "--plugin-dir",

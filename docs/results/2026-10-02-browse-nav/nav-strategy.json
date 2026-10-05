@@ -1,0 +1,140 @@
+{
+ "sessions": 102,
+ "by_arm": {
+  "SONNET": {
+   "model": "claude-sonnet-5",
+   "sessions": 9,
+   "finished": 9,
+   "success": "9/9",
+   "median_turns": 6,
+   "mean_list_usd": 0.2218,
+   "total_list_usd": 1.996,
+   "mean_turns": 12.78
+  },
+  "HAIKU": {
+   "model": "claude-haiku-4-5",
+   "sessions": 15,
+   "finished": 15,
+   "success": "11/15",
+   "median_turns": 23,
+   "mean_list_usd": 0.2645,
+   "total_list_usd": 3.9678,
+   "mean_turns": 23.2
+  },
+  "HAIKU-HINT": {
+   "model": "claude-haiku-4-5",
+   "sessions": 15,
+   "finished": 15,
+   "success": "12/15",
+   "median_turns": 12,
+   "mean_list_usd": 0.1296,
+   "total_list_usd": 1.9442,
+   "mean_turns": 17.33
+  },
+  "HAIKU-HINT2": {
+   "model": "claude-haiku-4-5",
+   "sessions": 15,
+   "finished": 15,
+   "success": "13/15",
+   "median_turns": 11,
+   "mean_list_usd": 0.1358,
+   "total_list_usd": 2.0376,
+   "mean_turns": 19.2
+  },
+  "HAIKU-HINT3": {
+   "model": "claude-haiku-4-5",
+   "sessions": 9,
+   "finished": 9,
+   "success": "8/9",
+   "median_turns": 5,
+   "mean_list_usd": 0.055,
+   "total_list_usd": 0.4948,
+   "mean_turns": 5.67
+  },
+  "HAIKU-HINT4": {
+   "model": "claude-haiku-4-5",
+   "sessions": 15,
+   "finished": 15,
+   "success": "13/15",
+   "median_turns": 6,
+   "mean_list_usd": 0.086,
+   "total_list_usd": 1.2902,
+   "mean_turns": 11.73
+  },
+  "HAIKU-HINT5": {
+   "model": "claude-haiku-4-5",
+   "sessions": 15,
+   "finished": 15,
+   "success": "14/15",
+   "median_turns": 6,
+   "mean_list_usd": 0.0657,
+   "total_list_usd": 0.9857,
+   "mean_turns": 7.4
+  },
+  "SONNET-HINT5": {
+   "model": "claude-sonnet-5",
+   "sessions": 9,
+   "finished": 9,
+   "success": "9/9",
+   "median_turns": 5,
+   "mean_list_usd": 0.123,
+   "total_list_usd": 1.1067,
+   "mean_turns": 4.89
+  }
+ },
+ "by_task": {
+  "S1": {
+   "SONNET": "1/1",
+   "HAIKU": "3/3",
+   "HAIKU-HINT": "3/3",
+   "HAIKU-HINT2": "3/3",
+   "HAIKU-HINT4": "3/3",
+   "HAIKU-HINT5": "3/3",
+   "SONNET-HINT5": "1/1"
+  },
+  "S2": {
+   "SONNET": "1/1",
+   "HAIKU": "2/3",
+   "HAIKU-HINT": "3/3",
+   "HAIKU-HINT2": "3/3",
+   "HAIKU-HINT4": "3/3",
+   "HAIKU-HINT5": "3/3",
+   "SONNET-HINT5": "1/1"
+  },
+  "S3": {
+   "SONNET": "3/3",
+   "HAIKU": "1/3",
+   "HAIKU-HINT": "3/3",
+   "HAIKU-HINT2": "2/3",
+   "HAIKU-HINT3": "3/3",
+   "HAIKU-HINT4": "2/3",
+   "HAIKU-HINT5": "3/3",
+   "SONNET-HINT5": "3/3"
+  },
+  "S4": {
+   "SONNET": "3/3",
+   "HAIKU": "2/3",
+   "HAIKU-HINT": "3/3",
+   "HAIKU-HINT2": "3/3",
+   "HAIKU-HINT3": "2/3",
+   "HAIKU-HINT4": "2/3",
+   "HAIKU-HINT5": "2/3",
+   "SONNET-HINT5": "3/3"
+  },
+  "S5": {
+   "SONNET": "1/1",
+   "HAIKU": "3/3",
+   "HAIKU-HINT": "0/3",
+   "HAIKU-HINT2": "2/3",
+   "HAIKU-HINT3": "3/3",
+   "HAIKU-HINT4": "3/3",
+   "HAIKU-HINT5": "3/3",
+   "SONNET-HINT5": "1/1"
+  }
+ },
+ "versions": [
+  "2.1.287"
+ ],
+ "list_usd_total": 13.8229,
+ "not_run": []
+}

@@ -61,9 +61,26 @@ MODELS = {
     "SONNET": "claude-sonnet-5",
     "HAIKU": "claude-haiku-4-5",
     "HAIKU-LOOP": "claude-haiku-4-5",  # the same model, with the loop guard hooked in
+    "HAIKU-HINT": "claude-haiku-4-5",  # the same model, told the strategy in one fixed line
+    "HAIKU-HINT2": "claude-haiku-4-5",  # the same, with the line that asks for an account
+    "HAIKU-HINT3": "claude-haiku-4-5",  # the same, told never to navigate inside the call
+    "HAIKU-HINT4": "claude-haiku-4-5",  # the same, with the cap far above the site
+    "HAIKU-HINT5": "claude-haiku-4-5",  # v3 with only the cap fixed
+    "SONNET-HINT5": "claude-sonnet-5",  # does the line help the larger model too?
 }
 ARMS = ("SONNET", "HAIKU")
 TRAP_ARMS = ("HAIKU", "HAIKU-LOOP")  # the trap tasks: does the loop guard save the floundering?
+# The strategy lever, with no decision of ours in it: on H1 Sonnet wrote one `browser_evaluate`
+# that fetched and parsed all ten pages (4 turns) and Haiku walked them (23). If one fixed line
+# moves Haiku to the extraction, a decider that says when to say it has to beat that line, and
+# can only do so where the line does harm (a page drawn by JavaScript, an interactive task).
+STRATEGY_ARMS = ("SONNET", "HAIKU", "HAIKU-HINT")
+strategy_lines = _load("browse_strategy_lines", HERE / "strategy_lines.py")
+STRATEGY_HINT = strategy_lines.STRATEGY_HINT
+STRATEGY_HINT_V2 = strategy_lines.STRATEGY_HINT_V2  # sealed by prereg-strategy.md
+STRATEGY_HINT_V3 = strategy_lines.STRATEGY_HINT_V3
+STRATEGY_HINT_V4 = strategy_lines.STRATEGY_HINT_V4
+STRATEGY_HINT_V5 = strategy_lines.STRATEGY_HINT_V5
 JEV_SESSION_MAX_USD = 0.05
 JEV_CEILING_USD = 0.40  # for a whole loop phase, over the Jev budget this line was given
 KEY = ""  # set in main() from --env-file; the -LOOP arm refuses to run without it
@@ -73,6 +90,10 @@ CEILING_USD = 14.00
 PILOT_CEILING_USD = 3.00
 TIMEOUT_S = 1800
 TOOLS = "mcp__playwright Read Grep Glob"
+# A session of the bench must not reach the real sessions on this machine. On 2026-10-02 a Haiku
+# session (S1 run 3) called ListAgents and was shown every live session here; it only messaged
+# its own subagent, but nothing stopped it messaging the others.
+DISALLOWED = "WebFetch WebSearch Bash SendMessage ListAgents"
 APPEND = (
     "Use the browser to carry out the request, then answer briefly with the facts you found. "
     "The request may take several steps; take them."
@@ -200,7 +221,50 @@ HARD_TASKS: list[tuple[str, str, str, list[Any]]] = [
     ),
 ]
 
+# Long crawls, 20 to 50 pages, where walking costs dozens of turns and an agent may stop early or
+# sample; S3 is drawn by JavaScript, so a `fetch` of its HTML finds nothing and the one-call
+# strategy can do harm there. Answers from `truth_strategy.py`, 2026-10-02, cross-checked by a
+# second route (S3 against the static site's tag pages; S4's last page by hand).
+STRATEGY_TASKS: list[tuple[str, str, str, list[Any]]] = [
+    (
+        "S1",
+        "https://books.toscrape.com/",
+        "Across the whole catalogue, every one of its pages, how many books are rated five stars "
+        "and cost less than 20.00 (the price shown, in pounds)?" + ANSWER_LINE,
+        ["42"],
+    ),
+    (
+        "S2",
+        "https://www.scrapethissite.com/pages/forms/",
+        "This table lists hockey team seasons over many pages. In how many of those team seasons, "
+        "across all of the pages, did the team win 50 games or more?" + ANSWER_LINE,
+        ["34"],
+    ),
+    (
+        "S3",
+        "https://quotes.toscrape.com/js/",
+        "How many quotes on this site, counting every one of its pages, are tagged 'love'?"
+        + ANSWER_LINE,
+        ["14"],
+    ),
+    (
+        "S4",
+        "https://webscraper.io/test-sites/e-commerce/static/computers/laptops",
+        "How many laptops in this category, across all of its pages, cost more than $1,000?"
+        + ANSWER_LINE,
+        ["65"],
+    ),
+    (
+        "S5",
+        "https://quotes.toscrape.com/scroll",
+        "This page loads more quotes as you scroll down. Among all of the quotes it can show, how "
+        "many different authors are there?" + ANSWER_LINE,
+        ["50"],
+    ),
+]
+
 PILOT_TASKS = [TASKS[0], TASKS[3]]
+EVERY_TASK = TASKS + TRAP_TASKS + HARD_TASKS + STRATEGY_TASKS
 
 
 VENV_PYTHON = base.ROOT / ".venv" / "Scripts" / "python.exe"
@@ -251,7 +315,30 @@ def preflight() -> list[str]:
         )
     if not KEY:
         problems.append("no TYPESAFE_API_KEY for the -LOOP arm (--env-file)")
+    else:
+        resolved = decider_class()
+        if not resolved or resolved.startswith("Null"):
+            problems.append(f"the hook's decider resolves to {resolved or 'nothing'}, not Jev")
     return problems
+
+
+def decider_class() -> str:
+    """The class the hook's interpreter builds from the environment a `-LOOP` session gets.
+
+    A key is not a decider: adopt's frozen environments had the key and no `httpx`, the factory
+    fell back to the null decider with its warning on a captured stderr, and every decision of a
+    phase was "null" (indagis-e3, 2026-10-02). The flag said Jev; only building it says so."""
+    probe = (
+        "from sanchopanza.harness.claude_code import decider_from_env; "
+        "print(type(decider_from_env()).__name__)"
+    )
+    env = {**base.clean_env(dict(os.environ)), "TYPESAFE_API_KEY": KEY}
+    try:
+        done = subprocess.run([str(HOOK_PYTHON), "-c", probe], env=env, capture_output=True,
+                              timeout=60)  # fmt: skip
+    except (subprocess.TimeoutExpired, OSError):
+        return ""
+    return done.stdout.decode("utf-8", errors="replace").strip()
 
 
 def settings_for(arm: str, work: pathlib.Path) -> pathlib.Path:
@@ -271,6 +358,19 @@ def settings_for(arm: str, work: pathlib.Path) -> pathlib.Path:
     return path
 
 
+def appended(arm: str) -> str:
+    """The system prompt every arm shares, plus a strategy line for `-HINT*` arms only."""
+    if arm.endswith("-HINT5"):
+        return f"{APPEND} {STRATEGY_HINT_V5}"
+    if arm.endswith("-HINT4"):
+        return f"{APPEND} {STRATEGY_HINT_V4}"
+    if arm.endswith("-HINT3"):
+        return f"{APPEND} {STRATEGY_HINT_V3}"
+    if arm.endswith("-HINT2"):
+        return f"{APPEND} {STRATEGY_HINT_V2}"
+    return f"{APPEND} {STRATEGY_HINT}" if arm.endswith("-HINT") else APPEND
+
+
 def one_session(task: tuple, run: int, arm: str) -> dict[str, Any]:
     tid, url, question, required = task
     work = pathlib.Path(tempfile.mkdtemp(prefix=f"sp-nav-{tid.lower()}r{run}{arm.lower()}-"))
@@ -287,10 +387,10 @@ def one_session(task: tuple, run: int, arm: str) -> dict[str, Any]:
         env.pop("TYPESAFE_API_KEY", None)  # an arm with no hook decides nothing
     argv = [
         shutil.which("claude") or "claude", "-p", "--model", MODELS[arm],
-        "--append-system-prompt", APPEND,
+        "--append-system-prompt", appended(arm),
         "--settings", str(settings_for(arm, work)), "--setting-sources", "",
         "--mcp-config", str(mcp.mcp_config(work)), "--strict-mcp-config",
-        "--allowedTools", TOOLS, "--disallowedTools", "WebFetch WebSearch Bash",
+        "--allowedTools", TOOLS, "--disallowedTools", DISALLOWED,
         "--output-format", "json", "--max-budget-usd", f"{SESSION_MAX_USD:g}",
         "--", f"Open {url} in the browser. {question}",
     ]  # fmt: skip
@@ -381,14 +481,20 @@ def answer_line(answer: str) -> str:
     return found[-1].strip().strip("*").strip() if found else ""
 
 
+# Task ids graded on their ANSWER line. D and E were added after D5 run 2 of the second
+# confirmation answered "ANSWER: 36" (truth 38) and passed on a "38" elsewhere in its reply.
+ANSWER_LINE_TASKS = ("H", "S", "C", "D", "E")
+
+
 def grade(answer: str, required: list[Any], tid: str) -> bool:
-    """Every required item present. For the aggregation tasks (H*) only the ANSWER line counts,
-    and a number counts as a whole number: "10" is met by "There are 10 quotes" and not by
-    "page 10 of 100" elsewhere in the reply, nor by "100" in the line.
+    """Every required item present. For the aggregation, strategy and confirmation tasks (H*,
+    S*, C*) only the ANSWER line counts, and a number counts as a whole number: "10" is met
+    by "There are 10 quotes" and not by "page 10 of 100" elsewhere in the reply, nor by "100"
+    in the line.
 
     The first version required the literal "answer: 10", and graded "ANSWER: There are 10
     quotes by Albert Einstein" - which is right - as a failure (H1, Sonnet, 2026-10-02)."""
-    if not tid.startswith("H"):
+    if not tid.startswith(ANSWER_LINE_TASKS):
         return base.graded(answer, required)
     line = base.normal(answer_line(answer))
     if not line:
@@ -423,7 +529,7 @@ def final_answer(workdir: str) -> str:
 def regrade(sessions: pathlib.Path, name: str) -> int:
     """Grade every recorded session again with `grade`, from its whole final answer, and say
     which verdicts changed. The first grade is kept beside the new one, never overwritten."""
-    required = {t[0]: t[3] for t in TASKS + TRAP_TASKS + HARD_TASKS}
+    required = {t[0]: t[3] for t in EVERY_TASK}
     rows = done_sessions(sessions)
     out, changed = [], []
     for row in rows:
@@ -494,8 +600,12 @@ def main() -> int:
     ap.add_argument("--traps", action="store_true", help="the trap tasks, mining for failures")
     ap.add_argument("--loop", action="store_true", help="arms HAIKU and HAIKU-LOOP")
     ap.add_argument("--hard", action="store_true", help="the aggregation tasks")
+    ap.add_argument(
+        "--strategy", action="store_true", help="the long crawls, arms SONNET, HAIKU, HAIKU-HINT"
+    )
     ap.add_argument("--only", default="", help="comma-separated task ids, from any set")
     ap.add_argument("--runs", type=int, default=0, help="runs per task and arm")
+    ap.add_argument("--arms", default="", help="comma-separated arms, instead of the set's own")
     ap.add_argument("--tag", default="", help="a development round with its own files")
     ap.add_argument("--ceiling", type=float, default=0.0, help="list USD for this round")
     ap.add_argument(
@@ -507,7 +617,7 @@ def main() -> int:
     args = ap.parse_args()
 
     if args.tasks:
-        for tid, url, question, required in TASKS + TRAP_TASKS + HARD_TASKS:
+        for tid, url, question, required in EVERY_TASK:
             print(f"{tid}  {url}\n    {question}\n    required: {required}\n")
         return 0
     if args.record_hash:
@@ -517,22 +627,28 @@ def main() -> int:
 
     global KEY
     KEY = mcp.key_from(args.env_file)  # e2e_mcp's reader, not a second copy of it
-    tasks = HARD_TASKS if args.hard else (
+    tasks = STRATEGY_TASKS if args.strategy else HARD_TASKS if args.hard else (
         TRAP_TASKS if args.traps else (PILOT_TASKS if args.pilot else TASKS)
     )  # fmt: skip
     if args.only:
         wanted = {t.strip().upper() for t in args.only.split(",")}
-        pool = {t[0]: t for t in TASKS + TRAP_TASKS + HARD_TASKS}
+        pool = {t[0]: t for t in EVERY_TASK}
         unknown = sorted(wanted - set(pool))
         if unknown:
             raise SystemExit(f"no such task: {unknown}")
         tasks = [pool[t] for t in sorted(wanted)]
-    arms = TRAP_ARMS if args.loop else ARMS
-    one_run = (args.pilot or args.traps or args.hard) and not args.loop
+    arms = TRAP_ARMS if args.loop else (STRATEGY_ARMS if args.strategy else ARMS)
+    if args.arms:
+        arms = tuple(a.strip().upper() for a in args.arms.split(","))
+        if set(arms) - set(MODELS):
+            raise SystemExit(f"no such arm: {sorted(set(arms) - set(MODELS))}")
+    one_run = (args.pilot or args.traps or args.hard or args.strategy) and not args.loop
     runs = list(range(1, (args.runs or (1 if one_run else RUNS)) + 1))
-    if args.tag:  # a development round of its own, with its own files
-        sessions = RESULTS / f"nav-{args.tag}-sessions.jsonl"
-        name = f"nav-{args.tag}.json"
+    # The strategy round never falls through to `nav-sessions.jsonl`, the registered phase's file.
+    tag = args.tag or ("strategy" if args.strategy else "")
+    if tag:  # a development round of its own, with its own files
+        sessions = RESULTS / f"nav-{tag}-sessions.jsonl"
+        name = f"nav-{tag}.json"
     else:
         sessions = (
             LOOP_SESSIONS
@@ -547,10 +663,10 @@ def main() -> int:
             )
         )
     if args.regrade:
-        if not args.tag or args.live:
+        if not tag or args.live:
             raise SystemExit("--regrade takes a --tag and spends nothing: drop --live")
         return regrade(sessions, name)
-    development = args.pilot or args.traps or args.hard or bool(args.tag)
+    development = args.pilot or args.traps or args.hard or args.strategy or bool(args.tag)
     ceiling = args.ceiling or (PILOT_CEILING_USD if development else CEILING_USD)
     rows = done_sessions(sessions)
     code = 0

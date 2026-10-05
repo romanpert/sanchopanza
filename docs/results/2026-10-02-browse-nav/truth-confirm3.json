@@ -1,0 +1,82 @@
+{
+ "answers": {
+  "E1_products": 25,
+  "E1_under_10": 10,
+  "E2_testimonials": 60,
+  "E2_five_stars": 36,
+  "E2_star_histogram": {
+   "1": 4,
+   "2": 7,
+   "3": 3,
+   "4": 10,
+   "5": 36
+  },
+  "E3_reviews": 96,
+  "E3_five_stars": 51,
+  "E3_rating_histogram": {
+   "2": 1,
+   "3": 14,
+   "4": 30,
+   "5": 51
+  },
+  "E4_products": 188,
+  "E4_over_50": 55,
+  "E4_over_50_by_lowest_amount": 55,
+  "E4_more_than_one_amount": [
+   [
+    "Savvy Shoulder Tote",
+    [
+     "32.00",
+     "24.00"
+    ]
+   ]
+  ],
+  "E5_products": 147,
+  "E5_over_60": 27,
+  "E6_games": 3000,
+  "E6_fantasy_by_card": 208,
+  "E6_genre_counts_by_card": {
+   "Fantasy": 208,
+   "Horror": 36,
+   "Puzzle": 144,
+   "Racing": 152,
+   "Sci-Fi": 204
+  },
+  "E7_families": 14,
+  "E7_before_1850": 7,
+  "E7_years": {
+   "Carettochelyidae": 1887,
+   "Cheloniidae": 1811,
+   "Chelydridae": 1831,
+   "Dermatemydidae": 1870,
+   "Dermochelyidae": 1843,
+   "Emydidae": 1815,
+   "Geoemydidae": 1868,
+   "Kinosternidae": 1857,
+   "Platysternidae": 1869,
+   "Testudinidae": 1788,
+   "Trionychidae": 1826,
+   "Chelidae": 1831,
+   "Pelomedusidae": 1868,
+   "Podocnemididae": 1869
+  },
+  "E8_books": 19,
+  "E8_total_available": 235
+ },
+ "second_route": {
+  "E1_products_by_text": 25,
+  "E1_under_10_by_text": 10,
+  "E2_by_page_number_and_colour": 60,
+  "E2_five_stars_by_page_number_and_colour": 36,
+  "E3_reviews_in_one_call": 96,
+  "E3_five_stars_in_one_call": 51,
+  "E4_products_sorted_by_price": 188,
+  "E4_over_50_sorted_by_price": 55,
+  "E5_found_in_the_catalogue": "132/147",
+  "E5_prices_that_agree": 131,
+  "E6_total_count_declared": 3000,
+  "E6_fantasy_by_page_data": 208,
+  "E7_before_1850_any_year_on_the_page": 7,
+  "E8_total_available_from_the_table": 235
+ }
+}
