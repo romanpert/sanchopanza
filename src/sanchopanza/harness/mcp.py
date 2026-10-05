@@ -375,7 +375,9 @@ def add_browse(server: Any, squire: Any = None) -> Any:
     return server
 
 
-TOOL_SETS = ("archive", "find", "find_auto", "decisions", "label", "browse", "fetch")
+TOOL_SETS = (
+    "archive", "find", "find_auto", "decisions", "label", "browse", "fetch", "knowledge",
+)  # fmt: skip
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -421,6 +423,10 @@ def main(argv: list[str] | None = None) -> int:
         from .fetch_tool import add_fetch
 
         add_fetch(server)
+    if "knowledge" in wanted:  # search, read and pick (`harness.knowledge_tool`)
+        from .knowledge_tool import add_knowledge
+
+        add_knowledge(server)
     server.run()
     return 0
 

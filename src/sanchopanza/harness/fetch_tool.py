@@ -108,7 +108,9 @@ class _CheckedRedirects(urllib.request.HTTPRedirectHandler):
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
-def http_opener(env: Mapping[str, str] | None = None) -> Callable[[str], Response]:
+def http_opener(
+    env: Mapping[str, str] | None = None, max_bytes: int = MAX_BYTES
+) -> Callable[[str], Response]:
     """The real download: checked URL, checked redirects, a size and a time limit."""
     opener = urllib.request.build_opener(_CheckedRedirects(env))
 
@@ -118,7 +120,7 @@ def http_opener(env: Mapping[str, str] | None = None) -> Callable[[str], Respons
             url, headers={"User-Agent": USER_AGENT, "Accept": "text/html,text/plain,*/*;q=0.5"}
         )
         with opener.open(request, timeout=TIMEOUT_S) as reply:
-            body = reply.read(MAX_BYTES + 1)
+            body = reply.read(max_bytes + 1)
             return Response(reply.geturl(), reply.headers.get("Content-Type", ""), body)
 
     return open_url
@@ -150,11 +152,13 @@ class PageFetcher:
         opener: Callable[[str], Response] | None = None,
         env: Mapping[str, str] | None = None,
         clock: Callable[[], float] = time.monotonic,
+        parse: Callable[[Response], webpage.Page | str] | None = None,
     ) -> None:
         self.env = env
         self.version = version(env)
         self.opener = opener or http_opener(env)
         self.clock = clock
+        self.parse = parse or (lambda response: _page_of(response, self.version))
         self.pages: dict[str, tuple[float, str, webpage.Page | str]] = {}
 
     def _get(self, url: str) -> tuple[str, webpage.Page | str]:
@@ -163,7 +167,7 @@ class PageFetcher:
         if kept and now - kept[0] < CACHE_S:
             return kept[1], kept[2]
         response = self.opener(url)
-        page = _page_of(response, self.version)
+        page = self.parse(response)
         fresh = {u: v for u, v in self.pages.items() if now - v[0] < CACHE_S}
         if len(fresh) >= CACHE_PAGES:
             oldest = min(fresh, key=lambda u: fresh[u][0])
@@ -171,18 +175,24 @@ class PageFetcher:
         self.pages = {**fresh, url: (now, response.url, page)}
         return response.url, page
 
-    def fetch(self, url: str, purpose: str, budget: int = webpage.DEFAULT_BUDGET) -> str:
-        budget = max(MIN_BUDGET, min(MAX_BUDGET, int(budget or webpage.DEFAULT_BUDGET)))
+    def load(self, url: str, *, guessed: bool | None = None) -> tuple[str, webpage.Page | str]:
+        """(final URL, page), or (url, the reason it was not read) on a refusal or a failure.
+        `guessed` adds the 404 line (default: version 2)."""
+        guessed = self.version == 2 if guessed is None else guessed
         try:
             check_url(url, self.env)
-            final, page = self._get(url)
+            return self._get(url)
         except Refused as error:
-            return f"Refused: {error}."
+            return url, f"Refused: {error}."
         except urllib.error.HTTPError as error:
-            guessed = f" {GUESSED}" if self.version == 2 and error.code == 404 else ""
-            return f"Could not fetch {url}: HTTP {error.code}.{guessed}"
+            note = f" {GUESSED}" if guessed and error.code == 404 else ""
+            return url, f"Could not fetch {url}: HTTP {error.code}.{note}"
         except (OSError, ValueError) as error:
-            return f"Could not fetch {url}: {error.__class__.__name__}."
+            return url, f"Could not fetch {url}: {error.__class__.__name__}."
+
+    def fetch(self, url: str, purpose: str, budget: int = webpage.DEFAULT_BUDGET) -> str:
+        budget = max(MIN_BUDGET, min(MAX_BUDGET, int(budget or webpage.DEFAULT_BUDGET)))
+        final, page = self.load(url)
         if isinstance(page, str):
             return page
         named = f"{page.title}\n{final}" if page.title else final
