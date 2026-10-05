@@ -17,8 +17,12 @@ scheduling tools off.
 Each session is a clean user (`gaia_arms.py`): its own empty CLAUDE_CONFIG_DIR, the
 subscription's token, `--setting-sources user`, and its folders under `RUNS` (outside the home
 folder, whose `.claude` the upward CLAUDE.md search would load). CC is that and nothing else;
-SP adds what `sanchopanza install` writes by default into that user folder (`SP_USER_SETTINGS`,
-checked after a real install from a frozen copy of `src`) and the TypeSafe key.
+SP adds what the install line of `s_install.json` writes into that user folder (run for real
+from a frozen copy of the line's source, its digest checked against the preflight's proof,
+`s_line.py`), the line's env and the TypeSafe key; a paid phase refuses an unsealed line. Both
+arms set the permission mode explicitly (`--permission-mode` and `defaultMode`), since a clean
+2.1.287 starts a user folder's first session in `auto`, and every session gets a new user
+folder, so native memory never passes from one task to another.
 
 Both arms deny the hosts that serve the set: WebFetch through the session's deny rules, and any
 tool through a PreToolUse hook that reads the call's whole input (`deny_hook.py`), since Bash
@@ -139,20 +143,29 @@ def base_settings() -> dict[str, Any]:
     """What both arms share: the allow list, the deny rules and the deny hook."""
     hook = {"type": "command", "command": hook_command(), "timeout": HOOK_TIMEOUT_S}
     return {
-        "permissions": {"allow": TOOLS.split(), "deny": list(DENY)},
+        "permissions": {
+            "allow": TOOLS.split(),
+            "deny": list(DENY),
+            "defaultMode": arms.PERMISSION_MODE,
+        },
         "hooks": {"PreToolUse": [{"matcher": "", "hooks": [hook]}]},
     }
 
 
-def settings_for(brazo: str) -> dict[str, Any]:
-    """An arm's settings, by source: `flag` is the `--settings` file (the same in both arms),
-    `user` what its CLAUDE_CONFIG_DIR/settings.json holds (nothing for CC; for SP exactly what
-    `sanchopanza install` writes by default, `gaia_arms.SP_USER_SETTINGS`). The arms differ in
-    `user`, the SP skill beside it and `gaia_arms.session_env`, and nowhere else."""
+def settings_for(brazo: str, base: Mapping[str, Any] | None = None,
+                 line: Any = None) -> dict[str, Any]:  # fmt: skip
+    """An arm's settings, by source: `flag` is the `--settings` file (the same in both arms: the
+    suite's `base`, GAIA's by default), `user` what goes into its CLAUDE_CONFIG_DIR: nothing for
+    CC; for SP the install line of `s_install.json` (its flags, run for real per session, and its
+    env), never a hand-written settings block. The arms differ in `user`, what that install
+    writes beside it (skill, MCP servers) and `gaia_arms.session_env`, and nowhere else."""
+    flag = dict(base) if base is not None else base_settings()
     if brazo == "CC":
-        return {"flag": base_settings(), "user": {}}
+        return {"flag": flag, "user": {}}
     if brazo == "SP":
-        return {"flag": base_settings(), "user": arms.SP_USER_SETTINGS}
+        chosen = line if line is not None else arms.s_line.load()
+        return {"flag": flag, "user": {"install_flags": list(chosen.flags),
+                                       "env": chosen.env_map}}  # fmt: skip
     raise ValueError(f"unknown arm {brazo!r}")
 
 
@@ -173,12 +186,14 @@ def prompt(task: Any, attached: pathlib.Path | None) -> str:
     return "\n\n".join(parts)
 
 
-def argv_for(model: str, settings: pathlib.Path, mcp: pathlib.Path, cap: float, text: str) -> list:
+def argv_for(model: str, settings: pathlib.Path, mcp: pathlib.Path, cap: float, text: str,
+             tools: str = TOOLS, disallowed: str = DISALLOWED) -> list:  # fmt: skip
     return [
         shutil.which("claude") or "claude", "-p", "--model", MODELS[model],
         "--settings", str(settings), "--setting-sources", arms.SETTING_SOURCES,
+        "--permission-mode", arms.PERMISSION_MODE,
         "--mcp-config", str(mcp), "--strict-mcp-config",
-        "--allowedTools", TOOLS, "--disallowedTools", DISALLOWED,
+        "--allowedTools", tools, "--disallowedTools", disallowed,
         "--output-format", "json", "--max-budget-usd", f"{cap:g}", "--", text,
     ]  # fmt: skip
 
@@ -254,40 +269,80 @@ def session_root(phase_name: str, task_id: str, arm: str, run: int) -> pathlib.P
     return RUNS / phase_name / digest
 
 
-def one_session(task: Any, run: int, arm: str, ctx: Mapping[str, Any]) -> dict[str, Any]:
-    """One clean-user session. `ctx`: the phase's name and, for SP, the frozen src and shim."""
+def clean_session(ctx: Mapping[str, Any], root: pathlib.Path, arm: str, text: str, *,
+                  flag_settings: Mapping[str, Any], make_row: Any,
+                  mcp_servers: Mapping[str, Any] | None = None,
+                  copies: Sequence[tuple[pathlib.Path, str]] = (),
+                  tools: str = TOOLS, disallowed: str = DISALLOWED,
+                  caps: Mapping[str, float] | None = None) -> dict[str, Any]:  # fmt: skip
+    """One clean-user session of any suite, from nothing: the user folder (S: the line's
+    install, checked against the preflight's digest), `copies` into the working folder, the
+    suite's MCP servers plus S's, then `make_row(out, stderr, work, side, wall, projects)`;
+    secrets scrubbed and the shim's log counted. `ctx`: phase, and for SP the frozen src, shim,
+    line and digest."""
     model, brazo = split_arm(arm)
-    root = session_root(ctx["phase"], task.task_id, arm, run)
     if root.exists():  # a session the usage limit stopped, run again from nothing
         shutil.rmtree(root)
     work, config, side = root / "work", root / "config", root / "side"
+    if config.exists():  # a new CLAUDE_CONFIG_DIR per session: no native memory carried over
+        raise RuntimeError(f"{config} survived the reset: refusing to reuse a user folder")
     for folder in (work, side):
         folder.mkdir(parents=True)
-    arms.prepare_config(brazo, config, ctx.get("src"))
-    attached = None
-    if task.file_path:
-        attached = work / neutral_name(task.file_name)
-        shutil.copyfile(task.file_path, attached)
+    line = ctx.get("line")
+    installed = arms.prepare_config(brazo, config, ctx.get("src"),
+                                    line.flags if line is not None else (),
+                                    ctx.get("s_digest"))  # fmt: skip
+    for source, name in copies:
+        shutil.copyfile(source, work / name)
+    servers = dict(mcp_servers or {})
+    allowed = tools
+    own_raw = arms.s_line.registered(installed, ctx.get("s_hints", ())) if installed else {}
+    if own_raw:
+        own = arms.s_line.session_mcp(own_raw, ctx["src"], side / "home")
+        clash = sorted(set(own) & set(servers))
+        if clash:
+            raise RuntimeError(f"the S install's MCP servers clash with the suite's: {clash}")
+        servers = {**servers, **own}
+        allowed = " ".join([tools, *(f"mcp__{name}" for name in sorted(own))])
     settings = side / "settings.json"
-    settings.write_text(json.dumps(settings_for(brazo)["flag"]), encoding="utf-8")
+    settings.write_text(json.dumps(flag_settings), encoding="utf-8")
     mcp = side / "mcp.json"
-    mcp.write_text(json.dumps({"mcpServers": {}}), encoding="utf-8")
-    env = arms.session_env(brazo, config, side, ctx.get("shim"))
+    mcp.write_text(json.dumps({"mcpServers": servers}), encoding="utf-8")
+    env = arms.session_env(brazo, config, side, ctx.get("shim"),
+                           line_env=line.env_map if line is not None else None)  # fmt: skip
+    cap = (caps or CAPS)[model]
     started = time.monotonic()
-    argv = argv_for(model, settings, mcp, CAPS[model], prompt(task, attached))
+    argv = argv_for(model, settings, mcp, cap, text, tools=allowed, disallowed=disallowed)
     out, stderr = run_claude(argv, work, side, env)
     wall = time.monotonic() - started
-    row = build_row(task, run, arm, out, stderr, work, side, wall, config / "projects")
+    row = make_row(out, stderr, work, side, wall, config / "projects")
     scrubbed = arms.scrub(root, arms.secrets_of(env))
     shim = reading.shim_runs(side / "shim.log")
     return {
         **row,
         "phase": ctx["phase"],
         "sp_commit": ctx.get("commit", ""),
+        "s_digest": installed.digest if installed is not None else "",
         "shim_calls": sum(shim.values()),
         "shim_runs": shim,
         "scrubbed_files": scrubbed,
     }
+
+
+def one_session(task: Any, run: int, arm: str, ctx: Mapping[str, Any]) -> dict[str, Any]:
+    """One GAIA session: the question, its attachment under a neutral name, GAIA's format."""
+    root = session_root(ctx["phase"], task.task_id, arm, run)
+    copies, attached = [], None
+    if task.file_path:
+        name = neutral_name(task.file_name)
+        copies, attached = [(pathlib.Path(task.file_path), name)], root / "work" / name
+
+    def make_row(out, stderr, work, side, wall, projects):  # noqa: ANN001, ANN202
+        return build_row(task, run, arm, out, stderr, work, side, wall, projects)
+
+    return clean_session(ctx, root, arm, prompt(task, attached),
+                         flag_settings=settings_for(split_arm(arm)[1])["flag"],
+                         make_row=make_row, copies=copies)  # fmt: skip
 
 
 def session_for(log_to: pathlib.Path, ctx: Mapping[str, Any]):
@@ -302,15 +357,54 @@ def session_for(log_to: pathlib.Path, ctx: Mapping[str, Any]):
     return session
 
 
-def phase_context(phase_name: str, brazos: Sequence[str]) -> dict[str, Any]:
-    """Refuse an unclean user; for SP, freeze `src` at HEAD and write the shim (free)."""
+_VERIFIED: dict[tuple, tuple[str, tuple[str, ...], tuple[str, ...]]] = {}
+
+
+def verified_line(line: Any, src: pathlib.Path, scratch: pathlib.Path) -> tuple:
+    """`s_line.verify` once per process for a (frozen copy, line): the digest, the problems and
+    the printed MCP servers the line asked for."""
+    key = (str(src), line.flags, line.env)
+    if key not in _VERIFIED:
+        if scratch.exists():
+            shutil.rmtree(scratch)
+        full, problems, hints = arms.s_line.verify(line, src, scratch)
+        _VERIFIED[key] = (full.digest, tuple(problems), hints)
+    digest, problems, hints = _VERIFIED[key]
+    return digest, list(problems), hints
+
+
+def phase_context(phase_name: str, brazos: Sequence[str], line: Any = None) -> dict[str, Any]:
+    """Refuse an unclean user; for SP, freeze the line's source at its commit, write the shim
+    and prove the line installs whole (free). Any problem with the line stops the phase."""
     arms.refuse_unclean(RUNS)
     ctx: dict[str, Any] = {"phase": phase_name}
-    if "SP" in brazos:
-        frozen = arms.freeze(ROOT, RUNS)
-        ctx = {**ctx, "src": frozen / "src", "shim": arms.write_shim(frozen),
-               "commit": frozen.name}  # fmt: skip
-    return ctx
+    if "SP" not in brazos:
+        return ctx
+    chosen = line if line is not None else arms.s_line.load()
+    source = pathlib.Path(chosen.source) if chosen.source else ROOT
+    frozen = arms.freeze(source, RUNS, chosen.commit)
+    digest, problems, hints = verified_line(chosen, frozen / "src", RUNS / "verify" / frozen.name)
+    if problems:
+        raise SystemExit("the S install line does not install whole: " + "; ".join(problems))
+    return {**ctx, "src": frozen / "src", "shim": arms.write_shim(frozen), "commit": frozen.name,
+            "line": chosen, "s_digest": digest, "s_hints": hints}  # fmt: skip
+
+
+def arms_preflight(brazos: Sequence[str], line: Any = None) -> list[str]:
+    """Both arms' user folders made as a session makes them; S's line proved flag by flag."""
+    try:
+        ctx = phase_context("preflight", brazos, line)
+        for brazo in brazos:
+            config = RUNS / "preflight" / brazo / "config"
+            if config.parent.exists():
+                shutil.rmtree(config.parent)
+            chosen = ctx.get("line")
+            arms.prepare_config(brazo, config, ctx.get("src"),
+                                chosen.flags if chosen is not None else (),
+                                ctx.get("s_digest"))  # fmt: skip
+    except (SystemExit, RuntimeError, OSError, subprocess.SubprocessError) as error:
+        return [f"arms: {error}"]
+    return []
 
 
 # --- plan ---------------------------------------------------------------------------------------
@@ -357,26 +451,47 @@ def model_ids_in(binary: pathlib.Path, ids: Sequence[str]) -> dict[str, bool]:
     return {m: f'"{m}"'.encode() in blob for m in ids}
 
 
-def preflight(brazos: Sequence[str]) -> list[str]:
-    problems: list[str] = []
+def isolation_problems(flag_settings: Mapping[str, Any], argv: Sequence[str]) -> list[str]:
+    """The two things a clean Claude Code 2.1.287 does not fix by itself: the permission mode
+    (`auto` in a user folder's first session, `default` after) set explicitly, the same in both
+    arms, by flag and in the settings; and a user folder of its own per session (native memory
+    lives there), never one another task used."""
+    problems = []
+    mode = (flag_settings.get("permissions") or {}).get("defaultMode")
+    if mode != arms.PERMISSION_MODE:
+        problems.append(f"settings defaultMode is {mode!r}, not {arms.PERMISSION_MODE!r}")
+    flag = list(argv)
+    if "--permission-mode" not in flag or flag[flag.index("--permission-mode") + 1] != (
+        arms.PERMISSION_MODE
+    ):
+        problems.append("the claude command line does not set --permission-mode")
+    roots = {session_root("preflight", t, a, r) for t in ("t1", "t2") for a in ("SONNET-CC",
+             "SONNET-SP") for r in (1, 2)}  # fmt: skip
+    if len(roots) != 8:
+        problems.append("two sessions would share a user folder")
+    return problems
+
+
+def claude_problems() -> list[str]:
+    """The claude on PATH must be the pinned build."""
     claude = shutil.which("claude") or "claude"
     try:
         version = subprocess.run([claude, "--version"], capture_output=True, timeout=60)
         if CLAUDE_VERSION not in version.stdout.decode("utf-8", errors="replace"):
-            problems.append(f"claude on PATH ({claude}) is not {CLAUDE_VERSION}: use launch.ps1")
+            return [f"claude on PATH ({claude}) is not {CLAUDE_VERSION}: use launch.ps1"]
     except (OSError, subprocess.TimeoutExpired) as error:
-        problems.append(f"claude did not run: {error.__class__.__name__}")
+        return [f"claude did not run: {error.__class__.__name__}"]
+    return []
+
+
+def preflight(brazos: Sequence[str]) -> list[str]:
+    problems = claude_problems()
     if not data.TASKS.exists():
         problems.append("no GAIA tasks in the cache: gaia_data.py --fetch")
-    try:
-        ctx = phase_context("preflight", brazos)
-        for brazo in brazos:
-            config = RUNS / "preflight" / brazo / "config"
-            if config.exists():
-                shutil.rmtree(config)
-            arms.prepare_config(brazo, config, ctx.get("src"))
-    except (SystemExit, RuntimeError, OSError, subprocess.SubprocessError) as error:
-        problems.append(f"arms: {error}")
+    problems.extend(arms_preflight(brazos))
+    probe_argv = argv_for("SONNET", RUNS / "s.json", RUNS / "m.json", 1.0, "q")
+    for brazo in brazos:
+        problems.extend(isolation_problems(settings_for(brazo)["flag"], probe_argv))
     probe = {"tool_input": {"command": "curl https://huggingface.co/datasets/x"}}
     if not deny_hook.denied(probe["tool_input"]):
         problems.append("the deny hook let a denied host through")
@@ -446,7 +561,29 @@ def parse(argv: Sequence[str] | None = None) -> argparse.Namespace:
     ap.add_argument("--exclude", default=None, help="a file of task ids to leave out")
     ap.add_argument("--limit", type=int, default=0, help="the first N tasks after filtering")
     ap.add_argument("--ceiling", type=float, default=DEFAULT_CEILING_USD)
+    add_line_args(ap)
     return ap.parse_args(argv)
+
+
+def add_line_args(ap: argparse.ArgumentParser) -> None:
+    ap.add_argument(
+        "--s-line",
+        default=str(arms.s_line.S_INSTALL),
+        help="the S arm's install line (flags and env), sealed by the owner",
+    )
+    ap.add_argument(
+        "--unsealed-ok",
+        action="store_true",
+        help="let --live run S from an unsealed line (smokes only)",
+    )
+
+
+def live_line(args: argparse.Namespace) -> Any:
+    """The S line a paid phase runs: refused unsealed unless --unsealed-ok."""
+    line = arms.s_line.load(pathlib.Path(args.s_line))
+    if "SP" in args.brazos:
+        arms.s_line.require_sealed(line, args.unsealed_ok)
+    return line
 
 
 def chosen(args: argparse.Namespace) -> list[Any]:
@@ -505,7 +642,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         cap = max(CAPS[m] for m in args.models)
         limits = phase.Limits(session_max_usd=cap, ceiling_usd=ceiling(args.ceiling, args.phase))
-        session = session_for(files["sessions"], phase_context(args.phase, args.brazos))
+        ctx = phase_context(args.phase, args.brazos, live_line(args))
+        session = session_for(files["sessions"], ctx)
         code, rows = phase.run_phase(steps, rows, limits, session, files["sessions"])
     counted = phase.counted(rows)
     hand = hand_verdicts(files["hand"])

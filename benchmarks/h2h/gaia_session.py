@@ -124,9 +124,9 @@ def tool_calls(folder: pathlib.Path) -> dict[str, int]:
     return counts
 
 
-def leaks(folder: pathlib.Path, task_id: str) -> list[str]:
-    """The tools whose results name the benchmark or carry the task id: each one is read by hand
-    before the session counts."""
+def leaks(folder: pathlib.Path, task_id: str, word: str = LEAK_WORD) -> list[str]:
+    """The tools whose results name the benchmark (`word`, case-sensitive) or carry the task id:
+    each one is read by hand before the session counts."""
     names: dict[str, str] = {}
     found: list[str] = []
     for entry in entries(folder):
@@ -135,9 +135,24 @@ def leaks(folder: pathlib.Path, task_id: str) -> list[str]:
                 names = {**names, str(block.get("id")): str(block.get("name"))}
             elif block.get("type") == "tool_result":
                 text = result_text(block.get("content"))
-                if LEAK_WORD in text or (task_id and task_id in text):
+                if word in text or (task_id and task_id in text):
                     found.append(names.get(str(block.get("tool_use_id")), "?"))
     return found
+
+
+FINAL_MARKER = re.compile(r"FINAL ANSWER[ \t]*:", re.I)
+
+
+def marker_line(text: str | None, marker: re.Pattern[str] = FINAL_MARKER) -> str | None:
+    """The text after the LAST `marker` in `text`, up to the end of that line (CR dropped), or
+    None without a marker. The rule every h2h extractor follows in both arms: in S, candor appends
+    a status block of a few lines after the answer, and none of it belongs to the answer."""
+    found = None
+    for match in marker.finditer(text or ""):
+        found = match
+    if found is None:
+        return None
+    return (text or "")[found.end() :].split("\n", 1)[0].rstrip("\r").strip()
 
 
 def last_assistant_texts(folder: pathlib.Path) -> list[str]:
@@ -169,7 +184,7 @@ def hook_runs(folder: pathlib.Path) -> dict[str, int]:
             continue
         command = str(hook.get("command") or "")
         # The deny hook's path runs through the sanchopanza checkout: test it first.
-        whose = "deny" if "deny_hook" in command else (
+        whose = "deny" if "deny_hook" in command or "local_hook" in command else (
             "sanchopanza" if command.startswith("sanchopanza ") else "other")  # fmt: skip
         key = f"{hook.get('hookName') or hook.get('hookEvent')} {whose}"
         counts = {**counts, key: counts.get(key, 0) + 1}

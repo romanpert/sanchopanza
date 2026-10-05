@@ -316,25 +316,31 @@ def test_cc_settings_deny_the_sources_and_wire_the_hook():
     assert "deny_hook.py" in command
 
 
-def test_sp_arm_is_the_default_install_on_the_same_flag_settings():
+def test_sp_arm_is_the_install_line_on_the_same_flag_settings():
     cc, sp = runner.settings_for("CC"), runner.settings_for("SP")
-    assert sp["flag"] == cc["flag"]
-    assert sp["user"] is arms.SP_USER_SETTINGS
-    hooks = sp["user"]["hooks"]
-    assert hooks["PreToolUse"][0]["hooks"][0]["command"] == "sanchopanza hook"
-    assert {e["matcher"] for e in hooks["PostToolUse"]} == {"Agent|Task", "Bash"}
-    assert sp["user"]["env"]["SANCHOPANZA_GUARD_PROFILE"] == "coding"
+    assert sp["flag"] == cc["flag"] and cc["user"] == {}
+    line = arms.s_line.load()
+    assert sp["user"] == {"install_flags": list(line.flags), "env": line.env_map}
+    other = arms.s_line.parse({"flags": ["--candor", "--memory"],
+                               "env": {"SANCHOPANZA_X": "1"}})  # fmt: skip
+    assert runner.settings_for("SP", line=other)["user"] == {
+        "install_flags": ["--candor", "--memory"],
+        "env": {"SANCHOPANZA_X": "1"},
+    }
+    base = {"permissions": {"allow": ["Read"]}}
+    assert runner.settings_for("CC", base)["flag"] == base
     with pytest.raises(ValueError):
         runner.settings_for("XX")
 
 
-def test_the_real_default_install_writes_exactly_the_sp_settings(tmp_path):
+def test_the_real_default_install_writes_exactly_the_dev_phase_settings(tmp_path):
     src = ROOT / "src"
-    arms.prepare_config("SP", tmp_path / "config", src)  # runs `sanchopanza install --write`
+    installed = arms.prepare_config("SP", tmp_path / "config", src)  # a real install, free
     written = json.loads((tmp_path / "config" / "settings.json").read_text(encoding="utf-8"))
-    assert written == arms.SP_USER_SETTINGS
+    assert written == arms.SP_USER_SETTINGS  # the record of what GAIA dev ran with
     assert (tmp_path / "config" / arms.SKILL).is_file()
-    arms.prepare_config("CC", tmp_path / "empty", None)
+    assert installed.raw_mcp == {} and "sanchopanza" in installed.hinted  # a hint, not registered
+    assert arms.prepare_config("CC", tmp_path / "empty", None) is None
     assert list((tmp_path / "empty").iterdir()) == []
     with pytest.raises(ValueError):
         arms.prepare_config("SP", tmp_path / "x", None)
@@ -342,11 +348,12 @@ def test_the_real_default_install_writes_exactly_the_sp_settings(tmp_path):
 
 def test_a_drifted_install_stops_the_phase(tmp_path):
     src = ROOT / "src"
-    arms.prepare_config("SP", tmp_path, src)
-    changed = {**arms.SP_USER_SETTINGS, "env": {}}
-    (tmp_path / "settings.json").write_text(json.dumps(changed), encoding="utf-8")
+    installed = arms.prepare_config("SP", tmp_path / "a", src)
+    arms.check_sp(installed, installed.digest)
     with pytest.raises(RuntimeError):
-        arms.check_sp(tmp_path, src)
+        arms.check_sp(installed, "0" * 16)
+    with pytest.raises(RuntimeError):
+        arms.prepare_config("SP", tmp_path / "b", src, ["--candor"], installed.digest)
 
 
 def test_env_cc_is_a_clean_user_and_sp_adds_jev_and_the_shim(monkeypatch, tmp_path):
@@ -363,8 +370,12 @@ def test_env_cc_is_a_clean_user_and_sp_adds_jev_and_the_shim(monkeypatch, tmp_pa
     sp = arms.session_env("SP", tmp_path / "c", tmp_path / "s", tmp_path / "bin", base)
     assert sp["TYPESAFE_API_KEY"] == "key" and sp["PATH"].startswith(str(tmp_path / "bin"))
     assert sp["SANCHOPANZA_JOURNAL"].endswith("journal.jsonl")
-    assert set(sp) - set(cc) == {"TYPESAFE_API_KEY", "SANCHOPANZA_JOURNAL",
+    assert set(sp) - set(cc) == {"TYPESAFE_API_KEY", "SANCHOPANZA_JOURNAL", "H2H_SP_HOME",
                                  "SANCHOPANZA_GUARD_LOG", "H2H_SHIM_LOG"}  # fmt: skip
+    assert sp["H2H_SP_HOME"] == str(tmp_path / "s" / "home")
+    lined = arms.session_env("SP", tmp_path / "c", tmp_path / "s", tmp_path / "bin", base,
+                             {"SANCHOPANZA_MEMORY_KEEP": "0.8"})  # fmt: skip
+    assert lined["SANCHOPANZA_MEMORY_KEEP"] == "0.8" and "SANCHOPANZA_MEMORY_KEEP" not in cc
     assert arms.secrets_of(sp) == ("tok", "key") or set(arms.secrets_of(sp)) == {"tok", "key"}
     with pytest.raises(ValueError):
         arms.session_env("SP", tmp_path, tmp_path, None, base)
@@ -405,7 +416,9 @@ def test_the_shim_runs_the_frozen_src(tmp_path):
     sh = (folder / "sanchopanza").read_text(encoding="utf-8")
     assert sh.startswith("#!/bin/sh\n") and (tmp_path / "src").resolve().as_posix() in sh
     assert '-m sanchopanza "$@"' in sh and "\r" not in sh
-    assert "%*" in (folder / "sanchopanza.cmd").read_text(encoding="utf-8")
+    assert 'export HOME="$H2H_SP_HOME" USERPROFILE="$H2H_SP_HOME"' in sh
+    cmd = (folder / "sanchopanza.cmd").read_text(encoding="utf-8")
+    assert "%*" in cmd and 'set "USERPROFILE=%H2H_SP_HOME%"' in cmd
 
 
 def test_prompt_is_the_question_the_file_and_gaias_format(tmp_path):
@@ -424,6 +437,7 @@ def test_argv_carries_the_cap_and_no_user_settings(tmp_path):
     assert argv[argv.index("--max-budget-usd") + 1] == "0.75"
     assert argv[argv.index("--setting-sources") + 1] == "user"  # the user folder is clean
     assert "--strict-mcp-config" in argv and argv[-2:] == ["--", "q"]
+    assert argv[argv.index("--permission-mode") + 1] == arms.PERMISSION_MODE == "default"
     assert "Bash" not in argv[argv.index("--disallowedTools") + 1]
 
 
@@ -627,6 +641,37 @@ def test_paired_stats_mcnemar_and_cost_bootstrap():
     assert out["by_arm"]["SONNET-SP"]["jev_usd"] == 0.01
     assert runner.stats.mcnemar([True] * 7, [False] * 7)[2] == pytest.approx(2 / 128)
     assert runner.stats.paired(rows, {}, "X-SP", "X-CC") == {"tasks": 0}
+
+
+def test_isolation_permission_mode_and_a_user_folder_per_session(tmp_path):
+    argv = runner.argv_for("SONNET", tmp_path / "s", tmp_path / "m", 1.0, "q")
+    for brazo in ("CC", "SP"):
+        flag = runner.settings_for(brazo)["flag"]
+        assert flag["permissions"]["defaultMode"] == "default"
+        assert runner.isolation_problems(flag, argv) == []
+    assert runner.isolation_problems({"permissions": {}}, argv[:3]) == [
+        "settings defaultMode is None, not 'default'",
+        "the claude command line does not set --permission-mode",
+    ]
+
+
+def test_a_session_starts_from_a_new_user_folder(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "tok")
+    seen = []
+
+    def fake(argv, work, side, env):
+        config = pathlib.Path(env["CLAUDE_CONFIG_DIR"])
+        seen.append(sorted(p.name for p in config.iterdir()))
+        (config / "projects").mkdir()  # what a session leaves: native memory, transcripts
+        return {"result": "FINAL ANSWER: 7", "total_cost_usd": 0.1, "is_error": False}, ""
+
+    monkeypatch.setattr(runner, "run_claude", fake)
+    root = tmp_path / "root"
+    row = lambda *a: {"task": "t", "run": 1, "arm": "HAIKU-CC", "list_usd": 0.1}  # noqa: E731
+    ctx = {"phase": "t"}
+    for _ in range(2):  # the same session again (a resume) starts from an empty user folder
+        runner.clean_session(ctx, root, "HAIKU-CC", "q", flag_settings={}, make_row=row)
+    assert seen == [[], []]
 
 
 def test_session_folders_name_neither_the_task_nor_the_arm():

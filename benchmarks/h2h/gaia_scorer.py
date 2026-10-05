@@ -24,7 +24,9 @@ import re
 import string
 
 _LIST_SPLIT = re.compile(r"[,;]")
-_FINAL = re.compile(r"FINAL ANSWER\s*:\s*(.*)", re.I)
+# The marker's own line only: in S, candor appends a status block of a few lines after the
+# answer, and an answer never runs past its line (`gaia_session.marker_line`, the same rule).
+_FINAL = re.compile(r"FINAL ANSWER[ \t]*:[ \t]*([^\r\n]*)", re.I)
 _WRAPPERS = "*`\"' "
 
 

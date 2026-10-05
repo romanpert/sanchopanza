@@ -1,4 +1,5 @@
-# Starts h2h_gaia.py --live outside the calling session, the way long paid batches on this PC
+# Starts an h2h runner (-Runner: h2h_gaia.py, h2h_bcp.py or h2h_longdoc.py) with --live outside
+# the calling session, the way long paid batches on this PC
 # survive: through WMI (not this shell's process tree), in a new process group (CreateFlags 512,
 # so a stray Ctrl+C on another console cannot reach it), with the pinned Claude Code 2.1.287
 # first on PATH for that process only. Its log (-Log) gets START and EXIT lines around the
@@ -12,6 +13,7 @@
 # Stop it by those PIDs only (Stop-Process -Id), never by image name.
 param(
     [Parameter(Mandatory = $true)][string]$RunnerArgs,
+    [ValidateSet('h2h_gaia.py', 'h2h_bcp.py', 'h2h_longdoc.py')][string]$Runner = 'h2h_gaia.py',
     [string]$Log = "$env:USERPROFILE\.cache\sanchopanza\gaia\h2h\launch.log",
     [string]$PidFile = "$env:USERPROFILE\.cache\sanchopanza\gaia\h2h\launch.pids",
     [string]$Pin = 'C:\Users\roman\AppData\Local\Temp\claude\c--Users-roman-Desktop-proyectos-apps-indagis\ed2adcce-a92b-4af9-bb31-96872de0c1cd\scratchpad\pin'
@@ -29,7 +31,7 @@ set PYTHONPATH=$worktree\src
 set PYTHONIOENCODING=utf-8
 cd /d $worktree
 echo START %DATE% %TIME% > "$Log"
-"$py" benchmarks\h2h\h2h_gaia.py --live $RunnerArgs >> "$Log" 2>&1
+"$py" benchmarks\h2h\$Runner --live $RunnerArgs >> "$Log" 2>&1
 echo EXIT %ERRORLEVEL% %DATE% %TIME% >> "$Log"
 "@ | Set-Content -Encoding ascii $cmdFile
 $startup = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ CreateFlags = [uint32]512 }
