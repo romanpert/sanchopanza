@@ -1,22 +1,27 @@
 # Starts h2h_gaia.py --live outside the calling session, the way long paid batches on this PC
 # survive: through WMI (not this shell's process tree), in a new process group (CreateFlags 512,
 # so a stray Ctrl+C on another console cannot reach it), with the pinned Claude Code 2.1.287
-# first on PATH for that process only. Its own log goes to -Log; the runner logs its sessions
-# beside ~/.cache/sanchopanza/gaia/h2h/sessions.jsonl.
+# first on PATH for that process only. Its log (-Log) gets START and EXIT lines around the
+# runner's output; the PIDs (the cmd.exe started by WMI and the runner's python.exe under it) go
+# to -PidFile, a file of their own. The runner logs its sessions beside
+# ~/.cache/sanchopanza/gaia/h2h/<phase>/sessions.jsonl.
 #
-#   powershell -File benchmarks/h2h/launch.ps1 -RunnerArgs "--models HAIKU --limit 2 --ceiling 2"
+#   powershell -File benchmarks/h2h/launch.ps1 -RunnerArgs "--phase dev --ids ... --ceiling 25" `
+#       -Log C:\sp-runs\h2h\dev.log -PidFile C:\sp-runs\h2h\dev.pids
 #
-# It prints the PID; stop it by that PID only (Stop-Process -Id), never by image name.
+# Stop it by those PIDs only (Stop-Process -Id), never by image name.
 param(
     [Parameter(Mandatory = $true)][string]$RunnerArgs,
     [string]$Log = "$env:USERPROFILE\.cache\sanchopanza\gaia\h2h\launch.log",
+    [string]$PidFile = "$env:USERPROFILE\.cache\sanchopanza\gaia\h2h\launch.pids",
     [string]$Pin = 'C:\Users\roman\AppData\Local\Temp\claude\c--Users-roman-Desktop-proyectos-apps-indagis\ed2adcce-a92b-4af9-bb31-96872de0c1cd\scratchpad\pin'
 )
 $worktree = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $py = 'C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts\python.exe'
 if (-not (Test-Path "$Pin\claude.exe")) { throw "no pinned claude.exe in $Pin" }
 New-Item -ItemType Directory -Force (Split-Path -Parent $Log) | Out-Null
-$cmdFile = Join-Path (Split-Path -Parent $Log) 'launch.cmd'
+New-Item -ItemType Directory -Force (Split-Path -Parent $PidFile) | Out-Null
+$cmdFile = [System.IO.Path]::ChangeExtension($Log, '.cmd')
 @"
 @echo off
 set PATH=$Pin;%PATH%
@@ -31,4 +36,21 @@ $startup = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property
 $r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
     CommandLine = "cmd.exe /c `"$cmdFile`""; CurrentDirectory = $worktree; ProcessStartupInformation = $startup
 }
-"ReturnValue=$($r.ReturnValue) PID=$($r.ProcessId) log=$Log"
+$runner = $null
+foreach ($i in 1..20) {
+    $runner = Get-CimInstance Win32_Process -Filter "ParentProcessId=$($r.ProcessId) AND Name='python.exe'"
+    if ($runner) { break }
+    Start-Sleep -Milliseconds 500
+}
+$runnerPid = if ($runner) { ($runner | Select-Object -First 1).ProcessId } else { 'not-found' }
+# A venv's python.exe is a launcher that starts the base interpreter as its child: record both.
+$base = 'none'
+if ($runner) {
+    foreach ($i in 1..10) {
+        $child = Get-CimInstance Win32_Process -Filter "ParentProcessId=$runnerPid AND Name='python.exe'"
+        if ($child) { $base = ($child | Select-Object -First 1).ProcessId; break }
+        Start-Sleep -Milliseconds 500
+    }
+}
+"cmd=$($r.ProcessId) runner=$runnerPid interpreter=$base started=$(Get-Date -Format s)" | Set-Content -Encoding ascii $PidFile
+"ReturnValue=$($r.ReturnValue) cmd=$($r.ProcessId) runner=$runnerPid interpreter=$base log=$Log pids=$PidFile"

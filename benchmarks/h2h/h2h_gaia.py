@@ -11,14 +11,19 @@ python benchmarks/h2h/h2h_gaia.py                                         # free
 One headless Claude Code session per task, arm and model, the way people use it: the prompt is
 the question, where its attached file is (copied into the session's own folder under a neutral
 name, since GAIA names files by task id) and GAIA's own instruction for the final answer. Claude
-Code's normal tools, Bash included (GAIA needs computing and reading files); no MCP server, no
-user or project settings (`--setting-sources ""`), the scheduling tools off.
+Code's normal tools, Bash included (GAIA needs computing and reading files); no MCP server, the
+scheduling tools off.
+
+Each session is a clean user (`gaia_arms.py`): its own empty CLAUDE_CONFIG_DIR, the
+subscription's token, `--setting-sources user`, and its folders under `RUNS` (outside the home
+folder, whose `.claude` the upward CLAUDE.md search would load). CC is that and nothing else;
+SP adds what `sanchopanza install` writes by default into that user folder (`SP_USER_SETTINGS`,
+checked after a real install from a frozen copy of `src`) and the TypeSafe key.
 
 Both arms deny the hosts that serve the set: WebFetch through the session's deny rules, and any
 tool through a PreToolUse hook that reads the call's whole input (`deny_hook.py`), since Bash
 could `curl` them. A session whose tool results say "GAIA" or the task id is marked `leak` and
-read by hand. The arms differ only by `settings_for(arm)`; the SP arm is not written yet and
-refuses to run (a TODO, not a guess).
+read by hand.
 
 Grading is GAIA's own `question_scorer` (`gaia_scorer.py`) on the last FINAL ANSWER; misses it
 might have got wrong are listed by `--review` and a hand verdict sits beside the official one.
@@ -38,15 +43,13 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
-import os
 import pathlib
+import random
 import re
 import shutil
 import signal
-import statistics
 import subprocess
 import sys
-import tempfile
 import time
 from collections.abc import Mapping, Sequence
 from typing import Any
@@ -64,18 +67,21 @@ def _load(name: str, path: pathlib.Path) -> Any:
 
 
 phase = _load("browse_phase", ROOT / "benchmarks" / "browse" / "phase.py")
-e2e = _load("browse_e2e", ROOT / "benchmarks" / "browse" / "e2e.py")
 data = _load("h2h_gaia_data", HERE / "gaia_data.py")
 scorer = _load("h2h_gaia_scorer", HERE / "gaia_scorer.py")
 reading = _load("h2h_gaia_session", HERE / "gaia_session.py")
 deny_hook = _load("h2h_deny_hook", HERE / "deny_hook.py")
+arms = _load("h2h_gaia_arms", HERE / "gaia_arms.py")
+stats = _load("h2h_gaia_stats", HERE / "gaia_stats.py")
 
 PRIVATE = data.CACHE / "h2h"  # rows keep the agents' answers: never in the repository
-SESSIONS = PRIVATE / "sessions.jsonl"
-HAND = PRIVATE / "hand.jsonl"
-REVIEW = PRIVATE / "review.json"
 RESULTS = ROOT / "docs" / "results" / "2026-10-05-h2h-gaia"
-REPORT = RESULTS / "report.json"  # counts and task ids only
+# Session folders (work, user config, side logs): outside the home folder, never in the repo.
+RUNS = pathlib.Path("C:/sp-runs/h2h")
+DEV_IDS = HERE / "gaia-dev-ids.txt"  # the dev draw: out of every confirmation
+DEV_SEED = 20261005
+DEV_SIZE = 20
+PHASE_CEILINGS = {"dev": 25.0}  # USD at list; a phase named here cannot be given more
 
 CLAUDE_VERSION = "2.1.287"
 PIN = pathlib.Path(
@@ -138,23 +144,15 @@ def base_settings() -> dict[str, Any]:
 
 
 def settings_for(brazo: str) -> dict[str, Any]:
-    """The session's whole settings file for an arm. The arms differ here and nowhere else."""
+    """An arm's settings, by source: `flag` is the `--settings` file (the same in both arms),
+    `user` what its CLAUDE_CONFIG_DIR/settings.json holds (nothing for CC; for SP exactly what
+    `sanchopanza install` writes by default, `gaia_arms.SP_USER_SETTINGS`). The arms differ in
+    `user`, the SP skill beside it and `gaia_arms.session_env`, and nowhere else."""
     if brazo == "CC":
-        return base_settings()
+        return {"flag": base_settings(), "user": {}}
     if brazo == "SP":
-        # TODO(h2h): the sanchopanza arm - which `sanchopanza install` profile, its hooks and MCP
-        # servers added to base_settings(), its env (Jev key, caps) - is decided with the owner
-        # and written here. Until then the arm refuses to run rather than run something guessed.
-        raise NotImplementedError("the SP arm is not written yet (settings_for TODO)")
+        return {"flag": base_settings(), "user": arms.SP_USER_SETTINGS}
     raise ValueError(f"unknown arm {brazo!r}")
-
-
-def env_for(brazo: str, deny_log: pathlib.Path) -> dict[str, str]:
-    """Both arms: no API credential (the subscription runs it), no Jev key, no PYTHONPATH from
-    the launcher. The SP arm will add its own variables here."""
-    dropped = ("TYPESAFE_API_KEY", "PYTHONPATH")
-    env = {k: v for k, v in e2e.clean_env(dict(os.environ)).items() if k not in dropped}
-    return {**env, "H2H_DENY_LOG": str(deny_log)}
 
 
 # --- prompt -------------------------------------------------------------------------------------
@@ -177,7 +175,7 @@ def prompt(task: Any, attached: pathlib.Path | None) -> str:
 def argv_for(model: str, settings: pathlib.Path, mcp: pathlib.Path, cap: float, text: str) -> list:
     return [
         shutil.which("claude") or "claude", "-p", "--model", MODELS[model],
-        "--settings", str(settings), "--setting-sources", "",
+        "--settings", str(settings), "--setting-sources", arms.SETTING_SOURCES,
         "--mcp-config", str(mcp), "--strict-mcp-config",
         "--allowedTools", TOOLS, "--disallowedTools", DISALLOWED,
         "--output-format", "json", "--max-budget-usd", f"{cap:g}", "--", text,
@@ -215,9 +213,10 @@ def grade_fields(answer: str | None, gold: str) -> dict[str, Any]:
 
 
 def build_row(task: Any, run: int, arm: str, out: Mapping[str, Any], stderr: str,
-              work: pathlib.Path, side: pathlib.Path, wall_s: float) -> dict[str, Any]:  # fmt: skip
+              work: pathlib.Path, side: pathlib.Path, wall_s: float,
+              projects: pathlib.Path | None = None) -> dict[str, Any]:  # fmt: skip
     model, brazo = split_arm(arm)
-    folder = reading.folder_of(work)
+    folder = reading.folder_of(work, projects)
     reply = str(out.get("result") or "")
     answer = scorer.final_answer(reply)
     if answer is None:  # a cap or an error can end the session before its last reply
@@ -237,7 +236,8 @@ def build_row(task: Any, run: int, arm: str, out: Mapping[str, Any], stderr: str
         "hit_cap": out.get("subtype") == "error_max_budget_usd" or usd >= CAPS[model] * 0.999,
         **reading.usage_summary(out.get("modelUsage") or {}),
         "turns": out.get("num_turns"), "wall_s": round(wall_s, 1),
-        "tools": reading.tool_calls(folder),
+        "tools": reading.tool_calls(folder), "hooks": reading.hook_runs(folder),
+        **reading.journal(side / "journal.jsonl"),
         **reading.denials(out, side / "denied.jsonl"),
         "leak": bool(leaks), "leak_tools": leaks,
         "answer": LIMIT_MARKER if limited(reply, stderr, is_error) else "",
@@ -245,35 +245,62 @@ def build_row(task: Any, run: int, arm: str, out: Mapping[str, Any], stderr: str
     }  # fmt: skip
 
 
-def one_session(task: Any, run: int, arm: str) -> dict[str, Any]:
+def session_root(phase_name: str, task_id: str, arm: str, run: int) -> pathlib.Path:
+    return RUNS / phase_name / task_id / f"{arm}-{run}"
+
+
+def one_session(task: Any, run: int, arm: str, ctx: Mapping[str, Any]) -> dict[str, Any]:
+    """One clean-user session. `ctx`: the phase's name and, for SP, the frozen src and shim."""
     model, brazo = split_arm(arm)
-    work = pathlib.Path(tempfile.mkdtemp(prefix="sp-h2h-"))
-    side = pathlib.Path(tempfile.mkdtemp(prefix="sp-h2h-side-"))  # out of the agent's sight
+    root = session_root(ctx["phase"], task.task_id, arm, run)
+    if root.exists():  # a session the usage limit stopped, run again from nothing
+        shutil.rmtree(root)
+    work, config, side = root / "work", root / "config", root / "side"
+    for folder in (work, side):
+        folder.mkdir(parents=True)
+    arms.prepare_config(brazo, config, ctx.get("src"))
     attached = None
     if task.file_path:
         attached = work / neutral_name(task.file_name)
         shutil.copyfile(task.file_path, attached)
     settings = side / "settings.json"
-    settings.write_text(json.dumps(settings_for(brazo)), encoding="utf-8")
+    settings.write_text(json.dumps(settings_for(brazo)["flag"]), encoding="utf-8")
     mcp = side / "mcp.json"
     mcp.write_text(json.dumps({"mcpServers": {}}), encoding="utf-8")
-    env = env_for(brazo, side / "denied.jsonl")
+    env = arms.session_env(brazo, config, side, ctx.get("shim"))
     started = time.monotonic()
     argv = argv_for(model, settings, mcp, CAPS[model], prompt(task, attached))
     out, stderr = run_claude(argv, work, side, env)
-    return build_row(task, run, arm, out, stderr, work, side, time.monotonic() - started)
+    wall = time.monotonic() - started
+    row = build_row(task, run, arm, out, stderr, work, side, wall, config / "projects")
+    scrubbed = arms.scrub(root, arms.secrets_of(env))
+    shim = side / "shim.log"
+    calls = len(shim.read_text(encoding="utf-8").splitlines()) if shim.exists() else 0
+    return {**row, "phase": ctx["phase"], "sp_commit": ctx.get("commit", ""),
+            "shim_calls": calls, "scrubbed_files": scrubbed}  # fmt: skip
 
 
-def session_for(log_to: pathlib.Path):
+def session_for(log_to: pathlib.Path, ctx: Mapping[str, Any]):
     """`one_session` behind phase.run_phase's (task tuple, run, arm) signature."""
 
     def session(item: tuple, run: int, arm: str) -> dict[str, Any]:
-        row = one_session(item[3], run, arm)
+        row = one_session(item[3], run, arm, ctx)
         if phase.usage_limited(row):
             phase._log(log_to, f"STOP-LIMIT {item[0]} {arm}: 429 or usage limit in the session")
         return row
 
     return session
+
+
+def phase_context(phase_name: str, brazos: Sequence[str]) -> dict[str, Any]:
+    """Refuse an unclean user; for SP, freeze `src` at HEAD and write the shim (free)."""
+    arms.refuse_unclean(RUNS)
+    ctx: dict[str, Any] = {"phase": phase_name}
+    if "SP" in brazos:
+        frozen = arms.freeze(ROOT, RUNS)
+        ctx = {**ctx, "src": frozen / "src", "shim": arms.write_shim(frozen),
+               "commit": frozen.name}  # fmt: skip
+    return ctx
 
 
 # --- plan ---------------------------------------------------------------------------------------
@@ -293,10 +320,22 @@ def planned(tasks: Sequence[Any], models: Sequence[str], brazos: Sequence[str],
     return steps
 
 
-def ceiling(value: float) -> float:
-    if not 0 < value <= MAX_CEILING_USD:
-        raise SystemExit(f"--ceiling must be in (0, {MAX_CEILING_USD:g}] USD")
+def ceiling(value: float, phase_name: str = "") -> float:
+    top = min(MAX_CEILING_USD, PHASE_CEILINGS.get(phase_name, MAX_CEILING_USD))
+    if not 0 < value <= top:
+        raise SystemExit(f"--ceiling must be in (0, {top:g}] USD for phase {phase_name!r}")
     return value
+
+
+def draw(tasks: Sequence[Any], size: int = DEV_SIZE, seed: int = DEV_SEED) -> list[str]:
+    """The dev tasks: `size` ids drawn with `seed` from the non-video ones, in draw order."""
+    pool = sorted(t.task_id for t in tasks if not t.video)
+    return random.Random(seed).sample(pool, size)
+
+
+def read_ids(path: pathlib.Path) -> list[str]:
+    lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+    return [x.strip() for x in lines if x.strip() and not x.startswith("#")]
 
 
 # --- checks -------------------------------------------------------------------------------------
@@ -319,11 +358,15 @@ def preflight(brazos: Sequence[str]) -> list[str]:
         problems.append(f"claude did not run: {error.__class__.__name__}")
     if not data.TASKS.exists():
         problems.append("no GAIA tasks in the cache: gaia_data.py --fetch")
-    for brazo in brazos:
-        try:
-            settings_for(brazo)
-        except NotImplementedError as error:
-            problems.append(str(error))
+    try:
+        ctx = phase_context("preflight", brazos)
+        for brazo in brazos:
+            config = RUNS / "preflight" / brazo / "config"
+            if config.exists():
+                shutil.rmtree(config)
+            arms.prepare_config(brazo, config, ctx.get("src"))
+    except (SystemExit, RuntimeError, OSError, subprocess.SubprocessError) as error:
+        problems.append(f"arms: {error}")
     probe = {"tool_input": {"command": "curl https://huggingface.co/datasets/x"}}
     if not deny_hook.denied(probe["tool_input"]):
         problems.append("the deny hook let a denied host through")
@@ -333,7 +376,18 @@ def preflight(brazos: Sequence[str]) -> list[str]:
 # --- review and report --------------------------------------------------------------------------
 
 
-def hand_verdicts(path: pathlib.Path = HAND) -> dict[tuple, bool]:
+def paths(phase_name: str) -> dict[str, pathlib.Path]:
+    """A phase's private rows (answers: never in the repository) and its public report."""
+    own = PRIVATE / phase_name
+    return {
+        "sessions": own / "sessions.jsonl",
+        "hand": own / "hand.jsonl",
+        "review": own / "review.json",
+        "report": RESULTS / f"report-{phase_name}.json",
+    }
+
+
+def hand_verdicts(path: pathlib.Path) -> dict[tuple, bool]:
     rows = read_rows(path)
     return {(r["task"], r["arm"], r["run"]): bool(r["ok"]) for r in rows}
 
@@ -354,30 +408,13 @@ def to_review(rows: Sequence[Mapping[str, Any]], hand: Mapping[tuple, bool]) -> 
 
 
 def report(rows: Sequence[Mapping[str, Any]], hand: Mapping[tuple, bool]) -> dict[str, Any]:
+    """Counts, costs and task ids only, per arm, and the paired comparison per model."""
     spent = round(sum(r["list_usd"] for r in rows), 2)
     out: dict[str, Any] = {"sessions": len(rows), "list_usd": spent}
-    cells = {}
-    for arm in sorted({r["arm"] for r in rows}):
-        mine = [r for r in rows if r["arm"] == arm]
-        with_hand = [hand.get((r["task"], r["arm"], r["run"]), r["ok_oficial"]) for r in mine]
-        cells[arm] = {
-            "sessions": len(mine),
-            "ok_oficial": sum(bool(r["ok_oficial"]) for r in mine),
-            "ok_with_hand": sum(with_hand),
-            "by_level": {
-                str(lv): f"{sum(r['ok_oficial'] for r in mine if r['level'] == lv)}/"
-                f"{sum(r['level'] == lv for r in mine)}"
-                for lv in sorted({r["level"] for r in mine})
-            },
-            "mean_usd": round(statistics.mean(r["list_usd"] for r in mine), 4),
-            "median_usd": round(statistics.median(r["list_usd"] for r in mine), 4),
-            "median_wall_s": statistics.median(r["wall_s"] for r in mine),
-            "hit_cap": sum(bool(r["hit_cap"]) for r in mine),
-            "leak": sorted(r["task"] for r in mine if r["leak"]),
-            "no_final_answer": sum(r["final_answer"] is None for r in mine),
-            "denied": sum(r["denied"] + len(r["hook_denied"]) for r in mine),
-        }
-    out["by_arm"] = cells
+    out["by_arm"] = {arm: stats.arm_cell([r for r in rows if r["arm"] == arm], hand)
+                     for arm in sorted({r["arm"] for r in rows})}  # fmt: skip
+    out["paired"] = {m: stats.paired(rows, hand, f"{m}-SP", f"{m}-CC")
+                     for m in sorted({r["model_key"] for r in rows})}  # fmt: skip
     return out
 
 
@@ -387,13 +424,16 @@ def report(rows: Sequence[Mapping[str, Any]], hand: Mapping[tuple, bool]) -> dic
 def parse(argv: Sequence[str] | None = None) -> argparse.Namespace:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     mode = ap.add_mutually_exclusive_group()
-    for flag in ("--plan", "--preflight", "--check-models", "--live", "--review"):
+    for flag in ("--plan", "--preflight", "--check-models", "--live", "--review", "--draw-dev"):
         mode.add_argument(flag, action="store_true")
     mode.add_argument("--verdict", nargs=4, metavar=("TASK", "ARM", "RUN", "YES_NO"))
+    ap.add_argument("--phase", default="dev", help="rows, folders and report are per phase")
     ap.add_argument("--models", nargs="+", default=["SONNET"], choices=sorted(MODELS))
-    ap.add_argument("--brazos", nargs="+", default=["CC"], choices=ARMS)
+    ap.add_argument("--brazos", nargs="+", default=["CC", "SP"], choices=ARMS)
     ap.add_argument("--levels", nargs="+", type=int, default=[1, 2, 3])
     ap.add_argument("--no-video", action="store_true")
+    ap.add_argument("--ids", default=None, help="a file of task ids: only these, in its order")
+    ap.add_argument("--exclude", default=None, help="a file of task ids to leave out")
     ap.add_argument("--limit", type=int, default=0, help="the first N tasks after filtering")
     ap.add_argument("--ceiling", type=float, default=DEFAULT_CEILING_USD)
     return ap.parse_args(argv)
@@ -401,18 +441,37 @@ def parse(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
 def chosen(args: argparse.Namespace) -> list[Any]:
     tasks = data.select(data.load(), args.levels, args.no_video)
+    if args.exclude:
+        out = set(read_ids(pathlib.Path(args.exclude)))
+        tasks = [t for t in tasks if t.task_id not in out]
+    if args.ids:
+        order = read_ids(pathlib.Path(args.ids))
+        by_id = {t.task_id: t for t in tasks}
+        tasks = [by_id[i] for i in order if i in by_id]
     return tasks[: args.limit] if args.limit else tasks
+
+
+def write_dev_ids() -> list[str]:
+    ids = draw(data.load())
+    head = (f"# {DEV_SIZE} of the non-video GAIA validation tasks: random.Random({DEV_SEED})"
+            ".sample of the sorted ids. Out of every confirmation.\n")  # fmt: skip
+    DEV_IDS.write_text(head + "\n".join(ids) + "\n", encoding="utf-8")
+    return ids
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse(argv)
-    PRIVATE.mkdir(parents=True, exist_ok=True)
+    files = paths(args.phase)
+    files["sessions"].parent.mkdir(parents=True, exist_ok=True)
     if args.check_models:
         print(json.dumps(model_ids_in(PIN, list(MODELS.values())), indent=1))
         return 0
+    if args.draw_dev:
+        print(f"{len(write_dev_ids())} ids written to {DEV_IDS}")
+        return 0
     if args.verdict:
         task, arm, run, yes = args.verdict
-        with HAND.open("a", encoding="utf-8") as sink:
+        with files["hand"].open("a", encoding="utf-8") as sink:
             sink.write(json.dumps({"task": task, "arm": arm, "run": int(run),
                                    "ok": yes.lower() in ("yes", "y", "si")}) + "\n")  # fmt: skip
         return 0
@@ -430,24 +489,25 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.preflight:
             print("preflight: ok", file=sys.stderr)
             return 0
-    rows = read_rows(SESSIONS)
+    rows = read_rows(files["sessions"])
     code = 0
     if args.live:
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         cap = max(CAPS[m] for m in args.models)
-        limits = phase.Limits(session_max_usd=cap, ceiling_usd=ceiling(args.ceiling))
-        code, rows = phase.run_phase(steps, rows, limits, session_for(SESSIONS), SESSIONS)
+        limits = phase.Limits(session_max_usd=cap, ceiling_usd=ceiling(args.ceiling, args.phase))
+        session = session_for(files["sessions"], phase_context(args.phase, args.brazos))
+        code, rows = phase.run_phase(steps, rows, limits, session, files["sessions"])
     counted = phase.counted(rows)
-    hand = hand_verdicts()
+    hand = hand_verdicts(files["hand"])
     if args.review:
         pending = to_review(counted, hand)
-        REVIEW.write_text(json.dumps(pending, indent=1), encoding="utf-8")
-        print(f"{len(pending)} sessions to read by hand: {REVIEW}")
+        files["review"].write_text(json.dumps(pending, indent=1), encoding="utf-8")
+        print(f"{len(pending)} sessions to read by hand: {files['review']}")
         return 0
     if counted:
         result = report(counted, hand)
         RESULTS.mkdir(parents=True, exist_ok=True)
-        REPORT.write_text(json.dumps(result, indent=1), encoding="utf-8")
+        files["report"].write_text(json.dumps(result, indent=1), encoding="utf-8")
         print(json.dumps(result, indent=1))
     return code
 

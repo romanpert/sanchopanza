@@ -32,8 +32,10 @@ WEB_SEARCH_USD = 0.01
 LEAK_WORD = "GAIA"  # case-sensitive: "Gaia" the spacecraft is not a leak
 
 
-def folder_of(workdir: str | pathlib.Path) -> pathlib.Path:
-    return PROJECTS / re.sub(r"[^A-Za-z0-9]", "-", str(workdir))
+def folder_of(workdir: str | pathlib.Path, projects: pathlib.Path | None = None) -> pathlib.Path:
+    """Where Claude Code keeps a working folder's transcripts: under the session's own user
+    folder (`CLAUDE_CONFIG_DIR/projects`) for a clean user, else the home one."""
+    return (projects or PROJECTS) / re.sub(r"[^A-Za-z0-9]", "-", str(workdir))
 
 
 def price_key(model: str) -> str | None:
@@ -153,6 +155,47 @@ def version_of(folder: pathlib.Path) -> str:
         if entry.get("version"):
             return str(entry["version"])
     return ""
+
+
+def hook_runs(folder: pathlib.Path) -> dict[str, int]:
+    """Hooks Claude Code ran, from the transcript's hook attachments: `<event> <whose>`, where
+    whose is `sanchopanza` (its command names it), `deny` (the runner's deny hook) or `other`."""
+    counts: dict[str, int] = {}
+    for entry in entries(folder):
+        hook = entry.get("attachment") if entry.get("type") == "attachment" else None
+        if not isinstance(hook, dict) or not str(hook.get("type", "")).startswith("hook_"):
+            continue
+        command = str(hook.get("command") or "")
+        whose = "sanchopanza" if "sanchopanza" in command else (
+            "deny" if "deny_hook" in command else "other")  # fmt: skip
+        key = f"{hook.get('hookName') or hook.get('hookEvent')} {whose}"
+        counts = {**counts, key: counts.get(key, 0) + 1}
+    return counts
+
+
+def journal(path: pathlib.Path) -> dict[str, Any]:
+    """sanchopanza's journal for one session: decisions by point and provider, and their cost."""
+    by_point: dict[str, int] = {}
+    providers: dict[str, int] = {}
+    usd = 0.0
+    errors = 0
+    lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+    for line in lines:
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if event.get("kind") != "decision":
+            continue
+        data = event.get("data") or {}
+        point = str(data.get("point"))
+        provider = str(data.get("provider"))
+        by_point = {**by_point, point: by_point.get(point, 0) + 1}
+        providers = {**providers, provider: providers.get(provider, 0) + 1}
+        usd += float(data.get("cost_usd") or 0.0)
+        errors += bool(data.get("error"))
+    return {"jev_calls": sum(by_point.values()), "jev_by_point": by_point,
+            "jev_providers": providers, "jev_usd": round(usd, 6), "jev_errors": errors}  # fmt: skip
 
 
 def denials(out: Mapping[str, Any], deny_log: pathlib.Path) -> dict[str, Any]:

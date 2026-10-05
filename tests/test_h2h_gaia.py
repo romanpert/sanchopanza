@@ -26,6 +26,7 @@ scorer = runner.scorer
 data = runner.data
 reading = runner.reading
 hook = runner.deny_hook
+arms = runner.arms
 OFFICIAL = data.CACHE / "official" / "scorer.py"
 
 
@@ -292,7 +293,9 @@ def test_arms_and_models():
 
 
 def test_cc_settings_deny_the_sources_and_wire_the_hook():
-    s = runner.settings_for("CC")
+    both = runner.settings_for("CC")
+    assert both["user"] == {}
+    s = both["flag"]
     assert "Bash" in s["permissions"]["allow"]
     assert "WebFetch(domain:huggingface.co)" in s["permissions"]["deny"]
     assert "WebFetch(domain:raw.githubusercontent.com)" in s["permissions"]["deny"]
@@ -300,19 +303,96 @@ def test_cc_settings_deny_the_sources_and_wire_the_hook():
     assert "deny_hook.py" in command
 
 
-def test_sp_arm_refuses_until_it_is_written():
-    with pytest.raises(NotImplementedError):
-        runner.settings_for("SP")
-    assert any("SP arm" in p for p in runner.preflight(["SP"]))
+def test_sp_arm_is_the_default_install_on_the_same_flag_settings():
+    cc, sp = runner.settings_for("CC"), runner.settings_for("SP")
+    assert sp["flag"] == cc["flag"]
+    assert sp["user"] is arms.SP_USER_SETTINGS
+    hooks = sp["user"]["hooks"]
+    assert hooks["PreToolUse"][0]["hooks"][0]["command"] == "sanchopanza hook"
+    assert {e["matcher"] for e in hooks["PostToolUse"]} == {"Agent|Task", "Bash"}
+    assert sp["user"]["env"]["SANCHOPANZA_GUARD_PROFILE"] == "coding"
+    with pytest.raises(ValueError):
+        runner.settings_for("XX")
 
 
-def test_env_has_no_credential_and_no_launcher_pythonpath(monkeypatch, tmp_path):
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "x")
-    monkeypatch.setenv("TYPESAFE_API_KEY", "y")
-    monkeypatch.setenv("PYTHONPATH", "z")
-    env = runner.env_for("CC", tmp_path / "d.jsonl")
-    assert not {"ANTHROPIC_API_KEY", "TYPESAFE_API_KEY", "PYTHONPATH"} & set(env)
-    assert env["H2H_DENY_LOG"].endswith("d.jsonl")
+def test_the_real_default_install_writes_exactly_the_sp_settings(tmp_path):
+    src = ROOT / "src"
+    arms.prepare_config("SP", tmp_path / "config", src)  # runs `sanchopanza install --write`
+    written = json.loads((tmp_path / "config" / "settings.json").read_text(encoding="utf-8"))
+    assert written == arms.SP_USER_SETTINGS
+    assert (tmp_path / "config" / arms.SKILL).is_file()
+    arms.prepare_config("CC", tmp_path / "empty", None)
+    assert list((tmp_path / "empty").iterdir()) == []
+    with pytest.raises(ValueError):
+        arms.prepare_config("SP", tmp_path / "x", None)
+
+
+def test_a_drifted_install_stops_the_phase(tmp_path):
+    src = ROOT / "src"
+    arms.prepare_config("SP", tmp_path, src)
+    changed = {**arms.SP_USER_SETTINGS, "env": {}}
+    (tmp_path / "settings.json").write_text(json.dumps(changed), encoding="utf-8")
+    with pytest.raises(RuntimeError):
+        arms.check_sp(tmp_path, src)
+
+
+def test_env_cc_is_a_clean_user_and_sp_adds_jev_and_the_shim(monkeypatch, tmp_path):
+    monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "tok")
+    monkeypatch.setenv("TYPESAFE_API_KEY", "key")
+    base = {"ANTHROPIC_API_KEY": "x", "TYPESAFE_API_KEY": "y", "PYTHONPATH": "z",
+            "CLAUDE_CONFIG_DIR": "mine", "CLAUDECODE": "1", "CLAUDE_EFFORT": "max",
+            "SANCHOPANZA_PROVIDER": "jev", "PATH": "p"}  # fmt: skip
+    cc = arms.session_env("CC", tmp_path / "c", tmp_path / "s", None, base)
+    assert not {"ANTHROPIC_API_KEY", "TYPESAFE_API_KEY", "PYTHONPATH", "CLAUDECODE",
+                "CLAUDE_EFFORT", "SANCHOPANZA_PROVIDER"} & set(cc)  # fmt: skip
+    assert cc["CLAUDE_CONFIG_DIR"] == str(tmp_path / "c") and cc["CLAUDE_CODE_OAUTH_TOKEN"] == "tok"
+    assert cc["H2H_DENY_LOG"].endswith("denied.jsonl") and cc["PATH"] == "p"
+    sp = arms.session_env("SP", tmp_path / "c", tmp_path / "s", tmp_path / "bin", base)
+    assert sp["TYPESAFE_API_KEY"] == "key" and sp["PATH"].startswith(str(tmp_path / "bin"))
+    assert sp["SANCHOPANZA_JOURNAL"].endswith("journal.jsonl")
+    assert set(sp) - set(cc) == {"TYPESAFE_API_KEY", "SANCHOPANZA_JOURNAL",
+                                 "SANCHOPANZA_GUARD_LOG", "H2H_SHIM_LOG"}  # fmt: skip
+    assert arms.secrets_of(sp) == ("tok", "key") or set(arms.secrets_of(sp)) == {"tok", "key"}
+    with pytest.raises(ValueError):
+        arms.session_env("SP", tmp_path, tmp_path, None, base)
+
+
+def test_secret_comes_from_the_env_file_and_is_never_shown(monkeypatch, tmp_path):
+    monkeypatch.delenv("CLAUDE_CODE_OAUTH_TOKEN", raising=False)
+    env_file = tmp_path / ".env"
+    env_file.write_text('OTHER=1\nCLAUDE_CODE_OAUTH_TOKEN="abc"\n', encoding="utf-8")
+    assert arms.secret("CLAUDE_CODE_OAUTH_TOKEN", env_file) == "abc"
+    with pytest.raises(SystemExit) as stop:
+        arms.secret("CLAUDE_CODE_OAUTH_TOKEN", tmp_path / "none")
+    assert "abc" not in str(stop.value)
+
+
+def test_scrub_takes_both_secrets_out_of_every_file(tmp_path):
+    (tmp_path / "a").mkdir()
+    (tmp_path / "a" / "t.jsonl").write_text("x tok y key", encoding="utf-8")
+    (tmp_path / "b.txt").write_text("nothing", encoding="utf-8")
+    assert arms.scrub(tmp_path, ("tok", "key")) == 1
+    assert (tmp_path / "a" / "t.jsonl").read_text(encoding="utf-8") == "x <redacted> y <redacted>"
+
+
+def test_unclean_runs_are_refused(monkeypatch, tmp_path):
+    monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "tok")
+    (tmp_path / ".claude" / "rules").mkdir(parents=True)
+    (tmp_path / ".claude" / "rules" / "r.md").write_text("rule", encoding="utf-8")
+    (tmp_path / "CLAUDE.md").write_text("memory", encoding="utf-8")
+    found = arms.ancestors_memory(tmp_path / "runs" / "x")
+    assert str(tmp_path / "CLAUDE.md") in found and str(tmp_path / ".claude" / "rules") in found
+    with pytest.raises(SystemExit):
+        arms.refuse_unclean(tmp_path / "runs")
+    assert arms.ancestors_memory(runner.RUNS) == []  # the real run folder: nothing above it
+
+
+def test_the_shim_runs_the_frozen_src(tmp_path):
+    folder = arms.write_shim(tmp_path, "C:/py/python.exe")
+    sh = (folder / "sanchopanza").read_text(encoding="utf-8")
+    assert sh.startswith("#!/bin/sh\n") and (tmp_path / "src").resolve().as_posix() in sh
+    assert '-m sanchopanza "$@"' in sh and "\r" not in sh
+    assert "%*" in (folder / "sanchopanza.cmd").read_text(encoding="utf-8")
 
 
 def test_prompt_is_the_question_the_file_and_gaias_format(tmp_path):
@@ -329,7 +409,7 @@ def test_argv_carries_the_cap_and_no_user_settings(tmp_path):
     argv = runner.argv_for("HAIKU", tmp_path / "s.json", tmp_path / "m.json", 0.75, "q")
     assert argv[argv.index("--model") + 1] == "claude-haiku-4-5-20251001"
     assert argv[argv.index("--max-budget-usd") + 1] == "0.75"
-    assert argv[argv.index("--setting-sources") + 1] == ""
+    assert argv[argv.index("--setting-sources") + 1] == "user"  # the user folder is clean
     assert "--strict-mcp-config" in argv and argv[-2:] == ["--", "q"]
     assert "Bash" not in argv[argv.index("--disallowedTools") + 1]
 
@@ -347,6 +427,9 @@ def test_plan_interleaves_arms_within_each_task():
 
 def test_ceiling_is_bounded_in_code():
     assert runner.ceiling(10) == 10
+    assert runner.ceiling(25, "dev") == 25
+    with pytest.raises(SystemExit):
+        runner.ceiling(25.01, "dev")
     with pytest.raises(SystemExit):
         runner.ceiling(runner.MAX_CEILING_USD + 1)
     with pytest.raises(SystemExit):
@@ -408,7 +491,7 @@ def test_build_row_falls_back_to_the_transcript_and_flags_the_cap(tmp_path, monk
 def test_a_limited_session_stops_the_phase_and_is_not_run(tmp_path, monkeypatch):
     calls = []
 
-    def fake(task, run, arm):
+    def fake(task, run, arm, ctx):
         calls.append(arm)
         limit = "usage limit: hit your limit" if len(calls) == 2 else ""
         return {"task": task.task_id, "run": run, "arm": arm, "list_usd": 0.1, "answer": limit}
@@ -417,25 +500,32 @@ def test_a_limited_session_stops_the_phase_and_is_not_run(tmp_path, monkeypatch)
     sessions = tmp_path / "s.jsonl"
     steps = runner.planned([_task("a"), _task("b")], ["HAIKU"], ["CC"])
     limits = runner.phase.Limits(session_max_usd=0.75, ceiling_usd=10)
-    code, rows = runner.phase.run_phase(steps, [], limits, runner.session_for(sessions), sessions)
+    code, rows = runner.phase.run_phase(
+        steps, [], limits, runner.session_for(sessions, {"phase": "t"}), sessions
+    )
     assert code == 2 and rows[-1]["not_run"] and len(calls) == 2
     assert "STOP-LIMIT" in sessions.with_suffix(".log").read_text(encoding="utf-8")
-    code, _ = runner.phase.run_phase(steps, rows, limits, runner.session_for(sessions), sessions)
+    code, _ = runner.phase.run_phase(
+        steps, rows, limits, runner.session_for(sessions, {"phase": "t"}), sessions
+    )
     assert len(calls) == 3  # resumed: only the refused session ran again
 
 
 def test_the_ceiling_stops_before_a_session_could_cross_it(tmp_path, monkeypatch):
-    monkeypatch.setattr(runner, "one_session", lambda t, r, a: {
+    monkeypatch.setattr(runner, "one_session", lambda t, r, a, c: {
         "task": t.task_id, "run": r, "arm": a, "list_usd": 0.5, "answer": ""})  # fmt: skip
     sessions = tmp_path / "s.jsonl"
     steps = runner.planned([_task(str(i)) for i in range(5)], ["HAIKU"], ["CC"])
     limits = runner.phase.Limits(session_max_usd=0.75, ceiling_usd=2.0)
-    code, rows = runner.phase.run_phase(steps, [], limits, runner.session_for(sessions), sessions)
+    code, rows = runner.phase.run_phase(
+        steps, [], limits, runner.session_for(sessions, {"phase": "t"}), sessions
+    )
     assert code == 1 and len(rows) == 3  # 1.0 spent + 0.75 reserved fits; 1.5 + 0.75 does not
 
 
 def _graded(task, arm, ok, review=None, level=1):
     return {"task": task, "arm": arm, "run": 1, "level": level, "ok_oficial": ok,
+            "model_key": arm.split("-")[0],
             "review": review, "list_usd": 0.2, "wall_s": 10.0, "hit_cap": False, "leak": False,
             "final_answer": "x", "denied": 0, "hook_denied": []}  # fmt: skip
 
@@ -459,4 +549,64 @@ def test_plan_mode_is_free(monkeypatch, capsys, tmp_path):
     monkeypatch.setattr(runner.data, "load", lambda: [_task("a"), _task("b", level=2)])
     assert runner.main(["--plan", "--models", "HAIKU", "--levels", "2"]) == 0
     out = capsys.readouterr().out
-    assert "b HAIKU-CC" in out and "1 sessions" in out
+    assert "b HAIKU-CC" in out and "b HAIKU-SP" in out and "2 sessions" in out
+    ids = tmp_path / "ids.txt"
+    ids.write_text("# c\nb\na\n", encoding="utf-8")
+    assert runner.main(["--plan", "--models", "HAIKU", "--brazos", "CC", "--ids", str(ids)]) == 0
+    assert [x.split()[1] for x in capsys.readouterr().out.splitlines()[:2]] == ["b", "a"]
+    assert runner.main(["--plan", "--models", "HAIKU", "--brazos", "CC", "--exclude",
+                        str(ids)]) == 0  # fmt: skip
+    assert "0 sessions" in capsys.readouterr().out
+
+
+def test_dev_draw_is_seeded_and_leaves_video_out():
+    tasks = [_task(f"t{i:03d}") for i in range(40)]
+    video = data.Task(task_id="v", level=1, question="see https://youtu.be/x", gold="1",
+                      file_name="", file_path="", tools="")  # fmt: skip
+    ids = runner.draw([*tasks, video], 20, 7)
+    assert len(ids) == len(set(ids)) == 20 and "v" not in ids
+    assert ids == runner.draw(list(reversed([*tasks, video])), 20, 7)
+
+
+def test_dev_ids_file_holds_twenty_non_video_tasks():
+    ids = runner.read_ids(runner.DEV_IDS)
+    assert len(ids) == len(set(ids)) == runner.DEV_SIZE
+
+
+def test_hook_runs_and_journal(tmp_path):
+    folder = tmp_path / "p"
+    folder.mkdir()
+    lines = [{"type": "attachment", "attachment": {"type": "hook_success", "hookName":
+              "PreToolUse:Bash", "command": "sanchopanza hook"}},
+             {"type": "attachment", "attachment": {"type": "hook_success", "hookName":
+              "PreToolUse:Bash", "command": '"py" "deny_hook.py"'}},
+             {"type": "attachment", "attachment": {"type": "file"}}]  # fmt: skip
+    (folder / "s.jsonl").write_text("\n".join(json.dumps(x) for x in lines), encoding="utf-8")
+    assert reading.hook_runs(folder) == {"PreToolUse:Bash sanchopanza": 1,
+                                         "PreToolUse:Bash deny": 1}  # fmt: skip
+    journal = tmp_path / "j.jsonl"
+    events = [{"kind": "decision", "data": {"point": "guard", "provider": "jev",
+                                            "cost_usd": 0.0001, "error": None}},
+              {"kind": "decision", "data": {"point": "search", "provider": "jev",
+                                            "cost_usd": 0.0002, "error": "timeout"}},
+              {"kind": "note", "data": {}}]  # fmt: skip
+    journal.write_text("\n".join(json.dumps(x) for x in events) + "\nbad", encoding="utf-8")
+    got = reading.journal(journal)
+    assert got["jev_calls"] == 2 and got["jev_usd"] == 0.0003 and got["jev_errors"] == 1
+    assert got["jev_by_point"] == {"guard": 1, "search": 1}
+    assert reading.journal(tmp_path / "none")["jev_calls"] == 0
+
+
+def test_paired_stats_mcnemar_and_cost_bootstrap():
+    rows = []
+    for i in range(10):
+        for arm, ok, usd in (("SONNET-SP", i < 6, 0.2), ("SONNET-CC", i < 4, 0.3)):
+            rows.append({**_graded(f"t{i}", arm, ok), "list_usd": usd, "jev_usd": 0.001})
+    out = runner.report(rows, {})
+    pair = out["paired"]["SONNET"]
+    assert pair["tasks"] == 10 and pair["oficial"]["a_only"] == 2 and pair["oficial"]["b_only"] == 0
+    assert pair["oficial"]["a_only_tasks"] == ["t4", "t5"] and pair["oficial"]["p"] == 0.5
+    assert pair["cost"]["mean_diff"] == -0.1 and pair["cost"]["diff_ci95"] == [-0.1, -0.1]
+    assert out["by_arm"]["SONNET-SP"]["jev_usd"] == 0.01
+    assert runner.stats.mcnemar([True] * 7, [False] * 7)[2] == pytest.approx(2 / 128)
+    assert runner.stats.paired(rows, {}, "X-SP", "X-CC") == {"tasks": 0}
