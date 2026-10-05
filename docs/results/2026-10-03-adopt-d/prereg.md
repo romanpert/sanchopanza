@@ -31,7 +31,7 @@ after sealing breaks the seal. Not sealed, on purpose:
   checked before every pair instead.
 
 Before sealing, these must be done and written here: the owner's call on the development probe
-(below) and, if approved, the need probe's result; the validation of the drawn images; the
+(below); the validation of the drawn images; the
 disjointness check run again; the absolute ceiling's base and its added amount filled in, here and
 in `run_d.py` (`CEILING_BASE_USD`, `CEILING_ADDED_USD`). The frozen commit is filled in (7a39a1f,
 `run_d.D_COMMIT`). After sealing, a change is an amendment written here, dated, before any verdict
@@ -117,10 +117,10 @@ for the probe. Its rows count in D's ledger (`dev-need/`, see "Caps"). The owner
 (2026-10-05); gate (2) is read from it, since it is the only probe on the copy D
 runs, and it runs where find is needed.
 
-> **Need probe result:** _(to fill in, or "not run" with the owner's call above: sessions, find
-> visible in N of N, sessions calling find, ToolSearch calls, cost)_
+> **Need probe result:** not known at sealing; the probe was running. It goes to
+> `../2026-09-30-adopt/dev-log.md`, not here (writing it here would break the seal).
 
-Nothing is sealed while either placeholder above is unfilled.
+**Gate (2) does not block D** (the owner's call, 2026-10-05): D runs whatever the need probe shows, and the two run at the same time. The need probe's result is written above when it ends and is read as development, not as a condition of D.
 
 ## Tasks: 26 new held-out singles (drawn 2026-10-03, before this draft was finished)
 
@@ -221,7 +221,8 @@ read inside phase D's own folders, which name drawn and spare ids by design afte
 - Run 2026-10-05, after the selftest, with 16 of the 26 instances validated:
   `{"drawn_or_spare_now_used_elsewhere": {}}`, exit 0. The need probe's ten instances
   (`benchmarks/find_need/`) were in the scan and none is drawn or a spare.
-- Right before sealing: _(to fill in: run again after the validation, and the need probe if run)_
+- Right before sealing (2026-10-05, after the validation of all 26, with the need probe running):
+  `{"drawn_or_spare_now_used_elsewhere": {}}`, exit 0.
 
 ## Arms, model, sessions
 
@@ -268,7 +269,8 @@ read inside phase D's own folders, which name drawn and spare ids by design afte
 - **Repetitions: 3 per instance and arm, 156 sessions.** Each session in a fresh working copy
   exported from the image, at its own path (`<instance>-r<k>-<arm>`), so no session can see
   another's Claude Code project folder. N and S of the same repetition start together; an
-  instance's three pairs run before the next instance; its image is pulled once and dropped after
+  instance's three pairs run **at the same time** (six sessions, `CONCURRENT_REPS = 3`; the owner's call,
+  2026-10-05, to finish in hours, not a day), and all three before the next instance; its image is pulled once and dropped after
   its six sessions are graded.
 - **Instance order: seeded and interleaved, not table order** (`plan_d.order`, seed 20261005), so
   that no stratum is left to the end of the batch or of the subscription's week. The strata are
@@ -434,7 +436,7 @@ Caveats on these numbers, said now:
 |---|---|
 | per call (`--max-budget-usd`) | 1.50 |
 | per instance, held before it starts | its six sessions' caps, 9.00 (all or nothing: no instance runs some pairs and not others for want of room) |
-| total, absolute | `CEILING_BASE_USD` + `CEILING_ADDED_USD` (`run_d.py`): the base _(to fill in at sealing from `run_d.py ledger`)_, plus 110.00 (the owner's call, 2026-10-05: at +90 the ceiling would stop the batch before the last instance in about 13 % of resamples of phase A's costs, 40 % if sessions cost 10 % more) |
+| total, absolute | `CEILING_BASE_USD` + `CEILING_ADDED_USD` (`run_d.py`): the base **205.682391** (`run_d.py ledger` at sealing, 2026-10-05: runs 145.55, singles 43.78, singles-d 0, dev 16.35 with the need probe's first session), so the absolute ceiling is **315.682391**, plus 110.00 (the owner's call, 2026-10-05: at +90 the ceiling would stop the batch before the last instance in about 13 % of resamples of phase A's costs, 40 % if sessions cost 10 % more) |
 
 - **The ledger** (`run_d.py ledger`, free): every row under `adopt/runs/` (`run.spent_so_far`),
   `adopt/singles/` (`singles_run.spent_singles`), `adopt/singles-d/` (set-aside `-limit<k>`
@@ -457,8 +459,11 @@ a call cap above 1.50, another frozen commit, a Claude Code other than 2.1.285, 
 not hold, unfilled ceiling constants, an S arm whose probe does not find `JevDecider` (checked at
 the batch's start and again before every pair), a session over an earlier one's project folder or
 over an evidence folder with no row, and a second batch while one runs. Run outside the session
-(`Win32_Process.Create`, `run-d.cmd`), watched live, not alongside another session's run on the
-subscription. No retries. Ctrl+C (and Ctrl+Break) are ignored: a stray one killed phase A
+(`Win32_Process.Create`, `run-d.cmd`), watched live. **It runs alongside other sessions' batches on the
+subscription** (the owner's call, 2026-10-05; at sealing the memory line's v8.1 batch and the need probe were
+running, browse may add small development batches): load falls on both arms of a pair alike, since they start
+together, and a usage limit is handled as above. The need probe's spend after sealing counts in the ledger
+(`dev-need/`), so it narrows D's room by at most its own cap. No retries. Ctrl+C (and Ctrl+Break) are ignored: a stray one killed phase A
 mid-grade.
 
 ### Stops and re-runs

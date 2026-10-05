@@ -13,14 +13,16 @@ Claude Code 2.1.285 goes first on PATH for this process and its children.
 
 - One session per instance, repetition and arm, each in a fresh working copy at
   `run.WORK/<id>-r<k>-<arm>`, its evidence at `singles-d/<id>/r<k>/<arm>`, its key at
-  `run.arm_keyfile(key, "<id>-r<k>", "S")`. N and S of a repetition start together; an instance's
-  three pairs run before the next instance; its image is pulled once and dropped after its
-  sessions are graded. Instances in a seeded order interleaving the strata (`order`, seed
-  20261005), computed from `singles-validated.json`.
-- Before each pair: D's seal holds, and the inputs both arms load that no seal covers
+  `run.arm_keyfile(key, "<id>-r<k>", "S")`. An instance's three repetitions run concurrently
+  (CONCURRENT_REPS: six sessions at once), N and S of each starting together, before the next
+  instance; its image is pulled once and dropped after its sessions are graded, one by one.
+  Instances in a seeded order interleaving the strata (`order`, seed 20261005), computed from
+  `singles-validated.json`.
+- Before each instance and pair: D's seal holds, and the inputs both arms load that no seal covers
   (`~/.claude/CLAUDE.md`, `~/.claude/rules/*.md`, the harness's `verified-rows.json` and
   `run_swe.py`) still have the hashes recorded at the batch's start (logged, and kept in every
-  row; `run_swe.py`'s in every grade.json). One batch at a time (`singles-d/batch.lock`).
+  row; `run_swe.py`'s in every grade.json). One phase D batch at a time (`singles-d/batch.lock`);
+  other batches on the subscription may run alongside (the owner's call).
 - Money (list price): `--max-budget-usd 1.50` per call; an instance's six sessions' caps (9.00)
   held against the absolute ceiling before it starts, all or nothing; the ledger is every row
   under `adopt/runs/`, `adopt/singles/`, `adopt/singles-d/` and the development probes' roots.
@@ -64,7 +66,7 @@ ROOT = Path.home() / ".cache" / "sanchopanza" / "adopt"
 D_COMMIT = "7a39a1f0d4ff8e9cf5c99046ee0aa818ffe955d9"
 # Everything spent at sealing under adopt/runs, adopt/singles, adopt/singles-d and the development
 # probes' roots (`run_d.py ledger`); the absolute ceiling is this plus CEILING_ADDED_USD.
-CEILING_BASE_USD: float | None = None
+CEILING_BASE_USD: float | None = 205.682391
 CEILING_ADDED_USD = 110.00
 
 FROZEN = ROOT / "frozen" / f"{D_COMMIT[:12] or 'unset'}-jev-mcp"
@@ -103,6 +105,7 @@ DECIDER = "JevDecider"
 EXTRAS = ("jev", "mcp")
 ARMS = ("N", "S")
 REPS = 3
+CONCURRENT_REPS = 3  # an instance's repetitions at once: six sessions
 HOLD_USD = CALL_CAP_USD * len(ARMS) * REPS  # an instance's six sessions, 9.00
 RUNS_D = run.ROOT / "singles-d"
 # The development probes' outputs (`benchmarks/adopt_dev/common.py`, PROFILES), read only.
@@ -619,13 +622,30 @@ def run_pair(
     rows = {arm: evidence_of(name, rep, arm) / "row.json" for arm in arms}
     statuses = {arm: str(read_json(path)["calls"][0].get("status", "")) if path.exists()
                 else "no row" for arm, path in rows.items()}  # fmt: skip
-    if "rerun" in now.values():
-        set_aside_limit(name)
+    if "rerun" in now.values():  # set aside by run_instance once every sibling pair has ended
         raise Stop(f"{name} r{rep}: a usage limit or a session that never started {statuses}")
     if ERROR_OTHER in statuses.values():
         raise Stop(f"{name} r{rep}: an error result that is not a usage limit {statuses}")
     if "S" in arms and (why := treatment_stop(name, rep)):
         raise Stop(why)
+
+
+def run_pairs(
+    row: dict[str, Any], plan: list[tuple[int, list[str]]], keyfile: Path,
+    inputs: dict[str, str | None],
+) -> list[Exception]:  # fmt: skip
+    """The instance's repetitions at once (CONCURRENT_REPS). A stop or a fault in one pair kills
+    nothing: its siblings run to their end. What each raised, in repetition order."""
+
+    def attempt(item: tuple[int, list[str]]) -> Exception | None:
+        try:
+            run_pair(row, item[0], item[1], keyfile, inputs)
+        except Exception as exc:  # noqa: BLE001  (returned, raised by run_instance after all end)
+            return exc
+        return None
+
+    with ThreadPoolExecutor(max_workers=CONCURRENT_REPS) as pool:
+        return [e for e in pool.map(attempt, plan) if e is not None]
 
 
 def run_instance(
@@ -653,13 +673,18 @@ def run_instance(
                 raise Stop(f"{name}: its sessions' caps ({HOLD_USD:.2f} USD) do not fit under "
                            f"the ceiling ({spent:.2f} of {top:.2f} spent)")  # fmt: skip
             held = HOLD_USD
+            if why := pair_refusal(inputs):
+                raise Stop(f"{name} not started: {why}")
         docker_env.pull(row["image"])
+        errors: list[Exception] = []
         try:
-            for rep, arms in plan:
-                run_pair(row, rep, arms, keyfile, inputs)
+            errors = run_pairs(row, plan, keyfile, inputs)
         finally:
+            set_aside_limit(name)  # a usage limit: every pair has ended, the instance goes whole
             grade_instance(name)  # what ran is graded even when the batch stops here
             docker_env.drop(row["image"])
+        if errors:  # a fault before a stop: it says more
+            raise next((e for e in errors if not isinstance(e, Stop)), errors[0])
     finally:
         run.release(held)
 

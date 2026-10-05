@@ -84,6 +84,7 @@ def _no_docker(monkeypatch: pytest.MonkeyPatch, calls: list[str]) -> None:
     monkeypatch.setattr(run_d.docker_env, "pull", lambda image: calls.append("pull"))
     monkeypatch.setattr(run_d.docker_env, "drop", lambda *tags: calls.append("drop"))
     monkeypatch.setattr(run_d, "grade_instance", lambda name: calls.append("grade"))
+    monkeypatch.setattr(run_d, "pair_refusal", lambda inputs: None)
 
 
 def test_an_instance_starts_only_if_its_hold_fits(roots: Path, monkeypatch) -> None:
@@ -97,7 +98,8 @@ def test_an_instance_starts_only_if_its_hold_fits(roots: Path, monkeypatch) -> N
         run_d.run_instance(ROW, roots / "key", 108.99, {})
     assert calls == [] and run._ledger["reserved"] == 0.0
     run_d.run_instance(ROW, roots / "key", 109.00, {})  # exactly room for 9.00
-    assert calls == ["pull", "r1", "r2", "r3", "grade", "drop"]
+    assert calls[0] == "pull" and sorted(calls[1:4]) == ["r1", "r2", "r3"]
+    assert calls[4:] == ["grade", "drop"]
     assert run._ledger["reserved"] == 0.0  # released after the instance
 
 
@@ -207,6 +209,8 @@ def test_a_pair_with_an_error_result_stops_the_batch(roots: Path, monkeypatch) -
     with pytest.raises(run_d.Stop, match="usage limit"):
         run_d.run_pair(ROW, 1, ["N", "S"], roots / "key", {})
     run.drop_arm_keys()
+    assert run_d.state(NAME, 1, "S") == "rerun"  # siblings may still run: set aside after them
+    run_d.set_aside_limit(NAME)
     assert (roots / "singles-d" / f"{NAME}-limit1" / "r1" / "S" / "row.json").exists()
     assert run_d.todo(NAME)[0] == (1, ["N", "S"])
 
@@ -599,3 +603,103 @@ def test_selftest_names_the_fail_to_pass_tests() -> None:
     patch = "+++ b/sympy/core/tests/test_x.py\n"
     assert selftest_d.test_args("sympy/sympy", ["test_y", "test_z"], patch) == [
         "sympy/core/tests/test_x.py", "-k", "test_y or test_z"]  # fmt: skip
+
+
+# ---- the three repetitions at once ---------------------------------------------------------------
+
+
+def test_an_instances_repetitions_run_at_once(roots: Path, monkeypatch) -> None:
+    import threading
+
+    calls: list[str] = []
+    _no_docker(monkeypatch, calls)
+    monkeypatch.setattr(run_d, "ledger", lambda: 0.0)
+    monkeypatch.setitem(run._ledger, "reserved", 0.0)
+    together = threading.Barrier(run_d.CONCURRENT_REPS, timeout=10)
+    held: list[float] = []
+
+    def fake_pair(row: dict, rep: int, arms: list, key: Path, inputs: dict) -> None:
+        held.append(run._ledger["reserved"])
+        together.wait()  # breaks (and fails the test) unless the three are in flight together
+        for arm in arms:
+            _row(run_d.evidence_of(NAME, rep, arm))
+
+    monkeypatch.setattr(run_d, "run_pair", fake_pair)
+    run_d.run_instance(ROW, roots / "key", 50.0, {})
+    assert run_d.CONCURRENT_REPS == 3 and held == [run_d.HOLD_USD] * 3  # one hold for the six
+    assert calls == ["pull", "grade", "drop"] and run._ledger["reserved"] == 0.0
+    assert run_d.todo(NAME) == []
+
+
+def test_a_stop_mid_instance_lets_its_siblings_finish(roots: Path, monkeypatch) -> None:
+    import threading
+    import time
+
+    calls: list[str] = []
+    _no_docker(monkeypatch, calls)
+    monkeypatch.setattr(run_d, "ledger", lambda: 0.0)
+    monkeypatch.setitem(run._ledger, "reserved", 0.0)
+    started = threading.Barrier(3, timeout=10)
+    finished: list[int] = []
+
+    def fake_pair(row: dict, rep: int, arms: list, key: Path, inputs: dict) -> None:
+        started.wait()
+        if rep == 1:
+            raise run_d.Stop("r1 S fails the treatment's ['d']")
+        time.sleep(0.3)
+        finished.append(rep)
+
+    monkeypatch.setattr(run_d, "run_pair", fake_pair)
+    with pytest.raises(run_d.Stop, match="treatment"):
+        run_d.run_instance(ROW, roots / "key", 50.0, {})
+    assert sorted(finished) == [2, 3]  # not killed: both ended before the stop was raised
+    assert calls == ["pull", "grade", "drop"] and run._ledger["reserved"] == 0.0
+
+
+def test_a_usage_limit_sets_aside_after_the_pairs_end(roots: Path, monkeypatch) -> None:
+    calls: list[str] = []
+    _no_docker(monkeypatch, calls)
+    monkeypatch.setattr(run_d, "ledger", lambda: 0.0)
+    monkeypatch.setitem(run._ledger, "reserved", 0.0)
+
+    def fake_pair(row: dict, rep: int, arms: list, key: Path, inputs: dict) -> None:
+        for arm in arms:
+            limited = rep == 2 and arm == "S"
+            _row(run_d.evidence_of(NAME, rep, arm), status=run_d.NOT_RUN_ERROR if limited else "")
+        if rep == 2:
+            raise run_d.Stop("a usage limit")
+
+    monkeypatch.setattr(run_d, "run_pair", fake_pair)
+    with pytest.raises(run_d.Stop, match="usage limit"):
+        run_d.run_instance(ROW, roots / "key", 50.0, {})
+    aside = roots / "singles-d" / f"{NAME}-limit1"
+    assert {p.relative_to(aside).as_posix() for p in aside.glob("r*/*")} == {
+        f"r{r}/{a}" for r in (1, 2, 3) for a in ("N", "S")}  # fmt: skip
+    assert run_d.todo(NAME) == [(r, ["N", "S"]) for r in (1, 2, 3)]
+
+
+def test_the_instance_does_not_start_once_the_seal_breaks(roots: Path, monkeypatch) -> None:
+    calls: list[str] = []
+    _no_docker(monkeypatch, calls)
+    monkeypatch.setattr(run_d, "ledger", lambda: 0.0)
+    monkeypatch.setitem(run._ledger, "reserved", 0.0)
+    monkeypatch.setattr(run_d, "pair_refusal", lambda inputs: "phase D is not sealed")
+    with pytest.raises(run_d.Stop, match="not started"):
+        run_d.run_instance(ROW, roots / "key", 50.0, {})
+    assert calls == [] and run._ledger["reserved"] == 0.0
+
+
+def test_the_ledgers_reserve_is_thread_safe(monkeypatch) -> None:
+    from concurrent.futures import ThreadPoolExecutor
+
+    monkeypatch.setitem(run._ledger, "reserved", 0.0)
+    monkeypatch.setitem(run._ledger, "spent", 0.0)
+
+    def call(_: int) -> None:
+        assert run.reserve(float("inf"))
+        run.settle(0.01)
+
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        list(pool.map(call, range(600)))
+    assert run._ledger["reserved"] == pytest.approx(0.0)
+    assert run._ledger["spent"] == pytest.approx(6.0)
