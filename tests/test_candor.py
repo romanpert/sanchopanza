@@ -182,6 +182,21 @@ def test_unread_citation() -> None:
     assert ("high", "unread_citation") in rules(record)
 
 
+def test_a_page_read_by_the_knowledge_server_and_cited_is_not_unread() -> None:
+    from sanchopanza.candor.ledger import target_of
+
+    url = "https://en.wikipedia.org/wiki/Example"
+    read = {"url_or_path": url, "purpose": "the year"}
+    assert target_of("mcp__sanchopanza-knowledge__read", read) == url
+    pick = {"purpose": "x", "sources": ["a.pdf", "docs/"]}
+    assert target_of("mcp__sanchopanza-knowledge__pick", pick) == "a.pdf docs/"
+    record = {
+        "said": f"According to {url} the year is 1990.",
+        "did": [run("mcp__sanchopanza-knowledge__read", target_of("x", read), True, "1990")],
+    }
+    assert not any(r == "unread_citation" for _, r in rules(record))
+
+
 def test_undeclared_delete() -> None:
     record = {
         "said": "Updated the docs.",

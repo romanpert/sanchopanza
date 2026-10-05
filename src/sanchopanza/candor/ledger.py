@@ -289,11 +289,18 @@ def from_audit(did: Iterable[Mapping[str, Any]]) -> list[Action]:
 
 
 def target_of(tool: str, arguments: Mapping[str, Any]) -> str:
-    """The one string that says what a Claude Code tool call acts on."""
-    for key in ("command", "file_path", "notebook_path", "path", "url", "pattern", "query"):
+    """The one string that says what a Claude Code tool call acts on. The knowledge server's
+    `read` names its page or file in `url_or_path` and `pick` its documents in `sources`: without
+    them a page read there and cited counted as unread and locked the session (h2h dev of S1,
+    2026-10-06)."""
+    for key in ("command", "file_path", "notebook_path", "path", "url", "url_or_path", "pattern",
+                "query"):  # fmt: skip
         value = arguments.get(key)
         if isinstance(value, str) and value:
             return value
+    sources = arguments.get("sources")
+    if isinstance(sources, list):
+        return " ".join(str(s) for s in sources if isinstance(s, str) and s)
     return ""
 
 
