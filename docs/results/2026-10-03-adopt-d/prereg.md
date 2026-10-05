@@ -201,7 +201,7 @@ instance. Whether the gold patch applies to the exported copy is recorded, not a
 Result (2026-10-05, 10:44-13:15, `singles-validated.json`): **26 of 26 drawn instances pass**,
 no replacement, no spare tried, no shortfall. Every image pulled; the gold patch resolved, the
 literal empty patch was listed unrun and the no-op patch did not resolve in all 26; the gold patch
-applied to the exported copy in all 26. 166 to 664 s per instance. The selected list is the table
+applied to the exported copy in all 26. 159 to 669 s per instance. The selected list is the table
 above, unchanged.
 
 **Disjointness, again, right before sealing:** `draw.py check` scans again and fails if any drawn
