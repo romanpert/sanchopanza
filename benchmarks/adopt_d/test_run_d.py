@@ -166,7 +166,7 @@ def test_the_ceiling_needs_its_base(monkeypatch: pytest.MonkeyPatch) -> None:
     with pytest.raises(SystemExit):
         run_d.ceiling()
     monkeypatch.setattr(run_d, "CEILING_BASE_USD", 200.0)
-    assert run_d.ceiling() == pytest.approx(290.0)
+    assert run_d.ceiling() == pytest.approx(310.0)
 
 
 # ---- error results, missing pairs, resume --------------------------------------------------------

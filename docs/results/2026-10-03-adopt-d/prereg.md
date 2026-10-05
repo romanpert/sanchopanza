@@ -98,16 +98,23 @@ would measure the hooks again. What to do then is the owner's call.
 >   (`~/.cache/sanchopanza/adopt/d-capture/7a39a1f/`), not by a paid probe.
 >
 > **The owner's call that (2) asks for** (find visible and almost never used: H4 is nearly known in
-> advance, and H2 mostly measures the hooks again): _(to fill in: Roman's answer to question 1)_
+> advance, and H2 mostly measures the hooks again): **run phase D** (Roman, 2026-10-05, before any
+> session of D or of the need probe). D measures the default install as it ships (hooks, skill, find
+> visible); find's adoption is reported with no verdict. The same answer settled the other open
+> questions: if the ceiling leaves an instance unrun, H1 is undecided and no verdict is read; the
+> missing instances may run later only by a dated amendment on the same frozen copy, and the verdict
+> is read once all 26 have a complete pair. The cost margin stays 1.10 (the product threshold, "no
+> more than 10 % dearer"), knowing it is unlikely to hold unless find shortens sessions. The ceiling
+> is base + 110.00, and the need probe below (cap 12.00) is approved.
 
-**A third probe, prepared, not run** (`benchmarks/adopt_dev/probe_need.py`, e51f7ca). Arm S
+**A third probe, the need probe** (`benchmarks/adopt_dev/probe_need.py`, e51f7ca). Arm S
 only, on D's exact frozen copy of 7a39a1f (the default install: find always loaded, no nudge, the
 delegation fix), one session on each of the 10 need-ranked development instances
 (`benchmarks/find_need/need-table.json`: Verified singles where a recorded control session took 5
 or more searches to the gold file, or never reached it; none of them is drawn or a spare below,
 checked by `draw.py check`), Haiku 4.5, Claude Code 2.1.285, 1.50 per call, **cap 12.00 USD**
-for the probe. Its rows count in D's ledger (`dev-need/`, see "Caps"). It runs only if the owner
-approves it; if approved, gate (2) is read from it, since it is the only probe on the copy D
+for the probe. Its rows count in D's ledger (`dev-need/`, see "Caps"). The owner approved it
+(2026-10-05); gate (2) is read from it, since it is the only probe on the copy D
 runs, and it runs where find is needed.
 
 > **Need probe result:** _(to fill in, or "not run" with the owner's call above: sessions, find
@@ -427,7 +434,7 @@ Caveats on these numbers, said now:
 |---|---|
 | per call (`--max-budget-usd`) | 1.50 |
 | per instance, held before it starts | its six sessions' caps, 9.00 (all or nothing: no instance runs some pairs and not others for want of room) |
-| total, absolute | `CEILING_BASE_USD` + `CEILING_ADDED_USD` (`run_d.py`): the base _(to fill in at sealing from `run_d.py ledger`)_, plus 90.00 (or 110.00: _(owner's decision pending)_) |
+| total, absolute | `CEILING_BASE_USD` + `CEILING_ADDED_USD` (`run_d.py`): the base _(to fill in at sealing from `run_d.py ledger`)_, plus 110.00 (the owner's call, 2026-10-05: at +90 the ceiling would stop the batch before the last instance in about 13 % of resamples of phase A's costs, 40 % if sessions cost 10 % more) |
 
 - **The ledger** (`run_d.py ledger`, free): every row under `adopt/runs/` (`run.spent_so_far`),
   `adopt/singles/` (`singles_run.spent_singles`), `adopt/singles-d/` (set-aside `-limit<k>`

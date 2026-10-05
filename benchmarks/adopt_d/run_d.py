@@ -65,7 +65,7 @@ D_COMMIT = "7a39a1f0d4ff8e9cf5c99046ee0aa818ffe955d9"
 # Everything spent at sealing under adopt/runs, adopt/singles, adopt/singles-d and the development
 # probes' roots (`run_d.py ledger`); the absolute ceiling is this plus CEILING_ADDED_USD.
 CEILING_BASE_USD: float | None = None
-CEILING_ADDED_USD = 90.00
+CEILING_ADDED_USD = 110.00
 
 FROZEN = ROOT / "frozen" / f"{D_COMMIT[:12] or 'unset'}-jev-mcp"
 D_EXE = FROZEN / "Scripts" / "sanchopanza.exe"
