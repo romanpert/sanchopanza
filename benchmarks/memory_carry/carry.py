@@ -18,7 +18,8 @@ decider when TYPESAFE_API_KEY is set. All arms get the same tools, model, prompt
 across that pair's sessions so auto memory can carry), with no plugins, skills, MCP servers,
 hooks or user CLAUDE.md. It signs in with CLAUDE_CODE_OAUTH_TOKEN from the launcher's
 environment or the owner's Indagis .env, passed only in the claude process's environment:
-never written, logged or put in the run folder (a pair's files are scanned for it at its end and scrubbed if found).
+never written, logged or put in the run folder (a pair's files are scanned for it at its end
+and scrubbed if found).
 
 Caps: `--max-budget-usd` per session (CALL_CAPS, per model) and TOTAL_CAP over the run, checked
 before each pair against that pair's sessions at the cap, from the sessions' own `total_cost_usd`
