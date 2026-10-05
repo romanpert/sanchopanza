@@ -83,6 +83,9 @@ _OVERSIZE = re.compile(
 _CLI_FIND = re.compile(r"\b(?:playwright-cli|agent-browser)(?:\s+-\S+)*\s+find\b")
 
 
+EVALUATE = re.compile(r"^mcp__.+__browser_evaluate$")  # `crawl_hook.EVALUATE`, not imported
+
+
 def _int(name: str, default: int) -> int:
     try:
         return max(0, int(_env.get(name, str(default))))
@@ -427,12 +430,14 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
     from ..context import archive as archive_mod
     from . import autopilot
 
+    tool = str(event.get("tool_name", ""))
+    if EVALUATE.match(tool):
+        return {}  # crawl owns an evaluate's result; prune is for page snapshots
     response = event.get("tool_response")
     found = autopilot.text_field(response)
     if found is None:
         return {}
     path, text = found
-    tool = str(event.get("tool_name", ""))
     tool_input = event.get("tool_input") if isinstance(event.get("tool_input"), Mapping) else {}
     searched = _is_search(tool, tool_input)
     if searched and not (isinstance(response, Mapping) and response.get("persistedOutputPath")):

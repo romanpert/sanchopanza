@@ -101,7 +101,7 @@ def test_browse_sets_are_wired_and_removed_in_order(tmp_path: Path) -> None:
         "PreToolUse: mcp__.*__browser_(evaluate|take_screenshot) (crawl)",
         "PostToolUse: mcp__.*__browser_evaluate (crawl)",
         "UserPromptSubmit:  (crawl)",
-        "PostToolUse: mcp__.*__browser_.* (prune)",
+        "PostToolUse: mcp__.*__browser_(?!evaluate$).* (prune)",
         "Stop:  (sources)",
         "PreToolUse: WebFetch (fetch)",
     )
