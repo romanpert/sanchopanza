@@ -1,0 +1,161 @@
+{
+ "sessions": 20,
+ "list_usd": 1.87,
+ "by_arm": {
+  "SONNET-CC": {
+   "sessions": 10,
+   "ok_oficial": 7,
+   "ok_with_hand": 7,
+   "total_usd": 0.6469,
+   "mean_usd": 0.0647,
+   "median_usd": 0.0494,
+   "mean_turns": 3.4,
+   "median_turns": 3.0,
+   "mean_wall_s": 18.4,
+   "median_wall_s": 17.05,
+   "tokens_total": {
+    "input": 64,
+    "cache_read": 576176,
+    "cache_write": 111188,
+    "output": 8680,
+    "web_searches": 0
+   },
+   "tools": {
+    "Grep": 14,
+    "Read": 10
+   },
+   "hooks_with_output": {},
+   "sp_hook_calls": {},
+   "sessions_with_sp_hooks": 0,
+   "jev_calls": 0,
+   "jev_by_point": {},
+   "jev_errors": 0,
+   "jev_usd": 0.0,
+   "hit_cap": 0,
+   "leak": [],
+   "no_final_answer": 0,
+   "denied": 0,
+   "by_difficulty": {
+    "easy": "1/2",
+    "hard": "6/8"
+   },
+   "by_length": {
+    "long": "0/1",
+    "medium": "4/6",
+    "short": "3/3"
+   },
+   "no_letter": 0
+  },
+  "SONNET-SP": {
+   "sessions": 10,
+   "ok_oficial": 7,
+   "ok_with_hand": 7,
+   "total_usd": 1.2278,
+   "mean_usd": 0.1228,
+   "median_usd": 0.1216,
+   "mean_turns": 5.7,
+   "median_turns": 4.5,
+   "mean_wall_s": 39.3,
+   "median_wall_s": 32.45,
+   "tokens_total": {
+    "input": 106,
+    "cache_read": 1367335,
+    "cache_write": 192100,
+    "output": 18354,
+    "web_searches": 0
+   },
+   "tools": {
+    "Bash": 1,
+    "Grep": 23,
+    "Read": 16
+   },
+   "hooks_with_output": {
+    "PostToolUse:Bash other": 1,
+    "PostToolUse:Grep other": 24,
+    "PostToolUse:Read other": 13,
+    "PostToolUseFailure:Read other": 1,
+    "Stop other": 9,
+    "Stop sanchopanza": 2,
+    "UserPromptSubmit other": 11
+   },
+   "sp_hook_calls": {
+    "candor-hook": 105,
+    "crawl-hook": 20,
+    "guard-hook": 1,
+    "hook": 19,
+    "memory-hook": 61
+   },
+   "sessions_with_sp_hooks": 10,
+   "jev_calls": 12,
+   "jev_by_point": {
+    "completion": 10,
+    "triage_pages": 2
+   },
+   "jev_errors": 0,
+   "jev_usd": 0.002218,
+   "hit_cap": 0,
+   "leak": [],
+   "no_final_answer": 0,
+   "denied": 2,
+   "by_difficulty": {
+    "easy": "1/2",
+    "hard": "6/8"
+   },
+   "by_length": {
+    "long": "0/1",
+    "medium": "4/6",
+    "short": "3/3"
+   },
+   "no_letter": 0
+  }
+ },
+ "paired": {
+  "SONNET": {
+   "tasks": 10,
+   "a": "SONNET-SP",
+   "b": "SONNET-CC",
+   "oficial": {
+    "a_ok": 7,
+    "b_ok": 7,
+    "a_only": 0,
+    "b_only": 0,
+    "p": 1.0,
+    "a_only_tasks": [],
+    "b_only_tasks": []
+   },
+   "with_hand": {
+    "a_ok": 7,
+    "b_ok": 7,
+    "a_only": 0,
+    "b_only": 0,
+    "p": 1.0,
+    "a_only_tasks": [],
+    "b_only_tasks": []
+   },
+   "cost": {
+    "mean_diff": 0.0581,
+    "diff_ci95": [
+     0.0259,
+     0.0966
+    ],
+    "ratio": 1.898,
+    "ratio_ci95": [
+     1.379,
+     2.695
+    ]
+   },
+   "wall": {
+    "mean_diff": 20.9,
+    "diff_ci95": [
+     10.47,
+     33.67
+    ],
+    "ratio": 2.138,
+    "ratio_ci95": [
+     1.555,
+     2.862
+    ]
+   }
+  }
+ }
+}

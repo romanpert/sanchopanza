@@ -1,0 +1,171 @@
+{
+ "sessions": 20,
+ "list_usd": 12.38,
+ "by_arm": {
+  "SONNET-CC": {
+   "sessions": 10,
+   "ok_oficial": 5,
+   "ok_with_hand": 5,
+   "total_usd": 4.6021,
+   "mean_usd": 0.4602,
+   "median_usd": 0.2224,
+   "mean_turns": 11.9,
+   "median_turns": 9.0,
+   "mean_wall_s": 65.9,
+   "median_wall_s": 38.85,
+   "tokens_total": {
+    "input": 206,
+    "cache_read": 5873836,
+    "cache_write": 744772,
+    "output": 44783,
+    "web_searches": 0
+   },
+   "tools": {
+    "Bash": 1,
+    "Grep": 4,
+    "ToolSearch": 10,
+    "mcp__bcp__get_document": 7,
+    "mcp__bcp__search": 87
+   },
+   "hooks_with_output": {},
+   "sp_hook_calls": {},
+   "sessions_with_sp_hooks": 0,
+   "jev_calls": 0,
+   "jev_by_point": {},
+   "jev_errors": 0,
+   "jev_usd": 0.0,
+   "hit_cap": 0,
+   "leak": [],
+   "no_final_answer": 0,
+   "denied": 8,
+   "em": 4,
+   "judge_yes_without_em": 1,
+   "unjudged": 0,
+   "mean_search_calls": 8.7,
+   "mean_get_calls": 0.7,
+   "mean_evidence_recall": 0.4042,
+   "mean_gold_recall": 0.55,
+   "mean_citation_precision": 0.6,
+   "judge_usd": 0.1158
+  },
+  "SONNET-SP": {
+   "sessions": 10,
+   "ok_oficial": 7,
+   "ok_with_hand": 7,
+   "total_usd": 7.7843,
+   "mean_usd": 0.7784,
+   "median_usd": 0.4984,
+   "mean_turns": 21.2,
+   "median_turns": 16.0,
+   "mean_wall_s": 106.3,
+   "median_wall_s": 67.95,
+   "tokens_total": {
+    "input": 40493,
+    "cache_read": 9592242,
+    "cache_write": 1238655,
+    "output": 83332,
+    "web_searches": 0
+   },
+   "tools": {
+    "Bash": 2,
+    "Grep": 2,
+    "Read": 1,
+    "ToolSearch": 10,
+    "mcp__bcp__get_document": 12,
+    "mcp__bcp__search": 161,
+    "mcp__sanchopanza-fetch__fetch_passages": 1
+   },
+   "hooks_with_output": {
+    "PostToolUse:Bash other": 1,
+    "PostToolUse:Grep other": 1,
+    "SessionStart other": 3,
+    "SessionStart:compact sanchopanza": 3,
+    "Stop other": 10,
+    "UserPromptSubmit other": 11
+   },
+   "sp_hook_calls": {
+    "candor-hook": 404,
+    "crawl-hook": 23,
+    "guard-hook": 7,
+    "hook": 23,
+    "memory-hook": 54
+   },
+   "sessions_with_sp_hooks": 10,
+   "jev_calls": 10,
+   "jev_by_point": {
+    "completion": 10
+   },
+   "jev_errors": 0,
+   "jev_usd": 0.002158,
+   "hit_cap": 0,
+   "leak": [],
+   "no_final_answer": 0,
+   "denied": 8,
+   "em": 5,
+   "judge_yes_without_em": 2,
+   "unjudged": 1,
+   "mean_search_calls": 16.1,
+   "mean_get_calls": 1.2,
+   "mean_evidence_recall": 0.5625,
+   "mean_gold_recall": 0.65,
+   "mean_citation_precision": 0.7,
+   "judge_usd": 0.0928
+  }
+ },
+ "paired": {
+  "SONNET": {
+   "tasks": 10,
+   "a": "SONNET-SP",
+   "b": "SONNET-CC",
+   "oficial": {
+    "a_ok": 7,
+    "b_ok": 5,
+    "a_only": 2,
+    "b_only": 0,
+    "p": 0.5,
+    "a_only_tasks": [
+     "1076",
+     "58"
+    ],
+    "b_only_tasks": []
+   },
+   "with_hand": {
+    "a_ok": 7,
+    "b_ok": 5,
+    "a_only": 2,
+    "b_only": 0,
+    "p": 0.5,
+    "a_only_tasks": [
+     "1076",
+     "58"
+    ],
+    "b_only_tasks": []
+   },
+   "cost": {
+    "mean_diff": 0.3182,
+    "diff_ci95": [
+     0.0682,
+     0.6704
+    ],
+    "ratio": 1.691,
+    "ratio_ci95": [
+     1.149,
+     2.634
+    ]
+   },
+   "wall": {
+    "mean_diff": 40.4,
+    "diff_ci95": [
+     11.58,
+     82.27
+    ],
+    "ratio": 1.613,
+    "ratio_ci95": [
+     1.203,
+     2.355
+    ]
+   }
+  }
+ },
+ "grading": "exact match after normalisation, else the official judge template on claude-haiku-4-5-20251001 (official: Qwen3-32B), hand verdicts first"
+}
