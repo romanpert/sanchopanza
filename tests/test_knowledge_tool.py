@@ -161,3 +161,78 @@ def test_the_registered_read_and_pick_run(tmp_path: Path) -> None:
     read = server.tools["read"][1]
     out = _run(read(url_or_path="https://lake.example/", purpose="survey"))
     assert "1873" in out
+
+
+# --- guessed addresses -------------------------------------------------------------------------
+
+
+class Guessing(Opener):
+    """404 for every URL not in its pages."""
+
+    def __call__(self, url: str) -> fetch_tool.Response:
+        if url not in self.pages:
+            self.calls.append(url)
+            raise urllib.error.HTTPError(url, 404, "Not Found", None, None)
+        return super().__call__(url)
+
+
+DISAMBIGUATION = b'<html><title>Lake (disambiguation)</title><div class="disambigbox">x</div>' + (
+    b"<p>Lake may refer to:</p><ul><li>Lake A, a lake</li></ul></html>"
+)
+
+
+def _guessing(tmp_path: Path, searcher=None) -> knowledge_tool.Knowledge:
+    pages = {"https://lake.example/": ("text/html", PAGE),
+             "https://lake.example/d": ("text/html", DISAMBIGUATION)}  # fmt: skip
+    opener = Guessing(pages)
+    fetcher = knowledge_tool.page_fetcher(opener=opener)
+    tool = knowledge_tool.Knowledge(fetcher=fetcher, searcher=searcher or Searcher(),
+                                    squire=None, roots=[tmp_path])  # fmt: skip
+    tool.opener = opener
+    return tool
+
+
+def test_after_three_guessed_misses_the_next_read_is_a_search(tmp_path: Path) -> None:
+    tool = _guessing(tmp_path)
+    for n in range(3):
+        assert "HTTP 404" in _run(tool.read(f"https://lake.example/guess{n}", "lake survey year"))
+    out = _run(tool.read("https://lake.example/guess3", "lake survey year"))
+    assert "https://lake.example/guess3" not in tool.opener.calls
+    assert tool.searcher.asked == [("lake survey year", 8)]
+    assert out.splitlines()[0].startswith(knowledge_tool.GUESSING)
+    assert "results for lake survey year" in out
+    assert "HTTP 404" in _run(tool.read("https://lake.example/guess4", "lake survey year"))
+
+
+def test_disambiguation_pages_count_as_misses(tmp_path: Path) -> None:
+    tool = _guessing(tmp_path)
+    _run(tool.read("https://lake.example/d", "lake"))
+    _run(tool.read("https://lake.example/g1", "lake"))
+    _run(tool.read("https://lake.example/d", "lake"))
+    assert _run(tool.read("https://lake.example/g2", "lake")).startswith(knowledge_tool.GUESSING)
+
+
+@pytest.mark.parametrize("between", ["search", "read"])
+def test_a_search_or_a_good_read_in_between_starts_the_count_again(tmp_path, between) -> None:
+    tool = _guessing(tmp_path)
+    _run(tool.read("https://lake.example/g1", "lake"))
+    _run(tool.read("https://lake.example/g2", "lake"))
+    if between == "search":
+        tool.search("lake", 8)
+    else:
+        _run(tool.read("https://lake.example/", "lake"))
+    _run(tool.read("https://lake.example/g3", "lake"))
+    assert "HTTP 404" in _run(tool.read("https://lake.example/g4", "lake"))
+
+
+def test_with_search_down_the_guessed_address_is_fetched(tmp_path: Path) -> None:
+    class Down(Searcher):
+        def search(self, query: str, k: int = 8) -> str:
+            super().search(query, k)
+            return "Search is down right now (all). Use WebSearch for this query."
+
+    tool = _guessing(tmp_path, Down())
+    for n in range(3):
+        _run(tool.read(f"https://lake.example/g{n}", "lake"))
+    assert "HTTP 404" in _run(tool.read("https://lake.example/g3", "lake"))
+    assert "https://lake.example/g3" in tool.opener.calls

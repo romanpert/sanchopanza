@@ -12,6 +12,13 @@ knowledge bases. Not a search engine: it finds what to read and hands over littl
 - `pick(purpose, sources, budget)`: many documents (folders, files, globs, URLs) to the few that
   serve the purpose and their best passages (`knowledge.pick_docs`).
 
+Guessed addresses: after `GUESS_LIMIT` reads in a row that came back 404 or as a disambiguation
+page, with no `search` in between, the next URL is not downloaded: `read` searches for the
+purpose itself and returns that results page under one line (substitution: the agent gets
+results, not advice). On the fetch v2 confirmation one Haiku session made 38 page calls, 14 of
+them 404s answered with a note it ignored, and never searched. A good read or a search starts the
+count again; with search down the URL is fetched as asked.
+
 Local files: only under the roots (the directory the server starts in, plus
 `SANCHOPANZA_KNOWLEDGE_ROOTS`, separated by the OS path separator), never through a hidden
 component (`.env`, `.git`, `.ssh`): Claude Code's own permission rules do not see an MCP tool's
@@ -58,6 +65,8 @@ MAX_FILES = 400
 MAX_URLS = 25
 DOC_CACHE = 512
 CONCURRENCY = 6
+GUESS_LIMIT = 3
+GUESSING = "Searched instead"
 SKIP_DIRS = frozenset(["node_modules", "__pycache__", "venv", "site-packages", "dist", "build"])
 _FROM_ENV = object()
 
@@ -107,6 +116,7 @@ class Knowledge:
         self._squire = squire
         self.roots = [Path(r).resolve() for r in (roots or roots_from_env(env))]
         self.files: dict[tuple[str, int, int], webpage.Page] = {}
+        self.misses = 0  # reads in a row that were 404 or disambiguation, with no search between
 
     @property
     def squire(self) -> Any:
@@ -117,7 +127,26 @@ class Knowledge:
         return self._squire
 
     def search(self, query: str, k: int = serp.DEFAULT_K) -> str:
+        self.misses = 0
         return self.searcher.search(query, k)
+
+    def _instead(self, url: str, purpose: str) -> str | None:
+        """After `GUESS_LIMIT` guessed misses, the search for the purpose in the URL's place;
+        None when the search is down (the URL is then fetched as asked)."""
+        query = purpose.strip() or url.rstrip("/").rsplit("/", 1)[-1].replace("_", " ")
+        found = self.search(query, serp.DEFAULT_K)
+        if found.startswith(serp.DOWN):
+            return None
+        return (
+            f"{GUESSING}: the last {GUESS_LIMIT} addresses read were not found or were "
+            f"disambiguation pages, so {url} was not fetched. Read one of these:\n{found}"
+        )
+
+    def _count(self, doc: knowledge.Doc | str) -> None:
+        missed = (isinstance(doc, str) and "HTTP 404" in doc) or (
+            isinstance(doc, knowledge.Doc) and doc.page.disambiguation
+        )
+        self.misses = self.misses + 1 if missed else 0
 
     # local files
     def _resolve(self, raw: str) -> Path | str:
@@ -161,7 +190,14 @@ class Knowledge:
         self, url_or_path: str, purpose: str, budget: int = webpage.DEFAULT_BUDGET
     ) -> str:
         budget = max(MIN_BUDGET, min(MAX_BUDGET, int(budget or webpage.DEFAULT_BUDGET)))
+        is_url = _is_url(url_or_path.strip())
+        if is_url and self.misses >= GUESS_LIMIT:
+            instead = await asyncio.to_thread(self._instead, url_or_path.strip(), purpose)
+            if instead is not None:
+                return instead
         doc = await asyncio.to_thread(self.load, url_or_path)
+        if is_url:
+            self._count(doc)
         if isinstance(doc, str):
             return doc
         page = doc.page
