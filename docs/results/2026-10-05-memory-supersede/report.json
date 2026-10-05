@@ -1,0 +1,486 @@
+{
+ "dev": [
+  {
+   "variant": "a",
+   "split": "dev",
+   "n": 61,
+   "positives": 17,
+   "negatives": 44,
+   "cut": 0.5,
+   "true_suppressed": 10,
+   "false_suppressed": 0,
+   "own_false_suppressed": 0,
+   "max_negative": 0.24,
+   "max_own": 0.06,
+   "min_caught": 0.58,
+   "auc": 0.939,
+   "failed": [],
+   "by_family": {
+    "real": {
+     "pos": [
+      0.4,
+      0.03,
+      0.22,
+      0.42,
+      0.01
+     ],
+     "neg_max": 0.24
+    },
+    "carry": {
+     "pos": [],
+     "neg_max": 0.06
+    },
+    "stale": {
+     "pos": [
+      0.95,
+      0.89,
+      0.95,
+      0.91,
+      0.98
+     ],
+     "neg_max": 0.01
+    },
+    "written": {
+     "pos": [
+      0.68,
+      0.61,
+      0.4,
+      0.86,
+      0.72,
+      0.58,
+      0.37
+     ],
+     "neg_max": 0.03
+    }
+   }
+  },
+  {
+   "variant": "b",
+   "split": "dev",
+   "n": 61,
+   "positives": 17,
+   "negatives": 44,
+   "cut": 0.75,
+   "true_suppressed": 9,
+   "false_suppressed": 0,
+   "own_false_suppressed": 0,
+   "max_negative": 0.7,
+   "max_own": 0.7,
+   "min_caught": 0.76,
+   "auc": 0.774,
+   "failed": [],
+   "by_family": {
+    "real": {
+     "pos": [
+      0.76,
+      0.12,
+      0.2,
+      0.78,
+      0.81
+     ],
+     "neg_max": 0.45
+    },
+    "carry": {
+     "pos": [],
+     "neg_max": 0.7
+    },
+    "stale": {
+     "pos": [
+      0.09,
+      0.12,
+      0.07,
+      0.13,
+      0.09
+     ],
+     "neg_max": 0.15
+    },
+    "written": {
+     "pos": [
+      0.96,
+      0.96,
+      0.91,
+      0.08,
+      0.97,
+      0.95,
+      0.97
+     ],
+     "neg_max": 0.21
+    }
+   }
+  },
+  {
+   "variant": "b+d",
+   "split": "dev",
+   "n": 61,
+   "positives": 17,
+   "negatives": 44,
+   "cut": 0.75,
+   "true_suppressed": 15,
+   "false_suppressed": 0,
+   "own_false_suppressed": 0,
+   "max_negative": 0.7,
+   "max_own": 0.7,
+   "min_caught": 0.76,
+   "auc": 0.96,
+   "failed": [],
+   "by_family": {
+    "real": {
+     "pos": [
+      0.76,
+      0.12,
+      0.2,
+      0.78,
+      0.81
+     ],
+     "neg_max": 0.45
+    },
+    "carry": {
+     "pos": [],
+     "neg_max": 0.7
+    },
+    "stale": {
+     "pos": [
+      0.93,
+      0.89,
+      0.96,
+      0.95,
+      0.96
+     ],
+     "neg_max": 0.15
+    },
+    "written": {
+     "pos": [
+      0.96,
+      0.96,
+      0.91,
+      0.95,
+      0.97,
+      0.95,
+      0.97
+     ],
+     "neg_max": 0.21
+    }
+   }
+  },
+  {
+   "variant": "c",
+   "split": "dev",
+   "n": 61,
+   "positives": 17,
+   "negatives": 44,
+   "cut": 0.8,
+   "true_suppressed": 14,
+   "false_suppressed": 0,
+   "own_false_suppressed": 0,
+   "max_negative": 0.76,
+   "max_own": 0.76,
+   "min_caught": 0.93,
+   "auc": 0.978,
+   "failed": [],
+   "by_family": {
+    "real": {
+     "pos": [
+      0.78,
+      0.07,
+      0.23,
+      0.99,
+      0.93
+     ],
+     "neg_max": 0.58
+    },
+    "carry": {
+     "pos": [],
+     "neg_max": 0.76
+    },
+    "stale": {
+     "pos": [
+      1.0,
+      0.99,
+      0.98,
+      1.0,
+      1.0
+     ],
+     "neg_max": 0.09
+    },
+    "written": {
+     "pos": [
+      1.0,
+      1.0,
+      0.97,
+      1.0,
+      0.99,
+      0.99,
+      1.0
+     ],
+     "neg_max": 0.02
+    }
+   }
+  }
+ ],
+ "held": [
+  {
+   "variant": "a",
+   "split": "held",
+   "n": 32,
+   "positives": 10,
+   "negatives": 22,
+   "cut": 0.5,
+   "true_suppressed": 7,
+   "false_suppressed": 0,
+   "own_false_suppressed": 0,
+   "max_negative": 0.18,
+   "max_own": 0.18,
+   "min_caught": 0.72,
+   "auc": 0.966,
+   "failed": [],
+   "by_family": {
+    "real": {
+     "pos": [
+      0.12,
+      0.15,
+      0.11
+     ],
+     "neg_max": 0.15
+    },
+    "carry": {
+     "pos": [],
+     "neg_max": 0.18
+    },
+    "stale": {
+     "pos": [
+      0.94,
+      0.92,
+      0.94
+     ],
+     "neg_max": 0.01
+    },
+    "written": {
+     "pos": [
+      0.85,
+      0.93,
+      0.72,
+      0.95
+     ],
+     "neg_max": 0.03
+    }
+   }
+  },
+  {
+   "variant": "b",
+   "split": "held",
+   "n": 32,
+   "positives": 10,
+   "negatives": 22,
+   "cut": 0.75,
+   "true_suppressed": 2,
+   "false_suppressed": 0,
+   "own_false_suppressed": 0,
+   "max_negative": 0.74,
+   "max_own": 0.74,
+   "min_caught": 0.96,
+   "auc": 0.534,
+   "failed": [],
+   "by_family": {
+    "real": {
+     "pos": [
+      0.1,
+      0.37,
+      0.39
+     ],
+     "neg_max": 0.17
+    },
+    "carry": {
+     "pos": [],
+     "neg_max": 0.74
+    },
+    "stale": {
+     "pos": [
+      0.12,
+      0.06,
+      0.09
+     ],
+     "neg_max": 0.11
+    },
+    "written": {
+     "pos": [
+      0.97,
+      0.05,
+      0.96,
+      0.06
+     ],
+     "neg_max": 0.41
+    }
+   }
+  },
+  {
+   "variant": "b+d",
+   "split": "held",
+   "n": 32,
+   "positives": 10,
+   "negatives": 22,
+   "cut": 0.75,
+   "true_suppressed": 7,
+   "false_suppressed": 0,
+   "own_false_suppressed": 0,
+   "max_negative": 0.74,
+   "max_own": 0.74,
+   "min_caught": 0.91,
+   "auc": 0.907,
+   "failed": [],
+   "by_family": {
+    "real": {
+     "pos": [
+      0.1,
+      0.37,
+      0.39
+     ],
+     "neg_max": 0.17
+    },
+    "carry": {
+     "pos": [],
+     "neg_max": 0.74
+    },
+    "stale": {
+     "pos": [
+      0.95,
+      0.91,
+      0.94
+     ],
+     "neg_max": 0.11
+    },
+    "written": {
+     "pos": [
+      0.97,
+      0.96,
+      0.96,
+      0.96
+     ],
+     "neg_max": 0.41
+    }
+   }
+  },
+  {
+   "variant": "c",
+   "split": "held",
+   "n": 32,
+   "positives": 10,
+   "negatives": 22,
+   "cut": 0.8,
+   "true_suppressed": 7,
+   "false_suppressed": 0,
+   "own_false_suppressed": 0,
+   "max_negative": 0.63,
+   "max_own": 0.63,
+   "min_caught": 1.0,
+   "auc": 0.941,
+   "failed": [],
+   "by_family": {
+    "real": {
+     "pos": [
+      0.13,
+      0.41,
+      0.41
+     ],
+     "neg_max": 0.12
+    },
+    "carry": {
+     "pos": [],
+     "neg_max": 0.63
+    },
+    "stale": {
+     "pos": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "neg_max": 0.02
+    },
+    "written": {
+     "pos": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "neg_max": 0.44
+    }
+   }
+  }
+ ],
+ "ambiguous": {
+  "real-sb-8": {
+   "a": 0.09,
+   "b": 0.08,
+   "b+d": 0.15,
+   "c": 0.12
+  },
+  "real-pair-6": {
+   "a": 0.02,
+   "b": 0.22,
+   "b+d": 0.22,
+   "c": 0.06
+  },
+  "real-pair-7": {
+   "a": 0.01,
+   "b": 0.18,
+   "b+d": 0.18,
+   "c": 0.44
+  },
+  "real-pair-8": {
+   "a": 0.46,
+   "b": 0.69,
+   "b+d": 0.69,
+   "c": 0.85
+  },
+  "real-pair-9": {
+   "a": 0.14,
+   "b": 0.25,
+   "b+d": 0.25,
+   "c": 0.25
+  }
+ },
+ "winner": "b+d",
+ "cut": 0.75,
+ "ledger": {
+  "calls": 353,
+  "usd": 0.01048,
+  "runs": [
+   {
+    "at": 1791221419.6849158,
+    "split": "dev",
+    "variants": [
+     "a",
+     "b",
+     "c",
+     "d"
+    ],
+    "calls": 219,
+    "usd": 0.006485
+   },
+   {
+    "at": 1791221494.6394315,
+    "split": "held",
+    "variants": [
+     "a",
+     "b",
+     "c",
+     "d"
+    ],
+    "calls": 116,
+    "usd": 0.003427
+   },
+   {
+    "at": 1791221500.6400044,
+    "split": "report",
+    "variants": [
+     "a",
+     "b",
+     "c",
+     "d"
+    ],
+    "calls": 18,
+    "usd": 0.000568
+   }
+  ]
+ }
+}

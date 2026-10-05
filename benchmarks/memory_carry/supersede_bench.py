@@ -10,7 +10,7 @@ send-backs it suppressed none, the two real ones included. This bench tests othe
     python supersede_bench.py report
 
 Variants, all asked through the squire (Jev, `SANCHOPANZA_PROVIDER=jev`):
-- a: v8.2 as shipped (`memory_rules.questions_for_superseded`), one Choice. Score: the likeliest
+- a: v8.2 as shipped then (frozen here as `V82`), one Choice. Score: the likeliest
   newer option's probability.
 - b: one Truth on the rule and the request's prompt: does the person, in what they said, ask for
   what the rule forbids or state its opposite? Score: its probability.
@@ -131,6 +131,51 @@ RELATION_NOW = Choice(
         "`rule` is about without saying anything against it: `rule` still stands",
     },
 )
+
+
+# v8.2's question, frozen here as it was asked for variant a (memory_rules ships v8.3 since).
+V82_STANDS = "stands"
+V82_INSTRUCTIONS = (
+    "The person stated `rule` in an earlier session of this project. Each option below is "
+    "something they said after it, with when. Does one of them replace `rule`, so that work going "
+    "against `rule` now follows what the person asked later?"
+)
+V82_STANDS_TEXT = (
+    "None of them: `rule` still stands. They are about something else, add to it, "
+    "refine it, repeat it or agree with it, or ask for work that only happens to touch what it "
+    "protects; only an instruction that asks for the opposite, drops or renames what the rule "
+    "protects, or says the rule no longer applies replaces it"
+)
+
+
+def v82_newer(rule: Mapping[str, Any], stored: Sequence[Mapping[str, Any]], request: str,
+              ) -> list[tuple[str, str]]:  # fmt: skip
+    """v8.2's options: the request's sentences, then up to 8 stored rules said since."""
+    at = float(rule.get("at") or 0)
+    seen = {_norm(str(rule.get("text") or ""))}
+    out: list[tuple[str, str]] = []
+    for sentence in points.sentences(request):
+        if _norm(sentence) not in seen:
+            seen.add(_norm(sentence))
+            out.append((sentence, "in the request being checked"))
+    later = sorted((r for r in stored if float(r.get("at") or 0) > at),
+                   key=lambda r: -float(r.get("at") or 0))  # fmt: skip
+    kept = 0
+    for other in later:
+        text = str(other.get("text") or "")
+        if text.strip() and _norm(text) not in seen and kept < 8:
+            seen.add(_norm(text))
+            kept += 1
+            out.append((text, f"said {mr._when(other.get('at'))}, a stored rule"))
+    return out
+
+
+def v82_question(rule: Mapping[str, Any], newer: Sequence[tuple[str, str]]) -> tuple[dict, dict]:
+    options = {f"newer_{k}": f'"{truncate(text, points.SENTENCE_MAX)}" ({when})'
+               for k, (text, when) in enumerate(newer, 1)}  # fmt: skip
+    state = {"rule": truncate(str(rule.get("text") or ""), points.SENTENCE_MAX),
+             "rule_said": mr._when(rule.get("at"))}  # fmt: skip
+    return state, {"superseded": Choice(V82_INSTRUCTIONS, {**options, V82_STANDS: V82_STANDS_TEXT})}
 
 
 def against_state(rule: Mapping[str, Any], said: str, when: str) -> dict[str, Any]:
@@ -349,7 +394,7 @@ def calls_for(case: Mapping[str, Any], variant: str) -> int:
     if variant == "d":
         return len(stored_since(case["rule"], case["stored"]))
     if variant == "a":
-        return 1 if mr._newer(case["rule"], case["stored"], case["request"]) else 0
+        return 1 if v82_newer(case["rule"], case["stored"], case["request"]) else 0
     return 1
 
 
@@ -401,11 +446,16 @@ async def ask_case(sq: Counted, variant: str, case: Mapping[str, Any]) -> dict[s
     rule, request, stored = case["rule"], case["request"], case["stored"]
     row: dict[str, Any] = {"id": case["id"], "variant": variant}
     if variant == "a":
-        notes: list[dict] = []
-        p, suppressed = await mr._replaced_one(sq, rule, stored, request, notes.append)
-        last = notes[-1] if notes else {}
-        return {**row, "score": p, "stands": last.get("stands"), "failed": last.get("failed"),
-                "v82_suppressed": suppressed, "by": last.get("source")}
+        newer = v82_newer(rule, stored, request)
+        d = await sq.decide("memory_rule_superseded", *v82_question(rule, newer))
+        probs = {k: float(v) for k, v in (d.answer("superseded").probabilities or {}).items()}
+        named = [k for k in probs if k != V82_STANDS]
+        if d.failed or V82_STANDS not in probs or not named:
+            return {**row, "score": None, "failed": "failed"}
+        top = max(named, key=lambda k: probs[k])
+        p, stands = round(probs[top], 3), round(probs[V82_STANDS], 3)
+        return {**row, "score": p, "stands": stands, "failed": None,
+                "v82_suppressed": p >= 0.5 and p > stands}  # fmt: skip
     if variant == "b":
         d = await sq.decide("bench_supersede_b", against_state(rule, request, "now, in the "
                             "request being checked"), {"against": AGAINST})  # fmt: skip
@@ -462,8 +512,9 @@ def run(args: argparse.Namespace) -> int:
     assert all(v in VARIANTS for v in variants), variants
     if args.split == "held":
         sel = json.loads((OUT / "selection.json").read_text(encoding="utf-8"))
-        allowed = set(sel["winner_asks"]) | {"a"}
-        assert set(variants) <= allowed, f"held-out runs only {sorted(allowed)}"
+        # the winner and its cut are frozen in selection.json, from dev only; the other variants
+        # are run held out for the report's table, never to choose again
+        assert sel["winner"], "no winner on dev: nothing to run held out"
     todo = plan(cases, variants, args.split)
     need = sum(n for _, _, n in todo)
     ledger = _ledger()
@@ -521,9 +572,15 @@ def score_of(ans: Mapping[str, Mapping[str, dict]], variant: str, cid: str) -> f
     return row.get("score")
 
 
-def asked(ans: Mapping[str, Mapping[str, dict]], variant: str, cid: str) -> bool:
-    parts = ("b", "d") if variant == "b+d" else (variant,)
-    return all(cid in ans.get(p, {}) for p in parts)
+def asked(ans: Mapping[str, Mapping[str, dict]], variant: str, case: Mapping[str, Any]) -> bool:
+    """Every question the variant needs for `case` was asked. `d` needs none where no rule was
+    stored since (fixed 2026-10-05 after the dev run, before reading the selection: those cases
+    were dropped from b+d instead of scoring as b alone)."""
+    cid = case["id"]
+    if variant == "b+d":
+        no_d = calls_for(case, "d") == 0
+        return cid in ans.get("b", {}) and (no_d or cid in ans.get("d", {}))
+    return cid in ans.get(variant, {})
 
 
 def auc(pos: Sequence[float], neg: Sequence[float]) -> float | None:
@@ -541,7 +598,7 @@ def cut_for(neg: Sequence[float]) -> float:
 def metrics(cases: Sequence[Mapping[str, Any]], ans: Mapping, variant: str, split: str,
             cut: float | None = None) -> dict[str, Any]:  # fmt: skip
     rows = [c for c in cases if c["split"] == split and c["label"] is not None
-            and asked(ans, variant, c["id"])]  # fmt: skip
+            and asked(ans, variant, c)]  # fmt: skip
     sc = {c["id"]: score_of(ans, variant, c["id"]) for c in rows}
     failed = [cid for cid, s in sc.items() if s is None]
     pos = [sc[c["id"]] or 0.0 for c in rows if c["label"] == 1]
@@ -601,7 +658,7 @@ def report(_: argparse.Namespace) -> int:
     for c in cases:
         if c["split"] == "report":
             amb[c["id"]] = {v: score_of(ans, v, c["id"]) for v in SCORED
-                            if asked(ans, v, c["id"])}  # fmt: skip
+                            if asked(ans, v, c)}  # fmt: skip
     rows["ambiguous"] = amb
     rows["winner"], rows["cut"] = sel["winner"], sel["cut"]
     rows["ledger"] = _ledger()

@@ -10,7 +10,7 @@ Three moments, all in the memory hook:
 - **Stop, before the agent stops:** the request's diff since its start is held against each rule
   the request did not itself state; a confident "broken" sends the agent back once, quoting the
   rule (RepoComplianceBench 2026: one message naming the violation, 90-100 % compliance), unless
-  a newer stored rule or a sentence of the request's own prompt replaces it (F1, `superseded`).
+  the person has since asked for or stated its opposite (F1, `superseded`, v8.3).
 
 Rules are given with the minute they were said, newest first, under a header saying the newer of
 two conflicting rules stands (F1): two rules of one day were not ordered before.
@@ -31,7 +31,7 @@ from typing import TYPE_CHECKING, Any
 from .. import _env
 from ..context import episodes as ep
 from ..context.archive import safe_name
-from ..contract import Choice
+from ..contract import Truth
 
 if TYPE_CHECKING:
     from ..squire import Squire
@@ -65,28 +65,62 @@ CLOSING = ("If the task in front of you would break one of these, keep the rule,
            "plainly before you change it.")  # fmt: skip
 
 
-# F1, supersession: a break confirmed by `kept` and `relation` is not sent back when the person
-# replaced the rule since. On the maintainer's real sessions (v8 replay, 2026-10-03) 2 of the 8
-# false send-backs quoted a rule the same request's prompt had just replaced. UNMEASURED: the
-# likeliest newer option must reach 0.5 and beat `stands`, a plain majority, not a cut fitted on
-# data. It only runs on a confirmed break (under 1 % of audits). A failed, late or partial answer
-# (no `stands` probability, an option it was not offered) sends back, as before.
-SUPERSEDED_AT = 0.5
+# F1, supersession (v8.3): a break confirmed by `kept` and `relation` is not sent back when the
+# person has since asked for, or stated, the opposite of the rule. One Truth (SUPERSEDE) per text
+# said since: the request's prompt, and each stored rule said after the rule (NEWER_MAX, newest
+# first); suppressed when the highest reaches SUPERSEDED_AT. v8.2 asked one Choice, "does one of
+# these replace the rule?", and suppressed none of 37 recorded send-backs, the 2 real ones
+# included: in the real cases the person asks for what the rule forbids without saying the rule
+# changed. Measured on `benchmarks/memory_carry/supersede_bench.py` (2026-10-05, 93 hand-labelled
+# cases, a seeded held-out third, cut fixed on dev before the held-out run): dev 15 of 17
+# suppressed (v8.2's Choice 10, a contradicts/refines/unrelated Choice 14), 0 of 44 negatives;
+# held out 7 of 10, 0 of 22 negatives, but the highest negative, an own carry rule, at 0.74.
+# THIN: the request half confuses "a task that would break the rule" with "asks for its
+# opposite" (own carry rules up to 0.74); the stored half is clean (negatives <= 0.15, positives
+# >= 0.89). Real request-path positives: 3 of 8 suppressed. Any failed, late or unreadable answer
+# sends back, as before.
+SUPERSEDED_AT = 0.75
 SUPERSEDE_SECONDS = 8.0  # its own deadline when the caller gives none
 SUPERSEDE_RESERVE = 1.0  # seconds of the audit's deadline kept for writing its mark
-NEWER_MAX = 8  # newer stored rules offered, newest first, after the request's own sentences
-STANDS = "stands"
-SUPERSEDE_INSTRUCTIONS = (
-    "The person stated `rule` in an earlier session of this project. Each option below is "
-    "something they said after it, with when. Does one of them replace `rule`, so that work going "
-    "against `rule` now follows what the person asked later?"
+NEWER_MAX = 8  # stored rules said since that are asked, newest first, after the request
+SUPERSEDE = Truth(
+    "The person stated `rule` in an earlier session of this project (`rule_said`). Later "
+    "(`said_when`) they said `said`. In `said`, does the person themselves ask for something "
+    "`rule` forbids, or state the opposite of `rule`, so that their latest word replaces it?",
+    criteria={
+        "true": {
+            "what": "`said` names what `rule` is about and asks for or states something else: "
+            "another value, format, tool, order, language or permission than `rule` gives; drops "
+            "or reverses what it protects; says it no longer holds; or asks, in so many words, "
+            "for an exception to it now",
+            "examples": [
+                "rule: 'deploys happen only on Tuesdays'; said: 'from now on deploy whenever "
+                "main is green'",
+                "rule: 'thumbnails are 200 px wide'; said: 'the new gallery needs 320 px "
+                "thumbnails, change them all'",
+                "rule: 'nunca subas el modelo al bucket público'; said: 'sube esta versión al "
+                "bucket público, ya es open source'",
+                "rule: 'the nightly job never sends email'; said: 'have the nightly job email me "
+                "a summary when it finishes'",
+            ],
+        },
+        "false": {
+            "what": "`said` repeats, agrees with, narrows or adds to `rule`, or sets a condition "
+            "for later; is about something else; or asks for a piece of work that could go "
+            "against `rule` only through how it is done, without saying anything against what "
+            "`rule` protects (the person may have forgotten `rule`: it still stands)",
+            "examples": [
+                "rule: 'deploys happen only on Tuesdays'; said: 'remember, Tuesdays only'",
+                "rule: 'thumbnails are 200 px wide'; said: 'make the gallery load faster'",
+                "rule: 'report files start with the date, the archive sorts on it'; said: 'give "
+                "the report files friendlier names for customers'",
+                "rule: 'nunca subas el modelo al bucket público'; said: 'documenta cómo se "
+                "entrena el modelo'",
+            ],
+        },
+    },
 )
-SUPERSEDE_STANDS = (
-    "None of them: `rule` still stands. They are about something else, add to it, refine it, "
-    "repeat it or agree with it, or ask for work that only happens to touch what it protects; "
-    "only an instruction that asks for the opposite, drops or renames what the rule protects, or "
-    "says the rule no longer applies replaces it"
-)
+NOW = "now, in the request being checked"
 
 Note = Callable[[Mapping[str, Any]], None]
 
@@ -360,51 +394,39 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
 
 def _newer(rule: Mapping[str, Any], stored: Sequence[Mapping[str, Any]], request: str,
            ) -> list[tuple[str, str, str]]:  # fmt: skip
-    """(text, source, when) said after `rule`: the request's own sentences first (the newest),
-    then up to NEWER_MAX stored rules said after it, newest first; each text once."""
-    from ..points import rules as points
-
-    at = float(rule.get("at") or 0)
-    seen = {_norm(str(rule.get("text") or ""))}
-    out: list[tuple[str, str, str]] = []
-    for sentence in points.sentences(request):
-        if _norm(sentence) not in seen:
-            seen.add(_norm(sentence))
-            out.append((sentence, "request", "in the request being checked"))
+    """(text, source, when) said after `rule`: the request's prompt first (the newest), then up
+    to NEWER_MAX stored rules said after it, newest first; never the rule's own text."""
+    at, own = float(rule.get("at") or 0), _norm(str(rule.get("text") or ""))
+    out = [(request, "request", NOW)] if request.strip() else []
     later = sorted((r for r in stored if float(r.get("at") or 0) > at),
                    key=lambda r: -float(r.get("at") or 0))  # fmt: skip
-    stored_out: list[tuple[str, str, str]] = []
-    for other in later:
-        text = str(other.get("text") or "")
-        if text.strip() and _norm(text) not in seen and len(stored_out) < NEWER_MAX:
-            seen.add(_norm(text))
-            stored_out.append((text, "stored", f"said {_when(other.get('at'))}, a stored rule"))
-    return [*out, *stored_out]
+    stored_out = [(str(r.get("text") or ""), "stored",
+                   f"{_when(r.get('at'))}, as a rule for the project") for r in later
+                  if str(r.get("text") or "").strip() and _norm(str(r["text"])) != own]  # fmt: skip
+    return [*out, *stored_out[:NEWER_MAX]]
 
 
-def questions_for_superseded(rule: Mapping[str, Any], newer: Sequence[tuple[str, str, str]],
-                             ) -> tuple[Mapping[str, Any], dict[str, Choice]]:  # fmt: skip
-    """One Choice: `newer_<k>` is `newer[k - 1]`, and STANDS. Texts masked here: the options are
-    not in `state`, which is all the squire's redaction reaches (review of v8, H1)."""
-    from ..points.rules import SENTENCE_MAX
+def questions_for_superseded(rule: Mapping[str, Any], said: str, when: str,
+                             ) -> tuple[Mapping[str, Any], dict[str, Truth]]:  # fmt: skip
+    """One Truth on `rule` and one text said since. Masked here too: a squire built without
+    redaction must not carry a secret of the prompt (review of v8, H1)."""
+    from ..points.rules import REQUEST_LIMIT, SENTENCE_MAX
     from ..redact import redact_secrets
     from ..text import truncate
 
-    options = {f"newer_{k}": f'"{redact_secrets(truncate(text, SENTENCE_MAX))}" ({when})'
-               for k, (text, _, when) in enumerate(newer, 1)}  # fmt: skip
     state = {"rule": redact_secrets(truncate(str(rule.get("text") or ""), SENTENCE_MAX)),
-             "rule_said": _when(rule.get("at"))}  # fmt: skip
-    question = Choice(SUPERSEDE_INSTRUCTIONS, {**options, STANDS: SUPERSEDE_STANDS})
-    return state, {"superseded": question}
+             "rule_said": _when(rule.get("at")),
+             "said": redact_secrets(truncate(said, REQUEST_LIMIT)), "said_when": when}  # fmt: skip
+    return state, {"against": SUPERSEDE}
 
 
-Replaced = tuple[float | None, bool]  # (the likeliest newer option's probability, suppress)
+Replaced = tuple[float | None, bool]  # (the highest probability, suppress)
 
 
 async def _replaced(squire: Squire, store: Path, rules: Sequence[Mapping[str, Any]],
                     request: str, note: Note, budget: float = SUPERSEDE_SECONDS,
                     ) -> list[Replaced]:  # fmt: skip
-    """Per confirmed break, whether something said since replaced the rule, within `budget`
+    """Per confirmed break, whether the person has since asked for its opposite, within `budget`
     seconds. Late, failed or nothing newer: not suppressed (the send-back stands)."""
     import asyncio
 
@@ -430,35 +452,39 @@ async def _replaced(squire: Squire, store: Path, rules: Sequence[Mapping[str, An
     return list(found)
 
 
+async def _against(squire: Squire, rule: Mapping[str, Any], said: str, when: str,
+                   ) -> float | None:  # fmt: skip
+    """SUPERSEDE's probability for one text, or None on any failure."""
+    try:
+        decision = await squire.decide("memory_rule_superseded",
+                                       *questions_for_superseded(rule, said, when))  # fmt: skip
+    except Exception:  # noqa: BLE001 - fail open: the send-back stands
+        return None
+    answer = decision.answer("against")
+    if decision.failed or answer.empty or answer.truth is None:
+        return None
+    return float(answer.truth)
+
+
 async def _replaced_one(squire: Squire, rule: Mapping[str, Any],
                         stored: Sequence[Mapping[str, Any]], request: str, note: Note,
                         ) -> Replaced:  # fmt: skip
+    import asyncio
+
     newer = _newer(rule, stored, request)
     if not newer:
         return None, False
-    offered = {f"newer_{k}": item for k, item in enumerate(newer, 1)}
     row: dict[str, Any] = {"event": "rules", "part": "superseded", "rule": str(rule["text"])}
-    try:
-        decision = await squire.decide("memory_rule_superseded",
-                                       *questions_for_superseded(rule, newer))  # fmt: skip
-        answer = decision.answer("superseded")
-        probs = {str(k): float(v) for k, v in (answer.probabilities or {}).items()}
-        failed = "decider failed" if decision.failed or answer.empty else ""
-    except Exception as error:  # noqa: BLE001 - fail open: the send-back stands
-        probs, failed = {}, f"error {error.__class__.__name__}"
-    named = [k for k in probs if k != STANDS]
-    if not failed and (STANDS not in probs or not named):
-        failed = "no probability for stands" if STANDS not in probs else "no newer option"
-    if not failed and any(k not in offered for k in named):
-        failed = "an option it was not offered"
-    if failed:
-        note({**row, "failed": failed, "suppressed": False})
+    found = await asyncio.gather(*(_against(squire, rule, text, when) for text, _, when in newer))
+    answered = [p for p in found if p is not None]
+    if len(answered) < len(found):  # one unanswered text is a doubt: send back
+        note({**row, "failed": "decider failed", "asked": len(newer), "suppressed": False})
         return None, False
-    top = max(named, key=lambda k: probs[k])
-    p, stands = round(probs[top], 3), round(probs[STANDS], 3)
-    suppressed = p >= SUPERSEDED_AT and p > stands
-    text, source, _ = offered[top]
-    note({**row, "by": text, "source": source, "p": p, "stands": stands,
+    top = max(range(len(newer)), key=lambda k: answered[k])
+    p = round(answered[top], 3)
+    suppressed = p >= SUPERSEDED_AT
+    text, source, _ = newer[top]
+    note({**row, "by": text[:400], "source": source, "p": p, "asked": len(newer),
           "suppressed": suppressed})  # fmt: skip
     return p, suppressed
 

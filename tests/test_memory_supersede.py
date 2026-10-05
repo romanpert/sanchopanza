@@ -1,11 +1,12 @@
-"""F1 fix 1, supersession ("A + P"): a rule the person replaced is not quoted back at them.
+"""F1 supersession ("A + P"): a rule the person has since contradicted is not quoted back at them.
 
-A, at audit time: after a break is confirmed (`kept` and `relation`), one more Choice asks whether
-a newer stored rule or a sentence of the request's own prompt replaces the rule; if one does, no
-send-back, and the hook log says which. Seen on the maintainer's real sessions (v8 replay): 2 of
-8 false send-backs quoted a rule the same request's prompt had just replaced. P, at a session's
-start: every rule given with its date and minute, newest first, under a header that says the
-newer of two conflicting rules stands. A scripted decider stands in for Jev; git is real."""
+A, at audit time (v8.3): after a break is confirmed (`kept` and `relation`), one Truth per text
+said since (the request's prompt, and each stored rule said after the rule) asks whether the
+person, in it, asks for what the rule forbids or states its opposite; if the highest reaches
+SUPERSEDED_AT, no send-back, and the hook log says which. Measured on
+`benchmarks/memory_carry/supersede_bench.py`. P, at a session's start: every rule given with its
+date and minute, newest first, under a header that says the newer of two conflicting rules
+stands. A scripted decider stands in for Jev; git is real."""
 
 from __future__ import annotations
 
@@ -24,9 +25,10 @@ from sanchopanza.harness import memory_hook as mh
 from sanchopanza.harness import memory_rules as mr
 from sanchopanza.squire import Squire
 
-from .helpers import choice, yes
+from .helpers import bench_module, choice, yes
 
 needs_git = pytest.mark.skipif(shutil.which("git") is None, reason="no git")
+ROOT = Path(__file__).resolve().parent.parent
 
 RULE = "Ops sets PAYMENT_TIMEOUT by that exact name in every deployment, it can't be renamed."
 # The carry bench's `columns` rule as v8.1 stores it (lead-in kept, a83929f) and its second prompt.
@@ -40,17 +42,15 @@ T0 = 1_790_000_000.0
 
 class SupersedeDecider:
     """The rule whose text holds `marker` is the one the diff breaks (named, `kept` 0.1, relation
-    `breaks`); every other rule is kept. The supersession Choice names the first newer option
-    holding one of REPLACING. `mode`: `down` (a failed decision), `raise`, `bare` (the option
-    named with no probabilities), `weak` (every option a little, `stands` below their sum),
-    `nostands` (no probability for `stands`), `stray` (an option it was not offered), `slow`
-    (answers after 3 s)."""
+    `breaks`); every other rule is kept. The supersession Truth answers 0.9 for a text holding one
+    of REPLACING, else 0.1. `mode`: `down` (a failed decision), `raise`, `weak` (every text at
+    `weak`), `partial` (the stored texts fail, the request answers), `slow` (answers after 3 s)."""
 
     name = "scripted"
     accepts_attachments = False
 
-    def __init__(self, marker: str, mode: str = "ok") -> None:
-        self.marker, self.mode = marker, mode
+    def __init__(self, marker: str, mode: str = "ok", weak: float = 0.74) -> None:
+        self.marker, self.mode, self.weak = marker, mode, weak
         self.calls: list[tuple[str, Any, dict[str, Any]]] = []
 
     def _done(self, point: str, **answers: Any) -> Decision:
@@ -69,34 +69,23 @@ class SupersedeDecider:
             first = "breaks" if self.marker in state["rule"] else "unrelated"
             probs = {k: (0.8 if k == first else 0.1) for k in questions["relation"].options}
             return self._done(point, relation=choice(first, 0.6, **probs))
-        if "superseded" in questions:
-            return await self._superseded(point, questions["superseded"].options)
+        if "against" in questions:
+            return await self._against(point, state)
         return self._done(point)
 
-    async def _superseded(self, point: str, options: dict[str, str]) -> Decision:
+    async def _against(self, point: str, state: dict[str, Any]) -> Decision:
         if self.mode == "slow":
             await asyncio.sleep(3)
-        if self.mode == "weak":
-            newer = [k for k in options if k != mr.STANDS]
-            probs = {**{k: 0.8 / len(newer) for k in newer}, mr.STANDS: 0.2}
-            return self._done(point, superseded=choice(mr.STANDS, 0.3, **probs))
-        if self.mode in ("nostands", "stray"):
-            key = "newer_1" if self.mode == "nostands" else "newer_99"
-            return self._done(point, superseded=choice(key, 0.8, **{key: 0.9, mr.STANDS: 0.1}
-                                                       if self.mode == "stray" else {key: 0.9}))
         if self.mode == "raise":
             raise RuntimeError("provider down")
-        if self.mode == "down":
+        failing = self.mode == "down" or (self.mode == "partial" and state["said_when"] != mr.NOW)
+        if failing:
             return Decision(point=point, answers={}, provider=self.name, model="scripted-1",
                             error="down")  # fmt: skip
-        hit = next((k for k, v in options.items()
-                    if k != mr.STANDS and any(w in v for w in REPLACING)), None)  # fmt: skip
-        first = hit or mr.STANDS
-        if self.mode == "bare":
-            return self._done(point, superseded=choice(first, 0.7))
-        rest = 0.1 / max(1, len(options) - 1)
-        probs = {k: (0.9 if k == first else rest) for k in options}
-        return self._done(point, superseded=choice(first, 0.8, **probs))
+        if self.mode == "weak":
+            return self._done(point, against=yes(self.weak))
+        hit = any(w in state["said"] for w in REPLACING)
+        return self._done(point, against=yes(0.9 if hit else 0.1))
 
 
 def _git(root: Path, *args: str) -> str:
@@ -144,7 +133,7 @@ def _asked(decider: SupersedeDecider) -> list[tuple[str, Any, dict[str, Any]]]:
 
 
 @needs_git
-def test_a_rule_the_request_itself_replaced_is_not_sent_back(tmp_path: Path) -> None:
+def test_a_rule_the_request_itself_contradicts_is_not_sent_back(tmp_path: Path) -> None:
     repo, store, head = _payment(tmp_path, [_rule(RULE, T0, files=("app/config.py",))])
     request = ("Rename PAYMENT_TIMEOUT to APP_PAYMENT_TIMEOUT. Ops moved to the new name last "
                "week, so the old rule about PAYMENT_TIMEOUT no longer applies.")  # fmt: skip
@@ -153,15 +142,17 @@ def test_a_rule_the_request_itself_replaced_is_not_sent_back(tmp_path: Path) -> 
     assert broken == []
     [row] = [r for r in rows if r.get("part") == "superseded"]
     assert row["rule"] == RULE and row["suppressed"] is True and row["source"] == "request"
-    assert "no longer applies" in row["by"] and row["p"] == pytest.approx(0.9)
-    assert row["stands"] == pytest.approx(0.05)
+    assert row["by"] == request and row["p"] == pytest.approx(0.9) and row["asked"] == 1
     assert list(found.values())[0]["superseded"] == pytest.approx(0.9)
-    assert len(_asked(decider)) == 1  # one decision, for the one confirmed break
+    [(_, state, questions)] = _asked(decider)  # one Truth: the request, nothing stored since
+    assert questions == {"against": mr.SUPERSEDE}
+    assert state["said"] == request and state["said_when"] == mr.NOW
+    assert state["rule"] == RULE and state["rule_said"] == mr._when(T0)
     assert mr.load(store)[mr.AUDITED] == ["new-001"]  # asked once, as any audit
 
 
 @needs_git
-def test_a_newer_stored_rule_that_replaces_it_stops_the_send_back(tmp_path: Path) -> None:
+def test_a_newer_stored_rule_that_contradicts_it_stops_the_send_back(tmp_path: Path) -> None:
     newer = "From now on ops reads APP_PAYMENT_TIMEOUT; drop the old PAYMENT_TIMEOUT name."
     rules = [_rule(newer, T0 + 7_200, session="later"), _rule(RULE, T0)]
     repo, store, head = _payment(tmp_path, rules)
@@ -171,12 +162,13 @@ def test_a_newer_stored_rule_that_replaces_it_stops_the_send_back(tmp_path: Path
     assert broken == []
     [row] = [r for r in rows if r.get("part") == "superseded"]
     assert row["by"] == newer and row["source"] == "stored" and row["suppressed"] is True
-    options = _asked(decider)[0][2]["superseded"].options
-    assert any(newer in v and "a stored rule" in v for v in options.values())
+    assert row["asked"] == 2
+    whens = {s["said"]: s["said_when"] for _, s, _ in _asked(decider)}
+    assert whens[newer] == f"{mr._when(T0 + 7_200)}, as a rule for the project"
 
 
 @needs_git
-def test_an_older_stored_rule_is_never_offered_as_a_replacement(tmp_path: Path) -> None:
+def test_an_older_stored_rule_is_never_asked(tmp_path: Path) -> None:
     older = "Never drop the old config names without asking ops first."
     rules = [_rule(RULE, T0 + 7_200), _rule(older, T0, session="before")]
     repo, store, head = _payment(tmp_path, rules)
@@ -184,8 +176,15 @@ def test_an_older_stored_rule_is_never_offered_as_a_replacement(tmp_path: Path) 
     broken, _, _ = _audit(decider, store, repo, head, "Give every variable an APP_ prefix.",
                           ["app/config.py"])  # fmt: skip
     assert [r["text"] for r in broken] == [RULE]
-    options = _asked(decider)[0][2]["superseded"].options
-    assert not any(older in v for v in options.values())
+    assert [s["said"] for _, s, _ in _asked(decider)] == ["Give every variable an APP_ prefix."]
+
+
+def test_at_most_newer_max_stored_rules_are_asked_newest_first() -> None:
+    stored = [_rule(f"Stored rule number {n} about something else.", T0 + n * 60)
+              for n in range(1, mr.NEWER_MAX + 3)]  # fmt: skip
+    newer = mr._newer(_rule(RULE, T0), [*stored, _rule(RULE, T0)], "A request.")
+    assert [s for _, s, _ in newer] == ["request"] + ["stored"] * mr.NEWER_MAX
+    assert newer[1][0] == stored[-1]["text"] and newer[-1][0] == stored[2]["text"]
 
 
 @needs_git
@@ -203,8 +202,7 @@ def test_the_columns_scene_still_sends_back_its_own_rule(tmp_path: Path) -> None
     assert [r["text"] for r in broken] == [COLUMNS]
     [row] = [r for r in rows if r.get("part") == "superseded"]
     assert row["suppressed"] is False and row["rule"] == COLUMNS
-    options = _asked(decider)[0][2]["superseded"].options
-    assert set(options) == {"newer_1", mr.STANDS} and CURRENCY in options["newer_1"]
+    assert [s["said"] for _, s, _ in _asked(decider)] == [CURRENCY]
     assert list(found.values())[0]["superseded"] == pytest.approx(0.1)
 
 
@@ -222,29 +220,32 @@ def test_supersession_fails_open_to_the_send_back(tmp_path: Path, mode: str) -> 
 
 
 @needs_git
-@pytest.mark.parametrize("mode", ["bare", "nostands", "stray"])
-def test_a_partial_answer_sends_back(tmp_path: Path, mode: str) -> None:
-    """Review of F1, M3 and M5: no probability to weigh against `stands` (named bare, or no
-    `stands` at all), or an option it was not offered: the send-back stands."""
-    repo, store, head = _payment(tmp_path, [_rule(RULE, T0)])
+def test_one_unanswered_text_sends_back_even_when_another_contradicts(tmp_path: Path) -> None:
+    """Send back on any doubt: the request answers 0.9, a stored rule since goes unanswered."""
+    rules = [_rule("Every log line starts with the request id.", T0 + 60), _rule(RULE, T0)]
+    repo, store, head = _payment(tmp_path, rules)
     request = "Rename it; the old rule about PAYMENT_TIMEOUT no longer applies."
-    decider = SupersedeDecider("can't be renamed", mode=mode)
+    decider = SupersedeDecider("can't be renamed", mode="partial")
     broken, _, rows = _audit(decider, store, repo, head, request, ["app/config.py"])
-    assert [r["text"] for r in broken] == [RULE]
+    assert [r["text"] for r in broken] == [RULE] and len(_asked(decider)) == 2
     [row] = [r for r in rows if r.get("part") == "superseded"]
     assert row["failed"] and row["suppressed"] is False
 
 
 @needs_git
-def test_many_weak_options_do_not_add_up_to_a_replacement(tmp_path: Path) -> None:
-    """Review of F1, M3: ten sentences at 0.08 each are not one replacement at 0.8."""
-    repo, store, head = _payment(tmp_path, [_rule(RULE, T0)])
-    request = " ".join(f"Step {n}: also tidy the module number {n} please." for n in range(10))
-    decider = SupersedeDecider("can't be renamed", mode="weak")
-    broken, _, rows = _audit(decider, store, repo, head, request, ["app/config.py"])
-    assert [r["text"] for r in broken] == [RULE]
+@pytest.mark.parametrize(("p", "suppressed"), [(0.74, False), (0.75, True)])
+def test_the_cut_is_superseded_at(tmp_path: Path, p: float, suppressed: bool) -> None:
+    """0.74 is the highest negative the bench's held-out third gave (an own carry rule): under
+    the cut. Several texts just under it do not add up to one over it."""
+    rules = [_rule(f"Stored rule {n} about the deployment.", T0 + n) for n in (1, 2, 3)]
+    repo, store, head = _payment(tmp_path, [*rules, _rule(RULE, T0)])
+    decider = SupersedeDecider("can't be renamed", mode="weak", weak=p)
+    broken, _, rows = _audit(decider, store, repo, head, "Tidy up the config module.",
+                             ["app/config.py"])  # fmt: skip
+    assert mr.SUPERSEDED_AT == 0.75
+    assert (broken == []) is suppressed
     [row] = [r for r in rows if r.get("part") == "superseded"]
-    assert row["p"] == pytest.approx(0.08) and row["suppressed"] is False
+    assert row["p"] == pytest.approx(p) and row["suppressed"] is suppressed and row["asked"] == 4
 
 
 @needs_git
@@ -306,8 +307,15 @@ def test_a_secret_in_the_request_never_reaches_the_supersession_question(tmp_pat
     request = f"Use the key {secret} for the payment provider from now on, please."
     decider = SupersedeDecider("can't be renamed")
     _audit(decider, store, repo, head, request, ["app/config.py"])
-    sent = json.dumps([str(c[2]["superseded"].options) for c in _asked(decider)])
+    sent = json.dumps([c[1] for c in _asked(decider)])
     assert _asked(decider) and secret not in sent
+
+
+def test_the_shipped_question_is_the_one_the_bench_measured() -> None:
+    bench = bench_module(ROOT / "benchmarks" / "memory_carry", "supersede_bench")
+    assert bench.AGAINST == mr.SUPERSEDE
+    state = bench.against_state(_rule(RULE, T0), "x" * 20, mr.NOW)
+    assert state == mr.questions_for_superseded(_rule(RULE, T0), "x" * 20, mr.NOW)[0]
 
 
 # ---- A through the hook --------------------------------------------------------------------
