@@ -64,3 +64,20 @@ STRATEGY_HINT_V5 = STRATEGY_HINT_V3.replace(
     "with a cap on every loop. ",
     "with a cap on every loop far above the site's size (a loop that reaches its cap fell short). ",
 )
+# The sixth, after confirmation 3's misses were read by hand (2026-10-03): every one was a
+# one-shot extraction the agent never checked. Two invented a `?page=N` scheme the site does not
+# have (E4, E5); one capped itself at 20 pages of 94 and returned "nothing remained", a flag it
+# never computed (E6); two counted "Fantasy" anywhere in a card, descriptions included, and one
+# split "Shoot-'Em-Up" with a regex over quotes (E6); one merged products by name, unasked (E1),
+# where the cards that do repeat share a URL (E5). v5's last sentences stay; four short clauses
+# name those four mistakes, and the account must be computed and held against what the site states.
+STRATEGY_HINT_V6 = STRATEGY_HINT_V5.replace(
+    "Make it also return how many pages and items it read and whether more remained, and check "
+    "that against what the site shows before you answer. ",
+    "Follow the pages through the site's own links or data, never a URL pattern you guessed. "
+    "Make it also return how many pages and items it read and whether more remained, each "
+    "computed by the code and not assumed, and before you answer check them against what the "
+    "site states (a total, a last page). Match the field the request names, read from its own "
+    "element or a parser, not a word or a regex anywhere in an item's text. Count each item once "
+    "by its URL or id, never by its name. ",
+)

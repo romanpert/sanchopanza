@@ -1,0 +1,312 @@
+{
+ "round": "v81",
+ "sessions": 64,
+ "arms": {
+  "HAIKU": {
+   "sessions": 16,
+   "right": 12,
+   "list_usd": 1.6711,
+   "median_wall_s": 56.65,
+   "guard_stops": 0,
+   "echo_cut": 0,
+   "echoed_wrappers": 0,
+   "click_notes": 0,
+   "rows_notes": 0,
+   "shots": 26,
+   "shots_denied": 0,
+   "notes_front": 0,
+   "notes_end": 0,
+   "persisted": 0,
+   "persisted_front": 0,
+   "line_sessions": 0
+  },
+  "HAIKU-V81": {
+   "sessions": 16,
+   "right": 15,
+   "list_usd": 1.0183,
+   "median_wall_s": 47.9,
+   "guard_stops": 0,
+   "echo_cut": 81,
+   "echoed_wrappers": 0,
+   "click_notes": 0,
+   "rows_notes": 12,
+   "shots": 3,
+   "shots_denied": 3,
+   "notes_front": 12,
+   "notes_end": 0,
+   "persisted": 0,
+   "persisted_front": 0,
+   "line_sessions": 8
+  },
+  "SONNET": {
+   "sessions": 16,
+   "right": 14,
+   "list_usd": 2.4573,
+   "median_wall_s": 52.45,
+   "guard_stops": 0,
+   "echo_cut": 0,
+   "echoed_wrappers": 0,
+   "click_notes": 0,
+   "rows_notes": 0,
+   "shots": 0,
+   "shots_denied": 0,
+   "notes_front": 0,
+   "notes_end": 0,
+   "persisted": 0,
+   "persisted_front": 0,
+   "line_sessions": 0
+  },
+  "SONNET-V81": {
+   "sessions": 16,
+   "right": 16,
+   "list_usd": 2.1465,
+   "median_wall_s": 54.65,
+   "guard_stops": 0,
+   "echo_cut": 36,
+   "echoed_wrappers": 0,
+   "click_notes": 0,
+   "rows_notes": 18,
+   "shots": 0,
+   "shots_denied": 0,
+   "notes_front": 6,
+   "notes_end": 0,
+   "persisted": 0,
+   "persisted_front": 0,
+   "line_sessions": 8
+  }
+ },
+ "tasks": {
+  "G1": {
+   "HAIKU": {
+    "right": "1/2",
+    "mean_usd": 0.0764,
+    "turns": [
+     5,
+     11
+    ]
+   },
+   "HAIKU-V81": {
+    "right": "2/2",
+    "mean_usd": 0.0333,
+    "turns": [
+     5,
+     5
+    ]
+   },
+   "SONNET": {
+    "right": "2/2",
+    "mean_usd": 0.0667,
+    "turns": [
+     4,
+     4
+    ]
+   },
+   "SONNET-V81": {
+    "right": "2/2",
+    "mean_usd": 0.0716,
+    "turns": [
+     4,
+     4
+    ]
+   }
+  },
+  "G3": {
+   "HAIKU": {
+    "right": "1/2",
+    "mean_usd": 0.0558,
+    "turns": [
+     6,
+     7
+    ]
+   },
+   "HAIKU-V81": {
+    "right": "2/2",
+    "mean_usd": 0.0392,
+    "turns": [
+     6,
+     5
+    ]
+   },
+   "SONNET": {
+    "right": "0/2",
+    "mean_usd": 0.0668,
+    "turns": [
+     4,
+     4
+    ]
+   },
+   "SONNET-V81": {
+    "right": "2/2",
+    "mean_usd": 0.0923,
+    "turns": [
+     5,
+     5
+    ]
+   }
+  },
+  "G6": {
+   "HAIKU": {
+    "right": "2/2",
+    "mean_usd": 0.181,
+    "turns": [
+     7,
+     19
+    ]
+   },
+   "HAIKU-V81": {
+    "right": "2/2",
+    "mean_usd": 0.0891,
+    "turns": [
+     13,
+     12
+    ]
+   },
+   "SONNET": {
+    "right": "2/2",
+    "mean_usd": 0.1916,
+    "turns": [
+     8,
+     7
+    ]
+   },
+   "SONNET-V81": {
+    "right": "2/2",
+    "mean_usd": 0.0817,
+    "turns": [
+     5,
+     5
+    ]
+   }
+  },
+  "G5": {
+   "HAIKU": {
+    "right": "0/2",
+    "mean_usd": 0.1091,
+    "turns": [
+     13,
+     11
+    ]
+   },
+   "HAIKU-V81": {
+    "right": "2/2",
+    "mean_usd": 0.038,
+    "turns": [
+     5,
+     5
+    ]
+   },
+   "SONNET": {
+    "right": "2/2",
+    "mean_usd": 0.1676,
+    "turns": [
+     10,
+     6
+    ]
+   },
+   "SONNET-V81": {
+    "right": "2/2",
+    "mean_usd": 0.0772,
+    "turns": [
+     4,
+     4
+    ]
+   }
+  },
+  "I1": {
+   "HAIKU": {
+    "right": "4/4",
+    "mean_usd": 0.0493,
+    "turns": [
+     9,
+     9,
+     9,
+     9
+    ]
+   },
+   "HAIKU-V81": {
+    "right": "3/4",
+    "mean_usd": 0.0442,
+    "turns": [
+     9,
+     9,
+     4,
+     11
+    ]
+   },
+   "SONNET": {
+    "right": "4/4",
+    "mean_usd": 0.1124,
+    "turns": [
+     9,
+     10,
+     10,
+     10
+    ]
+   },
+   "SONNET-V81": {
+    "right": "4/4",
+    "mean_usd": 0.1124,
+    "turns": [
+     10,
+     9,
+     9,
+     9
+    ]
+   }
+  },
+  "I2": {
+   "HAIKU": {
+    "right": "4/4",
+    "mean_usd": 0.1573,
+    "turns": [
+     20,
+     26,
+     27,
+     40
+    ]
+   },
+   "HAIKU-V81": {
+    "right": "4/4",
+    "mean_usd": 0.1106,
+    "turns": [
+     22,
+     20,
+     19,
+     20
+    ]
+   },
+   "SONNET": {
+    "right": "4/4",
+    "mean_usd": 0.2556,
+    "turns": [
+     22,
+     23,
+     20,
+     24
+    ]
+   },
+   "SONNET-V81": {
+    "right": "4/4",
+    "mean_usd": 0.2629,
+    "turns": [
+     22,
+     24,
+     24,
+     22
+    ]
+   }
+  }
+ },
+ "ratios": {
+  "I1+I2 HAIKU-V81/HAIKU": 0.749,
+  "I1+I2 SONNET-V81/SONNET": 1.02,
+  "I2 HAIKU-V81/HAIKU": 0.703,
+  "crawls HAIKU-V81/HAIKU": 0.473,
+  "crawls SONNET-V81/SONNET": 0.655
+ },
+ "versions": [
+  "2.1.287"
+ ],
+ "list_usd_total": 7.2932,
+ "not_run": []
+}

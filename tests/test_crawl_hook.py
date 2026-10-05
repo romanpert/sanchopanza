@@ -39,6 +39,46 @@ def test_the_line_is_v5_word_for_word():
     assert crawl.STRATEGY_LINE == _lines().STRATEGY_HINT_V5
 
 
+def test_v6_is_the_benchmark_line_word_for_word_and_keeps_v5s_frame():
+    v6 = crawl.STRATEGY_LINE_V6
+    assert v6 == _lines().STRATEGY_HINT_V6
+    assert v6 != crawl.STRATEGY_LINE_V5 and v6.isascii()
+    head, tail = crawl.STRATEGY_LINE_V5.split(" Make it also return")
+    assert v6.startswith(head) and v6.endswith("rather than walking the pages.")
+    for clause in (
+        "never a URL pattern you guessed",
+        "computed by the code and not assumed",
+        "not a word or a regex anywhere",
+        "by its URL or id, never by its name",
+    ):
+        assert clause in v6  # fmt: skip
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [(None, "V5"), ("5", "V5"), ("6", "V6"), ("v6", "V6"), (" 6 ", "V6"), ("7", "V5"), ("", "V5")],
+)
+def test_the_line_version_is_chosen_by_the_environment_and_defaults_to_v5(raw, expected):
+    env = {} if raw is None else {"SANCHOPANZA_CRAWL_LINE_VERSION": raw}
+    out = crawl.handle({"hook_event_name": "SessionStart", "source": "startup"}, env=env)
+    assert out["hookSpecificOutput"]["additionalContext"] == getattr(
+        crawl, f"STRATEGY_LINE_{expected}"
+    )
+    assert crawl.STRATEGY_LINE == crawl.STRATEGY_LINE_V5, "the default stays v5 until confirmed"
+
+
+def test_switching_the_line_off_wins_over_its_version():
+    env = {"SANCHOPANZA_CRAWL_LINE": "0", "SANCHOPANZA_CRAWL_LINE_VERSION": "6"}
+    assert crawl.handle({"hook_event_name": "SessionStart"}, env=env) is None
+
+
+def test_the_hook_process_reads_the_version_from_its_environment():
+    event = json.dumps({"hook_event_name": "SessionStart", "source": "startup"})
+    done = _hook(event, SANCHOPANZA_CRAWL_LINE_VERSION="6")
+    context = json.loads(done.stdout)["hookSpecificOutput"]["additionalContext"]
+    assert context == crawl.STRATEGY_LINE_V6
+
+
 def test_session_start_adds_the_line_and_can_be_switched_off():
     out = crawl.handle({"hook_event_name": "SessionStart", "source": "startup"}, env={})
     assert out["hookSpecificOutput"] == {

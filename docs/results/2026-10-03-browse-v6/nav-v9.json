@@ -1,0 +1,424 @@
+{
+ "round": "v9",
+ "sessions": 60,
+ "arms": {
+  "HAIKU": {
+   "sessions": 12,
+   "right": 6,
+   "list_usd": 0.8827,
+   "median_wall_s": 32.55,
+   "guard_stops": 0,
+   "echo_cut": 0,
+   "echoed_wrappers": 0,
+   "click_notes": 0,
+   "rows_notes": 0,
+   "shots": 15,
+   "shots_denied": 0,
+   "notes_front": 0,
+   "notes_end": 0,
+   "persisted": 0,
+   "persisted_front": 0,
+   "line_sessions": 0,
+   "link_notes": 0,
+   "keys_notes": 0,
+   "round_notes": 0,
+   "one_notes": 0,
+   "page_loads_5xx": 0
+  },
+  "HAIKU-V9": {
+   "sessions": 12,
+   "right": 10,
+   "list_usd": 0.763,
+   "median_wall_s": 36.8,
+   "guard_stops": 0,
+   "echo_cut": 150,
+   "echoed_wrappers": 0,
+   "click_notes": 0,
+   "rows_notes": 57,
+   "shots": 2,
+   "shots_denied": 2,
+   "notes_front": 29,
+   "notes_end": 0,
+   "persisted": 0,
+   "persisted_front": 0,
+   "line_sessions": 12,
+   "link_notes": 0,
+   "keys_notes": 1,
+   "round_notes": 2,
+   "one_notes": 0,
+   "page_loads_5xx": 0
+  },
+  "SONNET": {
+   "sessions": 12,
+   "right": 12,
+   "list_usd": 1.1078,
+   "median_wall_s": 26.55,
+   "guard_stops": 0,
+   "echo_cut": 0,
+   "echoed_wrappers": 0,
+   "click_notes": 0,
+   "rows_notes": 0,
+   "shots": 0,
+   "shots_denied": 0,
+   "notes_front": 0,
+   "notes_end": 0,
+   "persisted": 0,
+   "persisted_front": 0,
+   "line_sessions": 0,
+   "link_notes": 0,
+   "keys_notes": 0,
+   "round_notes": 0,
+   "one_notes": 0,
+   "page_loads_5xx": 0
+  },
+  "SONNET-V9": {
+   "sessions": 12,
+   "right": 12,
+   "list_usd": 1.2581,
+   "median_wall_s": 30.35,
+   "guard_stops": 0,
+   "echo_cut": 81,
+   "echoed_wrappers": 0,
+   "click_notes": 0,
+   "rows_notes": 45,
+   "shots": 0,
+   "shots_denied": 0,
+   "notes_front": 25,
+   "notes_end": 0,
+   "persisted": 0,
+   "persisted_front": 0,
+   "line_sessions": 12,
+   "link_notes": 0,
+   "keys_notes": 0,
+   "round_notes": 0,
+   "one_notes": 0,
+   "page_loads_5xx": 0
+  },
+  "SONNET-NOTES": {
+   "sessions": 12,
+   "right": 12,
+   "list_usd": 1.2625,
+   "median_wall_s": 50.75,
+   "guard_stops": 0,
+   "echo_cut": 84,
+   "echoed_wrappers": 0,
+   "click_notes": 0,
+   "rows_notes": 18,
+   "shots": 0,
+   "shots_denied": 0,
+   "notes_front": 25,
+   "notes_end": 0,
+   "persisted": 0,
+   "persisted_front": 0,
+   "line_sessions": 0,
+   "link_notes": 2,
+   "keys_notes": 0,
+   "round_notes": 0,
+   "one_notes": 0,
+   "page_loads_5xx": 0
+  }
+ },
+ "tasks": {
+  "H1": {
+   "HAIKU": {
+    "right": "1/2",
+    "mean_usd": 0.0531,
+    "turns": [
+     15,
+     4
+    ]
+   },
+   "HAIKU-V9": {
+    "right": "2/2",
+    "mean_usd": 0.0397,
+    "turns": [
+     4,
+     8
+    ]
+   },
+   "SONNET": {
+    "right": "2/2",
+    "mean_usd": 0.0779,
+    "turns": [
+     5,
+     4
+    ]
+   },
+   "SONNET-V9": {
+    "right": "2/2",
+    "mean_usd": 0.0749,
+    "turns": [
+     4,
+     4
+    ]
+   },
+   "SONNET-NOTES": {
+    "right": "2/2",
+    "mean_usd": 0.0883,
+    "turns": [
+     4,
+     7
+    ]
+   }
+  },
+  "H4": {
+   "HAIKU": {
+    "right": "0/2",
+    "mean_usd": 0.028,
+    "turns": [
+     4,
+     4
+    ]
+   },
+   "HAIKU-V9": {
+    "right": "2/2",
+    "mean_usd": 0.0348,
+    "turns": [
+     5,
+     5
+    ]
+   },
+   "SONNET": {
+    "right": "2/2",
+    "mean_usd": 0.0685,
+    "turns": [
+     4,
+     4
+    ]
+   },
+   "SONNET-V9": {
+    "right": "2/2",
+    "mean_usd": 0.0762,
+    "turns": [
+     4,
+     4
+    ]
+   },
+   "SONNET-NOTES": {
+    "right": "2/2",
+    "mean_usd": 0.0692,
+    "turns": [
+     4,
+     4
+    ]
+   }
+  },
+  "H5": {
+   "HAIKU": {
+    "right": "0/2",
+    "mean_usd": 0.055,
+    "turns": [
+     10,
+     10
+    ]
+   },
+   "HAIKU-V9": {
+    "right": "2/2",
+    "mean_usd": 0.0536,
+    "turns": [
+     8,
+     9
+    ]
+   },
+   "SONNET": {
+    "right": "2/2",
+    "mean_usd": 0.08,
+    "turns": [
+     4,
+     5
+    ]
+   },
+   "SONNET-V9": {
+    "right": "2/2",
+    "mean_usd": 0.0734,
+    "turns": [
+     4,
+     4
+    ]
+   },
+   "SONNET-NOTES": {
+    "right": "2/2",
+    "mean_usd": 0.0969,
+    "turns": [
+     6,
+     5
+    ]
+   }
+  },
+  "H7": {
+   "HAIKU": {
+    "right": "2/2",
+    "mean_usd": 0.1256,
+    "turns": [
+     10,
+     25
+    ]
+   },
+   "HAIKU-V9": {
+    "right": "1/2",
+    "mean_usd": 0.1559,
+    "turns": [
+     5,
+     40
+    ]
+   },
+   "SONNET": {
+    "right": "2/2",
+    "mean_usd": 0.131,
+    "turns": [
+     7,
+     11
+    ]
+   },
+   "SONNET-V9": {
+    "right": "2/2",
+    "mean_usd": 0.1946,
+    "turns": [
+     10,
+     11
+    ]
+   },
+   "SONNET-NOTES": {
+    "right": "2/2",
+    "mean_usd": 0.1358,
+    "turns": [
+     10,
+     7
+    ]
+   }
+  },
+  "H2": {
+   "HAIKU": {
+    "right": "1/2",
+    "mean_usd": 0.0452,
+    "turns": [
+     7,
+     4
+    ]
+   },
+   "HAIKU-V9": {
+    "right": "2/2",
+    "mean_usd": 0.0385,
+    "turns": [
+     7,
+     5
+    ]
+   },
+   "SONNET": {
+    "right": "2/2",
+    "mean_usd": 0.0726,
+    "turns": [
+     4,
+     4
+    ]
+   },
+   "SONNET-V9": {
+    "right": "2/2",
+    "mean_usd": 0.0795,
+    "turns": [
+     4,
+     4
+    ]
+   },
+   "SONNET-NOTES": {
+    "right": "2/2",
+    "mean_usd": 0.0741,
+    "turns": [
+     4,
+     4
+    ]
+   }
+  },
+  "H8": {
+   "HAIKU": {
+    "right": "2/2",
+    "mean_usd": 0.1345,
+    "turns": [
+     29,
+     14
+    ]
+   },
+   "HAIKU-V9": {
+    "right": "1/2",
+    "mean_usd": 0.059,
+    "turns": [
+     5,
+     9
+    ]
+   },
+   "SONNET": {
+    "right": "2/2",
+    "mean_usd": 0.1239,
+    "turns": [
+     7,
+     8
+    ]
+   },
+   "SONNET-V9": {
+    "right": "2/2",
+    "mean_usd": 0.1305,
+    "turns": [
+     6,
+     8
+    ]
+   },
+   "SONNET-NOTES": {
+    "right": "2/2",
+    "mean_usd": 0.167,
+    "turns": [
+     13,
+     12
+    ]
+   }
+  }
+ },
+ "ratios": {
+  "crawls HAIKU-V9/HAIKU": 0.864,
+  "crawls SONNET-V9/SONNET": 1.136,
+  "crawls SONNET-NOTES/SONNET": 1.14,
+  "crawls SONNET-NOTES/SONNET-V9": 1.003,
+  "misses HAIKU-V9/HAIKU": 1.085,
+  "misses SONNET-V9/SONNET": 1.173,
+  "misses SONNET-NOTES/SONNET": 1.092,
+  "H2+H8 HAIKU-V9/HAIKU": 0.543,
+  "H2+H8 SONNET-V9/SONNET": 1.069,
+  "H2+H8 SONNET-NOTES/SONNET": 1.227,
+  "H7 SONNET-NOTES/SONNET": 1.037,
+  "H7 SONNET-V9/SONNET": 1.485
+ },
+ "versions": [
+  "2.1.287"
+ ],
+ "list_usd_total": 5.2741,
+ "prereg_like": {
+  "HAIKU-V9 vs HAIKU": {
+   "ratio_total": 0.864,
+   "tasks_cheaper": "4/6",
+   "right": "10/12 vs 6/12"
+  },
+  "SONNET-V9 vs SONNET": {
+   "ratio_total": 1.136,
+   "tasks_cheaper": "2/6",
+   "right": "12/12 vs 12/12"
+  },
+  "SONNET-NOTES vs SONNET": {
+   "ratio_total": 1.14,
+   "tasks_cheaper": "0/6",
+   "right": "12/12 vs 12/12"
+  },
+  "SONNET-NOTES vs SONNET-V9": {
+   "ratio_total": 1.003,
+   "tasks_cheaper": "3/6",
+   "right": "12/12 vs 12/12"
+  }
+ },
+ "list_usd_spent": 5.3671,
+ "not_run": [
+  {
+   "task": "H8",
+   "run": 1,
+   "arm": "HAIKU-V9",
+   "subtype": "v8.1: a note left at the end"
+  }
+ ]
+}

@@ -1,0 +1,338 @@
+{
+ "sessions": 60,
+ "arms": {
+  "HAIKU": {
+   "sessions": 12,
+   "right": 8,
+   "list_usd": 1.017,
+   "median_wall_s": 35.3,
+   "guard_stops": 0,
+   "echo_cut": 0,
+   "echoed_wrappers": 0,
+   "click_notes": 0,
+   "rows_notes": 0,
+   "line_sessions": 0
+  },
+  "HAIKU-V7": {
+   "sessions": 12,
+   "right": 12,
+   "list_usd": 0.8243,
+   "median_wall_s": 33.55,
+   "guard_stops": 0,
+   "echo_cut": 0,
+   "echoed_wrappers": 62,
+   "click_notes": 0,
+   "rows_notes": 0,
+   "line_sessions": 12
+  },
+  "HAIKU-V8": {
+   "sessions": 12,
+   "right": 10,
+   "list_usd": 0.8067,
+   "median_wall_s": 30.200000000000003,
+   "guard_stops": 0,
+   "echo_cut": 77,
+   "echoed_wrappers": 0,
+   "click_notes": 3,
+   "rows_notes": 21,
+   "line_sessions": 10
+  },
+  "SONNET": {
+   "sessions": 12,
+   "right": 9,
+   "list_usd": 1.5005,
+   "median_wall_s": 27.299999999999997,
+   "guard_stops": 0,
+   "echo_cut": 0,
+   "echoed_wrappers": 0,
+   "click_notes": 0,
+   "rows_notes": 0,
+   "line_sessions": 0
+  },
+  "SONNET-V8": {
+   "sessions": 12,
+   "right": 12,
+   "list_usd": 1.3148,
+   "median_wall_s": 27.1,
+   "guard_stops": 0,
+   "echo_cut": 33,
+   "echoed_wrappers": 0,
+   "click_notes": 0,
+   "rows_notes": 28,
+   "line_sessions": 10
+  }
+ },
+ "tasks": {
+  "G3": {
+   "HAIKU": {
+    "right": "2/2",
+    "mean_usd": 0.0514,
+    "turns": [
+     6,
+     6
+    ]
+   },
+   "HAIKU-V7": {
+    "right": "2/2",
+    "mean_usd": 0.0699,
+    "turns": [
+     6,
+     10
+    ]
+   },
+   "HAIKU-V8": {
+    "right": "2/2",
+    "mean_usd": 0.0377,
+    "turns": [
+     5,
+     5
+    ]
+   },
+   "SONNET": {
+    "right": "0/2",
+    "mean_usd": 0.094,
+    "turns": [
+     4,
+     4
+    ]
+   },
+   "SONNET-V8": {
+    "right": "2/2",
+    "mean_usd": 0.0779,
+    "turns": [
+     4,
+     4
+    ]
+   }
+  },
+  "G6": {
+   "HAIKU": {
+    "right": "2/2",
+    "mean_usd": 0.1689,
+    "turns": [
+     9,
+     19
+    ]
+   },
+   "HAIKU-V7": {
+    "right": "2/2",
+    "mean_usd": 0.0838,
+    "turns": [
+     13,
+     7
+    ]
+   },
+   "HAIKU-V8": {
+    "right": "1/2",
+    "mean_usd": 0.0792,
+    "turns": [
+     7,
+     19
+    ]
+   },
+   "SONNET": {
+    "right": "2/2",
+    "mean_usd": 0.178,
+    "turns": [
+     7,
+     8
+    ]
+   },
+   "SONNET-V8": {
+    "right": "2/2",
+    "mean_usd": 0.0835,
+    "turns": [
+     4,
+     5
+    ]
+   }
+  },
+  "I2": {
+   "HAIKU": {
+    "right": "2/2",
+    "mean_usd": 0.131,
+    "turns": [
+     19,
+     27
+    ]
+   },
+   "HAIKU-V7": {
+    "right": "2/2",
+    "mean_usd": 0.1397,
+    "turns": [
+     27,
+     20
+    ]
+   },
+   "HAIKU-V8": {
+    "right": "2/2",
+    "mean_usd": 0.1827,
+    "turns": [
+     37,
+     26
+    ]
+   },
+   "SONNET": {
+    "right": "2/2",
+    "mean_usd": 0.2573,
+    "turns": [
+     23,
+     20
+    ]
+   },
+   "SONNET-V8": {
+    "right": "2/2",
+    "mean_usd": 0.2654,
+    "turns": [
+     21,
+     21
+    ]
+   }
+  },
+  "G4": {
+   "HAIKU": {
+    "right": "0/2",
+    "mean_usd": 0.0333,
+    "turns": [
+     6,
+     4
+    ]
+   },
+   "HAIKU-V7": {
+    "right": "2/2",
+    "mean_usd": 0.0397,
+    "turns": [
+     5,
+     5
+    ]
+   },
+   "HAIKU-V8": {
+    "right": "2/2",
+    "mean_usd": 0.0371,
+    "turns": [
+     5,
+     6
+    ]
+   },
+   "SONNET": {
+    "right": "1/2",
+    "mean_usd": 0.0736,
+    "turns": [
+     4,
+     4
+    ]
+   },
+   "SONNET-V8": {
+    "right": "2/2",
+    "mean_usd": 0.0805,
+    "turns": [
+     4,
+     4
+    ]
+   }
+  },
+  "G8": {
+   "HAIKU": {
+    "right": "2/2",
+    "mean_usd": 0.0942,
+    "turns": [
+     6,
+     14
+    ]
+   },
+   "HAIKU-V7": {
+    "right": "2/2",
+    "mean_usd": 0.0357,
+    "turns": [
+     4,
+     4
+    ]
+   },
+   "HAIKU-V8": {
+    "right": "2/2",
+    "mean_usd": 0.0321,
+    "turns": [
+     5,
+     4
+    ]
+   },
+   "SONNET": {
+    "right": "2/2",
+    "mean_usd": 0.0794,
+    "turns": [
+     4,
+     4
+    ]
+   },
+   "SONNET-V8": {
+    "right": "2/2",
+    "mean_usd": 0.0777,
+    "turns": [
+     4,
+     4
+    ]
+   }
+  },
+  "G1": {
+   "HAIKU": {
+    "right": "0/2",
+    "mean_usd": 0.0297,
+    "turns": [
+     4,
+     5
+    ]
+   },
+   "HAIKU-V7": {
+    "right": "2/2",
+    "mean_usd": 0.0434,
+    "turns": [
+     5,
+     5
+    ]
+   },
+   "HAIKU-V8": {
+    "right": "1/2",
+    "mean_usd": 0.0345,
+    "turns": [
+     4,
+     5
+    ]
+   },
+   "SONNET": {
+    "right": "2/2",
+    "mean_usd": 0.068,
+    "turns": [
+     4,
+     4
+    ]
+   },
+   "SONNET-V8": {
+    "right": "2/2",
+    "mean_usd": 0.0725,
+    "turns": [
+     4,
+     4
+    ]
+   }
+  }
+ },
+ "ratios": {
+  "I2 HAIKU-V8/HAIKU": 1.394,
+  "I2 HAIKU-V7/HAIKU": 1.066,
+  "G4+G8 SONNET-V8/SONNET": 1.034,
+  "G4 SONNET-V8/SONNET": 1.093,
+  "G8 SONNET-V8/SONNET": 0.978
+ },
+ "versions": [
+  "2.1.287"
+ ],
+ "list_usd_total": 5.4634,
+ "not_run": [
+  {
+   "task": "I2",
+   "run": 1,
+   "arm": "HAIKU-V8",
+   "subtype": "v8: an evaluate without the guard"
+  }
+ ]
+}
