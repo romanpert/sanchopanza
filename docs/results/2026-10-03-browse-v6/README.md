@@ -194,8 +194,111 @@ exactly as it was measured here.
 
 This is development on tasks seen before, with three runs: an 11 against 11 is a tie, not a win.
 Because it meets the bar on these tasks, a confirmation on new tasks is registered in
-`prereg-crawl4.md` (`nav_confirm4.py`, `truth_confirm4.py`). It is sealed and **not launched**,
-and its expected cost is about 18 USD.
+`prereg-crawl4.md` (`nav_confirm4.py`, `truth_confirm4.py`). It is sealed, and its expected cost
+was about 18 USD. Its result is in the next section.
+
+## Confirmation 4: v7 against Claude Code alone, Haiku and Sonnet (registered, 2026-10-03)
+
+Run as `prereg-crawl4.md` registered it (`nav_confirm4.py --live`). There were 120 sessions, every
+one on Claude Code 2.1.287, and no session was `not_run`: each `-SP` transcript showed line v6 and
+the notes, and no plain one did. The runner killed no session, and the guard stopped no evaluate
+(0 tool results that begin `### Error\nError: evaluate stopped after`, in every arm). It cost
+**11.14 USD** at list price through the subscription, against the 18 expected. The difference is
+the plain arms: Haiku alone averaged 0.085 a crawl here, where the estimate assumed 0.17.
+
+### Verdicts, as computed (`nav-confirm4.json`)
+
+| | Haiku | Sonnet |
+|---|---|---|
+| price: total crawl ratio (at most 0.75) | **0.602** (1.23 / 2.04 USD) | 0.872 (2.09 / 2.39 USD) |
+| price: crawls cheaper by mean (at least 6/8) | **7/8** | 4/8 |
+| answers: right on 24 crawls (at least the plain arm) | **21** against 18 | **23** against 20 |
+| no harm: right on I1, I2 (plain minus 1) | 5/6 against 6/6 (holds) | 6/6 against 6/6 |
+| no harm: cost ratio (at most 1.25) | 1.394 | 1.038 |
+| **beats the harness** | **no** (no harm, on cost) | **no** (price) |
+
+**Not confirmed, on either model.** The prereg asks for all three hypotheses on a model, and each
+model fails one.
+
+- **Haiku fails only no harm, and only on cost.** Price and answers hold with room: 0.60 of the
+  cost, cheaper on 7 of 8 crawls (G4 is the exception, 0.040 against 0.035), and 3 more right
+  answers. The 5/6 on the interactive tasks is inside the prereg's margin. The cost of the
+  interactive tasks is not: 0.668 against 0.479 USD, a ratio of 1.39.
+- **Sonnet fails price.** It is more often right (23 against 20) and costs the same on I1 and I2
+  (1.04), but the crawls cost 0.87 of the plain arm's, and it is cheaper on only 4 of 8 crawls
+  (G1, G5, G6 and G7). The four where it costs more are the JSON APIs, G2, G3, G4 and G8. There
+  Sonnet alone already writes one evaluate and is done in 4 turns, so the line has no walk to
+  remove. Its fixed cost remains: a few thousand more tokens written to cache per session (the
+  line, and the wrapper Playwright MCP echoes back) and longer output.
+
+Per task, right answers (plain / `-SP`) and mean USD:
+
+| task | Haiku | Haiku-SP | Sonnet | Sonnet-SP |
+|---|---|---|---|---|
+| G1 | 1/3, 0.047 | **3/3**, 0.040 | 3/3, 0.084 | 3/3, 0.081 |
+| G2 | 2/3, 0.046 | 3/3, 0.033 | 3/3, 0.077 | 2/3, 0.079 |
+| G3 | 3/3, 0.048 | 2/3, 0.046 | 0/3, 0.072 | **3/3**, 0.096 |
+| G4 | 1/3, 0.035 | **3/3**, 0.040 | 2/3, 0.072 | 3/3, 0.086 |
+| G5 | 2/3, 0.100 | 3/3, 0.042 | 3/3, 0.115 | 3/3, 0.089 |
+| G6 | 3/3, 0.155 | 1/3, 0.128 | 3/3, 0.132 | 3/3, 0.098 |
+| G7 | 3/3, 0.154 | 3/3, 0.045 | 3/3, 0.174 | 3/3, 0.085 |
+| G8 | 3/3, 0.096 | 3/3, 0.036 | 3/3, 0.072 | 3/3, 0.083 |
+| I1 | 3/3, 0.051 | 2/3, 0.044 | 3/3, 0.113 | 3/3, 0.116 |
+| I2 | 3/3, 0.109 | 3/3, 0.178 | 3/3, 0.254 | 3/3, 0.264 |
+
+Described, not tested: median wall time 24 s against 38 s (Haiku) and 25 s against 40 s
+(Sonnet), and mean turns on crawls 5.8 against 8.7 and 4.2 against 5.4. Haiku with sanchopanza
+against Sonnet alone: 21 right against 20, at 0.51 of the crawl cost.
+
+### Every miss, read by hand
+
+The 15 misses (out of 120) were read in their transcripts:
+
+| session | answer | what happened |
+|---|---|---|
+| G1 r1, r3 Haiku | 6 | read only the open page: 30 products of the 194 the JSON states |
+| G4 r2, r3 Haiku; G4 r2 Sonnet | 0 | read only the open page: 20 names of 1,351 |
+| G3 r1, r2, r3 Sonnet | 1 | read only the open page: 10 facts of 332, and said so in the reply |
+| G2 r1 Haiku | 21 | `eye_color` matched as a substring, so "blue-gray" and "red, blue" counted |
+| G5 r2 Haiku | 22 | counted by eye from three snapshots and miscounted |
+| G3 r2 Haiku-SP | 52 | invented `?limit=100&page=N`: the pages overlapped, giving 332 rows of which 298 were distinct, and the code never deduplicated |
+| G6 r1, r2 Haiku-SP | 48, 30 | the 40 rows were already in the DOM and paged by CSS. The code called `click()` on the pager inside the evaluate and read the same rows after every click (6 per page, 8 and 5 pages, against 6) |
+| G2 r1 Sonnet-SP | 21 | `includes('blue')`, the same substring as G2 r1 Haiku |
+| I1 r1 Haiku-SP | none | the-internet.herokuapp.com answered 503 for the whole session; the agent reported the outage and did not log in |
+
+What this says:
+
+- **The notes did what v7's round said they would.** All 8 "read only the open page" misses are
+  in the plain arms; none is in an `-SP` arm. The "fetched nothing" note fired in 15 Haiku-SP
+  sessions, and 14 of them ended right. Sonnet-SP never needed it (0 notes): line v6 alone sent
+  it past page 1 of G3 and G4, where Sonnet alone stopped 4 times.
+- **The misses left with sanchopanza are of another kind.** All the data was reached, and it was
+  read more than once (G3, G6) or matched by the wrong rule (G2). No current note sees either:
+  the G3 overlap is not a byte-identical page, and G6 made no fetch at all.
+- **The interactive cost is the wrapper and longer walks, not the line.** On I2, Haiku-SP took
+  25 to 37 turns against 20. Of its extra 0.21 USD, about 30 % is the wrapper's echo: Playwright
+  MCP returns the code it ran under `### Ran Playwright code`, and the wrapped function is 3,313
+  characters with the notes, against 450 for the guard alone. That block is then re-read at cache
+  price on every later turn. About 4 % is the line. The rest is turns: extra screenshots,
+  repeating the checkout flow, and in r3 evaluates where a snapshot would have done.
+
+**An error in the prereg, which does not change the verdict.** Its task table says that 2 more
+people in G2 have "blue-gray" eyes. In the data, 1 has "blue-gray" and 1 has "red, blue". The
+truth (19, exactly "blue") stands. Sonnet's G2 r2 and r3 answered "19 (21 if including
+blue-gray and red, blue)". The registered grading reads the first whole number on the ANSWER line
+and counts both as right. A stricter reading would make Sonnet alone 18/24 and leave every
+verdict as it is.
+
+### What v8 should be, from these misses
+
+Development, not registered. Each item is opt-in and leaves v7 as it is:
+
+1. **Cut the echo.** A `PostToolUse` hook on `browser_evaluate` replaces the echoed wrapper with
+   one short line, and leaves the result and the notes intact. That is 30 % of I2's extra cost.
+2. **Two more neutral notes**, each from a miss above: clicks that did not change the page's text
+   (G6), and JSON rows fetched against distinct rows (G3 r2). They give numbers and no advice.
+3. **The line only on crawl requests**, so that I1 and I2 never carry it. The guard and the notes
+   stay on for every request.
 
 ## Files
 
@@ -203,7 +306,9 @@ and its expected cost is about 18 USD.
   smoke session (F4, v6, right, 0.16 USD).
 - `nav-v7-sessions.jsonl` / `.log`, `nav-v7.json`, `nav-v7-smoke-sessions.jsonl`: the v7 round.
 - `truth-v6.json`: the answers recomputed after the phase.
-- `prereg-crawl4.md` / `.sha256`: confirmation 4, sealed, not run.
+- `prereg-crawl4.md` / `.sha256`: confirmation 4, sealed before it ran.
+- `nav-confirm4-sessions.jsonl`, `nav-confirm4.json`: confirmation 4's 120 sessions and its
+  verdicts.
 - `benchmarks/browse/nav_v6.py`, `nav_v7.py`, `nav_confirm4.py`, `truth_v6.py`,
   `truth_confirm4.py`, `repeat_fingerprint.py`; `tests/test_nav_v6.py`, `test_nav_v7.py`,
   `test_nav_confirm4.py`, `test_crawl_notes.py`.
