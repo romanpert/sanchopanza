@@ -122,7 +122,9 @@ from .find_auto import hook as auto_hook
 from .find_nudge import MATCHER as NUDGE_MATCHER
 from .generic import HarnessConfig
 from .install_defaults import (
+    FETCH_SERVER,
     FIND_SERVER,
+    fetch_server_entry,
     find_hook_command,
     find_server_entry,
     merge_budget,
@@ -133,6 +135,7 @@ from .install_defaults import (
 # re-exported because sealed benchmarks and tests import them from here.
 from .install_hooks import CRAWL_COMMAND as CRAWL_COMMAND
 from .install_hooks import CRAWL_HOOKS as CRAWL_HOOKS
+from .install_hooks import CRAWL_INSTALL_HOOKS as CRAWL_INSTALL_HOOKS
 from .install_hooks import FETCH_COMMAND as FETCH_COMMAND
 from .install_hooks import FETCH_HOOKS as FETCH_HOOKS
 from .install_hooks import PRUNE_COMMAND as PRUNE_COMMAND
@@ -404,13 +407,13 @@ def _merge_candor(
 
 
 def _merge_approval(
-    merged: dict[str, Any], lean: bool, find: bool = False
+    merged: dict[str, Any], lean: bool, find: bool = False, fetch: bool = False
 ) -> tuple[dict[str, Any], list[str], list[str]]:
-    """Approve our servers of `.mcp.json` by name (the archive under `--lean`, find by default),
-    or withdraw them."""
+    """Approve our servers of `.mcp.json` by name (the archive under `--lean`, find by default,
+    fetch under `--fetch` in a project), or withdraw them."""
     added: list[str] = []
     removed: list[str] = []
-    for server, on in ((ARCHIVE_SERVER, lean), (FIND_SERVER, find)):
+    for server, on in ((ARCHIVE_SERVER, lean), (FIND_SERVER, find), (FETCH_SERVER, fetch)):
         approved = merged.get(APPROVED, [])
         if not isinstance(approved, list):
             return merged, added, removed  # someone put something else there; do not fight it
@@ -461,7 +464,12 @@ def _read_mcp_json(path: Path) -> dict[str, Any]:
 
 
 def mcp_json_changes(
-    path: Path, lean: bool, command: str = COMMAND, find: bool = False, find_auto: bool = False
+    path: Path,
+    lean: bool,
+    command: str = COMMAND,
+    find: bool = False,
+    find_auto: bool = False,
+    fetch: bool = False,
 ) -> dict[str, Any] | None:
     """The new `.mcp.json` content, or None when nothing changes. Only our entries are touched.
 
@@ -471,8 +479,9 @@ def mcp_json_changes(
     the install."""
     find_entry = find_server_entry(portable_command(command), auto=find_auto) if find else None
     wanted = {ARCHIVE_SERVER: archive_server_entry(command) if lean else None,
-              FIND_SERVER: find_entry}  # fmt: skip
-    if not lean and not find:
+              FIND_SERVER: find_entry,
+              FETCH_SERVER: fetch_server_entry(portable_command(command)) if fetch else None}  # fmt: skip
+    if not lean and not find and not fetch:
         try:
             current = _read_mcp_json(path)
         except (ValueError, OSError):
@@ -597,6 +606,7 @@ def _merge(
     prune: bool = False,
     sources: bool = False,
     fetch: bool = False,
+    fetch_server: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
         current = {}
@@ -643,7 +653,7 @@ def _merge(
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_profile(merged, profile)
     added, removed = [*added, *plus], [*removed, *minus]
-    merged, plus, minus = _merge_approval(merged, lean, find)
+    merged, plus, minus = _merge_approval(merged, lean, find, fetch_server)
     return merged, [*added, *plus], [*removed, *minus]
 
 
@@ -713,6 +723,9 @@ def plan(
         prune=prune,
         sources=sources,
         fetch=fetch,
+        # The fetch server goes in a project's .mcp.json only (`cli._plan_mcp_json`); a user
+        # install prints the `claude mcp add-json` line instead, so nothing to approve here.
+        fetch_server=fetch and project_settings(path),
     )
     return Settings(path, merged, tuple(added), tuple(removed))
 

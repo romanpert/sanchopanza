@@ -97,7 +97,10 @@ def test_browse_sets_are_wired_and_removed_in_order(tmp_path: Path) -> None:
     on = install.plan(path, HarnessConfig(), crawl=True, prune=True, sources=True, fetch=True)
     browse = (
         "SessionStart:  (crawl)",
-        "PreToolUse: mcp__.*__browser_evaluate (crawl)",
+        # S seal: install --crawl wires every event crawl answers (CRAWL_INSTALL_HOOKS)
+        "PreToolUse: mcp__.*__browser_(evaluate|take_screenshot) (crawl)",
+        "PostToolUse: mcp__.*__browser_evaluate (crawl)",
+        "UserPromptSubmit:  (crawl)",
         "PostToolUse: mcp__.*__browser_.* (prune)",
         "Stop:  (sources)",
         "PreToolUse: WebFetch (fetch)",

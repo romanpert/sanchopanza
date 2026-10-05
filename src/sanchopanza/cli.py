@@ -101,8 +101,9 @@ def _plan_mcp_json(args: argparse.Namespace, settings_path: Path) -> tuple[Path,
                              "sanchopanza '{\"command\":\"sanchopanza\",\"args\":[\"find-mcp\"],"
                              "\"alwaysLoad\":true}'\n")  # fmt: skip
     try:
+        fetch = args.fetch and project_settings(settings_path)  # a user install prints the line
         content = mcp_json_changes(target, args.lean, args.command_line, find=args.find,
-                                   find_auto=args.find_auto)  # fmt: skip
+                                   find_auto=args.find_auto, fetch=fetch)  # fmt: skip
     except (ValueError, OSError) as error:
         if args.lean:
             raise
@@ -110,7 +111,8 @@ def _plan_mcp_json(args: argparse.Namespace, settings_path: Path) -> tuple[Path,
         # is not registered (nor approved), rather than failing the whole install.
         sys.stderr.write(f"{error}; find_in_repo not registered\n")
         args.find = False
-        content = mcp_json_changes(target, args.lean, args.command_line, find=False)
+        content = mcp_json_changes(target, args.lean, args.command_line, find=False,
+                                   fetch=args.fetch and project_settings(settings_path))
     return None if content is None else (target, content)
 
 
@@ -197,7 +199,7 @@ def _browse_hook(args: argparse.Namespace) -> int:
 
 def _install(args: argparse.Namespace) -> int:
     from .harness.generic import HarnessConfig
-    from .harness.install import apply, default_path, default_plugin_root, plan
+    from .harness.install import apply, default_path, default_plugin_root, plan, project_settings
     from .harness.install_defaults import DEFAULT_BUDGET, apply_skill, skill_change
 
     defaults = HarnessConfig()
@@ -333,9 +335,14 @@ def _install(args: argparse.Namespace) -> int:
         sys.stdout.write(
             "Fetch is on: the first WebFetch of each URL is sent to fetch_passages, which "
             "returns the page's passages for the agent's purpose without a reader model; a "
-            "second WebFetch of the same URL runs. Register the server once, loaded up front so "
-            "tool search does not defer it: claude mcp add-json --scope user sanchopanza-fetch "
-            '\'{"command":"sanchopanza","args":["fetch-mcp"],"alwaysLoad":true}\'\n'
+            "second WebFetch of the same URL runs. "
+            + (
+                "The fetch_passages server is in the project's .mcp.json, loaded up front.\n"
+                if project_settings(path)
+                else "Register the server once, loaded up front so tool search does not defer "
+                "it: claude mcp add-json --scope user sanchopanza-fetch "
+                '\'{"command":"sanchopanza","args":["fetch-mcp"],"alwaysLoad":true}\'\n'
+            )
         )
     if root is not None:
         sys.stdout.write(
