@@ -11,6 +11,9 @@ One process, one probe: `ADOPT_DEV_PROFILE` picks it when this module is first i
 - `nudge`: the frozen copy of 4ee2901 (e57c374's find description, server instructions and
   nudge, with the nudge's once-per-session lock and approval check),
   output dev-nudge/, 14.00 USD, plan from `behaviour-set.json` (`probe_nudge.py`).
+- `need`: the frozen copy of 7a39a1f (phase D's: the default install, find alwaysLoad, no nudge,
+  the delegation fix), output dev-need/, 12.00 USD, S only on the need-ranked development set of
+  `benchmarks/find_need/need-table.json` (`probe_need.py`).
 """
 
 from __future__ import annotations
@@ -30,6 +33,7 @@ PROFILE = os.environ.get("ADOPT_DEV_PROFILE", "alwaysload")
 PROFILES = {
     "alwaysload": ("1ea9302c8b4c3e63b908b5cd84b5c0204ba5eae1", "dev-alwaysload", "work-dal", 8.00),
     "nudge": ("4ee2901d2cc10fc4967bda6bc915bd33c785eff4", "dev-nudge", "work-dn", 14.00),
+    "need": ("7a39a1f0d4ff8e9cf5c99046ee0aa818ffe955d9", "dev-need", "work-dnd", 12.00),
 }
 if PROFILE not in PROFILES:
     raise RuntimeError(f"ADOPT_DEV_PROFILE={PROFILE!r}; known: {sorted(PROFILES)}")
@@ -71,6 +75,14 @@ DEV1 = ("django__django-15315", "django__django-14752", "matplotlib__matplotlib-
 NEW = ("django__django-15104", "sympy__sympy-18763", "django__django-15563",
        "django__django-12143")  # fmt: skip
 BEHAVIOUR_SET = Path(__file__).resolve().parent / "behaviour-set.json"
+NEED_TABLE = ADOPT.parent / "find_need" / "need-table.json"
+# The need-ranked development set (`find_need/need.py`, rule written before the table), in its
+# rank order. Five of them were phase A's held-out singles: its confirmation is closed, so the
+# held-out refusal does not apply to this profile; phase D's ids still do.
+NEED = ("sympy__sympy-20428", "sympy__sympy-20916", "pydata__xarray-7393", "sympy__sympy-12419",
+        "django__django-14007", "django__django-15563", "django__django-11211",
+        "django__django-14011", "matplotlib__matplotlib-25332",
+        "matplotlib__matplotlib-26342")  # fmt: skip
 
 
 def nudge_plan() -> tuple[tuple[str, tuple[str, ...]], ...]:
@@ -83,9 +95,12 @@ def nudge_plan() -> tuple[tuple[str, tuple[str, ...]], ...]:
 
 # alwaysload: S before N, the question is whether Haiku calls find; if the cap binds, an N goes
 # first. nudge: both arms on every issue of the behaviour set.
+# need: S only, one session each; the N reference is the recorded sessions of the need table.
 PLAN: tuple[tuple[str, tuple[str, ...]], ...] = (
     nudge_plan()
     if PROFILE == "nudge"
+    else tuple((name, ("S",)) for name in NEED)
+    if PROFILE == "need"
     else (*((name, ("S",)) for name in DEV1), *((name, ("S", "N")) for name in NEW))
 )
 
@@ -130,10 +145,12 @@ def plan_refusal() -> str | None:
     """Why the plan may not run: a held-out single in it (the confirmation's or phase D's), or
     the draw no longer gives NEW."""
     names = {name for name, _ in PLAN}
-    if bad := sorted(names & held_out()):
+    if PROFILE != "need" and (bad := sorted(names & held_out())):
         return f"held-out singles in the plan: {bad}"
     if bad := sorted(names & phase_d_ids()):
         return f"phase D singles in the plan: {bad}"
+    if PROFILE == "need":
+        return need_refusal()
     if PROFILE == "nudge":
         return nudge_refusal(names)
     if list(NEW) != draw_new():
@@ -149,6 +166,18 @@ def nudge_refusal(names: set[str]) -> str | None:
         return f"the nudge plan has {len(names)} issues, not 10 (behaviour-set.json drawn?)"
     if problems := check():
         return "; ".join(problems)
+    return None
+
+
+def need_refusal() -> str | None:
+    """The need plan: the table's development set as written here, S only, each id once."""
+    if not NEED_TABLE.exists():
+        return f"no need table at {NEED_TABLE}"
+    drawn = read_json(NEED_TABLE).get("dev_set")
+    if drawn != list(NEED):
+        return f"the need table's dev_set is {drawn}, the plan names {list(NEED)}"
+    if [name for name, _ in PLAN] != list(NEED) or {a for _, arms in PLAN for a in arms} != {"S"}:
+        return f"the need plan is not S on each of the set: {PLAN}"
     return None
 
 
