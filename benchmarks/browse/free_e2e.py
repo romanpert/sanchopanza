@@ -44,6 +44,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -150,14 +151,29 @@ def refused(reply: str, stderr: str, is_error: bool) -> bool:
     return is_error and bool(_REFUSED.search(f"{reply} {stderr}"))
 
 
+def session_settings(deny: Sequence[str] = (), hooks: Mapping[str, Any] | None = None) -> dict:
+    """The session's own settings file: the calibration's allow list, plus the deny rules and
+    hooks an arm adds (`free_frames.py`). Never a user or global setting: `--setting-sources ""`."""
+    permissions: dict[str, Any] = {"allow": TOOLS.split()}
+    if deny:
+        permissions["deny"] = list(deny)
+    return {"permissions": permissions, **({"hooks": dict(hooks)} if hooks else {})}
+
+
 def one_session(
-    task: tuple, run: int, arm: str, session_max_usd: float = SESSION_MAX_USD
+    task: tuple,
+    run: int,
+    arm: str,
+    session_max_usd: float = SESSION_MAX_USD,
+    deny: Sequence[str] = (),
+    hooks: Mapping[str, Any] | None = None,
+    env_extra: Mapping[str, str] | None = None,
 ) -> dict[str, Any]:
     tid, _url, question, gold = task
     work = pathlib.Path(tempfile.mkdtemp(prefix=f"sp-free-{tid.lower()}r{run}-"))
     settings = work / "settings.json"
-    settings.write_text(json.dumps({"permissions": {"allow": TOOLS.split()}}), encoding="utf-8")
-    env = {**nav.base.clean_env(dict(os.environ)), "PYTHONPATH": str(SRC)}
+    settings.write_text(json.dumps(session_settings(deny, hooks)), encoding="utf-8")
+    env = {**nav.base.clean_env(dict(os.environ)), "PYTHONPATH": str(SRC), **(env_extra or {})}
     env.pop("TYPESAFE_API_KEY", None)
     argv = [
         shutil.which("claude") or "claude",
@@ -186,6 +202,7 @@ def one_session(
     try:
         done = subprocess.run(argv, cwd=work, env=env, capture_output=True, timeout=TIMEOUT_S)
         stderr = done.stderr.decode("utf-8", errors="replace")
+        (work / "stderr.txt").write_text(stderr, encoding="utf-8")  # a limit can show only here
         out = json.loads(done.stdout.decode("utf-8", errors="replace") or "{}")
     except (subprocess.TimeoutExpired, ValueError) as error:
         stderr = ""
