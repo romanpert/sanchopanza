@@ -1,0 +1,180 @@
+{
+ "fit_usd_per_call": {
+  "all": {
+   "search": 0.0237,
+   "fetch": 0.0154
+  },
+  "frames": {
+   "search": 0.0227,
+   "fetch": 0.0241
+  },
+  "cal": {
+   "search": 0.024,
+   "fetch": 0.0067
+  },
+  "search_only": {
+   "search": 0.0231,
+   "fetch": 0.0
+  }
+ },
+ "costs": {
+  "CAL HAIKU": {
+   "sessions": 35,
+   "list_usd": 12.454,
+   "reader_usd": 9.758,
+   "searches": 410,
+   "fetches_ok": 2,
+   "search_usd": 9.851,
+   "search_fee_usd": 4.1,
+   "fetch_usd": 0.013
+  },
+  "CAL SONNET": {
+   "sessions": 25,
+   "list_usd": 10.686,
+   "reader_usd": 4.916,
+   "searches": 161,
+   "fetches_ok": 96,
+   "search_usd": 3.868,
+   "search_fee_usd": 1.61,
+   "fetch_usd": 0.639
+  },
+  "FRAMES HAIKU": {
+   "sessions": 40,
+   "list_usd": 8.63,
+   "reader_usd": 6.356,
+   "searches": 279,
+   "fetches_ok": 0,
+   "search_usd": 6.336,
+   "search_fee_usd": 2.79,
+   "fetch_usd": 0.0
+  },
+  "FRAMES HAIKU-SRC": {
+   "sessions": 20,
+   "list_usd": 4.898,
+   "reader_usd": 3.58,
+   "searches": 154,
+   "fetches_ok": 6,
+   "search_usd": 3.497,
+   "search_fee_usd": 1.54,
+   "fetch_usd": 0.145
+  },
+  "FRAMES HAIKU-SRC2": {
+   "sessions": 20,
+   "list_usd": 3.779,
+   "reader_usd": 2.754,
+   "searches": 118,
+   "fetches_ok": 3,
+   "search_usd": 2.68,
+   "search_fee_usd": 1.18,
+   "fetch_usd": 0.072
+  },
+  "FRAMES SONNET": {
+   "sessions": 40,
+   "list_usd": 10.124,
+   "reader_usd": 4.908,
+   "searches": 160,
+   "fetches_ok": 54,
+   "search_usd": 3.634,
+   "search_fee_usd": 1.6,
+   "fetch_usd": 1.302
+  },
+  "FRAMES SONNET-SRC": {
+   "sessions": 20,
+   "list_usd": 6.87,
+   "reader_usd": 3.536,
+   "searches": 77,
+   "fetches_ok": 85,
+   "search_usd": 1.749,
+   "search_fee_usd": 0.77,
+   "fetch_usd": 2.05
+  },
+  "FRAMES SONNET-SRC2": {
+   "sessions": 20,
+   "list_usd": 5.599,
+   "reader_usd": 2.677,
+   "searches": 76,
+   "fetches_ok": 46,
+   "search_usd": 1.726,
+   "search_fee_usd": 0.76,
+   "fetch_usd": 1.109
+  }
+ },
+ "replay_frames": {
+  "fetches": 187,
+  "page_tokens_median": 2212,
+  "page_tokens_p90": 8558,
+  "summary_tokens_mean": 140,
+  "later_calls_mean": 4.16,
+  "gold_on_page": 71,
+  "gold_in_summary": 22,
+  "summary_facts_on_page": 2509,
+  "budget_4000": {
+   "tokens_mean": 843,
+   "tokens_p90": 1021,
+   "gold": 55,
+   "gold_where_summary_had_it_lost": 1,
+   "summary_facts_kept": 1942,
+   "net_usd_per_fetch_mean": 0.0208,
+   "fetches_net_negative": 0
+  },
+  "budget_8000": {
+   "tokens_mean": 1467,
+   "tokens_p90": 2036,
+   "gold": 67,
+   "gold_where_summary_had_it_lost": 0,
+   "summary_facts_kept": 2347,
+   "net_usd_per_fetch_mean": 0.0179,
+   "fetches_net_negative": 0
+  },
+  "budget_16000": {
+   "tokens_mean": 2317,
+   "tokens_p90": 4008,
+   "gold": 68,
+   "gold_where_summary_had_it_lost": 0,
+   "summary_facts_kept": 2452,
+   "net_usd_per_fetch_mean": 0.014,
+   "fetches_net_negative": 4
+  },
+  "whole_page_net_usd_per_fetch_mean": 0.0044
+ },
+ "replay_cal": {
+  "fetches": 54,
+  "page_tokens_median": 1164,
+  "page_tokens_p90": 4096,
+  "summary_tokens_mean": 139,
+  "later_calls_mean": 4.43,
+  "gold_on_page": 6,
+  "gold_in_summary": 3,
+  "summary_facts_on_page": 579,
+  "budget_4000": {
+   "tokens_mean": 686,
+   "tokens_p90": 1067,
+   "gold": 4,
+   "gold_where_summary_had_it_lost": 2,
+   "summary_facts_kept": 482,
+   "net_usd_per_fetch_mean": 0.0041,
+   "fetches_net_negative": 0
+  },
+  "budget_8000": {
+   "tokens_mean": 1057,
+   "tokens_p90": 1975,
+   "gold": 4,
+   "gold_where_summary_had_it_lost": 2,
+   "summary_facts_kept": 538,
+   "net_usd_per_fetch_mean": 0.0023,
+   "fetches_net_negative": 15
+  },
+  "budget_16000": {
+   "tokens_mean": 1352,
+   "tokens_p90": 3988,
+   "gold": 5,
+   "gold_where_summary_had_it_lost": 1,
+   "summary_facts_kept": 568,
+   "net_usd_per_fetch_mean": 0.001,
+   "fetches_net_negative": 15
+  },
+  "whole_page_net_usd_per_fetch_mean": -0.0032
+ },
+ "skipped_fetches": 51,
+ "chars_per_token": 4.0
+}

@@ -116,6 +116,7 @@ from pathlib import Path
 from typing import Any
 
 from .. import _env
+from .fetch_hook import FETCH_COMMAND, FETCH_HOOKS
 from .generic import HarnessConfig
 from .install_defaults import FIND_SERVER, find_server_entry, merge_budget, merge_profile
 from .sources_hook import SOURCES_COMMAND, SOURCES_HOOKS
@@ -485,6 +486,13 @@ def _merge_sources(
     return _merge_owned(merged, on, SOURCES_HOOKS, command, SOURCES_COMMAND, "sources")
 
 
+def _merge_fetch(
+    merged: dict[str, Any], on: bool, command: str = FETCH_COMMAND
+) -> tuple[dict[str, Any], list[str], list[str]]:
+    """WebFetch sent to `fetch_passages` once per URL (`--fetch`)."""
+    return _merge_owned(merged, on, FETCH_HOOKS, command, FETCH_COMMAND, "fetch")
+
+
 def _merge_approval(
     merged: dict[str, Any], lean: bool, find: bool = False
 ) -> tuple[dict[str, Any], list[str], list[str]]:
@@ -676,6 +684,7 @@ def _merge(
     crawl: bool = False,
     prune: bool = False,
     sources: bool = False,
+    fetch: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
         current = {}
@@ -712,6 +721,8 @@ def _merge(
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_sources(merged, sources)
     added, removed = [*added, *plus], [*removed, *minus]
+    merged, plus, minus = _merge_fetch(merged, fetch)
+    added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_budget(merged, budget)
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = merge_profile(merged, profile)
@@ -747,6 +758,7 @@ def plan(
     crawl: bool = False,
     prune: bool = False,
     sources: bool = False,
+    fetch: bool = False,
 ) -> Settings:
     current: Any = {}
     if path.exists():
@@ -780,6 +792,7 @@ def plan(
         crawl=crawl,
         prune=prune,
         sources=sources,
+        fetch=fetch,
     )
     return Settings(path, merged, tuple(added), tuple(removed))
 

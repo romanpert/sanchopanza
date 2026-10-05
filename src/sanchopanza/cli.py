@@ -10,6 +10,7 @@ sanchopanza install --compact --write        # and prune tool results at /compac
 sanchopanza install --autopilot --write      # cut on arrival, recall, mask at a percentage
 sanchopanza compact --transcript session.jsonl --provider null   # plan and apply a pruning
 sanchopanza archive-mcp     # MCP server: search_archive over .sanchopanza/archive, no decider
+sanchopanza fetch-mcp       # MCP server: fetch_passages, a page's passages for a purpose, no model
 sanchopanza providers       # what is installed
 sanchopanza dag plan.json   # clean DAG and waves from {"nodes": [...], "edges": {"A->B": 0.9}}
 """
@@ -168,6 +169,18 @@ def _sources_hook(args: argparse.Namespace) -> int:
     return sources_main()
 
 
+def _fetch_hook(args: argparse.Namespace) -> int:
+    from .harness.fetch_hook import main as fetch_main
+
+    return fetch_main()
+
+
+def _fetch_mcp(_args: argparse.Namespace) -> int:
+    from .harness.fetch_tool import main as fetch_main
+
+    return fetch_main()
+
+
 def _browse_hook(args: argparse.Namespace) -> int:
     from .harness.browse_hook import main as browse_main
 
@@ -212,6 +225,7 @@ def _install(args: argparse.Namespace) -> int:
             crawl=args.crawl,
             prune=args.prune,
             sources=args.sources,
+            fetch=args.fetch,
             budget=DEFAULT_BUDGET if args.context_budget is None else args.context_budget,
             find=args.find,
             profile=args.guard_profile,
@@ -298,6 +312,13 @@ def _install(args: argparse.Namespace) -> int:
             "Sources is on: at the first stop of a session that used the web, the agent is "
             "asked once to give the source (URL and exact sentence) of every condition in the "
             "question and to repeat its answer line. It asks no model.\n"
+        )
+    if args.fetch:
+        sys.stdout.write(
+            "Fetch is on: the first WebFetch of each URL is sent to fetch_passages, which "
+            "returns the page's passages for the agent's purpose without a reader model; a "
+            "second WebFetch of the same URL runs. Register the server once: claude mcp add "
+            "--scope user sanchopanza-fetch -- sanchopanza fetch-mcp\n"
         )
     if root is not None:
         sys.stdout.write(
@@ -629,6 +650,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     sources_hook.set_defaults(func=_sources_hook)
 
+    fetch_hook = sub.add_parser(
+        "fetch-hook",
+        help="send WebFetch to fetch_passages once per URL: Claude Code PreToolUse hook "
+        "(stdin JSON)",
+    )
+    fetch_hook.set_defaults(func=_fetch_hook)
+
     browse_hook = sub.add_parser(
         "browse-hook",
         help="snapshot pruning for browsing agents: Claude Code PostToolUse hook (stdin JSON)",
@@ -757,6 +785,13 @@ def main(argv: list[str] | None = None) -> int:
         "measured yet, so off by default)",
     )
     install.add_argument(
+        "--fetch",
+        action="store_true",
+        help="for research agents: send WebFetch to the fetch_passages MCP server (passages for "
+        "the purpose by BM25, no reader model) once per URL (one PreToolUse hook; not measured "
+        "in live sessions yet, so off by default)",
+    )
+    install.add_argument(
         "--plugin-dir",
         default=None,
         help="with --compact, where the plugin is written (default ~/.sanchopanza/claude-plugin)",
@@ -842,6 +877,13 @@ def main(argv: list[str] | None = None) -> int:
         help="MCP server (stdio) with one tool, find_in_repo, over the current directory",
     )
     find_mcp.set_defaults(func=_find_mcp)
+
+    fetch_mcp = sub.add_parser(
+        "fetch-mcp",
+        help="MCP server (stdio) with one tool, fetch_passages: a web page's passages for a "
+        "purpose, no model",
+    )
+    fetch_mcp.set_defaults(func=_fetch_mcp)
 
     dag = sub.add_parser("dag", help="clean DAG and waves from probabilistic pairs")
     dag.add_argument("plan")

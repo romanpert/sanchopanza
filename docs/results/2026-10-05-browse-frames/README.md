@@ -342,3 +342,118 @@ is the wrong answer with no sign in the reply, then (Haiku) the session that nev
   Haiku: the readers that WebSearch and WebFetch run (2.20 of 4.51 USD on pilot 1, 2.71 of 5.62
   on pilot 2; 160 searches and 61 fetches in 40 sessions). That cost does not depend on telling a
   right answer from a wrong one.
+
+## Substitution: fetch by passages
+
+The last line above names where the money is. This section asks whether a deterministic tool can
+take the place of one of those readers: `fetch_passages` downloads the page itself, cuts it into
+chunks under their headings and returns the ones BM25 ranks highest for the purpose the agent
+declares, with no model at all (`sanchopanza.webpage`, `sanchopanza.harness.fetch_tool`, reusing
+the package's one BM25 in `sanchopanza.text`). What Indagis learned applies: once the reader is
+gone, the model that asked reads what arrives at its own price, so the tool must hand over little
+and good text.
+
+### Phase A: where the readers' money goes (free, `free_fetch_offline.py`, `fetch-offline.json`)
+
+Per session, the readers' cost is `modelUsage` less the transcript's own calls priced at list
+rates; it is split between WebSearch and WebFetch by least squares on their call counts (no
+intercept; the 18 sessions with no web call have no gap). Only WebFetch calls that returned 200
+count.
+
+| sessions | per WebSearch | per WebFetch (200) |
+|---|---|---|
+| FRAMES, both pilots (160) | 0.0227 USD (0.010 fee + 0.0127 tokens) | **0.0241 USD** |
+| search-only sessions (138) | 0.0231 | - |
+| calibration, AssistantBench and BrowseComp (60) | 0.0240 | 0.0067 |
+
+The calibration's fetches are cheaper: a third of them are JSON APIs, some of which Claude Code
+returned raw with no reader, and its pages are shorter.
+
+| FRAMES arms | sessions | list USD | readers | searches -> USD | of it, the fee | fetches (200) | fetch readers (share of spend) |
+|---|---|---|---|---|---|---|---|
+| SONNET (both pilots) | 40 | 10.12 | 4.91 | 160 -> 3.63 | 1.60 | 54 | **1.30 (12.9 %)** |
+| SONNET-SRC + SRC2 | 40 | 12.47 | 6.21 | 153 -> 3.48 | 1.53 | 131 | 3.16 (25.3 %) |
+| HAIKU (both pilots) | 40 | 8.63 | 6.36 | 279 -> 6.34 | 2.79 | 0 | 0 |
+| HAIKU-SRC + SRC2 | 40 | 8.68 | 6.33 | 272 -> 6.18 | 2.72 | 9 | 0.22 (2.5 %) |
+
+- **WebSearch** is most of the readers' money (36 % of the Sonnet base spend, 73 % of Haiku's)
+  but has no deterministic substitute here: replacing it needs a search backend, and the 0.010
+  USD fee alone is 16 % of the Sonnet base spend. Out of scope for this phase.
+- **WebFetch** is a lever on Sonnet only: 12.9 % of the base arms' spend at most, 25 % in the
+  -SRC arms (the hook made them reopen pages). Haiku almost never fetches (9 pages in 80 sessions).
+- **Break-even.** A result enters the context once as a 1-hour cache write (what Claude Code
+  writes, measured on pilot 2) and is read again by every later call of that agent (4.16 later
+  calls per fetch, mean). On Sonnet that is 4.0 + 0.2 x 4.16 = 4.83 USD per million tokens, so a
+  fetch's 0.0241 buys about **5,000 tokens** of passages beyond the reader's summary (140 tokens,
+  mean); on Haiku about 9,900.
+
+### Phase A: what the tool would have returned (free, same script)
+
+Every WebFetch of the FRAMES sessions that returned 200 and whose URL still serves HTML today (187
+of 194; each URL downloaded once and cached outside the repository), cut by `sanchopanza.webpage`
+for the `prompt` the agent gave WebFetch, against the reader's summary in the transcript. Gold:
+the task's answer under the grader's rule; facts: the numbers and capitalised names of the summary
+that are on the page. Tokens are characters / 4.
+
+| | tokens, mean (p90) | gold, of the 71 pages that hold it | summary facts kept, of 2,509 | net USD per fetch on Sonnet | fetches that lose money |
+|---|---|---|---|---|---|
+| reader's summary | 140 | 22 | (all) | - | - |
+| whole page as clean text | 4,266 (8,558) | 71 | 2,509 | 0.0044 | 41 |
+| passages, 4,000 characters | 843 (1,021) | 55 | 1,942 | 0.0208 | 0 |
+| **passages, 8,000 (default)** | **1,467 (2,036)** | **67** | **2,347 (94 %)** | **0.0179** | **0** |
+| passages, 16,000 | 2,317 (4,008) | 68 | 2,452 | 0.0140 | 4 |
+
+At the default the passages hold the gold three times as often as the summary (67 against 22),
+in every page where the summary had it, at under a third of the break-even size, and save 74 % of
+the reader's cost per fetch. The whole page as clean text is already far smaller than what the
+reader is fed (WebFetch's Markdown keeps every link), but a long page wipes out the saving. One
+rule was set after looking at a live page: the lead kept first is the first chunk of 200
+characters or more (a skip link is not a lead); it moved the gold from 66 to 67. The calibration's
+54 HTML fetches are weaker ground (the gold is on 6 pages; the summary had it in 3, the passages
+in 4, but they miss 2 of the summary's 3; 0.0023 USD net a fetch, because its reader was cheap).
+
+The replay measures what reaches the agent, not what the agent then does: whether it opens fewer
+or more pages with passages than with summaries is a question for live sessions.
+
+### Phase B: the tool and the hook
+
+- `sanchopanza fetch-mcp`: an MCP server, `sanchopanza-fetch`, with one tool,
+  `fetch_passages(url, purpose, budget=8000)`. Standard-library download, http and https only,
+  every address the host resolves to must be public (no loopback, private, link-local or metadata
+  address), each redirect checked again, 6 MB and 20 s limits, `SANCHOPANZA_FETCH_DENY_HOSTS` for
+  hosts never fetched. A page is kept 15 minutes, so a second purpose on it costs no download. A
+  PDF or other binary page is not read: the reply says to WebFetch it. No model; Jev is not needed.
+- `sanchopanza install --fetch` wires `sanchopanza fetch-hook` on `PreToolUse` WebFetch (owned by
+  the flag, like the others) and prints the `claude mcp add` line for the server. The hook denies a
+  URL's first WebFetch in a session with one line naming the tool, and lets a second WebFetch of
+  the same URL run (a PDF, a page that needs a browser, a session without the server). Off by
+  default.
+- The page's text reaches the main model with no reader in between; `--scan-content` with the tool
+  among the content tools is the existing control for that.
+
+### Smoke: two live sessions (Sonnet, 1.50 USD cap each, 0.70 USD)
+
+The two FRAMES tasks whose SONNET base sessions fetched the most pages and were right (FR347,
+FR139), one run each with the pilots' runner and Claude Code 2.1.287, the server in the session's
+MCP config and the hook in its `--settings` (`free_fetch_smoke.py`). Graded by hand.
+
+| task | right (base / fetch) | list USD (base / fetch) | Haiku USD (base / fetch) | Sonnet USD (base / fetch) | calls (base / fetch) |
+|---|---|---|---|---|---|
+| FR347 | yes / yes | 0.582 / 0.342 | 0.392 / 0.048 | 0.190 / 0.294 | 3 searches, 10 fetches / 2 searches, 2 denied, 2 passages |
+| FR139 | yes / yes | 0.451 / 0.360 | 0.243 / 0.136 | 0.208 / 0.224 | 9 searches, 4 fetches / 6 searches, 2 denied, 2 passages |
+
+The path works end to end: the server starts, the hook denies, the agent loads the deferred tool
+with ToolSearch and calls it (once with a budget of its own, 12,000 characters), no fallback to
+WebFetch was needed, no leak. The deny costs one round trip per batch of fetches and a ToolSearch.
+Two sessions on trajectories unlike their base runs measure nothing: the base FR347 spent most of
+its money opening ten pages.
+
+### What it says
+
+- The offline margin is real on Sonnet, on HTML pages: about 0.018 USD a fetch, at most a tenth of
+  a Sonnet session's spend at the pilots' rate of fetching, with the answer reaching the agent
+  more often than through the reader. On Haiku there is nothing to save, because it almost never
+  fetches; its money is WebSearch.
+- Not measured: whether sessions open more or fewer pages with passages, and what the deny's
+  extra round trip costs over a session. Loading the tool up front (`alwaysLoad`) would remove the
+  ToolSearch.
