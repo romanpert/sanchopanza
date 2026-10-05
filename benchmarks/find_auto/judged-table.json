@@ -1,0 +1,56 @@
+{
+ "spend_usd": 0.082469,
+ "cap_usd": 0.5,
+ "live_calls": 171,
+ "refused_calls": 0,
+ "jobs": 44,
+ "incomplete_jobs": 0,
+ "rebuilt_short": 0,
+ "scores": {
+  "hard sessions, issue text (Q1+code)": {
+   "n": 35,
+   "free any@1": "5/35",
+   "free any@3": "8/35",
+   "free any@5": "13/35",
+   "judged any@1": "14/35",
+   "judged any@3": "17/35",
+   "judged any@5": "21/35",
+   "judged hunk@1": "9/35",
+   "judged hunk@3": "12/35",
+   "judged hunk@5": "17/35",
+   "kept-only any@1": "14/35",
+   "kept-only any@3": "17/35",
+   "kept-only any@5": "21/35"
+  },
+  "hard sessions, R4 fire, issue + search words (Q3+code)": {
+   "n": 25,
+   "free any@1": "6/25",
+   "free any@3": "12/25",
+   "free any@5": "13/25",
+   "judged any@1": "13/25",
+   "judged any@3": "14/25",
+   "judged any@5": "16/25",
+   "judged hunk@1": "8/25",
+   "judged hunk@3": "9/25",
+   "judged hunk@5": "12/25",
+   "kept-only any@1": "13/25",
+   "kept-only any@3": "14/25",
+   "kept-only any@5": "16/25"
+  },
+  "need dev set, issue text (Q1+code)": {
+   "n": 10,
+   "free any@1": "1/10",
+   "free any@3": "1/10",
+   "free any@5": "2/10",
+   "judged any@1": "2/10",
+   "judged any@3": "3/10",
+   "judged any@5": "5/10",
+   "judged hunk@1": "2/10",
+   "judged hunk@3": "3/10",
+   "judged hunk@5": "5/10",
+   "kept-only any@1": "2/10",
+   "kept-only any@3": "3/10",
+   "kept-only any@5": "5/10"
+  }
+ }
+}
