@@ -1,0 +1,66 @@
+{
+ "sessions": 40,
+ "list_usd": 5.81,
+ "grades": "ok_auto",
+ "max_pages": 8,
+ "by_arm": {
+  "HAIKU": {
+   "sessions": 20,
+   "right": 15,
+   "mean_usd": 0.1766,
+   "median_usd": 0.0981,
+   "total_usd": 3.533,
+   "mean_reader_usd": 0.1286,
+   "mean_haiku_usd": 0.1766,
+   "hit_cap": 2,
+   "leak": 0,
+   "calls": {
+    "web_search": 97,
+    "web_fetch": 6,
+    "web_fetch_denied_by_hook": 0,
+    "web_fetch_ran": 6,
+    "web_fetch_error": 0,
+    "web_fetch_back": 0,
+    "fetch_passages": 0,
+    "fetch_passages_unread": 0,
+    "passage_tokens": 0,
+    "tool_search": 21,
+    "subagents": 2,
+    "longest_page_run": 3,
+    "page_notes": 0,
+    "guessed_404": 0,
+    "disambiguation": 0
+   },
+   "passage_tokens_per_read": 0
+  },
+  "HAIKU-FETCH2": {
+   "sessions": 20,
+   "right": 13,
+   "mean_usd": 0.1136,
+   "median_usd": 0.0546,
+   "total_usd": 2.273,
+   "mean_reader_usd": 0.0518,
+   "mean_haiku_usd": 0.1136,
+   "hit_cap": 1,
+   "leak": 0,
+   "calls": {
+    "web_search": 31,
+    "web_fetch": 1,
+    "web_fetch_denied_by_hook": 1,
+    "web_fetch_ran": 0,
+    "web_fetch_error": 0,
+    "web_fetch_back": 0,
+    "fetch_passages": 92,
+    "fetch_passages_unread": 6,
+    "passage_tokens": 106648,
+    "tool_search": 8,
+    "subagents": 1,
+    "longest_page_run": 86,
+    "page_notes": 34,
+    "guessed_404": 3,
+    "disambiguation": 14
+   },
+   "passage_tokens_per_read": 1240
+  }
+ }
+}

@@ -1,0 +1,75 @@
+{
+ "sessions": 21,
+ "by_arm": {
+  "HAIKU-HINT": {
+   "model": "claude-haiku-4-5",
+   "sessions": 9,
+   "finished": 8,
+   "success": "8/9",
+   "median_turns": 23,
+   "mean_list_usd": 0.1219,
+   "total_list_usd": 1.0968,
+   "mean_turns": 21.25
+  },
+  "HAIKU-HINT2": {
+   "model": "claude-haiku-4-5",
+   "sessions": 3,
+   "finished": 3,
+   "success": "3/3",
+   "median_turns": 6,
+   "mean_list_usd": 0.0837,
+   "total_list_usd": 0.2512,
+   "mean_turns": 11.33
+  },
+  "HAIKU-HINT3": {
+   "model": "claude-haiku-4-5",
+   "sessions": 3,
+   "finished": 3,
+   "success": "3/3",
+   "median_turns": 4,
+   "mean_list_usd": 0.0425,
+   "total_list_usd": 0.1274,
+   "mean_turns": 5.0
+  },
+  "HAIKU-HINT4": {
+   "model": "claude-haiku-4-5",
+   "sessions": 3,
+   "finished": 3,
+   "success": "3/3",
+   "median_turns": 4,
+   "mean_list_usd": 0.0406,
+   "total_list_usd": 0.1218,
+   "mean_turns": 4.33
+  },
+  "HAIKU-HINT5": {
+   "model": "claude-haiku-4-5",
+   "sessions": 3,
+   "finished": 3,
+   "success": "3/3",
+   "median_turns": 4,
+   "mean_list_usd": 0.0418,
+   "total_list_usd": 0.1255,
+   "mean_turns": 4.67
+  }
+ },
+ "by_task": {
+  "A1": {
+   "HAIKU-HINT": "3/3"
+  },
+  "B2": {
+   "HAIKU-HINT": "3/3"
+  },
+  "H1": {
+   "HAIKU-HINT": "2/3",
+   "HAIKU-HINT2": "3/3",
+   "HAIKU-HINT3": "3/3",
+   "HAIKU-HINT4": "3/3",
+   "HAIKU-HINT5": "3/3"
+  }
+ },
+ "versions": [
+  "2.1.287"
+ ],
+ "list_usd_total": 1.7227,
+ "not_run": []
+}

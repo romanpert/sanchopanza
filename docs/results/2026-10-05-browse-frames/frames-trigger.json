@@ -1,0 +1,1328 @@
+{
+ "summary": {
+  "sessions": 80,
+  "cap_share": 0.6,
+  "all": {
+   "web_sessions": 71,
+   "trigger": {
+    "fires_right": 3,
+    "fires_wrong": 4,
+    "silent_right": 50,
+    "silent_wrong": 14
+   },
+   "trigger_without_cap_check": {
+    "fires_right": 4,
+    "fires_wrong": 12,
+    "silent_right": 49,
+    "silent_wrong": 6
+   },
+   "over_cap": 10,
+   "sign_number": {
+    "fires_right": 4,
+    "fires_wrong": 5,
+    "silent_right": 49,
+    "silent_wrong": 13
+   },
+   "sign_doubt": {
+    "fires_right": 0,
+    "fires_wrong": 9,
+    "silent_right": 53,
+    "silent_wrong": 9
+   },
+   "sign_no_answer": {
+    "fires_right": 0,
+    "fires_wrong": 3,
+    "silent_right": 53,
+    "silent_wrong": 15
+   }
+  },
+  "SONNET*": {
+   "web_sessions": 31,
+   "trigger": {
+    "fires_right": 1,
+    "fires_wrong": 3,
+    "silent_right": 22,
+    "silent_wrong": 5
+   },
+   "trigger_without_cap_check": {
+    "fires_right": 1,
+    "fires_wrong": 6,
+    "silent_right": 22,
+    "silent_wrong": 2
+   },
+   "over_cap": 3,
+   "sign_number": {
+    "fires_right": 1,
+    "fires_wrong": 5,
+    "silent_right": 22,
+    "silent_wrong": 3
+   },
+   "sign_doubt": {
+    "fires_right": 0,
+    "fires_wrong": 4,
+    "silent_right": 23,
+    "silent_wrong": 4
+   },
+   "sign_no_answer": {
+    "fires_right": 0,
+    "fires_wrong": 0,
+    "silent_right": 23,
+    "silent_wrong": 8
+   }
+  },
+  "HAIKU*": {
+   "web_sessions": 40,
+   "trigger": {
+    "fires_right": 2,
+    "fires_wrong": 1,
+    "silent_right": 28,
+    "silent_wrong": 9
+   },
+   "trigger_without_cap_check": {
+    "fires_right": 3,
+    "fires_wrong": 6,
+    "silent_right": 27,
+    "silent_wrong": 4
+   },
+   "over_cap": 7,
+   "sign_number": {
+    "fires_right": 3,
+    "fires_wrong": 0,
+    "silent_right": 27,
+    "silent_wrong": 10
+   },
+   "sign_doubt": {
+    "fires_right": 0,
+    "fires_wrong": 5,
+    "silent_right": 30,
+    "silent_wrong": 5
+   },
+   "sign_no_answer": {
+    "fires_right": 0,
+    "fires_wrong": 3,
+    "silent_right": 30,
+    "silent_wrong": 7
+   }
+  },
+  "SONNET": {
+   "web_sessions": 16,
+   "trigger": {
+    "fires_right": 0,
+    "fires_wrong": 2,
+    "silent_right": 12,
+    "silent_wrong": 2
+   },
+   "trigger_without_cap_check": {
+    "fires_right": 0,
+    "fires_wrong": 3,
+    "silent_right": 12,
+    "silent_wrong": 1
+   },
+   "over_cap": 1,
+   "sign_number": {
+    "fires_right": 0,
+    "fires_wrong": 3,
+    "silent_right": 12,
+    "silent_wrong": 1
+   },
+   "sign_doubt": {
+    "fires_right": 0,
+    "fires_wrong": 2,
+    "silent_right": 12,
+    "silent_wrong": 2
+   },
+   "sign_no_answer": {
+    "fires_right": 0,
+    "fires_wrong": 0,
+    "silent_right": 12,
+    "silent_wrong": 4
+   }
+  },
+  "SONNET-SRC": {
+   "web_sessions": 15,
+   "trigger": {
+    "fires_right": 1,
+    "fires_wrong": 1,
+    "silent_right": 10,
+    "silent_wrong": 3
+   },
+   "trigger_without_cap_check": {
+    "fires_right": 1,
+    "fires_wrong": 3,
+    "silent_right": 10,
+    "silent_wrong": 1
+   },
+   "over_cap": 2,
+   "sign_number": {
+    "fires_right": 1,
+    "fires_wrong": 2,
+    "silent_right": 10,
+    "silent_wrong": 2
+   },
+   "sign_doubt": {
+    "fires_right": 0,
+    "fires_wrong": 2,
+    "silent_right": 11,
+    "silent_wrong": 2
+   },
+   "sign_no_answer": {
+    "fires_right": 0,
+    "fires_wrong": 0,
+    "silent_right": 11,
+    "silent_wrong": 4
+   }
+  },
+  "HAIKU": {
+   "web_sessions": 20,
+   "trigger": {
+    "fires_right": 1,
+    "fires_wrong": 0,
+    "silent_right": 15,
+    "silent_wrong": 4
+   },
+   "trigger_without_cap_check": {
+    "fires_right": 2,
+    "fires_wrong": 3,
+    "silent_right": 14,
+    "silent_wrong": 1
+   },
+   "over_cap": 4,
+   "sign_number": {
+    "fires_right": 2,
+    "fires_wrong": 0,
+    "silent_right": 14,
+    "silent_wrong": 4
+   },
+   "sign_doubt": {
+    "fires_right": 0,
+    "fires_wrong": 3,
+    "silent_right": 16,
+    "silent_wrong": 1
+   },
+   "sign_no_answer": {
+    "fires_right": 0,
+    "fires_wrong": 1,
+    "silent_right": 16,
+    "silent_wrong": 3
+   }
+  },
+  "HAIKU-SRC": {
+   "web_sessions": 20,
+   "trigger": {
+    "fires_right": 1,
+    "fires_wrong": 1,
+    "silent_right": 13,
+    "silent_wrong": 5
+   },
+   "trigger_without_cap_check": {
+    "fires_right": 1,
+    "fires_wrong": 3,
+    "silent_right": 13,
+    "silent_wrong": 3
+   },
+   "over_cap": 3,
+   "sign_number": {
+    "fires_right": 1,
+    "fires_wrong": 0,
+    "silent_right": 13,
+    "silent_wrong": 6
+   },
+   "sign_doubt": {
+    "fires_right": 0,
+    "fires_wrong": 2,
+    "silent_right": 14,
+    "silent_wrong": 4
+   },
+   "sign_no_answer": {
+    "fires_right": 0,
+    "fires_wrong": 2,
+    "silent_right": 14,
+    "silent_wrong": 4
+   }
+  },
+  "estimate_over_recorded": {
+   "median": 1.0,
+   "min": 0.569,
+   "max": 1.276
+  }
+ },
+ "sessions": [
+  {
+   "task": "FR356",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 7,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.3306,
+   "recorded_usd": 0.3013,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR356",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 4,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1892,
+   "recorded_usd": 0.1588,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR356",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1209,
+   "recorded_usd": 0.1205,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR356",
+   "arm": "HAIKU-SRC",
+   "right": true,
+   "web_calls": 4,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1272,
+   "recorded_usd": 0.0997,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR107",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 3,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.157,
+   "recorded_usd": 0.1562,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR107",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 3,
+   "signs": [
+    "number"
+   ],
+   "over_cap": false,
+   "fires": true,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.157,
+   "recorded_usd": 0.1426,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR107",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 7,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.2101,
+   "recorded_usd": 0.2086,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR107",
+   "arm": "HAIKU-SRC",
+   "right": true,
+   "web_calls": 4,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1437,
+   "recorded_usd": 0.1436,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR611",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 2,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1273,
+   "recorded_usd": 0.13,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR611",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 2,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1202,
+   "recorded_usd": 0.1064,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR611",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1296,
+   "recorded_usd": 0.1341,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR611",
+   "arm": "HAIKU-SRC",
+   "right": true,
+   "web_calls": 3,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1006,
+   "recorded_usd": 0.1044,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR370",
+   "arm": "SONNET",
+   "right": false,
+   "web_calls": 5,
+   "signs": [
+    "number",
+    "doubt"
+   ],
+   "over_cap": false,
+   "fires": true,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.2456,
+   "recorded_usd": 0.2498,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR370",
+   "arm": "SONNET-SRC",
+   "right": false,
+   "web_calls": 16,
+   "signs": [
+    "number",
+    "doubt"
+   ],
+   "over_cap": true,
+   "fires": false,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.6425,
+   "recorded_usd": 0.7371,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR370",
+   "arm": "HAIKU",
+   "right": false,
+   "web_calls": 9,
+   "signs": [
+    "doubt"
+   ],
+   "over_cap": true,
+   "fires": false,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.2684,
+   "recorded_usd": 0.2708,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR370",
+   "arm": "HAIKU-SRC",
+   "right": false,
+   "web_calls": 3,
+   "signs": [
+    "doubt"
+   ],
+   "over_cap": false,
+   "fires": true,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.1049,
+   "recorded_usd": 0.1195,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR368",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 6,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.2509,
+   "recorded_usd": 0.234,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR368",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 6,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.2529,
+   "recorded_usd": 0.2206,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR368",
+   "arm": "HAIKU",
+   "right": false,
+   "web_calls": 20,
+   "signs": [
+    "doubt"
+   ],
+   "over_cap": true,
+   "fires": false,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.5651,
+   "recorded_usd": 0.5764,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR368",
+   "arm": "HAIKU-SRC",
+   "right": false,
+   "web_calls": 13,
+   "signs": [],
+   "over_cap": true,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.3718,
+   "recorded_usd": 0.37,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR369",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0492,
+   "recorded_usd": 0.0492,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR369",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 0,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0474,
+   "recorded_usd": 0.0474,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR369",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 8,
+   "signs": [
+    "number"
+   ],
+   "over_cap": false,
+   "fires": true,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.2397,
+   "recorded_usd": 0.247,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR369",
+   "arm": "HAIKU-SRC",
+   "right": true,
+   "web_calls": 4,
+   "signs": [
+    "number"
+   ],
+   "over_cap": false,
+   "fires": true,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.1308,
+   "recorded_usd": 0.1356,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR466",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0436,
+   "recorded_usd": 0.0436,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR466",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 0,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0437,
+   "recorded_usd": 0.0437,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR466",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1009,
+   "recorded_usd": 0.0998,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR466",
+   "arm": "HAIKU-SRC",
+   "right": true,
+   "web_calls": 3,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1023,
+   "recorded_usd": 0.1032,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR680",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 3,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1434,
+   "recorded_usd": 0.1449,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR680",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 0,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0456,
+   "recorded_usd": 0.0456,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR680",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1273,
+   "recorded_usd": 0.1048,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR680",
+   "arm": "HAIKU-SRC",
+   "right": true,
+   "web_calls": 6,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1813,
+   "recorded_usd": 0.1779,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR187",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 3,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1561,
+   "recorded_usd": 0.16,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR187",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 9,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.3616,
+   "recorded_usd": 0.3492,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR187",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.103,
+   "recorded_usd": 0.1061,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR187",
+   "arm": "HAIKU-SRC",
+   "right": true,
+   "web_calls": 2,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0756,
+   "recorded_usd": 0.0778,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR633",
+   "arm": "SONNET",
+   "right": false,
+   "web_calls": 17,
+   "signs": [
+    "number"
+   ],
+   "over_cap": false,
+   "fires": true,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.6291,
+   "recorded_usd": 0.5634,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR633",
+   "arm": "SONNET-SRC",
+   "right": false,
+   "web_calls": 12,
+   "signs": [
+    "number"
+   ],
+   "over_cap": false,
+   "fires": true,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.4943,
+   "recorded_usd": 0.5458,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR633",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 10,
+   "signs": [
+    "number"
+   ],
+   "over_cap": true,
+   "fires": false,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.2911,
+   "recorded_usd": 0.2962,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR633",
+   "arm": "HAIKU-SRC",
+   "right": false,
+   "web_calls": 15,
+   "signs": [
+    "no_answer"
+   ],
+   "over_cap": true,
+   "fires": false,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.4199,
+   "recorded_usd": 0.4332,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR121",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0463,
+   "recorded_usd": 0.0463,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR121",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 0,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0451,
+   "recorded_usd": 0.0451,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR121",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0947,
+   "recorded_usd": 0.0946,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR121",
+   "arm": "HAIKU-SRC",
+   "right": true,
+   "web_calls": 1,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0481,
+   "recorded_usd": 0.049,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR557",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 5,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.2318,
+   "recorded_usd": 0.2264,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR557",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 5,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.231,
+   "recorded_usd": 0.2282,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR557",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1274,
+   "recorded_usd": 0.133,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR557",
+   "arm": "HAIKU-SRC",
+   "right": true,
+   "web_calls": 6,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1827,
+   "recorded_usd": 0.191,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR623",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 6,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.2714,
+   "recorded_usd": 0.2795,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR623",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 2,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1203,
+   "recorded_usd": 0.1101,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR623",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.123,
+   "recorded_usd": 0.1242,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR623",
+   "arm": "HAIKU-SRC",
+   "right": true,
+   "web_calls": 4,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1261,
+   "recorded_usd": 0.1307,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR311",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 5,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.2264,
+   "recorded_usd": 0.2129,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR311",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 2,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1218,
+   "recorded_usd": 0.1159,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR311",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 2,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0756,
+   "recorded_usd": 0.0749,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR311",
+   "arm": "HAIKU-SRC",
+   "right": true,
+   "web_calls": 3,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1031,
+   "recorded_usd": 0.1045,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR585",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 2,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1227,
+   "recorded_usd": 0.1229,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR585",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 3,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1523,
+   "recorded_usd": 0.1482,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR585",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.129,
+   "recorded_usd": 0.1275,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR585",
+   "arm": "HAIKU-SRC",
+   "right": true,
+   "web_calls": 6,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1824,
+   "recorded_usd": 0.1856,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR3",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0467,
+   "recorded_usd": 0.0467,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR3",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 0,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0455,
+   "recorded_usd": 0.0455,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR3",
+   "arm": "HAIKU",
+   "right": false,
+   "web_calls": 2,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0766,
+   "recorded_usd": 0.0765,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR3",
+   "arm": "HAIKU-SRC",
+   "right": false,
+   "web_calls": 2,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.073,
+   "recorded_usd": 0.0734,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR37",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 2,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1169,
+   "recorded_usd": 0.1174,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR37",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 3,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1631,
+   "recorded_usd": 0.1795,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR37",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 2,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0745,
+   "recorded_usd": 0.0741,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR37",
+   "arm": "HAIKU-SRC",
+   "right": true,
+   "web_calls": 2,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.0753,
+   "recorded_usd": 0.0682,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR186",
+   "arm": "SONNET",
+   "right": false,
+   "web_calls": 21,
+   "signs": [
+    "number",
+    "doubt"
+   ],
+   "over_cap": true,
+   "fires": false,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.7935,
+   "recorded_usd": 0.9263,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR186",
+   "arm": "SONNET-SRC",
+   "right": false,
+   "web_calls": 25,
+   "signs": [
+    "doubt"
+   ],
+   "over_cap": true,
+   "fires": false,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.8801,
+   "recorded_usd": 0.8773,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR186",
+   "arm": "HAIKU",
+   "right": false,
+   "web_calls": 21,
+   "signs": [
+    "doubt",
+    "no_answer"
+   ],
+   "over_cap": true,
+   "fires": false,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.5775,
+   "recorded_usd": 0.5883,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR186",
+   "arm": "HAIKU-SRC",
+   "right": false,
+   "web_calls": 15,
+   "signs": [
+    "doubt",
+    "no_answer"
+   ],
+   "over_cap": true,
+   "fires": false,
+   "fires_without_cap_check": true,
+   "estimated_usd": 0.4132,
+   "recorded_usd": 0.3771,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR116",
+   "arm": "SONNET",
+   "right": true,
+   "web_calls": 8,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.3175,
+   "recorded_usd": 0.3208,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR116",
+   "arm": "SONNET-SRC",
+   "right": true,
+   "web_calls": 6,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.2598,
+   "recorded_usd": 0.2148,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR116",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 5,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1562,
+   "recorded_usd": 0.1563,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR116",
+   "arm": "HAIKU-SRC",
+   "right": true,
+   "web_calls": 4,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1292,
+   "recorded_usd": 0.1333,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR524",
+   "arm": "SONNET",
+   "right": false,
+   "web_calls": 4,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1818,
+   "recorded_usd": 0.1752,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR524",
+   "arm": "SONNET-SRC",
+   "right": false,
+   "web_calls": 4,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1873,
+   "recorded_usd": 0.1817,
+   "cap_usd": 1.05
+  },
+  {
+   "task": "FR524",
+   "arm": "HAIKU",
+   "right": true,
+   "web_calls": 8,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.2391,
+   "recorded_usd": 0.4201,
+   "cap_usd": 0.42
+  },
+  {
+   "task": "FR524",
+   "arm": "HAIKU-SRC",
+   "right": false,
+   "web_calls": 6,
+   "signs": [],
+   "over_cap": false,
+   "fires": false,
+   "fires_without_cap_check": false,
+   "estimated_usd": 0.1775,
+   "recorded_usd": 0.1752,
+   "cap_usd": 0.42
+  }
+ ]
+}

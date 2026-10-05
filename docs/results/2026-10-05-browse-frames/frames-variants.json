@@ -1,0 +1,2893 @@
+{
+ "summary": {
+  "sessions": 160,
+  "fix_rate": 0.4,
+  "block_usd": {
+   "SONNET": 0.1535,
+   "HAIKU": 0.0557
+  },
+  "replay_agrees_with_live_v2": "40 of 40",
+  "SONNET": {
+   "sessions": 80,
+   "web": 63,
+   "wrong": 18,
+   "v2, 60 %": {
+    "sessions": 80,
+    "fires_right": 9,
+    "fires_wrong": 7,
+    "wrong_tasks_fired": [
+     "FR2",
+     "FR363",
+     "FR370",
+     "FR633",
+     "FR686"
+    ],
+    "bound_right_per_100": 3.5,
+    "extra_usd_per_session": 0.0307,
+    "usd_per_right_answer": 0.877,
+    "missed": {
+     "no_web": 0,
+     "no_stop": 2,
+     "past_share": 3,
+     "no_sign": 6
+    }
+   },
+   "v2, 80 %": {
+    "sessions": 80,
+    "fires_right": 10,
+    "fires_wrong": 9,
+    "wrong_tasks_fired": [
+     "FR186",
+     "FR2",
+     "FR363",
+     "FR370",
+     "FR633",
+     "FR686"
+    ],
+    "bound_right_per_100": 4.5,
+    "extra_usd_per_session": 0.0365,
+    "usd_per_right_answer": 0.81,
+    "missed": {
+     "no_web": 0,
+     "no_stop": 2,
+     "past_share": 1,
+     "no_sign": 6
+    }
+   },
+   "v2, no check": {
+    "sessions": 80,
+    "fires_right": 10,
+    "fires_wrong": 10,
+    "wrong_tasks_fired": [
+     "FR186",
+     "FR2",
+     "FR363",
+     "FR370",
+     "FR633",
+     "FR686"
+    ],
+    "bound_right_per_100": 5.0,
+    "extra_usd_per_session": 0.0384,
+    "usd_per_right_answer": 0.768,
+    "missed": {
+     "no_web": 0,
+     "no_stop": 2,
+     "past_share": 0,
+     "no_sign": 6
+    }
+   },
+   "v2.1, 60 %": {
+    "sessions": 80,
+    "fires_right": 7,
+    "fires_wrong": 4,
+    "wrong_tasks_fired": [
+     "FR370",
+     "FR633",
+     "FR686"
+    ],
+    "bound_right_per_100": 2.0,
+    "extra_usd_per_session": 0.0211,
+    "usd_per_right_answer": 1.055,
+    "missed": {
+     "no_web": 0,
+     "no_stop": 2,
+     "past_share": 3,
+     "no_sign": 9
+    }
+   },
+   "v2.1, 80 %": {
+    "sessions": 80,
+    "fires_right": 8,
+    "fires_wrong": 6,
+    "wrong_tasks_fired": [
+     "FR186",
+     "FR370",
+     "FR633",
+     "FR686"
+    ],
+    "bound_right_per_100": 3.0,
+    "extra_usd_per_session": 0.0269,
+    "usd_per_right_answer": 0.896,
+    "missed": {
+     "no_web": 0,
+     "no_stop": 2,
+     "past_share": 1,
+     "no_sign": 9
+    }
+   },
+   "v2.1, no check": {
+    "sessions": 80,
+    "fires_right": 8,
+    "fires_wrong": 7,
+    "wrong_tasks_fired": [
+     "FR186",
+     "FR370",
+     "FR633",
+     "FR686"
+    ],
+    "bound_right_per_100": 3.5,
+    "extra_usd_per_session": 0.0288,
+    "usd_per_right_answer": 0.822,
+    "missed": {
+     "no_web": 0,
+     "no_stop": 2,
+     "past_share": 0,
+     "no_sign": 9
+    }
+   },
+   "v2 + list (exploratory), 60 %": {
+    "sessions": 80,
+    "fires_right": 22,
+    "fires_wrong": 9,
+    "wrong_tasks_fired": [
+     "FR142",
+     "FR2",
+     "FR363",
+     "FR370",
+     "FR55",
+     "FR633",
+     "FR686"
+    ],
+    "bound_right_per_100": 4.5,
+    "extra_usd_per_session": 0.0595,
+    "usd_per_right_answer": 1.322,
+    "missed": {
+     "no_web": 0,
+     "no_stop": 2,
+     "past_share": 3,
+     "no_sign": 4
+    }
+   }
+  },
+  "HAIKU": {
+   "sessions": 80,
+   "web": 80,
+   "wrong": 21,
+   "v2, 60 %": {
+    "sessions": 80,
+    "fires_right": 3,
+    "fires_wrong": 5,
+    "wrong_tasks_fired": [
+     "FR2",
+     "FR363",
+     "FR370",
+     "FR55"
+    ],
+    "bound_right_per_100": 2.5,
+    "extra_usd_per_session": 0.0056,
+    "usd_per_right_answer": 0.223,
+    "missed": {
+     "no_web": 0,
+     "no_stop": 6,
+     "past_share": 3,
+     "no_sign": 7
+    }
+   },
+   "v2, 80 %": {
+    "sessions": 80,
+    "fires_right": 4,
+    "fires_wrong": 7,
+    "wrong_tasks_fired": [
+     "FR2",
+     "FR363",
+     "FR370",
+     "FR55",
+     "FR686"
+    ],
+    "bound_right_per_100": 3.5,
+    "extra_usd_per_session": 0.0077,
+    "usd_per_right_answer": 0.219,
+    "missed": {
+     "no_web": 0,
+     "no_stop": 6,
+     "past_share": 1,
+     "no_sign": 7
+    }
+   },
+   "v2, no check": {
+    "sessions": 80,
+    "fires_right": 4,
+    "fires_wrong": 8,
+    "wrong_tasks_fired": [
+     "FR186",
+     "FR2",
+     "FR363",
+     "FR370",
+     "FR55",
+     "FR686"
+    ],
+    "bound_right_per_100": 4.0,
+    "extra_usd_per_session": 0.0084,
+    "usd_per_right_answer": 0.209,
+    "missed": {
+     "no_web": 0,
+     "no_stop": 6,
+     "past_share": 0,
+     "no_sign": 7
+    }
+   },
+   "v2.1, 60 %": {
+    "sessions": 80,
+    "fires_right": 0,
+    "fires_wrong": 4,
+    "wrong_tasks_fired": [
+     "FR2",
+     "FR370",
+     "FR55"
+    ],
+    "bound_right_per_100": 2.0,
+    "extra_usd_per_session": 0.0028,
+    "usd_per_right_answer": 0.139,
+    "missed": {
+     "no_web": 0,
+     "no_stop": 6,
+     "past_share": 2,
+     "no_sign": 9
+    }
+   },
+   "v2.1, 80 %": {
+    "sessions": 80,
+    "fires_right": 0,
+    "fires_wrong": 5,
+    "wrong_tasks_fired": [
+     "FR2",
+     "FR370",
+     "FR55"
+    ],
+    "bound_right_per_100": 2.5,
+    "extra_usd_per_session": 0.0035,
+    "usd_per_right_answer": 0.139,
+    "missed": {
+     "no_web": 0,
+     "no_stop": 6,
+     "past_share": 1,
+     "no_sign": 9
+    }
+   },
+   "v2.1, no check": {
+    "sessions": 80,
+    "fires_right": 0,
+    "fires_wrong": 6,
+    "wrong_tasks_fired": [
+     "FR186",
+     "FR2",
+     "FR370",
+     "FR55"
+    ],
+    "bound_right_per_100": 3.0,
+    "extra_usd_per_session": 0.0042,
+    "usd_per_right_answer": 0.139,
+    "missed": {
+     "no_web": 0,
+     "no_stop": 6,
+     "past_share": 0,
+     "no_sign": 9
+    }
+   },
+   "v2 + list (exploratory), 60 %": {
+    "sessions": 80,
+    "fires_right": 5,
+    "fires_wrong": 5,
+    "wrong_tasks_fired": [
+     "FR2",
+     "FR363",
+     "FR370",
+     "FR55"
+    ],
+    "bound_right_per_100": 2.5,
+    "extra_usd_per_session": 0.007,
+    "usd_per_right_answer": 0.279,
+    "missed": {
+     "no_web": 0,
+     "no_stop": 6,
+     "past_share": 4,
+     "no_sign": 6
+    }
+   }
+  }
+ },
+ "sessions": [
+  {
+   "pilot": 1,
+   "task": "FR356",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 7,
+   "stopped": true,
+   "estimated_usd": 0.3306,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR356",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1892,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR356",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1209,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR356",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1272,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR107",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.157,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR107",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.157,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": true,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR107",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 7,
+   "stopped": true,
+   "estimated_usd": 0.2101,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR107",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1437,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR611",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.1273,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR611",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.1202,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR611",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1296,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR611",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1006,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR370",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 5,
+   "stopped": true,
+   "estimated_usd": 0.2456,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number",
+    "doubt"
+   ],
+   "signs_v21": [
+    "number",
+    "doubt"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR370",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 16,
+   "stopped": true,
+   "estimated_usd": 0.6425,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number",
+    "doubt"
+   ],
+   "signs_v21": [
+    "number",
+    "doubt"
+   ],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR370",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 9,
+   "stopped": true,
+   "estimated_usd": 0.2684,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "doubt"
+   ],
+   "signs_v21": [
+    "doubt"
+   ],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR370",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1049,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "doubt"
+   ],
+   "signs_v21": [
+    "doubt"
+   ],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR368",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 6,
+   "stopped": true,
+   "estimated_usd": 0.2509,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR368",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 6,
+   "stopped": true,
+   "estimated_usd": 0.2529,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR368",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 20,
+   "stopped": false,
+   "estimated_usd": 0.5651,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "doubt"
+   ],
+   "signs_v21": [
+    "doubt"
+   ],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR368",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 13,
+   "stopped": true,
+   "estimated_usd": 0.3718,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR369",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0492,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR369",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0474,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR369",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 8,
+   "stopped": true,
+   "estimated_usd": 0.2397,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR369",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1308,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR466",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0436,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR466",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0437,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR466",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1009,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR466",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1023,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR680",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1434,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR680",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0456,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR680",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1273,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR680",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 6,
+   "stopped": true,
+   "estimated_usd": 0.1813,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR187",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1561,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR187",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 9,
+   "stopped": true,
+   "estimated_usd": 0.3616,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR187",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.103,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR187",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.0756,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR633",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 17,
+   "stopped": true,
+   "estimated_usd": 0.6291,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR633",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 12,
+   "stopped": true,
+   "estimated_usd": 0.4943,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR633",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 10,
+   "stopped": true,
+   "estimated_usd": 0.2911,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR633",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 15,
+   "stopped": false,
+   "estimated_usd": 0.4199,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "no_answer"
+   ],
+   "signs_v21": [
+    "no_answer"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR121",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0463,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR121",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0451,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR121",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.0947,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR121",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 1,
+   "stopped": true,
+   "estimated_usd": 0.0481,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR557",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 5,
+   "stopped": true,
+   "estimated_usd": 0.2318,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR557",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 5,
+   "stopped": true,
+   "estimated_usd": 0.231,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR557",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1274,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR557",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 6,
+   "stopped": true,
+   "estimated_usd": 0.1827,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR623",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 6,
+   "stopped": true,
+   "estimated_usd": 0.2714,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR623",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.1203,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR623",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.123,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR623",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1261,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR311",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 5,
+   "stopped": true,
+   "estimated_usd": 0.2264,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR311",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.1218,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR311",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.0756,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR311",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1031,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR585",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.1227,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR585",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1523,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR585",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.129,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR585",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 6,
+   "stopped": true,
+   "estimated_usd": 0.1824,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR3",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0467,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR3",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0455,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR3",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.0766,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR3",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.073,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR37",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.1169,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR37",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1631,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR37",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.0745,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR37",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.0753,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR186",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 21,
+   "stopped": true,
+   "estimated_usd": 0.7935,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number",
+    "doubt"
+   ],
+   "signs_v21": [
+    "number",
+    "doubt"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR186",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 25,
+   "stopped": true,
+   "estimated_usd": 0.8801,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "doubt"
+   ],
+   "signs_v21": [
+    "doubt"
+   ],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR186",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 21,
+   "stopped": false,
+   "estimated_usd": 0.5775,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "doubt",
+    "no_answer"
+   ],
+   "signs_v21": [
+    "doubt",
+    "no_answer"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR186",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 15,
+   "stopped": true,
+   "estimated_usd": 0.4132,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "doubt",
+    "no_answer"
+   ],
+   "signs_v21": [
+    "doubt",
+    "no_answer"
+   ],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR116",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 8,
+   "stopped": true,
+   "estimated_usd": 0.3175,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR116",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 6,
+   "stopped": true,
+   "estimated_usd": 0.2598,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR116",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 5,
+   "stopped": true,
+   "estimated_usd": 0.1562,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR116",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1292,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR524",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1818,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR524",
+   "arm": "SONNET-SRC",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1873,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 1,
+   "task": "FR524",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 8,
+   "stopped": false,
+   "estimated_usd": 0.2391,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 1,
+   "task": "FR524",
+   "arm": "HAIKU-SRC",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 6,
+   "stopped": true,
+   "estimated_usd": 0.1775,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 2,
+   "task": "FR347",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 13,
+   "stopped": true,
+   "estimated_usd": 0.4762,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR347",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.2128,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 2,
+   "task": "FR347",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 11,
+   "stopped": true,
+   "estimated_usd": 0.3207,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR347",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 11,
+   "stopped": true,
+   "estimated_usd": 0.3134,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR34",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.12,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR34",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.119,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR34",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 5,
+   "stopped": true,
+   "estimated_usd": 0.155,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR34",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 5,
+   "stopped": true,
+   "estimated_usd": 0.1509,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR553",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0449,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR553",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0444,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR553",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 5,
+   "stopped": true,
+   "estimated_usd": 0.1516,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR553",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1039,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR190",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 1,
+   "stopped": true,
+   "estimated_usd": 0.0957,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR190",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 1,
+   "stopped": true,
+   "estimated_usd": 0.0973,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR190",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1158,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR190",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 1,
+   "stopped": true,
+   "estimated_usd": 0.0492,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR363",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1497,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR363",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1817,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 2,
+   "task": "FR363",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1217,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR363",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.098,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 2,
+   "task": "FR111",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1882,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR111",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.19,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 2,
+   "task": "FR111",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 5,
+   "stopped": true,
+   "estimated_usd": 0.1537,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR111",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 5,
+   "stopped": true,
+   "estimated_usd": 0.152,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR686",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 6,
+   "stopped": true,
+   "estimated_usd": 0.252,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR686",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 7,
+   "stopped": true,
+   "estimated_usd": 0.2851,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number",
+    "doubt"
+   ],
+   "signs_v21": [
+    "doubt"
+   ],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 2,
+   "task": "FR686",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 17,
+   "stopped": false,
+   "estimated_usd": 0.4806,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "number",
+    "doubt"
+   ],
+   "signs_v21": [
+    "doubt"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR686",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 11,
+   "stopped": true,
+   "estimated_usd": 0.3184,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR425",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0516,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR425",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0464,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR425",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1018,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR425",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.0748,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR139",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 13,
+   "stopped": true,
+   "estimated_usd": 0.4939,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR139",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 24,
+   "stopped": true,
+   "estimated_usd": 0.928,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR139",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 16,
+   "stopped": false,
+   "estimated_usd": 0.4548,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR139",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 14,
+   "stopped": true,
+   "estimated_usd": 0.4014,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR398",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1604,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR398",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1718,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR398",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.0999,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR398",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1237,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR504",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.1214,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR504",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 1,
+   "stopped": true,
+   "estimated_usd": 0.0943,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": true,
+   "live_fired": true
+  },
+  {
+   "pilot": 2,
+   "task": "FR504",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 8,
+   "stopped": true,
+   "estimated_usd": 0.2165,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR504",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 7,
+   "stopped": true,
+   "estimated_usd": 0.1915,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR602",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.044,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR602",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0454,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR602",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.0776,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR602",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 1,
+   "stopped": true,
+   "estimated_usd": 0.0506,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR415",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 1,
+   "stopped": true,
+   "estimated_usd": 0.0892,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR415",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1503,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR415",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.129,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR415",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 1,
+   "stopped": true,
+   "estimated_usd": 0.0478,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR774",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 6,
+   "stopped": true,
+   "estimated_usd": 0.2208,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR774",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1541,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR774",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 1,
+   "stopped": true,
+   "estimated_usd": 0.0502,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR774",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1269,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR662",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0451,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR662",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 0,
+   "stopped": true,
+   "estimated_usd": 0.0447,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR662",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1225,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR662",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1026,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR666",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 30,
+   "stopped": false,
+   "estimated_usd": 1.4151,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "doubt"
+   ],
+   "signs_v21": [
+    "doubt"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR666",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 23,
+   "stopped": false,
+   "estimated_usd": 1.0091,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "no_answer"
+   ],
+   "signs_v21": [
+    "no_answer"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR666",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 20,
+   "stopped": false,
+   "estimated_usd": 0.5666,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "no_answer"
+   ],
+   "signs_v21": [
+    "no_answer"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR666",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 14,
+   "stopped": false,
+   "estimated_usd": 0.3982,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "no_answer"
+   ],
+   "signs_v21": [
+    "no_answer"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR11",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.1158,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR11",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 3,
+   "stopped": true,
+   "estimated_usd": 0.1518,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR11",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 5,
+   "stopped": true,
+   "estimated_usd": 0.1544,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR11",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 4,
+   "stopped": true,
+   "estimated_usd": 0.1271,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR55",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 20,
+   "stopped": true,
+   "estimated_usd": 0.8053,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "doubt"
+   ],
+   "signs_v21": [
+    "doubt"
+   ],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR55",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 7,
+   "stopped": true,
+   "estimated_usd": 0.3041,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR55",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 9,
+   "stopped": true,
+   "estimated_usd": 0.2711,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR55",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 7,
+   "stopped": true,
+   "estimated_usd": 0.2141,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "doubt"
+   ],
+   "signs_v21": [
+    "doubt"
+   ],
+   "list": true,
+   "live_fired": true
+  },
+  {
+   "pilot": 2,
+   "task": "FR2",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.1392,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR2",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": true,
+   "web_calls": 2,
+   "stopped": true,
+   "estimated_usd": 0.1374,
+   "cap_usd": 1.05,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 2,
+   "task": "FR2",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 7,
+   "stopped": true,
+   "estimated_usd": 0.2369,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "doubt"
+   ],
+   "signs_v21": [
+    "doubt"
+   ],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR2",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": false,
+   "web_calls": 7,
+   "stopped": true,
+   "estimated_usd": 0.2157,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "number"
+   ],
+   "signs_v21": [
+    "number"
+   ],
+   "list": false,
+   "live_fired": true
+  },
+  {
+   "pilot": 2,
+   "task": "FR142",
+   "arm": "SONNET",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 14,
+   "stopped": true,
+   "estimated_usd": 0.5615,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": true,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR142",
+   "arm": "SONNET-SRC2",
+   "model": "SONNET",
+   "right": false,
+   "web_calls": 9,
+   "stopped": true,
+   "estimated_usd": 0.3492,
+   "cap_usd": 1.05,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR142",
+   "arm": "HAIKU",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 21,
+   "stopped": false,
+   "estimated_usd": 0.6019,
+   "cap_usd": 0.42,
+   "signs_v2": [
+    "doubt"
+   ],
+   "signs_v21": [
+    "doubt"
+   ],
+   "list": false,
+   "live_fired": false
+  },
+  {
+   "pilot": 2,
+   "task": "FR142",
+   "arm": "HAIKU-SRC2",
+   "model": "HAIKU",
+   "right": true,
+   "web_calls": 10,
+   "stopped": true,
+   "estimated_usd": 0.2926,
+   "cap_usd": 0.42,
+   "signs_v2": [],
+   "signs_v21": [],
+   "list": false,
+   "live_fired": false
+  }
+ ]
+}

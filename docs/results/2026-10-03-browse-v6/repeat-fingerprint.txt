@@ -1,0 +1,12 @@
+scrapeme, real             200/200  same links: False  same text: False
+scrapeme, guessed          200/200  same links: False  same text: False
+scrapeme, past the end     200/404  same links: False  same text: False
+course, real               200/200  same links: False  same text: False
+course, guessed            200/200  same links: True   same text: True
+lambdatest, real           200/200  same links: False  same text: False
+lambdatest, past the end   200/200  same links: False  same text: True
+books, real                200/200  same links: False  same text: False
+quotes, real               200/200  same links: False  same text: False
+quotes, past the end       200/200  same links: False  same text: True
+web-scraping.dev, real     200/200  same links: False  same text: False
+hockey, real               200/200  same links: True   same text: False

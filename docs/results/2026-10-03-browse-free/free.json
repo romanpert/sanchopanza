@@ -1,0 +1,22 @@
+{
+ "SONNET": {
+  "sessions": 5,
+  "right": 0,
+  "right_by_set": {
+   "BC": "0/5",
+   "AB": "0/0"
+  },
+  "mean_usd": 1.4281,
+  "max_usd": 1.4873,
+  "median_wall_s": 353.2,
+  "sessions_that_opened_the_browser": 0,
+  "tool_totals": {
+   "WebSearch": 98,
+   "WebFetch": 19,
+   "ToolSearch": 12,
+   "Read": 3,
+   "Agent": 3,
+   "ScheduleWakeup": 1
+  }
+ }
+}

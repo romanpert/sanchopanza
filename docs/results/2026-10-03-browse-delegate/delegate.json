@@ -1,0 +1,19 @@
+{
+ "tasks": {
+  "S4": {
+   "SONNET": {
+    "right": "3/3",
+    "mean_usd": 0.2629
+   },
+   "SONNET-DELEGATE": {
+    "right": "1/1",
+    "mean_usd": 0.2482,
+    "delegated": 1
+   }
+  }
+ },
+ "ratio_of_task_means": 0.944,
+ "versions": [
+  "2.1.287"
+ ]
+}

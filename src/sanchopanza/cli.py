@@ -10,6 +10,7 @@ sanchopanza install --compact --write        # and prune tool results at /compac
 sanchopanza install --autopilot --write      # cut on arrival, recall, mask at a percentage
 sanchopanza compact --transcript session.jsonl --provider null   # plan and apply a pruning
 sanchopanza archive-mcp     # MCP server: search_archive over .sanchopanza/archive, no decider
+sanchopanza fetch-mcp       # MCP server: fetch_passages, a page's passages for a purpose, no model
 sanchopanza providers       # what is installed
 sanchopanza dag plan.json   # clean DAG and waves from {"nodes": [...], "edges": {"A->B": 0.9}}
 """
@@ -164,6 +165,36 @@ def _candor_hook(args: argparse.Namespace) -> int:
     return candor_main()
 
 
+def _crawl_hook(args: argparse.Namespace) -> int:
+    from .harness.crawl_hook import main as crawl_main
+
+    return crawl_main()
+
+
+def _sources_hook(args: argparse.Namespace) -> int:
+    from .harness.sources_hook import main as sources_main
+
+    return sources_main()
+
+
+def _fetch_hook(args: argparse.Namespace) -> int:
+    from .harness.fetch_hook import main as fetch_main
+
+    return fetch_main()
+
+
+def _fetch_mcp(_args: argparse.Namespace) -> int:
+    from .harness.fetch_tool import main as fetch_main
+
+    return fetch_main()
+
+
+def _browse_hook(args: argparse.Namespace) -> int:
+    from .harness.browse_hook import main as browse_main
+
+    return browse_main()
+
+
 def _install(args: argparse.Namespace) -> int:
     from .harness.generic import HarnessConfig
     from .harness.install import apply, default_path, default_plugin_root, plan
@@ -205,6 +236,10 @@ def _install(args: argparse.Namespace) -> int:
             guard=args.guard,
             candor=args.candor,
             memory=args.memory,
+            crawl=args.crawl,
+            prune=args.prune,
+            sources=args.sources,
+            fetch=args.fetch,
             budget=DEFAULT_BUDGET if args.context_budget is None else args.context_budget,
             find=args.find,
             find_nudge=args.find_nudge,
@@ -273,6 +308,34 @@ def _install(args: argparse.Namespace) -> int:
             "`python -m sanchopanza.candor release --by NAME --why TEXT`. It catches reports "
             "the record or the disk contradicts, in the tested categories; it is not robust "
             "to an agent set on beating it.\n"
+        )
+    if args.crawl:
+        sys.stdout.write(
+            "Crawl is on: each session starts with one line on extracting multi-page data in a "
+            "single browser_evaluate, and every browser_evaluate gets a time limit "
+            "(SANCHOPANZA_EVALUATE_LIMIT_S, default 120). It asks no model and approves no call "
+            "your permission rules would not.\n"
+        )
+    if args.prune:
+        ranker = "Jev" if args.provider == "jev" else "BM25 (pass --provider jev, as measured)"
+        sys.stdout.write(
+            "Snapshot pruning is on: a large page snapshot from a browser_* MCP tool is "
+            f"cut to what the task needs, ranked by {ranker}; the whole page goes to the archive "
+            "and the reply says where.\n"
+        )
+    if args.sources:
+        sys.stdout.write(
+            "Sources is on: at the first stop of a session that used the web, the agent is "
+            "asked once to give the source (URL and exact sentence) of every condition in the "
+            "question and to repeat its answer line. It asks no model.\n"
+        )
+    if args.fetch:
+        sys.stdout.write(
+            "Fetch is on: the first WebFetch of each URL is sent to fetch_passages, which "
+            "returns the page's passages for the agent's purpose without a reader model; a "
+            "second WebFetch of the same URL runs. Register the server once, loaded up front so "
+            "tool search does not defer it: claude mcp add-json --scope user sanchopanza-fetch "
+            '\'{"command":"sanchopanza","args":["fetch-mcp"],"alwaysLoad":true}\'\n'
         )
     if root is not None:
         sys.stdout.write(
@@ -593,6 +656,32 @@ def main(argv: list[str] | None = None) -> int:
     )
     candor_hook.set_defaults(func=_candor_hook)
 
+    crawl_hook = sub.add_parser(
+        "crawl-hook",
+        help="crawl strategy line and browser_evaluate time limit: Claude Code hook (stdin JSON)",
+    )
+    crawl_hook.set_defaults(func=_crawl_hook)
+
+    sources_hook = sub.add_parser(
+        "sources-hook",
+        help="ask a web-research session once for the source of each condition: Claude Code "
+        "Stop hook (stdin JSON)",
+    )
+    sources_hook.set_defaults(func=_sources_hook)
+
+    fetch_hook = sub.add_parser(
+        "fetch-hook",
+        help="send WebFetch to fetch_passages once per URL: Claude Code PreToolUse hook "
+        "(stdin JSON)",
+    )
+    fetch_hook.set_defaults(func=_fetch_hook)
+
+    browse_hook = sub.add_parser(
+        "browse-hook",
+        help="snapshot pruning for browsing agents: Claude Code PostToolUse hook (stdin JSON)",
+    )
+    browse_hook.set_defaults(func=_browse_hook)
+
     providers = sub.add_parser("providers", help="list installed providers")
     providers.set_defaults(func=_providers)
 
@@ -709,6 +798,34 @@ def main(argv: list[str] | None = None) -> int:
         "(Stop, SessionEnd and UserPromptSubmit hooks; not measured yet, so off by default)",
     )
     install.add_argument(
+        "--crawl",
+        action="store_true",
+        help="for browsing agents: a strategy line for multi-page crawls at session start, and a "
+        "time limit on every browser_evaluate (two classic hooks, no model; not confirmed yet, "
+        "so off by default)",
+    )
+    install.add_argument(
+        "--prune",
+        action="store_true",
+        help="for browsing agents: cut large page snapshots to what the task needs, the rest "
+        "archived (one PostToolUse hook; registered 17-22 %% cheaper on large inline snapshots "
+        "with --provider jev; off by default)",
+    )
+    install.add_argument(
+        "--sources",
+        action="store_true",
+        help="for research agents: at the first stop of a session that used the web, ask once "
+        "for the source of every condition in the question (one Stop hook, no model; not "
+        "measured yet, so off by default)",
+    )
+    install.add_argument(
+        "--fetch",
+        action="store_true",
+        help="for research agents: send WebFetch to the fetch_passages MCP server (passages for "
+        "the purpose by BM25, no reader model) once per URL (one PreToolUse hook; not measured "
+        "in live sessions yet, so off by default)",
+    )
+    install.add_argument(
         "--plugin-dir",
         default=None,
         help="with --compact, where the plugin is written (default ~/.sanchopanza/claude-plugin)",
@@ -800,6 +917,13 @@ def main(argv: list[str] | None = None) -> int:
         "the index at start",
     )
     find_mcp.set_defaults(func=_find_mcp)
+
+    fetch_mcp = sub.add_parser(
+        "fetch-mcp",
+        help="MCP server (stdio) with one tool, fetch_passages: a web page's passages for a "
+        "purpose, no model",
+    )
+    fetch_mcp.set_defaults(func=_fetch_mcp)
 
     dag = sub.add_parser("dag", help="clean DAG and waves from probabilistic pairs")
     dag.add_argument("plan")

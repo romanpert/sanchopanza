@@ -1,0 +1,633 @@
+{
+ "verdicts": {
+  "complete": true,
+  "HAIKU": {
+   "price": {
+    "ratio_total": 0.802,
+    "tasks_cheaper": "5/8",
+    "holds": false
+   },
+   "answers": {
+    "HAIKU": "12/24",
+    "HAIKU-SP": "19/24",
+    "holds": true
+   },
+   "no_harm": {
+    "HAIKU": "16/16",
+    "HAIKU-SP": "16/16",
+    "cost_ratio": 0.917,
+    "holds": true
+   },
+   "beats_the_harness": false
+  },
+  "SONNET": {
+   "price": {
+    "ratio_total": 1.055,
+    "tasks_cheaper": "4/8",
+    "holds": false
+   },
+   "answers": {
+    "SONNET": "23/24",
+    "SONNET-SP": "24/24",
+    "holds": true
+   },
+   "no_harm": {
+    "SONNET": "16/16",
+    "SONNET-SP": "16/16",
+    "cost_ratio": 1.006,
+    "holds": true
+   },
+   "beats_the_harness": false
+  },
+  "beats_on_both_models": false
+ },
+ "described": {
+  "arms": {
+   "HAIKU": {
+    "sessions": 40,
+    "hangs_killed_by_the_runner": 0,
+    "guard_stops": 0,
+    "median_wall_s": 48.5,
+    "list_usd": 3.6875
+   },
+   "HAIKU-SP": {
+    "sessions": 40,
+    "hangs_killed_by_the_runner": 0,
+    "guard_stops": 0,
+    "median_wall_s": 51.8,
+    "list_usd": 3.1604
+   },
+   "SONNET": {
+    "sessions": 40,
+    "hangs_killed_by_the_runner": 0,
+    "guard_stops": 0,
+    "median_wall_s": 41.75,
+    "list_usd": 5.6799
+   },
+   "SONNET-SP": {
+    "sessions": 40,
+    "hangs_killed_by_the_runner": 0,
+    "guard_stops": 0,
+    "median_wall_s": 49.15,
+    "list_usd": 5.8242
+   }
+  },
+  "tasks": {
+   "H1": {
+    "HAIKU": {
+     "right": "1/3",
+     "mean_usd": 0.0419,
+     "turns": [
+      4,
+      4,
+      7
+     ]
+    },
+    "HAIKU-SP": {
+     "right": "2/3",
+     "mean_usd": 0.035,
+     "turns": [
+      5,
+      6,
+      4
+     ]
+    },
+    "SONNET": {
+     "right": "3/3",
+     "mean_usd": 0.1029,
+     "turns": [
+      4,
+      9,
+      4
+     ]
+    },
+    "SONNET-SP": {
+     "right": "3/3",
+     "mean_usd": 0.0765,
+     "turns": [
+      4,
+      4,
+      4
+     ]
+    }
+   },
+   "H2": {
+    "HAIKU": {
+     "right": "1/3",
+     "mean_usd": 0.0407,
+     "turns": [
+      4,
+      5,
+      7
+     ]
+    },
+    "HAIKU-SP": {
+     "right": "3/3",
+     "mean_usd": 0.034,
+     "turns": [
+      5,
+      5,
+      5
+     ]
+    },
+    "SONNET": {
+     "right": "3/3",
+     "mean_usd": 0.0699,
+     "turns": [
+      4,
+      4,
+      4
+     ]
+    },
+    "SONNET-SP": {
+     "right": "3/3",
+     "mean_usd": 0.0754,
+     "turns": [
+      4,
+      4,
+      4
+     ]
+    }
+   },
+   "H3": {
+    "HAIKU": {
+     "right": "3/3",
+     "mean_usd": 0.0725,
+     "turns": [
+      6,
+      9,
+      13
+     ]
+    },
+    "HAIKU-SP": {
+     "right": "3/3",
+     "mean_usd": 0.056,
+     "turns": [
+      9,
+      8,
+      9
+     ]
+    },
+    "SONNET": {
+     "right": "3/3",
+     "mean_usd": 0.0866,
+     "turns": [
+      5,
+      4,
+      4
+     ]
+    },
+    "SONNET-SP": {
+     "right": "3/3",
+     "mean_usd": 0.0844,
+     "turns": [
+      4,
+      4,
+      4
+     ]
+    }
+   },
+   "H4": {
+    "HAIKU": {
+     "right": "0/3",
+     "mean_usd": 0.0285,
+     "turns": [
+      4,
+      4,
+      4
+     ]
+    },
+    "HAIKU-SP": {
+     "right": "1/3",
+     "mean_usd": 0.0403,
+     "turns": [
+      9,
+      4,
+      4
+     ]
+    },
+    "SONNET": {
+     "right": "3/3",
+     "mean_usd": 0.0695,
+     "turns": [
+      4,
+      4,
+      4
+     ]
+    },
+    "SONNET-SP": {
+     "right": "3/3",
+     "mean_usd": 0.0843,
+     "turns": [
+      4,
+      4,
+      8
+     ]
+    }
+   },
+   "H5": {
+    "HAIKU": {
+     "right": "0/3",
+     "mean_usd": 0.0489,
+     "turns": [
+      8,
+      8,
+      8
+     ]
+    },
+    "HAIKU-SP": {
+     "right": "2/3",
+     "mean_usd": 0.0501,
+     "turns": [
+      7,
+      7,
+      11
+     ]
+    },
+    "SONNET": {
+     "right": "2/3",
+     "mean_usd": 0.0829,
+     "turns": [
+      4,
+      4,
+      6
+     ]
+    },
+    "SONNET-SP": {
+     "right": "3/3",
+     "mean_usd": 0.0881,
+     "turns": [
+      5,
+      5,
+      5
+     ]
+    }
+   },
+   "H6": {
+    "HAIKU": {
+     "right": "1/3",
+     "mean_usd": 0.1193,
+     "turns": [
+      8,
+      11,
+      9
+     ]
+    },
+    "HAIKU-SP": {
+     "right": "3/3",
+     "mean_usd": 0.0406,
+     "turns": [
+      5,
+      5,
+      7
+     ]
+    },
+    "SONNET": {
+     "right": "3/3",
+     "mean_usd": 0.0946,
+     "turns": [
+      8,
+      8,
+      4
+     ]
+    },
+    "SONNET-SP": {
+     "right": "3/3",
+     "mean_usd": 0.0763,
+     "turns": [
+      4,
+      4,
+      4
+     ]
+    }
+   },
+   "H7": {
+    "HAIKU": {
+     "right": "3/3",
+     "mean_usd": 0.1578,
+     "turns": [
+      33,
+      25,
+      8
+     ]
+    },
+    "HAIKU-SP": {
+     "right": "2/3",
+     "mean_usd": 0.1269,
+     "turns": [
+      19,
+      23,
+      10
+     ]
+    },
+    "SONNET": {
+     "right": "3/3",
+     "mean_usd": 0.114,
+     "turns": [
+      7,
+      6,
+      9
+     ]
+    },
+    "SONNET-SP": {
+     "right": "3/3",
+     "mean_usd": 0.2116,
+     "turns": [
+      6,
+      22,
+      16
+     ]
+    }
+   },
+   "H8": {
+    "HAIKU": {
+     "right": "3/3",
+     "mean_usd": 0.1314,
+     "turns": [
+      11,
+      14,
+      14
+     ]
+    },
+    "HAIKU-SP": {
+     "right": "3/3",
+     "mean_usd": 0.1315,
+     "turns": [
+      18,
+      21,
+      16
+     ]
+    },
+    "SONNET": {
+     "right": "3/3",
+     "mean_usd": 0.1463,
+     "turns": [
+      11,
+      10,
+      9
+     ]
+    },
+    "SONNET-SP": {
+     "right": "3/3",
+     "mean_usd": 0.112,
+     "turns": [
+      8,
+      5,
+      6
+     ]
+    }
+   },
+   "I1": {
+    "HAIKU": {
+     "right": "4/4",
+     "mean_usd": 0.0502,
+     "turns": [
+      9,
+      9,
+      11,
+      9
+     ]
+    },
+    "HAIKU-SP": {
+     "right": "4/4",
+     "mean_usd": 0.048,
+     "turns": [
+      10,
+      9,
+      9,
+      9
+     ]
+    },
+    "SONNET": {
+     "right": "4/4",
+     "mean_usd": 0.1169,
+     "turns": [
+      10,
+      9,
+      10,
+      10
+     ]
+    },
+    "SONNET-SP": {
+     "right": "4/4",
+     "mean_usd": 0.1152,
+     "turns": [
+      10,
+      10,
+      10,
+      9
+     ]
+    }
+   },
+   "I2": {
+    "HAIKU": {
+     "right": "4/4",
+     "mean_usd": 0.1101,
+     "turns": [
+      24,
+      21,
+      19,
+      20
+     ]
+    },
+    "HAIKU-SP": {
+     "right": "4/4",
+     "mean_usd": 0.118,
+     "turns": [
+      22,
+      21,
+      22,
+      19
+     ]
+    },
+    "SONNET": {
+     "right": "4/4",
+     "mean_usd": 0.2575,
+     "turns": [
+      23,
+      20,
+      23,
+      23
+     ]
+    },
+    "SONNET-SP": {
+     "right": "4/4",
+     "mean_usd": 0.257,
+     "turns": [
+      23,
+      23,
+      21,
+      22
+     ]
+    }
+   },
+   "I3": {
+    "HAIKU": {
+     "right": "4/4",
+     "mean_usd": 0.1495,
+     "turns": [
+      29,
+      29,
+      28,
+      25
+     ]
+    },
+    "HAIKU-SP": {
+     "right": "4/4",
+     "mean_usd": 0.107,
+     "turns": [
+      21,
+      29,
+      22,
+      27
+     ]
+    },
+    "SONNET": {
+     "right": "4/4",
+     "mean_usd": 0.2113,
+     "turns": [
+      21,
+      21,
+      21,
+      20
+     ]
+    },
+    "SONNET-SP": {
+     "right": "4/4",
+     "mean_usd": 0.2129,
+     "turns": [
+      21,
+      21,
+      21,
+      21
+     ]
+    }
+   },
+   "I4": {
+    "HAIKU": {
+     "right": "4/4",
+     "mean_usd": 0.1313,
+     "turns": [
+      8,
+      7,
+      7,
+      35
+     ]
+    },
+    "HAIKU-SP": {
+     "right": "4/4",
+     "mean_usd": 0.1314,
+     "turns": [
+      29,
+      9,
+      10,
+      7
+     ]
+    },
+    "SONNET": {
+     "right": "4/4",
+     "mean_usd": 0.2592,
+     "turns": [
+      21,
+      17,
+      16,
+      10
+     ]
+    },
+    "SONNET-SP": {
+     "right": "4/4",
+     "mean_usd": 0.2645,
+     "turns": [
+      10,
+      22,
+      16,
+      9
+     ]
+    }
+   }
+  },
+  "haiku_with_sanchopanza_vs_sonnet_alone": {
+   "crawl_cost_ratio": 0.671,
+   "right": {
+    "HAIKU-SP": 19,
+    "SONNET": 23
+   }
+  },
+  "hooks": {
+   "HAIKU": {
+    "median_wall_s": 48.5,
+    "guard_stops": 0,
+    "echo_cut": 0,
+    "echoed_wrappers": 0,
+    "click_notes": 0,
+    "rows_notes": 0,
+    "shots": 32,
+    "shots_denied": 0,
+    "notes_front": 0,
+    "notes_end": 0,
+    "persisted": 0,
+    "persisted_front": 0,
+    "line_sessions": 0
+   },
+   "HAIKU-SP": {
+    "median_wall_s": 51.8,
+    "guard_stops": 0,
+    "echo_cut": 345,
+    "echoed_wrappers": 0,
+    "click_notes": 0,
+    "rows_notes": 63,
+    "shots": 12,
+    "shots_denied": 12,
+    "notes_front": 63,
+    "notes_end": 0,
+    "persisted": 0,
+    "persisted_front": 0,
+    "line_sessions": 24
+   },
+   "SONNET": {
+    "median_wall_s": 41.75,
+    "guard_stops": 0,
+    "echo_cut": 0,
+    "echoed_wrappers": 0,
+    "click_notes": 0,
+    "rows_notes": 0,
+    "shots": 0,
+    "shots_denied": 0,
+    "notes_front": 0,
+    "notes_end": 0,
+    "persisted": 0,
+    "persisted_front": 0,
+    "line_sessions": 0
+   },
+   "SONNET-SP": {
+    "median_wall_s": 49.15,
+    "guard_stops": 0,
+    "echo_cut": 153,
+    "echoed_wrappers": 0,
+    "click_notes": 0,
+    "rows_notes": 67,
+    "shots": 0,
+    "shots_denied": 0,
+    "notes_front": 35,
+    "notes_end": 0,
+    "persisted": 0,
+    "persisted_front": 0,
+    "line_sessions": 24
+   }
+  },
+  "site_down_again": []
+ },
+ "versions": [
+  "2.1.287"
+ ],
+ "list_usd_counted": 18.352,
+ "list_usd_spent": 18.3804,
+ "not_run": [
+  {
+   "task": "I1",
+   "run": 2,
+   "arm": "HAIKU",
+   "subtype": "site_down: every page load answered 5xx"
+  }
+ ]
+}

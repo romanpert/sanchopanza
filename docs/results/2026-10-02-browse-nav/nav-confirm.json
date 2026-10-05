@@ -1,0 +1,247 @@
+{
+ "verdicts": {
+  "complete": true,
+  "H1_cost": {
+   "ratio_total": 0.546,
+   "tasks_cheaper": "5/8",
+   "holds": false
+  },
+  "H2_accuracy": {
+   "HAIKU": "22/24",
+   "HAIKU-HINT2": "15/24",
+   "holds": false
+  },
+  "H3_no_harm": {
+   "HAIKU": "6/6",
+   "HAIKU-HINT2": "6/6",
+   "cost_ratio": 1.058,
+   "holds": true
+  }
+ },
+ "described": {
+  "C1": {
+   "HAIKU": {
+    "right": "3/3",
+    "mean_usd": 0.279,
+    "turns": [
+     16,
+     16,
+     16
+    ],
+    "at_most_3_navigations": 3
+   },
+   "HAIKU-HINT2": {
+    "right": "2/3",
+    "mean_usd": 0.1016,
+    "turns": [
+     9,
+     20,
+     18
+    ],
+    "at_most_3_navigations": 1
+   }
+  },
+  "C2": {
+   "HAIKU": {
+    "right": "3/3",
+    "mean_usd": 0.5944,
+    "turns": [
+     15,
+     110,
+     18
+    ],
+    "at_most_3_navigations": 2
+   },
+   "HAIKU-HINT2": {
+    "right": "2/3",
+    "mean_usd": 0.0695,
+    "turns": [
+     8,
+     6,
+     13
+    ],
+    "at_most_3_navigations": 2
+   }
+  },
+  "C3": {
+   "HAIKU": {
+    "right": "2/3",
+    "mean_usd": 0.1575,
+    "turns": [
+     9,
+     7,
+     9
+    ],
+    "at_most_3_navigations": 3
+   },
+   "HAIKU-HINT2": {
+    "right": "3/3",
+    "mean_usd": 0.0743,
+    "turns": [
+     10,
+     8,
+     6
+    ],
+    "at_most_3_navigations": 3
+   }
+  },
+  "C4": {
+   "HAIKU": {
+    "right": "3/3",
+    "mean_usd": 0.1178,
+    "turns": [
+     26,
+     18,
+     19
+    ],
+    "at_most_3_navigations": 3
+   },
+   "HAIKU-HINT2": {
+    "right": "0/3",
+    "mean_usd": 0.0746,
+    "turns": [
+     8,
+     9,
+     11
+    ],
+    "at_most_3_navigations": 3
+   }
+  },
+  "C5": {
+   "HAIKU": {
+    "right": "3/3",
+    "mean_usd": 0.1076,
+    "turns": [
+     17,
+     22,
+     11
+    ],
+    "at_most_3_navigations": 3
+   },
+   "HAIKU-HINT2": {
+    "right": "2/3",
+    "mean_usd": 0.0831,
+    "turns": [
+     18,
+     8,
+     8
+    ],
+    "at_most_3_navigations": 3
+   }
+  },
+  "C6": {
+   "HAIKU": {
+    "right": "3/3",
+    "mean_usd": 0.1413,
+    "turns": [
+     6,
+     20,
+     37
+    ],
+    "at_most_3_navigations": 3
+   },
+   "HAIKU-HINT2": {
+    "right": "2/3",
+    "mean_usd": 0.2096,
+    "turns": [
+     16,
+     9,
+     70
+    ],
+    "at_most_3_navigations": 3
+   }
+  },
+  "C7": {
+   "HAIKU": {
+    "right": "3/3",
+    "mean_usd": 0.0597,
+    "turns": [
+     4,
+     9,
+     12
+    ],
+    "at_most_3_navigations": 3
+   },
+   "HAIKU-HINT2": {
+    "right": "1/3",
+    "mean_usd": 0.0856,
+    "turns": [
+     10,
+     16,
+     15
+    ],
+    "at_most_3_navigations": 1
+   }
+  },
+  "C8": {
+   "HAIKU": {
+    "right": "2/3",
+    "mean_usd": 0.1679,
+    "turns": [
+     18,
+     7,
+     19
+    ],
+    "at_most_3_navigations": 2
+   },
+   "HAIKU-HINT2": {
+    "right": "3/3",
+    "mean_usd": 0.1886,
+    "turns": [
+     23,
+     57,
+     11
+    ],
+    "at_most_3_navigations": 1
+   }
+  },
+  "A2": {
+   "HAIKU": {
+    "right": "3/3",
+    "mean_usd": 0.0703,
+    "turns": [
+     14,
+     14,
+     15
+    ],
+    "at_most_3_navigations": 3
+   },
+   "HAIKU-HINT2": {
+    "right": "3/3",
+    "mean_usd": 0.0741,
+    "turns": [
+     21,
+     12,
+     14
+    ],
+    "at_most_3_navigations": 3
+   }
+  },
+  "A3": {
+   "HAIKU": {
+    "right": "3/3",
+    "mean_usd": 0.08,
+    "turns": [
+     11,
+     11,
+     16
+    ],
+    "at_most_3_navigations": 3
+   },
+   "HAIKU-HINT2": {
+    "right": "3/3",
+    "mean_usd": 0.085,
+    "turns": [
+     11,
+     17,
+     11
+    ],
+    "at_most_3_navigations": 3
+   }
+  }
+ },
+ "versions": [
+  "2.1.287"
+ ],
+ "list_usd_total": 8.464
+}

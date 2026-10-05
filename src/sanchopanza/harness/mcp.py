@@ -375,7 +375,7 @@ def add_browse(server: Any, squire: Any = None) -> Any:
     return server
 
 
-TOOL_SETS = ("archive", "find", "find_auto", "decisions", "label", "browse")
+TOOL_SETS = ("archive", "find", "find_auto", "decisions", "label", "browse", "fetch")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -417,6 +417,10 @@ def main(argv: list[str] | None = None) -> int:
         add_label(server)
     if "browse" in wanted:
         add_browse(server)
+    if "fetch" in wanted:
+        from .fetch_tool import add_fetch
+
+        add_fetch(server)
     server.run()
     return 0
 
