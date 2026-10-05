@@ -254,3 +254,104 @@ def denials(out: Mapping[str, Any], deny_log: pathlib.Path) -> dict[str, Any]:
             except ValueError:
                 continue
     return {"denied": len(listed), "denied_tools": listed, "hook_denied": hooked}
+
+
+# --- what each component of S did that reached the transcript ----------------------------------
+
+# Signatures of the hook outputs that reach a transcript, by the S component that wrote them
+# (Claude Code records no command for an additional context, a blocking error or a system
+# message, so the text says whose it is). The runner's own deny and local hooks are left out.
+COMPONENT_SIGNS = (
+    ("check-done", "the transcript does not show this request done"),
+    ("candor", "end your final reply with exactly these four lines"),
+    ("candor", "LOCK ENGAGED"),
+    ("candor", "on hold for human review"),
+    ("memory", "[sanchopanza memory"),
+    ("guard", "[sanchopanza guard"),
+    ("crawl", "If the request needs data gathered from many pages"),
+    ("find-auto", "sanchopanza ran find_in_repo"),
+    ("knowledge", "mcp__sanchopanza-knowledge__"),
+    ("fetch", "mcp__sanchopanza-fetch__fetch_passages(url"),
+    ("hook", "sanchopanza"),
+    ("hook", "This query repeats one already made"),
+)
+RUNNER_SIGNS = ("This environment is offline", "Access to this host is blocked")
+RETURNS = ("check-done", "candor", "memory")  # components whose Stop block sends the agent back
+
+
+def component_of(text: str) -> str | None:
+    """The S component a hook output belongs to, None for the runner's hooks or no match."""
+    if any(sign in text for sign in RUNNER_SIGNS):
+        return None
+    return next((name for name, sign in COMPONENT_SIGNS if sign in text), None)
+
+
+def _hook_text(entry: Mapping[str, Any]) -> tuple[str, bool] | None:
+    """(text, is_stop_block) of a hook output entry, or None."""
+    if entry.get("type") == "attachment":
+        hook = entry.get("attachment") or {}
+        kind = str(hook.get("type", ""))
+        if not kind.startswith("hook_") or kind == "hook_success":
+            return None  # a success is the same output again, or `{}` (nothing reached the model)
+        text = str(hook.get("content") or hook.get("blockingError") or "")
+        return text, kind == "hook_blocking_error" and hook.get("hookEvent") == "Stop"
+    texts = [result_text(b.get("content")) for b in _blocks(entry)
+             if b.get("type") == "tool_result" and b.get("is_error")]  # fmt: skip
+    text = "\n".join(t for t in texts if "hook error" in t)
+    return (text, False) if text else None
+
+
+def _main_entries(folder: pathlib.Path) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for path in sorted(folder.glob("*.jsonl")) if folder.is_dir() else []:
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            try:
+                entry = json.loads(line) if line.strip() else None
+            except ValueError:
+                continue
+            if isinstance(entry, dict) and not entry.get("isSidechain"):
+                out.append(entry)
+    return out
+
+
+def _turn_usd(entry: Mapping[str, Any]) -> float:
+    message = entry.get("message") or {}
+    key = price_key(str(message.get("model") or ""))
+    if key is None:
+        return 0.0
+    usage = message.get("usage") or {}
+    p_in, p_write, p_read, p_out = PRICES[key]
+    return (int(usage.get("input_tokens") or 0) * p_in
+            + int(usage.get("cache_creation_input_tokens") or 0) * p_write
+            + int(usage.get("cache_read_input_tokens") or 0) * p_read
+            + int(usage.get("output_tokens") or 0) * p_out) / 1_000_000  # fmt: skip
+
+
+def components(folder: pathlib.Path) -> dict[str, Any]:
+    """Per S component: the outputs that reached the main transcript (`outputs`), and for the
+    ones whose Stop block sends the agent back (`RETURNS`), how many times it did (`returns`) and
+    the assistant turns and list USD of the main agent between that return and the next one or
+    the end (`turns_after`, `usd_after`). Turns are API messages, one per message id."""
+    outputs: dict[str, int] = {}
+    returns: dict[str, int] = {}
+    turns_after: dict[str, int] = {}
+    usd_after: dict[str, float] = {}
+    current: str | None = None
+    seen: set[str] = set()
+    for entry in _main_entries(folder):
+        found = _hook_text(entry)
+        if found is not None:
+            name = component_of(found[0])
+            if name is not None:
+                outputs = {**outputs, name: outputs.get(name, 0) + 1}
+                if found[1] and name in RETURNS:
+                    returns = {**returns, name: returns.get(name, 0) + 1}
+                    current = name
+        if current and entry.get("type") == "assistant":
+            mid = str((entry.get("message") or {}).get("id") or "")
+            if mid and mid not in seen:
+                seen.add(mid)
+                turns_after = {**turns_after, current: turns_after.get(current, 0) + 1}
+                usd_after = {**usd_after, current: usd_after.get(current, 0.0) + _turn_usd(entry)}
+    return {"outputs": outputs, "returns": returns, "turns_after": turns_after,
+            "usd_after": {k: round(v, 6) for k, v in usd_after.items()}}  # fmt: skip

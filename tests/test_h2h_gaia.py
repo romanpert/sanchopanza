@@ -680,3 +680,43 @@ def test_session_folders_name_neither_the_task_nor_the_arm():
     assert root == runner.session_root("dev", "abc-123", "SONNET-SP", 1)
     assert root != runner.session_root("dev", "abc-123", "SONNET-CC", 1)
     assert root.parent == runner.RUNS / "dev"
+
+
+def _main_transcript(folder, entries):
+    folder.mkdir(parents=True)
+    (folder / "s.jsonl").write_text("".join(json.dumps(e) + "\n" for e in entries), "utf-8")
+
+
+def _turn(mid, out=100):
+    return {"type": "assistant", "message": {"id": mid, "model": "claude-sonnet-5-5",
+            "usage": {"input_tokens": 0, "cache_read_input_tokens": 1000,
+                      "cache_creation_input_tokens": 0, "output_tokens": out}}}  # fmt: skip
+
+
+def test_components_count_outputs_by_owner_and_the_turns_a_return_cost(tmp_path):
+    stop = {
+        "type": "attachment",
+        "attachment": {
+            "type": "hook_blocking_error",
+            "hookEvent": "Stop",
+            "blockingError": "sanchopanza: the transcript does not show this request done (p=0.3)",
+        },
+    }
+    entries = [
+        {"type": "attachment", "attachment": {"type": "hook_additional_context",
+         "content": "When you finish, end your final reply with exactly these four lines"}},
+        {"type": "user", "message": {"content": [{"type": "tool_result", "is_error": True,
+         "content": "PreToolUse:WebSearch hook error: Use mcp__sanchopanza-knowledge__search"}]}},
+        {"type": "user", "message": {"content": [{"type": "tool_result", "is_error": True,
+         "content": "PreToolUse:Bash hook error: This environment is offline"}]}},
+        {"type": "attachment", "attachment": {"type": "hook_success", "stdout": "{}",
+                                              "command": "sanchopanza/find_auto"}},
+        _turn("m1"), _turn("m1"), stop, _turn("m2", 1000), _turn("m2", 1000), _turn("m3"),
+        {**_turn("sub"), "isSidechain": True},
+    ]  # fmt: skip
+    _main_transcript(tmp_path / "t", entries)
+    got = reading.components(tmp_path / "t")
+    assert got["outputs"] == {"candor": 1, "knowledge": 1, "check-done": 1}
+    assert got["returns"] == {"check-done": 1}
+    assert got["turns_after"] == {"check-done": 2}  # one per message id, subagents left out
+    assert got["usd_after"]["check-done"] == pytest.approx((0.2 * 2000 + 10 * 1100) / 1e6)

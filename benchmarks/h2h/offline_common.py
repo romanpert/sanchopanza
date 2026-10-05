@@ -142,6 +142,7 @@ def common_row(task_id: str, run: int, arm: str, out: Mapping[str, Any], stderr:
         **reading.usage_summary(out.get("modelUsage") or {}),
         "turns": out.get("num_turns"), "wall_s": round(wall_s, 1),
         "tools": reading.tool_calls(folder), "hooks": reading.hook_runs(folder),
+        "components": reading.components(folder),
         **reading.journal(side / "journal.jsonl"),
         **reading.denials(out, side / "denied.jsonl"),
         "leak": bool(leaks), "leak_tools": leaks,
