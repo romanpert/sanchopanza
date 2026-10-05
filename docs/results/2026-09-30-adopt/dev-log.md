@@ -855,3 +855,32 @@ requests from real user sessions. On that set, try the trigger closed only by an
 existing non-test file, plus a struggle signal (the second empty search before a source edit),
 and look at the Agent-type failure in S. Find stays opt-in, not a default, until a set where the
 need is common shows a gain.
+
+## Before sealing phase D: the delegation hook, and find's need measured (2026-10-05, indagis-8f)
+
+Free work, no session.
+
+- **S's delegations always failed.** With no `SANCHOPANZA_TIERS`, which the default install never
+  sets, the PreToolUse hook rewrote every delegation naming a subagent to
+  `subagent_type: "default"`, an agent Claude Code does not have. Over every recorded stream of
+  this study, 13 of 13 S delegations failed with "Agent type 'default' not found" (dvc-rel-1 Sf 2,
+  its rerun 2, pydantic-rel-1 Sf 5, probe 2's sympy-12419 S 4); the one N delegation (pygments-1)
+  worked. The code dates from 0.1.0, so phase A's S arms ran with it; it was rare (0 delegations
+  in the 90 single streams) and S-only. It is the probe-not-flag failure again: the hook routed to
+  tiers that were not deployed, and nothing failed loudly. Fixed in 7a39a1f (unconfigured: ask
+  nothing, rewrite nothing; a tier with no configured name is left alone), reproduced before and
+  after in `~/.cache/sanchopanza/adopt/d-capture/agent-repro*/`. Same commit: `from
+  sanchopanza.harness import Guardian` recursed in a fresh interpreter (the suite imported
+  `generic` first and hid it).
+- **Find's need, measured over recorded sessions** (`benchmarks/find_need/`, 56bed4f; 643
+  sessions). Of 179 Haiku single sessions, 35 (20 %) took 5 or more searches to the first Read
+  of a gold file or never got there; by repository matplotlib 9/17, sympy 7/23, django 15/90,
+  sphinx 1/20. The need-ranked development set (rule written before the table): sympy-20428,
+  sympy-20916, xarray-7393, sympy-12419, django-14007, django-15563, django-11211, django-14011,
+  matplotlib-25332, matplotlib-26342 (three were only ever run as localisation tasks; none is
+  among phase D's ids). The proposed nudge (second empty search, closed by an edit of an existing
+  non-test file) is precise when it fires before the gold Read (7 of 10 such fires are in hard
+  sessions) but reaches only 7 of 35 hard sessions, and 62 of its 72 fires come after the gold
+  Read. Replay of the dev log's 34 sessions reproduces its table. A gain test is not justified
+  while the best trigger reaches a fifth of the need; next is a better trigger, or find with no
+  nudge on 1-4 h and matplotlib issues, measuring adoption first.
