@@ -46,8 +46,9 @@ class RuleDecider:
     name = "scripted"
     accepts_attachments = False
 
-    def __init__(self, named: float = 0.9) -> None:
+    def __init__(self, named: float = 0.9, relation: str = "breaks") -> None:
         self.named = named
+        self.relation = relation
         self.calls: list[tuple[str, Any, dict[str, Any]]] = []
 
     async def decide(self, point: str, state: Any, questions: Any) -> Decision:
@@ -61,6 +62,10 @@ class RuleDecider:
                 probs.update({k: self.named for k in hit})
                 probs["none"] = 1.0 - sum(probs.values())
                 answers[key] = choice(max(probs, key=probs.get), 0.5, **probs)
+            elif key == "relation":
+                first = self.relation if "APP_PAYMENT_TIMEOUT" in state["change"] else "unrelated"
+                probs = {k: (0.8 if k == first else 0.1) for k in question.options}
+                answers[key] = choice(first, 0.6, **probs)
             else:
                 p = by_words(point, key, state)
                 if p is not None:
@@ -126,7 +131,7 @@ def test_a_diff_that_breaks_a_rule_is_found_once_per_request(tmp_path: Path) -> 
         "def load():\n    return {\n    'timeout': env('APP_PAYMENT_TIMEOUT'),\n    }\n", "utf-8")
     broken, found = asyncio.run(mr.audit(squire(), store, "new", 1, str(repo), head, MINE))
     assert [r["text"] for r in broken] == [RULE]
-    assert list(found.values()) == [{"named": 0.9, "kept": 0.1}]
+    assert list(found.values()) == [{"named": 0.9, "kept": 0.1, "breaks_first": True}]
     assert asyncio.run(mr.audit(squire(), store, "new", 1, str(repo), head, MINE)) == ([], {})
     assert "in their words" in mr.block_reason(broken) and RULE in mr.block_reason(broken)
 
@@ -286,7 +291,8 @@ def test_a_rule_the_side_by_side_choice_does_not_name_is_never_asked(tmp_path: P
     decider = RuleDecider(named=0.3)
     broken, found = asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head,
                                          MINE))  # fmt: skip
-    assert broken == [] and list(found.values()) == [{"named": 0.3, "kept": None}]
+    assert broken == [] and list(found.values()) == [
+        {"named": 0.3, "kept": None, "breaks_first": False}]
     assert [c[0] for c in decider.calls] == ["memory_rule_all"]
 
 
@@ -334,6 +340,11 @@ class PickDecider(RuleDecider):
             probs["none"] = 0.1
             return Decision(point=point, answers={"broken": choice(max(probs, key=probs.get),
                                                                      0.8, **probs)},
+                            provider=self.name, model="scripted-1")  # fmt: skip
+        if "relation" in questions:
+            first = "breaks" if state["rule"].startswith(f"Rule {self.pick} ") else "unrelated"
+            probs = {k: (0.8 if k == first else 0.1) for k in questions["relation"].options}
+            return Decision(point=point, answers={"relation": choice(first, 0.6, **probs)},
                             provider=self.name, model="scripted-1")  # fmt: skip
         if self.kept_fails:
             return Decision(point=point, answers={}, provider=self.name, model="scripted-1",
@@ -395,3 +406,105 @@ def test_review_h1_a_secret_in_a_rule_never_reaches_the_decider(tmp_path: Path) 
     asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head, MINE))
     sent = json.dumps([str(c[2]["broken"].options) for c in decider.calls if "broken" in c[2]])
     assert decider.calls and secret not in sent
+
+
+@needs_git
+def test_a_rule_kept_calls_broken_is_not_sent_back_when_relation_says_it_keeps(
+        tmp_path: Path) -> None:  # fmt: skip
+    """2026-10-03, real sessions: 4 of 8 false sends-back had relation 'keeps' or 'unrelated'."""
+    repo, store = tmp_path / "repo", tmp_path / "store"
+    head = _repo(repo)
+    asyncio.run(mr.extract(squire(), store, [episode(RULE, session="old")]))
+    (repo / "app" / "config.py").write_text(
+        "def load():\n    return {\n    'timeout': env('APP_PAYMENT_TIMEOUT'),\n    }\n", "utf-8")
+    decider = RuleDecider(relation="keeps")
+    broken, found = asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head, MINE))
+    assert broken == [] and list(found.values())[0]["breaks_first"] is False
+    assert any(point == "memory_rule_relation" for point, _, _ in decider.calls)
+
+
+def test_sentences_join_a_wrapped_line_and_leave_layout_out() -> None:
+    text = ("## Rules that are not negotiated\n"
+            "Every migration has to be reversible, with a working down step, and\n"
+            "never edited once it is merged.\n"
+            "SIX RULES I KEEP REPEATING\n"
+            "| column | value |\n"
+            "Rules:\n"
+            "- Never commit straight to main.\n"
+            "Store the keys in the .env file")
+    assert sentences(text) == [
+        "Every migration has to be reversible, with a working down step, and never edited "
+        "once it is merged.",
+        "Never commit straight to main.",
+        "Store the keys in the .env file",
+    ]
+
+
+def test_sentences_keep_a_persons_short_lines_apart() -> None:
+    """A new thought starts with a capital: short lines without a stop are not joined."""
+    text = "Push everything to dev\nThe policy does not go into git\nAre the duplicates gone?"
+    assert sentences(text) == ["Push everything to dev", "The policy does not go into git",
+                               "Are the duplicates gone?"]
+
+
+class RelationDecider(PickDecider):
+    """PickDecider whose `kept` for the picked rule and whose relation answer are set: `bare`
+    names the option with no probabilities, `down` fails the relation decision."""
+
+    def __init__(self, pick: str, kept: float = 0.1, relation: str = "breaks") -> None:
+        super().__init__(pick)
+        self.kept, self.mode = kept, relation
+
+    async def decide(self, point: str, state: Any, questions: Any) -> Decision:
+        if "relation" in questions:
+            self.calls.append((point, state, dict(questions)))
+            if self.mode == "down":
+                return Decision(point=point, answers={}, provider=self.name, model="scripted-1",
+                                error="down")  # fmt: skip
+            return Decision(point=point, answers={"relation": choice("breaks", 0.6)},
+                            provider=self.name, model="scripted-1")  # fmt: skip
+        if "kept" in questions and state["rule"].startswith(f"Rule {self.pick} "):
+            self.calls.append((point, state, dict(questions)))
+            return Decision(point=point, answers={"kept": yes(self.kept)}, provider=self.name,
+                            model="scripted-1")  # fmt: skip
+        return await super().decide(point, state, questions)
+
+
+def _audit_eight(tmp_path: Path, decider: RuleDecider) -> tuple[Path, Any]:
+    repo, store = tmp_path / "repo", tmp_path / "store"
+    head = _repo(repo)
+    (repo / "app" / "config.py").write_text("x = 1\n", "utf-8")
+    _eight_rules(store)
+    return store, asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head, MINE))
+
+
+@needs_git
+def test_review_v81_a_relation_named_without_probabilities_still_sends_back(
+        tmp_path: Path) -> None:  # fmt: skip
+    """A provider may give the choice and no probabilities: max() over nothing must not turn
+    every audit into a failure (review of v8.1, HIGH)."""
+    _, (broken, _) = _audit_eight(tmp_path, RelationDecider("C", relation="bare"))
+    assert [r["text"] for r in broken] == ["Rule C can never change in this project."]
+
+
+@needs_git
+def test_review_v81_a_failed_relation_marks_nothing_and_is_asked_again(tmp_path: Path) -> None:
+    store, out = _audit_eight(tmp_path, RelationDecider("C", relation="down"))
+    assert out == ([], {"_failed": "memory_rule_relation"}) and mr.load(store)[mr.AUDITED] == []
+
+
+@needs_git
+def test_review_v81_kept_between_045_and_05_is_no_longer_doubtful(tmp_path: Path) -> None:
+    """BROKEN_BELOW 0.45 (2026-10-03): a `kept` of 0.47 is not sent back nor asked the relation."""
+    decider = RelationDecider("C", kept=0.47)
+    _, (broken, found) = _audit_eight(tmp_path, decider)
+    assert broken == [] and not any(p == "memory_rule_relation" for p, _, _ in decider.calls)
+    assert any(v["kept"] == 0.47 for v in found.values())
+
+
+def test_sentences_start_a_spanish_question_on_its_own_line() -> None:
+    text = ("Revisa que las migraciones se puedan deshacer siempre con su paso de bajada\n"
+            "¿Por que falla el test de esquema?")
+    assert sentences(text) == [
+        "Revisa que las migraciones se puedan deshacer siempre con su paso de bajada",
+        "¿Por que falla el test de esquema?"]

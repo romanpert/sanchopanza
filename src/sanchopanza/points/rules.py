@@ -151,11 +151,90 @@ def questions_for_rules(rules: list[tuple[str, list[str]]], change: str,
 _SPLIT = re.compile(r"(?<!\be\.g\.)(?<!\bi\.e\.)(?<!\betc\.)(?<!\bvs\.)(?<=[.!?])\s+|\n+")
 
 
+# Lines that are layout, not something the person said (v8 on the maintainer's sessions,
+# 2026-10-03: of 412 sentences flagged as rules, 76 were halves of a line the editor wrapped and 19
+# headings; with these, 13 and 4, and no flagged rule lost).
+_ITEM = re.compile(r"^\s*(?:[-*•·]|\d{1,2}[.)])\s+")
+_HEADING = re.compile(r"^\s*#{1,6}\s")
+_LAYOUT = re.compile(r"^\s*[|>]|^\+")  # a table row, a quote, a diff's added line
+_ENDED = re.compile(r"[.!?:;]\s*(?:\*\*)?[)\"'»”]*\s*$")
+WRAP_MIN = 50  # a line this long ending without punctuation was wrapped, not finished
+LEAD_IN_MAX = 60
+
+
+def _drawn(line: str) -> bool:
+    """A diagram: box-drawing glyphs, or arrows with few words around them."""
+    box = sum(1 for ch in line if 0x2500 <= ord(ch) <= 0x25FF)
+    arrows = sum(1 for ch in line if 0x2190 <= ord(ch) <= 0x21FF)
+    seen = [ch for ch in line if not ch.isspace()]
+    return box >= 3 or (arrows >= 3 and sum(ch.isalpha() for ch in seen) < 0.6 * len(seen))
+
+
+def _wrapped(previous: str, line: str) -> bool:
+    """`line` goes on the sentence `previous` left open: a wrap, not a new thought (which a
+    person starts with a capital, or with a list marker)."""
+    if not previous or _ITEM.match(line) or _HEADING.match(line) or _ENDED.search(previous):
+        return False
+    head = line.strip()[:1]
+    if head and head in "¿¡":  # a Spanish question or exclamation starts a new thought
+        return False
+    lower = not head.isalpha() or head.islower()
+    return (len(previous.strip()) >= WRAP_MIN and lower) or line.startswith(("  ", "\t"))
+
+
+def _title(line: str, following: str) -> bool:
+    """A lead-in to a list ("Rules:") or a title in capitals: no rule on its own."""
+    text = line.strip(" -*\t")
+    if (
+        text.endswith(":")
+        and len(text) <= LEAD_IN_MAX
+        and (not following or _ITEM.match(following))
+    ):
+        return True
+    letters = [ch for ch in text if ch.isalpha()]
+    upper = len(letters) >= 6 and sum(ch.isupper() for ch in letters) >= 0.7 * len(letters)
+    return upper and not re.search(r"[.!?]\s*$", text)
+
+
+def _lines(clean: str) -> list[str]:
+    """The first PROMPT_LINES lines, layout dropped and wrapped lines joined."""
+    kept, count = [], 0
+    for line in clean.splitlines():
+        count += bool(line.strip())
+        if count > PROMPT_LINES:
+            break
+        kept.append("" if _LAYOUT.match(line) or _drawn(line) else line)
+    joined: list[str] = []
+    previous = ""
+    for line in kept:
+        if (
+            line.strip()
+            and joined
+            and joined[-1]
+            and not _HEADING.match(joined[-1])
+            and _wrapped(previous, line)
+        ):
+            joined[-1] = f"{joined[-1].rstrip()} {line.strip()}"
+        else:
+            joined.append(line)
+        previous = line if line.strip() else ""
+    many = sum(1 for line in joined if line.strip()) > 1
+    out = []
+    for i, line in enumerate(joined):
+        if not line.strip() or _HEADING.match(line):
+            continue
+        following = next((nxt for nxt in joined[i + 1 :] if nxt.strip()), "")
+        if many and _title(line, following):
+            continue
+        out.append(line)
+    return out
+
+
 def sentences(text: str) -> list[str]:
     """The person's sentences worth asking about, in order (code blocks and long pastes left
-    out: a rule is said, not pasted)."""
+    out: a rule is said, not pasted; lines the editor wrapped joined, layout left out)."""
     clean = _TAGGED.sub(" ", re.sub(r"```.*?```", " ", text or "", flags=re.S))
-    lines = [line for line in clean.splitlines() if line.strip()][:PROMPT_LINES]
+    lines = _lines(clean)
     out = []
     for part in _SPLIT.split("\n".join(lines)):
         part = part.strip(" -*\t")

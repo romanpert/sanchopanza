@@ -46,7 +46,12 @@ STANDING_AT = 0.5  # 16/16 rules, 3/36 others on the carry scenes; 3.8 % of real
 # A generative second judge did not pay: Haiku 42/43 with 18 own, Sonnet 42/43 with 6, at about
 # 130 and 250 times the price of a decision.
 CANDIDATE_AT = 0.4
-BROKEN_BELOW = 0.5
+# 2026-10-03, the maintainer's real sessions (518 audits, 8 sent back, none right): 5 of the 8 had
+# `kept` between 0.43 and 0.49. At 0.45 the carry bench still catches 43/43 (10 -> 8 own kept sent
+# back); at 0.4 it drops to 41/43. And a rule `kept` judges broken is sent back only when the
+# three-way `relation` (v7's question) also puts "breaks" first: 43/43 on carry (own kept 9 at
+# 0.5); on the real sessions the two together leave 4 of the 8, all false all the same.
+BROKEN_BELOW = 0.45
 GIT_SECONDS = 3.0
 HEADER = ("[sanchopanza memory, standing rules: what the person said in earlier sessions of this "
           "project that later work must keep, in their words, newest first]")  # fmt: skip
@@ -247,6 +252,24 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
                               if isinstance(p, float)}  # fmt: skip
     if len(kept) < len(asked):  # a named rule went unanswered: no mark, asked again (M1)
         return [], {"_failed": "memory_rule_check"}
+
+    async def relation(rule: Mapping[str, Any]) -> str | None:
+        """The three-way relation's first answer for a rule `kept` judged broken."""
+        questions = points.questions_for_relation(str(rule["text"]), change)
+        decision = await squire.decide("memory_rule_relation", *questions)
+        answer = decision.answer("relation")
+        if decision.failed or answer.empty:
+            return None
+        if answer.choice:  # a provider may name the option and give no probabilities
+            return answer.choice
+        probs = answer.probabilities
+        return max(probs, key=probs.get) if probs else None
+
+    doubtful = [i for i, p in kept.items() if p < BROKEN_BELOW]
+    first = await asyncio.gather(*(relation(held[i]) for i in doubtful), return_exceptions=True)
+    if any(not isinstance(r, str) for r in first):  # unanswered: no mark, asked again (M1)
+        return [], {"_failed": "memory_rule_relation"}
+    confirmed = {i for i, r in zip(doubtful, first, strict=True) if r == "breaks"}
     with ep.locked(_path(store)):
         latest = load(store)
         if key in latest[AUDITED]:  # another Stop of this request got here first
@@ -255,9 +278,10 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
     # Per rule, what the Choice named and what `kept` said (None: not asked), so CANDIDATE_AT
     # can be checked again on real sessions (L1).
     probabilities = {f"{i}:{str(r['text'])[:80]}": {"named": round(named[i], 3),
-                                                    "kept": kept.get(i)}
+                                                    "kept": kept.get(i),
+                                                    "breaks_first": i in confirmed}
                      for i, r in enumerate(held)}  # fmt: skip
-    broken = [held[i] for i, p in kept.items() if p < BROKEN_BELOW]
+    broken = [held[i] for i in sorted(confirmed)]
     return broken, probabilities
 
 
