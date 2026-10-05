@@ -915,3 +915,25 @@ it non-blocking for D).
 - Next (benchmarks/find_auto, f1ef58e, offline): stop asking the agent to choose find. Run it for
   the agent at the struggle point and inject the places. Offline this only pays with a
   source-only ranking, because find as shipped ranks docs, issue templates and yml first.
+
+## The find_auto probe: the hook runs find for the agent (2026-10-05)
+
+`benchmarks/adopt_dev/probe_auto.py`, S only with `install --find-auto`, frozen copy of 50f605b
+(87611e1 plus the review's fixes: wait up to 30 s for the index, no hidden tool without `meta`),
+Haiku 4.5, Claude Code 2.1.285, the same 10 need-ranked instances as the need probe. 7.39 USD list
+price (cap 12.00), Jev 0.007. Development, one session each, no verdict.
+
+- **The hook fired where the rule said, 4 of 4** (expected 4; in the other 6 an early source Read
+  closed the window). Of the 4: the gold file was among the five places shown in 3 (the gold hunk
+  in 2), and in those 3 the agent's next call went to a shown place.
+- **Searches before the gold Read, same instance, need probe (no hook) -> this probe:**
+  django-14007 22 -> 6, django-14011 5 -> 4, django-15563 5 -> 6; the miss, sympy-12419, 8 -> 10,
+  and there the agent then called find_in_repo itself twice (calls 34 and 37), the first calls to
+  find in any session without a nudge. One session per arm and different days: read as direction,
+  not as an effect.
+- Resolved 5 of 10 in both probes (two instances swap each way); cost 7.39 against 6.98 USD.
+- **The limit is the window, not the ranking.** xarray-7393 took 10 searches to the gold file and
+  the hook never came due: the agent Read a wrong source file early, which closes R4's window.
+  Struggling agents read wrong files; a rule closed by any source Read misses them. Next: replay
+  offline a window closed only by an edit (or by reading a file the agent then edits), with the
+  same once-per-session fire, on the 179 recorded singles, before another paid probe.
