@@ -20,6 +20,12 @@ Version 2, switched on by `SANCHOPANZA_SOURCES_VERSION=2`, changes four things:
 - The request keeps the answer (never withdraw it) and asks about the step no page states - each
   value calculated, counted or chosen between conflicting sources - checked by opening its page.
 
+Version 2.1 is version 2 with two opt-in settings, both off by default so version 2 runs as it
+was measured: `SANCHOPANZA_SOURCES_SHOWN_WORK=1` quiets the number sign when the reply writes out
+right arithmetic on numbers a tool result shows (`sources_work`), and
+`SANCHOPANZA_SOURCES_CAP_SHARE` (0 < share <= 1) moves the share of the cap past which the hook
+stands aside.
+
 No model; fail open (the caller catches everything).
 """
 
@@ -33,6 +39,7 @@ from typing import Any
 
 from .. import _env
 from ..context.transcript import blocks_of, is_prompt, message_text, text_of
+from . import sources_work
 
 WEB_TOOL = re.compile(r"^(?:WebSearch|WebFetch|mcp__.+__(?:browser_.+|fetch\w*))$")
 READER_TOOLS = frozenset({"WebSearch", "WebFetch"})
@@ -197,13 +204,17 @@ def answer_line(text: str) -> str:
     return found[-1].strip() if found else ""
 
 
-def signs(question: str, final: str, results: Iterable[str]) -> list[str]:
-    """The names of the weakness signs in a final reply, in `REASONS` order."""
+def signs(question: str, final: str, results: Iterable[str], shown_work: bool = False) -> list[str]:
+    """The names of the weakness signs in a final reply, in `REASONS` order. With `shown_work`
+    (version 2.1) a number the reply computes right, in writing, from read numbers is read."""
     out = []
     answer = answer_line(final)
     if answer:
         seen = numbers(question).union(*(numbers(r) for r in results))
-        if numbers(answer) - seen:
+        missing = numbers(answer) - seen
+        if missing and shown_work:
+            missing -= sources_work.grounded(final, seen)
+        if missing:
             out.append("number")
     if DOUBT.search(final or ""):
         out.append("doubt")
@@ -220,6 +231,19 @@ def cap_usd(env: Mapping[str, str] | None) -> float | None:
     return value if value > 0 else None
 
 
+def cap_share(env: Mapping[str, str] | None) -> float:
+    """`SANCHOPANZA_SOURCES_CAP_SHARE` when it is a share (0 < share <= 1), else `CAP_SHARE`."""
+    try:
+        value = float(_env.get("SOURCES_CAP_SHARE", "", env).strip())
+    except ValueError:
+        return CAP_SHARE
+    return value if 0 < value <= 1 else CAP_SHARE
+
+
+def shown_work(env: Mapping[str, str] | None) -> bool:
+    return _env.get("SOURCES_SHOWN_WORK", "0", env).strip().lower() in {"1", "true", "yes", "on"}
+
+
 def assess(main: Path, last_message: str, env: Mapping[str, str] | None) -> dict[str, Any]:
     """What the hook knows at this stop: web calls, spend, the cap check and the signs."""
     entries = _entries(main)
@@ -230,10 +254,12 @@ def assess(main: Path, last_message: str, env: Mapping[str, str] | None) -> dict
     cap = cap_usd(env)
     results = [text for group in every for text in _results(group)]
     final = last_message or _last_text(entries)
-    found = signs(_question(entries), final, results) if web else []
-    over = cap is not None and spent > CAP_SHARE * cap
+    work, share = shown_work(env), cap_share(env)
+    found = signs(_question(entries), final, results, work) if web else []
+    over = cap is not None and spent > share * cap
     return {"web_calls": web, "spent_usd": round(spent, 4), "cap_usd": cap, "over_cap": over,
-            "signs": found, "block": bool(web and found and not over)}  # fmt: skip
+            "signs": found, "block": bool(web and found and not over), "cap_share": share,
+            "shown_work": work}  # fmt: skip
 
 
 def reason(found: Iterable[str]) -> str:

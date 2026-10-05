@@ -251,3 +251,94 @@ Quiet the number sign when the reply shows the arithmetic and every operand of i
 result (the four right Sonnet blocks), so it fires on a number whose source step is missing; and
 replay the 60 % cap share against 0.8 for free before moving it, since on pilot 1 it silenced 8 of
 12 wrong fires.
+
+## v2.1 offline: the number sign with shown work, and the cap share, on both pilots (160 sessions)
+
+### What changed in the hook
+
+Version 2 runs as measured unless one of two new settings is set (`sources_v2`, `sources_work`):
+
+- `SANCHOPANZA_SOURCES_SHOWN_WORK=1`: the number sign no longer counts a number in the ANSWER
+  line that the reply computes in writing (`a - b = c`, `a + b + c = d`, `a / b = c%`), when the
+  arithmetic is right to the precision written and every operand is a number some tool result
+  (main agent or subagents) or the question shows, or the result of another such step. No model:
+  a regular expression for the steps and an evaluator for + - x /.
+- `SANCHOPANZA_SOURCES_CAP_SHARE`: the share of the cap past which the hook stands aside (0.6
+  when unset or not a share in (0, 1]).
+
+### The replay
+
+`free_frames_variants.py` cuts all 160 sessions of the two pilots at their first stop, as
+`free_frames_trigger.py` did for pilot 1, and runs the hook's code with each variant; grades are
+the hand grades at that stop. A session reaches a stop unless it ended at its cap without one or,
+in a base arm, spent more than the -SRC cap (1.05 / 0.42), which a -SRC session would have hit
+first. On the 40 -SRC2 sessions the replay of v2 at 60 % fires exactly where the live hook fired
+(40 of 40). Output: `frames-variants.json` (ids, booleans, sign names, dollars).
+
+The bound on the gain is deliberately generous: every block on a wrong session fixes it at pilot
+2's rate (2 of 5) and no block harms (0 of 9 on pilot 2). Each block is priced at what pilot 2's
+blocks cost after the block: 0.154 USD on Sonnet, 0.056 on Haiku (the 0.046 and 0.008 per session
+of the arm, divided by 6 and 3 blocks in 20 sessions).
+
+80 sessions per model (both pilots, base and hook arms; the same task appears four times, so these
+are not 80 independent draws). Sonnet: 63 with a web call, 18 wrong at the stop. Haiku: 80 and 21.
+
+| variant | Sonnet fires right / wrong | wrong tasks reached | bound, right per 100 | USD per session | USD per right answer | Haiku fires right / wrong | wrong tasks reached | bound, right per 100 | USD per session | USD per right answer |
+|---|---|---|---|---|---|---|---|---|---|---|
+| v2, 60 % (as measured) | 9 / 7 | 5 | +3.5 | 0.031 | 0.88 | 3 / 5 | 4 | +2.5 | 0.006 | 0.22 |
+| v2, 80 % | 10 / 9 | 6 | +4.5 | 0.037 | 0.81 | 4 / 7 | 5 | +3.5 | 0.008 | 0.22 |
+| v2, no cap check | 10 / 10 | 6 | +5.0 | 0.038 | 0.77 | 4 / 8 | 6 | +4.0 | 0.008 | 0.21 |
+| v2.1, 60 % | 7 / 4 | 3 | +2.0 | 0.021 | 1.06 | 0 / 4 | 3 | +2.0 | 0.003 | 0.14 |
+| v2.1, 80 % | 8 / 6 | 4 | +3.0 | 0.027 | 0.90 | 0 / 5 | 3 | +2.5 | 0.004 | 0.14 |
+| v2.1, no cap check | 8 / 7 | 4 | +3.5 | 0.029 | 0.82 | 0 / 6 | 4 | +3.0 | 0.004 | 0.14 |
+| v2 + list (exploratory), 60 % | 22 / 9 | 7 | +4.5 | 0.060 | 1.32 | 5 / 5 | 4 | +2.5 | 0.007 | 0.28 |
+
+**Why a wrong session is not asked** (v2 at 60 %): Sonnet, 7 of 18 asked; 6 carry no sign, 3 are
+past 60 % of the cap, 2 reach the cap with no stop. Haiku, 5 of 21 asked; 7 no sign, 6 no stop, 3
+past the share. With no cap check at all the hook reaches 10 of 18 and 8 of 21: the largest loss
+is the wrong answer with no sign in the reply, then (Haiku) the session that never stops.
+
+### What the replay says
+
+- **Shown work quiets the right blocks and loses the only fix.** It silences 2 of Sonnet's 9
+  right fires and all 3 of Haiku's, but also the wrong fires on FR363 on both models, the one task
+  where a block fixed an answer in pilot 2: there the wrong operand was on a page (a search
+  tool result carried the wrong figure), so "every operand is on a page" holds for a wrong answer
+  too. Of the four right Sonnet blocks of pilot 2 it quiets one (FR2); the other three rest on a
+  number no tool result shows at all (a year or a count the model supplied from memory), which the
+  rule cannot reach and the sign is right to flag. Its cost per right answer looks lower in the
+  table only because the table applies pilot 2's fix rate, which came from the task it no longer
+  reaches. **Not adopted: `SHOWN_WORK` stays off by default.**
+- **Moving the cap share from 0.6 to 0.8** adds 2 wrong fires per model (FR370 and FR186 on Sonnet,
+  FR370 and FR686 on Haiku: three tasks) and 1 right one. The extra blocks land on sessions between 60 % and 80 % of their cap, where
+  version 1's extra turn pushed four Haiku sessions into the cap; that risk is not measured. The
+  default stays 0.6.
+- **One more sign for a wrong entity or an extra item: none that is deterministic and simple.**
+  The wrong sessions with no sign are a misread anchor or a character taken for an actor (FR3,
+  FR774), the wrong alumnus or the wrong case (FR368, FR142), an ordinal counted down a list
+  (FR524), a count that happens to match a number on a page (FR347), and one item too many in a
+  list (FR55). Tried on all 160: an ANSWER line of three or more items fires on 16 right and 2
+  wrong Sonnet sessions and on 2 right and 5 wrong Haiku ones, whose wrong hits are four tasks,
+  two sessions of them FR55; a proper name in the answer that no tool result shows fires on 10
+  right and 2 wrong Sonnet sessions and 1 wrong Haiku one; an ordinal or "how many" in the question does not separate
+  (6 right / 6 wrong and 8 / 6 on Sonnet). The list sign is in the table as exploratory and is not
+  wired: on Sonnet it more than doubles the right fires, on Haiku it adds no wrong one at 60 %.
+- **Over-fitting.** The fix rate rests on one task (FR363, both models). Each variant reaches 3 to
+  7 wrong tasks per model, and the gain from 0.8 or from the list sign comes from one or two
+  tasks. None of these rows is evidence that the variant pays; they bound what it could pay.
+
+### Against the bar (cheaper and at least as many right as Claude Code alone, model by model)
+
+- **Sonnet: out of reach on price for every variant.** The hook adds 0.021 to 0.038 USD per
+  session; the -SRC cap at 70 % saves 0.009 per session against the base (the cut replay: 0.000 on
+  pilot 1, 0.017 on pilot 2, on a base mean of about 0.25). The gain bound is +2 to +5 right
+  answers per 100 sessions, under one task per 20.
+- **Haiku: cheaper, but the gain is below the noise.** The hook adds 0.003 to 0.008 USD per
+  session, under the 0.017 the cap saves (0.015 on pilot 1, 0.019 on pilot 2). The bound is +2 to
+  +4 per 100 sessions, against a cap cut that loses 2 of 40 right Haiku answers in replay (pilot 2;
+  none on pilot 1) and run-to-run differences of two or three tasks in 20 between arms that the
+  hook never touched. Pilot 2 met the bar on Haiku; nothing here says it would again.
+- **Where the price is.** On both pilots about half of the Sonnet base arms' spend is billed to
+  Haiku: the readers that WebSearch and WebFetch run (2.20 of 4.51 USD on pilot 1, 2.71 of 5.62
+  on pilot 2; 160 searches and 61 fetches in 40 sessions). That cost does not depend on telling a
+  right answer from a wrong one.
