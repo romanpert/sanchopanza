@@ -1138,6 +1138,13 @@ def test_install_memory_wires_its_hooks_once_and_takes_them_out(tmp_path: Path) 
 # ---- v6: what a request changed, read from the git working tree --------------------------------
 
 
+def _session_store(store: Path, session: str = "s1") -> Path:
+    """The store session `session`'s hooks used: in a git repository, the repository's (F1, K1),
+    kept per session at its first event."""
+    return mh.store_for({"session_id": session, "cwd": str(store),
+                         "transcript_path": str(store / "projects" / "p" / f"{session}.jsonl")})
+
+
 def _git_repo(root: Path) -> str:
     import subprocess
 
@@ -1176,7 +1183,7 @@ def test_v6_a_shell_edit_is_recorded_from_the_tree_and_a_later_shell_read_finds_
 ) -> None:
     edit = "python - <<'E'\np='pkg/parse.py'\ns=open(p).read()\nopen(p,'w').write(s)\nE"
     cwd, project = _shell_fix(store, tmp_path, edit)
-    index = ep.index_of(store / "memory" / "p")
+    index = ep.index_of(_session_store(store))
     assert index["s1-001"]["changed"] == ["pkg/parse.py"]
     t2 = write_transcript(project / "s2.jsonl", [{**prompt("again"), "cwd": cwd}, say("ok")])
     mh.handle({"hook_event_name": "UserPromptSubmit", "session_id": "s2",
@@ -1193,7 +1200,7 @@ def test_v6_a_tree_change_the_request_never_named_is_not_its_own(
     store: Path, tmp_path: Path
 ) -> None:
     _shell_fix(store, tmp_path, "make fix")  # another session, or the person, changed it
-    assert ep.index_of(store / "memory" / "p")["s1-001"]["changed"] == []
+    assert ep.index_of(_session_store(store))["s1-001"]["changed"] == []
 
 
 @pytest.mark.skipif(__import__("shutil").which("git") is None, reason="no git")
@@ -1202,8 +1209,8 @@ def test_v6_the_tree_can_be_turned_off(
 ) -> None:
     monkeypatch.setenv("SANCHOPANZA_MEMORY_TREE", "off")
     _shell_fix(store, tmp_path, "python - <<'E'\np='pkg/parse.py'\nE")
-    assert ep.index_of(store / "memory" / "p")["s1-001"]["changed"] == []
-    assert not (store / "memory" / "p" / mh.TREE).exists()
+    assert ep.index_of(_session_store(store))["s1-001"]["changed"] == []
+    assert not (_session_store(store) / mh.TREE).exists()
 
 
 def test_v6_powershell_reads_with_backslashes_count_like_bash(store: Path) -> None:
@@ -1285,14 +1292,14 @@ def test_v6_review_h2_a_file_only_read_while_another_writer_changed_it_is_not_cl
     store: Path, tmp_path: Path
 ) -> None:
     cwd, _ = _shell_fix(store, tmp_path, "cat pkg/parse.py")  # read only; the file changed
-    assert ep.index_of(store / "memory" / "p")["s1-001"]["changed"] == []
+    assert ep.index_of(_session_store(store))["s1-001"]["changed"] == []
 
 
 @needs_git
 def test_v6_review_h2_a_write_claims_its_own_path_only(store: Path, tmp_path: Path) -> None:
     edit = "python - <<'E'\nopen('lib/parse.py','w').write('x')\nE"  # another parse.py
     _shell_fix(store, tmp_path, edit)
-    assert ep.index_of(store / "memory" / "p")["s1-001"]["changed"] == []
+    assert ep.index_of(_session_store(store))["s1-001"]["changed"] == []
 
 
 @needs_git
@@ -1311,7 +1318,7 @@ def test_v6_review_m8_a_snapshot_of_another_request_is_not_compared(
     # request 2's prompt never reached the transcript; request 1 gets the edit command
     write_transcript(t1, [*done[:1], *tool("Bash", {"command": edit}, "ok", 1), done[1]])
     mh.handle({**base, "hook_event_name": "Stop"})
-    assert ep.index_of(store / "memory" / "p")["s1-001"]["changed"] == []
+    assert ep.index_of(_session_store(store))["s1-001"]["changed"] == []
 
 
 @needs_git
@@ -1328,7 +1335,7 @@ def test_v6_review_m6_an_interrupted_request_is_finished_at_the_next_prompt(
                           *tool("Bash", {"command": edit}, "ok", 1),
                           say("stopped halfway")])  # Esc: no Stop ran  # fmt: skip
     mh.handle({**base, "hook_event_name": "UserPromptSubmit", "prompt": "go on"})
-    assert ep.index_of(store / "memory" / "p")["s1-001"]["changed"] == ["pkg/parse.py"]
+    assert ep.index_of(_session_store(store))["s1-001"]["changed"] == ["pkg/parse.py"]
 
 
 @needs_git
@@ -1342,7 +1349,7 @@ def test_v6_review_m7_the_open_snapshot_goes_at_session_end_and_old_tree_files_g
     t1 = write_transcript(store / "projects" / "p" / "s1.jsonl", [])
     base = {"session_id": "s1", "transcript_path": str(t1), "cwd": cwd}
     mh.handle({**base, "hook_event_name": "UserPromptSubmit", "prompt": "x"})
-    folder = store / "memory" / "p" / mh.TREE
+    folder = _session_store(store) / mh.TREE
     assert (folder / "s1.json").exists()
     old = folder / "gone-001.json"
     old.write_text("{}", encoding="utf-8")
@@ -1350,7 +1357,7 @@ def test_v6_review_m7_the_open_snapshot_goes_at_session_end_and_old_tree_files_g
     os.utime(old, (stamp, stamp))
     from sanchopanza.harness import memory_tree
 
-    memory_tree.prune(store / "memory" / "p")
+    memory_tree.prune(_session_store(store))
     assert not old.exists()
     write_transcript(t1, [{**prompt("x"), "cwd": cwd}, say("y")])
     mh.handle({**base, "hook_event_name": "SessionEnd"})
@@ -1396,12 +1403,12 @@ def test_v63_a_stop_snapshot_that_fails_says_why_and_the_record_keeps_it(
     monkeypatch.setattr(worktree, "probe", second_fails)
     _shell_fix(store, tmp_path, SHELL_EDIT)
     assert [(r["at"], r["why"]) for r in _tree_log(store)] == [("stop", "git status failed")]
-    kept = json.loads((store / "memory" / "p" / mh.TREE / "s1-001.json").read_text("utf-8"))
+    kept = json.loads((_session_store(store) / mh.TREE / "s1-001.json").read_text("utf-8"))
     assert kept["changed"] == [] and kept["why"] == "git status failed"
 
 
 @needs_git
 def test_v63_a_tree_that_works_logs_nothing(store: Path, tmp_path: Path) -> None:
     _shell_fix(store, tmp_path, SHELL_EDIT)
-    assert ep.index_of(store / "memory" / "p")["s1-001"]["changed"] == ["pkg/parse.py"]
+    assert ep.index_of(_session_store(store))["s1-001"]["changed"] == ["pkg/parse.py"]
     assert _tree_log(store) == []

@@ -9,7 +9,11 @@ Three moments, all in the memory hook:
   a rule said while changing one file and broken in another).
 - **Stop, before the agent stops:** the request's diff since its start is held against each rule
   the request did not itself state; a confident "broken" sends the agent back once, quoting the
-  rule (RepoComplianceBench 2026: one message naming the violation, 90-100 % compliance).
+  rule (RepoComplianceBench 2026: one message naming the violation, 90-100 % compliance), unless
+  a newer stored rule or a sentence of the request's own prompt replaces it (F1, `superseded`).
+
+Rules are given with the minute they were said, newest first, under a header saying the newer of
+two conflicting rules stands (F1): two rules of one day were not ordered before.
 
 Fails open everywhere: no decider, no git or a decider error leave the request as it was.
 """
@@ -20,13 +24,14 @@ import json
 import re
 import subprocess
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from .. import _env
 from ..context import episodes as ep
 from ..context.archive import safe_name
+from ..contract import Choice
 
 if TYPE_CHECKING:
     from ..squire import Squire
@@ -54,9 +59,40 @@ CANDIDATE_AT = 0.4
 BROKEN_BELOW = 0.45
 GIT_SECONDS = 3.0
 HEADER = ("[sanchopanza memory, standing rules: what the person said in earlier sessions of this "
-          "project that later work must keep, in their words, newest first]")  # fmt: skip
+          "project that later work must keep, in their words, newest first, each with when it "
+          "was said; where two of them conflict, the newer one stands]")  # fmt: skip
 CLOSING = ("If the task in front of you would break one of these, keep the rule, or say so "
            "plainly before you change it.")  # fmt: skip
+
+
+# F1, supersession: a break confirmed by `kept` and `relation` is not sent back when the person
+# replaced the rule since. On the maintainer's real sessions (v8 replay, 2026-10-03) 2 of the 8
+# false send-backs quoted a rule the same request's prompt had just replaced. UNMEASURED: the
+# likeliest newer option must reach 0.5 and beat `stands`, a plain majority, not a cut fitted on
+# data. It only runs on a confirmed break (under 1 % of audits). A failed, late or partial answer
+# (no `stands` probability, an option it was not offered) sends back, as before.
+SUPERSEDED_AT = 0.5
+SUPERSEDE_SECONDS = 8.0  # its own deadline when the caller gives none
+SUPERSEDE_RESERVE = 1.0  # seconds of the audit's deadline kept for writing its mark
+NEWER_MAX = 8  # newer stored rules offered, newest first, after the request's own sentences
+STANDS = "stands"
+SUPERSEDE_INSTRUCTIONS = (
+    "The person stated `rule` in an earlier session of this project. Each option below is "
+    "something they said after it, with when. Does one of them replace `rule`, so that work going "
+    "against `rule` now follows what the person asked later?"
+)
+SUPERSEDE_STANDS = (
+    "None of them: `rule` still stands. They are about something else, add to it, refine it, "
+    "repeat it or agree with it, or ask for work that only happens to touch what it protects; "
+    "only an instruction that asks for the opposite, drops or renames what the rule protects, or "
+    "says the rule no longer applies replaces it"
+)
+
+Note = Callable[[Mapping[str, Any]], None]
+
+
+def _quiet(row: Mapping[str, Any]) -> None:
+    return None
 
 
 def rules_on() -> bool:
@@ -125,23 +161,47 @@ async def extract(squire: Squire, store: Path, episodes: Sequence[ep.Episode]) -
     return [r["text"] for r in added]
 
 
+def _when(at: Any) -> str:
+    return time.strftime("%Y-%m-%d %H:%M", time.localtime(float(at or 0)))
+
+
 def _line(rule: Mapping[str, Any]) -> str:
-    when = time.strftime("%Y-%m-%d", time.localtime(float(rule.get("at") or 0)))
+    when = _when(rule.get("at"))
     files = ", ".join(rule.get("files") or [])
     where = f", while changing {files}" if files else ""
     return f'- "{rule["text"]}" ({when}{where})'
 
 
 def render(store: Path) -> str:
-    """The newest rules as session context, or "" when there are none."""
-    lines, room = [], GIVE_CHARS - len(HEADER) - len(CLOSING)
-    for rule in load(store)["rules"][:GIVE_MAX]:
+    """The newest rules as session context, or "" when there are none. Newest first by the time
+    they were said, whatever order the store keeps; header, lines and closing within GIVE_CHARS."""
+    lines, room = [], GIVE_CHARS - len(HEADER) - len(CLOSING) - 1
+    rules = sorted(load(store)["rules"], key=lambda r: -float(r.get("at") or 0))
+    for rule in rules[:GIVE_MAX]:
         line = _line(rule)
         if len(line) + 1 > room:
             break
         lines.append(line)
         room -= len(line) + 1
     return "\n".join([HEADER, *lines, CLOSING]) if lines else ""
+
+
+def merge(store: Path, other: Mapping[str, Any]) -> None:
+    """Fold another store's rules and marks into `store` (`memory_store.adopt`): one copy per
+    text, the newest; newest first, KEEP_MAX kept."""
+    with ep.locked(_path(store)):
+        data = load(store)
+        best: dict[str, dict[str, Any]] = {}
+        for rule in [*data["rules"], *(other.get("rules") or [])]:
+            if not isinstance(rule, Mapping) or not str(rule.get("text") or "").strip():
+                continue
+            key = _norm(str(rule["text"]))
+            if key not in best or float(rule.get("at") or 0) > float(best[key].get("at") or 0):
+                best[key] = dict(rule)
+        rules = sorted(best.values(), key=lambda r: -float(r.get("at") or 0))[:KEEP_MAX]
+        asked = list(dict.fromkeys([*(other.get("asked") or []), *data["asked"]]))[-2000:]
+        audited = list(dict.fromkeys([*(other.get(AUDITED) or []), *data[AUDITED]]))[-500:]
+        _save(store, {**data, "rules": rules, "asked": asked, AUDITED: audited})
 
 
 NEW_FILE_BYTES = 40_000
@@ -204,10 +264,15 @@ def _order(seed: str, n: int) -> list[int]:
 
 
 async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str, head: str,
-                paths: Sequence[str],
+                paths: Sequence[str], request: str = "", note: Note = _quiet,
+                deadline: float | None = None,
                 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:  # fmt: skip
     """(rules the request's diff confidently breaks, every probability). Once per request: the
-    mark is written when the answers are in, so a timeout leaves the request to be asked."""
+    mark is written when the answers are in, so a timeout leaves the request to be asked.
+    `request` is the request's prompt: a confirmed break it (or a newer stored rule) replaced is
+    not sent back (`superseded`), and `note` gets one row per such question. `deadline` is the
+    caller's (`time.monotonic()`): the supersession question gets what is left of it but
+    SUPERSEDE_RESERVE, so running late there sends back instead of losing the audit."""
     import asyncio
 
     from ..points import rules as points
@@ -270,6 +335,11 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
     if any(not isinstance(r, str) for r in first):  # unanswered: no mark, asked again (M1)
         return [], {"_failed": "memory_rule_relation"}
     confirmed = {i for i, r in zip(doubtful, first, strict=True) if r == "breaks"}
+    budget = SUPERSEDE_SECONDS if deadline is None else \
+        deadline - time.monotonic() - SUPERSEDE_RESERVE  # fmt: skip
+    replaced = await _replaced(squire, store, [held[i] for i in sorted(confirmed)], request,
+                               note, budget)  # fmt: skip
+    by_rule = dict(zip(sorted(confirmed), replaced, strict=True))
     with ep.locked(_path(store)):
         latest = load(store)
         if key in latest[AUDITED]:  # another Stop of this request got here first
@@ -279,10 +349,136 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
     # can be checked again on real sessions (L1).
     probabilities = {f"{i}:{str(r['text'])[:80]}": {"named": round(named[i], 3),
                                                     "kept": kept.get(i),
-                                                    "breaks_first": i in confirmed}
+                                                    "breaks_first": i in confirmed,
+                                                    **({"superseded": by_rule[i][0]}
+                                                       if i in by_rule and by_rule[i][0]
+                                                       is not None else {})}
                      for i, r in enumerate(held)}  # fmt: skip
-    broken = [held[i] for i in sorted(confirmed)]
+    broken = [held[i] for i in sorted(confirmed) if not by_rule[i][1]]
     return broken, probabilities
+
+
+def _newer(rule: Mapping[str, Any], stored: Sequence[Mapping[str, Any]], request: str,
+           ) -> list[tuple[str, str, str]]:  # fmt: skip
+    """(text, source, when) said after `rule`: the request's own sentences first (the newest),
+    then up to NEWER_MAX stored rules said after it, newest first; each text once."""
+    from ..points import rules as points
+
+    at = float(rule.get("at") or 0)
+    seen = {_norm(str(rule.get("text") or ""))}
+    out: list[tuple[str, str, str]] = []
+    for sentence in points.sentences(request):
+        if _norm(sentence) not in seen:
+            seen.add(_norm(sentence))
+            out.append((sentence, "request", "in the request being checked"))
+    later = sorted((r for r in stored if float(r.get("at") or 0) > at),
+                   key=lambda r: -float(r.get("at") or 0))  # fmt: skip
+    stored_out: list[tuple[str, str, str]] = []
+    for other in later:
+        text = str(other.get("text") or "")
+        if text.strip() and _norm(text) not in seen and len(stored_out) < NEWER_MAX:
+            seen.add(_norm(text))
+            stored_out.append((text, "stored", f"said {_when(other.get('at'))}, a stored rule"))
+    return [*out, *stored_out]
+
+
+def questions_for_superseded(rule: Mapping[str, Any], newer: Sequence[tuple[str, str, str]],
+                             ) -> tuple[Mapping[str, Any], dict[str, Choice]]:  # fmt: skip
+    """One Choice: `newer_<k>` is `newer[k - 1]`, and STANDS. Texts masked here: the options are
+    not in `state`, which is all the squire's redaction reaches (review of v8, H1)."""
+    from ..points.rules import SENTENCE_MAX
+    from ..redact import redact_secrets
+    from ..text import truncate
+
+    options = {f"newer_{k}": f'"{redact_secrets(truncate(text, SENTENCE_MAX))}" ({when})'
+               for k, (text, _, when) in enumerate(newer, 1)}  # fmt: skip
+    state = {"rule": redact_secrets(truncate(str(rule.get("text") or ""), SENTENCE_MAX)),
+             "rule_said": _when(rule.get("at"))}  # fmt: skip
+    question = Choice(SUPERSEDE_INSTRUCTIONS, {**options, STANDS: SUPERSEDE_STANDS})
+    return state, {"superseded": question}
+
+
+Replaced = tuple[float | None, bool]  # (the likeliest newer option's probability, suppress)
+
+
+async def _replaced(squire: Squire, store: Path, rules: Sequence[Mapping[str, Any]],
+                    request: str, note: Note, budget: float = SUPERSEDE_SECONDS,
+                    ) -> list[Replaced]:  # fmt: skip
+    """Per confirmed break, whether something said since replaced the rule, within `budget`
+    seconds. Late, failed or nothing newer: not suppressed (the send-back stands)."""
+    import asyncio
+
+    if not rules:
+        return []
+    # A newer rule another Stop wrote meanwhile counts too. This request's own sentences come
+    # from `request`: its rules are extracted beside the audit, maybe into another store (K4).
+    stored = load(store)["rules"]
+    late = [(None, False) for _ in rules]
+    if budget <= 0:
+        for rule in rules:
+            note({"event": "rules", "part": "superseded", "rule": str(rule["text"]),
+                  "failed": "no time left", "suppressed": False})  # fmt: skip
+        return late
+    try:
+        found = await asyncio.wait_for(asyncio.gather(
+            *(_replaced_one(squire, r, stored, request, note) for r in rules)), budget)
+    except TimeoutError:
+        for rule in rules:
+            note({"event": "rules", "part": "superseded", "rule": str(rule["text"]),
+                  "failed": f"timed out after {budget:.1f} s", "suppressed": False})  # fmt: skip
+        return late
+    return list(found)
+
+
+async def _replaced_one(squire: Squire, rule: Mapping[str, Any],
+                        stored: Sequence[Mapping[str, Any]], request: str, note: Note,
+                        ) -> Replaced:  # fmt: skip
+    newer = _newer(rule, stored, request)
+    if not newer:
+        return None, False
+    offered = {f"newer_{k}": item for k, item in enumerate(newer, 1)}
+    row: dict[str, Any] = {"event": "rules", "part": "superseded", "rule": str(rule["text"])}
+    try:
+        decision = await squire.decide("memory_rule_superseded",
+                                       *questions_for_superseded(rule, newer))  # fmt: skip
+        answer = decision.answer("superseded")
+        probs = {str(k): float(v) for k, v in (answer.probabilities or {}).items()}
+        failed = "decider failed" if decision.failed or answer.empty else ""
+    except Exception as error:  # noqa: BLE001 - fail open: the send-back stands
+        probs, failed = {}, f"error {error.__class__.__name__}"
+    named = [k for k in probs if k != STANDS]
+    if not failed and (STANDS not in probs or not named):
+        failed = "no probability for stands" if STANDS not in probs else "no newer option"
+    if not failed and any(k not in offered for k in named):
+        failed = "an option it was not offered"
+    if failed:
+        note({**row, "failed": failed, "suppressed": False})
+        return None, False
+    top = max(named, key=lambda k: probs[k])
+    p, stands = round(probs[top], 3), round(probs[STANDS], 3)
+    suppressed = p >= SUPERSEDED_AT and p > stands
+    text, source, _ = offered[top]
+    note({**row, "by": text, "source": source, "p": p, "stands": stands,
+          "suppressed": suppressed})  # fmt: skip
+    return p, suppressed
+
+
+async def extract_landed(squire: Squire, store: Path, session: str, cwd: str,
+                         episodes: Sequence[ep.Episode], note: Note = _quiet,
+                         ) -> list[str]:  # fmt: skip
+    """`extract` for each request into the store of the repository its changes landed in (K4,
+    `memory_store.landing`, which may call git: run off the event loop). The texts added."""
+    import asyncio
+
+    from . import memory_store
+
+    targets = await asyncio.to_thread(memory_store.landing, store, session, cwd, episodes)
+    elsewhere = {t.name: [e.key for e in v] for t, v in targets.items() if t != store}
+    if elsewhere:
+        note({"event": "rules", "part": "landing", "stores": elsewhere})
+    found = await asyncio.gather(*(extract(squire, target, eps)
+                                   for target, eps in targets.items()))  # fmt: skip
+    return [text for texts in found for text in texts]
 
 
 def block_reason(broken: Sequence[Mapping[str, Any]]) -> str:
