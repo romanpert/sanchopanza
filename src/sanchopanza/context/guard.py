@@ -110,10 +110,14 @@ class Guard:
     candidates: int
     chooser: str
     clipped: tuple[str, ...] = ()  # outputs the harness cut before the model saw them
+    # "lines": value lines of one-shot output (the rule and the decider choosers); "results":
+    # whole tool results chosen by structure (`context.structural`), with `pointers` to re-read
+    kind: str = "lines"
+    pointers: tuple[str, ...] = ()  # results left out that can be had again, named for re-reading
 
     @property
     def empty(self) -> bool:
-        return not (self.facts or self.requests or self.trail or self.clipped)
+        return not (self.facts or self.requests or self.trail or self.clipped or self.pointers)
 
 
 # ---- which calls, and which of their lines ----------------------------------------------------
@@ -644,18 +648,32 @@ async def build_with_judge(
     )
 
 
+LINES_HEADING = "Output of commands that cannot be run again (latest run of each):"
+RESULTS_HEADING = (
+    "Tool output from before the compaction, whole (the latest result on each file being "
+    "edited, then the most recent; output that cannot be had again first in each):"
+)
+POINTERS_HEADING = (
+    "Left out for room, and can be had again (read, search, fetch or run it again before "
+    "relying on it; newest first):"
+)
+
+
 def block(guard: Guard) -> str:
     """The text added after the summary. Empty when there is nothing to add."""
     if guard.empty:
         return ""
     parts = [HEADER]
     if guard.facts:
-        parts.append("Output of commands that cannot be run again (latest run of each):")
+        parts.append(RESULTS_HEADING if guard.kind == "results" else LINES_HEADING)
         groups: dict[str, list[str]] = {}
         for fact in guard.facts:
             groups.setdefault(fact.source, []).append(fact.line)
         for source, lines in groups.items():
             parts.append(f"{source}\n<<<output\n" + "\n".join(lines) + "\n>>>")
+    if guard.pointers:
+        parts.append(POINTERS_HEADING)
+        parts.extend(f"  {pointer}" for pointer in guard.pointers)
     if guard.clipped:
         parts.append(
             "Cut by the harness before it reached the conversation: the middle of these outputs "
@@ -680,9 +698,20 @@ INSTRUCTIONS = (
 )
 
 
+INSTRUCTIONS_RESULTS = (
+    "The harness will attach, right after your summary, the latest tool output on the files "
+    "being edited and the most recent output, whole, pointers to what can be read again, the "
+    "files changed and the person's requests verbatim. Do not spend the summary copying those. "
+    "Spend it on what they do not carry: why each step was taken, what was tried and failed, "
+    "decisions and their reasons, and exactly what remains to do."
+)
+
+
 def instructions(guard: Guard) -> str:
     """The `PreCompact` output: a note for the summariser. Empty when nothing will be attached."""
-    return "" if guard.empty else INSTRUCTIONS
+    if guard.empty:
+        return ""
+    return INSTRUCTIONS_RESULTS if guard.kind == "results" else INSTRUCTIONS
 
 
 def contains(text: str, value: str) -> bool:
