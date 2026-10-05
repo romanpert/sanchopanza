@@ -30,7 +30,25 @@ Environment: `SANCHOPANZA_EVALUATE_LIMIT_S` (default 120; a 50-page fetch crawl 
 takes well under that), `SANCHOPANZA_CRAWL_LINE=0` to keep the guard and drop the line,
 `SANCHOPANZA_CRAWL_LINE_VERSION=6` for line v6 (in development; v5 stays the default),
 `SANCHOPANZA_CRAWL_NOTES=1` for notes in each evaluate's result (`crawl_notes`, in development).
-Standard library only; fail open everywhere.
+
+v8, in development and off by default, from confirmation 4's misses (README 2026-10-03, section
+"Confirmation 4"); v7 is unchanged by any of it:
+
+- `SANCHOPANZA_CRAWL_NOTES=2`: v7's notes plus clicks that never changed the page's text and the
+  fetched JSON's rows against its distinct rows (`crawl_notes._V2`).
+- `SANCHOPANZA_CRAWL_ECHO=short`: a `PostToolUse` hook replaces the wrapper that Playwright MCP
+  echoes under `### Ran Playwright code` with one line, through `updatedToolOutput` (Claude Code
+  2.1.287 has it, and `updatedMCPToolOutput` for MCP tools only). The result and the notes are
+  left as they are. The echo was about 30 % of what Haiku's interactive tasks cost over the bare
+  harness.
+- `SANCHOPANZA_CRAWL_LINE_AT=prompt`: the line moves from `SessionStart` to `UserPromptSubmit`, and
+  is added only to a prompt that asks to gather (`GATHERS`) and does not ask to act (`ACTS`). The
+  guard and the notes stay on for every request.
+
+`install --crawl` wires only `SessionStart` and `PreToolUse`. The two events v8 adds are in
+`V8_HOOKS`. Whoever turns the echo cut or `LINE_AT=prompt` on must wire them too, or the echo is
+left alone and the line is never added.
+Standard library only (the echo cut reuses `autopilot`'s response walk); fail open everywhere.
 """
 
 from __future__ import annotations
@@ -77,22 +95,35 @@ STRATEGY_LINE_V6 = STRATEGY_LINE_V5.replace(
     "by its URL or id, never by its name. ",
 )
 LINES = {"5": STRATEGY_LINE_V5, "6": STRATEGY_LINE_V6}
+# v8 (development): the events `install --crawl` does not wire, for whoever turns v8 on.
+V8_HOOKS = {"PostToolUse": r"mcp__.*__browser_evaluate", "UserPromptSubmit": ""}
+# A request that gathers across pages, and one that acts on a site (confirmation 4's I1, I2).
+GATHERS = re.compile(
+    r"\b(?:how many|count(?:s|ing)?|totals?|sum|list all|every|across|number of)\b", re.I
+)
+ACTS = re.compile(
+    r"\b(?:log ?in|sign ?in|check ?out|add to (?:the |my )?cart|fill|submit|book|purchase)\b", re.I
+)
+ECHO = re.compile(r"### Ran Playwright code\n```js\n(.*?)\n```", re.S)
+ECHO_LINE = (
+    "### Ran Playwright code\nyour function, inside sanchopanza's evaluate guard (not repeated)"
+)
 DEFAULT_VERSION = "5"
 STRATEGY_LINE = LINES[DEFAULT_VERSION]
 
 
-def wrap(function: str, limit_s: int, notes: bool = False) -> str:
+def wrap(function: str, limit_s: int, notes: bool | int = False) -> str:
     """The same function, raced against a timer. Its arguments pass through untouched.
 
     The function sits on lines of its own, so a trailing `// comment` in it cannot swallow the
     parenthesis that closes it. With `notes`, the result also carries what the page and the
-    network said during the call (`crawl_notes`)."""
+    network said during the call (`crawl_notes`); `notes=2` is v8's notes, in development."""
     message = (
         f"evaluate stopped after {limit_s} s: the code did not return. Cap its loops, or fetch "
         "the data the page loads instead of waiting on the page."
     )
     if notes:
-        return wrap_with_notes(function, limit_s, message, MARK)
+        return wrap_with_notes(function, limit_s, message, MARK, version=int(notes))
     return (
         f"{MARK} async (...args) => {{ const run = (\n{function}\n); "
         f"let timer; const limit = new Promise((_, reject) => {{ timer = setTimeout("
@@ -112,12 +143,18 @@ def limit_seconds(env: Mapping[str, str] | None = None) -> int:
     return value if value > 0 else DEFAULT_LIMIT_S
 
 
-def notes_on(env: Mapping[str, str] | None = None) -> bool:
-    """`SANCHOPANZA_CRAWL_NOTES=1` turns the result notes on (in development; off by default)."""
-    return _env.get("CRAWL_NOTES", "", env).strip().lower() in {"1", "true", "yes", "on"}
+def notes_on(env: Mapping[str, str] | None = None) -> int:
+    """`SANCHOPANZA_CRAWL_NOTES=1` turns the result notes on (in development; off by default),
+    `2` turns on v8's: 0, 1 or 2."""
+    raw = _env.get("CRAWL_NOTES", "", env).strip().lower()
+    if raw == "2":
+        return 2
+    return 1 if raw in {"1", "true", "yes", "on"} else 0
 
 
-def guard(event: Mapping[str, Any], limit_s: int, notes: bool = False) -> dict[str, Any] | None:
+def guard(
+    event: Mapping[str, Any], limit_s: int, notes: bool | int = False
+) -> dict[str, Any] | None:
     """`PreToolUse`: the evaluate with its function wrapped, or None to leave the call alone."""
     if not EVALUATE.match(str(event.get("tool_name") or "")):
         return None
@@ -135,12 +172,51 @@ def guard(event: Mapping[str, Any], limit_s: int, notes: bool = False) -> dict[s
     }
 
 
-def strategy(env: Mapping[str, str] | None = None) -> dict[str, Any] | None:
-    """`SessionStart`: the line, unless switched off."""
+def strategy(
+    env: Mapping[str, str] | None = None, event: str = "SessionStart"
+) -> dict[str, Any] | None:
+    """The line, unless switched off: at `SessionStart`, or at `UserPromptSubmit` (v8)."""
     if _env.get("CRAWL_LINE", "1", env).strip().lower() in {"0", "false", "no", "off"}:
         return None
+    return {"hookSpecificOutput": {"hookEventName": event, "additionalContext": line_for(env)}}
+
+
+def line_at_prompt(env: Mapping[str, str] | None = None) -> bool:
+    """`SANCHOPANZA_CRAWL_LINE_AT=prompt` (v8, development): the line on gathering prompts only."""
+    return _env.get("CRAWL_LINE_AT", "", env).strip().lower() == "prompt"
+
+
+def gathers(prompt: str) -> bool:
+    """A request to gather data across pages, with no sign of acting on the site."""
+    return bool(GATHERS.search(prompt)) and not ACTS.search(prompt)
+
+
+def echo_cut_on(env: Mapping[str, str] | None = None) -> bool:
+    """`SANCHOPANZA_CRAWL_ECHO=short` (v8, development): cut the echoed wrapper."""
+    return _env.get("CRAWL_ECHO", "", env).strip().lower() == "short"
+
+
+def cut_echo(event: Mapping[str, Any]) -> dict[str, Any] | None:
+    """`PostToolUse` on an evaluate: the result with the echoed wrapper replaced by one line, or
+    None when no echo of our wrapper is in it (never an identity rewrite, which would race other
+    hooks' rewrites of the same result)."""
+    from .autopilot import replaced, text_field
+
+    if not EVALUATE.match(str(event.get("tool_name") or "")):
+        return None
+    response = event.get("tool_response")
+    found = text_field(response)
+    if found is None:
+        return None
+    path, text = found
+    new = ECHO.sub(lambda m: ECHO_LINE if MARK in m.group(1) else m.group(0), text)
+    if new == text:
+        return None
     return {
-        "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": line_for(env)}
+        "hookSpecificOutput": {
+            "hookEventName": "PostToolUse",
+            "updatedToolOutput": replaced(response, path, new),
+        }
     }
 
 
@@ -154,9 +230,14 @@ def line_for(env: Mapping[str, str] | None = None) -> str:
 def handle(event: Mapping[str, Any], env: Mapping[str, str] | None = None) -> dict | None:
     name = event.get("hook_event_name")
     if name == "SessionStart":
-        return strategy(env)
+        return None if line_at_prompt(env) else strategy(env)
     if name == "PreToolUse":
         return guard(event, limit_seconds(env), notes_on(env))
+    if name == "UserPromptSubmit" and line_at_prompt(env):
+        prompt = event.get("prompt")
+        return strategy(env, name) if isinstance(prompt, str) and gathers(prompt) else None
+    if name == "PostToolUse" and echo_cut_on(env):
+        return cut_echo(event)
     return None
 
 

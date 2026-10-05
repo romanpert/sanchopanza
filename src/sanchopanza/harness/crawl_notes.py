@@ -86,11 +86,61 @@ finally { clearTimeout(timer); window.fetch = of; } }
 """
 
 
-def wrap_with_notes(function: str, limit_s: int, message: str, mark: str) -> str:
+# Notes v2 (v8 in development, `SANCHOPANZA_CRAWL_NOTES=2`), each from a miss of confirmation 4
+# read by hand: clicks inside the call that never changed the page's text (G6: the rows were in
+# the DOM, paged by CSS, and were read again after every click), and the rows of the fetched JSON
+# against the distinct ones (G3: overlapping guessed pages, 332 rows of which 298 distinct). Both
+# give numbers and no advice. `click` is only observed: the original runs, and is put back.
+# Each (anchor, insertion, before) goes into v1's code beside the anchor, so v1's wrapper stays
+# byte for byte what confirmation 4 sealed.
+_V2 = (
+    (
+        "const of = window.fetch;",
+        "Object.assign(sp, {clicks: 0, still: 0, last: null, rows: 0, uniq: new Set()}); "
+        "const oc = window.HTMLElement && HTMLElement.prototype.click; "
+        "const txt = () => (document.body && document.body.textContent) || ''; "
+        "const ck = () => { if (sp.last !== null && txt() === sp.last) sp.still++; }; "
+        "if (oc) HTMLElement.prototype.click = function (...a) { ck(); sp.clicks++; "
+        "sp.last = txt(); return oc.apply(this, a); }; "
+        "const rowsOf = (t) => { if (t.length >= __MAXPARSE__ || !/^\\s*[[{]/.test(t)) return; "
+        "let j; try { j = JSON.parse(t); } catch (e) { return; } "
+        "const isRows = (a) => Array.isArray(a) && a.length > 0 "
+        "&& a.every((x) => x && typeof x === 'object' && !Array.isArray(x)); "
+        "let best = isRows(j) ? j : null; "
+        "if (!best && j && typeof j === 'object') for (const v of Object.values(j)) { "
+        "if (isRows(v) && (!best || v.length > best.length)) best = v; } "
+        "if (best) for (const x of best) { sp.rows++; sp.uniq.add(JSON.stringify(x)); } };",
+        False,
+    ),
+    ("then((t) => { let k = t;", "rowsOf(t);", False),
+    (
+        "if (!sp.n && document.body) {",
+        "if (sp.rows) out.push('fetched JSON rows ' + sp.rows + ', distinct ' + sp.uniq.size "
+        "+ '.'); ck(); if (sp.clicks >= 2 && sp.still === sp.clicks) out.push(sp.clicks "
+        "+ ' clicks did not change the page text: the rows were already loaded.');",
+        True,
+    ),
+    ("window.fetch = of;", "if (oc) HTMLElement.prototype.click = oc;", False),
+)
+
+
+def _with_v2(code: str) -> str:
+    for anchor, insertion, before in _V2:
+        if code.count(anchor) != 1:
+            raise ValueError(f"notes v2: the anchor {anchor!r} is not in v1's code once")
+        joined = f"{insertion} {anchor}" if before else f"{anchor} {insertion}"
+        code = code.replace(anchor, joined)
+    return code
+
+
+def wrap_with_notes(function: str, limit_s: int, message: str, mark: str, version: int = 1) -> str:
     """`crawl_hook.wrap`'s time limit, plus the notes. `mark` (the guard's own) goes first so
     the guard still recognises a call it has already wrapped. The function keeps lines of its
-    own, so a trailing `// comment` in it cannot swallow what follows."""
+    own, so a trailing `// comment` in it cannot swallow what follows. `version` 2 adds the
+    click and JSON-row notes (`_V2`); 1 is v7's wrapper, unchanged."""
     code = " ".join(line.strip() for line in _TEMPLATE.strip().splitlines())
+    if version >= 2:
+        code = _with_v2(code)
     for key, value in (
         ("__NOTES_MARK__", NOTES_MARK),
         ("__MAXPARSE__", str(MAX_PARSE_CHARS)),

@@ -30,23 +30,33 @@ globalThis.ORIGINAL_FETCH = globalThis.fetch;
 globalThis.DOMParser = class { parseFromString(t) {
   return {querySelectorAll: () => [], body: {textContent: t.replace(/<[^>]+>/g, ' ')}}; } };
 const PAGE = __PAGE__;
+globalThis.HTMLElement = class { click() { if (this.onclick) this.onclick(); } };
+globalThis.ORIGINAL_CLICK = HTMLElement.prototype.click;
 globalThis.document = {
-  body: {innerText: PAGE.text},
+  body: {innerText: PAGE.text, textContent: PAGE.text},
   querySelectorAll: () => PAGE.links.map((x) => ({textContent: x})),
   querySelector: () => (PAGE.next ? {href: PAGE.next} : null),
 };
 """
 
 
-def _run(function: str, routes: dict | None = None, page: dict | None = None, limit_s: int = 5):
+def _run(
+    function: str,
+    routes: dict | None = None,
+    page: dict | None = None,
+    limit_s: int = 5,
+    notes_version: int = 1,
+):
     page = {"text": "", "links": [], "next": "", **(page or {})}
-    wrapped = crawl.wrap(function, limit_s, notes=True)
+    wrapped = crawl.wrap(function, limit_s, notes=notes_version)
     script = (
         STUB.replace("__ROUTES__", json.dumps(routes or {})).replace("__PAGE__", json.dumps(page))
         + f"const f = {wrapped};\n"
         "const say = (o) => { console.log(JSON.stringify(o)); process.exit(0); };\n"
-        "f().then((v) => say({ok: v, restored: window.fetch === ORIGINAL_FETCH}),"
-        " (e) => say({err: String(e.message || e), restored: window.fetch === ORIGINAL_FETCH}));"
+        "const back = () => window.fetch === ORIGINAL_FETCH"
+        " && HTMLElement.prototype.click === ORIGINAL_CLICK;"
+        "f().then((v) => say({ok: v, restored: back()}),"
+        " (e) => say({err: String(e.message || e), restored: back()}));"
     )
     done = subprocess.run([NODE, "-e", script], capture_output=True, text=True, encoding="utf-8",
                           timeout=30)  # fmt: skip
@@ -148,8 +158,90 @@ def test_the_notes_are_off_unless_asked_for(raw, on):
     assert (notes.NOTES_MARK in out["hookSpecificOutput"]["updatedInput"]["function"]) is on
 
 
+@pytest.mark.parametrize("version", [1, 2])
 @pytest.mark.parametrize(
     "function", ["() => 41 + 1", "() => 42 // the answer", "function () { return 42; }"]
 )
-def test_code_that_returns_with_nothing_to_note_returns_what_it_always_returned(function):
-    assert _run(function)["ok"] == 42
+def test_code_that_returns_with_nothing_to_note_returns_what_it_always_returned(function, version):
+    assert _run(function, notes_version=version) == {"ok": 42, "restored": True}
+
+
+# --- notes v2 (v8 in development, `SANCHOPANZA_CRAWL_NOTES=2`): clicks and JSON rows ---------
+
+PAGER = (
+    "async () => { const b = new HTMLElement(); b.onclick = () => { %s };"
+    " for (let i = 0; i < 4; i++) { b.click(); await new Promise((r) => setTimeout(r, 5)); }"
+    " return 40; }"
+)
+
+
+def test_clicks_that_never_changed_the_page_text_are_counted_with_no_advice():
+    out = _run(PAGER % "", page={"text": "Name Last 40 rows"}, notes_version=2)
+    assert out["restored"] is True, "click and fetch are put back"
+    assert out["ok"]["result"] == 40
+    assert (
+        "4 clicks did not change the page text: the rows were already loaded"
+        in (out["ok"]["sanchopanza"])
+    )
+
+
+def test_clicks_that_changed_the_page_text_say_nothing():
+    turn = "document.body.textContent += ' next';"
+    out = _run(PAGER % turn, page={"text": "Name Last"}, notes_version=2)
+    assert out == {"ok": 40, "restored": True}
+
+
+def test_one_click_is_not_enough_for_a_note():
+    one = "() => { new HTMLElement().click(); return 1; }"
+    assert _run(one, notes_version=2)["ok"] == 1
+
+
+def test_fetched_json_rows_are_counted_total_and_distinct_with_no_advice():
+    routes = {
+        "/api?page=1": [200, json.dumps({"total": 3, "results": [{"id": 1}, {"id": 2}]})],
+        "/api?page=2": [200, json.dumps({"total": 3, "results": [{"id": 2}, {"id": 3}]})],
+        "/flat": [200, json.dumps([{"id": 9}])],
+    }
+    code = (
+        "async () => { for (const u of ['/api?page=1', '/api?page=2', '/flat'])"
+        " JSON.parse(await (await fetch(u)).text()); return 4; }"
+    )
+    out = _run(code, routes, notes_version=2)
+    assert out["ok"]["result"] == 4 and out["restored"] is True
+    note = out["ok"]["sanchopanza"]
+    assert "fetched JSON rows 5, distinct 4." in note
+    assert "should" not in note and "dedup" not in note
+
+
+def test_html_and_json_with_no_rows_are_not_counted():
+    routes = {"/p": [200, "<body>one</body>"], "/n": [200, json.dumps({"count": 2})]}
+    code = "async () => { for (const u of ['/p', '/n']) await (await fetch(u)).text(); return 1; }"
+    assert _run(code, routes, notes_version=2)["ok"] == 1
+
+
+def test_v7s_notes_do_not_count_rows_or_clicks():
+    routes = {"/a": [200, json.dumps([{"id": 1}, {"id": 1}])]}
+    fetched = "async () => { await (await fetch('/a')).text(); return 1; }"
+    assert _run(fetched, routes, notes_version=1)["ok"] == 1
+    assert _run(PAGER % "", notes_version=1)["ok"] == 40
+
+
+def test_notes_v2_keep_v7s_notes_and_its_time_limit():
+    page = {"text": "Showing 1 to 10 of 57 entries"}
+    assert (
+        "Showing 1 to 10 of 57 entries"
+        in _run("() => 3", page=page, notes_version=2)["ok"]["sanchopanza"]
+    )
+    hung = "async () => { while (true) { await new Promise((r) => setTimeout(r, 10)); } }"
+    out = _run(hung, limit_s=1, notes_version=2)
+    assert "stopped after 1 s" in out["err"] and out["restored"] is True
+
+
+def test_v7s_sealed_wrapper_is_unchanged_by_v2():
+    import hashlib
+
+    sealed = "9ad6a00ef38827c3d304fdac7db813b602891770605a3f006ba1eebbe46e1b67"
+    wrapped = crawl.wrap("() => 1", 120, notes=True)
+    assert hashlib.sha256(wrapped.encode()).hexdigest() == sealed
+    assert crawl.wrap("() => 1", 120, notes=1) == wrapped
+    assert crawl.wrap("() => 1", 120, notes=2) != wrapped
