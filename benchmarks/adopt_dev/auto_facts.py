@@ -62,19 +62,38 @@ def _path_of(call: Any, work: str) -> str:
     return relative(raw, work) if raw else ""
 
 
+SHELL = frozenset({"Bash", "PowerShell"})
+
+
+def names_shown(call: Any, paths: set[str]) -> bool:
+    """A shell call whose command names a shown file (`sed -n 1,80p django/x.py`, `cat ...`)."""
+    if call.name not in SHELL:
+        return False
+    command = str(call.input.get("command") or "").replace("\\", "/").lower()
+    return any(path in command for path in paths)
+
+
 def after_fire(calls: list[Any], fire: int, shown: list[str], work: str) -> dict[str, Any]:
-    """What the agent did after the call the hook fired on (`fire`, 1-based)."""
+    """What the agent did after the call the hook fired on (`fire`, 1-based): a Read of a shown
+    file, and apart from it a shell command naming one (Haiku often reads with sed/cat)."""
     paths = {key.rsplit(":", 1)[0].lower() for key in shown}
     rest = list(enumerate(calls[fire:], fire + 1))
     reads = [(n, _path_of(c, work)) for n, c in rest if c.name == "Read"]
     shown_reads = [n for n, path in reads if path in paths]
+    shells = [n for n, c in rest if names_shown(c, paths)]
     following = calls[fire] if fire < len(calls) else None
+    follows = following is not None and (
+        (following.name == "Read" and _path_of(following, work) in paths)
+        or names_shown(following, paths))  # fmt: skip
     return {
         "next_call": None if following is None else {"name": following.name,
                                                      "path": _path_of(following, work)},
+        "next_call_follows": follows,
         "next_read_is_shown": bool(reads) and reads[0][1] in paths,
         "first_shown_read_call": shown_reads[0] if shown_reads else None,
         "calls_to_shown_read": (shown_reads[0] - fire) if shown_reads else None,
+        "first_shown_shell_call": shells[0] if shells else None,
+        "calls_to_shown_shell": (shells[0] - fire) if shells else None,
     }  # fmt: skip
 
 
@@ -95,8 +114,9 @@ def describe(evidence: Path, gold: list[str], patch: str, record: Mapping[str, A
     return {
         **facts,
         "auto": {
-            "journal": [{k: r.get(k) for k in ("outcome", "search", "tool", "tool_use_id",
-                                               "keys", "jev_usd", "seconds")} for r in rows],
+            "journal": [{k: r.get(k) for k in ("outcome", "search", "tool", "tool_use_id", "keys",
+                                               "jev_usd", "seconds", "waited_s",
+                                               "index_build_s")} for r in rows],
             "expected_fire_call": expected_fire(calls, work),
             "fired": shown_row is not None,
             "fire_call": fire,

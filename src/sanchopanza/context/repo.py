@@ -31,6 +31,7 @@ import os
 import subprocess
 import sys
 import threading
+import time
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath
 from typing import Any
@@ -275,18 +276,46 @@ def source_first(root: Path) -> tuple[list[Candidate], SourceFirst]:
     return candidates, SourceFirst(index, _CACHE[str(root.resolve())].source)
 
 
+@dataclass
+class _Warm:
+    thread: threading.Thread
+    seconds: float | None = None  # the build's, once it finished
+
+
+_WARM: dict[str, _Warm] = {}
+
+
 def warm(root: Path) -> threading.Thread:
     """Build `root`'s index on a daemon thread (a server warms it at start, so a hook that fires
     later does not wait the build: 35 s median on 74 SWE-bench repositories before the ASCII
-    tokeniser path). A failure leaves nothing ready; `ready_index` then says None."""
+    tokeniser path, ~37 s on a loaded machine after it). Once per root: a second call returns the
+    same thread. A failure leaves nothing ready; `ready_index` then says None."""
+    key = str(root.resolve())
+    if key in _WARM:
+        return _WARM[key].thread
 
     def build() -> None:
+        started = time.monotonic()
         with contextlib.suppress(Exception):
             source_first(root)
+        _WARM[key].seconds = round(time.monotonic() - started, 2)
 
     thread = threading.Thread(target=build, name="sanchopanza-find-warm", daemon=True)
+    _WARM[key] = _Warm(thread)
     thread.start()
     return thread
+
+
+def warming(root: Path) -> threading.Thread | None:
+    """The warm thread of `root` while it is still building, else None."""
+    found = _WARM.get(str(root.resolve()))
+    return found.thread if found is not None and found.thread.is_alive() else None
+
+
+def build_seconds(root: Path) -> float | None:
+    """How long the warm build of `root` took, once it finished (None before, or never warmed)."""
+    found = _WARM.get(str(root.resolve()))
+    return found.seconds if found is not None else None
 
 
 def ready_index(root: Path) -> tuple[list[Candidate], SourceFirst] | None:

@@ -169,12 +169,21 @@ def add_find(server: Any, *, repo: Path | None = None, squire: Any = None) -> An
 
 def add_find_auto(server: Any, *, repo: Path | None = None, warm: bool = True) -> Any:
     """`find_auto`: the find-auto hook's tool (`harness.find_auto`), hidden from the model. The
-    repository's index is warmed on a background thread now, so a fire later is a query."""
+    repository's index is warmed on a background thread now, so a fire later is a query.
+
+    Not registered when the server's `tool()` cannot carry `meta`: without
+    `_meta.ui.visibility: ["app"]` the model would see it. The hook's call then fails, which
+    Claude Code treats as a non-blocking hook error: nothing reaches the model (fail open)."""
     import inspect
+    import sys
 
     from ..context.repo import warm as warm_index
     from .find_auto import DESCRIPTION, HIDDEN, TOOL, respond
 
+    if "meta" not in inspect.signature(server.tool).parameters:
+        sys.stderr.write("sanchopanza: this mcp cannot hide a tool from the model (no meta); "
+                         "find_auto not served\n")  # fmt: skip
+        return server
     where = repo or Path.cwd()
     if warm:
         warm_index(where)
@@ -198,10 +207,7 @@ def add_find_auto(server: Any, *, repo: Path | None = None, warm: bool = True) -
 
     names = inspect.signature(find_auto).parameters
     find_auto.__annotations__ = {**dict.fromkeys(names, str), "return": str}  # objects, not text
-    options: dict[str, Any] = {"name": TOOL, "description": DESCRIPTION}
-    if "meta" in inspect.signature(server.tool).parameters:
-        options["meta"] = HIDDEN
-    server.tool(**options)(find_auto)
+    server.tool(name=TOOL, description=DESCRIPTION, meta=HIDDEN)(find_auto)
     return server
 
 
@@ -380,7 +386,6 @@ def main(argv: list[str] | None = None) -> int:
     import argparse
 
     from .. import _env
-    from .claude_code import squire_from_env
 
     parser = argparse.ArgumentParser(prog="python -m sanchopanza.harness.mcp")
     parser.add_argument("--tools", default="archive,find")
@@ -391,6 +396,10 @@ def main(argv: list[str] | None = None) -> int:
     unknown = sorted(set(wanted) - set(TOOL_SETS))
     if unknown:
         parser.error(f"unknown tool sets {unknown}; known: {list(TOOL_SETS)}")
+    if "find_auto" in wanted:  # before anything else: the MCP import alone takes ~1.5 s
+        from ..context.repo import warm
+
+        warm(Path.cwd())
     server = _server(args.name, FIND_INSTRUCTIONS) if "find" in wanted else _server(args.name)
     if "archive" in wanted:
         from ..context.archive import root_for
@@ -398,9 +407,11 @@ def main(argv: list[str] | None = None) -> int:
         add_archive(server, root_for(Path.cwd(), override=args.archive or _env.get("ARCHIVE")))
     if "find" in wanted:
         add_find(server)
-    if "find_auto" in wanted:  # the find-auto hook's tool: warms the index now
+    if "find_auto" in wanted:  # the find-auto hook's tool (its index is warming already)
         add_find_auto(server)
     if "decisions" in wanted:
+        from .claude_code import squire_from_env
+
         add_decisions(server, squire_from_env())
     if "label" in wanted:
         add_label(server)

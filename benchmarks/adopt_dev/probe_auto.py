@@ -125,6 +125,11 @@ def after_session(record: dict[str, Any]) -> None:
         raise base.Stop(f"{name} S: find_in_repo not visible ({facts['find_hidden']})")
     if why := wiring_problem(OUT / name / ARM):
         raise base.Stop(f"{name} S: {why}")
+    outcomes = {row.get("outcome") for row in auto.get("journal") or []}
+    if auto.get("expected_fire_call") and outcomes == {"not_ready"}:
+        raise base.Stop(f"{name} S: the rule was due and the index was never ready in time "
+                        f"(waited {[r.get('waited_s') for r in auto['journal']]} s): the probe "
+                        "would pay to measure build time")  # fmt: skip
     if auto.get("expected_fire_call") and not auto.get("journal"):
         raise base.Stop(
             f"{name} S: the rule should have fired after call "
@@ -231,7 +236,9 @@ def row_of(name: str) -> dict[str, Any] | None:
         "shown_gold_first",
         "next_call",
         "next_read_is_shown",
+        "next_call_follows",
         "calls_to_shown_read",
+        "calls_to_shown_shell",
         "injected_in_transcript",
         "jev_usd",
     )
@@ -262,6 +269,9 @@ def summary() -> dict[str, Any]:
         "shown_gold_file": sum(bool(r["shown_gold_file"]) for r in ran),
         "shown_gold_hunk": sum(bool(r["shown_gold_hunk"]) for r in ran),
         "next_read_shown": sum(bool(r["next_read_is_shown"]) for r in ran),
+        "next_call_follows": sum(bool(r["next_call_follows"]) for r in ran),
+        "shown_read_later": sum(r["calls_to_shown_read"] is not None for r in ran),
+        "shown_named_in_shell_later": sum(r["calls_to_shown_shell"] is not None for r in ran),
         "resolved": sum(bool(r["resolved"]) for r in ran),
         "graded": sum(r["resolved"] is not None for r in ran),
         "hard": sum(_hard(r["searches_before_gold_read"]) for r in ran),

@@ -163,5 +163,42 @@ def test_a_rule_that_should_have_fired_without_a_journal_stops(
     record = {"instance": "x", "calls": [{}]}
     with pytest.raises(base.Stop, match="journalled nothing"):
         auto.after_session(record)
-    facts["auto"]["journal"] = [{"outcome": "not_ready"}]
-    auto.after_session(record)  # it ran, it just found the index not ready
+    facts["auto"]["journal"] = [{"outcome": "nothing_kept"}]
+    auto.after_session(record)  # it ran, and the judge kept nothing
+
+
+def test_a_shell_command_naming_a_shown_file_counts_apart_from_a_read() -> None:
+    from benchmarks.find_need.replay import Call
+
+    from .auto_facts import after_fire
+
+    calls = [Call("Grep", {"pattern": "a"}),
+             Call("Bash", {"command": r"sed -n 1,80p .\pkg\Compiler.py"}),
+             Call("Grep", {"pattern": "b"}),
+             Call("Read", {"file_path": f"{WORK}/pkg/compiler.py"})]  # fmt: skip
+    got = after_fire(calls, 1, ["pkg/compiler.py:1-9"], WORK)
+    assert got["next_call_follows"] and got["next_read_is_shown"]
+    assert got["first_shown_shell_call"] == 2 and got["calls_to_shown_shell"] == 1
+    assert got["first_shown_read_call"] == 4 and got["calls_to_shown_read"] == 3
+    other = after_fire(calls, 1, ["pkg/other.py:1-3"], WORK)
+    assert not other["next_call_follows"] and other["calls_to_shown_shell"] is None
+
+
+def test_a_session_whose_only_outcome_was_not_ready_stops(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(auto, "OUT", tmp_path)
+    folder = tmp_path / "x" / "S"
+    folder.mkdir(parents=True)
+    for name in ("settings.json", "mcp.json"):
+        (folder / name).write_text((_wired(tmp_path, ["find-mcp", "--auto"]) / name).read_text())
+    journal = [
+        {"outcome": "not_ready", "waited_s": 30.0},
+        {"outcome": "not_ready", "waited_s": 30.0},
+    ]
+    facts = {"auto": {"expected_fire_call": 4, "journal": journal}}
+    monkeypatch.setattr(auto, "session_facts", lambda _n: facts)
+    with pytest.raises(base.Stop, match="never ready in time"):
+        auto.after_session({"instance": "x", "calls": [{}]})
+    facts["auto"]["journal"] = [*journal, {"outcome": "fired"}]
+    auto.after_session({"instance": "x", "calls": [{}]})  # ready late, but it fired

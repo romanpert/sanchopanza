@@ -25,8 +25,10 @@ non-doc file (a Write to a path never Read creates a file and does not close it)
 calls are not counted (the replay counted the main thread only). At fire time the transcript is
 replayed too, so a source Read whose event the hook missed still closes it.
 
-Fails open, and says so in the journal (kind `find_auto`, with the query, the keys shown and the
-Jev cost): nothing is added when the index is not built yet (the trigger stays armed for the next
+Fails open, and says so in the journal (kind `find_auto`, with the query, the keys shown, the Jev
+cost, the seconds waited for the index and its build time): when the rule is due and the warm
+build is still running, it waits for it up to `WAIT_S`, and the judge gets the rest of the hook's
+time; nothing is added when the index is still not built (the trigger stays armed for the next
 search in the window), when the judge errs or leaves every fragment unanswered, when it keeps
 nothing, past the session's Jev ceiling (`SESSION_MAX_USD`, the loop hook's ledger), or on any
 error. Without a decider the free BM25 top 5 is shown, as find_in_repo shows it without a key.
@@ -59,6 +61,12 @@ NTH = 4  # R4
 K = 5
 SHORTLIST = 60
 HOOK_TIMEOUT_S = 45
+# When the rule is due and the warm build is still running, wait for it up to WAIT_S (on a loaded
+# machine the build took ~37 s; the 4th search comes 16-28 s into a need session). The judge then
+# gets what is left of the hook's time, minus a margin, up to JUDGE_TIMEOUT_S: at least 12 s, and
+# a triage call of ca6033a took 0.31 s median, 0.94 s at most (a tournament is two rounds).
+WAIT_S = 30
+MARGIN_S = 3
 JUDGE_TIMEOUT_S = 30
 QUERY_JOURNAL_CHARS = 2_000
 HEADER = ("sanchopanza ran find_in_repo for this request; these are the likeliest places "
@@ -291,7 +299,8 @@ def squire_from_env_capped(remaining_usd: float) -> Any:
     return squire.fork(thresholds=replace(squire.thresholds, max_usd=cap))
 
 
-async def rank(query: str, root: Path, squire: Any) -> tuple[str, list[Any]]:
+async def rank(query: str, root: Path, squire: Any, timeout: float = JUDGE_TIMEOUT_S
+               ) -> tuple[str, list[Any]]:  # fmt: skip
     """(outcome, places): `fired`/`free` with the top K, or why nothing is shown."""
     from ..context.repo import PURPOSE, ready_index
     from ..select import select
@@ -311,7 +320,7 @@ async def rank(query: str, root: Path, squire: Any) -> tuple[str, list[Any]]:
                 keep=K,
                 index=index,
             ),  # fmt: skip
-            timeout=JUDGE_TIMEOUT_S,
+            timeout=timeout,
         )
     except TimeoutError:
         return "judge_failed", []
@@ -322,6 +331,19 @@ async def rank(query: str, root: Path, squire: Any) -> tuple[str, list[Any]]:
     if all(p.p is None for p in picks):  # an error, or nothing answered: the free order
         return "judge_failed", []
     return "fired", [p.candidate for p in picks]
+
+
+async def wait_ready(root: Path, bound: float) -> float:
+    """Wait for `root`'s warm build up to `bound` seconds when it is still running; the seconds
+    waited (0 when it was ready, or when nothing is building it)."""
+    from ..context.repo import ready_index, warming
+
+    thread = warming(root)
+    if ready_index(root) is not None or thread is None:
+        return 0.0
+    started = time.monotonic()
+    await asyncio.to_thread(thread.join, bound)
+    return round(time.monotonic() - started, 2)
 
 
 def _journal(data: Mapping[str, Any]) -> None:
@@ -411,15 +433,21 @@ async def _respond(values: Mapping[str, str], root: Path,
         _close(session, "ceiling")
         _journal({**basics, "outcome": "ceiling"})
         return "{}"
-    from ..context.repo import ready_index
+    from ..context.repo import build_seconds, ready_index
 
-    if ready_index(root) is None or not query.strip():
-        _journal({**basics, "outcome": "not_ready" if query.strip() else "no_query"})
+    if not query.strip():
+        _journal({**basics, "outcome": "no_query"})
+        return "{}"
+    waited = await wait_ready(root, WAIT_S)
+    basics = {**basics, "waited_s": waited, "index_build_s": build_seconds(root)}
+    if ready_index(root) is None:
+        _journal({**basics, "outcome": "not_ready"})
         return "{}"  # stays armed: the next search in the window tries again
     if not claim(_state_path(session)):
         return "{}"  # another call of this session fired already
     squire = squire_for(remaining)
-    outcome, shown = await rank(query, root, squire)
+    judge_s = min(JUDGE_TIMEOUT_S, HOOK_TIMEOUT_S - MARGIN_S - waited)
+    outcome, shown = await rank(query, root, squire, judge_s)
     _close(session, "fired" if shown else outcome)
     _charge(session, squire)
     cost = float(getattr(getattr(squire, "meter", None), "cost_usd", 0.0) or 0.0)

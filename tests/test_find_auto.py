@@ -477,3 +477,94 @@ def test_the_judge_is_capped_by_what_is_left_of_the_session(
     squire = find_auto.squire_from_env_capped(0.03)
     assert squire is not None and squire.thresholds.max_usd == pytest.approx(0.03)
     assert find_auto.squire_from_env_capped(5.0).thresholds.max_usd == pytest.approx(0.10)
+
+
+def _slow_build(monkeypatch: pytest.MonkeyPatch, seconds: float) -> None:
+    import time
+
+    real = repo.source_first
+
+    def slow(project: Path) -> Any:
+        time.sleep(seconds)
+        return real(project)
+
+    monkeypatch.setattr(repo, "source_first", slow)
+
+
+def test_a_due_rule_waits_for_the_warm_build_then_fires(
+    root: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _slow_build(monkeypatch, 0.6)
+    repo.warm(root)
+    asked: list[float] = []
+    real_rank = find_auto.rank
+
+    async def rank(query: str, project: Path, squire: Any, timeout: float = 0) -> Any:
+        asked.append(timeout)
+        return await real_rank(query, project, squire, timeout)
+
+    monkeypatch.setattr(find_auto, "rank", rank)
+    assert context(four_searches(root, Judge())[-1])
+    [row] = journal(root)
+    assert row["data"]["outcome"] == "fired" and row["data"]["waited_s"] > 0
+    assert row["data"]["index_build_s"] >= 0.6
+    budget = find_auto.HOOK_TIMEOUT_S - find_auto.MARGIN_S - row["data"]["waited_s"]
+    assert asked == [pytest.approx(min(find_auto.JUDGE_TIMEOUT_S, budget))]
+
+
+def test_the_wait_is_bounded_and_the_rule_stays_armed(
+    root: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _slow_build(monkeypatch, 1.5)
+    monkeypatch.setattr(find_auto, "WAIT_S", 0.2)
+    thread = repo.warm(root)
+    assert four_searches(root, Judge())[-1] == {}
+    [row] = journal(root)
+    assert row["data"]["outcome"] == "not_ready" and 0.1 < row["data"]["waited_s"] < 1.0
+    assert row["data"]["index_build_s"] is None
+    thread.join(timeout=30)
+    assert context(run(root, grep(root, "converters"), Judge()))
+    assert journal(root)[-1]["data"]["waited_s"] == 0.0
+
+
+def test_the_judge_gets_at_least_twelve_seconds_after_the_longest_wait() -> None:
+    least = find_auto.HOOK_TIMEOUT_S - find_auto.MARGIN_S - find_auto.WAIT_S
+    assert least >= 12 and find_auto.WAIT_S + find_auto.MARGIN_S + least <= 45
+
+
+def test_a_server_that_cannot_hide_a_tool_does_not_serve_find_auto(
+    root: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from sanchopanza.harness import mcp
+
+    registered: list[str] = []
+
+    class Plain:
+        def tool(self, name: str | None = None, description: str | None = None) -> Any:
+            return lambda fn: registered.append(name or fn.__name__) or fn
+
+    mcp.add_find_auto(Plain(), repo=root)
+    assert registered == [] and "find_auto not served" in capsys.readouterr().err
+    assert str(root.resolve()) not in repo._WARM  # and nothing is built for it
+
+
+def test_the_server_warms_before_it_imports_the_mcp_sdk(
+    root: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from sanchopanza.harness import mcp
+
+    monkeypatch.chdir(root)
+    seen: list[bool] = []
+
+    class Stop(Exception):
+        pass
+
+    def server(*_a: Any, **_k: Any) -> Any:
+        seen.append(str(root.resolve()) in repo._WARM)
+        raise Stop
+
+    monkeypatch.setattr(mcp, "_server", server)
+    with pytest.raises(Stop):
+        mcp.main(["--tools", "find,find_auto"])
+    assert seen == [True]
+    repo._WARM[str(root.resolve())].thread.join(timeout=60)
