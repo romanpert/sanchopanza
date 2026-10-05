@@ -16,6 +16,10 @@ instead, no failing test, and no overlapping hunk.
 What grades a bug later: its FAIL_TO_PASS, and PASS_TO_PASS* = the PASS_TO_PASS tests that pass
 when only that bug is fixed (tests another open bug breaks are not held against this one).
 Writes chains-validated.json; the Docker tags stay for the sessions (`docker_env.drop` after).
+
+long60 chains (`long.py`, `grader: per_bug`) are validated by `isolate` instead: bugs that
+interact are dropped (their culprits, as `masking.culprits` names them) and refilled from the
+spares, and the chain carries the guard its per-bug grade uses (`perbug.py`).
 """
 
 from __future__ import annotations
@@ -36,6 +40,7 @@ import docker_env  # noqa: E402
 import extra  # noqa: E402
 import long  # noqa: E402
 import masking  # noqa: E402
+import perbug  # noqa: E402
 import related  # noqa: E402
 import run  # noqa: E402
 from chains import CACHE, files_of, full  # noqa: E402
@@ -224,10 +229,11 @@ def main() -> int:
         return 0
     wanted = sys.argv[1]
     chains = with_extra([*full(), *related.full(), *long.full()])
-    for chain in chains:
+    built = [c for c in long.full60() if c["split"] != "reserve"]  # reserve: written down only
+    for chain in [*chains, *built]:
         if wanted not in ("all", chain["chain"]):
             continue
-        result = validate(chain)
+        result = perbug.isolate(chain) if chain.get("grader") == "per_bug" else validate(chain)
         save(result)
         print(chain["chain"], "valid" if result["valid"] else "INVALID", result["history"],
               f"{result['seconds']} s", flush=True)

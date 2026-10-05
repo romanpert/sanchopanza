@@ -3,6 +3,7 @@
     python benchmarks/adopt/run.py plan  [--split dev]           # free: tasks, arms, caps
     python benchmarks/adopt/run.py run   --chains a,b --ceiling 6.0 [--model haiku]
     python benchmarks/adopt/run.py grade --chains a,b            # Docker, free
+    python benchmarks/adopt/run.py dry   --chains a              # long60: all but the model
     ... --arms Nf,Sf                                             # other arms (ARM_SPECS)
 
 One chain = one Claude Code session per arm: the chain's bugs are asked one after another, each
@@ -125,6 +126,8 @@ def chain_digest(chain: dict[str, Any]) -> str:
     """sha256 of what a chain's sessions and grade read from the cache: image, tag and bugs
     (prompts, patches, FAIL_TO_PASS, PASS_TO_PASS*). The sealed summary keeps it."""
     body = {k: chain.get(k) for k in ("image", "tag", "bugs")}
+    # long60: the guard and the token decide its grade too (absent keys: the digest as it was)
+    body = {**body, **{k: chain[k] for k in ("guard", "token") if k in chain}}
     return hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
@@ -519,7 +522,8 @@ def one_chain(
         if spec.install is not None:
             mcp = install_sancho(work, evidence, keyfile, spec.install)
     env = child_env(chain["tag"], base)
-    for k, bug in enumerate(chain["bugs"], start=1):
+    asks = requests_of(chain)
+    for k, bug in enumerate(asks, start=1):
         if k <= len(rows):
             continue
         chain_cost = sum(r["cost_usd"] for r in rows)
@@ -527,7 +531,7 @@ def one_chain(
             rows.append({"request": k, "status": "NOT RUN (cap)", "cost_usd": 0.0})
             continue
         stream = evidence / f"stream-{k}.jsonl"
-        prompt = PROMPT.format(issue=bug["problem_statement"].strip())
+        prompt = bug["prompt"]
         if spec.fresh:
             session = None  # a new session per request, in the same working copy
         restored = restore_install(work, evidence) if spec.install is not None else []
@@ -551,7 +555,7 @@ def one_chain(
             tail = err.read_text(encoding="utf-8", errors="replace")[-400:]
             rows.extend({"request": j, "instance_id": b["instance_id"], "exit": code,
                          "status": "NOT RUN (harness)", "cost_usd": 0.0, "stderr": tail}
-                        for j, b in enumerate(chain["bugs"][k - 1:], start=k))  # fmt: skip
+                        for j, b in enumerate(asks[k - 1:], start=k))  # fmt: skip
             print(f"{name} {arm} request {k}: claude -p did not start (exit {code}); the arm "
                   "stops here, --continue goes on from it", flush=True)  # fmt: skip
             break
@@ -565,7 +569,7 @@ def one_chain(
                          "status": "NOT RUN (error result)", **seen})  # fmt: skip
             rows.extend({"request": j, "instance_id": b["instance_id"], "cost_usd": 0.0,
                          "status": "NOT RUN (harness)"}
-                        for j, b in enumerate(chain["bugs"][k:], start=k + 1))  # fmt: skip
+                        for j, b in enumerate(asks[k:], start=k + 1))  # fmt: skip
             print(f"{name} {arm} request {k}: error result, the arm stops here", flush=True)
             break
         (evidence / f"diff-{k}.patch").write_text(docker_env.agent_diff(work, base),
@@ -589,6 +593,18 @@ def one_chain(
            "claude_version": claude_version(), "calls": rows,
            **({"decider": probes} if probes else {})}  # fmt: skip
     (evidence / "row.json").write_text(json.dumps(row, indent=1), encoding="utf-8")
+
+
+def requests_of(chain: dict[str, Any]) -> list[dict[str, Any]]:
+    """The session's prompts in order: one per bug, or for a long60 chain (`grader: per_bug`)
+    `long.requests`, with the control rule in the first and the callbacks late."""
+    if chain.get("grader") == "per_bug":
+        import long
+
+        return long.requests(chain, PROMPT)
+    return [{"kind": "bug", "instance_id": b["instance_id"],
+             "prompt": PROMPT.format(issue=b["problem_statement"].strip())}
+            for b in chain["bugs"]]  # fmt: skip
 
 
 # ---- grading -------------------------------------------------------------------------------------
@@ -659,7 +675,7 @@ def keyfile_from_indagis() -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=("plan", "run", "grade"))
+    parser.add_argument("action", choices=("plan", "run", "grade", "dry"))
     parser.add_argument("--chains", default="")
     parser.add_argument("--split", default="dev")
     parser.add_argument("--model", default=None, choices=sorted(MODELS),
@@ -697,6 +713,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"arms {arms}; per call {CALL_CAP_USD} USD; per chain and arm {CHAIN_CAP_USD} USD; "
               f"spent so far {spent_so_far():.2f} USD")  # fmt: skip
         return 0
+    if args.action == "dry":  # long60 chains: everything but the model, free (perbug.dry_run)
+        import perbug
+
+        for n in named:
+            out = perbug.dry_run(known[n], PROMPT, ROOT / "dry-long" / n)
+            print(*out.pop("sequence"), sep="\n")
+            print(json.dumps(out, indent=1))
+        return 0
     held_named = [n for n in wanted if known[n]["split"] == "held"]
     if held_named and args.action in ("run", "grade"):
         if args.action == "grade" and not sealed():
@@ -706,8 +730,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.action == "grade":
         for n in wanted:
             for arm in arms:
-                if (RUNS / run_name(n, args.rep) / arm / "final.patch").exists():
-                    g = grade_chain(known[n], arm, args.rep)
+                evidence = RUNS / run_name(n, args.rep) / arm
+                if (evidence / "final.patch").exists():
+                    if known[n].get("grader") == "per_bug":
+                        import perbug
+
+                        g = perbug.grade_run(known[n], evidence, PROMPT)
+                    else:
+                        g = grade_chain(known[n], arm, args.rep)
                     print(n, arm, g["resolved"], "of", len(g["bugs"]))
         return 0
     if args.ceiling <= 0:
