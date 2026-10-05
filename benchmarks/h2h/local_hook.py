@@ -11,9 +11,12 @@ shuts the other two ways out:
   answers, the corpus and other sessions' transcripts are all on this disk).
 
 MCP tools (the suite's retrieval server and the S install's local servers) and subagent launches
-pass: a subagent's own tool calls come through this hook again. Two kinds of MCP call do not: S's
-fetch server (`fetch_passages` reads the web, it is WebFetch by another name) and any MCP call
-with a URL in its input. A denial is logged to `H2H_DENY_LOG`
+pass: a subagent's own tool calls come through this hook again. These MCP calls do not: S's
+fetch server (`fetch_passages` reads the web, it is WebFetch by another name), the knowledge
+server's `search` (Wikipedia and a web chain: WebSearch by another name), any MCP call with a URL
+in its input, and a knowledge `read` or `pick` of a path outside the working folder (the server
+keeps to the folder it starts in; this says so for the suite too). A denial is logged to
+`H2H_DENY_LOG`
 by tool name. Heuristic, on purpose loose towards denial; the reason names no benchmark.
 """
 
@@ -41,7 +44,9 @@ _HOME = re.compile(
 )
 _ABS = re.compile(r"(?i)(?<![\w.])(?:[a-z]:[\\/]|/[a-z]/|\\\\|/)[^\s\"'|;&<>()]*")
 _SAFE_POSIX = ("/dev/null", "/tmp/", "/tmp")
-WEB_MCP = ("mcp__sanchopanza-fetch__",)
+WEB_MCP = ("mcp__sanchopanza-fetch__", "mcp__sanchopanza-knowledge__search")
+# Inputs of the knowledge server's `read` (one) and `pick` (a list) that name files or folders.
+MCP_PATH_KEYS = ("url_or_path", "sources")
 _URL = re.compile(r"(?:https?|ftp)://", re.I)
 
 
@@ -76,7 +81,9 @@ def shell_denied(command: str, cwd: str) -> bool:
 
 def denied(tool: str, tool_input: Mapping[str, Any], cwd: str) -> bool:
     if tool.startswith("mcp__"):
-        return tool.startswith(WEB_MCP) or bool(_URL.search(json.dumps(tool_input)))
+        if tool.startswith(WEB_MCP) or _URL.search(json.dumps(tool_input)):
+            return True
+        return any(not inside(p, cwd) for p in _mcp_paths(tool_input))
     if tool in ("Task", "Agent", "TodoWrite"):
         return False
     if tool in ("WebSearch", "WebFetch"):
@@ -88,6 +95,15 @@ def denied(tool: str, tool_input: Mapping[str, Any], cwd: str) -> bool:
         return True
     pattern = str(tool_input.get("pattern") or "") if tool == "Glob" else ""
     return bool(_HOME.search(pattern)) or (bool(pattern) and not inside(pattern.split("*")[0], cwd))
+
+
+def _mcp_paths(tool_input: Mapping[str, Any]) -> list[str]:
+    found: list[str] = []
+    for key in MCP_PATH_KEYS:
+        value = tool_input.get(key)
+        items = value if isinstance(value, list) else [value]
+        found = [*found, *(str(v) for v in items if v)]
+    return [p.split("*")[0] or "." for p in found]
 
 
 def decision() -> dict[str, object]:

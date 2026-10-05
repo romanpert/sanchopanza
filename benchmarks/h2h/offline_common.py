@@ -173,6 +173,19 @@ def local_hook_problems() -> list[str]:
         ("Grep", {"pattern": "revenue", "path": "document.txt"}, False),
         ("mcp__bcp__search", {"query": "x"}, False),
         ("mcp__sanchopanza-fetch__fetch_passages", {"url": "https://example.com"}, True),
+        ("mcp__sanchopanza-knowledge__search", {"query": "x"}, True),
+        (
+            "mcp__sanchopanza-knowledge__read",
+            {"url_or_path": "document.txt", "purpose": "x"},
+            False,
+        ),
+        (
+            "mcp__sanchopanza-knowledge__read",
+            {"url_or_path": "C:/Users/x/a.txt", "purpose": "x"},
+            True,
+        ),
+        ("mcp__sanchopanza-knowledge__pick", {"purpose": "x", "sources": ["*.txt"]}, False),
+        ("mcp__sanchopanza-knowledge__pick", {"purpose": "x", "sources": ["../../side"]}, True),
     ]
     return [f"local hook: {tool} {args} not {'denied' if want else 'allowed'}"
             for tool, args, want in cases if hook.denied(tool, args, cwd) is not want]  # fmt: skip

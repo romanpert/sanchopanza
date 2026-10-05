@@ -164,6 +164,25 @@ def test_a_dropped_option_fails_the_full_install(tmp_path):
         ("mcp__sanchopanza-fetch__fetch_passages", {"purpose": "y"}, True),
         ("mcp__other__open", {"target": "see https://x.org/a"}, True),
         ("mcp__sanchopanza__find_in_repo", {"query": "revenue table"}, False),
+        # S1's knowledge server: search is the web; read and pick only inside the folder
+        ("mcp__sanchopanza-knowledge__search", {"query": "a 1990s band"}, True),
+        (
+            "mcp__sanchopanza-knowledge__read",
+            {"url_or_path": "document.txt", "purpose": "y"},
+            False,
+        ),
+        (
+            "mcp__sanchopanza-knowledge__read",
+            {"url_or_path": "https://x.org", "purpose": "y"},
+            True,
+        ),
+        (
+            "mcp__sanchopanza-knowledge__read",
+            {"url_or_path": "C:/sp-runs/x/side/a", "purpose": "y"},
+            True,
+        ),
+        ("mcp__sanchopanza-knowledge__pick", {"purpose": "y", "sources": ["*.txt", "."]}, False),
+        ("mcp__sanchopanza-knowledge__pick", {"purpose": "y", "sources": [".", "../side"]}, True),
         ("Task", {"prompt": "read ../x"}, False),
     ],
 )

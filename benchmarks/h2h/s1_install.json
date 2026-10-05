@@ -1,0 +1,36 @@
+{
+  "sealed": false,
+  "note": "S1 = S0 (s_install.json) with --knowledge, for the dev phases of 2026-10-06 (`--s-line benchmarks/h2h/s1_install.json`). With --knowledge, knowledge's read is the one reader of pages: the install leaves the fetch hook and server out when --fetch is also given (main 5da2635), so --fetch is dropped here, fetch_passages leaves --content-tools for the three knowledge tools, and SANCHOPANZA_FETCH_VERSION (read only by the fetch server) goes. Unsealed: dev only. A null source and commit give this worktree's HEAD, frozen at the preflight.",
+  "source": null,
+  "commit": null,
+  "flags": [
+    "--guard",
+    "--guard-profile",
+    "coding",
+    "--context-budget",
+    "160000",
+    "--memory",
+    "--candor",
+    "--find",
+    "--find-auto",
+    "--skill",
+    "--scan-content",
+    "--check-done",
+    "--content-tools",
+    "WebFetch,WebSearch,mcp__sanchopanza-knowledge__search,mcp__sanchopanza-knowledge__read,mcp__sanchopanza-knowledge__pick",
+    "--crawl",
+    "--prune",
+    "--knowledge",
+    "--provider",
+    "jev"
+  ],
+  "env": {
+    "SANCHOPANZA_CRAWL_LINE_VERSION": "6",
+    "SANCHOPANZA_CRAWL_NOTES": "3",
+    "SANCHOPANZA_CRAWL_ECHO": "short",
+    "SANCHOPANZA_CRAWL_LINE_AT": "prompt",
+    "SANCHOPANZA_CRAWL_NOTES_AT": "front",
+    "SANCHOPANZA_CRAWL_SHOT": "snapshot-first",
+    "SANCHOPANZA_GUARD_CHOOSER": "keep"
+  }
+}
