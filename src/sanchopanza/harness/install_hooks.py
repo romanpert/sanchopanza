@@ -7,8 +7,10 @@ other flags replaces them instead of adding a second entry. `install` builds its
 guard, candor, memory, find) on the same function.
 
 The browse sets live here: crawl (`--crawl`), snapshot pruning (`--prune`), sources
-(`--sources`) and the WebFetch hook (`--fetch`). `merge_browse` applies the four in that order.
-This module never imports `install`.
+(`--sources`), the WebFetch hook (`--fetch`) and the knowledge hook (`--knowledge`, on WebSearch
+and WebFetch, which takes the fetch hook's place). `merge_browse` applies them in that order, and
+approves the knowledge server by name when it goes into a project's `.mcp.json`. This module
+never imports `install`.
 """
 
 from __future__ import annotations
@@ -17,6 +19,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from .fetch_hook import FETCH_COMMAND, FETCH_HOOKS
+from .knowledge_hook import KNOWLEDGE_COMMAND, KNOWLEDGE_HOOKS
 from .sources_hook import SOURCES_COMMAND, SOURCES_HOOKS
 
 __all__ = [
@@ -24,6 +27,9 @@ __all__ = [
     "CRAWL_HOOKS",
     "FETCH_COMMAND",
     "FETCH_HOOKS",
+    "KNOWLEDGE_COMMAND",
+    "KNOWLEDGE_HOOKS",
+    "KNOWLEDGE_SERVER",
     "PRUNE_COMMAND",
     "PRUNE_HOOKS",
     "SOURCES_COMMAND",
@@ -33,6 +39,9 @@ __all__ = [
 ]
 
 Merged = tuple[dict[str, Any], list[str], list[str]]
+
+KNOWLEDGE_SERVER = "sanchopanza-knowledge"
+APPROVED = "enabledMcpjsonServers"
 
 CRAWL_COMMAND = "sanchopanza crawl-hook"
 # Event -> matcher for crawl (`--crawl`, `harness.crawl_hook`): the strategy line at every session
@@ -158,14 +167,45 @@ def _merge_fetch(merged: dict[str, Any], on: bool, command: str = FETCH_COMMAND)
     return _merge_owned(merged, on, FETCH_HOOKS, command, FETCH_COMMAND, "fetch")
 
 
+def _merge_knowledge(merged: dict[str, Any], on: bool, command: str = KNOWLEDGE_COMMAND) -> Merged:
+    """WebSearch and WebFetch sent to the knowledge server once per query or URL (`--knowledge`)."""
+    return _merge_owned(merged, on, KNOWLEDGE_HOOKS, command, KNOWLEDGE_COMMAND, "knowledge")
+
+
+def _approve_knowledge(merged: dict[str, Any], on: bool) -> Merged:
+    """The knowledge server approved by name in `enabledMcpjsonServers`, or withdrawn."""
+    approved = merged.get(APPROVED, [])
+    if not isinstance(approved, list):
+        return merged, [], []  # someone put something else there; do not fight it
+    line = f"{APPROVED}: {KNOWLEDGE_SERVER}"
+    if on and KNOWLEDGE_SERVER not in approved:
+        return {**merged, APPROVED: [*approved, KNOWLEDGE_SERVER]}, [line], []
+    if not on and KNOWLEDGE_SERVER in approved:
+        rest = [name for name in approved if name != KNOWLEDGE_SERVER]
+        out = {**merged, APPROVED: rest} if rest else {
+            k: v for k, v in merged.items() if k != APPROVED}  # fmt: skip
+        return out, [], [line]
+    return merged, [], []
+
+
 def merge_browse(
-    merged: dict[str, Any], *, crawl: bool, prune: bool, sources: bool, fetch: bool
+    merged: dict[str, Any],
+    *,
+    crawl: bool,
+    prune: bool,
+    sources: bool,
+    fetch: bool,
+    knowledge: bool = False,
+    knowledge_server: bool = False,
 ) -> Merged:
-    """The four browse sets, in order: crawl, prune, sources, fetch (each wired or taken out)."""
+    """The browse sets, in order: crawl, prune, sources, fetch, knowledge (each wired or taken
+    out; knowledge in fetch's place), then the knowledge server's approval (`knowledge_server`:
+    it was written to a project's `.mcp.json`)."""
     added: list[str] = []
     removed: list[str] = []
     steps = ((_merge_crawl, crawl), (_merge_prune, prune), (_merge_sources, sources),
-             (_merge_fetch, fetch))  # fmt: skip
+             (_merge_fetch, fetch and not knowledge), (_merge_knowledge, knowledge),
+             (_approve_knowledge, knowledge and knowledge_server))  # fmt: skip
     for step, on in steps:
         merged, plus, minus = step(merged, on)
         added, removed = [*added, *plus], [*removed, *minus]

@@ -11,6 +11,7 @@ sanchopanza install --autopilot --write      # cut on arrival, recall, mask at a
 sanchopanza compact --transcript session.jsonl --provider null   # plan and apply a pruning
 sanchopanza archive-mcp     # MCP server: search_archive over .sanchopanza/archive, no decider
 sanchopanza fetch-mcp       # MCP server: fetch_passages, a page's passages for a purpose, no model
+sanchopanza knowledge-mcp   # MCP server: search, read (pages and files) and pick (many documents)
 sanchopanza providers       # what is installed
 sanchopanza dag plan.json   # clean DAG and waves from {"nodes": [...], "edges": {"A->B": 0.9}}
 """
@@ -111,7 +112,20 @@ def _plan_mcp_json(args: argparse.Namespace, settings_path: Path) -> tuple[Path,
         sys.stderr.write(f"{error}; find_in_repo not registered\n")
         args.find = False
         content = mcp_json_changes(target, args.lean, args.command_line, find=False)
+    content = _knowledge_mcp_json(args, settings_path, target, content)
     return None if content is None else (target, content)
+
+
+def _knowledge_mcp_json(
+    args: argparse.Namespace, settings_path: Path, target: Path, content: Any
+) -> Any:
+    """`--knowledge`: its server into a project's `.mcp.json` (a user install prints the line
+    instead), or ours out of the file."""
+    from .harness.install import portable_command, project_settings
+    from .harness.install_knowledge import mcp_json_change
+
+    here = bool(args.knowledge) and project_settings(settings_path)
+    return mcp_json_change(target, content, here, portable_command(args.command_line))
 
 
 def _apply_mcp_json(args: argparse.Namespace, change: tuple[Path, Any] | None) -> None:
@@ -183,6 +197,18 @@ def _fetch_hook(args: argparse.Namespace) -> int:
     return fetch_main()
 
 
+def _knowledge_hook(args: argparse.Namespace) -> int:
+    from .harness.knowledge_hook import main as knowledge_main
+
+    return knowledge_main()
+
+
+def _knowledge_mcp(_args: argparse.Namespace) -> int:
+    from .harness.knowledge_tool import main as knowledge_main
+
+    return knowledge_main()
+
+
 def _fetch_mcp(_args: argparse.Namespace) -> int:
     from .harness.fetch_tool import main as fetch_main
 
@@ -196,11 +222,16 @@ def _browse_hook(args: argparse.Namespace) -> int:
 
 
 def _install(args: argparse.Namespace) -> int:
+    from .harness import install_knowledge
     from .harness.generic import HarnessConfig
     from .harness.install import apply, default_path, default_plugin_root, plan
     from .harness.install_defaults import DEFAULT_BUDGET, apply_skill, skill_change
 
+    if args.knowledge is None:  # into the default install behind one constant
+        knowledge = install_knowledge.KNOWLEDGE_DEFAULT
+        args = argparse.Namespace(**{**vars(args), "knowledge": knowledge})
     defaults = HarnessConfig()
+    knowledge_tools = install_knowledge.CONTENT_TOOLS if args.knowledge else frozenset()
     config = HarnessConfig(
         scan_content=args.scan_content,
         check_done=args.check_done,
@@ -208,7 +239,7 @@ def _install(args: argparse.Namespace) -> int:
         content_tools=(
             frozenset(t.strip() for t in args.content_tools.split(",") if t.strip())
             if args.content_tools
-            else defaults.content_tools
+            else defaults.content_tools | knowledge_tools
         ),
     )
     path = Path(args.path) if args.path else default_path(args.scope)
@@ -225,6 +256,8 @@ def _install(args: argparse.Namespace) -> int:
             sys.stderr.write("the find-auto hook needs find_in_repo in this install; not wired\n")
         elif args.find_auto and args.find_nudge:
             sys.stderr.write("--find-auto runs find for the agent: the nudge is not wired\n")
+        if args.knowledge and args.fetch:
+            sys.stderr.write("--knowledge reads pages itself: the fetch hook is not wired\n")
         settings = plan(
             path,
             config,
@@ -240,6 +273,7 @@ def _install(args: argparse.Namespace) -> int:
             prune=args.prune,
             sources=args.sources,
             fetch=args.fetch,
+            knowledge=args.knowledge,
             budget=DEFAULT_BUDGET if args.context_budget is None else args.context_budget,
             find=args.find,
             find_nudge=args.find_nudge,
@@ -337,6 +371,8 @@ def _install(args: argparse.Namespace) -> int:
             "tool search does not defer it: claude mcp add-json --scope user sanchopanza-fetch "
             '\'{"command":"sanchopanza","args":["fetch-mcp"],"alwaysLoad":true}\'\n'
         )
+    if args.knowledge:
+        _knowledge_note(args, path)
     if root is not None:
         sys.stdout.write(
             "Compaction by pruning is wired. Function hooks are early access and may change "
@@ -344,6 +380,24 @@ def _install(args: argparse.Namespace) -> int:
             f"`claude --plugin-dir {root}` once to check it.\n"
         )
     return 0
+
+
+def _knowledge_note(args: argparse.Namespace, path: Path) -> None:
+    from .harness.install import portable_command, project_settings
+    from .harness.install_knowledge import user_line
+
+    where = (
+        "registered in the project's .mcp.json"
+        if project_settings(path)
+        else "to register once for every project, loaded up front so tool search does not "
+        f"defer it: {user_line(portable_command(args.command_line))}"
+    )
+    sys.stdout.write(
+        "Knowledge is on: the first WebSearch of each query and the first WebFetch of each URL "
+        "are sent to the sanchopanza-knowledge server (search; read for pages and local files, "
+        "long ones cut to places, passages and sentences; pick among many documents), with no "
+        f"reader model; a second call runs. The server is {where}\n"
+    )
 
 
 COMPACT_BELOW_MINIMUM = 3
@@ -826,6 +880,15 @@ def main(argv: list[str] | None = None) -> int:
         "in live sessions yet, so off by default)",
     )
     install.add_argument(
+        "--knowledge",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="for research agents: the sanchopanza-knowledge MCP server (search, read, pick; no "
+        "reader model) loaded up front, and a PreToolUse hook that sends the first WebSearch of "
+        "each query and the first WebFetch of each URL to it (a second call runs); takes "
+        "--fetch's place. Off by default until measured in live sessions",
+    )
+    install.add_argument(
         "--plugin-dir",
         default=None,
         help="with --compact, where the plugin is written (default ~/.sanchopanza/claude-plugin)",
@@ -924,6 +987,20 @@ def main(argv: list[str] | None = None) -> int:
         "purpose, no model",
     )
     fetch_mcp.set_defaults(func=_fetch_mcp)
+
+    knowledge_mcp = sub.add_parser(
+        "knowledge-mcp",
+        help="MCP server (stdio): search (Wikipedia and a free web chain), read (a page's or a "
+        "local file's passages for a purpose) and pick (the best of many documents); no model "
+        "unless a decision provider is configured",
+    )
+    knowledge_mcp.set_defaults(func=_knowledge_mcp)
+    knowledge_hook = sub.add_parser(
+        "knowledge-hook",
+        help="send WebSearch and WebFetch to the knowledge server once per query or URL: "
+        "Claude Code PreToolUse hook (stdin JSON)",
+    )
+    knowledge_hook.set_defaults(func=_knowledge_hook)
 
     dag = sub.add_parser("dag", help="clean DAG and waves from probabilistic pairs")
     dag.add_argument("plan")
