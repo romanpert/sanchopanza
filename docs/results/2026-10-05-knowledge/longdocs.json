@@ -1,0 +1,174 @@
+{
+ "questions": 297,
+ "papers_past_long_chars": 163,
+ "paper_tokens": {
+  "mean": 5530,
+  "median": 5336,
+  "p90": 8268
+ },
+ "whole paper": {
+  "all_answer_sentences": 1.0,
+  "any": 1.0,
+  "tokens": {
+   "mean": 5530,
+   "median": 5336,
+   "p90": 8268
+  },
+  "text_share_mean": 1.002
+ },
+ "fetch v2 passages, 4,000": {
+  "all_answer_sentences": 0.492,
+  "any": 0.626,
+  "tokens": {
+   "mean": 936,
+   "median": 955,
+   "p90": 1025
+  },
+  "text_share_mean": 0.211
+ },
+ "BM25 cascade, not shipped, 4,000": {
+  "all_answer_sentences": 0.441,
+  "any": 0.562,
+  "tokens": {
+   "mean": 926,
+   "median": 984,
+   "p90": 1039
+  },
+  "text_share_mean": 0.201
+ },
+ "read as shipped, 4,000": {
+  "all_answer_sentences": 0.492,
+  "any": 0.626,
+  "tokens": {
+   "mean": 974,
+   "median": 991,
+   "p90": 1065
+  },
+  "text_share_mean": 0.219
+ },
+ "fetch v2 passages, 8,000": {
+  "all_answer_sentences": 0.717,
+  "any": 0.822,
+  "tokens": {
+   "mean": 1832,
+   "median": 1952,
+   "p90": 2053
+  },
+  "text_share_mean": 0.406
+ },
+ "BM25 cascade, not shipped, 8,000": {
+  "all_answer_sentences": 0.552,
+  "any": 0.684,
+  "tokens": {
+   "mean": 1558,
+   "median": 1859,
+   "p90": 1995
+  },
+  "text_share_mean": 0.321
+ },
+ "read as shipped, 8,000": {
+  "all_answer_sentences": 0.717,
+  "any": 0.822,
+  "tokens": {
+   "mean": 1869,
+   "median": 1990,
+   "p90": 2094
+  },
+  "text_share_mean": 0.413
+ },
+ "fetch v2 passages, 16,000": {
+  "all_answer_sentences": 0.838,
+  "any": 0.919,
+  "tokens": {
+   "mean": 3211,
+   "median": 3442,
+   "p90": 4060
+  },
+  "text_share_mean": 0.691
+ },
+ "BM25 cascade, not shipped, 16,000": {
+  "all_answer_sentences": 0.613,
+  "any": 0.731,
+  "tokens": {
+   "mean": 2138,
+   "median": 2020,
+   "p90": 3765
+  },
+  "text_share_mean": 0.412
+ },
+ "read as shipped, 16,000": {
+  "all_answer_sentences": 0.838,
+  "any": 0.919,
+  "tokens": {
+   "mean": 3241,
+   "median": 3472,
+   "p90": 4092
+  },
+  "text_share_mean": 0.696
+ },
+ "judged": {
+  "questions_covered": 195,
+  "usd_per_read_mean": 0.00148,
+  "calls_per_read_mean": 10.6,
+  "judged (recorded Jev), 4,000": {
+   "all_answer_sentences": 0.81,
+   "any": 0.887,
+   "tokens": {
+    "mean": 720,
+    "median": 845,
+    "p90": 1014
+   },
+   "text_share_mean": 0.171
+  },
+  "fetch v2 passages on the same papers, 4,000": {
+   "all_answer_sentences": 0.595,
+   "any": 0.713,
+   "tokens": {
+    "mean": 932,
+    "median": 956,
+    "p90": 1021
+   },
+   "text_share_mean": 0.23
+  },
+  "judged (recorded Jev), 8,000": {
+   "all_answer_sentences": 0.887,
+   "any": 0.954,
+   "tokens": {
+    "mean": 995,
+    "median": 853,
+    "p90": 1950
+   },
+   "text_share_mean": 0.224
+  },
+  "fetch v2 passages on the same papers, 8,000": {
+   "all_answer_sentences": 0.81,
+   "any": 0.887,
+   "tokens": {
+    "mean": 1810,
+    "median": 1937,
+    "p90": 2056
+   },
+   "text_share_mean": 0.439
+  },
+  "judged (recorded Jev), 16,000": {
+   "all_answer_sentences": 0.913,
+   "any": 0.964,
+   "tokens": {
+    "mean": 1122,
+    "median": 853,
+    "p90": 2398
+   },
+   "text_share_mean": 0.247
+  },
+  "fetch v2 passages on the same papers, 16,000": {
+   "all_answer_sentences": 0.923,
+   "any": 0.969,
+   "tokens": {
+    "mean": 3234,
+    "median": 3427,
+    "p90": 4042
+   },
+   "text_share_mean": 0.762
+  }
+ }
+}

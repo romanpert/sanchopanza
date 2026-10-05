@@ -32,6 +32,7 @@ PLAN_PARAMETERS = (
     ("prune", False),
     ("sources", False),
     ("fetch", False),
+    ("knowledge", False),
 )
 
 MEMORY = "sanchopanza memory-hook"
