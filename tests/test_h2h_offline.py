@@ -729,3 +729,15 @@ def test_an_install_a_busy_file_stopped_is_tried_again_a_few_times(tmp_path, mon
     with pytest.raises(RuntimeError, match="install failed"):
         s_line.run_install(tmp_path / "d", SRC, ["--candor"], tmp_path / "cwd2")
     assert len(calls) == s_line.INSTALL_TRIES
+
+
+def test_the_preflight_proves_the_line_the_run_uses(monkeypatch):
+    """`--s-line` reaches the preflight: before 2026-10-06 it proved s_install.json whatever the
+    run was given, and an S1 line the live run refused passed it."""
+    seen = []
+    monkeypatch.setattr(gaia, "arms_preflight", lambda brazos, line=None: seen.append(line) or [])
+    monkeypatch.setattr(gaia, "claude_problems", lambda: [])
+    line = s_line.load(H2H / "s1_install.json")
+    common.preflight(["SP"], {}, [], line)
+    gaia.preflight(["SP"], line)
+    assert seen == [line, line]

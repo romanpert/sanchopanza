@@ -491,11 +491,12 @@ def claude_problems() -> list[str]:
     return []
 
 
-def preflight(brazos: Sequence[str]) -> list[str]:
+def preflight(brazos: Sequence[str], line: Any = None) -> list[str]:
+    """Free. `line` is the S line the run will use (`--s-line`); None proves `s_install.json`."""
     problems = claude_problems()
     if not data.TASKS.exists():
         problems.append("no GAIA tasks in the cache: gaia_data.py --fetch")
-    problems.extend(arms_preflight(brazos))
+    problems.extend(arms_preflight(brazos, line))
     probe_argv = argv_for("SONNET", RUNS / "s.json", RUNS / "m.json", 1.0, "q")
     for brazo in brazos:
         problems.extend(isolation_problems(settings_for(brazo)["flag"], probe_argv))
@@ -636,7 +637,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"{len(steps)} sessions; caps sum {sum(CAPS[split_arm(s[3])[0]] for s in steps):g}")
         return 0
     if args.preflight or args.live:
-        problems = preflight(args.brazos)
+        problems = preflight(args.brazos, arms.s_line.load(pathlib.Path(args.s_line)))
         if problems:
             print("preflight: " + "; ".join(problems), file=sys.stderr)
             return 3

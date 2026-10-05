@@ -1,6 +1,6 @@
 {
   "sealed": false,
-  "note": "S1 = S0 (s_install.json) with --knowledge, for the dev phases of 2026-10-06 (`--s-line benchmarks/h2h/s1_install.json`). With --knowledge, knowledge's read is the one reader of pages: the install leaves the fetch hook and server out when --fetch is also given (main 5da2635), so --fetch is dropped here, fetch_passages leaves --content-tools for the three knowledge tools, and SANCHOPANZA_FETCH_VERSION (read only by the fetch server) goes. Unsealed: dev only. A null source and commit give this worktree's HEAD, frozen at the preflight.",
+  "note": "S1 = S0 (s_install.json) with --knowledge, for the dev phases of 2026-10-06 (`--s-line benchmarks/h2h/s1_install.json`). With --knowledge, knowledge's read is the one reader of pages: the install leaves the fetch hook and server out when --fetch is also given (main 5da2635), so --fetch is dropped here, --content-tools goes (with --knowledge the install already scans WebFetch, WebSearch and the three knowledge tools, so the explicit list changed nothing and the line's leave-one-out refused it), and SANCHOPANZA_FETCH_VERSION (read only by the fetch server) goes. Unsealed: dev only. A null source and commit give this worktree's HEAD, frozen at the preflight.",
   "source": null,
   "commit": null,
   "flags": [
@@ -16,8 +16,6 @@
     "--skill",
     "--scan-content",
     "--check-done",
-    "--content-tools",
-    "WebFetch,WebSearch,mcp__sanchopanza-knowledge__search,mcp__sanchopanza-knowledge__read,mcp__sanchopanza-knowledge__pick",
     "--crawl",
     "--prune",
     "--knowledge",

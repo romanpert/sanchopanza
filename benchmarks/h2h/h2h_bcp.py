@@ -394,7 +394,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"{len(steps)} sessions; caps sum {sum(CAPS[gaia.split_arm(s[3])[0]] for s in steps):g}"
         )
         return 0
-    problems = (common.preflight(args.brazos, flag_settings(), data_problems())
+    line = gaia.arms.s_line.load(pathlib.Path(args.s_line))
+    problems = (common.preflight(args.brazos, flag_settings(), data_problems(), line)
                 if args.preflight or args.live else [])  # fmt: skip
     if args.preflight:
         print("preflight: " + ("; ".join(problems) or "ok"), file=sys.stderr)
