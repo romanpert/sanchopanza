@@ -1,0 +1,620 @@
+{
+ "dev-starlette": {
+  "arms": "encode__starlette-long-1r1/N,encode__starlette-long-1r1/Sm",
+  "total": {
+   "v5": {
+    "requests": 18,
+    "with_related": 7,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.8
+   },
+   "v6": {
+    "requests": 18,
+    "with_related": 7,
+    "recall": 1.0,
+    "precision": 0.786,
+    "noise": 0.273,
+    "given": 14,
+    "chars_per_request": 2182.444,
+    "records_changing_nothing": 0.089
+   }
+  },
+  "failed_patches": 0
+ },
+ "dev-pydantic": {
+  "arms": "pydantic__pydantic-long40-1/N:1-25,pydantic__pydantic-long40-1/S:1-14,pydantic__pydantic-long40-1/Sm:1-14",
+  "total": {
+   "v5": {
+    "requests": 50,
+    "with_related": 13,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.892
+   },
+   "v6": {
+    "requests": 50,
+    "with_related": 13,
+    "recall": 0.846,
+    "precision": 0.786,
+    "noise": 0.027,
+    "given": 14,
+    "chars_per_request": 792.66,
+    "records_changing_nothing": 0.021
+   }
+  },
+  "failed_patches": 0
+ },
+ "confirm": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.948
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.412,
+    "precision": 0.395,
+    "noise": 0.121,
+    "given": 43,
+    "chars_per_request": 1884.851,
+    "records_changing_nothing": 0.097
+   }
+  },
+  "failed_patches": 0
+ },
+ "diag-seen": {
+  "arms": "pydantic__pydantic-long40-1/Sm:15-40,pydantic__pydantic-long40-1/S:15-40",
+  "total": {
+   "v5": {
+    "requests": 52,
+    "with_related": 27,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.941
+   },
+   "v6": {
+    "requests": 52,
+    "with_related": 27,
+    "recall": 0.259,
+    "precision": 0.25,
+    "noise": 0.08,
+    "given": 32,
+    "chars_per_request": 1779.865,
+    "records_changing_nothing": 0.107
+   }
+  },
+  "failed_patches": 0
+ },
+ "corrected": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.927,
+    "noise": 0.091,
+    "given": 41,
+    "chars_per_request": 1777.851,
+    "records_changing_nothing": 0.031
+   },
+   "v6.0": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.889,
+    "noise": 0.121,
+    "given": 45,
+    "chars_per_request": 1959.269,
+    "records_changing_nothing": 0.031
+   },
+   "v6.1": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.927,
+    "noise": 0.091,
+    "given": 41,
+    "chars_per_request": 1777.851,
+    "records_changing_nothing": 0.031
+   }
+  },
+  "failed_patches": 0
+ },
+ "corrected-v61": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.889,
+    "noise": 0.121,
+    "given": 45,
+    "chars_per_request": 1959.269,
+    "records_changing_nothing": 0.03
+   },
+   "v6.0": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.889,
+    "noise": 0.121,
+    "given": 45,
+    "chars_per_request": 1959.269,
+    "records_changing_nothing": 0.03
+   },
+   "v6.1": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.889,
+    "noise": 0.121,
+    "given": 45,
+    "chars_per_request": 1959.269,
+    "records_changing_nothing": 0.03
+   },
+   "v6.1-e": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.853,
+    "precision": 0.881,
+    "noise": 0.121,
+    "given": 42,
+    "chars_per_request": 1835.881,
+    "records_changing_nothing": 0.03
+   }
+  },
+  "failed_patches": 0
+ },
+ "diag-v61-reviewed": {
+  "arms": "pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 52,
+    "with_related": 27,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.94
+   },
+   "v6": {
+    "requests": 52,
+    "with_related": 27,
+    "recall": 0.926,
+    "precision": 0.912,
+    "noise": 0.08,
+    "given": 34,
+    "chars_per_request": 1875.75,
+    "records_changing_nothing": 0.017
+   }
+  },
+  "failed_patches": 0
+ },
+ "corrected-v61b": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.927,
+    "noise": 0.091,
+    "given": 41,
+    "chars_per_request": 1777.851,
+    "records_changing_nothing": 0.03
+   },
+   "v6.0": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.889,
+    "noise": 0.121,
+    "given": 45,
+    "chars_per_request": 1959.269,
+    "records_changing_nothing": 0.03
+   },
+   "v6.1-e": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.853,
+    "precision": 0.921,
+    "noise": 0.091,
+    "given": 38,
+    "chars_per_request": 1654.463,
+    "records_changing_nothing": 0.03
+   }
+  },
+  "failed_patches": 0
+ },
+ "corrected-v61-habit": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.927,
+    "noise": 0.091,
+    "given": 41,
+    "chars_per_request": 1777.851,
+    "records_changing_nothing": 0.045
+   },
+   "v6.1-h": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.853,
+    "precision": 0.921,
+    "noise": 0.091,
+    "given": 38,
+    "chars_per_request": 1654.463,
+    "records_changing_nothing": 0.045
+   }
+  },
+  "failed_patches": 0
+ },
+ "corrected-v61-k": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.927,
+    "noise": 0.091,
+    "given": 41,
+    "chars_per_request": 1777.851,
+    "records_changing_nothing": 0.03
+   },
+   "v6.1-k": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.927,
+    "noise": 0.091,
+    "given": 41,
+    "chars_per_request": 1777.851,
+    "records_changing_nothing": 0.03
+   }
+  },
+  "failed_patches": 0
+ },
+ "determinism-1": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.927,
+    "noise": 0.091,
+    "given": 41,
+    "chars_per_request": 1777.851,
+    "records_changing_nothing": 0.03
+   }
+  },
+  "failed_patches": 0
+ },
+ "determinism-2": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.927,
+    "noise": 0.091,
+    "given": 41,
+    "chars_per_request": 1777.851,
+    "records_changing_nothing": 0.034
+   }
+  },
+  "failed_patches": 0
+ },
+ "corrected-v61-final": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.927,
+    "noise": 0.091,
+    "given": 41,
+    "chars_per_request": 1777.851,
+    "records_changing_nothing": 0.03
+   },
+   "v6.0": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.889,
+    "noise": 0.121,
+    "given": 45,
+    "chars_per_request": 1959.269,
+    "records_changing_nothing": 0.03
+   }
+  },
+  "failed_patches": 0
+ },
+ "tree-timing": {
+  "arms": "pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 26,
+    "with_related": 13,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.88
+   },
+   "v6": {
+    "requests": 26,
+    "with_related": 13,
+    "recall": 0.846,
+    "precision": 1.0,
+    "noise": 0.0,
+    "given": 13,
+    "chars_per_request": 1336.885,
+    "records_changing_nothing": 0.11
+   }
+  },
+  "failed_patches": 0
+ },
+ "v62-candidates": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.927,
+    "noise": 0.091,
+    "given": 41,
+    "chars_per_request": 1777.851,
+    "records_changing_nothing": 0.03
+   },
+   "reads:none": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.973,
+    "noise": 0.03,
+    "given": 37,
+    "chars_per_request": 1614.582,
+    "records_changing_nothing": 0.03
+   },
+   "reads:after_edit": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.973,
+    "noise": 0.03,
+    "given": 37,
+    "chars_per_request": 1614.582,
+    "records_changing_nothing": 0.03
+   },
+   "reads:focused": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.973,
+    "noise": 0.03,
+    "given": 37,
+    "chars_per_request": 1614.582,
+    "records_changing_nothing": 0.03
+   }
+  },
+  "failed_patches": 0
+ },
+ "tree-deadline": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.927,
+    "noise": 0.091,
+    "given": 41,
+    "chars_per_request": 1777.851,
+    "records_changing_nothing": 0.03
+   }
+  },
+  "failed_patches": 0
+ },
+ "v62": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.973,
+    "noise": 0.03,
+    "given": 37,
+    "chars_per_request": 1614.582,
+    "records_changing_nothing": 0.03
+   },
+   "reads:none_nogate": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.973,
+    "noise": 0.03,
+    "given": 37,
+    "chars_per_request": 1614.582,
+    "records_changing_nothing": 0.03
+   },
+   "reads:all": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.927,
+    "noise": 0.091,
+    "given": 41,
+    "chars_per_request": 1777.851,
+    "records_changing_nothing": 0.03
+   }
+  },
+  "failed_patches": 0
+ },
+ "v62-final": {
+  "arms": "pydantic__pydantic-long40-1/N:26-40,pydantic__pydantic-long40-1/S:15-40,pydantic__pydantic-long40-1/Sm:15-40",
+  "total": {
+   "v5": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.0,
+    "precision": null,
+    "noise": 0.0,
+    "given": 0,
+    "chars_per_request": 0.0,
+    "records_changing_nothing": 0.947
+   },
+   "v6": {
+    "requests": 67,
+    "with_related": 34,
+    "recall": 0.941,
+    "precision": 0.973,
+    "noise": 0.03,
+    "given": 37,
+    "chars_per_request": 1614.582,
+    "records_changing_nothing": 0.03
+   }
+  },
+  "failed_patches": 0
+ }
+}

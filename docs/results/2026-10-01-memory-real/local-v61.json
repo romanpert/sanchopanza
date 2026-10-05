@@ -1,0 +1,162 @@
+{
+ "requests": 632,
+ "sessions": 153,
+ "shell_calls": {
+  "Bash": 23736,
+  "PowerShell": 952
+ },
+ "all": {
+  "requests": 632,
+  "v5": {
+   "all/lineage": {
+    "requests": 632,
+    "with_related": 90,
+    "recall": 0.8,
+    "precision": 0.341,
+    "noise": 0.105,
+    "shown_per_request": 0.37
+   },
+   "all/any": {
+    "requests": 632,
+    "with_related": 156,
+    "recall": 0.923,
+    "precision": 0.858,
+    "noise": 0.019,
+    "shown_per_request": 0.37
+   },
+   "first/lineage": {
+    "requests": 153,
+    "with_related": 36,
+    "recall": 0.722,
+    "precision": 0.366,
+    "noise": 0.214,
+    "shown_per_request": 0.8
+   },
+   "first/any": {
+    "requests": 153,
+    "with_related": 53,
+    "recall": 0.868,
+    "precision": 0.797,
+    "noise": 0.08,
+    "shown_per_request": 0.8
+   },
+   "chars_per_request": 1370,
+   "given_by_shell": 0,
+   "related_given_by_shell": 0
+  },
+  "v6.1": {
+   "all/lineage": {
+    "requests": 632,
+    "with_related": 90,
+    "recall": 0.867,
+    "precision": 0.161,
+    "noise": 0.214,
+    "shown_per_request": 0.62
+   },
+   "all/any": {
+    "requests": 632,
+    "with_related": 156,
+    "recall": 0.949,
+    "precision": 0.421,
+    "noise": 0.153,
+    "shown_per_request": 0.62
+   },
+   "first/lineage": {
+    "requests": 153,
+    "with_related": 36,
+    "recall": 0.778,
+    "precision": 0.17,
+    "noise": 0.581,
+    "shown_per_request": 1.89
+   },
+   "first/any": {
+    "requests": 153,
+    "with_related": 53,
+    "recall": 0.906,
+    "precision": 0.36,
+    "noise": 0.51,
+    "shown_per_request": 1.89
+   },
+   "chars_per_request": 2308,
+   "given_by_shell": 258,
+   "related_given_by_shell": 62
+  }
+ },
+ "after_v3_pass": {
+  "requests": 40,
+  "v5": {
+   "all/lineage": {
+    "requests": 40,
+    "with_related": 11,
+    "recall": 0.909,
+    "precision": 0.355,
+    "noise": 0.207,
+    "shown_per_request": 0.78
+   },
+   "all/any": {
+    "requests": 40,
+    "with_related": 17,
+    "recall": 0.941,
+    "precision": 0.774,
+    "noise": 0.087,
+    "shown_per_request": 0.78
+   },
+   "first/lineage": {
+    "requests": 12,
+    "with_related": 6,
+    "recall": 0.833,
+    "precision": 0.429,
+    "noise": 0.5,
+    "shown_per_request": 1.75
+   },
+   "first/any": {
+    "requests": 12,
+    "with_related": 7,
+    "recall": 0.857,
+    "precision": 0.714,
+    "noise": 0.4,
+    "shown_per_request": 1.75
+   },
+   "chars_per_request": 2607,
+   "given_by_shell": 0,
+   "related_given_by_shell": 0
+  },
+  "v6.1": {
+   "all/lineage": {
+    "requests": 40,
+    "with_related": 11,
+    "recall": 1.0,
+    "precision": 0.333,
+    "noise": 0.276,
+    "shown_per_request": 0.9
+   },
+   "all/any": {
+    "requests": 40,
+    "with_related": 17,
+    "recall": 1.0,
+    "precision": 0.694,
+    "noise": 0.174,
+    "shown_per_request": 0.9
+   },
+   "first/lineage": {
+    "requests": 12,
+    "with_related": 6,
+    "recall": 1.0,
+    "precision": 0.423,
+    "noise": 0.833,
+    "shown_per_request": 2.17
+   },
+   "first/any": {
+    "requests": 12,
+    "with_related": 7,
+    "recall": 1.0,
+    "precision": 0.654,
+    "noise": 0.8,
+    "shown_per_request": 2.17
+   },
+   "chars_per_request": 3083,
+   "given_by_shell": 16,
+   "related_given_by_shell": 12
+  }
+ }
+}

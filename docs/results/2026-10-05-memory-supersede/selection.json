@@ -1,0 +1,227 @@
+{
+ "rule": "most dev positives at a cut over every dev negative (>= 0.5); ties AUC",
+ "dev": [
+  {
+   "variant": "a",
+   "split": "dev",
+   "n": 61,
+   "positives": 17,
+   "negatives": 44,
+   "cut": 0.5,
+   "true_suppressed": 10,
+   "false_suppressed": 0,
+   "own_false_suppressed": 0,
+   "max_negative": 0.24,
+   "max_own": 0.06,
+   "min_caught": 0.58,
+   "auc": 0.939,
+   "failed": [],
+   "by_family": {
+    "real": {
+     "pos": [
+      0.4,
+      0.03,
+      0.22,
+      0.42,
+      0.01
+     ],
+     "neg_max": 0.24
+    },
+    "carry": {
+     "pos": [],
+     "neg_max": 0.06
+    },
+    "stale": {
+     "pos": [
+      0.95,
+      0.89,
+      0.95,
+      0.91,
+      0.98
+     ],
+     "neg_max": 0.01
+    },
+    "written": {
+     "pos": [
+      0.68,
+      0.61,
+      0.4,
+      0.86,
+      0.72,
+      0.58,
+      0.37
+     ],
+     "neg_max": 0.03
+    }
+   }
+  },
+  {
+   "variant": "b",
+   "split": "dev",
+   "n": 61,
+   "positives": 17,
+   "negatives": 44,
+   "cut": 0.75,
+   "true_suppressed": 9,
+   "false_suppressed": 0,
+   "own_false_suppressed": 0,
+   "max_negative": 0.7,
+   "max_own": 0.7,
+   "min_caught": 0.76,
+   "auc": 0.774,
+   "failed": [],
+   "by_family": {
+    "real": {
+     "pos": [
+      0.76,
+      0.12,
+      0.2,
+      0.78,
+      0.81
+     ],
+     "neg_max": 0.45
+    },
+    "carry": {
+     "pos": [],
+     "neg_max": 0.7
+    },
+    "stale": {
+     "pos": [
+      0.09,
+      0.12,
+      0.07,
+      0.13,
+      0.09
+     ],
+     "neg_max": 0.15
+    },
+    "written": {
+     "pos": [
+      0.96,
+      0.96,
+      0.91,
+      0.08,
+      0.97,
+      0.95,
+      0.97
+     ],
+     "neg_max": 0.21
+    }
+   }
+  },
+  {
+   "variant": "b+d",
+   "split": "dev",
+   "n": 61,
+   "positives": 17,
+   "negatives": 44,
+   "cut": 0.75,
+   "true_suppressed": 15,
+   "false_suppressed": 0,
+   "own_false_suppressed": 0,
+   "max_negative": 0.7,
+   "max_own": 0.7,
+   "min_caught": 0.76,
+   "auc": 0.96,
+   "failed": [],
+   "by_family": {
+    "real": {
+     "pos": [
+      0.76,
+      0.12,
+      0.2,
+      0.78,
+      0.81
+     ],
+     "neg_max": 0.45
+    },
+    "carry": {
+     "pos": [],
+     "neg_max": 0.7
+    },
+    "stale": {
+     "pos": [
+      0.93,
+      0.89,
+      0.96,
+      0.95,
+      0.96
+     ],
+     "neg_max": 0.15
+    },
+    "written": {
+     "pos": [
+      0.96,
+      0.96,
+      0.91,
+      0.95,
+      0.97,
+      0.95,
+      0.97
+     ],
+     "neg_max": 0.21
+    }
+   }
+  },
+  {
+   "variant": "c",
+   "split": "dev",
+   "n": 61,
+   "positives": 17,
+   "negatives": 44,
+   "cut": 0.8,
+   "true_suppressed": 14,
+   "false_suppressed": 0,
+   "own_false_suppressed": 0,
+   "max_negative": 0.76,
+   "max_own": 0.76,
+   "min_caught": 0.93,
+   "auc": 0.978,
+   "failed": [],
+   "by_family": {
+    "real": {
+     "pos": [
+      0.78,
+      0.07,
+      0.23,
+      0.99,
+      0.93
+     ],
+     "neg_max": 0.58
+    },
+    "carry": {
+     "pos": [],
+     "neg_max": 0.76
+    },
+    "stale": {
+     "pos": [
+      1.0,
+      0.99,
+      0.98,
+      1.0,
+      1.0
+     ],
+     "neg_max": 0.09
+    },
+    "written": {
+     "pos": [
+      1.0,
+      1.0,
+      0.97,
+      1.0,
+      0.99,
+      0.99,
+      1.0
+     ],
+     "neg_max": 0.02
+    }
+   }
+  }
+ ],
+ "winner": "b+d",
+ "cut": 0.75,
+ "winner_asks": [
+  "b",
+  "d"
+ ]
+}

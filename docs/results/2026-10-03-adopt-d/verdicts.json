@@ -1,0 +1,837 @@
+{
+ "H1": {
+  "instances": 26,
+  "difference": 0.0128,
+  "lower_bound_1pct": -0.0513,
+  "margin": -0.0769,
+  "holds": true,
+  "missing": []
+ },
+ "H2": {
+  "instances": 26,
+  "median_ratio": 1.0073,
+  "interval": [
+   0.933,
+   1.1433
+  ],
+  "non_inferior": false,
+  "cheaper": false,
+  "cost_S": 14.1733,
+  "cost_N": 13.37,
+  "not_used": []
+ },
+ "H4": {
+  "sessions": 78,
+  "find": {
+   "share": 0.0256,
+   "interval": [
+    0.0,
+    0.0769
+   ],
+   "per_session": 0.0385
+  },
+  "tool_search": {
+   "share": 0.0,
+   "interval": [
+    0.0,
+    0.0
+   ],
+   "per_session": 0.0
+  },
+  "skill": {
+   "share": 0.0,
+   "interval": [
+    0.0,
+    0.0
+   ],
+   "per_session": 0.0
+  },
+  "skill_other": {
+   "share": 0.0,
+   "interval": [
+    0.0,
+    0.0
+   ],
+   "per_session": 0.0
+  }
+ },
+ "H4_by_stratum": {
+  "general-easy": {
+   "sessions": 30,
+   "find": {
+    "share": 0.0,
+    "interval": [
+     0.0,
+     0.0
+    ],
+    "per_session": 0.0
+   },
+   "tool_search": {
+    "share": 0.0,
+    "interval": [
+     0.0,
+     0.0
+    ],
+    "per_session": 0.0
+   },
+   "skill": {
+    "share": 0.0,
+    "interval": [
+     0.0,
+     0.0
+    ],
+    "per_session": 0.0
+   },
+   "skill_other": {
+    "share": 0.0,
+    "interval": [
+     0.0,
+     0.0
+    ],
+    "per_session": 0.0
+   }
+  },
+  "general-medium": {
+   "sessions": 30,
+   "find": {
+    "share": 0.0667,
+    "interval": [
+     0.0,
+     0.2
+    ],
+    "per_session": 0.1
+   },
+   "tool_search": {
+    "share": 0.0,
+    "interval": [
+     0.0,
+     0.0
+    ],
+    "per_session": 0.0
+   },
+   "skill": {
+    "share": 0.0,
+    "interval": [
+     0.0,
+     0.0
+    ],
+    "per_session": 0.0
+   },
+   "skill_other": {
+    "share": 0.0,
+    "interval": [
+     0.0,
+     0.0
+    ],
+    "per_session": 0.0
+   }
+  },
+  "hard": {
+   "sessions": 18,
+   "find": {
+    "share": 0.0,
+    "interval": [
+     0.0,
+     0.0
+    ],
+    "per_session": 0.0
+   },
+   "tool_search": {
+    "share": 0.0,
+    "interval": [
+     0.0,
+     0.0
+    ],
+    "per_session": 0.0
+   },
+   "skill": {
+    "share": 0.0,
+    "interval": [
+     0.0,
+     0.0
+    ],
+    "per_session": 0.0
+   },
+   "skill_other": {
+    "share": 0.0,
+    "interval": [
+     0.0,
+     0.0
+    ],
+    "per_session": 0.0
+   }
+  }
+ },
+ "delegation": {
+  "N": {
+   "sessions": 78,
+   "agent_calls": 0,
+   "agent_per_session": 0.0,
+   "delegation_failed": 0,
+   "sessions_with_failed": 0,
+   "agent_not_found": 0
+  },
+  "S": {
+   "sessions": 78,
+   "agent_calls": 2,
+   "agent_per_session": 0.0256,
+   "delegation_failed": 0,
+   "sessions_with_failed": 0,
+   "agent_not_found": 0
+  }
+ },
+ "delegation_by_stratum": {
+  "general-easy": {
+   "N": {
+    "sessions": 30,
+    "agent_calls": 0,
+    "agent_per_session": 0.0,
+    "delegation_failed": 0,
+    "sessions_with_failed": 0,
+    "agent_not_found": 0
+   },
+   "S": {
+    "sessions": 30,
+    "agent_calls": 0,
+    "agent_per_session": 0.0,
+    "delegation_failed": 0,
+    "sessions_with_failed": 0,
+    "agent_not_found": 0
+   }
+  },
+  "general-medium": {
+   "N": {
+    "sessions": 30,
+    "agent_calls": 0,
+    "agent_per_session": 0.0,
+    "delegation_failed": 0,
+    "sessions_with_failed": 0,
+    "agent_not_found": 0
+   },
+   "S": {
+    "sessions": 30,
+    "agent_calls": 2,
+    "agent_per_session": 0.0667,
+    "delegation_failed": 0,
+    "sessions_with_failed": 0,
+    "agent_not_found": 0
+   }
+  },
+  "hard": {
+   "N": {
+    "sessions": 18,
+    "agent_calls": 0,
+    "agent_per_session": 0.0,
+    "delegation_failed": 0,
+    "sessions_with_failed": 0,
+    "agent_not_found": 0
+   },
+   "S": {
+    "sessions": 18,
+    "agent_calls": 0,
+    "agent_per_session": 0.0,
+    "delegation_failed": 0,
+    "sessions_with_failed": 0,
+    "agent_not_found": 0
+   }
+  }
+ },
+ "exclusions": {
+  "N": {
+   "sessions": 78,
+   "counted": 78
+  },
+  "S": {
+   "sessions": 78,
+   "counted": 78
+  }
+ },
+ "exclusions_by_stratum": {
+  "general-easy": {
+   "N": {
+    "sessions": 30,
+    "counted": 30
+   },
+   "S": {
+    "sessions": 30,
+    "counted": 30
+   }
+  },
+  "general-medium": {
+   "N": {
+    "sessions": 30,
+    "counted": 30
+   },
+   "S": {
+    "sessions": 30,
+    "counted": 30
+   }
+  },
+  "hard": {
+   "N": {
+    "sessions": 18,
+    "counted": 18
+   },
+   "S": {
+    "sessions": 18,
+    "counted": 18
+   }
+  }
+ },
+ "exploratory": {
+  "turns_ratio": {
+   "instances": 26,
+   "median_ratio": 1.004,
+   "interval": [
+    0.9308,
+    1.1531
+   ]
+  },
+  "cost_per_turn_ratio": {
+   "instances": 26,
+   "median_ratio": 1.0115,
+   "interval": [
+    0.9931,
+    1.0474
+   ]
+  },
+  "find_split": {
+   "called_find": {
+    "sessions": 2,
+    "resolved": 2,
+    "mean_cost": 0.8553
+   },
+   "did_not": {
+    "sessions": 76,
+    "resolved": 44,
+    "mean_cost": 0.537
+   }
+  }
+ },
+ "beside": {
+  "totals": {
+   "N": {
+    "sessions": 78,
+    "resolved": 45,
+    "cost": 40.11,
+    "turns": 3993
+   },
+   "S": {
+    "sessions": 78,
+    "resolved": 46,
+    "cost": 42.5199,
+    "turns": 4115
+   }
+  },
+  "totals_by_stratum": {
+   "general-easy": {
+    "N": {
+     "sessions": 30,
+     "resolved": 28,
+     "cost": 8.7279,
+     "turns": 989
+    },
+    "S": {
+     "sessions": 30,
+     "resolved": 29,
+     "cost": 10.8538,
+     "turns": 1169
+    }
+   },
+   "general-medium": {
+    "N": {
+     "sessions": 30,
+     "resolved": 11,
+     "cost": 16.7102,
+     "turns": 1626
+    },
+    "S": {
+     "sessions": 30,
+     "resolved": 12,
+     "cost": 17.2328,
+     "turns": 1601
+    }
+   },
+   "hard": {
+    "N": {
+     "sessions": 18,
+     "resolved": 6,
+     "cost": 14.6719,
+     "turns": 1378
+    },
+    "S": {
+     "sessions": 18,
+     "resolved": 5,
+     "cost": 14.4333,
+     "turns": 1345
+    }
+   }
+  },
+  "flips": {
+   "N": [
+    "sphinx-doc__sphinx-8269",
+    "django__django-12125",
+    "django__django-16819",
+    "sympy__sympy-14976",
+    "django__django-11848",
+    "sympy__sympy-19040",
+    "sympy__sympy-12489",
+    "django__django-13344"
+   ],
+   "S": [
+    "django__django-12125",
+    "sympy__sympy-14976",
+    "django__django-11848",
+    "sympy__sympy-19040",
+    "sympy__sympy-12489",
+    "django__django-12325"
+   ]
+  },
+  "jev_usd": 0.0086,
+  "guard_blocks": []
+ },
+ "per_instance": [
+  {
+   "instance": "django__django-11133",
+   "stratum": "general-easy",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 1.0,
+   "cost_N": 0.4747,
+   "turns_N": 55.0,
+   "res_S": 1.0,
+   "cost_S": 0.3867,
+   "turns_S": 44.6667,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "sympy__sympy-24539",
+   "stratum": "general-easy",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 1.0,
+   "cost_N": 0.1075,
+   "turns_N": 13.0,
+   "res_S": 1.0,
+   "cost_S": 0.0984,
+   "turns_S": 12.3333,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "django__django-10914",
+   "stratum": "general-easy",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 1.0,
+   "cost_N": 0.4467,
+   "turns_N": 52.3333,
+   "res_S": 1.0,
+   "cost_S": 0.4232,
+   "turns_S": 50.0,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "django__django-15863",
+   "stratum": "general-easy",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 1.0,
+   "cost_N": 0.1842,
+   "turns_N": 18.6667,
+   "res_S": 1.0,
+   "cost_S": 0.272,
+   "turns_S": 28.6667,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "django__django-13023",
+   "stratum": "general-easy",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 1.0,
+   "cost_N": 0.2888,
+   "turns_N": 38.3333,
+   "res_S": 1.0,
+   "cost_S": 0.523,
+   "turns_S": 55.6667,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "sphinx-doc__sphinx-8269",
+   "stratum": "general-easy",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 0.6667,
+   "cost_N": 0.2818,
+   "turns_N": 28.0,
+   "res_S": 1.0,
+   "cost_S": 0.2749,
+   "turns_S": 26.3333,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "django__django-14787",
+   "stratum": "general-easy",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 1.0,
+   "cost_N": 0.1934,
+   "turns_N": 22.6667,
+   "res_S": 1.0,
+   "cost_S": 0.268,
+   "turns_S": 32.6667,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "sphinx-doc__sphinx-9367",
+   "stratum": "general-easy",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 1.0,
+   "cost_N": 0.1107,
+   "turns_N": 12.6667,
+   "res_S": 1.0,
+   "cost_S": 0.104,
+   "turns_S": 11.6667,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "django__django-12125",
+   "stratum": "general-easy",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 0.6667,
+   "cost_N": 0.5882,
+   "turns_N": 56.6667,
+   "res_S": 0.6667,
+   "cost_S": 1.0482,
+   "turns_S": 100.0,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "django__django-16429",
+   "stratum": "general-easy",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 1.0,
+   "cost_N": 0.2333,
+   "turns_N": 32.3333,
+   "res_S": 1.0,
+   "cost_S": 0.2195,
+   "turns_S": 27.6667,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "django__django-16819",
+   "stratum": "general-medium",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 0.6667,
+   "cost_N": 0.4722,
+   "turns_N": 57.3333,
+   "res_S": 1.0,
+   "cost_S": 0.8462,
+   "turns_S": 67.6667,
+   "find_calls_S": [
+    2,
+    0,
+    1
+   ]
+  },
+  {
+   "instance": "sympy__sympy-14976",
+   "stratum": "general-medium",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 0.3333,
+   "cost_N": 0.5455,
+   "turns_N": 57.3333,
+   "res_S": 0.3333,
+   "cost_S": 0.5045,
+   "turns_S": 52.3333,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "sympy__sympy-13091",
+   "stratum": "general-medium",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 0.0,
+   "cost_N": 0.4412,
+   "turns_N": 45.6667,
+   "res_S": 0.0,
+   "cost_S": 0.4779,
+   "turns_S": 57.6667,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "sympy__sympy-22914",
+   "stratum": "general-medium",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 1.0,
+   "cost_N": 0.2175,
+   "turns_N": 23.3333,
+   "res_S": 1.0,
+   "cost_S": 0.2474,
+   "turns_S": 26.3333,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "django__django-11848",
+   "stratum": "general-medium",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 0.3333,
+   "cost_N": 0.2368,
+   "turns_N": 22.0,
+   "res_S": 0.3333,
+   "cost_S": 0.1792,
+   "turns_S": 16.0,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "sphinx-doc__sphinx-7748",
+   "stratum": "general-medium",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 0.0,
+   "cost_N": 0.9288,
+   "turns_N": 85.0,
+   "res_S": 0.0,
+   "cost_S": 0.7826,
+   "turns_S": 70.6667,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "django__django-16454",
+   "stratum": "general-medium",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 0.0,
+   "cost_N": 0.5285,
+   "turns_N": 53.6667,
+   "res_S": 0.0,
+   "cost_S": 0.489,
+   "turns_S": 50.0,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "sympy__sympy-20438",
+   "stratum": "general-medium",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 0.0,
+   "cost_N": 0.4077,
+   "turns_N": 45.0,
+   "res_S": 0.0,
+   "cost_S": 0.4684,
+   "turns_S": 53.6667,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "django__django-11551",
+   "stratum": "general-medium",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 1.0,
+   "cost_N": 0.3578,
+   "turns_N": 35.6667,
+   "res_S": 1.0,
+   "cost_S": 0.4614,
+   "turns_S": 42.0,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "sympy__sympy-19040",
+   "stratum": "general-medium",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 0.3333,
+   "cost_N": 1.4341,
+   "turns_N": 117.0,
+   "res_S": 0.3333,
+   "cost_S": 1.2876,
+   "turns_S": 97.3333,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "sympy__sympy-12489",
+   "stratum": "hard",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 0.6667,
+   "cost_N": 0.6424,
+   "turns_N": 66.3333,
+   "res_S": 0.3333,
+   "cost_S": 0.7398,
+   "turns_S": 76.0,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "django__django-12325",
+   "stratum": "hard",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 0.0,
+   "cost_N": 0.6824,
+   "turns_N": 65.6667,
+   "res_S": 0.3333,
+   "cost_S": 0.7072,
+   "turns_S": 74.0,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "django__django-15629",
+   "stratum": "hard",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 0.0,
+   "cost_N": 0.8973,
+   "turns_N": 87.3333,
+   "res_S": 0.0,
+   "cost_S": 1.0219,
+   "turns_S": 86.6667,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "django__django-15268",
+   "stratum": "hard",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 1.0,
+   "cost_N": 0.6116,
+   "turns_N": 63.6667,
+   "res_S": 1.0,
+   "cost_S": 0.657,
+   "turns_S": 64.6667,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "django__django-13344",
+   "stratum": "hard",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 0.3333,
+   "cost_N": 0.8876,
+   "turns_N": 76.0,
+   "res_S": 0.0,
+   "cost_S": 0.5412,
+   "turns_S": 42.0,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "instance": "django__django-10554",
+   "stratum": "hard",
+   "pairs": 3,
+   "incomplete": {},
+   "res_N": 0.0,
+   "cost_N": 1.1693,
+   "turns_N": 100.3333,
+   "res_S": 0.0,
+   "cost_S": 1.144,
+   "turns_S": 105.0,
+   "find_calls_S": [
+    0,
+    0,
+    0
+   ]
+  }
+ ]
+}

@@ -1,0 +1,2400 @@
+{
+ "rules": {
+  "R4": "R4 as shipped: the nth search while no source file has been Read or edited.",
+  "W1": "W1: the nth search while no existing source file has been edited; Reads do not close.",
+  "W2": "W2: the nth search since the last source Read that was followed by an edit of the same\n    file within `k` calls; a Read the agent does not act on keeps the count.",
+  "W3": "W3 (oracle, not live): the nth search before the first Read of a source file the session\n    edits later, or that edit.",
+  "W4": "W4: R4; once R4's window closed on a source Read without firing, the mth search of the\n    session while no existing source file has been edited.",
+  "W5": "W5 (added): the nth search since the last source Read, i.e. nth searches in a row with no\n    source file opened between them; an edit closes. R4 is its first stretch at nth=4."
+ },
+ "sets": {
+  "singles": {
+   "sessions": 179,
+   "hard": 35,
+   "R4 (today)": {
+    "net_turns": 54.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 24,
+      "hits_kept": 13,
+      "easy_before_gold": 5,
+      "after_gold": 0,
+      "net_turns": 54.5
+     },
+     "two_unread": {
+      "hard_before_gold": 23,
+      "hits_kept": 12,
+      "easy_before_gold": 5,
+      "after_gold": 0,
+      "net_turns": 54.5
+     },
+     "any_unread": {
+      "hard_before_gold": 24,
+      "hits_kept": 13,
+      "easy_before_gold": 5,
+      "after_gold": 0,
+      "net_turns": 54.5
+     }
+    },
+    "fires_hard": "24/35",
+    "fires_easy": "5/144",
+    "hard_before_gold": 24,
+    "easy_before_gold": 5,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "13/24",
+    "judged_gold_at5_recorded": "16/24",
+    "saved_calls_total": 64,
+    "saved_turns_total": 60,
+    "fire_search_median": 4
+   },
+   "W1-4": {
+    "net_turns": -2.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 31,
+      "hits_kept": 13,
+      "easy_before_gold": 11,
+      "after_gold": 54,
+      "net_turns": 22.0
+     },
+     "two_unread": {
+      "hard_before_gold": 32,
+      "hits_kept": 12,
+      "easy_before_gold": 11,
+      "after_gold": 76,
+      "net_turns": 10.0
+     },
+     "any_unread": {
+      "hard_before_gold": 35,
+      "hits_kept": 13,
+      "easy_before_gold": 11,
+      "after_gold": 93,
+      "net_turns": 0.5
+     }
+    },
+    "fires_hard": "35/35",
+    "fires_easy": "109/144",
+    "hard_before_gold": 35,
+    "easy_before_gold": 11,
+    "fires_after_gold": 98,
+    "free_gold_at5_hard_before_gold": "13/35",
+    "judged_gold_at5_recorded": "19/29",
+    "saved_calls_total": 64,
+    "saved_turns_total": 60,
+    "fire_search_median": 4
+   },
+   "W1-5": {
+    "net_turns": -9.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 31,
+      "hits_kept": 15,
+      "easy_before_gold": 0,
+      "after_gold": 53,
+      "net_turns": 16.5
+     },
+     "two_unread": {
+      "hard_before_gold": 30,
+      "hits_kept": 14,
+      "easy_before_gold": 0,
+      "after_gold": 82,
+      "net_turns": 2.0
+     },
+     "any_unread": {
+      "hard_before_gold": 35,
+      "hits_kept": 15,
+      "easy_before_gold": 0,
+      "after_gold": 94,
+      "net_turns": -6.0
+     }
+    },
+    "fires_hard": "35/35",
+    "fires_easy": "100/144",
+    "hard_before_gold": 35,
+    "easy_before_gold": 0,
+    "fires_after_gold": 100,
+    "free_gold_at5_hard_before_gold": "15/35",
+    "judged_gold_at5_recorded": "15/22",
+    "saved_calls_total": 52,
+    "saved_turns_total": 51,
+    "fire_search_median": 5
+   },
+   "W1-6": {
+    "net_turns": -22.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 23,
+      "hits_kept": 11,
+      "easy_before_gold": 0,
+      "after_gold": 50,
+      "net_turns": 4.0
+     },
+     "two_unread": {
+      "hard_before_gold": 24,
+      "hits_kept": 11,
+      "easy_before_gold": 0,
+      "after_gold": 74,
+      "net_turns": -8.5
+     },
+     "any_unread": {
+      "hard_before_gold": 27,
+      "hits_kept": 11,
+      "easy_before_gold": 0,
+      "after_gold": 91,
+      "net_turns": -18.5
+     }
+    },
+    "fires_hard": "34/35",
+    "fires_easy": "92/144",
+    "hard_before_gold": 28,
+    "easy_before_gold": 0,
+    "fires_after_gold": 98,
+    "free_gold_at5_hard_before_gold": "11/28",
+    "judged_gold_at5_recorded": "8/12",
+    "saved_calls_total": 36,
+    "saved_turns_total": 35,
+    "fire_search_median": 6
+   },
+   "W2-4": {
+    "net_turns": -2.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 31,
+      "hits_kept": 13,
+      "easy_before_gold": 11,
+      "after_gold": 54,
+      "net_turns": 22.0
+     },
+     "two_unread": {
+      "hard_before_gold": 32,
+      "hits_kept": 12,
+      "easy_before_gold": 11,
+      "after_gold": 76,
+      "net_turns": 10.0
+     },
+     "any_unread": {
+      "hard_before_gold": 35,
+      "hits_kept": 13,
+      "easy_before_gold": 11,
+      "after_gold": 93,
+      "net_turns": 0.5
+     }
+    },
+    "fires_hard": "35/35",
+    "fires_easy": "109/144",
+    "hard_before_gold": 35,
+    "easy_before_gold": 11,
+    "fires_after_gold": 98,
+    "free_gold_at5_hard_before_gold": "13/35",
+    "judged_gold_at5_recorded": "19/29",
+    "saved_calls_total": 64,
+    "saved_turns_total": 60,
+    "fire_search_median": 4
+   },
+   "W2-5": {
+    "net_turns": -8.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 31,
+      "hits_kept": 15,
+      "easy_before_gold": 0,
+      "after_gold": 51,
+      "net_turns": 17.5
+     },
+     "two_unread": {
+      "hard_before_gold": 30,
+      "hits_kept": 14,
+      "easy_before_gold": 0,
+      "after_gold": 80,
+      "net_turns": 3.0
+     },
+     "any_unread": {
+      "hard_before_gold": 35,
+      "hits_kept": 15,
+      "easy_before_gold": 0,
+      "after_gold": 92,
+      "net_turns": -5.0
+     }
+    },
+    "fires_hard": "35/35",
+    "fires_easy": "98/144",
+    "hard_before_gold": 35,
+    "easy_before_gold": 0,
+    "fires_after_gold": 98,
+    "free_gold_at5_hard_before_gold": "15/35",
+    "judged_gold_at5_recorded": "15/22",
+    "saved_calls_total": 52,
+    "saved_turns_total": 51,
+    "fire_search_median": 5
+   },
+   "W2-6": {
+    "net_turns": -22.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 23,
+      "hits_kept": 11,
+      "easy_before_gold": 0,
+      "after_gold": 50,
+      "net_turns": 4.0
+     },
+     "two_unread": {
+      "hard_before_gold": 24,
+      "hits_kept": 11,
+      "easy_before_gold": 0,
+      "after_gold": 73,
+      "net_turns": -8.0
+     },
+     "any_unread": {
+      "hard_before_gold": 27,
+      "hits_kept": 11,
+      "easy_before_gold": 0,
+      "after_gold": 90,
+      "net_turns": -18.0
+     }
+    },
+    "fires_hard": "34/35",
+    "fires_easy": "91/144",
+    "hard_before_gold": 28,
+    "easy_before_gold": 0,
+    "fires_after_gold": 97,
+    "free_gold_at5_hard_before_gold": "11/28",
+    "judged_gold_at5_recorded": "8/12",
+    "saved_calls_total": 36,
+    "saved_turns_total": 35,
+    "fire_search_median": 6
+   },
+   "W3-4 (oracle)": {
+    "net_turns": 29.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 28,
+      "hits_kept": 13,
+      "easy_before_gold": 11,
+      "after_gold": 22,
+      "net_turns": 39.5
+     },
+     "two_unread": {
+      "hard_before_gold": 29,
+      "hits_kept": 12,
+      "easy_before_gold": 11,
+      "after_gold": 30,
+      "net_turns": 34.5
+     },
+     "any_unread": {
+      "hard_before_gold": 32,
+      "hits_kept": 13,
+      "easy_before_gold": 11,
+      "after_gold": 35,
+      "net_turns": 31.0
+     }
+    },
+    "fires_hard": "32/35",
+    "fires_easy": "49/144",
+    "hard_before_gold": 32,
+    "easy_before_gold": 11,
+    "fires_after_gold": 38,
+    "free_gold_at5_hard_before_gold": "13/32",
+    "judged_gold_at5_recorded": "19/29",
+    "saved_calls_total": 64,
+    "saved_turns_total": 60,
+    "fire_search_median": 4
+   },
+   "W3-5 (oracle)": {
+    "net_turns": 22.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 28,
+      "hits_kept": 15,
+      "easy_before_gold": 0,
+      "after_gold": 24,
+      "net_turns": 32.5
+     },
+     "two_unread": {
+      "hard_before_gold": 27,
+      "hits_kept": 14,
+      "easy_before_gold": 0,
+      "after_gold": 32,
+      "net_turns": 28.5
+     },
+     "any_unread": {
+      "hard_before_gold": 32,
+      "hits_kept": 15,
+      "easy_before_gold": 0,
+      "after_gold": 36,
+      "net_turns": 24.5
+     }
+    },
+    "fires_hard": "32/35",
+    "fires_easy": "40/144",
+    "hard_before_gold": 32,
+    "easy_before_gold": 0,
+    "fires_after_gold": 40,
+    "free_gold_at5_hard_before_gold": "15/32",
+    "judged_gold_at5_recorded": "15/22",
+    "saved_calls_total": 52,
+    "saved_turns_total": 51,
+    "fire_search_median": 5
+   },
+   "W3-6 (oracle)": {
+    "net_turns": 7.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 20,
+      "hits_kept": 11,
+      "easy_before_gold": 0,
+      "after_gold": 20,
+      "net_turns": 20.5
+     },
+     "two_unread": {
+      "hard_before_gold": 21,
+      "hits_kept": 11,
+      "easy_before_gold": 0,
+      "after_gold": 27,
+      "net_turns": 16.5
+     },
+     "any_unread": {
+      "hard_before_gold": 24,
+      "hits_kept": 11,
+      "easy_before_gold": 0,
+      "after_gold": 35,
+      "net_turns": 11.0
+     }
+    },
+    "fires_hard": "28/35",
+    "fires_easy": "38/144",
+    "hard_before_gold": 25,
+    "easy_before_gold": 0,
+    "fires_after_gold": 41,
+    "free_gold_at5_hard_before_gold": "11/25",
+    "judged_gold_at5_recorded": "8/11",
+    "saved_calls_total": 36,
+    "saved_turns_total": 35,
+    "fire_search_median": 6
+   },
+   "W4-5": {
+    "net_turns": 4.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 31,
+      "hits_kept": 15,
+      "easy_before_gold": 5,
+      "after_gold": 52,
+      "net_turns": 28.0
+     },
+     "two_unread": {
+      "hard_before_gold": 31,
+      "hits_kept": 14,
+      "easy_before_gold": 5,
+      "after_gold": 78,
+      "net_turns": 14.5
+     },
+     "any_unread": {
+      "hard_before_gold": 35,
+      "hits_kept": 15,
+      "easy_before_gold": 5,
+      "after_gold": 89,
+      "net_turns": 7.5
+     }
+    },
+    "fires_hard": "35/35",
+    "fires_easy": "100/144",
+    "hard_before_gold": 35,
+    "easy_before_gold": 5,
+    "fires_after_gold": 95,
+    "free_gold_at5_hard_before_gold": "15/35",
+    "judged_gold_at5_recorded": "17/25",
+    "saved_calls_total": 66,
+    "saved_turns_total": 62,
+    "fire_search_median": 5
+   },
+   "W4-6": {
+    "net_turns": 6.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 29,
+      "hits_kept": 15,
+      "easy_before_gold": 5,
+      "after_gold": 48,
+      "net_turns": 29.0
+     },
+     "two_unread": {
+      "hard_before_gold": 29,
+      "hits_kept": 14,
+      "easy_before_gold": 5,
+      "after_gold": 68,
+      "net_turns": 18.5
+     },
+     "any_unread": {
+      "hard_before_gold": 33,
+      "hits_kept": 15,
+      "easy_before_gold": 5,
+      "after_gold": 83,
+      "net_turns": 9.5
+     }
+    },
+    "fires_hard": "34/35",
+    "fires_easy": "93/144",
+    "hard_before_gold": 33,
+    "easy_before_gold": 5,
+    "fires_after_gold": 89,
+    "free_gold_at5_hard_before_gold": "15/33",
+    "judged_gold_at5_recorded": "17/25",
+    "saved_calls_total": 64,
+    "saved_turns_total": 60,
+    "fire_search_median": 6
+   },
+   "W5-4": {
+    "net_turns": 15.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 28,
+      "hits_kept": 14,
+      "easy_before_gold": 5,
+      "after_gold": 37,
+      "net_turns": 35.5
+     },
+     "two_unread": {
+      "hard_before_gold": 27,
+      "hits_kept": 13,
+      "easy_before_gold": 5,
+      "after_gold": 55,
+      "net_turns": 26.5
+     },
+     "any_unread": {
+      "hard_before_gold": 30,
+      "hits_kept": 14,
+      "easy_before_gold": 5,
+      "after_gold": 70,
+      "net_turns": 18.0
+     }
+    },
+    "fires_hard": "32/35",
+    "fires_easy": "78/144",
+    "hard_before_gold": 30,
+    "easy_before_gold": 5,
+    "fires_after_gold": 75,
+    "free_gold_at5_hard_before_gold": "14/30",
+    "judged_gold_at5_recorded": "17/26",
+    "saved_calls_total": 65,
+    "saved_turns_total": 61,
+    "fire_search_median": 5
+   },
+   "W5-5": {
+    "net_turns": 12.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 24,
+      "hits_kept": 14,
+      "easy_before_gold": 0,
+      "after_gold": 33,
+      "net_turns": 27.5
+     },
+     "two_unread": {
+      "hard_before_gold": 23,
+      "hits_kept": 13,
+      "easy_before_gold": 0,
+      "after_gold": 46,
+      "net_turns": 21.0
+     },
+     "any_unread": {
+      "hard_before_gold": 26,
+      "hits_kept": 14,
+      "easy_before_gold": 0,
+      "after_gold": 58,
+      "net_turns": 14.0
+     }
+    },
+    "fires_hard": "28/35",
+    "fires_easy": "59/144",
+    "hard_before_gold": 26,
+    "easy_before_gold": 0,
+    "fires_after_gold": 61,
+    "free_gold_at5_hard_before_gold": "14/26",
+    "judged_gold_at5_recorded": "15/19",
+    "saved_calls_total": 50,
+    "saved_turns_total": 49,
+    "fire_search_median": 7
+   },
+   "W5-6": {
+    "net_turns": 5.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 16,
+      "hits_kept": 8,
+      "easy_before_gold": 0,
+      "after_gold": 24,
+      "net_turns": 15.0
+     },
+     "two_unread": {
+      "hard_before_gold": 16,
+      "hits_kept": 8,
+      "easy_before_gold": 0,
+      "after_gold": 32,
+      "net_turns": 11.0
+     },
+     "any_unread": {
+      "hard_before_gold": 17,
+      "hits_kept": 8,
+      "easy_before_gold": 0,
+      "after_gold": 40,
+      "net_turns": 6.5
+     }
+    },
+    "fires_hard": "19/35",
+    "fires_easy": "40/144",
+    "hard_before_gold": 17,
+    "easy_before_gold": 0,
+    "fires_after_gold": 42,
+    "free_gold_at5_hard_before_gold": "8/17",
+    "judged_gold_at5_recorded": "6/7",
+    "saved_calls_total": 32,
+    "saved_turns_total": 31,
+    "fire_search_median": 8
+   },
+   "W4-8": {
+    "net_turns": 16.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 26,
+      "hits_kept": 13,
+      "easy_before_gold": 5,
+      "after_gold": 41,
+      "net_turns": 33.0
+     },
+     "two_unread": {
+      "hard_before_gold": 25,
+      "hits_kept": 12,
+      "easy_before_gold": 5,
+      "after_gold": 55,
+      "net_turns": 26.0
+     },
+     "any_unread": {
+      "hard_before_gold": 27,
+      "hits_kept": 13,
+      "easy_before_gold": 5,
+      "after_gold": 69,
+      "net_turns": 18.5
+     }
+    },
+    "fires_hard": "32/35",
+    "fires_easy": "74/144",
+    "hard_before_gold": 27,
+    "easy_before_gold": 5,
+    "fires_after_gold": 74,
+    "free_gold_at5_hard_before_gold": "13/27",
+    "judged_gold_at5_recorded": "16/24",
+    "saved_calls_total": 64,
+    "saved_turns_total": 60,
+    "fire_search_median": 8
+   },
+   "W4-10": {
+    "net_turns": 25.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 25,
+      "hits_kept": 13,
+      "easy_before_gold": 5,
+      "after_gold": 30,
+      "net_turns": 39.0
+     },
+     "two_unread": {
+      "hard_before_gold": 23,
+      "hits_kept": 12,
+      "easy_before_gold": 5,
+      "after_gold": 43,
+      "net_turns": 33.0
+     },
+     "any_unread": {
+      "hard_before_gold": 25,
+      "hits_kept": 13,
+      "easy_before_gold": 5,
+      "after_gold": 54,
+      "net_turns": 27.0
+     }
+    },
+    "fires_hard": "31/35",
+    "fires_easy": "57/144",
+    "hard_before_gold": 25,
+    "easy_before_gold": 5,
+    "fires_after_gold": 58,
+    "free_gold_at5_hard_before_gold": "13/25",
+    "judged_gold_at5_recorded": "16/24",
+    "saved_calls_total": 64,
+    "saved_turns_total": 60,
+    "fire_search_median": 10
+   }
+  },
+  "probe-need": {
+   "sessions": 10,
+   "hard": 10,
+   "R4 (today)": {
+    "net_turns": 26.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 26.0
+     },
+     "two_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 26.0
+     },
+     "any_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 26.0
+     }
+    },
+    "fires_hard": "4/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 4,
+    "easy_before_gold": 0,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "2/4",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 27,
+    "saved_turns_total": 27,
+    "fire_search_median": 4
+   },
+   "W1-4": {
+    "net_turns": 26.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 8,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 26.5
+     },
+     "two_unread": {
+      "hard_before_gold": 8,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 26.5
+     },
+     "any_unread": {
+      "hard_before_gold": 9,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 26.0
+     }
+    },
+    "fires_hard": "9/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 9,
+    "easy_before_gold": 0,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "3/9",
+    "judged_gold_at5_recorded": "0/1",
+    "saved_calls_total": 29,
+    "saved_turns_total": 29,
+    "fire_search_median": 4
+   },
+   "W1-5": {
+    "net_turns": 24.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 7,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 24.0
+     },
+     "two_unread": {
+      "hard_before_gold": 6,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 24.5
+     },
+     "any_unread": {
+      "hard_before_gold": 7,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 24.0
+     }
+    },
+    "fires_hard": "7/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 7,
+    "easy_before_gold": 0,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "3/7",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 26,
+    "saved_turns_total": 26,
+    "fire_search_median": 5
+   },
+   "W1-6": {
+    "net_turns": 40.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 40.5
+     },
+     "two_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 2,
+      "net_turns": 40.5
+     },
+     "any_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 2,
+      "net_turns": 40.0
+     }
+    },
+    "fires_hard": "7/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 5,
+    "easy_before_gold": 0,
+    "fires_after_gold": 2,
+    "free_gold_at5_hard_before_gold": "3/5",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 42,
+    "saved_turns_total": 42,
+    "fire_search_median": 6
+   },
+   "W2-4": {
+    "net_turns": 26.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 8,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 26.5
+     },
+     "two_unread": {
+      "hard_before_gold": 8,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 26.5
+     },
+     "any_unread": {
+      "hard_before_gold": 9,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 26.0
+     }
+    },
+    "fires_hard": "9/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 9,
+    "easy_before_gold": 0,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "3/9",
+    "judged_gold_at5_recorded": "0/1",
+    "saved_calls_total": 29,
+    "saved_turns_total": 29,
+    "fire_search_median": 4
+   },
+   "W2-5": {
+    "net_turns": 24.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 7,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 24.0
+     },
+     "two_unread": {
+      "hard_before_gold": 6,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 24.5
+     },
+     "any_unread": {
+      "hard_before_gold": 7,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 24.0
+     }
+    },
+    "fires_hard": "7/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 7,
+    "easy_before_gold": 0,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "3/7",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 26,
+    "saved_turns_total": 26,
+    "fire_search_median": 5
+   },
+   "W2-6": {
+    "net_turns": 40.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 40.5
+     },
+     "two_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 2,
+      "net_turns": 40.5
+     },
+     "any_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 2,
+      "net_turns": 40.0
+     }
+    },
+    "fires_hard": "7/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 5,
+    "easy_before_gold": 0,
+    "fires_after_gold": 2,
+    "free_gold_at5_hard_before_gold": "3/5",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 42,
+    "saved_turns_total": 42,
+    "fire_search_median": 6
+   },
+   "W3-4 (oracle)": {
+    "net_turns": 25.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 6,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 25.0
+     },
+     "two_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 25.5
+     },
+     "any_unread": {
+      "hard_before_gold": 6,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 25.0
+     }
+    },
+    "fires_hard": "6/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 6,
+    "easy_before_gold": 0,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "2/6",
+    "judged_gold_at5_recorded": "0/1",
+    "saved_calls_total": 27,
+    "saved_turns_total": 27,
+    "fire_search_median": 4
+   },
+   "W3-5 (oracle)": {
+    "net_turns": 23.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 6,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 23.0
+     },
+     "two_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 23.5
+     },
+     "any_unread": {
+      "hard_before_gold": 6,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 23.0
+     }
+    },
+    "fires_hard": "6/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 6,
+    "easy_before_gold": 0,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "2/6",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 25,
+    "saved_turns_total": 25,
+    "fire_search_median": 5
+   },
+   "W3-6 (oracle)": {
+    "net_turns": 40.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 41.0
+     },
+     "two_unread": {
+      "hard_before_gold": 3,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 41.0
+     },
+     "any_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 40.5
+     }
+    },
+    "fires_hard": "5/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 4,
+    "easy_before_gold": 0,
+    "fires_after_gold": 1,
+    "free_gold_at5_hard_before_gold": "2/4",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 42,
+    "saved_turns_total": 42,
+    "fire_search_median": 6
+   },
+   "W4-5": {
+    "net_turns": 26.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 7,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 26.0
+     },
+     "two_unread": {
+      "hard_before_gold": 6,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 26.5
+     },
+     "any_unread": {
+      "hard_before_gold": 7,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 26.0
+     }
+    },
+    "fires_hard": "7/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 7,
+    "easy_before_gold": 0,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "3/7",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 28,
+    "saved_turns_total": 28,
+    "fire_search_median": 4
+   },
+   "W4-6": {
+    "net_turns": 25.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 6,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 25.0
+     },
+     "two_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 25.5
+     },
+     "any_unread": {
+      "hard_before_gold": 6,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 25.0
+     }
+    },
+    "fires_hard": "7/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 6,
+    "easy_before_gold": 0,
+    "fires_after_gold": 1,
+    "free_gold_at5_hard_before_gold": "3/6",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 27,
+    "saved_turns_total": 27,
+    "fire_search_median": 4
+   },
+   "W5-4": {
+    "net_turns": 25.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 6,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 25.5
+     },
+     "two_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 25.5
+     },
+     "any_unread": {
+      "hard_before_gold": 6,
+      "hits_kept": 3,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 25.0
+     }
+    },
+    "fires_hard": "7/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 6,
+    "easy_before_gold": 0,
+    "fires_after_gold": 1,
+    "free_gold_at5_hard_before_gold": "3/6",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 27,
+    "saved_turns_total": 27,
+    "fire_search_median": 4
+   },
+   "W5-5": {
+    "net_turns": 23.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 23.5
+     },
+     "two_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 23.5
+     },
+     "any_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 23.0
+     }
+    },
+    "fires_hard": "6/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 5,
+    "easy_before_gold": 0,
+    "fires_after_gold": 1,
+    "free_gold_at5_hard_before_gold": "2/5",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 25,
+    "saved_turns_total": 25,
+    "fire_search_median": 5
+   },
+   "W5-6": {
+    "net_turns": 40.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 41.0
+     },
+     "two_unread": {
+      "hard_before_gold": 3,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 41.0
+     },
+     "any_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 40.5
+     }
+    },
+    "fires_hard": "5/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 4,
+    "easy_before_gold": 0,
+    "fires_after_gold": 1,
+    "free_gold_at5_hard_before_gold": "2/4",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 42,
+    "saved_turns_total": 42,
+    "fire_search_median": 6
+   },
+   "W4-8": {
+    "net_turns": 25.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 25.5
+     },
+     "two_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 25.5
+     },
+     "any_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 25.0
+     }
+    },
+    "fires_hard": "6/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 5,
+    "easy_before_gold": 0,
+    "fires_after_gold": 1,
+    "free_gold_at5_hard_before_gold": "2/5",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 27,
+    "saved_turns_total": 27,
+    "fire_search_median": 4
+   },
+   "W4-10": {
+    "net_turns": 25.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": 25.5
+     },
+     "two_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 25.5
+     },
+     "any_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": 25.0
+     }
+    },
+    "fires_hard": "6/10",
+    "fires_easy": "0/0",
+    "hard_before_gold": 5,
+    "easy_before_gold": 0,
+    "fires_after_gold": 1,
+    "free_gold_at5_hard_before_gold": "2/5",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 27,
+    "saved_turns_total": 27,
+    "fire_search_median": 4
+   }
+  },
+  "probe-auto": {
+   "sessions": 10,
+   "hard": 9,
+   "R4 (today)": {
+    "net_turns": 3.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 3,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 0,
+      "net_turns": 3.0
+     },
+     "two_unread": {
+      "hard_before_gold": 3,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 0,
+      "net_turns": 3.0
+     },
+     "any_unread": {
+      "hard_before_gold": 3,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 0,
+      "net_turns": 3.0
+     }
+    },
+    "fires_hard": "3/9",
+    "fires_easy": "1/1",
+    "hard_before_gold": 3,
+    "easy_before_gold": 1,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "1/3",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 4,
+    "saved_turns_total": 4,
+    "fire_search_median": 4
+   },
+   "W1-4": {
+    "net_turns": 2.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 7,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 0,
+      "net_turns": 1.0
+     },
+     "two_unread": {
+      "hard_before_gold": 8,
+      "hits_kept": 2,
+      "easy_before_gold": 1,
+      "after_gold": 0,
+      "net_turns": 3.0
+     },
+     "any_unread": {
+      "hard_before_gold": 9,
+      "hits_kept": 2,
+      "easy_before_gold": 1,
+      "after_gold": 0,
+      "net_turns": 2.5
+     }
+    },
+    "fires_hard": "9/9",
+    "fires_easy": "1/1",
+    "hard_before_gold": 9,
+    "easy_before_gold": 1,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "2/9",
+    "judged_gold_at5_recorded": "0/2",
+    "saved_calls_total": 6,
+    "saved_turns_total": 6,
+    "fire_search_median": 4
+   },
+   "W1-5": {
+    "net_turns": -3.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 6,
+      "hits_kept": 1,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": -1.5
+     },
+     "two_unread": {
+      "hard_before_gold": 7,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": -2.0
+     },
+     "any_unread": {
+      "hard_before_gold": 9,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": -3.0
+     }
+    },
+    "fires_hard": "9/9",
+    "fires_easy": "1/1",
+    "hard_before_gold": 9,
+    "easy_before_gold": 0,
+    "fires_after_gold": 1,
+    "free_gold_at5_hard_before_gold": "2/9",
+    "judged_gold_at5_recorded": "0/1",
+    "saved_calls_total": 1,
+    "saved_turns_total": 1,
+    "fire_search_median": 5
+   },
+   "W1-6": {
+    "net_turns": -4.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 3,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": -2.0
+     },
+     "two_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 3,
+      "net_turns": -3.5
+     },
+     "any_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 3,
+      "net_turns": -4.0
+     }
+    },
+    "fires_hard": "8/9",
+    "fires_easy": "1/1",
+    "hard_before_gold": 6,
+    "easy_before_gold": 0,
+    "fires_after_gold": 3,
+    "free_gold_at5_hard_before_gold": "0/6",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 0,
+    "saved_turns_total": 0,
+    "fire_search_median": 6
+   },
+   "W2-4": {
+    "net_turns": 2.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 7,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 0,
+      "net_turns": 1.0
+     },
+     "two_unread": {
+      "hard_before_gold": 8,
+      "hits_kept": 2,
+      "easy_before_gold": 1,
+      "after_gold": 0,
+      "net_turns": 3.0
+     },
+     "any_unread": {
+      "hard_before_gold": 9,
+      "hits_kept": 2,
+      "easy_before_gold": 1,
+      "after_gold": 0,
+      "net_turns": 2.5
+     }
+    },
+    "fires_hard": "9/9",
+    "fires_easy": "1/1",
+    "hard_before_gold": 9,
+    "easy_before_gold": 1,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "2/9",
+    "judged_gold_at5_recorded": "0/2",
+    "saved_calls_total": 6,
+    "saved_turns_total": 6,
+    "fire_search_median": 4
+   },
+   "W2-5": {
+    "net_turns": -3.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 6,
+      "hits_kept": 1,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": -1.5
+     },
+     "two_unread": {
+      "hard_before_gold": 7,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": -2.0
+     },
+     "any_unread": {
+      "hard_before_gold": 9,
+      "hits_kept": 2,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": -3.0
+     }
+    },
+    "fires_hard": "9/9",
+    "fires_easy": "1/1",
+    "hard_before_gold": 9,
+    "easy_before_gold": 0,
+    "fires_after_gold": 1,
+    "free_gold_at5_hard_before_gold": "2/9",
+    "judged_gold_at5_recorded": "0/1",
+    "saved_calls_total": 1,
+    "saved_turns_total": 1,
+    "fire_search_median": 5
+   },
+   "W2-6": {
+    "net_turns": -4.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 3,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": -2.0
+     },
+     "two_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 3,
+      "net_turns": -3.5
+     },
+     "any_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 3,
+      "net_turns": -4.0
+     }
+    },
+    "fires_hard": "8/9",
+    "fires_easy": "1/1",
+    "hard_before_gold": 6,
+    "easy_before_gold": 0,
+    "fires_after_gold": 3,
+    "free_gold_at5_hard_before_gold": "0/6",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 0,
+    "saved_turns_total": 0,
+    "fire_search_median": 6
+   },
+   "W3-4 (oracle)": {
+    "net_turns": 1.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 6,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 0,
+      "net_turns": 1.5
+     },
+     "two_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 0,
+      "net_turns": 2.0
+     },
+     "any_unread": {
+      "hard_before_gold": 6,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 0,
+      "net_turns": 1.5
+     }
+    },
+    "fires_hard": "6/9",
+    "fires_easy": "1/1",
+    "hard_before_gold": 6,
+    "easy_before_gold": 1,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "1/6",
+    "judged_gold_at5_recorded": "0/2",
+    "saved_calls_total": 4,
+    "saved_turns_total": 4,
+    "fire_search_median": 4
+   },
+   "W3-5 (oracle)": {
+    "net_turns": -2.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 3,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": -1.5
+     },
+     "two_unread": {
+      "hard_before_gold": 2,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": -1.0
+     },
+     "any_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": -2.0
+     }
+    },
+    "fires_hard": "4/9",
+    "fires_easy": "0/1",
+    "hard_before_gold": 4,
+    "easy_before_gold": 0,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "0/4",
+    "judged_gold_at5_recorded": "0/1",
+    "saved_calls_total": 0,
+    "saved_turns_total": 0,
+    "fire_search_median": 5
+   },
+   "W3-6 (oracle)": {
+    "net_turns": -1.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 1,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": -0.5
+     },
+     "two_unread": {
+      "hard_before_gold": 1,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": -0.5
+     },
+     "any_unread": {
+      "hard_before_gold": 2,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 0,
+      "net_turns": -1.0
+     }
+    },
+    "fires_hard": "3/9",
+    "fires_easy": "0/1",
+    "hard_before_gold": 3,
+    "easy_before_gold": 0,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "0/3",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 0,
+    "saved_turns_total": 0,
+    "fire_search_median": 6
+   },
+   "W4-5": {
+    "net_turns": 0.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 7,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 0,
+      "net_turns": 1.0
+     },
+     "two_unread": {
+      "hard_before_gold": 8,
+      "hits_kept": 2,
+      "easy_before_gold": 1,
+      "after_gold": 0,
+      "net_turns": 1.0
+     },
+     "any_unread": {
+      "hard_before_gold": 9,
+      "hits_kept": 2,
+      "easy_before_gold": 1,
+      "after_gold": 0,
+      "net_turns": 0.5
+     }
+    },
+    "fires_hard": "9/9",
+    "fires_easy": "1/1",
+    "hard_before_gold": 9,
+    "easy_before_gold": 1,
+    "fires_after_gold": 0,
+    "free_gold_at5_hard_before_gold": "2/9",
+    "judged_gold_at5_recorded": "0/1",
+    "saved_calls_total": 4,
+    "saved_turns_total": 4,
+    "fire_search_median": 5
+   },
+   "W4-6": {
+    "net_turns": 0.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 1,
+      "net_turns": 2.0
+     },
+     "two_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 2,
+      "net_turns": 1.0
+     },
+     "any_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 2,
+      "net_turns": 1.0
+     }
+    },
+    "fires_hard": "8/9",
+    "fires_easy": "1/1",
+    "hard_before_gold": 6,
+    "easy_before_gold": 1,
+    "fires_after_gold": 2,
+    "free_gold_at5_hard_before_gold": "1/6",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 4,
+    "saved_turns_total": 4,
+    "fire_search_median": 6
+   },
+   "W5-4": {
+    "net_turns": 3.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 1,
+      "net_turns": 2.0
+     },
+     "two_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 2,
+      "easy_before_gold": 1,
+      "after_gold": 1,
+      "net_turns": 4.5
+     },
+     "any_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 2,
+      "easy_before_gold": 1,
+      "after_gold": 1,
+      "net_turns": 4.0
+     }
+    },
+    "fires_hard": "7/9",
+    "fires_easy": "1/1",
+    "hard_before_gold": 5,
+    "easy_before_gold": 1,
+    "fires_after_gold": 2,
+    "free_gold_at5_hard_before_gold": "2/5",
+    "judged_gold_at5_recorded": "0/1",
+    "saved_calls_total": 6,
+    "saved_turns_total": 6,
+    "fire_search_median": 4
+   },
+   "W5-5": {
+    "net_turns": -1.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 1,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": -1.0
+     },
+     "two_unread": {
+      "hard_before_gold": 1,
+      "hits_kept": 1,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": -0.5
+     },
+     "any_unread": {
+      "hard_before_gold": 2,
+      "hits_kept": 1,
+      "easy_before_gold": 0,
+      "after_gold": 2,
+      "net_turns": -1.5
+     }
+    },
+    "fires_hard": "4/9",
+    "fires_easy": "0/1",
+    "hard_before_gold": 2,
+    "easy_before_gold": 0,
+    "fires_after_gold": 2,
+    "free_gold_at5_hard_before_gold": "1/2",
+    "judged_gold_at5_recorded": "0/1",
+    "saved_calls_total": 0,
+    "saved_turns_total": 0,
+    "fire_search_median": 13
+   },
+   "W5-6": {
+    "net_turns": -2.0,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 0,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 1,
+      "net_turns": -0.5
+     },
+     "two_unread": {
+      "hard_before_gold": 0,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 2,
+      "net_turns": -1.0
+     },
+     "any_unread": {
+      "hard_before_gold": 0,
+      "hits_kept": 0,
+      "easy_before_gold": 0,
+      "after_gold": 3,
+      "net_turns": -1.5
+     }
+    },
+    "fires_hard": "4/9",
+    "fires_easy": "0/1",
+    "hard_before_gold": 1,
+    "easy_before_gold": 0,
+    "fires_after_gold": 3,
+    "free_gold_at5_hard_before_gold": "0/1",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 0,
+    "saved_turns_total": 0,
+    "fire_search_median": 14
+   },
+   "W4-8": {
+    "net_turns": 0.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 2,
+      "net_turns": 1.5
+     },
+     "two_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 3,
+      "net_turns": 1.0
+     },
+     "any_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 3,
+      "net_turns": 1.0
+     }
+    },
+    "fires_hard": "8/9",
+    "fires_easy": "1/1",
+    "hard_before_gold": 5,
+    "easy_before_gold": 1,
+    "fires_after_gold": 3,
+    "free_gold_at5_hard_before_gold": "1/5",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 4,
+    "saved_turns_total": 4,
+    "fire_search_median": 8
+   },
+   "W4-10": {
+    "net_turns": 0.5,
+    "gated": {
+     "top1_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 2,
+      "net_turns": 1.5
+     },
+     "two_unread": {
+      "hard_before_gold": 4,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 2,
+      "net_turns": 1.5
+     },
+     "any_unread": {
+      "hard_before_gold": 5,
+      "hits_kept": 1,
+      "easy_before_gold": 1,
+      "after_gold": 3,
+      "net_turns": 0.5
+     }
+    },
+    "fires_hard": "8/9",
+    "fires_easy": "1/1",
+    "hard_before_gold": 5,
+    "easy_before_gold": 1,
+    "fires_after_gold": 3,
+    "free_gold_at5_hard_before_gold": "1/5",
+    "judged_gold_at5_recorded": "0/0",
+    "saved_calls_total": 4,
+    "saved_turns_total": 4,
+    "fire_search_median": 10
+   }
+  }
+ },
+ "probe_sessions": [
+  {
+   "session": "probe-need:django__django-11211",
+   "hard": true,
+   "read_at": null,
+   "reach_searches": null,
+   "W1-4": "call 18 (search 4) before gold",
+   "W2-4": "call 18 (search 4) before gold"
+  },
+  {
+   "session": "probe-need:django__django-14007",
+   "hard": true,
+   "read_at": 30,
+   "reach_searches": 22,
+   "R4 (today)": "call 5 (search 4) before gold, top5 hit",
+   "W1-4": "call 5 (search 4) before gold, top5 hit",
+   "W1-5": "call 6 (search 5) before gold, top5 hit",
+   "W1-6": "call 7 (search 6) before gold, top5 hit",
+   "W2-4": "call 5 (search 4) before gold, top5 hit",
+   "W2-5": "call 6 (search 5) before gold, top5 hit",
+   "W2-6": "call 7 (search 6) before gold, top5 hit",
+   "W3-4 (oracle)": "call 5 (search 4) before gold, top5 hit",
+   "W3-5 (oracle)": "call 6 (search 5) before gold, top5 hit",
+   "W3-6 (oracle)": "call 7 (search 6) before gold, top5 hit",
+   "W4-5": "call 5 (search 4) before gold, top5 hit",
+   "W4-6": "call 5 (search 4) before gold, top5 hit",
+   "W5-4": "call 5 (search 4) before gold, top5 hit",
+   "W5-5": "call 6 (search 5) before gold, top5 hit",
+   "W5-6": "call 7 (search 6) before gold, top5 hit",
+   "W4-8": "call 5 (search 4) before gold, top5 hit",
+   "W4-10": "call 5 (search 4) before gold, top5 hit"
+  },
+  {
+   "session": "probe-need:django__django-14011",
+   "hard": true,
+   "read_at": 9,
+   "reach_searches": 5,
+   "R4 (today)": "call 5 (search 4) before gold, top5 hit",
+   "W1-4": "call 5 (search 4) before gold, top5 hit",
+   "W1-5": "call 6 (search 5) before gold, top5 hit",
+   "W1-6": "call 10 (search 6) after gold, top5 hit",
+   "W2-4": "call 5 (search 4) before gold, top5 hit",
+   "W2-5": "call 6 (search 5) before gold, top5 hit",
+   "W2-6": "call 10 (search 6) after gold, top5 hit",
+   "W3-4 (oracle)": "call 5 (search 4) before gold, top5 hit",
+   "W3-5 (oracle)": "call 6 (search 5) before gold, top5 hit",
+   "W3-6 (oracle)": "call 10 (search 6) after gold, top5 hit",
+   "W4-5": "call 5 (search 4) before gold, top5 hit",
+   "W4-6": "call 5 (search 4) before gold, top5 hit",
+   "W5-4": "call 5 (search 4) before gold, top5 hit",
+   "W5-5": "call 6 (search 5) before gold, top5 hit",
+   "W5-6": "call 25 (search 11) after gold, top5 hit",
+   "W4-8": "call 5 (search 4) before gold, top5 hit",
+   "W4-10": "call 5 (search 4) before gold, top5 hit"
+  },
+  {
+   "session": "probe-need:django__django-15563",
+   "hard": true,
+   "read_at": 10,
+   "reach_searches": 5,
+   "W1-4": "call 8 (search 4) before gold",
+   "W1-5": "call 9 (search 5) before gold",
+   "W1-6": "call 11 (search 6) after gold, top5 hit",
+   "W2-4": "call 8 (search 4) before gold",
+   "W2-5": "call 9 (search 5) before gold",
+   "W2-6": "call 11 (search 6) after gold, top5 hit",
+   "W3-4 (oracle)": "call 8 (search 4) before gold",
+   "W3-5 (oracle)": "call 9 (search 5) before gold",
+   "W4-5": "call 9 (search 5) before gold",
+   "W4-6": "call 11 (search 6) after gold, top5 hit",
+   "W5-4": "call 32 (search 11) after gold, top5 hit",
+   "W5-5": "call 33 (search 12) after gold, top5 hit",
+   "W4-8": "call 25 (search 8) after gold, top5 hit",
+   "W4-10": "call 30 (search 10) after gold, top5 hit"
+  },
+  {
+   "session": "probe-need:matplotlib__matplotlib-25332",
+   "hard": true,
+   "read_at": 27,
+   "reach_searches": 13,
+   "R4 (today)": "call 4 (search 4) before gold",
+   "W1-4": "call 4 (search 4) before gold",
+   "W1-5": "call 5 (search 5) before gold",
+   "W1-6": "call 6 (search 6) before gold, top5 hit",
+   "W2-4": "call 4 (search 4) before gold",
+   "W2-5": "call 5 (search 5) before gold",
+   "W2-6": "call 6 (search 6) before gold, top5 hit",
+   "W3-4 (oracle)": "call 4 (search 4) before gold",
+   "W3-5 (oracle)": "call 5 (search 5) before gold",
+   "W3-6 (oracle)": "call 6 (search 6) before gold, top5 hit",
+   "W4-5": "call 4 (search 4) before gold",
+   "W4-6": "call 4 (search 4) before gold",
+   "W5-4": "call 4 (search 4) before gold",
+   "W5-5": "call 5 (search 5) before gold",
+   "W5-6": "call 6 (search 6) before gold, top5 hit",
+   "W4-8": "call 4 (search 4) before gold",
+   "W4-10": "call 4 (search 4) before gold"
+  },
+  {
+   "session": "probe-need:matplotlib__matplotlib-26342",
+   "hard": true,
+   "read_at": 8,
+   "reach_searches": 6,
+   "W1-4": "call 5 (search 4) before gold, top5 hit",
+   "W1-5": "call 6 (search 5) before gold, top5 hit",
+   "W1-6": "call 7 (search 6) before gold, top5 hit",
+   "W2-4": "call 5 (search 4) before gold, top5 hit",
+   "W2-5": "call 6 (search 5) before gold, top5 hit",
+   "W2-6": "call 7 (search 6) before gold, top5 hit",
+   "W4-5": "call 6 (search 5) before gold, top5 hit",
+   "W4-6": "call 7 (search 6) before gold, top5 hit",
+   "W5-4": "call 7 (search 6) before gold, top5 hit"
+  },
+  {
+   "session": "probe-need:pydata__xarray-7393",
+   "hard": true,
+   "read_at": 20,
+   "reach_searches": 12,
+   "R4 (today)": "call 4 (search 4) before gold",
+   "W1-4": "call 4 (search 4) before gold",
+   "W1-5": "call 8 (search 5) before gold",
+   "W1-6": "call 9 (search 6) before gold",
+   "W2-4": "call 4 (search 4) before gold",
+   "W2-5": "call 8 (search 5) before gold",
+   "W2-6": "call 9 (search 6) before gold",
+   "W3-4 (oracle)": "call 4 (search 4) before gold",
+   "W3-5 (oracle)": "call 8 (search 5) before gold",
+   "W3-6 (oracle)": "call 9 (search 6) before gold",
+   "W4-5": "call 4 (search 4) before gold",
+   "W4-6": "call 4 (search 4) before gold",
+   "W5-4": "call 4 (search 4) before gold",
+   "W5-5": "call 8 (search 5) before gold",
+   "W5-6": "call 9 (search 6) before gold",
+   "W4-8": "call 4 (search 4) before gold",
+   "W4-10": "call 4 (search 4) before gold"
+  },
+  {
+   "session": "probe-need:sympy__sympy-12419",
+   "hard": true,
+   "read_at": 30,
+   "reach_searches": 8
+  },
+  {
+   "session": "probe-need:sympy__sympy-20428",
+   "hard": true,
+   "read_at": null,
+   "reach_searches": null,
+   "W1-4": "call 5 (search 4) before gold",
+   "W1-5": "call 6 (search 5) before gold",
+   "W1-6": "call 7 (search 6) before gold",
+   "W2-4": "call 5 (search 4) before gold",
+   "W2-5": "call 6 (search 5) before gold",
+   "W2-6": "call 7 (search 6) before gold",
+   "W3-4 (oracle)": "call 5 (search 4) before gold",
+   "W3-5 (oracle)": "call 6 (search 5) before gold",
+   "W3-6 (oracle)": "call 7 (search 6) before gold",
+   "W4-5": "call 6 (search 5) before gold",
+   "W4-6": "call 7 (search 6) before gold",
+   "W5-4": "call 7 (search 6) before gold",
+   "W5-5": "call 8 (search 7) before gold",
+   "W5-6": "call 10 (search 8) before gold",
+   "W4-8": "call 10 (search 8) before gold",
+   "W4-10": "call 13 (search 10) before gold"
+  },
+  {
+   "session": "probe-need:sympy__sympy-20916",
+   "hard": true,
+   "read_at": null,
+   "reach_searches": null,
+   "W1-4": "call 17 (search 4) before gold",
+   "W2-4": "call 17 (search 4) before gold"
+  },
+  {
+   "session": "probe-auto:django__django-11211",
+   "hard": true,
+   "read_at": null,
+   "reach_searches": null,
+   "W1-4": "call 8 (search 4) before gold",
+   "W1-5": "call 18 (search 5) before gold",
+   "W2-4": "call 8 (search 4) before gold",
+   "W2-5": "call 18 (search 5) before gold",
+   "W4-5": "call 18 (search 5) before gold"
+  },
+  {
+   "session": "probe-auto:django__django-14007",
+   "hard": true,
+   "read_at": 9,
+   "reach_searches": 6,
+   "R4 (today)": "call 4 (search 4) before gold, top5 hit",
+   "W1-4": "call 4 (search 4) before gold, top5 hit",
+   "W1-5": "call 7 (search 5) before gold, top5 hit",
+   "W1-6": "call 8 (search 6) before gold",
+   "W2-4": "call 4 (search 4) before gold, top5 hit",
+   "W2-5": "call 7 (search 5) before gold, top5 hit",
+   "W2-6": "call 8 (search 6) before gold",
+   "W3-4 (oracle)": "call 4 (search 4) before gold, top5 hit",
+   "W4-5": "call 4 (search 4) before gold, top5 hit",
+   "W4-6": "call 4 (search 4) before gold, top5 hit",
+   "W5-4": "call 4 (search 4) before gold, top5 hit",
+   "W4-8": "call 4 (search 4) before gold, top5 hit",
+   "W4-10": "call 4 (search 4) before gold, top5 hit"
+  },
+  {
+   "session": "probe-auto:django__django-14011",
+   "hard": false,
+   "read_at": 6,
+   "reach_searches": 4,
+   "R4 (today)": "call 5 (search 4) before gold, top5 hit",
+   "W1-4": "call 5 (search 4) before gold, top5 hit",
+   "W1-5": "call 11 (search 5) after gold, top5 hit",
+   "W1-6": "call 13 (search 6) after gold, top5 hit",
+   "W2-4": "call 5 (search 4) before gold, top5 hit",
+   "W2-5": "call 11 (search 5) after gold, top5 hit",
+   "W2-6": "call 13 (search 6) after gold, top5 hit",
+   "W3-4 (oracle)": "call 5 (search 4) before gold, top5 hit",
+   "W4-5": "call 5 (search 4) before gold, top5 hit",
+   "W4-6": "call 5 (search 4) before gold, top5 hit",
+   "W5-4": "call 5 (search 4) before gold, top5 hit",
+   "W4-8": "call 5 (search 4) before gold, top5 hit",
+   "W4-10": "call 5 (search 4) before gold, top5 hit"
+  },
+  {
+   "session": "probe-auto:django__django-15563",
+   "hard": true,
+   "read_at": 9,
+   "reach_searches": 6,
+   "R4 (today)": "call 4 (search 4) before gold",
+   "W1-4": "call 4 (search 4) before gold",
+   "W1-5": "call 6 (search 5) before gold",
+   "W1-6": "call 7 (search 6) before gold",
+   "W2-4": "call 4 (search 4) before gold",
+   "W2-5": "call 6 (search 5) before gold",
+   "W2-6": "call 7 (search 6) before gold",
+   "W3-4 (oracle)": "call 4 (search 4) before gold",
+   "W3-5 (oracle)": "call 6 (search 5) before gold",
+   "W3-6 (oracle)": "call 7 (search 6) before gold",
+   "W4-5": "call 4 (search 4) before gold",
+   "W4-6": "call 4 (search 4) before gold",
+   "W5-4": "call 4 (search 4) before gold",
+   "W5-5": "call 20 (search 13) after gold, top5 hit",
+   "W5-6": "call 28 (search 14) after gold, top5 hit",
+   "W4-8": "call 4 (search 4) before gold",
+   "W4-10": "call 4 (search 4) before gold"
+  },
+  {
+   "session": "probe-auto:matplotlib__matplotlib-25332",
+   "hard": true,
+   "read_at": 9,
+   "reach_searches": 5,
+   "W1-4": "call 7 (search 4) before gold",
+   "W1-5": "call 8 (search 5) before gold",
+   "W1-6": "call 10 (search 6) after gold",
+   "W2-4": "call 7 (search 4) before gold",
+   "W2-5": "call 8 (search 5) before gold",
+   "W2-6": "call 10 (search 6) after gold",
+   "W3-4 (oracle)": "call 7 (search 4) before gold",
+   "W3-5 (oracle)": "call 8 (search 5) before gold",
+   "W4-5": "call 8 (search 5) before gold",
+   "W4-6": "call 10 (search 6) after gold",
+   "W5-4": "call 24 (search 10) after gold",
+   "W4-8": "call 22 (search 8) after gold",
+   "W4-10": "call 24 (search 10) after gold"
+  },
+  {
+   "session": "probe-auto:matplotlib__matplotlib-26342",
+   "hard": true,
+   "read_at": 10,
+   "reach_searches": 7,
+   "W1-4": "call 5 (search 4) before gold",
+   "W1-5": "call 7 (search 5) before gold",
+   "W1-6": "call 8 (search 6) before gold",
+   "W2-4": "call 5 (search 4) before gold",
+   "W2-5": "call 7 (search 5) before gold",
+   "W2-6": "call 8 (search 6) before gold",
+   "W4-5": "call 7 (search 5) before gold",
+   "W4-6": "call 8 (search 6) before gold",
+   "W5-4": "call 14 (search 11) after gold, top5 hit",
+   "W4-8": "call 11 (search 8) after gold, top5 hit",
+   "W4-10": "call 13 (search 10) after gold, top5 hit"
+  },
+  {
+   "session": "probe-auto:pydata__xarray-7393",
+   "hard": true,
+   "read_at": 17,
+   "reach_searches": 10,
+   "W1-4": "call 6 (search 4) before gold",
+   "W1-5": "call 8 (search 5) before gold",
+   "W1-6": "call 10 (search 6) before gold",
+   "W2-4": "call 6 (search 4) before gold",
+   "W2-5": "call 8 (search 5) before gold",
+   "W2-6": "call 10 (search 6) before gold",
+   "W3-4 (oracle)": "call 6 (search 4) before gold",
+   "W3-5 (oracle)": "call 8 (search 5) before gold",
+   "W3-6 (oracle)": "call 10 (search 6) before gold",
+   "W4-5": "call 8 (search 5) before gold",
+   "W4-6": "call 10 (search 6) before gold",
+   "W4-8": "call 13 (search 8) before gold",
+   "W4-10": "call 16 (search 10) before gold"
+  },
+  {
+   "session": "probe-auto:sympy__sympy-12419",
+   "hard": true,
+   "read_at": 21,
+   "reach_searches": 10,
+   "R4 (today)": "call 8 (search 4) before gold",
+   "W1-4": "call 8 (search 4) before gold",
+   "W1-5": "call 10 (search 5) before gold",
+   "W1-6": "call 14 (search 6) before gold",
+   "W2-4": "call 8 (search 4) before gold",
+   "W2-5": "call 10 (search 5) before gold",
+   "W2-6": "call 14 (search 6) before gold",
+   "W3-4 (oracle)": "call 8 (search 4) before gold",
+   "W4-5": "call 8 (search 4) before gold",
+   "W4-6": "call 8 (search 4) before gold",
+   "W5-4": "call 8 (search 4) before gold",
+   "W5-5": "call 32 (search 17) after gold",
+   "W5-6": "call 35 (search 18) after gold",
+   "W4-8": "call 8 (search 4) before gold",
+   "W4-10": "call 8 (search 4) before gold"
+  },
+  {
+   "session": "probe-auto:sympy__sympy-20428",
+   "hard": true,
+   "read_at": null,
+   "reach_searches": null,
+   "W1-4": "call 5 (search 4) before gold",
+   "W1-5": "call 6 (search 5) before gold",
+   "W1-6": "call 8 (search 6) before gold",
+   "W2-4": "call 5 (search 4) before gold",
+   "W2-5": "call 6 (search 5) before gold",
+   "W2-6": "call 8 (search 6) before gold",
+   "W3-4 (oracle)": "call 5 (search 4) before gold",
+   "W3-5 (oracle)": "call 6 (search 5) before gold",
+   "W3-6 (oracle)": "call 8 (search 6) before gold",
+   "W4-5": "call 6 (search 5) before gold",
+   "W4-6": "call 8 (search 6) before gold",
+   "W5-4": "call 5 (search 4) before gold",
+   "W5-5": "call 6 (search 5) before gold",
+   "W5-6": "call 8 (search 6) before gold",
+   "W4-8": "call 12 (search 8) before gold",
+   "W4-10": "call 20 (search 10) before gold"
+  },
+  {
+   "session": "probe-auto:sympy__sympy-20916",
+   "hard": true,
+   "read_at": null,
+   "reach_searches": 5,
+   "W1-4": "call 7 (search 4) before gold, top5 hit",
+   "W1-5": "call 9 (search 5) before gold, top5 hit",
+   "W1-6": "call 10 (search 6) after gold, top5 hit",
+   "W2-4": "call 7 (search 4) before gold, top5 hit",
+   "W2-5": "call 9 (search 5) before gold, top5 hit",
+   "W2-6": "call 10 (search 6) after gold, top5 hit",
+   "W4-5": "call 9 (search 5) before gold, top5 hit",
+   "W4-6": "call 10 (search 6) after gold, top5 hit",
+   "W5-4": "call 7 (search 4) before gold, top5 hit",
+   "W5-5": "call 9 (search 5) before gold, top5 hit",
+   "W5-6": "call 10 (search 6) after gold, top5 hit",
+   "W4-8": "call 24 (search 8) after gold, top5 hit",
+   "W4-10": "call 28 (search 10) after gold, top5 hit"
+  }
+ ],
+ "real": {
+  "memory-real": {
+   "sessions": 1114,
+   "R4 (today)": {
+    "fires": 214,
+    "in_hard_turn": 27,
+    "useful": 27
+   },
+   "W1-4": {
+    "fires": 414,
+    "in_hard_turn": 41,
+    "useful": 41
+   },
+   "W1-5": {
+    "fires": 334,
+    "in_hard_turn": 44,
+    "useful": 44
+   },
+   "W1-6": {
+    "fires": 271,
+    "in_hard_turn": 39,
+    "useful": 34
+   },
+   "W2-4": {
+    "fires": 409,
+    "in_hard_turn": 41,
+    "useful": 41
+   },
+   "W2-5": {
+    "fires": 331,
+    "in_hard_turn": 44,
+    "useful": 44
+   },
+   "W2-6": {
+    "fires": 271,
+    "in_hard_turn": 39,
+    "useful": 34
+   },
+   "W3-4 (oracle)": {
+    "fires": 241,
+    "in_hard_turn": 30,
+    "useful": 30
+   },
+   "W3-5 (oracle)": {
+    "fires": 185,
+    "in_hard_turn": 29,
+    "useful": 29
+   },
+   "W3-6 (oracle)": {
+    "fires": 146,
+    "in_hard_turn": 24,
+    "useful": 24
+   },
+   "W4-5": {
+    "fires": 367,
+    "in_hard_turn": 42,
+    "useful": 42
+   },
+   "W4-6": {
+    "fires": 337,
+    "in_hard_turn": 38,
+    "useful": 37
+   },
+   "W5-4": {
+    "fires": 325,
+    "in_hard_turn": 36,
+    "useful": 36
+   },
+   "W5-5": {
+    "fires": 246,
+    "in_hard_turn": 34,
+    "useful": 34
+   },
+   "W5-6": {
+    "fires": 189,
+    "in_hard_turn": 29,
+    "useful": 27
+   },
+   "W4-8": {
+    "fires": 300,
+    "in_hard_turn": 34,
+    "useful": 32
+   },
+   "W4-10": {
+    "fires": 282,
+    "in_hard_turn": 32,
+    "useful": 30
+   }
+  },
+  "swe-chat": {
+   "sessions": 292,
+   "R4 (today)": {
+    "fires": 48,
+    "in_hard_turn": 6,
+    "useful": 6
+   },
+   "W1-4": {
+    "fires": 95,
+    "in_hard_turn": 11,
+    "useful": 11
+   },
+   "W1-5": {
+    "fires": 79,
+    "in_hard_turn": 11,
+    "useful": 11
+   },
+   "W1-6": {
+    "fires": 61,
+    "in_hard_turn": 8,
+    "useful": 8
+   },
+   "W2-4": {
+    "fires": 95,
+    "in_hard_turn": 11,
+    "useful": 11
+   },
+   "W2-5": {
+    "fires": 77,
+    "in_hard_turn": 11,
+    "useful": 11
+   },
+   "W2-6": {
+    "fires": 61,
+    "in_hard_turn": 8,
+    "useful": 8
+   },
+   "W3-4 (oracle)": {
+    "fires": 53,
+    "in_hard_turn": 9,
+    "useful": 9
+   },
+   "W3-5 (oracle)": {
+    "fires": 44,
+    "in_hard_turn": 9,
+    "useful": 9
+   },
+   "W3-6 (oracle)": {
+    "fires": 37,
+    "in_hard_turn": 7,
+    "useful": 7
+   },
+   "W4-5": {
+    "fires": 86,
+    "in_hard_turn": 11,
+    "useful": 11
+   },
+   "W4-6": {
+    "fires": 73,
+    "in_hard_turn": 8,
+    "useful": 8
+   },
+   "W5-4": {
+    "fires": 73,
+    "in_hard_turn": 7,
+    "useful": 7
+   },
+   "W5-5": {
+    "fires": 55,
+    "in_hard_turn": 6,
+    "useful": 6
+   },
+   "W5-6": {
+    "fires": 45,
+    "in_hard_turn": 6,
+    "useful": 6
+   },
+   "W4-8": {
+    "fires": 63,
+    "in_hard_turn": 6,
+    "useful": 6
+   },
+   "W4-10": {
+    "fires": 58,
+    "in_hard_turn": 6,
+    "useful": 6
+   }
+  }
+ }
+}

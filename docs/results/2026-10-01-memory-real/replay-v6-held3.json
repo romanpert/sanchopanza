@@ -1,0 +1,76 @@
+{
+ "v5 touch": {
+  "all/lineage": {
+   "requests": 3127,
+   "with_related": 188,
+   "recall": 0.862,
+   "precision": 0.151,
+   "noise": 0.08,
+   "shown_per_request": 0.27
+  },
+  "all/any": {
+   "requests": 3127,
+   "with_related": 531,
+   "recall": 0.979,
+   "precision": 0.763,
+   "noise": 0.031,
+   "shown_per_request": 0.27
+  },
+  "first/lineage": {
+   "requests": 328,
+   "with_related": 23,
+   "recall": 1.0,
+   "precision": 0.139,
+   "noise": 0.262,
+   "shown_per_request": 0.74
+  },
+  "first/any": {
+   "requests": 328,
+   "with_related": 74,
+   "recall": 1.0,
+   "precision": 0.693,
+   "noise": 0.114,
+   "shown_per_request": 0.74
+  },
+  "chars_per_request": 601,
+  "given_by_bash": 0,
+  "related_given_by_bash": 0
+ },
+ "v6 touch": {
+  "all/lineage": {
+   "requests": 3127,
+   "with_related": 188,
+   "recall": 0.862,
+   "precision": 0.147,
+   "noise": 0.082,
+   "shown_per_request": 0.27
+  },
+  "all/any": {
+   "requests": 3127,
+   "with_related": 531,
+   "recall": 0.979,
+   "precision": 0.749,
+   "noise": 0.034,
+   "shown_per_request": 0.27
+  },
+  "first/lineage": {
+   "requests": 328,
+   "with_related": 23,
+   "recall": 1.0,
+   "precision": 0.138,
+   "noise": 0.266,
+   "shown_per_request": 0.75
+  },
+  "first/any": {
+   "requests": 328,
+   "with_related": 74,
+   "recall": 1.0,
+   "precision": 0.691,
+   "noise": 0.118,
+   "shown_per_request": 0.75
+  },
+  "chars_per_request": 607,
+  "given_by_bash": 21,
+  "related_given_by_bash": 5
+ }
+}
