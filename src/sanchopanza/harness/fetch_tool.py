@@ -12,6 +12,9 @@ model arrives as it is. `install --scan-content` with this tool among the conten
 
 Environment: `SANCHOPANZA_FETCH_DENY_HOSTS` (comma-separated hosts; each also denies its
 subdomains) for hosts the tool must never fetch, as WebFetch deny rules do for WebFetch.
+`SANCHOPANZA_FETCH_VERSION=2` cuts pages with `webpage_v2` (chrome stripped, sections kept
+together) and answers a 404 or a disambiguation page with one line saying to search first;
+version 1 is the default and stays as measured.
 
     sanchopanza fetch-mcp                      # stdio server `sanchopanza-fetch`
     claude mcp add --scope user sanchopanza-fetch -- sanchopanza fetch-mcp
@@ -29,7 +32,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from .. import _env, webpage
+from .. import _env, webpage, webpage_v2
 
 SERVER = "sanchopanza-fetch"
 TOOL = "fetch_passages"
@@ -48,6 +51,11 @@ USER_AGENT = (
     "Mozilla/5.0 (compatible; sanchopanza-fetch/0.3; +https://github.com/romanpert/sanchopanza)"
 )
 _TEXT_TYPES = ("text/plain", "application/json", "text/csv", "application/xml", "text/xml")
+GUESSED = "The address may be a guess: search for the page first."
+DISAMBIGUATION = (
+    "Note: a disambiguation page (the name has several meanings). Fetch the exact title below, "
+    "or search first."
+)
 
 
 class Refused(ValueError):
@@ -116,7 +124,11 @@ def http_opener(env: Mapping[str, str] | None = None) -> Callable[[str], Respons
     return open_url
 
 
-def _page_of(response: Response) -> webpage.Page | str:
+def version(env: Mapping[str, str] | None = None) -> int:
+    return 2 if _env.get("FETCH_VERSION", "1", env).strip() == "2" else 1
+
+
+def _page_of(response: Response, cut: int = 1) -> webpage.Page | str:
     """The page, or the reason it is not read."""
     ctype = (response.content_type or "").split(";")[0].strip().lower()
     head = response.body[:512].lstrip().lower()
@@ -124,7 +136,7 @@ def _page_of(response: Response) -> webpage.Page | str:
         return f"{response.url} is application/pdf: not read here. WebFetch this URL instead."
     text = webpage.decode(response.body[:MAX_BYTES], response.content_type)
     if "html" in ctype or head.startswith((b"<!doctype html", b"<html")):
-        return webpage.page_from_html(text)
+        return (webpage_v2 if cut == 2 else webpage).page_from_html(text)
     if ctype.startswith("text/") or ctype in _TEXT_TYPES or ctype.endswith("+json"):
         return webpage.page_from_text(text)
     return f"{response.url} is {ctype or 'of unknown type'}: not read here. WebFetch it instead."
@@ -140,6 +152,7 @@ class PageFetcher:
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self.env = env
+        self.version = version(env)
         self.opener = opener or http_opener(env)
         self.clock = clock
         self.pages: dict[str, tuple[float, str, webpage.Page | str]] = {}
@@ -150,7 +163,7 @@ class PageFetcher:
         if kept and now - kept[0] < CACHE_S:
             return kept[1], kept[2]
         response = self.opener(url)
-        page = _page_of(response)
+        page = _page_of(response, self.version)
         fresh = {u: v for u, v in self.pages.items() if now - v[0] < CACHE_S}
         if len(fresh) >= CACHE_PAGES:
             oldest = min(fresh, key=lambda u: fresh[u][0])
@@ -166,7 +179,8 @@ class PageFetcher:
         except Refused as error:
             return f"Refused: {error}."
         except urllib.error.HTTPError as error:
-            return f"Could not fetch {url}: HTTP {error.code}."
+            guessed = f" {GUESSED}" if self.version == 2 and error.code == 404 else ""
+            return f"Could not fetch {url}: HTTP {error.code}.{guessed}"
         except (OSError, ValueError) as error:
             return f"Could not fetch {url}: {error.__class__.__name__}."
         if isinstance(page, str):
@@ -174,6 +188,10 @@ class PageFetcher:
         named = f"{page.title}\n{final}" if page.title else final
         if not page.chunks:
             return f"{named}\nNo text on the page (it may need a browser)."
+        if self.version == 2:
+            out = webpage_v2.passages(page, purpose, budget)
+            note = f"{DISAMBIGUATION}\n" if page.disambiguation else ""
+            return f"{named}\n{note}{out.header()}\n\n{out.text}"
         out = webpage.passages(page, purpose, budget)
         return f"{named}\n{out.header()}\n\n{out.text}"
 

@@ -1,7 +1,8 @@
 """Browse, development: fetch by passages against WebFetch's Haiku reader, replayed for free.
 
-python benchmarks/browse/free_fetch_offline.py --collect   # transcripts; each URL downloaded once
-python benchmarks/browse/free_fetch_offline.py             # the report (no network)
+python benchmarks/browse/free_fetch_offline.py --collect         # transcripts; each URL once
+python benchmarks/browse/free_fetch_offline.py --collect-pilot   # + the fetch pilot's page calls
+python benchmarks/browse/free_fetch_offline.py                   # the report (no network)
 
 Two questions on the recorded sessions of both FRAMES pilots and the free calibration
 (`2026-10-03-browse-free`), 220 sessions, no model and no money:
@@ -15,6 +16,11 @@ Two questions on the recorded sessions of both FRAMES pilots and the free calibr
    task's gold answer is in it (when it is on the page at all), and how many of the summary's
    numbers and names that are on the page it keeps. Each URL is downloaded once, today, and
    cached outside the repository; a page that changed since the session is a source of noise.
+
+3. fetch v2 (`webpage_v2`) against version 1 on the same pages: every WebFetch page above at the
+   default budget with the WebFetch prompt as purpose, and every `fetch_passages` call of the
+   fetch pilot with its own purpose and budget (`--collect-pilot` adds them to the records and
+   downloads their pages once). Tokens and whether the gold is in what the agent gets.
 
 Nothing from a task, a page or a summary is written here: the report holds counts, sizes and
 dollars. The URL list, pages and summaries stay in the private cache.
@@ -40,7 +46,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from sanchopanza import webpage  # noqa: E402
+from sanchopanza import webpage, webpage_v2  # noqa: E402
 
 
 def _load(name: str, path: pathlib.Path) -> Any:
@@ -69,6 +75,10 @@ BUDGETS = (4_000, 8_000, 16_000)
 # (Claude Code writes 1 h; measured on pilot 2) and a cache read on every later call.
 CONTEXT_PRICE = {"SONNET": (4.0, 0.2), "HAIKU": (2.0, 0.1)}
 SEARCH_FEE_USD = 0.01
+PILOT = CACHE / "frames-fetch-pilot" / "sessions.jsonl"
+PASSAGES_TOOL = "mcp__sanchopanza-fetch__fetch_passages"
+_FAILED = ("Refused:", "Could not fetch")
+_NOT_READ = ("not read here", "No text on the page")
 
 
 # --- collection ---------------------------------------------------------------------------------
@@ -112,6 +122,75 @@ def _fetches(folder: pathlib.Path) -> list[dict[str, Any]]:
                     "later_calls": len(order) - 1 - order[message_id],
                 }
             )
+    return out
+
+
+def _unwrap(text: str) -> str:
+    if text.startswith('{"result"'):
+        try:
+            return str(json.loads(text).get("result") or "")
+        except ValueError:
+            return text
+    return text
+
+
+def passage_calls(folder: pathlib.Path) -> list[dict[str, Any]]:
+    """Every `fetch_passages` call of a session: URL, purpose, budget, and whether it failed."""
+    out = []
+    for path in sorted(folder.rglob("*.jsonl")) if folder.is_dir() else []:
+        uses: list[tuple[str, Mapping[str, Any]]] = []
+        replies: dict[str, str] = {}
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            entry = json.loads(line) if line.strip() else {}
+            content = (entry.get("message") or {}).get("content")
+            for block in content if isinstance(content, list) else []:
+                if not isinstance(block, dict):
+                    continue
+                if block.get("type") == "tool_use" and block.get("name") == PASSAGES_TOOL:
+                    uses.append((str(block.get("id")), block.get("input") or {}))
+                elif block.get("type") == "tool_result":
+                    text = _unwrap(trace._result_text(block.get("content")))
+                    replies[str(block.get("tool_use_id"))] = text
+        for use_id, given in uses:
+            text = replies.get(use_id, "")
+            failed = text.startswith(_FAILED) or any(m in text for m in _NOT_READ)
+            out.append(
+                {
+                    "url": str(given.get("url") or ""),
+                    "purpose": str(given.get("purpose") or ""),
+                    "budget": int(given.get("budget") or webpage.DEFAULT_BUDGET),
+                    "failed": failed,
+                }
+            )
+    return out
+
+
+def collect_pilot() -> None:
+    """Add the fetch pilot's page calls to the records and download their pages once."""
+    data = json.loads(RECORDS.read_text(encoding="utf-8"))
+    calls = []
+    for line in PILOT.read_text(encoding="utf-8").splitlines():
+        row = json.loads(line) if line.strip() else {}
+        if not str(row.get("arm", "")).endswith("-FETCH"):
+            continue
+        found = passage_calls(trace.folder_of(row["workdir"]))
+        calls.extend({"task": row["task"], "arm": row["arm"], **c} for c in found)
+    for url in sorted({c["url"] for c in calls if not c["failed"] and c["url"]}):
+        download(url)
+    RECORDS.write_text(json.dumps({**data, "passage_calls": calls}), encoding="utf-8")
+
+
+def compare_versions(html: str, purpose: str, budget: int, gold: str) -> dict[str, Any]:
+    """Tokens and gold of what each version gives the agent for one page and purpose."""
+    out: dict[str, Any] = {}
+    for name, module in (("v1", webpage), ("v2", webpage_v2)):
+        page = module.page_from_html(html)
+        got = module.passages(page, purpose, budget)
+        text = f"{got.title}\n{got.text}"
+        out[f"tok_{name}"] = len(text) / CHARS_PER_TOKEN
+        out[f"gold_{name}"] = present(gold, text) if gold else False
+    whole = webpage.page_from_html(html)
+    out["gold_on_page"] = present(gold, "\n".join(c.text for c in whole.chunks)) if gold else False
     return out
 
 
@@ -366,6 +445,71 @@ def cost_table(
     return table
 
 
+def _html_of(url: str) -> str | None:
+    meta_path = PAGES / f"{key_of(url)}.json"
+    body = PAGES / f"{key_of(url)}.body"
+    if not meta_path.exists() or not body.exists():
+        return None
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    ctype = str(meta.get("type") or "").lower()
+    if meta.get("status") != 200 or "html" not in ctype:
+        return None
+    return webpage.decode(body.read_bytes(), ctype)
+
+
+def _versions_summary(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    with_gold = [r for r in rows if r["gold_on_page"]]
+    out: dict[str, Any] = {"calls": len(rows), "gold_on_page": len(with_gold)}
+    for v in ("v1", "v2"):
+        out[v] = {
+            "tokens_mean": round(statistics.mean(r[f"tok_{v}"] for r in rows)) if rows else None,
+            "tokens_median": round(_q([r[f"tok_{v}"] for r in rows], 0.5)),
+            "tokens_p90": round(_q([r[f"tok_{v}"] for r in rows], 0.9)),
+            "gold": sum(r[f"gold_{v}"] for r in with_gold),
+        }
+    out["gold_v2_only"] = sum(r["gold_v2"] and not r["gold_v1"] for r in with_gold)
+    out["gold_v1_only"] = sum(r["gold_v1"] and not r["gold_v2"] for r in with_gold)
+    return out
+
+
+def versions(data: Mapping[str, Any], golds: Mapping[str, str]) -> dict[str, Any]:
+    """fetch v2 against version 1, on the WebFetch pages and on the pilot's page calls."""
+    cache: dict[str, str | None] = {}
+
+    def html(url: str) -> str | None:
+        if url not in cache:
+            cache[url] = _html_of(url)
+        return cache[url]
+
+    webfetch = []
+    for f in data["fetches"]:
+        if f["src"] == "CAL" or f["code"] != 200 or not f["url"] or html(f["url"]) is None:
+            continue
+        gold = golds.get(f["task"], "")
+        webfetch.append(compare_versions(html(f["url"]), f["prompt"], webpage.DEFAULT_BUDGET, gold))
+    pilot = []
+    for c in data.get("passage_calls", []):
+        if c["failed"] or not c["url"] or html(c["url"]) is None:
+            continue
+        found = compare_versions(
+            html(c["url"]), c["purpose"], c["budget"], golds.get(c["task"], "")
+        )
+        pilot.append({"task": c["task"], "arm": c["arm"], **found})
+    by_task = {}
+    for task in ("FR110", "FR314"):
+        mine = [r for r in pilot if r["task"] == task]
+        by_task[task] = [{k: (round(v) if isinstance(v, float) else v) for k, v in r.items()
+                          if k != "task"} for r in mine]  # fmt: skip
+    return {
+        "webfetch_pages_at_8000": _versions_summary(webfetch),
+        "pilot_calls": _versions_summary(pilot),
+        "pilot_calls_haiku": _versions_summary([r for r in pilot if r["arm"].startswith("HAIKU")]),
+        "pilot_calls_by_task": by_task,
+        "pilot_calls_skipped": sum(1 for c in data.get("passage_calls", []) if not c["failed"])
+        - len(pilot),
+    }
+
+
 def report() -> dict[str, Any]:
     data = json.loads(RECORDS.read_text(encoding="utf-8"))
     sessions = data["sessions"]
@@ -384,6 +528,7 @@ def report() -> dict[str, Any]:
         "replay_frames": summarise([r for r in rows if r["src"] != "CAL"], b),
         "replay_cal": summarise([r for r in rows if r["src"] == "CAL"], fits["cal"][1]),
         "skipped_fetches": sum(f["code"] == 200 for f in data["fetches"]) - len(rows),
+        "fetch_v2": versions(data, gold_map()),
         "chars_per_token": CHARS_PER_TOKEN,
     }
 
@@ -391,9 +536,12 @@ def report() -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--collect", action="store_true")
+    parser.add_argument("--collect-pilot", action="store_true")
     args = parser.parse_args()
     if args.collect:
         collect()
+    if args.collect_pilot:
+        collect_pilot()
     out = report()
     REPORT.write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
     sys.stdout.write(json.dumps(out, indent=1) + "\n")

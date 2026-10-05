@@ -95,6 +95,7 @@ class Block:
     text: str
     heading: str
     kind: str  # "h", "row" or "text"
+    table_head: str = ""  # version 2: the header row of the table a row belongs to
 
 
 @dataclass(frozen=True)
@@ -107,6 +108,7 @@ class Chunk:
 class Page:
     title: str
     chunks: tuple[Chunk, ...]
+    disambiguation: bool = False  # version 2: the page lists meanings of a name
 
     @property
     def total(self) -> int:

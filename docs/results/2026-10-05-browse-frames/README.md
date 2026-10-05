@@ -553,3 +553,115 @@ From the misses, in order:
 3. A fetch budget per session for the small model: past N pages with no search, the tool's reply
    says to search first (FR31, and the guessed page of FR450). The pages-instead-of-searches
    pattern is the lever on Haiku, so it is worth keeping and bounding, not removing.
+
+## fetch v2: passages by sections, chrome stripped, a page budget (Haiku, 40 sessions)
+
+### What changed (behind settings; version 1 stays as measured)
+
+- `SANCHOPANZA_FETCH_VERSION=2` (`sanchopanza.webpage_v2`, used by `fetch_passages`): an element
+  whose role, id or class names navigation, a menu, a language list, a skip link, an edit mark, a
+  navigation box, a category list or a citation mark is dropped with its contents before the page
+  is cut, and so are left-over `[edit]` and `[12]` marks; a heading carries its parents
+  (`Filmography > Television`); a table cut into pieces repeats its header row; a section whose
+  heading shares a word with the purpose is kept together up to three quarters of the budget (its
+  first chunk and its best chunks when it does not fit), so a heading never stands in for its body;
+  references, notes, external links and further reading only when the purpose names them; a 404
+  says the address may be a guess and to search first; a disambiguation page says so.
+- `SANCHOPANZA_FETCH_MAX_PAGES=N` (`fetch_hook`, on `PreToolUse` WebSearch and `PostToolUse`
+  `fetch_passages` and WebFetch): pages since the session's last search are counted, and from page
+  N + 1 on one line after each page says to search first. It never blocks. Off when unset. Not
+  wired by `install --fetch` until it is measured to do something.
+
+### Offline: version 1 against version 2 on the same pages (free, `free_fetch_offline.py`)
+
+| pages | calls | gold on the page | tokens v1 mean / median / p90 | tokens v2 | gold v1 | gold v2 | v1 only / v2 only |
+|---|---|---|---|---|---|---|---|
+| WebFetch pages of both FRAMES pilots, 8,000 characters, the WebFetch prompt as purpose | 187 | 71 | 1,467 / 1,826 / 2,036 | 1,313 / 1,407 / 2,044 | 67 | 62 | 5 / 0 |
+| `fetch_passages` calls of the fetch pilot, each with its own purpose and budget (`--collect-pilot`) | 75 | 50 | 1,800 / 1,960 / 2,042 | 1,702 / 1,953 / 2,062 | 28 | 24 | 6 / 2 |
+
+Read by hand, every one of the 11 v1-only matches is the gold string inside a reference entry, a
+citation mark (`[1]` against a gold of 1), a language count, a maintenance or browser notice, or a
+table of a reference section: none is the page's text about the subject. The two v2-only matches
+(FR31) are the name in an infobox row and in a lead. The automatic gold count punishes version 2
+for dropping noise; it found no real loss. One real loss came up and was fixed before the live
+run: a "See also" list was the only place a gold stood (FR248), so "See also" stays in.
+
+FR110, by hand: the table row that states the fact is on two of the pages the session read.
+Version 1 gave it on neither (one page's table cut before it, behind 46 language names; on the
+other, the Filmography heading with no body, the case this fix was for). Version 2 gives it on
+both, each actor's filmography whole under its subsection headings; 2,390 -> 2,522 and 2,391 ->
+1,810 tokens. The first page now fits whole: 9,902 characters of text against 19,704.
+
+### The page budget, replayed for free (`--replay-budget`, `fetch2-budget-replay.json`)
+
+The hook's own `handle` over the web calls of the fetch pilot's 40 -FETCH sessions. N of 7 or less
+notes FR419 (8 pages in a row: the tool's one gain) and, below 5, more right sessions; N = 8 notes
+only FR31 (the 28-page loop: 20 pages) and the last page of FR110; 9 and above, FR31 alone. N = 8.
+
+### Set-up
+
+Twenty FRAMES test tasks none of the earlier pilots ran (frames, frames2, fetch pilot), drawn by
+metadata alone as in the fetch pilot with a new seed (`fetch2-pilot-ids.txt`). HAIKU (Claude Code
+alone) against HAIKU-FETCH2 (the server at version 2, `alwaysLoad`, the WebFetch deny, the page
+budget at 8), interleaved by task, cap 0.60 USD a session in both, a hard ceiling of 10 USD in
+code, settings only through the session's `--settings` and MCP config, Claude Code 2.1.287 pinned
+first on the PATH of the run (`free_fetch2_pilot.py`). Checked for free before any session: the
+first request offers `fetch_passages` up front (`--check-load`), and a session against a scripted
+local Messages endpoint, with the budget at 0, sends the page's passages and the budget's line in
+the request after the tool result (`--check-note`). Started outside the session (WMI, a new
+process group) at 17:37, ended at 18:05; no 429, no weekly limit. 40 sessions, 5.81 USD.
+
+### Results (hand grades, `free_fetch2_pilot_hand.py`, `fetch2-pilot-hand.json`)
+
+| arm | right | mean USD | median USD | readers USD / session | WebSearch | fetch_passages (unread) | passage tokens / read | page-budget lines | 404 lines | disambiguation lines | hit the cap |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| HAIKU | 15/20 | 0.177 | 0.098 | 0.129 | 97 | - | - | - | - | - | 2 |
+| HAIKU-FETCH2 | 16/20 | 0.114 | 0.055 | 0.052 | 31 | 92 (6) | 1,240 | 34 (one session) | 3 | 14 (12 wrong) | 1 |
+
+Three verdicts differ from the runner's: the gold's number in digits (FR444), without its unit
+(FR321), and in digits where the question asks for words (FR30, a judgement call: 15/20 if it is
+counted wrong). Paired by task, exact McNemar: 2 against 1, p = 1 (2 against 2 with FR30 wrong).
+No leak (the wider scan: 0 of 40). Same tasks for both arms; there is no version 1 arm, so this
+pilot does not separate version 2 from the task mix (the fetch pilot ran other tasks).
+
+### Read by hand: every number that favours FETCH2, every FETCH2 miss
+
+- **The mean is helped by two base loops.** On FR444 the base ran 22 searches into the cap with no
+  answer (0.675); on FR1, 16 searches to a wrong rank (0.595); FR388 hit the cap in both arms.
+  Without those three tasks: 17 tasks, mean 0.098 against 0.065 USD (-34 %), median 0.093 against
+  0.049, FETCH2 cheaper on 12 of 17. On all 20 it is cheaper on 14 (median paired difference
+  -0.037). The money moves as in the fetch pilot: readers 0.129 -> 0.052 a session, the main model
+  0.048 -> 0.062. Eleven FETCH2 sessions never searched (guessed Wikipedia URLs): 0.77 against 1.81
+  USD on those tasks, 9 right against 8.
+- **The two gains.** FR1 is the tool's: one long ranking table, asked three times with three
+  purposes, came back in row pieces each under its header, and the rank was read off it. FR444 is
+  only partly: 42 pages in a row, one per event of a series, and the right count at half the base's
+  money; the page budget's line came after 34 of those pages and was ignored every time, and here
+  following it would have been wrong.
+- **The loss.** FR690: no page fetched (8 searches), a wrong reading of what the question asks;
+  not the tool's. FR388, FR205 and FR436 are wrong in both arms.
+- **The page budget and the 404 line did nothing.** The budget's line: one session, 34 pages,
+  never followed by a search. The 404 line: 3 times, each followed by another guessed URL.
+- **The disambiguation line was a bug.** 14 lines, 12 on ordinary articles: the parser took a
+  hatnote's link to a disambiguation page (class `mw-disambig`) for the page's own mark. Of the six
+  sessions it touched, five kept the base's verdict and FR444 was right in FETCH2 only. Fixed after
+  the pilot, in the next commit; this pilot measured the bug.
+
+### Against the bar (cheaper and at least as many right as Claude Code alone)
+
+- **Haiku: met on this development pilot**, not confirmed: 16 against 15 right (15 against 15
+  strict), mean -36 %, median -44 %, -34 % without the three loop tasks; n = 20, p = 1. What did
+  the work is what the fetch pilot already showed (pages instead of searches) plus passages that
+  hold the rows: 1,240 tokens a read against 1,833 in the fetch pilot, and the one clear gain is a
+  table read with its header. The page budget, the 404 line and the disambiguation line contributed
+  nothing or were wrong.
+- Not run on Sonnet: on the fetch pilot it fetched too little for the tool to matter.
+
+### Next fix (not measured)
+
+1. The disambiguation mark from the page's own markers only (the next commit, with the live case
+   as a test).
+2. Drop the page budget's line or make it act: as additional context Haiku ignored it 34 times,
+   and the one long run it fired on was the right work.
+3. To separate version 2 from the task mix: a sealed run with three arms (HAIKU, HAIKU-FETCH at
+   version 1, HAIKU-FETCH2) on new tasks.

@@ -78,3 +78,33 @@ def test_the_smoke_adds_the_server_and_hooks_webfetch(tmp_path: pathlib.Path) ->
     hooks = smoke.hooks()["PreToolUse"]
     assert hooks[0]["matcher"] == "WebFetch"
     assert "sanchopanza.harness.fetch_hook" in hooks[0]["hooks"][0]["command"]
+
+
+# --- fetch v2, offline ---------------------------------------------------------------------------
+
+
+def test_the_pilot_page_calls_are_read_with_their_purpose_and_budget(
+    tmp_path: pathlib.Path,
+) -> None:
+    given = {"url": "https://a.example/x", "purpose": "the year", "budget": 5000}
+    use = {"type": "tool_use", "id": "u1", "name": offline.PASSAGES_TOOL, "input": given}
+    result = {
+        "type": "tool_result",
+        "tool_use_id": "u1",
+        "content": "Could not fetch it: HTTP 404.",
+    }
+    lines = [{"type": "assistant", "message": {"id": "m1", "content": [use]}},
+             {"type": "user", "message": {"content": [result]}}]  # fmt: skip
+    (tmp_path / "s.jsonl").write_text("\n".join(json.dumps(x) for x in lines), encoding="utf-8")
+    calls = offline.passage_calls(tmp_path)
+    assert calls == [{"url": "https://a.example/x", "purpose": "the year", "budget": 5000,
+                      "failed": True}]  # fmt: skip
+
+
+def test_the_versions_are_compared_on_the_same_page_purpose_and_budget() -> None:
+    html = ("<h1>Lake</h1><div class='mw-portlet'>" + "Lang " * 300 + "</div>"
+            "<p>The lake is deep and cold in every season of the year.</p>"
+            "<h2>History</h2><p>The first survey was in 1873.</p>")  # fmt: skip
+    out = offline.compare_versions(html, "first survey", 8000, "1873")
+    assert out["gold_v1"] and out["gold_v2"]
+    assert out["tok_v2"] < out["tok_v1"]

@@ -176,5 +176,180 @@
   "whole_page_net_usd_per_fetch_mean": -0.0032
  },
  "skipped_fetches": 51,
+ "fetch_v2": {
+  "webfetch_pages_at_8000": {
+   "calls": 187,
+   "gold_on_page": 71,
+   "v1": {
+    "tokens_mean": 1467,
+    "tokens_median": 1826,
+    "tokens_p90": 2036,
+    "gold": 67
+   },
+   "v2": {
+    "tokens_mean": 1313,
+    "tokens_median": 1407,
+    "tokens_p90": 2044,
+    "gold": 62
+   },
+   "gold_v2_only": 0,
+   "gold_v1_only": 5
+  },
+  "pilot_calls": {
+   "calls": 75,
+   "gold_on_page": 50,
+   "v1": {
+    "tokens_mean": 1800,
+    "tokens_median": 1960,
+    "tokens_p90": 2042,
+    "gold": 28
+   },
+   "v2": {
+    "tokens_mean": 1702,
+    "tokens_median": 1953,
+    "tokens_p90": 2062,
+    "gold": 24
+   },
+   "gold_v2_only": 2,
+   "gold_v1_only": 6
+  },
+  "pilot_calls_haiku": {
+   "calls": 72,
+   "gold_on_page": 47,
+   "v1": {
+    "tokens_mean": 1793,
+    "tokens_median": 1960,
+    "tokens_p90": 2042,
+    "gold": 25
+   },
+   "v2": {
+    "tokens_mean": 1714,
+    "tokens_median": 1967,
+    "tokens_p90": 2062,
+    "gold": 23
+   },
+   "gold_v2_only": 2,
+   "gold_v1_only": 4
+  },
+  "pilot_calls_by_task": {
+   "FR110": [
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 26,
+     "gold_v1": false,
+     "tok_v2": 4,
+     "gold_v2": false,
+     "gold_on_page": false
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 2372,
+     "gold_v1": false,
+     "tok_v2": 2454,
+     "gold_v2": false,
+     "gold_on_page": false
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 2397,
+     "gold_v1": false,
+     "tok_v2": 2529,
+     "gold_v2": false,
+     "gold_on_page": false
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 2398,
+     "gold_v1": false,
+     "tok_v2": 1817,
+     "gold_v2": false,
+     "gold_on_page": false
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 1160,
+     "gold_v1": false,
+     "tok_v2": 1176,
+     "gold_v2": false,
+     "gold_on_page": false
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 1152,
+     "gold_v1": false,
+     "tok_v2": 559,
+     "gold_v2": false,
+     "gold_on_page": false
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 926,
+     "gold_v1": false,
+     "tok_v2": 748,
+     "gold_v2": false,
+     "gold_on_page": false
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 1261,
+     "gold_v1": false,
+     "tok_v2": 1193,
+     "gold_v2": false,
+     "gold_on_page": false
+    }
+   ],
+   "FR314": [
+    {
+     "arm": "SONNET-FETCH",
+     "tok_v1": 2034,
+     "gold_v1": true,
+     "tok_v2": 884,
+     "gold_v2": false,
+     "gold_on_page": true
+    },
+    {
+     "arm": "SONNET-FETCH",
+     "tok_v1": 1939,
+     "gold_v1": true,
+     "tok_v2": 1945,
+     "gold_v2": true,
+     "gold_on_page": true
+    },
+    {
+     "arm": "SONNET-FETCH",
+     "tok_v1": 1904,
+     "gold_v1": true,
+     "tok_v2": 1440,
+     "gold_v2": false,
+     "gold_on_page": true
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 1218,
+     "gold_v1": true,
+     "tok_v2": 1140,
+     "gold_v2": true,
+     "gold_on_page": true
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 892,
+     "gold_v1": true,
+     "tok_v2": 884,
+     "gold_v2": false,
+     "gold_on_page": true
+    },
+    {
+     "arm": "HAIKU-FETCH",
+     "tok_v1": 1982,
+     "gold_v1": true,
+     "tok_v2": 1981,
+     "gold_v2": true,
+     "gold_on_page": true
+    }
+   ]
+  },
+  "pilot_calls_skipped": 0
+ },
  "chars_per_token": 4.0
 }
