@@ -1,0 +1,1673 @@
+{
+ "rule": "see need.py docstring",
+ "hard_searches": 5,
+ "counts": {
+  "sessions": 643,
+  "single_sessions": 179,
+  "chain_requests": 464,
+  "by_source": {
+   "dev1": 12,
+   "A-singles": 78,
+   "dev-alwaysload": 14,
+   "dev-nudge": 20,
+   "chains": 464,
+   "find-e2e": 55
+  },
+  "models": {
+   "claude-haiku-4-5-20251001": 501,
+   "claude-sonnet-5-5": 140,
+   "null": 2
+  },
+  "instances": 74,
+  "hard_single_sessions": 35,
+  "hard_control_single_sessions": 15,
+  "control_single_sessions": 74,
+  "hard_chain_requests": 41,
+  "hard_chain_requests_fresh_or_first": 12,
+  "chain_requests_fresh_or_first": 153
+ },
+ "dev_log_check": {
+  "sessions": 34,
+  "hard": 5,
+  "rules": {
+   "live: wide in first 3, any edit closes": {
+    "fires": 18,
+    "on_listing": 17,
+    "hard_hit_before": 4,
+    "fires_before_reach": 16,
+    "easy_fires": 14
+   },
+   "wide in first 3, source edit closes": {
+    "fires": 19,
+    "on_listing": 18,
+    "hard_hit_before": 5,
+    "fires_before_reach": 17,
+    "easy_fires": 14
+   },
+   "wide in first 6, any edit closes": {
+    "fires": 22,
+    "on_listing": 19,
+    "hard_hit_before": 4,
+    "fires_before_reach": 16,
+    "easy_fires": 18
+   },
+   "wide in first 6, source edit closes": {
+    "fires": 23,
+    "on_listing": 20,
+    "hard_hit_before": 5,
+    "fires_before_reach": 17,
+    "easy_fires": 18
+   },
+   "wide in first 3, source closes, no listings": {
+    "fires": 1,
+    "on_listing": 0,
+    "hard_hit_before": 0,
+    "fires_before_reach": 0,
+    "easy_fires": 1
+   },
+   "wide in first 6, source closes, no listings": {
+    "fires": 5,
+    "on_listing": 0,
+    "hard_hit_before": 0,
+    "fires_before_reach": 0,
+    "easy_fires": 5
+   },
+   "2nd empty search, any edit closes": {
+    "fires": 10,
+    "on_listing": 0,
+    "hard_hit_before": 1,
+    "fires_before_reach": 2,
+    "easy_fires": 9
+   },
+   "NEW 2nd empty search, source edit closes": {
+    "fires": 11,
+    "on_listing": 0,
+    "hard_hit_before": 2,
+    "fires_before_reach": 3,
+    "easy_fires": 9
+   },
+   "2nd empty in first 8 searches, source edit closes": {
+    "fires": 7,
+    "on_listing": 0,
+    "hard_hit_before": 2,
+    "fires_before_reach": 3,
+    "easy_fires": 5
+   },
+   "3rd empty search, source edit closes": {
+    "fires": 7,
+    "on_listing": 0,
+    "hard_hit_before": 2,
+    "fires_before_reach": 2,
+    "easy_fires": 5
+   },
+   "5th search, source edit closes": {
+    "fires": 25,
+    "on_listing": 6,
+    "hard_hit_before": 5,
+    "fires_before_reach": 5,
+    "easy_fires": 20
+   }
+  },
+  "hard_sessions": [
+   "django__django-15563 N",
+   "django__django-15563 S",
+   "matplotlib__matplotlib-23412 S",
+   "sympy__sympy-12419 N",
+   "sympy__sympy-12419 S"
+  ]
+ },
+ "replay_singles": {
+  "sessions": 179,
+  "hard": 35,
+  "rules": {
+   "live: wide in first 3, any edit closes": {
+    "fires": 68,
+    "on_listing": 61,
+    "hard_hit_before": 14,
+    "fires_before_reach": 63,
+    "easy_fires": 54
+   },
+   "wide in first 3, source edit closes": {
+    "fires": 69,
+    "on_listing": 62,
+    "hard_hit_before": 15,
+    "fires_before_reach": 64,
+    "easy_fires": 54
+   },
+   "wide in first 6, any edit closes": {
+    "fires": 79,
+    "on_listing": 67,
+    "hard_hit_before": 15,
+    "fires_before_reach": 64,
+    "easy_fires": 64
+   },
+   "wide in first 6, source edit closes": {
+    "fires": 81,
+    "on_listing": 68,
+    "hard_hit_before": 17,
+    "fires_before_reach": 66,
+    "easy_fires": 64
+   },
+   "wide in first 3, source closes, no listings": {
+    "fires": 7,
+    "on_listing": 0,
+    "hard_hit_before": 1,
+    "fires_before_reach": 5,
+    "easy_fires": 6
+   },
+   "wide in first 6, source closes, no listings": {
+    "fires": 15,
+    "on_listing": 0,
+    "hard_hit_before": 2,
+    "fires_before_reach": 6,
+    "easy_fires": 13
+   },
+   "2nd empty search, any edit closes": {
+    "fires": 62,
+    "on_listing": 0,
+    "hard_hit_before": 5,
+    "fires_before_reach": 8,
+    "easy_fires": 49
+   },
+   "NEW 2nd empty search, source edit closes": {
+    "fires": 72,
+    "on_listing": 0,
+    "hard_hit_before": 7,
+    "fires_before_reach": 10,
+    "easy_fires": 55
+   },
+   "2nd empty in first 8 searches, source edit closes": {
+    "fires": 49,
+    "on_listing": 0,
+    "hard_hit_before": 7,
+    "fires_before_reach": 10,
+    "easy_fires": 41
+   },
+   "3rd empty search, source edit closes": {
+    "fires": 47,
+    "on_listing": 0,
+    "hard_hit_before": 5,
+    "fires_before_reach": 5,
+    "easy_fires": 33
+   },
+   "5th search, source edit closes": {
+    "fires": 135,
+    "on_listing": 33,
+    "hard_hit_before": 35,
+    "fires_before_reach": 35,
+    "easy_fires": 100
+   }
+  }
+ },
+ "replay_chains_fresh_or_first": {
+  "sessions": 153,
+  "hard": 12,
+  "rules": {
+   "live: wide in first 3, any edit closes": {
+    "fires": 45,
+    "on_listing": 34,
+    "hard_hit_before": 2,
+    "fires_before_reach": 33,
+    "easy_fires": 43
+   },
+   "wide in first 3, source edit closes": {
+    "fires": 48,
+    "on_listing": 36,
+    "hard_hit_before": 2,
+    "fires_before_reach": 33,
+    "easy_fires": 46
+   },
+   "wide in first 6, any edit closes": {
+    "fires": 51,
+    "on_listing": 35,
+    "hard_hit_before": 3,
+    "fires_before_reach": 34,
+    "easy_fires": 48
+   },
+   "wide in first 6, source edit closes": {
+    "fires": 55,
+    "on_listing": 37,
+    "hard_hit_before": 3,
+    "fires_before_reach": 34,
+    "easy_fires": 52
+   },
+   "wide in first 3, source closes, no listings": {
+    "fires": 18,
+    "on_listing": 0,
+    "hard_hit_before": 2,
+    "fires_before_reach": 4,
+    "easy_fires": 16
+   },
+   "wide in first 6, source closes, no listings": {
+    "fires": 27,
+    "on_listing": 0,
+    "hard_hit_before": 2,
+    "fires_before_reach": 4,
+    "easy_fires": 25
+   },
+   "2nd empty search, any edit closes": {
+    "fires": 12,
+    "on_listing": 0,
+    "hard_hit_before": 2,
+    "fires_before_reach": 2,
+    "easy_fires": 10
+   },
+   "NEW 2nd empty search, source edit closes": {
+    "fires": 16,
+    "on_listing": 0,
+    "hard_hit_before": 2,
+    "fires_before_reach": 2,
+    "easy_fires": 13
+   },
+   "2nd empty in first 8 searches, source edit closes": {
+    "fires": 13,
+    "on_listing": 0,
+    "hard_hit_before": 2,
+    "fires_before_reach": 2,
+    "easy_fires": 11
+   },
+   "3rd empty search, source edit closes": {
+    "fires": 4,
+    "on_listing": 0,
+    "hard_hit_before": 1,
+    "fires_before_reach": 1,
+    "easy_fires": 3
+   },
+   "5th search, source edit closes": {
+    "fires": 50,
+    "on_listing": 8,
+    "hard_hit_before": 4,
+    "fires_before_reach": 4,
+    "easy_fires": 46
+   }
+  }
+ },
+ "instances": [
+  {
+   "instance": "sympy__sympy-20428",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 3,
+   "hard": 3,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 99,
+   "arms": [
+    "A-singles:N=never/x",
+    "A-singles:S-nojev1=never/x",
+    "A-singles:S=never/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sympy__sympy-20916",
+   "repo": "sympy/sympy",
+   "difficulty": "<15 min fix",
+   "sessions": 2,
+   "hard": 2,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 12.5,
+   "arms": [
+    "find-e2e:F=16/x",
+    "find-e2e:N=9/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "pydata__xarray-7393",
+   "repo": "pydata/xarray",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 2,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 11.5,
+   "arms": [
+    "find-e2e:F=13/ok",
+    "find-e2e:N=10/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sympy__sympy-12419",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 2,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 11.0,
+   "arms": [
+    "dev-nudge:N=10/ok",
+    "dev-nudge:S=12/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-14007",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "sessions": 3,
+   "hard": 3,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 10,
+   "arms": [
+    "A-singles:N=10/ok",
+    "A-singles:S-nojev1=5/ok",
+    "A-singles:S=11/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-15563",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 2,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 9.0,
+   "arms": [
+    "dev-alwaysload:N=11/x",
+    "dev-alwaysload:S=7/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-11211",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 3,
+   "hard": 3,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 8,
+   "arms": [
+    "A-singles:N=never/ok",
+    "A-singles:S-nojev1=6/ok",
+    "A-singles:S=8/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-14011",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "sessions": 3,
+   "hard": 3,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 6,
+   "arms": [
+    "A-singles:N=7/x",
+    "A-singles:S-nojev1=5/x",
+    "A-singles:S=6/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "matplotlib__matplotlib-25332",
+   "repo": "matplotlib/matplotlib",
+   "difficulty": "<15 min fix",
+   "sessions": 3,
+   "hard": 3,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 6,
+   "arms": [
+    "A-singles:N=7/ok",
+    "A-singles:S-nojev1=6/ok",
+    "A-singles:S=6/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "matplotlib__matplotlib-26342",
+   "repo": "matplotlib/matplotlib",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 2,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 5.5,
+   "arms": [
+    "find-e2e:F=6/x",
+    "find-e2e:N=5/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-16263",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "sessions": 3,
+   "hard": 2,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 9,
+   "arms": [
+    "A-singles:N=3/x",
+    "A-singles:S-nojev1=11/x",
+    "A-singles:S=9/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "matplotlib__matplotlib-26208",
+   "repo": "matplotlib/matplotlib",
+   "difficulty": "<15 min fix",
+   "sessions": 2,
+   "hard": 1,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 6.0,
+   "arms": [
+    "find-e2e:F=8/x",
+    "find-e2e:N=4/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "matplotlib__matplotlib-26466",
+   "repo": "matplotlib/matplotlib",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 1,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 5.5,
+   "arms": [
+    "find-e2e:F=4/x",
+    "find-e2e:N=7/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "matplotlib__matplotlib-21568",
+   "repo": "matplotlib/matplotlib",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 1,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 4.5,
+   "arms": [
+    "find-e2e:F=3/ok",
+    "find-e2e:N=6/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sphinx-doc__sphinx-7910",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "<15 min fix",
+   "sessions": 2,
+   "hard": 1,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 4.5,
+   "arms": [
+    "find-e2e:F=4/ok",
+    "find-e2e:N=5/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "pydata__xarray-3677",
+   "repo": "pydata/xarray",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 1,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 3.0,
+   "arms": [
+    "find-e2e:F=0/x",
+    "find-e2e:N=6/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-11999",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 3,
+   "hard": 1,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 4,
+   "arms": [
+    "A-singles:N=4/ok",
+    "A-singles:S-nojev1=11/ok",
+    "A-singles:S=4/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-15022",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 3,
+   "hard": 1,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 4,
+   "arms": [
+    "A-singles:N=5/x",
+    "A-singles:S-nojev1=4/ok",
+    "A-singles:S=4/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "matplotlib__matplotlib-23412",
+   "repo": "matplotlib/matplotlib",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 3,
+   "hard": 1,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2,
+   "arms": [
+    "dev-alwaysload:S=5/ok",
+    "dev1:N=2/ok",
+    "dev1:S=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "pydata__xarray-3305",
+   "repo": "pydata/xarray",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 3.5,
+   "arms": [
+    "find-e2e:F=4/x",
+    "find-e2e:N=3/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sympy__sympy-18763",
+   "repo": "sympy/sympy",
+   "difficulty": "<15 min fix",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 3.5,
+   "arms": [
+    "dev-alwaysload:N=4/x",
+    "dev-alwaysload:S=3/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-13343",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 3.0,
+   "arms": [
+    "dev-nudge:N=3/ok",
+    "dev-nudge:S=3/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-15315",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 3,
+   "arms": [
+    "dev-alwaysload:S=3/ok",
+    "dev1:N=3/ok",
+    "dev1:S=3/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "scikit-learn__scikit-learn-12682",
+   "repo": "scikit-learn/scikit-learn",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 3.0,
+   "arms": [
+    "find-e2e:F=3/x",
+    "find-e2e:N=3/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sphinx-doc__sphinx-10323",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "<15 min fix",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 3,
+   "arms": [
+    "A-singles:N=4/ok",
+    "A-singles:S-nojev1=2/ok",
+    "A-singles:S=3/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "astropy__astropy-8707",
+   "repo": "astropy/astropy",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2.5,
+   "arms": [
+    "find-e2e:F=3/x",
+    "find-e2e:N=2/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-13569",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2.5,
+   "arms": [
+    "dev-nudge:N=3/ok",
+    "dev-nudge:S=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "pydata__xarray-6599",
+   "repo": "pydata/xarray",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2.5,
+   "arms": [
+    "find-e2e:F=2/ok",
+    "find-e2e:N=3/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "astropy__astropy-12907",
+   "repo": "astropy/astropy",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2.0,
+   "arms": [
+    "find-e2e:F=2/ok",
+    "find-e2e:N=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "astropy__astropy-13236",
+   "repo": "astropy/astropy",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2.0,
+   "arms": [
+    "find-e2e:F=2/x",
+    "find-e2e:N=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-12774",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2.0,
+   "arms": [
+    "dev-nudge:N=2/x",
+    "dev-nudge:S=2/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-16100",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2.0,
+   "arms": [
+    "dev-nudge:N=2/ok",
+    "dev-nudge:S=2/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-16631",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2,
+   "arms": [
+    "dev-alwaysload:S=2/x",
+    "dev1:N=4/x",
+    "dev1:S=2/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-17087",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2,
+   "arms": [
+    "A-singles:N=3/ok",
+    "A-singles:S-nojev1=2/ok",
+    "A-singles:S=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "matplotlib__matplotlib-24637",
+   "repo": "matplotlib/matplotlib",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2,
+   "arms": [
+    "A-singles:N=2/ok",
+    "A-singles:S-nojev1=2/ok",
+    "A-singles:S=3/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "pytest-dev__pytest-7490",
+   "repo": "pytest-dev/pytest",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2.0,
+   "arms": [
+    "find-e2e:F=3/ok",
+    "find-e2e:N=1/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "scikit-learn__scikit-learn-14053",
+   "repo": "scikit-learn/scikit-learn",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2.0,
+   "arms": [
+    "find-e2e:F=2/ok",
+    "find-e2e:N=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sphinx-doc__sphinx-10435",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "<15 min fix",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2,
+   "arms": [
+    "A-singles:N=3/x",
+    "A-singles:S-nojev1=2/x",
+    "A-singles:S=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sphinx-doc__sphinx-10449",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "<15 min fix",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2.0,
+   "arms": [
+    "find-e2e:F=1/x",
+    "find-e2e:N=3/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sphinx-doc__sphinx-8551",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2.0,
+   "arms": [
+    "find-e2e:F=1/x",
+    "find-e2e:N=3/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sympy__sympy-15809",
+   "repo": "sympy/sympy",
+   "difficulty": "<15 min fix",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2.0,
+   "arms": [
+    "find-e2e:F=2/ok",
+    "find-e2e:N=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sympy__sympy-16766",
+   "repo": "sympy/sympy",
+   "difficulty": "<15 min fix",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2.0,
+   "arms": [
+    "dev-nudge:N=2/ok",
+    "dev-nudge:S=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sympy__sympy-21930",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2,
+   "arms": [
+    "A-singles:N=3/x",
+    "A-singles:S-nojev1=2/x",
+    "A-singles:S=1/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sympy__sympy-23413",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 1,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2,
+   "arms": [
+    "find-e2e:N=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sympy__sympy-23534",
+   "repo": "sympy/sympy",
+   "difficulty": "<15 min fix",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 2,
+   "arms": [
+    "A-singles:N=2/ok",
+    "A-singles:S-nojev1=3/ok",
+    "A-singles:S=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-11790",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1.5,
+   "arms": [
+    "dev-nudge:N=2/x",
+    "dev-nudge:S=1/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-12039",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1.5,
+   "arms": [
+    "dev-nudge:N=1/ok",
+    "dev-nudge:S=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-14559",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1.5,
+   "arms": [
+    "find-e2e:F=1/ok",
+    "find-e2e:N=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-16642",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1.5,
+   "arms": [
+    "dev-nudge:N=1/x",
+    "dev-nudge:S=2/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "scikit-learn__scikit-learn-14141",
+   "repo": "scikit-learn/scikit-learn",
+   "difficulty": "<15 min fix",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1.5,
+   "arms": [
+    "find-e2e:F=1/ok",
+    "find-e2e:N=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "astropy__astropy-8872",
+   "repo": "astropy/astropy",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1.0,
+   "arms": [
+    "find-e2e:F=0/ok",
+    "find-e2e:N=2/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-11206",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1,
+   "arms": [
+    "dev-alwaysload:S=2/ok",
+    "dev1:N=1/x",
+    "dev1:S=1/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-11333",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1,
+   "arms": [
+    "A-singles:N=1/ok",
+    "A-singles:S-nojev1=1/ok",
+    "A-singles:S=3/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-11532",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1,
+   "arms": [
+    "A-singles:N=2/x",
+    "A-singles:S-nojev1=1/x",
+    "A-singles:S=0/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-12143",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1.0,
+   "arms": [
+    "dev-alwaysload:N=0/ok",
+    "dev-alwaysload:S=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-12708",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1,
+   "arms": [
+    "dev-alwaysload:S=1/ok",
+    "dev1:N=1/ok",
+    "dev1:S=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-13109",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1,
+   "arms": [
+    "A-singles:N=1/ok",
+    "A-singles:S-nojev1=1/ok",
+    "A-singles:S=1/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-13195",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1.0,
+   "arms": [
+    "dev-nudge:N=1/x",
+    "dev-nudge:S=1/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-13807",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1,
+   "arms": [
+    "A-singles:N=1/ok",
+    "A-singles:S-nojev1=2/ok",
+    "A-singles:S=0/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-14631",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1,
+   "arms": [
+    "A-singles:N=1/ok",
+    "A-singles:S-nojev1=1/ok",
+    "A-singles:S=2/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-14752",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1,
+   "arms": [
+    "dev-alwaysload:S=1/ok",
+    "dev1:N=1/ok",
+    "dev1:S=1/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-15572",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1,
+   "arms": [
+    "A-singles:N=2/ok",
+    "A-singles:S-nojev1=1/ok",
+    "A-singles:S=1/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-16145",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1.0,
+   "arms": [
+    "find-e2e:F=1/x",
+    "find-e2e:N=1/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-17029",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1,
+   "arms": [
+    "A-singles:N=1/ok",
+    "A-singles:S-nojev1=1/ok",
+    "A-singles:S=1/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "scikit-learn__scikit-learn-13779",
+   "repo": "scikit-learn/scikit-learn",
+   "difficulty": "<15 min fix",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1,
+   "arms": [
+    "A-singles:N=1/ok",
+    "A-singles:S-nojev1=1/ok",
+    "A-singles:S=1/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sphinx-doc__sphinx-10614",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1,
+   "arms": [
+    "A-singles:N=3/x",
+    "A-singles:S-nojev1=1/x",
+    "A-singles:S=1/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sphinx-doc__sphinx-7590",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": ">4 hours",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1,
+   "arms": [
+    "A-singles:N=1/x",
+    "A-singles:S-nojev1=1/x",
+    "A-singles:S=1/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sphinx-doc__sphinx-7985",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1.0,
+   "arms": [
+    "find-e2e:F=1/x",
+    "find-e2e:N=1/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sympy__sympy-11618",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 1,
+   "arms": [
+    "A-singles:N=1/ok",
+    "A-singles:S-nojev1=1/ok",
+    "A-singles:S=1/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-15104",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 0.5,
+   "arms": [
+    "dev-alwaysload:N=1/ok",
+    "dev-alwaysload:S=0/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-16256",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 0.5,
+   "arms": [
+    "find-e2e:F=1/x",
+    "find-e2e:N=0/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "scikit-learn__scikit-learn-12973",
+   "repo": "scikit-learn/scikit-learn",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 0.5,
+   "arms": [
+    "find-e2e:F=1/ok",
+    "find-e2e:N=0/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-11400",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "sessions": 3,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 0,
+   "arms": [
+    "A-singles:N=0/x",
+    "A-singles:S-nojev1=0/x",
+    "A-singles:S=0/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-15569",
+   "repo": "django/django",
+   "difficulty": "<15 min fix",
+   "sessions": 2,
+   "hard": 0,
+   "control_sessions": 1,
+   "control_hard": 0,
+   "median_reach": 0.0,
+   "arms": [
+    "find-e2e:F=0/ok",
+    "find-e2e:N=0/ok"
+   ],
+   "phase_d": false
+  }
+ ],
+ "ranked_hard_control": [
+  {
+   "instance": "sympy__sympy-20428",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 3,
+   "hard": 3,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 99,
+   "arms": [
+    "A-singles:N=never/x",
+    "A-singles:S-nojev1=never/x",
+    "A-singles:S=never/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sympy__sympy-20916",
+   "repo": "sympy/sympy",
+   "difficulty": "<15 min fix",
+   "sessions": 2,
+   "hard": 2,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 12.5,
+   "arms": [
+    "find-e2e:F=16/x",
+    "find-e2e:N=9/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "pydata__xarray-7393",
+   "repo": "pydata/xarray",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 2,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 11.5,
+   "arms": [
+    "find-e2e:F=13/ok",
+    "find-e2e:N=10/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sympy__sympy-12419",
+   "repo": "sympy/sympy",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 2,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 11.0,
+   "arms": [
+    "dev-nudge:N=10/ok",
+    "dev-nudge:S=12/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-14007",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "sessions": 3,
+   "hard": 3,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 10,
+   "arms": [
+    "A-singles:N=10/ok",
+    "A-singles:S-nojev1=5/ok",
+    "A-singles:S=11/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-15563",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 2,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 9.0,
+   "arms": [
+    "dev-alwaysload:N=11/x",
+    "dev-alwaysload:S=7/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-11211",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 3,
+   "hard": 3,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 8,
+   "arms": [
+    "A-singles:N=never/ok",
+    "A-singles:S-nojev1=6/ok",
+    "A-singles:S=8/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-14011",
+   "repo": "django/django",
+   "difficulty": "1-4 hours",
+   "sessions": 3,
+   "hard": 3,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 6,
+   "arms": [
+    "A-singles:N=7/x",
+    "A-singles:S-nojev1=5/x",
+    "A-singles:S=6/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "matplotlib__matplotlib-25332",
+   "repo": "matplotlib/matplotlib",
+   "difficulty": "<15 min fix",
+   "sessions": 3,
+   "hard": 3,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 6,
+   "arms": [
+    "A-singles:N=7/ok",
+    "A-singles:S-nojev1=6/ok",
+    "A-singles:S=6/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "matplotlib__matplotlib-26342",
+   "repo": "matplotlib/matplotlib",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 2,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 5.5,
+   "arms": [
+    "find-e2e:F=6/x",
+    "find-e2e:N=5/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "matplotlib__matplotlib-26466",
+   "repo": "matplotlib/matplotlib",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 1,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 5.5,
+   "arms": [
+    "find-e2e:F=4/x",
+    "find-e2e:N=7/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "matplotlib__matplotlib-21568",
+   "repo": "matplotlib/matplotlib",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 1,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 4.5,
+   "arms": [
+    "find-e2e:F=3/ok",
+    "find-e2e:N=6/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "sphinx-doc__sphinx-7910",
+   "repo": "sphinx-doc/sphinx",
+   "difficulty": "<15 min fix",
+   "sessions": 2,
+   "hard": 1,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 4.5,
+   "arms": [
+    "find-e2e:F=4/ok",
+    "find-e2e:N=5/ok"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "pydata__xarray-3677",
+   "repo": "pydata/xarray",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 2,
+   "hard": 1,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 3.0,
+   "arms": [
+    "find-e2e:F=0/x",
+    "find-e2e:N=6/x"
+   ],
+   "phase_d": false
+  },
+  {
+   "instance": "django__django-15022",
+   "repo": "django/django",
+   "difficulty": "15 min - 1 hour",
+   "sessions": 3,
+   "hard": 1,
+   "control_sessions": 1,
+   "control_hard": 1,
+   "median_reach": 4,
+   "arms": [
+    "A-singles:N=5/x",
+    "A-singles:S-nojev1=4/ok",
+    "A-singles:S=4/ok"
+   ],
+   "phase_d": false
+  }
+ ],
+ "dev_set": [
+  "sympy__sympy-20428",
+  "sympy__sympy-20916",
+  "pydata__xarray-7393",
+  "sympy__sympy-12419",
+  "django__django-14007",
+  "django__django-15563",
+  "django__django-11211",
+  "django__django-14011",
+  "matplotlib__matplotlib-25332",
+  "matplotlib__matplotlib-26342"
+ ]
+}
