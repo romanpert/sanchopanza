@@ -5,6 +5,7 @@ shell_first pilot's traps were found by `grep`, 2026-10-02)."""
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -209,3 +210,17 @@ def test_building_a_repository_survives_one_held_index(tmp_path: Path, monkeypat
     log = subprocess.run(["git", "-C", str(repo), "log", "--oneline"], capture_output=True,
                          text=True, check=True).stdout
     assert failed and "start" in log
+
+
+def test_a_send_back_quoting_the_scenes_fact_in_a_longer_sentence_is_its_own(
+        tmp_path: Path) -> None:  # fmt: skip
+    # v81h-all, 2026-10-05: `columns` sent back its own fact with the lead-in "For context: ",
+    # and an equality test counted it as a decoy
+    sendbacks = bench_module(ROOT / "benchmarks" / "memory_carry", "sendbacks")
+    rules = sendbacks.ALL_RULES
+    pair = tmp_path / "columns-haiku-V-0"
+    pair.mkdir()
+    rows = [{"event": "SessionStart", "source": "startup"},
+            {"event": "rules", "broken": [f"For context: {rules['columns']}", rules["fields"]]}]
+    (pair / "hook-log.jsonl").write_text("\n".join(json.dumps(r) for r in rows), "utf-8")
+    assert [r["own"] for r in sendbacks.sendbacks(pair)] == [True, False]

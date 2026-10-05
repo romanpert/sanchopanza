@@ -30,7 +30,9 @@ def sendbacks(pair: Path) -> list[dict[str, object]]:
             session += 1
         if row.get("event") == "rules":
             for text in row.get("broken") or []:
-                out.append({"session": session, "rule": text, "own": text == ALL_RULES[scene]})
+                # the scene's fact inside a longer sentence is still its own rule: v8.1's splitter
+                # keeps `columns`' lead-in "For context: ...", and equality called it a decoy
+                out.append({"session": session, "rule": text, "own": ALL_RULES[scene] in text})
     return out
 
 
