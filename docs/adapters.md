@@ -67,12 +67,17 @@ Three more command hooks, all `sanchopanza guard-hook`: `PreCompact` (matcher `m
 binary: a `PreCompact` hook's stdout is appended to the summary prompt; `SessionStart` hooks with
 source `compact` run **before** `PostCompact`, and the new summary is written to the transcript
 after both, so the guard can add context right after the summary but cannot read it (a
-`PostCompact` hook can only show a message). `SANCHOPANZA_GUARD_CHOOSER` picks how lines are
-chosen: `rule` (free, default) or `keep` (the cascade, `context.keep`: built at the
-`SessionStart`, about five decider calls per compaction, the rule after
-`SANCHOPANZA_GUARD_DECIDER_SECONDS`). Measured end to end in
-[the compaction-guard run](results/2026-09-29-context-guard/): 5 of 7 and 6 of 7 tasks
-finished, against 2 of 7 with the native summary alone.
+`PostCompact` hook can only show a message). `SANCHOPANZA_GUARD_CHOOSER` picks what is kept:
+`struct` (default, free: whole tool results, the latest on each edited file first, then by
+recency, pointers for re-readable ones left out; `context.structural`), `rule` (free: value
+lines of one-shot output) or `keep` (the cascade, `context.keep`: built at the `SessionStart`,
+about five decider calls per compaction, the rule after `SANCHOPANZA_GUARD_DECIDER_SECONDS`).
+The same binaries keep a hook's `additionalContext` inline only up to 10,000 characters (past
+that the model sees a 2,000-character preview and a file path), so `struct` caps its block at
+`SANCHOPANZA_GUARD_INLINE_CHARS` (9,500). Measured end to end in
+[the compaction-guard run](results/2026-09-29-context-guard/): 5 of 7 (`rule`) and 6 of 7
+(`keep`) tasks finished, against 2 of 7 with the native summary alone; `struct` is measured
+offline only ([guard-struct](results/2026-10-05-guard-struct/)).
 
 ## MCP (any client)
 

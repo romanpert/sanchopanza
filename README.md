@@ -183,22 +183,32 @@ problem is the unit, since a group the size of a whole MCP server is loaded whol
 
 ```bash
 sanchopanza install --guard --write
-export SANCHOPANZA_GUARD_CHOOSER=keep   # optional: the decider cascade (needs TYPESAFE_API_KEY)
+export SANCHOPANZA_GUARD_CHOOSER=keep   # optional: the decider cascade instead of struct (needs TYPESAFE_API_KEY)
 ```
 
 Claude Code still writes its own summary: measured, it beats every replacement we built. The
 guard adds to it, through three classic hooks. `PreCompact` asks the summariser to spend its
 words on reasons and next steps; after the summary, `SessionStart` (source `compact`) attaches
-the lines of output that cannot be had again (shell commands and subagent reports; never file
-reads, which can be re-read, nor test runs, which can be re-run; web and MCP output only with
-`SANCHOPANZA_GUARD_WEB=1`), the person's requests verbatim and the files changed; `PostToolUse`
+tool output from before the compaction (web and MCP output only with `SANCHOPANZA_GUARD_WEB=1`),
+the person's requests verbatim and the files changed; `PostToolUse`
 on Bash gives a re-run command its earlier value lines back once. Secrets are masked, output is
 fenced as data, and it says when Claude Code cut an output before the model saw it.
 
-Which lines, when they do not fit (3,000 characters by default):
+What is kept, by `SANCHOPANZA_GUARD_CHOOSER`:
 
-- `rule` (default, free): errors, words shared with the requests, rare line shapes. 5 of 7
-  tasks against 2 of 7 native.
+- `struct` (default, free, no decider): whole tool results since the previous compaction, the
+  latest on each file being edited first, then by recency, output that cannot be had again first
+  in each; a re-readable result left out gets a pointer (file and line range, search, command).
+  Offline on the owner's 344 real compaction points it kept .64 of the results the work needed
+  next at 44,000 characters (`SANCHOPANZA_GUARD_STRUCT_CHARS`), against .12 for the rule; Jev
+  ranked them below plain recency (AUC 0.56-0.58 against 0.60-0.61). Claude Code keeps a hook's
+  context inline only up to 10,000 characters, so the block is capped at
+  `SANCHOPANZA_GUARD_INLINE_CHARS` (9,500), which leaves results about 3,900-7,000 characters:
+  .15-.28 by the same replay. Not yet run end to end
+  ([results](docs/results/2026-10-05-guard-struct/)).
+- `rule` (free): value lines of output that cannot be had again (shell commands and subagent
+  reports, never file reads or test runs), 3,000 characters: errors, words shared with the
+  requests, rare line shapes. 5 of 7 tasks against 2 of 7 native.
 - `keep` (the cascade): every line proposed, the rule's lines free, and Jev scoring blocks and
   then lines with the whole request in view; its lines come first, then the rule's. 6 of 7 end
   to end, and offline it kept every needed value where BM25 and the rule failed once the value
@@ -207,8 +217,9 @@ Which lines, when they do not fit (3,000 characters by default):
 - `judge` and `decider` are the first versions, kept for comparison; prefer `keep`.
 
 What it cannot do: bring back output the harness never showed, or read the new summary (Claude
-Code writes it after the hooks run). Its claim is limited to values that cannot be had again:
-on 40 public trajectories, where what was needed could be re-run, it showed no advantage
+Code writes it after the hooks run). The rule's end-to-end claim is limited to values that cannot
+be had again: on 40 public trajectories, where what was needed could be re-run, it showed no
+advantage
 ([results](docs/results/2026-09-29-context-guard/)).
 
 ---
