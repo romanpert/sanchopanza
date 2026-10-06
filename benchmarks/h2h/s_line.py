@@ -218,6 +218,10 @@ def run_install(
     refused = [x for x in done.stderr.splitlines() if REFUSAL.search(x)]
     if refused and strict:
         raise RuntimeError(f"sanchopanza install dropped part of the line: {refused}")
+    # A try that a busy file stopped can leave its atomic write's temporary file behind (it
+    # could not remove it either); the retry wrote the real one. Gone, so no digest reads it.
+    for leftover in config.glob(".settings.json.*.tmp"):
+        leftover.unlink()
     places = {str(config): "<config>", str(cwd): "<cwd>", str(src): "<src>"}
     settings_file = config / "settings.json"
     text = settings_file.read_text(encoding="utf-8") if settings_file.exists() else "{}"

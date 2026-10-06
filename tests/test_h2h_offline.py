@@ -837,3 +837,29 @@ def test_jev_guard_stops_the_phase_on_402_and_keeps_the_paid_row(tmp_path):
     assert code == 4 and calls == ["t1"]
     assert len(rows) == 1 and rows[0]["not_run"] and "402" in rows[0]["invalid"]
     assert "STOP-JEV" in sessions.with_suffix(".log").read_text(encoding="utf-8")
+
+
+def test_a_busy_first_try_leaves_no_temporary_file_in_the_digest(tmp_path, monkeypatch):
+    """2026-10-06: the first try of an install hit a busy settings.json, its atomic write could
+    not remove its own temporary file, the retry worked, and the leftover `.settings.json.*.tmp`
+    gave the session another digest than the preflight's proof. The runner removes the leftover
+    and the digest never reads one."""
+    real = s_line.subprocess.run
+    calls = []
+
+    def flaky(argv, **kw):
+        calls.append(argv)
+        if len(calls) == 1:
+            config = tmp_path / "c"
+            config.mkdir(parents=True, exist_ok=True)
+            (config / ".settings.json.ab_cd12.tmp").write_text("{}", encoding="utf-8")
+            return s_line.subprocess.CompletedProcess(argv, 2, "", "could not write ([WinError 32])")
+        return real(argv, **kw)
+
+    monkeypatch.setattr(s_line.subprocess, "run", flaky)
+    monkeypatch.setattr(s_line, "BUSY_WAIT_S", 0.0)
+    with_leftover = s_line.run_install(tmp_path / "c", SRC, ["--candor"], tmp_path / "cwd")
+    monkeypatch.setattr(s_line.subprocess, "run", real)
+    clean = s_line.run_install(tmp_path / "d", SRC, ["--candor"], tmp_path / "cwd2")
+    assert not list((tmp_path / "c").glob(".settings.json.*.tmp"))
+    assert with_leftover.digest == clean.digest
