@@ -163,6 +163,8 @@ BATCH = 400  # nodes per pytest process when the whole suite in one process runs
 # a batch of 400 was still killed at 36 %).
 MEMORY_KB = 6_000_000
 KILLED = 137  # the container's process killed (out of memory)
+NOT_FOUND = re.compile(r"^ERROR: not found: (.+?)\s*$", re.M)
+NOT_FOUND_RETRIES = 3
 
 
 def pytest(
@@ -179,7 +181,10 @@ def pytest(
     `keep_collecting` (amendment 5, development chains only): a file that cannot be collected
     stops pytest whole and every other node comes out absent, read as not passing (a bug of
     conan-long40-1 removes `rm` and test_rm.py does not import). Held-out chains keep the sealed
-    command, so the confirmation's arms are all graded the same way."""
+    command, so the confirmation's arms are all graded the same way. With it, a listed node
+    that does not exist (`ERROR: not found`, which stops pytest before any test runs) is left
+    out and the rest run again: it comes out absent, read as not passing (pydantic names its doc
+    tests by line range, and another bug in the same file shifts the range)."""
     listed = bool(nodes) and len(nodes or []) <= FULL_SUITE_OVER
     keep = " --continue-on-collection-errors" if keep_collecting else ""
     pytest_cmd = f"python -m pytest{keep}"
@@ -189,6 +194,15 @@ def pytest(
         batched = (f"ulimit -v {MEMORY_KB} && "
                    f"xargs -a /io/nodes.txt -d '\\n' -n {BATCH} {pytest_cmd}")
         done, text = _run(tag, patch, nodes, batched, reverse, timeout)
+    for _ in range(NOT_FOUND_RETRIES if keep_collecting and listed else 0):
+        gone = {m.removeprefix("/testbed/") for m in NOT_FOUND.findall(text)}
+        left = [n for n in nodes or [] if n not in gone]
+        if len(left) == len(nodes or []):
+            break
+        if not left:
+            return {}  # none of the listed nodes exists: nothing passed
+        nodes = left
+        done, text = _run(tag, patch, nodes, select, reverse, timeout)
     if "PATCH_FAILED" in text:
         return {"<patch>": "ERROR"}
     found = {node: status for status, node in RESULT.findall(text)}

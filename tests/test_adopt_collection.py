@@ -95,3 +95,52 @@ def test_validation_of_a_development_chain_keeps_collecting(monkeypatch) -> None
     for split in ("dev", "held"):
         validate.check({"chain": f"c-{split}", "split": split, "image": "i"}, [bug])
     assert asked == [True, True, False, False]
+
+
+# A listed node id that does not exist ("ERROR: not found") stops pytest before any test runs,
+# with or without --continue-on-collection-errors. pydantic's doc tests are named by line range
+# (`test_docstrings_examples[pydantic/types.py:2042-2063]`): another bug of the chain in that file
+# shifts the range, so every run of the chain's FAIL_TO_PASS with that bug in came out empty, all
+# 60 bugs of pydantic-long60-1 read as masked, and bisection (own nodes only, which ran) blamed
+# the chain's first two bugs six rounds running.
+
+
+def _fake_missing(monkeypatch: pytest.MonkeyPatch, missing: set[str]) -> list[list[str]]:
+    calls: list[list[str]] = []
+
+    def fake_docker(*args: str, **kwargs: object) -> subprocess.CompletedProcess:
+        io_dir = next(a for a in args if a.endswith(":/io:ro"))[: -len(":/io:ro")]
+        nodes = [n for n in (pathlib.Path(io_dir) / "nodes.txt").read_text().splitlines() if n]
+        calls.append(nodes)
+        absent = [n for n in nodes if n in missing]
+        if absent:
+            text = "".join(f"ERROR: not found: /testbed/{n}\n(no match in any of [<Module x>])\n\n"
+                           for n in absent) + "no tests ran in 0.10s\n"  # fmt: skip
+            return subprocess.CompletedProcess(args, 123, stdout=text.encode(), stderr=b"")
+        text = "".join(f"PASSED {n}\n" for n in nodes)
+        return subprocess.CompletedProcess(args, 0, stdout=text.encode(), stderr=b"")
+
+    monkeypatch.setattr(docker_env, "docker", fake_docker)
+    return calls
+
+
+DOC = "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:2042-2063]"
+
+
+def test_a_node_that_does_not_exist_reads_as_not_passing_not_as_an_empty_run(monkeypatch) -> None:  # noqa: ANN001
+    calls = _fake_missing(monkeypatch, {DOC})
+    out = docker_env.pytest("tag", "", ["t.py::a", DOC, "t.py::b"], keep_collecting=True)
+    assert out == {"t.py::a": "PASSED", "t.py::b": "PASSED"}
+    assert calls[-1] == ["t.py::a", "t.py::b"]
+
+
+def test_every_listed_node_missing_is_nothing_passing(monkeypatch) -> None:  # noqa: ANN001
+    _fake_missing(monkeypatch, {DOC})
+    assert docker_env.pytest("tag", "", [DOC], keep_collecting=True) == {}
+
+
+def test_held_out_chains_keep_the_sealed_behaviour_on_a_missing_node(monkeypatch) -> None:  # noqa: ANN001
+    calls = _fake_missing(monkeypatch, {DOC})
+    with pytest.raises(RuntimeError, match="gave no results"):
+        docker_env.pytest("tag", "", ["t.py::a", DOC])
+    assert len(calls) == 1
