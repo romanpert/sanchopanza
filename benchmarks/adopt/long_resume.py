@@ -122,3 +122,14 @@ def dead_row(k: int, ask: Mapping[str, Any], facts: Mapping[str, Any], decision:
             **dict(money), "breaks": [],
             **({"deviation": "the runner died mid-call after tools or changes: went on"}
                if decision == "continue" else {})}  # fmt: skip
+
+
+def context_of(calls: Sequence[Mapping[str, Any]]) -> int:
+    """The last call's peak context (how big the next call's first turn may be)."""
+    return next((int(c["peak_context"]) for c in reversed(calls) if c.get("peak_context")), 0)
+
+
+def window_of(calls: Sequence[Mapping[str, Any]]) -> int | None:
+    """The last window a call of the session reported."""
+    return next((int(c["window_reported"]["window"]) for c in reversed(calls)
+                 if (c.get("window_reported") or {}).get("window")), None)  # fmt: skip

@@ -58,6 +58,7 @@ import carry  # noqa: E402
 import docker_env  # noqa: E402
 import long_call  # noqa: E402
 import long_guard  # noqa: E402
+import long_money  # noqa: E402
 import long_resume  # noqa: E402
 import long_window  # noqa: E402
 import meter  # noqa: E402
@@ -174,6 +175,8 @@ class ArmState:
     journal_lines: int = 0
     decisions: tuple[Mapping[str, Any], ...] = ()
     hook_lines: int = 0
+    context: int = 0  # the last call's peak context (how big the next first turn may be)
+    window: int | None = None  # the window the session reported
 
 
 def log(message: str) -> None:
@@ -374,7 +377,7 @@ def run_arm(ctx: Ctx, chain: Mapping[str, Any], arm: str, status: Mapping[str, A
     for k in range(first, len(a.asks) + 1) if not stop else ():
         write_status(ctx.layout, status, chain=a.name, arm=arm, request=k,
                      spent_owner_usd=spent(ctx.layout))  # fmt: skip
-        stop = before_call(ctx, a, rows)
+        stop = before_call(ctx, a, rows, state)
         if stop:
             rows = [*rows, *not_run(a.asks[k - 1:], k, stop)]
             break
@@ -410,7 +413,8 @@ def resume(ctx: Ctx, chain: Mapping[str, Any], arm: str, row: Mapping[str, Any]
     state = ArmState(long_resume.session_of(rows), long_resume.usage_of(rows),
                      long_resume.seen_of(rows), docker_env.agent_diff(work, a.base),
                      _lines(journal), tuple(long_guard.decisions(journal)),
-                     _lines(hooks))  # fmt: skip
+                     _lines(hooks), long_resume.context_of(rows),
+                     long_resume.window_of(rows))  # fmt: skip
     k = long_resume.next_request(rows)
     dead = long_resume.dead_stream(evidence, k, rows) if k <= len(a.asks) else None
     if dead is None:
@@ -453,8 +457,16 @@ def not_run(asks: tuple[Mapping[str, Any], ...], first: int, why: str) -> list[d
              "status": f"NOT RUN ({why})", "owner_usd": 0.0} for j, q in enumerate(asks, first)]
 
 
-def before_call(ctx: Ctx, a: Arm, rows: list[dict[str, Any]]) -> str:
-    """Why the next call may not start: stop files, Docker, disk, caps, wall, ceiling."""
+def turn_over(ctx: Ctx, a: Arm, state: ArmState) -> float:
+    """One turn past the budget the next call may spend (`long_money.overshoot`)."""
+    window = configured_window(a)
+    return long_money.overshoot(run.MODELS[ctx.model], state.context,
+                                int(window) if window else state.window)  # fmt: skip
+
+
+def before_call(ctx: Ctx, a: Arm, rows: list[dict[str, Any]], state: ArmState) -> str:
+    """Why the next call may not start: stop files, Docker, disk, caps, wall, ceiling. Every cap
+    holds room for the call's cap AND one more turn: Claude Code stops between turns only."""
     layout, cap = ctx.layout, ctx.profile.call_cap[ctx.model]
     if why := long_guard.stop_reason(layout.root, layout.limit):
         return "limit" if "LIMIT" in why else "harness"
@@ -462,13 +474,18 @@ def before_call(ctx: Ctx, a: Arm, rows: list[dict[str, Any]]) -> str:
         log(f"{a.name} {a.arm}: {why}")
         (layout.root / long_guard.STOP_FILE).write_text(why, encoding="utf-8")
         return "harness"
+    over = turn_over(ctx, a, state)
     chain_spent = sum(r.get("owner_usd", 0.0) for r in rows)
-    if chain_spent + cap > ctx.profile.chain_cap[ctx.model]:
-        log(f"{a.name} {a.arm}: chain cap {ctx.profile.chain_cap[ctx.model]} reached (logged)")
+    why = long_money.room_refusal(chain_spent, cap, over, ctx.profile.chain_cap[ctx.model],
+                                  "chain cap") or ("call cap: no room for one turn" if cap - over
+                                                   < long_money.MIN_BUDGET else "")  # fmt: skip
+    if why:
+        log(f"{a.name} {a.arm}: {why} (logged)")
         return "cap"
     if sum(r.get("wall_s", 0.0) for r in rows) > ctx.profile.wall_s:
         return "wall"
-    if spent(layout) + cap > ctx.ceiling:
+    if why := long_money.room_refusal(spent(layout), cap, over, ctx.ceiling, "ceiling"):
+        log(f"{a.name} {a.arm}: {why}")
         return "ceiling"
     return ""
 
@@ -501,8 +518,9 @@ def attempt_call(ctx: Ctx, a: Arm, state: ArmState, k: int, ask: Mapping[str, An
     stream = a.evidence / f"stream-{k}{suffix}.jsonl"
     debug = long_window.debug_path(a.evidence, k, retry)
     cap = ctx.profile.call_cap[ctx.model]
+    budget = round(cap - turn_over(ctx, a, state), 4)  # the call's last turn ends under `cap`
     cmd = long_call.command(ctx.claude, run.MODELS[ctx.model], ask["prompt"], state.session,
-                            meter.claude_code_cap(cap, run.MODELS[ctx.model]), a.mcp,
+                            meter.claude_code_cap(budget, run.MODELS[ctx.model]), a.mcp,
                             debug)  # fmt: skip
     timeout = timeout_for(ctx.profile, a.arm, k) if not retry else ctx.profile.timeout_s
     code, seconds, why = long_call.invoke(cmd, a.work, dict(a.env), ask["prompt"], stream,
@@ -517,7 +535,7 @@ def attempt_call(ctx: Ctx, a: Arm, state: ArmState, k: int, ask: Mapping[str, An
                                           a.chain["split"]) if cut else ""  # fmt: skip
     return {"code": code, "seconds": seconds, "why": why or (f"exit {code}" if cut else ""),
             "facts": facts, "diff": diff, "cut": cut, "decision": decision, "restored": restored,
-            "window": window,
+            "window": window, "budget_owner": budget,
             "state": replace(state, session=facts["session"] or state.session), "stream": stream}
 
 
@@ -538,12 +556,15 @@ def settle(ctx: Ctx, a: Arm, k: int, ask: Mapping[str, Any],
            **({"deviation": f"cut ({attempt['why']}) after tools or changes: went on"}
               if attempt["cut"] and attempt["decision"] == "continue" else {}),
            "result_tail": facts.get("result_tail", ""), "window_reported": attempt["window"],
+           "budget_owner": attempt["budget_owner"],
            "streams": attempt.get("streams") or [attempt["stream"].name],
            **money, **s_facts, "usage_after": dict(state.usage),
            "metered_ids": sorted(state.seen - seen_before)}  # fmt: skip
     row = {**row, "breaks": list(call_breaks(a, row, attempt, state))}
     stop = stop_of(ctx, a, row, attempt)
-    return replace(state, diff=attempt["diff"]), row, stop
+    return replace(state, diff=attempt["diff"], context=int(row.get("peak_context") or 0) or
+                   state.context, window=(attempt["window"] or {}).get("window") or
+                   state.window), row, stop  # fmt: skip
 
 
 def status_of(attempt: Mapping[str, Any]) -> str:

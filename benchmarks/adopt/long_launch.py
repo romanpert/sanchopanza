@@ -49,6 +49,7 @@ import carry  # noqa: E402
 import costmodel  # noqa: E402
 import freeze  # noqa: E402
 import long_guard  # noqa: E402
+import long_money  # noqa: E402
 import long_run  # noqa: E402
 import meter  # noqa: E402
 import run  # noqa: E402
@@ -114,6 +115,20 @@ def busy(root: Path) -> str:
 # ---- what is expected and what is held -----------------------------------------------------------
 
 
+def turn_lines(profile: Any, model: str) -> list[str]:
+    """Per arm, the worst turn past a cap (`long_money`: the context at the window, written to
+    the cache at the 1-hour rate, plus a maximal answer) and where the arm stops at the latest."""
+    mid, cap, chain = run.MODELS[model], profile.call_cap[model], profile.chain_cap[model]
+    out = []
+    for arm in profile.arms:
+        window = long_money.DEFAULT_WINDOW[mid] if arm == "N" else profile.window
+        worst = long_money.turn_cost(mid, window)
+        out.append(f"  {arm}: one turn past a cap costs up to {worst:.2f} USD (context at the "
+                   f"window {window}); at that context the arm starts no call past "
+                   f"{chain - cap - worst:.2f} spent of its {chain:.2f}")  # fmt: skip
+    return out
+
+
 def plan_lines(name: str, chains: Mapping[str, Any], names: list[str], root: Path,
                ceiling: float) -> list[str]:  # fmt: skip
     """The expected cost per chain and arm, and every cap, as printed before anything runs."""
@@ -127,8 +142,10 @@ def plan_lines(name: str, chains: Mapping[str, Any], names: list[str], root: Pat
         cap = profile.call_cap[model]
         cc = meter.claude_code_cap(cap, run.MODELS[model])
         lines.append(f"{model} ({run.MODELS[model]}): {cap:.2f} USD per call (--max-budget-usd "
-                     f"{cc:.2f} in Claude Code's prices), {profile.chain_cap[model]:.2f} per chain "
-                     f"and arm, arms {', '.join(profile.arms)}")  # fmt: skip
+                     f"at most {cc:.2f} in Claude Code's prices, less one turn), "
+                     f"{profile.chain_cap[model]:.2f} per chain and arm, arms "
+                     f"{', '.join(profile.arms)}")  # fmt: skip
+        lines += turn_lines(profile, model)
         for chain in names:
             found = chains.get(chain)
             bugs = profile.bugs or (len(found["bugs"]) if found else long.SIZE60)
@@ -146,7 +163,8 @@ def plan_lines(name: str, chains: Mapping[str, Any], names: list[str], root: Pat
               "uncapped, list prices)",
               f"caps held {holding:.2f} USD (each chain at the larger of its caps and its "
               f"spend); spent under the root so far {spent:.2f}; ceiling "
-              f"{ceiling:.2f}{' (hard, in code)' if profile.hard_cap else ''}",
+              f"{ceiling:.2f}{' (hard, in code)' if profile.hard_cap else ''}; a call starts "
+              "only with room for its cap and one more turn under each cap and the ceiling",
               f"N-early window {profile.window} (S's install for --context-budget "
               f"{profile.budget}); N's window: the server's, recorded in windows.json"]
     return lines

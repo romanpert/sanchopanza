@@ -12,7 +12,11 @@ calls `claude`, an API or Jev.
 from __future__ import annotations
 
 import json
+import sys
+from pathlib import Path
 from typing import Any
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # benchmarks/meter.py
 
 Block = tuple[str, str, float]
 
@@ -54,3 +58,38 @@ def ceiling_of(profile: Any, asked: float) -> float:
     if profile.hard_cap is not None and ceiling > profile.hard_cap:
         raise SystemExit(f"{profile.name}: the ceiling is at most {profile.hard_cap} USD (in code)")
     return ceiling
+
+
+# ---- one turn past the cap -----------------------------------------------------------------------
+# `--max-budget-usd` stops Claude Code BETWEEN turns, never inside one (live probe, 2026-10-06: a
+# resumed Opus 5.5 call given 0.34 USD spent 0.94, its first turn writing the whole context to
+# the cache again). So a call can pass any cap by one turn. The worst turn writes its whole
+# context at the 1-hour cache-write rate and emits a maximal answer.
+
+MAX_OUTPUT = 32_000  # output tokens one turn may emit (Claude Code's default ceiling)
+CONTEXT_MARGIN = 50_000  # what a call adds to the context before its first turn (prompt, results)
+DEFAULT_WINDOW = {"claude-haiku-4-5-20251001": 200_000, "claude-sonnet-5-5": 1_000_000,
+                  "claude-opus-5-5": 1_000_000}  # fmt: skip
+MIN_BUDGET = 0.05  # below this a call cannot take one turn
+
+
+def turn_cost(model: str, context: int) -> float:
+    """Owner USD of one turn that writes `context` tokens to the cache and answers MAX_OUTPUT."""
+    import meter
+
+    rates = meter.rates_of(meter.OWNER_RATES, model)
+    return (context * rates.write_1h + MAX_OUTPUT * rates.output) / 1e6
+
+
+def overshoot(model: str, context: int, window: int | None) -> float:
+    """What the next call may spend past its budget: one turn at the context it can reach, the
+    last call's peak plus CONTEXT_MARGIN, never above the window it compacts at."""
+    limit = window or DEFAULT_WINDOW.get(model, 1_000_000)
+    return round(turn_cost(model, min(limit, int(context) + CONTEXT_MARGIN)), 4)
+
+
+def room_refusal(spent_now: float, cap: float, over: float, limit: float, what: str) -> str:
+    """"" when a call of `cap` plus one turn `over` fits under `limit` after `spent_now`."""
+    need = round(spent_now + cap + over, 4)
+    return "" if need <= limit else (f"{what}: spent {spent_now:.2f} + call cap {cap:.2f} + one "
+                                     f"turn {over:.2f} = {need:.2f} > {limit:.2f}")  # fmt: skip
