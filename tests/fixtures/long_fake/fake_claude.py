@@ -17,6 +17,11 @@ configuration, retries included. Kinds:
 - `compact`: a compaction boundary, and its call's tokens in modelUsage only (as headless
   Claude Code leaves the compaction call out of the transcript);
 - `mcpfail`: the init lists every MCP server of --mcp-config as `failed`.
+
+A `429` call is rejected before any work. With `--debug-file=<path>` it writes Claude Code's
+`autocompact: tokens=... effectiveWindow=...` line per request: the window is the settings
+`env` block's CLAUDE_CODE_AUTO_COMPACT_WINDOW, else FAKE_SERVER_WINDOW (default 1,000,000), which
+it also caches in `<config>/.claude.json` as the server would (`autoCompactWindowsCache`).
 """
 
 from __future__ import annotations
@@ -32,12 +37,41 @@ from typing import Any
 
 HERE = Path(__file__).resolve().parent
 VERSION = "2.1.287"
+OUTPUT_RESERVE = 20_000
+S_PREFIX = 1_000  # what an S install adds to the first request's prefix (pre-mortem 9: 200-6,000)
 COMPACTION = {"input_tokens": 3, "output_tokens": 9_000, "cache_read_input_tokens": 160_000,
               "cache_creation_input_tokens": 0}  # fmt: skip
 
 
 def option(argv: list[str], name: str) -> str | None:
-    return argv[argv.index(name) + 1] if name in argv else None
+    if name in argv:
+        return argv[argv.index(name) + 1]
+    joined = next((a for a in argv if a.startswith(f"{name}=")), None)
+    return joined.split("=", 1)[1] if joined else None
+
+
+def window(model: str, config: Path) -> int:
+    """The window this session runs under, as Claude Code resolves it (env first)."""
+    settings = Path(".claude", "settings.json")
+    env = json.loads(settings.read_text("utf-8")).get("env", {}) if settings.exists() else {}
+    if env.get("CLAUDE_CODE_AUTO_COMPACT_WINDOW"):
+        return int(env["CLAUDE_CODE_AUTO_COMPACT_WINDOW"])
+    server = int(os.environ.get("FAKE_SERVER_WINDOW") or 1_000_000)
+    cached = {"autoCompactWindowsCache": {model: server}}
+    (config / ".claude.json").write_text(json.dumps(cached), encoding="utf-8")
+    return server
+
+
+def debug_lines(path: str | None, usages: list[dict[str, Any]], effective: int) -> None:
+    if not path:
+        return
+    with Path(path).open("a", encoding="utf-8") as out:
+        for u in usages:
+            tokens = sum(int(u.get(k) or 0) for k in ("input_tokens", "cache_read_input_tokens",
+                                                      "cache_creation_input_tokens"))
+            out.write(f"2026-10-06T00:00:00Z [DEBUG] autocompact: tokens={tokens} level=ok "
+                      f"effectiveWindow={effective}\n")
+            out.write("2026-10-06T00:00:00Z [DEBUG] [api] request sent\n")
 
 
 def prompt_of(argv: list[str]) -> str:
@@ -101,10 +135,17 @@ def do_work(prompt: str, token: str) -> str:
     return token
 
 
-def replay(call: int, session: str, model: str, transcript: Path) -> list[dict[str, Any]]:
-    """The recorded requests of one call, as stream events and transcript lines."""
+def replay(call: int, session: str, model: str, transcript: Path,
+           installed: bool = False) -> list[dict[str, Any]]:  # fmt: skip
+    """The recorded requests of one call, as stream events and transcript lines. With an install
+    (MCP servers in --mcp-config) the first request writes S_PREFIX more (skill, schemas, hooks)."""
     recorded = json.loads((HERE / "b2-n-calls.json").read_text(encoding="utf-8"))["calls"]
     requests = recorded[(call - 1) % len(recorded)]["requests"]
+    if installed and call == 1 and requests:
+        first = dict(requests[0]["usage"])
+        written = int(first.get("cache_creation_input_tokens") or 0)
+        first["cache_creation_input_tokens"] = written + S_PREFIX
+        requests = [{**requests[0], "usage": first}, *requests[1:]]
     usages = []
     with transcript.open("a", encoding="utf-8") as out:
         for i, req in enumerate(requests):
@@ -141,6 +182,8 @@ def run_call(argv: list[str]) -> int:
     if kind == "timeout":
         time.sleep(600)
         return 0
+    if kind == "429":
+        return finish(config, session, call, kind, state["usage"], state["token"])
     if kind == "crash":
         emit({"type": "assistant", "session_id": session, "message": {
             "id": f"msg-crash-{call}", "model": model, "content": [
@@ -149,7 +192,10 @@ def run_call(argv: list[str]) -> int:
         return 3
     token = do_work(prompt_of(argv), state["token"])
     transcript = project_dir(config) / f"{session}.jsonl"
-    usages = replay(call, session, model, transcript)
+    mcp = option(argv, "--mcp-config")
+    installed = bool(mcp and json.loads(Path(mcp).read_text(encoding="utf-8")).get("mcpServers"))
+    usages = replay(call, session, model, transcript, installed)
+    debug_lines(option(argv, "--debug-file"), usages, window(model, config) - OUTPUT_RESERVE)
     if kind == "compact":
         emit({"type": "system", "subtype": "compact_boundary", "session_id": session,
               "compact_metadata": {"trigger": "auto", "pre_tokens": 160_500,

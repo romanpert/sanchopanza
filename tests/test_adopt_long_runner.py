@@ -23,7 +23,8 @@ ADOPT = ROOT / "benchmarks" / "adopt"
 FAKE = ROOT / "tests" / "fixtures" / "long_fake" / "fake_claude.py"
 MAIN_VENV = pathlib.Path(r"C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts")
 OURS = ("run", "long", "docker_env", "perbug", "long_run", "long_call", "long_guard",
-        "long_report", "arm_files", "hook_env", "meter", "carry", "chains", "related", "masking")
+        "long_report", "arm_files", "hook_env", "meter", "carry", "chains", "related", "masking",
+        "long_money", "long_resume", "long_window")
 
 
 def _purge() -> None:
@@ -76,9 +77,21 @@ def _setup(lr: ModuleType, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPat
     monkeypatch.setenv("FAKE_CLAUDE_INJECT", json.dumps(inject))
     known = tmp_path / "chains.json"
     known.write_text(json.dumps({n: _chain(n) for n in chains}), encoding="utf-8")
+    manifests = _manifests(lr, tmp_path, chains)
     return ["run", "--profile", "fake", "--root", str(tmp_path / "L"), "--chains-file",
             str(known), "--limit-flag", str(tmp_path / "LIMIT.flag"), "--allow-midnight",
-            "--claude", json.dumps([sys.executable, str(FAKE)])]  # fmt: skip
+            "--claude", json.dumps([sys.executable, str(FAKE)]),
+            "--manifests", str(manifests)]  # fmt: skip
+
+
+def _manifests(lr: ModuleType, tmp_path: pathlib.Path, chains: tuple[str, ...]) -> pathlib.Path:
+    """What validation writes per chain (`long.py manifests`): valid, with the chain's digest."""
+    folder = tmp_path / "long60"
+    folder.mkdir(exist_ok=True)
+    for name in chains:
+        body = {"chain": name, "valid": True, "sha256": lr.run.chain_digest(_chain(name))}
+        (folder / f"{name}.json").write_text(json.dumps(body), encoding="utf-8")
+    return folder
 
 
 def _row(tmp_path: pathlib.Path, run_name: str, arm: str = "N") -> dict[str, Any]:
@@ -182,7 +195,8 @@ def test_n_early_differs_from_n_by_its_window_alone(
     early = json.loads((work / f"{PYD}-sonnet-Ne" / ".claude" / "settings.json").read_text("utf-8"))
     assert early == {"env": {"CLAUDE_CODE_AUTO_COMPACT_WINDOW": "193000"}}
     assert not (work / f"{PYD}-sonnet-N" / ".claude").exists()
-    streams = [tmp_path / "L" / "runs" / f"{PYD}-sonnet" / a / "stream-1.jsonl" for a in ("N", "Ne")]
+    runs = tmp_path / "L" / "runs" / f"{PYD}-sonnet"
+    streams = [runs / a / "stream-1.jsonl" for a in ("N", "Ne")]
     inits = [json.loads(p.read_text("utf-8").splitlines()[0]) for p in streams]
     assert inits[0]["permissionMode"] == inits[1]["permissionMode"] == "default"
     tokens = {_row(tmp_path, f"{PYD}-sonnet", a)["token"] for a in ("N", "Ne")}
@@ -214,3 +228,139 @@ def test_the_command_never_bypasses_permissions_and_is_the_same_in_every_arm(
 def test_arm_order_rotates_by_chain_and_keeps_every_arm(lr: ModuleType) -> None:
     orders = {lr.arm_order(f"chain-{i}", ("N", "Ne", "S")) for i in range(12)}
     assert len(orders) > 1 and all(sorted(o) == ["N", "Ne", "S"] for o in orders)
+
+
+# ---- resume (STATUS-launch.md) and the window -------------------------------------------------
+
+
+class _Died(Exception):
+    """The runner process ending between a call's process and its row (a kill by PID, a crash)."""
+
+
+def _die_at(lr: ModuleType, monkeypatch: pytest.MonkeyPatch, k: int, *, silent: bool) -> Any:
+    """The runner dies at call `k`: after its `claude` ran (or, `silent`, after it only wrote its
+    init: no tool, no change), before its row was written."""
+    real = lr.attempt_call
+
+    def attempt(ctx, a, state, kk, ask, retry):  # type: ignore[no-untyped-def]
+        if kk != k:
+            return real(ctx, a, state, kk, ask, retry)
+        if silent:
+            init = {"type": "system", "subtype": "init", "session_id": state.session}
+            (a.evidence / f"stream-{kk}.jsonl").write_text(json.dumps(init) + "\n", "utf-8")
+        else:
+            real(ctx, a, state, kk, ask, retry)
+        raise _Died
+
+    monkeypatch.setattr(lr, "attempt_call", attempt)
+    return real
+
+
+def _fake_calls(tmp_path: pathlib.Path, run_name: str, arm: str = "N") -> int:
+    state = tmp_path / "L" / "cfg" / f"{run_name}-{arm}" / "claude-config" / "fake-state.json"
+    return int(json.loads(state.read_text(encoding="utf-8"))["calls"])
+
+
+def test_a_runner_that_died_after_a_call_with_tools_resumes_at_the_next_request(
+    lr: ModuleType, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    argv = _setup(lr, tmp_path, monkeypatch, ("N",), (PYD,), ("sonnet",), {})
+    real = _die_at(lr, monkeypatch, 3, silent=False)
+    with pytest.raises(_Died):
+        lr.main(argv)
+    partial = _row(tmp_path, f"{PYD}-sonnet")
+    assert partial["partial"] is True and [c["request"] for c in partial["calls"]] == [1, 2]
+    monkeypatch.setattr(lr, "attempt_call", real)
+    assert lr.main(argv) == 0
+    row = _row(tmp_path, f"{PYD}-sonnet")
+    calls = {c["request"]: c for c in row["calls"]}
+    assert [c["request"] for c in row["calls"]] == list(range(1, 9))  # nothing asked twice
+    dead = calls[3]
+    assert dead["status"] == "cut (runner died)" and dead["decision"] == "continue"
+    assert dead["charged_cap"] and dead["owner_usd"] == 1.0 and "deviation" in dead
+    assert dead["streams"] == ["stream-3-dead.jsonl"]
+    assert _fake_calls(tmp_path, f"{PYD}-sonnet") == 8  # 8 requests, 8 claude calls
+    assert row["partial"] is False and row["stopped"] == ""
+    # the resumed calls went on with the same session and a meter that did not count call 3 twice
+    assert len({c["session"] for c in row["calls"]}) == 1
+    assert row["owner_usd"] == pytest.approx(sum(c["owner_usd"] for c in row["calls"]))
+    assert not set(calls[4]["metered_ids"]) & set(dead["metered_ids"])
+
+
+def test_a_runner_that_died_in_a_call_that_did_nothing_asks_that_request_again(
+    lr: ModuleType, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    argv = _setup(lr, tmp_path, monkeypatch, ("N",), (PYD,), ("sonnet",), {})
+    real = _die_at(lr, monkeypatch, 3, silent=True)
+    with pytest.raises(_Died):
+        lr.main(argv)
+    monkeypatch.setattr(lr, "attempt_call", real)
+    assert lr.main(argv) == 0
+    row = _row(tmp_path, f"{PYD}-sonnet")
+    requests = [c["request"] for c in row["calls"]]
+    assert requests == [1, 2, 3, 3, 4, 5, 6, 7, 8]
+    dead, again = row["calls"][2], row["calls"][3]
+    assert dead["superseded"] and dead["decision"] == "retry" and dead["owner_usd"] == 1.0
+    assert again["status"] == "ran" and again["streams"] == ["stream-3.jsonl"]
+    assert _fake_calls(tmp_path, f"{PYD}-sonnet") == 8
+
+
+def test_finished_and_capped_arms_are_never_run_again_and_a_limited_one_resumes(
+    lr: ModuleType, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import long_resume
+
+    assert not long_resume.may_resume({"partial": False, "stopped": ""})
+    assert not long_resume.may_resume({"partial": False, "stopped": "cap"})
+    assert not long_resume.may_resume({"partial": False, "stopped": "set aside"})
+    assert long_resume.may_resume({"partial": False, "stopped": "limit"})
+    assert long_resume.may_resume({"partial": True})
+    argv = _setup(lr, tmp_path, monkeypatch, ("N",), (PYD,), ("sonnet",), {})
+    assert lr.main(argv) == 0
+    assert lr.main(argv) == 0  # a second launch finds the arm done
+    assert _fake_calls(tmp_path, f"{PYD}-sonnet") == 8
+
+
+def test_a_resume_is_held_against_the_ceiling_by_what_is_left_not_by_whole_caps_again(
+    lr: ModuleType, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    argv = _setup(lr, tmp_path, monkeypatch, ("N",), (PYD, CONAN), ("sonnet",), {})
+    assert lr.main([*argv[:-2], "--manifests", argv[-1], "--chains", PYD]) == 0
+    layout = lr.Layout(tmp_path / "L")
+    profile = lr.PROFILES["fake"]
+    spent = lr.spent(layout)
+    assert spent > 0
+    blocks, outside = lr.held(layout, profile, [PYD, CONAN], ["sonnet"])
+    assert dict(((n, m), c) for n, m, c in blocks) == {(PYD, "sonnet"): 20.0,
+                                                       (CONAN, "sonnet"): 20.0}
+    assert outside == 0.0  # the spend is inside PYD's caps, not on top of them
+    assert lr.long_guard.plan_refusal(blocks, 40.0, outside) == ""
+    # what was counted before: both caps plus the spend, refused at a ceiling that fits
+    assert lr.long_guard.plan_refusal(lr.blocks(profile, [PYD, CONAN], ["sonnet"]), 40.0, spent)
+
+
+def test_every_session_reports_its_window_and_n_early_is_s_installs(
+    lr: ModuleType, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from sanchopanza.harness import install_defaults
+
+    monkeypatch.setenv("FAKE_SERVER_WINDOW", "400000")
+    argv = _setup(lr, tmp_path, monkeypatch, ("N", "Ne"), (PYD,), ("sonnet",), {})
+    assert lr.main(argv) == 0
+    n, early = _row(tmp_path, f"{PYD}-sonnet", "N"), _row(tmp_path, f"{PYD}-sonnet", "Ne")
+    assert n["window"]["effective_reported"] == 380_000 and n["window"]["value"] == 400_000
+    assert n["window"]["source"] == "clientdata (server cache)"
+    assert n["window"]["configured"] is None
+    assert early["window"]["configured"] == 193_000 and early["window"]["source"] == "env"
+    assert n["calls"][0]["window_reported"]["lines"] > 0
+    debug = tmp_path / "L" / "runs" / f"{PYD}-sonnet" / "N" / "debug-1.log"
+    assert "[api]" not in debug.read_text(encoding="utf-8")  # trimmed to the autocompact lines
+    windows = json.loads((tmp_path / "L" / "windows.json").read_text(encoding="utf-8"))
+    assert windows["claude-sonnet-5-5"]["N"]["value"] == 400_000
+    # N-early: the variable and the value S's own install writes for the same budget
+    for profile in lr.PROFILES.values():
+        env, _added, _gone = install_defaults.merge_budget({}, profile.budget)
+        assert dict(lr.arm_spec("Ne", profile).env) == {
+            install_defaults.WINDOW: env["env"][install_defaults.WINDOW]}
+    assert lr.long_guard.window_breaks(193_000, 193_000) == ()
+    assert lr.long_guard.window_breaks(193_000, 200_000)
