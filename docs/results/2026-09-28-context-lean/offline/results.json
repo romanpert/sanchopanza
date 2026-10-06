@@ -888,8 +888,8 @@
   "tokens_high": 6492552,
   "usd": 0.128,
   "usd_high": 0.2727,
-  "usd_at_29e-6": 0.0096,
-  "usd_high_at_29e-6": 0.0226,
+  "usd_at_recorded_rate": 0.1134,
+  "usd_high_at_recorded_rate": 0.2671,
   "model": "jev-1.13.0"
  },
  "free": {
@@ -5357,8 +5357,8 @@
    "tokens_high": 6492552,
    "usd": 0.128,
    "usd_high": 0.2727,
-   "usd_at_29e-6": 0.0096,
-   "usd_high_at_29e-6": 0.0226,
+   "usd_at_recorded_rate": 0.1134,
+   "usd_high_at_recorded_rate": 0.2671,
    "model": "jev-1.13.0"
   },
   "o2_arrival_jev": {

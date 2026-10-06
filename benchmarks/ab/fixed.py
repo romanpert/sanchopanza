@@ -325,7 +325,10 @@ def _render(resumen: dict[str, Any]) -> str:
     return "\n".join(lineas)
 
 
-JEV_PER_DECISION_USD = 0.000029  # measured list figure, output included (README, "What it costs")
+# One squire decision is one Jev request. The fake decider records no tokens, so the figure is
+# the median real request: 71 millionths of a dollar (0.042 USD per million input tokens,
+# output free; about twelve questions a request; README, "What it costs").
+JEV_PER_DECISION_USD = 71e-6
 
 
 def _tareas(leer: Callable[[str], str]) -> list[dict[str, Any]]:

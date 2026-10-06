@@ -21,9 +21,15 @@ sys.path.insert(0, str(ROOT / "benchmarks"))
 from substitution import _at_half, norm  # noqa: E402
 
 API_INPUT_PER_CASE = 145_492 / 212  # what the Opus 5 API run measured for the same prompts
-JEV_PER_CASE = 28.4e-6
+JEV_USD_PER_TOKEN = 0.042e-6  # input; output is free
 PRICE_IN, PRICE_OUT = 4e-6, 20e-6  # claude-opus-5-5, list
 HAIKU_SIDE_CALL = 0.000976  # the CLI's own small call per session, measured on 2026-09-30
+
+
+def _jev_per_case() -> float:
+    """What one of these judgments cost Jev: its recorded input tokens at the list price."""
+    rows = json.loads((FIFTY / "results.json").read_text(encoding="utf-8"))
+    return sum(r["input_tokens"] for r in rows) * JEV_USD_PER_TOKEN / len(rows)
 
 
 def _labels(path: Path) -> dict[str, str | None]:
@@ -80,7 +86,8 @@ def test_the_price_ratio_floor_is_about_a_hundred():
     ]
     median_out = statistics.median(implied)
     assert 15 <= median_out <= 40
-    floor = (PRICE_IN * API_INPUT_PER_CASE + PRICE_OUT * 3) / JEV_PER_CASE
-    typical = (PRICE_IN * API_INPUT_PER_CASE + PRICE_OUT * median_out) / JEV_PER_CASE
+    jev_per_case = _jev_per_case()
+    floor = (PRICE_IN * API_INPUT_PER_CASE + PRICE_OUT * 3) / jev_per_case
+    typical = (PRICE_IN * API_INPUT_PER_CASE + PRICE_OUT * median_out) / jev_per_case
     assert round(floor) == 99
     assert 105 <= typical <= 120

@@ -62,7 +62,10 @@ CACHE = bench_run.CACHE
 RESULTS = HERE / "results.json"
 RECORDINGS = CACHE / "recordings-lean" / "arrival-jev.jsonl"
 PINNED_MODEL = bench_run.PINNED_MODEL
-USD_PER_DECISION = 29e-6  # the planning figure for one Jev decision
+# Cost of one arrival decision, from the recorded run: 1,924,333 input tokens over 236
+# decisions at 0.042 USD per million (output free), 3.42e-4 USD each. These states are pages
+# of a tool result, so a decision here weighs more than the median request (71e-6 USD).
+USD_PER_DECISION = 1_924_333 * 0.042e-6 / 236
 SMOKE_UNITS = 2
 FREE_O2_ARMS = ("head_tail", "free_cut", "bm25_at_free_cut", "bm25_at_head_tail")
 O3_ARMS = ("mask_10", "mask_3", "api_T30k", "api_T50k", "api_T100k", "api_always")
@@ -141,8 +144,8 @@ def estimate(units: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     got = simulate.arrival_estimate(units, arrival.Settings())
     return {
         **got,
-        "usd_at_29e-6": round(got["calls"] * USD_PER_DECISION, 4),
-        "usd_high_at_29e-6": round(got["calls_high"] * USD_PER_DECISION, 4),
+        "usd_at_recorded_rate": round(got["calls"] * USD_PER_DECISION, 4),
+        "usd_high_at_recorded_rate": round(got["calls_high"] * USD_PER_DECISION, 4),
         "model": PINNED_MODEL,
     }
 
@@ -206,7 +209,7 @@ def run_jev(args: argparse.Namespace, units: Sequence[Mapping[str, Any]]) -> dic
         require_prereg(args.prereg)
         if args.cap is None or args.cap <= 0:
             raise SystemExit("--cap USD is required for a live run")
-        if max(est["usd_high"], est["usd_high_at_29e-6"]) > args.cap:
+        if max(est["usd_high"], est["usd_high_at_recorded_rate"]) > args.cap:
             raise SystemExit(f"high estimate above --cap {args.cap}: nothing spent")
         if RECORDINGS.exists():
             raise SystemExit("recordings already exist: replay them (--replay) or move them")
