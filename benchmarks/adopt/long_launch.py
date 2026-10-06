@@ -1,0 +1,312 @@
+"""What `long-smoke-run.cmd` and `long-gate-run.cmd` run, once the window has set the PATH (the
+pinned Claude Code first) and checked its version: the checks before any spending, the expected
+cost and the caps, the Jev preflight for S arms, the runner per model, the grade and the windows.
+
+    python benchmarks/adopt/long_launch.py smoke --seal <commit> [--root C:\\sp-runs\\L-smoke]
+    python benchmarks/adopt/long_launch.py gate [--root C:\\sp-runs\\L]
+    python benchmarks/adopt/long_launch.py plan smoke|gate      # prints the plan only
+
+In order, and nothing paid before the last:
+1. SIGINT ignored; the run folder gets `launch.json` with this process's PID, its parent's (the
+   launcher window's `cmd.exe`) and each runner's PID as it starts (kill only by PID, verified:
+   `long_run.py kill --root <root>`).
+2. Refused (exit 1) when a runner of this root is alive, a chain has no valid manifest with the
+   digest of the chain in the cache (`long60/<chain>.json`), or the caps do not fit the ceiling.
+3. The expected cost (`costmodel.expected`) and every cap, printed and written to `plan.txt`.
+4. Arms S only: the frozen sanchopanza of the seal commit (built by `freeze.py`, with gate A and
+   the 402 breaker in its history) and `python -m sanchopanza jev-preflight` with it, which
+   exits 0 ok, 10 no_funds, 11 auth, 12 no_key, 13 unreachable, 14 other; any other code than 0
+   ends the launch with that code before a model is asked anything.
+5. The runner (`long_run.py run`), per model: the gate runs Opus only when Sonnet exits 0.
+   A second launch resumes: finished arms are skipped and a stopped one goes on at its next
+   request (`long_resume`).
+6. The grade (free, pytest in Docker), the gate table and `windows.json` (each model's window as
+   its sessions reported it).
+
+`--dry-config <json>` (tests and the dry run only): a stand-in runner and `claude`, chains,
+manifests, limit flag, the sanchopanza and preflight to use, and extra environment.
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import os
+import subprocess
+import sys
+from collections.abc import Mapping
+from pathlib import Path
+from typing import Any
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[1]
+sys.path.insert(0, str(HERE))
+sys.path.append(str(HERE.parent))
+sys.path.insert(0, str(HERE.parent / "memory_carry"))
+
+import carry  # noqa: E402
+import costmodel  # noqa: E402
+import freeze  # noqa: E402
+import long_guard  # noqa: E402
+import long_run  # noqa: E402
+import meter  # noqa: E402
+import run  # noqa: E402
+
+ROOTS = {"smoke": Path(r"C:\sp-runs\L-smoke"), "gate": Path(r"C:\sp-runs\L")}
+# The seal must carry these (main): gate A for check-done and candor, and the 402 breaker with
+# `jev-preflight`. An older frozen copy would run S without them.
+SEAL_NEEDS = {"f2a0fe2": "gate A (check-done and candor on change or action)",
+              "674806b": "the 402 breaker and jev-preflight"}  # fmt: skip
+PREFLIGHT = ("-m", "sanchopanza", "jev-preflight")
+PREFLIGHT_CODES = {0: "ok", 10: "no_funds", 11: "auth", 12: "no_key", 13: "unreachable",
+                   14: "other"}  # fmt: skip
+
+
+def log(message: str) -> None:
+    print(f"{dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} {message}", flush=True)
+
+
+# ---- the run folder and its PIDs -----------------------------------------------------------------
+
+
+def note_pids(root: Path, **pids: Any) -> dict[str, Any]:
+    """`launch.json`: this launch's PIDs (with command line and creation date, for a verified
+    kill), appended to the earlier launches' so a resume keeps the history."""
+    path = root / "launch.json"
+    history = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+    if pids.get("new"):
+        mine = {"started": dt.datetime.now().isoformat(timespec="seconds"),
+                "launcher": _process(os.getpid()), "window": _process(os.getppid())}  # fmt: skip
+        history = [*history, mine]
+    else:
+        history = [*history[:-1], {**history[-1], **{k: v for k, v in pids.items()}}]
+    path.write_text(json.dumps(history, indent=1), encoding="utf-8", newline="\n")
+    return history[-1]
+
+
+def _process(pid: int) -> dict[str, Any]:
+    return {"pid": pid, **(long_guard.process_info(pid) or {})}
+
+
+def busy(root: Path) -> str:
+    """Why another launch of this root may still be running ("" when none is)."""
+    status = root / "long-run.status.json"
+    if status.exists():
+        found = json.loads(status.read_text(encoding="utf-8"))
+        live = long_guard.process_info(int(found.get("pid") or 0)) if found.get("pid") else None
+        if live and live.get("command_line") == found.get("command_line") and \
+                live.get("created") == found.get("created"):  # fmt: skip
+            return f"the runner {found['pid']} of this root is still running"
+    return ""
+
+
+# ---- what is expected and what is held -----------------------------------------------------------
+
+
+def plan_lines(name: str, chains: Mapping[str, Any], names: list[str], root: Path,
+               ceiling: float) -> list[str]:  # fmt: skip
+    """The expected cost per chain and arm, and every cap, as printed before anything runs."""
+    import long
+
+    profile = long_run.PROFILES[name]
+    layout = long_run.Layout(root)
+    spent = long_run.spent(layout)
+    lines, low, high = [], 0.0, 0.0
+    for model in profile.models:
+        cap = profile.call_cap[model]
+        cc = meter.claude_code_cap(cap, run.MODELS[model])
+        lines.append(f"{model} ({run.MODELS[model]}): {cap:.2f} USD per call (--max-budget-usd "
+                     f"{cc:.2f} in Claude Code's prices), {profile.chain_cap[model]:.2f} per chain "
+                     f"and arm, arms {', '.join(profile.arms)}")  # fmt: skip
+        for chain in names:
+            found = chains.get(chain)
+            bugs = profile.bugs or (len(found["bugs"]) if found else long.SIZE60)
+            calls = len(long.callbacks(bugs))
+            exp = costmodel.expected(model, bugs, calls, profile.arms,
+                                     profile.budget)  # fmt: skip
+            low += sum(v[0] for v in exp.values())
+            high += sum(v[1] for v in exp.values())
+            each = ", ".join(f"{a} {v[0]:.2f}-{v[1]:.2f}" for a, v in exp.items())
+            state = "" if found else " (not in the validated cache yet)"
+            lines.append(f"  {chain}{state}: {bugs} bugs + {calls} callbacks; expected {each} USD")
+    blocks, outside = long_run.held(layout, profile, names, list(profile.models))
+    holding = sum(c for *_x, c in blocks) + outside
+    lines += [f"expected total {low:.2f}-{high:.2f} USD (cost model, check-done 'mid'; "
+              "uncapped, list prices)",
+              f"caps held {holding:.2f} USD (each chain at the larger of its caps and its "
+              f"spend); spent under the root so far {spent:.2f}; ceiling "
+              f"{ceiling:.2f}{' (hard, in code)' if profile.hard_cap else ''}",
+              f"N-early window {profile.window} (S's install for --context-budget "
+              f"{profile.budget}); N's window: the server's, recorded in windows.json"]
+    return lines
+
+
+# ---- S: the sealed sanchopanza and the preflight -------------------------------------------------
+
+
+def git(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, text=True)
+
+
+def frozen_sancho(seal: str) -> Path:
+    """The frozen copy of the seal commit, refused when it is missing or lacks what S needs."""
+    done = git("rev-parse", "--verify", f"{seal}^{{commit}}")
+    if done.returncode != 0 or not seal:
+        raise SystemExit(f"refused: {seal!r} is not a commit")
+    full = done.stdout.strip()
+    for commit, what in SEAL_NEEDS.items():
+        if git("merge-base", "--is-ancestor", commit, full).returncode != 0:
+            raise SystemExit(f"refused: the seal {full[:12]} does not carry {commit} ({what})")
+    target = freeze.ROOT / f"{full[:12]}-{'-'.join(freeze.EXTRAS)}"
+    exe = target / "Scripts" / "sanchopanza.exe"
+    stamp = target / "stamp.json"
+    if not exe.exists() or not stamp.exists():
+        raise SystemExit(f"refused: no frozen sanchopanza for {full[:12]}; build it with "
+                         f"`python benchmarks/adopt/freeze.py {full}` (free)")  # fmt: skip
+    found = json.loads(stamp.read_text(encoding="utf-8"))
+    if found.get("commit") != full or set(freeze.EXTRAS) - set(found.get("extras") or []):
+        raise SystemExit(f"refused: {stamp} is not the {full[:12]} copy with {freeze.EXTRAS}")
+    return exe
+
+
+def preflight(python: Path, root: Path, pythonpath: str = "") -> int:
+    """`python -m sanchopanza jev-preflight` with the sanchopanza S runs (its own Python, no
+    PYTHONPATH of ours), the key only in its environment. One real decision, ~13 micro-USD."""
+    env = {k: v for k, v in os.environ.items() if k not in ("PYTHONPATH", "PYTHONHOME")}
+    key = carry.from_indagis_env("TYPESAFE_API_KEY")
+    env = {**env, **({"TYPESAFE_API_KEY": key} if key else {}),
+           **({"PYTHONPATH": pythonpath} if pythonpath else {})}  # fmt: skip
+    done = subprocess.run([str(python), *PREFLIGHT], env=env, capture_output=True, text=True,
+                          timeout=120)  # fmt: skip
+    text = (done.stdout + done.stderr).strip()
+    with (root / "preflight.txt").open("a", encoding="utf-8") as out:
+        out.write(f"{dt.datetime.now().isoformat(timespec='seconds')} exit {done.returncode} "
+                  f"({PREFLIGHT_CODES.get(done.returncode, 'unknown')}) {text}\n")  # fmt: skip
+    log(f"jev preflight: exit {done.returncode} "
+        f"({PREFLIGHT_CODES.get(done.returncode, 'unknown')}): {text[-300:]}")
+    return done.returncode
+
+
+# ---- the runs ------------------------------------------------------------------------------------
+
+
+def runner_cmd(cfg: Mapping[str, Any], action: str, profile: str, root: Path,
+               model: str | None) -> list[str]:  # fmt: skip
+    script = cfg.get("runner") or str(HERE / "long_run.py")
+    cmd = [sys.executable, "-u", script, action, "--profile", profile, "--root", str(root),
+           "--manifests", str(cfg.get("manifests") or long_run.MANIFESTS)]  # fmt: skip
+    cmd += ["--model", model] if model else []
+    if action != "run":
+        return [*cmd, *(["--chains-file", cfg["chains_file"]] if cfg.get("chains_file") else [])]
+    extra = {"--limit-flag": cfg.get("limit_flag"), "--chains-file": cfg.get("chains_file"),
+             "--claude": json.dumps(cfg["claude"]) if cfg.get("claude") else None}  # fmt: skip
+    cmd += [x for k, v in extra.items() if v for x in (k, str(v))]
+    return [*cmd, *(["--allow-midnight"] if cfg.get("allow_midnight") else [])]
+
+
+def run_step(cmd: list[str], env: Mapping[str, str], log_file: Path, label: str,
+             root: Path) -> int:  # fmt: skip
+    with log_file.open("ab") as out:
+        child = subprocess.Popen(cmd, cwd=REPO, env=dict(env), stdout=out, stderr=subprocess.STDOUT)
+        note_pids(root, **{label: _process(child.pid)})
+        log(f"{label}: PID {child.pid}, log {log_file}")
+        code = child.wait()
+    note_pids(root, **{f"{label}_exit": code})
+    log(f"{label}: exit {code}")
+    return code
+
+
+def runs(name: str, cfg: Mapping[str, Any], root: Path, env: Mapping[str, str]) -> int:
+    """The runner per model in order; the gate's Opus only after Sonnet exits 0."""
+    for model in long_run.PROFILES[name].models:
+        code = run_step(runner_cmd(cfg, "run", name, root, model), env,
+                        root / f"runner-{model}.log", f"runner_{model}", root)  # fmt: skip
+        if code != 0:
+            return code
+    return 0
+
+
+def windows(root: Path) -> None:
+    path = root / "windows.json"
+    found = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    for model, arms in found.items():
+        for arm, w in arms.items():
+            log(f"window {model} {arm}: {w.get('value')} (effective {w.get('effective_reported')}"
+                f", source {w.get('source')})")
+    if not found:
+        log("window: no session reported one yet")
+
+
+# ---- entry ---------------------------------------------------------------------------------------
+
+
+def launch(name: str, args: argparse.Namespace) -> int:
+    carry.ignore_interrupts()
+    cfg = json.loads(Path(args.dry_config).read_text(encoding="utf-8")) if args.dry_config else {}
+    root = Path(args.root or cfg.get("root") or ROOTS[name])
+    root.mkdir(parents=True, exist_ok=True)
+    note_pids(root, new=True)
+    if why := busy(root):
+        log(f"refused: {why}")
+        return 1
+    profile = long_run.PROFILES[name]
+    known = (json.loads(Path(cfg["chains_file"]).read_text(encoding="utf-8"))
+             if cfg.get("chains_file") else run.chains())  # fmt: skip
+    names = list(profile.chains)
+    manifests = Path(cfg.get("manifests") or long_run.MANIFESTS)
+    if missing := [n for n in names if n not in known]:
+        log(f"refused: chains not in the cache {missing}")
+        return 1
+    if why := long_guard.manifest_refusal(names, known, manifests, run.chain_digest):
+        log(f"refused: {why}")
+        return 1
+    ceiling = profile.ceiling
+    lines = plan_lines(name, known, names, root, ceiling)
+    (root / "plan.txt").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+    for line in lines:
+        log(line)
+    blocks, outside = long_run.held(long_run.Layout(root), profile, names, list(profile.models))
+    if why := long_guard.plan_refusal(blocks, ceiling, outside):
+        log(f"refused: {why}")
+        return 1
+    env = {**os.environ, **(cfg.get("env") or {}), "PYTHONUNBUFFERED": "1",
+           "ADOPT_PYTHON": os.environ.get("ADOPT_PYTHON") or sys.executable}  # fmt: skip
+    if "S" in profile.arms:
+        exe = Path(cfg["sancho"]) if cfg.get("sancho") else frozen_sancho(args.seal or "")
+        env = {**env, "ADOPT_SANCHO": str(exe)}
+        log(f"S runs {exe}")
+        python = Path(cfg.get("preflight_python") or exe.parent / "python.exe")
+        if code := preflight(python, root, cfg.get("preflight_pythonpath", "")):
+            log(f"refused: jev-preflight exit {code}; nothing was run")
+            return code
+    code = runs(name, cfg, root, env)
+    windows(root)
+    if code == 0 and cfg.get("grade", True):
+        code = run_step(runner_cmd(cfg, "grade", name, root, None), env, root / "grade.log",
+                        "grade", root)  # fmt: skip
+    return code
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("action", choices=("smoke", "gate", "plan"))
+    parser.add_argument("profile", nargs="?", default="", help="plan: smoke or gate")
+    parser.add_argument("--seal", default="", help="smoke: the sealed S commit (frozen copy)")
+    parser.add_argument("--root", default="")
+    parser.add_argument("--dry-config", default="")
+    args = parser.parse_args(argv)
+    if args.action == "plan":
+        cfg = json.loads(Path(args.dry_config).read_text("utf-8")) if args.dry_config else {}
+        known = (json.loads(Path(cfg["chains_file"]).read_text(encoding="utf-8"))
+                 if cfg.get("chains_file") else run.chains())  # fmt: skip
+        profile = long_run.PROFILES[args.profile]
+        root = Path(args.root or cfg.get("root") or ROOTS[args.profile])
+        for line in plan_lines(args.profile, known, list(profile.chains), root, profile.ceiling):
+            print(line)
+        return 0
+    return launch(args.action, args)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
