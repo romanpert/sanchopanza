@@ -32,9 +32,9 @@ Nothing here spent money: no `claude` session, no API, no Jev. No launcher was r
   ratio, gate evaluator), not in confirm.py (sealed phase A).
 - 7 fake claude: done (`tests/fixtures/long_fake`, `test_adopt_long_runner.py`), long40 chains
   (long60 not validated yet).
-- 8 WMI launchers `long-gate-run.cmd`, `long-smoke-run.cmd`: **PENDING, not written.**
-- 9 costmodel.py check-done term: **PENDING.**
-- Also pending: the window probe (pre-mortem 8), a test for g on the runner side.
+- 8 WMI launchers `long-gate-run.cmd`, `long-smoke-run.cmd`: done on branch `long-launch` (STATUS-launch.md).
+- 9 costmodel.py check-done term: done on branch `long-launch` (`benchmarks/adopt/costmodel.py`).
+- Window probe (pre-mortem 8): every call records the session's own autocompact line (`long_window`, branch `long-launch`). Still pending: a test for g on the runner side.
 
 ## Caps (owner USD, in code)
 
