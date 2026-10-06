@@ -255,7 +255,10 @@ def child_env(tag: str, base: str) -> dict[str, str]:
     """The subscription, not a key; nothing of the coordinating session; runtests configured."""
     drop = ("ANTHROPIC_", "CLAUDE_CODE_", "CLAUDE_EFFORT", "CLAUDECODE", "CLAUDE_AGENT_SDK",
             "CLAUDE_PID", "SANCHOPANZA_", "SANCHO_", "TYPESAFE_")  # fmt: skip
-    env = {k: v for k, v in os.environ.items() if not k.startswith(drop)}
+    # The runner's PYTHONPATH (a launcher sets it to a worktree's src) would reach the hooks'
+    # `sanchopanza.exe` and run that tree's package instead of the frozen copy SANCHO names.
+    python = ("PYTHONPATH", "PYTHONHOME")
+    env = {k: v for k, v in os.environ.items() if not k.startswith(drop) and k not in python}
     # Not the sanchopanza venv: its `python` (pytest 9, no project deps) was on the agents' PATH
     # in the pilot and they ran the tests locally against it. Hooks use absolute paths.
     path = os.pathsep.join([*(str(p) for p in shim()), env.get("PATH", "")])
