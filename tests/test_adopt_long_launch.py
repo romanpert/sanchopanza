@@ -101,8 +101,8 @@ def test_gate_launcher_runs_n_on_both_models_records_windows_and_resumes(
     assert code == 2, _text(root / "launch.log")
     assert (tmp_path / "LIMIT.flag").exists()
     log = _text(root / "launch.log")
-    assert "sonnet (claude-sonnet-5-5): 4.50 USD per call (--max-budget-usd 3.00" in log
-    assert "opus (claude-opus-5-5): 8.00 USD per call (--max-budget-usd 3.20" in log
+    assert "sonnet (claude-sonnet-5-5): 4.50 USD per call (--max-budget-usd at most 3.00" in log
+    assert "opus (claude-opus-5-5): 8.00 USD per call (--max-budget-usd at most 3.20" in log
     assert "caps held 172.00 USD" in log and "ceiling 175.00" in log
     assert "expected total" in log and "jev preflight" not in log  # no S arm, no preflight
     pids = json.loads(_text(root / "launch.json"))

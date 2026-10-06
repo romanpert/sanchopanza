@@ -13,6 +13,7 @@ import json
 import pathlib
 import subprocess
 import sys
+from dataclasses import replace
 from types import ModuleType
 from typing import Any
 
@@ -70,7 +71,7 @@ def _chain(name: str) -> dict[str, Any]:
 def _setup(lr: ModuleType, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch,
            arms: tuple[str, ...], chains: tuple[str, ...], models: tuple[str, ...],
            inject: dict[str, Any]) -> list[str]:  # fmt: skip
-    profile = lr.Profile("fake", arms, models, dict.fromkeys(models, 1.0),
+    profile = lr.Profile("fake", arms, models, dict.fromkeys(models, CALL_CAP),
                          dict.fromkeys(models, 20.0), 200.0, chains, bugs=6, timeout_s=3.0,
                          idle_s=60.0)  # fmt: skip
     monkeypatch.setitem(lr.PROFILES, "fake", profile)
@@ -100,6 +101,8 @@ def _row(tmp_path: pathlib.Path, run_name: str, arm: str = "N") -> dict[str, Any
 
 
 PYD, CONAN = "pydantic__pydantic-long40-1", "conan-io__conan-long40-1"
+# Room for a call plus one turn past it (B2 contexts reach ~120k: an Opus turn up to ~2.5 USD)
+CALL_CAP = 4.0
 
 
 def test_four_gate_chains_replay_with_every_injection_detected_and_handled(
@@ -124,7 +127,7 @@ def test_four_gate_chains_replay_with_every_injection_detected_and_handled(
     assert (tmp_path / "L" / "runs" / f"{PYD}-sonnet" / "N" / "stream-5-retry.jsonl").exists()
     # crash after a tool and a change: charged its cap, a declared deviation, the chain went on
     assert calls[7]["status"] == "cut (exit 3)" and "deviation" in calls[7]
-    assert calls[7]["owner_usd"] == 1.0 and calls[7]["charged_cap"]
+    assert calls[7]["owner_usd"] == CALL_CAP and calls[7]["charged_cap"]
     assert calls[8]["status"] == "ran"
     assert first["permission_modes"] == ["default"]
     assert all(c["init"]["version"] == "2.1.287" for c in first["calls"] if c["init"])
@@ -277,7 +280,7 @@ def test_a_runner_that_died_after_a_call_with_tools_resumes_at_the_next_request(
     assert [c["request"] for c in row["calls"]] == list(range(1, 9))  # nothing asked twice
     dead = calls[3]
     assert dead["status"] == "cut (runner died)" and dead["decision"] == "continue"
-    assert dead["charged_cap"] and dead["owner_usd"] == 1.0 and "deviation" in dead
+    assert dead["charged_cap"] and dead["owner_usd"] == CALL_CAP and "deviation" in dead
     assert dead["streams"] == ["stream-3-dead.jsonl"]
     assert _fake_calls(tmp_path, f"{PYD}-sonnet") == 8  # 8 requests, 8 claude calls
     assert row["partial"] is False and row["stopped"] == ""
@@ -300,7 +303,7 @@ def test_a_runner_that_died_in_a_call_that_did_nothing_asks_that_request_again(
     requests = [c["request"] for c in row["calls"]]
     assert requests == [1, 2, 3, 3, 4, 5, 6, 7, 8]
     dead, again = row["calls"][2], row["calls"][3]
-    assert dead["superseded"] and dead["decision"] == "retry" and dead["owner_usd"] == 1.0
+    assert dead["superseded"] and dead["decision"] == "retry" and dead["owner_usd"] == CALL_CAP
     assert again["status"] == "ran" and again["streams"] == ["stream-3.jsonl"]
     assert _fake_calls(tmp_path, f"{PYD}-sonnet") == 8
 
@@ -364,3 +367,20 @@ def test_every_session_reports_its_window_and_n_early_is_s_installs(
             install_defaults.WINDOW: env["env"][install_defaults.WINDOW]}
     assert lr.long_guard.window_breaks(193_000, 193_000) == ()
     assert lr.long_guard.window_breaks(193_000, 200_000)
+
+
+def test_each_call_leaves_room_for_one_turn_past_its_budget_and_the_arm_stops_earlier(
+    lr: ModuleType, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    argv = _setup(lr, tmp_path, monkeypatch, ("N",), (PYD,), ("sonnet",), {})
+    tight = replace(lr.PROFILES["fake"], call_cap={"sonnet": 2.0}, chain_cap={"sonnet": 4.0})
+    monkeypatch.setitem(lr.PROFILES, "fake", tight)
+    assert lr.main(argv) == 2
+    row = _row(tmp_path, f"{PYD}-sonnet")
+    ran = [c for c in row["calls"] if c["status"] == "ran"]
+    first = ran[0]
+    # first call: context 0 + 50k, Sonnet: 50k x 6/M + 32k x 15/M = 0.78; budget 2.00 - 0.78
+    assert first["budget_owner"] == pytest.approx(2.0 - 0.78)
+    assert row["stopped"] == "cap" and row["owner_usd"] <= 4.0
+    # it stopped while spend + cap alone still fitted: the turn's room is what stopped it
+    assert sum(c["owner_usd"] for c in ran) + 2.0 <= 4.0

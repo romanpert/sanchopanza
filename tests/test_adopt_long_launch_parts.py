@@ -269,7 +269,10 @@ def test_the_launch_plan_prints_caps_and_expected_cost_without_spending(m: Simpl
                                               "pydantic__pydantic-long60-1")}  # fmt: skip
     lines = m.long_launch.plan_lines("gate", known, list(known), pathlib.Path("Z:/nowhere"), 175.0)
     text = "\n".join(lines)
-    assert "--max-budget-usd 3.00" in text and "--max-budget-usd 3.20" in text
+    assert "--max-budget-usd at most 3.00" in text and "at most 3.20" in text
+    assert "N: one turn past a cap costs up to 6.48 USD (context at the window 1000000)" in text
+    assert "up to 10.80 USD" in text and "no call past 29.20 spent of its 48.00" in text
+    assert "room for its cap and one more turn" in text
     assert "60 bugs + 2 callbacks; expected N 24.97-24.97 USD" in text
     assert "expected N 25.76-42.46 USD" in text
     assert "expected total 101.46-134.86 USD" in text and "caps held 172.00 USD" in text
@@ -296,3 +299,31 @@ def test_a_live_launcher_or_runner_of_the_root_refuses_a_second_launch(
     assert m.long_launch.busy(tmp_path) == ""
     (tmp_path / "long-run.status.json").write_text(json.dumps(me), encoding="utf-8")
     assert "runner" in m.long_launch.busy(tmp_path)
+
+
+# ---- one turn past a cap (live probe 2026-10-06: Opus given 0.34 USD spent 0.94) ---------------
+
+
+def test_the_worst_turn_is_the_window_written_at_one_hour_plus_a_maximal_answer(
+    m: SimpleNamespace,
+) -> None:
+    money = m.long_launch.long_money
+    assert money.turn_cost("claude-opus-5-5", 1_000_000) == pytest.approx(10 + 0.8)
+    assert money.turn_cost("claude-sonnet-5-5", 193_000) == pytest.approx(1.158 + 0.48)
+    assert money.turn_cost("claude-haiku-4-5-20251001", 100_000) == pytest.approx(0.2 + 0.16)
+    # the next call's turn: its context + 50k, never past the window
+    assert money.overshoot("claude-opus-5-5", 300_000, 193_000) == pytest.approx(2.73)
+    assert money.overshoot("claude-opus-5-5", 100_000, None) == pytest.approx(1.5 + 0.8)
+
+
+def test_the_measured_case_is_refused_where_the_old_check_let_it_through(
+    m: SimpleNamespace,
+) -> None:
+    money = m.long_launch.long_money
+    budget, spent_measured = 0.34, 0.94  # the probe: Opus 5.5, a resumed call
+    over = money.overshoot("claude-opus-5-5", 0, None)
+    assert over >= spent_measured - budget  # the allowance covers what the probe overshot
+    ceiling, spent = 10.0, 10.0 - budget  # 0.34 left: exactly the call's cap
+    assert spent + budget <= ceiling  # the old check: the call would have started
+    assert "ceiling" in money.room_refusal(spent, budget, over, ceiling, "ceiling")
+    assert money.room_refusal(spent - over, budget, over, ceiling, "ceiling") == ""
