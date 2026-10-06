@@ -201,11 +201,13 @@ What is kept, by `SANCHOPANZA_GUARD_CHOOSER`:
   in each; a re-readable result left out gets a pointer (file and line range, search, command).
   Offline on the owner's 344 real compaction points it kept .64 of the results the work needed
   next at 44,000 characters (`SANCHOPANZA_GUARD_STRUCT_CHARS`), against .12 for the rule; Jev
-  ranked them below plain recency (AUC 0.56-0.58 against 0.60-0.61). Claude Code keeps a hook's
-  context inline only up to 10,000 characters, so the block is capped at
-  `SANCHOPANZA_GUARD_INLINE_CHARS` (9,500), which leaves results about 3,900-7,000 characters:
-  .15-.28 by the same replay. Not yet run end to end
-  ([results](docs/results/2026-10-05-guard-struct/)).
+  ranked them below plain recency (AUC 0.56-0.58 against 0.60-0.61). Claude Code keeps each
+  hook's context inline only up to 10,000 characters and joins the contexts of several hooks, so
+  `install` splits the block over six `SessionStart` commands (`--guard-parts`), each part under
+  `SANCHOPANZA_GUARD_INLINE_CHARS` (9,500) and naming itself "part i of N"; the whole 44,000
+  arrives inline. `--guard-parts 1` keeps one block, which leaves results about 3,900-7,000
+  characters (.15-.28 by the same replay). Not yet run end to end; the probe is
+  `benchmarks/guard_split/probe.py` ([results](docs/results/2026-10-05-guard-struct/)).
 - `rule` (free): value lines of output that cannot be had again (shell commands and subagent
   reports, never file reads or test runs), 3,000 characters: errors, words shared with the
   requests, rare line shapes. 5 of 7 tasks against 2 of 7 native.

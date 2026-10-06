@@ -445,6 +445,15 @@ do not favour this package.
   `SANCHOPANZA_GUARD_INLINE_CHARS` (9,500), which leaves results about 3,900-7,000 characters
   (.15-.28 by the same replay). `SANCHOPANZA_GUARD_CHOOSER=rule` gives the earlier behaviour;
   any error on the new path does too.
+- **The guard's block is split over several `SessionStart` hooks** (`context.parts`,
+  `install --guard-parts K`, 6 by default). Claude Code caps each hook's context at 10,000
+  characters on its own and joins them (read in 2.1.287), so `PreCompact` (`guard-hook --parts
+  K`) splits the 44,000-character budget into parts under `SANCHOPANZA_GUARD_INLINE_CHARS`, never
+  inside a result, and each `guard-hook --part i --parts K` prints one. Part 1 holds the requests,
+  the trail, the pointers and the results that rank first; every part names itself "part i of
+  N", as the hooks finish in any order. Without `--part` the hook keeps one capped block; any
+  error while splitting gives the rule's block as part 1. Sizes now count UTF-16 code units, as
+  Claude Code does. Not yet run end to end (`benchmarks/guard_split/probe.py`).
 
 - **check-done and candor act only on a request that changed something** (`harness.change_gate`,
   `SANCHOPANZA_ON_CHANGE=0` to turn it off; `docs/results/2026-10-05-change-gate`). On a

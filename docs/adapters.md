@@ -73,8 +73,13 @@ recency, pointers for re-readable ones left out; `context.structural`), `rule` (
 lines of one-shot output) or `keep` (the cascade, `context.keep`: built at the `SessionStart`,
 about five decider calls per compaction, the rule after `SANCHOPANZA_GUARD_DECIDER_SECONDS`).
 The same binaries keep a hook's `additionalContext` inline only up to 10,000 characters (past
-that the model sees a 2,000-character preview and a file path), so `struct` caps its block at
-`SANCHOPANZA_GUARD_INLINE_CHARS` (9,500). Measured end to end in
+that the model sees a 2,000-character preview and a file path), per hook command: the contexts
+of an event's hooks are joined with a newline, in the order the hooks finish, with no limit on
+the whole (read in 2.1.287). So `install` writes `PreCompact` as `guard-hook --parts K` and K
+`SessionStart` commands, `guard-hook --part i --parts K` (K = 6, `--guard-parts`), and `struct`
+splits its block into parts under `SANCHOPANZA_GUARD_INLINE_CHARS` (9,500), each naming itself
+"part i of N" (`context.parts`). Without `--part` the hook keeps one block under the cap.
+Measured end to end in
 [the compaction-guard run](results/2026-09-29-context-guard/): 5 of 7 (`rule`) and 6 of 7
 (`keep`) tasks finished, against 2 of 7 with the native summary alone; `struct` is measured
 offline only ([guard-struct](results/2026-10-05-guard-struct/)).

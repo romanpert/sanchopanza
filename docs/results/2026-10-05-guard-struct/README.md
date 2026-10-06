@@ -69,7 +69,17 @@ requests and 20 changed files, up to 7,000 with a short request. In Claude Code 
 therefore sits between the 3,000 and 11,000 rows above: about .15 to .28 of needed results,
 against .12 for the rule. The contexts of several `SessionStart` hooks are capped one by one and
 then concatenated, so the measured 44,000 can only arrive split across several hook commands.
-That split is not built.
+
+The split is built on branch `guard-split` (2026-10-06, `context.parts`): `PreCompact` splits the
+block into up to six parts under 9,500 characters each, part 1 holding the requests, the work so
+far, the pointers and the results that rank first, and each `SessionStart` command prints one
+part. In 2.1.287 each command's context is persisted on its own past 1e4 (`Pde`), the
+`SessionStart` contexts are collected in one list with no aggregate cap, and they reach the
+model as one message joined by newlines, in the order the hooks finish (`Promise.race`), so each
+part names itself "part i of N". Offline on 18 one-shot outputs of 2,500 characters, run as
+Claude Code runs hooks: 6 parts of 5,700 to 8,200 characters, 17 of 18 results kept. Not yet run
+inside Claude Code; `benchmarks/guard_split/probe.py --run --cap 0.60` does that, about 0.25 USD
+of Haiku.
 
 ## Caveats
 
