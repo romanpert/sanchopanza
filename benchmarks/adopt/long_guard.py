@@ -141,6 +141,33 @@ def plan_refusal(blocks: Iterable[tuple[str, str, float]], ceiling: float,
     return ""
 
 
+def manifest_refusal(names: Iterable[str], known: Mapping[str, Any], folder: Path,
+                     digest: Callable[[Mapping[str, Any]], str]) -> str:  # fmt: skip
+    """No chain runs without the manifest its validation wrote (`long60/<chain>.json`): valid,
+    and with the digest of the chain the runner is about to read ("" when every one holds)."""
+    for name in names:
+        path = folder / f"{name}.json"
+        if not path.exists():
+            return f"no manifest {path}: validate the chain and run `long.py manifests` first"
+        try:
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+        except ValueError:
+            return f"manifest {path} is not JSON"
+        if manifest.get("valid") is not True:
+            return f"manifest {path} does not say the chain is valid"
+        if name in known and manifest.get("sha256") != digest(known[name]):
+            return f"{name}: the chain in the cache is not the one its manifest describes"
+    return ""
+
+
+def window_breaks(early: int | None, installed: int | None) -> tuple[str, ...]:
+    """N-early's window must be the one S's own install wrote for its budget, the same variable
+    in the same settings block (`None`: that arm has not run yet)."""
+    if early is None or installed is None or early == installed:
+        return ()
+    return (f"N-early's window {early} is not the {installed} S's install wrote",)
+
+
 def crosses_midnight(start: dt.datetime, hours: float) -> bool:
     return (start + dt.timedelta(hours=hours)).date() != start.date()
 

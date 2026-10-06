@@ -21,6 +21,14 @@ first call. Between calls: LIMIT.flag and the STOP file, Docker, disk, the caps 
 On every call: its init (version, model, permission mode, MCP servers), the usage limit, a diff
 that vanished, Jev's outage, hook errors. `row.json` is written after every call.
 
+Every call also writes the session's own `autocompact: ... effectiveWindow=` lines
+(`long_window`, `--debug=autocompact` in every arm): each row carries the window it ran under and
+its source, and `<root>/windows.json` N's server-set default per model. N-early's window is the
+one S's install writes for the profile's budget (`install_defaults.window_for`). A run started
+again resumes (`long_resume`): finished arms are skipped, a stopped or dead one goes on at its next
+request, and the ceiling holds each chain at the larger of its caps and its spend. Before an S
+arm, the hooks' decider is probed (free) and must be Jev. No chain runs without its manifest.
+
 Exit codes: 0 ran to its end; 1 refused before any call; 2 the usage limit, a cap or the
 ceiling; 3 a chain set aside (a cut call of a held-out chain); 4 the harness (a STOP file, a
 broken invariant, Docker, the disk, a diff that vanished, Jev down).
@@ -50,8 +58,14 @@ import carry  # noqa: E402
 import docker_env  # noqa: E402
 import long_call  # noqa: E402
 import long_guard  # noqa: E402
+import long_resume  # noqa: E402
+import long_window  # noqa: E402
 import meter  # noqa: E402
 import run  # noqa: E402
+from long_money import blocks, ceiling_of, held, rows_under, spent  # noqa: E402,F401
+
+sys.path.insert(0, str(HERE.parents[1] / "src"))
+from sanchopanza.harness.install_defaults import window_for  # noqa: E402
 
 ROOT = Path(r"C:\sp-runs\L")  # outside the home folder: carry.refuse_unclean; short for MAX_PATH
 WINDOW = "CLAUDE_CODE_AUTO_COMPACT_WINDOW"
@@ -70,6 +84,8 @@ GATE_CALL_CAP = {"sonnet": 4.5, "opus": 8.0}  # owner USD; B2 ran 4.5 per call o
 GATE_CHAIN_CAP = {"sonnet": 38.0, "opus": 48.0}  # pre-mortem e: 2x38 + 2x48 = 172 <= 175
 GATE_CEILING = 175.0
 GATE_CHAINS = ("conan-io__conan-long60-1", "pydantic__pydantic-long60-1")
+SMOKE_CHAIN = "pydantic__pydantic-long60-1"  # validated first; Haiku, 3 bugs, its own root
+MANIFESTS = HERE / "long60"  # long60/<chain>.json, written by `long.py manifests` once valid
 JEV_MAX_USD = 0.50  # per chain (pre-mortem 15)
 HOOK_ERRORS = 0.05  # hook calls ending in error, at most this share of a call's
 
@@ -88,10 +104,16 @@ class Profile:
     timeout_s: float = 2700.0
     idle_s: float = 1200.0  # a stream that has not grown for this long is cut
     wall_s: float = 4 * 3600.0
-    window: int = 193_000  # N-early's window: S's for --context-budget 160000
     budget: int = 160_000  # S's --context-budget
     forced_timeouts: tuple[tuple[str, int, float], ...] = ()  # (arm, request, seconds)
     hours: Mapping[str, float] = field(default_factory=dict)  # expected per arm (midnight rule)
+
+    @property
+    def window(self) -> int:
+        """N-early's CLAUDE_CODE_AUTO_COMPACT_WINDOW: the value S's install writes for its
+        --context-budget (`install_defaults.window_for`), so the two arms differ by the rest of S
+        only (193,000 for 160,000; 100,000, Claude Code's floor, for the smoke's 67,000)."""
+        return window_for(self.budget)
 
 
 PROFILES = {
@@ -100,10 +122,11 @@ PROFILES = {
     "dev": Profile("dev", ("N", "Ne", "S"), ("sonnet", "opus"), GATE_CALL_CAP, GATE_CHAIN_CAP,
                    980.0, (), hours={"sonnet": 1.6, "opus": 2.7}),
     # Verification item 3: Haiku, 3 bugs, N-early at Claude Code's 100k floor (compacts near
-    # 67k), S at --context-budget 67000, one N call cut at 90 s; hard cap 8 USD.
+    # 67k), S at --context-budget 67000, one N call cut at 90 s; hard cap 8 USD. A validated long60
+    # chain with its manifest (the gate's path: guard, token, callbacks after bugs 2 and 3).
     "smoke": Profile("smoke", ("N", "Ne", "S"), ("haiku",), {"haiku": 1.0}, {"haiku": 2.0}, 8.0,
-                     ("pydantic__pydantic-long40-1",), hard_cap=8.0, bugs=3, window=100_000,
-                     budget=67_000, forced_timeouts=(("N", 2, 90.0),), hours={"haiku": 0.5}),
+                     (SMOKE_CHAIN,), hard_cap=8.0, bugs=3, budget=67_000,
+                     forced_timeouts=(("N", 2, 90.0),), hours={"haiku": 0.5}),
 }  # fmt: skip
 
 
@@ -137,6 +160,7 @@ class Ctx:
     claude: tuple[str, ...] = ("claude",)
     keyfile: Path | None = None
     ceiling: float = 0.0
+    manifests: Path = MANIFESTS
 
 
 @dataclass(frozen=True)
@@ -197,33 +221,13 @@ def asks_of(chain: Mapping[str, Any]) -> list[dict[str, Any]]:
     return run.requests_of(dict(chain))
 
 
-# ---- money ---------------------------------------------------------------------------------------
+# ---- money (long_money: rows_under, spent, blocks, held, ceiling_of) ---------------------------
 
 
-def rows_under(layout: Layout) -> list[dict[str, Any]]:
-    rows = []
-    for path in sorted(layout.runs.glob("*/*/row.json")):
-        try:
-            rows.append(json.loads(path.read_text(encoding="utf-8")))
-        except ValueError:
-            continue
-    return rows
-
-
-def spent(layout: Layout) -> float:
-    """Owner USD of every call under the root, earlier runs included."""
-    return round(sum(c.get("owner_usd", 0.0) for r in rows_under(layout) for c in r["calls"]), 6)
-
-
-def blocks(profile: Profile, names: list[str], models: list[str]) -> list[tuple[str, str, float]]:
-    return [(n, m, profile.chain_cap[m] * len(profile.arms)) for m in models for n in names]
-
-
-def ceiling_of(profile: Profile, asked: float) -> float:
-    ceiling = asked if asked > 0 else profile.ceiling
-    if profile.hard_cap is not None and ceiling > profile.hard_cap:
-        raise SystemExit(f"{profile.name}: the ceiling is at most {profile.hard_cap} USD (in code)")
-    return ceiling
+def _held_args(layout: Layout, profile: Profile, names: list[str], models: list[str],
+               ceiling: float) -> tuple[list[tuple[str, str, float]], float, float]:  # fmt: skip
+    blocks_now, outside = held(layout, profile, names, models)
+    return blocks_now, ceiling, outside
 
 
 # ---- before anything runs ------------------------------------------------------------------------
@@ -237,9 +241,11 @@ def start_refusal(ctx: Ctx, names: list[str], known: Mapping[str, Any],
         return f"unknown chains {unknown}"
     if invalid := [n for n in names if not known[n].get("valid")]:
         return f"invalid chains {invalid}"
+    if why := long_guard.manifest_refusal(names, known, ctx.manifests, run.chain_digest):
+        return why
     if why := long_guard.stop_reason(layout.root, layout.limit):
         return why
-    if why := long_guard.plan_refusal(blocks(profile, names, models), ctx.ceiling, spent(layout)):
+    if why := long_guard.plan_refusal(*_held_args(layout, profile, names, models, ctx.ceiling)):
         return why
     if why := docker_env.health():
         return why
@@ -317,12 +323,12 @@ def prepare(ctx: Ctx, chain: Mapping[str, Any], arm: str) -> Arm:
 
 
 def assemble(ctx: Ctx, chain: Mapping[str, Any], arm: str, evidence: Path, work: Path,
-             base: str) -> Arm:  # fmt: skip
+             base: str, resumed: bool = False) -> Arm:  # fmt: skip
     import perbug
 
     name = run_name(chain["chain"], ctx.model)
     token = token_of(chain, arm)
-    if leaked := perbug.token_absent(work, token):
+    if not resumed and (leaked := perbug.token_absent(work, token)):
         raise RuntimeError(f"{name} {arm}: the token is already in {leaked[:3]}")
     asked = with_control(chain, token, ctx.profile.bugs)
     config = carry.clean_config(ctx.layout.config / f"{name}-{arm}")
@@ -336,29 +342,43 @@ def assemble(ctx: Ctx, chain: Mapping[str, Any], arm: str, evidence: Path, work:
                tuple(asks_of(asked)))  # fmt: skip
 
 
+def configured_window(a: Arm) -> str | None:
+    """The window the arm's project settings set: N-early's, or the one S's install wrote."""
+    settings = a.work / ".claude" / "settings.json"
+    if not settings.exists():
+        return None
+    return (json.loads(settings.read_text(encoding="utf-8")).get("env") or {}).get(WINDOW)
+
+
 def row_base(ctx: Ctx, a: Arm) -> dict[str, Any]:
-    window = dict(arm_spec(a.arm, ctx.profile).env).get(WINDOW)
+    window = configured_window(a)
     return {"chain": a.chain["chain"], "run": a.name, "arm": a.arm, "model": run.MODELS[ctx.model],
             "profile": ctx.profile.name, "base": a.base, "token": a.chain["token"],
             "bugs": len(a.chain["bugs"]), "requests_planned": len(a.asks),
-            "window": {"value": window, "source": "settings env" if window else "server default"},
+            "window": {"value": int(window) if window else None,
+                       "configured": int(window) if window else None,
+                       "source": "settings env" if window else "server default"},
             "config": str(a.config), "work": str(a.work)}  # fmt: skip
 
 
-def run_arm(ctx: Ctx, chain: Mapping[str, Any], arm: str, status: Mapping[str, Any]) -> str:
-    """The arm's calls in order; returns why it stopped early ("" when it ran to its end)."""
-    a = prepare(ctx, chain, arm)
+def run_arm(ctx: Ctx, chain: Mapping[str, Any], arm: str, status: Mapping[str, Any],
+            previous: Mapping[str, Any] | None = None) -> str:  # fmt: skip
+    """The arm's calls in order, from its first or, with the row of an earlier runner, from where
+    that one stopped; returns why it stopped early ("" when it ran to its end)."""
+    if previous is None:
+        a, rows, state, first, stop = prepare(ctx, chain, arm), [], ArmState(), 1, ""
+    else:
+        a, rows, state, first, stop = resume(ctx, chain, arm, previous)
+        log(f"{a.name} {arm}: resumed at request {first} of {len(a.asks)} ({len(rows)} kept)")
     base = row_base(ctx, a)
-    rows: list[dict[str, Any]] = []
-    state, stop = ArmState(), ""
-    for k, ask in enumerate(a.asks, start=1):
+    for k in range(first, len(a.asks) + 1) if not stop else ():
         write_status(ctx.layout, status, chain=a.name, arm=arm, request=k,
                      spent_owner_usd=spent(ctx.layout))  # fmt: skip
         stop = before_call(ctx, a, rows)
         if stop:
             rows = [*rows, *not_run(a.asks[k - 1:], k, stop)]
             break
-        state, row, stop = one_call(ctx, a, state, k, ask)
+        state, row, stop = one_call(ctx, a, state, k, a.asks[k - 1])
         rows = [*rows, row]
         arm_files.write_row(a.evidence, arm_files.partial_row(base, rows))
         log(f"{a.name} {arm} {k}/{len(a.asks)} {row['status']} {row.get('owner_usd', 0):.3f} USD "
@@ -368,6 +388,64 @@ def run_arm(ctx: Ctx, chain: Mapping[str, Any], arm: str, status: Mapping[str, A
             break
     finish(ctx, a, base, rows, stop)
     return stop
+
+
+def resume(ctx: Ctx, chain: Mapping[str, Any], arm: str, row: Mapping[str, Any]
+           ) -> tuple[Arm, list[dict[str, Any]], ArmState, int, str]:  # fmt: skip
+    """The arm as the earlier runner left it (`long_resume`): its working copy, configuration
+    and session, the calls kept, a half-done call settled, and the next request."""
+    layout, name = ctx.layout, run_name(chain["chain"], ctx.model)
+    evidence, work = layout.runs / name / arm, layout.work / f"{name}-{arm}"
+    if not (work / ".git").exists():
+        raise RuntimeError(f"{name} {arm}: no working copy at {work} to resume in")
+    if arm_spec(arm, ctx.profile).install is not None:
+        if ctx.keyfile is None:
+            raise RuntimeError("an S arm needs the TypeSafe key")
+        run.arm_keyfile(ctx.keyfile, name, arm)  # the hooks read it at this path again
+    a = assemble(ctx, chain, arm, evidence, work, str(row["base"]), resumed=True)
+    if a.chain["token"] != row.get("token"):
+        raise RuntimeError(f"{name} {arm}: the row's token is not this arm's")
+    rows = long_resume.ask_limited_again(long_resume.kept(row), evidence, a.chain["split"])
+    journal, hooks = evidence / "journal.jsonl", evidence / "hooks.jsonl"
+    state = ArmState(long_resume.session_of(rows), long_resume.usage_of(rows),
+                     long_resume.seen_of(rows), docker_env.agent_diff(work, a.base),
+                     _lines(journal), tuple(long_guard.decisions(journal)),
+                     _lines(hooks))  # fmt: skip
+    k = long_resume.next_request(rows)
+    dead = long_resume.dead_stream(evidence, k, rows) if k <= len(a.asks) else None
+    if dead is None:
+        return a, rows, state, k, ""
+    return settle_dead(ctx, a, state, rows, k, dead)
+
+
+def _lines(path: Path) -> int:
+    return len(path.read_text(encoding="utf-8").splitlines()) if path.exists() else 0
+
+
+def settle_dead(ctx: Ctx, a: Arm, state: ArmState, rows: list[dict[str, Any]], k: int,
+                stream: Path) -> tuple[Arm, list[dict[str, Any]], ArmState, int, str]:  # fmt: skip
+    """The call a dead runner left half done: a cut call (pre-mortem 4), charged its caps. Its
+    stream is kept as `stream-<k>-dead.jsonl` (a retry writes `stream-<k>.jsonl` again)."""
+    stream = stream.replace(stream.with_name(f"stream-{k}-dead.jsonl"))
+    facts = long_call.stream_facts(stream)
+    before = a.evidence / f"diff-{k - 1}.patch"
+    previous = before.read_text(encoding="utf-8") if k > 1 and before.exists() else ""
+    decision = long_guard.resume_decision(facts["tool_uses"], previous, state.diff,
+                                          a.chain["split"])  # fmt: skip
+    session = facts["session"] or state.session
+    new = long_call.new_requests(long_call.transcript_of(arm_files.projects_root(a.env),
+                                                         session or ""), state.seen)  # fmt: skip
+    cap, model = ctx.profile.call_cap[ctx.model], run.MODELS[ctx.model]
+    usage = long_call.usage_sum(dict(state.usage), long_call.usage_of(new))
+    money = {**long_call.charged_cap(cap, meter.claude_code_cap(cap, model)),
+             "metered_ids": sorted(r.id for r in new), "usage_after": usage}  # fmt: skip
+    row = long_resume.dead_row(k, a.asks[k - 1], facts, decision, money, stream)
+    log(f"{a.name} {a.arm} {k}: the runner died in this call; {decision}")
+    if decision != "retry":
+        (a.evidence / f"diff-{k}.patch").write_text(state.diff, encoding="utf-8", newline="\n")
+    state = replace(state, session=session, usage=usage, seen=state.seen | {r.id for r in new})
+    stop = "set aside" if decision == "set-aside" else ""
+    return a, [*rows, row], state, k if decision == "retry" else k + 1, stop
 
 
 def not_run(asks: tuple[Mapping[str, Any], ...], first: int, why: str) -> list[dict[str, Any]]:
@@ -410,7 +488,9 @@ def one_call(ctx: Ctx, a: Arm, state: ArmState, k: int,
     if attempt["cut"] and attempt["decision"] == "retry":
         log(f"{a.name} {a.arm} {k}: cut ({attempt['why']}) with no tool and no change: retried")
         state = attempt["state"]
+        first = attempt["stream"].name
         attempt = {**attempt_call(ctx, a, state, k, ask, retry=True), "retried": True}
+        attempt = {**attempt, "streams": [first, attempt["stream"].name]}
     return settle(ctx, a, k, ask, attempt)
 
 
@@ -419,13 +499,17 @@ def attempt_call(ctx: Ctx, a: Arm, state: ArmState, k: int, ask: Mapping[str, An
     restored = run.restore_install(a.work, a.evidence) if a.arm == "S" else []
     suffix = "-retry" if retry else ""
     stream = a.evidence / f"stream-{k}{suffix}.jsonl"
+    debug = long_window.debug_path(a.evidence, k, retry)
     cap = ctx.profile.call_cap[ctx.model]
     cmd = long_call.command(ctx.claude, run.MODELS[ctx.model], ask["prompt"], state.session,
-                            meter.claude_code_cap(cap, run.MODELS[ctx.model]), a.mcp)  # fmt: skip
+                            meter.claude_code_cap(cap, run.MODELS[ctx.model]), a.mcp,
+                            debug)  # fmt: skip
     timeout = timeout_for(ctx.profile, a.arm, k) if not retry else ctx.profile.timeout_s
     code, seconds, why = long_call.invoke(cmd, a.work, dict(a.env), ask["prompt"], stream,
                                           timeout, ctx.profile.idle_s)  # fmt: skip
     facts = long_call.stream_facts(stream)
+    long_window.trim_debug(debug)
+    window = long_window.call_window(debug, a.config, configured_window(a))
     diff = docker_env.agent_diff(a.work, a.base)
     docker_env.remove_labelled(f"{a.name}-{a.arm}")
     cut = code == -9 or (facts["subtype"] is None and code != 0)
@@ -433,6 +517,7 @@ def attempt_call(ctx: Ctx, a: Arm, state: ArmState, k: int, ask: Mapping[str, An
                                           a.chain["split"]) if cut else ""  # fmt: skip
     return {"code": code, "seconds": seconds, "why": why or (f"exit {code}" if cut else ""),
             "facts": facts, "diff": diff, "cut": cut, "decision": decision, "restored": restored,
+            "window": window,
             "state": replace(state, session=facts["session"] or state.session), "stream": stream}
 
 
@@ -441,6 +526,7 @@ def settle(ctx: Ctx, a: Arm, k: int, ask: Mapping[str, Any],
     """The call's row, the state for the next call, and why the arm stops ("" to go on)."""
     facts, state = attempt["facts"], attempt["state"]
     (a.evidence / f"diff-{k}.patch").write_text(attempt["diff"], encoding="utf-8", newline="\n")
+    seen_before = state.seen
     money, state = meter_call(ctx, a, state, attempt)
     s_facts, state = s_arm_facts(a, state) if a.arm == "S" else ({}, state)
     row = {"request": k, "kind": ask["kind"], "instance_id": ask["instance_id"],
@@ -451,7 +537,10 @@ def settle(ctx: Ctx, a: Arm, k: int, ask: Mapping[str, Any],
            attempt["restored"], "retried": bool(attempt.get("retried")),
            **({"deviation": f"cut ({attempt['why']}) after tools or changes: went on"}
               if attempt["cut"] and attempt["decision"] == "continue" else {}),
-           **money, **s_facts}  # fmt: skip
+           "result_tail": facts.get("result_tail", ""), "window_reported": attempt["window"],
+           "streams": attempt.get("streams") or [attempt["stream"].name],
+           **money, **s_facts, "usage_after": dict(state.usage),
+           "metered_ids": sorted(state.seen - seen_before)}  # fmt: skip
     row = {**row, "breaks": list(call_breaks(a, row, attempt, state))}
     stop = stop_of(ctx, a, row, attempt)
     return replace(state, diff=attempt["diff"]), row, stop
@@ -541,8 +630,10 @@ def finish(ctx: Ctx, a: Arm, base: Mapping[str, Any], rows: list[dict[str, Any]]
            "cc_usd": round(sum(r.get("cc_usd", 0.0) for r in rows), 6),
            "permission_modes": sorted({(r.get("init") or {}).get("permission_mode") or "?"
                                        for r in ran}),
-           "jev_usd": run.jev_usd(a.evidence), "missing_transcripts": missing}  # fmt: skip
+           "jev_usd": run.jev_usd(a.evidence), "missing_transcripts": missing,
+           "window": {**base["window"], **long_window.arm_window(ran, configured_window(a))}}
     arm_files.write_row(a.evidence, row)
+    long_window.record(ctx.layout.root, run.MODELS[ctx.model], a.arm, row["window"])
 
 
 # ---- chains --------------------------------------------------------------------------------------
@@ -550,10 +641,12 @@ def finish(ctx: Ctx, a: Arm, base: Mapping[str, Any], rows: list[dict[str, Any]]
 
 def run_chain(ctx: Ctx, chain: Mapping[str, Any], status: Mapping[str, Any]) -> str:
     for arm in arm_order(chain["chain"], ctx.profile.arms):
-        if (ctx.layout.runs / run_name(chain["chain"], ctx.model) / arm / "row.json").exists():
-            log(f"{chain['chain']} {ctx.model} {arm}: a row exists; never run twice")
+        row = long_resume.read_row(ctx.layout.runs / run_name(chain["chain"], ctx.model) / arm)
+        if row is not None and not long_resume.may_resume(row):
+            log(f"{chain['chain']} {ctx.model} {arm}: done ({row.get('stopped') or 'to its end'})"
+                "; never run twice")
             continue
-        stop = run_arm(ctx, chain, arm, status)
+        stop = run_arm(ctx, chain, arm, status, row)
         if stop:
             return stop
         if why := cross_arm_breaks(ctx.layout, run_name(chain["chain"], ctx.model)):
@@ -564,17 +657,20 @@ def run_chain(ctx: Ctx, chain: Mapping[str, Any], status: Mapping[str, Any]) -> 
 
 
 def cross_arm_breaks(layout: Layout, name: str) -> str:
-    """Pre-mortems 9 and 10 across the arms run so far: first-request prefixes and modes."""
-    prefix, modes = {}, {}
+    """Pre-mortems 9 and 10 across the arms run so far: first-request prefixes and modes; and
+    N-early's window against the one S's install wrote."""
+    prefix, modes, windows = {}, {}, {}
     for path in sorted((layout.runs / name).glob("*/row.json")):
         row = json.loads(path.read_text(encoding="utf-8"))
+        windows[row["arm"]] = (row.get("window") or {}).get("configured")
         ran = [c for c in row["calls"] if c.get("status") == "ran"]
         if ran:
             first = ran[0].get("first_request") or {}
             prefix[row["arm"]] = int(first.get("read", 0)) + int(first.get("write", 0))
         modes.update({f"{row['arm']}/{c['request']}": (c.get("init") or {}).get("permission_mode")
                       for c in ran})  # fmt: skip
-    return "; ".join([*long_guard.prefix_breaks(prefix), *long_guard.permission_breaks(modes)])
+    return "; ".join([*long_guard.prefix_breaks(prefix), *long_guard.permission_breaks(modes),
+                      *long_guard.window_breaks(windows.get("Ne"), windows.get("S"))])
 
 
 def load_chains(path: Path | None) -> dict[str, Any]:
@@ -624,7 +720,7 @@ def main(argv: list[str] | None = None) -> int:
     names = [c for c in args.chains.split(",") if c] or list(profile.chains)
     models = [args.model] if args.model else list(profile.models)
     ctx = Ctx(layout, profile, models[0], tuple(json.loads(args.claude)),
-              ceiling=ceiling_of(profile, args.ceiling))  # fmt: skip
+              ceiling=ceiling_of(profile, args.ceiling), manifests=Path(args.manifests))
     if args.action == "plan":
         return plan(ctx, names, known, models)
     if args.action == "grade":
@@ -637,6 +733,12 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     ctx = replace(ctx, keyfile=keyfile_for(profile, layout))
     try:
+        # Free (no question is sent). "JevDecider from <path>" is an editable install; the
+        # launcher holds the paid runs to a frozen copy (`long_launch.frozen_sancho`).
+        found = run.decider_probe(ctx.keyfile) if ctx.keyfile else run.HELD_DECIDER
+        if found.split(" ", 1)[0] != run.HELD_DECIDER:
+            log(f"refused: S's hooks would build {found}, not {run.HELD_DECIDER} ({run.SANCHO})")
+            return 1
         return run_all(ctx, names, known, models, args.allow_midnight)
     finally:
         if ctx.keyfile:
@@ -645,12 +747,12 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def plan(ctx: Ctx, names: list[str], known: Mapping[str, Any], models: list[str]) -> int:
-    held = blocks(ctx.profile, names, models)
-    for name, model, cap in held:
+    holding, outside = held(ctx.layout, ctx.profile, names, models)
+    for name, model, cap in holding:
         found = known.get(name, {})
         log(f"{name} {model}: {len(found.get('bugs', []))} bugs, valid {found.get('valid')}, "
             f"arms {ctx.profile.arms}, caps held {cap:.2f} USD")
-    why = long_guard.plan_refusal(held, ctx.ceiling, spent(ctx.layout))
+    why = long_guard.plan_refusal(holding, ctx.ceiling, outside)
     log(f"ceiling {ctx.ceiling} USD; {why or 'the caps fit'}")
     return 1 if why else 0
 
@@ -667,6 +769,7 @@ def parse(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--ceiling", type=float, default=0.0, help="owner USD; the profile's")
     parser.add_argument("--claude", default='["claude"]', help="the command, as a JSON list")
     parser.add_argument("--allow-midnight", action="store_true")
+    parser.add_argument("--manifests", default=str(MANIFESTS), help="long60/<chain>.json folder")
     return parser.parse_args(argv)
 
 

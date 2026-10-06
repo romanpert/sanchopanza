@@ -90,13 +90,29 @@ def grade_arm(chain: Mapping[str, Any], evidence: Path) -> dict[str, Any]:
 
 def grade_all(layout: Any, names: list[str], known: Mapping[str, Any], models: list[str],
               arms: tuple[str, ...]) -> int:  # fmt: skip
+    """Grade every arm that ran; print resolved bugs and, apart, the give-ups; write
+    `<root>/report.json` with each arm's line and, for arm N, its gate row (the gate's table)."""
+    import run as runner
+
+    report: dict[str, Any] = {}
     for model in models:
         for name in names:
             for arm in arms:
                 evidence = layout.runs / f"{name}-{model}" / arm
-                if (evidence / "final.patch").exists():
-                    g = grade_arm(known[name], evidence)
-                    print(name, model, arm, g["resolved"], "of", g["bugs_total"], flush=True)
+                if not (evidence / "final.patch").exists():
+                    continue
+                g = grade_arm(known[name], evidence)
+                line = gate_row(evidence, g)
+                quits = line["give_ups"]
+                print(name, model, arm, g["resolved"], "of", g["bugs_total"], "resolved;",
+                      quits["give_ups"], "gave up,", quits[f"at_or_past_{GIVE_UP_AT // 1000}k"],
+                      f"at or past {GIVE_UP_AT // 1000}k", flush=True)  # fmt: skip
+                report[f"{name}/{runner.MODELS.get(model, model)}/{arm}"] = line
+    gate = {m: gate_verdict([r for k, r in report.items() if k.split("/")[1:] ==
+                             [runner.MODELS.get(m, m), "N"]]) for m in models}  # fmt: skip
+    print("gate:", gate, flush=True)
+    (layout.root / "report.json").write_text(json.dumps({"arms": report, "gate": gate}, indent=1),
+                                             encoding="utf-8")  # fmt: skip
     return 0
 
 
@@ -111,12 +127,19 @@ def requests_of(evidence: Path) -> tuple[meter.Request, ...]:
 
 
 def window_evidence(row: Mapping[str, Any], peak: int) -> dict[str, Any]:
-    """The effective window and where it comes from: the settings env, a compaction's `pre`
-    tokens plus the margin, or a lower bound when the session reached `peak` uncompacted."""
-    configured = (row.get("window") or {}).get("value")
+    """The effective window and where it comes from: the settings env; the session's own debug
+    line (`long_window`: effectiveWindow + the 20k output reserve, with the source the server
+    cache names); else a compaction's `pre` tokens plus the margin, or a lower bound when the
+    session reached `peak` uncompacted (rows from before the debug line)."""
+    window = row.get("window") or {}
+    configured = window.get("configured", window.get("value"))
     pres = [c.get("pre") for c in compactions(row) if c.get("pre")]
     if configured:
         return {"value": int(configured), "source": "settings env", "bound": "exact"}
+    if window.get("effective_reported"):
+        return {"value": int(window["value"]), "effective": int(window["effective_reported"]),
+                "source": f"session debug line; {window.get('source')}", "bound": "exact",
+                "server_cache": window.get("server_cache", {})}  # fmt: skip
     if pres:
         return {"value": min(pres) + COMPACT_MARGIN, "source": "first compaction", "bound": "about"}
     return {"value": peak + COMPACT_MARGIN, "source": "no compaction up to the peak",
@@ -145,10 +168,11 @@ def gate_row(evidence: Path, grade: Mapping[str, Any] | None) -> dict[str, Any]:
               "window": window_ok if found else None,
               "f2p_rate": (low <= rate <= high) if rate is not None else None}  # fmt: skip
     verdict = None if None in checks.values() else all(checks.values())
+    quits = {k: v for k, v in give_ups(evidence, row).items() if k != "items"}
     return {"run": row.get("run"), "arm": row.get("arm"), "peak": peak, "requests": len(found),
             "owner_usd": round(cost, 4), "share_over_200k": round(over / cost, 3) if cost else None,
             "compactions": len(compactions(row)), "window": window, "f2p_rate": rate,
-            "checks": checks, "pass": verdict}  # fmt: skip
+            "give_ups": quits, "checks": checks, "pass": verdict}  # fmt: skip
 
 
 def gate_verdict(rows: Sequence[Mapping[str, Any]]) -> str:
@@ -301,3 +325,43 @@ def _prompt(entry: Mapping[str, Any]) -> bool:
     if isinstance(content, str):
         return True
     return not any(isinstance(b, dict) and b.get("type") == "tool_result" for b in content or [])
+
+
+# ---- give-ups ------------------------------------------------------------------------------------
+
+GIVE_UP_AT = 150_000  # BrowseComp-Plus (2026-10-06): N's give-ups came past ~150k (median 184k)
+_SAID = re.compile(
+    r"\b(?:could not|couldn't|cannot|can't|unable to|not able to|did not manage to)\b[^.]{0,80}"
+    r"\b(?:fix|reproduce|find|resolve|determine|locate|identify)\b|\bgiv(?:e|ing) up\b",
+    re.IGNORECASE)  # fmt: skip
+
+
+def code_part(patch: str) -> str:
+    """The patch without its `changes/` files (the control rule's notes are not a fix)."""
+    blocks = re.split(r"(?m)^(?=diff --git )", patch)
+    return "".join(b for b in blocks if not re.match(r"diff --git a/changes/", b))
+
+
+def give_ups(evidence: Path, row: Mapping[str, Any]) -> dict[str, Any]:
+    """Bug requests the agent gave up on, counted apart from wrong fixes: the call ran and changed
+    no code outside `changes/`, or its final answer says it could not fix or find the bug. With
+    the context the call reached, and how many came at or past `GIVE_UP_AT`."""
+    items = []
+    for call in row.get("calls", []):
+        if call.get("kind") != "bug" or call.get("status") != "ran" or call.get("superseded"):
+            continue
+        k = int(call["request"])
+        before, after = (evidence / f"diff-{k - 1}.patch"), (evidence / f"diff-{k}.patch")
+        old = code_part(before.read_text(encoding="utf-8")) if before.exists() else ""
+        new = code_part(after.read_text(encoding="utf-8")) if after.exists() else old
+        unchanged, said = old == new, bool(_SAID.search(str(call.get("result_tail") or "")))
+        if unchanged or said:
+            items.append({"request": k, "instance_id": call.get("instance_id"),
+                          "context": int(call.get("peak_context") or 0),
+                          "no_code_change": unchanged, "said_so": said})  # fmt: skip
+    contexts = [i["context"] for i in items]
+    return {"give_ups": len(items), "no_code_change": sum(i["no_code_change"] for i in items),
+            "said_so": sum(i["said_so"] for i in items),
+            f"at_or_past_{GIVE_UP_AT // 1000}k": sum(c >= GIVE_UP_AT for c in contexts),
+            "median_context": statistics.median(contexts) if contexts else None,
+            "items": items}  # fmt: skip

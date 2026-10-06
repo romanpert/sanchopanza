@@ -30,6 +30,7 @@ sys.path.insert(0, str(HERE.parent / "memory_carry"))
 
 import carry  # noqa: E402
 import long_guard  # noqa: E402
+import long_window  # noqa: E402
 import meter  # noqa: E402
 import run  # noqa: E402
 
@@ -41,13 +42,15 @@ ALLOWED = (*carry.TOOLS, "MultiEdit", "NotebookEdit", "TodoWrite", "Task", "Agen
 
 
 def command(claude: tuple[str, ...], model: str, prompt: str, session: str | None,
-            cap_cc: float, mcp: Path) -> list[str]:  # fmt: skip
+            cap_cc: float, mcp: Path, debug: Path | None = None) -> list[str]:  # fmt: skip
+    """`debug`: where the session writes its autocompact lines (`long_window`), in every arm."""
     asked = [] if run.stdin_for(prompt) else [prompt]
     cmd = [*claude, "-p", *asked, "--model", model, "--max-budget-usd", f"{cap_cc:.2f}",
            "--output-format", "stream-json", "--verbose", "--setting-sources", "project",
            "--strict-mcp-config", "--mcp-config", str(mcp),
            "--permission-mode", PERMISSION_MODE, "--allowedTools", *ALLOWED,
-           "--disallowedTools", *run.DISALLOWED]  # fmt: skip
+           "--disallowedTools", *run.DISALLOWED,
+           *(long_window.flags(debug) if debug else [])]  # fmt: skip
     return [*cmd, "--resume", session] if session else cmd
 
 
@@ -125,7 +128,7 @@ def stream_facts(stream: Path) -> dict[str, Any]:
             if isinstance(block, dict) and block.get("type") == "tool_use":
                 tools[str(block.get("name"))] += 1
     compactions = [_compaction(e) for e in found
-                   if e.get("type") == "system" and e.get("subtype") == "compact_boundary"]  # fmt: skip
+                   if e.get("type") == "system" and e.get("subtype") == "compact_boundary"]
     limits = sorted({k for e in found if (k := long_guard.limit_event(e))})
     return {"init": init, "session": str(result.get("session_id") or next(
                 (e.get("session_id") for e in found if e.get("session_id")), "") or ""),
@@ -134,7 +137,11 @@ def stream_facts(stream: Path) -> dict[str, Any]:
             "model_usage": result.get("modelUsage") or {}, "tools": dict(tools),
             "tool_uses": sum(tools.values()), "compactions": compactions, "limits": limits,
             "denials": len(result.get("permission_denials") or []),
-            "turns": result.get("num_turns")}  # fmt: skip
+            "turns": result.get("num_turns"),
+            "result_tail": str(result.get("result") or "")[-RESULT_TAIL:]}  # fmt: skip
+
+
+RESULT_TAIL = 600  # the end of the final answer, kept in the row (a give-up says so there)
 
 
 def _compaction(event: dict[str, Any]) -> dict[str, Any]:
