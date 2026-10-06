@@ -33,6 +33,7 @@ PLAN_PARAMETERS = (
     ("sources", False),
     ("fetch", False),
     ("knowledge", False),
+    ("guard_parts", None),  # appended for the split guard (`install_guard`), keyword only in use
 )
 
 MEMORY = "sanchopanza memory-hook"
