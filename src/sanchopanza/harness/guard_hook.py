@@ -36,9 +36,14 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
                      TodoWrite items as notes, else the previous compaction's summary (the new one
                      is not on disk yet; GUARD_NOTES=0 to leave notes out); the rule on failure
     GUARD_FACTS_CHARS, GUARD_REQUESTS_CHARS   budgets (defaults 3000 and 2500)
-    GUARD_STRUCT_CHARS   struct's budget for whole results (default 3000; the replay measured
-                     .64-.67 of needed results kept at 44000, .15-.21 at 3000)
+    GUARD_STRUCT_CHARS   struct's budget for whole results (default 44000, about 20k tokens; the
+                     replay measured .64-.67 of needed results kept at 44000, .15-.21 at 3000)
     GUARD_POINTER_CHARS  struct's room for pointers (default 1500)
+    GUARD_INLINE_CHARS   struct's cap on the whole block (default 9500; 0 for none). Claude Code
+                     keeps a hook's additionalContext inline up to 10,000 characters and shows
+                     only a 2,000-character preview and a file path past that, so results get
+                     the room the requests, trail and pointers leave under this cap, about
+                     3,900 to 7,000 characters, whatever GUARD_STRUCT_CHARS allows
     GUARD_WEB        "1" to keep lines of WebFetch, WebSearch and MCP output too (off: a page can
                      be fetched again, and its lines could carry instructions aimed at the model)
     GUARD_ECHO       "0" to turn the re-run echo off
@@ -77,6 +82,15 @@ def _int(name: str, default: int) -> int:
     except ValueError:
         return default
     return value if value > 0 else default
+
+
+def _cap(name: str, default: int) -> int:
+    """A size where 0 means no cap; anything unreadable or negative is the default."""
+    try:
+        value = int(_env.get(name, "") or default)
+    except ValueError:
+        return default
+    return value if value >= 0 else default
 
 
 def _on(name: str, default: str) -> bool:
@@ -136,6 +150,7 @@ def _structural(messages: list[dict[str, Any]], since: int, options: Mapping[str
             facts_chars=_int("GUARD_STRUCT_CHARS", structural.STRUCT_CHARS),
             requests_chars=options["requests_chars"],
             pointer_chars=_int("GUARD_POINTER_CHARS", structural.POINTER_CHARS),
+            inline_chars=_cap("GUARD_INLINE_CHARS", structural.INLINE_CHARS),
             web=options["web"],
         )
     except Exception as error:  # noqa: BLE001 - the summariser was promised a block

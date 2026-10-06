@@ -9,6 +9,7 @@ again.
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import time
 from pathlib import Path
@@ -97,7 +98,9 @@ def test_a_dropped_rereadable_result_leaves_a_pointer_with_its_range():
     choice = structural.choose(history, budget=200)
     assert _ids(history, choice.kept) == ["small"]
     assert "Read /w/pkg/big.py lines 10-59" in choice.pointers
-    assert "Read /w/pkg/big2.py lines 10-59" in choice.pointers  # range read from the numbered lines
+    assert (
+        "Read /w/pkg/big2.py lines 10-59" in choice.pointers
+    )  # range read from the numbered lines
     assert any(p.startswith("Grep 'TODO' in /w/src") for p in choice.pointers)
     assert any("pytest -q" in p for p in choice.pointers)
 
@@ -136,6 +139,70 @@ def test_kept_content_never_exceeds_the_budget_and_whole_results_only():
             assert fact.line in {structural.content_of(c) for c in history}
         assert len(choice.kept) == len(g.facts)
     assert len(structural.choose(history, budget=50_000).kept) == 12
+
+
+def test_the_default_budget_is_the_measured_one_and_the_block_cap_is_under_claude_codes():
+    assert structural.STRUCT_CHARS == 44_000  # about 20k tokens: .64-.67 of needed results kept
+    assert 0 < structural.INLINE_CHARS < 10_000  # Claude Code's inline limit for hook context
+
+
+def test_a_kept_result_costs_exactly_what_it_adds_to_the_block():
+    history = [_call("a", "Bash", "first value", command="./a"),
+               _call("b", "Bash", "second value\nmore", command="./b")]  # fmt: skip
+    one = structural.build_from_calls(history[:1], [], budget=10_000, inline_chars=0)
+    two = structural.build_from_calls(history, [], budget=10_000, inline_chars=0)
+    added = len(guard.block(two)) - len(guard.block(one))
+    assert added == structural.cost(
+        structural.label_of(history[1]), structural.content_of(history[1])
+    )
+
+
+def _crowded() -> tuple[list[Call], list[str]]:
+    history = [_call(f"r{i}", "Read", "\n".join(f"{n:6d}\tvalue_{i}_{n} = {n}" for n in range(1, 60)),
+                     file_path=f"/w/pkg/mod{i}.py") for i in range(40)]  # fmt: skip
+    history += [_call(f"e{i}", "Edit", "updated", file_path=f"/w/pkg/mod{i}.py", old_string="a",
+                      new_string="b") for i in range(25)]  # fmt: skip
+    history += [_call("t", "Bash", "5 passed, 1 failed: CODE-77", command="pytest -q")]
+    requests = ["Refactor the package and keep every probe code. " * 20] * 2
+    return history, requests
+
+
+def test_the_block_stays_within_the_inline_cap_whatever_the_results_budget():
+    history, requests = _crowded()
+    capped = structural.build_from_calls(history, requests)  # defaults: 44,000 and the cap
+    text = guard.block(capped)
+    assert len(text) <= structural.INLINE_CHARS
+    assert capped.facts and capped.pointers and capped.requests and "changed:" in text
+    room = structural.room_for_results(
+        dataclasses.replace(capped, facts=(), pointers=()), structural.POINTER_CHARS,
+        structural.INLINE_CHARS,
+    )  # fmt: skip
+    assert sum(structural.cost(f.source, f.line) for f in capped.facts) <= room
+    uncapped = structural.build_from_calls(history, requests, inline_chars=0)
+    assert len(guard.block(uncapped)) > structural.INLINE_CHARS
+    assert len(uncapped.facts) > len(capped.facts)
+    for cap in (3_000, 6_000, 20_000):
+        assert (
+            len(guard.block(structural.build_from_calls(history, requests, inline_chars=cap)))
+            <= cap
+        )
+
+
+def test_the_hook_keeps_the_block_inline_and_reads_the_cap(env, monkeypatch):
+    path = _big_session(env / "big.jsonl", 100_000)
+
+    def attached(session: str) -> str:
+        _run({"hook_event_name": "PreCompact", "trigger": "auto", "session_id": session,
+              "transcript_path": str(path)}, monkeypatch)  # fmt: skip
+        out = json.loads(_run({"hook_event_name": "SessionStart", "source": "compact",
+                               "session_id": session, "transcript_path": str(path)}, monkeypatch))  # fmt: skip
+        return out["hookSpecificOutput"]["additionalContext"]
+
+    assert len(attached("cap")) <= structural.INLINE_CHARS
+    monkeypatch.setenv("SANCHOPANZA_GUARD_INLINE_CHARS", "0")
+    assert len(attached("none")) > 10_000
+    monkeypatch.setenv("SANCHOPANZA_GUARD_INLINE_CHARS", "4000")
+    assert len(attached("small")) <= 4_000
 
 
 def test_the_hook_reads_the_struct_budget(env, monkeypatch):
@@ -211,14 +278,28 @@ def test_the_default_hook_attaches_the_structural_block(env, monkeypatch):
 
 def _big_session(path: Path, tokens: int) -> Path:
     """A transcript of about `tokens` tokens (4 characters each): reads, edits and commands."""
-    lines = [_entry({"role": "user", "content": "Refactor the billing module and keep the probe's code."})]
+    lines = [
+        _entry(
+            {"role": "user", "content": "Refactor the billing module and keep the probe's code."}
+        )
+    ]
     used, n = 0, 0
-    body = "\n".join(f"{i:6d}\t    total = compute(item_{i}, rate={i % 7}) # line" for i in range(1, 120))
+    body = "\n".join(
+        f"{i:6d}\t    total = compute(item_{i}, rate={i % 7}) # line" for i in range(1, 120)
+    )
     while used < tokens * 4:
         tool, arguments, result = [
             ("Read", {"file_path": f"/w/billing/mod{n % 40}.py"}, body),
-            ("Edit", {"file_path": f"/w/billing/mod{n % 40}.py", "old_string": "a", "new_string": "b"}, "updated"),
-            ("Bash", {"command": f"python billing/mod{n % 40}.py --probe {n}"}, f"probe {n}: code PRB-{n:05d}\n" + body[:2_000]),
+            (
+                "Edit",
+                {"file_path": f"/w/billing/mod{n % 40}.py", "old_string": "a", "new_string": "b"},
+                "updated",
+            ),
+            (
+                "Bash",
+                {"command": f"python billing/mod{n % 40}.py --probe {n}"},
+                f"probe {n}: code PRB-{n:05d}\n" + body[:2_000],
+            ),
             ("Grep", {"pattern": f"item_{n}", "path": "/w/billing"}, body[:3_000]),
         ][n % 4]
         lines.append(_entry({"role": "assistant", "content": [_use(f"t{n}", tool, **arguments)]}))

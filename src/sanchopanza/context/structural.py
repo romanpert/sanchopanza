@@ -4,7 +4,8 @@ The default chooser of the compaction guard (`SANCHOPANZA_GUARD_CHOOSER=struct`)
 decider's ranking (`context.keep`) after an offline replay on 2026-10-05
 (docs/results/2026-10-05-guard-struct/): Jev's block scores ranked later-needed results worse than
 plain recency (AUC 0.56 against 0.60), and on the owner's real sessions the order below kept
-.67 of the results the work needed next where the guard's rule-only path kept .12.
+.64-.67 of the results the work needed next at 44,000 characters, where the guard's rule-only
+path kept .12. What one hook can attach inline in Claude Code is smaller (`INLINE_CHARS`).
 
 The order (policy f of that replay), over every tool result since the previous compaction,
 re-readable ones included:
@@ -28,6 +29,7 @@ Pure and fast: one pass over the calls, regexes on tool inputs only, masking on 
 
 from __future__ import annotations
 
+import dataclasses
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -40,23 +42,40 @@ from .guard import Fact, Guard
 from .rules import WRITE_TOOLS, failed
 from .transcript import Call, calls
 
-# The budget for whole results, in characters (about 2.2 per token in the replay's sessions).
-# Measured offline on 2026-10-05 (docs/results/2026-10-05-guard-struct/README.md): on the owner's
-# Claude Code sessions (135 sessions, 344 compaction points at 200k tokens, mostly Opus 5.5),
-# counting a read superseded by a newer kept read of the same file as kept, the share of
-# later-needed results kept was, at 20k tokens (~44,000 characters): this order without the
-# at-risk step .67 (at-risk .59), this order .64 (.61), recency .56, oracle .91, and the guard's
-# rule-only fallback .12 (.17) at its 3,000 characters. At today's 3,000 characters (~1,364
-# tokens) the same order keeps .15 (.17), against .21 (.13) without the at-risk step, recency
-# .15 (.12) and oracle .39 (.27); at 11,000 characters .28 (.30); at 22,000 .44 (.43). The
-# default is sized like the guard's earlier facts budget, so the block does not grow by surprise;
-# `SANCHOPANZA_GUARD_STRUCT_CHARS=44000` is the size the .64-.67 was measured at. Replay scripts:
-# guard-replay/real.py, iterate.py, iterate_credit.py, budget.py (local; owner's sessions not
-# published). The "needed" label is a proxy: a later tool input or assistant text naming the
-# result's file or a distinctive token first seen in it.
-STRUCT_CHARS = guard.FACTS_CHARS
+# The budget for whole results, in characters (about 2.2 per token in the replay's sessions):
+# 44,000, about 20k tokens. Measured offline on 2026-10-05
+# (docs/results/2026-10-05-guard-struct/README.md) on the owner's Claude Code sessions (135
+# sessions, 344 compaction points at 200k tokens, mostly Opus 5.5), counting a read superseded by
+# a newer kept read of the same file as kept. Share of later-needed results kept (at-risk ones in
+# brackets), by budget:
+#
+#   characters (tokens)   this order   without the at-risk step   recency     oracle
+#    3,000 ( 1,364)       .15 (.17)    .21 (.13)                  .15 (.12)   .39 (.27)
+#   11,000 ( 5,000)       .28 (.30)    .36 (.26)                  .25 (.21)   .65 (.55)
+#   22,000 (10,000)       .44 (.43)    .52 (.40)                  .38 (.33)   .79 (.74)
+#   44,000 (20,000)       .64 (.61)    .67 (.59)                  .56 (.51)   .91 (.89)
+#
+# The guard's rule-only fallback keeps .12 (.17) at its 3,000 characters. The "needed" label is a
+# proxy: a later tool input or assistant text naming the result's file or a distinctive token
+# first seen in it. Replay scripts: guard-replay/real.py, iterate.py, iterate_credit.py,
+# budget.py (local; the owner's sessions are not published). `SANCHOPANZA_GUARD_STRUCT_CHARS`.
+#
+# What reaches the model is also bounded by `INLINE_CHARS`, the whole block's size; see there.
+STRUCT_CHARS = 44_000
 POINTER_CHARS = 1_500  # pointers have their own room: a line each, newest first
-FENCE = 12  # "\n<<<output\n" and "\n>>>" around each kept result, and its source line's newline
+# The whole block, in characters. Claude Code keeps a hook's `additionalContext` inline only up
+# to 10,000 characters; past that it writes the text to a file and the model sees a
+# `<persisted-output>` notice with the first 2,000 characters and the path (read in the 2.1.282
+# and 2.1.287 binaries on 2026-10-06: hook-output threshold 1e4, preview 2,000). A block over the
+# limit would reach the model as less than the old 3,000-character one, so results get the room
+# the rest of the block leaves under this cap, whatever `STRUCT_CHARS` allows; 0 turns the cap off
+# for a host that takes more. With the requests, the trail and the pointers' share, that room is
+# about 3,900 characters (2,500 of requests, 20 changed files) to 7,000 (a short request, three
+# files). Each SessionStart hook's context is capped on its own and then concatenated, so the
+# measured 44,000 can only arrive split across several hook commands.
+# `SANCHOPANZA_GUARD_INLINE_CHARS`.
+INLINE_CHARS = 9_500
+FENCE = 16  # "\n<<<output\n" and "\n>>>" around each kept result, and the newline after its source
 FILE_TOOLS = frozenset({"Read", *WRITE_TOOLS})
 SHELL = frozenset({"Bash", "PowerShell"})
 _PATH_KEYS = ("file_path", "notebook_path", "path")
@@ -203,6 +222,24 @@ def choose(
     return Choice(tuple(sorted(kept)), tuple(pointers), superseded, len(ranked) + len(superseded))
 
 
+def _with(history: Sequence[Call], base: Guard, choice: Choice) -> Guard:
+    facts = tuple(
+        Fact(source=label_of(history[p]), line=content_of(history[p]), call=p,
+             error=failed(history[p]))
+        for p in choice.kept
+    )  # fmt: skip
+    return dataclasses.replace(base, facts=facts, pointers=choice.pointers,
+                               candidates=choice.considered)  # fmt: skip
+
+
+def room_for_results(base: Guard, pointer_chars: int, inline_chars: int) -> int:
+    """Characters left for whole results when the block must stay within `inline_chars`, with
+    `pointer_chars` set aside for pointers (`base` holds everything but results and pointers)."""
+    rest = len(guard.block(base)) or len(guard.HEADER) + len(guard.CLOSING) + 1
+    headings = len(guard.RESULTS_HEADING) + len(guard.POINTERS_HEADING) + 2
+    return max(0, inline_chars - rest - headings - pointer_chars)
+
+
 def build_from_calls(
     history: Sequence[Call],
     requests: Sequence[str],
@@ -210,25 +247,32 @@ def build_from_calls(
     since: int = 0,
     budget: int = STRUCT_CHARS,
     pointer_chars: int = POINTER_CHARS,
+    inline_chars: int = INLINE_CHARS,
     web: bool = False,
 ) -> Guard:
-    """The guard for `history` with its results chosen by structure."""
-    choice = choose(history, since=since, budget=budget, pointer_chars=pointer_chars, web=web)
-    facts = tuple(
-        Fact(source=label_of(history[p]), line=content_of(history[p]), call=p,
-             error=failed(history[p]))
-        for p in choice.kept
-    )  # fmt: skip
-    return Guard(
-        facts=facts,
+    """The guard for `history` with its results chosen by structure, its block within
+    `inline_chars` (0: no cap)."""
+    base = Guard(
+        facts=(),
         requests=tuple(requests),
         trail=guard.trail_of(history),
-        candidates=choice.considered,
+        candidates=0,
         chooser="struct",
         clipped=guard.clipped_of(history, web=web),
         kind="results",
-        pointers=choice.pointers,
     )
+    if inline_chars > 0:
+        budget = min(budget, room_for_results(base, pointer_chars, inline_chars))
+    while True:
+        choice = choose(history, since=since, budget=budget, pointer_chars=pointer_chars, web=web)
+        built = _with(history, base, choice)
+        over = len(guard.block(built)) - inline_chars
+        if inline_chars <= 0 or over <= 0 or budget == 0:
+            break
+        budget = max(0, budget - over)  # a safety net: the room above is already exact or over
+    if inline_chars > 0 and len(guard.block(built)) > inline_chars:
+        built = dataclasses.replace(built, pointers=())  # requests and trail alone overflow
+    return built
 
 
 def build(
@@ -238,6 +282,7 @@ def build(
     facts_chars: int = STRUCT_CHARS,
     requests_chars: int = guard.REQUESTS_CHARS,
     pointer_chars: int = POINTER_CHARS,
+    inline_chars: int = INLINE_CHARS,
     web: bool = False,
 ) -> Guard:
     """The guard for a transcript, by structure. `since` is the index of the first message after
@@ -248,5 +293,6 @@ def build(
         since=since,
         budget=facts_chars,
         pointer_chars=pointer_chars,
+        inline_chars=inline_chars,
         web=web,
     )
