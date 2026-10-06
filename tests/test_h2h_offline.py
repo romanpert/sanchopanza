@@ -51,12 +51,14 @@ def test_the_line_file_parses_and_refuses_what_the_runner_owns():
             s_line.parse(bad)
 
 
-def test_the_committed_line_is_unsealed_and_paid_runs_refuse_it():
-    line = s_line.load()
-    assert not line.sealed  # sealed by the owner's session, not here
+def test_the_committed_line_is_sealed_with_its_commit_and_an_unsealed_one_is_refused():
+    line = s_line.load()  # sealed 2026-10-06 for the confirmations (prereg 2026-10-06-h2h-conf)
+    assert line.sealed and line.source and line.commit and len(line.commit) == 40
+    s_line.require_sealed(line)
+    unsealed = s_line.parse({"flags": list(line.flags)})
     with pytest.raises(SystemExit):
-        s_line.require_sealed(line)
-    s_line.require_sealed(line, allow_unsealed=True)
+        s_line.require_sealed(unsealed)
+    s_line.require_sealed(unsealed, allow_unsealed=True)
     s_line.require_sealed(s_line.parse({"sealed": True, "source": "C:/sp", "commit": "abc1234"}))
     # sealed but null: each launch would freeze whatever HEAD the worktree had then
     for half in ({"sealed": True}, {"sealed": True, "source": "C:/sp"},
