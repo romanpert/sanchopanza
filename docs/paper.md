@@ -670,7 +670,7 @@ has already finished, at a measured 18x the cost of a clean run with no improvem
 success [Weinberger and Hozez, 2026].
 
 124 hand-labelled cases, one annotator; 122 decision calls, 84,092 input tokens, 0.0035 USD,
-about 29 millionths per decision. Replays for free from `fixtures/new-points-v2.jsonl`. Six of its
+about 29 millionths per call on these short states. Replays for free from `fixtures/new-points-v2.jsonl`. Six of its
 cases were re-recorded after pseudonymization hardening (2026-09-28); only the Memory write
 Brier and ECE moved (0.075 / 0.226 before).
 
@@ -716,7 +716,7 @@ own that differs from `|2p - 1|` (and keeps ours, against which every threshold 
 
 **Fifty cases per binary point and a blind second annotator.** 212 new and deliberately
 harder cases take the six binary points to 50 each (`fixtures/new-points-50-v2.jsonl`, 0.0060
-USD, 28.4 millionths per decision). The families are the real failure modes: partial
+USD, 28.4 millionths per call). The families are the real failure modes: partial
 completion that reads as complete, effort narrated as result, corroboration mistaken for
 repetition, staleness, boilerplate that nonetheless carries an instance, and facts that are
 true and durable and still not worth storing because the source is already in hand.
@@ -1779,7 +1779,7 @@ against a small LLM on the same cases (Section 5.6) and at 131x against a fronti
 (Section 5.13), at about 99x against Claude Opus 5.5, with which it ties (Section 5.22), and
 by list price at 24-119x. Against a hosted evaluation meter, which bills
 20 USD per million input tokens and 60 per million output, the ratio for a thousand judgments
-is roughly 1,450x.
+of 1,500 input and 200 output tokens is roughly 670x.
 
 *Avoidance.* The decision keeps tokens out of a large model's context. It disappoints for
 three compounding reasons: inside a warm loop those tokens are priced at the cache-read rate
@@ -1799,9 +1799,9 @@ tool (Section 5.14).
 on everything is unaffordable: verify every extracted triple, resolve every candidate pair
 after blocking, test every retrieved chunk for relevance. LazyGraphRAG makes the point by
 construction, since its relevance-test budget of 100, 500 or 1,500 binary judgments per query
-is the parameter that controls its whole cost-quality curve [LazyGraphRAG, 2024]. At 29
-millionths a judgment, 1,500 of them cost 0.043 USD. The output is not a smaller bill; it is
-a check that used to be sampled and can now be exhaustive, and it should be reported as
+is the parameter that controls its whole cost-quality curve [LazyGraphRAG, 2024]. At about
+101 millionths for a request with one Truth question, 1,500 of them cost about 0.15 USD. The
+output is not a smaller bill; it is a check that used to be sampled and can now be exhaustive, and it should be reported as
 quality rather than as savings. Candor (Section 5.20) is this kind in its plainest form: no one
 was paying a model to hold every report against every action, so nothing is saved. The ledger
 and the lock are code and cost no model call, and the second opinion, at about 1/40 of a small
@@ -1849,10 +1849,15 @@ would be too strict for Truth and too lax for Score. The package exposes one thr
 decision, keeps the Score-driven one highest, and gates each Truth answer on its probability
 alone, because its confidence is the same number.
 
-**Cost.** At 0.042 USD per million input tokens and 600-2,500 tokens per decision, one
-decision costs 0.00003-0.0001 USD; measured, about 29 millionths on the 124- and 212-case
-runs. A task with 300 procedural decisions costs 0.01-0.03 USD in evaluation. In the one real
-job measured in the deploying harness the whole layer cost 0.08 % of the bill (Section 5.11).
+**Cost.** The price is 0.042 USD per million input tokens and output is free, so a request
+costs what its questions and state weigh. Measured on real requests, which carry about twelve
+questions each, the median is 71 millionths of a dollar and the mean 167; a request with one
+Choice costs about 30, with one Truth about 101, with one Score about 355. The short
+single-question states of the 124- and 212-case runs came to about 29 millionths a call. A
+task with 300 decision requests costs 0.02-0.05 USD in evaluation. In the one real job
+measured in the deploying harness the whole layer cost 0.08 % of the bill (Section 5.11), and
+in Claude Code sessions with the package installed it is 0.25-1.8 % of the session's cost,
+too little to move any comparison of session cost.
 No end-to-end saving figure for avoidance is claimed. The end-to-end percentages this work
 supports belong to wiring rather than to the model: the 43 % of narrowing once, the 4.15x of
 narrowing every turn, and the small estimated saving of the tool window on a 74-tool catalog.

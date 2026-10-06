@@ -259,8 +259,9 @@ Cost at list price: `v81h-all` 16.68 USD (expected 19.3), `v81h-cross` 9.56 USD 
 - **The decider:** no `error` event, no failed `rules` part and no timeout in either arm of
   either run. Jev's calls are not recorded per session; the hook logs score 354 values in the
   cross run and 711 on the 16 scenes, plus 103 prompt probabilities and the extraction at each of
-  162 `rules` events. At about 29 millionths of a dollar a decision that is roughly 0.01 USD for
-  the cross run and 0.04 USD for both.
+  162 `rules` events. At about 29 millionths of a dollar a short question that is at least
+  roughly 0.01 USD for the cross run and 0.04 USD for both; a request with a long state costs
+  more.
 - **Median cost V/M:** 1.02 on the 16 scenes, 1.03 cross-file.
 - **V against gen-haiku's N, repetition 0, the 16 scenes:** 15/16 against 8/16.
 - **Claude Code's own auto memory saved 3 times, all in V:** `envvar` r0, `x_prefix` r0,

@@ -33,14 +33,14 @@ is consumed by code, and nothing about it has to be written as prose.
 The saving is a price ratio, it is bounded below by that ratio, and it does not depend on
 the workload's shape. This is the only economy where the arithmetic is safe.
 
-| Replacing | Price of the thing replaced | Ratio to 29 millionths a decision |
+| Replacing | Price of the thing replaced | Ratio to the decider (0.042 USD/MTok input) on the same judgments |
 |---|---|---|
 | **Claude Opus 5, the same 211 judgments, measured both ways** | **0.7884 against 0.0060 USD [M]** | **131x, and 10.9x faster, for 2 decisions of accuracy** |
 | Claude Opus 5, input only | 5.00 USD/MTok **[P]** | 119x **[D]** |
 | Claude Sonnet 5, input only | 2.00 USD/MTok **[P]** | 48x **[D]** |
 | Claude Haiku 4.5, tool-forced, same 156 cases | 0.2337 against 0.0048 USD **[M]** | **49x, and 3x faster** |
 | Bedrock Guardrails content filter, ~0.60 USD/MTok | 0.15 USD per 1k text units **[P]** | 14x **[D]** |
-| Azure AI evaluations meter / Vertex legacy model-based metrics | 20 USD/MTok in + 60 out **[P]** | **~1,450x per 1,000 judgments** **[D]** |
+| Azure AI evaluations meter / Vertex legacy model-based metrics | 20 USD/MTok in + 60 out **[P]** | **~670x per 1,000 judgments** **[D]** |
 
 **The first row is the one to quote.** Every other row compares a measured price against a
 published one. That row is the same 211 judgments answered twice, independently: once by the
@@ -76,7 +76,7 @@ of one decision.
 
 The Azure row is not a typo either, and it is the most under-appreciated number in this
 document. At 1,500 input and 200 output tokens per judgment, a hosted evaluation meter bills
-about 42 USD per thousand judgments; the same thousand judgments here cost 0.029 USD. The
+about 42 USD per thousand judgments; the same thousand judgments here cost 0.063 USD. The
 judge model is not where the money goes. The meter is.
 
 ### Avoidance: the decision keeps tokens out of the big model
@@ -114,7 +114,8 @@ than trusting the top-k.
 
 LazyGraphRAG makes the point by construction: its relevance-test budget is the single
 parameter that controls the whole cost/quality curve, evaluated at 100, 500 and 1,500 binary
-judgments **per query** **[P]**. At 29 millionths a judgment, 1,500 of them cost 0.043 USD.
+judgments **per query** **[P]**. At about 101 millionths for a request with one Truth question
+**[M]**, 1,500 of them cost about 0.15 USD **[D]**.
 The lever stops being "how do we afford more checks" and becomes "how many do we want".
 
 The output here is not a smaller bill. It is a check that used to be sampled and can now be
