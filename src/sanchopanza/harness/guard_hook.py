@@ -9,6 +9,12 @@ in `context.guard`; this module only reads the event and the transcript and writ
   manual and automatic compaction alike.
 - `SessionStart` with source `compact`: returns the guard block as `additionalContext`, which
   Claude Code places right after the summary.
+- Split (`--parts K` on `PreCompact`, `--part i --parts K` on each of K `SessionStart`
+  commands, as `sanchopanza install` writes them): `PreCompact` splits the block into at most K
+  parts (`context.parts`), each within GUARD_INLINE_CHARS, and keeps one file per part; each
+  `SessionStart` command prints its own part, or nothing. Claude Code caps each hook's context
+  on its own and joins them, so the whole GUARD_STRUCT_CHARS arrives inline. Without `--part`
+  and `--parts` the hook keeps one block within GUARD_INLINE_CHARS, as before.
 - `PostToolUse` on `Bash`: when a command that ran before the last compaction runs again and
   its value lines are not all in the new output, appends them once per command and session
   (`guard.echo`). Agents re-run one-shot tools after a compaction instead of searching an
@@ -39,11 +45,11 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
     GUARD_STRUCT_CHARS   struct's budget for whole results (default 44000, about 20k tokens; the
                      replay measured .64-.67 of needed results kept at 44000, .15-.21 at 3000)
     GUARD_POINTER_CHARS  struct's room for pointers (default 1500)
-    GUARD_INLINE_CHARS   struct's cap on the whole block (default 9500; 0 for none). Claude Code
-                     keeps a hook's additionalContext inline up to 10,000 characters and shows
-                     only a 2,000-character preview and a file path past that, so results get
-                     the room the requests, trail and pointers leave under this cap, about
-                     3,900 to 7,000 characters, whatever GUARD_STRUCT_CHARS allows
+    GUARD_INLINE_CHARS   struct's cap on the whole block, or on each part when split (default
+                     9500; 0 for none). Claude Code keeps a hook's additionalContext inline up
+                     to 10,000 characters and shows only a 2,000-character preview and a file
+                     path past that, so a single block carries about 3,900 to 7,000 characters
+                     of results, whatever GUARD_STRUCT_CHARS allows; split, all of it
     GUARD_WEB        "1" to keep lines of WebFetch, WebSearch and MCP output too (off: a page can
                      be fetched again, and its lines could carry instructions aimed at the model)
     GUARD_ECHO       "0" to turn the re-run echo off
@@ -52,7 +58,8 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
                      Files are private to the user and removed when used or after an hour.
     GUARD_LOG        a JSONL file to append one line per event to (off when unset)
 
-Fail open: any error writes one line to stderr and adds nothing; the native summary stands.
+Fail open: any error writes one line to stderr and adds nothing; the native summary stands. An
+error while splitting gives the rule's block as part 1 and nothing in the others.
 """
 
 from __future__ import annotations
@@ -69,6 +76,7 @@ from typing import Any
 
 from .. import _env
 from ..context import guard as guard_mod
+from ..context import parts as parts_mod
 from ..context.transcript import Call, calls, history_from_claude_code, last_compact_summary
 from .hookio import safe_name, state_dir, stdin_text, stdout_json, stdout_text, write_private
 
@@ -159,12 +167,16 @@ def _structural(messages: list[dict[str, Any]], since: int, options: Mapping[str
         return dataclasses.replace(rule, chooser="struct (error: rule only)")
 
 
-def _guard(messages: list[dict[str, Any]], notes: str = "", since: int = 0) -> guard_mod.Guard:
-    options = {
+def _options() -> dict[str, Any]:
+    return {
         "facts_chars": _int("GUARD_FACTS_CHARS", guard_mod.FACTS_CHARS),
         "requests_chars": _int("GUARD_REQUESTS_CHARS", guard_mod.REQUESTS_CHARS),
         "web": _on("GUARD_WEB", "0"),
     }
+
+
+def _guard(messages: list[dict[str, Any]], notes: str = "", since: int = 0) -> guard_mod.Guard:
+    options = _options()
     chooser = _chooser()
     if chooser == "struct":
         return _structural(messages, since, options)
@@ -201,8 +213,66 @@ def _guard(messages: list[dict[str, Any]], notes: str = "", since: int = 0) -> g
         return dataclasses.replace(rule, chooser="rule (decider timed out)")
 
 
-def pre_compact(event: Mapping[str, Any]) -> str:
-    """Build and keep the guard; return the note for the summariser (stdout)."""
+def _split(messages: list[dict[str, Any]], since: int, parts: int) -> parts_mod.Split:
+    """The block in at most `parts` parts (struct); another chooser's block, or the rule's on any
+    error while splitting, is part 1 alone."""
+    from ..context import structural
+
+    if _chooser() == "struct":
+        options = _options()
+        try:
+            return parts_mod.split(
+                messages,
+                since=since,
+                facts_chars=_int("GUARD_STRUCT_CHARS", structural.STRUCT_CHARS),
+                requests_chars=options["requests_chars"],
+                pointer_chars=_int("GUARD_POINTER_CHARS", structural.POINTER_CHARS),
+                inline_chars=_cap("GUARD_INLINE_CHARS", structural.INLINE_CHARS),
+                parts=parts,
+                web=options["web"],
+            )
+        except Exception as error:  # noqa: BLE001 - the summariser was promised a block
+            _log({"event": "error", "error": f"parts: {error.__class__.__name__}: {error}"})
+            guard = dataclasses.replace(guard_mod.build(messages, **options),
+                                        chooser="struct (error: rule only)")  # fmt: skip
+    else:
+        guard = _guard(messages, since=since)
+    text = guard_mod.block(guard)
+    return parts_mod.Split((text,) if text else (), guard)
+
+
+def _part_path(session: str, part: int) -> Path:
+    return _dir() / f"{_safe(session)}.part{part}.json"
+
+
+def _pre_compact_parts(event: Mapping[str, Any], parts: int) -> str:
+    """Split the block, keep one file per part (1 to `parts`, empty past the last), return the
+    note. Each part's `SessionStart` command reads and removes its own file: no shared state."""
+    messages, boundary = history_from_claude_code(str(event["transcript_path"]))
+    split = _split(messages, boundary, parts)
+    folder = _dir()
+    name = _safe(str(event.get("session_id", "")))
+    if folder.exists():
+        _sweep(folder)
+        for old in [folder / f"{name}.json", *folder.glob(f"{name}.part*.json")]:
+            with contextlib.suppress(OSError):
+                old.unlink()
+    now, count = time.time(), len(split.texts)
+    for part in range(1, parts + 1):
+        text = split.texts[part - 1] if part <= count else ""
+        kept = {"part": part, "of": count, "text": text, "at": now}
+        _write_private(folder / f"{name}.part{part}.json", json.dumps(kept))
+    _log({"event": "PreCompact", "trigger": event.get("trigger"), "parts": count,
+          "part_chars": [len(t) for t in split.texts],
+          **_summary(split.guard, "\n".join(split.texts))})  # fmt: skip
+    return guard_mod.instructions(split.guard)
+
+
+def pre_compact(event: Mapping[str, Any], parts: int = 0) -> str:
+    """Build and keep the guard, split in `parts` parts when above 1; return the note for the
+    summariser (stdout)."""
+    if parts > 1 and _chooser() != "keep":
+        return _pre_compact_parts(event, parts)
     messages, boundary = history_from_claude_code(str(event["transcript_path"]))
     if _chooser() == "keep":
         # Built at the SessionStart instead (`session_start`); the rule's guard only says
@@ -221,10 +291,58 @@ def pre_compact(event: Mapping[str, Any]) -> str:
     return guard_mod.instructions(guard)
 
 
-def session_start(event: Mapping[str, Any]) -> dict[str, Any] | None:
-    """After a compaction, the guard block as `additionalContext`."""
+def _context(text: str) -> dict[str, Any] | None:
+    if not text:
+        return None
+    return {"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": text}}
+
+
+def _kept_single(session: str) -> str | None:
+    """A single block kept by a `PreCompact` without `--parts`, read and left in place (the other
+    parts' commands look at it too); None when there is none or it is stale."""
+    try:
+        data = json.loads((_dir() / f"{_safe(session)}.json").read_text(encoding="utf-8"))
+        if time.time() - float(data.get("at", 0)) > KEPT_SECONDS:
+            return None
+        return str(data.get("block") or "")
+    except (OSError, ValueError, TypeError, AttributeError):
+        return None
+
+
+def _session_start_part(event: Mapping[str, Any], part: int, parts: int) -> dict[str, Any] | None:
+    """Part `part` of the split block: its kept file, else a single kept block (part 1 only),
+    else the same split rebuilt from the transcript (pure, so every part rebuilds the same)."""
+    session = str(event.get("session_id", ""))
+    kept = _part_path(session, part)
+    origin = "kept"
+    try:
+        data = json.loads(kept.read_text(encoding="utf-8"))
+        kept.unlink(missing_ok=True)
+        if time.time() - float(data.get("at", 0)) > KEPT_SECONDS:
+            raise ValueError("the kept part is stale")
+        text, of = str(data.get("text") or ""), data.get("of")
+    except (OSError, ValueError, TypeError, AttributeError):
+        single = _kept_single(session)
+        if single is not None:
+            origin, text, of = "kept single", single if part == 1 else "", 1
+        else:
+            origin = "rebuilt"
+            messages, boundary = history_from_claude_code(str(event["transcript_path"]))
+            texts = _split(messages, boundary, max(parts, part)).texts
+            text, of = (texts[part - 1] if part <= len(texts) else ""), len(texts)
+    _log({"event": "SessionStart", "origin": origin, "part": part, "of": of,
+          "block_chars": len(text)})  # fmt: skip
+    return _context(text)
+
+
+def session_start(event: Mapping[str, Any], part: int = 0, parts: int = 0) -> dict[str, Any] | None:
+    """After a compaction, the guard block, or part `part` of it, as `additionalContext`."""
     if event.get("source") != "compact":
         return None
+    if part > 1 and _chooser() == "keep":
+        return None  # keep builds one block at the SessionStart: part 1 carries it
+    if part > 0 and _chooser() != "keep":
+        return _session_start_part(event, part, parts or parts_mod.PARTS)
     if _chooser() == "keep":
         path = str(event["transcript_path"])
         messages, _ = history_from_claude_code(path)
@@ -239,9 +357,7 @@ def session_start(event: Mapping[str, Any]) -> dict[str, Any] | None:
         text = guard_mod.block(guard)
         _log({"event": "SessionStart", "origin": "built", "notes_chars": len(notes),
               "notes_origin": origin, **_summary(guard, text)})  # fmt: skip
-        if not text:
-            return None
-        return {"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": text}}
+        return _context(text)
     kept = _dir() / f"{_safe(str(event.get('session_id', '')))}.json"
     text, origin = "", "kept"
     try:
@@ -255,9 +371,7 @@ def session_start(event: Mapping[str, Any]) -> dict[str, Any] | None:
         messages, boundary = history_from_claude_code(str(event["transcript_path"]))
         text = guard_mod.block(_guard(messages, since=boundary))
     _log({"event": "SessionStart", "origin": origin, "block_chars": len(text)})
-    if not text:
-        return None
-    return {"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": text}}
+    return _context(text)
 
 
 def _response_text(response: Any) -> str:
@@ -302,25 +416,42 @@ def post_tool_use(event: Mapping[str, Any]) -> dict[str, Any] | None:
     return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": note}}
 
 
-def handle(event: Mapping[str, Any]) -> tuple[str, dict[str, Any] | None]:
-    """(plain stdout, JSON stdout) for one event; at most one of them is non-empty."""
+def handle(
+    event: Mapping[str, Any], part: int = 0, parts: int = 0
+) -> tuple[str, dict[str, Any] | None]:
+    """(plain stdout, JSON stdout) for one event; at most one of them is non-empty. `part` and
+    `parts` are the command's `--part` and `--parts` (0 when absent)."""
     name = event.get("hook_event_name")
     if name == "PreCompact":
-        return pre_compact(event), None
+        return pre_compact(event, parts), None
     if name == "SessionStart":
-        return "", session_start(event)
+        return "", session_start(event, part, parts)
     if name == "PostToolUse":
         return "", post_tool_use(event)
     return "", None
 
 
-def main(argv: list[str] | None = None) -> int:
-    del argv
+def _arguments(argv: list[str] | None) -> tuple[int, int]:
+    """(--part, --parts) from `argv`; 0 for an absent, unreadable or negative one."""
+    found = {"--part": 0, "--parts": 0}
+    words = list(argv or [])
+    for at, flag in enumerate(words):
+        value = words[at + 1] if at + 1 < len(words) else ""
+        if flag in found:
+            with contextlib.suppress(ValueError):
+                found[flag] = max(0, int(value))
+    return found["--part"], found["--parts"]
+
+
+def main(argv: list[str] | None = None, *, part: int = 0, parts: int = 0) -> int:
+    """One event from stdin. `argv` may carry `--part i` and `--parts K` (the keywords win)."""
     try:
+        read_part, read_parts = _arguments(argv)
+        part, parts = part or read_part, parts or read_parts
         event = json.loads(stdin_text() or "{}")
         if not isinstance(event, Mapping):
             raise ValueError("the event is not a JSON object")
-        text, payload = handle(event)
+        text, payload = handle(event, part, parts)
         if payload is not None:
             stdout_json(payload)
         elif text:
@@ -334,4 +465,4 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(sys.argv[1:]))

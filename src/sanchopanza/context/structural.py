@@ -72,8 +72,8 @@ POINTER_CHARS = 1_500  # pointers have their own room: a line each, newest first
 # for a host that takes more. With the requests, the trail and the pointers' share, that room is
 # about 3,900 characters (2,500 of requests, 20 changed files) to 7,000 (a short request, three
 # files). Each SessionStart hook's context is capped on its own and then concatenated, so the
-# measured 44,000 can only arrive split across several hook commands.
-# `SANCHOPANZA_GUARD_INLINE_CHARS`.
+# measured 44,000 arrives split across several hook commands, each part within this cap
+# (`context.parts`, `sanchopanza guard-hook --part i`). `SANCHOPANZA_GUARD_INLINE_CHARS`.
 INLINE_CHARS = 9_500
 FENCE = 16  # "\n<<<output\n" and "\n>>>" around each kept result, and the newline after its source
 FILE_TOOLS = frozenset({"Read", *WRITE_TOOLS})
@@ -172,9 +172,15 @@ def content_of(call: Call) -> str:
     return mask("\n".join(line.rstrip() for line in call.result.strip().splitlines()))
 
 
+def width(text: str) -> int:
+    """Characters as Claude Code counts them (JavaScript string length: UTF-16 code units), so a
+    character outside the Basic Multilingual Plane counts twice."""
+    return len(text.encode("utf-16-le", "surrogatepass")) // 2
+
+
 def cost(source: str, content: str) -> int:
     """Characters a kept result takes in the block."""
-    return len(source) + len(content) + FENCE
+    return width(source) + width(content) + FENCE
 
 
 def _pointer(call: Call, *, web: bool) -> str | None:
@@ -194,6 +200,39 @@ class Choice:
     considered: int
 
 
+def pack(
+    history: Sequence[Call],
+    ranked: Sequence[int],
+    rooms: Sequence[int],
+    *,
+    budget: int,
+    pointer_chars: int = POINTER_CHARS,
+    web: bool = False,
+) -> tuple[tuple[tuple[int, ...], ...], tuple[str, ...]]:
+    """(positions kept in each room, oldest first; pointers). Results go in `ranked` order, each
+    whole into the first room it fits while all of them stay within `budget`; one that fits no
+    room leaves a pointer when it can be had again. One room of `budget` is `choose`."""
+    bins: list[list[int]] = [[] for _ in rooms]
+    free = list(rooms)
+    pointers: list[str] = []
+    used = pointer_used = 0
+    for p in ranked:
+        call = history[p]
+        reachable = web or not (call.tool in guard.WEB or call.tool.startswith("mcp__"))
+        size = cost(label_of(call), content_of(call)) if reachable else budget + 1
+        room = next((i for i, left in enumerate(free) if size <= left), None)
+        if used + size <= budget and room is not None:
+            bins[room].append(p)
+            free[room] -= size
+            used += size
+            continue
+        pointer = _pointer(call, web=web)
+        if pointer and pointer not in pointers and pointer_used + len(pointer) + 3 <= pointer_chars:
+            pointers.append(pointer)
+            pointer_used += len(pointer) + 3
+    return tuple(tuple(sorted(b)) for b in bins), tuple(pointers)
+
+
 def choose(
     history: Sequence[Call],
     *,
@@ -204,38 +243,29 @@ def choose(
 ) -> Choice:
     """Results in `order` while they fit `budget`; pointers for re-readable ones left out."""
     ranked, superseded = order(history, since=since, web=web)
-    kept: list[int] = []
-    pointers: list[str] = []
-    used = pointer_used = 0
-    for p in ranked:
-        call = history[p]
-        reachable = web or not (call.tool in guard.WEB or call.tool.startswith("mcp__"))
-        size = cost(label_of(call), content_of(call)) if reachable else budget + 1
-        if used + size <= budget:
-            kept.append(p)
-            used += size
-            continue
-        pointer = _pointer(call, web=web)
-        if pointer and pointer not in pointers and pointer_used + len(pointer) + 3 <= pointer_chars:
-            pointers.append(pointer)
-            pointer_used += len(pointer) + 3
-    return Choice(tuple(sorted(kept)), tuple(pointers), superseded, len(ranked) + len(superseded))
+    (kept,), pointers = pack(history, ranked, (budget,), budget=budget,
+                             pointer_chars=pointer_chars, web=web)  # fmt: skip
+    return Choice(kept, pointers, superseded, len(ranked) + len(superseded))
+
+
+def facts_of(history: Sequence[Call], positions: Sequence[int]) -> tuple[Fact, ...]:
+    """Kept results as the block's facts, whole, in the order of `positions`."""
+    return tuple(
+        Fact(source=label_of(history[p]), line=content_of(history[p]), call=p,
+             error=failed(history[p]))
+        for p in positions
+    )  # fmt: skip
 
 
 def _with(history: Sequence[Call], base: Guard, choice: Choice) -> Guard:
-    facts = tuple(
-        Fact(source=label_of(history[p]), line=content_of(history[p]), call=p,
-             error=failed(history[p]))
-        for p in choice.kept
-    )  # fmt: skip
-    return dataclasses.replace(base, facts=facts, pointers=choice.pointers,
-                               candidates=choice.considered)  # fmt: skip
+    return dataclasses.replace(base, facts=facts_of(history, choice.kept),
+                               pointers=choice.pointers, candidates=choice.considered)  # fmt: skip
 
 
 def room_for_results(base: Guard, pointer_chars: int, inline_chars: int) -> int:
     """Characters left for whole results when the block must stay within `inline_chars`, with
     `pointer_chars` set aside for pointers (`base` holds everything but results and pointers)."""
-    rest = len(guard.block(base)) or len(guard.HEADER) + len(guard.CLOSING) + 1
+    rest = width(guard.block(base)) or len(guard.HEADER) + len(guard.CLOSING) + 1
     headings = len(guard.RESULTS_HEADING) + len(guard.POINTERS_HEADING) + 2
     return max(0, inline_chars - rest - headings - pointer_chars)
 
@@ -266,11 +296,11 @@ def build_from_calls(
     while True:
         choice = choose(history, since=since, budget=budget, pointer_chars=pointer_chars, web=web)
         built = _with(history, base, choice)
-        over = len(guard.block(built)) - inline_chars
+        over = width(guard.block(built)) - inline_chars
         if inline_chars <= 0 or over <= 0 or budget == 0:
             break
         budget = max(0, budget - over)  # a safety net: the room above is already exact or over
-    if inline_chars > 0 and len(guard.block(built)) > inline_chars:
+    if inline_chars > 0 and width(guard.block(built)) > inline_chars:
         built = dataclasses.replace(built, pointers=())  # requests and trail alone overflow
     return built
 
