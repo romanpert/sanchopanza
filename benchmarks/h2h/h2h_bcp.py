@@ -65,7 +65,7 @@ LEAK_WORD = "BrowseComp"
 # local retriever a session reads more and searches more, so S and N get twice GAIA's caps.
 CAPS = {key: round(2 * value, 2) for key, value in gaia.CAPS.items()}
 # bcp-dev runs beside longdoc-dev under one ceiling for both (--joint-with), at most this.
-PHASE_CEILINGS = {"bcp-dev": 50.0}
+PHASE_CEILINGS = {"bcp-dev": 50.0, "bcp-conf": 150.0}  # conf: prereg 2026-10-06
 EXTRA_ALLOW = ("mcp__bcp__search", "mcp__bcp__get_document")
 
 
@@ -287,7 +287,7 @@ def blind_review(rows: Sequence[Mapping], hand: Mapping[tuple, bool], path: path
 
 
 def arm_cell(mine: Sequence[Mapping], hand: Mapping[tuple, bool]) -> dict[str, Any]:
-    base = stats.arm_cell([{**r, "ok_oficial": graded_ok(r, hand), "level": 0} for r in mine],
+    base = stats.arm_cell([{**r, "ok_oficial": graded_ok(r, {}), "level": 0} for r in mine],
                           hand)  # fmt: skip
     base.pop("by_level", None)
 
@@ -310,14 +310,21 @@ def arm_cell(mine: Sequence[Mapping], hand: Mapping[tuple, bool]) -> dict[str, A
 
 def report(rows: Sequence[Mapping], hand: Mapping[tuple, bool]) -> dict[str, Any]:
     """Counts, costs and ids only; the paired comparison on the final grade."""
-    graded = [{**r, "ok_oficial": graded_ok(r, hand)} for r in rows]
+    # `oficial` is the automatic grade (exact match, else the judge); `with_hand` puts the blind
+    # hand verdicts first. Both are reported (prereg 2026-10-06); the verdict reads with_hand.
+    graded = [{**r, "ok_oficial": graded_ok(r, {})} for r in rows]
     out: dict[str, Any] = {"sessions": len(rows),
                            "list_usd": round(sum(r["list_usd"] for r in rows), 2)}  # fmt: skip
     out["by_arm"] = {arm: arm_cell([r for r in rows if r["arm"] == arm], hand)
                      for arm in sorted({r["arm"] for r in rows})}  # fmt: skip
-    out["paired"] = {m: stats.paired(graded, {}, f"{m}-SP", f"{m}-CC")
+    out["paired"] = {m: stats.paired(graded, hand, f"{m}-SP", f"{m}-CC")
                      for m in sorted({r["model_key"] for r in rows})}  # fmt: skip
     out["verdict"] = {m: stats.verdict(pair) for m, pair in out["paired"].items()}
+    # A row exact match did not settle and the judge never saw would count as wrong in silence.
+    unjudged = sum(1 for r in rows if not r.get("em") and not r.get("judge_done"))
+    out["unjudged"] = unjudged
+    if unjudged:
+        out["verdict"] = dict.fromkeys(out["verdict"], f"incompleto: {unjudged} sin juez")
     out["grading"] = (
         "exact match after normalisation, else the official judge template on "
         f"{bcp_grade.JUDGE_MODEL} (official: Qwen3-32B), hand verdicts first"
@@ -384,6 +391,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"{len(write_dev_ids())} ids written to {DEV_IDS}")
         return 0
     if args.verdict:
+        gaia.refuse_open_verdict(args.phase)
         qid, arm, run, yes = args.verdict
         with files["hand"].open("a", encoding="utf-8") as sink:
             sink.write(json.dumps({"task": qid, "arm": arm, "run": int(run),
@@ -417,6 +425,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     counted = with_grades(phase.counted(rows), files["graded"])
     hand = gaia.hand_verdicts(files["hand"])
     if args.judge:
+        pinned = gaia.claude_problems()
+        if pinned:  # the judge is Claude Code too: the same pinned build as the sessions
+            print("judge: " + "; ".join(pinned), file=sys.stderr)
+            return 3
         code, judged = judge_pending(counted, args.judge_ceiling)
         files["graded"].write_text("".join(json.dumps(r, ensure_ascii=False) + "\n"
                                            for r in judged), encoding="utf-8")  # fmt: skip

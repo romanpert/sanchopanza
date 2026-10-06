@@ -124,6 +124,11 @@ def load(path: pathlib.Path = S_INSTALL) -> SLine:
 def require_sealed(line: SLine, allow_unsealed: bool = False) -> None:
     if not line.sealed and not allow_unsealed:
         raise SystemExit("the S install line is not sealed (s_install.json): no paid S session")
+    if line.sealed and not (line.source and line.commit):
+        # A null source or commit freezes this worktree's HEAD at each launch: suites started at
+        # different times could run different S, and the h2h branch is not main (2026-10-06).
+        raise SystemExit("a sealed S line names its source and commit; null freezes whatever "
+                         "HEAD the worktree has at launch")
 
 
 def options(flags: Sequence[str]) -> list[tuple[str, ...]]:

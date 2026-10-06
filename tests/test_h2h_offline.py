@@ -57,7 +57,12 @@ def test_the_committed_line_is_unsealed_and_paid_runs_refuse_it():
     with pytest.raises(SystemExit):
         s_line.require_sealed(line)
     s_line.require_sealed(line, allow_unsealed=True)
-    s_line.require_sealed(s_line.parse({"sealed": True}))
+    s_line.require_sealed(s_line.parse({"sealed": True, "source": "C:/sp", "commit": "abc1234"}))
+    # sealed but null: each launch would freeze whatever HEAD the worktree had then
+    for half in ({"sealed": True}, {"sealed": True, "source": "C:/sp"},
+                 {"sealed": True, "commit": "abc1234"}):  # fmt: skip
+        with pytest.raises(SystemExit, match="names its source and commit"):
+            s_line.require_sealed(s_line.parse(half))
 
 
 def test_add_json_hints_are_parsed():
@@ -417,9 +422,14 @@ def test_report_grades_em_then_judge_then_hand_and_holds_no_text():
             _row("b", "SONNET-CC", False)]  # fmt: skip
     out = bcp.report(rows, {("a", "SONNET-CC", 1): False})
     sp, cc = out["by_arm"]["SONNET-SP"], out["by_arm"]["SONNET-CC"]
-    assert sp["ok_oficial"] == 1 and sp["em"] == 1 and cc["ok_oficial"] == 0
+    # oficial is the automatic grade (the judge said yes to a CC); with_hand puts the hand first
+    assert sp["ok_oficial"] == 1 and sp["em"] == 1 and cc["ok_oficial"] == 1
+    assert cc["ok_with_hand"] == 0
     assert cc["judge_yes_without_em"] == 1 and cc["unjudged"] == 1
-    assert out["paired"]["SONNET"]["oficial"]["a_only"] == 1
+    assert out["paired"]["SONNET"]["oficial"]["a_only"] == 0
+    assert out["paired"]["SONNET"]["with_hand"]["a_only"] == 1
+    # one row neither exact match nor the judge settled: no verdict yet
+    assert out["unjudged"] == 1 and out["verdict"]["SONNET"].startswith("incompleto")
     assert "Rovers" not in json.dumps(out) and "Qwen3-32B" in out["grading"]
 
 
@@ -802,17 +812,32 @@ def _journal(side, errors):
     (side / "journal.jsonl").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def test_jev_errors_counts_failed_decisions(tmp_path):
+def test_the_journal_counts_failed_decisions_by_kind(tmp_path):
     _journal(tmp_path, ["jev did not answer: HTTP 402", "jev did not answer: HTTP 402",
                         "jev unreachable: ReadTimeout"])
-    assert gaia.jev_errors(tmp_path) == {"jev did not answer: HTTP 402": 2,
-                                         "jev unreachable: ReadTimeout": 1}
-    assert gaia.jev_errors(tmp_path / "none") == {}
+    got = gaia.reading.journal(tmp_path / "journal.jsonl")
+    assert got["jev_errors"] == 3
+    assert got["jev_error_kinds"] == {"jev did not answer: HTTP 402": 2,
+                                      "jev unreachable: ReadTimeout": 1}
+    assert gaia.reading.journal(tmp_path / "none.jsonl")["jev_error_kinds"] == {}
+
+
+def test_a_report_reads_rows_with_jev_errors():
+    """The verifier's catch (2026-10-06): a dict under `jev_errors` crashed arm_cell, so one
+    Jev timeout would have killed every report."""
+    row = {"task": "t", "arm": "SONNET-SP", "run": 1, "ok_oficial": True, "level": 1,
+           "list_usd": 0.1, "turns": 3, "wall_s": 5.0, "jev_errors": 2,
+           "jev_error_kinds": {"jev unreachable: ReadTimeout": 2}, "hit_cap": False,
+           "leak": False, "final_answer": "x", "denied": 0, "hook_denied": []}
+    cell = gaia.stats.arm_cell([row, {**row, "task": "u", "ok_oficial": False}], {})
+    assert cell["jev_errors"] == 4
+    assert cell["jev_error_kinds"] == {"jev unreachable: ReadTimeout": 4}
+    assert cell["usd_per_correct"] == 0.2
 
 
 def test_jev_guard_passes_a_session_without_account_errors(tmp_path):
     row = {"task": "t", "run": 1, "arm": "SONNET-SP", "list_usd": 0.1,
-           "jev_errors": {"jev unreachable: ReadTimeout": 1}}
+           "jev_error_kinds": {"jev unreachable: ReadTimeout": 1}}
     guarded = gaia.jev_guard(lambda item, run, arm: row, tmp_path / "s.jsonl")
     assert guarded(("t",), 1, "SONNET-SP") == row
 
@@ -822,7 +847,7 @@ def test_jev_guard_stops_the_phase_on_402_and_keeps_the_paid_row(tmp_path):
     again after the recharge) and the phase stops, exit 4, instead of measuring S without Jev."""
     sessions = tmp_path / "s.jsonl"
     row = {"task": "t1", "run": 1, "arm": "SONNET-SP", "list_usd": 0.2,
-           "jev_errors": {"jev did not answer: HTTP 402": 3}}
+           "jev_error_kinds": {"jev did not answer: HTTP 402": 3}}
     calls = []
 
     def session(item, run, arm):
@@ -853,7 +878,8 @@ def test_a_busy_first_try_leaves_no_temporary_file_in_the_digest(tmp_path, monke
             config = tmp_path / "c"
             config.mkdir(parents=True, exist_ok=True)
             (config / ".settings.json.ab_cd12.tmp").write_text("{}", encoding="utf-8")
-            return s_line.subprocess.CompletedProcess(argv, 2, "", "could not write ([WinError 32])")
+            busy = "could not write ([WinError 32])"
+            return s_line.subprocess.CompletedProcess(argv, 2, "", busy)
         return real(argv, **kw)
 
     monkeypatch.setattr(s_line.subprocess, "run", flaky)
@@ -863,3 +889,34 @@ def test_a_busy_first_try_leaves_no_temporary_file_in_the_digest(tmp_path, monke
     clean = s_line.run_install(tmp_path / "d", SRC, ["--candor"], tmp_path / "cwd2")
     assert not list((tmp_path / "c").glob(".settings.json.*.tmp"))
     assert with_leftover.digest == clean.digest
+
+
+def test_a_confirmation_takes_blind_verdicts_only():
+    with pytest.raises(SystemExit, match="blind verdicts only"):
+        gaia.refuse_open_verdict("gaia-conf")
+    with pytest.raises(SystemExit):
+        bcp.main(["--verdict", "q", "SONNET-SP", "1", "yes", "--phase", "bcp-conf"])
+    gaia.refuse_open_verdict("dev")  # dev phases keep --verdict
+
+
+def test_confirmation_ceilings_are_in_the_code():
+    assert gaia.PHASE_CEILINGS["gaia-conf"] == 40.0
+    assert bcp.PHASE_CEILINGS["bcp-conf"] == 150.0
+    with pytest.raises(SystemExit):
+        gaia.ceiling(41.0, "gaia-conf")
+    assert gaia.ceiling(40.0, "gaia-conf") == 40.0
+
+
+def _gaia_row(task, arm, ok, leak=False):
+    return {"task": task, "arm": arm, "run": 1, "model_key": "SONNET", "ok_oficial": ok,
+            "level": 1, "list_usd": 0.1, "turns": 2, "wall_s": 3.0, "hit_cap": False,
+            "leak": leak, "final_answer": "x", "denied": 0, "hook_denied": []}
+
+
+def test_a_leaked_task_leaves_the_paired_analysis_in_both_arms():
+    rows = [_gaia_row("a", "SONNET-SP", True, leak=True), _gaia_row("a", "SONNET-CC", False),
+            _gaia_row("b", "SONNET-SP", True), _gaia_row("b", "SONNET-CC", True)]
+    out = gaia.report(rows, {})
+    assert out["dropped_for_leak"] == ["a"]
+    assert out["paired"]["SONNET"]["tasks"] == 1
+    assert out["paired_all_tasks"]["SONNET"]["tasks"] == 2

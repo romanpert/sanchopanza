@@ -224,6 +224,7 @@ def journal(path: pathlib.Path) -> dict[str, Any]:
     providers: dict[str, int] = {}
     usd = 0.0
     errors = 0
+    kinds: dict[str, int] = {}
     lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
     for line in lines:
         try:
@@ -239,8 +240,12 @@ def journal(path: pathlib.Path) -> dict[str, Any]:
         providers = {**providers, provider: providers.get(provider, 0) + 1}
         usd += float(data.get("cost_usd") or 0.0)
         errors += bool(data.get("error"))
+        if data.get("error"):
+            kind = str(data["error"])
+            kinds = {**kinds, kind: kinds.get(kind, 0) + 1}
     return {"jev_calls": sum(by_point.values()), "jev_by_point": by_point,
-            "jev_providers": providers, "jev_usd": round(usd, 6), "jev_errors": errors}  # fmt: skip
+            "jev_providers": providers, "jev_usd": round(usd, 6), "jev_errors": errors,
+            "jev_error_kinds": kinds}  # fmt: skip
 
 
 def denials(out: Mapping[str, Any], deny_log: pathlib.Path) -> dict[str, Any]:

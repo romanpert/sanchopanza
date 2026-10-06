@@ -47,7 +47,7 @@ LEAK_WORD = "LongBench"
 # task, so the caps are twice GAIA's.
 CAPS = {key: round(2 * value, 2) for key, value in gaia.CAPS.items()}
 # longdoc-dev runs beside bcp-dev under one ceiling for both (--joint-with), at most this.
-PHASE_CEILINGS = {"longdoc-dev": 50.0}
+PHASE_CEILINGS = {"longdoc-dev": 50.0, "longdoc-conf": 20.0}  # conf: prereg 2026-10-06
 # LongBench v2's prompts/0shot.txt, with the <text> block replaced by the file's place.
 TEMPLATE = (
     "Please read the text in the file {doc} (in your working directory) and answer the question "

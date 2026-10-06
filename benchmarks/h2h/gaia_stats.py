@@ -56,6 +56,8 @@ def arm_cell(mine: Sequence[Mapping[str, Any]], hand: Mapping[tuple, bool]) -> d
             for lv in sorted({r["level"] for r in mine})
         },
         "total_usd": round(sum(usd), 4),
+        "usd_per_correct": (round(sum(usd) / right, 4)
+                            if (right := sum(_ok(r, hand) for r in mine)) else None),
         "mean_usd": round(statistics.mean(usd), 4),
         "median_usd": round(statistics.median(usd), 4),
         "mean_turns": round(statistics.mean(turns), 1),
@@ -70,6 +72,7 @@ def arm_cell(mine: Sequence[Mapping[str, Any]], hand: Mapping[tuple, bool]) -> d
         "jev_calls": sum(int(r.get("jev_calls") or 0) for r in mine),
         "jev_by_point": _sum_maps([r.get("jev_by_point") or {} for r in mine]),
         "jev_errors": sum(int(r.get("jev_errors") or 0) for r in mine),
+        "jev_error_kinds": _sum_maps([r.get("jev_error_kinds") or {} for r in mine]),
         "jev_usd": round(sum(float(r.get("jev_usd") or 0.0) for r in mine), 6),
         "hit_cap": sum(bool(r["hit_cap"]) for r in mine),
         "leak": sorted(r["task"] for r in mine if r["leak"]),

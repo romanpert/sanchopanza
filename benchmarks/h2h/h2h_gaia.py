@@ -87,7 +87,8 @@ RUNS = pathlib.Path("C:/sp-runs/h2h")
 DEV_IDS = HERE / "gaia-dev-ids.txt"  # the dev draw: out of every confirmation
 DEV_SEED = 20261005
 DEV_SIZE = 20
-PHASE_CEILINGS = {"dev": 25.0}  # USD at list; a phase named here cannot be given more
+# USD at list; a phase named here cannot be given more (conf: prereg 2026-10-06)
+PHASE_CEILINGS = {"dev": 25.0, "gaia-conf": 40.0}
 
 CLAUDE_VERSION = "2.1.287"
 PIN = pathlib.Path(
@@ -328,7 +329,6 @@ def clean_session(ctx: Mapping[str, Any], root: pathlib.Path, arm: str, text: st
         "shim_calls": sum(shim.values()),
         "shim_runs": shim,
         "scrubbed_files": scrubbed,
-        "jev_errors": jev_errors(side),
     }
 
 
@@ -357,32 +357,16 @@ class JevStop(RuntimeError):
     """Jev refused the account in a session: the phase stops (exit 4) until it is recharged."""
 
 
-def jev_errors(side: pathlib.Path) -> dict[str, int]:
-    """The failed decisions in a session's journal (`SANCHOPANZA_JOURNAL`), by error; empty
-    without a journal (N writes none)."""
-    path = side / "journal.jsonl"
-    counts: dict[str, int] = {}
-    if not path.exists():
-        return counts
-    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
-        try:
-            event = json.loads(line)
-        except ValueError:
-            continue
-        error = (event.get("data") or {}).get("error") if isinstance(event, dict) else None
-        if event.get("kind") == "decision" and error:
-            counts = {**counts, str(error): counts.get(str(error), 0) + 1}
-    return counts
-
-
 def jev_guard(session: Any, log_to: pathlib.Path) -> Any:
-    """`session`, stopping the phase after one whose Jev refused the account. That paid row is
+    """`session`, stopping the phase after one whose Jev refused the account (the journal's
+    failed decisions by kind, `jev_error_kinds`, from `gaia_session.journal`). That paid row is
     recorded `invalid` and `not_run` (a resume runs it again after the recharge); the next
     session is never started."""
 
     def guarded(item: tuple, run: int, arm: str) -> dict[str, Any]:
         row = session(item, run, arm)
-        bad = sorted(e for e in (row.get("jev_errors") or {}) if JEV_ACCOUNT_ERROR.search(e))
+        kinds = row.get("jev_error_kinds") or {}
+        bad = sorted(e for e in kinds if JEV_ACCOUNT_ERROR.search(e))
         if bad:
             phase._record(log_to, {**row, "invalid": f"jev account: {bad[0]}", "not_run": True})
             raise JevStop(f"STOP-JEV {item[0]} {arm}: {bad[0]}; recharge TypeSafe and resume")
@@ -652,6 +636,14 @@ def blind_review(rows: Sequence[Mapping[str, Any]], hand: Mapping[tuple, bool],
     return stats.blind_sheet(items, sheet, key)
 
 
+def refuse_open_verdict(phase_name: str) -> None:
+    """A confirmation phase takes hand verdicts only through the blind sheet (`--apply-blind`):
+    `--verdict` names the arm, and a hand verdict overrides the scorer (prereg 2026-10-06)."""
+    if phase_name.endswith("-conf"):
+        raise SystemExit(f"phase {phase_name!r} takes blind verdicts only: --review, then "
+                         "--apply-blind")
+
+
 def apply_blind(answers: pathlib.Path, key: pathlib.Path, hand: pathlib.Path) -> int:
     """A blind reader's {"id", "ok"} verdicts appended to the hand verdicts through the key."""
     verdicts = stats.blind_verdicts(answers, key)
@@ -667,9 +659,15 @@ def report(rows: Sequence[Mapping[str, Any]], hand: Mapping[tuple, bool]) -> dic
     out: dict[str, Any] = {"sessions": len(rows), "list_usd": spent}
     out["by_arm"] = {arm: stats.arm_cell([r for r in rows if r["arm"] == arm], hand)
                      for arm in sorted({r["arm"] for r in rows})}  # fmt: skip
-    out["paired"] = {m: stats.paired(rows, hand, f"{m}-SP", f"{m}-CC")
-                     for m in sorted({r["model_key"] for r in rows})}  # fmt: skip
+    # A task with a session marked `leak` in either arm leaves the paired analysis in both arms,
+    # by rule and without reading the arm (prereg 2026-10-06); all tasks stay as a sensitivity.
+    leaked = sorted({r["task"] for r in rows if r.get("leak")})
+    clean = [r for r in rows if r["task"] not in set(leaked)]
+    models = sorted({r["model_key"] for r in rows})
+    out["dropped_for_leak"] = leaked
+    out["paired"] = {m: stats.paired(clean, hand, f"{m}-SP", f"{m}-CC") for m in models}
     out["verdict"] = {m: stats.verdict(pair) for m, pair in out["paired"].items()}
+    out["paired_all_tasks"] = {m: stats.paired(rows, hand, f"{m}-SP", f"{m}-CC") for m in models}
     return out
 
 
@@ -749,6 +747,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"{len(write_dev_ids())} ids written to {DEV_IDS}")
         return 0
     if args.verdict:
+        refuse_open_verdict(args.phase)
         task, arm, run, yes = args.verdict
         with files["hand"].open("a", encoding="utf-8") as sink:
             sink.write(json.dumps({"task": task, "arm": arm, "run": int(run),
