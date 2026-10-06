@@ -742,8 +742,94 @@ def test_the_preflight_proves_the_line_the_run_uses(monkeypatch):
 
     monkeypatch.setattr(gaia, "arms_preflight", arms_preflight)
     monkeypatch.setattr(gaia, "claude_problems", lambda: [])
+    monkeypatch.setattr(gaia, "jev_problems", lambda brazos: [])
     line = s_line.load(H2H / "s1_install.json")
     common.preflight(["SP"], {}, [], line, "bcp-dev-s1")
     gaia.preflight(["SP"], line, "dev-s1")
     # and each phase proves it in folders of its own, so suites started together do not collide
     assert seen == [(line, "bcp-dev-s1"), (line, "dev-s1")]
+
+
+def test_jev_preflight_asks_only_when_s_runs():
+    """N needs no decider: a run without S never pays for the probe."""
+    calls = []
+    assert gaia.jev_problems(["CC"], probe=lambda key: calls.append(key)) == []
+    assert calls == []
+
+
+def test_jev_preflight_fails_closed_on_402(monkeypatch):
+    """With no balance TypeSafe answers HTTP 402 and S fails open in silence: on 2026-10-05 four
+    GAIA S sessions measured S without its decider. A run with S does not start then."""
+    from sanchopanza.contract import DeciderUnavailable
+
+    monkeypatch.setattr(gaia.arms, "secret", lambda name: "k")
+
+    def broke(key):
+        raise DeciderUnavailable("jev did not answer: HTTP 402")
+
+    problems = gaia.jev_problems(["CC", "SP"], probe=broke)
+    assert len(problems) == 1 and "HTTP 402" in problems[0]
+    assert gaia.jev_problems(["SP"], probe=lambda key: None) == []
+
+
+def test_jev_preflight_never_names_the_key(monkeypatch):
+    monkeypatch.setattr(gaia.arms, "secret", lambda name: "sk-secret-value")
+
+    def leaky(key):
+        raise RuntimeError(f"bad key {key}")
+
+    problems = gaia.jev_problems(["SP"], probe=leaky)
+    assert problems and "sk-secret-value" not in problems[0]
+
+
+def test_every_preflight_runs_the_jev_probe(monkeypatch):
+    monkeypatch.setattr(gaia, "arms_preflight", lambda brazos, line=None, phase_name="": [])
+    monkeypatch.setattr(gaia, "claude_problems", lambda: [])
+    monkeypatch.setattr(gaia, "jev_problems", lambda brazos: ["jev: HTTP 402"])
+    line = s_line.load(H2H / "s1_install.json")
+    assert "jev: HTTP 402" in common.preflight(["SP"], {}, [], line, "bcp-x")
+    assert "jev: HTTP 402" in gaia.preflight(["SP"], line, "gaia-x")
+
+
+def _journal(side, errors):
+    side.mkdir(parents=True, exist_ok=True)
+    lines = [json.dumps({"kind": "decision", "data": {"point": "p", "error": e}}) for e in errors]
+    lines.append(json.dumps({"kind": "decision", "data": {"point": "p", "error": None}}))
+    (side / "journal.jsonl").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def test_jev_errors_counts_failed_decisions(tmp_path):
+    _journal(tmp_path, ["jev did not answer: HTTP 402", "jev did not answer: HTTP 402",
+                        "jev unreachable: ReadTimeout"])
+    assert gaia.jev_errors(tmp_path) == {"jev did not answer: HTTP 402": 2,
+                                         "jev unreachable: ReadTimeout": 1}
+    assert gaia.jev_errors(tmp_path / "none") == {}
+
+
+def test_jev_guard_passes_a_session_without_account_errors(tmp_path):
+    row = {"task": "t", "run": 1, "arm": "SONNET-SP", "list_usd": 0.1,
+           "jev_errors": {"jev unreachable: ReadTimeout": 1}}
+    guarded = gaia.jev_guard(lambda item, run, arm: row, tmp_path / "s.jsonl")
+    assert guarded(("t",), 1, "SONNET-SP") == row
+
+
+def test_jev_guard_stops_the_phase_on_402_and_keeps_the_paid_row(tmp_path):
+    """Jev out of credit mid-run: the session is recorded invalid and not run (a resume runs it
+    again after the recharge) and the phase stops, exit 4, instead of measuring S without Jev."""
+    sessions = tmp_path / "s.jsonl"
+    row = {"task": "t1", "run": 1, "arm": "SONNET-SP", "list_usd": 0.2,
+           "jev_errors": {"jev did not answer: HTTP 402": 3}}
+    calls = []
+
+    def session(item, run, arm):
+        calls.append(item[0])
+        return row if item[0] == "t1" else {"task": item[0], "run": run, "arm": arm,
+                                            "list_usd": 0.1}
+
+    guarded = gaia.jev_guard(session, sessions)
+    steps = [(0, ("t1",), 1, "SONNET-SP"), (1, ("t2",), 1, "SONNET-SP")]
+    limits = common.phase.Limits(session_max_usd=1.0, ceiling_usd=10.0)
+    code, rows = common.run_guarded(steps, [], limits, guarded, sessions)
+    assert code == 4 and calls == ["t1"]
+    assert len(rows) == 1 and rows[0]["not_run"] and "402" in rows[0]["invalid"]
+    assert "STOP-JEV" in sessions.with_suffix(".log").read_text(encoding="utf-8")

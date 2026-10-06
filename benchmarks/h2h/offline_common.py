@@ -86,9 +86,10 @@ def joint_guard(session: Callable, own: pathlib.Path, others: Sequence[pathlib.P
 
 def run_guarded(steps: list, rows: list, limits: Any, session: Callable,
                 sessions: pathlib.Path) -> tuple[int, list]:  # fmt: skip
-    """GAIA's phase loop; a joint-ceiling stop ends it like its own ceiling (exit 1)."""
+    """GAIA's phase loop; a joint-ceiling stop ends it like its own ceiling (exit 1), Jev refusing
+    the account with exit 4 (`gaia.jev_guard`)."""
     try:
-        return phase.run_phase(steps, rows, limits, session, sessions)
+        return gaia.run_stoppable(steps, rows, limits, session, sessions)
     except JointCeiling as stop:
         phase._log(sessions, str(stop))
         return 1, gaia.read_rows(sessions)
@@ -197,11 +198,13 @@ def preflight(brazos: Sequence[str], flag_settings: Mapping[str, Any],
               phase_name: str = "") -> list[str]:  # fmt: skip
     """Free: the pinned claude, the suite's data, both arms' user folders and S's line (`line`,
     the run's `--s-line`; None proves `s_install.json`), the permission mode and the user folder
-    per session, the local hook."""
+    per session, the local hook. Free except, when S runs, one real Jev decision
+    (`gaia.jev_problems`)."""
     problems = [
         *gaia.claude_problems(),
         *data_problems,
         *gaia.arms_preflight(brazos, line, phase_name),
+        *gaia.jev_problems(brazos),
     ]
     probe = gaia.argv_for("SONNET", gaia.RUNS / "s.json", gaia.RUNS / "m.json", 1.0, "q",
                           tools=TOOLS, disallowed=DISALLOWED)  # fmt: skip
@@ -224,7 +227,7 @@ def run_live(args: Any, steps: list, rows: list, make_session: Callable,
     ctx = gaia.phase_context(args.phase, args.brazos, gaia.live_line(args))
     cap = max(caps[m] for m in args.models)
     limits = phase.Limits(session_max_usd=cap, ceiling_usd=args.ceiling)
-    session = make_session(ctx)
+    session = gaia.jev_guard(make_session(ctx), sessions)
     others = [pathlib.Path(p) for p in getattr(args, "joint_with", None) or []]
     if others:
         session = joint_guard(session, sessions, others, cap, args.ceiling)

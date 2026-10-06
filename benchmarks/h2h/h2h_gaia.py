@@ -45,6 +45,7 @@ in its own process group (CreateFlags 512); `--live` ignores SIGINT.
 from __future__ import annotations
 
 import argparse
+import asyncio
 import hashlib
 import importlib.util
 import json
@@ -327,6 +328,7 @@ def clean_session(ctx: Mapping[str, Any], root: pathlib.Path, arm: str, text: st
         "shim_calls": sum(shim.values()),
         "shim_runs": shim,
         "scrubbed_files": scrubbed,
+        "jev_errors": jev_errors(side),
     }
 
 
@@ -346,6 +348,59 @@ def one_session(task: Any, run: int, arm: str, ctx: Mapping[str, Any]) -> dict[s
                          make_row=make_row, copies=copies)  # fmt: skip
 
 
+# Jev refusing the account, not one question: no credit (402) or a bad key (401, 403). From then
+# on S fails open on every point and the session measures S without its decider.
+JEV_ACCOUNT_ERROR = re.compile(r"jev did not answer: HTTP 40[123](?!\d)")
+
+
+class JevStop(RuntimeError):
+    """Jev refused the account in a session: the phase stops (exit 4) until it is recharged."""
+
+
+def jev_errors(side: pathlib.Path) -> dict[str, int]:
+    """The failed decisions in a session's journal (`SANCHOPANZA_JOURNAL`), by error; empty
+    without a journal (N writes none)."""
+    path = side / "journal.jsonl"
+    counts: dict[str, int] = {}
+    if not path.exists():
+        return counts
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        error = (event.get("data") or {}).get("error") if isinstance(event, dict) else None
+        if event.get("kind") == "decision" and error:
+            counts = {**counts, str(error): counts.get(str(error), 0) + 1}
+    return counts
+
+
+def jev_guard(session: Any, log_to: pathlib.Path) -> Any:
+    """`session`, stopping the phase after one whose Jev refused the account. That paid row is
+    recorded `invalid` and `not_run` (a resume runs it again after the recharge); the next
+    session is never started."""
+
+    def guarded(item: tuple, run: int, arm: str) -> dict[str, Any]:
+        row = session(item, run, arm)
+        bad = sorted(e for e in (row.get("jev_errors") or {}) if JEV_ACCOUNT_ERROR.search(e))
+        if bad:
+            phase._record(log_to, {**row, "invalid": f"jev account: {bad[0]}", "not_run": True})
+            raise JevStop(f"STOP-JEV {item[0]} {arm}: {bad[0]}; recharge TypeSafe and resume")
+        return row
+
+    return guarded
+
+
+def run_stoppable(steps: list, rows: list, limits: Any, session: Any,
+                  sessions: pathlib.Path) -> tuple[int, list]:  # fmt: skip
+    """phase.run_phase, ended by a JevStop with exit 4 and the rows on disk."""
+    try:
+        return phase.run_phase(steps, rows, limits, session, sessions)
+    except JevStop as stop:
+        phase._log(sessions, str(stop))
+        return 4, read_rows(sessions)
+
+
 def session_for(log_to: pathlib.Path, ctx: Mapping[str, Any]):
     """`one_session` behind phase.run_phase's (task tuple, run, arm) signature."""
 
@@ -355,7 +410,7 @@ def session_for(log_to: pathlib.Path, ctx: Mapping[str, Any]):
             phase._log(log_to, f"STOP-LIMIT {item[0]} {arm}: 429 or usage limit in the session")
         return row
 
-    return session
+    return jev_guard(session, log_to)
 
 
 _VERIFIED: dict[tuple, tuple[str, tuple[str, ...], tuple[str, ...]]] = {}
@@ -495,12 +550,51 @@ def claude_problems() -> list[str]:
     return []
 
 
+def _ask_jev(key: str) -> None:
+    """One real decision, a few micro-USD: a one-sentence state and one Truth question."""
+    from sanchopanza.contract import Truth
+    from sanchopanza.providers.jev import JevDecider
+
+    async def once() -> None:
+        decider = JevDecider(key)
+        try:
+            decision = await decider.decide(
+                "preflight", {"text": "The sky is blue."}, {"q": Truth("Is `text` a sentence?")}
+            )
+        finally:
+            await decider.aclose()
+        if "q" not in decision.answers:
+            raise RuntimeError("jev answered without the question asked")
+
+    asyncio.run(once())
+
+
+def jev_problems(brazos: Sequence[str], probe: Any = None) -> list[str]:
+    """Paid, a few micro-USD, and only when S runs: one real Jev decision with the key S gets.
+    With no balance TypeSafe answers HTTP 402 and S fails open in silence (2026-10-05: four GAIA
+    S sessions measured S without its decider), so a run with S does not start unless Jev
+    answers. The refusal never carries the key."""
+    if "SP" not in brazos:
+        return []
+    try:
+        key = arms.secret(arms.JEV_KEY)
+    except SystemExit as error:
+        return [f"jev: {error}"]
+    try:
+        (probe or _ask_jev)(key)
+    except Exception as error:  # noqa: BLE001 - any failure stops the run, named, key removed
+        return ["jev: " + str(error).replace(key, "<key>")]
+    return []
+
+
 def preflight(brazos: Sequence[str], line: Any = None, phase_name: str = "") -> list[str]:
-    """Free. `line` is the S line the run will use (`--s-line`); None proves `s_install.json`."""
+    """Free except, when S runs, one real Jev decision (`jev_problems`). `line` is the S line the
+    run will use (`--s-line`); None proves `s_install.json`."""
     problems = claude_problems()
     if not data.TASKS.exists():
         problems.append("no GAIA tasks in the cache: gaia_data.py --fetch")
     problems.extend(arms_preflight(brazos, line, phase_name))
+    problems.extend(jev_problems(brazos))
     probe_argv = argv_for("SONNET", RUNS / "s.json", RUNS / "m.json", 1.0, "q")
     for brazo in brazos:
         problems.extend(isolation_problems(settings_for(brazo)["flag"], probe_argv))
@@ -657,7 +751,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         limits = phase.Limits(session_max_usd=cap, ceiling_usd=ceiling(args.ceiling, args.phase))
         ctx = phase_context(args.phase, args.brazos, live_line(args))
         session = session_for(files["sessions"], ctx)
-        code, rows = phase.run_phase(steps, rows, limits, session, files["sessions"])
+        code, rows = run_stoppable(steps, rows, limits, session, files["sessions"])
     counted = phase.counted(rows)
     hand = hand_verdicts(files["hand"])
     if args.review:
