@@ -65,3 +65,15 @@ def write_env_settings(work: Path, env: Iterable[tuple[str, str]]) -> Path:
     settings.parent.mkdir(parents=True, exist_ok=True)
     settings.write_text(json.dumps(merged, indent=2), encoding="utf-8", newline="\n")
     return settings
+
+
+def guard_parts(work: Path) -> str:
+    """What the S install's compaction guard is, from its project settings: the SessionStart
+    (compact) parts it delivers and the chooser its `env` sets (none: the install's default)."""
+    settings = work / ".claude" / "settings.json"
+    data = json.loads(settings.read_text(encoding="utf-8")) if settings.exists() else {}
+    starts = [h.get("command", "") for e in data.get("hooks", {}).get("SessionStart", [])
+              if e.get("matcher") == "compact" for h in e.get("hooks", [])]  # fmt: skip
+    parts = sum(1 for c in starts if "guard-hook" in c and "--part " in c)
+    chooser = (data.get("env") or {}).get("SANCHOPANZA_GUARD_CHOOSER") or "the install's default"
+    return f"guard: {parts} SessionStart(compact) parts, chooser {chooser}"

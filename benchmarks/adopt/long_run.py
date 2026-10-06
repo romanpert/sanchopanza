@@ -76,7 +76,8 @@ S_FLAGS = ("--guard", "--guard-profile", "coding", "--memory", "--candor", "--fi
            "--find-auto", "--skill", "--scan-content", "--check-done", "--content-tools",
            "WebFetch,WebSearch,mcp__sanchopanza-fetch__fetch_passages", "--crawl", "--prune",
            "--fetch", "--provider", "jev")  # fmt: skip
-S_ENV = (("SANCHOPANZA_GUARD_CHOOSER", "keep"), ("SANCHOPANZA_CANDOR_MODE", "observe"),
+# No guard chooser: the sealed install's default (cb0062e: struct over 6 parts; owner 10-06).
+S_ENV = (("SANCHOPANZA_CANDOR_MODE", "observe"),
          ("SANCHOPANZA_CRAWL_LINE_VERSION", "6"), ("SANCHOPANZA_CRAWL_NOTES", "3"),
          ("SANCHOPANZA_CRAWL_ECHO", "short"), ("SANCHOPANZA_CRAWL_LINE_AT", "prompt"),
          ("SANCHOPANZA_CRAWL_NOTES_AT", "front"), ("SANCHOPANZA_CRAWL_SHOT", "snapshot-first"),
@@ -316,6 +317,7 @@ def prepare(ctx: Ctx, chain: Mapping[str, Any], arm: str) -> Arm:
             raise RuntimeError("an S arm needs the TypeSafe key")
         key = run.arm_keyfile(ctx.keyfile, name, arm)
         run.install_sancho(work, evidence, key, spec.install)
+        log(f"{name} {arm}: {arm_files.guard_parts(work)} ({run.SANCHO})")
     else:
         mcp.write_text('{"mcpServers": {}}\n', encoding="utf-8", newline="\n")
     if spec.env:
@@ -424,7 +426,6 @@ def resume(ctx: Ctx, chain: Mapping[str, Any], arm: str, row: Mapping[str, Any]
 
 def _lines(path: Path) -> int:
     return len(path.read_text(encoding="utf-8").splitlines()) if path.exists() else 0
-
 
 def settle_dead(ctx: Ctx, a: Arm, state: ArmState, rows: list[dict[str, Any]], k: int,
                 stream: Path) -> tuple[Arm, list[dict[str, Any]], ArmState, int, str]:  # fmt: skip

@@ -59,6 +59,7 @@ ROOTS = {"smoke": Path(r"C:\sp-runs\L-smoke"), "gate": Path(r"C:\sp-runs\L")}
 # `jev-preflight`. An older frozen copy would run S without them.
 SEAL_NEEDS = {"f2a0fe2": "gate A (check-done and candor on change or action)",
               "674806b": "the 402 breaker and jev-preflight"}  # fmt: skip
+SEAL_COMMIT = "cb0062e"  # S sealed by the owner, 2026-10-06 (guard struct over 6 parts)
 PREFLIGHT = ("-m", "sanchopanza", "jev-preflight")
 PREFLIGHT_CODES = {0: "ok", 10: "no_funds", 11: "auth", 12: "no_key", 13: "unreachable",
                    14: "other"}  # fmt: skip
@@ -186,6 +187,8 @@ def frozen_sancho(seal: str) -> Path:
     for commit, what in SEAL_NEEDS.items():
         if git("merge-base", "--is-ancestor", commit, full).returncode != 0:
             raise SystemExit(f"refused: the seal {full[:12]} does not carry {commit} ({what})")
+    if full != git("rev-parse", f"{SEAL_COMMIT}^{{commit}}").stdout.strip():
+        raise SystemExit(f"refused: S is sealed at {SEAL_COMMIT}, not {full[:12]}")
     target = freeze.ROOT / f"{full[:12]}-{'-'.join(freeze.EXTRAS)}"
     exe = target / "Scripts" / "sanchopanza.exe"
     stamp = target / "stamp.json"
