@@ -738,8 +738,10 @@ def test_find_with_delete_is_a_deletion() -> None:
 
 
 def test_the_prompt_asks_for_the_status_block(isolated: Path, monkeypatch) -> None:  # noqa: ANN001
-    """The block is what makes the check work (24.6 % without it, 96 % with it): candor asks
-    for it on every prompt, appended context, unless told not to."""
+    """The block is what makes the check work (24.6 % without it, 96 % with it): with the change
+    gate off candor asks for it on every prompt, appended context, unless told not to (with the
+    gate on it asks at the first call that acts: tests/test_change_gate.py)."""
+    monkeypatch.setenv("SANCHOPANZA_ON_CHANGE", "0")
     base = {"session_id": "s", "cwd": str(isolated), "hook_event_name": "UserPromptSubmit"}
     out = candor_hook.handle({**base, "prompt": "fix it"})  # on by default
     context = out["hookSpecificOutput"]["additionalContext"]
@@ -751,7 +753,10 @@ def test_the_prompt_asks_for_the_status_block(isolated: Path, monkeypatch) -> No
 def test_a_stop_without_the_block_is_held_once(isolated: Path, monkeypatch) -> None:  # noqa: ANN001
     monkeypatch.setenv("SANCHOPANZA_CANDOR_ASK_BLOCK", "stop")
     base = {"session_id": "s2", "cwd": str(isolated)}
+    edit = {**base, "hook_event_name": "PostToolUse", "tool_name": "Edit",
+            "tool_input": {"file_path": "src/p.py"}, "tool_response": {}}  # fmt: skip
     candor_hook.handle({**base, "hook_event_name": "UserPromptSubmit", "prompt": "fix it"})
+    candor_hook.handle(edit)  # a request that changed something: the gate is open
     bare = _transcript(isolated / "a.jsonl", "Fixed it.")
     first = candor_hook.handle({**base, "hook_event_name": "Stop", "transcript_path": str(bare)})
     assert first["decision"] == "block" and "STATUS:" in first["reason"]
@@ -759,6 +764,7 @@ def test_a_stop_without_the_block_is_held_once(isolated: Path, monkeypatch) -> N
                                 "stop_hook_active": True})  # fmt: skip
     assert again.get("decision") != "block"  # never twice: it lets the stop through
     candor_hook.handle({**base, "hook_event_name": "UserPromptSubmit", "prompt": "next"})
+    candor_hook.handle(edit)
     blocked = _transcript(isolated / "b.jsonl", "Fixed.\nSTATUS: done\nTESTS: not run\n"
                           "TEST_FILES_CHANGED: no\nFILES_READ: none")  # fmt: skip
     ok = candor_hook.handle({**base, "hook_event_name": "Stop", "transcript_path": str(blocked)})

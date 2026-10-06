@@ -67,11 +67,13 @@ def test_candor_and_the_guard_share_post_tool_use_without_stepping_on_each_other
 
 
 def test_the_installed_command_runs_the_candor_hook(tmp_path: Path) -> None:
-    """The command the settings name answers a prompt with the status-block request."""
+    """The command the settings name answers a prompt with the status-block request (with the
+    change gate off; on, it asks at the first call that acts: tests/test_change_gate.py)."""
     event = {"hook_event_name": "UserPromptSubmit", "session_id": "s", "cwd": str(tmp_path),
              "prompt": "fix the parser"}  # fmt: skip
     env = {**os.environ, "SANCHOPANZA_CANDOR_DIR": str(tmp_path / "state"),
-           "SANCHOPANZA_CANDOR_LOCK": str(tmp_path / "lock.json")}  # fmt: skip
+           "SANCHOPANZA_CANDOR_LOCK": str(tmp_path / "lock.json"),
+           "SANCHOPANZA_ON_CHANGE": "0"}  # fmt: skip
     run = subprocess.run(
         [sys.executable, "-m", "sanchopanza", "candor-hook"],
         input=json.dumps(event),

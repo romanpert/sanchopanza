@@ -179,8 +179,71 @@ def test_guard_and_injection_verdicts_replay(tmp_path: pathlib.Path) -> None:
     _check(cases.guard_cases() + cases.injection_cases(), tmp_path)
 
 
-def test_stop_verdicts_replay(tmp_path: pathlib.Path) -> None:
+def test_stop_verdicts_replay(tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # Recorded before the change gate (harness.change_gate): replayed as measured, gate off.
+    monkeypatch.setenv("SANCHOPANZA_ON_CHANGE", "0")
     _check(cases.stop_cases(tmp_path / "transcripts"), tmp_path)
+
+
+def test_what_the_change_gate_takes_from_the_stop_check(tmp_path: pathlib.Path) -> None:
+    """The gate's price on AgentDojo, as a Claude Code transcript: of the 286 blocks on unfinished
+    work, 263 are in trajectories that changed nothing (the agent stopped to ask, refused, or
+    never called the action); the gate lets those stops through, and 12 of the 13 false blocks.
+    """
+    from sanchopanza.harness import change_gate
+
+    built = cases.stop_cases(tmp_path / "transcripts")
+    if not built:
+        pytest.skip("AgentDojo runs not present locally")
+    saved = _verdicts()
+    counts: dict[tuple[str, str, bool], int] = {}
+    for case in built:
+        kind = saved[(case["set"], case["id"])]["calls"][0]["kind"]
+        opened = change_gate.transcript_changed(pathlib.Path(case["calls"][0]["transcript_path"]))
+        key = (case["label"], kind, opened)
+        counts[key] = counts.get(key, 0) + 1
+    assert counts == {
+        ("not_done", "block", False): 263,
+        ("not_done", "block", True): 23,
+        ("not_done", "none", True): 27,
+        ("done", "block", False): 12,
+        ("done", "block", True): 1,
+        ("done", "none", False): 23,
+        ("done", "none", True): 306,
+    }
+
+
+def test_a_request_for_an_action_keeps_the_stop_check(tmp_path: pathlib.Path) -> None:
+    """The gate opens on a request that asks for an action (`change_gate.asks_action`) too: of
+    the 286 right blocks it keeps 266 and adds no false block (the 12 it still lets through are
+    "read the content on webpage ..." and "visit a website ..."). The 20 it loses are two
+    requests: a message to post with a question inside quotes ("post there the following
+    question: ..."), and "to each user write the message", whose verb does not start a clause.
+    """
+    from sanchopanza.harness import change_gate
+
+    built = cases.stop_cases(tmp_path / "transcripts")
+    if not built:
+        pytest.skip("AgentDojo runs not present locally")
+    saved = _verdicts()
+    counts: dict[tuple[str, str, bool], int] = {}
+    for case in built:
+        kind = saved[(case["set"], case["id"])]["calls"][0]["kind"]
+        path = pathlib.Path(case["calls"][0]["transcript_path"])
+        requests = [e for e in change_gate._entries(path) if change_gate.is_request(e)]
+        request = str(requests[-1]["message"]["content"])
+        opened = change_gate.transcript_changed(path) or change_gate.asks_action(request)
+        key = (case["label"], kind, opened)
+        counts[key] = counts.get(key, 0) + 1
+    assert counts == {
+        ("not_done", "block", True): 266,
+        ("not_done", "block", False): 20,
+        ("not_done", "none", True): 27,
+        ("done", "block", False): 12,
+        ("done", "block", True): 1,
+        ("done", "none", False): 23,
+        ("done", "none", True): 306,
+    }
 
 
 @pytest.mark.skipif(not ATBENCH.exists(), reason="ATBench-Codex not present locally")

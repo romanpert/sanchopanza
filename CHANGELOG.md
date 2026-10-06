@@ -433,6 +433,25 @@ do not favour this package.
 
 ### Changed behaviour a user may notice
 
+- **check-done and candor act only on a request that changed something** (`harness.change_gate`,
+  `SANCHOPANZA_ON_CHANGE=0` to turn it off; `docs/results/2026-10-05-change-gate`). On a
+  request that only read, check-done asks nothing, candor neither holds, judges nor locks (its
+  findings are journalled, marked `gated`), and candor asks for its status block at the first
+  call that changes something or runs tests instead of at every prompt (Codex: still at the
+  prompt). Replayed on the h2h development sessions, it removes every send-back there (17) and
+  the turns after them: 13 % of S's cost on BrowseComp-Plus, 28 % on LongBench v2. What it
+  takes: on AgentDojo, 263 of check-done's 286 blocks on unfinished work were in trajectories
+  that changed nothing (the agent stopped, refused or never acted); on candor's coding rounds,
+  every lock on a natural misreport is kept and 71 of 558 on counterfactual reports written into
+  sessions that did nothing are lost. Also fixed: after a compaction, check-done took the
+  compaction summary as the request.
+  The gate also opens on a request that asks for an action (`change_gate.asks_action`: an
+  action verb in the imperative and no question anywhere, quoted text and "if you are asked..."
+  template sentences left out); candor then asks for its block at the prompt. Replayed: check-done
+  keeps 266 of the 286 AgentDojo blocks and adds no false one, and every send-back (17/17) and
+  block request (20/20) on BrowseComp-Plus and LongBench is still avoided; none of the 87 h2h
+  requests (GAIA, BrowseComp-Plus, LongBench) reads as an action. A gate on the final answer
+  claiming a finished action kept 24 of 286 and let one send-back back in; it is not shipped.
 - **The Claude Code hook starts faster.** `sanchopanza` and `sanchopanza.providers` resolve
   their names on first use, the entry-point scan runs only for a provider that is not built
   in, the CLI imports per subcommand, and `sanchopanza hook` decides in code whether an event
