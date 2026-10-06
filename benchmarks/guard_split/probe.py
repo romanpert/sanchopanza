@@ -191,6 +191,13 @@ def marker(parts: list[str]) -> tuple[str, str] | None:
     return None
 
 
+def room_for(spent: float, last: float, cap: float) -> bool:
+    """Whether the next call fits under the cap. `--max-budget-usd` stops between turns, never
+    inside one, and a resumed call reloads the whole context: with Opus 5.5 the third call cost
+    0.94 USD with 0.34 left. The context only grows, so the next call costs at least the last."""
+    return spent + last <= cap
+
+
 def probe_root(given: str) -> Path:
     """Absolute: the hooks run with the throwaway project as cwd, so a relative root would put
     the guard log inside it and the report would read it as missing."""
@@ -208,7 +215,7 @@ def run(args: argparse.Namespace) -> int:
                    "output. Then reply only DONE.")  # fmt: skip
     spent += first["cost"]
     report["call1"] = {k: first[k] for k in ("cost", "answer")}
-    if not first["session"] or spent >= args.cap:
+    if not first["session"] or not room_for(spent, first["cost"], args.cap):
         report["stopped"] = "no session" if not first["session"] else "cap reached after call 1"
         return finish(report, root, args)
     second = claude(work, env, args.cap - spent, "/compact", first["session"])
@@ -226,7 +233,7 @@ def run(args: argparse.Namespace) -> int:
     report["part_chars"] = [len(p) for p in parts]
     report["persisted_notices"] = sum("<persisted-output>" in p for p in parts)
     found = marker(parts)
-    if found is None or spent >= args.cap:
+    if found is None or not room_for(spent, second["cost"], args.cap):
         report["stopped"] = (
             "no marker in the parts" if found is None else "cap reached after call 2"
         )

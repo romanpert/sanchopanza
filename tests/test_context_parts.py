@@ -376,3 +376,6 @@ def test_the_live_probe_root_is_absolute(tmp_path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
     assert probe.probe_root("runs/x").is_absolute()
     assert probe.probe_root("").is_absolute()
+    # Opus 5.5, 2026-10-06: 0.56 + 0.60 spent, cap 1.50; the third call cost 0.94.
+    assert probe.room_for(0.56, 0.56, 1.50)
+    assert not probe.room_for(1.16, 0.60, 1.50)
