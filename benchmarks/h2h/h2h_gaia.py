@@ -646,6 +646,7 @@ def report(rows: Sequence[Mapping[str, Any]], hand: Mapping[tuple, bool]) -> dic
                      for arm in sorted({r["arm"] for r in rows})}  # fmt: skip
     out["paired"] = {m: stats.paired(rows, hand, f"{m}-SP", f"{m}-CC")
                      for m in sorted({r["model_key"] for r in rows})}  # fmt: skip
+    out["verdict"] = {m: stats.verdict(pair) for m, pair in out["paired"].items()}
     return out
 
 

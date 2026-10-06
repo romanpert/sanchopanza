@@ -317,6 +317,7 @@ def report(rows: Sequence[Mapping], hand: Mapping[tuple, bool]) -> dict[str, Any
                      for arm in sorted({r["arm"] for r in rows})}  # fmt: skip
     out["paired"] = {m: stats.paired(graded, {}, f"{m}-SP", f"{m}-CC")
                      for m in sorted({r["model_key"] for r in rows})}  # fmt: skip
+    out["verdict"] = {m: stats.verdict(pair) for m, pair in out["paired"].items()}
     out["grading"] = (
         "exact match after normalisation, else the official judge template on "
         f"{bcp_grade.JUDGE_MODEL} (official: Qwen3-32B), hand verdicts first"

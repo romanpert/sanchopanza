@@ -112,6 +112,49 @@ def bootstrap_cost(a: Sequence[float], b: Sequence[float], *, replicas: int = RE
     }
 
 
+MARGIN_POINTS = 2.0  # non-inferiority margin on success, fixed before any run (plan, section 2)
+HEADROOM = 0.05  # N wrong on fewer than this share of the tasks: "sin margen"
+ALPHA = 0.05
+
+
+def bootstrap_success(a: Sequence[bool], b: Sequence[bool], *, replicas: int = REPLICAS,
+                      seed: int = SEED) -> dict[str, Any]:  # fmt: skip
+    """Success a - b in percentage points, with a paired 95 % interval (tasks resampled)."""
+    n = len(a)
+    rng = random.Random(seed)
+    diffs = []
+    for _ in range(replicas):
+        idx = [rng.randrange(n) for _ in range(n)]
+        diffs.append(100.0 * sum(int(a[i]) - int(b[i]) for i in idx) / n)
+    diffs.sort()
+    lo, hi = int(0.025 * replicas), int(0.975 * replicas) - 1
+    return {
+        "diff_points": round(100.0 * (sum(map(int, a)) - sum(map(int, b))) / n, 2),
+        "diff_points_ci95": [round(diffs[lo], 2), round(diffs[hi], 2)],
+    }
+
+
+def verdict(pair: Mapping[str, Any], grade: str = "with_hand") -> str:
+    """The preregistered verdict of S (`a`) against N (`b`) for one suite and one model:
+    "sin margen" when N is wrong on fewer than HEADROOM of the tasks; "gana (coste)" when the
+    cost ratio's 95 % interval lies below 1 and the success interval stays above -MARGIN_POINTS;
+    "gana (éxito)" when McNemar's exact p < ALPHA with S right more often and the cost ratio's
+    interval does not lie above 1; otherwise "no gana"."""
+    tasks = int(pair.get("tasks") or 0)
+    if not tasks:
+        return "sin datos"
+    cell, cost = pair[grade], pair["cost"]
+    lo_diff = cell["diff_points_ci95"][0]
+    lo_ratio, hi_ratio = cost["ratio_ci95"]
+    if tasks - cell["b_ok"] < HEADROOM * tasks:
+        return "sin margen"
+    if hi_ratio < 1.0 and lo_diff >= -MARGIN_POINTS:
+        return "gana (coste)"
+    if cell["p"] < ALPHA and cell["a_only"] > cell["b_only"] and lo_ratio <= 1.0:
+        return "gana (éxito)"
+    return "no gana"
+
+
 def paired(rows: Sequence[Mapping[str, Any]], hand: Mapping[tuple, bool], arm_a: str,
            arm_b: str) -> dict[str, Any]:  # fmt: skip
     """`arm_a` against `arm_b` on the tasks both ran (first run of each)."""
@@ -138,6 +181,7 @@ def paired(rows: Sequence[Mapping[str, Any]], hand: Mapping[tuple, bool], arm_a:
             "p": round(p, 4),
             "a_only_tasks": [t for t, x, y in zip(tasks, ga, gb, strict=True) if x and not y],
             "b_only_tasks": [t for t, x, y in zip(tasks, ga, gb, strict=True) if y and not x],
+            **bootstrap_success(ga, gb),
         }
     out["cost"] = bootstrap_cost([cost(r) for r in a], [cost(r) for r in b])
     out["wall"] = bootstrap_cost([float(r["wall_s"]) for r in a], [float(r["wall_s"]) for r in b])

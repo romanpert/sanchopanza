@@ -146,6 +146,7 @@ def report(rows: Sequence[Mapping]) -> dict[str, Any]:
     out["by_arm"] = cells
     out["paired"] = {m: stats.paired(rows, {}, f"{m}-SP", f"{m}-CC")
                      for m in sorted({r["model_key"] for r in rows})}  # fmt: skip
+    out["verdict"] = {m: stats.verdict(pair) for m, pair in out["paired"].items()}
     return out
 
 

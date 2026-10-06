@@ -720,3 +720,52 @@ def test_components_count_outputs_by_owner_and_the_turns_a_return_cost(tmp_path)
     assert got["returns"] == {"check-done": 1}
     assert got["turns_after"] == {"check-done": 2}  # one per message id, subagents left out
     assert got["usd_after"]["check-done"] == pytest.approx((0.2 * 2000 + 10 * 1100) / 1e6)
+
+
+def _verdict_input(diff_ci, ratio_ci, p, a_only, b_only, b_ok, tasks):
+    return {
+        "tasks": tasks,
+        "with_hand": {"a_ok": b_ok + a_only - b_only, "b_ok": b_ok, "a_only": a_only,
+                      "b_only": b_only, "p": p, "diff_points_ci95": diff_ci},
+        "cost": {"ratio_ci95": ratio_ci},
+    }
+
+
+def test_bootstrap_success_gives_points_with_a_paired_interval():
+    a = [True] * 3 + [False] * 2 + [True] * 2 + [False] * 3  # 3 only a, 2 only b
+    b = [False] * 3 + [True] * 2 + [True] * 2 + [False] * 3
+    out = runner.stats.bootstrap_success(a, b)
+    assert out["diff_points"] == 10.0
+    lo, hi = out["diff_points_ci95"]
+    assert lo <= 10.0 <= hi and lo < 0 < hi
+
+
+def test_paired_carries_the_success_interval():
+    rows = [{"task": f"t{i}", "arm": arm, "run": 1, "ok_oficial": ok, "list_usd": 0.1,
+             "wall_s": 10.0} for i in range(4) for arm, ok in (("X-SP", True), ("X-CC", i < 2))]
+    out = runner.stats.paired(rows, {}, "X-SP", "X-CC")
+    assert out["with_hand"]["diff_points_ci95"][1] >= 50.0
+
+
+def test_verdict_cost_win_needs_cheaper_and_non_inferior():
+    v = runner.stats.verdict
+    assert v(_verdict_input([-1.5, 3.0], [0.70, 0.95], 1.0, 2, 2, 60, 100)) == "gana (coste)"
+    # cheaper but the success interval reaches below -2 points: not a win
+    assert v(_verdict_input([-6.0, 3.0], [0.70, 0.95], 1.0, 2, 4, 60, 100)) == "no gana"
+    # same success, cost interval crosses 1
+    assert v(_verdict_input([-1.0, 1.0], [0.90, 1.10], 1.0, 1, 1, 60, 100)) == "no gana"
+
+
+def test_verdict_success_win_needs_mcnemar_and_no_cost_loss():
+    v = runner.stats.verdict
+    assert v(_verdict_input([2.0, 12.0], [0.95, 1.20], 0.01, 9, 1, 60, 100)) == "gana (éxito)"
+    # more right but significantly dearer: no win
+    assert v(_verdict_input([2.0, 12.0], [1.10, 1.60], 0.01, 9, 1, 60, 100)) == "no gana"
+    # N more right with p < 0.05 is not a win for S
+    assert v(_verdict_input([-12.0, -2.0], [0.50, 0.80], 0.01, 1, 9, 60, 100)) == "no gana"
+
+
+def test_verdict_without_headroom():
+    """N wrong on fewer than 5 % of the tasks: there is nothing for S to win on success."""
+    assert runner.stats.verdict(_verdict_input([-1.0, 1.0], [0.6, 0.8], 1.0, 0, 0, 97, 100)) == (
+        "sin margen")
