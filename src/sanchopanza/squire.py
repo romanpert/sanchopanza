@@ -24,8 +24,16 @@ from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from typing import Any, Literal
 
+from . import funds
 from .budget import Meter
-from .contract import Decider, DeciderUnavailable, Decision, Question, State
+from .contract import (
+    Decider,
+    DeciderOutOfFunds,
+    DeciderUnavailable,
+    Decision,
+    Question,
+    State,
+)
 from .dag import Edge, build_dag, waves
 from .journal import Journal, NullJournal, decision_event
 from .points import (
@@ -87,6 +95,7 @@ class Squire:
         self._churn_warned = False
         self._model_seen: str | None = None
         self._model_warned = False
+        self._errors_seen: frozenset[str] = frozenset()
 
     def fork(self, *, thresholds: Thresholds | None = None) -> Squire:
         """A fresh squire - new meter, no history - with this one's configuration, or with
@@ -143,14 +152,39 @@ class Squire:
         self._meter = self._meter.reserve()
         try:
             decision = await self._decider.decide(point, state, questions)
+        except DeciderOutOfFunds as error:
+            decision = Decision(point, {}, self._decider.name, "-", error=str(error))
+            self._say_out_of_funds(point, error)
         except DeciderUnavailable as error:
             decision = Decision(point, {}, self._decider.name, "-", error=str(error))
+            self._journal_error_once(point, str(error))
         except Exception as error:  # a provider bug must not take the agent down
             decision = Decision(
                 point, {}, self._decider.name, "-", error=f"{error.__class__.__name__}: {error}"
             )
+            self._journal_error_once(point, str(decision.error))
         self._meter = self._meter.charge(decision.cost_usd)
         return decision
+
+    def _journal_error_once(self, point: str, error: str) -> None:
+        """A failed decision reaches the journal even where the caller never records one (the
+        memory points did not): once per distinct error per squire, so an outage is one line."""
+        if error in self._errors_seen:
+            return
+        self._errors_seen = self._errors_seen | {error}
+        self._journal.record("warning", {"message": "decider failed: defaults used",
+                                         "point": point, "error": error})  # fmt: skip
+
+    def _say_out_of_funds(self, point: str, error: DeciderOutOfFunds) -> None:
+        """Out of funds is not a passing outage: journal it, and say it on stderr once."""
+        if "out_of_funds" in self._errors_seen:
+            return
+        self._errors_seen = self._errors_seen | {"out_of_funds"}
+        text = (f"sanchopanza: {self._decider.name} is out of funds (HTTP {error.status}): "
+                "decisions fall back to defaults until the balance is topped up")  # fmt: skip
+        self._journal.record("warning", {"message": text, "point": point, "error": str(error),
+                                         "status": error.status, "out_of_funds": True})  # fmt: skip
+        funds.say_once(text)
 
     @property
     def exhausted(self) -> bool:

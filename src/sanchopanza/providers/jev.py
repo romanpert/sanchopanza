@@ -8,6 +8,8 @@ Price (2026-09): 0.042 USD per million input tokens, output free. The price is a
 constructor argument, not a constant, so a change is configuration, not code.
 The model defaults to a pinned version rather than an alias: see DEFAULT_MODEL.
 Retries: 429 and 529 with bounded exponential backoff. No unbounded loops.
+Out of funds: a 402 trips a breaker shared by every process (`sanchopanza.funds`); while it is
+fresh no call is made, and `preflight()` is the one-cent check a launcher runs before spending.
 """
 
 from __future__ import annotations
@@ -20,11 +22,14 @@ import os
 import time
 import warnings
 from collections.abc import Mapping
+from dataclasses import asdict, dataclass
 from typing import Any
 
+from .. import funds
 from ..contract import (
     Answer,
     Choice,
+    DeciderOutOfFunds,
     DeciderUnavailable,
     Decision,
     Question,
@@ -53,6 +58,8 @@ DEFAULT_PRICE_PER_MTOK = 0.042
 KIND_TO_WIRE = {"choice": "choice", "score": "score", "truth": "noul"}
 WIRE_TO_KIND = {v: k for k, v in KIND_TO_WIRE.items()}
 RETRYABLE = frozenset({429, 529})
+OUT_OF_FUNDS = 402
+REFUSED_AUTH = frozenset({401, 403})
 MAX_RETRIES = 3
 BASE_WAIT_S = 0.25
 
@@ -176,6 +183,7 @@ class JevDecider:
         # 0.6 s, and a hook builds its decider on every shell command while it asks on 2 % of
         # them (the adoption study's phase B: 1.3-1.7 s per PreToolUse with a key, 0.4 s without).
         self._made: Any | None = client
+        self._scope = funds.scope(self._base_url, key)
 
     def _client(self) -> Any:
         if self._made is None:
@@ -209,6 +217,14 @@ class JevDecider:
                 f"attachment(s) ({kinds}); its own documentation says images, audio and "
                 "video are not supported"
             )
+        trip = funds.tripped(self._scope)
+        if trip is not None:
+            raise DeciderOutOfFunds(
+                # Same prefix as a real 402: launchers grep for "did not answer: HTTP 40[123]".
+                f"{self.name} did not answer: HTTP {trip.get('status', OUT_OF_FUNDS)} (out of "
+                "funds; breaker open, not called)",
+                int(trip.get("status") or OUT_OF_FUNDS),
+            )
         body = {
             "model": self._model,
             "state": state,
@@ -231,24 +247,118 @@ class JevDecider:
 
     async def _send(self, body: dict[str, Any]) -> dict[str, Any]:
         last = "no response"
+        self.last_status: int | None = None
         for attempt in range(MAX_RETRIES + 1):
             client = self._client()
             import httpx
 
             try:
                 response = await client.post(PATH, json=body)
+                self.last_status = response.status_code
             except httpx.HTTPError as error:
                 raise DeciderUnavailable(f"jev unreachable: {error.__class__.__name__}") from error
             if response.status_code == 200:
                 try:
-                    return response.json()
+                    data = response.json()
                 except ValueError as error:
                     raise DeciderUnavailable("jev returned a non-JSON body") from error
+                funds.clear(self._scope)
+                return data
+            if response.status_code == OUT_OF_FUNDS:
+                detail = response.text[:300] if hasattr(response, "text") else ""
+                funds.trip(self._scope, self.name, OUT_OF_FUNDS, detail)
+                raise DeciderOutOfFunds(f"{self.name} did not answer: HTTP 402 (out of funds)")
             last = f"HTTP {response.status_code}"
             if response.status_code not in RETRYABLE or attempt == MAX_RETRIES:
                 break
             await asyncio.sleep(BASE_WAIT_S * (2**attempt))
         raise DeciderUnavailable(f"jev did not answer: {last}")
+
+
+@dataclass(frozen=True)
+class PreflightResult:
+    """What a launcher needs before spending: did one real decision come back, and if not why."""
+
+    ok: bool
+    reason: str  # ok | no_funds | auth | no_key | unreachable | other
+    http_status: int | None
+    cost_usd: float
+    model: str
+    detail: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+#: `python -m sanchopanza jev-preflight` exits with these. Anything but 0 means: do not launch.
+#: From 10 up: argparse exits 2 on a mistyped flag, which must not read as "out of funds".
+PREFLIGHT_EXIT = {
+    "ok": 0,
+    "no_funds": 10,
+    "auth": 11,
+    "no_key": 12,
+    "unreachable": 13,
+    "other": 14,
+}
+PREFLIGHT_STATE = "A launcher checks that the decision service answers before a paid run."
+PREFLIGHT_QUESTION = "Is this text about checking that a service answers?"
+
+
+def _preflight_reason(status: int | None) -> str:
+    if status in REFUSED_AUTH:
+        return "auth"
+    if status is None or status in RETRYABLE or status >= 500:
+        return "unreachable"
+    return "other"
+
+
+async def apreflight(
+    api_key: str | None = None,
+    *,
+    timeout_s: float = 15.0,
+    base_url: str = BASE_URL,
+    model: str = DEFAULT_MODEL,
+    client: Any | None = None,
+) -> PreflightResult:
+    """One real decision (one Truth, about 300 input tokens, about 13 micro-dollars), past the
+    breaker. A 200 with a usable answer clears the breaker; a 402 trips it. Never raises."""
+    try:
+        decider = JevDecider(
+            api_key, base_url=base_url, model=model, timeout_s=timeout_s, client=client
+        )
+    except DeciderUnavailable as error:
+        reason = "no_key" if "TYPESAFE_API_KEY" in str(error) else "other"
+        return PreflightResult(False, reason, None, 0.0, model, str(error))
+    body = {
+        "model": model,
+        "state": PREFLIGHT_STATE,
+        "questions": {"ok": to_wire(Truth(PREFLIGHT_QUESTION))},
+    }
+    try:
+        data = await decider._send(body)
+    except DeciderOutOfFunds as error:
+        return PreflightResult(False, "no_funds", OUT_OF_FUNDS, 0.0, model, str(error))
+    except DeciderUnavailable as error:
+        status = getattr(decider, "last_status", None)
+        return PreflightResult(False, _preflight_reason(status), status, 0.0, model, str(error))
+    except Exception as error:  # noqa: BLE001 - a launcher reads the reason, never a traceback
+        detail = f"{error.__class__.__name__}: {error}"
+        return PreflightResult(False, "other", None, 0.0, model, detail)
+    finally:
+        if client is None:
+            await decider.aclose()
+    tokens = int((data.get("usage") or {}).get("input_tokens") or 0)
+    cost = tokens * DEFAULT_PRICE_PER_MTOK / 1_000_000
+    answer = from_wire((data.get("answers") or {}).get("ok") or {})
+    served = str(data.get("model") or model)
+    if answer.empty:
+        return PreflightResult(False, "other", 200, cost, served, "200 without a usable answer")
+    return PreflightResult(True, "ok", 200, cost, served, f"{tokens} input tokens")
+
+
+def preflight(api_key: str | None = None, **kwargs: Any) -> PreflightResult:
+    """`apreflight` for a launcher that is not inside an event loop."""
+    return asyncio.run(apreflight(api_key, **kwargs))
 
 
 CLM_URL = "http://localhost:8000"

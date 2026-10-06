@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
-from ..contract import Decider, DeciderUnavailable, Decision, Question, State
+from ..contract import Decider, DeciderOutOfFunds, DeciderUnavailable, Decision, Question, State
 
 
 class FallbackDecider:
@@ -30,6 +30,7 @@ class FallbackDecider:
         tokens = cost = latency = 0
         model = "-"
         errors: list[str] = []
+        broke = False
         for decider in self._deciders:
             pending = {k: q for k, q in questions.items() if k not in merged}
             if not pending:
@@ -38,6 +39,7 @@ class FallbackDecider:
                 decision = await decider.decide(point, state, pending)
             except DeciderUnavailable as error:
                 errors.append(f"{decider.name}: {error}")
+                broke = broke or isinstance(error, DeciderOutOfFunds)
                 continue
             if decision.answers:
                 merged = {**merged, **decision.answers}
@@ -47,7 +49,8 @@ class FallbackDecider:
             cost += decision.cost_usd
             latency += decision.latency_ms
         if not merged and errors and len(errors) == len(self._deciders):
-            raise DeciderUnavailable("; ".join(errors))
+            # Out of funds anywhere stays out of funds: the squire must still say it aloud.
+            raise (DeciderOutOfFunds if broke else DeciderUnavailable)("; ".join(errors))
         return Decision(
             point=point,
             answers=merged,
@@ -121,6 +124,10 @@ class CascadeDecider:
     async def decide(self, point: str, state: State, questions: Mapping[str, Question]) -> Decision:
         try:
             first = await self._cheap.decide(point, state, questions)
+        except DeciderOutOfFunds:
+            # Not "unsure about everything": escalating every question to the expensive stage
+            # would raise the spend in silence. Out of funds goes up as it is.
+            raise
         except DeciderUnavailable:
             first = Decision(point, {}, self._cheap.name, "-", error="cheap stage unavailable")
         pending = self.unsure(first, questions)
