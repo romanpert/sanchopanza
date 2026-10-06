@@ -173,8 +173,17 @@ only.
 
 To fill before the first paid session; this block is the only part written after the draft.
 
-- sanchopanza sealed commit (S line): `<TBD at the 12:00 seal>`
-- `s_install.json` sealed: `<TBD>`
-- h2h runner commit: `<TBD>`
-- sha256 of this file without this block: `<TBD>`
-- Independent verification against the code: `<TBD>`
+Sealed 2026-10-06 12:15 by indagis-dd.
+
+- sanchopanza sealed commit (S line): `aad9903054896c6618026c3c2b069dd314503f3a` (main: gate A
+  f2a0fe2 and the out-of-funds breaker 674806b). guard-struct is **not** in it: with
+  `SANCHOPANZA_GUARD_CHOOSER=keep` explicit it would not change what S0 runs, and its `struct`
+  default was never measured end to end.
+- `benchmarks/h2h/s_install.json` sealed at h2h 499ec2d, sha256
+  `ec0c106a7215794f330ef4855e08a6ac372893cf992e70b0888e8ca4a9fe0c4a`.
+- h2h runner commit: 499ec2d (code as of 1c89461).
+- sha256 of this file up to the line before "## 9. Seal", LF line endings:
+  `08484a10b64f9a2a60356d185eb1384df5a370b448b657db41e7c8da6a63f874`.
+- Independent verification against the code: a subagent (read-only) checked the draft 4a06611
+  claim by claim; its eleven findings were fixed in 1c89461 (code, tests) and 5b42b4f (text)
+  before this seal. Preflight of the three suites with the sealed line: ok (12:14).
