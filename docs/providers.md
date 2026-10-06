@@ -178,9 +178,9 @@ and measure, not something you buy, exactly as it was for text.
    reason. Sending the state with the image removed would answer a question about something
    the model never saw, and fail-open would then treat that answer as real.
 2. **Ask every question about one image in a single call.** One question about a 1080p
-   screenshot on a small hosted vision model is roughly 60x the cost of a text decision here;
-   eight questions grouped over a 768px image is roughly 4.5x. Resize before sending, and use
-   `hints` to say so.
+   screenshot on a small hosted vision model is roughly 25x the cost of a text decision
+   request here (a median of 71 millionths of a dollar); eight questions grouped over a 768px
+   image is roughly 1.8x. Resize before sending, and use `hints` to say so.
 3. **An image in the context is attack surface this layer cannot screen.** No production
    prompt-injection classifier accepts an image: Prompt Guard 2, Azure Prompt Shields and
    Model Armor are text-in, and the best image-accepting detector in the literature reaches a

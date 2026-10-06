@@ -91,12 +91,9 @@ with any is marked incomplete. Every decision is recorded to
 
 - 169 eligible results; 331 decisions expected, 780 at worst.
 - Tokens at 0.042 USD per million: 0.128 USD expected, 0.273 USD at worst.
-- At the planning figure of 29e-6 USD per decision (the cost of one short question, not of a
-  real request, which is a median of 71e-6 and a mean of 167e-6): 0.0096 USD expected, 0.023
-  USD at worst.
-  This figure is too low for these states. Amendment 2's arrival run spent 0.081 USD on 236
-  decisions, about 3.4e-4 USD each. The token-based figure is the one to cap against:
-  **`--cap 0.30`**.
+- At the recorded cost of an arrival decision (amendment 2's run: 1,924,333 input tokens over
+  236 decisions, 0.081 USD, 3.4e-4 USD each): 0.113 USD expected, 0.267 USD at worst.
+  The two agree. The cap: **`--cap 0.30`**.
 
 ## O3. The API's rival: `clear_tool_uses_20250919`
 

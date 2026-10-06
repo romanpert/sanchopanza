@@ -82,8 +82,8 @@ whether this page is worth reading, whether this citation holds, whether this sh
 is safe, happen dozens to hundreds of times per job, get paid at the large model's price, and
 leave no trace of why they were taken. Sanchopanza moves those to a model that returns a
 typed choice, a scale position or a probability, **never text**, at a median of 71 millionths
-of a dollar a request (about twelve questions; mean 167) and a median latency, measured client-side, of 235-344 ms for most points and up to 546 ms
-for the pairwise dependency point. It attaches through the hooks and tools your harness
+of a dollar a request (about twelve questions; mean 167) and a median latency, measured
+client-side, of 235-344 ms for most points and up to 546 ms for the pairwise dependency point. It attaches through the hooks and tools your harness
 already has.
 
 ```bash
