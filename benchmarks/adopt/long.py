@@ -4,6 +4,7 @@ where a budget or memory can act. Free and seeded; validation runs in Docker (`v
     python benchmarks/adopt/long.py              # writes long-selected.json (long40, as drawn)
     python benchmarks/adopt/long.py long60       # writes long60-selected.json (and reserve)
     python benchmarks/adopt/long.py manifests    # after validate.py: long60/<chain>.json
+    python benchmarks/adopt/long.py extra60 <chain>  # a chain validated short: extra spares
     <swe-venv python> benchmarks/adopt/long.py --extract-synthetic   # once, needs pyarrow
 
 Why: in phase B, Sonnet 5.5 took about 5k tokens of context per SWE-smith bug and ended ten bugs
@@ -191,6 +192,14 @@ def tagged(row: dict[str, Any]) -> dict[str, Any]:
     return {**row, "source": kind, "origin": "real" if kind == "pr_mirror" else "synthetic"}
 
 
+def pool60(rows: list[dict[str, Any]], rng: random.Random) -> list[dict[str, Any]]:
+    """The rows a long60 draw may take, normalised and tagged, in `rng`'s shuffled order."""
+    out = [tagged(n) for r in rows
+           if chains.usable(r) and related.code_files(n := related.normalized(r))]  # fmt: skip
+    rng.shuffle(out)
+    return out
+
+
 def draw_mixed(
     real: list[dict[str, Any]], synthetic: list[dict[str, Any]], size: int, spares: int,
     rng: random.Random,
@@ -199,14 +208,8 @@ def draw_mixed(
     ones that fit run out; the bugs then in a seeded random order (sources mixed through the
     session), the spares in drawn order."""
 
-    def pool(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        out = [tagged(n) for r in rows
-               if chains.usable(r) and related.code_files(n := related.normalized(r))]  # fmt: skip
-        rng.shuffle(out)
-        return out
-
     picked: list[dict[str, Any]] = []
-    for row in [*pool(real), *pool(synthetic)]:
+    for row in [*pool60(real, rng), *pool60(synthetic, rng)]:
         if len(picked) == size + spares:
             break
         if fits(row, picked):
@@ -248,6 +251,14 @@ def select60(
     spares: int = SPARES60,
 ) -> list[dict[str, Any]]:  # fmt: skip
     """long60 chains in plan order: a later chain never changes an earlier one."""
+    return _select60(plan, size, spares)[0]
+
+
+def _select60(
+    plan: tuple[tuple[str, str, str], ...], size: int, spares: int
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """`select60`, and where the draw stopped: the rows by repository, what it took and its
+    random generator, so a later draw (`extra60`) continues it."""
     by_repo, synthetic = chains.load(), load_synthetic()
     taken = used_before()
     rng = random.Random(SEED60)
@@ -263,7 +274,7 @@ def select60(
                     "kind": "long", "grader": "per_bug", "size": size, "seed": SEED60,
                     "token": token_for(name, texts_of([*bugs, *extra])),
                     "bugs": bugs, "spares": extra})  # fmt: skip
-    return out
+    return out, {"real": by_repo, "synthetic": synthetic, "taken": taken, "rng": rng}
 
 
 FULL60 = chains.CACHE / "long60-selected-full.json"
@@ -274,6 +285,110 @@ def full60() -> list[dict[str, Any]]:
     if not FULL60.exists():
         FULL60.write_text(json.dumps(select60(), ensure_ascii=False), encoding="utf-8")
     return json.loads(FULL60.read_text(encoding="utf-8"))
+
+
+# ---- long60: extra spares for a validated chain short of its size --------------------------------
+#
+# conan-long60-1 (2026-10-06): its real PR bugs masked each other, validation dropped 34 of 90 and
+# settled at 56 clean bugs with every spare used. The owner chose more spares over a size of 56.
+# Nothing drawn before changes: `extra60` replays the long60 draw (built and reserve chains, in
+# plan order, seed SEED60), checks it gives exactly the ids of long60-selected.json, and goes on
+# with the same random generator over the repository's rows no chain or spare took (reserves
+# untouched): real rows first, then synthetic ones, each fitting the validated bugs and the extra
+# spares before it (`fits`). Validation then starts from the validated bugs in their order, tops
+# them up to `size` from these spares in drawn order (`perbug.top_up`), and checks the whole chain.
+
+EXTRA60 = HERE / "long60-extra-spares.json"
+EXTRA60_FULL = chains.CACHE / "long60-extra-spares-full.json"
+EXTRA60_COUNT = 30
+
+
+def _ids(rows: list[dict[str, Any]]) -> list[str]:
+    return [r["instance_id"] for r in rows]
+
+
+def continue60(
+    name: str, start: list[str], count: int, drawn: list[dict[str, Any]], state: dict[str, Any],
+    sealed: list[dict[str, Any]],
+) -> list[dict[str, Any]]:  # fmt: skip
+    """`count` extra spares for chain `name` that fit its validated bugs `start` (ids), continuing
+    the draw `drawn`/`state` (`_select60`) after checking it against the sealed compact chains."""
+    replay = [(c["chain"], _ids(c["bugs"]), _ids(c["spares"])) for c in drawn]
+    if replay != [(c["chain"], c["bugs"], c["spares"]) for c in sealed]:
+        raise SystemExit("the long60 replay does not give long60-selected.json")
+    chain = next(c for c in drawn if c["chain"] == name)
+    rows = {b["instance_id"]: b for b in [*chain["bugs"], *chain["spares"]]}
+    missing = [i for i in start if i not in rows]
+    if missing:
+        raise SystemExit(f"{name}: validated bugs not of its draw: {missing[:3]}")
+    kept = [rows[i] for i in start]
+    taken, rng = state["taken"], state["rng"]
+    real = [r for r in state["real"].get(chain["repo"], []) if r["instance_id"] not in taken]
+    synth = [r for r in state["synthetic"].get(chain["repo"], []) if r["instance_id"] not in taken]
+    picked: list[dict[str, Any]] = []
+    for row in [*pool60(real, rng), *pool60(synth, rng)]:
+        if len(picked) == count:
+            break
+        if fits(row, [*kept, *picked]):
+            picked.append(row)
+    return picked
+
+
+def extra60(name: str, start: list[str], count: int = EXTRA60_COUNT) -> list[dict[str, Any]]:
+    """The extra spares of `name` (see above), drawn again from the sources."""
+    drawn, state = _select60(PLAN60 + RESERVE60, SIZE60, SPARES60)
+    sealed = json.loads((HERE / "long60-selected.json").read_text(encoding="utf-8"))["chains"]
+    return continue60(name, start, count, drawn, state, sealed)
+
+
+def extra60_spares(name: str) -> list[dict[str, Any]]:
+    """`name`'s extra spares in full, from the cache or drawn again and checked against the ids
+    EXTRA60 recorded; [] for a chain it does not name."""
+    record = json.loads(EXTRA60.read_text(encoding="utf-8"))["chains"] if EXTRA60.exists() else {}
+    if name not in record:
+        return []
+    full = json.loads(EXTRA60_FULL.read_text(encoding="utf-8")) if EXTRA60_FULL.exists() else {}
+    rows = full.get(name) or extra60(name, record[name]["start"], len(record[name]["spares"]))
+    if _ids(rows) != record[name]["spares"]:
+        raise SystemExit(f"{name}: extra spares differ from {EXTRA60.name}")
+    return rows
+
+
+def resumed(chain: dict[str, Any]) -> dict[str, Any]:
+    """`chain` as validation takes it: unchanged, or, when EXTRA60 names it, its validated bugs
+    (in their order) as the start, its extra spares, and the earlier validation as `before`."""
+    record = json.loads(EXTRA60.read_text(encoding="utf-8"))["chains"] if EXTRA60.exists() else {}
+    if chain["chain"] not in record:
+        return chain
+    entry = record[chain["chain"]]
+    rows = {b["instance_id"]: b for b in [*chain["bugs"], *chain["spares"]]}
+    return {**chain, "bugs": [rows[i] for i in entry["start"]],
+            "spares": extra60_spares(chain["chain"]), "before": entry["before"],
+            "extra_draw": {k: entry[k] for k in ("seed", "how", "spares")}}  # fmt: skip
+
+
+def record_extra60(name: str, previous: dict[str, Any], count: int = EXTRA60_COUNT) -> list[str]:
+    """Draws `name`'s extra spares from its validated result `previous` (validate.validated()),
+    writes their ids into EXTRA60 and the rows into the cache. Returns the ids."""
+    if previous.get("valid") or len(previous["bugs"]) >= previous.get("size", SIZE60):
+        raise SystemExit(f"{name}: valid or at its size, no extra spares needed")
+    start = _ids(previous["bugs"])
+    rows = extra60(name, start, count)
+    record = json.loads(EXTRA60.read_text(encoding="utf-8")) if EXTRA60.exists() else {
+        "seed": SEED60, "count": count, "chains": {}}  # fmt: skip
+    before = {"rounds": len(previous["history"]), "history": previous["history"],
+              "dropped": previous["dropped"], "seconds": previous["seconds"],
+              "bugs": len(start)}  # fmt: skip
+    how = ("replay of select60 over PLAN60 + RESERVE60 (seed SEED60), checked against "
+           "long60-selected.json, continued with the same random generator over the repository's "
+           "rows no long60 chain or spare took: real first, then synthetic, each fitting the "
+           "start bugs and the spares before it")  # fmt: skip
+    record["chains"][name] = {"seed": SEED60, "how": how, "start": start, "spares": _ids(rows),
+                              "before": before}  # fmt: skip
+    EXTRA60.write_text(json.dumps(record, indent=1), encoding="utf-8", newline="\n")
+    full = json.loads(EXTRA60_FULL.read_text(encoding="utf-8")) if EXTRA60_FULL.exists() else {}
+    EXTRA60_FULL.write_text(json.dumps({**full, name: rows}, ensure_ascii=False), encoding="utf-8")
+    return _ids(rows)
 
 
 # ---- long60: the prompts -------------------------------------------------------------------------
@@ -344,6 +459,9 @@ def manifest(chain: dict[str, Any], template: str) -> dict[str, Any]:
                      for n, b in enumerate(chain["bugs"], start=1)],
             "guard": {"tests": len(guard),
                       "sha256": hashlib.sha256("\n".join(guard).encode()).hexdigest()},
+            **({"extra_draw": chain["extra_draw"],
+                "before": {k: chain["before"][k] for k in ("rounds", "bugs", "seconds")}}
+               if "extra_draw" in chain else {}),
             "callbacks": [{"after_bug": a, "asked": q} for a, q in callbacks(len(chain["bugs"]))],
             "rule": RULE.format(token=chain["token"]),
             "requests": [{"kind": r["kind"], "instance_id": r["instance_id"],
@@ -379,6 +497,12 @@ def write_manifests() -> list[str]:
 def main(argv: list[str]) -> int:
     if argv[:1] == ["manifests"]:
         print("manifests:", write_manifests())
+        return 0
+    if argv[:1] == ["extra60"]:  # long.py extra60 <chain>: after a validation short of its size
+        import validate
+
+        ids = record_extra60(argv[1], validate.validated()[argv[1]])
+        print(argv[1], len(ids), "extra spares:", [i.rsplit(".", 1)[1] for i in ids])
         return 0
     if argv[:1] == ["--extract-synthetic"]:
         print(extract_synthetic(Path(argv[1])), "synthetic rows into", SYNTH_SOURCE)
