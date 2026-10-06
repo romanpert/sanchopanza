@@ -90,7 +90,17 @@ def _process(pid: int) -> dict[str, Any]:
 
 
 def busy(root: Path) -> str:
-    """Why another launch of this root may still be running ("" when none is)."""
+    """Why another launch of this root may still be running ("" when none is): the launcher
+    before this one, or the runner its status file names, alive with the same command line and
+    creation date."""
+    launches = root / "launch.json"
+    history = json.loads(launches.read_text(encoding="utf-8")) if launches.exists() else []
+    if len(history) > 1:
+        before = history[-2].get("launcher") or {}
+        live = long_guard.process_info(int(before.get("pid") or 0)) if before.get("pid") else None
+        if live and live.get("command_line") == before.get("command_line") and \
+                live.get("created") == before.get("created"):  # fmt: skip
+            return f"the launcher {before['pid']} of this root is still running"
     status = root / "long-run.status.json"
     if status.exists():
         found = json.loads(status.read_text(encoding="utf-8"))
