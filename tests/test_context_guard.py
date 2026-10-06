@@ -238,6 +238,7 @@ def _run(event: dict[str, Any], monkeypatch) -> str:
 
 
 def test_precompact_prints_the_note_and_the_session_start_attaches_the_block(env, monkeypatch):
+    monkeypatch.setenv("SANCHOPANZA_GUARD_CHOOSER", "rule")  # the default is struct now
     path = write_session(env / "s.jsonl", compacted=False)
     note = _run({"hook_event_name": "PreCompact", "trigger": "auto", "session_id": "abc",
                  "transcript_path": str(path)}, monkeypatch)  # fmt: skip

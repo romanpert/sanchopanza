@@ -18,7 +18,13 @@ in `context.guard`; this module only reads the event and the transcript and writ
 
 Environment (every name is `SANCHOPANZA_<NAME>`):
 
-    GUARD_CHOOSER    rule (default, no model) | judge: every output line judged by the decider,
+    GUARD_CHOOSER    struct (default, no model): whole tool results since the previous compaction,
+                     the latest on each file being edited first, then by recency, output that
+                     cannot be had again first in each, pointers for re-readable results left out
+                     (`context.structural`; measured offline 2026-10-05: Jev's ranking lost to
+                     recency, docs/results/2026-10-05-guard-struct); any error there gives the
+                     rule's block | rule: value lines of one-shot output by a free rule (the
+                     default until 2026-10-05) | judge: every output line judged by the decider,
                      the person's requests as the question, no content rule | decider: the rule's
                      lines, one tournament over commands when they do not fit (the first version).
                      judge and decider need a provider (as `sanchopanza hook`) and get at most
@@ -30,6 +36,14 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
                      TodoWrite items as notes, else the previous compaction's summary (the new one
                      is not on disk yet; GUARD_NOTES=0 to leave notes out); the rule on failure
     GUARD_FACTS_CHARS, GUARD_REQUESTS_CHARS   budgets (defaults 3000 and 2500)
+    GUARD_STRUCT_CHARS   struct's budget for whole results (default 44000, about 20k tokens; the
+                     replay measured .64-.67 of needed results kept at 44000, .15-.21 at 3000)
+    GUARD_POINTER_CHARS  struct's room for pointers (default 1500)
+    GUARD_INLINE_CHARS   struct's cap on the whole block (default 9500; 0 for none). Claude Code
+                     keeps a hook's additionalContext inline up to 10,000 characters and shows
+                     only a 2,000-character preview and a file path past that, so results get
+                     the room the requests, trail and pointers leave under this cap, about
+                     3,900 to 7,000 characters, whatever GUARD_STRUCT_CHARS allows
     GUARD_WEB        "1" to keep lines of WebFetch, WebSearch and MCP output too (off: a page can
                      be fetched again, and its lines could carry instructions aimed at the model)
     GUARD_ECHO       "0" to turn the re-run echo off
@@ -68,6 +82,15 @@ def _int(name: str, default: int) -> int:
     except ValueError:
         return default
     return value if value > 0 else default
+
+
+def _cap(name: str, default: int) -> int:
+    """A size where 0 means no cap; anything unreadable or negative is the default."""
+    try:
+        value = int(_env.get(name, "") or default)
+    except ValueError:
+        return default
+    return value if value >= 0 else default
 
 
 def _on(name: str, default: str) -> bool:
@@ -113,16 +136,38 @@ def _summary(guard: guard_mod.Guard, text: str) -> dict[str, Any]:
 
 
 def _chooser() -> str:
-    return _env.get("GUARD_CHOOSER", "rule").strip()
+    return _env.get("GUARD_CHOOSER", "").strip() or "struct"
 
 
-def _guard(messages: list[dict[str, Any]], notes: str = "") -> guard_mod.Guard:
+def _structural(messages: list[dict[str, Any]], since: int, options: Mapping[str, Any]) -> Any:
+    """The structural keep, or the rule's guard on any error (the earlier default)."""
+    from ..context import structural
+
+    try:
+        return structural.build(
+            messages,
+            since=since,
+            facts_chars=_int("GUARD_STRUCT_CHARS", structural.STRUCT_CHARS),
+            requests_chars=options["requests_chars"],
+            pointer_chars=_int("GUARD_POINTER_CHARS", structural.POINTER_CHARS),
+            inline_chars=_cap("GUARD_INLINE_CHARS", structural.INLINE_CHARS),
+            web=options["web"],
+        )
+    except Exception as error:  # noqa: BLE001 - the summariser was promised a block
+        _log({"event": "error", "error": f"struct: {error.__class__.__name__}: {error}"})
+        rule = guard_mod.build(messages, **options)
+        return dataclasses.replace(rule, chooser="struct (error: rule only)")
+
+
+def _guard(messages: list[dict[str, Any]], notes: str = "", since: int = 0) -> guard_mod.Guard:
     options = {
         "facts_chars": _int("GUARD_FACTS_CHARS", guard_mod.FACTS_CHARS),
         "requests_chars": _int("GUARD_REQUESTS_CHARS", guard_mod.REQUESTS_CHARS),
         "web": _on("GUARD_WEB", "0"),
     }
     chooser = _chooser()
+    if chooser == "struct":
+        return _structural(messages, since, options)
     if chooser not in ("decider", "judge", "keep"):
         return guard_mod.build(messages, **options)
     from .claude_code import squire_from_env
@@ -158,14 +203,14 @@ def _guard(messages: list[dict[str, Any]], notes: str = "") -> guard_mod.Guard:
 
 def pre_compact(event: Mapping[str, Any]) -> str:
     """Build and keep the guard; return the note for the summariser (stdout)."""
-    messages, _ = history_from_claude_code(str(event["transcript_path"]))
+    messages, boundary = history_from_claude_code(str(event["transcript_path"]))
     if _chooser() == "keep":
         # Built at the SessionStart instead (`session_start`); the rule's guard only says
         # whether there will be anything to attach.
         guard = guard_mod.build(messages, web=_on("GUARD_WEB", "0"))
         _log({"event": "PreCompact", "trigger": event.get("trigger"), "deferred": True})
         return guard_mod.instructions(guard)
-    guard = _guard(messages)
+    guard = _guard(messages, since=boundary)
     text = guard_mod.block(guard)
     folder = _dir()
     if folder.exists():
@@ -207,8 +252,8 @@ def session_start(event: Mapping[str, Any]) -> dict[str, Any] | None:
         text = str(data.get("block") or "")
     except (OSError, ValueError, TypeError):
         origin = "rebuilt"
-        messages, _ = history_from_claude_code(str(event["transcript_path"]))
-        text = guard_mod.block(_guard(messages))
+        messages, boundary = history_from_claude_code(str(event["transcript_path"]))
+        text = guard_mod.block(_guard(messages, since=boundary))
     _log({"event": "SessionStart", "origin": origin, "block_chars": len(text)})
     if not text:
         return None

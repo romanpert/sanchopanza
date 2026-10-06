@@ -433,6 +433,19 @@ do not favour this package.
 
 ### Changed behaviour a user may notice
 
+- **The compaction guard keeps whole tool results by structure** (`struct`, the new default
+  chooser of `install --guard`; `docs/results/2026-10-05-guard-struct`). After a compaction it
+  attaches whole results since the previous one: the latest on each file being edited first,
+  then by recency, output that cannot be had again first in each, and pointers (file and line
+  range, search, command) for re-readable results left out. No decider: offline, Jev's block
+  scores ranked later-needed results below plain recency (AUC 0.56-0.58 against 0.60-0.61), and
+  on the owner's 344 real compaction points this order kept .64 of needed results at 44,000
+  characters (`SANCHOPANZA_GUARD_STRUCT_CHARS`, the default) where the rule kept .12. Claude
+  Code keeps a hook's context inline only up to 10,000 characters, so the block is capped at
+  `SANCHOPANZA_GUARD_INLINE_CHARS` (9,500), which leaves results about 3,900-7,000 characters
+  (.15-.28 by the same replay). `SANCHOPANZA_GUARD_CHOOSER=rule` gives the earlier behaviour;
+  any error on the new path does too.
+
 - **check-done and candor act only on a request that changed something** (`harness.change_gate`,
   `SANCHOPANZA_ON_CHANGE=0` to turn it off; `docs/results/2026-10-05-change-gate`). On a
   request that only read, check-done asks nothing, candor neither holds, judges nor locks (its
