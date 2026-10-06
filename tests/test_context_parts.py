@@ -363,3 +363,16 @@ def test_install_reads_the_budget_and_cap_the_hooks_will_read(tmp_path, monkeypa
     apply(plan(path, HarnessConfig(), guard=True))
     hooks = json.loads(path.read_text("utf-8"))["hooks"]
     assert len(_ours(hooks, "SessionStart")[0]["hooks"]) == parts.default_parts(20_000, 9_500)
+
+
+def test_the_live_probe_root_is_absolute(tmp_path, monkeypatch) -> None:
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "guard_split_probe", Path(__file__).resolve().parents[1] / "benchmarks/guard_split/probe.py"
+    )
+    probe = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(probe)
+    monkeypatch.chdir(tmp_path)
+    assert probe.probe_root("runs/x").is_absolute()
+    assert probe.probe_root("").is_absolute()

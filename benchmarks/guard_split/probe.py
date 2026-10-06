@@ -191,8 +191,14 @@ def marker(parts: list[str]) -> tuple[str, str] | None:
     return None
 
 
+def probe_root(given: str) -> Path:
+    """Absolute: the hooks run with the throwaway project as cwd, so a relative root would put
+    the guard log inside it and the report would read it as missing."""
+    return (Path(given) if given else Path(tempfile.mkdtemp(prefix="guard-split-"))).resolve()
+
+
 def run(args: argparse.Namespace) -> int:
-    root = Path(args.root) if args.root else Path(tempfile.mkdtemp(prefix="guard-split-"))
+    root = probe_root(args.root)
     work = prepare(root, args.parts)
     env = child_env(root)
     spent, report = 0.0, {"root": str(root)}
