@@ -33,12 +33,37 @@ launcher again resumes. Stop: `STOP` in the root, or `long_run.py kill --root <r
 
 ## What each prints (`long_launch.py plan smoke|gate`)
 
-- Smoke (C:\sp-runs\L-smoke): Haiku 1.00 USD per call (`--max-budget-usd 1.00`), 2.00 per arm,
-  arms N, Ne, S, 3 bugs + 2 callbacks of pydantic-long60-1; expected N 0.17-2.23, Ne 0.17-3.68,
-  S 0.30-3.52, total 0.64-9.43 (5.65 to 48 requests per bug); caps held 6.00; hard ceiling 8.
-- Gate (C:\sp-runs\L): Sonnet 4.50 per call (`--max-budget-usd 3.00`), 38 per chain; Opus 8.00
-  (3.20), 48 per chain; expected Sonnet N 24.97 per chain, Opus 25.76-42.46; total 101.46-134.86;
-  caps held 172.00; ceiling 175.
+- Smoke (C:\sp-runs\L-smoke): Haiku 1.00 USD per call (`--max-budget-usd` at most 1.00, less one
+  turn), 2.00 per arm, arms N, Ne, S, 3 bugs + 2 callbacks of pydantic-long60-1; one turn past a
+  cap costs up to 0.56 (N, window 200k: the arm starts no call past 0.44 spent at that context)
+  and 0.36 (Ne, S, window 100k: past 0.64); expected N 0.17-2.23, Ne 0.17-3.68, S 0.30-3.52, total
+  0.64-9.43; caps held 6.00 under the hard ceiling 8: fits.
+- Gate (C:\sp-runs\L): Sonnet 4.50 per call (at most 3.00 in Claude Code's prices, less one
+  turn), 38 per chain; Opus 8.00 (3.20), 48 per chain; one turn past a cap at a 1M window: Sonnet
+  6.48 (no call past 27.02 of 38), Opus 10.80 (past 29.20 of 48); expected Sonnet N 24.97 per
+  chain, Opus 25.76-42.46; caps held 172.00 under the ceiling 175: fits.
+
+## One turn past a cap (live probe 2026-10-06: Opus given 0.34 USD spent 0.94)
+
+`--max-budget-usd` stops Claude Code between turns, never inside one. `long_money.turn_cost`: the
+context written at the 1-hour cache rate plus 32k output, at list prices (Opus 1M: 10.80; Sonnet
+1M: 6.48, 193k: 1.64; Haiku 200k: 0.56, 100k: 0.36). At run time the next call's turn is taken at
+the last call's peak + 50k, never past the arm's window (configured, else reported, else 1M for
+Sonnet and Opus, 200k for Haiku). Each call gets `--max-budget-usd = cap - that turn`, and starts
+only with room for cap + turn under its chain (arm) cap and the ceiling. The chains still hold at
+most their caps, so 172 <= 175 and 6 <= 8 stand; what changes is where an arm stops: at the
+modelled peaks (Sonnet 385k, Opus 292k) a Sonnet arm starts no call past ~30.4 of 38 (expected
+24.97: fits) and an Opus arm past ~35.8 of 48 (expected 25.76-42.46: the long end would be cut).
+
+## The S seal (owner, 2026-10-06)
+
+S is main **cb0062e** (gate A, jev-402, real costs, guard-struct, guard-split), frozen at
+`C:\Users\roman\.cache\sanchopanza\adopt\frozen\cb0062e36340-jev-mcp\` (`freeze.py cb0062e`,
+done). `S_ENV` sets no guard chooser: the install's default, struct over 6 SessionStart(compact)
+parts (GUARD_STRUCT_CHARS 44000, GUARD_INLINE_CHARS 9500), checked by a test that installs the
+sealed copy. The launcher refuses any other seal. The smoke dry run used the frozen copy:
+"S runs ...\cb0062e36340-jev-mcp\Scripts\sanchopanza.exe" and
+"guard: 6 SessionStart(compact) parts, chooser the install's default".
 
 ## Decisions taken here
 
@@ -87,25 +112,26 @@ preflight 0 -> three arms of 5 calls, Ne and S at 100,000 (env), N at the server
 Folders: `launch.json launch.log launch.status plan.txt preflight.txt claude.txt
 long-run.status.json runner-<model>.log grade.log report.json windows.json cfg/ runs/ w/ keys/`.
 
-## What still blocks a paid launch
+## When each can be launched
 
-1. **Smoke: the S seal.** `long-smoke-run.cmd` needs the sealed commit (main, carrying f2a0fe2
-   gate A and 674806b the 402 breaker; enforced) and its frozen copy:
-   `python benchmarks\adopt\freeze.py <seal>` (free, builds a venv). And `long_run.S_FLAGS` /
-   `S_ENV` must match the sealed line (today `GUARD_CHOOSER=keep`; main's default chooser is now
-   `struct`, guard-struct 20k): the independent verifier's check.
-2. **Gate: conan-io__conan-long60-1 has no manifest** (validation running in long-bench). Then
-   this branch needs long-bench's manifest commit (or be merged into long-bench) before launch.
-3. **The debug line was never seen from a real session** (it would have cost). The smoke's first
-   call shows it: `debug-1.log` non-empty and `window_reported` in its row. If empty, the gate
-   falls back to the compaction/peak inference and the window criterion may stay "pending".
-4. Smoke caps may bind: at Haiku's ~48 requests per bug an arm costs up to ~3.7 USD, so the 2.00
-   per arm cap would stop it before the callbacks. Still a valid smoke of injections, invariants
-   and meter; say so if it happens.
-5. Launch list item 0: tell indagis-a1 the PID, time and cap; C:\sp-runs\LIMIT.flag absent.
-   The grade at the end runs each arm's tests in Docker (free, long on pydantic's 5,057-test guard).
+**Smoke: ready.** From this worktree, by WMI, outside any session:
+
+    Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
+      CommandLine = "cmd.exe /c C:\Users\roman\Desktop\proyectos\apps\sanchopanza-long-launch\long-smoke-run.cmd cb0062e"
+      CurrentDirectory = "C:\Users\roman\Desktop\proyectos\apps\sanchopanza-long-launch" }
+
+Before it: tell indagis-a1 the PID, time and cap (8 USD hard); C:\sp-runs\LIMIT.flag absent;
+TypeSafe topped up (the launcher's preflight is one real decision, ~13 micro-USD, and stops the
+launch with 10-14 if Jev does not answer). Watch on the first call: `debug-1.log` non-empty and
+`window_reported` in its row (the debug line was never seen from a real session). At Haiku's
+~48 requests per bug an arm may stop at its 2.00 cap before the callbacks; say so if it happens.
+
+**Gate: blocked.** long-bench 91af96c says conan-io__conan-long60-1 validated to 56 clean bugs
+and is invalid for want of spares; its manifest says `valid: false`, so the launcher refuses (as
+it should). It needs spares or another gate chain, with a new manifest, and this branch then
+needs that commit. The grade at the end runs each arm's tests in Docker (free, long).
 
 ## Suite
 
-3110 passed, 40 skipped in 258 s (`-m pytest tests -q -p no:cacheprovider`, PYTHONPATH=src, main venv),
-before the last busy-check test (22 passed in its file). Baseline on long-bench: 3075 passed, 40 skipped.
+3116 passed, 40 skipped in 284 s (`-m pytest tests -q -p no:cacheprovider`, PYTHONPATH=src, main venv),
+after the one-turn and seal changes. Baseline on long-bench: 3075 passed, 40 skipped.
