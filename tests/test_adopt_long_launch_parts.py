@@ -30,8 +30,8 @@ def m(monkeypatch: pytest.MonkeyPatch):  # type: ignore[no-untyped-def]
     aside = {n: sys.modules.pop(n) for n in plain if n in sys.modules}
     before = set(sys.modules)
     monkeypatch.syspath_prepend(str(ADOPT))
-    names = ("costmodel", "long_call", "long_guard", "long_launch", "long_report",
-             "long_window", "run")  # fmt: skip
+    names = ("arm_files", "costmodel", "long_call", "long_guard", "long_launch",
+             "long_report", "long_run", "long_window", "run")  # fmt: skip
     yield SimpleNamespace(**{n: importlib.import_module(n) for n in names})
     for name in set(sys.modules) - before:
         sys.modules.pop(name, None)
@@ -233,11 +233,15 @@ def test_the_seal_must_carry_gate_a_and_the_402_breaker_and_be_frozen(m: SimpleN
         m.long_launch.frozen_sancho("not-a-commit-xyz")
     with pytest.raises(SystemExit, match="f2a0fe2"):
         m.long_launch.frozen_sancho("3276a05")  # long-bench's base: before gate A
-    main = m.long_launch.git("rev-parse", "main").stdout.strip()
-    frozen = m.long_launch.freeze.ROOT / f"{main[:12]}-jev-mcp" / "Scripts" / "sanchopanza.exe"
-    if not frozen.exists():
+    with pytest.raises(SystemExit, match="sealed at cb0062e"):
+        m.long_launch.frozen_sancho("aad9903")  # carries both, but is not the seal
+    full = m.long_launch.git("rev-parse", "cb0062e").stdout.strip()
+    frozen = m.long_launch.freeze.ROOT / f"{full[:12]}-jev-mcp" / "Scripts" / "sanchopanza.exe"
+    if frozen.exists():
+        assert m.long_launch.frozen_sancho("cb0062e") == frozen
+    else:
         with pytest.raises(SystemExit, match="freeze.py"):
-            m.long_launch.frozen_sancho(main)
+            m.long_launch.frozen_sancho("cb0062e")
 
 
 @pytest.mark.parametrize("code", [0, 10, 11, 12, 13, 14])
@@ -327,3 +331,40 @@ def test_the_measured_case_is_refused_where_the_old_check_let_it_through(
     assert spent + budget <= ceiling  # the old check: the call would have started
     assert "ceiling" in money.room_refusal(spent, budget, over, ceiling, "ceiling")
     assert money.room_refusal(spent - over, budget, over, ceiling, "ceiling") == ""
+
+
+# ---- the S seal (owner, 2026-10-06: cb0062e, the install's default guard) ----------------------
+
+
+def test_s_sets_no_guard_chooser_of_its_own(m: SimpleNamespace) -> None:
+    assert not any(k.endswith("GUARD_CHOOSER") for k, _v in m.long_run.S_ENV)
+    assert m.long_launch.SEAL_COMMIT == "cb0062e"
+
+
+def test_s_settings_at_the_seal_deliver_the_guard_in_six_parts(
+    m: SimpleNamespace, tmp_path: pathlib.Path
+) -> None:
+    full = m.long_launch.git("rev-parse", "cb0062e").stdout.strip()
+    exe = m.long_launch.freeze.ROOT / f"{full[:12]}-jev-mcp" / "Scripts" / "sanchopanza.exe"
+    if not exe.exists():
+        pytest.skip("the seal is not frozen here (benchmarks/adopt/freeze.py cb0062e)")
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    spec = m.long_run.arm_spec("S", m.long_run.PROFILES["dev"])
+    env = {k: v for k, v in os.environ.items()
+           if not k.startswith(("SANCHOPANZA_", "SANCHO_", "TYPESAFE_", "PYTHONPATH"))}
+    done = subprocess.run([str(exe), "install", "--scope", "project", "--write", *spec.install],
+                          cwd=tmp_path, env=env, capture_output=True, text=True)  # fmt: skip
+    assert done.returncode == 0, done.stderr
+    m.arm_files.write_env_settings(tmp_path, spec.env)  # what the runner adds for S
+    settings = json.loads((tmp_path / ".claude" / "settings.json").read_text(encoding="utf-8"))
+    compact = [h["command"] for e in settings["hooks"]["SessionStart"]
+               if e.get("matcher") == "compact" for h in e["hooks"]]  # fmt: skip
+    assert [c.split("guard-hook ", 1)[1] for c in compact] == [
+        f"--part {i} --parts 6" for i in range(1, 7)]
+    assert any("guard-hook --parts 6" in h["command"] for e in settings["hooks"]["PreCompact"]
+               for h in e["hooks"])  # fmt: skip
+    assert "SANCHOPANZA_GUARD_CHOOSER" not in settings["env"]
+    assert settings["env"]["CLAUDE_CODE_AUTO_COMPACT_WINDOW"] == "193000"
+    assert settings["env"]["SANCHOPANZA_CANDOR_MODE"] == "observe"
+    assert m.arm_files.guard_parts(tmp_path) == (
+        "guard: 6 SessionStart(compact) parts, chooser the install's default")

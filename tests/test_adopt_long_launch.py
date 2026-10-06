@@ -21,6 +21,10 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 ADOPT = ROOT / "benchmarks" / "adopt"
 FAKE = ROOT / "tests" / "fixtures" / "long_fake"
 MAIN_VENV = pathlib.Path(r"C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts")
+# The sealed S (cb0062e, frozen by benchmarks/adopt/freeze.py) when it is here; else main's venv.
+SEALED = (pathlib.Path.home() / ".cache" / "sanchopanza" / "adopt" / "frozen"
+          / "cb0062e36340-jev-mcp" / "Scripts" / "sanchopanza.exe")  # fmt: skip
+SANCHO = SEALED if SEALED.exists() else MAIN_VENV / "sanchopanza.exe"
 GATE = ("conan-io__conan-long60-1", "pydantic__pydantic-long60-1")
 SMOKE = "pydantic__pydantic-long60-1"
 
@@ -65,7 +69,7 @@ def dry_environment(base: pathlib.Path, chains: tuple[str, ...]) -> dict[str, st
               "claude": [sys.executable, str(FAKE / "fake_claude.py")],
               "chains_file": str(base / "chains.json"), "manifests": str(manifests),
               "limit_flag": str(base / "LIMIT.flag"), "allow_midnight": True,
-              "sancho": str(MAIN_VENV / "sanchopanza.exe"), "preflight_python": sys.executable,
+              "sancho": str(SANCHO), "preflight_python": sys.executable,
               "preflight_pythonpath": str(FAKE / "preflight"), "env": secrets}  # fmt: skip
     (base / "dry.json").write_text(json.dumps(config, indent=1), encoding="utf-8")
     return {"LL_ROOT": str(base / "L"), "LL_PIN": str(pin), "LL_MANIFESTS": str(manifests),
@@ -186,6 +190,10 @@ def test_smoke_launcher_runs_three_arms_on_three_bugs_and_resumes_a_dead_runner(
     assert rows["S"]["calls"][0]["init"]["mcp"]  # S's servers were installed and listed
     assert all(c["metered_ids"] and c["usage_after"] for r in rows.values() for c in r["calls"])
     assert "gate:" in _text(root / "grade.log")  # graded (stand-in pytest), give-ups apart
+    assert f"S runs {SANCHO}" in log
+    if SANCHO == SEALED:  # the sealed install's guard: struct over 6 parts, no chooser of ours
+        assert "guard: 6 SessionStart(compact) parts, chooser the install's default" in _text(
+            root / "runner-haiku.log")
 
 
 def test_the_launchers_are_lf_and_name_the_caps_the_code_holds(
