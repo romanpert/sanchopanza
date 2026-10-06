@@ -185,7 +185,7 @@ def _find_hook(_args: argparse.Namespace) -> int:
 def _guard_hook(args: argparse.Namespace) -> int:
     from .harness.guard_hook import main as guard_main
 
-    return guard_main()
+    return guard_main(part=args.part, parts=args.parts)
 
 
 def _memory_hook(args: argparse.Namespace) -> int:
@@ -291,6 +291,7 @@ def _install(args: argparse.Namespace) -> int:
             autopilot=args.autopilot,
             lean=args.lean,
             guard=args.guard,
+            guard_parts=args.guard_parts,
             candor=args.candor,
             memory=args.memory,
             crawl=args.crawl,
@@ -724,6 +725,15 @@ def main(argv: list[str] | None = None) -> int:
     guard_hook = sub.add_parser(
         "guard-hook", help="the compaction guard's Claude Code hook (stdin JSON -> stdout)"
     )
+    guard_hook.add_argument(
+        "--part",
+        type=int,
+        default=0,
+        help="SessionStart: print part i of the split block (or nothing)",
+    )
+    guard_hook.add_argument("--parts", type=int, default=0,
+                            help="split the block in at most K parts (PreCompact; SessionStart "
+                            "rebuilds with it when no part was kept)")  # fmt: skip
     guard_hook.set_defaults(func=_guard_hook)
     sub.add_parser("find-hook", help="find_in_repo's nudge after a wide early search (Claude "
                    "Code PostToolUse hook)").set_defaults(func=_find_hook)  # fmt: skip
@@ -831,6 +841,15 @@ def main(argv: list[str] | None = None) -> int:
         help="keep Claude Code's own compaction summary and attach after it what summaries "
         "drop: one-shot command output, the files changed and your requests verbatim "
         "(classic hooks, no model; on by default, --no-guard to leave it out)",
+    )
+    install.add_argument(
+        "--guard-parts",
+        type=int,
+        default=None,
+        metavar="K",
+        help="SessionStart commands the guard's block is split over, each under Claude Code's "
+        "10,000-character inline limit for a hook (default: enough for the 44,000-character "
+        "budget, 6; 1 for the single capped block)",
     )
     install.add_argument(
         "--guard-profile",

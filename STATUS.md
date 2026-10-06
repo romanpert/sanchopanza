@@ -1,45 +1,77 @@
-# guard-struct: status (2026-10-06, ready to merge)
+# guard-split: status (2026-10-06, built, not run end to end)
 
-Branch `guard-struct`, rebased onto main `aad9903` (clean, no conflicts). Local only, nothing
-pushed, not merged. No paid calls were made.
+Branch `guard-split` from main `7e75533`, worktree `../sanchopanza-guard-split`. Local only,
+nothing pushed, not merged. No paid calls were made.
 
 ## Commits
 
-- `d06baaf` feat: guard keeps whole tool results by structure (struct, the new default chooser)
-- `19a9f1d` feat: struct budget 44,000 characters, block capped under Claude Code's inline limit
-- `fbc2a16` docs: guard-struct replay, decision and inline cap; struct is the default guard chooser
+- `a87508a` feat: split the guard's block over several SessionStart hooks, each under Claude
+  Code's inline limit
+- `d9572c0` test: split guard parts, hook files and install; offline-tested live probe (not run)
+- docs: this file, README, CHANGELOG, docs/adapters.md, the guard-struct results README
 
-## What is in it
+## The premise, read in the installed binary (2.1.287, read only)
 
-- `context/structural.py`: the structural keep (see the previous status for the order).
-  `STRUCT_CHARS` = 44,000 (about 20k tokens), with the budget table from the replay in its
-  comment. `INLINE_CHARS` = 9,500 caps the whole block; results get the room the requests,
-  trail and pointers leave under it (`room_for_results`), about 3,900 to 7,000 characters.
-  `FENCE` is 16 (was 12; a kept result's cost now equals what it adds to the block, tested).
-- `harness/guard_hook.py`: `GUARD_STRUCT_CHARS` (default 44000), `GUARD_POINTER_CHARS` (1500),
-  `GUARD_INLINE_CHARS` (9500, 0 = no cap).
-- Why the cap: Claude Code 2.1.282 and 2.1.287 (read in the binaries) keep a hook's
-  `additionalContext` (and stdout) inline only up to 10,000 characters (threshold `1e4`); past
-  that the text goes to a file and the model sees a `<persisted-output>` notice with a
-  2,000-character preview and the path. A 44,000-character block would have reached the model
-  as 2,000 characters. Contexts of several SessionStart hooks are capped one by one and then
-  concatenated (no aggregate cap seen), so 44,000 inline needs the block split over several
-  hook commands.
-- `GUARD_POINTER_CHARS` 1,500 kept: about 10 to 20 pointers, 16 % of the capped block.
-- Docs: `docs/results/2026-10-05-guard-struct/README.md` (new), `README.md`, `docs/adapters.md`,
-  `docs/where-it-pays.md`, `CHANGELOG.md` now describe `struct` as the default.
+- `Pde(text, id, kind, {threshold = U3o})` with `U3o = 1e4`: `if (e.length <= s) return e`, else
+  the text is written to disk and replaced by `I_e(...)`, the `<persisted-output>` notice with a
+  2,000-character preview (`eAe = 2000`).
+- The hook runner calls `Pde(ko.additionalContext, \`${s}-${po}\`, "additionalContext")` once
+  per hook result and yields `{additionalContexts: [ur]}`: the cap is per hook command.
+- `RY(session, "compact", ...)` (the SessionStart dispatch, called from the compaction code)
+  pushes every `additionalContexts` into one list `Re` and builds one attachment
+  `{type: "hook_additional_context", content: Re, hookEvent: "SessionStart"}`. No aggregate cap
+  there (the per-dispatch cap `Nin`, 200,000, is for plugin `prompt.submit` only).
+- Rendering: `hook_additional_context: (e) => ... \`${e.hookName} hook additional context:
+  ${e.content.join("\n")}\``: one message, parts joined by a newline.
+- Order: the hooks run concurrently through `wsn`, which yields with `Promise.race`, so the
+  parts arrive in the order the commands finish. Hence "part i of N" on every part.
+
+## Design
+
+- `context/parts.py`: `split_calls` packs results in `structural.order` first-fit into K rooms
+  (part 1's room is what the requests, trail and pointers leave; the others' is the cap minus
+  their header), within GUARD_STRUCT_CHARS overall. A result never spans parts; one bigger than
+  a part gets a pointer if re-readable, else is lost. K = 1 or no cap is today's block exactly.
+  Raises if a part would exceed the cap.
+- `structural.pack` replaces `choose`'s loop (`choose` is the one-room case); sizes count UTF-16
+  code units (`structural.width`).
+- `harness/guard_hook.py`: `--parts K` on PreCompact writes `<session>.part1..K.json` (empty past
+  N); `--part i --parts K` on SessionStart reads and removes only its own file; missing or stale
+  file: a single block kept by an older PreCompact goes to part 1 only, else the split is
+  rebuilt from the transcript (pure, so all parts agree). Any error while splitting: the rule's
+  block as part 1, nothing in the others. No `--part`: unchanged.
+- `harness/install_guard.py`: PreCompact `guard-hook --parts K`, one SessionStart(compact) entry
+  with K commands, PostToolUse unchanged. K = `default_parts` = 1 + ceil(struct / inline) = 6
+  (part 1 spends about half its room on requests, trail and pointers); `--guard-parts K`, 1 for
+  the single block. Any `sanchopanza guard-hook [--part...]` command is recognised as ours.
+- `plan()` gained `guard_parts` as its last keyword (`tests/test_install_hooks.py` pin updated).
 
 ## Suite
 
-Full suite after the last code and docs change, on top of `aad9903`:
-`3140 passed, 42 skipped in 443.30s (0:07:23)`. Ruff check and format clean on the changed files.
+`3165 passed, 42 skipped in 368.06s (0:06:08)`. Ruff clean on the changed files (the two
+remaining findings, install.py:485 E501 and test_install_fetch.py:90 SIM300, are on main).
+
+Offline wiring check (free): the probe's own settings run through Git Bash against a synthetic
+transcript of 18 one-shot outputs: 6 parts of 5,748-8,161 characters, 17 of 18 results kept,
+46,550 characters in all, the marker found in the last part, parts read in reverse order.
+
+## The live probe (not run)
+
+    PYTHONPATH=src .venv/Scripts/python.exe benchmarks/guard_split/probe.py              # free
+    PYTHONPATH=src .venv/Scripts/python.exe benchmarks/guard_split/probe.py --run --cap 0.60
+
+Haiku 4.5, three `claude -p` calls (18 Bash emits, `/compact`, one question), each under
+`--max-budget-usd` of what is left of `--cap`; estimate 0.24 USD at list prices (0.15-0.40),
+on the subscription (ANTHROPIC_* and CLAUDE_CODE_* dropped). Temp project, `--setting-sources
+project`; HOME kept for the login. Passes when the attachment holds every part inline (no
+`<persisted-output>`), as many as the guard's log says, and the model returns the hex after a
+label taken from the last part.
 
 ## Open
 
-1. Deliver the measured 44,000 characters: split the block across several `SessionStart`
-   hook commands, each under 10,000 (install writes N entries, the kept file is read by all and
-   swept by age instead of unlinked by the first). Not built; an owner decision.
-2. Inside Claude Code today the block carries about 3,900 to 7,000 characters of results: by the
-   replay, .15 to .28 of needed results, against .12 for the rule.
-3. `struct` has not been run end to end inside Claude Code.
-4. The `rule` chooser's block is not capped; its worst case is near 10,000 characters.
+1. Run the probe (an owner decision: it spends).
+2. Unverified: whether `/compact` through `claude -p --resume` fires PreCompact and
+   SessionStart(compact) there; the probe stops and says so if no boundary is in the transcript.
+3. `benchmarks/adopt/analyze.py` counts `guard_blocks` per non-empty SessionStart output: with
+   the split it would count parts. Sealed; not changed.
+4. Six Python processes start at each compaction (about 0.2 s each here, concurrent).

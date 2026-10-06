@@ -307,8 +307,8 @@ def test_install_guard_wires_three_hooks_once_and_takes_them_out(tmp_path):
     wired = plan(path, HarnessConfig(), guard=True)
     apply(wired)
     hooks = json.loads(path.read_text("utf-8"))["hooks"]
-    for event, matcher in GUARD_HOOKS.items():
-        ours = [e for e in hooks[event] if e["hooks"][0]["command"] == GUARD_COMMAND]
+    for event, matcher in GUARD_HOOKS.items():  # SessionStart: one command per part
+        ours = [e for e in hooks[event] if e["hooks"][0]["command"].startswith(GUARD_COMMAND)]
         assert len(ours) == 1 and ours[0]["matcher"] == matcher
     assert hooks["SessionStart"][0]["hooks"][0]["command"] == "theirs"
     again = plan(path, HarnessConfig(), guard=True)

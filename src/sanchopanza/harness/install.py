@@ -60,8 +60,10 @@ and the approval are owned by the flag: a run without it removes them, and our e
 command hooks that leave Claude Code's own summary in charge and attach, after it, the exact
 lines of command output that cannot be read again, the files changed and the person's requests
 verbatim (`PreCompact` on `manual|auto`, `SessionStart` on `compact`, `PostToolUse` on `Bash`
-for the re-run echo). Classic hooks, no plugin and no early-access flag. Our three entries are
-recognised by their command, and a run without the flag takes them out.
+for the re-run echo). Classic hooks, no plugin and no early-access flag. The `SessionStart` entry
+holds K commands, one part of the block each, because Claude Code keeps each hook's context
+inline only up to 10,000 characters (`harness.install_guard`; `--guard-parts`, 6 by default).
+Our entries are recognised by their command, and a run without the flag takes them out.
 
 `--memory` wires memory between requests and sessions (`harness.memory_hook`,
 `sanchopanza memory-hook`): `Stop` and `SessionEnd` record each finished request verbatim, by
@@ -130,6 +132,9 @@ from .install_defaults import (
     merge_budget,
     merge_profile,
 )
+from .install_guard import GUARD_COMMAND as GUARD_COMMAND
+from .install_guard import GUARD_HOOKS as GUARD_HOOKS
+from .install_guard import default_guard_parts, merge_guard
 
 # The hook-set machinery and the browse sets live in `install_hooks`. The names below are
 # re-exported because sealed benchmarks and tests import them from here.
@@ -152,9 +157,6 @@ FUNCTION_HOOKS = "CLAUDE_CODE_ENABLE_FUNCTION_HOOKS"
 HOOK_MODULE = "compact_hook.ts"
 
 COMMAND = "sanchopanza hook"
-GUARD_COMMAND = "sanchopanza guard-hook"
-# Event -> matcher for the compaction guard (`--guard`, `harness.guard_hook`).
-GUARD_HOOKS = {"PreCompact": "manual|auto", "SessionStart": "compact", "PostToolUse": "Bash"}
 MEMORY_COMMAND = "sanchopanza memory-hook"
 # Event -> matcher for memory between requests and sessions (`--memory`, `harness.memory_hook`).
 MEMORY_HOOKS = {"UserPromptSubmit": "", "Stop": "", "SessionEnd": "",
@@ -370,10 +372,10 @@ def _merge_compact(
 
 
 def _merge_guard(
-    merged: dict[str, Any], on: bool, command: str = GUARD_COMMAND
+    merged: dict[str, Any], on: bool, parts: int | None = None
 ) -> tuple[dict[str, Any], list[str], list[str]]:
-    """The compaction guard's three hooks (`--guard`)."""
-    return _merge_owned(merged, on, GUARD_HOOKS, command, GUARD_COMMAND, "guard")
+    """The compaction guard's hooks (`--guard`), its block split in `parts` (None: the default)."""
+    return merge_guard(merged, on, default_guard_parts() if parts is None else parts)
 
 
 def _merge_memory(
@@ -609,6 +611,7 @@ def _merge(
     fetch_server: bool = False,
     knowledge: bool = False,
     knowledge_server: bool = False,
+    guard_parts: int | None = None,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
         current = {}
@@ -633,7 +636,7 @@ def _merge(
         added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_compact(merged, compact_root)
     added, removed = [*added, *plus], [*removed, *minus]
-    merged, plus, minus = _merge_guard(merged, guard)
+    merged, plus, minus = _merge_guard(merged, guard, guard_parts)
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_candor(merged, candor)
     added, removed = [*added, *plus], [*removed, *minus]
@@ -691,6 +694,7 @@ def plan(
     sources: bool = False,
     fetch: bool = False,
     knowledge: bool = False,
+    guard_parts: int | None = None,
 ) -> Settings:
     current: Any = {}
     if path.exists():
@@ -716,6 +720,7 @@ def plan(
         autopilot=autopilot,
         lean=lean,
         guard=guard,
+        guard_parts=guard_parts,
         candor=candor,
         memory=memory,
         budget=budget,

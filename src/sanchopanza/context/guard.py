@@ -659,11 +659,12 @@ POINTERS_HEADING = (
 )
 
 
-def block(guard: Guard) -> str:
-    """The text added after the summary. Empty when there is nothing to add."""
+def block(guard: Guard, header: str = HEADER) -> str:
+    """The text added after the summary. Empty when there is nothing to add. `header` is the
+    first line (a part of a split block names itself there, `context.parts`)."""
     if guard.empty:
         return ""
-    parts = [HEADER]
+    parts = [header]
     if guard.facts:
         parts.append(RESULTS_HEADING if guard.kind == "results" else LINES_HEADING)
         groups: dict[str, list[str]] = {}
