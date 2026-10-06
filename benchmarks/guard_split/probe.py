@@ -47,9 +47,21 @@ from typing import Any
 
 REPO = Path(__file__).resolve().parents[2]
 SRC = REPO / "src"
-MODEL = "claude-haiku-4-5-20251001"
-# List prices per million tokens for Haiku 4.5 (input, cache write 5 min, cache read, output).
-PRICE = {"input": 1.00, "write": 1.25, "read": 0.10, "output": 5.00}
+MODELS = {
+    "haiku": "claude-haiku-4-5-20251001",
+    "sonnet": "claude-sonnet-5-5",
+    "opus": "claude-opus-5-5",
+}
+# List prices per million tokens (input, cache write 5 min, cache read, output). Opus 5.5 as in
+# benchmarks/meter.py; Sonnet 5.5 is not in that table, so it is priced at Opus's rates, an upper
+# bound. The hard ceiling is Claude Code's own --max-budget-usd, not this table.
+PRICES = {
+    "haiku": {"input": 1.00, "write": 1.25, "read": 0.10, "output": 5.00},
+    "sonnet": {"input": 5.00, "write": 6.25, "read": 0.50, "output": 25.00},
+    "opus": {"input": 5.00, "write": 6.25, "read": 0.50, "output": 25.00},
+}
+MODEL = MODELS["haiku"]
+PRICE = PRICES["haiku"]
 LINES = 60
 DROP = ("ANTHROPIC_", "CLAUDE_CODE_", "CLAUDE_EFFORT", "CLAUDECODE", "CLAUDE_AGENT_SDK",
         "CLAUDE_PID", "SANCHOPANZA_", "SANCHO_", "TYPESAFE_")  # fmt: skip
@@ -68,7 +80,7 @@ def value_of(i: int, n: int) -> str:
     return hashlib.sha256(f"{i}-{n}".encode()).hexdigest()[:32]
 
 
-def estimate(emits: int) -> dict[str, float]:
+def estimate(emits: int, price: dict[str, float] | None = None) -> dict[str, float]:
     """Tokens and USD at list prices. A hex line is about 25 tokens; Claude Code's system prompt
     and tools about 20,000; one turn per command, the context growing by one output each."""
     system, per_output, turns = 20_000, LINES * 25, emits + 1
@@ -82,7 +94,8 @@ def estimate(emits: int) -> dict[str, float]:
         "input": compaction_in,
         "output": turns * 120 + 3_000 + 100,
     }
-    usd = sum(tokens[k] * PRICE[k] / 1_000_000 for k in tokens)
+    rates = PRICE if price is None else price
+    usd = sum(tokens[k] * rates[k] / 1_000_000 for k in tokens)
     return {**{f"{k}_tokens": float(v) for k, v in tokens.items()}, "usd": round(usd, 3)}
 
 
@@ -240,15 +253,23 @@ def finish(report: dict[str, Any], root: Path, args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--run", action="store_true", help="spend: one real session (Haiku)")
+    parser.add_argument("--run", action="store_true", help="spend: one real session")
+    parser.add_argument(
+        "--model",
+        choices=sorted(MODELS),
+        default="haiku",
+        help="haiku checks the mechanism; sonnet and opus check the use",
+    )
     parser.add_argument("--cap", type=float, default=0.0, help="hard ceiling in USD (required)")
     parser.add_argument("--parts", type=int, default=6)
     parser.add_argument("--emits", type=int, default=18)
     parser.add_argument("--root", default="", help="folder for the project (default: temp)")
     parser.add_argument("--keep", action="store_true", help="keep the throwaway project")
     args = parser.parse_args(argv)
+    global MODEL, PRICE
+    MODEL, PRICE = MODELS[args.model], PRICES[args.model]
     cost = estimate(args.emits)
-    print(f"estimate: {cost['usd']:.2f} USD at list prices (range about 0.15 to 0.40); "
+    print(f"model {MODEL}; estimate: {cost['usd']:.2f} USD at list prices; "
           f"tokens {json.dumps({k: int(v) for k, v in cost.items() if k != 'usd'})}")  # fmt: skip
     print("settings:", json.dumps(settings(Path(sys.executable), args.parts))[:400], "...")
     if not args.run:
