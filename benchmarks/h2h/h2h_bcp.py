@@ -65,7 +65,7 @@ LEAK_WORD = "BrowseComp"
 # local retriever a session reads more and searches more, so S and N get twice GAIA's caps.
 CAPS = {key: round(2 * value, 2) for key, value in gaia.CAPS.items()}
 # bcp-dev runs beside longdoc-dev under one ceiling for both (--joint-with), at most this.
-PHASE_CEILINGS = {"bcp-dev": 50.0, "bcp-conf": 150.0}  # conf: prereg 2026-10-06
+PHASE_CEILINGS = {"bcp-dev": 50.0, "bcp-conf": 250.0}  # conf: prereg 2026-10-06, amendment 2
 EXTRA_ALLOW = ("mcp__bcp__search", "mcp__bcp__get_document")
 
 

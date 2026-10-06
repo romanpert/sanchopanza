@@ -106,7 +106,8 @@ MODELS = {
 CAPS = {"FABLE": 6.00, "OPUS": 3.00, "SONNET": 1.50, "HAIKU": 0.75}
 ARMS = ("CC", "SP")
 DEFAULT_CEILING_USD = 10.0
-MAX_CEILING_USD = 150.0  # above this, edit the file: the owner's rule is to ask past 10 USD
+# Above this, edit the file: the owner's rule is to ask past 10 USD (250: conf amendment 2).
+MAX_CEILING_USD = 250.0
 TIMEOUT_S = 2400
 TOOLS = "Bash Read Grep Glob Write Edit NotebookEdit WebSearch WebFetch Task Agent TodoWrite"
 DISALLOWED = "SendMessage ListAgents ScheduleWakeup CronCreate RemoteTrigger"

@@ -197,3 +197,14 @@ cap > 20). The owner approved raising the LongBench ceiling to **25 USD** (asked
 was launched with; if it stops at 20 it is resumed with `--ceiling 25` (resume skips what is
 done). Nothing else changes: same tasks, arms, line and analysis. Seen before deciding: per-arm
 cost and success so far (not used for any other change).
+
+## Amendment 2 (2026-10-06 13:55, before the ceiling was reached)
+
+BrowseComp-Plus ran at about 1.3 USD per session over its first 10 sessions (S 1.57, N 1.06;
+dev: S0 0.78, N 0.46), which projects ~237 USD for 180 sessions against the 150 USD ceiling (a
+stop near task 55 of 90). The owner chose to raise the BCP ceiling to **250 USD** (asked in chat
+at 13:52; the other options were to truncate at 150 or to stop). Code: `PHASE_CEILINGS
+["bcp-conf"] = 250.0` and `MAX_CEILING_USD` 150 -> 250 (the hard cap any phase can be given).
+The running process keeps its 150; when it stops there it is resumed with `--ceiling 250`.
+Nothing else changes. Seen before deciding: per-arm cost of the first 5 tasks, no grades (BCP
+is graded after its sessions).

@@ -903,7 +903,7 @@ def test_a_confirmation_takes_blind_verdicts_only():
 
 def test_confirmation_ceilings_are_in_the_code():
     assert gaia.PHASE_CEILINGS["gaia-conf"] == 40.0
-    assert bcp.PHASE_CEILINGS["bcp-conf"] == 150.0
+    assert bcp.PHASE_CEILINGS["bcp-conf"] == 250.0
     with pytest.raises(SystemExit):
         gaia.ceiling(41.0, "gaia-conf")
     assert gaia.ceiling(40.0, "gaia-conf") == 40.0
