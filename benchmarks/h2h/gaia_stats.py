@@ -10,7 +10,9 @@ SP's cost), with a fixed seed.
 
 from __future__ import annotations
 
+import json
 import math
+import pathlib
 import random
 import statistics
 from collections.abc import Mapping, Sequence
@@ -110,6 +112,45 @@ def bootstrap_cost(a: Sequence[float], b: Sequence[float], *, replicas: int = RE
         "ratio": round(sum(a) / n / mean_b, 3) if mean_b else None,
         "ratio_ci95": [round(ratios[lo], 3), round(ratios[hi], 3)],
     }
+
+
+KEY_FIELDS = ("task", "arm", "run")
+
+
+def blind_sheet(items: Sequence[Mapping[str, Any]], sheet: pathlib.Path, key: pathlib.Path,
+                seed: int = SEED) -> int:  # fmt: skip
+    """A hand read with no arm in sight: each item's content under an opaque id, shuffled, in
+    `sheet`; the id -> (task, arm, run) map in `key`, which the reader never opens. Private
+    files: the content carries the set's questions and answers."""
+    order = list(items)
+    random.Random(seed).shuffle(order)
+    ids = [f"r{n:04d}" for n in range(1, len(order) + 1)]
+    content = [{"id": i, **{k: v for k, v in x.items() if k not in KEY_FIELDS}}
+               for i, x in zip(ids, order, strict=True)]  # fmt: skip
+    keys = [{"id": i, **{k: x[k] for k in KEY_FIELDS}} for i, x in zip(ids, order, strict=True)]
+    sheet.write_text("".join(json.dumps(x, ensure_ascii=False) + "\n" for x in content),
+                     encoding="utf-8")  # fmt: skip
+    key.write_text("".join(json.dumps(x) + "\n" for x in keys), encoding="utf-8")
+    return len(content)
+
+
+def blind_verdicts(answers: pathlib.Path, key: pathlib.Path) -> list[dict[str, Any]]:
+    """The reader's {"id", "ok"} lines turned back into hand verdicts through `key`; an id the
+    key does not hold is refused, never guessed."""
+    keys = {}
+    for line in key.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            entry = json.loads(line)
+            keys[entry["id"]] = entry
+    out = []
+    for line in answers.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        given = json.loads(line)
+        if given.get("id") not in keys:
+            raise ValueError(f"verdict for an id the key does not hold: {given.get('id')!r}")
+        out.append({**{k: keys[given["id"]][k] for k in KEY_FIELDS}, "ok": bool(given["ok"])})
+    return out
 
 
 MARGIN_POINTS = 2.0  # non-inferiority margin on success, fixed before any run (plan, section 2)

@@ -446,10 +446,14 @@ def test_blind_review_shuffles_and_hides_the_arm(tmp_path, monkeypatch):
     monkeypatch.setattr(bcp_data, "password", lambda: "pw")
     rows = [_row("a", "SONNET-SP", False, True, judge_done=True),
             _row("a", "SONNET-CC", True, None)]  # fmt: skip
-    path = tmp_path / "r.jsonl"
-    assert bcp.blind_review(rows, {}, path) == 1
-    item = json.loads(path.read_text(encoding="utf-8"))
+    path, key = tmp_path / "r.jsonl", tmp_path / "k.jsonl"
+    assert bcp.blind_review(rows, {}, path, key) == 1
+    text = path.read_text(encoding="utf-8")
+    item = json.loads(text)
     assert item["question"] == "Q" and item["gold"] == "G" and "arm" not in item
+    # before 2026-10-06 the sheet's "key" field spelled the arm out on the line the reader reads
+    assert "SONNET" not in text and "SP" not in text.replace(item["id"], "")
+    assert json.loads(key.read_text(encoding="utf-8"))["arm"] == "SONNET-SP"
 
 
 def test_bcp_plan_is_free(capsys):

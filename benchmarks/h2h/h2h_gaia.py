@@ -613,7 +613,8 @@ def paths(phase_name: str) -> dict[str, pathlib.Path]:
     return {
         "sessions": own / "sessions.jsonl",
         "hand": own / "hand.jsonl",
-        "review": own / "review.json",
+        "review": own / "review-blind.jsonl",
+        "review_key": own / "review-key.jsonl",
         "report": RESULTS / f"report-{phase_name}.json",
     }
 
@@ -638,6 +639,28 @@ def to_review(rows: Sequence[Mapping[str, Any]], hand: Mapping[tuple, bool]) -> 
     ]
 
 
+def blind_review(rows: Sequence[Mapping[str, Any]], hand: Mapping[tuple, bool],
+                 sheet: pathlib.Path, key: pathlib.Path) -> int:  # fmt: skip
+    """The sessions of `to_review` for a blind hand read: question, gold, final answer and the
+    scorer's doubt under an opaque id, no arm (`stats.blind_sheet`). Private, never printed."""
+    by_id = {t.task_id: t for t in data.load()}
+    by_key = {(r["task"], r["arm"], r["run"]): r for r in rows}
+    items = [{**{k: p[k] for k in ("task", "arm", "run")},
+              "question": by_id[p["task"]].question, "gold": by_id[p["task"]].gold,
+              "answer": by_key[(p["task"], p["arm"], p["run"])].get("final_answer"),
+              "why": p["why"]} for p in to_review(rows, hand)]  # fmt: skip
+    return stats.blind_sheet(items, sheet, key)
+
+
+def apply_blind(answers: pathlib.Path, key: pathlib.Path, hand: pathlib.Path) -> int:
+    """A blind reader's {"id", "ok"} verdicts appended to the hand verdicts through the key."""
+    verdicts = stats.blind_verdicts(answers, key)
+    with hand.open("a", encoding="utf-8") as sink:
+        for v in verdicts:
+            sink.write(json.dumps(v) + "\n")
+    return len(verdicts)
+
+
 def report(rows: Sequence[Mapping[str, Any]], hand: Mapping[tuple, bool]) -> dict[str, Any]:
     """Counts, costs and task ids only, per arm, and the paired comparison per model."""
     spent = round(sum(r["list_usd"] for r in rows), 2)
@@ -659,6 +682,8 @@ def parse(argv: Sequence[str] | None = None) -> argparse.Namespace:
     for flag in ("--plan", "--preflight", "--check-models", "--live", "--review", "--draw-dev"):
         mode.add_argument(flag, action="store_true")
     mode.add_argument("--verdict", nargs=4, metavar=("TASK", "ARM", "RUN", "YES_NO"))
+    mode.add_argument("--apply-blind", metavar="VERDICTS_JSONL",
+                      help="a blind reader's {id, ok} lines, mapped back through the key")
     ap.add_argument("--phase", default="dev", help="rows, folders and report are per phase")
     ap.add_argument("--models", nargs="+", default=["SONNET"], choices=sorted(MODELS))
     ap.add_argument("--brazos", nargs="+", default=["CC", "SP"], choices=ARMS)
@@ -729,6 +754,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             sink.write(json.dumps({"task": task, "arm": arm, "run": int(run),
                                    "ok": yes.lower() in ("yes", "y", "si")}) + "\n")  # fmt: skip
         return 0
+    if args.apply_blind:
+        n = apply_blind(pathlib.Path(args.apply_blind), files["review_key"], files["hand"])
+        print(f"{n} blind verdicts added to {files['hand']}")
+        return 0
     steps = planned(chosen(args), args.models, args.brazos)
     if args.plan:
         for i, item, run, arm in steps:
@@ -756,9 +785,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     counted = phase.counted(rows)
     hand = hand_verdicts(files["hand"])
     if args.review:
-        pending = to_review(counted, hand)
-        files["review"].write_text(json.dumps(pending, indent=1), encoding="utf-8")
-        print(f"{len(pending)} sessions to read by hand: {files['review']}")
+        n = blind_review(counted, hand, files["review"], files["review_key"])
+        print(f"{n} sessions to read blind: {files['review']} (the key stays unopened)")
         return 0
     if counted:
         result = report(counted, hand)

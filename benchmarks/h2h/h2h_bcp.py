@@ -249,7 +249,8 @@ def judge_pending(rows: Sequence[Mapping], ceiling: float) -> tuple[int, list[di
 def paths(phase_name: str) -> dict[str, pathlib.Path]:
     own = PRIVATE / phase_name
     return {"sessions": own / "sessions.jsonl", "hand": own / "hand.jsonl",
-            "review": own / "review-blind.jsonl", "graded": own / "graded.jsonl",
+            "review": own / "review-blind.jsonl", "review_key": own / "review-key.jsonl",
+            "graded": own / "graded.jsonl",
             "report": RESULTS / f"report-{phase_name}.json"}  # fmt: skip
 
 
@@ -268,22 +269,21 @@ def graded_ok(row: Mapping[str, Any], hand: Mapping[tuple, bool]) -> bool:
                              hand.get((row["task"], row["arm"], row["run"])))  # fmt: skip
 
 
-def blind_review(rows: Sequence[Mapping], hand: Mapping[tuple, bool], path: pathlib.Path) -> int:
-    """The doubtful rows for a person, shuffled, with no arm: question, gold, extracted answer,
-    and a key to give the verdict back. Written to the private cache, never printed."""
+def blind_review(rows: Sequence[Mapping], hand: Mapping[tuple, bool], path: pathlib.Path,
+                 key: pathlib.Path) -> int:  # fmt: skip
+    """The doubtful rows for a person, shuffled, with no arm: question, gold and extracted
+    answer under an opaque id; the id -> (task, arm, run) map in `key`, which the reader never
+    opens (`stats.blind_sheet`). Written to the private cache, never printed."""
     by_id = {q.query_id: q for q in bcp_data.load()}
     secret = bcp_data.password()
     todo = [r for r in rows if r.get("judge_done")
             and bcp_grade.doubtful(bool(r.get("em")), r.get("judged"))
             and (r["task"], r["arm"], r["run"]) not in hand]  # fmt: skip
-    items = [{"key": f"{r['task']} {r['arm']} {r['run']}",
+    items = [{"task": r["task"], "arm": r["arm"], "run": r["run"],
               "question": bcp_data.decrypt(by_id[r["task"]].query, secret),
               "gold": bcp_data.decrypt(by_id[r["task"]].answer, secret),
               "answer": r.get("final_answer")} for r in todo]  # fmt: skip
-    random.Random(SEED).shuffle(items)
-    path.write_text("".join(json.dumps(x, ensure_ascii=False) + "\n" for x in items),
-                    encoding="utf-8")  # fmt: skip
-    return len(items)
+    return stats.blind_sheet(items, path, key, seed=SEED)
 
 
 def arm_cell(mine: Sequence[Mapping], hand: Mapping[tuple, bool]) -> dict[str, Any]:
@@ -334,6 +334,8 @@ def parse(argv: Sequence[str] | None = None) -> argparse.Namespace:
     for flag in ("--plan", "--preflight", "--live", "--judge", "--review", "--draw", "--draw-dev"):
         mode.add_argument(flag, action="store_true")
     mode.add_argument("--verdict", nargs=4, metavar=("QID", "ARM", "RUN", "YES_NO"))
+    mode.add_argument("--apply-blind", metavar="VERDICTS_JSONL",
+                      help="a blind reader's {id, ok} lines, mapped back through the key")
     ap.add_argument("--phase", default="bcp-dev")
     ap.add_argument("--models", nargs="+", default=["SONNET"], choices=sorted(gaia.MODELS))
     ap.add_argument("--brazos", nargs="+", default=["CC", "SP"], choices=gaia.ARMS)
@@ -387,6 +389,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             sink.write(json.dumps({"task": qid, "arm": arm, "run": int(run),
                                    "ok": yes.lower() in ("yes", "y", "si")}) + "\n")  # fmt: skip
         return 0
+    if args.apply_blind:
+        n = gaia.apply_blind(pathlib.Path(args.apply_blind), files["review_key"], files["hand"])
+        print(f"{n} blind verdicts added to {files['hand']}")
+        return 0
     steps = planned(chosen(args), args.models, args.brazos)
     if args.plan:
         for i, item, run, arm in steps:
@@ -416,7 +422,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                                            for r in judged), encoding="utf-8")  # fmt: skip
         counted = judged
     if args.review:
-        n = blind_review(counted, hand, files["review"])
+        n = blind_review(counted, hand, files["review"], files["review_key"])
         print(f"{n} sessions to read blind: {files['review']}")
         return 0
     if counted:
