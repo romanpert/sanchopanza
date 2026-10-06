@@ -1,0 +1,221 @@
+{
+ "sessions": 180,
+ "list_usd": 132.39,
+ "by_arm": {
+  "SONNET-CC": {
+   "sessions": 90,
+   "ok_oficial": 49,
+   "ok_with_hand": 49,
+   "total_usd": 61.0171,
+   "usd_per_correct": 1.2452,
+   "mean_usd": 0.678,
+   "median_usd": 0.4943,
+   "mean_turns": 15.1,
+   "median_turns": 13.0,
+   "mean_wall_s": 93.9,
+   "median_wall_s": 67.15,
+   "tokens_total": {
+    "input": 2462,
+    "cache_read": 92398863,
+    "cache_write": 9121484,
+    "output": 646065,
+    "web_searches": 0
+   },
+   "tools": {
+    "Agent": 3,
+    "Bash": 15,
+    "Grep": 25,
+    "PowerShell": 6,
+    "Read": 7,
+    "ToolSearch": 90,
+    "mcp__bcp__get_document": 60,
+    "mcp__bcp__search": 1144
+   },
+   "hooks_with_output": {},
+   "sp_hook_calls": {},
+   "sessions_with_sp_hooks": 0,
+   "jev_calls": 0,
+   "jev_by_point": {},
+   "jev_errors": 0,
+   "jev_error_kinds": {},
+   "jev_usd": 0.0,
+   "hit_cap": 0,
+   "leak": [],
+   "no_final_answer": 0,
+   "denied": 80,
+   "em": 35,
+   "judge_yes_without_em": 14,
+   "unjudged": 0,
+   "mean_search_calls": 12.7111,
+   "mean_get_calls": 0.6667,
+   "mean_evidence_recall": 0.3369,
+   "mean_gold_recall": 0.3986,
+   "mean_citation_precision": 0.6194,
+   "judge_usd": 0.9778
+  },
+  "SONNET-SP": {
+   "sessions": 90,
+   "ok_oficial": 56,
+   "ok_with_hand": 56,
+   "total_usd": 71.4056,
+   "usd_per_correct": 1.2751,
+   "mean_usd": 0.7934,
+   "median_usd": 0.4672,
+   "mean_turns": 17.6,
+   "median_turns": 11.5,
+   "mean_wall_s": 118.7,
+   "median_wall_s": 81.9,
+   "tokens_total": {
+    "input": 514806,
+    "cache_read": 84539793,
+    "cache_write": 11344030,
+    "output": 827499,
+    "web_searches": 0
+   },
+   "tools": {
+    "Agent": 6,
+    "Bash": 11,
+    "Grep": 26,
+    "PowerShell": 7,
+    "Read": 9,
+    "ToolSearch": 92,
+    "mcp__bcp__get_document": 69,
+    "mcp__bcp__search": 1324,
+    "mcp__sanchopanza-fetch__fetch_passages": 4
+   },
+   "hooks_with_output": {
+    "PostToolUse:Agent other": 7,
+    "PostToolUse:Agent sanchopanza": 7,
+    "PostToolUse:Bash other": 1,
+    "PostToolUse:Grep other": 9,
+    "SessionStart other": 38,
+    "SessionStart:compact sanchopanza": 38,
+    "UserPromptSubmit other": 10
+   },
+   "sp_hook_calls": {
+    "candor-hook": 3236,
+    "crawl-hook": 222,
+    "guard-hook": 77,
+    "hook": 124,
+    "memory-hook": 406
+   },
+   "sessions_with_sp_hooks": 90,
+   "jev_calls": 988,
+   "jev_by_point": {
+    "injection": 2,
+    "memory_standing_rule": 984,
+    "review": 2
+   },
+   "jev_errors": 0,
+   "jev_error_kinds": {},
+   "jev_usd": 0.03364,
+   "hit_cap": 0,
+   "leak": [],
+   "no_final_answer": 0,
+   "denied": 79,
+   "em": 35,
+   "judge_yes_without_em": 21,
+   "unjudged": 0,
+   "mean_search_calls": 14.7111,
+   "mean_get_calls": 0.7667,
+   "mean_evidence_recall": 0.362,
+   "mean_gold_recall": 0.4849,
+   "mean_citation_precision": 0.6333,
+   "judge_usd": 0.9885
+  }
+ },
+ "paired": {
+  "SONNET": {
+   "tasks": 90,
+   "a": "SONNET-SP",
+   "b": "SONNET-CC",
+   "oficial": {
+    "a_ok": 56,
+    "b_ok": 49,
+    "a_only": 10,
+    "b_only": 3,
+    "p": 0.0923,
+    "a_only_tasks": [
+     "1134",
+     "280",
+     "309",
+     "542",
+     "674",
+     "760",
+     "786",
+     "8",
+     "827",
+     "893"
+    ],
+    "b_only_tasks": [
+     "1212",
+     "250",
+     "357"
+    ],
+    "diff_points": 7.78,
+    "diff_points_ci95": [
+     0.0,
+     15.56
+    ]
+   },
+   "with_hand": {
+    "a_ok": 56,
+    "b_ok": 49,
+    "a_only": 10,
+    "b_only": 3,
+    "p": 0.0923,
+    "a_only_tasks": [
+     "1134",
+     "280",
+     "309",
+     "542",
+     "674",
+     "760",
+     "786",
+     "8",
+     "827",
+     "893"
+    ],
+    "b_only_tasks": [
+     "1212",
+     "250",
+     "357"
+    ],
+    "diff_points": 7.78,
+    "diff_points_ci95": [
+     0.0,
+     15.56
+    ]
+   },
+   "cost": {
+    "mean_diff": 0.1154,
+    "diff_ci95": [
+     0.0049,
+     0.2259
+    ],
+    "ratio": 1.17,
+    "ratio_ci95": [
+     1.007,
+     1.356
+    ]
+   },
+   "wall": {
+    "mean_diff": 24.8144,
+    "diff_ci95": [
+     9.4467,
+     40.7756
+    ],
+    "ratio": 1.264,
+    "ratio_ci95": [
+     1.096,
+     1.454
+    ]
+   }
+  }
+ },
+ "verdict": {
+  "SONNET": "no gana"
+ },
+ "unjudged": 0,
+ "grading": "exact match after normalisation, else the official judge template on claude-haiku-4-5-20251001 (official: Qwen3-32B), hand verdicts first"
+}
