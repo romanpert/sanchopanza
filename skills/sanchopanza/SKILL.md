@@ -52,8 +52,9 @@ because rewriting `tools` invalidates the whole prompt cache. Outside it: Meta m
 static analysis, with the same false-positive rate, from batch to diff time and its fix rate
 went from near zero to over 70 %.
 
-Cost check before you build: one decision is about 29 millionths of a dollar, and there are
-three different ways that can be worth something. It **substitutes** for a call some model
+Cost check before you build: one decision request (about twelve questions) costs a median of
+71 millionths of a dollar and a mean of 167, a lone Choice about 30, and there are three
+different ways that can be worth something. It **substitutes** for a call some model
 was going to make anyway (verify this citation, match this pair, check this triple): the
 saving is a price ratio, 24x to 119x by list price, and it is the only one of the three whose
 arithmetic is safe. It **avoids** tokens entering a context: worth less than it looks,

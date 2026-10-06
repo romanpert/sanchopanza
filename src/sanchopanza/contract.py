@@ -149,6 +149,16 @@ class DeciderUnavailable(RuntimeError):
     """The provider cannot answer. Callers continue with their default; they never stop."""
 
 
+class DeciderOutOfFunds(DeciderUnavailable):
+    """The provider refused for lack of funds (HTTP 402). Still fail-open, but it is not an
+    outage that passes: nothing will answer until someone tops up, so it must be said aloud
+    (`sanchopanza.funds`)."""
+
+    def __init__(self, message: str, status: int = 402) -> None:
+        super().__init__(message)
+        self.status = status
+
+
 @runtime_checkable
 class Decider(Protocol):
     """The only thing a harness knows about a decision provider."""

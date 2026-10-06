@@ -25,8 +25,8 @@ A cheap, calibrated second opinion for the small yes/no calls an agent makes.
 safe to run, is this page worth reading, is the task really done. Today the same large model
 that does the work answers each one, at its price, and leaves no record of why. Sanchopanza
 hands those questions to a separate model that cannot write, only answer: a choice or a
-probability, logged, for about 29 millionths of a dollar each. If it is missing or unsure,
-the agent does exactly what it did before.
+probability, logged, for a median of about 71 millionths of a dollar a request. If it is
+missing or unsure, the agent does exactly what it did before.
 
 **Who it is for.** Anyone running AI agents who wants to spend less on them and trust them
 more: people who use Claude Code every day, teams that run agents on real work, and the
@@ -81,8 +81,8 @@ ones, which model size this subtask deserves, whether this search repeats an ear
 whether this page is worth reading, whether this citation holds, whether this shell command
 is safe, happen dozens to hundreds of times per job, get paid at the large model's price, and
 leave no trace of why they were taken. Sanchopanza moves those to a model that returns a
-typed choice, a scale position or a probability, **never text**, at 29 millionths of a dollar
-and a median latency, measured client-side, of 235-344 ms for most points and up to 546 ms
+typed choice, a scale position or a probability, **never text**, at a median of 71 millionths
+of a dollar a request (about twelve questions; mean 167) and a median latency, measured client-side, of 235-344 ms for most points and up to 546 ms
 for the pairwise dependency point. It attaches through the hooks and tools your harness
 already has.
 
@@ -167,7 +167,7 @@ The rule that falls out of it: a cheap decision pays reliably when it **replaces
 because the saving is then a price ratio and not a bet on the workload's shape. It pays
 unreliably when it tries to keep tokens out of a context, because inside a warm loop those
 tokens are priced at the cache-read rate. And it pays a third way that is not a saving at
-all: at 29 millionths a decision, checks that were too expensive to run on everything become
+all: at tens of millionths of a dollar a question, checks that were too expensive to run on everything become
 cheap enough to run on everything. The full argument and the catalog of levers ranked by how
 sure we are: **[docs/where-it-pays.md](docs/where-it-pays.md)**.
 
@@ -355,13 +355,15 @@ tested with fake providers only.
 
 | | |
 |---|---|
-| One decision | **29 millionths of a dollar**, output included, because this model's output is free |
+| One decision request (about 12 questions) | **71 millionths of a dollar** median, 167 mean, output included, because this model's output is free (0.042 USD per million input tokens) |
+| A request with one question | about 30 millionths for a Choice, 101 for a Truth, 355 for a Score |
+| Share of an agent session's bill with Sanchopanza installed | **0.25 % to 1.8 %** |
 | **Against Claude Opus 5, the same 211 judgments, both arms metered** | **131x cheaper, 10.9x faster, two decisions less accurate** |
 | **Against Claude Opus 5.5, the same 211 judgments** | **the same accuracy (200 against 199), about 100x cheaper**; Opus 5 still got 204 |
 | The same tokens on Claude Sonnet 5, input only | **48x** more |
 | The same tokens as a Sonnet 5 **cache read** (0.1x input) | **4.8x** more, and this is the honest comparison inside a warm loop |
 | Against Claude Haiku 4.5, tool-forced, same cases | **49x cheaper, 3x faster**, comparable accuracy |
-| Against a hosted evaluation meter (Azure, Vertex legacy), per 1,000 judgments | 0.029 USD against about 42 USD: **~1,450x** |
+| Against a hosted evaluation meter (Azure, Vertex legacy), per 1,000 judgments of 1,500 input tokens | 0.063 USD against about 42 USD: **~670x** |
 
 The second row is the one to read, because both sides of it are measured rather than quoted
 from a tariff. Building a second annotator for our own bench meant asking a frontier model

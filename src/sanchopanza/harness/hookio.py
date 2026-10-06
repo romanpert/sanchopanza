@@ -40,7 +40,10 @@ def stdout_text(text: str) -> None:
 
 
 def stdout_json(payload: Any) -> None:
-    stdout_text(json.dumps(payload))  # ASCII-escaped: safe on any console code page
+    """Print a hook's JSON. An object also carries the out-of-funds notice when one is due."""
+    from ..funds import with_notice
+
+    stdout_text(json.dumps(with_notice(payload)))  # ASCII-escaped: safe on any console code page
 
 
 def state_dir() -> Path:

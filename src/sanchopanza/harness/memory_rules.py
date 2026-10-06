@@ -142,7 +142,7 @@ async def extract(squire: Squire, store: Path, episodes: Sequence[ep.Episode]) -
 
     async def ask(sentence: str, request: str) -> float | None:
         state, qs = points.questions_for_sentence(sentence, request)
-        decision = await squire.decide("memory_standing_rule", state, qs)
+        decision = await _decided(squire, "memory_standing_rule", state, qs)
         answer = decision.answer("rule")
         return None if decision.failed or answer.empty else answer.truth
 
@@ -164,6 +164,14 @@ async def extract(squire: Squire, store: Path, episodes: Sequence[ep.Episode]) -
         done = [e.key for e in fresh if e.key not in unanswered and e.key not in data["asked"]]
         _save(store, {**data, "rules": rules[:KEEP_MAX], "asked": [*data["asked"], *done][-2000:]})
     return [r["text"] for r in added]
+
+
+async def _decided(squire: Squire, point: str, state: Any, questions: Any) -> Any:
+    """`squire.decide` and its journal row: these points spent without a trace until 2026-10-06
+    (the Jev audit could not meter them), and their failures, a 402 among them, went unseen."""
+    decision = await squire.decide(point, state, questions)
+    squire.record(decision)
+    return decision
 
 
 def _when(at: Any) -> str:
@@ -301,7 +309,7 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
     state, questions = points.questions_for_rules(
         [(redact_secrets(str(held[i]["text"])),
           [redact_secrets(str(f)) for f in held[i].get("files") or []]) for i in order], change)
-    seen = await squire.decide("memory_rule_all", state, questions)
+    seen = await _decided(squire, "memory_rule_all", state, questions)
     answer = seen.answer("broken")
     if seen.failed or answer.empty:  # nothing named: the request stays as it was, asked again
         return [], {"_failed": "memory_rule_all"}
@@ -311,7 +319,7 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
 
     async def ask(rule: Mapping[str, Any]) -> float | None:
         """`kept` of a rule the side-by-side Choice named; None on a failure."""
-        decision = await squire.decide("memory_rule_check",
+        decision = await _decided(squire, "memory_rule_check",
                                        *points.questions_for_change(str(rule["text"]), change))
         kept = decision.answer("kept")
         return None if decision.failed or kept.empty else kept.truth
@@ -326,7 +334,7 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
     async def relation(rule: Mapping[str, Any]) -> str | None:
         """The three-way relation's first answer for a rule `kept` judged broken."""
         questions = points.questions_for_relation(str(rule["text"]), change)
-        decision = await squire.decide("memory_rule_relation", *questions)
+        decision = await _decided(squire, "memory_rule_relation", *questions)
         answer = decision.answer("relation")
         if decision.failed or answer.empty:
             return None
@@ -444,7 +452,7 @@ async def _replaced_one(squire: Squire, rule: Mapping[str, Any],
     offered = {f"newer_{k}": item for k, item in enumerate(newer, 1)}
     row: dict[str, Any] = {"event": "rules", "part": "superseded", "rule": str(rule["text"])}
     try:
-        decision = await squire.decide("memory_rule_superseded",
+        decision = await _decided(squire, "memory_rule_superseded",
                                        *questions_for_superseded(rule, newer))  # fmt: skip
         answer = decision.answer("superseded")
         probs = {str(k): float(v) for k, v in (answer.probabilities or {}).items()}

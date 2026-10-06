@@ -24,7 +24,10 @@ once, and the estimated cost of a tool window.
 The public bench is 227 decisions over 154,886 input tokens (the plan's 56 pairwise calls are
 counted apart),
 and it cost **0.0065 USD**. That is **28.7 millionths of a
-dollar per decision**, output included, because this model's output is free.
+dollar per call** on these short single-question states, output included, because this
+model's output is free. A real decision request carries about twelve questions and costs a
+median of 71 millionths and a mean of 167; a request with one Choice costs about 30, with one
+Truth about 101, with one Score about 355.
 
 The same input tokens, priced as input alone and ignoring any output the model would have
 had to write:
@@ -170,7 +173,7 @@ successes was it. The two halves are one result, and neither is quoted without t
 others in view instead (`triage_many`), the same design answered 9/9 against 9/9 at -79.5 %
 input tokens, pre-registered, one answering call (`docs/results/2026-09-28-fixed-pages/`).
 
-**What to quote, then.** The cost per decision and the break-even, which are measured. The
+**What to quote, then.** The cost per request and the break-even, which are measured. The
 safety and quality numbers in the paper, which are measured. Not a saving percentage for
 keeping pages out: in the agent loop there was none to measure, and on a fixed sequence it
 came at the price of answers.

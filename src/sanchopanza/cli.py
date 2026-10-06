@@ -77,6 +77,24 @@ def _providers(_args: argparse.Namespace) -> int:
     return 0
 
 
+def _jev_preflight(args: argparse.Namespace) -> int:
+    """One real Jev decision before a paid run; the exit code says why it failed."""
+    import json
+
+    from .providers.jev import PREFLIGHT_EXIT, preflight
+
+    result = preflight(timeout_s=args.timeout)
+    if args.json:
+        sys.stdout.write(json.dumps(result.to_dict()) + "\n")
+    else:
+        verdict = "ok" if result.ok else f"FAILED ({result.reason})"
+        sys.stdout.write(
+            f"jev preflight: {verdict}; HTTP {result.http_status}; "
+            f"{result.cost_usd:.6f} USD; {result.model}; {result.detail}\n"
+        )
+    return PREFLIGHT_EXIT.get(result.reason, PREFLIGHT_EXIT["other"])
+
+
 def _install_plugin(args: argparse.Namespace, root: Path | None) -> list[str]:
     """The compaction plugin's files to (re)write, written under `--write`."""
     from .harness.install import plugin_changes, write_plugin
@@ -749,6 +767,15 @@ def main(argv: list[str] | None = None) -> int:
 
     providers = sub.add_parser("providers", help="list installed providers")
     providers.set_defaults(func=_providers)
+
+    jev_preflight = sub.add_parser(
+        "jev-preflight",
+        help="one real Jev decision (about 12 micro-dollars) before a paid run; exit 0 ok, "
+        "10 out of funds, 11 auth, 12 no key, 13 unreachable, 14 other",
+    )
+    jev_preflight.add_argument("--json", action="store_true", help="print the result as JSON")
+    jev_preflight.add_argument("--timeout", type=float, default=15.0, help="seconds per try")
+    jev_preflight.set_defaults(func=_jev_preflight)
 
     install = sub.add_parser("install", help="write the harness hooks into settings.json")
     install.add_argument(
