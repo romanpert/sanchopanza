@@ -55,13 +55,22 @@ remaining tasks are used, and that is said in the report.
   (`bcp_grade.doubtful`) go to the blind hand read.
 - **LongBench v2**: the letter against the gold letter. No hand read.
 - **Blind hand read** (`--review`, then `--apply-blind`, commit 7f3a82f): a subagent that never
-  opens the key file reads question, gold, answer and the scorer's doubt under an opaque id,
-  shuffled, with no arm, and writes `{id, ok}`. Hand verdicts take precedence over the automatic
-  grade (`with_hand`). The primary grade is `with_hand`; the automatic-only result is reported
-  beside it.
-- **GAIA leaks**: a session whose tool results mention "GAIA" or the task id is marked `leak` and
-  read by hand. If its answer came from a page that serves the set, the task is dropped from the
-  analysis in both arms and counted in the report.
+  opens the key file reads question, gold, answer (and, for GAIA, the scorer's doubt) under an
+  opaque id, shuffled, with no arm, and writes `{id, ok}`. Hand verdicts take precedence over
+  the automatic grade (`with_hand`). The primary grade is `with_hand`; the automatic-only grade
+  (`oficial`; for BCP exact match, else the judge) is reported beside it. In a `-conf` phase the
+  runner refuses `--verdict` (which names the arm): only blind verdicts exist.
+- **Which rows are read by hand** is fixed by code, not by choice: GAIA `needs_review` misses;
+  BCP `doubtful` rows (judge yes without exact match, or no parseable judge verdict). A judge
+  "no" is not re-read, in either arm.
+- **BCP judge**: run after the sessions with `--judge` on the pinned Claude Code (it refuses
+  otherwise). While any row without exact match lacks its judge, the report gives no verdict
+  ("incompleto"); the judge is resumed until none is left.
+- **GAIA leaks**: a session whose tool results mention "GAIA" or the task id is marked `leak`.
+  By rule, with no reading, a task with a leak-marked session in either arm leaves the primary
+  paired analysis in both arms (`dropped_for_leak`); the analysis with all tasks is reported as
+  a sensitivity (`paired_all_tasks`). BCP and LongBench run on local corpora with no web access
+  to the sets; their rows carry no leak rule.
 
 ## 5. Outcomes and analysis
 
@@ -70,8 +79,9 @@ Analysis set: tasks with a counted first run in both arms (`phase.counted`: no w
 
 - **Primary**: success (section 4) and list cost per session, Jev included
   (`gaia_stats.cost`: `list_usd` + `jev_usd`).
-- **Secondary, reported, never deciding**: cost per correct answer, wall time (same bootstrap),
-  turns, tokens by kind, what each S component did (`components`), Jev errors by kind.
+- **Secondary, reported, never deciding**: cost per correct answer (`usd_per_correct`), wall
+  time (same bootstrap), turns, tokens by kind, what each S component did (`components`), Jev
+  errors by kind (`jev_error_kinds`).
 - **Statistics** (`gaia_stats.py`, commit 5b26c5d): McNemar exact two-sided on the discordant
   tasks; paired bootstrap by task, 5,000 replicas, seed 20261005, for the success difference in
   points and for the cost ratio mean(S)/mean(N), 95 % percentile intervals.
@@ -93,8 +103,12 @@ Analysis set: tasks with a counted first run in both arms (`phase.counted`: no w
 
 - **Caps**: `--max-budget-usd` per session, GAIA 1.50 USD, BCP and LongBench 3.00 USD (Sonnet). A
   session that hits its cap counts as it ended.
-- **Ceilings in code** (phase stops before a session whose cap would cross it): GAIA 40 USD,
-  BCP 150 USD, LongBench 20 USD, at list prices on the subscription.
+- **Ceilings in code** (`PHASE_CEILINGS` of each runner, commit 1c89461; the phase stops before
+  a session whose cap would cross it): GAIA 40 USD, BCP 150 USD, LongBench 20 USD, at list
+  prices on the subscription. Jev's spend is outside these ceilings (0.25-1.8 % of an S session).
+- **A suite that stops at its ceiling** before its last task: the verdict is computed on the
+  pairs it completed and the report says "truncated at N of M tasks". Raising a ceiling is an
+  amendment, written before the next session, and needs the owner's OK.
 - **Usage limit** (429, weekly limit): STOP-LIMIT, the session is `not_run`, a resume runs it.
 - **Jev refusing the account** (HTTP 401/402/403 in the session's journal, commit b575f95): the
   session is recorded `invalid` and `not_run` and the phase stops (exit 4); a resume after the
@@ -104,6 +118,22 @@ Analysis set: tasks with a counted first run in both arms (`phase.counted`: no w
   as a session makes them, S's line proved flag by flag from the frozen commit, permission mode,
   one user folder per session, the deny hook, and one real Jev decision when S runs.
 - No retries of finished sessions; resume skips what is done.
+- **One S for every suite**: `s_install.json` names its source and commit (the runner refuses a
+  sealed line without them, 1c89461); every counted SP row must carry that commit in
+  `sp_commit` and the preflight's digest in `s_digest`, or the row is reported as a deviation.
+
+## 6b. Deviations from the common plan, declared
+
+- **No separate margin test** (plan 2.6): GAIA, BCP and LongBench have no per-task history, and
+  in dev N failed 20 %, 50 % and 30 % of the tasks; the "sin margen" rule is applied to the
+  confirmation's own N instead.
+- **No warm-up session** (plan 2.1): each session is a fresh user folder; the prompt cache is the
+  account's and both arms share it alike, since arms alternate within each task (CC first).
+- **Opus 5.5 is missing** from this preregistration (plan 1): its verdict does not exist until an
+  amendment adds it with the owner's OK; Fable 5.1 likewise.
+- **S is S0, not the bare default install** (plan 1 allows a decided line): the decision is
+  `docs/S-SEAL-DRAFT.md` on main (indagis-95 with indagis-a1, 2026-10-05) and its 2026-10-06
+  update (gate A in, check-done and candor kept).
 
 ## 7. Order and cost
 
@@ -125,7 +155,13 @@ powershell -File benchmarks/h2h/launch.ps1 -Runner h2h_bcp.py -RunnerArgs "--pha
 Each suite has a log and a PID file of its own (the launcher's defaults are shared). Stop a run
 by its PIDs only.
 
-BCP's judge runs after its sessions (`--judge`, judge ceiling 3 USD).
+BCP's judge runs after its sessions, with the pinned Claude Code first on PATH (from the h2h
+worktree, `PYTHONPATH=src`): `python benchmarks/h2h/h2h_bcp.py --judge --phase bcp-conf
+--judge-ceiling 3`, repeated until the report shows `unjudged: 0`.
+
+Budget: the owner was told "about 150 USD with Sonnet" for these three confirmations on
+2026-10-06 and answered to go ahead ("dale caña, go") after recharging TypeSafe. The ceilings
+sum to 210 USD; anything above them is an amendment and a new question to the owner.
 
 ## 8. Reading
 
