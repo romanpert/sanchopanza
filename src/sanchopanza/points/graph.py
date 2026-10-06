@@ -9,9 +9,10 @@ around it do not:
 
 - **The gate.** Most chunks of a real corpus contain nothing the schema is looking for:
   boilerplate, navigation, legal footers, tables of contents, acknowledgements. Asking
-  whether a chunk contains anything at all costs 29 millionths of a dollar; extracting from
-  it costs a generative call with its output. Skipping a chunk that had something costs
-  graph coverage, so the gate only skips on a confident no.
+  whether a chunk contains anything at all is one Truth, about 101 millionths of a dollar
+  with the chunk as its state; extracting from it costs a generative call with its output.
+  Skipping a chunk that had something costs graph coverage, so the gate only skips on a
+  confident no.
 - **The edge check.** Extraction hallucinates relations that the chunk does not state, and
   a wrong edge is worse than a missing one because everything downstream believes it. The
   check is the verify-and-escalate cascade of the citation point, applied to a triple: the

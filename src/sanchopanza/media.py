@@ -15,11 +15,11 @@ questions share one image. The questions did not have to change. So the only thi
 between this package and a multimodal decider is **the type of `state`**, and that is what
 this module widens. A local vision model behind `LocalDecider` works today.
 
-**The economics are the design.** Against 29 millionths of a dollar for a text decision, one
-question about a 1080p screenshot on a small hosted VLM is about 60x that. Eight questions
-grouped into one call about a 768px image is about 4.5x. So `Attachment` carries hints for
-resizing, and every decision point that grows an image should ask all of its questions in one
-call, which the contract already does.
+**The economics are the design.** Against a median of 71 millionths of a dollar for a text
+decision request, one question about a 1080p screenshot on a small hosted VLM is about 25x
+that. Eight questions grouped into one call about a 768px image is about 1.8x. So
+`Attachment` carries hints for resizing, and every decision point that grows an image should
+ask all of its questions in one call, which the contract already does.
 
 **One safety fact that does not have a workaround yet.** No production prompt-injection
 classifier accepts an image: Prompt Guard 2, Azure Prompt Shields and Model Armor are all

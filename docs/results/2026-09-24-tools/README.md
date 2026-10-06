@@ -239,8 +239,8 @@ sharper. Extrapolating that rate, a 1,000-group catalog would keep around 110 gr
 somewhere past that the selection stops being a selection.
 
 **And the cost per selection grows 15x**, from 0.135 to 2.02 millidollars, because six chunks
-carry six large states. The package's "29 millionths per decision" framing does not survive
-this scale and should not be quoted for it.
+carry six large states. A selection costs what its states weigh, and at this scale that is
+2.02 millidollars, not the 71 millionths of a median request.
 
 The economics still work, and now they are measured rather than asserted. Saving 88 % of a
 250-schema catalog is about 28,000 input tokens per step:

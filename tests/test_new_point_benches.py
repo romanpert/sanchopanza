@@ -43,7 +43,7 @@ def test_the_recording_covers_the_whole_bench(run):
     summary, _ = run
     assert summary["cases"] == 124
     assert summary["calls"] == 122  # two edge cases are settled in code, before any call
-    assert summary["cost_usd"] / summary["calls"] < 3e-5  # 29 millionths of a dollar
+    assert summary["cost_usd"] / summary["calls"] < 3e-5  # 28.9 millionths a call
 
 
 def test_agreement_per_point_reproduces(run):

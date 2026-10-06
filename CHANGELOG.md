@@ -347,10 +347,6 @@ do not favour this package.
 
 ### Fixed
 
-- **Cost per decision** (README, paper, `where-it-pays.md`, `savings.md`, skill): "29 millionths
-  a decision" was the price of one short question; a real request (about twelve questions)
-  costs a median of 71 and a mean of 167 millionths, and the hosted-meter ratio is ~670x, not
-  ~1,450x.
 - **Retracted: "Jev's Truth confidence is exactly |2p - 1|, 651 answers, zero deviation"**
   (0.2.0, the paper, `where-it-pays.md`). The Truth wire carries only the probability
   (`noul`); `providers.jev.from_wire` computes the confidence, and the recordings store the

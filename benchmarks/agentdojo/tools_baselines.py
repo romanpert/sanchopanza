@@ -2,12 +2,13 @@
 
     python benchmarks/agentdojo/tools_baselines.py   # free, nothing is called
 
-Before claiming that a calibrated decision is worth 29 millionths per group, check what you
-get for nothing. The Anthropic API ships a **tool search tool** in two flavours,
-`tool_search_tool_bm25_20251119` and `tool_search_tool_regex_20251119`: tools are declared
-with `defer_loading: true` and the model retrieves the ones it needs, with the discovered
-schemas **appended rather than swapped**, so the prompt cache survives. That is the same
-cache-safety property this package's fourth invariant claims for itself.
+Before claiming that a calibrated selection is worth its 135 millionths of a dollar (16 groups,
+`docs/results/2026-09-24-tools/`), check what you get for nothing. The Anthropic API ships
+a **tool search tool** in two flavours, `tool_search_tool_bm25_20251119` and
+`tool_search_tool_regex_20251119`: tools are declared with `defer_loading: true` and the
+model retrieves the ones it needs, with the discovered schemas **appended rather than
+swapped**, so the prompt cache survives. That is the same cache-safety property this
+package's fourth invariant claims for itself.
 
 So the honest question is not "does `select_tools` work" - `../../docs/results/2026-09-24-tools/`
 already answered that - but "does it beat BM25 over the same catalog". This file answers it
