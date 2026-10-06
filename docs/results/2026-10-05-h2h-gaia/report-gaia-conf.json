@@ -1,0 +1,337 @@
+{
+ "sessions": 270,
+ "list_usd": 30.29,
+ "by_arm": {
+  "SONNET-CC": {
+   "sessions": 135,
+   "ok_oficial": 99,
+   "ok_with_hand": 100,
+   "by_level": {
+    "1": "40/46",
+    "2": "51/67",
+    "3": "8/22"
+   },
+   "total_usd": 14.8088,
+   "usd_per_correct": 0.1481,
+   "mean_usd": 0.1097,
+   "median_usd": 0.0546,
+   "mean_turns": 5.5,
+   "median_turns": 3,
+   "mean_wall_s": 48.3,
+   "median_wall_s": 22.4,
+   "tokens_total": {
+    "input": 2838880,
+    "cache_read": 15532608,
+    "cache_write": 1343183,
+    "output": 259526,
+    "web_searches": 124
+   },
+   "tools": {
+    "Bash": 193,
+    "Grep": 1,
+    "PowerShell": 14,
+    "Read": 27,
+    "ToolSearch": 64,
+    "WebFetch": 192,
+    "WebSearch": 115,
+    "Write": 1
+   },
+   "hooks_with_output": {
+    "PreToolUse:WebSearch deny": 109
+   },
+   "sp_hook_calls": {},
+   "sessions_with_sp_hooks": 0,
+   "jev_calls": 0,
+   "jev_by_point": {},
+   "jev_errors": 0,
+   "jev_error_kinds": {},
+   "jev_usd": 0.0,
+   "hit_cap": 0,
+   "leak": [
+    "676e5e31-a554-4acc-9286-b60d90a92d26",
+    "872bfbb1-9ccf-49f6-8c5f-aa22818ccd66",
+    "c61d22de-5f6c-4958-a7f6-5e9707bd3466"
+   ],
+   "no_final_answer": 1,
+   "denied": 18
+  },
+  "SONNET-SP": {
+   "sessions": 135,
+   "ok_oficial": 104,
+   "ok_with_hand": 105,
+   "by_level": {
+    "1": "41/46",
+    "2": "52/67",
+    "3": "11/22"
+   },
+   "total_usd": 15.5423,
+   "usd_per_correct": 0.148,
+   "mean_usd": 0.1151,
+   "median_usd": 0.0563,
+   "mean_turns": 6.5,
+   "median_turns": 3,
+   "mean_wall_s": 67.1,
+   "median_wall_s": 27.6,
+   "tokens_total": {
+    "input": 1527953,
+    "cache_read": 20019296,
+    "cache_write": 1584139,
+    "output": 272257,
+    "web_searches": 106
+   },
+   "tools": {
+    "Bash": 232,
+    "Glob": 2,
+    "PowerShell": 18,
+    "Read": 45,
+    "ToolSearch": 43,
+    "WebFetch": 45,
+    "WebSearch": 99,
+    "Write": 1,
+    "mcp__sanchopanza-fetch__fetch_passages": 231
+   },
+   "hooks_with_output": {
+    "PostToolUse:Bash other": 231,
+    "PostToolUse:Bash sanchopanza": 16,
+    "PostToolUse:Glob other": 2,
+    "PostToolUse:Read other": 40,
+    "PostToolUse:WebFetch other": 2,
+    "PostToolUse:WebFetch sanchopanza": 1,
+    "PostToolUse:Write other": 2,
+    "PostToolUse:Write sanchopanza": 1,
+    "PostToolUse:mcp__sanchopanza-fetch__fetch_passages other": 20,
+    "PostToolUse:mcp__sanchopanza-fetch__fetch_passages sanchopanza": 10,
+    "PostToolUseFailure:Bash other": 19,
+    "PostToolUseFailure:Bash sanchopanza": 4,
+    "PostToolUseFailure:Read other": 5,
+    "PreToolUse:WebSearch deny": 92,
+    "Stop other": 24,
+    "Stop sanchopanza": 6,
+    "UserPromptSubmit other": 49
+   },
+   "sp_hook_calls": {
+    "candor-hook": 1659,
+    "crawl-hook": 270,
+    "fetch-hook": 44,
+    "guard-hook": 215,
+    "hook": 1050,
+    "memory-hook": 812
+   },
+   "sessions_with_sp_hooks": 135,
+   "jev_calls": 1723,
+   "jev_by_point": {
+    "completion": 25,
+    "guard": 130,
+    "injection": 433,
+    "memory_standing_rule": 1036,
+    "search": 99
+   },
+   "jev_errors": 1,
+   "jev_error_kinds": {
+    "jev unreachable: ReadTimeout": 1
+   },
+   "jev_usd": 0.064949,
+   "hit_cap": 0,
+   "leak": [
+    "676e5e31-a554-4acc-9286-b60d90a92d26",
+    "872bfbb1-9ccf-49f6-8c5f-aa22818ccd66"
+   ],
+   "no_final_answer": 1,
+   "denied": 61
+  }
+ },
+ "dropped_for_leak": [
+  "676e5e31-a554-4acc-9286-b60d90a92d26",
+  "872bfbb1-9ccf-49f6-8c5f-aa22818ccd66",
+  "c61d22de-5f6c-4958-a7f6-5e9707bd3466"
+ ],
+ "paired": {
+  "SONNET": {
+   "tasks": 132,
+   "a": "SONNET-SP",
+   "b": "SONNET-CC",
+   "oficial": {
+    "a_ok": 101,
+    "b_ok": 96,
+    "a_only": 10,
+    "b_only": 5,
+    "p": 0.3018,
+    "a_only_tasks": [
+     "20194330-9976-4043-8632-f8485c6c71b2",
+     "3cef3a44-215e-4aed-8e3b-b1e3f08063b7",
+     "46719c30-f4c3-4cad-be07-d5cb21eee6bb",
+     "50f58759-7bd6-406f-9b0d-5692beb2a926",
+     "5f982798-16b9-4051-ab57-cfc7ebdb2a91",
+     "8f80e01c-1296-4371-9486-bb3d68651a60",
+     "983bba7c-c092-455f-b6c9-7857003d48fc",
+     "a0c07678-e491-4bbc-8f0b-07405144218f",
+     "cca530fc-4052-43b2-b130-b30968d8aa44",
+     "e9a2c537-8232-4c3f-85b0-b52de6bcba99"
+    ],
+    "b_only_tasks": [
+     "0ff53813-3367-4f43-bcbd-3fd725c1bf4b",
+     "7d4a7d1d-cac6-44a8-96e8-ea9584a70825",
+     "a7feb290-76bb-4cb7-8800-7edaf7954f2f",
+     "dc22a632-937f-4e6a-b72f-ba0ff3f5ff97",
+     "e1fc63a2-da7a-432f-be78-7c4a95598703"
+    ],
+    "diff_points": 3.79,
+    "diff_points_ci95": [
+     -1.52,
+     9.85
+    ]
+   },
+   "with_hand": {
+    "a_ok": 102,
+    "b_ok": 97,
+    "a_only": 10,
+    "b_only": 5,
+    "p": 0.3018,
+    "a_only_tasks": [
+     "20194330-9976-4043-8632-f8485c6c71b2",
+     "3cef3a44-215e-4aed-8e3b-b1e3f08063b7",
+     "46719c30-f4c3-4cad-be07-d5cb21eee6bb",
+     "50f58759-7bd6-406f-9b0d-5692beb2a926",
+     "5f982798-16b9-4051-ab57-cfc7ebdb2a91",
+     "8f80e01c-1296-4371-9486-bb3d68651a60",
+     "983bba7c-c092-455f-b6c9-7857003d48fc",
+     "a0c07678-e491-4bbc-8f0b-07405144218f",
+     "cca530fc-4052-43b2-b130-b30968d8aa44",
+     "e9a2c537-8232-4c3f-85b0-b52de6bcba99"
+    ],
+    "b_only_tasks": [
+     "0ff53813-3367-4f43-bcbd-3fd725c1bf4b",
+     "7d4a7d1d-cac6-44a8-96e8-ea9584a70825",
+     "a7feb290-76bb-4cb7-8800-7edaf7954f2f",
+     "dc22a632-937f-4e6a-b72f-ba0ff3f5ff97",
+     "e1fc63a2-da7a-432f-be78-7c4a95598703"
+    ],
+    "diff_points": 3.79,
+    "diff_points_ci95": [
+     -1.52,
+     9.85
+    ]
+   },
+   "cost": {
+    "mean_diff": 0.0077,
+    "diff_ci95": [
+     -0.0103,
+     0.0254
+    ],
+    "ratio": 1.074,
+    "ratio_ci95": [
+     0.908,
+     1.255
+    ]
+   },
+   "wall": {
+    "mean_diff": 18.5341,
+    "diff_ci95": [
+     6.55,
+     30.7008
+    ],
+    "ratio": 1.39,
+    "ratio_ci95": [
+     1.119,
+     1.786
+    ]
+   }
+  }
+ },
+ "verdict": {
+  "SONNET": "no gana"
+ },
+ "paired_all_tasks": {
+  "SONNET": {
+   "tasks": 135,
+   "a": "SONNET-SP",
+   "b": "SONNET-CC",
+   "oficial": {
+    "a_ok": 104,
+    "b_ok": 99,
+    "a_only": 10,
+    "b_only": 5,
+    "p": 0.3018,
+    "a_only_tasks": [
+     "20194330-9976-4043-8632-f8485c6c71b2",
+     "3cef3a44-215e-4aed-8e3b-b1e3f08063b7",
+     "46719c30-f4c3-4cad-be07-d5cb21eee6bb",
+     "50f58759-7bd6-406f-9b0d-5692beb2a926",
+     "5f982798-16b9-4051-ab57-cfc7ebdb2a91",
+     "8f80e01c-1296-4371-9486-bb3d68651a60",
+     "983bba7c-c092-455f-b6c9-7857003d48fc",
+     "a0c07678-e491-4bbc-8f0b-07405144218f",
+     "cca530fc-4052-43b2-b130-b30968d8aa44",
+     "e9a2c537-8232-4c3f-85b0-b52de6bcba99"
+    ],
+    "b_only_tasks": [
+     "0ff53813-3367-4f43-bcbd-3fd725c1bf4b",
+     "7d4a7d1d-cac6-44a8-96e8-ea9584a70825",
+     "a7feb290-76bb-4cb7-8800-7edaf7954f2f",
+     "dc22a632-937f-4e6a-b72f-ba0ff3f5ff97",
+     "e1fc63a2-da7a-432f-be78-7c4a95598703"
+    ],
+    "diff_points": 3.7,
+    "diff_points_ci95": [
+     -1.48,
+     9.63
+    ]
+   },
+   "with_hand": {
+    "a_ok": 105,
+    "b_ok": 100,
+    "a_only": 10,
+    "b_only": 5,
+    "p": 0.3018,
+    "a_only_tasks": [
+     "20194330-9976-4043-8632-f8485c6c71b2",
+     "3cef3a44-215e-4aed-8e3b-b1e3f08063b7",
+     "46719c30-f4c3-4cad-be07-d5cb21eee6bb",
+     "50f58759-7bd6-406f-9b0d-5692beb2a926",
+     "5f982798-16b9-4051-ab57-cfc7ebdb2a91",
+     "8f80e01c-1296-4371-9486-bb3d68651a60",
+     "983bba7c-c092-455f-b6c9-7857003d48fc",
+     "a0c07678-e491-4bbc-8f0b-07405144218f",
+     "cca530fc-4052-43b2-b130-b30968d8aa44",
+     "e9a2c537-8232-4c3f-85b0-b52de6bcba99"
+    ],
+    "b_only_tasks": [
+     "0ff53813-3367-4f43-bcbd-3fd725c1bf4b",
+     "7d4a7d1d-cac6-44a8-96e8-ea9584a70825",
+     "a7feb290-76bb-4cb7-8800-7edaf7954f2f",
+     "dc22a632-937f-4e6a-b72f-ba0ff3f5ff97",
+     "e1fc63a2-da7a-432f-be78-7c4a95598703"
+    ],
+    "diff_points": 3.7,
+    "diff_points_ci95": [
+     -1.48,
+     9.63
+    ]
+   },
+   "cost": {
+    "mean_diff": 0.0054,
+    "diff_ci95": [
+     -0.0125,
+     0.0228
+    ],
+    "ratio": 1.05,
+    "ratio_ci95": [
+     0.896,
+     1.221
+    ]
+   },
+   "wall": {
+    "mean_diff": 18.8133,
+    "diff_ci95": [
+     7.5778,
+     30.8459
+    ],
+    "ratio": 1.39,
+    "ratio_ci95": [
+     1.129,
+     1.772
+    ]
+   }
+  }
+ }
+}
