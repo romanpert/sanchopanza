@@ -1,0 +1,1419 @@
+{
+ "chain": "conan-io__conan-long60-1",
+ "repo": "swesmith/conan-io__conan.86f29e13",
+ "image": "jyangballin/swesmith.x86_64.conan-io_1776_conan.86f29e13",
+ "tag": "adopt-conan-io--conan-long60-1:bugs",
+ "split": "gate",
+ "seed": 20261005,
+ "token": "9a871a76",
+ "size": 56,
+ "sources": {
+  "pr_mirror": 56
+ },
+ "real": 56,
+ "synthetic_dataset": "SWE-bench/SWE-smith@ea6d7173829c7ec8fa16c22055699ff2e9188091",
+ "pr_mirror_sha256": "5128440c2c0acda5c743359add5ade03577b0e552c4e431ec971d1ab484c3d5a",
+ "bugs": [
+  {
+   "n": 1,
+   "instance_id": "conan-io__conan.86f29e13.pr_13668",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conans/client/graph/compute_pid.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/conanfile/conanfile_errors_test.py::test_requirements_change_options"
+   ]
+  },
+  {
+   "n": 2,
+   "instance_id": "conan-io__conan.86f29e13.pr_14605",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/gnu/makedeps.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/toolchains/gnu/test_makedeps.py::test_make_dirs_with_abs_path",
+    "test/integration/toolchains/gnu/test_makedeps.py::test_make_empty_dirs",
+    "test/integration/toolchains/gnu/test_makedeps.py::test_libs_and_system_libs",
+    "test/integration/toolchains/gnu/test_makedeps.py::test_multiple_include_and_lib_dirs",
+    "test/integration/toolchains/gnu/test_makedeps.py::test_make_with_public_deps_and_component_requires",
+    "test/integration/toolchains/gnu/test_makedeps.py::test_make_with_public_deps_and_component_requires_second",
+    "test/integration/toolchains/gnu/test_makedeps.py::test_makedeps_with_test_requires",
+    "test/integration/toolchains/gnu/test_makedeps.py::test_makedeps_with_editable_layout",
+    "test/integration/toolchains/gnu/test_makedeps.py::test_makefile_reference"
+   ]
+  },
+  {
+   "n": 3,
+   "instance_id": "conan-io__conan.86f29e13.pr_17568",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/gnu/pkgconfigdeps.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/toolchains/gnu/test_pkgconfigdeps.py::test_pkg_config_name_full_aliases"
+   ]
+  },
+  {
+   "n": 4,
+   "instance_id": "conan-io__conan.86f29e13.pr_10898",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/gnu/autotoolstoolchain.py",
+    "conan/tools/microsoft/visual.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/toolchains/gnu/test_autotoolstoolchain.py::test_toolchain_and_compilers_build_context",
+    "test/integration/toolchains/gnu/test_autotoolstoolchain.py::test_toolchain_crossbuild_to_android",
+    "test/integration/toolchains/gnu/test_autotoolstoolchain.py::test_conf_build_does_not_exist"
+   ]
+  },
+  {
+   "n": 5,
+   "instance_id": "conan-io__conan.86f29e13.pr_16342",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conans/client/rest_client_local_recipe_index.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/remote/test_local_recipes_index.py::TestInstall::test_export_user_channel",
+    "test/integration/remote/test_local_recipes_index.py::TestUserChannel::test_user_channel_requirement",
+    "test/integration/remote/test_local_recipes_index.py::TestUserChannel::test_user_channel_requirement_only_at"
+   ]
+  },
+  {
+   "n": 6,
+   "instance_id": "conan-io__conan.86f29e13.pr_13835",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/cli/commands/remote.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/remote_test.py::RemoteServerTest::test_basic",
+    "test/integration/command/remote_test.py::RemoteServerTest::test_insert",
+    "test/integration/command/remote_test.py::RemoteServerTest::test_invalid_url",
+    "test/integration/command/remote_test.py::RemoteModificationTest::test_rename",
+    "test/integration/command/remote_test.py::RemoteModificationTest::test_update_insert",
+    "test/integration/command/remote_test.py::RemoteModificationTest::test_update_insert_same_url",
+    "test/integration/command/remote_test.py::test_add_wrong_conancenter",
+    "test/integration/command/remote_test.py::test_using_frozen_center",
+    "test/integration/command/remote_test.py::test_allowed_packages_remotes",
+    "test/integration/command/remote_test.py::test_remote_allowed_negation"
+   ]
+  },
+  {
+   "n": 7,
+   "instance_id": "conan-io__conan.86f29e13.pr_12319",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/apple/apple.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/unittests/tools/apple/test_apple_tools.py::test_xcrun_public_settings"
+   ]
+  },
+  {
+   "n": 8,
+   "instance_id": "conan-io__conan.86f29e13.pr_16870",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conans/client/graph/graph.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/build_requires/test_install_test_build_require.py::test_bootstrap_cc",
+    "test/integration/graph/core/test_build_requires.py::TestLoops::test_direct_loop_error",
+    "test/integration/graph/core/test_build_requires.py::TestLoops::test_indirect_loop_error"
+   ]
+  },
+  {
+   "n": 9,
+   "instance_id": "conan-io__conan.86f29e13.pr_15630",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/api/conan_api.py",
+    "conan/api/subapi/command.py",
+    "conan/cli/cli.py",
+    "conan/cli/command.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/custom_commands_test.py::TestCommandAPI::test_command_reuse_other_custom",
+    "test/integration/command/custom_commands_test.py::TestCommandAPI::test_command_verbosity_leak",
+    "test/integration/command/custom_commands_test.py::TestCommandAPI::test_command_reuse_interface_create",
+    "test/integration/command/custom_commands_test.py::TestCommandAPI::test_subcommand_reuse_interface"
+   ]
+  },
+  {
+   "n": 10,
+   "instance_id": "conan-io__conan.86f29e13.pr_16327",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conans/client/graph/build_mode.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/create_test.py::test_create_build_missing_negation"
+   ]
+  },
+  {
+   "n": 11,
+   "instance_id": "conan-io__conan.86f29e13.pr_12845",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/api/subapi/profiles.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/test_profile.py::test_ignore_paths_when_listing_profiles"
+   ]
+  },
+  {
+   "n": 12,
+   "instance_id": "conan-io__conan.86f29e13.pr_16233",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/api/subapi/profiles.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/options/options_test.py::OptionsTest::test_general_scope_options_test_package"
+   ]
+  },
+  {
+   "n": 13,
+   "instance_id": "conan-io__conan.86f29e13.pr_15513",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/files/copy_pattern.py",
+    "conans/util/files.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/export_pkg_test.py::ExportPkgTest::test_build_folders"
+   ]
+  },
+  {
+   "n": 14,
+   "instance_id": "conan-io__conan.86f29e13.pr_15121",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/internal/model/conan_file.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/conanfile/runner_test.py::TestRunner::test_custom_stream_stderr"
+   ]
+  },
+  {
+   "n": 15,
+   "instance_id": "conan-io__conan.86f29e13.pr_12870",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/gnu/get_gnu_triplet.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/unittests/tools/gnu/test_triplets.py::test_get_gnu_triplet[Windows-x86-msvc-i686-unknown-windows]",
+    "test/unittests/tools/gnu/test_triplets.py::test_get_gnu_triplet[Windows-x86_64-msvc-x86_64-unknown-windows]",
+    "test/unittests/tools/gnu/test_triplets.py::test_get_gnu_triplet[Windows-armv8-msvc-aarch64-unknown-windows]"
+   ]
+  },
+  {
+   "n": 16,
+   "instance_id": "conan-io__conan.86f29e13.pr_17520",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/internal/model/conf.py",
+    "conan/tools/files/conandata.py",
+    "conan/tools/files/patches.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/functional/tools/test_files.py::test_export_conandata_patches_no_patches",
+    "test/functional/tools/test_files.py::test_export_conandata_patches_extra_origin[True]",
+    "test/functional/tools/test_files.py::test_export_conandata_patches_extra_origin[False]"
+   ]
+  },
+  {
+   "n": 17,
+   "instance_id": "conan-io__conan.86f29e13.pr_15934",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conans/client/loader.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/unittests/model/conanfile_test.py::ConanFileTest::test_conanfile_new_print_save"
+   ]
+  },
+  {
+   "n": 18,
+   "instance_id": "conan-io__conan.86f29e13.pr_11407",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/scm/git.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/functional/tools/scm/test_git_get_commit.py::test_change_branch_in_root_commit",
+    "test/functional/tools/scm/test_git_get_commit.py::test_multi_folder_repo",
+    "test/functional/tools/scm/test_git_get_commit.py::test_relative_folder_repo",
+    "test/functional/tools/scm/test_git_get_commit.py::test_submodule_repo"
+   ]
+  },
+  {
+   "n": 19,
+   "instance_id": "conan-io__conan.86f29e13.pr_10889",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conans/client/rest/conan_requester.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/remote/requester_test.py::TestRequester::test_request_infinite_timeout"
+   ]
+  },
+  {
+   "n": 20,
+   "instance_id": "conan-io__conan.86f29e13.pr_11935",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/cmake/presets.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/toolchains/cmake/test_cmaketoolchain.py::test_toolchain_cache_variables"
+   ]
+  },
+  {
+   "n": 21,
+   "instance_id": "conan-io__conan.86f29e13.pr_17000",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/cli/commands/config.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/config_test.py::test_config_list"
+   ]
+  },
+  {
+   "n": 22,
+   "instance_id": "conan-io__conan.86f29e13.pr_16573",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conans/client/graph/compatibility.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/package_id/compatible_test.py::TestNewCompatibility::test_compatibility_msvc_and_cppstd"
+   ]
+  },
+  {
+   "n": 23,
+   "instance_id": "conan-io__conan.86f29e13.pr_12365",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/microsoft/msbuilddeps.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/functional/toolchains/microsoft/test_msbuilddeps.py::test_exclude_code_analysis[['*']-True-True]",
+    "test/functional/toolchains/microsoft/test_msbuilddeps.py::test_exclude_code_analysis[['pkga']-True-False]",
+    "test/functional/toolchains/microsoft/test_msbuilddeps.py::test_exclude_code_analysis[['pkgb']-False-True]",
+    "test/functional/toolchains/microsoft/test_msbuilddeps.py::test_exclude_code_analysis[['pkg*']-True-True]",
+    "test/functional/toolchains/microsoft/test_msbuilddeps.py::test_exclude_code_analysis[['nonexist']-False-False]",
+    "test/integration/toolchains/microsoft/test_msbuilddeps.py::test_msbuilddeps_format_names"
+   ]
+  },
+  {
+   "n": 24,
+   "instance_id": "conan-io__conan.86f29e13.pr_16720",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/internal/api/profile/profile_loader.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/configuration/test_profile_priority.py::test_profiles_patterns_include"
+   ]
+  },
+  {
+   "n": 25,
+   "instance_id": "conan-io__conan.86f29e13.pr_10707",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/meson/toolchain.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_apple_meson_keep_user_custom_flags",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_extra_flags_via_conf",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_extra_flags_via_toolchain",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_custom_arch_flag_via_toolchain",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_linker_scripts_via_conf",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_correct_quotes",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_c_std",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_deactivate_nowrap",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_env_vars_from_build_require",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_check_c_cpp_ld_list_formats",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_check_pkg_config_paths",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_toolchain_and_compilers_build_context",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_subproject_options",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_native_attribute",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_native_attribute_error",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_compiler_path_with_spaces",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_meson_sysroot_app",
+    "test/integration/toolchains/meson/test_mesontoolchain.py::test_cross_x86_64_to_x86"
+   ]
+  },
+  {
+   "n": 26,
+   "instance_id": "conan-io__conan.86f29e13.pr_13999",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/cli/commands/version.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/test_version.py::test_version_json",
+    "test/integration/command/test_version.py::test_version_text",
+    "test/integration/command/test_version.py::test_version_raw"
+   ]
+  },
+  {
+   "n": 27,
+   "instance_id": "conan-io__conan.86f29e13.pr_13622",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/cli/commands/remove.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/remove_test.py::test_package_query_no_package_ref"
+   ]
+  },
+  {
+   "n": 28,
+   "instance_id": "conan-io__conan.86f29e13.pr_15538",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/cli/commands/graph.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/info/test_info_build_order.py::test_info_build_order_configuration_text_formatter"
+   ]
+  },
+  {
+   "n": 29,
+   "instance_id": "conan-io__conan.86f29e13.pr_15794",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/cli/args.py",
+    "conans/client/loader.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/info/info_test.py::test_graph_info_user",
+    "test/integration/command/install/install_test.py::test_install_reference_error"
+   ]
+  },
+  {
+   "n": 30,
+   "instance_id": "conan-io__conan.86f29e13.pr_16724",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/internal/deploy.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/functional/command/test_install_deploy.py::TestRuntimeDeployer::test_runtime_not_deploy"
+   ]
+  },
+  {
+   "n": 31,
+   "instance_id": "conan-io__conan.86f29e13.pr_13435",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/microsoft/msbuild.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/unittests/tools/microsoft/test_msbuild.py::test_msbuild_cpu_count"
+   ]
+  },
+  {
+   "n": 32,
+   "instance_id": "conan-io__conan.86f29e13.pr_16334",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/qbs/__init__.py",
+    "conan/tools/qbs/qbsdeps.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/toolchains/qbs/test_qbsdeps.py::test_empty_package",
+    "test/integration/toolchains/qbs/test_qbsdeps.py::test_empty_dirs",
+    "test/integration/toolchains/qbs/test_qbsdeps.py::test_pkg_config_name",
+    "test/integration/toolchains/qbs/test_qbsdeps.py::test_settings[Linux-x86_64-Debug]",
+    "test/integration/toolchains/qbs/test_qbsdeps.py::test_settings[Linux-x86_64-Release]",
+    "test/integration/toolchains/qbs/test_qbsdeps.py::test_settings[Linux-armv8-Debug]",
+    "test/integration/toolchains/qbs/test_qbsdeps.py::test_settings[Windows-x86_64-Debug]",
+    "test/integration/toolchains/qbs/test_qbsdeps.py::test_settings[Macos-armv8-Release]",
+    "test/integration/toolchains/qbs/test_qbsdeps.py::test_options[False]",
+    "test/integration/toolchains/qbs/test_qbsdeps.py::test_options[True]",
+    "test/integration/toolchains/qbs/test_qbsdeps.py::test_components",
+    "test/integration/toolchains/qbs/test_qbsdeps.py::test_cpp_info_requires",
+    "test/integration/toolchains/qbs/test_qbsdeps.py::test_components_conflict"
+   ]
+  },
+  {
+   "n": 33,
+   "instance_id": "conan-io__conan.86f29e13.pr_16180",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/cmake/cmake.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/unittests/tools/cmake/test_cmake_presets_definitions.py::test_cmake_make_program"
+   ]
+  },
+  {
+   "n": 34,
+   "instance_id": "conan-io__conan.86f29e13.pr_14898",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/apple/xcodedeps.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/toolchains/apple/test_xcodedeps.py::test_skipped_not_included",
+    "test/integration/toolchains/apple/test_xcodedeps.py::test_correctly_handle_transitive_components"
+   ]
+  },
+  {
+   "n": 35,
+   "instance_id": "conan-io__conan.86f29e13.pr_15349",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/files/copy_pattern.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/unittests/tools/files/test_tool_copy.py::ToolCopyTest::test_excludes_hidden_files"
+   ]
+  },
+  {
+   "n": 36,
+   "instance_id": "conan-io__conan.86f29e13.pr_10519",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conans/client/graph/python_requires.py",
+    "conans/client/loader.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/conanfile/test_version_str.py::test_conan_version_str"
+   ]
+  },
+  {
+   "n": 37,
+   "instance_id": "conan-io__conan.86f29e13.pr_12353",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/env/environment.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/environment/test_env.py::test_multiple_deactivate",
+    "test/integration/environment/test_env.py::test_multiple_deactivate_order",
+    "test/integration/environment/test_env.py::test_profile_build_env_spaces"
+   ]
+  },
+  {
+   "n": 38,
+   "instance_id": "conan-io__conan.86f29e13.pr_13278",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/build/cppstd.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/unittests/tools/build/test_cppstd.py::test_supported_cppstd_msvc[msvc-190-values1]",
+    "test/unittests/tools/build/test_cppstd.py::test_supported_cppstd_msvc[msvc-191-values2]"
+   ]
+  },
+  {
+   "n": 39,
+   "instance_id": "conan-io__conan.86f29e13.pr_11654",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/system/package_manager.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/tools/system/package_manager_test.py::test_package_manager_distro[linuxmint-apt-get]",
+    "test/integration/tools/system/package_manager_test.py::test_package_manager_distro[alpine-apk]",
+    "test/integration/tools/system/package_manager_test.py::test_package_manager_distro[altlinux-apt-get]",
+    "test/integration/tools/system/package_manager_test.py::test_package_manager_distro[astra-apt-get]",
+    "test/integration/tools/system/package_manager_test.py::test_package_manager_distro[elbrus-apt-get]",
+    "test/integration/tools/system/package_manager_test.py::test_package_manager_distro[pop-apt-get]"
+   ]
+  },
+  {
+   "n": 40,
+   "instance_id": "conan-io__conan.86f29e13.pr_14106",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/cli/commands/graph.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/info/test_info_build_order.py::test_info_build_order_broken_recipe"
+   ]
+  },
+  {
+   "n": 41,
+   "instance_id": "conan-io__conan.86f29e13.pr_13097",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/cli/commands/create.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/test_package_test.py::test_removing_test_package_build_folder"
+   ]
+  },
+  {
+   "n": 42,
+   "instance_id": "conan-io__conan.86f29e13.pr_17532",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/gnu/gnutoolchain.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/unittests/tools/gnu/test_gnutoolchain.py::test_update_or_prune_any_args"
+   ]
+  },
+  {
+   "n": 43,
+   "instance_id": "conan-io__conan.86f29e13.pr_16646",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/api/subapi/cache.py",
+    "conan/internal/cache/conan_reference_layout.py",
+    "conans/client/installer.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/conanfile/test_finalize_method.py::TestBasicLocalFlows::test_basic_finalize_method",
+    "test/integration/conanfile/test_finalize_method.py::TestBasicLocalFlows::test_dependency_finalize_method",
+    "test/integration/conanfile/test_finalize_method.py::TestBasicLocalFlows::test_no_non_info_access",
+    "test/integration/conanfile/test_finalize_method.py::TestBasicLocalFlows::test_finalize_moves_from_package",
+    "test/integration/conanfile/test_finalize_method.py::TestBasicLocalFlows::test_cache_path_command",
+    "test/integration/conanfile/test_finalize_method.py::TestBasicLocalFlows::test_remove_deletes_correct_folders",
+    "test/integration/conanfile/test_finalize_method.py::TestBasicLocalFlows::test_save_restore_cache",
+    "test/integration/conanfile/test_finalize_method.py::TestBasicLocalFlows::test_graph_info_output",
+    "test/integration/conanfile/test_finalize_method.py::TestBasicLocalFlows::test_vendorized_basic",
+    "test/integration/conanfile/test_finalize_method.py::TestBasicLocalFlows::test_check_integrity",
+    "test/integration/conanfile/test_finalize_method.py::TestBasicLocalFlows::test_access_immutable_from_consumer[True]",
+    "test/integration/conanfile/test_finalize_method.py::TestBasicLocalFlows::test_cache_modification_of_custom_conf_based_on_settings",
+    "test/integration/conanfile/test_finalize_method.py::TestToolRequiresFlows::test_tool_requires",
+    "test/integration/conanfile/test_finalize_method.py::TestToolRequiresFlows::test_test_package_uses_created_tool_which_modifies_pkgfolder",
+    "test/integration/conanfile/test_finalize_method.py::TestRemoteFlows::test_remote_upload_finalize_method"
+   ]
+  },
+  {
+   "n": 44,
+   "instance_id": "conan-io__conan.86f29e13.pr_14466",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/cli/commands/create.py",
+    "conans/client/graph/graph_binaries.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/graph/test_skip_binaries.py::test_conf_skip"
+   ]
+  },
+  {
+   "n": 45,
+   "instance_id": "conan-io__conan.86f29e13.pr_16113",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/api/subapi/cache.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/cache/test_cache_save_restore.py::test_error_restore_not_existing"
+   ]
+  },
+  {
+   "n": 46,
+   "instance_id": "conan-io__conan.86f29e13.pr_16559",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/api/subapi/list.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/list/list_test.py::TestListBinaryFilter::test_list_filter[True]",
+    "test/integration/command/list/list_test.py::TestListBinaryFilter::test_list_filter[False]"
+   ]
+  },
+  {
+   "n": 47,
+   "instance_id": "conan-io__conan.86f29e13.pr_17507",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/api/output.py",
+    "conan/cli/command.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/test_output.py::test_formatter_redirection_to_file"
+   ]
+  },
+  {
+   "n": 48,
+   "instance_id": "conan-io__conan.86f29e13.pr_13919",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/cli/printers/graph.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/graph/test_skip_binaries.py::test_test_requires",
+    "test/integration/graph/test_skip_binaries.py::test_skip_visible_build",
+    "test/integration/graph/test_skip_binaries.py::test_skip_intermediate_static",
+    "test/integration/graph/test_skip_binaries.py::test_skip_intermediate_static_complex"
+   ]
+  },
+  {
+   "n": 49,
+   "instance_id": "conan-io__conan.86f29e13.pr_17692",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/internal/model/cpp_info.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/unittests/model/build_info/components_test.py::CppInfoComponentsTest::test_components_set"
+   ]
+  },
+  {
+   "n": 50,
+   "instance_id": "conan-io__conan.86f29e13.pr_17449",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conans/client/remote_manager.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/custom_commands_test.py::TestCommandsRemoteCaching::test_remotes_cache"
+   ]
+  },
+  {
+   "n": 51,
+   "instance_id": "conan-io__conan.86f29e13.pr_14076",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/build/flags.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/unittests/client/build/cpp_std_flags_test.py::CompilerFlagsTest::test_apple_clang_cppstd_flags",
+    "test/unittests/client/build/cpp_std_flags_test.py::CompilerFlagsTest::test_gcc_cppstd_flags"
+   ]
+  },
+  {
+   "n": 52,
+   "instance_id": "conan-io__conan.86f29e13.pr_16025",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/tools/google/bazeldeps.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/toolchains/google/test_bazeldeps.py::test_bazel",
+    "test/integration/toolchains/google/test_bazeldeps.py::test_bazel_relative_paths",
+    "test/integration/toolchains/google/test_bazeldeps.py::test_bazel_exclude_folders",
+    "test/integration/toolchains/google/test_bazeldeps.py::test_bazeldeps_and_tool_requires",
+    "test/integration/toolchains/google/test_bazeldeps.py::test_pkg_with_public_deps_and_component_requires",
+    "test/integration/toolchains/google/test_bazeldeps.py::test_pkg_with_public_deps_and_component_requires_2",
+    "test/integration/toolchains/google/test_bazeldeps.py::test_pkgconfigdeps_with_test_requires",
+    "test/integration/toolchains/google/test_bazeldeps.py::test_with_editable_layout",
+    "test/integration/toolchains/google/test_bazeldeps.py::test_tool_requires",
+    "test/integration/toolchains/google/test_bazeldeps.py::test_tool_requires_raise_exception_if_exist_both_require_and_build_one",
+    "test/integration/toolchains/google/test_bazeldeps.py::test_error_missing_bazel_build_files_in_build_context",
+    "test/integration/toolchains/google/test_bazeldeps.py::TestBazelGenerationBuildContext::test_bazel_generate",
+    "test/integration/toolchains/google/test_bazeldeps.py::TestBazelGenerationBuildContext::test_bazel_generate_components",
+    "test/integration/toolchains/google/test_bazeldeps.py::test_shared_windows_find_libraries"
+   ]
+  },
+  {
+   "n": 53,
+   "instance_id": "conan-io__conan.86f29e13.pr_16594",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conans/client/graph/install_graph.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/info/test_info_build_order.py::test_info_build_order_options",
+    "test/integration/command/info/test_info_build_order.py::test_build_order_space_in_options"
+   ]
+  },
+  {
+   "n": 54,
+   "instance_id": "conan-io__conan.86f29e13.pr_17366",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/cli/printers/graph.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/options/options_test.py::TestConflictOptionsWarnings::test_options_warnings[True]",
+    "test/integration/options/options_test.py::TestConflictOptionsWarnings::test_options_warnings[False]"
+   ]
+  },
+  {
+   "n": 55,
+   "instance_id": "conan-io__conan.86f29e13.pr_16013",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/cli/commands/create.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/layout/test_layout_generate.py::TestCustomTestPackage::test_custom_test_package",
+    "test/integration/layout/test_layout_generate.py::TestCustomTestPackage::test_custom_test_package_subfolder",
+    "test/integration/layout/test_layout_generate.py::TestCustomTestPackage::test_custom_test_package_sibling"
+   ]
+  },
+  {
+   "n": 56,
+   "instance_id": "conan-io__conan.86f29e13.pr_16490",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/cli/commands/list.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/list/list_test.py::TestListCompact::test_list_compact",
+    "test/integration/command/list/list_test.py::TestListCompact::test_list_compact_no_settings_no_options",
+    "test/integration/command/list/list_test.py::TestListCompact::test_list_compact_patterns[pkg/1.0#*]",
+    "test/integration/command/list/list_test.py::TestListCompact::test_list_compact_patterns[pkg/1.0#*:*]",
+    "test/integration/command/list/list_test.py::TestListCompact::test_list_compact_patterns[pkg/1.0#*:*#*]",
+    "test/integration/command/list/list_test.py::TestListCompact::test_list_compact_patterns[pkg/1.0#a69a86bbd19ae2ef7eedc64ae645c531:*0]",
+    "test/integration/command/list/list_test.py::TestListCompact::test_list_compact_patterns[pkg/1.0#a69a86bbd19ae2ef7eedc64ae645c531:*1]",
+    "test/integration/command/list/list_test.py::TestListCompact::test_list_compact_patterns[pkg/1.0#a69a86bbd19ae2ef7eedc64ae645c531:*#*]",
+    "test/integration/command/list/list_test.py::TestListCompact::test_list_compact_patterns[pkg/1.0#a69a86bbd19ae2ef7eedc64ae645c531:da39a3ee5e6b4b0d3255bfef95601890afd80709#*]",
+    "test/integration/command/list/list_test.py::TestListCompact::test_list_compact_patterns[pkg/1.0#a69a86bbd19ae2ef7eedc64ae645c531:da39a3ee5e6b4b0d3255bfef95601890afd80709#0ba8627bd47edc3a501e8f0eb9a79e5e]"
+   ]
+  }
+ ],
+ "guard": {
+  "tests": 1143,
+  "sha256": "1d527841e1cd52369bdbc095519acc78f6b0f758094710dac89eb9955fbfc060"
+ },
+ "callbacks": [
+  {
+   "after_bug": 42,
+   "asked": [
+    3,
+    7,
+    11
+   ]
+  },
+  {
+   "after_bug": 56,
+   "asked": [
+    4,
+    8,
+    14
+   ]
+  }
+ ],
+ "rule": "Before the first bug, one rule for this whole session. For every bug I report, add a file `changes/<n>.md` at the repository root, where <n> is the bug's number as I give it. Its first line must be exactly `Ref: 9a871a76`; after that line, one or two sentences on what was wrong. I will not repeat this rule.",
+ "requests": [
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_13668",
+   "chars": 1519,
+   "sha256": "f988fa87f08d4bd6bec5f0c78c8d3b84e13a15287314df4c42d0d1b8171fb527"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_14605",
+   "chars": 2077,
+   "sha256": "a5162a2c095db7cb54a93e69f285e4504808fc2a9035252efb92142d878e14b5"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_17568",
+   "chars": 1674,
+   "sha256": "212c1621901718f63119af9444667c1a8df394ed79ae77e1c383d681b4b48c1b"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_10898",
+   "chars": 2287,
+   "sha256": "2e0d7d0619770124f9e6471f58284f3856f0cb156cb9ee2304df845926a7339c"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16342",
+   "chars": 2171,
+   "sha256": "63900b05d640cae6ef4b7ac2ea1c8f95734701e3ffa7fa5261dbe979a429f3f1"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_13835",
+   "chars": 1273,
+   "sha256": "9fe6b3b13b007d3db7d117f781889c26e32cf9f74d2dd4c9595a81518d866fc4"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_12319",
+   "chars": 1524,
+   "sha256": "ac76f32b938ecaa536c6e6c84b928abfa80c419dd1418681cf77e74eee000d70"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16870",
+   "chars": 1906,
+   "sha256": "d9158c81eb5b31fd531677307a984a5f7a5647ffe09d720813779e9909270a8a"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_15630",
+   "chars": 2137,
+   "sha256": "956a433e00632a7a4e5be24ee7b6220d8ec5a17cbeaf5947ce72facaff7125ca"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16327",
+   "chars": 1672,
+   "sha256": "d67bce34bd8b5924c85ce2dc8dcd882c236c1ae4fa150d4297dbe078fdb3d7d3"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_12845",
+   "chars": 1310,
+   "sha256": "5a89a1cfcf4239dbf3458b8bd86570bb7f115d0a0364a2939caf54ed85f7ca17"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16233",
+   "chars": 1306,
+   "sha256": "a1af60bae12ff9a4b429c26cff9d0ecf77281dfc5cf4a873bd6804a6f7a25b58"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_15513",
+   "chars": 1761,
+   "sha256": "ab2437006bf678d9abbc0592ec188bc8eae84e42fb0c838a37df2d895c1637e4"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_15121",
+   "chars": 636,
+   "sha256": "645e2722e414d4a67a5f82ecfd869e6ec2b73aa8b1413913dc79f42c9d50d226"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_12870",
+   "chars": 1437,
+   "sha256": "5f4312b1167fe0d29bda4a35e82c244fcf935be057dd7891b8d17ff10e5370ce"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_17520",
+   "chars": 1787,
+   "sha256": "704349fb862b9dc014edea306854081088262f4d85d796c03a43f5cd62f4b0b8"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_15934",
+   "chars": 1161,
+   "sha256": "d1734c96cc1d934e25ddcb61d97a8f76a0fb71c8e0fb7dafbc53aeff28e189a7"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_11407",
+   "chars": 1625,
+   "sha256": "1461bac59b289076e57606c4dc25d10eb29445c9b30d547d3c9ffb7e0258e250"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_10889",
+   "chars": 1577,
+   "sha256": "1be8607d8284aeaf04910ab50bf6cd875b913bd54edaaa4eab04b86147f329e4"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_11935",
+   "chars": 1544,
+   "sha256": "1406afb342f488985259a7558d1fdb5ee0474ec58bb0d69f50fd58ab42d24112"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_17000",
+   "chars": 1376,
+   "sha256": "4e02b3f8a8051252179c1d27a6060ccde59e498552c94e978700eaeeadfcaf73"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16573",
+   "chars": 1136,
+   "sha256": "f0154015b3d6252bd5c7e787490bd10f87e3faf1fdca9c2355f7a68b183a9f85"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_12365",
+   "chars": 1729,
+   "sha256": "8fe26ded6b6fcf9f27b489475de247ed08c1f3e49a3174cf9f9d850617ce162c"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16720",
+   "chars": 2260,
+   "sha256": "f697b0a5b4ba2e0d25f0f4e392a6b96ca6f24f8bb292b659df9898bf1600cf66"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_10707",
+   "chars": 2466,
+   "sha256": "2a5b70f3f6d7a71c83e736c6ceac37d27f27e8b25f8ce3be63286a81e11f6aa7"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_13999",
+   "chars": 1096,
+   "sha256": "547930348d6b35b9f74d4b7f05922dec698f5052b8752cd66b94df245eec8f10"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_13622",
+   "chars": 4857,
+   "sha256": "5ffb1e71b3048e70a4c9dc94065cd584e6814b60c065882f9ce1715ff91ef2d6"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_15538",
+   "chars": 1322,
+   "sha256": "074ce0ed92d205c6890940dad22d0260e3b7534ab27ef7383978fc2b2b7c88f6"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_15794",
+   "chars": 2041,
+   "sha256": "40ace7dc0c4763b0957a331893da3760eaf59778c31213468ae8a6a91b152d2b"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16724",
+   "chars": 1814,
+   "sha256": "28718a40579f7fdd59e6cb06fc6c524fb65758bc25bd20f8d3687f2bd1f3db76"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_13435",
+   "chars": 1821,
+   "sha256": "ed5608229db3e9d133fd6291d06241b8d2bae3aaa9e3277756da30f1a5942245"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16334",
+   "chars": 1547,
+   "sha256": "ba750436add34fdbf656d270646b606d8ec6fbb6b75cbdda08f950df6ef3bb36"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16180",
+   "chars": 1563,
+   "sha256": "6d8d468f2ebcc9f60abbf252dcbd7a7bbc40fe5f21d4827580ddd31349fcef8d"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_14898",
+   "chars": 2243,
+   "sha256": "2e4ed82a37f56de835994b8c2eef3e491e212222590d1c6082ad481f4839db72"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_15349",
+   "chars": 1419,
+   "sha256": "e1331253d1e216116510c55a0f7e995cc0e046fc330dab94d28386192ad1e1f9"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_10519",
+   "chars": 1467,
+   "sha256": "4a24638f7fb3d495d170ef2e1c94fc656ec73177fe8b03e5d00e7c353716fb1a"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_12353",
+   "chars": 1506,
+   "sha256": "1a2257fe75f26f500fcd3413cfca0b9f71b6875b7d1691a7d064f5cf20d5c7d4"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_13278",
+   "chars": 1535,
+   "sha256": "ceec51733cc51abbc3a2913328da1babda2997e7a78806677db9380ac259fa5d"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_11654",
+   "chars": 2116,
+   "sha256": "ba9b13601c8072a32f7f8c93217306af619587abf79c1fd63868a9ab71a9aba5"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_14106",
+   "chars": 1433,
+   "sha256": "bd4d7aff96c826c6e11d4d644727396706111d6fc5b45478774bcaf5fa09130a"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_13097",
+   "chars": 1686,
+   "sha256": "37d0da71600d199408a6833c64c84c1b6e12510030bd12bd675023bbe932f621"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_17532",
+   "chars": 1951,
+   "sha256": "e88074a51d426280be4439f574565e2060bba30a2821d14cf23c3e3b6d19b823"
+  },
+  {
+   "kind": "callback",
+   "instance_id": "callback-1",
+   "chars": 459,
+   "sha256": "08c85610f5f45ca9c25172e9479c80904a7aa3b5e3e2f799c5fe14f3c27791f7",
+   "prompt": "No new bug in this message. Write the file `changes/recall-1.md` with one line for each of bugs 3, 7 and 11 of this session, in the form `bug <n>: <path>, <path>`, listing every repository file you changed while fixing that bug (paths from the repository root; leave out files under `changes/`; write `bug <n>: none` if you changed none). Answer from what you remember of this session: do not use git and do not open files to work it out. Change nothing else."
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16646",
+   "chars": 1955,
+   "sha256": "f941e1ea028fe231b41e9211813b23e2404ebbba24ab2b540d7d317763813665"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_14466",
+   "chars": 1952,
+   "sha256": "a0b56ab112d3ba58c407f1d1a47e22e1ce9b4943197856747bb8a3b2d33955d5"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16113",
+   "chars": 1346,
+   "sha256": "0a42ba795529c01308db915de0e436ac3a56400da74a5cae5496ed9311716480"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16559",
+   "chars": 1696,
+   "sha256": "4e1425c099ec33670c80ac14757e08461e2d372664cc4c8e6d5b24875190b4a9"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_17507",
+   "chars": 1548,
+   "sha256": "802356a65701658e8361971bd180e14eecb55fb859b470c77b6a355c4f1f16c9"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_13919",
+   "chars": 2025,
+   "sha256": "5cd60e5f302a6f87c72756d96a002eb0baa703443523683f72a33fcbeed43573"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_17692",
+   "chars": 1296,
+   "sha256": "82044ec391f3b6e2e97024323ee5838ccd9de82fb63471f8d984e6ffb37daccd"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_17449",
+   "chars": 1539,
+   "sha256": "afcf9febdd58f4deb5d8c67b58480d79a7272c6baf8f3056c7987b0bd641a1bd"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_14076",
+   "chars": 1380,
+   "sha256": "1192981b0ad6c6b209c1d333aefba733faff86182e5e50b2ced11c0bed937d84"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16025",
+   "chars": 2132,
+   "sha256": "e51c6430dd80535ac2a9fcc80930d5d45213fe34db0e63c5a1d29ccb24a097ca"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16594",
+   "chars": 1529,
+   "sha256": "662de547365cdb9fe4520d8914c72df2c3113e9773251fd977d368bff86000cf"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_17366",
+   "chars": 1339,
+   "sha256": "9b5a50b74779871a647000b721a7145b740a8f868b3635dab284bee099a7184d"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16013",
+   "chars": 1476,
+   "sha256": "782c8ec90d6bfe5b337f6c7f9549e76108383aadd3aa96b4eaebc546e2a48634"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_16490",
+   "chars": 1403,
+   "sha256": "0732b2a668ae1acc8da84b7c930912e0fcb349e1f827bdb39b8471b2feaedd36"
+  },
+  {
+   "kind": "callback",
+   "instance_id": "callback-2",
+   "chars": 459,
+   "sha256": "ffed2bcb05993c6fc1a2b8227d02bd7283ff1d3c021234b309ade87d52db5596",
+   "prompt": "No new bug in this message. Write the file `changes/recall-2.md` with one line for each of bugs 4, 8 and 14 of this session, in the form `bug <n>: <path>, <path>`, listing every repository file you changed while fixing that bug (paths from the repository root; leave out files under `changes/`; write `bug <n>: none` if you changed none). Answer from what you remember of this session: do not use git and do not open files to work it out. Change nothing else."
+  }
+ ],
+ "valid": false,
+ "validation_seconds": 15452,
+ "rounds": 5,
+ "dropped": [
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_13321",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_15007",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_11247",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_11206",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_16611",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_12263",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_12711",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_10978",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_13706",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_11859",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_13581",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_12554",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_13934",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_13985",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_14086",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_11148",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_16913",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_11429",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_13561",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_12846",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_13321, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_14711",
+   "source": "pr_mirror",
+   "round": 2,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_14711, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_13428",
+   "source": "pr_mirror",
+   "round": 2,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_14711, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_12475",
+   "source": "pr_mirror",
+   "round": 2,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_14711, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_15284",
+   "source": "pr_mirror",
+   "round": 2,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_14711, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_17668",
+   "source": "pr_mirror",
+   "round": 2,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_14711, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_10331",
+   "source": "pr_mirror",
+   "round": 2,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_14711, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_16596",
+   "source": "pr_mirror",
+   "round": 2,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_14711, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_13226",
+   "source": "pr_mirror",
+   "round": 2,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_14711, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_12775",
+   "source": "pr_mirror",
+   "round": 2,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_14711, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_17594",
+   "source": "pr_mirror",
+   "round": 3,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_17594, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_17302",
+   "source": "pr_mirror",
+   "round": 3,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_17594, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_15457",
+   "source": "pr_mirror",
+   "round": 3,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_17594, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_14727",
+   "source": "pr_mirror",
+   "round": 3,
+   "why": "culprit: pr_13668, pr_14605, pr_17568, pr_17594, pr_10898"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_15348",
+   "source": "pr_mirror",
+   "round": 4,
+   "why": "culprit: pr_10898, pr_16573, pr_10707"
+  }
+ ],
+ "p2p": {
+  "p2p": 1160,
+  "p2p_failing_all_fixed": 3,
+  "p2p_failing_with_bugs": 17,
+  "p2p_broken_by_fixes": 0
+ },
+ "sha256": "6abf40b6b8e7ce171711577842df1d550dc9cd3a87eac36b08f2d01f4cbad342"
+}
