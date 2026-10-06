@@ -187,3 +187,13 @@ Sealed 2026-10-06 12:15 by indagis-dd.
 - Independent verification against the code: a subagent (read-only) checked the draft 4a06611
   claim by claim; its eleven findings were fixed in 1c89461 (code, tests) and 5b42b4f (text)
   before this seal. Preflight of the three suites with the sealed line: ok (12:14).
+
+## Amendment 1 (2026-10-06 12:50, before the ceiling was reached)
+
+LongBench v2 ran at about 0.17 USD per session over its first 32 sessions (dev: about 0.08),
+which projects ~17 USD for 100 sessions, against a stop at 17 USD (spent + the 3 USD session
+cap > 20). The owner approved raising the LongBench ceiling to **25 USD** (asked in chat at
+12:48). Code: `PHASE_CEILINGS["longdoc-conf"] = 25.0`. The running process keeps the ceiling it
+was launched with; if it stops at 20 it is resumed with `--ceiling 25` (resume skips what is
+done). Nothing else changes: same tasks, arms, line and analysis. Seen before deciding: per-arm
+cost and success so far (not used for any other change).
