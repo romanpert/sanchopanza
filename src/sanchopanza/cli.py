@@ -242,8 +242,15 @@ def _browse_hook(args: argparse.Namespace) -> int:
     return browse_main()
 
 
+def _passages_hook(args: argparse.Namespace) -> int:
+    from .harness.passages_hook import main as passages_main
+
+    return passages_main()
+
+
 def _install(args: argparse.Namespace) -> int:
     from .harness import install_knowledge
+    from .harness import install_passages as passages
     from .harness.generic import HarnessConfig
     from .harness.install import apply, default_path, default_plugin_root, plan, project_settings
     from .harness.install_defaults import DEFAULT_BUDGET, apply_skill, skill_change
@@ -305,6 +312,11 @@ def _install(args: argparse.Namespace) -> int:
             find_auto=args.find_auto,
             profile=args.guard_profile,
         )
+        passages.check(args.passages, args.passages_fraction, args.passages_tokens,
+                       autopilot=args.autopilot)  # fmt: skip
+        settings = passages.with_passages(settings, on=args.passages,
+                                          fraction=args.passages_fraction,
+                                          tokens=args.passages_tokens)  # fmt: skip
         files = _install_plugin(args, root)
         skill = skill_change(path, args.skill)
     except (ValueError, OSError) as error:
@@ -381,6 +393,12 @@ def _install(args: argparse.Namespace) -> int:
             "Snapshot pruning is on: a large page snapshot from a browser_* MCP tool is "
             f"cut to what the task needs, ranked by {ranker}; the whole page goes to the archive "
             "and the reply says where.\n"
+        )
+    if args.passages:
+        sys.stdout.write(
+            f"Passages is on: a Bash, PowerShell or Read result past {args.passages_tokens} "
+            f"tokens keeps about {args.passages_fraction:.0%} of it (failure lines always), the "
+            "whole text archived; re-requests are journaled as passages_rerequest.\n"
         )
     if args.sources:
         sys.stdout.write(
@@ -775,6 +793,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     browse_hook.set_defaults(func=_browse_hook)
 
+    passages_hook = sub.add_parser(
+        "passages-hook",
+        help="passages on arrival for large Bash, PowerShell and Read results: Claude Code "
+        "PostToolUse hook (stdin JSON)",
+    )
+    passages_hook.set_defaults(func=_passages_hook)
+
     providers = sub.add_parser("providers", help="list installed providers")
     providers.set_defaults(func=_providers)
 
@@ -922,6 +947,17 @@ def main(argv: list[str] | None = None) -> int:
         "archived (one PostToolUse hook; registered 17-22 %% cheaper on large inline snapshots "
         "with --provider jev; off by default)",
     )
+    install.add_argument(
+        "--passages",
+        action="store_true",
+        help="for coding sessions: cut a Bash, PowerShell or Read result past "
+        "--passages-tokens to --passages-fraction of it on arrival (failure lines always kept, "
+        "the rest archived; one PostToolUse hook; not measured yet, so off by default)",
+    )
+    install.add_argument("--passages-fraction", type=float, default=0.25,
+                         help="with --passages, the share of characters kept (default 0.25)")
+    install.add_argument("--passages-tokens", type=int, default=2000,
+                         help="with --passages, the size that triggers a cut (default 2000)")
     install.add_argument(
         "--sources",
         action="store_true",
