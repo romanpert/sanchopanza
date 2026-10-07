@@ -8,7 +8,10 @@ of pages, so it is cut into blocks of about that size, by the grain of what it i
   target size;
 - `code` (a source file read): blank-line blocks, and a new block at every top-level
   definition, merged up to the target size;
-- `log` (command output, search hits): groups of consecutive lines up to the target size.
+- `log` (command output, search hits): groups of consecutive lines up to the target size;
+- `shell` (command output cut by its own structure, `context.passages`): a new block after a
+  blank line, at a header line (`==> f <==`, `diff --git`, a rule, a `Title:` line) and where
+  a `grep -n` hit moves to another file, merged up to the target size.
 
 Every block is a character span of the original, `text[start:end]`, and the spans tile the text
 without gaps or overlaps. That is what makes assembly literal: the agent gets the original
@@ -22,12 +25,12 @@ Pure code: no decision is taken here.
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import PurePath
 from typing import Any, Literal
 
-Kind = Literal["prose", "code", "log"]
+Kind = Literal["prose", "code", "log", "shell"]
 
 TARGET = 900  # chunks.PAGE_LIMIT: what one page of the in-context question shows
 MAX_BLOCKS = 300  # past this the target grows, so the tournament stays at ~12 calls
@@ -90,6 +93,14 @@ TOP_LEVEL = re.compile(
 )
 
 
+# A line that opens a section of command output: `head`/`tail` banners, a diff, a rule, a
+# Markdown heading, a pytest section, a `Changes not staged for commit:` title, a prompt.
+SHELL_HEADER = re.compile(
+    r"^(?:==> .* <==|diff --git |@@ |#{1,6} |[=_-]{4,}|\$ |[A-Z][\w ,'()-]{2,60}:\s*$)"
+)
+GREP_FILE = re.compile(r"^([^\s:]+?):\d+[:-]")
+
+
 @dataclass(frozen=True, slots=True)
 class Block:
     """`text[start:end]` of the original; lines are 1-based and inclusive."""
@@ -143,24 +154,45 @@ def _blank(text: str, span: tuple[int, int]) -> bool:
 
 
 def _boundary(text: str, units: Sequence[tuple[int, int]], i: int, kind: Kind) -> bool:
-    """Whether a new block may start at unit `i`: after a blank line, or at a definition."""
+    """Whether a new block may start at unit `i`: after a blank line, at a definition (code),
+    at a header or where grep's hits move to another file (shell)."""
     if i == 0 or kind == "log":
         return False
     if _blank(text, units[i - 1]) and not _blank(text, units[i]):
         return True
-    return kind == "code" and bool(TOP_LEVEL.match(text[units[i][0] : units[i][1]]))
+    line = text[units[i][0] : units[i][1]]
+    if kind == "shell":
+        here = GREP_FILE.match(line)
+        before = GREP_FILE.match(text[units[i - 1][0] : units[i - 1][1]])
+        moved = bool(here and before and here[1] != before[1])
+        return moved or bool(SHELL_HEADER.match(line))
+    return kind == "code" and bool(TOP_LEVEL.match(line))
 
 
 def _line_of(text: str, offset: int) -> int:
     return text.count("\n", 0, offset) + 1
 
 
+def effective_target(text: str, target: int = TARGET, max_blocks: int = MAX_BLOCKS) -> int:
+    """The block size `split` uses: `target`, grown so a long text stays under `max_blocks`."""
+    if max_blocks > 0 and len(text) / target > max_blocks:
+        return -(-len(text) // max_blocks)
+    return target
+
+
+def atoms(text: str, target: int = TARGET) -> list[Block]:
+    """The smallest pieces `split` builds its blocks from: one per line, a line longer than
+    `target` split at whitespace. Every block of `split(text, kind, target=t)` is a run of
+    `atoms(text, effective_target(text, t))`."""
+    return [Block(s, e, _line_of(text, s), _line_of(text, max(s, e - 1)))
+            for s, e in _units(text, target)]  # fmt: skip
+
+
 def split(text: str, kind: Kind, *, target: int = TARGET, max_blocks: int = MAX_BLOCKS) -> list:
     """Blocks tiling `text`, in order. Never empty for a non-empty text."""
     if not text:
         return []
-    if max_blocks > 0 and len(text) / target > max_blocks:
-        target = -(-len(text) // max_blocks)
+    target = effective_target(text, target, max_blocks)
     units = _units(text, target)
     spans: list[tuple[int, int]] = []
     start = units[0][0]
@@ -209,13 +241,15 @@ def assemble(
     kept: Sequence[bool | Sequence[tuple[int, int]]],
     *,
     line_offset: int = 0,
+    describe: Callable[[str], str] | None = None,
 ) -> str:
     """The kept parts of `text` in their original order, one marker per omitted run.
 
     `kept[i]` is True (the whole block), False (omitted), or the spans of the block to keep
     (sentences). Omitted sentences inside a kept block become `SENTENCE_GAP`; a run of omitted
     blocks becomes one line naming its lines, in the numbering of the original result plus
-    `line_offset` (a `Read` that started at line 41 passes 40).
+    `line_offset` (a `Read` that started at line 41 passes 40). `describe`, when given, names
+    what an omitted run held (the definitions in it, say), after its size in the marker.
     """
     parts: list[str] = []
     run: list[Block] = []
@@ -225,7 +259,10 @@ def assemble(
             return
         what = _lines(run[0].first_line, run[-1].last_line, line_offset)
         chars = sum(b.end - b.start for b in run)
+        label = describe(text[run[0].start : run[-1].end]) if describe else ""
         marker = OMITTED.format(what=what, chars=chars)
+        if label:
+            marker = marker.replace(" chars) ...]", f" chars; {label}) ...]")
         needs_break = parts and not parts[-1].endswith("\n")
         parts.append(("\n" if needs_break else "") + marker + "\n")
         run.clear()
