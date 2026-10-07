@@ -91,8 +91,9 @@ GATE_CHAIN_CAP = {"sonnet": 38.0, "opus": 75.0}  # owner 2026-10-07 (twice): 2x3
 GATE_CEILING = 230.0  # owner 2026-10-07: Sonnet conan cost ~41 a whole chain (model: 25); Opus 1.67x
 GATE_CHAINS = ("conan-io__conan-long60-1", "pydantic__pydantic-long60-1")
 PILOT_CEILING = 80.0  # the pilot of bet A: one arm, 2 x 38 = 76 held, hard (2026-10-07)
-NOISE_NE_CEILING = 76.0  # N-early on the gate's two chains at N's 38 a chain (owner 2026-10-07)
-NOISE_N_CEILING = 34.0  # N again on pydantic; with the line above, the owner's 110 USD
+NOISE_NE_CHAIN = 35.0  # N-early compacts at 193k: expected ~17 a chain (cost model), far from 35
+NOISE_NE_CEILING = 2 * NOISE_NE_CHAIN  # 70, on the gate's two chains (owner 2026-10-07)
+NOISE_N_CEILING = 40.0  # N again on pydantic (spent 23.55 the first time); 70 + 40 = the owner's 110
 SMOKE_CHAIN = "pydantic__pydantic-long60-1"  # validated first; Haiku, 3 bugs, its own root
 MANIFESTS = HERE / "long60"  # long60/<chain>.json, written by `long.py manifests` once valid
 JEV_MAX_USD = 0.50  # per chain (pre-mortem 15)
@@ -149,10 +150,10 @@ PROFILES = {
                        {"sonnet": GATE_CHAIN_CAP["sonnet"]}, PILOT_CEILING, GATE_CHAINS,
                        hard_cap=PILOT_CEILING, hours={"sonnet": 1.6}, choices=long_pilot.ARMS),
     # The window and noise round (owner, 2026-10-07, 110 USD hard in all): N-early on the gate's
-    # chains under N's caps, and N once more on pydantic (most give-ups past 150k) to know how far
-    # N moves against itself. 76 + 34 = 110; N spent 23.55 on pydantic, under 34 by a call.
+    # chains, and N once more on pydantic (most give-ups past 150k) to know how far
+    # N moves against itself. 70 + 40 = 110 (N-early compacts, so it needs less than N).
     "noise-ne": Profile("noise-ne", ("Ne",), ("sonnet",), {"sonnet": GATE_CALL_CAP["sonnet"]},
-                        {"sonnet": GATE_CHAIN_CAP["sonnet"]}, NOISE_NE_CEILING, GATE_CHAINS,
+                        {"sonnet": NOISE_NE_CHAIN}, NOISE_NE_CEILING, GATE_CHAINS,
                         hard_cap=NOISE_NE_CEILING, hours={"sonnet": 1.6}),
     "noise-n": Profile("noise-n", ("N",), ("sonnet",), {"sonnet": GATE_CALL_CAP["sonnet"]},
                        {"sonnet": NOISE_N_CEILING}, NOISE_N_CEILING, (GATE_CHAINS[1],),

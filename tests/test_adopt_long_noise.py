@@ -34,11 +34,11 @@ def test_the_two_profiles_hold_the_approved_110(m) -> None:
     long_run, _ = m
     ne, n2 = long_run.PROFILES["noise-ne"], long_run.PROFILES["noise-n"]
     assert ne.arms == ("Ne",) and ne.models == ("sonnet",) and ne.chains == GATE
-    assert dict(ne.call_cap) == {"sonnet": 4.5} and dict(ne.chain_cap) == {"sonnet": 38.0}
-    assert ne.ceiling == ne.hard_cap == 76.0 and ne.window == 193_000
+    assert dict(ne.call_cap) == {"sonnet": 4.5} and dict(ne.chain_cap) == {"sonnet": 35.0}
+    assert ne.ceiling == ne.hard_cap == 70.0 and ne.window == 193_000
     assert n2.arms == ("N",) and n2.models == ("sonnet",) and n2.chains == (GATE[1],)
-    assert dict(n2.call_cap) == {"sonnet": 4.5} and dict(n2.chain_cap) == {"sonnet": 34.0}
-    assert n2.ceiling == n2.hard_cap == 34.0
+    assert dict(n2.call_cap) == {"sonnet": 4.5} and dict(n2.chain_cap) == {"sonnet": 40.0}
+    assert n2.ceiling == n2.hard_cap == 40.0
     assert ne.ceiling + n2.ceiling == 110.0
 
 
@@ -54,12 +54,12 @@ def test_the_plan_prints_the_caps_and_the_window(m) -> None:
     long_run, long_launch = m
     known = {n: {"bugs": [{}] * 60} for n in GATE}
     ne = "\n".join(long_launch.plan_lines("noise-ne", known, list(GATE),
-                                          pathlib.Path("Z:/nowhere"), 76.0))  # fmt: skip
-    assert "caps held 76.00 USD" in ne and "ceiling 76.00 (hard, in code)" in ne
+                                          pathlib.Path("Z:/nowhere"), 70.0))  # fmt: skip
+    assert "caps held 70.00 USD" in ne and "ceiling 70.00 (hard, in code)" in ne
     assert "193000" in ne
     n2 = "\n".join(long_launch.plan_lines("noise-n", known, [GATE[1]],
-                                          pathlib.Path("Z:/nowhere"), 34.0))  # fmt: skip
-    assert "caps held 34.00 USD" in n2 and "ceiling 34.00 (hard, in code)" in n2
+                                          pathlib.Path("Z:/nowhere"), 40.0))  # fmt: skip
+    assert "caps held 40.00 USD" in n2 and "ceiling 40.00 (hard, in code)" in n2
 
 
 def test_the_launcher_is_lf() -> None:

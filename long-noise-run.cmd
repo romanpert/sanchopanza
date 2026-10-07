@@ -2,9 +2,9 @@
 rem Long bench, window and noise round (owner 2026-10-07; STATUS-launch.md; PLAN-GANAR-H2H.md 6).
 rem   long-noise-run.cmd ne   N-early (N + CLAUDE_CODE_AUTO_COMPACT_WINDOW 193000 in the project
 rem                           settings' env) on conan-long60-1 and pydantic-long60-1, root L-ne,
-rem                           Sonnet 5.5 at N's caps (4.50 a call, 38 a chain), hard ceiling 76.
-rem   long-noise-run.cmd n    N again on pydantic-long60-1, root L-n2, 4.50 a call, hard ceiling 34.
-rem 76 + 34 = the 110 USD the owner approved. No S arm: no Jev, no preflight, no frozen copy.
+rem                           Sonnet 5.5, 4.50 a call, 35 a chain, hard ceiling 70.
+rem   long-noise-run.cmd n    N again on pydantic-long60-1, root L-n2, 4.50 a call, hard ceiling 40.
+rem 70 + 40 = the 110 USD the owner approved. No S arm: no Jev, no preflight, no frozen copy.
 rem Start it by WMI, outside any Claude Code session, and never twice at once:
 rem   Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
 rem     CommandLine = "cmd.exe /c <this folder>\long-noise-run.cmd ne" }
