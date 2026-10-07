@@ -4,6 +4,7 @@ and the runner's plan, arms and rows. No network, no session, no money."""
 import importlib.util
 import json
 import pathlib
+import re
 import sys
 import types
 import warnings
@@ -333,11 +334,32 @@ def test_sp_arm_is_the_install_line_on_the_same_flag_settings():
         runner.settings_for("XX")
 
 
+def _guard_unsplit(settings):
+    """The settings with the guard's split hooks (guard-split, main cb0062e, merged after GAIA
+    dev ran) folded back into the one `sanchopanza guard-hook` they replaced."""
+    hooks = {}
+    for event, entries in settings["hooks"].items():
+        folded = []
+        for entry in entries:
+            seen, kept = False, []
+            for hook in entry["hooks"]:
+                command = re.sub(r" --part \d+| --parts \d+", "", hook["command"])
+                if command == "sanchopanza guard-hook" and seen:
+                    continue
+                seen = seen or command == "sanchopanza guard-hook"
+                kept.append({**hook, "command": command})
+            folded.append({**entry, "hooks": kept})
+        hooks[event] = folded
+    return {**settings, "hooks": hooks}
+
+
 def test_the_real_default_install_writes_exactly_the_dev_phase_settings(tmp_path):
     src = ROOT / "src"
     installed = arms.prepare_config("SP", tmp_path / "config", src)  # a real install, free
     written = json.loads((tmp_path / "config" / "settings.json").read_text(encoding="utf-8"))
-    assert written == arms.SP_USER_SETTINGS  # the record of what GAIA dev ran with
+    # The record of what GAIA dev ran with; today's install differs from it by the split guard
+    # alone, and by nothing else.
+    assert _guard_unsplit(written) == arms.SP_USER_SETTINGS
     assert (tmp_path / "config" / arms.SKILL).is_file()
     assert installed.raw_mcp == {} and "sanchopanza" in installed.hinted  # a hint, not registered
     assert arms.prepare_config("CC", tmp_path / "empty", None) is None
