@@ -374,6 +374,51 @@ entonces no se escriben causas, y las consecuencias de abajo quedan en suspenso.
 3. A sigue siendo el brazo con menos abandonos no resueltos (0 y 1), con el coste dentro del ruido
    de N. Actúa en el 4 % de las llamadas: hacen falta más cadenas.
 
+### N-early: la comprobación de la llamada 12 (e8, 2026-10-07, 20:05)
+
+Instantánea `diff-12`, anterior a cualquier compactación de Ne, puntuada con `perbug.grade`
+(Docker, gratis), sobre los bugs 1-12 de conan:
+
+| | Resueltos |
+|---|---|
+| N | 10/12 |
+| Ne | 5/12 |
+| A | 12/12 |
+
+- Antes de compactar, Ne es el mismo tratamiento que N. La llamada 1 tiene un init idéntico salvo
+  las rutas: la ventana no se ve en el modelo (`contextWindow` 1.000.000 en los dos) y la lectura
+  del prefijo es la misma (15.786).
+- Aun así, Ne falla el bug 1 tras 13 peticiones, mientras N lo resuelve en 4. **Es variación entre
+  corridas**, y en conan parece mayor que en pydantic.
+- Sobre los 49 bugs comunes, con la nota final:
+
+  | Tramo | N | Ne | A |
+  |---|---|---|---|
+  | Llamadas 1-12 | 11 | 5 | 12 |
+  | Llamadas 13-50, tras la primera compactación de Ne | 30 | 25 | 30 |
+
+  En el segundo tramo Ne pierde 5 de 37, del orden del suelo de pydantic (6 de 60 discordantes).
+
+**Lectura acordada (e8 y 6c)**:
+
+- (a) **Coste: firme como dirección.** Ne cuesta x0,54 (conan) y x0,59 (pydantic), muy fuera del
+  ±8 % del suelo de N.
+- (b) **Calidad: no hay prueba de que compactar haga perder el hilo.** La parte grande de la
+  brecha de conan es anterior a compactar; la de después está en el ruido. En pydantic Ne = N
+  (3 y 3).
+- (c) **Abandonos: Ne no se rinde menos.** Tiene 6 no resueltos, frente a 4 y 3, todos por debajo
+  de 150k porque nunca pasa de 160k. Sobre los 57 bugs estables, stable_flips da +1, dentro del
+  ruido. No se confirma "menos contexto, menos abandonos" con Ne, pero tampoco lo contrario.
+- (d) **A es el brazo más fuerte en calidad**: 12/12 antes de la llamada 13 en conan; en pydantic,
+  +2/−0 sobre los bugs estables.
+
+**Lo que falta para separar (b) y que proponemos al dueño**:
+
+- conan necesita su propio suelo de ruido.
+- Mínimo: Ne repetido en conan (~17 $) y N repetido en conan (~32-41 $, tope 38), ~55-60 $ en
+  total.
+- Con solo Ne repetido en conan (~17 $) ya se vería si el 5/12 del principio se repite.
+
 ## 7. Lo que no prometemos
 
 - LongBench no tiene palanca de S: su 0,785 es un caso atípico.
