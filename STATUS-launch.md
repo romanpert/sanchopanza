@@ -135,3 +135,33 @@ needs that commit. The grade at the end runs each arm's tests in Docker (free, l
 
 3116 passed, 40 skipped in 284 s (`-m pytest tests -q -p no:cacheprovider`, PYTHONPATH=src, main venv),
 after the one-turn and seal changes. Baseline on long-bench: 3075 passed, 40 skipped.
+
+## Smoke run, live (2026-10-07, indagis-6c)
+
+Root `C:\sp-runs\L-smoke`, seal cb0062e, Haiku 4.5, pydantic-long60-1, 3 bugs + 2 callbacks.
+Spent **2.88 USD** of the 8 hard ceiling (N 1.13 with the forced cut charged at its 1.00 cap,
+Ne 0.87, S 0.88; Jev 0.0011).
+
+- First try 11:48 stopped before any call: `adopt-pydantic--pydantic-long60-1:bugs` was gone
+  (Docker restarted; the after-conan queue removes images). Rebuilt free with
+  `validate.py --bake pydantic__pydantic-long60-1` (F2P still fail on the baked image).
+- Long-bench merged in (3c02265: conan-long60-1 **valid at 60 bugs**, c68ce7a); launcher
+  tests 52 passed.
+- Every arm stopped on its chain cap after 2 of 5 calls (exit 2, resumed twice by running the
+  launcher again): the room check holds a whole call cap (1.00) and one turn (0.36) under the
+  arm's 2.00, so an arm starts no call past 0.64 spent. **Callbacks were never asked live.**
+- Worked live: preflight, frozen seal, guard in 6 SessionStart(compact) parts (S kept 12-17k
+  after compacting, Ne 4k), N-early and S at window 100000 from env (both compacted at
+  ~67-68k), the forced 90 s cut charged at its cap, cap stops, resume skipping finished arms,
+  the Docker grade and `report.json`.
+- **The debug line is not emitted per request under `claude -p` 2.1.287**, with or without a
+  window in env: `debug-<k>.log` held 0 matching lines after trimming. The report already
+  bounds N's window from the peak with no compaction ("at least 95638"); for the gate, read N's
+  window from the `pre` of its compactions in the stream.
+- Grade: 0 of 3 resolved in every arm (bug 2 partly: N 0/4, Ne 3/4, S 2/4 F2P); S alone broke
+  one guard test (`test_docs_examples[docs/errors/usage_errors.md:83-95]`), from its own patch;
+  token 2 ok, 1 missing (bug 3 never ran).
+
+Gate: unblocked by the conan manifest; it runs N only, so the callback path is the one part
+not seen live. Waiting on the owner's choice of the Opus chain cap (48 with the long tail cut
+near 35.8, or 56 with the ceiling at 190).
