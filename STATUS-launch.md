@@ -165,3 +165,23 @@ Ne 0.87, S 0.88; Jev 0.0011).
 Gate: unblocked by the conan manifest; it runs N only, so the callback path is the one part
 not seen live. Waiting on the owner's choice of the Opus chain cap (48 with the long tail cut
 near 35.8, or 56 with the ceiling at 190).
+
+## Pilot of bet A, passages on arrival (branch `pilot-a`, 2026-10-07)
+
+Nothing here spent money. Arm A = N + `sanchopanza install --passages --provider jev` (A10:
+`--passages-fraction 0.10`) with `--no-guard --no-find --no-skill --context-budget 0`; the runner
+then keeps only the passages hook (the cut on Bash|PowerShell|Read and, from lean edd37bb, the
+Write guard) and refuses the arm otherwise (`long_pilot.install_breaks`). The archive's folder
+(under the evidence) goes to `permissions.additionalDirectories`. Profile `pilot-a`: Sonnet, the
+gate's chains, 4.50 per call, 38 per chain, hard ceiling 80 per root (76 held); A in
+`C:\sp-runs\L-pilot-a`, A10 in `C:\sp-runs\L-pilot-a10`. The frozen copy is the launcher's own
+commit (674806b in its history, `passages-hook --help` answering); S keeps its seal. Abort in
+code: >= 10 cuts and more than half asked again whole -> stopped "rerequest", exit 5. Rows and
+`report.json` carry cuts, chars in/out, re-requests (whole, identical, targeted), r and r_whole.
+Compare (free, k=1, descriptive): `python benchmarks/adopt/pilot_a_compare.py`.
+
+Before launching: `python benchmarks/adopt/freeze.py edd37bb` (free), then by WMI:
+
+    Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
+      CommandLine = "cmd.exe /c C:\Users\roman\Desktop\proyectos\apps\sanchopanza-pilot-a\long-pilot-a-run.cmd edd37bb A"
+      CurrentDirectory = "C:\Users\roman\Desktop\proyectos\apps\sanchopanza-pilot-a" }
