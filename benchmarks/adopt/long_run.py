@@ -91,6 +91,8 @@ GATE_CHAIN_CAP = {"sonnet": 38.0, "opus": 75.0}  # owner 2026-10-07 (twice): 2x3
 GATE_CEILING = 230.0  # owner 2026-10-07: Sonnet conan cost ~41 a whole chain (model: 25); Opus 1.67x
 GATE_CHAINS = ("conan-io__conan-long60-1", "pydantic__pydantic-long60-1")
 PILOT_CEILING = 80.0  # the pilot of bet A: one arm, 2 x 38 = 76 held, hard (2026-10-07)
+NOISE_NE_CEILING = 76.0  # N-early on the gate's two chains at N's 38 a chain (owner 2026-10-07)
+NOISE_N_CEILING = 34.0  # N again on pydantic; with the line above, the owner's 110 USD
 SMOKE_CHAIN = "pydantic__pydantic-long60-1"  # validated first; Haiku, 3 bugs, its own root
 MANIFESTS = HERE / "long60"  # long60/<chain>.json, written by `long.py manifests` once valid
 JEV_MAX_USD = 0.50  # per chain (pre-mortem 15)
@@ -146,6 +148,15 @@ PROFILES = {
     "pilot-a": Profile("pilot-a", ("A",), ("sonnet",), {"sonnet": GATE_CALL_CAP["sonnet"]},
                        {"sonnet": GATE_CHAIN_CAP["sonnet"]}, PILOT_CEILING, GATE_CHAINS,
                        hard_cap=PILOT_CEILING, hours={"sonnet": 1.6}, choices=long_pilot.ARMS),
+    # The window and noise round (owner, 2026-10-07, 110 USD hard in all): N-early on the gate's
+    # chains under N's caps, and N once more on pydantic (most give-ups past 150k) to know how far
+    # N moves against itself. 76 + 34 = 110; N spent 23.55 on pydantic, under 34 by a call.
+    "noise-ne": Profile("noise-ne", ("Ne",), ("sonnet",), {"sonnet": GATE_CALL_CAP["sonnet"]},
+                        {"sonnet": GATE_CHAIN_CAP["sonnet"]}, NOISE_NE_CEILING, GATE_CHAINS,
+                        hard_cap=NOISE_NE_CEILING, hours={"sonnet": 1.6}),
+    "noise-n": Profile("noise-n", ("N",), ("sonnet",), {"sonnet": GATE_CALL_CAP["sonnet"]},
+                       {"sonnet": NOISE_N_CEILING}, NOISE_N_CEILING, (GATE_CHAINS[1],),
+                       hard_cap=NOISE_N_CEILING, hours={"sonnet": 1.6}),
 }  # fmt: skip
 
 

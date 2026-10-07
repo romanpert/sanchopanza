@@ -60,7 +60,8 @@ import meter  # noqa: E402
 import run  # noqa: E402
 
 ROOTS = {"smoke": Path(r"C:\sp-runs\L-smoke"), "gate": Path(r"C:\sp-runs\L"),
-         "pilot-a": long_pilot.ROOTS["A"]}  # A10: long_pilot.ROOTS["A10"] (`root_for`)
+         "pilot-a": long_pilot.ROOTS["A"],  # A10: long_pilot.ROOTS["A10"] (`root_for`)
+         "noise-ne": Path(r"C:\sp-runs\L-ne"), "noise-n": Path(r"C:\sp-runs\L-n2")}
 # The seal must carry these (main): gate A for check-done and candor, and the 402 breaker with
 # `jev-preflight`. An older frozen copy would run S without them.
 SEAL_NEEDS = {"f2a0fe2": "gate A (check-done and candor on change or action)",
@@ -375,8 +376,10 @@ def launch(name: str, args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=("smoke", "gate", "pilot-a", "plan"))
-    parser.add_argument("profile", nargs="?", default="", help="plan: smoke, gate or pilot-a")
+    parser.add_argument("action", choices=("smoke", "gate", "pilot-a", "noise-ne", "noise-n",
+                                           "plan"))  # fmt: skip
+    parser.add_argument("profile", nargs="?", default="",
+                        help="plan: smoke, gate, pilot-a, noise-ne or noise-n")
     parser.add_argument("--seal", default="", help="smoke: the sealed S commit (frozen copy)")
     parser.add_argument("--commit", default="", help="pilot-a: its own commit (frozen copy)")
     parser.add_argument("--arm", default="", choices=("", *long_pilot.ARMS),
