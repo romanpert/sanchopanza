@@ -289,6 +289,34 @@ Una tanda de pago a la vez entre las dos líneas, avisando antes con PID, hora y
   resueltos. Es lo que se movió en BCP (19 → 13) y es más sensible que el recuento.
 - **Se lee como dirección, no como veredicto**: k = 1 y dos cadenas.
 
+### Suelo de ruido y medida de abandono, 2026-10-07 a las 18:44 (e8, relevo de d6, y 6c)
+
+- **N2** (N repetido en pydantic, 21,92 $): 46/60, sin compactar, techo sin tocar. Se compara con
+  `benchmarks/adopt/long_compare.py`, que absorbe `pilot_a_compare.py`.
+- **Suelo N frente a N2**, mismo brazo y misma cadena:
+  - Resueltos 44 frente a 46. Discrepan 6 de 60 bugs (2 solo N, 4 solo N2).
+  - Coste N2/N 0,931 (0,917 en la llamada 50): una sola cadena mueve el coste un ±7-8 %. El
+    −3,6 % y el +1,9 % de A en pydantic quedan dentro, y el −10,7 % de conan, en el borde.
+  - A frente al suelo: en los 54 bugs en que N y N2 coinciden, +2 resueltos y −0. Su 0/4 frente
+    a N baja a 2/4 frente a N2.
+- **Fallo en la medida de abandono.** `long_report.give_ups` contaba toda llamada que no cambia
+  código, también cuando un bug anterior de la cadena ya había arreglado el bug ("the fix was
+  made under bug 12"). Esas llamadas acaban resueltas: son aciertos, no abandonos. Afectaba a 3
+  de 7 en N, 3 de 6 en N2 y 3 de 4 en A.
+- **Decisión**, antes de ver ningún resultado de calidad de Ne:
+  1. La medida principal de la tanda pasa a ser el **abandono no resuelto**: give_up con
+     `grade.resolved` falso, con su contexto. El give_up crudo se publica al lado.
+  2. Va como campo derivado en `long_compare` (`gave_up_unresolved`, e8) y en `long_report`
+     (`give_ups.unresolved`, 6c). 6c corrige la definición en STATUS-launch.
+  3. Ne se lee contra los dos N, en pydantic: discordantes y `stable_flips` sobre los bugs en que
+     N y N2 coinciden. Una diferencia del tamaño del suelo (6 de 60) es ruido.
+- **Lo que se había visto de Ne al decidir**, dicho para que conste: 6c seguía en vivo su coste y
+  su contexto en conan (en la llamada 50, 14,06 $ frente a 27,56 de N, y 130k frente a 427k de
+  contexto). No se había visto ni un resuelto ni un abandono de Ne: no había nota.
+- **Con la medida nueva, en pydantic**: N 4 abandonos no resueltos (3 pasados 150k; contexto 57k,
+  161k, 190k y 327k), N2 3 (2 pasados 150k; 146k, 264k y 287k), A 1 (148k). Entre N y N2 solo se
+  repiten 2: qué bug abandona varía tanto como cuántos.
+
 ## 7. Lo que no prometemos
 
 - LongBench no tiene palanca de S: su 0,785 es un caso atípico.

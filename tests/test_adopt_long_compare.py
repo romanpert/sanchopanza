@@ -129,6 +129,35 @@ def test_cumulative_cost_counts_what_ran_up_to_each_checkpoint(three: dict[str, 
     assert ne["cumulative_usd"][10] == 3.0 and three["arms"]["N"]["cumulative_usd"][60] == 4.0
 
 
+def test_a_no_change_call_on_a_bug_already_fixed_is_no_unresolved_give_up(
+    tmp_path: pathlib.Path, lc: Any
+) -> None:
+    """b2 changed no code but resolves (an earlier request fixed it); b4 changed none and fails."""
+    chain_arm(tmp_path, "N", {"b1": True, "b2": True, "b3": False, "b4": False}, {"b2", "b4"})
+    n = lc.compare({"N": (tmp_path, "N")})["chains"][CHAINS[1]]["arms"]["N"]
+    assert n["give_ups"]["give_ups"] == 2
+    assert n["gave_up_unresolved"] == {"count": 1, "at_or_past_150k": 1, "contexts": [250_000]}
+    assert n["per_bug"]["b2"]["gave_up_unresolved"] is False
+    assert n["per_bug"]["b4"]["gave_up_unresolved"] is True
+
+
+def test_unresolved_give_ups_wait_for_the_grade(tmp_path: pathlib.Path, lc: Any) -> None:
+    chain_arm(tmp_path, "N", {"b1": True, "b2": True, "b3": False, "b4": False}, {"b4"})
+    (tmp_path / "runs" / f"{CHAINS[1]}-sonnet" / "N" / "grade.json").unlink()
+    n = lc.compare({"N": (tmp_path, "N")})["chains"][CHAINS[1]]["arms"]["N"]
+    assert n["give_ups"]["give_ups"] == 1 and n["gave_up_unresolved"] is None
+    assert n["per_bug"]["b4"]["gave_up_unresolved"] is None
+
+
+def test_pairs_and_flips_carry_the_unresolved_give_ups(three: dict[str, Any]) -> None:
+    floor = three["pairs"]["N_vs_N2"]["gave_up_unresolved_discordant"]
+    assert (floor["treated_only"], floor["control_only"]) == (0, 1)  # b3: N2 only
+    assert three["arms"]["N2"]["gave_up_unresolved"]["contexts"] == [160_000, 250_000]
+    flips = three["stable_flips"]["Ne_vs_N+N2"]["gave_up_unresolved"]
+    assert flips["base_agree"] == 2  # b1, b2 (b3 is noise, Ne never ran b4)
+    assert (flips["other_true_base_false"], flips["other_false_base_true"]) == (0, 0)
+
+
 # ---- the pilot's columns, through the wrapper ----------------------------------------------------
 
 

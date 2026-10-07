@@ -9,7 +9,9 @@ row is left out. `pilot_a_compare.py` is this with N and A (and A10).
 Per chain and arm: cost (owner USD; cut calls at their caps), cumulative cost at calls 10, 20, ...,
 60, cost per resolved bug, per-bug F2P (`grade.json`; None until graded), requests, peak context,
 compactions, give-ups (`long_report.give_ups`, the STATUS-launch definition) with how many came in
-each context band, how the arm ended, and for the passages arms the cuts and the re-request rates.
+each context band, the unresolved give-ups (a give-up the grade did not resolve: the noise round's
+main measure, since a no-change call on a bug an earlier request already fixed is no give-up),
+how the arm ended, and for the passages arms the cuts and the re-request rates.
 Per pair of arms, on the bugs both ran: discordant resolved bugs (McNemar's exact p, descriptive)
 and discordant give-ups. `stable_flips`: on the bugs where N and N2 agree, how often Ne (or A) says
 otherwise and which way, so what N already changes against itself is set aside.
@@ -81,11 +83,15 @@ def bug_calls(row: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
 
 
 def per_bug(row: Mapping[str, Any], grade: Mapping[str, Any],
-            quit_ids: set[str]) -> dict[str, dict[str, Any]]:  # fmt: skip
+            quits: Sequence[Mapping[str, Any]]) -> dict[str, dict[str, Any]]:  # fmt: skip
+    """Per bug call. `gave_up_unresolved` is long_report's item `resolved` (None until graded)."""
     graded = {b["instance_id"]: bool(b["resolved"]) for b in grade.get("bugs") or []
               if "instance_id" in b}  # fmt: skip
+    quit_ids = {i["instance_id"] for i in quits}
+    real = {i["instance_id"] for i in quits if i.get("resolved") is False}
     return {iid: {"request": int(c["request"]), "status": c.get("status"),
                   "resolved": graded.get(iid), "gave_up": iid in quit_ids,
+                  "gave_up_unresolved": None if graded.get(iid) is None else iid in real,
                   "context": int(c.get("peak_context") or 0), "owner_usd": _usd(c),
                   "compactions": len(c.get("compactions") or [])}
             for iid, c in bug_calls(row).items()}  # fmt: skip
@@ -103,7 +109,7 @@ def arm_line(evidence: Path) -> dict[str, Any] | None:
     if row is None:
         return None
     grade = _json(evidence / "grade.json")
-    quits = long_report.give_ups(evidence, row)
+    quits = long_report.give_ups(evidence, row, grade)
     contexts = [i["context"] for i in quits["items"]]
     names = dict.fromkeys(map(band, contexts))
     bands = {b: sum(1 for c in contexts if band(c) == b) for b in names}
@@ -112,6 +118,8 @@ def arm_line(evidence: Path) -> dict[str, Any] | None:
     resolved = grade.get("resolved") if grade else None
     total = (grade or {}).get("bugs_total") or row.get("bugs")
     passages = row.get("passages") or {}
+    bugs = per_bug(row, grade or {}, quits["items"])
+    at = f"at_or_past_{long_report.GIVE_UP_AT // 1000}k"
     return {
         "model": row.get("model"),
         "stopped": row.get("stopped") or "",
@@ -128,14 +136,21 @@ def arm_line(evidence: Path) -> dict[str, Any] | None:
         "requests": sum(int(c.get("requests") or 0) for c in calls),
         "peak_context": max((int(c.get("peak_context") or 0) for c in calls), default=0),
         "compactions": sum(len(c.get("compactions") or []) for c in calls),
-        "give_ups": {k: v for k, v in quits.items() if k != "items"},
+        "give_ups": {k: v for k, v in quits.items() if k not in ("items", "unresolved_contexts")},
         "give_up_bands": bands,
         "cuts": passages.get("cuts"),
         "r": passages.get("r"),
         "r_whole": passages.get("r_whole"),
         "chars_in": passages.get("chars_in"),
         "chars_out": passages.get("chars_out"),
-        "per_bug": per_bug(row, grade or {}, {i["instance_id"] for i in quits["items"]}),
+        "gave_up_unresolved": {
+            "count": quits["unresolved"],
+            at: quits[f"unresolved_{at}"],
+            "contexts": sorted(quits["unresolved_contexts"]),
+        }
+        if "unresolved" in quits
+        else None,  # fmt: skip
+        "per_bug": bugs,
     }
 
 
@@ -151,14 +166,18 @@ def pair(x: Mapping[str, Any], y: Mapping[str, Any]) -> dict[str, Any]:
                                      [y["per_bug"][i]["gave_up"] for i in common])  # fmt: skip
     graded = [i for i in common if x["per_bug"][i]["resolved"] is not None
               and y["per_bug"][i]["resolved"] is not None]  # fmt: skip
-    resolved = long_report.bugs_mcnemar([x["per_bug"][i]["resolved"] for i in graded],
-                                        [y["per_bug"][i]["resolved"] for i in graded]) \
-        if graded else None  # fmt: skip
+
+    def on_graded(field: str) -> dict[str, Any] | None:
+        return long_report.bugs_mcnemar([x["per_bug"][i][field] for i in graded],
+                                        [y["per_bug"][i][field] for i in graded]) \
+            if graded else None  # fmt: skip
+
     return {
         "common_ran": len(common),
         "graded_common": len(graded),
-        "resolved_discordant": resolved,
+        "resolved_discordant": on_graded("resolved"),
         "give_up_discordant": quits,
+        "gave_up_unresolved_discordant": on_graded("gave_up_unresolved"),
     }
 
 
@@ -168,7 +187,7 @@ def stable_flips(arms: Mapping[str, Any], base: Sequence[str], other: str) -> di
     if other not in arms or any(b not in arms for b in base):
         return None
     out: dict[str, Any] = {}
-    for field in ("resolved", "gave_up"):
+    for field in ("resolved", "gave_up", "gave_up_unresolved"):
         seen = [i for i, b in arms[other]["per_bug"].items()
                 if b["status"] == "ran" and b[field] is not None
                 and all(arms[a]["per_bug"].get(i, {}).get("status") == "ran"
@@ -227,13 +246,18 @@ def _gave_up(g: Mapping[str, Any], bands: Mapping[str, int]) -> str:
 
 
 def _pair(name: str, p: Mapping[str, Any]) -> str:
-    r, q = p["resolved_discordant"], p["give_up_discordant"]
+    r, q, u = p["resolved_discordant"], p["give_up_discordant"], p["gave_up_unresolved_discordant"]
     res = (f"resolved only {name.split('_vs_')[0]} {r['treated_only']}, only "
            f"{name.split('_vs_')[1]} {r['control_only']}, p {r['p']:.3f} on {p['graded_common']}"
            if r else "resolved: not graded")  # fmt: skip
     return (
         f"  {name}: {p['common_ran']} common; {res}; gave up only left {q['treated_only']}, "
         f"only right {q['control_only']}"
+        + (
+            f"; unresolved give-ups only left {u['treated_only']}, only right {u['control_only']}"
+            if u
+            else ""
+        )  # fmt: skip
     )
 
 
@@ -244,6 +268,7 @@ def table(data: Mapping[str, Any]) -> list[str]:
         for arm, v in c["arms"].items():
             out.append(f"  {arm}: " + ", ".join(f"{k} {v.get(k)}" for k in COLUMNS))
             out.append(f"    {_gave_up(v['give_ups'], v['give_up_bands'])}")
+            out.append(f"    unresolved give-ups (the main measure) {v['gave_up_unresolved']}")
             out.append(f"    cumulative USD at call {v['cumulative_usd']}")
         out.extend(f"  {a}: cost x{v['cost']}, per resolved bug x{v['cost_per_resolved']}"
                    for a, v in c["ratios"].items())  # fmt: skip
