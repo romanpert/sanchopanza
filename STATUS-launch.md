@@ -217,3 +217,30 @@ AND left unresolved by the grade), with its context: `give_ups(..., grade)` retu
 `unresolved_at_or_past_150k` and `unresolved_contexts`, `report.json` carries them and the grade
 line prints them. The raw count is still published beside it. Decided before any quality result
 of N-early was seen (its cost and context had been watched live).
+
+## Conan repeat round: N2, Ne2, A2 (2026-10-07 evening, indagis-5a relaying 6c, with indagis-e8)
+
+Owner approved 100 USD hard. Launched 20:02 from run-noise (comun 1bf7343), Sonnet 5.5,
+conan-long60-1, roots `C:\sp-runs\L-n2c` (N, 38), `L-ne2c` (Ne, 25), `L-a2c` (A from lean
+edd37bb, 37). Spent **79.35 USD** as charged by the runner (N2 30.61, Ne2 19.37, A2 29.37;
+Ne2's report.json says 18.79).
+
+- All three stopped on their chain cap (exit 2): N2 after call 49, A2 after 50, Ne2 after 52.
+  **The launcher grades only on exit 0**, so each was graded by hand, free:
+  `long_run.py grade --profile conan-<x>2 --root <root> --manifests <run-noise>\benchmarks\adopt\long60`
+  from the run-noise worktree with the launcher's env (start/exit lines `grade-by-hand` in
+  `launch.status`). The gate's and the first round's capped roots had the same gap.
+- Resolved of 60: N 44, N2 47, Ne 37, **Ne2 51**, A 47, A2 46. On the 48 bugs all six ran: 40,
+  47, 30, 48, 41, 45; bugs 1-11 (before any compaction): 10, 11, 5, 11, 11, 11 (e8's `diff-11`
+  snapshot agrees); bugs 12+: 30, 36, 25, 37, 30, 34 of 37.
+- Unresolved give-ups (the main measure): N 1, N2 0, Ne 3, Ne2 0, A 0, A2 0.
+- USD at call 50: N 27.56, N2 30.61, Ne 14.06, Ne2 18.24, A 24.61, A2 29.37. Ne/N x0.46-0.66
+  by pairing (x0.56 on means); A/N x0.80-1.07 (x0.93); N/N2 x0.90.
+- Same arm twice: N/N2 0 vs 7 discordant (McNemar p 0.016), Ne/Ne2 0 vs 19, A/A2 1 vs 5. **Bugs of
+  one chain are not independent; the run is the unit of replication**: per-bug p values on a
+  chain are not evidence (PLAN-GANAR-H2H.md 6 and 7).
+- Reading (PLAN-GANAR-H2H.md 6, "Repetición en conan"): no evidence N-early loses quality
+  (37-51 vs N 44-47; its bad run was bad before compacting); A's edge does not hold (46-47 vs
+  44-47); Ne's cost holds as a direction; the main measure separates no arm.
+- Seen live (A arms): Claude Code ignores the permission to read the cut outputs' archive, since
+  the working folder is not trusted. Same in A and A2; fix before the next A batch.

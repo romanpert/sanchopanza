@@ -419,6 +419,136 @@ Instantánea `diff-12`, anterior a cualquier compactación de Ne, puntuada con `
   total.
 - Con solo Ne repetido en conan (~17 $) ya se vería si el 5/12 del principio se repite.
 
+### Repetición en conan: N2, Ne2 y A2 (indagis-5a, relevo de 6c, con e8; 2026-10-07, 21:30)
+
+Tanda aprobada por el dueño: 100 $ duros. Lanzada a las 20:02 desde run-noise (comun 1bf7343),
+Sonnet 5.5, conan-long60-1, una raíz por brazo. Gastado: N2 30,61 + Ne2 19,37 + A2 29,37 =
+**79,35 $** (lo cobrado por el runner; report.json da 18,79 en Ne2).
+
+- Los tres pararon por su tope (exit 2): N2 tras la llamada 49, A2 tras la 50 y Ne2 tras la 52.
+  El lanzador solo puntúa con exit 0, así que la nota se puso a mano (`long_run.py grade`,
+  Docker, gratis).
+- Lectura con `long_compare`. La medida principal es el abandono no resuelto, decidida antes de
+  ver nada.
+
+| | Resueltos /60 | En los 48 bugs que corrieron los seis | Bugs 1-11 (antes de compactar) | Bugs 12+ | USD en la llamada 50 | Abandonos no resueltos (contexto) |
+|---|---|---|---|---|---|---|
+| N | 44 | 40 | 10 | 30/37 | 27,56 | 1 (101k) |
+| N2 | 47 | 47 | 11 | 36/37 | 30,61 | 0 |
+| Ne | 37 | 30 | 5 | 25/37 | 14,06 | 3 (83k, 125k, 130k) |
+| **Ne2** | **51** | **48** | 11 | **37/37** | **18,24** | 0 |
+| A | 47 | 41 | 11 | 30/37 | 24,61 | 0 |
+| A2 | 46 | 45 | 11 | 34/37 | 29,37 | 0 |
+
+- La columna "Bugs 1-11" es la nota final. La instantánea `diff-11` de e8 da lo mismo: N 10,
+  N2 11, Ne 5, Ne2 11, A 11, A2 11.
+- Ne2 compactó en las llamadas 12, 25, 41 y 52, así que sus 37/37 de los bugs 12+ son todos
+  posteriores a compactar.
+- **Pares de réplicas del mismo brazo**, en bugs comunes: N/N2 0 frente a 7, Ne/Ne2 0 frente
+  a 19, A/A2 1 frente a 5.
+- Stable flips con base de dos corridas:
+
+  | Brazo | Base | Bugs en que la base coincide | El brazo gana | El brazo pierde |
+  |---|---|---|---|---|
+  | Ne | N+N2 | 41 | 0 | 11 |
+  | N | Ne+Ne2 | 30 | 0 | 1 |
+  | A | N+N2 | 41 | 1 | 3 |
+  | N | A+A2 | 43 | 2 | 3 |
+
+**La unidad de réplica es la corrida, no el bug** (e8):
+
+- N contra N2 (el mismo brazo dos veces) da 0 frente a 7, con un McNemar de p 0,016.
+- Dentro de una cadena los bugs no son independientes: una corrida que entra en mala racha
+  arrastra varios a la vez.
+- Por eso los p por bug de conan publicados más arriba **quedan retirados como evidencia**: N
+  frente a Ne, p 0,003, y Ne frente a A, p 0,012.
+- Con k = 2 por brazo se dan rangos entre corridas. La inferencia irá por cadena cuando haya
+  varias (`long_report.cluster_bootstrap`).
+
+**Respuestas, solo cifras** (la causa de la variación entre corridas no está demostrada):
+
+- **(a) ¿Pierde calidad N-early? No hay evidencia de que pierda calidad en conan.**
+  - Ne resuelve entre 37 y 51 y N entre 44 y 47.
+  - La repetición de Ne es la mejor de las seis corridas, también después de compactar (37/37).
+  - Ne tiene la mayor dispersión entre corridas: 37-51, con 0 frente a 19 entre réplicas,
+    contra 0 frente a 7 de N y 1 frente a 5 de A. Con k = 2 no se puede decir si esa dispersión
+    es propia de Ne o de la cadena.
+  - Su mala corrida ya iba mal antes de compactar (diff-11: 5/11, frente a 11/11 de Ne2 con el
+    mismo brazo). La dispersión observada no viene de la ventana: viene de una trayectoria
+    temprana mala que arrastra la cadena, algo que puede pasarle a cualquier brazo y que explica
+    también el 0 frente a 7 de N.
+  - Tampoco hay prueba de que Ne gane calidad.
+- **(b) ¿Se sostiene la ventaja de A? No.**
+  - A resuelve 46-47 y N 44-47. Contra N2, A2 sale 1 frente a 3 en bugs comunes.
+  - El 47 frente a 44 del piloto era el N bajo de la primera corrida.
+  - En abandonos no resueltos, A (0 y 0) tampoco se separa de N (1 y 0).
+  - pydantic tiene una sola corrida de A (48 frente a 44-46): no cambia la lectura.
+- **(c) ¿Es firme el coste de N-early? Sí, como dirección.**
+  - En la llamada 50, Ne/N va de x0,46 a x0,66 según el par de corridas: x0,56 con las medias,
+    16,15 frente a 29,09.
+  - N/N2 da x0,90 en el mismo punto.
+  - En pydantic, x0,59.
+  - Ne2 costó más que Ne a igual llamada (18,24 frente a 14,06). El intervalo se ensancha, pero
+    el coste sigue muy por debajo del de N.
+  - Lo que paga el usuario es el coste por bug resuelto: Ne 0,38-0,47 $, N 0,65-0,73 $ y A
+    0,64-0,66 $.
+  - A frente a N: x0,80-1,07 (x0,93 con las medias), dentro del ruido.
+- **(d) La medida principal no separa a ningún brazo.** Hay 0 o 1 abandonos no resueltos por
+  corrida, salvo los 3 de la mala corrida de Ne.
+  - En conan, "menos contexto, menos abandonos" no se puede probar: N casi no abandona (0-1).
+  - Donde había abandonos pasados 150k era en pydantic, y allí Ne no los redujo: 6, frente a 4
+    de N y 3 de N2.
+
+**Consecuencias** (las que quedaban en suspenso en la subsección anterior):
+
+1. **N-early es el listón en código largo** (conan y pydantic, Sonnet 5.5): cuesta x0,46-0,66
+   y no hay evidencia de que pierda calidad, dentro del rango entre corridas. Que la iguale no
+   está demostrado.
+2. **Ne+guard queda descartado.** Solo tenía sentido si compactar perdía el hilo, y no aparece
+   ninguna pérdida.
+3. **A no ha mostrado ventaja de calidad sobre N.** Lo que queda abierto es lo que A añade encima
+   de Ne (Ne frente a Ne+A). Con 6 a 19 bugs discordantes entre réplicas del mismo brazo, eso solo se
+   puede leer con varias cadenas.
+4. Antes de la próxima tanda de A hay que corregir un fallo visto en vivo: Claude Code ignora el
+   permiso para leer el archivo de salidas recortadas, porque la carpeta de trabajo no está
+   marcada como de confianza. Pasó igual en A y A2, así que las dos son comparables entre sí.
+
+**Propuesta al dueño para el siguiente paso** (5a y e8, 21:45; nada decidido):
+
+1. **Gratis: replay de A sobre las transcripciones de Ne** (Ne y Ne2 de conan, Ne de pydantic).
+   - Mide qué parte del coste de Ne son relecturas de salidas grandes de Bash y Read que A habría
+     recortado, como el replay de las 141 sesiones.
+   - Da el ahorro por cadena y su dispersión entre Ne y Ne2. El replay es determinista sobre una
+     misma transcripción: no tiene ruido entre corridas.
+   - Regla 5.2: si el techo realista no pasa del 5 % del coste de Ne, **A se archiva para código
+     largo**. Con Ne por debajo de 160k se relee menos, y es de esperar que el techo baje.
+2. **Gratis, en paralelo: validar más cadenas long60.**
+   - moto-1, con el arreglo de lectura de color (comun ca1796a).
+   - dvc-1, que se relanza: murió por un cierre de consola (0x40010004), no por el código.
+   - conan-2 y conan-3, con repuestos extra (`long.py extra60`), comprobando antes que su sorteo
+     sigue tras los repuestos de conan-1.
+   - Disco: 72 GB libres; como mucho dos a la vez y moto al final.
+   - Hacen falta para cualquier comparación futura de calidad (sección 7).
+3. **De pago, solo si (1) pasa y la potencia alcanza: Ne frente a Ne+A como prueba de coste**, con
+   no inferioridad laxa en calidad. La calidad de Ne+A frente a Ne no se puede leer: Ne va de 37
+   a 51.
+   - Ruido de coste entre réplicas en la llamada 50: N/N2 1,11 (conan) y 0,92 (pydantic), A/A2
+     1,19, Ne/Ne2 1,30. Es decir, entre un 8 y un 30 % por corrida.
+   - El efecto que cabe esperar de A es de un 5-10 %. La desviación del log-cociente entre dos
+     corridas, medida en esas cuatro réplicas, es de 0,171 (e8; verificada por 5a). Para ver un
+     −7 % (ln 0,93 = 0,073) con alfa 0,05:
+     - ~21 cadenas para una potencia del 50 %;
+     - ~43 cadenas para el 80 %;
+     - con 4 cadenas, el IC95 del cociente sale de x0,76 a x1,31.
+   - Antes de pedir dinero se calcula gratis, con la desviación que dé (1) y
+     `long_report.cost_ratio`, el número de cadenas necesario.
+   - Si son más de las validadas, no va a pago, y se dice así: "el efecto de A sobre Ne, si
+     existe, es menor de lo que este banco puede medir".
+   - Si va a pago: más cadenas con k = 1 mejor que k = 2 en menos, porque la unidad es la cadena.
+     Referencia: ~19-22 $ por corrida de Ne o Ne+A, con un tope de 25 por corrida.
+   - **4 cadenas** (las dos de hoy y dos nuevas) son 6 corridas: ~125 $ esperados, 150 de techo.
+     No bastan para ver un 7 %, así que con 4 cadenas **no se propone**.
+
 ## 7. Lo que no prometemos
 
 - LongBench no tiene palanca de S: su 0,785 es un caso atípico.
@@ -426,3 +556,9 @@ Instantánea `diff-12`, anterior a cualquier compactación de Ne, puntuada con `
   queda) no añadió nada medible en BCP (N-early, 2026-10-07). En sesiones largas sigue sin
   medirse.
 - Si A, B y C no pasan su replay, se dice tal cual. No se cambia de métrica para que algo gane.
+- **En una cadena larga no hay p por bug** (e8 y 5a, 2026-10-07). El mismo brazo contra sí mismo
+  en conan dio McNemar p 0,016 (N frente a N2, 0 frente a 7): los bugs de una cadena no son
+  independientes. La unidad de réplica es la corrida. Con k = 2 se publican rangos entre
+  corridas y stable_flips con base doble. Con varias cadenas, la inferencia va por cadena.
+- Una sola corrida de un brazo en una cadena varía entre 37 y 51 de 60. Cualquier comparación de
+  calidad futura necesita al menos dos corridas por brazo y cadena, o más cadenas.
