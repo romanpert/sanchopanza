@@ -101,7 +101,7 @@ def test_browse_sets_are_wired_and_removed_in_order(tmp_path: Path) -> None:
         "SessionStart:  (crawl)",
         # S seal: install --crawl wires every event crawl answers (CRAWL_INSTALL_HOOKS)
         "PreToolUse: mcp__.*__browser_(evaluate|take_screenshot) (crawl)",
-        "PostToolUse: mcp__.*__browser_evaluate (crawl)",
+        "PostToolUse: mcp__.*__browser_(evaluate|navigate) (crawl)",
         "UserPromptSubmit:  (crawl)",
         "PostToolUse: mcp__.*__browser_(?!evaluate$).* (prune)",
         "Stop:  (sources)",
