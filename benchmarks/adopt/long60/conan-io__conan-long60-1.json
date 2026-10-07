@@ -6,11 +6,11 @@
  "split": "gate",
  "seed": 20261005,
  "token": "9a871a76",
- "size": 56,
+ "size": 60,
  "sources": {
-  "pr_mirror": 56
+  "pr_mirror": 60
  },
- "real": 56,
+ "real": 60,
  "synthetic_dataset": "SWE-bench/SWE-smith@ea6d7173829c7ec8fa16c22055699ff2e9188091",
  "pr_mirror_sha256": "5128440c2c0acda5c743359add5ade03577b0e552c4e431ec971d1ab484c3d5a",
  "bugs": [
@@ -823,27 +823,119 @@
     "test/integration/command/list/list_test.py::TestListCompact::test_list_compact_patterns[pkg/1.0#a69a86bbd19ae2ef7eedc64ae645c531:da39a3ee5e6b4b0d3255bfef95601890afd80709#*]",
     "test/integration/command/list/list_test.py::TestListCompact::test_list_compact_patterns[pkg/1.0#a69a86bbd19ae2ef7eedc64ae645c531:da39a3ee5e6b4b0d3255bfef95601890afd80709#0ba8627bd47edc3a501e8f0eb9a79e5e]"
    ]
-  }
- ],
- "guard": {
-  "tests": 1143,
-  "sha256": "1d527841e1cd52369bdbc095519acc78f6b0f758094710dac89eb9955fbfc060"
- },
- "callbacks": [
+  },
   {
-   "after_bug": 42,
-   "asked": [
-    3,
-    7,
-    11
+   "n": 57,
+   "instance_id": "conan-io__conan.86f29e13.pr_14511",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/api/subapi/upload.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/upload/upload_test.py::test_upload_with_python_requires"
    ]
   },
   {
-   "after_bug": 56,
+   "n": 58,
+   "instance_id": "conan-io__conan.86f29e13.pr_15297",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/api/output.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/test_output.py::TestWarningHandling::test_exception_errors"
+   ]
+  },
+  {
+   "n": 59,
+   "instance_id": "conan-io__conan.86f29e13.pr_12802",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/api/subapi/new.py",
+    "conan/cli/commands/new.py",
+    "conan/internal/api/new/basic.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/new_test.py::TestNewCommand::test_new_basic_template",
+    "test/integration/command/new_test.py::TestNewErrors::test_duplicated"
+   ]
+  },
+  {
+   "n": 60,
+   "instance_id": "conan-io__conan.86f29e13.pr_13944",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "conan/cli/cli.py"
+   ],
+   "FAIL_TO_PASS": [
+    "test/integration/command/custom_commands_test.py::TestCustomCommands::test_custom_command_local_import"
+   ]
+  }
+ ],
+ "guard": {
+  "tests": 1178,
+  "sha256": "e4cdaf9731d2e894b802a02d16dd708f5709a32014a1629fb8d2f49f651b2a0d"
+ },
+ "extra_draw": {
+  "seed": 20261005,
+  "how": "replay of select60 over PLAN60 + RESERVE60 (seed SEED60), checked against long60-selected.json, continued with the same random generator over the repository's rows no long60 chain or spare took: real first, then synthetic, each fitting the start bugs and the spares before it",
+  "spares": [
+   "conan-io__conan.86f29e13.pr_13526",
+   "conan-io__conan.86f29e13.pr_13015",
+   "conan-io__conan.86f29e13.pr_12802",
+   "conan-io__conan.86f29e13.pr_13944",
+   "conan-io__conan.86f29e13.pr_10867",
+   "conan-io__conan.86f29e13.pr_13967",
+   "conan-io__conan.86f29e13.pr_14511",
+   "conan-io__conan.86f29e13.pr_15877",
+   "conan-io__conan.86f29e13.pr_15297",
+   "conan-io__conan.86f29e13.pr_16935",
+   "conan-io__conan.86f29e13.pr_17033",
+   "conan-io__conan.86f29e13.pr_16919",
+   "conan-io__conan.86f29e13.pr_15320",
+   "conan-io__conan.86f29e13.func_pm_class_rm_funcs__dc4gm8g0",
+   "conan-io__conan.86f29e13.func_pm_remove_cond__xz2v63vj",
+   "conan-io__conan.86f29e13.func_pm_remove_cond__h0c5ye4v",
+   "conan-io__conan.86f29e13.func_pm_ctrl_invert_if__5fhws3s3",
+   "conan-io__conan.86f29e13.func_pm_class_rm_funcs__h0i61zm8",
+   "conan-io__conan.86f29e13.func_pm_remove_cond__02rq0lm0",
+   "conan-io__conan.86f29e13.lm_rewrite__d86kisjs",
+   "conan-io__conan.86f29e13.func_pm_remove_assign__b0djdcw1",
+   "conan-io__conan.86f29e13.func_pm_remove_wrapper__k0llw51h",
+   "conan-io__conan.86f29e13.func_pm_ctrl_shuffle__8lkxplam",
+   "conan-io__conan.86f29e13.func_pm_ctrl_invert_if__xx7ogre2",
+   "conan-io__conan.86f29e13.func_pm_remove_cond__jqy49qla",
+   "conan-io__conan.86f29e13.func_pm_remove_cond__j9b3mm07",
+   "conan-io__conan.86f29e13.func_pm_remove_cond__rpbs2skz",
+   "conan-io__conan.86f29e13.func_pm_class_rm_funcs__kzwlfeyl",
+   "conan-io__conan.86f29e13.func_pm_op_change__l0ru6dm7",
+   "conan-io__conan.86f29e13.func_pm_remove_cond__934szw4c"
+  ]
+ },
+ "before": {
+  "rounds": 5,
+  "bugs": 56,
+  "seconds": 15452
+ },
+ "callbacks": [
+  {
+   "after_bug": 45,
    "asked": [
-    4,
-    8,
-    14
+    3,
+    7,
+    12
+   ]
+  },
+  {
+   "after_bug": 60,
+   "asked": [
+    5,
+    9,
+    15
    ]
   }
  ],
@@ -1102,13 +1194,6 @@
    "sha256": "e88074a51d426280be4439f574565e2060bba30a2821d14cf23c3e3b6d19b823"
   },
   {
-   "kind": "callback",
-   "instance_id": "callback-1",
-   "chars": 459,
-   "sha256": "08c85610f5f45ca9c25172e9479c80904a7aa3b5e3e2f799c5fe14f3c27791f7",
-   "prompt": "No new bug in this message. Write the file `changes/recall-1.md` with one line for each of bugs 3, 7 and 11 of this session, in the form `bug <n>: <path>, <path>`, listing every repository file you changed while fixing that bug (paths from the repository root; leave out files under `changes/`; write `bug <n>: none` if you changed none). Answer from what you remember of this session: do not use git and do not open files to work it out. Change nothing else."
-  },
-  {
    "kind": "bug",
    "instance_id": "conan-io__conan.86f29e13.pr_16646",
    "chars": 1955,
@@ -1125,6 +1210,13 @@
    "instance_id": "conan-io__conan.86f29e13.pr_16113",
    "chars": 1346,
    "sha256": "0a42ba795529c01308db915de0e436ac3a56400da74a5cae5496ed9311716480"
+  },
+  {
+   "kind": "callback",
+   "instance_id": "callback-1",
+   "chars": 459,
+   "sha256": "5652a033d6025364ee05efee8bf64cca69498262ec25d2e264a9ce4c2052b4d2",
+   "prompt": "No new bug in this message. Write the file `changes/recall-1.md` with one line for each of bugs 3, 7 and 12 of this session, in the form `bug <n>: <path>, <path>`, listing every repository file you changed while fixing that bug (paths from the repository root; leave out files under `changes/`; write `bug <n>: none` if you changed none). Answer from what you remember of this session: do not use git and do not open files to work it out. Change nothing else."
   },
   {
    "kind": "bug",
@@ -1193,16 +1285,40 @@
    "sha256": "0732b2a668ae1acc8da84b7c930912e0fcb349e1f827bdb39b8471b2feaedd36"
   },
   {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_14511",
+   "chars": 1670,
+   "sha256": "e0b640677d250070fd31bdee5b0e80bdefd7272966fcfedc1f98028021c26f61"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_15297",
+   "chars": 1581,
+   "sha256": "f2827580f16831738a0e28e7d34beef612b6cb59b127ed68c7a8cf52cdb2025e"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_12802",
+   "chars": 1513,
+   "sha256": "6ad883c3e83de66e5e89d546991cf765b215b4ac0f0ba8e1329b82af7902652c"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "conan-io__conan.86f29e13.pr_13944",
+   "chars": 1341,
+   "sha256": "389d2308fa14bd54817ac21b9dc5627748f56136f47ce476290df2ac9dce50e0"
+  },
+  {
    "kind": "callback",
    "instance_id": "callback-2",
    "chars": 459,
-   "sha256": "ffed2bcb05993c6fc1a2b8227d02bd7283ff1d3c021234b309ade87d52db5596",
-   "prompt": "No new bug in this message. Write the file `changes/recall-2.md` with one line for each of bugs 4, 8 and 14 of this session, in the form `bug <n>: <path>, <path>`, listing every repository file you changed while fixing that bug (paths from the repository root; leave out files under `changes/`; write `bug <n>: none` if you changed none). Answer from what you remember of this session: do not use git and do not open files to work it out. Change nothing else."
+   "sha256": "1d2cfa346224c89b83713ed87b3ac86d38873a56d8595ec41f1ad47f5fb2cb32",
+   "prompt": "No new bug in this message. Write the file `changes/recall-2.md` with one line for each of bugs 5, 9 and 15 of this session, in the form `bug <n>: <path>, <path>`, listing every repository file you changed while fixing that bug (paths from the repository root; leave out files under `changes/`; write `bug <n>: none` if you changed none). Answer from what you remember of this session: do not use git and do not open files to work it out. Change nothing else."
   }
  ],
- "valid": false,
- "validation_seconds": 15452,
- "rounds": 5,
+ "valid": true,
+ "validation_seconds": 20969,
+ "rounds": 9,
  "dropped": [
   {
    "instance_id": "conan-io__conan.86f29e13.pr_13321",
@@ -1407,13 +1523,43 @@
    "source": "pr_mirror",
    "round": 4,
    "why": "culprit: pr_10898, pr_16573, pr_10707"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_13526",
+   "source": "pr_mirror",
+   "round": 6,
+   "why": "culprit: pr_13526, pr_13015"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_13015",
+   "source": "pr_mirror",
+   "round": 6,
+   "why": "culprit: pr_13526, pr_13015"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_10867",
+   "source": "pr_mirror",
+   "round": 7,
+   "why": "culprit: pr_14605, pr_17568, pr_15630, pr_15121, pr_10889"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_13967",
+   "source": "pr_mirror",
+   "round": 7,
+   "why": "culprit: pr_14605, pr_17568, pr_15630, pr_15121, pr_10889"
+  },
+  {
+   "instance_id": "conan-io__conan.86f29e13.pr_15877",
+   "source": "pr_mirror",
+   "round": 8,
+   "why": "culprit: pr_15877"
   }
  ],
  "p2p": {
-  "p2p": 1160,
+  "p2p": 1195,
   "p2p_failing_all_fixed": 3,
   "p2p_failing_with_bugs": 17,
   "p2p_broken_by_fixes": 0
  },
- "sha256": "6abf40b6b8e7ce171711577842df1d550dc9cd3a87eac36b08f2d01f4cbad342"
+ "sha256": "6eeb29148fb6659ac7edec31fbdf62d56c6cc66ed336013928e839a9b3bdf2e3"
 }
