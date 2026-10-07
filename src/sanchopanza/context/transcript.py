@@ -111,10 +111,10 @@ def _is_boundary(entry: Mapping[str, Any]) -> bool:
     return entry.get("type") == "system" and entry.get("subtype") == "compact_boundary"
 
 
-def _conversational(entry: Mapping[str, Any]) -> bool:
+def _conversational(entry: Mapping[str, Any], *, sidechain: bool = False) -> bool:
     if entry.get("type") not in ("user", "assistant"):
         return False
-    if entry.get("isSidechain") or entry.get("isMeta"):
+    if (entry.get("isSidechain") and not sidechain) or entry.get("isMeta"):
         return False
     message = entry.get("message")
     return isinstance(message, Mapping) and message.get("role") in ("user", "assistant")
@@ -132,13 +132,15 @@ def merge_consecutive(messages: Iterable[Mapping[str, Any]]) -> list[Message]:
     return [m for m in out if m["content"]]
 
 
-def messages_from_claude_code(path: Path | str) -> list[Message]:
-    """A Claude Code JSONL transcript as Messages-API messages, oldest first."""
+def messages_from_claude_code(path: Path | str, *, sidechain: bool = False) -> list[Message]:
+    """A Claude Code JSONL transcript as Messages-API messages, oldest first. `sidechain` reads
+    a subagent's own transcript (`<session>/subagents/agent-<id>.jsonl`), every entry of which
+    is marked as a sidechain."""
     kept: list[Mapping[str, Any]] = []
     for entry in _entries(Path(path)):
         if _is_boundary(entry):
             kept = []  # what came before was replaced by the summary that follows
-        elif _conversational(entry):
+        elif _conversational(entry, sidechain=sidechain):
             kept.append(entry["message"])
     return merge_consecutive(kept)
 
