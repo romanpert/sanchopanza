@@ -275,6 +275,20 @@ Una tanda de pago a la vez entre las dos líneas, avisando antes con PID, hora y
   - El −10,7 % de conan en el piloto puede ser en parte ruido.
   - Lo que sí se repite en todas las líneas es que con menos contexto el agente se rinde menos.
 
+### Decisión del 2026-10-07, noche (d6 y 6c; aprobada por el dueño)
+
+- **Siguiente tanda de pago: Ne en las dos cadenas largas y N repetido en pydantic**, con Sonnet
+  5.5 y techo duro de 110 $: perfil Ne 76 $ (2 × 38, como N) y repetición de N 34 $ (N gastó
+  23,55 $ ahí). La lanza 6c desde un worktree `--detach` en un commit fijo.
+- Se descartó la propuesta de Ne + Ne+A (~110 $): con A actuando en el 4 % de las llamadas y
+  k = 1, lo que A añade encima de Ne quedaría dentro del ruido. Ne+A se aplaza hasta que Ne
+  muestre algo.
+- **Por qué la repetición de N**: sin saber cuánto varía N contra sí mismo en la misma cadena, Ne
+  frente a N con k = 1 no se puede leer (el 91 frente a 86 del piloto A puede ser eso).
+- **Medida principal**: los abandonos y el contexto en el que se producen, por encima de los bugs
+  resueltos. Es lo que se movió en BCP (19 → 13) y es más sensible que el recuento.
+- **Se lee como dirección, no como veredicto**: k = 1 y dos cadenas.
+
 ## 7. Lo que no prometemos
 
 - LongBench no tiene palanca de S: su 0,785 es un caso atípico.
