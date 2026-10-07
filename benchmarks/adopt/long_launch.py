@@ -1,10 +1,12 @@
-"""What `long-smoke-run.cmd` and `long-gate-run.cmd` run, once the window has set the PATH (the
-pinned Claude Code first) and checked its version: the checks before any spending, the expected
-cost and the caps, the Jev preflight for S arms, the runner per model, the grade and the windows.
+"""What `long-smoke-run.cmd`, `long-gate-run.cmd` and `long-pilot-a-run.cmd` run, once the window
+has set the PATH (the pinned Claude Code first) and checked its version: the checks before any
+spending, the expected cost and the caps, the Jev preflight for installed arms (S, A, A10), the
+runner per model, the grade and the windows.
 
     python benchmarks/adopt/long_launch.py smoke --seal <commit> [--root C:\\sp-runs\\L-smoke]
     python benchmarks/adopt/long_launch.py gate [--root C:\\sp-runs\\L]
-    python benchmarks/adopt/long_launch.py plan smoke|gate      # prints the plan only
+    python benchmarks/adopt/long_launch.py pilot-a --commit <commit> [--arm A|A10]
+    python benchmarks/adopt/long_launch.py plan smoke|gate|pilot-a [--arm A10]  # the plan only
 
 In order, and nothing paid before the last:
 1. SIGINT ignored; the run folder gets `launch.json` with this process's PID, its parent's (the
@@ -13,7 +15,9 @@ In order, and nothing paid before the last:
 2. Refused (exit 1) when a runner of this root is alive, a chain has no valid manifest with the
    digest of the chain in the cache (`long60/<chain>.json`), or the caps do not fit the ceiling.
 3. The expected cost (`costmodel.expected`) and every cap, printed and written to `plan.txt`.
-4. Arms S only: the frozen sanchopanza of the seal commit (built by `freeze.py`, with gate A and
+4. Arms S (the seal) and A/A10 (`--commit`, `pilot_sancho`: the 402 breaker in its history and
+   `passages-hook --help` answering in the frozen copy, the pilot of bet A, `long_pilot`) only:
+   the frozen sanchopanza of the seal commit (built by `freeze.py`, with gate A and
    the 402 breaker in its history) and `python -m sanchopanza jev-preflight` with it, which
    exits 0 ok, 10 no_funds, 11 auth, 12 no_key, 13 unreachable, 14 other; any other code than 0
    ends the launch with that code before a model is asked anything.
@@ -50,11 +54,13 @@ import costmodel  # noqa: E402
 import freeze  # noqa: E402
 import long_guard  # noqa: E402
 import long_money  # noqa: E402
+import long_pilot  # noqa: E402
 import long_run  # noqa: E402
 import meter  # noqa: E402
 import run  # noqa: E402
 
-ROOTS = {"smoke": Path(r"C:\sp-runs\L-smoke"), "gate": Path(r"C:\sp-runs\L")}
+ROOTS = {"smoke": Path(r"C:\sp-runs\L-smoke"), "gate": Path(r"C:\sp-runs\L"),
+         "pilot-a": long_pilot.ROOTS["A"]}  # A10: long_pilot.ROOTS["A10"] (`root_for`)
 # The seal must carry these (main): gate A for check-done and candor, and the 402 breaker with
 # `jev-preflight`. An older frozen copy would run S without them.
 SEAL_NEEDS = {"f2a0fe2": "gate A (check-done and candor on change or action)",
@@ -121,8 +127,9 @@ def turn_lines(profile: Any, model: str) -> list[str]:
     the cache at the 1-hour rate, plus a maximal answer) and where the arm stops at the latest."""
     mid, cap, chain = run.MODELS[model], profile.call_cap[model], profile.chain_cap[model]
     out = []
-    for arm in profile.arms:
-        window = long_money.DEFAULT_WINDOW[mid] if arm == "N" else profile.window
+    for arm in profile.arms:  # N and the passages arms: the server's window
+        window = long_money.DEFAULT_WINDOW[mid] if arm in ("N", *long_pilot.ARMS) else \
+            profile.window  # fmt: skip
         worst = long_money.turn_cost(mid, window)
         out.append(f"  {arm}: one turn past a cap costs up to {worst:.2f} USD (context at the "
                    f"window {window}); at that context the arm starts no call past "
@@ -130,12 +137,19 @@ def turn_lines(profile: Any, model: str) -> list[str]:
     return out
 
 
+def expected(model: str, bugs: int, calls: int, profile: Any) -> dict[str, tuple[float, float]]:
+    """`costmodel.expected` per arm; a passages arm at N's (its effect is what the pilot asks)."""
+    model_arms = tuple(dict.fromkeys("N" if a in long_pilot.ARMS else a for a in profile.arms))
+    found = costmodel.expected(model, bugs, calls, model_arms, profile.budget)
+    return {a: found["N" if a in long_pilot.ARMS else a] for a in profile.arms}
+
+
 def plan_lines(name: str, chains: Mapping[str, Any], names: list[str], root: Path,
-               ceiling: float) -> list[str]:  # fmt: skip
+               ceiling: float, arms: tuple[str, ...] = ()) -> list[str]:  # fmt: skip
     """The expected cost per chain and arm, and every cap, as printed before anything runs."""
     import long
 
-    profile = long_run.PROFILES[name]
+    profile = long_run.PROFILES[name].with_arms(arms)
     layout = long_run.Layout(root)
     spent = long_run.spent(layout)
     lines, low, high = [], 0.0, 0.0
@@ -151,13 +165,15 @@ def plan_lines(name: str, chains: Mapping[str, Any], names: list[str], root: Pat
             found = chains.get(chain)
             bugs = profile.bugs or (len(found["bugs"]) if found else long.SIZE60)
             calls = len(long.callbacks(bugs))
-            exp = costmodel.expected(model, bugs, calls, profile.arms,
-                                     profile.budget)  # fmt: skip
+            exp = expected(model, bugs, calls, profile)
             low += sum(v[0] for v in exp.values())
             high += sum(v[1] for v in exp.values())
             each = ", ".join(f"{a} {v[0]:.2f}-{v[1]:.2f}" for a, v in exp.items())
             state = "" if found else " (not in the validated cache yet)"
-            lines.append(f"  {chain}{state}: {bugs} bugs + {calls} callbacks; expected {each} USD")
+            note = ("; passages arms at N's cost model (not modelled)"
+                    if set(profile.arms) & set(long_pilot.ARMS) else "")  # fmt: skip
+            lines.append(f"  {chain}{state}: {bugs} bugs + {calls} callbacks; expected {each} USD"
+                         f"{note}")  # fmt: skip
     blocks, outside = long_run.held(layout, profile, names, list(profile.models))
     holding = sum(c for *_x, c in blocks) + outside
     lines += [f"expected total {low:.2f}-{high:.2f} USD (cost model, check-done 'mid'; "
@@ -166,9 +182,12 @@ def plan_lines(name: str, chains: Mapping[str, Any], names: list[str], root: Pat
               f"spend); spent under the root so far {spent:.2f}; ceiling "
               f"{ceiling:.2f}{' (hard, in code)' if profile.hard_cap else ''}; a call starts "
               "only with room for its cap and one more turn under each cap and the ceiling",
-              f"N-early window {profile.window} (S's install for --context-budget "
-              f"{profile.budget}); N's window: the server's, recorded in windows.json"]
-    return lines
+              *([f"N-early window {profile.window} (S's install for --context-budget "
+                 f"{profile.budget}); N's window: the server's, recorded in windows.json"]
+                if {"Ne", "S"} & set(profile.arms) else
+                ["window: the server's (no arm sets one), recorded in windows.json"])]
+    return [*lines, *(long_pilot.plan_lines(profile.arms)
+                      if set(profile.arms) & set(long_pilot.ARMS) else [])]
 
 
 # ---- S: the sealed sanchopanza and the preflight -------------------------------------------------
@@ -178,17 +197,19 @@ def git(*args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, text=True)
 
 
-def frozen_sancho(seal: str) -> Path:
-    """The frozen copy of the seal commit, refused when it is missing or lacks what S needs."""
+def frozen_sancho(seal: str, sealed_at: str | None = SEAL_COMMIT,
+                  needs: Mapping[str, str] = SEAL_NEEDS) -> Path:  # fmt: skip
+    """The frozen copy of the seal commit, refused when it is missing or lacks what S needs
+    (`sealed_at`: the one commit allowed; None for the pilot's, checked by `pilot_sancho`)."""
     done = git("rev-parse", "--verify", f"{seal}^{{commit}}")
     if done.returncode != 0 or not seal:
         raise SystemExit(f"refused: {seal!r} is not a commit")
     full = done.stdout.strip()
-    for commit, what in SEAL_NEEDS.items():
+    for commit, what in needs.items():
         if git("merge-base", "--is-ancestor", commit, full).returncode != 0:
             raise SystemExit(f"refused: the seal {full[:12]} does not carry {commit} ({what})")
-    if full != git("rev-parse", f"{SEAL_COMMIT}^{{commit}}").stdout.strip():
-        raise SystemExit(f"refused: S is sealed at {SEAL_COMMIT}, not {full[:12]}")
+    if sealed_at and full != git("rev-parse", f"{sealed_at}^{{commit}}").stdout.strip():
+        raise SystemExit(f"refused: S is sealed at {sealed_at}, not {full[:12]}")
     target = freeze.ROOT / f"{full[:12]}-{'-'.join(freeze.EXTRAS)}"
     exe = target / "Scripts" / "sanchopanza.exe"
     stamp = target / "stamp.json"
@@ -198,6 +219,27 @@ def frozen_sancho(seal: str) -> Path:
     found = json.loads(stamp.read_text(encoding="utf-8"))
     if found.get("commit") != full or set(freeze.EXTRAS) - set(found.get("extras") or []):
         raise SystemExit(f"refused: {stamp} is not the {full[:12]} copy with {freeze.EXTRAS}")
+    return exe
+
+
+def pilot_sancho(commit: str) -> Path:
+    """The frozen copy of the pilot's own commit (any, not the seal), refused unless it carries
+    the 402 breaker and its `passages-hook --help` answers."""
+    exe = frozen_sancho(commit, None, long_pilot.NEEDS)
+    if why := long_pilot.passages_refusal(exe):
+        raise SystemExit(f"refused: {why}")
+    return exe
+
+
+def installed_sancho(profile: Any, cfg: Mapping[str, Any], args: argparse.Namespace) -> Path:
+    """The frozen sanchopanza the installed arms run (dry: the configured one, still checked for
+    `passages-hook` when a passages arm runs)."""
+    pilot = bool(set(profile.arms) & set(long_pilot.ARMS))
+    if not cfg.get("sancho"):
+        return pilot_sancho(args.commit) if pilot else frozen_sancho(args.seal or "")
+    exe = Path(cfg["sancho"])
+    if pilot and (why := long_pilot.passages_refusal(exe)):
+        raise SystemExit(f"refused: {why}")
     return exe
 
 
@@ -223,10 +265,11 @@ def preflight(python: Path, root: Path, pythonpath: str = "") -> int:
 
 
 def runner_cmd(cfg: Mapping[str, Any], action: str, profile: str, root: Path,
-               model: str | None) -> list[str]:  # fmt: skip
+               model: str | None, arms: tuple[str, ...] = ()) -> list[str]:  # fmt: skip
     script = cfg.get("runner") or str(HERE / "long_run.py")
     cmd = [sys.executable, "-u", script, action, "--profile", profile, "--root", str(root),
-           "--manifests", str(cfg.get("manifests") or long_run.MANIFESTS)]  # fmt: skip
+           "--manifests", str(cfg.get("manifests") or long_run.MANIFESTS),
+           *(["--arms", ",".join(arms)] if arms else [])]  # fmt: skip
     cmd += ["--model", model] if model else []
     if action != "run":
         return [*cmd, *(["--chains-file", cfg["chains_file"]] if cfg.get("chains_file") else [])]
@@ -248,10 +291,11 @@ def run_step(cmd: list[str], env: Mapping[str, str], log_file: Path, label: str,
     return code
 
 
-def runs(name: str, cfg: Mapping[str, Any], root: Path, env: Mapping[str, str]) -> int:
+def runs(name: str, cfg: Mapping[str, Any], root: Path, env: Mapping[str, str],
+         arms: tuple[str, ...] = ()) -> int:  # fmt: skip
     """The runner per model in order; the gate's Opus only after Sonnet exits 0."""
     for model in long_run.PROFILES[name].models:
-        code = run_step(runner_cmd(cfg, "run", name, root, model), env,
+        code = run_step(runner_cmd(cfg, "run", name, root, model, arms), env,
                         root / f"runner-{model}.log", f"runner_{model}", root)  # fmt: skip
         if code != 0:
             return code
@@ -272,16 +316,22 @@ def windows(root: Path) -> None:
 # ---- entry ---------------------------------------------------------------------------------------
 
 
+def root_for(name: str, args: argparse.Namespace, cfg: Mapping[str, Any]) -> Path:
+    default = long_pilot.ROOTS[args.arm or "A"] if name == "pilot-a" else ROOTS[name]
+    return Path(args.root or cfg.get("root") or default)
+
+
 def launch(name: str, args: argparse.Namespace) -> int:
     carry.ignore_interrupts()
     cfg = json.loads(Path(args.dry_config).read_text(encoding="utf-8")) if args.dry_config else {}
-    root = Path(args.root or cfg.get("root") or ROOTS[name])
+    root = root_for(name, args, cfg)
+    arms = (args.arm,) if args.arm else ()
     root.mkdir(parents=True, exist_ok=True)
     note_pids(root, new=True)
     if why := busy(root):
         log(f"refused: {why}")
         return 1
-    profile = long_run.PROFILES[name]
+    profile = long_run.PROFILES[name].with_arms(arms)
     known = (json.loads(Path(cfg["chains_file"]).read_text(encoding="utf-8"))
              if cfg.get("chains_file") else run.chains())  # fmt: skip
     names = list(profile.chains)
@@ -293,7 +343,7 @@ def launch(name: str, args: argparse.Namespace) -> int:
         log(f"refused: {why}")
         return 1
     ceiling = profile.ceiling
-    lines = plan_lines(name, known, names, root, ceiling)
+    lines = plan_lines(name, known, names, root, ceiling, arms)
     (root / "plan.txt").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     for line in lines:
         log(line)
@@ -303,27 +353,34 @@ def launch(name: str, args: argparse.Namespace) -> int:
         return 1
     env = {**os.environ, **(cfg.get("env") or {}), "PYTHONUNBUFFERED": "1",
            "ADOPT_PYTHON": os.environ.get("ADOPT_PYTHON") or sys.executable}  # fmt: skip
-    if "S" in profile.arms:
-        exe = Path(cfg["sancho"]) if cfg.get("sancho") else frozen_sancho(args.seal or "")
+    if installing := [a for a in profile.arms if long_run.installed(a, profile)]:
+        try:
+            exe = installed_sancho(profile, cfg, args)
+        except SystemExit as refused:
+            log(str(refused))
+            return 1
         env = {**env, "ADOPT_SANCHO": str(exe)}
-        log(f"S runs {exe}")
+        log(f"{' and '.join(installing)} runs {exe}")
         python = Path(cfg.get("preflight_python") or exe.parent / "python.exe")
         if code := preflight(python, root, cfg.get("preflight_pythonpath", "")):
             log(f"refused: jev-preflight exit {code}; nothing was run")
             return code
-    code = runs(name, cfg, root, env)
+    code = runs(name, cfg, root, env, arms)
     windows(root)
     if code == 0 and cfg.get("grade", True):
-        code = run_step(runner_cmd(cfg, "grade", name, root, None), env, root / "grade.log",
-                        "grade", root)  # fmt: skip
+        code = run_step(runner_cmd(cfg, "grade", name, root, None, arms), env,
+                        root / "grade.log", "grade", root)  # fmt: skip
     return code
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=("smoke", "gate", "plan"))
-    parser.add_argument("profile", nargs="?", default="", help="plan: smoke or gate")
+    parser.add_argument("action", choices=("smoke", "gate", "pilot-a", "plan"))
+    parser.add_argument("profile", nargs="?", default="", help="plan: smoke, gate or pilot-a")
     parser.add_argument("--seal", default="", help="smoke: the sealed S commit (frozen copy)")
+    parser.add_argument("--commit", default="", help="pilot-a: its own commit (frozen copy)")
+    parser.add_argument("--arm", default="", choices=("", *long_pilot.ARMS),
+                        help="pilot-a: A (default) or A10")  # fmt: skip
     parser.add_argument("--root", default="")
     parser.add_argument("--dry-config", default="")
     args = parser.parse_args(argv)
@@ -332,8 +389,10 @@ def main(argv: list[str] | None = None) -> int:
         known = (json.loads(Path(cfg["chains_file"]).read_text(encoding="utf-8"))
                  if cfg.get("chains_file") else run.chains())  # fmt: skip
         profile = long_run.PROFILES[args.profile]
-        root = Path(args.root or cfg.get("root") or ROOTS[args.profile])
-        for line in plan_lines(args.profile, known, list(profile.chains), root, profile.ceiling):
+        root = root_for(args.profile, args, cfg)
+        arms = (args.arm,) if args.arm else ()
+        for line in plan_lines(args.profile, known, list(profile.chains), root, profile.ceiling,
+                               arms):  # fmt: skip
             print(line)
         return 0
     return launch(args.action, args)

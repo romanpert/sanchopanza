@@ -25,7 +25,8 @@ FAKE = ROOT / "tests" / "fixtures" / "long_fake" / "fake_claude.py"
 MAIN_VENV = pathlib.Path(r"C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts")
 OURS = ("run", "long", "docker_env", "perbug", "long_run", "long_call", "long_guard",
         "long_report", "arm_files", "hook_env", "meter", "carry", "chains", "related", "masking",
-        "long_money", "long_resume", "long_window")
+        "long_money", "long_resume", "long_window", "long_pilot", "long_launch", "freeze",
+        "costmodel", "long_start")
 
 
 def _purge() -> None:

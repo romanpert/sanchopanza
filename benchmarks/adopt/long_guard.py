@@ -168,6 +168,23 @@ def window_breaks(early: int | None, installed: int | None) -> tuple[str, ...]:
     return (f"N-early's window {early} is not the {installed} S's install wrote",)
 
 
+def cross_arm_breaks(folder: Path) -> str:
+    """Pre-mortems 9 and 10 across the arms of one run folder so far: first-request prefixes and
+    modes; and N-early's window against the one S's install wrote."""
+    prefix, modes, windows = {}, {}, {}
+    for path in sorted(folder.glob("*/row.json")):
+        row = json.loads(path.read_text(encoding="utf-8"))
+        windows[row["arm"]] = (row.get("window") or {}).get("configured")
+        ran = [c for c in row["calls"] if c.get("status") == "ran"]
+        if ran:
+            first = ran[0].get("first_request") or {}
+            prefix[row["arm"]] = int(first.get("read", 0)) + int(first.get("write", 0))
+        modes.update({f"{row['arm']}/{c['request']}": (c.get("init") or {}).get("permission_mode")
+                      for c in ran})  # fmt: skip
+    return "; ".join([*prefix_breaks(prefix), *permission_breaks(modes),
+                      *window_breaks(windows.get("Ne"), windows.get("S"))])
+
+
 def crosses_midnight(start: dt.datetime, hours: float) -> bool:
     return (start + dt.timedelta(hours=hours)).date() != start.date()
 

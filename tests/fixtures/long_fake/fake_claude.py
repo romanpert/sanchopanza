@@ -18,6 +18,11 @@ configuration, retries included. Kinds:
   Claude Code leaves the compaction call out of the transcript);
 - `mcpfail`: the init lists every MCP server of --mcp-config as `failed`.
 
+FAKE_PASSAGES (JSON, `{"cuts": n, "whole": w, "targeted": t}`): in an arm whose project settings
+wire `passages-hook`, every call that runs writes what the hook would journal (`hook_env`'s
+`<evidence>/journal.jsonl`): n `passages` cuts (with one Jev decision each), then w whole and t
+targeted `passages_rerequest` events on this call's first cuts.
+
 A `429` call is rejected before any work. With `--debug-file=<path>` it writes Claude Code's
 `autocompact: tokens=... effectiveWindow=...` line per request: the window is the settings
 `env` block's CLAUDE_CODE_AUTO_COMPACT_WINDOW, else FAKE_SERVER_WINDOW (default 1,000,000), which
@@ -170,6 +175,40 @@ def add_usage(total: dict[str, Any], model: str, usages: list[dict[str, Any]]) -
     return {**total, model: mine}
 
 
+def passages_journal() -> Path | None:
+    """The journal the passages hook of this working copy writes to, or None (not wired)."""
+    settings = Path(".claude", "settings.json")
+    data = json.loads(settings.read_text("utf-8")) if settings.exists() else {}
+    for entry in data.get("hooks", {}).get("PostToolUse", []):
+        for hook in entry.get("hooks", []):
+            words = str(hook.get("command", "")).split()
+            if words and words[-1] == "passages-hook" and len(words) >= 4:
+                return Path(words[-3]) / "journal.jsonl"
+    return None
+
+
+def passages_events(call: int) -> None:
+    plan = json.loads(os.environ.get("FAKE_PASSAGES") or "{}")
+    journal = passages_journal()
+    if not plan or journal is None:
+        return
+    cuts = [f"p{call}-{i}" for i in range(int(plan.get("cuts", 0)))]
+    kinds = ["whole"] * int(plan.get("whole", 0)) + ["targeted"] * int(plan.get("targeted", 0))
+    decision = {"point": "passages", "provider": "jev", "cost_usd": 0.00002}
+    cut_events = [({"kind": "decision", "data": decision},
+                   {"kind": "passages", "data": {"tool": "Bash", "tool_use_id": c, "acted": True,
+                                                 "chars_in": 10_000, "chars_out": 2_500,
+                                                 "injected_chars": 2_700}})
+                  for c in cuts]  # fmt: skip
+    again = [{"kind": "passages_rerequest", "data": {"cut": c, "kind": k, "tool": "Read"}}
+             for c, k in zip(cuts, kinds, strict=False)]  # fmt: skip
+    events = [*(e for pair in cut_events for e in pair), *again]
+    journal.parent.mkdir(parents=True, exist_ok=True)
+    with journal.open("a", encoding="utf-8") as out:
+        for event in events:
+            out.write(json.dumps({"ts": "2026-10-07T00:00:00+00:00", **event}) + "\n")
+
+
 def run_call(argv: list[str]) -> int:
     config = Path(os.environ["CLAUDE_CONFIG_DIR"])
     state = load_state(config)
@@ -191,6 +230,7 @@ def run_call(argv: list[str]) -> int:
         Path("crash_note.txt").write_text("half done\n", encoding="utf-8")
         return 3
     token = do_work(prompt_of(argv), state["token"])
+    passages_events(call)
     transcript = project_dir(config) / f"{session}.jsonl"
     mcp = option(argv, "--mcp-config")
     installed = bool(mcp and json.loads(Path(mcp).read_text(encoding="utf-8")).get("mcpServers"))

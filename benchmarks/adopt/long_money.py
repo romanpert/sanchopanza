@@ -42,9 +42,12 @@ def blocks(profile: Any, names: list[str], models: list[str]) -> list[Block]:
 
 def held(layout: Any, profile: Any, names: list[str],
          models: list[str]) -> tuple[list[Block], float]:  # fmt: skip
-    """(blocks at the larger of caps and spend, the spend outside them)."""
+    """(blocks at the larger of caps and spend, the spend outside them). An arm the profile does
+    not run (another `--arms` choice under the same root) spends outside its blocks."""
     spent_in: dict[str, float] = {}
     for row in rows_under(layout):
+        if row.get("arm") not in profile.arms:
+            continue
         key = str(row.get("run", ""))
         spent_in[key] = spent_in.get(key, 0.0) + sum(c.get("owner_usd", 0.0) for c in row["calls"])
     out = [(n, m, max(cap, spent_in.get(f"{n}-{m}", 0.0)))

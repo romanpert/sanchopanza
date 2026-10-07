@@ -106,7 +106,8 @@ def grade_all(layout: Any, names: list[str], known: Mapping[str, Any], models: l
                 quits = line["give_ups"]
                 print(name, model, arm, g["resolved"], "of", g["bugs_total"], "resolved;",
                       quits["give_ups"], "gave up,", quits[f"at_or_past_{GIVE_UP_AT // 1000}k"],
-                      f"at or past {GIVE_UP_AT // 1000}k", flush=True)  # fmt: skip
+                      f"at or past {GIVE_UP_AT // 1000}k;", f"{line['owner_usd']:.2f} USD",
+                      *passages_words(line), flush=True)  # fmt: skip
                 report[f"{name}/{runner.MODELS.get(model, model)}/{arm}"] = line
     gate = {m: gate_verdict([r for k, r in report.items() if k.split("/")[1:] ==
                              [runner.MODELS.get(m, m), "N"]]) for m in models}  # fmt: skip
@@ -172,7 +173,18 @@ def gate_row(evidence: Path, grade: Mapping[str, Any] | None) -> dict[str, Any]:
     return {"run": row.get("run"), "arm": row.get("arm"), "peak": peak, "requests": len(found),
             "owner_usd": round(cost, 4), "share_over_200k": round(over / cost, 3) if cost else None,
             "compactions": len(compactions(row)), "window": window, "f2p_rate": rate,
-            "give_ups": quits, "checks": checks, "pass": verdict}  # fmt: skip
+            "give_ups": quits, "checks": checks, "pass": verdict, "stopped": row.get("stopped"),
+            **({"passages": row["passages"]} if "passages" in row else {})}  # fmt: skip
+
+
+def passages_words(line: Mapping[str, Any]) -> list[str]:
+    """A passages arm's journal in the grade's print (`long_pilot`): cuts, characters, r."""
+    p = line.get("passages")
+    if not p:
+        return []
+    return [f"; {p['cuts']} cuts, {p['chars_in']} -> {p['chars_out']} chars,",
+            f"re-requests {p['rerequests_whole']} whole {p['rerequests_targeted']} targeted,",
+            f"r {p['r']} r_whole {p['r_whole']}; stopped {line.get('stopped') or 'no'}"]
 
 
 def gate_verdict(rows: Sequence[Mapping[str, Any]]) -> str:

@@ -9,6 +9,7 @@ other step is the runner's own: clean user, caps, rows, stop files, resume, wind
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
@@ -48,6 +49,8 @@ def main(argv: list[str]) -> int:
     long_run.carry.ancestors_memory = lambda _p: []
     root = Path(argv[argv.index("--root") + 1]) if "--root" in argv else Path(".")
     long_run.run.KEYS = root / "keys"
+    if probe := os.environ.get("FAKE_DECIDER_PROBE"):  # a stand-in sanchopanza has no Python
+        long_run.run.decider_probe = lambda _key: probe
     return long_run.main(argv)
 
 
