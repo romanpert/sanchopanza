@@ -335,9 +335,21 @@ def continue60(
 
 
 def extra60(name: str, start: list[str], count: int = EXTRA60_COUNT) -> list[dict[str, Any]]:
-    """The extra spares of `name` (see above), drawn again from the sources."""
+    """The extra spares of `name` (see above), drawn again from the sources. The extra draws
+    EXTRA60 recorded before `name` are replayed first, in their order and checked against their
+    ids: they advance the generator and their spares count as taken, so a second chain of the same
+    repository (conan-2 after conan-1) never takes the first one's extra spares, and the first
+    chain's draw is unchanged."""
     drawn, state = _select60(PLAN60 + RESERVE60, SIZE60, SPARES60)
     sealed = json.loads((HERE / "long60-selected.json").read_text(encoding="utf-8"))["chains"]
+    record = json.loads(EXTRA60.read_text(encoding="utf-8"))["chains"] if EXTRA60.exists() else {}
+    for other, entry in record.items():
+        if other == name:
+            break
+        rows = continue60(other, entry["start"], len(entry["spares"]), drawn, state, sealed)
+        if _ids(rows) != entry["spares"]:
+            raise SystemExit(f"{other}: its extra draw no longer gives {EXTRA60.name}'s ids")
+        state = {**state, "taken": state["taken"] | set(entry["spares"])}
     return continue60(name, start, count, drawn, state, sealed)
 
 

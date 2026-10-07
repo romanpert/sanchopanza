@@ -340,6 +340,57 @@ def test_the_extra_draw_continues_the_sealed_one_over_rows_nothing_took(plain) -
         long.continue60("r-long60-1", ["o__r.abc.pr_5"], 10, drawn, state(), sealed)
 
 
+def test_extra_draws_on_one_repository_follow_the_record_order(
+    plain,  # noqa: ANN001
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """conan-2 and conan-3 after conan-1: each chain's extra draw replays the recorded ones before
+    it, checked against their ids. The first chain's draw is unchanged, a later one takes no id of
+    the sealed draw nor of the extra draws before it, and drawing again gives the same spares."""
+    drawn = [{"chain": f"r-long60-{k}", "repo": "r", "bugs": [bug(2 * k - 1), bug(2 * k)],
+              "spares": []} for k in (1, 2, 3)]  # fmt: skip
+    sealed = [{"chain": c["chain"], "bugs": [b["instance_id"] for b in c["bugs"]], "spares": []}
+              for c in drawn]  # fmt: skip
+    rows = [bug(i) for i in range(1, 25)]  # pr_1-pr_6 are the sealed bugs: taken
+
+    def select(plan, size, spares):  # noqa: ANN001, ANN202
+        taken = {f"o__r.abc.pr_{i}" for i in range(1, 7)}
+        return drawn, {"real": {"r": rows}, "synthetic": {}, "rng": random.Random(7),
+                       "taken": taken}  # fmt: skip
+
+    monkeypatch.setattr(long, "_select60", select)
+    monkeypatch.setattr(long, "HERE", tmp_path)
+    (tmp_path / "long60-selected.json").write_text(json.dumps({"chains": sealed}), encoding="utf-8")
+    monkeypatch.setattr(long, "EXTRA60", tmp_path / "extra.json")
+    record: dict[str, Any] = {"seed": long.SEED60, "count": 3, "chains": {}}
+
+    def draw(k: int) -> list[str]:
+        rows = long.extra60(f"r-long60-{k}", [f"o__r.abc.pr_{2 * k}"], 3)
+        return [r["instance_id"] for r in rows]
+
+    def keep(k: int, ids: list[str]) -> None:
+        record["chains"][f"r-long60-{k}"] = {"seed": long.SEED60, "how": "h",
+                                             "start": [f"o__r.abc.pr_{2 * k}"], "spares": ids,
+                                             "before": {}}  # fmt: skip
+        (tmp_path / "extra.json").write_text(json.dumps(record), encoding="utf-8")
+
+    first = draw(1)
+    keep(1, first)
+    assert draw(1) == first  # what was validated does not change
+    second = draw(2)
+    keep(2, second)
+    third = draw(3)
+    sealed_ids = {i for c in sealed for i in c["bugs"]}
+    assert len(second) == len(third) == 3
+    assert not (set(second) | set(third)) & sealed_ids
+    assert not set(second) & set(first) and not set(third) & (set(first) | set(second))
+    assert (draw(2), draw(3)) == (second, third)  # drawing again gives the same spares
+    keep(1, [first[1], first[0], first[2]])
+    with pytest.raises(SystemExit, match="r-long60-1"):
+        draw(2)
+
+
 def test_a_resumed_chain_starts_from_its_validated_bugs_and_keeps_earlier_rounds(
     tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
