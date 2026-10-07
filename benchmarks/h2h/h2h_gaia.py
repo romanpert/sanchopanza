@@ -104,7 +104,8 @@ MODELS = {
 # Per-session caps, USD at list. Sonnet's is the FRAMES pilot's (its sessions averaged 0.23 and
 # none hit 1.50); the others scale it by the model's price, Haiku with a floor.
 CAPS = {"FABLE": 6.00, "OPUS": 3.00, "SONNET": 1.50, "HAIKU": 0.75}
-ARMS = ("CC", "SP")
+# NE: N-early, clean N with only S's auto-compact window (gaia_arms.NE_USER_SETTINGS).
+ARMS = ("CC", "SP", "NE")
 DEFAULT_CEILING_USD = 10.0
 # Above this, edit the file: the owner's rule is to ask past 10 USD (250: conf amendment 2).
 MAX_CEILING_USD = 250.0
@@ -165,6 +166,8 @@ def settings_for(brazo: str, base: Mapping[str, Any] | None = None,
     flag = dict(base) if base is not None else base_settings()
     if brazo == "CC":
         return {"flag": flag, "user": {}}
+    if brazo == "NE":
+        return {"flag": flag, "user": dict(arms.NE_USER_SETTINGS)}
     if brazo == "SP":
         chosen = line if line is not None else arms.s_line.load()
         return {"flag": flag, "user": {"install_flags": list(chosen.flags),

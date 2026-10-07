@@ -824,3 +824,20 @@ def test_blind_verdicts_come_back_through_the_key(tmp_path):
     answers.write_text(json.dumps({"id": "nope", "ok": True}), encoding="utf-8")
     with pytest.raises(ValueError):
         runner.stats.blind_verdicts(answers, key)
+
+
+def test_ne_arm_is_clean_n_with_only_the_compaction_window_s_writes(tmp_path):
+    """N-early (2026-10-07): a clean N whose user settings hold only the auto-compact window, the
+    value S's install writes for its context budget, so NE and S differ by the rest of S alone
+    (indagis-6c's Ne of the long bench)."""
+    assert runner.split_arm("SONNET-NE") == ("SONNET", "NE")
+    cc, ne = runner.settings_for("CC"), runner.settings_for("NE")
+    assert ne["flag"] == cc["flag"]
+    assert ne["user"] == {"env": {"CLAUDE_CODE_AUTO_COMPACT_WINDOW": str(arms.NE_WINDOW)}}
+    assert int(arms.SP_USER_SETTINGS["env"]["CLAUDE_CODE_AUTO_COMPACT_WINDOW"]) == arms.NE_WINDOW
+    assert arms.prepare_config("NE", tmp_path / "config", None) is None
+    written = json.loads((tmp_path / "config" / "settings.json").read_text(encoding="utf-8"))
+    assert written == ne["user"]
+    env = arms.session_env("NE", tmp_path / "config", tmp_path / "side", None,
+                           base={"PATH": "x"})  # fmt: skip
+    assert arms.JEV_KEY not in env and "SANCHOPANZA_JOURNAL" not in env
