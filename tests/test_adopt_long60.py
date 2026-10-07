@@ -299,3 +299,83 @@ def test_files_changed_during_a_request_leave_changes_out() -> None:
     before = section("a.py", "1") + new_file("changes/1.md", "Ref: x")
     after = section("a.py", "2") + section("b.py", "1") + new_file("changes/2.md", "Ref: x")
     assert perbug.changed_during(before, after) == {"a.py", "b.py"}
+
+
+# ---- extra spares for a chain validated short of its size ----------------------------------------
+
+
+def test_top_up_appends_the_next_spares_that_fit_up_to_the_size() -> None:
+    bugs = [bug(1), bug(2)]
+    spares = [{**bug(3), "FAIL_TO_PASS": ["t.py::f1"]}, bug(4), bug(5), bug(6)]
+    tried = {b["instance_id"] for b in bugs}
+    out = perbug.top_up(bugs, 4, spares, tried)
+    assert [b["instance_id"] for b in out] == [f"o__r.abc.pr_{i}" for i in (1, 2, 4, 5)]
+    assert "o__r.abc.pr_3" not in tried and "o__r.abc.pr_6" not in tried  # left for refills
+    assert perbug.top_up(out, 4, spares, tried) == out
+
+
+def test_the_extra_draw_continues_the_sealed_one_over_rows_nothing_took(plain) -> None:  # noqa: ANN001
+    drawn = [{"chain": "r-long60-1", "repo": "r", "bugs": [bug(1), bug(2)], "spares": [bug(3)]}]
+    sealed = [{"chain": "r-long60-1", "bugs": ["o__r.abc.pr_1", "o__r.abc.pr_2"],
+               "spares": ["o__r.abc.pr_3"]}]  # fmt: skip
+    rows = [bug(i) for i in range(1, 9)] + [{**bug(9), "FAIL_TO_PASS": ["t.py::f1"]}]
+    synth = [{**bug(20), "instance_id": "o__r.abc.lm_rewrite__x"}]
+
+    def state() -> dict[str, Any]:
+        taken = {f"o__r.abc.pr_{i}" for i in (1, 2, 3, 4)}
+        return {"real": {"r": rows}, "synthetic": {"r": synth}, "rng": random.Random(7),
+                "taken": taken}  # fmt: skip
+
+    start = ["o__r.abc.pr_2", "o__r.abc.pr_1"]
+    got = long.continue60("r-long60-1", start, 10, drawn, state(), sealed)
+    ids = [r["instance_id"] for r in got]
+    assert set(ids[:4]) == {f"o__r.abc.pr_{i}" for i in (5, 6, 7, 8)}  # real first, untaken
+    assert ids[4:] == ["o__r.abc.lm_rewrite__x"]  # then synthetic; pr_9 shares bug 1's test
+    assert got[0]["origin"] == "real" and got[-1]["origin"] == "synthetic"
+    assert ids == [r["instance_id"] for r in long.continue60("r-long60-1", start, 10, drawn,
+                                                             state(), sealed)]  # fmt: skip
+    with pytest.raises(SystemExit, match="replay"):
+        long.continue60("r-long60-1", start, 10, drawn, state(), [{**sealed[0], "spares": []}])
+    with pytest.raises(SystemExit, match="not of its draw"):
+        long.continue60("r-long60-1", ["o__r.abc.pr_5"], 10, drawn, state(), sealed)
+
+
+def test_a_resumed_chain_starts_from_its_validated_bugs_and_keeps_earlier_rounds(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    chain = {**chain_of(3), "spares": [bug(4), bug(5), bug(6)]}
+    del chain["guard"]
+    before = {"rounds": 1, "history": [{"round": 1, "bugs": 3, "drop": 2, "seconds": 50}],
+              "dropped": [{"instance_id": "o__r.abc.pr_2", "round": 1, "why": "x"}],
+              "seconds": 50, "bugs": 2}  # fmt: skip
+    record = {"seed": long.SEED60, "count": 2, "chains": {"r-long60-1": {
+        "seed": long.SEED60, "how": "h", "start": ["o__r.abc.pr_3", "o__r.abc.pr_1"],
+        "spares": ["o__r.abc.pr_7", "o__r.abc.pr_8"], "before": before}}}  # fmt: skip
+    (tmp_path / "extra.json").write_text(json.dumps(record), encoding="utf-8")
+    (tmp_path / "full.json").write_text(json.dumps({"r-long60-1": [bug(7), bug(8)]}),
+                                        encoding="utf-8")  # fmt: skip
+    monkeypatch.setattr(long, "EXTRA60", tmp_path / "extra.json")
+    monkeypatch.setattr(long, "EXTRA60_FULL", tmp_path / "full.json")
+    other = {**chain, "chain": "r-long60-2"}
+    assert long.resumed(other) is other  # a chain the record does not name is left alone
+    resumed = long.resumed(chain)
+    assert [b["instance_id"] for b in resumed["bugs"]] == ["o__r.abc.pr_3", "o__r.abc.pr_1"]
+    assert resumed["extra_draw"]["spares"] == ["o__r.abc.pr_7", "o__r.abc.pr_8"]
+
+    baked: list[list[str]] = []
+    monkeypatch.setattr(perbug.docker_env, "pull", lambda image: None)
+    monkeypatch.setattr(perbug.docker_env, "bake", lambda img, patches, tag: baked.append(patches))
+    monkeypatch.setattr(perbug, "token_in_image", lambda tag, token: False)
+    monkeypatch.setattr(perbug, "check", lambda tag, bugs: {
+        "drop": {}, "guard": ["t.py::g"], "p2p": 1, "p2p_failing_all_fixed": 0,
+        "p2p_failing_with_bugs": 0, "p2p_broken_by_fixes": 0,
+        "records": [{"instance_id": b["instance_id"]} for b in bugs]})  # fmt: skip
+    result = perbug.isolate(resumed)
+    assert [b["instance_id"] for b in result["bugs"]] == [
+        "o__r.abc.pr_3", "o__r.abc.pr_1", "o__r.abc.pr_7"]  # fmt: skip
+    assert result["valid"] and len(baked) == 1
+    assert [h["round"] for h in result["history"]] == [1, 2]
+    assert result["dropped"] == before["dropped"] and result["seconds"] >= 50
+    shown = long.manifest({**result, "spares": []}, run.PROMPT)
+    assert shown["extra_draw"]["spares"] == ["o__r.abc.pr_7", "o__r.abc.pr_8"]
+    assert shown["before"] == {"rounds": 1, "bugs": 2, "seconds": 50} and shown["size"] == 3

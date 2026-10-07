@@ -229,7 +229,9 @@ def main() -> int:
         return 0
     wanted = sys.argv[1]
     chains = with_extra([*full(), *related.full(), *long.full()])
-    built = [c for c in long.full60() if c["split"] != "reserve"]  # reserve: written down only
+    # reserve: written down only; a chain validated short of its size and given extra spares
+    # (long60-extra-spares.json) starts from its validated bugs (`long.resumed`)
+    built = [long.resumed(c) for c in long.full60() if c["split"] != "reserve"]
     for chain in [*chains, *built]:
         if wanted not in ("all", chain["chain"]):
             continue

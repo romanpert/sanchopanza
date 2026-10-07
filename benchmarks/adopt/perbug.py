@@ -136,6 +136,21 @@ def refill(
     ]
 
 
+def top_up(
+    bugs: list[dict[str, Any]], size: int, spares: list[dict[str, Any]], tried: set[str]
+) -> list[dict[str, Any]]:
+    """`bugs` with the next spares that fit appended, in drawn order, up to `size`: a chain that
+    validated short of its size and was given extra spares (`long.resumed`)."""
+    out = list(bugs)
+    for spare in spares:
+        if len(out) >= size:
+            break
+        if spare["instance_id"] not in tried and long.fits(spare, out):
+            tried.add(spare["instance_id"])
+            out.append(spare)
+    return out
+
+
 def token_in_image(tag: str, token: str) -> bool:
     done = docker_env.docker(
         "run", "--rm", tag, "git", "-C", "/testbed", "grep", "-I", "-F", "-l", "-e", token
@@ -154,8 +169,13 @@ def isolate(chain: dict[str, Any]) -> dict[str, Any]:
     size = chain.get("size", len(chain["bugs"]))
     bugs, spares = list(chain["bugs"]), list(chain["spares"])
     tried = {b["instance_id"] for b in bugs}
-    history: list[Any] = []
-    dropped: list[dict[str, Any]] = []
+    # A resumed chain (`long.resumed`): its validated bugs, topped up from its extra spares; the
+    # earlier rounds stay in its history and drops, numbered before this run's.
+    before = chain.get("before") or {}
+    bugs = top_up(bugs, size, spares, tried) if before else bugs
+    offset = len(before.get("history", []))
+    history: list[Any] = list(before.get("history", []))
+    dropped: list[dict[str, Any]] = list(before.get("dropped", []))
     result: dict[str, Any] = {}
     for attempt in range(ROUNDS):
         docker_env.bake(chain["image"], [b["patch"] for b in bugs], tag)
@@ -163,7 +183,7 @@ def isolate(chain: dict[str, Any]) -> dict[str, Any]:
         drop = result["drop"]
         history.append(
             {
-                "round": attempt + 1,
+                "round": offset + attempt + 1,
                 "bugs": len(bugs),
                 "drop": len(drop),
                 "seconds": round(time.time() - started),
@@ -171,7 +191,7 @@ def isolate(chain: dict[str, Any]) -> dict[str, Any]:
         )
         print(
             chain["chain"],
-            f"round {attempt + 1}: {len(bugs)} bugs, {len(drop)} dropped",
+            f"round {offset + attempt + 1}: {len(bugs)} bugs, {len(drop)} dropped",
             flush=True,
         )
         if not drop or attempt + 1 == ROUNDS:
@@ -180,7 +200,7 @@ def isolate(chain: dict[str, Any]) -> dict[str, Any]:
             {
                 "instance_id": bugs[k]["instance_id"],
                 "source": bugs[k]["source"],
-                "round": attempt + 1,
+                "round": offset + attempt + 1,
                 "why": w,
             }
             for k, w in sorted(drop.items())
@@ -220,7 +240,7 @@ def isolate(chain: dict[str, Any]) -> dict[str, Any]:
                 "p2p_broken_by_fixes",
             )
         },
-        "seconds": round(time.time() - started),
+        "seconds": before.get("seconds", 0) + round(time.time() - started),
     }
 
 
