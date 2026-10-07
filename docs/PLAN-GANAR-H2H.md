@@ -243,7 +243,8 @@ Una tanda de pago a la vez entre las dos líneas, avisando antes con PID, hora y
      exposición: es una señal, no una prueba.
   2. 6c: la prueba sin sesgo. Se aplican los dos selectores a las salidas grandes del brazo N del
      margen (Sonnet y Opus, sin cortes) y se mide contra lo que N edita o vuelve a pedir después.
-     Jev ~0,10-0,20 $, pendiente del dueño.
+     Jev ~0,10-0,20 $. **Aprobada por el dueño a las 17:3x, en marcha** con tope duro de
+     0,25 $ en código.
   3. 6c: si Jev aporta, Ne frente a Ne+A en el banco largo, mismas cadenas, Sonnet, con techo que
      se pide al dueño. Si no aporta, A con BM25 y Jev fuera de ese punto.
   4. d6, gratis: el README y el install dicen que `--context-budget` es la ventana de Claude Code y
@@ -252,6 +253,7 @@ Una tanda de pago a la vez entre las dos líneas, avisando antes con PID, hora y
 ## 7. Lo que no prometemos
 
 - LongBench no tiene palanca de S: su 0,785 es un caso atípico.
-- La compactación temprana es configuración de Claude Code. Lo que aporta Jev ahí es la guardia,
-  y eso está por demostrar en sesiones largas.
+- La compactación temprana es configuración de Claude Code. La guardia (Jev eligiendo qué se
+  queda) no añadió nada medible en BCP (N-early, 2026-10-07). En sesiones largas sigue sin
+  medirse.
 - Si A, B y C no pasan su replay, se dice tal cual. No se cambia de métrica para que algo gane.
