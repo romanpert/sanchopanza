@@ -1,0 +1,97 @@
+{
+ "decisions": 2674,
+ "auc_gold_vs_rest": 0.95,
+ "auc_gold_vs_not_evidence": 0.953,
+ "groups": {
+  "wrong_with_gold": {
+   "sessions": 17,
+   "by_cut": {
+    "0.5": {
+     "sessions_gold_flagged": 17,
+     "false_flags_median": 4,
+     "false_flags_mean": 10.8
+    },
+    "0.7": {
+     "sessions_gold_flagged": 12,
+     "false_flags_median": 2,
+     "false_flags_mean": 3.8
+    },
+    "0.8": {
+     "sessions_gold_flagged": 6,
+     "false_flags_median": 1,
+     "false_flags_mean": 1.6
+    },
+    "0.9": {
+     "sessions_gold_flagged": 4,
+     "false_flags_median": 0,
+     "false_flags_mean": 0
+    },
+    "0.95": {
+     "sessions_gold_flagged": 4,
+     "false_flags_median": 0,
+     "false_flags_mean": 0
+    }
+   }
+  },
+  "right_with_gold": {
+   "sessions": 15,
+   "by_cut": {
+    "0.5": {
+     "sessions_gold_flagged": 15,
+     "false_flags_median": 4,
+     "false_flags_mean": 6.5
+    },
+    "0.7": {
+     "sessions_gold_flagged": 15,
+     "false_flags_median": 1,
+     "false_flags_mean": 2.3
+    },
+    "0.8": {
+     "sessions_gold_flagged": 13,
+     "false_flags_median": 1,
+     "false_flags_mean": 1.4
+    },
+    "0.9": {
+     "sessions_gold_flagged": 10,
+     "false_flags_median": 0,
+     "false_flags_mean": 0.3
+    },
+    "0.95": {
+     "sessions_gold_flagged": 6,
+     "false_flags_median": 0,
+     "false_flags_mean": 0
+    }
+   }
+  },
+  "wrong_never": {
+   "sessions": 10,
+   "by_cut": {
+    "0.5": {
+     "sessions_gold_flagged": 0,
+     "false_flags_median": 12.0,
+     "false_flags_mean": 15
+    },
+    "0.7": {
+     "sessions_gold_flagged": 0,
+     "false_flags_median": 4.5,
+     "false_flags_mean": 4.8
+    },
+    "0.8": {
+     "sessions_gold_flagged": 0,
+     "false_flags_median": 2.0,
+     "false_flags_mean": 1.7
+    },
+    "0.9": {
+     "sessions_gold_flagged": 0,
+     "false_flags_median": 0.0,
+     "false_flags_mean": 0.2
+    },
+    "0.95": {
+     "sessions_gold_flagged": 0,
+     "false_flags_median": 0.0,
+     "false_flags_mean": 0.1
+    }
+   }
+  }
+ }
+}
