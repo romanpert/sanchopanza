@@ -317,6 +317,53 @@ Una tanda de pago a la vez entre las dos líneas, avisando antes con PID, hora y
   161k, 190k y 327k), N2 3 (2 pasados 150k; 146k, 264k y 287k), A 1 (148k). Entre N y N2 solo se
   repiten 2: qué bug abandona varía tanto como cuántos.
 
+### N-early en el banco largo: más barato y peor (2026-10-07, 19:45, 6c)
+
+Tanda aprobada por el dueño: 110 $ duros; gastado 31,17 + 21,92 = 53,09 $. Sonnet 5.5. Leída con
+`long_compare` desde comun 71a582e. La medida principal es el abandono no resuelto, decidida antes
+de ver ningún resultado de calidad de Ne.
+
+| | conan: resueltos | conan: coste | pydantic: resueltos | pydantic: coste | Abandonos no resueltos (conan / pydantic) |
+|---|---|---|---|---|---|
+| N | 44 (51 llamadas, tope) | 28,45 | 44 | 23,55 | 1 / 4 |
+| N2 (N repetido) | – | – | 46 | 21,92 | – / 3 |
+| **Ne** (N + ventana 193k) | **37** (62 llamadas) | **17,33** | 44 | **13,84** | **3 / 6** |
+| A (N + pasajes de Jev) | 47 (58, tope) | 30,90 | 48 | 24,00 | **0 / 1** |
+
+- **conan, sobre los 49 bugs comunes**:
+  - N frente a Ne: 12 solo N y 1 solo Ne (p 0,003).
+  - Ne frente a A: 4 solo Ne y 16 solo A (p 0,012).
+  - Coste de Ne: x0,54.
+- **pydantic**:
+  - Ne frente a N: discordantes 3/3, a x0,59 del coste.
+  - Pero Ne se rinde más: 6 abandonos no resueltos frente a 4 (N) y 3 (N2), y lo hace a contexto
+    bajo, tras compactar (43-147k).
+  - Suelo de ruido N frente a N2: 2/4 discordantes, coste x0,93.
+- Salvedad: k = 1, y McNemar supone bugs independientes, que dentro de una cadena no lo son del
+  todo.
+
+**Lectura**:
+
+- En código largo, la compactación temprana abarata mucho y **pierde el hilo**: se ve claro en
+  conan, y en pydantic en los abandonos.
+- "Menos contexto, menos abandonos" no vale para la ventana. Compactar no equivale a no meter
+  basura.
+- A, que decide qué entra con Jev, mantiene o sube la calidad y es el brazo que menos se rinde.
+  Su coste queda en el ruido de N.
+
+**Consecuencias para el plan**:
+
+1. **En código largo, N-early es listón de coste, no de calidad.** El listón de calidad sigue
+   siendo N.
+2. **La pregunta que se abre es la de la guardia de S0**: ¿recupera Jev, eligiendo qué se queda
+   tras compactar, lo que la ventana pierde?
+   - La prueba es Ne+guard frente a Ne, en las mismas cadenas.
+   - Es Jev sustituyendo memoria que el modelo pierde, no sumando trabajo.
+   - En BCP la guardia no añadió nada, pero allí compactar no hacía daño: BCP no tenía qué
+     recuperar.
+3. **A sigue en pie como palanca de calidad, no de ahorro**: actúa en el 4 % de las llamadas y no
+   mueve el coste. Merece más cadenas antes de sacar conclusiones.
+
 ## 7. Lo que no prometemos
 
 - LongBench no tiene palanca de S: su 0,785 es un caso atípico.
