@@ -250,6 +250,31 @@ Una tanda de pago a la vez entre las dos líneas, avisando antes con PID, hora y
   4. d6, gratis: el README y el install dicen que `--context-budget` es la ventana de Claude Code y
      lo que se midió con ella, sin cambiar comportamiento.
 
+### Resultados del 2026-10-07, 17:30 (6c)
+
+- **Margen (solo N, cadenas largas, 168,57 $)**:
+  - **Sonnet 5.5** resuelve 44 de 60 en las dos cadenas: deja un 27 % de hueco.
+  - **Opus 5.5** resuelve 57 de 60 en conan (sin margen) y 53 de 60 en pydantic.
+  - N no compactó nunca hasta 452k.
+  - Los abandonos se acumulan pasados 150k: en pydantic, 6 de 7 en los dos modelos.
+  - El modelo de coste se quedó corto: Sonnet ~41 $ por cadena entera (decía 25); Opus 61 $
+    por 59 peticiones.
+- **Prueba sin sesgo de Jev frente a BM25** (brazo N del margen, que lo vio todo; Jev real,
+  0,013 $ en 45 decisiones; scripts en el scratchpad de 4b5a56dd, `jevbm25/`):
+  - El hook habría actuado en 43 de 1.074 llamadas de Bash y Read (4 %).
+  - De las 59 unidades que N usó después, a igual presupuesto de caracteres:
+    - Jev se queda 20 (34 %), BM25 13 (22 %) y el azar 12,7.
+    - **Jev le gana al azar (p 0,007); BM25 no (p 0,56).**
+    - **Jev frente a BM25 no se separa**: signo 6 a 4 (p 0,75). La ventaja de Jev se concentra
+      en tres salidas.
+  - Lectura: elegir con Jev es mejor que cortar a ciegas. Para separarlo de BM25 harían falta
+    unas 250-300 salidas elegibles (~25 cadenas).
+  - Coste real: ~0,00028 $ por decisión de torneo, diez veces la cifra supuesta.
+- **Consecuencia para A**:
+  - Con Sonnet y Opus en Claude Code actúa en el 4 % de las llamadas. Su techo aquí es pequeño.
+  - El −10,7 % de conan en el piloto puede ser en parte ruido.
+  - Lo que sí se repite en todas las líneas es que con menos contexto el agente se rinde menos.
+
 ## 7. Lo que no prometemos
 
 - LongBench no tiene palanca de S: su 0,785 es un caso atípico.
