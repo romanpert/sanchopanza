@@ -160,8 +160,9 @@ A, B y C son exactamente lo que mide el banco largo (60 bugs seguidos en un repo
 
 | Quién | Qué | Estado |
 |---|---|---|
-| d6 | **S2** para las suites de una pregunta: `--guard --guard-profile coding --context-budget 160000 --check-done --provider jev`, chooser keep. Fuera memory, candor, fetch, crawl, find, find-auto, skill, scan-content y prune. El brazo S2F (S2 + fetch v3) en el dev de GAIA, para medir fetch justo donde actúa | Dev en preparación, techo 20 $; prereg con margen a la semiamplitud y medida por mecanismo |
-| d6 | D y E (parada temprana en la búsqueda, check-done más exigente) | Por diseñar |
+| d6 | **S2** para las suites de una pregunta: `--guard --guard-profile coding --context-budget 160000 --check-done --provider jev`, chooser keep. Fuera memory, candor, fetch, crawl, find, find-auto, skill, scan-content y prune. El brazo S2F (S2 + fetch v3) en el dev de GAIA, para medir fetch justo donde actúa | **Cerrado** (11,4 $): más barato que S0, no que N; fetch fuera. Sin confirmación (decisión del dueño) |
+| d6 | D y E (verificar los documentos devueltos, check-done más exigente) | **Cerrados, sin palanca**: D techo ~3/180 (`2026-10-07-h2h-d`); E ninguna señal separa (`2026-10-07-h2h-e`) |
+| d6 | N-early en BCP | **Cerrado** (37,97 $): la ventana sola iguala a S0 |
 | 6c | Banco largo: humo, margen y después N frente a S en cadenas largas | Humo en curso (2026-10-07) |
 | 6c | Replay gratis de A, B y C sobre transcripciones; después A y B en una rama con prueba en seco | Siguiente |
 | 6c | Registro de actuación por componente (sección 5, punto 3) en el runner largo | Siguiente |
@@ -219,6 +220,34 @@ Una tanda de pago a la vez entre las dos líneas, avisando antes con PID, hora y
   - La pregunta que queda para Jev: ¿cuánto de A es Jev y cuánto es solo cortar? Hace falta un
     brazo A-BM25 (mismo hook, sin decisor) frente a A-Jev.
   - Si BM25 da lo mismo, Jev sobra en A y lo que vale es la idea de cortar al entrar.
+
+### Decisiones del 2026-10-07 por la tarde (d6 y 6c, a petición del dueño)
+
+- **Una sola rama para las dos líneas: `comun`** (worktree `sanchopanza-comun`, creada de main
+  4f985ec). Ya lleva lean, pilot-a, este plan y el MAPA. long-launch entra cuando su nota termine.
+  No se abren ramas nuevas.
+- **Reglas del worktree compartido**:
+  - `git add` solo de rutas propias; nada de checkout, stash, reset ni rebase.
+  - Avisar antes de tocar un fichero que la otra sesión esté editando.
+  - Las tandas de pago no salen nunca del worktree compartido, sino de un worktree `--detach` en
+    un commit fijo: los hooks del runner se leen del disco en cada llamada.
+  - `comun` entra en main solo cuando las dos lo digamos, con la suite en verde.
+- **En preguntas sueltas (h2h) se deja de gastar.** S no gana ahí, y lo único que movió el
+  resultado (la ventana de compactación) es un ajuste de Claude Code.
+- **El listón para todo lo largo es N-early, no N pelado.** Cualquier ventaja de S sobre N puede
+  ser solo la ventana. Por eso la prueba del paso siguiente es Ne frente a Ne+A: así se mide solo
+  lo que A añade encima de la ventana.
+- **Orden**:
+  1. 6c: replay de Jev frente a BM25 en los 26 cortes de A, hecho, gratis. Jev conserva 11/32
+     unidades necesarias, BM25 5/32 y el azar 6,7. Pero todo sale de conan y hay sesgo de
+     exposición: es una señal, no una prueba.
+  2. 6c: la prueba sin sesgo. Se aplican los dos selectores a las salidas grandes del brazo N del
+     margen (Sonnet y Opus, sin cortes) y se mide contra lo que N edita o vuelve a pedir después.
+     Jev ~0,10-0,20 $, pendiente del dueño.
+  3. 6c: si Jev aporta, Ne frente a Ne+A en el banco largo, mismas cadenas, Sonnet, con techo que
+     se pide al dueño. Si no aporta, A con BM25 y Jev fuera de ese punto.
+  4. d6, gratis: el README y el install dicen que `--context-budget` es la ventana de Claude Code y
+     lo que se midió con ella, sin cambiar comportamiento.
 
 ## 7. Lo que no prometemos
 

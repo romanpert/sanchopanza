@@ -11,7 +11,11 @@
   compaction guard exists to cut. Claude Code compacts at `window - 20k - 13k` of the window it is
   told (`CLAUDE_CODE_AUTO_COMPACT_WINDOW`, read from the 2.1.282 binary,
   docs/results/2026-09-28-context-lean/), so the budget writes `budget + 33k` there. A window the
-  owner set is theirs: it is kept, and the budget marker is not written.
+  owner set is theirs: it is kept, and the budget marker is not written. Measured live
+  (docs/results/2026-10-07-h2h-ne/): on the 26 BrowseComp-Plus queries where clean Claude Code's
+  context passed 150k, clean Claude Code with only this window got 7 right and gave up 13 times,
+  against 6 and 17 for the whole sanchopanza line and 4 and 19 without the window. The gain is the
+  window, which anyone can set; nothing sanchopanza decides added to it there.
 - **find_in_repo** (`--no-find` to leave it out): the `sanchopanza` server in the project's
   `.mcp.json`, approved by name in the settings. BM25 fragments without a key; judged by the
   decision model when one is configured.

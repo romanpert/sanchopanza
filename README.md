@@ -57,7 +57,11 @@ hook already there and a backup of the file as it was (`settings.json.bak`); wit
 code is still refused, and everything else goes through as it did before. By default it guards
 shell commands, delegations and searches, installs the
 [compaction guard](#compaction-guard-for-claude-code) (`--no-guard` leaves it out), compacts at
-160,000 tokens (`--context-budget 0` leaves it where Claude Code puts it), copies the
+160,000 tokens (`--context-budget 0` leaves it where Claude Code puts it; this is Claude Code's own
+`CLAUDE_CODE_AUTO_COMPACT_WINDOW`, set to 193000, and on the BrowseComp-Plus queries where clean
+Claude Code ran past 150k that one setting alone did as well as the whole sanchopanza line:
+[`docs/results/2026-10-07-h2h-ne/`](docs/results/2026-10-07-h2h-ne/README.md); set it yourself if
+it is all you want), copies the
 `sanchopanza-code` skill and, for a project install, registers `find_in_repo` (always loaded, with a
 description of when to use it). `--find-nudge` adds a once-per-session suggestion toward it after a
 wide early search; it is off by default because its development probe did not justify it (fired in
