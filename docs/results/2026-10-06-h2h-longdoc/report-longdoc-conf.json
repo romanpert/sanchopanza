@@ -1,0 +1,203 @@
+{
+ "sessions": 100,
+ "list_usd": 10.93,
+ "by_arm": {
+  "SONNET-CC": {
+   "sessions": 50,
+   "ok_oficial": 31,
+   "ok_with_hand": 31,
+   "total_usd": 6.1321,
+   "usd_per_correct": 0.1978,
+   "mean_usd": 0.1226,
+   "median_usd": 0.0627,
+   "mean_turns": 5.9,
+   "median_turns": 4.0,
+   "mean_wall_s": 37.8,
+   "median_wall_s": 22.85,
+   "tokens_total": {
+    "input": 534,
+    "cache_read": 8061641,
+    "cache_write": 844595,
+    "output": 114030,
+    "web_searches": 0
+   },
+   "tools": {
+    "Bash": 45,
+    "Grep": 116,
+    "Read": 84
+   },
+   "hooks_with_output": {},
+   "sp_hook_calls": {},
+   "sessions_with_sp_hooks": 0,
+   "jev_calls": 0,
+   "jev_by_point": {},
+   "jev_errors": 0,
+   "jev_error_kinds": {},
+   "jev_usd": 0.0,
+   "hit_cap": 0,
+   "leak": [],
+   "no_final_answer": 0,
+   "denied": 4,
+   "by_difficulty": {
+    "easy": "16/21",
+    "hard": "15/29"
+   },
+   "by_length": {
+    "long": "8/10",
+    "medium": "14/27",
+    "short": "9/13"
+   },
+   "no_letter": 0
+  },
+  "SONNET-SP": {
+   "sessions": 50,
+   "ok_oficial": 28,
+   "ok_with_hand": 28,
+   "total_usd": 4.8132,
+   "usd_per_correct": 0.1719,
+   "mean_usd": 0.0963,
+   "median_usd": 0.0605,
+   "mean_turns": 4.7,
+   "median_turns": 4.0,
+   "mean_wall_s": 37.6,
+   "median_wall_s": 29.85,
+   "tokens_total": {
+    "input": 442,
+    "cache_read": 5414426,
+    "cache_write": 764484,
+    "output": 65799,
+    "web_searches": 0
+   },
+   "tools": {
+    "Bash": 16,
+    "Grep": 109,
+    "Read": 62
+   },
+   "hooks_with_output": {
+    "PostToolUse:Bash other": 16,
+    "PostToolUse:Grep other": 110,
+    "PostToolUse:Read other": 53,
+    "PostToolUseFailure:Read other": 9,
+    "UserPromptSubmit other": 3
+   },
+   "sp_hook_calls": {
+    "candor-hook": 474,
+    "crawl-hook": 100,
+    "guard-hook": 16,
+    "hook": 82,
+    "memory-hook": 269
+   },
+   "sessions_with_sp_hooks": 50,
+   "jev_calls": 295,
+   "jev_by_point": {
+    "memory_standing_rule": 288,
+    "triage_pages": 7
+   },
+   "jev_errors": 0,
+   "jev_error_kinds": {},
+   "jev_usd": 0.013505,
+   "hit_cap": 0,
+   "leak": [],
+   "no_final_answer": 0,
+   "denied": 0,
+   "by_difficulty": {
+    "easy": "13/21",
+    "hard": "15/29"
+   },
+   "by_length": {
+    "long": "7/10",
+    "medium": "13/27",
+    "short": "8/13"
+   },
+   "no_letter": 0
+  }
+ },
+ "paired": {
+  "SONNET": {
+   "tasks": 50,
+   "a": "SONNET-SP",
+   "b": "SONNET-CC",
+   "oficial": {
+    "a_ok": 28,
+    "b_ok": 31,
+    "a_only": 4,
+    "b_only": 7,
+    "p": 0.5488,
+    "a_only_tasks": [
+     "66ebd0ea5a08c7b9b35dff57",
+     "66f17aab821e116aacb2772d",
+     "6703f57bbb02136c067cd714",
+     "6724699dbb02136c067d7564"
+    ],
+    "b_only_tasks": [
+     "66ebc04a5a08c7b9b35de740",
+     "66ebee0a5a08c7b9b35e1d05",
+     "66ec31eb821e116aacb1bf28",
+     "66f3f46f821e116aacb2ff5d",
+     "66fba2bcbb02136c067c8112",
+     "670fb882bb02136c067d2c1d",
+     "670fbf5abb02136c067d2d9c"
+    ],
+    "diff_points": -6.0,
+    "diff_points_ci95": [
+     -18.0,
+     6.0
+    ]
+   },
+   "with_hand": {
+    "a_ok": 28,
+    "b_ok": 31,
+    "a_only": 4,
+    "b_only": 7,
+    "p": 0.5488,
+    "a_only_tasks": [
+     "66ebd0ea5a08c7b9b35dff57",
+     "66f17aab821e116aacb2772d",
+     "6703f57bbb02136c067cd714",
+     "6724699dbb02136c067d7564"
+    ],
+    "b_only_tasks": [
+     "66ebc04a5a08c7b9b35de740",
+     "66ebee0a5a08c7b9b35e1d05",
+     "66ec31eb821e116aacb1bf28",
+     "66f3f46f821e116aacb2ff5d",
+     "66fba2bcbb02136c067c8112",
+     "670fb882bb02136c067d2c1d",
+     "670fbf5abb02136c067d2d9c"
+    ],
+    "diff_points": -6.0,
+    "diff_points_ci95": [
+     -18.0,
+     6.0
+    ]
+   },
+   "cost": {
+    "mean_diff": -0.0264,
+    "diff_ci95": [
+     -0.0718,
+     0.0006
+    ],
+    "ratio": 0.785,
+    "ratio_ci95": [
+     0.634,
+     1.008
+    ]
+   },
+   "wall": {
+    "mean_diff": -0.232,
+    "diff_ci95": [
+     -12.376,
+     7.406
+    ],
+    "ratio": 0.994,
+    "ratio_ci95": [
+     0.772,
+     1.255
+    ]
+   }
+  }
+ },
+ "verdict": {
+  "SONNET": "no gana"
+ }
+}

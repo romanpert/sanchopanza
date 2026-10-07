@@ -1,0 +1,11 @@
+# 10 of the 60 long-document tasks for the dev phase: random.Random(20261005).sample of the sorted ids. Out of every other phase.
+66ed0cb0821e116aacb1e6c1
+66f50109821e116aacb31f16
+66ed168b821e116aacb1ea8c
+66eefe85821e116aacb228dc
+66ec0f3c821e116aacb19d70
+66ebeb5a5a08c7b9b35e1ba5
+66f519a6821e116aacb32579
+66f3fb15821e116aacb303dc
+66eb873c5a08c7b9b35dd849
+66ebd2975a08c7b9b35e01e3

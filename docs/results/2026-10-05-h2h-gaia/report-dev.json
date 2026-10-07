@@ -1,0 +1,160 @@
+{
+ "sessions": 40,
+ "list_usd": 4.02,
+ "by_arm": {
+  "SONNET-CC": {
+   "sessions": 20,
+   "ok_oficial": 14,
+   "ok_with_hand": 14,
+   "by_level": {
+    "1": "2/4",
+    "2": "10/14",
+    "3": "2/2"
+   },
+   "total_usd": 2.1994,
+   "mean_usd": 0.11,
+   "median_usd": 0.0493,
+   "mean_turns": 4.9,
+   "median_turns": 3.5,
+   "mean_wall_s": 35.6,
+   "median_wall_s": 23.0,
+   "tokens_total": {
+    "input": 578060,
+    "cache_read": 1803246,
+    "cache_write": 187216,
+    "output": 35176,
+    "web_searches": 21
+   },
+   "tools": {
+    "Bash": 14,
+    "PowerShell": 2,
+    "ToolSearch": 10,
+    "WebFetch": 31,
+    "WebSearch": 21
+   },
+   "hooks_with_output": {
+    "PreToolUse:WebSearch deny": 20
+   },
+   "sp_hook_calls": {},
+   "sessions_with_sp_hooks": 0,
+   "jev_calls": 0,
+   "jev_by_point": {},
+   "jev_errors": 0,
+   "jev_usd": 0.0,
+   "hit_cap": 0,
+   "leak": [
+    "2a649bb1-795f-4a01-b3be-9a01868dae73",
+    "de9887f5-ead8-4727-876f-5a4078f8598c"
+   ],
+   "no_final_answer": 0,
+   "denied": 0
+  },
+  "SONNET-SP": {
+   "sessions": 20,
+   "ok_oficial": 15,
+   "ok_with_hand": 15,
+   "by_level": {
+    "1": "2/4",
+    "2": "11/14",
+    "3": "2/2"
+   },
+   "total_usd": 1.8247,
+   "mean_usd": 0.0912,
+   "median_usd": 0.0548,
+   "mean_turns": 4.9,
+   "median_turns": 3.0,
+   "mean_wall_s": 31.5,
+   "median_wall_s": 21.95,
+   "tokens_total": {
+    "input": 322304,
+    "cache_read": 1814886,
+    "cache_write": 171561,
+    "output": 32454,
+    "web_searches": 17
+   },
+   "tools": {
+    "Bash": 17,
+    "PowerShell": 2,
+    "Read": 1,
+    "ToolSearch": 10,
+    "WebFetch": 31,
+    "WebSearch": 17
+   },
+   "hooks_with_output": {
+    "PreToolUse:WebSearch deny": 17
+   },
+   "sp_hook_calls": {
+    "guard-hook": 16,
+    "hook": 36
+   },
+   "sessions_with_sp_hooks": 12,
+   "jev_calls": 20,
+   "jev_by_point": {
+    "guard": 4,
+    "search": 16
+   },
+   "jev_errors": 0,
+   "jev_usd": 0.000828,
+   "hit_cap": 0,
+   "leak": [
+    "624cbf11-6a41-4692-af9c-36b3e5ca3130",
+    "72e110e7-464c-453c-a309-90a95aed6538"
+   ],
+   "no_final_answer": 0,
+   "denied": 0
+  }
+ },
+ "paired": {
+  "SONNET": {
+   "tasks": 20,
+   "a": "SONNET-SP",
+   "b": "SONNET-CC",
+   "oficial": {
+    "a_ok": 15,
+    "b_ok": 14,
+    "a_only": 1,
+    "b_only": 0,
+    "p": 1.0,
+    "a_only_tasks": [
+     "624cbf11-6a41-4692-af9c-36b3e5ca3130"
+    ],
+    "b_only_tasks": []
+   },
+   "with_hand": {
+    "a_ok": 15,
+    "b_ok": 14,
+    "a_only": 1,
+    "b_only": 0,
+    "p": 1.0,
+    "a_only_tasks": [
+     "624cbf11-6a41-4692-af9c-36b3e5ca3130"
+    ],
+    "b_only_tasks": []
+   },
+   "cost": {
+    "mean_diff": -0.0187,
+    "diff_ci95": [
+     -0.0726,
+     0.0207
+    ],
+    "ratio": 0.83,
+    "ratio_ci95": [
+     0.516,
+     1.234
+    ]
+   },
+   "wall": {
+    "mean_diff": -4.08,
+    "diff_ci95": [
+     -17.99,
+     8.36
+    ],
+    "ratio": 0.885,
+    "ratio_ci95": [
+     0.597,
+     1.269
+    ]
+   }
+  }
+ }
+}

@@ -1,0 +1,37 @@
+{
+  "sealed": true,
+  "note": "SEALED 2026-10-06 by indagis-dd for the h2h confirmations (docs/results/2026-10-06-h2h-conf/prereg.md). S0: the line of docs/S-SEAL-DRAFT.md (indagis-95 with indagis-a1, 2026-10-05; update 2026-10-06: change gate A in, check-done and candor kept), run from a frozen copy of main at aad9903 (gate A f2a0fe2, out-of-funds breaker 674806b). SANCHOPANZA_GUARD_CHOOSER=keep is explicit: the measured cascade, not the unmeasured struct default of guard-struct. Every SP row must carry this commit in sp_commit. Changing anything here is an amendment of the prereg.",
+  "source": "C:/Users/roman/Desktop/proyectos/apps/sanchopanza",
+  "commit": "aad9903054896c6618026c3c2b069dd314503f3a",
+  "flags": [
+    "--guard",
+    "--guard-profile",
+    "coding",
+    "--context-budget",
+    "160000",
+    "--memory",
+    "--candor",
+    "--find",
+    "--find-auto",
+    "--skill",
+    "--scan-content",
+    "--check-done",
+    "--content-tools",
+    "WebFetch,WebSearch,mcp__sanchopanza-fetch__fetch_passages",
+    "--crawl",
+    "--prune",
+    "--fetch",
+    "--provider",
+    "jev"
+  ],
+  "env": {
+    "SANCHOPANZA_CRAWL_LINE_VERSION": "6",
+    "SANCHOPANZA_CRAWL_NOTES": "3",
+    "SANCHOPANZA_CRAWL_ECHO": "short",
+    "SANCHOPANZA_CRAWL_LINE_AT": "prompt",
+    "SANCHOPANZA_CRAWL_NOTES_AT": "front",
+    "SANCHOPANZA_CRAWL_SHOT": "snapshot-first",
+    "SANCHOPANZA_FETCH_VERSION": "2",
+    "SANCHOPANZA_GUARD_CHOOSER": "keep"
+  }
+}

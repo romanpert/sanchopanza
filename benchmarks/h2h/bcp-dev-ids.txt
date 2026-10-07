@@ -1,0 +1,11 @@
+# 10 of the 100 ids of bcp-ids.txt for the dev phase: random.Random(20261005).sample of the sorted ids. Out of every other phase.
+15
+6
+168
+408
+1144
+1098
+601
+58
+1012
+1076
