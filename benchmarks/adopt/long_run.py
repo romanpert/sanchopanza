@@ -94,6 +94,12 @@ PILOT_CEILING = 80.0  # the pilot of bet A: one arm, 2 x 38 = 76 held, hard (202
 NOISE_NE_CHAIN = 35.0  # N-early compacts at 193k: expected ~17 a chain (cost model), far from 35
 NOISE_NE_CEILING = 2 * NOISE_NE_CHAIN  # 70, on the gate's two chains (owner 2026-10-07)
 NOISE_N_CEILING = 40.0  # N again on pydantic (spent 23.55 the first time); 70 + 40 = the owner's 110
+# The conan repeat round (owner, 2026-10-07 evening, 100 USD hard): N, Ne and A once more on
+# conan, its own noise floor. N at the gate's 38; A one less (it stopped at 30.90 with 38);
+# Ne spent 17.33 there, so 25 leaves it a tenth to spare. 38 + 37 + 25 = 100.
+CONAN_N2_CEILING = 38.0
+CONAN_A2_CEILING = 37.0
+CONAN_NE2_CEILING = 25.0
 SMOKE_CHAIN = "pydantic__pydantic-long60-1"  # validated first; Haiku, 3 bugs, its own root
 MANIFESTS = HERE / "long60"  # long60/<chain>.json, written by `long.py manifests` once valid
 JEV_MAX_USD = 0.50  # per chain (pre-mortem 15)
@@ -158,6 +164,15 @@ PROFILES = {
     "noise-n": Profile("noise-n", ("N",), ("sonnet",), {"sonnet": GATE_CALL_CAP["sonnet"]},
                        {"sonnet": NOISE_N_CEILING}, NOISE_N_CEILING, (GATE_CHAINS[1],),
                        hard_cap=NOISE_N_CEILING, hours={"sonnet": 1.6}),
+    "conan-n2": Profile("conan-n2", ("N",), ("sonnet",), {"sonnet": GATE_CALL_CAP["sonnet"]},
+                        {"sonnet": CONAN_N2_CEILING}, CONAN_N2_CEILING, (GATE_CHAINS[0],),
+                        hard_cap=CONAN_N2_CEILING, hours={"sonnet": 1.6}),
+    "conan-ne2": Profile("conan-ne2", ("Ne",), ("sonnet",), {"sonnet": GATE_CALL_CAP["sonnet"]},
+                         {"sonnet": CONAN_NE2_CEILING}, CONAN_NE2_CEILING, (GATE_CHAINS[0],),
+                         hard_cap=CONAN_NE2_CEILING, hours={"sonnet": 1.6}),
+    "conan-a2": Profile("conan-a2", ("A",), ("sonnet",), {"sonnet": GATE_CALL_CAP["sonnet"]},
+                        {"sonnet": CONAN_A2_CEILING}, CONAN_A2_CEILING, (GATE_CHAINS[0],),
+                        hard_cap=CONAN_A2_CEILING, hours={"sonnet": 1.6}),
 }  # fmt: skip
 
 

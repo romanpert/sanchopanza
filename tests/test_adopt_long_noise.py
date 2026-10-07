@@ -92,3 +92,43 @@ def test_the_launcher_runs_n_again_on_pydantic_only(tmp_path: pathlib.Path) -> N
 def test_the_launcher_refuses_another_round(tmp_path: pathlib.Path) -> None:
     env = dry_environment(tmp_path, GATE)
     assert launch(CMD, ["s", "dry"], env) != 0
+
+
+# ---- the conan repeat round (owner, 2026-10-07 evening, 100 USD hard) ----------------------------
+
+
+def test_the_conan_round_holds_the_approved_100(m) -> None:
+    long_run, long_launch = m
+    n2, ne2, a2 = (long_run.PROFILES[k] for k in ("conan-n2", "conan-ne2", "conan-a2"))
+    assert (n2.arms, ne2.arms, a2.arms) == (("N",), ("Ne",), ("A",))
+    assert n2.chains == ne2.chains == a2.chains == (GATE[0],)
+    assert {p.models for p in (n2, ne2, a2)} == {("sonnet",)}
+    assert dict(n2.chain_cap) == {"sonnet": 38.0} and n2.ceiling == n2.hard_cap == 38.0
+    assert dict(ne2.chain_cap) == {"sonnet": 25.0} and ne2.ceiling == ne2.hard_cap == 25.0
+    assert dict(a2.chain_cap) == {"sonnet": 37.0} and a2.ceiling == a2.hard_cap == 37.0
+    assert ne2.window == 193_000 and n2.ceiling + ne2.ceiling + a2.ceiling == 100.0
+    roots = {long_launch.ROOTS[k] for k in ("conan-n2", "conan-ne2", "conan-a2", "noise-ne",
+                                            "noise-n", "gate", "pilot-a", "smoke")}  # fmt: skip
+    assert len(roots) == 8
+
+
+@pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+def test_the_launcher_runs_n_and_ne_again_on_conan_only(tmp_path: pathlib.Path) -> None:
+    for arm, which in (("N", "n2c"), ("Ne", "ne2c")):
+        env = dry_environment(tmp_path / which, GATE)
+        assert launch(CMD, [which, "dry"], env) == 0
+        runs = tmp_path / which / "L" / "runs"
+        assert (runs / f"{GATE[0]}-sonnet" / arm / "row.json").exists()
+        assert not (runs / f"{GATE[1]}-sonnet").exists()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+def test_the_launcher_runs_a_again_on_conan_with_its_commit(tmp_path: pathlib.Path) -> None:
+    from tests.test_adopt_long_pilot_launch import pilot_environment
+
+    env = pilot_environment(tmp_path)
+    assert launch(CMD, ["a2c", "edd37bb", "dry"], env) == 0
+    runs = tmp_path / "L" / "runs"
+    assert (runs / f"{GATE[0]}-sonnet" / "A" / "row.json").exists()
+    assert not (runs / f"{GATE[1]}-sonnet").exists()
+    assert launch(CMD, ["a2c", "", "dry"], pilot_environment(tmp_path / "x")) != 0

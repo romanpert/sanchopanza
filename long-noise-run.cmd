@@ -5,6 +5,9 @@ rem                           settings' env) on conan-long60-1 and pydantic-long
 rem                           Sonnet 5.5, 4.50 a call, 35 a chain, hard ceiling 70.
 rem   long-noise-run.cmd n    N again on pydantic-long60-1, root L-n2, 4.50 a call, hard ceiling 40.
 rem 70 + 40 = the 110 USD the owner approved. No S arm: no Jev, no preflight, no frozen copy.
+rem Conan repeat round (owner, 2026-10-07 evening, 100 USD hard): n2c (N, root L-n2c, 38),
+rem ne2c (N-early, root L-ne2c, 25) and a2c <commit> (A from that frozen commit, Jev preflight,
+rem root L-a2c, 37), each on conan-long60-1 only, Sonnet 5.5, 4.50 a call.
 rem Start it by WMI, outside any Claude Code session, and never twice at once:
 rem   Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
 rem     CommandLine = "cmd.exe /c <this folder>\long-noise-run.cmd ne" }
@@ -19,18 +22,35 @@ set WT=%WT:~0,-1%
 set PY=C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts\python.exe
 set PIN=%USERPROFILE%\.cache\sanchopanza\claude-pin\2.1.287
 set MANIFESTS=%WT%\benchmarks\adopt\long60
+set EXTRA=
+set DRYARG=%~2
 if /i "%~1"=="ne" (
   set PROFILE=noise-ne
   set ROOT=C:\sp-runs\L-ne
 ) else if /i "%~1"=="n" (
   set PROFILE=noise-n
   set ROOT=C:\sp-runs\L-n2
+) else if /i "%~1"=="n2c" (
+  set PROFILE=conan-n2
+  set ROOT=C:\sp-runs\L-n2c
+) else if /i "%~1"=="ne2c" (
+  set PROFILE=conan-ne2
+  set ROOT=C:\sp-runs\L-ne2c
+) else if /i "%~1"=="a2c" (
+  set PROFILE=conan-a2
+  set ROOT=C:\sp-runs\L-a2c
+  set EXTRA=--commit %~2
+  set DRYARG=%~3
+  if "%~2"=="" (
+    echo refused: a2c needs A's commit as its second argument
+    exit /b 2
+  )
 ) else (
-  echo refused: the first argument is ne or n
+  echo refused: the first argument is ne, n, n2c, ne2c or a2c
   exit /b 2
 )
 set DRY=
-if /i "%~2"=="dry" (
+if /i "%DRYARG%"=="dry" (
   set ROOT=%LL_ROOT%
   set PIN=%LL_PIN%
   set MANIFESTS=%LL_MANIFESTS%
@@ -56,7 +76,7 @@ claude --version | findstr /l /b /c:"2.1.287 " > nul || (
   echo refused %DATE% %TIME%: claude first on PATH is not 2.1.287 >> "%STATUS%"
   exit /b 3
 )
-"%PY%" -u benchmarks\adopt\long_launch.py %PROFILE% --root "%ROOT%" %DRY% >> "%ROOT%\launch.log" 2>&1
+"%PY%" -u benchmarks\adopt\long_launch.py %PROFILE% %EXTRA% --root "%ROOT%" %DRY% >> "%ROOT%\launch.log" 2>&1
 set CODE=%ERRORLEVEL%
 echo exit %CODE% %DATE% %TIME% >> "%STATUS%"
 exit /b %CODE%
