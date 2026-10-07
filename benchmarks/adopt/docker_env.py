@@ -96,27 +96,85 @@ def _export_once(tag: str, dest: Path) -> str:
 def _git_retry(cmd: list[str], attempts: int = 5) -> str:
     """Git on freshly written files on Windows fails now and then (a scanner holding a file, a
     stale index.lock): five tries, 2 to 16 seconds apart, then the error as it was. Three tries
-    two seconds apart were not enough when two arms exported at once (dev round 1)."""
+    two seconds apart were not enough when two arms exported at once (dev round 1). Output is
+    read as bytes and decoded, so a patch keeps the CRLF its files hold."""
     for attempt in range(attempts):
-        done = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8",
-                              errors="replace")  # fmt: skip
+        done = subprocess.run(cmd, capture_output=True)
         if done.returncode == 0:
-            return done.stdout
+            return (done.stdout or b"").decode("utf-8", "replace")
         if attempt + 1 < attempts:
             time.sleep(2 ** (attempt + 1))
-    raise RuntimeError(f"{' '.join(cmd[3:6])}: {done.stderr.strip()[-400:]}")
+    err = (done.stderr or b"").decode("utf-8", "replace").strip()[-400:]
+    raise RuntimeError(f"{' '.join(cmd[3:6])}: {err}")
 
 
 def agent_diff(work: Path, base: str) -> str:
     """Everything the agent changed since `base`, new files included, as one patch. Our own
     install files (.claude/, .mcp.json) and sanchopanza's state are not part of the work, and
     stay out of the index too: marked intent-to-add, an agent's `git checkout .` emptied them
-    and left an S arm without its hooks (development batch 2)."""
+    and left an S arm without its hooks (development batch 2). Both git calls are checked and
+    retried: an antivirus "Permission denied" once left an empty patch that graded as nothing
+    fixed, in silence (long-session pre-mortem, b)."""
     git = ["git", "-C", str(work)]
     ours = (":(exclude).claude", ":(exclude).mcp.json", ":(exclude).sanchopanza")
-    subprocess.run([*git, "add", "-A", "-N", "--", ".", *ours], capture_output=True)
-    out = subprocess.run([*git, "diff", "--binary", base, "--", ".", *ours], capture_output=True)
-    return out.stdout.decode("utf-8", "replace")
+    _git_retry([*git, "add", "-A", "-N", "--", ".", *ours])
+    return _git_retry([*git, "diff", "--binary", base, "--", ".", *ours])
+
+
+LABEL = "sp.long"  # every container a long-chain call starts carries `sp.long=<chain>-<arm>`
+
+
+def label_args() -> list[str]:
+    """`--label sp.long=<value>` for `docker run` when the runner set ADOPT_LABEL, else none."""
+    value = os.environ.get("ADOPT_LABEL", "")
+    return ["--label", f"{LABEL}={value}"] if value else []
+
+
+def labelled(value: str) -> list[str]:
+    """Ids of the containers, running or not, that carry `sp.long=<value>`."""
+    done = docker("ps", "-aq", "--filter", f"label={LABEL}={value}", timeout=120)
+    return ok(done, "docker ps").decode().split()
+
+
+REMOVE_WAIT_S = 5.0  # between checks on a container Docker is already removing
+REMOVE_CHECKS = 12
+# A `docker run --rm` the agent started can be going away when the call ends: Docker then
+# answers `rm -f` with one of these, and the container is gone a moment later (2026-10-07: the
+# gate's runner ended on "removal ... is already in progress" after call 51 of a paid chain).
+GOING_AWAY = ("is already in progress", "No such container")
+
+
+def remove_labelled(value: str) -> list[str]:
+    """Remove what a call left behind (a runtests the kill orphaned); returns the ids removed.
+    A container already being removed is waited for, not fatal; one still there after the wait,
+    or any other Docker error, still raises."""
+    found = labelled(value)
+    if not found:
+        return found
+    done = docker("rm", "-f", *found, timeout=300)
+    if done.returncode == 0:
+        return found
+    err = done.stderr.decode("utf-8", "replace")
+    if not any(sign in err for sign in GOING_AWAY):
+        ok(done, "docker rm")
+    for _ in range(REMOVE_CHECKS):
+        if not set(labelled(value)) & set(found):
+            return found
+        time.sleep(REMOVE_WAIT_S)
+    raise RuntimeError(f"docker rm: {sorted(set(labelled(value)) & set(found))} still there "
+                       f"after {REMOVE_CHECKS * REMOVE_WAIT_S:.0f} s: {err[-300:]}")
+
+
+def health() -> str:
+    """Why Docker cannot serve a call now ("" when `docker info` answers). A daemon error is a
+    fault of the harness, not of an arm: the runner stops on it."""
+    try:
+        done = docker("info", "--format", "{{.ServerVersion}}", timeout=120)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        return f"docker info: {error}"
+    if done.returncode != 0:
+        return f"docker info: {done.stderr.decode('utf-8', 'replace').strip()[-300:]}"
+    return ""
 
 
 FULL_SUITE_OVER = 1500  # more nodes than this: run the whole suite once and read them from it
@@ -126,6 +184,8 @@ BATCH = 400  # nodes per pytest process when the whole suite in one process runs
 # a batch of 400 was still killed at 36 %).
 MEMORY_KB = 6_000_000
 KILLED = 137  # the container's process killed (out of memory)
+NOT_FOUND = re.compile(r"^ERROR: not found: (.+?)\s*$", re.M)
+NOT_FOUND_RETRIES = 3
 
 
 def pytest(
@@ -142,7 +202,10 @@ def pytest(
     `keep_collecting` (amendment 5, development chains only): a file that cannot be collected
     stops pytest whole and every other node comes out absent, read as not passing (a bug of
     conan-long40-1 removes `rm` and test_rm.py does not import). Held-out chains keep the sealed
-    command, so the confirmation's arms are all graded the same way."""
+    command, so the confirmation's arms are all graded the same way. With it, a listed node
+    that does not exist (`ERROR: not found`, which stops pytest before any test runs) is left
+    out and the rest run again: it comes out absent, read as not passing (pydantic names its doc
+    tests by line range, and another bug in the same file shifts the range)."""
     listed = bool(nodes) and len(nodes or []) <= FULL_SUITE_OVER
     keep = " --continue-on-collection-errors" if keep_collecting else ""
     pytest_cmd = f"python -m pytest{keep}"
@@ -152,6 +215,15 @@ def pytest(
         batched = (f"ulimit -v {MEMORY_KB} && "
                    f"xargs -a /io/nodes.txt -d '\\n' -n {BATCH} {pytest_cmd}")
         done, text = _run(tag, patch, nodes, batched, reverse, timeout)
+    for _ in range(NOT_FOUND_RETRIES if keep_collecting and listed else 0):
+        gone = {m.removeprefix("/testbed/") for m in NOT_FOUND.findall(text)}
+        left = [n for n in nodes or [] if n not in gone]
+        if len(left) == len(nodes or []):
+            break
+        if not left:
+            return {}  # none of the listed nodes exists: nothing passed
+        nodes = left
+        done, text = _run(tag, patch, nodes, select, reverse, timeout)
     if "PATCH_FAILED" in text:
         return {"<patch>": "ERROR"}
     found = {node: status for status, node in RESULT.findall(text)}

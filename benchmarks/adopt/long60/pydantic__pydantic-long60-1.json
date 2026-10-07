@@ -1,0 +1,1494 @@
+{
+ "chain": "pydantic__pydantic-long60-1",
+ "repo": "swesmith/pydantic__pydantic.acb0f10f",
+ "image": "jyangballin/swesmith.x86_64.pydantic_1776_pydantic.acb0f10f",
+ "tag": "adopt-pydantic--pydantic-long60-1:bugs",
+ "split": "gate",
+ "seed": 20261005,
+ "token": "bcbffd49",
+ "size": 60,
+ "sources": {
+  "func_pm_class_rm_funcs": 1,
+  "func_pm_ctrl_invert_if": 9,
+  "func_pm_ctrl_shuffle": 2,
+  "func_pm_op_swap": 3,
+  "func_pm_remove_assign": 7,
+  "func_pm_remove_cond": 4,
+  "func_pm_remove_wrapper": 1,
+  "lm_rewrite": 10,
+  "pr_mirror": 23
+ },
+ "real": 23,
+ "synthetic_dataset": "SWE-bench/SWE-smith@ea6d7173829c7ec8fa16c22055699ff2e9188091",
+ "pr_mirror_sha256": "5128440c2c0acda5c743359add5ade03577b0e552c4e431ec971d1ab484c3d5a",
+ "bugs": [
+  {
+   "n": 1,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_7496",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/functional_validators.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_docs.py::test_docstrings_examples[pydantic/functional_validators.py:679-706]"
+   ]
+  },
+  {
+   "n": 2,
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__29zq8ltv",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_generate_schema.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_deprecated.py::test_modify_schema_error",
+    "tests/test_deprecated.py::test_modify_schema_on_nested_class_error",
+    "tests/test_json_schema.py::test_schema_for_generic_field",
+    "tests/test_json_schema.py::test_advanced_generic_schema"
+   ]
+  },
+  {
+   "n": 3,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__s27xmkli",
+   "source": "func_pm_ctrl_invert_if",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_generate_schema.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_deprecated.py::test_v1_get_validators",
+    "tests/test_deprecated.py::test_v1_get_validators_invalid_validator",
+    "tests/test_main.py::test_nested_v1_model_warns"
+   ]
+  },
+  {
+   "n": 4,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__qwmw4g33",
+   "source": "func_pm_ctrl_invert_if",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_generics.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_docs.py::test_docstrings_examples[pydantic/_internal/_generics.py:256-263]",
+    "tests/test_generics.py::test_caches_get_cleaned_up_with_aliased_parametrized_bases",
+    "tests/test_generics.py::test_circular_generic_refs_get_cleaned_up",
+    "tests/test_generics.py::test_partial_specification",
+    "tests/test_generics.py::test_partial_specification_with_inner_typevar",
+    "tests/test_generics.py::test_multiple_specification",
+    "tests/test_generics.py::test_iter_contained_typevars",
+    "tests/test_generics.py::test_replace_types",
+    "tests/test_generics.py::test_replace_types_with_user_defined_generic_type_field",
+    "tests/test_generics.py::test_generic_with_partial_callable",
+    "tests/test_generics.py::test_generic_subclass_with_partial_application"
+   ]
+  },
+  {
+   "n": 5,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__djx6ips7",
+   "source": "func_pm_ctrl_invert_if",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/type_adapter.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_type_adapter.py::test_defer_build_raise_errors"
+   ]
+  },
+  {
+   "n": 6,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__hsrn2qmc",
+   "source": "func_pm_ctrl_invert_if",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/v1/validators.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_docs.py::test_docs_examples[docs/migration.md:221-254]",
+    "tests/test_v1.py::test_root_validator"
+   ]
+  },
+  {
+   "n": 7,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_cond__y4zsti0a",
+   "source": "func_pm_remove_cond",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_decorators_v1.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_create_model.py::test_inheritance_validators_all",
+    "tests/test_docs.py::test_docs_examples[docs/errors/usage_errors.md:832-850]",
+    "tests/test_validators.py::test_validate_always",
+    "tests/test_validators.py::test_validate_always_on_inheritance",
+    "tests/test_validators.py::test_wildcard_validators[validator-pytest_warns0]",
+    "tests/test_validators.py::test_wildcard_validator_error[validator-pytest_warns0]",
+    "tests/test_validators.py::test_validate_child_all",
+    "tests/test_validators.py::test_validate_parent_all",
+    "tests/test_validators.py::test_validation_each_item",
+    "tests/test_validators.py::test_validation_each_item_nullable",
+    "tests/test_validators.py::test_validation_each_item_one_sublevel",
+    "tests/test_validators.py::test_validator_always_optional",
+    "tests/test_validators.py::test_validator_always_pre",
+    "tests/test_validators.py::test_validator_always_post",
+    "tests/test_validators.py::test_validator_always_post_optional",
+    "tests/test_validators.py::test_datetime_validator",
+    "tests/test_validators.py::test_v1_validator_deprecated",
+    "tests/test_validators.py::test_v1_validator_signature_kwargs_not_allowed",
+    "tests/test_validators.py::test_v1_validator_signature_kwargs1",
+    "tests/test_validators.py::test_v1_validator_signature_kwargs2",
+    "tests/test_validators.py::test_v1_validator_signature_with_values",
+    "tests/test_validators.py::test_v1_validator_signature_with_values_kw_only",
+    "tests/test_validators.py::test_functools_partial_validator_v1[partial_val_func1]",
+    "tests/test_validators.py::test_functools_partial_validator_v1[partial_val_func2]",
+    "tests/test_validators.py::test_functools_partial_validator_v1[partial_values_val_func1]",
+    "tests/test_validators.py::test_functools_partial_validator_v1[partial_values_val_func2]",
+    "tests/test_validators.py::test_functools_partialmethod_validator_v1[partial_val_func1]",
+    "tests/test_validators.py::test_functools_partialmethod_validator_v1[partial_val_func2]",
+    "tests/test_validators.py::test_functools_partialmethod_validator_v1[partial_values_val_func1]",
+    "tests/test_validators.py::test_functools_partialmethod_validator_v1[partial_values_val_func2]",
+    "tests/test_validators.py::test_functools_partialmethod_validator_v1_cls_method[partial_cls_val_func1]",
+    "tests/test_validators.py::test_functools_partialmethod_validator_v1_cls_method[partial_cls_val_func2]",
+    "tests/test_validators.py::test_functools_partialmethod_validator_v1_cls_method[partial_cls_values_val_func1]",
+    "tests/test_validators.py::test_functools_partialmethod_validator_v1_cls_method[partial_cls_values_val_func2]"
+   ]
+  },
+  {
+   "n": 8,
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__ilicrk3x",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/main.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_deprecated.py::test_parse_raw_pass",
+    "tests/test_deprecated.py::test_parse_raw_pass_fail"
+   ]
+  },
+  {
+   "n": 9,
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__am2ev7jo",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_model_construction.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_deprecated.py::test_fields_dir",
+    "tests/test_main.py::test_help",
+    "tests/test_root_model.py::test_help"
+   ]
+  },
+  {
+   "n": 10,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_7124",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/_internal/_model_construction.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_generics.py::test_generic_subclass_with_extra_type_with_hint_message"
+   ]
+  },
+  {
+   "n": 11,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_assign__0ce148np",
+   "source": "func_pm_remove_assign",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_generate_schema.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_types.py::test_path_like_extra_subtype"
+   ]
+  },
+  {
+   "n": 12,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_6456",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/_migration.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_migration.py::test_moved_on_v2[pydantic:PyObject]",
+    "tests/test_migration.py::test_moved_on_v2[pydantic.types:PyObject]"
+   ]
+  },
+  {
+   "n": 13,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_9812",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/alias_generators.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_utils.py::test_to_snake[snakeV2-snake_v2]"
+   ]
+  },
+  {
+   "n": 14,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_op_swap__5q3hvt05",
+   "source": "func_pm_op_swap",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/main.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_docs.py::test_docstrings_examples[pydantic/main.py:1169-1173]"
+   ]
+  },
+  {
+   "n": 15,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_assign__8qlthb3t",
+   "source": "func_pm_remove_assign",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/fields.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_docs.py::test_docstrings_examples[pydantic/fields.py:370-381]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/fields.py:1350-1364]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/fields.py:1378-1411]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/fields.py:1418-1437]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/fields.py:1441-1462]",
+    "tests/test_main.py::test_annotated_final"
+   ]
+  },
+  {
+   "n": 16,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_cond__j2tdfxws",
+   "source": "func_pm_remove_cond",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/types.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_deprecated.py::test_deprecated_payment",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:2042-2063]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:2481-2527]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:2580-2626]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:2691-2720]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:2722-2749]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:2769-2796]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:2808-2818]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:2829-2839]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:2857-2869]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:2907-2957]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:2994-3044]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:3186-3211]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:3264-3282]",
+    "tests/test_types_payment_card_number.py::test_length_for_brand[4050000000001-Visa-True]",
+    "tests/test_types_payment_card_number.py::test_length_for_brand[4050000000000001-Visa-True]",
+    "tests/test_types_payment_card_number.py::test_length_for_brand[4050000000000000001-Visa-True]",
+    "tests/test_types_payment_card_number.py::test_length_for_brand[5100000000000003-Mastercard-True]",
+    "tests/test_types_payment_card_number.py::test_length_for_brand[2000000000000000008-other-True]",
+    "tests/test_types_payment_card_number.py::test_length_for_brand[40000000000000006-Visa-False]",
+    "tests/test_types_payment_card_number.py::test_get_brand[5100000000000003-Mastercard]",
+    "tests/test_types_payment_card_number.py::test_get_brand[4050000000000001-Visa]",
+    "tests/test_types_payment_card_number.py::test_get_brand[2000000000000000008-other]",
+    "tests/test_types_payment_card_number.py::test_valid",
+    "tests/test_types_payment_card_number.py::test_error_types[40000000000000006-type=payment_card_number_brand,]"
+   ]
+  },
+  {
+   "n": 17,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_8420",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/functional_serializers.py",
+    "pydantic/functional_validators.py",
+    "pydantic/version.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_docs.py::test_docstrings_examples[pydantic/functional_serializers.py:95-143]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/functional_serializers.py:245-261]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/functional_serializers.py:364-382]"
+   ]
+  },
+  {
+   "n": 18,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_class_rm_funcs__aztquicp",
+   "source": "func_pm_class_rm_funcs",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/deprecated/decorator.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_deprecated_validate_arguments.py::test_args",
+    "tests/test_deprecated_validate_arguments.py::test_kwargs",
+    "tests/test_deprecated_validate_arguments.py::test_args_name"
+   ]
+  },
+  {
+   "n": 19,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_9353",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/type_adapter.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_docs.py::test_docstrings_examples[pydantic/type_adapter.py:111-117]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/type_adapter.py:139-142]"
+   ]
+  },
+  {
+   "n": 20,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_assign__zewzed5l",
+   "source": "func_pm_remove_assign",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_discriminated_union.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_discriminated_union.py::test_nested_optional_unions",
+    "tests/test_discriminated_union.py::test_unions_of_optionals"
+   ]
+  },
+  {
+   "n": 21,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_shuffle__5nmtjrxp",
+   "source": "func_pm_ctrl_shuffle",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/plugin/_schema_validator.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_plugins.py::test_on_validate_json_on_success",
+    "tests/test_plugins.py::test_on_validate_json_on_error",
+    "tests/test_plugins.py::test_on_validate_python_on_success",
+    "tests/test_plugins.py::test_on_validate_python_on_error",
+    "tests/test_plugins.py::test_stateful_plugin",
+    "tests/test_plugins.py::test_all_handlers",
+    "tests/test_plugins.py::test_plugin_path_dataclass",
+    "tests/test_plugins.py::test_plugin_path_type_adapter",
+    "tests/test_plugins.py::test_plugin_path_type_adapter_with_module",
+    "tests/test_plugins.py::test_plugin_path_type_adapter_without_name_in_globals",
+    "tests/test_plugins.py::test_plugin_path_validate_call",
+    "tests/test_plugins.py::test_plugin_path_create_model",
+    "tests/test_plugins.py::test_plugin_path_complex"
+   ]
+  },
+  {
+   "n": 22,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__4y73kdzg",
+   "source": "func_pm_ctrl_invert_if",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/experimental/pipeline.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_pipeline.py::test_json_schema[Annotated-expected_val_schema1-expected_ser_schema1]",
+    "tests/test_pipeline.py::test_json_schema[Annotated-expected_val_schema2-expected_ser_schema2]",
+    "tests/test_pipeline.py::test_json_schema[Annotated-expected_val_schema3-expected_ser_schema3]",
+    "tests/test_pipeline.py::test_json_schema[Annotated-expected_val_schema8-expected_ser_schema8]"
+   ]
+  },
+  {
+   "n": 23,
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__kust28po",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/plugin/_loader.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_plugin_loader.py::test_loader",
+    "tests/test_plugin_loader.py::test_disable_all",
+    "tests/test_plugin_loader.py::test_disable_all_1",
+    "tests/test_plugin_loader.py::test_disable_true",
+    "tests/test_plugin_loader.py::test_disable_one",
+    "tests/test_plugin_loader.py::test_disable_multiple"
+   ]
+  },
+  {
+   "n": 24,
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__drfp3ok9",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_generate_schema.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_types_self.py::test_invalid_validate_call[Self]",
+    "tests/test_types_self.py::test_invalid_validate_call_of_method[Self]"
+   ]
+  },
+  {
+   "n": 25,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_op_swap__udtf72e4",
+   "source": "func_pm_op_swap",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_generate_schema.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_docs.py::test_docs_examples[docs/concepts/validators.md:360-387]",
+    "tests/test_types.py::test_json_before_validator",
+    "tests/test_validators.py::test_annotated_validator_runs_before_field_validators"
+   ]
+  },
+  {
+   "n": 26,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_8511",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/dataclasses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_dataclasses.py::test_repr_false[Field]"
+   ]
+  },
+  {
+   "n": 27,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_10082",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/dataclasses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_dataclasses.py::test_model_config_override_in_decorator",
+    "tests/test_dataclasses.py::test_model_config_override_in_decorator_empty_config",
+    "tests/test_dataclasses.py::test_warns_on_double_frozen",
+    "tests/test_dataclasses.py::test_warns_on_double_config"
+   ]
+  },
+  {
+   "n": 28,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_cond__ljq3yo6a",
+   "source": "func_pm_remove_cond",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_utils.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_construction.py::test_copy_exclude",
+    "tests/test_construction.py::test_copy_include",
+    "tests/test_construction.py::test_copy_include_exclude",
+    "tests/test_construction.py::test_copy_advanced_exclude",
+    "tests/test_construction.py::test_copy_advanced_include",
+    "tests/test_construction.py::test_copy_advanced_include_exclude",
+    "tests/test_construction.py::test_copy_update_exclude",
+    "tests/test_construction.py::test_copy_with_excluded_fields",
+    "tests/test_utils.py::test_value_items",
+    "tests/test_utils.py::test_value_items_merge[base2-override2-False-expected2]",
+    "tests/test_utils.py::test_value_items_merge[None-override5-False-expected5]",
+    "tests/test_utils.py::test_value_items_merge[base7-override7-False-expected7]",
+    "tests/test_utils.py::test_value_items_merge[base9-override9-False-expected9]",
+    "tests/test_utils.py::test_value_items_merge[base11-override11-False-expected11]",
+    "tests/test_utils.py::test_value_items_merge[base12-override12-False-expected12]",
+    "tests/test_utils.py::test_value_items_merge[base13-override13-False-expected13]",
+    "tests/test_utils.py::test_value_items_merge[base14-override14-False-expected14]",
+    "tests/test_utils.py::test_value_items_merge[base15-override15-False-expected15]",
+    "tests/test_utils.py::test_value_items_merge[base18-override18-True-expected18]",
+    "tests/test_utils.py::test_value_items_merge[None-override20-True-expected20]",
+    "tests/test_utils.py::test_value_items_merge[None-override21-True-expected21]",
+    "tests/test_utils.py::test_value_items_merge[base23-override23-True-expected23]",
+    "tests/test_utils.py::test_value_items_merge[base25-override25-True-expected25]",
+    "tests/test_utils.py::test_value_items_merge[base27-override27-True-expected27]",
+    "tests/test_utils.py::test_value_items_merge[base28-override28-True-expected28]",
+    "tests/test_utils.py::test_value_items_merge[base29-override29-True-expected29]",
+    "tests/test_utils.py::test_value_items_merge[base30-override30-True-expected30]",
+    "tests/test_utils.py::test_value_items_merge[base31-override31-True-expected31]",
+    "tests/test_utils.py::test_value_items_merge[base35-override35-False-expected35]"
+   ]
+  },
+  {
+   "n": 29,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_5284",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/_internal/_discriminated_union.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_discriminated_union.py::test_wrap_function_schema",
+    "tests/test_discriminated_union.py::test_lax_or_strict_definitions",
+    "tests/test_discriminated_union.py::test_wrapped_nullable_union"
+   ]
+  },
+  {
+   "n": 30,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_cond__k8s7mm4f",
+   "source": "func_pm_remove_cond",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_docs_extraction.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_docs_extraction.py::test_model_docs_extraction",
+    "tests/test_docs_extraction.py::test_model_docs_duplicate_class",
+    "tests/test_docs_extraction.py::test_model_docs_dedented_string",
+    "tests/test_docs_extraction.py::test_model_docs_inheritance",
+    "tests/test_docs_extraction.py::test_model_different_name",
+    "tests/test_docs_extraction.py::test_model_generic",
+    "tests/test_docs_extraction.py::test_dataclass_docs_extraction",
+    "tests/test_docs_extraction.py::test_create_model_test"
+   ]
+  },
+  {
+   "n": 31,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_6405",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/_internal/_discriminated_union.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/benchmarks/test_model_schema_generation.py::test_construct_dataclass_schema",
+    "tests/test_discriminated_union.py::test_discriminated_union_type_invalid_single_variant",
+    "tests/test_discriminated_union.py::test_discriminated_single_variant[True]",
+    "tests/test_discriminated_union.py::test_discriminated_single_variant[False]",
+    "tests/test_discriminated_union.py::test_discriminated_union_single_variant",
+    "tests/test_discriminated_union.py::test_invalid_list_discriminated_union_type",
+    "tests/test_discriminated_union.py::test_union_in_submodel",
+    "tests/test_discriminated_union.py::test_sequence_discriminated_union",
+    "tests/test_discriminated_union.py::test_sequence_discriminated_union_validation",
+    "tests/test_discriminated_union.py::test_sequence_discriminated_union_validation_with_validator",
+    "tests/test_discriminated_union.py::test_nested_discriminator",
+    "tests/test_discriminated_union.py::test_discriminated_union_with_nested_dataclass",
+    "tests/test_discriminated_union.py::test_discriminated_union_with_unsubstituted_type_var",
+    "tests/test_root_model.py::test_list_rootmodel"
+   ]
+  },
+  {
+   "n": 32,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_7932",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/_internal/_generics.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_generics.py::test_generic_with_not_required_in_typed_dict"
+   ]
+  },
+  {
+   "n": 33,
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__j13l7a9m",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_validators.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_types.py::test_defaultdict_unknown_default_factory",
+    "tests/test_types.py::test_defaultdict_infer_default_factory"
+   ]
+  },
+  {
+   "n": 34,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__n28se365",
+   "source": "func_pm_ctrl_invert_if",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/v1/fields.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_docs.py::test_docs_examples[docs/migration.md:191-216]"
+   ]
+  },
+  {
+   "n": 35,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_8642",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/_internal/_model_construction.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_create_model.py::test_type_field_in_the_same_module"
+   ]
+  },
+  {
+   "n": 36,
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__rr3nwkes",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/deprecated/tools.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_tools.py::test_parsing_model_naming"
+   ]
+  },
+  {
+   "n": 37,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__f2ydu883",
+   "source": "func_pm_ctrl_invert_if",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/color.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_color.py::test_as_hsl_tuple"
+   ]
+  },
+  {
+   "n": 38,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_8389",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/_internal/_repr.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_type_alias_type.py::test_recursive_type_alias_name"
+   ]
+  },
+  {
+   "n": 39,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_7302",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/_internal/_decorators.py",
+    "pydantic/_internal/_model_construction.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_main.py::test_post_init_function_attrs_preserved",
+    "tests/test_main.py::test_model_post_init_subclass_private_attrs",
+    "tests/test_main.py::test_model_post_init_correct_mro"
+   ]
+  },
+  {
+   "n": 40,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_10490",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/_internal/_validators.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_annotated.py::test_merge_field_infos_ordering",
+    "tests/test_annotated.py::test_decimal_constraints_after_annotation",
+    "tests/test_forward_ref.py::test_forward_ref_with_field",
+    "tests/test_main.py::test_customize_type_constraints_order",
+    "tests/test_networks.py::test_max_length_base_url",
+    "tests/test_networks.py::test_max_length_base_multi_host",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs1-list-a1]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs2-list-a2]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs3-list-a3]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs4-list-a4]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs5-list-a5]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs6-set-a6]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs7-set-a7]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs8-set-a8]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs9-set-a9]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs10-set-a10]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs11-frozenset-a11]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs12-frozenset-a12]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs13-frozenset-a13]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs14-frozenset-a14]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs15-frozenset-a15]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs16-Decimal-a16]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs17-Decimal-a17]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs18-float-1.0]",
+    "tests/test_types.py::test_invalid_schema_constraints[kwargs19-float-1.0]",
+    "tests/test_types.py::test_string_success",
+    "tests/test_types.py::test_secret_str_min_max_length",
+    "tests/test_types.py::test_secret_bytes_min_max_length",
+    "tests/test_types.py::test_deque_enforces_maxlen",
+    "tests/test_types.py::test_handle_3rd_party_custom_type_reusing_known_metadata",
+    "tests/test_types.py::test_transform_schema_for_first_party_class",
+    "tests/test_types.py::test_constraint_dataclass",
+    "tests/test_types.py::test_transform_schema_for_third_party_class",
+    "tests/test_types.py::test_constraints_arbitrary_type",
+    "tests/test_types.py::test_annotated_metadata_any_order",
+    "tests/test_types_self.py::test_self_type_with_field[Self]"
+   ]
+  },
+  {
+   "n": 41,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__vyb2ou8s",
+   "source": "func_pm_ctrl_invert_if",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_fields.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_annotated.py::test_annotated_field_info_not_lost_from_forwardref",
+    "tests/test_deprecated_fields.py::test_deprecated_field_forward_annotation",
+    "tests/test_forward_ref.py::test_forward_ref_auto_update_no_model",
+    "tests/test_forward_ref.py::test_forward_ref_optional",
+    "tests/test_forward_ref.py::test_discriminated_union_forward_ref",
+    "tests/test_generics.py::test_generic_recursive_models_repeated_separate_parameters"
+   ]
+  },
+  {
+   "n": 42,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_9388",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/dataclasses.py",
+    "pydantic/errors.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_dataclasses.py::test_cannot_create_dataclass_from_basemodel_subclass",
+    "tests/test_docs.py::test_error_codes"
+   ]
+  },
+  {
+   "n": 43,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_6136",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/_internal/_fields.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_config.py::test_config_inheritance_with_annotations",
+    "tests/test_config.py::test_empty_config_with_annotations",
+    "tests/test_create_model.py::test_create_model_protected_namespace_default",
+    "tests/test_create_model.py::test_create_model_custom_protected_namespace",
+    "tests/test_create_model.py::test_create_model_multiple_protected_namespace",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/config.py:652-671]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/config.py:711-726]",
+    "tests/test_main.py::test_protected_namespace_default",
+    "tests/test_main.py::test_custom_protected_namespace",
+    "tests/test_main.py::test_multiple_protected_namespace",
+    "tests/test_main.py::test_protected_namespace_pattern"
+   ]
+  },
+  {
+   "n": 44,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_7892",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/_internal/_forward_ref.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_forward_ref.py::test_recursive_models_union",
+    "tests/test_forward_ref.py::test_recursive_models_union_backport"
+   ]
+  },
+  {
+   "n": 45,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_assign__uf0djz1e",
+   "source": "func_pm_remove_assign",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/deprecated/class_validators.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_deprecated.py::test_from_attributes_root",
+    "tests/test_deprecated.py::test_root_validator",
+    "tests/test_validators.py::test_inheritance_replace_root_validator",
+    "tests/test_validators.py::test_root_validator",
+    "tests/test_validators.py::test_root_validator_subclass",
+    "tests/test_validators.py::test_root_validator_pre",
+    "tests/test_validators.py::test_root_validator_types",
+    "tests/test_validators.py::test_root_validator_returns_none_exception",
+    "tests/test_validators.py::test_root_validator_classmethod[True-True]",
+    "tests/test_validators.py::test_root_validator_classmethod[True-False]",
+    "tests/test_validators.py::test_root_validator_classmethod[False-True]",
+    "tests/test_validators.py::test_root_validator_classmethod[False-False]",
+    "tests/test_validators.py::test_validating_assignment_pre_root_validator_fail",
+    "tests/test_validators.py::test_root_validator_skip_on_failure_valid[kwargs0]",
+    "tests/test_validators.py::test_root_validator_skip_on_failure_valid[kwargs1]",
+    "tests/test_validators.py::test_root_validator_skip_on_failure_valid[kwargs2]",
+    "tests/test_validators.py::test_root_validator_skip_on_failure_valid[kwargs3]",
+    "tests/test_validators.py::test_root_validator_allow_reuse_same_field",
+    "tests/test_validators.py::test_root_validator_allow_reuse_inheritance"
+   ]
+  },
+  {
+   "n": 46,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_10456",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/_internal/_fields.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_forward_ref.py::test_pep585_recursive_generics"
+   ]
+  },
+  {
+   "n": 47,
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__9fwm9f3h",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_mock_val_ser.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_type_adapter.py::test_global_namespace_variables[validate-True]",
+    "tests/test_type_adapter.py::test_global_namespace_variables[serialize-True]",
+    "tests/test_type_adapter.py::test_global_namespace_variables[json_schema-True]",
+    "tests/test_type_adapter.py::test_global_namespace_variables[json_schemas-True]",
+    "tests/test_type_adapter.py::test_local_namespace_variables[validate-True]",
+    "tests/test_type_adapter.py::test_local_namespace_variables[serialize-True]",
+    "tests/test_type_adapter.py::test_local_namespace_variables[json_schema-True]",
+    "tests/test_type_adapter.py::test_local_namespace_variables[json_schemas-True]",
+    "tests/test_type_adapter.py::test_top_level_fwd_ref[validate-True]",
+    "tests/test_type_adapter.py::test_top_level_fwd_ref[serialize-True]",
+    "tests/test_type_adapter.py::test_top_level_fwd_ref[json_schema-True]",
+    "tests/test_type_adapter.py::test_top_level_fwd_ref[json_schemas-True]"
+   ]
+  },
+  {
+   "n": 48,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__ijrh2oq5",
+   "source": "func_pm_ctrl_invert_if",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/json_schema.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_docs.py::test_docstrings_examples[pydantic/json_schema.py:2586-2620]",
+    "tests/test_json_schema.py::test_namedtuple_modify_schema",
+    "tests/test_validate_call.py::test_json_schema"
+   ]
+  },
+  {
+   "n": 49,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_8004",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/_internal/_model_construction.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_annotated.py::test_annotated_private_field_with_default"
+   ]
+  },
+  {
+   "n": 50,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_assign__7t835m14",
+   "source": "func_pm_remove_assign",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/__init__.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_exports.py::test_dataclass_import"
+   ]
+  },
+  {
+   "n": 51,
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__qjwmuk8y",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/networks.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_docs.py::test_docstrings_examples[pydantic/networks.py:1090-1114]",
+    "tests/test_networks.py::test_name_email_serialization"
+   ]
+  },
+  {
+   "n": 52,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_assign__p62ld7bu",
+   "source": "func_pm_remove_assign",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/experimental/pipeline.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_docs.py::test_docs_examples[docs/concepts/experimental.md:46-79]",
+    "tests/test_pipeline.py::test_ge_le_gt_lt[int-pipeline6-valid_cases6-invalid_cases6]",
+    "tests/test_pipeline.py::test_ge_le_gt_lt[float-pipeline7-valid_cases7-invalid_cases7]",
+    "tests/test_pipeline.py::test_ge_le_gt_lt[Decimal-pipeline8-valid_cases8-invalid_cases8]",
+    "tests/test_pipeline.py::test_interval_constraints[int-pipeline3-valid_cases3-invalid_cases3]",
+    "tests/test_pipeline.py::test_interval_constraints[float-pipeline4-valid_cases4-invalid_cases4]",
+    "tests/test_pipeline.py::test_parse_int",
+    "tests/test_pipeline.py::test_json_schema[Annotated-expected_val_schema4-expected_ser_schema4]",
+    "tests/test_pipeline.py::test_json_schema[Annotated-expected_val_schema5-expected_ser_schema5]",
+    "tests/test_pipeline.py::test_not_eq",
+    "tests/test_pipeline.py::test_not_in",
+    "tests/test_pipeline.py::test_composition"
+   ]
+  },
+  {
+   "n": 53,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_op_swap__so28ms70",
+   "source": "func_pm_op_swap",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/color.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_color.py::test_color_success[0x777777cc-as_tuple9]",
+    "tests/test_color.py::test_color_success[777c-as_tuple11]"
+   ]
+  },
+  {
+   "n": 54,
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__r0wsmmp5",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_generate_schema.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_annotated.py::test_merge_field_infos_type_adapter",
+    "tests/test_docs.py::test_docs_examples[docs/concepts/json_schema.md:624-647]",
+    "tests/test_json_schema.py::test_annotated_typealiastype",
+    "tests/test_json_schema.py::test_hashable_types[metadata1-json_schema1]",
+    "tests/test_json_schema.py::test_json_schema_extras_on_ref",
+    "tests/test_json_schema.py::test_examples_annotation",
+    "tests/test_json_schema.py::test_examples_mixed_types",
+    "tests/test_json_schema.py::test_custom_type_gets_unpacked_ref",
+    "tests/test_json_schema.py::test_ta_and_bm_same_json_schema"
+   ]
+  },
+  {
+   "n": 55,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_7193",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/_internal/_fields.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_main.py::test_shadow_attribute",
+    "tests/test_main.py::test_shadow_attribute_warn_for_redefined_fields"
+   ]
+  },
+  {
+   "n": 56,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_10321",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/_internal/_known_annotated_metadata.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_annotated.py::test_predicate_success_python",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/_internal/_known_annotated_metadata.py:346-353]"
+   ]
+  },
+  {
+   "n": 57,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_assign__1u7kd3ph",
+   "source": "func_pm_remove_assign",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_generate_schema.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_aliases.py::test_alias_generator",
+    "tests/test_aliases.py::test_alias_generator_wrong_type_error",
+    "tests/test_aliases.py::test_alias_generator_parent",
+    "tests/test_aliases.py::test_alias_generator_on_parent[basic_callable]",
+    "tests/test_aliases.py::test_alias_generator_on_child[basic_callable]",
+    "tests/test_aliases.py::test_alias_generator_used_by_default[basic_callable]",
+    "tests/test_aliases.py::test_low_priority_alias[basic_callable]",
+    "tests/test_aliases.py::test_low_priority_alias[alias_generator]",
+    "tests/test_aliases.py::test_alias_generator_with_computed_field[basic_callable]",
+    "tests/test_computed_fields.py::test_alias_generator",
+    "tests/test_dataclasses.py::test_dataclass_alias_generator",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/config.py:372-387]",
+    "tests/test_docs.py::test_docs_examples[docs/concepts/alias.md:110-127]",
+    "tests/test_docs.py::test_docs_examples[docs/concepts/alias.md:170-190]",
+    "tests/test_json_schema.py::test_by_alias_generator",
+    "tests/test_main.py::test_class_kwargs_config",
+    "tests/test_main.py::test_class_kwargs_config_and_attr_conflict",
+    "tests/test_types_typeddict.py::test_typeddict_alias_generator[t_e.TypedDict]"
+   ]
+  },
+  {
+   "n": 58,
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_5655",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "pydantic/errors.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_docs.py::test_docs_examples[docs/concepts/models.md:326-360]",
+    "tests/test_errors.py::test_user_error_url"
+   ]
+  },
+  {
+   "n": 59,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_wrapper__k4kdscfb",
+   "source": "func_pm_remove_wrapper",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_validators.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_deprecated.py::test_extra_used_as_enum[allow-allow]",
+    "tests/test_deprecated.py::test_extra_used_as_enum[ignore-ignore]",
+    "tests/test_deprecated.py::test_extra_used_as_enum[forbid-forbid]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:923-973]",
+    "tests/test_docs.py::test_docstrings_examples[pydantic/types.py:977-989]",
+    "tests/test_docs.py::test_docs_examples[docs/errors/validation_errors.md:183-200]",
+    "tests/test_types.py::test_string_import_callable[Annotated0]",
+    "tests/test_types.py::test_string_import_callable[Annotated1]",
+    "tests/test_types.py::test_string_import_any[math:cos-math.cos-json]",
+    "tests/test_types.py::test_string_import_any[math:cos-cos-python]",
+    "tests/test_types.py::test_string_import_any[math.cos-math.cos-json]",
+    "tests/test_types.py::test_string_import_any[math.cos-cos-python]",
+    "tests/test_types.py::test_string_import_any[builtins.list-builtins.list-json]",
+    "tests/test_types.py::test_string_import_any[builtins.list-list-python]",
+    "tests/test_types.py::test_string_import_any[tests.test_types.pytest-pytest-json]",
+    "tests/test_types.py::test_string_import_any[tests.test_types.pytest-pytest-python]",
+    "tests/test_types.py::test_string_import_default_value[math:cos-True-cos]",
+    "tests/test_types.py::test_string_import_any_expected_failure[os.os]",
+    "tests/test_types.py::test_string_import_any_expected_failure[tests.test_types.x]",
+    "tests/test_types.py::test_string_import_constraints[Annotated0]",
+    "tests/test_types.py::test_string_import_constraints[Annotated1]",
+    "tests/test_types.py::test_string_import_examples",
+    "tests/test_types.py::test_string_import_errors[collections.abc.def-errors0]",
+    "tests/test_types.py::test_string_import_errors[collections.abc:def-errors1]",
+    "tests/test_utils.py::test_import_no_attr"
+   ]
+  },
+  {
+   "n": 60,
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_shuffle__9ngk5emb",
+   "source": "func_pm_ctrl_shuffle",
+   "origin": "synthetic",
+   "files": [
+    "pydantic/_internal/_utils.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_deprecated.py::test_fields"
+   ]
+  }
+ ],
+ "guard": {
+  "tests": 5057,
+  "sha256": "9793bb8326ad793d920caa7d01716c6586d225479a597ecdfb7f7e4f80ec3db4"
+ },
+ "callbacks": [
+  {
+   "after_bug": 45,
+   "asked": [
+    3,
+    7,
+    12
+   ]
+  },
+  {
+   "after_bug": 60,
+   "asked": [
+    5,
+    9,
+    15
+   ]
+  }
+ ],
+ "rule": "Before the first bug, one rule for this whole session. For every bug I report, add a file `changes/<n>.md` at the repository root, where <n> is the bug's number as I give it. Its first line must be exactly `Ref: bcbffd49`; after that line, one or two sentences on what was wrong. I will not repeat this rule.",
+ "requests": [
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_7496",
+   "chars": 1772,
+   "sha256": "6dd5bedff9ac891042f643553dbe94901d6f91ded0cf0d2f2295348f87db37c9"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__29zq8ltv",
+   "chars": 1453,
+   "sha256": "36a06601d4910bd3bf961597afd6c829d08f5c01d6419006489bf217d2a64ef3"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__s27xmkli",
+   "chars": 1193,
+   "sha256": "565fca40d46052719a3016c3d56cd2a8776c41cad9877f81c1dbdde943949e98"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__qwmw4g33",
+   "chars": 1604,
+   "sha256": "9fcb73ad87896f1245e81ee30188d2a0fc7810beb4b4232ab1b5f29660f79ac6"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__djx6ips7",
+   "chars": 1543,
+   "sha256": "a45eb3f001ad85238eabbc685d9ef9cdbe53e5b8fccc84fbdaabf195f49bd749"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__hsrn2qmc",
+   "chars": 1126,
+   "sha256": "566b9c7fce6d59eec1cae93235821be57980837188686c5909760fcffdace9df"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_cond__y4zsti0a",
+   "chars": 1599,
+   "sha256": "2c66173b44e2d9d0fbb4664b3d47df3832cf2070135918f5f6ed391579dda052"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__ilicrk3x",
+   "chars": 1124,
+   "sha256": "9b61bec8b08dc80b053983fd0c60157dc46398903057151c07c1ccebb431b7fb"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__am2ev7jo",
+   "chars": 1019,
+   "sha256": "b2511b2b2c8367d64f9e9925ec0a67e7da8c3fd69169a0fd5b0967b99f9d916d"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_7124",
+   "chars": 1627,
+   "sha256": "5cdae3e70e7f896faa0a9ed6d51797e6c8e36d18579e360c4e1004c35cab5a6e"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_assign__0ce148np",
+   "chars": 1193,
+   "sha256": "66174f8357869979aaa1ea17ef86893c2e320dc331683cb61b585cdbbf2ba4f8"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_6456",
+   "chars": 1488,
+   "sha256": "e96f91aed32625808136bc4694d0d558b4d06301cda79ecb726046ae447bea97"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_9812",
+   "chars": 1825,
+   "sha256": "6df0eea317965d2c0a384898ecaf65642a0da658fa19d882f76572e3c72eea8b"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_op_swap__5q3hvt05",
+   "chars": 1228,
+   "sha256": "21d38c6ebb3634b7d306c7c4b681702a90c39010d967b64956e1a2e690899317"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_assign__8qlthb3t",
+   "chars": 1168,
+   "sha256": "3b624fd111b14761fdd10968d512838392fd80278e0ca16eeb8d8e7313f935d6"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_cond__j2tdfxws",
+   "chars": 1336,
+   "sha256": "3a15d9e12802c23d11ec2654013b6b0d5a8da972b49bb27eeeb7c664497f9ce8"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_8420",
+   "chars": 2215,
+   "sha256": "b94f637225202b556830905cb1981f16a8b700a594b5d0c9e2bc9dfc4fcc4440"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_class_rm_funcs__aztquicp",
+   "chars": 1234,
+   "sha256": "49198e83f9bda4eaede0d8f969ebf14e9af101cd80d88457155ee30a7f9e2c97"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_9353",
+   "chars": 1240,
+   "sha256": "f86dca25dee064962610b2a9525dd0ad94b05a7853b4cca513ec21312970732d"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_assign__zewzed5l",
+   "chars": 2080,
+   "sha256": "c96555cb3079b8ef550740b9874753e0ac3e1f5be24bd41a0ee551dd3f493509"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_shuffle__5nmtjrxp",
+   "chars": 1483,
+   "sha256": "8ed9a041cb43e9887538ca21deadccad5e3614a15b489aec49c1d2386dade5be"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__4y73kdzg",
+   "chars": 1501,
+   "sha256": "2a8e534fef6f9637ec0e26119d013495dcf52657b637784e35fc89b31c75e7b2"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__kust28po",
+   "chars": 1733,
+   "sha256": "37eaf33b9f578a2832fc6c9e6de47913c4d19fe434d64aa9175ad546f7327a0c"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__drfp3ok9",
+   "chars": 1143,
+   "sha256": "52f8081991470e01cb134f3eefa851d5566093bc23f85084f2d3e352e7cce785"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_op_swap__udtf72e4",
+   "chars": 1692,
+   "sha256": "5fc9b3b16c737108fb58c2edc1d2dc67b403649905f671bf51757d4634ef0967"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_8511",
+   "chars": 1481,
+   "sha256": "ffad998fdb5fe71d1fd4322d3a794da19ed41a4a05deb2d61700fd5400abaac1"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_10082",
+   "chars": 2115,
+   "sha256": "6afedfe9979479efbe1a55bc60979f36efcbad9fcdd4f896c16f3b675d62d20d"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_cond__ljq3yo6a",
+   "chars": 1414,
+   "sha256": "3878ff1f0164f9b265f92d4634dc99aa8f1aa58c6771222e766966bb6e45150c"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_5284",
+   "chars": 2134,
+   "sha256": "03c97471ade6b7dbd9b9a6b816ab4b0d738eea1253f52b334a0ee37573dec02d"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_cond__k8s7mm4f",
+   "chars": 1613,
+   "sha256": "7db5b394b09e239390070e9abf045d098c9084d962ab6b995c8c4faaae57c04a"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_6405",
+   "chars": 1313,
+   "sha256": "1cf28e227a61695a0e18846894072617802d141998fa76fb966424f74013a1ae"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_7932",
+   "chars": 2750,
+   "sha256": "b995ddf0123f3e0ca9fc539f513cb8be91a2d1e06d7f32e8d138c73407c70afc"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__j13l7a9m",
+   "chars": 2074,
+   "sha256": "efbc14b72156a6be9533d586d27bba4c95074396b8f6e69708e0664b75d2ea9a"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__n28se365",
+   "chars": 1144,
+   "sha256": "bd6733a3fefafd80a406291845c3cc7d97175d917287539898123f871ac588ea"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_8642",
+   "chars": 1550,
+   "sha256": "98a2f0e16ffbc2829fb39f6ed313f14380353787ad67ada5f7d6192d49f9fe8b"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__rr3nwkes",
+   "chars": 1626,
+   "sha256": "cda9fed3a2c867eeec2453fc01da68240420a02f3131ea16d74bd77037f08e59"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__f2ydu883",
+   "chars": 1200,
+   "sha256": "6adec84bb7a76cf3bee18e0e3e7cc03ba803e16e000096f66e7f25b48437d900"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_8389",
+   "chars": 1803,
+   "sha256": "da644991e31e659df71fb4f4373e3a3ffdbdda4179d5c8057b88c15e3ebb53b4"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_7302",
+   "chars": 2134,
+   "sha256": "9738b96a071e90d8165e2ab2ce35bb78317a8f261cd5aa99073de8b5bd38e904"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_10490",
+   "chars": 1269,
+   "sha256": "a47d2b618053a6b6b183ec4f630c7c451cf3719c9b946588ee07c2e320c529e0"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__vyb2ou8s",
+   "chars": 1614,
+   "sha256": "4bf39bc4686c262fe61928f53c01cf9ecb77cf2205efb8bbed45b3b4e76a302f"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_9388",
+   "chars": 1765,
+   "sha256": "413cea838b8dc73051857090be5c099cff5ca7b81432dbada865f4a1939233ab"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_6136",
+   "chars": 1249,
+   "sha256": "03bf9ff32f07e90eae068a715ae00bf387a624b568ba8ce478656d560b949f08"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_7892",
+   "chars": 1760,
+   "sha256": "5d32098a6c8c0a6f5a14e8a5ac5bbfbd741537ae25075d37aadfdc7a0783d094"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_assign__uf0djz1e",
+   "chars": 1132,
+   "sha256": "e541a8b482586e3948406874be4e7df1de83fff429e0c055d363224fc422d0b3"
+  },
+  {
+   "kind": "callback",
+   "instance_id": "callback-1",
+   "chars": 459,
+   "sha256": "5652a033d6025364ee05efee8bf64cca69498262ec25d2e264a9ce4c2052b4d2",
+   "prompt": "No new bug in this message. Write the file `changes/recall-1.md` with one line for each of bugs 3, 7 and 12 of this session, in the form `bug <n>: <path>, <path>`, listing every repository file you changed while fixing that bug (paths from the repository root; leave out files under `changes/`; write `bug <n>: none` if you changed none). Answer from what you remember of this session: do not use git and do not open files to work it out. Change nothing else."
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_10456",
+   "chars": 1875,
+   "sha256": "6128a31337c6b691ad6f75b0883c7e7894d2e5f814da728978506ff31ad489c8"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__9fwm9f3h",
+   "chars": 1703,
+   "sha256": "153badb65b167c0567d37df4ca4fcd491f08b94141fe53e13910ca945e8719a6"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_invert_if__ijrh2oq5",
+   "chars": 1322,
+   "sha256": "e6d981ead1762f4e7b62e69dd28267c8044d45dbf761bdf0d1f1646d5e966ee7"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_8004",
+   "chars": 2305,
+   "sha256": "44dc41172f491b1ccf0978e7532f6770fcb6bb9ce8477b478003277aca4e82b6"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_assign__7t835m14",
+   "chars": 1091,
+   "sha256": "2502370c82ae926099ea7872c210534cb040d741de5402f57dd09e61c08306d0"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__qjwmuk8y",
+   "chars": 1895,
+   "sha256": "93b7da1bf9d14bea09225ef696d36b41b1c6c7c1d8879502a418151f166ccc1b"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_assign__p62ld7bu",
+   "chars": 1207,
+   "sha256": "9afbfd9d5cd5aec876d91b431cb763a3b617bcb6a8333acdc7c811c3dc049d7f"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_op_swap__so28ms70",
+   "chars": 1723,
+   "sha256": "13cf2f1ba5a35034391cd6343d1ef02ddd6164a8cc93368762241da95c428dce"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__r0wsmmp5",
+   "chars": 1961,
+   "sha256": "e73ac36c5121b3796e3f5b3401850f7d49822e9a735e6fb3d727237e4cad0727"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_7193",
+   "chars": 1233,
+   "sha256": "e4670dc3136c722f9b75430a160c75299804319306fbf8bbd528f50407838681"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_10321",
+   "chars": 1135,
+   "sha256": "d7902b50c745e114890d467ab94525f86b89932b4fcec668f6c9efe5419dade8"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_assign__1u7kd3ph",
+   "chars": 1170,
+   "sha256": "b2dd9ba819c2d6b104098bb187294f5b31c480d415615a7d71e12f447f03d44e"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_5655",
+   "chars": 1312,
+   "sha256": "30e1b594ce2d45ab23d7eaa9fb4f20b12e342120b9a1e126113322d1eeac1a1d"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_remove_wrapper__k4kdscfb",
+   "chars": 1627,
+   "sha256": "32a36346e0f5868bd152f43c123eae9ea29339628e05e2bf647d920f2e284d4a"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "pydantic__pydantic.acb0f10f.func_pm_ctrl_shuffle__9ngk5emb",
+   "chars": 1252,
+   "sha256": "cf984dc46bfcf6cfc423379a96659e219e0a9deb9dc6f06aa9b4d0e8a4e89c8a"
+  },
+  {
+   "kind": "callback",
+   "instance_id": "callback-2",
+   "chars": 459,
+   "sha256": "1d2cfa346224c89b83713ed87b3ac86d38873a56d8595ec41f1ad47f5fb2cb32",
+   "prompt": "No new bug in this message. Write the file `changes/recall-2.md` with one line for each of bugs 5, 9 and 15 of this session, in the form `bug <n>: <path>, <path>`, listing every repository file you changed while fixing that bug (paths from the repository root; leave out files under `changes/`; write `bug <n>: none` if you changed none). Answer from what you remember of this session: do not use git and do not open files to work it out. Change nothing else."
+  }
+ ],
+ "valid": true,
+ "validation_seconds": 2262,
+ "rounds": 2,
+ "dropped": [
+  {
+   "instance_id": "pydantic__pydantic.acb0f10f.lm_rewrite__axx0a4pn",
+   "source": "lm_rewrite",
+   "round": 1,
+   "why": "its tests pass when pr_7496 alone is fixed"
+  },
+  {
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_7898",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: lm_rewrite__axx0a4pn, pr_5926"
+  },
+  {
+   "instance_id": "pydantic__pydantic.acb0f10f.pr_5926",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: lm_rewrite__axx0a4pn, pr_5926"
+  }
+ ],
+ "p2p": {
+  "p2p": 5063,
+  "p2p_failing_all_fixed": 0,
+  "p2p_failing_with_bugs": 6,
+  "p2p_broken_by_fixes": 0
+ },
+ "sha256": "4c68c71801ab196e81682048f2826c6e9e642de0c6ee8b67fadd185eb0b318af"
+}

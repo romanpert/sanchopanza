@@ -22,7 +22,11 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 # The runner passes the sanchopanza it installed (a frozen copy for held-out tasks).
 SANCHO = os.environ.get("ADOPT_SANCHO") or str(REPO / ".venv" / "Scripts" / "sanchopanza.exe")
-SESSION_MAX_USD = "0.10"  # Jev, per Claude Code session
+SESSION_MAX_USD = "0.10"  # Jev, per Claude Code session (phases A and B)
+# The runner's ceiling for a session it resumes call after call (long chains: 0.50 per chain).
+# 0.10 held for the whole resumed session, and past it the hooks failed open in silence
+# (long-session pre-mortem, f).
+CEILING_VAR = "ADOPT_JEV_MAX_USD"
 
 
 def environment(
@@ -35,11 +39,15 @@ def environment(
     key = keyfile.read_text(encoding="utf-8").strip() if keyfile.exists() else ""
     return {**env, "SANCHOPANZA_JOURNAL": str(evidence / "journal.jsonl"),
             "SANCHOPANZA_GUARD_DIR": str(evidence / "guard"),
-            "SANCHOPANZA_SESSION_MAX_USD": SESSION_MAX_USD,
+            "SANCHOPANZA_SESSION_MAX_USD": source.get(CEILING_VAR) or SESSION_MAX_USD,
             "SANCHOPANZA_CANDOR_LOCK": str(evidence / "candor-lock.json"),
             "SANCHOPANZA_CANDOR_DIR": str(evidence / "candor"),
             "SANCHOPANZA_MEMORY_STORE": str(evidence / "memory"),
             "SANCHOPANZA_MEMORY_STORE_LOG": str(evidence / "memory.jsonl"),
+            # The S line's other state, per session too (S-SEAL-DRAFT: else ~/.sancho)
+            "SANCHOPANZA_CRAWL_DIR": str(evidence / "crawl"),
+            "SANCHOPANZA_FETCH_DIR": str(evidence / "fetch"),
+            "SANCHOPANZA_ARCHIVE": str(evidence / "archive"),
             **({"TYPESAFE_API_KEY": key} if key else {})}  # fmt: skip
 
 

@@ -3,6 +3,7 @@
     python benchmarks/adopt/run.py plan  [--split dev]           # free: tasks, arms, caps
     python benchmarks/adopt/run.py run   --chains a,b --ceiling 6.0 [--model haiku]
     python benchmarks/adopt/run.py grade --chains a,b            # Docker, free
+    python benchmarks/adopt/run.py dry   --chains a              # long60: all but the model
     ... --arms Nf,Sf                                             # other arms (ARM_SPECS)
 
 One chain = one Claude Code session per arm: the chain's bugs are asked one after another, each
@@ -48,9 +49,10 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 
+import arm_files  # noqa: E402
 import docker_env  # noqa: E402
 
-PYTHON = REPO / ".venv" / "Scripts" / "python.exe"
+PYTHON = Path(os.environ.get("ADOPT_PYTHON") or REPO / ".venv" / "Scripts" / "python.exe")
 # The sanchopanza the S arms install and run: the editable development one unless ADOPT_SANCHO
 # names a frozen copy (`freeze.py`), which held-out tasks require.
 SANCHO = Path(os.environ.get("ADOPT_SANCHO") or REPO / ".venv" / "Scripts" / "sanchopanza.exe")
@@ -58,7 +60,8 @@ ROOT = Path.home() / ".cache" / "sanchopanza" / "adopt"
 RUNS = ROOT / "runs"
 WORK = ROOT / "work"
 BIN = ROOT / "bin"
-MODELS = {"haiku": "claude-haiku-4-5-20251001", "sonnet": "claude-sonnet-5-5"}
+MODELS = {"haiku": "claude-haiku-4-5-20251001", "sonnet": "claude-sonnet-5-5",
+          "opus": "claude-opus-5-5"}  # fmt: skip
 ARMS = ("N", "S")
 # What held-out tasks run with, as `prereg-confirm.md` fixes it, enforced here and not left to
 # the command line: the frozen sanchopanza, phase A's model and caps, and Claude Code's version.
@@ -74,6 +77,7 @@ HELD_DECIDER = "JevDecider"
 class Arm:
     install: tuple[str, ...] | None  # None: Claude Code alone; else extra `install` flags
     fresh: bool = False  # each request in a new session
+    env: tuple[tuple[str, str], ...] = ()  # into the project settings' `env` block
 
 
 ARM_SPECS = {
@@ -85,6 +89,7 @@ ARM_SPECS = {
     # Controls, so that a difference can be put down to memory alone: Sf against Sfn, Sm against Sb.
     "Sfn": Arm((), fresh=True),
     "Sb": Arm(("--context-budget", "100000")),
+    "Ne": Arm(None, env=(("CLAUDE_CODE_AUTO_COMPACT_WINDOW", "193000"),)),  # S's window, alone
 }
 # Chains that run only when named, on a model named (combined.py, long.py): a default run must
 # not spend them on the wrong model, since a chain never runs twice.
@@ -125,6 +130,8 @@ def chain_digest(chain: dict[str, Any]) -> str:
     """sha256 of what a chain's sessions and grade read from the cache: image, tag and bugs
     (prompts, patches, FAIL_TO_PASS, PASS_TO_PASS*). The sealed summary keeps it."""
     body = {k: chain.get(k) for k in ("image", "tag", "bugs")}
+    # long60: the guard and the token decide its grade too (absent keys: the digest as it was)
+    body = {**body, **{k: chain[k] for k in ("guard", "token") if k in chain}}
     return hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
@@ -248,7 +255,10 @@ def child_env(tag: str, base: str) -> dict[str, str]:
     """The subscription, not a key; nothing of the coordinating session; runtests configured."""
     drop = ("ANTHROPIC_", "CLAUDE_CODE_", "CLAUDE_EFFORT", "CLAUDECODE", "CLAUDE_AGENT_SDK",
             "CLAUDE_PID", "SANCHOPANZA_", "SANCHO_", "TYPESAFE_")  # fmt: skip
-    env = {k: v for k, v in os.environ.items() if not k.startswith(drop)}
+    # The runner's PYTHONPATH (a launcher sets it to a worktree's src) would reach the hooks'
+    # `sanchopanza.exe` and run that tree's package instead of the frozen copy SANCHO names.
+    python = ("PYTHONPATH", "PYTHONHOME")
+    env = {k: v for k, v in os.environ.items() if not k.startswith(drop) and k not in python}
     # Not the sanchopanza venv: its `python` (pytest 9, no project deps) was on the agents' PATH
     # in the pilot and they ran the tests locally against it. Hooks use absolute paths.
     path = os.pathsep.join([*(str(p) for p in shim()), env.get("PATH", "")])
@@ -487,7 +497,10 @@ def one_chain(
     rows: list[dict[str, Any]] = []
     session: str | None = None
     previous = json.loads(done_row.read_text(encoding="utf-8")) if done_row.exists() else None
-    if previous and (not carry_on or not any(not_run(r) for r in previous["calls"])):
+    if previous and previous.get("partial"):  # the runner stopped mid-chain
+        if chain["split"] == "held" or not carry_on:
+            raise RuntimeError(f"{name} {arm}: partial row.json (held: set aside; else --continue)")
+    elif previous and (not carry_on or not any(not_run(r) for r in previous["calls"])):
         return  # done before: never run twice
     if why := held_start_refusal(chain, work, previous):
         raise RuntimeError(f"{name} {arm}: {why}")
@@ -518,8 +531,11 @@ def one_chain(
         mcp = None
         if spec.install is not None:
             mcp = install_sancho(work, evidence, keyfile, spec.install)
+        if spec.env:
+            arm_files.write_env_settings(work, spec.env)
     env = child_env(chain["tag"], base)
-    for k, bug in enumerate(chain["bugs"], start=1):
+    asks = requests_of(chain)
+    for k, bug in enumerate(asks, start=1):
         if k <= len(rows):
             continue
         chain_cost = sum(r["cost_usd"] for r in rows)
@@ -527,7 +543,7 @@ def one_chain(
             rows.append({"request": k, "status": "NOT RUN (cap)", "cost_usd": 0.0})
             continue
         stream = evidence / f"stream-{k}.jsonl"
-        prompt = PROMPT.format(issue=bug["problem_statement"].strip())
+        prompt = bug["prompt"]
         if spec.fresh:
             session = None  # a new session per request, in the same working copy
         restored = restore_install(work, evidence) if spec.install is not None else []
@@ -551,7 +567,7 @@ def one_chain(
             tail = err.read_text(encoding="utf-8", errors="replace")[-400:]
             rows.extend({"request": j, "instance_id": b["instance_id"], "exit": code,
                          "status": "NOT RUN (harness)", "cost_usd": 0.0, "stderr": tail}
-                        for j, b in enumerate(chain["bugs"][k - 1:], start=k))  # fmt: skip
+                        for j, b in enumerate(asks[k - 1:], start=k))  # fmt: skip
             print(f"{name} {arm} request {k}: claude -p did not start (exit {code}); the arm "
                   "stops here, --continue goes on from it", flush=True)  # fmt: skip
             break
@@ -565,7 +581,7 @@ def one_chain(
                          "status": "NOT RUN (error result)", **seen})  # fmt: skip
             rows.extend({"request": j, "instance_id": b["instance_id"], "cost_usd": 0.0,
                          "status": "NOT RUN (harness)"}
-                        for j, b in enumerate(chain["bugs"][k:], start=k + 1))  # fmt: skip
+                        for j, b in enumerate(asks[k:], start=k + 1))  # fmt: skip
             print(f"{name} {arm} request {k}: error result, the arm stops here", flush=True)
             break
         (evidence / f"diff-{k}.patch").write_text(docker_env.agent_diff(work, base),
@@ -575,20 +591,30 @@ def one_chain(
                      **seen})  # fmt: skip
         print(f"{name} {arm} request {k}: {seen['subtype']} {seen['cost_usd']:.3f} USD "
               f"{len(seen['compactions'])} compactions", flush=True)
+        arm_files.write_row(evidence, arm_files.partial_row(
+            {"chain": name, "arm": arm, "model": model, "base": base, "session": session}, rows))
     final = docker_env.agent_diff(work, base)
     (evidence / "final.patch").write_text(final, encoding="utf-8", newline="\n")
-    sessions = list(dict.fromkeys(r["session"] for r in rows if r.get("session")))
-    for n, one in enumerate(sessions, start=1):
-        found = next(Path.home().joinpath(".claude", "projects").glob(f"*/{one}.jsonl"), None)
-        if found:
-            suffix = "" if len(sessions) == 1 else f"-{n}"
-            shutil.copy(found, evidence / f"transcript{suffix}.jsonl")
+    arm_files.copy_transcripts((r.get("session") or "" for r in rows), evidence,
+                               arm_files.projects_root(env))  # fmt: skip
     row = {"chain": name, "arm": arm, "model": model, "base": base, "session": session,
            "wall_s": round(sum(r.get("wall_s") or 0.0 for r in rows), 1),
            "jev_usd": jev_usd(evidence), "sanchopanza": provenance(),
            "claude_version": claude_version(), "calls": rows,
            **({"decider": probes} if probes else {})}  # fmt: skip
-    (evidence / "row.json").write_text(json.dumps(row, indent=1), encoding="utf-8")
+    arm_files.write_row(evidence, row)
+
+
+def requests_of(chain: dict[str, Any]) -> list[dict[str, Any]]:
+    """The session's prompts in order: one per bug, or for a long60 chain (`grader: per_bug`)
+    `long.requests`, with the control rule in the first and the callbacks late."""
+    if chain.get("grader") == "per_bug":
+        import long
+
+        return long.requests(chain, PROMPT)
+    return [{"kind": "bug", "instance_id": b["instance_id"],
+             "prompt": PROMPT.format(issue=b["problem_statement"].strip())}
+            for b in chain["bugs"]]  # fmt: skip
 
 
 # ---- grading -------------------------------------------------------------------------------------
@@ -606,19 +632,27 @@ def grade_chain(chain: dict[str, Any], arm: str, rep: int = 1) -> dict[str, Any]
     keep = chain["split"] != "held"  # amendment 5: held-out chains keep the sealed command
     outcome = docker_env.pytest(chain["tag"], patch, list(dict.fromkeys(nodes)),
                                 keep_collecting=keep)  # fmt: skip
-    bugs = []
-    for bug in chain["bugs"]:
-        f2p = [outcome.get(t) == "PASSED" for t in bug["FAIL_TO_PASS"]]
-        p2p = [outcome.get(t) == "PASSED" for t in bug["PASS_TO_PASS_STAR"]]
-        bugs.append({"instance_id": bug["instance_id"], "resolved": all(f2p) and all(p2p),
-                     "f2p_passed": sum(f2p), "f2p": len(f2p), "p2p_broken": p2p.count(False),
-                     "patch_applied": "<patch>" not in outcome})  # fmt: skip
+    bugs = [bug_result(bug, outcome) for bug in chain["bugs"]]
+    broken = sorted({t for b in chain["bugs"] for t in b["PASS_TO_PASS_STAR"]
+                     if outcome.get(t) != "PASSED"})  # fmt: skip
+    # Primary: the bug's own FAIL_TO_PASS (pre-mortem a); `resolved` stays phase A's strict rule
     grade = {"chain": chain["chain"], "arm": arm, "resolved": sum(b["resolved"] for b in bugs),
+             "primary": "resolved_f2p", "resolved_f2p": sum(b["resolved_f2p"] for b in bugs),
+             "resolved_strict": sum(b["resolved"] for b in bugs), "regressions": broken,
              "bugs": bugs, "collection": "continue" if keep else "stop"}  # fmt: skip
     seal = REPO / "docs" / "results" / "2026-09-30-adopt" / "prereg-confirm.sha256"
     grade = {**grade, "seal": seal.read_text(encoding="utf-8").strip() if seal.exists() else None}
     (evidence / "grade.json").write_text(json.dumps(grade, indent=1), encoding="utf-8")
     return grade
+
+
+def bug_result(bug: dict[str, Any], outcome: dict[str, str]) -> dict[str, Any]:
+    f2p = [outcome.get(t) == "PASSED" for t in bug["FAIL_TO_PASS"]]
+    p2p = [outcome.get(t) == "PASSED" for t in bug["PASS_TO_PASS_STAR"]]
+    applied = "<patch>" not in outcome
+    return {"instance_id": bug["instance_id"], "resolved": all(f2p) and all(p2p),
+            "resolved_f2p": all(f2p) and applied, "f2p_passed": sum(f2p), "f2p": len(f2p),
+            "p2p_broken": p2p.count(False), "patch_applied": applied}  # fmt: skip
 
 
 # ---- entry -----------------------------------------------------------------------------------
@@ -659,7 +693,7 @@ def keyfile_from_indagis() -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=("plan", "run", "grade"))
+    parser.add_argument("action", choices=("plan", "run", "grade", "dry"))
     parser.add_argument("--chains", default="")
     parser.add_argument("--split", default="dev")
     parser.add_argument("--model", default=None, choices=sorted(MODELS),
@@ -697,6 +731,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"arms {arms}; per call {CALL_CAP_USD} USD; per chain and arm {CHAIN_CAP_USD} USD; "
               f"spent so far {spent_so_far():.2f} USD")  # fmt: skip
         return 0
+    if args.action == "dry":  # long60 chains: everything but the model, free (perbug.dry_run)
+        import perbug
+
+        for n in named:
+            out = perbug.dry_run(known[n], PROMPT, ROOT / "dry-long" / n)
+            print(*out.pop("sequence"), sep="\n")
+            print(json.dumps(out, indent=1))
+        return 0
     held_named = [n for n in wanted if known[n]["split"] == "held"]
     if held_named and args.action in ("run", "grade"):
         if args.action == "grade" and not sealed():
@@ -706,8 +748,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.action == "grade":
         for n in wanted:
             for arm in arms:
-                if (RUNS / run_name(n, args.rep) / arm / "final.patch").exists():
-                    g = grade_chain(known[n], arm, args.rep)
+                evidence = RUNS / run_name(n, args.rep) / arm
+                if (evidence / "final.patch").exists():
+                    if known[n].get("grader") == "per_bug":
+                        import perbug
+
+                        g = perbug.grade_run(known[n], evidence, PROMPT)
+                    else:
+                        g = grade_chain(known[n], arm, args.rep)
                     print(n, arm, g["resolved"], "of", len(g["bugs"]))
         return 0
     if args.ceiling <= 0:
