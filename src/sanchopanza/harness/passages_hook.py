@@ -1,54 +1,54 @@
-"""Passages on arrival: a Claude Code `PostToolUse` hook on Bash, PowerShell and Read in coding
-sessions. Bet A of `docs/PLAN-GANAR-H2H.md`; the cut itself is `context.passages`.
+"""Passages on arrival: a Claude Code hook on Bash, PowerShell and Read in coding sessions.
+Bet A of `docs/PLAN-GANAR-H2H.md`; the cut itself is `context.passages`.
 
-A shell output or a `Read` past `SANCHOPANZA_PASSAGES_TOKENS` tokens (default 2,000, about 4,400
-characters) is replaced, through `updatedToolOutput`, by about `SANCHOPANZA_PASSAGES_FRACTION`
-of it (default 0.25; the second arm 0.10): the blocks that bear on the agent's current step, every
-failure line of a test log, original line numbers in the markers. The whole text goes to the
-archive (`.sanchopanza/archive/<session>/passages-<tool_use_id>.txt`) and a one-line header says
-where it is and how to get the rest back. Nothing already in the context changes, so no cached
-prefix is touched. Built on `browse_hook` (its `_persisted`, `browse_goal`, reply shape and
-session ceiling) and `autopilot` (text field, archive root, ledger), not beside them.
+`PostToolUse`: a shell output or a `Read` past `SANCHOPANZA_PASSAGES_TOKENS` tokens (default
+2,000, about 4,400 characters) is replaced, through `updatedToolOutput`, by about
+`SANCHOPANZA_PASSAGES_FRACTION` of it (default 0.25; the second arm 0.10): the blocks that bear
+on the agent's current step and every failure line of a test, lint, type-check or build log.
+The whole text goes to the archive (`.sanchopanza/archive/<session>/passages-<id>.txt`, entries
+older than 7 days pruned) and a header says where it is and how to get the rest back. Nothing
+already in the context changes, so no cached prefix is touched. Built on `browse_hook`
+(`_persisted`, `browse_goal`, reply shape, session ceiling) and `autopilot` (text field, archive
+root, ledger), not beside them.
 
-What it is for (the goal): `browse_goal` over the transcript (the request, the latest one if it
-changed, the agent's last words before the call) and the call itself (a Bash `description` and
-its command, a Read's path). A subagent's call reads the subagent's own transcript
-(`<session>/subagents/agent-<id>.jsonl`), so its goal is its task, not the parent's.
+A cut `Read` keeps Read's own shape and every line where it was. Seen in the pinned Claude Code
+2.1.287 (`grep -a` on its binary): a rewrite is checked with the tool's `outputSchema.safeParse`
+(for a text Read: `file` with `filePath`, `content`, `numLines`, `startLine`, `totalLines` and an
+optional `truncatedByTokenCap`) and then drawn by `mapToolResultToToolResultBlockParam`, which
+numbers `content` from `startLine` straight through; `numLines` and `totalLines` are only read
+when `content` is empty. So omitted lines become empty lines (`passages.render_in_place`), the
+numbers beside kept lines stay the file's, `numLines` stays the count returned, and the header
+goes on the last omitted line, never first. It says the view is partial: `passages_guard`
+denies a `Write` from it until the rest has been read.
 
-What is never cut, journaled as `acted: false` with the reason when it is past the threshold:
+The goal: `browse_goal` over the transcript (the request, the latest one if it changed, the
+agent's last words) and the call (a Bash `description` and command, a Read's path). A subagent's
+call reads the subagent's own transcript (`<session>/subagents/agent-<id>.jsonl`).
 
-- a `Read` the agent narrowed (offset or limit): it already chose;
-- a `Read` or command on the archive or on Claude Code's own `tool-results` folder: recovery;
-- `git diff`, `git show`, `git log -p`, `diff -u`: a patch is applied or reviewed whole;
-- a file the agent edited in this context, or one its last words say it will edit (an edit verb
-  and the file's name): it will need the literal text around its change;
-- a whole re-request of a recent cut (`passages_state`): cutting it again is the loop that made
-  rtk-style compression cost 7.6 % more;
-- a browser snapshot printed on stdout: that is `browse_hook`'s;
-- a cut that saves under 20 %, and a decider that gave no answer at all.
+What is never cut is in `passages_gates` (narrowed Reads, recovery, diffs, snapshots, files
+edited or about to be), plus a whole re-request of a recent cut (`passages_state`), a cut that
+saves under 20 %, and a decider that answered nothing or missed `DECIDE_TIMEOUT_S`. Each is
+journaled as `acted: false` with the reason when the output is past the threshold.
 
 Ranking: with a provider, the paragraph tournament (`Squire.triage_many`, the first stage of
-`select_passages`: 96.5 % of evidence at 3.1 % of the text); its sentence stage is not used,
-since a sentence splitter means nothing in code or a log. With no provider, or past
-`SANCHOPANZA_SESSION_MAX_USD` (shared with the other hooks), BM25 (free). A provider that
-answers nothing passes the output whole: falling back to BM25 there would measure another arm.
+`select_passages`); with none, or past `SANCHOPANZA_SESSION_MAX_USD` or with a ledger that cannot
+be read, BM25 (free). A provider that answers nothing passes the output whole: falling back to
+BM25 there would measure another arm.
 
 A `Bash` output past 30,000 characters is one Claude Code saved to a file; it shows the model
 2,000 characters of whatever the hook returns. There the whole output is ranked, the cut goes
 to a file of its own, and the reply is a preview: header, failure lines first, ranked lines.
 
-Each decision is a `passages` journal event: tool, kind, `chars_in`, `chars_out` (the cut),
-`injected_chars` (what reached the model, header included), `acted`, `reason`, `ranked_by`.
-A later call that asks again is `passages_rerequest` (`passages_state`). Fail open everywhere.
-
-Not measured yet. Opt-in: `sanchopanza install --passages [--passages-fraction 0.10]`.
+Journal: a `passages` event per decision (tool, kind, `chars_in`, `chars_out`, `injected_chars`,
+`acted`, `reason`, `ranked_by`) and `passages_rerequest` for a later call that asks again.
+Fail open everywhere. Not measured yet. Opt-in: `sanchopanza install --passages`.
 """
 
 from __future__ import annotations
 
 import json
-import re
 import sys
+import time
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -56,29 +56,23 @@ from typing import Any
 from .. import _env
 from ..context import passages as ps
 from . import autopilot, browse_hook
+from . import passages_gates as gates
 from . import passages_state as state_mod
+from .passages_guard import pre_tool_use as pre_tool_use
 
 SHELL_TOOLS = state_mod.SHELL_TOOLS
 TOOLS = SHELL_TOOLS | {"Read"}
 REREQUEST_WINDOW = state_mod.WINDOW
 CALL_LIMIT = 160
 QUERY_STEP = 1_000
-DIFF = re.compile(
-    r"\bgit\s+(?:-\S+\s+)*(?:diff|show|format-patch|stash\s+show)\b|\bgit\b.*\blog\b.*\s-p\b"
-    r"|\bdiff\s+-\w*u|\binterdiff\b"
-)
-EDIT_TOOLS = frozenset({"Edit", "Write", "MultiEdit", "NotebookEdit"})
-WILL_EDIT = re.compile(
-    r"\b(?:edit|fix|chang|modif|updat|patch|rewrit|refactor|replac|implement|editar|cambi"
-    r"|arregl|corrig|toc)\w*",
-    re.I,
-)
+DECIDE_TIMEOUT_S = 15.0
+ARCHIVE_DAYS = 7
 READ_HEADER = (
     "[sanchopanza cut this Read on arrival to what bears on the current step: {kept} of {total} "
-    "chars. Each marker gives the file's own line numbers for what it left out (the numbers "
-    "beside the kept lines count only the lines shown). For omitted lines, Read {path} with "
-    "offset and limit (a plain Read of it again answers that it is unchanged); the whole text "
-    "is also in {archive}.]\n"
+    "chars; partial view: do not rewrite this file with Write from here; read the rest first. "
+    "Every line is in its place: an empty line may be one left out, and each marker names the "
+    "lines it stands for and the Read (offset and limit) that shows them (a plain Read of the "
+    "file again answers that it is unchanged). The whole text: {archive}.]"
 )
 SHELL_HEADER = (
     "[sanchopanza cut this output on arrival to what bears on the current step: {kept} of "
@@ -135,79 +129,27 @@ def _text(tool: str, response: Any) -> tuple[tuple, str] | None:
     return found if path and path[-1] == "stdout" else None
 
 
-def _under(target: str, folder: Path) -> bool:
-    try:
-        return Path(target).resolve().is_relative_to(folder.resolve())
-    except (OSError, ValueError):
-        return False
+def subagent_transcript(event: Mapping[str, Any]) -> Path | None:
+    """`<session>/subagents/agent-<id>.jsonl`, the id made a safe file name first."""
+    from ..context.archive import safe_name
 
-
-def _recovery_folders(event: Mapping[str, Any], root: Path) -> list[Path]:
-    transcript = str(event.get("transcript_path") or "")
-    saved = [Path(transcript).with_suffix("") / "tool-results"] if transcript else []
-    return [root, *saved]
-
-
-def _why_not(event: Mapping[str, Any], tool: str, text: str, root: Path) -> str | None:
-    """Why a large result passes whole, before the transcript is read; None to go on."""
-    tool_input = _input(event)
-    folders = _recovery_folders(event, root)
-    if tool == "Read":
-        if any(tool_input.get(k) not in (None, "") for k in ("offset", "limit")):
-            return "a Read the agent narrowed (offset or limit)"
-        if any(_under(str(tool_input.get("file_path") or ""), f) for f in folders):
-            return "a Read of archived output: recovery"
+    agent, transcript = str(event.get("agent_id") or ""), str(event.get("transcript_path") or "")
+    if not agent or not transcript:
         return None
-    command = str(tool_input.get("command") or "")
-    if any(str(f) in command or str(f).replace("\\", "/") in command for f in folders):
-        return "a command on archived output: recovery"
-    if DIFF.search(command):
-        return "a diff: applied or reviewed whole"
-    from ..browse import snapshot_block
-
-    if snapshot_block(text) is not None:
-        return "a browser snapshot: the browse hook's"
-    return None
+    return Path(transcript).with_suffix("") / "subagents" / f"agent-{safe_name(agent)}.jsonl"
 
 
 def _messages(event: Mapping[str, Any]) -> list[dict[str, Any]]:
     """The conversation the call belongs to: a subagent's own transcript when it is one."""
     from ..context.transcript import messages_from_claude_code
 
-    agent, transcript = str(event.get("agent_id") or ""), str(event.get("transcript_path") or "")
-    if agent and transcript:
-        own = Path(transcript).with_suffix("") / "subagents" / f"agent-{agent}.jsonl"
-        try:
-            if own.is_file():
-                return messages_from_claude_code(own, sidechain=True)
-        except (OSError, ValueError):
-            pass
+    own = subagent_transcript(event)
+    try:
+        if own is not None and own.is_file():
+            return messages_from_claude_code(own, sidechain=True)
+    except (OSError, ValueError):
+        pass
     return autopilot._messages(event)
-
-
-def _last_words(messages: Sequence[Mapping[str, Any]]) -> str:
-    from ..context.transcript import message_text
-
-    return next((message_text(m) for m in reversed(messages)
-                 if m.get("role") == "assistant" and message_text(m)), "")  # fmt: skip
-
-
-def _edits(messages: Sequence[Mapping[str, Any]], tool: str, tool_input: Mapping[str, Any]) -> str:
-    """Why a Read passes because the agent edited, or says it will edit, the file; else ""."""
-    from ..context.transcript import calls
-
-    if tool != "Read":
-        return ""
-    target = state_mod.path_key(str(tool_input.get("file_path") or ""))
-    for call in calls(messages):
-        raw = call.input.get("file_path") or call.input.get("notebook_path")
-        if call.tool in EDIT_TOOLS and raw and state_mod.path_key(str(raw)) == target:
-            return "a file the agent edited in this context"
-    name = Path(str(tool_input.get("file_path") or "")).name.lower()
-    words = _last_words(messages)
-    if name and name in words.lower() and WILL_EDIT.search(words):
-        return "a file the agent says it will edit"
-    return ""
 
 
 def _call(tool: str, tool_input: Mapping[str, Any]) -> str:
@@ -227,29 +169,35 @@ def goal(messages: Sequence[Mapping[str, Any]], tool: str,
     room = browse_hook.GOAL_LIMIT - len(call) - len("\nThis call: ")
     purpose = "\n".join(p for p in (truncate(base, max(40, room)) if base else "",
                                     f"This call: {call}") if p)  # fmt: skip
-    step = truncate(_last_words(messages), QUERY_STEP)
+    step = truncate(gates.last_words(messages), QUERY_STEP)
     pattern = str(tool_input.get("pattern") or "")
     return purpose, " ".join(p for p in (purpose, step, pattern) if p)
 
 
 async def _order(text: str, lay: ps.Layout, purpose: str, query: str, squire: Any,
-                 *, over: bool, label: str) -> tuple[list[int] | None, str]:  # fmt: skip
-    """Units best first and who ranked them; None when the decider answered nothing."""
-    if squire.provider == "null":
-        return ps.bm25_order(text, lay, query), "bm25"
-    if over:
-        return ps.bm25_order(text, lay, query), "bm25 (session ceiling)"
+                 *, over: bool, label: str) -> tuple[list[int] | None, str, str]:  # fmt: skip
+    """(units best first or None, who ranked them, why there is no order)."""
+    import asyncio
+
     from ..redact import redact_secrets
 
+    if squire.provider == "null":
+        return ps.bm25_order(text, lay, query), "bm25", ""
+    if over:
+        return ps.bm25_order(text, lay, query), "bm25 (session ceiling)", ""
     pages = []
     for unit, (a, b) in enumerate(lay.units):
         lines = f"lines {lay.atoms[a].first_line}-{lay.atoms[b - 1].last_line}"
         pages.append((f"{label} {lines}", redact_secrets(ps.unit_text(text, lay, unit))))
-    verdicts = await squire.triage_many(purpose=purpose, pages=pages)
+    try:
+        verdicts = await asyncio.wait_for(squire.triage_many(purpose=purpose, pages=pages),
+                                          DECIDE_TIMEOUT_S)  # fmt: skip
+    except TimeoutError:
+        return None, squire.provider, f"the decider missed its {DECIDE_TIMEOUT_S:g} s deadline"
     probabilities = [p for _, p in verdicts]
     if all(p is None for p in probabilities):
-        return None, squire.provider
-    return ps.probability_order(probabilities), squire.provider
+        return None, squire.provider, "the decider gave no answer: passed whole"
+    return ps.probability_order(probabilities), squire.provider, ""
 
 
 def _record(squire: Any, tool: str, event: Mapping[str, Any], **data: Any) -> None:
@@ -265,14 +213,24 @@ def _passed(squire: Any, tool: str, event: Mapping[str, Any], text: str, reason:
     return {}
 
 
-def _watch(squire: Any, root: Path, session: str, tool: str, tool_input: Mapping[str, Any],
-           use_id: str) -> tuple[dict[str, Any], bool]:  # fmt: skip
-    """Count this call toward the window of recent cuts and journal any re-request; (the state,
-    whether this call asks again for a whole cut)."""
+def _watch(squire: Any, root: Path, session: str, event: Mapping[str, Any],
+           text: str) -> tuple[dict[str, Any], bool]:  # fmt: skip
+    """Count this call toward the window of recent cuts, journal any re-request, and note what
+    a `Read` showed of a file seen cut; (the state, whether this call asks again for a cut)."""
+    tool, tool_input = str(event.get("tool_name", "")), _input(event)
+    use_id = str(event.get("tool_use_id") or tool)
     before = state_mod.read(root, session)
-    state, again, whole_again = state_mod.note_call(before, tool, tool_input, use_id)
+    sha = state_mod.digest(text) if text else ""
+    state, again, whole_again = state_mod.note_call(before, tool, tool_input, use_id, sha)
     for item in again:
         squire.journal.record("passages_rerequest", item)
+    response = event.get("tool_response")
+    file = response.get("file") if isinstance(response, Mapping) else None
+    if tool == "Read" and isinstance(file, Mapping) and isinstance(file.get("startLine"), int):
+        first = int(file["startLine"])
+        shown = len(str(file.get("content") or "").splitlines())
+        state = state_mod.see(state, str(tool_input.get("file_path") or ""), first,
+                              first + shown - 1)  # fmt: skip
     if state != before:
         state_mod.write(root, session, state)
     return state, whole_again
@@ -286,83 +244,113 @@ async def post_tool_use(event: Mapping[str, Any], squire: Any) -> dict[str, Any]
     tool_input, response = _input(event), event.get("tool_response")
     config = autopilot.config_from_env()
     root, session = autopilot._root(event, config), autopilot._session(event)
-    use_id = str(event.get("tool_use_id") or tool)
-    state, whole_again = _watch(squire, root, session, tool, tool_input, use_id)
     found = _text(tool, response)
-    if found is None:
-        return {}
-    path, text = found
     persisted, whole = browse_hook._persisted(response, event)
-    if persisted:
-        if whole is None:
-            return {}  # only a prefix: never rank or archive a fragment
-        text = whole
+    text = whole if persisted and whole is not None else found[1] if found else ""
+    state, whole_again = _watch(squire, root, session, event, text)
+    if found is None or (persisted and whole is None):
+        return {}  # nothing to cut, or only a prefix: never rank or archive a fragment
     settings = settings_from_env()
     if len(text) < settings.threshold_chars:
         return {}
-    why = "a whole re-request of a recent cut" if whole_again else _why_not(event, tool, text, root)
+    why = "a whole re-request of a recent cut" if whole_again else gates.why_not(
+        event, tool, text, root)  # fmt: skip
     if why:
         return _passed(squire, tool, event, text, why, persisted=persisted)
     messages = _messages(event)
-    why = _edits(messages, tool, tool_input)
+    why = gates.edits(messages, tool, tool_input, str(event.get("cwd") or ""))
     if why:
         return _passed(squire, tool, event, text, why, persisted=persisted)
     kind = ps.kind_of(tool, tool_input, text)
-    purpose, query = goal(messages, tool, tool_input)
     lay = ps.layout(text, kind, ps.budget_for(text, settings))
     if len(lay.units) < 2:
         return _passed(squire, tool, event, text, "one block", persisted=persisted, kind=kind)
     ledger = autopilot.read_ledger(root, session)
-    order, ranked_by = await _order(text, lay, purpose, query, squire,
-                                    over=autopilot._over_ceiling(ledger, config),
-                                    label=_call(tool, tool_input)[:80])  # fmt: skip
+    order, ranked_by, why = await _order(text, lay, *goal(messages, tool, tool_input), squire,
+                                         over=autopilot._over_ceiling(ledger, config),
+                                         label=_call(tool, tool_input)[:80])  # fmt: skip
     if squire.meter.decisions:
         try:
             autopilot.write_ledger(root, session, autopilot._charged(ledger, squire))
         except OSError:
             say("could not write the session ledger")
     if order is None:
-        return _passed(squire, tool, event, text, "the decider gave no answer: passed whole",
-                       persisted=persisted, kind=kind)  # fmt: skip
-    cut = ps.cut_ordered(text, lay, order, settings)
+        return _passed(squire, tool, event, text, why, persisted=persisted, kind=kind)
+    cut = ps.cut_ordered(text, lay, order, settings, in_place=tool == "Read")
     if cut.text is None:
         return _passed(squire, tool, event, text, cut.reason, persisted=persisted, kind=kind)
-    new_text, saved = _write(event, tool, root, session, text, cut.text, lay, order, persisted)
-    state_mod.write(root, session, state_mod.remember(state, {
-        "id": use_id, "tool": tool, "key": state_mod.call_key(tool, tool_input),
-        "archive": str(saved)}))  # fmt: skip
+    new_text, saved = _write(event, tool, root, session, text, cut, lay, order, persisted)
+    _remember(root, session, state, event, text, cut, lay, saved)
     _record(squire, tool, event, kind=kind, acted=True, reason=cut.reason, ranked_by=ranked_by,
             fraction=settings.fraction, tokens=settings.tokens, persisted=persisted,
             chars_in=len(text), chars_out=len(cut.text), injected_chars=len(new_text),
-            **{k: cut.report[k] for k in ("units", "kept_units", "must_lines")})  # fmt: skip
-    updated = autopilot.replaced(response, path, new_text)
+            **{k: cut.report[k] for k in ("units", "kept_units", "must_lines", "rendered_in",
+                                          "rendered_out")})  # fmt: skip
+    updated = autopilot.replaced(response, found[0], new_text)
+    if tool == "Read":  # numLines: the lines returned, the same count as the file's
+        updated = autopilot.replaced(updated, ("file", "numLines"), len(new_text.splitlines()))
     return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "updatedToolOutput": updated}}
 
 
-def _write(event: Mapping[str, Any], tool: str, root: Path, session: str, text: str, cut: str,
-           lay: ps.Layout, order: Sequence[int], persisted: bool) -> tuple[str, Path]:  # fmt: skip
+def _remember(root: Path, session: str, state: Mapping[str, Any], event: Mapping[str, Any],
+              text: str, cut: ps.Cut, lay: ps.Layout, saved: Path) -> None:  # fmt: skip
+    """Record the cut for re-requests, and a file shown cut as a partial view."""
+    tool, tool_input = str(event.get("tool_name", "")), _input(event)
+    entry = {"id": str(event.get("tool_use_id") or tool), "tool": tool, "archive": str(saved),
+             "key": state_mod.call_key(tool, tool_input), "sha": state_mod.digest(text)}
+    state = state_mod.remember(state, entry)
+    path = str(tool_input.get("file_path") or "") if tool == "Read" else gates.printed_file(
+        str(tool_input.get("command") or ""), str(event.get("cwd") or ""))  # fmt: skip
+    if path:
+        total = len(text.splitlines())
+        gaps = [(a + 1, b + 1) for a, b in ps.omitted_runs(text, lay, cut.kept)]
+        seen, cursor = [], 1
+        for a, b in gaps:
+            seen += [(cursor, a - 1)] if a > cursor else []
+            cursor = b + 1
+        seen += [(cursor, total)] if cursor <= total else []
+        state = state_mod.mark_partial(state, path, total, seen)
+    state_mod.write(root, session, state)
+
+
+def _prune(root: Path) -> None:
+    """Our archive entries older than `ARCHIVE_DAYS`, in every session folder, removed."""
+    limit = time.time() - ARCHIVE_DAYS * 86_400
+    for path in root.glob("*/passages-*"):
+        try:
+            if path.stat().st_mtime < limit:
+                path.unlink()
+        except OSError:
+            continue
+
+
+def _write(event: Mapping[str, Any], tool: str, root: Path, session: str, text: str,
+           cut: ps.Cut, lay: ps.Layout, order: Sequence[int],
+           persisted: bool) -> tuple[str, Path]:  # fmt: skip
     """Archive the whole text (and, for a saved output, the cut); the text the agent gets."""
     from ..context import archive as archive_mod
+    from ..redact import redact_secrets
 
+    _prune(root)
     folder = archive_mod.session_dir(root, session)
     name = f"passages-{event.get('tool_use_id') or tool}"
-    meta = {"tool": tool, "about": _call(tool, _input(event))[:160], "by": "passages"}
+    about = redact_secrets(_call(tool, _input(event)))[:160]
+    meta = {"tool": tool, "about": about, "by": "passages"}
     saved = archive_mod.write_entry(folder, name, text, meta)
+    body = cut.text or ""
+    if tool == "Read":
+        header = READ_HEADER.format(kept=len(body), total=len(text), archive=saved)
+        return ps.render_in_place(text, lay, cut.kept, header=header), saved
     if not persisted:
-        if tool == "Read":
-            header = READ_HEADER.format(kept=len(cut), total=len(text), archive=saved,
-                                        path=_input(event).get("file_path") or "")  # fmt: skip
-        else:
-            header = SHELL_HEADER.format(kept=len(cut), total=len(text), archive=saved)
-        return header + cut, saved
-    cut_file = archive_mod.write_entry(folder, f"{name}-cut", cut, {**meta, "about": "cut"})
-    header = PREVIEW_HEADER.format(total=len(text), kept=len(cut), cut=cut_file, archive=saved)
+        return SHELL_HEADER.format(kept=len(body), total=len(text), archive=saved) + body, saved
+    cut_file = archive_mod.write_entry(folder, f"{name}-cut", body, {**meta, "about": "cut"})
+    header = PREVIEW_HEADER.format(total=len(text), kept=len(body), cut=cut_file, archive=saved)
     return header + ps.fit(text, lay, order, browse_hook.PREVIEW_CHARS - len(header)), saved
 
 
 def wants(event: Mapping[str, Any]) -> bool:
-    """Pure and cheap, before asyncio or a squire: can this call be cut, or count toward the
-    re-request window of a cut made earlier in the session?"""
+    """Pure and cheap, before asyncio or a squire: can this call be cut, count toward the
+    re-request window of a recent cut, or show part of a file seen cut?"""
     tool = str(event.get("tool_name", ""))
     if tool not in TOOLS:
         return False
@@ -373,7 +361,11 @@ def wants(event: Mapping[str, Any]) -> bool:
     if found is not None and len(found[1]) >= settings_from_env().threshold_chars:
         return True
     root = autopilot._root(event, autopilot.config_from_env())
-    return bool(state_mod.read(root, autopilot._session(event)).get("cuts"))
+    state = state_mod.read(root, autopilot._session(event))
+    if state_mod.watching(state):
+        return True
+    target = str(_input(event).get("file_path") or "")
+    return tool == "Read" and bool(target) and bool(state_mod.unseen(state, target))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -383,16 +375,17 @@ def main(argv: list[str] | None = None) -> int:
         event = json.loads(raw) if raw.strip() else {}
     except json.JSONDecodeError:
         return 0
-    if not isinstance(event, dict) or event.get("hook_event_name") != "PostToolUse":
-        return 0
+    kind = event.get("hook_event_name") if isinstance(event, dict) else None
+    output: dict[str, Any] = {}
     try:
-        if not wants(event):
-            return 0
-        import asyncio
+        if kind == "PreToolUse":
+            output = pre_tool_use(event)
+        elif kind == "PostToolUse" and wants(event):
+            import asyncio
 
-        from .claude_code import squire_from_env
+            from .claude_code import squire_from_env
 
-        output = asyncio.run(post_tool_use(event, squire_from_env(redact=True)))
+            output = asyncio.run(post_tool_use(event, squire_from_env(redact=True)))
     except Exception as error:  # noqa: BLE001 - fail open at the process boundary, never silently
         say(f"passed through unchanged ({error.__class__.__name__}: {error})")
         return 0

@@ -112,7 +112,10 @@ async def test_a_large_read_of_python_keeps_line_numbers_and_the_function(tmp_pa
     out = await ph.post_tool_use(_read(tmp_path, transcript, target, source), _squire())
     content = out["hookSpecificOutput"]["updatedToolOutput"]["file"]["content"]
     assert "def parse_config(path):" in content and "def helper_70(" not in content
-    check_line_numbers(source, HEADER.sub("", content, count=1))
+    shown, original = content.splitlines(), source.splitlines()
+    assert len(shown) == len(original), "lines left out become blank: the numbering holds"
+    assert all(not x or x.startswith("[sanchopanza") or x == original[i]
+               for i, x in enumerate(shown))  # fmt: skip
     assert "offset" in content and "limit" in content, "how to get the omitted lines back"
     assert "unchanged" in content, "a plain Read again answers that the file is unchanged"
 
