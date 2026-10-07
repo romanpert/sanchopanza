@@ -206,3 +206,14 @@ subscription) under the 230 ceiling (owner raised Opus to 75 a chain twice the s
 - Incidents: the runner died once on a Docker race (`docker rm` on a container already being
   removed, after call 51 of Sonnet's conan; fixed in 4849111, resumed); call 51 was charged its
   4.50 cap (real 0.89), which ended that chain one request early.
+
+## Give-ups: the raw count is not the measure (2026-10-07, indagis-e8 and indagis-6c)
+
+`long_report.give_ups` counts a bug call that changed no code outside `changes/`, or whose answer
+says it could not fix the bug. That also takes a bug an earlier bug's fix already fixed ("no
+further change was needed, see bug 5"): 3 of 7 in the gate's Sonnet pydantic N, 3 of 6 in its
+second run, 3 of 4 in pilot A. From now on the measure is the **unresolved give-up** (given up
+AND left unresolved by the grade), with its context: `give_ups(..., grade)` returns `unresolved`,
+`unresolved_at_or_past_150k` and `unresolved_contexts`, `report.json` carries them and the grade
+line prints them. The raw count is still published beside it. Decided before any quality result
+of N-early was seen (its cost and context had been watched live).

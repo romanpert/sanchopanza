@@ -106,7 +106,8 @@ def grade_all(layout: Any, names: list[str], known: Mapping[str, Any], models: l
                 quits = line["give_ups"]
                 print(name, model, arm, g["resolved"], "of", g["bugs_total"], "resolved;",
                       quits["give_ups"], "gave up,", quits[f"at_or_past_{GIVE_UP_AT // 1000}k"],
-                      f"at or past {GIVE_UP_AT // 1000}k;", f"{line['owner_usd']:.2f} USD",
+                      f"at or past {GIVE_UP_AT // 1000}k;", quits.get("unresolved", "?"),
+                      "of them unresolved;", f"{line['owner_usd']:.2f} USD",
                       *passages_words(line), flush=True)  # fmt: skip
                 report[f"{name}/{runner.MODELS.get(model, model)}/{arm}"] = line
     gate = {m: gate_verdict([r for k, r in report.items() if k.split("/")[1:] ==
@@ -169,7 +170,7 @@ def gate_row(evidence: Path, grade: Mapping[str, Any] | None) -> dict[str, Any]:
               "window": window_ok if found else None,
               "f2p_rate": (low <= rate <= high) if rate is not None else None}  # fmt: skip
     verdict = None if None in checks.values() else all(checks.values())
-    quits = {k: v for k, v in give_ups(evidence, row).items() if k != "items"}
+    quits = {k: v for k, v in give_ups(evidence, row, grade).items() if k != "items"}
     return {"run": row.get("run"), "arm": row.get("arm"), "peak": peak, "requests": len(found),
             "owner_usd": round(cost, 4), "share_over_200k": round(over / cost, 3) if cost else None,
             "compactions": len(compactions(row)), "window": window, "f2p_rate": rate,
@@ -354,10 +355,16 @@ def code_part(patch: str) -> str:
     return "".join(b for b in blocks if not re.match(r"diff --git a/changes/", b))
 
 
-def give_ups(evidence: Path, row: Mapping[str, Any]) -> dict[str, Any]:
+def give_ups(evidence: Path, row: Mapping[str, Any],
+             grade: Mapping[str, Any] | None = None) -> dict[str, Any]:  # fmt: skip
     """Bug requests the agent gave up on, counted apart from wrong fixes: the call ran and changed
     no code outside `changes/`, or its final answer says it could not fix or find the bug. With
-    the context the call reached, and how many came at or past `GIVE_UP_AT`."""
+    the context the call reached, and how many came at or past `GIVE_UP_AT`.
+
+    The raw count also takes a bug an earlier bug's fix already fixed ("no further change was
+    needed": 3 of 7 in the gate's Sonnet pydantic N; indagis-e8, 2026-10-07). With the arm's
+    `grade`, each item says whether its bug ends resolved, and `unresolved` counts the give-ups
+    that are real: given up AND left unresolved, with their contexts. The raw count stays."""
     items = []
     for call in row.get("calls", []):
         if call.get("kind") != "bug" or call.get("status") != "ran" or call.get("superseded"):
@@ -372,8 +379,15 @@ def give_ups(evidence: Path, row: Mapping[str, Any]) -> dict[str, Any]:
                           "context": int(call.get("peak_context") or 0),
                           "no_code_change": unchanged, "said_so": said})  # fmt: skip
     contexts = [i["context"] for i in items]
-    return {"give_ups": len(items), "no_code_change": sum(i["no_code_change"] for i in items),
-            "said_so": sum(i["said_so"] for i in items),
-            f"at_or_past_{GIVE_UP_AT // 1000}k": sum(c >= GIVE_UP_AT for c in contexts),
-            "median_context": statistics.median(contexts) if contexts else None,
-            "items": items}  # fmt: skip
+    raw = {"give_ups": len(items), "no_code_change": sum(i["no_code_change"] for i in items),
+           "said_so": sum(i["said_so"] for i in items),
+           f"at_or_past_{GIVE_UP_AT // 1000}k": sum(c >= GIVE_UP_AT for c in contexts),
+           "median_context": statistics.median(contexts) if contexts else None}  # fmt: skip
+    if grade is None:
+        return {**raw, "items": items}
+    resolved = {b.get("instance_id"): bool(b.get("resolved")) for b in grade.get("bugs", [])}
+    marked = [{**i, "resolved": resolved.get(i["instance_id"], False)} for i in items]
+    real = [i["context"] for i in marked if not i["resolved"]]
+    return {**raw, "unresolved": len(real),
+            f"unresolved_at_or_past_{GIVE_UP_AT // 1000}k": sum(c >= GIVE_UP_AT for c in real),
+            "unresolved_contexts": real, "items": marked}  # fmt: skip

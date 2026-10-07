@@ -187,6 +187,16 @@ def test_give_ups_are_counted_apart_with_their_context(
     assert found["no_code_change"] == 1 and found["said_so"] == 1
     assert found["at_or_past_150k"] == 1 and found["median_context"] == 125_000
     assert m.long_report.code_part(_patch({"changes/1.md": "Ref", "x.py": "1"})).count("x.py") == 2
+    # With the grade: a give-up whose bug ends resolved (fixed under an earlier bug) is no give-up
+    # at all (indagis-e8, 2026-10-07); `unresolved` counts only those the grade left unresolved.
+    calls_ids = [{**c, "instance_id": f"b{c['request']}"} for c in calls]
+    grade = {"bugs": [{"instance_id": "b2", "resolved": True},
+                      {"instance_id": "b4", "resolved": False}]}  # fmt: skip
+    graded = m.long_report.give_ups(tmp_path, {"calls": calls_ids}, grade)
+    assert graded["give_ups"] == 2 and graded["unresolved"] == 1
+    assert graded["unresolved_at_or_past_150k"] == 0 and graded["unresolved_contexts"] == [90_000]
+    assert [i["resolved"] for i in graded["items"]] == [True, False]
+    assert "unresolved" not in m.long_report.give_ups(tmp_path, {"calls": calls_ids})
 
 
 # ---- manifests, the seal, the preflight, the agents' environment --------------------------------
