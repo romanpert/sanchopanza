@@ -111,7 +111,8 @@ import os
 import re
 import shutil
 import tempfile
-from collections.abc import Mapping
+import time
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -155,6 +156,10 @@ MARKETPLACE = "sanchopanza-local"
 PLUGIN_KEY = f"{PLUGIN}@{MARKETPLACE}"
 FUNCTION_HOOKS = "CLAUDE_CODE_ENABLE_FUNCTION_HOOKS"
 HOOK_MODULE = "compact_hook.ts"
+# A busy file (Windows): tries of `os.replace` / `os.unlink`, and the first wait, which grows
+# by itself each try (0.1 + 0.2 + ... about 1.5 s in all).
+BUSY_TRIES = 6
+BUSY_WAIT_S = 0.1
 
 COMMAND = "sanchopanza hook"
 MEMORY_COMMAND = "sanchopanza memory-hook"
@@ -742,8 +747,24 @@ def plan(
     return Settings(path, merged, tuple(added), tuple(removed))
 
 
+def _when_free(operation: Callable[[], None]) -> None:
+    """Run `operation`, again after a short wait while it meets a busy file. On Windows a file
+    another process holds open (Claude Code reading its settings, an antivirus scanning the new
+    file) refuses `os.replace` and `os.unlink` with a `PermissionError` for a moment; any other
+    error, or a file still busy after `BUSY_TRIES`, is raised."""
+    for attempt in range(BUSY_TRIES):
+        try:
+            operation()
+            return
+        except PermissionError:
+            if attempt == BUSY_TRIES - 1:
+                raise
+            time.sleep(BUSY_WAIT_S * (attempt + 1))
+
+
 def _atomic_write(path: Path, data: bytes, *, mode_from: Path | None = None) -> None:
-    """Write `data` to `path` through a temporary file in the same directory."""
+    """Write `data` to `path` through a temporary file in the same directory, waiting for a busy
+    file (`_when_free`) rather than leaving the temporary file behind (h2h, 2026-10-06)."""
     handle, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     try:
         with os.fdopen(handle, "wb") as stream:
@@ -753,10 +774,10 @@ def _atomic_write(path: Path, data: bytes, *, mode_from: Path | None = None) -> 
         if mode_from is not None and mode_from.exists():
             with contextlib.suppress(OSError):
                 shutil.copymode(mode_from, temporary)
-        os.replace(temporary, path)
+        _when_free(lambda: os.replace(temporary, path))
     except BaseException:
         with contextlib.suppress(OSError):
-            os.unlink(temporary)
+            _when_free(lambda: os.unlink(temporary))
         raise
 
 
