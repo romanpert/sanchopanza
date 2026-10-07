@@ -3,8 +3,8 @@
 python benchmarks/h2h/compare_lines.py gaia|bcp|longdoc [--lines N S0 S2] [--out x.json]  # free
 
 Lines: N, S0, S1 (2026-10-06) and S2, S2F (2026-10-07: S0 with only the guard, the context
-budget and check-done; S2F adds fetch v3, GAIA only). Default N S0 S1, as first written. Each
-line is paired with N and with S0.
+budget and check-done; S2F adds fetch v3, GAIA only), and NE (N-early, suite bcp-conf). Default
+N S0 S1, as first written. Each line is paired with N and with S0.
 
 Each arm comes from a (phase, arm) pair of the private cache: N is a phase's CC rows, S0 and S1
 the SP rows of the phase that ran that line. Rows marked `invalid` (Jev out of credit, S failed
@@ -38,6 +38,10 @@ SUITES: dict[str, dict[str, tuple[str, str]]] = {
              "S2F": ("gaia/h2h/dev-s2f", "SONNET-SP")},
     "bcp": {"N": ("bcp/h2h/bcp-dev", "SONNET-CC"), "S0": ("bcp/h2h/bcp-dev", "SONNET-SP"),
             "S1": ("bcp/h2h/bcp-dev-s1", "SONNET-SP"), "S2": ("bcp/h2h/bcp-dev-s2", "SONNET-SP")},
+    # N-early (2026-10-07): NE on the conf queries where N's context passed 150k, against the
+    # conf's own N and S0 rows of the same queries.
+    "bcp-conf": {"N": ("bcp/h2h/bcp-conf", "SONNET-CC"), "S0": ("bcp/h2h/bcp-conf", "SONNET-SP"),
+                 "NE": ("bcp/h2h/bcp-ne", "SONNET-NE")},
     "longdoc": {"N": ("longdoc/h2h/longdoc-dev", "SONNET-CC"),
                 "S0": ("longdoc/h2h/longdoc-dev", "SONNET-SP"),
                 "S1": ("longdoc/h2h/longdoc-dev-s1", "SONNET-SP"),
@@ -50,7 +54,7 @@ def rows_of(suite: str, folder: str, arm: str) -> list[dict[str, Any]]:
     rows = [r for r in gaia.read_rows(own / "sessions.jsonl")
             if r.get("arm") == arm and not r.get("invalid")]  # fmt: skip
     hand = gaia.hand_verdicts(own / "hand.jsonl")
-    if suite == "bcp":
+    if suite.startswith("bcp"):
         rows = bcp.with_grades(rows, own / "graded.jsonl")
         return [{**r, "ok_final": bcp.graded_ok(r, hand)} for r in rows]
     return [{**r, "ok_final": bool(hand.get((r["task"], r["arm"], r["run"]), r["ok_oficial"]))}

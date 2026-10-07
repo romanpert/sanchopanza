@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import importlib.util
 import io
+import json
 import os
 import pathlib
 import subprocess
@@ -45,6 +46,8 @@ import sys
 import tarfile
 from collections.abc import Mapping, Sequence
 from typing import Any
+
+from sanchopanza.harness.install_defaults import window_for
 
 TOKEN = "CLAUDE_CODE_OAUTH_TOKEN"
 JEV_KEY = "TYPESAFE_API_KEY"
@@ -54,6 +57,12 @@ SETTING_SOURCES = "user"
 # starts a user folder's first session in `auto` and the later ones in `default` (2026-10-05).
 PERMISSION_MODE = "default"
 SKILL = pathlib.Path("skills") / "sanchopanza-code" / "SKILL.md"
+# N-early (2026-10-07, indagis-6c's Ne of the long bench): a clean N whose user settings hold only
+# the auto-compact window S's install writes for the line's --context-budget (160000 + the
+# install's margin), so NE and S differ by the rest of S alone.
+NE_BUDGET = 160_000
+NE_WINDOW = window_for(NE_BUDGET)
+NE_USER_SETTINGS = {"env": {"CLAUDE_CODE_AUTO_COMPACT_WINDOW": str(NE_WINDOW)}}
 
 
 def _sibling(name: str, file: str) -> Any:
@@ -232,6 +241,9 @@ def prepare_config(brazo: str, config: pathlib.Path, src: pathlib.Path | None,
                    flags: Sequence[str] = (), expected: str | None = None) -> Any:  # fmt: skip
     """An empty user folder for CC (None); the line's install for SP (`s_line.Installed`)."""
     config.mkdir(parents=True, exist_ok=True)
+    if brazo == "NE":
+        (config / "settings.json").write_bytes(json.dumps(NE_USER_SETTINGS).encode("utf-8"))
+        return None
     if brazo != "SP":
         return None
     if src is None:

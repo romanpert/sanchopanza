@@ -1,0 +1,27 @@
+# 26 BCP conf queries where clean N's main context reached 150,000 tokens or more (peak of input + cache read + cache write over its turns), for the N-early dev of 2026-10-07; sorted by id so a ceiling stop cuts no outcome group first. Conf queries: an S2 confirmation on BCP draws new ones.
+8
+71
+128
+132
+235
+250
+253
+309
+357
+490
+513
+544
+561
+633
+674
+794
+827
+847
+875
+915
+922
+987
+1042
+1122
+1152
+1174
