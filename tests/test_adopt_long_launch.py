@@ -107,7 +107,7 @@ def test_gate_launcher_runs_n_on_both_models_records_windows_and_resumes(
     log = _text(root / "launch.log")
     assert "sonnet (claude-sonnet-5-5): 4.50 USD per call (--max-budget-usd at most 3.00" in log
     assert "opus (claude-opus-5-5): 8.00 USD per call (--max-budget-usd at most 3.20" in log
-    assert "caps held 188.00 USD" in log and "ceiling 190.00" in log
+    assert "caps held 226.00 USD" in log and "ceiling 230.00" in log
     assert "expected total" in log and "jev preflight" not in log  # no S arm, no preflight
     pids = json.loads(_text(root / "launch.json"))
     assert pids[0]["launcher"]["pid"] and pids[0]["runner_sonnet"]["pid"]
@@ -209,7 +209,7 @@ def test_the_launchers_are_lf_and_name_the_caps_the_code_holds(
     gate, smoke = long_run.PROFILES["gate"], long_run.PROFILES["smoke"]
     assert gate.arms == ("N",) and gate.chains == GATE and gate.models == ("sonnet", "opus")
     assert dict(gate.call_cap) == {"sonnet": 4.5, "opus": 8.0}
-    assert dict(gate.chain_cap) == {"sonnet": 38.0, "opus": 56.0} and gate.ceiling == 190.0
+    assert dict(gate.chain_cap) == {"sonnet": 38.0, "opus": 75.0} and gate.ceiling == 230.0
     assert smoke.chains == (SMOKE,) and smoke.bugs == 3 and smoke.arms == ("N", "Ne", "S")
     assert shutil.which("cmd.exe")
     for name in set(sys.modules) - before:

@@ -3,7 +3,7 @@ rem Long bench, headroom gate (STATUS-launch.md; HANDOFF-2026-10-06 "Lista de la
 rem Arm N only, clean user: conan-io__conan-long60-1 and pydantic__pydantic-long60-1 on
 rem claude-sonnet-5-5, then on claude-opus-5-5 only if Sonnet exits 0. No S arm: no Jev, no
 rem preflight. Caps (owner USD, in code): Sonnet 4.50 per call (--max-budget-usd 3.00) and 38 per
-rem chain; Opus 8.00 per call (3.20) and 56 per chain; ceiling 190 (2x38 + 2x56 = 188 held).
+rem chain; Opus 8.00 per call (3.20) and 75 per chain; ceiling 230 (2x38 + 2x75 = 226 held).
 rem Every call writes the session's own autocompact line (--debug=autocompact): N's server-set
 rem window per model lands in C:\sp-runs\L\windows.json and the gate table (report.json).
 rem Start it by WMI, outside any Claude Code session, and never twice at once:
