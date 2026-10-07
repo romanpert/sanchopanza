@@ -165,3 +165,25 @@ Ne 0.87, S 0.88; Jev 0.0011).
 Gate: unblocked by the conan manifest; it runs N only, so the callback path is the one part
 not seen live. Waiting on the owner's choice of the Opus chain cap (48 with the long tail cut
 near 35.8, or 56 with the ceiling at 190).
+
+## Gate (headroom), live (2026-10-07, indagis-6c)
+
+Root `C:\sp-runs\L`, arm N only, clean user, Claude Code 2.1.287. Spent **168.57 USD** (list,
+subscription) under the 230 ceiling (owner raised Opus to 75 a chain twice the same day).
+
+| Model | Chain | Resolved | Cost USD | Requests asked | Peak context | Give-ups (at/past 150k) | Gate check |
+|---|---|---|---|---|---|---|---|
+| Sonnet 5.5 | conan-long60-1 | 44 of 60 | 28.45 real (32.06 charged) | 51 of 62 (cap) | 435k | 1 (0) | passes |
+| Sonnet 5.5 | pydantic-long60-1 | 44 of 60 | 23.55 | 62 of 62 | 362k | 7 (6) | pending (window "at least") |
+| Opus 5.5 | conan-long60-1 | 57 of 60 | 61.34 | 59 of 62 (cap) | 452k | 2 (1) | **sin margen** (F2P 0.95) |
+| Opus 5.5 | pydantic-long60-1 | 53 of 60 | 51.63 | 62 of 62 | 416k | 7 (6) | passes |
+
+- **Sonnet leaves room** (27 % unresolved in both chains); **Opus barely does on conan** (5 %), some
+  on pydantic (12 %). Against Opus, S can win on cost there, hardly on success.
+- **The cost model was short**: Sonnet expected 24.97 a chain, conan's whole chain heads to ~41;
+  Opus expected 25.76-42.46, conan took 61.34 for 59 requests.
+- **N never compacted** up to 452k: its window is at least that (the report says "at least").
+- **Give-ups pile up past 150k** (pydantic: 6 of 7 in both models).
+- Incidents: the runner died once on a Docker race (`docker rm` on a container already being
+  removed, after call 51 of Sonnet's conan; fixed in 4849111, resumed); call 51 was charged its
+  4.50 cap (real 0.89), which ended that chain one request early.
