@@ -16,6 +16,14 @@ subdomains) for hosts the tool must never fetch, as WebFetch deny rules do for W
 together) and answers a 404 or a disambiguation page with one line saying to search first;
 version 1 is the default and stays as measured.
 
+`SANCHOPANZA_FETCH_VERSION=3` is version 2 that falls back to WebFetch where it cannot read a page
+(any HTTP error but a 404 or 410, a network error, a PDF or binary page, a page with no text): the
+reply says `FALLBACK` and leaves a mark (`fetch_hook.allow`) so that WebFetch of the same URL runs
+at once instead of being sent back here. It asks as a browser does (`BROWSER_AGENT`). In the GAIA
+confirmation of 2026-10-06, 89 of 231 calls failed and the agent tried WebFetch after 13 of them,
+reading the page in 11. Every version encodes a non-ASCII address (`ascii_url`) instead of failing
+on it with a UnicodeEncodeError.
+
     sanchopanza fetch-mcp                      # stdio server `sanchopanza-fetch`
     claude mcp add --scope user sanchopanza-fetch -- sanchopanza fetch-mcp
 """
@@ -33,6 +41,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from .. import _env, webpage, webpage_v2
+from . import fetch_hook
 
 SERVER = "sanchopanza-fetch"
 TOOL = "fetch_passages"
@@ -50,6 +59,16 @@ CACHE_PAGES = 64
 USER_AGENT = (
     "Mozilla/5.0 (compatible; sanchopanza-fetch/0.3; +https://github.com/romanpert/sanchopanza)"
 )
+# Version 3: as a browser asks. Measured 2026-10-07 on the front pages of ten hosts that refused
+# the tool in the GAIA confirmation: two answered a browser (403 -> 200, 429 -> 200), eight still
+# refused, which is why the fallback, not the agent, carries the version.
+BROWSER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/140.0.0.0 Safari/537.36"
+)
+FALLBACK = "WebFetch this URL: it will run."
+# A guessed address: WebFetch meets the same answer, so version 3 does not send the agent there.
+GUESSED_CODES = frozenset({404, 410})
 _TEXT_TYPES = ("text/plain", "application/json", "text/csv", "application/xml", "text/xml")
 GUESSED = "The address may be a guess: search for the page first."
 DISAMBIGUATION = (
@@ -79,6 +98,26 @@ def _public(ip: str) -> bool:
     mapped = getattr(address, "ipv4_mapped", None)
     address = mapped or address
     return address.is_global and not address.is_multicast
+
+
+def ascii_url(url: str) -> str:
+    """`url` as http.client can send it: the host in IDNA, the rest percent-encoded where it is
+    not ASCII. An address that is ASCII already is returned as it is."""
+    if url.isascii():
+        return url
+    parts = urllib.parse.urlsplit(url)
+    keep = "/%:@!$&'()*+,;=-._~?#[]"
+    netloc = parts.netloc
+    host = parts.hostname or ""
+    if host and not host.isascii():
+        user = netloc.rpartition("@")[0]
+        port = f":{parts.port}" if parts.port else ""
+        netloc = f"{urllib.parse.quote(user, safe=keep) + '@' if user else ''}"
+        netloc += host.encode("idna").decode("ascii") + port
+    rest = (
+        urllib.parse.quote(part, safe=keep) for part in (parts.path, parts.query, parts.fragment)
+    )
+    return urllib.parse.urlunsplit((parts.scheme, urllib.parse.quote(netloc, safe=keep), *rest))
 
 
 def check_url(url: str, env: Mapping[str, str] | None = None) -> None:
@@ -115,9 +154,10 @@ def http_opener(
     opener = urllib.request.build_opener(_CheckedRedirects(env))
 
     def open_url(url: str) -> Response:
+        url = ascii_url(url)
         check_url(url, env)
         request = urllib.request.Request(
-            url, headers={"User-Agent": USER_AGENT, "Accept": "text/html,text/plain,*/*;q=0.5"}
+            url, headers={"User-Agent": user_agent(env), "Accept": "text/html,text/plain,*/*;q=0.5"}
         )
         with opener.open(request, timeout=TIMEOUT_S) as reply:
             body = reply.read(max_bytes + 1)
@@ -127,7 +167,12 @@ def http_opener(
 
 
 def version(env: Mapping[str, str] | None = None) -> int:
-    return 2 if _env.get("FETCH_VERSION", "1", env).strip() == "2" else 1
+    raw = _env.get("FETCH_VERSION", "1", env).strip()
+    return int(raw) if raw in {"2", "3"} else 1
+
+
+def user_agent(env: Mapping[str, str] | None = None) -> str:
+    return BROWSER_AGENT if version(env) >= 3 else USER_AGENT
 
 
 def _page_of(response: Response, cut: int = 1) -> webpage.Page | str:
@@ -138,7 +183,7 @@ def _page_of(response: Response, cut: int = 1) -> webpage.Page | str:
         return f"{response.url} is application/pdf: not read here. WebFetch this URL instead."
     text = webpage.decode(response.body[:MAX_BYTES], response.content_type)
     if "html" in ctype or head.startswith((b"<!doctype html", b"<html")):
-        return (webpage_v2 if cut == 2 else webpage).page_from_html(text)
+        return (webpage_v2 if cut >= 2 else webpage).page_from_html(text)
     if ctype.startswith("text/") or ctype in _TEXT_TYPES or ctype.endswith("+json"):
         return webpage.page_from_text(text)
     return f"{response.url} is {ctype or 'of unknown type'}: not read here. WebFetch it instead."
@@ -166,7 +211,7 @@ class PageFetcher:
         kept = self.pages.get(url)
         if kept and now - kept[0] < CACHE_S:
             return kept[1], kept[2]
-        response = self.opener(url)
+        response = self.opener(ascii_url(url))
         page = self.parse(response)
         fresh = {u: v for u, v in self.pages.items() if now - v[0] < CACHE_S}
         if len(fresh) >= CACHE_PAGES:
@@ -178,27 +223,41 @@ class PageFetcher:
     def load(self, url: str, *, guessed: bool | None = None) -> tuple[str, webpage.Page | str]:
         """(final URL, page), or (url, the reason it was not read) on a refusal or a failure.
         `guessed` adds the 404 line (default: version 2)."""
-        guessed = self.version == 2 if guessed is None else guessed
+        guessed = self.version >= 2 if guessed is None else guessed
         try:
-            check_url(url, self.env)
+            check_url(ascii_url(url), self.env)
             return self._get(url)
         except Refused as error:
             return url, f"Refused: {error}."
         except urllib.error.HTTPError as error:
-            note = f" {GUESSED}" if guessed and error.code == 404 else ""
-            return url, f"Could not fetch {url}: HTTP {error.code}.{note}"
+            if guessed and error.code in (GUESSED_CODES if self.version >= 3 else {404}):
+                return url, f"Could not fetch {url}: HTTP {error.code}. {GUESSED}"
+            return url, self._fallback(url, f"Could not fetch {url}: HTTP {error.code}.")
         except (OSError, ValueError) as error:
-            return url, f"Could not fetch {url}: {error.__class__.__name__}."
+            return url, self._fallback(url, f"Could not fetch {url}: {error.__class__.__name__}.")
+
+    def _fallback(self, url: str, reason: str, *also: str) -> str:
+        """`reason`, and in version 3 the line sending the agent to WebFetch, with the mark that
+        lets that WebFetch run (for `url` and any other address the page answered at)."""
+        if self.version < 3:
+            return reason
+        for address in {url, *also}:
+            fetch_hook.allow(address, self.env)
+        return f"{reason} {FALLBACK}"
 
     def fetch(self, url: str, purpose: str, budget: int = webpage.DEFAULT_BUDGET) -> str:
         budget = max(MIN_BUDGET, min(MAX_BUDGET, int(budget or webpage.DEFAULT_BUDGET)))
         final, page = self.load(url)
         if isinstance(page, str):
+            if self.version >= 3 and " not read here" in page:
+                kind = page.split(" not read here")[0]
+                return self._fallback(url, f"{kind} not read here.", final)
             return page
         named = f"{page.title}\n{final}" if page.title else final
         if not page.chunks:
-            return f"{named}\nNo text on the page (it may need a browser)."
-        if self.version == 2:
+            no_text = f"{named}\nNo text on the page (it may need a browser)."
+            return self._fallback(url, no_text, final)
+        if self.version >= 2:
             out = webpage_v2.passages(page, purpose, budget)
             note = f"{DISAMBIGUATION}\n" if page.disambiguation else ""
             return f"{named}\n{note}{out.header()}\n\n{out.text}"
