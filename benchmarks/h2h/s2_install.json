@@ -1,0 +1,19 @@
+{
+  "sealed": false,
+  "note": "S2 for one-shot web questions and long documents, dev only (2026-10-07, indagis-d6 with indagis-6c, owner OK for code and dev). S0 keeps only the two parts that changed answers in the Sonnet 5.5 confirmations: check-done (GAIA: 2 wrong to right, none harmed) and early compaction (--context-budget, with the guard that puts the request back after it; BCP: 2-3 net pairs). Out, each with no effect on answers in those runs: memory (about 1,000 Jev decisions per suite, nothing reached the model), candor (false locks), crawl (no browser in these suites), fetch (its passages put about 4x the characters of WebFetch's Haiku summary into Sonnet's context: median 2,858 against 693 per page read in GAIA conf), find, find-auto, skill, scan-content (latency on every call), prune (browser only). GUARD_CHOOSER=keep as in S0; on main the guard's block goes out split over 6 SessionStart hooks (guard-split cb0062e), a difference from S0 declared here. A null source and commit give this worktree's HEAD, frozen at the preflight.",
+  "source": null,
+  "commit": null,
+  "flags": [
+    "--guard",
+    "--guard-profile",
+    "coding",
+    "--context-budget",
+    "160000",
+    "--check-done",
+    "--provider",
+    "jev"
+  ],
+  "env": {
+    "SANCHOPANZA_GUARD_CHOOSER": "keep"
+  }
+}

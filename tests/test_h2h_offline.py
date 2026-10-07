@@ -922,3 +922,15 @@ def test_a_leaked_task_leaves_the_paired_analysis_in_both_arms():
     assert out["dropped_for_leak"] == ["a"]
     assert out["paired"]["SONNET"]["tasks"] == 1
     assert out["paired_all_tasks"]["SONNET"]["tasks"] == 2
+
+
+def test_compare_lines_pairs_each_line_with_n_and_s0_and_keeps_the_first_order():
+    cmp = _load("h2h_compare_lines", "benchmarks/h2h/compare_lines.py")
+    assert cmp.pairs(cmp.DEFAULT_LINES) == [("S1", "N"), ("S1", "S0"), ("S0", "N")]
+    assert cmp.pairs(["N", "S0", "S2", "S2F"]) == [
+        ("S2", "N"), ("S2", "S0"), ("S2F", "N"), ("S2F", "S0"), ("S0", "N")]  # fmt: skip
+    assert cmp.pairs(["N", "S2"]) == [("S2", "N")]
+    with pytest.raises(ValueError):
+        cmp.compare("bcp", ["N", "S2F"])  # S2F is a GAIA line only
+    with pytest.raises(ValueError):
+        cmp.compare("gaia", ["S0", "S2"])  # N is always there

@@ -1,0 +1,21 @@
+{
+  "sealed": false,
+  "note": "S2F = S2 (s2_install.json) with fetch v3, GAIA dev only (2026-10-07): the one place S2 is forked, to see whether fetch_passages that falls back to WebFetch where it cannot read a page (e6c04ff) pays back the extra context its passages put into Sonnet's. Unsealed: dev only. A null source and commit give this worktree's HEAD, frozen at the preflight.",
+  "source": null,
+  "commit": null,
+  "flags": [
+    "--guard",
+    "--guard-profile",
+    "coding",
+    "--context-budget",
+    "160000",
+    "--check-done",
+    "--fetch",
+    "--provider",
+    "jev"
+  ],
+  "env": {
+    "SANCHOPANZA_GUARD_CHOOSER": "keep",
+    "SANCHOPANZA_FETCH_VERSION": "3"
+  }
+}
