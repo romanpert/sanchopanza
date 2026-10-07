@@ -1,0 +1,269 @@
+{
+ "suite": "bcp-conf",
+ "lines": [
+  "N",
+  "S0",
+  "NE"
+ ],
+ "tasks": 26,
+ "task_ids": [
+  "1042",
+  "1122",
+  "1152",
+  "1174",
+  "128",
+  "132",
+  "235",
+  "250",
+  "253",
+  "309",
+  "357",
+  "490",
+  "513",
+  "544",
+  "561",
+  "633",
+  "674",
+  "71",
+  "794",
+  "8",
+  "827",
+  "847",
+  "875",
+  "915",
+  "922",
+  "987"
+ ],
+ "by_arm": {
+  "N": {
+   "sessions": 26,
+   "right_official": 4,
+   "right_final": 4,
+   "usd_total": 39.9088,
+   "usd_mean": 1.535,
+   "usd_median": 1.5168,
+   "turns_mean": 27.9,
+   "wall_mean_s": 191.3,
+   "tokens": {
+    "input": 1294,
+    "cache_read": 67005755,
+    "cache_write": 5621446,
+    "output": 438065,
+    "web_searches": 0
+   },
+   "knowledge": {
+    "search": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "read": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "pick": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "web_tools_calls": 0
+   },
+   "jev_calls": 0,
+   "jev_by_point": {},
+   "jev_usd": 0.0,
+   "components": {
+    "calls": {},
+    "outputs": {},
+    "sessions_with_output": {},
+    "returns": {},
+    "turns_after": {},
+    "usd_after": {}
+   },
+   "leak": [],
+   "hit_cap": 0
+  },
+  "S0": {
+   "sessions": 26,
+   "right_official": 6,
+   "right_final": 6,
+   "usd_total": 39.8008,
+   "usd_mean": 1.5308,
+   "usd_median": 1.5141,
+   "turns_mean": 31.5,
+   "wall_mean_s": 224.4,
+   "tokens": {
+    "input": 373339,
+    "cache_read": 44846542,
+    "cache_write": 6258060,
+    "output": 510796,
+    "web_searches": 0
+   },
+   "knowledge": {
+    "search": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "read": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "pick": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "web_tools_calls": 0
+   },
+   "jev_calls": 279,
+   "jev_by_point": {
+    "memory_standing_rule": 279
+   },
+   "jev_usd": 0.009484,
+   "components": {
+    "calls": {
+     "candor-hook": 1636,
+     "crawl-hook": 81,
+     "guard-hook": 56,
+     "hook": 35,
+     "memory-hook": 134
+    },
+    "outputs": {
+     "candor": 1,
+     "crawl": 1,
+     "guard": 24
+    },
+    "sessions_with_output": {
+     "candor": 1,
+     "crawl": 1,
+     "guard": 15
+    },
+    "returns": {},
+    "turns_after": {},
+    "usd_after": {}
+   },
+   "leak": [],
+   "hit_cap": 0
+  },
+  "NE": {
+   "sessions": 26,
+   "right_official": 7,
+   "right_final": 7,
+   "usd_total": 37.9699,
+   "usd_mean": 1.4604,
+   "usd_median": 1.5322,
+   "turns_mean": 32.5,
+   "wall_mean_s": 185.2,
+   "tokens": {
+    "input": 364433,
+    "cache_read": 43027631,
+    "cache_write": 6018972,
+    "output": 461294,
+    "web_searches": 0
+   },
+   "knowledge": {
+    "search": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "read": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "pick": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "web_tools_calls": 0
+   },
+   "jev_calls": 0,
+   "jev_by_point": {},
+   "jev_usd": 0.0,
+   "components": {
+    "calls": {},
+    "outputs": {},
+    "sessions_with_output": {},
+    "returns": {},
+    "turns_after": {},
+    "usd_after": {}
+   },
+   "leak": [],
+   "hit_cap": 0
+  }
+ },
+ "paired": {
+  "NE-N": {
+   "a_only": [
+    "1122",
+    "309",
+    "674",
+    "8",
+    "875",
+    "987"
+   ],
+   "b_only": [
+    "1174",
+    "250",
+    "357"
+   ],
+   "p": 0.5078,
+   "cost": {
+    "mean_diff": -0.0746,
+    "diff_ci95": [
+     -0.3155,
+     0.1693
+    ],
+    "ratio": 0.951,
+    "ratio_ci95": [
+     0.797,
+     1.112
+    ]
+   }
+  },
+  "NE-S0": {
+   "a_only": [
+    "1122",
+    "875",
+    "987"
+   ],
+   "b_only": [
+    "1174",
+    "827"
+   ],
+   "p": 1.0,
+   "cost": {
+    "mean_diff": -0.0704,
+    "diff_ci95": [
+     -0.3257,
+     0.1925
+    ],
+    "ratio": 0.954,
+    "ratio_ci95": [
+     0.803,
+     1.145
+    ]
+   }
+  },
+  "S0-N": {
+   "a_only": [
+    "309",
+    "674",
+    "8",
+    "827"
+   ],
+   "b_only": [
+    "250",
+    "357"
+   ],
+   "p": 0.6875,
+   "cost": {
+    "mean_diff": -0.0042,
+    "diff_ci95": [
+     -0.2841,
+     0.2756
+    ],
+    "ratio": 0.997,
+    "ratio_ci95": [
+     0.817,
+     1.181
+    ]
+   }
+  }
+ }
+}
