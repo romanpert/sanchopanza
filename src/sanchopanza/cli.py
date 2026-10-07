@@ -316,7 +316,8 @@ def _install(args: argparse.Namespace) -> int:
                        autopilot=args.autopilot)  # fmt: skip
         settings = passages.with_passages(settings, on=args.passages,
                                           fraction=args.passages_fraction,
-                                          tokens=args.passages_tokens)  # fmt: skip
+                                          tokens=args.passages_tokens,
+                                          provider=args.provider or "")  # fmt: skip
         files = _install_plugin(args, root)
         skill = skill_change(path, args.skill)
     except (ValueError, OSError) as error:
