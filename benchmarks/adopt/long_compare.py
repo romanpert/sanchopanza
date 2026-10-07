@@ -13,13 +13,17 @@ compactions, give-ups (`long_report.give_ups`, the STATUS-launch definition) wit
 each context band, the unresolved give-ups (a give-up the grade did not resolve: the noise round's
 main measure, since a no-change call on a bug an earlier request already fixed is no give-up),
 how the arm ended, and for the passages arms the cuts and the re-request rates.
-Per pair of arms, on the bugs both ran: discordant resolved bugs (McNemar's exact p, descriptive)
-and discordant give-ups. `stable_flips`: on the bugs where N and N2 agree, how often Ne (or A) says
-otherwise and which way, so what N already changes against itself is set aside.
+Per pair of arms, on the bugs both ran: discordant resolved bugs and discordant give-ups. McNemar's
+p is kept in the JSON and printed as "p_iid": it takes the bugs of a chain as independent, and they
+are not (one bad early trajectory drags several bugs), so it is no evidence: N against N2 on conan,
+the same arm twice, gave p 0.016 (2026-10-07). The unit of replication is the run.
+`stable_flips`: on the bugs where N and N2 agree, how often Ne (or A) says otherwise and which
+way, so what N already changes against itself is set aside.
 
 How to read it:
 - k=1 per chain and arm: descriptive, no inferential claim. N against N2 on the same chain is the
-  noise floor; a contrast with another arm reads only against those discordants.
+  noise floor; a contrast with another arm reads only against those discordants. One run of one
+  arm went from 37 to 51 of 60 on conan: compare ranges over runs, never single runs.
 - (a) An arm cut at its cap ran fewer bugs (the gate's N on conan stopped at call 50, 32 USD; Ne
   holds 35 a chain): compare on the common bugs and the cumulative cost at the same call, not on
   the totals.
@@ -261,7 +265,8 @@ def _gave_up(g: Mapping[str, Any], bands: Mapping[str, int]) -> str:
 def _pair(name: str, p: Mapping[str, Any]) -> str:
     r, q, u = p["resolved_discordant"], p["give_up_discordant"], p["gave_up_unresolved_discordant"]
     res = (f"resolved only {name.split('_vs_')[0]} {r['treated_only']}, only "
-           f"{name.split('_vs_')[1]} {r['control_only']}, p {r['p']:.3f} on {p['graded_common']}"
+           f"{name.split('_vs_')[1]} {r['control_only']}, p_iid {r['p']:.3f} "
+           f"on {p['graded_common']}"
            if r else "resolved: not graded")  # fmt: skip
     return (
         f"  {name}: {p['common_ran']} common; {res}; gave up only left {q['treated_only']}, "
