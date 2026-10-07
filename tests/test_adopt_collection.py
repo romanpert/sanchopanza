@@ -144,3 +144,23 @@ def test_held_out_chains_keep_the_sealed_behaviour_on_a_missing_node(monkeypatch
     with pytest.raises(RuntimeError, match="gave no results"):
         docker_env.pytest("tag", "", ["t.py::a", DOC])
     assert len(calls) == 1
+
+
+# moto's pytest config forces colour: every outcome line and the test name inside the node id come
+# wrapped in ANSI codes (`\x1b[31mFAILED\x1b[0m t.py::\x1b[1mtest_x\x1b[0m`), RESULT matched none
+# and getmoto__moto-long60-1's validation stopped on "gave no results" with 7,308 passed.
+
+ANSI_RUN = (
+    "\x1b[31mFAILED\x1b[0m t.py::\x1b[1mtest_a\x1b[0m - AssertionError: x\n"
+    "\x1b[32mPASSED\x1b[0m t.py::\x1b[1mtest_b\x1b[0m\n"
+    "\x1b[31m\x1b[1m1 failed\x1b[0m, \x1b[32m1 passed\x1b[0m in 0.10s\x1b[0m\n"
+)
+
+
+def test_a_coloured_run_is_read_by_its_plain_node_ids(monkeypatch) -> None:  # noqa: ANN001
+    def fake_docker(*args: str, **kwargs: object) -> subprocess.CompletedProcess:
+        return subprocess.CompletedProcess(args, 1, stdout=ANSI_RUN.encode(), stderr=b"")
+
+    monkeypatch.setattr(docker_env, "docker", fake_docker)
+    out = docker_env.pytest("tag", "", ["t.py::test_a", "t.py::test_b"])
+    assert out == {"t.py::test_a": "FAILED", "t.py::test_b": "PASSED"}

@@ -25,6 +25,8 @@ LOGIN = "bash -lc"  # SWE-smith and SWE-bench images activate the `testbed` env 
 # they were.
 VENV = "if [ -x /testbed/.venv/bin/python ]; then . /testbed/.venv/bin/activate; fi; "
 RESULT = re.compile(r"^(PASSED|FAILED|ERROR|XFAIL|XPASS|SKIPPED) (\S+)", re.M)
+# moto's pytest config forces colour, codes inside the node ids too: read the plain text.
+ANSI = re.compile(r"\x1b\[[0-9;]*m")
 GIT_ID = "-c user.name=adopt -c user.email=adopt@localhost"
 
 
@@ -251,7 +253,7 @@ def _run(
                   f"{select} -rA -p no:cacheprovider -p no:pretty --tb=no -q 2>&1")  # fmt: skip
         done = docker("run", "--rm", "-v", f"{folder.as_posix()}:/io:ro", tag, "bash", "-lc",
                       script, timeout=timeout)  # fmt: skip
-    return done, done.stdout.decode("utf-8", "replace")
+    return done, ANSI.sub("", done.stdout.decode("utf-8", "replace"))
 
 
 def remove_tree(path: Path) -> None:
