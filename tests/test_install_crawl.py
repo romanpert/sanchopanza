@@ -104,10 +104,10 @@ def test_the_installed_command_runs_the_crawl_hook(tmp_path: Path) -> None:
 
 
 def test_install_crawl_wires_every_event_the_hook_answers(tmp_path: Path) -> None:
-    """v8 and v8.1 (`LINE_AT=prompt`, `ECHO=short`, `NOTES_AT=front`, `SHOT=snapshot-first`) are
+    """v8, v8.1 and v10 (`LINE_AT=prompt`, `ECHO=short`, `NOTES_AT=front`, `SHOT=snapshot-first`) are
     switched on by env alone; with only SessionStart and the evaluate wired, `LINE_AT=prompt`
     dropped the line altogether and the other three did nothing (S seal draft)."""
-    from sanchopanza.harness.crawl_hook import V8_HOOKS, V81_HOOKS
+    from sanchopanza.harness.crawl_hook import V8_HOOKS, V10_HOOKS, V81_HOOKS
 
     path = _settings(tmp_path)
     apply(plan(path, HarnessConfig(), crawl=True))
@@ -117,7 +117,7 @@ def test_install_crawl_wires_every_event_the_hook_answers(tmp_path: Path) -> Non
         for event, entries in doc["hooks"].items()
     }
     assert {e: m for e, m in wired.items() if m} == {
-        e: [m] for e, m in {**CRAWL_HOOKS, **V8_HOOKS, **V81_HOOKS}.items()
+        e: [m] for e, m in {**CRAWL_HOOKS, **V8_HOOKS, **V81_HOOKS, **V10_HOOKS}.items()
     }
     again = plan(path, HarnessConfig(), crawl=True)
     assert not again.added and not again.removed
@@ -134,6 +134,8 @@ def test_the_extra_crawl_events_do_nothing_without_their_env() -> None:
          "tool_response": [{"type": "text", "text": "### Ran Playwright code\n```js\nx\n```"}]},
         {"hook_event_name": "PreToolUse", "tool_name": "mcp__playwright__browser_take_screenshot",
          "tool_input": {}, "session_id": "s"},
+        {"hook_event_name": "PostToolUse", "tool_name": "mcp__playwright__browser_navigate",
+         "tool_response": [{"type": "text", "text": "### Page"}], "session_id": "s"},
     ]  # fmt: skip
     for event in events:
         assert crawl_hook.handle(event, {}) is None

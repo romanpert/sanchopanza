@@ -1,6 +1,10 @@
-"""N, S0 and S1 side by side on one suite's dev tasks, from the phases' private rows.
+"""N and the S lines side by side on one suite's dev tasks, from the phases' private rows.
 
-python benchmarks/h2h/compare_lines.py gaia|bcp|longdoc [--out report.json]   # free
+python benchmarks/h2h/compare_lines.py gaia|bcp|longdoc [--lines N S0 S2] [--out x.json]  # free
+
+Lines: N, S0, S1 (2026-10-06) and S2, S2F (2026-10-07: S0 with only the guard, the context
+budget and check-done; S2F adds fetch v3, GAIA only). Default N S0 S1, as first written. Each
+line is paired with N and with S0.
 
 Each arm comes from a (phase, arm) pair of the private cache: N is a phase's CC rows, S0 and S1
 the SP rows of the phase that ran that line. Rows marked `invalid` (Jev out of credit, S failed
@@ -30,12 +34,14 @@ CACHE = pathlib.Path.home() / ".cache" / "sanchopanza"
 KNOWLEDGE = ("search", "read", "pick")
 SUITES: dict[str, dict[str, tuple[str, str]]] = {
     "gaia": {"N": ("gaia/h2h/dev-s1", "SONNET-CC"), "S0": ("gaia/h2h/dev-s0", "SONNET-SP"),
-             "S1": ("gaia/h2h/dev-s1", "SONNET-SP")},
+             "S1": ("gaia/h2h/dev-s1", "SONNET-SP"), "S2": ("gaia/h2h/dev-s2", "SONNET-SP"),
+             "S2F": ("gaia/h2h/dev-s2f", "SONNET-SP")},
     "bcp": {"N": ("bcp/h2h/bcp-dev", "SONNET-CC"), "S0": ("bcp/h2h/bcp-dev", "SONNET-SP"),
-            "S1": ("bcp/h2h/bcp-dev-s1", "SONNET-SP")},
+            "S1": ("bcp/h2h/bcp-dev-s1", "SONNET-SP"), "S2": ("bcp/h2h/bcp-dev-s2", "SONNET-SP")},
     "longdoc": {"N": ("longdoc/h2h/longdoc-dev", "SONNET-CC"),
                 "S0": ("longdoc/h2h/longdoc-dev", "SONNET-SP"),
-                "S1": ("longdoc/h2h/longdoc-dev-s1", "SONNET-SP")},
+                "S1": ("longdoc/h2h/longdoc-dev-s1", "SONNET-SP"),
+                "S2": ("longdoc/h2h/longdoc-dev-s2", "SONNET-SP")},
 }  # fmt: skip
 
 
@@ -102,16 +108,29 @@ def paired(a: Mapping[str, Mapping], b: Mapping[str, Mapping], tasks: Sequence[s
     }
 
 
-def compare(suite: str) -> dict[str, Any]:
-    arms = {name: {r["task"]: r for r in rows_of(suite, *where)}
-            for name, where in SUITES[suite].items()}  # fmt: skip
+DEFAULT_LINES = ("N", "S0", "S1")
+
+
+def pairs(lines: Sequence[str]) -> list[tuple[str, str]]:
+    """Each line against N, then against S0; S0 against N last (the first report's order)."""
+    out = [
+        (x, base) for x in lines if x not in ("N", "S0") for base in ("N", "S0") if base in lines
+    ]
+    return [*out, ("S0", "N")] if {"S0", "N"} <= set(lines) else out
+
+
+def compare(suite: str, lines: Sequence[str] = DEFAULT_LINES) -> dict[str, Any]:
+    unknown = [x for x in lines if x not in SUITES[suite]]
+    if unknown or "N" not in lines:
+        raise ValueError(f"lines for {suite}: N and any of {sorted(SUITES[suite])}, not {unknown}")
+    arms = {name: {r["task"]: r for r in rows_of(suite, *SUITES[suite][name])} for name in lines}
     tasks = sorted(set.intersection(*(set(v) for v in arms.values())))
-    out: dict[str, Any] = {"suite": suite, "tasks": len(tasks), "task_ids": tasks}
+    out: dict[str, Any] = {"suite": suite, "lines": list(lines), "tasks": len(tasks),
+                           "task_ids": tasks}  # fmt: skip
     out["by_arm"] = {name: cell([rows[t] for t in tasks]) for name, rows in arms.items()}
-    out["paired"] = {f"{a}-{b}": paired(arms[a], arms[b], tasks)
-                     for a, b in (("S1", "N"), ("S1", "S0"), ("S0", "N"))}  # fmt: skip
-    s1_n = sorted(set(arms["S1"]) & set(arms["N"]))
-    if len(s1_n) > len(tasks):
+    out["paired"] = {f"{a}-{b}": paired(arms[a], arms[b], tasks) for a, b in pairs(lines)}
+    s1_n = sorted(set(arms.get("S1", {})) & set(arms["N"]))
+    if "S1" in arms and len(s1_n) > len(tasks):
         s1, n = arms["S1"], arms["N"]
         out["s1_vs_n_all_valid"] = {
             "tasks": len(s1_n),
@@ -127,9 +146,10 @@ def compare(suite: str) -> dict[str, Any]:
 def main(argv: Sequence[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument("suite", choices=sorted(SUITES))
+    ap.add_argument("--lines", nargs="+", default=list(DEFAULT_LINES))
     ap.add_argument("--out", default=None)
     args = ap.parse_args(argv)
-    result = compare(args.suite)
+    result = compare(args.suite, args.lines)
     text = json.dumps(result, indent=1)
     if args.out:
         pathlib.Path(args.out).write_text(text + "\n", encoding="utf-8")

@@ -61,6 +61,15 @@ v8.1, in development and off by default, from v8's round (README 2026-10-03, "v8
   `SANCHOPANZA_CRAWL_DIR` (default `~/.sanchopanza/crawl`). `V81_HOOKS` widens the `PreToolUse`
   matcher to take the screenshot tool beside the evaluate.
 
+v10, in development and off by default, from the h2h confirmations of 2026-10-06 (the line spoke
+in 59 sessions with no browser tool, twice on a local file):
+
+- `SANCHOPANZA_CRAWL_LINE_AT=browser`: the line comes with the result of the session's first
+  `browser_navigate` or `browser_evaluate` (`BROWSING`), once per session (a mark in
+  `SANCHOPANZA_CRAWL_DIR`), and only when the request gathers, read from the session's
+  transcript (`first_prompt`; unreadable: the line comes, since there is a browser). Nothing at
+  `SessionStart` or `UserPromptSubmit`. `V10_HOOKS` widens `PostToolUse` to the navigate.
+
 Standard library only (the echo cut reuses `autopilot`'s response walk); fail open everywhere.
 """
 
@@ -126,6 +135,9 @@ ECHO_LINE = (
 # v8.1 (development): one PreToolUse entry for the evaluate guard and the screenshot rule.
 V81_HOOKS = {"PreToolUse": r"mcp__.*__browser_(evaluate|take_screenshot)"}
 SHOT = re.compile(r"^mcp__.+__browser_take_screenshot$")
+# v10 (development): the line on the session's first browsing call, a sign there is a browser.
+BROWSING = re.compile(r"^mcp__.+__browser_(navigate|evaluate)$")
+V10_HOOKS = {"PostToolUse": r"mcp__.*__browser_(evaluate|navigate)"}
 SHOT_REASON = (
     "browser_snapshot gives the page text and element refs for clicks at a fraction of the "
     "tokens; call browser_take_screenshot again if you need to see the visual layout."
@@ -214,6 +226,56 @@ def strategy(
 def line_at_prompt(env: Mapping[str, str] | None = None) -> bool:
     """`SANCHOPANZA_CRAWL_LINE_AT=prompt` (v8, development): the line on gathering prompts only."""
     return _env.get("CRAWL_LINE_AT", "", env).strip().lower() == "prompt"
+
+
+def line_at_browser(env: Mapping[str, str] | None = None) -> bool:
+    """`SANCHOPANZA_CRAWL_LINE_AT=browser` (v10, development): the line where there is a browser."""
+    return _env.get("CRAWL_LINE_AT", "", env).strip().lower() == "browser"
+
+
+def first_prompt(transcript: str) -> str | None:
+    """The session's first request as typed, from its transcript; None if it cannot be read."""
+    try:
+        with open(transcript, encoding="utf-8", errors="replace") as stream:
+            for raw in stream:
+                with contextlib.suppress(ValueError):
+                    record = json.loads(raw)
+                    content = (record.get("message") or {}).get("content")
+                    if record.get("type") != "user":
+                        continue
+                    if isinstance(content, str):
+                        return content
+                    texts = [b.get("text", "") for b in content or [] if isinstance(b, Mapping)
+                             and b.get("type") == "text"]  # fmt: skip
+                    if texts and not any(isinstance(b, Mapping) and b.get("type") == "tool_result"
+                                         for b in content):  # fmt: skip
+                        return "\n".join(texts)
+    except (OSError, TypeError, AttributeError):
+        return None
+    return None
+
+
+def browser_line(event: Mapping[str, Any], env: Mapping[str, str] | None = None) -> str | None:
+    """v10: the line on the session's first browsing call when its request gathers, else None.
+    The mark is written before the line is given, so no session gets it twice; with no session
+    to remember it by, or a mark that cannot be written, no line."""
+    from ..context.archive import safe_name
+    from ..context.episodes import write_private
+
+    session = str(event.get("session_id") or "")
+    if not session or not BROWSING.match(str(event.get("tool_name") or "")):
+        return None
+    if _env.get("CRAWL_LINE", "1", env).strip().lower() in {"0", "false", "no", "off"}:
+        return None
+    mark = state_dir(env) / f"line-{safe_name(session)}.json"
+    try:
+        if mark.exists():
+            return None
+        write_private(mark, json.dumps({"at": time.time()}))
+    except OSError:
+        return None
+    prompt = first_prompt(str(event.get("transcript_path") or ""))
+    return line_for(env) if prompt is None or gathers(prompt) else None
 
 
 def gathers(prompt: str) -> bool:
@@ -334,7 +396,7 @@ def line_for(env: Mapping[str, str] | None = None) -> str:
 def handle(event: Mapping[str, Any], env: Mapping[str, str] | None = None) -> dict | None:
     name = event.get("hook_event_name")
     if name == "SessionStart":
-        return None if line_at_prompt(env) else strategy(env)
+        return None if line_at_prompt(env) or line_at_browser(env) else strategy(env)
     if name == "PreToolUse":
         if shot_first_on(env) and SHOT.match(str(event.get("tool_name") or "")):
             return first_shot(event, env)
@@ -342,8 +404,13 @@ def handle(event: Mapping[str, Any], env: Mapping[str, str] | None = None) -> di
     if name == "UserPromptSubmit" and line_at_prompt(env):
         prompt = event.get("prompt")
         return strategy(env, name) if isinstance(prompt, str) and gathers(prompt) else None
-    if name == "PostToolUse" and (echo_cut_on(env) or notes_first_on(env)):
-        return rewrite_result(event, env)
+    if name == "PostToolUse":
+        rewritten = rewrite_result(event, env) if echo_cut_on(env) or notes_first_on(env) else None
+        line = browser_line(event, env) if line_at_browser(env) else None
+        if line is None:
+            return rewritten
+        spec = (rewritten or {}).get("hookSpecificOutput") or {"hookEventName": "PostToolUse"}
+        return {"hookSpecificOutput": {**spec, "additionalContext": line}}
     return None
 
 

@@ -2,7 +2,8 @@
 
 The first WebFetch of a URL in a session is denied with a one-line reason naming the tool; a
 second WebFetch of the same URL is let through, so a page the tool cannot read (a PDF, a page
-that needs a browser) or a session where the server is missing still gets read. No model.
+that needs a browser) or a session where the server is missing still gets read. With fetch v3 the
+tool marks a URL it could not read (`allow`) and the first WebFetch of it runs at once. No model.
 
 The page budget, for a small model that opens pages instead of searching (fetch v2): with
 `SANCHOPANZA_FETCH_MAX_PAGES=N`, the hook counts a session's pages (`fetch_passages` or WebFetch,
@@ -38,6 +39,9 @@ FETCH_COMMAND = "sanchopanza fetch-hook"
 FETCH_HOOKS = {"PreToolUse": "WebFetch"}
 TOOL_NAME = "mcp__sanchopanza-fetch__fetch_passages"
 PAGE_TOOLS = frozenset([TOOL_NAME, "WebFetch"])
+# How long a URL the tool could not read lets WebFetch through (fetch v3, `allow`): the tool's
+# own page cache.
+PASS_S = 900
 REASON = (
     f"Use {TOOL_NAME}(url, purpose) instead: it returns the page's passages for your purpose, "
     "without a summarising reader. If it cannot read this page, WebFetch the same URL again "
@@ -48,6 +52,26 @@ REASON = (
 def state_dir(env: Mapping[str, str] | None = None) -> Path:
     override = _env.get("FETCH_DIR", "", env).strip()
     return Path(override) if override else _env.home_dir() / "fetch"
+
+
+def _digest(url: str) -> str:
+    return hashlib.sha256(url.encode("utf-8")).hexdigest()[:16]
+
+
+def allow(url: str, env: Mapping[str, str] | None = None) -> None:
+    """Let the next WebFetch of `url` run at once (fetch v3: the tool could not read it). The
+    mark is by URL, not by session: the tool's server never learns the session, and a page it
+    could not read for one session it cannot read for another. Kept `PASS_S`; fail open."""
+    with contextlib.suppress(OSError):
+        write_private(state_dir(env) / f"pass-{_digest(url)}.json", json.dumps({"at": time.time()}))
+
+
+def _allowed(url: str, env: Mapping[str, str] | None) -> bool:
+    mark = state_dir(env) / f"pass-{_digest(url)}.json"
+    try:
+        return time.time() - float(json.loads(mark.read_text(encoding="utf-8"))["at"]) < PASS_S
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
 
 
 def _off(env: Mapping[str, str] | None) -> bool:
@@ -103,11 +127,10 @@ def handle(event: Mapping[str, Any], env: Mapping[str, str] | None = None) -> di
         return None
     tool_input = event.get("tool_input")
     url = str(tool_input.get("url") or "") if isinstance(tool_input, Mapping) else ""
-    if not url:
+    if not url or _allowed(url, env):
         return None
-    digest = hashlib.sha256(url.encode("utf-8")).hexdigest()[:16]
     session = safe_name(str(event.get("session_id") or ""))
-    mark = state_dir(env) / f"fetch-{session}-{digest}.json"
+    mark = state_dir(env) / f"fetch-{session}-{_digest(url)}.json"
     if mark.exists():
         return None
     write_private(mark, json.dumps({"denied_at": time.time()}))

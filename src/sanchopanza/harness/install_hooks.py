@@ -18,7 +18,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from .crawl_hook import V8_HOOKS, V81_HOOKS
+from .crawl_hook import V8_HOOKS, V10_HOOKS, V81_HOOKS
 from .fetch_hook import FETCH_COMMAND, FETCH_HOOKS
 from .knowledge_hook import KNOWLEDGE_COMMAND, KNOWLEDGE_HOOKS
 from .sources_hook import SOURCES_COMMAND, SOURCES_HOOKS
@@ -54,7 +54,7 @@ CRAWL_HOOKS = {"SessionStart": "", "PreToolUse": r"mcp__.*__browser_evaluate"}
 # on by env alone, and with only `CRAWL_HOOKS` wired their env did nothing, or (`LINE_AT=prompt`)
 # took the line away. Without that env the extra events answer nothing. `CRAWL_HOOKS` and
 # `_merge_crawl` stay as sealed benchmarks import them.
-CRAWL_INSTALL_HOOKS = {**CRAWL_HOOKS, **V8_HOOKS, **V81_HOOKS}
+CRAWL_INSTALL_HOOKS = {**CRAWL_HOOKS, **V8_HOOKS, **V81_HOOKS, **V10_HOOKS}
 PRUNE_COMMAND = "sanchopanza browse-hook"
 # Event -> matcher for snapshot pruning (`--prune`, `harness.browse_hook`): inline snapshots on any
 # MCP server's browser tools (a result past Claude Code's limit is read back by the hook itself).

@@ -1,0 +1,243 @@
+{
+ "suite": "longdoc",
+ "lines": [
+  "N",
+  "S0",
+  "S2"
+ ],
+ "tasks": 10,
+ "task_ids": [
+  "66eb873c5a08c7b9b35dd849",
+  "66ebd2975a08c7b9b35e01e3",
+  "66ebeb5a5a08c7b9b35e1ba5",
+  "66ec0f3c821e116aacb19d70",
+  "66ed0cb0821e116aacb1e6c1",
+  "66ed168b821e116aacb1ea8c",
+  "66eefe85821e116aacb228dc",
+  "66f3fb15821e116aacb303dc",
+  "66f50109821e116aacb31f16",
+  "66f519a6821e116aacb32579"
+ ],
+ "by_arm": {
+  "N": {
+   "sessions": 10,
+   "right_official": 7,
+   "right_final": 7,
+   "usd_total": 0.6469,
+   "usd_mean": 0.0647,
+   "usd_median": 0.0494,
+   "turns_mean": 3.4,
+   "wall_mean_s": 18.4,
+   "tokens": {
+    "input": 64,
+    "cache_read": 576176,
+    "cache_write": 111188,
+    "output": 8680,
+    "web_searches": 0
+   },
+   "knowledge": {
+    "search": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "read": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "pick": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "web_tools_calls": 0
+   },
+   "jev_calls": 0,
+   "jev_by_point": {},
+   "jev_usd": 0.0,
+   "components": {
+    "calls": {},
+    "outputs": {},
+    "sessions_with_output": {},
+    "returns": {},
+    "turns_after": {},
+    "usd_after": {}
+   },
+   "leak": [],
+   "hit_cap": 0
+  },
+  "S0": {
+   "sessions": 10,
+   "right_official": 7,
+   "right_final": 7,
+   "usd_total": 1.2278,
+   "usd_mean": 0.1228,
+   "usd_median": 0.1216,
+   "turns_mean": 5.7,
+   "wall_mean_s": 39.3,
+   "tokens": {
+    "input": 106,
+    "cache_read": 1367335,
+    "cache_write": 192100,
+    "output": 18354,
+    "web_searches": 0
+   },
+   "knowledge": {
+    "search": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "read": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "pick": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "web_tools_calls": 0
+   },
+   "jev_calls": 12,
+   "jev_by_point": {
+    "completion": 10,
+    "triage_pages": 2
+   },
+   "jev_usd": 0.002218,
+   "components": {
+    "calls": {
+     "candor-hook": 105,
+     "crawl-hook": 20,
+     "guard-hook": 1,
+     "hook": 19,
+     "memory-hook": 61
+    },
+    "outputs": {
+     "candor": 14,
+     "check-done": 7,
+     "crawl": 1,
+     "find-auto": 1
+    },
+    "sessions_with_output": {
+     "candor": 10,
+     "check-done": 7,
+     "crawl": 1,
+     "find-auto": 1
+    },
+    "returns": {
+     "check-done": 7
+    },
+    "turns_after": {
+     "check-done": 18
+    },
+    "usd_after": {
+     "check-done": 0.309858
+    }
+   },
+   "leak": [],
+   "hit_cap": 0
+  },
+  "S2": {
+   "sessions": 10,
+   "right_official": 8,
+   "right_final": 8,
+   "usd_total": 0.8289,
+   "usd_mean": 0.0829,
+   "usd_median": 0.0728,
+   "turns_mean": 3.6,
+   "wall_mean_s": 20.6,
+   "tokens": {
+    "input": 66,
+    "cache_read": 671005,
+    "cache_write": 150043,
+    "output": 9441,
+    "web_searches": 0
+   },
+   "knowledge": {
+    "search": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "read": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "pick": {
+     "calls": 0,
+     "sessions": 0
+    },
+    "web_tools_calls": 0
+   },
+   "jev_calls": 0,
+   "jev_by_point": {},
+   "jev_usd": 0.0,
+   "components": {
+    "calls": {
+     "guard-hook": 5,
+     "hook": 15
+    },
+    "outputs": {},
+    "sessions_with_output": {},
+    "returns": {},
+    "turns_after": {},
+    "usd_after": {}
+   },
+   "leak": [],
+   "hit_cap": 0
+  }
+ },
+ "paired": {
+  "S2-N": {
+   "a_only": [
+    "66ebeb5a5a08c7b9b35e1ba5"
+   ],
+   "b_only": [],
+   "p": 1.0,
+   "cost": {
+    "mean_diff": 0.0182,
+    "diff_ci95": [
+     -0.0028,
+     0.0448
+    ],
+    "ratio": 1.281,
+    "ratio_ci95": [
+     0.962,
+     1.797
+    ]
+   }
+  },
+  "S2-S0": {
+   "a_only": [
+    "66ebeb5a5a08c7b9b35e1ba5"
+   ],
+   "b_only": [],
+   "p": 1.0,
+   "cost": {
+    "mean_diff": -0.0399,
+    "diff_ci95": [
+     -0.0568,
+     -0.024
+    ],
+    "ratio": 0.675,
+    "ratio_ci95": [
+     0.598,
+     0.751
+    ]
+   }
+  },
+  "S0-N": {
+   "a_only": [],
+   "b_only": [],
+   "p": 1.0,
+   "cost": {
+    "mean_diff": 0.0581,
+    "diff_ci95": [
+     0.0259,
+     0.0966
+    ],
+    "ratio": 1.898,
+    "ratio_ci95": [
+     1.379,
+     2.695
+    ]
+   }
+  }
+ }
+}
