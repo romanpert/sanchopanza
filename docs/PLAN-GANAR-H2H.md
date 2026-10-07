@@ -549,6 +549,45 @@ Sonnet 5.5, conan-long60-1, una raíz por brazo. Gastado: N2 30,61 + Ne2 19,37 +
    - **4 cadenas** (las dos de hoy y dos nuevas) son 6 corridas: ~125 $ esperados, 150 de techo.
      No bastan para ver un 7 %, así que con 4 cadenas **no se propone**.
 
+El dueño aprobó (1) y (2) a las 21:50 y pidió que nos coordinásemos: 5a hace (1) y e8 hace (2),
+desde un worktree `--detach` en comun f511abd.
+
+### Replay de A sobre N-early (5a, 2026-10-07, 22:10; gratis)
+
+Script: `replay_ne.py`, en el scratchpad de la sesión 12aa49bd.
+
+- Reutiliza tal cual `bet_a.collect` y `evaluate`, `rc.prep` (replay de 6c) y el parser de
+  anatomy, sobre la transcripción de cada cadena (`cfg/<cadena>-sonnet-<brazo>/claude-config`).
+- Calibración: el coste reconstruido coincide con el real (N conan 28,45, Ne 16,71, Ne2 18,79,
+  Ne pydantic 13,54).
+- Configuración con la que se lanzó A: T = 2k, shell y Read, sin Grep. Ahorro en % del coste de
+  cada corrida:
+
+| | Salidas que se habrían cortado | Bruto | **Neto con re-pedido natural** (la regla 5.2 de 6c) | Neto con r = 0,10 (sensibilidad) | Neto natural al 10 % |
+|---|---|---|---|---|---|
+| Ne conan | 44 | 13,5 | **3,4** | 11,7 | 5,9 |
+| Ne2 conan | 43 | 13,6 | **4,3** | 11,8 | 6,7 |
+| Ne pydantic | 10 | 3,7 | **2,2** | 3,2 | 2,9 |
+| N conan / N2 (referencia) | 28 / 25 | 14,1 / 13,6 | 1,9 / 3,7 | 12,2 / 11,9 | 4,3 / 5,9 |
+| N pydantic / N2 (referencia) | 11 / 5 | 5,7 / 1,4 | 1,3 / −1,2 | 4,9 / 1,1 | 2,2 / −1,0 |
+
+- **A no pasa la regla 5.2 sobre Ne al 25 %** en ninguna cadena (2,2-4,3 %). Al 10 % solo pasa en
+  conan (5,9-6,7 %), no en pydantic (2,9 %).
+- La regla se queda como la definió 6c: neto con el re-pedido natural. Con el re-pedido medido en
+  vivo en A y A2 (0,05-0,095, ninguno entero), el techo de conan sería de ~12 %. Se publica al
+  lado como sensibilidad; no cambia el veredicto.
+- **Mi hipótesis era falsa.** En conan, Ne no baja el techo de A:
+  - se relee menos (34-41 % del coste, frente a ~50 % en N);
+  - pero, al compactar, Ne deja más salidas grandes (43-44 frente a 25-28);
+  - y el bruto se queda igual (~13,5 %). En pydantic sí es pequeño.
+- **El replay sobre N predijo ~12 % (r = 0,10) en conan, y en vivo salió x0,93.** Cuadra en el
+  orden de magnitud, pero con dos corridas de A en vivo no se distingue un 7 de un 12 % (e8).
+- **Consecuencias**:
+  - No hay tanda de pago de A en código largo.
+  - El efecto de A sobre Ne, si existe, es menor de lo que este banco puede medir. Aunque pasara
+    la regla, la potencia manda: ~43 cadenas para ver un −7 %.
+  - A queda archivado para código largo. Su techo se lee con replay, que es determinista.
+
 ## 7. Lo que no prometemos
 
 - LongBench no tiene palanca de S: su 0,785 es un caso atípico.
