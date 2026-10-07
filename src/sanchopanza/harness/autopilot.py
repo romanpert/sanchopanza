@@ -53,6 +53,7 @@ from __future__ import annotations
 import contextlib
 import json
 import math
+import os
 import sys
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -215,18 +216,32 @@ def _ledger_path(root: Path, session: str) -> Path:
 
 
 def read_ledger(root: Path, session: str) -> dict[str, Any]:
+    """The session's ledger; none yet is an empty one. One that exists and cannot be read is
+    `unreadable`, which `_over_ceiling` counts as past the ceiling: in doubt, spend nothing."""
+    fresh = {"usd": 0.0, "decisions": 0, "injected": []}
+    path = _ledger_path(root, session)
+    if not path.exists():
+        return fresh
     try:
-        value = json.loads(_ledger_path(root, session).read_text(encoding="utf-8"))
+        value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        return {"usd": 0.0, "decisions": 0, "injected": []}
-    return value if isinstance(value, dict) else {"usd": 0.0, "decisions": 0, "injected": []}
+        return {**fresh, "unreadable": True}
+    return value if isinstance(value, dict) else {**fresh, "unreadable": True}
 
 
 def write_ledger(root: Path, session: str, ledger: Mapping[str, Any]) -> None:
+    """Atomically: a temporary file in the same folder, then a rename, so a hook running beside
+    this one never reads half a ledger."""
     path = _ledger_path(root, session)
     archive_mod.keep_out_of_git(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(dict(ledger)), encoding="utf-8")
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    try:
+        temporary.write_text(json.dumps(dict(ledger)), encoding="utf-8")
+        temporary.replace(path)
+    finally:
+        with contextlib.suppress(OSError):
+            temporary.unlink(missing_ok=True)
 
 
 def clear_injected(root: Path, session: str) -> None:
@@ -399,6 +414,8 @@ async def _recall(
 
 
 def _over_ceiling(ledger: Mapping[str, Any], config: Config) -> bool:
+    if ledger.get("unreadable"):
+        return True  # a ledger that cannot be read could hide any spend: fail toward none
     return float(ledger.get("usd", 0.0)) >= config.session_max_usd
 
 
