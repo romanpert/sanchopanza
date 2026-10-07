@@ -271,15 +271,15 @@ def test_the_agents_and_hooks_do_not_inherit_the_runners_pythonpath(
 def test_the_launch_plan_prints_caps_and_expected_cost_without_spending(m: SimpleNamespace) -> None:
     known = {n: {"bugs": [{}] * 60} for n in ("conan-io__conan-long60-1",
                                               "pydantic__pydantic-long60-1")}  # fmt: skip
-    lines = m.long_launch.plan_lines("gate", known, list(known), pathlib.Path("Z:/nowhere"), 175.0)
+    lines = m.long_launch.plan_lines("gate", known, list(known), pathlib.Path("Z:/nowhere"), 190.0)
     text = "\n".join(lines)
     assert "--max-budget-usd at most 3.00" in text and "at most 3.20" in text
     assert "N: one turn past a cap costs up to 6.48 USD (context at the window 1000000)" in text
-    assert "up to 10.80 USD" in text and "no call past 29.20 spent of its 48.00" in text
+    assert "up to 10.80 USD" in text and "no call past 37.20 spent of its 56.00" in text
     assert "room for its cap and one more turn" in text
     assert "60 bugs + 2 callbacks; expected N 24.97-24.97 USD" in text
     assert "expected N 25.76-42.46 USD" in text
-    assert "expected total 101.46-134.86 USD" in text and "caps held 172.00 USD" in text
+    assert "expected total 101.46-134.86 USD" in text and "caps held 188.00 USD" in text
 
 
 def test_the_launcher_module_is_importable_without_side_effects(m: SimpleNamespace) -> None:

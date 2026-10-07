@@ -83,8 +83,8 @@ S_ENV = (("SANCHOPANZA_CANDOR_MODE", "observe"),
          ("SANCHOPANZA_CRAWL_NOTES_AT", "front"), ("SANCHOPANZA_CRAWL_SHOT", "snapshot-first"),
          ("SANCHOPANZA_FETCH_VERSION", "2"))  # fmt: skip
 GATE_CALL_CAP = {"sonnet": 4.5, "opus": 8.0}  # owner USD; B2 ran 4.5 per call on Sonnet
-GATE_CHAIN_CAP = {"sonnet": 38.0, "opus": 48.0}  # pre-mortem e: 2x38 + 2x48 = 172 <= 175
-GATE_CEILING = 175.0
+GATE_CHAIN_CAP = {"sonnet": 38.0, "opus": 56.0}  # owner 2026-10-07: 2x38 + 2x56 = 188 <= 190
+GATE_CEILING = 190.0  # owner 2026-10-07: Opus 56 a chain so its long tail (42.46) is not cut
 GATE_CHAINS = ("conan-io__conan-long60-1", "pydantic__pydantic-long60-1")
 SMOKE_CHAIN = "pydantic__pydantic-long60-1"  # validated first; Haiku, 3 bugs, its own root
 MANIFESTS = HERE / "long60"  # long60/<chain>.json, written by `long.py manifests` once valid
