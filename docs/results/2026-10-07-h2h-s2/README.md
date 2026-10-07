@@ -63,3 +63,51 @@ powershell -File benchmarks/h2h/launch.ps1 -Runner h2h_bcp.py -RunnerArgs "--pha
 
 Then a sealed confirmation of S2 with its own prereg (margin of non-inferiority at the interval's
 half-width; each mechanism also measured where it fires), asked of the owner with its cost.
+
+## Results (2026-10-07, 12:09-13:21)
+
+Spend: 11.4 USD of list price on the subscription (GAIA S2 1.98, S2F 2.09, LongBench 0.83, BCP
+6.48, judge a few cents), Jev 0.002 USD.
+Every row valid, none at its cap, no Jev errors. Files: `compare-gaia.json`, `compare-longdoc.json`,
+`compare-bcp.json` (`compare_lines.py --lines ...`; counts, costs and task ids only).
+
+Tasks with a valid row in every line (N and S0 from the dev phases of 2026-10-05/06):
+
+| Suite | Tasks | Right N / S0 / S2 | Cost S2/N [95 %] | Cost S2/S0 [95 %] | Wall mean s N / S0 / S2 |
+|---|---|---|---|---|---|
+| GAIA | 10 | 8 / 8 / 8 | 1.085 [0.62, 1.65] | 0.886 [0.68, 1.24] | 47 / 58 / 33 |
+| LongBench v2 | 10 | 7 / 7 / 8 | 1.281 [0.96, 1.80] | **0.675 [0.60, 0.75]** | 18 / 39 / 21 |
+| BrowseComp-Plus | 10 | 5 / 7 / 6 | 1.408 [0.92, 2.19] | **0.832 [0.54, 0.98]** | 66 / 106 / 96 |
+
+- **S2 against S0**: cheaper in all three, with the interval below 1 in LongBench and BCP, no
+  answer lost that S0 had (discordant S2/S0: GAIA 1/1, LongBench 1/0, BCP 0/1). As expected.
+- **S2 against N**: not cheaper in any. 10 tasks only, and N ran a day earlier: direction only.
+  In LongBench S2 wrote 150k cache tokens against N's 111k on the same tasks, about 0.15 of the
+  0.18 USD gap; why it writes more is not read yet.
+- **The mechanisms are alive**: in BCP S2 compacted in 2 sessions (4 compactions), as S0 did in
+  the same dev (2 sessions, 3), N in none; check-done made 16 Jev decisions in GAIA, none in
+  LongBench (gate A) and none in BCP.
+- **S2F against S2** on the 20 GAIA dev tasks: right 16 against 15 (discordant 2/1), cost
+  **1.054 [0.83, 1.36]**, 0.95 more turns and 9 s more per session. Sonnet's spend +0.28 USD
+  (+22 %), Haiku's -0.18: the money moves from WebFetch's reader to the main model, as indagis-6c
+  predicted from the confirmation's numbers. Per session with page reads, 6,143 characters reached
+  Sonnet with S2F against 1,621 with S2. By the rule written above, **fetch v3 stays out of the
+  S2 confirmation**.
+
+### Found on the way, not part of the dev's question
+
+- **check-done's probability does not separate its useful send-backs** (GAIA conf, scored in
+  memory with GAIA's scorer): of 18 send-backs, 2 wrong to right (p 0.12 and 0.20), 10 right
+  answers sent back for nothing (p 0.04 to 0.49), 6 wrong that stayed wrong (p 0.04 to 0.25), none
+  harmed. Any stricter cut loses both fixes: a more demanding check-done has to change the
+  question, not the threshold.
+- **Search stops on its own when the answer arrives** (BCP conf, official gold qrels): in the
+  right sessions the first gold document came at search 4-5 and a median of 0 searches followed,
+  in both arms. The money is in the wrong sessions (N 43.7 of 61.0 USD, S 45.4 of 71.4), most of
+  which never saw a gold document (N 33 of 41, S 25 of 34). 8 N and 9 S sessions got a gold
+  document and still answered wrong (S then searched a median of 10 more times): the room for a
+  check of the returned documents is there, not in an early stop.
+- **Order of the arms in an S2 confirmation**: S0's prefix differs from N's (its tools and skill),
+  so S0 could not read N's cache, and in the confirmations it wrote less cache than N in only
+  26/50, 21/135 and 31/90 pairs. S2 adds nothing to the prefix, so with N always first it could
+  read N's cache: the S2 confirmation alternates which arm goes first.
