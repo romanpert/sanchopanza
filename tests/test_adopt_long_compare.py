@@ -123,6 +123,25 @@ def test_stable_flips_set_aside_what_n_changes_against_itself(three: dict[str, A
     assert "A_vs_N+N2" not in three["stable_flips"]
 
 
+def test_flip_bases_are_configurable_and_pairs_follow_the_given_order(
+    tmp_path: pathlib.Path, lc: Any
+) -> None:
+    """A second Ne run as the base (Ne, Ne2) and N as the other: N's b3 miss is a flip against a
+    stable Ne pair; N2 is absent, so the default N,N2 bases give nothing."""
+    chain_arm(tmp_path / "N", "N", {"b1": True, "b2": True, "b3": False, "b4": False}, {"b4"})
+    chain_arm(tmp_path / "Ne", "Ne", {"b1": True, "b2": True, "b3": True, "b4": False}, set())
+    chain_arm(tmp_path / "Ne2", "Ne", {"b1": True, "b2": False, "b3": True, "b4": False}, set())
+    spec = {"Ne": (tmp_path / "Ne", "Ne"), "Ne2": (tmp_path / "Ne2", "Ne"),
+            "N": (tmp_path / "N", "N")}  # fmt: skip
+    c = lc.compare(spec, ["Ne,Ne2:N", "N,N2:Ne"])["chains"][CHAINS[1]]
+    assert list(c["pairs"]) == ["Ne_vs_Ne2", "Ne_vs_N", "Ne2_vs_N"]
+    assert list(c["stable_flips"]) == ["N_vs_Ne+Ne2"]
+    res = c["stable_flips"]["N_vs_Ne+Ne2"]["resolved"]
+    assert res["base_agree"] == 3  # b1, b3, b4 (b2 is Ne's noise)
+    assert (res["other_true_base_false"], res["other_false_base_true"]) == (0, 1)  # b3
+    assert lc.parse_flips(["N,N2:Ne"]) == [(("N", "N2"), "Ne")]
+
+
 def test_cumulative_cost_counts_what_ran_up_to_each_checkpoint(three: dict[str, Any]) -> None:
     ne = three["arms"]["Ne"]
     assert ne["cost_usd"] == 3.0 and ne["calls_ran"] == 3 and ne["stopped"] == "cap"

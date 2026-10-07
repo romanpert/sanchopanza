@@ -1,6 +1,7 @@
 """Long-chain arms side by side, per chain and per bug: free, it only reads rows, grades and diffs.
 
-    python benchmarks/adopt/long_compare.py [--arm NAME=ROOT:DIR ...] [--json <out.json>]
+    python benchmarks/adopt/long_compare.py [--arm NAME=ROOT:DIR ...]
+        [--flips BASE1,BASE2:OTHER ...] [--json <out.json>]
 
 Default arms (Sonnet 5.5, `long_run.GATE_CHAINS`): N (the gate, `C:\\sp-runs\\L`), N2 (N again,
 `L-n2`), Ne (N-early, `L-ne`) and A (the passages pilot, `L-pilot-a`); an arm whose root has no
@@ -29,6 +30,7 @@ How to read it:
 from __future__ import annotations
 
 import argparse
+import itertools
 import json
 import sys
 from collections.abc import Mapping, Sequence
@@ -44,7 +46,7 @@ CHAINS = ("conan-io__conan-long60-1", "pydantic__pydantic-long60-1")  # long_run
 MODEL = "sonnet"
 DEFAULT_ARMS = (r"N=C:\sp-runs\L:N", r"N2=C:\sp-runs\L-n2:N", r"Ne=C:\sp-runs\L-ne:Ne",
                 r"A=C:\sp-runs\L-pilot-a:A")  # fmt: skip
-PAIRS = (("N", "N2"), ("N", "Ne"), ("N2", "Ne"), ("N", "A"), ("N2", "A"), ("Ne", "A"))
+DEFAULT_FLIPS = ("N,N2:Ne", "N,N2:A")
 BANDS = ((0, 100_000), (100_000, 150_000), (150_000, 200_000), (200_000, None))
 CHECKPOINTS = (10, 20, 30, 40, 50, 60)
 DECLARED = (
@@ -209,7 +211,18 @@ def stable_flips(arms: Mapping[str, Any], base: Sequence[str], other: str) -> di
     return out
 
 
-def compare(arms_spec: Mapping[str, tuple[Path, str]]) -> dict[str, Any]:
+def parse_flips(specs: Sequence[str]) -> list[tuple[tuple[str, ...], str]]:
+    """`BASE1,BASE2:OTHER`: the flips of OTHER on the bugs where the base arms agree."""
+    out = []
+    for spec in specs:
+        base, other = spec.rsplit(":", 1)
+        out = [*out, (tuple(base.split(",")), other)]
+    return out
+
+
+def compare(arms_spec: Mapping[str, tuple[Path, str]],
+            flip_specs: Sequence[str] = DEFAULT_FLIPS) -> dict[str, Any]:  # fmt: skip
+    """Every pair of the arms found, in the order given; the flips each spec asks for."""
     chains: dict[str, Any] = {}
     for chain in CHAINS:
         found = {
@@ -222,10 +235,10 @@ def compare(arms_spec: Mapping[str, tuple[Path, str]]) -> dict[str, Any]:
                                 "cost_per_resolved": _ratio(v["cost_per_resolved"],
                                                             n["cost_per_resolved"])}
                   for a, v in found.items() if a != "N" and n}  # fmt: skip
-        pairs = {f"{a}_vs_{b}": pair(found[a], found[b]) for a, b in PAIRS
-                 if a in found and b in found}  # fmt: skip
-        flips = {f"{o}_vs_N+N2": f for o in ("Ne", "A")
-                 if (f := stable_flips(found, ("N", "N2"), o)) is not None}  # fmt: skip
+        pairs = {f"{a}_vs_{b}": pair(found[a], found[b])
+                 for a, b in itertools.combinations(found, 2)}  # fmt: skip
+        flips = {f"{o}_vs_{'+'.join(base)}": f for base, o in parse_flips(flip_specs)
+                 if (f := stable_flips(found, base, o)) is not None}  # fmt: skip
         chains = {**chains, chain: {"arms": found, "ratios": ratios, "pairs": pairs,
                                     "stable_flips": flips}}  # fmt: skip
     models = {v["model"] for c in chains.values() for v in c["arms"].values()}
@@ -290,9 +303,15 @@ def parse_arms(specs: Sequence[str]) -> dict[str, tuple[Path, str]]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--arm", action="append", default=[], help="NAME=ROOT:DIR, repeatable")
+    parser.add_argument(
+        "--flips",
+        action="append",
+        default=[],
+        help="BASE1,BASE2:OTHER, repeatable (default N,N2:Ne and N,N2:A)",
+    )
     parser.add_argument("--json", default="")
     args = parser.parse_args(argv)
-    data = compare(parse_arms(args.arm or DEFAULT_ARMS))
+    data = compare(parse_arms(args.arm or DEFAULT_ARMS), args.flips or DEFAULT_FLIPS)
     for line in table(data):
         print(line)
     if args.json:
