@@ -197,6 +197,8 @@ def test_give_ups_are_counted_apart_with_their_context(
     assert graded["unresolved_at_or_past_150k"] == 0 and graded["unresolved_contexts"] == [90_000]
     assert [i["resolved"] for i in graded["items"]] == [True, False]
     assert "unresolved" not in m.long_report.give_ups(tmp_path, {"calls": calls_ids})
+    unknown = m.long_report.give_ups(tmp_path, {"calls": calls_ids}, {"bugs": []})
+    assert unknown["unresolved"] == 0 and [i["resolved"] for i in unknown["items"]] == [None, None]
 
 
 # ---- manifests, the seal, the preflight, the agents' environment --------------------------------

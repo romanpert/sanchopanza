@@ -386,8 +386,9 @@ def give_ups(evidence: Path, row: Mapping[str, Any],
     if grade is None:
         return {**raw, "items": items}
     resolved = {b.get("instance_id"): bool(b.get("resolved")) for b in grade.get("bugs", [])}
-    marked = [{**i, "resolved": resolved.get(i["instance_id"], False)} for i in items]
-    real = [i["context"] for i in marked if not i["resolved"]]
+    # a bug the grade does not name stays unknown (None) and is not counted as unresolved
+    marked = [{**i, "resolved": resolved.get(i["instance_id"])} for i in items]
+    real = [i["context"] for i in marked if i["resolved"] is False]
     return {**raw, "unresolved": len(real),
             f"unresolved_at_or_past_{GIVE_UP_AT // 1000}k": sum(c >= GIVE_UP_AT for c in real),
             "unresolved_contexts": real, "items": marked}  # fmt: skip
