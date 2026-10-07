@@ -136,12 +136,33 @@ def labelled(value: str) -> list[str]:
     return ok(done, "docker ps").decode().split()
 
 
+REMOVE_WAIT_S = 5.0  # between checks on a container Docker is already removing
+REMOVE_CHECKS = 12
+# A `docker run --rm` the agent started can be going away when the call ends: Docker then
+# answers `rm -f` with one of these, and the container is gone a moment later (2026-10-07: the
+# gate's runner ended on "removal ... is already in progress" after call 51 of a paid chain).
+GOING_AWAY = ("is already in progress", "No such container")
+
+
 def remove_labelled(value: str) -> list[str]:
-    """Remove what a call left behind (a runtests the kill orphaned); returns the ids removed."""
+    """Remove what a call left behind (a runtests the kill orphaned); returns the ids removed.
+    A container already being removed is waited for, not fatal; one still there after the wait,
+    or any other Docker error, still raises."""
     found = labelled(value)
-    if found:
-        ok(docker("rm", "-f", *found, timeout=300), "docker rm")
-    return found
+    if not found:
+        return found
+    done = docker("rm", "-f", *found, timeout=300)
+    if done.returncode == 0:
+        return found
+    err = done.stderr.decode("utf-8", "replace")
+    if not any(sign in err for sign in GOING_AWAY):
+        ok(done, "docker rm")
+    for _ in range(REMOVE_CHECKS):
+        if not set(labelled(value)) & set(found):
+            return found
+        time.sleep(REMOVE_WAIT_S)
+    raise RuntimeError(f"docker rm: {sorted(set(labelled(value)) & set(found))} still there "
+                       f"after {REMOVE_CHECKS * REMOVE_WAIT_S:.0f} s: {err[-300:]}")
 
 
 def health() -> str:
