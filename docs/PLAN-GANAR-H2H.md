@@ -342,27 +342,37 @@ de ver ningún resultado de calidad de Ne.
 - Salvedad: k = 1, y McNemar supone bugs independientes, que dentro de una cadena no lo son del
   todo.
 
-**Lectura**:
+**Lectura, solo cifras: la causa está pendiente** (corregido a petición de e8, 19:55):
 
-- En código largo, la compactación temprana abarata mucho y **pierde el hilo**: se ve claro en
-  conan, y en pydantic en los abandonos.
-- "Menos contexto, menos abandonos" no vale para la ventana. Compactar no equivale a no meter
-  basura.
-- A, que decide qué entra con Jev, mantiene o sube la calidad y es el brazo que menos se rinde.
-  Su coste queda en el ruido de N.
+- Ne cuesta un 41-46 % menos.
+- En conan resuelve menos.
+- En pydantic se rinde más.
 
-**Consecuencias para el plan**:
+**No está demostrado que sea por compactar.** La mitad de las pérdidas de Ne en conan ocurren
+antes de su primera compactación: bugs 1, 4, 6, 7, 9 y 12, cuando Ne es todavía el mismo
+tratamiento que N. Las otras seis caen después (16, 23, 24, 33, 35 y 50).
 
-1. **En código largo, N-early es listón de coste, no de calidad.** El listón de calidad sigue
-   siendo N.
-2. **La pregunta que se abre es la de la guardia de S0**: ¿recupera Jev, eligiendo qué se queda
-   tras compactar, lo que la ventana pierde?
-   - La prueba es Ne+guard frente a Ne, en las mismas cadenas.
-   - Es Jev sustituyendo memoria que el modelo pierde, no sumando trabajo.
-   - En BCP la guardia no añadió nada, pero allí compactar no hacía daño: BCP no tenía qué
-     recuperar.
-3. **A sigue en pie como palanca de calidad, no de ahorro**: actúa en el 4 % de las llamadas y no
-   mueve el coste. Merece más cadenas antes de sacar conclusiones.
+Por tercios de la cadena:
+
+| | 1.er tercio | 2.º tercio | 3.er tercio |
+|---|---|---|---|
+| Ne | 11 | 12 | 14 |
+| N | 18 | 15 | 8 |
+| A | 20 | 15 | 12 |
+
+Ne no cae tras compactar, empieza peor; N cae en el último tercio. En conan no hay N2, así que
+no hay suelo de ruido allí.
+
+e8 comprueba gratis si Ne ya falla los bugs 1-12 en su instantánea de la llamada 12. Hasta
+entonces no se escriben causas, y las consecuencias de abajo quedan en suspenso.
+
+**Consecuencias, en suspenso hasta esa comprobación**:
+
+1. Que N-early sea listón de coste y no de calidad en código largo: **prematuro**.
+2. Ne+guard frente a Ne (¿recupera la guardia lo que la ventana pierde?): **depende de que la
+   pérdida venga de compactar**.
+3. A sigue siendo el brazo con menos abandonos no resueltos (0 y 1), con el coste dentro del ruido
+   de N. Actúa en el 4 % de las llamadas: hacen falta más cadenas.
 
 ## 7. Lo que no prometemos
 
