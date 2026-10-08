@@ -588,6 +588,95 @@ Script: `replay_ne.py`, en el scratchpad de la sesión 12aa49bd.
     la regla, la potencia manda: ~43 cadenas para ver un −7 %.
   - A queda archivado para código largo. Su techo se lee con replay, que es determinista.
 
+### Dónde puede pagar Jev en código largo con N-early de listón (indagis-b9, 2026-10-08; gratis)
+
+Tres replays sobre las mismas transcripciones (N, N2 y Ne de conan-1; N y Ne de pydantic-1), sin
+modelo y sin Jev. Scripts en el scratchpad de la sesión ab95d8a0: `anat_ne.py`, `carry_ne.py`,
+`sim_compact.py` y `oracle_compact.py`. Reutilizan el parser de anatomía y `rc.prep`. En `claude -p`
+los bugs llegan como mensajes de usuario sin `turnOrigin` humano, así que el parser los archiva como
+`umeta`; aquí cuentan como frontera de mensaje.
+
+**1. En qué se va el dinero de Ne** (% del coste reconstruido; conan Ne / Ne2 / pydantic Ne):
+
+| Parte | Ne conan | Ne2 conan | Ne pydantic | N conan (referencia) |
+|---|---|---|---|---|
+| Lecturas de contexto arrastrado de mensajes anteriores | 39,2 | 42,7 | 47,2 | 73,2 |
+| Lecturas del prefijo base (sistema, herramientas, resumen) | 19,6 | 20,7 | 19,8 | 7,9 |
+| — de ellas, el resumen de compactación | 4,6 | 5,1 | 2,7 | — |
+| Escritura de caché | 23,5 | 19,1 | 16,3 | 8,8 |
+| Salida | 15,0 | 13,8 | 15,1 | 8,4 |
+| Lecturas del trabajo del propio bug | 2,7 | 3,7 | 1,5 | 1,6 |
+
+**2. ¿Usa un bug el contexto arrastrado?**
+
+- El agente lee y edita por Bash (`grep`, `sed -n`, heredocs de `python`), así que las rutas `.py`
+  salen de los comandos. Es una aproximación.
+- Llamo "dependencia" a editar un fichero que no se ha mirado en ese bug pero sí antes en el
+  segmento:
+  - en conan, 4-6 bugs de ~55 (y 6-13 en N);
+  - en pydantic, 24 de 57 (Ne) y 34 (N): allí los bugs comparten ficheros.
+- Arrastrar el contexto cuesta ~0,11 $ por bug en Ne (6,4-8,0 $ entre ~55 bugs). Volver a leer un
+  trozo de fichero con `sed` (~3k tokens) cuesta del orden de 0,02 $.
+- **Conservar el arrastre para ahorrarse una relectura no compensa nunca en coste.** Decidir bug a
+  bug qué se arrastra solo podría valer por calidad.
+- Los bugs que empiezan con poco arrastre (<20k) cuestan más de su propio trabajo que los de mitad
+  de segmento: mediana 0,215 frente a 0,114 $ (Ne conan), 0,191 frente a 0,151 $ (Ne2) y 0,113
+  frente a 0,095 $ (Ne pydantic). Son entre 9 y 12 bugs por corrida: es una dirección, no un número.
+
+**3. ¿Cuándo compactar? Regla de umbral frente a oráculo.**
+
+- Simulación de primer orden sobre N, que nunca compacta:
+  - se compacta al acabar el turno si el contexto pasa de T;
+  - cada compactación cuesta 0,145 $ (lo cobrado menos lo reconstruido en Ne2, entre sus 4);
+  - se retoma desde S = 30,5k, la mediana de los inicios de segmento de Ne;
+  - el comportamiento del agente se queda fijo.
+- Calibración:
+  - sin compactar, reproduce N: 28,54 frente a 28,45 $ (conan) y 23,64 frente a 23,55 $ (pydantic);
+  - con T = 160k, cerca del disparo real de Ne, da 15,1-16,1 $ en conan, frente a 16,7-18,8 $ reales;
+  - es algo optimista: Ne hizo un 12-20 % más de peticiones que N.
+
+| | T = 160k (≈ Ne) | Mejor umbral | Oráculo (mejor colocación posible, sabiendo el futuro) | Oráculo sobre el mejor umbral |
+|---|---|---|---|---|
+| N conan | 15,11 $ (2) | 70k: 11,90 $ (9) | 11,69 $ (9) | **1,8 %** |
+| N2 conan | 16,05 $ (3) | 60k: 12,16 $ (11) | 11,92 $ (10) | **2,0 %** |
+| N pydantic | 13,54 $ (2) | 60k: 10,76 $ (9) | 10,63 $ (9) | **1,2 %** |
+
+(Entre paréntesis, compactaciones.)
+
+**Respuesta: no he encontrado ningún sitio donde Jev pague en coste en código largo con Ne de
+listón.** Cada parte del coste, con su techo:
+
+| Candidato | Techo | Veredicto |
+|---|---|---|
+| A, pasajes al entrar | 2,2-4,3 % (5a) | No pasa 5.2 |
+| Cuándo compactar | Oráculo 1,2-2,0 % sobre una regla de umbral | Ninguna decisión por frontera puede pasar 5.2 |
+| Qué sobrevive a la compactación (C, la guardia) | Lecturas del resumen 2,7-5,1 % + reescritura 0,9-1,9 %, aunque el resumen desapareciera entero | Elegir parte de él no llega al 5 %, y no hay pérdida de calidad que recuperar (Ne 37-51) |
+| Qué arrastrar entre bugs | Arrastrar cuesta ~5 veces una relectura | En coste, nunca gana a volver a leer |
+| Escritura y salida (35-40 %) | — | No son sustituibles por una decisión (B falló) |
+
+**Lo que sí aparece, sin Jev:**
+
+- Compactar antes, al final del turno, con un umbral de 60-70k y el resumen nativo, da entre −20 y
+  −25 % frente al umbral de Ne en la simulación.
+- **Es una cota superior.** Supone que el agente no relee más tras compactar 9-11 veces en lugar de
+  2-4, y el punto 2 dice que algo más relee.
+- La calidad con ese número de compactaciones no está medida.
+- Es configuración, no Jev:
+  - `CLAUDE_CODE_AUTOCOMPACT_PCT_OVERRIDE` sobre una ventana de 100k (el mínimo documentado de
+    `CLAUDE_CODE_AUTO_COMPACT_WINDOW`);
+  - o `SANCHOPANZA_COMPACT_AT_PERCENT` del plugin de compactación (function hooks, early access),
+    que compacta al acabar el turno.
+- Las cifras del brazo de enmascarado no valen: supuse el mismo S que un resumen, y en el e2e del
+  2026-09-28 el enmascarado dejaba ~2/3 del contexto.
+
+**Potencia, con la desviación de 0,171 entre réplicas:**
+
+- Un −20 % (ln 0,8 = 0,223) se ve con ~5 cadenas al 80 % de potencia.
+- Con las 6 cadenas validadas que habría tras las validaciones de hoy, alcanza para el coste.
+- No alcanza para leer la calidad (Ne va de 37 a 51 en una misma cadena): habría que decidir antes
+  un margen de no inferioridad laxo.
+- Es una propuesta al dueño, sin lanzar. No es una apuesta de Jev, y se dice así.
+
 ## 7. Lo que no prometemos
 
 - LongBench no tiene palanca de S: su 0,785 es un caso atípico.
