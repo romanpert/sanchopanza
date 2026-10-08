@@ -1,0 +1,1478 @@
+{
+ "chain": "getmoto__moto-long60-1",
+ "repo": "swesmith/getmoto__moto.694ce1f4",
+ "image": "jyangballin/swesmith.x86_64.getmoto_1776_moto.694ce1f4",
+ "tag": "adopt-getmoto--moto-long60-1:bugs",
+ "split": "dev",
+ "seed": 20261005,
+ "token": "f77f361c",
+ "size": 60,
+ "sources": {
+  "pr_mirror": 60
+ },
+ "real": 60,
+ "synthetic_dataset": "SWE-bench/SWE-smith@ea6d7173829c7ec8fa16c22055699ff2e9188091",
+ "pr_mirror_sha256": "5128440c2c0acda5c743359add5ade03577b0e552c4e431ec971d1ab484c3d5a",
+ "bugs": [
+  {
+   "n": 1,
+   "instance_id": "getmoto__moto.694ce1f4.pr_6509",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/iotdata/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_iotdata/test_iotdata.py::test_publish"
+   ]
+  },
+  {
+   "n": 2,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5072",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/organizations/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_organizations/test_organizations_boto3.py::test_close_account_puts_account_in_suspended_status"
+   ]
+  },
+  {
+   "n": 3,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5601",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/ec2/models/route_tables.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_ec2/test_route_tables.py::test_route_tables_filters_vpc_peering_connection"
+   ]
+  },
+  {
+   "n": 4,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7599",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/rekognition/models.py",
+    "moto/rekognition/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_rekognition/test_rekognition.py::test_detect_custom_labels"
+   ]
+  },
+  {
+   "n": 5,
+   "instance_id": "getmoto__moto.694ce1f4.pr_8619",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/cognitoidentity/models.py",
+    "moto/cognitoidentity/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_cognitoidentity/test_cognitoidentity.py::test_delete_identity_pool"
+   ]
+  },
+  {
+   "n": 6,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7647",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/athena/models.py",
+    "moto/athena/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_athena/test_athena.py::test_get_query_execution_with_execution_parameters",
+    "tests/test_athena/test_athena.py::test_start_execution_with_workgroup",
+    "tests/test_athena/test_athena.py::test_list_query_executions_by_workgroup",
+    "tests/test_athena/test_athena.py::test_list_query_executions_by_workgroup_when_none_match"
+   ]
+  },
+  {
+   "n": 7,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5778",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/kinesis/urls.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_kinesis/test_kinesis.py::test_stream_creation_on_demand",
+    "tests/test_kinesis/test_kinesis.py::test_update_stream_mode",
+    "tests/test_kinesis/test_kinesis.py::test_list_and_delete_stream",
+    "tests/test_kinesis/test_kinesis.py::test_describe_stream_summary",
+    "tests/test_kinesis/test_kinesis.py::test_valid_decrease_stream_retention_period",
+    "tests/test_kinesis/test_kinesis.py::test_add_list_remove_tags",
+    "tests/test_kinesis/test_kinesis.py::test_merge_shards"
+   ]
+  },
+  {
+   "n": 8,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7642",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/appsync/urls.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_appsync/test_appsync.py::test_create_graphql_api",
+    "tests/test_appsync/test_appsync.py::test_create_graphql_api_advanced",
+    "tests/test_appsync/test_appsync.py::test_get_graphql_api",
+    "tests/test_appsync/test_appsync.py::test_update_graphql_api",
+    "tests/test_appsync/test_appsync.py::test_get_graphql_api_unknown",
+    "tests/test_appsync/test_appsync.py::test_delete_graphql_api",
+    "tests/test_appsync/test_appsync.py::test_list_graphql_apis",
+    "tests/test_appsync/test_appsync.py::test_get_api_cache",
+    "tests/test_appsync/test_appsync.py::test_get_api_cache_error",
+    "tests/test_appsync/test_appsync.py::test_delete_api_cache",
+    "tests/test_appsync/test_appsync.py::test_delete_api_cache_error",
+    "tests/test_appsync/test_appsync.py::test_create_api_cache",
+    "tests/test_appsync/test_appsync.py::test_create_api_cache_advanced",
+    "tests/test_appsync/test_appsync.py::test_create_api_cache_error",
+    "tests/test_appsync/test_appsync.py::test_update_api_cache",
+    "tests/test_appsync/test_appsync.py::test_update_api_cache_error",
+    "tests/test_appsync/test_appsync.py::test_flush_api_cache"
+   ]
+  },
+  {
+   "n": 9,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5865",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/ecs/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_ecs/test_ecs_boto3.py::test_list_unknown_service[unknown]"
+   ]
+  },
+  {
+   "n": 10,
+   "instance_id": "getmoto__moto.694ce1f4.pr_6724",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/logs/models.py",
+    "moto/logs/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_logs/test_integration.py::test_put_subscription_filter_update"
+   ]
+  },
+  {
+   "n": 11,
+   "instance_id": "getmoto__moto.694ce1f4.pr_8217",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/workspacesweb/models.py",
+    "moto/workspacesweb/responses.py",
+    "moto/workspacesweb/urls.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_workspacesweb/test_workspacesweb.py::test_list_tags_for_resource"
+   ]
+  },
+  {
+   "n": 12,
+   "instance_id": "getmoto__moto.694ce1f4.pr_8360",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/directconnect/enums.py",
+    "moto/directconnect/exceptions.py",
+    "moto/directconnect/models.py",
+    "moto/directconnect/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_directconnect/test_directconnect.py::test_create_connection",
+    "tests/test_directconnect/test_directconnect.py::test_describe_connections",
+    "tests/test_directconnect/test_directconnect.py::test_delete_connection",
+    "tests/test_directconnect/test_directconnect.py::test_update_connection",
+    "tests/test_directconnect/test_directconnect.py::test_associate_mac_sec_key_connection",
+    "tests/test_directconnect/test_directconnect.py::test_associate_mac_sec_key_lag",
+    "tests/test_directconnect/test_directconnect.py::test_create_lag",
+    "tests/test_directconnect/test_directconnect.py::test_describe_lags",
+    "tests/test_directconnect/test_directconnect.py::test_disassociate_mac_sec_key_connection",
+    "tests/test_directconnect/test_directconnect.py::test_disassociate_mac_sec_key_lag"
+   ]
+  },
+  {
+   "n": 13,
+   "instance_id": "getmoto__moto.694ce1f4.pr_8120",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/dynamodb/exceptions.py",
+    "moto/dynamodb/parsing/ast_nodes.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_dynamodb/test_dynamodb.py::test_remove_list_index__remove_multiple_indexes"
+   ]
+  },
+  {
+   "n": 14,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5980",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/ec2/utils.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_ec2/test_instances.py::test_get_instances_filtering_by_tag"
+   ]
+  },
+  {
+   "n": 15,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7671",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/emrserverless/exceptions.py",
+    "moto/emrserverless/models.py",
+    "moto/emrserverless/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_emrserverless/test_emrserverless.py::TestCreateApplication::test_create_application",
+    "tests/test_emrserverless/test_emrserverless.py::TestDeleteApplication::test_valid_application_id[0-STARTED-expectation0]",
+    "tests/test_emrserverless/test_emrserverless.py::TestDeleteApplication::test_valid_application_id[1-STOPPED-expectation1]",
+    "tests/test_emrserverless/test_emrserverless.py::TestDeleteApplication::test_valid_application_id[2-CREATING-expectation2]",
+    "tests/test_emrserverless/test_emrserverless.py::TestDeleteApplication::test_valid_application_id[3-CREATED-expectation3]",
+    "tests/test_emrserverless/test_emrserverless.py::TestDeleteApplication::test_valid_application_id[4-STARTING-expectation4]",
+    "tests/test_emrserverless/test_emrserverless.py::TestDeleteApplication::test_valid_application_id[5-STOPPING-expectation5]",
+    "tests/test_emrserverless/test_emrserverless.py::TestDeleteApplication::test_valid_application_id[6-TERMINATED-expectation6]",
+    "tests/test_emrserverless/test_emrserverless.py::TestDeleteApplication::test_invalid_application_id",
+    "tests/test_emrserverless/test_emrserverless.py::TestGetApplication::test_filtering[extra_configuration0]",
+    "tests/test_emrserverless/test_emrserverless.py::TestGetApplication::test_filtering[extra_configuration1]",
+    "tests/test_emrserverless/test_emrserverless.py::TestGetApplication::test_filtering[extra_configuration2]",
+    "tests/test_emrserverless/test_emrserverless.py::TestGetApplication::test_filtering[extra_configuration3]",
+    "tests/test_emrserverless/test_emrserverless.py::TestGetApplication::test_filtering[extra_configuration4]",
+    "tests/test_emrserverless/test_emrserverless.py::TestListApplication::test_response_context",
+    "tests/test_emrserverless/test_emrserverless.py::TestUpdateApplication::test_valid_update[update_configuration0]",
+    "tests/test_emrserverless/test_emrserverless.py::TestUpdateApplication::test_valid_update[update_configuration1]",
+    "tests/test_emrserverless/test_emrserverless.py::TestUpdateApplication::test_valid_update[update_configuration2]",
+    "tests/test_emrserverless/test_emrserverless.py::TestUpdateApplication::test_valid_update[update_configuration3]",
+    "tests/test_emrserverless/test_emrserverless.py::TestUpdateApplication::test_valid_update[update_configuration4]",
+    "tests/test_emrserverless/test_emrserverless.py::TestUpdateApplication::test_valid_update[update_configuration5]",
+    "tests/test_emrserverless/test_emrserverless.py::TestUpdateApplication::test_valid_update[update_configuration6]"
+   ]
+  },
+  {
+   "n": 16,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5973",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/acm/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_acm/test_acm.py::test_list_certificates",
+    "tests/test_acm/test_acm.py::test_elb_acm_in_use_by",
+    "tests/test_acm/test_acm.py::test_elbv2_acm_in_use_by"
+   ]
+  },
+  {
+   "n": 17,
+   "instance_id": "getmoto__moto.694ce1f4.pr_6387",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/cloudfront/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_cloudfront/test_cloudfront_invalidation.py::test_create_invalidation_with_single_path"
+   ]
+  },
+  {
+   "n": 18,
+   "instance_id": "getmoto__moto.694ce1f4.pr_8491",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/es/models.py",
+    "moto/es/responses.py",
+    "moto/es/urls.py",
+    "moto/opensearch/exceptions.py",
+    "moto/opensearch/models.py",
+    "moto/opensearch/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_es/test_es.py::test_create_domain_invalid_name[getmoto.org]",
+    "tests/test_es/test_es.py::test_create_domain_invalid_name[search-is-$$$]",
+    "tests/test_es/test_es.py::test_create_domain_invalid_name[dev_or_test]",
+    "tests/test_es/test_es.py::test_create_domain_invalid_name[dev/test]",
+    "tests/test_es/test_es.py::test_create_domain_invalid_name[1love]",
+    "tests/test_es/test_es.py::test_create_domain_invalid_name[DEV]",
+    "tests/test_es/test_es.py::test_create_elasticsearch_domain_minimal",
+    "tests/test_es/test_es.py::test_create_elasticsearch_domain",
+    "tests/test_es/test_es.py::test_delete_elasticsearch_domain",
+    "tests/test_es/test_es.py::test_missing_delete_elasticsearch_domain",
+    "tests/test_es/test_es.py::test_describe_invalid_domain",
+    "tests/test_es/test_es.py::test_describe_unknown_domain",
+    "tests/test_es/test_es.py::test_describe_elasticsearch_domain",
+    "tests/test_es/test_es.py::test_list_domain_names_initial",
+    "tests/test_es/test_es.py::test_list_domain_names_enginetype",
+    "tests/test_es/test_es.py::test_list_domain_names_with_multiple_domains",
+    "tests/test_es/test_es.py::test_describe_elasticsearch_domains",
+    "tests/test_es/test_es.py::test_list_domain_names_opensearch",
+    "tests/test_es/test_es.py::test_list_domain_names_opensearch_deleted",
+    "tests/test_opensearch/test_opensearch.py::test_create_domain__minimal_options",
+    "tests/test_opensearch/test_opensearch.py::test_create_domain_in_vpc",
+    "tests/test_opensearch/test_opensearch.py::test_create_domain_with_some_options",
+    "tests/test_opensearch/test_opensearch.py::test_get_compatible_versions",
+    "tests/test_opensearch/test_opensearch.py::test_get_compatible_versions_unknown_domain",
+    "tests/test_opensearch/test_opensearch.py::test_describe_unknown_domain",
+    "tests/test_opensearch/test_opensearch.py::test_describe_domain",
+    "tests/test_opensearch/test_opensearch.py::test_delete_domain",
+    "tests/test_opensearch/test_opensearch.py::test_delete_invalid_domain",
+    "tests/test_opensearch/test_opensearch.py::test_update_domain_config",
+    "tests/test_opensearch/test_opensearch.py::test_list_domain_names",
+    "tests/test_opensearch/test_opensearch.py::test_list_filtered_domain_names",
+    "tests/test_opensearch/test_opensearch.py::test_list_unknown_domain_names_engine_type",
+    "tests/test_opensearch/test_opensearch.py::test_describe_domains"
+   ]
+  },
+  {
+   "n": 19,
+   "instance_id": "getmoto__moto.694ce1f4.pr_6055",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/athena/models.py",
+    "moto/athena/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_athena/test_athena.py::test_get_primary_workgroup",
+    "tests/test_athena/test_athena.py::test_list_named_queries",
+    "tests/test_athena/test_athena.py::test_create_prepared_statement",
+    "tests/test_athena/test_athena.py::test_get_prepared_statement"
+   ]
+  },
+  {
+   "n": 20,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5960",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/dynamodb/models/table.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_dynamodb/test_dynamodb.py::test_gsi_projection_type_keys_only",
+    "tests/test_dynamodb/test_dynamodb.py::test_gsi_projection_type_include",
+    "tests/test_dynamodb/test_dynamodb.py::test_lsi_projection_type_keys_only"
+   ]
+  },
+  {
+   "n": 21,
+   "instance_id": "getmoto__moto.694ce1f4.pr_8538",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/ec2/models/amis.py",
+    "moto/ec2/utils.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_ec2/test_utils.py::test_gen_moto_amis"
+   ]
+  },
+  {
+   "n": 22,
+   "instance_id": "getmoto__moto.694ce1f4.pr_6913",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/sesv2/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_sesv2/test_sesv2.py::test_send_email",
+    "tests/test_sesv2/test_sesv2.py::test_send_html_email"
+   ]
+  },
+  {
+   "n": 23,
+   "instance_id": "getmoto__moto.694ce1f4.pr_8172",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/scheduler/exceptions.py",
+    "moto/scheduler/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_scheduler/test_scheduler.py::test_create_schedule__exception_with_start_date[start_date0]",
+    "tests/test_scheduler/test_scheduler.py::test_create_schedule__exception_with_start_date[start_date1]",
+    "tests/test_scheduler/test_scheduler.py::test_create_schedule__exception_with_start_date[start_date2]",
+    "tests/test_scheduler/test_scheduler.py::test_create_schedule__exception_with_start_date[start_date3]",
+    "tests/test_scheduler/test_scheduler.py::test_create_schedule__exception_with_start_date[start_date4]"
+   ]
+  },
+  {
+   "n": 24,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5620",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/dynamodb/parsing/validators.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_dynamodb/exceptions/test_dynamodb_exceptions.py::test_update_primary_key_with_sortkey",
+    "tests/test_dynamodb/exceptions/test_dynamodb_exceptions.py::test_update_primary_key"
+   ]
+  },
+  {
+   "n": 25,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7511",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/ec2/models/__init__.py",
+    "moto/secretsmanager/list_secrets/filters.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_secretsmanager/test_list_secrets.py::test_with_all_filter",
+    "tests/test_secretsmanager/test_list_secrets.py::test_with_all_filter_special_characters",
+    "tests/test_secretsmanager/test_list_secrets.py::test_with_filter_with_value_with_multiple_words",
+    "tests/test_secretsmanager/test_list_secrets.py::test_with_filter_with_negation"
+   ]
+  },
+  {
+   "n": 26,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7212",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/cognitoidp/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_cognitoidp/test_cognitoidp.py::test_other_attributes_in_id_token"
+   ]
+  },
+  {
+   "n": 27,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7156",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/lakeformation/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_lakeformation/test_lakeformation.py::test_grant_permissions",
+    "tests/test_lakeformation/test_lakeformation.py::test_grant_permissions_idempotent",
+    "tests/test_lakeformation/test_lakeformation.py::test_grant_permissions_staggered"
+   ]
+  },
+  {
+   "n": 28,
+   "instance_id": "getmoto__moto.694ce1f4.pr_6729",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/kms/utils.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_kms/test_utils.py::test_encrypt_decrypt_cycle[encryption_context0]",
+    "tests/test_kms/test_utils.py::test_encrypt_decrypt_cycle[encryption_context1]",
+    "tests/test_kms/test_utils.py::test_decrypt_invalid_encryption_context"
+   ]
+  },
+  {
+   "n": 29,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7331",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/core/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_cognitoidp/test_cognitoidp.py::test_get_user_unknown_accesstoken",
+    "tests/test_cognitoidp/test_cognitoidp.py::test_forgot_password",
+    "tests/test_cognitoidp/test_cognitoidp.py::test_confirm_sign_up",
+    "tests/test_cognitoidp/test_cognitoidp.py::test_initiate_auth_with_invalid_user_pool"
+   ]
+  },
+  {
+   "n": 30,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5134",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/events/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_events/test_event_pattern.py::test_event_pattern_with_exists_event_filter",
+    "tests/test_events/test_events_integration.py::test_moto_matches_none_value_with_exists_filter"
+   ]
+  },
+  {
+   "n": 31,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7767",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/backend_index.py",
+    "moto/backends.py",
+    "moto/shield/__init__.py",
+    "moto/shield/exceptions.py",
+    "moto/shield/models.py",
+    "moto/shield/responses.py",
+    "moto/shield/urls.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_shield/test_shield.py::test_create_protection",
+    "tests/test_shield/test_shield.py::test_create_protection_resource_already_exists",
+    "tests/test_shield/test_shield.py::test_create_protection_invalid_resource",
+    "tests/test_shield/test_shield.py::test_describe_protection_with_resource_arn",
+    "tests/test_shield/test_shield.py::test_describe_protection_with_protection_id",
+    "tests/test_shield/test_shield.py::test_describe_protection_with_both_resource_and_protection_id",
+    "tests/test_shield/test_shield.py::test_describe_protection_resource_doesnot_exist",
+    "tests/test_shield/test_shield.py::test_describe_protection_doesnot_exist",
+    "tests/test_shield/test_shield.py::test_list_protections",
+    "tests/test_shield/test_shield.py::test_list_protections_with_only_resource_arn",
+    "tests/test_shield/test_shield.py::test_list_protections_with_only_protection_name",
+    "tests/test_shield/test_shield.py::test_list_protections_with_only_resource_type",
+    "tests/test_shield/test_shield.py::test_list_protections_with_resource_arn_and_protection_name",
+    "tests/test_shield/test_shield.py::test_list_protections_invalid_resource_arn",
+    "tests/test_shield/test_shield.py::test_list_protections_invalid_protection_names",
+    "tests/test_shield/test_shield.py::test_list_protections_invalid_resource_types",
+    "tests/test_shield/test_shield.py::test_delete_protection",
+    "tests/test_shield/test_shield.py::test_delete_protection_invalid_protection_id",
+    "tests/test_shield/test_shield.py::test_list_tags_for_resource",
+    "tests/test_shield/test_shield.py::test_tag_resource",
+    "tests/test_shield/test_shield.py::test_untag_resource",
+    "tests/test_shield/test_shield.py::test_create_and_describe_subscription"
+   ]
+  },
+  {
+   "n": 32,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7524",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/sns/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_sns/test_application_boto3.py::test_get_list_endpoints_by_platform_application"
+   ]
+  },
+  {
+   "n": 33,
+   "instance_id": "getmoto__moto.694ce1f4.pr_8368",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/ds/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_ds/test_ds.py::test_describe_trusts"
+   ]
+  },
+  {
+   "n": 34,
+   "instance_id": "getmoto__moto.694ce1f4.pr_8143",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/route53/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_route53/test_route53.py::test_list_tags_for_resources"
+   ]
+  },
+  {
+   "n": 35,
+   "instance_id": "getmoto__moto.694ce1f4.pr_6396",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/dms/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_dms/test_dms.py::test_create_and_get_replication_task"
+   ]
+  },
+  {
+   "n": 36,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7061",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/autoscaling/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_autoscaling/test_autoscaling_tags.py::test_describe_tags_filter_by_key_or_value"
+   ]
+  },
+  {
+   "n": 37,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5582",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/sagemaker/models.py",
+    "moto/sagemaker/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_sagemaker/test_sagemaker_training.py::test_create_training_job",
+    "tests/test_sagemaker/test_sagemaker_training.py::test_describe_unknown_training_job"
+   ]
+  },
+  {
+   "n": 38,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7934",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/applicationautoscaling/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_applicationautoscaling/test_applicationautoscaling.py::test_put_scheduled_action",
+    "tests/test_applicationautoscaling/test_applicationautoscaling.py::test_put_scheduled_action__use_update"
+   ]
+  },
+  {
+   "n": 39,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5699",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/cloudfront/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_cloudfront/test_cloudfront_invalidation.py::test_list_invalidations__no_entries"
+   ]
+  },
+  {
+   "n": 40,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7365",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/dynamodb/models/dynamo_type.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_dynamodb/test_dynamodb_update_expressions.py::test_update_item_add_float"
+   ]
+  },
+  {
+   "n": 41,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7317",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/glue/models.py",
+    "moto/glue/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_glue/test_datacatalog.py::test_create_database_with_tags"
+   ]
+  },
+  {
+   "n": 42,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5854",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/ebs/models.py",
+    "moto/ebs/responses.py",
+    "moto/ec2/models/core.py",
+    "moto/ec2/models/elastic_block_store.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_ebs/test_ebs.py::test_start_snapshot__minimal",
+    "tests/test_ebs/test_ebs.py::test_start_snapshot",
+    "tests/test_ebs/test_ebs.py::test_complete_snapshot",
+    "tests/test_ebs/test_ebs.py::test_put_snapshot_block",
+    "tests/test_ebs/test_ebs.py::test_get_snapshot_block",
+    "tests/test_ebs/test_ebs.py::test_list_changed_blocks",
+    "tests/test_ebs/test_ebs.py::test_list_snapshot_blocks",
+    "tests/test_ebs/test_ebs.py::test_start_snapshot__should_be_created_in_ec2"
+   ]
+  },
+  {
+   "n": 43,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7168",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/scheduler/exceptions.py",
+    "moto/scheduler/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_scheduler/test_scheduler.py::test_get_schedule_for_none_existing_schedule",
+    "tests/test_scheduler/test_scheduler.py::test_delete_schedule_for_none_existing_schedule"
+   ]
+  },
+  {
+   "n": 44,
+   "instance_id": "getmoto__moto.694ce1f4.pr_8607",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/guardduty/models.py",
+    "moto/guardduty/responses.py",
+    "moto/guardduty/urls.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_guardduty/test_guardduty.py::test_get_administrator_account",
+    "tests/test_guardduty/test_guardduty.py::test_no_administrator_account"
+   ]
+  },
+  {
+   "n": 45,
+   "instance_id": "getmoto__moto.694ce1f4.pr_6469",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/secretsmanager/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_secretsmanager/test_secretsmanager.py::test_delete_secret_recovery_window_invalid_values",
+    "tests/test_secretsmanager/test_secretsmanager.py::test_delete_secret_force_no_such_secret_with_invalid_recovery_window"
+   ]
+  },
+  {
+   "n": 46,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7144",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/acm/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_acm/test_acm.py::test_describe_certificate_with_imported_cert",
+    "tests/test_acm/test_acm.py::test_describe_certificate_with_pca_cert",
+    "tests/test_acm/test_acm.py::test_request_certificate_with_optional_arguments",
+    "tests/test_acm/test_acm.py::test_request_certificate_no_san"
+   ]
+  },
+  {
+   "n": 47,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7905",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/moto_api/_internal/models.py",
+    "moto/moto_api/_internal/responses.py",
+    "moto/moto_api/_internal/urls.py",
+    "moto/sagemakerruntime/models.py",
+    "moto/sagemakerruntime/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_sagemakerruntime/test_sagemakerruntime.py::test_invoke_endpoint_async",
+    "tests/test_sagemakerruntime/test_sagemakerruntime.py::test_invoke_endpoint_async_should_read_sync_queue_if_async_not_configured"
+   ]
+  },
+  {
+   "n": 48,
+   "instance_id": "getmoto__moto.694ce1f4.pr_8492",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/kafka/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_kafka/test_kafka.py::test_list_clusters_v2"
+   ]
+  },
+  {
+   "n": 49,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7608",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/stepfunctions/models.py",
+    "moto/stepfunctions/parser/asl/component/common/error_name/custom_error_name.py",
+    "moto/stepfunctions/parser/models.py",
+    "moto/stepfunctions/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_stepfunctions/parser/test_choice_state.py::test_state_machine_with_choice",
+    "tests/test_stepfunctions/parser/test_choice_state.py::test_state_machine_with_choice_miss",
+    "tests/test_stepfunctions/parser/test_comments.py::test_comments_in_parameters",
+    "tests/test_stepfunctions/parser/test_map_item.py::test_state_machine_with_map_reader_csv",
+    "tests/test_stepfunctions/parser/test_map_item.py::test_state_machine_with_map_reader_csv_with_header",
+    "tests/test_stepfunctions/parser/test_parallel_states.py::test_state_machine_with_parallel_states",
+    "tests/test_stepfunctions/parser/test_parallel_states.py::test_state_machine_with_parallel_states_catch_error",
+    "tests/test_stepfunctions/parser/test_parallel_states.py::test_state_machine_with_parallel_states_error",
+    "tests/test_stepfunctions/parser/test_parallel_states.py::test_state_machine_with_parallel_states_order",
+    "tests/test_stepfunctions/parser/test_stepfunctions.py::test_state_machine_with_simple_failure_state",
+    "tests/test_stepfunctions/parser/test_stepfunctions.py::test_state_machine_with_input",
+    "tests/test_stepfunctions/parser/test_stepfunctions.py::test_state_machine_with_json_regex",
+    "tests/test_stepfunctions/parser/test_stepfunctions.py::test_version_is_only_available_when_published",
+    "tests/test_stepfunctions/parser/test_stepfunctions.py::test_verify_template_with_credentials",
+    "tests/test_stepfunctions/parser/test_stepfunctions_dynamodb_integration.py::test_state_machine_calling_dynamodb_put",
+    "tests/test_stepfunctions/parser/test_stepfunctions_dynamodb_integration.py::test_state_machine_calling_dynamodb_put_wait_for_invalid_task_token",
+    "tests/test_stepfunctions/parser/test_stepfunctions_dynamodb_integration.py::test_state_machine_calling_dynamodb_put_wait_for_task_token",
+    "tests/test_stepfunctions/parser/test_stepfunctions_dynamodb_integration.py::test_state_machine_calling_dynamodb_put_fail_task_token",
+    "tests/test_stepfunctions/parser/test_stepfunctions_dynamodb_integration.py::test_state_machine_calling_dynamodb_put_and_delete",
+    "tests/test_stepfunctions/parser/test_stepfunctions_dynamodb_integration.py::test_send_task_failure_invalid_token",
+    "tests/test_stepfunctions/parser/test_stepfunctions_dynamodb_integration.py::test_zero_retry",
+    "tests/test_stepfunctions/parser/test_stepfunctions_lambda_retry_integration.py::test_retry_lambda",
+    "tests/test_stepfunctions/parser/test_stepfunctions_lambda_retry_integration.py::test_retry_lambda_jitter_none",
+    "tests/test_stepfunctions/parser/test_stepfunctions_sns_integration.py::test_state_machine_calling_sns_publish",
+    "tests/test_stepfunctions/parser/test_stepfunctions_sqs_integration.py::test_state_machine_calling_sqs_with_heartbeat",
+    "tests/test_stepfunctions/parser/test_stepfunctions_sqs_integration.py::test_state_machine_calling_sqs_with_task_success"
+   ]
+  },
+  {
+   "n": 50,
+   "instance_id": "getmoto__moto.694ce1f4.pr_4950",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/timestreamwrite/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_timestreamwrite/test_timestreamwrite_table.py::test_write_records"
+   ]
+  },
+  {
+   "n": 51,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5515",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/ec2/models/availability_zones_and_regions.py",
+    "moto/ec2/models/instances.py",
+    "moto/ec2/resources/instance_type_offerings/availability-zone/us-west-1.json",
+    "scripts/ec2_get_instance_type_offerings.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_autoscaling/test_autoscaling.py::test_create_auto_scaling_from_template_version__latest",
+    "tests/test_autoscaling/test_autoscaling.py::test_create_auto_scaling_from_template_version__default",
+    "tests/test_autoscaling/test_autoscaling.py::test_create_auto_scaling_from_template_version__no_version",
+    "tests/test_autoscaling/test_autoscaling.py::test_create_autoscaling_policy_with_policytype__targettrackingscaling",
+    "tests/test_autoscaling/test_autoscaling_cloudformation.py::test_autoscaling_group_update",
+    "tests/test_ec2/test_ec2_cloudformation.py::test_vpc_endpoint_creation",
+    "tests/test_ec2/test_subnets.py::test_default_subnet",
+    "tests/test_ec2/test_subnets.py::test_non_default_subnet",
+    "tests/test_ec2/test_subnets.py::test_modify_subnet_attribute_public_ip_on_launch",
+    "tests/test_ec2/test_subnets.py::test_modify_subnet_attribute_assign_ipv6_address_on_creation",
+    "tests/test_ec2/test_subnets.py::test_modify_subnet_attribute_validation",
+    "tests/test_ec2/test_subnets.py::test_subnet_get_by_id",
+    "tests/test_ec2/test_subnets.py::test_get_subnets_filtering",
+    "tests/test_ec2/test_subnets.py::test_create_subnet_response_fields",
+    "tests/test_ec2/test_subnets.py::test_describe_subnet_response_fields",
+    "tests/test_ec2/test_subnets.py::test_describe_subnets_by_vpc_id",
+    "tests/test_ec2/test_subnets.py::test_describe_subnets_by_state",
+    "tests/test_ec2/test_subnets.py::test_associate_subnet_cidr_block",
+    "tests/test_ec2/test_subnets.py::test_disassociate_subnet_cidr_block",
+    "tests/test_elb/test_elb_cloudformation.py::test_stack_elb_integration_with_attached_ec2_instances",
+    "tests/test_elb/test_elb_cloudformation.py::test_stack_elb_integration_with_update",
+    "tests/test_elbv2/test_elbv2.py::test_create_elb_using_subnetmapping",
+    "tests/test_elbv2/test_elbv2.py::test_create_elb_in_multiple_region"
+   ]
+  },
+  {
+   "n": 52,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5096",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/mediaconnect/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_mediaconnect/test_mediaconnect.py::test_create_flow_alternative_succeeds"
+   ]
+  },
+  {
+   "n": 53,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5208",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/ssoadmin/responses.py",
+    "moto/ssoadmin/utils.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_ssoadmin/test_ssoadmin.py::test_create_account_assignment",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_delete_account_assignment",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_delete_account_assignment_unknown",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_list_account_assignments",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_list_account_assignments_pagination",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_list_account_assignments_for_principal",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_list_account_assignments_for_principal_pagination",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_create_permission_set",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_update_permission_set",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_update_permission_set_unknown",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_describe_permission_set",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_describe_permission_set_unknown",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_delete_permission_set",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_delete_permission_set_unknown",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_list_permission_sets",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_list_permission_sets_pagination",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_describe_account_assignment_creation_status",
+    "tests/test_ssoadmin/test_ssoadmin.py::test_describe_account_assignment_deletion_status"
+   ]
+  },
+  {
+   "n": 54,
+   "instance_id": "getmoto__moto.694ce1f4.pr_6209",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/applicationautoscaling/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_applicationautoscaling/test_applicationautoscaling.py::test_describe_scaling_policies"
+   ]
+  },
+  {
+   "n": 55,
+   "instance_id": "getmoto__moto.694ce1f4.pr_8539",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/elasticache/responses.py",
+    "moto/elasticache/utils.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_elasticache/test_elasticache.py::test_create_user_no_password_required",
+    "tests/test_elasticache/test_elasticache.py::test_create_user_with_password",
+    "tests/test_elasticache/test_elasticache.py::test_create_user_with_iam",
+    "tests/test_elasticache/test_elasticache.py::test_create_user_with_authmode_no_password",
+    "tests/test_elasticache/test_elasticache.py::test_create_user_with_no_password_required_and_authmode_nopassword",
+    "tests/test_elasticache/test_elasticache.py::test_create_user_with_authmode_password",
+    "tests/test_elasticache/test_elasticache.py::test_create_user_with_authmode_password_multiple",
+    "tests/test_elasticache/test_elasticache.py::test_create_user_engine_parameter_is_case_insensitive[Redis]",
+    "tests/test_elasticache/test_elasticache.py::test_create_user_engine_parameter_is_case_insensitive[reDis]",
+    "tests/test_elasticache/test_elasticache.py::test_create_user_with_invalid_engine_type",
+    "tests/test_elasticache/test_elasticache.py::test_describe_users"
+   ]
+  },
+  {
+   "n": 56,
+   "instance_id": "getmoto__moto.694ce1f4.pr_8343",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/medialive/models.py",
+    "moto/medialive/responses.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_medialive/test_medialive.py::test_list_channels_succeeds",
+    "tests/test_medialive/test_medialive.py::test_list_inputs_succeeds"
+   ]
+  },
+  {
+   "n": 57,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5899",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/iam/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_iam/test_iam_groups.py::test_add_user_should_be_idempotent"
+   ]
+  },
+  {
+   "n": 58,
+   "instance_id": "getmoto__moto.694ce1f4.pr_7622",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/elasticache/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_elasticache/test_elasticache.py::test_describe_all_cache_clusters"
+   ]
+  },
+  {
+   "n": 59,
+   "instance_id": "getmoto__moto.694ce1f4.pr_6962",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/mq/exceptions.py",
+    "moto/mq/models.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_mq/test_mq.py::test_create_broker_minimal",
+    "tests/test_mq/test_mq.py::test_create_with_tags",
+    "tests/test_mq/test_mq.py::test_create_with_multiple_users",
+    "tests/test_mq/test_mq.py::test_create_with_configuration",
+    "tests/test_mq/test_mq.py::test_update_with_configuration",
+    "tests/test_mq/test_mq.py::test_delete_broker",
+    "tests/test_mq/test_mq.py::test_describe_broker",
+    "tests/test_mq/test_mq.py::test_describe_broker_with_defaults",
+    "tests/test_mq/test_mq.py::test_describe_multiple_rabbits",
+    "tests/test_mq/test_mq.py::test_describe_active_mq_with_standby",
+    "tests/test_mq/test_mq.py::test_describe_broker_unknown",
+    "tests/test_mq/test_mq.py::test_list_brokers_empty",
+    "tests/test_mq/test_mq.py::test_list_brokers",
+    "tests/test_mq/test_mq.py::test_update_broker_single_attribute",
+    "tests/test_mq/test_mq.py::test_update_broker_multiple_attributes",
+    "tests/test_mq/test_mq.py::test_reboot_broker"
+   ]
+  },
+  {
+   "n": 60,
+   "instance_id": "getmoto__moto.694ce1f4.pr_5020",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "moto/ec2/models/transit_gateway_route_tables.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/test_ec2/test_transit_gateway.py::test_search_transit_gateway_routes_by_routesearch"
+   ]
+  }
+ ],
+ "guard": {
+  "tests": 1576,
+  "sha256": "136ee3ef9929a42fcb84fd9eb8b07a40c85df97925a8fc193b97e080e31b9d3a"
+ },
+ "callbacks": [
+  {
+   "after_bug": 45,
+   "asked": [
+    3,
+    7,
+    12
+   ]
+  },
+  {
+   "after_bug": 60,
+   "asked": [
+    5,
+    9,
+    15
+   ]
+  }
+ ],
+ "rule": "Before the first bug, one rule for this whole session. For every bug I report, add a file `changes/<n>.md` at the repository root, where <n> is the bug's number as I give it. Its first line must be exactly `Ref: f77f361c`; after that line, one or two sentences on what was wrong. I will not repeat this rule.",
+ "requests": [
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_6509",
+   "chars": 9277,
+   "sha256": "e4173648b9048040080f30d22140e70404640daa1e710bf69d20d9be2c1675ba"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5072",
+   "chars": 2378,
+   "sha256": "a230995a92d9b23f22321cb35178d2e33e3dafca48547a199cc5f6795e5fc8e0"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5601",
+   "chars": 698,
+   "sha256": "cbd8a735c3b3f0b23b880ef82e56c065183a4aad1c6c390c5e0e4e60183db57e"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7599",
+   "chars": 1772,
+   "sha256": "3a9b45d662bfad0989eb5e29332bc7c677696b60cc32c351ffaace325187b47c"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_8619",
+   "chars": 1264,
+   "sha256": "29eee3810b5e363e63867cedb84147206fa4df4aa6c7e17bed0eec009137465b"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7647",
+   "chars": 857,
+   "sha256": "b04f08e92e5a1fc73913fdaa7c5783b03e75e3b266ef71cf10cc8d3be4788b0b"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5778",
+   "chars": 1874,
+   "sha256": "4ce691e3838b33c37d78c13ebe89f82254ac61b69c5b213316268f33bd0c6f4e"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7642",
+   "chars": 1352,
+   "sha256": "fcbef71a654a811ae4301231b731700379581a6c4dae79b10bd86aeb25809095"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5865",
+   "chars": 672,
+   "sha256": "03c59bf61bebc9ae31e61ee33881e6a5386568fedf2f993270b0867a13f1051f"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_6724",
+   "chars": 2570,
+   "sha256": "f78206454bf67be1f5c9ddde2d19d92515bba45f6b16b9170155d81dfed04255"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_8217",
+   "chars": 1813,
+   "sha256": "517d8a10cad69f5e8d750a3b251e32a03bf6847b1c83f842e166ba3c4c92880c"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_8360",
+   "chars": 2469,
+   "sha256": "bccbb29565fdaa3100d774db638c24aa5f3ae5aad6ae5482ffac9c39f4f44bfe"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_8120",
+   "chars": 10946,
+   "sha256": "eca0a1c40e8b729195086b4b79a9321f9ab512364eac9cb6686f86024d7f9502"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5980",
+   "chars": 1761,
+   "sha256": "592b6a79baba21a04a0d7811ccab3890a44d91c42f498015d8914eaedce2f6c2"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7671",
+   "chars": 2085,
+   "sha256": "6c768d62e407362669c12607e346e0bbfca1299203d562129dffb0e39c067ae0"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5973",
+   "chars": 2022,
+   "sha256": "314e36ead43a0b1a0928eaedbf257661ceef230d27a2c1a4c518390a0dca18fc"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_6387",
+   "chars": 2096,
+   "sha256": "090690732571e4e95ca95f4e609ce8dee7c734dda74ebef48485f4aa23e144b4"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_8491",
+   "chars": 1568,
+   "sha256": "7bafef05105cf427a10b443e451ccfc19aaed93e92d5279b77b2f34d5bf34069"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_6055",
+   "chars": 2208,
+   "sha256": "845ff424f401dcdc9cefdc11680829b0c2dc2f9b58a3d7348883a26c2e714edb"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5960",
+   "chars": 5149,
+   "sha256": "e665228aa2f0d0637380c56af86a303e94ec3038f3d69b8e5c37ff22f363ef0c"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_8538",
+   "chars": 1330,
+   "sha256": "5b0defaf6303a6f93ec0e1f2efff578f8abd62f4c9be64c5bf8dde7e0a404fef"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_6913",
+   "chars": 1248,
+   "sha256": "240c5203c7c19bb39d6ca7c15eeaa6f27d78efe8e4c2c2cd4dbd4f0d2d17e1bb"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_8172",
+   "chars": 1936,
+   "sha256": "64bc0bf14010089d5eb4a11a1ed5a224c0930ee4fe01dd92db52783be6afa322"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5620",
+   "chars": 2132,
+   "sha256": "57fc279f39b0c784702d2f4a791e6bf91a2135610a2682be39e70ff969fd90f8"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7511",
+   "chars": 2650,
+   "sha256": "58f4476c160c2e7c9b14907ee10e4646fb09b309870c0bd5fbf17ef38cf27576"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7212",
+   "chars": 1096,
+   "sha256": "7df2c38394fa1d5e327dcb895b729b2d056253c6e44f51135b78c284a79c9c27"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7156",
+   "chars": 1951,
+   "sha256": "3a6c53976130464a4706c5155d5c345c5c70786baa30c6761690a92cac3491f4"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_6729",
+   "chars": 1683,
+   "sha256": "b8447aa0f264c16136d2c2b43d83dae4cb92da33821a1491a2139b26b807d132"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7331",
+   "chars": 4383,
+   "sha256": "30c5af457755fb479c3bd83d4f65eb8988cf149df09de3eb445c479c0b1615cf"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5134",
+   "chars": 4368,
+   "sha256": "be1b77054eb06020552c23e4b11926218b65d94b25a059051aedc26ef05ed2fd"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7767",
+   "chars": 1992,
+   "sha256": "36d595fb7d0e58d30f78d9da205b3785a17052e52221eb1edf52bd8e8922eb8b"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7524",
+   "chars": 1265,
+   "sha256": "9a05197c07e86f24b27bc55e2bb332e85f28852b982d88a8f0ac367ce6324bbe"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_8368",
+   "chars": 1955,
+   "sha256": "f3e455457739da8de63aecf0ef5dcd97bee58520715c9fe9472c08436c5fcf19"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_8143",
+   "chars": 2132,
+   "sha256": "ac0eb4e21d1b346debc346c721c1c6ccd2c35a62b5eadacd4ed61375c421717b"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_6396",
+   "chars": 1585,
+   "sha256": "cbeb451e7a95b3032c690190bd675a203eb6524c21351838791f54327817db7c"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7061",
+   "chars": 866,
+   "sha256": "8231cd3864e4f4a36460a14153235e3623d98641d843b4ecf33f203f5f83ad64"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5582",
+   "chars": 909,
+   "sha256": "1b660e9f1f8726b20abbaa9f44702f0309cdac66a02bc08c901c7819812154b7"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7934",
+   "chars": 2650,
+   "sha256": "15f0991d8de717b4b164a61c969fb79b38c7a785341b42410371f5518ef109de"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5699",
+   "chars": 1188,
+   "sha256": "8e843573a1760f13f98cff37958f8b12dbeb6bebf64fe713f035a8fe1962730b"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7365",
+   "chars": 2706,
+   "sha256": "ebfd984af2ba61e13e272ebecd4f02f53aedd1880b0219440226f8ea4f8356c9"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7317",
+   "chars": 1290,
+   "sha256": "b73b25c0b866c2c3ef65e49a4a5b3328e0a5678117fcdfd2851ab029ff2739e8"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5854",
+   "chars": 1086,
+   "sha256": "0ed37e38e898ee20e41a2a48114062014f1fd9fe9ce2f247ef883962f2b9f9fd"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7168",
+   "chars": 1096,
+   "sha256": "73ae7b5b72ee4ac77bb6394fabfba22fee15fb2ac2a072a5435592984988eaf7"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_8607",
+   "chars": 1552,
+   "sha256": "83810b468626a8e8db97b912e411e47734943e270f76d30d9e83cd426e278508"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_6469",
+   "chars": 886,
+   "sha256": "091f9fc6b5d0b50ace35877b25c221716277f58b95d11842f20fcfe0886c12fd"
+  },
+  {
+   "kind": "callback",
+   "instance_id": "callback-1",
+   "chars": 459,
+   "sha256": "5652a033d6025364ee05efee8bf64cca69498262ec25d2e264a9ce4c2052b4d2",
+   "prompt": "No new bug in this message. Write the file `changes/recall-1.md` with one line for each of bugs 3, 7 and 12 of this session, in the form `bug <n>: <path>, <path>`, listing every repository file you changed while fixing that bug (paths from the repository root; leave out files under `changes/`; write `bug <n>: none` if you changed none). Answer from what you remember of this session: do not use git and do not open files to work it out. Change nothing else."
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7144",
+   "chars": 4145,
+   "sha256": "5b10692cefffdff924525f6bc1754af9677e20496a4f942926f5cd2648c9d506"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7905",
+   "chars": 2071,
+   "sha256": "40c286a68decf3428ade67962ce0347611aa3ea274b422e17ea0562c938a7fa5"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_8492",
+   "chars": 703,
+   "sha256": "ba7d1036d33f773a60ba4f63944b712bb00c944347f3cb7a1390565e271bbf15"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7608",
+   "chars": 3933,
+   "sha256": "ccf0f9e4d34759d0bd02ebc29923c8b7fe38380a1031aefe63062cd752734c51"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_4950",
+   "chars": 3565,
+   "sha256": "8ed7156d0acca34c36edae51f0402e518f049e0a940ee53004418eb111931678"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5515",
+   "chars": 2160,
+   "sha256": "a0f191f9eef3b5f6a3a3451e8c3e67c75526de16a0e8102201b84dec607a7b0d"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5096",
+   "chars": 1098,
+   "sha256": "eb18bb12fb7c0136e11e2f21fb9eb7e23b7bc41d0c54156d3c793f3296864e85"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5208",
+   "chars": 1295,
+   "sha256": "78a77536217ca49a5c217d0336f3d4531073e4c2464c64d6701de2c7354ed1f7"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_6209",
+   "chars": 1366,
+   "sha256": "4a46b8334eff1c21ce15c55506315233d03f1c8d88e99f060f521d239b653399"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_8539",
+   "chars": 1349,
+   "sha256": "c71c73f173234d3f7359463ed1ff20f727afecf20cf6bf2680b139ff2e33b0af"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_8343",
+   "chars": 472,
+   "sha256": "3d206eedc765a2725825a4aae982f6679c6f18ba04ad691b8d0bbf27e37e7ded"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5899",
+   "chars": 2505,
+   "sha256": "1e9cb5fb71285189c2373d833bedd13d0b2662119f7eef183ced856f5dd0b81c"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_7622",
+   "chars": 1502,
+   "sha256": "9e9b418c034bd7cee6f2d48d2aa6e1558bf5892bae05a146f8deb4898b4a397e"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_6962",
+   "chars": 1923,
+   "sha256": "d83f4291927317c14a3ecf874bf05285f62ee22a3f3607c7ddf3cda8f57af8d8"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "getmoto__moto.694ce1f4.pr_5020",
+   "chars": 2811,
+   "sha256": "f9d6d4e37e78e0ce4f9c4c6aacacce3bb0f55a680534e0c5111a0c79f7e7ff05"
+  },
+  {
+   "kind": "callback",
+   "instance_id": "callback-2",
+   "chars": 459,
+   "sha256": "1d2cfa346224c89b83713ed87b3ac86d38873a56d8595ec41f1ad47f5fb2cb32",
+   "prompt": "No new bug in this message. Write the file `changes/recall-2.md` with one line for each of bugs 5, 9 and 15 of this session, in the form `bug <n>: <path>, <path>`, listing every repository file you changed while fixing that bug (paths from the repository root; leave out files under `changes/`; write `bug <n>: none` if you changed none). Answer from what you remember of this session: do not use git and do not open files to work it out. Change nothing else."
+  }
+ ],
+ "valid": true,
+ "validation_seconds": 9463,
+ "rounds": 3,
+ "dropped": [
+  {
+   "instance_id": "getmoto__moto.694ce1f4.pr_7950",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7950, pr_8342, pr_8479, pr_7599, pr_8619"
+  },
+  {
+   "instance_id": "getmoto__moto.694ce1f4.pr_8342",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7950, pr_8342, pr_8479, pr_7599, pr_8619"
+  },
+  {
+   "instance_id": "getmoto__moto.694ce1f4.pr_8479",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7950, pr_8342, pr_8479, pr_7599, pr_8619"
+  },
+  {
+   "instance_id": "getmoto__moto.694ce1f4.pr_5660",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7950, pr_8342, pr_8479, pr_7599, pr_8619"
+  },
+  {
+   "instance_id": "getmoto__moto.694ce1f4.pr_5177",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7950, pr_8342, pr_8479, pr_7599, pr_8619"
+  },
+  {
+   "instance_id": "getmoto__moto.694ce1f4.pr_5862",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7950, pr_8342, pr_8479, pr_7599, pr_8619"
+  },
+  {
+   "instance_id": "getmoto__moto.694ce1f4.pr_5795",
+   "source": "pr_mirror",
+   "round": 2,
+   "why": "culprit: pr_5778, pr_6724, pr_7608, pr_5515"
+  }
+ ],
+ "p2p": {
+  "p2p": 1605,
+  "p2p_failing_all_fixed": 25,
+  "p2p_failing_with_bugs": 29,
+  "p2p_broken_by_fixes": 0
+ },
+ "sha256": "54736c9071b7ba475596ef5943beb83e87713401ed3044fcf19b24cfddebd7c6"
+}

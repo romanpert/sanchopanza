@@ -3939,7 +3939,7 @@
   ]
  },
  "conan-io__conan-long60-2": {
-  "valid": false,
+  "valid": true,
   "bugs": [
    "conan-io__conan.86f29e13.pr_17771",
    "conan-io__conan.86f29e13.pr_16349",
@@ -3967,7 +3967,7 @@
    "conan-io__conan.86f29e13.pr_14676",
    "conan-io__conan.86f29e13.pr_12742",
    "conan-io__conan.86f29e13.pr_11527",
-   "conan-io__conan.86f29e13.pr_12770",
+   "conan-io__conan.86f29e13.lm_rewrite__typn47ja",
    "conan-io__conan.86f29e13.pr_16344",
    "conan-io__conan.86f29e13.pr_12505",
    "conan-io__conan.86f29e13.pr_17517",
@@ -3983,7 +3983,7 @@
    "conan-io__conan.86f29e13.pr_15845",
    "conan-io__conan.86f29e13.pr_16892",
    "conan-io__conan.86f29e13.pr_13732",
-   "conan-io__conan.86f29e13.pr_14478",
+   "conan-io__conan.86f29e13.func_pm_ctrl_shuffle__65yiqixx",
    "conan-io__conan.86f29e13.pr_17603",
    "conan-io__conan.86f29e13.pr_17781",
    "conan-io__conan.86f29e13.pr_15946",
@@ -3998,9 +3998,11 @@
    "conan-io__conan.86f29e13.pr_11505",
    "conan-io__conan.86f29e13.pr_17110",
    "conan-io__conan.86f29e13.pr_14340",
-   "conan-io__conan.86f29e13.pr_17052"
+   "conan-io__conan.86f29e13.pr_17052",
+   "conan-io__conan.86f29e13.pr_15056",
+   "conan-io__conan.86f29e13.func_pm_remove_assign__3bu78o6t"
   ],
-  "sha256": "691b6792a61ea888956df45507a29de2e13f4445a8420fdacce418a445a00bd1",
+  "sha256": "7808deef0922f456e273f2978d895d06f0196ab1c283a9d115d64fe934b61f4b",
   "history": [
    {
     "round": 1,
@@ -4031,9 +4033,45 @@
     "bugs": 58,
     "drop": 0,
     "seconds": 15464
+   },
+   {
+    "round": 6,
+    "bugs": 60,
+    "drop": 2,
+    "seconds": 2081
+   },
+   {
+    "round": 7,
+    "bugs": 60,
+    "drop": 2,
+    "seconds": 4586
+   },
+   {
+    "round": 8,
+    "bugs": 60,
+    "drop": 3,
+    "seconds": 6556
+   },
+   {
+    "round": 9,
+    "bugs": 60,
+    "drop": 3,
+    "seconds": 8653
+   },
+   {
+    "round": 10,
+    "bugs": 60,
+    "drop": 1,
+    "seconds": 10612
+   },
+   {
+    "round": 11,
+    "bugs": 60,
+    "drop": 0,
+    "seconds": 12002
    }
   ],
-  "seconds": 15465,
+  "seconds": 27467,
   "records": [
    {
     "instance_id": "conan-io__conan.86f29e13.pr_17771",
@@ -4322,12 +4360,12 @@
     "why": ""
    },
    {
-    "instance_id": "conan-io__conan.86f29e13.pr_12770",
-    "source": "pr_mirror",
-    "f2p": 14,
-    "f2p_failing_with_bugs": 14,
-    "f2p_passing_when_fixed": 14,
-    "f2p_passing_all_fixed": 14,
+    "instance_id": "conan-io__conan.86f29e13.lm_rewrite__typn47ja",
+    "source": "lm_rewrite",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
     "flips": [],
     "valid": true,
     "why": ""
@@ -4498,12 +4536,12 @@
     "why": ""
    },
    {
-    "instance_id": "conan-io__conan.86f29e13.pr_14478",
-    "source": "pr_mirror",
-    "f2p": 2,
-    "f2p_failing_with_bugs": 2,
-    "f2p_passing_when_fixed": 2,
-    "f2p_passing_all_fixed": 2,
+    "instance_id": "conan-io__conan.86f29e13.func_pm_ctrl_shuffle__65yiqixx",
+    "source": "func_pm_ctrl_shuffle",
+    "f2p": 3,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p_passing_all_fixed": 3,
     "flips": [],
     "valid": true,
     "why": ""
@@ -4672,6 +4710,28 @@
     "flips": [],
     "valid": true,
     "why": ""
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_15056",
+    "source": "pr_mirror",
+    "f2p": 2,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p_passing_all_fixed": 2,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.func_pm_remove_assign__3bu78o6t",
+    "source": "func_pm_remove_assign",
+    "f2p": 13,
+    "f2p_failing_with_bugs": 13,
+    "f2p_passing_when_fixed": 13,
+    "f2p_passing_all_fixed": 13,
+    "flips": [],
+    "valid": true,
+    "why": ""
    }
   ]
  },
@@ -4730,9 +4790,16 @@
    "conan-io__conan.86f29e13.pr_16424",
    "conan-io__conan.86f29e13.pr_15802",
    "conan-io__conan.86f29e13.pr_14819",
-   "conan-io__conan.86f29e13.pr_17831"
+   "conan-io__conan.86f29e13.pr_17831",
+   "conan-io__conan.86f29e13.lm_rewrite__gtej07ly",
+   "conan-io__conan.86f29e13.func_pm_remove_loop__wwop1v9x",
+   "conan-io__conan.86f29e13.pr_16415",
+   "conan-io__conan.86f29e13.pr_17531",
+   "conan-io__conan.86f29e13.pr_15999",
+   "conan-io__conan.86f29e13.func_pm_remove_assign__watymkcv",
+   "conan-io__conan.86f29e13.pr_13077"
   ],
-  "sha256": "983daf2ebd9178e6391fbb4f441529641287fd978a370f7f07532bf1bbfbfc10",
+  "sha256": "47d98d5e47be88634893d98c6f1516981fe765eb1836ef5ac7a67a5dd2793cde",
   "history": [
    {
     "round": 1,
@@ -4751,9 +4818,45 @@
     "bugs": 53,
     "drop": 0,
     "seconds": 8960
+   },
+   {
+    "round": 4,
+    "bugs": 60,
+    "drop": 5,
+    "seconds": 1817
+   },
+   {
+    "round": 5,
+    "bugs": 60,
+    "drop": 2,
+    "seconds": 3267
+   },
+   {
+    "round": 6,
+    "bugs": 60,
+    "drop": 1,
+    "seconds": 4901
+   },
+   {
+    "round": 7,
+    "bugs": 60,
+    "drop": 1,
+    "seconds": 6366
+   },
+   {
+    "round": 8,
+    "bugs": 60,
+    "drop": 1,
+    "seconds": 7646
+   },
+   {
+    "round": 9,
+    "bugs": 60,
+    "drop": 1,
+    "seconds": 9199
    }
   ],
-  "seconds": 8961,
+  "seconds": 18161,
   "records": [
    {
     "instance_id": "conan-io__conan.86f29e13.pr_16102",
@@ -5329,6 +5432,832 @@
    },
    {
     "instance_id": "conan-io__conan.86f29e13.pr_17831",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.lm_rewrite__gtej07ly",
+    "source": "lm_rewrite",
+    "f2p": 3,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p_passing_all_fixed": 3,
+    "flips": [],
+    "valid": false,
+    "why": "culprit: pr_17831, func_pm_remove_assign__watymkcv"
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.func_pm_remove_loop__wwop1v9x",
+    "source": "func_pm_remove_loop",
+    "f2p": 3,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p_passing_all_fixed": 3,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_16415",
+    "source": "pr_mirror",
+    "f2p": 3,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p_passing_all_fixed": 3,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_17531",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_15999",
+    "source": "pr_mirror",
+    "f2p": 2,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p_passing_all_fixed": 2,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.func_pm_remove_assign__watymkcv",
+    "source": "func_pm_remove_assign",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 0,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "conan-io__conan.86f29e13.pr_13077",
+    "source": "pr_mirror",
+    "f2p": 3,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p_passing_all_fixed": 3,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   }
+  ]
+ },
+ "getmoto__moto-long60-1": {
+  "valid": true,
+  "bugs": [
+   "getmoto__moto.694ce1f4.pr_6509",
+   "getmoto__moto.694ce1f4.pr_5072",
+   "getmoto__moto.694ce1f4.pr_5601",
+   "getmoto__moto.694ce1f4.pr_7599",
+   "getmoto__moto.694ce1f4.pr_8619",
+   "getmoto__moto.694ce1f4.pr_7647",
+   "getmoto__moto.694ce1f4.pr_5778",
+   "getmoto__moto.694ce1f4.pr_7642",
+   "getmoto__moto.694ce1f4.pr_5865",
+   "getmoto__moto.694ce1f4.pr_6724",
+   "getmoto__moto.694ce1f4.pr_8217",
+   "getmoto__moto.694ce1f4.pr_8360",
+   "getmoto__moto.694ce1f4.pr_8120",
+   "getmoto__moto.694ce1f4.pr_5980",
+   "getmoto__moto.694ce1f4.pr_7671",
+   "getmoto__moto.694ce1f4.pr_5973",
+   "getmoto__moto.694ce1f4.pr_6387",
+   "getmoto__moto.694ce1f4.pr_8491",
+   "getmoto__moto.694ce1f4.pr_6055",
+   "getmoto__moto.694ce1f4.pr_5960",
+   "getmoto__moto.694ce1f4.pr_8538",
+   "getmoto__moto.694ce1f4.pr_6913",
+   "getmoto__moto.694ce1f4.pr_8172",
+   "getmoto__moto.694ce1f4.pr_5620",
+   "getmoto__moto.694ce1f4.pr_7511",
+   "getmoto__moto.694ce1f4.pr_7212",
+   "getmoto__moto.694ce1f4.pr_7156",
+   "getmoto__moto.694ce1f4.pr_6729",
+   "getmoto__moto.694ce1f4.pr_7331",
+   "getmoto__moto.694ce1f4.pr_5134",
+   "getmoto__moto.694ce1f4.pr_7767",
+   "getmoto__moto.694ce1f4.pr_7524",
+   "getmoto__moto.694ce1f4.pr_8368",
+   "getmoto__moto.694ce1f4.pr_8143",
+   "getmoto__moto.694ce1f4.pr_6396",
+   "getmoto__moto.694ce1f4.pr_7061",
+   "getmoto__moto.694ce1f4.pr_5582",
+   "getmoto__moto.694ce1f4.pr_7934",
+   "getmoto__moto.694ce1f4.pr_5699",
+   "getmoto__moto.694ce1f4.pr_7365",
+   "getmoto__moto.694ce1f4.pr_7317",
+   "getmoto__moto.694ce1f4.pr_5854",
+   "getmoto__moto.694ce1f4.pr_7168",
+   "getmoto__moto.694ce1f4.pr_8607",
+   "getmoto__moto.694ce1f4.pr_6469",
+   "getmoto__moto.694ce1f4.pr_7144",
+   "getmoto__moto.694ce1f4.pr_7905",
+   "getmoto__moto.694ce1f4.pr_8492",
+   "getmoto__moto.694ce1f4.pr_7608",
+   "getmoto__moto.694ce1f4.pr_4950",
+   "getmoto__moto.694ce1f4.pr_5515",
+   "getmoto__moto.694ce1f4.pr_5096",
+   "getmoto__moto.694ce1f4.pr_5208",
+   "getmoto__moto.694ce1f4.pr_6209",
+   "getmoto__moto.694ce1f4.pr_8539",
+   "getmoto__moto.694ce1f4.pr_8343",
+   "getmoto__moto.694ce1f4.pr_5899",
+   "getmoto__moto.694ce1f4.pr_7622",
+   "getmoto__moto.694ce1f4.pr_6962",
+   "getmoto__moto.694ce1f4.pr_5020"
+  ],
+  "sha256": "54736c9071b7ba475596ef5943beb83e87713401ed3044fcf19b24cfddebd7c6",
+  "history": [
+   {
+    "round": 1,
+    "bugs": 60,
+    "drop": 6,
+    "seconds": 3231
+   },
+   {
+    "round": 2,
+    "bugs": 60,
+    "drop": 1,
+    "seconds": 6178
+   },
+   {
+    "round": 3,
+    "bugs": 60,
+    "drop": 0,
+    "seconds": 9462
+   }
+  ],
+  "seconds": 9463,
+  "records": [
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_6509",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5072",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5601",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7599",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_8619",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7647",
+    "source": "pr_mirror",
+    "f2p": 4,
+    "f2p_failing_with_bugs": 4,
+    "f2p_passing_when_fixed": 4,
+    "f2p_passing_all_fixed": 4,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5778",
+    "source": "pr_mirror",
+    "f2p": 7,
+    "f2p_failing_with_bugs": 7,
+    "f2p_passing_when_fixed": 7,
+    "f2p_passing_all_fixed": 7,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7642",
+    "source": "pr_mirror",
+    "f2p": 17,
+    "f2p_failing_with_bugs": 17,
+    "f2p_passing_when_fixed": 17,
+    "f2p_passing_all_fixed": 17,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5865",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_6724",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_8217",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_8360",
+    "source": "pr_mirror",
+    "f2p": 10,
+    "f2p_failing_with_bugs": 10,
+    "f2p_passing_when_fixed": 10,
+    "f2p_passing_all_fixed": 10,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_8120",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5980",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7671",
+    "source": "pr_mirror",
+    "f2p": 22,
+    "f2p_failing_with_bugs": 22,
+    "f2p_passing_when_fixed": 22,
+    "f2p_passing_all_fixed": 22,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5973",
+    "source": "pr_mirror",
+    "f2p": 3,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p_passing_all_fixed": 3,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_6387",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_8491",
+    "source": "pr_mirror",
+    "f2p": 33,
+    "f2p_failing_with_bugs": 33,
+    "f2p_passing_when_fixed": 33,
+    "f2p_passing_all_fixed": 33,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_6055",
+    "source": "pr_mirror",
+    "f2p": 4,
+    "f2p_failing_with_bugs": 4,
+    "f2p_passing_when_fixed": 4,
+    "f2p_passing_all_fixed": 4,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5960",
+    "source": "pr_mirror",
+    "f2p": 3,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p_passing_all_fixed": 3,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_8538",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_6913",
+    "source": "pr_mirror",
+    "f2p": 2,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p_passing_all_fixed": 2,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_8172",
+    "source": "pr_mirror",
+    "f2p": 5,
+    "f2p_failing_with_bugs": 5,
+    "f2p_passing_when_fixed": 5,
+    "f2p_passing_all_fixed": 5,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5620",
+    "source": "pr_mirror",
+    "f2p": 2,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p_passing_all_fixed": 2,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7511",
+    "source": "pr_mirror",
+    "f2p": 4,
+    "f2p_failing_with_bugs": 4,
+    "f2p_passing_when_fixed": 4,
+    "f2p_passing_all_fixed": 4,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7212",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7156",
+    "source": "pr_mirror",
+    "f2p": 3,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p_passing_all_fixed": 3,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_6729",
+    "source": "pr_mirror",
+    "f2p": 3,
+    "f2p_failing_with_bugs": 3,
+    "f2p_passing_when_fixed": 3,
+    "f2p_passing_all_fixed": 3,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7331",
+    "source": "pr_mirror",
+    "f2p": 4,
+    "f2p_failing_with_bugs": 4,
+    "f2p_passing_when_fixed": 4,
+    "f2p_passing_all_fixed": 4,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5134",
+    "source": "pr_mirror",
+    "f2p": 2,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p_passing_all_fixed": 2,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7767",
+    "source": "pr_mirror",
+    "f2p": 22,
+    "f2p_failing_with_bugs": 22,
+    "f2p_passing_when_fixed": 22,
+    "f2p_passing_all_fixed": 22,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7524",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_8368",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_8143",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_6396",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7061",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5582",
+    "source": "pr_mirror",
+    "f2p": 2,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p_passing_all_fixed": 2,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7934",
+    "source": "pr_mirror",
+    "f2p": 2,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p_passing_all_fixed": 2,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5699",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7365",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7317",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5854",
+    "source": "pr_mirror",
+    "f2p": 8,
+    "f2p_failing_with_bugs": 8,
+    "f2p_passing_when_fixed": 8,
+    "f2p_passing_all_fixed": 8,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7168",
+    "source": "pr_mirror",
+    "f2p": 2,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p_passing_all_fixed": 2,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_8607",
+    "source": "pr_mirror",
+    "f2p": 2,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p_passing_all_fixed": 2,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_6469",
+    "source": "pr_mirror",
+    "f2p": 2,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p_passing_all_fixed": 2,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7144",
+    "source": "pr_mirror",
+    "f2p": 4,
+    "f2p_failing_with_bugs": 4,
+    "f2p_passing_when_fixed": 4,
+    "f2p_passing_all_fixed": 4,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7905",
+    "source": "pr_mirror",
+    "f2p": 2,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p_passing_all_fixed": 2,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_8492",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7608",
+    "source": "pr_mirror",
+    "f2p": 26,
+    "f2p_failing_with_bugs": 26,
+    "f2p_passing_when_fixed": 26,
+    "f2p_passing_all_fixed": 26,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_4950",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5515",
+    "source": "pr_mirror",
+    "f2p": 23,
+    "f2p_failing_with_bugs": 23,
+    "f2p_passing_when_fixed": 23,
+    "f2p_passing_all_fixed": 23,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5096",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5208",
+    "source": "pr_mirror",
+    "f2p": 18,
+    "f2p_failing_with_bugs": 18,
+    "f2p_passing_when_fixed": 18,
+    "f2p_passing_all_fixed": 18,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_6209",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_8539",
+    "source": "pr_mirror",
+    "f2p": 11,
+    "f2p_failing_with_bugs": 11,
+    "f2p_passing_when_fixed": 11,
+    "f2p_passing_all_fixed": 11,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_8343",
+    "source": "pr_mirror",
+    "f2p": 2,
+    "f2p_failing_with_bugs": 2,
+    "f2p_passing_when_fixed": 2,
+    "f2p_passing_all_fixed": 2,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5899",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_7622",
+    "source": "pr_mirror",
+    "f2p": 1,
+    "f2p_failing_with_bugs": 1,
+    "f2p_passing_when_fixed": 1,
+    "f2p_passing_all_fixed": 1,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_6962",
+    "source": "pr_mirror",
+    "f2p": 16,
+    "f2p_failing_with_bugs": 16,
+    "f2p_passing_when_fixed": 16,
+    "f2p_passing_all_fixed": 16,
+    "flips": [],
+    "valid": true,
+    "why": ""
+   },
+   {
+    "instance_id": "getmoto__moto.694ce1f4.pr_5020",
     "source": "pr_mirror",
     "f2p": 1,
     "f2p_failing_with_bugs": 1,
