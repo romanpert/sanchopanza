@@ -16,6 +16,7 @@ import subprocess
 import tarfile
 import tempfile
 import time
+import uuid
 from pathlib import Path
 
 LOGIN = "bash -lc"  # SWE-smith and SWE-bench images activate the `testbed` env in a login shell
@@ -186,6 +187,7 @@ BATCH = 400  # nodes per pytest process when the whole suite in one process runs
 # a batch of 400 was still killed at 36 %).
 MEMORY_KB = 6_000_000
 KILLED = 137  # the container's process killed (out of memory)
+TIMED_OUT = 124  # a run past its timeout: container removed, no results (as `timeout` exits)
 NOT_FOUND = re.compile(r"^ERROR: not found: (.+?)\s*$", re.M)
 NOT_FOUND_RETRIES = 3
 
@@ -251,8 +253,18 @@ def _run(
         script = (f"cd /testbed && {VENV}(test ! -s /io/work.patch || {apply} --whitespace=nowarn "
                   "/io/work.patch || { echo PATCH_FAILED; exit 3; }) && "
                   f"{select} -rA -p no:cacheprovider -p no:pretty --tb=no -q 2>&1")  # fmt: skip
-        done = docker("run", "--rm", "-v", f"{folder.as_posix()}:/io:ro", tag, "bash", "-lc",
-                      script, timeout=timeout)  # fmt: skip
+        # Named, so a run past its timeout can be removed: killing the `docker` client leaves the
+        # container running (dvc-long60-1, 2026-10-08: a hung test, still there 5 h later). The
+        # hung run comes back with no results, which `pytest` reports as a broken run.
+        name = f"adopt-pytest-{uuid.uuid4().hex[:12]}"
+        try:
+            done = docker("run", "--rm", "--name", name, "-v", f"{folder.as_posix()}:/io:ro",
+                          tag, "bash", "-lc", script, timeout=timeout)  # fmt: skip
+        except subprocess.TimeoutExpired:
+            docker("rm", "-f", name, timeout=300)
+            done = subprocess.CompletedProcess(
+                ["docker", "run", name], TIMED_OUT, stdout=b"",
+                stderr=f"timed out after {timeout} s; container {name} removed".encode())
     return done, ANSI.sub("", done.stdout.decode("utf-8", "replace"))
 
 
