@@ -672,7 +672,9 @@ listón.** Cada parte del coste, con su techo:
 **Potencia, con la desviación de 0,171 entre réplicas:**
 
 - Un −20 % (ln 0,8 = 0,223) se ve con ~5 cadenas al 80 % de potencia.
-- Con las 6 cadenas validadas que habría tras las validaciones de hoy, alcanza para el coste.
+- Validadas a las 20:35 del 2026-10-08: conan-1, pydantic-1, conan-2 y moto-1. dvc-1 se está
+  validando otra vez y conan-3 quedó inválida a 60 (ea1cf55). Con 4 cadenas, la potencia se queda
+  algo por debajo del 80 %; con 5 llega.
 - No alcanza para leer la calidad (Ne va de 37 a 51 en una misma cadena): habría que decidir antes
   un margen de no inferioridad laxo.
 - Es una propuesta al dueño, sin lanzar. No es una apuesta de Jev, y se dice así.
