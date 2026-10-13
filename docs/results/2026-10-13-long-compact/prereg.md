@@ -43,8 +43,10 @@ bloque `env` de `.claude/settings.json` del proyecto. Nada más cambia: ni hooks
     50.000-110.000 o una llamada de Nl pasa de 110.000 de contexto, la llamada rompe un invariante,
     se escribe `STOP` y la tanda para (`long_run.low_window_breaks`, `LOW_PRE`, `LOW_PEAK`). Si la
     variable no surtiera efecto no habría compactación y saltaría solo `LOW_PEAK`: N pasó de 110k
-    hacia la llamada 10-15 de las cadenas del 2026-10-07, así que se perderían ~10-15 llamadas de
-    Nl (~3-5 $), no una corrida. Las peticiones del agente no llevan línea de depuración de la
+    en la llamada 9 (conan) y 15 (pydantic) en el margen del 2026-10-07, con 2,60 y 2,84 $ gastados,
+    así que se perderían ~9-15 llamadas de Nl (~3 $), no una corrida. El mayor salto de contexto
+    entre dos peticiones seguidas en 10 corridas de Sonnet fue de 11,9k: un falso `STOP` es
+    improbable. Las peticiones del agente no llevan línea de depuración de la
     ventana (`window_reported` sale vacío en 2.1.287), así que no hay aviso antes.
   - **Qué pasa si la guarda salta**: se mira a mano. Si las compactaciones de Nl no están cerca de
     67k, el tratamiento no es el registrado: la tanda queda parada y decide el dueño (no se lee
@@ -105,7 +107,8 @@ digest comprobados por el lanzador): **conan-1, pydantic-1, conan-2 y moto-1**, 
   práctica, Ne no empieza llamadas pasados ~18,9 $ y Nl pasados ~19,4 $.
 - Cinco cadenas: 5 × 2 × 25 = 250 $ retenidos al empezar. La sexta solo si cabe (sección 3).
 - **Estimación**: con Ne de 2026-10-07 (conan 17,33 $ entero, 19,37 $ a la llamada 52 en Ne2;
-  pydantic 13,84 $) y Nl a x0,75-0,85, ~24-34 $ por cadena, **~120-175 $ las cinco**. Si todas las corridas llegan a su tope, cada una
+  pydantic 13,84 $) y Nl a x0,75-0,85, ~24-36 $ por cadena (el alto, con los 19,37 $ de Ne2),
+  **~120-175 $ las cinco**. Si todas las corridas llegan a su tope, cada una
   acaba entre ~19 y 25 $ (~200-215 $ en total, de forma realista); el máximo absoluto es 250 $,
   por código. Por encima de 250 $ no se lanza.
 - Una corrida parada por su tope deja su cadena para comparar en las llamadas comunes (sección 6);
@@ -170,8 +173,11 @@ llamada 52), y N contra sí mismo discrepó en 6-7 bugs.
 
 - Corrección a la nota del plan: "un −20 % se ve con ~5 cadenas al 80 %" salía de una aproximación
   normal. Con la t que usa `cost_ratio`, 5 cadenas dan ~60 % para −20 % y ~80 % para −25 %.
-- En calidad, con la dispersión entre réplicas (diferencias de 1 a 14 bugs por cadena), si Nl y Ne
-  son iguales la no inferioridad a −10 puntos se demuestra aproximadamente 6 de cada 10 veces.
+- En calidad, con la dispersión entre réplicas (diferencias de 1 a 14 bugs por cadena en la nota
+  final), si Nl y Ne son iguales la no inferioridad a −10 puntos se demuestra aproximadamente 6 de
+  cada 10 veces. Puede ser optimista: Ne y Ne2 de conan-1 difieren en 19 bugs de los 51 que se
+  pidieron a los dos. Con más ruido, "más barato, calidad no demostrada" se vuelve más probable
+  aunque Nl no pierda nada.
 
 ## 8. Paradas
 
