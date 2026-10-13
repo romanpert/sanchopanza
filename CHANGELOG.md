@@ -513,6 +513,23 @@ do not favour this package.
 
 ### Measured
 
+- **The final scoreboard: Claude Code alone against Claude Code + sanchopanza, no win**
+  (`docs/results/2026-10-13-final/`). Per axis and model, from runs already made; no new run.
+  - Web, Sonnet 5.5, pre-registered, all "no gana". GAIA: +3.8 points [-1.5, +9.9], cost
+    1.074. BrowseComp-Plus: +7.8 points (p 0.092), cost 1.17 [1.007, 1.356]. LongBench v2:
+    -6 points, cost 0.785 [0.634, 1.008].
+  - Code: SWE-bench Verified on Haiku 4.5 only. Success held (46 against 45 of 78), cost 1.007
+    [0.933, 1.143], no saving shown.
+  - Long code (60 bugs a session, Sonnet 5.5): passages on arrival did not keep its edge on a
+    repeat (46-47 against 44-47).
+  - Memory: no room on Opus 5.5 (clean Claude Code broke 1 fact in 24), nor in two of three
+    Sonnet 5.5 families.
+  - What moved results was Claude Code's own compaction window, a setting. Alone, it matched the
+    whole line on BrowseComp-Plus and cost 0.46-0.66 of clean Claude Code on long code.
+  - Pending, running: memory on Sonnet 5.5 across parallel sessions, and early compaction
+    against that window on long code.
+  - Not run, by decision: code on Sonnet and Opus 5.5 (about 357 USD), memory F2, Fable 5.1, and
+    the memory cell on Opus.
 - **Compaction mid-session: native summary against lean masking, negative**
   (`docs/results/2026-09-28-context-lean/`, pre-registered, Claude Code 2.1.282 headless with
   Haiku 4.5, 7 tasks, compaction fired by Claude Code's own auto-compaction mid-task, run
