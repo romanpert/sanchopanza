@@ -383,7 +383,10 @@ def read_stream(path: Path) -> dict[str, Any]:
 def passes(repo: Path, code: str) -> bool | None:
     if not code:
         return None
-    done = subprocess.run([PYTHON, "-c", code], cwd=repo, capture_output=True, timeout=120)
+    try:
+        done = subprocess.run([PYTHON, "-c", code], cwd=repo, capture_output=True, timeout=120)
+    except subprocess.TimeoutExpired:  # a hung check fails; it never ends a paid run
+        return False
     return done.returncode == 0
 
 
@@ -395,11 +398,14 @@ def carried(fact: bool | None, stale: bool | None) -> str | None:
 
 
 def check(repo: Path, scene: dict[str, Any]) -> dict[str, Any]:
-    tests = subprocess.run([PYTHON, "-m", "pytest", "-q", "-p", "no:cacheprovider"], cwd=repo,
-                           capture_output=True, text=True, timeout=300)  # fmt: skip
+    try:
+        tests = subprocess.run([PYTHON, "-m", "pytest", "-q", "-p", "no:cacheprovider"],
+                               cwd=repo, capture_output=True, text=True, timeout=300).returncode
+    except subprocess.TimeoutExpired:  # hung tests fail; the pair keeps its row
+        tests = -1
     fact = passes(repo, scene["fact"])
     stale = passes(repo, scene.get("stale", ""))
-    found = {"tests_pass": tests.returncode == 0, "task_pass": passes(repo, scene["task"]),
+    found = {"tests_pass": tests == 0, "task_pass": passes(repo, scene["task"]),
              "fact_kept": fact}  # fmt: skip
     return {**found, "stale_kept": stale, "carried": carried(fact, stale)} if stale is not None \
         else found
@@ -698,7 +704,8 @@ def record_claude(out: Path, dry: bool, clean: bool,
 def build_plan(scenes: str, models: str, arms: str, repeats: int, first: int = 0,
                rotate: bool = False) -> list[tuple[str, str, str, int]]:  # fmt: skip
     """Every (scene, model, arm, repetition), the arms of a pair one after the other; with
-    `rotate`, the order of the arms is reversed on every other pair."""
+    `rotate`, the order of the arms is reversed on every other pair, and flips again from one
+    repetition to the next, so no scene keeps one order in every repetition."""
     names = SETS[scenes] if scenes in SETS else scenes.split(",")
     unknown = [n for n in names if n not in SCENES]
     if unknown:
@@ -707,7 +714,7 @@ def build_plan(scenes: str, models: str, arms: str, repeats: int, first: int = 0
     groups = [(name, model, rep) for rep in range(first, first + repeats)
               for model in models.split(",") for name in names]  # fmt: skip
     return [(name, model, arm, rep) for i, (name, model, rep) in enumerate(groups)
-            for arm in (order[::-1] if rotate and i % 2 else order)]  # fmt: skip
+            for arm in (order[::-1] if rotate and (i + rep) % 2 else order)]  # fmt: skip
 
 
 def cut_cost(cut: Path) -> float:

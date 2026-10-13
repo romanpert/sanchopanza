@@ -177,6 +177,22 @@ def test_an_s_session_whose_hooks_never_ran_cuts_the_pair_and_stops_the_run(
     assert len(fake_s.calls) == 1  # sessions 1b and 2 never started
 
 
+def test_a_memory_hook_that_fails_open_is_not_s_running_and_code_decisions_are_not_jev(
+        tmp_path: Path) -> None:  # fmt: skip
+    rows = [{"sub": "memory-hook", "event": "UserPromptSubmit", "exit": 0, "stderr": "boom"},
+            {"sub": "memory-hook", "event": "Stop", "exit": 0, "stderr": "boom"}]  # fmt: skip
+    (tmp_path / "hooks.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows), "utf-8")
+    found = carry_s.session_breaks(tmp_path, {"init": {"mcp": {"sanchopanza": "connected"}}})
+    assert len(found) == 2 and "without an error" in found[0] and "every Stop" in found[1]
+    journal = [{"kind": "decision", "data": {"provider": "code", "cost_usd": 0.0}},
+               {"kind": "decision", "data": {"provider": "jev", "error": "402"}}]  # fmt: skip
+    (tmp_path / "journal.jsonl").write_text("".join(json.dumps(r) + "\n" for r in journal),
+                                            "utf-8")  # fmt: skip
+    facts = carry_s.jev(tmp_path)
+    assert facts["jev_decisions"] == 1 and facts["code_decisions"] == 1
+    assert carry_s.pair_breaks(facts)  # the only real decision failed
+
+
 def test_s_session_and_pair_breaks() -> None:
     ok = {"init": {"mcp": {"sanchopanza": "failed"}}}
     assert carry_s.pair_breaks({"jev_decisions": 0, "jev_failed": 0})
@@ -192,7 +208,9 @@ def test_the_reserve_holds_s_decisions_and_rotation_alternates_the_first_arm() -
     plan = carry.build_plan("parallel", "sonnet", "N,S", 3, 1, rotate=True)
     assert len(plan) == 48 and {r for *_, r in plan} == {1, 2, 3}
     firsts = [plan[i][2] for i in range(0, 48, 2)]
-    assert firsts == ["N", "S"] * 12
+    assert firsts.count("N") == firsts.count("S") == 12
+    for scene in PARALLEL:  # no scene keeps one order in every repetition
+        assert {plan[i][2] for i in range(0, 48, 2) if plan[i][0] == scene} == {"N", "S"}
     assert all({plan[i][2], plan[i + 1][2]} == {"N", "S"} and plan[i][0] == plan[i + 1][0]
                for i in range(0, 48, 2))  # fmt: skip
 
@@ -258,3 +276,15 @@ def test_a_false_send_back_in_the_last_session_counts_against_s(tmp_path: Path) 
     found = cell.cell(table(n_broken=8, s_broken=1), {"r": tmp_path})
     assert found["false_sendbacks"] == {f"{scene} r1": ["Some other project rule."]}
     assert found["criteria"]["false_sendbacks"]["holds"]  # 1 of 24 is the most allowed
+
+
+def test_s_cannot_win_by_failing_tasks_and_a_pair_never_started_is_listed(tmp_path: Path) -> None:
+    rows = table(n_broken=8, s_broken=0)
+    rows = [{**r, "fact_kept": False, "task_pass": False} if r["arm"] == "S" and i < 16 else r
+            for i, r in enumerate(rows)]  # S fails the task where N broke: not a break
+    found = cell.cell(rows, {"r": tmp_path})
+    assert found["criteria"]["primary"]["holds"] and not found["criteria"]["fact_alone"]["holds"]
+    assert "fact_alone" in found["verdict"] and "task" in found["verdict"]
+    planned = cell.planned_pairs("parallel", "1,2,3,4", "sonnet")
+    listed = cell.cell(table(n_broken=8, s_broken=1), {"r": tmp_path}, planned=planned)
+    assert len(listed["not_run"]) == 8 and all("never started" in x for x in listed["not_run"])

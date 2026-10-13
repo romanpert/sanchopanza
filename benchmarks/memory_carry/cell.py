@@ -1,23 +1,29 @@
 """The memory cell's sealed reading (`docs/results/2026-10-13-memory-cell/prereg.md`): N against S
 on one model and one scene family, pair by pair.
 
-A pair is (scene, model, repetition) with both arms run (`analyze.ran`); a pair where either arm
-is NOT RUN is listed and left out. A **break** is the gate's: the fact not kept with the task
-not failed (`analyze.broke`). The primary is a one-sided exact McNemar on breaks, S better than
-N. The rest are no-harm criteria fixed before the data:
+A pair is (scene, model, repetition) with both arms run (`analyze.ran`). The planned pairs are the
+scene set's scenes at the given repetitions; a pair where either arm is NOT RUN, or never started,
+is listed and left out. A **break** is the gate's: the fact not kept with the task not failed
+(`analyze.broke`). The primary is a one-sided exact McNemar on breaks, S better than N. The rest
+are criteria fixed before the data:
 
+- fact alone: the same McNemar on `fact_kept`, a failed task counting as not kept, also p < ALPHA
+  (so S cannot win by failing tasks, which the gate's break forgives);
 - tests and task: S passes in no more than `floor(MARGIN * pairs)` fewer pairs than N (3 of 24);
-- false send-backs: S's last sessions sent back by a rule that is not the scene's own (a decoy, or
-  in family ii the older rule), at most `floor(FALSE_MAX * pairs)` (1 of 24);
+- false send-backs: S's last sessions sent back by a rule that is not the scene's own (a decoy or
+  any other rule), at most `floor(FALSE_MAX * pairs)` (1 of 24);
 - cost: the median over pairs of S's cost over N's (Claude Code's list price plus S's decisions)
   at most `COST_MAX` (1.15).
 
-Verdict: "gana" when the primary and every no-harm criterion hold; "no gana" otherwise, with
-each criterion that failed named; "sin veredicto" when fewer than `MIN_PAIRS` pairs ran. Reported
-beside it, never deciding: the two-sided reading (S breaks more), the variants of family iii apart,
-a bootstrap interval of the cost ratio by scene, and every break and send-back by name.
+Verdict: "gana" when every criterion holds; "no gana" otherwise, with each criterion that failed
+named; "sin veredicto" when fewer than `MIN_PAIRS` pairs ran. Reported beside it, never deciding:
+the other one-sided p (S breaks more), the variants of family iii apart, a bootstrap interval of
+the cost ratio by scene, wall time, every break and send-back by name, S pairs whose hook log does
+not show one start per session (their send-backs cannot be placed), and S's hook calls that
+ended in an error.
 
-    python benchmarks/memory_carry/cell.py RUN_DIR [RUN_DIR ...] [--a S] [--b N] [--json]
+    python benchmarks/memory_carry/cell.py RUN_DIR [RUN_DIR ...] [--a S] [--b N]
+        [--scenes parallel] [--repeats 1,2,3] [--model sonnet]
 """
 
 from __future__ import annotations
@@ -35,7 +41,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from analyze import broke, folders, mcnemar, ran, rows  # noqa: E402
-from carry import SCENES  # noqa: E402
+from carry import SCENES, SETS  # noqa: E402
 from sendbacks import sendbacks  # noqa: E402
 
 MARGIN = 0.125  # tests and task: 3 of 24 (v8's 2 of 16)
@@ -53,20 +59,55 @@ def total(row: dict[str, Any]) -> float:
     return float(row.get("cost") or 0.0) + float(row.get("jev_usd") or 0.0)
 
 
-def paired(all_rows: list[dict[str, Any]], a: str, b: str) -> tuple[dict[Pair, dict], list]:
-    pairs: dict[Pair, dict[str, dict[str, Any]]] = {}
+def wall(row: dict[str, Any]) -> float:
+    return sum(float(s.get("seconds") or 0.0) for s in row.get("sessions") or [])
+
+
+def paired(all_rows: list[dict[str, Any]], a: str, b: str,
+           planned: list[Pair] | None = None) -> tuple[dict[Pair, dict], list[str]]:  # fmt: skip
+    pairs: dict[Pair, dict[str, dict[str, Any]]] = {k: {} for k in planned or []}
     for r in all_rows:
         pairs.setdefault((r["scene"], r["model"], r["repeat"]), {})[r["arm"]] = r
     done = {k: p for k, p in pairs.items() if ran(p.get(a)) and ran(p.get(b))}
-    not_run = sorted(f"{k[0]} r{k[2]}" for k in pairs if k not in done)
+    not_run = sorted(f"{k[0]} r{k[2]}" + ("" if p else " (never started)")
+                     for k, p in pairs.items() if k not in done)  # fmt: skip
     return done, not_run
+
+
+def pair_dir(row: dict[str, Any], run_dir: Path) -> Path:
+    return run_dir / f"{row['scene']}-{row['model']}-{row['arm']}-{row['repeat']}"
 
 
 def false_sendbacks(row: dict[str, Any], run_dir: Path) -> list[str]:
     """Rules other than the scene's own that sent the row's last session back."""
-    pair = run_dir / f"{row['scene']}-{row['model']}-{row['arm']}-{row['repeat']}"
     last = len(row.get("planned") or [None, None])
-    return [str(f["rule"]) for f in sendbacks(pair) if not f["own"] and f["session"] == last]
+    return [str(f["rule"]) for f in sendbacks(pair_dir(row, run_dir))
+            if not f["own"] and f["session"] == last]  # fmt: skip
+
+
+def _jsonl(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    out = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        try:
+            item = json.loads(line)
+        except ValueError:
+            continue
+        out += [item] if isinstance(item, dict) else []
+    return out
+
+
+def starts(row: dict[str, Any], run_dir: Path) -> int:
+    """Session starts memory logged in the pair (`sendbacks` numbers sessions by them)."""
+    log = _jsonl(pair_dir(row, run_dir) / "hook-log.jsonl")
+    return sum(1 for r in log if r.get("event") == "SessionStart" and r.get("source") == "startup")
+
+
+def hook_errors(row: dict[str, Any], run_dir: Path) -> int:
+    """S's hook calls that exited non-zero or wrote to stderr."""
+    calls = _jsonl(pair_dir(row, run_dir) / "hooks.jsonl")
+    return sum(1 for r in calls if r.get("exit") not in (0, None) or r.get("stderr"))
 
 
 def boot_ratio(done: dict[Pair, dict], a: str, b: str) -> tuple[float, float] | None:
@@ -105,15 +146,24 @@ def variants(done: dict[Pair, dict], a: str, b: str) -> dict[str, dict[str, int]
     return out
 
 
-def criteria(done: dict[Pair, dict], a: str, b: str, sent: dict[str, list[str]],
-             a_only: int, b_only: int) -> dict[str, Any]:  # fmt: skip
+def discordant(done: dict[Pair, dict], a: str, b: str, bad: Any) -> tuple[int, int]:
+    """(pairs where only B was bad, pairs where only A was bad)."""
+    a_only = sum(1 for p in done.values() if bad(p[b]) and not bad(p[a]))
+    b_only = sum(1 for p in done.values() if bad(p[a]) and not bad(p[b]))
+    return a_only, b_only
+
+
+def criteria(done: dict[Pair, dict], a: str, b: str, sent: dict[str, list[str]]) -> dict[str, Any]:
     n = len(done)
     ca, cb = counts(done, a), counts(done, b)
     margin = math.floor(MARGIN * n)
     ratios = [total(p[a]) / total(p[b]) for p in done.values() if total(p[b]) > 0]
     median = statistics.median(ratios) if ratios else None
+    p_break = mcnemar(*discordant(done, a, b, broke))
+    p_fact = mcnemar(*discordant(done, a, b, lambda r: not r["fact_kept"]))
     return {
-        "primary": {"p": mcnemar(a_only, b_only), "holds": mcnemar(a_only, b_only) < ALPHA},
+        "primary": {"p": p_break, "holds": p_break < ALPHA},
+        "fact_alone": {"p": p_fact, "holds": p_fact < ALPHA},
         "tests": {"a": ca["tests"], "b": cb["tests"], "margin": margin,
                   "holds": ca["tests"] >= cb["tests"] - margin},
         "task": {"a": ca["task"], "b": cb["task"], "margin": margin,
@@ -132,14 +182,19 @@ def verdict(n: int, checks: dict[str, Any]) -> str:
     return "gana" if not failed else "no gana (" + ", ".join(failed) + ")"
 
 
+def named(done: dict[Pair, dict], test: Any) -> list[str]:
+    return sorted(f"{k[0]} r{k[2]}" for k, p in done.items() if test(p))
+
+
 def cell(all_rows: list[dict[str, Any]], run_dirs: dict[str, Path], a: str = "S",
-         b: str = "N") -> dict[str, Any]:  # fmt: skip
-    done, not_run = paired(all_rows, a, b)
-    a_only = sum(1 for p in done.values() if broke(p[b]) and not broke(p[a]))
-    b_only = sum(1 for p in done.values() if broke(p[a]) and not broke(p[b]))
+         b: str = "N", planned: list[Pair] | None = None) -> dict[str, Any]:  # fmt: skip
+    done, not_run = paired(all_rows, a, b, planned)
+    a_only, b_only = discordant(done, a, b, broke)
+    where = {k: run_dirs[p[a]["run"]] for k, p in done.items()}
     sent = {f"{k[0]} r{k[2]}": found for k, p in sorted(done.items())
-            if (found := false_sendbacks(p[a], run_dirs[p[a]["run"]]))}  # fmt: skip
-    checks = criteria(done, a, b, sent, a_only, b_only)
+            if (found := false_sendbacks(p[a], where[k]))}  # fmt: skip
+    checks = criteria(done, a, b, sent)
+    walls = [wall(p[a]) / wall(p[b]) for p in done.values() if wall(p[b]) > 0]
     return {"pairs": len(done), "not_run": not_run, "a": a, "b": b,
             "count": {a: counts(done, a), b: counts(done, b)},
             "a_only_kept": a_only, "b_only_kept": b_only,
@@ -149,9 +204,24 @@ def cell(all_rows: list[dict[str, Any]], run_dirs: dict[str, Path], a: str = "S"
                      b: round(sum(total(p[b]) for p in done.values()), 4),
                      "jev": round(sum(float(p[a].get("jev_usd") or 0) for p in done.values()), 6),
                      "ratio_ci95": boot_ratio(done, a, b)},
+            "wall_ratio_median": statistics.median(walls) if walls else None,
             "variants": variants(done, a, b), "false_sendbacks": sent,
-            "broken": {arm: sorted(f"{k[0]} r{k[2]}" for k, p in done.items() if broke(p[arm]))
-                       for arm in (a, b)}}  # fmt: skip
+            "starts_mismatch": named(done, lambda p: starts(p[a], where_of(p, run_dirs, a))
+                                     != len(p[a].get("planned") or [])),
+            "hook_errors": {f"{k[0]} r{k[2]}": e for k, p in sorted(done.items())
+                            if (e := hook_errors(p[a], where[k]))},
+            "broken": {arm: named(done, lambda p, arm=arm: broke(p[arm])) for arm in (a, b)},
+            "not_kept": {arm: named(done, lambda p, arm=arm: not p[arm]["fact_kept"])
+                         for arm in (a, b)}}  # fmt: skip
+
+
+def where_of(p: dict[str, dict[str, Any]], run_dirs: dict[str, Path], arm: str) -> Path:
+    return run_dirs[p[arm]["run"]]
+
+
+def planned_pairs(scenes: str, repeats: str, model: str) -> list[Pair]:
+    names = SETS[scenes] if scenes in SETS else scenes.split(",")
+    return [(n, model, int(r)) for r in repeats.split(",") for n in names]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -159,10 +229,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("runs", nargs="+")
     parser.add_argument("--a", default="S")
     parser.add_argument("--b", default="N")
+    parser.add_argument("--scenes", default="parallel")
+    parser.add_argument("--repeats", default="1,2,3")
+    parser.add_argument("--model", default="sonnet")
     args = parser.parse_args(argv)
     dirs = folders(args.runs)
     found = rows(dirs)
-    print(json.dumps(cell(found, {d.name: d for d in dirs}, args.a, args.b), indent=1))
+    planned = planned_pairs(args.scenes, args.repeats, args.model)
+    out = cell(found, {d.name: d for d in dirs}, args.a, args.b, planned)
+    print(json.dumps(out, indent=1))
     return 0
 
 

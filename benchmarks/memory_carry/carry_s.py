@@ -95,6 +95,10 @@ def install(run: Path, repo: Path, keyfile: Path, env: Mapping[str, str]) -> Non
     data = json.loads(mcp.read_text(encoding="utf-8"))
     mcp.write_text(json.dumps(rewire_mcp(data, run, keyfile), indent=2) + "\n", encoding="utf-8",
                    newline="\n")  # fmt: skip
+    left = [p.name for p in (settings, mcp) if '"sanchopanza ' in p.read_text(encoding="utf-8")
+            or '"command": "sanchopanza"' in p.read_text(encoding="utf-8")]  # fmt: skip
+    if left:  # a command left as written would run another checkout with the home's state
+        raise RuntimeError(f"not every sanchopanza command was rewired: {left}")
     _keep(repo, run / "install" / "rewired")
 
 
@@ -112,12 +116,16 @@ def _rows(path: Path) -> list[dict[str, Any]]:
 
 
 def jev(run: Path) -> dict[str, Any]:
-    """The pair's decisions from its journal: how many, how many failed, and their cost."""
-    decisions = [r.get("data") or {} for r in _rows(run / "journal.jsonl")
-                 if r.get("kind") == "decision"]  # fmt: skip
-    failed = sum(1 for d in decisions if d.get("provider") in (None, "null") or d.get("error"))
-    usd = sum(float(d.get("cost_usd") or 0.0) for d in decisions)
-    return {"jev_decisions": len(decisions), "jev_failed": failed, "jev_usd": round(usd, 6)}
+    """The pair's decisions from its journal: how many asked the decider (the Guardian's own
+    deny-list answers, provider `code`, are counted apart), how many of those failed, and the
+    cost of all."""
+    rows = [r.get("data") or {} for r in _rows(run / "journal.jsonl")
+            if r.get("kind") == "decision"]  # fmt: skip
+    asked = [d for d in rows if d.get("provider") != "code"]
+    failed = sum(1 for d in asked if d.get("provider") in (None, "null") or d.get("error"))
+    usd = sum(float(d.get("cost_usd") or 0.0) for d in rows)
+    return {"jev_decisions": len(asked), "jev_failed": failed,
+            "code_decisions": len(rows) - len(asked), "jev_usd": round(usd, 6)}  # fmt: skip
 
 
 def hook_rows(run: Path) -> int:
@@ -127,14 +135,18 @@ def hook_rows(run: Path) -> int:
 
 def session_breaks(run: Path, result: Mapping[str, Any], since: int = 0) -> list[str]:
     """Why a finished S session did not run as S: among the hook calls logged after the first
-    `since` (this session's), the memory hook never answered a prompt; or the find server was not
-    connected at its start."""
+    `since` (this session's), the memory hook never answered a prompt without an error (it exits
+    0 even when it fails, and then writes to stderr), or failed at every Stop; or the find server
+    was not connected at its start."""
     out = []
-    prompts = [r for r in _rows(run / "hooks.jsonl")[since:]
-               if r.get("sub") == "memory-hook" and r.get("event") == "UserPromptSubmit"
-               and r.get("exit") == 0]  # fmt: skip
+    mine = [r for r in _rows(run / "hooks.jsonl")[since:] if r.get("sub") == "memory-hook"]
+    prompts = [r for r in mine if r.get("event") == "UserPromptSubmit"
+               and r.get("exit") == 0 and not r.get("stderr")]  # fmt: skip
     if not prompts:
-        out.append("the memory hook answered no prompt of this session")
+        out.append("the memory hook answered no prompt of this session without an error")
+    stops = [r for r in mine if r.get("event") == "Stop"]
+    if stops and all(r.get("stderr") or r.get("exit") for r in stops):
+        out.append(f"the memory hook failed at every Stop ({len(stops)})")
     status = ((result.get("init") or {}).get("mcp") or {}).get(SERVER)
     if status != "connected":
         out.append(f"MCP server {SERVER}: {status}")
