@@ -38,8 +38,21 @@ developers who build them. You do not need to write code to use it with Claude C
 |---|---|---|
 | **The same small judgments for a fraction of the price** | Against Claude Opus 5 on the same 211 judgments: **131x cheaper and 10.9x faster**. A thousand decisions cost about **0.03 USD** against **3.72 USD** | Opus is the better judge: 2 more right at a plain 0.5 cut, 4 more under the thresholds shipped. Against Claude Opus 5.5, the same judgments come out even (200 against 199) at about a hundredth of the price ([Opus 5.5](docs/results/2026-09-30-opus55-substitution/)). Only for closed questions, never for the work itself ([substitution](docs/results/2026-09-27-memory-write-cut/fifty/substitution.md)) |
 | **A guard inside Claude Code that stops the dangerous command** | In 144 recorded sessions, the destructive commands plain Claude Code ran 15 of 15 times were stopped **16 of 16** times; planted instructions in a file or a downloaded page were flagged 16 of 16; **0 false alarms** in 93 ordinary events | Two kinds of destructive command, one agent model, 8 repetitions each. It does not judge MCP tool calls. The agent refused the planted text either way, so the flag was a warning, not a changed answer ([Claude Code](docs/results/2026-09-28-claude-code-broad/)) |
-| **Keeps what Claude Code's summary drops** | With Claude Code's own auto-compaction firing mid-task, a one-shot value (a probe's error code and limit) was lost by the native summary in 6 of 7 sessions. Adding the guard next to the summary: **5 of 7 tasks finished with the free rule, 6 of 7 with the decider cascade, against 2 of 7 with the summary alone**, at lower cost | Haiku 4.5, one family of generated tasks, n = 7, not significant on its own (McNemar p = 0.375); the rule's arm lost a re-readable control value twice more than native ([compaction guard](docs/results/2026-09-29-context-guard/)) |
+| **Keeps what Claude Code's summary drops** | With Claude Code's own auto-compaction firing mid-task, a one-shot value (a probe's error code and limit) was lost by the native summary in 6 of 7 sessions. Adding the guard next to the summary: **5 of 7 tasks finished with the free rule, 6 of 7 with the decider cascade, against 2 of 7 with the summary alone**, at lower cost | Haiku 4.5, one family of generated tasks, n = 7, not significant on its own (McNemar p = 0.375); the rule's arm lost a re-readable control value twice more than native ([compaction guard](docs/results/2026-09-29-context-guard/)). On Sonnet 5.5 end to end it added nothing measurable over Claude Code's compaction window alone ([N-early](docs/results/2026-10-07-h2h-ne/)) |
 | **Less to read, same answers** | Judging which documents one answer needs, with the others in view: **9 of 9** answers kept, against 9 of 9 with everything, at **79.5 % fewer** input tokens | One answering call over a sequence mostly useless by construction, pre-registered; the tenth task was stopped by the cost cap. Inside a free agent loop the saving did not show ([fixed pages](docs/results/2026-09-28-fixed-pages/)) |
+
+**Head to head, it has not won.** Claude Code with sanchopanza against clean Claude Code, per
+model and per axis ([final scoreboard](docs/results/2026-10-13-final/)):
+
+- On Sonnet 5.5 the three web suites are "no gana". GAIA: +3.8 points at 1.07x the cost.
+  BrowseComp-Plus: +7.8 points at 1.17x. LongBench v2: −6 points at 0.79x. No cost interval
+  lies below 1 with success held.
+- On SWE-bench Verified, with Haiku 4.5 only, success is non-inferior and no saving is shown.
+- On 60-bug coding sessions, the Jev part did not keep its edge.
+- Memory has no room on Opus 5.5.
+- What moved results was Claude Code's own compaction window, a setting.
+- Two cells are still running: memory on Sonnet 5.5 across parallel sessions, and early
+  compaction on long code.
 
 What does not pay is in the same README, with the same weight: [where it does not](#where-it-pays-and-where-it-does-not).
 
@@ -158,6 +171,7 @@ indexes every run, with the main evidence and the negatives apart from the histo
 
 | It does not pay, or not yet | Measured |
 |---|---|
+| **The default install as a layer on Claude Code, end to end** | Against clean Claude Code, pre-registered, Sonnet 5.5: GAIA +3.8 points [−1.5, +9.9] at 1.074x the cost and 1.39x the wall time; BrowseComp-Plus +7.8 points (p 0.092) at 1.17x [1.007, 1.356]; LongBench v2 −6 points at 0.785x [0.634, 1.008]: "no gana" in all three. Jev changed what the model saw in at most 1.7 % of its decisions there. The one gain, on BrowseComp-Plus, came from Claude Code's own compaction window: clean Claude Code with that one setting did as well (7 right against 6, 0.954x the cost). On SWE-bench Verified with Haiku 4.5, success held (46 against 45 of 78) but the cost was not shown to be lower (1.007x [0.933, 1.143]). Opus 5.5 and Fable 5.1 were not run there, and code was not run on Sonnet or Opus ([final scoreboard](docs/results/2026-10-13-final/)) |
 | **A tool window where the platform already has tool search** | Sonnet 5, 40 AgentDojo tasks, 74 tools: success shows no detectable difference (loading everything 70/80 over two runs, the window 100/120 over three, the platform's search 31/40). Cost, estimated from recorded usage with the `tools` + `system` prefix shared between tasks: the window **0.77-0.88x** of loading everything, the search 1.48x; the window's time is 0.91x ([e2e](docs/results/2026-09-25-e2e/), [cost basis](docs/results/2026-09-25-cache/)). On a real MCP catalog of 398 tools the platform's search is the cheaper, an estimated **0.34x against the window's 0.54x** of loading everything with the prefix shared, at the same success (8/9 each, 7/9 for loading everything): the window opened the 121-tool Google Workspace server in 11 of 17 tasks ([wide](docs/results/2026-09-25-wide/)). Inside Claude Code, a sanchopanza hook changed nothing measurable over its own deferred tool search |
 | **Saving tokens inside a free agent loop** | In an agent loop that fetched one or two documents per task, 64 paired runs showed no measurable change in cost and 11 to 16 % more wall time ([A/B](benchmarks/ab)): there was little to drop, and inside a warm loop a dropped token is priced at the cache-read rate. The saving above is one answering call over a sequence built to be mostly useless; in a loop it is unmeasured |
 | **Asking what the rest of a session will need** | At compaction, a decider asked which tool results the future will use separated needed from unneeded at AUC 0.53-0.61 on 40 public trajectories; a replica of an existing Jev compaction plugin kept 9 % of what was later used, the same as keeping the last three results ([context](docs/results/2026-09-28-context/)). Masking, which asks nothing, is what the autopilot uses |
@@ -226,7 +240,11 @@ What it cannot do: bring back output the harness never showed, or read the new s
 Code writes it after the hooks run). The rule's end-to-end claim is limited to values that cannot
 be had again: on 40 public trajectories, where what was needed could be re-run, it showed no
 advantage
-([results](docs/results/2026-09-29-context-guard/)).
+([results](docs/results/2026-09-29-context-guard/)). On Sonnet 5.5, on BrowseComp-Plus, the
+guard put the request back after each compaction and added nothing measurable over Claude Code's
+compaction window alone ([N-early](docs/results/2026-10-07-h2h-ne/)). On 60-bug coding sessions
+compacting showed no quality loss to recover, so the guard was not run there
+([final scoreboard](docs/results/2026-10-13-final/)).
 
 ---
 
