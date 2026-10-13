@@ -223,4 +223,12 @@ llamada 52), y N contra sí mismo discrepó en 6-7 bugs.
 
 ## 11. Sello
 
-Se rellena en el commit que sella (lista de cadenas, sha256 de este fichero y commit).
+- Sellado el 2026-10-13 por la noche, antes de cualquier corrida de esta tanda, en el commit que
+  añade esta sección. El sha256 de este fichero va en el mensaje de ese commit y en el README de
+  resultados.
+- Cadenas: `COMPACT_CHAINS` = conan-1, pydantic-1, conan-2, moto-1 (validadas, con manifiesto);
+  `COMPACT_FIFTH` = moto-2 (validándose al sellar); `COMPACT_EXTRA` = dvc-1 (validándose al sellar).
+- Verificado contra el código por un subagente independiente en dos pasadas (3850ade: 7 puntos a
+  arreglar, arreglados en 507bcfe; 507bcfe: "OK to seal"). Después del visto bueno solo cambiaron
+  la validación (`docker_env`, el plugin de tiempo por test, que no toca las corridas de pago) y el
+  reparto de la quinta cadena en su propio perfil (secciones 3 y 5).
