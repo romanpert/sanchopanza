@@ -122,6 +122,10 @@ def prefix_breaks(prefix: Mapping[str, int]) -> tuple[str, ...]:
     n, early, s = prefix.get("N"), prefix.get("Ne"), prefix.get("S")
     if n is not None and early is not None and abs(n - early) > PREFIX_SAME:
         out.append(f"N-early's prefix {early} differs from N's {n} by more than {PREFIX_SAME}")
+    low_early = prefix.get("Nl")  # N-early-low: the same prefix as N-early, another window only
+    if early is not None and low_early is not None and abs(early - low_early) > PREFIX_SAME:
+        out.append(f"N-early-low's prefix {low_early} differs from N-early's {early} by more "
+                   f"than {PREFIX_SAME}")  # fmt: skip
     low, high = S_PREFIX_EXTRA
     if n is not None and s is not None and not low <= s - n <= high:
         out.append(f"S's prefix {s} is not N's {n} plus {low}-{high}")

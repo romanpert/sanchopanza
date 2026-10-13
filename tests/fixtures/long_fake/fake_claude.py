@@ -14,8 +14,9 @@ configuration, retries included. Kinds:
 - `429`: a rejected rate-limit event and a result with api_error_status 429;
 - `timeout`: the init, then silence (the runner kills it);
 - `crash`: the init and one tool call that changes a file, then exit 3 with no result;
-- `compact`: a compaction boundary, and its call's tokens in modelUsage only (as headless
-  Claude Code leaves the compaction call out of the transcript);
+- `compact`: a compaction boundary (its `pre_tokens` FAKE_COMPACT_PRE, default 160,500), and its
+  call's tokens in modelUsage only (as headless Claude Code leaves the compaction call out of the
+  transcript);
 - `mcpfail`: the init lists every MCP server of --mcp-config as `failed`.
 
 FAKE_PASSAGES (JSON, `{"cuts": n, "whole": w, "targeted": t}`): in an arm whose project settings
@@ -237,8 +238,9 @@ def run_call(argv: list[str]) -> int:
     usages = replay(call, session, model, transcript, installed)
     debug_lines(option(argv, "--debug-file"), usages, window(model, config) - OUTPUT_RESERVE)
     if kind == "compact":
+        pre = int(os.environ.get("FAKE_COMPACT_PRE") or 160_500)
         emit({"type": "system", "subtype": "compact_boundary", "session_id": session,
-              "compact_metadata": {"trigger": "auto", "pre_tokens": 160_500,
+              "compact_metadata": {"trigger": "auto", "pre_tokens": pre,
                                    "post_tokens": 9_000}})  # fmt: skip
         usages = [*usages, COMPACTION]
     total = add_usage(state["usage"], model, usages)
