@@ -14,8 +14,8 @@ rem     CommandLine = "cmd.exe /c <this folder>\long-compact-run.cmd"; ProcessSt
 rem Run it again to resume: finished arms are skipped, a stopped arm goes on at its next request.
 rem Stop: a STOP file in the root (between calls), or
 rem `python benchmarks\adopt\long_run.py kill --root C:\sp-runs\L-compact` (verified PID only).
-rem Last argument `dry` (tests only): LL_ROOT, LL_PIN, LL_MANIFESTS, LL_DRY_CONFIG replace the
-rem root, the pinned Claude Code folder, the manifests and the runner (a stand-in claude).
+rem Last argument `dry` (tests only): LL_ROOT, LL_PIN, LL_DRY_CONFIG replace the root, the pinned
+rem Claude Code folder and the runner (a stand-in claude; the dry config names the manifests).
 setlocal
 set WT=%~dp0
 set WT=%WT:~0,-1%

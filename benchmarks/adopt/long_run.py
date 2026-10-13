@@ -104,8 +104,8 @@ CONAN_NE2_CEILING = 25.0
 # docs/results/2026-10-13-long-compact/prereg.md): N-early (Ne, compacts near 160k) against
 # N-early-low (Nl: what `install --context-budget 67000` writes, a window of 100,000, Claude Code's
 # floor, so it compacts near 67k), Sonnet 5.5, one run per arm and chain, both arms of a chain one
-# after the other in `arm_order`'s rotation. 25 a run (one stops near 19.5-20: the call cap and
-# one turn are held), 5 chains x 2 arms x 25 = 250.
+# after the other in `arm_order`'s rotation. 25 a run (Ne starts no call past ~18.9 and Nl past
+# ~19.4: the call cap and one turn are held), 5 chains x 2 arms x 25 = 250.
 COMPACT_LOW_BUDGET = 67_000
 COMPACT_CHAIN_CAP = 25.0
 COMPACT_CEILING = 250.0
@@ -117,7 +117,7 @@ COMPACT_EXTRA = ("iterative__dvc-long60-1",)
 # Nl's compactions must fire where the prereg says (near 67k): a first-turn context at most one
 # request past the threshold. Outside these bounds the arm is not the registered treatment.
 LOW_PRE = (50_000, 110_000)  # a compaction's `pre` tokens
-LOW_PEAK = 130_000  # a call's peak context
+LOW_PEAK = 110_000  # a call's peak context (a window that never took: N passes it by call ~8-15)
 SMOKE_CHAIN = "pydantic__pydantic-long60-1"  # validated first; Haiku, 3 bugs, its own root
 MANIFESTS = HERE / "long60"  # long60/<chain>.json, written by `long.py manifests` once valid
 JEV_MAX_USD = 0.50  # per chain (pre-mortem 15)

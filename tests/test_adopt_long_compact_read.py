@@ -37,16 +37,19 @@ def _calls(n: int, usd: float, stop_at: int | None = None,
 
 
 def _arm(root: pathlib.Path, chain: str, arm: str, calls: list[dict[str, Any]],
-         resolved: list[bool]) -> None:  # fmt: skip
+         resolved: list[bool], common: int | None = None) -> None:  # fmt: skip
     ev = root / "runs" / f"{chain}-sonnet" / arm
     ev.mkdir(parents=True)
     row = {"run": f"{chain}-sonnet", "arm": arm, "model": "claude-sonnet-5-5", "bugs": len(calls),
-           "calls": calls, "stopped": "", "requests_planned": len(calls)}
+           "calls": calls, "stopped": "", "requests_planned": len(calls), "token": "t"}
     (ev / "row.json").write_text(json.dumps(row), encoding="utf-8")
     grade = {"resolved": sum(resolved), "bugs_total": len(resolved),
              "bugs": [{"instance_id": f"b{k}", "resolved": r}
                       for k, r in enumerate(resolved, start=1)]}  # fmt: skip
     (ev / "grade.json").write_text(json.dumps(grade), encoding="utf-8")
+    if common is not None:  # what `long_compact grade` writes
+        (ev / "grade-common.json").write_text(json.dumps({**grade, "common_calls": common}),
+                                              encoding="utf-8")  # fmt: skip
     for k in range(1, len(calls) + 1):  # each call changes code: no give-up
         (ev / f"diff-{k}.patch").write_text(f"diff --git a/x{k}.py b/x{k}.py\n", encoding="utf-8")
 
@@ -73,8 +76,8 @@ def test_five_cheaper_chains_with_the_same_bugs_win(lc, tmp_path: pathlib.Path) 
     chains = [f"c{i}" for i in range(5)]
     for i, chain in enumerate(chains):
         same = [k % 4 != 0 for k in range(40)]
-        _arm(tmp_path, chain, "Ne", _calls(40, 0.50), same)
-        _arm(tmp_path, chain, "Nl", _calls(40, 0.40 + 0.01 * i, pres=(67_000,)), same)
+        _arm(tmp_path, chain, "Ne", _calls(40, 0.50), same, common=40)
+        _arm(tmp_path, chain, "Nl", _calls(40, 0.40 + 0.01 * i, pres=(67_000,)), same, common=40)
     data = lc.read(tmp_path, chains)
     assert data["chains_counted"] == chains
     assert data["cost"]["n"] == 5 and data["cost"]["high"] < 1.0
@@ -84,8 +87,8 @@ def test_five_cheaper_chains_with_the_same_bugs_win(lc, tmp_path: pathlib.Path) 
 
 
 def test_a_capped_run_is_compared_on_its_common_calls(lc, tmp_path: pathlib.Path) -> None:
-    _arm(tmp_path, "c", "Ne", _calls(40, 0.50, stop_at=32), [True] * 40)
-    _arm(tmp_path, "c", "Nl", _calls(40, 0.40), [True] * 40)
+    _arm(tmp_path, "c", "Ne", _calls(40, 0.50, stop_at=32), [True] * 40, common=32)
+    _arm(tmp_path, "c", "Nl", _calls(40, 0.40), [True] * 40, common=32)
     line = lc.read(tmp_path, ["c"])["chains"]["c"]
     assert line["common_calls"] == 32 and line["common_bugs"] == 32
     assert line["arms"]["Ne"]["cost_common"] == 16.0 and line["arms"]["Nl"]["cost_common"] == 12.8
@@ -94,6 +97,46 @@ def test_a_capped_run_is_compared_on_its_common_calls(lc, tmp_path: pathlib.Path
 
 def test_fewer_than_five_chains_give_no_verdict(lc, tmp_path: pathlib.Path) -> None:
     for chain in ("a", "b"):
-        _arm(tmp_path, chain, "Ne", _calls(40, 0.5), [True] * 40)
-        _arm(tmp_path, chain, "Nl", _calls(40, 0.4), [True] * 40)
+        _arm(tmp_path, chain, "Ne", _calls(40, 0.5), [True] * 40, common=40)
+        _arm(tmp_path, chain, "Nl", _calls(40, 0.4), [True] * 40, common=40)
     assert lc.read(tmp_path, ["a", "b", "missing"])["verdict"] == "no verdict"
+
+
+def test_a_call_asked_again_does_not_cut_the_common_calls(lc) -> None:
+    calls = _calls(40, 1.0)
+    again = [*calls[:10], {**calls[10], "superseded": True, "owner_usd": 0.3}, *calls[10:]]
+    assert lc.common_calls({"calls": again}, {"calls": calls}) == 40
+    assert lc.cost_upto({"calls": again}, 40) == 40.3  # the first try was paid too
+
+
+def test_a_chain_without_its_common_grade_counts_for_nothing(lc, tmp_path: pathlib.Path) -> None:
+    chains = [f"c{i}" for i in range(5)]
+    for i, chain in enumerate(chains):
+        common = None if i == 0 else 40
+        _arm(tmp_path, chain, "Ne", _calls(40, 0.50), [True] * 40, common=common)
+        _arm(tmp_path, chain, "Nl", _calls(40, 0.40 + 0.01 * i), [True] * 40, common=common)
+    data = lc.read(tmp_path, chains)
+    assert data["chains_counted"] == chains[1:] and data["verdict"] == "no verdict"
+    assert data["chains"]["c0"]["graded_common"] is False
+
+
+def test_both_arms_are_graded_at_the_last_common_call(lc, monkeypatch, tmp_path) -> None:  # noqa: ANN001
+    import perbug
+
+    _arm(tmp_path, "c", "Ne", _calls(40, 0.50, stop_at=32), [True] * 40)
+    _arm(tmp_path, "c", "Nl", _calls(40, 0.40), [True] * 40)
+    graded: list[str] = []
+
+    def fake_grade(chain, patch):  # noqa: ANN001, ANN202
+        graded.append(patch)
+        return {"resolved": 1, "bugs": [{"instance_id": "b1", "resolved": True}]}
+
+    monkeypatch.setattr(perbug, "grade", fake_grade)
+    known = {"c": {"chain": "c", "bugs": [{}] * 40, "split": "dev"}}
+    lines = lc.grade_common(tmp_path, "c", known)
+    assert len(lines) == 2 and all("call 32" in x for x in lines)
+    assert graded == ["diff --git a/x32.py b/x32.py\n"] * 2
+    for arm in ("Ne", "Nl"):
+        out = json.loads((tmp_path / "runs" / "c-sonnet" / arm / "grade-common.json")
+                         .read_text(encoding="utf-8"))  # fmt: skip
+        assert out["common_calls"] == 32 and out["snapshot"] == "diff-32.patch"

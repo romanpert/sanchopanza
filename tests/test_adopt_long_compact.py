@@ -109,7 +109,7 @@ def test_the_launcher_runs_both_arms_on_each_chain_without_jev(tmp_path: pathlib
     nl = f"{CHAINS[0]}-sonnet-Nl"
     inject = {nl: {"2": "compact"}}
     code = launch(CMD, ["dry"], {**env, "FAKE_CLAUDE_INJECT": json.dumps(inject),
-                                 "FAKE_COMPACT_PRE": "67500"})  # fmt: skip
+                                 "FAKE_COMPACT_PRE": "67500", "FAKE_CONTEXT_SCALE": "0.5"})
     root = tmp_path / "L"
     log = (root / "launch.log").read_text(encoding="utf-8", errors="replace")
     assert code in (0, 3), log  # 3: the dry chains are short; graded or not, both arms ran
@@ -130,7 +130,7 @@ def test_nl_compacting_where_it_should_not_stops_the_launch(tmp_path: pathlib.Pa
     env = dry_environment(tmp_path, CHAINS)
     inject = {f"{chain}-sonnet-Nl": {"2": "compact"} for chain in CHAINS}
     code = launch(CMD, ["dry"], {**env, "FAKE_CLAUDE_INJECT": json.dumps(inject),
-                                 "FAKE_COMPACT_PRE": "160500"})  # fmt: skip
+                                 "FAKE_COMPACT_PRE": "160500", "FAKE_CONTEXT_SCALE": "0.5"})
     assert code == 4
     root = tmp_path / "L"
     assert "Nl compacted at 160500" in (root / "STOP").read_text(encoding="utf-8")
@@ -146,7 +146,7 @@ def test_the_launcher_takes_extra_and_dry_only(tmp_path: pathlib.Path) -> None:
 @pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
 def test_the_sixth_chain_runs_under_the_same_root_and_ceiling(tmp_path: pathlib.Path) -> None:
     sixth = "iterative__dvc-long60-1"  # long_run.COMPACT_EXTRA
-    env = dry_environment(tmp_path, (*CHAINS, sixth))
+    env = {**dry_environment(tmp_path, (*CHAINS, sixth)), "FAKE_CONTEXT_SCALE": "0.5"}
     assert launch(CMD, ["dry"], env) in (0, 3)
     assert launch(CMD, ["extra", "dry"], env) in (0, 3)
     runs = tmp_path / "L" / "runs"
@@ -173,3 +173,10 @@ def test_a_run_stopped_by_its_cap_lets_the_next_arm_go_on(m, monkeypatch, tmp_pa
         assert long_run.run_chain(ctx, chain, {}) == expected
         assert len(ran) == arms
     assert long_run.PROFILES["compact"].local_stops == ("cap", "wall")
+
+
+@pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+def test_nl_past_its_peak_without_compacting_stops_the_launch(tmp_path: pathlib.Path) -> None:
+    env = dry_environment(tmp_path, CHAINS)  # B2's contexts unscaled: past 110k, no compaction
+    assert launch(CMD, ["dry"], env) == 4
+    assert "Nl reached" in (tmp_path / "L" / "STOP").read_text(encoding="utf-8")
