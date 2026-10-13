@@ -1,7 +1,8 @@
-"""Every send-back the audit made in a carry run, from each V pair's hook log: which session, which
-rule, and whether it was the scene's own rule or another (a decoy). Criterion 2 of `prereg-v8.md`
-counts second sessions sent back by a rule other than the scene's own. For F1's family ii the
-scene's older rule A (`stale`) is not its own: a send-back quoting it is false, labelled STALE.
+"""Every send-back the audit made in a carry run, from each V or S pair's hook log: which session,
+which rule, and whether it was the scene's own rule or another (a decoy). Criterion 2 of
+`prereg-v8.md` counts second sessions sent back by a rule other than the scene's own. For F1's
+family ii the scene's older rule A (`stale`) is not its own: a send-back quoting it is false,
+labelled STALE.
 
     python benchmarks/memory_carry/sendbacks.py RUN_DIR [RUN_DIR ...]
 """
@@ -41,7 +42,8 @@ def sendbacks(pair: Path) -> list[dict[str, object]]:
 
 def main(argv: list[str] | None = None) -> int:
     runs = [Path(a) for a in (argv or sys.argv[1:])]
-    pairs = [p for r in runs for p in sorted(r.glob("*-V-*")) if p.is_dir()]
+    pairs = [p for r in runs for arm in ("V", "S") for p in sorted(r.glob(f"*-{arm}-*"))
+             if p.is_dir()]  # fmt: skip
     false_second = 0
     for pair in pairs:
         found = sendbacks(pair)
@@ -50,7 +52,7 @@ def main(argv: list[str] | None = None) -> int:
         for f in found:
             kind = "own " if f["own"] else "STALE" if f.get("stale") else "DECOY"
             print(f"{pair.parent.name}/{pair.name} s{f['session']} {kind} {str(f['rule'])[:90]}")
-    print(f"V pairs {len(pairs)}; second sessions sent back by a decoy or a stale rule: "
+    print(f"V and S pairs {len(pairs)}; later sessions sent back by a decoy or a stale rule: "
           f"{false_second}")
     return 0
 

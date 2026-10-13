@@ -1,0 +1,114 @@
+{
+ "pairs": 24,
+ "not_run": [],
+ "a": "S",
+ "b": "N",
+ "count": {
+  "S": {
+   "broken": 0,
+   "not_kept": 0,
+   "tests": 24,
+   "task": 23
+  },
+  "N": {
+   "broken": 11,
+   "not_kept": 11,
+   "tests": 24,
+   "task": 24
+  }
+ },
+ "a_only_kept": 11,
+ "b_only_kept": 0,
+ "p_a_better": 0.00048828125,
+ "p_a_worse": 1.0,
+ "criteria": {
+  "primary": {
+   "p": 0.00048828125,
+   "holds": true
+  },
+  "fact_alone": {
+   "p": 0.00048828125,
+   "holds": true
+  },
+  "tests": {
+   "a": 24,
+   "b": 24,
+   "margin": 3,
+   "holds": true
+  },
+  "task": {
+   "a": 23,
+   "b": 24,
+   "margin": 3,
+   "holds": true
+  },
+  "false_sendbacks": {
+   "sessions": 0,
+   "max": 1,
+   "holds": true
+  },
+  "cost": {
+   "median_ratio": 1.1172846099129625,
+   "max": 1.15,
+   "holds": true
+  }
+ },
+ "verdict": "gana",
+ "cost": {
+  "S": 4.441,
+  "N": 4.0265,
+  "jev": 0.007981,
+  "ratio_ci95": [
+   1.0547498817581693,
+   1.148669088448386
+  ]
+ },
+ "wall_ratio_median": 1.1245909093460724,
+ "variants": {
+  "same checkout": {
+   "pairs": 12,
+   "S_broken": 0,
+   "N_broken": 5
+  },
+  "worktree": {
+   "pairs": 12,
+   "S_broken": 0,
+   "N_broken": 6
+  }
+ },
+ "false_sendbacks": {},
+ "starts_mismatch": [],
+ "hook_errors": {},
+ "broken": {
+  "S": [],
+  "N": [
+   "q_cents r1",
+   "q_cents r2",
+   "q_cents r3",
+   "q_stdlib r1",
+   "q_stdlib r2",
+   "q_stdlib r3",
+   "q_trash r1",
+   "q_trash r2",
+   "q_trash r3",
+   "q_tz r2",
+   "q_tz r3"
+  ]
+ },
+ "not_kept": {
+  "S": [],
+  "N": [
+   "q_cents r1",
+   "q_cents r2",
+   "q_cents r3",
+   "q_stdlib r1",
+   "q_stdlib r2",
+   "q_stdlib r3",
+   "q_trash r1",
+   "q_trash r2",
+   "q_trash r3",
+   "q_tz r2",
+   "q_tz r3"
+  ]
+ }
+}
