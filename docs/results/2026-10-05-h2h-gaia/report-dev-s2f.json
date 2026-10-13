@@ -1,0 +1,75 @@
+{
+ "sessions": 20,
+ "list_usd": 2.09,
+ "by_arm": {
+  "SONNET-SP": {
+   "sessions": 20,
+   "ok_oficial": 16,
+   "ok_with_hand": 16,
+   "by_level": {
+    "1": "2/4",
+    "2": "12/14",
+    "3": "2/2"
+   },
+   "total_usd": 2.0898,
+   "usd_per_correct": 0.1306,
+   "mean_usd": 0.1045,
+   "median_usd": 0.0543,
+   "mean_turns": 5.7,
+   "median_turns": 3.0,
+   "mean_wall_s": 37.3,
+   "median_wall_s": 25.65,
+   "tokens_total": {
+    "input": 282271,
+    "cache_read": 2382195,
+    "cache_write": 208098,
+    "output": 34772,
+    "web_searches": 18
+   },
+   "tools": {
+    "Bash": 23,
+    "PowerShell": 2,
+    "Read": 5,
+    "ToolSearch": 9,
+    "WebFetch": 7,
+    "WebSearch": 18,
+    "mcp__sanchopanza-fetch__fetch_passages": 29
+   },
+   "hooks_with_output": {
+    "PreToolUse:WebSearch deny": 17
+   },
+   "sp_hook_calls": {
+    "fetch-hook": 7,
+    "guard-hook": 23,
+    "hook": 63
+   },
+   "sessions_with_sp_hooks": 20,
+   "jev_calls": 28,
+   "jev_by_point": {
+    "guard": 10,
+    "search": 18
+   },
+   "jev_errors": 0,
+   "jev_error_kinds": {},
+   "jev_usd": 0.001114,
+   "hit_cap": 0,
+   "leak": [],
+   "no_final_answer": 0,
+   "denied": 5
+  }
+ },
+ "dropped_for_leak": [],
+ "paired": {
+  "SONNET": {
+   "tasks": 0
+  }
+ },
+ "verdict": {
+  "SONNET": "sin datos"
+ },
+ "paired_all_tasks": {
+  "SONNET": {
+   "tasks": 0
+  }
+ }
+}

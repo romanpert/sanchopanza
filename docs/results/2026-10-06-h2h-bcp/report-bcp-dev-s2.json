@@ -1,0 +1,71 @@
+{
+ "sessions": 10,
+ "list_usd": 6.48,
+ "by_arm": {
+  "SONNET-SP": {
+   "sessions": 10,
+   "ok_oficial": 6,
+   "ok_with_hand": 6,
+   "total_usd": 6.4778,
+   "usd_per_correct": 1.0796,
+   "mean_usd": 0.6478,
+   "median_usd": 0.2497,
+   "mean_turns": 17.4,
+   "median_turns": 11.0,
+   "mean_wall_s": 96.2,
+   "median_wall_s": 47.85,
+   "tokens_total": {
+    "input": 65972,
+    "cache_read": 7292558,
+    "cache_write": 1036185,
+    "output": 74846,
+    "web_searches": 0
+   },
+   "tools": {
+    "Bash": 1,
+    "Grep": 3,
+    "Read": 2,
+    "ToolSearch": 11,
+    "mcp__bcp__get_document": 11,
+    "mcp__bcp__search": 132
+   },
+   "hooks_with_output": {
+    "SessionStart other": 4,
+    "SessionStart:compact sanchopanza": 4
+   },
+   "sp_hook_calls": {
+    "guard-hook": 28,
+    "hook": 11
+   },
+   "sessions_with_sp_hooks": 10,
+   "jev_calls": 0,
+   "jev_by_point": {},
+   "jev_errors": 0,
+   "jev_error_kinds": {},
+   "jev_usd": 0.0,
+   "hit_cap": 0,
+   "leak": [],
+   "no_final_answer": 0,
+   "denied": 8,
+   "em": 5,
+   "judge_yes_without_em": 1,
+   "unjudged": 0,
+   "mean_search_calls": 13.2,
+   "mean_get_calls": 1.1,
+   "mean_evidence_recall": 0.5292,
+   "mean_gold_recall": 0.67,
+   "mean_citation_precision": 0.7,
+   "judge_usd": 0.0995
+  }
+ },
+ "paired": {
+  "SONNET": {
+   "tasks": 0
+  }
+ },
+ "verdict": {
+  "SONNET": "sin datos"
+ },
+ "unjudged": 0,
+ "grading": "exact match after normalisation, else the official judge template on claude-haiku-4-5-20251001 (official: Qwen3-32B), hand verdicts first"
+}

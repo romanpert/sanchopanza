@@ -1,0 +1,77 @@
+{
+ "sessions": 20,
+ "list_usd": 1.98,
+ "by_arm": {
+  "SONNET-SP": {
+   "sessions": 20,
+   "ok_oficial": 15,
+   "ok_with_hand": 15,
+   "by_level": {
+    "1": "2/4",
+    "2": "11/14",
+    "3": "2/2"
+   },
+   "total_usd": 1.9828,
+   "usd_per_correct": 0.1322,
+   "mean_usd": 0.0991,
+   "median_usd": 0.0574,
+   "mean_turns": 4.7,
+   "median_turns": 4.0,
+   "mean_wall_s": 28.6,
+   "median_wall_s": 23.5,
+   "tokens_total": {
+    "input": 412683,
+    "cache_read": 1579036,
+    "cache_write": 188659,
+    "output": 33528,
+    "web_searches": 21
+   },
+   "tools": {
+    "Bash": 11,
+    "PowerShell": 2,
+    "ToolSearch": 11,
+    "WebFetch": 30,
+    "WebSearch": 20
+   },
+   "hooks_with_output": {
+    "PreToolUse:WebSearch deny": 20
+   },
+   "sp_hook_calls": {
+    "guard-hook": 10,
+    "hook": 53
+   },
+   "sessions_with_sp_hooks": 20,
+   "jev_calls": 26,
+   "jev_by_point": {
+    "completion": 1,
+    "guard": 5,
+    "search": 20
+   },
+   "jev_errors": 0,
+   "jev_error_kinds": {},
+   "jev_usd": 0.001097,
+   "hit_cap": 0,
+   "leak": [
+    "72e110e7-464c-453c-a309-90a95aed6538"
+   ],
+   "no_final_answer": 0,
+   "denied": 2
+  }
+ },
+ "dropped_for_leak": [
+  "72e110e7-464c-453c-a309-90a95aed6538"
+ ],
+ "paired": {
+  "SONNET": {
+   "tasks": 0
+  }
+ },
+ "verdict": {
+  "SONNET": "sin datos"
+ },
+ "paired_all_tasks": {
+  "SONNET": {
+   "tasks": 0
+  }
+ }
+}
