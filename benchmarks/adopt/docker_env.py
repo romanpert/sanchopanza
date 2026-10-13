@@ -186,6 +186,7 @@ BATCH = 400  # nodes per pytest process when the whole suite in one process runs
 # MemoryError and fails as a test, instead of the kernel killing every test with it (astroid-1:
 # a batch of 400 was still killed at 36 %).
 MEMORY_KB = 6_000_000
+PER_TEST_TIMEOUT = 300  # seconds a test may run during validation (`pytest(test_timeout=...)`)
 KILLED = 137  # the container's process killed (out of memory)
 TIMED_OUT = 124  # a run past its timeout: container removed, no results (as `timeout` exits)
 NOT_FOUND = re.compile(r"^ERROR: not found: (.+?)\s*$", re.M)
@@ -194,7 +195,7 @@ NOT_FOUND_RETRIES = 3
 
 def pytest(
     tag: str, patch: str, nodes: list[str] | None, *, reverse: bool = False, timeout: int = 3600,
-    keep_collecting: bool = False,
+    keep_collecting: bool = False, test_timeout: int | None = None,
 ) -> dict[str, str]:
     """node id -> outcome of `nodes` (None or too many: the whole suite) in `tag` with `patch`
     applied first, or reversed with `reverse` (an empty patch runs the image as it is). A patch
@@ -209,10 +210,15 @@ def pytest(
     command, so the confirmation's arms are all graded the same way. With it, a listed node
     that does not exist (`ERROR: not found`, which stops pytest before any test runs) is left
     out and the rest run again: it comes out absent, read as not passing (pydantic names its doc
-    tests by line range, and another bug in the same file shifts the range)."""
+    tests by line range, and another bug in the same file shifts the range).
+
+    `test_timeout` (validation only, `PER_TEST_TIMEOUT`): each test is stopped after that many
+    seconds and comes out FAILED, when the image has pytest-timeout (dvc has it; conan, pydantic
+    and moto do not, so their runs are unchanged). Without it one hung test held a whole run to
+    `timeout` and the run came back with no results (dvc-long60-1, 2026-10-08)."""
     listed = bool(nodes) and len(nodes or []) <= FULL_SUITE_OVER
     keep = " --continue-on-collection-errors" if keep_collecting else ""
-    pytest_cmd = f"python -m pytest{keep}"
+    pytest_cmd = f"python -m pytest{keep}{per_test(test_timeout)}"
     select = f"xargs -a /io/nodes.txt -d '\\n' {pytest_cmd}" if listed else pytest_cmd
     done, text = _run(tag, patch, nodes, select, reverse, timeout)
     if not listed and nodes and done.returncode == KILLED:
@@ -239,6 +245,14 @@ def pytest(
         raise RuntimeError(f"pytest in {tag} gave no results (exit {done.returncode}): "
                            f"{text[-600:]} {err}")  # fmt: skip
     return found
+
+
+def per_test(seconds: int | None) -> str:
+    """pytest-timeout's `--timeout`, added only when the image has the plugin (a shell test in
+    the container: an unknown option would stop pytest before any test runs)."""
+    if not seconds:
+        return ""
+    return f" $(python -c 'import pytest_timeout' 2>/dev/null && echo --timeout={int(seconds)})"
 
 
 def _run(

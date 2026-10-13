@@ -55,7 +55,8 @@ def passes_with(
 def _undone(tag: str, patch: str, nodes: list[str], keep: bool = False) -> dict[str, str]:
     """`nodes` with `patch` reversed. A patch that does not apply is no answer to either
     question (a bug the image does not hold, pydantic-long40-1): it stops the search."""
-    result = docker_env.pytest(tag, patch, nodes, reverse=True, keep_collecting=keep)
+    result = docker_env.pytest(tag, patch, nodes, reverse=True, keep_collecting=keep,
+                               test_timeout=docker_env.PER_TEST_TIMEOUT)  # fmt: skip
     if result.get("<patch>") == "ERROR":
         raise ValueError(f"undoing the bugs does not apply in {tag}: is the image the chain's?")
     return result
@@ -114,7 +115,7 @@ def culprits(
     with any group, and bisection then blamed the chain's first bug (pydantic-long40-1).
     `keep` (amendment 5): pytest goes on past a file it cannot collect, for development chains."""
     found: set[int] = set()
-    for i in bad:
+    for n, i in enumerate(bad, start=1):
         others = [k for k in range(len(bugs)) if k != i]
         record = records[i]
         if record["f2p_failing_with_bugs"] < record["f2p"]:
@@ -123,6 +124,8 @@ def culprits(
             found |= set(
                 maskers(i, others, lambda j, fixed: passes_with(tag, bugs, j, fixed, keep))
             )
+        print(f"{tag}: culprits searched for {n} of {len(bad)} (bug {i}): {len(found)} so far",
+              flush=True)  # fmt: skip
     return sorted(found)
 
 

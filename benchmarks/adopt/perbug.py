@@ -45,11 +45,19 @@ def joined(bugs: list[dict[str, Any]]) -> str:
 
 
 def _run(tag: str, patch: str, nodes: list[str], reverse: bool = False) -> dict[str, str]:
-    """pytest outcomes; a run that reports nothing reads as nothing passing, not an error."""
+    """pytest outcomes; a run that reports nothing reads as nothing passing, not an error. Each
+    test stops after `docker_env.PER_TEST_TIMEOUT` where the image has pytest-timeout."""
     try:
-        return docker_env.pytest(tag, patch, nodes, reverse=reverse, keep_collecting=True)
+        return docker_env.pytest(tag, patch, nodes, reverse=reverse, keep_collecting=True,
+                                 test_timeout=docker_env.PER_TEST_TIMEOUT)  # fmt: skip
     except RuntimeError:
         return {}
+
+
+def _say(tag: str, started: float, what: str) -> None:
+    """A progress line in the validation log: a round of a slow chain (dvc) ran for hours with
+    nothing in it, and when its processes died the log could not say where."""
+    print(f"{tag} +{round(time.time() - started)} s: {what}", flush=True)
 
 
 # ---- validation ----------------------------------------------------------------------------------
@@ -60,11 +68,16 @@ def check(tag: str, bugs: list[dict[str, Any]]) -> dict[str, Any]:
     f2p = list(dict.fromkeys(t for b in bugs for t in b["FAIL_TO_PASS"]))
     in_f2p = set(f2p)
     p2p = [t for t in dict.fromkeys(t for b in bugs for t in b["PASS_TO_PASS"]) if t not in in_f2p]
-    start = docker_env.pytest(tag, "", [*f2p, *p2p], keep_collecting=True)
-    clean = docker_env.pytest(tag, joined(bugs), [*f2p, *p2p], reverse=True, keep_collecting=True)
+    began, cap = time.time(), docker_env.PER_TEST_TIMEOUT
+    start = docker_env.pytest(tag, "", [*f2p, *p2p], keep_collecting=True, test_timeout=cap)
+    _say(tag, began, f"every bug in: {len(start)} results ({len(f2p)} F2P, {len(p2p)} P2P)")
+    clean = docker_env.pytest(tag, joined(bugs), [*f2p, *p2p], reverse=True, keep_collecting=True,
+                              test_timeout=cap)  # fmt: skip
+    _say(tag, began, f"every bug undone: {len(clean)} results")
     if "<patch>" in clean:
         raise RuntimeError(f"{tag}: undoing every bug together does not apply")
     alone = [_run(tag, b["patch"], f2p, reverse=True) for b in bugs]
+    _say(tag, began, f"each bug undone alone: {len(alone)} runs")
     records, why = [], {}
     for i, bug in enumerate(bugs):
         own = bug["FAIL_TO_PASS"]
@@ -92,16 +105,19 @@ def check(tag: str, bugs: list[dict[str, Any]]) -> dict[str, Any]:
     ]
     for k in masking.culprits(tag, bugs, masked, records, keep=True) if masked else []:
         why.setdefault(k, "culprit: " + ", ".join(masking.short(bugs[i]) for i in masked[:5]))
+    _say(tag, began, f"culprits searched for {len(masked)} masked bugs")
     for i, r in enumerate(records):
         if r["f2p_passing_all_fixed"] < r["f2p"] and i not in masked:
             why.setdefault(i, "its tests fail with every bug undone")
     broken = [t for t in p2p if start.get(t) == "PASSED" and clean.get(t) != "PASSED"]
     if broken:  # a test that passes with every bug in and fails with all undone: whose fix?
+        # One run per bug: the run used to sit inside the `any`, one pytest run per broken test
+        # until one failed (dvc-long60-1: hours in one round).
         for i, bug in enumerate(bugs):
-            if any(
-                _run(tag, bug["patch"], broken, reverse=True).get(t) != "PASSED" for t in broken
-            ):
+            undone = _run(tag, bug["patch"], broken, reverse=True)
+            if any(undone.get(t) != "PASSED" for t in broken):
                 why.setdefault(i, "undoing it breaks a test that passed")
+        _say(tag, began, f"{len(broken)} passing tests broken by the fixes, one run per bug")
     guard = [t for t in p2p if start.get(t) == "PASSED" and clean.get(t) == "PASSED"]
     for i, record in enumerate(records):
         record["valid"] = i not in why

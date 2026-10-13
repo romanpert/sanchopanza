@@ -231,7 +231,10 @@ def main() -> int:
     chains = with_extra([*full(), *related.full(), *long.full()])
     # reserve: written down only; a chain validated short of its size and given extra spares
     # (long60-extra-spares.json) starts from its validated bugs (`long.resumed`)
-    built = [long.resumed(c) for c in long.full60() if c["split"] != "reserve"]
+    # A reserve chain is validated only when named (promoted: getmoto-long60-2 for the context
+    # close-out, 2026-10-13), never by `all`.
+    built = [long.resumed(c) for c in long.full60()
+             if c["split"] != "reserve" or c["chain"] == wanted]  # fmt: skip
     for chain in [*chains, *built]:
         if wanted not in ("all", chain["chain"]):
             continue
