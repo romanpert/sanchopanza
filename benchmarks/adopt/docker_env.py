@@ -251,15 +251,33 @@ PLUGIN = "sp_test_timeout"
 # A per-test timeout as pytest-timeout's signal method does it, the same in every image (moto has
 # no pytest-timeout; getmoto-long60-2, 2026-10-13: a test deadlocked on a lock with every bug in
 # and the whole-suite run sat at 0 % CPU until its 3,600 s timeout). A Python lock wait is
-# interrupted by a signal, so SIGALRM fails the test that hangs and the run goes on.
-PLUGIN_SOURCE = '''\
+# interrupted by a signal sent to the main thread, so SIGALRM fails the test that hangs and the run
+# goes on.
+PLUGIN_SOURCE = r'''import faulthandler
+import os
 import signal
+import threading
 
 import pytest
 
 
 def pytest_addoption(parser):
     parser.addoption("--sp-test-timeout", type=int, default=0)
+
+
+def _hard(seconds):
+    return seconds + max(30, seconds // 2)
+
+
+def pytest_runtest_logreport(report):
+    # Each outcome as soon as it is known, in the -rA summary's shape, so a run that has to be
+    # ended (below) keeps what it had found; the summary at the end repeats them.
+    if report.when == "call" or (report.when == "setup" and not report.passed) or (
+            report.when == "teardown" and report.failed):
+        xfail = hasattr(report, "wasxfail")
+        word = ("XPASS" if report.passed else "XFAIL") if xfail else (
+            "ERROR" if report.when != "call" and report.failed else report.outcome.upper())
+        os.write(1, f"\n{word} {report.nodeid}\n".encode())
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -272,12 +290,22 @@ def pytest_runtest_protocol(item, nextitem):
     def stop(signum, frame):
         pytest.fail(f"sp-test-timeout: over {seconds} s", pytrace=False)
 
+    main = threading.main_thread().ident
     before = signal.signal(signal.SIGALRM, stop)
-    signal.alarm(seconds)
+    # A timer thread, not alarm(): with server threads alive the kernel may hand SIGALRM to one
+    # of them. Signalled, the main thread's lock wait fails the test and the run goes on.
+    timer = threading.Timer(seconds, signal.pthread_kill, (main, signal.SIGALRM))
+    timer.daemon = True
+    timer.start()
+    # When even that cannot reach it (moto-long60-2: a whole-suite run stuck at 98 % for 15 min
+    # with the signal sent), faulthandler's own thread, which needs no interpreter lock, ends the
+    # process; the outcomes written so far stay, the tests after it come out absent.
+    faulthandler.dump_traceback_later(_hard(seconds), exit=True)
     try:
         yield
     finally:
-        signal.alarm(0)
+        faulthandler.cancel_dump_traceback_later()
+        timer.cancel()
         signal.signal(signal.SIGALRM, before)
 '''
 

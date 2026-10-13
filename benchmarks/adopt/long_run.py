@@ -111,8 +111,10 @@ COMPACT_CHAIN_CAP = 25.0
 COMPACT_CEILING = 250.0
 COMPACT_CHAINS = ("conan-io__conan-long60-1", "pydantic__pydantic-long60-1",
                   "conan-io__conan-long60-2", "getmoto__moto-long60-1")  # fmt: skip
-# The sixth chain, only if it validates in time and fits under the same ceiling (prereg, 3): its
-# own profile, the same root, so the ceiling holds everything spent there.
+# The fifth chain (validating when the four start) and the sixth, only if it validates in time and
+# fits under the same ceiling (prereg, 3): each its own profile, the same root, so the ceiling
+# holds everything spent there.
+COMPACT_FIFTH = ("getmoto__moto-long60-2",)
 COMPACT_EXTRA = ("iterative__dvc-long60-1",)
 # Nl's compactions must fire where the prereg says (near 67k): a first-turn context at most one
 # request past the threshold. Outside these bounds the arm is not the registered treatment.
@@ -198,6 +200,10 @@ PROFILES = {
                        {"sonnet": COMPACT_CHAIN_CAP}, COMPACT_CEILING, COMPACT_CHAINS,
                        hard_cap=COMPACT_CEILING, hours={"sonnet": 1.6},
                        local_stops=("cap", "wall")),
+    "compact-fifth": Profile("compact-fifth", ("Ne", "Nl"), ("sonnet",),
+                             {"sonnet": GATE_CALL_CAP["sonnet"]}, {"sonnet": COMPACT_CHAIN_CAP},
+                             COMPACT_CEILING, COMPACT_FIFTH, hard_cap=COMPACT_CEILING,
+                             hours={"sonnet": 1.6}, local_stops=("cap", "wall")),
     "compact-extra": Profile("compact-extra", ("Ne", "Nl"), ("sonnet",),
                              {"sonnet": GATE_CALL_CAP["sonnet"]}, {"sonnet": COMPACT_CHAIN_CAP},
                              COMPACT_CEILING, COMPACT_EXTRA, hard_cap=COMPACT_CEILING,

@@ -4,8 +4,9 @@ rem docs/results/2026-10-13-long-compact/prereg.md): N-early (Ne, window 193000,
 rem against N-early-low (Nl, window 100000, compacts near 67k), Sonnet 5.5, one run per arm and
 rem chain, root C:\sp-runs\L-compact, 4.50 a call, 25 a run. No S arm: no Jev, no preflight.
 rem   long-compact-run.cmd          the chains of long_run.COMPACT_CHAINS (profile compact)
-rem   long-compact-run.cmd extra    the conditional sixth chain (profile compact-extra, prereg 3):
-rem                                 same root, the same 250 USD ceiling over everything in it
+rem   long-compact-run.cmd fifth    the fifth chain once it validates (profile compact-fifth)
+rem   long-compact-run.cmd extra    the conditional sixth chain (profile compact-extra, prereg 3)
+rem The three under the same root and the same 250 USD ceiling over everything in it.
 rem Start it by WMI from a worktree --detach at the sealed commit, outside any Claude Code session,
 rem in its own process group, and never twice at once:
 rem   $s = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{CreateFlags=[uint32]512}
@@ -24,12 +25,16 @@ set PIN=%USERPROFILE%\.cache\sanchopanza\claude-pin\2.1.287
 set ROOT=C:\sp-runs\L-compact
 set PROFILE=compact
 set DRYARG=%~1
+if /i "%~1"=="fifth" (
+  set PROFILE=compact-fifth
+  set DRYARG=%~2
+)
 if /i "%~1"=="extra" (
   set PROFILE=compact-extra
   set DRYARG=%~2
 )
 if not "%DRYARG%"=="" if /i not "%DRYARG%"=="dry" (
-  echo refused: the arguments are [extra] [dry]
+  echo refused: the arguments are [fifth^|extra] [dry]
   exit /b 2
 )
 set DRY=

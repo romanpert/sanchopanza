@@ -66,6 +66,7 @@ ROOTS = {"smoke": Path(r"C:\sp-runs\L-smoke"), "gate": Path(r"C:\sp-runs\L"),
          "conan-a2": Path(r"C:\sp-runs\L-a2c"),
          # the context close-out (2026-10-13); its conditional sixth chain under the same root
          "compact": Path(r"C:\sp-runs\L-compact"),
+         "compact-fifth": Path(r"C:\sp-runs\L-compact"),
          "compact-extra": Path(r"C:\sp-runs\L-compact")}
 # The seal must carry these (main): gate A for check-done and candor, and the 402 breaker with
 # `jev-preflight`. An older frozen copy would run S without them.
@@ -399,10 +400,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=("smoke", "gate", "pilot-a", "noise-ne", "noise-n",
                                            "conan-n2", "conan-ne2", "conan-a2", "compact",
-                                           "compact-extra", "plan"))  # fmt: skip
+                                           "compact-fifth", "compact-extra",
+                                           "plan"))  # fmt: skip
     parser.add_argument("profile", nargs="?", default="",
                         help="plan: smoke, gate, pilot-a, noise-ne, noise-n, conan-n2, "
-                        "conan-ne2, conan-a2, compact or compact-extra")
+                        "conan-ne2, conan-a2, compact, compact-fifth or compact-extra")
     parser.add_argument("--seal", default="", help="smoke: the sealed S commit (frozen copy)")
     parser.add_argument("--commit", default="",
                         help="pilot-a, conan-a2: A's own commit (frozen copy)")

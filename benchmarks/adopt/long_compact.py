@@ -197,14 +197,16 @@ def grade_common(root: Path, chain: str, known: Mapping[str, Any]) -> list[str]:
 def default_chains() -> list[str]:
     import long_run
 
-    return [*long_run.PROFILES["compact"].chains, *long_run.PROFILES["compact-extra"].chains]
+    return [c for name in ("compact", "compact-fifth", "compact-extra")
+            for c in long_run.PROFILES[name].chains]
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=("grade", "read"))
     parser.add_argument("--root", default=str(ROOT))
-    parser.add_argument("--chains", default="", help="comma-separated; default compact + extra")
+    parser.add_argument("--chains", default="",
+                        help="comma-separated; default compact, compact-fifth and compact-extra")
     parser.add_argument("--json", default="")
     args = parser.parse_args(argv)
     chains = [c for c in args.chains.split(",") if c] or default_chains()

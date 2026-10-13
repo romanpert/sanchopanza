@@ -20,6 +20,8 @@ ADOPT = ROOT / "benchmarks" / "adopt"
 CMD = "long-compact-run.cmd"
 CHAINS = ("conan-io__conan-long60-1", "pydantic__pydantic-long60-1",
           "conan-io__conan-long60-2", "getmoto__moto-long60-1")  # long_run.COMPACT_CHAINS
+FIFTH = "getmoto__moto-long60-2"  # long_run.COMPACT_FIFTH
+SIXTH = "iterative__dvc-long60-1"  # long_run.COMPACT_EXTRA
 
 
 @pytest.fixture
@@ -45,10 +47,14 @@ def test_the_profile_holds_the_approved_250_hard(m) -> None:
     assert str(long_launch.ROOTS["compact"]).endswith("L-compact")
     others = {k: v for k, v in long_launch.ROOTS.items() if not k.startswith("compact")}
     assert long_launch.ROOTS["compact"] not in others.values()
-    extra = long_run.PROFILES["compact-extra"]
-    assert long_launch.ROOTS["compact-extra"] == long_launch.ROOTS["compact"]
-    assert (extra.arms, extra.models, extra.hard_cap) == (p.arms, p.models, 250.0)
-    assert dict(extra.chain_cap) == {"sonnet": 25.0} and not set(extra.chains) & set(p.chains)
+    taken = set(p.chains)
+    for name, chain in (("compact-fifth", FIFTH), ("compact-extra", SIXTH)):
+        other = long_run.PROFILES[name]
+        assert long_launch.ROOTS[name] == long_launch.ROOTS["compact"]
+        assert (other.arms, other.models, other.hard_cap) == (p.arms, p.models, 250.0)
+        assert dict(other.chain_cap) == {"sonnet": 25.0} and other.chains == (chain,)
+        assert chain not in taken and other.local_stops == ("cap", "wall")
+        taken.add(chain)
     with pytest.raises(SystemExit):
         long_run.ceiling_of(p, 251.0)
 
@@ -141,19 +147,22 @@ def test_the_launcher_takes_extra_and_dry_only(tmp_path: pathlib.Path) -> None:
     env = dry_environment(tmp_path, CHAINS)
     assert launch(CMD, ["ne"], env) == 2
     assert launch(CMD, ["extra", "ne"], env) == 2
+    assert launch(CMD, ["fifth", "x"], env) == 2
 
 
 @pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
-def test_the_sixth_chain_runs_under_the_same_root_and_ceiling(tmp_path: pathlib.Path) -> None:
-    sixth = "iterative__dvc-long60-1"  # long_run.COMPACT_EXTRA
-    env = {**dry_environment(tmp_path, (*CHAINS, sixth)), "FAKE_CONTEXT_SCALE": "0.5"}
+def test_the_fifth_and_sixth_chains_run_under_the_same_root_and_ceiling(
+    tmp_path: pathlib.Path,
+) -> None:
+    env = {**dry_environment(tmp_path, (*CHAINS, FIFTH, SIXTH)), "FAKE_CONTEXT_SCALE": "0.5"}
     assert launch(CMD, ["dry"], env) in (0, 3)
+    assert launch(CMD, ["fifth", "dry"], env) in (0, 3)
     assert launch(CMD, ["extra", "dry"], env) in (0, 3)
     runs = tmp_path / "L" / "runs"
     assert {p.parent.parent.name for p in runs.glob("*/*/row.json")} == {
-        f"{c}-sonnet" for c in (*CHAINS, sixth)}
+        f"{c}-sonnet" for c in (*CHAINS, FIFTH, SIXTH)}
     log = (tmp_path / "L" / "launch.log").read_text(encoding="utf-8", errors="replace")
-    assert log.count("ceiling 250.00 (hard, in code)") == 2  # one plan per launch, one ledger
+    assert log.count("ceiling 250.00 (hard, in code)") == 3  # one plan per launch, one ledger
 
 
 def test_a_run_stopped_by_its_cap_lets_the_next_arm_go_on(m, monkeypatch, tmp_path) -> None:  # noqa: ANN001

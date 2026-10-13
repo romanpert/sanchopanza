@@ -62,17 +62,20 @@ Cadenas long60 validadas (60 bugs, `benchmarks/adopt/long60/<cadena>.json`, con 
 digest comprobados por el lanzador): **conan-1, pydantic-1, conan-2 y moto-1**, más una quinta.
 
 - **Quinta cadena**, regla fijada antes de conocer ninguna validación: `getmoto__moto-long60-2` si
-  valida; si no, `iterative__dvc-long60-1` si valida; si no, la tanda no se lanza con 4 y se valida
-  la siguiente reserva antes (decide el dueño).
+  valida; si no, `iterative__dvc-long60-1` si valida; si no, se valida la siguiente reserva (decide
+  el dueño). Sin cinco cadenas no hay veredicto (sección 7).
+  - Las cuatro validadas corren primero (perfil `compact`); la quinta, con su propio perfil
+    (`compact-fifth`, `long_run.COMPACT_FIFTH` = moto-2), en cuanto valide. Si moto-2 sale
+    inválida, `COMPACT_FIFTH` pasa a dvc-1 (si valida) y no hay sexta: es el único cambio de código
+    permitido después del sello, y se anota como tal.
   - Por qué moto-2: dvc-1 no había conseguido terminar una ronda de validación en tres intentos; la
     primera reserva en el orden sorteado (`long.RESERVE60`) cuyo repositorio no tiene ya dos cadenas
     validadas es moto-2 (conan-4, -5 y -6 se saltan porque conan ya tiene conan-1 y conan-2). Es un
     criterio de metadatos, no de resultados.
-- **Sexta cadena, condicional**: la que de {moto-2, dvc-1} no sea la quinta, si valida antes de que
-  acabe la tanda de cinco y lo gastado + 50 $ cabe bajo los 250 $ duros. Corre con el perfil
-  `compact-extra`, en la misma raíz y con el mismo techo, y se lee junto a las demás.
-- **Lo que pone el sello** (sección 11) es la lista final de `long_run.COMPACT_CHAINS` y
-  `COMPACT_EXTRA`. `long_compact.py` lee por defecto las dos listas.
+- **Sexta cadena, condicional**: dvc-1 (`COMPACT_EXTRA`), si valida antes de que acaben las otras
+  cinco y lo gastado + 50 $ cabe bajo los 250 $ duros. Perfil `compact-extra`.
+- Los tres perfiles corren en la misma raíz y bajo el mismo techo de 250 $, que cuenta todo lo
+  gastado en ella. `long_compact.py` lee por defecto las cadenas de los tres.
 
 ## 4. Diseño
 
@@ -105,7 +108,8 @@ digest comprobados por el lanzador): **conan-1, pydantic-1, conan-2 y moto-1**, 
   (`long_run.COMPACT_CEILING`, `hard_cap`: ninguna línea de comandos lo sube). Una llamada solo
   empieza si caben su tope y un turno más bajo el tope de la corrida y bajo el techo: en la
   práctica, Ne no empieza llamadas pasados ~18,9 $ y Nl pasados ~19,4 $.
-- Cinco cadenas: 5 × 2 × 25 = 250 $ retenidos al empezar. La sexta solo si cabe (sección 3).
+- Las cuatro primeras retienen 4 × 2 × 25 = 200 $ al empezar; la quinta, 50 $ más lo ya gastado
+  (≤ 250 $); la sexta solo si cabe (sección 3).
 - **Estimación**: con Ne de 2026-10-07 (conan 17,33 $ entero, 19,37 $ a la llamada 52 en Ne2;
   pydantic 13,84 $) y Nl a x0,75-0,85, ~24-36 $ por cadena (el alto, con los 19,37 $ de Ne2),
   **~120-175 $ las cinco**. Si todas las corridas llegan a su tope, cada una
@@ -201,13 +205,14 @@ llamada 52), y N contra sí mismo discrepó en 6-7 bugs.
   a la base de cada sesión, o medirlo en sesiones con prefijo grande. Ese cambio sería decisión del
   dueño.
 - k = 1 por cadena: la calidad de una corrida concreta varía mucho; solo vale el agregado.
-- Cinco repositorios como mucho (conan ×2, pydantic, moto ×1-2, dvc): no es una muestra del código
-  del dueño.
+- Cuatro repositorios como mucho (conan ×2, pydantic, moto ×1-2, dvc): no es una muestra del
+  código del dueño.
 
 ## 10. Lanzamiento
 
-1. Preflight gratis desde el commit sellado: `long_launch.py plan compact`, los tests de
-   `test_adopt_long_compact*.py` y el lanzamiento en seco (`long-compact-run.cmd dry`).
+1. Preflight gratis desde el commit sellado: `long_launch.py plan compact` (y `compact-fifth`),
+   los tests de `test_adopt_long_compact*.py` y el lanzamiento en seco (`long-compact-run.cmd
+   dry`).
 2. Tanda de pago: `git worktree add --detach` en el commit sellado (los hooks y el runner se leen
    del disco); `long-compact-run.cmd` lanzado por WMI (`Win32_Process.Create`, `CreateFlags 512`),
    fuera de cualquier sesión. PIDs en `launch.json` de la raíz; se para solo por PID verificado.
