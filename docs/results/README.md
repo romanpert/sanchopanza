@@ -6,12 +6,14 @@ which are the record of how they were reached.
 
 ## Head to head: Claude Code alone against Claude Code + sanchopanza
 
-The final scoreboard, per axis and model, and the runs behind each cell. No measured cell is a
-win for sanchopanza; two cells are still running.
+The final scoreboard, per axis and model, and the runs behind each cell. One measured cell is a
+win for sanchopanza: memory on Sonnet 5.5 across parallel sessions, only with `--memory`, which
+is not on by default. Web, code and long code's Jev part are not. Early compaction on long code
+is still running.
 
 | Folder | What it backs |
 |---|---|
-| [2026-10-13-final](2026-10-13-final/) | The scoreboard: web "no gana" on Sonnet 5.5 in three suites, code on Haiku 4.5 non-inferior with no saving, long code's Jev part "no gana", memory "sin margen" on Opus 5.5 and in two of three Sonnet families; what was not run, and why |
+| [2026-10-13-final](2026-10-13-final/) | The scoreboard: web "no gana" on Sonnet 5.5 in three suites, code on Haiku 4.5 non-inferior with no saving, long code's Jev part "no gana", memory "gana" on Sonnet 5.5 across parallel sessions and "sin margen" on Opus 5.5 and in two of three Sonnet families; what was not run, and why |
 | [2026-10-05-h2h-gaia](2026-10-05-h2h-gaia/README-conf.md) | GAIA validation, Sonnet 5.5: +3.8 points [-1.5, +9.9], cost 1.074 [0.908, 1.255], wall 1.39: no gana |
 | [2026-10-06-h2h-bcp](2026-10-06-h2h-bcp/README-conf.md) | BrowseComp-Plus, Sonnet 5.5: +7.8 points (p 0.092), cost 1.17 [1.007, 1.356]: no gana |
 | [2026-10-06-h2h-longdoc](2026-10-06-h2h-longdoc/README-conf.md) | LongBench v2, Sonnet 5.5: -6 points [-18, +6], cost 0.785 [0.634, 1.008]: no gana |
@@ -22,7 +24,7 @@ win for sanchopanza; two cells are still running.
 | [2026-10-03-adopt-d](2026-10-03-adopt-d/results.md) | SWE-bench Verified, Haiku 4.5, 78 pairs: success non-inferior (46 against 45), cost 1.007 [0.933, 1.143], the 10 % cost bound not shown; both arms loaded the owner's setup |
 | [2026-10-07-pilot-a](2026-10-07-pilot-a/) | Passages on arrival on two 60-bug chains, Sonnet 5.5; its edge did not hold on a repeat (`docs/PLAN-GANAR-H2H.md`, `STATUS-launch.md`) |
 | [2026-10-05-memory-frontier](2026-10-05-memory-frontier/gate-result.md) | The memory headroom gate: no room on Opus 5.5 (1 break in 24), one Sonnet 5.5 cell opens (parallel session) |
-| `2026-10-13-memory-cell/` | Pending, running: the open memory cell, Sonnet 5.5, parallel session (branch `cierre-memoria`) |
+| [2026-10-13-memory-cell](2026-10-13-memory-cell/README.md) | The open memory cell, Sonnet 5.5, a fact said in a parallel session or sibling worktree, 24 pairs, pre-registered: S broke 0 facts against N's 11 (McNemar p 0.00049; by scene 4 wins, 0 losses), task 23 vs 24, cost 1.117 [1.05, 1.15], wall 1.12: **gana**. S is the default install plus `--memory`; 8.47 USD |
 | `2026-10-13-long-compact/` | Pending, running: early compaction at 60-70k against N-early on five or more long chains (branch `cierre-contexto`) |
 
 ## Main evidence

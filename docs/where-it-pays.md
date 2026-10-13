@@ -16,7 +16,9 @@ The short version, and everything below is the argument for it:
 
 **The head-to-head test of that rule, 2026-10-13.** Claude Code with sanchopanza installed was
 measured against clean Claude Code, per model and axis
-(`docs/results/2026-10-13-final/`) **[M]**. No measured cell is a win.
+(`docs/results/2026-10-13-final/`) **[M]**. One measured cell is a win: memory on Sonnet 5.5
+across parallel sessions, only with `--memory`, which is not on by default. Web, code and the Jev
+part of long code are not.
 
 - On Sonnet 5.5, GAIA, BrowseComp-Plus and LongBench v2 are "no gana". Cost S/N was 1.074,
   1.17 and 0.785, and no interval lies below 1 with success held.
@@ -29,11 +31,15 @@ measured against clean Claude Code, per model and axis
   - on 60-bug coding sessions it cost 0.46-0.66 of clean Claude Code with no loss of quality
     shown.
 - On long code with that window as the bar, no Jev decision cleared 5 % of the cost in replay.
-- Two cells are still running: memory on Sonnet 5.5 across parallel sessions, and early
-  compaction on long code.
+- Memory on Sonnet 5.5, a fact said in a parallel session or sibling worktree, is "gana"
+  (`docs/results/2026-10-13-memory-cell/`). With the layer the fact was broken in 0 of 24 pairs,
+  without it in 11 (McNemar p 0.00049; by scene 4 wins, 0 losses), at a median 1.117 of the cost
+  (+12 %). The gain is in the 4 of 8 scenes where the fact is not in the code.
+- Early compaction on long code is still running.
 
 The rule above is what that result says. A decision pays where it replaces a call or tokens of the
-expensive model, not as one more layer.
+expensive model, not as one more layer. The memory win is not a saving: it carried a fact the model
+could not see in the code, at 12 % more cost.
 
 Every figure marked **[M]** is measured in this repository and reproducible from it.
 **[P]** is a primary published source with a URL. **[D]** is derived arithmetic from those.

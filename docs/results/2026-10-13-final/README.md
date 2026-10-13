@@ -35,8 +35,9 @@ Sources: [GAIA](../2026-10-05-h2h-gaia/README-conf.md), [BrowseComp-Plus](../202
 Beside the scoreboard (mechanism, not S−N):
 
 - **Jev barely acted.** The share of Jev decisions that changed what the model saw: GAIA ≤ 1.7 %,
-  BrowseComp-Plus 0 %, LongBench ≤ 0.3 %. Memory made 2,308 decisions and delivered nothing, the
-  injection scan 435 and nothing, the Bash guard 130 and nothing (`docs/PLAN-GANAR-H2H.md` 2.2).
+  BrowseComp-Plus 0 %, LongBench ≤ 0.3 %. In these S0 web runs memory made 2,308 decisions and
+  delivered nothing, its store empty by construction; the injection scan 435 and nothing, the Bash
+  guard 130 and nothing (`docs/PLAN-GANAR-H2H.md` 2.2).
 - **BrowseComp-Plus's gain is Claude Code's compaction window.** Clean N with only
   `CLAUDE_CODE_AUTO_COMPACT_WINDOW=193000` (NE), on the 26 queries where N passed 150k: 7 right
   against S0's 6 and N's 4, cost NE/S0 0.954 [0.80, 1.15]. The guard's re-injection added nothing
@@ -112,34 +113,41 @@ done, in at least 3 of 8 ([memory-frontier](../2026-10-05-memory-frontier/gate-r
 
 | Axis | Model | S−N (success) | 95 % CI | p | Cost S/N | Wall S/N | Verdict |
 |---|---|---|---|---|---|---|---|
-| F1 (iii), parallel session (N broke 3/8 at the gate) | Sonnet 5.5 | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | **pending, running** |
+| F1 (iii), parallel session (N broke 3/8 at the gate) | Sonnet 5.5 | **+45.8** (fact kept: S 24/24, N 13/24) | [+12.5, +79.2] (bootstrap by scene) | 0.00049 (McNemar on pairs, 11 to 0; by scene 4 to 0, 0.0625) | 1.117 [1.05, 1.15] | 1.12 | **gana** |
 | F1 (i), principle | Sonnet 5.5 | — | — | — | — | — | **sin margen** (N broke 2/8) |
 | F1 (ii), stale rule | Sonnet 5.5 | — | — | — | — | — | **sin margen** (N broke 0/8) |
 | F1 (i), (ii), (iii) | Opus 5.5 | — | — | — | — | — | **sin margen** (N broke 0/8, 0/8, 1/8) |
 | F2, handoffs | Sonnet 5.5, Opus 5.5 | — | — | — | — | — | **no corrido** |
 
-Source of the pending cell when it lands: `docs/results/2026-10-13-memory-cell/` (branch
-`cierre-memoria`).
+Source: [2026-10-13-memory-cell](../2026-10-13-memory-cell/README.md) (sealed prereg d42d261).
+Cost is the median S/N per pair; its interval is the geometric mean's, bootstrapped over scenes.
+S is the default install plus `--memory` (project scope), which the default leaves off.
 
 - In family (ii), Claude Code's own auto memory followed the newer rule in 16 of 16 sessions over
   both models: where it already resolves precedence, S can only tie or harm.
 - Earlier evidence, outside the scoreboard: the carry v6.2 confirmation on Sonnet 5.5, S 23/24
   against N 14/24, one-sided McNemar p 0.002, cost S/N 0.971; on Opus 5.5, 16/16 against 14/16, p
   0.25, no room ([memory-carry](../2026-10-02-memory-carry/README.md)). Its N was Claude Code
-  2.1.285 with the owner's setup loaded, so it does not fill a cell; the pending Sonnet cell is
-  its clean test.
+  2.1.285 with the owner's setup loaded, so it does not fill a cell; the Sonnet cell above is its
+  clean test.
 
 ## What wins, what does not, and why
 
-- **No measured cell is a win for S.** Three web suites are "no gana" on Sonnet 5.5; code on Haiku
+- **One measured cell is a win for S: memory on Sonnet 5.5, a fact said in a parallel session
+  or sibling worktree.** S broke the fact in 0 of 24 pairs, N in 11 (McNemar p 0.00049), at a
+  median cost of 1.117 (+12 %, within the sealed 1.15). The gain is in the 4 of 8 scenes where the
+  fact is not in the code. It needs `--memory`, which the default install leaves off. On Opus 5.5
+  memory had no room.
+- **No other measured cell is a win.** Three web suites are "no gana" on Sonnet 5.5; code on Haiku
   4.5 is non-inferior with no saving shown; on long code the Jev part (A) did not hold its edge.
-  The rest is "sin margen" or not run. Two cells are pending.
-- **Why: a Jev decision pays only when it replaces a call or tokens of the expensive model.** It
-  costs 24 to 119 times less than that call. Added on top of what the model already does, it only
-  adds prefix and latency, however right it is (`docs/PLAN-GANAR-H2H.md` 3). S0 added about 970
-  fixed tokens (40 % of GAIA's cost delta) and was 39 % slower on GAIA; its hooks ran thousands of
-  times with no output; `fetch_passages` replaced WebFetch's cheap reader with about four times
-  more text into Sonnet.
+  The rest is "sin margen" or not run. One cell is pending: early compaction on long code.
+- **Why the rest did not: a Jev decision saves only when it replaces a call or tokens of the
+  expensive model.** It costs 24 to 119 times less than that call. Added on top of what the model
+  already does, it only adds prefix and latency, however right it is (`docs/PLAN-GANAR-H2H.md` 3).
+  S0 added about 970 fixed tokens (40 % of GAIA's cost delta) and was 39 % slower on GAIA; its
+  hooks ran thousands of times with no output; `fetch_passages` replaced WebFetch's cheap reader
+  with about four times more text into Sonnet. The memory win is not a saving: a Jev decision
+  stored a fact the model could not see in the code, and S cost 12 % more.
 - **What moved results in context was the compaction window, which is configuration.**
   `CLAUDE_CODE_AUTO_COMPACT_WINDOW` alone matched the whole S line on BrowseComp-Plus and cut the
   cost of long coding sessions by a third to a half with no evidence of lost quality. A clean

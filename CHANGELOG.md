@@ -513,7 +513,7 @@ do not favour this package.
 
 ### Measured
 
-- **The final scoreboard: Claude Code alone against Claude Code + sanchopanza, no win**
+- **The final scoreboard: Claude Code alone against Claude Code + sanchopanza, one win (memory)**
   (`docs/results/2026-10-13-final/`). Per axis and model, from runs already made; no new run.
   - Web, Sonnet 5.5, pre-registered, all "no gana". GAIA: +3.8 points [-1.5, +9.9], cost
     1.074. BrowseComp-Plus: +7.8 points (p 0.092), cost 1.17 [1.007, 1.356]. LongBench v2:
@@ -526,8 +526,13 @@ do not favour this package.
     Sonnet 5.5 families.
   - What moved results was Claude Code's own compaction window, a setting. Alone, it matched the
     whole line on BrowseComp-Plus and cost 0.46-0.66 of clean Claude Code on long code.
-  - Pending, running: memory on Sonnet 5.5 across parallel sessions, and early compaction
-    against that window on long code.
+  - Memory on Sonnet 5.5, a fact said in a parallel session or sibling worktree, pre-registered
+    (sealed d42d261): **gana** (`docs/results/2026-10-13-memory-cell/`). With sanchopanza the fact
+    was broken in 0 of 24 pairs, by clean Claude Code in 11 (McNemar p 0.00049; by scene 4 wins,
+    0 losses, sign test 0.0625); task 23 vs 24, cost 1.117 [1.05, 1.15], wall 1.12, 8.47 USD. The
+    gain is in the 4 of 8 scenes where the fact is not in the code. It is the default install plus
+    `--memory`, which is not on by default.
+  - Early compaction on long code is still running.
   - Not run, by decision: code on Sonnet and Opus 5.5 (about 357 USD), memory F2, Fable 5.1, and
     the memory cell on Opus.
 - **Compaction mid-session: native summary against lean masking, negative**

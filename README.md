@@ -41,8 +41,9 @@ developers who build them. You do not need to write code to use it with Claude C
 | **Keeps what Claude Code's summary drops** | With Claude Code's own auto-compaction firing mid-task, a one-shot value (a probe's error code and limit) was lost by the native summary in 6 of 7 sessions. Adding the guard next to the summary: **5 of 7 tasks finished with the free rule, 6 of 7 with the decider cascade, against 2 of 7 with the summary alone**, at lower cost | Haiku 4.5, one family of generated tasks, n = 7, not significant on its own (McNemar p = 0.375); the rule's arm lost a re-readable control value twice more than native ([compaction guard](docs/results/2026-09-29-context-guard/)). On Sonnet 5.5 end to end it added nothing measurable over Claude Code's compaction window alone ([N-early](docs/results/2026-10-07-h2h-ne/)) |
 | **Less to read, same answers** | Judging which documents one answer needs, with the others in view: **9 of 9** answers kept, against 9 of 9 with everything, at **79.5 % fewer** input tokens | One answering call over a sequence mostly useless by construction, pre-registered; the tenth task was stopped by the cost cap. Inside a free agent loop the saving did not show ([fixed pages](docs/results/2026-09-28-fixed-pages/)) |
 
-**Head to head, it has not won.** Claude Code with sanchopanza against clean Claude Code, per
-model and per axis ([final scoreboard](docs/results/2026-10-13-final/)):
+**Head to head, it won one measured cell: memory on Sonnet 5.5, with `--memory` on.** Web, code
+and long code did not. Claude Code with sanchopanza against clean Claude Code, per model and per
+axis ([final scoreboard](docs/results/2026-10-13-final/)):
 
 - On Sonnet 5.5 the three web suites are "no gana". GAIA: +3.8 points at 1.07x the cost.
   BrowseComp-Plus: +7.8 points at 1.17x. LongBench v2: −6 points at 0.79x. No cost interval
@@ -51,8 +52,11 @@ model and per axis ([final scoreboard](docs/results/2026-10-13-final/)):
 - On 60-bug coding sessions, the Jev part did not keep its edge.
 - Memory has no room on Opus 5.5.
 - What moved results was Claude Code's own compaction window, a setting.
-- Two cells are still running: memory on Sonnet 5.5 across parallel sessions, and early
-  compaction on long code.
+- Memory on Sonnet 5.5, a fact said in a parallel session or sibling worktree: **gana**. With
+  sanchopanza the fact was broken in 0 of 24 pairs, by clean Claude Code in 11 (McNemar p 0.00049;
+  by scene 4 wins, 0 losses), at 1.12x the cost (median). The gain is in the 4 of 8 scenes where the fact is not in the code. It needs
+  `--memory`, which is not on by default ([memory cell](docs/results/2026-10-13-memory-cell/)).
+- Early compaction on long code is still running.
 
 What does not pay is in the same README, with the same weight: [where it does not](#where-it-pays-and-where-it-does-not).
 
