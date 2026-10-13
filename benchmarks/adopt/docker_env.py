@@ -213,9 +213,9 @@ def pytest(
     tests by line range, and another bug in the same file shifts the range).
 
     `test_timeout` (validation only, `PER_TEST_TIMEOUT`): each test is stopped after that many
-    seconds and comes out FAILED, when the image has pytest-timeout (dvc has it; conan, pydantic
-    and moto do not, so their runs are unchanged). Without it one hung test held a whole run to
-    `timeout` and the run came back with no results (dvc-long60-1, 2026-10-08)."""
+    seconds and comes out FAILED (`per_test`: our plugin, mounted from /io). Without it one hung
+    test held a whole run to `timeout` and the run came back with no results (dvc-long60-1,
+    2026-10-08; getmoto-long60-2, 2026-10-13). Grading never passes it."""
     listed = bool(nodes) and len(nodes or []) <= FULL_SUITE_OVER
     keep = " --continue-on-collection-errors" if keep_collecting else ""
     pytest_cmd = f"python -m pytest{keep}{per_test(test_timeout)}"
@@ -247,12 +247,47 @@ def pytest(
     return found
 
 
+PLUGIN = "sp_test_timeout"
+# A per-test timeout as pytest-timeout's signal method does it, the same in every image (moto has
+# no pytest-timeout; getmoto-long60-2, 2026-10-13: a test deadlocked on a lock with every bug in
+# and the whole-suite run sat at 0 % CPU until its 3,600 s timeout). A Python lock wait is
+# interrupted by a signal, so SIGALRM fails the test that hangs and the run goes on.
+PLUGIN_SOURCE = '''\
+import signal
+
+import pytest
+
+
+def pytest_addoption(parser):
+    parser.addoption("--sp-test-timeout", type=int, default=0)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_protocol(item, nextitem):
+    seconds = item.config.getoption("--sp-test-timeout")
+    if not seconds:
+        yield
+        return
+
+    def stop(signum, frame):
+        pytest.fail(f"sp-test-timeout: over {seconds} s", pytrace=False)
+
+    before = signal.signal(signal.SIGALRM, stop)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, before)
+'''
+
+
 def per_test(seconds: int | None) -> str:
-    """pytest-timeout's `--timeout`, added only when the image has the plugin (a shell test in
-    the container: an unknown option would stop pytest before any test runs)."""
+    """The per-test timeout's pytest options: `PLUGIN_SOURCE`, written into /io and loaded from
+    there, so a hung test fails alone instead of emptying the whole run."""
     if not seconds:
         return ""
-    return f" $(python -c 'import pytest_timeout' 2>/dev/null && echo --timeout={int(seconds)})"
+    return f" -p {PLUGIN} --sp-test-timeout={int(seconds)}"
 
 
 def _run(
@@ -264,8 +299,12 @@ def _run(
         (folder / "work.patch").write_bytes(patch.encode("utf-8"))
         (folder / "nodes.txt").write_text("\n".join(nodes or []) + "\n", encoding="utf-8",
                                           newline="\n")  # fmt: skip
-        script = (f"cd /testbed && {VENV}(test ! -s /io/work.patch || {apply} --whitespace=nowarn "
-                  "/io/work.patch || { echo PATCH_FAILED; exit 3; }) && "
+        plugin = f"-p {PLUGIN} " in f"{select} "
+        if plugin:
+            (folder / f"{PLUGIN}.py").write_text(PLUGIN_SOURCE, encoding="utf-8", newline="\n")
+        path = "export PYTHONPATH=/io${PYTHONPATH:+:$PYTHONPATH}; " if plugin else ""
+        script = (f"cd /testbed && {VENV}{path}(test ! -s /io/work.patch || {apply} "
+                  "--whitespace=nowarn /io/work.patch || { echo PATCH_FAILED; exit 3; }) && "
                   f"{select} -rA -p no:cacheprovider -p no:pretty --tb=no -q 2>&1")  # fmt: skip
         # Named, so a run past its timeout can be removed: killing the `docker` client leaves the
         # container running (dvc-long60-1, 2026-10-08: a hung test, still there 5 h later). The

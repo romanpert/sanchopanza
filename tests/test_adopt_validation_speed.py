@@ -1,8 +1,8 @@
 """Why dvc-long60-1's validation never finished a round, and what changed (2026-10-13).
 
 - One hung test held a whole pytest run to its 3,600 s timeout, and that run came back with no
-  results. Validation runs now pass pytest-timeout's `--timeout` per test, only where the image has
-  the plugin (dvc has it; conan, pydantic and moto do not, so their runs are unchanged).
+  results. Validation runs now stop each test after 300 s with a small plugin mounted into the
+  container (every image; grading never uses it).
 - `perbug.check` ran one pytest run per broken test inside an `any`, for every bug: with hundreds
   of tests broken by the fixes that is hundreds of runs per bug. Now it is one run per bug.
 - A reserve chain can be validated when it is named (promoted), never by `all`.
@@ -50,10 +50,24 @@ def test_no_per_test_timeout_unless_asked() -> None:
     assert docker_env.per_test(0) == ""
 
 
-def test_the_per_test_timeout_is_added_only_where_the_plugin_imports() -> None:
-    flag = docker_env.per_test(300)
-    assert "import pytest_timeout" in flag and "--timeout=300" in flag
-    assert "&&" in flag  # the option only when the import succeeds
+def test_the_per_test_timeout_is_our_plugin_in_every_image() -> None:
+    assert docker_env.per_test(300) == " -p sp_test_timeout --sp-test-timeout=300"
+    compile(docker_env.PLUGIN_SOURCE, "sp_test_timeout.py", "exec")  # the plugin is Python
+
+
+def test_the_plugin_is_mounted_and_on_the_path_only_when_asked(monkeypatch, tmp_path) -> None:  # noqa: ANN001
+    written: list[list[str]] = []
+
+    def fake_docker(*args: str, **_k: object) -> subprocess.CompletedProcess:
+        folder = pathlib.Path(args[args.index("-v") + 1].rsplit(":/io", 1)[0])
+        written.append(sorted(p.name for p in folder.iterdir()))
+        return subprocess.CompletedProcess(args, 0, stdout=b"PASSED t.py::a\n", stderr=b"")
+
+    monkeypatch.setattr(docker_env, "docker", fake_docker)
+    docker_env.pytest("tag", "", ["t.py::a"], keep_collecting=True, test_timeout=300)
+    docker_env.pytest("tag", "", ["t.py::a"], keep_collecting=True)
+    assert written == [["nodes.txt", "sp_test_timeout.py", "work.patch"],
+                       ["nodes.txt", "work.patch"]]  # fmt: skip
 
 
 def _scripts(monkeypatch, **kwargs: Any) -> list[str]:  # noqa: ANN001
@@ -71,9 +85,10 @@ def _scripts(monkeypatch, **kwargs: Any) -> list[str]:  # noqa: ANN001
 def test_a_validation_run_carries_the_timeout_and_a_grade_run_does_not(monkeypatch) -> None:  # noqa: ANN001
     assert all("--timeout" not in s for s in _scripts(monkeypatch, keep_collecting=True))
     asked = _scripts(monkeypatch, keep_collecting=True, test_timeout=300)
-    assert asked and all("--timeout=300" in s for s in asked)
+    assert asked and all("--sp-test-timeout=300" in s for s in asked)
+    assert all("export PYTHONPATH=/io" in s for s in asked)
     # before the node list and the report options: one pytest command line
-    assert asked[0].index("--timeout=300") < asked[0].index("-rA")
+    assert asked[0].index("--sp-test-timeout=300") < asked[0].index("-rA")
 
 
 def test_validation_asks_for_the_per_test_timeout(monkeypatch) -> None:  # noqa: ANN001
