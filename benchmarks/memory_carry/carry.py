@@ -12,7 +12,10 @@ check when it has one (the older rule held: three-way newer / stale / neither).
 Arms: `N`, Claude Code as it ships, its own auto memory on (it is by default, keyed by the git
 repository, so a later session loads what an earlier one saved); `M`, the same plus sanchopanza's
 memory hooks as `sanchopanza install --memory` writes them (`install.MEMORY_HOOKS`), with the
-decider when TYPESAFE_API_KEY is set. All arms get the same tools, model, prompts and caps.
+decider when TYPESAFE_API_KEY is set; `S`, sanchopanza as a user installs it in the project
+(`carry_s`: `install --scope project --memory`, every other flag at its default, the hooks
+run from this checkout with the pair's own state and the key; V's decoys in its store). All arms
+get the same tools, model, prompts and caps.
 
 `--clean-user`: each pair gets its own fresh CLAUDE_CONFIG_DIR (`<pair>/claude-config`, kept
 across that pair's sessions so auto memory can carry), with no plugins, skills, MCP servers,
@@ -24,12 +27,14 @@ and scrubbed if found).
 Caps: `--max-budget-usd` per session (CALL_CAPS, per model) and TOTAL_CAP over the run, checked
 before each pair against that pair's sessions at the cap, from the sessions' own `total_cost_usd`
 (list price; the subscription pays). A session its own cap stops counts as run. Sessions run one
-at a time; a usage limit stops the run. `--dry` builds every repository (worktrees included) and
-prints what it would run, calling nothing.
+at a time; a usage limit stops the run. Arm S adds its decisions (the pair's journal) to what
+was spent and holds `carry_s.JEV_RESERVE` per session for them; a pair where S did not run as S
+(`carry_s` checks) is NOT RUN and stops the run. `--dry` builds every repository (worktrees
+included) and prints what it would run, calling nothing.
 
     python benchmarks/memory_carry/carry.py --out DIR [--dry] [--models sonnet] [--repeats 1]
         [--first-repeat 0] [--scenes pilot|held|all|cross|principle|stale|parallel|f1|a,b]
-        [--arms N,M] [--clean-user] [--total-cap USD] [--continue]
+        [--arms N,M] [--rotate] [--clean-user] [--total-cap USD] [--continue]
 """
 
 from __future__ import annotations
@@ -54,6 +59,7 @@ SRC = HERE.parents[1] / "src"
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(SRC))
 
+import carry_s  # noqa: E402
 from rules import RULES  # noqa: E402
 from scenes import SCENES as PILOT  # noqa: E402
 from scenes_cross import CROSS, CROSS_RULES  # noqa: E402
@@ -94,8 +100,9 @@ ALL_RULES = {**RULES, **CROSS_RULES, **PRINCIPLE_RULES, **PARALLEL_RULES,
 # F1 sets add rules (and family iii repeats the cross rules under new names).
 DECOY_POOL = {**RULES, **CROSS_RULES}
 # Arms: N plain; M memory with standing rules off (v6.2 behaviour); V memory v7; P placebo:
-# memory v6.2, and session 1 says a neutral sentence where the rule was (nothing to remember).
-ARMS = ("N", "M", "V", "P")
+# memory v6.2, and session 1 says a neutral sentence where the rule was (nothing to remember);
+# S, `sanchopanza install --scope project --memory` as a user runs it (`carry_s`), with V's decoys.
+ARMS = ("N", "M", "V", "P", "S")
 NEUTRAL = "For context: this module was written last spring by the platform team."
 # V starts with DECOYS standing rules of other scenes already in its store, as a project that has
 # been worked on carries rules unrelated to the task: the injection is not one conspicuous line,
@@ -165,11 +172,16 @@ def commit_wip(repo: Path, tries: int = 3) -> None:
     held(repo, [("add", "-A"), ("commit", "-q", "--allow-empty", "-m", "wip")], tries)
 
 
-def build(run: Path, scene: dict[str, Any]) -> Path:
+def build(run: Path, scene: dict[str, Any],
+          prepare: Callable[[Path], None] | None = None) -> Path:  # fmt: skip
+    """The scene's repository; `prepare` (arm S's install) runs before the start commit, so a
+    sibling worktree holds what it wrote too."""
     repo = run / "repo"
     for rel, text in scene["files"].items():
         (repo / rel).parent.mkdir(parents=True, exist_ok=True)
         (repo / rel).write_text(text, encoding="utf-8", newline="\n")
+    if prepare is not None:
+        prepare(repo)
     held(repo, [("init", "-q", "-b", "main"), ("add", "-A"), ("commit", "-q", "-m", "start")])
     return repo
 
@@ -191,7 +203,9 @@ def worktree(repo: Path, tries: int = 3) -> Path:
 
 
 def settings(run: Path, arm: str, keyfile: Path) -> str:
-    if arm == "N":
+    """The `--settings` flag: empty for N and for S, whose hooks are in the project's own
+    `.claude/settings.json`, as `sanchopanza install` left them (`carry_s.install`)."""
+    if arm in ("N", "S"):
         return "{}"
     launcher = (HERE / "carry_hook.py").as_posix()
     rules = "rules-on" if arm == "V" else "rules-off"
@@ -318,7 +332,7 @@ def init_facts(event: dict[str, Any]) -> dict[str, Any]:
     count = {k: len(event.get(k) or []) for k in ("mcp_servers", "plugins", "skills", "agents")}
     servers = [s for s in event.get("mcp_servers") or [] if isinstance(s, dict)]
     return {"model": event.get("model"), "version": event.get("claude_code_version"),
-            "permission_mode": event.get("permissionMode"),
+            "session_id": event.get("session_id"), "permission_mode": event.get("permissionMode"),
             "api_key_source": event.get("apiKeySource"), **count,
             "mcp": {str(s.get("name")): str(s.get("status")) for s in servers},
             "memory_auto": paths.get("auto") if isinstance(paths, dict) else None}  # fmt: skip
@@ -491,10 +505,13 @@ def pair(out: Path, name: str, model: str, arm: str, rep: int, keyfile: Path,
          dry: bool, clean: bool = False) -> dict[str, Any]:  # fmt: skip
     run = out / f"{name}-{model}-{arm}-{rep}"
     scene = SCENES[name]
-    repo = build(run, scene)
+    run.mkdir(parents=True, exist_ok=True)
+    prepare = (lambda repo: carry_s.install(run, repo, keyfile, environment())) \
+        if arm == "S" else None  # fmt: skip
+    repo = build(run, scene, prepare)
     tree = worktree(repo) if scene.get("worktree") else None
     config = clean_config(run) if clean else None
-    if arm == "V":
+    if arm in ("V", "S"):
         seed(run, repo, name)
     plan = steps(scene)
     row: dict[str, Any] = {"scene": name, "model": model, "arm": arm, "repeat": rep,
@@ -524,9 +541,13 @@ def sessions_of(run: Path, repo: Path, tree: Path | None, scene: dict[str, Any],
                        config, projects)  # fmt: skip
     by_key = {s["key"]: s for s in ran}
     first, second = by_key.get("first", {}), by_key.get("second", {})
+    jev = carry_s.jev(run) if arm == "S" else {}
     cut = cut_reason(ran, len(plan))
+    if arm == "S" and not cut:
+        broken = carry_s.pair_breaks(jev)
+        cut = f"harness: {'; '.join(broken)}" if broken else ""
     return {"sessions": ran, "first": first, "second": second,
-            "native_after_1": first.get("native", []), "given": given(run),
+            "native_after_1": first.get("native", []), "given": given(run), **jev,
             **({"cut": cut} if cut else check(repo, scene)),
             "cost": sum(float(s.get("cost") or 0.0) for s in ran),
             "limit_hit": any(s.get("limit_hit") for s in ran)}  # fmt: skip
@@ -539,6 +560,8 @@ def cut_reason(ran: list[dict[str, Any]], planned: int) -> str:
             return "usage limit"
         if s.get("timeout"):
             return "timeout"
+        if s.get("harness"):
+            return f"harness: session {s['key']}: {'; '.join(s['harness'])}"
         if not session_ran(s):
             got = f"exit {s.get('returncode')}, {s.get('subtype') or 'no result'}"
             return f"session {s['key']} did not end with a result ({got})"
@@ -555,13 +578,17 @@ def run_sessions(run: Path, repo: Path, tree: Path | None, prompts: dict[str, An
         if done and cut_reason(done, len(done)):
             break
         cwd = tree if in_tree and tree else repo
+        since = carry_s.hook_rows(run)
         result = session(run, cwd, prompts[key], model, arm, f"session-{index}", keyfile, False,
                          config)  # fmt: skip
         if index < len(plan):
             commit_wip(cwd)
         auto = (result.get("init") or {}).get("memory_auto")
+        broken = carry_s.session_breaks(run, result, since) \
+            if arm == "S" and session_ran(result) else []  # fmt: skip
         done.append({**result, "key": key, "where": "worktree" if cwd != repo else "main",
-                     "native": native_memory(repo, projects, auto)})  # fmt: skip
+                     "native": native_memory(repo, projects, auto),
+                     **({"harness": broken} if broken else {})})  # fmt: skip
     return done
 
 
@@ -584,7 +611,8 @@ def ignore_interrupts() -> None:
 
 def main(argv: list[str] | None = None) -> int:
     """0 when the plan ran to its end; 2 when the run's cap or the usage limit stopped it; 3
-    when a session timed out (that pair is cut, and runs again whole under --continue)."""
+    when a session timed out (that pair is cut, and runs again whole under --continue); 4 when
+    arm S did not run as S (`carry_s`); 1 when it refused to start."""
     ignore_interrupts()
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", required=True)
@@ -601,23 +629,40 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dry", action="store_true")
     parser.add_argument("--continue", dest="carry_on", action="store_true",
                         help="keep the rows of carry.json; a pair cut by the runner runs again")
+    parser.add_argument("--rotate", action="store_true",
+                        help="alternate which arm of a pair runs first, pair after pair")
     args = parser.parse_args(argv)
     out = Path(args.out)
     if args.clean_user:
         refuse_unclean(out)  # before anything is built
-    plan = build_plan(args.scenes, args.models, args.arms, args.repeats, args.first_repeat)
+    plan = build_plan(args.scenes, args.models, args.arms, args.repeats, args.first_repeat,
+                      args.rotate)  # fmt: skip
     record_claude(out, args.dry, args.clean_user)
     hooks = any(arm != "N" for _, _, arm, _ in plan)
     keyfile = keyfile_from_indagis(out) if hooks and not args.dry else out / "typesafe.key"
     try:
+        spent = 0.0 if args.dry else jev_first(out, plan, keyfile)
         stop = run_plan(out, plan, keyfile, args.dry, args.total_cap, args.carry_on,
-                        args.clean_user)  # fmt: skip
+                        args.clean_user, spent)  # fmt: skip
     finally:
         keyfile.unlink(missing_ok=True)
     return EXIT.get(stop or "", 0)
 
 
-EXIT = {"cap": 2, "limit": 2, "timeout": 3}
+EXIT = {"cap": 2, "limit": 2, "timeout": 3, "harness": 4}
+
+
+def jev_first(out: Path, plan: list[tuple[str, str, str, int]], keyfile: Path) -> float:
+    """Before a plan with arm S: one real Jev decision with the run's key (`carry_s.preflight`),
+    written to `jev-preflight.json`; refused (exit 1) unless it answered. Returns its cost."""
+    if not any(arm == "S" for _, _, arm, _ in plan):
+        return 0.0
+    found = carry_s.preflight(keyfile, environment())
+    (out / "jev-preflight.json").write_text(json.dumps(found, indent=1), encoding="utf-8")
+    if not found.get("ok"):
+        raise SystemExit(f"Jev preflight failed ({found.get('reason')}): arm S would run "
+                         "without its decider; refusing")  # fmt: skip
+    return float(found.get("cost_usd") or 0.0)
 
 
 def refuse_unclean(out: Path) -> None:
@@ -650,28 +695,46 @@ def record_claude(out: Path, dry: bool, clean: bool,
     return version
 
 
-def build_plan(scenes: str, models: str, arms: str, repeats: int,
-               first: int = 0) -> list[tuple[str, str, str, int]]:  # fmt: skip
+def build_plan(scenes: str, models: str, arms: str, repeats: int, first: int = 0,
+               rotate: bool = False) -> list[tuple[str, str, str, int]]:  # fmt: skip
+    """Every (scene, model, arm, repetition), the arms of a pair one after the other; with
+    `rotate`, the order of the arms is reversed on every other pair."""
     names = SETS[scenes] if scenes in SETS else scenes.split(",")
     unknown = [n for n in names if n not in SCENES]
     if unknown:
         raise SystemExit(f"unknown scenes: {', '.join(unknown)}")
-    return [(name, model, arm, rep) for rep in range(first, first + repeats)
-            for model in models.split(",") for name in names
-            for arm in arms.split(",")]  # fmt: skip
+    order = arms.split(",")
+    groups = [(name, model, rep) for rep in range(first, first + repeats)
+              for model in models.split(",") for name in names]  # fmt: skip
+    return [(name, model, arm, rep) for i, (name, model, rep) in enumerate(groups)
+            for arm in (order[::-1] if rotate and i % 2 else order)]  # fmt: skip
 
 
 def cut_cost(cut: Path) -> float:
-    """What a pair the runner cut had spent: its sessions' own results, before it runs again."""
-    return sum(read_stream(f)["cost"] for f in sorted(cut.glob("session-*.jsonl")))
+    """What a pair the runner cut had spent: its sessions' own results and its decisions, before
+    it runs again."""
+    claude = sum(read_stream(f)["cost"] for f in sorted(cut.glob("session-*.jsonl")))
+    return claude + carry_s.jev(cut)["jev_usd"]
+
+
+def reserve_of(name: str, model: str, arm: str) -> float:
+    """What the next pair may spend at most: each session at its cap, and S's decisions."""
+    sessions = len(steps(SCENES[name]))
+    return sessions * (CALL_CAPS[model] + (carry_s.JEV_RESERVE if arm == "S" else 0.0))
+
+
+def spent_of(row: dict[str, Any]) -> float:
+    return float(row.get("cost") or 0.0) + float(row.get("jev_usd") or 0.0)
 
 
 def run_plan(out: Path, plan: list[tuple[str, str, str, int]], keyfile: Path, dry: bool,
-             total_cap: float, carry_on: bool = False, clean: bool = False) -> str:  # fmt: skip
-    """Runs the plan; returns why it stopped early ("cap", "limit", "timeout") or ""."""
+             total_cap: float, carry_on: bool = False, clean: bool = False,
+             spent: float = 0.0) -> str:  # fmt: skip
+    """Runs the plan; returns why it stopped early ("cap", "limit", "timeout", "harness") or "".
+    Spent: `spent` (the Jev preflight), Claude Code's own cost and S's decisions."""
     rows = earlier(out) if carry_on else []
     done = {(r["scene"], r["model"], r["arm"], r["repeat"]) for r in rows}
-    spent = sum(float(r.get("cost") or 0.0) for r in rows)
+    spent += sum(spent_of(r) for r in rows)
     for name, model, arm, rep in plan:
         if (name, model, arm, rep) in done:
             continue
@@ -682,24 +745,26 @@ def run_plan(out: Path, plan: list[tuple[str, str, str, int]], keyfile: Path, dr
                 spent += lost
                 print(f"cut pair {cut.name}: its {lost:.2f} USD counted, it runs again", flush=True)
             shutil.rmtree(cut, onexc=_writable)
-        reserve = len(steps(SCENES[name])) * CALL_CAPS[model]
-        if spent + reserve > total_cap:
+        if spent + reserve_of(name, model, arm) > total_cap:
             print(f"stop: {spent:.2f} USD spent, the next pair could pass {total_cap}", flush=True)
             return "cap"
         row = pair(out, name, model, arm, rep, keyfile, dry, clean)
-        spent += float(row.get("cost") or 0.0)
+        spent += spent_of(row)
         if row.get("cut") == "timeout":  # no row: --continue runs the pair again, whole
             print(f"stop: a session of {cut.name} timed out; {spent:.2f} USD spent", flush=True)
             return "timeout"
         rows.append(row)
         keys = ("scene", "model", "arm", "repeat", "tests_pass", "task_pass", "fact_kept",
-                "carried", "cut", "cost", "given", "native_after_1", "where")
+                "carried", "cut", "cost", "jev_usd", "given", "native_after_1", "where")
         brief = {k: row.get(k) for k in keys if k in row}
         print(json.dumps(brief), f"spent {spent:.2f}", flush=True)
         (out / "carry.json").write_text(json.dumps(rows, indent=1), encoding="utf-8")
         if row.get("limit_hit"):
             print("stop: the subscription's usage limit", flush=True)
             return "limit"
+        if str(row.get("cut") or "").startswith("harness"):  # S did not run as S: stop
+            print(f"stop: {row['cut']}; {spent:.2f} USD spent", flush=True)
+            return "harness"
     return ""
 
 
