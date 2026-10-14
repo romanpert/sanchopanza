@@ -322,6 +322,7 @@ def hook_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
                  "SANCHOPANZA_MEMORY_TREE", "SANCHOPANZA_MEMORY_PROMPT",
                  "SANCHOPANZA_MEMORY_STORE_KEY"):  # fmt: skip
         monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_RULES_AUDIT", "on")  # the audit is opt-in
     decider = SupersedeDecider("can't be renamed")
     monkeypatch.setattr("sanchopanza.harness.claude_code.squire_from_env",
                         lambda env=None, redact=False: Squire(decider))  # fmt: skip

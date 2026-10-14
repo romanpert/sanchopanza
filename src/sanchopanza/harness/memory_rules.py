@@ -7,10 +7,12 @@ Three moments, all in the memory hook:
 - **SessionStart (a new session, a resume, a clear or after a compaction):** the newest rules are
   given as context, whatever file the session goes on to touch (the carry bench's cross-file gap:
   a rule said while changing one file and broken in another).
-- **Stop, before the agent stops:** the request's diff since its start is held against each rule
-  the request did not itself state; a confident "broken" sends the agent back once, quoting the
-  rule (RepoComplianceBench 2026: one message naming the violation, 90-100 % compliance), unless
-  a newer stored rule or a sentence of the request's own prompt replaces it (F1, `superseded`).
+- **Stop, before the agent stops (opt-in, `MEMORY_RULES_AUDIT=on`; `audit_on`):** the request's
+  diff since its start is held against each rule the request did not itself state; a confident
+  "broken" sends the agent back once, quoting the rule (RepoComplianceBench 2026: one message
+  naming the violation, 90-100 % compliance), unless a newer stored rule or a sentence of the
+  request's own prompt replaces it (F1, `superseded`). Off by default since 2026-10-14: no right
+  send-back in the maintainer's real sessions (docs/results/2026-10-14-memory-stop).
 
 Rules are given with the minute they were said, newest first, under a header saying the newer of
 two conflicting rules stands (F1): two rules of one day were not ordered before.
@@ -102,6 +104,18 @@ def _quiet(row: Mapping[str, Any]) -> None:
 
 def rules_on() -> bool:
     return str(_env.get("MEMORY_RULES", "") or "on").strip().lower() not in ("off", "0")
+
+
+AUDIT_ON = ("on", "1", "block")
+
+
+def audit_on() -> bool:
+    """Whether Stop holds the request's diff against the rules (`audit`) and sends a confident
+    break back: `MEMORY_RULES_AUDIT` on, off by default since 2026-10-14
+    (docs/results/2026-10-14-memory-stop). On the maintainer's real sessions it sent back 8 of 518
+    audits with v8 and 1 of 349 with v8.1's cuts, none of them right; the memory cell's gain had
+    no send-back (0 of 72 audits). Extraction and the rules given at session start stay on."""
+    return str(_env.get("MEMORY_RULES_AUDIT", "") or "off").strip().lower() in AUDIT_ON
 
 
 def _path(store: Path) -> Path:

@@ -52,6 +52,9 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
     MEMORY_DECIDER_SECONDS   the decider's time (default 15); past it, nothing is injected
     MEMORY_STORE             the store's root; MEMORY_STORE_LOG a JSONL file, one line per event
     MEMORY_STORE_KEY         repo (default: the session's git repository) | folder (before F1)
+    MEMORY_RULES             on (default) | off: standing rules kept at Stop, given at start
+    MEMORY_RULES_AUDIT       off (default) | on: at Stop, hold the request's diff against the
+                             rules and send a confident break back once (`memory_rules.audit_on`)
 
 Cost: the touch calls no model; at most one decider call at a session's first prompt.
 Latency: a touch is a new process, 0.17 s median on the maintainer's Windows laptop.
@@ -346,8 +349,9 @@ def after_compaction(event: Mapping[str, Any]) -> dict[str, Any]:
 
 def rules_at_stop(event: Mapping[str, Any], seen: Recorded,
                   start: Mapping[str, Any] | None) -> dict[str, Any]:  # fmt: skip
-    """v7 at Stop: new standing rules from the request, then its diff held against the rules
-    it did not state; a confident break sends the agent back once (`memory_rules`)."""
+    """v7 at Stop: new standing rules from the request, then, only with `MEMORY_RULES_AUDIT=on`,
+    its diff held against the rules it did not state; a confident break sends the agent back
+    once (`memory_rules`). By default no audit question is asked and no Stop is blocked."""
     from . import memory_rules  # not at import: a touch event must stay light
 
     if not memory_rules.rules_on() or mode() != "decider" or not seen.episodes:
@@ -358,7 +362,8 @@ def rules_at_stop(event: Mapping[str, Any], seen: Recorded,
 
     store, session = store_for(event), str(event.get("session_id") or "session")
     squire = squire_from_env(redact=True)
-    check = bool(start) and start.get("index") == seen.requests \
+    audit = memory_rules.audit_on()
+    check = audit and bool(start) and start.get("index") == seen.requests \
         and not event.get("stop_hook_active")  # fmt: skip
     request = next((e.request for e in seen.episodes if e.index == seen.requests), "")
     seconds = _int("MEMORY_RULES_SECONDS", 20)
@@ -386,7 +391,7 @@ def rules_at_stop(event: Mapping[str, Any], seen: Recorded,
         if isinstance(value, BaseException):
             _log({"event": "rules", "part": part, "error": f"{value.__class__.__name__}"})
     _log({"event": "rules", "added": added, "checked": found,
-          "broken": [r["text"] for r in broken]})  # fmt: skip
+          "broken": [r["text"] for r in broken], "audit": "on" if audit else "off"})  # fmt: skip
     return {"decision": "block", "reason": memory_rules.block_reason(broken)} if broken else {}
 
 

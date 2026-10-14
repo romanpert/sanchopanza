@@ -86,14 +86,21 @@ description of when to use it). Memory records each finished request verbatim, c
 included, outside the project (`~/.sanchopanza/memory-store/<repository>/`, this user only, kept 30
 days), and gives a later request the records that bear on it; the touch when the agent opens or
 changes a file asks no model. With a TypeSafe key (or a provider), Jev decisions also keep the
-person's standing rules: each sentence of a prompt is asked whether it is one, the newest are given
-at every session start, and at Stop a confident break sends the agent back once, quoting the rule.
-That is the mechanism that was measured (243 decisions over 24 pairs, 0.008 USD); without a key
+person's standing rules: each sentence of a prompt is asked whether it is one, and the newest are
+given at every session start. That is the mechanism that was measured (243 decisions over 24 pairs,
+0.008 USD; the cell's gain came with no send-back); without a key
 memory records and recalls by code only, which the cell did not measure. It is on by default since
 2026-10-14 because of that one cell: on Sonnet 5.5, a fact said in a parallel session or a sibling
 worktree was broken in 0 of 24 pairs with it and in 11 of 24 by clean Claude Code, at a median
 +12 % cost. On Opus 5.5 it had no room (Claude Code alone already kept the fact), and the web and
-code results in this README were measured without it. `--find-nudge` adds a once-per-session suggestion toward it after a
+code results in this README were measured without it. The Stop audit, which holds a request's
+diff against the stored rules and sends a confident break back once, is **off by default since
+2026-10-14** (`SANCHOPANZA_MEMORY_RULES_AUDIT=on`, in the environment or in the settings' `env`,
+turns it on): replayed over the maintainer's own sessions it sent 8 of 518 requests back with v8
+and 1 of 349 with the cuts it ships with, none of them rightly; it repaired a break only in scenes
+built for it (3 read by hand in 28 send-backs over 351 audits, 2 of them on Haiku 4.5), and in the
+memory cell it sent nothing back in 72 audits
+([memory Stop](docs/results/2026-10-14-memory-stop/)). `--find-nudge` adds a once-per-session suggestion toward it after a
 wide early search; it is off by default because its development probe did not justify it (fired in
 5 of 10 sessions on the opening file listing, followed 0 times), and `SANCHOPANZA_FIND_NUDGE=0`
 silences it where it is wired. `--find-auto` runs find for the agent instead: at the 4th search

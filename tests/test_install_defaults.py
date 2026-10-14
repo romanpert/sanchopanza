@@ -266,3 +266,5 @@ def test_the_help_says_memory_is_on_by_default(capsys: pytest.CaptureFixture[str
     assert "--memory, --no-memory" in out
     memory = out[out.index("--memory, --no-memory") :][:600]
     assert "on by default" in memory and "not measured yet, so off by default" not in memory
+    whole = out[out.index("--memory, --no-memory") :][:1200]
+    assert "sanchopanza_memory_rules_audit=on" in whole  # the Stop audit is opt-in (2026-10-14)
