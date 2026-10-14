@@ -1,6 +1,7 @@
 # Mapa de huecos del arnés: dónde puede ganar sanchopanza (2026-10-05)
 
-Escrito por indagis-95 para Roman y las sesiones hermanas. Documento local, sin seguimiento en git.
+Escrito por indagis-95 para Roman y las sesiones hermanas. Nació como documento local; se publica
+desde el 2026-10-07 junto a `docs/PLAN-GANAR-H2H.md`, que lo cita.
 
 Sale de cuatro análisis gratuitos de hoy:
 
