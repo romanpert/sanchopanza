@@ -67,7 +67,9 @@ ROOTS = {"smoke": Path(r"C:\sp-runs\L-smoke"), "gate": Path(r"C:\sp-runs\L"),
          # the context close-out (2026-10-13); its conditional sixth chain under the same root
          "compact": Path(r"C:\sp-runs\L-compact"),
          "compact-fifth": Path(r"C:\sp-runs\L-compact"),
-         "compact-extra": Path(r"C:\sp-runs\L-compact")}
+         "compact-extra": Path(r"C:\sp-runs\L-compact"),
+         # the conan-2 repeat (owner 2026-10-14, 45 USD hard): its own root, its own ceiling
+         "compact-conan2": Path(r"C:\sp-runs\L-compact-conan2")}
 # The seal must carry these (main): gate A for check-done and candor, and the 402 breaker with
 # `jev-preflight`. An older frozen copy would run S without them.
 SEAL_NEEDS = {"f2a0fe2": "gate A (check-done and candor on change or action)",
@@ -401,10 +403,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("action", choices=("smoke", "gate", "pilot-a", "noise-ne", "noise-n",
                                            "conan-n2", "conan-ne2", "conan-a2", "compact",
                                            "compact-fifth", "compact-extra",
-                                           "plan"))  # fmt: skip
+                                           "compact-conan2", "plan"))  # fmt: skip
     parser.add_argument("profile", nargs="?", default="",
                         help="plan: smoke, gate, pilot-a, noise-ne, noise-n, conan-n2, "
-                        "conan-ne2, conan-a2, compact, compact-fifth or compact-extra")
+                        "conan-ne2, conan-a2, compact, compact-fifth, compact-extra or "
+                        "compact-conan2")
     parser.add_argument("--seal", default="", help="smoke: the sealed S commit (frozen copy)")
     parser.add_argument("--commit", default="",
                         help="pilot-a, conan-a2: A's own commit (frozen copy)")

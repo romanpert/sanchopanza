@@ -7,6 +7,9 @@ rem   long-compact-run.cmd          the chains of long_run.COMPACT_CHAINS (profi
 rem   long-compact-run.cmd fifth    the fifth chain once it validates (profile compact-fifth)
 rem   long-compact-run.cmd extra    the conditional sixth chain (profile compact-extra, prereg 3)
 rem The three under the same root and the same 250 USD ceiling over everything in it.
+rem   long-compact-run.cmd conan2   the conan-2 repeat (profile compact-conan2, owner 2026-10-14;
+rem                                 amendment-conan2.md): its own root C:\sp-runs\L-compact-conan2,
+rem                                 22.5 a run, 45 USD hard in code
 rem Start it by WMI from a worktree --detach at the sealed commit, outside any Claude Code session,
 rem in its own process group, and never twice at once:
 rem   $s = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{CreateFlags=[uint32]512}
@@ -33,8 +36,13 @@ if /i "%~1"=="extra" (
   set PROFILE=compact-extra
   set DRYARG=%~2
 )
+if /i "%~1"=="conan2" (
+  set PROFILE=compact-conan2
+  set ROOT=C:\sp-runs\L-compact-conan2
+  set DRYARG=%~2
+)
 if not "%DRYARG%"=="" if /i not "%DRYARG%"=="dry" (
-  echo refused: the arguments are [fifth^|extra] [dry]
+  echo refused: the arguments are [fifth^|extra^|conan2] [dry]
   exit /b 2
 )
 set DRY=
