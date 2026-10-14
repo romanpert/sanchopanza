@@ -235,3 +235,15 @@ def test_the_launcher_runs_the_conan2_repeat_under_its_45_ceiling(tmp_path: path
     assert "22.50 per chain and arm" in log and "N-early-low window 100000" in log
     assert {p.parent.name for p in (root / "runs").glob("*/*/row.json")} == {"Ne", "Nl"}
     assert "compact-conan2" in (root / "launch.status").read_text(encoding="utf-8")
+
+
+@pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+def test_dry_without_its_three_variables_is_refused(tmp_path: pathlib.Path) -> None:
+    # No claude reachable at all (PATH and USERPROFILE stripped): a broken guard exits 3, not 2.
+    safe = {"PATH": r"C:\Windows\System32", "USERPROFILE": str(tmp_path)}
+    full = {**dry_environment(tmp_path, (CONAN2,)), **safe}
+    for missing in ("LL_ROOT", "LL_PIN", "LL_DRY_CONFIG"):
+        env = {**full, missing: ""}
+        assert launch(CMD, ["conan2", "dry"], env) == 2
+        assert launch(CMD, ["dry"], env) == 2
+    assert not (tmp_path / "L").exists()
