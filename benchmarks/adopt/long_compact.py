@@ -25,7 +25,8 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -194,6 +195,42 @@ def grade_common(root: Path, chain: str, known: Mapping[str, Any]) -> list[str]:
     return done
 
 
+@contextmanager
+def per_test_timeout(seconds: int) -> Iterator[None]:
+    """Every pytest run inside, a grade's too, with `docker_env.pytest(test_timeout=seconds)`.
+    A deviation from the sealed grade, declared in the README: on moto (2026-10-14) the whole-suite
+    grade of an arm hung on a threaded-server test and came back with no result at all, so without
+    it those arms cannot be graded. A test stopped by it reads as not passing; both arms of a chain
+    are graded the same way."""
+    import docker_env
+
+    if not seconds:
+        yield
+        return
+    original = docker_env.pytest
+
+    def bounded(*args, **kwargs):  # noqa: ANN002, ANN003, ANN202
+        return original(*args, **{**kwargs, "test_timeout": seconds})
+
+    docker_env.pytest = bounded
+    try:
+        yield
+    finally:
+        docker_env.pytest = original
+
+
+def grade_final(root: Path, chain: str, known: Mapping[str, Any]) -> list[str]:
+    """Each arm's final grade (`long_report.grade_arm`, grade.json), for a chain the launcher's
+    grade could not finish."""
+    base = root / "runs" / f"{chain}-{MODEL}"
+    out = []
+    for arm in (TREATED, CONTROL):
+        if (base / arm / "final.patch").exists():
+            g = long_report.grade_arm(known[chain], base / arm)
+            out.append(f"{chain} {arm}: final grade {g.get('resolved')} resolved")
+    return out
+
+
 def default_chains() -> list[str]:
     import long_run
 
@@ -208,15 +245,21 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--chains", default="",
                         help="comma-separated; default compact, compact-fifth and compact-extra")
     parser.add_argument("--json", default="")
+    parser.add_argument("--test-timeout", type=int, default=0,
+                        help="grade: per-test timeout in seconds (a declared deviation)")
+    parser.add_argument("--final", action="store_true", help="grade: also the final grade")
     args = parser.parse_args(argv)
     chains = [c for c in args.chains.split(",") if c] or default_chains()
     if args.action == "grade":
         import run
 
         known = run.chains()
-        for chain in chains:
-            for line in grade_common(Path(args.root), chain, known):
-                print(line, flush=True)
+        with per_test_timeout(args.test_timeout):
+            for chain in chains:
+                lines = grade_common(Path(args.root), chain, known)
+                lines += grade_final(Path(args.root), chain, known) if args.final else []
+                for line in lines:
+                    print(line, flush=True)
         return 0
     data = read(Path(args.root), chains)
     text = json.dumps(data, indent=1)

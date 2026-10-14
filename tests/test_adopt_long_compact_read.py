@@ -140,3 +140,20 @@ def test_both_arms_are_graded_at_the_last_common_call(lc, monkeypatch, tmp_path)
         out = json.loads((tmp_path / "runs" / "c-sonnet" / arm / "grade-common.json")
                          .read_text(encoding="utf-8"))  # fmt: skip
         assert out["common_calls"] == 32 and out["snapshot"] == "diff-32.patch"
+
+
+def test_the_per_test_timeout_reaches_every_pytest_run_inside_and_only_there(lc) -> None:
+    import docker_env
+
+    seen: list[object] = []
+    original = docker_env.pytest
+    docker_env.pytest = lambda *a, **k: seen.append(k.get("test_timeout")) or {}
+    try:
+        with lc.per_test_timeout(300):
+            docker_env.pytest("tag", "", ["t"])
+        docker_env.pytest("tag", "", ["t"])
+        with lc.per_test_timeout(0):
+            docker_env.pytest("tag", "", ["t"])
+    finally:
+        docker_env.pytest = original
+    assert seen == [300, None, None]
