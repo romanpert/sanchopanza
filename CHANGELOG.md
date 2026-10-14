@@ -447,6 +447,21 @@ do not favour this package.
   command output included, in `~/.sanchopanza/memory-store/<repository>/` (this user only, 30
   days). `plan()` keeps `memory=False` as its own default for the sealed benchmarks that call it.
 
+- **Memory's Stop audit is off by default** (`SANCHOPANZA_MEMORY_RULES_AUDIT=on` turns it on;
+  `docs/results/2026-10-14-memory-stop/`). Standing rules are still extracted at Stop and given
+  at every session start, the mechanism the memory cell measured; what is now opt-in is holding
+  the request's diff against them and sending a confident break back once. Replayed over the
+  maintainer's own sessions, v8 sent back 8 of 518 audited requests and v8.1's cuts (the ones that
+  ship) 1 of 349, **none of them right** (7 false and 1 arguable; then 1 false), with the cuts chosen
+  on those same sessions. In the carry benches it repaired a break 3 times by hand-read count (one
+  `sms` on Sonnet 5.5 in v8, `rename` and `nulls` on Haiku 4.5 in v8.1) among 28 send-backs over
+  351 audits, and once more probably (v7's `sms`, fact kept at the end, not read); the rest were
+  decoys (15), own rules already kept (7) or declined because the request asked for the change
+  (2). In the memory cell that put memory on by default it sent
+  nothing back in 72 audits, so its gain (0 of 24 facts broken against 11) did not come from it.
+  A default install no longer asks Jev the audit's questions at Stop. The carry runner's M and V
+  arms keep the audit on, as they were measured.
+
 - **The compaction guard keeps whole tool results by structure** (`struct`, the new default
   chooser of `install --guard`; `docs/results/2026-10-05-guard-struct`). After a compaction it
   attaches whole results since the previous one: the latest on each file being edited first,
