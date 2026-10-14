@@ -546,7 +546,7 @@ do not favour this package.
     0 losses, sign test 0.0625); task 23 vs 24, cost 1.117 [1.05, 1.15], wall 1.12, 8.47 USD. The
     gain is in the 4 of 8 scenes where the fact is not in the code. It is the default install plus
     `--memory`, which is not on by default.
-  - Early compaction on long code is still running.
+  - Early compaction on long code (near 67k against N-early's 160k, Sonnet 5.5, 5 chains, sealed fb42fa4): **no gana** (`docs/results/2026-10-13-long-compact/`). Cost 0.900 [0.741, 1.093], quality -1.4 points (non-inferior at -10), wall 1.09, 173.11 USD; 0.858 [0.748, 0.984] if a call cut by a PC reboot is metered at what it cost, a sensitivity the sealed rule does not use. `install --context-budget` stays at 160,000.
   - Not run, by decision: code on Sonnet and Opus 5.5 (about 357 USD), memory F2, Fable 5.1, and
     the memory cell on Opus.
 - **Compaction mid-session: native summary against lean masking, negative**

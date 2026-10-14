@@ -36,8 +36,9 @@ import tasks as gen  # noqa: E402
 import transcripts  # noqa: E402
 
 # `sanchopanza install` as it was when this ran: the defaults grew on 2026-09-30 (guard,
-# context budget, find_in_repo, skill), so a rerun opts out of them to measure the same arms.
-PRE_0930 = ["--no-guard", "--no-find", "--no-skill", "--context-budget", "0",
+# context budget, find_in_repo, skill) and on 2026-10-14 (memory), so a rerun opts out of them
+# to measure the same arms.
+PRE_0930 = ["--no-guard", "--no-find", "--no-skill", "--no-memory", "--context-budget", "0",
             "--guard-profile", "sandbox"]
 
 ROOT = r1.ROOT

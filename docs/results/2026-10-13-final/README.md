@@ -101,10 +101,10 @@ Whatever the cell gives is a configuration result and is reported as one.
 
 | Axis | Model | S−N (success) | 95 % CI | p | Cost S/N | Wall S/N | Verdict |
 |---|---|---|---|---|---|---|---|
-| Early compaction (60-70k) against Ne, ≥ 5 long60 chains | Sonnet 5.5 | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | **pending, running** |
+| Early compaction (60-70k) against Ne, 5 long60 chains (conan ×2, pydantic, moto ×2), k = 1 | Sonnet 5.5 | −1.4 pts (249/278 vs 253/278 bugs both were asked) | [−3.8, +1.1] (chains resampled); one-sided bound −3.5, margin −10: non-inferior | none (the unit is the run) | 0.900 [0.741, 1.093] | 1.09 [0.85, 1.41] | **no gana** (no saving shown) |
 | Early compaction against Ne | Opus 5.5 | — | — | — | — | — | **no corrido** |
 
-Source when it lands: `docs/results/2026-10-13-long-compact/` (branch `cierre-contexto`).
+Source: [2026-10-13-long-compact](../2026-10-13-long-compact/README.md) (sealed prereg fb42fa4; 173.11 USD). With the call of conan-2 cut by a PC reboot metered at what it cost (0.35) instead of its 4.50 cap, the ratio would be 0.858 [0.748, 0.984]; the sealed rule does not use that, and the verdict stands. Even a win at 67k would not be an install default: the owner's real sessions start near 68k.
 
 ## Memory: a fact said in an earlier session
 
@@ -142,7 +142,7 @@ default install. The other cells' S ran without memory.
   memory had no room.
 - **No other measured cell is a win.** Three web suites are "no gana" on Sonnet 5.5; code on Haiku
   4.5 is non-inferior with no saving shown; on long code the Jev part (A) did not hold its edge.
-  The rest is "sin margen" or not run. One cell is pending: early compaction on long code.
+  Early compaction near 67k on long code: cost 0.900 [0.741, 1.093], no saving shown. The rest is "sin margen" or not run.
 - **Why the rest did not: a Jev decision saves only when it replaces a call or tokens of the
   expensive model.** It costs 24 to 119 times less than that call. Added on top of what the model
   already does, it only adds prefix and latency, however right it is (`docs/PLAN-GANAR-H2H.md` 3).
@@ -183,3 +183,6 @@ Each session replaces the `_pending_` cells of its row with the figures from its
 verdict by the rule its own prereg seals, then links that folder here and in
 [the index](../README.md). If either verdict is **gana**, the first bullet of "What wins" changes
 with it, and so does the head-to-head line in the top-level README and in `docs/where-it-pays.md`.
+
+Both cells were filled on 2026-10-14: memory **gana** (Sonnet 5.5, parallel sessions), early
+compaction on long code **no gana**. No cell is pending.

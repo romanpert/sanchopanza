@@ -7,9 +7,9 @@ which are the record of how they were reached.
 ## Head to head: Claude Code alone against Claude Code + sanchopanza
 
 The final scoreboard, per axis and model, and the runs behind each cell. One measured cell is a
-win for sanchopanza: memory on Sonnet 5.5 across parallel sessions, only with `--memory`, which
-is not on by default. Web, code and long code's Jev part are not. Early compaction on long code
-is still running.
+win for sanchopanza: memory on Sonnet 5.5 across parallel sessions, with memory on (the install's
+default since 2026-10-14). Web, code, long code's Jev part and early compaction on long code are
+not.
 
 | Folder | What it backs |
 |---|---|
@@ -25,7 +25,7 @@ is still running.
 | [2026-10-07-pilot-a](2026-10-07-pilot-a/) | Passages on arrival on two 60-bug chains, Sonnet 5.5; its edge did not hold on a repeat (`docs/PLAN-GANAR-H2H.md`, `STATUS-launch.md`) |
 | [2026-10-05-memory-frontier](2026-10-05-memory-frontier/gate-result.md) | The memory headroom gate: no room on Opus 5.5 (1 break in 24), one Sonnet 5.5 cell opens (parallel session) |
 | [2026-10-13-memory-cell](2026-10-13-memory-cell/README.md) | The open memory cell, Sonnet 5.5, a fact said in a parallel session or sibling worktree, 24 pairs, pre-registered: S broke 0 facts against N's 11 (McNemar p 0.00049; by scene 4 wins, 0 losses), task 23 vs 24, cost 1.117 [1.05, 1.15], wall 1.12: **gana**. S is the default install plus `--memory`; 8.47 USD |
-| `2026-10-13-long-compact/` | Pending, running: early compaction at 60-70k against N-early on five or more long chains (branch `cierre-contexto`) |
+| [2026-10-13-long-compact](2026-10-13-long-compact/README.md) | Early compaction near 67k (what `install --context-budget 67000` writes) against N-early near 160k, Sonnet 5.5, 5 long60 chains, k = 1, pre-registered: cost 0.900 [0.741, 1.093], quality −1.4 points (non-inferior at −10), wall 1.09: **no gana**, no saving shown (0.858 [0.748, 0.984] if a call cut by a PC reboot is metered rather than charged at its cap, a sensitivity the sealed rule does not use). 173.11 USD |
 
 ## Main evidence
 

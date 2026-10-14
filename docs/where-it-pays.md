@@ -36,7 +36,7 @@ part of long code are not.
   (`docs/results/2026-10-13-memory-cell/`). With the layer the fact was broken in 0 of 24 pairs,
   without it in 11 (McNemar p 0.00049; by scene 4 wins, 0 losses), at a median 1.117 of the cost
   (+12 %). The gain is in the 4 of 8 scenes where the fact is not in the code.
-- Early compaction on long code is still running.
+- Early compaction on long code (near 67k against N-early's 160k, Sonnet 5.5, 5 chains) is "no gana" (`docs/results/2026-10-13-long-compact/`): cost 0.900 [0.741, 1.093] with quality non-inferior; no saving shown, so `install --context-budget` stays at 160,000.
 
 The rule above is what that result says. A decision pays where it replaces a call or tokens of the
 expensive model, not as one more layer. The memory win is not a saving: it carried a fact the model
