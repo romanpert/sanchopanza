@@ -100,6 +100,26 @@ NOISE_N_CEILING = 40.0  # N again on pydantic (spent 23.55 the first time); 70 +
 CONAN_N2_CEILING = 38.0
 CONAN_A2_CEILING = 37.0
 CONAN_NE2_CEILING = 25.0
+# The context close-out (owner, 2026-10-13, 250 USD hard; prereg
+# docs/results/2026-10-13-long-compact/prereg.md): N-early (Ne, compacts near 160k) against
+# N-early-low (Nl: what `install --context-budget 67000` writes, a window of 100,000, Claude Code's
+# floor, so it compacts near 67k), Sonnet 5.5, one run per arm and chain, both arms of a chain one
+# after the other in `arm_order`'s rotation. 25 a run (Ne starts no call past ~18.9 and Nl past
+# ~19.4: the call cap and one turn are held), 5 chains x 2 arms x 25 = 250.
+COMPACT_LOW_BUDGET = 67_000
+COMPACT_CHAIN_CAP = 25.0
+COMPACT_CEILING = 250.0
+COMPACT_CHAINS = ("conan-io__conan-long60-1", "pydantic__pydantic-long60-1",
+                  "conan-io__conan-long60-2", "getmoto__moto-long60-1")  # fmt: skip
+# The fifth chain (validating when the four start) and the sixth, only if it validates in time and
+# fits under the same ceiling (prereg, 3): each its own profile, the same root, so the ceiling
+# holds everything spent there.
+COMPACT_FIFTH = ("getmoto__moto-long60-2",)
+COMPACT_EXTRA = ("iterative__dvc-long60-1",)
+# Nl's compactions must fire where the prereg says (near 67k): a first-turn context at most one
+# request past the threshold. Outside these bounds the arm is not the registered treatment.
+LOW_PRE = (50_000, 110_000)  # a compaction's `pre` tokens
+LOW_PEAK = 110_000  # a call's peak context (a window that never took: N passes it by call ~8-15)
 SMOKE_CHAIN = "pydantic__pydantic-long60-1"  # validated first; Haiku, 3 bugs, its own root
 MANIFESTS = HERE / "long60"  # long60/<chain>.json, written by `long.py manifests` once valid
 JEV_MAX_USD = 0.50  # per chain (pre-mortem 15)
@@ -124,6 +144,9 @@ class Profile:
     forced_timeouts: tuple[tuple[str, int, float], ...] = ()  # (arm, request, seconds)
     hours: Mapping[str, float] = field(default_factory=dict)  # expected per arm (midnight rule)
     choices: tuple[str, ...] = ()  # arms `--arms` may run instead of `arms`
+    # Stops that end one arm only: the run goes on with the next arm and chain (the close-out runs
+    # ten arms under one root; a run stopped by its own cap is compared on its common calls).
+    local_stops: tuple[str, ...] = ()
 
     def with_arms(self, asked: tuple[str, ...]) -> Profile:
         """The profile with the arms asked for (none: its own), only among its choices."""
@@ -173,6 +196,18 @@ PROFILES = {
     "conan-a2": Profile("conan-a2", ("A",), ("sonnet",), {"sonnet": GATE_CALL_CAP["sonnet"]},
                         {"sonnet": CONAN_A2_CEILING}, CONAN_A2_CEILING, (GATE_CHAINS[0],),
                         hard_cap=CONAN_A2_CEILING, hours={"sonnet": 1.6}),
+    "compact": Profile("compact", ("Ne", "Nl"), ("sonnet",), {"sonnet": GATE_CALL_CAP["sonnet"]},
+                       {"sonnet": COMPACT_CHAIN_CAP}, COMPACT_CEILING, COMPACT_CHAINS,
+                       hard_cap=COMPACT_CEILING, hours={"sonnet": 1.6},
+                       local_stops=("cap", "wall")),
+    "compact-fifth": Profile("compact-fifth", ("Ne", "Nl"), ("sonnet",),
+                             {"sonnet": GATE_CALL_CAP["sonnet"]}, {"sonnet": COMPACT_CHAIN_CAP},
+                             COMPACT_CEILING, COMPACT_FIFTH, hard_cap=COMPACT_CEILING,
+                             hours={"sonnet": 1.6}, local_stops=("cap", "wall")),
+    "compact-extra": Profile("compact-extra", ("Ne", "Nl"), ("sonnet",),
+                             {"sonnet": GATE_CALL_CAP["sonnet"]}, {"sonnet": COMPACT_CHAIN_CAP},
+                             COMPACT_CEILING, COMPACT_EXTRA, hard_cap=COMPACT_CEILING,
+                             hours={"sonnet": 1.6}, local_stops=("cap", "wall")),
 }  # fmt: skip
 
 
@@ -237,11 +272,13 @@ def arm_spec(arm: str, profile: Profile) -> run.Arm:
         return run.ARM_SPECS["N"]
     if arm == "Ne":
         return run.Arm(None, env=((WINDOW, str(profile.window)),))
+    if arm == "Nl":  # N-early-low: the window `install --context-budget 67000` writes
+        return run.Arm(None, env=((WINDOW, str(window_for(COMPACT_LOW_BUDGET))),))
     if arm == "S":
         return run.Arm((*S_FLAGS, "--context-budget", str(profile.budget)), env=S_ENV)
     if arm in long_pilot.ARMS:
         return long_pilot.arm_spec(arm)
-    raise SystemExit(f"unknown arm {arm}: N, Ne, S, A or A10")
+    raise SystemExit(f"unknown arm {arm}: N, Ne, Nl, S, A or A10")
 
 
 def installed(arm: str, profile: Profile) -> bool:
@@ -630,10 +667,23 @@ def call_breaks(a: Arm, row: Mapping[str, Any], attempt: Mapping[str, Any],
         out.append("the diff came back empty after a non-empty one (pre-mortem 13)")
     if a.arm != "N" and long_guard.jev_outage(list(state.decisions)):
         out.append("Jev: the first decisions all failed or null (pre-mortem 15)")
+    if a.arm == "Nl":
+        out.extend(low_window_breaks(row))
     hooks = row.get("hook_calls", 0)
     if hooks and row.get("hook_errors", 0) / hooks > HOOK_ERRORS:
         out.append(f"hooks: {row['hook_errors']} of {hooks} calls ended in error")
     return tuple(out)
+
+
+def low_window_breaks(row: Mapping[str, Any]) -> list[str]:
+    """Nl not compacting where the prereg says: a compaction outside `LOW_PRE`, or a call whose
+    context passed `LOW_PEAK` (the window never took)."""
+    low, high = LOW_PRE
+    out = [f"Nl compacted at {c.get('pre')} tokens, outside {low}-{high}"
+           for c in row.get("compactions") or [] if not low <= int(c.get("pre") or 0) <= high]
+    peak = int(row.get("peak_context") or 0)
+    return [*out, *([f"Nl reached {peak} tokens of context, past {LOW_PEAK}"]
+                    if peak > LOW_PEAK else [])]  # fmt: skip
 
 
 def stop_of(ctx: Ctx, a: Arm, row: Mapping[str, Any], attempt: Mapping[str, Any]) -> str:
@@ -686,7 +736,9 @@ def run_chain(ctx: Ctx, chain: Mapping[str, Any], status: Mapping[str, Any]) -> 
                 "; never run twice")
             continue
         stop = run_arm(ctx, chain, arm, status, row)
-        if stop:
+        if stop and stop in ctx.profile.local_stops:
+            log(f"{chain['chain']} {ctx.model} {arm}: stopped ({stop}); the next arm goes on")
+        elif stop:
             return stop
         if why := long_guard.cross_arm_breaks(ctx.layout.runs / run_name(chain["chain"],
                                                                          ctx.model)):

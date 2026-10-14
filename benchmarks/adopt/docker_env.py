@@ -186,6 +186,7 @@ BATCH = 400  # nodes per pytest process when the whole suite in one process runs
 # MemoryError and fails as a test, instead of the kernel killing every test with it (astroid-1:
 # a batch of 400 was still killed at 36 %).
 MEMORY_KB = 6_000_000
+PER_TEST_TIMEOUT = 300  # seconds a test may run during validation (`pytest(test_timeout=...)`)
 KILLED = 137  # the container's process killed (out of memory)
 TIMED_OUT = 124  # a run past its timeout: container removed, no results (as `timeout` exits)
 NOT_FOUND = re.compile(r"^ERROR: not found: (.+?)\s*$", re.M)
@@ -194,7 +195,7 @@ NOT_FOUND_RETRIES = 3
 
 def pytest(
     tag: str, patch: str, nodes: list[str] | None, *, reverse: bool = False, timeout: int = 3600,
-    keep_collecting: bool = False,
+    keep_collecting: bool = False, test_timeout: int | None = None,
 ) -> dict[str, str]:
     """node id -> outcome of `nodes` (None or too many: the whole suite) in `tag` with `patch`
     applied first, or reversed with `reverse` (an empty patch runs the image as it is). A patch
@@ -209,10 +210,15 @@ def pytest(
     command, so the confirmation's arms are all graded the same way. With it, a listed node
     that does not exist (`ERROR: not found`, which stops pytest before any test runs) is left
     out and the rest run again: it comes out absent, read as not passing (pydantic names its doc
-    tests by line range, and another bug in the same file shifts the range)."""
+    tests by line range, and another bug in the same file shifts the range).
+
+    `test_timeout` (validation only, `PER_TEST_TIMEOUT`): each test is stopped after that many
+    seconds and comes out FAILED (`per_test`: our plugin, mounted from /io). Without it one hung
+    test held a whole run to `timeout` and the run came back with no results (dvc-long60-1,
+    2026-10-08; getmoto-long60-2, 2026-10-13). Grading never passes it."""
     listed = bool(nodes) and len(nodes or []) <= FULL_SUITE_OVER
     keep = " --continue-on-collection-errors" if keep_collecting else ""
-    pytest_cmd = f"python -m pytest{keep}"
+    pytest_cmd = f"python -m pytest{keep}{per_test(test_timeout)}"
     select = f"xargs -a /io/nodes.txt -d '\\n' {pytest_cmd}" if listed else pytest_cmd
     done, text = _run(tag, patch, nodes, select, reverse, timeout)
     if not listed and nodes and done.returncode == KILLED:
@@ -241,6 +247,77 @@ def pytest(
     return found
 
 
+PLUGIN = "sp_test_timeout"
+# A per-test timeout as pytest-timeout's signal method does it, the same in every image (moto has
+# no pytest-timeout; getmoto-long60-2, 2026-10-13: a test deadlocked on a lock with every bug in
+# and the whole-suite run sat at 0 % CPU until its 3,600 s timeout). A Python lock wait is
+# interrupted by a signal sent to the main thread, so SIGALRM fails the test that hangs and the run
+# goes on.
+PLUGIN_SOURCE = r'''import faulthandler
+import os
+import signal
+import threading
+
+import pytest
+
+
+def pytest_addoption(parser):
+    parser.addoption("--sp-test-timeout", type=int, default=0)
+
+
+def _hard(seconds):
+    return seconds + max(30, seconds // 2)
+
+
+def pytest_runtest_logreport(report):
+    # Each outcome as soon as it is known, in the -rA summary's shape, so a run that has to be
+    # ended (below) keeps what it had found; the summary at the end repeats them.
+    if report.when == "call" or (report.when == "setup" and not report.passed) or (
+            report.when == "teardown" and report.failed):
+        xfail = hasattr(report, "wasxfail")
+        word = ("XPASS" if report.passed else "XFAIL") if xfail else (
+            "ERROR" if report.when != "call" and report.failed else report.outcome.upper())
+        os.write(1, f"\n{word} {report.nodeid}\n".encode())
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_protocol(item, nextitem):
+    seconds = item.config.getoption("--sp-test-timeout")
+    if not seconds:
+        yield
+        return
+
+    def stop(signum, frame):
+        pytest.fail(f"sp-test-timeout: over {seconds} s", pytrace=False)
+
+    main = threading.main_thread().ident
+    before = signal.signal(signal.SIGALRM, stop)
+    # A timer thread, not alarm(): with server threads alive the kernel may hand SIGALRM to one
+    # of them. Signalled, the main thread's lock wait fails the test and the run goes on.
+    timer = threading.Timer(seconds, signal.pthread_kill, (main, signal.SIGALRM))
+    timer.daemon = True
+    timer.start()
+    # When even that cannot reach it (moto-long60-2: a whole-suite run stuck at 98 % for 15 min
+    # with the signal sent), faulthandler's own thread, which needs no interpreter lock, ends the
+    # process; the outcomes written so far stay, the tests after it come out absent.
+    faulthandler.dump_traceback_later(_hard(seconds), exit=True)
+    try:
+        yield
+    finally:
+        faulthandler.cancel_dump_traceback_later()
+        timer.cancel()
+        signal.signal(signal.SIGALRM, before)
+'''
+
+
+def per_test(seconds: int | None) -> str:
+    """The per-test timeout's pytest options: `PLUGIN_SOURCE`, written into /io and loaded from
+    there, so a hung test fails alone instead of emptying the whole run."""
+    if not seconds:
+        return ""
+    return f" -p {PLUGIN} --sp-test-timeout={int(seconds)}"
+
+
 def _run(
     tag: str, patch: str, nodes: list[str] | None, select: str, reverse: bool, timeout: int
 ) -> tuple[subprocess.CompletedProcess, str]:
@@ -250,8 +327,12 @@ def _run(
         (folder / "work.patch").write_bytes(patch.encode("utf-8"))
         (folder / "nodes.txt").write_text("\n".join(nodes or []) + "\n", encoding="utf-8",
                                           newline="\n")  # fmt: skip
-        script = (f"cd /testbed && {VENV}(test ! -s /io/work.patch || {apply} --whitespace=nowarn "
-                  "/io/work.patch || { echo PATCH_FAILED; exit 3; }) && "
+        plugin = f"-p {PLUGIN} " in f"{select} "
+        if plugin:
+            (folder / f"{PLUGIN}.py").write_text(PLUGIN_SOURCE, encoding="utf-8", newline="\n")
+        path = "export PYTHONPATH=/io${PYTHONPATH:+:$PYTHONPATH}; " if plugin else ""
+        script = (f"cd /testbed && {VENV}{path}(test ! -s /io/work.patch || {apply} "
+                  "--whitespace=nowarn /io/work.patch || { echo PATCH_FAILED; exit 3; }) && "
                   f"{select} -rA -p no:cacheprovider -p no:pretty --tb=no -q 2>&1")  # fmt: skip
         # Named, so a run past its timeout can be removed: killing the `docker` client leaves the
         # container running (dvc-long60-1, 2026-10-08: a hung test, still there 5 h later). The

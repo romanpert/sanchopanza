@@ -14,8 +14,9 @@ configuration, retries included. Kinds:
 - `429`: a rejected rate-limit event and a result with api_error_status 429;
 - `timeout`: the init, then silence (the runner kills it);
 - `crash`: the init and one tool call that changes a file, then exit 3 with no result;
-- `compact`: a compaction boundary, and its call's tokens in modelUsage only (as headless
-  Claude Code leaves the compaction call out of the transcript);
+- `compact`: a compaction boundary (its `pre_tokens` FAKE_COMPACT_PRE, default 160,500), and its
+  call's tokens in modelUsage only (as headless Claude Code leaves the compaction call out of the
+  transcript);
 - `mcpfail`: the init lists every MCP server of --mcp-config as `failed`.
 
 FAKE_PASSAGES (JSON, `{"cuts": n, "whole": w, "targeted": t}`): in an arm whose project settings
@@ -140,12 +141,26 @@ def do_work(prompt: str, token: str) -> str:
     return token
 
 
+def scaled(usage: dict[str, Any]) -> dict[str, Any]:
+    """The recorded usage with its context tokens times FAKE_CONTEXT_SCALE (default 1): B2's
+    calls reach ~120k, past the close-out's guard for a window of 100k."""
+    scale = float(os.environ.get("FAKE_CONTEXT_SCALE") or 1)
+    if scale == 1:
+        return usage
+    keys = ("cache_read_input_tokens", "cache_creation_input_tokens")
+    out = {k: (int(v * scale) if k in keys else v) for k, v in usage.items()}
+    creation = usage.get("cache_creation")
+    return {**out, **({"cache_creation": {k: int(v * scale) for k, v in creation.items()}}
+                      if isinstance(creation, dict) else {})}
+
+
 def replay(call: int, session: str, model: str, transcript: Path,
            installed: bool = False) -> list[dict[str, Any]]:  # fmt: skip
     """The recorded requests of one call, as stream events and transcript lines. With an install
     (MCP servers in --mcp-config) the first request writes S_PREFIX more (skill, schemas, hooks)."""
     recorded = json.loads((HERE / "b2-n-calls.json").read_text(encoding="utf-8"))["calls"]
-    requests = recorded[(call - 1) % len(recorded)]["requests"]
+    requests = [{**r, "usage": scaled(r["usage"])}
+                for r in recorded[(call - 1) % len(recorded)]["requests"]]  # fmt: skip
     if installed and call == 1 and requests:
         first = dict(requests[0]["usage"])
         written = int(first.get("cache_creation_input_tokens") or 0)
@@ -237,8 +252,9 @@ def run_call(argv: list[str]) -> int:
     usages = replay(call, session, model, transcript, installed)
     debug_lines(option(argv, "--debug-file"), usages, window(model, config) - OUTPUT_RESERVE)
     if kind == "compact":
+        pre = int(os.environ.get("FAKE_COMPACT_PRE") or 160_500)
         emit({"type": "system", "subtype": "compact_boundary", "session_id": session,
-              "compact_metadata": {"trigger": "auto", "pre_tokens": 160_500,
+              "compact_metadata": {"trigger": "auto", "pre_tokens": pre,
                                    "post_tokens": 9_000}})  # fmt: skip
         usages = [*usages, COMPACTION]
     total = add_usage(state["usage"], model, usages)

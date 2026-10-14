@@ -63,7 +63,11 @@ ROOTS = {"smoke": Path(r"C:\sp-runs\L-smoke"), "gate": Path(r"C:\sp-runs\L"),
          "pilot-a": long_pilot.ROOTS["A"],  # A10: long_pilot.ROOTS["A10"] (`root_for`)
          "noise-ne": Path(r"C:\sp-runs\L-ne"), "noise-n": Path(r"C:\sp-runs\L-n2"),
          "conan-n2": Path(r"C:\sp-runs\L-n2c"), "conan-ne2": Path(r"C:\sp-runs\L-ne2c"),
-         "conan-a2": Path(r"C:\sp-runs\L-a2c")}
+         "conan-a2": Path(r"C:\sp-runs\L-a2c"),
+         # the context close-out (2026-10-13); its conditional sixth chain under the same root
+         "compact": Path(r"C:\sp-runs\L-compact"),
+         "compact-fifth": Path(r"C:\sp-runs\L-compact"),
+         "compact-extra": Path(r"C:\sp-runs\L-compact")}
 # The seal must carry these (main): gate A for check-done and candor, and the 402 breaker with
 # `jev-preflight`. An older frozen copy would run S without them.
 SEAL_NEEDS = {"f2a0fe2": "gate A (check-done and candor on change or action)",
@@ -125,6 +129,11 @@ def busy(root: Path) -> str:
 # ---- what is expected and what is held -----------------------------------------------------------
 
 
+def low_window() -> int:
+    """N-early-low's window: what `install --context-budget 67000` writes (100,000)."""
+    return long_run.window_for(long_run.COMPACT_LOW_BUDGET)
+
+
 def turn_lines(profile: Any, model: str) -> list[str]:
     """Per arm, the worst turn past a cap (`long_money`: the context at the window, written to
     the cache at the 1-hour rate, plus a maximal answer) and where the arm stops at the latest."""
@@ -132,7 +141,7 @@ def turn_lines(profile: Any, model: str) -> list[str]:
     out = []
     for arm in profile.arms:  # N and the passages arms: the server's window
         window = long_money.DEFAULT_WINDOW[mid] if arm in ("N", *long_pilot.ARMS) else \
-            profile.window  # fmt: skip
+            low_window() if arm == "Nl" else profile.window  # fmt: skip
         worst = long_money.turn_cost(mid, window)
         out.append(f"  {arm}: one turn past a cap costs up to {worst:.2f} USD (context at the "
                    f"window {window}); at that context the arm starts no call past "
@@ -140,11 +149,17 @@ def turn_lines(profile: Any, model: str) -> list[str]:
     return out
 
 
+def modelled(arm: str) -> str:
+    """The arm whose cost model an arm borrows: a passages arm N's (its effect is what the pilot
+    asks), N-early-low N-early's (its saving is what the close-out asks: an upper side)."""
+    return "N" if arm in long_pilot.ARMS else "Ne" if arm == "Nl" else arm
+
+
 def expected(model: str, bugs: int, calls: int, profile: Any) -> dict[str, tuple[float, float]]:
-    """`costmodel.expected` per arm; a passages arm at N's (its effect is what the pilot asks)."""
-    model_arms = tuple(dict.fromkeys("N" if a in long_pilot.ARMS else a for a in profile.arms))
+    """`costmodel.expected` per arm, each at the model `modelled` names."""
+    model_arms = tuple(dict.fromkeys(modelled(a) for a in profile.arms))
     found = costmodel.expected(model, bugs, calls, model_arms, profile.budget)
-    return {a: found["N" if a in long_pilot.ARMS else a] for a in profile.arms}
+    return {a: found[modelled(a)] for a in profile.arms}
 
 
 def plan_lines(name: str, chains: Mapping[str, Any], names: list[str], root: Path,
@@ -188,7 +203,12 @@ def plan_lines(name: str, chains: Mapping[str, Any], names: list[str], root: Pat
               *([f"N-early window {profile.window} (S's install for --context-budget "
                  f"{profile.budget}); N's window: the server's, recorded in windows.json"]
                 if {"Ne", "S"} & set(profile.arms) else
-                ["window: the server's (no arm sets one), recorded in windows.json"])]
+                ["window: the server's (no arm sets one), recorded in windows.json"]),
+              *([f"N-early-low window {low_window()} (the install's for --context-budget "
+                 f"{long_run.COMPACT_LOW_BUDGET}), compacting near "
+                 f"{long_run.COMPACT_LOW_BUDGET}: a compaction outside {long_run.LOW_PRE} or "
+                 f"a call past {long_run.LOW_PEAK} of context stops the run"]
+                if "Nl" in profile.arms else [])]
     return [*lines, *(long_pilot.plan_lines(profile.arms)
                       if set(profile.arms) & set(long_pilot.ARMS) else [])]
 
@@ -379,11 +399,12 @@ def launch(name: str, args: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=("smoke", "gate", "pilot-a", "noise-ne", "noise-n",
-                                           "conan-n2", "conan-ne2", "conan-a2",
+                                           "conan-n2", "conan-ne2", "conan-a2", "compact",
+                                           "compact-fifth", "compact-extra",
                                            "plan"))  # fmt: skip
     parser.add_argument("profile", nargs="?", default="",
                         help="plan: smoke, gate, pilot-a, noise-ne, noise-n, conan-n2, "
-                        "conan-ne2 or conan-a2")
+                        "conan-ne2, conan-a2, compact, compact-fifth or compact-extra")
     parser.add_argument("--seal", default="", help="smoke: the sealed S commit (frozen copy)")
     parser.add_argument("--commit", default="",
                         help="pilot-a, conan-a2: A's own commit (frozen copy)")

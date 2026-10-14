@@ -264,7 +264,7 @@ def test_recall_lines_take_common_shapes() -> None:
 def test_a_bug_whose_tests_another_fix_flips_is_dropped_and_culprits_too(monkeypatch) -> None:  # noqa: ANN001
     bugs = [bug(i) for i in range(1, 5)]
 
-    def fake(tag, patch, nodes, reverse=False, keep_collecting=False):  # noqa: ANN001, ANN202
+    def fake(tag, patch, nodes, reverse=False, keep_collecting=False, **_k):  # noqa: ANN001, ANN202
         everything = {f"t.py::f{i}": "FAILED" for i in range(1, 5)} | {"t.py::g": "PASSED"}
         if not reverse:
             return everything
