@@ -3,6 +3,7 @@ N-early-low (Nl, compacts near 67k) against N-early (Ne, near 160k), one run per
 
     python benchmarks/adopt/long_compact.py grade [--root C:\\sp-runs\\L-compact]  # Docker, free
     python benchmarks/adopt/long_compact.py read  [--root ...] [--json out.json]   # free
+    python benchmarks/adopt/long_compact.py amend [--repeat-root ...] [--json out.json]  # free
 
 Per chain, on the calls both arms ran (`common_calls`: 1..k, both; a run stopped by its cap ran
 fewer; a superseded row, a call asked again after a 429 or a dead runner, does not count):
@@ -18,6 +19,9 @@ common calls AND its common grade for both arms:
 - quality: `long_report.cluster_bootstrap` of Nl - Ne in resolved rate (whole chains resampled)
   and its one-sided 95 % lower bound against `MARGIN`;
 - the verdict by `RULE`, written before any run.
+`amend` (amendment-conan2.md, written after the close-out's data and before the conan-2 repeat's):
+the sealed reading unchanged, the repeat's line, and the close-out read again by `RULE` with
+conan-2 replaced by the repeat (`substitute`) and with both conan-2 runs together (`average`).
 """
 
 from __future__ import annotations
@@ -149,24 +153,80 @@ def verdict(cost: Mapping[str, Any], low: float | None, chains: int) -> str:
     return "no difference shown"
 
 
-def read(root: Path, chains: Sequence[str]) -> dict[str, Any]:
-    found = {c: line for c in chains if (line := chain_line(root, c)) is not None}
-    counted = {c: v for c, v in found.items()
-               if v["common_calls"] >= MIN_COMMON and v["ratio"] and v["pairs"]}  # fmt: skip
-    pairs = [(v["arms"][TREATED]["cost_common"], v["arms"][CONTROL]["cost_common"])
-             for v in counted.values()]  # fmt: skip
+def counts(line: Mapping[str, Any]) -> bool:
+    """A chain counts with >= MIN_COMMON common calls, a ratio and its common grade (pairs)."""
+    return line["common_calls"] >= MIN_COMMON and bool(line["ratio"]) and bool(line["pairs"])
+
+
+def costs_of(line: Mapping[str, Any]) -> tuple[float, float]:
+    return line["arms"][TREATED]["cost_common"], line["arms"][CONTROL]["cost_common"]
+
+
+def over_chains(pairs: Sequence[tuple[float, float]],
+                clusters: Sequence[Sequence[tuple[bool, bool]]]) -> dict[str, Any]:  # fmt: skip
+    """Cost ratio, quality and the verdict by `RULE` over the chains given (one cost pair and one
+    cluster of bug pairs per chain)."""
     cost = long_report.cost_ratio(pairs)
-    clusters = [v["pairs"] for v in counted.values()]
     quality = None
     if clusters:
         diff, lo, hi = long_report.cluster_bootstrap(clusters)
         quality = {"difference": round(diff, 4), "ci95": [round(lo, 4), round(hi, 4)],
                    "one_sided_low": round(long_report.one_sided_low(clusters), 4)}  # fmt: skip
     low = quality["one_sided_low"] if quality else None
+    return {"cost": cost, "quality": quality, "verdict": verdict(cost, low, len(pairs))}
+
+
+def read(root: Path, chains: Sequence[str]) -> dict[str, Any]:
+    found = {c: line for c in chains if (line := chain_line(root, c)) is not None}
+    counted = {c: v for c, v in found.items() if counts(v)}
+    summary = over_chains([costs_of(v) for v in counted.values()],
+                          [v["pairs"] for v in counted.values()])  # fmt: skip
     lines = {c: {k: v for k, v in line.items() if k != "pairs"} for c, line in found.items()}
     return {"rule": RULE, "margin": MARGIN, "chains_read": len(found),
-            "chains_counted": sorted(counted), "cost": cost, "quality": quality,
-            "verdict": verdict(cost, low, len(counted)), "chains": lines}
+            "chains_counted": sorted(counted), **summary, "chains": lines}
+
+
+# ---- the conan-2 repeat (amendment-conan2.md, written after the close-out's data, before the
+# repeat's) ----------------------------------------------------------------------------------------
+
+REPEAT_ROOT = Path(r"C:\sp-runs\L-compact-conan2")
+REPEATED = "conan-io__conan-long60-2"
+AMEND_RULES = {
+    "substitute": "the close-out's chains with conan-2's line replaced by the repeat's (its own "
+                  "common calls, its own common grade), read by RULE",
+    "average": "the close-out's chains with conan-2 as both runs together: its cost pair the "
+               "geometric means of the two runs' common costs (so its log-ratio is the mean of "
+               "the two), its bug pairs both runs' in one cluster, read by RULE",
+}
+
+
+def amend(root: Path, repeat_root: Path, chains: Sequence[str],
+          repeated: str = REPEATED) -> dict[str, Any]:  # fmt: skip
+    """The close-out as sealed (`read`), the repeat's line, and the two rules of the amendment.
+    Neither rule is read unless the repeat counts (`counts`) and so does the sealed line."""
+    sealed = read(root, chains)
+    found = {c: line for c in chains if (line := chain_line(root, c)) is not None}
+    again = chain_line(repeat_root, repeated)
+    out: dict[str, Any] = {"sealed": sealed, "amend_rules": AMEND_RULES,
+                           "repeat": ({k: v for k, v in again.items() if k != "pairs"}
+                                      if again else None)}  # fmt: skip
+    first = found.get(repeated)
+    if again is None or first is None or not counts(again) or not counts(first):
+        return {**out, "substitute": None, "average": None,
+                "why_not": "the repeat (or the sealed conan-2) does not count: no amended reading"}
+    (t1, c1), (t2, c2) = costs_of(first), costs_of(again)
+    both = {**again, "arms": {TREATED: {"cost_common": (t1 * t2) ** 0.5},
+                              CONTROL: {"cost_common": (c1 * c2) ** 0.5}},
+            "pairs": [*first["pairs"], *again["pairs"]]}  # fmt: skip
+    readings = {}
+    for rule, line in (("substitute", again), ("average", both)):
+        lines = {c: (line if c == repeated else v) for c, v in found.items()}  # the sealed order
+        counted = {c: v for c, v in lines.items() if counts(v)}
+        readings[rule] = {"chains_counted": sorted(counted),
+                          **over_chains([costs_of(v) for v in counted.values()],
+                                        [v["pairs"] for v in counted.values()])}  # fmt: skip
+    readings["average"]["conan2_ratio"] = round(((t1 * t2) ** 0.5) / ((c1 * c2) ** 0.5), 4)
+    return {**out, **readings}
 
 
 # ---- the grade at the common calls (Docker, free) ------------------------------------------------
@@ -240,11 +300,13 @@ def default_chains() -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=("grade", "read"))
+    parser.add_argument("action", choices=("grade", "read", "amend"))
     parser.add_argument("--root", default=str(ROOT))
     parser.add_argument("--chains", default="",
                         help="comma-separated; default compact, compact-fifth and compact-extra")
     parser.add_argument("--json", default="")
+    parser.add_argument("--repeat-root", default=str(REPEAT_ROOT),
+                        help="amend: the conan-2 repeat's root (amendment-conan2.md)")
     parser.add_argument("--test-timeout", type=int, default=0,
                         help="grade: per-test timeout in seconds (a declared deviation)")
     parser.add_argument("--final", action="store_true", help="grade: also the final grade")
@@ -261,7 +323,8 @@ def main(argv: list[str] | None = None) -> int:
                 for line in lines:
                     print(line, flush=True)
         return 0
-    data = read(Path(args.root), chains)
+    data = (amend(Path(args.root), Path(args.repeat_root), chains) if args.action == "amend"
+            else read(Path(args.root), chains))  # fmt: skip
     text = json.dumps(data, indent=1)
     print(text)
     if args.json:

@@ -157,3 +157,58 @@ def test_the_per_test_timeout_reaches_every_pytest_run_inside_and_only_there(lc)
     finally:
         docker_env.pytest = original
     assert seen == [300, None, None]
+
+
+# ---- the conan-2 repeat (amendment-conan2.md) ----------------------------------------------------
+
+
+def _five(lc, root: pathlib.Path, conan2_nl: float) -> list[str]:  # noqa: ANN001
+    """Four chains at Nl/Ne 0.80-0.86 and the repeated one at `conan2_nl` / 0.50 a call."""
+    chains = ["c0", "c1", lc.REPEATED, "c3", "c4"]
+    for i, chain in enumerate(chains):
+        same = [k % 4 != 0 for k in range(40)]
+        nl = conan2_nl if chain == lc.REPEATED else 0.40 + 0.01 * i
+        _arm(root, chain, "Ne", _calls(40, 0.50), same, common=40)
+        _arm(root, chain, "Nl", _calls(40, nl), same, common=40)
+    return chains
+
+
+def test_amend_reads_nothing_without_the_repeat(lc, tmp_path: pathlib.Path) -> None:
+    chains = _five(lc, tmp_path / "sealed", 0.55)
+    data = lc.amend(tmp_path / "sealed", tmp_path / "nowhere", chains)
+    assert data["sealed"] == lc.read(tmp_path / "sealed", chains)
+    assert data["repeat"] is None and data["substitute"] is None and data["average"] is None
+    assert "no amended reading" in data["why_not"]
+
+
+def test_amend_substitutes_and_averages_conan2_leaving_the_sealed_reading(lc, tmp_path) -> None:  # noqa: ANN001
+    chains = _five(lc, tmp_path / "sealed", 0.55)  # conan-2 dearer: 1.10
+    _arm(tmp_path / "again", lc.REPEATED, "Ne", _calls(40, 0.50), [True] * 40, common=40)
+    _arm(tmp_path / "again", lc.REPEATED, "Nl", _calls(40, 0.415), [True] * 40, common=40)
+    data = lc.amend(tmp_path / "sealed", tmp_path / "again", chains)
+    sealed = lc.read(tmp_path / "sealed", chains)
+    assert data["sealed"] == sealed and sealed["verdict"] == "no difference shown"
+    assert data["repeat"]["ratio"] == 0.83 and "pairs" not in data["repeat"]
+    sub, avg = data["substitute"], data["average"]
+    assert sub["chains_counted"] == avg["chains_counted"] == sorted(chains)
+    assert sub["cost"]["n"] == avg["cost"]["n"] == 5
+    assert sub["verdict"] == "wins" and sub["cost"]["high"] < 1.0
+    assert avg["conan2_ratio"] == pytest.approx((1.10 * 0.83) ** 0.5, abs=1e-4)
+    assert sub["cost"]["ratio"] < avg["cost"]["ratio"] < sealed["cost"]["ratio"]
+    # quality: the repeat resolves all 40 in both arms; the average holds both runs' 80 pairs
+    assert sub["quality"]["difference"] == avg["quality"]["difference"] == 0.0
+
+
+def test_amend_reads_nothing_when_the_repeat_has_too_few_common_calls(lc, tmp_path) -> None:  # noqa: ANN001
+    chains = _five(lc, tmp_path / "sealed", 0.55)
+    again = tmp_path / "again"
+    _arm(again, lc.REPEATED, "Ne", _calls(40, 0.50, stop_at=29), [True] * 40, common=29)
+    _arm(again, lc.REPEATED, "Nl", _calls(40, 0.40), [True] * 40, common=29)
+    data = lc.amend(tmp_path / "sealed", again, chains)
+    assert data["repeat"]["common_calls"] == 29
+    assert data["substitute"] is None and data["average"] is None
+
+
+def test_the_repeat_is_conan2_in_its_own_root(lc) -> None:
+    assert lc.REPEATED == "conan-io__conan-long60-2"
+    assert str(lc.REPEAT_ROOT).endswith("L-compact-conan2") and lc.REPEAT_ROOT != lc.ROOT
