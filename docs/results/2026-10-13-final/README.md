@@ -121,7 +121,9 @@ done, in at least 3 of 8 ([memory-frontier](../2026-10-05-memory-frontier/gate-r
 
 Source: [2026-10-13-memory-cell](../2026-10-13-memory-cell/README.md) (sealed prereg d42d261).
 Cost is the median S/N per pair; its interval is the geometric mean's, bootstrapped over scenes.
-S is the default install plus `--memory` (project scope), which the default leaves off.
+S is the default install plus `--memory` (project scope); the default left memory off when this
+was measured and has wired it since 2026-10-14 (`--no-memory` leaves it out), so S is now the
+default install. The other cells' S ran without memory.
 
 - In family (ii), Claude Code's own auto memory followed the newer rule in 16 of 16 sessions over
   both models: where it already resolves precedence, S can only tie or harm.
@@ -136,7 +138,7 @@ S is the default install plus `--memory` (project scope), which the default leav
 - **One measured cell is a win for S: memory on Sonnet 5.5, a fact said in a parallel session
   or sibling worktree.** S broke the fact in 0 of 24 pairs, N in 11 (McNemar p 0.00049), at a
   median cost of 1.117 (+12 %, within the sealed 1.15). The gain is in the 4 of 8 scenes where the
-  fact is not in the code. It needs `--memory`, which the default install leaves off. On Opus 5.5
+  fact is not in the code. Memory is on by default in the install since 2026-10-14. On Opus 5.5
   memory had no room.
 - **No other measured cell is a win.** Three web suites are "no gana" on Sonnet 5.5; code on Haiku
   4.5 is non-inferior with no saving shown; on long code the Jev part (A) did not hold its edge.

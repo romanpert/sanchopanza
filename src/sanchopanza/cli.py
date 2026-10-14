@@ -372,6 +372,12 @@ def _install(args: argparse.Namespace) -> int:
             "guard attaches the exact lines of command output that cannot be read again, the "
             "files changed and your requests verbatim. It asks no model and fails open.\n"
         )
+    if args.memory:
+        sys.stdout.write(
+            "Memory is on: each finished request is recorded verbatim, command output included, "
+            "outside the project (~/.sanchopanza/memory-store, this user only, 30 days), and a "
+            "later request is given the records that bear on it. --no-memory leaves it out.\n"
+        )
     if args.candor:
         sys.stdout.write(
             "Candor is on: each prompt asks for a four-line status block, the workspace is "
@@ -929,10 +935,16 @@ def main(argv: list[str] | None = None) -> int:
     )
     install.add_argument(
         "--memory",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
+        default=True,
         help="record each finished request verbatim (no model) and give a later request, in "
-        "this session after a compaction or in a new session, the records that bear on it "
-        "(Stop, SessionEnd and UserPromptSubmit hooks; not measured yet, so off by default)",
+        "this session after a compaction, in a new session or in a sibling worktree, the "
+        "records that bear on it (UserPromptSubmit, Stop, SessionEnd, SessionStart and "
+        "PostToolUse on the file tools). With a provider or TYPESAFE_API_KEY, decider calls "
+        "store the person's standing rules and check them at Stop (the measured mechanism); "
+        "without one it records and gives records by code only. On by default since the "
+        "memory cell (docs/results/2026-10-13-memory-cell: on Sonnet 5.5 with Jev, 0 of 24 "
+        "facts broken against 11, at +12 %% cost); --no-memory to leave it out",
     )
     install.add_argument(
         "--crawl",

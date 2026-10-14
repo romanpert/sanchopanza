@@ -216,7 +216,9 @@ def test_install_without_autopilot_removes_its_pieces(tmp_path):
     )
     main(["install", "--path", str(settings), "--write"])
     data = json.loads(settings.read_text(encoding="utf-8"))
-    assert "UserPromptSubmit" not in data["hooks"] or not data["hooks"]["UserPromptSubmit"]
+    # the autopilot's recall entry is gone; memory's, on by default since 2026-10-14, stays
+    prompt = data["hooks"].get("UserPromptSubmit", [])
+    assert [h["command"] for e in prompt for h in e["hooks"]] == [install.MEMORY_COMMAND]
     assert not any(k in data["env"] for k in install.AUTOPILOT_ENV)
     assert install.PLUGIN_KEY not in data.get("enabledPlugins", {})
     assert data["hooks"]["PostToolUse"][0]["matcher"] != "*"

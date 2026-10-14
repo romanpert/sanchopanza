@@ -353,13 +353,31 @@ def _guard_unsplit(settings):
     return {**settings, "hooks": hooks}
 
 
+def _without_memory(settings):
+    """`settings` without memory's hooks, which the install wires by default since 2026-10-14
+    (the memory cell, docs/results/2026-10-13-memory-cell) and GAIA dev ran without; entries
+    and events left empty are dropped."""
+    hooks = {}
+    for event, entries in settings["hooks"].items():
+        kept = [{**e, "hooks": [h for h in e["hooks"]
+                                if h["command"] != "sanchopanza memory-hook"]}
+                for e in entries]  # fmt: skip
+        kept = [e for e in kept if e["hooks"]]
+        if kept:
+            hooks[event] = kept
+    return {**settings, "hooks": hooks}
+
+
 def test_the_real_default_install_writes_exactly_the_dev_phase_settings(tmp_path):
     src = ROOT / "src"
     installed = arms.prepare_config("SP", tmp_path / "config", src)  # a real install, free
     written = json.loads((tmp_path / "config" / "settings.json").read_text(encoding="utf-8"))
+    arms.prepare_config("SP", tmp_path / "off", src, ("--no-memory",))
+    off = json.loads((tmp_path / "off" / "settings.json").read_text(encoding="utf-8"))
     # The record of what GAIA dev ran with; today's install differs from it by the split guard
-    # alone, and by nothing else.
-    assert _guard_unsplit(written) == arms.SP_USER_SETTINGS
+    # and by memory (on by default since 2026-10-14), and by nothing else.
+    assert _guard_unsplit(off) == arms.SP_USER_SETTINGS
+    assert _without_memory(written) == _without_memory(off) != written
     assert (tmp_path / "config" / arms.SKILL).is_file()
     assert installed.raw_mcp == {} and "sanchopanza" in installed.hinted  # a hint, not registered
     assert arms.prepare_config("CC", tmp_path / "empty", None) is None

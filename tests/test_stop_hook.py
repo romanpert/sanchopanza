@@ -136,7 +136,9 @@ def test_install_check_done_writes_the_stop_hook_and_its_env(tmp_path, capsys):
     # and running it again without the flag removes both
     assert cli.main(["install", "--path", str(settings), "--write"]) == 0
     again = json.loads(settings.read_text(encoding="utf-8"))
-    assert not again["hooks"].get("Stop") and "SANCHOPANZA_CHECK_DONE" not in again.get("env", {})
+    stop = [h["command"] for e in again["hooks"].get("Stop", []) for h in e["hooks"]]
+    assert "sanchopanza hook" not in stop  # memory's Stop (on by default) may stay
+    assert "SANCHOPANZA_CHECK_DONE" not in again.get("env", {})
 
 
 def test_a_compaction_summary_or_hook_feedback_is_not_the_task(tmp_path):
