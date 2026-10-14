@@ -1,0 +1,354 @@
+{
+ "rule": "wins: the cost ratio's 95 % interval lies below 1 and quality is non-inferior (one-sided 95 % lower bound of Nl - Ne above -10 points); cheaper, quality not shown: the interval below 1, non-inferiority not shown; no difference shown: the interval holds 1; dearer: the interval above 1; no verdict: fewer than 5 chains with 30 common calls and both arms graded at them",
+ "margin": 0.1,
+ "chains_read": 5,
+ "chains_counted": [
+  "conan-io__conan-long60-1",
+  "conan-io__conan-long60-2",
+  "getmoto__moto-long60-1",
+  "getmoto__moto-long60-2",
+  "pydantic__pydantic-long60-1"
+ ],
+ "cost": {
+  "ratio": 0.8999660312777764,
+  "low": 0.7410128049046005,
+  "high": 1.0930160074064372,
+  "n": 5,
+  "sd": 0.15654015464513577
+ },
+ "quality": {
+  "difference": -0.0144,
+  "ci95": [
+   -0.0379,
+   0.0113
+  ],
+  "one_sided_low": -0.0345
+ },
+ "verdict": "no difference shown",
+ "chains": {
+  "conan-io__conan-long60-1": {
+   "common_calls": 62,
+   "graded_common": true,
+   "common_bugs": 60,
+   "ratio": 0.966,
+   "ratio_whole_runs": 0.966,
+   "arms": {
+    "Nl": {
+     "cost_common": 18.6117,
+     "cost_total": 18.6117,
+     "calls_ran": 62,
+     "stopped": "",
+     "resolved_common": 58,
+     "resolved_final": 58,
+     "compactions": [
+      67358,
+      67921,
+      69056,
+      68775,
+      66872,
+      67613,
+      67329,
+      67645,
+      67248,
+      69875,
+      67926,
+      67286,
+      73752,
+      67069,
+      67960,
+      69276,
+      67399,
+      67217,
+      67716,
+      66942
+     ],
+     "peak_context": 67163,
+     "gave_up_unresolved": {
+      "count": 0,
+      "at_or_past_150k": 0,
+      "contexts": []
+     },
+     "cost_per_resolved_common": 0.3209
+    },
+    "Ne": {
+     "cost_common": 19.2662,
+     "cost_total": 19.2662,
+     "calls_ran": 62,
+     "stopped": "",
+     "resolved_common": 59,
+     "resolved_final": 59,
+     "compactions": [
+      160399,
+      160050,
+      160046,
+      160176
+     ],
+     "peak_context": 159576,
+     "gave_up_unresolved": {
+      "count": 0,
+      "at_or_past_150k": 0,
+      "contexts": []
+     },
+     "cost_per_resolved_common": 0.3265
+    }
+   }
+  },
+  "pydantic__pydantic-long60-1": {
+   "common_calls": 62,
+   "graded_common": true,
+   "common_bugs": 60,
+   "ratio": 0.8878,
+   "ratio_whole_runs": 0.8878,
+   "arms": {
+    "Nl": {
+     "cost_common": 13.3845,
+     "cost_total": 13.3845,
+     "calls_ran": 62,
+     "stopped": "",
+     "resolved_common": 48,
+     "resolved_final": 48,
+     "compactions": [
+      67674,
+      67415,
+      67778,
+      67454,
+      67653,
+      67225,
+      68029,
+      66823,
+      67406,
+      67778,
+      67129,
+      66712
+     ],
+     "peak_context": 67000,
+     "gave_up_unresolved": {
+      "count": 3,
+      "at_or_past_150k": 0,
+      "contexts": [
+       61741,
+       64946,
+       66192
+      ]
+     },
+     "cost_per_resolved_common": 0.2788
+    },
+    "Ne": {
+     "cost_common": 15.0764,
+     "cost_total": 15.0764,
+     "calls_ran": 62,
+     "stopped": "",
+     "resolved_common": 47,
+     "resolved_final": 47,
+     "compactions": [
+      160102,
+      160838
+     ],
+     "peak_context": 159174,
+     "gave_up_unresolved": {
+      "count": 2,
+      "at_or_past_150k": 0,
+      "contexts": [
+       64837,
+       113932
+      ]
+     },
+     "cost_per_resolved_common": 0.3208
+    }
+   }
+  },
+  "conan-io__conan-long60-2": {
+   "common_calls": 43,
+   "graded_common": true,
+   "common_bugs": 43,
+   "ratio": 1.0984,
+   "ratio_whole_runs": null,
+   "arms": {
+    "Nl": {
+     "cost_common": 19.5308,
+     "cost_total": 19.5308,
+     "calls_ran": 43,
+     "stopped": "cap",
+     "resolved_common": 36,
+     "resolved_final": 37,
+     "compactions": [
+      66952,
+      66555,
+      67237,
+      66992,
+      67122,
+      66664,
+      66967,
+      70331,
+      67723,
+      68074,
+      66986,
+      67660,
+      67382,
+      67313,
+      67519
+     ],
+     "peak_context": 66977,
+     "gave_up_unresolved": {
+      "count": 1,
+      "at_or_past_150k": 0,
+      "contexts": [
+       57714
+      ]
+     },
+     "cost_per_resolved_common": 0.5425
+    },
+    "Ne": {
+     "cost_common": 17.7808,
+     "cost_total": 19.2023,
+     "calls_ran": 44,
+     "stopped": "cap",
+     "resolved_common": 35,
+     "resolved_final": 37,
+     "compactions": [
+      162755,
+      160339,
+      160463,
+      160486
+     ],
+     "peak_context": 159942,
+     "gave_up_unresolved": {
+      "count": 1,
+      "at_or_past_150k": 0,
+      "contexts": [
+       113191
+      ]
+     },
+     "cost_per_resolved_common": 0.508
+    }
+   }
+  },
+  "getmoto__moto-long60-1": {
+   "common_calls": 56,
+   "graded_common": true,
+   "common_bugs": 55,
+   "ratio": 0.7159,
+   "ratio_whole_runs": null,
+   "arms": {
+    "Nl": {
+     "cost_common": 13.7907,
+     "cost_total": 14.6395,
+     "calls_ran": 62,
+     "stopped": "",
+     "resolved_common": 51,
+     "resolved_final": 56,
+     "compactions": [
+      66796,
+      66714,
+      66600,
+      66253,
+      68344,
+      67208,
+      66910,
+      67880,
+      67286,
+      67091,
+      67348,
+      66747,
+      66965,
+      68715,
+      67914
+     ],
+     "peak_context": 66671,
+     "gave_up_unresolved": {
+      "count": 0,
+      "at_or_past_150k": 0,
+      "contexts": []
+     },
+     "cost_per_resolved_common": 0.2704
+    },
+    "Ne": {
+     "cost_common": 19.2627,
+     "cost_total": 19.2627,
+     "calls_ran": 56,
+     "stopped": "cap",
+     "resolved_common": 54,
+     "resolved_final": 55,
+     "compactions": [
+      161292,
+      159965,
+      160259,
+      161572
+     ],
+     "peak_context": 160071,
+     "gave_up_unresolved": {
+      "count": 0,
+      "at_or_past_150k": 0,
+      "contexts": []
+     },
+     "cost_per_resolved_common": 0.3567
+    }
+   }
+  },
+  "getmoto__moto-long60-2": {
+   "common_calls": 62,
+   "graded_common": true,
+   "common_bugs": 60,
+   "ratio": 0.8754,
+   "ratio_whole_runs": 0.8754,
+   "arms": {
+    "Nl": {
+     "cost_common": 15.9325,
+     "cost_total": 15.9325,
+     "calls_ran": 62,
+     "stopped": "",
+     "resolved_common": 56,
+     "resolved_final": 56,
+     "compactions": [
+      67656,
+      66969,
+      67156,
+      67092,
+      68179,
+      66952,
+      67667,
+      67369,
+      67354,
+      68002,
+      67579,
+      67870,
+      67296,
+      71299,
+      67909,
+      67250,
+      67123,
+      69400
+     ],
+     "peak_context": 67161,
+     "gave_up_unresolved": {
+      "count": 0,
+      "at_or_past_150k": 0,
+      "contexts": []
+     },
+     "cost_per_resolved_common": 0.2845
+    },
+    "Ne": {
+     "cost_common": 18.2006,
+     "cost_total": 18.2006,
+     "calls_ran": 62,
+     "stopped": "",
+     "resolved_common": 58,
+     "resolved_final": 58,
+     "compactions": [
+      159643,
+      161472,
+      160686,
+      161684
+     ],
+     "peak_context": 161252,
+     "gave_up_unresolved": {
+      "count": 0,
+      "at_or_past_150k": 0,
+      "contexts": []
+     },
+     "cost_per_resolved_common": 0.3138
+    }
+   }
+  }
+ }
+}

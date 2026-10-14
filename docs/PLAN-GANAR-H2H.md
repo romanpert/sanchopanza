@@ -679,6 +679,33 @@ listón.** Cada parte del coste, con su techo:
   un margen de no inferioridad laxo.
 - Es una propuesta al dueño, sin lanzar. No es una apuesta de Jev, y se dice así.
 
+### Compactar antes en código largo: cerrado, sin ahorro demostrado (cierre de contexto, 2026-10-13/14)
+
+Aprobado por el dueño el 2026-10-13. Prerregistro sellado antes de cualquier corrida (cierre-contexto
+fb42fa4, verificado contra el código por un subagente independiente). Resultados en
+`docs/results/2026-10-13-long-compact/README.md`.
+
+- **Brazos**: Ne (ventana 193.000, compacta cerca de 160k) frente a Nl (ventana 100.000, lo que escribe
+  `install --context-budget 67000`, compacta cerca de 67k). Configuración de Claude Code, no Jev.
+- Sonnet 5.5, k = 1, 5 cadenas long60: conan-1, pydantic-1, conan-2, moto-1 y moto-2 (validada para
+  esta tanda). dvc-1 terminó inválida a 57 bugs. **173,11 $** de 250 duros.
+- **Veredicto, con la regla sellada: sin diferencia demostrada (no gana).**
+  - Coste Nl/Ne sobre las llamadas comunes: **0,900 [0,741; 1,093]**. Por cadena: 0,966, 0,888, 1,098
+    (conan-2), 0,716 y 0,875.
+  - Calidad no inferior: −1,4 puntos [−3,8; +1,1], cota unilateral −3,5 frente a −10.
+  - Pared: 1,09 [0,85; 1,41]. Nl compacta 12-20 veces por cadena; Ne, 2-4.
+  - Abandonos no resueltos: 3 (Ne) y 4 (Nl), ninguno pasado 150k.
+- **Sensibilidad que el prerregistro mandaba publicar al lado:** un reinicio del PC (05:04 del 14)
+  cortó la llamada 40 de Nl en conan-2. La regla la carga a su tope (4,50 $); costó 0,35 $. Medida a lo
+  que costó, el cociente sería 0,858 [0,748; 0,984]. **No cambia el veredicto sellado.** Si se acepta,
+  o si se repite conan-2 (~35 $), es decisión del dueño.
+- El replay predecía −20 a −25 % (cota optimista). Sale −10 % (−14 % con la sensibilidad): compactar
+  cuatro o cinco veces más se paga y obliga a releer.
+- Aunque ganara, 67k no sirve de valor por defecto de `install`: la base de contexto de las sesiones
+  reales del dueño es de ~68k (prerregistro, sección 9).
+- **Consecuencia**: `install --context-budget` se queda en 160.000. En código largo, Jev no tiene
+  dónde pagar (indagis-b9), y compactar antes, que no es Jev, tampoco demuestra ahorro con 5 cadenas.
+
 ## 7. Lo que no prometemos
 
 - LongBench no tiene palanca de S: su 0,785 es un caso atípico.
