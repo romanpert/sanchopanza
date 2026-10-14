@@ -1,0 +1,1449 @@
+{
+ "chain": "iterative__dvc-long60-1",
+ "repo": "swesmith/iterative__dvc.1d6ea681",
+ "image": "jyangballin/swesmith.x86_64.iterative_1776_dvc.1d6ea681",
+ "tag": "adopt-iterative--dvc-long60-1:bugs",
+ "split": "dev",
+ "seed": 20261005,
+ "token": "f78ef6c5",
+ "size": 57,
+ "sources": {
+  "func_pm_ctrl_shuffle": 1,
+  "func_pm_op_swap": 1,
+  "func_pm_remove_cond": 2,
+  "lm_rewrite": 16,
+  "pr_mirror": 37
+ },
+ "real": 37,
+ "synthetic_dataset": "SWE-bench/SWE-smith@ea6d7173829c7ec8fa16c22055699ff2e9188091",
+ "pr_mirror_sha256": "5128440c2c0acda5c743359add5ade03577b0e552c4e431ec971d1ab484c3d5a",
+ "bugs": [
+  {
+   "n": 1,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__4f3o9s6x",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/parsing/context.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/test_context.py::test_merge_dict"
+   ]
+  },
+  {
+   "n": 2,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__wipvle4z",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/parsing/context.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/test_context.py::test_context_setitem_getitem"
+   ]
+  },
+  {
+   "n": 3,
+   "instance_id": "iterative__dvc.1d6ea681.pr_5188",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/commands/config.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/test_config.py::test_config_get[args0-0-False]",
+    "tests/func/test_config.py::test_config_get[args1-0-myremote]",
+    "tests/func/test_config.py::test_config_get[args2-0-iterative]",
+    "tests/func/test_config.py::test_config_get[args3-0-iterative]",
+    "tests/func/test_config.py::test_config_get[args5-0-gs://bucket/path]",
+    "tests/func/test_config.py::test_config_get[args6-0-gs://bucket/path]",
+    "tests/func/test_config.py::test_config_get_in_non_dvc_repo[args0-251]",
+    "tests/func/test_config.py::test_config_get_in_non_dvc_repo[args1-251]",
+    "tests/func/test_config.py::test_config_get_in_non_dvc_repo[args2-0]",
+    "tests/func/test_config.py::test_config_list",
+    "tests/func/test_config.py::test_config_list_in_non_dvc_repo[args0-251]",
+    "tests/func/test_config.py::test_config_list_in_non_dvc_repo[args1-251]",
+    "tests/func/test_config.py::test_config_remote",
+    "tests/func/test_config.py::test_config_show_origin_single",
+    "tests/func/test_config.py::test_config_show_origin_merged"
+   ]
+  },
+  {
+   "n": 4,
+   "instance_id": "iterative__dvc.1d6ea681.pr_4613",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/commands/cache.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/command/test_cache.py::test_cache_dir_local"
+   ]
+  },
+  {
+   "n": 5,
+   "instance_id": "iterative__dvc.1d6ea681.pr_9660",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/repo/experiments/collect.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/repo/experiments/test_collect.py::test_collect_stable_sorting"
+   ]
+  },
+  {
+   "n": 6,
+   "instance_id": "iterative__dvc.1d6ea681.pr_10298",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/commands/studio.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/command/test_studio.py::test_studio_login_arguments"
+   ]
+  },
+  {
+   "n": 7,
+   "instance_id": "iterative__dvc.1d6ea681.pr_9110",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/dvcfile.py",
+    "dvc/parsing/interpolate.py",
+    "dvc/repo/experiments/utils.py",
+    "dvc/repo/plots/__init__.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/plots/test_collect.py::test_subdir_config_not_overwritten_by_parents",
+    "tests/func/plots/test_show.py::test_plots_show_nested_x_dict",
+    "tests/func/plots/test_show.py::test_top_level_plots[plot_config0-expected_datafiles0]",
+    "tests/func/plots/test_show.py::test_top_level_plots[plot_config2-expected_datafiles2]",
+    "tests/func/plots/test_show.py::test_top_level_parametrized[plot_config0-expanded_config0-expected_datafiles0]"
+   ]
+  },
+  {
+   "n": 8,
+   "instance_id": "iterative__dvc.1d6ea681.pr_5888",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/commands/ls/__init__.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/command/ls/test_ls.py::test_list_tree",
+    "tests/unit/command/ls/test_ls.py::test_show_json"
+   ]
+  },
+  {
+   "n": 9,
+   "instance_id": "iterative__dvc.1d6ea681.pr_9547",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/commands/add.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/test_add.py::test_cmd_add",
+    "tests/func/test_add.py::test_double_add_unchanged_file",
+    "tests/func/test_add.py::test_double_add_unchanged_dir",
+    "tests/func/test_add.py::test_add_colon_in_filename",
+    "tests/func/test_add.py::test_should_update_state_entry_for_file_after_add",
+    "tests/func/test_add.py::test_should_update_state_entry_for_directory_after_add",
+    "tests/func/test_add.py::test_add_commit",
+    "tests/func/test_add.py::test_should_collect_dir_cache_only_once",
+    "tests/func/test_add.py::test_should_place_stage_in_data_dir_if_repository_below_symlink",
+    "tests/func/test_add.py::test_should_throw_proper_exception_on_corrupted_stage_file",
+    "tests/func/test_add.py::test_should_throw_proper_exception_on_existing_out",
+    "tests/func/test_add.py::test_add_force_overwrite_out",
+    "tests/unit/command/test_add.py::test_add",
+    "tests/unit/command/test_add.py::test_add_to_remote"
+   ]
+  },
+  {
+   "n": 10,
+   "instance_id": "iterative__dvc.1d6ea681.pr_7687",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/utils/__init__.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/test_utils.py::test_glob_no_match"
+   ]
+  },
+  {
+   "n": 11,
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_op_swap__gu6fmqp1",
+   "source": "func_pm_op_swap",
+   "origin": "synthetic",
+   "files": [
+    "dvc/utils/collections.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/utils/test_collections.py::test_apply_diff_mapping"
+   ]
+  },
+  {
+   "n": 12,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__fzachh9d",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/repo/__init__.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/repo/test_repo.py::test_used_objs[dir/subdir/file]",
+    "tests/unit/repo/test_repo.py::test_used_objs[dir/subdir]"
+   ]
+  },
+  {
+   "n": 13,
+   "instance_id": "iterative__dvc.1d6ea681.pr_7533",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/render/convert.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/render/test_convert.py::test_to_json_image"
+   ]
+  },
+  {
+   "n": 14,
+   "instance_id": "iterative__dvc.1d6ea681.pr_10386",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/api/artifacts.py",
+    "dvc/repo/artifacts.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/api/test_artifacts.py::test_artifacts_show[]",
+    "tests/func/api/test_artifacts.py::test_artifacts_show_subrepo[sub]",
+    "tests/func/api/test_artifacts.py::test_artifacts_show_subrepo[]"
+   ]
+  },
+  {
+   "n": 15,
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_remove_cond__co62y6gw",
+   "source": "func_pm_remove_cond",
+   "origin": "synthetic",
+   "files": [
+    "dvc/repo/experiments/rename.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/experiments/test_rename.py::test_rename_experiment_by_name",
+    "tests/func/experiments/test_rename.py::test_existing_name",
+    "tests/func/experiments/test_rename.py::test_invalid_name"
+   ]
+  },
+  {
+   "n": 16,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__rrt7ccgc",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/ignore.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/test_ignore.py::test_ignore[ignored]",
+    "tests/func/test_ignore.py::test_ignore[\\u0442\\u0435\\u0441\\u0442]",
+    "tests/func/test_ignore.py::test_ignore_on_branch",
+    "tests/func/test_ignore.py::test_match_nested",
+    "tests/func/test_ignore.py::test_ignore_external",
+    "tests/func/test_ignore.py::test_ignore_blank_line",
+    "tests/func/test_ignore.py::test_ignore_file_in_parent_path[data_struct0-pattern_list0-result_set0]",
+    "tests/func/test_ignore.py::test_ignore_file_in_parent_path[data_struct1-pattern_list1-result_set1]",
+    "tests/func/test_ignore.py::test_ignore_file_in_parent_path[data_struct2-pattern_list2-result_set2]",
+    "tests/func/test_ignore.py::test_ignore_sub_directory",
+    "tests/func/test_ignore.py::test_ignore_directory",
+    "tests/func/test_ignore.py::test_multi_ignore_file",
+    "tests/func/test_ignore.py::test_ignore_in_added_dir"
+   ]
+  },
+  {
+   "n": 17,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__ymzgvwgl",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/dependency/dataset.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/test_dataset.py::test_dvc_dataset_pipeline",
+    "tests/func/test_dataset.py::test_datachain_dataset_pipeline",
+    "tests/func/test_dataset.py::test_url_dataset_pipeline"
+   ]
+  },
+  {
+   "n": 18,
+   "instance_id": "iterative__dvc.1d6ea681.pr_3727",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/commands/diff.py",
+    "dvc/repo/diff.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/test_diff.py::test_same_rev",
+    "tests/func/test_diff.py::test_no_changes",
+    "tests/func/test_diff.py::test_diff_granular",
+    "tests/unit/command/test_diff.py::test_default",
+    "tests/unit/command/test_diff.py::test_show_hash",
+    "tests/unit/command/test_diff.py::test_hide_missing"
+   ]
+  },
+  {
+   "n": 19,
+   "instance_id": "iterative__dvc.1d6ea681.pr_9866",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/utils/humanize.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/command/ls/test_ls.py::test_show_size",
+    "tests/unit/command/ls/test_ls.py::test_show_hash",
+    "tests/unit/command/ls/test_ls.py::test_show_size_and_hash",
+    "tests/unit/command/ls/test_ls.py::test_show_tree"
+   ]
+  },
+  {
+   "n": 20,
+   "instance_id": "iterative__dvc.1d6ea681.pr_9253",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/utils/studio.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/utils/test_studio.py::test_notify_refs[401-side_effect1]",
+    "tests/unit/utils/test_studio.py::test_notify_refs[500-ValueError]"
+   ]
+  },
+  {
+   "n": 21,
+   "instance_id": "iterative__dvc.1d6ea681.pr_9611",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/api/data.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/api/test_data.py::TestAPI::test_open",
+    "tests/func/api/test_data.py::test_open_external",
+    "tests/func/api/test_data.py::test_open_granular",
+    "tests/func/api/test_data.py::test_missing",
+    "tests/func/api/test_data.py::test_open_scm_controlled",
+    "tests/func/api/test_data.py::test_open_not_cached",
+    "tests/func/api/test_data.py::test_open_rev",
+    "tests/func/api/test_data.py::test_api_missing_local_cache_exists_on_remote[file-True]",
+    "tests/func/api/test_data.py::test_api_missing_local_cache_exists_on_remote[file-False]",
+    "tests/func/api/test_data.py::test_api_missing_local_cache_exists_on_remote[inside-dir-True]",
+    "tests/func/api/test_data.py::test_api_missing_local_cache_exists_on_remote[inside-dir-False]",
+    "tests/func/api/test_data.py::test_read_with_subrepos[False]",
+    "tests/func/api/test_data.py::test_read_with_subrepos[True]",
+    "tests/func/api/test_data.py::test_open_from_remote",
+    "tests/func/api/test_data.py::test_read_from_remote"
+   ]
+  },
+  {
+   "n": 22,
+   "instance_id": "iterative__dvc.1d6ea681.pr_7907",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/config_schema.py",
+    "dvc/parsing/__init__.py",
+    "dvc/parsing/context.py",
+    "dvc/parsing/interpolate.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/parsing/test_errors.py::test_interpolate_non_string",
+    "tests/func/parsing/test_errors.py::test_interpolate_nested_iterable",
+    "tests/func/parsing/test_interpolated_entry.py::test_cmd_dict[None-None]",
+    "tests/func/parsing/test_interpolated_entry.py::test_cmd_dict[store_true-nargs]",
+    "tests/func/parsing/test_interpolated_entry.py::test_cmd_dict[boolean_optional-append]",
+    "tests/func/parsing/test_matrix.py::test_matrix_interpolated[matrix0]",
+    "tests/func/parsing/test_matrix.py::test_matrix_interpolated[matrix1]"
+   ]
+  },
+  {
+   "n": 23,
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_ctrl_shuffle__wgimzfsy",
+   "source": "func_pm_ctrl_shuffle",
+   "origin": "synthetic",
+   "files": [
+    "dvc/utils/cli_parse.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/utils/test_cli_parse.py::test_parse_params"
+   ]
+  },
+  {
+   "n": 24,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__k64yw9q4",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/parsing/__init__.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/parsing/test_errors.py::test_foreach_do_syntax_errors"
+   ]
+  },
+  {
+   "n": 25,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__k3o0ojbr",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/ignore.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/test_ignore.py::test_ignore_collecting_dvcignores[dir]",
+    "tests/func/test_ignore.py::test_ignore_collecting_dvcignores[dir/subdir]",
+    "tests/func/test_ignore.py::test_pattern_trie_fs"
+   ]
+  },
+  {
+   "n": 26,
+   "instance_id": "iterative__dvc.1d6ea681.pr_9746",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/fs/dvc.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/fs/test_dvc.py::test_ls_dirty",
+    "tests/unit/fs/test_dvc.py::test_get_hash_cached_dir"
+   ]
+  },
+  {
+   "n": 27,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__ndq3rct4",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/stage/serialize.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/stage/test_serialize_pipeline_file.py::test_params_sorted",
+    "tests/unit/stage/test_serialize_pipeline_file.py::test_params_file_sorted",
+    "tests/unit/stage/test_serialize_pipeline_file.py::test_params_file_without_targets",
+    "tests/unit/stage/test_serialize_pipeline_file.py::test_order_deps_outs[outs]",
+    "tests/unit/stage/test_serialize_pipeline_file.py::test_order_deps_outs[metrics]",
+    "tests/unit/stage/test_serialize_pipeline_file.py::test_order_deps_outs[plots]",
+    "tests/unit/stage/test_serialize_pipeline_file.py::test_order_deps_outs[deps]",
+    "tests/unit/stage/test_serialize_pipeline_file.py::test_order_deps_outs[None]"
+   ]
+  },
+  {
+   "n": 28,
+   "instance_id": "iterative__dvc.1d6ea681.pr_7725",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/commands/dag.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/command/test_dag.py::test_show_dot",
+    "tests/unit/command/test_dag.py::test_show_dot_properly_escapes"
+   ]
+  },
+  {
+   "n": 29,
+   "instance_id": "iterative__dvc.1d6ea681.pr_9927",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/commands/imp.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/command/test_imp.py::test_import",
+    "tests/unit/command/test_imp.py::test_import_no_exec",
+    "tests/unit/command/test_imp.py::test_import_no_download"
+   ]
+  },
+  {
+   "n": 30,
+   "instance_id": "iterative__dvc.1d6ea681.pr_4075",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/commands/imp_url.py",
+    "dvc/repo/imp_url.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/test_import_url.py::test_import_url_with_no_exec",
+    "tests/func/test_import_url.py::test_import_url_to_remote_invalid_combinations",
+    "tests/func/test_import_url.py::test_import_url_to_remote_status",
+    "tests/func/test_import_url.py::test_import_url_no_download",
+    "tests/unit/command/test_imp_url.py::test_import_url",
+    "tests/unit/command/test_imp_url.py::test_import_url_no_exec_download_flags[--no-exec-expected0]",
+    "tests/unit/command/test_imp_url.py::test_import_url_no_exec_download_flags[--no-download-expected1]",
+    "tests/unit/command/test_imp_url.py::test_import_url_to_remote",
+    "tests/unit/command/test_imp_url.py::test_import_url_to_remote_invalid_combination[--no-exec]"
+   ]
+  },
+  {
+   "n": 31,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__fpu657w7",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/repo/stage.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/test_stage.py::test_collect_symlink[True]"
+   ]
+  },
+  {
+   "n": 32,
+   "instance_id": "iterative__dvc.1d6ea681.pr_8381",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/utils/hydra.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/utils/test_hydra.py::test_hydra_sweeps[overrides1-expected1]"
+   ]
+  },
+  {
+   "n": 33,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__aeflzuvt",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/lock.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/test_lock.py::test_unlock_unlocked_raises"
+   ]
+  },
+  {
+   "n": 34,
+   "instance_id": "iterative__dvc.1d6ea681.pr_9919",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/commands/checkout.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/command/test_checkout.py::test_checkout"
+   ]
+  },
+  {
+   "n": 35,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__kf1qryfc",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/updater.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/test_updater.py::test_check_refetches_each_day",
+    "tests/unit/test_updater.py::test_check_fetches_on_invalid_data_format"
+   ]
+  },
+  {
+   "n": 36,
+   "instance_id": "iterative__dvc.1d6ea681.pr_7406",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/commands/diff.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/command/test_diff.py::test_no_changes[show0--opts1]",
+    "tests/unit/command/test_diff.py::test_no_changes[show0--opts3]",
+    "tests/unit/command/test_diff.py::test_no_changes[show1-{}-opts1]",
+    "tests/unit/command/test_diff.py::test_no_changes[show1-{}-opts3]"
+   ]
+  },
+  {
+   "n": 37,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__337qxwsi",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/parsing/__init__.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/parsing/test_errors.py::test_foreach_wdir_key_does_not_exist",
+    "tests/func/parsing/test_foreach.py::test_with_simple_list_data",
+    "tests/func/parsing/test_foreach.py::test_foreach_interpolated_simple_list",
+    "tests/func/parsing/test_foreach.py::test_foreach_with_interpolated_wdir",
+    "tests/func/parsing/test_foreach.py::test_foreach_with_local_vars",
+    "tests/func/parsing/test_foreach.py::test_foreach_with_imported_vars[test_params.yaml]",
+    "tests/func/parsing/test_foreach.py::test_foreach_with_imported_vars[test_params.yaml:train]",
+    "tests/func/parsing/test_foreach.py::test_foreach_with_imported_vars[test_params.yaml:train,prepare]"
+   ]
+  },
+  {
+   "n": 38,
+   "instance_id": "iterative__dvc.1d6ea681.pr_9923",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/fs/dvc.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/fs/test_dvc.py::test_fsid_noscm",
+    "tests/unit/fs/test_dvc.py::test_fsid",
+    "tests/unit/fs/test_dvc.py::test_fsid_url"
+   ]
+  },
+  {
+   "n": 39,
+   "instance_id": "iterative__dvc.1d6ea681.pr_9212",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/utils/hydra.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/utils/test_hydra.py::test_compose_and_dump_resolves_interpolation"
+   ]
+  },
+  {
+   "n": 40,
+   "instance_id": "iterative__dvc.1d6ea681.pr_7413",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/dependency/param.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/dependency/test_params.py::test_read_params_nonexistent_file",
+    "tests/unit/dependency/test_params.py::test_get_hash_missing_config"
+   ]
+  },
+  {
+   "n": 41,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__rtlbbkd7",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/dirs.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/test_dirs.py::test_site_cache_dir_on_unix"
+   ]
+  },
+  {
+   "n": 42,
+   "instance_id": "iterative__dvc.1d6ea681.pr_10034",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/api/experiments.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/api/test_experiments.py::test_exp_show"
+   ]
+  },
+  {
+   "n": 43,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__lzdjarxp",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/parsing/__init__.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/parsing/test_top_level.py::test_artifacts"
+   ]
+  },
+  {
+   "n": 44,
+   "instance_id": "iterative__dvc.1d6ea681.pr_10044",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/parsing/__init__.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/parsing/test_matrix.py::test_matrix_key_present[matrix0]",
+    "tests/func/parsing/test_matrix.py::test_matrix_key_present[matrix1]"
+   ]
+  },
+  {
+   "n": 45,
+   "instance_id": "iterative__dvc.1d6ea681.pr_8823",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/dependency/param.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/dependency/test_params.py::test_params_py_tuple_status"
+   ]
+  },
+  {
+   "n": 46,
+   "instance_id": "iterative__dvc.1d6ea681.pr_6683",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/commands/ls/__init__.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/command/ls/test_ls.py::test_list_alias"
+   ]
+  },
+  {
+   "n": 47,
+   "instance_id": "iterative__dvc.1d6ea681.pr_10349",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/api/data.py",
+    "dvc/commands/get.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/api/test_data.py::TestAPI::test_get_url",
+    "tests/func/api/test_data.py::test_get_url_external",
+    "tests/func/api/test_data.py::test_get_url_from_remote",
+    "tests/func/api/test_data.py::test_get_url_granular",
+    "tests/func/api/test_data.py::test_get_url_subrepos"
+   ]
+  },
+  {
+   "n": 48,
+   "instance_id": "iterative__dvc.1d6ea681.pr_7360",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/ignore.py",
+    "dvc/repo/destroy.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/test_repo.py::test_destroy"
+   ]
+  },
+  {
+   "n": 49,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__769syjv9",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/info.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/test_info.py::test_fs_info_in_repo"
+   ]
+  },
+  {
+   "n": 50,
+   "instance_id": "iterative__dvc.1d6ea681.pr_10343",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/repo/experiments/executor/local.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/experiments/test_remote.py::test_auto_push_tmp_dir"
+   ]
+  },
+  {
+   "n": 51,
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__7eec63uf",
+   "source": "lm_rewrite",
+   "origin": "synthetic",
+   "files": [
+    "dvc/commands/check_ignore.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/test_check_ignore.py::test_check_ignore[ignored-0-True]",
+    "tests/func/test_check_ignore.py::test_check_ignore_details[file-0-.dvcignore:1:f*\\tfile\\n]",
+    "tests/func/test_check_ignore.py::test_check_ignore_details[foo-0-.dvcignore:2:!foo\\tfoo\\n]",
+    "tests/func/test_check_ignore.py::test_check_ignore_details[dir/foobar-0-dir/.dvcignore:1:foobar\\tdir/foobar\\n]",
+    "tests/func/test_check_ignore.py::test_check_ignore_non_matching[True]",
+    "tests/func/test_check_ignore.py::test_check_ignore_sub_repo",
+    "tests/func/test_check_ignore.py::test_check_sub_dir_ignore_file",
+    "tests/func/test_check_ignore.py::test_check_ignore_details_all",
+    "tests/func/test_check_ignore.py::test_check_ignore_stdin_mode[ignored-0-True]"
+   ]
+  },
+  {
+   "n": 52,
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_remove_cond__4gxj91hw",
+   "source": "func_pm_remove_cond",
+   "origin": "synthetic",
+   "files": [
+    "dvc/repo/scm_context.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/repo/test_scm_context.py::test_scm_context_on_no_files_to_track[scm-False-False]"
+   ]
+  },
+  {
+   "n": 53,
+   "instance_id": "iterative__dvc.1d6ea681.pr_8209",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/commands/data.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/command/test_data_status.py::test_show_status[True-args0]",
+    "tests/unit/command/test_data_status.py::test_show_status[True-args1]",
+    "tests/unit/command/test_data_status.py::test_show_status[True-args2]",
+    "tests/unit/command/test_data_status.py::test_show_status[False-args0]",
+    "tests/unit/command/test_data_status.py::test_show_status[False-args1]",
+    "tests/unit/command/test_data_status.py::test_show_status[False-args2]"
+   ]
+  },
+  {
+   "n": 54,
+   "instance_id": "iterative__dvc.1d6ea681.pr_8129",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/commands/plots.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/unit/command/test_plots.py::test_plots_templates[t1-\"{'t1'}\"-0]",
+    "tests/unit/command/test_plots.py::test_plots_templates[None-t1\\nt2-0]",
+    "tests/unit/command/test_plots.py::test_plots_templates[t3--1]"
+   ]
+  },
+  {
+   "n": 55,
+   "instance_id": "iterative__dvc.1d6ea681.pr_10375",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/repo/metrics/show.py",
+    "dvc/repo/params/show.py",
+    "dvc/utils/__init__.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/metrics/test_show.py::test_metric_in_a_tracked_directory_with_missing_dir_file",
+    "tests/func/params/test_show.py::test_param_in_a_tracked_directory_with_missing_dir_file"
+   ]
+  },
+  {
+   "n": 56,
+   "instance_id": "iterative__dvc.1d6ea681.pr_1651",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/repo/status.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/test_status.py::test_implied_cloud"
+   ]
+  },
+  {
+   "n": 57,
+   "instance_id": "iterative__dvc.1d6ea681.pr_10151",
+   "source": "pr_mirror",
+   "origin": "real",
+   "files": [
+    "dvc/dependency/db.py"
+   ],
+   "FAIL_TO_PASS": [
+    "tests/func/test_import_db.py::test[args0-results-csv]",
+    "tests/func/test_import_db.py::test[args0-results-json]",
+    "tests/func/test_import_db.py::test[args1-model-csv]",
+    "tests/func/test_import_db.py::test[args1-model-json]"
+   ]
+  }
+ ],
+ "guard": {
+  "tests": 1006,
+  "sha256": "d90dbbe33728dd46669111f6f5f51e5e049d9bfac128ef10c163e22625379a8c"
+ },
+ "callbacks": [
+  {
+   "after_bug": 43,
+   "asked": [
+    3,
+    7,
+    11
+   ]
+  },
+  {
+   "after_bug": 57,
+   "asked": [
+    5,
+    9,
+    14
+   ]
+  }
+ ],
+ "rule": "Before the first bug, one rule for this whole session. For every bug I report, add a file `changes/<n>.md` at the repository root, where <n> is the bug's number as I give it. Its first line must be exactly `Ref: f78ef6c5`; after that line, one or two sentences on what was wrong. I will not repeat this rule.",
+ "requests": [
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__4f3o9s6x",
+   "chars": 1981,
+   "sha256": "6ca76f9bc2376289d0e21baab17148d7d9211306f487604b68d40e66d3410799"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__wipvle4z",
+   "chars": 1672,
+   "sha256": "49aa9b17e36261fed8af33d28dab385d9836038cb7cfdd47c8a95371974922b5"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_5188",
+   "chars": 1794,
+   "sha256": "0169108f703be8c644000358803354d524cc2f281f98fbc16ca22e42c961bb80"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_4613",
+   "chars": 753,
+   "sha256": "82220d323139db1a7a7fb608c46af6bb153362c83df9566c287ef1aa3901c655"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_9660",
+   "chars": 2966,
+   "sha256": "51e8a57e3fa093e1709af7251f1f91e47fe588e3eb3b458b4f65be52149f15d4"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_10298",
+   "chars": 1536,
+   "sha256": "c351f74f8ddb64237aae4029a41420c2c23367cafdfd5afd3ea143424dccdc7f"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_9110",
+   "chars": 2286,
+   "sha256": "d7a9dd20c80a41b8c87385f6f43d78033bdecaab3ee3d95ccefd568b26109d62"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_5888",
+   "chars": 1431,
+   "sha256": "275360efa07c4ca827faf690dfdc357aa45820b810e0c45075e2de141eb0184a"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_9547",
+   "chars": 1132,
+   "sha256": "db5cb40ecb296a7b51b31cfe816ab112a2450eade0a73a1561e27caf69cf605d"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_7687",
+   "chars": 1261,
+   "sha256": "34849fff9c40fad1a635d9193654260f9470b4d74d155355dfa7148cf2d2a9a4"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_op_swap__gu6fmqp1",
+   "chars": 1292,
+   "sha256": "f5365c0ba15eaf022437103207efc3ede75d8b02014522a6c4b71d3bba61c653"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__fzachh9d",
+   "chars": 1746,
+   "sha256": "deb106310cc96b85c9bf9f187bf7bd95e63089fdea7b6fa5765e71e6ca927b6b"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_7533",
+   "chars": 1905,
+   "sha256": "55ff50f142b00dd412d446472c67ca4c9d44cebea288f10aa87634b8552b47ec"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_10386",
+   "chars": 3062,
+   "sha256": "35e785fff23f875901bf97fadf4fb9cab8e7e7c5b35548def62c7122f8837d98"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_remove_cond__co62y6gw",
+   "chars": 1309,
+   "sha256": "468e56c7219f828c6c0ff462c8b7ca6ded19baabe52a87bfccbb48c788254324"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__rrt7ccgc",
+   "chars": 2144,
+   "sha256": "55afacbf09d5be63595d291cead809776ba056bef9192f309ea75a552ef3d658"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__ymzgvwgl",
+   "chars": 1557,
+   "sha256": "e81f21d8b8837cc2de56bcae3c112e2caece117904a96ef9efcc827d683da502"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_3727",
+   "chars": 597,
+   "sha256": "48af114551f943ad168d7c3448104ea9b82e6bb7055f85165a71a3a61ef084f6"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_9866",
+   "chars": 1018,
+   "sha256": "67713619ca1bc2d2aa199cda9ebd6086ef50a88a274ce4e3edb2525f191e1228"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_9253",
+   "chars": 1867,
+   "sha256": "46d2c6e3787c3595e8a52d3fcdaa1fdf000c04c20c440d3c6fbe6b21df1fe1f9"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_9611",
+   "chars": 512,
+   "sha256": "080cb480d9a48e175144c7cd2172c9a5a86f0bfa95a51f551bceab9ca40a34a1"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_7907",
+   "chars": 4501,
+   "sha256": "598756876447b9884047086ec52ccfce45a936eca9b26c9be0ea2d87c5e590d5"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_ctrl_shuffle__wgimzfsy",
+   "chars": 1074,
+   "sha256": "c5309fd76235aba38d3e29d106b8b5c10f21b135bc48f750ae1daf4a38bae576"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__k64yw9q4",
+   "chars": 1575,
+   "sha256": "17ddc5ea673cc78055265abf7de40f52d5d1029929030deac7e4ae049b9e295f"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__k3o0ojbr",
+   "chars": 2196,
+   "sha256": "5800eda8d891af993569e1056eb7f40bad6c5dd1a2403cf1fae9578d91e2aa7c"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_9746",
+   "chars": 936,
+   "sha256": "c8c03df4d5207278bbf08775e1770ea9c7067336ec6f3fe193aab8a3fe39aa12"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__ndq3rct4",
+   "chars": 2083,
+   "sha256": "52b1f00774177c08338316c995b4de48926c1a33bc8f252234606af331bc0c87"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_7725",
+   "chars": 1536,
+   "sha256": "d238980f39bc998a63ef0cf88d824ee503f7ec0ac5c763551eb4c04f7baadfa4"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_9927",
+   "chars": 1635,
+   "sha256": "1adbc4eb902f1b7eab98321c41929cf1e2f387f9c1f070adf6bbec33cc2d16ab"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_4075",
+   "chars": 728,
+   "sha256": "dc8b5a38d19c1ed0d8ef3096dd62fe0585e16c1f465bb2266b89aa650ff4b347"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__fpu657w7",
+   "chars": 1488,
+   "sha256": "36db72acc42408a5fb1f4ab5dbf16e2d561222eced21adf3ddac90848201f994"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_8381",
+   "chars": 2676,
+   "sha256": "fd3f876df6c9c63fdf21c89b487e323aff7e384a38a248a442982d5e1a500939"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__aeflzuvt",
+   "chars": 1651,
+   "sha256": "07096c5fbabb058f98cf95d8d3fae56ed37306ec119dfa06d21597005a3101b3"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_9919",
+   "chars": 1597,
+   "sha256": "0d802ec9639348517524b547cce36c2ffb0b3c7b22ece3b8c870b5e77b21c4dd"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__kf1qryfc",
+   "chars": 1637,
+   "sha256": "fc5c8dd9354c178a95e03c18b00db082dff19791ec273fd03694cc92244ed4d6"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_7406",
+   "chars": 1387,
+   "sha256": "3f8393a2e85a035e9141faf8fa133499091df844b2f0a6e765fd8131d7a169e8"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__337qxwsi",
+   "chars": 1568,
+   "sha256": "c54e3df2bc6e92d15c7f284e89773a7ddcc56004ed61fe3e040121c24d8a2e00"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_9923",
+   "chars": 10499,
+   "sha256": "a421d1fffc93f87eaa71f3683c037b9ce32defafb59b93bac530e5e42e9f60f7"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_9212",
+   "chars": 1009,
+   "sha256": "a12ad09a0102ce12991a3f34427ea88d8c2a5b5f72e7b138216b93bd1ef3f047"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_7413",
+   "chars": 1774,
+   "sha256": "51803d81124d5c8225c24bae935c1ea0cfbf7155424ddd433f1a16f1838a029c"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__rtlbbkd7",
+   "chars": 1155,
+   "sha256": "4e0f2f5e80964eaddf76c7214e4beda4d98ec4a8c6f9244c9ed7d4644ca766ce"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_10034",
+   "chars": 1209,
+   "sha256": "305a6e9ab4e32d728f6f7dd164c68e4773fbc663396ad55fbda37392e9b3e605"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__lzdjarxp",
+   "chars": 1713,
+   "sha256": "87a5165047077055dfa9f1ad6d09435cca81291cb99d27bb624254280e10f07b"
+  },
+  {
+   "kind": "callback",
+   "instance_id": "callback-1",
+   "chars": 459,
+   "sha256": "08c85610f5f45ca9c25172e9479c80904a7aa3b5e3e2f799c5fe14f3c27791f7",
+   "prompt": "No new bug in this message. Write the file `changes/recall-1.md` with one line for each of bugs 3, 7 and 11 of this session, in the form `bug <n>: <path>, <path>`, listing every repository file you changed while fixing that bug (paths from the repository root; leave out files under `changes/`; write `bug <n>: none` if you changed none). Answer from what you remember of this session: do not use git and do not open files to work it out. Change nothing else."
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_10044",
+   "chars": 1824,
+   "sha256": "a1c2441dc465d2a1f3569a59071ec70112229c66101349a9b4e0bb09b6b281ea"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_8823",
+   "chars": 998,
+   "sha256": "f27756545fa93752bac441bc788602d7b62edda71b91ad91c08f61590e255454"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_6683",
+   "chars": 422,
+   "sha256": "95e65ca3590741377a021512aeedfab33f1fbdc40a7dcc52fcac6372f7fb0777"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_10349",
+   "chars": 1806,
+   "sha256": "fce2dc560892634a9b3452f08495788c8ece953e92ade7d8130a7134338e7f64"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_7360",
+   "chars": 944,
+   "sha256": "59551ffa20b72098a782696f8e577b43a312247e04b96d0d7ef43afda83009ec"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__769syjv9",
+   "chars": 1162,
+   "sha256": "0b49277723c4d4dfcff6878221996868b85955cf2e6e48f4a99bc8e4b63c34f8"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_10343",
+   "chars": 1480,
+   "sha256": "77f990a05ee80e4e2abdc22ec5af43116a80522dc4086de7f3832ab97bbb934f"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__7eec63uf",
+   "chars": 1364,
+   "sha256": "3e3660857f60c907f83f7908f8a643734b285508dfacd15e75ab03eae9adddc3"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_remove_cond__4gxj91hw",
+   "chars": 1142,
+   "sha256": "9ee0a0cd22e3f3fb9fab26daf68fc112f1c30c891c35c6c6acae9e55e4886361"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_8209",
+   "chars": 1076,
+   "sha256": "fadf9df090ecbc40a85a0f02a6af278e38635e590872ca9078da14d6efcbf1f2"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_8129",
+   "chars": 718,
+   "sha256": "4f5f1b5889aeb79913f5a1d28fa813ca99bc1f1323a558a44385d58466e17437"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_10375",
+   "chars": 1439,
+   "sha256": "4ea040b9588c4865d6052c71d73699fb1084f8b8709b8a47e139d405014d5e08"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_1651",
+   "chars": 507,
+   "sha256": "31bdbb2af8e7020c1b8a9aefcad1eaf9b877bc98e6995ebe9901c214a8c0dac0"
+  },
+  {
+   "kind": "bug",
+   "instance_id": "iterative__dvc.1d6ea681.pr_10151",
+   "chars": 1517,
+   "sha256": "556822a8478a12371fca0e962a53216fc9eac053cc7ad919020839d453b6ae9a"
+  },
+  {
+   "kind": "callback",
+   "instance_id": "callback-2",
+   "chars": 459,
+   "sha256": "81d59325cc2d5eaec13333d5bb281fc99fed451d7de4c1d8a56456d926ca1554",
+   "prompt": "No new bug in this message. Write the file `changes/recall-2.md` with one line for each of bugs 5, 9 and 14 of this session, in the form `bug <n>: <path>, <path>`, listing every repository file you changed while fixing that bug (paths from the repository root; leave out files under `changes/`; write `bug <n>: none` if you changed none). Answer from what you remember of this session: do not use git and do not open files to work it out. Change nothing else."
+  }
+ ],
+ "valid": false,
+ "validation_seconds": 19607,
+ "rounds": 4,
+ "dropped": [
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_7734",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_8078",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_4124",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_8716",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_9344",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_9146",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_9047",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_9508",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_9523",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_8364",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_7835",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_5839",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_10243",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_9033",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_8405",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_7299",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_9533",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_7524",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_8375",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_7602",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_7252",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_8767",
+   "source": "pr_mirror",
+   "round": 1,
+   "why": "culprit: pr_7734, pr_8078, pr_4124, pr_5188, pr_4613"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_ctrl_invert_if__t14q5i46",
+   "source": "func_pm_ctrl_invert_if",
+   "round": 2,
+   "why": "culprit: func_pm_ctrl_invert_if__t14q5i46, pr_5188, pr_4613, pr_9660, pr_9110"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_ctrl_invert_if__d00xdww6",
+   "source": "func_pm_ctrl_invert_if",
+   "round": 2,
+   "why": "culprit: func_pm_ctrl_invert_if__t14q5i46, pr_5188, pr_4613, pr_9660, pr_9110"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_remove_assign__nbjxqs89",
+   "source": "func_pm_remove_assign",
+   "round": 2,
+   "why": "culprit: func_pm_ctrl_invert_if__t14q5i46, pr_5188, pr_4613, pr_9660, pr_9110"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_remove_cond__eg99hxp1",
+   "source": "func_pm_remove_cond",
+   "round": 2,
+   "why": "culprit: func_pm_ctrl_invert_if__t14q5i46, pr_5188, pr_4613, pr_9660, pr_9110"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_ctrl_invert_if__ntv844lr",
+   "source": "func_pm_ctrl_invert_if",
+   "round": 2,
+   "why": "culprit: func_pm_ctrl_invert_if__t14q5i46, pr_5188, pr_4613, pr_9660, pr_9110"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.pr_7468",
+   "source": "pr_mirror",
+   "round": 2,
+   "why": "culprit: func_pm_ctrl_invert_if__t14q5i46, pr_5188, pr_4613, pr_9660, pr_9110"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_remove_assign__cecy77zu",
+   "source": "func_pm_remove_assign",
+   "round": 2,
+   "why": "culprit: func_pm_ctrl_invert_if__t14q5i46, pr_5188, pr_4613, pr_9660, pr_9110"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.lm_rewrite__s9km3gww",
+   "source": "lm_rewrite",
+   "round": 2,
+   "why": "culprit: func_pm_ctrl_invert_if__t14q5i46, pr_5188, pr_4613, pr_9660, pr_9110"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_class_rm_funcs__uze5q3oz",
+   "source": "func_pm_class_rm_funcs",
+   "round": 2,
+   "why": "culprit: func_pm_ctrl_invert_if__t14q5i46, pr_5188, pr_4613, pr_9660, pr_9110"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_ctrl_invert_if__jpp8qvdl",
+   "source": "func_pm_ctrl_invert_if",
+   "round": 3,
+   "why": "culprit: pr_9110, pr_10386, func_pm_remove_cond__co62y6gw, lm_rewrite__ymzgvwgl, pr_9611"
+  },
+  {
+   "instance_id": "iterative__dvc.1d6ea681.func_pm_class_rm_base__po70rljf",
+   "source": "func_pm_class_rm_base",
+   "round": 3,
+   "why": "culprit: pr_9110, pr_10386, func_pm_remove_cond__co62y6gw, lm_rewrite__ymzgvwgl, pr_9611"
+  }
+ ],
+ "p2p": {
+  "p2p": 1049,
+  "p2p_failing_all_fixed": 3,
+  "p2p_failing_with_bugs": 43,
+  "p2p_broken_by_fixes": 0
+ },
+ "sha256": "b0c4462264238d7140a17e39234143dce466e642d127d5fb9610084f0577ed93"
+}
