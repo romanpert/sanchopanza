@@ -86,6 +86,18 @@ def test_an_s_hook_runs_this_checkouts_code_with_the_pairs_state_and_no_token(
     assert row["session"] == "s1" and row["exit"] == 0 and row["key"] is False
 
 
+def test_v_arms_keep_the_stop_audit_they_were_measured_with_and_s_runs_the_default(
+        tmp_path: Path) -> None:  # fmt: skip
+    hook = bench_module(BENCH, "carry_hook")
+    v = hook.v_env(tmp_path, tmp_path / "missing.key", "on")
+    assert v["SANCHOPANZA_MEMORY_RULES"] == "on"
+    assert v["SANCHOPANZA_MEMORY_RULES_AUDIT"] == "on"
+    off = hook.v_env(tmp_path, tmp_path / "missing.key", "off")
+    assert off["SANCHOPANZA_MEMORY_RULES"] == "off"
+    s = hook.s_env(tmp_path, tmp_path / "missing.key")
+    assert "SANCHOPANZA_MEMORY_RULES_AUDIT" not in s
+
+
 @pytest.mark.parametrize("name", sorted(PARALLEL))
 def test_the_install_changes_no_check_of_a_parallel_scene(name: str, tmp_path: Path) -> None:
     scene = PARALLEL[name]

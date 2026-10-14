@@ -376,7 +376,9 @@ def _install(args: argparse.Namespace) -> int:
         sys.stdout.write(
             "Memory is on: each finished request is recorded verbatim, command output included, "
             "outside the project (~/.sanchopanza/memory-store, this user only, 30 days), and a "
-            "later request is given the records that bear on it. --no-memory leaves it out.\n"
+            "later request is given the records that bear on it. The Stop audit that sends the "
+            "agent back on a stored rule is off (SANCHOPANZA_MEMORY_RULES_AUDIT=on). "
+            "--no-memory leaves memory out.\n"
         )
     if args.candor:
         sys.stdout.write(
@@ -941,10 +943,13 @@ def main(argv: list[str] | None = None) -> int:
         "this session after a compaction, in a new session or in a sibling worktree, the "
         "records that bear on it (UserPromptSubmit, Stop, SessionEnd, SessionStart and "
         "PostToolUse on the file tools). With a provider or TYPESAFE_API_KEY, decider calls "
-        "store the person's standing rules and check them at Stop (the measured mechanism); "
-        "without one it records and gives records by code only. On by default since the "
-        "memory cell (docs/results/2026-10-13-memory-cell: on Sonnet 5.5 with Jev, 0 of 24 "
-        "facts broken against 11, at +12 %% cost); --no-memory to leave it out",
+        "store the person's standing rules and give them at every session start (the measured "
+        "mechanism); without one it records and gives records by code only. On by default since "
+        "the memory cell (docs/results/2026-10-13-memory-cell: on Sonnet 5.5 with Jev, 0 of 24 "
+        "facts broken against 11, at +12 %% cost); --no-memory to leave it out. The Stop audit "
+        "that sends the agent back on a confident break of a stored rule is off "
+        "(SANCHOPANZA_MEMORY_RULES_AUDIT=on turns it on; none of its send-backs in the "
+        "maintainer's real sessions was right: docs/results/2026-10-14-memory-stop)",
     )
     install.add_argument(
         "--crawl",

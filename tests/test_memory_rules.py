@@ -180,7 +180,8 @@ def hook_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv("SANCHOPANZA_MEMORY_STORE_LOG", str(tmp_path / "log.jsonl"))
     monkeypatch.setenv("SANCHOPANZA_PROVIDER", "scripted")
     for name in ("SANCHOPANZA_MEMORY_SELECT", "SANCHOPANZA_MEMORY_RULES", "TYPESAFE_API_KEY",
-                 "SANCHOPANZA_MEMORY_TREE", "SANCHOPANZA_MEMORY_PROMPT"):
+                 "SANCHOPANZA_MEMORY_TREE", "SANCHOPANZA_MEMORY_PROMPT",
+                 "SANCHOPANZA_MEMORY_RULES_AUDIT"):  # fmt: skip
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setattr("sanchopanza.harness.claude_code.squire_from_env",
                         lambda env=None, redact=False: squire())  # fmt: skip
@@ -206,8 +207,9 @@ def _transcript(path: Path, cwd: str, text: str, edit: bool) -> Path:
 
 @needs_git
 def test_the_hook_learns_a_rule_gives_it_at_the_next_start_and_sends_a_break_back(
-    hook_env: Path,
+    hook_env: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_RULES_AUDIT", "on")  # opt-in since 2026-10-14
     repo = hook_env / "repo"
     _repo(repo)
     cwd = str(repo).replace("\\", "/")
@@ -230,6 +232,57 @@ def test_the_hook_learns_a_rule_gives_it_at_the_next_start_and_sends_a_break_bac
     assert sent["decision"] == "block" and RULE in sent["reason"]
     again = mh.handle({**second, "hook_event_name": "Stop", "stop_hook_active": True})
     assert again == {}
+
+
+@needs_git
+def test_by_default_the_hook_keeps_and_gives_the_rule_but_never_audits_or_sends_back(
+    hook_env: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """2026-10-14 (docs/results/2026-10-14-memory-stop): the Stop audit is opt-in. Extraction at
+    Stop and the rules at the next start, the mechanism the memory cell measured, are unchanged;
+    no audit question is asked, so the default spends nothing on it and blocks no Stop."""
+    decider = RuleDecider()
+    monkeypatch.setattr("sanchopanza.harness.claude_code.squire_from_env",
+                        lambda env=None, redact=False: Squire(decider))  # fmt: skip
+    repo = hook_env / "repo"
+    _repo(repo)
+    cwd = str(repo).replace("\\", "/")
+    project = hook_env / "projects" / "p"
+    first = {"session_id": "s1", "cwd": cwd, "transcript_path": str(project / "s1.jsonl")}
+    text1 = f"Make load() raise ValueError on a bad APP_RETRIES. {RULE}"
+    mh.handle({**first, "hook_event_name": "UserPromptSubmit", "prompt": text1})
+    _transcript(project / "s1.jsonl", cwd, text1, edit=False)
+    assert mh.handle({**first, "hook_event_name": "Stop"}) == {}
+
+    second = {"session_id": "s2", "cwd": cwd, "transcript_path": str(project / "s2.jsonl")}
+    out = mh.handle({**second, "hook_event_name": "SessionStart", "source": "startup"})
+    assert RULE in out["hookSpecificOutput"]["additionalContext"]
+    text2 = "Give every environment variable an APP_ prefix."
+    mh.handle({**second, "hook_event_name": "UserPromptSubmit", "prompt": text2})
+    (repo / "app" / "config.py").write_text(
+        "def load():\n    return {\n    'timeout': env('APP_PAYMENT_TIMEOUT'),\n    }\n", "utf-8")
+    _transcript(project / "s2.jsonl", cwd, text2, edit=True)
+    assert mh.handle({**second, "hook_event_name": "Stop"}) == {}
+    points = {point for point, _, _ in decider.calls}
+    assert "memory_standing_rule" in points
+    assert not points & {"memory_rule_all", "memory_rule_check", "memory_rule_relation",
+                         "memory_rule_superseded"}  # fmt: skip
+    rows = [json.loads(x) for x in (hook_env / "log.jsonl").read_text("utf-8").splitlines()]
+    assert [r["audit"] for r in rows if r.get("event") == "rules" and "audit" in r] == \
+        ["off", "off"]  # fmt: skip
+
+
+@pytest.mark.parametrize(("value", "on"), [(None, False), ("", False), ("off", False),
+                                           ("0", False), ("on", True), ("ON", True),
+                                           ("1", True), ("block", True)])  # fmt: skip
+def test_the_stop_audit_is_off_unless_asked_for(
+    value: str | None, on: bool, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("SANCHOPANZA_MEMORY_RULES_AUDIT", raising=False)
+    monkeypatch.delenv("SANCHO_MEMORY_RULES_AUDIT", raising=False)
+    if value is not None:
+        monkeypatch.setenv("SANCHOPANZA_MEMORY_RULES_AUDIT", value)
+    assert mr.audit_on() is on
 
 
 def test_the_rules_can_be_turned_off(hook_env: Path, monkeypatch: pytest.MonkeyPatch) -> None:

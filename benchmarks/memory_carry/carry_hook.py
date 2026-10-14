@@ -85,10 +85,17 @@ def sub(run: Path, keyfile: Path, name: str, rest: list[str]) -> int:
     return done.returncode
 
 
+def v_env(run: Path, keyfile: Path, rules: str) -> dict[str, str]:
+    """The M and V arms' memory hook. With the rules on, the Stop audit is on as well: every V
+    run (v7 to v8.1) was measured with it, and it has been opt-in since 2026-10-14."""
+    return {**base_env(keyfile), "SANCHOPANZA_MEMORY_STORE": str(run / "store"),
+            "SANCHOPANZA_MEMORY_STORE_LOG": str(run / "hook-log.jsonl"),
+            "SANCHOPANZA_MEMORY_RULES": rules,
+            "SANCHOPANZA_MEMORY_RULES_AUDIT": "on" if rules == "on" else "off"}  # fmt: skip
+
+
 def memory(run: Path, keyfile: Path, rules: str) -> int:
-    env = {**base_env(keyfile), "SANCHOPANZA_MEMORY_STORE": str(run / "store"),
-           "SANCHOPANZA_MEMORY_STORE_LOG": str(run / "hook-log.jsonl"),
-           "SANCHOPANZA_MEMORY_RULES": rules}  # fmt: skip
+    env = v_env(run, keyfile, rules)
     done = subprocess.run([sys.executable, "-m", "sanchopanza.harness.memory_hook"],
                           input=sys.stdin.buffer.read(), capture_output=True, env=env)  # fmt: skip
     sys.stdout.buffer.write(done.stdout)
