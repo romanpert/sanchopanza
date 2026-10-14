@@ -184,3 +184,85 @@ def test_a_user_install_wires_no_nudge(tmp_path: Path, monkeypatch: pytest.Monke
     assert _nudge_entries(settings) == []
     assert _install(settings, "--find-nudge") == 0  # find is not in a user install's .mcp.json
     assert _nudge_entries(settings) == []
+
+
+# ---- memory on by default (owner, 2026-10-14): the memory cell, "gana" on Sonnet 5.5 with
+# `install --scope project --memory --write` (docs/results/2026-10-13-memory-cell) ------------
+
+
+def _memory_events(settings: Path) -> dict[str, int]:
+    from sanchopanza.harness.install import MEMORY_COMMAND
+
+    hooks = json.loads(settings.read_text("utf-8")).get("hooks", {})
+    counts = {event: sum(h["command"] == MEMORY_COMMAND for e in entries for h in e["hooks"])
+              for event, entries in hooks.items()}  # fmt: skip
+    return {event: n for event, n in counts.items() if n}
+
+
+def _all_memory_events_once() -> dict[str, int]:
+    from sanchopanza.harness.install import MEMORY_HOOKS
+
+    return dict.fromkeys(MEMORY_HOOKS, 1)
+
+
+def test_the_default_install_wires_memory_and_says_where_it_keeps_records(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    settings, _, _ = _paths(tmp_path)
+    assert _install(settings) == 0
+    assert _memory_events(settings) == _all_memory_events_once()
+    out = capsys.readouterr().out
+    assert "Memory is on" in out and "~/.sanchopanza/memory-store" in out and "--no-memory" in out
+    assert _install(settings, "--no-memory") == 0
+    assert "Memory is on" not in capsys.readouterr().out
+
+
+def test_both_scopes_wire_memory_by_default(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    project, home = tmp_path / "proj", tmp_path / "home"
+    project.mkdir()
+    monkeypatch.chdir(project)
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: home))
+    for scope, settings in (("project", project / ".claude" / "settings.json"),
+                            ("user", home / ".claude" / "settings.json")):  # fmt: skip
+        assert cli.main(["install", "--scope", scope, "--write"]) == 0
+        assert _memory_events(settings) == _all_memory_events_once(), scope
+
+
+def test_no_memory_takes_it_out_and_memory_stays_idempotent(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    settings, _, _ = _paths(tmp_path)
+    assert _install(settings, "--memory") == 0
+    assert _memory_events(settings) == _all_memory_events_once()
+    capsys.readouterr()
+    assert _install(settings) == 0  # the default is the same install as --memory
+    assert _install(settings, "--memory") == 0
+    assert "(memory)" not in capsys.readouterr().out
+    assert _memory_events(settings) == _all_memory_events_once()
+    assert _install(settings, "--no-memory") == 0
+    assert _memory_events(settings) == {}
+    assert "memory-hook" not in settings.read_text("utf-8")
+
+
+def test_the_install_plan_without_write_shows_memory(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    settings, _, _ = _paths(tmp_path)
+    assert cli.main(["install", "--path", str(settings)]) == 0
+    out = capsys.readouterr().out
+    assert "+ UserPromptSubmit:  (memory)" in out and "+ SessionEnd:  (memory)" in out
+    assert "sanchopanza memory-hook" in out
+    assert not settings.exists()
+    assert cli.main(["install", "--path", str(settings), "--no-memory"]) == 0
+    assert "memory" not in capsys.readouterr().out
+
+
+def test_the_help_says_memory_is_on_by_default(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit):
+        cli.main(["install", "--help"])
+    out = " ".join(capsys.readouterr().out.split()).lower()
+    assert "--memory, --no-memory" in out
+    memory = out[out.index("--memory, --no-memory") :][:600]
+    assert "on by default" in memory and "not measured yet, so off by default" not in memory

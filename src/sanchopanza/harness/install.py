@@ -70,8 +70,11 @@ Our entries are recognised by their command, and a run without the flag takes th
 code, outside the project; `PostToolUse` on the file tools gives the agent, when it opens or
 changes a file, the records of earlier requests that changed it (code only); `UserPromptSubmit`
 catches up and, at a session's first live request with a decider, adds the records the decider
-judges about the same code. Off by default until confirmed; our five entries are recognised by
-their command, and a run without the flag takes them out.
+judges about the same code. On by default in the CLI since 2026-10-14, after the memory cell
+(`docs/results/2026-10-13-memory-cell`: on Sonnet 5.5, a fact said in a parallel session or
+sibling worktree broken in 0 of 24 pairs against 11, at +12 % cost); `plan` keeps `memory=False`
+as its own default because sealed benchmarks call it. Our five entries are recognised by their
+command, and a run with `--no-memory` takes them out.
 
 `--candor` wires candor (`harness.candor_hook`, `sanchopanza candor-hook`): five command hooks
 (`UserPromptSubmit`, `PreToolUse` and `PostToolUse` and `PostToolUseFailure` on `*`, `Stop`) and
