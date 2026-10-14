@@ -200,6 +200,18 @@ AMEND_RULES = {
 }
 
 
+def amended_verdict(substitute: str | None, average: str | None) -> str:
+    """The amendment's own verdict (section 5): it wins only when R1 and R2 both win; R1 alone
+    winning is said as such, never as a win."""
+    if substitute is None or average is None:
+        return "no amended reading"
+    if substitute == average == "wins":
+        return "wins under the amendment"
+    if substitute == "wins":
+        return f"wins with the substitution, not with the average (R2: {average})"
+    return f"R1: {substitute}; R2: {average}"
+
+
 def amend(root: Path, repeat_root: Path, chains: Sequence[str],
           repeated: str = REPEATED) -> dict[str, Any]:  # fmt: skip
     """The close-out as sealed (`read`), the repeat's line, and the two rules of the amendment.
@@ -213,6 +225,7 @@ def amend(root: Path, repeat_root: Path, chains: Sequence[str],
     first = found.get(repeated)
     if again is None or first is None or not counts(again) or not counts(first):
         return {**out, "substitute": None, "average": None,
+                "amended_verdict": amended_verdict(None, None),
                 "why_not": "the repeat (or the sealed conan-2) does not count: no amended reading"}
     (t1, c1), (t2, c2) = costs_of(first), costs_of(again)
     both = {**again, "arms": {TREATED: {"cost_common": (t1 * t2) ** 0.5},
@@ -226,7 +239,9 @@ def amend(root: Path, repeat_root: Path, chains: Sequence[str],
                           **over_chains([costs_of(v) for v in counted.values()],
                                         [v["pairs"] for v in counted.values()])}  # fmt: skip
     readings["average"]["conan2_ratio"] = round(((t1 * t2) ** 0.5) / ((c1 * c2) ** 0.5), 4)
-    return {**out, **readings}
+    readings["average"]["conan2_bug_pairs"] = len(both["pairs"])  # about twice one run's weight
+    verdict_now = amended_verdict(readings["substitute"]["verdict"], readings["average"]["verdict"])
+    return {**out, **readings, "amended_verdict": verdict_now}
 
 
 # ---- the grade at the common calls (Docker, free) ------------------------------------------------

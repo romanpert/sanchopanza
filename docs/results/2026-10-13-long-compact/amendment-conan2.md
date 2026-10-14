@@ -36,10 +36,14 @@ independiente la revisa contra el código antes de gastar.
 
 ## 3. Qué se corre
 
-- **Perfil `compact-conan2`** (`long_run.PROFILES`), en el commit 0696e3a de la rama `conan2-run`.
-  Ese commit sale del sellado fb42fa4, y su único cambio es este perfil: su raíz, el argumento
-  `conan2` de `long-compact-run.cmd` y sus tests. El runner, los guardas, el contador y
-  `carry.py` son los de la tanda sellada.
+- **Perfil `compact-conan2`** (`long_run.PROFILES`), en la rama `conan2-run`, que sale del sellado
+  fb42fa4. **Se corre en 335cea8.** Ninguno de sus dos commits cambia la lógica:
+  - 0696e3a añade el perfil y sus constantes a `long_run.py`, su raíz y la opción a
+    `long_launch.py` (`ROOTS` y las opciones de la línea de comandos), el argumento `conan2` a
+    `long-compact-run.cmd` y sus tests;
+  - 335cea8, tras la revisión, hace que el lanzador niegue `dry` si falta alguna de sus tres
+    variables, y corrige comentarios.
+  - El runner, los guardas, el contador y `carry.py` son los de la tanda sellada.
 - Igual que en la tanda:
   - los brazos Ne (ventana 193.000) y Nl (ventana 100.000), sin hooks, MCP ni Jev;
   - Sonnet 5.5, Claude Code 2.1.287 fijado, usuario limpio, k = 1 por brazo;
@@ -54,18 +58,36 @@ independiente la revisa contra el código antes de gastar.
     comandos lo sube). Con la tanda, el gasto bajo el techo de 250 $ queda como mucho en
     173,11 + 45 = 218,11 $ (quedan 76,89).
   - **Tope por corrida de 22,5 $, no 25.** El plan se niega a lanzar si los topes retenidos pasan
-    del techo (`long_guard.plan_refusal`), y 2 × 22,5 = 45. Así, Ne no empieza llamadas pasados
-    16,36 $ (en la tanda, 18,86 $), ni Nl pasados 16,92 $ (en la tanda, 19,42 $). El techo no puede
-    morder antes que el tope de cada corrida.
-  - **Consecuencia: menos llamadas comunes.** En la tanda, Ne de conan-2 pasó de 16,36 $ en la
-    llamada 40, así que se esperan unas 40 llamadas comunes en lugar de 43. Lo que se compara es
-    lo de siempre: las llamadas que corrieron los dos brazos.
+    del techo (`long_guard.plan_refusal`), y 2 × 22,5 = 45.
+    - Una llamada solo empieza si caben su tope (4,50 $) y un turno más estimado
+      (`long_money.overshoot`, al contexto de la llamada anterior más 50k, nunca por encima de la
+      ventana).
+    - En el peor caso, con el contexto en la ventana, Ne no empieza llamadas pasados 16,36 $ (en la
+      tanda, 18,86 $) ni Nl pasados 16,92 $ (en la tanda, 19,42 $). Con contextos menores paran algo
+      más tarde.
+    - El techo se comprueba igual, antes de cada llamada. Como los dos topes suman 45, solo
+      mordería antes que el tope de una corrida si una llamada se pasara de lo estimado (p. ej. Nl
+      con contexto hasta `LOW_PEAK`, 110k, por encima de su ventana de 100k). Es la misma garantía
+      que la del techo de 250 $ de la tanda.
+  - **Consecuencia: menos llamadas comunes.** Pasando las filas de Ne de conan-2 de la tanda por
+    `long_money.room_refusal` con tope 22,5, Ne empieza la llamada 41 con 16,56 $ gastados y para
+    tras ella con 16,75 $. Se esperan **unas 41 llamadas comunes**, en lugar de 43. Lo que se
+    compara es lo de siempre: las llamadas que corrieron los dos brazos.
   - **Otra fecha**: los dos brazos de la repetición van emparejados en el tiempo entre sí, pero no
     con la conan-2 original. Puede haber deriva del servicio.
 - **Estimación**: ~16,5-17,5 $ por brazo, **~34-35 $** en total. El máximo absoluto son 45 $, por
   código.
-- **Medianoche**: la cadena entera necesita ~3,2 h, así que la regla del runner la impide pasadas
-  ~20:48. Se lanza pasada la medianoche del 15.
+- **Hora: las 08:05 del 15.**
+  - La cadena entera necesita ~3,2 h, así que la regla de medianoche del runner la impide pasadas
+    ~20:48.
+  - **Reinicios de Windows Update** (lo encontró la revisión): el evento 1074 de las 05:16 del 14
+    dice que `TrustedInstaller.exe` reinició el PC por "actualización (planeada)", 12 minutos
+    después del evento 109 que cortó la llamada 40. Las horas activas son de 8 a 2, así que fuera
+    de ellas (de 02:00 a 08:00) Windows puede reiniciar solo.
+  - Por eso se lanza a las 08:05 y no pasada la medianoche: acaba hacia las 11:20, dentro de las
+    horas activas. No se toca ninguna configuración de Windows Update.
+  - Antes de lanzar, el lanzador comprueba que no haya reinicio pendiente (`RebootRequired`,
+    `RebootPending`).
 
 ## 4. Qué se mide
 
@@ -93,9 +115,14 @@ publica el gasto.
 | **R1, sustitución** | Las 5 cadenas de la tanda, con la línea de conan-2 cambiada por la de la repetición (su coste común, su nota común) | `RULE` sellada |
 | **R2, promedio** | Las 5 cadenas, con conan-2 como las dos corridas juntas. Coste de cada brazo: la media geométrica de sus dos costes comunes, así que el log-cociente es la media de los dos. Calidad: los pares de bugs de las dos corridas en un solo grupo (se remuestrea entero) | `RULE` sellada |
 
+- **En calidad, R2 pesa conan-2 el doble.** La diferencia de resueltos se calcula sobre todos los
+  bugs juntos (`long_report._difference`), y el grupo de conan-2 lleva los pares de las dos
+  corridas (~2 × 41). En coste cuenta como una cadena. Se declara así y no se corrige: la calidad
+  no decide R2, la decide el coste.
+
 - R2 usa la conan-2 original **tal como la leyó la regla sellada** (con el cargo de 4,50 $), no
   la medida. Por eso es la lectura más conservadora.
-- **Veredicto de la enmienda**:
+- **Veredicto de la enmienda** (`long_compact.amended_verdict`, con sus tests):
   - **"gana bajo la enmienda"** solo si R1 y R2 dan "gana" las dos;
   - si solo R1 da "gana", se publica literalmente: "gana con la sustitución, no con el promedio (R2:
     <veredicto>)". No se resume como que gana;
@@ -106,6 +133,9 @@ publica el gasto.
   - el de R2, entre 0,367 y 0,764.
   - Por debajo del primer número de cada par, la dispersión entre cadenas ensancha el IC.
   - Como referencia, la conan-2 medida de la tanda (0,865) daría "gana" con R1 y no con R2.
+  - **Lo más probable, si Nl ahorra en conan-2 lo que en las otras, es "gana con la sustitución, no
+    con el promedio".** R2 solo gana si la repetición da 0,764 o menos, y de las cinco cadenas solo
+    moto-1 (0,716) bajó de ahí.
 
 ## 6. Lo que esta repetición no puede decir (escrito antes de sus datos)
 
@@ -130,7 +160,7 @@ publica el gasto.
   medida principal).
 - Vigilancia en vivo: `long-run.status.json` y `runner-sonnet.log` en la raíz nueva.
 - **Reanudar**: se vuelve a lanzar `long-compact-run.cmd conan2` desde el mismo worktree
-  `--detach` en 0696e3a.
+  `--detach` en 335cea8.
   - Los brazos acabados se saltan, y el cortado sigue en su llamada siguiente (`long_resume`).
   - La llamada a medias se carga a su tope.
   - El techo de 45 $ cuenta todo lo gastado bajo la raíz nueva, así que una reanudación nunca pasa de
@@ -144,10 +174,10 @@ publica el gasto.
    - `long_launch.py plan compact-conan2`, que da 45,00 retenidos, techo 45,00 duro y ventanas
      193.000 / 100.000.
 2. **De pago**:
-   - `git worktree add --detach <ruta> 0696e3a`;
-   - Docker arriba;
+   - `git worktree add --detach <ruta> 335cea8`;
+   - Docker arriba, sin `LIMIT.flag` y sin reinicio pendiente;
    - `long-compact-run.cmd conan2` lanzado por WMI (`Win32_Process.Create`, `CreateFlags 512`), fuera
-     de cualquier sesión, pasada la medianoche. Los PIDs quedan en `launch.json` de la raíz nueva.
+     de cualquier sesión, a las 08:05 del 15. Los PIDs quedan en `launch.json` de la raíz nueva.
 3. **Al acabar**:
    - `long_compact.py grade` (nota común de la repetición);
    - `long_compact.py amend --json docs/results/2026-10-13-long-compact/amend.json`;
@@ -160,3 +190,22 @@ publica el gasto.
    - conserva "no gana" como veredicto sellado;
    - si la enmienda dice algo distinto, se añade al lado con su nombre ("bajo la enmienda posterior
      a los datos"), sin reescribir el primario.
+
+## 9. Revisión independiente (antes de gastar)
+
+Primera pasada sobre 9f52838 y 0696e3a: "NOT OK to spend" hasta resolver el punto 1. Lo que pidió y
+lo que se hizo, antes de cualquier dato de la repetición:
+
+1. **Riesgo de reinicio por Windows Update entre las 02:00 y las 08:00.** Se lanza a las 08:05,
+   dentro de las horas activas, y el lanzador comprueba que no haya reinicio pendiente (sección 3).
+2. **El veredicto combinado solo estaba en el texto.** Ahora es `long_compact.amended_verdict`, con
+   tests.
+3. **"No empieza llamadas pasados 16,36 $" es el peor caso.** Corregido: se esperan ~41 llamadas
+   comunes (sección 3).
+4. **R2 pesa conan-2 el doble en calidad.** Se declara (sección 5).
+5. **`dry` sin sus variables caía en la raíz real.** El lanzador lo niega (335cea8), con test.
+6. Comentarios del lanzador (la línea de WMI y la de `kill`), corregidos en 335cea8.
+7. La frase "su único cambio es este perfil" (sección 3), corregida.
+8. Se añade lo más probable (sección 5).
+9. Además: en el README de la tanda, "ningún evento 1074 dice quién" es falso, porque el 1074 de las
+   05:16 nombra a `TrustedInstaller.exe`. Se corrige al publicar la repetición.

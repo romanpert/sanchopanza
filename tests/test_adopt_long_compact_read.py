@@ -179,6 +179,7 @@ def test_amend_reads_nothing_without_the_repeat(lc, tmp_path: pathlib.Path) -> N
     assert data["sealed"] == lc.read(tmp_path / "sealed", chains)
     assert data["repeat"] is None and data["substitute"] is None and data["average"] is None
     assert "no amended reading" in data["why_not"]
+    assert data["amended_verdict"] == "no amended reading"
 
 
 def test_amend_substitutes_and_averages_conan2_leaving_the_sealed_reading(lc, tmp_path) -> None:  # noqa: ANN001
@@ -197,6 +198,8 @@ def test_amend_substitutes_and_averages_conan2_leaving_the_sealed_reading(lc, tm
     assert sub["cost"]["ratio"] < avg["cost"]["ratio"] < sealed["cost"]["ratio"]
     # quality: the repeat resolves all 40 in both arms; the average holds both runs' 80 pairs
     assert sub["quality"]["difference"] == avg["quality"]["difference"] == 0.0
+    assert avg["conan2_bug_pairs"] == 80  # both runs' pairs, one cluster
+    assert data["amended_verdict"] == lc.amended_verdict(sub["verdict"], avg["verdict"])
 
 
 def test_amend_reads_nothing_when_the_repeat_has_too_few_common_calls(lc, tmp_path) -> None:  # noqa: ANN001
@@ -212,3 +215,16 @@ def test_amend_reads_nothing_when_the_repeat_has_too_few_common_calls(lc, tmp_pa
 def test_the_repeat_is_conan2_in_its_own_root(lc) -> None:
     assert lc.REPEATED == "conan-io__conan-long60-2"
     assert str(lc.REPEAT_ROOT).endswith("L-compact-conan2") and lc.REPEAT_ROOT != lc.ROOT
+
+
+@pytest.mark.parametrize(("r1", "r2", "expected"), [
+    ("wins", "wins", "wins under the amendment"),
+    ("wins", "no difference shown",
+     "wins with the substitution, not with the average (R2: no difference shown)"),
+    ("no difference shown", "wins", "R1: no difference shown; R2: wins"),
+    ("no difference shown", "no difference shown",
+     "R1: no difference shown; R2: no difference shown"),
+    (None, None, "no amended reading"),
+])  # fmt: skip
+def test_the_amendment_wins_only_when_both_readings_win(lc, r1, r2, expected) -> None:  # noqa: ANN001
+    assert lc.amended_verdict(r1, r2) == expected
