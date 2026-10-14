@@ -116,6 +116,14 @@ COMPACT_CHAINS = ("conan-io__conan-long60-1", "pydantic__pydantic-long60-1",
 # holds everything spent there.
 COMPACT_FIFTH = ("getmoto__moto-long60-2",)
 COMPACT_EXTRA = ("iterative__dvc-long60-1",)
+# The conan-2 repeat (owner, 2026-10-14, 45 USD hard; amendment
+# docs/results/2026-10-13-long-compact/amendment-conan2.md): both arms of conan-2 once more, in
+# their own root, after the PC's reboot cut Nl's call 40 there. The arms, model, call cap and
+# order are the close-out's; the run cap is 22.5 so that both arms' caps fit under the 45
+# ceiling the owner approved (the plan refuses caps above it), not the close-out's 25.
+COMPACT_CONAN2 = ("conan-io__conan-long60-2",)
+COMPACT_CONAN2_CAP = 22.5
+COMPACT_CONAN2_CEILING = 45.0
 # Nl's compactions must fire where the prereg says (near 67k): a first-turn context at most one
 # request past the threshold. Outside these bounds the arm is not the registered treatment.
 LOW_PRE = (50_000, 110_000)  # a compaction's `pre` tokens
@@ -208,6 +216,11 @@ PROFILES = {
                              {"sonnet": GATE_CALL_CAP["sonnet"]}, {"sonnet": COMPACT_CHAIN_CAP},
                              COMPACT_CEILING, COMPACT_EXTRA, hard_cap=COMPACT_CEILING,
                              hours={"sonnet": 1.6}, local_stops=("cap", "wall")),
+    "compact-conan2": Profile("compact-conan2", ("Ne", "Nl"), ("sonnet",),
+                              {"sonnet": GATE_CALL_CAP["sonnet"]},
+                              {"sonnet": COMPACT_CONAN2_CAP}, COMPACT_CONAN2_CEILING,
+                              COMPACT_CONAN2, hard_cap=COMPACT_CONAN2_CEILING,
+                              hours={"sonnet": 1.6}, local_stops=("cap", "wall")),
 }  # fmt: skip
 
 
