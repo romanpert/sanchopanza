@@ -17,7 +17,8 @@ The short version, and everything below is the argument for it:
 **The head-to-head test of that rule, 2026-10-13.** Claude Code with sanchopanza installed was
 measured against clean Claude Code, per model and axis
 (`docs/results/2026-10-13-final/`) **[M]**. One measured cell is a win: memory on Sonnet 5.5
-across parallel sessions, only with `--memory`, which is not on by default. Web, code and the Jev
+across parallel sessions, with memory, on by default in `sanchopanza install` since 2026-10-14
+(`--no-memory` leaves it out). Web, code and the Jev
 part of long code are not.
 
 - On Sonnet 5.5, GAIA, BrowseComp-Plus and LongBench v2 are "no gana". Cost S/N was 1.074,

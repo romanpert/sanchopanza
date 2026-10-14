@@ -41,7 +41,7 @@ developers who build them. You do not need to write code to use it with Claude C
 | **Keeps what Claude Code's summary drops** | With Claude Code's own auto-compaction firing mid-task, a one-shot value (a probe's error code and limit) was lost by the native summary in 6 of 7 sessions. Adding the guard next to the summary: **5 of 7 tasks finished with the free rule, 6 of 7 with the decider cascade, against 2 of 7 with the summary alone**, at lower cost | Haiku 4.5, one family of generated tasks, n = 7, not significant on its own (McNemar p = 0.375); the rule's arm lost a re-readable control value twice more than native ([compaction guard](docs/results/2026-09-29-context-guard/)). On Sonnet 5.5 end to end it added nothing measurable over Claude Code's compaction window alone ([N-early](docs/results/2026-10-07-h2h-ne/)) |
 | **Less to read, same answers** | Judging which documents one answer needs, with the others in view: **9 of 9** answers kept, against 9 of 9 with everything, at **79.5 % fewer** input tokens | One answering call over a sequence mostly useless by construction, pre-registered; the tenth task was stopped by the cost cap. Inside a free agent loop the saving did not show ([fixed pages](docs/results/2026-09-28-fixed-pages/)) |
 
-**Head to head, it won one measured cell: memory on Sonnet 5.5, with `--memory` on.** Web, code
+**Head to head, it won one measured cell: memory on Sonnet 5.5, now on by default.** Web, code
 and long code did not. Claude Code with sanchopanza against clean Claude Code, per model and per
 axis ([final scoreboard](docs/results/2026-10-13-final/)):
 
@@ -54,8 +54,9 @@ axis ([final scoreboard](docs/results/2026-10-13-final/)):
 - What moved results was Claude Code's own compaction window, a setting.
 - Memory on Sonnet 5.5, a fact said in a parallel session or sibling worktree: **gana**. With
   sanchopanza the fact was broken in 0 of 24 pairs, by clean Claude Code in 11 (McNemar p 0.00049;
-  by scene 4 wins, 0 losses), at 1.12x the cost (median). The gain is in the 4 of 8 scenes where the fact is not in the code. It needs
-  `--memory`, which is not on by default ([memory cell](docs/results/2026-10-13-memory-cell/)).
+  by scene 4 wins, 0 losses), at 1.12x the cost (median). The gain is in the 4 of 8 scenes where the fact is not in the code. Memory
+  has been on by default since 2026-10-14 (`--no-memory` leaves it out;
+  [memory cell](docs/results/2026-10-13-memory-cell/)). The other cells were measured without it.
 - Early compaction on long code is still running.
 
 What does not pay is in the same README, with the same weight: [where it does not](#where-it-pays-and-where-it-does-not).
@@ -78,9 +79,21 @@ shell commands, delegations and searches, installs the
 `CLAUDE_CODE_AUTO_COMPACT_WINDOW`, set to 193000, and on the BrowseComp-Plus queries where clean
 Claude Code ran past 150k that one setting alone did as well as the whole sanchopanza line:
 [`docs/results/2026-10-07-h2h-ne/`](docs/results/2026-10-07-h2h-ne/README.md); set it yourself if
-it is all you want), copies the
+it is all you want), wires [memory](docs/results/2026-10-13-memory-cell/) between requests,
+sessions and sibling worktrees (`--no-memory` leaves it out; see below), copies the
 `sanchopanza-code` skill and, for a project install, registers `find_in_repo` (always loaded, with a
-description of when to use it). `--find-nudge` adds a once-per-session suggestion toward it after a
+description of when to use it). Memory records each finished request verbatim, command output
+included, outside the project (`~/.sanchopanza/memory-store/<repository>/`, this user only, kept 30
+days), and gives a later request the records that bear on it; the touch when the agent opens or
+changes a file asks no model. With a TypeSafe key (or a provider), Jev decisions also keep the
+person's standing rules: each sentence of a prompt is asked whether it is one, the newest are given
+at every session start, and at Stop a confident break sends the agent back once, quoting the rule.
+That is the mechanism that was measured (243 decisions over 24 pairs, 0.008 USD); without a key
+memory records and recalls by code only, which the cell did not measure. It is on by default since
+2026-10-14 because of that one cell: on Sonnet 5.5, a fact said in a parallel session or a sibling
+worktree was broken in 0 of 24 pairs with it and in 11 of 24 by clean Claude Code, at a median
++12 % cost. On Opus 5.5 it had no room (Claude Code alone already kept the fact), and the web and
+code results in this README were measured without it. `--find-nudge` adds a once-per-session suggestion toward it after a
 wide early search; it is off by default because its development probe did not justify it (fired in
 5 of 10 sessions on the opening file listing, followed 0 times), and `SANCHOPANZA_FIND_NUDGE=0`
 silences it where it is wired. `--find-auto` runs find for the agent instead: at the 4th search

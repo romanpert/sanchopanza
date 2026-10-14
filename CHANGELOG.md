@@ -433,6 +433,20 @@ do not favour this package.
 
 ### Changed behaviour a user may notice
 
+- **Memory is on by default in `sanchopanza install`** (`--no-memory` leaves it out; `--memory`
+  still works and changes nothing; owner's decision, 2026-10-14). The memory cell
+  (`docs/results/2026-10-13-memory-cell/`, sealed d42d261) came out "gana" with S =
+  `install --scope project --memory --write`: on Sonnet 5.5, a fact said in a parallel session or
+  a sibling worktree was broken in 0 of 24 pairs against 11 for Claude Code alone (McNemar p
+  0.00049; by scene 4 wins, 0 losses), at a median cost of 1.117 (+12 %). Its honest reach: one
+  model and one family, eight scenes, the gain in the 4 where the fact is not in the code; on Opus
+  5.5 there was no room (Claude Code alone already kept the fact); the mechanism was the standing
+  rules Jev stores, so without a TypeSafe key or provider memory only records and recalls by code,
+  which was not measured. A default install now adds memory's five hooks (`UserPromptSubmit`,
+  `Stop`, `SessionEnd`, `SessionStart`, `PostToolUse` on the file tools) and keeps records,
+  command output included, in `~/.sanchopanza/memory-store/<repository>/` (this user only, 30
+  days). `plan()` keeps `memory=False` as its own default for the sealed benchmarks that call it.
+
 - **The compaction guard keeps whole tool results by structure** (`struct`, the new default
   chooser of `install --guard`; `docs/results/2026-10-05-guard-struct`). After a compaction it
   attaches whole results since the previous one: the latest on each file being edited first,
