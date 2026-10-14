@@ -14,12 +14,15 @@ rem Start it by WMI from a worktree --detach at the sealed commit, outside any C
 rem in its own process group, and never twice at once:
 rem   $s = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{CreateFlags=[uint32]512}
 rem   Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
-rem     CommandLine = "cmd.exe /c <this folder>\long-compact-run.cmd"; ProcessStartupInformation = $s }
+rem     CommandLine = "cmd.exe /c <this folder>\long-compact-run.cmd [fifth|extra|conan2]";
+rem     ProcessStartupInformation = $s }   (the repeat needs `conan2`: without it, L-compact runs)
 rem Run it again to resume: finished arms are skipped, a stopped arm goes on at its next request.
 rem Stop: a STOP file in the root (between calls), or
-rem `python benchmarks\adopt\long_run.py kill --root C:\sp-runs\L-compact` (verified PID only).
+rem `python benchmarks\adopt\long_run.py kill --root <root>` (verified PID only; the repeat's root
+rem is C:\sp-runs\L-compact-conan2).
 rem Last argument `dry` (tests only): LL_ROOT, LL_PIN, LL_DRY_CONFIG replace the root, the pinned
 rem Claude Code folder and the runner (a stand-in claude; the dry config names the manifests).
+rem `dry` with any of the three unset is refused: it would fall back to the real root and runner.
 setlocal
 set WT=%~dp0
 set WT=%WT:~0,-1%
@@ -46,6 +49,9 @@ if not "%DRYARG%"=="" if /i not "%DRYARG%"=="dry" (
   exit /b 2
 )
 set DRY=
+if /i "%DRYARG%"=="dry" if "%LL_ROOT%"=="" goto nodry
+if /i "%DRYARG%"=="dry" if "%LL_PIN%"=="" goto nodry
+if /i "%DRYARG%"=="dry" if "%LL_DRY_CONFIG%"=="" goto nodry
 if /i "%DRYARG%"=="dry" (
   set ROOT=%LL_ROOT%
   set PIN=%LL_PIN%
@@ -69,3 +75,6 @@ claude --version | findstr /l /b /c:"2.1.287 " > nul || (
 set CODE=%ERRORLEVEL%
 echo exit %CODE% %DATE% %TIME% >> "%STATUS%"
 exit /b %CODE%
+:nodry
+echo refused: dry needs LL_ROOT, LL_PIN and LL_DRY_CONFIG
+exit /b 2
