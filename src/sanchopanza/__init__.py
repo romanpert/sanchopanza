@@ -20,9 +20,10 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .answers import choice, labelled, score, truth
-    from .budget import Meter
+    from .budget import Meter, SpendLedger
     from .contract import (
         Answer,
+        Box,
         Choice,
         Decider,
         DeciderOutOfFunds,
@@ -34,6 +35,7 @@ if TYPE_CHECKING:
         Truth,
     )
     from .journal import JsonlJournal, MemoryJournal, NullJournal
+    from .limits import Limits
     from .media import Attachment, attachments_in, image, without_attachments
     from .policy import Thresholds
     from .squire import GuardResult, Squire
@@ -46,10 +48,11 @@ __version__ = "0.3.0"
 # its start-up (docs/adapters.md). `from sanchopanza import Squire` works as before.
 _LAZY = {
     **dict.fromkeys(("choice", "labelled", "score", "truth"), "answers"),
-    "Meter": "budget",
+    **dict.fromkeys(("Meter", "SpendLedger"), "budget"),
     **dict.fromkeys(
         (
             "Answer",
+            "Box",
             "Choice",
             "Decider",
             "DeciderOutOfFunds",
@@ -64,6 +67,7 @@ _LAZY = {
     ),
     **dict.fromkeys(("JsonlJournal", "MemoryJournal", "NullJournal"), "journal"),
     **dict.fromkeys(("Attachment", "attachments_in", "image", "without_attachments"), "media"),
+    "Limits": "limits",
     "Thresholds": "policy",
     **dict.fromkeys(("GuardResult", "Squire"), "squire"),
     **dict.fromkeys(("Change", "ToolWindow"), "window"),
@@ -86,6 +90,7 @@ def __dir__() -> list[str]:
 __all__ = [
     "Answer",
     "Attachment",
+    "Box",
     "Change",
     "Choice",
     "Decider",
@@ -94,11 +99,13 @@ __all__ = [
     "Decision",
     "GuardResult",
     "JsonlJournal",
+    "Limits",
     "MemoryJournal",
     "Meter",
     "NullJournal",
     "Question",
     "Score",
+    "SpendLedger",
     "Squire",
     "State",
     "Thresholds",

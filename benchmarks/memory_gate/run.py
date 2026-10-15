@@ -344,9 +344,16 @@ def describe(cases: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
 # --- estimate ---------------------------------------------------------------------------
 
 
+def _model() -> str:
+    """The model the live arm asks: `SANCHOPANZA_JEV_MODEL`, else the pinned default."""
+    from sanchopanza.providers.jev import model_from_env
+
+    return model_from_env()
+
+
 def _body_chars(state: Mapping[str, Any], questions: Mapping[str, Any]) -> int:
     wire = {
-        "model": "jev-1.13.0",
+        "model": _model(),
         "state": state,
         "questions": {k: to_wire(q) for k, q in questions.items()},
     }
@@ -502,11 +509,12 @@ async def _live(
     chosen: Sequence[Mapping[str, Any]], memories: Mapping[str, Any], args: Any
 ) -> dict[str, Any]:
     from sanchopanza.providers import create
-    from sanchopanza.providers.recorded import RecordedDecider, RecordingDecider
+    from sanchopanza.providers.recorded import RecordedDecider, RecordingDecider, fixture_path
 
-    fixture = CACHE / "decisions.jsonl"
-    recorded = RecordedDecider.from_file(fixture) if fixture.exists() else RecordedDecider([])
-    live = RecordingDecider(create("jev", api_key=_key(args.env_file)), fixture)
+    model = _model()  # another version's answers live apart and never answer for this one
+    fixture = fixture_path(CACHE / "decisions.jsonl", model)
+    recorded = RecordedDecider.from_file(fixture, model=model)
+    live = RecordingDecider(create("jev", api_key=_key(args.env_file), model=model), fixture)
     replay = triage_run.ReplayFirst(recorded, live)
     guard = Guarded(replay)
     squire = Squire(

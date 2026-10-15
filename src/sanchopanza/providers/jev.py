@@ -500,7 +500,10 @@ def clm(
     `SANCHOPANZA_CLM_URL` (default http://localhost:8000), `SANCHOPANZA_CLM_MODEL` and
     `CLM_API_KEY` configure it. Tested against a mock of the TypeSafe wire format only: CLM needs
     a Linux machine with an NVIDIA GPU, and no measurement here has used a real CLM server.
+    TypeSafe's Danger Zone headers are not sent unless asked for by argument: the
+    `SANCHOPANZA_JEV_*` variables are Jev's, not CLM's.
     """
+    kwargs = {"long_context": False, "images": False, **kwargs}
     decider = JevDecider(
         api_key or os.environ.get("CLM_API_KEY") or "local",
         base_url=base_url or os.environ.get("SANCHOPANZA_CLM_URL") or CLM_URL,

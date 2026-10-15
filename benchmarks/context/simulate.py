@@ -117,12 +117,15 @@ def decider_for(mode: str, name: str, piece: str) -> Any:
 
     if mode == "dry":
         return NullDecider() if name == "null" else arms_mod.FakeDecider()
-    path = RECORDINGS / f"{piece}.jsonl"
+    from sanchopanza.providers.recorded import fixture_path
+
+    model = run_mod.jev_model()
+    path = fixture_path(RECORDINGS / f"{piece}.jsonl", model)
     if mode == "replay":
-        return RecordedDecider.from_file(path)
+        return RecordedDecider.from_file(path, model=model)
     from sanchopanza.providers.jev import JevDecider
 
-    return RecordingDecider(JevDecider(model=PINNED_MODEL), path)
+    return RecordingDecider(JevDecider(model=model), path)
 
 
 def blob(message: Mapping[str, Any], *, inputs: bool = True) -> str:
@@ -531,7 +534,7 @@ def main(argv: Sequence[str] | None = None) -> dict[str, Any]:
             if args.piece == "arrival"
             else recall_estimate(units, args.query, args.k)
         )
-        report = {"piece": args.piece, "units": len(units), "model": PINNED_MODEL, **report}
+        report = {"piece": args.piece, "units": len(units), "model": run_mod.jev_model(), **report}
         print(json.dumps(report, indent=1))
         return report
     mode = "live" if args.live else "replay" if args.replay else "dry"

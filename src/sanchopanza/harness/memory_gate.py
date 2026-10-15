@@ -195,13 +195,17 @@ def memory_dir_for(event: Mapping[str, Any], *, home: Path | None = None) -> Pat
 # --- pure pieces ------------------------------------------------------------------------
 
 
-def pages_of(memories: Sequence[Memory], purpose: str = "") -> list[tuple[str, str]]:
-    """(title, text) per memory. With `purpose`, a text longer than `chunks.PAGE_LIMIT` is
+def pages_of(
+    memories: Sequence[Memory], purpose: str = "", limit: int | None = None
+) -> list[tuple[str, str]]:
+    """(title, text) per memory. With `purpose`, a text longer than `limit` (by default
+    `chunks.PAGE_LIMIT`) is
     sent as its head plus the window that best matches the purpose (`text.excerpt`), not as
     its head only: the part a prompt needs is often in the middle of a long memory."""
     if not purpose:
         return [(m.title, m.text) for m in memories]
-    return [(m.title, excerpt(m.text, purpose, chunks.PAGE_LIMIT)) for m in memories]
+    cut = chunks.PAGE_LIMIT if limit is None else limit
+    return [(m.title, excerpt(m.text, purpose, cut)) for m in memories]
 
 
 def topics_of(memories: Sequence[Memory]) -> str:

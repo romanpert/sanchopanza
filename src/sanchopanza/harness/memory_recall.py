@@ -123,7 +123,8 @@ async def keep_by_decider(
     decider judged at `MEMORY_KEEP_AT` or above enters: a record nobody judged must not."""
     from ..points.memory import record_id, related_questions
 
-    state, qs = related_questions(request=prompt, records=[e.page() for e in found])
+    state, qs = related_questions(request=prompt, records=[e.page() for e in found],
+                                  record_limit=squire.limits.memory_record_chars)  # fmt: skip
     decision = await squire.decide("memory_recall", state, qs)
     ids = [record_id(i) for i in range(len(found))]
     probabilities = {e.key: (decision.answers[i].truth if i in decision.answers else None)

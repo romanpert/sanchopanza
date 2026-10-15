@@ -54,8 +54,11 @@ QUESTION = Truth(
 )
 
 
-def questions(*, task: str, record: str) -> tuple[Mapping[str, Any], dict[str, Question]]:
-    state = {"task": truncate(task, TASK_LIMIT), "record": truncate(record, RECORD_LIMIT)}
+def questions(
+    *, task: str, record: str, record_limit: int | None = None
+) -> tuple[Mapping[str, Any], dict[str, Question]]:
+    limit = RECORD_LIMIT if record_limit is None else record_limit
+    state = {"task": truncate(task, TASK_LIMIT), "record": truncate(record, limit)}
     return state, {"done": QUESTION}
 
 

@@ -257,3 +257,16 @@ def test_another_400_names_the_error_type_the_server_gave() -> None:
 def test_a_400_without_json_still_reads_as_http_400() -> None:
     with pytest.raises(DeciderUnavailable, match="HTTP 400"):
         ask(JevDecider("k", client=mocked(Seen(), lambda _: httpx.Response(400, text="nope"))))
+
+
+def test_clm_does_not_inherit_jevs_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A self-hosted CLM speaks the wire format; TypeSafe's headers and model are not its own."""
+    from sanchopanza.providers.jev import clm
+
+    for name in ("SANCHOPANZA_JEV_MODEL", "SANCHOPANZA_JEV_LONG_CONTEXT", "SANCHOPANZA_JEV_IMAGES"):
+        monkeypatch.setenv(name, "jev-1.14.0" if name.endswith("MODEL") else "1")
+    seen = Seen()
+    decider = clm(base_url=jev.BASE_URL, client=mocked(seen))
+    ask(decider)
+    assert seen.body["model"] == jev.CLM_MODEL
+    assert jev.LONG_CONTEXT_HEADER not in seen.headers and jev.IMAGES_HEADER not in seen.headers

@@ -36,6 +36,7 @@ from .contract import (
 )
 from .dag import Edge, build_dag, waves
 from .journal import Journal, NullJournal, decision_event
+from .limits import Limits
 from .points import (
     chunks,
     citation,
@@ -77,12 +78,15 @@ class Squire:
         brief: str = "",
         profile: str = "",
         redact: Callable[[State], State] | None = None,
+        limits: Limits | None = None,
     ) -> None:
         # `is not None`, not truthiness: `RecordedDecider` defines `__len__` as its count of
         # exact keys, so a recording holding only defaults was falsy and silently replaced by
         # the null decider - every answer empty, no error.
         self._decider: Decider = decider if decider is not None else NullDecider()
         self._t = thresholds if thresholds is not None else Thresholds()
+        # What each point shows the decider; the defaults are the measured cuts (`limits`).
+        self._limits = limits if limits is not None else Limits()
         self._journal: Journal = journal if journal is not None else NullJournal()
         self._brief = brief
         self._profile = profile
@@ -101,7 +105,7 @@ class Squire:
         """A fresh squire - new meter, no history - with this one's configuration, or with
         `thresholds` in place of its own (a tighter ceiling for one job, say).
 
-        Same decider, thresholds, journal, brief, profile and redactor. For a harness that
+        Same decider, thresholds, limits, journal, brief, profile and redactor. For a harness that
         serves several users or conversations from one template: each gets its own budget and
         its own query memory. It lives here, not in each adapter, so that a setting added to
         the squire (the redactor was the first) cannot be silently dropped by a copy.
@@ -113,6 +117,7 @@ class Squire:
             brief=self._brief,
             profile=self._profile,
             redact=self._redact,
+            limits=self._limits,
         )
 
     # --- plumbing --------------------------------------------------------------------
@@ -120,6 +125,10 @@ class Squire:
     @property
     def thresholds(self) -> Thresholds:
         return self._t
+
+    @property
+    def limits(self) -> Limits:
+        return self._limits
 
     @property
     def meter(self) -> Meter:
@@ -315,7 +324,9 @@ class Squire:
         carry a requirement it does not answer; the source-kind Choice in the same decision
         does, better calibrated and for free. Measured: `docs/results/2026-09-24-steerability`.
         """
-        state, qs = triage.questions(purpose=purpose, title=title, url=url, text=text)
+        state, qs = triage.questions(
+            purpose=purpose, title=title, url=url, text=text, text_limit=self._limits.triage_chars
+        )
         decision = await self.decide("triage", state, qs)
         result = triage.decide(
             decision, self._t, allowed_kinds=allowed_kinds, denied_kinds=denied_kinds
@@ -338,7 +349,9 @@ class Squire:
         (`docs/results/2026-09-25-triage/`). One question, its own call: that is the shape
         that was measured. Pair it with `scan_content` or `triage_page` for injection.
         """
-        state, qs = triage.contribution_questions(purpose=purpose, title=title, text=text)
+        state, qs = triage.contribution_questions(
+            purpose=purpose, title=title, text=text, text_limit=self._limits.triage_chars
+        )
         decision = await self.decide("triage_part", state, qs)
         result = triage.decide_part(decision, self._t)
         self.record(decision, keep=result.keep, reason=result.reason)
@@ -353,7 +366,9 @@ class Squire:
         right where trusting the agent is 52 %, AUC 0.98 (docs/results/2026-09-25-completion/).
         No data means no opinion: the harness keeps its own stop rule.
         """
-        state, qs = completion.questions(task=task, record=record)
+        state, qs = completion.questions(
+            task=task, record=record, record_limit=self._limits.completion_record_chars
+        )
         decision = await self.decide("completion", state, qs)
         result = completion.decide(decision, cut=cut)
         self.record(decision, done=result.done, reason=result.reason)
@@ -370,11 +385,14 @@ class Squire:
         (docs/results/2026-09-27-chunks/). Up to `chunks.PAGE_MAX` pages; later ones and
         unanswered ones are kept: in doubt, a page enters.
         """
-        state, qs = chunks.context_questions(purpose=purpose, pages=pages)
+        most = self._limits.pages_per_call
+        state, qs = chunks.context_questions(
+            purpose=purpose, pages=pages, page_limit=self._limits.page_chars, page_max=most
+        )
         decision = await self.decide("triage_pages", state, qs)
         out: list[tuple[bool, float | None]] = []
         for index in range(len(pages)):
-            p = decision.answer(chunks.page_id(index)).truth if index < chunks.PAGE_MAX else None
+            p = decision.answer(chunks.page_id(index)).truth if index < most else None
             out.append((p is None or p >= self._t.pages_in_context, p))
         self.record(decision, kept=sum(keep for keep, _ in out), pages=len(pages))
         return out
@@ -395,7 +413,12 @@ class Squire:
         """
 
         async def judge(ids: Sequence[int]) -> list[float | None]:
-            state, qs = chunks.context_questions(purpose=purpose, pages=[pages[i] for i in ids])
+            state, qs = chunks.context_questions(
+                purpose=purpose,
+                pages=[pages[i] for i in ids],
+                page_limit=self._limits.page_chars,
+                page_max=self._limits.pages_per_call,
+            )
             decision = await self.decide("triage_pages", state, qs)
             self.record(decision, pages=len(ids))
             return [decision.answer(chunks.page_id(k)).truth for k in range(len(ids))]
@@ -403,7 +426,7 @@ class Squire:
         result = await hierarchy.tournament(
             len(pages),
             judge,
-            size=chunks.PAGE_MAX,
+            size=self._limits.pages_per_call,
             first_cut=self._t.pages_first_round,
             final_cut=self._t.pages_in_context,
         )
@@ -755,19 +778,20 @@ class Squire:
             self.record(decision, source=source[:200], flagged=True, origin="code", reason=reason)
             return injection.decide(decision, self._t, source=source, code_reason=reason)
 
-        every = injection.windows(text)
+        window = self._limits.injection_window_chars
+        every = injection.windows(text, window)
         slices = every[: self._t.max_windows]
         if not slices:
             # Nothing scanned: complete only if there was nothing to scan. With
             # `max_windows <= 0` a non-empty text used to come back clean AND complete.
             return injection.Flag(False, 0.0, complete=not every)
-        step = max(injection.TEXT_LIMIT - injection.WINDOW_OVERLAP, 1)
+        step = max(window - injection.WINDOW_OVERLAP, 1)
         best: Decision | None = None
         best_p = -1.0
         judged: list[int] = []  # start offsets of the windows the model actually answered
         failed = 0
         for index, chunk in enumerate(slices):
-            state, qs = injection.questions(purpose=purpose, text=chunk)
+            state, qs = injection.questions(purpose=purpose, text=chunk, limit=window)
             decision = await self.decide("injection", state, qs)
             answer = decision.answer("injection")
             if decision.failed or answer.truth is None:
@@ -784,7 +808,7 @@ class Squire:
                 break  # one window is enough; the rest cannot clear it
         assert best is not None
         flag = injection.decide(best, self._t, source=source)
-        scanned = injection.covered(len(text), judged)
+        scanned = injection.covered(len(text), judged, window)
         complete = flag.flagged or scanned >= len(text)
         flag = replace(flag, complete=complete)
         self.record(
@@ -881,7 +905,9 @@ class Squire:
         The lever the end-to-end A/B could not exercise, because its agent fetched one or
         two documents per task. It bites when a job gathers many sources about one event.
         """
-        state, qs = triage.redundancy_questions(purpose=purpose, text=text, known=known)
+        state, qs = triage.redundancy_questions(
+            purpose=purpose, text=text, known=known, text_limit=self._limits.triage_chars
+        )
         decision = await self.decide("redundant_page", state, qs)
         result = triage.decide_redundancy(decision, self._t)
         self.record(decision, drop=result.drop, reason=result.reason)

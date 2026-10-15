@@ -187,8 +187,14 @@ def _text_of(content: Any) -> str:
     return ""
 
 
-def transcript_task_and_record(path: Path) -> tuple[str, str]:
-    """The last real prompt, and what the agent did after it, from a Claude Code transcript."""
+def transcript_task_and_record(
+    path: Path, *, record_limit: int | None = None, result_limit: int | None = None
+) -> tuple[str, str]:
+    """The last real prompt, and what the agent did after it, from a Claude Code transcript.
+    The record keeps its last `record_limit` characters (`completion.RECORD_LIMIT`) and each
+    tool result its first `result_limit` (`TOOL_RESULT_LIMIT`)."""
+    shown = TOOL_RESULT_LIMIT if result_limit is None else result_limit
+    kept = completion.RECORD_LIMIT if record_limit is None else record_limit
     entries = []
     for line in path.read_text(encoding="utf-8").splitlines():
         try:
@@ -204,7 +210,7 @@ def transcript_task_and_record(path: Path) -> tuple[str, str]:
             results = [b for b in blocks if isinstance(b, dict) and b.get("type") == "tool_result"]
             if results:
                 for b in results:
-                    lines.append(f"TOOL RESULT: {_text_of(b.get('content'))[:TOOL_RESULT_LIMIT]}")
+                    lines.append(f"TOOL RESULT: {_text_of(b.get('content'))[:shown]}")
             elif change_gate.is_request(entry):  # not hook feedback, not a compaction summary
                 task, lines = _text_of(content).strip(), []  # a new request starts the record
         elif entry.get("type") == "assistant" and isinstance(content, list):
@@ -217,7 +223,7 @@ def transcript_task_and_record(path: Path) -> tuple[str, str]:
                     arguments = json.dumps(b.get("input"), ensure_ascii=False)
                     lines.append(f"AGENT ACTION: {b.get('name')}({arguments})")
     record = "\n".join(lines)
-    return task, record[-completion.RECORD_LIMIT :]
+    return task, record[-kept:]
 
 
 async def stop(input_data: dict[str, Any], guardian: Guardian) -> dict[str, Any]:
