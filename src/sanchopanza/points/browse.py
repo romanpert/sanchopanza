@@ -9,6 +9,10 @@ plus the few that could be).
 
 The question and criteria are registered by hash in
 `docs/results/2026-09-30-browse/prereg.md`: changing a string here invalidates the recording.
+
+With a `screenshot` (an image `Attachment`, read by a decider with images on) the state also
+carries the picture of the page region and `SCREENSHOT_NOTE`; the questions do not change, and
+without one the state is exactly the recorded text one (Jev 1.14, lot L5).
 """
 
 from __future__ import annotations
@@ -22,6 +26,11 @@ from ..text import truncate
 GROUP_MAX = 30
 LINE_LIMIT = 220
 DONE_MAX = 8
+SCREENSHOT_NOTE = (
+    "`screenshot` shows the part of the page where these elements are. Each element visible "
+    "there is outlined and labelled with its id (E01, E02...); an element with no label is not "
+    "visible in that part."
+)
 
 NEXT = Truth(
     "Is this element of `elements` the one to act on next (click it, type into it, or pick "
@@ -57,9 +66,10 @@ def _ask(label: str) -> Truth:
 
 
 def questions(
-    *, goal: str, done: Sequence[str], lines: Sequence[str]
+    *, goal: str, done: Sequence[str], lines: Sequence[str], screenshot: Any = None
 ) -> tuple[Mapping[str, Any], dict[str, Question]]:
-    """State and questions for up to `GROUP_MAX` element lines."""
+    """State and questions for up to `GROUP_MAX` element lines, and the region's picture when
+    `screenshot` is given (labelled by `element_id`, in the order of `lines`)."""
     lines = list(lines)[:GROUP_MAX]
     body = "\n".join(
         f"{element_id(i)}| {truncate(line, LINE_LIMIT)}" for i, line in enumerate(lines)
@@ -70,6 +80,8 @@ def questions(
         "done": "\n".join(truncate(a, 160) for a in recent) or "(nothing yet)",
         "elements": body,
     }
+    if screenshot is not None:
+        state = {**state, "screenshot": screenshot, "screenshot_note": SCREENSHOT_NOTE}
     qs: dict[str, Question] = {
         element_id(i): _ask(f"Element {element_id(i)}") for i in range(len(lines))
     }

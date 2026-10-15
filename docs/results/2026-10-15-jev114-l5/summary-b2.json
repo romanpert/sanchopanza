@@ -1,0 +1,25 @@
+{
+ "run": "b2",
+ "live": true,
+ "steps_planned": 48,
+ "steps": 48,
+ "halted": "",
+ "live_usd": {
+  "t14": 0.274989,
+  "i14": 0.355517,
+  "i13": 0.355529
+ },
+ "live_calls": {
+  "t14": 820,
+  "i14": 834,
+  "i13": 834
+ },
+ "failures": {
+  "t14": 0,
+  "i14": 0,
+  "i13": 0
+ },
+ "head": "286939e454cb900a1568f01b669539fb4665e457",
+ "pillow": "12.3.0",
+ "ledger": "C:\\sp-runs\\jev114\\ledger.json"
+}

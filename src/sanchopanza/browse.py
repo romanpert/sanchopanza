@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import asyncio
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from typing import Any
@@ -324,6 +324,10 @@ class Ranked:
     bm25: float
 
 
+# One call's elements, in the order its state lists them, to an image of them or None.
+Picture = Callable[[Sequence[Element]], Any]
+
+
 def _bm25_order(goal: str, done: Sequence[str], elements: Sequence[Element]) -> list[float]:
     index = BM25Index([e.line() for e in elements])
     return index.scores(" ".join([goal, *list(done)[-2:]]))
@@ -339,12 +343,15 @@ async def rank(
     finalists: int = questions_mod.GROUP_MAX,
     shortlist: int | None = None,
     blend: float = BLEND,
+    picture: Picture | None = None,
 ) -> list[Ranked]:
     """The `keep` elements most likely to be acted on next, best first.
 
     `shortlist` sends only that many BM25-best elements to the decider (None: all of them).
     `blend` is the weight of round one in a finalist's score: 0 uses the final round alone, 1
     skips the final round. With no squire, or when every call fails, the BM25 order is returned.
+    `picture`, given the elements of one call in order, returns an image of them (or None) that
+    goes in that call's state; the decider must read images (`JevDecider(images=True)`).
     """
     if not 0.0 <= blend <= 1.0:
         raise ValueError("blend must be within [0, 1]")
@@ -355,7 +362,7 @@ async def rank(
     if squire is None:
         return [Ranked(elements[i], None, bm25[i]) for i in by_bm25[:keep]]
     pool = by_bm25[:shortlist] if shortlist else list(range(len(elements)))
-    probs = await _tournament(squire, goal, done, elements, pool, finalists, blend)
+    probs = await _tournament(squire, goal, done, elements, pool, finalists, blend, picture)
     if all(probs.get(i) is None for i in pool):
         return [Ranked(elements[i], None, bm25[i]) for i in by_bm25[:keep]]
     order = sorted(pool, key=lambda i: (-(probs.get(i) or 0.0), -bm25[i]))
@@ -363,10 +370,16 @@ async def rank(
 
 
 async def _judge(
-    squire: Any, goal: str, done: Sequence[str], elements: Sequence[Element], ids: Sequence[int]
+    squire: Any,
+    goal: str,
+    done: Sequence[str],
+    elements: Sequence[Element],
+    ids: Sequence[int],
+    picture: Picture | None = None,
 ) -> list[float | None]:
+    shot = picture([elements[i] for i in ids]) if picture is not None else None
     state, qs = questions_mod.questions(
-        goal=goal, done=done, lines=[elements[i].line() for i in ids]
+        goal=goal, done=done, lines=[elements[i].line() for i in ids], screenshot=shot
     )
     decision = await squire.decide("browse", state, qs)
     squire.record(decision, elements=len(ids))
@@ -381,20 +394,23 @@ async def _tournament(
     pool: Sequence[int],
     finalists: int,
     blend: float,
+    picture: Picture | None = None,
 ) -> dict[int, float | None]:
     """Round one: groups of `GROUP_MAX` in page order. Round two: the best `finalists`
     together, when round one had more than one group, mixed with round one by `blend`. A
     finalist the final round did not answer keeps its round-one probability."""
     size = questions_mod.GROUP_MAX
     parts = [list(pool[i : i + size]) for i in range(0, len(pool), size)]
-    answers = await asyncio.gather(*(_judge(squire, goal, done, elements, p) for p in parts))
+    answers = await asyncio.gather(
+        *(_judge(squire, goal, done, elements, p, picture) for p in parts)
+    )
     probs: dict[int, float | None] = {}
     for part, ps in zip(parts, answers, strict=True):
         probs.update(zip(part, ps, strict=True))
     if len(parts) == 1 or blend >= 1.0:
         return probs
     best = sorted(pool, key=lambda i: -(probs.get(i) or 0.0))[: min(finalists, size)]
-    final = await _judge(squire, goal, done, elements, best)
+    final = await _judge(squire, goal, done, elements, best, picture)
     for i, p in zip(best, final, strict=True):
         if p is not None:
             probs[i] = blend * (probs.get(i) or 0.0) + (1.0 - blend) * p

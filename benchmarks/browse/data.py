@@ -4,6 +4,9 @@ python benchmarks/browse/data.py            # fetch the registered sample (free,
 python benchmarks/browse/data.py --confirm  # the confirmation sample: half a step further on
 python benchmarks/browse/data.py --hints [--confirm]  # the same steps, unnamed elements described
                                                      # (Phase 1d: steps[-confirm]-hints.jsonl)
+python -I benchmarks/browse/data.py --shots DIR [--confirm] [--first N]
+    # the same steps' screenshots and candidate boxes (Jev 1.14, lot L5), into DIR, which is
+    # outside the repo: DIR/<step id>.jpg and DIR/boxes.jsonl, no label, no HTML
 
 Source: osunlp/Multimodal-Mind2Web through the Hugging Face datasets server (rows API, no
 screenshots kept). The sample is fixed before any model sees it: `PER_SPLIT` steps from each of
@@ -107,12 +110,76 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--confirm", action="store_true")
     ap.add_argument("--hints", action="store_true", help="re-read the same steps, described")
+    ap.add_argument("--shots", default=None, help="fetch screenshots and boxes into this dir")
+    ap.add_argument("--first", type=int, default=0, help="--shots: first N offsets per split")
     args = ap.parse_args()
     out = CONFIRM if args.confirm else OUT
     shift = 0.5 if args.confirm else 0.0
+    if args.shots:
+        return fetch_shots(out, shift, pathlib.Path(args.shots), first=args.first)
     if args.hints:
         return refetch_described(out, shift)
     return fetch_all(out, shift)
+
+
+def candidate_boxes(row: dict[str, Any]) -> dict[str, list[float]]:
+    """backend_node_id -> [x, y, width, height] in page pixels, for every candidate that has a
+    box (`bounding_box_rect` in its attributes; Mind2Web writes it as "x,y,w,h")."""
+    out: dict[str, list[float]] = {}
+    for raw in [*row["pos_candidates"], *row["neg_candidates"]]:
+        candidate = json.loads(raw)
+        attributes = json.loads(candidate.get("attributes") or "{}")
+        rect = str(attributes.get("bounding_box_rect") or "")
+        try:
+            box = [float(v) for v in rect.split(",")]
+        except ValueError:
+            continue
+        if len(box) == 4:
+            out[str(candidate["backend_node_id"])] = box
+    return out
+
+
+def _download(url: str) -> bytes:
+    for attempt in range(ATTEMPTS):
+        try:
+            with urllib.request.urlopen(url, timeout=120) as response:
+                return response.read()
+        except Exception:  # noqa: BLE001 - network: bounded retries, then give up loudly
+            if attempt == ATTEMPTS - 1:
+                raise
+            time.sleep(5 * (attempt + 1))
+    return b""
+
+
+def fetch_shots(source: pathlib.Path, shift: float, out_dir: pathlib.Path, *, first: int) -> int:
+    """The screenshot and candidate boxes of every step in `source`, by the same offsets.
+    Labels stay in `source`; `boxes.jsonl` holds sizes and boxes only."""
+    wanted = {json.loads(x)["id"] for x in source.read_text(encoding="utf-8").splitlines() if x}
+    out_dir.mkdir(parents=True, exist_ok=True)
+    index = out_dir / "boxes.jsonl"
+    done = set()
+    if index.exists():
+        done = {json.loads(x)["id"] for x in index.read_text(encoding="utf-8").splitlines() if x}
+    kept = 0
+    with index.open("a", encoding="utf-8") as sink:
+        for split, total in SPLITS.items():
+            for offset in offsets(total, PER_SPLIT, shift=shift)[: first or None]:
+                row = fetch(split, offset, 1)[0]
+                uid = row["action_uid"]
+                if uid not in wanted or uid in done:
+                    continue
+                shot = row.get("screenshot") or {}
+                if not shot.get("src"):
+                    continue
+                (out_dir / f"{uid}.jpg").write_bytes(_download(shot["src"]))
+                record = {"id": uid, "split": split, "offset": offset,
+                          "width": shot.get("width"), "height": shot.get("height"),
+                          "boxes": candidate_boxes(row)}  # fmt: skip
+                sink.write(json.dumps(record) + "\n")
+                sink.flush()
+                kept += 1
+    print(f"screenshots kept {kept} (of {len(wanted)} steps); dir {out_dir}", file=sys.stderr)
+    return 0
 
 
 def refetch_described(source: pathlib.Path, shift: float) -> int:

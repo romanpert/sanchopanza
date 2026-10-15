@@ -1,0 +1,19 @@
+{
+ "run": "b1",
+ "live": true,
+ "steps_planned": 142,
+ "steps": 142,
+ "halted": "",
+ "live_usd": {
+  "box14": 0.105928
+ },
+ "live_calls": {
+  "box14": 425
+ },
+ "failures": {
+  "box14": 1
+ },
+ "head": "011ec138aa5c97742f7a2efe3492ed3f5632f897",
+ "pillow": "12.3.0",
+ "ledger": "C:\\sp-runs\\jev114\\ledger.json"
+}
