@@ -129,18 +129,37 @@ def test_the_registered_constants():
 # ---- caps and stops ---------------------------------------------------------------------------
 
 
-def test_the_cap_refuses_before_calling_and_stops_the_run(monkeypatch):
+def test_the_cap_refuses_before_calling_and_drops_the_wave_it_stopped(monkeypatch):
     monkeypatch.setattr(ml, "Q_EST_USD", 0.0)  # the hard cap holds even if the estimate is wrong
     fake = _Fake()
     rows = _run([_q(i) for i in range(6)], fake, cap=1e-9)
-    assert fake.calls == 0 and ml.HALTED and "spend cap" in ml.HALTED[0]
-    assert len(rows) == ml.WAVE  # the first wave ends, no other starts
+    assert fake.calls == 0 and ml.halt_kind() == ml.CAP and "spend cap" in ml.HALTED[0]
+    assert rows == []
+
+
+def test_a_cap_stop_keeps_the_completed_waves_and_writes_them(monkeypatch):
+    monkeypatch.setattr(ml, "Q_EST_USD", 0.0)
+    fake = _Fake(cost=0.004)  # 3 calls a question, 0.024 a wave: the third wave hits 0.05
+    rows = _run([_q(i) for i in range(10)], fake, cap=0.05)
+    assert ml.halt_kind() == ml.CAP and len(rows) == 2 * ml.WAVE
+    assert [r["rank"] for r in rows] == [36, 37, 38, 39]
+    # The fake costs far more than its reservation (a few characters): the calls in flight can
+    # overshoot by the difference, CappedDecider's documented limit. Jev's estimate errs high.
+    assert ml.spent("test") <= 0.05 + ml.CONCURRENCY * 0.004
+    assert ml.finish("a7", rows) == 0 and len(ml.read_rows("a7")) == 4
 
 
 def test_the_soft_stop_starts_no_wave_the_cap_would_not_hold():
     fake = _Fake()
     rows = _run([_q(i) for i in range(4)], fake, cap=ml.Q_EST_USD * ml.WAVE * 0.99)
     assert rows == [] and fake.calls == 0 and not ml.HALTED
+
+
+def test_the_soft_stop_also_reads_the_ledgers_room(monkeypatch):
+    monkeypatch.setattr(ml, "LEDGER_CAP_USD", ml.Q_EST_USD * ml.WAVE * 0.99)
+    fake = _Fake()
+    rows = _run([_q(i) for i in range(4)], fake, cap=1.0)
+    assert rows == [] and fake.calls == 0
 
 
 def test_spend_stays_under_the_batch_cap_in_the_ledger():
@@ -154,20 +173,58 @@ def test_spend_stays_under_the_batch_cap_in_the_ledger():
 @pytest.mark.parametrize(
     "error",
     [DeciderOutOfFunds("jev did not answer: HTTP 402 (out of funds)"),
-     DeciderUnavailable("jev did not answer: HTTP 429")],
+     DeciderUnavailable("jev did not answer: HTTP 429"),
+     DeciderUnavailable("jev did not answer: HTTP 401"),
+     DeciderUnavailable("jev did not answer: HTTP 403"),
+     DeciderUnavailable("jev did not answer: HTTP 503"),
+     DeciderUnavailable("jev unreachable: ConnectError")],
 )  # fmt: skip
-def test_a_402_or_a_429_stops_dead(error):
+def test_an_outage_pauses_dead_and_writes_nothing(error):
     fake = _Fake(raises=error)
     rows = _run([_q(i) for i in range(6)], fake)
-    assert ml.HALTED and fake.calls <= ml.WAVE  # only the calls already in flight
-    assert len(rows) == ml.WAVE
+    assert ml.halt_kind() == ml.PAUSE and fake.calls <= ml.WAVE  # only the calls in flight
+    assert rows == [] and ml.finish("a7", rows) == 2 and ml.read_rows("a7") is None
 
 
-def test_another_refusal_is_a_failed_cell_not_a_stop():
-    fake = _Fake(raises=DeciderUnavailable("jev unreachable: ReadTimeout"))
-    rows = _run([_q(i) for i in range(4)], fake)
+@pytest.mark.parametrize(
+    ("text", "stop"),
+    [("jev did not answer: HTTP 529", True), ("jev unreachable: ReadTimeout", False),
+     ("jev unreachable: ConnectTimeout", False), ("jev refused (HTTP 400): too long", False),
+     ("spend cap: not called", False)],
+)  # fmt: skip
+def test_what_counts_as_an_outage(text, stop):
+    assert ml.stops(DeciderUnavailable(text)) is stop
+
+
+def test_a_timeout_on_one_window_is_a_failed_cell_not_a_stop():
+    ok, slow = _Fake(), _Fake(raises=DeciderUnavailable("jev unreachable: ReadTimeout"))
+
+    def inner(cell):
+        return slow if cell.endswith("L") else ok
+
+    rows = asyncio.run(ml.run([_q(i) for i in range(4)], live=True, name="a7", batch="test",
+                              cap_usd=1.0, with_rec=False, make_inner=inner))  # fmt: skip
     assert not ml.HALTED and len(rows) == 4
-    assert all(r["j13r-S"] is None and r["j13r-L"] is None for r in rows)
+    assert all(r["j13r-L"] is None and r["j13r-S"] is not None for r in rows)
+
+
+def test_three_failed_calls_in_a_row_pause_the_run():
+    fake = _Fake(raises=DeciderUnavailable("jev unreachable: ReadTimeout"))
+    rows = _run([_q(i) for i in range(6)], fake)
+    assert ml.halt_kind() == ml.PAUSE and "in a row" in ml.HALTED[0]
+    assert rows == [] and fake.calls <= ml.MAX_CONSECUTIVE_FAILURES + ml.WAVE
+
+
+def test_a_wrong_model_pauses_and_is_not_recorded():
+    class Other(_Fake):
+        async def decide(self, point, state, questions):
+            got = await super().decide(point, state, questions)
+            return Decision(point, got.answers, "jev", "jev-1.14.0", cost_usd=0.001)
+
+    rows = _run([_q(0)], Other())
+    assert ml.halt_kind() == ml.PAUSE and "served jev-1.14.0" in ml.HALTED[0] and rows == []
+    recorded = [p for p in ml.OUT.glob("*-answers-*.jsonl") if p.read_text(encoding="utf-8")]
+    assert recorded == []
 
 
 def test_no_retry_on_429_leaves_529_retryable(monkeypatch):
@@ -178,12 +235,32 @@ def test_no_retry_on_429_leaves_529_retryable(monkeypatch):
     assert frozenset({529}) == jev.RETRYABLE
 
 
+def test_jev_inner_sets_the_header_and_timeout_by_window(monkeypatch):
+    from sanchopanza.providers.jev import LONG_CONTEXT_HEADER
+
+    monkeypatch.setenv("TYPESAFE_API_KEY", "placeholder-for-a-test")
+    long, short = ml.jev_inner("j13r-L"), ml.jev_inner("j13r-S")
+    assert long.model == short.model == "jev-1.13.0"
+    assert long._headers() == {LONG_CONTEXT_HEADER: "true"} and long._timeout_s == 180.0
+    assert short._headers() == {} and short._timeout_s == 30.0
+
+
 def test_the_live_path_refuses_without_the_seal():
     with pytest.raises(SystemExit, match="seal"):
         ml.require_prereg()
 
 
-def test_seal_then_require_passes_and_a_changed_prereg_fails(tmp_path, monkeypatch):
+@pytest.mark.parametrize("entry", ["smoke", "run"])
+def test_the_live_paths_check_the_seal_before_the_key_or_the_preflight(monkeypatch, entry):
+    touched = []
+    monkeypatch.setattr(ml.l4, "load_key", lambda: touched.append("key"))
+    monkeypatch.setattr(ml, "preflight_or_stop", lambda: touched.append("preflight"))
+    with pytest.raises(SystemExit, match="seal"):
+        ml.smoke(True) if entry == "smoke" else ml.run_live()
+    assert touched == []
+
+
+def _sealable(tmp_path, monkeypatch):
     monkeypatch.setattr(ml, "SEALED", ("tests/test_memgate_long.py",))
     monkeypatch.setattr(ml, "SEALED_DATA", ())
     monkeypatch.setattr(ml, "REPO", tmp_path)
@@ -192,6 +269,10 @@ def test_seal_then_require_passes_and_a_changed_prereg_fails(tmp_path, monkeypat
     (tmp_path / "tests").mkdir()
     (tmp_path / "tests/test_memgate_long.py").write_text("x\n", encoding="utf-8")
     (tmp_path / "docs/prereg.md").write_text("rules\n", encoding="utf-8")
+
+
+def test_seal_then_require_passes_and_a_changed_prereg_fails(tmp_path, monkeypatch):
+    _sealable(tmp_path, monkeypatch)
     first = ml.seal()
     ml.require_prereg()
     assert ml.seal() == first  # the same seal again is accepted
@@ -200,6 +281,23 @@ def test_seal_then_require_passes_and_a_changed_prereg_fails(tmp_path, monkeypat
         ml.require_prereg()
     with pytest.raises(SystemExit, match="another seal"):
         ml.seal()
+    assert ml.seal(again=True) != first  # before any answer or spend, a re-seal is allowed
+
+
+def test_no_reseal_once_answers_or_spend_exist(tmp_path, monkeypatch):
+    _sealable(tmp_path, monkeypatch)
+    ml.seal()
+    (tmp_path / "docs/prereg.md").write_text("other rules\n", encoding="utf-8")
+    (tmp_path / "docs/smoke-answers-j13r-L.jsonl").write_text("", encoding="utf-8")
+    with pytest.raises(SystemExit, match="no re-seal"):
+        ml.seal(again=True)
+    (tmp_path / "docs/smoke-answers-j13r-L.jsonl").unlink()
+    from sanchopanza.budget import SpendLedger
+
+    ledger = SpendLedger(ml.LEDGER_PATH, cap_usd=1.0)
+    ledger.settle(ledger.reserve(0.001, batch=ml.SMOKE_BATCH), 0.001)
+    with pytest.raises(SystemExit, match="no re-seal"):
+        ml.seal(again=True)
 
 
 # ---- replay and rows --------------------------------------------------------------------------

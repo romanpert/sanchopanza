@@ -27,8 +27,8 @@ a time, in that order.
 ## Cells (`benchmarks/memgate_long/memgate_long.py`)
 
 One model: **jev-1.13.0** (`j13r`, the production `DEFAULT_MODEL`), pinned
-(`JevDecider(model="jev-1.13.0", images=False)`); an answer served by another model stops the
-run (lot L4's `Arm`). Per question, as L6's A7 with one model (L6's `a7_look` and `a7_triage`,
+(`JevDecider(model="jev-1.13.0", images=False)`); an answer served by another model is not
+recorded and pauses the run (below). Per question, as L6's A7 with one model (L6's `a7_look` and `a7_triage`,
 imported):
 
 - `needs_recall` once (no header): the gate keeps the triage's sessions when it looks, none
@@ -39,7 +39,9 @@ imported):
   (`memory_gate.pages_of(..., limit=400_000)`) in one `triage_many` call with
   `Limits(page_chars=400_000, pages_per_call=1_000)`.
 - `bm25@3`: BM25 top 3 sessions, computed (free).
-- `rec13-S`: the gate recorded on 2026-09-28, replayed free: a historical reference only.
+- `rec13-S`: the gate recorded on 2026-09-28, replayed free: a historical reference only. Its
+  recall on these 84 could be computed free from the 2026-09-28 results; it was not looked at
+  before this seal.
 
 Production thresholds. S runs first on even ranks within the lot, L first on odd ones. At most
 4 calls in flight. A cell fails on a question when any of its calls failed (the triage, or
@@ -73,7 +75,9 @@ jev-1.13.0 (`recall_window_j13r`), so the Holm p is the raw p. L6's own rule
    show the window's lift with 95 % confidence, not that the lift is zero; the README reports
    the difference and its CI as they are. A failure gap over 2 % reads "no confirmado
    (fallos)"; fewer than 20 complete questions "no concluyente (n bajo)"; no difference
-   computable "no medido".
+   computable "no medido". Order of precedence: "no concluyente (n bajo)" first, then "no
+   medido", then "no confirmado (fallos)", then the CI. With 84 launched questions the 2 %
+   rule allows L at most one more failed question than S (2 more is 2.4 %).
 
 **Pooled 36 + 84 = 120, descriptive.** The same cells, the L − S difference and the
 differences against BM25 on L6's 36 (its `j13r` cells, `a7-scored.jsonl`) plus these 84.
@@ -100,20 +104,38 @@ Known before this seal, free and deterministic: BM25 top 3's recall on the 84 is
 - **Hard caps in code:** a new ledger of this lot only, `C:/sp-runs/memgate-long/ledger.json`,
   capped at **1.50 USD** for everything (smoke included); batch `memgate-long` capped at
   **1.50 USD**; the smoke on its own batch `memgate-long-smoke`, capped at **0.05 USD**. Every
-  live call goes through `CappedDecider`, which reserves a pessimistic estimate before calling
-  and refuses when it does not fit. A new pair of questions is not started when the batch's
-  spend plus 0.010 USD a question would pass its cap (soft stop; the run then holds fewer
-  questions and reports how many).
-- **Stops.** A call the cap refuses, an HTTP 402 or an HTTP 429 stops the run dead: every
-  later call is refused without being made (only calls already in flight finish), no rows are
-  written and the runner exits with 2; a relaunch replays what was paid. The shipped client's
-  three retries on 429 are switched off for this lot (529 keeps its bounded retries); there
-  are no other retries. A timeout or an HTTP 400 is a failed cell, counted. A timed-out call is
-  settled at 0 in the ledger although Jev may have billed it. The `jev-preflight` for
-  jev-1.13.0 (about 13 micro-dollars, off the ledger) runs before the first live call.
+  live call goes through `CappedDecider`, which reserves a pessimistic estimate (a token per
+  three characters) before calling and refuses when it does not fit; a call that costs more
+  than its reservation can overshoot by the difference. A new pair of questions is not started
+  when 0.010 USD a question would not fit in the room left, the smaller of the batch's cap
+  minus its spend and the ledger's cap minus its spend (soft stop).
+- **What the ledger counts** is the client's estimate, input tokens × the list price, not
+  TypeSafe's bill; it is compared with the dashboard after the smoke. A timed-out call is
+  settled at 0 although Jev may have billed it; the README reports how many there were. The
+  `jev-preflight` for jev-1.13.0 (one call, about 26 micro-dollars) is off the ledger.
+- **Stops are dead:** the first stop refuses every later call without making it (only the
+  calls already in flight finish) and drops the pair of questions it hit.
+  - **Cap** (a call the cap refuses): the lot's money is spent. The completed pairs are the
+    run: `a7-scored.jsonl` is written from them, as after a soft stop, and the README reports
+    how many questions it holds; the verdicts are read on them.
+  - **Pause** (an outage: HTTP 401, 402, 403, 429 or 5xx after the client's bounded retries on
+    529, or no connection; an answer served by another model, which is not recorded; or 3
+    failed calls in a row of any kind): no scored rows are written and the runner exits with 2.
+    A relaunch replays every recorded answer free and asks the rest, including the calls that
+    failed (failures are not recorded). The shipped client's three retries on 429 are switched
+    off for this lot; there are no other retries.
+  - A timeout or an HTTP 400 alone is that cell's failure on that question, counted (rule 1's
+    failure gap), not a stop.
 - Answers are recorded per cell in this folder (hashed keys, no text); scored rows hold ids,
   session indexes, sizes and the look, no text. A scored file of record is frozen: a live run
   does not ask again.
+
+## Running it
+
+From a `git worktree add --detach` at the sealed commit, launched outside the session, never
+between 02:00 and 08:00 (the machine's update window). Expected duration 5-10 minutes: 42
+pairs of questions, and L6 measured a median of 1.5 s for the long call and 0.3 s for each
+short one, plus the local BM25 and excerpt work.
 
 ## The smoke
 
@@ -125,11 +147,14 @@ end; nothing in it changes these rules.
 
 `prereg.sha256` = sha256 over the lines `"<path> <sha256>\n"` of `prereg.manifest.json`: this
 file, the runner, the analysis, its tests, the L6 and L4 modules it imports, L6's
-`a7-scored.jsonl`, the LongMemEval and memory-gate benchmark code, the `sanchopanza` modules on
-the path (text files hashed with LF line ends), and the hashes of the external inputs under the
-home folder (`longmemeval_s_cleaned.json` and the recorded 2026-09-28 decisions). The live
-paths (`--smoke --live`, `--run --live`) check it and spend nothing if anything changed. A
-re-seal (`--seal --reseal`) is allowed only before the first live call and is said here.
+`a7-scored.jsonl`, `benchmarks/triage_sets/run.py` (BM25), every file of
+`benchmarks/memory_gate/*.py` and every file of `src/sanchopanza/**/*.py` (text files hashed
+with LF line ends), and the hashes of the external inputs under the home folder
+(`longmemeval_s_cleaned.json` and the recorded 2026-09-28 decisions). The live paths
+(`--smoke --live`, `--run --live`) check it before reading the key or calling the preflight,
+and spend nothing if anything changed. A re-seal (`--seal --reseal`) is refused in code once
+this lot's ledger holds any spend or any answer is recorded in this folder; one made before
+that is said here.
 
 ## What is not done
 

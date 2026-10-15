@@ -18,11 +18,12 @@ header and every session whole in one call (L6's `LONG_LIMITS`). `bm25@3` is com
 gate recorded on 2026-09-28 (`rec13-S`) is replayed, both free. L6's functions are imported.
 
 Every live call goes through `CappedDecider` on this lot's own ledger (LEDGER_PATH) and cap,
-at most CONCURRENCY in flight. A cap refusal, an HTTP 402 or an HTTP 429 stops the run dead:
-later calls are refused unasked and no rows are written (a relaunch replays what was paid).
-Answers are recorded per cell in OUT (hashed keys, no text). The key comes from
-TYPESAFE_API_KEY or the `.env` that SANCHOPANZA_KEYS_ENV names (lot L4's `load_key`), inside
-the process, never printed.
+at most CONCURRENCY in flight. A stop is dead: later calls are refused unasked and the wave
+it hit is dropped. A cap refusal ends the lot with the completed waves written; an outage (HTTP
+401/402/403/429/5xx, no connection), a wrong model or 3 failed calls in a row is a pause that
+writes nothing (a relaunch replays what was paid and asks the rest). Answers are recorded per
+cell in OUT (hashed keys, no text). The key comes from TYPESAFE_API_KEY or the `.env` that
+SANCHOPANZA_KEYS_ENV names (lot L4's `load_key`), inside the process, never printed.
 """
 
 from __future__ import annotations
@@ -103,28 +104,77 @@ def questions(dev: bool = False) -> list[Mapping[str, Any]]:
 # ---- arms -------------------------------------------------------------------------------------
 
 
+CAP, PAUSE = "cap", "pause"
+STOP_STATUSES = frozenset({401, 402, 403, 429})  # and every 5xx (after 529's bounded retries)
+MAX_CONSECUTIVE_FAILURES = 3
+_FAILS = {"consecutive": 0}
+
+
+def halt(kind: str, why: str) -> None:
+    HALTED.append(f"{kind}: {why}")
+
+
+def halt_kind() -> str | None:
+    """CAP when the first stop was a cap refusal (the money is spent: completed waves are the
+    run), PAUSE for any other stop (an outage: nothing written, a relaunch resumes)."""
+    return HALTED[0].split(":", 1)[0] if HALTED else None
+
+
+def reset() -> None:
+    HALTED.clear()
+    _FAILS["consecutive"] = 0
+
+
+def stops(error: Exception) -> bool:
+    """An outage that a later call would meet too: 401, 402, 403, 429, a 5xx, or no connection.
+    A timeout and an HTTP 400 (one request too long, say) are that cell's failure."""
+    import re
+
+    text = str(error)
+    found = re.search(r"HTTP (\d{3})", text)
+    if found and (int(found.group(1)) in STOP_STATUSES or int(found.group(1)) >= 500):
+        return True
+    return "unreachable" in text and "Timeout" not in text
+
+
 class StopDead:
-    """A live decider that stops the lot at the first cap refusal, 402 or 429: the error is
-    noted in HALTED and every later call raises without being made."""
+    """A live decider that stops the lot dead: at a cap refusal (CAP), and at an outage
+    (`stops`), an answer served by another model, or MAX_CONSECUTIVE_FAILURES failed calls in a
+    row of any kind (PAUSE). The reason is noted in HALTED and every later call raises without
+    being made. A wrong-model answer raises before `RecordingDecider` can record it."""
 
     def __init__(self, inner: Any) -> None:
         self._inner, self.name = inner, inner.name
 
+    def _failed(self, why: str) -> None:
+        _FAILS["consecutive"] += 1
+        if _FAILS["consecutive"] >= MAX_CONSECUTIVE_FAILURES and not HALTED:
+            halt(PAUSE, f"{MAX_CONSECUTIVE_FAILURES} failed calls in a row, the last: {why}")
+
     async def decide(self, point: str, state: Any, questions: Mapping[str, Any]) -> Any:
-        from sanchopanza.contract import DeciderOutOfFunds, DeciderUnavailable
+        from sanchopanza.contract import DeciderUnavailable
         from sanchopanza.providers.capped import SpendCapReached
 
         if HALTED:
             raise DeciderUnavailable(f"halted, not called: {HALTED[0]}")
         try:
-            return await self._inner.decide(point, state, questions)
-        except (SpendCapReached, DeciderOutOfFunds) as error:
-            HALTED.append(str(error))
+            decision = await self._inner.decide(point, state, questions)
+        except SpendCapReached as error:
+            halt(CAP, str(error))
             raise
-        except DeciderUnavailable as error:
-            if "HTTP 429" in str(error):
-                HALTED.append(str(error))
+        except Exception as error:
+            if stops(error):
+                halt(PAUSE, str(error))
+            self._failed(f"{type(error).__name__}: {error}")
             raise
+        if decision.model != MODEL:
+            halt(PAUSE, f"asked {MODEL}, served {decision.model}: not recorded")
+            raise DeciderUnavailable(HALTED[-1])
+        if decision.failed or not decision.answers:
+            self._failed(decision.error or "no answers")
+        else:
+            _FAILS["consecutive"] = 0
+        return decision
 
 
 def jev_inner(cell: str) -> Any:
@@ -190,22 +240,31 @@ async def one(position: int, q: Mapping[str, Any], arms: Mapping[str, Any],
 async def run(qs: Sequence[Mapping[str, Any]], *, live: bool, name: str, batch: str,
               cap_usd: float, first_rank: int = L6_USED, with_rec: bool = True,
               make_inner: Callable[[str], Any] = jev_inner) -> list[dict[str, Any]]:  # fmt: skip
-    """Every question in `qs`, WAVE at a time. Live, a wave is not started when the batch's
-    spend plus Q_EST_USD a question would pass `cap_usd`; a halt ends the run after its wave."""
+    """Every question in `qs`, WAVE at a time; the completed waves' rows. Live, a wave is not
+    started when Q_EST_USD a question would not fit in the room left (`room`); a halt drops the
+    wave it stopped and ends the run, as the soft stop does."""
+    reset()
     gate = asyncio.Semaphore(CONCURRENCY)
     arms = cell_arms(name, live, gate, batch, cap_usd, make_inner)
     rec = l6.recorded_arm("rec13-S", l6.A7_RECORDED, gate) if with_rec else None
     rows: list[dict[str, Any]] = []
     for start in range(0, len(qs), WAVE):
         wave = qs[start : start + WAVE]
-        if live and spent(batch) + Q_EST_USD * len(wave) > cap_usd:
+        if live and Q_EST_USD * len(wave) > room(batch, cap_usd):
             print(f"soft stop before question {start}: the cap would not hold", file=sys.stderr)
             break
         got = await asyncio.gather(*(one(start + k, q, arms, rec) for k, q in enumerate(wave)))
-        rows = [*rows, *(r | {"rank": first_rank + start + k} for k, r in enumerate(got))]
         if HALTED:
+            print(f"stopped in the wave at question {start}, dropped: {HALTED[0]}",
+                  file=sys.stderr)  # fmt: skip
             break
+        rows = [*rows, *(r | {"rank": first_rank + start + k} for k, r in enumerate(got))]
     return rows
+
+
+def room(batch: str, cap_usd: float) -> float:
+    """Dollars left under both the batch's cap and the ledger's."""
+    return min(cap_usd - spent(batch), LEDGER_CAP_USD - spent())
 
 
 # ---- cost, plan -------------------------------------------------------------------------------
@@ -243,12 +302,15 @@ def plan() -> int:
     qs = questions()
     by_id = {q["question_id"]: q for q in l6.a7_questions(False)}
     old = l6_rows()
+    ids = {q["question_id"] for q in qs}
+    dev_ids = {q["question_id"] for q in l6.a7_questions(True)}
+    disjoint = not ids & {r["id"] for r in old} and not ids & dev_ids
     gold = [lme.gold_of(q) for q in qs]
     bm25 = sum(
         len(lme.arm_bm25(q, lme.memories_of(q), 3) & g) for q, g in zip(qs, gold, strict=True)
     )
     out = {
-        "questions": len(qs), "disjoint_from_l6_and_dev": True,
+        "questions": len(qs), "distinct": len(ids), "disjoint_from_l6_and_dev": disjoint,
         "first_ids": [q["question_id"] for q in qs[:3]],
         "estimate": estimate(qs, [by_id[r["id"]] for r in old]),
         "bm25@3_recall_on_84": round(bm25 / sum(len(g) for g in gold), 4),
@@ -262,24 +324,24 @@ def plan() -> int:
 
 # ---- seal -------------------------------------------------------------------------------------
 
-SEALED = (
+SEALED_FIXED = (
     "benchmarks/memgate_long/memgate_long.py", "benchmarks/memgate_long/memgate_long_analysis.py",
     "tests/test_memgate_long.py", "benchmarks/jev114/l6.py", "benchmarks/jev114/l6_analysis.py",
     "benchmarks/jev114/l4.py", "benchmarks/jev114/l4_stats.py",
     "docs/results/2026-10-15-jev114-l6/a7-scored.jsonl",
-    "benchmarks/memory_gate/longmemeval.py", "benchmarks/memory_gate/run.py",
-    "benchmarks/triage_sets/run.py",
-    "src/sanchopanza/harness/memory_gate.py", "src/sanchopanza/providers/__init__.py",
-    "src/sanchopanza/providers/jev.py", "src/sanchopanza/providers/jev_models.py",
-    "src/sanchopanza/providers/jev_assets.py", "src/sanchopanza/providers/capped.py",
-    "src/sanchopanza/providers/recorded.py", "src/sanchopanza/budget.py",
-    "src/sanchopanza/_lockfile.py", "src/sanchopanza/_env.py", "src/sanchopanza/funds.py",
-    "src/sanchopanza/media.py", "src/sanchopanza/redact.py", "src/sanchopanza/contract.py",
-    "src/sanchopanza/squire.py", "src/sanchopanza/policy.py", "src/sanchopanza/limits.py",
-    "src/sanchopanza/text.py", "src/sanchopanza/points/chunks.py",
-    "src/sanchopanza/points/hierarchy.py", "src/sanchopanza/points/memory.py",
-    "src/sanchopanza/points/passages.py", "src/sanchopanza/points/triage.py",
+    "benchmarks/triage_sets/run.py",  # memory_gate/run.py loads it for BM25
 )  # fmt: skip
+# Every module a run can load: the whole package and the memory-gate benchmark, by glob.
+SEALED_GLOBS = ("src/sanchopanza/**/*.py", "benchmarks/memory_gate/*.py")
+
+
+def sealed_paths() -> tuple[str, ...]:
+    found = {p.relative_to(REPO).as_posix() for g in SEALED_GLOBS for p in REPO.glob(g)
+             if "__pycache__" not in p.parts}  # fmt: skip
+    return (*SEALED_FIXED, *sorted(found - set(SEALED_FIXED)))
+
+
+SEALED = sealed_paths()
 # Inputs outside the repository (not redistributed), hashed by their place under the home folder.
 SEALED_DATA = (
     ".cache/sanchopanza/memory_gate/longmemeval/longmemeval_s_cleaned.json",
@@ -301,12 +363,15 @@ def manifest() -> dict[str, str]:
 
 def seal(again: bool = False) -> str:
     """prereg.manifest.json and prereg.sha256 (L6's scheme). Written once: a different seal
-    already there is refused unless `again` (a re-seal before any live call, said in prereg)."""
+    already there is refused unless `again`, and `again` is refused once anything was spent in
+    this lot's ledger or any answer was recorded (a re-seal only before the first live call)."""
     found = manifest()
     value = l6.combined(found)
     target = OUT / "prereg.sha256"
     if target.exists() and target.read_text().strip() not in ("", value) and not again:
         raise SystemExit("prereg.sha256 already holds another seal: nothing written")
+    if again and (spent() > 0 or any(OUT.glob("*-answers-*.jsonl"))):
+        raise SystemExit("answers or spend exist already: no re-seal, nothing written")
     (OUT / "prereg.manifest.json").write_text(json.dumps(found, indent=1) + "\n",
                                               encoding="utf-8", newline="\n")  # fmt: skip
     target.write_text(value + "\n", encoding="utf-8", newline="\n")
@@ -334,7 +399,7 @@ def no_retry_on_429() -> None:
 
 
 def preflight_or_stop() -> None:
-    """`jev-preflight` for jev-1.13.0 only (one Truth, about 13 micro-dollars, off the ledger)."""
+    """`jev-preflight` for jev-1.13.0 only (one Truth, tens of micro-dollars, off the ledger)."""
     from sanchopanza.providers.jev import apreflight
 
     result = asyncio.run(apreflight(model=MODEL))
@@ -363,34 +428,41 @@ def read_rows(name: str) -> list[dict[str, Any]] | None:
     return [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x]
 
 
+def finish(name: str, rows: list[dict[str, Any]]) -> int:
+    """A pause (an outage, a wrong model, failures in a row) writes nothing and exits 2: a
+    relaunch replays what was paid and asks the rest. A cap stop writes the completed waves
+    (the cap is the end of the lot's money) and exits 0, as the soft stop does."""
+    if halt_kind() == PAUSE:
+        print(f"{name}: PAUSE, rows not written: {HALTED[0]}", file=sys.stderr)
+        return 2
+    if halt_kind() == CAP:
+        print(f"{name}: cap reached, {len(rows)} questions of completed waves written",
+              file=sys.stderr)  # fmt: skip
+    write_rows(name, rows)
+    return 0
+
+
 def smoke(live: bool) -> int:
     """SMOKE_QUESTIONS dev questions, both cells, on the smoke's own batch and sub-cap."""
     if live:
         go_live()
     rows = asyncio.run(run(questions(dev=True), live=live, name="smoke", batch=SMOKE_BATCH,
                            cap_usd=SMOKE_CAP_USD, first_rank=0, with_rec=False))  # fmt: skip
-    if HALTED:
-        print(f"smoke: STOP, rows not written: {HALTED[0]}", file=sys.stderr)
-        return 2
-    write_rows("smoke", rows)
+    code = finish("smoke", rows)
     print(json.dumps({"smoke": round(spent(SMOKE_BATCH), 6), "ledger": round(spent(), 6)}),
           file=sys.stderr)  # fmt: skip
-    return 0
+    return code
 
 
 def run_live() -> int:
-    """The run of record. 0 when its rows were written; 2 when it stopped."""
+    """The run of record. 0 when its rows were written; 2 when it paused."""
     if read_rows("a7") is not None:
         print("a7: scored already, frozen: not asked again", file=sys.stderr)
         return 0
     go_live()
     rows = asyncio.run(run(questions(), live=True, name="a7", batch=BATCH,
                            cap_usd=BATCH_CAP_USD))  # fmt: skip
-    if HALTED:
-        print(f"a7: STOP, rows not written: {HALTED[0]}", file=sys.stderr)
-        return 2
-    write_rows("a7", rows)
-    return 0
+    return finish("a7", rows)
 
 
 def analyse_and_write() -> int:
