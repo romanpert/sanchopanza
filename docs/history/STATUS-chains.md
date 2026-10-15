@@ -1,5 +1,10 @@
 # long60 chains: status (2026-10-06, stopped for the day)
 
+> **Historical.** A working note of 2026-10-06, kept as it was and moved here from the
+> repository root on 2026-10-15; its state is superseded. Today's is the
+> [final scoreboard](../results/2026-10-13-final/README.md) and the
+> [roadmap](../ROADMAP.md).
+
 Code is committed (`6ea83ea`, branch `long-bench`, not pushed): `long.py` (long60 draw, prompts,
 token, callbacks, manifests), `perbug.py` (isolation validation, per-bug grader, dry run),
 `run.py` (request sequence, `dry` action, per-bug grade), `validate.py` (dispatch),

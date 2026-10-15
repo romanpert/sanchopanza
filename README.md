@@ -248,8 +248,10 @@ What is kept, by `SANCHOPANZA_GUARD_CHOOSER`:
   `install` splits the block over six `SessionStart` commands (`--guard-parts`), each part under
   `SANCHOPANZA_GUARD_INLINE_CHARS` (9,500) and naming itself "part i of N"; the whole 44,000
   arrives inline. `--guard-parts 1` keeps one block, which leaves results about 3,900-7,000
-  characters (.15-.28 by the same replay). Not yet run end to end; the probe is
-  `benchmarks/guard_split/probe.py` ([results](docs/results/2026-10-05-guard-struct/)).
+  characters (.15-.28 by the same replay). The split's delivery was probed live on Sonnet 5.5
+  and Opus 5.5 (`benchmarks/guard_split/probe.py`, merge `cb0062e`): six parts inline, delivered
+  out of order, and a marker from part 2 answered exactly
+  ([results](docs/results/2026-10-05-guard-struct/)).
 - `rule` (free): value lines of output that cannot be had again (shell commands and subagent
   reports, never file reads or test runs), 3,000 characters: errors, words shared with the
   requests, rare line shapes. 5 of 7 tasks against 2 of 7 native.
@@ -673,13 +675,9 @@ runs that measured them and have not been tuned on the results.
 
 ### What is open
 
-- **candor's lock scope and one false-alarm rule.** On a real fix in an agent with its own harness, three sessions
-  with sanchopanza against three without, at the same cost: candor caught a report that
-  claimed to have read a file it never opened, and `unchanged_output` locked two sessions
-  (one of them a correct fix) over a file the prompt named only as context. The lock is one file per machine,
-  so a lock in one session held two unrelated ones until it was released
-  ([own-harness scene](docs/results/2026-09-30-own-harness-scene/)). Scoping the lock per project and
-  narrowing that rule are next.
+The same items, with the consumer's requests, their priority and cost, are in
+[docs/ROADMAP.md](docs/ROADMAP.md).
+
 - **Getting an agent to use `find_in_repo`.** Offered, not imposed, a Haiku agent called it in
   6 of 27 sessions ([find e2e](docs/results/2026-09-30-find-e2e/)).
 - **A derivation rule that does not overpay.** Against both Opus and Sonnet on R-Judge, the
@@ -704,7 +702,18 @@ runs that measured them and have not been tuned on the results.
 - **The unit of the tool window**, through the tournament over the sub-groups of a large
   server. An idea, unmeasured.
 - **Long documents outside English scientific papers.** `select_passages` is measured on
-  QASPER only.
+  QASPER only. Spanish sentences split since `872e068` (before an accented capital, `¿`, `¡`
+  or `«`), unmeasured on Spanish documents.
+- **Closed since the own-harness scene: candor's lock scope and its false locks.** On a real fix
+  in an agent with its own harness, three sessions a side at the same cost, candor caught a
+  report that claimed to have read a file it never opened, and `unchanged_output` locked two
+  sessions (one a correct fix) over a file the prompt named only as context; the lock was one
+  file per machine, so it held two unrelated sessions
+  ([own-harness scene](docs/results/2026-09-30-own-harness-scene/)). The lock now holds the
+  session that earned it (`SANCHOPANZA_CANDOR_LOCK_SCOPE`: `session` by default, `project` or
+  `machine`; `4fa334f`), and `unchanged_output` locks only on a contradiction with the record,
+  sending a reading of the task to review (v7, `1c7d2be`): replayed, the scene's two false
+  locks are gone and every lock v6 put on a misreport in rounds 4-5 is kept.
 
 ---
 
@@ -754,6 +763,8 @@ docs/adapters.md       one section per harness
 docs/providers.md      how to write a provider
 docs/evolve.md         the interface a self-improving harness uses to tune this package
 docs/governance.md     branch protection, PyPI trusted publishing, releasing
+docs/ROADMAP.md        what is pending, by priority and cost
+docs/history/          working notes kept for the record, superseded
 examples/              Claude Code, Claude Agent SDK, MCP, a local provider, evolve
 tests/                 no test calls a paid API
 ```

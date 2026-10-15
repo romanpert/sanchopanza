@@ -1,5 +1,10 @@
 # Long-chain runner: status (2026-10-06, stopped by the owner for the day)
 
+> **Historical.** A working note of 2026-10-06, kept as it was and moved here from the
+> repository root on 2026-10-15; its state is superseded. Today's is the
+> [final scoreboard](../results/2026-10-13-final/README.md) and the
+> [roadmap](../ROADMAP.md).
+
 Nothing here spent money: no `claude` session, no API, no Jev. No launcher was run.
 
 ## Fixes a-h (pre-mortem), each with a test written red first

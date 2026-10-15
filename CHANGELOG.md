@@ -496,7 +496,9 @@ do not favour this package.
   the trail, the pointers and the results that rank first; every part names itself "part i of
   N", as the hooks finish in any order. Without `--part` the hook keeps one capped block; any
   error while splitting gives the rule's block as part 1. Sizes now count UTF-16 code units, as
-  Claude Code does. Not yet run end to end (`benchmarks/guard_split/probe.py`).
+  Claude Code does. Probed live on Sonnet 5.5 and Opus 5.5 (`benchmarks/guard_split/probe.py`,
+  merge `cb0062e`): six parts inline, delivered out of order, a marker from part 2 answered
+  exactly.
 
 - **check-done and candor act only on a request that changed something** (`harness.change_gate`,
   `SANCHOPANZA_ON_CHANGE=0` to turn it off; `docs/results/2026-10-05-change-gate`). On a

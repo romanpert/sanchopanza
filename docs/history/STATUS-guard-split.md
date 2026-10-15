@@ -1,5 +1,10 @@
 # guard-split: status (2026-10-06, built, not run end to end)
 
+> **Historical.** A working note of 2026-10-06, kept as it was and moved here from the
+> repository root on 2026-10-15; its state is superseded. Today's is the
+> [final scoreboard](../results/2026-10-13-final/README.md) and the
+> [roadmap](../ROADMAP.md).
+
 Branch `guard-split` from main `7e75533`, worktree `../sanchopanza-guard-split`. Local only,
 nothing pushed, not merged. No paid calls were made.
 

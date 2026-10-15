@@ -1,5 +1,10 @@
 # Long bench: paid launches prepared (2026-10-06, branch `long-launch`, from `long-bench` 16c3a6e)
 
+> **Historical.** A working note of 2026-10-06 to 2026-10-07, kept as it was and moved here from the
+> repository root on 2026-10-15; its state is superseded. Today's is the
+> [final scoreboard](../results/2026-10-13-final/README.md) and the
+> [roadmap](../ROADMAP.md).
+
 Nothing here spent money: no `claude` that reached a model, no API, no Jev (the preflight was a
 stand-in). Not merged, not pushed. The long-bench worktree, its runs and its containers were not
 touched.
