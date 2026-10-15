@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 (unreleased)
+## 0.3.0 (2026-10-15)
 
 A tool window that follows the session without breaking the prompt cache, an interface for
 self-improving harnesses, fetched-content scanning, a security review of all of it, and the
