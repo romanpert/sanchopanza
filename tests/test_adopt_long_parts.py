@@ -14,7 +14,8 @@ import pytest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ADOPT = ROOT / "benchmarks" / "adopt"
-B2 = pathlib.Path.home() / ".cache" / "sanchopanza" / "adopt" / "runs" / "pydantic__pydantic-long40-1"
+B2 = (pathlib.Path.home() / ".cache" / "sanchopanza" / "adopt" / "runs"
+      / "pydantic__pydantic-long40-1")  # fmt: skip
 OURS = ("run", "long", "docker_env", "perbug", "long_run", "long_call", "long_guard",
         "long_report", "arm_files", "hook_env", "meter", "carry", "chains", "related", "masking")
 
@@ -27,7 +28,8 @@ def mods():  # type: ignore[no-untyped-def]
     import long_guard  # puts memory_carry and benchmarks on the path
     import long_report
 
-    import carry
+    # isort: split
+    import carry  # only importable once long_guard has put memory_carry on the path
     import meter
 
     yield {"carry": carry, "guard": long_guard, "report": long_report, "meter": meter}

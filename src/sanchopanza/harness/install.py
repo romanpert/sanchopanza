@@ -488,9 +488,10 @@ def mcp_json_changes(
     missing, unreadable or malformed holds nothing of ours, so it is left alone and never fails
     the install."""
     find_entry = find_server_entry(portable_command(command), auto=find_auto) if find else None
+    fetch_entry = fetch_server_entry(portable_command(command)) if fetch else None
     wanted = {ARCHIVE_SERVER: archive_server_entry(command) if lean else None,
               FIND_SERVER: find_entry,
-              FETCH_SERVER: fetch_server_entry(portable_command(command)) if fetch else None}  # fmt: skip
+              FETCH_SERVER: fetch_entry}  # fmt: skip
     if not lean and not find and not fetch:
         try:
             current = _read_mcp_json(path)
