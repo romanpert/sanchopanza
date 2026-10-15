@@ -14,6 +14,8 @@ from types import SimpleNamespace
 
 import pytest
 
+from tests.helpers import missing_commits
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ADOPT = ROOT / "benchmarks" / "adopt"
 FAKE = ROOT / "tests" / "fixtures" / "long_fake"
@@ -243,6 +245,8 @@ def test_the_real_pydantic_gate_manifest_matches_its_validated_chain_when_cached
 def test_the_seal_must_carry_gate_a_and_the_402_breaker_and_be_frozen(m: SimpleNamespace) -> None:
     with pytest.raises(SystemExit, match="not a commit"):
         m.long_launch.frozen_sancho("not-a-commit-xyz")
+    if missing := missing_commits("3276a05", "aad9903", "cb0062e", *m.long_launch.SEAL_NEEDS):
+        pytest.skip(f"sealed commits not in this clone (CI checks out one): {missing}")
     with pytest.raises(SystemExit, match="f2a0fe2"):
         m.long_launch.frozen_sancho("3276a05")  # long-bench's base: before gate A
     with pytest.raises(SystemExit, match="sealed at cb0062e"):

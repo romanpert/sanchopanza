@@ -78,6 +78,23 @@ def dry_environment(base: pathlib.Path, chains: tuple[str, ...]) -> dict[str, st
             "LL_DRY_CONFIG": str(base / "dry.json"), **secrets}  # fmt: skip
 
 
+def launcher_python(cmd: str) -> pathlib.Path:
+    """The python a launcher runs (`set PY=` in the .cmd): the owner's venv, where the runs ran."""
+    for line in (ROOT / cmd).read_text(encoding="utf-8").splitlines():
+        if line.startswith("set PY="):
+            return pathlib.Path(line[len("set PY=") :].strip())
+    raise AssertionError(f"{cmd} names no python")
+
+
+def needs_python(cmd: str) -> pytest.MarkDecorator:
+    """Skip a test that runs `cmd` past its checks when the python it names is not here (a CI
+    runner): the launcher then stops with 'The system cannot find the path specified'."""
+    return pytest.mark.skipif(
+        not launcher_python(cmd).exists(),
+        reason=f"{cmd} runs {launcher_python(cmd)}, not on this machine",
+    )
+
+
 def launch(cmd: str, args: list[str], env: dict[str, str], timeout: float = 600.0) -> int:
     full = {**os.environ, **env}
     for name in ("PYTHONPATH", "CLAUDE_CONFIG_DIR"):
@@ -95,6 +112,7 @@ def _text(path: pathlib.Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
+@needs_python("long-gate-run.cmd")
 def test_gate_launcher_runs_n_on_both_models_records_windows_and_resumes(
     tmp_path: pathlib.Path,
 ) -> None:
