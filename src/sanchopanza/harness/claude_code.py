@@ -150,17 +150,20 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
 
 def squire_from_env(env: dict[str, str] | None = None, *, redact: bool = False) -> Any:
     from ..journal import JsonlJournal
-    from ..policy import Thresholds
+    from ..policy import Thresholds, model_of
     from ..redact import redact_secrets
     from ..squire import Squire
 
     env = env if env is not None else dict(os.environ)
     journal_path = Path(_env.get("JOURNAL", env=env) or _env.home_dir() / "journal.jsonl")
+    decider = decider_from_env(env)
+    # `SANCHOPANZA_T_*` overrides lay over the profile of the model the decider asks.
     thresholds = Thresholds.from_mapping(
-        {k.lower(): v for k, v in _env.with_prefix("T_", env).items()}
+        {k.lower(): v for k, v in _env.with_prefix("T_", env).items()},
+        base=Thresholds.for_model(model_of(decider)),
     )
     return Squire(
-        decider_from_env(env),
+        decider,
         thresholds=thresholds,
         journal=JsonlJournal(journal_path),
         redact=redact_secrets if redact else None,

@@ -56,7 +56,7 @@ from .points import (
     tools,
     triage,
 )
-from .policy import Thresholds
+from .policy import Thresholds, model_of
 from .providers.null import NullDecider
 from .text import is_repeat, mention_present, quote_present, split_sentences
 
@@ -85,7 +85,9 @@ class Squire:
         # exact keys, so a recording holding only defaults was falsy and silently replaced by
         # the null decider - every answer empty, no error.
         self._decider: Decider = decider if decider is not None else NullDecider()
-        self._t = thresholds if thresholds is not None else Thresholds()
+        # No thresholds given: the profile of the model the decider asks (`MODEL_PROFILES`),
+        # which for every decider without one, and for jev-1.13.0, is the defaults.
+        self._t = thresholds if thresholds is not None else Thresholds.for_model(model_of(decider))
         # What each point shows the decider; the defaults are the measured cuts (`limits`).
         self._limits = limits if limits is not None else Limits()
         self._journal: Journal = journal if journal is not None else NullJournal()
@@ -359,19 +361,20 @@ class Squire:
         return result
 
     async def check_done(
-        self, *, task: str, record: str, cut: float = 0.5
+        self, *, task: str, record: str, cut: float | None = None
     ) -> completion.Completion:
         """Did the agent do what `task` asked, as far as `record` shows? For a Stop hook.
 
         On 655 AgentDojo trajectories, against the benchmark's own environment check: 94 %
         right where trusting the agent is 52 %, AUC 0.98 (docs/results/2026-09-25-completion/).
-        No data means no opinion: the harness keeps its own stop rule.
+        No data means no opinion: the harness keeps its own stop rule. `cut` defaults to
+        `Thresholds.done` (0.5; a model profile can move it).
         """
         state, qs = completion.questions(
             task=task, record=record, record_limit=self._limits.completion_record_chars
         )
         decision = await self.decide("completion", state, qs)
-        result = completion.decide(decision, cut=cut)
+        result = completion.decide(decision, cut=self._t.done if cut is None else cut)
         self.record(decision, done=result.done, reason=result.reason)
         return result
 

@@ -111,8 +111,9 @@ class HarnessConfig:
     # Off by default. On 655 AgentDojo trajectories the agent's word was right 52 % of the
     # time and the completion question 94 % (docs/results/2026-09-25-completion/). `done_cut`
     # is derived there to a 90 % precision target for a block: a false block costs a turn.
+    # None: the squire's `Thresholds.done` (0.5 for 1.13; a model profile can move it).
     check_done: bool = False
-    done_cut: float = 0.5
+    done_cut: float | None = None
     content_tools: frozenset[str] = frozenset({"WebFetch", "WebSearch"})
     # With `scan_content` on, the output of a shell command that fetches from the network
     # (`curl`, `wget`, `Invoke-WebRequest`, ... see `fetch.fetches_from_network`) is scanned

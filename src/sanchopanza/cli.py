@@ -534,7 +534,7 @@ def _compact_run(args: argparse.Namespace) -> int:
     from . import _env
     from .context import compact
     from .journal import JsonlJournal
-    from .policy import Thresholds
+    from .policy import Thresholds, model_of
     from .redact import redact_secrets
     from .squire import Squire
 
@@ -542,11 +542,13 @@ def _compact_run(args: argparse.Namespace) -> int:
         style = _stub_style(args)
         messages, session = _compact_input(args)
         journal_path = Path(_env.get("JOURNAL") or _env.home_dir() / "journal.jsonl")
+        decider = _compact_decider(args)
         thresholds = Thresholds.from_mapping(
-            {k.lower(): v for k, v in _env.with_prefix("T_").items()}
+            {k.lower(): v for k, v in _env.with_prefix("T_").items()},
+            base=Thresholds.for_model(model_of(decider)),
         )
         squire = Squire(
-            _compact_decider(args),
+            decider,
             thresholds=thresholds,
             journal=JsonlJournal(journal_path),
             redact=redact_secrets,

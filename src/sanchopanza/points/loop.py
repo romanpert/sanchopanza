@@ -116,18 +116,19 @@ class LoopAdvice:
 
 
 def decide(decision: Decision, t: Thresholds) -> LoopAdvice:
-    """Speak only above `saturated`, and only to advise. Silence is the default."""
+    """Speak only above the loop cuts (`saturated` unless a model profile moves them), and
+    only to advise. Silence is the default."""
     if decision.failed:
         return LoopAdvice("", 0.0, 0.0)
     met, repeat = decision.answer("goal_met"), decision.answer("repeats_check")
     pm, pr = probability(met), probability(repeat)
     notes: list[str] = []
-    if not met.empty and pm >= t.saturated:
+    if not met.empty and pm >= t.goal_met_cut:
         notes.append(
             f"what you were asked for appears to be established already ({pm:.2f}): "
             "consider writing the answer instead of gathering more"
         )
-    if not repeat.empty and pr >= t.saturated:
+    if not repeat.empty and pr >= t.repeats_check_cut:
         notes.append(
             f"this check looks like one already run with the same outcome ({pr:.2f}): "
             "re-running it is unlikely to change anything"

@@ -490,6 +490,6 @@ def decide_recall(decision: Decision, t: Thresholds) -> Recall:
     p = probability(answer, default=1.0)
     if answer.empty:
         return Recall(True, "no data: look", p)
-    if p <= 1.0 - t.act:
+    if p <= t.recall_skip_cut:
         return Recall(False, f"self-contained ({p:.2f})", p)
     return Recall(True, f"may need what we know ({p:.2f})", p)
