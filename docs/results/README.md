@@ -35,6 +35,7 @@ stays `jev-1.13.0`.
 | Folder | What it backs |
 |---|---|
 | [2026-10-15-jev114-l2](2026-10-15-jev114-l2/) | check_done and the permission cascade, Claude answers replayed: check_done worse at the 0.5 cut (91.9 % against 94.0 %, AUC 0.970 against 0.982), recalibrate before moving; R-Judge better (89.7 % against 87.4 %), Codex inconclusive, cascade stays on 1.13; R-Judge against Opus 5 at 43.9 % of its cost with 1.14 (65.7 % with 1.13 today), split noise at a 31 % median for both; the Codex confirmation at tau 0.45 holds with 1.14 (37.7 %). 0.173 USD of Jev |
+| [2026-10-15-jev114-l3](2026-10-15-jev114-l3/) | The label rubric of 2026-09-30, `jev-1.14.0` against `jev-1.13.0`, 1,000 items each of AG News and DBpedia-14 plus SIB-200 in five languages besides English (`prereg.md`). Argmax accuracy: 88.7 % against 88.8 %, 98.6 % against 98.5 %, and 88.9 % against 89.1 % outside English. Every difference is within ±1.3 points: **no peor** on all three. No measurable extra gain outside English (+1.8 points [-0.3, +4.1]). Coverage at the `classify` gate does not move, so no recalibration. 0.151 USD of Jev |
 
 ## Main evidence
 

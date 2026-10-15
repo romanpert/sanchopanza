@@ -1,0 +1,325 @@
+{
+ "agnews": {
+  "items": 1000,
+  "13r": {
+   "accuracy": 0.888,
+   "wilson95": [
+    0.8669,
+    0.9061
+   ],
+   "at_classify_0.60": {
+    "coverage": 0.979,
+    "accuracy": 0.8948
+   },
+   "auroc_p1": 0.7269,
+   "unanswered": 0,
+   "p1_not_the_top_option": 0
+  },
+  "14": {
+   "accuracy": 0.887,
+   "wilson95": [
+    0.8659,
+    0.9052
+   ],
+   "at_classify_0.60": {
+    "coverage": 0.975,
+    "accuracy": 0.8985
+   },
+   "auroc_p1": 0.7767,
+   "unanswered": 0,
+   "p1_not_the_top_option": 0
+  },
+  "paired_14_minus_13r": {
+   "accuracy_diff": -0.001,
+   "accuracy_diff_ci95": [
+    -0.008,
+    0.006
+   ],
+   "only_14_right": 6,
+   "only_13r_right": 7,
+   "mcnemar_p": 1.0,
+   "coverage_diff_at_0.60": -0.004,
+   "coverage_diff_ci95": [
+    -0.012,
+    0.004
+   ],
+   "gated_accuracy_diff_at_0.60": 0.0037,
+   "gated_accuracy_diff_ci95": [
+    -0.0027,
+    0.0102
+   ],
+   "auroc_diff": 0.0498,
+   "auroc_diff_ci95": [
+    0.019,
+    0.0829
+   ],
+   "label_agreement": 0.986
+  },
+  "holm_p": 1.0,
+  "verdict_computed": "no peor",
+  "verdict": "no peor"
+ },
+ "dbpedia": {
+  "items": 1000,
+  "13r": {
+   "accuracy": 0.985,
+   "wilson95": [
+    0.9754,
+    0.9909
+   ],
+   "at_classify_0.60": {
+    "coverage": 0.995,
+    "accuracy": 0.9879
+   },
+   "auroc_p1": 0.8532,
+   "unanswered": 0,
+   "p1_not_the_top_option": 0
+  },
+  "14": {
+   "accuracy": 0.986,
+   "wilson95": [
+    0.9766,
+    0.9916
+   ],
+   "at_classify_0.60": {
+    "coverage": 0.994,
+    "accuracy": 0.9899
+   },
+   "auroc_p1": 0.8747,
+   "unanswered": 0,
+   "p1_not_the_top_option": 0
+  },
+  "paired_14_minus_13r": {
+   "accuracy_diff": 0.001,
+   "accuracy_diff_ci95": [
+    0.0,
+    0.003
+   ],
+   "only_14_right": 1,
+   "only_13r_right": 0,
+   "mcnemar_p": 1.0,
+   "coverage_diff_at_0.60": -0.001,
+   "coverage_diff_ci95": [
+    -0.006,
+    0.004
+   ],
+   "gated_accuracy_diff_at_0.60": 0.002,
+   "gated_accuracy_diff_ci95": [
+    -0.002,
+    0.006
+   ],
+   "auroc_diff": 0.0215,
+   "auroc_diff_ci95": [
+    -0.0336,
+    0.1006
+   ],
+   "label_agreement": 0.997
+  },
+  "holm_p": 1.0,
+  "verdict_computed": "no peor",
+  "verdict": "no peor"
+ },
+ "sib_non_english": {
+  "items": 1020,
+  "13r": {
+   "accuracy": 0.8912,
+   "wilson95": [
+    0.8706,
+    0.9088
+   ],
+   "at_classify_0.60": {
+    "coverage": 0.9608,
+    "accuracy": 0.9061
+   },
+   "auroc_p1": 0.8477,
+   "unanswered": 0,
+   "p1_not_the_top_option": 0
+  },
+  "14": {
+   "accuracy": 0.8892,
+   "wilson95": [
+    0.8685,
+    0.907
+   ],
+   "at_classify_0.60": {
+    "coverage": 0.9539,
+    "accuracy": 0.9044
+   },
+   "auroc_p1": 0.8444,
+   "unanswered": 0,
+   "p1_not_the_top_option": 0
+  },
+  "paired_14_minus_13r": {
+   "accuracy_diff": -0.002,
+   "accuracy_diff_ci95": [
+    -0.0127,
+    0.0088
+   ],
+   "only_14_right": 10,
+   "only_13r_right": 12,
+   "mcnemar_p": 0.831812,
+   "coverage_diff_at_0.60": -0.0069,
+   "coverage_diff_ci95": [
+    -0.0225,
+    0.0078
+   ],
+   "gated_accuracy_diff_at_0.60": -0.0017,
+   "gated_accuracy_diff_ci95": [
+    -0.0089,
+    0.0055
+   ],
+   "auroc_diff": -0.0034,
+   "auroc_diff_ci95": [
+    -0.0279,
+    0.0236
+   ],
+   "label_agreement": 0.9775
+  },
+  "holm_p": 1.0,
+  "verdict_computed": "no peor",
+  "verdict": "no peor"
+ },
+ "sib_english": {
+  "items": 204,
+  "13r": {
+   "accuracy": 0.8922,
+   "wilson95": [
+    0.8421,
+    0.9277
+   ],
+   "at_classify_0.60": {
+    "coverage": 0.9461,
+    "accuracy": 0.9223
+   },
+   "auroc_p1": 0.883,
+   "unanswered": 0,
+   "p1_not_the_top_option": 0
+  },
+  "14": {
+   "accuracy": 0.8725,
+   "wilson95": [
+    0.8198,
+    0.9115
+   ],
+   "at_classify_0.60": {
+    "coverage": 0.9608,
+    "accuracy": 0.8929
+   },
+   "auroc_p1": 0.8817,
+   "unanswered": 0,
+   "p1_not_the_top_option": 0
+  },
+  "paired_14_minus_13r": {
+   "accuracy_diff": -0.0196,
+   "accuracy_diff_ci95": [
+    -0.0441,
+    0.0
+   ],
+   "only_14_right": 1,
+   "only_13r_right": 5,
+   "mcnemar_p": 0.21875,
+   "coverage_diff_at_0.60": 0.0147,
+   "coverage_diff_ci95": [
+    -0.0196,
+    0.049
+   ],
+   "gated_accuracy_diff_at_0.60": -0.0294,
+   "gated_accuracy_diff_ci95": [
+    -0.0541,
+    -0.0092
+   ],
+   "auroc_diff": -0.0013,
+   "auroc_diff_ci95": [
+    -0.0403,
+    0.0395
+   ],
+   "label_agreement": 0.9706
+  }
+ },
+ "sib_multilingual": {
+  "per_language": {
+   "arb_Arab": {
+    "13r": 0.8775,
+    "14": 0.8971
+   },
+   "deu_Latn": {
+    "13r": 0.9069,
+    "14": 0.8971
+   },
+   "eng_Latn": {
+    "13r": 0.8922,
+    "14": 0.8725
+   },
+   "fra_Latn": {
+    "13r": 0.902,
+    "14": 0.8922
+   },
+   "spa_Latn": {
+    "13r": 0.8922,
+    "14": 0.8775
+   },
+   "zho_Hans": {
+    "13r": 0.8775,
+    "14": 0.8824
+   }
+  },
+  "gain_outside_english_minus_gain_in_english": 0.0176,
+  "ci95": [
+   -0.0029,
+   0.0412
+  ]
+ },
+ "noise_vs_2026_09_30": {
+  "agnews": {
+   "items": 300,
+   "accuracy_2026_09_30": 0.8933,
+   "accuracy_13r_today": 0.89,
+   "accuracy_14_today": 0.88,
+   "label_agreement_13_then_vs_13r": 0.9967,
+   "mcnemar_13r_vs_then": [
+    0,
+    1,
+    1.0
+   ]
+  },
+  "dbpedia": {
+   "items": 300,
+   "accuracy_2026_09_30": 0.98,
+   "accuracy_13r_today": 0.98,
+   "accuracy_14_today": 0.98,
+   "label_agreement_13_then_vs_13r": 1.0,
+   "mcnemar_13r_vs_then": [
+    0,
+    0,
+    1.0
+   ]
+  }
+ },
+ "recommendations": {
+  "move_label_to_1_14": true,
+  "recalibrate_classify_for_1_14": {
+   "agnews": false,
+   "dbpedia": false,
+   "sib_non_english": false
+  },
+  "gains_more_outside_english": false
+ },
+ "run": {
+  "live_calls": {
+   "13r": 3224,
+   "14": 3224
+  },
+  "missing": {
+   "13r": 0,
+   "14": 0
+  },
+  "squire_usd": {
+   "13r": 0.075612,
+   "14": 0.075612
+  },
+  "ledger_batch_usd": 0.151224,
+  "ledger_total_usd": 0.711426,
+  "halted": null
+ },
+ "incomplete": false
+}
