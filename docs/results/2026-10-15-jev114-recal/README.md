@@ -223,6 +223,11 @@ point is "peor". But four findings argue against making it now:
 **Keep the profile.** It makes `SANCHOPANZA_JEV_MODEL=jev-1.14.0` a safe opt-in now, and when
 1.13 is retired the switch starts from cuts that are no worse.
 
+The confirmation that followed ([2026-10-15-jev114-recalconf](../2026-10-15-jev114-recalconf/README.md))
+did not hold this: on a second draw the profile was inconclusive taken together and worse on
+`redundant_page`, and on unseen candor counterfactuals 1.14 was worse. The profile stays an
+opt-in, not a safe one, and candor stays on 1.13.
+
 **Before the switch, a confirmation on cases neither version was asked**, estimated in Jev at
 today's per-call costs (31.6 µUSD per L1 call, about 47 per check_done trajectory, 87 per errata
 holistic call), both arms:
