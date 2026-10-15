@@ -190,3 +190,16 @@ def test_a_family_short_of_answers_is_inconclusive_but_keeps_its_computed_verdic
     assert report["agnews"]["verdict_computed"] in ("no peor", "no concluyente")
     assert report["dbpedia"]["verdict"] == "no peor"
     assert report["recommendations"]["move_label_to_1_14"] is False
+
+
+def test_in_sib_each_language_has_each_arm_first_on_half_its_sentences() -> None:
+    langs = ("eng_Latn", "spa_Latn", "fra_Latn")
+    rows = bench.interleave_sentences(
+        [{"lang": lang, "sentence": s} for lang in langs for s in range(10)]
+    )
+    flips = bench.sentence_flips(rows)
+    for lang in langs:
+        firsts = [flips(i, r) % 2 for i, r in enumerate(rows) if r["lang"] == lang]
+        assert firsts.count(0) == firsts.count(1) == 5
+    sentence = [flips(i, r) % 2 for i, r in enumerate(rows) if r["sentence"] == 0]
+    assert sentence == [0, 1, 0]

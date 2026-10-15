@@ -270,17 +270,18 @@ def record_of(row: Row) -> dict[str, Any]:
 
 async def run_set(
     rows: list[dict[str, Any]], rubric: Rubric, squires: dict[str, Squire],
-    halt: Halt | None = None,
+    halt: Halt | None = None, flips: Callable[[int, dict[str, Any]], int] | None = None,
 ) -> list[dict[str, Any]]:  # fmt: skip
-    """Both arms on every item, two calls in a row, the first arm alternating by item. The
+    """Both arms on every item, two calls in a row, the first arm alternating (`flips`). The
     rows come back without their text (third-party data stays out of the repository)."""
+    flips = flips or (lambda i, _row: i)
     gate = asyncio.Semaphore(CONCURRENCY)
     out: list[dict[str, Any]] = [{k: v for k, v in r.items() if k != "text"} for r in rows]
     unanswered = {arm: 0 for arm in ARMS}
     stop = asyncio.Event()
 
     async def one(i: int, row: dict[str, Any]) -> None:
-        order = list(ARMS) if i % 2 == 0 else list(reversed(ARMS))
+        order = list(ARMS) if flips(i, row) % 2 == 0 else list(reversed(ARMS))
         async with gate:
             if stop.is_set() or (halt is not None and halt.reason):
                 return
@@ -295,6 +296,13 @@ async def run_set(
 
     await asyncio.gather(*(one(i, r) for i, r in enumerate(rows)))
     return out
+
+
+def sentence_flips(rows: list[dict[str, Any]]) -> Callable[[int, dict[str, Any]], int]:
+    """SIB-200: which arm goes first alternates by sentence and by language at once, so every
+    language has each arm first on half of its sentences."""
+    langs = {lang: i for i, lang in enumerate(dict.fromkeys(r["lang"] for r in rows))}
+    return lambda _i, row: row["sentence"] + langs[row["lang"]]
 
 
 def interleave_sentences(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -600,7 +608,8 @@ def main() -> int:
         for name in SETS:
             rows, rubric = loaded[name]
             rows = interleave_sentences(rows) if name == "sib" else rows
-            results[name] = await run_set(rows, rubric, squires, halt)
+            flips = sentence_flips(rows) if name == "sib" else None
+            results[name] = await run_set(rows, rubric, squires, halt, flips)
             (out_dir / f"{name}-rows.jsonl").write_text(
                 "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in results[name]),
                 encoding="utf-8",
