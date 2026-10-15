@@ -1,4 +1,4 @@
-# lot lb102: the 102 lb162 tasks Jev 1.14 did not cover at 0.6, in random.Random(20261016).shuffle order of the sorted ids
+# lot lb162x phase A: the 102 lb162 tasks Jev 1.14 did not cover at 0.6, in random.Random(20261016).shuffle order of the sorted ids
 672468b1bb02136c067d74bd
 670bf6ddbb02136c067d2379
 670646aebb02136c067cf85a
