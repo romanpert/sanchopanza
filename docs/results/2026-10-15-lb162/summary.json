@@ -1,0 +1,187 @@
+{
+ "tau": 0.6,
+ "primary": {
+  "n": 162,
+  "covered": 60,
+  "sonnet_sessions": 60,
+  "covered_without_sonnet": 0,
+  "diff": 0.0123,
+  "ci95": [
+   -0.0309,
+   0.0556
+  ],
+  "bootstrap": {
+   "draws": 10000,
+   "kept": 10000,
+   "seed": 20261015,
+   "unit": "task"
+  },
+  "mcnemar": {
+   "jev_only_right": 8,
+   "sonnet_only_right": 6,
+   "p": 0.79052734375
+  },
+  "margin": -0.1,
+  "verdict": "no peor",
+  "pause": [],
+  "ci95_normal": [
+   -0.033,
+   0.0577
+  ]
+ },
+ "claim": "sustituye",
+ "min_coverage": 0.2,
+ "sensitivity_infra_as_wrong": {
+  "n": 162,
+  "covered": 60,
+  "sonnet_sessions": 60,
+  "covered_without_sonnet": 0,
+  "diff": 0.0123,
+  "ci95": [
+   -0.0309,
+   0.0556
+  ],
+  "bootstrap": {
+   "draws": 10000,
+   "kept": 10000,
+   "seed": 20261015,
+   "unit": "task"
+  },
+  "mcnemar": {
+   "jev_only_right": 8,
+   "sonnet_only_right": 6,
+   "p": 0.79052734375
+  },
+  "margin": -0.1,
+  "verdict": "no peor",
+  "pause": [],
+  "ci95_normal": [
+   -0.033,
+   0.0577
+  ]
+ },
+ "descriptive": {
+  "n": 162,
+  "covered": 60,
+  "coverage": 0.3704,
+  "jev_right_covered": 31,
+  "jev_precision_covered": 0.5167,
+  "jev_precision_wilson95": [
+   0.3931,
+   0.6382
+  ],
+  "sonnet_right_covered": 29,
+  "sonnet_accuracy_covered": 0.4833,
+  "jev_right_all": 64,
+  "jev_accuracy_all": 0.3951,
+  "gain_sum": 2
+ },
+ "stopped_unasked": 0,
+ "jev_failed": 0,
+ "by_length": {
+  "long": {
+   "n": 36,
+   "covered": 7,
+   "coverage": 0.1944,
+   "jev_right_covered": 4,
+   "jev_precision_covered": 0.5714,
+   "jev_precision_wilson95": [
+    0.2505,
+    0.8418
+   ],
+   "sonnet_right_covered": 3,
+   "sonnet_accuracy_covered": 0.4286,
+   "jev_right_all": 9,
+   "jev_accuracy_all": 0.25,
+   "gain_sum": 1,
+   "diff": 0.02777777777777778
+  },
+  "medium": {
+   "n": 88,
+   "covered": 35,
+   "coverage": 0.3977,
+   "jev_right_covered": 16,
+   "jev_precision_covered": 0.4571,
+   "jev_precision_wilson95": [
+    0.3047,
+    0.6181
+   ],
+   "sonnet_right_covered": 17,
+   "sonnet_accuracy_covered": 0.4857,
+   "jev_right_all": 35,
+   "jev_accuracy_all": 0.3977,
+   "gain_sum": -1,
+   "diff": -0.011363636363636362
+  },
+  "short": {
+   "n": 38,
+   "covered": 18,
+   "coverage": 0.4737,
+   "jev_right_covered": 11,
+   "jev_precision_covered": 0.6111,
+   "jev_precision_wilson95": [
+    0.3862,
+    0.7969
+   ],
+   "sonnet_right_covered": 9,
+   "sonnet_accuracy_covered": 0.5,
+   "jev_right_all": 20,
+   "jev_accuracy_all": 0.5263,
+   "gain_sum": 2,
+   "diff": 0.05263157894736842
+  }
+ },
+ "by_difficulty": {
+  "easy": {
+   "n": 50,
+   "covered": 19,
+   "coverage": 0.38,
+   "jev_right_covered": 13,
+   "jev_precision_covered": 0.6842,
+   "jev_precision_wilson95": [
+    0.4601,
+    0.8464
+   ],
+   "sonnet_right_covered": 12,
+   "sonnet_accuracy_covered": 0.6316,
+   "jev_right_all": 24,
+   "jev_accuracy_all": 0.48,
+   "gain_sum": 1,
+   "diff": 0.02
+  },
+  "hard": {
+   "n": 112,
+   "covered": 41,
+   "coverage": 0.3661,
+   "jev_right_covered": 18,
+   "jev_precision_covered": 0.439,
+   "jev_precision_wilson95": [
+    0.2989,
+    0.5896
+   ],
+   "sonnet_right_covered": 17,
+   "sonnet_accuracy_covered": 0.4146,
+   "jev_right_all": 40,
+   "jev_accuracy_all": 0.3571,
+   "gain_sum": 1,
+   "diff": 0.008928571428571428
+  }
+ },
+ "costs": {
+  "jev_usd_all": 0.87388,
+  "sonnet_usd_covered": 5.757025,
+  "sonnet_sessions_covered": 60,
+  "sonnet_infra_covered": 0,
+  "estimate": {
+   "sonnet_usd_uncovered": 12.546,
+   "per_task_usd": 0.123,
+   "sonnet_alone_usd": 18.303,
+   "hybrid_usd": 13.4199,
+   "saving_usd": 4.8831,
+   "saving_share": 0.2668
+  }
+ },
+ "jev_stop": null,
+ "sonnet_stop": "done",
+ "ledger_batch_usd": 0.87519
+}
