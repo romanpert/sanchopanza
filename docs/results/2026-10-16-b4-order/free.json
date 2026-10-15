@@ -1,0 +1,371 @@
+{
+ "budget_chars": 3400,
+ "questions": {
+  "derivation": 261,
+  "confirmation": 219
+ },
+ "overflowing": {
+  "derivation": 131,
+  "confirmation": 102
+ },
+ "primary_pooled_overflowing": {
+  "n": 233,
+  "PAGE": {
+   "recall": 0.6512,
+   "all_gold": 0.5966,
+   "all_gold_ci95": [
+    0.5325,
+    0.6575
+   ],
+   "chars_mean": 3215.8
+  },
+  "PROB": {
+   "recall": 0.7927,
+   "all_gold": 0.7253,
+   "all_gold_ci95": [
+    0.6647,
+    0.7786
+   ],
+   "chars_mean": 3213.0
+  },
+  "BM25": {
+   "recall": 0.6481,
+   "all_gold": 0.5794,
+   "all_gold_ci95": [
+    0.5152,
+    0.641
+   ],
+   "chars_mean": 3218.5
+  },
+  "FREE": {
+   "recall": 0.7873,
+   "all_gold": 0.7167,
+   "all_gold_ci95": [
+    0.6557,
+    0.7707
+   ],
+   "chars_mean": 3234.2
+  },
+  "GOLD": {
+   "recall": 0.9281,
+   "all_gold": 0.8884,
+   "all_gold_ci95": [
+    0.8415,
+    0.9227
+   ],
+   "chars_mean": 3217.4
+  },
+  "paired": {
+   "FREE-PAGE": {
+    "recall_diff": 0.1361,
+    "recall_ci95": [
+     0.0707,
+     0.2017
+    ],
+    "all_gold_only_first": 46,
+    "all_gold_only_second": 18,
+    "mcnemar_p": 0.0006
+   },
+   "PROB-PAGE": {
+    "recall_diff": 0.1415,
+    "recall_ci95": [
+     0.0787,
+     0.208
+    ],
+    "all_gold_only_first": 48,
+    "all_gold_only_second": 18,
+    "mcnemar_p": 0.0003
+   },
+   "BM25-PAGE": {
+    "recall_diff": -0.0031,
+    "recall_ci95": [
+     -0.0699,
+     0.063
+    ],
+    "all_gold_only_first": 30,
+    "all_gold_only_second": 34,
+    "mcnemar_p": 0.708
+   },
+   "FREE-PROB": {
+    "recall_diff": -0.0054,
+    "recall_ci95": [
+     -0.0499,
+     0.0382
+    ],
+    "all_gold_only_first": 18,
+    "all_gold_only_second": 20,
+    "mcnemar_p": 0.8714
+   }
+  }
+ },
+ "confirmation_overflowing": {
+  "n": 102,
+  "PAGE": {
+   "recall": 0.6391,
+   "all_gold": 0.598,
+   "all_gold_ci95": [
+    0.501,
+    0.688
+   ],
+   "chars_mean": 3220.8
+  },
+  "PROB": {
+   "recall": 0.7999,
+   "all_gold": 0.7451,
+   "all_gold_ci95": [
+    0.6527,
+    0.8197
+   ],
+   "chars_mean": 3212.2
+  },
+  "BM25": {
+   "recall": 0.6209,
+   "all_gold": 0.5686,
+   "all_gold_ci95": [
+    0.4717,
+    0.6605
+   ],
+   "chars_mean": 3217.9
+  },
+  "FREE": {
+   "recall": 0.8196,
+   "all_gold": 0.7647,
+   "all_gold_ci95": [
+    0.6737,
+    0.8365
+   ],
+   "chars_mean": 3233.0
+  },
+  "GOLD": {
+   "recall": 0.9152,
+   "all_gold": 0.8725,
+   "all_gold_ci95": [
+    0.7941,
+    0.924
+   ],
+   "chars_mean": 3230.2
+  },
+  "paired": {
+   "FREE-PAGE": {
+    "recall_diff": 0.1805,
+    "recall_ci95": [
+     0.0865,
+     0.2731
+    ],
+    "all_gold_only_first": 22,
+    "all_gold_only_second": 5,
+    "mcnemar_p": 0.0015
+   },
+   "PROB-PAGE": {
+    "recall_diff": 0.1608,
+    "recall_ci95": [
+     0.0634,
+     0.2574
+    ],
+    "all_gold_only_first": 21,
+    "all_gold_only_second": 6,
+    "mcnemar_p": 0.0059
+   },
+   "BM25-PAGE": {
+    "recall_diff": -0.0182,
+    "recall_ci95": [
+     -0.1207,
+     0.0782
+    ],
+    "all_gold_only_first": 13,
+    "all_gold_only_second": 16,
+    "mcnemar_p": 0.7111
+   },
+   "FREE-PROB": {
+    "recall_diff": 0.0198,
+    "recall_ci95": [
+     -0.048,
+     0.0876
+    ],
+    "all_gold_only_first": 8,
+    "all_gold_only_second": 6,
+    "mcnemar_p": 0.7905
+   }
+  }
+ },
+ "derivation_overflowing": {
+  "n": 131,
+  "PAGE": {
+   "recall": 0.6607,
+   "all_gold": 0.5954,
+   "all_gold_ci95": [
+    0.5098,
+    0.6756
+   ],
+   "chars_mean": 3211.9
+  },
+  "PROB": {
+   "recall": 0.7872,
+   "all_gold": 0.7099,
+   "all_gold_ci95": [
+    0.6271,
+    0.7808
+   ],
+   "chars_mean": 3213.7
+  },
+  "BM25": {
+   "recall": 0.6693,
+   "all_gold": 0.5878,
+   "all_gold_ci95": [
+    0.5022,
+    0.6684
+   ],
+   "chars_mean": 3219.0
+  },
+  "FREE": {
+   "recall": 0.7622,
+   "all_gold": 0.6794,
+   "all_gold_ci95": [
+    0.5953,
+    0.7532
+   ],
+   "chars_mean": 3235.2
+  },
+  "GOLD": {
+   "recall": 0.9381,
+   "all_gold": 0.9008,
+   "all_gold_ci95": [
+    0.8376,
+    0.9411
+   ],
+   "chars_mean": 3207.4
+  },
+  "paired": {
+   "FREE-PAGE": {
+    "recall_diff": 0.1015,
+    "recall_ci95": [
+     0.0128,
+     0.1899
+    ],
+    "all_gold_only_first": 24,
+    "all_gold_only_second": 13,
+    "mcnemar_p": 0.0989
+   },
+   "PROB-PAGE": {
+    "recall_diff": 0.1266,
+    "recall_ci95": [
+     0.0419,
+     0.2119
+    ],
+    "all_gold_only_first": 27,
+    "all_gold_only_second": 12,
+    "mcnemar_p": 0.0237
+   },
+   "BM25-PAGE": {
+    "recall_diff": 0.0086,
+    "recall_ci95": [
+     -0.0742,
+     0.0919
+    ],
+    "all_gold_only_first": 17,
+    "all_gold_only_second": 18,
+    "mcnemar_p": 1.0
+   },
+   "FREE-PROB": {
+    "recall_diff": -0.0251,
+    "recall_ci95": [
+     -0.0859,
+     0.0333
+    ],
+    "all_gold_only_first": 10,
+    "all_gold_only_second": 14,
+    "mcnemar_p": 0.5413
+   }
+  }
+ },
+ "confirmation_all_219": {
+  "n": 219,
+  "PAGE": {
+   "recall": 0.7642,
+   "all_gold": 0.7306,
+   "all_gold_ci95": [
+    0.6682,
+    0.785
+   ],
+   "chars_mean": 2459.4
+  },
+  "PROB": {
+   "recall": 0.839,
+   "all_gold": 0.7991,
+   "all_gold_ci95": [
+    0.7411,
+    0.8468
+   ],
+   "chars_mean": 2455.4
+  },
+  "BM25": {
+   "recall": 0.7557,
+   "all_gold": 0.7169,
+   "all_gold_ci95": [
+    0.6539,
+    0.7724
+   ],
+   "chars_mean": 2458.1
+  },
+  "FREE": {
+   "recall": 0.8483,
+   "all_gold": 0.8082,
+   "all_gold_ci95": [
+    0.7509,
+    0.8549
+   ],
+   "chars_mean": 2465.1
+  },
+  "GOLD": {
+   "recall": 0.8928,
+   "all_gold": 0.8584,
+   "all_gold_ci95": [
+    0.8061,
+    0.8985
+   ],
+   "chars_mean": 2463.8
+  },
+  "paired": {
+   "FREE-PAGE": {
+    "recall_diff": 0.0841,
+    "recall_ci95": [
+     0.0396,
+     0.1297
+    ],
+    "all_gold_only_first": 22,
+    "all_gold_only_second": 5,
+    "mcnemar_p": 0.0015
+   },
+   "PROB-PAGE": {
+    "recall_diff": 0.0749,
+    "recall_ci95": [
+     0.0285,
+     0.1187
+    ],
+    "all_gold_only_first": 21,
+    "all_gold_only_second": 6,
+    "mcnemar_p": 0.0059
+   },
+   "BM25-PAGE": {
+    "recall_diff": -0.0085,
+    "recall_ci95": [
+     -0.0573,
+     0.0375
+    ],
+    "all_gold_only_first": 13,
+    "all_gold_only_second": 16,
+    "mcnemar_p": 0.7111
+   },
+   "FREE-PROB": {
+    "recall_diff": 0.0092,
+    "recall_ci95": [
+     -0.0212,
+     0.0419
+    ],
+    "all_gold_only_first": 8,
+    "all_gold_only_second": 6,
+    "mcnemar_p": 0.7905
+   }
+  }
+ }
+}
