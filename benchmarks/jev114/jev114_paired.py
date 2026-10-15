@@ -1,6 +1,6 @@
 """Paired comparison of two Jev versions on the same cases: items, tests, verdicts.
 
-Pure functions over the per-case rows `components.py` writes; no network, no files. The rules
+Pure functions over the per-case rows `jev114_components.py` writes; no network, no files. The rules
 are the ones sealed in `docs/results/2026-10-15-jev114-l1/prereg.md`:
 
 - an item is one case (one binary item per question for `memory_collision` without a cut);

@@ -24,7 +24,7 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT / "benchmarks"))
 
-import paired as pr  # noqa: E402
+import jev114_paired as pr  # noqa: E402
 from substitution import _at_half, norm  # noqa: E402
 
 from sanchopanza.budget import SpendLedger  # noqa: E402
@@ -40,7 +40,7 @@ OPUS5 = ROOT / "docs" / "results" / "2026-09-27-memory-write-cut" / "fifty" / "a
 
 
 def _read(path: Path) -> list[dict[str, Any]]:
-    from components import read_rows
+    from jev114_components import read_rows
 
     return read_rows(path)
 
@@ -240,41 +240,64 @@ def _auc_verdict(a: Mapping[str, Any]) -> str:
     return "peor" if a["high"] < 0 else "no concluyente"
 
 
+def _a9_texts() -> dict[str, str]:
+    from jev114_extras import a9_cases
+
+    return {c["id"]: c["input"]["text"] for c in a9_cases()}
+
+
+def _chars_sent(way: str, row: Mapping[str, Any], text: str) -> int:
+    """Characters of document text the model was shown for this case (cache hits included)."""
+    from sanchopanza.points import injection
+
+    if way == "trunc-2000":
+        return min(len(text), injection.TEXT_LIMIT)
+    if way == "whole":
+        return len(text)
+    return sum(len(w) for w in injection.windows(text)[: int(row.get("windows") or 0)])
+
+
+def _flagged(r: Mapping[str, Any]) -> bool:
+    return r["predicted"] is True
+
+
 def a9_table(rows: Mapping[str, Mapping[str, Mapping[str, Any]]], bench: Mapping[str, Any],
              ) -> list[dict[str, Any]]:  # fmt: skip
-    """Per arm and way: caught of the injected, false alarms of the clean, calls, tokens."""
+    """Per arm and way on the A9 texts: caught of the injected and false alarms of the clean at
+    0.70, the same with the keyword layer (it reads the whole text whatever the way), calls
+    (cache hits included) and characters of text shown."""
+    from sanchopanza.points import injection
+
+    texts = _a9_texts()
+    keyword = {i: injection.code_signal(t) is not None for i, t in texts.items()}
+
+    def either(r: Mapping[str, Any]) -> bool:
+        return _flagged(r) or keyword[r["id"]]
+
     table = []
     for way, source in (("trunc-2000", bench), ("windows", rows.get("windows", {})),
                         ("whole", rows.get("whole", {}))):  # fmt: skip
         for arm in ("13r", "14"):
-            got = {k: r for k, r in usable(source.get(arm, {})).items()
-                   if r.get("component") in ("a9", "agentdojo")}  # fmt: skip
-            ids = {r["id"] for r in rows.get("whole", {}).get("14", {}).values()} or None
-            got = {k: r for k, r in got.items() if ids is None or r["id"] in ids}
-            pos = [r for r in got.values() if r["expected"]]
-            neg = [r for r in got.values() if not r["expected"]]
-            kw = [r for r in pos if r.get("keyword")]
+            got = [r for r in usable(source.get(arm, {})).values()
+                   if r.get("component") in ("a9", "agentdojo") and r["id"] in texts]  # fmt: skip
+            pos = [r for r in got if r["expected"]]
+            neg = [r for r in got if not r["expected"]]
             table.append({"way": way, "arm": arm, "n": len(got),
-                          "caught": sum(r["predicted"] is True for r in pos), "pos": len(pos),
-                          "false_alarms": sum(r["predicted"] is True for r in neg),
-                          "neg": len(neg),
-                          "false_alarms_with_keywords": sum(
-                              r["predicted"] is True or bool(r.get("keyword")) for r in neg),
-                          "with_keywords": sum(r["predicted"] is True or bool(r.get("keyword"))
-                                               for r in pos),
-                          "keyword_only": len(kw),
-                          "calls": sum(len(r.get("calls", ())) for r in got.values()),
-                          "tokens": sum(c.get("tokens") or 0 for r in got.values()
-                                        for c in r.get("calls", ())),
-                          "auc": auc([r["probability"] or 0 for r in got.values()],
-                                     [bool(r["expected"]) for r in got.values()])
+                          "caught": sum(map(_flagged, pos)), "pos": len(pos),
+                          "false_alarms": sum(map(_flagged, neg)), "neg": len(neg),
+                          "caught_with_keywords": sum(map(either, pos)),
+                          "false_alarms_with_keywords": sum(map(either, neg)),
+                          "calls": sum(len(r.get("calls", ())) for r in got),
+                          "chars_shown": sum(_chars_sent(way, r, texts[r["id"]]) for r in got),
+                          "auc": auc([r["probability"] or 0 for r in got],
+                                     [bool(r["expected"]) for r in got])
                           if pos and neg else math.nan})  # fmt: skip
     return table
 
 
-def write_report(run: Path, out: Path | None) -> int:
+def write_report(run: Path, out: Path | None, hist_path: Path | None = None) -> int:
     live = latest(_read(run / "rows-bench.jsonl") + _read(run / "rows-supersede.jsonl"))
-    hist = latest(_read(run / "rows-113rec.jsonl"))
+    hist = latest(_read(hist_path or run / "rows-113rec.jsonl"))
     windows = latest(_read(run / "rows-a9-windows.jsonl"))
     whole = latest(_read(run / "rows-a9-whole.jsonl"))
     arms = {"113rec": hist.get("113rec", {}), "13r": live.get("13r", {}), "14": live.get("14", {})}
@@ -341,7 +364,7 @@ def spend(run: Path, *sources: Mapping[str, Mapping[str, Mapping[str, Any]]]) ->
                         per_arm[arm]["calls"] += 1
                         per_arm[arm]["usd"] += c.get("cost_usd") or 0.0
                         per_arm[arm]["tokens"] += c.get("tokens") or 0
-    from components import LEDGER
+    from jev114_components import LEDGER
 
     ledger_path = LEDGER
     ledger = SpendLedger(ledger_path, cap_usd=4.50) if ledger_path.exists() else None

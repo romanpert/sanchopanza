@@ -1,10 +1,11 @@
 """Jev 1.14 against 1.13, both live today and interleaved per case, on every component bench
 (lot L1 of the 1.14 plan: experiment A1, plus A9, the injection point over the whole text).
 
-    python benchmarks/jev114/components.py plan            # free: cases, calls, estimate
-    python benchmarks/jev114/components.py replay          # free: recorded 1.13, current code
-    python benchmarks/jev114/components.py run --paid      # Jev only, both models, capped
-    python benchmarks/jev114/components.py report          # free: tables and verdicts
+    python benchmarks/jev114/jev114_components.py plan         # free: cases, calls, estimate
+    python benchmarks/jev114/jev114_components.py replay       # free: recorded 1.13, today's code
+    python benchmarks/jev114/jev114_components.py run --paid   # Jev only, both models, capped
+    python benchmarks/jev114/jev114_components.py report       # free: tables and verdicts
+    python benchmarks/jev114/jev114_components.py rerun --out DIR   # free: from fixtures/jev114
 
 Every call goes through `CappedDecider` on the shared ledger (`--ledger`, cap 4.50 USD, this
 lot `BATCH_CAP`), then a disk cache per model (a repeat costs 0), then a recording in
@@ -162,7 +163,7 @@ def read_rows(path: Path) -> list[dict[str, Any]]:
 
 def done_keys(path: Path) -> set[tuple[str, str, str]]:
     """Cases not to ask again: answered, or failed `ATTEMPTS` times (capped runs do not count)."""
-    from paired import capped, failed
+    from jev114_paired import capped, failed
 
     tries: dict[tuple[str, str, str], int] = {}
     done = set()
@@ -231,7 +232,7 @@ def historical() -> RecordedDecider:
 
 
 def cmd_plan(_: argparse.Namespace) -> int:
-    from extras import a9_cases, supersede_cases
+    from jev114_extras import a9_cases, supersede_cases
 
     cases = bench_cases()
     by: dict[str, int] = {}
@@ -255,7 +256,7 @@ def cmd_plan(_: argparse.Namespace) -> int:
 
 def cmd_replay(args: argparse.Namespace) -> int:
     """The recorded 1.13 answers through today's code: the historical reference row."""
-    from extras import supersede_historical
+    from jev114_extras import supersede_historical
 
     decider = historical()
 
@@ -276,7 +277,7 @@ def cmd_replay(args: argparse.Namespace) -> int:
 
 
 def cmd_run(args: argparse.Namespace) -> int:
-    from extras import a9_cases, ask_a9_whole, ask_a9_windows, ask_supersede, supersede_cases
+    from jev114_extras import a9_cases, ask_a9_whole, ask_a9_windows, ask_supersede, supersede_cases
 
     if not args.paid:
         print("dry: nothing asked; pass --paid to spend")
@@ -338,10 +339,47 @@ def preflight_both(ledger: SpendLedger) -> bool:
     return ok
 
 
-def cmd_report(args: argparse.Namespace) -> int:
-    from report import write_report
+def recorded_stacks() -> dict[str, Decider]:
+    """Both live arms as recorded today: 13r unkeyed in its own file, 14 keyed by its model."""
+    return {"13r": RecordedDecider.from_file(fixture_for("13r")),
+            "14": RecordedDecider.from_file(fixture_for("14"), model=MODELS["14"])}  # fmt: skip
 
-    return write_report(RUN, Path(args.out) if args.out else None)
+
+async def rerun_all(out: Path) -> None:
+    """Every part of the run again, from the recordings: the rows `report` reads, for free."""
+    from jev114_extras import a9_cases, ask_a9_whole, ask_a9_windows, ask_supersede, supersede_cases
+
+    stacks = recorded_stacks()
+    parts = [("bench", bench_cases(), ask_bench), ("supersede", supersede_cases(),
+             ask_supersede), ("a9-windows", a9_cases(), ask_a9_windows),
+             ("a9-whole", a9_cases(), ask_a9_whole)]  # fmt: skip
+    for name, cases, ask in parts:
+        await run_cases(cases, stacks, out / f"rows-{name}.jsonl", ask)
+
+
+def cmd_rerun(args: argparse.Namespace) -> int:
+    out = Path(args.out)
+    if any(out.glob("rows-*.jsonl")):
+        raise SystemExit(f"{out} already holds rows; give an empty directory")
+    asyncio.run(rerun_all(out))
+    cmd_replay(argparse.Namespace(out=str(out / "rows-113rec.jsonl")))
+    from jev114_report import write_report
+
+    return write_report(out, out)
+
+
+def cmd_report(args: argparse.Namespace) -> int:
+    """From the run directory, or from `--rows` (the rows committed with the results); the 1.13
+    reference is replayed from the published recordings when the rows directory lacks it."""
+    from jev114_report import write_report
+
+    run = Path(args.rows) if args.rows else RUN
+    out = Path(args.out) if args.out else None
+    hist = run / "rows-113rec.jsonl"
+    if not hist.exists():
+        hist = (out or run) / "rows-113rec.jsonl"
+        cmd_replay(argparse.Namespace(out=str(hist)))
+    return write_report(run, out, hist)
 
 
 def main() -> int:
@@ -357,8 +395,12 @@ def main() -> int:
                    help="bench, supersede, a9-windows, a9-whole")  # fmt: skip
     p.add_argument("--limit", type=int, default=0, help="first N cases of each part (smoke)")
     p.set_defaults(fn=cmd_run)
+    rr = sub.add_parser("rerun")
+    rr.add_argument("--out", required=True)
+    rr.set_defaults(fn=cmd_rerun)
     q = sub.add_parser("report")
     q.add_argument("--out", default="")
+    q.add_argument("--rows", default="", help="a directory of rows-*.jsonl instead of the run")
     q.set_defaults(fn=cmd_report)
     args = parser.parse_args()
     return args.fn(args)
