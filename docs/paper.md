@@ -1761,7 +1761,7 @@ that should have changed. Two harness problems were fixed before the reruns.
 **Candor's lock was one file for the whole machine**: the first session's lock held two sessions
 in other worktrees from their first turn, voided and rerun with a lock per session; in a real
 setup one flagged session would stop every candor-guarded session on the machine until someone
-looked. And the acceptance test was too narrow twice and failed three correct fixes without the
+looked (the default is one lock per session since `4fa334f`; Section 8, item 16). And the acceptance test was too narrow twice and failed three correct fixes without the
 layer; the final check is the one the real fix's own test makes, and first grades are kept.
 2.19 USD of 9.00 (`docs/results/2026-09-30-own-harness-scene/`).
 
@@ -2045,9 +2045,12 @@ Each is enforced in code or in a test.
     (`F_used_find`) next to the verdicts.
 16. **Check a lock's scope before shipping it.** Candor's lock was one file per machine, and one
     flagged session held two unrelated sessions in other worktrees from their first turn
-    (Section 5.23). The scene's runner now gives each session its own lock through
-    `SANCHOPANZA_CANDOR_LOCK`; the package's default is still one per machine, and scoping it
-    per project or session is open (Section 9).
+    (Section 5.23). The scene's reruns gave each session its own lock through
+    `SANCHOPANZA_CANDOR_LOCK`, which names a lock file outright. Since commit `4fa334f` the
+    package's default is one lock per session: `SANCHOPANZA_CANDOR_LOCK_SCOPE` is `session`
+    unless set to `project` (one lock per git root, so worktrees stay apart) or `machine` (the
+    old single file), and `SANCHOPANZA_CANDOR_LOCK` still wins over the scope. A session with no
+    id falls back to its project, never to the machine (`tests/test_candor_scope.py`).
 17. **An acceptance test can be wrong in the direction of failing correct work.** The scene's
     hidden test looked for the fix in one file, then in one expression shape, and failed three
     correct fixes before it was widened to what the real fix's own test checks. Keep the first
@@ -2117,10 +2120,14 @@ Each is enforced in code or in a test.
     fetch a page with `curl` when WebFetch refused it. Commands that fetch from the network are
     now recognised in code and their output scanned by default; what that costs and what the
     matcher misses in live sessions is unmeasured.
-18. **The scope of candor's lock.** One lock file per machine means one flagged session stops
-    every candor-guarded session on it until someone looks (Section 5.23). The lock should be
-    scoped per project or per session, and the release should stay as deliberate as it is now:
-    the lock is only worth what a person's reading of the claim beside the action is worth.
+18. **The scope of candor's lock.** One lock file per machine meant one flagged session stopped
+    every candor-guarded session on it until someone looked (Section 5.23). The lock now holds
+    the session that earned it by default (`SANCHOPANZA_CANDOR_LOCK_SCOPE=session`, `4fa334f`;
+    Section 8, item 16). What stays open is the choice for a harness that starts sessions on its
+    own: under `session` a new session in the same project walks past a held one, and `project`
+    stops it at the cost of holding the project's other work. The release should stay as
+    deliberate as it is now: the lock is only worth what a person's reading of the claim beside
+    the action is worth.
 19. **`unchanged_output` on files named as context.** A prompt that names a file as the place a
     result is written ("the result that X writes") was read as a request to change X, and two
     of three guarded sessions in the scene were locked falsely for it. It is the rule's known

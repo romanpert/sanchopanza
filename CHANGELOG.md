@@ -310,6 +310,23 @@ do not favour this package.
   split out at the same values. `Thresholds.derivable` is split out too and is set by the
   derived `memory_write` cut (below). `Thresholds.common_durable` / `common_derivable` hold the
   opt-in `common` path at the values it was measured at (0.70 / 0.75).
+- **Jev 1.14 in the client, opt-in** (`providers/jev.py`). `SANCHOPANZA_JEV_MODEL` picks the
+  model and `DEFAULT_MODEL` stays `jev-1.13.0`; the benches that pinned 1.13 by hand follow the
+  variable into their own recording directories. Long context and images send TypeSafe's Danger
+  Zone headers, by argument or by `SANCHOPANZA_JEV_LONG_CONTEXT` / `SANCHOPANZA_JEV_IMAGES`.
+  Images travel once per request in a top-level assets map and are cited by ref
+  (`providers/jev_assets.py`; the `sanchopanza[images]` extra resizes with Pillow); each side
+  must be 280 to 1568 px, not the documented 256, since `jev-1.14.0` refused 256 and 270 px
+  sides (`docs/results/2026-10-15-jev114-l5`). `Box` is a fourth question type, refused before
+  any request on a version below 1.14. Recordings key the model from 1.14 on, a 1.14 fixture
+  has its own file, and every existing key is unchanged.
+- **A hard dollar cap shared by every process of a batch** (`SpendLedger`, `CappedDecider`):
+  each call is reserved in a JSON-lines ledger under an exclusive lock at a pessimistic
+  estimate before it is made, refused when it would pass the ledger's or the batch's cap
+  (`SpendCapReached`, a `DeciderUnavailable`), and settled at its cost after.
+- **The truncations are parameters** (`limits.Limits` on `Squire(limits=)`): page, triage,
+  completion record, history, result, memory record and injection window sizes, and pages per
+  call, with the defaults unchanged.
 - **Thresholds per Jev model** (`policy.MODEL_PROFILES`, `Thresholds.for_model`). A squire with
   no thresholds given, the Claude Code hooks and `compact` take the profile of the model the
   decider asks (`SANCHOPANZA_JEV_MODEL`, else `DEFAULT_MODEL`); `SANCHOPANZA_T_*` overrides lay
@@ -590,6 +607,15 @@ do not favour this package.
   - Early compaction on long code (near 67k against N-early's 160k, Sonnet 5.5, 5 chains, sealed fb42fa4): **no gana** (`docs/results/2026-10-13-long-compact/`). Cost 0.900 [0.741, 1.093], quality -1.4 points (non-inferior at -10), wall 1.09, 173.11 USD; 0.858 [0.748, 0.984] if a call cut by a PC reboot is metered at what it cost, a sensitivity the sealed rule does not use. `install --context-budget` stays at 160,000. Under the post-data amendment (conan-2 repeated on 2026-10-15, 33.69 USD, 206.80 in all): still no gana, R1 0.875 [0.754, 1.015], R2 0.887 [0.750, 1.050].
   - Not run, by decision: code on Sonnet and Opus 5.5 (about 357 USD), memory F2, Fable 5.1, and
     the memory cell on Opus.
+- **Jev 1.14 against 1.13, both asked live on 2026-10-15, six pre-registered lots and a free
+  recalibration** (`docs/results/2026-10-15-jev114-*`; 3.65 USD of Jev, 0 of Claude). No worse
+  on the component benches taken together (−0.42 points [−1.46, +0.70] on 1,437 items), with
+  better Score calibration and supersession; no worse as a labeller, in English and in five
+  other languages; worse on check_done at the 0.5 cut and on `redundant_page` at 0.59, both
+  cuts set on 1.13; no gain on find_in_repo, candor, images or long context. With its own
+  threshold profile 1.14 reaches parity, 556 against 556 of 646. `DEFAULT_MODEL` stays
+  `jev-1.13.0`. The long window lifts the memory gate's recall from 0.723 to 0.908 on 36
+  LongMemEval questions on both versions; it is not shipped until a confirmation.
 - **Compaction mid-session: native summary against lean masking, negative**
   (`docs/results/2026-09-28-context-lean/`, pre-registered, Claude Code 2.1.282 headless with
   Haiku 4.5, 7 tasks, compaction fired by Claude Code's own auto-compaction mid-task, run

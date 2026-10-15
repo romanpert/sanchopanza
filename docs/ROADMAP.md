@@ -18,7 +18,8 @@ Supported in the client since 2026-10-15 (merge `5694973`), with the default unc
   (`src/sanchopanza/providers/jev.py`). The benches that pinned 1.13 by hand follow the variable.
 - Long context and images send the Danger Zone headers, by argument or by
   `SANCHOPANZA_JEV_LONG_CONTEXT` / `SANCHOPANZA_JEV_IMAGES`; images go as refs plus a top-level
-  assets map (`providers/jev_assets.py`, extra `sanchopanza[images]` for resizing).
+  assets map (`providers/jev_assets.py`, extra `sanchopanza[images]` for resizing), each side
+  280 to 1568 px (`aa6fe79`).
 - `Box` is a fourth question type, refused before any request on a version below 1.14.
 - Recordings key the model from 1.14 on, and a 1.14 fixture has its own file
   (`fixtures/jev114/<name>`); every existing key is unchanged.
@@ -27,8 +28,40 @@ Supported in the client since 2026-10-15 (merge `5694973`), with the default unc
 - The truncation limits are parameters (`limits.Limits` on `Squire(limits=)`), defaults
   unchanged (`dad1fb5`).
 
-Experiments with 1.14 are running. Their figures will go in their own `docs/results/` folders, and
-`DEFAULT_MODEL` moves only if they justify it.
+**What the 2026-10-15 lots found.** Both versions asked live the same day on the published
+inputs, interleaved per item, each lot pre-registered and sealed before any 1.14 answer; Jev
+only, 3.65 USD in all on the shared ledger, 0 USD of Claude (Claude answers are the earlier
+recordings). One draw per version.
+
+| Lot | Verdict by the sealed rule |
+|---|---|
+| [L1, component benches](results/2026-10-15-jev114-l1/README.md) | **No worse taken together**: 1,253 against 1,259 of 1,437 at the production thresholds (−0.42 points [−1.46, +0.70]), also at 0.5 and on macro AUC. Better Score calibration (ECE 0.152 → 0.109) and supersession (14 against 12 of 16 replaced rules, no false suppression). `redundant_page` worse at its 1.13 cut of 0.59 (107 against 115 of 125), with its ordering unchanged (AUC 0.997 → 0.995). Injection over the whole text: no gain over the window scan |
+| [L2, check_done and the permission cascade](results/2026-10-15-jev114-l2/README.md) | **check_done worse at the 0.5 cut** (91.9 % against 94.0 %, Holm p 0.002): 1.14 calls more finished runs unfinished. **The cascade stays on 1.13**: R-Judge better (89.7 % against 87.4 %), Codex inconclusive at the cut (−1.6 points [−3.6, +0.4]); the Codex confirmation at tau 0.45 holds with 1.14 |
+| [L3, label](results/2026-10-15-jev114-l3/README.md) | **No worse** on AG News, DBpedia-14 and SIB-200 in five languages outside English (every difference within ±1.3 points); no measurable extra gain outside English (+1.8 points [−0.3, +4.1]); the `classify` gate needs no recalibration |
+| [L4, find_in_repo and candor](results/2026-10-15-jev114-l4/README.md) | **No improvement**: find any@1 50.4 % for both, any@5 −0.9 points, too few issues to show "no worse"; tau2 ranks a little better (AUC 0.549 → 0.581), still near chance. The holistic candor cut shifts: at 0.83, 1.14 flags 22 of 55 accepted errata answers against 8 |
+| [L5, images](results/2026-10-15-jev114-l5/README.md) | **No vision mode** for `browse`: Box over the screenshot does not beat the text ranking (top 1 35.9 % against 42.3 %, inconclusive), and the screenshot leaves R@10 at 93.8 %. With images, 1.14 is no worse than 1.13. The real minimum side is 280 px, not the documented 256 (`MIN_SIDE` now 280) |
+| [L6, long context](results/2026-10-15-jev114-l6/README.md) | **No substitute for a Claude call** at the registered cut: on LongBench v2 Jev is sure on 7 of 50 tasks, the ones Sonnet also gets right, saving 1.5 % of its cost. The long window lifts the memory gate's recall 0.723 → 0.908 on 36 LongMemEval questions, **on 1.13 too**: a gain of the window, not of the model. One-call QASPER triage still keeps half the paper |
+| [Recalibration](results/2026-10-15-jev114-recal/README.md) | **A threshold profile per model** (`policy.MODEL_PROFILES`, used only when the model is `jev-1.14.0`), derived free on calibration splits: 1.14 with it reaches **parity** with 1.13 at its own cuts, 556 against 556 of 646 (0.0 [−1.5, +1.5]). check_done at 0.30 closes its gap; `redundant_page` is not fixed, and memory_write makes twice the costly stores |
+
+**`DEFAULT_MODEL` stays `jev-1.13.0`.** 1.14 is a safe opt-in with its profile
+(`SANCHOPANZA_JEV_MODEL=jev-1.14.0`), better on calibration, supersession and R-Judge, and no
+better where a switch would pay; the long-context gain is the window's and works on 1.13.
+
+Pending from these lots:
+
+- **Confirmations on cases neither version was asked**, in progress: the recalibration asks for
+  new labelled cases for its points and a second draw of both versions for the day-to-day
+  noise, about 0.4 USD of Jev in all by its estimate. Their figures go in their own
+  `docs/results/` folders.
+- **A memory-gate mode with the long window** (whole sessions in one call with the long-context
+  header): confirm on the remaining 84 LongMemEval test questions, about 1 USD of Jev for one
+  model, before it ships. It costs about 0.005 USD a prompt against 0.001.
+- **check_done recalibrated** on 1.14: the profile's 0.30 matches 1.13 on the held-out half
+  (312 against 313 of 329), but was read off the same lot; it needs new AgentDojo trajectories
+  before the Stop hook relies on it under 1.14.
+- `redundant_page` needs about 90 new `drop` cases for its 90 % derivation to clear without
+  hinging on one page; the LongBench v2 cut of 0.6 seen post hoc (a hybrid at 43 % of Sonnet's
+  cost) is a hypothesis for 50 fresh tasks (about 0.3 USD of Jev), not a claim.
 
 ## Priority table
 

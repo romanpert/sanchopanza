@@ -643,6 +643,11 @@ it works end to end but, zero-shot and on questions written for Jev, it agrees f
 separate the classes: train its heads on your cases first ([CLM on a CPU](docs/results/2026-09-30-clm-cpu/)).
 OpenAI's Decisions API is not open to us yet; nothing here has been tested against it.
 
+Jev's version is pinned (`jev-1.13.0`). `SANCHOPANZA_JEV_MODEL=jev-1.14.0` opts into 1.14,
+with its own threshold profile: measured against 1.13 on 2026-10-15, it is no worse on the
+component benches taken together and better calibrated, but gains nothing where a switch would
+pay, so the default stays ([Jev 1.14 in the roadmap](docs/ROADMAP.md#jev-114)).
+
 Writing one: [docs/providers.md](docs/providers.md).
 
 ---
