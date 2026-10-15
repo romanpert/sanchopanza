@@ -35,6 +35,17 @@ def _failed(row: Mapping[str, Any], cell: str) -> bool:
     return an.a7_chosen(row, cell) is None
 
 
+def errors_by_class(rows: Sequence[Mapping[str, Any]]) -> dict[str, dict[str, int]]:
+    """Per cell (and the look), how many questions failed with each class (`ReadTimeout`,
+    `HTTP400`...): the rows' `errors`, the class of each cell's first failed call."""
+    out: dict[str, dict[str, int]] = {}
+    for row in rows:
+        for cell, label in (row.get("errors") or {}).items():
+            counts = out.get(cell, {})
+            out = out | {cell: counts | {label: counts.get(label, 0) + 1}}
+    return {c: dict(sorted(v.items())) for c, v in sorted(out.items())}
+
+
 def window_diff(complete: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     """Recall L - S on the same questions: paired bootstrap over questions (L4/L6's)."""
     return an.paired_stat(lambda i: an._recall(complete, CELL_L, i),
@@ -100,6 +111,7 @@ def analyse(rows: Sequence[Mapping[str, Any]], *, min_questions: int = MIN_QUEST
                               sum(r["excerpt_total"] for r in complete)]  # fmt: skip
     out["look_rate"] = an._r(sum(bool(r.get("j13r-look")) for r in complete) / max(1, n))
     out["failures"] = {c: sum(_failed(r, c) for r in rows) for c in (*LIVE, REFERENCE)}
+    out["errors_by_class"] = errors_by_class(rows)
     out["recall_failure_as_empty"] = {
         c: an._r(an._recall(rows, c, range(len(rows)), empty_on_failure=True)) for c in CELLS
     }

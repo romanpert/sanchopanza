@@ -28,8 +28,8 @@ a time, in that order.
 
 One model: **jev-1.13.0** (`j13r`, the production `DEFAULT_MODEL`), pinned
 (`JevDecider(model="jev-1.13.0", images=False)`); an answer served by another model is not
-recorded and pauses the run (below). Per question, as L6's A7 with one model (L6's `a7_look` and `a7_triage`,
-imported):
+recorded and pauses the run (below). Per question, as L6's A7 with one model (L6's
+`a7_look` and `a7_triage`, imported):
 
 - `needs_recall` once (no header): the gate keeps the triage's sessions when it looks, none
   when it does not.
@@ -111,24 +111,31 @@ Known before this seal, free and deterministic: BM25 top 3's recall on the 84 is
   minus its spend and the ledger's cap minus its spend (soft stop).
 - **What the ledger counts** is the client's estimate, input tokens × the list price, not
   TypeSafe's bill; it is compared with the dashboard after the smoke. A timed-out call is
-  settled at 0 although Jev may have billed it; the README reports how many there were. The
-  `jev-preflight` for jev-1.13.0 (one call, about 26 micro-dollars) is off the ledger.
+  settled at 0 although Jev may have billed it; each scored row holds, per failed cell, the
+  class of its first failed call (`"errors": {"j13r-L": "ReadTimeout"}`: a class name, no
+  text), and the summary and the README count them by class. The `jev-preflight` for
+  jev-1.13.0 (one call, about 26 micro-dollars) is off the ledger.
 - **Stops are dead:** the first stop refuses every later call without making it (only the
   calls already in flight finish) and drops the pair of questions it hit.
-  - **Cap** (a call the cap refuses): the lot's money is spent. The completed pairs are the
-    run: `a7-scored.jsonl` is written from them, as after a soft stop, and the README reports
-    how many questions it holds; the verdicts are read on them.
+  - **Cap** (a call the cap refuses while the room left, as the soft stop reads it, no longer
+    holds 0.010 USD): the lot's money is spent. The completed pairs are the run:
+    `a7-scored.jsonl` is written from them, as after a soft stop, and the README reports how
+    many questions it holds; the verdicts are read on them. A refusal with more room left than
+    that is a ledger fault (a lock not taken, a file not written), read as a pause. With no
+    completed pair nothing is written: an empty scored file is never written.
   - **Pause** (an outage: HTTP 401, 402, 403, 429 or 5xx after the client's bounded retries on
     529, or no connection; an answer served by another model, which is not recorded; or 3
     failed calls in a row of any kind): no scored rows are written and the runner exits with 2.
     A relaunch replays every recorded answer free and asks the rest, including the calls that
     failed (failures are not recorded). The shipped client's three retries on 429 are switched
     off for this lot; there are no other retries.
-  - A timeout or an HTTP 400 alone is that cell's failure on that question, counted (rule 1's
-    failure gap), not a stop.
+  - A timeout (`ReadTimeout`, and `ConnectTimeout` too) or an HTTP 400 alone is that cell's
+    failure on that question, counted (rule 1's failure gap), not a stop; repeated ones are
+    caught by the 3-in-a-row rule.
 - Answers are recorded per cell in this folder (hashed keys, no text); scored rows hold ids,
-  session indexes, sizes and the look, no text. A scored file of record is frozen: a live run
-  does not ask again.
+  session indexes, sizes, the look and the failed cells' error classes, no text. A free replay
+  takes the error classes from the run of record (a failed call is not recorded). A scored
+  file of record is frozen: a live run does not ask again.
 
 ## Running it
 

@@ -146,7 +146,36 @@ def test_a_cap_stop_keeps_the_completed_waves_and_writes_them(monkeypatch):
     # The fake costs far more than its reservation (a few characters): the calls in flight can
     # overshoot by the difference, CappedDecider's documented limit. Jev's estimate errs high.
     assert ml.spent("test") <= 0.05 + ml.CONCURRENCY * 0.004
-    assert ml.finish("a7", rows) == 0 and len(ml.read_rows("a7")) == 4
+    assert ml.finish("a7", rows, "test", 0.05) == 0 and len(ml.read_rows("a7")) == 4
+
+
+def test_a_ledger_refusal_with_room_left_is_a_pause_not_the_cap(monkeypatch):
+    from sanchopanza.budget import SpendLedger
+
+    monkeypatch.setattr(SpendLedger, "reserve", lambda self, usd, **kw: None)  # a lock fault
+    fake = _Fake()
+    rows = _run([_q(i) for i in range(4)], fake, cap=1.0)
+    assert fake.calls == 0 and ml.halt_kind() == ml.CAP and rows == []
+    assert ml.finish("a7", rows, "test", 1.0) == 2 and ml.read_rows("a7") is None
+
+
+def test_a_ledger_fault_after_completed_waves_writes_nothing(monkeypatch):
+    from sanchopanza.budget import SpendLedger
+
+    real, calls = SpendLedger.reserve, {"n": 0}
+
+    def flaky(self, usd, **kw):
+        calls["n"] += 1
+        return None if calls["n"] > 3 * ml.WAVE else real(self, usd, **kw)
+
+    monkeypatch.setattr(SpendLedger, "reserve", flaky)
+    rows = _run([_q(i) for i in range(6)], _Fake(), cap=1.0)
+    assert len(rows) == ml.WAVE and ml.halt_kind() == ml.CAP
+    assert ml.finish("a7", rows, "test", 1.0) == 2 and ml.read_rows("a7") is None
+
+
+def test_no_rows_are_never_written():
+    assert ml.finish("a7", [], "test", 1.0) == 2 and ml.read_rows("a7") is None
 
 
 def test_the_soft_stop_starts_no_wave_the_cap_would_not_hold():
@@ -183,7 +212,7 @@ def test_an_outage_pauses_dead_and_writes_nothing(error):
     fake = _Fake(raises=error)
     rows = _run([_q(i) for i in range(6)], fake)
     assert ml.halt_kind() == ml.PAUSE and fake.calls <= ml.WAVE  # only the calls in flight
-    assert rows == [] and ml.finish("a7", rows) == 2 and ml.read_rows("a7") is None
+    assert rows == [] and ml.finish("a7", rows, "test", 1.0) == 2 and ml.read_rows("a7") is None
 
 
 @pytest.mark.parametrize(
@@ -206,6 +235,29 @@ def test_a_timeout_on_one_window_is_a_failed_cell_not_a_stop():
                               cap_usd=1.0, with_rec=False, make_inner=inner))  # fmt: skip
     assert not ml.HALTED and len(rows) == 4
     assert all(r["j13r-L"] is None and r["j13r-S"] is not None for r in rows)
+    assert all(r["errors"] == {"j13r-L": "ReadTimeout"} for r in rows)
+    assert an.errors_by_class(rows) == {"j13r-L": {"ReadTimeout": 4}}
+    assert an.analyse(rows)["errors_by_class"] == {"j13r-L": {"ReadTimeout": 4}}
+
+
+@pytest.mark.parametrize(
+    ("error", "label"),
+    [(DeciderUnavailable("jev unreachable: ReadTimeout"), "ReadTimeout"),
+     (DeciderUnavailable("jev unreachable: ConnectTimeout"), "ConnectTimeout"),
+     (DeciderUnavailable(f"jev refused (HTTP 400): {SECRET} too long"), "HTTP400"),
+     (DeciderOutOfFunds("jev did not answer: HTTP 402 (out of funds)"), "HTTP402"),
+     (RuntimeError(f"something {SECRET}"), "RuntimeError")],
+)  # fmt: skip
+def test_error_class_is_a_name_without_text(error, label):
+    assert ml.error_class(error) == label
+
+
+def test_a_replay_keeps_the_live_runs_error_classes():
+    live = [{"id": "a", "j13r-L": None, "errors": {"j13r-L": "ReadTimeout"}, "rank": 36},
+            {"id": "b", "j13r-L": [0], "rank": 37}]  # fmt: skip
+    replayed = [{k: v for k, v in r.items() if k != "errors"} for r in live]
+    assert ml.with_live_errors(replayed, live) == live
+    assert [list(r) for r in ml.with_live_errors(replayed, live)] == [list(r) for r in live]
 
 
 def test_three_failed_calls_in_a_row_pause_the_run():
@@ -322,6 +374,21 @@ def test_rows_and_recordings_hold_no_text():
         assert SECRET not in path.read_text(encoding="utf-8"), path.name
     assert set(rows[0]) == {"id", "type", "gold", "sizes", "bm25@3", "excerpt_seen",
                             "excerpt_total", "j13r-look", "j13r-S", "j13r-L", "rank"}  # fmt: skip
+
+
+def test_failed_cells_hold_their_class_and_no_text():
+    ok = _Fake()
+    refused = _Fake(raises=DeciderUnavailable(f"jev refused (HTTP 400): {SECRET} is too long"))
+
+    def inner(cell):
+        return refused if cell.endswith("L") else ok
+
+    rows = asyncio.run(ml.run([_q(i) for i in range(2)], live=True, name="a7", batch="test",
+                              cap_usd=1.0, with_rec=False, make_inner=inner))  # fmt: skip
+    ml.write_rows("a7", rows)
+    assert all(r["errors"] == {"j13r-L": "HTTP400"} for r in rows)
+    for path in [*ml.OUT.glob("*.jsonl")]:
+        assert SECRET not in path.read_text(encoding="utf-8"), path.name
 
 
 # ---- verdict rules ----------------------------------------------------------------------------

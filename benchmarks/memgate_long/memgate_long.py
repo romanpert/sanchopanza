@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextvars
 import hashlib
 import json
 import pathlib
@@ -137,14 +138,41 @@ def stops(error: Exception) -> bool:
     return "unreachable" in text and "Timeout" not in text
 
 
+def error_class(error: Exception) -> str:
+    """A failed call's class, a name with no text: the transport error (`ReadTimeout`,
+    `ConnectTimeout`, `ConnectError`), `HTTP<status>`, or the exception's class."""
+    import re
+
+    text = str(error)
+    if found := re.search(r"unreachable: (\w+)", text):
+        return found.group(1)
+    if found := re.search(r"HTTP (\d{3})", text):
+        return f"HTTP{found.group(1)}"
+    return type(error).__name__
+
+
+# The question being asked: `one` sets a fresh dict, StopDead notes each failed call's class in
+# it under the cell (or the look). Each question runs in its own task, so they do not mix.
+CELL_ERRORS: contextvars.ContextVar[dict[str, str] | None] = contextvars.ContextVar(
+    "memgate_long_cell_errors", default=None
+)
+
+
 class StopDead:
     """A live decider that stops the lot dead: at a cap refusal (CAP), and at an outage
     (`stops`), an answer served by another model, or MAX_CONSECUTIVE_FAILURES failed calls in a
     row of any kind (PAUSE). The reason is noted in HALTED and every later call raises without
-    being made. A wrong-model answer raises before `RecordingDecider` can record it."""
+    being made. A wrong-model answer raises before `RecordingDecider` can record it. Each failed
+    call's class goes to the question's CELL_ERRORS under `cell` (`<model>-look` for the look)."""
 
-    def __init__(self, inner: Any) -> None:
-        self._inner, self.name = inner, inner.name
+    def __init__(self, inner: Any, cell: str = "") -> None:
+        self._inner, self.name, self._cell = inner, inner.name, cell
+
+    def _note(self, point: str, label: str) -> None:
+        errors = CELL_ERRORS.get()
+        if errors is not None:
+            key = f"{MODEL_KEY}-look" if point == "recall" else self._cell
+            errors.setdefault(key, label)
 
     def _failed(self, why: str) -> None:
         _FAILS["consecutive"] += 1
@@ -161,16 +189,20 @@ class StopDead:
             decision = await self._inner.decide(point, state, questions)
         except SpendCapReached as error:
             halt(CAP, str(error))
+            self._note(point, "SpendCapReached")
             raise
         except Exception as error:
             if stops(error):
                 halt(PAUSE, str(error))
+            self._note(point, error_class(error))
             self._failed(f"{type(error).__name__}: {error}")
             raise
         if decision.model != MODEL:
             halt(PAUSE, f"asked {MODEL}, served {decision.model}: not recorded")
+            self._note(point, "WrongModel")
             raise DeciderUnavailable(HALTED[-1])
         if decision.failed or not decision.answers:
+            self._note(point, "NoAnswer")
             self._failed(decision.error or "no answers")
         else:
             _FAILS["consecutive"] = 0
@@ -198,7 +230,7 @@ def cell_arms(name: str, live: bool, gate: asyncio.Semaphore, batch: str, cap_us
         for cell in CELLS:
             inner = make_inner(cell)
             capped[cell] = StopDead(CappedDecider(inner, ledger=ledger, batch=batch,
-                                                  max_usd=cap_usd))  # fmt: skip
+                                                  max_usd=cap_usd), cell)  # fmt: skip
     return {cell: l4.Arm(cell, OUT / f"{name}-answers-{cell}.jsonl", MODEL, capped.get(cell),
                          gate) for cell in CELLS}  # fmt: skip
 
@@ -217,9 +249,12 @@ def spent(batch: str | None = None) -> float:
 async def one(position: int, q: Mapping[str, Any], arms: Mapping[str, Any],
               rec: Any | None) -> dict[str, Any]:  # fmt: skip
     """L6's A7 row for one model: ids, gold, sizes, bm25@3, the excerpt ceiling, the look and
-    the kept session indexes per window (no text). The window order alternates with the rank."""
+    the kept session indexes per window (no text). The window order alternates with the rank.
+    `errors`: the class of each live cell's first failed call (no text), when any failed."""
     import longmemeval as lme
 
+    errors: dict[str, str] = {}
+    CELL_ERRORS.set(errors)  # this question's task only
     ms = lme.memories_of(q)
     seen, total = lme.excerpt_ceiling(q)
     row: dict[str, Any] = {"id": q["question_id"], "type": q["question_type"],
@@ -234,6 +269,8 @@ async def one(position: int, q: Mapping[str, Any], arms: Mapping[str, Any],
     if rec is not None:
         row["rec13-look"] = await l6.a7_look(rec, q)
         row["rec13-S"] = await l6.a7_triage(rec, q, ms, "S")
+    if errors:
+        row["errors"] = dict(sorted(errors.items()))
     return row
 
 
@@ -428,14 +465,25 @@ def read_rows(name: str) -> list[dict[str, Any]] | None:
     return [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x]
 
 
-def finish(name: str, rows: list[dict[str, Any]]) -> int:
-    """A pause (an outage, a wrong model, failures in a row) writes nothing and exits 2: a
-    relaunch replays what was paid and asks the rest. A cap stop writes the completed waves
-    (the cap is the end of the lot's money) and exits 0, as the soft stop does."""
-    if halt_kind() == PAUSE:
+def finish(name: str, rows: list[dict[str, Any]], batch: str, cap_usd: float) -> int:
+    """A pause (an outage, a wrong model, failures in a row, or a cap refusal while the room
+    left still holds a question: a ledger fault) writes nothing and exits 2: a relaunch replays
+    what was paid and asks the rest. A cap stop writes the completed waves (the cap is the end
+    of the lot's money) and exits 0, as the soft stop does. No rows: nothing written, 2."""
+    kind = halt_kind()
+    if kind == CAP and room(batch, cap_usd) >= Q_EST_USD:
+        # The ledger refused with money left: a lock it could not take, a file it could not
+        # write. Not the end of the money: a pause.
+        print(f"{name}: PAUSE, the ledger refused with room left, rows not written: "
+              f"{HALTED[0]}", file=sys.stderr)  # fmt: skip
+        return 2
+    if kind == PAUSE:
         print(f"{name}: PAUSE, rows not written: {HALTED[0]}", file=sys.stderr)
         return 2
-    if halt_kind() == CAP:
+    if not rows:
+        print(f"{name}: no question completed, nothing written", file=sys.stderr)
+        return 2
+    if kind == CAP:
         print(f"{name}: cap reached, {len(rows)} questions of completed waves written",
               file=sys.stderr)  # fmt: skip
     write_rows(name, rows)
@@ -448,7 +496,7 @@ def smoke(live: bool) -> int:
         go_live()
     rows = asyncio.run(run(questions(dev=True), live=live, name="smoke", batch=SMOKE_BATCH,
                            cap_usd=SMOKE_CAP_USD, first_rank=0, with_rec=False))  # fmt: skip
-    code = finish("smoke", rows)
+    code = finish("smoke", rows, SMOKE_BATCH, SMOKE_CAP_USD)
     print(json.dumps({"smoke": round(spent(SMOKE_BATCH), 6), "ledger": round(spent(), 6)}),
           file=sys.stderr)  # fmt: skip
     return code
@@ -462,7 +510,7 @@ def run_live() -> int:
     go_live()
     rows = asyncio.run(run(questions(), live=True, name="a7", batch=BATCH,
                            cap_usd=BATCH_CAP_USD))  # fmt: skip
-    return finish("a7", rows)
+    return finish("a7", rows, BATCH, BATCH_CAP_USD)
 
 
 def analyse_and_write() -> int:
@@ -512,7 +560,21 @@ def replay() -> None:
     done = read_rows("a7")
     qs = questions() if done is None else questions()[: len(done)]
     rows = asyncio.run(run(qs, live=False, name="a7", batch=BATCH, cap_usd=BATCH_CAP_USD))
+    if done is not None:
+        rows = with_live_errors(rows, done)
     write_rows("replay" if done is None else "a7", rows)
+
+
+def with_live_errors(rows: list[dict[str, Any]], done: list[dict[str, Any]]) -> list[dict]:
+    """A failed call is not recorded, so its class is only in the live run's rows: a replay
+    takes `errors` from the run of record, question by question."""
+    errors = {r["id"]: r["errors"] for r in done if "errors" in r}
+    return [  # the live run's key order: `errors` before `rank`
+        {k: v for k, v in r.items() if k not in ("errors", "rank")}
+        | ({"errors": errors[r["id"]]} if r["id"] in errors else {})
+        | {"rank": r["rank"]}
+        for r in rows
+    ]
 
 
 if __name__ == "__main__":
