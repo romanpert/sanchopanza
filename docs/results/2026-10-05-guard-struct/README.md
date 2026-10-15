@@ -70,16 +70,20 @@ therefore sits between the 3,000 and 11,000 rows above: about .15 to .28 of need
 against .12 for the rule. The contexts of several `SessionStart` hooks are capped one by one and
 then concatenated, so the measured 44,000 can only arrive split across several hook commands.
 
-The split is built on branch `guard-split` (2026-10-06, `context.parts`): `PreCompact` splits the
+The split is on main since 2026-10-06 (merge `cb0062e`, `context.parts`): `PreCompact` splits the
 block into up to six parts under 9,500 characters each, part 1 holding the requests, the work so
 far, the pointers and the results that rank first, and each `SessionStart` command prints one
 part. In 2.1.287 each command's context is persisted on its own past 1e4 (`Pde`), the
 `SessionStart` contexts are collected in one list with no aggregate cap, and they reach the
 model as one message joined by newlines, in the order the hooks finish (`Promise.race`), so each
 part names itself "part i of N". Offline on 18 one-shot outputs of 2,500 characters, run as
-Claude Code runs hooks: 6 parts of 5,700 to 8,200 characters, 17 of 18 results kept. Not yet run
-inside Claude Code; `benchmarks/guard_split/probe.py --run --cap 0.60` does that, about 0.25 USD
-of Haiku.
+Claude Code runs hooks: 6 parts of 5,700 to 8,200 characters, 17 of 18 results kept.
+
+**Live probe, passed (2026-10-06, merge `cb0062e`).** `benchmarks/guard_split/probe.py --run`
+(`--model` sonnet and opus) inside Claude Code on Sonnet 5.5 and Opus 5.5: all 6 parts
+arrived inline, with no `<persisted-output>`, delivered out of order, and the model answered the
+marker taken from part 2 exactly. This checks delivery, not what the kept results are worth to
+the work.
 
 ## Caveats
 
@@ -87,7 +91,8 @@ of Haiku.
   distinctive token first seen in it.
 - The public set is mostly Haiku 4.5; the owner's sessions are one person's work, mostly on one
   model.
-- All of it is offline. The structural keep has not been run end to end inside Claude Code.
+- The ranking figures are offline. Inside Claude Code only the split's delivery was probed
+  (above); this folder does not measure what the structural keep is worth to a session there.
 - Characters per token are about 2.2 in these sessions; the token columns use that rate.
 
 ## Reproduce
