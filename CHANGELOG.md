@@ -347,6 +347,20 @@ do not favour this package.
 
 ### Fixed
 
+- **Spanish sentences are split** (`text.split_sentences`): a cut now also comes before an
+  accented capital (Á É Í Ó Ú Ñ Ü...), `¿`, `¡` or `«`, and not after a Spanish abbreviation
+  ("Sr." as a title, "Sra.", "p. ej.", "pág.", "EE. UU."...), so the sentence stage no longer
+  judges two Spanish sentences as one. English splits as before: over every QASPER paragraph,
+  HotpotQA and every fixture string, 2 of 458,860 strings change (HotpotQA, now cut in
+  "St. Étienne" as it already was in "St. Louis"); the 219-question `select_passages` replay
+  keeps the same sentences (87.21 %), and the knowledge and memory-gate replays reproduce
+  `longdocs.json` and `budget.json` exactly.
+- **`select_passages` spends bounded calls** (`points/passages.py`): a paragraph the tournament
+  did not answer is kept whole without a sentence call (with the decider down mid-document it
+  cost one failing call per paragraph, 90 on one document), and the new `max_calls` caps one
+  document's calls, tournament included, reserved before the first `await` and spent on the
+  surest paragraphs. Default `None`, no cap: the published replays used up to 52 calls per
+  document, and a cap of 40 changes one of the 219 (same recall, more text kept).
 - **Retracted: "Jev's Truth confidence is exactly |2p - 1|, 651 answers, zero deviation"**
   (0.2.0, the paper, `where-it-pays.md`). The Truth wire carries only the probability
   (`noul`); `providers.jev.from_wire` computes the confidence, and the recordings store the
