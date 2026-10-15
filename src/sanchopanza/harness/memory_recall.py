@@ -200,7 +200,7 @@ async def _choose(
     from . import memory_window as mw
 
     seconds = mh._int("MEMORY_DECIDER_SECONDS", 15)
-    window = mw.window_from_env()
+    window = mw.window_from_env(default=mw.HOOK_DEFAULT)  # short: not measured on records
     if window == mw.LONG:  # in the row before the wait: a timeout below still says it
         row = {**row, "window": window}
     try:

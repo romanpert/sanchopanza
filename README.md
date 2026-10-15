@@ -353,9 +353,10 @@ For Claude Code's memory files, a decider gate on LongMemEval injected far less 
 0.93-0.97 precision but missed its registered recall against BM25 top 3 (0.73 against 0.85),
 and at equal text it was not distinguishable from BM25 over sentences
 ([memory gate](docs/results/2026-09-28-memory-gate/)). What capped it was the 900 characters it
-read of each session. `SANCHOPANZA_MEMORY_WINDOW=long` (opt-in, off by default) has the gate read
-every memory whole in one call, with Jev's long-context header on that call only. Measured on the
-library call `memory_gate.gate`, which no installed hook calls, over 36 LongMemEval questions
+read of each session. By default the library gate `memory_gate.gate` reads every memory whole in
+one call (the long window), with Jev's long-context header on that call only;
+`SANCHOPANZA_MEMORY_WINDOW=short` turns it off. Measured on that library call, which no
+installed hook calls, over 36 LongMemEval questions
 ([lot L6, A7](docs/results/2026-10-15-jev114-l6/README.md)): recall rose from 0.72 to 0.91 on
 jev-1.13.0 and jev-1.14.0 alike, 3.1 points under BM25 top 3 with 21 % fewer characters selected
 (measured on the selection; the gate renders at most 10,000 characters, 3,000 per memory). Per
@@ -365,10 +366,10 @@ prompt in all. The long call's cost grows with the memory, at Jev's 0.042 USD a 
 tokens: about 0.01 USD at the window's ceiling of 750,000 characters. Confirmed on jev-1.13.0 on
 the 84 unseen test questions ([memgate-long](docs/results/2026-10-15-memgate-long/README.md)):
 recall 0.726 to 0.905 (+17.8 points [+10.7, +25.7]), reaching BM25 top 3 (+8.9 [0.0, +17.3]).
-The installed memory hook takes the same setting at a session's first
-prompt and reads each candidate record whole; that effect is not measured. Past Jev's long
-window, without a decider that has the long-context mode, past the job's budget or after a long
-call that answers nothing, the short window is used and the hook says so.
+The installed memory hook stays on the short window: only `SANCHOPANZA_MEMORY_WINDOW=long` has it
+read each candidate record whole at a session's first prompt, and that effect is not measured.
+Past Jev's long window, without a decider that has the long-context mode, past the job's budget
+or after a long call that answers nothing, the short window is used and the gate says so.
 
 ---
 

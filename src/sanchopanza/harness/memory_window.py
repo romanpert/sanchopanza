@@ -1,7 +1,16 @@
-"""The memory gate's long window: every memory or record read whole, in one call. Opt-in:
-`SANCHOPANZA_MEMORY_WINDOW=long`. Unset or `short` is the shipped short window, whose requests,
-journal and log rows are the same to the byte (tests/test_memory_window.py pins them); any other
-value is the short window too, with one line on stderr saying so.
+"""The memory gate's long window: every memory or record read whole, in one call.
+
+`SANCHOPANZA_MEMORY_WINDOW` is `long` or `short`, and its default depends on where it is read:
+
+- the library gate `memory_gate.gate` defaults to **long** (`GATE_DEFAULT`), confirmed there
+  (below); `short` turns it off;
+- the installed hook (`memory_hook`, at a session's first prompt) defaults to **short**
+  (`HOOK_DEFAULT`): it judges records, not memory files, and the long window is not measured on
+  them; `long` turns it on.
+
+`short` is the shipped short window, whose requests, journal and log rows are the same to the
+byte as before the long window existed (tests/test_memory_window.py pins them); any value other
+than `short` or `long` is the short window too, in both places, with one line on stderr saying so.
 
 Measured (lot L6, docs/results/2026-10-15-jev114-l6, A7), on the library call
 `memory_gate.gate` over 36 LongMemEval S test questions: the gate's selection recall went from
@@ -16,16 +25,17 @@ unseen test questions on jev-1.13.0 (docs/results/2026-10-15-memgate-long): 0.72
 
 Where it applies, and nowhere else (not the autopilot's recall, not any other point):
 
-- `memory_gate.gate` (memory files; the path L6 measured, which no installed hook calls): the
-  triage reads each memory whole, up to `LONG_LIMITS.page_chars`, all in one call under the
-  long-context header, as L6 did, instead of 900 characters each in a tournament.
+- `memory_gate.gate` (memory files; the path L6 measured, which no installed hook calls; on by
+  default): the triage reads each memory whole, up to `LONG_LIMITS.page_chars`, all in one call
+  under the long-context header, as L6 did, instead of 900 characters each in a tournament.
   `needs_recall` stays on the short window and without the header.
-- `memory_hook` at a session's first prompt (records of earlier requests; installed by default):
-  the decider reads each candidate record whole (`Episode.text()`) instead of its 880-character
-  page, on the same decider; the long-context twin only when the call is over Jev's short window
-  (`SHORT_WINDOW_CHARS`). Not measured on records: they are bounded by code (request, report and
-  output at about 1,000 characters each), so L6's gain, found where evidence sat deep in a long
-  session, may not carry over.
+- `memory_hook` at a session's first prompt (records of earlier requests; installed by default;
+  the long window only with `SANCHOPANZA_MEMORY_WINDOW=long`): the decider reads each candidate
+  record whole (`Episode.text()`) instead of its 880-character page, on the same decider; the
+  long-context twin only when the call is over Jev's short window (`SHORT_WINDOW_CHARS`). Not
+  measured on records: they are bounded by code (request, report and output at about 1,000
+  characters each), so L6's gain, found where evidence sat deep in a long session, may not carry
+  over. `benchmarks/memgate_hook` is the replay that would measure it.
 
 It falls back to the shipped short path, never in silence, when:
 
@@ -78,6 +88,10 @@ if TYPE_CHECKING:
 SHORT = "short"
 LONG = "long"
 ENV = "MEMORY_WINDOW"  # SANCHOPANZA_MEMORY_WINDOW
+# The window when the setting is unset: confirmed at the library gate (lot memgate-long), not
+# measured at the installed hook, which stays on the shipped short window.
+GATE_DEFAULT = LONG
+HOOK_DEFAULT = SHORT
 # Lot L6's `LONG_LIMITS`, and a record of the hook read as whole as a memory file.
 LONG_LIMITS = Limits(page_chars=400_000, pages_per_call=1_000, memory_record_chars=400_000)
 # Jev's long window is 262,144 tokens a request; at `CappedDecider`'s pessimistic 3 characters a
@@ -100,12 +114,13 @@ def normalize_window(value: str) -> str:
     return window
 
 
-def window_from_env(env: Mapping[str, str] | None = None) -> str:
-    """`SANCHOPANZA_MEMORY_WINDOW`: `long` or `short` (the default). An unknown value is the
-    short window, with one line on stderr: a hook must not fail on a typo."""
+def window_from_env(env: Mapping[str, str] | None = None, *, default: str = SHORT) -> str:
+    """`SANCHOPANZA_MEMORY_WINDOW`: `long` or `short`; `default` when unset or blank (the
+    library gate passes `GATE_DEFAULT`, the hook `HOOK_DEFAULT`). An unknown value is the short
+    window, with one line on stderr: a hook must not fail on a typo."""
     raw = _env.get(ENV, "", env=env)
     if not raw.strip():
-        return SHORT
+        return normalize_window(default)
     try:
         return normalize_window(raw)
     except ValueError:
@@ -212,7 +227,7 @@ async def run_long(
     must take the short path. `state` and `questions` are the request `ask` will send, for its
     size and its estimate. `header`: always under the long-context header (the gate, as L6
     measured it); else only past `SHORT_WINDOW_CHARS` (the hook). `deadline_s` bounds the long
-    call. The default path never comes here."""
+    call. The short window never comes here."""
     chars = request_chars(state, questions)
     if chars > LONG_WINDOW_CHARS:
         why = f"{chars} characters, over the long window's {LONG_WINDOW_CHARS}"
