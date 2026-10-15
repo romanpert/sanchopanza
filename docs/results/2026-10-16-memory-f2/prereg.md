@@ -164,8 +164,19 @@ ran. No pooling across models. The metric is not changed after the data.
 
 A triple does not start when its expected time (3 arms x 300 s Sonnet, 420 s Opus, x 1.5, plus
 120 s) would reach midnight, and an arm likewise; the driver waits and goes on after midnight.
-The owner accepted the night unattended, 02:00-08:00 included; a reboot is a pause the next
-launch resumes.
+The owner accepted the night unattended, 02:00-08:00 included.
+
+## Running it
+
+- **Keys.** The OAuth token and the TypeSafe key are read by `carry.py` from the file
+  `SANCHOPANZA_KEYS_ENV` names. That path is not in any tracked file and not part of the seal:
+  the lead writes `C:\sp-runs\memory-f2\keys-env.cmd`, a local untracked file outside the
+  repository holding only `set SANCHOPANZA_KEYS_ENV=<path>`. The launcher calls it if it exists,
+  then refuses to start (exit 1) when the variable is empty or the file it names does not exist;
+  it never reads that file. The token reaches only the `claude` processes, the key only S's hooks.
+- **Reboot.** A reboot (or any crash) pauses the night: nothing relaunches it. The lead or the
+  owner starts the same `f2-night-run.cmd` again, the same way (WMI), and it resumes from what
+  is recorded.
 
 ## Commands
 

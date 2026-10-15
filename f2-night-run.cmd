@@ -13,9 +13,12 @@ rem line, then Stop-Process -Id (never by name).
 rem   f2-night-run.cmd dry    builds every arm of the three runs under %ROOT%\dry, calls nothing.
 rem The token and the TypeSafe key are read by carry.py from the file SANCHOPANZA_KEYS_ENV names
 rem (a WMI process inherits no window variable); the token reaches only claude, the key only S's
-rem hooks. The lead fills the next line before sealing.
-set SANCHOPANZA_KEYS_ENV=__FILL_BEFORE_SEALING__
+rem hooks. That path is not in this file: the lead writes C:\sp-runs\memory-f2\keys-env.cmd, an
+rem untracked file outside the repository holding only `set SANCHOPANZA_KEYS_ENV=<path>`. The
+rem launcher checks that the file it names exists and never reads it.
 setlocal
+set SANCHOPANZA_KEYS_ENV=
+if exist C:\sp-runs\memory-f2\keys-env.cmd call C:\sp-runs\memory-f2\keys-env.cmd
 set WT=%~dp0
 set WT=%WT:~0,-1%
 set PY=C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts\python.exe
@@ -36,8 +39,8 @@ if not "%~1"=="" (
   echo refused: the only argument is dry >> "%STATUS%"
   exit /b 2
 )
-if "%SANCHOPANZA_KEYS_ENV%"=="__FILL_BEFORE_SEALING__" (
-  echo refused %DATE% %TIME%: SANCHOPANZA_KEYS_ENV is not filled in >> "%STATUS%"
+if "%SANCHOPANZA_KEYS_ENV%"=="" (
+  echo refused %DATE% %TIME%: no SANCHOPANZA_KEYS_ENV, write %ROOT%\keys-env.cmd >> "%STATUS%"
   exit /b 1
 )
 if not exist "%SANCHOPANZA_KEYS_ENV%" (
