@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **The memory gate's long window** (`SANCHOPANZA_MEMORY_WINDOW=long`, opt-in; off by default,
+  and the default path sends the same requests as before, to the recording key). The memory
+  gate reads every memory whole in one call, with Jev's long-context header on that call only,
+  instead of 900 characters each in a tournament; the memory hook, at a session's first
+  prompt, reads each candidate record whole instead of its 880-character page. Lot L6
+  (`docs/results/2026-10-15-jev114-l6`, A7): on 36 LongMemEval questions the gate's recall rose
+  from 0.72 to 0.91 on jev-1.13.0 and jev-1.14.0 alike (+18.5 points, Holm p 0.03), 3.1 points
+  under BM25 top 3, at about 0.005 USD a prompt against 0.001. Records were not measured. A
+  confirmation on 84 unseen questions is pending. Past the long window (750,000 characters),
+  without a decider that has a long-context mode, with the job's budget spent or when the long
+  call answers nothing, the short window is used, with one line on stderr and the reason in the
+  journal and the memory log. The long call's cost is journaled (`memory_window` events), counts
+  against the job's cap, and a `CappedDecider` passes its ledger to the long call.
+  `JevDecider.with_long_context()`, `CappedDecider.with_long_context()` and
+  `Squire.fork(decider=, limits=)` are the pieces.
+
 ## 0.3.0 (unreleased)
 
 A tool window that follows the session without breaking the prompt cache, an interface for

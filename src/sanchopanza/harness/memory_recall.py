@@ -117,13 +117,15 @@ def candidates(prompt: str, pool: Sequence[ep.Episode], k: int = K) -> list[ep.E
 
 
 async def keep_by_decider(
-    squire: Squire, prompt: str, found: Sequence[ep.Episode]
+    squire: Squire, prompt: str, found: Sequence[ep.Episode], *, whole: bool = False
 ) -> tuple[list[ep.Episode], dict[str, float | None]]:
     """The decider's picks, most probable first, and every probability. Only a record the
-    decider judged at `MEMORY_KEEP_AT` or above enters: a record nobody judged must not."""
+    decider judged at `MEMORY_KEEP_AT` or above enters: a record nobody judged must not.
+    Each record is read as its page, or `whole` (`Episode.text()`, the long window)."""
     from ..points.memory import record_id, related_questions
 
-    state, qs = related_questions(request=prompt, records=[e.page() for e in found],
+    records = [e.text() if whole else e.page() for e in found]
+    state, qs = related_questions(request=prompt, records=records,
                                   record_limit=squire.limits.memory_record_chars)  # fmt: skip
     decision = await squire.decide("memory_recall", state, qs)
     ids = [record_id(i) for i in range(len(found))]
@@ -132,8 +134,33 @@ async def keep_by_decider(
     keep_at = mh._float("MEMORY_KEEP_AT", KEEP_AT)
     kept = [(e, p) for e, p in ((e, probabilities[e.key]) for e in found)
             if p is not None and p >= keep_at]  # fmt: skip
-    squire.record(decision, kept=len(kept), records=len(found))
+    window = {"window": "long"} if whole else {}
+    squire.record(decision, kept=len(kept), records=len(found), **window)
     return [e for e, _ in sorted(kept, key=lambda item: -item[1])], probabilities
+
+
+async def keep_in_window(
+    squire: Squire, prompt: str, found: Sequence[ep.Episode]
+) -> tuple[list[ep.Episode], dict[str, float | None], dict[str, Any]]:
+    """`keep_by_decider` on the short window (the shipped one; nothing added to the log row),
+    or on the long one (`memory_window`): each record whole on the long-context decider, and
+    the pages when that cannot run, with the reason for the log row."""
+    from . import memory_window as mw
+
+    if mw.window_from_env() != mw.LONG:
+        return (*await mh.keep_by_decider(squire, prompt, found), {})
+    chars = mw.payload_chars(prompt, (e.text() for e in found))
+
+    async def ask(long: Squire) -> tuple[list[ep.Episode], dict[str, float | None]]:
+        return await mh.keep_by_decider(long, prompt, found, whole=True)
+
+    def answered(kept: tuple[list[ep.Episode], dict[str, float | None]]) -> bool:
+        return any(p is not None for p in kept[1].values())
+
+    kept, report = await mw.run_long(squire, chars, ask, answered)
+    if kept is None:
+        kept = await mh.keep_by_decider(squire, prompt, found)
+    return (*kept, report)
 
 
 def render(chosen: Sequence[ep.Episode], cap: int = CHARS) -> tuple[str, list[str]]:
@@ -166,13 +193,13 @@ async def _choose(
     try:
         import asyncio
 
-        chosen, probabilities = await asyncio.wait_for(
-            mh.keep_by_decider(squire, prompt, found), seconds
+        chosen, probabilities, window = await asyncio.wait_for(
+            keep_in_window(squire, prompt, found), seconds
         )
     except TimeoutError:
         mh._log({**row, "reason": f"decider timed out after {seconds} s"})
         return None
-    return chosen, {**row, "probabilities": probabilities}
+    return chosen, {**row, "probabilities": probabilities, **window}
 
 
 async def recall(event: Mapping[str, Any], squire: Squire | None = None) -> dict[str, Any]:

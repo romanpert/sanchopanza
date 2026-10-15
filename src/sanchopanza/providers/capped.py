@@ -73,6 +73,19 @@ class CappedDecider:
     def meter(self) -> Meter:
         return self._meter
 
+    def with_long_context(self, **options: object) -> CappedDecider:
+        """The inner decider's long-context twin under the same ledger, batch and caps.
+        Raises `AttributeError` when the inner decider has none, as it would unwrapped."""
+        twin = self._inner.with_long_context(**options)  # type: ignore[attr-defined]
+        return CappedDecider(
+            twin,
+            ledger=self._ledger,
+            batch=self._batch,
+            max_usd=self._max_usd,
+            price_per_mtok=self._price,
+            estimate=self._estimate,
+        )
+
     def _cost_of(self, state: State, questions: Mapping[str, Question]) -> float:
         if self._estimate is not None:
             return float(self._estimate(state, questions))

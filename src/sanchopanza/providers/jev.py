@@ -233,6 +233,7 @@ class JevDecider:
         # 0.6 s, and a hook builds its decider on every shell command while it asks on 2 % of
         # them (the adoption study's phase B: 1.3-1.7 s per PreToolUse with a key, 0.4 s without).
         self._made: Any | None = client
+        self._given_client = client is not None
         self._scope = funds.scope(self._base_url, key)
 
     def _client(self) -> Any:
@@ -262,6 +263,24 @@ class JevDecider:
     @property
     def images(self) -> bool:
         return self._images
+
+    def with_long_context(self, *, timeout_s: float | None = None) -> JevDecider:
+        """This decider's twin with the long-context header on: same key, address, model,
+        price and images, for the one call that needs the window (`harness.memory_window`).
+        This one is left as it was, so no other point sends the header. A client given at
+        construction (a test's transport) is shared, since the header goes per request."""
+        twin = JevDecider(
+            self._key,
+            base_url=self._base_url,
+            model=self._model,
+            price_per_mtok=self._price,
+            timeout_s=self._timeout_s if timeout_s is None else timeout_s,
+            client=self._made if self._given_client else None,
+            long_context=True,
+            images=self._images,
+        )
+        twin.name = self.name
+        return twin
 
     def _headers(self) -> dict[str, str]:
         """The Danger Zone headers this decider was built with, sent on every request."""

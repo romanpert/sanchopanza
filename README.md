@@ -351,7 +351,15 @@ than a head-and-tail cut of the same size (95.2 % against 97.6 %); recall with t
 For Claude Code's memory files, a decider gate on LongMemEval injected far less text at
 0.93-0.97 precision but missed its registered recall against BM25 top 3 (0.73 against 0.85),
 and at equal text it was not distinguishable from BM25 over sentences
-([memory gate](docs/results/2026-09-28-memory-gate/)).
+([memory gate](docs/results/2026-09-28-memory-gate/)). What capped it was the 900 characters it
+read of each session. `SANCHOPANZA_MEMORY_WINDOW=long` (opt-in, off by default) reads every
+memory whole in one call, with Jev's long-context header on that call only: on 36 LongMemEval
+questions recall rose from 0.72 to 0.91 on jev-1.13.0 and jev-1.14.0 alike, 3.1 points under BM25
+top 3 with 21 % fewer characters injected, at about 0.005 USD a prompt against 0.001, and 1.5 s for its
+one call against 0.3 s a short call ([lot L6, A7](docs/results/2026-10-15-jev114-l6/README.md)). A confirmation on 84
+unseen questions is pending. The memory hook takes the same setting at a session's first prompt
+and reads each candidate record whole, which was not measured. Past Jev's long window, or with a
+provider that has no such mode, the short window is used and the hook says so.
 
 ---
 

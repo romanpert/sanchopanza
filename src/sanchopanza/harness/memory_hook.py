@@ -55,8 +55,13 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
     MEMORY_RULES             on (default) | off: standing rules kept at Stop, given at start
     MEMORY_RULES_AUDIT       off (default) | on: at Stop, hold the request's diff against the
                              rules and send a confident break back once (`memory_rules.audit_on`)
+    MEMORY_WINDOW            short (default) | long: the decider reads each candidate record
+                             whole, with Jev's long-context header on that call only, and the
+                             pages when it cannot (`memory_window`; opt-in, not measured on
+                             records)
 
-Cost: the touch calls no model; at most one decider call at a session's first prompt.
+Cost: the touch calls no model; at most one decider call at a session's first prompt (two with
+`MEMORY_WINDOW=long` when the long call answers nothing and the pages are judged after it).
 Latency: a touch is a new process, 0.17 s median on the maintainer's Windows laptop.
 
 Fail open: any error writes one line to stderr and injects nothing. A decider that answers no

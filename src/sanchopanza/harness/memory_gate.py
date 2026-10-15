@@ -17,6 +17,12 @@ This module is a `UserPromptSubmit` hook body. Per prompt:
 3. The kept memories, most probable first, rendered under `cap` characters, each headed by its
    file name so the model can open the full file. What did not fit is listed by name.
 
+The long window (`SANCHOPANZA_MEMORY_WINDOW=long` or `window="long"`, off by default; see
+`memory_window`): step 2 reads every memory whole in one call with Jev's long-context header on
+that call only. On 36 LongMemEval questions it lifted recall from 0.72 to 0.91 at about 0.005
+USD a prompt against 0.001 (lot L6); a confirmation on 84 unseen questions is pending. Past the
+long window, or without a decider that has the mode, it is step 2 as above, and it says so.
+
 Optional, off by default because it costs calls: `check_conflicts` runs `Squire.reconcile` on
 at most `max_pairs` pairs of kept memories that share vocabulary. A pair the decider calls a
 contradiction with the newer file known (mtime) drops the older one; an unresolved one is
@@ -61,6 +67,7 @@ from typing import TYPE_CHECKING, Any
 from ..points import chunks
 from ..redact import redact_secrets
 from ..text import BM25Index, excerpt
+from . import memory_window as mw
 
 if TYPE_CHECKING:
     from ..squire import Squire
@@ -298,6 +305,29 @@ async def triage_memories(
     return await squire.triage_many(purpose=prompt, pages=pages_of(memories, purpose=prompt))
 
 
+async def triage_window(
+    squire: Squire, prompt: str, memories: Sequence[Memory], window: str
+) -> tuple[list[tuple[bool, float | None]], dict[str, Any]]:
+    """`triage_memories` on the short window (the shipped one, report empty), or on the long
+    one (`memory_window`): every memory whole in one call, as lot L6 measured it, and the short
+    path when that cannot run, with the reason in the report."""
+    if window != mw.LONG:
+        return await triage_memories(squire, prompt, memories), {}
+    pages = pages_of(memories, purpose=prompt, limit=mw.LONG_LIMITS.page_chars)
+    chars = mw.payload_chars(prompt, (title + text for title, text in pages))
+
+    async def ask(long: Squire) -> list[tuple[bool, float | None]]:
+        return await long.triage_many(purpose=prompt, pages=pages)
+
+    def answered(verdicts: list[tuple[bool, float | None]]) -> bool:
+        return any(p is not None for _, p in verdicts)
+
+    verdicts, report = await mw.run_long(squire, chars, ask, answered)
+    if verdicts is None:
+        verdicts = await triage_memories(squire, prompt, memories)
+    return verdicts, report
+
+
 async def _conflicts(
     squire: Squire, kept: Sequence[Memory], max_pairs: int
 ) -> tuple[set[str], list[str]]:
@@ -329,8 +359,10 @@ async def gate(
     cap: int = CAP,
     check_conflicts: bool = False,
     max_pairs: int = MAX_PAIRS,
+    window: str | None = None,
 ) -> GateResult:
-    """Decide what to inject for one prompt. Raises only on a bug; `handle_user_prompt` wraps."""
+    """Decide what to inject for one prompt. Raises only on a bug; `handle_user_prompt` wraps.
+    `window` is `short` or `long` (`memory_window`); None reads `SANCHOPANZA_MEMORY_WINDOW`."""
     prompt = redact_secrets(prompt.strip())
     base = {"memories": len(memories), "prompt_chars": len(prompt)}
     if not memories:
@@ -341,10 +373,11 @@ async def gate(
     report = {**base, "recall_p": recall.probability, "recall": recall.reason}
     if not recall.look:
         return GateResult("", (), (), f"no recall needed: {recall.reason}", report)
-    verdicts = await triage_memories(squire, prompt, memories)
+    chosen = mw.window_from_env() if window is None else window
+    verdicts, read = await triage_window(squire, prompt, memories, chosen)
     answered = sum(p is not None for _, p in verdicts)
     probabilities = {m.file: p for m, (_, p) in zip(memories, verdicts, strict=True)}
-    report = {**report, "answered": answered, "probabilities": probabilities}
+    report = {**report, **read, "answered": answered, "probabilities": probabilities}
     if answered == 0:
         return GateResult("", (), (), "decider answered no memory: nothing injected", report)
     ordered = order_kept(memories, verdicts)
@@ -367,6 +400,7 @@ async def handle_user_prompt(
     memory_dir: Path | None = None,
     cap: int = CAP,
     check_conflicts: bool = False,
+    window: str | None = None,
 ) -> dict[str, Any]:
     """The hook entry: a `UserPromptSubmit` event in, the hook's JSON out. Never raises.
 
@@ -385,6 +419,7 @@ async def handle_user_prompt(
             directory=str(directory),
             cap=cap,
             check_conflicts=check_conflicts,
+            window=window,
         )
     except Exception as error:  # fail open at the hook boundary
         return _quiet(f"memory gate failed open: {error.__class__.__name__}: {error}")
