@@ -202,10 +202,22 @@ def write_session(path: Path, *, compacted: bool) -> Path:
         lines.append(
             _entry({"role": "user", "content": "Summary: work so far."}, isCompactSummary=True)
         )
-        lines.append(_entry({"role": "assistant", "content": [
-            _use("t9", "Bash", command="python tools/probe.py")]}))
-        lines.append(_entry({"role": "user", "content": [
-            _result("t9", "error: probe state already consumed", error=True)]}))
+        lines.append(
+            _entry(
+                {
+                    "role": "assistant",
+                    "content": [_use("t9", "Bash", command="python tools/probe.py")],
+                }
+            )
+        )
+        lines.append(
+            _entry(
+                {
+                    "role": "user",
+                    "content": [_result("t9", "error: probe state already consumed", error=True)],
+                }
+            )
+        )
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path
 

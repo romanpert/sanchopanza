@@ -69,10 +69,10 @@ def lexer_request(n: int = 0, line: str = HEX_LINE) -> list[dict[str, Any]]:
                        "old_string": "tokens = {}", "new_string": f"tokens = {{\n    {line}\n}}"},
               "ok", n + 1),
         *tool("Bash", {"command": "./probe --once"}, f"issued token RT-6Z4F\ntoken={GH_TOKEN}",
-              n + 2),  # fmt: skip
+              n + 2),
         *tool("Bash", {"command": "pytest tests/test_carbon.py"}, "3 passed in 0.2s", n + 3),
         say("Fixed the hex rule in pygments/lexers/carbon.py; pytest tests/test_carbon.py passes."),
-    ]
+    ]  # fmt: skip
 
 
 def starlette_request(n: int = 10) -> list[dict[str, Any]]:
@@ -539,7 +539,8 @@ def test_v4_a_record_keeps_prints_of_the_lines_it_wrote_per_file_and_never_shows
 def test_v4_a_formatter_s_quotes_commas_and_spaces_do_not_change_a_print() -> None:
     # M1: Prettier, black and ruff rewrite quotes, commas and spacing after an edit.
     assert ep.line_print("result = compute( a,b , 'name' )") == ep.line_print(
-        'result = compute(a, b, "name",)')
+        'result = compute(a, b, "name",)'
+    )
     assert ep.line_print("result = compute(a, b)") != ep.line_print("result = compute(a, c)")
 
 
@@ -565,8 +566,9 @@ def test_v4_the_newest_writer_of_a_line_owns_it(store: Path) -> None:
     new = write_transcript(project / "s2.jsonl", [])
     mh.handle(event(new, "UserPromptSubmit", "s2", "x"))
     shown = "\n".join([*LINES, HEX_LINE])
-    first_read = context_of(mh.handle(touch_event(new, "s2", "Read",
-                                                  f"{CWD}/pygments/lexers/carbon.py", shown)))
+    first_read = context_of(
+        mh.handle(touch_event(new, "s2", "Read", f"{CWD}/pygments/lexers/carbon.py", shown))
+    )
     assert "session a" in first_read  # three of its lines in view against one  # fmt: skip
 
 
@@ -789,14 +791,16 @@ def test_a_touch_event_imports_nothing_heavy(store: Path) -> None:
     mh.handle(event(old, "Stop", "s1"))
     payload = json.dumps(touch_event(project / "s2.jsonl", "s2", "Read",
                                      f"{CWD}/pygments/lexers/carbon.py"))  # fmt: skip
-    probe = "\n".join([
-        "import sys, json",
-        "from sanchopanza.cli import main",
-        "try:",
-        "    main(['memory-hook'])",
-        "finally:",
-        "    sys.stderr.write('MODULES=' + json.dumps(sorted(sys.modules)))",
-    ])
+    probe = "\n".join(
+        [
+            "import sys, json",
+            "from sanchopanza.cli import main",
+            "try:",
+            "    main(['memory-hook'])",
+            "finally:",
+            "    sys.stderr.write('MODULES=' + json.dumps(sorted(sys.modules)))",
+        ]
+    )
     done = subprocess.run([sys.executable, "-c", probe], input=payload, text=True,
                           capture_output=True)  # fmt: skip
     assert "request 1 of session s1" in done.stdout
@@ -1043,21 +1047,25 @@ def test_v6_a_shell_read_that_shows_none_of_its_lines_gives_nothing(store: Path)
 def test_v6_numbered_and_grep_prefixed_output_still_matches(store: Path) -> None:
     new = _bash_setup(store)
     numbered = f"    12\t    {HEX_LINE}"
-    assert "session s1" in context_of(mh.handle(
-        bash_event(new, "s2", "cat -n pygments/lexers/carbon.py", numbered)))
+    assert "session s1" in context_of(
+        mh.handle(bash_event(new, "s2", "cat -n pygments/lexers/carbon.py", numbered))
+    )
     other = write_transcript(store / "projects" / "p" / "s3.jsonl", [prompt("x"), say("y")])
     mh.handle(event(other, "UserPromptSubmit", "s3", "x"))
     # no path in the command: grep names the file in its output
     grepped = f"pygments/lexers/carbon.py:12:    {HEX_LINE}"
-    assert "session s1" in context_of(mh.handle(
-        bash_event(other, "s3", "grep -rn Number.Hex .", grepped)))
+    assert "session s1" in context_of(
+        mh.handle(bash_event(other, "s3", "grep -rn Number.Hex .", grepped))
+    )
 
 
 def test_v6_a_shell_edit_whose_command_holds_the_old_lines_gives_the_record(store: Path) -> None:
     new = _bash_setup(store)
-    command = ("python - <<'E'\np='pygments/lexers/carbon.py'\ns=open(p).read()\n"
-               f's=s.replace("""{HEX_LINE}""", """(r\'0x[0-9a-f]+\', Number.Hex),""")\n'
-               "open(p,'w').write(s)\nE")
+    command = (
+        "python - <<'E'\np='pygments/lexers/carbon.py'\ns=open(p).read()\n"
+        f's=s.replace("""{HEX_LINE}""", """(r\'0x[0-9a-f]+\', Number.Hex),""")\n'
+        "open(p,'w').write(s)\nE"
+    )
     assert "session s1" in context_of(mh.handle(bash_event(new, "s2", command)))
 
 
@@ -1141,8 +1149,13 @@ def test_install_memory_wires_its_hooks_once_and_takes_them_out(tmp_path: Path) 
 def _session_store(store: Path, session: str = "s1") -> Path:
     """The store session `session`'s hooks used: in a git repository, the repository's (F1, K1),
     kept per session at its first event."""
-    return mh.store_for({"session_id": session, "cwd": str(store),
-                         "transcript_path": str(store / "projects" / "p" / f"{session}.jsonl")})
+    return mh.store_for(
+        {
+            "session_id": session,
+            "cwd": str(store),
+            "transcript_path": str(store / "projects" / "p" / f"{session}.jsonl"),
+        }
+    )
 
 
 def _git_repo(root: Path) -> str:
@@ -1151,8 +1164,13 @@ def _git_repo(root: Path) -> str:
     (root / "pkg").mkdir(parents=True)
     (root / "pkg" / "parse.py").write_text("def parse(text):\n    return text.split(',')\n",
                                            encoding="utf-8")  # fmt: skip
-    for args in (["init", "-q"], ["config", "user.email", "t@example.com"],
-                 ["config", "user.name", "t"], ["add", "."], ["commit", "-qm", "base"]):
+    for args in (
+        ["init", "-q"],
+        ["config", "user.email", "t@example.com"],
+        ["config", "user.name", "t"],
+        ["add", "."],
+        ["commit", "-qm", "base"],
+    ):
         subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
     return str(root).replace("\\", "/")
 
@@ -1164,8 +1182,13 @@ def _shell_fix(store: Path, tmp_path: Path, command: str) -> tuple[str, Path]:
     cwd = _git_repo(tmp_path / "repo")
     project = store / "projects" / "p"
     t1 = project / "s1.jsonl"
-    first = {"hook_event_name": "UserPromptSubmit", "session_id": "s1",
-             "transcript_path": str(t1), "cwd": cwd, "prompt": "parse should strip spaces"}
+    first = {
+        "hook_event_name": "UserPromptSubmit",
+        "session_id": "s1",
+        "transcript_path": str(t1),
+        "cwd": cwd,
+        "prompt": "parse should strip spaces",
+    }
     mh.handle(first)  # the transcript is not written yet: a new session's first prompt
     (tmp_path / "repo" / "pkg" / "parse.py").write_text(f"def parse(text):\n{PARSED}\n",
                                                         encoding="utf-8")  # fmt: skip
@@ -1227,8 +1250,10 @@ def test_v6_powershell_reads_with_backslashes_count_like_bash(store: Path) -> No
 @pytest.mark.parametrize(
     ("command", "written"),
     [
-        ("python - <<'E'\ncfg=open('pkg/config.py').read()\nopen('out.txt','w').write(cfg)\nE",
-         ["out.txt"]),
+        (
+            "python - <<'E'\ncfg=open('pkg/config.py').read()\nopen('out.txt','w').write(cfg)\nE",
+            ["out.txt"],
+        ),
         ("Get-Content a.py | Out-File b.txt", ["b.txt"]),
         ('echo "see a > pkg/parse.py"', []),
         ("python -c \"open('pkg/a.py','w').write('x')\"", ["pkg/a.py"]),
@@ -1236,8 +1261,10 @@ def test_v6_powershell_reads_with_backslashes_count_like_bash(store: Path) -> No
         ("sed -E -i 's/a/b/' pkg/a.py", ["pkg/a.py"]),
         ("cp pkg/a.py pkg/b.py", ["pkg/b.py"]),
         ("cat <<< \"abc\"\nsed -i 's/a/b/' pkg/parse.py", ["pkg/parse.py"]),
-        ("python - <<'E'\nfrom pathlib import Path\nPath('pkg/x.py').write_text(s)\nE",
-         ["pkg/x.py"]),
+        (
+            "python - <<'E'\nfrom pathlib import Path\nPath('pkg/x.py').write_text(s)\nE",
+            ["pkg/x.py"],
+        ),
     ],
 )
 def test_v6_review_m4_shell_written(command: str, written: list[str]) -> None:
@@ -1267,8 +1294,16 @@ def test_v6_review_m1_an_absolute_windows_path_in_a_shell_read(store: Path) -> N
 
 def test_v6_review_m5_the_header_names_the_file_of_the_record_given(store: Path) -> None:
     new = _bash_setup(store)
-    out = context_of(mh.handle(bash_event(
-        new, "s2", "cat README.md starlette/staticfiles.py pygments/lexers/carbon.py", HEX_LINE)))
+    out = context_of(
+        mh.handle(
+            bash_event(
+                new,
+                "s2",
+                "cat README.md starlette/staticfiles.py pygments/lexers/carbon.py",
+                HEX_LINE,
+            )
+        )
+    )
     assert "pygments/lexers/carbon.py" in out.splitlines()[0]
 
 

@@ -56,8 +56,11 @@ class RuleDecider:
         answers = {}
         for key, question in questions.items():
             if key == "broken":
-                hit = [k for k, v in question.options.items()
-                       if "PAYMENT_TIMEOUT" in v and "APP_PAYMENT_TIMEOUT" in state["change"]]
+                hit = [
+                    k
+                    for k, v in question.options.items()
+                    if "PAYMENT_TIMEOUT" in v and "APP_PAYMENT_TIMEOUT" in state["change"]
+                ]
                 probs = {k: 0.0 for k in question.options}
                 probs.update({k: self.named for k in hit})
                 probs["none"] = 1.0 - sum(probs.values())
@@ -113,9 +116,15 @@ def test_the_rules_are_given_in_the_persons_words_newest_first(tmp_path: Path) -
 def _repo(root: Path) -> str:
     (root / "app").mkdir(parents=True)
     (root / "app" / "config.py").write_text(
-        "def load():\n    return {\n    'timeout': env('PAYMENT_TIMEOUT'),\n    }\n", "utf-8")
-    for args in (["init", "-q"], ["config", "user.email", "t@example.org"],
-                 ["config", "user.name", "t"], ["add", "."], ["commit", "-qm", "base"]):
+        "def load():\n    return {\n    'timeout': env('PAYMENT_TIMEOUT'),\n    }\n", "utf-8"
+    )
+    for args in (
+        ["init", "-q"],
+        ["config", "user.email", "t@example.org"],
+        ["config", "user.name", "t"],
+        ["add", "."],
+        ["commit", "-qm", "base"],
+    ):
         subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
     head = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], capture_output=True,
                           text=True, check=True).stdout.strip()  # fmt: skip
@@ -128,7 +137,8 @@ def test_a_diff_that_breaks_a_rule_is_found_once_per_request(tmp_path: Path) -> 
     head = _repo(repo)
     asyncio.run(mr.extract(squire(), store, [episode(RULE, session="old")]))
     (repo / "app" / "config.py").write_text(
-        "def load():\n    return {\n    'timeout': env('APP_PAYMENT_TIMEOUT'),\n    }\n", "utf-8")
+        "def load():\n    return {\n    'timeout': env('APP_PAYMENT_TIMEOUT'),\n    }\n", "utf-8"
+    )
     broken, found = asyncio.run(mr.audit(squire(), store, "new", 1, str(repo), head, MINE))
     assert [r["text"] for r in broken] == [RULE]
     assert list(found.values()) == [{"named": 0.9, "kept": 0.1, "breaks_first": True}]
@@ -167,7 +177,9 @@ def test_no_change_no_question(tmp_path: Path) -> None:
     asyncio.run(mr.extract(squire(), store, [episode(RULE, session="old")]))
     decider = RuleDecider()
     assert asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head, MINE)) == (
-        [], {})
+        [],
+        {},
+    )
     assert decider.calls == []
 
 
@@ -189,8 +201,12 @@ def hook_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 
 def _transcript(path: Path, cwd: str, text: str, edit: bool) -> Path:
-    use = {"type": "tool_use", "id": "t1", "name": "Edit",
-           "input": {"file_path": f"{cwd}/app/config.py", "old_string": "a", "new_string": "b"}}
+    use = {
+        "type": "tool_use",
+        "id": "t1",
+        "name": "Edit",
+        "input": {"file_path": f"{cwd}/app/config.py", "old_string": "a", "new_string": "b"},
+    }
     entries = [{"type": "user", "cwd": cwd, "timestamp": "2026-10-02T10:00:00Z",
                 "message": {"role": "user", "content": text}}]  # fmt: skip
     if edit:
@@ -207,7 +223,8 @@ def _transcript(path: Path, cwd: str, text: str, edit: bool) -> Path:
 
 @needs_git
 def test_the_hook_learns_a_rule_gives_it_at_the_next_start_and_sends_a_break_back(
-    hook_env: Path, monkeypatch: pytest.MonkeyPatch,
+    hook_env: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("SANCHOPANZA_MEMORY_RULES_AUDIT", "on")  # opt-in since 2026-10-14
     repo = hook_env / "repo"
@@ -226,7 +243,8 @@ def test_the_hook_learns_a_rule_gives_it_at_the_next_start_and_sends_a_break_bac
     text2 = "Give every environment variable an APP_ prefix."
     mh.handle({**second, "hook_event_name": "UserPromptSubmit", "prompt": text2})
     (repo / "app" / "config.py").write_text(
-        "def load():\n    return {\n    'timeout': env('APP_PAYMENT_TIMEOUT'),\n    }\n", "utf-8")
+        "def load():\n    return {\n    'timeout': env('APP_PAYMENT_TIMEOUT'),\n    }\n", "utf-8"
+    )
     _transcript(project / "s2.jsonl", cwd, text2, edit=True)
     sent = mh.handle({**second, "hook_event_name": "Stop"})
     assert sent["decision"] == "block" and RULE in sent["reason"]
@@ -236,7 +254,8 @@ def test_the_hook_learns_a_rule_gives_it_at_the_next_start_and_sends_a_break_bac
 
 @needs_git
 def test_by_default_the_hook_keeps_and_gives_the_rule_but_never_audits_or_sends_back(
-    hook_env: Path, monkeypatch: pytest.MonkeyPatch,
+    hook_env: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """2026-10-14 (docs/results/2026-10-14-memory-stop): the Stop audit is opt-in. Extraction at
     Stop and the rules at the next start, the mechanism the memory cell measured, are unchanged;
@@ -260,7 +279,8 @@ def test_by_default_the_hook_keeps_and_gives_the_rule_but_never_audits_or_sends_
     text2 = "Give every environment variable an APP_ prefix."
     mh.handle({**second, "hook_event_name": "UserPromptSubmit", "prompt": text2})
     (repo / "app" / "config.py").write_text(
-        "def load():\n    return {\n    'timeout': env('APP_PAYMENT_TIMEOUT'),\n    }\n", "utf-8")
+        "def load():\n    return {\n    'timeout': env('APP_PAYMENT_TIMEOUT'),\n    }\n", "utf-8"
+    )
     _transcript(project / "s2.jsonl", cwd, text2, edit=True)
     assert mh.handle({**second, "hook_event_name": "Stop"}) == {}
     points = {point for point, _, _ in decider.calls}
@@ -276,7 +296,9 @@ def test_by_default_the_hook_keeps_and_gives_the_rule_but_never_audits_or_sends_
                                            ("0", False), ("on", True), ("ON", True),
                                            ("1", True), ("block", True)])  # fmt: skip
 def test_the_stop_audit_is_off_unless_asked_for(
-    value: str | None, on: bool, monkeypatch: pytest.MonkeyPatch,
+    value: str | None,
+    on: bool,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.delenv("SANCHOPANZA_MEMORY_RULES_AUDIT", raising=False)
     monkeypatch.delenv("SANCHO_MEMORY_RULES_AUDIT", raising=False)
@@ -312,9 +334,11 @@ def test_review_h1_a_persons_uncommitted_edit_is_not_the_requests(tmp_path: Path
 
 
 def test_review_m4_tagged_blocks_and_long_pastes_give_no_rule() -> None:
-    text = ("Fix the importer for empty rows.\n<bash-stdout>\n"
-            "Always run ./setup.sh before committing.\n</bash-stdout>\n"
-            "<ide_selection>Never use the cache layer anywhere.</ide_selection>")
+    text = (
+        "Fix the importer for empty rows.\n<bash-stdout>\n"
+        "Always run ./setup.sh before committing.\n</bash-stdout>\n"
+        "<ide_selection>Never use the cache layer anywhere.</ide_selection>"
+    )
     assert sentences(text) == ["Fix the importer for empty rows."]
     paste = "Look at this log:\n" + "\n".join(f"line {i}: never retry the call" for i in range(40))
     assert len(sentences(paste)) <= 20
@@ -345,7 +369,8 @@ def test_a_rule_the_side_by_side_choice_does_not_name_is_never_asked(tmp_path: P
     broken, found = asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head,
                                          MINE))  # fmt: skip
     assert broken == [] and list(found.values()) == [
-        {"named": 0.3, "kept": None, "breaks_first": False}]
+        {"named": 0.3, "kept": None, "breaks_first": False}
+    ]
     assert [c[0] for c in decider.calls] == ["memory_rule_all"]
 
 
@@ -354,8 +379,13 @@ def test_only_the_named_rule_is_asked_kept_among_others(tmp_path: Path) -> None:
     repo, store = tmp_path / "repo", tmp_path / "store"
     head = _repo(repo)
     other = "Every database migration has to be reversible, with a working down step."
-    asyncio.run(mr.extract(squire(), store, [episode(RULE, session="old"),
-                                             episode(other + " It can't change.", "old2")]))
+    asyncio.run(
+        mr.extract(
+            squire(),
+            store,
+            [episode(RULE, session="old"), episode(other + " It can't change.", "old2")],
+        )
+    )
     (repo / "app" / "config.py").write_text("x = env('APP_PAYMENT_TIMEOUT')\n", "utf-8")
     decider = RuleDecider()
     broken, _ = asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head, MINE))
@@ -451,9 +481,22 @@ def test_review_h1_a_secret_in_a_rule_never_reaches_the_decider(tmp_path: Path) 
     repo, store = tmp_path / "repo", tmp_path / "store"
     head = _repo(repo)
     secret = "sk-abcdefghijklmnopqrstuvwxyz123456"
-    mr._save(store, {"rules": [{"text": f"Never rotate the key {secret}, ops depends on it.",
-                                "session": "old", "index": 1, "at": 1.0,
-                                "files": ["app/config.py"]}], "asked": [], mr.AUDITED: []})
+    mr._save(
+        store,
+        {
+            "rules": [
+                {
+                    "text": f"Never rotate the key {secret}, ops depends on it.",
+                    "session": "old",
+                    "index": 1,
+                    "at": 1.0,
+                    "files": ["app/config.py"],
+                }
+            ],
+            "asked": [],
+            mr.AUDITED: [],
+        },
+    )
     (repo / "app" / "config.py").write_text("x = 1\n", "utf-8")
     decider = RuleDecider()
     asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head, MINE))
@@ -469,7 +512,8 @@ def test_a_rule_kept_calls_broken_is_not_sent_back_when_relation_says_it_keeps(
     head = _repo(repo)
     asyncio.run(mr.extract(squire(), store, [episode(RULE, session="old")]))
     (repo / "app" / "config.py").write_text(
-        "def load():\n    return {\n    'timeout': env('APP_PAYMENT_TIMEOUT'),\n    }\n", "utf-8")
+        "def load():\n    return {\n    'timeout': env('APP_PAYMENT_TIMEOUT'),\n    }\n", "utf-8"
+    )
     decider = RuleDecider(relation="keeps")
     broken, found = asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head, MINE))
     assert broken == [] and list(found.values())[0]["breaks_first"] is False
@@ -477,14 +521,16 @@ def test_a_rule_kept_calls_broken_is_not_sent_back_when_relation_says_it_keeps(
 
 
 def test_sentences_join_a_wrapped_line_and_leave_layout_out() -> None:
-    text = ("## Rules that are not negotiated\n"
-            "Every migration has to be reversible, with a working down step, and\n"
-            "never edited once it is merged.\n"
-            "SIX RULES I KEEP REPEATING\n"
-            "| column | value |\n"
-            "Rules:\n"
-            "- Never commit straight to main.\n"
-            "Store the keys in the .env file")
+    text = (
+        "## Rules that are not negotiated\n"
+        "Every migration has to be reversible, with a working down step, and\n"
+        "never edited once it is merged.\n"
+        "SIX RULES I KEEP REPEATING\n"
+        "| column | value |\n"
+        "Rules:\n"
+        "- Never commit straight to main.\n"
+        "Store the keys in the .env file"
+    )
     assert sentences(text) == [
         "Every migration has to be reversible, with a working down step, and never edited "
         "once it is merged.",
@@ -496,8 +542,11 @@ def test_sentences_join_a_wrapped_line_and_leave_layout_out() -> None:
 def test_sentences_keep_a_persons_short_lines_apart() -> None:
     """A new thought starts with a capital: short lines without a stop are not joined."""
     text = "Push everything to dev\nThe policy does not go into git\nAre the duplicates gone?"
-    assert sentences(text) == ["Push everything to dev", "The policy does not go into git",
-                               "Are the duplicates gone?"]
+    assert sentences(text) == [
+        "Push everything to dev",
+        "The policy does not go into git",
+        "Are the duplicates gone?",
+    ]
 
 
 class RelationDecider(PickDecider):
@@ -556,8 +605,11 @@ def test_review_v81_kept_between_045_and_05_is_no_longer_doubtful(tmp_path: Path
 
 
 def test_sentences_start_a_spanish_question_on_its_own_line() -> None:
-    text = ("Revisa que las migraciones se puedan deshacer siempre con su paso de bajada\n"
-            "¿Por que falla el test de esquema?")
+    text = (
+        "Revisa que las migraciones se puedan deshacer siempre con su paso de bajada\n"
+        "¿Por que falla el test de esquema?"
+    )
     assert sentences(text) == [
         "Revisa que las migraciones se puedan deshacer siempre con su paso de bajada",
-        "¿Por que falla el test de esquema?"]
+        "¿Por que falla el test de esquema?",
+    ]

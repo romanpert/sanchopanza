@@ -18,8 +18,12 @@ from tests.test_adopt_long_launch import dry_environment, launch
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ADOPT = ROOT / "benchmarks" / "adopt"
 CMD = "long-compact-run.cmd"
-CHAINS = ("conan-io__conan-long60-1", "pydantic__pydantic-long60-1",
-          "conan-io__conan-long60-2", "getmoto__moto-long60-1")  # long_run.COMPACT_CHAINS
+CHAINS = (
+    "conan-io__conan-long60-1",
+    "pydantic__pydantic-long60-1",
+    "conan-io__conan-long60-2",
+    "getmoto__moto-long60-1",
+)  # long_run.COMPACT_CHAINS
 FIFTH = "getmoto__moto-long60-2"  # long_run.COMPACT_FIFTH
 SIXTH = "iterative__dvc-long60-1"  # long_run.COMPACT_EXTRA
 
@@ -114,8 +118,16 @@ def test_the_launcher_runs_both_arms_on_each_chain_without_jev(tmp_path: pathlib
     env = dry_environment(tmp_path, CHAINS)
     nl = f"{CHAINS[0]}-sonnet-Nl"
     inject = {nl: {"2": "compact"}}
-    code = launch(CMD, ["dry"], {**env, "FAKE_CLAUDE_INJECT": json.dumps(inject),
-                                 "FAKE_COMPACT_PRE": "67500", "FAKE_CONTEXT_SCALE": "0.5"})
+    code = launch(
+        CMD,
+        ["dry"],
+        {
+            **env,
+            "FAKE_CLAUDE_INJECT": json.dumps(inject),
+            "FAKE_COMPACT_PRE": "67500",
+            "FAKE_CONTEXT_SCALE": "0.5",
+        },
+    )
     root = tmp_path / "L"
     log = (root / "launch.log").read_text(encoding="utf-8", errors="replace")
     assert code in (0, 3), log  # 3: the dry chains are short; graded or not, both arms ran
@@ -135,8 +147,16 @@ def test_the_launcher_runs_both_arms_on_each_chain_without_jev(tmp_path: pathlib
 def test_nl_compacting_where_it_should_not_stops_the_launch(tmp_path: pathlib.Path) -> None:
     env = dry_environment(tmp_path, CHAINS)
     inject = {f"{chain}-sonnet-Nl": {"2": "compact"} for chain in CHAINS}
-    code = launch(CMD, ["dry"], {**env, "FAKE_CLAUDE_INJECT": json.dumps(inject),
-                                 "FAKE_COMPACT_PRE": "160500", "FAKE_CONTEXT_SCALE": "0.5"})
+    code = launch(
+        CMD,
+        ["dry"],
+        {
+            **env,
+            "FAKE_CLAUDE_INJECT": json.dumps(inject),
+            "FAKE_COMPACT_PRE": "160500",
+            "FAKE_CONTEXT_SCALE": "0.5",
+        },
+    )
     assert code == 4
     root = tmp_path / "L"
     assert "Nl compacted at 160500" in (root / "STOP").read_text(encoding="utf-8")
@@ -160,7 +180,8 @@ def test_the_fifth_and_sixth_chains_run_under_the_same_root_and_ceiling(
     assert launch(CMD, ["extra", "dry"], env) in (0, 3)
     runs = tmp_path / "L" / "runs"
     assert {p.parent.parent.name for p in runs.glob("*/*/row.json")} == {
-        f"{c}-sonnet" for c in (*CHAINS, FIFTH, SIXTH)}
+        f"{c}-sonnet" for c in (*CHAINS, FIFTH, SIXTH)
+    }
     log = (tmp_path / "L" / "launch.log").read_text(encoding="utf-8", errors="replace")
     assert log.count("ceiling 250.00 (hard, in code)") == 3  # one plan per launch, one ledger
 

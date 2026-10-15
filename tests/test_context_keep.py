@@ -125,8 +125,20 @@ def test_the_hook_builds_keep_after_the_summary_and_reads_it_as_notes(env, monke
 
 def test_a_one_shot_tool_that_failed_both_times_keeps_its_first_output():
     history = [
-        Call(id="a", tool="Bash", input={"command": "./probe"}, result="ProbeError (code PRB-1)", is_error=True),
-        Call(id="b", tool="Bash", input={"command": "./probe"}, result="already consumed", is_error=True),
+        Call(
+            id="a",
+            tool="Bash",
+            input={"command": "./probe"},
+            result="ProbeError (code PRB-1)",
+            is_error=True,
+        ),
+        Call(
+            id="b",
+            tool="Bash",
+            input={"command": "./probe"},
+            result="already consumed",
+            is_error=True,
+        ),
         Call(id="c", tool="Bash", input={"command": "make"}, result="fail", is_error=True),
         Call(id="d", tool="Bash", input={"command": "make"}, result="fail", is_error=True),
     ]
@@ -134,7 +146,10 @@ def test_a_one_shot_tool_that_failed_both_times_keeps_its_first_output():
 
 
 def test_notes_are_the_open_tasks_of_the_latest_todo_list():
-    todo = [{"content": "wire the probe", "status": "pending"}, {"content": "read", "status": "completed"}]
+    todo = [
+        {"content": "wire the probe", "status": "pending"},
+        {"content": "read", "status": "completed"},
+    ]
     history = [
         Call(id="a", tool="TodoWrite", input={"todos": [{"content": "old", "status": "pending"}]}),
         Call(id="b", tool="TodoWrite", input={"todos": todo}),
@@ -173,7 +188,9 @@ def test_the_hook_falls_back_to_the_rule_on_any_error(env, monkeypatch):
     def broken(**_):
         raise ValueError("boom")
 
-    monkeypatch.setattr("sanchopanza.harness.claude_code.squire_from_env", lambda **_: ScoreSquire(()))
+    monkeypatch.setattr(
+        "sanchopanza.harness.claude_code.squire_from_env", lambda **_: ScoreSquire(())
+    )
     monkeypatch.setattr("sanchopanza.context.keep.build", lambda *a, **k: broken())
     monkeypatch.setenv("SANCHOPANZA_GUARD_CHOOSER", "keep")
     path = write_session(env / "s.jsonl", compacted=True)
@@ -181,4 +198,7 @@ def test_the_hook_falls_back_to_the_rule_on_any_error(env, monkeypatch):
                            "transcript_path": str(path)}, monkeypatch))  # fmt: skip
     assert "PRB-9015" in out["hookSpecificOutput"]["additionalContext"]
     log = [json.loads(x) for x in (env / "log.jsonl").read_text("utf-8").splitlines()]
-    assert log[-1]["chooser"] == "keep (error: rule only)" and log[-1]["notes_origin"] == "previous summary"
+    assert (
+        log[-1]["chooser"] == "keep (error: rule only)"
+        and log[-1]["notes_origin"] == "previous summary"
+    )

@@ -100,7 +100,7 @@ def test_arms_a_and_a10_install_the_passages_hook_with_jev_and_nothing_else(
     for spec in (a, a10):
         flags = spec.install
         at = flags.index("--provider")
-        assert flags[:1] == ("--passages",) and flags[at:at + 2] == ("--provider", "jev")
+        assert flags[:1] == ("--passages",) and flags[at : at + 2] == ("--provider", "jev")
         assert {"--no-guard", "--no-find", "--no-skill"} <= set(flags)
         assert flags[flags.index("--context-budget") + 1] == "0"
         assert not {"--memory", "--candor", "--guard", "--check-done", "--crawl"} & set(flags)
@@ -206,7 +206,9 @@ def _row(tmp_path: pathlib.Path, arm: str) -> dict[str, Any]:
 
 
 def test_an_a_arm_runs_with_the_passages_hook_alone_and_its_rows_carry_the_journal(
-    lr: ModuleType, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch  # noqa: F811
+    lr: ModuleType,  # noqa: F811
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     argv = _pilot(lr, tmp_path, monkeypatch, "A", {"cuts": 2, "whole": 0, "targeted": 1})
     assert lr.main(argv) == 0
@@ -230,7 +232,9 @@ def test_an_a_arm_runs_with_the_passages_hook_alone_and_its_rows_carry_the_journ
 
 
 def test_whole_rerequests_past_half_stop_the_arm_and_are_declared(
-    lr: ModuleType, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch  # noqa: F811
+    lr: ModuleType,  # noqa: F811
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     argv = _pilot(lr, tmp_path, monkeypatch, "A10", {"cuts": 4, "whole": 3})
     assert lr.main(argv) == 5
@@ -304,11 +308,14 @@ def test_the_plan_prints_the_caps_the_ceiling_the_install_and_the_abort_rule(
                       ("A10", "--passages --passages-fraction 0.10 --provider jev")):  # fmt: skip
         text = "\n".join(ll.plan_lines("pilot-a", known, list(known), pathlib.Path("Z:/nowhere"),
                                        80.0, arms=(arm,)))  # fmt: skip
-        assert ("sonnet (claude-sonnet-5-5): 4.50 USD per call (--max-budget-usd at most 3.00"
-                in text)
+        assert (
+            "sonnet (claude-sonnet-5-5): 4.50 USD per call (--max-budget-usd at most 3.00" in text
+        )
         assert f"38.00 per chain and arm, arms {arm}" in text
-        assert (f"{arm}: one turn past a cap costs up to 6.48 USD (context at the window "
-                "1000000); at that context the arm starts no call past 27.02") in text
+        assert (
+            f"{arm}: one turn past a cap costs up to 6.48 USD (context at the window "
+            "1000000); at that context the arm starts no call past 27.02"
+        ) in text
         assert f"expected {arm} 24.97-24.97 USD" in text and "N's cost model" in text
         assert "caps held 76.00 USD" in text and "ceiling 80.00 (hard, in code)" in text
         assert flag in text and "--no-guard --no-find --no-skill --context-budget 0" in text
@@ -316,7 +323,8 @@ def test_the_plan_prints_the_caps_the_ceiling_the_install_and_the_abort_rule(
 
 
 def test_spend_of_an_arm_outside_the_profile_is_held_outside_its_blocks(
-    lr: ModuleType, tmp_path: pathlib.Path  # noqa: F811
+    lr: ModuleType,  # noqa: F811
+    tmp_path: pathlib.Path,
 ) -> None:
     layout = lr.Layout(tmp_path)
     folder = layout.runs / f"{GATE[0]}-sonnet" / "A"

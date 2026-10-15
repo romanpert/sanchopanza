@@ -227,6 +227,7 @@ def test_a_bug_another_hides_with_every_bug_in_blames_the_bug_that_hides_it(monk
 
 def test_a_bug_that_does_not_fail_even_alone_is_its_own_culprit(monkeypatch) -> None:  # noqa: ANN001
     bugs = [{"patch": f"p{k}\n", "FAIL_TO_PASS": [f"t::b{k}"]} for k in range(4)]
+
     def pytest(_tag, _patch, nodes, reverse=False, keep_collecting=False, **_k):  # noqa: ANN001, ANN202
         return dict.fromkeys(nodes, "PASSED")
 
@@ -297,6 +298,7 @@ def test_extra_spares_come_after_the_drawn_ones(monkeypatch) -> None:  # noqa: A
     validate = _load("adopt_validate_extra", "validate.py")
     drawn = {"chain": "conan-io__conan-1", "spares": [{"instance_id": "a"}]}
     other = {"chain": "pygments__pygments-2", "spares": [{"instance_id": "b"}]}
+
     def spares(name: str) -> list[dict[str, str]]:
         return [{"instance_id": "x"}] if name == drawn["chain"] else []
 
@@ -307,7 +309,9 @@ def test_extra_spares_come_after_the_drawn_ones(monkeypatch) -> None:  # noqa: A
     assert [s["instance_id"] for s in drawn["spares"]] == ["a"]  # the drawn chain is not changed
 
 
-def test_bake_only_rebuilds_the_image_from_the_validated_bugs_and_saves_nothing(monkeypatch) -> None:  # noqa: ANN001, E501
+def test_bake_only_rebuilds_the_image_from_the_validated_bugs_and_saves_nothing(
+    monkeypatch,
+) -> None:  # noqa: ANN001, E501
     # After the seal the summary must not change: A's images are baked again without validating.
     validate = _load("adopt_validate_bake", "validate.py")
     done = {"r-1": {"image": "img", "tag": "adopt-r-1:bugs", "valid": True,

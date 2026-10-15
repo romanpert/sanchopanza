@@ -40,14 +40,25 @@ def install(argv: list[str]) -> int:
         post = [*post, _entry("Bash|PowerShell|Read", PASSAGES, 30)]
         pre = [*pre, _entry("Write|Edit|MultiEdit|NotebookEdit", PASSAGES, 10)]
         fraction = float(_value(argv, "--passages-fraction", "0.25"))
-        env = {**env, "SANCHOPANZA_PASSAGES_FRACTION": f"{fraction:g}",
-               "SANCHOPANZA_PASSAGES_TOKENS": _value(argv, "--passages-tokens", "2000")}
+        env = {
+            **env,
+            "SANCHOPANZA_PASSAGES_FRACTION": f"{fraction:g}",
+            "SANCHOPANZA_PASSAGES_TOKENS": _value(argv, "--passages-tokens", "2000"),
+        }
     if _value(argv, "--context-budget", "160000") != "0":
         env = {**env, "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "193000"}
     guard = {} if "--no-guard" in argv else {
         "SessionStart": [_entry("compact", "sanchopanza guard-hook")]}  # fmt: skip
-    settings = {"hooks": {"PreToolUse": pre, "PostToolUse": post, "Stop": [],
-                          "UserPromptSubmit": [], **guard}, "env": env}
+    settings = {
+        "hooks": {
+            "PreToolUse": pre,
+            "PostToolUse": post,
+            "Stop": [],
+            "UserPromptSubmit": [],
+            **guard,
+        },
+        "env": env,
+    }
     folder = Path(".claude")
     folder.mkdir(exist_ok=True)
     (folder / "settings.json").write_text(json.dumps(settings, indent=2), encoding="utf-8")
@@ -63,8 +74,9 @@ def main(argv: list[str]) -> int:
         return install(argv[1:])
     if argv[:1] == ["passages-hook"]:
         if os.environ.get("FAKE_NO_PASSAGES") == "1":
-            sys.stderr.write("sanchopanza: error: argument command: invalid choice: "
-                             "'passages-hook'\n")
+            sys.stderr.write(
+                "sanchopanza: error: argument command: invalid choice: 'passages-hook'\n"
+            )
             return 2
         print("usage: sanchopanza passages-hook [-h]")
         return 0

@@ -23,10 +23,31 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 ADOPT = ROOT / "benchmarks" / "adopt"
 FAKE = ROOT / "tests" / "fixtures" / "long_fake" / "fake_claude.py"
 MAIN_VENV = pathlib.Path(r"C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts")
-OURS = ("run", "long", "docker_env", "perbug", "long_run", "long_call", "long_guard",
-        "long_report", "arm_files", "hook_env", "meter", "carry", "chains", "related", "masking",
-        "long_money", "long_resume", "long_window", "long_pilot", "long_launch", "freeze",
-        "costmodel", "long_start")
+OURS = (
+    "run",
+    "long",
+    "docker_env",
+    "perbug",
+    "long_run",
+    "long_call",
+    "long_guard",
+    "long_report",
+    "arm_files",
+    "hook_env",
+    "meter",
+    "carry",
+    "chains",
+    "related",
+    "masking",
+    "long_money",
+    "long_resume",
+    "long_window",
+    "long_pilot",
+    "long_launch",
+    "freeze",
+    "costmodel",
+    "long_start",
+)
 
 
 def _purge() -> None:
@@ -335,8 +356,10 @@ def test_a_resume_is_held_against_the_ceiling_by_what_is_left_not_by_whole_caps_
     spent = lr.spent(layout)
     assert spent > 0
     blocks, outside = lr.held(layout, profile, [PYD, CONAN], ["sonnet"])
-    assert dict(((n, m), c) for n, m, c in blocks) == {(PYD, "sonnet"): 20.0,
-                                                       (CONAN, "sonnet"): 20.0}
+    assert dict(((n, m), c) for n, m, c in blocks) == {
+        (PYD, "sonnet"): 20.0,
+        (CONAN, "sonnet"): 20.0,
+    }
     assert outside == 0.0  # the spend is inside PYD's caps, not on top of them
     assert lr.long_guard.plan_refusal(blocks, 40.0, outside) == ""
     # what was counted before: both caps plus the spend, refused at a ceiling that fits
@@ -365,7 +388,8 @@ def test_every_session_reports_its_window_and_n_early_is_s_installs(
     for profile in lr.PROFILES.values():
         env, _added, _gone = install_defaults.merge_budget({}, profile.budget)
         assert dict(lr.arm_spec("Ne", profile).env) == {
-            install_defaults.WINDOW: env["env"][install_defaults.WINDOW]}
+            install_defaults.WINDOW: env["env"][install_defaults.WINDOW]
+        }
     assert lr.long_guard.window_breaks(193_000, 193_000) == ()
     assert lr.long_guard.window_breaks(193_000, 200_000)
 

@@ -110,12 +110,10 @@ def wrote_paths(group: Sequence[Mapping[str, Any]], cwd: str) -> list[str]:
 def _under(path: str, root: str) -> str | None:
     """`path` relative to `root` when it lies under it (folded), else None."""
     clean, base = _fold(os.path.normpath(path)), _fold(os.path.normpath(root)).rstrip("/") + "/"
-    return clean[len(base):] if clean.startswith(base) else None
+    return clean[len(base) :] if clean.startswith(base) else None
 
 
-def start_tree(
-    store: Path, session: str, cwd: str, index: int, note: Note = _quiet
-) -> None:
+def start_tree(store: Path, session: str, cwd: str, index: int, note: Note = _quiet) -> None:
     """At a request's start: the working tree, for `finish_tree` to compare against."""
     if not tree_on() or not cwd:
         return
@@ -144,7 +142,10 @@ def open_request(store: Path, session: str) -> int | None:
 
 
 def finish_tree(
-    store: Path, session: str, entries: Sequence[Mapping[str, Any]], index: int | None = None,
+    store: Path,
+    session: str,
+    entries: Sequence[Mapping[str, Any]],
+    index: int | None = None,
     note: Note = _quiet,
 ) -> bool:
     """At request `index`'s end (default: the transcript's last request): what it wrote in the
@@ -192,7 +193,7 @@ def _session_path(root: str, rel: str, cwd: str, real: str) -> str:
     for base in (real, cwd):
         under = _under(full, base)
         if under is not None:
-            return full[len(full) - len(under):]
+            return full[len(full) - len(under) :]
     return full
 
 

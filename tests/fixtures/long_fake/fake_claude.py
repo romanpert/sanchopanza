@@ -73,10 +73,14 @@ def debug_lines(path: str | None, usages: list[dict[str, Any]], effective: int) 
         return
     with Path(path).open("a", encoding="utf-8") as out:
         for u in usages:
-            tokens = sum(int(u.get(k) or 0) for k in ("input_tokens", "cache_read_input_tokens",
-                                                      "cache_creation_input_tokens"))
-            out.write(f"2026-10-06T00:00:00Z [DEBUG] autocompact: tokens={tokens} level=ok "
-                      f"effectiveWindow={effective}\n")
+            tokens = sum(
+                int(u.get(k) or 0)
+                for k in ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")
+            )
+            out.write(
+                f"2026-10-06T00:00:00Z [DEBUG] autocompact: tokens={tokens} level=ok "
+                f"effectiveWindow={effective}\n"
+            )
             out.write("2026-10-06T00:00:00Z [DEBUG] [api] request sent\n")
 
 
@@ -150,8 +154,14 @@ def scaled(usage: dict[str, Any]) -> dict[str, Any]:
     keys = ("cache_read_input_tokens", "cache_creation_input_tokens")
     out = {k: (int(v * scale) if k in keys else v) for k, v in usage.items()}
     creation = usage.get("cache_creation")
-    return {**out, **({"cache_creation": {k: int(v * scale) for k, v in creation.items()}}
-                      if isinstance(creation, dict) else {})}
+    return {
+        **out,
+        **(
+            {"cache_creation": {k: int(v * scale) for k, v in creation.items()}}
+            if isinstance(creation, dict)
+            else {}
+        ),
+    }
 
 
 def replay(call: int, session: str, model: str, transcript: Path,
@@ -169,8 +179,10 @@ def replay(call: int, session: str, model: str, transcript: Path,
     usages = []
     with transcript.open("a", encoding="utf-8") as out:
         for i, req in enumerate(requests):
-            content = [{"type": "tool_use", "id": f"t{call}-{i}-{j}", "name": name, "input": {}}
-                       for j, name in enumerate(req["tools"])] or [{"type": "text", "text": "ok"}]
+            content = [
+                {"type": "tool_use", "id": f"t{call}-{i}-{j}", "name": name, "input": {}}
+                for j, name in enumerate(req["tools"])
+            ] or [{"type": "text", "text": "ok"}]
             message = {"id": f"msg-{session[:8]}-{call}-{i}", "model": model,
                        "content": content, "usage": req["usage"]}  # fmt: skip
             event = {"type": "assistant", "session_id": session, "message": message}

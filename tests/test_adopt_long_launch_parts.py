@@ -362,8 +362,11 @@ def test_s_settings_at_the_seal_deliver_the_guard_in_six_parts(
         pytest.skip("the seal is not frozen here (benchmarks/adopt/freeze.py cb0062e)")
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     spec = m.long_run.arm_spec("S", m.long_run.PROFILES["dev"])
-    env = {k: v for k, v in os.environ.items()
-           if not k.startswith(("SANCHOPANZA_", "SANCHO_", "TYPESAFE_", "PYTHONPATH"))}
+    env = {
+        k: v
+        for k, v in os.environ.items()
+        if not k.startswith(("SANCHOPANZA_", "SANCHO_", "TYPESAFE_", "PYTHONPATH"))
+    }
     done = subprocess.run([str(exe), "install", "--scope", "project", "--write", *spec.install],
                           cwd=tmp_path, env=env, capture_output=True, text=True)  # fmt: skip
     assert done.returncode == 0, done.stderr
@@ -372,11 +375,13 @@ def test_s_settings_at_the_seal_deliver_the_guard_in_six_parts(
     compact = [h["command"] for e in settings["hooks"]["SessionStart"]
                if e.get("matcher") == "compact" for h in e["hooks"]]  # fmt: skip
     assert [c.split("guard-hook ", 1)[1] for c in compact] == [
-        f"--part {i} --parts 6" for i in range(1, 7)]
+        f"--part {i} --parts 6" for i in range(1, 7)
+    ]
     assert any("guard-hook --parts 6" in h["command"] for e in settings["hooks"]["PreCompact"]
                for h in e["hooks"])  # fmt: skip
     assert "SANCHOPANZA_GUARD_CHOOSER" not in settings["env"]
     assert settings["env"]["CLAUDE_CODE_AUTO_COMPACT_WINDOW"] == "193000"
     assert settings["env"]["SANCHOPANZA_CANDOR_MODE"] == "observe"
     assert m.arm_files.guard_parts(tmp_path) == (
-        "guard: 6 SessionStart(compact) parts, chooser the install's default")
+        "guard: 6 SessionStart(compact) parts, chooser the install's default"
+    )

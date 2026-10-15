@@ -186,7 +186,7 @@ def _committed(root: str, head: str, rels: list[str]) -> dict[str, tuple[str, ..
         at = end + 1
         if len(header) == 3 and header[1] == b"blob":
             size = int(header[2])
-            body = out[at:at + size]
+            body = out[at : at + size]
             at += size + 1
             found[rel] = _prints(body) if size <= MAX_BYTES else ()
     return found
@@ -225,5 +225,5 @@ def changes(
             break
         old = set(before.prints.get(rel, ()) if rel in before.files else old_head.get(rel, ()))
         new = after.prints.get(rel, ()) if rel in after.files else new_head.get(rel, ())
-        out.append((rel, tuple(p for p in new if p not in old)[-ep.WROTE_MAX:]))
+        out.append((rel, tuple(p for p in new if p not in old)[-ep.WROTE_MAX :]))
     return out
