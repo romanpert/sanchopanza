@@ -361,8 +361,10 @@ jev-1.13.0 and jev-1.14.0 alike, 3.1 points under BM25 top 3 with 21 % fewer cha
 prompt, one long call (1.5 s median, about 0.005 USD) replaced about 2.9 short triage calls
 (0.3 s each); the recall question is asked in both, and the short path cost about 0.001 USD a
 prompt in all. The long call's cost grows with the memory, at Jev's 0.042 USD a million input
-tokens: about 0.01 USD at the window's ceiling of 750,000 characters. A confirmation on 84 unseen
-questions is pending. The installed memory hook takes the same setting at a session's first
+tokens: about 0.01 USD at the window's ceiling of 750,000 characters. Confirmed on jev-1.13.0 on
+the 84 unseen test questions ([memgate-long](docs/results/2026-10-15-memgate-long/README.md)):
+recall 0.726 to 0.905 (+17.8 points [+10.7, +25.7]), reaching BM25 top 3 (+8.9 [0.0, +17.3]).
+The installed memory hook takes the same setting at a session's first
 prompt and reads each candidate record whole; that effect is not measured. Past Jev's long
 window, without a decider that has the long-context mode, past the job's budget or after a long
 call that answers nothing, the short window is used and the hook says so.
