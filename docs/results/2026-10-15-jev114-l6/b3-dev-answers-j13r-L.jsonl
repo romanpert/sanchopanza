@@ -1,0 +1,1 @@
+{"key": "94908e93e892b3bc", "order": "a2e89890", "point": "longbench_choice", "model": "jev-1.13.0", "default": false, "input_tokens": 31184, "cost_usd": 0.001309728, "latency_ms": 656, "answers": {"answer": {"kind": "choice", "confidence": 0.91, "choice": "A", "score": null, "truth": null, "probabilities": {"A": 0.93, "B": 0.03, "C": 0.02, "D": 0.02}}}}
