@@ -347,6 +347,14 @@ do not favour this package.
 
 ### Fixed
 
+- **Spanish sentences are split** (`text.split_sentences`): a cut now also comes before an
+  accented capital (Á É Í Ó Ú Ñ Ü...), `¿`, `¡` or `«`, and not after a Spanish abbreviation
+  ("Sr." as a title, "Sra.", "p. ej.", "pág.", "EE. UU."...), so the sentence stage no longer
+  judges two Spanish sentences as one. English splits as before: over every QASPER paragraph,
+  HotpotQA and every fixture string, 2 of 458,860 strings change (HotpotQA, now cut in
+  "St. Étienne" as it already was in "St. Louis"); the 219-question `select_passages` replay
+  keeps the same sentences (87.21 %), and the knowledge and memory-gate replays reproduce
+  `longdocs.json` and `budget.json` exactly.
 - **Retracted: "Jev's Truth confidence is exactly |2p - 1|, 651 answers, zero deviation"**
   (0.2.0, the paper, `where-it-pays.md`). The Truth wire carries only the probability
   (`noul`); `providers.jev.from_wire` computes the confidence, and the recordings store the

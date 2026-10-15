@@ -63,14 +63,46 @@ JACCARD_REPEAT = 0.7
 
 
 # After `.`, `!` or `?` and whitespace, before an upper-case letter, a digit, `(` or `[`: the
-# splitter the long-document runs used (benchmarks/longdocs/sentences.py).
-SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9(\[])")
+# splitter the long-document runs used (benchmarks/longdocs/sentences.py). Spanish also opens a
+# sentence with an accented capital (`À-Ö`, `Ø-Þ`: Á É Í Ó Ú Ñ Ü...), `¿`, `¡` or `«`; none of
+# them changed a split over QASPER, HotpotQA or any string in `fixtures/` (CHANGELOG).
+# Quotes are left out: English text has `. "` and a cut there would change its sentences.
+SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9(\[À-ÖØ-Þ¿¡«])")
+
+# Spanish abbreviations a capital follows without a new sentence: titles before a name, "p. ej.",
+# page and number references, "EE. UU.". None is an English word; "Sr" is held only where it is
+# a title, not after a name or a comma (English "Ben Douglas, Sr." still ends a sentence).
+_HELD = "Sra|Srta|Sres|Sras|Srs|Dña|Dra|Ud|Uds|Vd|Vds|ej|pág|págs|núm|Avda|Excmo|Excma|Ilmo|Ilma|EE"
+_HELD_END = re.compile(rf"(?:^|[\s(¿¡«])(?:{_HELD})\.$")
+_TITLE_END = re.compile(r"(?:^|(?<=[\s(¿¡«]))Sr\.$")
+
+
+def _holds(piece: str) -> bool:
+    """Whether `piece` ends on an abbreviation, so the cut after it is not a sentence end."""
+    if _HELD_END.search(piece):
+        return True
+    title = _TITLE_END.search(piece)
+    if not title:
+        return False
+    before = piece[: title.start()].split()
+    return not before or not (before[-1][0].isupper() or before[-1].endswith(","))
 
 
 def split_sentences(text: str) -> list[str]:
-    """Sentences of a paragraph, whitespace collapsed; nothing clever, and that is measured."""
+    """Sentences of a paragraph, whitespace collapsed; nothing clever, and that is measured.
+
+    A cut right after a held Spanish abbreviation (`_holds`) is undone: "el Sr. Pérez" is one
+    sentence. English with no accented capital splits exactly as before."""
     flat = re.sub(r"\s+", " ", text or "").strip()
-    return [part for part in SENTENCE_BREAK.split(flat) if part] if flat else []
+    out: list[str] = []
+    for part in SENTENCE_BREAK.split(flat) if flat else []:
+        if not part:
+            continue
+        if out and _holds(out[-1]):
+            out[-1] = f"{out[-1]} {part}"  # the cut was a single collapsed space
+        else:
+            out.append(part)
+    return out
 
 
 def truncate(text: object, limit: int) -> str:
