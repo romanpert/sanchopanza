@@ -167,9 +167,13 @@ BUSY_WAIT_S = 0.1
 COMMAND = "sanchopanza hook"
 MEMORY_COMMAND = "sanchopanza memory-hook"
 # Event -> matcher for memory between requests and sessions (`--memory`, `harness.memory_hook`).
-MEMORY_HOOKS = {"UserPromptSubmit": "", "Stop": "", "SessionEnd": "",
-                "PostToolUse": "Read|Edit|MultiEdit|Write|NotebookEdit|Bash|PowerShell",
-                "SessionStart": ""}  # v7: standing rules at every start, live after compaction
+MEMORY_HOOKS = {
+    "UserPromptSubmit": "",
+    "Stop": "",
+    "SessionEnd": "",
+    "PostToolUse": "Read|Edit|MultiEdit|Write|NotebookEdit|Bash|PowerShell",
+    "SessionStart": "",
+}  # v7: standing rules at every start, live after compaction
 CANDOR_COMMAND = "sanchopanza candor-hook"
 # Event -> matcher for candor (`--candor`, `harness.candor_hook`): the request and its snapshot,
 # every call (the lock refuses, the ledger records), and the final report.
@@ -488,9 +492,10 @@ def mcp_json_changes(
     missing, unreadable or malformed holds nothing of ours, so it is left alone and never fails
     the install."""
     find_entry = find_server_entry(portable_command(command), auto=find_auto) if find else None
+    fetch_entry = fetch_server_entry(portable_command(command)) if fetch else None
     wanted = {ARCHIVE_SERVER: archive_server_entry(command) if lean else None,
               FIND_SERVER: find_entry,
-              FETCH_SERVER: fetch_server_entry(portable_command(command)) if fetch else None}  # fmt: skip
+              FETCH_SERVER: fetch_entry}  # fmt: skip
     if not lean and not find and not fetch:
         try:
             current = _read_mcp_json(path)

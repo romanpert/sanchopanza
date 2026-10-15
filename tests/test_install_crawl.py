@@ -104,9 +104,10 @@ def test_the_installed_command_runs_the_crawl_hook(tmp_path: Path) -> None:
 
 
 def test_install_crawl_wires_every_event_the_hook_answers(tmp_path: Path) -> None:
-    """v8, v8.1 and v10 (`LINE_AT=prompt`, `ECHO=short`, `NOTES_AT=front`, `SHOT=snapshot-first`) are
-    switched on by env alone; with only SessionStart and the evaluate wired, `LINE_AT=prompt`
-    dropped the line altogether and the other three did nothing (S seal draft)."""
+    """v8, v8.1 and v10 (`LINE_AT=prompt`, `ECHO=short`, `NOTES_AT=front`,
+    `SHOT=snapshot-first`) are switched on by env alone; with only SessionStart and the evaluate
+    wired, `LINE_AT=prompt` dropped the line altogether and the other three did nothing (S seal
+    draft)."""
     from sanchopanza.harness.crawl_hook import V8_HOOKS, V10_HOOKS, V81_HOOKS
 
     path = _settings(tmp_path)

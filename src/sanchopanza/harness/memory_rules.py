@@ -308,8 +308,9 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
     key = f"{safe_name(session)}-{index:03d}"
     if key in data[AUDITED]:
         return [], {}
-    own = [r for r in data["rules"]
-           if not (r.get("session") == session and r.get("index") == index)]
+    own = [
+        r for r in data["rules"] if not (r.get("session") == session and r.get("index") == index)
+    ]
     held = own[:CHECK_MAX]
     change = _diff(cwd, head, paths) if held else ""
     if not change.strip():
@@ -321,8 +322,15 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
     # The rules travel in the Choice's options, which the squire's redaction (of `state` only)
     # never reaches: masked here (review of v8, H1). A rule with no secret is sent as measured.
     state, questions = points.questions_for_rules(
-        [(redact_secrets(str(held[i]["text"])),
-          [redact_secrets(str(f)) for f in held[i].get("files") or []]) for i in order], change)
+        [
+            (
+                redact_secrets(str(held[i]["text"])),
+                [redact_secrets(str(f)) for f in held[i].get("files") or []],
+            )
+            for i in order
+        ],
+        change,
+    )
     seen = await _decided(squire, "memory_rule_all", state, questions)
     answer = seen.answer("broken")
     if seen.failed or answer.empty:  # nothing named: the request stays as it was, asked again
@@ -333,8 +341,9 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
 
     async def ask(rule: Mapping[str, Any]) -> float | None:
         """`kept` of a rule the side-by-side Choice named; None on a failure."""
-        decision = await _decided(squire, "memory_rule_check",
-                                       *points.questions_for_change(str(rule["text"]), change))
+        decision = await _decided(
+            squire, "memory_rule_check", *points.questions_for_change(str(rule["text"]), change)
+        )
         kept = decision.answer("kept")
         return None if decision.failed or kept.empty else kept.truth
 
@@ -447,8 +456,10 @@ async def _replaced(squire: Squire, store: Path, rules: Sequence[Mapping[str, An
                   "failed": "no time left", "suppressed": False})  # fmt: skip
         return late
     try:
-        found = await asyncio.wait_for(asyncio.gather(
-            *(_replaced_one(squire, r, stored, request, note) for r in rules)), budget)
+        found = await asyncio.wait_for(
+            asyncio.gather(*(_replaced_one(squire, r, stored, request, note) for r in rules)),
+            budget,
+        )
     except TimeoutError:
         for rule in rules:
             note({"event": "rules", "part": "superseded", "rule": str(rule["text"]),

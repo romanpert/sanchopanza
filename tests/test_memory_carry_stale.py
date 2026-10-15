@@ -43,8 +43,7 @@ STOCK = (
     "        writer.writerows([i['sku'], i['qty']] for i in items)\n"
 )
 PAYLOAD = (
-    "def product_payload(p):\n"
-    "    return {'sku': p['sku'], 'name': p['name'], 'in_stock': %s}\n"
+    "def product_payload(p):\n    return {'sku': p['sku'], 'name': p['name'], 'in_stock': %s}\n"
 )
 SIGNUP = (
     "def check_age(age):\n    if int(age) < 18:\n        raise ValueError(%r)\n"
@@ -73,15 +72,20 @@ RESULTS: dict[str, dict[str, Files]] = {
     "u_time": {
         "fact": {"app/events.py": EVENTS % ("import time", "int(time.time() * 1000)")},
         "stale": {"app/events.py": EVENTS % ("import time", "int(time.time())")},
-        "default": {"app/events.py": EVENTS % ("from datetime import datetime, timezone",
-                                               "datetime.now(timezone.utc).isoformat()")},
+        "default": {
+            "app/events.py": EVENTS
+            % ("from datetime import datetime, timezone", "datetime.now(timezone.utc).isoformat()")
+        },
     },
     "u_sep": {
-        "fact": {"app/auth.py": AUTH % "json.dumps({'event': 'login_failed', 'user': user, "
-                 "'ip': ip})"},
+        "fact": {
+            "app/auth.py": AUTH % "json.dumps({'event': 'login_failed', 'user': user, 'ip': ip})"
+        },
         "stale": {"app/auth.py": AUTH % "f'event=login_failed user={user} ip={ip}'"},
-        "default": {"app/auth.py": AUTH % "f'{datetime.now():%Y-%m-%d %H:%M:%S} failed login "
-                    "for {user} from {ip}'"},
+        "default": {
+            "app/auth.py": AUTH % "f'{datetime.now():%Y-%m-%d %H:%M:%S} failed login "
+            "for {user} from {ip}'"
+        },
     },
     "u_money": {
         "fact": {"app/orders_api.py": ORDERS % "f'{total:.2f}'.replace('.', ',')"},
@@ -104,8 +108,9 @@ RESULTS: dict[str, dict[str, Files]] = {
         "default": {"app/signup.py": SIGNUP % "You must be at least 18 years old."},
     },
     "u_sort": {
-        "fact": {"app/projects.py": PROJECTS % "sorted(mine, key=lambda p: p['created'], "
-                 "reverse=True)"},
+        "fact": {
+            "app/projects.py": PROJECTS % "sorted(mine, key=lambda p: p['created'], reverse=True)"
+        },
         "stale": {"app/projects.py": PROJECTS % "sorted(mine, key=lambda p: p['name'])"},
         "default": {"app/projects.py": PROJECTS % "mine"},
     },
@@ -120,16 +125,31 @@ RESULTS: dict[str, dict[str, Files]] = {
 # none; session 1' holds none of A's; session 1 none of A''s. Matched as whole words.
 TELLS: dict[str, dict[str, tuple[str, ...]]] = {
     "u_time": {"stale": ("seconds",), "fact": ("milliseconds",), "both": ("epoch", "analytics")},
-    "u_sep": {"stale": ("key=value", "event=login"), "fact": ("json",),
-              "both": ("log search", "log platform")},
-    "u_money": {"stale": ("'12.50'", "two decimals"), "fact": ("'12,50'", "decimal comma"),
-                "both": ("frontend", "javascript", "locale")},
-    "u_delim": {"stale": ("semicolons",), "fact": ("tab-separated", "tabs"),
-                "both": ("excel", "warehouse")},
-    "u_bool": {"stale": ("'y'", "'n'"), "fact": ("1 and 0", "integers"),
-               "both": ("true or false",)},
-    "u_lang": {"stale": ("french", "quebec"), "fact": ("portuguese", "brazil"),
-               "both": ("market",)},
+    "u_sep": {
+        "stale": ("key=value", "event=login"),
+        "fact": ("json",),
+        "both": ("log search", "log platform"),
+    },
+    "u_money": {
+        "stale": ("'12.50'", "two decimals"),
+        "fact": ("'12,50'", "decimal comma"),
+        "both": ("frontend", "javascript", "locale"),
+    },
+    "u_delim": {
+        "stale": ("semicolons",),
+        "fact": ("tab-separated", "tabs"),
+        "both": ("excel", "warehouse"),
+    },
+    "u_bool": {
+        "stale": ("'y'", "'n'"),
+        "fact": ("1 and 0", "integers"),
+        "both": ("true or false",),
+    },
+    "u_lang": {
+        "stale": ("french", "quebec"),
+        "fact": ("portuguese", "brazil"),
+        "both": ("market",),
+    },
     "u_sort": {"stale": ("a to z", "by name"), "fact": ("newest", "creation date"), "both": ()},
     "u_date": {"stale": ("day/month/year", "02/01/2026"), "fact": ("2 jan 2026",), "both": ()},
 }

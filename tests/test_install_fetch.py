@@ -87,7 +87,7 @@ def test_a_project_install_registers_and_approves_the_fetch_server(tmp_path: Pat
     servers = json.loads((path.parent.parent / ".mcp.json").read_text("utf-8"))["mcpServers"]
     assert servers[FETCH_SERVER] == {"command": "sanchopanza", "args": ["fetch-mcp"],
                                      "alwaysLoad": True}  # fmt: skip
-    assert TOOL_NAME == f"mcp__{FETCH_SERVER}__fetch_passages"
+    assert f"mcp__{FETCH_SERVER}__fetch_passages" == TOOL_NAME
     doc = json.loads(path.read_text("utf-8"))
     assert FETCH_SERVER in doc["enabledMcpjsonServers"]
     assert _install(path) == 0

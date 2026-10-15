@@ -237,8 +237,10 @@ def test_the_fail_to_pass_count_is_reported_beside_the_strict_one(tmp_path: path
     # Phase B2: one PASS_TO_PASS test shared by every bug, broken once, left Sm 0/40 strict and
     # 26 by FAIL_TO_PASS. Both are reported; the strict one decides.
     folder = arm(tmp_path / "Sm", [call(1, 0.1), call(2, 0.1)], [False, False], model=SONNET)
-    bugs = [{"instance_id": "b0", "resolved": False, "f2p_passed": 2, "f2p": 2, "p2p_broken": 1},
-            {"instance_id": "b1", "resolved": False, "f2p_passed": 1, "f2p": 2, "p2p_broken": 1}]
+    bugs = [
+        {"instance_id": "b0", "resolved": False, "f2p_passed": 2, "f2p": 2, "p2p_broken": 1},
+        {"instance_id": "b1", "resolved": False, "f2p_passed": 1, "f2p": 2, "p2p_broken": 1},
+    ]
     (folder / "grade.json").write_text(json.dumps({"resolved": 0, "bugs": bugs}), encoding="utf-8")
     got = confirm.arm_result(folder, SONNET)
     assert got is not None and got["resolved"] == 0 and got["f2p_resolved"] == 1

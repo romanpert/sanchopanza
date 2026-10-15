@@ -468,6 +468,8 @@ def test_blind_review_shuffles_and_hides_the_arm(tmp_path, monkeypatch):
     assert json.loads(key.read_text(encoding="utf-8"))["arm"] == "SONNET-SP"
 
 
+@pytest.mark.skipif(not bcp_data.QUERIES.exists(), reason="BrowseComp-Plus queries not "
+                    "fetched on this machine (bcp_data.py --fetch)")  # fmt: skip
 def test_bcp_plan_is_free(capsys):
     assert bcp.main(["--plan", "--limit", "2"]) == 0
     out = capsys.readouterr().out
@@ -815,22 +817,43 @@ def _journal(side, errors):
 
 
 def test_the_journal_counts_failed_decisions_by_kind(tmp_path):
-    _journal(tmp_path, ["jev did not answer: HTTP 402", "jev did not answer: HTTP 402",
-                        "jev unreachable: ReadTimeout"])
+    _journal(
+        tmp_path,
+        [
+            "jev did not answer: HTTP 402",
+            "jev did not answer: HTTP 402",
+            "jev unreachable: ReadTimeout",
+        ],
+    )
     got = gaia.reading.journal(tmp_path / "journal.jsonl")
     assert got["jev_errors"] == 3
-    assert got["jev_error_kinds"] == {"jev did not answer: HTTP 402": 2,
-                                      "jev unreachable: ReadTimeout": 1}
+    assert got["jev_error_kinds"] == {
+        "jev did not answer: HTTP 402": 2,
+        "jev unreachable: ReadTimeout": 1,
+    }
     assert gaia.reading.journal(tmp_path / "none.jsonl")["jev_error_kinds"] == {}
 
 
 def test_a_report_reads_rows_with_jev_errors():
     """The verifier's catch (2026-10-06): a dict under `jev_errors` crashed arm_cell, so one
     Jev timeout would have killed every report."""
-    row = {"task": "t", "arm": "SONNET-SP", "run": 1, "ok_oficial": True, "level": 1,
-           "list_usd": 0.1, "turns": 3, "wall_s": 5.0, "jev_errors": 2,
-           "jev_error_kinds": {"jev unreachable: ReadTimeout": 2}, "hit_cap": False,
-           "leak": False, "final_answer": "x", "denied": 0, "hook_denied": []}
+    row = {
+        "task": "t",
+        "arm": "SONNET-SP",
+        "run": 1,
+        "ok_oficial": True,
+        "level": 1,
+        "list_usd": 0.1,
+        "turns": 3,
+        "wall_s": 5.0,
+        "jev_errors": 2,
+        "jev_error_kinds": {"jev unreachable: ReadTimeout": 2},
+        "hit_cap": False,
+        "leak": False,
+        "final_answer": "x",
+        "denied": 0,
+        "hook_denied": [],
+    }
     cell = gaia.stats.arm_cell([row, {**row, "task": "u", "ok_oficial": False}], {})
     assert cell["jev_errors"] == 4
     assert cell["jev_error_kinds"] == {"jev unreachable: ReadTimeout": 4}
@@ -838,8 +861,13 @@ def test_a_report_reads_rows_with_jev_errors():
 
 
 def test_jev_guard_passes_a_session_without_account_errors(tmp_path):
-    row = {"task": "t", "run": 1, "arm": "SONNET-SP", "list_usd": 0.1,
-           "jev_error_kinds": {"jev unreachable: ReadTimeout": 1}}
+    row = {
+        "task": "t",
+        "run": 1,
+        "arm": "SONNET-SP",
+        "list_usd": 0.1,
+        "jev_error_kinds": {"jev unreachable: ReadTimeout": 1},
+    }
     guarded = gaia.jev_guard(lambda item, run, arm: row, tmp_path / "s.jsonl")
     assert guarded(("t",), 1, "SONNET-SP") == row
 
@@ -848,14 +876,20 @@ def test_jev_guard_stops_the_phase_on_402_and_keeps_the_paid_row(tmp_path):
     """Jev out of credit mid-run: the session is recorded invalid and not run (a resume runs it
     again after the recharge) and the phase stops, exit 4, instead of measuring S without Jev."""
     sessions = tmp_path / "s.jsonl"
-    row = {"task": "t1", "run": 1, "arm": "SONNET-SP", "list_usd": 0.2,
-           "jev_error_kinds": {"jev did not answer: HTTP 402": 3}}
+    row = {
+        "task": "t1",
+        "run": 1,
+        "arm": "SONNET-SP",
+        "list_usd": 0.2,
+        "jev_error_kinds": {"jev did not answer: HTTP 402": 3},
+    }
     calls = []
 
     def session(item, run, arm):
         calls.append(item[0])
-        return row if item[0] == "t1" else {"task": item[0], "run": run, "arm": arm,
-                                            "list_usd": 0.1}
+        return (
+            row if item[0] == "t1" else {"task": item[0], "run": run, "arm": arm, "list_usd": 0.1}
+        )
 
     guarded = gaia.jev_guard(session, sessions)
     steps = [(0, ("t1",), 1, "SONNET-SP"), (1, ("t2",), 1, "SONNET-SP")]
@@ -910,14 +944,31 @@ def test_confirmation_ceilings_are_in_the_code():
 
 
 def _gaia_row(task, arm, ok, leak=False):
-    return {"task": task, "arm": arm, "run": 1, "model_key": "SONNET", "ok_oficial": ok,
-            "level": 1, "list_usd": 0.1, "turns": 2, "wall_s": 3.0, "hit_cap": False,
-            "leak": leak, "final_answer": "x", "denied": 0, "hook_denied": []}
+    return {
+        "task": task,
+        "arm": arm,
+        "run": 1,
+        "model_key": "SONNET",
+        "ok_oficial": ok,
+        "level": 1,
+        "list_usd": 0.1,
+        "turns": 2,
+        "wall_s": 3.0,
+        "hit_cap": False,
+        "leak": leak,
+        "final_answer": "x",
+        "denied": 0,
+        "hook_denied": [],
+    }
 
 
 def test_a_leaked_task_leaves_the_paired_analysis_in_both_arms():
-    rows = [_gaia_row("a", "SONNET-SP", True, leak=True), _gaia_row("a", "SONNET-CC", False),
-            _gaia_row("b", "SONNET-SP", True), _gaia_row("b", "SONNET-CC", True)]
+    rows = [
+        _gaia_row("a", "SONNET-SP", True, leak=True),
+        _gaia_row("a", "SONNET-CC", False),
+        _gaia_row("b", "SONNET-SP", True),
+        _gaia_row("b", "SONNET-CC", True),
+    ]
     out = gaia.report(rows, {})
     assert out["dropped_for_leak"] == ["a"]
     assert out["paired"]["SONNET"]["tasks"] == 1

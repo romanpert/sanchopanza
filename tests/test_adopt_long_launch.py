@@ -34,8 +34,10 @@ pytestmark = pytest.mark.skipif(os.name != "nt", reason="the launchers are Windo
 def _digest(chain: dict[str, Any]) -> str:
     """`run.chain_digest`, run in a child: importing benchmarks/adopt here would leave its plain
     module names (`run`) in sys.modules for other benchmarks' tests."""
-    code = ("import json, sys; sys.path.insert(0, sys.argv[1]); import run; "
-            "print(run.chain_digest(json.loads(sys.stdin.read())))")
+    code = (
+        "import json, sys; sys.path.insert(0, sys.argv[1]); import run; "
+        "print(run.chain_digest(json.loads(sys.stdin.read())))"
+    )
     done = subprocess.run([sys.executable, "-c", code, str(ADOPT)], input=json.dumps(chain),
                           capture_output=True, text=True, check=True)  # fmt: skip
     return done.stdout.strip()
@@ -152,8 +154,9 @@ def test_gate_launcher_refuses_without_a_chain_manifest(tmp_path: pathlib.Path) 
 
 def test_gate_launcher_refuses_a_claude_that_is_not_the_pin(tmp_path: pathlib.Path) -> None:
     env = dry_environment(tmp_path, GATE)
-    (pathlib.Path(env["LL_PIN"]) / "claude.cmd").write_text("@echo 2.1.290 (Claude Code)\r\n",
-                                                              encoding="utf-8", newline="")
+    (pathlib.Path(env["LL_PIN"]) / "claude.cmd").write_text(
+        "@echo 2.1.290 (Claude Code)\r\n", encoding="utf-8", newline=""
+    )
     assert launch("long-gate-run.cmd", ["dry"], env) == 3
     assert "not 2.1.287" in _text(tmp_path / "L" / "launch.status")
 
@@ -193,7 +196,8 @@ def test_smoke_launcher_runs_three_arms_on_three_bugs_and_resumes_a_dead_runner(
     assert f"S runs {SANCHO}" in log
     if SANCHO == SEALED:  # the sealed install's guard: struct over 6 parts, no chooser of ours
         assert "guard: 6 SessionStart(compact) parts, chooser the install's default" in _text(
-            root / "runner-haiku.log")
+            root / "runner-haiku.log"
+        )
 
 
 def test_the_launchers_are_lf_and_name_the_caps_the_code_holds(

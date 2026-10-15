@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +18,8 @@ BENCH = ROOT / "benchmarks" / "memory_carry"
 carry = bench_module(BENCH, "carry")
 analyze = bench_module(BENCH, "analyze")
 FAKE = "fake-token-for-tests-0123456789"
+ONEXC = pytest.mark.skipif(sys.version_info < (3, 12), reason="carry.py cleans up with "
+                           "shutil.rmtree(onexc=), new in Python 3.12")  # fmt: skip
 
 THREE = {
     "files": {"app/__init__.py": "", "app/a.py": "X = 1\n",
@@ -45,14 +48,19 @@ class FakeClaude:
         env, cwd = kw["env"], Path(kw["cwd"])
         self.calls.append({"cmd": cmd, "env": env, "cwd": cwd})
         mode = self.modes.pop(0) if self.modes else "ok"
-        memory = Path(env.get("CLAUDE_CONFIG_DIR", "unused")) / "projects" \
-            / carry.project_name(cwd) / "memory"
+        memory = (
+            Path(env.get("CLAUDE_CONFIG_DIR", "unused"))
+            / "projects"
+            / carry.project_name(cwd)
+            / "memory"
+        )
         if "CLAUDE_CONFIG_DIR" in env:
             memory.mkdir(parents=True, exist_ok=True)
             (memory / f"note-{len(self.calls)}.md").write_text("saved", encoding="utf-8")
             if self.leak:
                 (Path(env["CLAUDE_CONFIG_DIR"]) / ".claude.json").write_text(
-                    json.dumps({"t": env[carry.TOKEN]}), encoding="utf-8")
+                    json.dumps({"t": env[carry.TOKEN]}), encoding="utf-8"
+                )
         if mode == "repo-leak":  # the token in a file the next commit keeps
             (cwd / "leak.txt").write_text(env[carry.TOKEN], encoding="utf-8")
         if mode == "timeout":
@@ -100,6 +108,7 @@ def test_sessions_run_thread_first_between_second_and_only_first_in_the_worktree
     assert carry.steps({"first": "f", "second": "s"}) == [("first", False), ("second", False)]
 
 
+@ONEXC
 def test_the_worktree_is_a_sibling_checkout_and_survives_a_held_index(
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:  # fmt: skip
     repo = carry.build(tmp_path / "pair", THREE)
@@ -133,6 +142,7 @@ def test_a_three_session_pair_runs_in_order_where_it_should_and_is_checked(
     assert row["cost"] == pytest.approx(0.3) and row["first"]["subtype"] == "success"
     assert row["first"]["init"]["version"] == "2.1.287"
     assert all((run / f"session-{i}.jsonl").exists() for i in (1, 2, 3))
+
     def log(branch: str) -> str:
         return subprocess.run(["git", "-C", str(run / "repo"), "log", branch, "--format=%s"],
                               capture_output=True, text=True, check=True).stdout  # fmt: skip
@@ -204,8 +214,11 @@ def test_the_total_cap_reserves_every_session_of_the_next_pair(
 
     monkeypatch.setattr(carry, "pair", pair)
     # 0.5 spent; a two-session pair needs 1.20 (fits under 2.0), a three-session one 1.80 (not)
-    plan = [("columns", "sonnet", "N", 0), ("columns", "sonnet", "N", 1),
-            ("t_three", "sonnet", "N", 0)]
+    plan = [
+        ("columns", "sonnet", "N", 0),
+        ("columns", "sonnet", "N", 1),
+        ("t_three", "sonnet", "N", 0),
+    ]
     carry.run_plan(tmp_path, plan, tmp_path / "k", True, 2.0)
     assert ran == ["columns", "columns"]  # then 1.0 + 3 x 0.60 = 2.80 > 2.0
     ran.clear()
@@ -247,8 +260,14 @@ def test_the_f1_sets_are_registered_and_family_iii_rules_are_known() -> None:
 
 def test_decoys_of_the_earlier_scenes_are_unchanged_and_a_twin_is_never_a_decoy() -> None:
     pool = {**carry.RULES, **carry.CROSS_RULES}
-    same = ({"naive", "x_tz"}, {"stdlib", "x_stdlib"}, {"stdout", "x_print"}, {"ids", "x_zeros"},
-            {"envvar", "x_prefix"}, {"legacy", "nulls"})  # v7 / v8's groups, as sealed
+    same = (
+        {"naive", "x_tz"},
+        {"stdlib", "x_stdlib"},
+        {"stdout", "x_print"},
+        {"ids", "x_zeros"},
+        {"envvar", "x_prefix"},
+        {"legacy", "nulls"},
+    )  # v7 / v8's groups, as sealed
     for name in pool:  # v7 / v8's formula, on v7 / v8's pool
         near = set().union(*(g for g in same if name in g)) | {name}
         keys = sorted(k for k in pool if k not in near)
@@ -279,8 +298,10 @@ def test_a_stale_scene_owns_both_its_rules_and_a_send_back_by_the_older_is_stale
     assert carry.own_rules(name) == {old, new}
     pair = tmp_path / f"{name}-sonnet-S-0"
     pair.mkdir()
-    rows = [{"event": "SessionStart", "source": "startup"},
-            {"event": "rules", "broken": [new, f"For context: {old}", carry.RULES["fields"]]}]
+    rows = [
+        {"event": "SessionStart", "source": "startup"},
+        {"event": "rules", "broken": [new, f"For context: {old}", carry.RULES["fields"]]},
+    ]
     (pair / "hook-log.jsonl").write_text("\n".join(json.dumps(r) for r in rows), "utf-8")
     found = sendbacks.sendbacks(pair)
     assert [(f["own"], f["stale"]) for f in found] == [(True, False), (False, True),
@@ -310,12 +331,14 @@ def test_the_dry_run_builds_every_repository_and_worktree_and_calls_nothing(
     assert len(printed) == 16 and FAKE not in "".join(printed)
 
 
-def test_the_hook_arms_alone_need_the_typesafe_key(tmp_path: Path,
-                                                  monkeypatch: pytest.MonkeyPatch) -> None:
+def test_the_hook_arms_alone_need_the_typesafe_key(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     asked: list[Path] = []
     monkeypatch.setattr(carry, "record_claude", lambda *a: None)
-    monkeypatch.setattr(carry, "keyfile_from_harness_env",
-                        lambda out: asked.append(out) or out / "k")
+    monkeypatch.setattr(
+        carry, "keyfile_from_harness_env", lambda out: asked.append(out) or out / "k"
+    )
     monkeypatch.setattr(carry, "run_plan", lambda *a, **k: None)
     carry.main(["--out", str(tmp_path), "--scenes", "parallel", "--arms", "N"])
     assert not asked
@@ -366,8 +389,10 @@ def test_the_gate_table_counts_breaks_per_family_and_model(tmp_path: Path,
         (tmp_path / name).mkdir()
         (tmp_path / name / "carry.json").write_text(json.dumps(rows), encoding="utf-8")
     assert analyze.main([str(tmp_path / "f1-gate-*"), "--gate"]) == 0
-    table = {(r["family"], r["model"]): r for r in analyze.gate(
-        analyze.rows(analyze.folders([str(tmp_path / "f1-gate-*")])))}
+    table = {
+        (r["family"], r["model"]): r
+        for r in analyze.gate(analyze.rows(analyze.folders([str(tmp_path / "f1-gate-*")])))
+    }
     assert table[("parallel", "sonnet")]["broken"] == 3 and table[("parallel", "sonnet")]["pass"]
     principle = table[("principle", "opus")]
     assert principle["broken"] == 2 and principle["verdict"] == "fail"
@@ -385,8 +410,13 @@ def test_the_gate_table_counts_breaks_per_family_and_model(tmp_path: Path,
 
 def test_a_gate_break_needs_the_task_done_and_both_counts_are_reported() -> None:
     names = carry.SETS["parallel"]
-    rows = [row(names[0], False), row(names[1], False), row(names[2], False, task_pass=None),
-            row(names[3], False, task_pass=False), row(names[4], False, task_pass=False)]
+    rows = [
+        row(names[0], False),
+        row(names[1], False),
+        row(names[2], False, task_pass=None),
+        row(names[3], False, task_pass=False),
+        row(names[4], False, task_pass=False),
+    ]
     rows += [row(n, True) for n in names[5:]]
     (cell,) = [c for c in analyze.gate(rows) if c["family"] == "parallel"]
     assert cell["not_kept"] == 5 and cell["broken"] == 3 and cell["pass"]
@@ -456,14 +486,18 @@ def test_3_main_exits_non_zero_when_the_run_stopped_early(
 
 
 def test_3_run_plan_says_why_it_stopped(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(carry, "pair", lambda out, name, *r: {"scene": name, "cost": 0.5,
-                                                              "limit_hit": name == "legacy"})
+    monkeypatch.setattr(
+        carry,
+        "pair",
+        lambda out, name, *r: {"scene": name, "cost": 0.5, "limit_hit": name == "legacy"},
+    )
     plan = [("columns", "sonnet", "N", 0), ("legacy", "sonnet", "N", 0)]
     assert carry.run_plan(tmp_path, plan[:1], tmp_path / "k", True, 9.0) == ""
     assert carry.run_plan(tmp_path, plan, tmp_path / "k", True, 1.0) == "cap"
     assert carry.run_plan(tmp_path, plan, tmp_path / "k", True, 9.0) == "limit"
 
 
+@ONEXC
 def test_4_a_cut_pairs_cost_is_counted_before_it_runs_again(
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:  # fmt: skip
     ran: list[str] = []
@@ -471,8 +505,10 @@ def test_4_a_cut_pairs_cost_is_counted_before_it_runs_again(
                         {"scene": name, "cost": 0.1})  # fmt: skip
     cut = tmp_path / "columns-sonnet-N-0"
     cut.mkdir()
-    (cut / "session-1.jsonl").write_text(json.dumps(
-        {"type": "result", "subtype": "success", "total_cost_usd": 0.5}), encoding="utf-8")
+    (cut / "session-1.jsonl").write_text(
+        json.dumps({"type": "result", "subtype": "success", "total_cost_usd": 0.5}),
+        encoding="utf-8",
+    )
     # 0.5 already spent by the cut pair + 2 x 0.60 = 1.70 > 1.5: it does not run again
     plan = [("columns", "sonnet", "N", 0)]
     assert carry.run_plan(tmp_path, plan, tmp_path / "k", True, 1.5, carry_on=True) == "cap"
@@ -493,8 +529,14 @@ def test_4_a_session_that_times_out_cuts_its_pair_and_stops_the_run(
 
 def test_7_a_clean_user_gets_no_anthropic_or_provider_variable(
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:  # fmt: skip
-    for name in ("ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_MODEL",
-                 "CLAUDE_CODE_USE_BEDROCK", "CLAUDE_CODE_USE_VERTEX", "CLAUDE_CONFIG_DIR"):
+    for name in (
+        "ANTHROPIC_BASE_URL",
+        "ANTHROPIC_AUTH_TOKEN",
+        "ANTHROPIC_MODEL",
+        "CLAUDE_CODE_USE_BEDROCK",
+        "CLAUDE_CODE_USE_VERTEX",
+        "CLAUDE_CONFIG_DIR",
+    ):
         monkeypatch.setenv(name, "x")
     monkeypatch.setenv(carry.TOKEN, FAKE)
     env = carry.environment(tmp_path / "cfg")
@@ -531,8 +573,9 @@ def test_9_the_token_never_reaches_a_row_and_one_in_git_is_flagged_not_deleted(
     assert row_["token_in_git"] and (tmp_path / "t_three-sonnet-N-0" / "repo" / ".git").is_dir()
 
 
-def test_9_the_scrub_runs_even_when_the_pair_fails(tmp_path: Path, fake: FakeClaude,
-                                                   monkeypatch: pytest.MonkeyPatch) -> None:
+def test_9_the_scrub_runs_even_when_the_pair_fails(
+    tmp_path: Path, fake: FakeClaude, monkeypatch: pytest.MonkeyPatch
+) -> None:
     fake.leak = True
 
     def broken(repo: Path, tries: int = 3) -> None:
@@ -551,8 +594,14 @@ def test_10_the_usage_limit_is_read_from_events_not_from_text() -> None:
                "rateLimitType": "five_hour"}}  # fmt: skip
     warned = {"type": "rate_limit_event", "rate_limit_info": {"status": "allowed_warning",
               "rateLimitType": "seven_day", "surpassedThreshold": 0.75}}  # fmt: skip
-    talk = {"type": "assistant", "message": {"content": [
-        {"type": "text", "text": 'You hit your usage limit? "status":429 is not this.'}]}}
+    talk = {
+        "type": "assistant",
+        "message": {
+            "content": [
+                {"type": "text", "text": 'You hit your usage limit? "status":429 is not this.'}
+            ]
+        },
+    }
     assert not [e for e in (allowed, warned, talk) if carry.limited(e)]
     assert carry.limited(LIMIT_EVENT)
     assert carry.limited({"type": "assistant", "error": "rate_limit", "message": {}})
@@ -562,8 +611,10 @@ def test_10_the_usage_limit_is_read_from_events_not_from_text() -> None:
 
 def test_11_u_sep_stale_needs_the_event_key(tmp_path: Path) -> None:
     scene = carry.SCENES["u_sep"]
-    for line, stale in (("event=login_failed user={user} ip={ip}", True),
-                        ("user={user} ip={ip} reason=bad", False)):
+    for line, stale in (
+        ("event=login_failed user={user} ip={ip}", True),
+        ("user={user} ip={ip} reason=bad", False),
+    ):
         repo = tmp_path / str(stale)
         for rel, text in scene["files"].items():
             (repo / rel).parent.mkdir(parents=True, exist_ok=True)
@@ -571,7 +622,9 @@ def test_11_u_sep_stale_needs_the_event_key(tmp_path: Path) -> None:
         (repo / "app" / "auth.py").write_text(
             "def log_failed_login(user, ip, path):\n"
             "    with open(path, 'a', encoding='utf-8') as f:\n"
-            f"        f.write(f'{line}\\n')\n", encoding="utf-8")
+            f"        f.write(f'{line}\\n')\n",
+            encoding="utf-8",
+        )
         assert carry.passes(repo, scene["task"])
         assert carry.passes(repo, scene["stale"]) is stale, line
 

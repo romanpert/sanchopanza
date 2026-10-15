@@ -296,8 +296,13 @@ def _remember(root: Path, session: str, state: Mapping[str, Any], event: Mapping
               text: str, cut: ps.Cut, lay: ps.Layout, saved: Path) -> None:  # fmt: skip
     """Record the cut for re-requests, and a file shown cut as a partial view."""
     tool, tool_input = str(event.get("tool_name", "")), _input(event)
-    entry = {"id": str(event.get("tool_use_id") or tool), "tool": tool, "archive": str(saved),
-             "key": state_mod.call_key(tool, tool_input), "sha": state_mod.digest(text)}
+    entry = {
+        "id": str(event.get("tool_use_id") or tool),
+        "tool": tool,
+        "archive": str(saved),
+        "key": state_mod.call_key(tool, tool_input),
+        "sha": state_mod.digest(text),
+    }
     state = state_mod.remember(state, entry)
     path = str(tool_input.get("file_path") or "") if tool == "Read" else gates.printed_file(
         str(tool_input.get("command") or ""), str(event.get("cwd") or ""))  # fmt: skip

@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
+import os
+from collections.abc import Callable
+from pathlib import Path, PureWindowsPath
 from typing import Any
 
 from sanchopanza import Answer, Decision, Thresholds, _env, truth
@@ -78,3 +82,17 @@ def dataset(name: str) -> str:
         return value
     candidate = _env.cache_dir() / DATASET_FILES[name]
     return str(candidate) if candidate.exists() else ""
+
+
+def registered_digest(tree_digest: Callable[[Path], str], root: Path) -> str:
+    """`tree_digest(root)` in the order the context runs registered it in (2026-09-28). It sorts
+    Path objects, and Windows compares them without case: elsewhere the same files come in
+    another order (README.md before pkg/) and give another digest, so there they are sorted as
+    Windows paths. The bytes hashed are the same."""
+    if os.name == "nt":
+        return tree_digest(root)
+    h = hashlib.sha256()
+    files = [p for p in root.rglob("*") if p.is_file() and "__pycache__" not in p.parts]
+    for path in sorted(files, key=lambda p: PureWindowsPath(p.relative_to(root))):
+        h.update(path.relative_to(root).as_posix().encode() + b"\0" + path.read_bytes() + b"\0")
+    return h.hexdigest()

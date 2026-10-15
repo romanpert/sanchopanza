@@ -7,6 +7,7 @@ docs/results/2026-09-30-guard-coding/."""
 from __future__ import annotations
 
 import asyncio
+import os
 from pathlib import Path
 
 import pytest
@@ -66,10 +67,11 @@ def test_the_hook_asks_the_coding_question_with_the_session_directory(
 
     sq, _ = squire(Seeing({"dangerous": yes(0.1)}))
     config = config_from_env({"SANCHOPANZA_GUARD_PROFILE": "coding"})
-    guardian = with_workspace(Guardian(sq, config), {"cwd": "C:/work/repo"})
+    cwd = "C:/work/repo" if os.name == "nt" else "/work/repo"  # absolute where it runs
+    guardian = with_workspace(Guardian(sq, config), {"cwd": cwd})
     verdict = asyncio.run(guardian.before_tool(ToolCall("Bash", {"command": "rm -f tmp.py x"})))
     assert verdict.action == "allow"
-    assert Path(asked[0]["state"]["environment"]["writable_path"]) == Path("C:/work/repo")
+    assert Path(asked[0]["state"]["environment"]["writable_path"]) == Path(cwd)
     assert "repository" in asked[0]["question"]
 
 

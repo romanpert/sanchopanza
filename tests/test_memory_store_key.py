@@ -51,8 +51,13 @@ def _git(cwd: Path, *args: str) -> str:
 def _repo(path: Path) -> Path:
     (path / "app").mkdir(parents=True)
     (path / "app" / "config.py").write_text("TIMEOUT = env('PAYMENT_TIMEOUT')\n", "utf-8")
-    for args in (["init", "-q", "-b", "main"], ["config", "user.email", "t@example.org"],
-                 ["config", "user.name", "t"], ["add", "."], ["commit", "-qm", "base"]):
+    for args in (
+        ["init", "-q", "-b", "main"],
+        ["config", "user.email", "t@example.org"],
+        ["config", "user.name", "t"],
+        ["add", "."],
+        ["commit", "-qm", "base"],
+    ):
         _git(path, *args)
     return path
 
@@ -375,8 +380,12 @@ def test_a_rule_said_while_writing_another_repository_is_kept_there(
     target = f"{b}/app/config.py".replace("\\", "/")
     text = f"Fix the timeout in the other repo. {RULE}"
     mh.handle({**base, "hook_event_name": "UserPromptSubmit", "prompt": text})
-    use = {"type": "tool_use", "id": "t1", "name": "Edit",
-           "input": {"file_path": target, "old_string": "a", "new_string": "b"}}
+    use = {
+        "type": "tool_use",
+        "id": "t1",
+        "name": "Edit",
+        "input": {"file_path": target, "old_string": "a", "new_string": "b"},
+    }
     entries = [{"type": "user", "cwd": base["cwd"], "timestamp": "2026-10-05T10:00:00Z",
                 "message": {"role": "user", "content": text}},
                {"type": "assistant", "message": {"role": "assistant", "content": [use]}},

@@ -22,6 +22,8 @@ from pathlib import Path
 
 import pytest
 
+from .helpers import registered_digest
+
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "docs" / "results" / "2026-09-28-context-e2e"
 PREREG_SHA256 = (
@@ -87,8 +89,8 @@ def built(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 def test_tasks_are_the_registered_ones(built: Path) -> None:
     registered = (RESULTS / "tasks.sha256").read_text("utf-8").split()[0]
-    assert tasks.tree_digest(built / "repos") == registered
-    assert tasks.tree_digest(built / "hidden") == (
+    assert registered_digest(tasks.tree_digest, built / "repos") == registered
+    assert registered_digest(tasks.tree_digest, built / "hidden") == (
         "92b0a6675d451dfc73e00860a523aa71decb100800d35f442dbccea7392d7b09"
     )
 

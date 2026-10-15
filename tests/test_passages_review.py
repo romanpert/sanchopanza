@@ -268,11 +268,30 @@ async def test_shell_views_of_an_edited_or_announced_file_pass(tmp_path):
     from sanchopanza.harness import passages_hook as ph
 
     target = tmp_path / "settings.py"
-    edit = [{"type": "assistant", "message": {"id": "m2", "role": "assistant", "content": [
-        {"type": "tool_use", "id": "e1", "name": "Edit",
-         "input": {"file_path": str(target), "old_string": "a", "new_string": "b"}}]}},
-        {"type": "user", "message": {"role": "user", "content": [
-            {"type": "tool_result", "tool_use_id": "e1", "content": "updated"}]}}]
+    edit = [
+        {
+            "type": "assistant",
+            "message": {
+                "id": "m2",
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "id": "e1",
+                        "name": "Edit",
+                        "input": {"file_path": str(target), "old_string": "a", "new_string": "b"},
+                    }
+                ],
+            },
+        },
+        {
+            "type": "user",
+            "message": {
+                "role": "user",
+                "content": [{"type": "tool_result", "tool_use_id": "e1", "content": "updated"}],
+            },
+        },
+    ]
     edited = _transcript(tmp_path, "fix parse_config", extra=edit)
     for command in ("cat settings.py", f"Get-Content {target}", "sed -n 1,400p settings.py",
                     "head -n 500 settings.py", "tail -n 500 settings.py"):  # fmt: skip
