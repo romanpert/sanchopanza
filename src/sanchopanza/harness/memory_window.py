@@ -1,54 +1,70 @@
-"""The memory gate's long window: every memory or record read whole, in one call, with Jev's
-long-context header on that call only. Opt-in: `SANCHOPANZA_MEMORY_WINDOW=long`. Unset, or any
-other value, is the shipped short window, and its requests are the same to the byte
-(tests/test_memory_window.py pins their recording keys).
+"""The memory gate's long window: every memory or record read whole, in one call. Opt-in:
+`SANCHOPANZA_MEMORY_WINDOW=long`. Unset or `short` is the shipped short window, whose requests,
+journal and log rows are the same to the byte (tests/test_memory_window.py pins them); any other
+value is the short window too, with one line on stderr saying so.
 
-Measured (lot L6, docs/results/2026-10-15-jev114-l6, A7): on 36 LongMemEval S test questions
-the gate's recall went from 0.72 to 0.91 with every session whole in one call, on jev-1.13.0
-and jev-1.14.0 alike (+18.5 points, Holm p 0.03), 3.1 points under BM25 top 3, at about
-0.005 USD a prompt against 0.001. A long call took 1.5 s (median; 2.5 s at most, about 125k
-tokens) where a short one took 0.3 s. The confirmation on 84 unseen questions is pending.
+Measured (lot L6, docs/results/2026-10-15-jev114-l6, A7), on the library call
+`memory_gate.gate` over 36 LongMemEval S test questions: the gate's selection recall went from
+0.72 to 0.91 with every session whole in one call under Jev's long-context header, on jev-1.13.0
+and jev-1.14.0 alike (+18.5 points, Holm p 0.03), 3.1 points under BM25 top 3. Per prompt, one
+long call (about 120k tokens, 0.005 USD, 1.5 s median and 2.5 s at most) replaced about 2.9
+short triage calls (0.3 s each); the recall question is asked in both, and the short path cost
+about 0.001 USD a prompt in all. The long call's cost grows with the memory: Jev charges 0.042 USD
+a million input tokens, about 0.01 USD at the `LONG_WINDOW_CHARS` ceiling. The confirmation on
+84 unseen questions is pending.
 
 Where it applies, and nowhere else (not the autopilot's recall, not any other point):
 
-- `memory_gate.gate` (memory files; the path L6 measured): the triage reads each memory whole,
-  up to `LONG_LIMITS.page_chars`, all in one call, instead of 900 characters each in a
-  tournament. `needs_recall` stays on the short window.
-- `memory_hook` at a prompt (records of earlier requests; installed by default): the decider
-  reads each candidate record whole (`Episode.text()`) instead of its 880-character page. Not
-  measured on records: they are bounded by code (request, report and output at about 1,000
-  characters each), so the gain L6 found where evidence sat deep in a long session may not
-  carry over.
+- `memory_gate.gate` (memory files; the path L6 measured, which no installed hook calls): the
+  triage reads each memory whole, up to `LONG_LIMITS.page_chars`, all in one call under the
+  long-context header, as L6 did, instead of 900 characters each in a tournament.
+  `needs_recall` stays on the short window and without the header.
+- `memory_hook` at a session's first prompt (records of earlier requests; installed by default):
+  the decider reads each candidate record whole (`Episode.text()`) instead of its 880-character
+  page, on the same decider; the long-context twin only when the call is over Jev's short window
+  (`SHORT_WINDOW_CHARS`). Not measured on records: they are bounded by code (request, report and
+  output at about 1,000 characters each), so L6's gain, found where evidence sat deep in a long
+  session, may not carry over.
 
-It falls back to the short path, never in silence, when:
+It falls back to the shipped short path, never in silence, when:
 
-- what the call would read is over `LONG_WINDOW_CHARS` (L6 never got there in A7: its largest
-  payload was 124,851 tokens, so it is the shipped, measured path that takes over, not a middle
-  cut, which L6 tried only on LongBench documents);
-- the decider has no long-context mode (`with_long_context`: Jev, and a `CappedDecider` around
-  it; a recording, a local model or a general LLM have none);
-- the job's budget is spent;
-- the long call answers nothing (a 400 past 262k tokens, a timeout), once.
-
-In the hook, `SANCHOPANZA_MEMORY_DECIDER_SECONDS` (15) still bounds the whole choice, long call
-and fall back together: past it nothing is injected and the log row says the decider timed out.
+- the request (state and questions) is over `LONG_WINDOW_CHARS`; L6 never got there in A7 (its
+  largest call was 124,851 tokens), so the measured path takes over rather than a middle cut,
+  which L6 tried only on LongBench documents;
+- the call needs the header and the decider has no long-context mode (`with_long_context`:
+  Jev at TypeSafe's address and a `CappedDecider` around it; a CLM server, a proxy address, a
+  recording, a local model or a general LLM have none);
+- the job's budget is spent, or the long call's estimate (`providers.capped.estimate_usd` at the
+  decider's `price_per_mtok`) does not fit what is left of it;
+- the hook's time does not leave room for it, or it takes longer than its own deadline (the
+  hook's `SANCHOPANZA_MEMORY_DECIDER_SECONDS` less `SHORT_RESERVE_S`, so the pages still run);
+- it answers nothing (a 400 past 262k tokens, a spend cap, out of funds, a timeout), once.
 
 Each fall back writes one line on stderr, a `memory_window` event in the journal and the reason
-in the gate's report or the memory log row. Cost: the long call's dollars are in its decision
-event, in that `memory_window` event (`usd`), in the report (`long_usd`) and in the log row; the
-long squire's per-job cap is what the squire it came from has left, and a `CappedDecider` gives a
-twin under the same ledger and caps.
+(`window_fallback`, with the call's own error in `long_error`) in the gate's report or the memory
+log row.
+
+What is enforced on spend: the job's cap (`Thresholds.max_usd`) is checked before the long call
+against its estimate, the long call runs under what is left, and its decisions and dollars are
+then added to the job's meter (`Squire.absorb`), so later decisions see them. A `CappedDecider`
+passes its ledger and caps to the twin, and the twin shares the out-of-funds breaker. Like any
+decision, one call can still cost more than its estimate. The dollars are in the decision event,
+the `memory_window` event (`usd`), the report (`long_usd`) and the log row.
 """
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
+import json
 import sys
-from collections.abc import Awaitable, Callable, Iterable, Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from .. import _env
+from ..contract import Decision, Question, State
 from ..limits import Limits
+from ..providers.capped import DEFAULT_PRICE_PER_MTOK, estimate_usd
 
 if TYPE_CHECKING:
     from ..squire import Squire
@@ -58,44 +74,83 @@ LONG = "long"
 ENV = "MEMORY_WINDOW"  # SANCHOPANZA_MEMORY_WINDOW
 # Lot L6's `LONG_LIMITS`, and a record of the hook read as whole as a memory file.
 LONG_LIMITS = Limits(page_chars=400_000, pages_per_call=1_000, memory_record_chars=400_000)
-# Jev's long window is 262,144 tokens a request. At `CappedDecider`'s pessimistic 3 characters a
-# token (Jev measured 4 to 7.4) that is 786k characters; the rest is room for the questions.
+# Jev's long window is 262,144 tokens a request; at `CappedDecider`'s pessimistic 3 characters a
+# token (Jev measured 4 to 7.4) that is 786k characters of request, questions included.
 LONG_WINDOW_CHARS = 750_000
-LONG_TIMEOUT_S = 30.0  # per request; L6's long calls took 2.5 s at most
+# Jev's default window, 64k tokens a request, at the same 3 characters a token.
+SHORT_WINDOW_CHARS = 190_000
+LONG_TIMEOUT_S = 8.0  # per request; L6's long calls took 2.5 s at most
+SHORT_RESERVE_S = 3.0  # of the hook's decider time, kept for the pages after a slow long call
 PREFIX = "sanchopanza memory gate: long window"
 
 T = TypeVar("T")
 
 
+def normalize_window(value: str) -> str:
+    """`short` or `long`, in any case and with spaces; anything else is a `ValueError`."""
+    window = str(value).strip().lower()
+    if window not in (SHORT, LONG):
+        raise ValueError(f"the memory window is short or long, not {value!r}")
+    return window
+
+
 def window_from_env(env: Mapping[str, str] | None = None) -> str:
-    """`long` when `SANCHOPANZA_MEMORY_WINDOW` says so (any case, spaces ignored), else `short`."""
-    return LONG if _env.get(ENV, "", env=env).strip().lower() == LONG else SHORT
+    """`SANCHOPANZA_MEMORY_WINDOW`: `long` or `short` (the default). An unknown value is the
+    short window, with one line on stderr: a hook must not fail on a typo."""
+    raw = _env.get(ENV, "", env=env)
+    if not raw.strip():
+        return SHORT
+    try:
+        return normalize_window(raw)
+    except ValueError:
+        _say(f"SANCHOPANZA_MEMORY_WINDOW={raw.strip()!r} is not short or long; short used")
+        return SHORT
 
 
-def payload_chars(prompt: str, texts: Iterable[str]) -> int:
-    """What a long call would read, in characters: the prompt and every text whole."""
-    return len(prompt) + sum(len(text) for text in texts)
+def request_chars(state: State, questions: Mapping[str, Question]) -> int:
+    """What a call would send, in characters: the state and the questions, as `CappedDecider`
+    measures them for its estimate."""
+    asked = {key: repr(question) for key, question in questions.items()}
+    return len(json.dumps({"state": state, "questions": asked}, ensure_ascii=False, default=str))
 
 
-def long_squire(squire: Squire) -> tuple[Squire | None, str]:
-    """(the squire for the one long call, "") or (None, why there is none).
+def _say(text: str) -> None:
+    with contextlib.suppress(Exception):  # stderr gone is no reason to break a prompt
+        sys.stderr.write(f"{PREFIX}: {text}\n")
 
-    Same thresholds, journal and redactor; the decider's long-context twin; `LONG_LIMITS`; and
-    as per-job cap what `squire` has left, so the two together stay under the job's cap."""
-    if squire.exhausted:
-        return None, "the job's budget is spent"
+
+class _Watched:
+    """A decider that keeps the last error of its calls, raised or answered, for the report."""
+
+    def __init__(self, inner: Any) -> None:
+        self._inner = inner
+        self.name = getattr(inner, "name", "?")
+        self.accepts_attachments = getattr(inner, "accepts_attachments", False)
+        self.error = ""
+
+    async def decide(self, point: str, state: State, questions: Mapping[str, Question]) -> Decision:
+        try:
+            decision = await self._inner.decide(point, state, questions)
+        except Exception as error:
+            self.error = f"{error.__class__.__name__}: {error}"[:300]
+            raise
+        if decision.error:
+            self.error = str(decision.error)[:300]
+        return decision
+
+
+def _decider_for(squire: Squire, header: bool) -> tuple[Any | None, str]:
+    """The squire's own decider, or with `header` its long-context twin; (None, why) without."""
+    if not header:
+        return squire.decider, ""
     make = getattr(squire.decider, "with_long_context", None)
     name = getattr(squire.decider, "name", "?")
     if not callable(make):
         return None, f"the decider {name!r} has no long-context mode"
     try:
-        twin = make(timeout_s=LONG_TIMEOUT_S)
-    except Exception as error:  # noqa: BLE001 - a wrapper over a decider without one
+        return make(timeout_s=LONG_TIMEOUT_S), ""
+    except Exception as error:  # noqa: BLE001 - a CLM server, a proxy, a wrapper over one
         return None, f"the decider {name!r} has no long-context mode ({error.__class__.__name__})"
-    t, spent = squire.thresholds, squire.meter
-    left = t.with_(max_usd=t.max_usd - spent.cost_usd,
-                   max_decisions=t.max_decisions - spent.decisions)  # fmt: skip
-    return squire.fork(thresholds=left, decider=twin, limits=LONG_LIMITS), ""
 
 
 def _note(squire: Squire, data: dict[str, Any]) -> dict[str, Any]:
@@ -104,31 +159,79 @@ def _note(squire: Squire, data: dict[str, Any]) -> dict[str, Any]:
     return data
 
 
-def _fall_back(squire: Squire, chars: int, reason: str, usd: float = 0.0) -> dict[str, Any]:
-    with contextlib.suppress(Exception):  # stderr gone is no reason to break a prompt
-        sys.stderr.write(f"{PREFIX}: {reason}; the short window was used\n")
-    _note(squire, {"window": SHORT, "chars": chars, "usd": usd, "fallback": reason})
-    return {"window": SHORT, "window_fallback": reason, "long_chars": chars, "long_usd": usd}
+def _fall_back(
+    squire: Squire, chars: int, reason: str, *, usd: float = 0.0, error: str = ""
+) -> dict[str, Any]:
+    _say(f"{reason}; the short window was used")
+    extra = {"error": error} if error else {}
+    _note(squire, {"window": SHORT, "chars": chars, "usd": usd, "fallback": reason, **extra})
+    report = {"window": SHORT, "window_fallback": reason, "long_chars": chars, "long_usd": usd}
+    return {**report, "long_error": error} if error else report
+
+
+def _budget_refusal(squire: Squire, decider: Any, state: State, questions: Mapping) -> str:
+    """Why the long call would break the job's cap, or "" when it fits."""
+    if squire.exhausted:
+        return "the job's budget is spent"
+    price = float(getattr(decider, "price_per_mtok", DEFAULT_PRICE_PER_MTOK))
+    estimate = estimate_usd(state, questions, price_per_mtok=price)
+    left = squire.thresholds.max_usd - squire.meter.cost_usd
+    if estimate > left:
+        return (f"the long call would not fit the job's budget ({estimate:.6f} USD estimated, "
+                f"{left:.6f} left)")  # fmt: skip
+    return ""
 
 
 async def run_long(
     squire: Squire,
-    chars: int,
+    state: State,
+    questions: Mapping[str, Question],
     ask: Callable[[Squire], Awaitable[T]],
     answered: Callable[[T], bool],
+    *,
+    header: bool = True,
+    deadline_s: float | None = None,
 ) -> tuple[T | None, dict[str, Any]]:
-    """(what `ask` returned on the long squire, report) or (None, report) when the caller
-    must take the short path; the report says which and why, and costs nothing to the default
-    path, which never comes here."""
+    """(what `ask` returned on the long squire, report), or (None, report) when the caller
+    must take the short path. `state` and `questions` are the request `ask` will send, for its
+    size and its estimate. `header`: always under the long-context header (the gate, as L6
+    measured it); else only past `SHORT_WINDOW_CHARS` (the hook). `deadline_s` bounds the long
+    call. The default path never comes here."""
+    chars = request_chars(state, questions)
     if chars > LONG_WINDOW_CHARS:
         why = f"{chars} characters, over the long window's {LONG_WINDOW_CHARS}"
         return None, _fall_back(squire, chars, why)
-    long, why = long_squire(squire)
-    if long is None:
+    needs_header = header or chars > SHORT_WINDOW_CHARS
+    decider, why = _decider_for(squire, needs_header)
+    if decider is None:
         return None, _fall_back(squire, chars, why)
-    result = await ask(long)
+    why = _budget_refusal(squire, decider, state, questions)
+    if why:
+        return None, _fall_back(squire, chars, why)
+    if deadline_s is not None and deadline_s <= 0:
+        return None, _fall_back(squire, chars, "no time is left for a long call")
+    watched = _Watched(decider)
+    t, spent = squire.thresholds, squire.meter
+    left = t.with_(max_usd=t.max_usd - spent.cost_usd,
+                   max_decisions=t.max_decisions - spent.decisions)  # fmt: skip
+    long = squire.fork(thresholds=left, decider=watched, limits=LONG_LIMITS)
+    result: T | None = None
+    timed_out = False
+    try:
+        pending = ask(long)
+        result = await (pending if deadline_s is None else asyncio.wait_for(pending, deadline_s))
+    except TimeoutError:
+        timed_out = True
+        watched.error = f"TimeoutError: no answer within {deadline_s:g} s"
+    finally:
+        squire.absorb(long.meter)  # the job's cap holds what the long call spent
     usd = long.meter.cost_usd
-    if not answered(result):
-        return None, _fall_back(squire, chars, "the long call answered nothing", usd)
-    _note(squire, {"window": LONG, "chars": chars, "usd": usd})
-    return result, {"window": LONG, "long_chars": chars, "long_usd": usd}
+    if timed_out:
+        why = f"the long call took over its {deadline_s:g} s"
+        return None, _fall_back(squire, chars, why, usd=usd, error=watched.error)
+    if result is None or not answered(result):
+        why = f"the long call answered nothing ({watched.error or 'no error given'})"
+        return None, _fall_back(squire, chars, why, usd=usd, error=watched.error)
+    _note(squire, {"window": LONG, "chars": chars, "usd": usd, "header": needs_header})
+    return result, {"window": LONG, "long_chars": chars, "long_usd": usd,
+                    "long_header": needs_header}  # fmt: skip

@@ -19,9 +19,10 @@ This module is a `UserPromptSubmit` hook body. Per prompt:
 
 The long window (`SANCHOPANZA_MEMORY_WINDOW=long` or `window="long"`, off by default; see
 `memory_window`): step 2 reads every memory whole in one call with Jev's long-context header on
-that call only. On 36 LongMemEval questions it lifted recall from 0.72 to 0.91 at about 0.005
-USD a prompt against 0.001 (lot L6); a confirmation on 84 unseen questions is pending. Past the
-long window, or without a decider that has the mode, it is step 2 as above, and it says so.
+that call only. On 36 LongMemEval questions it lifted the selection's recall from 0.72 to 0.91
+at about 0.005 USD a prompt against 0.001 (lot L6); a confirmation on 84 unseen questions is
+pending. Past the long window, without a decider that has the mode, or when the call would not
+fit the job's budget or answers nothing, it is step 2 as above, and it says so.
 
 Optional, off by default because it costs calls: `check_conflicts` runs `Squire.reconcile` on
 at most `max_pairs` pairs of kept memories that share vocabulary. A pair the decider calls a
@@ -311,10 +312,15 @@ async def triage_window(
     """`triage_memories` on the short window (the shipped one, report empty), or on the long
     one (`memory_window`): every memory whole in one call, as lot L6 measured it, and the short
     path when that cannot run, with the reason in the report."""
-    if window != mw.LONG:
+    if mw.normalize_window(window) != mw.LONG:
         return await triage_memories(squire, prompt, memories), {}
     pages = pages_of(memories, purpose=prompt, limit=mw.LONG_LIMITS.page_chars)
-    chars = mw.payload_chars(prompt, (title + text for title, text in pages))
+    state, questions = chunks.context_questions(  # what `triage_many` will send in one call
+        purpose=prompt,
+        pages=pages,
+        page_limit=mw.LONG_LIMITS.page_chars,
+        page_max=mw.LONG_LIMITS.pages_per_call,
+    )
 
     async def ask(long: Squire) -> list[tuple[bool, float | None]]:
         return await long.triage_many(purpose=prompt, pages=pages)
@@ -322,7 +328,7 @@ async def triage_window(
     def answered(verdicts: list[tuple[bool, float | None]]) -> bool:
         return any(p is not None for _, p in verdicts)
 
-    verdicts, report = await mw.run_long(squire, chars, ask, answered)
+    verdicts, report = await mw.run_long(squire, state, questions, ask, answered)
     if verdicts is None:
         verdicts = await triage_memories(squire, prompt, memories)
     return verdicts, report
@@ -363,6 +369,7 @@ async def gate(
 ) -> GateResult:
     """Decide what to inject for one prompt. Raises only on a bug; `handle_user_prompt` wraps.
     `window` is `short` or `long` (`memory_window`); None reads `SANCHOPANZA_MEMORY_WINDOW`."""
+    chosen = mw.window_from_env() if window is None else mw.normalize_window(window)
     prompt = redact_secrets(prompt.strip())
     base = {"memories": len(memories), "prompt_chars": len(prompt)}
     if not memories:
@@ -373,7 +380,6 @@ async def gate(
     report = {**base, "recall_p": recall.probability, "recall": recall.reason}
     if not recall.look:
         return GateResult("", (), (), f"no recall needed: {recall.reason}", report)
-    chosen = mw.window_from_env() if window is None else window
     verdicts, read = await triage_window(squire, prompt, memories, chosen)
     answered = sum(p is not None for _, p in verdicts)
     probabilities = {m.file: p for m, (_, p) in zip(memories, verdicts, strict=True)}

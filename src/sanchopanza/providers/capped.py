@@ -73,6 +73,10 @@ class CappedDecider:
     def meter(self) -> Meter:
         return self._meter
 
+    @property
+    def price_per_mtok(self) -> float:
+        return self._price
+
     def with_long_context(self, **options: object) -> CappedDecider:
         """The inner decider's long-context twin under the same ledger, batch and caps.
         Raises `AttributeError` when the inner decider has none, as it would unwrapped."""

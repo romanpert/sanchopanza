@@ -144,6 +144,14 @@ class Squire:
     def decider(self) -> Decider:
         return self._decider
 
+    def absorb(self, meter: Meter) -> None:
+        """Count a fork's decisions and dollars on this squire's meter, so a job that hands one
+        call to a fork (the memory gate's long window) still answers to its own cap."""
+        self._meter = Meter(
+            decisions=self._meter.decisions + meter.decisions,
+            cost_usd=self._meter.cost_usd + meter.cost_usd,
+        )
+
     @property
     def meter(self) -> Meter:
         return self._meter
