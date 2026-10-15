@@ -531,8 +531,10 @@ def seal() -> str:
     paths = [doc.relative_to(REPO).as_posix(), *SEALED]
     manifest = {p: hashlib.sha256((REPO / p).read_bytes()).hexdigest() for p in paths}
     combined = hashlib.sha256("".join(f"{k} {v}\n" for k, v in manifest.items()).encode())
-    (OUT / "prereg.manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
-    (OUT / "prereg.sha256").write_text(combined.hexdigest() + "\n", encoding="utf-8")
+    text = {"prereg.manifest.json": json.dumps(manifest, indent=1) + "\n",
+            "prereg.sha256": combined.hexdigest() + "\n"}  # fmt: skip
+    for name, body in text.items():  # LF on disk, as git stores them
+        (OUT / name).write_text(body, encoding="utf-8", newline="\n")
     return combined.hexdigest()
 
 
