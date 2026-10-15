@@ -235,3 +235,40 @@ def test_the_smoke_takes_one_session_at_its_own_cap(tmp_path):
     code, rows = h2h.common.run_guarded(h2h.steps(lb.SMOKE, [Task(0), Task(1)]), [], limits,
                                         guard.wrap(session), sessions)  # fmt: skip
     assert caps == [0.80] and len(rows) == 1 and code == 1
+
+
+@pytest.mark.parametrize("result, hint", [
+    ("API Error: 401 {\"error\":{\"message\":\"OAuth token has expired\"}}", True),
+    ("Invalid API key · Please run /login", True),
+    ("The model claude-opus-5-5 is not available for your account", True),
+    ("The correct answer is (B)", False),
+    ("", False),
+])  # fmt: skip
+def test_claude_codes_result_is_read_for_an_outage_and_only_a_flag_is_kept(result, hint):
+    got = g.reply_flags({"result": result, "is_error": True})
+    assert got == {"outage_hint": hint}
+
+
+def test_an_outage_said_only_in_the_result_stops_the_phase_and_the_smoke(tmp_path):
+    for phase in (B, lb.SMOKE):
+        folder = tmp_path / phase.key
+        folder.mkdir()
+        guard, sessions, _ = _budget(
+            folder, phase, cap_rule=h2h.smoke_cap if phase is lb.SMOKE else None
+        )
+
+        def said(item, run, arm, cap):
+            return _infra(item, run, arm, cap) | {"outage_hint": True}
+
+        with pytest.raises(g.OutageStop):
+            guard.wrap(said)(("a",), 1, phase.arm)
+        assert guard.kind == "outage" and h2h.gaia.read_rows(sessions)[0]["not_run"]
+        assert h2h.settle_smoke(guard.kind, sessions) == "outage"
+
+
+def test_the_session_reads_the_reply_through_the_longdoc_hook():
+    import inspect
+
+    params = inspect.signature(h2h.ld.one_session).parameters
+    assert params["extra"].default is None  # other phases unchanged
+    assert "extra=guard_mod.reply_flags" in inspect.getsource(h2h.session_for)

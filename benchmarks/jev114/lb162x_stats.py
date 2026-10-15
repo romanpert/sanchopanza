@@ -64,13 +64,18 @@ def lowered_stop(session: Mapping[str, Any], full_cap: float) -> bool:
 def not_run(session: Mapping[str, Any], full_cap: float) -> bool:
     """Not run in the primary readings: an infrastructure error, a lowered-cap stop, or a
     session most of whose cost went to another model than the phase's."""
-    served = session.get("served_ok")
-    return lbs.infra(session) or lowered_stop(session, full_cap) or served is False
+    return lbs.infra(session) or lowered_stop(session, full_cap) or other_model(session)
+
+
+def other_model(session: Mapping[str, Any]) -> bool:
+    """Most of the session's cost went to another model than the phase's: not a measurement of
+    the phase's model in any reading, for its grade or its cost."""
+    return session.get("served_ok") is False
 
 
 def grade(session: Mapping[str, Any] | None, full_cap: float, as_wrong: bool) -> bool | None:
     """Right, wrong, or None (no session, or not run in this reading)."""
-    if session is None:
+    if session is None or other_model(session):
         return None
     if not_run(session, full_cap):
         return False if as_wrong else None
@@ -80,7 +85,7 @@ def grade(session: Mapping[str, Any] | None, full_cap: float, as_wrong: bool) ->
 def cost(session: Mapping[str, Any] | None, full_cap: float, infra_counts: bool,
          cut_at_full: bool) -> float | None:  # fmt: skip
     """USD of one session under a reading; None when it is not a cost measurement."""
-    if session is None or (lbs.infra(session) and not infra_counts):
+    if session is None or other_model(session) or (lbs.infra(session) and not infra_counts):
         return None
     usd = float(session["usd"])
     reduced = float(session.get("cap_usd") or full_cap) < full_cap

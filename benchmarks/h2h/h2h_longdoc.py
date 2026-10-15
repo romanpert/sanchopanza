@@ -27,7 +27,7 @@ import hashlib
 import json
 import pathlib
 import sys
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -88,8 +88,11 @@ def session_root(phase_name: str, task_id: str, arm: str, run: int) -> pathlib.P
 
 
 def one_session(task: longdoc_data.Task, run: int, arm: str, ctx: Mapping[str, Any],
-                caps: Mapping[str, float] = CAPS) -> dict:  # fmt: skip
-    """One session; `caps` (default CAPS) gives its --max-budget-usd and its hit_cap reading."""
+                caps: Mapping[str, float] = CAPS,
+                extra: Callable[[Mapping[str, Any]], Mapping[str, Any]] | None = None,
+                ) -> dict:  # fmt: skip
+    """One session; `caps` (default CAPS) gives its --max-budget-usd and its hit_cap reading;
+    `extra(out)`, when given, adds fields read from Claude Code's reply (never its text)."""
     root = session_root(ctx["phase"], task.task_id, arm, run)
 
     def make_row(out, stderr, work, side, wall, projects):  # noqa: ANN001, ANN202
@@ -100,7 +103,8 @@ def one_session(task: longdoc_data.Task, run: int, arm: str, ctx: Mapping[str, A
         pred = longdoc_data.last_answer(reply)
         return {**row, "final_answer": pred, "ok_oficial": pred == task.gold,
                 "success": pred == task.gold, "difficulty": task.difficulty,
-                "length": task.length, "domain": task.domain, "chars": task.chars}  # fmt: skip
+                "length": task.length, "domain": task.domain, "chars": task.chars,
+                **(extra(out) if extra else {})}  # fmt: skip
 
     return gaia.clean_session(ctx, root, arm, prompt(task), flag_settings=flag_settings(),
                               make_row=make_row,

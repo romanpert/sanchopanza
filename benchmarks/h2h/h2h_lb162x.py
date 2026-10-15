@@ -96,7 +96,8 @@ def smoke_cap(spent: float) -> float | None:
 
 def session_for(phase: Phase, ctx: Mapping[str, Any]) -> Callable:
     def session(item: tuple, run: int, arm: str, cap: float) -> dict[str, Any]:
-        row = ld.one_session(item[3], run, arm, ctx, caps={phase.model: cap})
+        row = ld.one_session(item[3], run, arm, ctx, caps={phase.model: cap},
+                             extra=guard_mod.reply_flags)  # fmt: skip
         if phase_loop.usage_limited(row):
             phase_loop._log(
                 sessions_of(phase), f"STOP-LIMIT {item[0]} {arm}: 429 or usage limit in the session"
@@ -146,8 +147,42 @@ def export(phase: Phase, rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
 
 
 def smoke_passed(rows: Sequence[Mapping[str, Any]]) -> bool:
-    """A letter, no error, and served by Opus (the grade does not matter)."""
-    return any(r["letter"] is not None and not r["is_error"] and r["served_ok"] for r in rows)
+    """The smoke tests the path, not the answer: a counted session served by Opus (most of its
+    cost) at a cost above 0 that ended without an error, or stopped by its cap (a letter is not
+    needed)."""
+    return any(r.get("arm") == SMOKE.arm and guard_mod.served_by(r) == SMOKE.model_id
+               and float(r.get("list_usd") or 0.0) > 0
+               and (r.get("ok", False) or r.get("hit_cap"))
+               for r in phase_loop.counted(list(rows)))  # fmt: skip
+
+
+def settle_smoke(kind: str, sessions: pathlib.Path) -> str:
+    """The smoke's kind after its loop: `done` when it passed; a pause (limit, outage, clock,
+    manual, ...) as it is; otherwise `smoke` (failed), its sessions that cost 0 USD voided first
+    so a relaunch repeats it (one that spent stays: `--retry-smoke`, the owner's decision)."""
+    if kind not in ("done", "ceiling"):
+        return kind
+    if smoke_passed(gaia.read_rows(sessions)):
+        return "done"
+    guard_mod.void_free(sessions, "smoke failed at 0 USD: repeated on a relaunch")
+    return "smoke"
+
+
+def retry_smoke(sessions: pathlib.Path | None = None, reservations: pathlib.Path | None = None,
+                now: dt.datetime | None = None) -> list[str]:  # fmt: skip
+    """`--retry-smoke`: a smoke that failed after spending is moved aside (renamed, never
+    deleted), so the next launch runs it again under a new 0.80 USD ceiling. Refused when the
+    smoke passed."""
+    if final_kind(SMOKE) == "done":
+        raise SystemExit("the smoke passed: nothing to retry")
+    stamp = f"{now or dt.datetime.now():%Y%m%dT%H%M%S}"
+    moved = []
+    for path in (sessions or sessions_of(SMOKE), reservations or reservations_of(SMOKE)):
+        if path.exists():
+            aside = path.with_name(f"{path.stem}.failed-{stamp}{path.suffix}")
+            path.rename(aside)
+            moved.append(aside.name)
+    return moved
 
 
 # --- the driver ---------------------------------------------------------------------------------
@@ -231,8 +266,8 @@ def run_phase(phase: Phase, found: Sequence[str]) -> str:  # pragma: no cover - 
                                  found)  # fmt: skip
     kind = s162.stop_kind(code, guard)
     said = export(phase, rows)
-    if smoke and kind in ("done", "ceiling"):
-        kind = "done" if smoke_passed(public_rows(rows, phase)) else "smoke"
+    if smoke:
+        kind = settle_smoke(kind, sessions)
     print(json.dumps({"phase": phase.key, **said, "stop": kind}), file=sys.stderr)
     return kind
 
@@ -291,12 +326,15 @@ def live(now: dt.datetime | None = None) -> int:  # pragma: no cover - paid sess
 def main(argv: Sequence[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     mode = ap.add_mutually_exclusive_group()
-    for flag in ("--dry", "--plan", "--preflight", "--live"):
+    for flag in ("--dry", "--plan", "--preflight", "--live", "--retry-smoke"):
         mode.add_argument(flag, action="store_true")
     ap.add_argument("--lot", choices=[LOT], default=LOT)
     args = ap.parse_args(argv)
     if args.live:
         return live()
+    if args.retry_smoke:
+        print(f"smoke moved aside: {retry_smoke() or 'nothing to move'}; the next launch runs it")
+        return 0
     if args.dry or args.plan:
         print("\n".join(lb162x.dry()))
         task = smoke_task()

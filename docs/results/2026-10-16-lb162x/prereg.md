@@ -71,16 +71,30 @@ phase A once B has ended by finishing or by its ceiling. B carries the primary v
 pause that the lot cannot control (the subscription's weekly limit, shared by every session of
 the account; the clock; a STOP) falls on the descriptive phase rather than on the verdict. Each
 phase has its own ceiling, so running B first takes no money from A. A relaunch skips what has
-ended (the smoke passed, a phase finished or at its ceiling) and resumes the rest for free
-(recorded sessions are not asked again).
+ended (the smoke passed, a phase finished or at its ceiling) and resumes the rest: recorded
+sessions are not asked again, and the accounting of what a pause left is free (the sessions
+still to run cost what any session costs).
 
 **The smoke.** One Opus 5.5 session, arm N exactly, on lb162's smoke task (lot L6's: LongBench
 dev task `66eefe85821e116aacb228dc`, short, 118,549 characters; outside the 162, checked in
 code), with `--max-budget-usd` 0.80 and its own ceiling 0.80 USD (`lb162x.SMOKE`; no second
-session once anything is spent). It passes with a letter (any: the grade does not matter), no
-error, and most of its cost on `claude-opus-5-5`. Otherwise the lot pauses (kind `smoke`, exit
-9; or `limit`, `outage`, `clock` as below) before any session of phase B. Its row
-(`smoke-rows.jsonl`, no text) is not part of any reading.
+session once anything is spent). It tests the path (the token, the model id, the cost, the
+model that served it), not the answer: it **passes** when the session was served by
+`claude-opus-5-5` (most of its cost), at a cost above 0 USD, and ended without an error or
+was stopped by its cap (no letter needed). Otherwise the lot pauses before any session of
+phase B:
+- a reply that names an authentication or model-availability failure (in Claude Code's
+  `result` or its stderr) is an **outage** (exit 8): the session is not run and, having cost
+  nothing, is repeated by a relaunch;
+- a 429 is `limit` (exit 2), the clock `clock` (exit 5), a STOP `manual` (exit 6);
+- any other failure is `smoke` (exit 9). A failed smoke that **cost 0 USD** is marked not run,
+  so a relaunch repeats it. One that **cost money** stays recorded, and its 0.80 ceiling
+  refuses a second session: the owner decides. To run it again, `python
+  benchmarks/h2h/h2h_lb162x.py --retry-smoke` (free) moves the failed smoke's private session
+  and reservation files aside (renamed `*.failed-<time>.jsonl`, never deleted), and the next
+  launch runs the smoke again under a new 0.80 ceiling; each retry is the owner's spend.
+
+Its row (`smoke-rows.jsonl`, no text) is not part of any reading.
 
 ## Money
 
@@ -184,13 +198,16 @@ session's mean cost alone (deterministic), B runs all 162 (193 before the guard)
 - a `STOP` file in `C:\sp-runs\lb162x`: `manual`, exit 6, before the next session;
 - any other failure of a phase (an exception): `error`, exit 7, a pause;
 - an **outage**: `outage`, exit 8, a pause. A session whose reply names an authentication or
-  model-availability failure (401/403, OAuth, an invalid key, "model ... not available") is an
+  model-availability failure (401/403, OAuth, an invalid key, "model ... not available"; read
+  in Claude Code's `result` during the session, only a flag kept, and in its stderr) is an
   outage at once; an infrastructure error (an error with no letter that no cap stopped) or a
   session most of whose cost went to another model counts toward a streak, and **three in a
-  row** are an outage. The outage's rows are marked not run (asked again on a resume, free) and
-  none is scored. A session another model served is not run even outside a streak. An answer
-  resets the streak; an isolated infrastructure error stays recorded (and is handled as below).
-- the smoke failed: `smoke`, exit 9, a pause.
+  row** are an outage. The outage's rows are marked not run and none is scored: a resume asks
+  those tasks again (the accounting is free; the new sessions cost what any session costs). A
+  session another model served is not run even outside a streak. An answer resets the streak;
+  an isolated infrastructure error stays recorded (and is handled as below).
+- the smoke failed: `smoke`, exit 9, a pause (see "The smoke" for a relaunch and
+  `--retry-smoke`).
 
 Exit 1 means only the ceiling: every phase over, one ended at its ceiling.
 
@@ -216,7 +233,8 @@ covered tasks without one are reported.
 - The registered **sensitivity reading** counts both as wrong. Counting them wrong lowers Opus
   and favours the hybrid, so the primary is the reading less favourable to the hybrid.
 - A session most of whose cost went to another model than `claude-opus-5-5` (each public row
-  says so, `served_ok`) is not run in both readings.
+  says so, `served_ok`) is not a measurement of Opus: out of both readings (never counted wrong)
+  and out of the cost readings, all of them. The same holds for Sonnet in phase A.
 
 **Paired bootstrap** over the 162 tasks, 10,000 draws, seed 20261015, percentile 95 % CI
 (`l4_stats.bootstrap`); a resample with covered tasks but none with an Opus session is dropped,
@@ -301,6 +319,7 @@ From the detached worktree of the sealed commit (`PYTHONPATH=src`, the main chec
 python benchmarks/jev114/lb162x.py --dry           # free: both phases, money, clock, power
 python benchmarks/h2h/h2h_lb162x.py --dry          # free: the same plus what each phase spent
 python benchmarks/h2h/h2h_lb162x.py --preflight    # free (needs the subscription token)
+python benchmarks/h2h/h2h_lb162x.py --retry-smoke  # free, only after a smoke failed having spent
 python benchmarks/jev114/lb162x.py --seal
 powershell -File benchmarks/h2h/launch.ps1 -Runner h2h_lb162x.py -RunnerArgs "--lot lb162x" -Pin $env:USERPROFILE\.cache\sanchopanza\claude-pin\2.1.287 -KeysEnv <path to the keys .env that SANCHOPANZA_KEYS_ENV names> -Log C:\sp-runs\lb162x\driver.log -PidFile C:\sp-runs\lb162x\driver.pids
 python benchmarks/h2h/h2h_lb162x.py                # rows without text, both phases

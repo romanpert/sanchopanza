@@ -440,11 +440,16 @@ def test_no_verdict_on_fewer_than_20_covered_opus_sessions_nor_a_saving_on_fewer
     assert st.phase_a(more, covered, uncovered, min_saving=0)["saving"]["reading"] == "ahorra"
 
 
-def test_a_session_another_model_served_is_not_run():
-    rows = [_jev(0, 0.9, True), _jev(1, 0.9, True)]
+def test_a_session_another_model_served_is_out_of_both_readings_and_of_the_cost():
+    rows = [_jev(0, 0.9, True), _jev(1, 0.9, True), _jev(2, 0.1, True)]
     other = _ses(0, 0.3, ok=False, served_ok=False)
-    got = st.phase_b(rows, {"t000": other, "t001": _ses(1, 0.3)}, **NO_MIN)
+    got = st.phase_b(rows, {"t000": other, "t001": _ses(1, 0.3), "t002": _ses(2, 0.5)}, **NO_MIN)
     assert got["primary"]["opus_sessions"] == 1
+    assert got["sensitivity_not_run_as_wrong"]["opus_sessions"] == 1
+    for key in ("saving", "saving_sensitivity_infra_counted"):
+        assert got[key]["covered_measured"] == 1 and got[key]["usd"]["covered"] == pytest.approx(
+            0.6
+        )
 
 
 def test_the_power_table_reaches_the_peor_claim():
@@ -528,6 +533,59 @@ def test_the_smoke_is_one_opus_session_on_a_dev_task_outside_the_162():
     assert lb.SMOKE.model_id == "claude-opus-5-5" and lb.SMOKE.ceiling == 0.80
     assert h2h.smoke_cap(0.0) == 0.80 and h2h.smoke_cap(0.01) is None
     assert lb.DRIVEN == (lb.SMOKE, B, A)
-    good = {"letter": "C", "is_error": False, "served_ok": True}
-    assert h2h.smoke_passed([good]) and not h2h.smoke_passed([{**good, "letter": None}])
-    assert not h2h.smoke_passed([{**good, "served_ok": False}]) and not h2h.smoke_passed([])
+
+
+def _smoke_row(usd=0.12, **extra):
+    return {"task": "s", "task_id": "s", "run": 1, "arm": "OPUS-CC", "list_usd": usd, "ok": True,
+            "final_answer": "C", "hit_cap": False, "subtype": "success", "reservation": "r1",
+            "usd_by_model": {"claude-opus-5-5": usd} if usd else {},
+            "tokens": {"input": 0, "output": 0}, **extra}  # fmt: skip
+
+
+@pytest.mark.parametrize("row, passed", [
+    (_smoke_row(), True),
+    (_smoke_row(final_answer=None, ok=False, hit_cap=True, subtype="error_max_budget_usd"), True),
+    (_smoke_row(final_answer=None), True),  # the path works; the answer is not tested
+    (_smoke_row(usd=0.0), False),
+    (_smoke_row(ok=False, final_answer=None, subtype="error_during_execution"), False),
+    (_smoke_row(usd_by_model={"claude-sonnet-5-5": 0.12}), False),
+    (_smoke_row(not_run=True), False),
+])  # fmt: skip
+def test_the_smoke_passes_on_the_path_not_the_answer(row, passed):
+    assert h2h.smoke_passed([row]) is passed
+
+
+def test_a_failed_smoke_that_cost_nothing_is_voided_and_repeats(tmp_path):
+    sessions = tmp_path / "sessions.jsonl"
+    free = _smoke_row(usd=0.0, ok=False, final_answer=None, subtype="error_during_execution")
+    sessions.write_text(json.dumps(free) + "\n")
+    assert h2h.settle_smoke("done", sessions) == "smoke" and h2h.exit_code("smoke") == 9
+    rows = h2h.gaia.read_rows(sessions)
+    assert rows[0]["not_run"] and h2h.guard_mod.spent_now(sessions, tmp_path / "r.jsonl") == 0
+    assert h2h.smoke_cap(0.0) == 0.80  # a relaunch runs it again
+    haiku = {"claude-haiku-4-5-20251001": 0.3}
+    paid = _smoke_row(usd=0.3, ok=False, final_answer=None, subtype="error_during_execution",
+                      reservation="r2", usd_by_model=haiku)  # fmt: skip
+    sessions.write_text(json.dumps(paid) + "\n")
+    assert h2h.settle_smoke("done", sessions) == "smoke"
+    assert not h2h.gaia.read_rows(sessions)[0].get("not_run")  # spent: kept, the owner decides
+    assert h2h.settle_smoke("outage", sessions) == "outage"  # a pause stays a pause
+    passed = _smoke_row(reservation="r3")
+    sessions.write_text(json.dumps(passed) + "\n")
+    assert h2h.settle_smoke("done", sessions) == "done"
+
+
+def test_retry_smoke_moves_a_failed_smoke_aside_and_never_deletes(tmp_path, monkeypatch):
+    sessions, reservations = tmp_path / "sessions.jsonl", tmp_path / "reservations.jsonl"
+    sessions.write_text("{}\n")
+    reservations.write_text("{}\n")
+    monkeypatch.setattr(h2h, "final_kind", lambda p: None)
+    moved = h2h.retry_smoke(sessions, reservations, dt.datetime(2026, 10, 16, 9, 30))
+    assert moved == [
+        "sessions.failed-20261016T093000.jsonl",
+        "reservations.failed-20261016T093000.jsonl",
+    ]
+    assert not sessions.exists() and all((tmp_path / m).exists() for m in moved)
+    monkeypatch.setattr(h2h, "final_kind", lambda p: "done")
+    with pytest.raises(SystemExit, match="passed"):
+        h2h.retry_smoke(sessions, reservations)

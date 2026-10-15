@@ -10,11 +10,13 @@ every reservation with no row (a session that died) at its reserve. So a phase n
 ceiling.
 
 Health. After a session: a reply that names an authentication or model-availability failure
-(401, OAuth, "model not available") is an outage at once; a session most of whose cost went to
-another model than the phase's is not run; an infrastructure error (an error with no letter,
+(401, OAuth, "model not available"), in Claude Code's `result` (read by `reply_flags` during the
+session, its text never kept) or its stderr, is an outage at once; a session most of whose cost
+went to another model than the phase's is not run; an infrastructure error (an error with no letter,
 not a cap stop) or another model's session counts toward a streak, and OUTAGE_STREAK of them in
-a row are an outage. An outage marks the streak's rows not run (asked again on a resume, free),
-stops the phase (kind `outage`, a pause) and records nothing as a result.
+a row are an outage. An outage marks the streak's rows not run, stops the phase (kind
+`outage`, a pause) and records nothing as a result: a resume asks those tasks again (the
+accounting is free; the new sessions cost what any session costs).
 """
 
 from __future__ import annotations
@@ -136,6 +138,12 @@ def served_by(row: Mapping[str, Any]) -> str | None:
     return max(by_model, key=by_model.__getitem__)
 
 
+def reply_flags(out: Mapping[str, Any]) -> dict[str, bool]:
+    """What the session row keeps of Claude Code's reply `out`: whether its `result` names an
+    authentication or model-availability failure. A flag, never the text."""
+    return {"outage_hint": bool(OUTAGE_TEXT.search(str(out.get("result") or "")))}
+
+
 def reply_text(row: Mapping[str, Any]) -> str:
     """What the session said about itself: its subtype and Claude Code's stderr."""
     side = pathlib.Path(str(row.get("side") or "")) / "stderr.txt"
@@ -149,7 +157,7 @@ def trouble(row: Mapping[str, Any], model_id: str) -> tuple[str, str] | None:
     if phase_loop.usage_limited(row):
         return None  # the loop's own stop (a 429 or usage limit)
     no_letter = row.get("final_answer") is None
-    if no_letter and OUTAGE_TEXT.search(reply_text(row)):
+    if no_letter and (row.get("outage_hint") or OUTAGE_TEXT.search(reply_text(row))):
         return "outage", f"authentication or model failure ({row.get('subtype')})"
     served = served_by(row)
     if served is not None and served != model_id:
@@ -157,6 +165,16 @@ def trouble(row: Mapping[str, Any], model_id: str) -> tuple[str, str] | None:
     if no_letter and not row.get("hit_cap") and not row.get("ok", False):
         return "infra", f"infrastructure error ({row.get('subtype')})"
     return None
+
+
+def void_free(sessions: pathlib.Path, why: str) -> int:
+    """Mark not run every counted row that cost a known 0 USD (a session that did nothing), so
+    a relaunch asks it again; how many."""
+    rids = [r["reservation"] for r in gaia.read_rows(sessions)
+            if r.get("reservation") and not r.get("not_run")
+            and float(r.get("list_usd") or 0.0) == 0 and not cost_unknown(r)]  # fmt: skip
+    void(sessions, rids, why)
+    return len(rids)
 
 
 def void(sessions: pathlib.Path, rids: Sequence[str], why: str) -> None:
