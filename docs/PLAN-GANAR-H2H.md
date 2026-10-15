@@ -706,6 +706,30 @@ fb42fa4, verificado contra el código por un subagente independiente). Resultado
 - **Consecuencia**: `install --context-budget` se queda en 160.000. En código largo, Jev no tiene
   dónde pagar (indagis-b9), y compactar antes, que no es Jev, tampoco demuestra ahorro con 5 cadenas.
 
+### Compactar antes: la repetición de conan-2 tampoco gana (enmienda, 2026-10-15)
+
+Aprobada por el dueño el 2026-10-14 (45 $ duros). Enmienda escrita después de los datos de la tanda y
+antes de los de la repetición, sellada en 1c916fe tras una revisión independiente
+(`docs/results/2026-10-13-long-compact/amendment-conan2.md`). Resultados en el README de long-compact,
+sección "Repetición de conan-2".
+
+- **Qué**: conan-2 otra vez, los mismos brazos (Ne y Nl), Sonnet 5.5, k = 1, raíz nueva, tope de 22,5 $
+  por corrida. Corrió el 15 de 08:05 a 10:50, sin reinicios ni incidentes. **33,69 $**; con la tanda,
+  206,80 $ de 250.
+- **Réplica (R0)**: Nl/Ne 0,952 en 44 llamadas comunes (la tanda: 1,098 sellado, 0,865 medido). Se
+  movió porque Ne salió un 10 % más barato que en la tanda; Nl costó lo mismo que medido.
+- **Sustitución (R1)**: 0,875 [0,754; 1,015], calidad −2,2 puntos (cota −3,9). **Sin diferencia
+  demostrada.**
+- **Promedio (R2)**: 0,887 [0,750; 1,050], calidad −1,6 puntos (cota −3,5). **Sin diferencia
+  demostrada.**
+- **Veredicto**: el sellado sigue siendo el primario, sin diferencia demostrada (no gana). Bajo la
+  enmienda posterior a los datos, tampoco gana. Ganar pedía una repetición de 0,916 o menos (R1) y de
+  0,764 o menos (R2).
+- La nota final, 46 de Nl frente a 40 de Ne, es asimétrica: con el mismo tope, Nl hizo 52 llamadas y Ne
+  44. En las comunes, 38 frente a 39.
+- **Consecuencia**: nada cambia. `install --context-budget` se queda en 160.000, y la línea de compactar
+  antes queda cerrada.
+
 ## 7. Lo que no prometemos
 
 - LongBench no tiene palanca de S: su 0,785 es un caso atípico.

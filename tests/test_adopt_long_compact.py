@@ -189,3 +189,61 @@ def test_nl_past_its_peak_without_compacting_stops_the_launch(tmp_path: pathlib.
     env = dry_environment(tmp_path, CHAINS)  # B2's contexts unscaled: past 110k, no compaction
     assert launch(CMD, ["dry"], env) == 4
     assert "Nl reached" in (tmp_path / "L" / "STOP").read_text(encoding="utf-8")
+
+
+# ---- the conan-2 repeat (owner 2026-10-14, 45 USD hard; amendment-conan2.md) --------------------
+
+CONAN2 = "conan-io__conan-long60-2"
+
+
+def test_the_conan2_repeat_holds_45_hard_in_its_own_root(m) -> None:
+    long_run, long_launch, long_guard = m
+    p, sealed = long_run.PROFILES["compact-conan2"], long_run.PROFILES["compact"]
+    assert p.chains == (CONAN2,) and CONAN2 in sealed.chains
+    assert (p.arms, p.models, dict(p.call_cap)) == (sealed.arms, sealed.models,
+                                                    dict(sealed.call_cap))  # fmt: skip
+    assert long_run.arm_order(CONAN2, p.arms) == long_run.arm_order(CONAN2, sealed.arms)
+    assert long_run.arm_order(CONAN2, p.arms)[0] == "Nl"  # as in the close-out
+    assert dict(p.chain_cap) == {"sonnet": 22.5} and p.ceiling == p.hard_cap == 45.0
+    assert p.local_stops == ("cap", "wall") and dict(p.hours) == dict(sealed.hours)
+    blocks = long_run.held(long_run.Layout(pathlib.Path("Z:/nowhere")), p, list(p.chains),
+                           ["sonnet"])[0]  # fmt: skip
+    assert long_guard.plan_refusal(blocks, 45.0) == ""
+    root = long_launch.ROOTS["compact-conan2"]
+    assert str(root).endswith("L-compact-conan2") and root != long_launch.ROOTS["compact"]
+    assert root not in {v for k, v in long_launch.ROOTS.items() if k != "compact-conan2"}
+    for cap in (45.01, 76.89, 250.0):
+        with pytest.raises(SystemExit):
+            long_run.ceiling_of(p, cap)
+
+
+def test_the_conan2_arms_are_the_close_out_s(m) -> None:
+    long_run, _, _ = m
+    p, sealed = long_run.PROFILES["compact-conan2"], long_run.PROFILES["compact"]
+    for arm in ("Ne", "Nl"):
+        assert long_run.arm_spec(arm, p) == long_run.arm_spec(arm, sealed)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+def test_the_launcher_runs_the_conan2_repeat_under_its_45_ceiling(tmp_path: pathlib.Path) -> None:
+    env = {**dry_environment(tmp_path, (CONAN2,)), "FAKE_CONTEXT_SCALE": "0.5"}
+    assert launch(CMD, ["conan2", "x"], env) == 2
+    assert launch(CMD, ["conan2", "dry"], env) in (0, 3)
+    root = tmp_path / "L"
+    log = (root / "launch.log").read_text(encoding="utf-8", errors="replace")
+    assert "ceiling 45.00 (hard, in code)" in log and "caps held 45.00 USD" in log
+    assert "22.50 per chain and arm" in log and "N-early-low window 100000" in log
+    assert {p.parent.name for p in (root / "runs").glob("*/*/row.json")} == {"Ne", "Nl"}
+    assert "compact-conan2" in (root / "launch.status").read_text(encoding="utf-8")
+
+
+@pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+def test_dry_without_its_three_variables_is_refused(tmp_path: pathlib.Path) -> None:
+    # No claude reachable at all (PATH and USERPROFILE stripped): a broken guard exits 3, not 2.
+    safe = {"PATH": r"C:\Windows\System32", "USERPROFILE": str(tmp_path)}
+    full = {**dry_environment(tmp_path, (CONAN2,)), **safe}
+    for missing in ("LL_ROOT", "LL_PIN", "LL_DRY_CONFIG"):
+        env = {**full, missing: ""}
+        assert launch(CMD, ["conan2", "dry"], env) == 2
+        assert launch(CMD, ["dry"], env) == 2
+    assert not (tmp_path / "L").exists()
