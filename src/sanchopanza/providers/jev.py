@@ -217,11 +217,13 @@ class JevDecider:
         images: bool | None = None,
         name: str | None = None,
         timeout_per_request: bool = False,
+        owns_client: bool = True,
     ) -> None:
         """`model`, `long_context` and `images` left at None come from the environment
         (`model_from_env`, `long_context_from_env`, `images_from_env`); a value given wins.
         `name` replaces the provider name (`clm`). `timeout_per_request` sends `timeout_s` with
-        each request, for a decider that shares another one's client (`with_long_context`)."""
+        each request, for a decider that shares another one's client (`with_long_context`);
+        such a decider passes `owns_client=False`, and its `aclose` leaves the client open."""
         key = api_key or os.environ.get("TYPESAFE_API_KEY", "")
         if not key:
             raise DeciderUnavailable("TYPESAFE_API_KEY is not set")
@@ -238,6 +240,7 @@ class JevDecider:
         # them (the adoption study's phase B: 1.3-1.7 s per PreToolUse with a key, 0.4 s without).
         self._made: Any | None = client
         self._timeout_per_request = timeout_per_request
+        self._owns_client = owns_client
         # The long-context header is TypeSafe's: a CLM server or another address gets no twin.
         self._long_capable = self._base_url == BASE_URL
         if name is not None:
@@ -257,7 +260,7 @@ class JevDecider:
         return self._made
 
     async def aclose(self) -> None:
-        if self._made is not None:
+        if self._made is not None and self._owns_client:
             await self._made.aclose()
 
     @property
@@ -296,6 +299,7 @@ class JevDecider:
             images=self._images,
             name=self.name,
             timeout_per_request=True,
+            owns_client=False,
         )
 
     def _headers(self) -> dict[str, str]:

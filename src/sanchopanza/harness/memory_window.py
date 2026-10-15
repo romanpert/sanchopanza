@@ -46,8 +46,12 @@ log row.
 
 What is enforced on spend: the job's cap (`Thresholds.max_usd`) is checked before the long call
 against its estimate, the long call runs under what is left, and its decisions and dollars are
-then added to the job's meter (`Squire.absorb`), so later decisions see them. A `CappedDecider`
-passes its ledger and caps to the twin, and the twin shares the out-of-funds breaker. Like any
+then added to the job's meter (`Squire.absorb`), so later decisions see them. A long call cut
+by its deadline comes back with no bill while the server may still charge it: it is charged at
+its estimate, on the job's meter and in the report (`long_usd`, with `long_usd_estimated`), and
+a `CappedDecider` keeps its reservation in the ledger at the estimate too. A `CappedDecider`
+passes its ledger and caps to the twin (the twin keeps its own in-process meter; the ledger and
+the job's meter hold the spend), and the twin shares the out-of-funds breaker. Like any
 decision, one call can still cost more than its estimate. The dollars are in the decision event,
 the `memory_window` event (`usd`), the report (`long_usd`) and the log row.
 """
@@ -62,6 +66,7 @@ from collections.abc import Awaitable, Callable, Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from .. import _env
+from ..budget import Meter
 from ..contract import Decision, Question, State
 from ..limits import Limits
 from ..providers.capped import DEFAULT_PRICE_PER_MTOK, estimate_usd
@@ -160,26 +165,36 @@ def _note(squire: Squire, data: dict[str, Any]) -> dict[str, Any]:
 
 
 def _fall_back(
-    squire: Squire, chars: int, reason: str, *, usd: float = 0.0, error: str = ""
+    squire: Squire,
+    chars: int,
+    reason: str,
+    *,
+    usd: float = 0.0,
+    error: str = "",
+    estimated: bool = False,
 ) -> dict[str, Any]:
     _say(f"{reason}; the short window was used")
     extra = {"error": error} if error else {}
+    extra = {**extra, "usd_estimated": True} if estimated else extra
     _note(squire, {"window": SHORT, "chars": chars, "usd": usd, "fallback": reason, **extra})
     report = {"window": SHORT, "window_fallback": reason, "long_chars": chars, "long_usd": usd}
-    return {**report, "long_error": error} if error else report
+    report = {**report, "long_error": error} if error else report
+    return {**report, "long_usd_estimated": True} if estimated else report
 
 
-def _budget_refusal(squire: Squire, decider: Any, state: State, questions: Mapping) -> str:
-    """Why the long call would break the job's cap, or "" when it fits."""
+def _budget_refusal(
+    squire: Squire, decider: Any, state: State, questions: Mapping
+) -> tuple[str, float]:
+    """(why the long call would break the job's cap, or "" when it fits; its estimate)."""
     if squire.exhausted:
-        return "the job's budget is spent"
+        return "the job's budget is spent", 0.0
     price = float(getattr(decider, "price_per_mtok", DEFAULT_PRICE_PER_MTOK))
     estimate = estimate_usd(state, questions, price_per_mtok=price)
     left = squire.thresholds.max_usd - squire.meter.cost_usd
     if estimate > left:
         return (f"the long call would not fit the job's budget ({estimate:.6f} USD estimated, "
-                f"{left:.6f} left)")  # fmt: skip
-    return ""
+                f"{left:.6f} left)"), estimate  # fmt: skip
+    return "", estimate
 
 
 async def run_long(
@@ -205,7 +220,7 @@ async def run_long(
     decider, why = _decider_for(squire, needs_header)
     if decider is None:
         return None, _fall_back(squire, chars, why)
-    why = _budget_refusal(squire, decider, state, questions)
+    why, estimate = _budget_refusal(squire, decider, state, questions)
     if why:
         return None, _fall_back(squire, chars, why)
     if deadline_s is not None and deadline_s <= 0:
@@ -227,8 +242,16 @@ async def run_long(
         squire.absorb(long.meter)  # the job's cap holds what the long call spent
     usd = long.meter.cost_usd
     if timed_out:
+        # Cut in flight, the call came back with no bill, but the server may charge a request
+        # it received: the job counts it at its estimate (a `CappedDecider` keeps it too).
+        estimated = usd == 0.0
+        if estimated:
+            squire.absorb(Meter(cost_usd=estimate))
+            usd = estimate
         why = f"the long call took over its {deadline_s:g} s"
-        return None, _fall_back(squire, chars, why, usd=usd, error=watched.error)
+        return None, _fall_back(
+            squire, chars, why, usd=usd, error=watched.error, estimated=estimated
+        )
     if result is None or not answered(result):
         why = f"the long call answered nothing ({watched.error or 'no error given'})"
         return None, _fall_back(squire, chars, why, usd=usd, error=watched.error)

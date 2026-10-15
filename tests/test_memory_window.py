@@ -537,7 +537,47 @@ def test_hook_the_window_is_in_the_row_even_when_the_whole_choice_times_out(
     assert "timed out" in row["reason"] and row["window"] == "long"
 
 
+def test_hook_a_long_call_cut_by_its_deadline_is_charged_at_its_estimate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    project = long_hook(tmp_path, monkeypatch)
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_DECIDER_SECONDS", "2")
+    monkeypatch.setattr(mw, "SHORT_RESERVE_S", 1.5)  # the long call gets 0.5 s
+    ledger = SpendLedger(tmp_path / "ledger.jsonl", cap_usd=1.0)
+    fake = Fake(lambda i: 0.95, delay=lambda call: 1.0 if whole(call) else 0.0)
+    s, _ = squire(CappedDecider(fake, ledger=ledger, batch="b", max_usd=0.5))
+    out = asyncio.run(mh.recall(hook_prompt(project), s))
+    assert "carbon.py" in out["hookSpecificOutput"]["additionalContext"]  # the pages ran
+    row = last_prompt_row(tmp_path)
+    assert "over its 0.5 s" in row["window_fallback"]
+    # the server may bill a request it received: the cut call counts at its estimate
+    assert row["long_usd"] > 0 and row["long_usd_estimated"] is True
+    assert s.meter.cost_usd >= row["long_usd"]
+    assert ledger.spent("b") > 0
+
+
+def test_a_capped_call_cancelled_in_flight_keeps_its_reservation(tmp_path: Path) -> None:
+    ledger = SpendLedger(tmp_path / "ledger.jsonl", cap_usd=1.0)
+    capped = CappedDecider(Fake(delay=lambda call: 1.0), ledger=ledger, batch="b", max_usd=0.5)
+
+    async def cut() -> None:
+        await asyncio.wait_for(capped.decide("triage_pages", {"pages": "x" * 3_000}, {}), 0.05)
+
+    with pytest.raises(TimeoutError):
+        asyncio.run(cut())
+    assert ledger.spent("b") > 0 and capped.meter.cost_usd > 0
+
+
 # ---- the pieces: Jev's twin, the cap's twin, the squire's fork and absorb ------------------------
+
+
+def test_a_twin_does_not_close_the_client_it_shares() -> None:
+    short = jev_mocked([])
+    long = short.with_long_context()
+    asyncio.run(long.aclose())
+    assert not short._client().is_closed
+    asyncio.run(short.aclose())
+    assert short._client().is_closed
 
 
 def test_jev_twin_turns_on_only_the_long_context_header_on_the_same_client() -> None:

@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 (unreleased)
+
+A tool window that follows the session without breaking the prompt cache, an interface for
+self-improving harnesses, fetched-content scanning, a security review of all of it, and the
+first end-to-end measurements of tool presentation with a real agent, including the ones that
+do not favour this package.
 
 ### Added
 
@@ -21,19 +26,12 @@
   budget, the hook's long call takes longer than its share of the hook's time (the decider time
   less 3 s kept for the pages), or the long call answers nothing. What is enforced: the job's
   cap is checked against the long call's estimate before it is made, and what it spent is then
-  added to the job's meter (`Squire.absorb`); a `CappedDecider` passes its ledger and caps to
-  the long call. `JevDecider.with_long_context()` (sharing the client, its timeout sent per
-  request), `CappedDecider.with_long_context()`, `price_per_mtok` on both,
-  `JevDecider(name=)`, `Squire.fork(decider=, limits=)` and `Squire.absorb()` are the pieces.
-
-## 0.3.0 (unreleased)
-
-A tool window that follows the session without breaking the prompt cache, an interface for
-self-improving harnesses, fetched-content scanning, a security review of all of it, and the
-first end-to-end measurements of tool presentation with a real agent, including the ones that
-do not favour this package.
-
-### Added
+  added to the job's meter (`Squire.absorb`); a long call cut by its deadline is charged at its
+  estimate, and a `CappedDecider` keeps the reservation of a call cancelled in flight; a
+  `CappedDecider` passes its ledger and caps to the long call. `JevDecider.with_long_context()`
+  (sharing the client, which it does not close, its timeout sent per request),
+  `CappedDecider.with_long_context()`, `price_per_mtok` on both, `JevDecider(name=)`,
+  `Squire.fork(decider=, limits=)` and `Squire.absorb()` are the pieces.
 
 - **The knowledge layer** (`install --knowledge`, off by default until confirmed live;
   `docs/results/2026-10-05-knowledge`). One MCP server, `sanchopanza knowledge-mcp`, loaded up
