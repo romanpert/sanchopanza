@@ -2,7 +2,7 @@
 
 Sesión de la línea contexto / sesiones largas. Prerregistro sellado antes de cualquier corrida:
 [`prereg.md`](prereg.md), commit fb42fa4 de la rama `cierre-contexto`, sha256
-`fb1bbd537c8752434105538952b6c99ae67d1ce34e4f97e38d98abbfddbd3ae1`, verificado contra el código por
+`47b4697f70d313e6952acfba174b40b394aad9ae35830b71e49d189eb11a4271`, verificado contra el código por
 un subagente independiente en dos pasadas. Lectura con `benchmarks/adopt/long_compact.py`
 ([`read.json`](read.json)).
 
@@ -117,7 +117,7 @@ instantánea tras la llamada `k`, sobre los bugs que se habían pedido a los dos
 
 Enmienda [`amendment-conan2.md`](amendment-conan2.md), escrita después de los datos de la tanda y
 antes de los de la repetición, sellada en 1c916fe (sha256
-`762d421eef480bdeadc30769c1e9e2f30c630d7a3c0cab55c0d004ad0a46bb3e`) tras una revisión independiente.
+`b1a877b7589fb62bb7513533a01afd4d1676705b81917ab7c62090200647e222`) tras una revisión independiente.
 Lectura con `long_compact.py amend` ([`amend.json`](amend.json)); `read` sigue reproduciendo
 [`read.json`](read.json) byte a byte.
 
@@ -215,3 +215,5 @@ tope. Antes, Docker Desktop tiene que estar arriba. El techo de 250 $ cuenta tod
 - Repetición de conan-2: raíz `C:\sp-runs\L-compact-conan2` (las mismas piezas, más `launch.json` y
   `windows.json`); [`amendment-conan2.md`](amendment-conan2.md) (sellada) y
   [`amend.json`](amend.json) (R0, R1, R2 y el veredicto de la enmienda).
+
+2026-10-15: text redacted to remove the name of another project; the sealed originals (`prereg.md`, hash fb1bbd537c8752434105538952b6c99ae67d1ce34e4f97e38d98abbfddbd3ae1; `amendment-conan2.md`, hash 762d421eef480bdeadc30769c1e9e2f30c630d7a3c0cab55c0d004ad0a46bb3e) are kept in the git history.

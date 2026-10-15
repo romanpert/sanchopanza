@@ -89,3 +89,5 @@ python benchmarks/cascade/run.py --analyze --rjudge R-JUDGE-CLONE --register REG
 python benchmarks/cascade/run.py --submit sonnet ... --env-file PATH/TO/.env   # the primary arm, ~2.7 USD
 SANCHOPANZA_RJUDGE=... SANCHOPANZA_REGISTER=... SANCHOPANZA_ATBENCH_CODEX=... python -m pytest tests/test_cascade_bench.py
 ```
+
+2026-10-15: text redacted to remove the name of another project; the sealed original (`prereg.md`, hash de8ad70bbd642d94b201d65ec093d48a0b08e1905e4db7cceef6c7cad27ef1ca) is kept in the git history.

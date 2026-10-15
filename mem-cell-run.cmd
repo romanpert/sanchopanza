@@ -3,7 +3,8 @@ rem Memory cell N against S, Sonnet 5.5, F1 family (iii) parallel; sealed in
 rem docs/results/2026-10-13-memory-cell/prereg.md. Runs from the detached worktree at the sealing
 rem commit, never from the main checkout (the hooks are read from disk at every call). Started
 rem outside the Claude Code session (WMI). Never run it twice. carry.py reads
-rem CLAUDE_CODE_OAUTH_TOKEN and TYPESAFE_API_KEY from this window or from the owner's Indagis .env;
+rem CLAUDE_CODE_OAUTH_TOKEN and TYPESAFE_API_KEY from this window or from the .env file
+rem SANCHOPANZA_KEYS_ENV names;
 rem the token reaches only the claude processes, the TypeSafe key only S's hooks. OUT is outside
 rem the home folder (carry.py refuses a clean user under a CLAUDE.md). Exit codes of carry.py: 0 ran
 rem to the end, 1 refused or crashed (see the log), 2 the cap or the usage limit,

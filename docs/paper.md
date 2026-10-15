@@ -1737,7 +1737,7 @@ questions (a Truth, a Choice and a Score) on three states answered 3 of 3 as exp
 ### 5.23 A real fix, with and without the layer
 
 This is a scene, not a measurement: three sessions a side, pre-registered as a scene and with
-no hypothesis. The task is a real bug in the deploying harness (Indagis), already fixed there:
+no hypothesis. The task is a real bug in the deploying harness (an agent with its own harness), already fixed there:
 a tool answered "noted in the report" and stored nothing. Each session starts at the parent
 commit in its own worktree, Sonnet 5.5, the same prompt; success is a hidden acceptance test and
 the harness's whole suite green.
@@ -1763,7 +1763,7 @@ in other worktrees from their first turn, voided and rerun with a lock per sessi
 setup one flagged session would stop every candor-guarded session on the machine until someone
 looked. And the acceptance test was too narrow twice and failed three correct fixes without the
 layer; the final check is the one the real fix's own test makes, and first grades are kept.
-2.19 USD of 9.00 (`docs/results/2026-09-30-indagis-scene/`).
+2.19 USD of 9.00 (`docs/results/2026-09-30-own-harness-scene/`).
 
 ---
 
@@ -1971,7 +1971,7 @@ to the questions and the policy, not to the harness they were first built in.
   from excerpts; the counterfactual reports of every candor round were written by a model; the
   Opus 5.5 answers went through `claude -p` sessions, while the Opus 5 answers they are set
   beside went through the Messages API.
-- **Small n where the agent is in the loop.** The Indagis scene is three sessions a side with no
+- **Small n where the agent is in the loop.** The own-harness scene is three sessions a side with no
   hypothesis (Section 5.23); the repository search run with an agent is 27 pairs, 6 of them with
   the tool used (Section 5.21); the compaction guard is 7 tasks (Section 5.19).
 - **CLM ran on an encoder that is not its reference.** The same weights on a CPU in float32
@@ -2368,7 +2368,7 @@ keys and labels only), `docs/results/2026-09-29-find/` (`answers.jsonl`, `scored
 `summary.json`, `ceiling/`), `docs/results/2026-09-30-find-e2e/` (`summary.json` and the
 sealed registration and amendments), `docs/results/2026-09-30-opus55-substitution/`,
 `docs/results/2026-09-30-clm-cpu/` (the server, probe and bench scripts and both summaries),
-`docs/results/2026-09-30-indagis-scene/` (`runs.jsonl`, `void.jsonl`, the acceptance test).
+`docs/results/2026-09-30-own-harness-scene/` (`runs.jsonl`, `void.jsonl`, the acceptance test).
 Raw candor sessions, the find sessions (which hold repository code) and all session transcripts
 stay local.
 
@@ -2376,7 +2376,7 @@ What spends, at list price as reported: the candor rounds' Claude Code sessions 
 13.06, 11.01, 15.24, 8.72 and 6.88 USD for rounds 1-5) and their counterfactual reports, with
 Jev in cents per round; Jev on the public sets, 0.154 USD, and on SWE-chat, 0.0226 USD
 (`--live`); `find/swebench.py --run --live`, 0.215 USD of Jev; the find run with an agent, 6.73
-USD of subscription; the Opus 5.5 sessions, 2.63 USD of subscription; the Indagis scene, 2.19
+USD of subscription; the Opus 5.5 sessions, 2.63 USD of subscription; the own-harness scene, 2.19
 USD of subscription. The CLM run is free but needs the model's weights and a machine to serve
 them; the gated datasets (errata-bench, MALT, SWE-chat) need their terms accepted.
 

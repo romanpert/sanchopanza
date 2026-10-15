@@ -167,19 +167,19 @@ def test_a_token_claude_code_wrote_into_the_pair_is_scrubbed(tmp_path: Path,
 def test_clean_user_without_a_token_refuses_before_building_anything(
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:  # fmt: skip
     monkeypatch.delenv(carry.TOKEN, raising=False)
-    monkeypatch.setattr(carry, "INDAGIS_ENV", tmp_path / "no.env")
+    monkeypatch.setattr(carry, "HARNESS_ENV", tmp_path / "no.env")
     with pytest.raises(SystemExit, match=carry.TOKEN):
         carry.main(["--out", str(tmp_path / "out"), "--scenes", "parallel", "--arms", "N",
                     "--clean-user", "--dry"])  # fmt: skip
     assert not (tmp_path / "out").exists()
 
 
-def test_clean_user_token_comes_from_the_indagis_env_when_the_window_has_none(
+def test_clean_user_token_comes_from_the_harness_env_when_the_window_has_none(
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:  # fmt: skip
     monkeypatch.delenv(carry.TOKEN, raising=False)
     env_file = tmp_path / ".env"
     env_file.write_text(f'OTHER=1\n{carry.TOKEN}="{FAKE}"\n', encoding="utf-8")
-    monkeypatch.setattr(carry, "INDAGIS_ENV", env_file)
+    monkeypatch.setattr(carry, "HARNESS_ENV", env_file)
     assert carry.clean_token() == FAKE
     monkeypatch.setenv(carry.TOKEN, "from-window")
     assert carry.clean_token() == "from-window"
@@ -314,7 +314,8 @@ def test_the_hook_arms_alone_need_the_typesafe_key(tmp_path: Path,
                                                   monkeypatch: pytest.MonkeyPatch) -> None:
     asked: list[Path] = []
     monkeypatch.setattr(carry, "record_claude", lambda *a: None)
-    monkeypatch.setattr(carry, "keyfile_from_indagis", lambda out: asked.append(out) or out / "k")
+    monkeypatch.setattr(carry, "keyfile_from_harness_env",
+                        lambda out: asked.append(out) or out / "k")
     monkeypatch.setattr(carry, "run_plan", lambda *a, **k: None)
     carry.main(["--out", str(tmp_path), "--scenes", "parallel", "--arms", "N"])
     assert not asked

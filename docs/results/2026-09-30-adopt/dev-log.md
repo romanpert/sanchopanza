@@ -241,7 +241,7 @@ What went wrong, declared:
   USD call reservation against 32.90) and run with `--continue` in the same session (0.14 USD).
 - A fresh session's first prompt logs a `record_error` (its own transcript does not exist yet
   when `UserPromptSubmit` fires). Harmless, noisy; not changed while arms were running.
-- indagis-e0 committed af3e55a at 19:34, during this batch. It changed `harness/mcp.py`, but the
+- Session e0 committed af3e55a at 19:34, during this batch. It changed `harness/mcp.py`, but the
   arms' MCP server serves the `find` tool set only, which it did not touch.
 
 Reading, honestly: n=1 per arm and repetition, and one bug of difference between two runs of the
@@ -253,7 +253,7 @@ so far (1.46 USD, 123 calls, against 1.57-2.43 and 149-180), with the `git check
 it a bug; that is a hint for H-new-session, not a result. Chain spend at the end: 30.47 USD
 (development total with singles, probes and Jev: ~36.6 of 42 USD).
 
-## Phase B, the long-session pilot on Sonnet 5.5 (indagis-45, 2026-09-30 evening)
+## Phase B, the long-session pilot on Sonnet 5.5 (session 45, 2026-09-30 evening)
 
 Development, approved as part of the three-phase plan (B 25-30 USD, C 55-60 USD, A ~105 USD).
 Written by the session that ran it; the pre-registration draft is `prereg-confirm.md`.
@@ -262,7 +262,7 @@ Written by the session that ran it; the pre-registration draft is `prereg-confir
 session, one working copy, ten requests, graded per chain (`benchmarks/adopt/combined.py`). The
 two chains did not fit in one image as drawn: pr_2141 (starlette-1) and pr_2041 (rel-1) change
 the same lines of `websockets.py` (61-75) and share their six FAIL_TO_PASS. The combining rule,
-written in `combined.py` before any session and agreed with indagis-6b: the first chain as it
+written in `combined.py` before any session and agreed with session 6b: the first chain as it
 is; a bug of the second that conflicts is replaced by that chain's first spare that conflicts
 with nothing and shares a code file. pr_2041 -> pr_2443. Validated in Docker, 10 of 10 (171 s).
 
@@ -305,7 +305,7 @@ sessions of 100+ calls); a test of the budget lever needs tasks that do, which t
 does not have. On Haiku (phase A), five bugs reach ~160k and a 100k budget does compact, so A
 still tests `Sm` where it can act.
 
-## Memory v3, measured on real sessions, and its smoke test here (indagis-72, 2026-10-01)
+## Memory v3, measured on real sessions, and its smoke test here (session 72, 2026-10-01)
 
 Batch 2 showed memory v2 picking the related record in these chains, but a chain of SWE-smith
 issues is not how people ask. Measured on real people's Claude Code sessions (SWE-chat, 60 groups
@@ -343,7 +343,7 @@ Smoke test on `encode__starlette-rel-1` repetition 3 (Haiku, n=1, to see the hoo
 - Both request 5s were first cut by the ceiling (36.90, after Sf's 1.43 USD request 4) and run
   with `--continue` (ceiling 38.60). Chain spend: 32.37 to 36.08 USD (3.71 for this test).
 
-## After phase B: what failed, why, and what changed (indagis-45, 2026-09-30 night)
+## After phase B: what failed, why, and what changed (session 45, 2026-09-30 night)
 
 The owner's instruction: when something fails, find why, fix it, measure again; do not drop it.
 
@@ -375,7 +375,7 @@ The owner's instruction: when something fails, find why, fix it, measure again; 
   development arms ran the editable install, declared above). `freeze.py <commit>` builds a
   non-editable install in its own venv; `ADOPT_SANCHO` points `run.py` and `hook_env.py` at it,
   every row records its path and commit, and held-out tasks refuse to run without one. B2 and A
-  will run eebdfa6 (memory v4.1, confirmed by indagis-72 on held-out real sessions: precision
+  will run eebdfa6 (memory v4.1, confirmed by session 72 on held-out real sessions: precision
   0.753 against v3's 0.631).
 
 ## Phase B2, one long chain on Sonnet 5.5 (2026-10-01)
@@ -396,7 +396,7 @@ again from the drawn chain: **valid, 40 of 40, one round** (pr_6633, pr_6616 and
 on its own, replaced; 2,825 s). conan and dvc are not affected: every invalid bug there failed
 the second check, the one the search was built for.
 
-**Read before B2's numbers: on Sonnet 5.5 memory v4.1 was nearly blind** (found by indagis-fe
+**Read before B2's numbers: on Sonnet 5.5 memory v4.1 was nearly blind** (found by session fe
 reading `runs/` while B2 ran). Memory records a request's changed files and recalls on Read,
 Edit and Write; Sonnet 5.5 edited only through Bash (`sed -i`, Python heredocs) in 78 % (N),
 100 % (S) and 71 % (Sm) of the requests of phases B and B2, and read only through Bash in
@@ -406,7 +406,7 @@ Haiku, A's model, edits with Edit/Write in 95-100 % of the requests of every arm
 in none only through Bash, so A's memory arms see what is edited and A reads as designed. Real
 people in SWE-chat edit only through Bash in 2.2 % of requests and read only through Bash in
 14.9 %. The fix (changed files read from the git tree at the end of a request, and the touch on
-Bash reads) is indagis-fe's, in `src/`, measured before it reaches main; A stays on eebdfa6.
+Bash reads) is session fe's, in `src/`, measured before it reaches main; A stays on eebdfa6.
 
 **Run** (2026-10-01, development, approved 30-45 USD, ceiling 45 over the 36.08 already spent):
 `--model sonnet --call-cap 4.5 --chain-cap 15 --ceiling 81.08`, arms `N`, `S` (default install,
@@ -492,7 +492,7 @@ which resumes each arm from its first NOT RUN request in the same session and wo
 dvc-rel-1 and astroid-1, then the singles (ceiling 169.36). pydantic-2's request 3 is run again in
 both arms over whatever the cut call left in the working copy; that is said with its result.
 
-**Amendment 2 (2026-10-01, indagis-53, before going on; sealed 74aa28c7).** The handoff said to go
+**Amendment 2 (2026-10-01, session 53, before going on; sealed 74aa28c7).** The handoff said to go
 on with `--continue`. Checked free on copies of the real rows and reviewed adversarially, it would
 have resumed the 429's own session for the arms stopped at request 1, and for pydantic-2 a session
 holding a request 3 cut after real work (N 42 tool calls, 3 Edits and a Write; Sm 29, 2 Edits) over
@@ -564,7 +564,7 @@ What the numbers say, read one by one before writing them:
   live request. In Sf the new session per request did not inject either. What memory did was
   recall on touch: 27 records shown when the agent opened a file already worked on. So in A,
   "memory between sessions" is the touch alone. The UserPromptSubmit selection never fired.
-  This is the most useful fact for the memory line (indagis-2d), not a verdict.
+  This is the most useful fact for the memory line (session 2d), not a verdict.
 - **The default install (S) on the singles** resolves one more than N (17 vs 16) and costs about
   8 % more per task at the median. Not confirmed either way.
 - No block by the shell guard in 1,944 commands. The install files of conan-2 Sm were restored
@@ -588,7 +588,7 @@ Checks done along the way, so that what the numbers read is what they claim to:
   because it replaces turns or because it trims context. With find 0 and skill 0, nothing in A
   replaced turns; Sm's lever is the 100k context budget (compactions).
 
-## Found after the verdict: phase A's S arms ran without the decider (2026-10-02, indagis-e3)
+## Found after the verdict: phase A's S arms ran without the decider (2026-10-02, session e3)
 
 Read-only check, no spend, made while passing the memory line the "memory injected nothing" fact.
 **The frozen install has no Jev.** `freeze.py` installs the commit with `pip install <source>`,
@@ -614,8 +614,8 @@ owner's call):
   (pool 1-4) and every probability came back `null` from the null decider.
 - H3's "0 blocks in 1,944 commands" is the guard's rules alone.
 - Not changed here: `freeze.py` and the runners are sealed. A fix (install `.[jev]`, and a
-  runner that refuses a held-out S arm whose hooks resolve no provider, as Indagis's
-  `ab_encargos.py` probes its image) waits for an amendment and the owner's decision.
+  runner that refuses a held-out S arm whose hooks resolve no provider, as an agent with its own harness
+  probes its image in `ab_encargos.py`) waits for an amendment and the owner's decision.
 
 **And no find_in_repo either** (found by the second review of amendment 5's code). The frozen
 copy had no `mcp` either, so find_in_repo's server failed to start in every session: the init
@@ -698,7 +698,7 @@ Read one by one before writing:
 - Not preregistered, for the next phase: whether an edit that weakens an existing test separates
   the regressions (the browse line's suggestion). Both zeros above edit or add test files.
 
-## Exploration after the second reading (2026-10-03, indagis-04; post hoc, no verdict, no spend)
+## Exploration after the second reading (2026-10-03, session 04; post hoc, no verdict, no spend)
 
 Read-only over phase A's rows, streams and patches. Scripts in that session's scratchpad.
 
@@ -856,7 +856,7 @@ existing non-test file, plus a struggle signal (the second empty search before a
 and look at the Agent-type failure in S. Find stays opt-in, not a default, until a set where the
 need is common shows a gain.
 
-## Before sealing phase D: the delegation hook, and find's need measured (2026-10-05, indagis-8f)
+## Before sealing phase D: the delegation hook, and find's need measured (2026-10-05, session 8f)
 
 Free work, no session.
 
@@ -953,3 +953,5 @@ hold:
   same 11-14 %.
 - So where the agent reads wrong files, the request is also hard for find. R4 stays; a wider
   window is not shipped.
+
+2026-10-15: text redacted to remove the name of another project; the sealed original (`prereg-confirm.sha256`, hash 705b0383adb573056ab3d639da156847d093789c794c3b680d2d194007a196d5) is kept in the git history.

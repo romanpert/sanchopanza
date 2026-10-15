@@ -78,7 +78,7 @@ The runs behind the README's headline numbers.
 | [2026-09-28-memory-gate](2026-09-28-memory-gate/) | A decider gate over memory files missed its recall criteria against BM25 top 3 on LongMemEval; at equal text, not distinguishable from BM25 over sentences |
 | [2026-09-30-find-e2e](2026-09-30-find-e2e/) | `find_in_repo` offered to a Haiku agent on 27 SWE-bench issues (`prereg-find-e2e.md`): called in 6 of 27 sessions; first-file hits 17 against 16, same cost (E1 and E2 fail, E3 holds) |
 | [2026-09-30-clm-cpu](2026-09-30-clm-cpu/) | CLM-8B zero-shot on a CPU encoder against Jev on the benches: runs end to end, agrees far less (injection 12/28 against 27/28) and does not separate the classes |
-| [2026-09-30-indagis-scene](2026-09-30-indagis-scene/) | A real Indagis fix, three sessions a side (`prereg-scene.md`): same cost, solo 3/3 against 2/3; candor caught one false read claim and raised two locks on a false reason, one of them on a correct fix; its lock is one file per machine |
+| [2026-09-30-own-harness-scene](2026-09-30-own-harness-scene/) | A real fix in an agent with its own harness, three sessions a side (`prereg-scene.md`): same cost, solo 3/3 against 2/3; candor caught one false read claim and raised two locks on a false reason, one of them on a correct fix; its lock is one file per machine |
 | [2026-09-30-browse](2026-09-30-browse/) | Reading less while browsing (`prereg-confirm.md` Phase 2c, `prereg-e2e.md`): Sonnet 5 from Jev's top 20 elements 53.3 % against 58.3 % from the whole page, -5 points [-15, +5], under the bar; a snapshot-pruning hook in 36 real Claude Code sessions with playwright-cli, +0.0095 USD a session [-0.006, +0.027], no saving |
 
 ## Corrected: headline invalid

@@ -771,7 +771,7 @@ def keyfile_for(profile: Profile, layout: Layout) -> Path | None:
     """The TypeSafe key for S's hooks, written under the root and removed at the end."""
     if not any(installed(arm, profile) for arm in profile.arms):
         return None
-    key = carry.from_indagis_env("TYPESAFE_API_KEY")
+    key = carry.from_harness_env("TYPESAFE_API_KEY")
     if not key:
         raise SystemExit("no TypeSafe key: the S arm would run without its decider")
     path = layout.root / f"typesafe-{os.getpid()}.key"

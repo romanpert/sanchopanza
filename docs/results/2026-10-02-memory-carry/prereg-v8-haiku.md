@@ -196,7 +196,7 @@ Analysis:
 3. **The decider is Jev.** With that PYTHONPATH and a dummy `TYPESAFE_API_KEY`,
    `decider_from_env` returns `JevDecider`; no call is made. Also check that `httpx` is
    importable. The adoption runs of phase A lost Jev to a missing `httpx`, in silence.
-4. **The key.** The TypeSafe key is in Indagis' `.env`, which `carry.keyfile_from_indagis` reads.
+4. **The key.** The TypeSafe key is in the `.env` of an agent with its own harness, which `carry.keyfile_from_harness_env` reads.
    The run needs under 1 USD of TypeSafe balance; the owner checks the balance on TypeSafe's
    console.
 5. **Claude Code.** `claude --version`, run with the launcher's PATH, prints 2.1.287.

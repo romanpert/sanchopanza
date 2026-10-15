@@ -349,7 +349,7 @@ The last line above names where the money is. This section asks whether a determ
 take the place of one of those readers: `fetch_passages` downloads the page itself, cuts it into
 chunks under their headings and returns the ones BM25 ranks highest for the purpose the agent
 declares, with no model at all (`sanchopanza.webpage`, `sanchopanza.harness.fetch_tool`, reusing
-the package's one BM25 in `sanchopanza.text`). What Indagis learned applies: once the reader is
+the package's one BM25 in `sanchopanza.text`). What an agent with its own harness learned applies: once the reader is
 gone, the model that asked reads what arrives at its own price, so the tool must hand over little
 and good text.
 

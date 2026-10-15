@@ -183,7 +183,7 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(why)
     with run._lock:
         run._ledger["spent"] = run.spent_so_far() + spent_singles()
-    keyfile = run.keyfile_from_indagis()
+    keyfile = run.keyfile_from_harness_env()
     try:
         if held & set(ids) and (why := run.decider_refusal(keyfile)):
             raise SystemExit(why)

@@ -11,7 +11,7 @@ contra el código un subagente independiente antes de lanzar.
 ¿Compactar antes, cerca de 67k en vez de cerca de 160k, abarata el código largo frente a N-early
 (el listón actual) sin una pérdida de calidad mayor que el margen fijado aquí?
 
-- Predicción gratis (replay de indagis-b9, 2026-10-08): compactar al final del turno con umbral
+- Predicción gratis (replay de la sesión b9, 2026-10-08): compactar al final del turno con umbral
   de 60-70k daba entre −20 y −25 % frente al umbral de Ne. **Es una cota optimista**: supone que el
   agente no relee más tras 9-11 compactaciones en lugar de 2-4, y la calidad no estaba medida.
 - Si gana, el candidato es cambiar el valor por defecto de `sanchopanza install --context-budget`.

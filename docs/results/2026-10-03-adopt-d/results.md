@@ -29,3 +29,5 @@ Claude Code on Haiku 4.5 resolves as many Verified issues as alone, at about the
 median ratio is 1.007), but the interval does not rule out up to 14 % more, so the pre-registered
 "no more than 10 % dearer" is not shown. The agent almost never uses find. Nothing here shows a
 gain; it shows no loss in success.
+
+2026-10-15: text redacted to remove the name of another project; the sealed original (`prereg.sha256`, hash f422cea03d2369f9ed5cd24bd9f26d460235952fee95fc62c094666c1a4122f1) is kept in the git history.

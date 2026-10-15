@@ -362,7 +362,7 @@ def give_ups(evidence: Path, row: Mapping[str, Any],
     the context the call reached, and how many came at or past `GIVE_UP_AT`.
 
     The raw count also takes a bug an earlier bug's fix already fixed ("no further change was
-    needed": 3 of 7 in the gate's Sonnet pydantic N; indagis-e8, 2026-10-07). With the arm's
+    needed": 3 of 7 in the gate's Sonnet pydantic N; session e8, 2026-10-07). With the arm's
     `grade`, each item says whether its bug ends resolved, and `unresolved` counts the give-ups
     that are real: given up AND left unresolved, with their contexts. The raw count stays."""
     items = []

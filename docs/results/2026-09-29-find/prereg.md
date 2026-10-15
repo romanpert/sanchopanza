@@ -6,7 +6,7 @@ together with the code it names (`prereg.manifest.json`).
 ## The question
 
 An agent in Claude Code or Codex that gets an issue first has to find where to look.
-`sanchopanza.context.repo` answers that, and nothing about it is specific to Indagis:
+`sanchopanza.context.repo` answers that, and nothing about it is specific to an agent with its own harness:
 
 1. it cuts the repository into fragments (top-level definitions for code, paragraphs for prose);
 2. BM25 over path and text keeps a shortlist of 60;

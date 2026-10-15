@@ -230,8 +230,8 @@ changes, `sanchopanza.__file__`, the `claude` path and version to `mem-cell-run.
 with `RUN=C:\sp-runs\memory-carry\mem-cell-sonnet-parallel` (cell.py's stderr goes to
 `mem-cell-table.err`); after a timeout (exit 3), the same carry.py command with `--continue`, once.
 carry.py exits 0 when the plan ran to its end, 1 when it refused or crashed (the log says which),
-2 on the cap or the usage limit, 3 on a session timeout, 4 when S did not run as S. It reads `CLAUDE_CODE_OAUTH_TOKEN` and `TYPESAFE_API_KEY` from the owner's Indagis
-`.env` (a WMI process inherits no window variable); the token goes only to the `claude` processes
+2 on the cap or the usage limit, 3 on a session timeout, 4 when S did not run as S. It reads `CLAUDE_CODE_OAUTH_TOKEN` and `TYPESAFE_API_KEY` from the `.env` of the
+owner's agent with its own harness (a WMI process inherits no window variable); the token goes only to the `claude` processes
 and is scrubbed from the pair's files if found; the key is written to `typesafe.key` in the run
 folder for the hooks and removed when the run ends.
 
@@ -267,7 +267,7 @@ runner's own cleanup did not reach. Any stop is recorded as found.
 
 ## Sealing
 
-- Launcher `mem-cell-run.cmd`, sha256 `7ed50064986b6646146f74281c0568967b3b7defe992a3d72a94e806ce464106`.
+- Launcher `mem-cell-run.cmd`, sha256 `67837f636f1e0ad37853d4e49db625baf160728d8affe26bb868f5a6b49682a7`.
 - Code: `benchmarks/memory_carry/` and `src/` as of the sealing commit (`src/` is main's e9500ea,
   untouched on this branch).
 - Sealing commit: the commit that adds this file

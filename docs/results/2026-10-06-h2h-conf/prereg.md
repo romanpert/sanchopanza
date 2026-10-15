@@ -3,7 +3,7 @@
 Status: DRAFT until the seal block at the end is filled. Nothing in this file changes after the
 first paid session; a change after that is an amendment, appended with its date and reason.
 
-Written by indagis-dd (line web/h2h, relay of indagis-a1) on 2026-10-06, from the common plan
+Written by session dd (line web/h2h, relay of session a1) on 2026-10-06, from the common plan
 (`docs/PLAN-COMPARACION-FINAL.md` on main, section 2) and the dev phases of 2026-10-05/06
 (`docs/results/2026-10-06-h2h-s1/README.md`). No task text, gold or answer appears here or in
 any file of the repository.
@@ -132,7 +132,7 @@ Analysis set: tasks with a counted first run in both arms (`phase.counted`: no w
 - **Opus 5.5 is missing** from this preregistration (plan 1): its verdict does not exist until an
   amendment adds it with the owner's OK; Fable 5.1 likewise.
 - **S is S0, not the bare default install** (plan 1 allows a decided line): the decision is
-  `docs/S-SEAL-DRAFT.md` on main (indagis-95 with indagis-a1, 2026-10-05) and its 2026-10-06
+  `docs/S-SEAL-DRAFT.md` on main (session 95 with session a1, 2026-10-05) and its 2026-10-06
   update (gate A in, check-done and candor kept).
 
 ## 7. Order and cost
@@ -141,7 +141,7 @@ Expected from dev (Sonnet 5.5, list prices, Jev included): GAIA ~0.11 USD per se
 BCP ~0.6 (~110 USD), LongBench ~0.08 (~8 USD): **~150 USD** on the subscription, plus Jev, which
 is 0.25-1.8 % of an S session (TypeSafe balance 9.47 USD on 2026-10-06 11:40). Order: LongBench and
 GAIA (may run side by side as separate phases), then BCP. One heavy batch of the other lines at
-a time, agreed with indagis-e1/d4 (PID, time, ceiling announced). Opus 5.5 is a separate
+a time, agreed with session e1/d4 (PID, time, ceiling announced). Opus 5.5 is a separate
 amendment, only with the owner's OK.
 
 Commands (from the h2h worktree; `launch.ps1` adds `--live` and pins Claude Code):
@@ -173,14 +173,14 @@ only.
 
 To fill before the first paid session; this block is the only part written after the draft.
 
-Sealed 2026-10-06 12:15 by indagis-dd.
+Sealed 2026-10-06 12:15 by session dd.
 
 - sanchopanza sealed commit (S line): `aad9903054896c6618026c3c2b069dd314503f3a` (main: gate A
   f2a0fe2 and the out-of-funds breaker 674806b). guard-struct is **not** in it: with
   `SANCHOPANZA_GUARD_CHOOSER=keep` explicit it would not change what S0 runs, and its `struct`
   default was never measured end to end.
 - `benchmarks/h2h/s_install.json` sealed at h2h 499ec2d, sha256
-  `ec0c106a7215794f330ef4855e08a6ac372893cf992e70b0888e8ca4a9fe0c4a`.
+  `8f480fce4643c694989b2c0f90a3a0ffa51adcea536d0ccc8a542e3ab1d6120f`.
 - h2h runner commit: 499ec2d (code as of 1c89461).
 - sha256 of this file up to the line before "## 9. Seal", LF line endings:
   `08484a10b64f9a2a60356d185eb1384df5a370b448b657db41e7c8da6a63f874`.
@@ -208,3 +208,5 @@ at 13:52; the other options were to truncate at 150 or to stop). Code: `PHASE_CE
 The running process keeps its 150; when it stops there it is resumed with `--ceiling 250`.
 Nothing else changes. Seen before deciding: per-arm cost of the first 5 tasks, no grades (BCP
 is graded after its sessions).
+
+2026-10-15: text redacted to remove the name of another project; the sealed original (`benchmarks/h2h/s_install.json`, hash ec0c106a7215794f330ef4855e08a6ac372893cf992e70b0888e8ca4a9fe0c4a) is kept in the git history.

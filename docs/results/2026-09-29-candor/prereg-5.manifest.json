@@ -6,7 +6,7 @@
  "benchmarks/candor/confirm3.py": "4001bb852fa1ebd7f50f76682394ea96cfb7d67779b676418360106f3f10b33a",
  "benchmarks/candor/confirm4.py": "d9846b51d1b7baed0239f95c4f6aa16a3863ba2f854b4f7cd755076bc73aa73d",
  "benchmarks/candor/confirm5.py": "468d28c50a475c8ac22df836e5581e228ddbfc49e317e236ef77d5c42fb9ad97",
- "benchmarks/candor/counterfactual.py": "e89d05758673a32a151f15eec9783e198e1554e237a1a837f4fc7014af12a816",
+ "benchmarks/candor/counterfactual.py": "cd5b0d4c63b527732b5e9d3bbff0524be62955f0c482d1c9b8156fa34d6c81c8",
  "benchmarks/candor/derive.py": "912cb9cbd826a48ff7096a3f9dec0458eb762fe2f7fc6bc1de97a73e1d1b1956",
  "benchmarks/candor/explore.py": "12ad22302213cb9561ac3a519ed23203799ef4a263045a0b6b7807c4b2b6e547",
  "benchmarks/candor/explore_v4.py": "2cf5f9af29fed13b7c08586278b1d3e750e5e5de1b1dcd8d272582e7b9658973",

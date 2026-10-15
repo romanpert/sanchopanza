@@ -4,14 +4,14 @@ An independent check of the seal (c4b853c) against the code passed on all nine i
 launcher sha256, commands and caps, scenes, clean user, pinned Claude Code, dry run, empty run
 folders, tests. It also found places where the prereg's wording differs from what the sealed
 code does. This amendment changes no code and no number. The launcher's sha256 stays
-`9ed786d5f7ee3cd96139bc6fb2455db2f5384f38743bd397eb47e272b705e241`. Where the two disagree,
+`674634bd1b6a73af26e3fb60921b9ea7b9586d341f09884644c7436d005413dd`. Where the two disagree,
 the code is what runs, and it is what this amendment describes.
 
 1. **Without the token** the launcher itself does not refuse. `carry.py` exits 1, and the
    status file shows `sonnet-exit 1` and `opus-skipped`. Nothing is spent.
 2. **Tests:** the four F1 test files hold 127 tests, not 126. 8e9dc68 added the `.env` token
    test. All of `tests/test_memory_carry*.py` (189) pass.
-3. **Launch checks:** the dry run reads the real token from the Indagis `.env`; there is no
+3. **Launch checks:** the dry run reads the real token from the `.env` of an agent with its own harness; there is no
    dummy token any more. No token prefix was found in any dry-run file.
 4. **Family (ii):** a break counts only when the fact is not kept and the task did not fail
    (decision 4). This applies to every family; the sentence in family (ii) that says "any fact

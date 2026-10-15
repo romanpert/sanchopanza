@@ -1,4 +1,5 @@
-"""The workspace snapshot hashes only what changed since the last one (11.9 s to 0.3 s, Indagis)."""
+"""The workspace snapshot hashes only what changed since the last one (11.9 s to 0.3 s, on the
+repository of an agent with its own harness)."""
 
 from __future__ import annotations
 

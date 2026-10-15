@@ -17,7 +17,7 @@ param(
     [ValidateSet('h2h_gaia.py', 'h2h_bcp.py', 'h2h_longdoc.py')][string]$Runner = 'h2h_gaia.py',
     [string]$Log = "$env:USERPROFILE\.cache\sanchopanza\gaia\h2h\launch.log",
     [string]$PidFile = "$env:USERPROFILE\.cache\sanchopanza\gaia\h2h\launch.pids",
-    [string]$Pin = 'C:\Users\roman\AppData\Local\Temp\claude\c--Users-roman-Desktop-proyectos-apps-indagis\ed2adcce-a92b-4af9-bb31-96872de0c1cd\scratchpad\pin'
+    [string]$Pin = $(if ($env:SANCHOPANZA_PIN_DIR) { $env:SANCHOPANZA_PIN_DIR } else { 'C:\sp-runs\pin' })
 )
 $worktree = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $py = 'C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts\python.exe'

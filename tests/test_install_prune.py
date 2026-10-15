@@ -46,7 +46,7 @@ def test_install_prune_wires_one_hook_once_and_keeps_theirs(tmp_path: Path) -> N
 def test_the_matcher_reaches_what_the_confirmed_arm_saw_on_any_server() -> None:
     """3p and 3r measured inline snapshots of `mcp__playwright__browser_*`. `Read` stays out:
     memory's hook chooses records by the lines a read returns, and a replaced read would leave
-    it choosing by lines the agent never saw (indagis-70, 2026-10-03)."""
+    it choosing by lines the agent never saw (session 70, 2026-10-03)."""
     matcher = re.compile(PRUNE_HOOKS["PostToolUse"])
     for tool in ("mcp__playwright__browser_snapshot", "mcp__playwright__browser_click",
                  "mcp__plugin_playwright_playwright__browser_navigate"):  # fmt: skip
@@ -119,7 +119,7 @@ def test_the_installed_command_runs_the_browse_hook(tmp_path: Path) -> None:
     assert len(kept) < len(text) / 2 and "Item number 377 of" in kept
 
 
-# --- S seal (2026-10-05, indagis-a1): crawl owns browser_evaluate, prune never touches it -----
+# --- S seal (2026-10-05, session a1): crawl owns browser_evaluate, prune never touches it -----
 
 
 def test_the_matcher_leaves_browser_evaluate_to_crawl() -> None:

@@ -80,12 +80,12 @@ def _jsonl_or_list(rel: str) -> list[dict]:
     return json.loads((RESULTS / rel).read_text(encoding="utf-8"))
 
 
-def test_indagis_scene() -> None:
-    got = _json("2026-09-30-indagis-scene/summary.json")
+def test_own_harness_scene() -> None:
+    got = _json("2026-09-30-own-harness-scene/summary.json")
     assert (got["solo"]["success"], got["sancho"]["success"]) == (3, 2)
     assert (got["solo"]["median_cost_usd"], got["sancho"]["median_cost_usd"]) == (0.3098, 0.3123)
-    runs = _jsonl("2026-09-30-indagis-scene/runs.jsonl")
+    runs = _jsonl("2026-09-30-own-harness-scene/runs.jsonl")
     names = [f"{a}-{i}" for a in ("sancho", "solo") for i in (1, 2, 3)]
     assert sorted(r["name"] for r in runs) == names
-    voided = _jsonl("2026-09-30-indagis-scene/void.jsonl")
+    voided = _jsonl("2026-09-30-own-harness-scene/void.jsonl")
     assert sorted(r["name"] for r in voided) == ["sancho-2", "sancho-3"]

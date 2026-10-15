@@ -37,7 +37,7 @@ it was in no result list at all, so annotating or reordering results could not r
 
 The ceiling of D as a nudge ("this returned document likely answers: read it") is about 3 answers
 in 180 sessions, 1 in S's 90. Annotating or reordering each search's results in place
-(PostToolUse on the search tool, indagis-6c's variant) acts on the same 7 sessions: 3 at 0.9,
+(PostToolUse on the search tool, session 6c's variant) acts on the same 7 sessions: 3 at 0.9,
 5 at 0.7 with about 4 false flags a session. It is not where S can win BrowseComp-Plus. Where the wrong answers
 are: 58 of 75 wrong sessions never saw a gold document (retrieval), and 10 of the other 17 read it
 and still missed (reading). The AUC is worth keeping for any later use of document-level checks.

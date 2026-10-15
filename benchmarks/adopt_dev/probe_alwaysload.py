@@ -362,7 +362,7 @@ def grade_done(name: str, arms: tuple[str, ...]) -> None:
 def probe() -> int:
     preflight()
     known = singles_run.rows()
-    keyfile = run.keyfile_from_indagis()
+    keyfile = run.keyfile_from_harness_env()
     try:
         for name, arms in PLAN:
             one_instance(known[name], arms, keyfile)

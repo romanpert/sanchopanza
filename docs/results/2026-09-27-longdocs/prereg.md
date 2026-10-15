@@ -5,7 +5,7 @@ spend unless the sha256 of this file (line endings normalised to LF) matches `pr
 
 ## Why
 
-Indagis reads long documents: a 117,000-character PDF in one real job. `triage_many` was
+An agent with its own harness reads long documents: a 117,000-character PDF in one real job. `triage_many` was
 confirmed on 100 short Wikipedia paragraphs per question (`../2026-09-27-hierarchy/`). A long
 document is a large set of paragraphs, so the same shipped method should apply with no new
 parameter. This run tests that transfer on data with human evidence labels, and it tunes

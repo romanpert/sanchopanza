@@ -57,3 +57,5 @@ tested it on 300 nobody had seen.
 python benchmarks/chunks/run.py --analyze --hotpot HOTPOT.jsonl
 python benchmarks/chunks/confirm.py --hotpot HOTPOT.jsonl
 ```
+
+2026-10-15: text redacted to remove the name of another project; the sealed original (`prereg.md`, hash 7c88fbfef9b87841369475c235fdb032da046a05ea1dc0a194d64f91e2463405) is kept in the git history.

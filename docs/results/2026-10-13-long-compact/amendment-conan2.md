@@ -1,7 +1,7 @@
 # Enmienda al prerregistro: repetir conan-2 (cierre de contexto, 2026-10-14)
 
 Enmienda a [`prereg.md`](prereg.md) (sellado en fb42fa4, sha256
-`fb1bbd537c8752434105538952b6c99ae67d1ce34e4f97e38d98abbfddbd3ae1`). Aprobada por el dueño el
+`47b4697f70d313e6952acfba174b40b394aad9ae35830b71e49d189eb11a4271`). Aprobada por el dueño el
 2026-10-14, con la suscripción de Claude Code, 45 $ duros.
 
 **Es posterior a los datos.** Se escribe después de leer la tanda del cierre (README, `read.json`)

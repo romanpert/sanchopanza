@@ -162,3 +162,5 @@ passes.
   interactive sessions may save memory differently.
 - The gate says nothing about S. Whether S keeps more on Sonnet parallel, and at what cost, is the
   full run's question.
+
+2026-10-15: text redacted to remove the name of another project; the sealed original (`f1-gate-run.cmd`, hash 9ed786d5f7ee3cd96139bc6fb2455db2f5384f38743bd397eb47e272b705e241) is kept in the git history.

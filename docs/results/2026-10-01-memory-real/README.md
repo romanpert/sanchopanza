@@ -343,3 +343,5 @@ hex) the model had read the file with `Read` first and the record had come then.
 can be found in the repository (a `grep retry_limit` lists `deploy/check.py`; the underscore
 handling is in the code being edited), which is why neither arm missed them: a trap that tests
 memory has to be a fact only the earlier conversation holds. `shell_first` stays off.
+
+2026-10-15: text redacted to remove the name of another project; the sealed originals (`amendment-1.sha256`, hash d0bbf379f2398d85c70c535adf602ecda504b25aa51aaaa03252f872d44e5c65; `amendment-2.sha256`, hash c152284d667f95d0ba8260ef8f40b65568d3218b86e2cfd1915ffc5ce9ecabfe; `amendment-3.sha256`, hash 4bbb60a94404781137f2d17f9cc38c0863f47aed54a250930a248b929596fd17; `amendment-4.sha256`, hash c8bada6aa33f0caee5251dc0a25892bdfa120c712b9e6372bc0e0c7a83654ced; `amendment-5.sha256`, hash a1462f5a60f1ef9f52167efdae69f388fff60fd26ed25596fd11d54a3ed95cab; `amendment-6.sha256`, hash c2016528566a6c761358643cd75a43d1a2b42aabc4653e42804a0ff284814cc9) are kept in the git history.

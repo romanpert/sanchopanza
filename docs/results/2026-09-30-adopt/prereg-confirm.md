@@ -340,7 +340,7 @@ conan-1 and conan-2 had not been graded. Sealed again; no code changes.
 
 ## Amendment 5, 2026-10-02, after phase A's verdict was read, before any S arm runs again
 
-Written by indagis-e3 on the owner's decision of 2026-10-02 ("1.2": fix the frozen install and
+Written by session e3 on the owner's decision of 2026-10-02 ("1.2": fix the frozen install and
 run the S arms again). Unlike amendments 1-4, this one comes **after** `confirm.py A` was read
 (seal 147b1599). It does not change that reading, which stands in the dev log as what it was:
 sanchopanza **without its decider and without find_in_repo**. It registers a second reading,
@@ -408,7 +408,7 @@ review).
    sessions; a few cents expected. A smoke test through `hook_env.py` and the new copy asked
    Jev one real guard question (jev-1.13.0, 0.00003 USD, no error) and started find's server
    (initialize answered, exit 0). Run outside the session (`Win32_Process.Create`), and not
-   alongside another session's run on the subscription (agreed with indagis-48). An error
+   alongside another session's run on the subscription (agreed with session 48). An error
    result stops it, and amendment 2 applies.
 7. **Verdict.** `confirm.py A` as sealed, with the rule of point 3, gives the second reading.
    It is reported beside the first, and neither replaces the other.
@@ -430,7 +430,7 @@ review).
 
 ## Amendment 6, 2026-10-03, before the last single runs and before the second reading
 
-Written by indagis-e3 after amendment 5's driver stopped at its own cap, with the owner's OK
+Written by session e3 after amendment 5's driver stopped at its own cap, with the owner's OK
 ("acaba esta tirada", 2026-10-03). `confirm.py A` has not been run on the second reading, and no
 verdict of it has been read.
 

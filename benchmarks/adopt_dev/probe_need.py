@@ -163,7 +163,7 @@ def one_instance(row: dict[str, Any], keyfile: Any) -> None:
 def probe() -> int:
     base.preflight()
     known = common.singles_run.rows()
-    keyfile = common.run.keyfile_from_indagis()
+    keyfile = common.run.keyfile_from_harness_env()
     try:
         for name, _arms in PLAN:
             one_instance(known[name], keyfile)

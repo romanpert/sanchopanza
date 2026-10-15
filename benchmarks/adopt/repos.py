@@ -27,12 +27,4 @@ REPOS = {
         pythonpath=("src",),
         code_prefixes=("src/",),
     ),
-    "indagis": Repo(
-        name="indagis",
-        path=APPS / "indagis",
-        snapshot="1ebe456",
-        python=APPS / "indagis" / ".venv" / "Scripts" / "python.exe",
-        pythonpath=(".",),
-        code_prefixes=("agent/", "indagis/"),
-    ),
 }

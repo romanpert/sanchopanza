@@ -629,7 +629,7 @@ def batch() -> None:
     lock = take_lock()
     try:
         rows = plan_rows()
-        keyfile = run.keyfile_from_indagis()
+        keyfile = run.keyfile_from_harness_env()
         try:
             if why := d_refusal(keyfile):
                 raise SystemExit(why)
@@ -659,7 +659,7 @@ def main(argv: list[str] | None = None) -> int:
 
         return selftest_d.main(args.instance)
     if args.action == "check":
-        keyfile = run.keyfile_from_indagis()
+        keyfile = run.keyfile_from_harness_env()
         try:
             print(d_refusal(keyfile) or "phase D may run")
         finally:

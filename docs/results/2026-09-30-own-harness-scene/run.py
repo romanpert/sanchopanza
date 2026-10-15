@@ -1,13 +1,14 @@
-﻿"""The Indagis scene: Claude Code alone against Claude Code with sanchopanza, on a real Indagis bug.
+﻿"""The own-harness scene: Claude Code alone against Claude Code with sanchopanza, on a real bug
+in an agent with its own harness.
 
     python run.py plan                 # free: arms, reps, caps, the estimate
     python run.py check                # free: the acceptance test fails at base, passes on the fix
     python run.py run                  # subscription sessions, capped (prereg-scene.md)
     python run.py score                # free
 
-Each repetition is a fresh git worktree of Indagis at the base commit, one headless Claude Code
-session, then the hidden acceptance test and the harness suite. Worktrees are removed at the
-end; nothing is committed to Indagis.
+Each repetition is a fresh git worktree of that agent's repository (SANCHOPANZA_SCENE_REPO) at
+the base commit, one headless Claude Code session, then the hidden acceptance test and the
+harness suite. Worktrees are removed at the end; nothing is committed to that repository.
 """
 
 from __future__ import annotations
@@ -30,11 +31,12 @@ PRE_0930 = ["--no-guard", "--no-find", "--no-skill", "--context-budget", "0",
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
-INDAGIS = Path(r"C:\Users\roman\Desktop\proyectos\apps\indagis")
-PYTHON_INDAGIS = INDAGIS / ".venv" / "Scripts" / "python.exe"
+# The repository under test, from SANCHOPANZA_SCENE_REPO; no default.
+TARGET = Path(os.environ.get("SANCHOPANZA_SCENE_REPO", ""))
+PYTHON_TARGET = TARGET / ".venv" / "Scripts" / "python.exe"
 PYTHON = REPO / ".venv" / "Scripts" / "python.exe"
 SANCHO = REPO / ".venv" / "Scripts" / "sanchopanza.exe"
-ROOT = Path.home() / ".cache" / "sanchopanza" / "indagis-scene"
+ROOT = Path.home() / ".cache" / "sanchopanza" / "own-harness-scene"
 BASE = "6ca4e57"  # parent of 3a0e243, the real fix
 FIX = "3a0e243"
 MODEL = "claude-sonnet-5-5"
@@ -78,11 +80,11 @@ def spent() -> float:
 def worktree(name: str) -> Path:
     target = ROOT / "work" / name
     if target.exists():
-        subprocess.run(["git", "-C", str(INDAGIS), "worktree", "remove", "--force", str(target)],
+        subprocess.run(["git", "-C", str(TARGET), "worktree", "remove", "--force", str(target)],
                        capture_output=True)  # fmt: skip
         shutil.rmtree(target, ignore_errors=True)
-    subprocess.run(["git", "-C", str(INDAGIS), "worktree", "prune"], check=True)
-    subprocess.run(["git", "-C", str(INDAGIS), "worktree", "add", "-q", "--detach", str(target),
+    subprocess.run(["git", "-C", str(TARGET), "worktree", "prune"], check=True)
+    subprocess.run(["git", "-C", str(TARGET), "worktree", "add", "-q", "--detach", str(target),
                     BASE], check=True)  # fmt: skip
     return target
 
@@ -113,7 +115,7 @@ def child_env(work: Path) -> dict[str, str]:
 
 
 def command(arm: str, evidence: Path, keyfile: Path) -> list[str]:
-    cmd = ["claude", "-p", PROMPT.format(python=PYTHON_INDAGIS.as_posix()), "--model", MODEL,
+    cmd = ["claude", "-p", PROMPT.format(python=PYTHON_TARGET.as_posix()), "--model", MODEL,
            "--max-budget-usd", f"{SESSION_CAP_USD:.2f}", "--max-turns", str(MAX_TURNS),
            "--output-format", "stream-json", "--verbose", "--setting-sources", "project",
            "--strict-mcp-config", "--permission-mode", "dontAsk", "--tools", ",".join(TOOLS),
@@ -129,7 +131,7 @@ def grade(work: Path) -> dict[str, Any]:
     env = {**child_env(work)}
 
     def pytest(target: str) -> tuple[bool, str]:
-        proc = subprocess.run([str(PYTHON_INDAGIS), "-m", "pytest", target, "-q",
+        proc = subprocess.run([str(PYTHON_TARGET), "-m", "pytest", target, "-q",
                                "-p", "no:cacheprovider"], cwd=work, env=env, capture_output=True,
                               text=True, encoding="utf-8", timeout=600)  # fmt: skip
         return proc.returncode == 0, (proc.stdout or "").strip().splitlines()[-1:][0:1]
@@ -228,12 +230,12 @@ def check() -> dict[str, Any]:
     for label, commit in (("base", BASE), ("fix", FIX)):
         work = ROOT / "work" / f"check-{label}"
         if work.exists():
-            subprocess.run(["git", "-C", str(INDAGIS), "worktree", "remove", "--force", str(work)],
+            subprocess.run(["git", "-C", str(TARGET), "worktree", "remove", "--force", str(work)],
                            capture_output=True)  # fmt: skip
-        subprocess.run(["git", "-C", str(INDAGIS), "worktree", "add", "-q", "--detach", str(work),
+        subprocess.run(["git", "-C", str(TARGET), "worktree", "add", "-q", "--detach", str(work),
                         commit], check=True)  # fmt: skip
         out[label] = grade(work)
-        subprocess.run(["git", "-C", str(INDAGIS), "worktree", "remove", "--force", str(work)],
+        subprocess.run(["git", "-C", str(TARGET), "worktree", "remove", "--force", str(work)],
                        capture_output=True)  # fmt: skip
     return out
 
@@ -288,9 +290,9 @@ VOID = {
 
 def cleanup() -> None:
     for work in (ROOT / "work").glob("*"):
-        subprocess.run(["git", "-C", str(INDAGIS), "worktree", "remove", "--force", str(work)],
+        subprocess.run(["git", "-C", str(TARGET), "worktree", "remove", "--force", str(work)],
                        capture_output=True)  # fmt: skip
-    subprocess.run(["git", "-C", str(INDAGIS), "worktree", "prune"], check=True)
+    subprocess.run(["git", "-C", str(TARGET), "worktree", "prune"], check=True)
 
 
 def main(argv: list[str]) -> int:

@@ -20,7 +20,7 @@ result. This run tests that reading on questions nothing was chosen on.
   run**. Same parquet file.
 - **Contribution cut**: c = **0.28**, derived on all 300 first-run questions with the first
   run's rule (joint recall >= 0.95 at the smallest kept share). Not tuned again.
-- **Shipped question**: reported at the cut Indagis ships (relevance 0.45) and at **0.04**,
+- **Shipped question**: reported at the cut an agent with its own harness ships (relevance 0.45) and at **0.04**,
   derived on all 300 first-run questions by the same rule.
 - **BM25 at matched budget**: on the new questions, k = the smallest top-k whose mean kept
   share is **at least** the contribution arm's mean kept share. BM25 gets at least as many
@@ -31,7 +31,7 @@ result. This run tests that reading on questions nothing was chosen on.
 - **P6**: contribution joint recall >= 0.90, and >= BM25's joint recall at matched budget
   plus 10 points.
 - **P7**: contribution joint recall >= the shipped question at 0.45 plus 50 points (the gap
-  Indagis carries today).
+  an agent with its own harness carries today).
 - **P8** (secondary, reported either way): contribution against the shipped question at its
   derived 0.04, at their own kept shares.
 
