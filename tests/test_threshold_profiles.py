@@ -43,6 +43,9 @@ JEV_113 = {
     "recall_skip": None, "done": 0.5, "holistic": 0.83, "remember": 0.54, "derivable": 0.46,
     "common_durable": 0.70, "common_derivable": 0.75, "audit": 0.0, "max_decisions": 400,
     "max_usd": 0.10, "max_windows": 8,
+    # Added 2026-10-15 with the opt-in MCP guard (A3): a new cut, not a moved one; it is the cut
+    # `points.actions.decide` was measured at offline (docs/results/2026-10-16-a3-mcp/prereg.md).
+    "action_stop": 0.5,
 }  # fmt: skip
 JEV_114 = {"adds_nothing": 0.61, "goal_met": 0.57, "repeats_check": 0.60, "extract_skip": 0.27,
            "recall_skip": 0.10, "done": 0.30, "holistic": 0.90}  # fmt: skip

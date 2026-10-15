@@ -37,6 +37,12 @@ wins when both are set (`sanchopanza._env`):
     ON_CHANGE         "0" to run CHECK_DONE (and candor) on every request. By default they act
                       only on a request that changed something (`harness.change_gate`): on
                       question-and-answer sessions the send-back never changed a grade.
+    GUARD_MCP         "1" to judge MCP tool calls (`mcp__<server>__<tool>`) before they run:
+                      the `actions` point reads the session so far from the transcript and
+                      the pending call, and denies at T_ACTION_STOP (0.5). Opt-in, one paid
+                      decision per judged call; see `harness.mcp_guard` (roadmap A3).
+    GUARD_MCP_SKIP    comma-separated MCP servers it never judges (our own never are)
+    GUARD_MCP_CHARS   the record's size in characters (default 24000)
     T_*               any threshold by name, e.g. SANCHOPANZA_T_INJECTION=0.5
     AUTOPILOT         "1" to cut long tool results on arrival and recall archived output and
                       memories (`harness.autopilot`, which lists its own knobs)
@@ -135,8 +141,17 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
     purpose = _env.get("PURPOSE", "", env=env).strip()
     chosen = _env.get("GUARD_PROFILE", "", env=env).strip().lower()
     profile = "coding" if chosen == "coding" else "sandbox"
+    guard_mcp = _env.get("GUARD_MCP", "", env=env).strip().lower() in ("1", "true", "yes")
+    skipped = {s.strip() for s in _env.get("GUARD_MCP_SKIP", "", env=env).split(",") if s.strip()}
     defaults = HarnessConfig()
+    try:
+        record_chars = int(_env.get("GUARD_MCP_CHARS", "", env=env) or defaults.mcp_record_chars)
+    except ValueError:
+        record_chars = defaults.mcp_record_chars
     return HarnessConfig(
+        guard_mcp=guard_mcp,
+        mcp_skip_servers=frozenset(skipped),
+        mcp_record_chars=record_chars if record_chars > 0 else defaults.mcp_record_chars,
         tiers=tiers,
         cheap_search_available=lambda: cheap,
         scan_content=scan,
@@ -148,7 +163,11 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
     )
 
 
-def squire_from_env(env: dict[str, str] | None = None, *, redact: bool = False) -> Any:
+def squire_from_env(
+    env: dict[str, str] | None = None, *, redact: bool = False, decider: Decider | None = None
+) -> Any:
+    """The hook's squire. `decider` stands in for the provider the environment names (a
+    replay, a capped or recording one); everything else is read from `env` as the hook reads it."""
     from ..journal import JsonlJournal
     from ..policy import Thresholds, model_of
     from ..redact import redact_secrets
@@ -156,7 +175,7 @@ def squire_from_env(env: dict[str, str] | None = None, *, redact: bool = False) 
 
     env = env if env is not None else dict(os.environ)
     journal_path = Path(_env.get("JOURNAL", env=env) or _env.home_dir() / "journal.jsonl")
-    decider = decider_from_env(env)
+    decider = decider if decider is not None else decider_from_env(env)
     # `SANCHOPANZA_T_*` overrides lay over the profile of the model the decider asks.
     thresholds = Thresholds.from_mapping(
         {k.lower(): v for k, v in _env.with_prefix("T_", env).items()},
@@ -170,9 +189,11 @@ def squire_from_env(env: dict[str, str] | None = None, *, redact: bool = False) 
     )
 
 
-def guardian_from_env(env: dict[str, str] | None = None) -> Guardian:
+def guardian_from_env(
+    env: dict[str, str] | None = None, *, decider: Decider | None = None
+) -> Guardian:
     env = env if env is not None else dict(os.environ)
-    return Guardian(squire_from_env(env), config_from_env(env))
+    return Guardian(squire_from_env(env, decider=decider), config_from_env(env))
 
 
 TOOL_RESULT_LIMIT = 1_500
@@ -283,7 +304,8 @@ def needs_decision(
         reviewed = name in config.delegate_tools and config.review_delegations
         scanned = config.scan_content and config.scans_after(name, arguments)
         return (reviewed or scanned) and bool(text_of(input_data.get("tool_response")).strip())
-    return name in (config.delegate_tools | config.search_tools | config.shell_tools)
+    families = config.delegate_tools | config.search_tools | config.shell_tools
+    return name in families or config.guards_mcp(name)
 
 
 def find_on_prompt() -> bool:

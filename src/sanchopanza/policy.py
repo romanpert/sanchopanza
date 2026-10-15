@@ -107,6 +107,11 @@ class Thresholds:
     citation: float = 0.80  # confidence needed for an automatic citation verdict
     review: float = 0.70  # signal needed before the squire speaks about a report
     guard: float = 0.70  # probability needed to add a denial on a shell command
+    # `Squire.guard_action` (the MCP guard, opt-in): deny an MCP call at p(unsafe) >= this. NOT
+    # derived for a per-call hook: 0.5 is the cut `points.actions.decide` was measured at
+    # offline, whole trajectories, before the hook existed (ATBench-Codex, jev-1.13.0: 213 of
+    # 250 unsafe flagged, 73 of 250 safe; docs/results/2026-10-16-a3-mcp/prereg.md).
+    action_stop: float = 0.5
     entity_low: float = 0.25  # below: different entity
     entity_high: float = 0.75  # above: same entity; in between: not sure
     classify: float = 0.60  # probability needed to accept a closed-vocabulary label

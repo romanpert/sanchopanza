@@ -99,6 +99,12 @@ that memory's hook chooses records by. Off by default; owned by the flag.
 `Stop` of a session that used the web, one request to name the source of every condition in the
 question and repeat the answer line. No model; once per session. Not measured; off by default.
 
+`--guard-mcp` adds every MCP tool (`mcp__.*`) to the PreToolUse matcher and writes
+`SANCHOPANZA_GUARD_MCP=1`: the hook asks the `actions` point about the session so far and the
+pending call, and denies at `T_ACTION_STOP` (`harness.mcp_guard`, roadmap A3). One paid decision
+per judged call; our own servers and those in `SANCHOPANZA_GUARD_MCP_SKIP` are not judged. Off
+by default until docs/results/2026-10-16-a3-mcp gives its verdict; owned by the flag.
+
 The one decision worth understanding is `--scan-content`, which is off unless asked for. It
 adds a PostToolUse scan of arriving content for instructions aimed at the model. That is a
 detection control and not a barrier - by PostToolUse the bytes are in the transcript and the
@@ -199,8 +205,8 @@ LEAN_ENV = {
 ARCHIVE_SERVER = "sanchopanza-archive"
 MCP_JSON = ".mcp.json"
 APPROVED = "enabledMcpjsonServers"
-# Owned by `--scan-content`: removed by a run without it.
-_SCAN = ("SCAN_CONTENT", "CONTENT_TOOLS", "CHECK_DONE")
+# Owned by `--scan-content`, `--check-done` and `--guard-mcp`: removed by a run without them.
+_SCAN = ("SCAN_CONTENT", "CONTENT_TOOLS", "CHECK_DONE", "GUARD_MCP")
 SCAN_ENV = tuple(key for name in _SCAN for key in _env.names(name))
 # New spelling -> old spelling, for every variable this module writes.
 _LEGACY = {
@@ -230,12 +236,14 @@ def _pattern(names: frozenset[str]) -> str:
 
 def matchers(config: HarnessConfig, *, autopilot: bool = False) -> dict[str, str]:
     """Event -> matcher regex, derived from the config rather than written twice."""
-    pre = config.delegate_tools | config.search_tools | config.shell_tools
+    from .claude_agent_sdk import pre_matcher
+
     post = config.after_tools()
     # Stop and UserPromptSubmit take no tool matcher; "*" matches every one. Empty means: not
     # wired (and removed). The autopilot sees every tool result: which to cut is per call.
+    # With the MCP guard, every MCP tool: which of them it judges is per call too.
     return {
-        "PreToolUse": _pattern(pre),
+        "PreToolUse": pre_matcher(config),
         "PostToolUse": "*" if autopilot else _pattern(post),
         "Stop": "*" if config.check_done else "",
         "UserPromptSubmit": "*" if autopilot else "",
@@ -261,6 +269,8 @@ def environment(
         env["SANCHOPANZA_PROVIDER"] = provider
     if config.check_done:
         env["SANCHOPANZA_CHECK_DONE"] = "1"
+    if config.guard_mcp:
+        env["SANCHOPANZA_GUARD_MCP"] = "1"
     if config.scan_content:
         env["SANCHOPANZA_SCAN_CONTENT"] = "1"
         if config.content_tools != HarnessConfig().content_tools:

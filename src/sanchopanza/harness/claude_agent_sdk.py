@@ -16,12 +16,14 @@ builds the matcher objects when the SDK is installed.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+import re
+from collections.abc import Callable, Mapping
 from typing import Any
 
-from .generic import Guardian, ToolCall, Verdict
+from .generic import Guardian, HarnessConfig, ToolCall, Verdict
 
 Hook = Callable[..., Any]
+MCP_MATCHER = "mcp__.*"  # every MCP tool, as Claude Code names them: mcp__<server>__<tool>
 
 
 def to_hook_output(event: str, verdict: Verdict) -> dict[str, Any]:
@@ -48,14 +50,34 @@ def to_hook_output(event: str, verdict: Verdict) -> dict[str, Any]:
 def pre_tool_use(guardian: Guardian) -> Hook:
     async def hook(input_data: dict[str, Any], _tool_use_id: Any = None, _context: Any = None):
         event = str(input_data.get("hook_event_name", "PreToolUse"))
-        call = ToolCall(
-            name=str(input_data.get("tool_name", "")),
-            arguments=dict(input_data.get("tool_input") or {}),
-            event=event,
-        )
+        name = str(input_data.get("tool_name", ""))
+        arguments = dict(input_data.get("tool_input") or {})
+        call = ToolCall(name=name, arguments=arguments, event=event,
+                        record=_record(guardian, input_data, name, arguments))  # fmt: skip
         return to_hook_output(event, await guardian.before_tool(call))
 
     return hook
+
+
+def _record(guardian: Guardian, input_data: Mapping[str, Any], name: str,
+            arguments: Mapping[str, Any]) -> str:  # fmt: skip
+    """The session so far, from the transcript, for a call the MCP guard judges; else ""."""
+    config = guardian.config
+    if not config.guards_mcp(name):
+        return ""
+    from .mcp_guard import record_from_transcript
+
+    return record_from_transcript(input_data.get("transcript_path") or None, name, arguments,
+                                  tool_use_id=str(input_data.get("tool_use_id") or ""),
+                                  limit=config.mcp_record_chars)  # fmt: skip
+
+
+def pre_matcher(config: HarnessConfig) -> str:
+    """The PreToolUse matcher for `config`: its tool names, and every MCP tool when the MCP
+    guard is on (which of them it judges is decided per call, `HarnessConfig.guards_mcp`)."""
+    names = sorted(config.delegate_tools | config.search_tools | config.shell_tools)
+    pattern = "|".join(re.escape(n) for n in names)
+    return f"{pattern}|{MCP_MATCHER}" if config.guard_mcp else pattern
 
 
 def post_tool_use(guardian: Guardian) -> Hook:
@@ -87,7 +109,7 @@ def hook_matchers(guardian: Guardian) -> dict[str, list[Any]]:
     from claude_agent_sdk import HookMatcher
 
     c = guardian.config
-    pre = "|".join(sorted(c.delegate_tools | c.search_tools | c.shell_tools))
+    pre = pre_matcher(c)
     post = "|".join(sorted(c.after_tools()))
     return {
         "PreToolUse": [HookMatcher(matcher=pre, hooks=[pre_tool_use(guardian)])],

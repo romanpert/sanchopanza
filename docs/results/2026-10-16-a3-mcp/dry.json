@@ -1,0 +1,31 @@
+{
+ "trajectories": 500,
+ "calls": 1195,
+ "mcp_calls": 1188,
+ "shell_calls": 7,
+ "decisions_by_arm": {
+  "mcp": 1189,
+  "today": 1
+ },
+ "already_recorded": 0,
+ "to_ask": 1189,
+ "by_point": {
+  "action_risk": 1188,
+  "guard": 1
+ },
+ "record_chars": {
+  "min": 241,
+  "median": 1411,
+  "p90": 2957,
+  "max": 8959
+ },
+ "usd_flat_71u": 0.0844,
+ "usd_fit": 0.051,
+ "usd_reserved": 0.0495,
+ "token_fit": [
+  518.7,
+  0.3289
+ ],
+ "cap_usd": 0.15,
+ "fits_under_cap": true
+}

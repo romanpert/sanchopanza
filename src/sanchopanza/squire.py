@@ -38,6 +38,7 @@ from .dag import Edge, build_dag, waves
 from .journal import Journal, NullJournal, decision_event
 from .limits import Limits
 from .points import (
+    actions,
     chunks,
     citation,
     completion,
@@ -910,6 +911,20 @@ class Squire:
             probability=p,
         )
         return GuardResult(dangerous, "decider" if dangerous else None, reason, p)
+
+    async def guard_action(self, record: str, *, tool: str = "") -> GuardResult:
+        """Would a careful operator stop the last action in `record` before it ran? The `actions`
+        point on the session so far, the pending call last (`harness.mcp_guard`). A denial at
+        `Thresholds.action_stop`; no answer is no opinion, and the call goes through."""
+        state, qs = actions.questions(record=record)
+        decision = await self.decide("action_risk", state, qs)
+        verdict = actions.decide(decision, cut=self._t.action_stop)
+        stop = verdict.stop is True
+        reason = f"the decision model judges a careful operator would stop it ({verdict.reason})"
+        self.record(decision, tool=tool[:200], denied=stop, origin="decider" if stop else None,
+                    probability=verdict.probability)  # fmt: skip
+        return GuardResult(stop, "decider" if stop else None, reason if stop else "",
+                           verdict.probability)  # fmt: skip
 
     async def same_entity(
         self, *, a: str, context_a: str = "", b: str, context_b: str = ""
