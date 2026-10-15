@@ -3,8 +3,8 @@
 **What exists, as of 2026-10-15.** Jev reads images. With the 1.14 release (2026-10-14)
 TypeSafe documents PNG and JPEG images behind an opt-in header,
 `TypeSafe-Danger-Zone-Images: true`, and the header works on `jev-1.13.0` too (measured: the
-same answers on a 640x480 form from both versions). Each side must be 256 to 1568 px, 78,400
-to 2,458,624 px in all, at most 16 MiB a file and 32 MiB a request; an image outside the bounds
+same answers on a 640x480 form from both versions). Each side must be 280 to 1568 px (the docs say
+256; 270 was refused in practice), 78,400 to 2,458,624 px in all, at most 16 MiB a file and 32 MiB a request; an image outside the bounds
 is refused, not resized. The image travels once per request in a top-level `assets` map and
 its ref is cited from the state, the instructions or the criteria; every citation is billed
 again as input tokens (a 640x480 capture was about 850 tokens). `JevDecider(images=True)`

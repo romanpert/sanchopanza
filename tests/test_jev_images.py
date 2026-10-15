@@ -157,6 +157,13 @@ def test_a_small_image_is_scaled_up_to_the_minimum() -> None:
     assert width * height >= jev_assets.MIN_PIXELS
 
 
+def test_a_side_jev_refuses_in_practice_is_scaled_up_to_280() -> None:
+    # Measured 2026-10-15 (docs/results/2026-10-15-jev114-l5): 256 and 270 px refused, 280 taken.
+    assert jev_assets.MIN_SIDE == 280
+    _, width, height = _sent_size(picture(600, 270))
+    assert min(width, height) >= 280
+
+
 def test_an_image_too_thin_to_fit_both_bounds_is_refused() -> None:
     with pytest.raises(DeciderUnavailable, match="cannot fit"):
         sent({"images": True}, {"s": image(data=picture(4000, 100))})

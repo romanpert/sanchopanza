@@ -8,8 +8,9 @@ asset, and the same state gives the same request), and the leaf that held it hol
 so instructions cite it the usual way: "the Submit button in `screenshot`". Sent only with
 the `TypeSafe-Danger-Zone-Images: true` header (`JevDecider(images=True)`).
 
-The API refuses rather than resizes: 256 to 1568 px a side, 78,400 to 2,458,624 px, 16 MiB a
-file, 32 MiB a request (docs.typesafe.ai/images, 2026-10-15). So an image is fitted here, by
+The API refuses rather than resizes: 280 to 1568 px a side (the docs say 256; 270 was refused in
+practice), 78,400 to 2,458,624 px, 16 MiB a file, 32 MiB a request (docs.typesafe.ai/images,
+2026-10-15). So an image is fitted here, by
 the `max_side` hint when the caller gives one: inside the bounds the bytes go untouched; outside
 them, or in another format, Pillow resizes or converts (the optional `sanchopanza[images]`
 extra). Without Pillow an image that fits still goes, and one that does not is refused with the
@@ -29,7 +30,9 @@ from typing import Any
 from ..contract import DeciderUnavailable
 from ..media import Attachment, attachment_bytes, image_size
 
-MIN_SIDE, MAX_SIDE = 256, 1568
+# The docs say 256, but jev-1.14.0 refused 256 and 270 px sides and took 280 (measured 2026-10-15,
+# docs/results/2026-10-15-jev114-l5).
+MIN_SIDE, MAX_SIDE = 280, 1568
 MIN_PIXELS, MAX_PIXELS = 78_400, 2_458_624
 MAX_FILE_BYTES = 16 * 2**20
 MAX_REQUEST_BYTES = 32 * 2**20
