@@ -267,8 +267,7 @@ async def box_step(step: Mapping[str, Any], arm: Arm) -> dict[str, Any]:
     first = await arm.decide("browse_presence", state, questions)
     asked = [(first, questions)]
     presence = [first.answer(f"T{k}").truth for k in range(1, len(spans) + 1)]
-    best = max(range(len(spans)),
-               key=lambda k: (-1.0 if presence[k] is None else presence[k], -k))
+    best = max(range(len(spans)), key=lambda k: (-1.0 if presence[k] is None else presence[k], -k))
     shot = image(data=vision.tile_image(page, spans[best], vision.BOX_PIXELS),
                  media_type="image/jpeg")  # fmt: skip
     pair = {"where": Box(WHERE), "shown": Truth(SHOWN)}
@@ -336,7 +335,9 @@ async def rank_step(step: Mapping[str, Any], arm: Any, images: bool) -> dict[str
     positives = set(step["positives"])
     position = next((i for i, k in enumerate(keys, 1) if k in positives), None)
     return {
-        "position": position, "top": keys, "calls": squire.meter.decisions,
+        "position": position,
+        "top": keys,
+        "calls": squire.meter.decisions,
         "usd": round(squire.meter.cost_usd, 7),
         "answered": sum(r.p is not None for r in ranked),
         # A call the Squire's own cap kept from being made never reaches the arm: count calls.

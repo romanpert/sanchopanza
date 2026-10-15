@@ -65,17 +65,26 @@ def test_iou_and_by_box_order_candidates_by_overlap_then_centre():
     assert vision.iou(a, a) == 1.0
     assert vision.iou(a, (5.0, 0.0, 15.0, 10.0)) == pytest.approx(50 / 150)
     assert vision.iou(a, (20.0, 20.0, 30.0, 30.0)) == 0.0
-    ranked = vision.by_box(a, {"far": (100.0, 100.0, 110.0, 110.0),
-                               "near": (20.0, 0.0, 30.0, 10.0), "half": (5.0, 0.0, 15.0, 10.0)})
+    ranked = vision.by_box(
+        a,
+        {
+            "far": (100.0, 100.0, 110.0, 110.0),
+            "near": (20.0, 0.0, 30.0, 10.0),
+            "half": (5.0, 0.0, 15.0, 10.0),
+        },
+    )
     assert [k for k, _ in ranked] == ["half", "near", "far"]
 
 
 def test_zoom_region_stays_inside_the_page():
     assert vision.zoom_region((0.0, 0.0, 10.0, 10.0), 1280, 3000) == (0.0, 0.0, 640.0, 640.0)
     assert vision.zoom_region((1270.0, 2990.0, 1280.0, 3000.0), 1280, 3000) == (
-        640.0, 2360.0, 1280.0, 3000.0)
-    assert vision.zoom_region((600.0, 600.0, 680.0, 640.0), 1280, 400) == (
-        320.0, 0.0, 960.0, 400.0)
+        640.0,
+        2360.0,
+        1280.0,
+        3000.0,
+    )
+    assert vision.zoom_region((600.0, 600.0, 680.0, 640.0), 1280, 400) == (320.0, 0.0, 960.0, 400.0)
 
 
 def test_window_holds_most_rects_within_the_span():
@@ -87,14 +96,18 @@ def test_window_holds_most_rects_within_the_span():
 
 def test_images_are_jpeg_inside_jevs_bounds():
     page = _page(1280, 9000)
-    for data in (vision.tile_image(page, (0, 1280), vision.PRESENCE_PIXELS),
-                 vision.tile_image(page, (0, 1280), vision.BOX_PIXELS),
-                 vision.region_image(page, (0.0, 0.0, 640.0, 640.0))):
+    for data in (
+        vision.tile_image(page, (0, 1280), vision.PRESENCE_PIXELS),
+        vision.tile_image(page, (0, 1280), vision.BOX_PIXELS),
+        vision.region_image(page, (0.0, 0.0, 640.0, 640.0)),
+    ):
         fmt, w, h = image_size(data)
         assert fmt == "jpeg" and min(w, h) >= 256 and max(w, h) <= 1568
         assert 78_400 <= w * h <= 2_458_624
-    data, drawn = vision.marked_region(page, [("E01", (10.0, 10.0, 200.0, 40.0)),
-                                              ("E02", None), ("E03", (5.0, 8000.0, 50.0, 8020.0))])
+    data, drawn = vision.marked_region(
+        page,
+        [("E01", (10.0, 10.0, 200.0, 40.0)), ("E02", None), ("E03", (5.0, 8000.0, 50.0, 8020.0))],
+    )
     fmt, w, h = image_size(data)
     assert drawn == 1 and w * h <= vision.REGION_PIXELS and min(w, h) >= 256
 
@@ -169,8 +182,13 @@ def test_rotation_puts_each_arm_first_a_third_of_the_time():
 def test_b2_steps_takes_the_first_of_each_split_in_order():
     steps = [{"id": f"{s}{i}", "split": s} for s in reversed(l5.SPLIT_ORDER) for i in range(3)]
     assert [s["id"] for s in l5.b2_steps(steps, 2)] == [
-        "test_website0", "test_website1", "test_domain0", "test_domain1",
-        "test_task0", "test_task1"]
+        "test_website0",
+        "test_website1",
+        "test_domain0",
+        "test_domain1",
+        "test_task0",
+        "test_task1",
+    ]
 
 
 def test_fuse_prefers_the_best_overlap_among_the_text_head():
@@ -194,9 +212,11 @@ def test_b2_report_pairs_complete_steps_only():
     def arm(position, failed=False):
         return {"position": position, "top": [], "calls": 1, "usd": 0.001, "failed": failed}
 
-    rows = [{"id": "s1", "website": "w", "t14": arm(12), "i14": arm(3), "i13": arm(4)},
-            {"id": "s2", "website": "w", "t14": arm(None), "i14": arm(1), "i13": arm(None)},
-            {"id": "s3", "website": "w", "t14": arm(1), "i14": arm(1, True), "i13": arm(1)}]
+    rows = [
+        {"id": "s1", "website": "w", "t14": arm(12), "i14": arm(3), "i13": arm(4)},
+        {"id": "s2", "website": "w", "t14": arm(None), "i14": arm(1), "i13": arm(None)},
+        {"id": "s3", "website": "w", "t14": arm(1), "i14": arm(1, True), "i13": arm(1)},
+    ]
     truth = {i: {"positives": {"x"}, "wordless": i == "s2"} for i in ("s1", "s2", "s3")}
     out = report.b2(rows, {}, truth)
     assert out["complete"] == 2 and out["excluded_failed"] == 1
@@ -261,8 +281,10 @@ def test_calls_expected_matches_the_tournament():
 def test_the_product_rule_needs_a_holm_mejora():
     good = {"n": 142, "diff": 0.1, "ci95": (0.05, 0.15), "p": 0.001}
     flat = {"n": 142, "diff": 0.0, "ci95": (-0.05, 0.05), "p": 1.0}
-    out = {"b1": {"primary_box_minus_text13rec": flat, "fuse10_13_minus_text13rec": good},
-           "b2": {"primary": {"image_effect_r10": flat}}}
+    out = {
+        "b1": {"primary_box_minus_text13rec": flat, "fuse10_13_minus_text13rec": good},
+        "b2": {"primary": {"image_effect_r10": flat}},
+    }
     decided = report.product(out)
     assert decided["vision_mode"] == "recomendado" and decided["complete"]
     out["b1"]["fuse10_13_minus_text13rec"] = {**good, "p": 0.03}  # 0.09 after Holm

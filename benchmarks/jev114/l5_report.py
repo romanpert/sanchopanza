@@ -100,14 +100,26 @@ def b1(rows: list, text13: Mapping[str, Any], b2_rows: list, truth: Mapping) -> 
         "primary_box_minus_text13rec": {**primary, "verdict": verdict(primary, primary["p"])},
         "zoom_minus_text13rec": compare(zoom1, t13, web),
         "zoom_minus_box": compare(zoom1, box1, web),
-        "fuse10_13_minus_text13rec": {**(f := compare(fuse13, t13, web)),
-                                      "verdict_unadjusted": verdict(f, f["p"])},
-        "box_recall": {f"@{k}": round(sum(
-            any(key in pos[i] for key, _ in (by_id[i].get("by_box") or [])[:k]) for i in ids
-        ) / len(ids), 4) for k in KS} if ids else {},  # fmt: skip
+        "fuse10_13_minus_text13rec": {
+            **(f := compare(fuse13, t13, web)),
+            "verdict_unadjusted": verdict(f, f["p"]),
+        },
+        "box_recall": {
+            f"@{k}": round(
+                sum(
+                    any(key in pos[i] for key, _ in (by_id[i].get("by_box") or [])[:k]) for i in ids
+                )
+                / len(ids),
+                4,
+            )
+            for k in KS
+        }
+        if ids
+        else {},  # fmt: skip
     }
-    b2_by_id = {r["id"]: r for r in b2_rows
-                if all(a in r and not r[a].get("failed") for a in B2_ARMS)}
+    b2_by_id = {
+        r["id"]: r for r in b2_rows if all(a in r and not r[a].get("failed") for a in B2_ARMS)
+    }
     sub = [i for i in ids if i in b2_by_id]
     if sub:
         t14 = [hit((b2_by_id[i]["t14"]["top"] or [None])[0], i) for i in sub]
@@ -119,7 +131,8 @@ def b1(rows: list, text13: Mapping[str, Any], b2_rows: list, truth: Mapping) -> 
         out["fuse10_14_minus_text14"] = compare(fuse14, t14, sub_web)
     shown = [(by_id[i].get("shown"), b) for i, b in zip(ids, box1, strict=True)]
     scored = [(p, b) for p, b in shown if p is not None]
-    out["shown_auc_for_box_top1"] = st.auc([p for p, b in scored if b], [p for p, b in scored if not b])
+    right, wrong = [p for p, b in scored if b], [p for p, b in scored if not b]
+    out["shown_auc_for_box_top1"] = st.auc(right, wrong)
     out["usd"] = round(sum(by_id[i].get("usd", 0.0) for i in ids), 6)
     return out
 
@@ -156,16 +169,20 @@ def b2(rows: list, text13: Mapping[str, Any], truth: Mapping) -> dict[str, Any]:
                       for name, res in primary.items()}  # fmt: skip
     secondary: dict[str, Any] = {}
     for k in (1, 20, 30):
-        secondary[f"image_effect_r{k}"] = compare([recall_at(r["i14"], k) for r in whole],
-                                                 [recall_at(r["t14"], k) for r in whole], web)
-        secondary[f"model_effect_r{k}"] = compare([recall_at(r["i14"], k) for r in whole],
-                                                 [recall_at(r["i13"], k) for r in whole], web)
+        secondary[f"image_effect_r{k}"] = compare(
+            [recall_at(r["i14"], k) for r in whole], [recall_at(r["t14"], k) for r in whole], web
+        )
+        secondary[f"model_effect_r{k}"] = compare(
+            [recall_at(r["i14"], k) for r in whole], [recall_at(r["i13"], k) for r in whole], web
+        )
     if all(t is not None for t in t13):
         for k in (1, 10, 20):
             secondary[f"image_on_113_vs_rec_r{k}"] = compare(
-                [recall_at(r["i13"], k) for r in whole], [recall_at(t, k) for t in t13], web)
+                [recall_at(r["i13"], k) for r in whole], [recall_at(t, k) for t in t13], web
+            )
             secondary[f"text14_vs_rec_r{k}"] = compare(
-                [recall_at(r["t14"], k) for r in whole], [recall_at(t, k) for t in t13], web)
+                [recall_at(r["t14"], k) for r in whole], [recall_at(t, k) for t in t13], web
+            )
     out["secondary"] = secondary
     wordless = [r for r in whole if truth[r["id"]]["wordless"]]
     out["wordless"] = {"steps": len(wordless), **{
@@ -224,6 +241,7 @@ def report(out_dir: Path, shots: Path | None = None,
                            "b2": b2(b2_rows, text13, truth) if b2_rows else None}  # fmt: skip
     if b1_rows and out["b1"] and out["b1"]["steps"]:
         out["b1"]["box_centre_in_positive"] = round(
-            sum(bool(r.get("centre_in_positive")) for r in b1_rows) / len(b1_rows), 4)
+            sum(bool(r.get("centre_in_positive")) for r in b1_rows) / len(b1_rows), 4
+        )
     out["product"] = product(out)
     return out

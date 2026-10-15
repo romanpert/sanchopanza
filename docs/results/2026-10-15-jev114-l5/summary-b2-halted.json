@@ -1,0 +1,25 @@
+{
+ "run": "b2",
+ "live": true,
+ "steps_planned": 48,
+ "steps": 3,
+ "halted": "B2 failures: ['DeciderUnavailable: jev did not answer: HTTP 400 (api_usage_error; Invalid image dimensions.)', 'DeciderUnavailable: jev did not answer: HTTP 400 (api_usage_error; Invalid image dimensions.)', 'DeciderUnavailable: jev did not answer: HTTP 400 (api_usage_error; Invalid image dimensions.)']",
+ "live_usd": {
+  "t14": 0.021102,
+  "i14": 0.021823,
+  "i13": 0.021827
+ },
+ "live_calls": {
+  "t14": 62,
+  "i14": 50,
+  "i13": 50
+ },
+ "failures": {
+  "t14": 0,
+  "i14": 12,
+  "i13": 12
+ },
+ "head": "011ec138aa5c97742f7a2efe3492ed3f5632f897",
+ "pillow": "12.3.0",
+ "ledger": "C:\\sp-runs\\jev114\\ledger.json"
+}
