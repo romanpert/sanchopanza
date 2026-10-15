@@ -11,17 +11,17 @@ Pre-registered in docs/results/2026-10-16-a3-mcp/prereg.md. Every ATBench-Codex 
 that transcript's path, as Claude Code hands it to `sanchopanza hook`: `shell_command` as `Bash`,
 any other tool as `mcp__<server>__<operation>` (the broad run's `cases.py` naming). Each event goes
 through `claude_code.needs_decision` and `claude_code.handle` in two arms that differ in one
-variable: `today` (what `install` writes: provider jev, guard profile coding) and `mcp` (the same
-plus SANCHOPANZA_GUARD_MCP=1). A trajectory is flagged when any of its calls is denied.
+variable: `today` (provider jev, guard profile coding) and `mcp` (the same plus
+SANCHOPANZA_GUARD_MCP=1). A trajectory is flagged when any of its calls is denied. A control,
+`offline`, asks the point again about the 500 whole records at the same cut (server drift).
 
-Answers are recorded first, asked second: `answers.jsonl` (hashed keys and numbers, no text) is
-read before any call, so a relaunch pays only for what is missing. Live calls go to jev-1.13.0
-through `CappedDecider` on this run's own ledger (LEDGER_PATH, LEDGER_CAP_USD) and are stopped
-dead at a cap refusal, an outage (HTTP 401/402/403/429/5xx, no connection), another model, or
-MAX_FAILURES failed calls in a row: every later call is refused unasked, nothing is scored, and
-the exit code says why (3 cap, 2 pause). The key comes from TYPESAFE_API_KEY or the file
-SANCHOPANZA_KEYS_ENV names, inside the process, never printed. ATBench is read from a local copy
-(SANCHOPANZA_ATBENCH_CODEX, else the cache folder) and never written here.
+Deciders are in deciders.py: answers.jsonl first, then jev-1.13.0 through `CappedDecider` on
+this run's own ledger (LEDGER_PATH, CAP_USD), stopped dead at a cap refusal, an outage, another
+model or MAX_FAILURES failed or empty answers in a row. A run that leaves a call without a usable
+answer scores nothing and asks for a relaunch (exit 2; 3 at a cap); from the MAX_LAUNCHES-th
+launch on, what is still unanswered is scored fail-open (not flagged), listed, and P3 fails. The
+key comes from TYPESAFE_API_KEY or the file SANCHOPANZA_KEYS_ENV names, never printed. ATBench is
+read from a local copy (SANCHOPANZA_ATBENCH_CODEX, else the cache folder), never written here.
 """
 
 from __future__ import annotations
@@ -29,7 +29,6 @@ from __future__ import annotations
 import argparse
 import ast
 import asyncio
-import contextvars
 import hashlib
 import importlib.util
 import json
@@ -39,7 +38,6 @@ import re
 import sys
 import tempfile
 from collections.abc import Mapping, Sequence
-from dataclasses import replace
 from typing import Any
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -47,39 +45,41 @@ REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
 from sanchopanza import _env  # noqa: E402
-from sanchopanza.contract import DeciderUnavailable, Decision  # noqa: E402
-from sanchopanza.providers.recorded import key_of, order_of  # noqa: E402
-
-OUT = REPO / "docs" / "results" / "2026-10-16-a3-mcp"
-ANSWERS = OUT / "answers.jsonl"
-CALLS = OUT / "calls.jsonl"
-LEDGER_PATH = pathlib.Path("C:/sp-runs/a3-mcp/ledger.json")
-# The whole run and any relaunch. The dry run expects 0.051 USD (0.084 at the flat median) for
-# 1,189 requests: the cap leaves room for the flat estimate and its worst-case overshoot.
-LEDGER_CAP_USD = 0.15
-BATCH, BATCH_CAP_USD = "a3-replay", 0.15
-MODEL = "jev-1.13.0"
-PRICE_PER_MTOK = 0.042
-FLAT_USD = 71e-6  # a real Jev request's median (CLAUDE.md), the estimate quoted before a run
-CONCURRENCY = 4
-TIMEOUT_S = 20.0
-MAX_FAILURES = 3
-STOP_STATUSES = frozenset({401, 402, 403, 429})
-SHELL = "shell_command"
-BASE_ENV = {"SANCHOPANZA_PROVIDER": "jev", "SANCHOPANZA_GUARD_PROFILE": "coding"}
-ARMS = {"mcp": {**BASE_ENV, "SANCHOPANZA_GUARD_MCP": "1"}, "today": dict(BASE_ENV)}
-CAP, PAUSE = "cap", "pause"
-HALTED: list[str] = []
-TAPPED: contextvars.ContextVar[list[dict[str, Any]] | None] = contextvars.ContextVar(
-    "a3_tapped", default=None
-)
 
 
 def _module(path: pathlib.Path, name: str) -> Any:
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)  # type: ignore[arg-type]
+    sys.modules[name] = module
     spec.loader.exec_module(module)  # type: ignore[union-attr]
     return module
+
+
+dec = _module(HERE / "deciders.py", "a3_deciders")
+Answers, Estimate, Gate, StopDead, Tap = dec.Answers, dec.Estimate, dec.Gate, dec.StopDead, dec.Tap
+HALTED, TAPPED, CAP, MODEL = dec.HALTED, dec.TAPPED, dec.CAP, dec.MODEL
+
+OUT = REPO / "docs" / "results" / "2026-10-16-a3-mcp"
+ANSWERS = OUT / "answers.jsonl"
+CALLS = OUT / "calls.jsonl"
+CONTROL = OUT / "control.jsonl"
+LAUNCHES = OUT / "launches.json"
+LEDGER_PATH = pathlib.Path("C:/sp-runs/a3-mcp/ledger.json")
+# The whole run and any relaunch, its control included. The dry run expects about 0.08 USD (0.12
+# at the flat median) for about 1,690 requests: room for the flat estimate and an overshoot.
+CAP_USD = 0.25
+BATCH = "a3-replay"
+MAX_LAUNCHES = 3  # the first and two relaunches; then what is unanswered is scored fail-open
+FLAT_USD = 71e-6  # a real Jev request's median (CLAUDE.md), the estimate quoted before a run
+CONCURRENCY = 4
+SHELL = "shell_command"
+# Codex's own tools, which ATBench records beside the MCP servers' and Claude Code would not
+# route through an MCP server: the replay names them mcp__ like the rest (the primary metric
+# counts them, as registered); a reported metric leaves them out.
+CODEX_NATIVE = frozenset({"read_mcp_resource", "list_mcp_resources", "read_thread_terminal",
+                          "apply_patch", "request_user_input", "spawn_agent"})  # fmt: skip
+BASE_ENV = {"SANCHOPANZA_PROVIDER": "jev", "SANCHOPANZA_GUARD_PROFILE": "coding"}
+ARMS = {"mcp": {**BASE_ENV, "SANCHOPANZA_GUARD_MCP": "1"}, "today": dict(BASE_ENV)}
 
 
 # ---- ATBench-Codex as Claude Code transcripts ---------------------------------------------------
@@ -141,11 +141,13 @@ def trajectory(record: Mapping[str, Any]) -> dict[str, Any]:
             if message.get("thought"):
                 blocks.append({"type": "text", "text": _text(message["thought"])})
             if message.get("action"):
-                tool, args = tool_of(parse_action(message["action"]))
+                action = parse_action(message["action"])
+                tool, args = tool_of(action)
                 last = f"toolu_{len(calls):02d}"
                 blocks.append({"type": "tool_use", "id": last, "name": tool, "input": args})
+                native = action.get("name") in CODEX_NATIVE
                 calls.append({"i": len(calls), "at": len(entries), "tool": tool, "input": args,
-                              "id": last})  # fmt: skip
+                              "id": last, "native": native})  # fmt: skip
             elif message.get("response") or message.get("content"):
                 said = _text(message.get("response") or message.get("content"))
                 blocks.append({"type": "text", "text": said})
@@ -167,151 +169,10 @@ def family(tool: str) -> str:
     return "shell" if tool == "Bash" else "mcp"
 
 
-# ---- deciders -----------------------------------------------------------------------------------
-
-
-class Answers:
-    """Recorded first (answers.jsonl, then this run's), `live` second; a live answer is written
-    down. Without `live` a miss is an empty decision: the hook fails open and the row says so."""
-
-    def __init__(self, path: pathlib.Path, live: Any = None) -> None:
-        self.name, self.model, self._path, self._live = "jev", MODEL, path, live
-        self._known: dict[tuple[str, str], Decision] = {}
-        self.asked = 0
-        lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
-        for line in filter(None, lines):
-            row = json.loads(line)
-            if row.get("model") == MODEL:
-                self._known[(row["key"], row["order"])] = _decision_of(row)
-
-    def __len__(self) -> int:
-        return len(self._known)
-
-    async def decide(self, point: str, state: Any, questions: Mapping[str, Any]) -> Decision:
-        slot = (key_of(point, state, questions, MODEL), order_of(questions))
-        if slot in self._known:
-            return replace(self._known[slot], provider="recorded", cost_usd=0.0, latency_ms=0)
-        if self._live is None:
-            return Decision(point, {}, "recorded", "-", error="not recorded")
-        self.asked += 1
-        decision = await self._live.decide(point, state, questions)
-        if decision.answers and not decision.failed:
-            self._known[slot] = decision
-            self._write(slot, point, decision)
-        return decision
-
-    def _write(self, slot: tuple[str, str], point: str, decision: Decision) -> None:
-        row = {"key": slot[0], "order": slot[1], "point": point, "model": decision.model,
-               "default": False, "input_tokens": decision.input_tokens,
-               "cost_usd": decision.cost_usd, "latency_ms": decision.latency_ms,
-               "answers": {k: a.to_dict() for k, a in decision.answers.items()}}  # fmt: skip
-        self._path.parent.mkdir(parents=True, exist_ok=True)
-        with self._path.open("a", encoding="utf-8", newline="\n") as handle:
-            handle.write(json.dumps(row) + "\n")
-
-
-def _decision_of(row: Mapping[str, Any]) -> Decision:
-    from sanchopanza.contract import Answer
-
-    answers = {k: Answer.from_dict(v) for k, v in (row.get("answers") or {}).items()}
-    return Decision(str(row.get("point")), answers, "recorded", str(row["model"]),
-                    input_tokens=int(row.get("input_tokens") or 0),
-                    cost_usd=float(row.get("cost_usd") or 0.0))  # fmt: skip
-
-
-class Estimate:
-    """Dry: asks nothing; notes what each distinct call would send and its price three ways
-    (a question both arms ask is paid once: `Answers` keeps the first answer)."""
-
-    def __init__(self, fit: tuple[float, float]) -> None:
-        self.name, self.model, self.calls, self._fit = "dry", MODEL, [], fit
-        self._seen: set[tuple[str, str]] = set()
-
-    async def decide(self, point: str, state: Any, questions: Mapping[str, Any]) -> Decision:
-        from sanchopanza.providers.capped import estimate_usd
-
-        slot = (key_of(point, state, questions, MODEL), order_of(questions))
-        if slot in self._seen:
-            return Decision(point, {}, "dry", "-", error="dry run: asked already")
-        self._seen.add(slot)
-        chars = len(str(state.get("record") or state.get("command") or ""))
-        tokens = self._fit[0] + self._fit[1] * chars
-        self.calls.append({"point": point, "chars": chars,
-                           "reserve_usd": estimate_usd(state, questions,
-                                                       price_per_mtok=PRICE_PER_MTOK),
-                           "fit_usd": tokens * PRICE_PER_MTOK / 1e6})  # fmt: skip
-        return Decision(point, {}, "dry", "-", error="dry run: not asked")
-
-
-class Tap:
-    """Notes every decision of the event being judged (TAPPED), and passes it on."""
-
-    def __init__(self, inner: Any) -> None:
-        self._inner, self.name, self.model = inner, inner.name, MODEL
-
-    async def decide(self, point: str, state: Any, questions: Mapping[str, Any]) -> Decision:
-        seen = TAPPED.get()
-        try:
-            decision = await self._inner.decide(point, state, questions)
-        except DeciderUnavailable as error:
-            if seen is not None:
-                seen.append({"point": point, "p": None, "model": "-", "error": str(error)[:200]})
-            raise
-        if seen is not None:
-            answer = next(iter(decision.answers.values()), None)
-            p = answer.truth if answer is not None else None
-            error = decision.error or (None if decision.answers else "no answer")
-            seen.append({"point": point, "p": p, "model": decision.model, "error": error,
-                         "provider": decision.provider})  # fmt: skip
-        return decision
-
-
-class StopDead:
-    """A live decider that stops the run dead (HALTED) at a cap refusal, an outage, another
-    model, or MAX_FAILURES failed calls in a row; every later call is refused unasked."""
-
-    def __init__(self, inner: Any) -> None:
-        self._inner, self.name, self._fails = inner, inner.name, 0
-
-    async def decide(self, point: str, state: Any, questions: Mapping[str, Any]) -> Decision:
-        from sanchopanza.providers.capped import SpendCapReached
-
-        if HALTED:
-            raise DeciderUnavailable(f"halted, not called: {HALTED[0]}")
-        try:
-            decision = await self._inner.decide(point, state, questions)
-        except SpendCapReached as error:
-            HALTED.append(f"{CAP}: {error}")
-            raise
-        except Exception as error:
-            self._failed(error)
-            raise
-        if decision.model != MODEL:
-            HALTED.append(f"{PAUSE}: asked {MODEL}, served {decision.model}: not recorded")
-            raise DeciderUnavailable(HALTED[-1])
-        if decision.failed or not decision.answers:
-            self._failed(RuntimeError(decision.error or "no answers"))
-        else:
-            self._fails = 0
-        return decision
-
-    def _failed(self, error: Exception) -> None:
-        self._fails += 1
-        found = re.search(r"HTTP (\d{3})", str(error))
-        outage = found and (int(found.group(1)) in STOP_STATUSES or int(found.group(1)) >= 500)
-        if (outage or "unreachable" in str(error) or self._fails >= MAX_FAILURES) and not HALTED:
-            HALTED.append(f"{PAUSE}: {type(error).__name__}: {str(error)[:200]}")
-
-
-def live_decider() -> Any:
-    from sanchopanza.budget import SpendLedger
-    from sanchopanza.providers import CappedDecider
-    from sanchopanza.providers.jev import JevDecider
-
-    ledger = SpendLedger(LEDGER_PATH, cap_usd=LEDGER_CAP_USD)
-    jev = JevDecider(model=MODEL, timeout_s=TIMEOUT_S, long_context=False, images=False)
-    return StopDead(CappedDecider(jev, ledger=ledger, batch=BATCH, max_usd=BATCH_CAP_USD,
-                                  price_per_mtok=PRICE_PER_MTOK))  # fmt: skip
+def control_cases(path: pathlib.Path) -> list[dict[str, Any]]:
+    """The offline point's own states (`cascade/run.load_codex`): whole records, as measured."""
+    cascade = _module(REPO / "benchmarks" / "cascade" / "run.py", "a3_cascade_run")
+    return cascade.load_codex(path)
 
 
 # ---- the hook's real path -----------------------------------------------------------------------
@@ -361,7 +222,8 @@ async def judge_case(case: Mapping[str, Any], decider: Any, root: pathlib.Path,
                     env = {**env, "SANCHOPANZA_JOURNAL": str(root / f"journal-{arm}.jsonl")}
                     arms[arm] = await verdict(event, env, decider)
                 rows.append({"id": case["id"], "label": case["label"], "i": call["i"],
-                             "family": family(call["tool"]), "arms": arms})  # fmt: skip
+                             "family": family(call["tool"]), "native": call["native"],
+                             "arms": arms})  # fmt: skip
         return rows
 
 
@@ -371,6 +233,35 @@ async def run_all(cases: Sequence[Mapping[str, Any]], decider: Any,
     gate = asyncio.Semaphore(CONCURRENCY)
     done = await asyncio.gather(*(judge_case(c, decider, root, gate) for c in cases))
     return [row for rows in done for row in rows]
+
+
+def reference() -> Any:
+    """The offline answers of 2026-09-27 (fixtures/cascade-jev.jsonl), replayed: free."""
+    from sanchopanza.providers.recorded import RecordedDecider
+
+    return RecordedDecider.from_file(REPO / "fixtures" / "cascade-jev.jsonl")
+
+
+async def run_control(cases: Sequence[Mapping[str, Any]], decider: Any,
+                      recorded: Any = None) -> list[dict[str, Any]]:  # fmt: skip
+    """The offline point re-asked: one decision per whole record, p kept (cut in analysis),
+    beside the reference's p for the same record (`recorded`, read only)."""
+    gate = asyncio.Semaphore(CONCURRENCY)
+
+    async def one(case: Mapping[str, Any]) -> dict[str, Any]:
+        args = (case["point"], case["state"], case["questions"])
+        ref = dec.usable_p(await recorded.decide(*args)) if recorded is not None else None
+        row = {"id": case["id"], "label": case["label"], "ref_p": ref}
+        async with gate:
+            try:
+                decision = await decider.decide(*args)
+            except Exception as error:  # noqa: BLE001 - noted, never scored as an answer
+                return {**row, "p": None, "error": type(error).__name__}
+        p = dec.usable_p(decision)
+        return {**row, "p": p, "error": None if p is not None else (decision.error or
+                                                                     "empty answer")}  # fmt: skip
+
+    return list(await asyncio.gather(*(one(c) for c in cases)))
 
 
 def clean_environment() -> None:
@@ -384,18 +275,49 @@ def clean_environment() -> None:
             os.environ.pop(name)
 
 
+# ---- completeness -------------------------------------------------------------------------------
+
+
+def unanswered(rows: Sequence[Mapping[str, Any]]) -> list[str]:
+    """`<id>:<i>/<arm>` of every call without a usable answer: an MCP call the `mcp` arm did not
+    decide, or any decision with an error or no p."""
+    out = []
+    for r in rows:
+        for arm, v in r["arms"].items():
+            missing_mcp = arm == "mcp" and r["family"] == "mcp" and not v["decided"]
+            failed = v["decided"] and (v["error"] is not None or v["p"] is None)
+            if missing_mcp or failed:
+                out.append(f"{r['id']}:{r['i']}/{arm}")
+    return out
+
+
+def complete(rows: Sequence[Mapping[str, Any]]) -> bool:
+    return not unanswered(rows)
+
+
+def launches() -> int:
+    try:
+        return int(json.loads(LAUNCHES.read_text(encoding="utf-8"))["live"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return 0
+
+
+def count_launch() -> int:
+    n = launches() + 1
+    OUT.mkdir(parents=True, exist_ok=True)
+    LAUNCHES.write_text(json.dumps({"live": n}) + "\n", encoding="utf-8", newline="\n")
+    return n
+
+
 # ---- dry: counts and cost -----------------------------------------------------------------------
 
 
-def token_fit(cases: Sequence[Mapping[str, Any]] | None = None) -> tuple[float, float]:
+def token_fit() -> tuple[float, float]:
     """tokens = a + b * record characters, least squares over the offline ATBench answers
     (fixtures/cascade-jev.jsonl, jev-1.13.0, whole trajectories). Free."""
-    cascade = _module(REPO / "benchmarks" / "cascade" / "run.py", "a3_cascade_run")
-    from sanchopanza.providers.recorded import RecordedDecider
-
-    recorded = RecordedDecider.from_file(REPO / "fixtures" / "cascade-jev.jsonl")
+    recorded = reference()
     points = []
-    for case in cascade.load_codex(codex_path()):
+    for case in control_cases(codex_path()):
         decision = asyncio.run(recorded.decide(case["point"], case["state"], case["questions"]))
         if decision.input_tokens:
             points.append((len(case["state"]["record"]), decision.input_tokens))
@@ -405,40 +327,34 @@ def token_fit(cases: Sequence[Mapping[str, Any]] | None = None) -> tuple[float, 
     return my - b * mx, b
 
 
-def dry(cases: Sequence[Mapping[str, Any]], root: pathlib.Path) -> dict[str, Any]:
+def dry(cases: Sequence[Mapping[str, Any]], root: pathlib.Path,
+        control: Sequence[Mapping[str, Any]] = ()) -> dict[str, Any]:  # fmt: skip
     fit = token_fit()
     estimate = Estimate(fit)
     recorded = Answers(ANSWERS)
     rows = asyncio.run(run_all(cases, Gate(recorded, estimate), root))
+    hook_calls = len(estimate.calls)
+    asyncio.run(run_control(control, Gate(recorded, estimate)))
     calls = estimate.calls
     n_mcp = sum(r["family"] == "mcp" for r in rows)
     decided = {arm: sum(r["arms"][arm]["decided"] for r in rows) for arm in ARMS}
     return {
         "trajectories": len(cases), "calls": len(rows), "mcp_calls": n_mcp,
+        "mcp_calls_codex_native": sum(r["family"] == "mcp" and r["native"] for r in rows),
         "shell_calls": len(rows) - n_mcp, "decisions_by_arm": decided,
         "already_recorded": len(recorded), "to_ask": len(calls),
-        "by_point": {p: sum(c["point"] == p for c in calls) for p in {c["point"] for c in calls}},
-        "record_chars": _quantiles([c["chars"] for c in calls]),
+        "to_ask_hook": hook_calls, "to_ask_control": len(calls) - hook_calls,
+        "by_point": {p: sum(c["point"] == p for c in calls) for p in sorted({c["point"]
+                                                                             for c in calls})},
+        "record_chars_hook": _quantiles([c["chars"] for c in calls[:hook_calls]]),
         "usd_flat_71u": round(len(calls) * FLAT_USD, 4),
         "usd_fit": round(sum(c["fit_usd"] for c in calls), 4),
+        "usd_fit_control": round(sum(c["fit_usd"] for c in calls[hook_calls:]), 4),
         "usd_reserved": round(sum(c["reserve_usd"] for c in calls), 4),
         "token_fit": [round(fit[0], 1), round(fit[1], 4)],
-        "cap_usd": BATCH_CAP_USD,
-        "fits_under_cap": sum(c["reserve_usd"] for c in calls) <= BATCH_CAP_USD,
+        "cap_usd": CAP_USD,
+        "fits_under_cap": max(len(calls) * FLAT_USD, sum(c["fit_usd"] for c in calls)) <= CAP_USD,
     }  # fmt: skip
-
-
-class Gate:
-    """Recorded answers first; the rest to `fallback` (the estimator, in a dry run)."""
-
-    def __init__(self, recorded: Answers, fallback: Any) -> None:
-        self._recorded, self._fallback, self.name, self.model = recorded, fallback, "jev", MODEL
-
-    async def decide(self, point: str, state: Any, questions: Mapping[str, Any]) -> Decision:
-        decision = await self._recorded.decide(point, state, questions)
-        if decision.answers:
-            return decision
-        return await self._fallback.decide(point, state, questions)
 
 
 def _quantiles(values: Sequence[int]) -> dict[str, int]:
@@ -451,14 +367,16 @@ def _quantiles(values: Sequence[int]) -> dict[str, int]:
 
 # ---- seal ---------------------------------------------------------------------------------------
 
-SEALED_FIXED = ("benchmarks/a3_mcp/replay.py", "benchmarks/a3_mcp/analysis.py",
-                "tests/test_a3_mcp_replay.py", "benchmarks/cascade/run.py",
+SEALED_FIXED = ("benchmarks/a3_mcp/replay.py", "benchmarks/a3_mcp/deciders.py",
+                "benchmarks/a3_mcp/analysis.py", "tests/test_a3_mcp_replay.py",
+                "benchmarks/cascade/run.py", "benchmarks/meter.py",
                 "benchmarks/jev114/l4_stats.py", "benchmarks/agentdojo/score.py",
                 "fixtures/cascade-jev.jsonl")  # fmt: skip
 
 
 def manifest(data: pathlib.Path) -> dict[str, str]:
-    """`<path> -> sha256` of prereg.md, the code (LF bytes), the package and the data."""
+    """`<path> -> sha256` of prereg.md, the code (LF bytes), the package and the data. Sealed
+    before any answer exists: `seal` refuses once answers.jsonl is there."""
 
     def digest(path: pathlib.Path, text: bool = True) -> str:
         raw = path.read_bytes()
@@ -476,6 +394,8 @@ def combined(found: Mapping[str, str]) -> str:
 
 
 def seal(data: pathlib.Path) -> str:
+    if ANSWERS.exists():
+        raise SystemExit("answers.jsonl exists: a seal comes before any answer, nothing written")
     found = manifest(data)
     value = combined(found)
     target = OUT / "prereg.sha256"
@@ -487,19 +407,33 @@ def seal(data: pathlib.Path) -> str:
     return value
 
 
-def require_seal(data: pathlib.Path) -> None:
+def seal_state(data: pathlib.Path) -> dict[str, Any]:
     target = OUT / "prereg.sha256"
-    if not target.exists() or target.read_text().strip() != combined(manifest(data)):
+    now = combined(manifest(data))
+    sealed = target.read_text().strip() if target.exists() else ""
+    return {"combined_now": now, "sealed": sealed or None, "matches_seal": now == sealed}
+
+
+def require_seal(data: pathlib.Path) -> None:
+    if not seal_state(data)["matches_seal"]:
         raise SystemExit("prereg.md, the code or the data differ from the seal: nothing spent")
 
 
 # ---- live ---------------------------------------------------------------------------------------
 
 
-def load_key() -> None:
-    """TYPESAFE_API_KEY into this process from SANCHOPANZA_KEYS_ENV's file when unset."""
-    lot = _module(REPO / "benchmarks" / "jev114" / "l4.py", "a3_l4")
-    lot.load_key()
+def ledger_spent() -> float:
+    from sanchopanza.budget import SpendLedger
+
+    if not LEDGER_PATH.exists():
+        return 0.0
+    return SpendLedger(LEDGER_PATH, cap_usd=CAP_USD).spent(BATCH)
+
+
+def require_own_answers() -> None:
+    """Answers on disk with nothing spent on this run's ledger came from somewhere else."""
+    if ANSWERS.exists() and ledger_spent() <= 0:
+        raise SystemExit("answers.jsonl exists but this run's ledger holds no spend: refused")
 
 
 def go_live(data: pathlib.Path) -> Any:
@@ -507,23 +441,34 @@ def go_live(data: pathlib.Path) -> Any:
     from sanchopanza.providers.jev import apreflight
 
     require_seal(data)
-    load_key()
+    require_own_answers()
+    dec.load_key()
     jev.RETRYABLE = frozenset(jev.RETRYABLE - {429})  # stop at the first 429, never retry it
-    result = asyncio.run(apreflight(model=MODEL))
+    result = asyncio.run(apreflight(model=MODEL))  # one Truth, ~13 micro-dollars, off the ledger
     if not result.ok or result.model != MODEL:
         raise SystemExit(f"preflight {MODEL}: {result.reason}, served {result.model}")
-    return live_decider()
+    return dec.live_decider(LEDGER_PATH, CAP_USD, BATCH)
 
 
-def complete(rows: Sequence[Mapping[str, Any]]) -> bool:
-    """Every call the MCP arm decided has an answer from jev-1.13.0."""
-    return all(r["arms"][a]["error"] is None for r in rows for a in ARMS
-               if r["arms"][a]["decided"])  # fmt: skip
-
-
-def write_calls(rows: Sequence[Mapping[str, Any]]) -> None:
+def _write_jsonl(path: pathlib.Path, rows: Sequence[Mapping[str, Any]]) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    CALLS.write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8", newline="\n")
+    path.write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8", newline="\n")
+
+
+def run(cases: Sequence[Mapping[str, Any]], control: Sequence[Mapping[str, Any]],
+        root: pathlib.Path, live: Any, launch: int) -> int:  # fmt: skip
+    """Exit 0 with calls.jsonl and control.jsonl written, or 2/3 with nothing scored."""
+    answers = Answers(ANSWERS, live)
+    rows = asyncio.run(run_all(cases, answers, root))
+    checks = asyncio.run(run_control(control, answers, reference()))
+    missing = unanswered(rows) + [f"{c['id']}/offline" for c in checks if c["p"] is None]
+    print(json.dumps({"asked": answers.asked, "halted": HALTED[:1], "unanswered": len(missing),
+                      "launch": launch}), file=sys.stderr)  # fmt: skip
+    if missing and launch < MAX_LAUNCHES:
+        return 3 if HALTED and HALTED[0].startswith(CAP) else 2
+    _write_jsonl(CALLS, rows)
+    _write_jsonl(CONTROL, checks)
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -542,26 +487,22 @@ def main(argv: list[str] | None = None) -> int:
     if args.seal:
         print(seal(data))
         return 0
-    cases = load(data)
+    cases, control = load(data), control_cases(data)
     if args.dry:
-        report = json.dumps(dry(cases, root), indent=1) + "\n"
+        report = json.dumps(dry(cases, root, control), indent=1) + "\n"
         OUT.mkdir(parents=True, exist_ok=True)
         (OUT / "dry.json").write_text(report, encoding="utf-8", newline="\n")
         print(report, end="")
         return 0
     if args.run:
         live = go_live(data) if args.live else None
-        answers = Answers(ANSWERS, live)
-        rows = asyncio.run(run_all(cases, answers, root))
-        print(json.dumps({"asked": answers.asked, "halted": HALTED[:1]}), file=sys.stderr)
-        if HALTED:
-            return 3 if HALTED[0].startswith(CAP) else 2
-        if not complete(rows):
-            print("not every decision has an answer: nothing scored", file=sys.stderr)
-            return 2
-        write_calls(rows)
+        code = run(cases, control, root, live, count_launch() if args.live else launches())
+        if code:
+            return code
     analysis = _module(HERE / "analysis.py", "a3_analysis")
-    print(json.dumps(analysis.write(), indent=1))
+    extra = {"seal": seal_state(data), "ledger_usd": round(ledger_spent(), 6),
+             "launches": launches()}  # fmt: skip
+    print(json.dumps(analysis.write(extra), indent=1))
     return 0
 
 
