@@ -125,6 +125,38 @@ class Raising:
         return _decision("A")
 
 
+def test_this_lot_does_not_retry_a_429_but_keeps_529s_retries(monkeypatch):
+    from sanchopanza.providers import jev
+
+    monkeypatch.setattr(jev, "RETRYABLE", frozenset({429, 529}))
+    monkeypatch.setattr(jev, "BASE_WAIT_S", 0.0)
+    lb.no_retry_on_429()
+    assert frozenset({529}) == jev.RETRYABLE
+
+    class Response:
+        def __init__(self, status: int) -> None:
+            self.status_code, self.text = status, ""
+
+        def json(self) -> dict:
+            return {}
+
+    class Client:
+        def __init__(self, status: int) -> None:
+            self.status, self.posts = status, 0
+
+        async def post(self, *args, **kwargs):
+            self.posts += 1
+            return Response(self.status)
+
+    for status, posts in ((429, 1), (529, jev.MAX_RETRIES + 1)):
+        client = Client(status)
+        decider = jev.JevDecider("test-key", client=client, model=lb.MODEL)
+        with pytest.raises(DeciderUnavailable, match=f"HTTP {status}"):
+            asyncio.run(decider._send({}))
+        assert client.posts == posts
+    assert lb.stop_kind(DeciderUnavailable("jev did not answer: HTTP 429")) == "limit"
+
+
 @pytest.mark.parametrize("error, kind", [
     (SpendCapReached("spend cap"), "cap"),
     (DeciderOutOfFunds("jev did not answer: HTTP 402 (out of funds)"), "funds"),
@@ -213,13 +245,45 @@ def test_the_registered_constants():
     assert "'h2h_lb162.py'" in (ROOT / "benchmarks/h2h/launch.ps1").read_text(encoding="utf-8")
 
 
-def test_a_phase_s_plan_that_cannot_fit_the_ceiling_is_refused():
-    top = lb.max_covered()
-    assert top == 96  # (18 - 3 - 1.68) / 0.138
-    assert h2h.fit_refusal(0.0, top) == ""
-    assert "does not fit" in h2h.fit_refusal(0.0, top + 1)
-    assert h2h.fit_refusal(5.0, 60) == ""
-    assert h2h.fit_refusal(5.0, 61) != ""
+def test_phase_s_refuses_only_when_the_expected_cost_alone_passes_the_ceiling():
+    assert h2h.expected_refusal(87) == ""
+    assert h2h.expected_refusal(120) == ""  # above what the ceiling holds at the mean: starts
+    assert h2h.expected_refusal(130) == ""  # 17.94 USD expected
+    assert "refused" in h2h.expected_refusal(131)  # 18.08 USD expected
+    assert lb.sessions_before_guard(lb.SONNET_EST_USD) == 97  # (18 - 4.68) / 0.138, + 1
+    assert lb.guaranteed_sessions() == 3  # every session at 3.00 + 1.68
+
+
+class Task:
+    def __init__(self, i: int) -> None:
+        self.task_id = f"c{i:03d}"
+
+
+@pytest.mark.parametrize("usd, ran", [(0.138, 97), (4.68, 3), (1.0, 14)])
+def test_high_coverage_starts_and_the_guard_stops_it_under_18_usd(tmp_path, usd, ran):
+    tasks = [Task(i) for i in range(120)]  # 120 covered: 16.56 USD expected
+    assert h2h.expected_refusal(len(tasks)) == ""
+    seen = []
+
+    def session(item, run, arm):
+        seen.append(item[0])
+        return {"task": item[0], "task_id": item[0], "run": run, "arm": arm, "list_usd": usd}
+
+    limits = h2h.phase.Limits(session_max_usd=h2h.RESERVE[h2h.MODEL], ceiling_usd=h2h.CEILING_USD)
+    code, rows = h2h.phase.run_phase(h2h.steps(tasks), [], limits, session,
+                                     tmp_path / "sessions.jsonl")  # fmt: skip
+    assert code == 1 and len(rows) == len(seen) == ran
+    assert seen == [t.task_id for t in tasks[:ran]]  # the file's (seeded) order, a prefix
+    # the last session may still spend its cap plus one worst turn: never past the ceiling
+    assert sum(r["list_usd"] for r in rows[:-1]) + h2h.RESERVE[h2h.MODEL] <= h2h.CEILING_USD
+    assert sum(r["list_usd"] for r in rows) <= h2h.CEILING_USD
+
+
+def test_the_covered_order_is_a_seeded_shuffle_so_a_stop_leaves_a_random_subset():
+    rows = [_row(i, "A", "A", 0.9) for i in range(120)]
+    got = lb.covered(rows)
+    assert sorted(got) == [r["id"] for r in rows] and got != sorted(got)
+    assert got == lb.covered(rows)
 
 
 def test_the_phase_loop_never_starts_a_session_that_could_pass_18_usd():

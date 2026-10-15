@@ -49,7 +49,8 @@ Arm N of the 2026-10-06 confirmation (`SONNET-CC`), unchanged: `h2h_longdoc.py`'
 the document copied as `document.txt`, LongBench v2's official 0-shot template, WebSearch and
 WebFetch disallowed and the local hook on every tool), its per-session cap (3.00 USD, passed as
 `--max-budget-usd`) and the official `extract_answer` grade on the last line that has one; no
-letter is wrong. One session per covered task, in the file's order. Its own phase (`lb162`),
+letter is wrong. One session per covered task, in the file's seeded order, so a stop by the
+ceiling leaves out a random subset of the covered tasks. Its own phase (`lb162`),
 private session folder (`~/.cache/sanchopanza/longdoc/h2h/lb162`) and public rows without text
 (`sonnet-rows.jsonl`: id, letter, grade, cost, time).
 
@@ -62,7 +63,8 @@ on the covered tasks and with Sonnet elsewhere, so
 
 an uncovered task contributing 0. Computed as coverage x the mean gain on the covered tasks that
 have a Sonnet session: the sum above when every covered task has one, and unbiased if a stop
-leaves some without. **Paired bootstrap** over the n tasks, 10,000 draws, seed 20261015,
+leaves some without (the covered tasks run in a seeded random order). The number of Sonnet
+sessions scored and of covered tasks without one are reported. **Paired bootstrap** over the n tasks, 10,000 draws, seed 20261015,
 percentile 95 % CI; **exact McNemar** on the covered disagreements (Jev only right against
 Sonnet only right).
 
@@ -99,18 +101,23 @@ about 6 points. At -2 points the same design would decide about 10 %.
   session's cap plus one worst turn (1.68 USD: one Sonnet 5.5 turn writing 200,000 tokens to the
   cache at the 1-hour rate and answering 32,000; `--max-budget-usd` stops between turns only), so
   the phase cannot pass 18. Expected 0.138 USD a covered task (L6) x about 87 covered tasks
-  (54 %) = **about 12 USD**. **The runner refuses a plan that cannot fit**: spent + sessions left
-  x 0.138 + 3.00 + 1.68 > 18, i.e. more than **96** covered tasks (coverage above 59 %). Then
-  phase S does not start: any change (a higher ceiling) is an amendment sealed before any Sonnet
-  session, with the owner's OK. Wall time: sessions took a median 23 s and a mean 38 s in the
+  (54 %) = **about 12 USD**. The runner refuses a plan only when its expected cost alone (sessions
+  left x 0.138) exceeds 18, i.e. more than 130 covered tasks. A plan above what the ceiling holds
+  starts and the guard stops it: at L6's mean cost the guard lets **97** sessions run (spent +
+  4.68 <= 18 before each); at worst, every session at its cap plus one worst turn, it guarantees
+  **3**. A ceiling stop leaves a random subset of the covered tasks without Sonnet (the seeded
+  order); the estimator above stays unbiased and the README reports how many sessions ran. Wall
+  time: sessions took a median 23 s and a mean 38 s in the
   2026-10-06 confirmation: about 55 minutes for 87, one at a time.
 - **Clock:** phase S does not start before 08:00 (Windows Update restarts 02:00-08:00) nor when
   its sessions at 1.5 x the mean, plus 10 minutes, would cross midnight; no session starts within
   10 minutes of midnight. A clock stop is a pause: a relaunch after 08:00 resumes.
 - **Stops, phase J.** A cap refusal is **final**: no further call, the tasks left unasked are
   out of n, what is complete is scored and the README says so; the runner refuses a relaunch.
-  An HTTP 402 (no funds), an HTTP 429 (after the provider's own three short retries) or a `STOP`
-  file in `C:\sp-runs\lb162` stop every further call: a **pause, not a result**; the relaunch
+  An HTTP 402 (no funds), an HTTP 429 or a `STOP` file in `C:\sp-runs\lb162` stop every
+  further call. This lot takes 429 out of the Jev client's retryable statuses at run time
+  (`no_retry_on_429`, as lot memgate-long), so the first 429 stops; a 529 keeps the client's
+  three bounded retries. Each is a **pause, not a result**; the relaunch
   asks only the unasked tasks (a failed task stays failed).
 - **Stops, phase S.** A 429 or usage limit ("weekly limit") stops the phase at once, the session
   is recorded as not run and `LIMIT.flag` is written in `C:\sp-runs\lb162`: a pause, never

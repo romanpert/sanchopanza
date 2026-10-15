@@ -13,10 +13,11 @@ tasks, the phase, its private session folder and its money and clock rules are i
     python benchmarks/h2h/h2h_lb162.py               # free: rows without text into the results
 
 A live run refuses: without lot lb162's seal; before phase J is over; a covered-ids file that
-is not the one derived from phase J's rows; a plan whose expected cost (SONNET_EST_USD a
-session) does not fit under the ceiling with room for one session's cap and one worst turn;
-a start before 08:00 or one whose expected wall time crosses midnight. While it runs, it stops
-before a session within MIDNIGHT_MARGIN_S of midnight, when RUN_DIR holds a STOP file, at the
+is not the one derived from phase J's rows; a plan whose expected cost alone (SONNET_EST_USD a
+session) exceeds the ceiling (a plan above what the ceiling holds starts, and the guard below
+stops it, leaving a random subset of the covered tasks: they run in a seeded order); a start
+before 08:00 or one whose expected wall time crosses midnight. While it runs, it stops before
+a session within MIDNIGHT_MARGIN_S of midnight, when RUN_DIR holds a STOP file, at the
 ceiling (spent + the session cap + one worst turn > 18 USD, browse/phase.py) and on a 429 or
 usage limit (the session recorded as not run, LIMIT.flag written in RUN_DIR: a pause, not a
 result).
@@ -57,7 +58,7 @@ ROW_KEYS = ("letter", "ok", "usd", "wall_s", "turns", "hit_cap", "no_letter")
 # What the phase loop reserves before each session (browse/phase.py stops when spent + this >
 # the ceiling): the session's --max-budget-usd (h2h_longdoc's cap, unchanged) plus one worst turn
 # past it, so the phase never spends more than CEILING_USD.
-RESERVE = {MODEL: lb162.SONNET_CAP_USD + lb162.WORST_TURN_USD}
+RESERVE = {MODEL: lb162.SONNET_RESERVE_USD}
 
 
 # --- the tasks and their rules ------------------------------------------------------------------
@@ -76,15 +77,15 @@ def covered_tasks() -> list[Any]:
     return [by_id[i] for i in ids]
 
 
-def fit_refusal(spent: float, todo: int) -> str:
-    """Empty when `todo` sessions at SONNET_EST_USD fit under the ceiling after `spent`, with room
-    for one session's cap and one worst turn past it."""
-    need = spent + todo * lb162.SONNET_EST_USD + lb162.SONNET_CAP_USD + lb162.WORST_TURN_USD
+def expected_refusal(todo: int) -> str:
+    """Empty unless the expected cost of the sessions left (SONNET_EST_USD each) alone exceeds
+    the ceiling. A plan above what the ceiling can hold still starts: the guard before each
+    session stops it, and the seeded order leaves a random subset of the covered tasks."""
+    need = todo * lb162.SONNET_EST_USD
     if round(need, 6) <= CEILING_USD:
         return ""
-    return (f"phase S does not fit: {spent:.2f} spent + {todo} x {lb162.SONNET_EST_USD} + cap "
-            f"{lb162.SONNET_CAP_USD} + worst turn {lb162.WORST_TURN_USD} = {need:.2f} > "
-            f"{CEILING_USD:g} USD")  # fmt: skip
+    return (f"phase S refused: {todo} sessions x {lb162.SONNET_EST_USD} = {need:.2f} USD expected "
+            f"> the {CEILING_USD:g} USD ceiling")  # fmt: skip
 
 
 def crosses_midnight(start: dt.datetime, seconds: float) -> bool:
@@ -158,8 +159,10 @@ def spent_now() -> tuple[float, int]:
 def plan_lines(tasks: Sequence[Any] | None) -> list[str]:
     if tasks is None:
         expected = lb162.plan(lb162.load_tasks(), None)["phase_s"]
-        return [f"phase J not over: about {expected['sessions']} sessions expected, at most "
-                f"{lb162.max_covered()} fit; est {expected['est_usd']} USD"]  # fmt: skip
+        return [f"phase J not over: about {expected['sessions']} sessions expected, est "
+                f"{expected['est_usd']} USD; the guard stops after about "
+                f"{expected['sessions_before_guard_at_mean']} at the mean cost, "
+                f"{expected['sessions_guaranteed_at_worst']} at worst"]  # fmt: skip
     spent, done = spent_now()
     todo = len(tasks) - done
     bands = lb162.plan(tasks, [t.task_id for t in tasks])
@@ -168,7 +171,9 @@ def plan_lines(tasks: Sequence[Any] | None) -> list[str]:
         f"{len(tasks)} sessions ({done} done, {todo} to run); by length {bands['by_length']}; "
         f"by difficulty {bands['by_difficulty']}",
         f"cost: est {todo * lb162.SONNET_EST_USD:.2f} USD to run, {spent:.2f} spent; ceiling "
-        f"{CEILING_USD:g}; " + (fit_refusal(spent, todo) or "fits"),
+        f"{CEILING_USD:g}; " + (expected_refusal(todo) or "expected within the ceiling")
+        + f"; the guard stops after ~{lb162.sessions_before_guard(lb162.SONNET_EST_USD)} sessions "
+        f"at the mean cost, {lb162.guaranteed_sessions()} at worst",
         f"wall: ~{todo * lb162.SONNET_WALL_MEAN_S / 60:.0f} min at the mean, "
         f"~{todo * lb162.SONNET_WALL_MEDIAN_S / 60:.0f} at the median; "
         + (clock_refusal(dt.datetime.now(), todo) or "the clock allows a start now"),
@@ -201,7 +206,7 @@ def live() -> int:  # pragma: no cover - paid sessions
     tasks = covered_tasks()
     spent, done = spent_now()
     todo = len(tasks) - done
-    if why := fit_refusal(spent, todo) or clock_refusal(dt.datetime.now(), todo):
+    if why := expected_refusal(todo) or clock_refusal(dt.datetime.now(), todo):
         raise SystemExit(why)
     if (RUN_DIR / "LIMIT.flag").exists():
         raise SystemExit(f"{RUN_DIR / 'LIMIT.flag'} exists: the last run met a usage limit")

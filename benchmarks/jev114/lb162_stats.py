@@ -110,7 +110,7 @@ def primary(us: Sequence[Unit]) -> dict[str, Any]:
     both = [u for u in us if u.covered and u.sonnet_ok is not None]
     b = sum(u.jev_ok and not u.sonnet_ok for u in both)
     c = sum(u.sonnet_ok and not u.jev_ok for u in both)
-    return {"n": n, "covered": sum(u.covered for u in us),
+    return {"n": n, "covered": sum(u.covered for u in us), "sonnet_sessions": len(both),
             "covered_without_sonnet": sum(u.covered and u.sonnet_ok is None for u in us),
             "diff": None if diff is None else round(diff, 4), "ci95": ci,
             "bootstrap": {"draws": st.BOOT, "seed": st.BOOT_SEED, "unit": "task"},

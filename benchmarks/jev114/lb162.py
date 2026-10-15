@@ -17,9 +17,10 @@ Phase J asks jev-1.14.0 one Choice per task exactly as lot L6's `j14-L` cell (l6
 long-context header, the document middle-cut to 900,000 characters, the same question, and
 when a call is unanswered the same task again at 0.8 and 0.64 of the window. Every live call
 goes through `CappedDecider` on this lot's own ledger (LEDGER_PATH) and cap, reserved before
-the call; a refusal by the cap, an HTTP 402 or an HTTP 429 (after the provider's own bounded
-retries), or a STOP file in RUN_DIR stops every further call. Answers are recorded with hashed
-keys (no text) in OUT, so a relaunch pays only for what is missing. The key comes from
+the call; a refusal by the cap, an HTTP 402, an HTTP 429 (this lot takes 429 out of the
+provider's retries, `no_retry_on_429`, so the first one stops; 529 keeps its bounded retries)
+or a STOP file in RUN_DIR stops every further call. Answers are recorded with hashed keys (no
+text) in OUT, so a relaunch pays only for what is missing. The key comes from
 TYPESAFE_API_KEY or the file SANCHOPANZA_KEYS_ENV names (never printed).
 """
 
@@ -286,6 +287,14 @@ def jev_plan_refusal(spent: float, todo: int, cap: float = BATCH_CAP_USD) -> str
                                    f"{JEV_EST_USD} = {need:.4f} > {cap:g} USD")  # fmt: skip
 
 
+def no_retry_on_429() -> None:
+    """The shipped client retries a 429 three times with backoff; this lot stops at the first
+    (as lot memgate-long does). 529 keeps its bounded retries."""
+    from sanchopanza.providers import jev
+
+    jev.RETRYABLE = frozenset(jev.RETRYABLE - {429})
+
+
 def preflight_or_stop() -> None:  # pragma: no cover - one real decision, about 13 micro-USD
     from sanchopanza.providers.jev import apreflight
 
@@ -343,6 +352,7 @@ def phase_j_live() -> int:  # pragma: no cover - network
     if why := jev_plan_refusal(batch_spent(), len(todo)):
         raise SystemExit(why)
     l4.load_key()
+    no_retry_on_429()
     preflight_or_stop()
     stop = Stop(RUN_DIR / "STOP")
     got = asyncio.run(run_j([tasks[i] for i in todo], live_decider(stop, BATCH_CAP_USD),
@@ -369,6 +379,7 @@ def smoke(live: bool) -> int:  # pragma: no cover - network when live
     """One LongBench dev task (lot L6's smoke task, outside the 162), its own answers file."""
     if live:
         l4.load_key()
+        no_retry_on_429()
         preflight_or_stop()
     stop = Stop(RUN_DIR / "STOP")
     decider = live_decider(stop, SMOKE_CAP_USD) if live else None
@@ -381,11 +392,19 @@ def smoke(live: bool) -> int:  # pragma: no cover - network when live
 # ---- plan -------------------------------------------------------------------------------------
 
 
-def max_covered(spent: float = 0.0) -> int:
-    """The most phase S sessions whose expected cost fits under the ceiling with room for one
-    session's cap and one worst turn past it."""
-    room = SONNET_CEILING_USD - SONNET_CAP_USD - WORST_TURN_USD - spent
-    return max(0, math.floor(room / SONNET_EST_USD + 1e-9))
+SONNET_RESERVE_USD = SONNET_CAP_USD + WORST_TURN_USD  # held before each session (h2h_lb162)
+
+
+def sessions_before_guard(per_session_usd: float) -> int:
+    """Sessions phase S runs before its guard stops it (a session starts only while spent +
+    SONNET_RESERVE_USD <= the ceiling) when every session costs `per_session_usd`."""
+    room = SONNET_CEILING_USD - SONNET_RESERVE_USD
+    return math.floor(room / per_session_usd + 1e-9) + 1
+
+
+def guaranteed_sessions() -> int:
+    """At worst (every session at its cap plus one worst turn) the ceiling still runs this many."""
+    return sessions_before_guard(SONNET_RESERVE_USD)
 
 
 def plan(tasks: Sequence[Any], covered_ids: Sequence[str] | None) -> dict[str, Any]:
@@ -402,8 +421,10 @@ def plan(tasks: Sequence[Any], covered_ids: Sequence[str] | None) -> dict[str, A
                     "est_wall_min": round(calls * JEV_LATENCY_S / CONCURRENCY / 60, 1)},
         "phase_s": {"sessions": n_cov, "measured": covered_ids is not None,
                     "est_usd": round(n_cov * SONNET_EST_USD, 2),
-                    "ceiling_usd": SONNET_CEILING_USD, "max_sessions": max_covered(),
-                    "fits": n_cov <= max_covered(),
+                    "ceiling_usd": SONNET_CEILING_USD,
+                    "expected_within_ceiling": n_cov * SONNET_EST_USD <= SONNET_CEILING_USD,
+                    "sessions_before_guard_at_mean": sessions_before_guard(SONNET_EST_USD),
+                    "sessions_guaranteed_at_worst": guaranteed_sessions(),
                     "est_wall_min_mean": round(n_cov * SONNET_WALL_MEAN_S / 60, 1),
                     "est_wall_min_median": round(n_cov * SONNET_WALL_MEDIAN_S / 60, 1)},
     }  # fmt: skip
