@@ -27,6 +27,15 @@ not.
 | [2026-10-13-memory-cell](2026-10-13-memory-cell/README.md) | The open memory cell, Sonnet 5.5, a fact said in a parallel session or sibling worktree, 24 pairs, pre-registered: S broke 0 facts against N's 11 (McNemar p 0.00049; by scene 4 wins, 0 losses), task 23 vs 24, cost 1.117 [1.05, 1.15], wall 1.12: **gana**. S is the default install plus `--memory`; 8.47 USD |
 | [2026-10-13-long-compact](2026-10-13-long-compact/README.md) | Early compaction near 67k (what `install --context-budget 67000` writes) against N-early near 160k, Sonnet 5.5, 5 long60 chains, k = 1, pre-registered: cost 0.900 [0.741, 1.093], quality −1.4 points (non-inferior at −10), wall 1.09: **no gana**, no saving shown (0.858 [0.748, 0.984] if a call cut by a PC reboot is metered rather than charged at its cap, a sensitivity the sealed rule does not use) (under the post-data amendment: conan-2 repeated at 0.952, still no gana: R1 0.875 [0.754, 1.015], R2 0.887 [0.750, 1.050]). 173.11 + 33.69 USD |
 
+## Jev 1.14
+
+`jev-1.14.0` against `jev-1.13.0`, both asked live the same day on the same inputs.
+`DEFAULT_MODEL` stays `jev-1.13.0`.
+
+| Folder | What it backs |
+|---|---|
+| [2026-10-15-jev114-l4](2026-10-15-jev114-l4/README.md) | find_in_repo on 117 SWE-bench Verified issues and candor/`check_done` on tau2 (320) and errata (110), pre-registered, nine paired comparisons: find any@1 identical (50.4 % both, 3 won 3 lost) and any@5 −0.9 points [−4.3, +1.7], "no concluyente" under the −2 rule at this n; tau2 AUC **mejora** +0.032 (0.549 → 0.581, Holm p 0.002) but accuracy at 0.5 −1.6 [−4.7, +1.3]; errata AUC −0.043 [−0.098, +0.010], and the 0.83 cut flags 22/55 accepted answers on 1.14 against 8 (recalibrate before switching). Every 2026-09-29 verdict stands. MALT and the counterfactuals not run (budget). 0.5479 USD |
+
 ## Main evidence
 
 The runs behind the README's headline numbers.
