@@ -107,3 +107,86 @@ def test_the_plan_refuses_what_does_not_fit(tmp_path: Path, monkeypatch: Any) ->
     monkeypatch.setattr(bench, "estimate_ratio", lambda: 2.0)
     assert bench.plan({"14": 1}, 0.05, ledger)["fits"] is True
     assert bench.plan({"14": 1}, 0.09, ledger)["fits"] is False
+
+
+def _rows(n: int) -> list[dict[str, Any]]:
+    return [{"key": f"k{i}", "text": f"text {i}", "gold": "a"} for i in range(n)]
+
+
+def _chain(tmp_path: Path, cap: float, inner: dict[str, Any] | None = None) -> tuple[Any, ...]:
+    ledger = bench.SpendLedger(tmp_path / "ledger.json", cap_usd=4.5)
+    fixtures = {arm: tmp_path / f"{arm}.jsonl" for arm in bench.ARMS}
+    halt = bench.Halt()
+    inner = inner or {arm: bench.FakeJev(model) for arm, model in bench.ARMS.items()}
+    deciders = {
+        arm: bench.arm_decider(arm, inner=inner[arm], ledger=ledger, fixtures=fixtures, halt=halt)
+        for arm in bench.ARMS
+    }
+    return ledger, fixtures, halt, deciders
+
+
+def test_the_real_chain_records_replays_and_strips_the_text(tmp_path: Path, monkeypatch) -> None:
+    ledger, fixtures, halt, deciders = _chain(tmp_path, 0.2)
+    squires = {arm: bench.squire_of(d) for arm, d in deciders.items()}
+    out = asyncio.run(bench.run_set(_rows(6), RUBRIC, squires, halt))
+    assert all("text" not in r and r["label_14"] and r["label_13r"] for r in out)
+    assert ledger.spent(bench.BATCH) > 0 and halt.reason is None
+    # Replay only (no live decider): every answer comes back from the recordings, both arms.
+    replay = {
+        arm: bench.squire_of(
+            bench.arm_decider(arm, inner=None, ledger=ledger, fixtures=fixtures, halt=halt)
+        )
+        for arm in bench.ARMS
+    }
+    again = asyncio.run(bench.run_set(_rows(6), RUBRIC, replay, halt))
+    assert [r["label_14"] for r in again] == [r["label_14"] for r in out]
+    assert [r["label_13r"] for r in again] == [r["label_13r"] for r in out]
+
+
+def test_the_batch_cap_halts_the_run(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(bench, "BATCH_CAP_USD", 0.0001)
+    ledger, _, halt, deciders = _chain(tmp_path, 0.0001)
+    squires = {arm: bench.squire_of(d) for arm, d in deciders.items()}
+    out = asyncio.run(bench.run_set(_rows(40), RUBRIC, squires, halt))
+    assert halt.reason and "SpendCapReached" in halt.reason
+    assert ledger.spent(bench.BATCH) <= 0.0001 + 0.00003
+    assert sum(r.get("label_14") is None for r in out) > 20
+
+
+def test_an_answer_from_another_model_halts_and_is_not_recorded(tmp_path: Path) -> None:
+    wrong = {"13r": bench.FakeJev("jev-1.13.0"), "14": bench.FakeJev("jev-1.14.1")}
+    _, fixtures, halt, deciders = _chain(tmp_path, 0.2, wrong)
+    squires = {arm: bench.squire_of(d) for arm, d in deciders.items()}
+    asyncio.run(bench.run_set(_rows(4), RUBRIC, squires, halt))
+    assert halt.reason and "jev-1.14.1" in halt.reason
+    assert not fixtures["14"].exists()
+
+
+def test_sib_rows_run_sentence_by_sentence() -> None:
+    rows = [{"lang": lang, "sentence": s} for lang in ("eng_Latn", "spa_Latn") for s in (2, 1)]
+    ordered = bench.interleave_sentences(rows)
+    assert [(r["sentence"], r["lang"]) for r in ordered] == [
+        (1, "eng_Latn"), (1, "spa_Latn"), (2, "eng_Latn"), (2, "spa_Latn")
+    ]  # fmt: skip
+
+
+def test_a_family_short_of_answers_is_inconclusive_but_keeps_its_computed_verdict() -> None:
+    def rows(name: str, n: int, missing: int) -> list[dict[str, Any]]:
+        return [
+            {"key": f"{name}{i}", "gold": "a", "label_13r": "a",
+             "label_14": None if i < missing else "a", "p_13r": 0.9, "p_14": 0.9,
+             "gated_13r": "a", "gated_14": None if i < missing else "a",
+             "p_is_top_13r": True, "p_is_top_14": True}
+            for i in range(n)
+        ]  # fmt: skip
+
+    sib = [
+        {**r, "lang": lang, "sentence": i}
+        for lang in ("eng_Latn", "spa_Latn")
+        for i, r in enumerate(rows(f"sib-{lang}-", 50, 0))
+    ]
+    report = bench.analyze({"agnews": rows("a", 100, 5), "dbpedia": rows("d", 100, 0), "sib": sib})
+    assert report["agnews"]["verdict"] == "no concluyente (incompleto)"
+    assert report["agnews"]["verdict_computed"] in ("no peor", "no concluyente")
+    assert report["dbpedia"]["verdict"] == "no peor"
+    assert report["recommendations"]["move_label_to_1_14"] is False

@@ -20,13 +20,14 @@ from __future__ import annotations
 import argparse
 import asyncio
 import hashlib
-import importlib.util
 import json
 import math
 import os
 import pathlib
 import random
+import subprocess
 import sys
+import tempfile
 from collections.abc import Callable, Sequence
 from typing import Any
 
@@ -35,13 +36,18 @@ ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from sanchopanza.budget import SpendLedger  # noqa: E402
-from sanchopanza.contract import Answer, Decision  # noqa: E402
+from sanchopanza.contract import (  # noqa: E402
+    Answer,
+    DeciderOutOfFunds,
+    DeciderUnavailable,
+    Decision,
+)
 from sanchopanza.eval.stats import mcnemar, wilson  # noqa: E402
 from sanchopanza.label import Item, Row, Rubric, label_one  # noqa: E402
 from sanchopanza.points import entities  # noqa: E402
 from sanchopanza.policy import Thresholds  # noqa: E402
 from sanchopanza.providers import create  # noqa: E402
-from sanchopanza.providers.capped import CappedDecider, estimate_usd  # noqa: E402
+from sanchopanza.providers.capped import CappedDecider, SpendCapReached, estimate_usd  # noqa: E402
 from sanchopanza.providers.recorded import (  # noqa: E402
     RecordedDecider,
     RecordingDecider,
@@ -72,21 +78,12 @@ CONCURRENCY = 4  # items in flight; each item asks its two arms one after the ot
 PLAN_MARGIN = 1.25  # the plan must fit at its expected cost times this
 EARLY_ITEMS, EARLY_UNANSWERED = 40, 10  # stop a set when an arm fails this often this early
 NON_INFERIORITY = -0.02
+MISSING_SHARE = 0.01  # more answers missing than this: incomplete
+RECALIBRATE_COVERAGE = 0.02  # |coverage change at 0.60| above this, interval off 0: recalibrate
 ALPHA = 0.05
 REPS = 4000
 SEED = 2026_10_15
 ENGLISH = "eng_Latn"
-
-
-def _load(name: str, path: pathlib.Path) -> Any:
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-ReplayFirst = _load("triage_sets_run", ROOT / "benchmarks" / "triage_sets" / "run.py").ReplayFirst
 
 
 # --- sealing and money ----------------------------------------------------------------------
@@ -97,9 +94,17 @@ def digest() -> str:
 
 
 def require_prereg() -> None:
+    """The sealed prereg, unchanged, and the instrument as committed (no local edits)."""
     registered = RESULTS / "prereg.sha256"
     if not registered.exists() or registered.read_text().strip() != digest():
         raise SystemExit("prereg.md missing or changed since it was registered: nothing spent")
+    dirty = subprocess.run(
+        ["git", "status", "--porcelain", "--", "benchmarks/label", "benchmarks/triage_sets",
+         "src", "tests/test_label_jev114.py", str(PREREG.relative_to(ROOT))],
+        cwd=ROOT, capture_output=True, text=True, check=True,
+    ).stdout.strip()  # fmt: skip
+    if dirty:
+        raise SystemExit("the instrument has uncommitted changes: nothing spent")
 
 
 def api_key() -> str:
@@ -119,13 +124,6 @@ def load(name: str) -> tuple[list[dict[str, Any]], Rubric]:
         json.loads(x) for x in (DATA / f"{name}.jsonl").read_text(encoding="utf-8").splitlines()
     ]
     return rows, Rubric.load(DATA / f"{name}.rubric.json")
-
-
-def call_estimate(row: dict[str, Any], rubric: Rubric) -> float:
-    state, qs = entities.classification_questions(
-        field=rubric.field, text=row["text"], options=rubric.options, add_other=rubric.add_other
-    )
-    return estimate_usd(state, qs, price_per_mtok=0.042)
 
 
 def estimate_ratio() -> float:
@@ -165,32 +163,97 @@ def plan(missing: dict[str, int], pessimistic: float, ledger: SpendLedger) -> di
 # --- the run --------------------------------------------------------------------------------
 
 
-class FakeDecider:
-    """`--dry`: answers every Choice with a fixed, gold-blind distribution; costs nothing."""
+class Halt:
+    """Why the run stopped spending: the cap, the funds, or a model other than the arm's."""
 
-    name = "fake"
+    def __init__(self) -> None:
+        self.reason: str | None = None
+
+    def set(self, reason: str) -> None:
+        self.reason = self.reason or reason
+
+
+class ModelGuard:
+    """Inside the recorder: a cap or funds refusal, or an answer from another model, halts the
+    run (and that answer is neither recorded nor used)."""
+
+    def __init__(self, inner: Any, model: str, halt: Halt) -> None:
+        self._inner, self._model, self._halt = inner, model, halt
+        self.name = inner.name
 
     async def decide(self, point: str, state: Any, questions: Any) -> Decision:
-        q = questions["category"]
-        options = list(q.options)
-        seed = int(hashlib.sha256(json.dumps(state, sort_keys=True).encode()).hexdigest(), 16)
-        winner = options[seed % len(options)]
+        try:
+            decision = await self._inner.decide(point, state, questions)
+        except (SpendCapReached, DeciderOutOfFunds) as error:
+            self._halt.set(f"{error.__class__.__name__}: {error}")
+            raise
+        if decision.model != self._model:
+            self._halt.set(f"asked {self._model}, answered by {decision.model!r}")
+            raise DeciderUnavailable("answered by another model")
+        return decision
+
+
+class ReplayThenLive:
+    """The recording first; live only for what is missing, at most `ATTEMPTS` times, never
+    once the run is halted. Counts live calls and items left unanswered."""
+
+    ATTEMPTS = 2
+
+    def __init__(self, recorded: RecordedDecider, live: Any | None, halt: Halt) -> None:
+        self._recorded, self._live, self._halt = recorded, live, halt
+        self.name = "jev"
+        self.asked = 0
+        self.missing = 0
+
+    async def decide(self, point: str, state: Any, questions: Any) -> Decision:
+        decision = await self._recorded.decide(point, state, questions)
+        if decision.answers:
+            return decision
+        for attempt in range(self.ATTEMPTS if self._live is not None else 0):
+            if self._halt.reason:
+                break
+            try:
+                self.asked += 1
+                decision = await self._live.decide(point, state, questions)
+                if decision.answers:
+                    return decision
+            except DeciderUnavailable:
+                await asyncio.sleep(1 + attempt)
+        self.missing += 1
+        return Decision(point=point, answers={}, provider=self.name, model="-")
+
+
+class FakeJev:
+    """`--dry`: stands in for `JevDecider` inside the real chain (cap, ledger, recorder,
+    replay). A gold-blind distribution; claims a price so the ledger moves."""
+
+    name = "jev"
+
+    def __init__(self, model: str) -> None:
+        self._model = model
+
+    async def decide(self, point: str, state: Any, questions: Any) -> Decision:
+        options = list(questions["category"].options)
+        blob = json.dumps(state, sort_keys=True) + self._model
+        winner = options[int(hashlib.sha256(blob.encode()).hexdigest(), 16) % len(options)]
         probabilities = {o: (0.7 if o == winner else 0.3 / (len(options) - 1)) for o in options}
         answer = Answer(kind="choice", choice=winner, probabilities=probabilities, confidence=0.6)
-        return Decision(point=point, answers={"category": answer}, provider="fake", model="fake")
+        return Decision(point=point, answers={"category": answer}, provider="jev",
+                        model=self._model, input_tokens=500, cost_usd=0.000021)  # fmt: skip
 
 
-def arm_decider(arm: str, *, live: bool, dry: bool, ledger: SpendLedger | None) -> Any:
-    if dry:
-        return FakeDecider()
+def arm_decider(
+    arm: str, *, inner: Any | None, ledger: SpendLedger, fixtures: dict[str, pathlib.Path],
+    halt: Halt,
+) -> ReplayThenLive:  # fmt: skip
+    """Replay, then (when `inner` is given) live: guard, recorder, cap, the model."""
     model = ARMS[arm]
-    recorded = RecordedDecider.from_file(FIXTURES[arm], model=model)
+    recorded = RecordedDecider.from_file(fixtures[arm], model=model)
     paid = None
-    if live:
-        jev = create("jev", api_key=api_key(), model=model, long_context=False, images=False)
-        capped = CappedDecider(jev, ledger=ledger, batch=BATCH, max_usd=BATCH_CAP_USD)
-        paid = RecordingDecider(capped, FIXTURES[arm])
-    return ReplayFirst(recorded, paid)
+    if inner is not None:
+        capped = CappedDecider(inner, ledger=ledger, batch=BATCH, max_usd=BATCH_CAP_USD)
+        paid = RecordingDecider(ModelGuard(capped, model, halt), fixtures[arm])
+    return ReplayThenLive(recorded, paid, halt)
 
 
 def squire_of(decider: Any) -> Squire:
@@ -201,22 +264,25 @@ def record_of(row: Row) -> dict[str, Any]:
     dist = dict(row.probabilities)
     top = max(dist, key=lambda k: dist[k]) if dist else None
     return {"label": top, "gated": row.label, "p": row.p, "margin": row.margin,
-            "reason": row.reason}  # fmt: skip
+            "reason": row.reason,
+            "p_is_top": bool(dist) and abs(row.p - dist[top]) < 1e-12}  # fmt: skip
 
 
 async def run_set(
-    rows: list[dict[str, Any]], rubric: Rubric, squires: dict[str, Squire]
-) -> list[dict[str, Any]]:
-    """Both arms on every item, two calls in a row, the first arm alternating by item."""
+    rows: list[dict[str, Any]], rubric: Rubric, squires: dict[str, Squire],
+    halt: Halt | None = None,
+) -> list[dict[str, Any]]:  # fmt: skip
+    """Both arms on every item, two calls in a row, the first arm alternating by item. The
+    rows come back without their text (third-party data stays out of the repository)."""
     gate = asyncio.Semaphore(CONCURRENCY)
-    out: list[dict[str, Any]] = [dict(r) for r in rows]
+    out: list[dict[str, Any]] = [{k: v for k, v in r.items() if k != "text"} for r in rows]
     unanswered = {arm: 0 for arm in ARMS}
     stop = asyncio.Event()
 
     async def one(i: int, row: dict[str, Any]) -> None:
         order = list(ARMS) if i % 2 == 0 else list(reversed(ARMS))
         async with gate:
-            if stop.is_set():
+            if stop.is_set() or (halt is not None and halt.reason):
                 return
             item = Item(row["key"], row["text"])
             for arm in order:
@@ -229,6 +295,13 @@ async def run_set(
 
     await asyncio.gather(*(one(i, r) for i, r in enumerate(rows)))
     return out
+
+
+def interleave_sentences(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """SIB-200 by sentence, every language of a sentence together, so a cap that cuts the run
+    short cuts every language alike."""
+    langs = {lang: i for i, lang in enumerate(dict.fromkeys(r["lang"] for r in rows))}
+    return sorted(rows, key=lambda r: (r["sentence"], langs[r["lang"]]))
 
 
 # --- analysis -------------------------------------------------------------------------------
@@ -279,6 +352,8 @@ def bootstrap(
         if not math.isnan(value):
             values.append(value)
     values.sort()
+    if not values:  # e.g. an AUROC where every item is right
+        return [float("nan"), float("nan")]
     low, high = values[int(0.025 * len(values))], values[int(0.975 * len(values)) - 1]
     return [round(low, 4), round(high, 4)]
 
@@ -310,6 +385,9 @@ def per_arm(rows: Sequence[dict], arm: str) -> dict[str, Any]:
                              "accuracy": round(gated_accuracy(rows, arm), 4)},
         "auroc_p1": round(auc_of(rows, arm), 4),
         "unanswered": sum(r.get(f"label_{arm}") is None for r in rows),
+        "p1_not_the_top_option": sum(
+            r.get(f"label_{arm}") is not None and not r.get(f"p_is_top_{arm}") for r in rows
+        ),
     }  # fmt: skip
 
 
@@ -421,15 +499,39 @@ def analyze(results: dict[str, list[dict]]) -> dict[str, Any]:
         report[name] = {"items": len(rows), **{arm: per_arm(rows, arm) for arm in ARMS},
                         "paired_14_minus_13r": paired(rows)}  # fmt: skip
     adjusted = holm({k: report[k]["paired_14_minus_13r"]["mcnemar_p"] for k in families})
-    for name in families:
+    for name, rows in families.items():
         report[name]["holm_p"] = adjusted[name]
-        report[name]["verdict"] = verdict(report[name]["paired_14_minus_13r"], adjusted[name])
+        computed = verdict(report[name]["paired_14_minus_13r"], adjusted[name])
+        report[name]["verdict_computed"] = computed
+        short = any(report[name][arm]["unanswered"] > MISSING_SHARE * len(rows) for arm in ARMS)
+        report[name]["verdict"] = "no concluyente (incompleto)" if short else computed
     english = [r for r in results["sib"] if r["lang"] == ENGLISH]
     report["sib_english"] = {"items": len(english), **{arm: per_arm(english, arm) for arm in ARMS},
                              "paired_14_minus_13r": paired(english)}  # fmt: skip
     report["sib_multilingual"] = multilingual(results["sib"])
     report["noise_vs_2026_09_30"] = {n: noise_check(n, results[n]) for n in ("agnews", "dbpedia")}
+    report["recommendations"] = recommendations(report, list(families))
     return report
+
+
+def recommendations(report: dict[str, Any], families: list[str]) -> dict[str, Any]:
+    """The pre-registered consequences of the verdicts."""
+    good = ("mejora", "no peor")
+
+    def recalibrate(name: str) -> bool:
+        pair = report[name]["paired_14_minus_13r"]
+        low, high = pair["coverage_diff_ci95"]
+        coverage_moved = abs(pair["coverage_diff_at_0.60"]) > RECALIBRATE_COVERAGE and (
+            low > 0 or high < 0
+        )
+        gated_worse = pair["gated_accuracy_diff_ci95"][1] < 0 and report[name]["verdict"] in good
+        return coverage_moved or gated_worse
+
+    return {
+        "move_label_to_1_14": all(report[n]["verdict"] in good for n in families),
+        "recalibrate_classify_for_1_14": {n: recalibrate(n) for n in families},
+        "gains_more_outside_english": report["sib_multilingual"]["ci95"][0] > 0,
+    }
 
 
 # --- main -----------------------------------------------------------------------------------
@@ -470,17 +572,35 @@ def main() -> int:
             return 0
         if not budget["fits"]:
             raise SystemExit("the plan does not fit under the caps: nothing spent")
-    deciders = {arm: arm_decider(arm, live=args.live, dry=args.dry, ledger=ledger) for arm in ARMS}
+    halt = Halt()
+    fixtures = FIXTURES
+    if args.dry:  # the whole chain, with a fake model, a scratch ledger and scratch fixtures
+        scratch = pathlib.Path(tempfile.mkdtemp(prefix="label-jev114-dry-"))
+        ledger = SpendLedger(scratch / "ledger.json", cap_usd=LEDGER_CAP_USD)
+        fixtures = {arm: scratch / path.name for arm, path in FIXTURES.items()}
+    key = api_key() if args.live else None
+
+    def inner(arm: str) -> Any:
+        if args.dry:
+            return FakeJev(ARMS[arm])
+        if args.live:
+            return create("jev", api_key=key, model=ARMS[arm], long_context=False, images=False)
+        return None
+
+    deciders = {
+        arm: arm_decider(arm, inner=inner(arm), ledger=ledger, fixtures=fixtures, halt=halt)
+        for arm in ARMS
+    }
     squires = {arm: squire_of(deciders[arm]) for arm in ARMS}
     out_dir = RESULTS / "dry" if args.dry else RESULTS
     out_dir.mkdir(parents=True, exist_ok=True)
     results: dict[str, list[dict]] = {}
 
     async def every_set() -> None:
-        # One event loop for the run: ReplayFirst's pacing lock binds to the first loop it sees.
         for name in SETS:
             rows, rubric = loaded[name]
-            results[name] = await run_set(rows, rubric, squires)
+            rows = interleave_sentences(rows) if name == "sib" else rows
+            results[name] = await run_set(rows, rubric, squires, halt)
             (out_dir / f"{name}-rows.jsonl").write_text(
                 "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in results[name]),
                 encoding="utf-8",
@@ -494,6 +614,7 @@ def main() -> int:
         "squire_usd": {arm: round(squires[arm].meter.cost_usd, 6) for arm in ARMS},
         "ledger_batch_usd": round(ledger.spent(BATCH), 6),
         "ledger_total_usd": round(ledger.spent(), 6),
+        "halted": halt.reason,
     }
     unanswered = sum(
         report[f][arm]["unanswered"]
@@ -501,9 +622,11 @@ def main() -> int:
         for arm in ARMS
     )
     total = sum(len(results[n]) for n in SETS) * len(ARMS)
-    report["incomplete"] = unanswered > 0.01 * total
+    report["incomplete"] = unanswered > MISSING_SHARE * total
     (out_dir / "analysis.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
     print(json.dumps(report, indent=1))
+    if halt.reason:
+        return 2
     return 1 if report["incomplete"] else 0
 
 
