@@ -36,7 +36,7 @@ documents = ["pypdf>=5"]
 search = ["ddgs>=9.16"]
 images = ["pillow>=10"]  # resizing images for Jev (providers/jev_assets.py); fitting ones need none
 all = ["httpx>=0.27", "mcp>=1.2", "langchain>=1.3", "pypdf>=5", "ddgs>=9.16", "pillow>=10"]
-dev = ["pytest>=8", "pytest-asyncio>=0.23", "ruff>=0.6", "httpx>=0.27", "pillow>=10",
+dev = ["pytest>=8", "pytest-asyncio>=0.23", "ruff==0.17.1", "httpx>=0.27", "pillow>=10",
        "mcp>=1.2"]
 
 [project.scripts]
