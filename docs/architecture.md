@@ -81,7 +81,8 @@ flowchart TB
 Dependencies point downwards only. Points import the contract, the policy, the catalog of ids
 and text helpers. The squire imports points. The tool window imports the squire and two points
 (`tools`, `injection`). Adapters import the squire or the window. Providers import the
-contract, and the recorder and the chains the catalog, which imports nothing. Swapping a provider touches one file; adding a harness touches one file.
+contract, and the recorder and the chains the catalog, which imports nothing. Swapping a
+provider touches one file; adding a harness touches one file.
 
 **The tool window (0.3.0).** `select_tools` decides once, from the request, which is right
 while the only way to change a tool set is to rewrite `tools`. `ToolWindow` follows the
@@ -162,15 +163,23 @@ catalog; `catalog.with_ids(questions, {"q": "mine.q@1"})` tags any set by hand, 
 consumer's own questions included. Where one key is asked with two wordings that mean
 different things, each has its own id and its builder says which: `guard.dangerous@1` for
 the research sandbox and `guard.dangerous_coding@1` for a person's repository,
-`facts.relation_examples@1` for the opt-in wording with examples on `unrelated`. Positional
-questions share one id across their keys (`triage_pages.page@1` for `P01`, `P02`, ...).
+`facts.relation_examples@1` for the opt-in wording with examples on `unrelated`. Under such a
+key an untagged question (a copy made with `{**qs}` or a comprehension, a rewording) has no
+id: nothing says which wording it is, the states of the two are often identical, and taking
+the default's id would replay the other wording's answers. Without an id it misses instead.
+A tag naming a variant the point does not have is refused. Positional questions share one id
+across their keys (`triage_pages.page@1` for `P01`, `P02`, ...).
 The harness points (the Claude Code hooks, candor, the context autopilot, browsing) are not
 catalogued yet and have no ids.
 
 **Recording keys from ids, opt in (`providers.recorded`).** `id_key_of(point, state,
 questions, model)` signs each question's id, its kind and its option names in order (or its
 number of levels), and the state. Not its instructions, criteria or option descriptions:
-a Spanish copy of a catalogued question gets the key the English one has. When every
+a Spanish copy of a catalogued question gets the key the English one has. The exception is a
+question whose options the caller writes: `classify.category@1` signs its options with their
+descriptions, since swapping two descriptions changes the answer. The order of a Score's
+levels is not signed, because levels have nothing but text; inverting a scale takes a new
+version, and the wording canary fails until it does. When every
 question has an id the point name is left out, since the ids already name their point, so a
 consumer that traces a decision under its own name still shares the key. A question without
 an id is signed whole, with the point, as before. The model enters the key from jev-1.14 on,
@@ -180,13 +189,16 @@ as it does the text key.
 from sanchopanza.providers import RecordedDecider, RecordingDecider
 
 live = RecordingDecider(jev, "fixtures/mine.jsonl", keys="id")      # writes key and id_key
-replay = RecordedDecider.from_file("fixtures/mine.jsonl", keys="id")  # id_key first, then key
+replay = RecordedDecider.from_file("fixtures/mine.jsonl", keys="id")  # text first, then id
 ```
 
 It is opt in. With the default `keys="text"` every line is written and read exactly as
 before, and `key_of` is unchanged, so every fixture in this repository replays bit for bit.
 A recording made with `keys="id"` still carries the text key, so a text replay reads it
-too; an id replay reads every text-keyed line as well, after its own. A `FallbackDecider` or
+too. An id replay looks up the text key first, exactly as a text replay does, and the id key
+only when the text misses: the wording asked always gets its own answer, and only a wording
+never recorded (a translation, say) is answered by id, from the last line written under that
+id key. A `FallbackDecider` or
 `CascadeDecider` passes the ids on with the questions it forwards (`catalog.narrowed`).
 Recordings made before the ids existed hold only text keys, which cannot be turned into id
 keys without the state and questions they were computed from: moving them means recording

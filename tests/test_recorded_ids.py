@@ -133,9 +133,56 @@ def test_the_id_key_moves_with_the_state_the_version_the_options_and_the_set() -
     _, other = entities.classification_questions(field="f", text="x", options={"a": 1, "c": 2})
     _, swapped = entities.classification_questions(field="f", text="x", options={"b": 2, "a": 1})
     keys = {id_key_of("classify", {}, q) for q in (classify, other, swapped)}
-    assert len(keys) == 3  # option names and their order are in the key, descriptions are not
-    reworded = {"category": Choice("¿Qué categoría?", {"a": "uno", "b": "dos", "other": "otro"})}
-    assert id_key_of("classify", {}, reworded) == id_key_of("classify", {}, classify)
+    assert len(keys) == 3  # option names and their order are in the key
+
+
+def test_option_descriptions_are_signed_only_where_they_are_input() -> None:
+    """A classify vocabulary is the caller's: its descriptions decide the answer. The source
+    kinds of triage are the package's wording, and a translation of them keeps the key."""
+    _, mine = entities.classification_questions(
+        field="f", text="x", options={"a": "civil cases", "b": "criminal cases"}
+    )
+    _, swapped = entities.classification_questions(
+        field="f", text="x", options={"a": "criminal cases", "b": "civil cases"}
+    )
+    assert id_key_of("classify", {}, mine) != id_key_of("classify", {}, swapped)
+    state, english = triage.questions(purpose="p", text="x")
+    kinds = english["source_kind"].options
+    spanish = {**english, "source_kind": Choice("¿Qué tipo de fuente es?", dict.fromkeys(kinds))}
+    assert id_key_of("triage", state, english) == id_key_of("triage", state, spanish)
+
+
+@pytest.mark.parametrize(
+    ("point", "build", "other"),
+    [
+        (
+            "guard",
+            lambda: guard.coding_questions("ls", environment=guard.coding_environment(".")),
+            lambda: guard.questions("ls", environment=guard.coding_environment(".")),
+        ),
+        (
+            "facts",
+            lambda: entities.fact_questions(fact_a="a", fact_b="b", unrelated_examples=True),
+            lambda: entities.fact_questions(fact_a="a", fact_b="b"),
+        ),
+        (
+            "edge",
+            lambda: graph.edge_questions(
+                subject="s", relation="r", obj="o", text="t", direction_by_roles=False
+            ),
+            lambda: graph.edge_questions(subject="s", relation="r", obj="o", text="t"),
+        ),
+    ],
+)
+def test_an_untagged_variant_never_takes_another_variants_id_key(
+    point: str, build: Any, other: Any
+) -> None:
+    state, tagged = build()
+    other_state, other_tagged = other()
+    assert state == other_state
+    taken = {id_key_of(point, state, tagged), id_key_of(point, state, other_tagged)}
+    for untagged in ({**tagged}, {k: q for k, q in tagged.items()}, {**other_tagged}):
+        assert id_key_of(point, state, untagged) not in taken
 
 
 def test_variants_with_the_same_state_do_not_share_an_id_key() -> None:
@@ -190,6 +237,26 @@ def test_an_id_replay_still_answers_from_text_keyed_lines(tmp_path: Path) -> Non
     run(RecordingDecider(Answering(truth=0.7), path).decide("routing", STATE, QS))
     replayed = run(RecordedDecider.from_file(path, keys="id").decide("routing", STATE, QS))
     assert replayed.answer("q").truth == 0.7
+
+
+def test_an_id_replay_answers_by_text_first_and_by_id_only_when_the_text_misses(
+    tmp_path: Path,
+) -> None:
+    """Two wordings under the same ids: the wording asked replays its own line, and the id
+    line (the last one written) answers only a wording that was never recorded."""
+    path = tmp_path / "r.jsonl"
+    state, english = routing.questions("t")
+    reworded = catalog.with_ids(
+        {**english, "person_risk": Truth("Is `task` about a named private person?")},
+        english.ids,
+    )
+    run(RecordingDecider(Answering(truth=0.9), path, keys="id").decide("routing", state, english))
+    run(RecordingDecider(Answering(truth=0.5), path, keys="id").decide("routing", state, reworded))
+    replay = RecordedDecider.from_file(path, keys="id")
+    assert run(replay.decide("routing", state, english)).answer("person_risk").truth == 0.9
+    assert run(replay.decide("routing", state, reworded)).answer("person_risk").truth == 0.5
+    unseen = run(replay.decide("routing", state, SPANISH_ROUTING))
+    assert unseen.answer("person_risk").truth == 0.5
 
 
 def test_id_keys_follow_the_model_split(tmp_path: Path) -> None:

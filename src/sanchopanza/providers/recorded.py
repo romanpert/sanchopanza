@@ -36,10 +36,13 @@ left, right]` beside its confidence (`Answer.to_dict`).
 misses every line recorded with the old text. `keys="id"` adds a second key, `id_key`
 (`id_key_of`), that signs each question's versioned id from `sanchopanza.catalog`, its kind
 and its option names (or its number of levels), and the state; not its instructions, criteria
-or descriptions. A `RecordingDecider(..., keys="id")` writes both keys on each line, so a text
-replay still reads it; a `RecordedDecider(..., keys="id")` answers by `id_key` first, then by
-`key` as before, so it also reads every line recorded without one. The default is
-`keys="text"`, under which nothing is written or read differently than before.
+or descriptions, except the options of a question whose caller writes them (`classify`). A
+`RecordingDecider(..., keys="id")` writes both keys on each line, so a text replay still reads
+it; a `RecordedDecider(..., keys="id")` answers by `key` first, exactly as a text replay does,
+and by `id_key` only when the text misses (a translated or reworded question), so the wording
+asked always gets its own answer even when several wordings share the ids; among those, the
+last line written answers. The default is `keys="text"`, under which nothing is written or
+read differently than before.
 """
 
 from __future__ import annotations
@@ -82,11 +85,19 @@ def key_of(
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()[:16]
 
 
-def _shape(question: Question) -> dict[str, Any]:
+def _shape(question: Question, *, options_are_input: bool = False) -> dict[str, Any]:
     """What of a question is not wording: its kind and its option names in order (a Choice),
-    or its number of levels (a Score). Option names are identifiers, and often inputs."""
+    or its number of levels (a Score). Option names are identifiers, and often inputs; where
+    the caller writes the descriptions too (`QuestionSpec.options_are_input`) they are signed.
+
+    The order of a Score's levels is not signed: levels have no names, only text, and signing
+    the text would undo the point of the key. Inverting a scale changes what it asks, so it
+    takes a new version; for the package's own levels the wording canary in
+    `tests/test_catalog.py` fails until it does."""
     options = getattr(question, "options", None)
     levels = getattr(question, "levels", None)
+    if options is not None and options_are_input:
+        return {"kind": question.kind, "options": [[str(k), v] for k, v in options.items()]}
     if options is not None:
         return {"kind": question.kind, "options": [str(name) for name in options]}
     if levels is not None:
@@ -109,9 +120,12 @@ def id_key_of(
     signed: dict[str, Any] = {}
     for key, question in questions.items():
         qid = ids.get(key)
-        signed[key] = (
-            {"question": asdict(question)} if qid is None else {"id": qid, **_shape(question)}
-        )
+        if qid is None:
+            signed[key] = {"question": asdict(question)}
+            continue
+        spec = catalog.QUESTIONS.get(qid)
+        as_input = spec is not None and spec.options_are_input
+        signed[key] = {"id": qid, **_shape(question, options_are_input=as_input)}
     body: dict[str, Any] = {"scheme": ID_SCHEME, "state": state, "questions": signed}
     if any(qid is None for qid in ids.values()):
         body = {**body, "point": point}
@@ -157,7 +171,8 @@ class RecordedDecider:
     ) -> None:
         """`model`: the Jev version this replay stands for. Keyed (1.14 on): only its own
         lines answer. Otherwise only unkeyed lines do, which is every recording before 1.14.
-        `keys="id"`: answer by `id_key` first (`id_key_of`), then by `key` as always."""
+        `keys="id"`: answer by `key` as always, and by `id_key` (`id_key_of`) only when the
+        text misses; among lines that share an `id_key`, the last one written answers."""
         self._model = model if keyed_by_model(model) else None
         self._keys = _scheme(keys)
         exact: dict[str, Mapping[str, Any]] = {}
@@ -218,17 +233,20 @@ class RecordedDecider:
         """The text keys this replay answers from, whatever the option order."""
         return frozenset(self._exact) | frozenset(key for key, _ in self._ordered)
 
+    def _by_id_entry(
+        self, point: str, state: State, questions: Mapping[str, Question]
+    ) -> Mapping[str, Any] | None:
+        """The line recorded under this query's id key: the fallback when the text misses."""
+        if not self._by_id:
+            return None
+        return self._by_id.get(id_key_of(point, state, questions, self._model))
+
     async def decide(self, point: str, state: State, questions: Mapping[str, Question]) -> Decision:
         key = key_of(point, state, questions, self._model)
-        by_id = (
-            self._by_id.get(id_key_of(point, state, questions, self._model))
-            if self._by_id
-            else None
-        )
         entry = (
-            by_id
-            or self._ordered.get((key, order_of(questions)))
+            self._ordered.get((key, order_of(questions)))
             or self._exact.get(key)
+            or self._by_id_entry(point, state, questions)
             or self._defaults.get(point)
         )
         if entry is None:

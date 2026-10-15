@@ -250,7 +250,50 @@ def test_explicit_ids_win_over_the_catalog() -> None:
     assert catalog.ids_of("triage", plain) == {"relevant": "triage.relevant@1"}
 
 
-def test_with_ids_refuses_an_id_the_catalog_does_not_know_only_when_asked() -> None:
+@pytest.mark.parametrize(
+    ("sample", "key"),
+    [
+        ("guard", "dangerous"),
+        ("guard/coding", "dangerous"),
+        ("facts", "relation"),
+        ("facts/examples", "relation"),
+        ("edge", "direction"),
+        ("edge/possession", "direction"),
+    ],
+)
+def test_an_untagged_question_under_a_key_with_variants_has_no_id(sample: str, key: str):
+    """A copy loses its tag ({**q}, a comprehension, a rewording): nothing says which variant
+    it is, and guessing the default would replay the other variant's answers."""
+    point, build = SAMPLES[sample]
+    tagged = build()[1]
+    for untagged in ({**tagged}, dict(tagged), {k: q for k, q in tagged.items()}):
+        assert catalog.ids_of(point, untagged)[key] is None
+    assert catalog.question_id(point, key) is None
+    partial = catalog.with_ids(tagged, {k: v for k, v in tagged.ids.items() if k != key})
+    assert catalog.ids_of(point, partial)[key] is None
+
+
+def test_keys_without_variants_still_resolve_untagged_beside_one_with_them() -> None:
+    _, possession = SAMPLES["edge/possession"][1]()
+    assert catalog.ids_of("edge", dict(possession))["stated"] == "edge.stated@1"
+
+
+def test_a_tag_with_a_variant_the_catalog_does_not_know_is_refused() -> None:
+    _, questions = SAMPLES["guard"][1]()
+    with pytest.raises(ValueError):
+        catalog.tag("guard", questions, variant="codng")
+    with pytest.raises(ValueError):
+        catalog.tag("not_a_point", questions, variant="coding")
+    assert catalog.tag("guard", questions, variant="").ids == {"dangerous": "guard.dangerous@1"}
+
+
+def test_only_classify_takes_its_options_as_input() -> None:
+    assert {s.id for s in catalog.QUESTIONS.values() if s.options_are_input} == {
+        "classify.category@1"
+    }
+
+
+def test_with_ids_accepts_any_well_formed_id_and_refuses_bad_ones() -> None:
     tagged = catalog.with_ids({"q": Truth("?")}, {"q": "mine.own@3"})
     assert catalog.ids_of("anything", tagged) == {"q": "mine.own@3"}
     with pytest.raises(ValueError):

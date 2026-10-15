@@ -26,8 +26,14 @@ id. `with_ids` tags questions by hand.
 
 **Variants.** Where one key under one point is asked with two wordings that mean different
 things, each wording has its own id and its builder says which (`guard.dangerous@1` for the
-research sandbox, `guard.dangerous_coding@1` for a person's repository). The untagged default
-is the first.
+research sandbox, `guard.dangerous_coding@1` for a person's repository). An untagged question
+under such a key has no id: nothing says which wording it is, and the states of the two are
+often identical, so taking the default's id would replay the other wording's answers. Without
+an id it is signed whole (`providers.recorded.id_key_of`), which misses instead.
+
+**Options that are input.** A Choice's option descriptions are wording, and stay out of an id
+key, except where the caller writes them: `classify.category@1` takes the caller's vocabulary,
+so its options, descriptions included, are signed (`QuestionSpec.options_are_input`).
 
 **What is covered.** The points the `Squire` asks and the builders behind them. The harness
 points (the Claude Code hooks, candor, the context autopilot, browsing) are not catalogued
@@ -59,7 +65,8 @@ class QuestionSpec:
     version: int = 1
     key: str | None = None
     pattern: str | None = None
-    variant: str = ""  # "" is the wording an untagged question resolves to
+    variant: str = ""  # "": the default wording, the one a builder tags when not told otherwise
+    options_are_input: bool = False  # the caller writes the options: sign them whole
 
     @property
     def id(self) -> str:
@@ -104,10 +111,11 @@ def _resolve(target: str) -> Any:
 
 def _q(
     name: str, *, key: str | None = None, pattern: str | None = None, version: int = 1,
-    variant: str = "",
-) -> tuple[str, int, str | None, str | None, str]:  # fmt: skip
+    variant: str = "", options_are_input: bool = False,
+) -> tuple[str, int, str | None, str | None, str, bool]:  # fmt: skip
     """A question row: asked under `key` (its own name by default) or under `pattern`."""
-    return name, version, None if pattern is not None else (key or name), pattern, variant
+    keyed = None if pattern is not None else (key or name)
+    return name, version, keyed, pattern, variant, options_are_input
 
 
 _P = "sanchopanza.points."
@@ -154,7 +162,8 @@ _TABLE: tuple[_Row, ...] = (
     ("facts", (_P + "entities:fact_questions",), (_P + "entities:decide_facts",), ("relax",),
      (_q("relation"), _q("relation_examples", key="relation", variant="examples"))),
     ("classify", (_P + "entities:classification_questions",),
-     (_P + "entities:decide_classification",), ("classify",), (_q("category"),)),
+     (_P + "entities:decide_classification",), ("classify",),
+     (_q("category", options_are_input=True),)),
     ("redundant_page", (_P + "triage:redundancy_questions",), (_P + "triage:decide_redundancy",),
      ("adds_nothing",), (_q("adds_nothing"),)),
     ("memory_write", (_P + "memory:write_questions",),
@@ -182,8 +191,8 @@ def _build() -> tuple[Mapping[str, PointSpec], Mapping[str, QuestionSpec]]:
     questions: dict[str, QuestionSpec] = {}
     for name, builders, policies, thresholds, rows in _TABLE:
         specs = tuple(
-            QuestionSpec(name, q_name, version, key, pattern, variant)
-            for q_name, version, key, pattern, variant in rows
+            QuestionSpec(name, q_name, version, key, pattern, variant, as_input)
+            for q_name, version, key, pattern, variant, as_input in rows
         )
         points[name] = PointSpec(name, 1, builders, policies, thresholds, specs)
         for spec in specs:
@@ -215,17 +224,29 @@ def question_spec(question_id: str) -> QuestionSpec:
     return QUESTIONS[question_id]
 
 
-def question_id(point: str, key: str, *, variant: str = "") -> str | None:
-    """The id a question asked under `point` and `key` has: the variant's when it has one
-    for that key, else the default wording's. None when the catalog does not know it."""
+def variants_of(point: str) -> frozenset[str]:
+    """The variant names a point's questions have, the default `""` included."""
+    spec = POINTS.get(point)
+    return frozenset(q.variant for q in spec.questions()) if spec is not None else frozenset()
+
+
+def question_id(point: str, key: str, *, variant: str | None = None) -> str | None:
+    """The id of a question asked under `point` and `key`.
+
+    `variant` names the wording (`""` is the default one): the spec of that variant for this
+    key, else the key's only spec. Without a variant (an untagged question) the key's only
+    spec, and None when the key has several: guessing would hand one wording the other's
+    recordings. None as well when the catalog does not know the point or the key.
+    """
     spec = POINTS.get(point)
     if spec is None:
         return None
     matching = [q for q in spec.questions() if q.matches(key)]
-    chosen = [q for q in matching if q.variant == variant] or [
-        q for q in matching if q.variant == ""
-    ]
-    return chosen[0].id if chosen else None
+    if variant is not None:
+        chosen = [q for q in matching if q.variant == variant]
+        if chosen:
+            return chosen[0].id
+    return matching[0].id if len(matching) == 1 else None
 
 
 class Questions(dict[str, Any]):
@@ -260,13 +281,19 @@ def with_ids(questions: Mapping[str, Any], ids: Mapping[str, str]) -> Questions:
 
 
 def tag(point: str, questions: Mapping[str, Any], *, variant: str = "") -> Questions:
-    """The catalog's ids on a builder's questions. What the builders in `points` return."""
+    """The catalog's ids on a builder's questions, in the wording `variant` names. What the
+    builders in `points` return. A variant the point does not have is refused."""
+    if variant and variant not in variants_of(point):
+        raise ValueError(
+            f"{point!r} has no variant {variant!r}; known: {sorted(variants_of(point))}"
+        )
     ids = {k: qid for k in questions if (qid := question_id(point, k, variant=variant))}
     return Questions(questions, ids)
 
 
 def ids_of(point: str, questions: Mapping[str, Any]) -> dict[str, str | None]:
-    """The id of every question: its tag, else the catalog's for its point and key, else None."""
+    """The id of every question: its tag, else the catalog's for its point and key when that is
+    unambiguous (`question_id` without a variant), else None."""
     tagged: Mapping[str, str] = getattr(questions, "ids", None) or {}
     return {key: tagged.get(key) or question_id(point, key) for key in questions}
 
@@ -295,5 +322,6 @@ __all__ = [
     "question_id",
     "question_spec",
     "tag",
+    "variants_of",
     "with_ids",
 ]
