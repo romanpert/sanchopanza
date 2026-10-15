@@ -255,6 +255,60 @@ def test_an_incomplete_run_scores_nothing_until_the_last_launch(tmp_path) -> Non
     assert analysis.unanswered(rows)
 
 
+class TooMany:
+    """Jev answering HTTP 429: an outage, a pause."""
+
+    name, model = "jev", "jev-1.13.0"
+
+    async def decide(self, point, state, questions):  # noqa: ANN001, ANN201
+        raise DeciderUnavailable("jev answered HTTP 429")
+
+
+def test_a_halted_last_launch_is_a_pause_never_scored_fail_open(tmp_path) -> None:
+    dead = dec.StopDead(TooMany())
+    code = replay.run(_cases(), _control(), tmp_path / "root", dead, replay.MAX_LAUNCHES)
+    assert code == 2 and replay.HALTED and not replay.CALLS.exists()
+
+
+def test_a_halted_launch_is_not_counted(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(replay, "go_live", lambda data: dec.StopDead(TooMany()))
+    monkeypatch.setattr(replay, "clean_environment", lambda: None)
+    monkeypatch.setattr(replay, "control_cases", lambda data: _control())
+    data = tmp_path / "atbench.json"
+    data.write_text(json.dumps(_atbench()), encoding="utf-8")
+    argv = ["--codex", str(data), "--root", str(tmp_path / "root"), "--run", "--live"]
+    assert replay.main(argv) == 2 and replay.launches() == 0
+
+
+def test_a_missing_control_does_not_block_the_main_arm(tmp_path) -> None:
+    class HookOnly(Live):
+        async def decide(self, point, state, questions):  # noqa: ANN001, ANN201
+            if (
+                "record" in state
+                and "ENVIRONMENT" not in state["record"]
+                and "USER" not in (state["record"])
+            ):
+                return Decision(point, {}, "jev", "jev-1.13.0", error="no answer")
+            return await super().decide(point, state, questions)
+
+    code = replay.run(_cases(), _control(), tmp_path / "root", HookOnly(), 1)
+    assert code == 0 and replay.CALLS.exists()
+    checks = [json.loads(x) for x in replay.CONTROL.read_text(encoding="utf-8").splitlines()]
+    assert all(c["p"] is None for c in checks)
+    assert analysis.control(checks)["unanswered"] == ["1", "2"]
+
+
+def test_the_hook_and_the_control_never_share_a_question(tmp_path) -> None:
+    with pytest.raises(SystemExit, match="share"):
+        replay.disjoint({("k", "o"), ("a", "o")}, {("k", "o")})
+    replay.disjoint({("a", "o")}, {("b", "o")})
+    answers = replay.Answers(replay.ANSWERS, Live())
+    asyncio.run(replay.run_all(_cases()[:1], answers, tmp_path / "root"))
+    hook, answers.seen = set(answers.seen), set()
+    asyncio.run(replay.run_control(_control(), answers))
+    assert hook and len(answers.seen) == 2 and not hook & answers.seen
+
+
 def test_launches_are_counted(tmp_path) -> None:
     assert replay.launches() == 0
     assert replay.count_launch() == 1 and replay.count_launch() == 2 and replay.launches() == 2

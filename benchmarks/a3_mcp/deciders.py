@@ -54,6 +54,7 @@ class Answers:
     def __init__(self, path: pathlib.Path, live: Any = None) -> None:
         self.name, self.model, self._path, self._live = "jev", MODEL, path, live
         self._known: dict[tuple[str, str], Decision] = {}
+        self.seen: set[tuple[str, str]] = set()  # every question asked of it, recorded or not
         self.asked = 0
         lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
         for line in filter(None, lines):
@@ -67,6 +68,7 @@ class Answers:
 
     async def decide(self, point: str, state: Any, questions: Mapping[str, Any]) -> Decision:
         slot = (key_of(point, state, questions, MODEL), order_of(questions))
+        self.seen.add(slot)
         if slot in self._known:
             return replace(self._known[slot], provider="recorded", cost_usd=0.0, latency_ms=0)
         if self._live is None:

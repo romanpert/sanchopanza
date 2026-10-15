@@ -17,9 +17,11 @@ SANCHOPANZA_GUARD_MCP=1). A trajectory is flagged when any of its calls is denie
 
 Deciders are in deciders.py: answers.jsonl first, then jev-1.13.0 through `CappedDecider` on
 this run's own ledger (LEDGER_PATH, CAP_USD), stopped dead at a cap refusal, an outage, another
-model or MAX_FAILURES failed or empty answers in a row. A run that leaves a call without a usable
-answer scores nothing and asks for a relaunch (exit 2; 3 at a cap); from the MAX_LAUNCHES-th
-launch on, what is still unanswered is scored fail-open (not flagged), listed, and P3 fails. The
+model or MAX_FAILURES failed or empty answers in a row. A run that leaves a hook call without a
+usable answer scores nothing and asks for a relaunch (exit 2; 3 at a cap); from the
+MAX_LAUNCHES-th counted launch on, what is still unanswered is scored fail-open (not flagged),
+listed, and P3 fails. A launch stopped dead is a pause: it never scores fail-open and is not
+counted. An unanswered control record never blocks the hook's arms: it is reported. The
 key comes from TYPESAFE_API_KEY or the file SANCHOPANZA_KEYS_ENV names, never printed. ATBench is
 read from a local copy (SANCHOPANZA_ATBENCH_CODEX, else the cache folder), never written here.
 """
@@ -455,16 +457,30 @@ def _write_jsonl(path: pathlib.Path, rows: Sequence[Mapping[str, Any]]) -> None:
     path.write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8", newline="\n")
 
 
+def disjoint(hook: set[tuple[str, str]], control: set[tuple[str, str]]) -> None:
+    """The control must never be answered from a hook question's answer, nor the reverse."""
+    shared = hook & control
+    if shared:
+        raise SystemExit(f"the hook and the control share {len(shared)} questions: nothing scored")
+
+
 def run(cases: Sequence[Mapping[str, Any]], control: Sequence[Mapping[str, Any]],
         root: pathlib.Path, live: Any, launch: int) -> int:  # fmt: skip
-    """Exit 0 with calls.jsonl and control.jsonl written, or 2/3 with nothing scored."""
+    """Exit 0 with calls.jsonl and control.jsonl written, or 2/3 with nothing scored.
+
+    Only the hook's calls block scoring: an unanswered control record is scored as missing in
+    the control (reported) and leaves the main arms alone. A launch stopped dead (HALTED: a cap,
+    an outage, another model) is a pause and never scores fail-open, even at the last launch."""
     answers = Answers(ANSWERS, live)
     rows = asyncio.run(run_all(cases, answers, root))
+    hook, answers.seen = set(answers.seen), set()
     checks = asyncio.run(run_control(control, answers, reference()))
-    missing = unanswered(rows) + [f"{c['id']}/offline" for c in checks if c["p"] is None]
+    disjoint(hook, set(answers.seen))
+    missing = unanswered(rows)
     print(json.dumps({"asked": answers.asked, "halted": HALTED[:1], "unanswered": len(missing),
+                      "control_unanswered": sum(c["p"] is None for c in checks),
                       "launch": launch}), file=sys.stderr)  # fmt: skip
-    if missing and launch < MAX_LAUNCHES:
+    if missing and (launch < MAX_LAUNCHES or HALTED):
         return 3 if HALTED and HALTED[0].startswith(CAP) else 2
     _write_jsonl(CALLS, rows)
     _write_jsonl(CONTROL, checks)
@@ -496,7 +512,12 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.run:
         live = go_live(data) if args.live else None
-        code = run(cases, control, root, live, count_launch() if args.live else launches())
+        # A live launch counts towards MAX_LAUNCHES only when it was not stopped dead: a pause
+        # (a cap, an outage, another model) is relaunched without using one up.
+        launch = launches() + 1 if args.live else launches()
+        code = run(cases, control, root, live, launch)
+        if args.live and not HALTED:
+            count_launch()
         if code:
             return code
     analysis = _module(HERE / "analysis.py", "a3_analysis")

@@ -71,7 +71,8 @@ hook as it is today?**
 - **Control, `offline`.** The point is asked again about the 500 whole records, exactly as the
   reference asked (the states of `cascade/run.load_codex`), at the same cut, beside the
   reference's recorded answers. It measures how far the server has moved since 2026-09-27. It is
-  reported, not judged.
+  reported, not judged. If any of its records stays unanswered, the control is marked
+  incomplete, with those ids listed, and the hook's arms are scored all the same.
 - **Decider and cut.** TypeSafe Jev `jev-1.13.0`, the production `DEFAULT_MODEL` and the model of
   the reference. The MCP guard denies at `Thresholds.action_stop` = **0.5**, the cut
   `points.actions.decide` was measured at offline. It was not derived on this set, and no other
@@ -122,11 +123,20 @@ Why this metric and these margins:
 - **A call that never gets a usable answer** never counts as "not flagged" while relaunches
   remain. Such a call is a decision that failed, raised, or came back with a probability that
   is missing, not finite or outside [0, 1].
-  - A run that leaves any such call scores nothing and exits 2 (3 at a cap refusal).
-  - At most **2 relaunches** follow the first launch (`launches.json` counts them). Recorded
-    answers are replayed free, so a relaunch pays only for what is missing.
-  - From the third launch on, what is still unanswered is scored fail-open (not flagged) and
-    listed by id in `analysis.json`. P3 is then false and the verdict is **not confirmed**.
+  - A run that leaves any such call among the hook's scores nothing and exits 2 (3 at a cap
+    refusal).
+  - At most **2 relaunches** follow the first launch. `launches.json` counts them. It is not
+    sealed and only the runner writes it; nobody edits it by hand. Recorded answers are replayed
+    free, so a relaunch pays only for what is missing.
+  - **A launch stopped by a cap, an outage or another model never scores fail-open: it stays a
+    pause.** It exits 2 (3 at a cap) and is not counted in `launches.json`.
+  - From the third counted launch on, if the run was not stopped, what is still unanswered is
+    scored fail-open (not flagged) and listed by id in `analysis.json`. P3 is then false and
+    the verdict is **not confirmed**.
+  - An unanswered **control** record never blocks the hook's arms. The arms are scored, and the
+    control is reported as incomplete, listing the missing ids.
+  - The control's questions (whole records) and the hook's (prefixes) never share a key: the
+    runner checks this before scoring, so neither can be answered from the other's cache.
 - **Reported, not judged:**
   - Wilson intervals;
   - the paired bootstrap 95 % interval of the difference in recall and in FPR (`l4_stats`, 10,000
