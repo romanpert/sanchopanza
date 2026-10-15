@@ -36,6 +36,10 @@ REGION_PIXELS = 1_048_576  # a ranking call's picture
 PAD = 24  # px around the elements a picture holds
 JPEG_QUALITY = 85
 MIN_SIDE, MAX_SIDE = 256, 1568
+# Measured 2026-10-15 (amendment of lot L5): Jev 1.14 answers HTTP 400 "Invalid image
+# dimensions" for a side of 256 or 270 px (1280x270, 600x256, 256x1100) and takes 280 and up,
+# so the documented 256 is not the real floor. A ranking call's band is at least this tall.
+MIN_BAND = 300
 
 Rect = tuple[float, float, float, float]  # x0, y0, x1, y1 in page pixels
 
@@ -133,7 +137,7 @@ def by_box(predicted: Rect, candidates: Mapping[str, Rect]) -> list[tuple[str, f
 
 def window(rects: Sequence[Rect], height: int, *, span: int = SPAN) -> tuple[int, int]:
     """The band of the page (top, bottom), at most `span` tall, that holds the most of `rects`
-    whole (ties: the highest band); the band hugs them, with PAD around, at least MIN_SIDE."""
+    whole (ties: the highest band); the band hugs them, with PAD around, at least MIN_BAND."""
     if not rects:
         return (0, min(height, span))
     tops = sorted(rects, key=lambda r: r[1])
@@ -145,9 +149,9 @@ def window(rects: Sequence[Rect], height: int, *, span: int = SPAN) -> tuple[int
     best = best or [tops[0]]
     top = max(0, int(min(r[1] for r in best)) - PAD)
     bottom = min(height, int(math.ceil(max(r[3] for r in best))) + PAD, top + span)
-    if bottom - top < MIN_SIDE:
-        top = max(0, min(top, height - MIN_SIDE))
-        bottom = min(height, top + MIN_SIDE)
+    if bottom - top < MIN_BAND:
+        top = max(0, min(top, height - MIN_BAND))
+        bottom = min(height, top + MIN_BAND)
     return (top, bottom)
 
 

@@ -91,7 +91,7 @@ def test_images_are_jpeg_inside_jevs_bounds():
                  vision.tile_image(page, (0, 1280), vision.BOX_PIXELS),
                  vision.region_image(page, (0.0, 0.0, 640.0, 640.0))):
         fmt, w, h = image_size(data)
-        assert fmt == "jpeg" and 256 <= min(w, h) and max(w, h) <= 1568
+        assert fmt == "jpeg" and min(w, h) >= 256 and max(w, h) <= 1568
         assert 78_400 <= w * h <= 2_458_624
     data, drawn = vision.marked_region(page, [("E01", (10.0, 10.0, 200.0, 40.0)),
                                               ("E02", None), ("E03", (5.0, 8000.0, 50.0, 8020.0))])
@@ -267,3 +267,10 @@ def test_the_product_rule_needs_a_holm_mejora():
     assert decided["vision_mode"] == "recomendado" and decided["complete"]
     out["b1"]["fuse10_13_minus_text13rec"] = {**good, "p": 0.03}  # 0.09 after Holm
     assert report.product(out)["vision_mode"] == "no recomendado"
+
+
+def test_a_band_is_never_thinner_than_jev_takes():
+    top, bottom = vision.window([(0.0, 500.0, 10.0, 520.0)], 3000)
+    assert bottom - top >= vision.MIN_BAND >= 280
+    top, bottom = vision.window([(0.0, 2990.0, 10.0, 2999.0)], 3000)
+    assert bottom == 3000 and bottom - top >= vision.MIN_BAND
