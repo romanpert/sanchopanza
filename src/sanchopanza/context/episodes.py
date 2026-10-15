@@ -42,6 +42,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .. import _lockfile
 from ..redact import mask
 from ..text import truncate
 from . import guard as guard_mod
@@ -470,32 +471,9 @@ def locked(path: Path) -> Iterator[None]:
     """`path`.lock held while the block runs: two sessions' hooks (a Stop and another session's
     catch-up, or parallel tool calls) must not both read-modify-write one file. Created
     exclusively; a lock older than LOCK_STALE_S is a crashed holder's and is taken over. Past
-    LOCK_WAIT_S the block runs anyway: a hook must never hang the session."""
-    lock = path.with_name(path.name + ".lock")
-    lock.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-    deadline = time.monotonic() + LOCK_WAIT_S
-    held = False
-    while True:
-        try:
-            os.close(os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600))
-            held = True
-            break
-        except (FileExistsError, PermissionError):  # Windows: a lock being deleted says denied
-            with contextlib.suppress(OSError):
-                if time.time() - lock.stat().st_mtime > LOCK_STALE_S:
-                    lock.unlink()
-                    continue
-            if time.monotonic() > deadline:
-                break
-            time.sleep(0.01)
-        except OSError:
-            break
-    try:
+    LOCK_WAIT_S the block runs anyway: a hook must never hang the session (`_lockfile`, lenient)."""
+    with _lockfile.locked(path, wait_s=LOCK_WAIT_S, stale_s=LOCK_STALE_S):
         yield
-    finally:
-        if held:
-            with contextlib.suppress(OSError):
-                lock.unlink()
 
 
 def save(

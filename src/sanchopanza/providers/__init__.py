@@ -10,6 +10,7 @@
     RoutedDecider({"routing": a}, b)      one provider per decision point
     CascadeDecider(a, b, tau=0.4)         b only for the questions a was unsure of
     CachedDecider(a, ttl_seconds=3600)    a repeat within the TTL: same answer, not paid again
+    CappedDecider(a, ledger=..., batch=..., max_usd=...)   refuses before a call past the cap
 
 Third-party packages register more under the `sanchopanza.providers` entry-point group.
 """
@@ -22,6 +23,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from ..contract import Decider
     from .cached import CachedDecider
+    from .capped import CappedDecider
     from .chain import CascadeDecider, FallbackDecider, RoutedDecider
     from .fixed import FixedDecider
     from .local import LocalDecider
@@ -30,6 +32,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "CachedDecider",
+    "CappedDecider",
     "CascadeDecider",
     "FallbackDecider",
     "FixedDecider",
@@ -47,6 +50,7 @@ __all__ = [
 # `importlib.metadata` alone was a fifth of the hook's start-up.
 _LAZY = {
     "CachedDecider": "cached",
+    "CappedDecider": "capped",
     **dict.fromkeys(("CascadeDecider", "FallbackDecider", "RoutedDecider"), "chain"),
     "FixedDecider": "fixed",
     "LocalDecider": "local",
