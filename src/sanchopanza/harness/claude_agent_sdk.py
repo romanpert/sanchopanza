@@ -23,7 +23,7 @@ from typing import Any
 from .generic import Guardian, HarnessConfig, ToolCall, Verdict
 
 Hook = Callable[..., Any]
-MCP_MATCHER = "mcp__.*"  # every MCP tool, as Claude Code names them: mcp__<server>__<tool>
+MCP_MATCHER = "^mcp__"  # every MCP tool, as Claude Code names them: mcp__<server>__<tool>
 
 
 def to_hook_output(event: str, verdict: Verdict) -> dict[str, Any]:
@@ -61,23 +61,43 @@ def pre_tool_use(guardian: Guardian) -> Hook:
 
 def _record(guardian: Guardian, input_data: Mapping[str, Any], name: str,
             arguments: Mapping[str, Any]) -> str:  # fmt: skip
-    """The session so far, from the transcript, for a call the MCP guard judges; else ""."""
+    """The session so far, from the transcript, for a call the MCP guard judges; else "". A
+    transcript that cannot be read, or a bug here, is journaled once per guardian and the call
+    is judged alone: it never escapes the hook."""
     config = guardian.config
     if not config.guards_mcp(name):
         return ""
-    from .mcp_guard import record_from_transcript
+    from . import mcp_guard
 
-    return record_from_transcript(input_data.get("transcript_path") or None, name, arguments,
-                                  tool_use_id=str(input_data.get("tool_use_id") or ""),
-                                  limit=config.mcp_record_chars)  # fmt: skip
+    def warn(message: str) -> None:
+        said = guardian.__dict__.setdefault("_mcp_warned", set())
+        if message in said:
+            return
+        said.add(message)
+        guardian.squire.journal.record("warning", {"message": f"mcp guard: {message}",
+                                                   "tool": name[:200]})  # fmt: skip
+
+    try:
+        return mcp_guard.record_from_transcript(
+            input_data.get("transcript_path") or None, name, arguments,
+            tool_use_id=str(input_data.get("tool_use_id") or ""),
+            limit=config.mcp_record_chars, on_error=warn)  # fmt: skip
+    except Exception as error:  # noqa: BLE001 - the record is an aid; the decision still runs
+        warn(f"record failed, the call judged alone ({error.__class__.__name__})")
+        return ""
 
 
 def pre_matcher(config: HarnessConfig) -> str:
     """The PreToolUse matcher for `config`: its tool names, and every MCP tool when the MCP
-    guard is on (which of them it judges is decided per call, `HarnessConfig.guards_mcp`)."""
+    guard is on (which of them it judges is decided per call, `HarnessConfig.guards_mcp`).
+
+    Claude Code (2.1.287) reads a matcher of only letters, digits, `_` and `|` as a list of exact
+    names, and anything else as an unanchored regex (`new RegExp(m).test(name)`): so with MCP the
+    names are anchored, or `Task` would match TaskCreate and `Bash` BashOutput. Without MCP the
+    matcher stays the plain list, byte for byte."""
     names = sorted(config.delegate_tools | config.search_tools | config.shell_tools)
     pattern = "|".join(re.escape(n) for n in names)
-    return f"{pattern}|{MCP_MATCHER}" if config.guard_mcp else pattern
+    return f"^(?:{pattern})$|{MCP_MATCHER}" if config.guard_mcp else pattern
 
 
 def post_tool_use(guardian: Guardian) -> Hook:

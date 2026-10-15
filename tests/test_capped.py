@@ -214,3 +214,22 @@ def test_the_wrapper_keeps_what_the_inner_decider_declares(tmp_path: Path) -> No
 
     capped = CappedDecider(Seeing(), ledger=ledger(tmp_path), batch="a", max_usd=1.0)
     assert capped.accepts_attachments is True
+
+
+def test_a_call_that_may_have_reached_the_server_is_settled_at_its_estimate(
+    tmp_path: Path,
+) -> None:
+    """A timeout after sending may still be billed: the ledger keeps the estimate, not 0."""
+
+    class Unreachable:
+        name = "jev"
+
+        async def decide(self, point: str, state: Any, questions: Any) -> Decision:
+            raise DeciderUnavailable("jev unreachable: ReadTimeout")
+
+    book = ledger(tmp_path)
+    capped = CappedDecider(Unreachable(), ledger=book, batch="a", max_usd=0.005)
+    with pytest.raises(DeciderUnavailable):
+        asyncio.run(capped.decide("p", "state", QS))
+    assert book.spent() == pytest.approx(estimate_usd("state", QS, price_per_mtok=0.042))
+    assert book.spent() > 0

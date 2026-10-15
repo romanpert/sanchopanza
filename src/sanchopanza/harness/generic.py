@@ -107,9 +107,9 @@ class HarnessConfig:
     # docs/results/2026-10-16-a3-mcp/prereg.md, whose verdict decides the default.
     guard_mcp: bool = False
     # Servers whose calls are never judged, compared by `mcp_guard.server_key`. Our own are
-    # always left out (`mcp_guard.OWN_SERVERS`).
+    # always left out (`mcp_guard.own_servers`).
     mcp_skip_servers: frozenset[str] = frozenset()
-    mcp_record_chars: int = 24_000  # `mcp_guard.RECORD_CHARS`
+    mcp_record_chars: int = 24_000  # at most `mcp_guard.RECORD_CHARS`
     guard_environment: Mapping[str, Any] | None = None
     # "sandbox": the research container the guard was written for; "coding": a person's own
     # repository (Claude Code, Codex), set by `sanchopanza install` (points.guard).
@@ -163,12 +163,12 @@ class HarnessConfig:
         """Whether a PreToolUse on tool `name` goes through the MCP guard."""
         if not self.guard_mcp:
             return False
-        from .mcp_guard import OWN_SERVERS, server_key, server_of
+        from .mcp_guard import own_servers, server_key, server_of
 
         server = server_of(name)
         if server is None:
             return False
-        skipped = {server_key(s) for s in (*OWN_SERVERS, *self.mcp_skip_servers)}
+        skipped = {server_key(s) for s in (*own_servers(), *self.mcp_skip_servers)}
         return server_key(server) not in skipped
 
     def tier_name(self, tier: Tier) -> str:
@@ -303,12 +303,15 @@ class Guardian:
         )
 
     async def _before_mcp(self, call: ToolCall) -> Verdict:
-        from ..redact import mask
-        from .mcp_guard import with_pending
+        from ..redact import mask_strict
+        from .mcp_guard import RECORD_CHARS, with_pending
 
         c = self.config
-        # Masked here: the record holds tool results, and a decider may be a third party.
-        record = mask(with_pending(call.record, call.name, call.arguments, c.mcp_record_chars))
+        # The record holds tool results and a decider may be a third party: masked line by line
+        # before any cut (`mcp_guard`), and once more whole for a record built elsewhere. Never
+        # past the point's own cut, which would take the pending call off the end.
+        limit = max(1, min(c.mcp_record_chars, RECORD_CHARS))
+        record = mask_strict(with_pending(call.record, call.name, call.arguments, limit))
         result = await self.squire.guard_action(record, tool=call.name)
         if not result.denied:
             return ALLOW

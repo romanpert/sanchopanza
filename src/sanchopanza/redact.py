@@ -45,6 +45,34 @@ def mask(text: str) -> str:
 
 _mask = mask  # the earlier private name
 
+# What `mask_strict` adds, for text that holds whole tool results (the MCP guard's record,
+# `harness.mcp_guard`). Not in `PATTERNS`: recorded keys and published states were built with
+# `mask` as it is, and every other caller keeps it. Replacements keep the key and the scheme.
+_CREDENTIAL_KEY = (
+    r"pass(?:word|wd)?|api[_-]?key|apikey|secret|client[_-]?secret|token|access[_-]?token"
+    r"|refresh[_-]?token|auth(?:orization)?|private[_-]?key|credentials?"
+)
+STRICT_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
+    # A private key cut before its END line (a result cut at a size limit): to the end.
+    (re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*"), MASK),
+    # "password": "...", 'api_key': '...' (JSON and Python reprs), any case.
+    (
+        re.compile(rf"""(?i)(["'])((?:{_CREDENTIAL_KEY}))\1(\s*:\s*)(["'])(?:\\.|(?!\4).)*\4"""),
+        rf"\1\2\1\3\4{MASK}\4",
+    ),
+    # scheme://user:password@host
+    (re.compile(r"://[^\s/:@]+:[^\s@]+@"), f"://{MASK}@"),
+)
+
+
+def mask_strict(text: str) -> str:
+    """`mask`, then credential values in JSON or repr keys, passwords in URLs and private keys
+    cut before their end. Run on whole text, before any cut: a cut token is no longer a token."""
+    text = mask(text)
+    for pattern, replacement in STRICT_PATTERNS:
+        text = pattern.sub(replacement, text)
+    return text
+
 
 def redact_secrets(value: Any) -> Any:
     """A copy of `value` with secret-looking strings masked, at any depth."""

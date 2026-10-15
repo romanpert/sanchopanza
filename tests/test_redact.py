@@ -68,3 +68,50 @@ def test_fork_keeps_the_redactor_and_starts_a_fresh_meter():
     assert child.meter.decisions == 0 and template.meter.decisions == 1
     asyncio.run(child.decide("p", {"text": "secret"}, {"q": Truth("q?")}))
     assert decider.states[-1] == {"text": "[redacted]"}
+
+
+# --- the strict mask (the MCP guard's record, A3 review of 2026-10-16) -------------------------
+# `mask` and `redact_secrets` stay as they were: recorded keys and published states depend on
+# them. `mask_strict` adds what a tool result carries and the conservative list let through.
+
+
+def test_strict_masks_a_private_key_cut_before_its_end():
+    from sanchopanza.redact import mask_strict
+
+    text = "key: -----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA7x"
+    assert "MIIE" not in mask_strict(text) and mask_strict(text).startswith("key: ")
+
+
+def test_strict_masks_json_and_repr_credential_values_and_keeps_the_key():
+    from sanchopanza.redact import mask_strict
+
+    cases = {'{"password": "hunter22"}': "hunter22", "{'api_key': 'k-123-456'}": "k-123-456",
+             '{"Secret":"s3cr3t"}': "s3cr3t", '{"token": "t0k3n"}': "t0k3n",
+             '{"Authorization": "Basic dXNlcjpwYXNz"}': "dXNl",
+             '{"client_secret" : "abcdef"}': "abcdef"}  # fmt: skip
+    for text, value in cases.items():
+        out = mask_strict(text)
+        assert "[secret]" in out and value not in out, text
+    assert '"password"' in mask_strict('{"password": "hunter22"}')
+    assert mask_strict('{"token_count": 12}') == '{"token_count": 12}'
+
+
+def test_strict_masks_the_password_in_a_url():
+    from sanchopanza.redact import mask_strict
+
+    out = mask_strict("clone https://me:pa55w0rd@git.example.com/repo.git now")
+    assert "pa55w0rd" not in out and "git.example.com/repo.git" in out
+
+
+def test_strict_keeps_what_the_plain_mask_masks():
+    from sanchopanza.redact import mask, mask_strict
+
+    token = "ghp_" + "a" * 36
+    assert mask_strict(f"token {token}") == mask(f"token {token}") == "token [secret]"
+
+
+def test_the_plain_mask_is_unchanged():
+    from sanchopanza.redact import mask
+
+    assert mask('{"password": "hunter22"}') == '{"password": "hunter22"}'
+    assert mask("https://me:pa55w0rd@host/x") == "https://me:pa55w0rd@host/x"

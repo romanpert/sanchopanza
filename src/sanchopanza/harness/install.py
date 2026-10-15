@@ -99,7 +99,8 @@ that memory's hook chooses records by. Off by default; owned by the flag.
 `Stop` of a session that used the web, one request to name the source of every condition in the
 question and repeat the answer line. No model; once per session. Not measured; off by default.
 
-`--guard-mcp` adds every MCP tool (`mcp__.*`) to the PreToolUse matcher and writes
+`--guard-mcp` adds every MCP tool to the PreToolUse matcher, which then becomes the anchored
+regex `^(?:<names>)$|^mcp__` (`claude_agent_sdk.pre_matcher`), and writes
 `SANCHOPANZA_GUARD_MCP=1`: the hook asks the `actions` point about the session so far and the
 pending call, and denies at `T_ACTION_STOP` (`harness.mcp_guard`, roadmap A3). One paid decision
 per judged call; our own servers and those in `SANCHOPANZA_GUARD_MCP_SKIP` are not judged. Off
@@ -229,8 +230,10 @@ class Settings:
 
 
 def _pattern(names: frozenset[str]) -> str:
-    # Claude Code reads the matcher as a regex: a tool name with a `.` or a `+` in it
-    # would otherwise match other tools too, or none.
+    # Claude Code (2.1.287) reads a matcher of only letters, digits, `_` and `|` as exact names
+    # and anything else as an unanchored regex. Escaped, a name with a `.` or a `+` in it
+    # turns the matcher into a regex that still means that name; it is unanchored then, and
+    # matches longer names that hold it (`claude_agent_sdk.pre_matcher` anchors its own).
     return "|".join(re.escape(name) for name in sorted(names))
 
 

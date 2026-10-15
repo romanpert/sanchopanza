@@ -42,7 +42,7 @@ wins when both are set (`sanchopanza._env`):
                       the pending call, and denies at T_ACTION_STOP (0.5). Opt-in, one paid
                       decision per judged call; see `harness.mcp_guard` (roadmap A3).
     GUARD_MCP_SKIP    comma-separated MCP servers it never judges (our own never are)
-    GUARD_MCP_CHARS   the record's size in characters (default 24000)
+    GUARD_MCP_CHARS   the record's size in characters (default and maximum 24000)
     T_*               any threshold by name, e.g. SANCHOPANZA_T_INJECTION=0.5
     AUTOPILOT         "1" to cut long tool results on arrival and recall archived output and
                       memories (`harness.autopilot`, which lists its own knobs)
@@ -148,10 +148,12 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
         record_chars = int(_env.get("GUARD_MCP_CHARS", "", env=env) or defaults.mcp_record_chars)
     except ValueError:
         record_chars = defaults.mcp_record_chars
+    record_chars = record_chars if record_chars > 0 else defaults.mcp_record_chars
     return HarnessConfig(
         guard_mcp=guard_mcp,
         mcp_skip_servers=frozenset(skipped),
-        mcp_record_chars=record_chars if record_chars > 0 else defaults.mcp_record_chars,
+        # Past the point's own cut (`actions.RECORD_LIMIT`) the pending call would be cut off.
+        mcp_record_chars=min(record_chars, defaults.mcp_record_chars),
         tiers=tiers,
         cheap_search_available=lambda: cheap,
         scan_content=scan,
