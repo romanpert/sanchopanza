@@ -5,6 +5,9 @@ Every module here follows the same shape:
     state, questions = <point>.questions(...)     # minimal state, closed questions
     result = <point>.decide(decision, thresholds)  # pure, testable with a table of cases
 
+The questions come back tagged with their versioned ids (`triage.relevant@1`), which a
+consumer can trace and key recordings on instead of the text (`sanchopanza.catalog`).
+
 Question texts are the ones measured in docs/paper.md, verbatim. Instructions are in
 English on purpose (the primary training language of the decision models measured);
 the content under evaluation can be in any language and stays as it is.

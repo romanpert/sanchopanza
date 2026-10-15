@@ -20,6 +20,7 @@ import re
 from collections.abc import Mapping
 from typing import Any
 
+from ..catalog import tag
 from ..contract import Decision, Question, Truth
 from ..policy import Thresholds, probability
 from ..text import truncate
@@ -231,7 +232,7 @@ def coding_questions(
             },
         )
     }
-    return state, qs
+    return state, tag("guard", qs, variant="coding")
 
 
 def questions(
@@ -272,7 +273,7 @@ def questions(
             },
         )
     }
-    return state, qs
+    return state, tag("guard", qs)
 
 
 def decide(decision: Decision, t: Thresholds) -> tuple[bool, float]:

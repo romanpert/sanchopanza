@@ -34,6 +34,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from ..catalog import tag
 from ..contract import Decision, Question, Truth
 from ..policy import Thresholds, probability
 from ..text import truncate
@@ -146,7 +147,7 @@ def questions(
 ) -> tuple[Mapping[str, Any], dict[str, Question]]:
     cut = TEXT_LIMIT if limit is None else limit
     state = {"purpose": truncate(purpose, 400), "text": truncate(text, cut)}
-    return state, {"injection": question()}
+    return state, tag("injection", {"injection": question()})
 
 
 @dataclass(frozen=True, slots=True)

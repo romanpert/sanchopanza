@@ -12,6 +12,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+from ..catalog import tag
 from ..contract import Choice, Decision, Question, Score, Truth
 from ..policy import Thresholds, probability
 from ..text import truncate
@@ -57,7 +58,7 @@ def line_questions(
         ),
         "source_kind": Choice("Which kind of source will answer `line` best?", SOURCE_KINDS),
     }
-    return state, qs
+    return state, tag("plan_line", qs)
 
 
 def dependency_questions(
@@ -91,7 +92,7 @@ def dependency_questions(
             },
         )
     }
-    return state, qs
+    return state, tag("dependency", qs)
 
 
 @dataclass(frozen=True, slots=True)

@@ -16,6 +16,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from ..catalog import tag
 from ..contract import Decision, Question, Truth
 from ..text import truncate
 
@@ -59,7 +60,7 @@ def questions(
 ) -> tuple[Mapping[str, Any], dict[str, Question]]:
     limit = RECORD_LIMIT if record_limit is None else record_limit
     state = {"task": truncate(task, TASK_LIMIT), "record": truncate(record, limit)}
-    return state, {"done": QUESTION}
+    return state, tag("completion", {"done": QUESTION})
 
 
 @dataclass(frozen=True, slots=True)

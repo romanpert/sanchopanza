@@ -32,6 +32,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+from ..catalog import tag
 from ..contract import Decision, Question, Truth
 from ..policy import Thresholds, confident, probability
 from ..text import truncate
@@ -81,7 +82,7 @@ def gate_questions(
             },
         )
     }
-    return state, qs
+    return state, tag("extract_gate", qs)
 
 
 @dataclass(frozen=True, slots=True)
@@ -200,7 +201,7 @@ def edge_questions(
     }
     if direction_by_roles:
         qs = {**qs, "direction": DIRECTION_BY_ROLES}
-    return state, qs
+    return state, tag("edge", qs, variant="" if direction_by_roles else "possession")
 
 
 @dataclass(frozen=True, slots=True)

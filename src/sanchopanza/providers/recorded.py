@@ -31,6 +31,15 @@ live decider is 1.14. The recommended layout keeps the files apart as well:
 `fixture_path("fixtures/chunks.jsonl", "jev-1.14.0")` is `fixtures/jev114/chunks.jsonl`, so a
 1.14 run never appends to a 1.13 fixture. A Box answer is stored as `"box": [top, bottom,
 left, right]` beside its confidence (`Answer.to_dict`).
+
+**Keys from ids, opt in.** `key` signs the question text, so a translated or reworded question
+misses every line recorded with the old text. `keys="id"` adds a second key, `id_key`
+(`id_key_of`), that signs each question's versioned id from `sanchopanza.catalog`, its kind
+and its option names (or its number of levels), and the state; not its instructions, criteria
+or descriptions. A `RecordingDecider(..., keys="id")` writes both keys on each line, so a text
+replay still reads it; a `RecordedDecider(..., keys="id")` answers by `id_key` first, then by
+`key` as before, so it also reads every line recorded without one. The default is
+`keys="text"`, under which nothing is written or read differently than before.
 """
 
 from __future__ import annotations
@@ -40,10 +49,21 @@ import json
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
+from .. import catalog
 from ..contract import Answer, Decider, Decision, Question, State
 from .jev_models import keyed_by_model, version_of
+
+KeyScheme = Literal["text", "id"]
+KEY_SCHEMES: tuple[KeyScheme, ...] = ("text", "id")
+ID_SCHEME = "id/1"  # in every id key's body: a new way of signing gets a new tag
+
+
+def _scheme(keys: str) -> KeyScheme:
+    if keys not in KEY_SCHEMES:
+        raise ValueError(f"keys must be one of {KEY_SCHEMES}, not {keys!r}")
+    return keys  # type: ignore[return-value]
 
 
 def key_of(
@@ -56,6 +76,45 @@ def key_of(
         "state": state,
         "questions": {k: asdict(q) for k, q in questions.items()},
     }
+    if keyed_by_model(model):
+        body = {**body, "model": model}
+    serialized = json.dumps(body, sort_keys=True, ensure_ascii=False, default=str)
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()[:16]
+
+
+def _shape(question: Question) -> dict[str, Any]:
+    """What of a question is not wording: its kind and its option names in order (a Choice),
+    or its number of levels (a Score). Option names are identifiers, and often inputs."""
+    options = getattr(question, "options", None)
+    levels = getattr(question, "levels", None)
+    if options is not None:
+        return {"kind": question.kind, "options": [str(name) for name in options]}
+    if levels is not None:
+        return {"kind": question.kind, "levels": len(levels)}
+    return {"kind": question.kind}
+
+
+def id_key_of(
+    point: str, state: State, questions: Mapping[str, Question], model: str | None = None
+) -> str:
+    """A fingerprint of one query that does not depend on the language of its questions.
+
+    It signs, per question key, the question's versioned id (`catalog.ids_of`) and its shape
+    (`_shape`), plus the state, and the model from jev-1.14 on as `key_of` does. When every
+    question has an id the point name is left out: ids already name their point, so a
+    consumer that traces the same query under its own point name gets the same key. A
+    question without an id is signed whole, with the point, as `key_of` signs it.
+    """
+    ids = catalog.ids_of(point, questions)
+    signed: dict[str, Any] = {}
+    for key, question in questions.items():
+        qid = ids.get(key)
+        signed[key] = (
+            {"question": asdict(question)} if qid is None else {"id": qid, **_shape(question)}
+        )
+    body: dict[str, Any] = {"scheme": ID_SCHEME, "state": state, "questions": signed}
+    if any(qid is None for qid in ids.values()):
+        body = {**body, "point": point}
     if keyed_by_model(model):
         body = {**body, "model": model}
     serialized = json.dumps(body, sort_keys=True, ensure_ascii=False, default=str)
@@ -89,18 +148,29 @@ def fixture_path(path: Path | str, model: str | None) -> Path:
 class RecordedDecider:
     name = "recorded"
 
-    def __init__(self, entries: Sequence[Mapping[str, Any]], *, model: str | None = None) -> None:
+    def __init__(
+        self,
+        entries: Sequence[Mapping[str, Any]],
+        *,
+        model: str | None = None,
+        keys: KeyScheme = "text",
+    ) -> None:
         """`model`: the Jev version this replay stands for. Keyed (1.14 on): only its own
-        lines answer. Otherwise only unkeyed lines do, which is every recording before 1.14."""
+        lines answer. Otherwise only unkeyed lines do, which is every recording before 1.14.
+        `keys="id"`: answer by `id_key` first (`id_key_of`), then by `key` as always."""
         self._model = model if keyed_by_model(model) else None
+        self._keys = _scheme(keys)
         exact: dict[str, Mapping[str, Any]] = {}
         ordered: dict[tuple[str, str], Mapping[str, Any]] = {}
         defaults: dict[str, Mapping[str, Any]] = {}
+        by_id: dict[str, Mapping[str, Any]] = {}
         for entry in entries:
             if not self._mine(entry):
                 continue
             key = entry.get("key")
             point = str(entry.get("point", ""))
+            if self._keys == "id" and entry.get("id_key"):
+                by_id[str(entry["id_key"])] = entry
             if key and entry.get("order"):
                 ordered[(str(key), str(entry["order"]))] = entry
             elif key:
@@ -110,6 +180,7 @@ class RecordedDecider:
         self._exact = exact
         self._ordered = ordered
         self._defaults = defaults
+        self._by_id = by_id
 
     @property
     def model(self) -> str | None:
@@ -122,25 +193,41 @@ class RecordedDecider:
             return recorded == self._model
         return not keyed_by_model(recorded)
 
+    @property
+    def keys(self) -> KeyScheme:
+        return self._keys
+
     @classmethod
-    def from_file(cls, path: Path | str, *, model: str | None = None) -> RecordedDecider:
+    def from_file(
+        cls, path: Path | str, *, model: str | None = None, keys: KeyScheme = "text"
+    ) -> RecordedDecider:
         path = Path(path)
         if not path.exists():
-            return cls((), model=model)
+            return cls((), model=model, keys=keys)
         lines = [
             json.loads(line)
             for line in path.read_text(encoding="utf-8").splitlines()
             if line.strip()
         ]
-        return cls(lines, model=model)
+        return cls(lines, model=model, keys=keys)
 
     def __len__(self) -> int:
         return len(self._exact) + len(self._ordered)
 
+    def indexed_keys(self) -> frozenset[str]:
+        """The text keys this replay answers from, whatever the option order."""
+        return frozenset(self._exact) | frozenset(key for key, _ in self._ordered)
+
     async def decide(self, point: str, state: State, questions: Mapping[str, Question]) -> Decision:
         key = key_of(point, state, questions, self._model)
+        by_id = (
+            self._by_id.get(id_key_of(point, state, questions, self._model))
+            if self._by_id
+            else None
+        )
         entry = (
-            self._ordered.get((key, order_of(questions)))
+            by_id
+            or self._ordered.get((key, order_of(questions)))
             or self._exact.get(key)
             or self._defaults.get(point)
         )
@@ -165,15 +252,22 @@ class RecordedDecider:
 class RecordingDecider:
     """Wraps a real decider and writes each decision down, ready to be replayed."""
 
-    def __init__(self, inner: Decider, path: Path | str) -> None:
+    def __init__(self, inner: Decider, path: Path | str, *, keys: KeyScheme = "text") -> None:
+        """`keys="id"` also writes `id_key` (`id_key_of`) on every line; the default writes
+        exactly the lines it always wrote."""
         self._inner = inner
         self._path = Path(path)
+        self._keys = _scheme(keys)
         self.name = inner.name
 
     async def decide(self, point: str, state: State, questions: Mapping[str, Question]) -> Decision:
         decision = await self._inner.decide(point, state, questions)
+        ids: dict[str, str] = {}
+        if self._keys == "id":
+            ids = {"id_key": id_key_of(point, state, questions, decision.model)}
         line = {
             "key": key_of(point, state, questions, decision.model),
+            **ids,
             "order": order_of(questions),
             "point": point,
             "model": decision.model,
