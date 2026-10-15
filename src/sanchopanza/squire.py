@@ -47,6 +47,7 @@ from .points import (
     injection,
     loop,
     memory,
+    passages,
     plan,
     review,
     routing,
@@ -393,8 +394,16 @@ class Squire:
         (docs/results/2026-09-28-fixed-pages/). Unanswered pages are kept. The probability
         returned is the last one the page got.
         """
+        return await self._page_tournament(purpose, pages, passages.CallReserve(None))
+
+    async def _page_tournament(
+        self, purpose: str, pages: Sequence[tuple[str, str]], reserve: passages.CallReserve
+    ) -> list[tuple[bool, float | None]]:
+        """`triage_many`, each call claimed from `reserve`; a group past it goes unanswered."""
 
         async def judge(ids: Sequence[int]) -> list[float | None]:
+            if not reserve.take():
+                return [None] * len(ids)
             state, qs = chunks.context_questions(purpose=purpose, pages=[pages[i] for i in ids])
             decision = await self.decide("triage_pages", state, qs)
             self.record(decision, pages=len(ids))
@@ -437,7 +446,11 @@ class Squire:
         return out
 
     async def select_passages(
-        self, *, purpose: str, pages: Sequence[tuple[str, str]]
+        self,
+        *,
+        purpose: str,
+        pages: Sequence[tuple[str, str]],
+        max_calls: int | None = None,
     ) -> list[list[tuple[bool, float | None]] | None]:
         """The passages of one long document the answer needs: paragraphs, then sentences.
 
@@ -448,9 +461,16 @@ class Squire:
         219 new QASPER questions: every answer sentence in 87.2 % at 21.0 % of the text, and an
         answering model scored as well from it as from the whole paper
         (docs/results/2026-09-28-lateral-wholedocs/). For one long document, not short pages.
+
+        A paragraph the tournament did not answer is kept whole, every sentence `(True, None)`,
+        without a sentence call. `max_calls` caps this document's decider calls, tournament
+        included; the sentence stage spends what is left on the surest paragraphs and keeps the
+        rest past the gate whole, unjudged (`points.passages`). `None`, the default, is no cap,
+        and is what every published run used.
         """
-        kept = await self.triage_many(purpose=purpose, pages=pages)
-        gate = self._t.document_paragraphs
+        reserve = passages.CallReserve(max_calls)  # claimed before the first await
+        kept = await self._page_tournament(purpose, pages, reserve)
+        judged, whole = passages.sentence_stage(kept, self._t.document_paragraphs, reserve.left)
 
         async def sentences_of(title: str, body: str) -> list[tuple[bool, float | None]]:
             return await self.select_sentences(
@@ -460,13 +480,18 @@ class Squire:
                 window=self._t.document_window,
             )
 
-        jobs = [
-            sentences_of(title, body) if keep and (p is None or p >= gate) else None
-            for (title, body), (keep, p) in zip(pages, kept, strict=True)
-        ]
-        done = await asyncio.gather(*(job for job in jobs if job is not None))
-        answers = iter(done)
-        return [None if job is None else next(answers) for job in jobs]
+        order = sorted(judged)  # page order, as before
+        done = await asyncio.gather(*(sentences_of(*pages[i]) for i in order))
+        by_page = dict(zip(order, done, strict=True))
+
+        def entry(i: int) -> list[tuple[bool, float | None]] | None:
+            if i in by_page:
+                return by_page[i]
+            if i in whole:  # kept, never judged sentence by sentence: in doubt, text enters
+                return [(True, None)] * len(split_sentences(pages[i][1]))
+            return None
+
+        return [entry(i) for i in range(len(pages))]
 
     async def prune_context(
         self,
