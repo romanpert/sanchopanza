@@ -26,3 +26,7 @@ docs/results/2026-09-28-claude-code-harness/prereg.sha256
 docs/results/2026-09-29-candor/counterfactual*.jsonl
 docs/results/2026-09-29-candor/lock-e2e/L*/
 fixtures/cli/candor-*.jsonl
+# Claude Code's local configuration for this project: kept on the machine, never published.
+.claude/
+CLAUDE.md
+CLAUDE.local.md
