@@ -18,8 +18,9 @@ do not favour this package.
   and under the header only past Jev's short window. Lot L6 (`docs/results/2026-10-15-jev114-l6`,
   A7): on 36 LongMemEval questions the gate's selection recall rose from 0.72 to 0.91 on
   jev-1.13.0 and jev-1.14.0 alike (+18.5 points, Holm p 0.03), 3.1 points under BM25 top 3, at
-  about 0.005 USD a prompt against 0.001. Records were not measured. A confirmation on 84 unseen
-  questions is pending. The short window is used instead, with one line on stderr and the
+  about 0.005 USD a prompt against 0.001. Records were not measured. Confirmed on jev-1.13.0
+  on the 84 unseen test questions (`docs/results/2026-10-15-memgate-long`): recall 0.726 to
+  0.905 (+17.8 points [+10.7, +25.7]), reaching BM25 top 3 (+8.9 [0.0, +17.3]). The short window is used instead, with one line on stderr and the
   reason in the journal and the memory log (the long call's own error in `long_error`), when
   the request is over 750,000 characters, the decider has no long-context mode (a CLM server or
   another address included), the long call's estimate does not fit what is left of the job's

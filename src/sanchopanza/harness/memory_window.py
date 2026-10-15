@@ -10,8 +10,9 @@ and jev-1.14.0 alike (+18.5 points, Holm p 0.03), 3.1 points under BM25 top 3. P
 long call (about 120k tokens, 0.005 USD, 1.5 s median and 2.5 s at most) replaced about 2.9
 short triage calls (0.3 s each); the recall question is asked in both, and the short path cost
 about 0.001 USD a prompt in all. The long call's cost grows with the memory: Jev charges 0.042 USD
-a million input tokens, about 0.01 USD at the `LONG_WINDOW_CHARS` ceiling. The confirmation on
-84 unseen questions is pending.
+a million input tokens, about 0.01 USD at the `LONG_WINDOW_CHARS` ceiling. Confirmed on the 84
+unseen test questions on jev-1.13.0 (docs/results/2026-10-15-memgate-long): 0.726 to 0.905,
++17.8 points [+10.7, +25.7], reaching BM25 top 3.
 
 Where it applies, and nowhere else (not the autopilot's recall, not any other point):
 
