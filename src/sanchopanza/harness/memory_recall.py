@@ -118,13 +118,15 @@ def candidates(prompt: str, pool: Sequence[ep.Episode], k: int = K) -> list[ep.E
 
 
 async def keep_by_decider(
-    squire: Squire, prompt: str, found: Sequence[ep.Episode]
+    squire: Squire, prompt: str, found: Sequence[ep.Episode], *, whole: bool = False
 ) -> tuple[list[ep.Episode], dict[str, float | None]]:
     """The decider's picks, most probable first, and every probability. Only a record the
-    decider judged at `MEMORY_KEEP_AT` or above enters: a record nobody judged must not."""
+    decider judged at `MEMORY_KEEP_AT` or above enters: a record nobody judged must not.
+    Each record is read as its page, or `whole` (`Episode.text()`, the long window)."""
     from ..points.memory import record_id, related_questions
 
-    state, qs = related_questions(request=prompt, records=[e.page() for e in found],
+    records = [e.text() if whole else e.page() for e in found]
+    state, qs = related_questions(request=prompt, records=records,
                                   record_limit=squire.limits.memory_record_chars)  # fmt: skip
     decision = await squire.decide("memory_recall", state, qs)
     ids = [record_id(i) for i in range(len(found))]
@@ -133,8 +135,40 @@ async def keep_by_decider(
     keep_at = mh._float("MEMORY_KEEP_AT", KEEP_AT)
     kept = [(e, p) for e, p in ((e, probabilities[e.key]) for e in found)
             if p is not None and p >= keep_at]  # fmt: skip
-    squire.record(decision, kept=len(kept), records=len(found))
+    window = {"window": "long"} if whole else {}
+    squire.record(decision, kept=len(kept), records=len(found), **window)
     return [e for e, _ in sorted(kept, key=lambda item: -item[1])], probabilities
+
+
+async def keep_in_window(
+    squire: Squire, prompt: str, found: Sequence[ep.Episode], window: str, seconds: float
+) -> tuple[list[ep.Episode], dict[str, float | None], dict[str, Any]]:
+    """`keep_by_decider` on the short window (the shipped one; nothing added to the log row),
+    or on the long one (`memory_window`): each record whole, on the same decider while the call
+    fits Jev's short window and on its long-context twin past it, within `seconds` less
+    `SHORT_RESERVE_S`; the pages when that cannot run, with the reason for the log row."""
+    from ..points.memory import related_questions
+    from . import memory_window as mw
+
+    if window != mw.LONG:
+        return (*await mh.keep_by_decider(squire, prompt, found), {})
+    state, questions = related_questions(  # what `keep_by_decider(whole=True)` will send
+        request=prompt,
+        records=[e.text() for e in found],
+        record_limit=mw.LONG_LIMITS.memory_record_chars,
+    )
+
+    async def ask(long: Squire) -> tuple[list[ep.Episode], dict[str, float | None]]:
+        return await mh.keep_by_decider(long, prompt, found, whole=True)
+
+    def answered(kept: tuple[list[ep.Episode], dict[str, float | None]]) -> bool:
+        return any(p is not None for p in kept[1].values())
+
+    kept, report = await mw.run_long(squire, state, questions, ask, answered, header=False,
+                                     deadline_s=seconds - mw.SHORT_RESERVE_S)  # fmt: skip
+    if kept is None:
+        kept = await mh.keep_by_decider(squire, prompt, found)
+    return (*kept, report)
 
 
 def render(chosen: Sequence[ep.Episode], cap: int = CHARS) -> tuple[str, list[str]]:
@@ -163,17 +197,22 @@ async def _choose(
         from .claude_code import squire_from_env
 
         squire = squire_from_env(redact=True)
+    from . import memory_window as mw
+
     seconds = mh._int("MEMORY_DECIDER_SECONDS", 15)
+    window = mw.window_from_env()
+    if window == mw.LONG:  # in the row before the wait: a timeout below still says it
+        row = {**row, "window": window}
     try:
         import asyncio
 
-        chosen, probabilities = await asyncio.wait_for(
-            mh.keep_by_decider(squire, prompt, found), seconds
+        chosen, probabilities, read = await asyncio.wait_for(
+            keep_in_window(squire, prompt, found, window, seconds), seconds
         )
     except TimeoutError:
         mh._log({**row, "reason": f"decider timed out after {seconds} s"})
         return None
-    return chosen, {**row, "probabilities": probabilities}
+    return chosen, {**row, "probabilities": probabilities, **read}
 
 
 async def recall(event: Mapping[str, Any], squire: Squire | None = None) -> dict[str, Any]:

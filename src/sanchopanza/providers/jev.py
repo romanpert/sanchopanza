@@ -215,9 +215,15 @@ class JevDecider:
         client: Any | None = None,
         long_context: bool | None = None,
         images: bool | None = None,
+        name: str | None = None,
+        timeout_per_request: bool = False,
+        owns_client: bool = True,
     ) -> None:
         """`model`, `long_context` and `images` left at None come from the environment
-        (`model_from_env`, `long_context_from_env`, `images_from_env`); a value given wins."""
+        (`model_from_env`, `long_context_from_env`, `images_from_env`); a value given wins.
+        `name` replaces the provider name (`clm`). `timeout_per_request` sends `timeout_s` with
+        each request, for a decider that shares another one's client (`with_long_context`);
+        such a decider passes `owns_client=False`, and its `aclose` leaves the client open."""
         key = api_key or os.environ.get("TYPESAFE_API_KEY", "")
         if not key:
             raise DeciderUnavailable("TYPESAFE_API_KEY is not set")
@@ -233,6 +239,12 @@ class JevDecider:
         # 0.6 s, and a hook builds its decider on every shell command while it asks on 2 % of
         # them (the adoption study's phase B: 1.3-1.7 s per PreToolUse with a key, 0.4 s without).
         self._made: Any | None = client
+        self._timeout_per_request = timeout_per_request
+        self._owns_client = owns_client
+        # The long-context header is TypeSafe's: a CLM server or another address gets no twin.
+        self._long_capable = self._base_url == BASE_URL
+        if name is not None:
+            self.name = name
         self._scope = funds.scope(self._base_url, key)
 
     def _client(self) -> Any:
@@ -248,7 +260,7 @@ class JevDecider:
         return self._made
 
     async def aclose(self) -> None:
-        if self._made is not None:
+        if self._made is not None and self._owns_client:
             await self._made.aclose()
 
     @property
@@ -262,6 +274,33 @@ class JevDecider:
     @property
     def images(self) -> bool:
         return self._images
+
+    @property
+    def price_per_mtok(self) -> float:
+        return self._price
+
+    def with_long_context(self, *, timeout_s: float | None = None) -> JevDecider:
+        """This decider's twin with the long-context header on: same key, address, model,
+        price, images, name and client (no new connection; `timeout_s` goes with each of its
+        requests), for the one call that needs the window (`harness.memory_window`). This one
+        is left as it was, so no other point sends the header. Only TypeSafe's own address has
+        the header: anything else (`clm`, a proxy) raises `AttributeError`, as a decider without
+        the mode would. The client stays this decider's to close."""
+        if not self._long_capable:
+            raise AttributeError(f"{self.name} at {self._base_url} has no long-context mode")
+        return type(self)(
+            self._key,
+            base_url=self._base_url,
+            model=self._model,
+            price_per_mtok=self._price,
+            timeout_s=self._timeout_s if timeout_s is None else timeout_s,
+            client=self._client(),
+            long_context=True,
+            images=self._images,
+            name=self.name,
+            timeout_per_request=True,
+            owns_client=False,
+        )
 
     def _headers(self) -> dict[str, str]:
         """The Danger Zone headers this decider was built with, sent on every request."""
@@ -333,9 +372,10 @@ class JevDecider:
             import httpx
 
             headers = self._headers()
+            per_request = {"timeout": self._timeout_s} if self._timeout_per_request else {}
             try:
-                if headers:
-                    response = await client.post(PATH, json=body, headers=headers)
+                if headers or per_request:
+                    response = await client.post(PATH, json=body, headers=headers, **per_request)
                 else:
                     response = await client.post(PATH, json=body)
                 self.last_status = response.status_code
@@ -504,12 +544,11 @@ def clm(
     `SANCHOPANZA_JEV_*` variables are Jev's, not CLM's.
     """
     kwargs = {"long_context": False, "images": False, **kwargs}
-    decider = JevDecider(
+    return JevDecider(
         api_key or os.environ.get("CLM_API_KEY") or "local",
         base_url=base_url or os.environ.get("SANCHOPANZA_CLM_URL") or CLM_URL,
         model=model or os.environ.get("SANCHOPANZA_CLM_MODEL") or CLM_MODEL,
         price_per_mtok=0.0,
+        name="clm",
         **kwargs,
     )
-    decider.name = "clm"
-    return decider

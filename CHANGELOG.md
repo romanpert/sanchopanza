@@ -9,6 +9,30 @@ do not favour this package.
 
 ### Added
 
+- **The memory gate's long window** (`SANCHOPANZA_MEMORY_WINDOW=long`, opt-in; off by default,
+  and the default path sends, journals and logs the same as before, to the recording key). The
+  memory gate (`memory_gate.gate`, a library call no installed hook makes) reads every memory
+  whole in one call, with Jev's long-context header on that call only, instead of 900
+  characters each in a tournament. The installed memory hook, at a session's first prompt,
+  reads each candidate record whole instead of its 880-character page, on the same decider,
+  and under the header only past Jev's short window. Lot L6 (`docs/results/2026-10-15-jev114-l6`,
+  A7): on 36 LongMemEval questions the gate's selection recall rose from 0.72 to 0.91 on
+  jev-1.13.0 and jev-1.14.0 alike (+18.5 points, Holm p 0.03), 3.1 points under BM25 top 3, at
+  about 0.005 USD a prompt against 0.001. Records were not measured. A confirmation on 84 unseen
+  questions is pending. The short window is used instead, with one line on stderr and the
+  reason in the journal and the memory log (the long call's own error in `long_error`), when
+  the request is over 750,000 characters, the decider has no long-context mode (a CLM server or
+  another address included), the long call's estimate does not fit what is left of the job's
+  budget, the hook's long call takes longer than its share of the hook's time (the decider time
+  less 3 s kept for the pages), or the long call answers nothing. What is enforced: the job's
+  cap is checked against the long call's estimate before it is made, and what it spent is then
+  added to the job's meter (`Squire.absorb`); a long call cut by its deadline is charged at its
+  estimate, and a `CappedDecider` keeps the reservation of a call cancelled in flight; a
+  `CappedDecider` passes its ledger and caps to the long call. `JevDecider.with_long_context()`
+  (sharing the client, which it does not close, its timeout sent per request),
+  `CappedDecider.with_long_context()`, `price_per_mtok` on both, `JevDecider(name=)`,
+  `Squire.fork(decider=, limits=)` and `Squire.absorb()` are the pieces.
+
 - **The knowledge layer** (`install --knowledge`, off by default until confirmed live;
   `docs/results/2026-10-05-knowledge`). One MCP server, `sanchopanza knowledge-mcp`, loaded up
   front: `search` (Wikipedia's search API and a free web chain, a day of cache, breakers moved
