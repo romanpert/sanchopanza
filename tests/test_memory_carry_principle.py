@@ -64,6 +64,7 @@ REFUNDS = (
     "        return 'pending'\n    ISSUED.append((order_id, amount))\n    return 'done'\n"
 )
 
+# fmt: off
 # Per scene: the files of a session-2 result that keeps the preference, and of one that breaks it.
 RESULTS: dict[str, tuple[Files, Files]] = {
     "p_decide": (
@@ -140,6 +141,7 @@ VARIANTS: dict[str, Files] = {
                " == 'true'\n\n\ndef price(subtotal):\n"
                "    return round(subtotal * (0.9 if ON and subtotal > 100 else 1), 2)\n"},
 }
+# fmt: on
 
 # Words that would give the preference away; the repository and session 2 must hold none.
 TELLS = {
@@ -189,6 +191,8 @@ def test_the_checks_tell_keeping_the_preference_from_breaking_it(name: str, tmp_
 
 @pytest.mark.parametrize("name", sorted(VARIANTS))
 def test_another_way_of_keeping_it_passes_too(name: str, tmp_path: Path) -> None:
+    if name == "p_open":  # this variant fetches with requests, not a dependency of ours
+        pytest.importorskip("requests")
     scene = PRINCIPLE[name]
     root = build(tmp_path, scene, VARIANTS[name])
     assert passes(root, scene["task"]) and passes(root, scene["fact"])

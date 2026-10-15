@@ -134,7 +134,8 @@ def test_each_runner_writes_its_own_key_file(tmp_path, monkeypatch) -> None:  # 
 
 
 def test_the_key_file_is_the_one_the_environment_names_and_none_by_default(
-    tmp_path, monkeypatch  # noqa: ANN001
+    tmp_path,
+    monkeypatch,  # noqa: ANN001
 ) -> None:
     monkeypatch.setattr(run, "ROOT", tmp_path)
     monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
@@ -162,7 +163,9 @@ def test_an_arms_key_path_survives_its_runner(tmp_path, monkeypatch) -> None:  #
     run.drop_arm_keys()
 
 
-def test_a_held_out_arm_does_not_start_when_its_hooks_lack_the_decider(tmp_path, monkeypatch) -> None:  # noqa: ANN001, E501
+def test_a_held_out_arm_does_not_start_when_its_hooks_lack_the_decider(
+    tmp_path, monkeypatch
+) -> None:  # noqa: ANN001, E501
     monkeypatch.setattr(run, "RUNS", tmp_path / "runs")
     monkeypatch.setattr(run, "WORK", tmp_path / "work")
     monkeypatch.setattr(run, "KEYS", tmp_path / "keys")
@@ -242,7 +245,7 @@ def _arm(
                                           encoding="utf-8")  # fmt: skip
     hooks = [{"sub": "hook", "key": k} for k in keys]
     (folder / "hooks.jsonl").write_text("".join(json.dumps(x) + "\n" for x in hooks) + "[1]\n",
-                                        encoding="utf-8")  # fmt: skip  (a junk line is skipped)
+                                        encoding="utf-8")  # fmt: skip  # a junk line is skipped
     return folder
 
 

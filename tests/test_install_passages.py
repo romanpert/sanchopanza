@@ -49,7 +49,8 @@ def test_the_flag_wires_one_hook_and_its_settings_once(tmp_path: Path) -> None:
     assert doc["env"]["SANCHOPANZA_PASSAGES_FRACTION"] == "0.25"
     assert doc["env"]["SANCHOPANZA_PASSAGES_TOKENS"] == "2000"
     assert doc["env"]["KEEP"] == "1" and any(
-        h["command"] == "theirs" for e in doc["hooks"]["PostToolUse"] for h in e["hooks"])
+        h["command"] == "theirs" for e in doc["hooks"]["PostToolUse"] for h in e["hooks"]
+    )
     assert _install(path, "--passages") == 0
     assert len(_ours(json.loads(path.read_text("utf-8")))) == 1
 

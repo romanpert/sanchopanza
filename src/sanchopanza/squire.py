@@ -104,9 +104,16 @@ class Squire:
         self._model_warned = False
         self._errors_seen: frozenset[str] = frozenset()
 
-    def fork(self, *, thresholds: Thresholds | None = None) -> Squire:
+    def fork(
+        self,
+        *,
+        thresholds: Thresholds | None = None,
+        decider: Decider | None = None,
+        limits: Limits | None = None,
+    ) -> Squire:
         """A fresh squire - new meter, no history - with this one's configuration, or with
-        `thresholds` in place of its own (a tighter ceiling for one job, say).
+        `thresholds`, `decider` or `limits` in place of its own (a tighter ceiling for one job,
+        say, or the memory gate's long window: `harness.memory_window`).
 
         Same decider, thresholds, limits, journal, brief, profile and redactor. For a harness that
         serves several users or conversations from one template: each gets its own budget and
@@ -114,13 +121,13 @@ class Squire:
         the squire (the redactor was the first) cannot be silently dropped by a copy.
         """
         return Squire(
-            self._decider,
+            decider if decider is not None else self._decider,
             thresholds=thresholds if thresholds is not None else self._t,
             journal=self._journal,
             brief=self._brief,
             profile=self._profile,
             redact=self._redact,
-            limits=self._limits,
+            limits=limits if limits is not None else self._limits,
         )
 
     # --- plumbing --------------------------------------------------------------------
@@ -132,6 +139,18 @@ class Squire:
     @property
     def limits(self) -> Limits:
         return self._limits
+
+    @property
+    def decider(self) -> Decider:
+        return self._decider
+
+    def absorb(self, meter: Meter) -> None:
+        """Count a fork's decisions and dollars on this squire's meter, so a job that hands one
+        call to a fork (the memory gate's long window) still answers to its own cap."""
+        self._meter = Meter(
+            decisions=self._meter.decisions + meter.decisions,
+            cost_usd=self._meter.cost_usd + meter.cost_usd,
+        )
 
     @property
     def meter(self) -> Meter:

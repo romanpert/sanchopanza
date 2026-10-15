@@ -100,6 +100,9 @@ def test_an_unknown_ref_fails_loudly(pages):
 
 
 def test_the_whole_pipeline_runs_free_with_fakes():
+    # benchmarks/ab/run.py imports the Anthropic SDK at the top, even with the fake answerer;
+    # it is a benchmark dependency, not one of the package's (`pip install -e .[dev]` on CI).
+    pytest.importorskip("anthropic", reason="benchmarks/ab needs the anthropic SDK")
     env = {"PATH": "", "SYSTEMROOT": __import__("os").environ.get("SYSTEMROOT", "")}
     argv = [sys.executable, "-m", "benchmarks.ab.fixed", "--lever", "pages", "--fake"]
     argv += ["--repeats", "1", "--tasks", "viviendas,cost"]

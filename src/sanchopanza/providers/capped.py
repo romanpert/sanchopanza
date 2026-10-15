@@ -8,13 +8,14 @@ per three characters of the request, plus a full-size image per attachment); whe
 fit under the ledger's cap or the batch's `max_usd`, the inner decider is not called and
 `SpendCapReached`, a `DeciderUnavailable`, is raised, so a squire falls to its default and
 journals why. After the call the reservation is settled at the decision's `cost_usd` (0 when
-the call failed). The in-process `Meter` counts decisions and dollars for the caller; the
-ledger is what holds across processes. What can still overshoot: a call that costs more than its
-estimate, by the difference.
+the call failed, the estimate when it was cancelled in flight). The in-process `Meter` counts
+decisions and dollars for the caller; the ledger is what holds across processes. What can still
+overshoot: a call that costs more than its estimate, by the difference.
 """
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import json
 from collections.abc import Callable, Mapping
@@ -73,6 +74,25 @@ class CappedDecider:
     def meter(self) -> Meter:
         return self._meter
 
+    @property
+    def price_per_mtok(self) -> float:
+        return self._price
+
+    def with_long_context(self, **options: object) -> CappedDecider:
+        """The inner decider's long-context twin under the same ledger, batch and caps.
+        Raises `AttributeError` when the inner decider has none, as it would unwrapped. The
+        twin keeps its own in-process `meter`: the ledger holds what both spend, and a squire
+        that hands it one call adds that call to its own meter (`Squire.absorb`)."""
+        twin = self._inner.with_long_context(**options)  # type: ignore[attr-defined]
+        return CappedDecider(
+            twin,
+            ledger=self._ledger,
+            batch=self._batch,
+            max_usd=self._max_usd,
+            price_per_mtok=self._price,
+            estimate=self._estimate,
+        )
+
     def _cost_of(self, state: State, questions: Mapping[str, Question]) -> float:
         if self._estimate is not None:
             return float(self._estimate(state, questions))
@@ -93,6 +113,11 @@ class CappedDecider:
             decision = await self._inner.decide(point, state, questions)
             cost = decision.cost_usd
             return decision
+        except asyncio.CancelledError:
+            # Cut in flight (a deadline): the server may bill a request it received, and no
+            # bill will come back. The reservation stands at its estimate.
+            cost = estimate
+            raise
         finally:
             self._meter = self._meter.charge(cost)
             # A settle that cannot take the lock leaves the estimate standing: safe side.

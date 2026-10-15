@@ -56,7 +56,7 @@ def test_s_is_what_install_writes_with_only_the_commands_behind_the_launcher(
     assert [(e, m) for e, m, _ in before] == [(e, m) for e, m, _ in after]
     head = carry_s.prefix(run, tmp_path / "k")
     for (_, _, old), (_, _, new) in zip(before, after, strict=True):
-        assert old.startswith("sanchopanza ") and new == f"{head} {old[len('sanchopanza '):]}"
+        assert old.startswith("sanchopanza ") and new == f"{head} {old[len('sanchopanza ') :]}"
     subs = {c.split(" sub ")[1].split()[0] for _, _, c in after}
     assert subs == {"hook", "guard-hook", "memory-hook"}  # the Guardian, the guard and memory
     assert rewired["env"]["SANCHOPANZA_GUARD_PROFILE"] == "coding"
@@ -140,13 +140,18 @@ class FakeS(FakeClaude):
             log.write(json.dumps({"sub": "memory-hook", "event": "UserPromptSubmit",
                                   "session": sid, "exit": 0}) + "\n")  # fmt: skip
         with (run / "journal.jsonl").open("a", encoding="utf-8") as log:
-            log.write(json.dumps({"kind": "decision", "data": {"provider": "jev",
-                                                               "cost_usd": 0.001}}) + "\n")
+            log.write(
+                json.dumps({"kind": "decision", "data": {"provider": "jev", "cost_usd": 0.001}})
+                + "\n"
+            )
         stream = kw["stdout"]
         stream.flush()
         events = [json.loads(x) for x in Path(stream.name).read_text("utf-8").splitlines()]
-        events[0] = {**events[0], "session_id": sid,
-                     "mcp_servers": [{"name": "sanchopanza", "status": "connected"}]}
+        events[0] = {
+            **events[0],
+            "session_id": sid,
+            "mcp_servers": [{"name": "sanchopanza", "status": "connected"}],
+        }
         stream.seek(0)
         stream.truncate()
         stream.write("".join(json.dumps(e) + "\n" for e in events))
@@ -227,8 +232,9 @@ def test_the_reserve_holds_s_decisions_and_rotation_alternates_the_first_arm() -
                for i in range(0, 48, 2))  # fmt: skip
 
 
-def test_a_failed_jev_preflight_refuses_before_any_pair(tmp_path: Path,
-                                                        monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_failed_jev_preflight_refuses_before_any_pair(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setattr(carry.carry_s, "preflight", lambda *a: {"ok": False, "reason": "402"})
     with pytest.raises(SystemExit, match="402"):
         carry.jev_first(tmp_path, [("q_tz", "sonnet", "S", 1)], tmp_path / "k")
@@ -240,18 +246,31 @@ def test_a_failed_jev_preflight_refuses_before_any_pair(tmp_path: Path,
 
 def row(scene: str, arm: str, rep: int, kept: bool, task: bool = True, cost: float = 0.1,
         **extra: Any) -> dict[str, Any]:  # fmt: skip
-    return {"scene": scene, "model": "sonnet", "arm": arm, "repeat": rep, "run": "r",
-            "planned": ["thread", "first", "second"], "second": {"key": "second"},
-            "sessions": [{"returncode": 0, "subtype": "success"}] * 3,
-            "fact_kept": kept, "task_pass": task, "tests_pass": True, "cost": cost, **extra}
+    return {
+        "scene": scene,
+        "model": "sonnet",
+        "arm": arm,
+        "repeat": rep,
+        "run": "r",
+        "planned": ["thread", "first", "second"],
+        "second": {"key": "second"},
+        "sessions": [{"returncode": 0, "subtype": "success"}] * 3,
+        "fact_kept": kept,
+        "task_pass": task,
+        "tests_pass": True,
+        "cost": cost,
+        **extra,
+    }
 
 
 def table(n_broken: int, s_broken: int, pairs: int = 24, s_cost: float = 0.1) -> list[dict]:
     out = []
     for i in range(pairs):
         scene, rep = sorted(PARALLEL)[i % 8], 1 + i // 8
-        out += [row(scene, "N", rep, kept=i >= n_broken),
-                row(scene, "S", rep, kept=i >= s_broken, cost=s_cost, jev_usd=0.001)]
+        out += [
+            row(scene, "N", rep, kept=i >= n_broken),
+            row(scene, "S", rep, kept=i >= s_broken, cost=s_cost, jev_usd=0.001),
+        ]
     return out
 
 
@@ -292,8 +311,10 @@ def test_a_false_send_back_in_the_last_session_counts_against_s(tmp_path: Path) 
 
 def test_s_cannot_win_by_failing_tasks_and_a_pair_never_started_is_listed(tmp_path: Path) -> None:
     rows = table(n_broken=8, s_broken=0)
-    rows = [{**r, "fact_kept": False, "task_pass": False} if r["arm"] == "S" and i < 16 else r
-            for i, r in enumerate(rows)]  # S fails the task where N broke: not a break
+    rows = [
+        {**r, "fact_kept": False, "task_pass": False} if r["arm"] == "S" and i < 16 else r
+        for i, r in enumerate(rows)
+    ]  # S fails the task where N broke: not a break
     found = cell.cell(rows, {"r": tmp_path})
     assert found["criteria"]["primary"]["holds"] and not found["criteria"]["fact_alone"]["holds"]
     assert "fact_alone" in found["verdict"] and "task" in found["verdict"]

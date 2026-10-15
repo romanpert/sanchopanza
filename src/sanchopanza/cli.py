@@ -974,10 +974,18 @@ def main(argv: list[str] | None = None) -> int:
         "--passages-tokens to --passages-fraction of it on arrival (failure lines always kept, "
         "the rest archived; one PostToolUse hook; not measured yet, so off by default)",
     )
-    install.add_argument("--passages-fraction", type=float, default=0.25,
-                         help="with --passages, the share of characters kept (default 0.25)")
-    install.add_argument("--passages-tokens", type=int, default=2000,
-                         help="with --passages, the size that triggers a cut (default 2000)")
+    install.add_argument(
+        "--passages-fraction",
+        type=float,
+        default=0.25,
+        help="with --passages, the share of characters kept (default 0.25)",
+    )
+    install.add_argument(
+        "--passages-tokens",
+        type=int,
+        default=2000,
+        help="with --passages, the size that triggers a cut (default 2000)",
+    )
     install.add_argument(
         "--sources",
         action="store_true",

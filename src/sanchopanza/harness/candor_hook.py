@@ -169,8 +169,9 @@ def snapshot(root: Path) -> dict[str, str]:
     A file whose size and mtime match the last snapshot of this root keeps its recorded sha1,
     as git's index does: hashing the whole repository of an agent with its own harness (1,879
     files) took 11.9 s on every prompt and every stop, a walk with `stat` 0.13 s. The cache lives
-    in the monitor's own directory, which the ledger classes as tamper. What it cannot see is a same-size rewrite with the mtime set
-    back, which only a call that sets times on purpose does, and that call is in the ledger."""
+    in the monitor's own directory, which the ledger classes as tamper. What it cannot see is
+    a same-size rewrite with the mtime set back, which only a call that sets times on purpose
+    does, and that call is in the ledger."""
     cache_path = _stat_cache_path(root)
     cache = _load_stat_cache(cache_path)
     fresh: dict[str, list[Any]] = {}

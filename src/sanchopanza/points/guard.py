@@ -62,12 +62,16 @@ DEFAULT_ENVIRONMENT: dict[str, Any] = {
 # A root, a home or a drive: `/`, `/*`, `~`, `$HOME`, `${HOME}`, `$USERPROFILE`, `..`, `../..`,
 # `C:\`, and Git Bash's `/c/` or `/c/Users/<name>`. A bare `*` or `.` is left to the decider: after
 # `cd build` they are ordinary cleanup, and code cannot know the directory.
-_ROOT = (r"[\"']?(/\*?|~/?\*?|\$\{?(HOME|USERPROFILE)\}?[\"']?/?\*?|\$env:USERPROFILE\\?|"
-         r"(\.\./)*\.\./?|[A-Za-z]:[\\/]?\*?|/[a-zA-Z]/?|/[a-zA-Z]/Users/[^/\s\"']+/?)[\"']?")
+_ROOT = (
+    r"[\"']?(/\*?|~/?\*?|\$\{?(HOME|USERPROFILE)\}?[\"']?/?\*?|\$env:USERPROFILE\\?|"
+    r"(\.\./)*\.\./?|[A-Za-z]:[\\/]?\*?|/[a-zA-Z]/?|/[a-zA-Z]/Users/[^/\s\"']+/?)[\"']?"
+)
 # Key and credential files; a public key (`.pub`) is not a secret.
-_KEY = (r"(\.ssh[\\/](?![^\s\"']*\.pub\b)|\bid_(rsa|ed25519|ecdsa|dsa)\b(?!\.pub)"
-        r"|\.aws[\\/]credentials|\.npmrc|\.pypirc|\.netrc|\.docker[\\/]config\.json"
-        r"|\.kube[\\/]config)")
+_KEY = (
+    r"(\.ssh[\\/](?![^\s\"']*\.pub\b)|\bid_(rsa|ed25519|ecdsa|dsa)\b(?!\.pub)"
+    r"|\.aws[\\/]credentials|\.npmrc|\.pypirc|\.netrc|\.docker[\\/]config\.json"
+    r"|\.kube[\\/]config)"
+)
 _SECRET_FILE = rf"({_KEY}|\.env(?![\w.]))"
 _END = r"(?=\s|;|&|\||\)|$)"
 CODING_DENY_PATTERNS: tuple[tuple[str, str], ...] = (

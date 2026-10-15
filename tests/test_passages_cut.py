@@ -14,8 +14,12 @@ OMITTED = re.compile(r"^\[\.\.\. sanchopanza omitted lines? (\d+)(?:-(\d+))? \("
 
 
 def pytest_log(passing: int = 300) -> str:
-    lines = ["============================= test session starts ==============================",
-             "platform linux -- Python 3.12.1, pytest-8.3.2", "collected 302 items", ""]
+    lines = [
+        "============================= test session starts ==============================",
+        "platform linux -- Python 3.12.1, pytest-8.3.2",
+        "collected 302 items",
+        "",
+    ]
     lines += [f"tests/test_mod_{i // 20}.py::test_case_{i} PASSED" for i in range(passing)]
     lines += [
         "tests/test_app.py::test_add FAILED",
@@ -49,15 +53,13 @@ def module_source(functions: int = 80) -> str:
         if i == 41:
             parts.append(
                 "def parse_config(path):\n"
-                "    \"\"\"Read the config file and merge the defaults.\"\"\"\n"
+                '    """Read the config file and merge the defaults."""\n'
                 "    raw = json.loads(open(path).read())\n"
                 "    defaults = load_defaults()\n"
                 "    return {**raw, **defaults}  # the bug: defaults win\n\n\n"
             )
         parts.append(
-            f"def helper_{i}(value):\n"
-            f"    total = value * {i} + {i}\n"
-            f"    return total - {i}\n\n\n"
+            f"def helper_{i}(value):\n    total = value * {i} + {i}\n    return total - {i}\n\n\n"
         )
     return "".join(parts)
 
@@ -98,8 +100,11 @@ def test_a_pytest_log_keeps_every_failure_line_and_the_summary():
     log = pytest_log()
     cut = ps.cut_free(log, "test", "why does test_add fail", ps.Settings())
     assert cut.text is not None, cut.reason
-    must = [line for line in log.splitlines()
-            if re.search(r"FAILED|^E |^>|Traceback|File \"|Error|short test summary|failed,", line)]
+    must = [
+        line
+        for line in log.splitlines()
+        if re.search(r"FAILED|^E |^>|Traceback|File \"|Error|short test summary|failed,", line)
+    ]
     for line in must:
         assert line in cut.text.splitlines(), f"lost a failure line: {line!r}"
     assert len(cut.text) < 0.5 * len(log)

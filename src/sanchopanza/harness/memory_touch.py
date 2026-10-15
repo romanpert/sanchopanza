@@ -263,6 +263,7 @@ def choose_touched(
     A line belongs to the newest record that wrote it among `writers` (every record of the
     file, given or not): a request that rewrote a file takes over the lines it rewrote. With
     none in view: at an edit, the newest; at a Read, only records saved before v4, newest."""
+
     def newest(pool: Sequence[ep.Episode]) -> list[ep.Episode]:
         return sorted(pool, key=lambda e: (-e.at, e.session, -e.index))
 

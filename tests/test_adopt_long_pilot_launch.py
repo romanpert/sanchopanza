@@ -11,7 +11,7 @@ import sys
 
 import pytest
 
-from tests.test_adopt_long_launch import dry_environment, launch
+from tests.test_adopt_long_launch import dry_environment, launch, needs_python
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ADOPT = ROOT / "benchmarks" / "adopt"
@@ -38,6 +38,7 @@ def _text(path: pathlib.Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
+@needs_python("long-pilot-a-run.cmd")
 def test_the_pilot_launcher_runs_arm_a_on_both_chains_and_reports_the_journal(
     tmp_path: pathlib.Path,
 ) -> None:
@@ -61,6 +62,7 @@ def test_the_pilot_launcher_runs_arm_a_on_both_chains_and_reports_the_journal(
     assert not list((root / "runs").glob("*/N"))  # the pilot runs A only
 
 
+@needs_python("long-pilot-a-run.cmd")
 def test_the_pilot_launcher_refuses_a_copy_without_passages_hook(tmp_path: pathlib.Path) -> None:
     env = pilot_environment(tmp_path, FAKE_NO_PASSAGES="1")
     assert launch(CMD, ["0000000", "A", "dry"], env) == 1
@@ -69,6 +71,7 @@ def test_the_pilot_launcher_refuses_a_copy_without_passages_hook(tmp_path: pathl
     assert not (root / "runs").exists() and not (root / "preflight.txt").exists()
 
 
+@needs_python("long-pilot-a-run.cmd")
 def test_the_pilot_launcher_stops_on_the_preflight_before_any_call(tmp_path: pathlib.Path) -> None:
     env = pilot_environment(tmp_path, FAKE_PREFLIGHT_EXIT="13")
     assert launch(CMD, ["0000000", "A10", "dry"], env) == 13

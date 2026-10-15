@@ -29,10 +29,18 @@ def _calls(n: int, usd: float, stop_at: int | None = None,
     out = []
     for k in range(1, n + 1):
         ran = stop_at is None or k <= stop_at
-        out.append({"request": k, "kind": "bug", "instance_id": f"b{k}",
-                    "status": "ran" if ran else "NOT RUN (cap)", "owner_usd": usd if ran else 0.0,
-                    "peak_context": 60_000, "result_tail": "Fixed.",
-                    "compactions": [{"pre": p} for p in pres] if k == 2 and ran else []})
+        out.append(
+            {
+                "request": k,
+                "kind": "bug",
+                "instance_id": f"b{k}",
+                "status": "ran" if ran else "NOT RUN (cap)",
+                "owner_usd": usd if ran else 0.0,
+                "peak_context": 60_000,
+                "result_tail": "Fixed.",
+                "compactions": [{"pre": p} for p in pres] if k == 2 and ran else [],
+            }
+        )
     return out
 
 
@@ -40,8 +48,16 @@ def _arm(root: pathlib.Path, chain: str, arm: str, calls: list[dict[str, Any]],
          resolved: list[bool], common: int | None = None) -> None:  # fmt: skip
     ev = root / "runs" / f"{chain}-sonnet" / arm
     ev.mkdir(parents=True)
-    row = {"run": f"{chain}-sonnet", "arm": arm, "model": "claude-sonnet-5-5", "bugs": len(calls),
-           "calls": calls, "stopped": "", "requests_planned": len(calls), "token": "t"}
+    row = {
+        "run": f"{chain}-sonnet",
+        "arm": arm,
+        "model": "claude-sonnet-5-5",
+        "bugs": len(calls),
+        "calls": calls,
+        "stopped": "",
+        "requests_planned": len(calls),
+        "token": "t",
+    }
     (ev / "row.json").write_text(json.dumps(row), encoding="utf-8")
     grade = {"resolved": sum(resolved), "bugs_total": len(resolved),
              "bugs": [{"instance_id": f"b{k}", "resolved": r}
