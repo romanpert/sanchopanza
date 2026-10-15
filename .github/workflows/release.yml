@@ -1,7 +1,10 @@
 name: Release
 
-# Publica en PyPI al empujar un tag v*.*.*, con Trusted Publisher (OIDC): sin tokens.
-# Mismo patron que romanpert/mcp-aemps, con hatchling en vez de poetry.
+# Al empujar un tag v*.*.*: comprueba, construye y crea la release de GitHub con la seccion del
+# CHANGELOG de esa version (fechada; "unreleased" no vale). PyPI NO sale del tag: el entorno
+# `pypi` admite tags v* sin revisor obligatorio, asi que publicar es a mano, lanzando este flujo
+# con workflow_dispatch sobre el tag (gh workflow run release.yml --ref v0.3.0), con Trusted
+# Publisher (OIDC): sin tokens. Mismo patron que romanpert/mcp-aemps, con hatchling.
 #
 # Endurecido el 2026-09-25: cada accion va fijada a un commit (el comentario dice que version
 # es), el token del flujo solo lee por defecto y cada trabajo pide lo que necesita y nada
@@ -14,6 +17,7 @@ on:
   push:
     tags:
       - "v*.*.*"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -40,6 +44,19 @@ jobs:
             exit 1
           fi
 
+      - name: The CHANGELOG section of this version, dated, as the release notes
+        run: |
+          python - <<'EOF'
+          import os, pathlib, re
+          NOTES_TAIL = r" \(\d{4}-\d{2}-\d{2}\)\n(.*?)(?=^## |\Z)"
+          version = os.environ["GITHUB_REF_NAME"].removeprefix("v")
+          text = pathlib.Path("CHANGELOG.md").read_text(encoding="utf-8")
+          match = re.search(r"^## " + re.escape(version) + NOTES_TAIL, text, re.M | re.S)
+          if not match:
+              raise SystemExit(f"CHANGELOG.md has no dated section for {version}")
+          pathlib.Path("release-notes.md").write_text(match.group(1).strip() + "\n", "utf-8")
+          EOF
+
       # Nada se publica sin pasar por lo mismo que la CI: nadie sube un paquete roto.
       - run: ruff check src tests
       - run: ruff format --check src tests
@@ -52,10 +69,16 @@ jobs:
         with:
           name: dist
           path: dist/
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: notes
+          path: release-notes.md
 
   publish-pypi:
-    name: Publish to PyPI (Trusted Publisher / OIDC)
+    name: Publish to PyPI (Trusted Publisher / OIDC), by hand only
     needs: build
+    # Only a workflow_dispatch on a v* tag publishes; a tag push never does.
+    if: github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -71,7 +94,8 @@ jobs:
 
   github-release:
     name: GitHub release
-    needs: publish-pypi
+    needs: build
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write # create the release and upload the files
@@ -80,7 +104,11 @@ jobs:
         with:
           name: dist
           path: dist/
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: notes
+          path: .
       - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           files: dist/*
-          generate_release_notes: true
+          body_path: release-notes.md

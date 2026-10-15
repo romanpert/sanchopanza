@@ -20,9 +20,10 @@ This module is a `UserPromptSubmit` hook body. Per prompt:
 The long window (`SANCHOPANZA_MEMORY_WINDOW=long` or `window="long"`, off by default; see
 `memory_window`): step 2 reads every memory whole in one call with Jev's long-context header on
 that call only. On 36 LongMemEval questions it lifted the selection's recall from 0.72 to 0.91
-at about 0.005 USD a prompt against 0.001 (lot L6); a confirmation on 84 unseen questions is
-pending. Past the long window, without a decider that has the mode, or when the call would not
-fit the job's budget or answers nothing, it is step 2 as above, and it says so.
+at about 0.005 USD a prompt against 0.001 (lot L6), confirmed on 84 unseen questions on
+jev-1.13.0 (0.726 to 0.905, lot memgate-long). Past the long window, without a decider that
+has the mode, or when the call would not fit the job's budget or answers nothing, it is step 2
+as above, and it says so.
 
 Optional, off by default because it costs calls: `check_conflicts` runs `Squire.reconcile` on
 at most `max_pairs` pairs of kept memories that share vocabulary. A pair the decider calls a
