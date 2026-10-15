@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +18,8 @@ BENCH = ROOT / "benchmarks" / "memory_carry"
 carry = bench_module(BENCH, "carry")
 analyze = bench_module(BENCH, "analyze")
 FAKE = "fake-token-for-tests-0123456789"
+ONEXC = pytest.mark.skipif(sys.version_info < (3, 12), reason="carry.py cleans up with "
+                           "shutil.rmtree(onexc=), new in Python 3.12")  # fmt: skip
 
 THREE = {
     "files": {"app/__init__.py": "", "app/a.py": "X = 1\n",
@@ -105,6 +108,7 @@ def test_sessions_run_thread_first_between_second_and_only_first_in_the_worktree
     assert carry.steps({"first": "f", "second": "s"}) == [("first", False), ("second", False)]
 
 
+@ONEXC
 def test_the_worktree_is_a_sibling_checkout_and_survives_a_held_index(
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:  # fmt: skip
     repo = carry.build(tmp_path / "pair", THREE)
@@ -493,6 +497,7 @@ def test_3_run_plan_says_why_it_stopped(tmp_path: Path, monkeypatch: pytest.Monk
     assert carry.run_plan(tmp_path, plan, tmp_path / "k", True, 9.0) == "limit"
 
 
+@ONEXC
 def test_4_a_cut_pairs_cost_is_counted_before_it_runs_again(
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:  # fmt: skip
     ran: list[str] = []

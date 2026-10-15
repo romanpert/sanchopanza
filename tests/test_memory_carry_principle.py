@@ -191,6 +191,8 @@ def test_the_checks_tell_keeping_the_preference_from_breaking_it(name: str, tmp_
 
 @pytest.mark.parametrize("name", sorted(VARIANTS))
 def test_another_way_of_keeping_it_passes_too(name: str, tmp_path: Path) -> None:
+    if name == "p_open":  # this variant fetches with requests, not a dependency of ours
+        pytest.importorskip("requests")
     scene = PRINCIPLE[name]
     root = build(tmp_path, scene, VARIANTS[name])
     assert passes(root, scene["task"]) and passes(root, scene["fact"])

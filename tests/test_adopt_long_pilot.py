@@ -205,6 +205,7 @@ def _row(tmp_path: pathlib.Path, arm: str) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+@pytest.mark.skipif(os.name != "nt", reason="the frozen stand-in is a Windows batch file")
 def test_an_a_arm_runs_with_the_passages_hook_alone_and_its_rows_carry_the_journal(
     lr: ModuleType,  # noqa: F811
     tmp_path: pathlib.Path,
@@ -231,6 +232,7 @@ def test_an_a_arm_runs_with_the_passages_hook_alone_and_its_rows_carry_the_journ
     assert row["window"]["configured"] is None  # N's window: the server's
 
 
+@pytest.mark.skipif(os.name != "nt", reason="the frozen stand-in is a Windows batch file")
 def test_whole_rerequests_past_half_stop_the_arm_and_are_declared(
     lr: ModuleType,  # noqa: F811
     tmp_path: pathlib.Path,
@@ -290,6 +292,7 @@ def test_the_pilot_commit_must_be_frozen_and_have_passages_hook_and_s_is_unchang
         ll.pilot_sancho("aad9903")
 
 
+@pytest.mark.skipif(os.name != "nt", reason="the frozen stand-in is a Windows batch file")
 def test_the_passages_check_runs_the_copys_own_help(
     lp: ModuleType, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -10,6 +10,7 @@ compaction, a timeout, a crash, a usage limit, and (in an S arm) a failed MCP se
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 import subprocess
 import sys
@@ -66,6 +67,8 @@ def lr(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path):  # type: ignore
     monkeypatch.setattr(long_run.docker_env, "health", lambda: "")
     monkeypatch.setattr(long_run.docker_env, "remove_labelled", lambda _v: [])
     monkeypatch.setattr(long_run.carry, "ancestors_memory", lambda _p: [])
+    if os.name != "nt":  # the runner reads its own process from WMI through PowerShell
+        monkeypatch.setattr(long_run.long_guard, "process_info", lambda _pid: None)
     monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "fake-oauth-token-for-tests")
     monkeypatch.setenv("TYPESAFE_API_KEY", "fake-typesafe-key")
     yield long_run
@@ -127,6 +130,7 @@ PYD, CONAN = "pydantic__pydantic-long40-1", "conan-io__conan-long40-1"
 CALL_CAP = 4.0
 
 
+@pytest.mark.skipif(os.name != "nt", reason="the runner stops a stalled call with taskkill")
 def test_four_gate_chains_replay_with_every_injection_detected_and_handled(
     lr: ModuleType, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

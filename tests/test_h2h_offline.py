@@ -468,6 +468,8 @@ def test_blind_review_shuffles_and_hides_the_arm(tmp_path, monkeypatch):
     assert json.loads(key.read_text(encoding="utf-8"))["arm"] == "SONNET-SP"
 
 
+@pytest.mark.skipif(not bcp_data.QUERIES.exists(), reason="BrowseComp-Plus queries not "
+                    "fetched on this machine (bcp_data.py --fetch)")  # fmt: skip
 def test_bcp_plan_is_free(capsys):
     assert bcp.main(["--plan", "--limit", "2"]) == 0
     out = capsys.readouterr().out

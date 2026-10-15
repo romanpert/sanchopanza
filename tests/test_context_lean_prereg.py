@@ -10,6 +10,8 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
+from .helpers import registered_digest
+
 RESULTS = Path(__file__).parents[1] / "docs" / "results" / "2026-09-28-context-lean"
 REGISTERED = "be08d6e5e8594017e1b2dbc2c5dafeea4b02451292ef16d145df32e049006a04"
 
@@ -41,7 +43,7 @@ def test_the_generator_still_builds_the_registered_tasks(tmp_path):
     try:
         spec.loader.exec_module(module)
         module.build(tmp_path)
-        assert module.tree_digest(tmp_path / "repos") == (
+        assert registered_digest(module.tree_digest, tmp_path / "repos") == (
             "2f139c415022408667f531ccaddea9468225f8a84fbaaa4d8f7912b2071efb54"
         )
     finally:
