@@ -18,6 +18,8 @@ ROOT = Path(__file__).resolve().parent.parent
 PYPROJECT = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 SDIST = PYPROJECT["tool"]["hatch"]["build"]["targets"]["sdist"]
 WORKFLOWS = ROOT / ".github" / "workflows"
+# What follows "## <version>" in a dated CHANGELOG heading, as release.yml extracts it.
+NOTES_TAIL = r" \(\d{4}-\d{2}-\d{2}\)\n(.*?)(?=^## |\Z)"
 
 
 def test_the_sdist_leaves_out_handoffs_and_raw_transcripts():
@@ -72,6 +74,46 @@ def test_the_release_workflow_grants_the_least_it_can():
     # nothing is built before the checks ran
     for check in ("ruff check", "pytest", "sanchopanza bench"):
         assert text.index(check) < text.index("python -m build")
+
+
+def _job(text: str, name: str) -> str:
+    """The block of one job in a workflow, up to the next job or the end."""
+    match = re.search(rf"^  {name}:\n(.*?)(?=^  \S|\Z)", text, flags=re.MULTILINE | re.DOTALL)
+    assert match, name
+    return match.group(1)
+
+
+def test_a_tag_push_never_publishes_to_pypi():
+    # Pushing a v* tag cuts the GitHub release; PyPI only by hand (workflow_dispatch on the
+    # tag), because the `pypi` environment admits v* tags with no required reviewer.
+    text = (WORKFLOWS / "release.yml").read_text(encoding="utf-8")
+    on = text.split("\npermissions:", 1)[0]
+    assert "workflow_dispatch:" in on and re.search(r"tags:\s*\n\s+- \"v\*\.\*\.\*\"", on)
+    pypi = _job(text, "publish-pypi")
+    assert "github.event_name == 'workflow_dispatch'" in pypi
+    assert "startsWith(github.ref, 'refs/tags/v')" in pypi
+    release = _job(text, "github-release")
+    assert "github.event_name == 'push'" in release and "publish-pypi" not in release
+
+
+def test_the_github_release_carries_the_changelog_section_of_its_tag():
+    text = (WORKFLOWS / "release.yml").read_text(encoding="utf-8")
+    build, release = _job(text, "build"), _job(text, "github-release")
+    assert "release-notes.md" in build and "CHANGELOG.md" in build
+    assert "body_path: release-notes.md" in release
+    assert "generate_release_notes: true" not in release
+
+
+def test_the_changelog_section_for_the_version_is_dated_before_a_tag():
+    # The workflow refuses a tag whose CHANGELOG section still says "unreleased"; this is the
+    # same extraction, run here on a dated section.
+    sample = "# Changelog\n\n## 9.9.9 (2026-10-15)\n\nNotes.\n\n## 9.9.8 (2026-01-01)\n\nOld.\n"
+    pattern = r"^## " + re.escape("9.9.9") + NOTES_TAIL
+    match = re.search(pattern, sample, re.M | re.S)
+    assert match and match.group(1).strip() == "Notes."
+    assert not re.search(pattern, sample.replace("(2026-10-15)", "(unreleased)"), re.M | re.S)
+    text = (WORKFLOWS / "release.yml").read_text(encoding="utf-8")
+    assert f'NOTES_TAIL = r"{NOTES_TAIL}"' in text
 
 
 def test_the_only_console_command_is_sanchopanza():

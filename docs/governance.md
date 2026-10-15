@@ -36,7 +36,8 @@ everyone, including you.
 
 ## The PyPI environment, and the part that will bite
 
-You have configured the `pypi` environment with a required reviewer, administrators allowed
+The plan was the `pypi` environment with a required reviewer (on 2026-10-15 it has none: see
+Releasing below), administrators allowed
 to bypass, and deployment branches limited to `dev` and `main`.
 
 **The release workflow does not run from a branch. It runs from a tag** (`on: push: tags:
@@ -72,12 +73,23 @@ the OIDC exchange is refused.
 
 ## Releasing
 
+Date the version's CHANGELOG section first (`## 0.3.0 (2026-10-15)`), then:
+
 ```
 git tag v0.3.0
 git push origin v0.3.0
 ```
 
-The workflow checks that the tag matches the version in `pyproject.toml`, runs ruff, the test
-suite and a replay of the public benches from the recorded fixture, builds, waits for your
-approval on the `pypi` environment, publishes with OIDC and cuts a GitHub release. Nothing is
-published that has not passed all of that first.
+The tag push checks that the tag matches the version in `pyproject.toml`, runs ruff, the test
+suite and a replay of the public benches from the recorded fixture, builds, and cuts a GitHub
+release with the dated CHANGELOG section as its notes (a section still marked "unreleased"
+stops it). It does **not** publish to PyPI: the `pypi` environment admits `v*` tags and, as
+configured on 2026-10-15, has no required reviewer, so a tag push would otherwise publish with
+no one approving. PyPI is a separate, deliberate step on the same tag:
+
+```
+gh workflow run release.yml --ref v0.3.0
+```
+
+That run repeats every check and build, then publishes with OIDC (and skips the GitHub release,
+which the tag push already cut). Nothing is published that has not passed all of that first.
