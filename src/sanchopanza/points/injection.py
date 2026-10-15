@@ -141,8 +141,11 @@ def question() -> Truth:
     )
 
 
-def questions(*, purpose: str, text: str) -> tuple[Mapping[str, Any], dict[str, Question]]:
-    state = {"purpose": truncate(purpose, 400), "text": truncate(text, TEXT_LIMIT)}
+def questions(
+    *, purpose: str, text: str, limit: int | None = None
+) -> tuple[Mapping[str, Any], dict[str, Question]]:
+    cut = TEXT_LIMIT if limit is None else limit
+    state = {"purpose": truncate(purpose, 400), "text": truncate(text, cut)}
     return state, {"injection": question()}
 
 

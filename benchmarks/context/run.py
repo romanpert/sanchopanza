@@ -12,8 +12,10 @@ The experimental `tournament` arm (`arms.EXPERIMENTAL_ARMS`) is never in the def
 `--live` refuses it until an amendment registers it (`EXPERIMENTAL_LIVE` below). Its cut is
 derived on dev by the same rule as sanchopanza's, reported under `derived_cut_tournament`.
 
-`--live` wraps `providers.jev.JevDecider` (model pinned to `PINNED_MODEL`) in a
-`RecordingDecider` writing to ~/.cache/sanchopanza/context/recordings/, behind one `Squire`
+`--live` wraps `providers.jev.JevDecider` (model pinned to `PINNED_MODEL`, or the one
+`SANCHOPANZA_JEV_MODEL` names for another version's arm: `jev_model()`) in a
+`RecordingDecider` writing to ~/.cache/sanchopanza/context/recordings/ (a 1.14 arm under
+recordings/jev114/, `recorded.fixture_path`), behind one `Squire`
 whose meter stops at `--max-usd`. It refuses when prereg.md no longer hashes to prereg.sha256,
 when `--max-usd` is above the registered 1 USD, or when the high estimate is above `--max-usd`.
 The dataset is built by `build.py` and never leaves ~/.cache.
@@ -81,17 +83,26 @@ def load(dataset: Path, split: str) -> list[dict[str, Any]]:
     return [u for u in units if split == "all" or u["split"] == split]
 
 
+def jev_model() -> str:
+    """The registered model, unless `SANCHOPANZA_JEV_MODEL` names another one."""
+    from sanchopanza import _env
+
+    return _env.get("JEV_MODEL", "").strip() or PINNED_MODEL
+
+
 def decider_for(mode: str, name: str, arm: str) -> Any:
     from sanchopanza.providers import NullDecider, RecordedDecider, RecordingDecider
+    from sanchopanza.providers.recorded import fixture_path
 
     if mode == "dry":
         return NullDecider() if name == "null" else arms_mod.FakeDecider()
-    path = RECORDINGS / f"{arm}.jsonl"
+    model = jev_model()
+    path = fixture_path(RECORDINGS / f"{arm}.jsonl", model)
     if mode == "replay":
-        return RecordedDecider.from_file(path)
+        return RecordedDecider.from_file(path, model=model)
     from sanchopanza.providers.jev import JevDecider
 
-    return RecordingDecider(JevDecider(model=PINNED_MODEL), path)
+    return RecordingDecider(JevDecider(model=model), path)
 
 
 async def run_units(
@@ -218,7 +229,7 @@ def estimate(units: Sequence[Mapping[str, Any]], experimental: Sequence[str] = (
     for t in totals.values():
         t["usd"] = round(metrics.usd(t.get("tokens", 0)), 4)
         t["usd_high"] = round(metrics.usd(t.get("tokens_high", 0)), 4)
-    return {"units": len(units), "model": PINNED_MODEL, "arms": totals}
+    return {"units": len(units), "model": jev_model(), "arms": totals}
 
 
 def labels_base_rate(units: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
@@ -298,7 +309,7 @@ def main() -> None:
     derived_t = derive_cut(dev, "tournament") if "tournament" in arm_names else None
     report = {
         "mode": mode,
-        "decider": args.decider if mode == "dry" else PINNED_MODEL,
+        "decider": args.decider if mode == "dry" else jev_model(),
         "units": len(units),
         "labels": labels_base_rate(units),
         "derived_cut": derived,

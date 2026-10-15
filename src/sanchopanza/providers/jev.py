@@ -7,6 +7,13 @@
 Price (2026-09): 0.042 USD per million input tokens, output free. The price is a
 constructor argument, not a constant, so a change is configuration, not code.
 The model defaults to a pinned version rather than an alias: see DEFAULT_MODEL.
+`SANCHOPANZA_JEV_MODEL` names another one without touching code (`jev-1.14.0`, say).
+Two optional "Danger Zone" headers, by argument or by environment, on 1.13 and 1.14 alike:
+`long_context` (`SANCHOPANZA_JEV_LONG_CONTEXT=1`) raises the limit from 64k tokens per
+request and 32k per question to 262k, "slower and less accurate" by the vendor's own word;
+`images` (`SANCHOPANZA_JEV_IMAGES=1`) lets the state carry PNG or JPEG images
+(`providers.jev_assets`). Without the first, a longer state is a 400 `max_tokens_exceeded`,
+raised here as `DeciderUnavailable` with that reason.
 Retries: 429 and 529 with bounded exponential backoff. No unbounded loops.
 Out of funds: a 402 trips a breaker shared by every process (`sanchopanza.funds`); while it is
 fresh no call is made, and `preflight()` is the one-cent check a launcher runs before spending.
@@ -25,9 +32,10 @@ from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from .. import funds
+from .. import _env, funds
 from ..contract import (
     Answer,
+    Box,
     Choice,
     DeciderOutOfFunds,
     DeciderUnavailable,
@@ -36,11 +44,13 @@ from ..contract import (
     Score,
     State,
     Truth,
+    as_box,
     as_number,
     truth_confidence,
     usable,
 )
 from ..media import attachments_in
+from . import jev_assets, jev_models
 
 BASE_URL = "https://api.typesafe.ai"
 PATH = "/v1/systemone"
@@ -54,14 +64,38 @@ PATH = "/v1/systemone"
 # `model="jev-latest"` deliberately if you want to track the alias.
 DEFAULT_MODEL = "jev-1.13.0"
 DEFAULT_PRICE_PER_MTOK = 0.042
+LONG_CONTEXT_HEADER = "TypeSafe-Danger-Zone-Long-Context"
+IMAGES_HEADER = "TypeSafe-Danger-Zone-Images"
+MAX_TOKENS_EXCEEDED = "max_tokens_exceeded"
+REFUSED = 400
+_ON = frozenset({"1", "true", "yes", "on"})
 
-KIND_TO_WIRE = {"choice": "choice", "score": "score", "truth": "noul"}
+KIND_TO_WIRE = {"choice": "choice", "score": "score", "truth": "noul", "box": "box"}
 WIRE_TO_KIND = {v: k for k, v in KIND_TO_WIRE.items()}
 RETRYABLE = frozenset({429, 529})
 OUT_OF_FUNDS = 402
 REFUSED_AUTH = frozenset({401, 403})
 MAX_RETRIES = 3
 BASE_WAIT_S = 0.25
+
+
+def model_from_env(env: Mapping[str, str] | None = None) -> str:
+    """`SANCHOPANZA_JEV_MODEL` (or the legacy `SANCHO_JEV_MODEL`), else `DEFAULT_MODEL`."""
+    return _env.get("JEV_MODEL", "", env=env).strip() or DEFAULT_MODEL
+
+
+def _flag(name: str, env: Mapping[str, str] | None) -> bool:
+    return _env.get(name, "", env=env).strip().lower() in _ON
+
+
+def long_context_from_env(env: Mapping[str, str] | None = None) -> bool:
+    """`SANCHOPANZA_JEV_LONG_CONTEXT` set to 1, true, yes or on."""
+    return _flag("JEV_LONG_CONTEXT", env)
+
+
+def images_from_env(env: Mapping[str, str] | None = None) -> bool:
+    """`SANCHOPANZA_JEV_IMAGES` set to 1, true, yes or on."""
+    return _flag("JEV_IMAGES", env)
 
 
 def to_wire(question: Question) -> dict[str, Any]:
@@ -83,6 +117,8 @@ def to_wire(question: Question) -> dict[str, Any]:
         if question.criteria:
             body["criteria"] = dict(question.criteria)
         return body
+    if isinstance(question, Box):
+        return {"type": "box", "instructions": question.instructions}
     raise TypeError(f"unknown question type: {type(question)!r}")
 
 
@@ -129,6 +165,13 @@ def from_wire(raw: Mapping[str, Any]) -> Answer:
                 truth=truth,
             )
         )
+    if kind == "box":
+        # No confidence on the wire is no answer: a box always comes back, even for a thing
+        # the image does not show, so its confidence is the least a caller can need.
+        return usable(
+            Answer(kind="box", confidence=_required(raw.get("confidence")),
+                   box=as_box(raw.get("box")))
+        )  # fmt: skip
     confidence = _required(raw.get("confidence") or 0.0)
     if kind == "choice":
         chosen = raw.get("choice")
@@ -166,17 +209,24 @@ class JevDecider:
         api_key: str | None = None,
         *,
         base_url: str = BASE_URL,
-        model: str = DEFAULT_MODEL,
+        model: str | None = None,
         price_per_mtok: float = DEFAULT_PRICE_PER_MTOK,
         timeout_s: float = 10.0,
         client: Any | None = None,
+        long_context: bool | None = None,
+        images: bool | None = None,
     ) -> None:
+        """`model`, `long_context` and `images` left at None come from the environment
+        (`model_from_env`, `long_context_from_env`, `images_from_env`); a value given wins."""
         key = api_key or os.environ.get("TYPESAFE_API_KEY", "")
         if not key:
             raise DeciderUnavailable("TYPESAFE_API_KEY is not set")
         if client is None and importlib.util.find_spec("httpx") is None:  # pragma: no cover
             raise DeciderUnavailable("install sanchopanza[jev] to use the Jev provider")
-        self._model = model
+        self._model = model or model_from_env()
+        self._long_context = long_context_from_env() if long_context is None else long_context
+        self._images = images_from_env() if images is None else images
+        self.accepts_attachments = self._images
         self._price = price_per_mtok
         self._key, self._base_url, self._timeout_s = key, base_url.rstrip("/"), timeout_s
         # Built on the first question, not here: importing httpx and loading the CA bundle took
@@ -201,22 +251,57 @@ class JevDecider:
         if self._made is not None:
             await self._made.aclose()
 
+    @property
+    def model(self) -> str:
+        return self._model
+
+    @property
+    def long_context(self) -> bool:
+        return self._long_context
+
+    @property
+    def images(self) -> bool:
+        return self._images
+
+    def _headers(self) -> dict[str, str]:
+        """The Danger Zone headers this decider was built with, sent on every request."""
+        on = ((LONG_CONTEXT_HEADER, self._long_context), (IMAGES_HEADER, self._images))
+        return {name: "true" for name, wanted in on if wanted}
+
     accepts_attachments = False
 
-    async def decide(self, point: str, state: State, questions: Mapping[str, Question]) -> Decision:
+    def _body(self, state: State, questions: Mapping[str, Question]) -> dict[str, Any]:
+        """The request: model, state, questions, and `assets` when the state holds images."""
+        if _has_box(questions) and jev_models.supports_box(self._model) is False:
+            raise DeciderUnavailable(
+                f"Box needs jev-1.14.0 or later and this decider asks {self._model}, which "
+                "answers it with HTTP 400: set model= or SANCHOPANZA_JEV_MODEL (not sent)"
+            )
         found = attachments_in(state)
-        if found:
+        if found and not self._images:
             # Refuse loudly. The alternative, sending the state with the attachment stripped
             # out, returns a confident answer to a question about something the model never
             # saw, which is worse than no answer: the squire's fail-open turns this into the
-            # harness default and journals the reason. Route the point to a provider that
-            # reads images (RoutedDecider) or put one in front (FallbackDecider).
+            # harness default and journals the reason. Turn images on, route the point to a
+            # provider that reads them (RoutedDecider) or put one in front (FallbackDecider).
             kinds = ", ".join(sorted({a.media_type for a in found}))
             raise DeciderUnavailable(
-                f"this model accepts text only and the state carries {len(found)} "
-                f"attachment(s) ({kinds}); its own documentation says images, audio and "
-                "video are not supported"
+                f"this decider was built for text only and the state carries {len(found)} "
+                f"attachment(s) ({kinds}); Jev reads PNG and JPEG behind its Danger Zone "
+                "header: images=True or SANCHOPANZA_JEV_IMAGES=1"
             )
+        assets: dict[str, Any] = {}
+        if found:
+            state, assets = jev_assets.to_assets(state)
+        body: dict[str, Any] = {
+            "model": self._model,
+            "state": state,
+            "questions": {key: to_wire(q) for key, q in questions.items()},
+        }
+        return {**body, "assets": assets} if assets else body
+
+    async def decide(self, point: str, state: State, questions: Mapping[str, Question]) -> Decision:
+        body = self._body(state, questions)
         trip = funds.tripped(self._scope)
         if trip is not None:
             raise DeciderOutOfFunds(
@@ -225,11 +310,6 @@ class JevDecider:
                 "funds; breaker open, not called)",
                 int(trip.get("status") or OUT_OF_FUNDS),
             )
-        body = {
-            "model": self._model,
-            "state": state,
-            "questions": {key: to_wire(q) for key, q in questions.items()},
-        }
         start = time.monotonic()
         data = await self._send(body)
         latency_ms = int((time.monotonic() - start) * 1000)
@@ -252,8 +332,12 @@ class JevDecider:
             client = self._client()
             import httpx
 
+            headers = self._headers()
             try:
-                response = await client.post(PATH, json=body)
+                if headers:
+                    response = await client.post(PATH, json=body, headers=headers)
+                else:
+                    response = await client.post(PATH, json=body)
                 self.last_status = response.status_code
             except httpx.HTTPError as error:
                 raise DeciderUnavailable(f"jev unreachable: {error.__class__.__name__}") from error
@@ -268,11 +352,46 @@ class JevDecider:
                 detail = response.text[:300] if hasattr(response, "text") else ""
                 funds.trip(self._scope, self.name, OUT_OF_FUNDS, detail)
                 raise DeciderOutOfFunds(f"{self.name} did not answer: HTTP 402 (out of funds)")
+            if response.status_code == REFUSED:
+                raise DeciderUnavailable(self._refusal(response, body))
             last = f"HTTP {response.status_code}"
             if response.status_code not in RETRYABLE or attempt == MAX_RETRIES:
                 break
             await asyncio.sleep(BASE_WAIT_S * (2**attempt))
         raise DeciderUnavailable(f"jev did not answer: {last}")
+
+    def _refusal(self, response: Any, body: Mapping[str, Any]) -> str:
+        """Why a 400 came back, from the body's `detail`, in words a journal can act on."""
+        detail = _detail(response)
+        kind = str(detail.get("error_type") or "")
+        if kind == MAX_TOKENS_EXCEEDED:
+            if self._long_context:
+                return (
+                    "jev did not answer: HTTP 400 max_tokens_exceeded (the state is over "
+                    "262k tokens even with long context on; cut it or split the call)"
+                )
+            return ("jev did not answer: HTTP 400 max_tokens_exceeded (over 64k tokens per "
+                    "request or 32k per question; long_context=True or "
+                    "SANCHOPANZA_JEV_LONG_CONTEXT=1 raises both to 262k)")  # fmt: skip
+        said = "; ".join(str(v)[:200] for v in (kind, detail.get("message")) if v)
+        asks_box = any(q.get("type") == "box" for q in (body.get("questions") or {}).values())
+        if asks_box:  # 1.13 answers a Box with a bare "Invalid request."
+            said = "; ".join(x for x in (said, f"Box needs jev-1.14.0 or later; "
+                                               f"{self._model} may not be") if x)  # fmt: skip
+        return "jev did not answer: HTTP 400" + (f" ({said})" if said else "")
+
+
+def _has_box(questions: Mapping[str, Question]) -> bool:
+    return any(isinstance(q, Box) for q in questions.values())
+
+
+def _detail(response: Any) -> Mapping[str, Any]:
+    """A TypeSafe error body is `{"detail": {"error_type": ..., "message": ...}}`."""
+    try:
+        detail = response.json().get("detail")
+    except (ValueError, AttributeError):
+        return {}
+    return detail if isinstance(detail, Mapping) else {}
 
 
 @dataclass(frozen=True)
@@ -317,11 +436,13 @@ async def apreflight(
     *,
     timeout_s: float = 15.0,
     base_url: str = BASE_URL,
-    model: str = DEFAULT_MODEL,
+    model: str | None = None,
     client: Any | None = None,
 ) -> PreflightResult:
     """One real decision (one Truth, about 300 input tokens, about 13 micro-dollars), past the
-    breaker. A 200 with a usable answer clears the breaker; a 402 trips it. Never raises."""
+    breaker. A 200 with a usable answer clears the breaker; a 402 trips it. Never raises.
+    The model is `model`, else the one `SANCHOPANZA_JEV_MODEL` names, else `DEFAULT_MODEL`."""
+    model = model or model_from_env()
     try:
         decider = JevDecider(
             api_key, base_url=base_url, model=model, timeout_s=timeout_s, client=client
@@ -379,7 +500,10 @@ def clm(
     `SANCHOPANZA_CLM_URL` (default http://localhost:8000), `SANCHOPANZA_CLM_MODEL` and
     `CLM_API_KEY` configure it. Tested against a mock of the TypeSafe wire format only: CLM needs
     a Linux machine with an NVIDIA GPU, and no measurement here has used a real CLM server.
+    TypeSafe's Danger Zone headers are not sent unless asked for by argument: the
+    `SANCHOPANZA_JEV_*` variables are Jev's, not CLM's.
     """
+    kwargs = {"long_context": False, "images": False, **kwargs}
     decider = JevDecider(
         api_key or os.environ.get("CLM_API_KEY") or "local",
         base_url=base_url or os.environ.get("SANCHOPANZA_CLM_URL") or CLM_URL,

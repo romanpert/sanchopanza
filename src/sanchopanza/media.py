@@ -1,19 +1,30 @@
 """Attachments: how a non-text thing gets into a decision's state.
 
-**What exists, as of 2026-09-24.** No vendor sells a calibrated, non-generative decision
-model that takes an image. TypeSafe's own documentation is explicit about the model this
-package was built against: *"Jev accepts text only. State must be a string, JSON object, or
-array of text values. Images, audio, and video are not supported (yet)."* Everything else on
-offer is a ranking score that is not a probability, an uncalibrated vendor confidence, or a
-generative model coaxed into a schema, whose self-reported confidence is not usable as a
-decision score (Qwen3-VL-4B baseline ECE 0.42 on visual reasoning).
+**What exists, as of 2026-10-15.** Jev reads images. With the 1.14 release (2026-10-14)
+TypeSafe documents PNG and JPEG images behind an opt-in header,
+`TypeSafe-Danger-Zone-Images: true`, and the header works on `jev-1.13.0` too (measured: the
+same answers on a 640x480 form from both versions). Each side must be 256 to 1568 px, 78,400
+to 2,458,624 px in all, at most 16 MiB a file and 32 MiB a request; an image outside the bounds
+is refused, not resized. The image travels once per request in a top-level `assets` map and
+its ref is cited from the state, the instructions or the criteria; every citation is billed
+again as input tokens (a 640x480 capture was about 850 tokens). `JevDecider(images=True)`
+(`SANCHOPANZA_JEV_IMAGES=1`) turns an `Attachment` into that wire, resizing with Pillow
+(`sanchopanza[images]`) when it has to (`providers.jev_assets`). 1.14 adds a Box primitive,
+where in an image something is (`contract.Box`). Audio and video are still not supported.
 
-**Why this module exists anyway.** The shape is proven. *Visual Jev* (arXiv 2609.25845,
-2026-09-22, independent of TypeSafe) scores Choice, Score and Noul questions over an image
-from raw logits with no autoregressive generation, at 5.7 ms amortized per question when 32
-questions share one image. The questions did not have to change. So the only thing standing
-between this package and a multimodal decider is **the type of `state`**, and that is what
-this module widens. A local vision model behind `LocalDecider` works today.
+Before that release (2026-09-24) the documentation said *"Jev accepts text only"*, and every
+other offer was a ranking score that is not a probability, an uncalibrated vendor confidence,
+or a generative model coaxed into a schema, whose self-reported confidence is not usable as a
+decision score (Qwen3-VL-4B baseline ECE 0.42 on visual reasoning). Whether Jev's answers
+over an image are as well calibrated as over text is not measured here yet.
+
+**Why this module existed before any vendor did.** The shape was proven. *Visual Jev*
+(arXiv 2609.25845, 2026-09-22, independent of TypeSafe) scores Choice, Score and Noul
+questions over an image from raw logits with no autoregressive generation, at 5.7 ms amortized
+per question when 32 questions share one image. The questions did not have to change. So the
+only thing standing between this package and a multimodal decider was **the type of
+`state`**, and that is what this module widens. A local vision model behind `LocalDecider`
+works too.
 
 **The economics are the design.** Against a median of 71 millionths of a dollar for a text
 decision request, one question about a 1080p screenshot on a small hosted VLM is about 25x
@@ -35,7 +46,13 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
+
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+JPEG_MAGIC = b"\xff\xd8"
+# JPEG start-of-frame markers that carry the size: every SOFn except DHT, JPG and DAC.
+_SOF = frozenset(range(0xC0, 0xD0)) - {0xC4, 0xC8, 0xCC}
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,6 +107,46 @@ def image(
 ) -> Attachment:
     """`Attachment` for the common case, so a caller never has to spell the media type."""
     return Attachment(media_type=media_type, data=data, path=path, url=url, ref=ref, hints=hints)
+
+
+def attachment_bytes(attachment: Attachment) -> bytes:
+    """The bytes of an inline or local attachment. A `url` is not fetched here (what to fetch
+    and from where is the caller's decision, not a decider's), and a `ref` names an upload
+    held by some other provider: both raise `ValueError`."""
+    if attachment.data is not None:
+        return attachment.data
+    if attachment.path:
+        return Path(attachment.path).read_bytes()
+    if attachment.url:
+        raise ValueError(f"an attachment by url is not fetched here: {attachment.url[:200]}")
+    raise ValueError(f"an attachment by ref names an upload this provider does not hold: "
+                     f"{attachment.ref}")  # fmt: skip
+
+
+def image_size(data: bytes) -> tuple[str, int, int] | None:
+    """("png" | "jpeg", width, height) from the header alone, or None for anything else.
+
+    No decoder needed: a PNG keeps its size in the IHDR chunk, a JPEG in its start-of-frame
+    segment. Which format the bytes are comes from the bytes, never from a declared type.
+    """
+    if data.startswith(PNG_MAGIC) and len(data) >= 24 and data[12:16] == b"IHDR":
+        return "png", int.from_bytes(data[16:20], "big"), int.from_bytes(data[20:24], "big")
+    if not data.startswith(JPEG_MAGIC):
+        return None
+    at = 2
+    while at + 9 < len(data):
+        if data[at] != 0xFF:
+            return None
+        marker = data[at + 1]
+        if marker == 0xFF:  # fill byte
+            at += 1
+            continue
+        if marker in _SOF:
+            height = int.from_bytes(data[at + 5 : at + 7], "big")
+            width = int.from_bytes(data[at + 7 : at + 9], "big")
+            return "jpeg", width, height
+        at += 2 + int.from_bytes(data[at + 2 : at + 4], "big")
+    return None
 
 
 def attachments_in(state: Any) -> tuple[Attachment, ...]:

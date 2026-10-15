@@ -61,11 +61,18 @@ def sentence_questions(
 
 
 def context_questions(
-    *, purpose: str, pages: Sequence[tuple[str, str]]
+    *,
+    purpose: str,
+    pages: Sequence[tuple[str, str]],
+    page_limit: int | None = None,
+    page_max: int | None = None,
 ) -> tuple[Mapping[str, Any], dict[str, Question]]:
-    pages = list(pages)[:PAGE_MAX]
+    """One Truth per page, every page in view. `page_limit` and `page_max` default to
+    `PAGE_LIMIT` and `PAGE_MAX`, the measured cuts (`limits.Limits`)."""
+    pages = list(pages)[: PAGE_MAX if page_max is None else page_max]
+    limit = PAGE_LIMIT if page_limit is None else page_limit
     body = "\n".join(
-        f"{page_id(i)}| {truncate(t, 120)}: {truncate(x, PAGE_LIMIT)}"
+        f"{page_id(i)}| {truncate(t, 120)}: {truncate(x, limit)}"
         for i, (t, x) in enumerate(pages)
     )
     state = {"purpose": truncate(purpose, 400), "pages": body}

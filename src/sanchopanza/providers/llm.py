@@ -150,6 +150,8 @@ class LLMDecider:
         self._price_out = price_out_per_mtok
 
     async def decide(self, point: str, state: State, questions: Mapping[str, Question]) -> Decision:
+        if any(question.kind == "box" for question in questions.values()):
+            raise DeciderUnavailable("the llm provider does not answer Box questions")
         user = "state:\n" + json.dumps(state, ensure_ascii=False, default=str)
         start = time.monotonic()
         try:

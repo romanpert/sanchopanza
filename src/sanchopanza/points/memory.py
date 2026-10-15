@@ -452,7 +452,7 @@ def record_id(index: int) -> str:
 
 
 def related_questions(
-    *, request: str, records: Sequence[str]
+    *, request: str, records: Sequence[str], record_limit: int | None = None
 ) -> tuple[Mapping[str, Any], dict[str, Question]]:
     """One call, one Truth per earlier record, all records in view.
 
@@ -462,8 +462,9 @@ def related_questions(
     record of a related chain (p 0.09-0.32, development, 2026-09-30).
     """
     ids = [record_id(i) for i in range(len(records))]
+    limit = RECORD_LIMIT if record_limit is None else record_limit
     state = {"request": truncate(request, REQUEST_LIMIT),
-             "records": "\n\n".join(f"{i}| {truncate(r, RECORD_LIMIT)}"
+             "records": "\n\n".join(f"{i}| {truncate(r, limit)}"
                                      for i, r in zip(ids, records, strict=True))}  # fmt: skip
     qs: dict[str, Question] = {
         i: Truth(f"Is the new `request` about the same code as earlier record {i} in "

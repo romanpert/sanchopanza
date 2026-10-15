@@ -40,7 +40,7 @@ SOURCE_KINDS: dict[str, dict[str, Any]] = {
 
 
 def questions(
-    *, purpose: str, title: str = "", url: str = "", text: str
+    *, purpose: str, title: str = "", url: str = "", text: str, text_limit: int | None = None
 ) -> tuple[Mapping[str, Any], dict[str, Question]]:
     state = {
         "purpose": truncate(purpose, 400),
@@ -48,7 +48,7 @@ def questions(
         "url": truncate(url, 300),
         # Head plus the window that matches the purpose, not just the head: see `text.excerpt`.
         # For anything at or under the limit this is the text unchanged.
-        "text": excerpt(text, purpose, TEXT_LIMIT),
+        "text": excerpt(text, purpose, TEXT_LIMIT if text_limit is None else text_limit),
     }
     qs: dict[str, Question] = {
         "relevant": Truth("Does `text` address what `purpose` is looking for?"),
@@ -156,13 +156,13 @@ DIGEST_LIMIT = 1200
 
 
 def redundancy_questions(
-    *, purpose: str, text: str, known: str
+    *, purpose: str, text: str, known: str, text_limit: int | None = None
 ) -> tuple[Mapping[str, Any], dict[str, Question]]:
     """`known` is a digest of what the agent already holds: titles, facts, or both."""
     state = {
         "purpose": truncate(purpose, 400),
         "known": truncate(known, DIGEST_LIMIT),
-        "text": excerpt(text, purpose, TEXT_LIMIT),
+        "text": excerpt(text, purpose, TEXT_LIMIT if text_limit is None else text_limit),
     }
     qs: dict[str, Question] = {
         "adds_nothing": Truth(
@@ -263,12 +263,12 @@ CONTRIBUTES = Truth(
 
 
 def contribution_questions(
-    *, purpose: str, title: str = "", text: str
+    *, purpose: str, title: str = "", text: str, text_limit: int | None = None
 ) -> tuple[Mapping[str, Any], dict[str, Question]]:
     state = {
         "purpose": truncate(purpose, 400),
         "title": truncate(title, 200),
-        "text": excerpt(text, purpose, TEXT_LIMIT),
+        "text": excerpt(text, purpose, TEXT_LIMIT if text_limit is None else text_limit),
     }
     return state, {"contributes": CONTRIBUTES}
 

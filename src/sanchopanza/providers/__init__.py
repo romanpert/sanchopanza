@@ -2,6 +2,7 @@
 
     create("jev", api_key=...)            TypeSafe Jev over HTTP
     create("recorded", path=...)          replays a fixture; tests and dry runs, free
+                                          (model="jev-1.14.0": that version's lines only)
     create("null")                        answers nothing; every policy uses its default
     create("llm", complete=...)           any LLM forced into a JSON schema
     create("local", handlers=...)         your own classifiers, embeddings, vision models
@@ -9,6 +10,7 @@
     RoutedDecider({"routing": a}, b)      one provider per decision point
     CascadeDecider(a, b, tau=0.4)         b only for the questions a was unsure of
     CachedDecider(a, ttl_seconds=3600)    a repeat within the TTL: same answer, not paid again
+    CappedDecider(a, ledger=..., batch=..., max_usd=...)   refuses before a call past the cap
 
 Third-party packages register more under the `sanchopanza.providers` entry-point group.
 """
@@ -21,6 +23,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from ..contract import Decider
     from .cached import CachedDecider
+    from .capped import CappedDecider
     from .chain import CascadeDecider, FallbackDecider, RoutedDecider
     from .fixed import FixedDecider
     from .local import LocalDecider
@@ -29,6 +32,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "CachedDecider",
+    "CappedDecider",
     "CascadeDecider",
     "FallbackDecider",
     "FixedDecider",
@@ -46,6 +50,7 @@ __all__ = [
 # `importlib.metadata` alone was a fifth of the hook's start-up.
 _LAZY = {
     "CachedDecider": "cached",
+    "CappedDecider": "capped",
     **dict.fromkeys(("CascadeDecider", "FallbackDecider", "RoutedDecider"), "chain"),
     "FixedDecider": "fixed",
     "LocalDecider": "local",
@@ -100,5 +105,5 @@ def create(name: str, **kwargs: Any) -> Decider:
         raise KeyError(f"unknown provider {name!r}; known: {sorted(targets)}")
     cls = _load(targets[name])
     if name == "recorded" and "path" in kwargs:
-        return cls.from_file(kwargs["path"])
+        return cls.from_file(kwargs["path"], model=kwargs.get("model"))
     return cls(**kwargs)

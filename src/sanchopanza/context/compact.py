@@ -130,7 +130,13 @@ async def _ask_ours(
 
     async def judge(ids: Sequence[int]) -> list[float | None]:
         state, qs = questions.prune_questions(
-            task, messages, found, candidates=[ask[i] for i in ids], hidden=hidden
+            task,
+            messages,
+            found,
+            candidates=[ask[i] for i in ids],
+            hidden=hidden,
+            history_limit=squire.limits.history_chars,
+            result_limit=squire.limits.result_chars,
         )
         decision = await squire.decide("context", state, qs)
         squire.record(decision, candidates=len(ids))

@@ -103,12 +103,14 @@ def _input(arguments: Mapping[str, Any], limit: int) -> str:
     return truncate(json.dumps(arguments, ensure_ascii=False, default=str), limit)
 
 
-def _result_line(call: Call, label: str | None, hidden: Mapping[str, str]) -> str:
+def _result_line(
+    call: Call, label: str | None, hidden: Mapping[str, str], limit: int = RESULT_LIMIT
+) -> str:
     status = "error" if call.is_error else "ok"
     if call.id in hidden:
         return f"  RESULT ({status}, {call.chars} chars): [removed: {hidden[call.id]}]"
     if label is not None:
-        shown = head_tail(call.result, RESULT_LIMIT)
+        shown = head_tail(call.result, limit)
         return f"  RESULT {label} ({status}, {call.chars} chars): {shown}"
     return f"  RESULT ({status}, {call.chars} chars): {head_tail(call.result, OTHER_RESULT_LIMIT)}"
 
@@ -118,6 +120,7 @@ def _render(
     calls: Sequence[Call],
     labels: Mapping[str, str],
     hidden: Mapping[str, str],
+    result_limit: int = RESULT_LIMIT,
 ) -> list[str]:
     by_use = {c.id: c for c in calls}
     lines: list[str] = []
@@ -135,19 +138,19 @@ def _render(
             label = labels.get(call.id)
             tag = f"CALL {label}" if label else "CALL"
             lines.append(f"{tag} {call.tool} {_input(call.input, INPUT_LIMIT)}")
-            lines.append(_result_line(call, label, hidden))
+            lines.append(_result_line(call, label, hidden, result_limit))
     return lines
 
 
-def _fit(lines: list[str], labels: Mapping[str, str]) -> str:
-    """Under `HISTORY_LIMIT`: shorten unlabelled lines oldest first, then cut the middle."""
+def _fit(lines: list[str], labels: Mapping[str, str], limit: int = HISTORY_LIMIT) -> str:
+    """Under `limit`: shorten unlabelled lines oldest first, then cut the middle."""
     body = "\n".join(lines)
-    if len(body) <= HISTORY_LIMIT:
+    if len(body) <= limit:
         return body
     marks = tuple(f" {label} " for label in labels.values())
     short = [line if any(m in line for m in marks) else truncate(line, 160) for line in lines[:-12]]
     body = "\n".join([*short, *lines[-12:]])
-    return head_tail(body, HISTORY_LIMIT)
+    return head_tail(body, limit)
 
 
 def prune_questions(
@@ -157,21 +160,25 @@ def prune_questions(
     *,
     candidates: Sequence[str] = (),
     hidden: Mapping[str, str] | None = None,
+    history_limit: int | None = None,
+    result_limit: int | None = None,
 ) -> tuple[Mapping[str, Any], dict[str, Question]]:
     """State and one Truth per candidate, keyed `C01`, `C02`, ... in the order given.
 
     `history` is the message list and `calls` its tool calls (`transcript.calls`). The
     candidates are call ids; at most `CALL_MAX` are asked, the rest are the caller's to
     split. `hidden` maps ids the rules already stubbed to their reason: their output is not
-    shown, so the decider does not count it as still in the history.
+    shown, so the decider does not count it as still in the history. `history_limit` and
+    `result_limit` default to `HISTORY_LIMIT` and `RESULT_LIMIT` (`limits.Limits`).
     """
     chosen = list(candidates)[:CALL_MAX]
     labels = {cid: call_id(i) for i, cid in enumerate(chosen)}
-    lines = _render(history, calls, labels, hidden or {})
+    results = RESULT_LIMIT if result_limit is None else result_limit
+    lines = _render(history, calls, labels, hidden or {}, results)
     state = {
         "context": CONTEXT,
         "task": truncate(task, TASK_LIMIT),
-        "history": _fit(lines, labels),
+        "history": _fit(lines, labels, HISTORY_LIMIT if history_limit is None else history_limit),
     }
     questions: dict[str, Question] = {call_id(i): _needed(call_id(i)) for i in range(len(chosen))}
     return redact_secrets(state), questions

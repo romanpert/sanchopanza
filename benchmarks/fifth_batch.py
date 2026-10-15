@@ -45,19 +45,27 @@ sys.path.insert(0, str(ROOT / "benchmarks"))
 from agreement import kappa  # noqa: E402
 from thresholds import wilson_lower  # noqa: E402
 
-from sanchopanza import Thresholds  # noqa: E402
+from sanchopanza import Thresholds, _env  # noqa: E402
 from sanchopanza.eval.bench import load_cases  # noqa: E402
 from sanchopanza.points import entities, graph  # noqa: E402
-from sanchopanza.providers.recorded import RecordedDecider, RecordingDecider, key_of  # noqa: E402
+from sanchopanza.providers.recorded import (  # noqa: E402
+    RecordedDecider,
+    RecordingDecider,
+    fixture_path,
+    key_of,
+)
 from sanchopanza.text import mention_present  # noqa: E402
 
 OUT = ROOT / "docs" / "results" / "2026-09-27-edge-facts" / "fifth-batch"
-RECORDING = ROOT / "fixtures" / "fifth-batch" / "recording.jsonl"
+# The registered model, unless SANCHOPANZA_JEV_MODEL names another; another version's
+# recording and analysis go to their own directory (`recorded.fixture_path`).
+MODEL = _env.get("JEV_MODEL", "").strip() or "jev-1.13.0"
+RECORDING = fixture_path(ROOT / "fixtures" / "fifth-batch" / "recording.jsonl", MODEL)
+ANALYSIS = fixture_path(OUT / "analysis.json", MODEL)
 EDGE_BENCH = ROOT / "benches" / "graph-d.jsonl"
 FACTS_BENCH = ROOT / "benches" / "graph-e.jsonl"
 FOURTH = ROOT / "fixtures" / "fourth-batch.jsonl"
 FOURTH_EDGE_BENCHES = (ROOT / "benches" / "graph-build.jsonl", ROOT / "benches" / "graph-c.jsonl")
-MODEL = "jev-1.13.0"
 CAP_USD = 0.05
 COSTLY = {"agree", "conflict"}
 UNRELATED_AT = 0.5
@@ -139,7 +147,7 @@ async def record(env_file: pathlib.Path | None) -> int:
     calls = 0
     try:
         for arm, point, state, qs in queries():
-            if key_of(point, state, qs) in done:
+            if key_of(point, state, qs, MODEL) in done:
                 continue
             if spent >= CAP_USD:
                 sys.stderr.write(f"cap reached at {spent:.6f} USD before {arm}; stopping\n")
@@ -147,7 +155,7 @@ async def record(env_file: pathlib.Path | None) -> int:
             decision = await recorder.decide(point, state, qs)
             calls += 1
             spent += decision.cost_usd
-            done.add(key_of(point, state, qs))
+            done.add(key_of(point, state, qs, MODEL))
             if decision.model != MODEL:
                 sys.stderr.write(f"model moved: {decision.model} != {MODEL}; stopping\n")
                 return 3
@@ -332,7 +340,7 @@ def verdicts(facts: dict[str, Any], edge: dict[str, Any], cut: dict[str, Any]) -
 
 
 async def run() -> dict[str, Any]:
-    decider = RecordedDecider.from_file(RECORDING)
+    decider = RecordedDecider.from_file(RECORDING, model=MODEL)
     facts = {
         "shipped": await facts_arm(decider, examples=False),
         "examples": await facts_arm(decider, examples=True),
@@ -377,15 +385,15 @@ def main() -> int:
         return asyncio.run(record(args.env_file))
     agreement_view = annotators()
     if not RECORDING.exists():
-        OUT.mkdir(parents=True, exist_ok=True)
+        ANALYSIS.parent.mkdir(parents=True, exist_ok=True)
         blocked = {"annotators": agreement_view, "recording": None, "licensed": None}
-        (OUT / "analysis.json").write_text(json.dumps(blocked, indent=1), encoding="utf-8")
+        ANALYSIS.write_text(json.dumps(blocked, indent=1), encoding="utf-8")
         sys.stdout.write(json.dumps(blocked, indent=1) + "\n")
         sys.stdout.write("no recording: nothing to score, and so nothing is licensed\n")
         return 1
     result = {**asyncio.run(run()), "annotators": agreement_view}
-    OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "analysis.json").write_text(json.dumps(result, indent=1), encoding="utf-8")
+    ANALYSIS.parent.mkdir(parents=True, exist_ok=True)
+    ANALYSIS.write_text(json.dumps(result, indent=1), encoding="utf-8")
     view = {
         "facts": {
             k: {kk: vv for kk, vv in v.items() if kk != "rows"} for k, v in result["facts"].items()
