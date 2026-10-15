@@ -57,7 +57,7 @@ axis ([final scoreboard](docs/results/2026-10-13-final/)):
   by scene 4 wins, 0 losses), at 1.12x the cost (median). The gain is in the 4 of 8 scenes where the fact is not in the code. Memory
   has been on by default since 2026-10-14 (`--no-memory` leaves it out;
   [memory cell](docs/results/2026-10-13-memory-cell/)). The other cells were measured without it.
-- Early compaction on long code (near 67k against N-early's 160k, Sonnet 5.5, 5 chains): cost 0.900 [0.741, 1.093] with quality non-inferior; no saving shown, so `install --context-budget` stays at 160,000 ([long-compact](docs/results/2026-10-13-long-compact/)).
+- Early compaction on long code (near 67k against N-early's 160k, Sonnet 5.5, 5 chains): cost 0.900 [0.741, 1.093] with quality non-inferior (under the post-data amendment: conan-2 repeated, still no gana: 0.875 [0.754, 1.015] substituted, 0.887 [0.750, 1.050] averaged); no saving shown, so `install --context-budget` stays at 160,000 ([long-compact](docs/results/2026-10-13-long-compact/)).
 
 What does not pay is in the same README, with the same weight: [where it does not](#where-it-pays-and-where-it-does-not).
 

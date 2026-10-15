@@ -101,10 +101,10 @@ Whatever the cell gives is a configuration result and is reported as one.
 
 | Axis | Model | S−N (success) | 95 % CI | p | Cost S/N | Wall S/N | Verdict |
 |---|---|---|---|---|---|---|---|
-| Early compaction (60-70k) against Ne, 5 long60 chains (conan ×2, pydantic, moto ×2), k = 1 | Sonnet 5.5 | −1.4 pts (249/278 vs 253/278 bugs both were asked) | [−3.8, +1.1] (chains resampled); one-sided bound −3.5, margin −10: non-inferior | none (the unit is the run) | 0.900 [0.741, 1.093] | 1.09 [0.85, 1.41] | **no gana** (no saving shown) |
+| Early compaction (60-70k) against Ne, 5 long60 chains (conan ×2, pydantic, moto ×2), k = 1 | Sonnet 5.5 | −1.4 pts (249/278 vs 253/278 bugs both were asked) | [−3.8, +1.1] (chains resampled); one-sided bound −3.5, margin −10: non-inferior | none (the unit is the run) | 0.900 [0.741, 1.093] | 1.09 [0.85, 1.41] | **no gana** (no saving shown) (under the post-data amendment: conan-2 repeated, still no gana: R1 0.875 [0.754, 1.015], R2 0.887 [0.750, 1.050]) |
 | Early compaction against Ne | Opus 5.5 | — | — | — | — | — | **no corrido** |
 
-Source: [2026-10-13-long-compact](../2026-10-13-long-compact/README.md) (sealed prereg fb42fa4; 173.11 USD). With the call of conan-2 cut by a PC reboot metered at what it cost (0.35) instead of its 4.50 cap, the ratio would be 0.858 [0.748, 0.984]; the sealed rule does not use that, and the verdict stands. Even a win at 67k would not be an install default: the owner's real sessions start near 68k.
+Source: [2026-10-13-long-compact](../2026-10-13-long-compact/README.md) (sealed prereg fb42fa4; 173.11 USD). With the call of conan-2 cut by a PC reboot metered at what it cost (0.35) instead of its 4.50 cap, the ratio would be 0.858 [0.748, 0.984]; the sealed rule does not use that, and the verdict stands. The conan-2 repeat (2026-10-15, post-data amendment, 33.69 USD; 206.80 in all) gave 0.952 on that chain: no gana either. Even a win at 67k would not be an install default: the owner's real sessions start near 68k.
 
 ## Memory: a fact said in an earlier session
 
