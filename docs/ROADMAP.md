@@ -43,7 +43,7 @@ recordings). One draw per version.
 | [L6, long context](results/2026-10-15-jev114-l6/README.md) | **No substitute for a Claude call** at the registered cut: on LongBench v2 Jev is sure on 7 of 50 tasks, the ones Sonnet also gets right, saving 1.5 % of its cost. The long window lifts the memory gate's recall 0.723 → 0.908 on 36 LongMemEval questions, **on 1.13 too**: a gain of the window, not of the model. One-call QASPER triage still keeps half the paper |
 | [Recalibration](results/2026-10-15-jev114-recal/README.md) | **A threshold profile per model** (`policy.MODEL_PROFILES`, used only when the model is `jev-1.14.0`), derived free on calibration splits: 1.14 with it reaches **parity** with 1.13 at its own cuts, 556 against 556 of 646 (0.0 [−1.5, +1.5]). check_done at 0.30 closes its gap; `redundant_page` is not fixed, and memory_write makes twice the costly stores |
 | [Confirmation](results/2026-10-15-jev114-recalconf/README.md) | **Not admissible**: on a second draw of the same 1,298 cases the profile falls to 551 against 555 of 646 (−0.6 points [−2.3, +0.9], inconclusive) and `redundant_page` is worse (44 against 48 of 50); on 910 candor counterfactuals no cut had seen, 1.14 at 0.90 is worse than 1.13 at 0.83 (770 against 800, −3.3 points [−5.4, −1.2]). check_done at 0.30 holds. No new labelled cases exist for the L1 points, so they are confirmed only against draw-to-draw noise |
-| [LongBench cut of 0.6](results/2026-10-15-jev114-b3conf/README.md) | **Not run**: a free power analysis shows no affordable confirmation can decide at a −2 point margin (about 3,200 paired tasks; LongBench v2 has 503). Deciding at −10 points would take 162 tasks with Sonnet on the covered ones, about 12 USD of Claude: an owner's call |
+| [LongBench cut of 0.6](results/2026-10-15-jev114-b3conf/README.md) | **Not run**: a free power analysis shows no affordable confirmation can decide at a −2 point margin (about 3,200 paired tasks; LongBench v2 has 503). Deciding at −10 points takes 162 tasks with Sonnet on the covered ones, about 12 USD of Claude. Approved by the owner and sealed as [lb162](results/2026-10-15-lb162/prereg.md) (`c483beb`, caps 1.20 USD of Jev and 18 of Claude); not run yet |
 
 **`DEFAULT_MODEL` stays `jev-1.13.0`**, and candor stays on 1.13. 1.14 is an opt-in with its profile
 (`SANCHOPANZA_JEV_MODEL=jev-1.14.0`), better on calibration, supersession and R-Judge, and no
@@ -52,8 +52,14 @@ better where a switch would pay; the long-context gain is the window's and works
 Pending from these lots:
 
 - **A memory-gate mode with the long window** (whole sessions in one call with the long-context
-  header): confirm on the remaining 84 LongMemEval test questions, about 1 USD of Jev for one
-  model, before it ships. It costs about 0.005 USD a prompt against 0.001.
+  header) is in the package as an opt-in, `SANCHOPANZA_MEMORY_WINDOW=long` (merge `64bf8c8`):
+  default requests and recording keys unchanged, the long call capped by the job's budget and
+  falling back to the short window when it does not fit, fails or runs late. The confirmation on
+  the remaining 84 LongMemEval test questions is sealed
+  ([memgate-long](results/2026-10-15-memgate-long/prereg.md), `c8d1da1`, about 0.52 USD of Jev
+  under a 1.50 cap) and not run yet. What L6 measured is the library call `memory_gate.gate`; the
+  installed hook judges records, and the long window there is unmeasured (a replay on the
+  SWE-chat records, under 1 USD of Jev, would measure it).
 - **check_done recalibrated** on 1.14: the profile's 0.30 matches 1.13 on the held-out half
   (312 against 313 of 329), but was read off the same lot; it needs new AgentDojo trajectories
   before the Stop hook relies on it under 1.14.
@@ -88,7 +94,10 @@ Pending from these lots:
 `sanchopanza[jev] @ https://github.com/romanpert/sanchopanza/archive/<sha>.tar.gz`, pinned to one
 commit in three files that must move together. There is no tag in the repository;
 `pyproject.toml` says 0.3.0 and `.github/workflows/release.yml` publishes to PyPI by Trusted
-Publishing on a `v*.*.*` tag ([governance](governance.md)). If the history is ever rewritten, the
+Publishing on a `v*.*.*` tag ([governance](governance.md)), so pushing the tag is the PyPI
+publication: the `pypi` environment admits `v*` tags with no required reviewer, and the GitHub
+release job waits on the PyPI job. CI is green again since `35896ea`, the first green run since
+2026-09-27, so a tag on main would now publish. If the history is ever rewritten, the
 old SHAs stop resolving and the consumer's image would not build, or would run without a decider:
 its factory falls back to a null decider in silence when the package does not import. Proposal:
 tag `v0.3.0` (or `v0.3.1`), publish, and have the consumer move to `sanchopanza[jev]>=0.3`. Until
@@ -142,6 +151,10 @@ on Jev's outputs (check the provider's terms first), and measure it outside its 
 
 ## Done
 
+- **CI green again** (merges `0f00805`, `35896ea`, 2026-10-15): CI had failed on every push since
+  2026-10-02 (an unpinned ruff, unformatted files, tests that needed this PC's venv, home cache or
+  full git history). ruff is pinned in the `dev` extras, the tree is formatted, and the tests that
+  need what a runner lacks skip and name it. All six cells pass (Linux and Windows, 3.11-3.13).
 - **A1** (`de7c38a`, 2026-10-15): the benches take `TYPESAFE_API_KEY` from the environment, or
   from the `.env` file `SANCHOPANZA_KEYS_ENV` names, with no default file; the identifiers no
   longer carry another project's name ([`benchmarks/README.md`](../benchmarks/README.md)).
