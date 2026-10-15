@@ -13,15 +13,18 @@ clean Claude Code on the covered tasks) in benchmarks/h2h/h2h_lb162.py.
     python benchmarks/jev114/lb162.py --run --limit 5  # free: replay only
     python benchmarks/jev114/lb162.py                  # free: the analysis
 
-Phase J asks jev-1.14.0 one Choice per task exactly as lot L6's `j14-L` cell (l6.py): the
+Phase J asks jev-1.14.0 one Choice per task as lot L6's `j14-L` cell (l6.py): the
 long-context header, the document middle-cut to 900,000 characters, the same question, and
-when a call is unanswered the same task again at 0.8 and 0.64 of the window. Every live call
-goes through `CappedDecider` on this lot's own ledger (LEDGER_PATH) and cap, reserved before
-the call; a refusal by the cap, an HTTP 402, an HTTP 429 (this lot takes 429 out of the
-provider's retries, `no_retry_on_429`, so the first one stops; 529 keeps its bounded retries)
-or a STOP file in RUN_DIR stops every further call. Answers are recorded with hashed keys (no
-text) in OUT, so a relaunch pays only for what is missing. The key comes from
-TYPESAFE_API_KEY or the file SANCHOPANZA_KEYS_ENV names (never printed).
+when a call is unanswered the same task again at 0.8 and 0.64 of the window (here for this
+model alone; L6 shrank both models together). Every live call goes through `CappedDecider` on
+this lot's own ledger (LEDGER_PATH) and cap, reserved before the call. A task fails only on an
+HTTP 400, a ReadTimeout or a Choice with no probability for its pick, at all three lengths.
+Anything else stops every further call (`Stop`): the cap (final), an HTTP 402, an HTTP 429
+(taken out of the client's retries, `no_retry_on_429`), any other error ("outage": the network,
+5xx, 529 after its bounded retries, 401/403), three failed calls in a row, or a STOP file in
+RUN_DIR (pauses). Answers are recorded with hashed keys (no text) in OUT, so a relaunch pays
+only for what is missing. The key comes from TYPESAFE_API_KEY or the file SANCHOPANZA_KEYS_ENV
+names (never printed).
 """
 
 from __future__ import annotations
@@ -41,7 +44,7 @@ from typing import Any
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-for extra in ("src", "benchmarks/h2h"):
+for extra in ("src", "benchmarks", "benchmarks/h2h"):
     sys.path.insert(0, str(REPO / extra))
 sys.path.insert(0, str(HERE))
 
@@ -49,6 +52,9 @@ import l4  # noqa: E402  (Arm, load_key: lot L4's)
 import l6  # noqa: E402  (the B3 question, cut, retry and reading of lot L6)
 import lb162_stats as stats  # noqa: E402
 import longdoc_data  # noqa: E402
+import meter  # noqa: E402  (Claude Code's own price table)
+
+from sanchopanza.contract import DeciderUnavailable  # noqa: E402
 
 OUT = REPO / "docs" / "results" / "2026-10-15-lb162"
 IDS_FILE = OUT / "ids.txt"
@@ -77,21 +83,40 @@ JEV_ROWS = OUT / "jev-scored.jsonl"
 STOP_FILE = OUT / "jev-stop.json"
 COVERED_FILE = OUT / "covered-ids.txt"
 SONNET_ROWS = OUT / "sonnet-rows.jsonl"
+SONNET_STOP = OUT / "sonnet-stop.json"
 SUMMARY = OUT / "summary.json"
+MAX_CONSECUTIVE_FAILURES = 3  # failed calls in a row (completion order) that pause phase J
+# A task fails (and is asked again shorter) only on these; any other error pauses phase J.
+TASK_FAILURES = ("HTTP 400", "jev unreachable: ReadTimeout")
+PAUSES = ("funds", "limit", "outage", "failures", "manual")
 
 # Estimates for the plan, from lot L6 (j14-L) and the 2026-10-06 confirmation (Sonnet, arm N).
-JEV_EST_USD = 0.0048  # per task, retries included
+JEV_USD_PER_MCHAR = 0.0117  # L6 j14-L: 0.2386 USD over 20.4 M characters shown, retries included
+JEV_WORST_USD_PER_MCHAR = 0.0149  # L6 j14-L's dearest call per character shown
 JEV_LATENCY_S = 1.7  # mean latency of a j14-L call
 COVERAGE_EST = 0.54  # 27 of 50 at 0.6
 SONNET_EST_USD = 0.138  # Sonnet's mean list USD on the tasks Jev covered at 0.6
 SONNET_WALL_MEAN_S, SONNET_WALL_MEDIAN_S = 38.0, 23.0
-# Phase S's money (enforced in h2h_lb162.py): the per-session cap is h2h_longdoc's for Sonnet;
-# the worst turn is one Sonnet 5.5 turn writing 200,000 tokens to the cache at the 1-hour rate
-# and answering 32,000 (benchmarks/adopt/long_money.turn_cost): --max-budget-usd stops between
-# turns only.
+# Phase S's money (enforced in h2h_lb162.py). The session's --max-budget-usd is h2h_longdoc's
+# cap for Sonnet; Claude Code stops only between turns, so one turn may pass it. The worst turn
+# rewrites Sonnet 5.5's whole 1M-token window to the cache and answers 32,000 tokens, at Claude
+# Code's own rates (the ones list_usd and the ceiling are counted in, meter.CLAUDE_CODE_RATES),
+# the dearer of its two cache-write rates. The 2026-10-06 confirmation's dearest session was
+# 1.87 USD (about 195,000 tokens written to the cache).
 SONNET_CEILING_USD = 18.00
 SONNET_CAP_USD = 3.00
-WORST_TURN_USD = 1.68
+SONNET_WINDOW_TOKENS = 1_000_000
+MAX_OUTPUT_TOKENS = 32_000
+
+
+def worst_turn_usd() -> float:
+    rates = meter.rates_of(meter.CLAUDE_CODE_RATES, meter.SONNET_55)
+    write = max(rates.write_5m, rates.write_1h)
+    return round((SONNET_WINDOW_TOKENS * write + MAX_OUTPUT_TOKENS * rates.output) / 1e6, 4)
+
+
+WORST_TURN_USD = worst_turn_usd()  # 4.32: 1M tokens x 4.0 + 32k x 10, per million
+SONNET_RESERVE_USD = round(SONNET_CAP_USD + WORST_TURN_USD, 4)  # held before each session
 
 
 # ---- the 162 tasks ----------------------------------------------------------------------------
@@ -155,6 +180,18 @@ def load_tasks() -> list[Any]:
     return tasks
 
 
+def docs_digest(tasks: Sequence[Any] | None = None) -> str:
+    """One sha256 over every prepared document's id and the sha256 of its bytes."""
+    lines = []
+    for task in tasks if tasks is not None else load_tasks():
+        h = hashlib.sha256()
+        with pathlib.Path(task.doc_path).open("rb") as handle:
+            for block in iter(lambda: handle.read(1 << 20), b""):
+                h.update(block)
+        lines.append(f"{task.task_id} {h.hexdigest()}\n")
+    return hashlib.sha256("".join(lines).encode()).hexdigest()
+
+
 def data_problems() -> list[str]:
     try:
         tasks = load_tasks()
@@ -168,13 +205,23 @@ def data_problems() -> list[str]:
 
 
 class Stop:
-    """Why phase J stopped: `cap` (final: score what is complete), `funds` (402), `limit`
-    (429) or `manual` (STOP file): pauses, a relaunch resumes."""
+    """Why phase J stopped: `cap` (final: score what is complete), or a pause a relaunch
+    resumes: `funds` (402), `limit` (429), `outage` (any other error but a task failure),
+    `failures` (MAX_CONSECUTIVE_FAILURES failed calls in a row) or `manual` (STOP file)."""
 
-    def __init__(self, stop_file: pathlib.Path | None = None) -> None:
+    def __init__(self, stop_file: pathlib.Path | None = None,
+                 max_consecutive: int | None = MAX_CONSECUTIVE_FAILURES) -> None:  # fmt: skip
         self.kind: str | None = None
         self.reason = ""
         self.stop_file = stop_file
+        self.max_consecutive = max_consecutive
+        self.consecutive = 0
+
+    def call_done(self, answered: bool) -> None:
+        """Count failed calls in a row (completion order); an answered call resets."""
+        self.consecutive = 0 if answered else self.consecutive + 1
+        if self.max_consecutive and self.consecutive >= self.max_consecutive:
+            self.note("failures", f"{self.consecutive} failed calls in a row")
 
     def note(self, kind: str, reason: str) -> None:
         if self.kind is None:
@@ -187,16 +234,24 @@ class Stop:
 
 
 def stop_kind(error: BaseException) -> str | None:
+    """None for a task failure (HTTP 400, ReadTimeout); otherwise the stop it is."""
     from sanchopanza.contract import DeciderOutOfFunds
     from sanchopanza.providers.capped import SpendCapReached
 
+    said = str(error)
     if isinstance(error, SpendCapReached):
         return "cap"
-    if isinstance(error, DeciderOutOfFunds) or "HTTP 402" in str(error):
+    if isinstance(error, DeciderOutOfFunds) or "HTTP 402" in said:
         return "funds"
-    if "HTTP 429" in str(error):
+    if "HTTP 429" in said:
         return "limit"
-    return None
+    if any(failure in said for failure in TASK_FAILURES):
+        return None
+    return "outage"
+
+
+class NotCalled(DeciderUnavailable):
+    """Refused before the call: the lot is stopped."""
 
 
 class Halting:
@@ -206,10 +261,8 @@ class Halting:
         self._inner, self.stop, self.name = inner, stop, inner.name
 
     async def decide(self, point: str, state: Any, questions: Mapping[str, Any]) -> Any:
-        from sanchopanza.contract import DeciderUnavailable
-
         if self.stop.check():
-            raise DeciderUnavailable(f"stopped ({self.stop.kind}): not called")
+            raise NotCalled(f"stopped ({self.stop.kind}): not called")
         try:
             return await self._inner.decide(point, state, questions)
         except Exception as error:
@@ -246,14 +299,19 @@ async def jev_one(task: Any, arm: Any, stop: Stop) -> dict[str, Any]:
             break
         limit = int(WINDOW * factor)
         state = {"question": task.question.strip(), "document": l6.middle_cut(text, limit)}
-        tries += 1
         decision = await arm.decide(l6.B3_POINT, state, qs)
+        if decision.error == NotCalled.__name__:
+            break
+        tries += 1
         paid += decision.cost_usd
         tokens = decision.input_tokens
         letter, p, probs = l6.top_of(decision)
+        stop.call_done(letter is not None)
         if letter is not None:
             break
-    status = "answered" if letter is not None else "stopped" if stop.kind else "failed"
+    # Failed: every length asked and refused as a task failure, not cut short by a pause.
+    tried_all = tries == len(SHRINK) and stop.kind in (None, "failures")
+    status = "answered" if letter is not None else "failed" if tried_all else "stopped"
     cell = {"letter": letter, "p": p, "probs": probs, "usd": round(paid, 6), "tries": tries,
             "tokens": tokens, "shown_chars": min(len(text), limit)}  # fmt: skip
     return {"id": task.task_id, "gold": task.gold, "chars": task.chars, "length": task.length,
@@ -264,10 +322,15 @@ async def run_j(tasks: Sequence[Any], live: Any, answers: pathlib.Path,
                 stop: Stop) -> list[dict[str, Any]]:  # fmt: skip
     """Every task through one recorded-first arm (live when `live` is a decider), launched in
     the seeded order, at most CONCURRENCY in flight; rows in the tasks' order."""
-    gate = asyncio.Semaphore(CONCURRENCY)
-    arm = l4.Arm(CELL, answers, MODEL, live, gate)
+    gate = asyncio.Semaphore(CONCURRENCY)  # tasks in flight: each reads its document in turn
+    arm = l4.Arm(CELL, answers, MODEL, live, asyncio.Semaphore(CONCURRENCY))
+
+    async def one(task: Any) -> dict[str, Any]:
+        async with gate:
+            return await jev_one(task, arm, stop)
+
     order = launch_order(len(tasks))
-    done = await asyncio.gather(*(jev_one(tasks[i], arm, stop) for i in order))
+    done = await asyncio.gather(*(one(tasks[i]) for i in order))
     by_index = dict(zip(order, done, strict=True))
     return [by_index[i] for i in range(len(tasks))]
 
@@ -280,11 +343,27 @@ def batch_spent() -> float:
     return SpendLedger(LEDGER_PATH, cap_usd=LEDGER_CAP_USD).spent(BATCH)
 
 
-def jev_plan_refusal(spent: float, todo: int, cap: float = BATCH_CAP_USD) -> str:
-    """Empty when `todo` tasks at JEV_EST_USD fit under the cap after `spent`."""
-    need = spent + todo * JEV_EST_USD
-    return "" if need <= cap else (f"phase J does not fit: {spent:.4f} spent + {todo} tasks x "
-                                   f"{JEV_EST_USD} = {need:.4f} > {cap:g} USD")  # fmt: skip
+def shown_chars(tasks: Sequence[Any]) -> int:
+    return sum(min(t.chars, WINDOW) for t in tasks)
+
+
+def jev_est_usd(tasks: Sequence[Any], rate: float = JEV_USD_PER_MCHAR) -> float:
+    return shown_chars(tasks) * rate / 1e6
+
+
+def jev_plan_refusal(spent: float, tasks: Sequence[Any], cap: float = BATCH_CAP_USD) -> str:
+    """Empty when `tasks` (those without a recorded answer) at L6's cost per character shown
+    fit under the cap after `spent`."""
+    need = spent + jev_est_usd(tasks)
+    return "" if need <= cap else (f"phase J does not fit: {spent:.4f} spent + {len(tasks)} "
+                                   f"tasks, {need - spent:.4f} expected = {need:.4f} > {cap:g} "
+                                   "USD")  # fmt: skip
+
+
+def unrecorded(tasks: Sequence[Any]) -> list[Any]:
+    """The tasks a free replay of ANSWERS leaves unanswered: what a live run would pay for."""
+    rows = asyncio.run(run_j(tasks, None, ANSWERS, Stop(max_consecutive=None)))
+    return [t for t, r in zip(tasks, rows, strict=True) if r["status"] != "answered"]
 
 
 def no_retry_on_429() -> None:
@@ -338,6 +417,11 @@ def phase_j_final(rows: Sequence[Mapping[str, Any]] | None,
     return ""
 
 
+def jev_exit(kind: str | None) -> int:
+    """0 when phase J is over (finished, or final at its cap); 2 on a pause."""
+    return 2 if kind in PAUSES else 0
+
+
 def phase_j_live() -> int:  # pragma: no cover - network
     before = read_jsonl(JEV_ROWS)
     if before is not None and not any(r["status"] == "stopped" for r in before):
@@ -349,7 +433,7 @@ def phase_j_live() -> int:  # pragma: no cover - network
     # A resume asks only the tasks a stop left unasked: a task already failed stays failed.
     todo = [i for i, r in enumerate(before) if r["status"] == "stopped"] if before else \
         list(range(len(tasks)))  # fmt: skip
-    if why := jev_plan_refusal(batch_spent(), len(todo)):
+    if why := jev_plan_refusal(batch_spent(), unrecorded([tasks[i] for i in todo])):
         raise SystemExit(why)
     l4.load_key()
     no_retry_on_429()
@@ -358,10 +442,11 @@ def phase_j_live() -> int:  # pragma: no cover - network
     got = asyncio.run(run_j([tasks[i] for i in todo], live_decider(stop, BATCH_CAP_USD),
                             ANSWERS, stop))  # fmt: skip
     rows = merged(before or [{} for _ in tasks], dict(zip(todo, got, strict=True)))
-    write_jsonl(JEV_ROWS, rows)
+    write_jsonl(JEV_ROWS, rows)  # with "stopped" rows after a pause: not frozen, resumed
     if stop.kind:
-        STOP_FILE.write_text(json.dumps({"kind": stop.kind, "reason": stop.reason}) + "\n",
-                             encoding="utf-8", newline="\n")  # fmt: skip
+        print(f"phase J stopped ({stop.kind}): {stop.reason}", file=sys.stderr)
+        STOP_FILE.write_text(json.dumps({"kind": stop.kind}) + "\n", encoding="utf-8",
+                             newline="\n")  # fmt: skip
     elif STOP_FILE.exists():
         STOP_FILE.unlink()
     if not phase_j_final(rows, {"kind": stop.kind}):
@@ -372,7 +457,7 @@ def phase_j_live() -> int:  # pragma: no cover - network
     said = {"stop": stop.kind, "spent": round(batch_spent(), 6), "covered": len(covered(rows)),
             "tasks": len(rows)}  # fmt: skip
     print(json.dumps(said), file=sys.stderr)
-    return 2 if stop.kind and stop.kind != "cap" else 0
+    return jev_exit(stop.kind)
 
 
 def smoke(live: bool) -> int:  # pragma: no cover - network when live
@@ -386,13 +471,10 @@ def smoke(live: bool) -> int:  # pragma: no cover - network when live
     rows = asyncio.run(run_j(l6.b3_tasks(dev=True)[:1], decider, SMOKE_ANSWERS, stop))
     write_jsonl(OUT / "smoke-scored.jsonl", rows)
     print(json.dumps({"stop": stop.kind, "rows": rows}), file=sys.stderr)
-    return 0
+    return jev_exit(stop.kind)
 
 
 # ---- plan -------------------------------------------------------------------------------------
-
-
-SONNET_RESERVE_USD = SONNET_CAP_USD + WORST_TURN_USD  # held before each session (h2h_lb162)
 
 
 def sessions_before_guard(per_session_usd: float) -> int:
@@ -410,18 +492,22 @@ def guaranteed_sessions() -> int:
 def plan(tasks: Sequence[Any], covered_ids: Sequence[str] | None) -> dict[str, Any]:
     n_cov = len(covered_ids) if covered_ids is not None else round(COVERAGE_EST * len(tasks))
     calls = len(tasks) * 1.1  # about one task in ten asked again shorter (L6: 5 of 50)
+    pessimistic = jev_est_usd(tasks, JEV_WORST_USD_PER_MCHAR)
     return {
         "tasks": len(tasks),
         "by_length": dict(sorted(Counter(t.length for t in tasks).items())),
         "by_difficulty": dict(sorted(Counter(t.difficulty for t in tasks).items())),
         "whole_in_window": sum(t.chars <= WINDOW for t in tasks),
         "middle_cut": sum(t.chars > WINDOW for t in tasks),
-        "phase_j": {"model": MODEL, "est_usd": round(len(tasks) * JEV_EST_USD, 2),
+        "phase_j": {"model": MODEL, "shown_mchars": round(shown_chars(tasks) / 1e6, 2),
+                    "est_usd": round(jev_est_usd(tasks), 2),
+                    "pessimistic_usd_before_retries": round(pessimistic, 2),
                     "cap_usd": BATCH_CAP_USD,
                     "est_wall_min": round(calls * JEV_LATENCY_S / CONCURRENCY / 60, 1)},
         "phase_s": {"sessions": n_cov, "measured": covered_ids is not None,
                     "est_usd": round(n_cov * SONNET_EST_USD, 2),
-                    "ceiling_usd": SONNET_CEILING_USD,
+                    "ceiling_usd": SONNET_CEILING_USD, "worst_turn_usd": WORST_TURN_USD,
+                    "reserve_per_session_usd": SONNET_RESERVE_USD,
                     "expected_within_ceiling": n_cov * SONNET_EST_USD <= SONNET_CEILING_USD,
                     "sessions_before_guard_at_mean": sessions_before_guard(SONNET_EST_USD),
                     "sessions_guaranteed_at_worst": guaranteed_sessions(),
@@ -432,11 +518,14 @@ def plan(tasks: Sequence[Any], covered_ids: Sequence[str] | None) -> dict[str, A
 
 # ---- seal -------------------------------------------------------------------------------------
 
+# Every file the two runners load or run (h2h_gaia's _load, gaia_arms' s_line, the hooks a
+# session runs, the launcher), and every module of the package (SEALED_GLOBS).
 SEALED = (
     "benchmarks/jev114/lb162.py", "benchmarks/jev114/lb162_stats.py", "tests/test_lb162.py",
+    "tests/test_lb162_stops.py",
     "docs/results/2026-10-15-lb162/ids.txt",
     "benchmarks/jev114/l6.py", "benchmarks/jev114/l6_analysis.py", "benchmarks/jev114/l4.py",
-    "benchmarks/jev114/l4_stats.py", "benchmarks/jev114/b3conf_power.py",
+    "benchmarks/jev114/l4_stats.py", "benchmarks/jev114/b3conf_power.py", "benchmarks/meter.py",
     "benchmarks/h2h/h2h_lb162.py", "benchmarks/h2h/h2h_longdoc.py",
     "benchmarks/h2h/longdoc_data.py", "benchmarks/h2h/longdoc-dev-ids.txt",
     "benchmarks/h2h/offline_common.py", "benchmarks/h2h/h2h_gaia.py",
@@ -444,33 +533,39 @@ SEALED = (
     "benchmarks/h2h/gaia_stats.py", "benchmarks/h2h/gaia_data.py",
     "benchmarks/h2h/gaia_scorer.py", "benchmarks/h2h/s_line.py", "benchmarks/h2h/s_install.json",
     "benchmarks/h2h/local_hook.py", "benchmarks/h2h/deny_hook.py", "benchmarks/h2h/launch.ps1",
-    "benchmarks/browse/phase.py", "src/sanchopanza/providers/__init__.py",
-    "src/sanchopanza/providers/jev.py", "src/sanchopanza/providers/jev_models.py",
-    "src/sanchopanza/providers/capped.py", "src/sanchopanza/providers/recorded.py",
-    "src/sanchopanza/budget.py", "src/sanchopanza/_lockfile.py", "src/sanchopanza/funds.py",
-    "src/sanchopanza/contract.py",
+    "benchmarks/browse/phase.py",
 )  # fmt: skip
+SEALED_GLOBS = ("src/sanchopanza/**/*.py",)
 # Inputs outside the repository (not redistributed), hashed by their place under the home folder.
 SEALED_DATA = (
     ".cache/sanchopanza/longdoc/hf/data.json",
     ".cache/sanchopanza/longdoc/tasks.jsonl",
     ".cache/sanchopanza/longdoc/lb162/tasks.jsonl",
 )
+DOCS_KEY = "~/.cache/sanchopanza/longdoc/lb162/docs/*"  # docs_digest of the 162 documents
+
+
+def sealed_paths() -> list[str]:
+    globbed = sorted({p.relative_to(REPO).as_posix() for g in SEALED_GLOBS for p in REPO.glob(g)
+                      if "__pycache__" not in p.parts})  # fmt: skip
+    return [*SEALED, *(p for p in globbed if p not in SEALED)]
+
+
+def raw_digest(path: pathlib.Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1 << 20), b""):
+            h.update(block)
+    return h.hexdigest()
 
 
 def manifest() -> dict[str, str]:
-    """`<path> -> sha256` of prereg.md, the code (LF bytes) and the external inputs."""
-
-    def raw(path: pathlib.Path) -> str:
-        h = hashlib.sha256()
-        with path.open("rb") as handle:
-            for block in iter(lambda: handle.read(1 << 20), b""):
-                h.update(block)
-        return h.hexdigest()
-
+    """`<path> -> sha256` of prereg.md, the code (LF bytes), the external inputs and the
+    prepared documents (one aggregate)."""
     doc = (OUT / "prereg.md").relative_to(REPO).as_posix()
-    out = {p: digest(REPO / p) for p in (doc, *SEALED)}
-    return out | {f"~/{p}": raw(pathlib.Path.home() / p) for p in SEALED_DATA}
+    out = {p: digest(REPO / p) for p in (doc, *sealed_paths())}
+    data = {f"~/{p}": raw_digest(pathlib.Path.home() / p) for p in SEALED_DATA}
+    return out | data | {DOCS_KEY: docs_digest()}
 
 
 def combined(found: Mapping[str, str]) -> str:
@@ -507,6 +602,15 @@ def seal_state() -> str:
     return "sealed, matches" if target.read_text().strip() == combined(manifest()) else "MISMATCH"
 
 
+def docs_problems() -> list[str]:
+    """The 162 prepared documents against the seal's aggregate (nothing to compare unsealed)."""
+    path = OUT / "prereg.manifest.json"
+    if not path.exists():
+        return []
+    sealed = json.loads(path.read_text(encoding="utf-8")).get(DOCS_KEY)
+    return [] if sealed == docs_digest() else ["the prepared documents differ from the seal"]
+
+
 # ---- analysis and main ------------------------------------------------------------------------
 
 
@@ -514,14 +618,31 @@ def sonnet_by_id() -> dict[str, dict[str, Any]]:
     return {r["id"]: r for r in read_jsonl(SONNET_ROWS) or []}
 
 
+def pause_reasons(rows: Sequence[Mapping[str, Any]], jev_stop: Mapping[str, Any] | None,
+                  sonnet_stop: Mapping[str, Any] | None,
+                  run_dir: pathlib.Path | None = None) -> list[str]:  # fmt: skip
+    """Why no verdict may be read yet: a LIMIT.flag or STOP in the run folder, phase J not
+    over, or phase S (when it has covered tasks to run) not ended by finishing or its ceiling."""
+    reasons = [f"{name} in the run folder" for name in ("LIMIT.flag", "STOP")
+               if ((run_dir or RUN_DIR) / name).exists()]  # fmt: skip
+    if why := phase_j_final(rows, jev_stop):
+        return [*reasons, why]
+    kind = (sonnet_stop or {}).get("kind")
+    if covered(rows) and kind not in ("done", "ceiling"):
+        reasons.append(f"phase S {kind or 'not run'}")
+    return reasons
+
+
 def analysis() -> dict[str, Any]:
     rows = read_jsonl(JEV_ROWS)
     if rows is None:
         raise SystemExit(f"no {JEV_ROWS.name}: phase J has not run")
-    stop = read_jsonl(STOP_FILE)
-    out = stats.analyse(rows, sonnet_by_id()) | {
-        "phase_j_final": phase_j_final(rows, stop[0] if stop else None) or "yes",
-        "jev_stop": stop[0] if stop else None,
+    jev_stop = (read_jsonl(STOP_FILE) or [None])[0]
+    sonnet_stop = (read_jsonl(SONNET_STOP) or [None])[0]
+    paused = pause_reasons(rows, jev_stop, sonnet_stop)
+    out = stats.analyse(rows, sonnet_by_id(), paused=paused) | {
+        "jev_stop": (jev_stop or {}).get("kind"),
+        "sonnet_stop": (sonnet_stop or {}).get("kind"),
         "ledger_batch_usd": round(batch_spent(), 6),
     }
     SUMMARY.write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8", newline="\n")
@@ -529,11 +650,14 @@ def analysis() -> dict[str, Any]:
 
 
 def preflight() -> list[str]:
-    problems = data_problems()
+    problems = [*data_problems()]
     if not longdoc_data.RAW.exists():
         problems.append(f"no LongBench cache at {longdoc_data.RAW}")
-    if why := jev_plan_refusal(batch_spent(), N_TASKS):
-        problems.append(why)
+    if not problems:
+        problems.extend(docs_problems())
+        if why := jev_plan_refusal(batch_spent(), unrecorded(load_tasks())):
+            problems.append(why)
+        print(f"documents: sha256 {docs_digest()}", file=sys.stderr)
     state = seal_state()
     print(f"seal: {state}; ledger {LEDGER_PATH} batch {BATCH} spent {batch_spent():.4f}",
           file=sys.stderr)  # fmt: skip

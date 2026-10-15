@@ -1,8 +1,11 @@
-# Starts an h2h runner (-Runner: h2h_gaia.py, h2h_bcp.py, h2h_longdoc.py or h2h_lb162.py) with --live outside
-# the calling session, the way long paid batches on this PC
+# Starts an h2h runner (-Runner: h2h_gaia.py, h2h_bcp.py, h2h_longdoc.py or h2h_lb162.py) with
+# --live outside the calling session, the way long paid batches on this PC
 # survive: through WMI (not this shell's process tree), in a new process group (CreateFlags 512,
 # so a stray Ctrl+C on another console cannot reach it), with the pinned Claude Code 2.1.287
-# first on PATH for that process only. Its log (-Log) gets START and EXIT lines around the
+# first on PATH for that process only and its auto-updater off (DISABLE_AUTOUPDATER=1). With
+# -KeysEnv, the .cmd sets SANCHOPANZA_KEYS_ENV to that path (the path only: this script never
+# opens the file; a WMI process gets no window variables). Its log (-Log) gets START and EXIT
+# lines around the
 # runner's output; the PIDs (the cmd.exe started by WMI and the runner's python.exe under it) go
 # to -PidFile, a file of their own. The runner logs its sessions beside
 # ~/.cache/sanchopanza/gaia/h2h/<phase>/sessions.jsonl.
@@ -17,7 +20,8 @@ param(
     [ValidateSet('h2h_gaia.py', 'h2h_bcp.py', 'h2h_longdoc.py', 'h2h_lb162.py')][string]$Runner = 'h2h_gaia.py',
     [string]$Log = "$env:USERPROFILE\.cache\sanchopanza\gaia\h2h\launch.log",
     [string]$PidFile = "$env:USERPROFILE\.cache\sanchopanza\gaia\h2h\launch.pids",
-    [string]$Pin = $(if ($env:SANCHOPANZA_PIN_DIR) { $env:SANCHOPANZA_PIN_DIR } else { 'C:\sp-runs\pin' })
+    [string]$Pin = $(if ($env:SANCHOPANZA_PIN_DIR) { $env:SANCHOPANZA_PIN_DIR } else { 'C:\sp-runs\pin' }),
+    [string]$KeysEnv = ''
 )
 $worktree = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $py = 'C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts\python.exe'
@@ -25,9 +29,12 @@ if (-not (Test-Path "$Pin\claude.exe")) { throw "no pinned claude.exe in $Pin" }
 New-Item -ItemType Directory -Force (Split-Path -Parent $Log) | Out-Null
 New-Item -ItemType Directory -Force (Split-Path -Parent $PidFile) | Out-Null
 $cmdFile = [System.IO.Path]::ChangeExtension($Log, '.cmd')
+$keysLine = if ($KeysEnv) { "set SANCHOPANZA_KEYS_ENV=$KeysEnv" } else { 'rem no -KeysEnv' }
 @"
 @echo off
 set PATH=$Pin;%PATH%
+set DISABLE_AUTOUPDATER=1
+$keysLine
 set PYTHONPATH=$worktree\src
 set PYTHONIOENCODING=utf-8
 cd /d $worktree

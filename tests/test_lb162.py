@@ -186,11 +186,20 @@ def test_a_timeout_does_not_stop_and_a_stop_file_does(tmp_path):
     assert stop.kind == "manual" and inner.calls == 2
 
 
-def test_the_jev_plan_must_fit_the_batch_cap():
-    assert lb.jev_plan_refusal(0.0, 162) == ""  # 0.78 of 1.20
-    assert lb.jev_plan_refusal(0.5, 162) != ""
-    assert lb.jev_plan_refusal(1.19, 1) == ""
-    assert lb.jev_plan_refusal(1.20, 1) != ""
+class Sized:
+    def __init__(self, chars: int) -> None:
+        self.chars = chars
+
+
+def test_the_jev_plan_charges_shown_characters_and_must_fit_the_batch_cap():
+    big = [Sized(2_000_000)] * 100  # 90 M characters shown: about 1.05 USD at 0.0117 per M
+    assert lb.shown_chars(big) == 90_000_000
+    assert lb.jev_est_usd(big) == pytest.approx(1.053)
+    assert lb.jev_plan_refusal(0.0, big) == ""
+    assert lb.jev_plan_refusal(0.2, big) != ""
+    assert lb.jev_plan_refusal(1.19, []) == ""  # recorded answers are not charged
+    assert lb.jev_plan_refusal(1.18, [Sized(900_000)]) == ""  # 0.0105 expected
+    assert lb.jev_plan_refusal(1.19, [Sized(900_000)]) != ""
 
 
 def test_a_resume_replaces_only_the_rows_asked_again():
@@ -250,8 +259,10 @@ def test_phase_s_refuses_only_when_the_expected_cost_alone_passes_the_ceiling():
     assert h2h.expected_refusal(120) == ""  # above what the ceiling holds at the mean: starts
     assert h2h.expected_refusal(130) == ""  # 17.94 USD expected
     assert "refused" in h2h.expected_refusal(131)  # 18.08 USD expected
-    assert lb.sessions_before_guard(lb.SONNET_EST_USD) == 97  # (18 - 4.68) / 0.138, + 1
-    assert lb.guaranteed_sessions() == 3  # every session at 3.00 + 1.68
+    assert lb.WORST_TURN_USD == 4.32  # 1M tokens written at Claude Code's 4.0 + 32k out at 10
+    assert lb.SONNET_RESERVE_USD == 7.32
+    assert lb.sessions_before_guard(lb.SONNET_EST_USD) == 78  # (18 - 7.32) / 0.138, + 1
+    assert lb.guaranteed_sessions() == 2  # every session at 3.00 + 4.32
 
 
 class Task:
@@ -259,7 +270,7 @@ class Task:
         self.task_id = f"c{i:03d}"
 
 
-@pytest.mark.parametrize("usd, ran", [(0.138, 97), (4.68, 3), (1.0, 14)])
+@pytest.mark.parametrize("usd, ran", [(0.138, 78), (7.32, 2), (1.0, 11)])
 def test_high_coverage_starts_and_the_guard_stops_it_under_18_usd(tmp_path, usd, ran):
     tasks = [Task(i) for i in range(120)]  # 120 covered: 16.56 USD expected
     assert h2h.expected_refusal(len(tasks)) == ""
@@ -288,11 +299,11 @@ def test_the_covered_order_is_a_seeded_shuffle_so_a_stop_leaves_a_random_subset(
 
 def test_the_phase_loop_never_starts_a_session_that_could_pass_18_usd():
     reserve = h2h.RESERVE[h2h.MODEL]
-    assert reserve == pytest.approx(3.00 + 1.68)
+    assert reserve == pytest.approx(3.00 + 4.32)
     assert h2h.ld.CAPS[h2h.MODEL] == 3.00  # the session's own --max-budget-usd is h2h's
     limits = h2h.phase.Limits(session_max_usd=reserve, ceiling_usd=h2h.CEILING_USD)
-    assert h2h.phase.stop_reason([{"list_usd": 13.32}], limits, 0) is None
-    assert "ceiling" in h2h.phase.stop_reason([{"list_usd": 13.33}], limits, 0)
+    assert h2h.phase.stop_reason([{"list_usd": 10.68}], limits, 0) is None
+    assert "ceiling" in h2h.phase.stop_reason([{"list_usd": 10.69}], limits, 0)
 
 
 def test_the_clock_refuses_early_starts_and_runs_across_midnight():
@@ -303,22 +314,41 @@ def test_the_clock_refuses_early_starts_and_runs_across_midnight():
     assert h2h.clock_refusal(day.replace(hour=23, minute=30), 1) == ""
 
 
-def test_no_session_starts_near_midnight_or_with_a_stop_file(tmp_path):
+def _guard(tmp_path, now: dt.datetime) -> object:
+    start = dt.datetime(2026, 10, 16, 10)
+    return h2h.Guard(start, clock=lambda: now, run_dir=tmp_path,
+                     reservations=tmp_path / "reservations.jsonl")  # fmt: skip
+
+
+@pytest.mark.parametrize("now, kind", [
+    (dt.datetime(2026, 10, 16, 23, 55), "clock"),  # within 10 minutes of midnight
+    (dt.datetime(2026, 10, 17, 0, 5), "clock"),  # past midnight: another day
+    (dt.datetime(2026, 10, 17, 3, 0), "clock"),  # before 08:00, another day
+    (dt.datetime(2026, 10, 16, 7, 30), "clock"),  # before 08:00
+    (dt.datetime(2026, 10, 17, 12, 0), "clock"),  # a later day, in hours: still not the phase's
+])  # fmt: skip
+def test_no_session_starts_outside_the_phases_day_and_hours(tmp_path, now, kind):
     ran = []
+    guard = _guard(tmp_path, now)
+    one = guard.wrap(lambda item, run, arm: ran.append(item) or {})
+    with pytest.raises(h2h.common.JointCeiling):
+        one(("t",), 1, h2h.ARM)
+    assert guard.kind == kind and ran == []
+    assert not (tmp_path / "reservations.jsonl").exists()
+    assert h2h.stop_kind(1, guard) == kind and h2h.EXIT[kind] == 5
 
-    def session(item, run, arm):
-        ran.append(item)
-        return {}
 
-    late = h2h.guarded(session, clock=lambda: dt.datetime(2026, 10, 16, 23, 55), run_dir=tmp_path)
-    with pytest.raises(h2h.common.JointCeiling, match="midnight"):
-        late(("t",), 1, h2h.ARM)
-    ok = h2h.guarded(session, clock=lambda: dt.datetime(2026, 10, 16, 12), run_dir=tmp_path)
-    ok(("t",), 1, h2h.ARM)
+def test_a_stop_file_stops_before_the_next_session_as_manual(tmp_path):
+    ran = []
+    guard = _guard(tmp_path, dt.datetime(2026, 10, 16, 12))
+    one = guard.wrap(lambda item, run, arm: ran.append(item) or {})
+    one(("t",), 1, h2h.ARM)
     (tmp_path / "STOP").write_text("")
     with pytest.raises(h2h.common.JointCeiling, match="STOP"):
-        ok(("t",), 1, h2h.ARM)
-    assert len(ran) == 1
+        one(("t",), 1, h2h.ARM)
+    assert len(ran) == 1 and guard.kind == "manual" and h2h.EXIT["manual"] == 6
+    assert h2h.stop_kind(1, h2h.Guard(dt.datetime(2026, 10, 16))) == "ceiling"
+    assert h2h.stop_kind(0, guard) == "done" and h2h.stop_kind(2, guard) == "limit"
 
 
 def test_live_paths_refuse_without_a_matching_seal(tmp_path, monkeypatch):
@@ -335,6 +365,7 @@ def test_live_paths_refuse_without_a_matching_seal(tmp_path, monkeypatch):
     (tmp_path / "prereg.md").write_text("x\n")
     monkeypatch.setattr(lb, "SEALED", ())
     monkeypatch.setattr(lb, "SEALED_DATA", ())
+    monkeypatch.setattr(lb, "docs_digest", lambda tasks=None: "docs")
     with pytest.raises(SystemExit, match="seal"):
         lb.main(["--run", "--live"])
     assert called == []
@@ -346,8 +377,10 @@ def test_a_seal_round_trip_and_no_quiet_reseal(tmp_path, monkeypatch):
     monkeypatch.setattr(lb, "SEALED", ("code.py",))
     monkeypatch.setattr(lb, "SEALED_DATA", ())
     monkeypatch.setattr(lb, "ANSWERS", tmp_path / "answers.jsonl")
+    docs = {"value": "first"}
+    monkeypatch.setattr(lb, "docs_digest", lambda tasks=None: docs["value"])
     (tmp_path / "prereg.md").write_text("plan\n")
-    (tmp_path / "code.py").write_text("x = 1\r\n")
+    (tmp_path / "code.py").write_bytes(b"x = 1\r\n")
     lb.seal()
     lb.require_prereg()
     (tmp_path / "code.py").write_text("x = 2\n")
@@ -358,6 +391,13 @@ def test_a_seal_round_trip_and_no_quiet_reseal(tmp_path, monkeypatch):
     (tmp_path / "answers.jsonl").write_text("{}\n")
     with pytest.raises(SystemExit, match="amendment"):
         lb.seal(again=True)
+    (tmp_path / "code.py").write_bytes(b"x = 1\n")  # CRLF and LF seal alike
+    lb.require_prereg()
+    assert lb.docs_problems() == []
+    docs["value"] = "changed"  # one prepared document differs: the seal and the preflight see it
+    assert lb.docs_problems() != []
+    with pytest.raises(SystemExit):
+        lb.require_prereg()
 
 
 # --- the verdict rule ---------------------------------------------------------------------------
@@ -393,7 +433,7 @@ def test_hybrid_minus_sonnet_counts_covered_disagreements_over_every_task():
     assert p["n"] == 6 and p["covered"] == 3 and got["stopped_unasked"] == 1
     assert p["diff"] == pytest.approx(round((1 - 1 + 0) / 6, 4))
     assert p["mcnemar"] == {"jev_only_right": 1, "sonnet_only_right": 1, "p": 1.0}
-    assert p["bootstrap"] == {"draws": 10_000, "seed": 20261015, "unit": "task"}
+    assert p["bootstrap"] == {"draws": 10_000, "kept": 10_000, "seed": 20261015, "unit": "task"}
     d = got["descriptive"]
     assert d["coverage"] == 0.5 and d["jev_precision_covered"] == round(2 / 3, 4)
     assert d["sonnet_accuracy_covered"] == round(2 / 3, 4)
@@ -450,11 +490,13 @@ def test_jev_rows_hold_ids_letters_and_probabilities_only(tmp_path):
 def test_sonnet_rows_drop_the_reply_paths_and_the_other_arms():
     session = {"task_id": "t1", "task": "t1", "run": 1, "arm": "SONNET-CC",
                "final_answer": "D", "ok_oficial": True, "list_usd": 0.12, "wall_s": 20.0,
-               "turns": 4, "hit_cap": False, "answer": "SECRET reply",
+               "turns": 4, "hit_cap": False, "answer": "SECRET reply", "ok": True,
+               "subtype": "success",
                "workdir": "C:/sp-runs/h2h/lb162/abc/work", "leak_tools": ["SECRET"]}  # fmt: skip
     rows = [session, {**session, "arm": "SONNET-SP"}, {**session, "run": -9},
             {**session, "task_id": "t2", "not_run": True}]  # fmt: skip
     got = h2h.public_rows(rows)
     assert got == [{"id": "t1", "letter": "D", "ok": True, "usd": 0.12, "wall_s": 20.0,
-                    "turns": 4, "hit_cap": False, "no_letter": False}]  # fmt: skip
+                    "turns": 4, "hit_cap": False, "no_letter": False, "is_error": False,
+                    "subtype": "success"}]  # fmt: skip
     assert set(got[0]) == {"id", *h2h.ROW_KEYS}

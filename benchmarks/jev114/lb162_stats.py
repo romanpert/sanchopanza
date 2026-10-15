@@ -9,12 +9,16 @@ with Sonnet 5.5 elsewhere. Against Sonnet alone it only moves on the covered tas
 over the n tasks Jev was asked; an uncovered task contributes 0 and needs no Sonnet answer. The
 estimator is written as coverage x mean gain on the covered tasks that have a Sonnet answer: with
 every covered task answered it is exactly the sum above; if a stop leaves covered tasks without
-Sonnet (they run in a seeded random order), it stays unbiased instead of shrinking to 0.
+Sonnet (they run in a seeded random order), it stays approximately unbiased (a ratio estimator)
+instead of shrinking to 0. A Sonnet session that ended in an infrastructure error with no letter
+(`infra`) counts as not run in the primary reading and as wrong in the registered sensitivity
+reading; a session stopped by its cap with no letter is wrong in both (2026-10-06's rule).
 
 Paired bootstrap over the n tasks (lot L4's `l4_stats.bootstrap`: 10,000 draws, seed 20261015,
-percentile 95 % CI), exact McNemar on the covered disagreements, and the verdict fixed before
-the data: "no peor" if the CI's lower bound > MARGIN, "peor" if its upper bound < MARGIN, else
-"no concluyente".
+percentile 95 % CI; resamples with no value are dropped and counted), exact McNemar on the
+covered disagreements, and the verdict fixed before the data, the CI compared unrounded:
+"no peor" if its lower bound > MARGIN, "peor" if its upper bound < MARGIN, else "no
+concluyente"; "no medido" with nothing covered or no CI; "pausa" while the lot is paused.
 """
 
 from __future__ import annotations
@@ -29,6 +33,7 @@ from l6_analysis import wilson
 
 TAU = 0.6
 MARGIN = -0.10
+MIN_COVERAGE = 0.20  # a product claim also needs this coverage (L6's B3_MIN_COVERAGE)
 CELL = "j14-L"
 SONNET_UNCOVERED_EST_USD = 0.123  # Sonnet 5.5 (N) mean list USD per task, 2026-10-06 (50 tasks)
 
@@ -36,7 +41,7 @@ SONNET_UNCOVERED_EST_USD = 0.123  # Sonnet 5.5 (N) mean list USD per task, 2026-
 @dataclass(frozen=True)
 class Unit:
     """One task Jev was asked: covered or not, and on a covered one Jev's and Sonnet's grades
-    (`sonnet_ok` None when Sonnet has no session for it)."""
+    (`sonnet_ok` None when Sonnet has no session for it, or one that counts as not run)."""
 
     covered: bool
     jev_ok: bool
@@ -66,13 +71,28 @@ def asked(rows: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
     return [r for r in rows if r.get("status") != "stopped"]
 
 
+def infra(session: Mapping[str, Any]) -> bool:
+    """No letter because the session broke (an error or the runner's wall clock), not because
+    its cap stopped it."""
+    return (session.get("letter") is None and not session.get("hit_cap")
+            and bool(session.get("is_error")))  # fmt: skip
+
+
+def sonnet_grade(session: Mapping[str, Any] | None, infra_as_wrong: bool) -> bool | None:
+    if session is None:
+        return None
+    if infra(session):
+        return False if infra_as_wrong else None
+    return bool(session["ok"])
+
+
 def units(jev_rows: Sequence[Mapping[str, Any]], sonnet: Mapping[str, Mapping[str, Any]],
-          tau: float = TAU) -> list[Unit]:  # fmt: skip
+          tau: float = TAU, infra_as_wrong: bool = False) -> list[Unit]:  # fmt: skip
     out = []
     for r in asked(jev_rows):
         cov = is_covered(r, tau)
-        s = sonnet.get(r["id"]) if cov else None
-        out.append(Unit(cov, jev_right(r), None if s is None else bool(s["ok"])))
+        grade = sonnet_grade(sonnet.get(r["id"]), infra_as_wrong) if cov else None
+        out.append(Unit(cov, jev_right(r), grade))
     return out
 
 
@@ -90,6 +110,14 @@ def estimate(us: Sequence[Unit], idx: Sequence[int]) -> float | None:
     return len(cov) / len(idx) * sum(gains) / len(gains)
 
 
+def percentile_ci(values: Sequence[float]) -> tuple[float, float] | None:
+    """`l4_stats.ci95`'s percentiles, unrounded (the verdict compares these)."""
+    if not values:
+        return None
+    ordered = sorted(values)
+    return ordered[int(0.025 * (len(ordered) - 1))], ordered[int(0.975 * (len(ordered) - 1))]
+
+
 def verdict(ci: tuple[float, float] | None, margin: float = MARGIN) -> str:
     if ci is None:
         return "no medido"
@@ -101,22 +129,34 @@ def verdict(ci: tuple[float, float] | None, margin: float = MARGIN) -> str:
     return "no concluyente"
 
 
-def primary(us: Sequence[Unit]) -> dict[str, Any]:
+def claim(result: Mapping[str, Any], coverage: float | None) -> str | None:
+    """The product claim: "sustituye" needs "no peor" and coverage >= MIN_COVERAGE."""
+    if result["verdict"] not in ("no peor", "peor", "no concluyente"):
+        return None
+    ok = result["verdict"] == "no peor" and (coverage or 0.0) >= MIN_COVERAGE
+    return "sustituye" if ok else "no sustituye"
+
+
+def primary(us: Sequence[Unit], paused: Sequence[str] = ()) -> dict[str, Any]:
     """The registered result: estimate, paired bootstrap CI, McNemar, verdict."""
     n = len(us)
-    idx = list(range(n))
-    diff = estimate(us, idx)
-    ci = st.ci95(st.bootstrap(lambda i: estimate(us, i), st.items_as_units(n))) if n else None
+    covered = sum(u.covered for u in us)
+    diff = estimate(us, list(range(n)))
+    values = st.bootstrap(lambda i: estimate(us, i), st.items_as_units(n)) if covered else []
+    raw = percentile_ci(values)
     both = [u for u in us if u.covered and u.sonnet_ok is not None]
     b = sum(u.jev_ok and not u.sonnet_ok for u in both)
     c = sum(u.sonnet_ok and not u.jev_ok for u in both)
-    return {"n": n, "covered": sum(u.covered for u in us), "sonnet_sessions": len(both),
-            "covered_without_sonnet": sum(u.covered and u.sonnet_ok is None for u in us),
-            "diff": None if diff is None else round(diff, 4), "ci95": ci,
-            "bootstrap": {"draws": st.BOOT, "seed": st.BOOT_SEED, "unit": "task"},
+    said = "pausa" if paused else verdict(raw)
+    return {"n": n, "covered": covered, "sonnet_sessions": len(both),
+            "covered_without_sonnet": covered - len(both),
+            "diff": None if diff is None else round(diff, 4),
+            "ci95": None if raw is None else (round(raw[0], 4), round(raw[1], 4)),
+            "bootstrap": {"draws": st.BOOT, "kept": len(values), "seed": st.BOOT_SEED,
+                          "unit": "task"},
             "mcnemar": {"jev_only_right": b, "sonnet_only_right": c,
                         "p": st.mcnemar_exact(b, c)},
-            "margin": MARGIN, "verdict": verdict(ci),
+            "margin": MARGIN, "verdict": said, "pause": list(paused),
             "ci95_normal": normal_ci(us)}  # fmt: skip
 
 
@@ -161,6 +201,10 @@ def by_band(jev_rows: Sequence[Mapping[str, Any]], us: Sequence[Unit], key: str)
     return out
 
 
+def _share_f(x: float, total: float) -> float | None:
+    return round(x / total, 4) if total else None
+
+
 def costs(jev_rows: Sequence[Mapping[str, Any]], sonnet: Mapping[str, Mapping[str, Any]],
           tau: float = TAU) -> dict[str, Any]:  # fmt: skip
     """Measured: Jev on every task asked (discarded shorter retries included) and Sonnet on the
@@ -175,6 +219,7 @@ def costs(jev_rows: Sequence[Mapping[str, Any]], sonnet: Mapping[str, Mapping[st
     saving = sonnet_cov - jev
     return {"jev_usd_all": round(jev, 6), "sonnet_usd_covered": round(sonnet_cov, 6),
             "sonnet_sessions_covered": sum(i in sonnet for i in covered_ids),
+            "sonnet_infra_covered": sum(i in sonnet and infra(sonnet[i]) for i in covered_ids),
             "estimate": {"sonnet_usd_uncovered": round(est_unc, 4),
                          "per_task_usd": SONNET_UNCOVERED_EST_USD,
                          "sonnet_alone_usd": round(sonnet_alone, 4),
@@ -183,14 +228,15 @@ def costs(jev_rows: Sequence[Mapping[str, Any]], sonnet: Mapping[str, Mapping[st
                          "saving_share": _share_f(saving, sonnet_alone)}}  # fmt: skip
 
 
-def _share_f(x: float, total: float) -> float | None:
-    return round(x / total, 4) if total else None
-
-
-def analyse(jev_rows: Sequence[Mapping[str, Any]],
-            sonnet: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:  # fmt: skip
+def analyse(jev_rows: Sequence[Mapping[str, Any]], sonnet: Mapping[str, Mapping[str, Any]],
+            paused: Sequence[str] = ()) -> dict[str, Any]:  # fmt: skip
     us = units(jev_rows, sonnet)
-    return {"tau": TAU, "primary": primary(us), "descriptive": descriptive(us),
+    first = primary(us, paused)
+    told = descriptive(us)
+    sens = primary(units(jev_rows, sonnet, infra_as_wrong=True), paused)
+    return {"tau": TAU, "primary": first, "claim": claim(first, told["coverage"]),
+            "min_coverage": MIN_COVERAGE, "sensitivity_infra_as_wrong": sens,
+            "descriptive": told,
             "stopped_unasked": len(jev_rows) - len(asked(jev_rows)),
             "jev_failed": sum(r.get("status") == "failed" for r in jev_rows),
             "by_length": by_band(jev_rows, us, "length"),
