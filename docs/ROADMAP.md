@@ -30,7 +30,7 @@ Supported in the client since 2026-10-15 (merge `5694973`), with the default unc
 
 **What the 2026-10-15 lots found.** Both versions asked live the same day on the published
 inputs, interleaved per item, each lot pre-registered and sealed before any 1.14 answer; Jev
-only, 3.65 USD in all on the shared ledger, 0 USD of Claude (Claude answers are the earlier
+only, 3.85 USD in all on the shared ledger, 0 USD of Claude (Claude answers are the earlier
 recordings). One draw per version.
 
 | Lot | Verdict by the sealed rule |
@@ -42,17 +42,15 @@ recordings). One draw per version.
 | [L5, images](results/2026-10-15-jev114-l5/README.md) | **No vision mode** for `browse`: Box over the screenshot does not beat the text ranking (top 1 35.9 % against 42.3 %, inconclusive), and the screenshot leaves R@10 at 93.8 %. With images, 1.14 is no worse than 1.13. The real minimum side is 280 px, not the documented 256 (`MIN_SIDE` now 280) |
 | [L6, long context](results/2026-10-15-jev114-l6/README.md) | **No substitute for a Claude call** at the registered cut: on LongBench v2 Jev is sure on 7 of 50 tasks, the ones Sonnet also gets right, saving 1.5 % of its cost. The long window lifts the memory gate's recall 0.723 → 0.908 on 36 LongMemEval questions, **on 1.13 too**: a gain of the window, not of the model. One-call QASPER triage still keeps half the paper |
 | [Recalibration](results/2026-10-15-jev114-recal/README.md) | **A threshold profile per model** (`policy.MODEL_PROFILES`, used only when the model is `jev-1.14.0`), derived free on calibration splits: 1.14 with it reaches **parity** with 1.13 at its own cuts, 556 against 556 of 646 (0.0 [−1.5, +1.5]). check_done at 0.30 closes its gap; `redundant_page` is not fixed, and memory_write makes twice the costly stores |
+| [Confirmation](results/2026-10-15-jev114-recalconf/README.md) | **Not admissible**: on a second draw of the same 1,298 cases the profile falls to 551 against 555 of 646 (−0.6 points [−2.3, +0.9], inconclusive) and `redundant_page` is worse (44 against 48 of 50); on 910 candor counterfactuals no cut had seen, 1.14 at 0.90 is worse than 1.13 at 0.83 (770 against 800, −3.3 points [−5.4, −1.2]). check_done at 0.30 holds. No new labelled cases exist for the L1 points, so they are confirmed only against draw-to-draw noise |
+| [LongBench cut of 0.6](results/2026-10-15-jev114-b3conf/README.md) | **Not run**: a free power analysis shows no affordable confirmation can decide at a −2 point margin (about 3,200 paired tasks; LongBench v2 has 503). Deciding at −10 points would take 162 tasks with Sonnet on the covered ones, about 12 USD of Claude: an owner's call |
 
-**`DEFAULT_MODEL` stays `jev-1.13.0`.** 1.14 is a safe opt-in with its profile
+**`DEFAULT_MODEL` stays `jev-1.13.0`**, and candor stays on 1.13. 1.14 is an opt-in with its profile
 (`SANCHOPANZA_JEV_MODEL=jev-1.14.0`), better on calibration, supersession and R-Judge, and no
 better where a switch would pay; the long-context gain is the window's and works on 1.13.
 
 Pending from these lots:
 
-- **Confirmations on cases neither version was asked**, in progress: the recalibration asks for
-  new labelled cases for its points and a second draw of both versions for the day-to-day
-  noise, about 0.4 USD of Jev in all by its estimate. Their figures go in their own
-  `docs/results/` folders.
 - **A memory-gate mode with the long window** (whole sessions in one call with the long-context
   header): confirm on the remaining 84 LongMemEval test questions, about 1 USD of Jev for one
   model, before it ships. It costs about 0.005 USD a prompt against 0.001.
