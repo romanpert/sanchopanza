@@ -310,6 +310,16 @@ do not favour this package.
   split out at the same values. `Thresholds.derivable` is split out too and is set by the
   derived `memory_write` cut (below). `Thresholds.common_durable` / `common_derivable` hold the
   opt-in `common` path at the values it was measured at (0.70 / 0.75).
+- **Thresholds per Jev model** (`policy.MODEL_PROFILES`, `Thresholds.for_model`). A squire with
+  no thresholds given, the Claude Code hooks and `compact` take the profile of the model the
+  decider asks (`SANCHOPANZA_JEV_MODEL`, else `DEFAULT_MODEL`); `SANCHOPANZA_T_*` overrides lay
+  over it. `jev-1.13.0` has no profile and reads every value it read before (a test pins all of
+  them). `jev-1.14.0` has one, recalibrated free on the lot L1, L2 and L4 recordings
+  (`docs/results/2026-10-15-jev114-recal`): with it, 1.14 is no worse than 1.13 at its own cuts
+  on the evaluation parts (556 against 556 of 646). New knobs, at 1.13's values:
+  `goal_met`/`repeats_check` (None reads `saturated`), `extract_skip`/`recall_skip` (None reads
+  `1 - act`), `done` 0.5 (`check_done`; `HarnessConfig.done_cut` now defaults to None, the
+  squire's) and `holistic` 0.83 (`candor.judge.holistic`). `DEFAULT_MODEL` stays `jev-1.13.0`.
 
 ### Security fixes, from two adversarial reviews (security and code), each with a test
 

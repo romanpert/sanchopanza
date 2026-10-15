@@ -171,9 +171,13 @@ def holistic_state(turn: Turn) -> dict[str, Any]:
     return {"task": turn.task, "report": clean(turn.said)[:3000], "ledger": ledger}
 
 
-async def holistic(squire: Any, turn: Turn, report: Report, *, cut: float = HOLISTIC_CUT) -> Report:
+async def holistic(squire: Any, turn: Turn, report: Report, *, cut: float | None = None) -> Report:
     """The rules' report plus a `high` note when the model reads the report as misstating the
-    ledger at p >= cut. No data means no note."""
+    ledger at p >= cut. No data means no note. `cut` defaults to the squire's
+    `Thresholds.holistic` (a model profile can move it), else HOLISTIC_CUT."""
+    if cut is None:
+        own = getattr(squire, "thresholds", None)
+        cut = HOLISTIC_CUT if own is None else own.holistic
     decision = await squire.decide(
         "candor_holistic", holistic_state(turn), {"misstates": MISSTATES}
     )

@@ -40,6 +40,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass, fields, replace
+from types import MappingProxyType
 from typing import Any
 
 from .contract import Answer
@@ -129,6 +130,21 @@ class Thresholds:
     # See docs/results/2026-09-25-window/.
     window_add: float = 0.35
     saturated: float = 0.70  # probability that a research line is exhausted
+    # Per-point cuts that a model profile can move on their own. None reads the shared knob
+    # they have always read, so 1.13 is unchanged and a `saturated` or `act` override still
+    # moves them: the loop's two questions read `saturated`, the extraction gate and the
+    # recall gate skip at `1 - act`. See `MODEL_PROFILES`.
+    goal_met: float | None = None
+    repeats_check: float | None = None
+    extract_skip: float | None = None
+    recall_skip: float | None = None
+    # `Squire.check_done`: done iff p >= this. On the held-out half of 655 AgentDojo
+    # trajectories, 93.9 % of the stops 0.5 blocks are unfinished work
+    # (docs/results/2026-09-25-completion/).
+    done: float = 0.5
+    # `candor.judge.holistic`: a `high` note at p >= this. Derived on candor round 1 for at most
+    # 5 % false flags (docs/results/2026-09-29-candor/); `judge.HOLISTIC_CUT` is the same value.
+    holistic: float = 0.83
     # `decide_write` stores iff durable >= remember, specific >= remember and derivable <=
     # `derivable`: one cut on the weakest margin, remember = c and derivable = 1 - c.
     # Derived, not chosen: c = 0.54 on half of the 100 cases, to an 80 % precision target on
@@ -156,13 +172,16 @@ class Thresholds:
     max_windows: int = 8
 
     @classmethod
-    def from_mapping(cls, raw: Mapping[str, Any] | None) -> Thresholds:
-        """Build from a flat mapping (a YAML block, env values). Unknown keys are ignored."""
+    def from_mapping(
+        cls, raw: Mapping[str, Any] | None, *, base: Thresholds | None = None
+    ) -> Thresholds:
+        """Build from a flat mapping (a YAML block, env values) laid over `base` (the defaults
+        when None). Unknown keys and None values are ignored."""
         raw = raw or {}
         known = {f.name: f.type for f in fields(cls)}
         values: dict[str, Any] = {}
         for key, value in raw.items():
-            if key not in known:
+            if key not in known or value is None:
                 continue
             if key == "allow_upgrade":
                 values[key] = _as_bool(value)
@@ -170,10 +189,70 @@ class Thresholds:
                 values[key] = int(value)
             else:
                 values[key] = float(value)
-        return cls(**values)
+        return replace(base, **values) if base is not None else cls(**values)
+
+    @classmethod
+    def for_model(cls, model: str | None) -> Thresholds:
+        """The defaults with `model`'s profile laid over them; the defaults for any model
+        without one (1.13, an alias, another provider)."""
+        return cls(**dict(MODEL_PROFILES.get((model or "").strip(), {})))
 
     def with_(self, **changes: Any) -> Thresholds:
         return replace(self, **changes)
+
+    @property
+    def goal_met_cut(self) -> float:
+        return self.saturated if self.goal_met is None else self.goal_met
+
+    @property
+    def repeats_check_cut(self) -> float:
+        return self.saturated if self.repeats_check is None else self.repeats_check
+
+    @property
+    def extract_skip_cut(self) -> float:
+        return 1.0 - self.act if self.extract_skip is None else self.extract_skip
+
+    @property
+    def recall_skip_cut(self) -> float:
+        return 1.0 - self.act if self.recall_skip is None else self.recall_skip
+
+
+# **Thresholds per Jev model.** Every default above was set against `jev-1.13.0`, which has no
+# entry: it reads them all. A profile holds only the cuts its model moves, and is chosen by the
+# model the decider asks (`SANCHOPANZA_JEV_MODEL`, else `providers.jev.DEFAULT_MODEL`); see
+# `Squire` and `harness.claude_code.squire_from_env`. Explicit thresholds always win.
+#
+# `jev-1.14.0`: recalibrated on the lot L1, L2 and L4 recordings by the rule each cut was set
+# with, on calibration parts kept apart from the evaluation (pre-registered, sealed in
+# 671546e; docs/results/2026-10-15-jev114-recal/). `adds_nothing` re-runs its 90 % precision
+# derivation on `retrieval-c`; the others transfer 1.13's action rate to 1.14 (no label read).
+# `memory_write`'s derivation is unreachable on 1.14's half A, so `remember` stays. Post hoc on
+# one draw per model: a confirmation on unseen cases is still owed before 1.14 is the default.
+MODEL_PROFILES: Mapping[str, Mapping[str, float]] = MappingProxyType(
+    {
+        "jev-1.14.0": MappingProxyType(
+            {
+                "adds_nothing": 0.61,
+                "goal_met": 0.57,
+                "repeats_check": 0.60,
+                "extract_skip": 0.27,
+                "recall_skip": 0.10,
+                "done": 0.30,
+                "holistic": 0.90,
+            }
+        ),
+    }
+)
+
+
+def model_of(decider: Any) -> str | None:
+    """The model a decider asks, for choosing its profile: its own `model`, else that of the
+    decider it wraps (a cache, a spending cap, a recorder). None when neither says."""
+    for candidate in (decider, getattr(decider, "_inner", None)):
+        model = getattr(candidate, "model", None)
+        if isinstance(model, str) and model:
+            return model
+    return None
 
 
 def _as_bool(value: Any) -> bool:

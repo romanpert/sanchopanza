@@ -99,7 +99,7 @@ def decide_gate(decision: Decision, t: Thresholds) -> Gate:
     p = probability(answer, default=1.0)
     if answer.empty:
         return Gate(True, "no data: extract", p)
-    if p <= 1.0 - t.act:
+    if p <= t.extract_skip_cut:
         return Gate(False, f"nothing of that kind ({p:.2f})", p)
     return Gate(True, f"may contain something ({p:.2f})", p)
 

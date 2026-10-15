@@ -111,6 +111,11 @@ class RecordedDecider:
         self._ordered = ordered
         self._defaults = defaults
 
+    @property
+    def model(self) -> str | None:
+        """The keyed version this replay stands for (1.14 on); None for an unkeyed one."""
+        return self._model
+
     def _mine(self, entry: Mapping[str, Any]) -> bool:
         recorded = str(entry.get("model") or "")
         if self._model is not None:
