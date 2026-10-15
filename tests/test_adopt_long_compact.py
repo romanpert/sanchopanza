@@ -13,7 +13,7 @@ import sys
 
 import pytest
 
-from tests.test_adopt_long_launch import dry_environment, launch
+from tests.test_adopt_long_launch import dry_environment, launch, needs_python
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ADOPT = ROOT / "benchmarks" / "adopt"
@@ -114,6 +114,7 @@ def test_the_launcher_is_lf() -> None:
 
 
 @pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+@needs_python("long-compact-run.cmd")
 def test_the_launcher_runs_both_arms_on_each_chain_without_jev(tmp_path: pathlib.Path) -> None:
     env = dry_environment(tmp_path, CHAINS)
     nl = f"{CHAINS[0]}-sonnet-Nl"
@@ -144,6 +145,7 @@ def test_the_launcher_runs_both_arms_on_each_chain_without_jev(tmp_path: pathlib
 
 
 @pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+@needs_python("long-compact-run.cmd")
 def test_nl_compacting_where_it_should_not_stops_the_launch(tmp_path: pathlib.Path) -> None:
     env = dry_environment(tmp_path, CHAINS)
     inject = {f"{chain}-sonnet-Nl": {"2": "compact"} for chain in CHAINS}
@@ -171,6 +173,7 @@ def test_the_launcher_takes_extra_and_dry_only(tmp_path: pathlib.Path) -> None:
 
 
 @pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+@needs_python("long-compact-run.cmd")
 def test_the_fifth_and_sixth_chains_run_under_the_same_root_and_ceiling(
     tmp_path: pathlib.Path,
 ) -> None:
@@ -206,6 +209,7 @@ def test_a_run_stopped_by_its_cap_lets_the_next_arm_go_on(m, monkeypatch, tmp_pa
 
 
 @pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+@needs_python("long-compact-run.cmd")
 def test_nl_past_its_peak_without_compacting_stops_the_launch(tmp_path: pathlib.Path) -> None:
     env = dry_environment(tmp_path, CHAINS)  # B2's contexts unscaled: past 110k, no compaction
     assert launch(CMD, ["dry"], env) == 4
@@ -246,6 +250,7 @@ def test_the_conan2_arms_are_the_close_out_s(m) -> None:
 
 
 @pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+@needs_python("long-compact-run.cmd")
 def test_the_launcher_runs_the_conan2_repeat_under_its_45_ceiling(tmp_path: pathlib.Path) -> None:
     env = {**dry_environment(tmp_path, (CONAN2,)), "FAKE_CONTEXT_SCALE": "0.5"}
     assert launch(CMD, ["conan2", "x"], env) == 2

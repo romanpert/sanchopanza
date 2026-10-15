@@ -16,6 +16,7 @@ from typing import Any
 
 import pytest
 
+from tests.helpers import missing_commits
 from tests.test_adopt_long_runner import _setup, lr  # noqa: F401  (lr: the runner fixture)
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -268,6 +269,8 @@ def test_the_pilot_commit_must_be_frozen_and_have_passages_hook_and_s_is_unchang
 ) -> None:
     with pytest.raises(SystemExit, match="not a commit"):
         ll.pilot_sancho("not-a-commit-xyz")
+    if missing := missing_commits("3276a05", "aad9903", "cb0062e", *ll.long_pilot.NEEDS):
+        pytest.skip(f"sealed commits not in this clone (CI checks out one): {missing}")
     with pytest.raises(SystemExit, match="674806b"):
         ll.pilot_sancho("3276a05")  # before the 402 breaker and jev-preflight
     sealed = ll.freeze.ROOT / "cb0062e36340-jev-mcp" / "Scripts" / "sanchopanza.exe"

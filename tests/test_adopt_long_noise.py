@@ -11,7 +11,7 @@ import sys
 
 import pytest
 
-from tests.test_adopt_long_launch import dry_environment, launch
+from tests.test_adopt_long_launch import dry_environment, launch, needs_python
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ADOPT = ROOT / "benchmarks" / "adopt"
@@ -67,6 +67,7 @@ def test_the_launcher_is_lf() -> None:
 
 
 @pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+@needs_python("long-noise-run.cmd")
 def test_the_launcher_runs_ne_on_both_chains_without_jev(tmp_path: pathlib.Path) -> None:
     env = dry_environment(tmp_path, GATE)
     assert launch(CMD, ["ne", "dry"], env) == 0
@@ -80,6 +81,7 @@ def test_the_launcher_runs_ne_on_both_chains_without_jev(tmp_path: pathlib.Path)
 
 
 @pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+@needs_python("long-noise-run.cmd")
 def test_the_launcher_runs_n_again_on_pydantic_only(tmp_path: pathlib.Path) -> None:
     env = dry_environment(tmp_path, GATE)
     assert launch(CMD, ["n", "dry"], env) == 0
@@ -113,6 +115,7 @@ def test_the_conan_round_holds_the_approved_100(m) -> None:
 
 
 @pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+@needs_python("long-noise-run.cmd")
 def test_the_launcher_runs_n_and_ne_again_on_conan_only(tmp_path: pathlib.Path) -> None:
     for arm, which in (("N", "n2c"), ("Ne", "ne2c")):
         env = dry_environment(tmp_path / which, GATE)
@@ -123,6 +126,7 @@ def test_the_launcher_runs_n_and_ne_again_on_conan_only(tmp_path: pathlib.Path) 
 
 
 @pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+@needs_python("long-noise-run.cmd")
 def test_the_launcher_runs_a_again_on_conan_with_its_commit(tmp_path: pathlib.Path) -> None:
     from tests.test_adopt_long_pilot_launch import pilot_environment
 

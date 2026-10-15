@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import subprocess
 from collections.abc import Callable
 from pathlib import Path, PureWindowsPath
 from typing import Any
@@ -96,3 +97,18 @@ def registered_digest(tree_digest: Callable[[Path], str], root: Path) -> str:
     for path in sorted(files, key=lambda p: PureWindowsPath(p.relative_to(root))):
         h.update(path.relative_to(root).as_posix().encode() + b"\0" + path.read_bytes() + b"\0")
     return h.hexdigest()
+
+
+def missing_commits(*commits: str) -> list[str]:
+    """The commits of `commits` this clone does not hold: CI checks out one commit (depth 1),
+    so the sealed commits the launch tests look up are only in a full clone."""
+    root = Path(__file__).resolve().parents[1]
+    return [
+        c
+        for c in commits
+        if subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--verify", "--quiet", f"{c}^{{commit}}"],
+            capture_output=True,
+        ).returncode
+        != 0
+    ]
