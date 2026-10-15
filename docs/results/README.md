@@ -27,6 +27,14 @@ not.
 | [2026-10-13-memory-cell](2026-10-13-memory-cell/README.md) | The open memory cell, Sonnet 5.5, a fact said in a parallel session or sibling worktree, 24 pairs, pre-registered: S broke 0 facts against N's 11 (McNemar p 0.00049; by scene 4 wins, 0 losses), task 23 vs 24, cost 1.117 [1.05, 1.15], wall 1.12: **gana**. S is the default install plus `--memory`; 8.47 USD |
 | [2026-10-13-long-compact](2026-10-13-long-compact/README.md) | Early compaction near 67k (what `install --context-budget 67000` writes) against N-early near 160k, Sonnet 5.5, 5 long60 chains, k = 1, pre-registered: cost 0.900 [0.741, 1.093], quality −1.4 points (non-inferior at −10), wall 1.09: **no gana**, no saving shown (0.858 [0.748, 0.984] if a call cut by a PC reboot is metered rather than charged at its cap, a sensitivity the sealed rule does not use) (under the post-data amendment: conan-2 repeated at 0.952, still no gana: R1 0.875 [0.754, 1.015], R2 0.887 [0.750, 1.050]). 173.11 + 33.69 USD |
 
+## Jev 1.14
+
+Jev 1.13 against 1.14, both asked live on the same inputs, each run pre-registered.
+
+| Folder | What it backs |
+|---|---|
+| [2026-10-15-jev114-l3](2026-10-15-jev114-l3/) | The label rubric of 2026-09-30, `jev-1.14.0` against `jev-1.13.0`, 1,000 items each of AG News and DBpedia-14 plus SIB-200 in five languages besides English (`prereg.md`). Argmax accuracy: 88.7 % against 88.8 %, 98.6 % against 98.5 %, and 88.9 % against 89.1 % outside English. Every difference is within ±1.3 points: **no peor** on all three. No measurable extra gain outside English (+1.8 points [-0.3, +4.1]). Coverage at the `classify` gate does not move, so no recalibration. 0.151 USD of Jev |
+
 ## Main evidence
 
 The runs behind the README's headline numbers.
