@@ -1,7 +1,8 @@
 """The contract between an agent harness and a decision model.
 
 A *decider* answers closed questions about a piece of text state: pick one option,
-place on a scale, or say how likely a proposition is. It never generates text. It
+place on a scale, or say how likely a proposition is; over an image, also where something is
+(`Box`). It never generates text. It
 returns probabilities and a confidence; code turns those into actions with thresholds.
 
 Nothing in this module knows which model is behind the contract. TypeSafe's Jev, a local
@@ -16,7 +17,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any, Literal, Protocol, runtime_checkable
 
-QuestionKind = Literal["choice", "score", "truth"]
+QuestionKind = Literal["choice", "score", "truth", "box"]
 # A state is text, a mapping or a sequence, and any leaf of it may be a
 # `sanchopanza.media.Attachment`. Whether a provider can read one is a property of the
 # provider, declared by `Decider.accepts_attachments`; the contract only has to admit it.
@@ -58,7 +59,24 @@ class Truth:
     kind: QuestionKind = field(default="truth", init=False)
 
 
-Question = Choice | Score | Truth
+@dataclass(frozen=True, slots=True)
+class Box:
+    """Where in an image the thing `instructions` describes is: a box of four fractions of
+    the image (top, bottom, left, right, from its top-left corner) and a confidence.
+
+    Jev 1.14 on (`jev-1.13.0` refuses it with HTTP 400), with the image in the state. No
+    criteria. The vendor marks it "Dreamer-ready", so its format may still change, and it
+    **always answers a box, even for something the image does not show**: ask a Truth about
+    the thing's presence in the same call and read the box only when that says yes. For a
+    small target, narrow the image to a region first.
+    """
+
+    instructions: str | Mapping[str, Any]
+    kind: QuestionKind = field(default="box", init=False)
+
+
+Question = Choice | Score | Truth | Box
+BoxValue = tuple[float, float, float, float]  # top, bottom, left, right
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,6 +89,7 @@ class Answer:
     score: float | None = None
     truth: float | None = None
     probabilities: Mapping[str, float] = field(default_factory=dict)
+    box: BoxValue | None = None  # top, bottom, left, right: fractions of the image
 
     @property
     def valid(self) -> bool:
@@ -78,11 +97,14 @@ class Answer:
 
         Every comparison against NaN is False, so a guard written `p < t -> refuse` lets a
         NaN through as permission. A truth, probability or confidence must be finite and in
-        [0, 1]; a score (a position on a 0..n-1 scale) must be finite.
+        [0, 1]; a score (a position on a 0..n-1 scale) must be finite; a box, four fractions
+        of the image with its top above its bottom and its left before its right.
         """
         if not is_probability(self.confidence):
             return False
         if self.truth is not None and not is_probability(self.truth):
+            return False
+        if self.box is not None and not is_box(self.box):
             return False
         if self.score is not None and not _finite(self.score):
             return False
@@ -92,11 +114,13 @@ class Answer:
     def empty(self) -> bool:
         """True when the decider did not answer, or answered a number that is not one:
         code must use its default. An unreadable answer is an absent answer."""
-        unanswered = self.choice is None and self.score is None and self.truth is None
-        return unanswered or not self.valid
+        values = (self.choice, self.score, self.truth, self.box)
+        return all(v is None for v in values) or not self.valid
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        """A JSON-ready dict. `box` appears only when there is one, so every recording and
+        cache line written before Box has the shape it always had."""
+        out: dict[str, Any] = {
             "kind": self.kind,
             "confidence": self.confidence,
             "choice": self.choice,
@@ -104,6 +128,7 @@ class Answer:
             "truth": self.truth,
             "probabilities": dict(self.probabilities),
         }
+        return {**out, "box": list(self.box)} if self.box is not None else out
 
     @classmethod
     def from_dict(cls, raw: Mapping[str, Any]) -> Answer:
@@ -116,6 +141,7 @@ class Answer:
                 score=raw.get("score"),
                 truth=raw.get("truth"),
                 probabilities=dict(raw.get("probabilities") or {}),
+                box=as_box(raw.get("box")),
             )
         )
 
@@ -196,6 +222,36 @@ def _finite(value: Any) -> bool:
 def is_probability(value: Any) -> bool:
     """A finite number in [0, 1]. NaN, infinities and out-of-range values are not."""
     return _finite(value) and 0.0 <= value <= 1.0
+
+
+def is_box(value: Any) -> bool:
+    """Four fractions of an image, (top, bottom, left, right), the right way up."""
+    try:
+        top, bottom, left, right = value
+    except (TypeError, ValueError):
+        return False
+    fractions = all(is_probability(v) for v in (top, bottom, left, right))
+    return fractions and top <= bottom and left <= right
+
+
+BOX_SIDES = ("top", "bottom", "left", "right")
+
+
+def as_box(value: Any) -> BoxValue | None:
+    """A wire or stored box as (top, bottom, left, right): from a mapping with the four sides
+    or a sequence of four. None when absent; NaN sides when malformed, which `is_box` rejects."""
+    if value is None:
+        return None
+    if isinstance(value, Mapping):
+        value = [value.get(side) for side in BOX_SIDES]
+    try:
+        sides = [as_number(v) for v in value]
+    except TypeError:
+        return (math.nan,) * 4
+    if len(sides) != 4 or any(v is None for v in sides):
+        return (math.nan,) * 4
+    top, bottom, left, right = (float(v) for v in sides if v is not None)
+    return top, bottom, left, right
 
 
 def as_number(value: Any) -> float | None:

@@ -82,12 +82,19 @@ def decider_from_env(env: dict[str, str] | None = None) -> Decider:
     try:
         if provider == "recorded":
             return create(
-                "recorded", path=_env.get("FIXTURE", "fixtures/public-benches.jsonl", env=env)
+                "recorded",
+                path=_env.get("FIXTURE", "fixtures/public-benches.jsonl", env=env),
+                model=_env.get("JEV_MODEL", "", env=env).strip() or None,
             )
         if provider == "jev":
+            from ..providers import jev
+
             url = _env.get("JEV_URL", "", env=env)
             extra = {"base_url": url} if url else {}
-            return create("jev", api_key=env.get("TYPESAFE_API_KEY"), **extra)
+            return create("jev", api_key=env.get("TYPESAFE_API_KEY"),
+                          model=jev.model_from_env(env),
+                          long_context=jev.long_context_from_env(env),
+                          images=jev.images_from_env(env), **extra)  # fmt: skip
         if provider == "clm":  # a self-hosted CLM (`clm-serve`): the Jev wire format
             return create("clm", base_url=_env.get("CLM_URL", "", env=env) or None)
         if provider == "llm":

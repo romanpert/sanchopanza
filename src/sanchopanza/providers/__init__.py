@@ -2,6 +2,7 @@
 
     create("jev", api_key=...)            TypeSafe Jev over HTTP
     create("recorded", path=...)          replays a fixture; tests and dry runs, free
+                                          (model="jev-1.14.0": that version's lines only)
     create("null")                        answers nothing; every policy uses its default
     create("llm", complete=...)           any LLM forced into a JSON schema
     create("local", handlers=...)         your own classifiers, embeddings, vision models
@@ -100,5 +101,5 @@ def create(name: str, **kwargs: Any) -> Decider:
         raise KeyError(f"unknown provider {name!r}; known: {sorted(targets)}")
     cls = _load(targets[name])
     if name == "recorded" and "path" in kwargs:
-        return cls.from_file(kwargs["path"])
+        return cls.from_file(kwargs["path"], model=kwargs.get("model"))
     return cls(**kwargs)
