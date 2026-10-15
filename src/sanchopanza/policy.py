@@ -269,3 +269,8 @@ def confident(answer: Answer, threshold: float) -> bool:
 def probability(answer: Answer, default: float = 0.0) -> float:
     """The truth probability of a Truth answer, or `default` when there is none."""
     return answer.truth if answer.truth is not None else default
+
+
+# The public API, for a consumer to import rather than copy (docs/architecture.md, "A stable
+# API to import"). Which fields each point's policy reads: `catalog.POINTS[name].thresholds`.
+__all__ = ["MODEL_PROFILES", "Thresholds", "confident", "model_of", "probability"]

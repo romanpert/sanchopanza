@@ -12,6 +12,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Literal
 
+from ..catalog import tag
 from ..contract import Decision, Question, Score, Truth
 from ..policy import Thresholds, probability
 from ..text import truncate
@@ -61,7 +62,7 @@ def questions(
             "harm their reputation if they were wrong?"
         ),
     }
-    return state, qs
+    return state, tag("routing", qs)
 
 
 @dataclass(frozen=True, slots=True)

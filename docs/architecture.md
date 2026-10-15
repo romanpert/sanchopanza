@@ -78,10 +78,11 @@ flowchart TB
     S --> C --> providers
 ```
 
-Dependencies point downwards only. Points import the contract, the policy and text helpers.
-The squire imports points. The tool window imports the squire and two points (`tools`,
-`injection`). Adapters import the squire or the window. Providers import the contract and
-nothing else. Swapping a provider touches one file; adding a harness touches one file.
+Dependencies point downwards only. Points import the contract, the policy, the catalog of ids
+and text helpers. The squire imports points. The tool window imports the squire and two points
+(`tools`, `injection`). Adapters import the squire or the window. Providers import the
+contract, and the recorder and the chains the catalog, which imports nothing. Swapping a
+provider touches one file; adding a harness touches one file.
 
 **The tool window (0.3.0).** `select_tools` decides once, from the request, which is right
 while the only way to change a tool set is to rewrite `tools`. `ToolWindow` follows the
@@ -124,6 +125,90 @@ writes a summary; the idea is LATTICE's (arXiv:2510.13217). On 100 pages per que
 both supporting pages in 96.5 % of 200 held-out HotpotQA questions at 3.1 % of the text in 5
 calls (`docs/results/2026-09-27-hierarchy/`). `hierarchy.MAX_ROUNDS` allows a third round,
 which is unmeasured.
+
+## A stable API to import
+
+An agent with its own harness can import the questions, the thresholds, the DAG and the
+recorder instead of keeping copies. What made a copy necessary was that recording keys sign
+the question text, so translating or rewording a question loses every answer recorded with
+it, and point names are the only handle on a decision in a trace. Three pieces remove that.
+
+**Ids (`sanchopanza.catalog`).** Every point the `Squire` asks has a versioned id
+(`triage@1`) and every question in it one too (`triage.relevant@1`: point, name, version).
+The same id asks the same thing: a translation, or a rewording that asks the same thing,
+keeps it, and a change in what is asked (a boundary in the criteria, the option or level
+set, the reading of the state) takes a new version. `edge.direction` is the example in the
+catalog: version 1 asked who possesses, version 2 (the default since 2026-09-27) who does,
+holds or is the source of the relation. `tests/test_catalog.py` pins a fingerprint of the
+wording behind every id, so the text cannot move without someone deciding which kind of
+change it was.
+
+```python
+from sanchopanza import catalog
+from sanchopanza.points import triage
+
+state, qs = triage.questions(purpose=purpose, title=title, text=text)
+catalog.ids_of("triage", qs)        # {'relevant': 'triage.relevant@1', 'evidence': ..., ...}
+catalog.point_id("triage")          # 'triage@1'
+spec = catalog.POINTS["triage"]
+spec.builders                       # ('sanchopanza.points.triage:questions',)
+spec.policies                       # ('sanchopanza.points.triage:decide',)
+spec.thresholds                     # ('relevance', 'act', 'injection'): Thresholds fields
+```
+
+The builders in `sanchopanza.points` return their questions as a `dict` that also carries
+the ids (`catalog.Questions`), so a provider, a cache or a text key sees nothing new.
+Questions without that tag, a translated copy say, resolve by point and key against the
+catalog; `catalog.with_ids(questions, {"q": "mine.q@1"})` tags any set by hand, the
+consumer's own questions included. Where one key is asked with two wordings that mean
+different things, each has its own id and its builder says which: `guard.dangerous@1` for
+the research sandbox and `guard.dangerous_coding@1` for a person's repository,
+`facts.relation_examples@1` for the opt-in wording with examples on `unrelated`. Under such a
+key an untagged question (a copy made with `{**qs}` or a comprehension, a rewording) has no
+id: nothing says which wording it is, the states of the two are often identical, and taking
+the default's id would replay the other wording's answers. Without an id it misses instead.
+A tag naming a variant the point does not have is refused. Positional questions share one id
+across their keys (`triage_pages.page@1` for `P01`, `P02`, ...).
+The harness points (the Claude Code hooks, candor, the context autopilot, browsing) are not
+catalogued yet and have no ids.
+
+**Recording keys from ids, opt in (`providers.recorded`).** `id_key_of(point, state,
+questions, model)` signs each question's id, its kind and its option names in order (or its
+number of levels), and the state. Not its instructions, criteria or option descriptions:
+a Spanish copy of a catalogued question gets the key the English one has. The exception is a
+question whose options the caller writes: `classify.category@1` signs its options with their
+descriptions, since swapping two descriptions changes the answer. The order of a Score's
+levels is not signed, because levels have nothing but text; inverting a scale takes a new
+version, and the wording canary fails until it does. When every
+question has an id the point name is left out, since the ids already name their point, so a
+consumer that traces a decision under its own name still shares the key. A question without
+an id is signed whole, with the point, as before. The model enters the key from jev-1.14 on,
+as it does the text key.
+
+```python
+from sanchopanza.providers import RecordedDecider, RecordingDecider
+
+live = RecordingDecider(jev, "fixtures/mine.jsonl", keys="id")      # writes key and id_key
+replay = RecordedDecider.from_file("fixtures/mine.jsonl", keys="id")  # text first, then id
+```
+
+It is opt in. With the default `keys="text"` every line is written and read exactly as
+before, and `key_of` is unchanged, so every fixture in this repository replays bit for bit.
+A recording made with `keys="id"` still carries the text key, so a text replay reads it
+too. An id replay looks up the text key first, exactly as a text replay does, and the id key
+only when the text misses: the wording asked always gets its own answer, and only a wording
+never recorded (a translation, say) is answered by id, from the last line written under that
+id key. A `FallbackDecider` or
+`CascadeDecider` passes the ids on with the questions it forwards (`catalog.narrowed`).
+Recordings made before the ids existed hold only text keys, which cannot be turned into id
+keys without the state and questions they were computed from: moving them means recording
+once more with `keys="id"`, or replaying them by text while the id lines accumulate.
+
+**Thresholds and policies.** `sanchopanza.policy` exports `Thresholds`, `MODEL_PROFILES`,
+`model_of`, `confident` and `probability`; `catalog.POINTS[name]` names the pure policy of
+each point and the `Thresholds` fields it reads, and `sanchopanza.dag` the DAG builder of
+the `dependency` point (`build_dag`, `waves`). The thresholds' values and their derivations
+are documented on the dataclass itself.
 
 ## Invariants
 

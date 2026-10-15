@@ -12,6 +12,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from ..catalog import tag
 from ..contract import Choice, Decision, Question, Truth
 from ..policy import Thresholds, confident, probability
 from ..text import excerpt, truncate
@@ -59,7 +60,7 @@ def questions(
         "injection": injection.question(),
         "source_kind": Choice("Which kind of source is this page?", SOURCE_KINDS),
     }
-    return state, qs
+    return state, tag("triage", qs)
 
 
 @dataclass(frozen=True, slots=True)
@@ -191,7 +192,7 @@ def redundancy_questions(
             },
         )
     }
-    return state, qs
+    return state, tag("redundant_page", qs)
 
 
 @dataclass(frozen=True, slots=True)
@@ -270,7 +271,7 @@ def contribution_questions(
         "title": truncate(title, 200),
         "text": excerpt(text, purpose, TEXT_LIMIT if text_limit is None else text_limit),
     }
-    return state, {"contributes": CONTRIBUTES}
+    return state, tag("triage_part", {"contributes": CONTRIBUTES})
 
 
 SET_TEXT_LIMIT = 900
