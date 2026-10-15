@@ -157,7 +157,8 @@ def trouble(row: Mapping[str, Any], model_id: str) -> tuple[str, str] | None:
     if phase_loop.usage_limited(row):
         return None  # the loop's own stop (a 429 or usage limit)
     no_letter = row.get("final_answer") is None
-    if no_letter and (row.get("outage_hint") or OUTAGE_TEXT.search(reply_text(row))):
+    failed = no_letter and not row.get("ok", False)  # an error Claude Code marked, not prose
+    if failed and (row.get("outage_hint") or OUTAGE_TEXT.search(reply_text(row))):
         return "outage", f"authentication or model failure ({row.get('subtype')})"
     served = served_by(row)
     if served is not None and served != model_id:

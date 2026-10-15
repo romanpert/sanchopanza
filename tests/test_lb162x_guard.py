@@ -266,6 +266,14 @@ def test_an_outage_said_only_in_the_result_stops_the_phase_and_the_smoke(tmp_pat
         assert h2h.settle_smoke(guard.kind, sessions) == "outage"
 
 
+def test_a_normal_reply_that_names_401_without_a_letter_is_not_an_outage():
+    # The model's own text can say "401" or "authentication"; only an error Claude Code marked
+    # is an outage.
+    row = {"final_answer": None, "ok": True, "hit_cap": False, "subtype": "success",
+           "outage_hint": True, "usd_by_model": {B.model_id: 0.3}}  # fmt: skip
+    assert g.trouble(row, B.model_id) is None
+
+
 def test_the_session_reads_the_reply_through_the_longdoc_hook():
     import inspect
 

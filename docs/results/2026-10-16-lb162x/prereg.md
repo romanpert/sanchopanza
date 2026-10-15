@@ -83,8 +83,8 @@ model that served it), not the answer: it **passes** when the session was served
 `claude-opus-5-5` (most of its cost), at a cost above 0 USD, and ended without an error or
 was stopped by its cap (no letter needed). Otherwise the lot pauses before any session of
 phase B:
-- a reply that names an authentication or model-availability failure (in Claude Code's
-  `result` or its stderr) is an **outage** (exit 8): the session is not run and, having cost
+- an error reply (Claude Code marked it an error, no letter) that names an authentication or
+  model-availability failure (in Claude Code's `result` or its stderr) is an **outage** (exit 8): the session is not run and, having cost
   nothing, is repeated by a relaunch;
 - a 429 is `limit` (exit 2), the clock `clock` (exit 5), a STOP `manual` (exit 6);
 - any other failure is `smoke` (exit 9). A failed smoke that **cost 0 USD** is marked not run,
@@ -197,8 +197,8 @@ session's mean cost alone (deterministic), B runs all 162 (193 before the guard)
 - the clock: `clock`, exit 5 (also a launch the clock refuses);
 - a `STOP` file in `C:\sp-runs\lb162x`: `manual`, exit 6, before the next session;
 - any other failure of a phase (an exception): `error`, exit 7, a pause;
-- an **outage**: `outage`, exit 8, a pause. A session whose reply names an authentication or
-  model-availability failure (401/403, OAuth, an invalid key, "model ... not available"; read
+- an **outage**: `outage`, exit 8, a pause. A session Claude Code marked as an error, with no
+  letter, whose reply names an authentication or model-availability failure (401/403, OAuth, an invalid key, "model ... not available"; read
   in Claude Code's `result` during the session, only a flag kept, and in its stderr) is an
   outage at once; an infrastructure error (an error with no letter that no cap stopped) or a
   session most of whose cost went to another model counts toward a streak, and **three in a
