@@ -66,11 +66,11 @@ def test_supersede_rule_is_the_shipped_one():
 
 class _Fake:
     def __init__(self, name: str, log: list[str]) -> None:
-        self.name, self._log = "jev", log
-        self.model = name
+        self.name, self._log, self._arm = "jev", log, name
+        self.model = components.MODELS[name]
 
     async def decide(self, point, state, questions):
-        self._log.append(self.model)
+        self._log.append(self._arm)
         return Decision(point, {k: Answer("truth", 0.9, truth=0.9) for k in questions},
                         "jev", self.model, input_tokens=10, cost_usd=1e-6)  # fmt: skip
 
@@ -108,3 +108,43 @@ def test_the_113_rerun_never_writes_into_a_published_fixture():
     assert components.fixture_for("14").parent.name == "jev114"
     assert components.fixture_for("13r").parent.name == "jev114"
     assert components.fixture_for("13r").name.endswith("-113r.jsonl")
+
+
+def test_a_failed_case_is_asked_once_more_then_left(tmp_path):
+    out = tmp_path / "rows.jsonl"
+    bad = {"arm": "14", "file": "f", "id": "c0", "calls": [{"answers": {}, "error": "HTTP 500"}]}
+    out.write_text(json.dumps(bad) + "\n", encoding="utf-8")
+    assert ("14", "f", "c0") not in components.done_keys(out)
+    with out.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(bad) + "\n" + '{"cut short')
+    assert ("14", "f", "c0") in components.done_keys(out)
+
+
+def test_a_case_one_arm_failed_is_that_arms_error():
+    import report
+
+    ok = {"calls": [{"answers": {"x": {}}}]}
+    lost = {"calls": [{"answers": {}, "error": "HTTP 400"}]}
+    base_rows = {"f:c1": ok, "f:c2": ok}
+    new_rows = {"f:c1": ok, "f:c2": lost}
+    b, n = report.with_failures({"f:c1": True, "f:c2": True}, {"f:c1": True},
+                                base_rows, new_rows)  # fmt: skip
+    assert b == {"f:c1": True, "f:c2": True}
+    assert n == {"f:c1": True, "f:c2": False}
+
+
+def test_the_gate_needs_both_global_tests():
+    import report
+
+    g = {"policy": {"verdict": "no peor"}, "at_half": {"verdict": "mejora"},
+         "auc": {"verdict": "no concluyente"}}  # fmt: skip
+    assert report.gate(g)["passes"] is True
+    g["policy"]["verdict"] = "no concluyente"
+    assert report.gate(g) | {} == {**report.gate(g), "passes": False, "recalibrate_first": True}
+
+
+def test_an_answer_from_another_model_is_caught():
+    probe = components.Probe(_Fake("14", []))
+    probe.calls.append({"provider": "jev", "model": "jev-1.13.0", "answers": {"x": {}}})
+    assert components.wrong_model("14", probe)
+    assert not components.wrong_model("13r", probe)

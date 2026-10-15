@@ -2,8 +2,9 @@
 
 Reads `rows-bench.jsonl`, `rows-supersede.jsonl`, `rows-a9-*.jsonl` (both live arms) and
 `rows-113rec.jsonl` (the published 1.13 recordings through today's code) from the run
-directory, and writes `report.json` plus `tables.md` (and copies of the rows, texts never
-included) to `--out`.
+directory, and writes `report.json` to `--out`. A case that still failed after its retry
+counts as an error of the arm that failed (both items of a collision case too); a case both arms
+failed is left out; AUC uses only the cases both arms answered.
 """
 
 from __future__ import annotations
@@ -39,9 +40,9 @@ OPUS5 = ROOT / "docs" / "results" / "2026-09-27-memory-write-cut" / "fifty" / "a
 
 
 def _read(path: Path) -> list[dict[str, Any]]:
-    if not path.exists():
-        return []
-    return [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x.strip()]
+    from components import read_rows
+
+    return read_rows(path)
 
 
 def latest(rows: Iterable[Mapping[str, Any]]) -> dict[str, dict[str, dict[str, Any]]]:
@@ -160,40 +161,75 @@ def figures(rows: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
     return f
 
 
+def _lost(rows: Mapping[str, Mapping[str, Any]]) -> set[str]:
+    return {k for k, r in rows.items() if pr.failed(r) and not pr.capped(r)}
+
+
+def with_failures(base_items: dict[str, bool], new_items: dict[str, bool],
+                  base: Mapping[str, Mapping[str, Any]],
+                  new: Mapping[str, Mapping[str, Any]]) -> tuple[dict, dict]:  # fmt: skip
+    """A case one arm failed (after its retry) is that arm's error on every item of the case."""
+    b, n = dict(base_items), dict(new_items)
+    lost_b, lost_n = _lost(base), _lost(new)
+    for lost, mine, other in ((lost_b - lost_n, b, n), (lost_n - lost_b, n, b)):
+        for case in lost:
+            for item in other:
+                if item == case or item.startswith(case + ":"):
+                    mine[item] = False
+    return b, n
+
+
+def _three(base: Mapping[str, Mapping[str, Any]],
+           new: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:  # fmt: skip
+    b_ok, n_ok = usable(base), usable(new)
+    bp, np_ = with_failures(policy_items(b_ok), policy_items(n_ok), base, new)
+    bs, ns = free_scores(b_ok), free_scores(n_ok)
+    bh, nh = with_failures(free_correct(bs), free_correct(ns), base, new)
+    return {"policy": pr.compare(bp, np_), "at_half": pr.compare(bh, nh),
+            "auc": pr.auc_compare(bs, ns)}  # fmt: skip
+
+
 def tests(base: Mapping[str, Mapping[str, Any]],
           new: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:  # fmt: skip
     """Global and per component, with thresholds and without; Holm across components."""
-    out: dict[str, Any] = {"global": {}, "components": {}}
-    b_ok, n_ok = usable(base), usable(new)
-    a9 = {"a9"}
-    b_ok = {k: r for k, r in b_ok.items() if r.get("component") not in a9}
-    n_ok = {k: r for k, r in n_ok.items() if r.get("component") not in a9}
-    out["global"]["policy"] = pr.compare(policy_items(b_ok), policy_items(n_ok))
-    bs, ns = free_scores(b_ok), free_scores(n_ok)
-    out["global"]["at_half"] = pr.compare(free_correct(bs), free_correct(ns))
-    out["global"]["auc"] = pr.auc_compare(bs, ns)
+    base = {k: r for k, r in base.items() if r.get("component") != "a9"}
+    new = {k: r for k, r in new.items() if r.get("component") != "a9"}
+    out: dict[str, Any] = {"global": _three(base, new), "components": {}}
     for comp in COMPONENTS:
-        bc, nc = _subset(b_ok, component=comp), _subset(n_ok, component=comp)
-        cs, ds = free_scores(bc), free_scores(nc)
-        out["components"][comp] = {
-            "policy": pr.compare(policy_items(bc), policy_items(nc)),
-            "at_half": pr.compare(free_correct(cs), free_correct(ds)),
-            "auc": pr.auc_compare(cs, ds),
-        }
+        out["components"][comp] = _three(_subset(base, component=comp),
+                                         _subset(new, component=comp))  # fmt: skip
     for metric in ("policy", "at_half"):
         ps = {c: v[metric]["p"] for c, v in out["components"].items() if v[metric].get("n")}
         adjusted = pr.holm(ps)
         for comp, p_adj in adjusted.items():
             entry = out["components"][comp][metric]
             entry["p_holm"] = p_adj
-            entry["verdict"] = pr.verdict(entry["diff"], entry["low"], entry["high"], p_adj)
+            entry["verdict"] = _label(entry, p_adj)
     for v in out["components"].values():
         v["auc"]["verdict"] = _auc_verdict(v["auc"])
     for metric in ("policy", "at_half"):
         g = out["global"][metric]
-        g["verdict"] = pr.verdict(g["diff"], g["low"], g["high"], g["p"])
+        g["verdict"] = _label(g, g["p"])
     out["global"]["auc"]["verdict"] = _auc_verdict(out["global"]["auc"])
+    out["gate"] = gate(out["global"])
     return out
+
+
+def _label(entry: Mapping[str, Any], p: float) -> str:
+    """The sealed verdict, marked when a significant loss sits inside the margin."""
+    said = pr.verdict(entry["diff"], entry["low"], entry["high"], p)
+    return f"{said} (IC < 0)" if said == "no peor" and entry["high"] < 0 else said
+
+
+def gate(g: Mapping[str, Any]) -> dict[str, Any]:
+    """prereg: both global tests "no peor" or "mejora" and the global AUC not "peor"."""
+    ok = ("no peor", "mejora")
+    policy = g["policy"]["verdict"].split(" (")[0]
+    at_half = g["at_half"]["verdict"].split(" (")[0]
+    passes = policy in ok and at_half in ok and g["auc"]["verdict"] != "peor"
+    recalibrate = at_half in ok and policy not in ok
+    return {"passes": passes, "recalibrate_first": recalibrate,
+            "policy": policy, "at_half": at_half, "auc": g["auc"]["verdict"]}  # fmt: skip
 
 
 def _auc_verdict(a: Mapping[str, Any]) -> str:
@@ -222,6 +258,8 @@ def a9_table(rows: Mapping[str, Mapping[str, Mapping[str, Any]]], bench: Mapping
                           "caught": sum(r["predicted"] is True for r in pos), "pos": len(pos),
                           "false_alarms": sum(r["predicted"] is True for r in neg),
                           "neg": len(neg),
+                          "false_alarms_with_keywords": sum(
+                              r["predicted"] is True or bool(r.get("keyword")) for r in neg),
                           "with_keywords": sum(r["predicted"] is True or bool(r.get("keyword"))
                                                for r in pos),
                           "keyword_only": len(kw),
@@ -242,6 +280,7 @@ def write_report(run: Path, out: Path | None) -> int:
     arms = {"113rec": hist.get("113rec", {}), "13r": live.get("13r", {}), "14": live.get("14", {})}
     report: dict[str, Any] = {
         "rows": {a: len(r) for a, r in arms.items()},
+        "served": served(arms, windows, whole),
         "failed": {a: sum(pr.failed(r) for r in rs.values()) for a, rs in arms.items()},
         "capped": {a: sum(pr.capped(r) for r in rs.values()) for a, rs in arms.items()},
         "figures": {a: figures(usable(r)) for a, r in arms.items() if r},
@@ -272,6 +311,22 @@ def write_report(run: Path, out: Path | None) -> int:
     return 0
 
 
+def served(*sources: Mapping[str, Mapping[str, Mapping[str, Any]]]) -> dict[str, Any]:
+    """Calls the provider answered (not the cache), per arm and model it says answered."""
+    out: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    for source in sources:
+        for arm, rows in source.items():
+            for r in rows.values():
+                for c in r.get("calls", ()):
+                    if c.get("provider") == "jev":
+                        out[arm][str(c.get("model"))] += 1
+    want = {"13r": "jev-1.13.0", "14": "jev-1.14.0"}
+    wrong = {a: {m: n for m, n in ms.items() if m != want[a]} for a, ms in out.items()
+             if a in want}  # fmt: skip
+    return {"by_arm": {a: dict(m) for a, m in out.items()},
+            "wrong": {a: m for a, m in wrong.items() if m}}  # fmt: skip
+
+
 def spend(run: Path, *sources: Mapping[str, Mapping[str, Mapping[str, Any]]]) -> dict[str, Any]:
     per_arm: dict[str, dict[str, float]] = defaultdict(
         lambda: {"calls": 0, "usd": 0.0, "tokens": 0}
@@ -286,7 +341,9 @@ def spend(run: Path, *sources: Mapping[str, Mapping[str, Mapping[str, Any]]]) ->
                         per_arm[arm]["calls"] += 1
                         per_arm[arm]["usd"] += c.get("cost_usd") or 0.0
                         per_arm[arm]["tokens"] += c.get("tokens") or 0
-    ledger_path = run.parent / "ledger.json"
+    from components import LEDGER
+
+    ledger_path = LEDGER
     ledger = SpendLedger(ledger_path, cap_usd=4.50) if ledger_path.exists() else None
     return {"per_arm": dict(per_arm),
             "ledger_batch": ledger.spent("jev114-l1") if ledger else None,

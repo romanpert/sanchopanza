@@ -49,7 +49,8 @@ BATCH, BATCH_CAP, LEDGER_CAP = "jev114-l1", 0.30, 4.50
 GATE, CASES_AT_ONCE = 4, 4
 TTL_S = 14 * 86_400.0
 RUN = Path(os.environ.get("SANCHOPANZA_JEV114_RUN", "C:/sp-runs/jev114")) / "l1"
-LEDGER = RUN.parent / "ledger.json"
+LEDGER = Path("C:/sp-runs/jev114/ledger.json")  # shared by every lot: never moved by RUN
+ATTEMPTS = 2  # a failed case is asked once more, then counts as that arm's error
 FIXTURE = ROOT / "fixtures" / "l1-components.jsonl"
 COMPONENT_OF_FILE = {
     "core": "public", "safety": "public", "graph": "public",
@@ -146,13 +147,38 @@ def row_dict(result: Row | dict[str, Any], case: Mapping[str, Any], arm: str,
             "calls": probe.calls, "at": time.time()}  # fmt: skip
 
 
-def done_keys(path: Path) -> set[tuple[str, str, str]]:
+def read_rows(path: Path) -> list[dict[str, Any]]:
+    """Every whole JSON line; a line cut short by a killed process is skipped."""
     if not path.exists():
-        return set()
-    rows = [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x.strip()]
+        return []
+    rows = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        try:
+            rows.append(json.loads(line)) if line.strip() else None
+        except ValueError:
+            continue
+    return rows
+
+
+def done_keys(path: Path) -> set[tuple[str, str, str]]:
+    """Cases not to ask again: answered, or failed `ATTEMPTS` times (capped runs do not count)."""
     from paired import capped, failed
 
-    return {(r["arm"], r["file"], r["id"]) for r in rows if not failed(r) and not capped(r)}
+    tries: dict[tuple[str, str, str], int] = {}
+    done = set()
+    for r in read_rows(path):
+        key = (r["arm"], r["file"], r["id"])
+        if capped(r):
+            continue
+        if not failed(r):
+            done.add(key)
+        tries[key] = tries.get(key, 0) + 1
+    return done | {k for k, n in tries.items() if n >= ATTEMPTS}
+
+
+def wrong_model(arm: str, probe: Probe) -> bool:
+    """A call the provider answered (not the cache) with another model than the arm's."""
+    return any(c.get("provider") == "jev" and c.get("model") != MODELS[arm] for c in probe.calls)
 
 
 async def run_cases(cases: list[dict[str, Any]], stacks: Mapping[str, Decider], out: Path,
@@ -160,7 +186,7 @@ async def run_cases(cases: list[dict[str, Any]], stacks: Mapping[str, Decider], 
     """Each case asked of both arms, order alternating; `ask(case, decider)` -> result."""
     done = done_keys(out)
     sem = asyncio.Semaphore(CASES_AT_ONCE)
-    counts = {"asked": 0, "skipped": 0, "capped": 0}
+    counts = {"asked": 0, "skipped": 0, "capped": 0, "wrong_model": 0}
     stop = RUN / "STOP"
     out.parent.mkdir(parents=True, exist_ok=True)
 
@@ -171,13 +197,14 @@ async def run_cases(cases: list[dict[str, Any]], stacks: Mapping[str, Decider], 
                 if (arm, case["file"], case["id"]) in done:
                     counts["skipped"] += 1
                     continue
-                if stop.exists() or counts["capped"]:
+                if stop.exists() or counts["capped"] or counts["wrong_model"]:
                     return
                 probe = Probe(stacks[arm])
                 result = await ask(case, probe)
                 row = row_dict(result, case, arm, probe)
                 counts["asked"] += 1
                 counts["capped"] += any(c.get("capped") for c in probe.calls)
+                counts["wrong_model"] += wrong_model(arm, probe)
                 with out.open("a", encoding="utf-8") as handle:
                     handle.write(json.dumps(row, ensure_ascii=False, default=str) + "\n")
 
@@ -256,10 +283,12 @@ def cmd_run(args: argparse.Namespace) -> int:
         return cmd_plan(args)
     load_key()
     ledger = SpendLedger(LEDGER, cap_usd=LEDGER_CAP)
+    if not preflight_both(ledger):
+        return 3
     print(f"ledger {ledger.spent():.4f} of {LEDGER_CAP}; {BATCH} {ledger.spent(BATCH):.4f} "
           f"of {BATCH_CAP}")  # fmt: skip
 
-    async def go() -> None:
+    async def go() -> int:
         stacks = live_stacks(asyncio.Semaphore(GATE))
         parts = [("bench", bench_cases(), ask_bench), ("supersede", supersede_cases(),
                  ask_supersede), ("a9-windows", a9_cases(), ask_a9_windows),
@@ -273,12 +302,40 @@ def cmd_run(args: argparse.Namespace) -> int:
             print(f"{name}: {counts} in {time.time() - started:.0f} s; {BATCH} "
                   f"{ledger.spent(BATCH):.4f} USD", flush=True)  # fmt: skip
             if counts["capped"]:
-                print("spend cap reached: stopping")
-                return
+                print(f"a call was refused (cap, or the ledger lock not taken in time): ledger "
+                      f"{ledger.spent():.4f} of {LEDGER_CAP}, {BATCH} {ledger.spent(BATCH):.4f} "
+                      f"of {BATCH_CAP}; stopping")  # fmt: skip
+                return 2
+            if counts["wrong_model"]:
+                print("the provider answered with another model than the arm's: stopping")
+                return 4
+            if (RUN / "STOP").exists():
+                print("STOP file: stopping")
+                return 5
+        return 0
 
-    asyncio.run(go())
+    code = asyncio.run(go())
     print(f"ledger {ledger.spent():.4f}; {BATCH} {ledger.spent(BATCH):.4f}")
-    return 0
+    return code
+
+
+def preflight_both(ledger: SpendLedger) -> bool:
+    """`jev-preflight` for each model (balance, key, served model), its cost on the ledger."""
+    from sanchopanza.providers.jev import preflight
+
+    ok = True
+    for arm, model in MODELS.items():
+        rid = ledger.reserve(0.0001, batch=BATCH, batch_cap_usd=BATCH_CAP)
+        if rid is None:
+            print("preflight refused by the ledger")
+            return False
+        result = preflight(model=model)
+        ledger.settle(rid, result.cost_usd)
+        served_ok = result.model == model
+        print(f"preflight {arm}: {'ok' if result.ok else result.reason}; HTTP "
+              f"{result.http_status}; served {result.model}; {result.cost_usd:.6f} USD")
+        ok = ok and result.ok and served_ok
+    return ok
 
 
 def cmd_report(args: argparse.Namespace) -> int:

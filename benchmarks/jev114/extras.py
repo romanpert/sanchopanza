@@ -34,15 +34,17 @@ from sanchopanza.harness.memory_rules import SUPERSEDED_AT  # noqa: E402
 from sanchopanza.journal import MemoryJournal  # noqa: E402
 from sanchopanza.points import injection  # noqa: E402
 from sanchopanza.policy import Thresholds  # noqa: E402
+from sanchopanza.redact import redact_secrets  # noqa: E402
 from sanchopanza.squire import Squire  # noqa: E402
 
 FIRST = ROOT / "docs" / "results" / "2026-10-05-memory-supersede"
 SECOND = ROOT / "docs" / "results" / "2026-10-05-memory-supersede-second"
 
 
-def _squire(decider: Decider) -> Squire:
+def _squire(decider: Decider, *, redact: bool = False) -> Squire:
     t = _bench_thresholds(Thresholds()).with_(max_decisions=10_000, max_usd=100.0)
-    return Squire(decider, thresholds=t, journal=MemoryJournal())
+    return Squire(decider, thresholds=t, journal=MemoryJournal(),
+                  redact=redact_secrets if redact else None)  # fmt: skip
 
 
 def _supersede_bench() -> types.ModuleType:
@@ -83,7 +85,7 @@ def supersede_row(case: Mapping[str, Any], score: float | None,
 
 async def ask_supersede(case: Mapping[str, Any], decider: Decider) -> dict[str, Any]:
     sb = _supersede_bench()
-    got = await sb.ask_case(_squire(decider), "a", case)
+    got = await sb.ask_case(_squire(decider, redact=True), "a", case)  # as its own runs
     return supersede_row(case, got.get("score"), got.get("stands"))
 
 
