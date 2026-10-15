@@ -763,6 +763,8 @@ docs/adapters.md       one section per harness
 docs/providers.md      how to write a provider
 docs/evolve.md         the interface a self-improving harness uses to tune this package
 docs/governance.md     branch protection, PyPI trusted publishing, releasing
+docs/ROADMAP.md        what is pending, by priority and cost
+docs/history/          working notes kept for the record, superseded
 examples/              Claude Code, Claude Agent SDK, MCP, a local provider, evolve
 tests/                 no test calls a paid API
 ```
