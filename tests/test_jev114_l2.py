@@ -125,3 +125,60 @@ def test_sealed_originals_still_hold():
         raw = pathlib.Path(f"{base}.md").read_bytes().replace(b"\r\n", b"\n")
         held = pathlib.Path(f"{base}.sha256").read_text(encoding="utf-8").strip()
         assert hashlib.sha256(raw).hexdigest() == held
+
+
+def _report():
+    path = OUT / "analysis.json"
+    if not path.exists():
+        pytest.skip("no analysis yet")
+    import json
+
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_the_published_verdicts():
+    conclusions = _report()["conclusions"]
+    assert conclusions["check_done"] == "recalibrate the cut on 1.14 first"
+    assert conclusions["permission_cascade"] == "stay on 1.13"
+    assert conclusions["codex_confirmation_with_14"] == "confirmed"
+    assert conclusions["rjudge_under_bar_with_14"] is True
+    assert conclusions["rjudge_bar_13r_vs_14_split_noise"] is True
+    bar = conclusions["rjudge_opus_bar_50"]
+    assert [bar[a]["cost_ratio"] for a in ("rec", "13r", "14")] == [0.5681, 0.6565, 0.439]
+
+
+def test_the_published_comparisons():
+    sets = _report()["sets"]
+    got = {
+        name: (
+            c["acc"],
+            c["acc_ci95"],
+            c["mcnemar"]["only_a"],
+            c["mcnemar"]["only_b"],
+            c["reading"],
+        )
+        for name, c in ((n, s["14_vs_13r"]) for n, s in sets.items())
+    }
+    assert got == {
+        "completion": ([0.9191, 0.9405], [-0.0336, -0.0107], 1, 15, "worse"),
+        "rjudge": ([0.8967, 0.8739], [0.007, 0.0403], 18, 5, "better"),
+        "codex": ([0.772, 0.788], [-0.036, 0.004], 9, 17, "inconclusive"),
+    }
+    assert sets["completion"]["14_vs_13r"]["auc_ci95"] == [-0.0196, -0.0059]
+
+
+@pytest.mark.skipif(
+    not (pathlib.Path(RJUDGE).exists() and CODEX and pathlib.Path(CODEX).exists()),
+    reason="R-Judge or ATBench-Codex not present locally",
+)
+def test_both_live_arms_replay_from_their_fixtures():
+    sets = bench.load_sets(argparse.Namespace(rjudge=RJUDGE, codex=CODEX))
+    if not sets["completion"]:
+        pytest.skip("AgentDojo run files not present")
+    for arm, model in bench.MODELS.items():
+        for cases in sets.values():
+            rows = asyncio.run(bench.jev_rows(cases, arm))
+            assert all(r["jev"] is not None for r in rows)
+            assert {r["jev_model"] for r in rows} == {model}
+    rows = asyncio.run(bench.jev_rows(sets["completion"], "14"))
+    assert bench.alone(rows, "completion")["acc"] == 0.9191

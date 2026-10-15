@@ -27,6 +27,15 @@ not.
 | [2026-10-13-memory-cell](2026-10-13-memory-cell/README.md) | The open memory cell, Sonnet 5.5, a fact said in a parallel session or sibling worktree, 24 pairs, pre-registered: S broke 0 facts against N's 11 (McNemar p 0.00049; by scene 4 wins, 0 losses), task 23 vs 24, cost 1.117 [1.05, 1.15], wall 1.12: **gana**. S is the default install plus `--memory`; 8.47 USD |
 | [2026-10-13-long-compact](2026-10-13-long-compact/README.md) | Early compaction near 67k (what `install --context-budget 67000` writes) against N-early near 160k, Sonnet 5.5, 5 long60 chains, k = 1, pre-registered: cost 0.900 [0.741, 1.093], quality −1.4 points (non-inferior at −10), wall 1.09: **no gana**, no saving shown (0.858 [0.748, 0.984] if a call cut by a PC reboot is metered rather than charged at its cap, a sensitivity the sealed rule does not use) (under the post-data amendment: conan-2 repeated at 0.952, still no gana: R1 0.875 [0.754, 1.015], R2 0.887 [0.750, 1.050]). 173.11 + 33.69 USD |
 
+## Jev 1.14
+
+`jev-1.14.0` against `jev-1.13.0`, both asked on 2026-10-15 on the published inputs; the default
+stays `jev-1.13.0`.
+
+| Folder | What it backs |
+|---|---|
+| [2026-10-15-jev114-l2](2026-10-15-jev114-l2/) | check_done and the permission cascade, Claude answers replayed: check_done worse at the 0.5 cut (91.9 % against 94.0 %, AUC 0.970 against 0.982), recalibrate before moving; R-Judge better (89.7 % against 87.4 %), Codex inconclusive, cascade stays on 1.13; R-Judge against Opus 5 at 43.9 % of its cost with 1.14 (65.7 % with 1.13 today), split noise at a 31 % median for both; the Codex confirmation at tau 0.45 holds with 1.14 (37.7 %). 0.173 USD of Jev |
+
 ## Main evidence
 
 The runs behind the README's headline numbers.
