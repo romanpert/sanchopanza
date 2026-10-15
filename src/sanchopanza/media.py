@@ -1,16 +1,16 @@
 """Attachments: how a non-text thing gets into a decision's state.
 
 **What exists, as of 2026-10-15.** Jev reads images. With the 1.14 release (2026-10-14)
-TypeSafe documents PNG and JPEG images behind an opt-in header,
-`TypeSafe-Danger-Zone-Images: true`, and the header works on `jev-1.13.0` too (measured: the
-same answers on a 640x480 form from both versions). Each side must be 280 to 1568 px (the docs say
-256; 270 was refused in practice), 78,400 to 2,458,624 px in all, at most 16 MiB a file and 32 MiB a request; an image outside the bounds
-is refused, not resized. The image travels once per request in a top-level `assets` map and
-its ref is cited from the state, the instructions or the criteria; every citation is billed
-again as input tokens (a 640x480 capture was about 850 tokens). `JevDecider(images=True)`
+TypeSafe documents PNG and JPEG images behind an opt-in header, `TypeSafe-Danger-Zone-Images: true`,
+and the header works on `jev-1.13.0` too (measured: the same answers on a 640x480 form from both
+versions). Each side must be 280 to 1568 px (the docs say 256; 270 was refused in practice), 78,400
+to 2,458,624 px in all, at most 16 MiB a file and 32 MiB a request; an image outside the bounds is
+refused, not resized. The image travels once per request in a top-level `assets` map and its ref is
+cited from the state, the instructions or the criteria; every citation is billed again as input
+tokens (a 640x480 capture was about 850 tokens). `JevDecider(images=True)`
 (`SANCHOPANZA_JEV_IMAGES=1`) turns an `Attachment` into that wire, resizing with Pillow
-(`sanchopanza[images]`) when it has to (`providers.jev_assets`). 1.14 adds a Box primitive,
-where in an image something is (`contract.Box`). Audio and video are still not supported.
+(`sanchopanza[images]`) when it has to (`providers.jev_assets`). 1.14 adds a Box primitive, where in
+an image something is (`contract.Box`). Audio and video are still not supported.
 
 Before that release (2026-09-24) the documentation said *"Jev accepts text only"*, and every
 other offer was a ranking score that is not a probability, an uncalibrated vendor confidence,
