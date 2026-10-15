@@ -1,5 +1,5 @@
 """Lot lb162's stops, with no network and no session: which Jev errors fail a task and which
-pause phase J, failed calls in a row, documents read a few at a time, phase S's reservations
+pause phase J, failed tasks in a row, documents read a few at a time, phase S's reservations
 and infrastructure errors, the "pausa" reading, the product claim, and what the seal covers."""
 
 from __future__ import annotations
@@ -129,21 +129,39 @@ def test_a_choice_with_no_probability_for_its_pick_is_a_failed_call(tmp_path):
     assert row["status"] == "answered" and row[lb.CELL]["tries"] == 2 and stop.kind is None
 
 
-def test_three_failed_calls_in_a_row_pause_phase_j_and_the_task_stays_failed(tmp_path):
+def test_a_tasks_own_three_failed_lengths_fail_it_without_pausing_the_phase(tmp_path):
     doc = tmp_path / "d.txt"
     doc.write_text("abc", encoding="utf-8")
     stop = lb.Stop()
-    arm = Script([_decision(None)] * 3, stop)
-    row = asyncio.run(lb.jev_one(FakeTask(doc), arm, stop))
-    assert row["status"] == "failed" and stop.kind == "failures"
-    later = asyncio.run(lb.jev_one(FakeTask(doc, 1), Script([], stop), stop))
+    timeout = DeciderUnavailable("jev unreachable: ReadTimeout")
+    for replies in ([_decision(None)] * 3, [timeout] * 3):
+        row = asyncio.run(lb.jev_one(FakeTask(doc), Script(replies, stop), stop))
+        assert row["status"] == "failed" and row[lb.CELL]["tries"] == 3
+    assert stop.kind is None and stop.consecutive == 2  # two tasks failed, not six calls
+
+
+def test_three_distinct_failed_tasks_in_a_row_pause_phase_j(tmp_path):
+    doc = tmp_path / "d.txt"
+    doc.write_text("abc", encoding="utf-8")
+    stop = lb.Stop()
+    for i in range(3):
+        row = asyncio.run(lb.jev_one(FakeTask(doc, i), Script([_decision(None)] * 3, stop), stop))
+        assert row["status"] == "failed"  # the third task stays failed: it was asked whole
+    assert stop.kind == "failures" and lb.jev_exit(stop.kind) == 2
+    later = asyncio.run(lb.jev_one(FakeTask(doc, 9), Script([], stop), stop))
     assert later["status"] == "stopped" and later[lb.CELL]["tries"] == 0
 
 
-def test_an_answer_resets_the_count_of_failed_calls(tmp_path):
+def test_an_answered_task_resets_the_count_and_a_stopped_one_does_not_count(tmp_path):
+    doc = tmp_path / "d.txt"
+    doc.write_text("abc", encoding="utf-8")
     stop = lb.Stop()
-    for answered in (False, False, True, False, False):
-        stop.call_done(answered)
+    for replies in ([_decision(None)] * 3, [_decision(None)] * 3, [_decision(None),
+                    _decision("B")], [_decision(None)] * 3):  # fmt: skip
+        asyncio.run(lb.jev_one(FakeTask(doc), Script(replies, stop), stop))
+    assert stop.kind is None and stop.consecutive == 1
+    for answered in (False, True, False, False):
+        stop.task_done(answered)
     assert stop.kind is None and stop.consecutive == 2
 
 

@@ -8,7 +8,7 @@ tasks, the phase, its private session folder and its money and clock rules are i
     python benchmarks/h2h/h2h_lb162.py --plan        # free: sessions, bands, cost, wall time
     python benchmarks/h2h/h2h_lb162.py --preflight   # free: cache, pinned claude, hooks, arm
     powershell -File benchmarks/h2h/launch.ps1 -Runner h2h_lb162.py -RunnerArgs "--phase lb162" `
-        -Pin $env:USERPROFILE\\.cache\\sanchopanza\\claude-pin\\2.1.287 `
+        -Pin $env:USERPROFILE\\.cache\\sanchopanza\\claude-pin\\2.1.287 -KeysEnv <keys .env path> `
         -Log C:\\sp-runs\\lb162\\sonnet.log -PidFile C:\\sp-runs\\lb162\\sonnet.pids   # PAID
     python benchmarks/h2h/h2h_lb162.py               # free: rows without text into the results
 

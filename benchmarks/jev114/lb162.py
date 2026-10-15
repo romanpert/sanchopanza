@@ -21,7 +21,7 @@ this lot's own ledger (LEDGER_PATH) and cap, reserved before the call. A task fa
 HTTP 400, a ReadTimeout or a Choice with no probability for its pick, at all three lengths.
 Anything else stops every further call (`Stop`): the cap (final), an HTTP 402, an HTTP 429
 (taken out of the client's retries, `no_retry_on_429`), any other error ("outage": the network,
-5xx, 529 after its bounded retries, 401/403), three failed calls in a row, or a STOP file in
+5xx, 529 after its bounded retries, 401/403), three failed tasks in a row, or a STOP file in
 RUN_DIR (pauses). Answers are recorded with hashed keys (no text) in OUT, so a relaunch pays
 only for what is missing. The key comes from TYPESAFE_API_KEY or the file SANCHOPANZA_KEYS_ENV
 names (never printed).
@@ -85,7 +85,7 @@ COVERED_FILE = OUT / "covered-ids.txt"
 SONNET_ROWS = OUT / "sonnet-rows.jsonl"
 SONNET_STOP = OUT / "sonnet-stop.json"
 SUMMARY = OUT / "summary.json"
-MAX_CONSECUTIVE_FAILURES = 3  # failed calls in a row (completion order) that pause phase J
+MAX_CONSECUTIVE_FAILURES = 3  # distinct failed tasks in a row (completion order): a pause
 # A task fails (and is asked again shorter) only on these; any other error pauses phase J.
 TASK_FAILURES = ("HTTP 400", "jev unreachable: ReadTimeout")
 PAUSES = ("funds", "limit", "outage", "failures", "manual")
@@ -207,7 +207,7 @@ def data_problems() -> list[str]:
 class Stop:
     """Why phase J stopped: `cap` (final: score what is complete), or a pause a relaunch
     resumes: `funds` (402), `limit` (429), `outage` (any other error but a task failure),
-    `failures` (MAX_CONSECUTIVE_FAILURES failed calls in a row) or `manual` (STOP file)."""
+    `failures` (MAX_CONSECUTIVE_FAILURES failed tasks in a row) or `manual` (STOP file)."""
 
     def __init__(self, stop_file: pathlib.Path | None = None,
                  max_consecutive: int | None = MAX_CONSECUTIVE_FAILURES) -> None:  # fmt: skip
@@ -217,11 +217,12 @@ class Stop:
         self.max_consecutive = max_consecutive
         self.consecutive = 0
 
-    def call_done(self, answered: bool) -> None:
-        """Count failed calls in a row (completion order); an answered call resets."""
+    def task_done(self, answered: bool) -> None:
+        """Count distinct tasks failed in a row (completion order); an answered task resets. A
+        task's own shorter retries count once: only its final outcome is counted."""
         self.consecutive = 0 if answered else self.consecutive + 1
         if self.max_consecutive and self.consecutive >= self.max_consecutive:
-            self.note("failures", f"{self.consecutive} failed calls in a row")
+            self.note("failures", f"{self.consecutive} failed tasks in a row")
 
     def note(self, kind: str, reason: str) -> None:
         if self.kind is None:
@@ -306,12 +307,13 @@ async def jev_one(task: Any, arm: Any, stop: Stop) -> dict[str, Any]:
         paid += decision.cost_usd
         tokens = decision.input_tokens
         letter, p, probs = l6.top_of(decision)
-        stop.call_done(letter is not None)
         if letter is not None:
             break
     # Failed: every length asked and refused as a task failure, not cut short by a pause.
     tried_all = tries == len(SHRINK) and stop.kind in (None, "failures")
     status = "answered" if letter is not None else "failed" if tried_all else "stopped"
+    if status != "stopped":
+        stop.task_done(status == "answered")
     cell = {"letter": letter, "p": p, "probs": probs, "usd": round(paid, 6), "tries": tries,
             "tokens": tokens, "shown_chars": min(len(text), limit)}  # fmt: skip
     return {"id": task.task_id, "gold": task.gold, "chars": task.chars, "length": task.length,

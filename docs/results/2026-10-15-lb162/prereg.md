@@ -79,9 +79,9 @@ runner's on a wall-clock timeout).
   included) counts as **not run** in the primary reading: it is excluded like a covered task
   without a session.
 - The registered **sensitivity reading** counts those as wrong.
-- Bias: excluding them can only raise Sonnet's accuracy on the covered tasks, if those tasks
-  are harder than the rest. So the primary is the reading less favourable to the hybrid; the
-  sensitivity reading is the more favourable one.
+- Bias: excluding them always gives Sonnet at least the accuracy that counting them wrong
+  gives. So the primary is the reading less favourable to the hybrid; the sensitivity reading is
+  the more favourable one.
 
 ## Primary analysis and verdict (`lb162_stats.py`)
 
@@ -196,7 +196,9 @@ Sonnet (see below), the CI widens and the chance of a verdict is somewhat lower.
     (`no_retry_on_429`, as lot memgate-long), so the first 429 stops;
   - any other error, an **outage**: the network other than a ReadTimeout, HTTP 5xx, 529 after
     the client's three bounded retries, 401/403, a body that is not JSON;
-  - **three failed calls in a row** (completion order), of any kind;
+  - **three distinct tasks failed in a row** (completion order; an answered task resets the
+    count). A task's own three lengths count once, as one failed task: they fail that task
+    without pausing the phase;
   - a `STOP` file in `C:\sp-runs\lb162`.
 - After a pause the rows are written with the unasked tasks marked "stopped", not frozen. The
   relaunch asks only those; a failed task stays failed. `jev-stop.json` keeps the stop's kind
@@ -224,7 +226,7 @@ python benchmarks/h2h/h2h_lb162.py --preflight    # free (needs the subscription
 python benchmarks/jev114/lb162.py --seal
 python benchmarks/jev114/lb162.py --smoke --live
 python benchmarks/jev114/lb162.py --run --live
-powershell -File benchmarks/h2h/launch.ps1 -Runner h2h_lb162.py -RunnerArgs "--phase lb162" -Pin $env:USERPROFILE\.cache\sanchopanza\claude-pin\2.1.287 -Log C:\sp-runs\lb162\sonnet.log -PidFile C:\sp-runs\lb162\sonnet.pids
+powershell -File benchmarks/h2h/launch.ps1 -Runner h2h_lb162.py -RunnerArgs "--phase lb162" -Pin $env:USERPROFILE\.cache\sanchopanza\claude-pin\2.1.287 -KeysEnv <path to the keys .env that SANCHOPANZA_KEYS_ENV names> -Log C:\sp-runs\lb162\sonnet.log -PidFile C:\sp-runs\lb162\sonnet.pids
 python benchmarks/h2h/h2h_lb162.py                # rows without text
 python benchmarks/jev114/lb162.py                 # the analysis, summary.json
 ```
