@@ -34,8 +34,10 @@ pytestmark = pytest.mark.skipif(os.name != "nt", reason="the launchers are Windo
 def _digest(chain: dict[str, Any]) -> str:
     """`run.chain_digest`, run in a child: importing benchmarks/adopt here would leave its plain
     module names (`run`) in sys.modules for other benchmarks' tests."""
-    code = ("import json, sys; sys.path.insert(0, sys.argv[1]); import run; "
-            "print(run.chain_digest(json.loads(sys.stdin.read())))")
+    code = (
+        "import json, sys; sys.path.insert(0, sys.argv[1]); import run; "
+        "print(run.chain_digest(json.loads(sys.stdin.read())))"
+    )
     done = subprocess.run([sys.executable, "-c", code, str(ADOPT)], input=json.dumps(chain),
                           capture_output=True, text=True, check=True)  # fmt: skip
     return done.stdout.strip()
@@ -76,6 +78,23 @@ def dry_environment(base: pathlib.Path, chains: tuple[str, ...]) -> dict[str, st
             "LL_DRY_CONFIG": str(base / "dry.json"), **secrets}  # fmt: skip
 
 
+def launcher_python(cmd: str) -> pathlib.Path:
+    """The python a launcher runs (`set PY=` in the .cmd): the owner's venv, where the runs ran."""
+    for line in (ROOT / cmd).read_text(encoding="utf-8").splitlines():
+        if line.startswith("set PY="):
+            return pathlib.Path(line[len("set PY=") :].strip())
+    raise AssertionError(f"{cmd} names no python")
+
+
+def needs_python(cmd: str) -> pytest.MarkDecorator:
+    """Skip a test that runs `cmd` past its checks when the python it names is not here (a CI
+    runner): the launcher then stops with 'The system cannot find the path specified'."""
+    return pytest.mark.skipif(
+        not launcher_python(cmd).exists(),
+        reason=f"{cmd} runs {launcher_python(cmd)}, not on this machine",
+    )
+
+
 def launch(cmd: str, args: list[str], env: dict[str, str], timeout: float = 600.0) -> int:
     full = {**os.environ, **env}
     for name in ("PYTHONPATH", "CLAUDE_CONFIG_DIR"):
@@ -93,6 +112,7 @@ def _text(path: pathlib.Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
+@needs_python("long-gate-run.cmd")
 def test_gate_launcher_runs_n_on_both_models_records_windows_and_resumes(
     tmp_path: pathlib.Path,
 ) -> None:
@@ -152,8 +172,9 @@ def test_gate_launcher_refuses_without_a_chain_manifest(tmp_path: pathlib.Path) 
 
 def test_gate_launcher_refuses_a_claude_that_is_not_the_pin(tmp_path: pathlib.Path) -> None:
     env = dry_environment(tmp_path, GATE)
-    (pathlib.Path(env["LL_PIN"]) / "claude.cmd").write_text("@echo 2.1.290 (Claude Code)\r\n",
-                                                              encoding="utf-8", newline="")
+    (pathlib.Path(env["LL_PIN"]) / "claude.cmd").write_text(
+        "@echo 2.1.290 (Claude Code)\r\n", encoding="utf-8", newline=""
+    )
     assert launch("long-gate-run.cmd", ["dry"], env) == 3
     assert "not 2.1.287" in _text(tmp_path / "L" / "launch.status")
 
@@ -193,7 +214,8 @@ def test_smoke_launcher_runs_three_arms_on_three_bugs_and_resumes_a_dead_runner(
     assert f"S runs {SANCHO}" in log
     if SANCHO == SEALED:  # the sealed install's guard: struct over 6 parts, no chooser of ours
         assert "guard: 6 SessionStart(compact) parts, chooser the install's default" in _text(
-            root / "runner-haiku.log")
+            root / "runner-haiku.log"
+        )
 
 
 def test_the_launchers_are_lf_and_name_the_caps_the_code_holds(

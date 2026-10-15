@@ -34,6 +34,8 @@ def _shell_reads_on(monkeypatch: pytest.MonkeyPatch) -> None:
     """These tests exercise what a shell read shows (v6, v6.1); v6.2 turns reads off by
     default (tests/test_memory_shell_v62.py)."""
     monkeypatch.setattr(mh, "SHELL_READS", True)
+
+
 DIFF = f"@@ -10,3 +10,4 @@ class CarbonLexer:\n     {HEX_LINE}\n+    (r'0[oO][0-7]+', Number.Oct),"
 
 

@@ -407,6 +407,8 @@ def test_a_resumed_chain_starts_from_its_validated_bugs_and_keeps_earlier_rounds
                                         encoding="utf-8")  # fmt: skip
     monkeypatch.setattr(long, "EXTRA60", tmp_path / "extra.json")
     monkeypatch.setattr(long, "EXTRA60_FULL", tmp_path / "full.json")
+    # the manifest hashes the SWE-smith source in the home cache; this test does not read it
+    monkeypatch.setattr(long.chains, "source_digest", lambda: "0" * 64)
     other = {**chain, "chain": "r-long60-2"}
     assert long.resumed(other) is other  # a chain the record does not name is left alone
     resumed = long.resumed(chain)

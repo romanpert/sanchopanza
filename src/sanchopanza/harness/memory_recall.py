@@ -60,6 +60,7 @@ def pool_of(
 ) -> list[ep.Episode]:  # fmt: skip
     """Records not in the live context and not already given since the last compaction. With
     `live` unknown (the transcript could not be read), none of this session's records."""
+
     def offered(e: ep.Episode) -> bool:
         if e.key in shown:
             return False

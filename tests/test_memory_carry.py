@@ -54,11 +54,11 @@ RESULTS: dict[str, tuple[str, str, str]] = {
         "from datetime import datetime\n\n\ndef format_line(level, message, now=None,"
         " request_id=None):\n    now = now or datetime.now()\n"
         "    msg = f'[{request_id}] {message}' if request_id else message\n"
-        "    return f\"{now:%Y-%m-%d %H:%M:%S} | {level.upper()} | {msg}\"\n",
+        '    return f"{now:%Y-%m-%d %H:%M:%S} | {level.upper()} | {msg}"\n',
         "from datetime import datetime\n\n\ndef format_line(level, message, now=None,"
         " request_id=None):\n    now = now or datetime.now()\n"
         "    return f\"{now:%Y-%m-%d %H:%M:%S} | {level.upper()} | {request_id or '-'} |"
-        " {message}\"\n",
+        ' {message}"\n',
     ),
     "strings": (
         "app/users.py",
@@ -176,8 +176,10 @@ def test_the_stream_reader_takes_events_whose_message_is_text(tmp_path: Path) ->
     # Haiku, 2026-10-02: a permission_denied event carries `message` as a string
     carry = bench_module(ROOT / "benchmarks" / "memory_carry", "carry")
     path = tmp_path / "s.jsonl"
-    rows = ['{"type":"system","subtype":"permission_denied","message":"Compound command"}',
-            '{"type":"result","total_cost_usd":0.1,"num_turns":3,"result":"ok"}']
+    rows = [
+        '{"type":"system","subtype":"permission_denied","message":"Compound command"}',
+        '{"type":"result","total_cost_usd":0.1,"num_turns":3,"result":"ok"}',
+    ]
     path.write_text("\n".join(rows), encoding="utf-8")
     seen = carry.read_stream(path)
     assert seen["cost"] == 0.1 and seen["turns"] == 3 and seen["tools"] == 0
@@ -207,8 +209,9 @@ def test_building_a_repository_survives_one_held_index(tmp_path: Path, monkeypat
     monkeypatch.setattr(carry, "git", flaky)
     monkeypatch.setattr(carry.time, "sleep", lambda s: None)
     repo = carry.build(tmp_path / "run", {"files": {"app/a.py": "x = 1\n"}})
-    log = subprocess.run(["git", "-C", str(repo), "log", "--oneline"], capture_output=True,
-                         text=True, check=True).stdout
+    log = subprocess.run(
+        ["git", "-C", str(repo), "log", "--oneline"], capture_output=True, text=True, check=True
+    ).stdout
     assert failed and "start" in log
 
 
@@ -220,7 +223,9 @@ def test_a_send_back_quoting_the_scenes_fact_in_a_longer_sentence_is_its_own(
     rules = sendbacks.ALL_RULES
     pair = tmp_path / "columns-haiku-V-0"
     pair.mkdir()
-    rows = [{"event": "SessionStart", "source": "startup"},
-            {"event": "rules", "broken": [f"For context: {rules['columns']}", rules["fields"]]}]
+    rows = [
+        {"event": "SessionStart", "source": "startup"},
+        {"event": "rules", "broken": [f"For context: {rules['columns']}", rules["fields"]]},
+    ]
     (pair / "hook-log.jsonl").write_text("\n".join(json.dumps(r) for r in rows), "utf-8")
     assert [r["own"] for r in sendbacks.sendbacks(pair)] == [True, False]

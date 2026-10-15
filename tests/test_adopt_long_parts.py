@@ -14,9 +14,25 @@ import pytest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ADOPT = ROOT / "benchmarks" / "adopt"
-B2 = pathlib.Path.home() / ".cache" / "sanchopanza" / "adopt" / "runs" / "pydantic__pydantic-long40-1"
-OURS = ("run", "long", "docker_env", "perbug", "long_run", "long_call", "long_guard",
-        "long_report", "arm_files", "hook_env", "meter", "carry", "chains", "related", "masking")
+B2 = (pathlib.Path.home() / ".cache" / "sanchopanza" / "adopt" / "runs"
+      / "pydantic__pydantic-long40-1")  # fmt: skip
+OURS = (
+    "run",
+    "long",
+    "docker_env",
+    "perbug",
+    "long_run",
+    "long_call",
+    "long_guard",
+    "long_report",
+    "arm_files",
+    "hook_env",
+    "meter",
+    "carry",
+    "chains",
+    "related",
+    "masking",
+)
 
 
 @pytest.fixture(scope="module")
@@ -27,7 +43,8 @@ def mods():  # type: ignore[no-untyped-def]
     import long_guard  # puts memory_carry and benchmarks on the path
     import long_report
 
-    import carry
+    # isort: split
+    import carry  # only importable once long_guard has put memory_carry on the path
     import meter
 
     yield {"carry": carry, "guard": long_guard, "report": long_report, "meter": meter}
@@ -40,9 +57,13 @@ def mods():  # type: ignore[no-untyped-def]
 
 
 def _assistant(mid: str, out: int, w5: int = 0, w1: int = 100, side: bool = False) -> str:
-    usage = {"input_tokens": 2, "output_tokens": out, "cache_read_input_tokens": 1000,
-             "cache_creation_input_tokens": w5 + w1,
-             "cache_creation": {"ephemeral_5m_input_tokens": w5, "ephemeral_1h_input_tokens": w1}}
+    usage = {
+        "input_tokens": 2,
+        "output_tokens": out,
+        "cache_read_input_tokens": 1000,
+        "cache_creation_input_tokens": w5 + w1,
+        "cache_creation": {"ephemeral_5m_input_tokens": w5, "ephemeral_1h_input_tokens": w1},
+    }
     return json.dumps({"type": "assistant", "isSidechain": side, "message": {
         "id": mid, "model": "claude-sonnet-5-5", "usage": usage, "content": []}})  # fmt: skip
 
@@ -113,8 +134,12 @@ def test_b2_at_the_owners_prices_is_one_and_a_half_times_its_cost_usd(mods) -> N
 
 @pytest.mark.skipif(not B2.exists(), reason="B2's run folders are not on this machine")
 def test_b2s_stored_grades_give_the_documented_strict_and_per_bug_counts(mods) -> None:  # type: ignore[no-untyped-def]
-    counts = {arm: mods["report"].stored_counts(json.loads(
-        (B2 / arm / "grade.json").read_text(encoding="utf-8"))) for arm in ("N", "S", "Sm")}
+    counts = {
+        arm: mods["report"].stored_counts(
+            json.loads((B2 / arm / "grade.json").read_text(encoding="utf-8"))
+        )
+        for arm in ("N", "S", "Sm")
+    }
     assert {a: c["strict"] for a, c in counts.items()} == {"N": 27, "S": 30, "Sm": 0}
     assert {a: c["f2p"] for a, c in counts.items()} == {"N": 27, "S": 30, "Sm": 26}
 
@@ -213,9 +238,16 @@ def test_a_pid_is_killed_only_when_command_line_and_creation_date_match(mods) ->
 
 
 def test_carry_init_facts_names_each_mcp_server_with_its_status(mods) -> None:  # type: ignore[no-untyped-def]
-    event = {"type": "system", "subtype": "init", "model": "m", "claude_code_version": "2.1.287",
-             "permissionMode": "default", "apiKeySource": "none",
-             "mcp_servers": [{"name": "sanchopanza", "status": "failed"}], "plugins": []}
+    event = {
+        "type": "system",
+        "subtype": "init",
+        "model": "m",
+        "claude_code_version": "2.1.287",
+        "permissionMode": "default",
+        "apiKeySource": "none",
+        "mcp_servers": [{"name": "sanchopanza", "status": "failed"}],
+        "plugins": [],
+    }
     facts = mods["carry"].init_facts(event)
     assert facts["mcp"] == {"sanchopanza": "failed"} and facts["mcp_servers"] == 1
     assert facts["permission_mode"] == "default" and facts["version"] == "2.1.287"
@@ -288,8 +320,12 @@ def test_candor_observe_a_forced_critical_finding_writes_no_lock_and_no_block(
     monkeypatch.setenv("SANCHOPANZA_CANDOR_DIR", str(tmp_path / "candor"))
     monkeypatch.setenv("SANCHOPANZA_CANDOR_MODE", "observe")
     monkeypatch.delenv("SANCHOPANZA_CANDOR_JUDGE", raising=False)
-    tamper = {"hook_event_name": "PreToolUse", "session_id": "s1", "tool_name": "Edit",
-              "tool_input": {"file_path": ".claude/settings.json"}}  # critical: tamper
+    tamper = {
+        "hook_event_name": "PreToolUse",
+        "session_id": "s1",
+        "tool_name": "Edit",
+        "tool_input": {"file_path": ".claude/settings.json"},
+    }  # critical: tamper
     assert candor_hook.handle(tamper) == {}
     assert not lock_mod.read().engaged and not (tmp_path / "lock.json").exists()
     later = {**tamper, "tool_name": "Read", "tool_input": {"file_path": "src/p.py"}}

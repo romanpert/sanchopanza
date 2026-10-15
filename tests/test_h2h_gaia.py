@@ -765,8 +765,14 @@ def test_components_count_outputs_by_owner_and_the_turns_a_return_cost(tmp_path)
 def _verdict_input(diff_ci, ratio_ci, p, a_only, b_only, b_ok, tasks):
     return {
         "tasks": tasks,
-        "with_hand": {"a_ok": b_ok + a_only - b_only, "b_ok": b_ok, "a_only": a_only,
-                      "b_only": b_only, "p": p, "diff_points_ci95": diff_ci},
+        "with_hand": {
+            "a_ok": b_ok + a_only - b_only,
+            "b_ok": b_ok,
+            "a_only": a_only,
+            "b_only": b_only,
+            "p": p,
+            "diff_points_ci95": diff_ci,
+        },
         "cost": {"ratio_ci95": ratio_ci},
     }
 
@@ -781,8 +787,11 @@ def test_bootstrap_success_gives_points_with_a_paired_interval():
 
 
 def test_paired_carries_the_success_interval():
-    rows = [{"task": f"t{i}", "arm": arm, "run": 1, "ok_oficial": ok, "list_usd": 0.1,
-             "wall_s": 10.0} for i in range(4) for arm, ok in (("X-SP", True), ("X-CC", i < 2))]
+    rows = [
+        {"task": f"t{i}", "arm": arm, "run": 1, "ok_oficial": ok, "list_usd": 0.1, "wall_s": 10.0}
+        for i in range(4)
+        for arm, ok in (("X-SP", True), ("X-CC", i < 2))
+    ]
     out = runner.stats.paired(rows, {}, "X-SP", "X-CC")
     assert out["with_hand"]["diff_points_ci95"][1] >= 50.0
 
@@ -808,12 +817,16 @@ def test_verdict_success_win_needs_mcnemar_and_no_cost_loss():
 def test_verdict_without_headroom():
     """N wrong on fewer than 5 % of the tasks: there is nothing for S to win on success."""
     assert runner.stats.verdict(_verdict_input([-1.0, 1.0], [0.6, 0.8], 1.0, 0, 0, 97, 100)) == (
-        "sin margen")
+        "sin margen"
+    )
 
 
 def test_blind_sheet_hides_the_arm_and_keeps_the_key_apart(tmp_path):
-    items = [{"task": f"t{i}", "arm": arm, "run": 1, "answer": f"a{i}{arm}"}
-             for i in range(5) for arm in ("SONNET-SP", "SONNET-CC")]
+    items = [
+        {"task": f"t{i}", "arm": arm, "run": 1, "answer": f"a{i}{arm}"}
+        for i in range(5)
+        for arm in ("SONNET-SP", "SONNET-CC")
+    ]
     sheet, key = tmp_path / "sheet.jsonl", tmp_path / "key.jsonl"
     assert runner.stats.blind_sheet(items, sheet, key) == 10
     text = sheet.read_text(encoding="utf-8")
@@ -827,17 +840,22 @@ def test_blind_sheet_hides_the_arm_and_keeps_the_key_apart(tmp_path):
 
 
 def test_blind_verdicts_come_back_through_the_key(tmp_path):
-    items = [{"task": "t1", "arm": "SONNET-SP", "run": 1, "answer": "x"},
-             {"task": "t1", "arm": "SONNET-CC", "run": 1, "answer": "y"}]
+    items = [
+        {"task": "t1", "arm": "SONNET-SP", "run": 1, "answer": "x"},
+        {"task": "t1", "arm": "SONNET-CC", "run": 1, "answer": "y"},
+    ]
     sheet, key = tmp_path / "sheet.jsonl", tmp_path / "key.jsonl"
     runner.stats.blind_sheet(items, sheet, key)
     ids = [json.loads(x)["id"] for x in sheet.read_text(encoding="utf-8").splitlines()]
     answers = tmp_path / "verdicts.jsonl"
-    answers.write_text("\n".join(json.dumps({"id": i, "ok": n == 0}) for n, i in enumerate(ids)),
-                       encoding="utf-8")
+    answers.write_text(
+        "\n".join(json.dumps({"id": i, "ok": n == 0}) for n, i in enumerate(ids)), encoding="utf-8"
+    )
     got = runner.stats.blind_verdicts(answers, key)
     assert sorted((g["task"], g["arm"], g["run"]) for g in got) == [
-        ("t1", "SONNET-CC", 1), ("t1", "SONNET-SP", 1)]
+        ("t1", "SONNET-CC", 1),
+        ("t1", "SONNET-SP", 1),
+    ]
     assert sum(g["ok"] for g in got) == 1
     answers.write_text(json.dumps({"id": "nope", "ok": True}), encoding="utf-8")
     with pytest.raises(ValueError):

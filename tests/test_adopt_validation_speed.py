@@ -38,8 +38,9 @@ def _bug(i: int) -> dict[str, Any]:
     path = f"pkg/m{i}.py"
     patch = (f"diff --git a/{path} b/{path}\n--- a/{path}\n+++ b/{path}\n"
              f"@@ -10,3 +10,3 @@\n a\n-b{i}\n+c{i}\n d\n")  # fmt: skip
-    return {"instance_id": f"o__r.abc.pr_{i}", "patch": patch, "FAIL_TO_PASS": [f"t.py::f{i}"],
-            "PASS_TO_PASS": ["t.py::g1", "t.py::g2", "t.py::g3"], "source": "pr_mirror"}  # fmt: skip
+    return {"instance_id": f"o__r.abc.pr_{i}", "patch": patch,
+            "FAIL_TO_PASS": [f"t.py::f{i}"], "PASS_TO_PASS": ["t.py::g1", "t.py::g2", "t.py::g3"],
+            "source": "pr_mirror"}  # fmt: skip
 
 
 # ---- the per-test timeout ------------------------------------------------------------------------

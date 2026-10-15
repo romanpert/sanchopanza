@@ -72,8 +72,7 @@ def context_questions(
     pages = list(pages)[: PAGE_MAX if page_max is None else page_max]
     limit = PAGE_LIMIT if page_limit is None else page_limit
     body = "\n".join(
-        f"{page_id(i)}| {truncate(t, 120)}: {truncate(x, limit)}"
-        for i, (t, x) in enumerate(pages)
+        f"{page_id(i)}| {truncate(t, 120)}: {truncate(x, limit)}" for i, (t, x) in enumerate(pages)
     )
     state = {"purpose": truncate(purpose, 400), "pages": body}
     qs: dict[str, Question] = {

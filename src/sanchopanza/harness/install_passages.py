@@ -80,8 +80,9 @@ def with_passages(
     """`settings` with the passages hook, its guard and its env wired (`on`) or taken out."""
     merged, added, removed = dict(settings.merged), [], []
     for events, timeout in ((PASSAGES_HOOKS, POST_TIMEOUT_S), (GUARD_HOOKS, PRE_TIMEOUT_S)):
-        merged, plus, minus = _merge_owned(merged, on, events, PASSAGES_COMMAND,
-                                           PASSAGES_COMMAND, "passages", hook=_hook(timeout))
+        merged, plus, minus = _merge_owned(
+            merged, on, events, PASSAGES_COMMAND, PASSAGES_COMMAND, "passages", hook=_hook(timeout)
+        )
         added, removed = [*added, *plus], [*removed, *minus]  # fmt: skip
     wanted = {FRACTION_ENV: f"{fraction:g}", TOKENS_ENV: str(int(tokens)),
               PROVIDER_ENV: provider or "null"} if on else {}  # fmt: skip

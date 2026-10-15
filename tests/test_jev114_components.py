@@ -45,8 +45,13 @@ def test_policy_item_leaves_out_what_the_code_decided_and_counts_abstention_as_w
 
 
 def test_collision_is_two_binary_items_and_duplicate_does_not_constrain_contradicts():
-    row = {"id": "c1", "point": "memory_collision", "expected": "duplicate", "newer": None,
-           "calls": [{"answers": {"adds_nothing": {"truth": 0.9}, "contradicts": {"truth": 0.1}}}]}
+    row = {
+        "id": "c1",
+        "point": "memory_collision",
+        "expected": "duplicate",
+        "newer": None,
+        "calls": [{"answers": {"adds_nothing": {"truth": 0.9}, "contradicts": {"truth": 0.1}}}],
+    }
     assert paired.free_items(row) == [("c1:adds_nothing", 0.9, True)]
 
 

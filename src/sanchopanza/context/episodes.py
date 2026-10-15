@@ -75,9 +75,14 @@ TESTED = "last test run: "
 # Not the person's request: our notes, a background task's notification, and Claude Code's mark of
 # an interrupted request (recorded as a request in SWE-chat and scored 0.90 against an unrelated
 # record, 2026-10-01).
-NOT_ASKED = (guard_mod.HEADER, "[sanchopanza memory", "<task-notification>",
-             "[Request interrupted by user", "Stop hook feedback:",
-             "This session is being continued from a previous conversation")  # a summary
+NOT_ASKED = (
+    guard_mod.HEADER,
+    "[sanchopanza memory",
+    "<task-notification>",
+    "[Request interrupted by user",
+    "Stop hook feedback:",
+    "This session is being continued from a previous conversation",
+)  # a summary
 UNFINISHED = "(the request ended before the agent finished; its last text follows) "
 _TAGS = re.compile(r"</?[\w-]+>")
 _FENCE = re.compile(r"^(<<<|>>>)", re.M)
@@ -500,7 +505,7 @@ def save(
     if session is not None and episodes:  # an empty reading never wipes a session
         made = {f"{safe_name(e.key)}.json" for e in episodes}
         for path in folder.glob(f"{safe_name(session)}-*.json"):
-            if path.name not in made and path.stem[len(safe_name(session)) + 1:].isdigit():
+            if path.name not in made and path.stem[len(safe_name(session)) + 1 :].isdigit():
                 with contextlib.suppress(OSError):
                     path.unlink()
                     gone.append(f"{session}-{path.stem.rsplit('-', 1)[1]}")
@@ -599,7 +604,7 @@ def load(folder: Path, *, limit: int = LOAD_LIMIT) -> list[Episode]:
         except OSError:
             continue
     out: list[Episode] = []
-    for _, path in sorted(stamped)[-limit if limit > 0 else None:]:
+    for _, path in sorted(stamped)[-limit if limit > 0 else None :]:
         try:
             out.append(Episode.from_dict(json.loads(path.read_text(encoding="utf-8"))))
         except (OSError, ValueError, TypeError):

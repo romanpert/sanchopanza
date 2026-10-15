@@ -32,8 +32,16 @@ def _transcript(tmp_path: Path, prompt: str, step: str = "", extra: list | None 
     (tmp_path / "project" / "sess" / "tool-results").mkdir(parents=True, exist_ok=True)
     entries = [{"type": "user", "message": {"role": "user", "content": prompt}}]
     if step:
-        entries.append({"type": "assistant", "message": {
-            "id": "m1", "role": "assistant", "content": [{"type": "text", "text": step}]}})
+        entries.append(
+            {
+                "type": "assistant",
+                "message": {
+                    "id": "m1",
+                    "role": "assistant",
+                    "content": [{"type": "text", "text": step}],
+                },
+            }
+        )
     entries += extra or []
     path.write_text("\n".join(json.dumps(e) for e in entries) + "\n", encoding="utf-8")
     return path
@@ -41,8 +49,12 @@ def _transcript(tmp_path: Path, prompt: str, step: str = "", extra: list | None 
 
 def _bash(tmp_path, transcript, command, stdout, use_id="toolu_b1", **response):
     return {
-        "hook_event_name": "PostToolUse", "session_id": "sess", "cwd": str(tmp_path),
-        "transcript_path": str(transcript), "tool_name": "Bash", "tool_use_id": use_id,
+        "hook_event_name": "PostToolUse",
+        "session_id": "sess",
+        "cwd": str(tmp_path),
+        "transcript_path": str(transcript),
+        "tool_name": "Bash",
+        "tool_use_id": use_id,
         "tool_input": {"command": command, "description": "Run the tests"},
         "tool_response": {"stdout": stdout, "stderr": "", "interrupted": False, **response},
     }
@@ -50,12 +62,23 @@ def _bash(tmp_path, transcript, command, stdout, use_id="toolu_b1", **response):
 
 def _read(tmp_path, transcript, path, content, use_id="toolu_r1", **tool_input):
     return {
-        "hook_event_name": "PostToolUse", "session_id": "sess", "cwd": str(tmp_path),
-        "transcript_path": str(transcript), "tool_name": "Read", "tool_use_id": use_id,
+        "hook_event_name": "PostToolUse",
+        "session_id": "sess",
+        "cwd": str(tmp_path),
+        "transcript_path": str(transcript),
+        "tool_name": "Read",
+        "tool_use_id": use_id,
         "tool_input": {"file_path": str(path), **tool_input},
-        "tool_response": {"type": "text", "file": {
-            "filePath": str(path), "content": content, "numLines": content.count("\n"),
-            "startLine": int(tool_input.get("offset") or 1), "totalLines": content.count("\n")}},
+        "tool_response": {
+            "type": "text",
+            "file": {
+                "filePath": str(path),
+                "content": content,
+                "numLines": content.count("\n"),
+                "startLine": int(tool_input.get("offset") or 1),
+                "totalLines": content.count("\n"),
+            },
+        },
     }
 
 
@@ -81,14 +104,18 @@ async def test_a_large_pytest_log_keeps_failures_and_the_summary(tmp_path):
 
     squire = _squire()
     log = pytest_log()
-    transcript = _transcript(tmp_path, "make the test suite pass", "Running the tests to see "
-                             "why test_add fails.")
+    transcript = _transcript(
+        tmp_path, "make the test suite pass", "Running the tests to see why test_add fails."
+    )
     out = await ph.post_tool_use(_bash(tmp_path, transcript, "python -m pytest -v", log), squire)
     shown = out["hookSpecificOutput"]["updatedToolOutput"]["stdout"]
-    for line in ("FAILED tests/test_app.py::test_add - assert -1 == 3",
-                 "E       assert -1 == 3", "Traceback (most recent call last):",
-                 "ValueError: invalid literal for int() with base 10: 'x'",
-                 "=" * 24 + " 2 failed, 300 passed in 3.21s " + "=" * 25):
+    for line in (
+        "FAILED tests/test_app.py::test_add - assert -1 == 3",
+        "E       assert -1 == 3",
+        "Traceback (most recent call last):",
+        "ValueError: invalid literal for int() with base 10: 'x'",
+        "=" * 24 + " 2 failed, 300 passed in 3.21s " + "=" * 25,
+    ):
         assert line in shown
     assert len(shown) < 0.5 * len(log)
     body = HEADER.sub("", shown, count=1)
@@ -107,8 +134,11 @@ async def test_a_large_read_of_python_keeps_line_numbers_and_the_function(tmp_pa
 
     source = module_source()
     target = tmp_path / "settings.py"
-    transcript = _transcript(tmp_path, "The config parser ignores the defaults.",
-                             "Let me look at parse_config and load_defaults.")
+    transcript = _transcript(
+        tmp_path,
+        "The config parser ignores the defaults.",
+        "Let me look at parse_config and load_defaults.",
+    )
     out = await ph.post_tool_use(_read(tmp_path, transcript, target, source), _squire())
     content = out["hookSpecificOutput"]["updatedToolOutput"]["file"]["content"]
     assert "def parse_config(path):" in content and "def helper_70(" not in content
@@ -145,11 +175,30 @@ async def test_git_diff_and_a_file_the_agent_edited_pass_and_are_journaled(tmp_p
     assert await ph.post_tool_use(_bash(tmp_path, transcript, "git diff HEAD~1", diff),
                                   squire) == {}  # fmt: skip
     target = tmp_path / "settings.py"
-    edit = [{"type": "assistant", "message": {"id": "m2", "role": "assistant", "content": [
-        {"type": "tool_use", "id": "e1", "name": "Edit",
-         "input": {"file_path": str(target), "old_string": "a", "new_string": "b"}}]}},
-        {"type": "user", "message": {"role": "user", "content": [
-            {"type": "tool_result", "tool_use_id": "e1", "content": "updated"}]}}]
+    edit = [
+        {
+            "type": "assistant",
+            "message": {
+                "id": "m2",
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "id": "e1",
+                        "name": "Edit",
+                        "input": {"file_path": str(target), "old_string": "a", "new_string": "b"},
+                    }
+                ],
+            },
+        },
+        {
+            "type": "user",
+            "message": {
+                "role": "user",
+                "content": [{"type": "tool_result", "tool_use_id": "e1", "content": "updated"}],
+            },
+        },
+    ]
     edited = _transcript(tmp_path, "fix parse_config", extra=edit)
     assert await ph.post_tool_use(_read(tmp_path, edited, target, module_source()), squire) == {}
     reasons = [r["reason"] for r in _events(squire, "passages")]
@@ -161,8 +210,9 @@ async def test_a_file_the_agent_says_it_will_edit_passes(tmp_path):
     from sanchopanza.harness import passages_hook as ph
 
     target = tmp_path / "settings.py"
-    transcript = _transcript(tmp_path, "the parser is wrong",
-                             "I'll edit settings.py to fix parse_config.")
+    transcript = _transcript(
+        tmp_path, "the parser is wrong", "I'll edit settings.py to fix parse_config."
+    )
     assert await ph.post_tool_use(_read(tmp_path, transcript, target, module_source()),
                                   _squire()) == {}  # fmt: skip
 
@@ -176,8 +226,14 @@ async def test_a_saved_bash_output_is_ranked_whole_and_previewed(tmp_path):
     transcript = _transcript(tmp_path, "make the suite pass", "Why does test_parse fail?")
     saved = tmp_path / "project" / "sess" / "tool-results" / "b1.txt"
     saved.write_text(log, encoding="utf-8")
-    event = _bash(tmp_path, transcript, "pytest -v", log[:30000],
-                  persistedOutputPath=str(saved), persistedOutputSize=len(log))
+    event = _bash(
+        tmp_path,
+        transcript,
+        "pytest -v",
+        log[:30000],
+        persistedOutputPath=str(saved),
+        persistedOutputSize=len(log),
+    )
     squire = _squire()
     out = await ph.post_tool_use(event, squire)
     shown = out["hookSpecificOutput"]["updatedToolOutput"]["stdout"]
@@ -195,8 +251,13 @@ async def test_a_saved_output_it_cannot_read_passes(tmp_path):
 
     log = pytest_log(3000)
     transcript = _transcript(tmp_path, "run tests")
-    event = _bash(tmp_path, transcript, "pytest -v", log[:30000],
-                  persistedOutputPath=str(tmp_path / "elsewhere.txt"))
+    event = _bash(
+        tmp_path,
+        transcript,
+        "pytest -v",
+        log[:30000],
+        persistedOutputPath=str(tmp_path / "elsewhere.txt"),
+    )
     assert await ph.post_tool_use(event, _squire()) == {}
 
 
@@ -264,8 +325,9 @@ async def test_a_targeted_read_of_the_file_after_a_cut_counts_as_targeted(tmp_pa
     transcript = _transcript(tmp_path, "fix parse_config", "Reading settings.")
     squire = _squire()
     assert await ph.post_tool_use(_read(tmp_path, transcript, target, source), squire)
-    narrowed = _read(tmp_path, transcript, target, source[:2000], use_id="toolu_r2",
-                     offset=300, limit=40)
+    narrowed = _read(
+        tmp_path, transcript, target, source[:2000], use_id="toolu_r2", offset=300, limit=40
+    )
     assert await ph.post_tool_use(narrowed, squire) == {}
     [again] = _events(squire, "passages_rerequest")
     assert again["kind"] == "targeted" and again["after_calls"] == 1
@@ -326,8 +388,11 @@ async def test_a_subagent_call_is_ranked_for_the_subagent_task(tmp_path):
     transcript = _transcript(tmp_path, "look at helper_50 please")
     own = tmp_path / "project" / "sess" / "subagents" / "agent-a1.jsonl"
     own.parent.mkdir(parents=True)
-    ask = {"type": "user", "isSidechain": True,
-           "message": {"role": "user", "content": "Find what helper_66 returns"}}
+    ask = {
+        "type": "user",
+        "isSidechain": True,
+        "message": {"role": "user", "content": "Find what helper_66 returns"},
+    }
     own.write_text(json.dumps(ask) + "\n", encoding="utf-8")
     event = {**_read(tmp_path, transcript, tmp_path / "m.py", module_source()), "agent_id": "a1"}
     squire = _squire()

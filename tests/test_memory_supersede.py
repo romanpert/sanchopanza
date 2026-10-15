@@ -82,8 +82,12 @@ class SupersedeDecider:
             return self._done(point, superseded=choice(mr.STANDS, 0.3, **probs))
         if self.mode in ("nostands", "stray"):
             key = "newer_1" if self.mode == "nostands" else "newer_99"
-            return self._done(point, superseded=choice(key, 0.8, **{key: 0.9, mr.STANDS: 0.1}
-                                                       if self.mode == "stray" else {key: 0.9}))
+            return self._done(
+                point,
+                superseded=choice(
+                    key, 0.8, **{key: 0.9, mr.STANDS: 0.1} if self.mode == "stray" else {key: 0.9}
+                ),
+            )
         if self.mode == "raise":
             raise RuntimeError("provider down")
         if self.mode == "down":
@@ -108,8 +112,13 @@ def _git(root: Path, *args: str) -> str:
 def _repo(root: Path, rel: str, text: str) -> str:
     (root / rel).parent.mkdir(parents=True, exist_ok=True)
     (root / rel).write_text(text, "utf-8")
-    for args in (["init", "-q"], ["config", "user.email", "t@example.org"],
-                 ["config", "user.name", "t"], ["add", "."], ["commit", "-qm", "base"]):
+    for args in (
+        ["init", "-q"],
+        ["config", "user.email", "t@example.org"],
+        ["config", "user.name", "t"],
+        ["add", "."],
+        ["commit", "-qm", "base"],
+    ):
         _git(root, *args)
     return _git(root, "rev-parse", "HEAD")
 
@@ -195,7 +204,8 @@ def test_the_columns_scene_still_sends_back_its_own_rule(tmp_path: Path) -> None
     repo, store = tmp_path / "repo", tmp_path / "store"
     head = _repo(repo, "app/export.py", 'COLUMNS = ["id", "amount", "customer"]\n')
     (repo / "app" / "export.py").write_text(
-        'COLUMNS = ["id", "currency", "amount", "customer"]\n', "utf-8")
+        'COLUMNS = ["id", "currency", "amount", "customer"]\n', "utf-8"
+    )
     mr._save(store, {"rules": [_rule(COLUMNS, T0, files=("app/export.py",))], "asked": [],
                      mr.AUDITED: []})  # fmt: skip
     decider = SupersedeDecider("column position")
@@ -330,8 +340,12 @@ def hook_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 
 def _transcript(path: Path, cwd: str, text: str) -> None:
-    use = {"type": "tool_use", "id": "t1", "name": "Edit",
-           "input": {"file_path": f"{cwd}/app/config.py", "old_string": "a", "new_string": "b"}}
+    use = {
+        "type": "tool_use",
+        "id": "t1",
+        "name": "Edit",
+        "input": {"file_path": f"{cwd}/app/config.py", "old_string": "a", "new_string": "b"},
+    }
     entries = [{"type": "user", "cwd": cwd, "timestamp": "2026-10-05T10:00:00Z",
                 "message": {"role": "user", "content": text}},
                {"type": "assistant", "message": {"role": "assistant", "content": [use]}},
