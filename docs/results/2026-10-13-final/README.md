@@ -155,7 +155,25 @@ default install. The other cells' S ran without memory.
   cost of long coding sessions by a third to a half with no evidence of lost quality. A clean
   Claude Code gets it with one line of settings: it is not a case for S over N.
 - **Where the components keep their value**: substituting a judgment some model was going to make
-  (the component benches in the top-level README), not as a default layer on Claude Code.
+  (the component benches in the top-level README), not as a default layer on Claude Code. The
+  first measured substitution of a Sonnet 5.5 session came after this scoreboard (next section).
+
+## After the scoreboard: components measured on 2026-10-15
+
+Not S−N cells: neither is the install line against clean Claude Code. Each is a component
+against what it would replace, pre-registered and sealed before any answer.
+
+| Measure | Model | Result | 95 % CI | Verdict by the sealed rule |
+|---|---|---|---|---|
+| Jev where it is sure (top choice ≥ 0.6), Sonnet elsewhere, against Sonnet alone, 162 fresh LongBench v2 tasks | Jev 1.14 long window; Sonnet 5.5 in clean Claude Code 2.1.287 | +1.2 pts (coverage 37 %; on the 60 covered, Jev 31 and Sonnet 29 right); about 27 % of Sonnet's cost saved, uncovered cost estimated | [−3.1, +5.6] | **no peor** at −10 |
+| The memory gate reading whole sessions in one call against the shipped short window, 84 unseen LongMemEval questions | Jev 1.13 | recall 0.905 against 0.726; against BM25 top 3 +8.9 pts [0.0, +17.3], "alcanza" | [+10.7, +25.7] pts | **confirmado** |
+
+Sources: [lb162](../2026-10-15-lb162/README.md) (sealed c483beb; 0.875 USD of Jev, 5.757 of
+Claude), [memgate-long](../2026-10-15-memgate-long/README.md) (sealed c8d1da1; 0.53 USD of Jev).
+The first is a Jev decision that replaces calls of the expensive model, the case this page
+names as the only one where a decision saves; it covers multiple choice over one long document
+and one draw. The second is a recall gain inside a component, opt-in in the package
+(`SANCHOPANZA_MEMORY_WINDOW=long`), measured on the library gate rather than the installed hook.
 
 ## What was not run
 

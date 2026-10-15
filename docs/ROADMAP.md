@@ -31,7 +31,9 @@ Supported in the client since 2026-10-15 (merge `5694973`), with the default unc
 **What the 2026-10-15 lots found.** Both versions asked live the same day on the published
 inputs, interleaved per item, each lot pre-registered and sealed before any 1.14 answer; Jev
 only, 3.85 USD in all on the shared ledger, 0 USD of Claude (Claude answers are the earlier
-recordings). One draw per version.
+recordings). One draw per version. The two confirmations the owner approved that evening ran on
+ledgers of their own: memgate-long 0.53 USD of Jev, lb162 0.875 USD of Jev and 5.757 USD of
+Claude.
 
 | Lot | Verdict by the sealed rule |
 |---|---|
@@ -42,8 +44,10 @@ recordings). One draw per version.
 | [L5, images](results/2026-10-15-jev114-l5/README.md) | **No vision mode** for `browse`: Box over the screenshot does not beat the text ranking (top 1 35.9 % against 42.3 %, inconclusive), and the screenshot leaves R@10 at 93.8 %. With images, 1.14 is no worse than 1.13. The real minimum side is 280 px, not the documented 256 (`MIN_SIDE` now 280) |
 | [L6, long context](results/2026-10-15-jev114-l6/README.md) | **No substitute for a Claude call** at the registered cut: on LongBench v2 Jev is sure on 7 of 50 tasks, the ones Sonnet also gets right, saving 1.5 % of its cost. The long window lifts the memory gate's recall 0.723 → 0.908 on 36 LongMemEval questions, **on 1.13 too**: a gain of the window, not of the model. One-call QASPER triage still keeps half the paper |
 | [Recalibration](results/2026-10-15-jev114-recal/README.md) | **A threshold profile per model** (`policy.MODEL_PROFILES`, used only when the model is `jev-1.14.0`), derived free on calibration splits: 1.14 with it reaches **parity** with 1.13 at its own cuts, 556 against 556 of 646 (0.0 [−1.5, +1.5]). check_done at 0.30 closes its gap; `redundant_page` is not fixed, and memory_write makes twice the costly stores |
+| [Memory gate, long window](results/2026-10-15-memgate-long/README.md) | **Confirmed** on the 84 unseen LongMemEval questions, jev-1.13.0: recall 0.726 → 0.905, +17.8 points [+10.7, +25.7], Holm p < 0.001, no failures; the long window reaches BM25 top 3 (+8.9 [0.0, +17.3]) where the short one does not. 0.5283 USD |
 | [Confirmation](results/2026-10-15-jev114-recalconf/README.md) | **Not admissible**: on a second draw of the same 1,298 cases the profile falls to 551 against 555 of 646 (−0.6 points [−2.3, +0.9], inconclusive) and `redundant_page` is worse (44 against 48 of 50); on 910 candor counterfactuals no cut had seen, 1.14 at 0.90 is worse than 1.13 at 0.83 (770 against 800, −3.3 points [−5.4, −1.2]). check_done at 0.30 holds. No new labelled cases exist for the L1 points, so they are confirmed only against draw-to-draw noise |
-| [LongBench cut of 0.6](results/2026-10-15-jev114-b3conf/README.md) | **Not run**: a free power analysis shows no affordable confirmation can decide at a −2 point margin (about 3,200 paired tasks; LongBench v2 has 503). Deciding at −10 points would take 162 tasks with Sonnet on the covered ones, about 12 USD of Claude: an owner's call |
+| [LongBench cut of 0.6, power](results/2026-10-15-jev114-b3conf/README.md) | No affordable confirmation can decide at a −2 point margin (about 3,200 paired tasks; LongBench v2 has 503). Deciding at −10 points takes 162 tasks with Sonnet on the covered ones: the owner's call |
+| [LongBench cut of 0.6, 162 fresh tasks](results/2026-10-15-lb162/README.md) | **No worse at −10**: Jev 1.14 with the long window where its top choice is ≥ 0.6, Sonnet 5.5 (clean Claude Code 2.1.287) elsewhere, against Sonnet alone: +1.2 points [−3.1, +5.6]. Coverage 37 % (60 of 162, L6 had 54 %); on those Jev 31, Sonnet 29 right (McNemar p 0.79). About 27 % of Sonnet's cost saved, with the uncovered tasks' cost estimated. 0.875 USD of Jev, 5.757 of Claude |
 
 **`DEFAULT_MODEL` stays `jev-1.13.0`**, and candor stays on 1.13. 1.14 is an opt-in with its profile
 (`SANCHOPANZA_JEV_MODEL=jev-1.14.0`), better on calibration, supersession and R-Judge, and no
@@ -51,15 +55,27 @@ better where a switch would pay; the long-context gain is the window's and works
 
 Pending from these lots:
 
-- **A memory-gate mode with the long window** (whole sessions in one call with the long-context
-  header): confirm on the remaining 84 LongMemEval test questions, about 1 USD of Jev for one
-  model, before it ships. It costs about 0.005 USD a prompt against 0.001.
+- **The memory gate with the long window: confirmed, opt-in.** On the 84 LongMemEval test
+  questions L6 had not seen ([memgate-long](results/2026-10-15-memgate-long/README.md), sealed
+  `c8d1da1`, jev-1.13.0, 0.5283 USD of Jev), recall rises from 0.726 to 0.905, +17.8 points
+  [+10.7, +25.7], with no failed call, and the long window reaches BM25 top 3 (+8.9 [0.0, +17.3]).
+  Precision falls from 0.91 to 0.71; a prompt costs about 0.005 USD against 0.001, one call of
+  about 1.6 s. The mode is in the package as `SANCHOPANZA_MEMORY_WINDOW=long` (merge `64bf8c8`):
+  default requests unchanged, the long call held to the job's budget and falling back to the
+  short window when it does not fit, fails or runs late. **Proposed:** make it the default of the
+  library gate `memory_gate.gate` (`=short` turns it off). The installed hook judges records, not
+  sessions, and stays short until a replay on the SWE-chat records (under 1 USD of Jev) measures
+  the long window there.
 - **check_done recalibrated** on 1.14: the profile's 0.30 matches 1.13 on the held-out half
   (312 against 313 of 329), but was read off the same lot; it needs new AgentDojo trajectories
   before the Stop hook relies on it under 1.14.
 - `redundant_page` needs about 90 new `drop` cases for its 90 % derivation to clear without
-  hinging on one page; the LongBench v2 cut of 0.6 seen post hoc (a hybrid at 43 % of Sonnet's
-  cost) is a hypothesis for 50 fresh tasks (about 0.3 USD of Jev), not a claim.
+  hinging on one page.
+- **A LongBench routing point**, opt-in and out of `install`: Jev's letter and probability at
+  ≥ 0.6, otherwise "ask your own model", shaped like `navigate`'s `escalate_below`. Before a
+  product claim beyond multiple choice: Sonnet on the 102 uncovered tasks (about 12.5 USD) to
+  measure the saving instead of estimating it, Opus 5.5 as the expensive model, and a
+  long-document set graded on free-text answers.
 
 ## Priority table
 
@@ -88,7 +104,10 @@ Pending from these lots:
 `sanchopanza[jev] @ https://github.com/romanpert/sanchopanza/archive/<sha>.tar.gz`, pinned to one
 commit in three files that must move together. There is no tag in the repository;
 `pyproject.toml` says 0.3.0 and `.github/workflows/release.yml` publishes to PyPI by Trusted
-Publishing on a `v*.*.*` tag ([governance](governance.md)). If the history is ever rewritten, the
+Publishing on a `v*.*.*` tag ([governance](governance.md)), so pushing the tag is the PyPI
+publication: the `pypi` environment admits `v*` tags with no required reviewer, and the GitHub
+release job waits on the PyPI job. CI is green again since `35896ea`, the first green run since
+2026-09-27, so a tag on main would now publish. If the history is ever rewritten, the
 old SHAs stop resolving and the consumer's image would not build, or would run without a decider:
 its factory falls back to a null decider in silence when the package does not import. Proposal:
 tag `v0.3.0` (or `v0.3.1`), publish, and have the consumer move to `sanchopanza[jev]>=0.3`. Until
@@ -142,6 +161,10 @@ on Jev's outputs (check the provider's terms first), and measure it outside its 
 
 ## Done
 
+- **CI green again** (merges `0f00805`, `35896ea`, 2026-10-15): CI had failed on every push since
+  2026-10-02 (an unpinned ruff, unformatted files, tests that needed this PC's venv, home cache or
+  full git history). ruff is pinned in the `dev` extras, the tree is formatted, and the tests that
+  need what a runner lacks skip and name it. All six cells pass (Linux and Windows, 3.11-3.13).
 - **A1** (`de7c38a`, 2026-10-15): the benches take `TYPESAFE_API_KEY` from the environment, or
   from the `.env` file `SANCHOPANZA_KEYS_ENV` names, with no default file; the identifiers no
   longer carry another project's name ([`benchmarks/README.md`](../benchmarks/README.md)).

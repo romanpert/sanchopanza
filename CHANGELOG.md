@@ -642,7 +642,19 @@ do not favour this package.
   cuts set on 1.13; no gain on find_in_repo, candor, images or long context. With its own
   threshold profile 1.14 reaches parity, 556 against 556 of 646. `DEFAULT_MODEL` stays
   `jev-1.13.0`. The long window lifts the memory gate's recall from 0.723 to 0.908 on 36
-  LongMemEval questions on both versions; it is not shipped until a confirmation.
+  LongMemEval questions on both versions, and a sealed confirmation on the 84 unseen ones holds
+  it on jev-1.13.0: 0.726 to 0.905, +17.8 points [+10.7, +25.7], reaching BM25 top 3
+  (`docs/results/2026-10-15-memgate-long/`, 0.53 USD of Jev). It ships as an opt-in.
+- **Jev in place of Sonnet 5.5 on long-document multiple choice, where Jev is sure**
+  (`docs/results/2026-10-15-lb162/`, pre-registered, sealed c483beb). On 162 fresh LongBench v2
+  tasks chosen by metadata, Jev 1.14 with the long window answered where its top choice was at
+  least 0.6 (60 tasks, 37 %), and Sonnet 5.5 in clean Claude Code 2.1.287 answered the rest:
+  the hybrid against Sonnet alone is +1.2 points [−3.1, +5.6], **no worse** at the −10-point
+  margin fixed beforehand. On the covered tasks Jev was right on 31 of 60, Sonnet on 29
+  (McNemar 8 against 6, p 0.79). Sonnet's cost on those 60 was 5.76 USD against 0.87 USD of Jev
+  for all 162; with Sonnet's cost on the other 102 estimated at 0.123 USD a task, the hybrid
+  saves about 27 % of it. One draw; at −2 points it would not decide. Not a point in the package
+  yet.
 - **Compaction mid-session: native summary against lean masking, negative**
   (`docs/results/2026-09-28-context-lean/`, pre-registered, Claude Code 2.1.282 headless with
   Haiku 4.5, 7 tasks, compaction fired by Claude Code's own auto-compaction mid-task, run
