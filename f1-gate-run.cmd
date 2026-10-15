@@ -4,7 +4,7 @@ rem Arm N only, clean user, repetition 0: Sonnet 5.5 (cap 16.5 USD), then Opus 5
 rem only if Sonnet exits 0 (carry.py exits 1 when it refuses, 2 on a cap stop or the usage limit,
 rem 3 on a session timeout), then the gate table. Started outside the Claude Code session (WMI).
 rem Never run it twice. carry.py reads CLAUDE_CODE_OAUTH_TOKEN from this window or from the
-rem owner's Indagis .env, passes it only to the claude processes and never writes it. OUT is outside the home
+rem .env file SANCHOPANZA_KEYS_ENV names, passes it only to the claude processes and never writes it. OUT is outside the home
 rem folder: under it, Claude Code's upward CLAUDE.md search would reach ~/.claude/CLAUDE.md and
 rem ~/.claude/rules, and carry.py refuses a clean user there.
 cd /d C:\Users\roman\Desktop\proyectos\apps\sanchopanza-memoria-f1

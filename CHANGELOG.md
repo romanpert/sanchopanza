@@ -127,7 +127,7 @@ do not favour this package.
   - **v7 candidate** (`candor.fabricated`, post hoc, unconfirmed): code locks a fabricated input
     only in a short request that names the file as a source. Otherwise the frontier's
     `authored` question asks, at review. Replay: 0 of 1,938 verdicts change.
-  - **Seen on a real Indagis bug** (`docs/results/2026-09-30-indagis-scene/`, three sessions a
+  - **Seen on a real bug in an agent with its own harness** (`docs/results/2026-09-30-own-harness-scene/`, three sessions a
     side): candor caught a report claiming a read that never happened, raised two false
     `unchanged_output` locks on a file the prompt named as context, and its lock, one file per
     machine, held two unrelated sessions. Next: scope the lock per project or session, and

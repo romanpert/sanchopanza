@@ -33,6 +33,7 @@ import hashlib
 import importlib.util
 import json
 import math
+import os
 import random
 import sys
 from collections import Counter
@@ -77,8 +78,9 @@ CUT_SHARE = 0.60
 MIN_RESULTS = 30
 MIN_RESULT_CHARS = 100_000
 ALLOW = ("sanchopanza", "sancho")
+# Private words: a project whose name holds one is never admitted. Names not published here come
+# from SANCHOPANZA_CONTEXT_DENY (comma-separated) on the machine that builds the dataset.
 DENY = (
-    "indagis",
     "farmacia",
     "empresa",
     "labzero",
@@ -92,9 +94,14 @@ DENY = (
 PLACEHOLDER = ("xxxx", "your_", "your-", "example", "dummy", "placeholder", "...", "<", "redacted")
 
 
+def private_words(environ: Mapping[str, str] = os.environ) -> tuple[str, ...]:
+    extra = environ.get("SANCHOPANZA_CONTEXT_DENY", "")
+    return DENY + tuple(w.strip().lower() for w in extra.split(",") if w.strip())
+
+
 def project_admitted(name: str) -> bool:
     low = name.lower()
-    return any(w in low for w in ALLOW) and not any(w in low for w in DENY)
+    return any(w in low for w in ALLOW) and not any(w in low for w in private_words())
 
 
 def entropy(text: str) -> float:

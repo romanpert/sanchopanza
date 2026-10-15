@@ -1,8 +1,8 @@
 # S2 development on the h2h dev tasks (2026-10-07)
 
-Dev only, not a confirmation: nothing here decides anything. Written by indagis-d6 (line web/h2h)
+Dev only, not a confirmation: nothing here decides anything. Written by session d6 (line web/h2h)
 before the first session; results are appended below once the phases end. Common plan:
-`docs/PLAN-GANAR-H2H.md` section 6 (indagis-6c and indagis-d6). Counts, costs and task ids only.
+`docs/PLAN-GANAR-H2H.md` section 6 (session 6c and session d6). Counts, costs and task ids only.
 
 ## Why S2
 
@@ -42,7 +42,7 @@ Expected about 13 USD of list price on the subscription; a hard total of 20 USD 
 2026-10-07): the phases run one after another and BCP's ceiling is what is left. Each phase stops
 before a session whose cap (1.50 GAIA, 3.00 others) would cross its ceiling. Jev: cents.
 
-Commands (from this worktree; announce PID, time and ceiling to indagis-6c before each):
+Commands (from this worktree; announce PID, time and ceiling to session 6c before each):
 
 ```
 powershell -File benchmarks/h2h/launch.ps1 -Runner h2h_gaia.py -RunnerArgs "--phase dev-s2 --brazos SP --ids benchmarks/h2h/gaia-dev-ids.txt --s-line benchmarks/h2h/s2_install.json --unsealed-ok --ceiling 4.5" -Log C:\sp-runs\h2h\dev-s2.log -PidFile C:\sp-runs\h2h\dev-s2.pids
@@ -89,7 +89,7 @@ Tasks with a valid row in every line (N and S0 from the dev phases of 2026-10-05
   LongBench (gate A) and none in BCP.
 - **S2F against S2** on the 20 GAIA dev tasks: right 16 against 15 (discordant 2/1), cost
   **1.054 [0.83, 1.36]**, 0.95 more turns and 9 s more per session. Sonnet's spend +0.28 USD
-  (+22 %), Haiku's -0.18: the money moves from WebFetch's reader to the main model, as indagis-6c
+  (+22 %), Haiku's -0.18: the money moves from WebFetch's reader to the main model, as session 6c
   predicted from the confirmation's numbers. Per session with page reads, 6,143 characters reached
   Sonnet with S2F against 1,621 with S2. By the rule written above, **fetch v3 stays out of the
   S2 confirmation**.

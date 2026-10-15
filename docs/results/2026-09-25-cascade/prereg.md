@@ -25,7 +25,7 @@ were written by this repository. This run uses two sets this repository did not 
    `83ce301da3ad50dd8b397e772863f5411c3d3dc2`): 571 multi-turn agent interaction records,
    human binary labels (1 unsafe: 301, 0 safe: 270). Read from the git objects at that commit;
    not redistributed. The paper's best model, GPT-4o, scored 74.42 %.
-2. **The Indagis defamation register**: 298 closed-vocabulary classifications (categoria 10
+2. **The defamation register of an agent with its own harness**: 298 closed-vocabulary classifications (categoria 10
    classes / 103 cases, estado 13 / 88, via 6 / 107), labels from a register produced and
    reviewed before these questions existed. Local data; not redistributed.
 

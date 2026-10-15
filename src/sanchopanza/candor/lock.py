@@ -39,7 +39,7 @@ def scope() -> str:
     """SANCHOPANZA_CANDOR_LOCK_SCOPE: `session` (default), `project` or `machine`.
 
     One file for the whole machine held every other candor session on it, in other projects,
-    from their first call, until a person looked (the Indagis scene, 2026-09-30). A flagged
+    from their first call, until a person looked (the own-harness scene, 2026-09-30). A flagged
     session is what needs a person; other work is not evidence against it. `project` is for
     an orchestrator that starts sessions on its own, where a new session must not walk past
     the hold; `machine` keeps the old behaviour. Anything else reads as `session`."""

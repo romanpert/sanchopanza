@@ -33,7 +33,7 @@ gets from one setting?
   out shorter. Only the comparison with S0, which was not selected on, is fair.
 - Gave up: the final answer says it was not found, or gives a confidence under 25 %. N gave up in
   19 of 26, all past 150k; NE in 13, S0 in 17. Less context, fewer give-ups, the same direction as
-  the long bench's pilot A (indagis-6c, 2026-10-07).
+  the long bench's pilot A (session 6c, 2026-10-07).
 - Grades: exact match, else the official judge on Claude Haiku 4.5 (0 unjudged). N and S0 also
   had the blind hand read, which accepted every judge-yes in the confirmation; NE had none.
 

@@ -14,8 +14,8 @@ amendment 5). Three faults of the reused page questions (`chunks`), each fixed h
   The levels below describe that, with examples from domains none of the measured tasks use.
 - **A yes or no cannot rank inside a budget.** When 400 characters must be chosen, what matters
   is the order among the lines kept. A Score of four levels, each a situation, gives a position;
-  Indagis measured the same fix on long documents (approved paragraphs ordered by a four-level
-  score, commit 5519f8a there).
+  an agent with its own harness measured the same fix on long documents (approved paragraphs
+  ordered by a four-level score, commit 5519f8a there).
 
 Pure: builds states and questions, reads answers. The calls are in `context.keep`.
 """

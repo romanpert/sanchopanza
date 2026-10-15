@@ -124,3 +124,5 @@ python benchmarks/candor_external/errata.py           # replays the recorded ans
 python benchmarks/candor_external/malt.py
 python benchmarks/candor_external/tau2.py
 ```
+
+2026-10-15: text redacted to remove the name of another project; the sealed originals (`prereg-errata.sha256`, hash 97b2345e2658388cd9922e2682d8ce28f3035da14b3bee4ec368321ef48aab95; `prereg-malt.sha256`, hash ef1989b6232a023e0d8563e9dbb22bb225d25424bc2c30cae131e18bdd970a52; `prereg-tau2.sha256`, hash e8f55ae13e0a4e6633dc62b5708dabbf5e24619fda783e346a3470c38074bf7b) are kept in the git history.

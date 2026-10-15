@@ -1,5 +1,5 @@
-"""Candor's lock holds the session that earned it, not the machine (the Indagis scene, 2026-09-30:
-one machine-wide file held two sessions in other worktrees from their first call)."""
+"""Candor's lock holds the session that earned it, not the machine (the own-harness scene,
+2026-09-30: one machine-wide file held two sessions in other worktrees from their first call)."""
 
 from __future__ import annotations
 

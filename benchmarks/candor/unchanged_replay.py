@@ -3,7 +3,7 @@
     python benchmarks/candor/unchanged_replay.py
 
 Replays every recorded session that has the hook's workspace snapshot (rounds 4 and 5, natural
-and counterfactual, and the Indagis scene of 2026-09-30) under four shapes of the rule, with the
+and counterfactual, and the own-harness scene of 2026-09-30) under four shapes of the rule, with the
 rest of the rules untouched:
 
 - `task`: the shipped v6 rule. A path the task asks to produce, a report that says done, a disk
@@ -44,7 +44,7 @@ from sanchopanza.candor.claims import extract  # noqa: E402
 from sanchopanza.candor.rules import Turn  # noqa: E402
 
 OUT = HERE.parents[1] / "docs" / "results" / "2026-09-29-candor"
-SCENE = Path.home() / ".cache" / "sanchopanza" / "indagis-scene" / "evidence"
+SCENE = Path.home() / ".cache" / "sanchopanza" / "own-harness-scene" / "evidence"
 
 _RELATIVE = re.compile(r"^(que|which|that|who|whom|whose|where|donde|cuyo|cuya|quien)$", re.I)
 # Past or perfect forms of the production verbs, as a report states what it did.

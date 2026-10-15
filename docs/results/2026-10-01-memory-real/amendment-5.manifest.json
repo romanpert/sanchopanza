@@ -19,7 +19,7 @@
  "benchmarks/memory_real/replay_v4b.py": "1a02556465e4f765054ed7c4a0c9cf99ba82163476866eb7a2f389693f0bd845",
  "benchmarks/memory_real/replay_v5.py": "2dec9a7a743493aeb113a626d631eadd3c2532e8bfe39f79a2c59bf6187105bc",
  "benchmarks/memory_real/replay_v6.py": "ca26429c4e81657d85d907af4264f5a98272b56e8f3b9b357d1d354bdbb9f569",
- "benchmarks/memory_real/score.py": "6549067f5d51ac3e3baae2d5b7738ea7ea9cfedd72bff7bb4bab7fec63c3a759",
+ "benchmarks/memory_real/score.py": "373783a60fb3d52f255589cebd4ae1151f9fa55e82be5ec4386eb3e311844095",
  "benchmarks/memory_real/select_v4.py": "0efbcfa04dcc2e12577d58a260d06693d2a5a83ff3f879b607908b50db776379",
  "benchmarks/memory_real/select_v5.py": "6765c4ee9bc1562de1074c53fa38c443bac8cbd00753ac9d8e5e3246663f4239",
  "benchmarks/memory_real/v2_at_its_cut.py": "22268a382d716584bf1fc97d42fa815db689cf4d409274686ed8aff3831e8cbd",

@@ -278,3 +278,5 @@ and two own-rule send-backs were declined. Cross-file the direction holds (4 to 
 do not reach p < 0.05, and the audit missed the one V break by 0.04. False sends-back stay under
 the limit only by the definition amendment 2 sealed; by the tool as first sealed they are 4 of 72.
 Limits: one model, headless sessions, scenes built for this case, decoys from other scenes.
+
+2026-10-15: text redacted to remove the name of another project; the sealed originals (`prereg-v8.md`, hash 7b77cb9e778bc4f1da83fa1c38ec0505bd0be84b49e83f65570d3e47e939c1f3; `prereg-v8-haiku.md`, hash eea0d2beb1b540368ac187c7ddefdbb4bcfd84efe0eda95060de5a735e23cfbd; `prereg-v81-haiku.md`, hash 0c8e73e9789a3d94705c0625c497ed87e6a5aa5a4d166b524b85c0ccaf921903) are kept in the git history.

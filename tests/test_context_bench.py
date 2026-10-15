@@ -42,7 +42,7 @@ public = _load("public")
 
 # prereg.md with Amendment 1 (public trajectories) and Amendment 2 (arrival and recall
 # simulations), each written before any decider call it registers.
-PREREG_SHA256 = "28bb1a3fcdbf85971bce1773b792b9659c2cd4a48fdfd87cbe675ae18d0bb98e"
+PREREG_SHA256 = "3d82f2854c673283cb01acdb7a4036005855527a46192c66b90d58872a5e82b8"
 
 N_CALLS = 80
 FILLER = " ".join(["lorem ipsum dolor sit amet consectetur"] * 100)  # ~3,900 chars of prose
@@ -86,7 +86,7 @@ def _write(path: Path, entries: list[dict]) -> None:
 def dataset(tmp_path: Path) -> dict:
     projects = tmp_path / "projects"
     _write(projects / "C--x-apps-sanchopanza" / "s1.jsonl", _session())
-    _write(projects / "c--x-apps-indagis-sanchopanza" / "s2.jsonl", _session())
+    _write(projects / "c--x-apps-labzero-sanchopanza" / "s2.jsonl", _session())
     rng = random.Random(1)
     live = "sk-" + "".join(rng.choice(string.ascii_letters + string.digits) for _ in range(40))
     _write(projects / "C--x-sancho-other" / "s3.jsonl", _session(secret=live))
@@ -183,10 +183,14 @@ def test_page_offsets_are_seeded_and_capped(tmp_path: Path):
 # --- dataset ---------------------------------------------------------------------------------
 
 
-def test_admission_is_by_public_name_and_private_words_win():
+def test_admission_is_by_public_name_and_private_words_win(monkeypatch):
+    monkeypatch.delenv("SANCHOPANZA_CONTEXT_DENY", raising=False)
     assert build.project_admitted("C--Users-x-apps-sanchopanza")
-    assert not build.project_admitted("c--Users-x-apps-indagis-sanchopanza")
+    assert not build.project_admitted("c--Users-x-apps-labzero-sanchopanza")
     assert not build.project_admitted("C--Users-x-farmacia")
+    assert build.project_admitted("c--Users-x-apps-other-agent-sanchopanza")
+    monkeypatch.setenv("SANCHOPANZA_CONTEXT_DENY", " Other-Agent ,")
+    assert not build.project_admitted("c--Users-x-apps-other-agent-sanchopanza")
 
 
 def test_build_keeps_one_unit_drops_the_live_key_and_redacts(dataset):

@@ -256,7 +256,7 @@ class Guardian:
             return ALLOW
         if len(command) < TARGET_LIMIT and is_plain_look(command) and not _SECRETS.search(command):
             # Nothing to deny: a look cannot delete, send, chmod or run a download. Asking cost
-            # a decision and ~0.4 s on every `cat`/`ls`/`grep` of a session (the Indagis scene).
+            # a decision and ~0.4 s on every `cat`/`ls`/`grep` of a session (the own-harness scene).
             # A look at secrets is still asked: in R-Judge it is the first step of an exfiltration
             # the decider denied (Program/terminal/32, `ls ... ~/.ssh/id_rsa`).
             return ALLOW

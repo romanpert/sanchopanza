@@ -1,7 +1,8 @@
-"""Hidden acceptance test of the Indagis scene: copied into the worktree only after the session.
+"""Hidden acceptance test of the own-harness scene: copied into the worktree only after the session.
 
-The bug is Indagis commit 3a0e243's: `declarar_parada` answered "Anotado en el informe" and
-stored nothing, so `avisos_parada` in the job's result only held the exhausted dials. The task
+The bug is the one commit 3a0e243 fixed in an agent with its own harness: `declarar_parada`
+answered "Anotado en el informe" and stored nothing, so `avisos_parada` in the job's result
+only held the exhausted dials. The task
 names the two functions below so they can be tested without `claude_agent_sdk`; everything else
 (wording, storage, where the reset lives) is the agent's choice.
 """

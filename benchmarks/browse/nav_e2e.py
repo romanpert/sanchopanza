@@ -327,7 +327,7 @@ def decider_class() -> str:
 
     A key is not a decider: adopt's frozen environments had the key and no `httpx`, the factory
     fell back to the null decider with its warning on a captured stderr, and every decision of a
-    phase was "null" (indagis-e3, 2026-10-02). The flag said Jev; only building it says so."""
+    phase was "null" (session e3, 2026-10-02). The flag said Jev; only building it says so."""
     probe = (
         "from sanchopanza.harness.claude_code import decider_from_env; "
         "print(type(decider_from_env()).__name__)"

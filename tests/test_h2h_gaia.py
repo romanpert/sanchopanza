@@ -844,10 +844,11 @@ def test_blind_verdicts_come_back_through_the_key(tmp_path):
         runner.stats.blind_verdicts(answers, key)
 
 
-def test_ne_arm_is_clean_n_with_only_the_compaction_window_s_writes(tmp_path):
+def test_ne_arm_is_clean_n_with_only_the_compaction_window_s_writes(tmp_path, monkeypatch):
     """N-early (2026-10-07): a clean N whose user settings hold only the auto-compact window, the
     value S's install writes for its context budget, so NE and S differ by the rest of S alone
-    (indagis-6c's Ne of the long bench)."""
+    (session 6c's Ne of the long bench)."""
+    monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "tok")  # never a file on this machine
     assert runner.split_arm("SONNET-NE") == ("SONNET", "NE")
     cc, ne = runner.settings_for("CC"), runner.settings_for("NE")
     assert ne["flag"] == cc["flag"]

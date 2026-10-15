@@ -89,3 +89,5 @@ python benchmarks/longdocs/sentences.py --qasper QASPER-TEST.jsonl  # free, sent
 
 The QASPER test parquet (`allenai/qasper`) is converted to JSONL row by row; it is not
 redistributed here. `tests/test_longdocs_bench.py` and `tests/test_longdocs_sentences.py` pin both runs (need `SANCHOPANZA_QASPER`); the sentence calls are in `fixtures/longdocs-sentences.jsonl`.
+
+2026-10-15: text redacted to remove the name of another project; the sealed original (`prereg.md`, hash 8626bc0a40cd9cd90ab635c9f7119e5e1f5da85a9270fa4a3a915e9e765724bc) is kept in the git history.

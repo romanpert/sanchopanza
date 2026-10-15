@@ -79,7 +79,7 @@ def check(dev: bool = False) -> int:
     if not dev:
         if stamp.get("commit") != AUTO_COMMIT or not {"jev", "mcp"} <= set(stamp.get("extras", [])):
             problems.append(f"frozen copy: {stamp}")
-        keyfile = run.keyfile_from_indagis()
+        keyfile = run.keyfile_from_harness_env()
         try:
             decider = run.decider_probe(keyfile)
         finally:

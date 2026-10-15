@@ -674,11 +674,13 @@ def sealed() -> bool:
     return confirm.seal_holds()
 
 
-def keyfile_from_indagis() -> Path:
-    """The TypeSafe key for the S arm's hooks, from the owner's Indagis .env; never printed."""
+def keyfile_from_harness_env() -> Path:
+    """The TypeSafe key for the S arm's hooks, from the environment or the SANCHOPANZA_KEYS_ENV
+    file; never printed."""
     key = os.environ.get("TYPESAFE_API_KEY", "").strip()
-    if not key:
-        env_file = Path(r"C:\Users\roman\Desktop\proyectos\apps\indagis\.env")
+    named = os.environ.get("SANCHOPANZA_KEYS_ENV", "")
+    if not key and named and Path(named).exists():
+        env_file = Path(named)
         for line in env_file.read_text(encoding="utf-8").splitlines():
             if line.startswith("TYPESAFE_API_KEY="):
                 key = line.split("=", 1)[1].strip().strip('"')
@@ -764,7 +766,7 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(why)
     with _lock:
         _ledger["spent"] = spent_so_far()
-    keyfile = keyfile_from_indagis()
+    keyfile = keyfile_from_harness_env()
     try:
         treated = any(ARM_SPECS[a].install is not None for a in arms)
         if held_named and treated and (why := decider_refusal(keyfile)):

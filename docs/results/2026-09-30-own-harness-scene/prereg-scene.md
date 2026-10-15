@@ -1,14 +1,14 @@
-# Pre-registration: the Indagis scene, Claude Code alone against Claude Code with sanchopanza
+# Pre-registration: the own-harness scene, Claude Code alone against Claude Code with sanchopanza
 
 Written 2026-09-30, before any session. Sealed with `run.py`, `hook_key.py` and
 `acceptance_test.py` in `prereg-scene.sha256`.
 
 ## The task
 
-A real bug of Indagis, fixed by commit `3a0e243` on 2026-09-27: the MCP tool `declarar_parada`
+A real bug of an agent with its own harness, fixed by commit `3a0e243` on 2026-09-27: the MCP tool `declarar_parada`
 answered "Anotado en el informe" and stored nothing, so `avisos_parada` in the job's result held
 only the exhausted dials. Each session starts at its parent `6ca4e57` in a fresh git worktree of
-Indagis, with the prompt in `run.py` (in Spanish, as the owner writes). The prompt names the two
+that agent's repository, with the prompt in `run.py` (in Spanish, as the owner writes). The prompt names the two
 functions the hidden test needs (`registrar_parada`, `paradas_declaradas`), because the tool
 itself cannot be exercised without `claude_agent_sdk`, which is not installed on the host.
 
@@ -45,5 +45,5 @@ more or changes nothing, the scene says so.
 | Jev | 0.05 a session | under 0.05 in all |
 
 A session a cap skips is NOT RUN and reported. Worktrees are removed at the end; nothing is
-committed to Indagis. The best passing diff is kept in the evidence folder in case the owner
+committed to that agent's repository. The best passing diff is kept in the evidence folder in case the owner
 wants it, and nothing is applied without asking.

@@ -102,3 +102,5 @@ on a dev sample of 48 SWE-bench Verified issues, disjoint from the 117. One was 
   names into words for that reason.
 - **What stays true:** the ceiling is lexical. An issue that never names the code it breaks
   leaves every code-only strategy tried here little to find.
+
+2026-10-15: text redacted to remove the name of another project; the sealed original (`prereg.sha256`, hash d844789217a81c048a03c940d6d3e905b54c10cc14ec8f59df16fc8d40710ffc) is kept in the git history.

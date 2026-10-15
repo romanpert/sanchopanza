@@ -71,8 +71,9 @@ def cases(runs: list[Path], whole: bool = False, unrelated: bool = False,
 
 def api_key() -> str:
     key = os.environ.get("TYPESAFE_API_KEY", "").strip()
-    env_file = Path(r"C:\Users\roman\Desktop\proyectos\apps\indagis\.env")
-    if not key and env_file.exists():
+    named = os.environ.get("SANCHOPANZA_KEYS_ENV", "")
+    env_file = Path(named) if named else None
+    if not key and env_file is not None and env_file.exists():
         for line in env_file.read_text(encoding="utf-8").splitlines():
             if line.startswith("TYPESAFE_API_KEY="):
                 key = line.split("=", 1)[1].strip().strip('"')

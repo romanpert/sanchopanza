@@ -660,3 +660,5 @@ other results folder here: they hold local paths. Published here:
 - **The status block is doing much of the work.** A prose-only "done" leaves little to
   contradict. v2 catches most counterfactuals because the block states the claim in a field
   code can check.
+
+2026-10-15: text redacted to remove the name of another project; the sealed originals (`prereg-3.sha256`, hash 0f7768b88d0176351c5393b631c3b7425d5e9a8ca22a18ff8f8ab7a44b8277a5; `prereg-4.sha256`, hash 0f652b7b4ea3bf3437242a4988871f4991b4fde7f32dbc452daaee400a8f7f7e; `prereg-5.sha256`, hash 65269fe2137630b306d82c7d094fad9b56c150f11472cf7eccee15d56cde81f0) are kept in the git history.

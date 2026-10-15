@@ -82,5 +82,5 @@ except a pair cut by a runner bug, which runs again whole and goes in an amendme
 ## Order and coordination
 
 These runs start only after two others are over: the adoption chain for memory amendment 6,
-part A, and indagis-e3's Haiku rerun of adoption phase A. All three share the weekly limit of
+part A, and session e3's Haiku rerun of adoption phase A. All three share the weekly limit of
 one subscription.

@@ -1,6 +1,6 @@
 # Plan para que S gane: qué falló en h2h y qué hacemos ahora (2026-10-07)
 
-Escrito por indagis-6c (línea memoria y contexto, banco largo) con indagis-d6 (línea web/h2h, S2).
+Escrito por la sesión 6c (línea memoria y contexto, banco largo) con la sesión d6 (línea web/h2h, S2).
 d6 añade su parte en la sección 6. Sale de dos auditorías gratuitas de hoy sobre las filas de
 `~/.cache/sanchopanza/{gaia,bcp,longdoc}/h2h/*-conf/` (solo campos numéricos, ningún texto de
 tarea) y del mapa de huecos del 2026-10-05 (`docs/MAPA-HUECOS-ARNES.md`). Los scripts están en el
@@ -419,7 +419,7 @@ Instantánea `diff-12`, anterior a cualquier compactación de Ne, puntuada con `
   total.
 - Con solo Ne repetido en conan (~17 $) ya se vería si el 5/12 del principio se repite.
 
-### Repetición en conan: N2, Ne2 y A2 (indagis-5a, relevo de 6c, con e8; 2026-10-07, 21:30)
+### Repetición en conan: N2, Ne2 y A2 (sesión 5a, relevo de 6c, con e8; 2026-10-07, 21:30)
 
 Tanda aprobada por el dueño: 100 $ duros. Lanzada a las 20:02 desde run-noise (comun 1bf7343),
 Sonnet 5.5, conan-long60-1, una raíz por brazo. Gastado: N2 30,61 + Ne2 19,37 + A2 29,37 =
@@ -588,7 +588,7 @@ Script: `replay_ne.py`, en el scratchpad de la sesión 12aa49bd.
     la regla, la potencia manda: ~43 cadenas para ver un −7 %.
   - A queda archivado para código largo. Su techo se lee con replay, que es determinista.
 
-### Dónde puede pagar Jev en código largo con N-early de listón (indagis-b9, 2026-10-08; gratis)
+### Dónde puede pagar Jev en código largo con N-early de listón (sesión b9, 2026-10-08; gratis)
 
 Tres replays sobre las mismas transcripciones (N, N2 y Ne de conan-1; N y Ne de pydantic-1), sin
 modelo y sin Jev. Scripts en el scratchpad de la sesión ab95d8a0: `anat_ne.py`, `carry_ne.py`,
@@ -704,7 +704,7 @@ fb42fa4, verificado contra el código por un subagente independiente). Resultado
 - Aunque ganara, 67k no sirve de valor por defecto de `install`: la base de contexto de las sesiones
   reales del dueño es de ~68k (prerregistro, sección 9).
 - **Consecuencia**: `install --context-budget` se queda en 160.000. En código largo, Jev no tiene
-  dónde pagar (indagis-b9), y compactar antes, que no es Jev, tampoco demuestra ahorro con 5 cadenas.
+  dónde pagar (sesión b9), y compactar antes, que no es Jev, tampoco demuestra ahorro con 5 cadenas.
 
 ### Compactar antes: la repetición de conan-2 tampoco gana (enmienda, 2026-10-15)
 

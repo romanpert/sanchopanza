@@ -49,6 +49,7 @@ import asyncio
 import hashlib
 import importlib.util
 import json
+import os
 import pathlib
 import random
 import re
@@ -91,10 +92,8 @@ DEV_SIZE = 20
 PHASE_CEILINGS = {"dev": 25.0, "gaia-conf": 40.0}
 
 CLAUDE_VERSION = "2.1.287"
-PIN = pathlib.Path(
-    "C:/Users/roman/AppData/Local/Temp/claude/c--Users-roman-Desktop-proyectos-apps-indagis/"
-    "ed2adcce-a92b-4af9-bb31-96872de0c1cd/scratchpad/pin/claude.exe"
-)
+# The pinned claude.exe: in the folder SANCHOPANZA_PIN_DIR names, else under the runs folder.
+PIN = pathlib.Path(os.environ.get("SANCHOPANZA_PIN_DIR") or "C:/sp-runs/pin") / "claude.exe"
 MODELS = {
     "FABLE": "claude-fable-5-1",
     "OPUS": "claude-opus-5-5",

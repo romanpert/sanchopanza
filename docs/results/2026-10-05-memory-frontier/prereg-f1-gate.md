@@ -26,7 +26,7 @@ facts often enough, per family and model, for S to have anything to fix?**
      sessions so Claude Code's own auto memory can carry; no plugins, skills, MCP servers, hooks
      or user `CLAUDE.md`;
    - it signs in with the subscription's OAuth token (`CLAUDE_CODE_OAUTH_TOKEN`, from
-     `claude setup-token`; the one already in the owner's Indagis `.env` for subscription test
+     `claude setup-token`; the one already in the `.env` of the owner's agent with its own harness for subscription test
      runs), read by `carry.py` from the launcher's environment or from that `.env`, and passed
      only in the `claude` process's environment. Every `ANTHROPIC_*`, `CLAUDE_CODE_USE_*`, `TYPESAFE_*` and
      `SANCHOPANZA_*` variable is dropped. Each pair's files are scanned for the token at its end
@@ -38,7 +38,7 @@ facts often enough, per family and model, for S to have anything to fix?**
    - permission mode is the default (no `--permission-mode` flag), with
      `--allowedTools Bash Read Edit Write Glob Grep` and `--settings "{}"`.
    This breaks comparability with every earlier carry run, which loaded the maintainer's setup.
-2. **Claude Code is pinned at 2.1.287** (indagis-95), as in the v8.1 Haiku seal, for
+2. **Claude Code is pinned at 2.1.287** (session 95), as in the v8.1 Haiku seal, for
    comparability with every earlier carry run. The current release is not tested here. The
    launcher puts `%USERPROFILE%\.cache\sanchopanza\claude-pin\2.1.287` first on PATH, sets
    `DISABLE_AUTOUPDATER=1`, and refuses to start (exit 3) unless `claude --version` begins with
@@ -46,7 +46,7 @@ facts often enough, per family and model, for S to have anything to fix?**
    (`carry.PIN`). The pinned `claude.exe` has sha256 `6d5be51f...d2ff98b4`, the same file as
    the v8.1 seal.
 3. **S's store decoys**: not applicable. The gate runs N only.
-4. **The gate is by family, 3 of 8** (indagis-95, after code review). A break counts only when
+4. **The gate is by family, 3 of 8** (session 95, after code review). A break counts only when
    the task was done too, or the scene has no task check (every F1 scene has one). Both counts
    are reported: every fact not kept, and the breaks with the task done. Only the second decides.
 5. **The two v8.1 gaps** (no supersession for family ii; a store per worktree for family iii) are
@@ -236,9 +236,9 @@ model", not a failure of S.
    2026-10-05 at ad0471c (`f1-dry2`): exit 0, 48 rows, the token in no file.
 3. **Claude Code.** `claude --version`, with the launcher's PATH, prints `2.1.287 (Claude Code)`.
 4. **Coordination.** No other batch is using the subscription; the weekly limit is shared. The
-   sibling sessions indagis-8f (adoption) and indagis-a1 (browse) are told before launch, and the
+   sibling sessions 8f (adoption) and a1 (browse) are told before launch, and the
    PIDs of any batch of theirs are named and confirmed ended.
-5. **The token** (`CLAUDE_CODE_OAUTH_TOKEN`) is in the owner's Indagis `.env`; the owner has
+5. **The token** (`CLAUDE_CODE_OAUTH_TOKEN`) is in the `.env` of the owner's agent with its own harness; the owner has
    approved its use for this run. Without it `carry.py` refuses (exit 1, nothing spent).
 
 The launcher is started outside the Claude Code session through `Invoke-CimMethod
@@ -251,5 +251,5 @@ PID only. The driver's PID:
 
 ## Sealing
 
-- Launcher `f1-gate-run.cmd`, sha256 `9ed786d5f7ee3cd96139bc6fb2455db2f5384f38743bd397eb47e272b705e241` (at 8e9dc68, unchanged since; the earlier value 9cbe43fc... was at ad0471c, before the token was read from the Indagis `.env`).
+- Launcher `f1-gate-run.cmd`, sha256 `674634bd1b6a73af26e3fb60921b9ea7b9586d341f09884644c7436d005413dd` (at 8e9dc68, unchanged since; the earlier value 9cbe43fc... was at ad0471c, before the token was read from the `.env` of an agent with its own harness).
 - Sealing commit: the commit that adds this file (`git log --diff-filter=A -- docs/results/2026-10-05-memory-frontier/prereg-f1-gate.md`).

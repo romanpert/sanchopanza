@@ -121,7 +121,7 @@ outputs); K ran with that code throughout.
    About 5 calls and 0.002 USD per compaction.
 
 Why Score and not yes/no: inside a budget the order among kept lines decides, and a four-level
-score gives a position (the same fix Indagis measured on long documents).
+score gives a position (the same fix an agent with its own harness measured on long documents).
 
 ## Defects found and fixed, each with a test
 

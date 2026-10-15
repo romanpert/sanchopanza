@@ -31,7 +31,10 @@ from sanchopanza.harness import memory_hook as mh  # noqa: E402
 CACHE = Path.home() / ".cache" / "sanchopanza" / "memory-real"
 OUT = REPO / "docs" / "results" / "2026-10-01-memory-real"
 ANSWERS = CACHE / "answers.jsonl"
-INDAGIS_ENV = Path(r"C:\Users\roman\Desktop\proyectos\apps\indagis\.env")
+# The .env file to read the key from when the environment has none; none unless
+# SANCHOPANZA_KEYS_ENV names one.
+HARNESS_ENV = (Path(os.environ["SANCHOPANZA_KEYS_ENV"])
+               if os.environ.get("SANCHOPANZA_KEYS_ENV") else None)
 
 
 def load_items(split: str) -> list[dict[str, Any]]:
@@ -112,8 +115,8 @@ def squire_with_key(cap: float) -> Any:
     from sanchopanza.harness.claude_code import squire_from_env
 
     key = os.environ.get("TYPESAFE_API_KEY", "")
-    if not key:
-        for line in INDAGIS_ENV.read_text(encoding="utf-8").splitlines():
+    if not key and HARNESS_ENV is not None and HARNESS_ENV.exists():
+        for line in HARNESS_ENV.read_text(encoding="utf-8").splitlines():
             if line.startswith("TYPESAFE_API_KEY="):
                 key = line.split("=", 1)[1].strip().strip('"')
     if not key:

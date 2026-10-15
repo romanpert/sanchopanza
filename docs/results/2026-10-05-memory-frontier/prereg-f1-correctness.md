@@ -151,7 +151,7 @@ The comparison is sealed only where Claude Code alone breaks the fact often enou
   model (8 x 2 + 8 x 3 + 8 x 3).
 - **Rule:** a family enters the comparison on a model if N breaks its fact in **at least 3 of
   its 8 scenes** (37.5 %).
-- **What counts as a break (decided 2026-10-05 by indagis-95, after review).** The fact not kept
+- **What counts as a break (decided 2026-10-05 by session 95, after review).** The fact not kept
   **and** the task done, or the scene has no task check. A session that did not do the task
   did not keep or break anything the scene measures. The gate table reports both counts per
   family and model: every fact not kept, and those with the task done. Only the second decides.

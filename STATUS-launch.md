@@ -120,7 +120,7 @@ long-run.status.json runner-<model>.log grade.log report.json windows.json cfg/ 
       CommandLine = "cmd.exe /c C:\Users\roman\Desktop\proyectos\apps\sanchopanza-long-launch\long-smoke-run.cmd cb0062e"
       CurrentDirectory = "C:\Users\roman\Desktop\proyectos\apps\sanchopanza-long-launch" }
 
-Before it: tell indagis-a1 the PID, time and cap (8 USD hard); C:\sp-runs\LIMIT.flag absent;
+Before it: tell session a1 the PID, time and cap (8 USD hard); C:\sp-runs\LIMIT.flag absent;
 TypeSafe topped up (the launcher's preflight is one real decision, ~13 micro-USD, and stops the
 launch with 10-14 if Jev does not answer). Watch on the first call: `debug-1.log` non-empty and
 `window_reported` in its row (the debug line was never seen from a real session). At Haiku's
@@ -136,7 +136,7 @@ needs that commit. The grade at the end runs each arm's tests in Docker (free, l
 3116 passed, 40 skipped in 284 s (`-m pytest tests -q -p no:cacheprovider`, PYTHONPATH=src, main venv),
 after the one-turn and seal changes. Baseline on long-bench: 3075 passed, 40 skipped.
 
-## Smoke run, live (2026-10-07, indagis-6c)
+## Smoke run, live (2026-10-07, session 6c)
 
 Root `C:\sp-runs\L-smoke`, seal cb0062e, Haiku 4.5, pydantic-long60-1, 3 bugs + 2 callbacks.
 Spent **2.88 USD** of the 8 hard ceiling (N 1.13 with the forced cut charged at its 1.00 cap,
@@ -185,7 +185,7 @@ Before launching: `python benchmarks/adopt/freeze.py edd37bb` (free), then by WM
     Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
       CommandLine = "cmd.exe /c C:\Users\roman\Desktop\proyectos\apps\sanchopanza-pilot-a\long-pilot-a-run.cmd edd37bb A"
       CurrentDirectory = "C:\Users\roman\Desktop\proyectos\apps\sanchopanza-pilot-a" }
-## Gate (headroom), live (2026-10-07, indagis-6c)
+## Gate (headroom), live (2026-10-07, session 6c)
 
 Root `C:\sp-runs\L`, arm N only, clean user, Claude Code 2.1.287. Spent **168.57 USD** (list,
 subscription) under the 230 ceiling (owner raised Opus to 75 a chain twice the same day).
@@ -207,7 +207,7 @@ subscription) under the 230 ceiling (owner raised Opus to 75 a chain twice the s
   removed, after call 51 of Sonnet's conan; fixed in 4849111, resumed); call 51 was charged its
   4.50 cap (real 0.89), which ended that chain one request early.
 
-## Give-ups: the raw count is not the measure (2026-10-07, indagis-e8 and indagis-6c)
+## Give-ups: the raw count is not the measure (2026-10-07, sessions e8 and 6c)
 
 `long_report.give_ups` counts a bug call that changed no code outside `changes/`, or whose answer
 says it could not fix the bug. That also takes a bug an earlier bug's fix already fixed ("no
@@ -218,7 +218,7 @@ AND left unresolved by the grade), with its context: `give_ups(..., grade)` retu
 line prints them. The raw count is still published beside it. Decided before any quality result
 of N-early was seen (its cost and context had been watched live).
 
-## Conan repeat round: N2, Ne2, A2 (2026-10-07 evening, indagis-5a relaying 6c, with indagis-e8)
+## Conan repeat round: N2, Ne2, A2 (2026-10-07 evening, session 5a relaying 6c, with session e8)
 
 Owner approved 100 USD hard. Launched 20:02 from run-noise (comun 1bf7343), Sonnet 5.5,
 conan-long60-1, roots `C:\sp-runs\L-n2c` (N, 38), `L-ne2c` (Ne, 25), `L-a2c` (A from lean

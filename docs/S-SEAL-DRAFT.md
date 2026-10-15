@@ -1,6 +1,6 @@
 # Arm S for the final comparison: draft of the seal
 
-Draft of 2026-10-05 (indagis s-seal worktree, branch `s-seal`, from main `ee81d0d`, which holds
+Draft of 2026-10-05 (s-seal worktree, branch `s-seal`, from main `ee81d0d`, which holds
 browse and memory v8.3). It is due sealed 2026-10-06 12:00. What the owner asked for (2026-10-05):
 "use sanchopanza in full: hooks, tools, everything, integrated in the agent even if the agent
 doesn't use it; context management inside the session, memory, EVERYTHING we have". Nothing here
@@ -22,7 +22,7 @@ agent to a tool that is not there, and prune can rewrite an evaluate crawl has r
 
 ## 1. The recommended line
 
-**Agreed with indagis-a1 (browse owner) on 2026-10-05**: a1's candidate line, plus
+**Agreed with session a1 (browse owner) on 2026-10-05**: a1's candidate line, plus
 `SANCHOPANZA_GUARD_CHOOSER=keep` and a store and state folder per session. One command per suite,
 run from the task's working folder, into a settings file the session loads. The only difference
 between the suites is `--guard-profile`.
@@ -66,9 +66,9 @@ so it wins over `~/.sanchopanza`).
 ### With and without `--knowledge`
 
 **Update 2026-10-05 night:** `--knowledge` is on main (merge 5da2635 of knowledge 402021e onto
-7752471; indagis-a1's suite 3032 passed, 0 failed). It registers `sanchopanza-knowledge`
-(`search`, `read`, `pick`, alwaysLoad). Decision for coherence (indagis-a1, recorded here by
-indagis-95): with `--fetch` and `--knowledge` together, knowledge is the **only** page reader. The
+7752471; session a1's suite 3032 passed, 0 failed). It registers `sanchopanza-knowledge`
+(`search`, `read`, `pick`, alwaysLoad). Decision for coherence (session a1, recorded here by
+session 95): with `--fetch` and `--knowledge` together, knowledge is the **only** page reader. The
 fetch hook, the `sanchopanza-fetch` server and its approval are not wired, and install says so
 once on stderr; pinned by
 `tests/test_install_knowledge.py::test_fetch_and_knowledge_together_leave_one_hook_and_one_reader_server`.
@@ -117,7 +117,7 @@ schemas, server instructions, the skill's listed description. Counted from what 
 | Compaction guard (`--guard`, default) | in | PreCompact `manual\|auto`, SessionStart `compact`, PostToolUse `Bash` | Confirmed in development only: tasks finished native 2/7, rule 5/7, cascade keep 6/7, McNemar p 0.375, Haiku (`2026-09-29-context-guard`). The `keep` chooser needs the provider | 0 (a block after each compaction) |
 | Context budget (`--context-budget`, default 160k) | in | `CLAUDE_CODE_AUTO_COMPACT_WINDOW=193000`, `SANCHOPANZA_CONTEXT_BUDGET=160000` | Simulated on 1,283 real sessions: re-read cost 42-44 % of today's at 140-200k. Live: Haiku compacts at 160.6-161.7k; Sonnet peaked at 80k and never compacted. Not measured live past 200k (`2026-09-30-adopt/dev-log.md`) | 0 |
 | Memory (`--memory`, v8.3) | in | UserPromptSubmit, Stop, SessionEnd, SessionStart (all), PostToolUse on the file tools and the shells | Carry v6.2 confirmed on Sonnet 5.5 (23/24 vs 14/24, p 0.002), no margin on Opus 5.5 (16/16 vs 14/16); v8 cross 24/24 vs 19/24 (`2026-10-02-memory-carry`). v8.x supersession merged | 0 fixed; standing rules at start when the store has any (none in a fresh store) |
-| Candor (`--candor`) | in | five hooks (`*` on Pre/Post/PostFailure), `SANCHOPANZA_CANDOR_SNAPSHOT=1` | Round 4: 105/105 counterfactuals locked, 1/61 honest sessions; v6 locks 1.8 % of real SWE-chat turns; the Indagis scene gave 2 false alarms in 3. Lock is per session (`4fa334f`, `ca8bdfe`) | 0 fixed; 59 per prompt (the status-block request) |
+| Candor (`--candor`) | in | five hooks (`*` on Pre/Post/PostFailure), `SANCHOPANZA_CANDOR_SNAPSHOT=1` | Round 4: 105/105 counterfactuals locked, 1/61 honest sessions; v6 locks 1.8 % of real SWE-chat turns; the own-harness scene gave 2 false alarms in 3. Lock is per session (`4fa334f`, `ca8bdfe`) | 0 fixed; 59 per prompt (the status-block request) |
 | find_in_repo (`--find`) | in | `sanchopanza` server in `.mcp.json`, `alwaysLoad` | Retrieval: Acc@1 51.3 % vs BM25 13.7 % on 117 Verified issues. End to end: called in 6/27 (find-e2e), 2/78 (phase D); never a measured gain | 329 (tool) + 73 (server instructions) |
 | find_auto (`--find-auto`) | in | `mcp_tool` hook on PostToolUse and PostToolUseFailure of the search and file tools; server started `--auto` | Opt-in, unmeasured end to end; probe: fired 4/4 where due, gold shown 3, followed 3 (`HANDOFF-2026-10-05-adopt-d`). Tool hidden from the model (`_meta.ui.visibility`) | 0 (hidden) |
 | Skill `sanchopanza-code` (`--skill`, default) | in | `SKILL.md` beside the settings | Explains each part; never measured on its own | 121 (listed description; the 752-token body only when invoked) |
@@ -126,7 +126,7 @@ schemas, server instructions, the skill's listed description. Counted from what 
 | Crawl (`--crawl` + v9 env) | in | SessionStart, UserPromptSubmit, PreToolUse on `browser_(evaluate\|take_screenshot)`, PostToolUse on `browser_evaluate` | Confirmations 3, 4, 5 NOT confirmed, all on price; answers and no-harm held (conf 5, Haiku 19 vs 12). v9 in development (Haiku 10/12 vs 6/12) | 0 fixed; line v6 (298) only on prompts that gather (`LINE_AT=prompt`) |
 | Prune (`--prune`) | in | PostToolUse on `mcp__.*__browser_(?!evaluate$).*` | Registered 12.4-13.4 % cheaper with Playwright MCP in three rounds (one interval crossing zero), nothing clear in a fourth; about 5 % then nothing with playwright-cli (`browse_hook` docstring, `2026-09-30-browse`) | 0 |
 | Fetch (`--fetch` + `FETCH_VERSION=2`) | in | PreToolUse on WebFetch; `sanchopanza-fetch` server, `alwaysLoad` | Dev: Haiku 16/20 vs 15/20 at 0.114 vs 0.177 USD; confirmation fetch1 sealed and running (blind verdict pending) | 176 (tool) |
-| Sources (`--sources`) | **out** | Stop hook | indagis-a1: v1 +52 % cost and no more right answers; v2 ceiling +2..+5 per 100 sessions, closed. In only if the owner wants "everything" literally, then with `SANCHOPANZA_SOURCES_VERSION=2` | 0 |
+| Sources (`--sources`) | **out** | Stop hook | Session a1: v1 +52 % cost and no more right answers; v2 ceiling +2..+5 per 100 sessions, closed. In only if the owner wants "everything" literally, then with `SANCHOPANZA_SOURCES_VERSION=2` | 0 |
 | Autopilot (`--autopilot`) | **out** | compaction plugin (early-access function hooks), PostToolUse `*` arrival cut, masking at 60 % | The 12/12 was retracted (handle bug); redone: native 5/7, lean masking 3/7, delete 0/6. It replaces the summary the guard is built around | - |
 | Lean (`--lean`) | **out** | autopilot plus `search_archive` server | Same rerun: 3/7 against native 5/7; the agent never called `search_archive` | - |
 | Compact plugin (`--compact`) | **out** | function-hook plugin pruning at `/compact` instead of summarising | Same mechanism as the autopilot's mask; early access; conflicts with the guard | - |
@@ -162,7 +162,7 @@ event in parallel, and a Bash call reaches five of them (base, guard, candor, me
    non-unicode regex reads as `-`; to check in the preflight.
 4. **Two rewrites of one result (resolved, `1f3499e`).** On a `browser_evaluate` result, crawl
    (`ECHO=short`, `NOTES_AT=front`) and prune (`mcp__.*__browser_.*`) could both return a replaced
-   output, and Claude Code does not document how two replacements merge. indagis-a1 decided: crawl
+   output, and Claude Code does not document how two replacements merge. Session a1 decided: crawl
    owns the evaluate, prune's confirmed result is about snapshots. Prune's matcher is now
    `mcp__.*__browser_(?!evaluate$).*` and its handler returns early on an evaluate even if wired by
    hand. Crawl and prune were never measured together.
@@ -186,7 +186,7 @@ event in parallel, and a Bash call reaches five of them (base, guard, candor, me
 9. **Env.** No two components write the same variable. `CLAUDE_CODE_AUTO_COMPACT_WINDOW` is kept if
    the config already sets one (N's clean config does not).
 10. **Grader collision (resolved by the runner).** Candor asks every prompt for four status lines
-    at the end of the final reply, which would follow GAIA's `FINAL ANSWER:`. indagis-a1's GAIA
+    at the end of the final reply, which would follow GAIA's `FINAL ANSWER:`. Session a1's GAIA
     extractor takes only the `FINAL ANSWER` line, in both arms, so the block never reaches the
     scorer and candor stays in S as it ships (`ASK_BLOCK=prompt`).
 11. **Silent without a provider.** check-done, the content scan, the guard's `keep`, prune's Jev
@@ -218,7 +218,7 @@ with an id is unchanged, and so is the fallback when `CLAUDE_CONFIG_DIR` is unse
 - **D1. Jev in S.** With `--provider jev` (and `GUARD_CHOOSER=keep`), Jev's decisions are part of
   S's cost, as the plan says. Without it, six components decide nothing (conflict 11).
 - **D2. Candor in lock mode.** The product locks the session on a critical finding, and in an
-  unattended run a lock ends the task. The rate on real turns is 1.8 %; the Indagis scene had 2
+  unattended run a lock ends the task. The rate on real turns is 1.8 %; the own-harness scene had 2
   false alarms in 3. Lock (the product) or `MODE=observe` (findings only).
 - ~~D3. Candor's status block and GAIA's grader~~: resolved by a1's extractor (conflict 10).
 - ~~D4. Crawl and prune on one evaluate result~~: decided by a1, applied in `1f3499e` (conflict 4).
@@ -233,7 +233,7 @@ with an id is unchanged, and so is the fallback when `CLAUDE_CONFIG_DIR` is unse
 
 - The hooks run `sanchopanza` from PATH: the sealed run must put the sealed commit's package (with
   the `jev` extra) first on PATH, and the preflight must print `sanchopanza.__file__` and the
-  provider from inside a hook, as Indagis's `procedencia.py` does.
+  provider from inside a hook, as an agent with its own harness does in its `procedencia.py`.
 - Dry runs: `C:\sp-runs\s-seal-dry\{coding,sandbox}-{plain,sources}\` (settings, `.mcp.json`, skill;
   a second run of the same line changes nothing). Overhead probe: `C:\sp-runs\s-seal-dry\overhead.py`.
 - Full suite on `s-seal` at `cef2310`: 2,918 passed, 40 skipped (rerun after `1f3499e` before the
@@ -241,9 +241,9 @@ with an id is unchanged, and so is the fallback when `CLAUDE_CONFIG_DIR` is unse
 
 ## Update 2026-10-06 (early): check-done and candor gate decided
 
-Branch `gate` fd398c6 (indagis-a1). The gate opens when the request changed something **or** asks for an action (`change_gate.asks_action`, a deterministic imperative-vs-question rule, no Jev). Free replays:
+Branch `gate` fd398c6 (session a1). The gate opens when the request changed something **or** asks for an action (`change_gate.asks_action`, a deterministic imperative-vs-question rule, no Jev). Free replays:
 - AgentDojo keeps 266 of check-done's 286 correct blocks (the files-only gate kept 23) and adds no false block.
 - BrowseComp-Plus and LongBench still avoid 17/17 send-backs and 20/20 candor block requests; none of the 87 h2h requests reads as an action.
-- The alternatives lost: B (the final answer claims an action, indagis-95's proposal) kept 24/286 and let one send-back through; the union C gave 266 and 16/17.
+- The alternatives lost: B (the final answer claims an action, session 95's proposal) kept 24/286 and let one send-back through; the union C gave 266 and 16/17.
 
-Decision (indagis-95, line owner of the seal): gate A enters S, `--check-done` and `--candor` stay in the line, `SANCHOPANZA_ON_CHANGE` at its default (on). Merge `gate` into main before the seal and run the single suite (a1 reports 3081 passed, 42 skipped on the branch).
+Decision (session 95, line owner of the seal): gate A enters S, `--check-done` and `--candor` stay in the line, `SANCHOPANZA_ON_CHANGE` at its default (on). Merge `gate` into main before the seal and run the single suite (a1 reports 3081 passed, 42 skipped on the branch).

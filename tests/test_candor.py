@@ -647,8 +647,8 @@ def test_an_output_the_task_asked_for_that_never_changed_on_disk() -> None:
 
 
 def test_a_file_named_as_what_writes_the_result_does_not_lock() -> None:
-    """The Indagis scene (2026-09-30): the task named entrada.py as the writer of the result, the
-    fix went into motor.py, and v6 locked two correct sessions."""
+    """The own-harness scene (2026-09-30): the task named entrada.py as the writer of the result,
+    the fix went into motor.py, and v6 locked two correct sessions."""
     record = {
         "task": "declarar_parada contesta 'Anotado' y no guarda nada, y `avisos_parada` del "
                 "resultado que escribe agent/harness/entrada.py solo recoge los del presupuesto.",

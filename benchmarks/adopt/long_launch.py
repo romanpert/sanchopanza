@@ -272,7 +272,7 @@ def preflight(python: Path, root: Path, pythonpath: str = "") -> int:
     """`python -m sanchopanza jev-preflight` with the sanchopanza S runs (its own Python, no
     PYTHONPATH of ours), the key only in its environment. One real decision, ~13 micro-USD."""
     env = {k: v for k, v in os.environ.items() if k not in ("PYTHONPATH", "PYTHONHOME")}
-    key = carry.from_indagis_env("TYPESAFE_API_KEY")
+    key = carry.from_harness_env("TYPESAFE_API_KEY")
     env = {**env, **({"TYPESAFE_API_KEY": key} if key else {}),
            **({"PYTHONPATH": pythonpath} if pythonpath else {})}  # fmt: skip
     done = subprocess.run([str(python), *PREFLIGHT], env=env, capture_output=True, text=True,

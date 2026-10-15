@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -107,9 +108,9 @@ class Spend:
 
 
 # The generative judges answer the same questions through Claude Code's CLI, isolated (own
-# system prompt, no tools, no settings): the private harness file, the subscription at list price.
-CLI_FILE = (Path.home() / "Desktop" / "proyectos" / "apps" / "indagis" / "agent" / "harness"
-            / "decisor" / "claude_cli.py")  # fmt: skip
+# system prompt, no tools, no settings): the private harness file CANDOR_CLI_MODULE names, the
+# subscription at list price.
+CLI_FILE = Path(os.environ.get("CANDOR_CLI_MODULE", ""))
 CLI_MODELS = {"haiku": "claude-haiku-4-5", "sonnet": "claude-sonnet-5-5"}
 CLI_CACHE = (HERE.parents[1] / "docs" / "results" / "2026-10-02-memory-carry"
              / "audit-cli-sessions.jsonl")  # fmt: skip
@@ -120,6 +121,9 @@ def _cli_module() -> Any:
 
     if "audit_claude_cli" in sys.modules:
         return sys.modules["audit_claude_cli"]
+    if not CLI_FILE.is_file():
+        raise SystemExit("the generative judges need CANDOR_CLI_MODULE: the private harness's "
+                         "claude_cli.py")  # fmt: skip
     spec = importlib.util.spec_from_file_location("audit_claude_cli", CLI_FILE)
     module = importlib.util.module_from_spec(spec)
     sys.modules["audit_claude_cli"] = module  # dataclasses look their module up there

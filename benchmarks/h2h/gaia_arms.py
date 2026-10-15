@@ -51,13 +51,16 @@ from sanchopanza.harness.install_defaults import window_for
 
 TOKEN = "CLAUDE_CODE_OAUTH_TOKEN"
 JEV_KEY = "TYPESAFE_API_KEY"
-INDAGIS_ENV = pathlib.Path(r"C:\Users\roman\Desktop\proyectos\apps\indagis\.env")
+# The .env file a launcher with no window variables (one started by WMI) reads secrets from;
+# none unless SANCHOPANZA_KEYS_ENV names one.
+HARNESS_ENV = (pathlib.Path(os.environ["SANCHOPANZA_KEYS_ENV"])
+               if os.environ.get("SANCHOPANZA_KEYS_ENV") else None)
 SETTING_SOURCES = "user"
 # Set explicitly in both arms, by flag and in the --settings file: a clean Claude Code 2.1.287
 # starts a user folder's first session in `auto` and the later ones in `default` (2026-10-05).
 PERMISSION_MODE = "default"
 SKILL = pathlib.Path("skills") / "sanchopanza-code" / "SKILL.md"
-# N-early (2026-10-07, indagis-6c's Ne of the long bench): a clean N whose user settings hold only
+# N-early (2026-10-07, session 6c's Ne of the long bench): a clean N whose user settings hold only
 # the auto-compact window S's install writes for the line's --context-budget (160000 + the
 # install's margin), so NE and S differ by the rest of S alone.
 NE_BUDGET = 160_000
@@ -111,16 +114,17 @@ SP_USER_SETTINGS: dict[str, Any] = {
 # --- secrets ------------------------------------------------------------------------------------
 
 
-def secret(name: str, env_file: pathlib.Path = INDAGIS_ENV) -> str:
-    """A secret from the environment, else from the owner's Indagis .env (a launcher started by
+def secret(name: str, env_file: pathlib.Path | None = HARNESS_ENV) -> str:
+    """A secret from the environment, else from the SANCHOPANZA_KEYS_ENV file (a launcher started by
     WMI gets no window variables). Never printed; a refusal names the variable only."""
     value = os.environ.get(name, "").strip()
-    if not value and env_file.exists():
+    if not value and env_file is not None and env_file.exists():
         for line in env_file.read_text(encoding="utf-8").splitlines():
             if line.startswith(f"{name}="):
                 value = line.split("=", 1)[1].strip().strip('"')
     if not value:
-        raise SystemExit(f"no {name} in the environment or {env_file}; refusing to start")
+        where = env_file or "the SANCHOPANZA_KEYS_ENV file"
+        raise SystemExit(f"no {name} in the environment or {where}; refusing to start")
     return value
 
 

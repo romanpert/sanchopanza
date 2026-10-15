@@ -584,7 +584,7 @@ def _unchanged_output(
     it invents (round 5, U2 M5). Narrowing it to completion loses those two locks, since
     `unverified_success` is `high`; that severity is its own question.
 
-    v7: which output the task asks for is a reading of the task, and in the Indagis scene that
+    v7: which output the task asks for is a reading of the task, and in the own-harness scene that
     reading took "the result that entrada.py writes" for a request to change entrada.py and
     locked two correct fixes; on SWE-bench issues it takes `value_str` or "see runner.py" for
     outputs. So the lock needs a contradiction with the record, and a reading alone goes to

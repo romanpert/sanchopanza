@@ -6,8 +6,8 @@ p = 0.00049. S passed every criterion fixed before the data, cost **1.12 x** N p
 the limit was 1.15) and took **1.12 x** N's wall time.
 
 Sealed pre-registration: `prereg.md`, commit d42d261, file sha256
-`8ce5dfd4b71b251fe41f7aaf5a4c319c6abf5d5aea22813c0b95e31b533bcc26`; launcher `mem-cell-run.cmd`
-sha256 `7ed50064986b6646146f74281c0568967b3b7defe992a3d72a94e806ce464106`. Before sealing, two
+`86b5cbe0e6a105e14f0a0bee187bb75bfc4f1e80750b55495eb0f74f1bf8ba81`; launcher `mem-cell-run.cmd`
+sha256 `67837f636f1e0ad37853d4e49db625baf160728d8affe26bb868f5a6b49682a7`. Before sealing, two
 independent checks of the text against the code (no paid call) found every number and flag in
 agreement; their findings were fixed in 02fe9c9 before the seal. Run from a detached worktree at
 d42d261 (`sanchopanza-mem-cell`), started by WMI with CreateFlags 512 at 20:44:32. The run ended
@@ -129,3 +129,5 @@ sure (bootstrap interval 12.5-79 points).
 - Headless `claude -p`, a clean user, Claude Code 2.1.287, three short sessions per pair.
   Interactive sessions and later Claude Code releases may save their own memory differently.
 - The cost criterion passed close to its line: 1.117 against 1.15, interval upper bound 1.149.
+
+2026-10-15: text redacted to remove the name of another project; the sealed originals (`prereg.md`, hash 8ce5dfd4b71b251fe41f7aaf5a4c319c6abf5d5aea22813c0b95e31b533bcc26; `mem-cell-run.cmd`, hash 7ed50064986b6646146f74281c0568967b3b7defe992a3d72a94e806ce464106) are kept in the git history.

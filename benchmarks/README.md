@@ -20,6 +20,17 @@ docstrings. Most are free replays of recordings already on disk (`substitution.p
 `agreement.py`, `collision.py`, `memory_common.py --offline`, `thresholds.py`);
 `docs/paper.md` Appendix A lists them with the results they reproduce.
 
+Secrets (`TYPESAFE_API_KEY`, `CLAUDE_CODE_OAUTH_TOKEN`) come from the environment. A launcher
+that gets no window variables (one started by WMI) can name a `.env` file holding them in
+`SANCHOPANZA_KEYS_ENV`; there is no default file. Other machine-local settings the runners read:
+`CANDOR_CLI_MODULE` (the private evaluation harness's `claude_cli.py`, for the candor
+counterfactuals and the memory audit's generative judges; without it they replay their cache),
+`SANCHOPANZA_PIN_DIR` (the folder of the pinned `claude.exe` for `h2h/`, `C:/sp-runs/pin` by
+default), `SANCHOPANZA_SCENE_REPO` (the repository under test in
+`docs/results/2026-09-30-own-harness-scene/run.py`) and `SANCHOPANZA_CONTEXT_DENY`
+(comma-separated private words a project name must not hold to enter `context/build.py`'s
+dataset, on top of those in the code).
+
 ## The standing rule
 
 **A counter that proves a lever ran is not a check that it did what it was for.** Every lever

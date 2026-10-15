@@ -22,7 +22,7 @@ decides at all on the citation points, it is right, but it decides on a fifth of
   rerun on 2026-09-30). Same answer, a different probability: the encoder path changes the
   numbers, so everything below is "CLM on this encoder", not CLM as published.
 - **The translation is not the suspect.** sanchopanza's `clm` provider was checked against
-  CLM's official client on the same requests (indagis-2b, 2026-09-30) and sends the same
+  CLM's official client on the same requests (session 2b, 2026-09-30) and sends the same
   thing. The question wording is sanchopanza's, written for Jev.
 - **Zero-shot.** CLM ships heads that can be fine-tuned per question; none were trained. Jev
   is also used zero-shot here, but it is the model these questions and thresholds were tuned

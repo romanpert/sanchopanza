@@ -59,7 +59,7 @@ PRUNE_COMMAND = "sanchopanza browse-hook"
 # Event -> matcher for snapshot pruning (`--prune`, `harness.browse_hook`): inline snapshots on any
 # MCP server's browser tools (a result past Claude Code's limit is read back by the hook itself).
 # Never `browser_evaluate`: crawl owns its result (echo cut, notes at the head), and prune's
-# confirmed result is about page snapshots (indagis-a1, S seal 2026-10-05).
+# confirmed result is about page snapshots (session a1, S seal 2026-10-05).
 PRUNE_HOOKS = {"PostToolUse": r"mcp__.*__browser_(?!evaluate$).*"}
 
 

@@ -5,7 +5,7 @@ Run 2026-09-30, not pre-registered: a defect found in the adoption pilot
 `benchmarks/guard_coding/measure.py`.
 
 **What was wrong.** `sanchopanza install` has always wired the shell guard into Claude Code. Its
-code deny-list and its question to the decider were written for Indagis's agent: web research in
+code deny-list and its question to the decider were written for an agent with its own harness: web research in
 a container whose writable path is `/workspace`. In a coding session both are the wrong frame:
 
 - in the pilot, the agent's `rm -f` of its own two scratch files inside its repository was

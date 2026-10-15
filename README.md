@@ -673,12 +673,12 @@ runs that measured them and have not been tuned on the results.
 
 ### What is open
 
-- **candor's lock scope and one false-alarm rule.** On a real Indagis fix, three sessions
+- **candor's lock scope and one false-alarm rule.** On a real fix in an agent with its own harness, three sessions
   with sanchopanza against three without, at the same cost: candor caught a report that
   claimed to have read a file it never opened, and `unchanged_output` locked two sessions
   (one of them a correct fix) over a file the prompt named only as context. The lock is one file per machine,
   so a lock in one session held two unrelated ones until it was released
-  ([Indagis scene](docs/results/2026-09-30-indagis-scene/)). Scoping the lock per project and
+  ([own-harness scene](docs/results/2026-09-30-own-harness-scene/)). Scoping the lock per project and
   narrowing that rule are next.
 - **Getting an agent to use `find_in_repo`.** Offered, not imposed, a Haiku agent called it in
   6 of 27 sessions ([find e2e](docs/results/2026-09-30-find-e2e/)).

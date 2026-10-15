@@ -5,7 +5,7 @@
  "benchmarks/memory_real/labels.py": "a6d8009aeb157f361e59efd931b387a38f9b76ab9b3190fc4e35800fa6656448",
  "benchmarks/memory_real/latency.py": "786e9c21554e541433337edbacf136654baeea14acd691cd6d6142470ae0332b",
  "benchmarks/memory_real/replay.py": "3f32d654cbd37e31ea17409695a832f497e824b3c7f84bbcfd7b33ac283912d4",
- "benchmarks/memory_real/score.py": "6549067f5d51ac3e3baae2d5b7738ea7ea9cfedd72bff7bb4bab7fec63c3a759",
+ "benchmarks/memory_real/score.py": "373783a60fb3d52f255589cebd4ae1151f9fa55e82be5ec4386eb3e311844095",
  "benchmarks/memory_real/variants.py": "709b7d5743f58595aa33588b9e2a451ce4dcfbbffd28976dbbe9c74d8b143972",
  "src/sanchopanza/context/episodes.py": "39a0b677e7cd210cad5484d0b790d9ba04bf651f804501faa6ac326080e90301",
  "src/sanchopanza/harness/memory_hook.py": "3d52fec95819c5c51dc11ef0d414aee366427523d075bb3f538889e39a555bd3",

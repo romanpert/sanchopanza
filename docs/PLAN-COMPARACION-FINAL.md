@@ -1,6 +1,6 @@
 # Plan de la comparación final: Claude Code solo frente a Claude Code + sanchopanza
 
-Documento local, 2026-10-05. Para Roman y para las sesiones indagis-95 (memoria y contexto), indagis-8f (adopción y código) e indagis-a1 (navegación y búsqueda web). Lo que no se ha medido lleva **[sin medir]**.
+Documento local, 2026-10-05. Para Roman y para las sesiones 95 (memoria y contexto), 8f (adopción y código) y a1 (navegación y búsqueda web). Lo que no se ha medido lleva **[sin medir]**.
 
 ## Objetivo
 
@@ -47,7 +47,7 @@ Es el estándar del campo (AI Agents That Matter, arXiv 2407.01502; HAL, arXiv 2
 
 ## 3. Suites por línea
 
-### Código (indagis-8f)
+### Código (sesión 8f)
 
 - **Banco:** SWE-bench Verified, sueltas nuevas. Sin usar quedan **133 de 500**: las 500 de `swe-eval/verified-rows.json` menos las 300 de `benchmarks/adopt_d/used-ids.json`, las 26 de D y sus 31 reservas (`singles-d.json`), las 79 de `find_need/need-table.json` y las 28 de las sondas dev. Por repositorio: django 93, sympy 22, sphinx 7, matplotlib 7 y scikit-learn 4 (contado hoy, sin leer notas de D).
 - **Brazos:** N limpio frente a S por defecto; S+find-auto solo si su sonda sale bien.
@@ -129,7 +129,7 @@ Es el estándar del campo (AI Agents That Matter, arXiv 2407.01502; HAL, arXiv 2
 - Que S resuelva más no se podrá afirmar con ninguna de estas opciones. Lo que se decide es la no inferioridad al margen de D y el coste.
 - Antes de lanzar se presenta la estimación y Roman la aprueba.
 
-### Web y búsqueda (indagis-a1)
+### Web y búsqueda (sesión a1)
 
 - **GAIA validation.** Roman aceptó el gate el 2026-10-05. Aún no hay gasto.
   - Preparado en el worktree `sanchopanza-h2h`, rama h2h, commit c37d691, carpeta `benchmarks/h2h/`: corrector oficial reproducido caso por caso, revisión a mano de los dudosos, runner reanudable con topes por sesión (Fable 6 $, Opus 3 $, Sonnet 1,5 $, Haiku 0,75 $), denegaciones anti-fuga en todas las herramientas y Bash permitido.
@@ -143,7 +143,7 @@ Es el estándar del campo (AI Agents That Matter, arXiv 2407.01502; HAL, arXiv 2
 - **Crawl:** las confirmaciones 3, 4 y 5 fallan por precio; respuestas y no-daño aguantan (conf 5, Haiku 19 frente a 12; `HANDOFF-2026-10-05-browse.md`).
 - **Decidido por Roman (2026-10-05):** criterio de victoria = el estándar general de la sección 2 (Pareto por modelo, margen de no inferioridad −2 puntos), igual en todas las suites; el coste por respuesta correcta se reporta como métrica, no decide. Nada de API de búsqueda de pago: la búsqueda se facilita con opciones opensource y sin cuenta (en estudio en la línea browse).
 
-### Memoria (indagis-95)
+### Memoria (sesión 95)
 
 1. **Prueba de margen F1, sellada en c4b853c y aprobada.**
    - Solo N limpio, 24 escenas en tres familias (principios, regla caducada, sesión paralela), Sonnet y luego Opus.
@@ -153,7 +153,7 @@ Es el estándar del campo (AI Agents That Matter, arXiv 2407.01502; HAL, arXiv 2
 3. **F2, traspasos:** ~180,5 $ (`prereg-f2-handoff.md`). Es un borrador. Se apoya en que el 61 % de las sesiones reales de Opus 5.5 abren con un traspaso pegado; ahí está el margen real (memoria `confirmar-en-modelos-frontera.md`).
 - **Ya se sabe:** carry v6.2 confirmado en Sonnet 5.5 (23/24 frente a N 14/24, p 0,002) y sin margen en Opus 5.5 (16/16 frente a 14/16) (`docs/results/2026-10-02-memory-carry/README.md`).
 
-### Contexto (indagis-95)
+### Contexto (sesión 95)
 
 **Lo medido:**
 
@@ -180,7 +180,7 @@ Es el estándar del campo (AI Agents That Matter, arXiv 2407.01502; HAL, arXiv 2
   - tiempo de pared.
 - **Modelos:** Sonnet 5.5 y Opus 5.5.
 
-### Sesiones largas (indagis-95, añadida el 2026-10-05 por la noche, de acuerdo con indagis-a1)
+### Sesiones largas (sesión 95, añadida el 2026-10-05 por la noche, de acuerdo con la sesión a1)
 
 `MAPA-HUECOS-ARNES.md` muestra que el dinero real está aquí. En 141 sesiones reales, el 91 % del
 coste sale de peticiones con más de 200k de contexto; la mediana es de 370k y hubo 3
@@ -246,7 +246,7 @@ Precios de lista, pagados por la suscripción.
 - **Web, estimado por tarea y brazo** (extrapolado de FRAMES y precios de lista): Haiku 0,2 $, Sonnet 5.5 ~0,35 $, Opus 5.5 ~0,7 $, Fable 5.1 ~1,75 $. Total web sin Fable ~345 $; con Fable ~885 $. Lo decide Roman.
 - **Hoy solo está aprobada la prueba de margen F1 (~35 $).** fetch1 y D se lanzaron con permisos anteriores y corren por su cuenta.
 - **El límite semanal de la suscripción es compartido** por las tres sesiones. Se agotó el 2026-10-01 (memoria `suscripcion-limite-semanal.md`), y su equivalencia en dólares de lista no está comprobada (`prereg-f1-correctness.md`, línea 334).
-- Hoy ya van unos 120 $ de browse (handoff de a1) más lo de D. Lo pendiente de aprobar, sumando las filas de arriba (actualizado por indagis-95 el 2026-10-05 a las 19:40 con los números de código de indagis-8f):
+- Hoy ya van unos 120 $ de browse (handoff de a1) más lo de D. Lo pendiente de aprobar, sumando las filas de arriba (actualizado por la sesión 95 el 2026-10-05 a las 19:40 con los números de código de la sesión 8f):
 
   | Bloque pendiente | Estimado | Topes |
   |---|---|---|
@@ -262,7 +262,7 @@ Precios de lista, pagados por la suscripción.
 
 ## 7. Nota: el círculo de contexto que apenas se llena
 
-Roman observa que el círculo de contexto de su sesión apenas se llena. No es sanchopanza: en indagis no hay hooks de sanchopanza. Ni `.claude/settings.json` ni `~/.claude/settings.json` mencionan sanchopanza ni `SANCHOPANZA_*` (comprobado hoy con grep).
+Roman observa que el círculo de contexto de su sesión apenas se llena. No es sanchopanza: en el agente con harness propio no hay hooks de sanchopanza. Ni `.claude/settings.json` ni `~/.claude/settings.json` mencionan sanchopanza ni `SANCHOPANZA_*` (comprobado hoy con grep).
 
 **La causa más probable es la delegación.** La sesión manda la lectura a subagentes, y el contexto de un subagente no cuenta en el de la sesión principal. Otra causa que contribuye, sin comprobar: con una ventana de 1M el círculo avanza despacio.
 

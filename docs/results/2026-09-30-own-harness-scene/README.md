@@ -1,10 +1,10 @@
-# The Indagis scene: Claude Code alone, and with sanchopanza, on a real bug (2026-09-30)
+# The own-harness scene: Claude Code alone, and with sanchopanza, on a real bug (2026-09-30)
 
 Registered in `prereg-scene.md` (sealed before any session); `amend-scene-1.md` after the first
 six (candor's lock per session; the acceptance test's wiring check). Three sessions a side is a
 scene for the video, not a measurement, and no hypothesis was registered.
 
-**The task.** A real Indagis bug, fixed on 2026-09-27 by commit `3a0e243`: the agent's
+**The task.** A real bug in an agent with its own harness, fixed on 2026-09-27 by commit `3a0e243`: the agent's
 `declarar_parada` tool answered "Anotado en el informe" and stored nothing. Each session starts
 at the parent commit in its own worktree, Sonnet 5.5, subscription, the same prompt. Success is
 a hidden acceptance test (4 tests) and the whole harness suite green.
@@ -66,5 +66,7 @@ first. Two things follow and are written in the changelog as next steps: scope t
 stop `unchanged_output` from reading a file named as the place something is written as a file
 to change.
 
-Nothing was committed to Indagis: the bug was already fixed there, and every worktree was
+Nothing was committed to that agent's repository: the bug was already fixed there, and every worktree was
 removed.
+
+2026-10-15: text redacted to remove the name of another project; the sealed originals (`prereg-scene.sha256`, hash 497d6e23622730c78b5c4b374a640ed48a286191ebbad887185d86cc94ceea14; `amend-scene-1.sha256`, hash 6f763b02ed401c120ae7cf47c326fc0d343fe1e62914e062e5033e8de613f7d6) are kept in the git history.

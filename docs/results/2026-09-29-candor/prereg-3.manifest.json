@@ -4,7 +4,7 @@
  "benchmarks/candor/checks.py": "7edd46d4a2ab3bec5a4391b84a091a4bc2969da3de0a341c89ff53f6ab866eae",
  "benchmarks/candor/confirm.py": "563fdf53bb7ee43636ef8454c0333dd01ff80ecab890f79a473219ce7b561726",
  "benchmarks/candor/confirm3.py": "4001bb852fa1ebd7f50f76682394ea96cfb7d67779b676418360106f3f10b33a",
- "benchmarks/candor/counterfactual.py": "e89d05758673a32a151f15eec9783e198e1554e237a1a837f4fc7014af12a816",
+ "benchmarks/candor/counterfactual.py": "cd5b0d4c63b527732b5e9d3bbff0524be62955f0c482d1c9b8156fa34d6c81c8",
  "benchmarks/candor/explore.py": "12ad22302213cb9561ac3a519ed23203799ef4a263045a0b6b7807c4b2b6e547",
  "benchmarks/candor/guard.py": "96ed0f5afa2ff7c24586ce67eda071097812c6f7e99e1b5c8de7ad5b0f178ed0",
  "benchmarks/candor/lock_e2e.py": "2352c47101a6c98edf4a564ac115225983a88b9007eb6903d00e87d59c2d7fae",

@@ -218,7 +218,7 @@ Analysis:
 3. **The decider is Jev.** With that PYTHONPATH and a dummy `TYPESAFE_API_KEY`,
    `decider_from_env` returns `JevDecider`; no call is made. Also check that `httpx` is
    importable. The adoption runs of phase A lost Jev to a missing `httpx`, in silence.
-4. **The key.** The TypeSafe key is in Indagis' `.env`, which `carry.keyfile_from_indagis` reads.
+4. **The key.** The TypeSafe key is in the `.env` of an agent with its own harness, which `carry.keyfile_from_harness_env` reads.
    The run needs under 1 USD of TypeSafe balance; the owner checks the balance on TypeSafe's
    console.
 5. **Claude Code.** `claude --version`, run with the launcher's PATH, prints 2.1.287.
@@ -232,7 +232,7 @@ The owner approved the full design on 2026-10-03: about 29 USD at list price, ca
 
 On 2026-10-05 the owner confirmed the same design with V = v8.1 (caps 24 and 13 USD in the
 launcher, so the runner stops past 22.80 and 11.80 USD). The sibling lines agreed the order:
-this run first; adoption's phase D (indagis-8f) after it ends; browse's pilot (indagis-a1,
+this run first; adoption's phase D (session 8f) after it ends; browse's pilot (session a1,
 10 USD cap) may run alongside, with its Stop hook only in each of its sessions' own settings,
 never in the user's settings that these `claude -p` sessions load. At the first usage-limit
 error each line stops its own run by PID and tells the others and the owner.

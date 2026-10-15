@@ -126,11 +126,25 @@ def test_a_probe_that_fails_names_why(tmp_path, monkeypatch) -> None:  # noqa: A
 def test_each_runner_writes_its_own_key_file(tmp_path, monkeypatch) -> None:  # noqa: ANN001
     monkeypatch.setattr(run, "ROOT", tmp_path)
     monkeypatch.setenv("TYPESAFE_API_KEY", "secret")
-    path = run.keyfile_from_indagis()
+    path = run.keyfile_from_harness_env()
     assert path.parent == tmp_path
     assert path.name != "typesafe.key"  # shared, any runner's `finally` took it from the others
     assert str(run.os.getpid()) in path.name
     assert path.read_text(encoding="utf-8") == "secret"
+
+
+def test_the_key_file_is_the_one_the_environment_names_and_none_by_default(
+    tmp_path, monkeypatch  # noqa: ANN001
+) -> None:
+    monkeypatch.setattr(run, "ROOT", tmp_path)
+    monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+    monkeypatch.delenv("SANCHOPANZA_KEYS_ENV", raising=False)
+    with pytest.raises(SystemExit):
+        run.keyfile_from_harness_env()
+    env_file = tmp_path / "keys.env"
+    env_file.write_text('TYPESAFE_API_KEY="from-file"\n', encoding="utf-8")
+    monkeypatch.setenv("SANCHOPANZA_KEYS_ENV", str(env_file))
+    assert run.keyfile_from_harness_env().read_text(encoding="utf-8") == "from-file"
 
 
 def test_an_arms_key_path_survives_its_runner(tmp_path, monkeypatch) -> None:  # noqa: ANN001

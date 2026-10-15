@@ -1,6 +1,6 @@
 # Mapa de huecos del arnés: dónde puede ganar sanchopanza (2026-10-05)
 
-Escrito por indagis-95 para Roman y las sesiones hermanas. Nació como documento local; se publica
+Escrito por la sesión 95 para Roman y las sesiones hermanas. Nació como documento local; se publica
 desde el 2026-10-07 junto a `docs/PLAN-GANAR-H2H.md`, que lo cita.
 
 Sale de cuatro análisis gratuitos de hoy:
@@ -10,7 +10,7 @@ Sale de cuatro análisis gratuitos de hoy:
 - **Escaneo externo**: afirmaciones de ahorro de otras librerías y cómo funciona el clasificador del
   modo auto.
 - **Inventario**: los 27 mecanismos de sanchopanza y por qué salieron nulos.
-- **Huecos de la línea browse**: los aportó indagis-a1.
+- **Huecos de la línea browse**: los aportó la sesión a1.
 
 Los techos de la tabla suponen que la intervención funciona perfecta y sin efectos secundarios.
 **Se solapan, no se suman.**

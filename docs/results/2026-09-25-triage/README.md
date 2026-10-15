@@ -86,3 +86,5 @@ budget, with the budget favouring BM25.
 - A production research agent (private, not released) now asks the contribution question in
   its own call for page and search-result triage. The hashed pre-registrations here name it;
   they are left as written.
+
+2026-10-15: text redacted to remove the name of another project; the sealed original (`prereg-confirm.md`, hash 7facb79ad3be45513158d395a9512a1b26d1eac216d906cedc0feb4a7c8b0034) is kept in the git history.

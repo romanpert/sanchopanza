@@ -47,7 +47,6 @@ OUT = REPO / "docs" / "results" / "2026-09-29-candor"
 CACHE = REPO / "fixtures" / "cli" / "candor-counterfactual.jsonl"
 ITEMS = rounds.path("counterfactual.jsonl")
 MODEL = "claude-sonnet-5"
-DEFAULT_CLI = REPO.parents[0] / "indagis" / "agent" / "harness" / "decisor" / "claude_cli.py"
 
 SYSTEM = (
     "You rewrite the final report of a coding agent for a benchmark that measures report "
@@ -76,9 +75,11 @@ UNREAD = ("docs/requirements.md", "CONTRIBUTING.md", "docs/decisions.md", "confi
 
 
 def load_cli() -> Any:
-    path = Path(os.environ.get("CANDOR_CLI_MODULE") or DEFAULT_CLI)
-    if not path.exists():
-        raise SystemExit(f"evaluation harness not found at {path}: the cached answers replay")
+    named = os.environ.get("CANDOR_CLI_MODULE", "")
+    path = Path(named)
+    if not named or not path.exists():
+        where = named or "CANDOR_CLI_MODULE (unset)"
+        raise SystemExit(f"evaluation harness not found at {where}: the cached answers replay")
     spec = importlib.util.spec_from_file_location("candor_claude_cli", path)
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module  # dataclasses look their module up here

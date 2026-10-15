@@ -9,7 +9,7 @@ spend unless the sha256 of this file plus `src/sanchopanza/points/chunks.py` mat
 Page triage by contribution (`../2026-09-25-triage/`, confirmed) keeps or drops whole pages:
 93.3 % joint recall of the supporting paragraphs at 52 % of the text. Two questions from the
 owner: can it return only the relevant parts of each page, and does seeing the other pages
-help? A long document (a 117,000-character PDF in a real Indagis job) is where the first
+help? A long document (a 117,000-character PDF in a real job of an agent with its own harness) is where the first
 matters; the second costs one call per set instead of one per page.
 
 ## Data
