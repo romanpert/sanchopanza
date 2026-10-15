@@ -87,14 +87,16 @@ def session_root(phase_name: str, task_id: str, arm: str, run: int) -> pathlib.P
     return gaia.RUNS / phase_name / digest[:16]
 
 
-def one_session(task: longdoc_data.Task, run: int, arm: str, ctx: Mapping[str, Any]) -> dict:
+def one_session(task: longdoc_data.Task, run: int, arm: str, ctx: Mapping[str, Any],
+                caps: Mapping[str, float] = CAPS) -> dict:  # fmt: skip
+    """One session; `caps` (default CAPS) gives its --max-budget-usd and its hit_cap reading."""
     root = session_root(ctx["phase"], task.task_id, arm, run)
 
     def make_row(out, stderr, work, side, wall, projects):  # noqa: ANN001, ANN202
         folder = reading.folder_of(work, projects)
         reply = common.reply_text(out, folder, lambda t: longdoc_data.last_answer(t) is not None)
         row = common.common_row(task.task_id, run, arm, out, stderr, work, side, wall,
-                                projects, LEAK_WORD, CAPS)  # fmt: skip
+                                projects, LEAK_WORD, caps)  # fmt: skip
         pred = longdoc_data.last_answer(reply)
         return {**row, "final_answer": pred, "ok_oficial": pred == task.gold,
                 "success": pred == task.gold, "difficulty": task.difficulty,
@@ -104,7 +106,7 @@ def one_session(task: longdoc_data.Task, run: int, arm: str, ctx: Mapping[str, A
                               make_row=make_row,
                               copies=[(pathlib.Path(task.doc_path), DOC_NAME)],
                               tools=common.TOOLS, disallowed=common.DISALLOWED,
-                              caps=CAPS)  # fmt: skip
+                              caps=caps)  # fmt: skip
 
 
 def session_for(log_to: pathlib.Path, ctx: Mapping[str, Any]):
