@@ -35,6 +35,7 @@ lb = _load("lb162x", "benchmarks/jev114/lb162x.py")
 h2h = _load("h2h_lb162x", "benchmarks/h2h/h2h_lb162x.py")
 st = lb.stats
 A, B = lb.PHASE_A, lb.PHASE_B
+NO_MIN = {"min_covered": 0, "min_saving": 0}  # the registered minima, off for a few fake tasks
 
 
 # --- lb162's recordings and the two orders -------------------------------------------------------
@@ -127,84 +128,6 @@ def test_sessions_guaranteed_at_worst_and_at_the_mean():
     assert lb.at_mean(B, 0.25) == 142 and lb.at_mean(A, 0.25) == 45
 
 
-class Task:
-    def __init__(self, i: int) -> None:
-        self.task_id = f"u{i:03d}"
-
-
-def _budget(tmp_path, phase, now=dt.datetime(2026, 10, 16, 10)):
-    sessions, reservations = tmp_path / "sessions.jsonl", tmp_path / "reservations.jsonl"
-    guard = h2h.Budget(phase, dt.datetime(2026, 10, 16, 9), clock=lambda: now, run_dir=tmp_path,
-                       spent=lambda: h2h.spent_now(sessions, reservations),
-                       reservations=reservations)  # fmt: skip
-    return guard, sessions, reservations
-
-
-@pytest.mark.parametrize("phase, usd", [(A, 0.09), (A, 0.5), (A, None), (B, 0.2), (B, 1.0),
-                                        (B, None)])  # fmt: skip
-def test_a_phase_never_passes_its_ceiling(tmp_path, phase, usd):
-    guard, sessions, _ = _budget(tmp_path, phase)
-    caps = []
-
-    def session(item, run, arm, cap):
-        caps.append(cap)
-        cost = cap + phase.worst_turn if usd is None else usd
-        return {"task": item[0], "task_id": item[0], "run": run, "arm": arm, "list_usd": cost}
-
-    limits = h2h.phase_loop.Limits(session_max_usd=phase.loop_reserve, ceiling_usd=phase.ceiling)
-    code, rows = h2h.phase_loop.run_phase(h2h.steps(phase, [Task(i) for i in range(phase.n)]),
-                                          [], limits, guard.wrap(session), sessions)  # fmt: skip
-    assert sum(r["list_usd"] for r in rows) <= phase.ceiling + 1e-9
-    assert all(c >= phase.floor for c in caps) and all(r["arm"] == phase.arm for r in rows)
-    if usd in (0.09, 0.2):  # all run, the last ones on a lowered cap
-        assert code == 0 and len(rows) == phase.n and caps[0] == phase.full_cap
-        assert min(caps) < phase.full_cap
-    else:  # the money stops it (the guard or the loop's own check, the same line)
-        assert code == 1 and h2h.s162.stop_kind(1, guard) == "ceiling"
-        if usd is None:
-            assert len(rows) == lb.guaranteed(phase)
-
-
-def test_a_session_that_died_keeps_its_own_reserve_against_the_ceiling(tmp_path):
-    guard, sessions, reservations = _budget(tmp_path, B)
-    done = {"task": "a", "task_id": "a", "run": 1, "arm": B.arm, "list_usd": 30.0}
-    guard.wrap(lambda item, run, arm, cap: done)(("a",), 1, B.arm)
-    sessions.write_text(json.dumps(done) + "\n")
-
-    def dies(item, run, arm, cap):
-        raise KeyboardInterrupt
-
-    with pytest.raises(KeyboardInterrupt):
-        guard.wrap(dies)(("b",), 1, B.arm)
-    open_ = h2h.open_reservations([done], reservations)
-    got = [(r["task"], r["list_usd"], r["not_run"]) for r in open_]
-    assert got == [("b", pytest.approx(6.0 + 8.64), True)]
-    assert h2h.spent_now(sessions, reservations) == pytest.approx(44.64)
-    with pytest.raises(h2h.common.JointCeiling, match="ceiling"):
-        guard.wrap(lambda *a: {})(("c",), 1, B.arm)
-    assert h2h.phase_loop.counted([done, *open_]) == [done]
-
-
-@pytest.mark.parametrize("now", [dt.datetime(2026, 10, 16, 23, 55), dt.datetime(2026, 10, 17, 3),
-                                 dt.datetime(2026, 10, 16, 7, 30)])  # fmt: skip
-def test_no_session_starts_outside_the_phases_day_and_hours(tmp_path, now):
-    guard, _, reservations = _budget(tmp_path, B, now)
-    ran = []
-    with pytest.raises(h2h.common.JointCeiling):
-        guard.wrap(lambda *a: ran.append(a) or {})(("t",), 1, B.arm)
-    assert guard.kind == "clock" and ran == [] and not reservations.exists()
-
-
-def test_a_stop_file_stops_before_the_next_session(tmp_path):
-    guard, _, _ = _budget(tmp_path, A)
-    one = guard.wrap(lambda *a: {"list_usd": 0.1})
-    one(("t",), 1, A.arm)
-    (tmp_path / "STOP").write_text("")
-    with pytest.raises(h2h.common.JointCeiling, match="STOP"):
-        one(("u",), 1, A.arm)
-    assert guard.kind == "manual" and h2h.EXIT["manual"] == 6
-
-
 def test_the_clock_refuses_early_starts_and_runs_across_midnight():
     day = dt.datetime(2026, 10, 16)
     assert h2h.clock_refusal(A, day.replace(hour=7, minute=59), 102) != ""
@@ -223,22 +146,42 @@ def test_the_launcher_takes_this_runner():
 
 
 @pytest.mark.parametrize("kinds, final, lot, ran", [
-    ({"B": "done", "A": "done"}, {}, "done", ["B", "A"]),
-    ({"B": "ceiling", "A": "done"}, {}, "ceiling", ["B", "A"]),
-    ({"B": "limit"}, {}, "limit", ["B"]),
-    ({"B": "clock"}, {}, "clock", ["B"]),
-    ({"A": "manual"}, {"B": "done"}, "manual", ["A"]),
-    ({}, {"B": "ceiling", "A": "done"}, "ceiling", []),
+    ({"S": "done", "B": "done", "A": "done"}, {}, "done", ["S", "B", "A"]),
+    ({"B": "ceiling", "A": "done"}, {"S": "done"}, "ceiling", ["B", "A"]),
+    ({"S": "smoke"}, {}, "smoke", ["S"]),
+    ({"S": "ceiling"}, {}, "ceiling", ["S"]),  # a smoke stopped by its ceiling does not pass
+    ({"S": "outage"}, {}, "outage", ["S"]),
+    ({"B": "limit"}, {"S": "done"}, "limit", ["B"]),
+    ({"B": "clock"}, {"S": "done"}, "clock", ["B"]),
+    ({"B": "outage"}, {"S": "done"}, "outage", ["B"]),
+    ({"A": "manual"}, {"S": "done", "B": "done"}, "manual", ["A"]),
+    ({"A": "weird"}, {"S": "done", "B": "done"}, "error", ["A"]),
+    ({}, {"S": "done", "B": "ceiling", "A": "done"}, "ceiling", []),
 ])  # fmt: skip
-def test_the_driver_runs_b_then_a_and_stops_at_the_first_pause(kinds, final, lot, ran):
+def test_the_driver_runs_the_smoke_then_b_then_a_and_stops_at_the_first_pause(
+    kinds, final, lot, ran
+):
     seen = []
 
     def run_one(phase):
         seen.append(phase.key)
         return kinds[phase.key]
 
-    got, _ = h2h.drive(lb.ORDER, run_one, lambda p: final.get(p.key))
+    got, _ = h2h.drive(lb.DRIVEN, run_one, lambda p: final.get(p.key))
     assert got == lot and seen == ran
+    assert (
+        h2h.exit_code(got)
+        == {
+            "done": 0,
+            "ceiling": 1,
+            "limit": 2,
+            "clock": 5,
+            "manual": 6,
+            "error": 7,
+            "outage": 8,
+            "smoke": 9,
+        }[got]
+    )
 
 
 # --- rows without text --------------------------------------------------------------------------
@@ -251,9 +194,12 @@ def test_public_rows_keep_lb162s_fields_and_the_cap_only():
                "cap_usd": 5.5, "workdir": "C:/sp-runs/h2h/lb162x-opus/abc/work"}  # fmt: skip
     rows = [session, {**session, "arm": "SONNET-CC"}, {**session, "task_id": "t2",
                                                        "not_run": True}]  # fmt: skip
-    got = h2h.public_rows(rows, B.arm)
+    got = h2h.public_rows(rows, B)
     assert len(got) == 1 and got[0]["cap_usd"] == 5.5 and got[0]["id"] == "t1"
-    assert set(got[0]) == {"id", "cap_usd", *h2h.s162.ROW_KEYS}
+    assert set(got[0]) == {"id", "cap_usd", "served_ok", *h2h.s162.ROW_KEYS}
+    assert got[0]["served_ok"] is True
+    other = {**session, "usd_by_model": {"claude-sonnet-5-5": 0.2, "claude-opus-5-5": 0.02}}
+    assert h2h.public_rows([other], B)[0]["served_ok"] is False
     assert "SECRET" not in json.dumps(got) and "sp-runs" not in json.dumps(got)
 
 
@@ -283,7 +229,7 @@ def test_hybrid_minus_opus_is_coverage_times_the_mean_covered_gain():
     rows = [_jev(0, 0.9, True), _jev(1, 0.7, False), _jev(2, 0.3, True), _jev(3, 0.2, False)]
     opus = {r["id"]: r for r in (_ses(0, 0.2, ok=False), _ses(1, 0.2), _ses(2, 0.4),
                                  _ses(3, 0.4, ok=False))}  # fmt: skip
-    got = st.phase_b(rows, opus)
+    got = st.phase_b(rows, opus, **NO_MIN)
     p = got["primary"]
     assert p["diff"] == 0.0 and p["covered"] == 2 and p["opus_sessions"] == 2
     assert p["mcnemar"] == {"jev_only_right": 1, "opus_only_right": 1, "p": 1.0}
@@ -298,7 +244,7 @@ def test_hybrid_minus_opus_is_coverage_times_the_mean_covered_gain():
 def test_a_ceiling_stop_keeps_both_ratio_estimators():
     rows = [_jev(i, 0.9 if i < 4 else 0.1, i % 2 == 0) for i in range(8)]
     opus = {r["id"]: r for r in (_ses(0, 1.0, ok=False), _ses(1, 1.0), _ses(4, 0.5))}
-    p = st.phase_b(rows, opus)["primary"]
+    p = st.phase_b(rows, opus, **NO_MIN)["primary"]
     # coverage 4/8 x mean gain over the covered with a session ((1 - 0) + (0 - 1)) / 2 = 0
     assert p["covered_without_opus"] == 2 and p["diff"] == 0.0
     total = st.totals(st.tasks(rows, opus, B.full_cap), list(range(8)))
@@ -309,9 +255,11 @@ def test_the_claim_needs_no_peor_and_twenty_percent_coverage():
     covered = [_jev(i, 0.9, True) for i in range(40)]
     rows = covered + [_jev(100 + i, 0.1, True) for i in range(160)]
     opus = {f"t{i:03d}": _ses(i, 0.2) for i in range(40)}
-    p = st.phase_b(rows, opus)["primary"]
+    p = st.phase_b(rows, opus, **NO_MIN)["primary"]
     assert p["coverage"] == 0.2 and p["verdict"] == "no peor" and p["claim"] == "sustituye"
-    few = st.phase_b(rows[:39] + rows[40:], {k: v for k, v in opus.items() if k != "t039"})
+    few = st.phase_b(
+        rows[:39] + rows[40:], {k: v for k, v in opus.items() if k != "t039"}, **NO_MIN
+    )
     assert few["primary"]["claim"] == "no sustituye"
 
 
@@ -319,7 +267,7 @@ def test_lowered_cap_stops_are_not_run_in_the_primary_and_wrong_in_the_sensitivi
     rows = [_jev(0, 0.9, True), _jev(1, 0.9, True), _jev(2, 0.1, True)]
     lowered = {**_ses(0, 2.5, cap_usd=2.5, hit_cap=True), "letter": None, "ok": False}
     full = {**_ses(1, 6.0, cap_usd=6.0, hit_cap=True), "letter": None, "ok": False}
-    got = st.phase_b(rows, {"t000": lowered, "t001": full, "t002": _ses(2, 0.3)})
+    got = st.phase_b(rows, {"t000": lowered, "t001": full, "t002": _ses(2, 0.3)}, **NO_MIN)
     assert got["primary"]["opus_sessions"] == 1  # the full-cap stop stays (wrong)
     assert got["sensitivity_not_run_as_wrong"]["opus_sessions"] == 2
     assert got["primary"]["diff"] > 0 and got["sessions"]["lowered_stop_no_letter"] == 1
@@ -335,7 +283,7 @@ def test_no_verdict_while_a_phase_is_paused(tmp_path):
     (tmp_path / "LIMIT.flag").write_text("")
     assert lb.pause_reasons(B, {"kind": "done"}, tmp_path) == ["LIMIT.flag in the run folder"]
     rows = [_jev(0, 0.9, True), _jev(1, 0.1, True)]
-    got = st.phase_b(rows, {"t000": _ses(0, 1.0)}, paused=["x"])
+    got = st.phase_b(rows, {"t000": _ses(0, 1.0)}, paused=["x"], **NO_MIN)
     assert got["primary"]["verdict"] == "pausa" and got["primary"]["claim"] is None
     assert got["saving"]["reading"] == "pausa"
 
@@ -347,7 +295,7 @@ def test_the_sonnet_share_is_sonnet_on_the_covered_minus_jev_over_sonnet_alone()
     rows = [_jev(0, 0.9, True), _jev(1, 0.7, False), _jev(2, 0.3, True), _jev(3, 0.2, False)]
     lb162_s = {r["id"]: r for r in (_ses(0, 0.10), _ses(1, 0.30))}
     lb162x_s = {r["id"]: r for r in (_ses(2, 0.20, ok=False), _ses(3, 0.40))}
-    got = st.phase_a(rows, lb162_s, lb162x_s)
+    got = st.phase_a(rows, lb162_s, lb162x_s, min_saving=0)
     s = got["saving"]  # alone 0.10 + 0.30 + 0.20 + 0.40 = 1.00; hybrid 0.04 Jev + 0.60 = 0.64
     assert s["share"] == pytest.approx(0.36) and s["usd"]["saving"] == pytest.approx(0.36)
     assert s["uncovered_measured"] == 2 and s["bootstrap"]["kept"] == 10_000
@@ -363,7 +311,7 @@ def test_a_ceiling_stop_in_phase_a_keeps_a_ratio_estimate_and_no_session_is_no_m
     part = st.tasks(rows, {**lb162_s, "t001": _ses(1, 0.5)}, A.full_cap)
     assert st.totals(part, [0, 1, 2, 3])["uncovered"] == pytest.approx(1.5)
     assert st.share(st.tasks(rows, lb162_s, A.full_cap), [0, 1, 2, 3]) is None
-    assert st.phase_a(rows, lb162_s, {})["saving"]["reading"] == "no medido"
+    assert st.phase_a(rows, lb162_s, {}, min_saving=0)["saving"]["reading"] == "no medido"
 
 
 def test_the_saving_reading_rule_and_where_the_estimate_falls():
@@ -382,7 +330,7 @@ def test_lb162s_recorded_rows_alone_give_no_measurement_yet():
     s = got["saving"]
     assert s["n"] == 162 and s["covered"] == 60 and s["uncovered"] == 102
     assert s["uncovered_measured"] == 0 and s["share"] is None and s["reading"] == "pausa"
-    b = st.phase_b(rows, {}, paused=["phase B not run"])["primary"]
+    b = st.phase_b(rows, {}, paused=["phase B not run"], **NO_MIN)["primary"]
     assert b["covered"] == 60 and b["opus_sessions"] == 0 and b["verdict"] == "pausa"
 
 
@@ -403,6 +351,7 @@ def test_a_seal_round_trip_and_no_quiet_reseal(tmp_path, monkeypatch):
     monkeypatch.setattr(lb, "SEALED", ("code.py",))
     monkeypatch.setattr(lb, "SEALED_GLOBS", ())
     monkeypatch.setattr(lb, "SEALED_DATA", ())
+    monkeypatch.setattr(lb, "PIN_FILES", ())
     monkeypatch.setattr(
         lb,
         "ORDER",
@@ -460,3 +409,125 @@ def test_the_seal_covers_every_file_the_driver_loads_and_lb162s_recordings():
         for p in (*lb.RECORDED, lb.lb162.ANSWERS, lb.lb162.IDS_FILE, A.ids_file, B.ids_file)
     }
     assert {"tests/test_lb162x.py", *read} <= sealed
+
+
+def test_the_seal_takes_every_package_file_and_the_pinned_build(monkeypatch):
+    sealed = lb.sealed_paths()
+    assert not any("__pycache__" in p for p in sealed)
+    assert any(p.startswith("src/sanchopanza/") and not p.endswith(".py") for p in sealed)
+    assert lb.PIN_FILES == (".cache/sanchopanza/claude-pin/2.1.287/claude.exe",)
+    assert "benchmarks/h2h/lb162x_guard.py" in sealed
+
+
+# --- the minima, another model, power -------------------------------------------------------------
+
+
+def test_no_verdict_on_fewer_than_20_covered_opus_sessions_nor_a_saving_on_fewer_than_40():
+    assert st.MIN_COVERED_SESSIONS == 20 and st.MIN_SAVING_SESSIONS == 40
+    rows = [_jev(i, 0.9, True) for i in range(19)] + [_jev(100 + i, 0.1, True) for i in range(15)]
+    opus = {r["id"]: _ses(int(r["id"][1:]), 0.2) for r in rows}
+    got = st.phase_b(rows, opus)
+    assert got["primary"]["verdict"] == "no medido" and got["primary"]["claim"] is None
+    assert got["saving"]["reading"] == "no medido" and got["saving"]["own_sessions"] == 34
+    more = rows + [_jev(19, 0.9, True)] + [_jev(200 + i, 0.1, True) for i in range(10)]
+    opus = {r["id"]: _ses(int(r["id"][1:]), 0.2) for r in more}
+    got = st.phase_b(more, opus)
+    assert got["primary"]["verdict"] == "no peor" and got["saving"]["reading"] == "ahorra"
+    covered = {r["id"]: opus[r["id"]] for r in more if r["j14-L"]["p"] >= 0.6}
+    uncovered = {k: v for k, v in opus.items() if k not in covered}
+    sonnet = st.phase_a(more, covered, uncovered)["saving"]
+    assert sonnet["own_sessions"] == 25 and sonnet["reading"] == "no medido"
+    assert st.phase_a(more, covered, uncovered, min_saving=0)["saving"]["reading"] == "ahorra"
+
+
+def test_a_session_another_model_served_is_not_run():
+    rows = [_jev(0, 0.9, True), _jev(1, 0.9, True)]
+    other = _ses(0, 0.3, ok=False, served_ok=False)
+    got = st.phase_b(rows, {"t000": other, "t001": _ses(1, 0.3)}, **NO_MIN)
+    assert got["primary"]["opus_sessions"] == 1
+
+
+def test_the_power_table_reaches_the_peor_claim():
+    assert {0.9, 0.95} <= set(lb.ACCURACIES)
+
+
+# --- the live checkout, the refusals and their exit codes -----------------------------------------
+
+
+def _git(branch=False, message="seal abc", status=""):
+    answers = {"symbolic-ref": (0 if branch else 1, ""), "log": (0, message),
+               "status": (0, status)}  # fmt: skip
+    return lambda args: answers[args[0]]
+
+
+def test_live_runs_only_from_a_clean_checkout_detached_at_the_sealed_commit():
+    assert lb.checkout_problems("abc", _git()) == []
+    out = (" M docs/results/2026-10-16-lb162x/opus-rows.jsonl\n"
+           "?? docs/results/2026-10-16-lb162x/opus-stop.json\n")  # fmt: skip
+    assert lb.checkout_problems("abc", _git(status=out)) == []
+    assert "branch" in lb.checkout_problems("abc", _git(branch=True))[0]
+    assert "seal" in lb.checkout_problems("abc", _git(message="other"))[0]
+    dirty = lb.checkout_problems("abc", _git(status=" M benchmarks/h2h/h2h_lb162x.py\n"))
+    assert dirty and "h2h_lb162x.py" in dirty[0]
+
+
+@pytest.mark.parametrize("raised, kind, code", [
+    (SystemExit("no seal"), "preflight", 3), (RuntimeError("boom"), "error", 7),
+])  # fmt: skip
+def test_a_phase_that_raises_ends_in_a_stop_kind_never_exit_1(tmp_path, raised, kind, code):
+    phase = dataclasses.replace(B, stop=tmp_path / "opus-stop.json")
+
+    def run(p, found):
+        raise raised
+
+    got = h2h.guarded_run(phase, [], run, tmp_path)
+    assert got == kind and h2h.exit_code(got) == code
+    assert json.loads(phase.stop.read_text()) == {"kind": kind}
+
+
+def test_a_usage_limit_writes_the_flag(tmp_path):
+    phase = dataclasses.replace(A, stop=tmp_path / "sonnet-stop.json")
+    assert h2h.guarded_run(phase, [], lambda p, f: "limit", tmp_path) == "limit"
+    assert (tmp_path / "LIMIT.flag").exists() and h2h.exit_code("limit") == 2
+
+
+def test_the_start_refusals_and_their_exit_codes(tmp_path, monkeypatch):
+    monkeypatch.setattr(h2h.lb162x, "require_prereg", lambda: "abc")
+    monkeypatch.setattr(h2h.lb162x, "checkout_problems", lambda value: [])
+    monkeypatch.setattr(h2h, "pin_problems", lambda: [])
+    monkeypatch.setattr(h2h, "final_kind", lambda p: None)
+    monkeypatch.setattr(h2h, "done_now", lambda p: 0)
+    day = dt.datetime(2026, 10, 16)
+    assert h2h.refusal(day.replace(hour=9), tmp_path) is None
+    assert h2h.refusal(day.replace(hour=7), tmp_path)[0] == "clock"  # exit 5
+    assert h2h.refusal(day.replace(hour=20), tmp_path)[0] == "clock"  # B would cross midnight
+    (tmp_path / "LIMIT.flag").write_text("")
+    assert h2h.refusal(day.replace(hour=9), tmp_path)[0] == "limit"
+
+    def unsealed():
+        raise SystemExit("prereg.md, the code or the inputs differ from the seal")
+
+    monkeypatch.setattr(h2h.lb162x, "require_prereg", unsealed)
+    assert h2h.refusal(day.replace(hour=9), tmp_path) == (
+        "preflight",
+        str(SystemExit("prereg.md, the code or the inputs differ from the seal")),
+    )  # exit 3
+    assert {k: h2h.exit_code(k) for k in ("clock", "limit", "preflight")} == {
+        "clock": 5,
+        "limit": 2,
+        "preflight": 3,
+    }
+
+
+# --- the smoke ----------------------------------------------------------------------------------
+
+
+def test_the_smoke_is_one_opus_session_on_a_dev_task_outside_the_162():
+    task = h2h.smoke_task()
+    assert task.task_id not in set(lb.lb162.frozen_ids())
+    assert lb.SMOKE.model_id == "claude-opus-5-5" and lb.SMOKE.ceiling == 0.80
+    assert h2h.smoke_cap(0.0) == 0.80 and h2h.smoke_cap(0.01) is None
+    assert lb.DRIVEN == (lb.SMOKE, B, A)
+    good = {"letter": "C", "is_error": False, "served_ok": True}
+    assert h2h.smoke_passed([good]) and not h2h.smoke_passed([{**good, "letter": None}])
+    assert not h2h.smoke_passed([{**good, "served_ok": False}]) and not h2h.smoke_passed([])

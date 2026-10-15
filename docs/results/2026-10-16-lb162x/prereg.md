@@ -3,18 +3,21 @@
 **DRAFT, not sealed.** Written 2026-10-16, before any session of this lot. Before the seal: an
 independent `revisor-prereg` review against the code, then `python benchmarks/jev114/lb162x.py
 --seal` and a commit whose message carries the hash. The owner approved both phases on
-2026-10-15 (expected about 39 USD of Claude Code list price, hard ceilings 45 + 16). The live
-driver refuses to spend unless the seal matches, and runs from `git worktree add --detach
-<sealed commit>`, never from a working branch.
+2026-10-15 (expected about 39 USD of Claude Code list price, hard ceilings 45 + 16, and the
+smoke's 0.80). The live driver refuses to spend (exit 3) unless the seal matches, HEAD is
+detached at the commit whose message carries the seal (`git worktree add --detach <sealed
+commit>`), and the tree is clean but for this lot's own outputs (`lb162x.checkout_problems`).
 
 **What the seal covers** (`lb162x.SEALED`, `SEALED_GLOBS`, `SEALED_DATA`, `prereg.manifest.json`):
-this file; the lot module, the analysis, the driver and their tests; this lot's two frozen
-orders (`opus-ids.txt`, `uncovered-ids.txt`); lb162's recordings this lot reads (`ids.txt`,
+this file; the lot module, the analysis, the driver, its guard and their tests; this lot's two
+frozen orders (`opus-ids.txt`, `uncovered-ids.txt`); lb162's recordings this lot reads (`ids.txt`,
 `covered-ids.txt`, `jev-scored.jsonl`, `jev-answers-j14-L.jsonl`, `sonnet-rows.jsonl`); every
-module of the package (`src/sanchopanza/**/*.py`); every benchmark file the driver loads (lb162's
-and h2h's runners, L4/L6's code, `b3conf_power.py`, `meter.py`, the hooks, the S line,
-`launch.ps1`); LongBench's `data.json` and both `tasks.jsonl`; and one aggregate sha256 of the
-162 prepared documents. A test checks that every file the driver loads is sealed.
+file of the package (`src/sanchopanza/**/*`, `__pycache__` aside); every benchmark file the
+driver loads (lb162's and h2h's runners, L4/L6's code, `b3conf_power.py`, `meter.py`, the hooks,
+the S line, `launch.ps1`); LongBench's `data.json` and both `tasks.jsonl`; the pinned Claude Code
+build (`~/.cache/sanchopanza/claude-pin/2.1.287/claude.exe`; the driver also refuses a `claude`
+on PATH that is not that file); and one aggregate sha256 of the 162 prepared documents. A test
+checks that every file the driver loads is sealed.
 
 ## The questions
 
@@ -61,14 +64,23 @@ Arm N of lb162's phase S, unchanged (`h2h_longdoc.py`'s session through `h2h_lb1
 
 The only change from lb162 is the per-session cap when a phase's money is short (below).
 
-## Order of the phases: B, then A
+## Order: the smoke, then B, then A
 
-One driver runs both, in one process: **phase B first**, then phase A once B has ended by
-finishing or by its ceiling. B carries the primary verdict, so a pause that the lot cannot
-control (the subscription's weekly limit, shared by every session of the account; the clock; a
-STOP) falls on the descriptive phase rather than on the verdict. Each phase has its own ceiling,
-so running B first takes no money from A. A relaunch skips a phase that has ended and resumes
-the other for free (recorded sessions are not asked again).
+One driver runs everything, in one process: **the smoke first** (below), **then phase B**, then
+phase A once B has ended by finishing or by its ceiling. B carries the primary verdict, so a
+pause that the lot cannot control (the subscription's weekly limit, shared by every session of
+the account; the clock; a STOP) falls on the descriptive phase rather than on the verdict. Each
+phase has its own ceiling, so running B first takes no money from A. A relaunch skips what has
+ended (the smoke passed, a phase finished or at its ceiling) and resumes the rest for free
+(recorded sessions are not asked again).
+
+**The smoke.** One Opus 5.5 session, arm N exactly, on lb162's smoke task (lot L6's: LongBench
+dev task `66eefe85821e116aacb228dc`, short, 118,549 characters; outside the 162, checked in
+code), with `--max-budget-usd` 0.80 and its own ceiling 0.80 USD (`lb162x.SMOKE`; no second
+session once anything is spent). It passes with a letter (any: the grade does not matter), no
+error, and most of its cost on `claude-opus-5-5`. Otherwise the lot pauses (kind `smoke`, exit
+9; or `limit`, `outage`, `clock` as below) before any session of phase B. Its row
+(`smoke-rows.jsonl`, no text) is not part of any reading.
 
 ## Money
 
@@ -89,15 +101,26 @@ Claude Code's list price (`list_usd`, its own rates, `meter.CLAUDE_CODE_RATES`),
   1M x 4.0 + 32k x 10 = 4.32 USD (lb162's figure, checked against `meter.CLAUDE_CODE_RATES`).
   Opus 5.5: 1M x 8.0 + 32k x 20 = **8.64 USD**. Both assume a 1M-token window (lb162's constant).
   `--max-budget-usd` stops between turns only, so a session spends at most its cap plus one
-  worst turn.
-- **The cap of each session** (`lb162x.cap_for`, enforced by `h2h_lb162x.Budget` before each
+  worst turn. **Assumptions, not guarantees:** one model call between two budget checks (a turn
+  that makes several calls, or a subagent, could pass it), at most 32,000 tokens out, and a
+  1M-token window. The 110 arm N LongBench sessions on record never came near: the dearest wrote
+  about 195,000 tokens to the cache.
+- **The cap of each session** (`lb162x.cap_for`, enforced by `lb162x_guard.Budget` before each
   session from the phase's recorded sessions plus the reserve of any session started without a
   row): the full cap while the full cap plus one worst turn fits under the ceiling; above that,
   the room left after one worst turn, down to the cent; none below the floor (the phase stops,
-  kind `ceiling`, final). The phase loop's own check stops at the same line. **Neither phase can
-  pass its ceiling; the lot cannot pass 61 USD.**
-- A **reservation row** (the session's cap plus the worst turn) is written before each session.
-  A session that dies mid-way keeps that reserve against the ceiling on a resume.
+  kind `ceiling`, final). The phase loop's own check stops at the same line. **Under the
+  worst-turn assumptions, neither phase can pass its ceiling; the lot cannot pass 61 USD plus
+  the smoke (0.80 and one worst turn).**
+- A **reservation row** (the session's cap plus the worst turn, with an id the session's row
+  carries) is written before each session. A session that dies mid-way keeps that reserve
+  against the ceiling on a resume (matched by id: the reservation without a row stays open,
+  whatever its cap).
+- A **row whose cost is unknown** counts at its reservation, not at the 0 USD it reports: the
+  runner's own subtype (`runner: ...`: a wall-clock timeout, a reply that is not JSON), or an
+  error that reports tokens but no cost. An error with no tokens and 0 USD (a request refused
+  before any work: an expired token, a model not available) cost nothing and counts at 0, so an
+  outage does not use up the ceiling.
 - Why the cap moves: with a fixed cap the reserve (B 14.64, A 7.32) would stop B at 30.36 and
   A at 8.68 spent. Lowering the cap only when money is short
   changes no session that costs what these sessions cost: 109 of the 110 arm N LongBench
@@ -123,6 +146,10 @@ session's cost drawn from lb162's 60 session costs of its band, times the phase'
 | x 1.3 (about 2026-10-06's level) | 10 % | 148, 132 | 35.5 | 29 % | 96, 84 | 11.1 |
 | x 1.6 | 0 % | 121, 106 | 35.6 | 0.1 % | 79, 66 | 11.3 |
 
+**x 1.0 is optimistic for the 102 uncovered tasks**: their documents are longer (789,000
+characters on average against 443,000 for the covered 60, whose sessions set the cost by band).
+**x 1.3 is the plausible case** for phase A and for the uncovered part of phase B.
+
 Said plainly: at the costs lb162 measured, both phases finish (B at 2.0 x Sonnet's tokens). If
 the sessions cost as 2026-10-06's did, B runs about 148 of 162 and A about 96 of 102, and the
 ceiling stops each with a random subset left out; the estimators below handle that. At every
@@ -143,16 +170,29 @@ session's mean cost alone (deterministic), B runs all 162 (193 before the guard)
   162 minutes at the 60-s clock mean; phase A about 34 minutes at lb162's time by band, 65 at
   38 s. Start in the morning so both phases end the same day. Attended throughout.
 
-## Stops (kind in `opus-stop.json` / `sonnet-stop.json`, the kind only)
+## Stops (kind in `smoke-stop.json` / `opus-stop.json` / `sonnet-stop.json`, the kind only)
 
 - finished: `done`, exit 0 (the lot: both `done`);
 - the ceiling: `ceiling`, exit 1, final (the lot: both over, one at its ceiling);
 - a 429 or usage limit ("weekly limit"): `limit`, exit 2. The session is recorded as not run and
   `LIMIT.flag` is written in `C:\sp-runs\lb162x`; a pause, never scored. The owner tells the
-  other sessions and deletes the flag to resume.
-- the clock: `clock`, exit 5;
-- a `STOP` file in `C:\sp-runs\lb162x`: `manual`, exit 6, before the next session.
-- A preflight problem (exit 3) starts no session.
+  other sessions and deletes the flag to resume. A launch with the flag present: exit 2.
+- a refusal before any session (no seal or a mismatch, not the sealed detached checkout, lb162's
+  recordings changed, a `claude` on PATH that is not the pinned build, a preflight problem):
+  `preflight`, exit 3;
+- the clock: `clock`, exit 5 (also a launch the clock refuses);
+- a `STOP` file in `C:\sp-runs\lb162x`: `manual`, exit 6, before the next session;
+- any other failure of a phase (an exception): `error`, exit 7, a pause;
+- an **outage**: `outage`, exit 8, a pause. A session whose reply names an authentication or
+  model-availability failure (401/403, OAuth, an invalid key, "model ... not available") is an
+  outage at once; an infrastructure error (an error with no letter that no cap stopped) or a
+  session most of whose cost went to another model counts toward a streak, and **three in a
+  row** are an outage. The outage's rows are marked not run (asked again on a resume, free) and
+  none is scored. A session another model served is not run even outside a streak. An answer
+  resets the streak; an isolated infrastructure error stays recorded (and is handled as below).
+- the smoke failed: `smoke`, exit 9, a pause.
+
+Exit 1 means only the ceiling: every phase over, one ended at its ceiling.
 
 Processes are stopped by PID only (`driver.pids`).
 
@@ -175,6 +215,8 @@ covered tasks without one are reported.
   like a covered task without a session).
 - The registered **sensitivity reading** counts both as wrong. Counting them wrong lowers Opus
   and favours the hybrid, so the primary is the reading less favourable to the hybrid.
+- A session most of whose cost went to another model than `claude-opus-5-5` (each public row
+  says so, `served_ok`) is not run in both readings.
 
 **Paired bootstrap** over the 162 tasks, 10,000 draws, seed 20261015, percentile 95 % CI
 (`l4_stats.bootstrap`); a resample with covered tasks but none with an Opus session is dropped,
@@ -185,7 +227,8 @@ against Opus only right).
 - **"no peor"** if the CI's lower bound is > -10 points;
 - **"peor"** if the CI's upper bound is < -10 points;
 - **"no concluyente"** otherwise (a bound exactly at -10 points does not clear it);
-- **"no medido"** if no CI exists;
+- **"no medido"** if no CI exists, or **fewer than 20 covered tasks have an Opus session**
+  (`MIN_COVERED_SESSIONS`);
 - **"pausa"** (no verdict) while a `LIMIT.flag` or `STOP` is in `C:\sp-runs\lb162x`, or phase B
   has not ended by finishing or by its ceiling.
 
@@ -200,8 +243,9 @@ Jev's recorded grades fixed, Opus right on a share p of the covered tasks): with
 with Jev as Sonnet did in lb162 (right on 23 of the 31 Jev got and 6 of the 29 it missed,
 shifted to reach p), "no peor" comes out 99.9 % at p = 0.50, **87 % at 0.60**, 62 % at 0.65,
 31 % at 0.70, 12 % at 0.75; with Opus independent of Jev (the widest CI) 95 %, 55 %, 26 %, 7 %,
-1 %. "peor" needs Opus right on about 90 % or more of the covered tasks (10 % of draws at 0.90
-independent, 51 % at 0.95).
+1 %. "peor" needs Opus right on about 90 % or more of the covered tasks and unlike Jev
+(independent: 10 % of draws at 0.90, 52 % at 0.95; agreeing as Sonnet did: under 1 % even at
+0.95). `lb162x.ACCURACIES` holds every p above.
 So: if Opus is about as good as Jev on the covered tasks (Jev 51.7 %, Sonnet 48.3 %), the lot
 decides; if Opus is clearly better there, "no concluyente" is likely, and that is the answer.
 
@@ -216,7 +260,8 @@ decides; if Opus is clearly better there, "no concluyente" is likely, and that i
 each group's cost its size times its measured mean (a ratio estimator under a ceiling stop).
 Paired bootstrap as above. **Reading, fixed now** (bounds unrounded): **"ahorra"** if the CI's
 lower bound is > 0; **"no ahorra"** if its upper bound is <= 0; **"no concluyente"** otherwise;
-**"no medido"** without a CI; **"pausa"** as above. An infrastructure error is excluded from the
+**"no medido"** without a CI or with **fewer than 40 Opus sessions measured**
+(`MIN_SAVING_SESSIONS`); **"pausa"** as above. An infrastructure error is excluded from the
 cost (counted at its cost in a sensitivity reading); a lowered-cap stop counts at its cost (at
 6.00 in a second sensitivity reading).
 
@@ -225,8 +270,9 @@ cost (counted at its cost in a sensitivity reading); a lowered-cap stop counts a
 **The measured saving of Sonnet's cost** over the 162, as the Opus one with Sonnet: Sonnet on
 the 60 covered from lb162's sessions, Sonnet on the 102 from this lot, Jev from lb162. Same
 estimator, bootstrap, readings ("ahorra", "no ahorra", "no concluyente", "no medido", "pausa"
-while a flag is present or phase A has not ended by finishing or by its ceiling) and
-sensitivity readings (full cap 3.00). Reported beside it: where lb162's estimate of 26.7 %
+while a flag is present or phase A has not ended by finishing or by its ceiling; "no medido"
+also with fewer than 40 of this lot's sessions on the 102 measured) and sensitivity readings
+(full cap 3.00). Reported beside it: where lb162's estimate of 26.7 %
 falls ("inside", "above" or "below" the CI). The README then gives the measured share and its
 CI in place of the estimate. Precision expected: about +/- 10 points around 25-35 %.
 
@@ -262,9 +308,10 @@ python benchmarks/jev114/lb162x.py                 # the analysis, summary.json
 ```
 
 `-KeysEnv` passes the path (never the content) of the file that holds the subscription token;
-this lot makes no Jev call. Public rows (`opus-rows.jsonl`, `sonnet-rows.jsonl`) hold the id,
-letter, grade, cost, time, turns, `hit_cap`, `is_error`, Claude Code's `subtype` and the
-session's cap. No text.
+this lot makes no Jev call. Public rows (`smoke-rows.jsonl`, `opus-rows.jsonl`,
+`sonnet-rows.jsonl`) hold the id, letter, grade, cost, time, turns, `hit_cap`, `is_error`, Claude
+Code's `subtype`, the session's cap and `served_ok` (most of the cost on the phase's model). No
+text. Stop kinds go to `smoke-stop.json`, `opus-stop.json`, `sonnet-stop.json`.
 
 ## What follows
 

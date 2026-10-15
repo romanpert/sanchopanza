@@ -128,7 +128,14 @@ PHASE_A = Phase("A", "lb162x-sonnet", "SONNET", meter.SONNET_55, OUT / "uncovere
                 N_UNCOVERED, ceiling=16.00, full_cap=stats.SONNET_FULL_CAP_USD, floor=0.50,
                 wall_mean_s=38.0, cost_scale=1.0, rows=OUT / "sonnet-rows.jsonl",
                 stop=OUT / "sonnet-stop.json")  # fmt: skip
+# The smoke: ONE Opus session on lb162's smoke task (a LongBench dev task outside the 162), its
+# --max-budget-usd and its own ceiling 0.80 USD, run before phase B; its failure pauses the lot.
+SMOKE = Phase("S", "lb162x-smoke", "OPUS", meter.OPUS_55, REPO / "benchmarks" / "h2h" /
+              "longdoc-dev-ids.txt", 1, ceiling=0.80, full_cap=0.80, floor=0.80,
+              wall_mean_s=60.0, cost_scale=OPUS_SCALE, rows=OUT / "smoke-rows.jsonl",
+              stop=OUT / "smoke-stop.json")  # fmt: skip
 ORDER = (PHASE_B, PHASE_A)  # B first: it carries the primary verdict
+DRIVEN = (SMOKE, *ORDER)  # what the driver runs, in this order
 PHASES = {p.key: p for p in ORDER}
 
 
@@ -308,7 +315,7 @@ def opus_grade(rng: random.Random, jev_ok: bool, p: float, correlated: bool) -> 
     return rng.random() < min(1.0, max(0.0, (23 / 31 if jev_ok else 6 / 29) + shift))
 
 
-ACCURACIES = (0.5, 0.6, 0.65, 0.7, 0.75)
+ACCURACIES = (0.5, 0.6, 0.65, 0.7, 0.75, 0.9, 0.95)
 
 
 def power_b(rows: Sequence[Mapping[str, Any]], accuracies: Sequence[float] = ACCURACIES,
@@ -396,7 +403,8 @@ def dry(now: dt.datetime | None = None, with_power: bool = True) -> list[str]:
 
 SEALED = (
     "benchmarks/jev114/lb162x.py", "benchmarks/jev114/lb162x_stats.py",
-    "benchmarks/h2h/h2h_lb162x.py", "tests/test_lb162x.py",
+    "benchmarks/h2h/h2h_lb162x.py", "benchmarks/h2h/lb162x_guard.py", "tests/test_lb162x.py",
+    "tests/test_lb162x_guard.py",
     "docs/results/2026-10-16-lb162x/opus-ids.txt",
     "docs/results/2026-10-16-lb162x/uncovered-ids.txt",
     "docs/results/2026-10-15-lb162/ids.txt", "docs/results/2026-10-15-lb162/covered-ids.txt",
@@ -415,26 +423,29 @@ SEALED = (
     "benchmarks/h2h/local_hook.py", "benchmarks/h2h/deny_hook.py", "benchmarks/h2h/launch.ps1",
     "benchmarks/browse/phase.py",
 )  # fmt: skip
-SEALED_GLOBS = ("src/sanchopanza/**/*.py",)
+SEALED_GLOBS = ("src/sanchopanza/**/*",)  # every file of the package, __pycache__ aside
 SEALED_DATA = lb162.SEALED_DATA
+# The pinned Claude Code build, by its place under the home folder (launch.ps1's -Pin).
+PIN_REL = ".cache/sanchopanza/claude-pin/2.1.287/claude.exe"
+PIN_FILES = (PIN_REL,)
 DOCS_KEY = lb162.DOCS_KEY  # the 162 prepared documents
 
 
 def sealed_paths() -> list[str]:
     globbed = sorted({p.relative_to(REPO).as_posix() for g in SEALED_GLOBS for p in REPO.glob(g)
-                      if "__pycache__" not in p.parts})  # fmt: skip
+                      if p.is_file() and "__pycache__" not in p.parts})  # fmt: skip
     return [*SEALED, *(p for p in globbed if p not in SEALED)]
 
 
 def manifest() -> dict[str, str]:
     doc = (OUT / "prereg.md").relative_to(REPO).as_posix()
     out = {p: lb162.digest(REPO / p) for p in (doc, *sealed_paths())}
-    data = {f"~/{p}": lb162.raw_digest(pathlib.Path.home() / p) for p in SEALED_DATA}
+    data = {f"~/{p}": lb162.raw_digest(pathlib.Path.home() / p) for p in (*SEALED_DATA, *PIN_FILES)}
     return out | data | {DOCS_KEY: lb162.docs_digest()}
 
 
 def any_session() -> bool:
-    return any(p.rows.exists() or p.stop.exists() for p in ORDER)
+    return any(p.rows.exists() or p.stop.exists() for p in (SMOKE, *ORDER))
 
 
 def seal(again: bool = False) -> str:
@@ -452,10 +463,44 @@ def seal(again: bool = False) -> str:
     return value
 
 
-def require_prereg() -> None:
+def require_prereg() -> str:
+    """The seal's value, refused unless everything it covers matches."""
     target = OUT / "prereg.sha256"
-    if not target.exists() or target.read_text().strip() != lb162.combined(manifest()):
+    value = lb162.combined(manifest())
+    if not target.exists() or target.read_text().strip() != value:
         raise SystemExit("prereg.md, the code or the inputs differ from the seal: nothing spent")
+    return value
+
+
+# This lot's own outputs: written into the results folder during the run, so a resume of a
+# sealed checkout sees them and must not count them as a change to the instrument.
+OUTPUTS = tuple(
+    p.relative_to(REPO).as_posix() for ph in (SMOKE, PHASE_B, PHASE_A) for p in (ph.rows, ph.stop)
+) + ((OUT / "summary.json").relative_to(REPO).as_posix(),)
+
+
+def checkout_problems(seal_value: str, git: Any = None) -> list[str]:
+    """The live run's checkout: HEAD detached, at the commit whose message carries the seal,
+    and nothing changed but this lot's outputs. `git(args) -> (code, stdout)`."""
+    run = git or _git
+    found = []
+    if run(["symbolic-ref", "-q", "HEAD"])[0] == 0:
+        found.append("HEAD is on a branch: run from `git worktree add --detach <sealed commit>`")
+    if seal_value not in run(["log", "-1", "--format=%B", "HEAD"])[1]:
+        found.append("HEAD's commit message does not carry the seal")
+    changed = [line[3:].strip().strip('"') for line in
+               run(["status", "--porcelain", "--untracked-files=all"])[1].splitlines()
+               if line.strip()]  # fmt: skip
+    if dirty := [c for c in changed if c not in OUTPUTS]:
+        found.append(f"the tree is not clean: {', '.join(dirty[:5])}")
+    return found
+
+
+def _git(args: Sequence[str]) -> tuple[int, str]:  # pragma: no cover - a real checkout
+    import subprocess
+
+    done = subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, text=True)
+    return done.returncode, done.stdout
 
 
 def seal_state() -> str:

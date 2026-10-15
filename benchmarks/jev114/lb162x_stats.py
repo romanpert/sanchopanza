@@ -45,6 +45,10 @@ MARGIN = lbs.MARGIN  # -0.10, compared unrounded
 MIN_COVERAGE = lbs.MIN_COVERAGE  # 0.20
 SONNET_FULL_CAP_USD = 3.00  # arm N's --max-budget-usd on LongBench (h2h_longdoc.CAPS["SONNET"])
 OPUS_FULL_CAP_USD = 6.00  # h2h_longdoc.CAPS["OPUS"]
+# No verdict on fewer measurements (else "no medido"): covered tasks with an Opus session for
+# phase B's verdict; sessions of the lot's own model for a saving reading.
+MIN_COVERED_SESSIONS = 20
+MIN_SAVING_SESSIONS = 40
 ESTIMATE_SHARE = 0.2668  # lb162's published estimate (summary.json costs.estimate.saving_share)
 
 
@@ -58,8 +62,10 @@ def lowered_stop(session: Mapping[str, Any], full_cap: float) -> bool:
 
 
 def not_run(session: Mapping[str, Any], full_cap: float) -> bool:
-    """Not run in the primary readings: an infrastructure error or a lowered-cap stop."""
-    return lbs.infra(session) or lowered_stop(session, full_cap)
+    """Not run in the primary readings: an infrastructure error, a lowered-cap stop, or a
+    session most of whose cost went to another model than the phase's."""
+    served = session.get("served_ok")
+    return lbs.infra(session) or lowered_stop(session, full_cap) or served is False
 
 
 def grade(session: Mapping[str, Any] | None, full_cap: float, as_wrong: bool) -> bool | None:
@@ -170,8 +176,11 @@ def estimate_check(ci: tuple[float, float] | None, estimate: float = ESTIMATE_SH
     return "estimate inside the CI"
 
 
-def saving(ts: Sequence[Task], paused: Sequence[str] = ()) -> dict[str, Any]:
-    """The measured saving share, its paired bootstrap CI and its reading."""
+def saving(ts: Sequence[Task], paused: Sequence[str] = (), min_sessions: int = 0,
+           own_uncovered_only: bool = False) -> dict[str, Any]:  # fmt: skip
+    """The measured saving share, its paired bootstrap CI and its reading; "no medido" with
+    fewer than `min_sessions` of the lot's own sessions (all measured tasks, or only the
+    uncovered ones when the covered ones come from lb162)."""
     n = len(ts)
     every = list(range(n))
     got = totals(ts, every)
@@ -179,8 +188,11 @@ def saving(ts: Sequence[Task], paused: Sequence[str] = ()) -> dict[str, Any]:
     # No CI without the point: a resample must not stand in for a measurement that is not there.
     values = st.bootstrap(lambda i: share(ts, i), st.items_as_units(n)) if point is not None else []
     ci = lbs.percentile_ci(values)
+    own = sum(t.usd is not None and not (own_uncovered_only and t.covered) for t in ts)
+    said = "pausa" if paused else reading(ci) if own >= min_sessions else "no medido"
     return {
-        "n": n, "covered": sum(t.covered for t in ts),
+        "n": n, "covered": sum(t.covered for t in ts), "own_sessions": own,
+        "min_sessions": min_sessions,
         "covered_measured": sum(t.covered and t.usd is not None for t in ts),
         "uncovered": sum(not t.covered for t in ts),
         "uncovered_measured": sum(not t.covered and t.usd is not None for t in ts),
@@ -190,7 +202,7 @@ def saving(ts: Sequence[Task], paused: Sequence[str] = ()) -> dict[str, Any]:
         | {"saving": round(got["alone"] - got["hybrid"], 4)},
         "bootstrap": {"draws": st.BOOT, "kept": len(values), "seed": st.BOOT_SEED,
                       "unit": "task"},
-        "reading": "pausa" if paused else reading(ci), "pause": list(paused),
+        "reading": said, "pause": list(paused),
     }  # fmt: skip
 
 
@@ -211,15 +223,20 @@ def relabel(found: Mapping[str, Any], name: str) -> dict[str, Any]:
     return out
 
 
-def verdict(ts: Sequence[Task], paused: Sequence[str] = ()) -> dict[str, Any]:
+def verdict(ts: Sequence[Task], paused: Sequence[str] = (),
+            min_covered: int = MIN_COVERED_SESSIONS) -> dict[str, Any]:  # fmt: skip
     """Hybrid minus the expensive model alone, its CI, McNemar on the covered disagreements,
-    the -10-point verdict and the product claim (also coverage >= 20 %)."""
+    the -10-point verdict ("no medido" with fewer than `min_covered` covered tasks answered)
+    and the product claim (also coverage >= 20 %)."""
     us = units(ts)
     first = lbs.primary(us, paused)
+    if not paused and first["sonnet_sessions"] < min_covered:
+        first = {**first, "verdict": "no medido"}
     coverage = sum(u.covered for u in us) / len(us) if us else None
     return relabel(first, "opus") | {"coverage": None if coverage is None else round(coverage, 4),
                                      "claim": lbs.claim(first, coverage),
-                                     "min_coverage": MIN_COVERAGE}  # fmt: skip
+                                     "min_coverage": MIN_COVERAGE,
+                                     "min_covered_sessions": min_covered}  # fmt: skip
 
 
 def _rate(k: int, n: int) -> float | None:
@@ -288,19 +305,23 @@ def sessions(rows: Sequence[Mapping[str, Any]], full_cap: float) -> dict[str, An
 
 
 def phase_b(jev_rows: Sequence[Mapping[str, Any]], opus: Mapping[str, Mapping[str, Any]],
-            paused: Sequence[str] = ()) -> dict[str, Any]:  # fmt: skip
+            paused: Sequence[str] = (), min_covered: int = MIN_COVERED_SESSIONS,
+            min_saving: int = MIN_SAVING_SESSIONS) -> dict[str, Any]:  # fmt: skip
     """The primary verdict (Opus 5.5), its sensitivity reading and the measured saving."""
     cap = OPUS_FULL_CAP_USD
     ts = tasks(jev_rows, opus, cap)
+
+    def saved(found: Sequence[Task]) -> dict[str, Any]:
+        return saving(found, paused, min_saving)
+
     return {
-        "primary": verdict(ts, paused),
+        "primary": verdict(ts, paused, min_covered),
         "sensitivity_not_run_as_wrong": verdict(tasks(jev_rows, opus, cap, as_wrong=True),
-                                                paused),
-        "saving": saving(ts, paused),
-        "saving_sensitivity_infra_counted": saving(tasks(jev_rows, opus, cap, infra_counts=True),
-                                                   paused),
-        "saving_sensitivity_reduced_cap_at_full": saving(
-            tasks(jev_rows, opus, cap, cut_at_full=True), paused),
+                                                paused, min_covered),
+        "saving": saved(ts),
+        "saving_sensitivity_infra_counted": saved(tasks(jev_rows, opus, cap, infra_counts=True)),
+        "saving_sensitivity_reduced_cap_at_full": saved(
+            tasks(jev_rows, opus, cap, cut_at_full=True)),
         "accuracy": accuracy(ts),
         "by_length": by_band(ts, "length"),
         "by_difficulty": by_band(ts, "difficulty"),
@@ -309,23 +330,27 @@ def phase_b(jev_rows: Sequence[Mapping[str, Any]], opus: Mapping[str, Mapping[st
 
 
 def phase_a(jev_rows: Sequence[Mapping[str, Any]], lb162_sonnet: Mapping[str, Mapping[str, Any]],
-            lb162x_sonnet: Mapping[str, Mapping[str, Any]],
-            paused: Sequence[str] = ()) -> dict[str, Any]:  # fmt: skip
+            lb162x_sonnet: Mapping[str, Mapping[str, Any]], paused: Sequence[str] = (),
+            min_saving: int = MIN_SAVING_SESSIONS) -> dict[str, Any]:  # fmt: skip
     """The measured saving of Sonnet's cost (reading fixed before the data) and Sonnet alone's
     accuracy on all 162 with lb162's hybrid minus Sonnet re-read (descriptive: lb162's verdict
     stands as sealed)."""
     cap = SONNET_FULL_CAP_USD
     both = {**lb162_sonnet, **lb162x_sonnet}
     ts = tasks(jev_rows, both, cap)
-    saved = saving(ts, paused)
+
+    def measured(found: Sequence[Task]) -> dict[str, Any]:
+        return saving(found, paused, min_saving, own_uncovered_only=True)
+
+    saved = measured(ts)
     return {
         "saving": saved | {"estimate_share": ESTIMATE_SHARE,
                            "estimate_check": None if paused else estimate_check(
                                None if saved["ci95"] is None else tuple(saved["ci95"]))},
-        "saving_sensitivity_infra_counted": saving(tasks(jev_rows, both, cap, infra_counts=True),
-                                                   paused),
-        "saving_sensitivity_reduced_cap_at_full": saving(
-            tasks(jev_rows, both, cap, cut_at_full=True), paused),
+        "saving_sensitivity_infra_counted": measured(tasks(jev_rows, both, cap,
+                                                           infra_counts=True)),
+        "saving_sensitivity_reduced_cap_at_full": measured(
+            tasks(jev_rows, both, cap, cut_at_full=True)),
         "accuracy": accuracy(ts),
         "hybrid_minus_sonnet_reread": lbs.primary(units(ts), paused) | {"descriptive": True},
         "by_length": by_band(ts, "length"),
