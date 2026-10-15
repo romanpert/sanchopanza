@@ -116,6 +116,18 @@ def test_the_changelog_section_for_the_version_is_dated_before_a_tag():
     assert f'NOTES_TAIL = r"{NOTES_TAIL}"' in text
 
 
+def test_the_changelog_has_a_section_for_the_package_version_that_fits_a_release():
+    version = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"][
+        "version"
+    ]
+    text = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    heading = rf"^## {re.escape(version)} \((unreleased|\d{{4}}-\d{{2}}-\d{{2}})\)$"
+    assert re.search(heading, text, re.M), version
+    match = re.search(r"^## " + re.escape(version) + NOTES_TAIL, text, re.M | re.S)
+    if match:  # dated: the GitHub release body takes at most 125,000 characters
+        assert len(match.group(1).strip()) < 125_000
+
+
 def test_the_only_console_command_is_sanchopanza():
     # `sancho` is taken on PyPI (a unit-testing framework, 0.11); a second console command
     # of that name would shadow or be shadowed by its install.

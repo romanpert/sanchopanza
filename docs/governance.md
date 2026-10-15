@@ -36,12 +36,12 @@ everyone, including you.
 
 ## The PyPI environment, and the part that will bite
 
-The plan was the `pypi` environment with a required reviewer (on 2026-10-15 it has none: see
-Releasing below), administrators allowed
-to bypass, and deployment branches limited to `dev` and `main`.
+The `pypi` environment admits the `main` branch and `v*` tags, with no required reviewer. That
+is why a tag push does not publish (see Releasing): PyPI is a deliberate `workflow_dispatch` on
+the tag.
 
-**The release workflow does not run from a branch. It runs from a tag** (`on: push: tags:
-v*.*.*`), so at deployment time `github.ref` is `refs/tags/v0.3.0`. With the environment
+**The publish does not run from a branch. It runs on a tag** (`gh workflow run release.yml
+--ref v0.3.0`), so at deployment time `github.ref` is `refs/tags/v0.3.0`. With the environment
 limited to selected branches only, the deployment is rejected before it starts and the
 publish never happens.
 

@@ -394,7 +394,9 @@ do not favour this package.
   escapes tool names in matchers, refuses non-object settings, and can turn content scanning
   off again.
 - Release workflow: actions pinned to commit SHAs, a read-only default token, no persisted
-  credentials. The sdist ships no session handoffs or raw run transcripts (302 entries).
+  credentials. The sdist ships no session handoffs or raw run transcripts (302 entries). A tag
+  push cuts the GitHub release with the version's CHANGELOG section and never publishes to
+  PyPI; PyPI is a separate `workflow_dispatch` on the tag.
 
 ### Fixed
 

@@ -44,13 +44,6 @@ jobs:
             exit 1
           fi
 
-      # Nada se publica sin pasar por lo mismo que la CI: nadie sube un paquete roto.
-      - run: ruff check src tests
-      - run: ruff format --check src tests
-      - run: pytest -q
-      - name: Replay the public benches from the recorded fixture
-        run: sanchopanza bench benches/core.jsonl benches/safety.jsonl benches/graph.jsonl --provider recorded --fixture fixtures/public-benches.jsonl
-
       - name: The CHANGELOG section of this version, dated, as the release notes
         run: |
           python - <<'EOF'
@@ -63,6 +56,13 @@ jobs:
               raise SystemExit(f"CHANGELOG.md has no dated section for {version}")
           pathlib.Path("release-notes.md").write_text(match.group(1).strip() + "\n", "utf-8")
           EOF
+
+      # Nada se publica sin pasar por lo mismo que la CI: nadie sube un paquete roto.
+      - run: ruff check src tests
+      - run: ruff format --check src tests
+      - run: pytest -q
+      - name: Replay the public benches from the recorded fixture
+        run: sanchopanza bench benches/core.jsonl benches/safety.jsonl benches/graph.jsonl --provider recorded --fixture fixtures/public-benches.jsonl
 
       - run: python -m build
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
