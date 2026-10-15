@@ -1,5 +1,10 @@
 # long60 validation: status (2026-10-06)
 
+> **Historical.** A working note of 2026-10-06, kept as it was and moved here from the
+> repository root on 2026-10-15; its state is superseded. Today's is the
+> [final scoreboard](../results/2026-10-13-final/README.md) and the
+> [roadmap](../ROADMAP.md).
+
 Free: Docker only, no model, no API, no Jev, no keys set (the launcher blanks
 `ANTHROPIC_API_KEY` and `TYPESAFE_API_KEY`). Nothing installed into `../sanchopanza/.venv`.
 

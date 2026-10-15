@@ -307,7 +307,7 @@ Una tanda de pago a la vez entre las dos líneas, avisando antes con PID, hora y
   1. La medida principal de la tanda pasa a ser el **abandono no resuelto**: give_up con
      `grade.resolved` falso, con su contexto. El give_up crudo se publica al lado.
   2. Va como campo derivado en `long_compare` (`gave_up_unresolved`, e8) y en `long_report`
-     (`give_ups.unresolved`, 6c). 6c corrige la definición en STATUS-launch.
+     (`give_ups.unresolved`, 6c). 6c corrige la definición en `docs/history/STATUS-launch.md`.
   3. Ne se lee contra los dos N, en pydantic: discordantes y `stable_flips` sobre los bugs en que
      N y N2 coinciden. Una diferencia del tamaño del suelo (6 de 60) es ruido.
 - **Lo que se había visto de Ne al decidir**, dicho para que conste: 6c seguía en vivo su coste y

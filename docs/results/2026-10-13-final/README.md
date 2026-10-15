@@ -66,7 +66,7 @@ sealed "no more than 10 % dearer" did not hold. find was called in 2 of 78 S ses
 
 Headroom gate, N only, 2026-10-07: Sonnet 5.5 resolved 44 of 60 on both chains (27 % room); Opus
 5.5 resolved 57 of 60 on conan (**sin margen**) and 53 of 60 on pydantic (12 % room). N never
-compacted up to 452k ([STATUS-launch.md](../../../STATUS-launch.md), "Gate").
+compacted up to 452k ([STATUS-launch.md](../../history/STATUS-launch.md), "Gate").
 
 The whole S line never ran on these chains. What ran is the S part built for them: bet A, N plus
 only `passages-hook` (Jev keeps the pertinent passages of large Bash and Read outputs on arrival).
@@ -79,7 +79,7 @@ against itself on conan: 0 vs 7, p 0.016; `docs/PLAN-GANAR-H2H.md` 7).
 | Long code | Opus 5.5 | — | — | — | — | — | **sin margen** on conan; **no corrido** on pydantic |
 
 Sources: [pilot-a](../2026-10-07-pilot-a/README.md), `docs/PLAN-GANAR-H2H.md` ("Repetición en
-conan"), [STATUS-launch.md](../../../STATUS-launch.md) ("Conan repeat round").
+conan"), [STATUS-launch.md](../../history/STATUS-launch.md) ("Conan repeat round").
 
 Beside the scoreboard:
 
