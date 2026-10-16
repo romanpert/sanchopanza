@@ -433,6 +433,19 @@ or after a long call that answers nothing, the short window is used and the gate
 | `gate_extraction` | Whether a chunk is worth a generative extraction call | **15/16**, AUC 1.00 |
 | `verify_edge` | Whether the text states a proposed triple, in that direction | 31/38 when deciding on 50 cases; **17 edges committed, 1 of them backwards** ([detail](docs/results/2026-09-24-fourth-batch/)). The misses clustered on actions and passives; a `direction` question worded by roles, tested on a pre-registered fifth batch, caught **10 of 12** reversed edges against 5 with no wrong commit, and is the default since ([fifth batch](docs/results/2026-09-27-edge-facts/fifth-batch.md)) |
 | `triage_redundant` | Whether a page repeats what the agent already holds | **116/125**, AUC 1.00. Its threshold is **derived** rather than chosen: 0.59 to a 90 % precision target, 100 % precision held out ([how](docs/results/2026-09-24-third-batch/)) |
+| `points.longdoc.answer` (opt-in, 0.3.1) | A multiple-choice question over one long document: Jev 1.14's letter when its top choice reaches 0.6, otherwise `escalate` so the caller asks its own model | On 162 fresh LongBench v2 tasks, pre-registered: Jev answered 37 %. Against Sonnet 5.5 alone (clean Claude Code 2.1.287) the router was no worse at the −10-point margin fixed beforehand (+1.2 points [−3.1, +5.6]), for **33.9 % [24.0, 44.0]** less of Sonnet's cost, measured. Against Opus 5.5 alone it was no worse at −10 (−3.7 [−8.0, +0.6]), for **29.5 % [21.7, 37.7]** less of Opus's cost; on the tasks Jev answered, Opus was right more often (37 against 31 of 60; McNemar 10 against 4, p 0.18, not significant). Four-option questions graded by the letter, documents over 100,000 characters, one draw ([lb162](docs/results/2026-10-15-lb162/README.md), [lb162x](docs/results/2026-10-16-lb162x/README.md)) |
+
+**Long documents, opt-in.** `longdoc.answer(decider, document, question, options)` asks
+jev-1.14.0 one Choice over the whole document with the long-context header, cutting out the
+middle past 900,000 characters. It returns `result.letter` when Jev's top choice is at least 0.6;
+otherwise `result.escalate` with the reason, and the caller asks its own model.
+`longdoc.measured_decider()` builds the measured Jev; wrap it in a `CappedDecider` to bound what
+it spends, about 0.005 USD a document. Nothing in `install` or the default policy calls it, and
+the default model stays jev-1.13.0. It escalates, and never answers in silence, on a decider
+without a long-context mode, another model (unless `model=None`), a question without four options
+(unless `measured_only=False`), out of funds, a spend cap or an outage, or every length refused.
+A higher `cut=` trades saving for accuracy: 0.8 looked closer to Opus post hoc, which is not
+confirmed.
 
 | Class (0.3.0) | Decides | Measured |
 |---|---|---|
