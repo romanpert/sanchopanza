@@ -35,6 +35,19 @@
   `SANCHOPANZA_LONGDOC_CAP_USD`), and every failure answered as a handback. Measured only as the
   library point (lb162, lb162x); the tool itself, and PDF or DOCX text, are not.
 
+- **A bridge into Claude Code's own memory, opt-in** (`install --memory --memory-native`,
+  `SANCHOPANZA_MEMORY_NATIVE=1`; `harness/memory_native.py`, `memory_native_index.py`): at a
+  session's end, when Claude Code did not save the plan itself, memory writes one marked note,
+  `sanchopanza-next.md`, and one exact line in Claude Code's `MEMORY.md`, so the next session
+  loads it through Claude Code's own mechanism. It never edits or removes a line or file it did
+  not write, refuses links, read-only files and an index it would push past what Claude Code
+  loads, rebuilds on a concurrent write, stays off under any memory override or when auto memory
+  is off, and `install` without the flag removes exactly what it wrote. A record is held back
+  only after the main session has Read the whole note. Replayed on F2's recorded sessions it
+  saves nothing (about +38 tokens when the note is not read, about +524 and one tool turn when
+  it is): its value is that the plan reaches Claude Code's own memory. Not measured live.
+  `memory_gate.memory_dir_for` now follows Claude Code's folder rule (the canonical git root, so
+  worktrees share the main checkout's folder; overrides; auto memory off gives none).
 - **check_done's record can keep the evidence the answer rests on, opt-in**
   (`SANCHOPANZA_DONE_EVIDENCE=1`, `points/done_evidence.py`): past each tool result's head it adds
   windows around the values the agent wrote afterwards (file names, sizes, ids, times), rarest
