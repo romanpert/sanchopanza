@@ -1,8 +1,8 @@
 {
- "train": 655,
+ "train": 393,
  "test": 950,
  "train_suites": {
-  "slack": 655
+  "slack": 393
  },
  "test_suites": {
   "banking": 169,
@@ -12,9 +12,7 @@
  "train_agents": [
   "claude-haiku-4-5-none",
   "claude-sonnet-5-none",
-  "claude-sonnet-5-spotlighting",
-  "claude-sonnet-5-squire",
-  "claude-sonnet-5-squire-mark"
+  "claude-sonnet-5-spotlighting"
  ],
  "test_agents": [
   "claude-3-7-sonnet-20250219"

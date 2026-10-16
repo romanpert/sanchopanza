@@ -69,8 +69,10 @@ def _auc(rows: Sequence[Mapping[str, Any]], arm: str) -> float | None:
 
 
 def verdict(result: Mapping[str, Any]) -> str:
-    """The registered rule on the user-task cluster interval of (local - Jev) accuracy."""
-    ci = result.get("ci95_cluster")
+    """The registered rule on the user-task cluster interval of (local - Jev) accuracy, read on
+    the unrounded bounds when present. The house convention for margin lots: "peor" only when
+    the whole interval lies below the margin."""
+    ci = result.get("ci95_cluster_raw") or result.get("ci95_cluster")
     if result.get("diff") is None or ci is None:
         return "no medido"
     low, high = ci
@@ -78,9 +80,21 @@ def verdict(result: Mapping[str, Any]) -> str:
         return "mejor"
     if low > MARGIN:
         return "no peor"
-    if high < 0:
+    if high < MARGIN:
         return "peor"
     return "no concluyente"
+
+
+def _bounds(values: Sequence[float]) -> tuple[float, float] | None:
+    """`l4_stats.ci95`'s percentiles, unrounded."""
+    if not values:
+        return None
+    ordered = sorted(values)
+    return ordered[int(0.025 * (len(ordered) - 1))], ordered[int(0.975 * (len(ordered) - 1))]
+
+
+def _rounded(bounds: tuple[float, float] | None) -> tuple[float, float] | None:
+    return None if bounds is None else (round(bounds[0], 4), round(bounds[1], 4))
 
 
 def paired(
@@ -88,8 +102,30 @@ def paired(
     new: Callable[[Mapping[str, Any]], bool],
     old: Callable[[Mapping[str, Any]], bool],
 ) -> dict[str, Any]:
-    return l4_stats.paired_binary([new(r) for r in rows], [old(r) for r in rows],
-                                  [r["cluster"] for r in rows])  # fmt: skip
+    """`l4_stats.paired_binary` (same resampling, same seed, so the same intervals), keeping the
+    cluster interval's unrounded bounds for the verdict and saying whether it excludes 0."""
+    a, b = [new(r) for r in rows], [old(r) for r in rows]
+    n = len(a)
+    if n == 0:
+        return {"n": 0, "diff": None, "p": 1.0, "ci95": None, "ci95_cluster": None}
+
+    def diff(idx: list[int]) -> float:
+        return sum(a[i] - b[i] for i in idx) / len(idx)
+
+    only_new = sum(x and not y for x, y in zip(a, b, strict=True))
+    only_old = sum(y and not x for x, y in zip(a, b, strict=True))
+    item = _bounds(l4_stats.bootstrap(diff, l4_stats.items_as_units(n)))
+    cluster = _bounds(
+        l4_stats.bootstrap(diff, l4_stats.clusters_as_units([r["cluster"] for r in rows]))
+    )
+    return {
+        "n": n, "new": round(sum(a) / n, 4), "old": round(sum(b) / n, 4),
+        "diff": round(diff(list(range(n))), 4), "only_new": only_new, "only_old": only_old,
+        "p": round(l4_stats.mcnemar_exact(only_new, only_old), 4),
+        "ci95": _rounded(item), "ci95_cluster": _rounded(cluster), "ci95_cluster_raw": cluster,
+        # Descriptive, not the verdict: the cluster interval lies wholly below 0.
+        "below_zero": cluster is not None and cluster[1] < 0,
+    }  # fmt: skip
 
 
 def against(rows: Sequence[Mapping[str, Any]], arm: str, cuts: Mapping[str, float]) -> dict:

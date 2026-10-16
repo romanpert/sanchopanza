@@ -3,7 +3,8 @@
     python benchmarks/a10_local/power.py     # -> docs/results/2026-10-16-a10-local/power.json
 
 The test set's clusters are checkdone114's (`checkdone114_analysis.SIZES`: 40 workspace tasks x
-15 runs, 16 banking x 10, 20 travel x 8, 30 injection tasks once; sum(m^2)/sum(m) = 12.5). For a
+15 runs, 16 banking x 10, 20 travel x 8, 30 injection tasks once: 106 clusters of plain mean
+size 8.96; the size-weighted mean sum(m^2)/sum(m), which sets the design effect, is 12.5). For a
 true accuracy difference `delta` (local minus Jev 1.14) and a rate `rate` of stops where exactly
 one arm is right, each cluster draws its own disagreement rate (mean `rate`) and the share of
 disagreements the local arm wins (mean (rate + delta) / (2 rate)), both beta with intra-cluster
@@ -31,10 +32,11 @@ import checkdone114_analysis as cd  # noqa: E402
 
 OUT = HERE.parents[1] / "docs" / "results" / "2026-10-16-a10-local" / "power.json"
 DELTAS = (0.0, -0.025, -0.05, -0.10)
-RATES = (0.15, 0.25)
+RATES = (0.15, 0.25, 0.35)  # 0.35: Jev 1.14 blocks 250 of the 950
 ICCS = (0.0, 0.3)
 SEED = 20261016
-MEAN_SIZE = sum(m * m for m in cd.SIZES) / sum(cd.SIZES)
+WEIGHTED_SIZE = sum(m * m for m in cd.SIZES) / sum(cd.SIZES)  # 12.5: the design effect's m
+PLAIN_SIZE = sum(cd.SIZES) / len(cd.SIZES)  # 8.96
 
 
 def simulate(delta: float, rate: float, icc: float, *, sims: int = 150, replicas: int = 400,
@@ -69,15 +71,16 @@ def simulate(delta: float, rate: float, icc: float, *, sims: int = 150, replicas
         "p_no_concluyente": round(tally["no concluyente"] / sims, 3),
         "mean_half_width_points": round(100 * sum(widths) / sims, 2),
         "analytic_half_width_points": round(
-            100 * 1.96 * math.sqrt(rate / n * (1 + (MEAN_SIZE - 1) * icc)), 2),
+            100 * 1.96 * math.sqrt(rate / n * (1 + (WEIGHTED_SIZE - 1) * icc)), 2),
     }  # fmt: skip
 
 
 def main() -> int:
     table = [simulate(d, r, i) for d in DELTAS for r in RATES for i in ICCS]
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps({"mean_cluster_size": MEAN_SIZE, "table": table}, indent=1) + "\n",
-                   encoding="utf-8")  # fmt: skip
+    body = {"size_weighted_mean_cluster_size": WEIGHTED_SIZE,
+            "plain_mean_cluster_size": PLAIN_SIZE, "table": table}  # fmt: skip
+    OUT.write_text(json.dumps(body, indent=1) + "\n", encoding="utf-8", newline="\n")
     for row in table:
         print(json.dumps(row))
     return 0

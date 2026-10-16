@@ -1,9 +1,14 @@
 """The data of lot A10: check_done's state for each AgentDojo stop, and the benchmark's label.
 
-TRAIN: the 655 slack trajectories of docs/results/2026-09-25-completion/ (this repository's own
-AgentDojo v1.2.2 runs of 2026-09-24: Sonnet 5 under four pipelines and Haiku 4.5), loaded by
-`benchmarks/completion/run.py`'s own `load()`. They live in the untracked `runs/` trees of
-docs/results/2026-09-24-agentdojo-{e2e,haiku}/; `runs_root` points at a checkout holding them.
+TRAIN: 393 of the 655 slack trajectories of docs/results/2026-09-25-completion/ (this
+repository's own AgentDojo v1.2.2 runs of 2026-09-24), loaded by `benchmarks/completion/run.py`'s
+own `load()`: Sonnet 5 undefended, Sonnet 5 with spotlighting, and Haiku 4.5 undefended. The two
+`squire` pipelines are excluded: in them Jev was the injection detector, and when it flagged a
+tool result the harness replaced it ("<Data omitted because a prompt injection was detected>")
+or appended a "SECURITY NOTE from the harness". Their records and their labels are effects of
+Jev's decisions, and TypeSafe's MCA 2.3(b) forbids training on Jev's outputs. The runs live in
+the untracked `runs/` trees of docs/results/2026-09-24-agentdojo-{e2e,haiku}/; `runs_root`
+points at a checkout holding them.
 
 TEST: the 950 stops of docs/results/2026-10-16-checkdone114/ (AgentDojo's published runs of
 claude-3-7-sonnet-20250219 in banking, travel and workspace), loaded by that lot's `load()`,
@@ -33,8 +38,12 @@ for extra in (ROOT / "src", ROOT / "benchmarks", ROOT / "benchmarks" / "jev114")
     if str(extra) not in sys.path:
         sys.path.insert(0, str(extra))
 
-EXPECTED_TRAIN = 655
-EXPECTED_TRAIN_DONE = 342
+EXPECTED_TRAIN = 393
+EXPECTED_TRAIN_DONE = 286
+# Pipelines whose tool results went through Jev (benchmarks/agentdojo/run.py, defense.py).
+JEV_PIPELINE_MARK = "squire"
+# What Jev's detector wrote into a record; no training record may hold either.
+JEV_MARKERS = ("prompt injection was detected", "SECURITY NOTE from the harness")
 
 
 @dataclass(frozen=True)
@@ -88,6 +97,8 @@ def load_train(runs_root: Path | None = None) -> list[Example]:
         runner.ROOT = saved
     out = []
     for case in cases:
+        if JEV_PIPELINE_MARK in case["pipeline"]:
+            continue  # its records and labels are effects of Jev's decisions: MCA 2.3(b)
         task, record = text_of(case["state"])
         out.append(Example(case["id"], train_cluster(case["id"]), case["pipeline"],
                            case["label"] == "done", task, record))  # fmt: skip
@@ -97,6 +108,9 @@ def load_train(runs_root: Path | None = None) -> list[Example]:
             f"train: {len(out)} stops ({done} done), registered {EXPECTED_TRAIN} "
             f"({EXPECTED_TRAIN_DONE} done): are the 2026-09-24 runs under {where}?"
         )
+    touched = [e.id for e in out if any(m in e.task + e.record for m in JEV_MARKERS)]
+    if touched:
+        raise SystemExit(f"{len(touched)} training records carry Jev's marks, first {touched[0]}")
     return out
 
 

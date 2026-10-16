@@ -11,10 +11,15 @@ Registered in docs/results/2026-10-16-a10-local/prereg.md.
 THE SEAL is one sha256 over `SEALED` (LF-folded text) and the model file's bytes: the
 registration, the CV report that fixed every knob, the model, this lot's code, the record builder
 and loaders the stops go through, the statistics, and checkdone114's inputs, data seal and
-recorded Jev rows. `run` checks it before reading a single test stop, then checks the 950 stops
-against checkdone114's sealed `data.sha256`, then scores. `seal` is the owner's step, once the
-registration is reviewed (`revisor-prereg`) and committed; scoring runs from a worktree detached
-at the sealing commit.
+recorded Jev rows. Only `run` is behind it. `overlap` reads the test stops' text to compare it
+with the training text and scores nothing; `hash` and `seal` read no test stop.
+
+`seal` is the owner's step, once the registration is reviewed (`revisor-prereg`) and committed:
+it refuses while `git status --porcelain` shows any sealed file changed or untracked, and it
+never overwrites a seal. `run` checks the seal before reading a single test stop, refuses when
+`analysis.json` or `scored.jsonl` already exist (the lot is judged once), checks the 950 stops
+against checkdone114's sealed `data.sha256`, then scores. It runs in a worktree detached at the
+sealing commit; its two outputs are then copied back into this directory.
 
 Jev's recorded probabilities (checkdone114's `done-scored.jsonl`) are read only to score Jev's
 own decisions at its cuts; they never reach the classifier.
@@ -25,6 +30,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -100,10 +106,21 @@ def cmd_hash(_: argparse.Namespace) -> int:
     return 0
 
 
+def uncommitted(root: Path = ROOT, model_path: Path = MODEL) -> list[str]:
+    """`git status --porcelain` lines for the sealed files: changed, staged or untracked."""
+    paths = [*SEALED, model.model_file(model_path).relative_to(root).as_posix()]
+    found = subprocess.run(["git", "status", "--porcelain", "--", *paths], cwd=root,
+                           capture_output=True, text=True, check=True)  # fmt: skip
+    return [line for line in found.stdout.splitlines() if line.strip()]
+
+
 def cmd_seal(_: argparse.Namespace) -> int:
     if SEAL.exists():
         raise SystemExit(f"{SEAL.name} exists: a lot is sealed once")
-    SEAL.write_text(digest() + "\n", encoding="utf-8")
+    dirty = uncommitted()
+    if dirty:
+        raise SystemExit(f"commit the sealed files first ({len(dirty)} not clean): {dirty[:3]}")
+    SEAL.write_text(digest() + "\n", encoding="utf-8", newline="\n")
     print(SEAL.read_text(encoding="utf-8").strip())
     return 0
 
@@ -113,7 +130,9 @@ def cmd_overlap(args: argparse.Namespace) -> int:
     train = data.load_train(args.runs_root)
     test, _ = data.load_test(args.data_root)
     report = data.overlap(train, test)
-    (OUT / "overlap.json").write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8")
+    (OUT / "overlap.json").write_text(
+        json.dumps(report, indent=1) + "\n", encoding="utf-8", newline="\n"
+    )
     print(json.dumps(report, indent=1))
     return 0
 
@@ -125,6 +144,9 @@ def jev_rows() -> dict[str, dict]:
 
 def cmd_run(args: argparse.Namespace) -> int:
     sealed = require_seal()
+    done = [p.name for p in (OUT / "analysis.json", OUT / "scored.jsonl") if p.exists()]
+    if done:
+        raise SystemExit(f"{done} exist: the lot is judged once")
     fitted = model.load(MODEL)
     examples, inputs = data.load_test(args.data_root)
     if inputs != json.loads(CD_DATA.read_text(encoding="utf-8"))["done"]:
@@ -144,9 +166,13 @@ def cmd_run(args: argparse.Namespace) -> int:
               **analysis.analyse(rows, fitted.cut)}  # fmt: skip
     keep = ("id", "cluster", "label", "p_local")
     (OUT / "scored.jsonl").write_text(
-        "".join(json.dumps({k: r[k] for k in keep}) + "\n" for r in rows), encoding="utf-8"
+        "".join(json.dumps({k: r[k] for k in keep}) + "\n" for r in rows),
+        encoding="utf-8",
+        newline="\n",
     )
-    (OUT / "analysis.json").write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8")
+    (OUT / "analysis.json").write_text(
+        json.dumps(report, indent=1) + "\n", encoding="utf-8", newline="\n"
+    )
     print(json.dumps({k: report[k] for k in ("n", "cuts", "verdict")}, indent=1))
     return 0
 

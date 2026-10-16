@@ -1,5 +1,6 @@
 {
- "mean_cluster_size": 12.536842105263158,
+ "size_weighted_mean_cluster_size": 12.536842105263158,
+ "plain_mean_cluster_size": 8.962264150943396,
  "table": [
   {
    "delta": 0.0,
@@ -7,8 +8,8 @@
    "icc": 0.0,
    "sims": 150,
    "p_no_peor_or_mejor": 0.973,
-   "p_peor": 0.007,
-   "p_no_concluyente": 0.02,
+   "p_peor": 0.0,
+   "p_no_concluyente": 0.027,
    "mean_half_width_points": 2.39,
    "analytic_half_width_points": 2.46
   },
@@ -18,8 +19,8 @@
    "icc": 0.3,
    "sims": 150,
    "p_no_peor_or_mejor": 0.72,
-   "p_peor": 0.02,
-   "p_no_concluyente": 0.26,
+   "p_peor": 0.0,
+   "p_no_concluyente": 0.28,
    "mean_half_width_points": 3.74,
    "analytic_half_width_points": 5.2
   },
@@ -29,8 +30,8 @@
    "icc": 0.0,
    "sims": 150,
    "p_no_peor_or_mejor": 0.847,
-   "p_peor": 0.013,
-   "p_no_concluyente": 0.14,
+   "p_peor": 0.0,
+   "p_no_concluyente": 0.153,
    "mean_half_width_points": 3.16,
    "analytic_half_width_points": 3.18
   },
@@ -40,10 +41,32 @@
    "icc": 0.3,
    "sims": 150,
    "p_no_peor_or_mejor": 0.52,
-   "p_peor": 0.027,
-   "p_no_concluyente": 0.453,
+   "p_peor": 0.0,
+   "p_no_concluyente": 0.48,
    "mean_half_width_points": 5.08,
    "analytic_half_width_points": 6.72
+  },
+  {
+   "delta": 0.0,
+   "rate": 0.35,
+   "icc": 0.0,
+   "sims": 150,
+   "p_no_peor_or_mejor": 0.78,
+   "p_peor": 0.0,
+   "p_no_concluyente": 0.22,
+   "mean_half_width_points": 3.64,
+   "analytic_half_width_points": 3.76
+  },
+  {
+   "delta": 0.0,
+   "rate": 0.35,
+   "icc": 0.3,
+   "sims": 150,
+   "p_no_peor_or_mejor": 0.38,
+   "p_peor": 0.0,
+   "p_no_concluyente": 0.62,
+   "mean_half_width_points": 6.28,
+   "analytic_half_width_points": 7.95
   },
   {
    "delta": -0.025,
@@ -51,8 +74,8 @@
    "icc": 0.0,
    "sims": 150,
    "p_no_peor_or_mejor": 0.453,
-   "p_peor": 0.52,
-   "p_no_concluyente": 0.027,
+   "p_peor": 0.0,
+   "p_no_concluyente": 0.547,
    "mean_half_width_points": 2.42,
    "analytic_half_width_points": 2.46
   },
@@ -62,8 +85,8 @@
    "icc": 0.3,
    "sims": 150,
    "p_no_peor_or_mejor": 0.293,
-   "p_peor": 0.287,
-   "p_no_concluyente": 0.42,
+   "p_peor": 0.0,
+   "p_no_concluyente": 0.707,
    "mean_half_width_points": 3.77,
    "analytic_half_width_points": 5.2
   },
@@ -73,8 +96,8 @@
    "icc": 0.0,
    "sims": 150,
    "p_no_peor_or_mejor": 0.293,
-   "p_peor": 0.367,
-   "p_no_concluyente": 0.34,
+   "p_peor": 0.0,
+   "p_no_concluyente": 0.707,
    "mean_half_width_points": 3.17,
    "analytic_half_width_points": 3.18
   },
@@ -84,10 +107,32 @@
    "icc": 0.3,
    "sims": 150,
    "p_no_peor_or_mejor": 0.213,
-   "p_peor": 0.16,
-   "p_no_concluyente": 0.627,
+   "p_peor": 0.0,
+   "p_no_concluyente": 0.787,
    "mean_half_width_points": 5.09,
    "analytic_half_width_points": 6.72
+  },
+  {
+   "delta": -0.025,
+   "rate": 0.35,
+   "icc": 0.0,
+   "sims": 150,
+   "p_no_peor_or_mejor": 0.34,
+   "p_peor": 0.0,
+   "p_no_concluyente": 0.66,
+   "mean_half_width_points": 3.69,
+   "analytic_half_width_points": 3.76
+  },
+  {
+   "delta": -0.025,
+   "rate": 0.35,
+   "icc": 0.3,
+   "sims": 150,
+   "p_no_peor_or_mejor": 0.08,
+   "p_peor": 0.0,
+   "p_no_concluyente": 0.92,
+   "mean_half_width_points": 6.34,
+   "analytic_half_width_points": 7.95
   },
   {
    "delta": -0.05,
@@ -95,8 +140,8 @@
    "icc": 0.0,
    "sims": 150,
    "p_no_peor_or_mejor": 0.013,
-   "p_peor": 0.973,
-   "p_no_concluyente": 0.013,
+   "p_peor": 0.067,
+   "p_no_concluyente": 0.92,
    "mean_half_width_points": 2.4,
    "analytic_half_width_points": 2.46
   },
@@ -106,8 +151,8 @@
    "icc": 0.3,
    "sims": 150,
    "p_no_peor_or_mejor": 0.04,
-   "p_peor": 0.727,
-   "p_no_concluyente": 0.233,
+   "p_peor": 0.047,
+   "p_no_concluyente": 0.913,
    "mean_half_width_points": 3.93,
    "analytic_half_width_points": 5.2
   },
@@ -117,8 +162,8 @@
    "icc": 0.0,
    "sims": 150,
    "p_no_peor_or_mejor": 0.013,
-   "p_peor": 0.873,
-   "p_no_concluyente": 0.113,
+   "p_peor": 0.02,
+   "p_no_concluyente": 0.967,
    "mean_half_width_points": 3.15,
    "analytic_half_width_points": 3.18
   },
@@ -128,10 +173,32 @@
    "icc": 0.3,
    "sims": 150,
    "p_no_peor_or_mejor": 0.06,
-   "p_peor": 0.48,
-   "p_no_concluyente": 0.46,
+   "p_peor": 0.04,
+   "p_no_concluyente": 0.9,
    "mean_half_width_points": 5.08,
    "analytic_half_width_points": 6.72
+  },
+  {
+   "delta": -0.05,
+   "rate": 0.35,
+   "icc": 0.0,
+   "sims": 150,
+   "p_no_peor_or_mejor": 0.033,
+   "p_peor": 0.02,
+   "p_no_concluyente": 0.947,
+   "mean_half_width_points": 3.7,
+   "analytic_half_width_points": 3.76
+  },
+  {
+   "delta": -0.05,
+   "rate": 0.35,
+   "icc": 0.3,
+   "sims": 150,
+   "p_no_peor_or_mejor": 0.02,
+   "p_peor": 0.04,
+   "p_no_concluyente": 0.94,
+   "mean_half_width_points": 6.38,
+   "analytic_half_width_points": 7.95
   },
   {
    "delta": -0.1,
@@ -139,8 +206,8 @@
    "icc": 0.0,
    "sims": 150,
    "p_no_peor_or_mejor": 0.0,
-   "p_peor": 1.0,
-   "p_no_concluyente": 0.0,
+   "p_peor": 0.98,
+   "p_no_concluyente": 0.02,
    "mean_half_width_points": 2.34,
    "analytic_half_width_points": 2.46
   },
@@ -150,8 +217,8 @@
    "icc": 0.3,
    "sims": 150,
    "p_no_peor_or_mejor": 0.0,
-   "p_peor": 1.0,
-   "p_no_concluyente": 0.0,
+   "p_peor": 0.753,
+   "p_no_concluyente": 0.247,
    "mean_half_width_points": 4.3,
    "analytic_half_width_points": 5.2
   },
@@ -161,8 +228,8 @@
    "icc": 0.0,
    "sims": 150,
    "p_no_peor_or_mejor": 0.0,
-   "p_peor": 1.0,
-   "p_no_concluyente": 0.0,
+   "p_peor": 0.9,
+   "p_no_concluyente": 0.1,
    "mean_half_width_points": 3.09,
    "analytic_half_width_points": 3.18
   },
@@ -172,10 +239,32 @@
    "icc": 0.3,
    "sims": 150,
    "p_no_peor_or_mejor": 0.0,
-   "p_peor": 0.973,
-   "p_no_concluyente": 0.027,
+   "p_peor": 0.493,
+   "p_no_concluyente": 0.507,
    "mean_half_width_points": 5.22,
    "analytic_half_width_points": 6.72
+  },
+  {
+   "delta": -0.1,
+   "rate": 0.35,
+   "icc": 0.0,
+   "sims": 150,
+   "p_no_peor_or_mejor": 0.0,
+   "p_peor": 0.733,
+   "p_no_concluyente": 0.267,
+   "mean_half_width_points": 3.66,
+   "analytic_half_width_points": 3.76
+  },
+  {
+   "delta": -0.1,
+   "rate": 0.35,
+   "icc": 0.3,
+   "sims": 150,
+   "p_no_peor_or_mejor": 0.0,
+   "p_peor": 0.347,
+   "p_no_concluyente": 0.653,
+   "mean_half_width_points": 6.35,
+   "analytic_half_width_points": 7.95
   }
  ]
 }
