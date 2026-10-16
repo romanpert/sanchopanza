@@ -160,8 +160,9 @@ except A6, a free replay. Jev is `jev-1.13.0` unless said.
   points [−6.1, −0.8]; documents 85.8 % against 91.7 %, −5.9 [−9.0, −2.9]; the same share of
   text in both languages; BM25 alone loses 10 to 11 points. 2.6445 USD of Jev.
 - **The ceiling on what imposing `find_in_repo` could save** (`docs/results/2026-10-16-a6-ceiling`,
-  free, not pre-registered): 3.20 % [2.50, 3.94] of Sonnet 5.5's cost over 19 clean long-chain
-  sessions and 1,046 bugs, under the 5 % rule, so no paid lot follows.
+  free, not pre-registered): 3.05 % [2.36, 3.78] of Sonnet 5.5's cost over 19 clean long-chain
+  sessions and 1,046 bugs, each request priced from its transcript, under the 5 % rule, so no
+  paid lot follows.
 
 ## 0.3.0 (2026-10-15)
 

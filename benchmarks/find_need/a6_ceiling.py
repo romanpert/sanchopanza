@@ -6,14 +6,21 @@ no claude -p, no other paid API. Result: docs/results/2026-10-16-a6-ceiling/.
 
 Per bug request (long chains) or session (singles):
   - the first touch of a gold file (a file the gold patch changes):
-      readedit  first Read / Edit / Write / MultiEdit of a gold path (the A6 definition)
-      view      readedit, or a Bash/PowerShell/Grep call whose arguments name a gold file
+      view      the primary (HEADLINE): a Read / Edit / Write / MultiEdit of a gold path, or a
+                Bash/PowerShell/Grep call whose arguments name a gold file
+      readedit  a sensitivity: a Read / Edit / Write / MultiEdit of a gold path only
   - API requests, tool calls and USD (API list rates, meter.OWNER_RATES) of the expensive model
-    strictly before the message that makes that touch; a request that never touches a gold file
-    counts in full under "never=all" and not at all under "never=0";
+    strictly before the message that makes that touch (requests 0..i-1; `shift`: 1..i, leaving
+    out the session's first request, the system prompt's cache write); a request that never
+    touches a gold file counts in full under "never=all" and not at all under "never=0";
   - whether find's top-5 for the issue text holds a gold file.
+Each request is priced from the session's transcript (`transcript*.jsonl` beside the streams),
+matched by message id, as the long runner meters calls: a stream-json `assistant` event carries
+the usage at message start, so its output tokens are short. A session with no transcript is
+priced from its stream, and the report counts those requests.
 Ceiling = sum(cost before gold | find top-5 hit) / sum(all expensive-model cost of the sessions).
-Bootstrap: resample sessions (a long chain arm is one Claude Code session; a single is one).
+Bootstrap: resample sessions (a long chain arm is one Claude Code session; a single is one), and
+for the long chains also chains.
 
     python benchmarks/find_need/a6_ceiling.py retrieve --runs <runs root>  # snapshots + BM25 top-k
     python benchmarks/find_need/a6_ceiling.py report --runs <runs root>    # tables + full results
@@ -182,10 +189,24 @@ def gold_of(instance: str, rows: dict[str, Any], manifest: dict[str, list[str]])
 # ---- streams -------------------------------------------------------------------------------------
 
 
-def parse_stream(path: Path) -> list[dict[str, Any]]:
-    """Main-thread API messages in order (deduplicated by id, last usage wins) with their tool
-    uses, plus `compact` markers. Subagent messages (parent_tool_use_id) are kept apart with the
-    index of the main message whose tool use spawned them."""
+def transcript_prices(folder: Path) -> dict[str, meter.Request]:
+    """Message id -> the request as the session transcripts beside the streams report it
+    (`transcript.jsonl`, `transcript-<n>.jsonl`): the final usage, output tokens included."""
+    found: dict[str, meter.Request] = {}
+    for path in sorted(folder.glob("transcript*.jsonl")):
+        found.update({r.id: r for r in meter.transcript_requests(path)})
+    return found
+
+
+def parse_stream(
+    path: Path, prices: dict[str, meter.Request] | None = None
+) -> list[dict[str, Any]]:
+    """Main-thread API messages in order (deduplicated by id) with their tool uses, plus
+    `compact` markers. Subagent messages (parent_tool_use_id) are kept apart with the index of
+    the main message whose tool use spawned them. Each message is priced from `prices` (the
+    transcript's request of the same id) when it is there, else from the stream's own usage,
+    whose output tokens are the count at message start; `priced` says which."""
+    prices = prices or {}
     order: list[Any] = []
     msgs: dict[str, dict[str, Any]] = {}
     seen_tools: set[str] = set()
@@ -228,7 +249,7 @@ def parse_stream(path: Path) -> list[dict[str, Any]]:
             out.append({"compact": True})
             continue
         m = msgs[item]
-        r = m["req"]
+        r = prices.get(item, m["req"])
         out.append(
             {
                 "compact": False,
@@ -239,6 +260,7 @@ def parse_stream(path: Path) -> list[dict[str, Any]]:
                 "cost": r.cost(meter.OWNER_RATES),
                 "context": r.context,
                 "tools": m["tools"],
+                "priced": "transcript" if item in prices else "stream",
             }
         )
     return out
@@ -253,10 +275,20 @@ def touches(name: str, given: dict[str, Any], gold: list[str], mode: str) -> boo
     return False
 
 
+def _cost_of(main: list[dict[str, Any]], side: list[dict[str, Any]], expensive: str) -> float:
+    """The expensive model's cost of these main-thread requests and the subagents they spawned."""
+    ids = {x["id"] for x in main}
+    cost = sum(x["cost"] for x in main if x["model"] == expensive)
+    return cost + sum(s["cost"] for s in side if s["owner"] in ids and s["model"] == expensive)
+
+
 def before_gold(
-    entries: list[dict[str, Any]], gold: list[str], expensive: str, mode: str
-) -> dict[str, Any]:
-    """Expensive-model cost, API requests and tool calls before the first gold touch."""
+    entries: list[dict[str, Any]], gold: list[str], expensive: str, mode: str, *,
+    shift: bool = False,
+) -> dict[str, Any]:  # fmt: skip
+    """Expensive-model cost, API requests and tool calls before the first gold touch: requests
+    0..i-1 of the main thread, or with `shift` 1..i (the session's first request, which carries
+    the system prompt's cache write, is one find cannot remove; the touching request is)."""
     main = [e for e in entries if not e["compact"] and not e["side"]]
     side = [e for e in entries if not e["compact"] and e["side"]]
     total = sum(e["cost"] for e in main + side if e["model"] == expensive)
@@ -265,11 +297,7 @@ def before_gold(
     for i, e in enumerate(main):
         for name, given in e["tools"]:
             if touches(name, given, gold, mode):
-                before_ids = {x["id"] for x in main[:i]}
-                cost = sum(x["cost"] for x in main[:i] if x["model"] == expensive)
-                cost += sum(
-                    s["cost"] for s in side if s["owner"] in before_ids and s["model"] == expensive
-                )
+                cost = _cost_of(main[1 : i + 1] if shift else main[:i], side, expensive)
                 added = max(0, e["context"] - main[0]["context"]) if i else 0
                 return {
                     "touched": True,
@@ -286,7 +314,7 @@ def before_gold(
         "touched": False,
         "at_request": len(main),
         "calls_before": calls,
-        "cost_before": total,
+        "cost_before": total - _cost_of(main[:1], side, expensive) if shift else total,
         "total": total,
         "other_models": other,
         "added_tokens": 0,
@@ -383,16 +411,35 @@ def stream_for(d: Path, request: int) -> Path | None:
     return None
 
 
+SHIFTED = ("readedit_shift", "readedit"), ("view_shift", "view")
+
+
+def add_modes(unit: dict[str, Any], entries: list[dict[str, Any]], gold: list[str],
+              expensive: str) -> None:  # fmt: skip
+    """The unit's reach of the gold in both modes, and both shifted (requests 1..i)."""
+    for mode in ("readedit", "view"):
+        unit[mode] = before_gold(entries, gold, expensive, mode)
+    for key, mode in SHIFTED:
+        unit[key] = before_gold(entries, gold, expensive, mode, shift=True)
+
+
+def priced_counts(entries: list[dict[str, Any]]) -> dict[str, int]:
+    msgs = [e for e in entries if not e["compact"]]
+    return {"transcript": sum(e["priced"] == "transcript" for e in msgs),
+            "stream": sum(e["priced"] == "stream" for e in msgs)}  # fmt: skip
+
+
 def long_units(tops: dict[str, Any], paths: Paths) -> list[dict[str, Any]]:
     """One unit per bug request, with callbacks kept for the session's total."""
     units = []
     for arm in long_arms(paths):
         expensive = arm["model"]
+        prices = transcript_prices(arm["dir"])
         for c in arm["row"]["calls"]:
             path = stream_for(arm["dir"], c["request"])
             if path is None:
                 continue
-            entries = parse_stream(path)
+            entries = parse_stream(path, prices)
             iid = c.get("instance_id", "")
             is_bug = bool(iid) and not iid.startswith("callback")
             unit = {
@@ -404,6 +451,8 @@ def long_units(tops: dict[str, Any], paths: Paths) -> list[dict[str, Any]]:
                 "request": c["request"],
                 "instance": iid,
                 "bug": is_bug,
+                "dead": path.name.endswith("-dead.jsonl"),
+                "priced": priced_counts(entries),
             }
             if is_bug:
                 t = tops[iid]
@@ -415,13 +464,12 @@ def long_units(tops: dict[str, Any], paths: Paths) -> list[dict[str, Any]]:
                     hit5_all=hit(t["all5"], gold),
                     top5=[path_of(k) for k in t["code"][:5]],
                 )
-                for mode in ("readedit", "view"):
-                    unit[mode] = before_gold(entries, gold, expensive, mode)
+                add_modes(unit, entries, gold, expensive)
             else:
                 main = [e for e in entries if not e["compact"]]
                 total = sum(e["cost"] for e in main if e["model"] == expensive)
                 other = sum(e["cost"] for e in main if e["model"] != expensive)
-                for mode in ("readedit", "view"):
+                for mode in ("readedit", "view", "readedit_shift", "view_shift"):
                     unit[mode] = {
                         "touched": False,
                         "cost_before": 0.0,
@@ -484,7 +532,8 @@ def single_units() -> list[dict[str, Any]]:
         got = json.loads(ret.read_text(encoding="utf-8")).get("queries", {}) if ret.exists() else {}
         if "Q1+code" not in got:
             continue
-        entries = parse_stream(CACHE / r["stream"])
+        stream = CACHE / r["stream"]
+        entries = parse_stream(stream, transcript_prices(stream.parent))
         expensive = r["model"]
         gold = r["gold"]
         code, alls = got["Q1+code"]["keys"], got["Q1"]["keys"]
@@ -502,10 +551,11 @@ def single_units() -> list[dict[str, Any]]:
             "hit8": hit(code[:8], gold),
             "hit5_all": hit(alls[:5], gold),
             "top5": [path_of(k) for k in code[:5]],
+            "dead": False,
+            "priced": priced_counts(entries),
             "entries": entries,
         }
-        for mode in ("readedit", "view"):
-            u[mode] = before_gold(entries, gold, expensive, mode)
+        add_modes(u, entries, gold, expensive)
         units.append(u)
     add_carry(units)
     for u in units:
@@ -572,6 +622,16 @@ def describe(units: list[dict[str, Any]]) -> dict[str, Any]:
         "hit5_kind_all": sum(u["hit5_all"] for u in bugs),
         "total_expensive_usd": round(sum(u["readedit"]["total"] for u in units), 3),
         "other_models_usd": round(sum(u["readedit"]["other_models"] for u in units), 3),
+        "readedit_never_view_touched": sum(
+            not u["readedit"]["touched"] and u["view"]["touched"] for u in bugs
+        ),
+        "dead_bug_units": sum(bool(u.get("dead")) for u in bugs),
+        "requests_priced": {
+            k: sum(u["priced"][k] for u in units if "priced" in u) for k in ("transcript", "stream")
+        },
+        "sessions_without_transcript": len(
+            {u["session"] for u in units if "priced" in u and not u["priced"]["transcript"]}
+        ),
     }
     for mode in ("readedit", "view"):
         touched = [u for u in bugs if u[mode]["touched"]]
@@ -621,6 +681,14 @@ def report(paths: Paths) -> None:
             res["ceilings"][f"{mode}|never=all|perfect-find+carry"] = boot(
                 us, mode=mode, perfect=True, carry=True
             )
+        res["ceilings"]["view_shift|never=all|top5"] = boot(us, mode="view_shift")
+        res["ceilings"]["readedit_shift|never=0|top5"] = boot(us, mode="readedit_shift", never="0")
+        if all(u["chain"] for u in us):
+            res["ceilings"][HEADLINE + "|by-chain"] = boot(us, key="chain", mode="view")
+        res["by_arm"] = {
+            arm: boot([u for u in us if u["arm"] == arm], mode="view")
+            for arm in sorted({u["arm"] for u in us})
+        }
         per_session = defaultdict(lambda: [0.0, 0.0, 0, 0])
         for u in us:
             n, d = ceiling([u], mode="readedit")

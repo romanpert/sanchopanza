@@ -31,7 +31,7 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 | B4 | Order the approved paragraphs that do not fit by a four-level score | low-medium | Jev 0.0617 USD | **done**: Score not confirmed |
 | B7 | A stable API of questions, thresholds and recording keys to import rather than copy | low | free | **done** (merge `a502293`) |
 | A5 | `relate_facts`: the `unrelated` gate | low | Jev 0.0348 USD | **done**: 0.65 beats the shipped gate; a proposal |
-| A6 | Getting an agent to use `find_in_repo` | low | free (ceiling) | **closed without spending**: ceiling 3.20 % |
+| A6 | Getting an agent to use `find_in_repo` | low | free (ceiling) | **closed without spending**: ceiling 3.05 % |
 | A7 | The derivation rule against Sonnet on unseen data | low | Claude + Jev | **closed**: no margin |
 | A8 | Deciding before Claude Code's auto-mode classifier | low | Jev + Claude | **closed**: no lever in Claude Code |
 | A9 | The tool window by tournament over the sub-groups of a large server | low | Jev | **closed**: no margin |
@@ -58,7 +58,7 @@ Each lot pre-registered and sealed before its first answer, reviewed against the
 | [redundant-drop, `redundant_page` under 1.14 with 90 more drops](results/2026-10-16-redundant-drop/README.md) | **No proposal**: rule D clears at 0.04, the costly-drops guard fails (8 keep pages dropped against 0); 0.61 loses drops again, −6.0 [−11.6, −1.7] | Jev 0.0277 USD |
 | [memory F2, memory against the handoff ritual](results/2026-10-16-memory-f2/README.md) | **Sonnet 5.5: S not worse than H and better than N0** (48, 44 and 4 of 48); **Opus 5.5 direction only** (22, 17, 21 of 24) | Claude 42.25 USD list |
 | [lb162x, the LongBench router against Opus 5.5](results/2026-10-16-lb162x/README.md) | **No worse at −10** against Opus 5.5 (−3.7 [−8.0, +0.6], "sustituye"); Opus's cost saved 29.5 % [21.7, 37.7]; Sonnet's saving measured, 33.9 % [24.0, 44.0] | Claude 27.01 USD list |
-| [A6, the find ceiling](results/2026-10-16-a6-ceiling/README.md) | **Under 5 %**: 3.20 % [2.50, 3.94] of Sonnet 5.5's cost over 19 clean long-chain sessions; not pre-registered, free | free |
+| [A6, the find ceiling](results/2026-10-16-a6-ceiling/README.md) | **Under 5 %**: 3.05 % [2.36, 3.78] of Sonnet 5.5's cost over 19 clean long-chain sessions; not pre-registered, free | free |
 
 **Pending from these lots:**
 
@@ -169,9 +169,11 @@ the S2 confirmation (owner's decision after its dev), Ne against Ne+A (about 43 
 
 **A6. Getting an agent to use `find_in_repo`: closed without spending.** The ceiling on what
 imposing find could save, from recorded sessions ([a6-ceiling](results/2026-10-16-a6-ceiling/README.md)):
-3.20 % [2.50, 3.94] of Sonnet 5.5's cost over 19 clean long-chain sessions and 1,046 bugs,
-under the 5 % rule. Sonnet reaches the right file in its first request on most bugs. Opus 5.5
-3.15 % on 2 sessions; Haiku 4.5 on single issues 5.29 % [3.96, 6.79]. A fresh repository with a
+3.05 % [2.36, 3.78] of Sonnet 5.5's cost over 19 clean long-chain sessions and 1,046 bugs,
+under the plan's 5 % rule. Sonnet reaches the right file in its first request on most bugs.
+Opus 5.5 3.08 % on 2 sessions. Haiku 4.5 on single issues reads 4.81 % [3.59, 6.21], but most
+of it is the session's first request (the system prompt's cache write), which find cannot
+remove: counting requests 1 to i instead of 0 to i−1 gives 1.76 %. A fresh repository with a
 frontier model is unmeasured.
 
 **A7. The derivation rule against Sonnet: no margin.** A3 was not confirmed, and on
