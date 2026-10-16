@@ -1,0 +1,46 @@
+{
+ "sessions": 10,
+ "compactions": 98,
+ "struct_chars_median": 49473.0,
+ "pointer_chars_median": 7924.5,
+ "pointer_chars_max": 9470,
+ "archived_chars_median": 44169.0,
+ "per_arm": {
+  "Ne": {
+   "sessions": 5,
+   "compactions": 18,
+   "struct_usd_per_session_mean": 1.176893544,
+   "struct_usd_per_session_median": 1.2494676599999999,
+   "pointer_usd_per_session_mean": 0.18623095199999998,
+   "pointer_usd_per_session_median": 0.19954703999999995
+  },
+  "Nl": {
+   "sessions": 5,
+   "compactions": 80,
+   "struct_usd_per_session_mean": 1.9766140799999998,
+   "struct_usd_per_session_median": 1.9417714199999998,
+   "pointer_usd_per_session_mean": 0.34757683199999995,
+   "pointer_usd_per_session_median": 0.3527831999999999
+  }
+ },
+ "saving_usd_per_session_mean": 1.3098499199999998,
+ "saving_share_of_struct_carry": 0.8307257036775757,
+ "compactions_with_a_refetch": 7,
+ "refetches": 9,
+ "refetch_usd_per_compaction_mean": 0.0018512604081632653,
+ "struct_usd_per_compaction_mean": 0.16089324612244896,
+ "first_reads": {
+  "reads": 209,
+  "reads_seen_before": 8,
+  "reads_held": 8,
+  "shell": 2669,
+  "shell_seen_before": 1,
+  "shell_held": 1
+ },
+ "rates_usd_per_mtok": {
+  "output": 10,
+  "cache_read": 0.2,
+  "cache_write_1h": 4
+ },
+ "tokens_per_char": 0.3
+}

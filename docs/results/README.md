@@ -54,7 +54,8 @@ stays `jev-1.13.0`.
 ## Components measured on 2026-10-16
 
 Each pre-registered and sealed before any answer, Jev only (no call to Claude), against the
-shipped setting or what it would replace; A6 is a free offline ceiling, not pre-registered.
+shipped setting or what it would replace; A6 and the guard replay are free offline readings, not
+pre-registered.
 
 | Folder | What it backs |
 |---|---|
@@ -65,6 +66,7 @@ shipped setting or what it would replace; A6 is a free offline ceiling, not pre-
 | [2026-10-16-a5-unrelated](2026-10-16-a5-unrelated/README.md) | `relate_facts` accepting `unrelated` at 0.65 below the confidence gate, jev-1.13.0, 1,500 new pairs: 39 added verdicts, all right, 0 missed conflicts, Wilson lower bound 0.910: **beats the shipped policy**, which licenses a proposal for 0.65, not the change. 0.03 USD |
 | [2026-10-16-b4-order](2026-10-16-b4-order/README.md) | Ordering `select_passages`' paragraphs by a four-level Score before a 3,400-character cut, jev-1.13.0, 233 QASPER questions: answer-sentence recall 81.0 % against 65.1 % in page order, but +2.3 [-1.5, +6.2] and +1.8 [-2.3, +5.7] against the two free orders: **not confirmed**, stays opt-in. 0.06 USD |
 | [2026-10-16-a6-ceiling](2026-10-16-a6-ceiling/README.md) | What imposing `find_in_repo` on a frontier model could save at most, free and offline on 19 recorded long-chain sessions of clean Claude Code 2.1.287 with Sonnet 5.5 (1,046 bugs): the cost spent before first reaching a fixed file, on bugs where find's top 5 holds it, is **3.05 % [2.36, 3.78]** of the model's cost (requests priced from the transcripts), under the h2h plan's 5 % rule for replayed bets (2026-10-07): A6 closed without spending. 0 USD |
+| [2026-10-16-guard-pointers-replay](2026-10-16-guard-pointers-replay/README.md) | The guard's pointer block (the default since 0.3.2) against its whole-results block (`--guard-full`), free and offline on the 10 Sonnet 5.5 sessions of the long-compaction run (clean Claude Code 2.1.287, 98 compactions): median **7,925 characters against 49,473**; carry to the next compaction **0.19 against 1.18 USD per session** near 160k (Ne) and **0.35 against 1.98** near 67k (Nl), 1.31 USD less per session; the agent fetched again something the whole-results block held in **7 of 98 compactions**, 0.0019 USD per compaction against its 0.16 of carry. First-order, quality not measured, ±20 % on tokens per character. 0 USD |
 | [2026-10-16-b6-es](2026-10-16-b6-es/README.md) | Page triage and passage selection in Spanish against English on the same MLQA questions, jev-1.13.0: pages 95.5 % against 98.9 %, -3.4 points [-6.1, -0.8]; whole Wikipedia articles 85.8 % against 91.7 %, -5.9 [-9.0, -2.9]: **"inconclusive"** at the -5 margin, Spanish lower; BM25 drops 10 to 11 points. 2.64 USD |
 
 ## Main evidence
