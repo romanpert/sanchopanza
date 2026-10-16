@@ -499,6 +499,7 @@ def _live_ready(monkeypatch, order: list[str]) -> None:
     monkeypatch.setattr(run, "require_launcher", lambda path: None)
     monkeypatch.setattr(run, "require_clean_tree", lambda: "abc123")
     monkeypatch.setattr(run, "require_seal_in_head", lambda: None)
+    monkeypatch.setattr(run, "require_seal_commit", lambda: "parent0")
     monkeypatch.setattr(run, "digest", lambda: "d")
     monkeypatch.setattr(run, "load_key", lambda: order.append("key"))
     monkeypatch.setattr(run, "preflight", lambda: order.append("preflight"))
@@ -559,8 +560,75 @@ def test_a_live_launch_reads_the_key_before_the_preflight_and_uses_one_event_loo
     assert [h["outcome"] for h in run.launches("pages", "d")] == ["complete"]
     started = (run.RUN_DIR / "launches.jsonl").read_text(encoding="utf-8").splitlines()[0]
     assert '"python"' in started and '"httpx"' in started and '"head": "abc123"' in started
+    assert '"instrument": "parent0"' in started
     report = (isolated / "out" / "analysis-pages.json").read_text(encoding="utf-8")
     assert '"head": "abc123"' in report
+
+
+def _git(repo: Path, *args: str) -> str:
+    import subprocess
+
+    ident = [
+        "-c",
+        "user.name=t",
+        "-c",
+        "user.email=t@example.invalid",
+        "-c",
+        "commit.gpgsign=false",
+    ]
+    done = subprocess.run(["git", *ident, *args], cwd=repo, capture_output=True, text=True,
+                          check=True)  # fmt: skip
+    return done.stdout.strip()
+
+
+@pytest.fixture
+def sealed_repo(tmp_path, monkeypatch):
+    """A temporary repository: an instrument commit, then a commit holding only the seal."""
+    repo = tmp_path / "repo"
+    seal = repo / "docs/results/2026-10-16-b6-es/prereg.sha256"
+    seal.parent.mkdir(parents=True)
+    _git(repo.parent, "init", "-q", str(repo))
+    (repo / "code.py").write_text("x = 1\n", encoding="utf-8")
+    _git(repo, "add", "code.py")
+    _git(repo, "commit", "-q", "-m", "instrument")
+    seal.write_text("abc\n", encoding="utf-8")
+    _git(repo, "add", str(seal.relative_to(repo)))
+    _git(repo, "commit", "-q", "-m", "seal")
+    monkeypatch.setattr(run, "REPO", repo)
+    monkeypatch.setattr(run, "SEAL", seal)
+    return repo
+
+
+def test_a_seal_commit_with_only_the_seal_passes_and_names_its_parent(sealed_repo):
+    head = run.require_clean_tree()
+    run.require_seal_in_head()
+    assert run.require_seal_commit() == _git(sealed_repo, "rev-parse", "HEAD^")
+    assert head == _git(sealed_repo, "rev-parse", "HEAD")
+
+
+def test_a_dirty_tree_is_refused(sealed_repo):
+    (sealed_repo / "code.py").write_text("x = 2\n", encoding="utf-8")
+    with pytest.raises(SystemExit, match="tracked files differ"):
+        run.require_clean_tree()
+
+
+def test_a_seal_commit_that_also_touches_code_is_refused(sealed_repo):
+    (sealed_repo / "code.py").write_text("x = 3\n", encoding="utf-8")
+    run.SEAL.write_text("def\n", encoding="utf-8")
+    _git(sealed_repo, "commit", "-q", "-am", "seal and code")
+    run.require_clean_tree()  # clean: the code change is committed
+    with pytest.raises(SystemExit, match="not only"):
+        run.require_seal_commit()
+
+
+def test_a_merge_is_not_a_seal_commit(sealed_repo):
+    _git(sealed_repo, "checkout", "-q", "-b", "side", "HEAD^")
+    (sealed_repo / "other.py").write_text("y = 1\n", encoding="utf-8")
+    _git(sealed_repo, "add", "other.py")
+    _git(sealed_repo, "commit", "-q", "-m", "side")
+    _git(sealed_repo, "merge", "-q", "--no-edit", "-m", "merge", "-")
+    with pytest.raises(SystemExit, match="one parent"):
+        run.require_seal_commit()
 
 
 def test_the_launcher_holds_placeholders_only_and_is_sealed():

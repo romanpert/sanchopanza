@@ -371,6 +371,19 @@ def require_seal_in_head() -> None:
         raise SystemExit("prereg.sha256 is not committed: launch from the sealed commit") from error
 
 
+def require_seal_commit() -> str:
+    """HEAD is the seal commit: one parent, and its only change is prereg.sha256, so a seal
+    commit cannot carry code. Returns the parent, the instrument the seal hashes."""
+    seal = SEAL.relative_to(REPO).as_posix()
+    commits = git("rev-list", "--parents", "-n", "1", "HEAD").split()
+    if len(commits) != 2:
+        raise SystemExit("HEAD is not a seal commit with one parent: launch from the seal commit")
+    changed = git("diff", "--name-only", "HEAD^", "HEAD").splitlines()
+    if changed != [seal]:
+        raise SystemExit(f"the seal commit changes {changed}, not only {seal}: nothing spent")
+    return commits[1]
+
+
 def require_clean_tree() -> str:
     """The commit a live launch runs from; refused when a tracked file differs from it."""
     if git("status", "--porcelain", "--untracked-files=no"):
@@ -569,12 +582,13 @@ def run(data: Path, bench: str, *, live: bool, smoke: bool, launcher: Path | Non
     rows = bench_rows(data, bench, smoke)
     cap = SMOKE_CAP_USD if smoke else BATCH_CAP_USD[bench]
     batch = f"b6-es-{'smoke-' if smoke else ''}{bench}"
-    value = launch_id = head = ""
+    value = launch_id = head = parent = ""
     if live:
         require_seal()
         require_launcher(launcher)
         head = require_clean_tree()
         require_seal_in_head()
+        parent = require_seal_commit()
         value = digest()
         if not smoke:
             launch_gate(bench, value)
@@ -587,7 +601,7 @@ def run(data: Path, bench: str, *, live: bool, smoke: bool, launcher: Path | Non
         launch_id = uuid.uuid4().hex
         if not smoke:
             record_launch({"id": launch_id, "bench": bench, "digest": value, "head": head,
-                           "at": time.time(), **versions()})  # fmt: skip
+                           "instrument": parent, "at": time.time(), **versions()})  # fmt: skip
 
     async def ask() -> tuple[Asker, list[dict]]:
         asker = Asker(make_live(batch, cap) if live else None)  # inside this loop, only this one

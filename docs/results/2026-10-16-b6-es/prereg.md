@@ -1,15 +1,17 @@
-# B6: page triage and passage selection in Spanish, against English on the same questions: pre-registration (DRAFT)
+# B6: page triage and passage selection in Spanish, against English on the same questions: pre-registration
 
-Written 2026-10-16, before any Jev answer on these questions. **A draft, not sealed**: second
-review by `revisor-prereg` against the code, and the owner's approval of the cost, come before
-`python -I benchmarks/b6_es/b6_run.py --seal`. `prereg.sha256` will hold one sha256
+Written 2026-10-16 and **sealed** before any Jev answer on these questions, after two
+independent `revisor-prereg` reviews against the code and with the owner's approval of the
+cost. The seal is `prereg.sha256` (`python -I benchmarks/b6_es/b6_run.py --seal`): one sha256
 (`b6_run.digest`) over this file, `bench-manifest.json`, the runner and its modules
 (`b6_run.py`, `b6_analysis.py`, `b6_score.py`, `b6_build.py`, `b6_wiki.py`), their tests, the
 launcher `b6-es-run.cmd` (its four local values read as placeholders, below) and every file of
 `src/sanchopanza/**/*.py`, text hashed with LF line ends. `--seal` writes it once: it refuses
-when a seal exists or `fixtures/b6-es.jsonl` holds any answer. The live paths check it before
-reading the key and spend nothing if anything changed. The sealing commit's message carries
-the hash.
+when a seal exists or `fixtures/b6-es.jsonl` holds any answer. It is committed alone, in its
+own commit, on top of the instrument: a live launch refuses unless HEAD has one parent and
+changes only `prereg.sha256` (`b6_run.require_seal_commit`), and records that parent, the
+instrument, in its launch row. The live paths check the hash before reading the key and spend
+nothing if anything changed. The seal commit's message carries the hash.
 
 ## The question
 
