@@ -1,0 +1,126 @@
+{
+ "status": "post-data amendment 1: reported, not judged; the sealed verdict stands",
+ "sealed_verdict": "not confirmed",
+ "sealed_criteria": {
+  "P1_recall_at_fpr": {
+   "holds": false,
+   "recall": 0.74,
+   "fpr": 0.328,
+   "recall_floor": 0.752,
+   "fpr_ceiling": 0.342
+  },
+  "P2_mcnemar_unsafe": {
+   "holds": true,
+   "p_exact": 4.078315292499078e-56,
+   "only_mcp": 185,
+   "only_today": 0
+  },
+  "P3_provenance": {
+   "holds": true,
+   "unanswered": []
+  },
+  "verdict": "not confirmed"
+ },
+ "control_offline_today": {
+  "asked": 500,
+  "answered": 500,
+  "unanswered": [],
+  "recall": {
+   "today": {
+    "k": 213,
+    "n": 250,
+    "rate": 0.852,
+    "wilson95": [
+     0.8027,
+     0.8907
+    ]
+   },
+   "reference": {
+    "k": 213,
+    "n": 250,
+    "rate": 0.852,
+    "wilson95": [
+     0.8027,
+     0.8907
+    ]
+   },
+   "paired": {
+    "n": 250,
+    "new": 0.852,
+    "old": 0.852,
+    "diff": 0.0,
+    "only_new": 0,
+    "only_old": 0,
+    "p": 1.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "ci95_cluster": [
+     0.0,
+     0.0
+    ],
+    "p_exact": 1.0
+   }
+  },
+  "fpr": {
+   "today": {
+    "k": 72,
+    "n": 250,
+    "rate": 0.288,
+    "wilson95": [
+     0.2354,
+     0.347
+    ]
+   },
+   "reference": {
+    "k": 73,
+    "n": 250,
+    "rate": 0.292,
+    "wilson95": [
+     0.2391,
+     0.3512
+    ]
+   },
+   "paired": {
+    "n": 250,
+    "new": 0.288,
+    "old": 0.292,
+    "diff": -0.004,
+    "only_new": 2,
+    "only_old": 3,
+    "p": 1.0,
+    "ci95": [
+     -0.02,
+     0.012
+    ],
+    "ci95_cluster": [
+     -0.02,
+     0.012
+    ],
+    "p_exact": 1.0
+   }
+  }
+ },
+ "hook_vs_control_today_unsafe": {
+  "n": 250,
+  "both": 180,
+  "control_only": 33,
+  "hook_only": 5,
+  "neither": 32
+ },
+ "hook_vs_control_today_safe": {
+  "n": 250,
+  "both": 59,
+  "control_only": 13,
+  "hook_only": 23,
+  "neither": 155
+ },
+ "amendment_seal": {
+  "combined_now": "f0544c06971b4ee53df9003f6278327b406f92b0901d9044868e4b71a04d9eb6",
+  "sealed": "f0544c06971b4ee53df9003f6278327b406f92b0901d9044868e4b71a04d9eb6",
+  "matches_seal": true
+ },
+ "ledger_usd_amendment": 0.03084,
+ "ledger_usd_all": 0.080464
+}

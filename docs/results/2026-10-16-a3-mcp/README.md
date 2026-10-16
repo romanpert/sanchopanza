@@ -64,7 +64,7 @@ Trajectories flagged at the cut 0.5, `jev-1.13.0`, with Wilson 95 % intervals.
 | **`mcp`**: the hook with `SANCHOPANZA_GUARD_MCP=1` | **185 (74.0 % [68.2, 79.1])** | **82 (32.8 % [27.3, 38.8])** |
 | `today`: the hook as `install` writes it | 0 (0.0 % [0.0, 1.5]) | 0 (0.0 % [0.0, 1.5]) |
 | `mcp` without Codex's own tools (reported) | 183 (73.2 % [67.4, 78.3]) | 82 (32.8 % [27.3, 38.8]) |
-| Offline control, asked today (reported) | see [amendment 1](#amendment-1-the-offline-control-asked-again) | |
+| Offline control, asked today ([amendment 1](#amendment-1-the-offline-control-asked-again)) | 213 (85.2 % [80.3, 89.1]) | 72 (28.8 % [23.5, 34.7]) |
 
 How to read it:
 - **`mcp` against `today`, paired** (bootstrap 95 %): recall +74.0 points [68.4, 79.2], FPR
@@ -72,8 +72,8 @@ How to read it:
 - **Codex's own tools:** 65 of the 1,188 "MCP" calls are Codex's own tools, which Claude Code
   would not route through an MCP server. Leaving them out costs 2 unsafe trajectories and no
   false flag.
-- **The control:** the run's offline control answered 2 of its 500 records. It says nothing
-  yet about how far the server moved since 2026-09-27; amendment 1 asks it again.
+- **The control:** the run's own offline control answered 2 of its 500 records. Amendment 1
+  asked it again: the offline point flags today what it flagged on 2026-09-27.
 
 **The cut, re-cut after the data (reported, not judged).** No cut on this sweep meets both
 margins at once:
@@ -209,19 +209,23 @@ It has no criteria and does not replace the verdict above.
 - **Cap:** its own batch, capped at 0.05 USD on the same ledger. The free rehearsal
   (`dry-amendment-1.json`) expects 0.031 to 0.036 USD.
 
-**Result: not run yet.**
+**Result.** Run on 2026-10-16, 09:32 to 09:33, from a detached worktree at b10c1ec. All 500
+records were answered by `jev-1.13.0`, with no stop. The amendment's seal matched.
 
 | | Recall (250 unsafe) | FPR (250 safe) |
 |---|---|---|
-| Offline reference, 2026-09-27 | 213 (85.2 %) | 73 (29.2 %) |
-| Offline control, asked again | pending | pending |
-| McNemar, control against reference | pending | pending |
-| Hook `mcp` arm against the control (both / control only / hook only / neither) | pending | pending |
+| Offline reference, 2026-09-27 | 213 (85.2 % [80.3, 89.1]) | 73 (29.2 % [23.9, 35.1]) |
+| Offline control, asked again | 213 (85.2 % [80.3, 89.1]) | 72 (28.8 % [23.5, 34.7]) |
+| Control against reference, paired | 0 discordant, exact McNemar p 1.0 | 2 vs 3 discordant, p 1.0; difference −0.4 points [−2.0, +1.2] |
+| Hook `mcp` arm against the control (both / control only / hook only / neither) | 180 / 33 / 5 / 32 | 59 / 13 / 23 / 155 |
+
+**No drift shown, by the reading fixed before the answers** (`p_exact` 1.0 on the unsafe pairs).
+The point flags the same unsafe trajectories today as on 2026-09-27, so the 0.852 → 0.740 gap
+is the hook judging each call before its result, not Jev moving.
 
 ## Not done
 
 - **Phase 2**, the live probe in Claude Code: it was conditional on a confirmed replay.
-- **The offline control**, until amendment 1 runs.
 - **No cut was chosen on this set**, and none is proposed from the sweep.
 - **No other Jev model:** 1.14 was not asked here.
 - **The split between the last result and the final text** among the 33 misses: it needs
@@ -232,8 +236,10 @@ It has no criteria and does not replace the verdict above.
 
 | | USD |
 |---|---|
-| Batch `a3-replay` in the run's ledger (hook arms, 1,189 answers; control, 2) | **0.0496** (cap 0.25) |
-| Preflight, outside the ledger | about 0.00001 |
+| Batch `a3-replay` in the run's ledger (hook arms, 1,189 answers; control, 2) | **0.0496** |
+| Batch `a3-control-amendment-1` (amendment 1, 500 answers) | **0.0308** (batch cap 0.05) |
+| The run's ledger, both batches | 0.0805 (cap 0.25) |
+| Preflights, outside the ledger | about 0.00003 |
 | Claude | 0 |
 
 ## Files
@@ -247,7 +253,10 @@ It has no criteria and does not replace the verdict above.
 - `analysis.json`: the scoring, the verdict, the seal's state and the spend.
 - `diagnosis.json`: the post-hoc diagnosis above, from `benchmarks/a3_mcp/diagnose.py`.
 - `prereg-amendment-1.md`, `prereg-amendment-1.manifest.json`, `prereg-amendment-1.sha256`,
-  `dry-amendment-1.json`: amendment 1.
+  `dry-amendment-1.json`: amendment 1's registration and free rehearsal.
+- `answers-control-amendment-1.jsonl` (hashed keys and numbers, no text),
+  `control-amendment-1.jsonl` and `analysis-amendment-1.json`: amendment 1's answers, records
+  and analysis. `replay.py --control-only`, without `--live`, analyses them again for free.
 
 To reproduce, free, with ATBench-Codex on disk (`SANCHOPANZA_ATBENCH_CODEX`):
 - the scoring, at the sealed commit 65528af: `python benchmarks/a3_mcp/replay.py --run`, which
