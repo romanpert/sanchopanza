@@ -167,3 +167,22 @@ def test_an_unanswered_call_met_by_page_and_free_counts_once() -> None:
     asyncio.run(fc.ask([_row()], asker))
     assert asker.failures == 2  # the tournament call, met by both runs
     assert fc.unanswered(asker) == 1
+
+
+class _Costly(_Probs):
+    async def decide(self, point: str, state: Any, qs: Any) -> Decision:
+        got = await super().decide(point, state, qs)
+        return Decision(point, got.answers, "costly", fc.MODEL, cost_usd=0.15)
+
+
+def test_a_decision_answered_again_from_the_memo_never_exhausts_the_squire() -> None:
+    """The sealed run's defect: the squire's own meter charged a decision again each time the
+    memo or the recording answered it, under a cap equal to the batch's, and cut 1,437 of
+    FREE's decisions to defaults. Here PAGE's calls cost 1.50 and FREE's repeat them."""
+    rows = [{**_row(), "id": f"q#{k}", "paper": "q", "question": f"topic number {k}"}
+            for k in range(2)]
+    live = _Costly()
+    out = asyncio.run(fc.ask(rows, fc.lot_asker(live)))
+    assert live.calls == 10  # 5 a question, none asked twice
+    for got in out:
+        assert all(p is not None for entry in got["free"] if entry for _, p in entry)

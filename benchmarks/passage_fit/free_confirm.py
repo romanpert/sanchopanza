@@ -76,6 +76,14 @@ MODEL = br.MODEL  # jev-1.13.0
 BUDGET = 3_400  # B4's budget: the median delivered size on its 261 derivation questions
 CAP_USD = w17_round.BATCH_CAPS[NAME]  # 2.00, this batch's cap on the round's ledger
 SEED = 20261018
+# The squire's own dollar meter is no cap here: it charges a decision again each time the memo
+# or the recording answers it, so a cap there cut the second run of a question to defaults
+# (C5's sealed run: 1,437 of FREE's decisions, and 246 of PAGE's calls never asked on the first
+# launch). The caps are the ledger's (`CappedDecider`, batch and round).
+SQUIRE_CAP_USD = 1e9
+SEALED_SQUIRE_CAP_USD = 2.00  # what the sealed instrument (319ee79) passed: replays analysis.json
+POSTDATA_LABEL = ("post-data amendment, labelled: the sealed run's recorded answers, read with "
+                  "the squire's own cap lifted; not the sealed verdict")  # fmt: skip
 USD_PER_CALL = 0.537 / 5_132  # the QASPER whole-papers run, settled in its ledger (not the bill)
 # The launcher is not here: the seal fixes it (`launcher_digest`, its local values as
 # placeholders), and a copy filled in place must not fail the instrument check.
@@ -188,9 +196,11 @@ def load_rows() -> list[dict[str, Any]]:
 # ---- asking and scoring --------------------------------------------------------------------
 
 
-async def ask(rows: list[dict[str, Any]], asker: br.Asker) -> list[dict[str, Any]]:
-    """Per question: `select_passages` without a budget, then with FREE's."""
-    squire = br.squire(asker, "select", CAP_USD)
+async def ask(rows: list[dict[str, Any]], asker: br.Asker, *,
+              squire_cap: float = SQUIRE_CAP_USD) -> list[dict[str, Any]]:  # fmt: skip
+    """Per question: `select_passages` without a budget, then with FREE's. `squire_cap` at
+    `SEALED_SQUIRE_CAP_USD` is the sealed run's setting, kept to replay its report."""
+    squire = br.squire(asker, "select", squire_cap)
 
     async def one(row: dict[str, Any]) -> dict[str, Any]:
         br.ROW.set(row["id"])
@@ -404,10 +414,10 @@ def paid(launcher: pathlib.Path | None, *, load_key: Any = paid_once.load_key,
     return 0 if result["stopped"] is None else 2
 
 
-def analysis() -> dict[str, Any]:
+def analysis(squire_cap: float = SQUIRE_CAP_USD) -> dict[str, Any]:
     rows = load_rows()
     asker = lot_asker(None)
-    out = asyncio.run(ask(rows, asker))
+    out = asyncio.run(ask(rows, asker, squire_cap=squire_cap))
     missing = unanswered(asker)
     if paid_once.unanswered_blocks(lot(), missing):
         raise SystemExit(f"{missing} calls unanswered and a launch is still allowed")
@@ -423,7 +433,8 @@ def unanswered(asker: br.Asker) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    ap.add_argument("action", choices=("export", "rows", "dry", "seal", "paid", "report"))
+    ap.add_argument("action", choices=("export", "rows", "dry", "seal", "paid", "report",
+                                       "postdata"))  # fmt: skip
     ap.add_argument("parquet", nargs="?", type=pathlib.Path)
     ap.add_argument("--launcher", type=pathlib.Path)
     args = ap.parse_args()
@@ -440,10 +451,16 @@ def main() -> int:
         return 0
     if args.action == "paid":
         return paid(args.launcher)
-    if args.action == "report":
-        result = analysis()
+    if args.action == "report":  # the sealed run's own report, replayed: analysis.json
+        result = analysis(SEALED_SQUIRE_CAP_USD)
         RESULTS.mkdir(parents=True, exist_ok=True)
         (RESULTS / "analysis.json").write_bytes((json.dumps(result, indent=1) + "\n").encode())
+        print(json.dumps(result, indent=1))
+        return 0
+    if args.action == "postdata":  # the same answers, the squire's cap lifted: labelled
+        result = {"reading": POSTDATA_LABEL, **analysis(SQUIRE_CAP_USD)}
+        out = RESULTS / "analysis-postdata.json"
+        out.write_bytes((json.dumps(result, indent=1) + "\n").encode())
         print(json.dumps(result, indent=1))
         return 0
     print(json.dumps(dry(load_rows()), indent=1))

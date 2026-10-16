@@ -1,0 +1,191 @@
+{
+ "head": "3a201f0114742e368b26ee5f0b333526cc94f9a7",
+ "gate_under_test": 0.65,
+ "unanswered": 0,
+ "shipped": {
+  "n": 1500,
+  "decided": 1134,
+  "right": 1074,
+  "costly": 7,
+  "unrelated_read_as_agree": 53
+ },
+ "gates": [
+  {
+   "gate": 0.4,
+   "added": 120,
+   "right": 119,
+   "wrong": 1,
+   "missed_conflicts": 1,
+   "net": 115,
+   "wilson95_low": 0.9543025846256776
+  },
+  {
+   "gate": 0.45,
+   "added": 119,
+   "right": 119,
+   "wrong": 0,
+   "missed_conflicts": 0,
+   "net": 119,
+   "wilson95_low": 0.9687272064186725
+  },
+  {
+   "gate": 0.5,
+   "added": 119,
+   "right": 119,
+   "wrong": 0,
+   "missed_conflicts": 0,
+   "net": 119,
+   "wilson95_low": 0.9687272064186725
+  },
+  {
+   "gate": 0.55,
+   "added": 114,
+   "right": 114,
+   "wrong": 0,
+   "missed_conflicts": 0,
+   "net": 114,
+   "wilson95_low": 0.9674003068525885
+  },
+  {
+   "gate": 0.6,
+   "added": 98,
+   "right": 98,
+   "wrong": 0,
+   "missed_conflicts": 0,
+   "net": 98,
+   "wilson95_low": 0.9622786759045419
+  },
+  {
+   "gate": 0.65,
+   "added": 66,
+   "right": 66,
+   "wrong": 0,
+   "missed_conflicts": 0,
+   "net": 66,
+   "wilson95_low": 0.9449955327483905
+  },
+  {
+   "gate": 0.7,
+   "added": 26,
+   "right": 26,
+   "wrong": 0,
+   "missed_conflicts": 0,
+   "net": 26,
+   "wilson95_low": 0.8712669561953783
+  }
+ ],
+ "added_by_type": {
+  "unrelated:bridge": {
+   "added": 34,
+   "wrong": 0
+  },
+  "unrelated:minister": {
+   "added": 30,
+   "wrong": 0
+  },
+  "unrelated:students": {
+   "added": 2,
+   "wrong": 0
+  }
+ },
+ "related_kinds": {
+  "dated:agree": {
+   "n": 150,
+   "gate_added_unrelated": 0,
+   "shipped_wrong": 0,
+   "shipped_undecided": 0,
+   "gate_added_wilson95_high": 0.025
+  },
+  "dated:conflict": {
+   "n": 150,
+   "gate_added_unrelated": 0,
+   "shipped_wrong": 0,
+   "shipped_undecided": 53,
+   "gate_added_wilson95_high": 0.025
+  },
+  "role:agree": {
+   "n": 150,
+   "gate_added_unrelated": 0,
+   "shipped_wrong": 0,
+   "shipped_undecided": 0,
+   "gate_added_wilson95_high": 0.025
+  },
+  "role:conflict": {
+   "n": 150,
+   "gate_added_unrelated": 0,
+   "shipped_wrong": 0,
+   "shipped_undecided": 0,
+   "gate_added_wilson95_high": 0.025
+  },
+  "subset:agree": {
+   "n": 150,
+   "gate_added_unrelated": 0,
+   "shipped_wrong": 0,
+   "shipped_undecided": 1,
+   "gate_added_wilson95_high": 0.025
+  },
+  "subset:conflict": {
+   "n": 150,
+   "gate_added_unrelated": 0,
+   "shipped_wrong": 7,
+   "shipped_undecided": 21,
+   "gate_added_wilson95_high": 0.025
+  }
+ },
+ "two_names": {
+  "identity_in_fact_a": {
+   "dated:agree": {
+    "n": 22,
+    "gate_added_unrelated": 0,
+    "shipped_wrong": 0,
+    "shipped_undecided": 0,
+    "gate_added_wilson95_high": 0.1487
+   },
+   "dated:conflict": {
+    "n": 33,
+    "gate_added_unrelated": 0,
+    "shipped_wrong": 0,
+    "shipped_undecided": 7,
+    "gate_added_wilson95_high": 0.1043
+   }
+  },
+  "identity_in_fact_b": {
+   "dated:agree": {
+    "n": 14,
+    "gate_added_unrelated": 0,
+    "shipped_wrong": 0,
+    "shipped_undecided": 0,
+    "gate_added_wilson95_high": 0.2153
+   },
+   "dated:conflict": {
+    "n": 14,
+    "gate_added_unrelated": 0,
+    "shipped_wrong": 0,
+    "shipped_undecided": 3,
+    "gate_added_wilson95_high": 0.2153
+   }
+  }
+ },
+ "result": {
+  "gate": 0.65,
+  "added": 66,
+  "right": 66,
+  "wrong": 0,
+  "missed_conflicts": 0,
+  "net": 66,
+  "wilson95_low": 0.9449955327483905,
+  "verdict": "the gate beats the shipped policy",
+  "unanswered": 0,
+  "without_dated_and_role_agree": {
+   "gate": 0.65,
+   "added": 66,
+   "right": 66,
+   "wrong": 0,
+   "missed_conflicts": 0,
+   "net": 66,
+   "wilson95_low": 0.9449955327483905,
+   "verdict": "the gate beats the shipped policy"
+  },
+  "label_disagreement_only": false
+ }
+}

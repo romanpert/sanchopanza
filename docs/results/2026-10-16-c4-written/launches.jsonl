@@ -1,0 +1,2 @@
+{"event": "start", "head": "3a201f0114742e368b26ee5f0b333526cc94f9a7", "instrument": "319ee7988c6a5b84d874cd91f3f642e8bc750c19", "at": "2026-10-16T18:34:04+0200", "to_ask": 1500}
+{"event": "end", "asked": 1500, "usd": 0.034959, "missing_at_start": 1500, "stopped": null, "stop_kind": null}

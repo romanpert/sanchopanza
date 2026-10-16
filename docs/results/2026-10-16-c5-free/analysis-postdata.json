@@ -1,0 +1,136 @@
+{
+ "reading": "post-data amendment, labelled: the sealed run's recorded answers, read with the squire's own cap lifted; not the sealed verdict",
+ "head": "3a201f0114742e368b26ee5f0b333526cc94f9a7",
+ "unanswered_calls": 0,
+ "budget_chars": 3400,
+ "questions": 646,
+ "papers": 257,
+ "overflowing": {
+  "n": 346,
+  "papers": 191
+ },
+ "arms": {
+  "PAGE": {
+   "recall": 0.6355,
+   "all_gold": 0.5838,
+   "chars_mean": 3192.5
+  },
+  "BM25": {
+   "recall": 0.6713,
+   "all_gold": 0.6012,
+   "chars_mean": 3209.3
+  },
+  "FREE": {
+   "recall": 0.7555,
+   "all_gold": 0.6936,
+   "chars_mean": 3220.4
+  },
+  "GOLD": {
+   "recall": 0.9408,
+   "all_gold": 0.9191,
+   "chars_mean": 3197.1
+  }
+ },
+ "paired": {
+  "FREE-PAGE": {
+   "n": 346,
+   "recall_diff": 0.1199,
+   "recall_ci95_cluster": [
+    0.0669,
+    0.17
+   ],
+   "recall_ci95_cluster_exact": [
+    0.06688946528332003,
+    0.1700200978962041
+   ],
+   "recall_ci95_item": [
+    0.0711,
+    0.1689
+   ],
+   "all_gold": {
+    "n": 346,
+    "new": 0.6936,
+    "old": 0.5838,
+    "diff": 0.1098,
+    "only_new": 66,
+    "only_old": 28,
+    "p": 0.0001,
+    "ci95": [
+     0.0578,
+     0.1647
+    ],
+    "ci95_cluster": [
+     0.0546,
+     0.1638
+    ]
+   }
+  },
+  "BM25-PAGE": {
+   "n": 346,
+   "recall_diff": 0.0358,
+   "recall_ci95_cluster": [
+    -0.022,
+    0.09
+   ],
+   "recall_ci95_cluster_exact": [
+    -0.02197285107121173,
+    0.0900348494098494
+   ],
+   "recall_ci95_item": [
+    -0.0179,
+    0.0892
+   ],
+   "all_gold": {
+    "n": 346,
+    "new": 0.6012,
+    "old": 0.5838,
+    "diff": 0.0173,
+    "only_new": 54,
+    "only_old": 48,
+    "p": 0.6208,
+    "ci95": [
+     -0.0405,
+     0.0723
+    ],
+    "ci95_cluster": [
+     -0.0415,
+     0.0739
+    ]
+   }
+  },
+  "GOLD-PAGE": {
+   "n": 346,
+   "recall_diff": 0.3052,
+   "recall_ci95_cluster": [
+    0.2553,
+    0.3539
+   ],
+   "recall_ci95_cluster_exact": [
+    0.25526792611340715,
+    0.35388123613475725
+   ],
+   "recall_ci95_item": [
+    0.2588,
+    0.3521
+   ],
+   "all_gold": {
+    "n": 346,
+    "new": 0.9191,
+    "old": 0.5838,
+    "diff": 0.3353,
+    "only_new": 116,
+    "only_old": 0,
+    "p": 0.0,
+    "ci95": [
+     0.2861,
+     0.3844
+    ],
+    "ci95_cluster": [
+     0.2818,
+     0.3881
+    ]
+   }
+  }
+ },
+ "verdict": "FREE confirmed: it keeps more answer sentences than page order at 3,400 characters"
+}

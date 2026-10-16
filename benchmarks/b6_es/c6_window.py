@@ -67,6 +67,11 @@ INPUT_SHA256 = "c040e91417bc2daf78e4d2d428595dc06e0ae19479ec62bbbbaddb533b7841cb
 FIXTURE = REPO / "fixtures" / NAME / "recording.jsonl"  # below fixtures/: its own set
 MODEL = br.MODEL  # jev-1.13.0, the production DEFAULT_MODEL
 CAP_USD = w17_round.BATCH_CAPS[NAME]  # 4.50 on the round's shared ledger (6.00 over C4-C6)
+# The squire's own dollar meter is no cap here: it charges a decision again each time the memo
+# or the recording answers it, so a cap there cut the second run of a question to defaults
+# (C5's sealed run: 1,437 of FREE's decisions, and 246 of PAGE's calls never asked on the first
+# launch). The caps are the ledger's (`CappedDecider`, batch and round).
+SQUIRE_CAP_USD = 1e9
 VIEW = sc.VIEW  # 900, `chunks.PAGE_LIMIT`
 LANGS = ("es", "en")
 ARMS = {lang: (f"Dh-{lang}", f"Dw-{lang}") for lang in LANGS}
@@ -206,7 +211,7 @@ def load_rows() -> list[dict[str, Any]]:
 
 async def ask(rows: Sequence[Mapping[str, Any]], asker: br.Asker) -> list[dict[str, Any]]:
     """Both arms of each changed language, head first, then the window reusing what is equal."""
-    squires = {arm: br.squire(asker, arm, CAP_USD) for pair in ARMS.values() for arm in pair}
+    squires = {arm: br.squire(asker, arm, SQUIRE_CAP_USD) for pair in ARMS.values() for arm in pair}
 
     async def one(position: int, row: Mapping[str, Any]) -> dict[str, Any]:
         br.ROW.set(str(row["id"]))

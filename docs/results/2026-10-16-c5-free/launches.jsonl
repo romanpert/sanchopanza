@@ -1,0 +1,4 @@
+{"event": "start", "head": "3a201f0114742e368b26ee5f0b333526cc94f9a7", "instrument": "319ee7988c6a5b84d874cd91f3f642e8bc750c19", "at": "2026-10-16T18:43:03+0200", "plan": {"questions": 646, "calls": 7116, "pessimistic_usd": 1.2844, "expected_usd": 0.8871, "calls_triage_pages": 1976, "calls_select_sentences": 5140, "usd_at_qasper_ledger_rate": 0.7446, "cap_usd": 2.0, "fits_under_cap": true, "claude_usd": 0.0}}
+{"event": "end", "calls": {"select": 7956}, "stopped": null, "stop_kind": null}
+{"event": "start", "head": "3a201f0114742e368b26ee5f0b333526cc94f9a7", "instrument": "319ee7988c6a5b84d874cd91f3f642e8bc750c19", "at": "2026-10-16T19:09:44+0200", "plan": {"questions": 646, "calls": 246, "pessimistic_usd": 0.0162, "expected_usd": 0.0063, "calls_select_sentences": 246, "usd_at_qasper_ledger_rate": 0.0257, "cap_usd": 2.0, "fits_under_cap": true, "claude_usd": 0.0}}
+{"event": "end", "calls": {"select": 246}, "stopped": null, "stop_kind": null}
