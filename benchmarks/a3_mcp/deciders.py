@@ -157,14 +157,18 @@ class StopDead:
             HALTED.append(f"{PAUSE}: {type(error).__name__}: {str(error)[:200]}")
 
 
-def live_decider(ledger_path: pathlib.Path, cap_usd: float, batch: str) -> Any:
+def live_decider(ledger_path: pathlib.Path, cap_usd: float, batch: str,
+                 batch_cap_usd: float | None = None) -> Any:  # fmt: skip
+    """Jev under the ledger's `cap_usd` and the batch's own cap (`batch_cap_usd`, else the
+    ledger's), stopped dead by `StopDead`."""
     from sanchopanza.budget import SpendLedger
     from sanchopanza.providers import CappedDecider
     from sanchopanza.providers.jev import JevDecider
 
     ledger = SpendLedger(ledger_path, cap_usd=cap_usd)
     jev = JevDecider(model=MODEL, timeout_s=TIMEOUT_S, long_context=False, images=False)
-    return StopDead(CappedDecider(jev, ledger=ledger, batch=batch, max_usd=cap_usd,
+    batch_cap = cap_usd if batch_cap_usd is None else batch_cap_usd
+    return StopDead(CappedDecider(jev, ledger=ledger, batch=batch, max_usd=batch_cap,
                                   price_per_mtok=PRICE_PER_MTOK))  # fmt: skip
 
 
@@ -197,6 +201,15 @@ class Gate:
 
     def __init__(self, recorded: Answers, fallback: Any) -> None:
         self._recorded, self._fallback, self.name, self.model = recorded, fallback, "jev", MODEL
+
+    @property
+    def seen(self) -> set[tuple[str, str]]:
+        """Every question asked of it: the recorded answers' (the disjoint check reads it)."""
+        return self._recorded.seen
+
+    @seen.setter
+    def seen(self, value: set[tuple[str, str]]) -> None:
+        self._recorded.seen = value
 
     async def decide(self, point: str, state: Any, questions: Mapping[str, Any]) -> Decision:
         decision = await self._recorded.decide(point, state, questions)

@@ -92,7 +92,13 @@ class Odd:
 def _isolated(tmp_path, monkeypatch) -> None:
     for name, file in (("ANSWERS", "answers.jsonl"), ("CALLS", "calls.jsonl"),
                        ("CONTROL", "control.jsonl"), ("LAUNCHES", "launches.json"),
-                       ("LEDGER_PATH", "ledger.json")):  # fmt: skip
+                       ("LEDGER_PATH", "ledger.json"),
+                       ("AMEND_PREREG", "prereg-amendment-1.md"),
+                       ("AMEND_SHA", "prereg-amendment-1.sha256"),
+                       ("AMEND_MANIFEST", "prereg-amendment-1.manifest.json"),
+                       ("AMEND_ANSWERS", "answers-control-amendment-1.jsonl"),
+                       ("AMEND_CONTROL", "control-amendment-1.jsonl"),
+                       ("AMEND_DRY", "dry-amendment-1.json")):  # fmt: skip
         monkeypatch.setattr(replay, name, tmp_path / file)
     monkeypatch.setattr(replay, "OUT", tmp_path)
     monkeypatch.delenv("CLAUDE_PROJECT_DIR", raising=False)
@@ -424,6 +430,159 @@ def test_the_ledger_cap_holds_in_code(tmp_path) -> None:
     assert replay.run(_cases(), _control(), tmp_path / "root", capped, 1) == 3
 
 
+# --- amendment 1: the control again, the hook's answers reused --------------------------------
+
+
+def _sealed_run(tmp_path) -> None:
+    """A finished sealed run: answers.jsonl with the hook's answers, calls.jsonl, a control
+    that failed (as the 2026-10-16 run's did)."""
+    rows = asyncio.run(replay.run_all(_cases(), replay.Answers(replay.ANSWERS, Live()),
+                                      tmp_path / "root"))  # fmt: skip
+    replay._write_jsonl(replay.CALLS, rows)
+    replay._write_jsonl(replay.CONTROL, [{"id": "1", "label": "unsafe", "ref_p": 0.9, "p": None,
+                                          "error": "RuntimeError"}])  # fmt: skip
+    sealed = {"criteria": {"verdict": "not confirmed"}}
+    (replay.OUT / "analysis.json").write_text(json.dumps(sealed), encoding="utf-8")
+
+
+def _control_lines() -> list[dict[str, Any]]:
+    text = replay.AMEND_CONTROL.read_text(encoding="utf-8")
+    return [json.loads(x) for x in text.splitlines()]
+
+
+def test_control_only_asks_the_control_and_never_the_hook(tmp_path) -> None:
+    _sealed_run(tmp_path)
+    before = replay.ANSWERS.read_text(encoding="utf-8")
+    live = LoopBound()
+    assert replay.run_control_only(_cases(), _control(), tmp_path / "root", live) == 0
+    assert live.calls == 2  # the two whole records; the hook's five come from answers.jsonl
+    assert [(c["id"], c["p"]) for c in _control_lines()] == [("1", 0.9), ("2", 0.1)]
+    assert replay.ANSWERS.read_text(encoding="utf-8") == before
+    assert len(replay.AMEND_ANSWERS.read_text(encoding="utf-8").splitlines()) == 2
+    assert replay.CONTROL.read_text(encoding="utf-8").count("RuntimeError") == 1  # kept
+
+
+def test_control_only_refuses_when_the_hook_s_answers_are_missing(tmp_path) -> None:
+    _sealed_run(tmp_path)
+    replay.ANSWERS.write_text("", encoding="utf-8")
+    live = Live()
+    with pytest.raises(SystemExit, match="not all recorded"):
+        replay.run_control_only(_cases(), _control(), tmp_path / "root", live)
+    assert live.calls == 0 and not replay.AMEND_CONTROL.exists()
+
+
+def test_control_only_refuses_when_the_replay_differs_from_calls_jsonl(tmp_path) -> None:
+    _sealed_run(tmp_path)
+    rows = [json.loads(x) for x in replay.CALLS.read_text(encoding="utf-8").splitlines()]
+    replay._write_jsonl(replay.CALLS, rows[1:])
+    live = Live()
+    with pytest.raises(SystemExit, match="differs from calls.jsonl"):
+        replay.run_control_only(_cases(), _control(), tmp_path / "root", live)
+    assert live.calls == 0
+
+
+def test_a_halted_control_only_launch_is_a_pause_and_writes_nothing(tmp_path) -> None:
+    _sealed_run(tmp_path)
+    code = replay.run_control_only(_cases(), _control(), tmp_path / "root",
+                                   dec.StopDead(TooMany()))  # fmt: skip
+    assert code == 2 and not replay.AMEND_CONTROL.exists()
+
+
+def test_control_only_without_live_and_without_answers_writes_nothing(tmp_path) -> None:
+    _sealed_run(tmp_path)
+    assert replay.run_control_only(_cases(), _control(), tmp_path / "root", None) == 2
+    assert not replay.AMEND_CONTROL.exists()
+
+
+def test_the_amendment_s_batch_has_its_own_cap(tmp_path) -> None:
+    from sanchopanza.budget import SpendLedger
+    from sanchopanza.providers import CappedDecider
+
+    _sealed_run(tmp_path)
+    ledger = SpendLedger(replay.LEDGER_PATH, cap_usd=1.0)
+    capped = dec.StopDead(CappedDecider(Live(), ledger=ledger, batch=replay.AMEND_BATCH,
+                                        max_usd=1e-6))  # fmt: skip
+    assert replay.run_control_only(_cases(), _control(), tmp_path / "root", capped) == 3
+    assert replay.HALTED[0].startswith("cap") and ledger.spent(replay.AMEND_BATCH) == 0
+
+
+def _amendment_files(tmp_path) -> Path:
+    _sealed_run(tmp_path)
+    data = tmp_path / "atbench.json"
+    data.write_text(json.dumps(_atbench()), encoding="utf-8")
+    (tmp_path / "prereg.md").write_text("sealed", encoding="utf-8")
+    replay.AMEND_PREREG.write_text("amendment", encoding="utf-8")
+    return data
+
+
+def test_the_amendment_seal_covers_its_text_and_the_hook_s_answers(tmp_path) -> None:
+    data = _amendment_files(tmp_path)
+    replay.seal_amendment(data)
+    found = json.loads(replay.AMEND_MANIFEST.read_text(encoding="utf-8"))
+    assert {f"results/{tmp_path.name}/{n}" for n in ("prereg-amendment-1.md", "answers.jsonl",
+                                                     "calls.jsonl", "analysis.json")
+            } <= set(found)  # fmt: skip
+    assert replay.amendment_state(data)["matches_seal"] is True
+    with replay.CALLS.open("a", encoding="utf-8") as handle:
+        handle.write("{}\n")
+    assert replay.amendment_state(data)["matches_seal"] is False
+
+
+def test_the_amendment_seal_comes_before_its_answers(tmp_path) -> None:
+    data = _amendment_files(tmp_path)
+    replay.AMEND_ANSWERS.write_text("", encoding="utf-8")
+    with pytest.raises(SystemExit, match="before any answer"):
+        replay.seal_amendment(data)
+
+
+def test_control_only_live_refuses_without_the_amendment_seal(tmp_path) -> None:
+    data = _amendment_files(tmp_path)
+    with pytest.raises(SystemExit, match="amendment"):
+        replay.go_live_control(data)
+
+
+def test_control_only_live_refuses_once_its_control_is_written(tmp_path, monkeypatch) -> None:
+    data = _amendment_files(tmp_path)
+    replay.seal_amendment(data)
+    replay._write_jsonl(replay.AMEND_CONTROL, [{"id": "1", "p": None}])
+    monkeypatch.setattr(replay, "preflight", lambda: pytest.fail("no preflight"))
+    with pytest.raises(SystemExit, match="no further relaunch"):
+        replay.go_live_control(data)
+
+
+def test_without_live_a_written_control_is_only_analysed(tmp_path, monkeypatch) -> None:
+    data = _amendment_files(tmp_path)
+    replay._write_jsonl(replay.AMEND_CONTROL, [{"id": "1"}])
+    monkeypatch.setattr(replay, "run_control_only", lambda *a: pytest.fail("not re-run"))
+    monkeypatch.setattr(replay, "control_cases", lambda data: _control())
+    seen: list[Any] = []
+
+    class Analysis:
+        @staticmethod
+        def write_amendment(extra: Any) -> dict:
+            seen.append(extra)
+            return {}
+
+    monkeypatch.setattr(replay, "_module", lambda path, name: Analysis)
+    args = replay.argparse.Namespace(dry=False, live=False)
+    assert replay.control_only(args, data, tmp_path / "root") == 0 and seen
+
+
+def test_amendment_answers_from_elsewhere_are_refused(tmp_path) -> None:
+    replay.AMEND_ANSWERS.write_text("", encoding="utf-8")
+    with pytest.raises(SystemExit, match="ledger holds no spend"):
+        replay.require_own_answers(replay.AMEND_ANSWERS, replay.AMEND_BATCH)
+
+
+def test_control_only_dry_counts_the_control_and_asks_nothing(tmp_path, monkeypatch) -> None:
+    _sealed_run(tmp_path)
+    monkeypatch.setattr(replay, "token_fit", lambda: (600.0, 0.4))
+    report = replay.dry_control_only(_cases(), tmp_path / "root", _control())
+    assert report["hook_replayed_free"] == 5 and report["to_ask_control"] == 2
+    assert report["batch_cap_usd"] == replay.AMEND_CAP_USD and report["fits_under_cap"]
+    assert not replay.AMEND_ANSWERS.exists()
+
+
 # --- the analysis ----------------------------------------------------------------------------
 
 
@@ -510,3 +669,16 @@ def test_the_codex_own_tools_are_the_65_declared() -> None:
         pytest.skip("ATBench-Codex is not on this machine")
     calls = [c for case in replay.load(Path(path)) for c in case["calls"]]
     assert sum(c["native"] for c in calls) == 65 and len(calls) == 1195
+
+
+def test_the_amendment_reports_the_control_and_copies_the_sealed_verdict() -> None:
+    rows = _rows(200, 60)
+    sealed = {"criteria": {"verdict": "not confirmed", "P1_recall_at_fpr": {"holds": False}}}
+    checks = [{"id": "u0", "label": "unsafe", "ref_p": 0.9, "p": 0.8},
+              {"id": "u249", "label": "unsafe", "ref_p": 0.9, "p": 0.7},
+              {"id": "s0", "label": "safe", "ref_p": 0.2, "p": None}]  # fmt: skip
+    out = analysis.amendment(rows, checks, sealed)
+    assert out["sealed_verdict"] == "not confirmed" and out["sealed_criteria"] == sealed["criteria"]
+    assert out["hook_vs_control_today_unsafe"] == {"n": 2, "both": 1, "control_only": 1,
+                                                   "hook_only": 0, "neither": 0}  # fmt: skip
+    assert out["control_offline_today"]["unanswered"] == ["s0"]

@@ -6,6 +6,12 @@
     python benchmarks/a3_mcp/replay.py --run               # free: replay of answers.jsonl only
     python benchmarks/a3_mcp/replay.py                     # analysis, free
 
+Amendment 1, after the data (prereg-amendment-1.md; it never replaces the sealed verdict):
+
+    python benchmarks/a3_mcp/replay.py --seal-amendment          # seal it, before its answers
+    python benchmarks/a3_mcp/replay.py --control-only --dry      # free: hook replayed, priced
+    python benchmarks/a3_mcp/replay.py --control-only --live     # spends: the control, capped
+
 Pre-registered in docs/results/2026-10-16-a3-mcp/prereg.md. Every ATBench-Codex trajectory (500,
 250 unsafe) becomes a Claude Code transcript, and every assistant action a PreToolUse event with
 that transcript's path, as Claude Code hands it to `sanchopanza hook`: `shell_command` as `Bash`,
@@ -39,7 +45,7 @@ import pathlib
 import re
 import sys
 import tempfile
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -80,6 +86,18 @@ SHELL = "shell_command"
 # counts them, as registered); a reported metric leaves them out.
 CODEX_NATIVE = frozenset({"read_mcp_resource", "list_mcp_resources", "read_thread_terminal",
                           "apply_patch", "request_user_input", "spawn_agent"})  # fmt: skip
+# Amendment 1, after the data (prereg-amendment-1.md): the control asked again, alone, with the
+# hook's answers replayed from answers.jsonl. Its own answers file, batch and batch cap, on the
+# same ledger and under the same ledger cap. It never replaces the sealed verdict.
+AMEND = "amendment-1"
+AMEND_PREREG = OUT / f"prereg-{AMEND}.md"
+AMEND_SHA = OUT / f"prereg-{AMEND}.sha256"
+AMEND_MANIFEST = OUT / f"prereg-{AMEND}.manifest.json"
+AMEND_ANSWERS = OUT / f"answers-control-{AMEND}.jsonl"
+AMEND_CONTROL = OUT / f"control-{AMEND}.jsonl"
+AMEND_DRY = OUT / f"dry-{AMEND}.json"
+AMEND_BATCH = "a3-control-amendment-1"
+AMEND_CAP_USD = 0.05
 BASE_ENV = {"SANCHOPANZA_PROVIDER": "jev", "SANCHOPANZA_GUARD_PROFILE": "coding"}
 ARMS = {"mcp": {**BASE_ENV, "SANCHOPANZA_GUARD_MCP": "1"}, "today": dict(BASE_ENV)}
 
@@ -208,7 +226,12 @@ async def verdict(event: Mapping[str, Any], env: Mapping[str, str], decider: Any
 
 
 async def judge_case(case: Mapping[str, Any], decider: Any, root: pathlib.Path,
-                     gate: asyncio.Semaphore) -> list[dict[str, Any]]:  # fmt: skip
+                     gate: asyncio.Semaphore,
+                     journals: pathlib.Path | None = None) -> list[dict[str, Any]]:  # fmt: skip
+    """`root/work` is the session's folder, which the shell guard's question carries: a replay
+    that must find the sealed answers keeps the sealed root. Journals go to `journals`, else
+    `root`."""
+    journals = root if journals is None else journals
     async with gate:
         rows = []
         work = root / "work"
@@ -221,7 +244,7 @@ async def judge_case(case: Mapping[str, Any], decider: Any, root: pathlib.Path,
                 event = event_for(case, call, path, work)
                 arms = {}
                 for arm, env in ARMS.items():
-                    env = {**env, "SANCHOPANZA_JOURNAL": str(root / f"journal-{arm}.jsonl")}
+                    env = {**env, "SANCHOPANZA_JOURNAL": str(journals / f"journal-{arm}.jsonl")}
                     arms[arm] = await verdict(event, env, decider)
                 rows.append({"id": case["id"], "label": case["label"], "i": call["i"],
                              "family": family(call["tool"]), "native": call["native"],
@@ -229,11 +252,12 @@ async def judge_case(case: Mapping[str, Any], decider: Any, root: pathlib.Path,
         return rows
 
 
-async def run_all(cases: Sequence[Mapping[str, Any]], decider: Any,
-                  root: pathlib.Path) -> list[dict[str, Any]]:  # fmt: skip
-    root.mkdir(parents=True, exist_ok=True)
+async def run_all(cases: Sequence[Mapping[str, Any]], decider: Any, root: pathlib.Path,
+                  journals: pathlib.Path | None = None) -> list[dict[str, Any]]:  # fmt: skip
+    for folder in (root, journals or root):
+        folder.mkdir(parents=True, exist_ok=True)
     gate = asyncio.Semaphore(CONCURRENCY)
-    done = await asyncio.gather(*(judge_case(c, decider, root, gate) for c in cases))
+    done = await asyncio.gather(*(judge_case(c, decider, root, gate, journals) for c in cases))
     return [row for rows in done for row in rows]
 
 
@@ -424,31 +448,40 @@ def require_seal(data: pathlib.Path) -> None:
 # ---- live ---------------------------------------------------------------------------------------
 
 
-def ledger_spent() -> float:
+def ledger_spent(batch: str | None = BATCH) -> float:
+    """This ledger's spend in `batch` (every batch when None)."""
     from sanchopanza.budget import SpendLedger
 
     if not LEDGER_PATH.exists():
         return 0.0
-    return SpendLedger(LEDGER_PATH, cap_usd=CAP_USD).spent(BATCH)
+    return SpendLedger(LEDGER_PATH, cap_usd=CAP_USD).spent(batch)
 
 
-def require_own_answers() -> None:
-    """Answers on disk with nothing spent on this run's ledger came from somewhere else."""
-    if ANSWERS.exists() and ledger_spent() <= 0:
-        raise SystemExit("answers.jsonl exists but this run's ledger holds no spend: refused")
+def require_own_answers(path: pathlib.Path | None = None, batch: str = BATCH) -> None:
+    """Answers on disk with nothing spent in their batch of this run's ledger came from
+    somewhere else."""
+    path = ANSWERS if path is None else path
+    if path.exists() and ledger_spent(batch) <= 0:
+        raise SystemExit(f"{path.name} exists but this run's ledger holds no spend: refused")
 
 
-def go_live(data: pathlib.Path) -> Any:
+def preflight() -> None:
+    """The key, no retry on 429, and one Truth (~13 micro-dollars, off the ledger) that must be
+    served by MODEL."""
     from sanchopanza.providers import jev
     from sanchopanza.providers.jev import apreflight
 
-    require_seal(data)
-    require_own_answers()
     dec.load_key()
     jev.RETRYABLE = frozenset(jev.RETRYABLE - {429})  # stop at the first 429, never retry it
-    result = asyncio.run(apreflight(model=MODEL))  # one Truth, ~13 micro-dollars, off the ledger
+    result = asyncio.run(apreflight(model=MODEL))
     if not result.ok or result.model != MODEL:
         raise SystemExit(f"preflight {MODEL}: {result.reason}, served {result.model}")
+
+
+def go_live(data: pathlib.Path) -> Any:
+    require_seal(data)
+    require_own_answers()
+    preflight()
     return dec.live_decider(LEDGER_PATH, CAP_USD, BATCH)
 
 
@@ -467,10 +500,16 @@ def disjoint(hook: set[tuple[str, str]], control: set[tuple[str, str]]) -> None:
 async def hook_then_control(cases: Sequence[Mapping[str, Any]],
                             control: Sequence[Mapping[str, Any]], root: pathlib.Path,
                             hook_answers: Answers, control_answers: Answers,
+                            before_control: Callable[[list[dict[str, Any]]], None] | None = None,
+                            journals: pathlib.Path | None = None,
                             ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:  # fmt: skip
     """The hook's arms, then the control, in ONE event loop. The live decider's HTTP client
-    belongs to the loop that first used it: a second `asyncio.run` finds that loop closed."""
-    rows = await run_all(cases, hook_answers, root)
+    belongs to the loop that first used it: a second `asyncio.run` finds that loop closed.
+    `before_control` sees the hook's rows first and may refuse (SystemExit) before the control
+    is asked."""
+    rows = await run_all(cases, hook_answers, root, journals)
+    if before_control is not None:
+        before_control(rows)
     hook, control_answers.seen = set(hook_answers.seen), set()
     checks = await run_control(control, control_answers, reference())
     disjoint(hook, set(control_answers.seen))
@@ -497,6 +536,147 @@ def run(cases: Sequence[Mapping[str, Any]], control: Sequence[Mapping[str, Any]]
     return 0
 
 
+# ---- amendment 1: the control again, alone (post-data; prereg-amendment-1.md) -------------------
+
+
+def _digest(path: pathlib.Path) -> str:
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
+def amendment_manifest(data: pathlib.Path) -> dict[str, str]:
+    """The sealed manifest as the code stands now, plus the amendment's text, the sealed run's
+    hook answers and verdicts it reuses (answers.jsonl, calls.jsonl) and its scoring
+    (analysis.json, whose verdict the amendment copies)."""
+    found = manifest(data)
+    for path in (AMEND_PREREG, ANSWERS, CALLS, OUT / "analysis.json"):
+        found[f"results/{OUT.name}/{path.name}"] = _digest(path)
+    return found
+
+
+def seal_amendment(data: pathlib.Path) -> str:
+    if AMEND_ANSWERS.exists() or AMEND_CONTROL.exists():
+        raise SystemExit("the amendment's answers exist: its seal comes before any answer")
+    if not all(p.exists() for p in (ANSWERS, CALLS, OUT / "analysis.json")):
+        raise SystemExit("no sealed run to amend: answers.jsonl, calls.jsonl and analysis.json "
+                         "come first")  # fmt: skip
+    found = amendment_manifest(data)
+    value = combined(found)
+    if AMEND_SHA.exists() and AMEND_SHA.read_text().strip() not in ("", value):
+        raise SystemExit(f"{AMEND_SHA.name} already holds another seal: nothing written")
+    AMEND_MANIFEST.write_text(json.dumps(found, indent=1) + "\n", encoding="utf-8", newline="\n")
+    AMEND_SHA.write_text(value + "\n", encoding="utf-8", newline="\n")
+    return value
+
+
+def amendment_state(data: pathlib.Path) -> dict[str, Any]:
+    ready = all(p.exists() for p in (AMEND_PREREG, ANSWERS, CALLS, OUT / "analysis.json"))
+    now = combined(amendment_manifest(data)) if ready else None
+    sealed = AMEND_SHA.read_text().strip() if AMEND_SHA.exists() else ""
+    return {"combined_now": now, "sealed": sealed or None,
+            "matches_seal": bool(sealed) and now == sealed}  # fmt: skip
+
+
+def go_live_control(data: pathlib.Path) -> Any:
+    if AMEND_CONTROL.exists():
+        raise SystemExit(f"{AMEND_CONTROL.name} is written: no further relaunch, nothing spent")
+    if not amendment_state(data)["matches_seal"]:
+        raise SystemExit("the amendment's text, the code, the hook's answers or the data differ "
+                         "from the amendment's seal: nothing spent")  # fmt: skip
+    require_own_answers(AMEND_ANSWERS, AMEND_BATCH)
+    preflight()
+    return dec.live_decider(LEDGER_PATH, CAP_USD, AMEND_BATCH, AMEND_CAP_USD)
+
+
+def _sealed_rows() -> list[dict[str, Any]]:
+    text = CALLS.read_text(encoding="utf-8") if CALLS.exists() else ""
+    return [json.loads(x) for x in text.splitlines() if x]
+
+
+def hook_as_sealed(expected: Sequence[Mapping[str, Any]]) -> Callable[[list[dict]], None]:
+    """Refuses, before the control is asked, unless the hook's replay from answers.jsonl is
+    complete and gives back exactly the sealed run's calls.jsonl."""
+
+    def check(rows: list[dict[str, Any]]) -> None:
+        if unanswered(rows):
+            raise SystemExit("the hook's answers are not all recorded: the amendment re-asks no "
+                             "hook call, nothing asked")  # fmt: skip
+        if rows != list(expected):
+            raise SystemExit("the hook's replay differs from calls.jsonl: nothing asked")
+
+    return check
+
+
+def run_control_only(cases: Sequence[Mapping[str, Any]], control: Sequence[Mapping[str, Any]],
+                     root: pathlib.Path, live: Any) -> int:  # fmt: skip
+    """The control asked again, alone: the hook's arms replayed free from answers.jsonl in the
+    sealed run's `root` (journals in `root/amendment-1`) and checked against calls.jsonl, the
+    control's whole records asked of `live` into their own answers file.
+
+    Exit 0 with control-amendment-1.jsonl written. Exit 2 (3 at a cap) with nothing written
+    when the launch stopped dead (a pause: a relaunch replays what was recorded for free) or,
+    without `live`, when a record has no recorded answer."""
+    hook = Answers(ANSWERS)
+    answers = Answers(AMEND_ANSWERS, live)
+    check = hook_as_sealed(_sealed_rows())
+    _, checks = asyncio.run(
+        hook_then_control(cases, control, root, hook, answers, check, root / AMEND)
+    )
+    missing = sum(c["p"] is None for c in checks)
+    print(json.dumps({"asked": answers.asked, "halted": HALTED[:1],
+                      "control_unanswered": missing}), file=sys.stderr)  # fmt: skip
+    if HALTED:
+        return 3 if HALTED[0].startswith(CAP) else 2
+    if live is None and missing:
+        return 2
+    _write_jsonl(AMEND_CONTROL, checks)
+    return 0
+
+
+def dry_control_only(cases: Sequence[Mapping[str, Any]], root: pathlib.Path,
+                     control: Sequence[Mapping[str, Any]]) -> dict[str, Any]:  # fmt: skip
+    """Free: the hook replayed and checked as `run_control_only` would, and the control's
+    missing answers counted and priced."""
+    estimate = Estimate(token_fit())
+    hook = Answers(ANSWERS)
+    gate = Gate(Answers(AMEND_ANSWERS), estimate)
+    asyncio.run(hook_then_control(cases, control, root, hook, gate,
+                                  hook_as_sealed(_sealed_rows()), root / AMEND))  # fmt: skip
+    flat = len(estimate.calls) * FLAT_USD
+    fit = sum(c["fit_usd"] for c in estimate.calls)
+    spent = ledger_spent(None)
+    return {
+        "hook_replayed_free": len(hook.seen), "hook_asked": hook.asked,
+        "to_ask_control": len(estimate.calls),
+        "record_chars_control": _quantiles([c["chars"] for c in estimate.calls]),
+        "usd_flat_71u": round(flat, 4), "usd_fit": round(fit, 4),
+        "usd_reserved_each_at_most": round(max((c["reserve_usd"] for c in estimate.calls),
+                                               default=0.0), 6),
+        "batch": AMEND_BATCH, "batch_cap_usd": AMEND_CAP_USD,
+        "ledger_spent_usd": round(spent, 6), "ledger_cap_usd": CAP_USD,
+        "fits_under_cap": max(flat, fit) <= AMEND_CAP_USD and spent + AMEND_CAP_USD <= CAP_USD,
+    }  # fmt: skip
+
+
+def control_only(args: argparse.Namespace, data: pathlib.Path, root: pathlib.Path) -> int:
+    cases, control = load(data), control_cases(data)
+    if args.dry:
+        report = json.dumps(dry_control_only(cases, root, control), indent=1) + "\n"
+        AMEND_DRY.write_text(report, encoding="utf-8", newline="\n")
+        print(report, end="")
+        return 0
+    if args.live or not AMEND_CONTROL.exists():  # else: written already, analysed only (free)
+        live = go_live_control(data) if args.live else None
+        code = run_control_only(cases, control, root, live)
+        if code:
+            return code
+    analysis = _module(HERE / "analysis.py", "a3_analysis")
+    extra = {"amendment_seal": amendment_state(data),
+             "ledger_usd_amendment": round(ledger_spent(AMEND_BATCH), 6),
+             "ledger_usd_all": round(ledger_spent(None), 6)}  # fmt: skip
+    print(json.dumps(analysis.write_amendment(extra), indent=1))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--codex", default="", help="ATBench-Codex test.json")
@@ -505,7 +685,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seal", action="store_true", help="seal prereg.md, code and data")
     parser.add_argument("--run", action="store_true", help="replay; --live asks what is missing")
     parser.add_argument("--live", action="store_true", help="spend: jev-1.13.0, capped in code")
-    args = parser.parse_args(argv)
+    parser.add_argument(
+        "--seal-amendment",
+        action="store_true",
+        help="seal prereg-amendment-1.md, code, hook answers and data",
+    )
+    parser.add_argument(
+        "--control-only",
+        action="store_true",
+        help="amendment 1: the control alone (--dry free, --live spends)",
+    )
+    args = parser.parse_args(argv)  # fmt: skip
     data, root = codex_path(args.codex), pathlib.Path(args.root)
     if not data.is_file():
         raise SystemExit(f"ATBench-Codex not found at {data}: set SANCHOPANZA_ATBENCH_CODEX")
@@ -513,6 +703,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.seal:
         print(seal(data))
         return 0
+    if args.seal_amendment:
+        print(seal_amendment(data))
+        return 0
+    if args.control_only:
+        return control_only(args, data, root)
     cases, control = load(data), control_cases(data)
     if args.dry:
         report = json.dumps(dry(cases, root, control), indent=1) + "\n"

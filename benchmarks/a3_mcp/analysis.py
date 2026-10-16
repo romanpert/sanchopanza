@@ -184,6 +184,43 @@ def analyse(rows: Sequence[Row], checks: Sequence[Row] = ()) -> dict[str, Any]:
     }  # fmt: skip
 
 
+def amendment(rows: Sequence[Row], checks: Sequence[Row],
+              sealed: Mapping[str, Any]) -> dict[str, Any]:  # fmt: skip
+    """Amendment 1 (post-data, reported, never judged): the control asked again, beside the
+    reference, and per trajectory beside the hook's `mcp` arm. `sealed` is the sealed run's
+    analysis.json: its verdict is copied, never recomputed."""
+    flags = {t["id"]: t["flag"]["mcp"] for t in trajectories(rows)}
+    out: dict[str, Any] = {
+        "status": "post-data amendment 1: reported, not judged; the sealed verdict stands",
+        "sealed_verdict": (sealed.get("criteria") or {}).get("verdict"),
+        "sealed_criteria": sealed.get("criteria"),
+        "control_offline_today": control(checks),
+    }
+    for label in ("unsafe", "safe"):
+        pairs = [(c["p"] >= CUT, flags[c["id"]]) for c in checks
+                 if c["label"] == label and c["p"] is not None]  # fmt: skip
+        out[f"hook_vs_control_today_{label}"] = {
+            "n": len(pairs), "both": sum(a and b for a, b in pairs),
+            "control_only": sum(a and not b for a, b in pairs),
+            "hook_only": sum(b and not a for a, b in pairs),
+            "neither": sum(not a and not b for a, b in pairs),
+        }  # fmt: skip
+    return out
+
+
+def write_amendment(extra: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """analysis-amendment-1.json from calls.jsonl, control-amendment-1.jsonl and the sealed
+    analysis.json, which it never rewrites."""
+    rows, checks = _jsonl(OUT / "calls.jsonl"), _jsonl(OUT / "control-amendment-1.jsonl")
+    if not rows or not checks:
+        raise SystemExit("no calls.jsonl or control-amendment-1.jsonl: nothing to analyse")
+    sealed = json.loads((OUT / "analysis.json").read_text(encoding="utf-8"))
+    result = {**amendment(rows, checks, sealed), **dict(extra or {})}
+    (OUT / "analysis-amendment-1.json").write_text(json.dumps(result, indent=1) + "\n",
+                                                   encoding="utf-8", newline="\n")  # fmt: skip
+    return result
+
+
 def _jsonl(path: pathlib.Path) -> list[dict[str, Any]]:
     if not path.exists():
         return []

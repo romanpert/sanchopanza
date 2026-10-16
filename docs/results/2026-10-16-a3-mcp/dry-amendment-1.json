@@ -1,0 +1,19 @@
+{
+ "hook_replayed_free": 1189,
+ "hook_asked": 0,
+ "to_ask_control": 500,
+ "record_chars_control": {
+  "min": 1252,
+  "median": 2719,
+  "p90": 4193,
+  "max": 10013
+ },
+ "usd_flat_71u": 0.0355,
+ "usd_fit": 0.0308,
+ "usd_reserved_each_at_most": 0.000172,
+ "batch": "a3-control-amendment-1",
+ "batch_cap_usd": 0.05,
+ "ledger_spent_usd": 0.049623,
+ "ledger_cap_usd": 0.25,
+ "fits_under_cap": true
+}
