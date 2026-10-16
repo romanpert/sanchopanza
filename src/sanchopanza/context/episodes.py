@@ -47,9 +47,17 @@ from ..redact import mask
 from ..text import truncate
 from . import guard as guard_mod
 from .archive import safe_name
-from .transcript import _is_boundary, blocks_of, calls, merge_consecutive, message_text
+from .transcript import (
+    _is_boundary,
+    blocks_of,
+    calls,
+    is_prompt,
+    merge_consecutive,
+    message_text,
+)
 
-REQUEST_CHARS = 1_000
+REQUEST_CHARS = 1_000  # head and tail (`head_tail`)
+CUT = " [...] "
 REPORT_CHARS = 1_200
 FACTS_CHARS = 800
 PATHS_CHARS = 400  # each of the changed and read lists, in the injected text
@@ -388,13 +396,26 @@ def _report(messages: Sequence[Mapping[str, Any]]) -> str:
     return ""
 
 
+def head_tail(text: str, limit: int) -> str:
+    """`text` whole when it fits in `limit`; else its head and its tail joined by CUT, within
+    `limit`. ROADMAP C8: a long prompt often says its plan or its decision last ("Step 2, in the
+    next session: ..."), and a head cut lost it. The head is the larger half: the page the
+    decider reads (`Episode.page`) cuts the request's head shorter still, so it reads as before."""
+    if len(text) <= limit:
+        return text
+    room = max(0, limit - len(CUT))
+    head = (room + 1) // 2
+    return f"{text[:head]}{CUT}{text[len(text) - (room - head) :]}"
+
+
 def _request(first: Mapping[str, Any]) -> str:
-    """The prompt verbatim and masked; a slash command keeps its name and arguments."""
-    kept = guard_mod.requests_of([first], REQUEST_CHARS)
-    if kept and kept[0].strip():
-        return kept[0]
+    """The prompt verbatim and masked (whole, before it is cut), head and tail within
+    REQUEST_CHARS; a slash command keeps its name and arguments."""
+    said = guard_mod._MARKUP.sub("", message_text(first)).strip() if is_prompt(first) else ""
+    if said and guard_mod.HEADER not in said:
+        return head_tail(mask(said), REQUEST_CHARS)
     bare = " ".join(_TAGS.sub(" ", message_text(first)).split())
-    return mask(truncate(bare, REQUEST_CHARS)) or "(an image, no text)"
+    return head_tail(mask(bare), REQUEST_CHARS) or "(an image, no text)"
 
 
 def episode_of(
