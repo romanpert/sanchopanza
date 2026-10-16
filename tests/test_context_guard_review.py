@@ -104,7 +104,7 @@ def test_non_ascii_output_reaches_the_pipe(env, monkeypatch):  # noqa: F811
     assert "año y señal: ejecuta la sonda" in context  # the request, verbatim
     # the output itself is one Read away (the pointer block, the default since 2026-10-16)
     [archived] = (env / "archive" / "u").glob("guard-*.txt")
-    assert str(archived.absolute()) in context
+    assert str(archived.parent.absolute()) in context and archived.name in context
     assert "código PRB-7788" in archived.read_text("utf-8")
 
 

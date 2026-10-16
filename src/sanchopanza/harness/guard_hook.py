@@ -147,7 +147,8 @@ def _summary(guard: guard_mod.Guard, text: str) -> dict[str, Any]:
         "trail": len(guard.trail),
         "chooser": guard.chooser,
         "block_chars": len(text),
-        "archived": sum(" -> Read " in pointer for pointer in guard.pointers),
+        "archived": sum(" -> guard-" in pointer for pointer in guard.pointers)
+        + guard.archived_more,
     }
 
 

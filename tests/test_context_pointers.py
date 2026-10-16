@@ -49,7 +49,7 @@ def test_the_block_points_and_repeats_no_output(tmp_path: Path) -> None:
     assert "Grep 'def f' in /w/pkg" in text  # can be had again: named, not archived
     [entry] = entries  # only the one-shot output is archived
     assert entry.path.parent == (tmp_path / "s1").absolute()
-    assert f"$ ./issue_token -> Read {entry.path}" in text
+    assert f"$ ./issue_token -> {entry.path.name} (" in text and str(entry.path.parent) in text
     assert TOKEN in entry.text
     assert guard.instructions(g) == guard.INSTRUCTIONS_POINTERS
 
@@ -77,7 +77,8 @@ def test_the_block_stays_within_one_hooks_inline_limit(tmp_path: Path) -> None:
     g, entries = pointers.build_from_calls(history, requests, archive=tmp_path / "s",
                                            pointer_chars=100_000)  # fmt: skip
     assert structural.width(guard.block(g)) <= structural.INLINE_CHARS
-    assert len(entries) == len(g.pointers) > 0  # every archived entry is named in the block
+    assert len(entries) == 400  # every one archived; the room limits only the lines listed
+    assert len(g.pointers) > 0 and len(g.pointers) + g.archived_more == 400
 
 
 def test_the_block_is_far_smaller_than_the_whole_results_block(tmp_path: Path) -> None:
@@ -113,7 +114,8 @@ def test_the_default_hook_archives_beside_the_project_and_attaches_pointers(
     )
     context = out["hookSpecificOutput"]["additionalContext"]
     archived = sorted((project / ".sanchopanza" / "archive" / "p1").glob("guard-*.txt"))
-    assert archived and all(str(p.absolute()) in context for p in archived)
+    folder = str((project / ".sanchopanza" / "archive" / "p1").absolute())
+    assert archived and folder in context and all(p.name in context for p in archived)
     assert any(TOKEN in p.read_text("utf-8") for p in archived)
     assert TOKEN not in context  # the value is one Read away, not re-sent
     assert (project / ".sanchopanza" / ".gitignore").read_text("utf-8") == "*\n"
@@ -127,7 +129,8 @@ def test_a_rebuilt_block_archives_again(env, monkeypatch) -> None:
                            "transcript_path": str(path), "cwd": str(env)}, monkeypatch))  # fmt: skip
     context = out["hookSpecificOutput"]["additionalContext"]
     archived = list((env / "archive" / "p2").glob("guard-*.txt"))
-    assert archived and str(archived[0].absolute()) in context
+    assert archived and str(archived[0].parent.absolute()) in context
+    assert archived[0].name in context
 
 
 def test_an_archive_that_cannot_be_written_gives_the_rule_block(env, monkeypatch) -> None:
@@ -156,3 +159,54 @@ def test_a_split_install_still_gets_the_pointer_block_in_part_one(env, monkeypat
     two = guard_hook.session_start({"source": "compact", **event}, part=2, parts=6)
     assert guard.ARCHIVED_HEADING in one["hookSpecificOutput"]["additionalContext"]
     assert two is None
+
+
+# ---- review fixes (2026-10-16): strict masking, every one-shot output archived, the cap ------------
+
+
+def test_archived_outputs_are_masked_strictly_before_any_cut(tmp_path: Path) -> None:
+    raw = ('{"password": "hunter2xyz"}\npostgres://user:S3cr3tPw9@db:5432/app\n'
+           "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA1b2c3d4e5f6g7h8\n[1200 characters truncated]")  # fmt: skip
+    history = [_call("leak", "Bash", raw, command="./dump_config")]
+    _, entries = pointers.build_from_calls(history, [], archive=tmp_path / "s")
+    pointers.write(entries)
+    written = entries[0].path.read_text("utf-8")
+    for secret in ("hunter2xyz", "S3cr3tPw9", "MIIEpAIBAAKCAQEA1b2c3d4e5f6g7h8"):
+        assert secret not in written and secret not in entries[0].text
+    assert '"password"' in written and "postgres://" in written  # keys and schemes stay
+
+
+def test_every_one_shot_output_is_archived_even_past_the_listed_room(tmp_path: Path) -> None:
+    history = [_call(f"p{n:02d}", "Bash", f"value V-{n:02d}", command=f"./probe --n {n} " + "x" * 60)
+               for n in range(30)]  # fmt: skip
+    g, entries = pointers.build_from_calls(history, [], archive=tmp_path / "s", pointer_chars=600)
+    assert len(entries) == 30  # all of them, whatever the room
+    text = guard.block(g)
+    listed = [p for p in g.pointers if p.endswith("characters)")]
+    assert 0 < len(listed) < 30
+    assert f"{30 - len(listed)} more archived in" in text
+    pointers.write(entries)
+    assert len(list((tmp_path / "s").glob("guard-*.txt"))) == 30
+
+
+def test_the_session_folder_is_named_once_and_lines_name_the_file(tmp_path: Path) -> None:
+    folder = tmp_path / "with space" / "s"
+    g, entries = pointers.build_from_calls(_history(), [], archive=folder)
+    text = guard.block(g)
+    assert text.count(str(folder.absolute())) == 1
+    assert f'"{folder.absolute()}"' in text  # quoted: the path has a space
+    [entry] = entries
+    assert f"$ ./issue_token -> {entry.path.name} (" in text
+
+
+def test_requests_come_first_and_the_block_stays_within_the_cap(tmp_path: Path) -> None:
+    cut = "\n".join(f"line {i}" for i in range(50)) + "\n[90000 characters truncated]\n"
+    history = [_call(f"c{n}", "Bash", cut, command=f"./build --target {n} " + "y" * 90)
+               for n in range(200)]  # fmt: skip
+    requests = ["first request " + "r" * 1_100, "second request " + "s" * 1_100]
+    g, entries = pointers.build_from_calls(history, requests, archive=tmp_path / "s")
+    text = guard.block(g)
+    assert structural.width(text) <= structural.INLINE_CHARS
+    assert text.index("first request") < text.index(guard.ARCHIVED_HEADING.split(" (")[0])
+    assert text.index("first request") < 2_000  # inside Claude Code's preview past the limit
+    assert len(entries) == 200
