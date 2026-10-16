@@ -46,6 +46,9 @@ JEV_113 = {
     # Added 2026-10-15 with the opt-in MCP guard (A3): a new cut, not a moved one; it is the cut
     # `points.actions.decide` was measured at offline (docs/results/2026-10-16-a3-mcp/prereg.md).
     "action_stop": 0.5,
+    # Added 2026-10-16 with the opt-in MCP guard after the call (W17): a new cut, not a moved
+    # one; the cut the offline reference, whose records end on the last result, was measured at.
+    "action_result_stop": 0.5,
 }  # fmt: skip
 JEV_114 = {"adds_nothing": 0.61, "goal_met": 0.57, "repeats_check": 0.60, "extract_skip": 0.27,
            "recall_skip": 0.10, "done": 0.30, "holistic": 0.90}  # fmt: skip

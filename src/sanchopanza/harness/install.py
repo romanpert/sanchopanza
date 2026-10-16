@@ -110,6 +110,14 @@ pending call, and denies at `T_ACTION_STOP` (`harness.mcp_guard`, roadmap A3). O
 per judged call; our own servers and those in `SANCHOPANZA_GUARD_MCP_SKIP` are not judged. Off
 by default until docs/results/2026-10-16-a3-mcp gives its verdict; owned by the flag.
 
+`--guard-mcp-post` adds every MCP tool to the PostToolUse matcher (anchored the same way) and
+writes `SANCHOPANZA_GUARD_MCP_POST=1`: once an MCP call has returned, the hook asks the same
+point with the result last and, at `T_ACTION_RESULT_STOP`, answers `decision: block` with a
+reason for the model and a notice for the operator. It cannot undo the call. `--guard-mcp-withhold`
+(which implies it) writes `withhold`: the flagged result is also replaced before the model reads
+it (`updatedMCPToolOutput`, MCP tools only). One paid decision per judged result; independent of
+`--guard-mcp`; off by default, not measured yet (W17, benchmarks/a3_mcp/w17_prereg.md).
+
 The one decision worth understanding is `--scan-content`, which is off unless asked for. It
 adds a PostToolUse scan of arriving content for instructions aimed at the model. That is a
 detection control and not a barrier - by PostToolUse the bytes are in the transcript and the
@@ -122,7 +130,6 @@ from __future__ import annotations
 import contextlib
 import json
 import os
-import re
 import shutil
 import tempfile
 import time
@@ -210,8 +217,9 @@ LEAN_ENV = {
 ARCHIVE_SERVER = "sanchopanza-archive"
 MCP_JSON = ".mcp.json"
 APPROVED = "enabledMcpjsonServers"
-# Owned by `--scan-content`, `--check-done` and `--guard-mcp`: removed by a run without them.
-_SCAN = ("SCAN_CONTENT", "CONTENT_TOOLS", "CHECK_DONE", "GUARD_MCP")
+# Owned by `--scan-content`, `--check-done`, `--guard-mcp` and `--guard-mcp-post`: removed by a
+# run without them.
+_SCAN = ("SCAN_CONTENT", "CONTENT_TOOLS", "CHECK_DONE", "GUARD_MCP", "GUARD_MCP_POST")
 SCAN_ENV = tuple(key for name in _SCAN for key in _env.names(name))
 # New spelling -> old spelling, for every variable this module writes.
 _LEGACY = {
@@ -233,25 +241,21 @@ class Settings:
         return bool(self.added or self.removed)
 
 
-def _pattern(names: frozenset[str]) -> str:
-    # Claude Code (2.1.287) reads a matcher of only letters, digits, `_` and `|` as exact names
-    # and anything else as an unanchored regex. Escaped, a name with a `.` or a `+` in it
-    # turns the matcher into a regex that still means that name; it is unanchored then, and
-    # matches longer names that hold it (`claude_agent_sdk.pre_matcher` anchors its own).
-    return "|".join(re.escape(name) for name in sorted(names))
-
-
 def matchers(config: HarnessConfig, *, autopilot: bool = False) -> dict[str, str]:
-    """Event -> matcher regex, derived from the config rather than written twice."""
-    from .claude_agent_sdk import pre_matcher
+    """Event -> matcher regex, derived from the config rather than written twice.
 
-    post = config.after_tools()
+    Claude Code (2.1.287) reads a matcher of only letters, digits, `_` and `|` as exact names
+    and anything else as an unanchored regex. Escaped, a name with a `.` or a `+` in it turns
+    the matcher into a regex that still means that name; it is unanchored then, and matches
+    longer names that hold it (`claude_agent_sdk.pre_matcher` anchors its own with MCP)."""
+    from .claude_agent_sdk import post_matcher, pre_matcher
+
     # Stop and UserPromptSubmit take no tool matcher; "*" matches every one. Empty means: not
     # wired (and removed). The autopilot sees every tool result: which to cut is per call.
-    # With the MCP guard, every MCP tool: which of them it judges is per call too.
+    # With the MCP guard (before or after the call), every MCP tool: which it judges is per call.
     return {
         "PreToolUse": pre_matcher(config),
-        "PostToolUse": "*" if autopilot else _pattern(post),
+        "PostToolUse": "*" if autopilot else post_matcher(config),
         "Stop": "*" if config.check_done else "",
         "UserPromptSubmit": "*" if autopilot else "",
     }
@@ -278,6 +282,8 @@ def environment(
         env["SANCHOPANZA_CHECK_DONE"] = "1"
     if config.guard_mcp:
         env["SANCHOPANZA_GUARD_MCP"] = "1"
+    if config.guard_mcp_post:
+        env["SANCHOPANZA_GUARD_MCP_POST"] = "withhold" if config.mcp_post_withhold else "1"
     if config.scan_content:
         env["SANCHOPANZA_SCAN_CONTENT"] = "1"
         if config.content_tools != HarnessConfig().content_tools:

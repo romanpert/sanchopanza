@@ -26,6 +26,10 @@ record leaves the machine, tool results included, masked as above. Its size,
 `SANCHOPANZA_GUARD_MCP_CHARS` (at most `actions.RECORD_LIMIT`), is also its price: about 520
 tokens plus one per three characters (fit on ATBench-Codex, docs/results/2026-10-16-a3-mcp/).
 Light imports only: the hook imports this before it knows whether it has anything to decide.
+
+After the call (W17, `SANCHOPANZA_GUARD_MCP_POST`): `record_after_result` renders the same
+record with the call that ran and its result last (`ENVIRONMENT`, masked whole, then cut to
+PENDING_CHARS), the shape of the offline reference's records, which end on the last tool result.
 """
 
 from __future__ import annotations
@@ -120,7 +124,7 @@ def _content(entry: Mapping[str, Any]) -> Any:
     return message.get("content") if isinstance(message, Mapping) else None
 
 
-def _user_lines(entry: Mapping[str, Any], content: Any) -> list[str]:
+def _user_lines(entry: Mapping[str, Any], content: Any, skip_id: str = "") -> list[str]:
     if _is_request(entry, content):
         return [f"USER: {mask_strict(_text(content).strip())}"]
     if not isinstance(content, list):
@@ -128,7 +132,9 @@ def _user_lines(entry: Mapping[str, Any], content: Any) -> list[str]:
     return [
         f"ENVIRONMENT: {mask_strict(_text(b.get('content')))[:RESULT_CHARS]}"
         for b in content
-        if isinstance(b, Mapping) and b.get("type") == "tool_result"
+        if isinstance(b, Mapping)
+        and b.get("type") == "tool_result"
+        and not (skip_id and b.get("tool_use_id") == skip_id)
     ]
 
 
@@ -155,12 +161,13 @@ def is_request(entry: Mapping[str, Any]) -> bool:
 def lines_of(entries: Iterable[Mapping[str, Any]], *, skip_id: str = "") -> list[str]:
     """The record's lines from transcript entries, in order, each masked whole and capped at
     LINE_CHARS. A tool use with id `skip_id` (the pending call, already in the transcript) is
-    left out: it goes last, once."""
+    left out, and so is a result for it (after the call, should the transcript hold it already):
+    they go last, once."""
     lines: list[str] = []
     for entry in entries:
         content = _content(entry)
         if entry.get("type") == "user":
-            lines.extend(_user_lines(entry, content))
+            lines.extend(_user_lines(entry, content, skip_id))
         elif entry.get("type") == "assistant":
             lines.extend(line for line, tid in _assistant_lines(content)
                          if not (skip_id and tid == skip_id))  # fmt: skip
@@ -261,3 +268,50 @@ def with_pending(record: str, name: str, arguments: Mapping[str, Any] | None,
     """A record already built (or none) with the pending call last, within `limit`."""
     lines = [cap(x, LINE_CHARS) for x in record.splitlines()] if record else []
     return fit(lines, action_line(name, arguments), limit)
+
+
+# --- after the call (W17) ------------------------------------------------------------------------
+# What the check after an MCP call reads: the session so far, the call that ran, and its result
+# last, in the point's own label. That is the shape of the offline reference's records, which end
+# on the last tool result (benchmarks/a3_mcp/w17_ceiling.py). The result arrives in the hook's
+# input, not yet in the transcript; it is masked whole, then cut to PENDING_CHARS, head and tail.
+
+
+def result_line(text: str) -> str:
+    """A tool result as the point reads it, masked whole (not cut: `fit` cuts it)."""
+    return f"ENVIRONMENT: {mask_strict(text)}"
+
+
+def record_after_result(
+    path: Path | str | None,
+    name: str,
+    arguments: Mapping[str, Any] | None,
+    result: str,
+    *,
+    tool_use_id: str = "",
+    limit: int = RECORD_CHARS,
+    on_error: OnError | None = None,
+) -> str:
+    """The session so far, the call that ran and its result last, for the `actions` point."""
+    entries: list[Mapping[str, Any]] = []
+    if path:
+        try:
+            entries = _entries(Path(path), limit)
+        except OSError as error:
+            if on_error is not None:
+                on_error(f"transcript unreadable: {error.__class__.__name__}")
+    lines = lines_of(entries, skip_id=tool_use_id)
+    return fit([*lines, cap(action_line(name, arguments), LINE_CHARS)], result_line(result), limit)
+
+
+def with_result(record: str, name: str, arguments: Mapping[str, Any] | None, result: str,
+                limit: int = RECORD_CHARS) -> str:  # fmt: skip
+    """A record already built after the call (or none): kept when it ends on this result, else
+    the call and its result are added last; within `limit`."""
+    last = cap(result_line(result), min(PENDING_CHARS, max(limit // 2, 1)))
+    ends = bool(record) and record.endswith(last)  # a result can hold newlines: not by line
+    head = record[: len(record) - len(last)].rstrip("\n") if ends else record
+    lines = [cap(x, LINE_CHARS) for x in head.splitlines()] if head else []
+    if ends:
+        return fit(lines, last, limit)
+    return fit([*lines, cap(action_line(name, arguments), LINE_CHARS)], last, limit)

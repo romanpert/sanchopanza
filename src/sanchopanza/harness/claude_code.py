@@ -41,6 +41,11 @@ wins when both are set (`sanchopanza._env`):
                       the `actions` point reads the session so far from the transcript and
                       the pending call, and denies at T_ACTION_STOP (0.5). Opt-in, one paid
                       decision per judged call; see `harness.mcp_guard` (roadmap A3).
+    GUARD_MCP_POST    "1" to judge what an MCP call returned, after it ran (PostToolUse): the
+                      same point with the result last, flagging at T_ACTION_RESULT_STOP (0.5);
+                      a flag answers `decision: block` with a reason for the model and a notice
+                      for you. "withhold" also replaces the result (`updatedMCPToolOutput`).
+                      Opt-in, one paid decision per judged result; W17, benchmarks/a3_mcp.
     GUARD_MCP_SKIP    comma-separated MCP servers it never judges (our own never are)
     GUARD_MCP_CHARS   the record's size in characters (default and maximum 24000)
     T_*               any threshold by name, e.g. SANCHOPANZA_T_INJECTION=0.5
@@ -142,6 +147,9 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
     chosen = _env.get("GUARD_PROFILE", "", env=env).strip().lower()
     profile = "coding" if chosen == "coding" else "sandbox"
     guard_mcp = _env.get("GUARD_MCP", "", env=env).strip().lower() in ("1", "true", "yes")
+    after = _env.get("GUARD_MCP_POST", "", env=env).strip().lower()
+    withhold = after == "withhold"
+    guard_mcp_post = withhold or after in ("1", "true", "yes")
     skipped = {s.strip() for s in _env.get("GUARD_MCP_SKIP", "", env=env).split(",") if s.strip()}
     defaults = HarnessConfig()
     try:
@@ -151,6 +159,8 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
     record_chars = record_chars if record_chars > 0 else defaults.mcp_record_chars
     return HarnessConfig(
         guard_mcp=guard_mcp,
+        guard_mcp_post=guard_mcp_post,
+        mcp_post_withhold=withhold,
         mcp_skip_servers=frozenset(skipped),
         # Past the point's own cut (`actions.RECORD_LIMIT`) the pending call would be cut off.
         mcp_record_chars=min(record_chars, defaults.mcp_record_chars),
@@ -305,7 +315,9 @@ def needs_decision(
     if event == "PostToolUse":
         reviewed = name in config.delegate_tools and config.review_delegations
         scanned = config.scan_content and config.scans_after(name, arguments)
-        return (reviewed or scanned) and bool(text_of(input_data.get("tool_response")).strip())
+        judged = config.guards_mcp_result(name)
+        wanted = reviewed or scanned or judged
+        return wanted and bool(text_of(input_data.get("tool_response")).strip())
     families = config.delegate_tools | config.search_tools | config.shell_tools
     return name in families or config.guards_mcp(name)
 
