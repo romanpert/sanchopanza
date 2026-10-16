@@ -530,7 +530,7 @@ class Squire:
         rest past the gate whole, unjudged (`points.passages`). `None`, the default, is no cap,
         and is what every published run used.
 
-        `fit_chars` (opt-in, a candidate: roadmap B4): when the kept sentences add up to more
+        `fit_chars` (opt-in; roadmap B4, C5b): when the kept sentences add up to more
         characters than this, the delivered paragraphs are ordered by a four-level Score
         (`passages.fit_questions`, claimed from the same `max_calls`), then by their best
         sentence probability, and those that do not fit in that order become `None`. Output

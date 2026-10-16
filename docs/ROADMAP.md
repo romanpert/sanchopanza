@@ -23,7 +23,7 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 | C2 | check_done with the tool results the answer rests on, not cut at 1,500 characters | medium | free (record builder) + Jev (~0.3-0.5 USD) | **built, opt-in** (`SANCHOPANZA_DONE_EVIDENCE`); checkdone-w17: not adopted, false blocks 165 → 123 of 828 (+5.07 [1.53, 9.77]) but catches 598 → 583 of 744 (−2.02 [−5.37, +0.26]) past the −2 guard; next: diagnose the lost catches (18, mostly multi-part workspace tasks), change the builder, confirm under a new registration |
 | C8 | Four memory gaps read from the code and F2's logs | medium | free replays first; Claude (~40 USD, F2-sized) to confirm | **fixed in code** (merge `e029489`), replayed on F2's recordings only, not measured live |
 | C4 | A5's `unrelated_at=0.65` on written text with fa-17-type pairs | low-medium | Jev 0.035 USD | **done**: 66 added verdicts, all right (Wilson 0.945); 0.65 is the default since 0.3.2 |
-| C5 | `select_passages(fit_score=False)` against page order on fresh questions | low-medium | Jev (~0.5-1.5 USD) | open, from B4 |
+| C5 | `select_passages(fit_score=False)` against page order on fresh questions | low-medium | Jev 1.371 USD (C5b) | **done via C5b**: the free order confirmed over page order at 3,400 characters, +16.4 [+11.0, +21.9]; `fit_score`'s default is the owner's call |
 | C6 | Closing Spanish's 3-6 points in page triage and passages | low | Jev (~0.2 USD pages, ~2.5 USD documents per arm) | idea, from B6 |
 | C11 | The pointer guard's quality on long code: Sonnet 5.5 long60 chains, `pointers` against `--guard-full`, interleaved | medium | Claude (design A: 5 chains x 2 arms, non-inferiority at −5 points; about 185-200 USD expected at list price, 250 hard cap) | open, prereg under `revisor-prereg` review |
 | C3 | `redundant_page` under 1.14 with a cut bounded from below, on new cases | low | free (cases) + Jev (~0.03-0.05 USD) | open, from redundant-drop |
@@ -159,10 +159,15 @@ a role and an act, a figure and its subset) plus controls, sealed, jev-1.13.0, 0
 batch's recording `relate_facts` reads 39/43 when deciding (36/40 under the gate alone). Not
 measured on jev-1.14.0.
 
-**C5. The free order on fresh data.** `fit_score=False` beat page order by +13.6 points
-[+7.1, +20.2] in B4, exploratory. Confirm it with the budget rule, the order and the comparison
-fixed in advance on questions nobody has looked at (QASPER's validation split, or a long
-document outside English papers), about 0.5-1.5 USD of Jev, before it becomes a measured option.
+**C5. The free order on fresh data: done via C5b** (2026-10-16, jev-1.13.0,
+[C5b](results/2026-10-16-c5b-free/README.md)): on 348 of 646 fresh QASPER train questions that
+overflow 3,400 characters, answer-sentence recall 78.3 % with the free order (`fit_score=False`)
+against 61.9 % in page order, +16.4 points [+11.0, +21.9], at the same text; 1.371 USD. C5's own
+sealed reading has no valid verdict (an instrument defect, [C5](results/2026-10-16-c5-free/README.md)).
+The free order is a measured option for a caller that must cut at 3,400 characters on papers; it
+does not change `select_passages`' defaults (`fit_chars=None`, `fit_score=True`). Open: whether
+`fit_score` should default to `False` (B4: the Score over the free order +2.3 [−1.5, +6.2], not
+shown, and the free order costs no call), the owner's call; other budgets and documents.
 
 **C6. Spanish's 3-6 points.** Ideas: the question asked in its Spanish original against the
 translated one, to tell the question's language from the text's; or the sentence stage's excerpt

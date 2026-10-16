@@ -11,7 +11,8 @@ Two rules, both about calls, not about what is kept:
   The sentence stage gets what the tournament left, the surest paragraphs first; the others
   past the gate are kept whole, unjudged. `None`, the default, is no cap: the published runs.
 
-And one opt-in step, a candidate (roadmap B4, `docs/results/2026-10-16-b4-order/`), for when
+And one opt-in step (roadmap B4, `docs/results/2026-10-16-b4-order/`; its free order a measured
+option since C5b, `docs/results/2026-10-16-c5b-free/`), for when
 what the two stages keep is longer than the caller can deliver (`fit_chars`): a Score of four
 levels per delivered paragraph, all in view, orders them, and the ones that do not fit in that
 order are dropped. A yes or no cannot rank inside a budget; an agent with its own harness
