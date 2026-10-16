@@ -16,7 +16,7 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 |---|---|---|---|---|
 | C9 | Memory's prune deleted the standing rules of a project idle for 30 days | **high** | free | **done** (`230a2aa`) |
 | C10 | Two names of other private projects and some local paths in public files | **high** | free | **in progress** |
-| B1 | Publish a release (`v*` tag and PyPI) so the consumer stops pinning a tarball by commit | **high** | free (PyPI: owner's decision, irreversible) | `v0.3.0` tagged with a GitHub release; 0.3.1 in preparation; PyPI with the owner's yes |
+| B1 | Publish a release (`v*` tag and PyPI) so the consumer stops pinning a tarball by commit | **high** | free (PyPI: owner's decision, irreversible) | **done**: `v0.3.1` tagged and released, PyPI approved by the owner |
 | C7 | The LongBench routing point, opt-in | medium | free (code); Claude for what follows | **done** (`9705f25`) |
 | C1 | A PostToolUse check on MCP results (what A3's PreToolUse guard cannot read) | medium | Jev (replay ~0.05-0.10 USD), then Claude (~5 USD live probe) | idea, from A3 |
 | C2 | check_done with the tool results the answer rests on, not cut at 1,500 characters | medium | free (record builder) + Jev (~0.3-0.5 USD) | open, from checkdone114 |
@@ -90,14 +90,13 @@ a project idle for 30 days lost its standing rules, and load counted those files
 some local paths remain in tracked benchmark code, tests and planning documents. **In
 progress** in another session.
 
-**B1. A published release: tagged, not on PyPI.** `v0.3.0` is tagged on `10f2cbe` with a
+**B1. A published release.** `v0.3.0` is tagged on `10f2cbe` with a
 [GitHub release](https://github.com/romanpert/sanchopanza/releases/tag/v0.3.0) (wheel, sdist and
-the CHANGELOG's 0.3.0 section). **0.3.1 is in preparation**: it will carry everything from
-2026-10-16 (CHANGELOG, "0.3.1 (unreleased)"). A tag push does not publish to PyPI: PyPI is a
+the CHANGELOG's 0.3.0 section). **`v0.3.1`** (2026-10-16) carries everything from 2026-10-16 and
+is the first version the owner approved for PyPI. A tag push does not publish to PyPI: PyPI is a
 separate `gh workflow run release.yml --ref <tag>` ([governance](governance.md)), with the
 owner's yes. The consumer pinned one commit's tarball in three files that must move together;
-it can pin `sanchopanza[jev] @ https://github.com/romanpert/sanchopanza/archive/refs/tags/v0.3.0.tar.gz`
-now, and `sanchopanza[jev]>=0.3` once PyPI has it. A tag survives a history rewrite that would
+it can move to `sanchopanza[jev]>=0.3.1`. A tag survives a history rewrite that would
 stop an old SHA from resolving (the consumer's factory falls back to a null decider in silence
 when the package does not import).
 

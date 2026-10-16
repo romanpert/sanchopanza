@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from .squire import GuardResult, Squire
     from .window import Change, ToolWindow
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 # Resolved on first use (PEP 562). The Claude Code hook is a process per event, and loading
 # the squire, asyncio and the provider scan for an event that needs no decision was most of

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "sanchopanza"          # `sancho` en PyPI es de otro; se instala y se importa como `sanchopanza`
-version = "0.3.0"
+version = "0.3.1"
 description = "A calibrated, non-generative decision layer (a squire) for LLM agent harnesses."
 readme = "README.md"
 license = "Apache-2.0"

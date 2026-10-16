@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.1 (unreleased)
+## 0.3.1 (2026-10-16)
 
 The memory gate reads whole memories by default, an opt-in guard for MCP calls, versioned
 question ids to import, and ten measurements of 2026-10-16, most of which leave the defaults as
