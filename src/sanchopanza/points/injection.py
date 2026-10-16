@@ -13,9 +13,11 @@ never as the sole barrier before an action.
 *Before the text enters the context*, inside a tool the agent called - `triage_page`, or a
 fetch tool of your own - the page can be withheld. That is prevention.
 
-*After the text has already arrived*, over a tool result - `Squire.scan_content`, wired to a
-PostToolUse hook - nothing can be withheld: the bytes are in the transcript and the harness
-offers no way to replace a tool result. What is left is **detection**: naming the content as
+*After the tool has returned*, over its result - `Squire.scan_content`, wired to a PostToolUse
+hook - the scan leaves the result as it is and the text reaches the model. (Claude Code 2.1.287
+does let a PostToolUse hook replace a result, `updatedToolOutput` / `updatedMCPToolOutput`; this
+scan does not use it, and only the MCP guard's opt-in `withhold` does.) What is left here is
+**detection**: naming the content as
 untrusted in front of the model, telling the operator, and writing a journal event. It is a
 weaker control and this module says so wherever it is offered, because a detection control
 sold as a prevention control is worse than none - it is the same page plus false confidence.

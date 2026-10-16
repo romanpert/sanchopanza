@@ -267,6 +267,9 @@ def _install(args: argparse.Namespace) -> int:
     from .harness.install import apply, default_path, default_plugin_root, plan, project_settings
     from .harness.install_defaults import DEFAULT_BUDGET, apply_skill, skill_change
 
+    if args.guard_mcp_post is False and args.guard_mcp_withhold:
+        sys.stderr.write("--guard-mcp-withhold needs the check --no-guard-mcp-post turns off\n")
+        return 2
     if args.knowledge is None:  # into the default install behind one constant
         knowledge = install_knowledge.KNOWLEDGE_DEFAULT
         args = argparse.Namespace(**{**vars(args), "knowledge": knowledge})
@@ -282,6 +285,8 @@ def _install(args: argparse.Namespace) -> int:
         check_done=args.check_done,
         scan_shell_fetches=not args.no_shell_fetches,
         guard_mcp=args.guard_mcp,
+        guard_mcp_post=bool(args.guard_mcp_post) or args.guard_mcp_withhold,
+        mcp_post_withhold=args.guard_mcp_withhold,
         content_tools=(
             frozenset(t.strip() for t in args.content_tools.split(",") if t.strip())
             if args.content_tools
@@ -922,6 +927,21 @@ def main(argv: list[str] | None = None) -> int:
         help="judge MCP tool calls before they run: the decision model reads the session so far "
         "and the pending call and denies what a careful operator would stop (one paid decision "
         "per call; off by default: measured, not confirmed, docs/results/2026-10-16-a3-mcp)",
+    )
+    install.add_argument(
+        "--guard-mcp-post",
+        action=argparse.BooleanOptionalAction,
+        default=None,  # None: not given (so --guard-mcp-withhold can imply it); off
+        help="judge what an MCP call returned, after it ran: the same question with the result "
+        "last; a flag blocks with a reason for Claude and a notice for you (it cannot undo the "
+        "call; one paid decision per result; off by default, not measured yet)",
+    )
+    install.add_argument(
+        "--guard-mcp-withhold",
+        action="store_true",
+        help="with --guard-mcp-post (implied), also replace a flagged MCP result before Claude "
+        "reads it; another hook entry that rewrites the same MCP tool's result (the crawl echo "
+        "cut) runs in parallel and can still override the replacement",
     )
     install.add_argument(
         "--guard-profile",
