@@ -22,7 +22,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 C4 = ROOT / "docs" / "results" / "2026-10-16-c4-written"
 C5 = ROOT / "docs" / "results" / "2026-10-16-c5-free"
-C4_RECORDING_SHA256 = "0cdfb61082bcadc205fbbf5dac7f7e5e0777074487bad92ec166ad99482c6e38"
+C4_RECORDING_SHA256 = "1c45677a70f4176919c4505a686af74391ad5329d59a47a16e258e7ffc67f144"  # LF
 C5_GZ_SHA256 = "47fd32a761b699fc18a325dc9dd1306f65a091814ff511be7b36cb2f4fe4b6e0"
 C5_RECORDING_SHA256 = "eb091b072b9b1674f2312e6eb9e1a98ac748514c45a6ea09e57074ffca9b9abf"
 
@@ -45,7 +45,8 @@ def _without_head(report: dict[str, Any]) -> dict[str, Any]:
 
 def test_c4_replays_its_published_report() -> None:
     runner = _load("facts_written_run", ROOT / "benchmarks/facts_gate/written_run.py")
-    assert _sha(runner.FIXTURE) == C4_RECORDING_SHA256
+    lf = runner.FIXTURE.read_bytes().replace(b"\r\n", b"\n")  # a Windows run writes CRLF
+    assert hashlib.sha256(lf).hexdigest() == C4_RECORDING_SHA256
     published = json.loads((C4 / "analysis.json").read_text(encoding="utf-8"))
     got = asyncio.run(runner.report(runner.load()))
     assert _without_head(json.loads(json.dumps(got))) == _without_head(published)
