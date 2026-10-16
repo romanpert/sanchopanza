@@ -105,8 +105,14 @@ def last_log(store: Path) -> dict[str, Any]:
         "what's the next step?",
         "Seguimos con las etiquetas de envío.",
         "Continuemos con el paso 2",
-        "claude vamos continuar a fase 2.",
         "retomamos donde lo dejamos",
+        # review of w17-memgaps, M5
+        "let's continue",
+        "seguimos",
+        "sigue donde lo dejamos",
+        "continue where we left off",
+        "resume the work from last session",
+        "¿por dónde íbamos?",
     ],
 )
 def test_a_continuation_is_told_by_its_opening_or_by_a_last_session(text: str) -> None:
@@ -125,6 +131,19 @@ def test_a_continuation_is_told_by_its_opening_or_by_a_last_session(text: str) -
         "sigue fallando el test de login",
         "Let's continue. " + "Now add a CSV export to the report page with these columns. " * 5,
         "",
+        # review of w17-memgaps, M5: a go-on verb that opens a bug report or a new task
+        "Resume parsing fails on PDF uploads",
+        "continue statement in loop.py skips items",
+        "continue.py is broken",
+        "Seguimos sin poder compilar el proyecto",
+        "Continúa fallando el test de login",
+        "Continua dando error el build",
+        "Fix the bug where the last session token expires early",
+        "Add the next step button to the onboarding wizard",
+        "Go on the website and check the footer",
+        "Pick up the latest changes from main and rebase",
+        "previous session crashed with OOM, see log",
+        "Continue the refactor of auth.py to JWT and also rename every handler accordingly",
     ],
 )
 def test_not_a_continuation(text: str) -> None:
@@ -138,7 +157,7 @@ def record(session: str, index: int, request: str, at: float) -> ep.Episode:
 
 def test_continued_gives_the_newest_session_s_plan_record_else_its_newest() -> None:
     now = 1_800_000_000.0
-    older = record("s0", 1, "Step 2 next session: the importer", now - 3 * DAY)
+    older = record("s0", 1, "Step 2, in the next session: the importer", now - 3 * DAY)
     plan = record("s1", 1, PLAN, now - DAY)
     commit = record("s1", 2, "commit it", now - DAY + 60)
     go = "Let's continue with the shipping labels."
@@ -206,3 +225,94 @@ def test_a_continuation_that_names_a_file_keeps_the_decider_s_picks_and_the_reco
     context = context_of(asyncio.run(mh.recall(go, s)))
     assert len(fake.states) == 1  # named: the decider is asked as before
     assert context.count("### Earlier") == 1
+
+
+# ---- review of w17-memgaps -------------------------------------------------------------------
+
+COMMAND = "<command-name>/model</command-name>\n<command-message>model</command-message>\n" \
+    "<command-args></command-args>"  # fmt: skip
+
+
+def opened_with_a_command(at: float) -> list[dict[str, Any]]:
+    """A real transcript's shape when a session opens with /model or /clear (read on the owner's
+    machine, 2026-10-16): Claude Code's caveat (meta), the command, a system line."""
+    caveat = {**prompt("<local-command-caveat>Caveat: ...</local-command-caveat>", at),
+              "isMeta": True}  # fmt: skip
+    return [caveat, prompt(COMMAND, at), {"type": "system", "content": "", "timestamp": "x"}]
+
+
+def test_m1_a_session_that_opened_with_a_slash_command_still_gets_the_continuation(
+    store: Path,
+) -> None:
+    project = store / "projects" / "p"
+    at = time.time() - 600
+    mh.handle(event(write_transcript(project / "s1.jsonl", labels_session(at)), "Stop", "s1"))
+    s, _ = squire(Fake(0.99))
+    new = write_transcript(project / "s2.jsonl", opened_with_a_command(at + 300))
+    context = context_of(
+        asyncio.run(mh.recall(event(new, "UserPromptSubmit", "s2", "continue"), s))
+    )
+    assert "request 1 of session s1" in context
+
+
+def test_l4_no_transcript_yet_a_compacted_one_and_a_windows_cwd(store: Path) -> None:
+    project = store / "projects" / "p"
+    at = time.time() - 600
+    mh.handle(event(write_transcript(project / "s1.jsonl", labels_session(at)), "Stop", "s1"))
+    s, _ = squire(Fake(0.99))
+    missing = event(project / "s2.jsonl", "UserPromptSubmit", "s2", "continue")  # not written
+    assert "session s1" in context_of(asyncio.run(mh.recall(missing, s)))
+    windows = {**event(project / "s3.jsonl", "UserPromptSubmit", "s3", "continue"),
+               "cwd": "C:\\work\\repo"}  # fmt: skip
+    assert "session s1" in context_of(asyncio.run(mh.recall(windows, s)))
+    # a compacted session (boundary and summary): Claude Code's summary carries the work
+    boundary = {"type": "system", "subtype": "compact_boundary"}
+    summary = {"type": "user", "isCompactSummary": True,
+               "message": {"role": "user", "content": "This session is continued..."}}  # fmt: skip
+    compacted = write_transcript(project / "s4.jsonl", [boundary, summary])
+    assert asyncio.run(mh.recall(event(compacted, "UserPromptSubmit", "s4", "continue"), s)) == {}
+
+
+def finished(session: str, at: float) -> ep.Episode:
+    return record(session, 1, PLAN, at)
+
+
+def test_m2_a_session_still_running_in_parallel_is_not_the_one_continued() -> None:
+    now = 1_800_000_000.0
+    ended = finished("ended", now - 3_600)
+    cut = ep.UNFINISHED + "Reading the importer..."
+    running = ep.Episode(session="running", index=1, request="Refactor the importer", report=cut,
+                         at=now - 120)  # fmt: skip
+    go = "continue"
+    # its transcript changed a moment ago and its newest request is not finished: running
+    assert mrc.continued(go, [ended, running], now, {"running": now - 5}) == ended
+    # the same, long quiet: a session cut off (a crash, a limit) is the one to continue
+    assert mrc.continued(go, [ended, running], now, {"running": now - 3_600}) == running
+    # a session that just ended (its newest request finished) is continued, however recent
+    just = finished("just", now - 30)
+    assert mrc.continued(go, [ended, just], now, {"just": now - 5}) == just
+
+
+class Slow:
+    name = "slow"
+    accepts_attachments = False
+
+    async def decide(self, point: str, state: Any, questions: Any) -> Decision:
+        await asyncio.sleep(5)
+        return Decision(point, {}, self.name, "t")
+
+
+def test_l5_a_decider_timeout_with_a_continuation_logs_one_row(
+    store: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    project = store / "projects" / "p"
+    at = time.time() - 600
+    mh.handle(event(write_transcript(project / "s1.jsonl", labels_session(at)), "Stop", "s1"))
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_DECIDER_SECONDS", "1")
+    s, _ = squire(Slow())
+    new = write_transcript(project / "s2.jsonl", [])
+    go = event(new, "UserPromptSubmit", "s2", "Let's continue with labels.py")  # names the file
+    assert "session s1" in context_of(asyncio.run(mh.recall(go, s)))
+    rows = [json.loads(x) for x in (store / "log.jsonl").read_text("utf-8").splitlines()]
+    prompts = [r for r in rows if r.get("event") == "UserPromptSubmit"]
+    assert len(prompts) == 1 and "timed out" in prompts[0]["reason"] and prompts[0]["shown"]
