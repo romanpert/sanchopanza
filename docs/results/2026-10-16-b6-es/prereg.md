@@ -1,8 +1,8 @@
 # B6: page triage and passage selection in Spanish, against English on the same questions: pre-registration
 
 Written 2026-10-16 and **sealed** before any Jev answer on these questions, after two
-independent `revisor-prereg` reviews against the code and with the owner's approval of the
-cost. The seal is `prereg.sha256` (`python -I benchmarks/b6_es/b6_run.py --seal`): one sha256
+independent `revisor-prereg` reviews against the code, within the owner's standing approval of
+the agreed lots (each capped in code, none above 10 USD). The seal is `prereg.sha256` (`python -I benchmarks/b6_es/b6_run.py --seal`): one sha256
 (`b6_run.digest`) over this file, `bench-manifest.json`, the runner and its modules
 (`b6_run.py`, `b6_analysis.py`, `b6_score.py`, `b6_build.py`, `b6_wiki.py`), their tests, the
 launcher `b6-es-run.cmd` (its four local values read as placeholders, below) and every file of
