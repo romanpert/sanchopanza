@@ -24,12 +24,21 @@ in `context.guard`; this module only reads the event and the transcript and writ
 
 Environment (every name is `SANCHOPANZA_<NAME>`):
 
-    GUARD_CHOOSER    struct (default, no model): whole tool results since the previous compaction,
-                     the latest on each file being edited first, then by recency, output that
-                     cannot be had again first in each, pointers for re-readable results left out
-                     (`context.structural`; measured offline 2026-10-05: Jev's ranking lost to
-                     recency, docs/results/2026-10-05-guard-struct); any error there gives the
-                     rule's block | rule: value lines of one-shot output by a free rule (the
+    GUARD_CHOOSER    One of:
+                     pointers (the default since 2026-10-16, no model): the requests verbatim
+                     first, the files changed, and pointers to the tool output since the previous
+                     compaction (`context.pointers`). Every output that cannot be had again is
+                     written whole, masked strictly, to the archive beside the project
+                     (`.sanchopanza/archive/<session>/guard-*.txt`, under the event's cwd or
+                     SANCHOPANZA_ARCHIVE); the block names that folder once and each listed line
+                     its file. An archive that cannot be written gives the rule's block |
+                     struct (the default from 2026-10-05 to 2026-10-16, `install --guard-full`):
+                     whole tool results since the previous compaction, the latest on each file
+                     being edited first, then by recency, output that cannot be had again first
+                     in each, pointers for re-readable results left out (`context.structural`;
+                     measured offline 2026-10-05: Jev's ranking lost to recency,
+                     docs/results/2026-10-05-guard-struct); any error there gives the rule's
+                     block | rule: value lines of one-shot output by a free rule (the
                      default until 2026-10-05) | judge: every output line judged by the decider,
                      the person's requests as the question, no content rule | decider: the rule's
                      lines, one tournament over commands when they do not fit (the first version).
@@ -44,7 +53,7 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
     GUARD_FACTS_CHARS, GUARD_REQUESTS_CHARS   budgets (defaults 3000 and 2500)
     GUARD_STRUCT_CHARS   struct's budget for whole results (default 44000, about 20k tokens; the
                      replay measured .64-.67 of needed results kept at 44000, .15-.21 at 3000)
-    GUARD_POINTER_CHARS  struct's room for pointers (default 1500)
+    GUARD_POINTER_CHARS  the room for pointers (default 4000 for pointers, 1500 for struct)
     GUARD_INLINE_CHARS   struct's cap on the whole block, or on each part when split (default
                      9500; 0 for none). Claude Code keeps a hook's additionalContext inline up
                      to 10,000 characters and shows only a 2,000-character preview and a file
@@ -140,11 +149,47 @@ def _summary(guard: guard_mod.Guard, text: str) -> dict[str, Any]:
         "trail": len(guard.trail),
         "chooser": guard.chooser,
         "block_chars": len(text),
+        "archived": sum(" -> guard-" in pointer for pointer in guard.pointers)
+        + guard.archived_more,
     }
 
 
 def _chooser() -> str:
-    return _env.get("GUARD_CHOOSER", "").strip() or "struct"
+    return _env.get("GUARD_CHOOSER", "").strip() or "pointers"
+
+
+def _archive_dir(event: Mapping[str, Any]) -> Path:
+    """This session's folder in the archive beside the project (`context.archive`): the event's
+    `cwd`, or SANCHOPANZA_ARCHIVE when set."""
+    from ..context import archive
+
+    root = archive.root_for(str(event.get("cwd") or "") or None,
+                            override=_env.get("ARCHIVE") or None)  # fmt: skip
+    return archive.session_dir(root, str(event.get("session_id", "")))
+
+
+def _pointers(messages: list[dict[str, Any]], since: int, folder: Path | None) -> Any:
+    """The pointer block with its one-shot outputs written to `folder`; the rule's block, which
+    carries their value lines, when the archive cannot be written or anything else fails."""
+    from ..context import pointers
+
+    options = _options()
+    try:
+        built, entries = pointers.build(
+            messages,
+            since=since,
+            archive=folder,
+            requests_chars=options["requests_chars"],
+            pointer_chars=_int("GUARD_POINTER_CHARS", pointers.POINTER_CHARS),
+            inline_chars=_cap("GUARD_INLINE_CHARS", pointers.structural.INLINE_CHARS),
+            web=options["web"],
+        )
+        pointers.write(entries)
+        return built
+    except Exception as error:  # noqa: BLE001 - the summariser was promised a block
+        _log({"event": "error", "error": f"pointers: {error.__class__.__name__}: {error}"})
+        rule = guard_mod.build(messages, **options)
+        return dataclasses.replace(rule, chooser="pointers (archive failed: rule only)")
 
 
 def _structural(messages: list[dict[str, Any]], since: int, options: Mapping[str, Any]) -> Any:
@@ -175,9 +220,13 @@ def _options() -> dict[str, Any]:
     }
 
 
-def _guard(messages: list[dict[str, Any]], notes: str = "", since: int = 0) -> guard_mod.Guard:
+def _guard(
+    messages: list[dict[str, Any]], notes: str = "", since: int = 0, archive: Path | None = None
+) -> guard_mod.Guard:
     options = _options()
     chooser = _chooser()
+    if chooser == "pointers":
+        return _pointers(messages, since, archive)
     if chooser == "struct":
         return _structural(messages, since, options)
     if chooser not in ("decider", "judge", "keep"):
@@ -213,9 +262,11 @@ def _guard(messages: list[dict[str, Any]], notes: str = "", since: int = 0) -> g
         return dataclasses.replace(rule, chooser="rule (decider timed out)")
 
 
-def _split(messages: list[dict[str, Any]], since: int, parts: int) -> parts_mod.Split:
+def _split(
+    messages: list[dict[str, Any]], since: int, parts: int, archive: Path | None = None
+) -> parts_mod.Split:
     """The block in at most `parts` parts (struct); another chooser's block, or the rule's on any
-    error while splitting, is part 1 alone."""
+    error while splitting, is part 1 alone (`archive`: the pointer block's folder)."""
     from ..context import structural
 
     if _chooser() == "struct":
@@ -236,7 +287,7 @@ def _split(messages: list[dict[str, Any]], since: int, parts: int) -> parts_mod.
             guard = dataclasses.replace(guard_mod.build(messages, **options),
                                         chooser="struct (error: rule only)")  # fmt: skip
     else:
-        guard = _guard(messages, since=since)
+        guard = _guard(messages, since=since, archive=archive)
     text = guard_mod.block(guard)
     return parts_mod.Split((text,) if text else (), guard)
 
@@ -249,7 +300,7 @@ def _pre_compact_parts(event: Mapping[str, Any], parts: int) -> str:
     """Split the block, keep one file per part (1 to `parts`, empty past the last), return the
     note. Each part's `SessionStart` command reads and removes its own file: no shared state."""
     messages, boundary = history_from_claude_code(str(event["transcript_path"]))
-    split = _split(messages, boundary, parts)
+    split = _split(messages, boundary, parts, _archive_dir(event))
     folder = _dir()
     name = _safe(str(event.get("session_id", "")))
     if folder.exists():
@@ -280,7 +331,7 @@ def pre_compact(event: Mapping[str, Any], parts: int = 0) -> str:
         guard = guard_mod.build(messages, web=_on("GUARD_WEB", "0"))
         _log({"event": "PreCompact", "trigger": event.get("trigger"), "deferred": True})
         return guard_mod.instructions(guard)
-    guard = _guard(messages, since=boundary)
+    guard = _guard(messages, since=boundary, archive=_archive_dir(event))
     text = guard_mod.block(guard)
     folder = _dir()
     if folder.exists():
@@ -328,7 +379,7 @@ def _session_start_part(event: Mapping[str, Any], part: int, parts: int) -> dict
         else:
             origin = "rebuilt"
             messages, boundary = history_from_claude_code(str(event["transcript_path"]))
-            texts = _split(messages, boundary, max(parts, part)).texts
+            texts = _split(messages, boundary, max(parts, part), _archive_dir(event)).texts
             text, of = (texts[part - 1] if part <= len(texts) else ""), len(texts)
     _log({"event": "SessionStart", "origin": origin, "part": part, "of": of,
           "block_chars": len(text)})  # fmt: skip
@@ -369,7 +420,7 @@ def session_start(event: Mapping[str, Any], part: int = 0, parts: int = 0) -> di
     except (OSError, ValueError, TypeError):
         origin = "rebuilt"
         messages, boundary = history_from_claude_code(str(event["transcript_path"]))
-        text = guard_mod.block(_guard(messages, since=boundary))
+        text = guard_mod.block(_guard(messages, since=boundary, archive=_archive_dir(event)))
     _log({"event": "SessionStart", "origin": origin, "block_chars": len(text)})
     return _context(text)
 

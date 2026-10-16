@@ -104,19 +104,33 @@ FIND_DESCRIPTION = (
     "many files or nothing useful. If the request names one, Grep for it instead. Returns "
     "path:lines keys with an excerpt; Read the lines it points to."
 )
-FIND_INSTRUCTIONS = (
-    "find_in_repo: when a request describes behaviour and names no identifier to grep, or a "
-    "search listed many files or nothing useful, call find_in_repo(query=<the symptom in the "
-    "request's words>) before more searching. When it names a function, class, error text or "
-    "file, Grep for that instead."
-)
+
+
+# The server's instructions reach the model once per session (Claude Code's
+# `mcp_instructions_delta`, read in the 2.1.287 binary), whether the tool is loaded or deferred.
+# Since 2026-10-16 the install defers find behind tool search (no `alwaysLoad`): its description
+# is then not in the prompt until the tool is loaded, so this line is what says when to load it,
+# naming the tool as ToolSearch selects it. One line: it is paid in every session.
+def find_instructions(server: str = "sanchopanza") -> str:
+    """The instructions, naming the tool as Claude Code does: `mcp__<server>__find_in_repo`.
+    Claude Code names it by the `.mcp.json` key; the install writes the server under the same
+    name it runs with (`install_defaults.FIND_SERVER`, the `--name` default)."""
+    return (
+        "When a request describes behaviour and names no identifier to grep, or a search came "
+        f"back wide, use mcp__{server}__find_in_repo with the symptom in the request's words."
+    )
+
+
+FIND_INSTRUCTIONS = find_instructions()
+# Claude Code scores this in ToolSearch's keyword match (`_meta["anthropic/searchHint"]`, 2.1.287)
+# and never puts it in the prompt: free, and a query in other words still finds the tool.
+SEARCH_HINT_KEY = "anthropic/searchHint"
+SEARCH_HINT = "find code by described behaviour or symptom; semantic code search in this repo"
 QUERY_HELP = "The symptom in the request's own words, e.g. 'the export drops the last row'."
 K_HELP = "How many fragments to return."
 KIND_HELP = (
-    "code (default): source code to read; docs, config and tests left out. all: code, docs "
-    "and config. symbol: definitions by name. file: files by path "
-    "words. skill, agent, memory, archive, tool: this project's skills, agents, saved notes, "
-    "earlier tool output, tools."
+    "code (default): source only. all: with docs and config. symbol: definitions by name. file: "
+    "paths. skill, agent, memory, archive, tool: this project's own."
 )
 
 
@@ -136,7 +150,7 @@ def build_archive_server(
 
     if find is None:
         find = _env.get("FIND", "") in ("1", "true", "yes")
-    server = add_archive(_server(name, FIND_INSTRUCTIONS) if find else _server(name), root)
+    server = add_archive(_server(name, find_instructions(name)) if find else _server(name), root)
     if find:
         add_find(server, repo=repo, squire=squire)
     return server
@@ -162,8 +176,12 @@ def add_find(server: Any, *, repo: Path | None = None, squire: Any = None) -> An
         judge = squire or _squire_if_keyed()
         return await find_fragments(query, where, squire=judge, k=k, kind=kind)
 
+    import inspect
+
     find_in_repo.__annotations__ = find_annotations()
-    server.tool(description=FIND_DESCRIPTION)(find_in_repo)
+    hint = {"meta": {SEARCH_HINT_KEY: SEARCH_HINT}}  # an mcp without `meta` serves no hint
+    extra = hint if "meta" in inspect.signature(server.tool).parameters else {}
+    server.tool(description=FIND_DESCRIPTION, **extra)(find_in_repo)
     return server
 
 
@@ -403,7 +421,8 @@ def main(argv: list[str] | None = None) -> int:
         from ..context.repo import warm
 
         warm(Path.cwd())
-    server = _server(args.name, FIND_INSTRUCTIONS) if "find" in wanted else _server(args.name)
+    found = find_instructions(args.name)
+    server = _server(args.name, found) if "find" in wanted else _server(args.name)
     if "archive" in wanted:
         from ..context.archive import root_for
 

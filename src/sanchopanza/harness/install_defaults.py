@@ -18,7 +18,8 @@
   window, which anyone can set; nothing sanchopanza decides added to it there.
 - **find_in_repo** (`--no-find` to leave it out): the `sanchopanza` server in the project's
   `.mcp.json`, approved by name in the settings. BM25 fragments without a key; judged by the
-  decision model when one is configured.
+  decision model when one is configured. Deferred behind Claude Code's tool search since
+  2026-10-16 (`find_server_entry`); `--find-always-load` loads its schema in every request.
 - **The find nudge** is not a default: `--find-nudge`, with find (`harness.find_nudge`,
   `SANCHOPANZA_FIND_NUDGE=0` silences it once wired), puts `sanchopanza find-hook` on PostToolUse
   for the search tools, which suggests find_in_repo once per session when an early search before
@@ -111,23 +112,32 @@ def merge_profile(
     return {**merged, "env": rest}, [], [f"env: {k}" for k in gone]
 
 
-def find_server_entry(command: str, *, auto: bool = False) -> dict[str, Any]:
+def find_server_entry(
+    command: str, *, auto: bool = False, always_load: bool = False
+) -> dict[str, Any]:
     """The `.mcp.json` entry, from the hook command: `<x> hook` becomes `<x> find-mcp`, and
     `<x> find-mcp --auto` with the find-auto hook (the hook's tool, the index warmed at start).
 
-    `alwaysLoad` keeps the tool out of tool search: deferred, the model sees only its name and
-    in the adoption study never called it (0 of 108 sessions)."""
+    Deferred by default: without `alwaysLoad`, Claude Code (2.1.287, read in the binary: "tools
+    are deferred when tool search is enabled") lists the bare name and loads the schema when
+    ToolSearch asks for it, and does not hold startup for the server. Loaded always, its schema
+    cost about 425 tokens of every request, while agents called it in 2 of 78 S sessions
+    (docs/results/2026-10-03-adopt-d). The server's instructions name the tool so the model
+    knows when to load it. `always_load` (`--find-always-load`) puts the schema back in every
+    request: in the adoption study, deferred with no such line, it was never called (0 of 108)."""
     words = command.split()
     if words and words[-1] == "hook":
         words = words[:-1]
     words = words or ["sanchopanza"]
     args = [*words[1:], "find-mcp", *(["--auto"] if auto else [])]
-    return {"command": words[0], "args": args, "alwaysLoad": True}
+    entry: dict[str, Any] = {"command": words[0], "args": args}
+    return {**entry, "alwaysLoad": True} if always_load else entry
 
 
 def fetch_server_entry(command: str) -> dict[str, Any]:
     """The `.mcp.json` entry for `--fetch`: `<x> hook` becomes `<x> fetch-mcp`, loaded up front
-    (`alwaysLoad`) for the reason `find_server_entry` gives."""
+    (`alwaysLoad`), as the fetch pilots ran it: its hook steers WebFetch to it, so the model
+    needs the schema at once."""
     words = command.split()
     if words and words[-1] == "hook":
         words = words[:-1]

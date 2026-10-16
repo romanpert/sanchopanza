@@ -1,6 +1,6 @@
 ---
 name: sanchopanza-code
-description: How to work in a Claude Code session that has sanchopanza installed. Use when a request describes behaviour rather than naming a symbol or file and you need to find where it lives in a large or unfamiliar repository; when the conversation was just compacted and a "sanchopanza guard" block follows the summary; when a "[sanchopanza memory" block gives standing rules or records of earlier work; when a sanchopanza hook denies a command or adds a note to a result; or when a task will be long and you want to keep the context small.
+description: Use when a sanchopanza block or hook note appears (guard after a compaction, memory records) or to decide when to call find_in_repo.
 ---
 
 # Working with sanchopanza installed
@@ -23,16 +23,22 @@ for you. What it changes for you:
 ## 2. After a compaction
 
 When the context fills up, Claude Code summarises the conversation. With sanchopanza, a block
-headed `sanchopanza guard` follows the summary. It holds, verbatim:
+headed `sanchopanza guard` follows the summary. It holds:
 
-- the output of commands that cannot be run again (their latest run),
+- the person's requests, word for word,
 - the files changed so far,
-- the person's requests, word for word.
+- pointers to the tool output from before the compaction, newest first. The block names one
+  archive folder; a line ending in `-> guard-<id>.txt (N characters)` is output that cannot be
+  had again (a one-shot command, a subagent's report), kept whole in that file in that folder,
+  secrets masked: `Read` it (folder plus file name) instead of re-running the command. "N more
+  archived" counts files there that no line lists. The other lines name a file, search or
+  command you can read or run again.
 
-Trust that block over the summary for exact values (identifiers, numbers, tokens, paths). Do not
-re-run a command whose output is in the block. Re-read a file before editing it, since the
-summary does not hold its current text. Check the requests block for anything the summary
-reduced or dropped before you call the work done.
+Trust the requests and the archived files over the summary for exact values (identifiers,
+numbers, tokens, paths). Re-read a file before editing it, since the summary does not hold its
+current text. Check the requests block for anything the summary reduced or dropped before you
+call the work done. (Installed with `--guard-full`, the block holds the earlier output itself,
+whole, instead of pointers to it.)
 
 ## 3. Memory from earlier requests and sessions
 

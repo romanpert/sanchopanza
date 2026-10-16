@@ -2,12 +2,20 @@
 
 Three events (`harness.guard_hook`): `PreCompact` on `manual|auto` builds the guard, `SessionStart`
 on `compact` attaches it after the summary, `PostToolUse` on `Bash` gives a re-run its earlier
-output. Claude Code keeps each hook's context inline only up to 10,000 characters, so the block is
-split (`context.parts`): `PreCompact` runs as `sanchopanza guard-hook --parts K` and the
-`SessionStart` entry holds K commands, `sanchopanza guard-hook --part i --parts K`, each printing
-its own part or nothing. K is `context.parts.default_parts` of the struct budget and the inline cap
-(6 at the defaults) unless `--guard-parts` says otherwise; 1 wires the single capped block, one
-command per event, as before the split.
+output.
+
+By default (since 2026-10-16) the hook's own default chooser, the pointer block
+(`context.pointers`: requests verbatim, files changed, pointers to earlier output and archived
+files for output that cannot be had again), fits one hook's inline limit: one command per event,
+no chooser in the settings. `--guard-full` restores the whole-results block (`context.structural`):
+it writes `SANCHOPANZA_GUARD_CHOOSER=struct`, and since Claude Code keeps each hook's context
+inline only up to 10,000 characters that block is split (`context.parts`): `PreCompact` runs as
+`sanchopanza guard-hook --parts K` and the `SessionStart` entry holds K commands,
+`sanchopanza guard-hook --part i --parts K`, each printing its own part or nothing. K is
+`context.parts.default_parts` of the struct budget and the inline cap (6 at the defaults) unless
+`--guard-parts` says otherwise; 1 wires the single capped block. A chooser the owner set is
+theirs: ours is marked (`SANCHOPANZA_GUARD_CHOOSER_BY=sanchopanza`), and only a marked one is
+ever overwritten or taken out.
 
 Our hooks are recognised by their command (`sanchopanza guard-hook`, with or without `--part` and
 `--parts`), never by their matcher, so a run with another K replaces them and a run without the
@@ -28,11 +36,20 @@ GUARD_HOOKS = {"PreCompact": "manual|auto", "SessionStart": "compact", "PostTool
 Merged = tuple[dict[str, Any], list[str], list[str]]
 
 
-def default_guard_parts() -> int:
-    """K for this environment: the struct budget and inline cap the hooks will read."""
+CHOOSER = "SANCHOPANZA_GUARD_CHOOSER"
+FULL_CHOOSER = "struct"  # the whole-results block, `--guard-full`
+CHOOSER_BY = "SANCHOPANZA_GUARD_CHOOSER_BY"  # marks the chooser as written by `--guard-full`
+MARK = "sanchopanza"
+
+
+def default_guard_parts(full: bool = False) -> int:
+    """K for this environment: 1 for the pointer block; for the whole-results block (`full`),
+    from the struct budget and inline cap the hooks will read."""
     from ..context import parts, structural
     from .guard_hook import _cap, _int
 
+    if not full:
+        return 1
     return parts.default_parts(
         _int("GUARD_STRUCT_CHARS", structural.STRUCT_CHARS),
         _cap("GUARD_INLINE_CHARS", structural.INLINE_CHARS),
@@ -73,6 +90,32 @@ def _wired(owned: list[Mapping[str, Any]], matcher: str, commands: tuple[str, ..
         return False
     found = [h.get("command") for h in owned[0].get("hooks") or [] if h.get("command") in ours]
     return found == list(commands)
+
+
+def owner_chooser(merged: Mapping[str, Any]) -> str | None:
+    """The chooser the owner set themselves (no marker of ours beside it), or None."""
+    env = merged.get("env", {})
+    if not isinstance(env, Mapping) or CHOOSER not in env or env.get(CHOOSER_BY) == MARK:
+        return None
+    return str(env.get(CHOOSER))
+
+
+def merge_guard_chooser(merged: dict[str, Any], full: bool) -> Merged:
+    """`SANCHOPANZA_GUARD_CHOOSER=struct` with `full`, marked ours (`CHOOSER_BY`); without it,
+    ours out. A chooser the owner set (no marker) is never overwritten nor removed: `cli` says
+    so when `--guard-full` meets one (`owner_chooser`)."""
+    env = merged.get("env", {})
+    if not isinstance(env, dict) or owner_chooser(merged) is not None:
+        return merged, [], []
+    ours = {CHOOSER: FULL_CHOOSER, CHOOSER_BY: MARK}
+    if full:
+        if all(env.get(k) == v for k, v in ours.items()):
+            return merged, [], []
+        return {**merged, "env": {**env, **ours}}, [f"env: {CHOOSER}=struct"], []
+    if CHOOSER not in env and CHOOSER_BY not in env:
+        return merged, [], []
+    rest = {k: v for k, v in env.items() if k not in ours}
+    return {**merged, "env": rest}, [], [f"env: {CHOOSER}"]
 
 
 def merge_guard(merged: dict[str, Any], on: bool, parts: int = 1) -> Merged:

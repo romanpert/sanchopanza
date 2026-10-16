@@ -1,6 +1,8 @@
 """The guard's structural keep: whole tool results chosen by where the work is, no model.
 
-The default chooser of the compaction guard (`SANCHOPANZA_GUARD_CHOOSER=struct`). It replaced the
+The compaction guard's whole-results chooser (`SANCHOPANZA_GUARD_CHOOSER=struct`, `sanchopanza
+install --guard-full`), its default from 2026-10-05 until the pointer block (`context.pointers`)
+took that place on 2026-10-16. It replaced the
 decider's ranking (`context.keep`) after an offline replay on 2026-10-05
 (docs/results/2026-10-05-guard-struct/): Jev's block scores ranked later-needed results worse than
 plain recency (AUC 0.56 against 0.60), and on the owner's real sessions the order below kept

@@ -34,6 +34,7 @@ PLAN_PARAMETERS = (
     ("fetch", False),
     ("knowledge", False),
     ("guard_parts", None),  # appended for the split guard (`install_guard`), keyword only in use
+    ("guard_full", False),  # appended for the pointer guard (2026-10-16), keyword only in use
 )
 
 MEMORY = "sanchopanza memory-hook"

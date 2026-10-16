@@ -57,13 +57,16 @@ and the approval are owned by the flag: a run without it removes them, and our e
 `.mcp.json`.
 
 `--guard` wires the compaction guard (`harness.guard_hook`, `sanchopanza guard-hook`): three
-command hooks that leave Claude Code's own summary in charge and attach, after it, the exact
-lines of command output that cannot be read again, the files changed and the person's requests
-verbatim (`PreCompact` on `manual|auto`, `SessionStart` on `compact`, `PostToolUse` on `Bash`
-for the re-run echo). Classic hooks, no plugin and no early-access flag. The `SessionStart` entry
-holds K commands, one part of the block each, because Claude Code keeps each hook's context
-inline only up to 10,000 characters (`harness.install_guard`; `--guard-parts`, 6 by default).
-Our entries are recognised by their command, and a run without the flag takes them out.
+command hooks that leave Claude Code's own summary in charge and attach, after it, the person's
+requests verbatim, the files changed and pointers to the earlier tool output, with the output
+that cannot be had again archived whole beside the project for the agent to Read
+(`context.pointers`; `PreCompact` on `manual|auto`, `SessionStart` on `compact`, `PostToolUse` on
+`Bash` for the re-run echo). Classic hooks, no plugin and no early-access flag. `--guard-full`
+attaches the whole tool output instead (`context.structural`, the default from 2026-10-05 to
+2026-10-16): the `SessionStart` entry then holds K commands, one part of the block each, because
+Claude Code keeps each hook's context inline only up to 10,000 characters
+(`harness.install_guard`; `--guard-parts`, 6 by default). Our entries are recognised by their
+command, and a run without the flag takes them out.
 
 `--memory` wires memory between requests and sessions (`harness.memory_hook`,
 `sanchopanza memory-hook`): `Stop` and `SessionEnd` record each finished request verbatim, by
@@ -149,7 +152,7 @@ from .install_defaults import (
 )
 from .install_guard import GUARD_COMMAND as GUARD_COMMAND
 from .install_guard import GUARD_HOOKS as GUARD_HOOKS
-from .install_guard import default_guard_parts, merge_guard
+from .install_guard import default_guard_parts, merge_guard, merge_guard_chooser
 
 # The hook-set machinery and the browse sets live in `install_hooks`. The names below are
 # re-exported because sealed benchmarks and tests import them from here.
@@ -401,10 +404,14 @@ def _merge_compact(
 
 
 def _merge_guard(
-    merged: dict[str, Any], on: bool, parts: int | None = None
+    merged: dict[str, Any], on: bool, parts: int | None = None, full: bool = False
 ) -> tuple[dict[str, Any], list[str], list[str]]:
-    """The compaction guard's hooks (`--guard`), its block split in `parts` (None: the default)."""
-    return merge_guard(merged, on, default_guard_parts() if parts is None else parts)
+    """The compaction guard's hooks (`--guard`), its block split in `parts` (None: the default
+    for the block), the pointer block by default and the whole-results one with `full`."""
+    merged, added, removed = merge_guard(merged, on, default_guard_parts(full and on)
+                                         if parts is None else parts)  # fmt: skip
+    merged, plus, minus = merge_guard_chooser(merged, full and on)
+    return merged, [*added, *plus], [*removed, *minus]
 
 
 def _merge_memory(
@@ -501,6 +508,7 @@ def mcp_json_changes(
     find: bool = False,
     find_auto: bool = False,
     fetch: bool = False,
+    find_always_load: bool = False,
 ) -> dict[str, Any] | None:
     """The new `.mcp.json` content, or None when nothing changes. Only our entries are touched.
 
@@ -508,7 +516,11 @@ def mcp_json_changes(
     overwritten. Otherwise the file is only looked at to take our entries out: one that is
     missing, unreadable or malformed holds nothing of ours, so it is left alone and never fails
     the install."""
-    find_entry = find_server_entry(portable_command(command), auto=find_auto) if find else None
+    find_entry = (
+        find_server_entry(portable_command(command), auto=find_auto, always_load=find_always_load)
+        if find
+        else None
+    )
     fetch_entry = fetch_server_entry(portable_command(command)) if fetch else None
     wanted = {ARCHIVE_SERVER: archive_server_entry(command) if lean else None,
               FIND_SERVER: find_entry,
@@ -642,6 +654,7 @@ def _merge(
     knowledge: bool = False,
     knowledge_server: bool = False,
     guard_parts: int | None = None,
+    guard_full: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
         current = {}
@@ -666,7 +679,7 @@ def _merge(
         added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_compact(merged, compact_root)
     added, removed = [*added, *plus], [*removed, *minus]
-    merged, plus, minus = _merge_guard(merged, guard, guard_parts)
+    merged, plus, minus = _merge_guard(merged, guard, guard_parts, guard_full)
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_candor(merged, candor)
     added, removed = [*added, *plus], [*removed, *minus]
@@ -725,6 +738,7 @@ def plan(
     fetch: bool = False,
     knowledge: bool = False,
     guard_parts: int | None = None,
+    guard_full: bool = False,
 ) -> Settings:
     current: Any = {}
     if path.exists():
@@ -751,6 +765,7 @@ def plan(
         lean=lean,
         guard=guard,
         guard_parts=guard_parts,
+        guard_full=guard_full,
         candor=candor,
         memory=memory,
         budget=budget,
