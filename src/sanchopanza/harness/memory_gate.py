@@ -331,7 +331,8 @@ async def triage_window(
     def answered(verdicts: list[tuple[bool, float | None]]) -> bool:
         return any(p is not None for _, p in verdicts)
 
-    verdicts, report = await mw.run_long(squire, state, questions, ask, answered)
+    verdicts, report = await mw.run_long(squire, state, questions, ask, answered,
+                                         deadline_s=mw.GATE_DEADLINE_S)  # fmt: skip
     if verdicts is None:
         verdicts = await triage_memories(squire, prompt, memories)
     return verdicts, report
@@ -372,7 +373,13 @@ async def gate(
 ) -> GateResult:
     """Decide what to inject for one prompt. Raises only on a bug; `handle_user_prompt` wraps.
     `window` is `short` or `long` (`memory_window`); None reads `SANCHOPANZA_MEMORY_WINDOW`,
-    and `long` when it is unset (`memory_window.GATE_DEFAULT`)."""
+    and `long` when it is unset (`memory_window.GATE_DEFAULT`).
+
+    Budget: the long call is held to the squire's job cap (`Thresholds.max_usd`, 0.10 USD by
+    default) and adds to its meter. At about 0.005 USD a prompt (0.01 at the window's ceiling)
+    one squire runs out after some 10 to 20 prompts and then reads the short window. Give each
+    prompt its own squire (`Squire.fork()`, as a hook process does), or raise `max_usd` for a
+    squire that serves many prompts."""
     if window is None:
         chosen = mw.window_from_env(default=mw.GATE_DEFAULT)
     else:

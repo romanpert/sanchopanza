@@ -366,6 +366,9 @@ prompt in all. The long call's cost grows with the memory, at Jev's 0.042 USD a 
 tokens: about 0.01 USD at the window's ceiling of 750,000 characters. Confirmed on jev-1.13.0 on
 the 84 unseen test questions ([memgate-long](docs/results/2026-10-15-memgate-long/README.md)):
 recall 0.726 to 0.905 (+17.8 points [+10.7, +25.7]), reaching BM25 top 3 (+8.9 [0.0, +17.3]).
+What the default costs there besides the call: precision fell from 0.91 to 0.71, and the gate
+selected 32,900 characters a question against 20,800 (within the 10,000 it renders). The long
+call waits at most 10 s, retries included, before the gate reads the short window.
 The installed memory hook stays on the short window: only `SANCHOPANZA_MEMORY_WINDOW=long` has it
 read each candidate record whole at a session's first prompt, and that effect is not measured.
 Past Jev's long window, without a decider that has the long-context mode, past the job's budget

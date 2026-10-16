@@ -43,17 +43,20 @@ It falls back to the shipped short path, never in silence, when:
   largest call was 124,851 tokens), so the measured path takes over rather than a middle cut,
   which L6 tried only on LongBench documents;
 - the call needs the header and the decider has no long-context mode (`with_long_context`:
-  Jev at TypeSafe's address and a `CappedDecider` around it; a CLM server, a proxy address, a
-  recording, a local model or a general LLM have none);
+  Jev at TypeSafe's address, and a `CappedDecider` or a `CachedDecider` around it; a CLM
+  server, a proxy address, a recording, a local model or a general LLM have none);
 - the job's budget is spent, or the long call's estimate (`providers.capped.estimate_usd` at the
   decider's `price_per_mtok`) does not fit what is left of it;
 - the hook's time does not leave room for it, or it takes longer than its own deadline (the
-  hook's `SANCHOPANZA_MEMORY_DECIDER_SECONDS` less `SHORT_RESERVE_S`, so the pages still run);
+  hook's `SANCHOPANZA_MEMORY_DECIDER_SECONDS` less `SHORT_RESERVE_S`, so the pages still run;
+  at the gate, `GATE_DEADLINE_S`, which also bounds the client's retries on 429 and 529);
 - it answers nothing (a 400 past 262k tokens, a spend cap, out of funds, a timeout), once.
 
-Each fall back writes one line on stderr, a `memory_window` event in the journal and the reason
-(`window_fallback`, with the call's own error in `long_error`) in the gate's report or the memory
-log row.
+Each fall back writes a `memory_window` event in the journal and the reason (`window_fallback`,
+with the call's own error in `long_error`) in the gate's report or the memory log row, every
+time, and one line on stderr. A reason that cannot change within a process (the decider has no
+long-context mode) is said on stderr once per process and decider; the others (too long, the
+budget, the time, no answer) each time.
 
 What is enforced on spend: the job's cap (`Thresholds.max_usd`) is checked before the long call
 against its estimate, the long call runs under what is left, and its decisions and dollars are
@@ -101,6 +104,10 @@ LONG_WINDOW_CHARS = 750_000
 SHORT_WINDOW_CHARS = 190_000
 LONG_TIMEOUT_S = 8.0  # per request; L6's long calls took 2.5 s at most
 SHORT_RESERVE_S = 3.0  # of the hook's decider time, kept for the pages after a slow long call
+# The gate's long call, retries included: past it the gate reads the short window. One request
+# is held to LONG_TIMEOUT_S, but the client retries a 429 or a 529 up to 3 times with backoff,
+# about 34 s at worst without this bound.
+GATE_DEADLINE_S = 10.0
 PREFIX = "sanchopanza memory gate: long window"
 
 T = TypeVar("T")
@@ -180,6 +187,9 @@ def _note(squire: Squire, data: dict[str, Any]) -> dict[str, Any]:
     return data
 
 
+_SAID: set[str] = set()  # static reasons already said on stderr in this process
+
+
 def _fall_back(
     squire: Squire,
     chars: int,
@@ -188,8 +198,12 @@ def _fall_back(
     usd: float = 0.0,
     error: str = "",
     estimated: bool = False,
+    once: bool = False,
 ) -> dict[str, Any]:
-    _say(f"{reason}; the short window was used")
+    if not (once and reason in _SAID):  # `once`: the reason names the decider
+        if once:
+            _SAID.add(reason)
+        _say(f"{reason}; the short window was used")
     extra = {"error": error} if error else {}
     extra = {**extra, "usd_estimated": True} if estimated else extra
     _note(squire, {"window": SHORT, "chars": chars, "usd": usd, "fallback": reason, **extra})
@@ -234,8 +248,8 @@ async def run_long(
         return None, _fall_back(squire, chars, why)
     needs_header = header or chars > SHORT_WINDOW_CHARS
     decider, why = _decider_for(squire, needs_header)
-    if decider is None:
-        return None, _fall_back(squire, chars, why)
+    if decider is None:  # the same for every call of this process: said once on stderr
+        return None, _fall_back(squire, chars, why, once=True)
     why, estimate = _budget_refusal(squire, decider, state, questions)
     if why:
         return None, _fall_back(squire, chars, why)

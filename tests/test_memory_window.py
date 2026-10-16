@@ -41,6 +41,7 @@ def _clean(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("SANCHOPANZA_FUNDS_DIR", str(tmp_path / "funds"))
     monkeypatch.setattr(jev, "BASE_WAIT_S", 0.0)
+    mw._SAID.clear()  # what this process already said once on stderr
 
 
 # ---- fakes ---------------------------------------------------------------------------------------
@@ -688,6 +689,98 @@ def test_jev_twin_turns_on_only_the_long_context_header_on_the_same_client() -> 
     assert seen[1].headers[jev.LONG_CONTEXT_HEADER] == "true"
     assert seen[1].extensions["timeout"]["read"] == 8.0
     assert decision.cost_usd == pytest.approx(300 * 0.05 / 1_000_000)
+
+
+def test_a_static_reason_is_said_once_per_process_and_decider_but_reported_every_time(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    ms = memories(tmp_path, 3)
+    first, journal_1, _ = long_gate(ShortOnly(), ms)
+    second, journal_2, _ = long_gate(ShortOnly(), ms)
+    err = capsys.readouterr().err
+    assert err.count("has no long-context mode") == 1
+    for result, journal in ((first, journal_1), (second, journal_2)):
+        assert "no long-context mode" in result.report["window_fallback"]
+        assert "no long-context mode" in notes(journal)[0]["fallback"]
+
+    class Other(ShortOnly):
+        name = "other"
+
+    long_gate(Other(), ms)  # another decider: said for it too
+    assert capsys.readouterr().err.count("has no long-context mode") == 1
+
+
+def test_a_dynamic_reason_is_said_every_time(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(mw, "LONG_WINDOW_CHARS", 2_000)
+    ms = memories(tmp_path, 3, body_chars=5_000)
+    long_gate(Fake(), ms)
+    long_gate(Fake(), ms)
+    assert capsys.readouterr().err.count("over the long window") == 2
+
+
+def test_the_gate_s_long_call_is_held_to_its_deadline_then_reads_short(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(mw, "GATE_DEADLINE_S", 0.2)
+    fake = Fake(delay=lambda call: 1.0 if call["long"] else 0.0)
+    result, _, _ = long_gate(fake, memories(tmp_path, 3))
+    assert "over its 0.2 s" in result.report["window_fallback"]
+    assert result.injected == ("m001.md",)  # the short window ran after it
+    assert [c["long"] for c in fake.calls] == [False, True, False]
+    assert mw.GATE_DEADLINE_S == 0.2 and 0 < mw.LONG_TIMEOUT_S < 10.0
+
+
+def test_the_default_deadline_bounds_the_client_s_retries() -> None:
+    worst = (jev.MAX_RETRIES + 1) * mw.LONG_TIMEOUT_S
+    assert worst > mw.GATE_DEADLINE_S and mw.GATE_DEADLINE_S >= mw.LONG_TIMEOUT_S
+
+
+# Taken before `CachedDecider.with_long_context` existed: the twin must not move any key.
+CACHE_KEYS = ("efb89d3d73b1784a1abd27f23c312064e1facf4cf3e529cb32ad93164733f061",
+              "e09a20ed67566e0ac9ada5271aae936284de1765924ac664a82f9e3582068923")  # fmt: skip
+
+
+def test_a_cached_decider_s_keys_are_unchanged() -> None:
+    from sanchopanza.contract import Choice, Truth
+    from sanchopanza.providers.cached import CachedDecider
+
+    class Inner:
+        name = "jev"
+        model = "jev-1.13.0"
+
+    c = CachedDecider(Inner())
+    qs = {"q": Truth("Is it?"), "c": Choice("Which?", options=("a", "b"))}
+    state = {"request": "fix it", "records": "R1| x"}
+    assert c._key("memory_recall", state, qs) == CACHE_KEYS[0]
+    assert c._key("triage_pages", "plain", {}) == CACHE_KEYS[1]
+
+
+def test_a_cached_jev_gets_the_long_window_with_the_header_in_its_keys(tmp_path: Path) -> None:
+    from sanchopanza.providers.cached import CachedDecider
+
+    seen: list[httpx.Request] = []
+    cached = CachedDecider(jev_mocked(seen), path=tmp_path / "cache.jsonl")
+    twin = cached.with_long_context(timeout_s=mw.LONG_TIMEOUT_S)
+    assert twin.name == cached.name and twin is not cached
+    assert twin._key("p", "s", {}) != cached._key("p", "s", {})  # never answers for the other
+    result = asyncio.run(mg.gate(squire(cached)[0], PROMPT, memories(tmp_path, 2)))
+    assert result.report["window"] == "long"
+    assert seen[-1].headers[jev.LONG_CONTEXT_HEADER] == "true"
+    assert jev.LONG_CONTEXT_HEADER not in seen[0].headers  # needs_recall: no header
+    again = asyncio.run(mg.gate(squire(cached)[0], PROMPT, memories(tmp_path, 2)))
+    assert again.report["window"] == "long" and len(seen) == 2  # both answered from the cache
+
+
+def test_a_cached_decider_over_one_without_the_mode_has_none(tmp_path: Path) -> None:
+    from sanchopanza.providers.cached import CachedDecider
+
+    cached = CachedDecider(ShortOnly())
+    with pytest.raises(AttributeError):
+        cached.with_long_context()
+    result, _, _ = long_gate(cached, memories(tmp_path, 2))
+    assert "no long-context mode" in result.report["window_fallback"]
 
 
 def test_a_jev_decider_can_be_named_at_construction() -> None:
