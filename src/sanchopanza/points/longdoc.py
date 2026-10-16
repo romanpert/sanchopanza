@@ -25,7 +25,7 @@ reading and the reason, and the caller asks its own model.
 
 **What was measured, and nowhere else.** LongBench v2 multiple-choice questions with four
 options, graded by the letter, over one long document: Single- and Multi-Document QA, contexts
-over 100,000 characters (shorter documents were not measured); jev-1.14.0 with the
+over 100,000 characters; jev-1.14.0 with the
 long-context header and this 900,000-character middle cut; the expensive model in clean Claude
 Code 2.1.287. Lot lb162 (docs/results/2026-10-15-lb162, pre-registered, 162 fresh tasks) and lot
 lb162x (docs/results/2026-10-16-lb162x):
@@ -36,8 +36,13 @@ lb162x (docs/results/2026-10-16-lb162x):
 - Against Opus 5.5 alone: -3.7 points [-8.0, +0.6], "no peor" at -10 points, for 29.5 %
   [21.7, 37.7] of Opus's cost saved. On the tasks Jev answered, Opus was right more often (37
   against 31 of 60; McNemar 10 against 4, p 0.18, not significant): the point estimate is a
-  loss. A higher cut (0.8) looked closer to Opus post hoc (-0.6 points at 27 tasks covered);
-  that is not confirmed, and `cut=` is the caller's.
+  loss.
+- Below 100,000 characters (lot lbo8, docs/results/2026-10-16-lbo8, pre-registered, the 78
+  fresh QA tasks left, 49,000 to 100,000 characters) a 0.8 cut against Opus 5.5 was "no
+  concluyente" at -5 points: -6.4 [-14.1, -1.4], Jev right on 20 of the 30 it covered against
+  Opus's 25, for 30.8 % [20.9, 41.4] of Opus's cost saved. A higher cut does not make shorter
+  documents safe; `cut=` is the caller's, and on documents under 100,000 characters the point
+  is not recommended as it stands.
 - One draw: one set of 162 tasks, one session per task and model. The -10-point margin was a
   product decision fixed before the data, not a statistical one. Open-ended answers, other
   document kinds and other decision models were not measured.
