@@ -100,7 +100,12 @@ def test_non_ascii_output_reaches_the_pipe(env, monkeypatch):  # noqa: F811
     out = json.loads(
         _run({**event, "hook_event_name": "SessionStart", "source": "compact"}, monkeypatch)
     )
-    assert "código PRB-7788" in out["hookSpecificOutput"]["additionalContext"]
+    context = out["hookSpecificOutput"]["additionalContext"]
+    assert "año y señal: ejecuta la sonda" in context  # the request, verbatim
+    # the output itself is one Read away (the pointer block, the default since 2026-10-16)
+    [archived] = (env / "archive" / "u").glob("guard-*.txt")
+    assert str(archived.absolute()) in context
+    assert "código PRB-7788" in archived.read_text("utf-8")
 
 
 # ---- the judge: every line decided by the decider, no content rule --------------------------
