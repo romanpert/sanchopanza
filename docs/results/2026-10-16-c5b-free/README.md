@@ -44,9 +44,9 @@ Everything else is C5's, word for word:
 | Condition (prereg) | Measured |
 |---|---|
 | Rule 0: calls unanswered | **0** |
-| Rule 1: lower bound of FREE − PAGE recall, unrounded, > 0 | **+0.110** |
+| Rule 1: lower bound of FREE − PAGE recall, unrounded, > 0 | **+0.10987** |
 
-**"FREE confirmed: it keeps more answer sentences than page order at 3,400 characters."**
+**"FREE confirmed: it keeps more answer sentences than page order at 3,400 characters"**
 
 ## The arms (348 overflowing questions, 216 papers)
 
@@ -100,7 +100,7 @@ By the prereg's rule 1 (C5's, inherited):
   prereg's expected 1.3-1.4. That is 8,869 calls (2,829 tournament, 6,040 sentence) and
   32,643,307 input tokens at 0.042 USD per million: the ledger's figure, not TypeSafe's bill.
   The preflight call is outside it. The dry run had predicted 7,379 calls.
-- **Clock:** 25 minutes from launch to report; median latency 437 ms.
+- **Clock:** 25 minutes from launch to the end of the paid step, 26 to the report; median latency 437 ms.
 
 ## Reproducing
 
@@ -108,7 +108,7 @@ By the prereg's rule 1 (C5's, inherited):
     python -c "import gzip,shutil; shutil.copyfileobj(gzip.open('fixtures/c5b-free/recording.jsonl.gz'), open('fixtures/c5b-free/recording.jsonl', 'wb'))"
     python -I benchmarks/passage_fit/free_confirm_b.py report
 
-`analysis.json` is the report the sealed run wrote; the replay reproduces it byte for byte. The
+`analysis.json` is the report the sealed run wrote; the replay at the seal commit reproduces it byte for byte (from a later checkout only `head` differs). The
 recording ships gzipped (`fixtures/c5b-free/recording.jsonl.gz`, 8,869 lines; keys, token
 counts, costs and answers, no text). `tests/test_c4_c5_published.py` checks its hash and, where
 the train export is present, replays the report. `launches.jsonl` holds the launch's lines.

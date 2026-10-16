@@ -113,12 +113,12 @@ after the data is labelled as such and does not replace the sealed verdict.
 
 ## What it implies
 
-- **`fit_score=False` stays opt-in, as a candidate.** That is what the sealed rule licenses: its
+- **C5's sealed rule left `fit_score=False` a candidate, opt-in.** its
   rule 2 ("FREE loses") leaves the free order a candidate as rule 3 does (`prereg.md`, "What each
   licenses"). It should not be retired: B4 (exploratory) and this lot's post-data reading both
   favour it over page order, by +13.6 and +12.0.
-- **C5b has since measured it:** on 646 fresh QASPER train questions with the runner fixed,
-  FREE kept 78.3 % against page order's 61.9 %, +16.4 [+11.0, +21.9], confirmed by the sealed
+- **C5b has since measured it:** on the 348 of 646 fresh QASPER train questions that overflow, with the runner
+  fixed, FREE kept 78.3 % against page order's 61.9 %, +16.4 [+11.0, +21.9], confirmed by the sealed
   rule (docs/results/2026-10-16-c5b-free/).
 - **BM25 over the delivered text** is not told apart from page order (+3.6 [−2.2, +9.0]).
 - **The ceiling** (answer paragraphs first) is 94.1 %, +30.5 points over page order [+25.5,
