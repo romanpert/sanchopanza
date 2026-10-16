@@ -377,6 +377,7 @@ def add_browse(server: Any, squire: Any = None) -> Any:
 
 TOOL_SETS = (
     "archive", "find", "find_auto", "decisions", "label", "browse", "fetch", "knowledge",
+    "longdoc",
 )  # fmt: skip
 
 
@@ -427,6 +428,10 @@ def main(argv: list[str] | None = None) -> int:
         from .knowledge_tool import add_knowledge
 
         add_knowledge(server)
+    if "longdoc" in wanted:  # ask_document: Jev answers when sure (`harness.longdoc_tool`)
+        from .longdoc_tool import add_longdoc
+
+        add_longdoc(server)
     server.run()
     return 0
 
