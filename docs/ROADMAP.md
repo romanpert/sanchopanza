@@ -37,7 +37,7 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 | A7 | The derivation rule against Sonnet on unseen data | low | Claude + Jev | **closed**: no margin |
 | A8 | Deciding before Claude Code's auto-mode classifier | low | Jev + Claude | **closed**: no lever in Claude Code |
 | A9 | The tool window by tournament over the sub-groups of a large server | low | Jev | **closed**: no margin |
-| A10 | A local classifier as one more provider (`LocalDecider`), trained on our own or public labels | low | free (Colab or Kaggle) | **owner's decision**: a provider and offline fallback, not a saving; not trained yet |
+| A10 | A local classifier as one more provider (`LocalDecider`), trained on our own or public labels | low | free (Colab or Kaggle) | **measured** (free): on unseen suites AUC 0.655 against Jev's 0.814, "no concluyente" at −0.05; it does not transfer |
 | A1 | Benchmarks read the TypeSafe key from a fixed path on the owner's disk | high | free | **done** (`de7c38a`) |
 | A2 | Documents with an old state: README "What is open", the guard-struct README, the root `STATUS*.md` | medium | free | **done** (2026-10-15) |
 | B2 | Spanish sentence splitting | medium | free | **done** (`872e068`) |
@@ -213,7 +213,10 @@ window's 0.54x, [wide](results/2026-09-25-wide/README.md)).
 **A10. A local classifier: one more provider, the owner's decision.** It plugs in as a
 `LocalDecider` behind the same contract, in front of a hosted provider (`FallbackDecider`) or for
 one point (`RoutedDecider`). Not for money, since it would replace Jev's micro-dollars a
-decision; as an offline fallback, or to keep a point on the machine. TypeSafe's MCA 2.3(b) forbids training on
+decision; as an offline fallback, or to keep a point on the machine.
+**Measured on check_done** (2026-10-16, sealed `ac61ad0`, free; [A10](results/2026-10-16-a10-local/README.md)):
+a local check_done classifier trained only on AgentDojo's labels for 393 slack stops ranked checkdone114's 950 unseen stops at AUC 0.655 against Jev 1.14's 0.814, −0.159 [−0.272, −0.048], "no concluyente" at −0.05, catching 18 of 155 unfinished stops against 100. Level with Jev on its training suite, it loses most of its ranking on others: a
+local provider needs labels from the setting it serves. TypeSafe's MCA 2.3(b) forbids training on
 Jev's outputs and also "develop a similar or competing product". Train only on our own labels or
 a public bench's, and measure outside the training set.
 

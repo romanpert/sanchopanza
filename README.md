@@ -830,8 +830,11 @@ Each item, with its priority and cost, is in [docs/ROADMAP.md](docs/ROADMAP.md).
   [−11.6, −1.7]) and the cut that clears on more cases drops pages it should keep; a cut bounded
   from below is next ([redundant-drop](docs/results/2026-10-16-redundant-drop/README.md)). On the
   default model, jev-1.13.0, the point keeps its derived 0.59.
-- **A local classifier as a provider.** None has been trained or measured here; it would plug in
-  as a `LocalDecider`, trained on labels of our own or a public benchmark's, never on Jev's answers.
+- **A local classifier as a provider.** A first one, for check_done, trained only on AgentDojo's
+  labels for one suite, ranked unseen suites at AUC 0.655 against Jev's 0.814 ("no concluyente"
+  at −0.05, catching 18 of 155 unfinished stops against 100): it does not transfer
+  ([A10](docs/results/2026-10-16-a10-local/README.md)). A local provider needs labels from the
+  setting it serves, never Jev's answers.
 - **Cells not run by decision.** Code on Sonnet 5.5 and Opus 5.5, Fable 5.1, the S2 confirmation,
   and the compaction window alone against it plus the decider
   ([final scoreboard](docs/results/2026-10-13-final/), "What was not run").

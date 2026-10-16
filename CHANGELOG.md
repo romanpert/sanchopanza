@@ -108,6 +108,12 @@
 
 ### Measured
 
+- **A10, a local check_done classifier on public labels: "no concluyente"**
+  (`docs/results/2026-10-16-a10-local`, sealed `ac61ad0`, free): trained only on AgentDojo's own
+  labels for 393 slack stops (no pipeline Jev guarded), it ranked checkdone114's 950 unseen stops
+  at AUC 0.655 against Jev 1.14's 0.814, −0.159, cluster 95 % [−0.272, −0.048], against a −0.05
+  margin; it caught 18 of 155 unfinished stops against 100. Level with Jev on its own suite (AUC
+  0.944 out of fold), it does not transfer.
 - **OpenAI's Decisions API on the public benches: "no concluyente"**
   (`docs/results/2026-10-16-openai-decisions`, sealed `2fc329b`, reviewed twice): asked as
   sanchopanza ships, `gpt-6-luna` decided 200 of 244 rows right against Jev's 206 (jev-1.13.0's

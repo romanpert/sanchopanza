@@ -1,0 +1,725 @@
+{
+ "prereg_sha256": "7ad0d12cf19f7aac267a2e942271fe580b2bacdd8b1b7ebdd66126bfda719685",
+ "model_sha256": "df3705863cfb782f8b07d6269192e95cd0e6d01c827937f07b1274ef634567e0",
+ "n": 950,
+ "done": 795,
+ "clusters": 106,
+ "cuts": {
+  "local": 0.45,
+  "14": 0.3,
+  "13r": 0.5
+ },
+ "arms": {
+  "local": {
+   "cut": 0.45,
+   "accuracy": {
+    "k": 768,
+    "n": 950,
+    "rate": 0.8084,
+    "wilson95": [
+     0.7822,
+     0.8322
+    ]
+   },
+   "false_blocks": {
+    "k": 45,
+    "n": 795,
+    "rate": 0.0566,
+    "wilson95": [
+     0.0426,
+     0.0749
+    ]
+   },
+   "caught": {
+    "k": 18,
+    "n": 155,
+    "rate": 0.1161,
+    "wilson95": [
+     0.0747,
+     0.1761
+    ]
+   },
+   "blocks": 63,
+   "block_precision": 0.2857,
+   "auc": 0.6552
+  },
+  "14": {
+   "cut": 0.3,
+   "accuracy": {
+    "k": 745,
+    "n": 950,
+    "rate": 0.7842,
+    "wilson95": [
+     0.7569,
+     0.8092
+    ]
+   },
+   "false_blocks": {
+    "k": 150,
+    "n": 795,
+    "rate": 0.1887,
+    "wilson95": [
+     0.163,
+     0.2173
+    ]
+   },
+   "caught": {
+    "k": 100,
+    "n": 155,
+    "rate": 0.6452,
+    "wilson95": [
+     0.5672,
+     0.7161
+    ]
+   },
+   "blocks": 250,
+   "block_precision": 0.4,
+   "auc": 0.8137
+  },
+  "13r": {
+   "cut": 0.5,
+   "accuracy": {
+    "k": 737,
+    "n": 950,
+    "rate": 0.7758,
+    "wilson95": [
+     0.7482,
+     0.8012
+    ]
+   },
+   "false_blocks": {
+    "k": 165,
+    "n": 795,
+    "rate": 0.2075,
+    "wilson95": [
+     0.1808,
+     0.2371
+    ]
+   },
+   "caught": {
+    "k": 107,
+    "n": 155,
+    "rate": 0.6903,
+    "wilson95": [
+     0.6137,
+     0.7578
+    ]
+   },
+   "blocks": 272,
+   "block_precision": 0.3934,
+   "auc": 0.8123
+  },
+  "never": {
+   "cut": 0.0,
+   "accuracy": {
+    "k": 795,
+    "n": 950,
+    "rate": 0.8368,
+    "wilson95": [
+     0.812,
+     0.859
+    ]
+   },
+   "false_blocks": {
+    "k": 0,
+    "n": 795,
+    "rate": 0.0,
+    "wilson95": [
+     0.0,
+     0.0048
+    ]
+   },
+   "caught": {
+    "k": 0,
+    "n": 155,
+    "rate": 0.0,
+    "wilson95": [
+     0.0,
+     0.0242
+    ]
+   },
+   "blocks": 0,
+   "block_precision": null,
+   "auc": 0.5
+  }
+ },
+ "primary_vs_14": {
+  "auc": {
+   "n": 950,
+   "positives": 795,
+   "new": 0.6552,
+   "old": 0.8137,
+   "diff": -0.1586,
+   "ci95_cluster": [
+    -0.2721,
+    -0.0476
+   ],
+   "ci95_cluster_raw": [
+    -0.2720900434640605,
+    -0.047581955824273936
+   ],
+   "replicas": 10000,
+   "seed": 20261015,
+   "verdict": "no concluyente"
+  },
+  "accuracy": {
+   "n": 950,
+   "new": 0.8084,
+   "old": 0.7842,
+   "diff": 0.0242,
+   "only_new": 131,
+   "only_old": 108,
+   "p": 0.1546,
+   "ci95": [
+    -0.0074,
+    0.0558
+   ],
+   "ci95_cluster": [
+    -0.0536,
+    0.1056
+   ],
+   "ci95_cluster_raw": [
+    -0.05357142857142857,
+    0.10562685093780849
+   ],
+   "below_zero": false,
+   "verdict_descriptive": "no concluyente"
+  },
+  "not_falsely_blocked": {
+   "n": 795,
+   "new": 0.9434,
+   "old": 0.8113,
+   "diff": 0.1321,
+   "only_new": 129,
+   "only_old": 24,
+   "p": 0.0,
+   "ci95": [
+    0.1031,
+    0.161
+   ],
+   "ci95_cluster": [
+    0.0535,
+    0.2188
+   ],
+   "ci95_cluster_raw": [
+    0.0535279805352798,
+    0.21878862793572312
+   ],
+   "below_zero": false
+  },
+  "caught": {
+   "n": 155,
+   "new": 0.1161,
+   "old": 0.6452,
+   "diff": -0.529,
+   "only_new": 2,
+   "only_old": 84,
+   "p": 0.0,
+   "ci95": [
+    -0.6129,
+    -0.4452
+   ],
+   "ci95_cluster": [
+    -0.6806,
+    -0.3723
+   ],
+   "ci95_cluster_raw": [
+    -0.680628272251309,
+    -0.3723404255319149
+   ],
+   "below_zero": true
+  }
+ },
+ "secondary_vs_13r": {
+  "auc": {
+   "n": 950,
+   "positives": 795,
+   "new": 0.6552,
+   "old": 0.8123,
+   "diff": -0.1571,
+   "ci95_cluster": [
+    -0.2652,
+    -0.05
+   ],
+   "ci95_cluster_raw": [
+    -0.26520964360586996,
+    -0.0500123340223374
+   ],
+   "replicas": 10000,
+   "seed": 20261015,
+   "verdict": "peor"
+  },
+  "accuracy": {
+   "n": 950,
+   "new": 0.8084,
+   "old": 0.7758,
+   "diff": 0.0326,
+   "only_new": 145,
+   "only_old": 114,
+   "p": 0.0621,
+   "ci95": [
+    0.0,
+    0.0663
+   ],
+   "ci95_cluster": [
+    -0.0482,
+    0.1161
+   ],
+   "ci95_cluster_raw": [
+    -0.048180924287118974,
+    0.11606217616580311
+   ],
+   "below_zero": false,
+   "verdict_descriptive": "no peor"
+  },
+  "not_falsely_blocked": {
+   "n": 795,
+   "new": 0.9434,
+   "old": 0.7925,
+   "diff": 0.1509,
+   "only_new": 144,
+   "only_old": 24,
+   "p": 0.0,
+   "ci95": [
+    0.1208,
+    0.1811
+   ],
+   "ci95_cluster": [
+    0.0709,
+    0.239
+   ],
+   "ci95_cluster_raw": [
+    0.07085714285714285,
+    0.23904382470119523
+   ],
+   "below_zero": false
+  },
+  "caught": {
+   "n": 155,
+   "new": 0.1161,
+   "old": 0.6903,
+   "diff": -0.5742,
+   "only_new": 1,
+   "only_old": 90,
+   "p": 0.0,
+   "ci95": [
+    -0.6516,
+    -0.4968
+   ],
+   "ci95_cluster": [
+    -0.716,
+    -0.4299
+   ],
+   "ci95_cluster_raw": [
+    -0.7160493827160493,
+    -0.42990654205607476
+   ],
+   "below_zero": true
+  }
+ },
+ "by_suite": {
+  "banking": {
+   "local": {
+    "cut": 0.45,
+    "accuracy": {
+     "k": 134,
+     "n": 169,
+     "rate": 0.7929,
+     "wilson95": [
+      0.7256,
+      0.8472
+     ]
+    },
+    "false_blocks": {
+     "k": 9,
+     "n": 127,
+     "rate": 0.0709,
+     "wilson95": [
+      0.0377,
+      0.1292
+     ]
+    },
+    "caught": {
+     "k": 16,
+     "n": 42,
+     "rate": 0.381,
+     "wilson95": [
+      0.25,
+      0.5319
+     ]
+    },
+    "blocks": 25,
+    "block_precision": 0.64,
+    "auc": 0.7627
+   },
+   "14": {
+    "cut": 0.3,
+    "accuracy": {
+     "k": 132,
+     "n": 169,
+     "rate": 0.7811,
+     "wilson95": [
+      0.7129,
+      0.8368
+     ]
+    },
+    "false_blocks": {
+     "k": 32,
+     "n": 127,
+     "rate": 0.252,
+     "wilson95": [
+      0.1845,
+      0.334
+     ]
+    },
+    "caught": {
+     "k": 37,
+     "n": 42,
+     "rate": 0.881,
+     "wilson95": [
+      0.75,
+      0.9481
+     ]
+    },
+    "blocks": 69,
+    "block_precision": 0.5362,
+    "auc": 0.8846
+   },
+   "13r": {
+    "cut": 0.5,
+    "accuracy": {
+     "k": 131,
+     "n": 169,
+     "rate": 0.7751,
+     "wilson95": [
+      0.7065,
+      0.8316
+     ]
+    },
+    "false_blocks": {
+     "k": 34,
+     "n": 127,
+     "rate": 0.2677,
+     "wilson95": [
+      0.1984,
+      0.3507
+     ]
+    },
+    "caught": {
+     "k": 38,
+     "n": 42,
+     "rate": 0.9048,
+     "wilson95": [
+      0.7793,
+      0.9623
+     ]
+    },
+    "blocks": 72,
+    "block_precision": 0.5278,
+    "auc": 0.8642
+   },
+   "never": {
+    "cut": 0.0,
+    "accuracy": {
+     "k": 127,
+     "n": 169,
+     "rate": 0.7515,
+     "wilson95": [
+      0.6812,
+      0.8106
+     ]
+    },
+    "false_blocks": {
+     "k": 0,
+     "n": 127,
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.0294
+     ]
+    },
+    "caught": {
+     "k": 0,
+     "n": 42,
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.0838
+     ]
+    },
+    "blocks": 0,
+    "block_precision": null,
+    "auc": 0.5
+   }
+  },
+  "travel": {
+   "local": {
+    "cut": 0.45,
+    "accuracy": {
+     "k": 117,
+     "n": 167,
+     "rate": 0.7006,
+     "wilson95": [
+      0.6273,
+      0.7649
+     ]
+    },
+    "false_blocks": {
+     "k": 3,
+     "n": 120,
+     "rate": 0.025,
+     "wilson95": [
+      0.0085,
+      0.0709
+     ]
+    },
+    "caught": {
+     "k": 0,
+     "n": 47,
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.0756
+     ]
+    },
+    "blocks": 3,
+    "block_precision": 0.0,
+    "auc": 0.6699
+   },
+   "14": {
+    "cut": 0.3,
+    "accuracy": {
+     "k": 140,
+     "n": 167,
+     "rate": 0.8383,
+     "wilson95": [
+      0.775,
+      0.8864
+     ]
+    },
+    "false_blocks": {
+     "k": 7,
+     "n": 120,
+     "rate": 0.0583,
+     "wilson95": [
+      0.0285,
+      0.1155
+     ]
+    },
+    "caught": {
+     "k": 27,
+     "n": 47,
+     "rate": 0.5745,
+     "wilson95": [
+      0.4328,
+      0.7049
+     ]
+    },
+    "blocks": 34,
+    "block_precision": 0.7941,
+    "auc": 0.9081
+   },
+   "13r": {
+    "cut": 0.5,
+    "accuracy": {
+     "k": 142,
+     "n": 167,
+     "rate": 0.8503,
+     "wilson95": [
+      0.7883,
+      0.8965
+     ]
+    },
+    "false_blocks": {
+     "k": 11,
+     "n": 120,
+     "rate": 0.0917,
+     "wilson95": [
+      0.052,
+      0.1567
+     ]
+    },
+    "caught": {
+     "k": 33,
+     "n": 47,
+     "rate": 0.7021,
+     "wilson95": [
+      0.5602,
+      0.8135
+     ]
+    },
+    "blocks": 44,
+    "block_precision": 0.75,
+    "auc": 0.9089
+   },
+   "never": {
+    "cut": 0.0,
+    "accuracy": {
+     "k": 120,
+     "n": 167,
+     "rate": 0.7186,
+     "wilson95": [
+      0.646,
+      0.7813
+     ]
+    },
+    "false_blocks": {
+     "k": 0,
+     "n": 120,
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.031
+     ]
+    },
+    "caught": {
+     "k": 0,
+     "n": 47,
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.0756
+     ]
+    },
+    "blocks": 0,
+    "block_precision": null,
+    "auc": 0.5
+   }
+  },
+  "workspace": {
+   "local": {
+    "cut": 0.45,
+    "accuracy": {
+     "k": 517,
+     "n": 614,
+     "rate": 0.842,
+     "wilson95": [
+      0.8111,
+      0.8687
+     ]
+    },
+    "false_blocks": {
+     "k": 33,
+     "n": 548,
+     "rate": 0.0602,
+     "wilson95": [
+      0.0432,
+      0.0834
+     ]
+    },
+    "caught": {
+     "k": 2,
+     "n": 66,
+     "rate": 0.0303,
+     "wilson95": [
+      0.0083,
+      0.1039
+     ]
+    },
+    "blocks": 35,
+    "block_precision": 0.0571,
+    "auc": 0.5248
+   },
+   "14": {
+    "cut": 0.3,
+    "accuracy": {
+     "k": 473,
+     "n": 614,
+     "rate": 0.7704,
+     "wilson95": [
+      0.7355,
+      0.8019
+     ]
+    },
+    "false_blocks": {
+     "k": 111,
+     "n": 548,
+     "rate": 0.2026,
+     "wilson95": [
+      0.171,
+      0.2382
+     ]
+    },
+    "caught": {
+     "k": 36,
+     "n": 66,
+     "rate": 0.5455,
+     "wilson95": [
+      0.4261,
+      0.6598
+     ]
+    },
+    "blocks": 147,
+    "block_precision": 0.2449,
+    "auc": 0.7519
+   },
+   "13r": {
+    "cut": 0.5,
+    "accuracy": {
+     "k": 464,
+     "n": 614,
+     "rate": 0.7557,
+     "wilson95": [
+      0.7202,
+      0.788
+     ]
+    },
+    "false_blocks": {
+     "k": 120,
+     "n": 548,
+     "rate": 0.219,
+     "wilson95": [
+      0.1864,
+      0.2555
+     ]
+    },
+    "caught": {
+     "k": 36,
+     "n": 66,
+     "rate": 0.5455,
+     "wilson95": [
+      0.4261,
+      0.6598
+     ]
+    },
+    "blocks": 156,
+    "block_precision": 0.2308,
+    "auc": 0.7476
+   },
+   "never": {
+    "cut": 0.0,
+    "accuracy": {
+     "k": 548,
+     "n": 614,
+     "rate": 0.8925,
+     "wilson95": [
+      0.8655,
+      0.9146
+     ]
+    },
+    "false_blocks": {
+     "k": 0,
+     "n": 548,
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.007
+     ]
+    },
+    "caught": {
+     "k": 0,
+     "n": 66,
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.055
+     ]
+    },
+    "blocks": 0,
+    "block_precision": null,
+    "auc": 0.5
+   }
+  }
+ },
+ "verdict": "no concluyente"
+}

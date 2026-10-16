@@ -172,7 +172,10 @@ here:
    catches 115 of 124 of them with no false alarm, so a model fitted there would show nothing
    about another source.
 
-No local classifier has been trained or measured in this repository yet.
+One has been measured: for check_done, trained on AgentDojo's labels for one suite, it ranked
+unseen suites at AUC 0.655 against Jev's 0.814 ("no concluyente" at −0.05) after reaching 0.944 on
+its own suite ([A10](results/2026-10-16-a10-local/README.md)). Labels from the setting it will
+serve are the condition, not a detail.
 
 ## Beyond text: attachments
 
