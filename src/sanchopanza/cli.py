@@ -116,15 +116,17 @@ def _plan_mcp_json(args: argparse.Namespace, settings_path: Path) -> tuple[Path,
         # would otherwise drop one into whatever directory it was run from.
         args.find = project_settings(settings_path)
         if not args.find:
+            load = ',"alwaysLoad":true' if args.find_always_load else ""
             sys.stdout.write("find_in_repo for every project: claude mcp add-json --scope user "
-                             "sanchopanza '{\"command\":\"sanchopanza\",\"args\":[\"find-mcp\"],"
-                             "\"alwaysLoad\":true}'\n")  # fmt: skip
+                             "sanchopanza '{\"command\":\"sanchopanza\",\"args\":[\"find-mcp\"]"
+                             f"{load}}}'\n")  # fmt: skip
     try:
         # A user install prints the line; with --knowledge, which reads pages itself, the fetch
         # server is not registered, as its hook is not wired.
         fetch = args.fetch and not args.knowledge and project_settings(settings_path)
         content = mcp_json_changes(target, args.lean, args.command_line, find=args.find,
-                                   find_auto=args.find_auto, fetch=fetch)  # fmt: skip
+                                   find_auto=args.find_auto, fetch=fetch,
+                                   find_always_load=args.find_always_load)  # fmt: skip
     except (ValueError, OSError) as error:
         if args.lean:
             raise
@@ -248,6 +250,16 @@ def _passages_hook(args: argparse.Namespace) -> int:
     return passages_main()
 
 
+def _warn_owner_chooser(args: argparse.Namespace, merged: dict[str, Any]) -> None:
+    """`--guard-full` never overwrites a guard chooser the owner set: say so."""
+    from .harness.install_guard import CHOOSER, FULL_CHOOSER, owner_chooser
+
+    theirs = owner_chooser(merged)
+    if args.guard and args.guard_full and theirs not in (None, FULL_CHOOSER):
+        sys.stderr.write(f"--guard-full: {CHOOSER}={theirs} is yours and was left as it is; "
+                         f"set it to {FULL_CHOOSER} for the whole-results block\n")  # fmt: skip
+
+
 def _install(args: argparse.Namespace) -> int:
     from .harness import install_knowledge
     from .harness import install_passages as passages
@@ -255,6 +267,9 @@ def _install(args: argparse.Namespace) -> int:
     from .harness.install import apply, default_path, default_plugin_root, plan, project_settings
     from .harness.install_defaults import DEFAULT_BUDGET, apply_skill, skill_change
 
+    if args.guard_mcp_post is False and args.guard_mcp_withhold:
+        sys.stderr.write("--guard-mcp-withhold needs the check --no-guard-mcp-post turns off\n")
+        return 2
     if args.memory_native and not args.memory:
         sys.stderr.write("--memory-native rides on memory's hooks: it needs --memory\n")
         return 2
@@ -273,6 +288,8 @@ def _install(args: argparse.Namespace) -> int:
         check_done=args.check_done,
         scan_shell_fetches=not args.no_shell_fetches,
         guard_mcp=args.guard_mcp,
+        guard_mcp_post=bool(args.guard_mcp_post) or args.guard_mcp_withhold,
+        mcp_post_withhold=args.guard_mcp_withhold,
         content_tools=(
             frozenset(t.strip() for t in args.content_tools.split(",") if t.strip())
             if args.content_tools
@@ -303,6 +320,7 @@ def _install(args: argparse.Namespace) -> int:
             lean=args.lean,
             guard=args.guard,
             guard_parts=args.guard_parts,
+            guard_full=args.guard_full,
             candor=args.candor,
             memory=args.memory,
             memory_native=args.memory_native,
@@ -317,6 +335,7 @@ def _install(args: argparse.Namespace) -> int:
             find_auto=args.find_auto,
             profile=args.guard_profile,
         )
+        _warn_owner_chooser(args, settings.merged)
         passages.check(args.passages, args.passages_fraction, args.passages_tokens,
                        autopilot=args.autopilot)  # fmt: skip
         settings = passages.with_passages(settings, on=args.passages,
@@ -382,8 +401,10 @@ def _install(args: argparse.Namespace) -> int:
     if args.guard:
         sys.stdout.write(
             "The compaction guard is on: Claude Code still writes its summary, and after it the "
-            "guard attaches the exact lines of command output that cannot be read again, the "
-            "files changed and your requests verbatim. It asks no model and fails open.\n"
+            "guard attaches your requests verbatim, the files changed and pointers to the earlier "
+            "tool output (what cannot be run again is archived in .sanchopanza/archive for the "
+            "agent to Read; --guard-full attaches the output itself). It asks no model and fails "
+            "open.\n"
         )
     if args.memory:
         sys.stdout.write(
@@ -911,8 +932,17 @@ def main(argv: list[str] | None = None) -> int:
         action=argparse.BooleanOptionalAction,
         default=True,
         help="keep Claude Code's own compaction summary and attach after it what summaries "
-        "drop: one-shot command output, the files changed and your requests verbatim "
-        "(classic hooks, no model; on by default, --no-guard to leave it out)",
+        "drop: your requests verbatim, the files changed and pointers to earlier output, "
+        "one-shot output archived to Read (classic hooks, no model; on by default, --no-guard "
+        "to leave it out)",
+    )
+    install.add_argument(
+        "--guard-full",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="with the guard, attach the earlier tool output itself after a compaction (up to "
+        "44,000 characters in 6 parts, SANCHOPANZA_GUARD_CHOOSER=struct) instead of pointers to "
+        "it and archived files to Read (default)",
     )
     install.add_argument(
         "--guard-parts",
@@ -920,8 +950,8 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         metavar="K",
         help="SessionStart commands the guard's block is split over, each under Claude Code's "
-        "10,000-character inline limit for a hook (default: enough for the 44,000-character "
-        "budget, 6; 1 for the single capped block)",
+        "10,000-character inline limit for a hook (default: 1, the pointer block fits one; with "
+        "--guard-full enough for its 44,000-character budget, 6)",
     )
     install.add_argument(
         "--guard-mcp",
@@ -930,6 +960,22 @@ def main(argv: list[str] | None = None) -> int:
         help="judge MCP tool calls before they run: the decision model reads the session so far "
         "and the pending call and denies what a careful operator would stop (one paid decision "
         "per call; off by default: measured, not confirmed, docs/results/2026-10-16-a3-mcp)",
+    )
+    install.add_argument(
+        "--guard-mcp-post",
+        action=argparse.BooleanOptionalAction,
+        default=None,  # None: not given (so --guard-mcp-withhold can imply it); off
+        help="judge what an MCP call returned, after it ran: the same question with the result "
+        "last; a flag blocks with a reason for Claude and a notice for you (it cannot undo the "
+        "call; one paid decision per result; off by default: its development lot W17 did not "
+        "license a confirmation)",
+    )
+    install.add_argument(
+        "--guard-mcp-withhold",
+        action="store_true",
+        help="with --guard-mcp-post (implied), also replace a flagged MCP result before Claude "
+        "reads it; another hook entry that rewrites the same MCP tool's result (the crawl echo "
+        "cut) runs in parallel and can still override the replacement",
     )
     install.add_argument(
         "--guard-profile",
@@ -952,6 +998,13 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="register the find_in_repo MCP server in the project's .mcp.json (on by default for "
         "a project or local install; a user install prints the `claude mcp add` line instead)",
+    )
+    install.add_argument(
+        "--find-always-load",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="with find, load its schema in every request (alwaysLoad) instead of leaving it "
+        "behind Claude Code's tool search, where the model loads it when it wants it (default)",
     )
     install.add_argument(
         "--find-nudge",

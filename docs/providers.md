@@ -21,6 +21,7 @@ For `Choice`, the provider's own confidence if it has one, else top minus runner
 | Name | Class | What it is for | Confidence is |
 |---|---|---|---|
 | `jev` | `JevDecider` | TypeSafe Jev over HTTP; the model the paper measures | a property of the output distribution |
+| `openai-decisions` | `OpenAIDecisionsClient` behind `CappedDecider` | OpenAI's Decisions API (`/v1/decisions`, `gpt-6-luna`, public beta since 2026-10-06). **Written against OpenAI's guide and tested on a mock of its examples; never called, never measured here** (see below). Reads `OPENAI_API_KEY`; refuses past a ledger every process shares, 0.50 USD in all by default | the provider's own for Choice and Score; |2p - 1| for Truth, as everywhere |
 | `recorded` | `RecordedDecider` | replay of real decisions; tests, dry runs, CI | recorded |
 | `null` | `NullDecider` | no provider; every policy uses its default | none |
 | `clm` | `JevDecider` | CLM-8B (Contrastive-LM, Apache-2.0) behind its self-hosted `clm-serve`, which speaks Jev's wire format. **Run against a real server** on 2026-09-30, on a CPU encoder (transformers, float32) instead of the reference vLLM on NVIDIA: it works end to end, but zero-shot on sanchopanza's benches it agrees far less than Jev (injection 12/28 against 27/28, routing 3/20 against 14/20) and its probabilities do not separate the classes (`results/2026-09-30-clm-cpu/`). Needs its heads trained before it can stand in for Jev; pass `timeout_s` high on a CPU | CLM's own probabilities; zero-shot, measured not to separate on these questions |
@@ -75,10 +76,38 @@ For an LLM you do not have a completer for, write `async def complete(system, us
 
   decider = create("llm", complete=openai_completer(key, "gpt-6-luna"), model="gpt-6-luna")
   ```
-- **The Decisions API (DevDay, 2026-09-29) is not supported yet.** `/v1/decisions` exists but
-  answers "Decision API is not enabled for this user" to an account outside the limited
-  preview, and neither a request format nor SDK support is public. A provider will be written
-  against the documented format once there is one, and measured before it is recommended.
+- **The Decisions API: an adapter, not a result.** On 2026-09-30 `/v1/decisions` answered
+  "Decision API is not enabled for this user" to an account outside the limited preview; it
+  opened as a public beta on 2026-10-06, with a guide
+  (developers.openai.com/api/docs/guides/decisions). `create("openai-decisions")`
+  (`providers/openai_decisions.py`) is written against that guide: `Truth` is a `predicate`
+  (its criteria go into the instructions, since a predicate has no criteria field), `Choice` a
+  `choice` with `{value, description}` per option, `Score` a `score` with `{label, description}`
+  per level, lowest first; a `refusal` answer is left out, so the policy uses its default; `Box`
+  and attachments are refused before any request. Price per the guide: 0.10 USD per million
+  input tokens and nothing else (2.4x Jev's 0.042); past 272k input tokens a secondary source
+  gives double the rate, which the adapter applies on the safe side.
+
+  ```python
+  decider = create("openai-decisions", max_usd=0.50)   # OPENAI_API_KEY; the ledger's total
+  ```
+
+  What is not known: the API reference page was not readable on 2026-10-16, so error bodies,
+  limits per request and rate limits come from no official source; the tests stand on a mock
+  of the guide's illustrative answers. Nothing in this repository has asked it a question, so
+  nothing says whether its probabilities are calibrated on these points, and every threshold in
+  `policy.py` was set against Jev: measure it on your own cases (`sanchopanza bench ... --provider
+  openai-decisions --record ...`) before trusting a cut. An out-of-quota answer (429
+  `insufficient_quota`, or 402) trips the same shared breaker as Jev's 402 and is not retried.
+  `create` never returns it uncapped: the client sits behind `CappedDecider` on a ledger every
+  process on the machine shares (`<home>/funds/openai-decisions-ledger.jsonl`, or
+  `SANCHOPANZA_OPENAI_DECISIONS_LEDGER`), so the cap holds across Claude Code's hook processes
+  too (`SANCHOPANZA_PROVIDER=openai-decisions` works there). Each call is reserved at a
+  pessimistic estimate (three characters a token) before it is made and settled at its reported
+  cost, at the estimate when no token count comes back or the call was cut. The ledger's total
+  (`max_usd`, `SANCHOPANZA_OPENAI_DECISIONS_MAX_USD`, 0.50 USD by default) does not reset by
+  itself. Only a rate-limit 429 is retried; a 5xx is not repeated, since it may have been billed.
+  A budget on the OpenAI account itself is still the outer limit.
 
 ## Results answered by a generative model
 
@@ -125,6 +154,23 @@ labels, a small supervised model behind the same contract can replace it where i
 your hardware, in ten milliseconds. Nothing above `Decider` changes. That is what "plug and
 play" means here.
 
+**A local classifier is one more provider, not a replacement for any.** It plugs in as a
+`LocalDecider` handler and sits in front of a hosted one through `FallbackDecider` or
+`RoutedDecider`, for one point or as an offline fallback. Two rules hold for anything trained
+here:
+
+1. **Train only on labels of your own or a public benchmark's, never on a hosted model's
+   answers.** TypeSafe's terms (MCA 2.3(b)) forbid training on Jev's outputs, and a recording
+   (`fixtures/*.jsonl`, the journal's probabilities) is Jev's output. The journal's *outcomes*
+   (what happened after the decision) are your labels; its probabilities are not.
+2. **Measure it on data it was not trained on, against the provider it would stand in for.**
+   Labels by construction can teach a template rather than the question: AgentDojo's 273
+   injection texts (124 injected) differ only by a templated payload, and the free keyword layer already
+   catches 115 of 124 of them with no false alarm, so a model fitted there would show nothing
+   about another source.
+
+No local classifier has been trained or measured in this repository yet.
+
 ## Beyond text: attachments
 
 `state` may carry a `sanchopanza.media.Attachment` at any depth, and the questions do not
@@ -145,11 +191,14 @@ vision = LocalDecider({"error_state": shows_an_error_state})
 decider = RoutedDecider({"screenshot": vision}, default=create("jev"))
 ```
 
-**What does not exist, as of 2026-09-24.** No vendor sells a calibrated, non-generative
-decision model that reads an image. TypeSafe's own documentation is explicit about the model
-this package was built against: *"Jev accepts text only. State must be a string, JSON object,
-or array of text values. Images, audio, and video are not supported (yet)."* The managed
-image classifiers are not substitutes for a calibrated decider and it is worth knowing why:
+**What exists, as of 2026-10-16.** Two hosted decision models read images: Jev, behind
+TypeSafe's opt-in images header since 1.14 (PNG and JPEG, `JevDecider(images=True)`), and
+OpenAI's Decisions API (inline base64 images; not wired in `openai-decisions` yet). Neither one's
+calibration over images is measured here: with images, Jev 1.14 was no worse than 1.13, and the
+screenshot did not beat the text ranking for `browse`
+([L5](results/2026-10-15-jev114-l5/README.md)). On 2026-09-24 no vendor sold one, and the
+managed image classifiers are still not substitutes for a calibrated decider. It is worth
+knowing why:
 
 | | Score it returns | Calibration published |
 |---|---|---|

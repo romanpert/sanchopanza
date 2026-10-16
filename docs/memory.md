@@ -46,7 +46,8 @@ Five Claude Code command hooks, all `sanchopanza memory-hook`, are in
 writes one record per finished request (`context/episodes.py`). The record is built by code, and
 no model writes or summarises it. It holds:
 
-- the person's prompt, verbatim, up to 1,000 characters;
+- the person's prompt, verbatim, up to 1,000 characters (a longer prompt keeps its head and its
+  tail, each cut at a sentence end; secrets are masked over the whole prompt first);
 - the agent's final message, verbatim, up to 1,200 characters;
 - the files the request changed and the files it read (up to 12 each), and its last test run;
 - a few lines of one-shot command output (up to 800 characters);
@@ -167,11 +168,16 @@ request and no paste.
 
 What F2 did not test:
 
-- **A bare "continue."** By the code above, a line that names no file earlier work changed
-  gives no record at the prompt, and the agent then gets one only when it opens or writes such
-  a file. Naming the feature, or the module, is the safer habit.
-- **A plan longer than the record keeps.** The record keeps the prompt up to 1,000 characters.
-  Every F2 prompt was under 760.
+- **A bare "continue."** F2's lines named the feature. Since 0.3.2 a session's first prompt that
+  only says to go on ("continue", "let's carry on", "seguimos", "where did we leave off?") gets
+  the latest record of the project's newest finished session younger than 7 days, by code
+  (`SANCHOPANZA_MEMORY_CONTINUE=off`, `SANCHOPANZA_MEMORY_CONTINUE_DAYS`); replayed on F2's
+  recorded decisions, the record then arrives at the prompt in every arm (48 of 48 Sonnet, 24 of
+  24 Opus, against 36 and 18 when the line had to name a changed file), with the same Jev calls
+  ([replay](results/2026-10-16-memory-c8-replay/)). Not measured live.
+- **A plan longer than the record keeps.** The record keeps the prompt's head and tail within
+  1,000 characters, so a plan in the middle of a long pasted prompt can still be lost. Every F2
+  prompt was under 760.
 - **Real use.** F2 ran headless, in a clean Claude Code configuration (no `CLAUDE.md` or
   settings of your own), with nobody answering the agent's questions.
 
@@ -230,11 +236,16 @@ start and reads the note when it chooses to.
   Its files are readable by this user only (mode 600 where the file system has modes).
   - Records hold prompts, the agent's final messages and lines of command output, verbatim.
   - Secret-looking strings are masked before a record is written.
-  - Records older than 30 days are removed when a newer record is saved.
-  - The standing rules (the 60 newest) are in `rules.json` in the same folder. Today that
-    cleanup also removes `rules.json` when the file has not been rewritten for 30 days.
+  - Records older than 30 days are removed when a newer record is saved. That cleanup, and
+    loading, match only record files (`<session>-<NNN>.json`).
+  - The standing rules (the 60 newest) are in `rules.json` in the same folder. The cleanup
+    keeps it, and keeps `adopted.json`, however old.
   - Deleting the folder forgets the project.
-- **Sent to the decider (TypeSafe's Jev), with secrets redacted:**
+- **Sent to the decider, with secrets redacted.** The hooks pick their decider as
+  `sanchopanza hook` does: the provider `SANCHOPANZA_PROVIDER` names, or Jev when it is unset and
+  `TYPESAFE_API_KEY` is set. With neither (or `null`), nothing is sent: memory records and gives
+  records back by code only, so no standing rules are stored and nothing is recalled at the
+  prompt. With a decider:
   - at `Stop`, each sentence of the prompt with up to 1,500 characters of the prompt around it;
   - at a first prompt, the prompt and up to 5 record pages (files, request and the agent's final
     message, 880 characters each).

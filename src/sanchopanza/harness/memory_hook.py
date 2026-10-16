@@ -65,6 +65,11 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
                              when it cannot (`memory_window`; opt-in here: on records it
                              was worse on noise, docs/results/2026-10-16-memgate-hook; the
                              library gate `memory_gate.gate` defaults to long)
+    MEMORY_CONTINUE          on (default) | off: a session's very first prompt that only says to
+                             go on ("let's continue with ...", "resume") gets, by code, the
+                             newest record of the newest session not still at work
+                             (`memory_recall.continued`; docs/results/2026-10-16-memory-c8-replay)
+    MEMORY_CONTINUE_DAYS     how old that record may be, in days (default 7)
 
 Cost: the touch calls no model; at most one decider call at a session's first prompt (two with
 `MEMORY_WINDOW=long` when the long call falls back and the pages are judged after it).

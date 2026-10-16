@@ -111,13 +111,24 @@ class Guard:
     chooser: str
     clipped: tuple[str, ...] = ()  # outputs the harness cut before the model saw them
     # "lines": value lines of one-shot output (the rule and the decider choosers); "results":
-    # whole tool results chosen by structure (`context.structural`), with `pointers` to re-read
+    # whole tool results chosen by structure (`context.structural`), with `pointers` to re-read;
+    # "pointers": no output at all, pointers only, archived files for what cannot be had again
+    # (`context.pointers`)
     kind: str = "lines"
     pointers: tuple[str, ...] = ()  # results left out that can be had again, named for re-reading
+    archive: str = ""  # the pointer block's session folder, named once in the block
+    archived_more: int = 0  # outputs archived there but not listed (no room)
 
     @property
     def empty(self) -> bool:
-        return not (self.facts or self.requests or self.trail or self.clipped or self.pointers)
+        return not (
+            self.facts
+            or self.requests
+            or self.trail
+            or self.clipped
+            or self.pointers
+            or self.archived_more
+        )
 
 
 # ---- which calls, and which of their lines ----------------------------------------------------
@@ -657,6 +668,53 @@ POINTERS_HEADING = (
     "Left out for room, and can be had again (read, search, fetch or run it again before "
     "relying on it; newest first):"
 )
+# The pointer block's (`context.pointers`): no output is repeated, every pointer says where it is.
+ARCHIVED_HEADING = (
+    "Tool output from before the compaction, not repeated here (newest first); read, search, "
+    "fetch or run a line again before relying on it."
+)
+ARCHIVE_NOTE = (
+    "Output that cannot be had again is archived whole, secrets masked, in {folder}: for a line "
+    "that ends in a guard-*.txt name, Read that file in this folder."
+)
+REQUESTS_HEADING = "The person's requests, verbatim (latest last):"
+
+
+def quoted(path: str) -> str:
+    """A path as the block names it: in double quotes, so one with spaces reads whole."""
+    return f'"{path}"'
+
+
+def pointer_block(guard: Guard, header: str = HEADER) -> str:
+    """The pointer block (`context.pointers`): the requests first, so they stay in the part of
+    the text Claude Code previews if the block ever passes its inline limit; then the work so
+    far, the outputs the harness cut, and the pointers under the archive folder, named once."""
+    parts = [header]
+    if guard.requests:
+        parts.append(REQUESTS_HEADING)
+        parts.extend(f"<<<request\n{request}\n>>>" for request in guard.requests)
+    if guard.trail:
+        parts.append("Work so far:")
+        parts.extend(f"  {line}" for line in guard.trail)
+    if guard.clipped:
+        parts.append(CLIPPED_HEADING)
+        parts.extend(f"  {line}" for line in guard.clipped)
+    if guard.pointers or guard.archived_more:
+        parts.append(ARCHIVED_HEADING)
+        if guard.archive:
+            parts.append(ARCHIVE_NOTE.format(folder=quoted(guard.archive)))
+        parts.extend(f"  {pointer}" for pointer in guard.pointers)
+        if guard.archived_more:
+            parts.append(f"  {guard.archived_more} more archived in the folder above "
+                         "(Glob guard-*.txt there)")  # fmt: skip
+    parts.append(CLOSING)
+    return "\n".join(parts)
+
+
+CLIPPED_HEADING = (
+    "Cut by the harness before it reached the conversation: the middle of these outputs was "
+    "never seen, and neither the summary nor this note holds it:"
+)
 
 
 def block(guard: Guard, header: str = HEADER) -> str:
@@ -664,6 +722,8 @@ def block(guard: Guard, header: str = HEADER) -> str:
     first line (a part of a split block names itself there, `context.parts`)."""
     if guard.empty:
         return ""
+    if guard.kind == "pointers":
+        return pointer_block(guard, header)
     parts = [header]
     if guard.facts:
         parts.append(RESULTS_HEADING if guard.kind == "results" else LINES_HEADING)
@@ -676,16 +736,13 @@ def block(guard: Guard, header: str = HEADER) -> str:
         parts.append(POINTERS_HEADING)
         parts.extend(f"  {pointer}" for pointer in guard.pointers)
     if guard.clipped:
-        parts.append(
-            "Cut by the harness before it reached the conversation: the middle of these outputs "
-            "was never seen, and neither the summary nor this note holds it:"
-        )
+        parts.append(CLIPPED_HEADING)
         parts.extend(f"  {line}" for line in guard.clipped)
     if guard.trail:
         parts.append("Work so far:")
         parts.extend(f"  {line}" for line in guard.trail)
     if guard.requests:
-        parts.append("The person's requests, verbatim (latest last):")
+        parts.append(REQUESTS_HEADING)
         parts.extend(f"<<<request\n{request}\n>>>" for request in guard.requests)
     parts.append(CLOSING)
     return "\n".join(parts)
@@ -708,11 +765,21 @@ INSTRUCTIONS_RESULTS = (
 )
 
 
+INSTRUCTIONS_POINTERS = (
+    "The harness will attach, right after your summary, the person's requests verbatim, the "
+    "files changed and pointers to the earlier tool output (archived files to Read for output "
+    "that cannot be had again). Do not spend the summary copying those. Spend it on what they do "
+    "not carry: why each step was taken, what was tried and failed, decisions and their reasons, "
+    "the exact values the next steps depend on, and exactly what remains to do."
+)
+
+
 def instructions(guard: Guard) -> str:
     """The `PreCompact` output: a note for the summariser. Empty when nothing will be attached."""
     if guard.empty:
         return ""
-    return INSTRUCTIONS_RESULTS if guard.kind == "results" else INSTRUCTIONS
+    notes = {"results": INSTRUCTIONS_RESULTS, "pointers": INSTRUCTIONS_POINTERS}
+    return notes.get(guard.kind, INSTRUCTIONS)
 
 
 def contains(text: str, value: str) -> bool:

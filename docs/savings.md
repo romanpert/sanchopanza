@@ -12,20 +12,31 @@ agent loop that saving did not appear, and on a fixed fetch sequence it was paid
 answers. The end-to-end percentages quoted here belong to wiring: narrowing a tool catalog
 once, and the estimated cost of a tool window.
 
+**The two measured substitutions.** Where a decision replaces the expensive model's work
+rather than trimming its context, the saving was measured end to end. On 162 fresh LongBench v2
+tasks, pre-registered, Jev answering the 37 % where its top choice reached 0.6
+(`points.longdoc`, opt-in) saved **33.9 % [24.0, 44.0]** of Sonnet 5.5's cost and **29.5 %
+[21.7, 37.7]** of Opus 5.5's, no worse at −10 points against either
+([lb162](results/2026-10-15-lb162/README.md), [lb162x](results/2026-10-16-lb162x/README.md)).
+On Sonnet 5.5, memory instead of the handoff ritual cost **0.92x [0.85, 0.95]** the ritual,
+48 of 48 next steps against 44 of 48 ([F2](results/2026-10-16-memory-f2/README.md)). Each is
+one workload; neither is a saving figure for the package as a whole.
+
 | Model | Input $/MTok | Output $/MTok |
 |---|---|---|
 | Claude Opus 5 | 5.00 | 25.00 |
 | Claude Sonnet 5 | 2.00 | 10.00 |
 | Claude Haiku 4.5 | 1.00 | 5.00 |
-| Jev 1.13 (the decision model) | 0.042 | free |
+| Jev 1.13 (the decision model every figure here was measured with) | 0.042 | free |
+| OpenAI Decisions API, `gpt-6-luna` (an adapter, not measured here) | 0.10 | free |
 
 ## Measured: what the decision layer costs
 
 The public bench is 227 decisions over 154,886 input tokens (the plan's 56 pairwise calls are
 counted apart),
 and it cost **0.0065 USD**. That is **28.7 millionths of a
-dollar per call** on these short single-question states, output included, because this
-model's output is free. A real decision request carries about twelve questions and costs a
+dollar per call** on these short single-question states, output included, because Jev's
+output is free. A real decision request carries about twelve questions and costs a
 median of 71 millionths and a mean of 167; a request with one Choice costs about 30, with one
 Truth about 101, with one Score about 355.
 

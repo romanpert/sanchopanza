@@ -59,7 +59,7 @@ def test_the_kind_help_leads_with_code_and_keeps_the_other_kinds() -> None:
 
 def test_the_server_carries_the_same_rule_as_instructions(tmp_path: Path) -> None:
     _, server = _find_tool(tmp_path)
-    assert server.instructions == mcp.FIND_INSTRUCTIONS
+    assert server.instructions == mcp.find_instructions("sanchopanza-archive")
     text = mcp.FIND_INSTRUCTIONS.lower()
     assert "find_in_repo" in text and "behaviour" in text and "grep" in text
 

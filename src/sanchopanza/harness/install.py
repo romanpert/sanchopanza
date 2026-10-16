@@ -57,13 +57,16 @@ and the approval are owned by the flag: a run without it removes them, and our e
 `.mcp.json`.
 
 `--guard` wires the compaction guard (`harness.guard_hook`, `sanchopanza guard-hook`): three
-command hooks that leave Claude Code's own summary in charge and attach, after it, the exact
-lines of command output that cannot be read again, the files changed and the person's requests
-verbatim (`PreCompact` on `manual|auto`, `SessionStart` on `compact`, `PostToolUse` on `Bash`
-for the re-run echo). Classic hooks, no plugin and no early-access flag. The `SessionStart` entry
-holds K commands, one part of the block each, because Claude Code keeps each hook's context
-inline only up to 10,000 characters (`harness.install_guard`; `--guard-parts`, 6 by default).
-Our entries are recognised by their command, and a run without the flag takes them out.
+command hooks that leave Claude Code's own summary in charge and attach, after it, the person's
+requests verbatim, the files changed and pointers to the earlier tool output, with the output
+that cannot be had again archived whole beside the project for the agent to Read
+(`context.pointers`; `PreCompact` on `manual|auto`, `SessionStart` on `compact`, `PostToolUse` on
+`Bash` for the re-run echo). Classic hooks, no plugin and no early-access flag. `--guard-full`
+attaches the whole tool output instead (`context.structural`, the default from 2026-10-05 to
+2026-10-16): the `SessionStart` entry then holds K commands, one part of the block each, because
+Claude Code keeps each hook's context inline only up to 10,000 characters
+(`harness.install_guard`; `--guard-parts`, 6 with `--guard-full`, 1 otherwise). Our entries are
+recognised by their command, and a run without the flag takes them out.
 
 `--memory` wires memory between requests and sessions (`harness.memory_hook`,
 `sanchopanza memory-hook`): `Stop` and `SessionEnd` record each finished request verbatim, by
@@ -110,11 +113,21 @@ pending call, and denies at `T_ACTION_STOP` (`harness.mcp_guard`, roadmap A3). O
 per judged call; our own servers and those in `SANCHOPANZA_GUARD_MCP_SKIP` are not judged. Off
 by default until docs/results/2026-10-16-a3-mcp gives its verdict; owned by the flag.
 
+`--guard-mcp-post` adds every MCP tool to the PostToolUse matcher (anchored the same way) and
+writes `SANCHOPANZA_GUARD_MCP_POST=1`: once an MCP call has returned, the hook asks the same
+point with the result last and, at `T_ACTION_RESULT_STOP`, answers `decision: block` with a
+reason for the model and a notice for the operator. It cannot undo the call. `--guard-mcp-withhold`
+(which implies it) writes `withhold`: the flagged result is also replaced before the model reads
+it (`updatedMCPToolOutput`, MCP tools only). One paid decision per judged result; independent of
+`--guard-mcp`; off by default: its development lot W17 (benchmarks/a3_mcp/w17_prereg.md)
+did not license a fresh-data confirmation (more unsafe caught, more safe flagged than allowed).
+
 The one decision worth understanding is `--scan-content`, which is off unless asked for. It
 adds a PostToolUse scan of arriving content for instructions aimed at the model. That is a
-detection control and not a barrier - by PostToolUse the bytes are in the transcript and the
-harness offers no way to replace a tool result - so it warns the operator, names the passage
-as data in front of the model, and journals the event. `points.injection` argues the case.
+detection control and not a barrier - it leaves the result as it is, so the text reaches the
+model (Claude Code 2.1.287 lets a PostToolUse hook replace a result, which only
+`--guard-mcp-withhold` uses) - so it warns the operator, names the passage as data in front of
+the model, and journals the event. `points.injection` argues the case.
 """
 
 from __future__ import annotations
@@ -122,7 +135,6 @@ from __future__ import annotations
 import contextlib
 import json
 import os
-import re
 import shutil
 import tempfile
 import time
@@ -149,7 +161,7 @@ from .install_defaults import (
 )
 from .install_guard import GUARD_COMMAND as GUARD_COMMAND
 from .install_guard import GUARD_HOOKS as GUARD_HOOKS
-from .install_guard import default_guard_parts, merge_guard
+from .install_guard import default_guard_parts, merge_guard, merge_guard_chooser
 
 # The hook-set machinery and the browse sets live in `install_hooks`. The names below are
 # re-exported because sealed benchmarks and tests import them from here.
@@ -211,8 +223,9 @@ LEAN_ENV = {
 ARCHIVE_SERVER = "sanchopanza-archive"
 MCP_JSON = ".mcp.json"
 APPROVED = "enabledMcpjsonServers"
-# Owned by `--scan-content`, `--check-done` and `--guard-mcp`: removed by a run without them.
-_SCAN = ("SCAN_CONTENT", "CONTENT_TOOLS", "CHECK_DONE", "GUARD_MCP")
+# Owned by `--scan-content`, `--check-done`, `--guard-mcp` and `--guard-mcp-post`: removed by a
+# run without them.
+_SCAN = ("SCAN_CONTENT", "CONTENT_TOOLS", "CHECK_DONE", "GUARD_MCP", "GUARD_MCP_POST")
 SCAN_ENV = tuple(key for name in _SCAN for key in _env.names(name))
 # New spelling -> old spelling, for every variable this module writes.
 _LEGACY = {
@@ -234,25 +247,21 @@ class Settings:
         return bool(self.added or self.removed)
 
 
-def _pattern(names: frozenset[str]) -> str:
-    # Claude Code (2.1.287) reads a matcher of only letters, digits, `_` and `|` as exact names
-    # and anything else as an unanchored regex. Escaped, a name with a `.` or a `+` in it
-    # turns the matcher into a regex that still means that name; it is unanchored then, and
-    # matches longer names that hold it (`claude_agent_sdk.pre_matcher` anchors its own).
-    return "|".join(re.escape(name) for name in sorted(names))
-
-
 def matchers(config: HarnessConfig, *, autopilot: bool = False) -> dict[str, str]:
-    """Event -> matcher regex, derived from the config rather than written twice."""
-    from .claude_agent_sdk import pre_matcher
+    """Event -> matcher regex, derived from the config rather than written twice.
 
-    post = config.after_tools()
+    Claude Code (2.1.287) reads a matcher of only letters, digits, `_` and `|` as exact names
+    and anything else as an unanchored regex. Escaped, a name with a `.` or a `+` in it turns
+    the matcher into a regex that still means that name; it is unanchored then, and matches
+    longer names that hold it (`claude_agent_sdk.pre_matcher` anchors its own with MCP)."""
+    from .claude_agent_sdk import post_matcher, pre_matcher
+
     # Stop and UserPromptSubmit take no tool matcher; "*" matches every one. Empty means: not
     # wired (and removed). The autopilot sees every tool result: which to cut is per call.
-    # With the MCP guard, every MCP tool: which of them it judges is per call too.
+    # With the MCP guard (before or after the call), every MCP tool: which it judges is per call.
     return {
         "PreToolUse": pre_matcher(config),
-        "PostToolUse": "*" if autopilot else _pattern(post),
+        "PostToolUse": "*" if autopilot else post_matcher(config),
         "Stop": "*" if config.check_done else "",
         "UserPromptSubmit": "*" if autopilot else "",
     }
@@ -279,6 +288,8 @@ def environment(
         env["SANCHOPANZA_CHECK_DONE"] = "1"
     if config.guard_mcp:
         env["SANCHOPANZA_GUARD_MCP"] = "1"
+    if config.guard_mcp_post:
+        env["SANCHOPANZA_GUARD_MCP_POST"] = "withhold" if config.mcp_post_withhold else "1"
     if config.scan_content:
         env["SANCHOPANZA_SCAN_CONTENT"] = "1"
         if config.content_tools != HarnessConfig().content_tools:
@@ -402,10 +413,14 @@ def _merge_compact(
 
 
 def _merge_guard(
-    merged: dict[str, Any], on: bool, parts: int | None = None
+    merged: dict[str, Any], on: bool, parts: int | None = None, full: bool = False
 ) -> tuple[dict[str, Any], list[str], list[str]]:
-    """The compaction guard's hooks (`--guard`), its block split in `parts` (None: the default)."""
-    return merge_guard(merged, on, default_guard_parts() if parts is None else parts)
+    """The compaction guard's hooks (`--guard`), its block split in `parts` (None: the default
+    for the block), the pointer block by default and the whole-results one with `full`."""
+    merged, added, removed = merge_guard(merged, on, default_guard_parts(full and on)
+                                         if parts is None else parts)  # fmt: skip
+    merged, plus, minus = merge_guard_chooser(merged, full and on)
+    return merged, [*added, *plus], [*removed, *minus]
 
 
 def _merge_memory(
@@ -502,6 +517,7 @@ def mcp_json_changes(
     find: bool = False,
     find_auto: bool = False,
     fetch: bool = False,
+    find_always_load: bool = False,
 ) -> dict[str, Any] | None:
     """The new `.mcp.json` content, or None when nothing changes. Only our entries are touched.
 
@@ -509,7 +525,11 @@ def mcp_json_changes(
     overwritten. Otherwise the file is only looked at to take our entries out: one that is
     missing, unreadable or malformed holds nothing of ours, so it is left alone and never fails
     the install."""
-    find_entry = find_server_entry(portable_command(command), auto=find_auto) if find else None
+    find_entry = (
+        find_server_entry(portable_command(command), auto=find_auto, always_load=find_always_load)
+        if find
+        else None
+    )
     fetch_entry = fetch_server_entry(portable_command(command)) if fetch else None
     wanted = {ARCHIVE_SERVER: archive_server_entry(command) if lean else None,
               FIND_SERVER: find_entry,
@@ -643,6 +663,7 @@ def _merge(
     knowledge: bool = False,
     knowledge_server: bool = False,
     guard_parts: int | None = None,
+    guard_full: bool = False,
     memory_native: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
@@ -668,7 +689,7 @@ def _merge(
         added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_compact(merged, compact_root)
     added, removed = [*added, *plus], [*removed, *minus]
-    merged, plus, minus = _merge_guard(merged, guard, guard_parts)
+    merged, plus, minus = _merge_guard(merged, guard, guard_parts, guard_full)
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_candor(merged, candor)
     added, removed = [*added, *plus], [*removed, *minus]
@@ -729,6 +750,7 @@ def plan(
     fetch: bool = False,
     knowledge: bool = False,
     guard_parts: int | None = None,
+    guard_full: bool = False,
     memory_native: bool = False,
 ) -> Settings:
     current: Any = {}
@@ -756,6 +778,7 @@ def plan(
         lean=lean,
         guard=guard,
         guard_parts=guard_parts,
+        guard_full=guard_full,
         candor=candor,
         memory=memory,
         memory_native=memory_native,

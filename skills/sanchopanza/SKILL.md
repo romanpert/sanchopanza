@@ -7,7 +7,13 @@ description: Add a calibrated, non-generative decision layer to an agent harness
 
 `sanchopanza` puts the procedural decisions of an agent loop on a model that returns a
 typed choice, a scale position or a probability, never text. The knight thinks; the squire
-reads. Install with `pip install sanchopanza[jev]`, import as `sanchopanza`.
+reads. It is not on PyPI: install from the repository with
+`pip install "sanchopanza[jev] @ git+https://github.com/romanpert/sanchopanza"` (`sancho` on
+PyPI is an unrelated package), and import as `sanchopanza`.
+
+The decision model sits behind one `Decider` contract. TypeSafe's Jev is the provider every
+figure below was measured with; it is one adapter among several, and the thresholds were set
+against it.
 
 Everything below has a measurement behind it or says that it does not.
 
@@ -93,7 +99,9 @@ See `docs/savings.md` and `docs/where-it-pays.md` in the repository.
 | Skip a generative extraction call on a chunk with nothing in it | `gate_extraction` | 15/16, AUC 1.00 |
 | Check a proposed triple before it enters a graph | `verify_edge` | 31/38 when deciding on 50 cases; 17 committed and 1 of them backwards, with the earlier wording. The `direction` question by roles, default since the fifth batch, caught 10 of 12 reversed edges against 5 with no wrong commit on 30 new cases. A filter in front of a person, not an autonomous committer |
 | Drop a source that repeats what you already have | `triage_redundant` | 116/125, AUC 1.00, at a threshold derived to a 90 % precision target (0.59) |
-| Find the files and lines of a repository a request needs | `select` over `context.repo` fragments; the `find_in_repo` MCP tool | On 117 SWE-bench Verified issues, pre-registered, the gold patch's files as the label: a gold file first in 51.3 % and in the top five in 65.0 %, against 13.7 % and 35.0 % for whole-file BM25, at 0.0016 USD per issue; without a key the fragments alone reach 42.7 % at five (docs/results/2026-09-29-find/). Retrieval only: agent success with it is unmeasured |
+| Find the files and lines of a repository a request needs | `select` over `context.repo` fragments; the `find_in_repo` MCP tool | On 117 SWE-bench Verified issues, pre-registered, the gold patch's files as the label: a gold file first in 51.3 % and in the top five in 65.0 %, against 13.7 % and 35.0 % for whole-file BM25, at 0.0016 USD per issue; without a key the fragments alone reach 42.7 % at five (docs/results/2026-09-29-find/). Offered to Haiku 4.5 in Claude Code without being named, it was called in 6 of 27 sessions and the first file was right in 17 against 16 without it: no effect detectable at that adoption (docs/results/2026-09-30-find-e2e/). Imposing it could save at most 3.05 % [2.36, 3.78] of Sonnet 5.5's cost, a ceiling over 19 recorded long-chain sessions (docs/results/2026-10-16-a6-ceiling/) |
+| Answer a multiple-choice question over one long document, or hand it to the expensive model | `points.longdoc.answer` (opt-in; the `ask_document` MCP tool) | LongBench v2, 162 fresh tasks: Jev 1.14 with the long window answers when its top choice is ≥ 0.6 (37 %, 60 of 162) and escalates the rest. Against Sonnet 5.5 alone +1.2 points [−3.1, +5.6], no worse at the sealed −10 margin, 33.9 % [24.0, 44.0] of Sonnet's cost saved (docs/results/2026-10-15-lb162/); against Opus 5.5 alone −3.7 [−8.0, +0.6], no worse at −10, 29.5 % [21.7, 37.7] of Opus's cost saved, though Opus was right more often on the covered tasks, 37 against 31 of 60 (docs/results/2026-10-16-lb162x/). Measured only on four-option questions over documents of more than 100,000 characters |
+| Carry what a person said, and what comes next, across Claude Code sessions | memory hooks, on by default in `sanchopanza install` (`--no-memory` leaves them out) | On Sonnet 5.5 against clean Claude Code, a fact said in a parallel session or sibling worktree was broken in 0 of 24 pairs against 11, at 1.12x the cost (median per pair; docs/results/2026-10-13-memory-cell/). F2: a new session started with one line naming the work finished the next step in 48 of 48 triples, against 44 with the handoff ritual and 4 with the line alone, at 0.92x [0.85, 0.95] the ritual's cost; on Opus 5.5 no room, S 22, ritual 17, line alone 21 of 24 (docs/results/2026-10-16-memory-f2/) |
 | Hold the agent's final report against what it did, and stop it for a person | `candor.check_record`; the candor hook and its sticky lock | With the four-line status block: 95-96 % of model-written misstatements stopped over two confirmation rounds, 0 of 237 honest sessions stopped, no model call. Misreports the record cannot show (a silent failure, a truncated file, a check that could not run): 0 of 22 with v3; v4, which reads the disk and errors a successful call printed, stopped 6 of 8 on round 4's new sessions (105/105 misstatements, 1/61 honest), and still misses a check that could not run (0/4). Without the block, on real third-party sessions, it caught nothing: ask for the block (`SANCHOPANZA_CANDOR_ASK_BLOCK`) |
 
 ## 3. Wire it in
@@ -106,7 +114,7 @@ from sanchopanza.providers import create
 from sanchopanza.harness import Guardian, HarnessConfig
 
 squire = Squire(
-    create("jev"),                      # or "clm" (self-hosted), "llm", "local", "recorded", "null"
+    create("jev"),                      # or "clm", "openai-decisions" (unmeasured), "llm", "local", "recorded", "null"
     thresholds=Thresholds(),            # the measured defaults
     journal=JsonlJournal("journal.jsonl"),
     brief="what this job is about",
@@ -135,8 +143,9 @@ platform's search 1.48x). Where the platform has tool search and the catalog is 
 platform's search: on 398 tools it was cheaper at the same success. The window's cost is set
 by its coarsest group, because an opened group is loaded whole. Size groups as a task would
 use them, not as a server ships them: a 121-tool server as one group costs about as much as
-loading it. Splitting large servers into sub-groups is the open design question and has not
-been measured.
+loading it. Splitting a large server into sub-groups judged by tournament is closed with no
+margin and not run: the platform's search already costs less at the same success, an estimated
+0.34x of loading everything against the window's 0.54x (`docs/results/2026-09-25-wide/`).
 
 ## 3b. Select a few among many: one shape for pages, passages, memory, archive and code
 
@@ -150,8 +159,11 @@ a second BM25 or a second tournament; extend this one.
 
 Where the candidates are a repository, `context.repo` already builds them (fragments at
 top-level definitions, `git ls-files`, an in-memory index per root). A self-hosted CLM, which
-its authors say is fastest when the same options come back, fits here as the judge
-(`SANCHOPANZA_PROVIDER=clm`); it has not been measured in this repository.
+its authors say is fastest when the same options come back, can be wired in as the judge
+(`SANCHOPANZA_PROVIDER=clm`). As a judge in `select` it is unmeasured. Zero-shot on a CPU
+encoder, on the decision benches, it agreed far less than Jev (injection 12/28 against 27/28,
+routing 3/20 against 14/20) and its probabilities do not separate the classes
+(`docs/results/2026-09-30-clm-cpu/`): train its heads on your own labels before relying on it.
 
 ## 4. Respect the four invariants, or do not bother
 
@@ -266,7 +278,9 @@ Score answers are the least reliable, which is why the Score-driven point is gat
 **Pin the version, and still quote only from a recording.** The same state asked of the same
 pinned `jev-1.13.0` moved by up to 0.09 within a day. A decision within about 0.1 of its cut
 is a coin flip between runs. Record every run you intend to cite (`--record`) and pin the
-figure with a replay test.
+figure with a replay test. `jev-1.13.0` is the default; `SANCHOPANZA_JEV_MODEL=jev-1.14.0` opts
+into Jev 1.14 with its own threshold profile (`policy.MODEL_PROFILES`, used only for that
+model), and the default stays 1.13 (`docs/ROADMAP.md`, "Jev 1.14").
 
 **Score the policy, not the model.** A bench that reads probabilities at 0.5 while the policy
 acts at 0.70 measures an ordering nobody ships. Score each point with the thresholds its

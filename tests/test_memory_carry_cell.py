@@ -62,7 +62,7 @@ def test_s_is_what_install_writes_with_only_the_commands_behind_the_launcher(
     assert rewired["env"]["SANCHOPANZA_GUARD_PROFILE"] == "coding"
     assert rewired["enabledMcpjsonServers"] == ["sanchopanza"]
     server = json.loads((repo / ".mcp.json").read_text("utf-8"))["mcpServers"]["sanchopanza"]
-    assert server["args"][-2:] == ["sub", "find-mcp"] and server["alwaysLoad"] is True
+    assert server["args"][-2:] == ["sub", "find-mcp"] and "alwaysLoad" not in server
 
 
 def test_an_s_hook_runs_this_checkouts_code_with_the_pairs_state_and_no_token(

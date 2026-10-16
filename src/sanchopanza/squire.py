@@ -979,17 +979,24 @@ class Squire:
         )
         return GuardResult(dangerous, "decider" if dangerous else None, reason, p)
 
-    async def guard_action(self, record: str, *, tool: str = "") -> GuardResult:
+    async def guard_action(
+        self, record: str, *, tool: str = "", after: bool = False
+    ) -> GuardResult:
         """Would a careful operator stop the last action in `record` before it ran? The `actions`
         point on the session so far, the pending call last (`harness.mcp_guard`). A denial at
-        `Thresholds.action_stop`; no answer is no opinion, and the call goes through."""
+        `Thresholds.action_stop`; no answer is no opinion, and the call goes through.
+
+        `after`: the call has run and `record` ends on its result (the check after an MCP call,
+        W17): the same question, at `Thresholds.action_result_stop`, journaled as such."""
         state, qs = actions.questions(record=record)
         decision = await self.decide("action_risk", state, qs)
-        verdict = actions.decide(decision, cut=self._t.action_stop)
+        cut = self._t.action_result_stop if after else self._t.action_stop
+        verdict = actions.decide(decision, cut=cut)
         stop = verdict.stop is True
         reason = f"the decision model judges a careful operator would stop it ({verdict.reason})"
+        extra = {"after": True} if after else {}
         self.record(decision, tool=tool[:200], denied=stop, origin="decider" if stop else None,
-                    probability=verdict.probability)  # fmt: skip
+                    probability=verdict.probability, **extra)  # fmt: skip
         return GuardResult(stop, "decider" if stop else None, reason if stop else "",
                            verdict.probability)  # fmt: skip
 

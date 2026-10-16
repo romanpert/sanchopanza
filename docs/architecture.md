@@ -5,6 +5,11 @@ of the agent loop. It observes tool calls and tool results through the extension
 harness already has, asks closed questions about them, and turns calibrated probabilities
 into three kinds of effect: rewrite an argument, deny with a reason, or append a note.
 
+It is a layer around a harness, and it reaches a decision model through one contract,
+`Decider.decide(point, state, questions) -> Decision`. TypeSafe's Jev is the provider every
+figure published in this repository was measured with; it is one adapter behind that contract
+among several (see "One contract, many providers" below).
+
 ## The loop with an evaluator of another family
 
 ```mermaid
@@ -55,21 +60,23 @@ flowchart TB
     end
     G["Guardian: ToolCall -> Verdict(allow | deny | rewrite)"]
     W["ToolWindow: open, observe(user | tool), request, found<br/>append-only, scans untrusted text first"]
-    S["Squire: route_task, route_search, triage_page, triage_part, triage_pages,<br/>triage_many, select_sentences, triage_results, select_tools, verify_citation,<br/>evaluate_plan, review_report, scan_content, guard_command, same_entity,<br/>relate_facts, classify, triage_redundant, remember, reconcile, needs_recall,<br/>gate_extraction, verify_edge, check_loop, check_done"]
+    S["Squire: route_task, route_search, triage_page, triage_part, triage_pages,<br/>triage_many, select_sentences, select_passages, triage_results, select_tools,<br/>verify_citation, evaluate_plan, review_report, scan_content, guard_command,<br/>guard_action, same_entity, relate_facts, classify, triage_redundant, remember,<br/>reconcile, needs_recall, gate_extraction, verify_edge, check_loop, check_done"]
     subgraph points["points: questions + pure policy"]
         P1[routing] --- P2[search] --- P3[triage] --- P4[citation] --- P9[tools]
         P5[plan] --- P6[review] --- P7[guard] --- P8[entities] --- P10[injection]
         P11[memory] --- P12[graph] --- P13[loop] --- P14[chunks] --- P15[hierarchy]
-        P16[completion] --- P17[actions] --- P18[keep]
+        P16[completion] --- P17[actions] --- P18[keep] --- P19["longdoc (opt-in)"]
     end
     subgraph infra["infrastructure"]
         T[Thresholds] --- B[Meter / budget] --- J[Journal]
         X[text: quote_present, is_repeat] --- DG[dag: build_dag, waves]
     end
     C{{"Decider protocol: decide(point, state, questions) -> Decision"}}
-    subgraph providers
+    subgraph providers["providers: adapters behind one contract"]
         V1[jev] --- V2[recorded] --- V3[null] --- V4[llm] --- V5[local]
+        V10[clm] --- V11[openai-decisions]
         V6[FallbackDecider] --- V7[RoutedDecider] --- V9[CascadeDecider]
+        V12[CachedDecider] --- V13[CappedDecider] --- V14[RecordingDecider]
     end
     A1 & A2 & A4 --> G --> S
     A3 --> S
@@ -83,6 +90,27 @@ and text helpers. The squire imports points. The tool window imports the squire 
 (`tools`, `injection`). Adapters import the squire or the window. Providers import the
 contract, and the recorder and the chains the catalog, which imports nothing. Swapping a
 provider touches one file; adding a harness touches one file.
+
+**One contract, many providers.** Nothing above the `Decider` contract knows which model
+answers. `jev` (TypeSafe's Jev over HTTP) is the provider behind every published figure, and the
+thresholds in `policy.py` were set against it. The others:
+
+- `clm` speaks Jev's wire format to a self-hosted CLM-8B (`clm-serve`). Zero-shot, on a CPU
+  encoder, it agreed with the labels far less than Jev (injection 12/28 against 27/28, routing
+  3/20 against 14/20) and its probabilities do not separate the classes
+  (`docs/results/2026-09-30-clm-cpu/README.md`).
+- `openai-decisions` is OpenAI's Decisions API (`providers/openai_decisions.py`), written
+  against OpenAI's guide and tested on a mock of its examples; it has never been called or
+  measured here, and `create` always puts it behind a dollar ledger every process shares.
+- `llm` forces a generative model into the same typed answers, `local` wraps your own
+  classifiers, `recorded` replays a fixture and `null` answers nothing.
+
+The wrappers take a decider and return one: `FallbackDecider`, `RoutedDecider` and
+`CascadeDecider` chain providers; `CachedDecider` answers a repeat within a TTL without paying
+again; `CappedDecider` refuses a call that would pass a dollar cap shared by every process of a
+batch; `RecordingDecider` writes each answer to a fixture that `RecordedDecider` replays. A
+provider other than Jev needs its own measurement before a cut means anything
+(`docs/providers.md`).
 
 **The tool window (0.3.0).** `select_tools` decides once, from the request, which is right
 while the only way to change a tool set is to rewrite `tools`. `ToolWindow` follows the
@@ -99,8 +127,10 @@ the window must open with `wait_on_deferred=False`. Channel measurements:
 A window's cost is set by its coarsest group, because an opened group is loaded whole. On a
 real 398-tool MCP catalog grouped by server, the window opened a 121-tool server in 11 of 17
 tasks and cost more than the platform's own tool search, which loads by tool
-(`docs/results/2026-09-25-wide/`). The unit of loading, not the per-group judgment, is the
-open design question.
+(`docs/results/2026-09-25-wide/README.md`). Splitting a large server into sub-groups judged by
+tournament is closed with no margin and not run (`docs/ROADMAP.md`, A9): the platform's tool
+search already costs less at the same success, an estimated 0.34x of loading everything
+against the window's 0.54x.
 
 **The package shape, at a compaction (`context.keep`).** The compaction guard is the clearest
 case of the layering this package argues for: plumbing proposes (`guard.pieces_of`: every line

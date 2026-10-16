@@ -238,6 +238,7 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setenv("SANCHOPANZA_GUARD_DIR", str(tmp_path / "kept"))
     monkeypatch.setenv("SANCHOPANZA_GUARD_LOG", str(tmp_path / "log.jsonl"))
     monkeypatch.delenv("SANCHOPANZA_GUARD_CHOOSER", raising=False)
+    monkeypatch.setenv("SANCHOPANZA_ARCHIVE", str(tmp_path / "archive"))  # never the repository
     return tmp_path
 
 

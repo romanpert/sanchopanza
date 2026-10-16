@@ -69,14 +69,7 @@ def _record(guardian: Guardian, input_data: Mapping[str, Any], name: str,
         return ""
     from . import mcp_guard
 
-    def warn(message: str) -> None:
-        said = guardian.__dict__.setdefault("_mcp_warned", set())
-        if message in said:
-            return
-        said.add(message)
-        guardian.squire.journal.record("warning", {"message": f"mcp guard: {message}",
-                                                   "tool": name[:200]})  # fmt: skip
-
+    warn = _warner(guardian, name)
     try:
         return mcp_guard.record_from_transcript(
             input_data.get("transcript_path") or None, name, arguments,
@@ -85,6 +78,20 @@ def _record(guardian: Guardian, input_data: Mapping[str, Any], name: str,
     except Exception as error:  # noqa: BLE001 - the record is an aid; the decision still runs
         warn(f"record failed, the call judged alone ({error.__class__.__name__})")
         return ""
+
+
+def _warner(guardian: Guardian, name: str) -> Callable[[str], None]:
+    """Journal an MCP guard warning once per guardian and message."""
+
+    def warn(message: str) -> None:
+        said = guardian.__dict__.setdefault("_mcp_warned", set())
+        if message in said:
+            return
+        said.add(message)
+        guardian.squire.journal.record("warning", {"message": f"mcp guard: {message}",
+                                                   "tool": name[:200]})  # fmt: skip
+
+    return warn
 
 
 def pre_matcher(config: HarnessConfig) -> str:
@@ -96,32 +103,73 @@ def pre_matcher(config: HarnessConfig) -> str:
     names are anchored, or `Task` would match TaskCreate and `Bash` BashOutput. Without MCP the
     matcher stays the plain list, byte for byte."""
     names = sorted(config.delegate_tools | config.search_tools | config.shell_tools)
+    return _with_mcp(names, config.guard_mcp)
+
+
+def post_matcher(config: HarnessConfig) -> str:
+    """The PostToolUse matcher for `config`: `after_tools`, and every MCP tool when the MCP guard
+    after the call is on, anchored as `pre_matcher` explains. Without it, the plain list."""
+    return _with_mcp(sorted(config.after_tools()), config.guard_mcp_post)
+
+
+def _with_mcp(names: list[str], mcp: bool) -> str:
     pattern = "|".join(re.escape(n) for n in names)
-    return f"^(?:{pattern})$|{MCP_MATCHER}" if config.guard_mcp else pattern
+    if not mcp:
+        return pattern
+    return f"^(?:{pattern})$|{MCP_MATCHER}" if pattern else MCP_MATCHER
 
 
 def post_tool_use(guardian: Guardian) -> Hook:
     async def hook(input_data: dict[str, Any], _tool_use_id: Any = None, _context: Any = None):
         event = str(input_data.get("hook_event_name", "PostToolUse"))
-        call = ToolCall(
-            name=str(input_data.get("tool_name", "")),
-            arguments=dict(input_data.get("tool_input") or {}),
-            event=event,
-        )
-        note = await guardian.after_tool(call, input_data.get("tool_response"))
+        name = str(input_data.get("tool_name", ""))
+        arguments = dict(input_data.get("tool_input") or {})
+        response = input_data.get("tool_response")
+        record = _record_after(guardian, input_data, name, arguments, response)
+        call = ToolCall(name=name, arguments=arguments, event=event, record=record)
+        note = await guardian.after_tool(call, response)
         if not note:
             return {}
-        output: dict[str, Any] = {"hookSpecificOutput": {"hookEventName": event}}
+        specific: dict[str, Any] = {"hookEventName": event}
         if note.context:
-            output["hookSpecificOutput"]["additionalContext"] = note.context
-        # The operator's copy travels outside `hookSpecificOutput`, because a PostToolUse
-        # hook cannot replace the tool result: `additionalContext` is the only channel to
-        # the model, and it is the one the suspect text is best placed to talk over.
+            specific["additionalContext"] = note.context
+        # Claude Code (2.1.287) lets a PostToolUse hook replace an MCP tool's result before the
+        # model reads it; other tools' results it keeps, so only the MCP check asks for it.
+        if note.withhold:
+            specific["updatedMCPToolOutput"] = note.withhold
+        output: dict[str, Any] = {"hookSpecificOutput": specific}
+        # `decision: block` hands the reason to the model as a blocking error after the result.
+        if note.block:
+            output["decision"] = "block"
+            output["reason"] = note.block
+        # The operator's copy travels outside `hookSpecificOutput`: it does not depend on the
+        # model heeding a warning about text that may be built to talk over it.
         if note.user:
             output["systemMessage"] = note.user
         return output
 
     return hook
+
+
+def _record_after(guardian: Guardian, input_data: Mapping[str, Any], name: str,
+                  arguments: Mapping[str, Any], response: Any) -> str:  # fmt: skip
+    """The session so far, the call and its result, for a result the MCP guard judges after the
+    call; else "". Failures as in `_record`: journaled once, and the result judged alone."""
+    config = guardian.config
+    if not config.guards_mcp_result(name):
+        return ""
+    from . import mcp_guard
+
+    try:
+        text = mcp_guard.result_text(response)
+        return mcp_guard.record_after_result(
+            input_data.get("transcript_path") or None, name, arguments, text,
+            tool_use_id=str(input_data.get("tool_use_id") or ""),
+            limit=config.mcp_record_chars, on_error=_warner(guardian, name))  # fmt: skip
+    except Exception as error:  # noqa: BLE001 - the record is an aid; the decision still runs
+        failed = f"record failed, the result judged alone ({error.__class__.__name__})"
+        _warner(guardian, name)(failed)
+        return ""
 
 
 def hook_matchers(guardian: Guardian) -> dict[str, list[Any]]:
@@ -130,7 +178,7 @@ def hook_matchers(guardian: Guardian) -> dict[str, list[Any]]:
 
     c = guardian.config
     pre = pre_matcher(c)
-    post = "|".join(sorted(c.after_tools()))
+    post = post_matcher(c)
     return {
         "PreToolUse": [HookMatcher(matcher=pre, hooks=[pre_tool_use(guardian)])],
         "PostToolUse": [HookMatcher(matcher=post, hooks=[post_tool_use(guardian)])],

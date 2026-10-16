@@ -5,7 +5,7 @@ and reads every path and file under the work root the agent works in: no scene n
 model name, name of the lot, or word that would give away the scene's C, D or step 2 (the scene
 test's TELLS) appears, once the two paths every S install necessarily shows are set aside (this
 checkout, whose sealed worktree's own name the launcher keeps neutral, and the Python that runs
-the hooks)."""
+the hooks), and the test's own temporary folder, which the night's neutral root replaces."""
 
 from __future__ import annotations
 
@@ -30,36 +30,53 @@ LOT_WORDS = ("handoff", "f2", "sonnet", "opus", "memory-f2", "claude-sonnet", "c
 ARM_TOKEN = re.compile(r"(?<![A-Za-z0-9])(N0|H|S)(?![A-Za-z0-9])")
 
 
-def neutral(text: str) -> str:
-    for path in (ROOT, Path(sys.executable).parent.parent):
-        for form in (str(path), path.as_posix(), json.dumps(str(path))[1:-1]):
-            text = text.replace(form, "<set aside>")
+def neutral(text: str, *also: Path) -> str:
+    """`text` with this checkout, the Python running the hooks and `also` set aside, in every
+    spelling a file or a name may hold, the memory store's folder key (`C--Users-...`) too."""
+    for path in (ROOT, Path(sys.executable).parent.parent, *also):
+        key = re.sub(r"[^A-Za-z0-9]", "-", str(path))
+        for form in (str(path), path.as_posix(), json.dumps(str(path))[1:-1], key):
+            text = re.sub(re.escape(form), "<set aside>", text, flags=re.IGNORECASE)
     return text
+
+
+def assert_nothing_named(name: str, base: Path) -> None:
+    """Every arm of scene `name` built under `base`, read as the agent would see it."""
+    work_root = base / "r2"
+    for t, arm in enumerate(handoff.ARMS):
+        work = work_root / handoff.folder_name("f2-sonnet", t, arm)
+        handoff.arm_run(base / "lot", work, name, "sonnet", arm, 1, work_root / "typesafe.key",
+                        dry=True)  # fmt: skip
+    words = [*handoff.HANDOFF, *LOT_WORDS]
+    for path in work_root.rglob("*"):
+        if ".git" in path.relative_to(work_root).parts:  # git's own hashes and samples
+            continue
+        # The memory store's folder spells the repository's absolute path, pytest's temporary
+        # folder included (`pytest-8150` held h_batch's tell "50"): the run's root is neutral
+        # (C:/sp-runs/...), the test's is not, so it is set aside like this checkout.
+        rel = neutral(path.relative_to(work_root).as_posix(), base)
+        assert not [w for w in words if w in rel.lower()], rel
+        assert not [w for w in TELLS[name] if w in rel.lower()], rel
+        assert not ARM_TOKEN.search(rel.replace("/", " ")), rel
+        if path.is_file():
+            text = neutral(path.read_text(encoding="utf-8", errors="replace"), base).lower()
+            assert not [w for w in words if w in text], rel
+            installed = ("/repo/.claude/", "/repo/.mcp.json")  # sanchopanza's own generic files
+            if not any(part in f"/{rel}" for part in installed):
+                assert not [w for w in TELLS[name] if w in text], rel
 
 
 @pytest.mark.parametrize("name", sorted(handoff.HANDOFF))
 def test_nothing_the_agent_sees_names_the_scene_the_arm_or_the_lot(
     name: str, tmp_path: Path
 ) -> None:
-    work_root = tmp_path / "r2"
-    for t, arm in enumerate(handoff.ARMS):
-        work = work_root / handoff.folder_name("f2-sonnet", t, arm)
-        handoff.arm_run(tmp_path / "lot", work, name, "sonnet", arm, 1, work_root / "typesafe.key",
-                        dry=True)  # fmt: skip
-    words = [*handoff.HANDOFF, *LOT_WORDS]
-    for path in work_root.rglob("*"):
-        if ".git" in path.relative_to(work_root).parts:  # git's own hashes and samples
-            continue
-        rel = path.relative_to(work_root).as_posix()
-        assert not [w for w in words if w in rel.lower()], rel
-        assert not [w for w in TELLS[name] if w in rel.lower()], rel
-        assert not ARM_TOKEN.search(rel.replace("/", " ")), rel
-        if path.is_file() and ".git" not in path.relative_to(work_root).parts:
-            text = neutral(path.read_text(encoding="utf-8", errors="replace")).lower()
-            assert not [w for w in words if w in text], rel
-            installed = ("/repo/.claude/", "/repo/.mcp.json")  # sanchopanza's own generic files
-            if not any(part in f"/{rel}" for part in installed):
-                assert not [w for w in TELLS[name] if w in text], rel
+    assert_nothing_named(name, tmp_path)
+
+
+def test_the_give_away_check_sets_aside_the_temporary_folder_s_own_name(tmp_path: Path) -> None:
+    # CI flake: a run whose pytest temporary folder was `pytest-8150` failed h_batch on "50".
+    assert "50" in TELLS["h_batch"]
+    assert_nothing_named("h_batch", tmp_path / "pytest-8150")
 
 
 def test_s_install_files_are_set_aside_from_the_agent_s_folder(tmp_path: Path) -> None:
