@@ -14,7 +14,7 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 
 | # | Item | Priority | Cost | State |
 |---|---|---|---|---|
-| C9 | Memory's prune deletes the standing rules of a project idle for 30 days | **high** | free | **in progress** (`memfix`) |
+| C9 | Memory's prune deleted the standing rules of a project idle for 30 days | **high** | free | **done** (`230a2aa`) |
 | C10 | Two names of other private projects and some local paths in public files | **high** | free | **in progress** |
 | B1 | Publish a release (`v*` tag and PyPI) so the consumer stops pinning a tarball by commit | **high** | free (PyPI: owner's decision, irreversible) | `v0.3.0` tagged with a GitHub release; 0.3.1 in preparation; PyPI with the owner's yes |
 | C7 | The LongBench routing point, opt-in | medium | free (code); Claude for what follows | **in progress** |
@@ -81,9 +81,10 @@ Each lot pre-registered and sealed before its first answer, reviewed against the
 
 ## Open
 
-**C9. Memory's prune deletes the standing rules.** `context/episodes.py`'s prune deletes every
-`*.json` in a project's store except `index.json`, `rules.json` included, so a project idle for
-30 days loses its standing rules. **In progress** (branch `memfix`).
+**C9. Memory's prune deleted the standing rules.** `context/episodes.py`'s prune deleted every
+`*.json` in a project's store except `index.json`, `rules.json` and `adopted.json` included, so
+a project idle for 30 days lost its standing rules, and load counted those files as records.
+**Done** (merge `230a2aa`): pruning and loading match only record files.
 
 **C10. Private names and local paths in public files.** Two names of other private projects and
 some local paths remain in tracked benchmark code, tests and planning documents. **In

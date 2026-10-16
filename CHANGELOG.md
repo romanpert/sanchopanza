@@ -21,6 +21,11 @@ they were.
   hook process does. **The installed memory hook stays on the short window**: with the long one
   it was "peor en ruido" on 905 SWE-chat first requests (`docs/results/2026-10-16-memgate-hook`,
   below).
+- **The install output, the `--memory` help, the install docstring and the `sanchopanza-code`
+  skill cite memory's result against the handoff ritual (F2)** (merge `230a2aa`): on Sonnet 5.5
+  a new session can start with one line naming the work instead of a pasted handoff; the skill
+  explains the memory blocks (standing rules are the person's words, records are past work, the
+  disk is the truth). The `--guard-mcp` help says off by default, measured, not confirmed.
 - **`CappedDecider` settles an unreachable call at its estimate.** A transport failure (a
   timeout, a dropped connection) may come after the server took the request, so the
   reservation stands at the estimate, as it already did for a call cancelled in flight; other
@@ -77,9 +82,11 @@ they were.
   deadline (`GATE_DEADLINE_S`, retries on 429 and 529 included), then the short window; and
   `CachedDecider.with_long_context()` forwards the mode, cached on the same TTL and store with
   the header in its keys only, so every existing key is unchanged. Not measured.
-- **Memory's prune keeps the standing rules** (`context/episodes.py`): it deleted every `*.json`
-  of a project's store but `index.json`, `rules.json` included, so a project idle for 30 days
-  lost its standing rules. memfix, pending merge.
+- **Memory's prune keeps the standing rules** (`context/episodes.py`, merge `230a2aa`): retention
+  pruned every JSON file older than 30 days in the store except `index.json`, so a project idle
+  a month lost its standing rules (`rules.json`) and adopt's `adopted.json`; and load counted
+  those files as records, so they took real records' places under the load limit. Pruning and
+  loading now match only record files (`<session>-<NNN>.json`).
 - **Two tests no longer leak a fake TypeSafe key into the session** (`b9ef239`, `6289682`): run
   before `test_find_auto`, they broke it.
 - **The F2 runner counts a resumed handoff turn at its own cost** (`b78d75c`,
