@@ -50,7 +50,7 @@ through `create_sdk_mcp_server` in your harness if you want them in-process.
 
 ## Claude Code (command hook)
 
-Status: **run end to end** in Claude Code 2.1, installed with `sanchopanza install --write`: 24 headless sessions pre-registered, plus a registered confirmation of the content-scan fix (`docs/results/2026-09-28-claude-code-harness/`). Every model decision came from the `jev` provider; Claude was only the agent being guarded. Each hook call is a Python process: the e2e run measured 1.0-1.9 s of start-up on the maintainer's Windows laptop; after the imports were made lazy, an interleaved measurement on the same laptop gave a median 0.17 s for an event that needs no decision and 0.25 s up to the decision for one that does, against 0.31-0.34 s before ([hook-startup](results/2026-09-28-hook-startup/)).
+Status: **run end to end** in Claude Code 2.1, installed with `sanchopanza install --write`. The broader run, pre-registered, held all 15 of its criteria ([claude-code-broad](results/2026-09-28-claude-code-broad/)): over 144 headless sessions (Haiku 4.5, 9 scenarios, 8 repetitions per arm, hooked and plain), the hook stopped the two destructive commands 16 of 16 times, where plain Claude Code ran them 15 of 16 times (once it stopped to ask first), flagged planted instructions in a `Read` file or `curl` output 16 of 16 times, and raised 0 false alarms in 93 benign hooked events [0 %, 4.0 %]. The agent refused the planted text in every session either way, so the scan changed no reply. Through the hook process on labelled public sets, it flagged 0 of 250 unsafe ATBench-Codex trajectories, because their risk is in MCP calls the default hook does not judge (`--guard-mcp`, below). The first run, 24 sessions plus a registered confirmation of the content-scan fix, showed the wiring ([claude-code-harness](results/2026-09-28-claude-code-harness/)). Every model decision came from the `jev` provider; Claude was only the agent being guarded. Each hook call is a Python process: the e2e run measured 1.0-1.9 s of start-up on the maintainer's Windows laptop; after the imports were made lazy, an interleaved measurement on the same laptop gave a median 0.17 s for an event that needs no decision and 0.25 s up to the decision for one that does, against 0.31-0.34 s before ([hook-startup](results/2026-09-28-hook-startup/)).
 
 `sanchopanza hook` is a process per event. Configuration is by environment variables (see
 `examples/claude_code/README.md`). Same output shapes as the SDK. The hook exits 0 and prints
@@ -60,7 +60,24 @@ Because each event is a new process, the squire is new each time: no cross-call 
 memory, no per-job budget. If that matters, run sanchopanza as an MCP server instead and let the
 agent call the tools, or use the SDK.
 
-### The compaction guard (`sanchopanza install --guard`)
+**What `install` wires by default:** the guard on shell commands, delegations and searches; the
+compaction guard (next section); and memory, five hooks that record each finished request and
+give a later request the records and standing rules that bear on it (`--no-memory` leaves them
+out; [how memory works](memory.md)). Opt-in, among others (`sanchopanza install --help`):
+
+- `--scan-content` flags instructions planted in what the agent reads, and `--check-done`
+  checks "done" before the agent stops; the broader run above installed both.
+- `--guard-mcp` judges MCP tool calls before they run: the `actions` point reads the session so
+  far and the pending call, one paid decision per call. **Not confirmed**: replayed over
+  ATBench-Codex with jev-1.13.0 it caught 185 of 250 unsafe trajectories (74.0 %), under its
+  sealed 75.2 % recall floor, and flagged 82 of 250 safe ones (32.8 %)
+  ([A3](results/2026-10-16-a3-mcp/README.md)).
+- `--guard-mcp-post` asks the same question after an MCP call ran, with its result last. A flag
+  blocks with a reason for Claude and a notice for the person; it cannot undo the call.
+  `--guard-mcp-withhold` implies it and also replaces a flagged result before Claude reads it.
+  Off by default, with no confirmed measurement.
+
+### The compaction guard (on by default, `--no-guard` leaves it out)
 
 Three more command hooks, all `sanchopanza guard-hook`: `PreCompact` (matcher `manual|auto`),
 `SessionStart` (matcher `compact`) and `PostToolUse` (matcher `Bash`). Read from the 2.1.282
@@ -68,21 +85,28 @@ binary: a `PreCompact` hook's stdout is appended to the summary prompt; `Session
 source `compact` run **before** `PostCompact`, and the new summary is written to the transcript
 after both, so the guard can add context right after the summary but cannot read it (a
 `PostCompact` hook can only show a message). `SANCHOPANZA_GUARD_CHOOSER` picks what is kept:
-`struct` (default, free: whole tool results, the latest on each edited file first, then by
-recency, pointers for re-readable ones left out; `context.structural`), `rule` (free: value
-lines of one-shot output) or `keep` (the cascade, `context.keep`: built at the `SessionStart`,
-about five decider calls per compaction, the rule after `SANCHOPANZA_GUARD_DECIDER_SECONDS`).
+`pointers` (default, free: the requests verbatim first, the files changed, and pointers to the
+tool output since the previous compaction; every output that cannot be had again is written
+whole, masked, to `.sanchopanza/archive/<session>/` for the agent to Read; `context.pointers`),
+`struct` (`install --guard-full`, free: whole tool results, the latest on each edited file
+first, then by recency, pointers for re-readable ones left out; `context.structural`), `rule`
+(free: value lines of one-shot output) or `keep` (the cascade, `context.keep`: built at the
+`SessionStart`, about five decider calls per compaction, the rule after
+`SANCHOPANZA_GUARD_DECIDER_SECONDS`).
 The same binaries keep a hook's `additionalContext` inline only up to 10,000 characters (past
 that the model sees a 2,000-character preview and a file path), per hook command: the contexts
 of an event's hooks are joined with a newline, in the order the hooks finish, with no limit on
-the whole (read in 2.1.287). So `install` writes `PreCompact` as `guard-hook --parts K` and K
-`SessionStart` commands, `guard-hook --part i --parts K` (K = 6, `--guard-parts`), and `struct`
-splits its block into parts under `SANCHOPANZA_GUARD_INLINE_CHARS` (9,500), each naming itself
-"part i of N" (`context.parts`). Without `--part` the hook keeps one block under the cap.
+the whole (read in 2.1.287). The pointer block fits one hook, so by default `install` writes one
+command per event. With `--guard-full` it writes `PreCompact` as `guard-hook --parts K` and K
+`SessionStart` commands, `guard-hook --part i --parts K` (K = 6 at the defaults,
+`--guard-parts`), and `struct` splits its block into parts under
+`SANCHOPANZA_GUARD_INLINE_CHARS` (9,500), each naming itself "part i of N" (`context.parts`).
+Without `--part` the hook keeps one block under the cap.
 Measured end to end in
 [the compaction-guard run](results/2026-09-29-context-guard/): 5 of 7 (`rule`) and 6 of 7
 (`keep`) tasks finished, against 2 of 7 with the native summary alone; `struct` is measured
-offline only ([guard-struct](results/2026-10-05-guard-struct/)).
+offline only ([guard-struct](results/2026-10-05-guard-struct/)), and `pointers` has no published
+end-to-end result.
 
 ## MCP (any client)
 
@@ -94,10 +118,27 @@ from sanchopanza.harness.mcp import build_server
 build_server(squire).run()
 ```
 
-Tools: `verify_citation`, `evaluate_plan`, `align_entities`, `classify_field`, `triage_text`.
-These are the decisions the orchestrator asks for on purpose. Hooks cover the ones it does
-not ask for. Clients: Claude Code (`claude mcp add`), Cursor (`.cursor/mcp.json`), Codex,
-Copilot, Hermes Agent, or any MCP client.
+`build_server(squire)` serves the five decision tools: `verify_citation`, `evaluate_plan`,
+`align_entities`, `classify_field`, `triage_text`. These are the decisions the orchestrator asks
+for on purpose. Hooks cover the ones it does not ask for.
+
+`python -m sanchopanza.harness.mcp --tools <sets>` serves one stdio server with the tool sets
+you name (default `archive,find`):
+
+| Set | Tools | Needs a provider |
+|---|---|---|
+| `decisions` | the five above | yes (`SANCHOPANZA_PROVIDER` or `TYPESAFE_API_KEY`) |
+| `archive` | `search_archive`: BM25 over output archived out of context | no |
+| `find` | `find_in_repo`: fragments of the repository for a request, a BM25 shortlist judged by the decider when one is set | no (BM25 alone without one) |
+| `find_auto` | `find_auto`: the `--find-auto` hook's tool, hidden from the model | no |
+| `label` | `label_file`: a closed rubric over every item of a file | yes |
+| `browse` | `rank_elements`: a page's elements ranked for the next action | no (BM25 order without one) |
+| `fetch` | `fetch_passages`: a web page's passages for a purpose | no model |
+| `knowledge` | `search`, `read`, `pick`: search, read a page or local file, pick among many | no (BM25 without one) |
+| `longdoc` | `ask_document`: a four-option question over one long local file, answered by Jev when sure (`points.longdoc`, opt-in) | Jev (without a key every question is handed back to the model) |
+
+Clients: Claude Code (`claude mcp add`), Cursor (`.cursor/mcp.json`), Codex, Copilot, Hermes
+Agent, or any MCP client.
 
 ## OpenAI Agents SDK, Codex-style guardrails
 

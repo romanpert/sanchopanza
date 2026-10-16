@@ -198,11 +198,16 @@ not shown): a fresh session stopped to ask the open questions the handoff listed
   Its files are readable by this user only (mode 600 where the file system has modes).
   - Records hold prompts, the agent's final messages and lines of command output, verbatim.
   - Secret-looking strings are masked before a record is written.
-  - Records older than 30 days are removed when a newer record is saved.
-  - The standing rules (the 60 newest) are in `rules.json` in the same folder. Today that
-    cleanup also removes `rules.json` when the file has not been rewritten for 30 days.
+  - Records older than 30 days are removed when a newer record is saved. That cleanup, and
+    loading, match only record files (`<session>-<NNN>.json`).
+  - The standing rules (the 60 newest) are in `rules.json` in the same folder. The cleanup
+    keeps it, and keeps `adopted.json`, however old.
   - Deleting the folder forgets the project.
-- **Sent to the decider (TypeSafe's Jev), with secrets redacted:**
+- **Sent to the decider, with secrets redacted.** The hooks pick their decider as
+  `sanchopanza hook` does: the provider `SANCHOPANZA_PROVIDER` names, or Jev when it is unset and
+  `TYPESAFE_API_KEY` is set. With neither (or `null`), nothing is sent: memory records and gives
+  records back by code only, so no standing rules are stored and nothing is recalled at the
+  prompt. With a decider:
   - at `Stop`, each sentence of the prompt with up to 1,500 characters of the prompt around it;
   - at a first prompt, the prompt and up to 5 record pages (files, request and the agent's final
     message, 880 characters each).

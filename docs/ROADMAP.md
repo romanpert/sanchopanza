@@ -16,14 +16,16 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 |---|---|---|---|---|
 | C9 | Memory's prune deleted the standing rules of a project idle for 30 days | **high** | free | **done** (`230a2aa`) |
 | C10 | Two names of other private projects and some local paths in public files | **high** | free | **in progress** |
-| B1 | Publish a release (`v*` tag and PyPI) so the consumer stops pinning a tarball by commit | **high** | free (PyPI: owner's decision, irreversible) | **done**: `v0.3.1` tagged and released, PyPI approved by the owner |
+| B1 | Publish a release (`v*` tag and PyPI) so the consumer stops pinning a tarball by commit | **high** | free (PyPI: owner's decision, irreversible) | **in part**: `v0.3.1` tagged with a GitHub release; PyPI approved by the owner, but the publish waits for the trusted publisher on pypi.org (owner's account) |
+| D1 | OpenAI's Decisions API as one more provider | medium | free (adapter); OpenAI calls: owner's decision | **adapter done, never called** (`openai-decisions`) |
 | C7 | The LongBench routing point, opt-in | medium | free (code); Claude for what follows | **done** (`9705f25`) |
-| C1 | A PostToolUse check on MCP results (what A3's PreToolUse guard cannot read) | medium | Jev (replay ~0.05-0.10 USD), then Claude (~5 USD live probe) | idea, from A3 |
+| C1 | A PostToolUse check on MCP results (what A3's PreToolUse guard cannot read) | medium | Jev (replay ~0.05-0.10 USD), then Claude (~5 USD live probe) | **built, opt-in** (`--guard-mcp-post`); W17's development lot does not license a confirmation |
 | C2 | check_done with the tool results the answer rests on, not cut at 1,500 characters | medium | free (record builder) + Jev (~0.3-0.5 USD) | open, from checkdone114 |
-| C8 | Four memory gaps read from the code and F2's logs | medium | free replays first; Claude (~40 USD, F2-sized) to confirm | open, unmeasured |
+| C8 | Four memory gaps read from the code and F2's logs | medium | free replays first; Claude (~40 USD, F2-sized) to confirm | **fixed in code** (merge `e029489`), replayed on F2's recordings only, not measured live |
 | C4 | A5's `unrelated_at=0.65` on written text with fa-17-type pairs | low-medium | free (cases) + Jev cents | open, from A5 |
 | C5 | `select_passages(fit_score=False)` against page order on fresh questions | low-medium | Jev (~0.5-1.5 USD) | open, from B4 |
 | C6 | Closing Spanish's 3-6 points in page triage and passages | low | Jev (~0.2 USD pages, ~2.5 USD documents per arm) | idea, from B6 |
+| C11 | The pointer guard's quality on long code: Sonnet 5.5 long60 chains, `pointers` against `--guard-full`, interleaved | medium | Claude (about 70 USD at list price; cap and power in its prereg) | open, prereg in preparation |
 | C3 | `redundant_page` under 1.14 with a cut bounded from below, on new cases | low | free (cases) + Jev (~0.03-0.05 USD) | open, from redundant-drop |
 | A4 | Cells not run by decision (code on Sonnet and Opus, Fable, S2, Ne against Ne+A) | low (owner's decision) | Claude: see below | memory F2 **run**; the rest not run by decision |
 | A3 | MCP tool calls pass the installed hook with no decision | medium | Jev 0.0805 USD | **done**: not confirmed; guard opt-in (`install --guard-mcp`) |
@@ -35,7 +37,7 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 | A7 | The derivation rule against Sonnet on unseen data | low | Claude + Jev | **closed**: no margin |
 | A8 | Deciding before Claude Code's auto-mode classifier | low | Jev + Claude | **closed**: no lever in Claude Code |
 | A9 | The tool window by tournament over the sub-groups of a large server | low | Jev | **closed**: no margin |
-| A10 | A local classifier (LoRA) for decisions Jev pays for today | low | free (Colab or Kaggle) | **owner's decision**: not for money; offline fallback only |
+| A10 | A local classifier as one more provider (`LocalDecider`), trained on our own or public labels | low | free (Colab or Kaggle) | **owner's decision**: a provider and offline fallback, not a saving; not trained yet |
 | A1 | Benchmarks read the TypeSafe key from a fixed path on the owner's disk | high | free | **done** (`de7c38a`) |
 | A2 | Documents with an old state: README "What is open", the guard-struct README, the root `STATUS*.md` | medium | free | **done** (2026-10-15) |
 | B2 | Spanish sentence splitting | medium | free | **done** (`872e068`) |
@@ -93,7 +95,8 @@ progress** in another session.
 **B1. A published release.** `v0.3.0` is tagged on `10f2cbe` with a
 [GitHub release](https://github.com/romanpert/sanchopanza/releases/tag/v0.3.0) (wheel, sdist and
 the CHANGELOG's 0.3.0 section). **`v0.3.1`** (2026-10-16) carries everything from 2026-10-16 and
-is the first version the owner approved for PyPI. A tag push does not publish to PyPI: PyPI is a
+is the first version the owner approved for PyPI; PyPI waits for the project's trusted
+publisher on pypi.org (project `sanchopanza`, workflow `release.yml`, environment `pypi`). A tag push does not publish to PyPI: PyPI is a
 separate `gh workflow run release.yml --ref <tag>` ([governance](governance.md)), with the
 owner's yes. The consumer pinned one commit's tarball in three files that must move together;
 it can move to `sanchopanza[jev]>=0.3.1`. A tag survives a history rewrite that would
@@ -107,12 +110,28 @@ What lb162x leaves to measure: a higher cut for Opus 5.5 users (0.8,
 pre-registered on fresh tasks; descriptively the gap there was 0.6 points), and a long-document
 set graded on free-text answers.
 
+**D1. OpenAI's Decisions API.** sanchopanza is a layer with one decision contract; Jev is the
+provider every figure was measured with, and OpenAI's `/v1/decisions` (public beta since
+2026-10-06, `gpt-6-luna`, 0.10 USD per million input tokens, nothing else) is a second hosted
+one. **Adapter done** (`providers/openai_decisions.py`, `create("openai-decisions")`): written
+against OpenAI's guide, tested on a mock of its examples, always behind a spending ledger every
+process shares (0.50 USD in all by default) and the shared funds breaker on an out-of-quota
+answer. Never called: nothing says whether its
+probabilities are calibrated on these points, and every threshold was set against Jev. What it
+would take to say anything: a free preflight-style check of one call, then the public benches
+replayed live and recorded (core, safety, graph: 227 decisions, about 185,000 input tokens, so
+about 0.02 USD at list price), compared with Jev's recording on the same items. OpenAI spend is
+the owner's call.
+
 **C1. A PostToolUse check on MCP results.** A3's misses are mostly harm that shows only in a
 tool's answer (14 of 33 are `malicious_tool_execution`), which a PreToolUse guard never reads.
 A check on the result cannot undo the call, but can stop the agent before it acts on it or
-passes it on. Its own lot: a prereg, a replay on the same 500 ATBench-Codex trajectories
-(about 0.05-0.10 USD of Jev), which harms an after-the-fact check still prevents, then a live
-probe.
+passes it on. **Built** (merge `c3313a3`, opt-in): `install --guard-mcp-post` asks the
+`actions` question about a tool's result after the call, and `--guard-mcp-withhold` also
+replaces the result. Its sealed development lot (W17, the same 500 ATBench-Codex trajectories,
+jev-1.13.0, 0.062 USD) does not license a fresh-data confirmation: over the guard before the call
+it caught 35 more of 250 unsafe trajectories and flagged 14 more of 250 safe ones, past its
++7-point bound. Next: a rule that clears on development data, then a fresh-data confirmation.
 
 **C2. check_done with long tool outputs.** The record builder keeps the first 1,500 characters
 of each tool result; workspace results run far longer, and the judge then sees an answer it
@@ -120,8 +139,8 @@ cannot check. Keep the part of each result the answer rests on, then measure aga
 stops (a new registration; about 0.3-0.5 USD of Jev at longer inputs) before the Stop hook is
 advertised beyond slack-like settings.
 
-**C8. Memory: four gaps, unmeasured.** Read from the code and from F2's logs; each needs a
-measurement before any change.
+**C8. Memory: four gaps, fixed in code, not measured live** (merge `e029489`; what changed is
+in the CHANGELOG's 0.3.2). Read from the code and from F2's logs, as they stood before the fix:
 - A bare "continue" gets no prompt recall: the name gate passes a record only if the prompt
   names a file it changed (`harness/memory_recall.py`). In F2 the record came at the prompt in
   36 of 48 Sonnet arms and through the file touch in the other 12.
@@ -187,8 +206,10 @@ section 2). The version with a billed reviewer is Codex's, and that is the casca
 less than the window at the same success (an estimated 0.34x of loading everything against the
 window's 0.54x, [wide](results/2026-09-25-wide/README.md)).
 
-**A10. A local classifier: the owner's decision.** Not for money, since it would replace Jev's
-micro-dollars a decision; only as an offline fallback. TypeSafe's MCA 2.3(b) forbids training on
+**A10. A local classifier: one more provider, the owner's decision.** It plugs in as a
+`LocalDecider` behind the same contract, in front of a hosted provider (`FallbackDecider`) or for
+one point (`RoutedDecider`). Not for money, since it would replace Jev's micro-dollars a
+decision; as an offline fallback, or to keep a point on the machine. TypeSafe's MCA 2.3(b) forbids training on
 Jev's outputs and also "develop a similar or competing product". Train only on our own labels or
 a public bench's, and measure outside the training set.
 
