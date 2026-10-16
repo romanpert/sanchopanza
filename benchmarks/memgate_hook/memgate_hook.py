@@ -6,7 +6,7 @@ Pre-registered (draft) in docs/results/2026-10-16-memgate-hook/prereg.md.
     python benchmarks/memgate_hook/memgate_hook.py --seal          # seal prereg.md + code
     python benchmarks/memgate_hook/memgate_hook.py --smoke --live  # 4 requests, own sub-cap
     python benchmarks/memgate_hook/memgate_hook.py --run --live    # spends (caps in code)
-    python benchmarks/memgate_hook/memgate_hook.py --run           # free: replay only
+    python benchmarks/memgate_hook/memgate_hook.py --run           # free: replay, compared
     python benchmarks/memgate_hook/memgate_hook.py                 # analysis, free
 
 The library gate `memory_gate.gate` reads memories whole by default since the memgate-long
@@ -25,9 +25,11 @@ Every live call goes through `CappedDecider` on this lot's own ledger (LEDGER_PA
 wrapped in lot memgate-long's `StopDead` (a cap refusal ends the lot with the completed pairs;
 an outage, a wrong model or 3 failed calls in a row is a pause that writes nothing). Answers
 are recorded per arm in OUT (hashed keys, no text) by lot L4's recorded-first `Arm`; a relaunch
-replays them free. Scored rows hold ids, record keys, labels, probabilities and what was shown:
-no text. The record texts stay in the cache (CACHE). The key comes from TYPESAFE_API_KEY or the
-`.env` that SANCHOPANZA_KEYS_ENV names, inside the process, never printed.
+replays them free. Each `execute` builds its deciders inside its one event loop: no client
+crosses two `asyncio.run`. Scored rows hold ids, record keys, labels, probabilities and what
+was shown: no text. The record texts and the first prompts stay in the cache (CACHE). The key
+comes from TYPESAFE_API_KEY or the `.env` that SANCHOPANZA_KEYS_ENV names, inside the process,
+never printed.
 """
 
 from __future__ import annotations
@@ -35,6 +37,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import contextlib
+import datetime
 import hashlib
 import json
 import os
@@ -57,13 +60,16 @@ for extra in (REPO / "src", MEMORY_REAL, HERE):
 import build  # noqa: E402
 import build_v4b  # noqa: E402
 import memgate_hook_analysis as an  # noqa: E402
+import memgate_hook_live as live_rules  # noqa: E402
 import replay_v5  # noqa: E402
 
 sys.path.insert(0, str(REPO / "benchmarks" / "memgate_long"))
 import memgate_long as mgl  # noqa: E402  (StopDead, halts, the seal's hashing; lot L4's Arm)
 
 from sanchopanza.context import episodes as ep  # noqa: E402
+from sanchopanza.context.archive import safe_name  # noqa: E402
 from sanchopanza.harness import memory_hook as mh  # noqa: E402
+from sanchopanza.redact import redact_secrets  # noqa: E402
 
 l4 = mgl.l4
 
@@ -76,6 +82,7 @@ SELECTIONS = (
     build.OUT / "selection-3.json",
 )
 LEDGER_PATH = pathlib.Path("C:/sp-runs/memgate-hook/ledger.json")  # this lot's own ledger
+LAUNCHER = pathlib.Path("C:/sp-runs/memgate-hook/memgate-hook-run.cmd")  # sealed, untracked
 LEDGER_CAP_USD = 0.60  # the whole lot, smoke included: 3x the dry estimate, under 1 USD
 BATCH, BATCH_CAP_USD = "memgate-hook", 0.60
 SMOKE_BATCH, SMOKE_CAP_USD = "memgate-hook-smoke", 0.05
@@ -84,10 +91,10 @@ MODEL = mgl.MODEL  # jev-1.13.0, the production DEFAULT_MODEL and the installed 
 ARMS = ("S", "L")
 ORDER_SEED = 20261016
 PAIR_EST_USD = 0.003  # a pair's soft-stop estimate (S + L + a fallback), pessimistic
-MIN_REQUESTS = 30  # requests with a related candidate, for any verdict
-RELATED = frozenset({"lineage", "file"})
+MIN_REQUESTS = an.MIN_REQUESTS
+RELATED = an.RELATED
 MEDIAN_USD = 71e-6  # Jev's median billed request (owner's measure), the second estimate
-TIMEOUT_S = 30.0
+TIMEOUT_S = 10.0  # JevDecider's default, what the installed hook's decider uses
 # Every variable the hook reads at a prompt: unset before each call, so the installed defaults
 # apply, then the arm's own.
 HOOK_VARS = ("MEMORY_WINDOW", "MEMORY_K", "MEMORY_KEEP_AT", "MEMORY_CHARS",
@@ -100,7 +107,9 @@ HOOK_VARS = ("MEMORY_WINDOW", "MEMORY_K", "MEMORY_KEEP_AT", "MEMORY_CHARS",
 
 def build_items(path: pathlib.Path = ITEMS) -> int:
     """Every later session's first request with a pool, from the three sets' groups, through
-    `build_v4b.items_for` (labels as build.py). Free; written to the cache, never the repo."""
+    `build_v4b.items_for` (labels as build.py), with the session's first prompt whole as
+    UserPromptSubmit carries it (`replay_v5.first_prompt`), so the sealed items hold every input.
+    Free; written to the cache, never the repo."""
     n = 0
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="\n") as handle:
@@ -109,7 +118,9 @@ def build_items(path: pathlib.Path = ITEMS) -> int:
             for g in json.loads(selection.read_text(encoding="utf-8"))["groups"]:
                 for item in build_v4b.items_for(g["sessions"], g["group"], g["split"]):
                     if item["first"] and item["pool"]:
-                        row = {**item, "set": name, "cluster": f"{name}:{g['group']}"}
+                        prompt = replay_v5.first_prompt(item["session"], item["request"])
+                        row = {**item, "set": name, "cluster": f"{name}:{g['group']}",
+                               "prompt": prompt}  # fmt: skip
                         handle.write(json.dumps(row, ensure_ascii=False) + "\n")
                         n += 1
     return n
@@ -137,8 +148,10 @@ def launch_order(items: Sequence[Mapping[str, Any]]) -> list[int]:
 
 
 def first_prompt(item: Mapping[str, Any]) -> str:
-    """The session's first prompt whole, as UserPromptSubmit carries it (replay_v5's rule)."""
-    return replay_v5.first_prompt(item["session"], item["request"])
+    """The session's first prompt whole, as `--build` stored it."""
+    if "prompt" not in item:
+        raise SystemExit("an item has no stored prompt: rebuild the items with --build")
+    return str(item["prompt"])
 
 
 # ---- one request through the installed hook ---------------------------------------------------
@@ -170,6 +183,17 @@ def hook_env(window: str, root: pathlib.Path, log: pathlib.Path) -> Iterator[Non
                 os.environ[k] = v
 
 
+def save_pool(store: pathlib.Path, pool: Sequence[ep.Episode]) -> None:
+    """The pool as the hook's store holds it, each record file dated at its record's time: the
+    hook loads the newest `episodes.LOAD_LIMIT` (300) files by date, and a pool of more than
+    that, written at once, would leave which ones to the file system."""
+    ep.save(store, pool, keep_days=10_000)
+    for e in pool:
+        if e.at > 0:
+            with contextlib.suppress(OSError):
+                os.utime(store / f"{safe_name(e.key)}.json", (e.at, e.at))
+
+
 def prompt_row(log: pathlib.Path) -> dict[str, Any]:
     rows = [json.loads(x) for x in log.read_text(encoding="utf-8").splitlines() if x.strip()]
     found = [r for r in rows if r.get("event") == "UserPromptSubmit"]
@@ -182,7 +206,6 @@ async def ask_hook(item: Mapping[str, Any], window: str, decider: Any, root: pat
     with a fresh squire on `decider` (as one hook process has; the run keeps one event loop so
     the client is shared). The hook's log row, reduced to what is scored: keys, probabilities,
     shown, window, no text."""
-    from sanchopanza.redact import redact_secrets
     from sanchopanza.squire import Squire
 
     project = root / "projects" / f"g{item['group']}-{item['session'][:8]}"
@@ -190,7 +213,7 @@ async def ask_hook(item: Mapping[str, Any], window: str, decider: Any, root: pat
     log.parent.mkdir(parents=True, exist_ok=True)
     with hook_env(window, root, log):
         store = mh.store_for({"transcript_path": str(project / "t.jsonl")})
-        ep.save(store, item["pool"], keep_days=10_000)
+        save_pool(store, item["pool"])
         event = {"hook_event_name": "UserPromptSubmit", "session_id": item["session"],
                  "transcript_path": str(project / "absent.jsonl"), "cwd": "",
                  "prompt": prompt}  # fmt: skip
@@ -224,14 +247,26 @@ def _fallback_class(reason: str) -> str:
     return "other"
 
 
-def score_row(item: Mapping[str, Any], arms: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
-    """One request's scored row: ids, the candidates' labels, each arm's reduced row."""
+def score_row(item: Mapping[str, Any], arms: Mapping[str, Mapping[str, Any]],
+              prompt: str) -> dict[str, Any]:  # fmt: skip
+    """One request's scored row: ids, the candidates' labels, whether each changed files,
+    whether a related candidate can pass the v5 name gate (`hittable`: only then can either arm
+    give a related record), the arms' candidate lists agreeing, and each arm's reduced row."""
     candidates = next((a["candidates"] for a in arms.values() if a["candidates"]), [])
+    by_key = {e.key: e for e in item["pool"]}
     labels = {k: item["labels"].get(k, "none") for k in candidates}
-    related_pool = any(v in RELATED for v in item["labels"].values())
+    clean = redact_secrets(prompt).strip()
+    folded = mh._fold(clean)
+    hittable = any(labels[k] in RELATED and k in by_key
+                   and mh.gate_passes(clean, by_key[k], folded) for k in candidates)  # fmt: skip
+    same = all(arms[a]["candidates"] == candidates for a in arms if arms[a]["asked"])
     return {"id": item_id(item), "set": item["set"], "cluster": item["cluster"],
-            "pool": len(item["pool"]), "related_in_pool": related_pool,
-            "labels": labels, **{arm: dict(arms[arm]) for arm in arms}}  # fmt: skip
+            "pool": len(item["pool"]),
+            "related_in_pool": any(v in RELATED for v in item["labels"].values()),
+            "labels": labels, "changed": {k: bool(by_key[k].changed) for k in candidates
+                                          if k in by_key},
+            "hittable": hittable, "same_candidates": same,
+            **{arm: dict(arms[arm]) for arm in arms}}  # fmt: skip
 
 
 # ---- deciders ---------------------------------------------------------------------------------
@@ -281,7 +316,8 @@ def jev_inner(arm: str) -> Any:
 def arm_deciders(name: str, live: bool, batch: str, cap_usd: float,
                  make_inner: Callable[[str], Any] = jev_inner) -> dict[str, Any]:  # fmt: skip
     """One recorded-first `l4.Arm` per arm (answers in OUT), live through this lot's ledger and
-    `cap_usd` on `batch` when `live`, each live call inside lot memgate-long's `StopDead`."""
+    `cap_usd` on `batch` when `live`, each live call inside lot memgate-long's `StopDead`.
+    Called inside the event loop that will use them (`execute`)."""
     gate = asyncio.Semaphore(1)
     capped: dict[str, Any] = {}
     if live:
@@ -328,8 +364,23 @@ async def run(items: Sequence[Mapping[str, Any]], deciders: Mapping[str, Any], *
         if mgl.HALTED:
             print(f"stopped at request {position}, dropped: {mgl.HALTED[0]}", file=sys.stderr)
             break
-        rows = [*rows, score_row(item, {arm: got[arm] for arm in ARMS}) | {"rank": position}]
+        row = score_row(item, {arm: got[arm] for arm in ARMS}, prompt)
+        rows = [*rows, row | {"rank": position}]
     return rows
+
+
+def execute(name: str, items: list[dict[str, Any]], *, live: bool, batch: str, cap_usd: float,
+            make_inner: Callable[[str], Any] = jev_inner) -> list[dict[str, Any]]:  # fmt: skip
+    """One `asyncio.run`, and the arms' deciders (and so their clients) made inside it: a
+    client tied to a closed loop answers "Event loop is closed" to every later call."""
+
+    async def both() -> list[dict[str, Any]]:
+        deciders = arm_deciders(name, live, batch, cap_usd, make_inner)
+        with tempfile.TemporaryDirectory() as tmp:
+            return await run(items, deciders, live=live, batch=batch, cap_usd=cap_usd,
+                             root=pathlib.Path(tmp))  # fmt: skip
+
+    return asyncio.run(both())
 
 
 def split_smoke(items: list[dict[str, Any]]) -> tuple[list[dict], list[dict]]:
@@ -348,8 +399,6 @@ def split_smoke(items: list[dict[str, Any]]) -> tuple[list[dict], list[dict]]:
 
 def would_ask(item: Mapping[str, Any]) -> bool:
     """Free: BM25 proposes a candidate and one passes the v5 name gate (the hook asks then)."""
-    from sanchopanza.redact import redact_secrets
-
     prompt = redact_secrets(first_prompt(item)).strip()
     found = mh.candidates(prompt, item["pool"], mh.K)
     folded = mh._fold(prompt)
@@ -372,8 +421,9 @@ def dry(items: list[dict[str, Any]]) -> dict[str, Any]:
     with tempfile.TemporaryDirectory() as tmp:
         rows = asyncio.run(run(rest, deciders, live=False, batch=BATCH, cap_usd=BATCH_CAP_USD,
                                root=pathlib.Path(tmp)))  # fmt: skip
-    asked = [r for r in rows if r["S"]["asked"] or r["L"]["asked"]]
-    with_related = [r for r in asked if any(v in RELATED for v in r["labels"].values())]
+    asked = [r for r in rows if an.asked(r)]
+    with_related = [r for r in asked if an.has_related(r)]
+    hittable = [r for r in asked if r["hittable"]]
     out_arms = {}
     for arm in ARMS:
         t = tallies[arm]
@@ -387,24 +437,25 @@ def dry(items: list[dict[str, Any]]) -> dict[str, Any]:
             "estimate_usd_pessimistic": round(t.get("estimate_usd", 0.0), 4),
             "estimate_usd_at_median": round(live_calls * MEDIAN_USD, 4),
         }  # fmt: skip
-    fallbacks = sum("window_fallback" in r["L"] for r in rows)
     expected = sum(max(a["estimate_usd_pessimistic"], a["estimate_usd_at_median"])
                    for a in out_arms.values())  # fmt: skip
-    smoke_usd = expected / max(1, len(asked)) * SMOKE_REQUESTS
     return {
         "items": len(items), "smoke_requests": len(smoke), "run_requests": len(rest),
-        "asked": len(asked), "asked_same_in_both_arms":
-            all(r["S"]["asked"] == r["L"]["asked"] for r in rows),
-        "candidates_same_in_both_arms":
-            all(r["S"]["candidates"] == r["L"]["candidates"] for r in asked),
+        "pools_over_load_limit": sum(len(i["pool"]) > ep.LOAD_LIMIT for i in rest),
+        "largest_pool": max(len(i["pool"]) for i in rest),
+        "asked": len(asked),
+        "asked_same_in_both_arms": all(r["S"]["asked"] == r["L"]["asked"] for r in rows),
+        "candidates_same_in_both_arms": all(r["same_candidates"] for r in asked),
         "asked_with_related_candidate": len(with_related),
+        "hittable": len(hittable),
         "asked_without_related_candidate": len(asked) - len(with_related),
         "by_set": {s: sum(r["set"] == s for r in asked) for s in sorted({r["set"] for r in rows})},
-        "arms": out_arms, "long_fallbacks_in_dry": fallbacks,
-        "expected_usd": round(expected, 4), "smoke_expected_usd": round(smoke_usd, 4),
+        "arms": out_arms, "long_fallbacks_in_dry": sum("window_fallback" in r["L"] for r in rows),
+        "expected_usd": round(expected, 4),
+        "smoke_expected_usd": round(expected / max(1, len(asked)) * SMOKE_REQUESTS, 4),
         "caps": {"ledger": LEDGER_CAP_USD, "batch": BATCH_CAP_USD, "smoke": SMOKE_CAP_USD},
         "ledger": str(LEDGER_PATH), "ledger_spent": round(spent(), 6),
-        "power": an.power_table(len(with_related)),
+        "power": an.power_table(len(hittable)),
         "sealed": seal_ok(),
     }  # fmt: skip
 
@@ -413,6 +464,7 @@ def dry(items: list[dict[str, Any]]) -> dict[str, Any]:
 
 SEALED_FIXED = (
     "benchmarks/memgate_hook/memgate_hook.py", "benchmarks/memgate_hook/memgate_hook_analysis.py",
+    "benchmarks/memgate_hook/memgate_hook_live.py",
     "tests/test_memgate_hook.py", "benchmarks/memgate_long/memgate_long.py",
     "benchmarks/jev114/l4.py", "benchmarks/jev114/l4_stats.py", "benchmarks/jev114/l6.py",
     "benchmarks/memory_real/build.py", "benchmarks/memory_real/build_v4.py",
@@ -425,7 +477,8 @@ SEALED_FIXED = (
     "docs/results/2026-10-01-memory-real/selection-3.json",
 )  # fmt: skip
 SEALED_GLOBS = ("src/sanchopanza/**/*.py",)
-# Built from the cached SWE-chat transcripts (not redistributed), hashed under the home folder.
+# Built from the cached SWE-chat transcripts (not redistributed), hashed under the home folder:
+# the items hold the pools, the labels and each first prompt whole.
 SEALED_DATA = (".cache/sanchopanza/memory-real/items-memgate-hook.jsonl",)
 
 
@@ -436,13 +489,20 @@ def sealed_paths() -> tuple[str, ...]:
 
 
 def manifest() -> dict[str, str]:
+    """`<path> -> sha256` of prereg.md, the code (LF bytes), the items under the home folder
+    and the launcher outside the repository, by `live_rules.launcher_digest` (its python and
+    key-file lines as placeholders; "missing" when it is not there)."""
+
     def digest(path: pathlib.Path, text: bool) -> str:
         data = path.read_bytes()
         return hashlib.sha256(data.replace(b"\r\n", b"\n") if text else data).hexdigest()
 
-    doc = (OUT / "prereg.md").relative_to(REPO).as_posix()
-    out = {p: digest(REPO / p, True) for p in (doc, *sealed_paths())}
-    return out | {f"~/{p}": digest(pathlib.Path.home() / p, False) for p in SEALED_DATA}
+    doc = OUT / "prereg.md"
+    out = {"prereg.md": digest(doc, True)}
+    out = out | {p: digest(REPO / p, True) for p in sealed_paths()}
+    out = out | {f"~/{p}": digest(pathlib.Path.home() / p, False) for p in SEALED_DATA}
+    launcher = live_rules.launcher_digest(LAUNCHER) if LAUNCHER.exists() else "missing"
+    return out | {f"launcher:{LAUNCHER.name}": launcher}
 
 
 def seal(again: bool = False) -> str:
@@ -474,9 +534,19 @@ def seal_ok() -> bool:
 # ---- live -------------------------------------------------------------------------------------
 
 
-def go_live() -> None:
+def go_live(name: str, *, now: datetime.datetime | None = None,
+            git: live_rules.Git | None = None) -> None:  # fmt: skip
+    """Before the key is read: the seal holds, then `memgate_hook_live.live_refusal` (outside
+    02:00-08:00, HEAD is the sealing commit, a clean tree outside OUT, the smoke before the
+    run). The time zone is written beside the rows, for the replay."""
     if not seal_ok():
         raise SystemExit("prereg.md, the code or the inputs differ from the seal: nothing spent")
+    why = live_rules.live_refusal(name, repo=REPO, out=OUT, now=now or datetime.datetime.now(),
+                                  git=git or live_rules.git_in(REPO))  # fmt: skip
+    if why:
+        raise SystemExit(f"{name}: not started, {why}: nothing spent")
+    (OUT / f"{name}-zone.json").write_text(json.dumps(live_rules.time_zone()) + "\n",
+                                           encoding="utf-8", newline="\n")  # fmt: skip
     l4.load_key()
     mgl.no_retry_on_429()
     mgl.preflight_or_stop()
@@ -513,15 +583,28 @@ def finish(name: str, rows: list[dict[str, Any]], batch: str, cap_usd: float) ->
     return 0
 
 
-def execute(name: str, items: list[dict[str, Any]], *, live: bool, batch: str,
-            cap_usd: float) -> list[dict[str, Any]]:  # fmt: skip
-    async def both() -> list[dict[str, Any]]:  # one loop: the arms' clients live in it
-        deciders = arm_deciders(name, live, batch, cap_usd)
-        with tempfile.TemporaryDirectory() as tmp:
-            return await run(items, deciders, live=live, batch=batch, cap_usd=cap_usd,
-                             root=pathlib.Path(tmp))  # fmt: skip
-
-    return asyncio.run(both())
+def replay(name: str, items: list[dict[str, Any]], batch: str, cap_usd: float) -> int:
+    """Free: `name`'s recorded answers through the hook again, written to `<name>-replay-
+    scored.jsonl` (never over the rows of record) and compared with them. Refused in another
+    time zone than the live run's: L's requests hold each record's local time."""
+    zone = OUT / f"{name}-zone.json"
+    if zone.exists():
+        saved = json.loads(zone.read_text(encoding="utf-8"))
+        why = live_rules.zone_mismatch(saved, live_rules.time_zone())
+        if why:
+            print(f"{name}: replay refused, {why}", file=sys.stderr)
+            return 2
+    done = read_rows(name)
+    todo = items if done is None else items[: len(done)]
+    rows = execute(name, todo, live=False, batch=batch, cap_usd=cap_usd)
+    write_rows(f"{name}-replay", rows)
+    if done is None:
+        print(f"{name}: no rows of record yet; replay written alone", file=sys.stderr)
+        return 0
+    differ = sum(a != b for a, b in zip(rows, done, strict=False)) + abs(len(rows) - len(done))
+    print(json.dumps({"replay": name, "rows": len(rows), "of_record": len(done),
+                      "rows_that_differ": differ}), file=sys.stderr)  # fmt: skip
+    return 0 if differ == 0 else 3
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -544,34 +627,57 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(dry(load_items()), indent=1))
         return 0
     smoke_items, run_items = split_smoke(load_items())
+    if args.smoke and not args.live:
+        return replay("smoke", smoke_items, SMOKE_BATCH, SMOKE_CAP_USD)
     if args.smoke:
-        if args.live:
-            go_live()
-        rows = execute("smoke", smoke_items, live=args.live, batch=SMOKE_BATCH,
-                       cap_usd=SMOKE_CAP_USD)  # fmt: skip
+        if read_rows("smoke") is not None:
+            print("smoke: scored already, frozen: not asked again", file=sys.stderr)
+            return 0
+        go_live("smoke")
+        rows = execute("smoke", smoke_items, live=True, batch=SMOKE_BATCH, cap_usd=SMOKE_CAP_USD)
         return finish("smoke", rows, SMOKE_BATCH, SMOKE_CAP_USD)
-    if args.run:
-        if args.live and read_rows("run") is not None:
+    if args.run and not args.live:
+        code = replay("run", run_items, BATCH, BATCH_CAP_USD)
+        if code:
+            return code
+    elif args.run:
+        if read_rows("run") is not None:
             print("run: scored already, frozen: not asked again", file=sys.stderr)
-        elif args.live:
-            go_live()
+        else:
+            go_live("run")
             rows = execute("run", run_items, live=True, batch=BATCH, cap_usd=BATCH_CAP_USD)
             if finish("run", rows, BATCH, BATCH_CAP_USD):
                 return 2
-        else:
-            done = read_rows("run")
-            todo = run_items if done is None else run_items[: len(done)]
-            rows = execute("run", todo, live=False, batch=BATCH, cap_usd=BATCH_CAP_USD)
-            write_rows("replay" if done is None else "run", rows)
-    return analyse_and_write()
+    return analyse_and_write(run_items)
 
 
-def analyse_and_write() -> int:
+def retest_pairs(rows: Sequence[Mapping[str, Any]],
+                 items: Sequence[Mapping[str, Any]]) -> list[tuple[float, float]]:  # fmt: skip
+    """(v5's cached probability, this run's S probability) per record, where v5's pass asked
+    the same request with the same candidates (`score.ANSWERS`, keyed by prompt and keys).
+    Free, descriptive: a test-retest of the short arm, not part of any verdict."""
+    cache = replay_v5._answers()
+    prompts = {item_id(i): redact_secrets(first_prompt(i)).strip() for i in items}
+    pairs: list[tuple[float, float]] = []
+    for row in rows:
+        if row["id"] not in prompts or not row["S"]["asked"]:
+            continue
+        old = cache.get(replay_v5._key(prompts[row["id"]], row["S"]["candidates"]))
+        for key, new in (row["S"]["probabilities"] or {}).items():
+            if old is not None and old.get(key) is not None and new is not None:
+                pairs = [*pairs, (float(old[key]), float(new))]
+    return pairs
+
+
+def analyse_and_write(items: Sequence[Mapping[str, Any]] = ()) -> int:
     rows = read_rows("run")
     if rows is None:
         print("no run-scored.jsonl yet: nothing to analyse", file=sys.stderr)
         return 0
     summary = an.analyse(rows, min_requests=MIN_REQUESTS)
+    zone = OUT / "run-zone.json"
+    summary["time_zone"] = json.loads(zone.read_text(encoding="utf-8")) if zone.exists() else None
+    summary["retest_v5_cache"] = an.retest(retest_pairs(rows, items)) if items else None
     summary["spent"] = {"batch": round(spent(BATCH), 6), "smoke": round(spent(SMOKE_BATCH), 6),
                         "ledger": round(spent(), 6)}  # fmt: skip
     (OUT / "summary.json").write_text(json.dumps(summary, indent=1) + "\n", encoding="utf-8",
