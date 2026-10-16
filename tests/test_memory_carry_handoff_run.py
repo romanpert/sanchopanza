@@ -506,3 +506,17 @@ def test_touched_is_reported_and_criteria_again_without_those_triples() -> None:
         "handoff: session 2's first prompt differs from handoff.txt": 1
     }
     assert "without_s2_touched" not in an.analyse(sonnet_rows(), "sonnet")
+
+
+def test_the_analysis_counts_h_s_handoff_turn_at_its_own_cost() -> None:
+    tokens = {"input": 2, "output": 627, "cache_read": 23413, "cache_write": 299}
+    own = an.own_row.__globals__["priced"](tokens, "sonnet")
+    running = {"cost": 0.1 + own, "tokens": tokens, "chars": 900, "cost_reported": True,
+               "context_carried": True, "names": {"C": True, "D": True}}  # fmt: skip
+    rows = [row(s, a, r, **({"cost": 0.1 + (0.1 + own) + 0.1, "sessions": [{"cost": 0.1}],
+                             "handoff": running} if a == "H" else {"cost": 0.2}))
+            for s, _, a, r in handoff.build_plan("f2-sonnet")]  # fmt: skip
+    result = an.analyse(rows, "sonnet")
+    assert result["cost_median_usd"]["H"] == pytest.approx(0.2 + own, abs=1e-6)
+    assert result["cost_ratio_median"]["S/H"] == pytest.approx(0.201 / (0.2 + own), abs=1e-5)
+    assert result["handoff_cost_at_least_session_1"] == 48

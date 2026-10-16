@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BENCH = ROOT / "benchmarks" / "memory_carry"
 night = bench_module(BENCH, "handoff_night")
 handoff = night.handoff
-carry = handoff.carry
+carry, handoff_cost = handoff.carry, handoff.handoff_cost
 
 LOT_WORDS = ("handoff", "f2", "sonnet", "opus", "memory-f2", "claude-sonnet", "claude-opus")
 ARM_TOKEN = re.compile(r"(?<![A-Za-z0-9])(N0|H|S)(?![A-Za-z0-9])")
@@ -114,7 +114,11 @@ init = {"type": "system", "subtype": "init", "session_id": sid,
         "model": "claude-sonnet-5-5", "claude_code_version": "2.1.287"}
 usage = {"input_tokens": 10, "cache_read_input_tokens": size}
 said = {"type": "assistant", "message": {"content": [], "usage": usage}}
-result = {"type": "result", "subtype": "success", "total_cost_usd": 0.05, "num_turns": 2,
+# Sonnet 5.5 at Claude Code's rates; a resumed turn reports the session's running total, as
+# Claude Code 2.1.287 does: session 1's cost (size 20000) plus its own.
+own = (10 * 2.0 + 20 * 10.0 + size * 0.2 + 5 * 4.0) / 1e6
+total = own + (10 * 2.0 + 20 * 10.0 + 20000 * 0.2 + 5 * 4.0) / 1e6 if resume else own
+result = {"type": "result", "subtype": "success", "total_cost_usd": total, "num_turns": 2,
           "result": text, "usage": {**usage, "output_tokens": 20,
                                     "cache_creation_input_tokens": 5}}
 for e in (init, said, result):
@@ -145,10 +149,16 @@ def test_a_whole_h_arm_resumes_pastes_the_handoff_and_checks(tmp_path: Path,
     assert not got.get("cut") and got["kept_all"] and got["intact_pass"]
     assert got["pasted_verbatim"] is True and got["folder"] == str(work)
     assert got["handoff"]["context_carried"] and got["handoff"]["names"] == {"C": True, "D": True}
-    assert got["cost"] == pytest.approx(0.15) and got["tokens"]["output"] == 60
+    # The resumed turn reports the running total (0.01248); H records the turn's own 0.00824.
+    hand = got["handoff"]
+    assert hand["cost_reported_total"] == pytest.approx(0.01248)
+    assert hand["cost"] == pytest.approx(0.00824) and hand["cost_source"] == handoff_cost.RUNNING
+    assert got["cost"] == pytest.approx(0.00424 + 0.00824 + 0.00424)
+    assert got["tokens"]["output"] == 60
     n0 = handoff.arm_run(lot, tmp_path / "w" / "t00-a", "h_batch", "sonnet", "N0", 0,
                          tmp_path / "k", False)  # fmt: skip
-    assert n0["kept_all"] and n0["cost"] == pytest.approx(0.10) and "pasted_verbatim" not in n0
+    assert n0["kept_all"] and n0["cost"] == pytest.approx(0.00848)
+    assert "pasted_verbatim" not in n0
 
 
 def test_a_pasted_text_that_differs_is_recorded(tmp_path: Path) -> None:

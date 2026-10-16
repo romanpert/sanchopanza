@@ -2,15 +2,12 @@
 
 - `rows-<run>.json`: every arm's row with numbers and flags only: no text the agent or the
   model wrote, no handoff text, no session id, no path (the work folder by its opaque name).
-- `check`: the sealed analysis (`handoff_analyze.analyse`, as `handoff_night.table` ran it)
-  recomputed from the full rows and from the public rows must equal the table the night wrote,
-  byte for byte.
-- `costs`: reported beside the sealed table, never deciding. Claude Code 2.1.287 reports, for a
-  resumed `-p` turn, the session's cumulative `total_cost_usd` (session 1 plus the turn); the
-  sealed table therefore counts H's session 1 twice. The turn's own cost is the reported total
-  minus session 1's, checked against the turn's own tokens priced at Claude Code's rates
-  (`meter.CLAUDE_CODE_RATES`, 1-hour cache writes). This gives each arm's cost per triple, the
-  paired median ratios and what the lot spent.
+  H's handoff turn is at its own cost (`handoff_cost.own_row`), its reported total kept beside.
+- `<run>-table.json`: the analysis (`handoff_analyze.analyse`) of the night's rows. It must give
+  the same text from the full rows and from the public rows, and the same as the table the
+  night wrote in every field but the costs (the criteria never read a cost).
+- `costs.json`: per run, the handoff turn's own cost against its tokens priced at Claude Code's
+  rates, and what the lot spent (sessions' own costs, Jev and the preflights).
 
     python benchmarks/memory_carry/handoff_publish.py ROOT OUT_DIR
 """
@@ -29,7 +26,7 @@ sys.path.insert(0, str(HERE.parent))
 
 import handoff  # noqa: E402
 import handoff_analyze  # noqa: E402
-import meter  # noqa: E402
+import handoff_cost  # noqa: E402
 
 RUNS = ("f2-pilot", "f2-sonnet", "f2-opus")
 ROW_KEYS = ("scene", "model", "arm", "repeat", "planned", "tests_pass", "task_pass", "fact_pass",
@@ -39,26 +36,16 @@ ROW_KEYS = ("scene", "model", "arm", "repeat", "planned", "tests_pass", "task_pa
 SESSION_KEYS = ("tag", "returncode", "subtype", "timeout", "cost", "turns", "tools", "seconds",
                 "tokens", "subagents", "limit_hit", "first_prompt", "last_prompt", "is_error",
                 "touched")  # fmt: skip
-HANDOFF_KEYS = (
-    "returncode",
-    "subtype",
-    "cost",
-    "cost_reported",
-    "context_carried",
-    "same_session",
-    "first_prompt",
-    "tokens",
-    "seconds",
-    "tools",
-    "chars",
-    "names",
-)
+HANDOFF_KEYS = ("returncode", "subtype", "cost", "cost_reported_total", "cost_source",
+                "cost_reported", "context_carried", "same_session", "first_prompt", "tokens",
+                "seconds", "tools", "chars", "names")  # fmt: skip
 INIT_KEYS = ("model", "version", "permission_mode", "api_key_source", "mcp_servers", "plugins",
              "skills", "agents")  # fmt: skip
-MODEL_IDS = {"sonnet": meter.SONNET_55, "opus": meter.OPUS_55}
+COST_FIELDS = ("cost_median_usd", "cost_ratio_median")
 
 
 def public_row(row: dict[str, Any]) -> dict[str, Any]:
+    row = handoff_cost.own_row(row)
     out = {k: row[k] for k in ROW_KEYS if k in row}
     out["folder"] = Path(str(row.get("folder") or "")).name
     out["given"] = len(row.get("given") or [])
@@ -72,50 +59,35 @@ def public_row(row: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-def table(rows: list[dict[str, Any]], run: str, out: Path | None) -> str:
-    """The text `handoff_night.table` wrote for `run`."""
+def analysis(rows: list[dict[str, Any]], run: str, out: Path | None) -> dict[str, Any]:
     plan = handoff.build_plan(run)
     planned = sorted({(s, m, r) for s, m, _, r in plan})
-    result = handoff_analyze.analyse(rows, handoff.RUNS[run]["model"], out, planned)
-    return json.dumps(result, indent=1)
+    return handoff_analyze.analyse(rows, handoff.RUNS[run]["model"], out, planned)
 
 
-def priced(tokens: dict[str, int], model: str) -> float:
-    r = meter.rates_of(meter.CLAUDE_CODE_RATES, MODEL_IDS[model])
-    return (tokens["input"] * r.input + tokens["output"] * r.output +
-            tokens["cache_read"] * r.read + tokens["cache_write"] * r.write_1h) / 1e6  # fmt: skip
-
-
-def own_cost(row: dict[str, Any]) -> float:
-    """An arm's cost with H's handoff turn at its own cost (reported total minus session 1)."""
-    cost = float(row["cost"]) + float(row.get("jev_usd") or 0.0)
-    if row["arm"] != "H" or not row.get("handoff"):
-        return cost
-    return cost - float(row["sessions"][0]["cost"])
+def same_but_costs(new: dict[str, Any], old: dict[str, Any]) -> bool:
+    return {k: v for k, v in new.items() if k not in COST_FIELDS} == \
+        {k: v for k, v in old.items() if k not in COST_FIELDS}  # fmt: skip
 
 
 def costs(rows: list[dict[str, Any]], model: str) -> dict[str, Any]:
-    h_rows = [r for r in rows if r["arm"] == "H" and r.get("handoff")]
-    gaps = [abs(r["handoff"]["cost"] - r["sessions"][0]["cost"]
-                - priced(r["handoff"]["tokens"], model)) for r in h_rows]  # fmt: skip
-    gap = max(gaps, default=0.0)
-    trip = handoff_analyze.triples([r for r in rows if r["model"] == model])
-    done = [
-        t for t in trip.values() if all(handoff_analyze.ran(t.get(a)) for a in ("N0", "H", "S"))
-    ]
+    hands = [handoff_cost.own_row(r)["handoff"] for r in rows if r["arm"] == "H"
+             and r.get("handoff")]  # fmt: skip
+    gaps = [abs(h["cost"] - handoff_cost.priced(h["tokens"], model)) for h in hands]
+    own = sorted(h["cost"] for h in hands)
+    return {"model": model, "handoffs": len(hands),
+            "handoff_turn_cost_median": round(statistics.median(own), 6) if own else None,
+            "sources": sorted({h["cost_source"] for h in hands}),
+            "max_gap_to_tokens_priced": max(gaps, default=0.0)}  # fmt: skip
 
-    def med(values: list[float]) -> float | None:
-        return round(statistics.median(values), 6) if values else None
 
-    per_arm = {a: med([own_cost(t[a]) for t in done]) for a in ("N0", "H", "S")}
-    ratio = {f"S/{b}": med([own_cost(t["S"]) / own_cost(t[b]) for t in done])
-             for b in ("H", "N0")}  # fmt: skip
-    turn = med([r["handoff"]["cost"] - r["sessions"][0]["cost"] for r in h_rows])
-    return {"model": model, "triples": len(done), "handoff_turn_own_cost_median": turn,
-            "max_gap_to_tokens_priced": gap, "cost_median_usd": per_arm,
-            "cost_ratio_median": ratio,
-            "session_1_counted_twice_usd": round(sum(r["sessions"][0]["cost"] for r in h_rows),
-                                                 6)}  # fmt: skip
+def spent(rows: list[dict[str, Any]], root: Path, run: str) -> float:
+    """What the run spent: every arm at its own cost, its Jev decisions, the preflights."""
+    arms = sum(float(handoff_cost.own_row(r).get("cost") or 0.0) + float(r.get("jev_usd") or 0)
+               for r in rows)  # fmt: skip
+    path = root / run / "ledger.jsonl"
+    lines = [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x.strip()]
+    return arms + sum(float(x["usd"]) for x in lines if x["kind"] == "preflight")
 
 
 def main(argv: list[str]) -> int:
@@ -127,21 +99,21 @@ def main(argv: list[str]) -> int:
         public = [public_row(r) for r in rows]
         (dest / f"rows-{run}.json").write_text(json.dumps(public, indent=1) + "\n",
                                                 encoding="utf-8", newline="\n")  # fmt: skip
-        written = (root / f"{run}-table.json").read_text(encoding="utf-8")
-        report[run] = {"table_from_rows": table(rows, run, root / run) == written,
-                       "table_from_public_rows": table(public, run, None) == written,
+        full = json.dumps(analysis(rows, run, root / run), indent=1)
+        night = json.loads((root / f"{run}-table.json").read_text(encoding="utf-8"))
+        report[run] = {"table_from_public_rows": json.dumps(analysis(public, run, None),
+                                                            indent=1) == full,
+                       "same_as_the_night_but_costs": same_but_costs(json.loads(full), night),
                        "costs": costs(rows, handoff.RUNS[run]["model"]),
-                       "ledger_usd": round(handoff.ledger(root / run), 6)}  # fmt: skip
-        (dest / f"{run}-table.json").write_text(written, encoding="utf-8", newline="\n")
-    spent = sum(v["ledger_usd"] for v in report.values())
-    twice = sum(v["costs"]["session_1_counted_twice_usd"] for v in report.values())
-    report["lot"] = {"ledger_usd": round(spent, 4), "session_1_counted_twice_usd": round(twice, 4),
-                     "spent_usd": round(spent - twice, 4)}  # fmt: skip
+                       "spent_usd": round(spent(rows, root, run), 6)}  # fmt: skip
+        (dest / f"{run}-table.json").write_text(full + "\n", encoding="utf-8", newline="\n")
+    report["lot"] = {"spent_usd": round(sum(v["spent_usd"] for v in report.values()), 4)}
     (dest / "costs.json").write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8",
                                      newline="\n")  # fmt: skip
     print(json.dumps(report, indent=1))
-    return 0 if all(v.get("table_from_rows", True) and v.get("table_from_public_rows", True)
-                    for v in report.values()) else 1  # fmt: skip
+    ok = all(v["table_from_public_rows"] and v["same_as_the_night_but_costs"]
+             for k, v in report.items() if k != "lot")  # fmt: skip
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

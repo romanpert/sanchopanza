@@ -53,6 +53,7 @@ sys.path.insert(0, str(REPO / "benchmarks"))
 import carry  # noqa: E402
 import carry_s  # noqa: E402
 import handoff_call as hc  # noqa: E402
+import handoff_cost  # noqa: E402
 import handoff_seal  # noqa: E402
 import meter  # noqa: E402
 from scenes_handoff import CHECKS, HANDOFF, HANDOFF_PILOT, check_code, names_c_d  # noqa: E402
@@ -344,8 +345,12 @@ def handoff_step(rec: Path, repo: Path, first: dict[str, Any], model: str,
                 "error": "session 1 reported no session id"}  # fmt: skip
     turn = hc.call(rec, repo, command(HANDOFF_REQUEST, model, resume=str(sid)), "handoff",
                    config, HANDOFF_TIMEOUT)  # fmt: skip
+    total = float(turn.get("cost") or 0.0)
+    own, source = handoff_cost.turn_own(total, float(first.get("cost") or 0.0),
+                                        turn.get("tokens"), model)  # fmt: skip
     turn = {**turn, "resumed": str(sid), "context_carried": carried(first, turn),
-            "same_session": (turn.get("init") or {}).get("session_id") == sid}  # fmt: skip
+            "same_session": (turn.get("init") or {}).get("session_id") == sid,
+            "cost": own, "cost_reported_total": total, "cost_source": source}  # fmt: skip
     (rec / "handoff.txt").write_text(str(turn.get("text") or ""), encoding="utf-8", newline="")
     return turn
 
@@ -359,6 +364,8 @@ def handoff_facts(turn: dict[str, Any], scene: dict[str, Any]) -> dict[str, Any]
         "subtype",
         "cost",
         "cost_reported",
+        "cost_reported_total",
+        "cost_source",
         "context_carried",
         "same_session",
         "first_prompt",

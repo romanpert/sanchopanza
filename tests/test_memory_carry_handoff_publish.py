@@ -43,8 +43,26 @@ def test_public_rows_keep_numbers_and_flags_only() -> None:
 
 
 def test_h_cost_takes_the_handoff_turn_s_own_cost() -> None:
-    row = h_row()
-    assert pub.priced(TOKENS, "sonnet") == pytest.approx(0.0728406 - 0.060688, abs=1e-9)
-    assert pub.own_cost(row) == pytest.approx(0.198253 - 0.060688)
-    n0 = {**row, "arm": "N0", "jev_usd": 0.0}
-    assert pub.own_cost(n0) == pytest.approx(0.198253)
+    # Measured on F2 (Sonnet 5.5, h_batch r1): session 1 0.060688, the resumed turn reported
+    # 0.0728406, its own tokens price to 0.0121526 at Claude Code's rates.
+    cost = pub.handoff_cost
+    assert cost.priced(TOKENS, "sonnet") == pytest.approx(0.0728406 - 0.060688, abs=1e-9)
+    got = cost.own_row(h_row())
+    assert got["handoff"]["cost"] == pytest.approx(0.0121526, abs=1e-9)
+    assert got["handoff"]["cost_reported_total"] == 0.0728406
+    assert got["handoff"]["cost_source"] == cost.RUNNING
+    assert got["cost"] == pytest.approx(0.198253 - 0.060688)
+    assert cost.own_row(got) == got  # already at its own cost
+    n0 = {**h_row(), "arm": "N0"}
+    assert cost.own_row(n0) == n0
+    assert pub.public_row(h_row())["handoff"]["cost"] == pytest.approx(0.0121526, abs=1e-9)
+
+
+def test_turn_own_reads_each_kind_of_report() -> None:
+    cost = pub.handoff_cost
+    own = cost.priced(TOKENS, "sonnet")
+    assert cost.turn_own(0.06 + own, 0.06, TOKENS, "sonnet") == (pytest.approx(own),
+                                                                  cost.RUNNING)  # fmt: skip
+    assert cost.turn_own(own, 0.06, TOKENS, "sonnet") == (own, cost.OWN)
+    assert cost.turn_own(0.5, 0.06, TOKENS, "sonnet") == (pytest.approx(own), cost.PRICED)
+    assert cost.turn_own(0.5, 0.06, None, "sonnet") == (0.5, cost.OWN)

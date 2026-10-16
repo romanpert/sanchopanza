@@ -26,6 +26,7 @@ from typing import Any
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
+from handoff_cost import own_row  # noqa: E402
 from scenes_handoff import HANDOFF  # noqa: E402
 
 MARGIN = 0.125
@@ -136,7 +137,7 @@ def compare(done: dict[Any, dict[str, dict[str, Any]]], a: str, b: str) -> dict[
 
 def analyse(rows: list[dict[str, Any]], model: str, run: Path | None = None,
             planned: list[tuple[str, str, int]] | None = None) -> dict[str, Any]:  # fmt: skip
-    mine = [r for r in rows if r["model"] == model]
+    mine = [own_row(r) for r in rows if r["model"] == model]  # H at its handoff's own cost
     all_t = triples(mine)
     done = {k: t for k, t in all_t.items() if all(ran(t.get(arm)) for arm in ARMS)}
     keys = set(planned or []) | set(all_t)
@@ -232,7 +233,8 @@ def reported(done: dict[Any, dict[str, dict[str, Any]]]) -> dict[str, Any]:
     out_tokens = [int((h.get("tokens") or {}).get("output", 0)) for h in hand]
     names = Counter((bool(h.get("names", {}).get("C")), bool(h.get("names", {}).get("D")))
                     for h in hand)  # fmt: skip
-    suspect = sum(1 for t in ts if float((t["H"].get("handoff") or {}).get("cost") or 0)
+    suspect = sum(1 for t in ts if float((t["H"].get("handoff") or {}).get(
+        "cost_reported_total", (t["H"].get("handoff") or {}).get("cost")) or 0)
                   >= float((t["H"]["sessions"][0] or {}).get("cost") or 0) > 0)  # fmt: skip
     return {"cost_median_usd": cost, "cost_ratio_median": ratio, "tokens_median": tokens,
             "handoff_chars": {"median": median(chars), "max": max(chars, default=None)},

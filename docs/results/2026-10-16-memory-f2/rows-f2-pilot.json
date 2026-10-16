@@ -112,7 +112,7 @@
   "decision_pass": true,
   "intact_pass": true,
   "kept_all": true,
-  "cost": 0.198338,
+  "cost": 0.137596,
   "tokens": {
    "input": 18,
    "output": 3712,
@@ -197,7 +197,9 @@
   "handoff": {
    "returncode": 0,
    "subtype": "success",
-   "cost": 0.0733346,
+   "cost": 0.012592400000000004,
+   "cost_reported_total": 0.0733346,
+   "cost_source": "running total minus session 1",
    "cost_reported": true,
    "context_carried": true,
    "same_session": true,
@@ -335,7 +337,7 @@
   "decision_pass": true,
   "intact_pass": true,
   "kept_all": true,
-  "cost": 0.213144,
+  "cost": 0.155825,
   "tokens": {
    "input": 18,
    "output": 4844,
@@ -420,7 +422,9 @@
   "handoff": {
    "returncode": 0,
    "subtype": "success",
-   "cost": 0.07102,
+   "cost": 0.013701400000000002,
+   "cost_reported_total": 0.07102,
+   "cost_source": "running total minus session 1",
    "cost_reported": true,
    "context_carried": true,
    "same_session": true,
@@ -854,7 +858,7 @@
   "decision_pass": true,
   "intact_pass": true,
   "kept_all": true,
-  "cost": 0.22194,
+  "cost": 0.148597,
   "tokens": {
    "input": 20,
    "output": 4110,
@@ -943,7 +947,9 @@
   "handoff": {
    "returncode": 0,
    "subtype": "success",
-   "cost": 0.08491200000000002,
+   "cost": 0.011569200000000002,
+   "cost_reported_total": 0.08491200000000002,
+   "cost_source": "running total minus session 1",
    "cost_reported": true,
    "context_carried": true,
    "same_session": true,
@@ -1076,7 +1082,7 @@
   "decision_pass": true,
   "intact_pass": true,
   "kept_all": true,
-  "cost": 0.18889,
+  "cost": 0.135811,
   "tokens": {
    "input": 18,
    "output": 3956,
@@ -1161,7 +1167,9 @@
   "handoff": {
    "returncode": 0,
    "subtype": "success",
-   "cost": 0.0691792,
+   "cost": 0.0161006,
+   "cost_reported_total": 0.0691792,
+   "cost_source": "running total minus session 1",
    "cost_reported": true,
    "context_carried": true,
    "same_session": true,

@@ -139,7 +139,13 @@ Other comparisons (reported, not deciding):
 
 ## Cost and tokens
 
-**Cost per triple, median, at Claude Code's list price** (S includes Jev; `costs.json`):
+**Cost per triple, median, at Claude Code's list price.**
+- S includes its Jev decisions.
+- H includes its handoff turn at the turn's own cost. For a resumed `claude -p` turn, Claude
+  Code 2.1.287 reports `total_cost_usd` as the session's running total (session 1 plus the turn).
+  - The turn's own cost is that total minus session 1's.
+  - That equals the turn's own tokens priced at Claude Code's rates, to within 1e-17 USD in all
+    76 handoffs (`costs.json`).
 
 | | N0 | H | S | S / H (paired median) | S / N0 |
 |---|---|---|---|---|---|
@@ -149,17 +155,6 @@ Other comparisons (reported, not deciding):
 H's handoff turn costs:
 - a median of 0.012 USD on Sonnet and 0.021 USD on Opus;
 - 560 output tokens over about 23,000 cached input tokens.
-
-**Claude Code reports a resumed turn's cost as the session's running total.** For a resumed
-`claude -p` turn, Claude Code 2.1.287 reports `total_cost_usd` as the session's cumulative total
-(session 1 plus the turn).
-- The turn's own cost is that total minus session 1's. That difference equals the turn's own
-  tokens priced at Claude Code's rates to within 1e-17 USD in all 76 handoffs.
-- The table above uses it.
-- The cost fields of `f2-sonnet-table.json` and `f2-opus-table.json` take the reported total
-  as is, so they count H's session 1 twice (their S / H 0.643 and 0.741). The prereg flagged this
-  possibility ("handoff turns whose reported cost is at least session 1's"): 48 of 48 and 24 of
-  24 were.
 
 **Tokens per arm run, median** (input / output / cache read / cache write):
 
@@ -189,8 +184,6 @@ H's handoff turn costs:
 
 - **42.25 USD at Claude Code's list price, through the subscription.** Claude Code 42.23 plus
   Jev 0.019 plus the preflights.
-- The runner's ledger reads 48.47 because of the cumulative handoff report above. That
-  overcount only made the caps stricter.
 - Caps were 11.5 / 109 / 106 USD per run and 230 USD for the night. The dearest Sonnet session
   cost 0.128 against its 0.80 cap.
 
@@ -231,11 +224,12 @@ H's handoff turn costs:
 | file | what it is |
 |---|---|
 | `prereg.md`, `prereg.manifest.json`, `prereg.sha256` | the sealed pre-registration and its seal |
-| `f2-sonnet-table.json`, `f2-opus-table.json`, `f2-pilot-table.json` | the sealed analysis (`handoff_analyze.analyse`) as the night wrote it |
+| `f2-sonnet-table.json`, `f2-opus-table.json`, `f2-pilot-table.json` | the sealed analysis (`handoff_analyze.analyse`) of the night's rows, H's handoff turn at its own cost |
 | `gate.json`, `gate.md` | the pilot's automatic gate |
 | `rows-f2-*.json` | every arm's row with numbers and flags only: no text the agent or the model wrote, no handoff text, no session id, no path |
-| `costs.json` | the handoff turn's own cost, per-arm costs and ratios with it, and the lot's spend |
+| `costs.json` | per run, the handoff turn's own cost against its tokens at Claude Code's rates, and the lot's spend |
 
 `python benchmarks/memory_carry/handoff_publish.py <run root> <this folder>` rebuilds these
-files. It checks that the sealed analysis, rerun from the full rows and from the public rows,
-gives each table byte for byte (all three do).
+files. It checks two things for each of the three tables:
+- the analysis gives the same text from the full rows and from the public rows;
+- every field but the costs equals the table the night wrote, verdicts included.
