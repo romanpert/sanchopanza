@@ -58,6 +58,8 @@ import handoff_seal  # noqa: E402
 import meter  # noqa: E402
 from scenes_handoff import CHECKS, HANDOFF, HANDOFF_PILOT, check_code, names_c_d  # noqa: E402
 
+from sanchopanza import durable  # noqa: E402
+
 ARMS = ("N0", "H", "S")
 LETTERS = ("a", "b", "c")
 HANDOFF_REQUEST = "Give me a prompt to continue this work in a clean session."
@@ -444,9 +446,8 @@ def rows_of(out: Path) -> list[dict[str, Any]]:
 
 
 def write_rows(out: Path, rows: list[dict[str, Any]]) -> None:
-    tmp = out / "f2.json.tmp"
-    tmp.write_text(json.dumps(rows, indent=1), encoding="utf-8")
-    os.replace(tmp, out / "f2.json")
+    """Synced before the rename: an unclean shutdown must not leave the rows zero-filled."""
+    durable.replace_text(out / "f2.json", json.dumps(rows, indent=1), temp=out / "f2.json.tmp")
 
 
 def ledger(out: Path) -> float:
@@ -459,9 +460,9 @@ def ledger(out: Path) -> float:
 
 def book(out: Path, kind: str, usd: float, what: str) -> None:
     out.mkdir(parents=True, exist_ok=True)
-    with (out / "ledger.jsonl").open("a", encoding="utf-8") as f:
-        f.write(json.dumps({"kind": kind, "usd": round(usd, 6), "what": what,
-                            "at": time.strftime("%Y-%m-%d %H:%M:%S")}) + "\n")  # fmt: skip
+    durable.append_text(out / "ledger.jsonl",
+                        json.dumps({"kind": kind, "usd": round(usd, 6), "what": what,
+                                    "at": time.strftime("%Y-%m-%d %H:%M:%S")}) + "\n")  # fmt: skip
 
 
 def lost_cost(work: Path, rec: Path) -> float:
@@ -507,7 +508,7 @@ def resume_interrupted(out: Path, work: Path, seen: dict[str, int]) -> tuple[dic
     lost = lost_cost(work, rec)
     book(out, "interrupted", lost, work.name)
     seen = {**seen, work.name: seen.get(work.name, 0) + 1}
-    (out / "interrupts.json").write_text(json.dumps(seen), encoding="utf-8")
+    durable.replace_text(out / "interrupts.json", json.dumps(seen))
     aside(work, "interrupted")
     aside(rec, "interrupted")
     print(f"interrupted arm {work.name}: its {lost:.3f} USD counted", flush=True)

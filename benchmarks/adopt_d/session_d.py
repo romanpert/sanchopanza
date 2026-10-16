@@ -7,7 +7,8 @@ re-exports every name here; this module reads run_d's names when called, not whe
   setup fault leaves no folder that reads as a session.
 - `one`: the `claude -p` call (`session_call`) on a prepared copy, its patch, transcript and row.
 - `grade_arm` and friends: `singles_run.grade`'s harness call on an evidence path.
-- `write_json`: row.json and grade.json are written whole or not at all (temp file, os.replace).
+- `write_json`: row.json and grade.json are written whole or not at all (a temp file synced,
+  then os.replace).
 """
 
 from __future__ import annotations
@@ -22,11 +23,11 @@ from typing import Any
 
 import run_d  # registered by run_d itself (run_d imports this module)
 
+from sanchopanza import durable
+
 
 def write_json(path: Path, data: Any) -> None:
-    tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(json.dumps(data, indent=1), encoding="utf-8")
-    os.replace(tmp, path)
+    durable.replace_text(path, json.dumps(data, indent=1))  # synced before the rename
 
 
 # ---- setup, before anything is spent -------------------------------------------------------------

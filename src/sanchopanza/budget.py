@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from . import _lockfile
+from . import _lockfile, durable
 
 
 @dataclass(frozen=True, slots=True)
@@ -95,8 +95,7 @@ class SpendLedger:
 
     def _append(self, row: dict[str, Any]) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        with self.path.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(row) + "\n")
+        durable.append_text(self.path, json.dumps(row) + "\n")  # a line kept through a crash
 
     def reserve(self, usd: float, *, batch: str, batch_cap_usd: float | None = None) -> str | None:
         """A reservation id when `usd` fits under both caps, else None (do not call)."""

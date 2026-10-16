@@ -27,7 +27,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from . import _env
+from . import _env, durable
 
 BREAKER_S = 300.0
 NOTICE_S = 600.0
@@ -98,7 +98,9 @@ def _write(path: Path, data: dict[str, Any]) -> bool:
     tmp = path.with_suffix(f".{os.getpid()}.tmp")
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
-        tmp.write_text(json.dumps(data), encoding="utf-8")
+        with tmp.open("w", encoding="utf-8") as handle:
+            handle.write(json.dumps(data))
+            durable.sync(handle)  # the breaker is not lost when the machine goes down
     except OSError:  # a breaker that cannot be written must not take the caller down
         return False
     done = _retry(lambda: os.replace(tmp, path))

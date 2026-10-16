@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import datetime as dt
 import json
-import os
 import pathlib
 import re
 import uuid
@@ -34,6 +33,8 @@ import h2h_lb162 as s162
 import h2h_longdoc as ld
 import lb162
 import lb162x
+
+from sanchopanza import durable
 
 gaia, phase_loop = ld.gaia, ld.phase
 
@@ -190,9 +191,8 @@ def void(sessions: pathlib.Path, rids: Sequence[str], why: str) -> None:
         if row.get("reservation") in rids and not row.get("not_run"):
             row = {**row, "not_run": True, "invalid": why}
         out.append(json.dumps(row, ensure_ascii=False))
-    tmp = sessions.with_suffix(".tmp")
-    tmp.write_text("".join(x + "\n" for x in out), encoding="utf-8")
-    os.replace(tmp, sessions)
+    durable.replace_text(sessions, "".join(x + "\n" for x in out),
+                         temp=sessions.with_suffix(".tmp"))  # fmt: skip
 
 
 class Budget(s162.Guard):

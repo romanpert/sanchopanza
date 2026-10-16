@@ -39,7 +39,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from sanchopanza import _lockfile  # noqa: E402
+from sanchopanza import _lockfile, durable  # noqa: E402
 from sanchopanza.budget import SpendLedger  # noqa: E402
 from sanchopanza.providers.capped import (  # noqa: E402
     DEFAULT_PRICE_PER_MTOK,
@@ -228,8 +228,7 @@ def history(lot: Lot) -> list[dict[str, Any]]:
 
 def _note(lot: Lot, row: dict[str, Any]) -> None:
     lot.run_dir.mkdir(parents=True, exist_ok=True)
-    with lot.launches.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(row) + "\n")
+    durable.append_text(lot.launches, json.dumps(row) + "\n")  # kept through a crash
 
 
 def may_launch(past: Sequence[dict[str, Any]]) -> bool:

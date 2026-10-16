@@ -23,6 +23,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import offline_common as common  # noqa: E402
 
+from sanchopanza import durable  # noqa: E402
+
 reading = common.reading
 
 
@@ -41,9 +43,8 @@ def enrich(path: pathlib.Path) -> int:
             added += 1
         out.append(row)
     if added:
-        tmp = path.with_suffix(".jsonl.tmp")
-        tmp.write_text("".join(json.dumps(r) + "\n" for r in out), encoding="utf-8")
-        tmp.replace(path)
+        durable.replace_text(path, "".join(json.dumps(r) + "\n" for r in out),
+                             temp=path.with_suffix(".jsonl.tmp"))  # fmt: skip
     return added
 
 
