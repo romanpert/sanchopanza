@@ -1,0 +1,322 @@
+# W17 memory lots: the default install at user scope against clean Claude Code, Sonnet 5.5 and Opus 5.5. Written before its data
+
+Two lots on F2's runner and scenes (`docs/results/2026-10-16-memory-f2`, sealed 763dafd),
+parameterised, not forked: `benchmarks/memory_carry/handoff*.py` with the runs `w17-sonnet` and
+`w17-opus` and the lot `w17` (`handoff.LOTS`). The owner approved both lots on 2026-10-16
+(about 34 USD at list price together, hard cap 45 USD over both). Sealed by `prereg.sha256` (see
+"Seal"); until that file matches, every live path refuses. No session of these lots has run.
+
+## Questions
+
+- **Lot S (Sonnet 5.5).** F2 found that S (the project-scope install, memory on) finished the
+  next step from a plain "let's continue with ..." line in 48 of 48 triples against N0's 4, but
+  at 1.23x N0's cost [1.14, 1.26], so it was not a "gana". Does the new default install at
+  **user** scope (S'), as `sanchopanza install --write` leaves it today, keep that gain, also
+  when the line names nothing ("Let's continue."), and does it now win without losing on cost?
+- **Lot O (Opus 5.5).** On Opus F2 found no room (Claude Code's own auto memory saved the plan
+  after every session 1; N0 21 of 24, S 22) and S cost 1.105x N0 [1.011, 1.158] with no gain.
+  **The question is cost**: where S' has no room, does it still cost extra?
+
+## Arms
+
+Both arms: clean Claude Code exactly as in F2: a fresh `CLAUDE_CONFIG_DIR` per arm run, kept
+across its two sessions, signed in with the subscription's OAuth token only; Claude Code 2.1.287
+pinned; `claude -p` with `--output-format stream-json --verbose`, `--settings "{}"`,
+`--allowedTools Bash Read Edit Write Glob Grep`, default permission mode, a 900 s timeout per
+session. `--max-budget-usd` is the memory cell's (`docs/results/2026-10-13-memory-cell`):
+**0.60 USD on Sonnet 5.5** (`claude-sonnet-5-5`), **1.00 USD on Opus 5.5** (`claude-opus-5-5`)
+(F2 used 0.80 and 1.50; its dearest sessions cost 0.128 and 0.307). Session 1 is the scene's
+`first` prompt in both arms; its work is committed; session 2 is a new session.
+
+- **N0**: clean Claude Code. Session 2 gets the pair's line (below).
+- **S'** (arm `S` in the rows): N0 plus the default install at user scope:
+  `sanchopanza install --scope user --memory --write --path <arm's CLAUDE_CONFIG_DIR>/settings.json`
+  (`carry_s.U_INSTALL`, `carry_s.install_user`), run from that configuration folder, from `src/`
+  at the sealing commit, which is **local main cbfd932** (unreleased: memory's C8 fixes, the lean
+  install; `src/` and `pyproject.toml` unchanged on this branch). Under `CLAUDE_CONFIG_DIR`
+  Claude Code reads the user's settings and skills from that folder; the user scope's default
+  path is `~/.claude/settings.json`, and `--path` only points it there. The preflight checks that
+  the runner's install writes byte for byte the same `settings.json` and skill as a bare
+  `sanchopanza install --write` writes into `~/.claude` with the home pointed at an empty folder
+  (`handoff_preflight.user_check`). `--memory` is the default and changes nothing.
+  - What that install is: the Guardian hook, the compaction guard (pointers), the context budget
+    (160,000), the coding guard profile, memory's five hook entries, and the `sanchopanza-code`
+    skill. **No MCP server**: at user scope `install` only prints the
+    `claude mcp add-json --scope user ...` line for `find_in_repo`; the runner does not run it
+    (as the h2h S line did, `benchmarks/h2h/s_line.py`). Nothing is written in the repository,
+    so S' and N0 start from the same repository bytes.
+  - Every `sanchopanza ...` command the install wrote is put behind `carry_hook.py ... sub`
+    (the pair's own state, the TypeSafe key never in the agent's environment), as in F2. Jev
+    decides with the shipped `jev-1.13.0`.
+  - **Jev's cap in code:** each hook's decider goes through `CappedDecider` on the run's own
+    `SpendLedger` (`capped_sub.py`; `jev-ledger.jsonl` beside the run's key, cap **0.50 USD per
+    run**, `RUNS[...]["jev_cap"]`). A call that would not fit is not made and the squire falls
+    to its default. F2's Jev spend was 0.012 USD over 48 Sonnet triples.
+  - S's store starts with the same 7 decoy rules of other scenes as F2 (`handoff.decoys`, never
+    one the scene marks `near`). The Stop audit is off by default and stays off.
+
+**Session 2's line, two strata.**
+- **named**: the scene's own F2 line ("Let's continue with the shipping labels."), repetitions
+  1-2 in both lots.
+- **bare**: `BARE_LINE` = "Let's continue.", naming nothing, repetitions 3-4 on Sonnet and 3 on
+  Opus. It matches memory's continuation cue (`memory_recall.continuation`, C8: a session's
+  first prompt that only says to go on gets the latest record by code), so S' gets session 1's
+  record at the prompt; N0 gets nothing to go on but Claude Code's own auto memory.
+
+Arm order rotates from pair to pair and from repetition to repetition (`build_plan`): each arm
+runs first in half of the pairs of each lot (24 of 48 on Sonnet, 18 of 36 on Opus).
+
+### What the agent sees is neutral
+
+- Each arm works in `C:\sp-runs\w18\<r1|r2>\t<NN>-<x>`, its repository in `repo\`, its Claude
+  Code configuration in `claude-config\`; NN is the pair's number, x a letter per arm drawn from
+  a seeded shuffle of a/b/c (`folder_name`). The scene, the arm, the stratum and the model are
+  only in the lot's own rows.
+- The lot's own files (rows, ledger, streams, S's install output, logs) are in
+  `C:\sp-runs\memory-w17\<run>\`, which no session is pointed at.
+- The agent's environment has no PYTHONPATH, no key and no `SANCHOPANZA_*` variable; the checks
+  run with the same environment.
+- Tested (`tests/test_memory_carry_w17.py`): in every path and file under the work root of every
+  scene, both arms and both strata, no scene name, arm name, model name, stratum label or name of
+  the lot, and no word that gives away the scene's C, D or step 2 (S's installed
+  `claude-config\settings.json` and skill are exempt from that last check only). The skill names
+  no lot, model or ritual (tested).
+- What remains, inherent and declared:
+  - S's installed hooks, in `claude-config\settings.json`, name the sealed worktree's path and
+    `benchmarks\memory_carry\carry_hook.py`. The launcher refuses a worktree whose path contains
+    `f2`, `memory`, `handoff`, `memlot`, `w17`, `sonnet` or `opus` (create it as, e.g.,
+    `..\sp-w18`).
+  - The skill as shipped says that a plain "let's continue" line is enough to start the next
+    session and to do the step the record left for next. That is the product being measured.
+  - The run's folder (`..\..` from the repository, both arms) holds `typesafe.key` while the run
+    lasts (as in F2), `jev-cap.json` and `jev-ledger.jsonl`.
+  - A session can open its own configuration folder, as any Claude Code user can open
+    `~/.claude`; the runner reports every session whose tool calls name `claude-config`.
+
+## Scenes and checks
+
+F2's 12 scenes (`benchmarks/memory_carry/scenes_handoff.py`), unchanged, with F2's checks after
+session 2 (Python in the repository, exit 0 when true): `task`, `fact` (C), `decision` (D),
+`intact`, and the repository's tests. **Primary outcome, "kept all": `task` and `fact` and
+`decision`.** F2's note on checks a natural implementation may pass without knowing C or D
+(`h_loud`, `h_nomutate`, `h_batch`, `h_merge`) holds here too.
+
+## Runs
+
+A pair is one scene at one repetition in N0 and S'.
+
+| run | model | scenes x reps | pairs | named / bare | sessions | expected USD | run cap |
+|---|---|---|---|---|---|---|---|
+| `w17-sonnet` | Sonnet 5.5 | 12 x 4 (reps 1-4) | 48 | 24 / 24 | 192 | 11.4 | 15.5 |
+| `w17-opus` | Opus 5.5 | 12 x 3 (reps 1-3) | 36 | 24 / 12 | 144 | 22.8 | 29.5 |
+
+- **Expected cost** from F2's arm means at list price (Sonnet N0 0.109, S 0.129; Opus N0 0.298,
+  S 0.335 USD per arm run): 48 x 0.238 and 36 x 0.633. **[assumption]** S' costs no more than
+  F2's S (it loads no MCP server and a shorter skill listing) and the bare line does not raise
+  either arm's cost. A high scenario of +15 % gives 13.1 and 26.2. Jev: cents. **Expected total
+  34.2 USD; hard cap 45 USD.**
+- **Expected wall time** from F2's sessions (Sonnet arm 46-55 s, Opus 82-91 s) plus about 6 s of
+  building, installing and checking per arm: about **1.5 h for w17-sonnet and 1.9 h for
+  w17-opus, 3.4 h together**.
+
+## Sequence (`handoff_night.py --lot w17`, `memlot-night-run.cmd`)
+
+w17-sonnet, then w17-opus; or one of them alone (`memlot-night-run.cmd sonnet|opus`). No pilot
+and no gate: S' not running as S' stops the run at its first such arm (below). Any stop other
+than the end of a run ends the night. A relaunch resumes: recorded arms are kept.
+
+## Criteria (fixed now, per model, over pairs with both arms run; `handoff_pairs.analyse`)
+
+The **cost ratio** of a pair is S's cost (sessions' own `total_cost_usd` plus its Jev decisions)
+over N0's. Its statistic is the **median over pairs**; its interval the percentile bootstrap 95 %
+of that median, pairs resampled with replacement, **10,000 draws, seed 20261017**
+(`handoff_pairs.ratio_interval`, F2's descriptive statistic made a rule here).
+
+### Lot S, Sonnet 5.5 (`w17-sonnet`)
+
+- **S1 (primary): S' better than N0 on kept all**: one-sided exact McNemar, p < 0.05.
+- **S2 (cost): the cost ratio's upper bound <= 1.10.**
+- **S3 (no harm):** S's repository tests pass in no more than floor(0.125 x pairs) fewer pairs
+  than N0's (6 of 48); S's sessions 2 sent back by a rule other than the scene's C in at most
+  5 % of the pairs.
+- **Sealed secondary (does not change the verdict): the bare stratum alone**, S' better than N0
+  on kept all, one-sided exact McNemar p < 0.05 over its 24 pairs: "the continuation path works
+  on a line that names nothing".
+
+**Verdict:** "**gana**" when S1, S2 and S3 hold; "**S' better than N0; no gana (cost)**" when S1
+and S3 hold and S2 does not; "**not shown**" otherwise; "**sin veredicto**" with fewer than 40
+pairs run.
+
+### Lot O, Opus 5.5 (`w17-opus`)
+
+- **O1 (primary, cost): the cost ratio's upper bound <= 1.05.**
+- **O2: kept all not worse**: the lower bound of the one-sided 95 % Tango score interval for the
+  paired difference S' - N0 (F2's `tango_bound`), unrounded, above **-12.5 points**.
+- **O3 (no harm):** as S3 (4 of 36 for the tests).
+
+**Verdict:** "**no extra cost**" when O1, O2 and O3 hold; "**costs extra**" when the cost ratio's
+lower bound is above 1.00; "**not determined**" otherwise; "**sin veredicto**" with fewer than
+30 pairs run.
+
+### The scoreboard's "gana" (both lots, `handoff_pairs.scoreboard`)
+
+The final scoreboard's rule (`docs/results/2026-10-13-final`): "gana", per model, is the cost
+interval below 1 with success not worse than the margin, or more success at p < 0.05 without
+losing on cost. Made exact here, in order:
+- "**sin margen**" when N0 failed kept all in fewer than 5 % of the pairs (Opus: in at most 1 of
+  36; Sonnet: at most 2 of 48);
+- "**gana (coste)**" when the cost ratio's upper bound is below 1.00, O2's bound holds and there
+  is no harm;
+- "**gana (éxito)**" when S1 holds, the cost ratio's upper bound is within the lot's bound (1.10
+  Sonnet, 1.05 Opus) and there is no harm;
+- "**no gana**" otherwise. On Sonnet the lot's "gana" and the scoreboard's "gana (éxito)" are the
+  same rule.
+
+### What would make each lot a "gana", computed now
+
+- **Sonnet.** Success is not the obstacle: with no pair where only N0 kept all, 5 pairs where
+  only S' did give p = 0.031; F2 had 44 to 0. **The obstacle is S2.** With F2's spread of the
+  paired log ratio (sd 0.171 over 48 triples), the upper bound is <= 1.10 with probability 0.85
+  if S' truly costs the same as N0, 0.57 at 1.03x, 0.33 at 1.05x, 0.09 at 1.08x and 0 at 1.15x
+  (simulation, 300 runs of 1,000 draws). So a "gana" needs S' within about 3 % of N0's cost per
+  pair. **Expected: no gana on cost.** F2's S cost 1.23x, and most of the gap is N0 asking a
+  question in session 2 instead of working (N0 session 2 mean 0.050 USD against S's 0.066), which
+  a better install cannot remove; S's own overhead in session 1, where both arms do the same
+  work, was 1.077x on Sonnet.
+- **Opus.** Success cannot win (F2's N0 kept all in 21 of 24; S1 would need N0 to fail at least
+  5 pairs more than S'). "gana (coste)" needs S' cheaper than N0 with the whole interval below
+  1: about 0.90x. **Expected: "sin margen" or "no gana"; the lot answers the cost question.**
+
+### Power
+
+- **S1 (Sonnet, 48 pairs):** about 1.00 if S' keeps all in 95 % and N0 in 10 % (F2: 100 % and
+  8 %); 0.95 if S' kept only 40 % against N0's 10 %. **Bare stratum, 24 pairs:** 0.97 if S'
+  keeps 50 % and N0 5 %.
+- **S2 (Sonnet):** above.
+- **O1 (Opus, 36 pairs, sd 0.169):** P(upper bound <= 1.05) is 0.84 at a true 0.95x, 0.51 at
+  0.98x, 0.25 at 1.00x, 0.03 at 1.05x. **"costs extra"** (lower bound > 1) is seen with
+  probability 0.83 at a true 1.105x (F2's S), 0.33 at 1.05x. So "no extra cost" is shown only if
+  S' is cheaper than N0; at parity the likely verdict is "not determined".
+- **O2 (Opus, 36 pairs, margin -12.5):** two more pairs kept by N0 alone than by S' already fail
+  it (0 to 2 gives -15.5; 1 to 1 gives -9.2). Power 0.43 if each arm fails 12.5 % of the pairs
+  independently, 0.72 if two thirds of the failures fall on the same pairs (F2: both arms' Opus
+  failures were mostly `h_judge`).
+
+## Reported, not deciding
+
+Per arm `task`, `fact`, `decision`, `intact`, tests; everything per stratum (kept all, McNemar,
+cost ratio and interval); **S's session 1 over N0's session 1** (the same prompt and the same
+work, so the install's own overhead; median and the same bootstrap); cost medians per arm and
+tokens (input, output, cache read, cache write); session 2's wall time; what S' gave in session
+2 (`hook-log.jsonl`), and whether the record came at the prompt; S's memory hook answering both
+SessionStarts; Claude Code's own auto memory after session 1 per arm (`native_after_1`); Jev
+decisions, failures and dollars; subagent calls; arms whose sessions crossed midnight; per arm
+and session the harness files the agent's tool calls named (`.claude/`, `.mcp.json`,
+`carry_hook`, `claude-config`, `store`); NOT RUN rows and their reasons.
+
+No pooling across models. The metric is not changed after the data.
+
+## NOT RUN (a row with `cut`, never retried) and stops
+
+As F2 (its "NOT RUN" section), less what concerns H:
+- A session that timed out, ended without a result, or whose `init` shows another model or
+  Claude Code; a session stopped by its own `--max-budget-usd` counts as run.
+- **S' did not run as S'** (`carry_s.session_breaks` with no server, `pair_breaks`): in a
+  session, the memory hook answered no prompt without an error, failed at every Stop, or **did
+  not answer the session's SessionStart** (the proof that Claude Code loaded the user settings
+  from the arm's configuration folder); or the decider was asked nothing in the pair or failed
+  every time. The arm is cut and the run stops (exit 4).
+- An exception in the runner: the arm is NOT RUN, its spend counted, the night goes on.
+- **Usage limit (429, weekly limit):** no row, folders kept aside, `LIMIT.flag` in the root, the
+  night stops (exit 3). A pause, never a result: after the flag is removed, a relaunch runs that
+  arm again whole.
+- Crash or reboot: the arm's spend counted, its folders kept aside, it runs again whole, at most
+  twice.
+- Three arms in a row with a session that ended without a result stop the run (exit 7).
+- A `STOP` file in the root or a run folder stops before the next arm (exit 6).
+- **Quiet hours:** no arm starts whose expected time (below) would reach 02:00-08:00 (Windows
+  Update restarts this machine then); the run stops (exit 8) and a relaunch after 08:00 resumes.
+
+## Caps, in code
+
+- Per call: `--max-budget-usd` 0.60 Sonnet, 1.00 Opus (`RUNS[...]["call_caps"]`).
+- **One worst turn per call**, since Claude Code checks the cap between turns (and a resumed call
+  reloads its context; these lots resume none): F2's `worst_turn`, 0.44 USD Sonnet 5.5 and 0.84
+  USD Opus 5.5 (200,000 cached tokens read, 50,000 written, 20,000 out, at Claude Code's rates).
+  A session can cost at most 1.04 USD on Sonnet and 1.84 on Opus.
+- Per run, before each arm: what the run spent (sessions' own `total_cost_usd`, Jev, the Jev
+  preflight, interrupted arms) plus, for each of the arm's 2 calls, its cap and one worst turn,
+  plus for S' 0.05 USD of Jev per session, must stay within the run's cap or the run stops (exit
+  2). One pair's reserve: 4.26 USD on Sonnet, 7.46 on Opus. So w17-sonnet stops before an arm
+  once it has spent about 13.3 USD, w17-opus about 25.7.
+- Per night: each run's cap is min(its cap, **45 USD** minus what the lot's other run spent);
+  the two caps add up to 45.0.
+- Jev: 0.50 USD per run through `CappedDecider` (above).
+- Every cap is counted in Claude Code's own `total_cost_usd` (its price table, plus Jev's own
+  costs); at the owner's rates in `benchmarks/meter.py` the same tokens can come to about 1.5 to
+  2 times as much.
+
+## Clock
+
+- **Midnight:** a pair does not start when its expected time (2 arms x 300 s Sonnet, 420 s
+  Opus, x 1.5, plus 120 s: 17 and 23 minutes) would reach midnight, and an arm likewise; the
+  driver waits and goes on after midnight (F2's rule).
+- **Quiet hours** as above: the night is not left to run into 02:00-08:00.
+- With the expected 3.4 h, a launch by about 20:00 ends both lots before midnight.
+
+## Running it
+
+- **Keys.** As F2: the lead writes `C:\sp-runs\memory-w17\keys-env.cmd` (untracked, outside the
+  repository, only `set SANCHOPANZA_KEYS_ENV=<path>`); the launcher refuses (exit 1) without it
+  and never reads the file it names. The token reaches only the `claude` processes, the key only
+  S's hooks (`C:\sp-runs\w18\<r>\typesafe.key`, deleted at the start and end of each run); both
+  are scrubbed from each arm's files and redacted from every row.
+- **Jev.** `python -m sanchopanza jev-preflight` (exit 0) before launching; the runner itself makes
+  one real Jev decision with the run's key before each run and refuses without an answer.
+- **The checkout.** A detached worktree at the sealing commit, at a path that names nothing of
+  the lot. `handoff_night.py` refuses (exit 11) unless the files match the seal, HEAD is the
+  commit that last wrote `prereg.sha256`, and `git status --porcelain` is empty. The launcher
+  refuses a Claude Code other than 2.1.287 (exit 9), with the pin first on PATH and
+  `DISABLE_AUTOUPDATER=1`.
+- **Launch** by WMI with CreateFlags 512 (header of `memlot-night-run.cmd`). Tell the other
+  sessions (PID, time, cap): the subscription's weekly limit is shared.
+- **Reboot.** Nothing relaunches the night; start the same launcher again the same way.
+
+## Commands
+
+    rem free: checks, dry run, seal
+    set PYTHONPATH=<worktree>\src
+    "%PY%" benchmarks\memory_carry\handoff.py --preflight --lot w17 --out C:\sp-runs\memory-w17
+    memlot-night-run.cmd dry
+    "%PY%" benchmarks\memory_carry\handoff.py --seal --lot w17
+    rem paid: by WMI from a detached worktree at the sealing commit
+    rem analysis (free; the night also writes <run>-table.json)
+    "%PY%" benchmarks\memory_carry\handoff_pairs.py C:\sp-runs\memory-w17\w17-sonnet
+    "%PY%" benchmarks\memory_carry\handoff_pairs.py C:\sp-runs\memory-w17\w17-opus
+
+## Seal
+
+`handoff.py --seal --lot w17` writes `prereg.manifest.json` (sha256, LF bytes, of this file and of
+`handoff_seal.SEALED_FIXED_W17`: the launcher, `pyproject.toml`, `benchmarks/meter.py`, the
+runner, its modules and tests, plus every `benchmarks/memory_carry/*.py` and **every file**
+under `src/sanchopanza/`) and `prereg.sha256` (the sha256 of the manifest's lines). A different
+seal is refused.
+
+## Deviations from F2
+
+- Two arms, no H; S' at user scope (owner); the bare-line stratum (owner); Opus with three
+  repetitions instead of two.
+- The memory cell's call caps instead of F2's (both far above any session F2 saw).
+- No pilot and no gate: what F2's gate checked for S (hooks answering) is checked per session
+  and stops the run at the first failure; H, which needed the gate, is not here.
+- Quiet hours (F2's night was accepted unattended).
+- Jev through `CappedDecider` on a ledger (F2 only reserved for it).
+- A sealed cost rule per lot (F2 sealed none).
+
+## What is not known yet
+
+- **Whether Claude Code 2.1.287 under `-p` loads the user settings and skills from
+  `CLAUDE_CONFIG_DIR`** beside `--settings "{}"`. The h2h runs installed there and ran; here
+  the first S' session's check (the memory hook answering its SessionStart and prompt) settles
+  it, and a failure stops the run at that arm (at most about 0.13 USD on Sonnet).
+- S's cost at user scope, and how N0 answers a line that names nothing.
