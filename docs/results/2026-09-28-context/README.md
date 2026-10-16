@@ -173,4 +173,4 @@ python benchmarks/context/simulate.py recall --replay       # free, from its rec
 The dataset is public and rebuilt by `build.py --fetch`; the recordings stay in ~/.cache and
 `analysis.json` and `diagnosis.json` (aggregates) are published here.
 
-2026-10-15: text redacted to remove the name of another project; the sealed original (`prereg.md`, hash 28bb1a3fcdbf85971bce1773b792b9659c2cd4a48fdfd87cbe675ae18d0bb98e) is kept in the git history.
+2026-10-15 and 2026-10-16: text redacted to remove the names of other projects of the owner; the sealed original (`prereg.md`, hash 28bb1a3fcdbf85971bce1773b792b9659c2cd4a48fdfd87cbe675ae18d0bb98e) and the first redaction (hash 3d82f2854c673283cb01acdb7a4036005855527a46192c66b90d58872a5e82b8) are kept in the git history.

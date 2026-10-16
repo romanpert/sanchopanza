@@ -67,6 +67,28 @@ def test_the_committed_line_is_sealed_with_its_commit_and_an_unsealed_one_is_ref
             s_line.require_sealed(s_line.parse(half))
 
 
+def test_the_line_source_is_read_from_the_repository_not_a_machine_path(tmp_path, monkeypatch):
+    committed = s_line.load()
+    assert not pathlib.Path(committed.source).is_absolute()
+    assert s_line.source_root(committed, ROOT) == ROOT.resolve()
+    sibling = s_line.source_root(s_line.parse({"source": "../other"}), tmp_path / "repo")
+    assert sibling == (tmp_path / "other").resolve()
+    assert s_line.source_root(s_line.parse({}), tmp_path) == tmp_path
+    assert s_line.source_root(s_line.parse({"source": str(tmp_path)}), ROOT) == tmp_path
+
+    seen = []
+
+    def freeze(source, runs, commit):
+        seen.append((source, commit))
+        raise SystemExit("stop after freeze")
+
+    monkeypatch.setattr(gaia.arms, "refuse_unclean", lambda runs: None)
+    monkeypatch.setattr(gaia.arms, "freeze", freeze)
+    with pytest.raises(SystemExit, match="stop after freeze"):
+        gaia.phase_context("t", ["SP"], committed)
+    assert seen == [(ROOT.resolve(), committed.commit)]
+
+
 def test_add_json_hints_are_parsed():
     out = (
         "find_in_repo for every project: claude mcp add-json --scope user sanchopanza "

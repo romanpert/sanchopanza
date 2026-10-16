@@ -97,7 +97,7 @@ Coste base: 14.900 $ en dos semanas. "Hoy" es lo que hace sanchopanza; "Jev" es 
   Terminal-Bench largo.
 - **Métrica principal: dólares por tarea resuelta** con la caché bien precificada (1 h a 2x),
   además del tiempo de pared. Victoria por Pareto, por modelo.
-- **N limpio**, carpeta fuera de `C:\Users\roman`, Claude Code fijado; Sonnet 5.5 y Opus 5.5.
+- **N limpio**, carpeta fuera de la carpeta de usuario (`~`), Claude Code fijado; Sonnet 5.5 y Opus 5.5.
 - **Primero el replay gratis sobre lo grabado** para estimar el techo real de cada apuesta (por
   ejemplo, simular compactar a 160k o 200k sobre las 141 sesiones); después, una tanda de
   desarrollo pequeña y, al final, el sello.

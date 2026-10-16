@@ -60,7 +60,7 @@ SANCHOPANZA_FETCH_VERSION=2
 Per session (or per pair), so that parallel S sessions share nothing on disk: `SANCHOPANZA_MEMORY_STORE`,
 `SANCHOPANZA_CANDOR_DIR`, `SANCHOPANZA_JOURNAL`, `SANCHOPANZA_GUARD_DIR`, `SANCHOPANZA_CRAWL_DIR`,
 `SANCHOPANZA_FETCH_DIR`, `SANCHOPANZA_ARCHIVE`, each under the session's run folder outside
-`C:\Users\roman`. Without them every S session on the machine writes to `~/.sancho` (it exists here,
+the user folder (`~`). Without them every S session on the machine writes to `~/.sancho` (it exists here,
 so it wins over `~/.sanchopanza`).
 
 ### With and without `--knowledge`

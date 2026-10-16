@@ -180,7 +180,7 @@ Sealed 2026-10-06 12:15 by session dd.
   `SANCHOPANZA_GUARD_CHOOSER=keep` explicit it would not change what S0 runs, and its `struct`
   default was never measured end to end.
 - `benchmarks/h2h/s_install.json` sealed at h2h 499ec2d, sha256
-  `8f480fce4643c694989b2c0f90a3a0ffa51adcea536d0ccc8a542e3ab1d6120f`.
+  `a7543503ef995d495e60f94b58e38b4e986d09302f5a37c608275d095dc995ca`.
 - h2h runner commit: 499ec2d (code as of 1c89461).
 - sha256 of this file up to the line before "## 9. Seal", LF line endings:
   `08484a10b64f9a2a60356d185eb1384df5a370b448b657db41e7c8da6a63f874`.
@@ -209,4 +209,4 @@ The running process keeps its 150; when it stops there it is resumed with `--cei
 Nothing else changes. Seen before deciding: per-arm cost of the first 5 tasks, no grades (BCP
 is graded after its sessions).
 
-2026-10-15: text redacted to remove the name of another project; the sealed original (`benchmarks/h2h/s_install.json`, hash ec0c106a7215794f330ef4855e08a6ac372893cf992e70b0888e8ca4a9fe0c4a) is kept in the git history.
+2026-10-15 and 2026-10-16: text redacted to remove the name of another project, then the local path of `source` (now `.`, the repository the runner sits in; the frozen copy is the same commit); the sealed original (`benchmarks/h2h/s_install.json`, hash ec0c106a7215794f330ef4855e08a6ac372893cf992e70b0888e8ca4a9fe0c4a) and the first redaction (hash 8f480fce4643c694989b2c0f90a3a0ffa51adcea536d0ccc8a542e3ab1d6120f) are kept in the git history.
