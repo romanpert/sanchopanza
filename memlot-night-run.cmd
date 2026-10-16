@@ -20,18 +20,21 @@ rem (a WMI process inherits no window variable); the token reaches only claude, 
 rem hooks. That path is not in this file: the lead writes C:\sp-runs\memory-w17\keys-env.cmd, an
 rem untracked file outside the repository holding only `set SANCHOPANZA_KEYS_ENV=<path>`. The
 rem launcher checks that the file it names exists and never reads it.
+rem The Python is not in this file either: C:\sp-runs\memory-w17\python-env.cmd, untracked, holds
+rem only `set PY=<main checkout>\.venv\Scripts\python.exe` (refused, exit 1, without it).
 rem The worktree's own path may not name the lot (S's installed hooks show it to the agent):
 rem create it as, e.g., ..\sp-w18; a path with f2, memory, handoff, memlot, w17, sonnet or opus in
 rem it is refused (exit 10). handoff_night.py itself refuses (exit 11) unless the files match the
 rem seal, HEAD is the sealing commit and git status is clean.
-rem Exits: 1 keys, 2 arguments, 3 LIMIT.flag, 9 wrong claude version, 10 worktree path; then
+rem Exits: 1 keys or Python, 2 arguments, 3 LIMIT.flag, 9 wrong claude version, 10 worktree path; then
 rem handoff_night.py's (0 done, 2 cap, 3 limit, 4 harness, 6 STOP, 7 broken, 8 quiet, 11 seal).
 setlocal
 set SANCHOPANZA_KEYS_ENV=
 if exist C:\sp-runs\memory-w17\keys-env.cmd call C:\sp-runs\memory-w17\keys-env.cmd
 set WT=%~dp0
 set WT=%WT:~0,-1%
-set PY=C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts\python.exe
+set PY=
+if exist C:\sp-runs\memory-w17\python-env.cmd call C:\sp-runs\memory-w17\python-env.cmd
 set ROOT=C:\sp-runs\memory-w17
 set PIN=%USERPROFILE%\.cache\sanchopanza\claude-pin\2.1.287
 cd /d "%WT%"
@@ -40,6 +43,10 @@ set PYTHONPATH=%WT%\src
 set DISABLE_AUTOUPDATER=1
 if not exist "%ROOT%" mkdir "%ROOT%"
 set STATUS=%ROOT%\launch.status
+if "%PY%"=="" (
+  echo refused %DATE% %TIME%: no PY, write %ROOT%\python-env.cmd >> "%STATUS%"
+  exit /b 1
+)
 if /i "%~1"=="dry" (
   "%PY%" -u benchmarks\memory_carry\handoff_night.py --lot w17 --root "%ROOT%" --dry > "%ROOT%\dry.log" 2>&1
   echo dry-exit %ERRORLEVEL% %DATE% %TIME% >> "%STATUS%"
