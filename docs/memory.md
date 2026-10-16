@@ -13,20 +13,24 @@ It is on by default since 2026-10-14. `--no-memory` leaves it out.
 
 ## What it won
 
-Two pre-registered head-to-head cells, both on **Claude Sonnet 5.5** in clean **Claude Code
-2.1.287**, with a project-scope install and Jev deciding. "S" is Claude Code with sanchopanza;
-the other arms are clean Claude Code.
+Two pre-registered head-to-head tests, both on **Claude Sonnet 5.5** against clean **Claude
+Code 2.1.287**, with a project-scope install and Jev deciding. "S" is Claude Code with
+sanchopanza; the other arms are clean Claude Code. The memory cell is the scoreboard's one
+"gana". F2 met its own sealed verdict, **S better than the bare line and not worse than the
+handoff ritual**; its prereg seals no cost condition, and S cost more than the bare line, so on
+the scoreboard it reads as that verdict, not as "gana".
 
-| cell | the task | S | the others | cost of S |
+| test | the task | S | the others | cost of S |
 |---|---|---|---|---|
 | [Memory cell](results/2026-10-13-memory-cell/) (2026-10-13) | Keep a fact said in a parallel session or a sibling worktree | fact broken in **0 of 24** pairs | clean Claude Code: 11 of 24 (McNemar p 0.00049) | 1.12x clean (median per pair) |
-| [F2](results/2026-10-16-memory-f2/) (2026-10-16) | Continue a two-step feature in a new session with one line, "Let's continue with the shipping labels." | next step done, keeping a constraint and a decision said in passing, in **48 of 48** triples | the owner's handoff ritual: 44 of 48. The same line in clean Claude Code: 4 of 48 (McNemar p 5.7e-14) | 0.92x the ritual, 1.23x the bare line (paired medians) |
+| [F2](results/2026-10-16-memory-f2/) (2026-10-16) | Continue a two-step feature in a new session with one line, "Let's continue with the shipping labels." | next step done in **48 of 48** triples | the owner's handoff ritual: 44 of 48 (S not worse by the sealed margin; 4 to 0, p 0.0625). The same line in clean Claude Code: 4 of 48 (McNemar p 5.7e-14) | 0.92x the ritual [0.85, 0.95], 1.23x the bare line [1.14, 1.26] (median per triple, descriptive bootstrap) |
 
 - **Memory cell.** The gain is in the 4 of 8 scenes where the fact is not visible in the code.
   By scene, S won 4 and lost none.
 - **F2.** In the handoff ritual, the person asks the old session for a prompt and pastes it
-  into the new one. Every session in F2 that built step 2, in any arm, kept the constraint and
-  the decision. So the gain came from carrying **what came next**, not from saving a forgotten
+  into the new one. S replaced it with no loss shown, at lower cost, and beat the bare line by
+  44 to 0 at a higher one. Every session in F2 that built step 2, in any arm, kept the
+  constraint and the decision. So what S carried was **the plan**, not a forgotten
   constraint:
   - The bare line in clean Claude Code mostly stopped with a question or an offer (35 of its
     44 misses).
@@ -125,8 +129,8 @@ to 3 recent sessions of the project).
   USD with the handoff ritual, and 0.105 USD with the bare line. The bare line is cheapest
   partly because it mostly did not do the work.
 - **Memory cell.** 1.12x clean Claude Code per pair (median).
-- **Time.** Session 2's median wall time in F2 was 26.8 s with memory and 20.5 s with the bare
-  line. The prompt's decider call waits at most 15 s, then injects nothing.
+- **Time.** Session 2's median wall time in F2 was 26.8 s with memory, 26.75 s with the
+  ritual and 20.4 s with the bare line. The prompt's decider call waits at most 15 s, then injects nothing.
 
 ## Without a decider
 
@@ -138,7 +142,7 @@ still works, both by code. It drops three things:
   real session starts ([memory on real sessions](results/2026-10-01-memory-real/));
 - the decider's judgment.
 
-Neither win was measured this way. Both ran with Jev.
+Neither test was measured this way. Both ran with Jev.
 
 ## When it does not help
 
@@ -156,9 +160,10 @@ Neither win was measured this way. Both ran with Jev.
 
 F2 supports this for one setup only: Sonnet 5.5, clean Claude Code 2.1.287, a project-scope
 install with a TypeSafe key. With that setup, starting the new session with one line that
-names the work ("Let's continue with the shipping labels.") did as well as pasting a handoff
-from the old session: 48 of 48 against 44 of 48, at 8 % less cost. It took no extra request
-and no paste.
+names the work ("Let's continue with the shipping labels.") was not worse than pasting a
+handoff from the old session by the sealed margin: 48 of 48 against 44 of 48 (4 to 0, p 0.0625,
+so a gain over the ritual is not shown), at 0.92x its cost [0.85, 0.95]. It took no extra
+request and no paste.
 
 What F2 did not test:
 
@@ -170,8 +175,8 @@ What F2 did not test:
 - **Real use.** F2 ran headless, in a clean Claude Code configuration (no `CLAUDE.md` or
   settings of your own), with nobody answering the agent's questions.
 
-On Opus 5.5 the ritual was the worst option measured (17 of 24): a fresh session stopped to ask
-the open questions the handoff listed.
+On Opus 5.5 the ritual scored lowest (17 of 24, against 21 for the bare line; 1 to 5, p 0.11,
+not shown): a fresh session stopped to ask the open questions the handoff listed.
 
 ## Turn it off or tune it
 
@@ -202,8 +207,11 @@ the open questions the handoff listed.
   - at a first prompt, the prompt and up to 5 record pages (files, request and the agent's final
     message, 880 characters each).
   - Command output is not in a page.
-  - `SANCHOPANZA_MEMORY_WINDOW=long` sends whole records instead. It is opt-in and not measured
-    on records.
+  - `SANCHOPANZA_MEMORY_WINDOW=long` sends whole records instead, opt-in. Measured on 905
+    SWE-chat first requests with jev-1.13.0, it gave a related record more often (+12.7 points
+    [+6.3, +19.8]) and a record where nothing was related more often too (+3.7 [+1.5, +6.2]),
+    past the sealed guard: "peor en ruido", so the hook stays on the short window
+    ([memgate-hook](results/2026-10-16-memgate-hook/README.md)).
 - **Never shown to the agent:** the line prints, the index and the per-session state.
 
 ## Limits of the evidence
@@ -216,7 +224,7 @@ the open questions the handoff listed.
   real use a person answers, and the ritual and the bare line would recover part of their
   misses.
 - **One draw per triple**: four repetitions on Sonnet and two on Opus.
-- **One setup.** Sonnet 5.5 for both wins, clean Claude Code 2.1.287, a project-scope install,
+- **One setup.** Sonnet 5.5 for both tests, clean Claude Code 2.1.287, a project-scope install,
   Jev (`jev-1.13.0`) deciding, and 7 decoy rules in the store. The user-scope install (the
   README's `sanchopanza install --write`) and later Claude Code releases, whose auto memory may
   change, were not run.

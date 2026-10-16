@@ -117,16 +117,22 @@ done, in at least 3 of 8 ([memory-frontier](../2026-10-05-memory-frontier/gate-r
 | F1 (i), principle | Sonnet 5.5 | — | — | — | — | — | **sin margen** (N broke 2/8) |
 | F1 (ii), stale rule | Sonnet 5.5 | — | — | — | — | — | **sin margen** (N broke 0/8) |
 | F1 (i), (ii), (iii) | Opus 5.5 | — | — | — | — | — | **sin margen** (N broke 0/8, 0/8, 1/8) |
-| F2, continuing a two-step feature in a new session (N0: a plain "let's continue") | Sonnet 5.5 | **+83.3** (kept all: S 48/48, N0 4/48; the handoff ritual H 44/48) | one-sided lower bound +81.4 (Tango); S − H +8.3, lower bound +2.6, margin −12.5 | 6e-14 (McNemar, 44 to 0) | 1.226 (median per triple; S/H 0.917) | session 2: 26.8 s against 20.5 s (medians) | **gana** |
-| F2, as above | Opus 5.5 | +4.2 (S 22/24, N0 21/24; H 17/24) | S − N0 lower bound −6.4; S − H +20.8, lower bound +8.6 | 0.5 | 1.105 (S/H 1.060) | 45.1 s against 41.1 s | **sin margen** (Claude Code's own auto memory carried the plan in every arm) |
+| F2, continuing a two-step feature in a new session (N0: a plain "let's continue") | Sonnet 5.5 | **+91.7** (kept all: S 48/48, N0 4/48; the handoff ritual H 44/48) | one-sided lower bound +81.4 (Tango); S − H +8.3, lower bound +2.6, margin −12.5 | 6e-14 (McNemar, 44 to 0) | 1.226 [1.141, 1.261] (median per triple, descriptive bootstrap; S/H 0.917 [0.853, 0.946]) | 1.31 (session 2 medians, 26.8 s / 20.4 s) | **S better than N0, not worse than H** (F2's sealed verdict; not "gana": the cost interval lies above 1) |
+| F2, as above | Opus 5.5 | +4.2 (S 22/24, N0 21/24; H 17/24) | S − N0 lower bound −6.4; S − H +20.8, lower bound +8.6 | 0.5 | 1.105 [1.011, 1.158] (S/H 1.060 [1.009, 1.183]) | 1.09 (44.45 s / 40.8 s) | **sin margen** (F2's sealed reading: direction only, S not worse than H; Claude Code's own auto memory saved the plan after every Opus session 1, in every arm) |
 
-Source: [2026-10-13-memory-cell](../2026-10-13-memory-cell/README.md) (sealed prereg d42d261);
-F2: [2026-10-16-memory-f2](../2026-10-16-memory-f2/README.md) (sealed 763dafd; 42.25 USD, Claude
-Code 2.1.287; "gana" is F2's sealed rule, S better than N0 and not worse than H, with no harm).
+Source: [2026-10-13-memory-cell](../2026-10-13-memory-cell/README.md) (sealed prereg d42d261).
 Cost is the median S/N per pair; its interval is the geometric mean's, bootstrapped over scenes.
 S is the default install plus `--memory` (project scope); the default left memory off when this
 was measured and has wired it since 2026-10-14 (`--no-memory` leaves it out), so S is now the
 default install. The other cells' S ran without memory.
+
+F2: [2026-10-16-memory-f2](../2026-10-16-memory-f2/README.md) (sealed 763dafd; 42.25 USD; clean
+Claude Code 2.1.287 against `install --scope project` as it ships, 12 synthetic scenes,
+headless). Its sealed verdict is "S not worse than H; S better than N0", with no harm; its prereg
+seals no cost condition. The scoreboard's "gana" also asks that S not lose on cost, and on Sonnet
+S cost 1.23x N0 with an interval entirely above 1: F2's Sonnet row is a trade against doing
+nothing and a substitute for the handoff ritual, not a "gana". Its cost intervals are a paired
+bootstrap over triples (10,000 draws, seed 20261016), descriptive and post hoc.
 
 - In family (ii), Claude Code's own auto memory followed the newer rule in 16 of 16 sessions over
   both models: where it already resolves precedence, S can only tie or harm.
@@ -138,15 +144,18 @@ default install. The other cells' S ran without memory.
 
 ## What wins, what does not, and why
 
-- **Two measured cells are a win for S, both memory on Sonnet 5.5.** A fact said in a parallel
-  session or sibling worktree: S broke it in 0 of 24 pairs, N in 11 (McNemar p 0.00049), at a
-  median cost of 1.117 (+12 %, within the sealed 1.15); the gain is in the 4 of 8 scenes where the
-  fact is not in the code. Continuing a two-step feature in a new session (F2): S did the next
-  step right in 48 of 48 triples, N with a plain "let's continue" in 4, and N with the owner's
-  handoff ritual in 44, at 1.23x N's cost and 0.92x the ritual's; what S carried was what came
-  next, since no session that built step 2 lost the constraint or the decision. Memory is on by
-  default in the install since 2026-10-14. On Opus 5.5 memory had no room in either family:
-  Claude Code's own auto memory carried the plan.
+- **One measured cell is a win for S, memory on Sonnet 5.5, plus F2's sealed positive
+  verdict.** A fact said in a parallel session or sibling worktree: S broke it in 0 of 24 pairs,
+  N in 11 (McNemar p 0.00049), at a median cost of 1.117 (+12 %, within the sealed 1.15); the
+  gain is in the 4 of 8 scenes where the fact is not in the code. Continuing a two-step feature
+  in a new session (F2, Sonnet 5.5, clean Claude Code 2.1.287): S did the next step in 48 of 48
+  triples, N with a plain "let's continue" in 4 (44 to 0), and N with the owner's handoff ritual
+  in 44 (S not worse by the sealed margin; 4 to 0, p 0.0625). S cost 1.23x N [1.14, 1.26] and
+  0.92x the ritual [0.85, 0.95]: it replaces the ritual with no loss shown, at lower cost, and
+  beats doing nothing at a higher one, so it is F2's sealed verdict, not a "gana". What S
+  carried was the plan: no session in any arm that built step 2 lost the constraint or the
+  decision. Memory is on by default in the install since 2026-10-14. On Opus 5.5 memory had no
+  room in either family: Claude Code's own auto memory carried the fact and the plan.
 - **No other measured cell is a win.** Three web suites are "no gana" on Sonnet 5.5; code on Haiku
   4.5 is non-inferior with no saving shown; on long code the Jev part (A) did not hold its edge.
   Early compaction near 67k on long code: cost 0.900 [0.741, 1.093], no saving shown. The rest is "sin margen" or not run.
@@ -167,23 +176,46 @@ default install. The other cells' S ran without memory.
 
 ## After the scoreboard: components measured on 2026-10-15 and 16
 
-Not S−N cells: neither is the install line against clean Claude Code. Each is a component
-against what it would replace, pre-registered and sealed before any answer.
+Not S−N cells: none is the install line against clean Claude Code. Each is a component against
+what it would replace or against its shipped setting, pre-registered and sealed before any
+answer.
 
 | Measure | Model | Result | 95 % CI | Verdict by the sealed rule |
 |---|---|---|---|---|
 | Jev where it is sure (top choice ≥ 0.6), Sonnet elsewhere, against Sonnet alone, 162 fresh LongBench v2 tasks | Jev 1.14 long window; Sonnet 5.5 in clean Claude Code 2.1.287 | +1.2 pts (coverage 37 %; on the 60 covered, Jev 31 and Sonnet 29 right); 33.9 % [24.0, 44.0] of Sonnet's cost saved | [−3.1, +5.6] | **no peor** at −10 |
-| The same router against Opus 5.5 alone, the same 162 tasks | Jev 1.14 long window; Opus 5.5 in clean Claude Code 2.1.287 | −3.7 pts (on the 60 covered, Opus 37 and Jev 31 right); 29.5 % [21.7, 37.7] of Opus's cost saved | [−8.0, +0.6] | **no peor** at −10 |
+| The same router against Opus 5.5 alone, the same 162 tasks | Jev 1.14 long window; Opus 5.5 in clean Claude Code 2.1.287 | −3.7 pts (on the 60 covered, Opus right on 37 and Jev on 31; McNemar 10 against 4, p 0.18); 29.5 % [21.7, 37.7] of Opus's cost saved | [−8.0, +0.6] | **no peor** at −10 |
 | The memory gate reading whole sessions in one call against the shipped short window, 84 unseen LongMemEval questions | Jev 1.13 | recall 0.905 against 0.726; against BM25 top 3 +8.9 pts [0.0, +17.3], "alcanza" | [+10.7, +25.7] pts | **confirmado** |
+| The installed memory hook with the long window against its shipped short window, 905 SWE-chat first requests | jev-1.13.0 | related record given on 45 against 29 of 126 hittable requests (+12.7 pts); a record given where nothing is related on 42 against 24 of 483 (+3.7 pts) | hits [+6.3, +19.8]; false alarms [+1.5, +6.2], guard's wider bound 6.3 against +5 | **peor en ruido** (the hook stays short) |
+| check_done under Jev 1.14 at 0.30 against 1.13 at 0.5, 950 unseen AgentDojo stops | jev-1.14.0, jev-1.13.0 | right on 745 against 737 (+0.8 pts); both block about one finished stop in five (150 and 165 of 795), block precision 0.39-0.40, AUC 0.81, tool results cut at 1,500 characters | [−1.1, +3.2] | **confirmado (no peor)** |
+| `redundant_page`'s `adds_nothing` cut for 1.14, rederived with 90 more `drop` cases, 530 cases | jev-1.14.0, jev-1.13.0 | the derivation clears at 0.04; primary −0.2 pts; at 0.04, 1.14 drops 8 `keep` pages against 0 (limit +2) | [−6.4, +5.5] | **no proposal** (the cut stays 0.61) |
+| The `actions` point in the hook for MCP calls (`install --guard-mcp`), replayed over 500 ATBench-Codex trajectories | jev-1.13.0, the hook's own code, no Claude Code session | 185 of 250 unsafe caught (74.0 %), today's hook 0; 82 of 250 safe flagged (32.8 %) | recall floor 75.2 % | **not confirmed** (recall 3 trajectories short; stays opt-in) |
+| `relate_facts` accepting `unrelated` at 0.65 below the confidence gate, 1,500 new pairs | jev-1.13.0 | 39 added verdicts, all right, 0 missed conflicts | Wilson lower bound 0.910 | **beats the shipped policy** (licenses a proposal for 0.65) |
+| Ordering `select_passages`' paragraphs by a four-level Score before a 3,400-character cut, 233 QASPER questions | jev-1.13.0 | answer-sentence recall 81.0 % against 65.1 % in page order; +2.3 and +1.8 pts against the two free orders | [−1.5, +6.2], [−2.3, +5.7] | **not confirmed** (stays opt-in) |
+| Page triage and passage selection in Spanish against English, the same MLQA questions | jev-1.13.0 | pages 95.5 % against 98.9 % (−3.4 pts); whole articles 85.8 % against 91.7 % (−5.9 pts) | [−6.1, −0.8]; [−9.0, −2.9] | **inconclusive** at −5 (both) |
 
-Sources: [lb162](../2026-10-15-lb162/README.md) (sealed c483beb; 0.875 USD of Jev, 5.757 of
-Claude), [lb162x](../2026-10-16-lb162x/README.md) (sealed 24adf4a; Opus on all 162 and Sonnet on
-the 102 uncovered tasks, 27.01 USD of Claude, no Jev call), [memgate-long](../2026-10-15-memgate-long/README.md) (sealed c8d1da1; 0.53 USD of Jev).
-The first is a Jev decision that replaces calls of the expensive model, the case this page
-names as the only one where a decision saves; it covers multiple choice over one long document
-and one draw. The second is a recall gain inside a component, measured on the library gate
-rather than the installed hook: the long window is the library gate's default
-(`SANCHOPANZA_MEMORY_WINDOW=short` turns it off), and the installed hook stays on the short one.
+Sources: [lb162](../2026-10-15-lb162/README.md) (sealed c483beb; 0.874 USD of Jev on the 162
+tasks (0.875 with the smoke), 5.757 of Claude), [lb162x](../2026-10-16-lb162x/README.md) (sealed 24adf4a; Opus on all
+162 and Sonnet on the 102 uncovered tasks, 27.01 USD of Claude, no Jev call),
+[memgate-long](../2026-10-15-memgate-long/README.md) (sealed c8d1da1; 0.53 USD of Jev),
+[memgate-hook](../2026-10-16-memgate-hook/README.md) (sealed 211227c; 0.18 USD of Jev),
+[checkdone114](../2026-10-16-checkdone114/README.md) (sealed aff4cff; 0.14 USD of Jev),
+[redundant-drop](../2026-10-16-redundant-drop/README.md) (sealed 303dcc4; 0.03 USD of Jev),
+[A3](../2026-10-16-a3-mcp/README.md) (sealed 65528af; 0.05 USD of Jev),
+[A5](../2026-10-16-a5-unrelated/README.md) (sealed f392ee8; 0.03 USD of Jev),
+[B4](../2026-10-16-b4-order/README.md) (sealed 7f8bca6; 0.06 USD of Jev),
+[B6](../2026-10-16-b6-es/README.md) (sealed 1f54dd4; 2.64 USD of Jev). None called Claude but
+lb162 and lb162x.
+
+- **The router (lb162, lb162x)** is a Jev decision that replaces calls of the expensive model,
+  the case this page names as the only one where a decision saves; it covers multiple choice
+  over one long document and one draw.
+- **The memory gate's long window** is a recall gain on the library gate (memgate-long), where it
+  is the default (`SANCHOPANZA_MEMORY_WINDOW=short` turns it off). On the installed hook's first
+  prompt (memgate-hook) the same window gave more noise than the sealed guard allows, so the hook
+  stays on the short one.
+- **The rest** are checks of a cut or an opt-in: check_done's 1.14 profile holds, the MCP guard
+  and the Score ordering stay opt-in, `redundant_page` keeps its cut, A5 licenses a proposal, and
+  B6 measures the Spanish drop without settling the margin.
 
 ## What was not run
 

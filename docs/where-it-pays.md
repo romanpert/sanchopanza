@@ -15,11 +15,12 @@ The short version, and everything below is the argument for it:
 > prefix.
 
 **The head-to-head test of that rule, 2026-10-13.** Claude Code with sanchopanza installed was
-measured against clean Claude Code, per model and axis
+measured against clean Claude Code 2.1.287, per model and axis
 (`docs/results/2026-10-13-final/`) **[M]**. One measured cell is a win: memory on Sonnet 5.5
 across parallel sessions, with memory, on by default in `sanchopanza install` since 2026-10-14
-(`--no-memory` leaves it out). Web, code and the Jev
-part of long code are not.
+(`--no-memory` leaves it out). A second memory test on Sonnet 5.5 (F2) met its own sealed
+positive verdict, better than doing nothing and not worse than the handoff ritual, at a higher
+cost than doing nothing. Web, code and the Jev part of long code are not wins.
 
 - On Sonnet 5.5, GAIA, BrowseComp-Plus and LongBench v2 are "no gana". Cost S/N was 1.074,
   1.17 and 0.785, and no interval lies below 1 with success held.
@@ -36,17 +37,23 @@ part of long code are not.
   (`docs/results/2026-10-13-memory-cell/`). With the layer the fact was broken in 0 of 24 pairs,
   without it in 11 (McNemar p 0.00049; by scene 4 wins, 0 losses), at a median 1.117 of the cost
   (+12 %). The gain is in the 4 of 8 scenes where the fact is not in the code.
-- Memory on Sonnet 5.5, continuing a two-step feature in a new session, is "gana" as well
-  (`docs/results/2026-10-16-memory-f2/`, pre-registered): with a plain "let's continue" the next
-  step was done right, constraint and decision kept, in 48 of 48 triples with the layer, 4 of 48
-  without it (McNemar p 6e-14) and 44 of 48 with a pasted handoff, at 1.23x the cost of doing
-  nothing and 0.92x the ritual's. On Opus 5.5 there was no room: Claude Code's own auto memory
-  carried the plan (22, 17 and 21 of 24).
+- Memory on Sonnet 5.5, continuing a two-step feature in a new session
+  (`docs/results/2026-10-16-memory-f2/`, pre-registered; clean Claude Code 2.1.287 against
+  `install --scope project` as it ships, 12 synthetic scenes, headless) met F2's sealed
+  verdict, **S better than N0 and not worse than the handoff ritual**. With a plain "let's
+  continue" the next step was done in 48 of 48 triples; clean Claude Code with the same line in
+  4 (McNemar p 6e-14), with a pasted handoff in 44 (S not worse than H by the sealed margin; 4 to
+  0, p 0.0625). What S carried was the plan: no session in any arm that built the step lost the
+  constraint or the decision. Cost, median per triple with a descriptive paired bootstrap: 1.23x
+  N0 [1.14, 1.26] and 0.92x H [0.85, 0.95], a trade against doing nothing and a substitute for
+  the ritual. The interval against clean Claude Code lies above 1, so by the scoreboard's rule it
+  is not "gana". On Opus 5.5 there was no room: Claude Code's own auto memory carried the plan
+  (22, 17 and 21 of 24).
 - Early compaction on long code (near 67k against N-early's 160k, Sonnet 5.5, 5 chains) is "no gana" (`docs/results/2026-10-13-long-compact/`): cost 0.900 [0.741, 1.093] with quality non-inferior (under the post-data amendment: conan-2 repeated, still no gana: 0.875 [0.754, 1.015] substituted, 0.887 [0.750, 1.050] averaged); no saving shown, so `install --context-budget` stays at 160,000.
 
 The rule above is what that result says. A decision pays where it replaces a call or tokens of the
-expensive model, not as one more layer. The memory win is not a saving: it carried a fact the model
-could not see in the code, at 12 % more cost.
+expensive model, not as one more layer. Neither memory result is a saving against clean Claude
+Code (1.12x and 1.23x its cost); against the handoff ritual F2's S cost 0.92x.
 
 Every figure marked **[M]** is measured in this repository and reproducible from it.
 **[P]** is a primary published source with a URL. **[D]** is derived arithmetic from those.
@@ -332,7 +339,12 @@ Choice is a cut on the top probability that depends on the number of options, an
 cut for every option: `relate_facts` needs the same confidence to say `unrelated`, which
 triggers nothing, as to say `conflict`. Accepting `unrelated` at a plain majority gains right
 answers on each of six recordings and never adds a costly error; it is one set of cases, read
-before the rule was written, so a candidate and not a result, and nothing in code changed.
+before the rule was written, so a candidate and not a result. The gate derived from those
+recordings, `unrelated` as the top option at 0.65, was then measured on 1,500 new pairs with
+jev-1.13.0 and beat the shipped policy under its sealed rule: 39 added verdicts, all right, none
+a missed conflict, Wilson lower bound 0.910 **[M]** (`docs/results/2026-10-16-a5-unrelated/`).
+That licenses a proposal to make 0.65 the default, not the change: the band was thinner than
+planned and the batch's `agree` and `conflict` cases are easy. Nothing in code changed.
 
 **Score a bench at the threshold the policy applies.** A bench scored at a cut the policy
 never applies reports a policy that does not exist. `check_loop` acts only from 0.70: under
@@ -458,7 +470,7 @@ implemented with a bench; "designed" means the arithmetic is here and the code i
 | **Triple verification before commit** | an LLM re-reading the chunk per proposed edge | triples extracted | in the package | **17 committed and 1 of them backwards** on 50 cases, eleven of them `reversed`: `ed-26` is committed against a text that states the opposite **[M]**. A backwards edge is the one error here nothing downstream catches |
 | **Injection screening on fetched content** | a hosted guardrail at ~0.60 USD/MTok | pages fetched | in the package | Public bench: 27/28 under the policy (flags above 0.70), AUC 1.00, against a regex at 23/28. AgentDojo: 101/124 attacks at 0.70, 120/124 with the regex alongside, **0/149** false alarms on real tool outputs **[M]**. End to end on AgentDojo's `slack` suite the undefended Sonnet 5 was compromised **0 times in 105**, so the scan bought nothing there, and it is off by default **[M]** |
 | **Closed-vocabulary classification** | a small LLM doing extraction-by-prompt | records | in the package | 80-85 % against independent labels, majority baseline 43-62 % **[M]** |
-| **Long-document multiple choice where Jev is sure** | a Sonnet 5.5 session reading the document | questions | measured, not a point yet | On 162 fresh LongBench v2 tasks, pre-registered: Jev 1.14 with the long window where its top choice is at least 0.6 (37 % covered), Sonnet 5.5 in clean Claude Code elsewhere: +1.2 points [−3.1, +5.6] against Sonnet alone, no worse at −10, 33.9 % [24.0, 44.0] of Sonnet's cost saved; with Opus 5.5 as the expensive model −3.7 points [−8.0, +0.6], no worse at −10, 29.5 % [21.7, 37.7] of Opus's cost saved **[M]** (`docs/results/2026-10-15-lb162/`, `docs/results/2026-10-16-lb162x/`) |
+| **Long-document multiple choice where Jev is sure** | a Sonnet 5.5 session reading the document | questions | measured, not a point yet | On 162 fresh LongBench v2 tasks, pre-registered: Jev 1.14 with the long window where its top choice is at least 0.6 (37 % covered), Sonnet 5.5 in clean Claude Code 2.1.287 elsewhere: +1.2 points [−3.1, +5.6] against Sonnet alone, no worse at −10, 33.9 % [24.0, 44.0] of Sonnet's cost saved; with Opus 5.5 as the expensive model −3.7 points [−8.0, +0.6], no worse at −10, 29.5 % [21.7, 37.7] of Opus's cost saved, and Opus was right more often than Jev on the covered tasks (37 against 31 of 60; McNemar 10 against 4, p 0.18) **[M]** (`docs/results/2026-10-15-lb162/`, `docs/results/2026-10-16-lb162x/`) |
 | **Extraction gating before a generative pass** | the generative extractor, on chunks with nothing in them | chunks in the corpus | in the package | 15/16, AUC 1.00 **[M]**; LazyGraphRAG makes this budget the whole cost curve **[P]** |
 
 ### Tier 2 - substitution, argued, not yet measured end to end
@@ -638,8 +650,12 @@ Each of these is specified enough that a disagreement becomes a measurement.
    31 points over BM25 with the same text, again short of 85 % and 25 %. **Confirmed** with
    the compression moved to the paragraph (`select_passages`: gate 0.75, window 2): 87.2 % of
    219 new questions at 21.0 % of the text, and an answering model as good from it as from
-   the whole paper (`docs/results/2026-09-28-lateral-wholedocs/`). Open: Spanish documents and
-   documents that are not papers.
+   the whole paper (`docs/results/2026-09-28-lateral-wholedocs/`). Spanish, measured against
+   English on the same MLQA questions with jev-1.13.0: Spanish keeps the needed page or sentence
+   about 3 to 6 points less often at the same share of the text (pages −3.4 points [−6.1, −0.8],
+   whole Wikipedia articles −5.9 [−9.0, −2.9]); both "inconclusive" at the sealed 5-point
+   margin, and BM25 drops 10 to 11 points there **[M]** (`docs/results/2026-10-16-b6-es/`).
+   Open: documents that are not papers or encyclopedia articles.
 8. **Long documents, by descent.** The in-context judgment reads an excerpt of 900 characters
    of each page, and sentence selection judges the first 40 sentences of a page. A long document would be judged as document, then sections, then
    sentences, each step among its siblings, the tournament's shape. Unmeasured.
@@ -648,7 +664,9 @@ Each of these is specified enough that a disagreement becomes a measurement.
    point", fixed in advance, is untested against Sonnet on unseen data.
 10. **`relate_facts` on new cases.** On the fifth batch neither `unrelated` at a plain majority
     nor examples on `unrelated` beat the shipped question (25 right answers each). The `direction`
-    question by roles did, and ships.
+    question by roles did, and ships. `unrelated` at 0.65 beat the shipped policy on 1,500 new
+    pairs (39 of 39 added verdicts right): a proposal for the default, with harder `agree` and
+    `conflict` cases still to measure (`docs/results/2026-10-16-a5-unrelated/`).
 11. **Masking with an archive, where recall is the only path.** Measured and negative
     (`docs/results/2026-09-28-context-lean/`): with facts made early and needed late, the
     agent guessed from the stub's index or re-ran tools instead of searching the archive. What
@@ -691,6 +709,12 @@ Each of these is specified enough that a disagreement becomes a measurement.
     0.0135 on Sonnet, 0.0673 on Opus for the same 44,881 tokens - and that is the price list, not
     a decision of ours. Said plainly: in browsing, choosing who takes the turn beats anything we
     do to what they read.
+
+13. **MCP tool calls in the Claude Code hook.** The `actions` point wired in for `mcp__*` tools
+    (`install --guard-mcp`, opt-in), replayed with jev-1.13.0 over 500 ATBench-Codex
+    trajectories, caught 185 of 250 unsafe ones (74.0 %) against 0 for the hook as it ships and
+    flagged 82 of 250 safe ones (32.8 %): under the sealed 75.2 % recall floor, not confirmed;
+    the live Claude Code phase was not run **[M]** (`docs/results/2026-10-16-a3-mcp/`).
 
 ---
 

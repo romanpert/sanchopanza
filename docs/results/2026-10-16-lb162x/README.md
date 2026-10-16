@@ -7,8 +7,9 @@ expensive model wherever lb162 had not, reusing Jev's lb162 answers as recorded.
 - **Against Opus 5.5 (phase B, the primary verdict):** **"no peor"** at the sealed −10-point
   margin. Hybrid minus Opus alone is **−3.7 points**, 95 % CI **[−8.0, +0.6]**, over 162 tasks.
   Coverage is 37 %, so the product claim also holds: **"sustituye"**.
-  - **Read plainly:** the hybrid holds against Opus at −10 too, but Opus beats Jev on the tasks
-    Jev covers. On those 60, Opus was right on 37 and Jev on 31 (McNemar 10 against 4, p 0.18).
+  - **Read plainly:** the hybrid holds against Opus at −10 too, and Opus was right more often
+    than Jev on the tasks Jev covers: on those 60, Opus on 37 and Jev on 31 (McNemar 10 against
+    4, p 0.18).
   - The point estimate is a loss, and the CI's upper bound is barely above 0. Only the −10
     margin decides; a −2 or −5 margin would read "no concluyente".
 - **The saving of Sonnet 5.5's cost, now measured (phase A):** **33.9 %**, 95 % CI
@@ -149,7 +150,7 @@ This is what a confirmation of a higher cut for Opus would test; it is not a res
 | Opus 5.5, all 162 tasks | 18.148 | measured: 0.112 a session (median 0.098, max 0.45); plan expected 29.7 |
 | Sonnet 5.5, the 102 uncovered tasks | 8.643 | measured: 0.085 a session (median 0.058, max 0.38); plan expected 9.1 |
 | **This lot, Claude Code list price** | **27.01** | under the 45 + 16 USD ceilings |
-| Jev | 0 | lb162's recorded answers (0.874 USD in lb162) |
+| Jev | 0 | lb162's recorded answers (0.874 USD on the 162 tasks in lb162, 0.875 with the smoke) |
 
 - **Sessions:** 162 Opus and 102 Sonnet sessions. None hit its cap, none ran on a lowered cap,
   none errored, all gave a letter, and all were served by their phase's model.
@@ -176,13 +177,15 @@ Code 2.1.287 answering the rest):
 - Jev as a general substitute for either model.
 - Open-ended answers: these are four-option questions graded by the letter.
 - Other document kinds: Single- and Multi-Document QA only.
-- A claim that the hybrid matches Opus: Opus is better than Jev on the tasks Jev covers. "No
-  peor" here means within the −10-point margin. That margin is the owner's product decision,
+- A claim that the hybrid matches Opus: Opus was right more often than Jev on the tasks Jev
+  covers (37 against 31 of 60; McNemar 10 against 4, p 0.18). "No peor" here means within the
+  −10-point margin. That margin is the owner's product decision,
   fixed before the data, not a statistical one.
 
 **Limits of the evidence:**
 - **One draw:** one session per task and model, one set of 162 tasks.
-- **Hard tasks:** Opus alone is right on 65 % of them, Sonnet on 55 %.
+- **Hard tasks for both models:** over all 162, Opus alone is right on 65 % and Sonnet on
+  55 %.
 - **The band and cut readings are post hoc and small.**
 
 ## Recommendation
@@ -199,11 +202,12 @@ over a long document from Jev, with an escalation flag, in the shape of `navigat
 - **Sonnet 5.5 users:** the case is good. About a third of the cost saved, measured, and no
   measured loss.
 - **Opus 5.5 users:** the case is weaker. About 30 % saved, but the measured accuracy drops by
-  3.7 points (CI to −8.0), because Opus is better than Jev where Jev is sure.
+  3.7 points (CI to −8.0): where Jev is sure, Opus was right more often (37 against 31 of
+  60; p 0.18).
   - The point's documentation should say so.
   - A user who wants to keep Opus's accuracy can raise the cut: descriptively, at 0.8 the gap
-    was 0.6 points for a smaller saving (2.81 USD of 18.15). That would need its own
-    confirmation.
+    was 0.6 points for a smaller saving (1.93 USD of 18.15 net of Jev's 0.87; 2.81 USD of
+    Opus's cost avoided). That would need its own confirmation.
 - **Choosing between the two models:** on these tasks, Jev with Sonnet (56.2 %, 9.52 USD) costs
   half of Opus alone (64.8 %, 18.15 USD) and is 8.6 points less accurate.
 

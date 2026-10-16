@@ -7,11 +7,14 @@ Sonnet 5.5 alone** under the sealed −10-point rule.
 - **The product claim** also needed coverage ≥ 20 %. Jev covered **37 %** (60 of 162), so it
   holds: **"sustituye"**.
 - **On the covered tasks:** Jev was right on 31 of 60, Sonnet on 29. McNemar 8 against 6,
-  p 0.79. The tie seen post hoc in L6 holds on fresh tasks.
+  p 0.79. As in L6, the covered tasks show no measurable difference; what the run establishes
+  is non-inferiority at −10.
 - **Cost:**
-  - Jev cost 0.874 USD for all 162 tasks; Sonnet 5.757 USD on the 60 covered.
-  - Sonnet's cost on the other 102 tasks was not measured. Estimated at 0.123 USD a task,
-    the hybrid saves about **27 % of Sonnet's cost** (4.88 of an estimated 18.30 USD).
+  - Jev cost 0.874 USD on the 162 tasks (0.875 with the smoke); Sonnet 5.757 USD on the 60
+    covered.
+  - Sonnet on the other 102 tasks was run in [lb162x](../2026-10-16-lb162x/README.md): 8.643
+    USD. With it the hybrid saves **33.9 % of Sonnet's cost**, 95 % CI [24.0 %, 44.0 %] (4.88
+    of 14.40 USD), measured.
 
 **What the margin allows.** Over all 162 tasks, −10 points at 37 % coverage means Jev could
 have been up to **27 points** less accurate than Sonnet on the tasks it answers. The measured
@@ -67,7 +70,8 @@ The setup:
 counting such sessions as wrong changes nothing: +1.2 points, [−3.1, +5.6], "no peor".
 
 **Jev alone.** Jev alone gets 64 of 162 right (39.5 %), and 33 of the 102 it did not cover
-(32 %). Sonnet was not asked on those 102, so its accuracy on all 162 is not known.
+(32 %). Sonnet on those 102 was run in [lb162x](../2026-10-16-lb162x/README.md): right on 60
+against Jev's 33, and on 89 of all 162 (54.9 %).
 
 **Descriptive, not registered:** Jev's precision rises with the cut.
 - 0.5: 40 of 82;
@@ -98,13 +102,16 @@ counting such sessions as wrong changes nothing: +1.2 points, [−3.1, +5.6], "n
 | Jev, all 162 tasks (shorter retries included) | 0.874 | measured; plan expected 0.92 |
 | Jev smoke (one dev task, outside the 162) | 0.001 | measured |
 | Sonnet 5.5, the 60 covered tasks | 5.757 | measured: 0.096 a session (median 0.058, max 0.39) |
-| Sonnet 5.5, the 102 uncovered tasks | 12.55 | **estimate**, at 0.123 a task (Sonnet's mean on 2026-10-06) |
-| Sonnet alone on all 162 | 18.30 | **estimate** (measured plus estimated) |
-| Hybrid on all 162 | 13.42 | **estimate** (Jev plus Sonnet on the uncovered tasks) |
-| Saving of Sonnet's cost | 4.88, **26.7 %** | **estimate** |
+| Sonnet 5.5, the 102 uncovered tasks | 8.643 | measured in [lb162x](../2026-10-16-lb162x/README.md) (0.085 a session) |
+| Sonnet alone on all 162 | 14.400 | measured (this lot plus lb162x) |
+| Hybrid on all 162 | 9.517 | measured (Jev plus Sonnet on the uncovered tasks) |
+| Saving of Sonnet's cost | 4.883, **33.9 %**, 95 % CI [24.0 %, 44.0 %] | measured (lb162x) |
 
-- **Jev:** 0.875 USD in all, under the lot's 1.20 cap. Three tasks needed a shorter retry.
-  20.8 M input tokens.
+- **The estimate this lot registered** for the uncovered part, 0.123 USD a task (Sonnet's mean
+  on 2026-10-06), gave a saving of 26.7 %; it falls inside lb162x's CI.
+- **Jev:** 0.874 USD on the 162 tasks (0.875 with the smoke, as the ledger's batch reads it),
+  under the lot's 1.20 cap. Three tasks needed a shorter retry. 20.8 M input
+  tokens.
 - **Sonnet:** 60 sessions under the 18 USD ceiling. None hit its 3.00 cap, none errored, all
   gave a letter. 4.7 turns on average.
 - **Wall time:**
@@ -120,15 +127,16 @@ measured:
 - It answers alone when its top choice is ≥ 0.6.
 - Sonnet 5.5 answers the rest.
 
-On LongBench v2 that saved about a quarter of Sonnet's cost (estimated) at no measurable loss
-of accuracy.
+On LongBench v2 that saved about a third of Sonnet's cost (33.9 %, [24.0, 44.0], measured with
+lb162x) at no measurable loss of accuracy.
 
 **It does not license:**
 - Jev as a general Sonnet substitute.
 - Open-ended answers: these were four-option questions, graded by the letter.
 - Other document kinds: Single- and Multi-Document QA only.
-- Other models: Sonnet 5.5 only. No Opus 5.5 arm was run.
-- A saving measured end to end: the uncovered part of Sonnet's cost is estimated.
+- Other models on its own: this lot ran Sonnet 5.5. The same router against Opus 5.5 alone is
+  [lb162x](../2026-10-16-lb162x/README.md): −3.7 points [−8.0, +0.6], no peor at −10, 29.5 %
+  [21.7, 37.7] of Opus's cost saved.
 
 **Limits of the evidence:**
 - **One draw:** coverage moved from 54 % in L6 to 37 % here, and Jev's precision on the
@@ -151,11 +159,11 @@ Its shape:
   cut is this lot's, on 1.14.
 
 **What to measure next:**
-1. Sonnet on the 102 uncovered tasks (about 12.5 USD), to turn the saving from an estimate
-   into a measurement.
-2. The same router with Opus 5.5 as the expensive model.
-3. A long-document set graded on free-text answers, where the letter-only grading here does
+1. A long-document set graded on free-text answers, where the letter-only grading here does
    not apply.
+
+Sonnet on the 102 uncovered tasks and the same router with Opus 5.5 as the expensive model
+were run in [lb162x](../2026-10-16-lb162x/README.md).
 
 ## Files
 
