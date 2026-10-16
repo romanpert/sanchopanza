@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib.util
+import json
 import pathlib
 import sys
 from dataclasses import replace
@@ -11,7 +12,8 @@ from dataclasses import replace
 import pytest
 
 from sanchopanza import Squire, Thresholds
-from sanchopanza.providers.recorded import RecordedDecider
+from sanchopanza.contract import Decision
+from sanchopanza.providers.recorded import RecordedDecider, key_of
 
 from .helpers import dataset
 
@@ -86,37 +88,59 @@ def test_the_budget_is_the_median_rounded_down():
 @pytest.mark.skipif(
     not QASPER or not pathlib.Path(QASPER).exists(), reason="SANCHOPANZA_QASPER not set"
 )
-def test_the_free_arm_is_what_the_library_delivers_on_the_219():
-    """`select_passages(fit_chars=B, fit_score=False)` on the recording, against the FREE arm
-    of the replay: the free result is the library's behaviour, not a model of it."""
+def test_the_library_is_what_the_replay_scores_on_both_sets():
+    """On the 261 and the 219, from the recordings: `select_passages(fit_chars=B,
+    fit_score=False)` cuts exactly as the FREE arm, and with `fit_score=True` it asks exactly
+    the Score queries `run.queries` plans (same keys, same order: 202 + 153), and with none of
+    them answered cuts as FREE again. The replay is the library's behaviour, not a model of it."""
     run = _load("passage_fit_run_test", ROOT / "benchmarks" / "passage_fit" / "run.py")
     derivation, rows = run.rows_of(pathlib.Path(QASPER))
-    confirm = sys.modules["wholedocs_confirm"]
     budget = od.budget_from([od.total(r["items"]) for r in derivation])
     assert budget == 3400
-    squire = Squire(
-        RecordedDecider.from_file(confirm.FIXTURE),
-        thresholds=replace(Thresholds(), max_decisions=10**7, max_usd=50.0),
-    )
+    entries = []
+    for name in ("longdocs.jsonl", "longdocs-sentences.jsonl", "lateral-wholedocs.jsonl"):
+        text = (ROOT / "fixtures" / name).read_text(encoding="utf-8")
+        entries += [json.loads(x) for x in text.splitlines() if x.strip()]
 
-    async def library(row):
-        out = await squire.select_passages(
-            purpose=row["question"], pages=row["pages"], fit_chars=budget, fit_score=False
-        )
+    class Collect:
+        """The recordings for the two stages; every Score query noted, left unanswered."""
+
+        name = "collect"
+
+        def __init__(self):
+            self.inner = RecordedDecider(entries)
+            self.keys = []
+
+        async def decide(self, point, state, questions):
+            if point == "passage_fit":
+                self.keys.append(key_of(point, state, questions))
+                return Decision(point, {}, "collect", "-")
+            return await self.inner.decide(point, state, questions)
+
+    def masks(out, row):
         return [
             [False] * len(ranges) if got is None else [keep for keep, _ in got]
             for got, ranges in zip(out, row["sentences"], strict=True)
         ]
 
-    async def everything():
-        return await asyncio.gather(*(library(r) for r in rows))
-
-    shipped = asyncio.run(everything())
-    replayed = [
-        od.under_budget(r["mask"], r["items"], od.orders(r, r["items"])["FREE"], budget)
-        for r in rows
-    ]
-    assert shipped == replayed
+    loose = replace(Thresholds(), max_decisions=10**8, max_usd=500.0)
+    for name, part in (("derivation", derivation), ("confirmation", rows)):
+        free_arm = [
+            od.under_budget(r["mask"], r["items"], od.orders(r, r["items"])["FREE"], budget)
+            for r in part
+        ]
+        collect = Collect()
+        squire = Squire(collect, thresholds=loose)
+        cut, scored = [], []
+        for row in part:  # one question at a time: the Score keys come in the library's order
+            kw = {"purpose": row["question"], "pages": row["pages"], "fit_chars": budget}
+            cut.append(masks(asyncio.run(squire.select_passages(**kw, fit_score=False)), row))
+            scored.append(masks(asyncio.run(squire.select_passages(**kw)), row))
+        assert cut == free_arm, name
+        assert scored == free_arm, name  # no Score came back: FREE's order decides
+        planned = [key_of(p, s, q) for p, s, q in run.queries(part, budget)]
+        assert collect.keys == planned, name
+        assert len(planned) == {"derivation": 202, "confirmation": 153}[name]
 
 
 def test_the_report_summarises_rows_that_fit_beside_rows_that_were_scored():

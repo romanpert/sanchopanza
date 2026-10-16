@@ -81,8 +81,8 @@ def test_both_wordings_of_an_attribute_name_the_same_event():
         templates = cases.KINDS[kind][2][attribute][3]
         assert all(es in t.lower() for t in templates[:2]), (kind, attribute)
         assert all(en in t.lower() for t in templates[2:]), (kind, attribute)
-    for kind, (_, _, attributes) in cases.KINDS.items():
-        assert ("year" not in attributes) or (kind, "year") in cases.EVENT_STEMS
+    every = {(kind, a) for kind, (_, _, attributes) in cases.KINDS.items() for a in attributes}
+    assert len(every) == 24 and set(cases.EVENT_STEMS) == every
 
 
 def test_an_agreement_states_one_value_and_a_conflict_two():
@@ -137,6 +137,19 @@ def test_the_verdict_needs_enough_cases_and_the_target():
     bad = _rows([("unrelated", None, 0.70)] * 20 + [("conflict", None, 0.70)])
     assert run.verdict(bad, 0.65)["verdict"] == "the gate does not beat the shipped policy"
     assert "stands" in run.verdict(good, None)["verdict"]
+
+
+def test_the_added_verdicts_are_broken_down_by_type():
+    rows = _rows([("unrelated", None, 0.70), ("agree", None, 0.70), ("unrelated", None, 0.70)])
+    kinds = ("museum:works+year", "museum:works+year", "bridge:length+year")
+    for row, kind in zip(rows, kinds, strict=True):
+        row["type"] = kind
+    assert run.by_type(rows, 0.65) == {
+        "museum:works+year": {"added": 2, "wrong": 1},
+        "bridge:length+year": {"added": 1, "wrong": 0},
+    }
+    attrs = {c["attributes"] for c in cases.build() if c["shape"] == "same"}
+    assert all(a.count("+") == 1 and len(set(a.split("+"))) == 2 for a in attrs)
 
 
 def test_the_target_is_compared_unrounded():
@@ -308,8 +321,17 @@ def test_a_report_waits_for_the_relaunch_then_counts_what_is_missing(tmp_path):
     assert not paid_once.unanswered_blocks(lot, 3)  # no relaunch after a 402: scored as missing
 
 
+def _named(lot):
+    """The prereg names the current HEAD as its instrument commit."""
+    lot.prereg.write_text(f"rule\nInstrument commit: `{paid_once.head()}`\n", encoding="utf-8")
+    return lot
+
+
 def test_the_seal_covers_prereg_and_launcher_but_not_its_local_values(tmp_path):
     lot = _lot(tmp_path)
+    with pytest.raises(SystemExit, match="names no instrument commit"):
+        paid_once.seal(lot)
+    _named(lot)
     first = paid_once.seal(lot)
     assert paid_once.seal(lot) == first
     paid_once.require_sealed(lot)
@@ -325,6 +347,100 @@ def test_the_seal_covers_prereg_and_launcher_but_not_its_local_values(tmp_path):
     lot.prereg.write_text("rule, edited after the seal\n", encoding="utf-8")
     with pytest.raises(SystemExit):
         paid_once.require_sealed(lot)
+
+
+class Trap:
+    """Stands for the key loader and the live client: any call is recorded."""
+
+    def __init__(self):
+        self.calls = []
+
+    def load_key(self):
+        self.calls.append("load_key")
+
+    def make_live(self):
+        self.calls.append("make_live")
+        return LoopBound()
+
+    async def check(self, model):
+        self.calls.append("check")
+
+
+def _paid(lot, trap, n=3):
+    return paid_once.run_paid(
+        lot, _queries(n), load_key=trap.load_key, make_live=trap.make_live, check=trap.check
+    )
+
+
+def test_no_key_and_no_client_before_every_check_passes(tmp_path, capsys):
+    stable = ("LICENSE",)  # an instrument path no test run changes
+    trap = Trap()
+    lot = _lot(tmp_path / "a", instrument=stable)
+    with pytest.raises(SystemExit, match="not sealed"):
+        _paid(lot, trap)  # never sealed
+    paid_once.seal(_named(lot))
+    lot.prereg.write_text(lot.prereg.read_text() + "edited\n", encoding="utf-8")
+    with pytest.raises(SystemExit, match="not sealed"):
+        _paid(lot, trap)  # sealed, then changed
+    other = tmp_path / "input.bin"
+    other.write_bytes(b"x")
+    lot = _lot(tmp_path / "b", instrument=stable, inputs=((other, "0" * 64),))
+    paid_once.seal(_named(lot))
+    with pytest.raises(SystemExit, match="registered input"):
+        _paid(lot, trap)  # sealed, but another input hash
+    lot = _lot(tmp_path / "c", instrument=stable)
+    paid_once.seal(_named(lot))
+    lot.fixture.parent.mkdir(parents=True)
+    line = {"key": "k", "point": "facts", "model": "jev-1.14.0", "answers": {}}
+    lot.fixture.write_text(json.dumps(line) + "\n", encoding="utf-8")
+    with pytest.raises(SystemExit, match="first launch"):
+        _paid(lot, trap)  # a recording already there before any launch
+    lot = _lot(tmp_path / "d", instrument=stable, cap_usd=0.0002)
+    paid_once.seal(_named(lot))
+    with pytest.raises(SystemExit, match="does not fit"):
+        _paid(lot, trap, n=5)  # 5 x 71 micro-USD over the cap
+    assert trap.calls == []
+
+
+def test_a_sealed_lot_asks_once_in_one_loop_and_the_relaunch_rule_holds(tmp_path, capsys):
+    trap = Trap()
+    lot = _lot(tmp_path, instrument=("LICENSE",))
+    paid_once.seal(_named(lot))
+    LoopBound.made.clear()
+    got = _paid(lot, trap)
+    assert got["stopped"] is None and got["asked"] == 3
+    assert trap.calls == ["load_key", "check", "make_live"]
+    assert paid_once.plan(_queries(3), lot)["to_ask"] == 0
+    assert _paid(lot, trap)["note"] == "nothing missing"  # nothing asked, nothing launched
+    assert len(paid_once.history(lot)) == 1
+
+
+def test_another_models_answer_never_counts_as_recorded(tmp_path):
+    lot = _lot(tmp_path)
+    asyncio.run(paid_once.ask_missing(_queries(2), lot, live=Live(model="jev-1.14.0")))
+    assert lot.fixture.exists()  # written by the recorder before the model was checked
+    assert paid_once.plan(_queries(2), lot)["to_ask"] == 2
+
+
+def test_a_relaunch_counts_what_the_ledger_already_holds(tmp_path):
+    lot = _lot(tmp_path, cap_usd=0.00016)
+    asyncio.run(paid_once.ask_missing(_queries(1), lot, live=Live()))
+    plan = paid_once.plan(_queries(3), lot)  # 2 left: 142 micro-USD, under the cap alone
+    assert plan["usd_spent_on_ledger"] > 0 and plan["usd_at_median_request"] < lot.cap_usd
+    with pytest.raises(SystemExit, match="spent \\+ estimate"):
+        paid_once.require_room(plan, lot.cap_usd)
+
+
+def test_load_key_reads_only_the_named_file(tmp_path, monkeypatch):
+    monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+    monkeypatch.delenv("SANCHOPANZA_KEYS_ENV", raising=False)
+    with pytest.raises(SystemExit):
+        paid_once.load_key()
+    env = tmp_path / "keys.env"
+    env.write_text('OTHER=1\nTYPESAFE_API_KEY="fake-for-test"\n', encoding="utf-8")
+    monkeypatch.setenv("SANCHOPANZA_KEYS_ENV", str(env))
+    paid_once.load_key()
+    assert paid_once.os.environ["TYPESAFE_API_KEY"] == "fake-for-test"
 
 
 def test_the_instrument_and_the_inputs_are_checked_before_any_key(tmp_path):

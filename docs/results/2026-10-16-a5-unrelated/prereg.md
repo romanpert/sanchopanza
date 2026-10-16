@@ -39,7 +39,7 @@ the re-run), top probabilities 0.67-0.72. 0.50 has net 2 (12 added, 10 right; fa
 **Written after the recorded answers on `graph`, `graph-c` and `graph-e` had been looked at**
 (the shapes copy the cases where the decider hesitates). 1,500 pairs, seeded (20261016),
 hashed before any call: sha256 (LF)
-`2673a2529751d5349841be74aa0664a8da9c7504ec379683107fe04fe4d8ab3e`, also in
+`d793dd4a2764a5a0d2bdcf1c2cafd56d69193e373a4445fc436607fcf3e14a4e`, also in
 `benchmarks/facts_gate/cases.sha256` and pinned in `run.py` (`CASES_SHA256`); `paid` and
 `report` refuse any other file. Invented entities (eight kinds, 120 invented place names),
 three numeric attributes each, two wordings in Spanish and two in English, languages
@@ -60,11 +60,13 @@ ones (an `agree` in the band is the wrong verdict the gate can add, fa-17's kind
 missed-conflict guard needs as many chances to fire as the mix gives it. Shrinking them would
 make the gate look more precise than on the mix every earlier batch used.
 
-The two wordings of an attribute name the same event or count (one founding, one inauguration,
-N editions held), so every `conflict` is one by construction; `cases.EVENT_STEMS` lists the
-shared word per attribute and `tests/test_facts_gate.py` checks it, and that both facts of an
-`agree` state the same numbers and those of a `conflict` different ones. Mix 40/30/30, the fifth
-batch's. No label is read off a model; no model wrote a case.
+The two wordings of each of the 24 attributes name the same event or the same magnitude (one
+founding, one daily output, the festival's duration, the number of operating theatres), so
+every `conflict` is one by construction; `cases.EVENT_STEMS` lists the shared words for all 24
+and `tests/test_facts_gate.py` checks every template against them, and that both facts of an
+`agree` state the same numbers and those of a `conflict` different ones. Each case carries its
+kind and attribute pair (`attributes`). Mix 40/30/30, the fifth batch's. No label is read off a
+model; no model wrote a case.
 
 ## Run
 
@@ -90,9 +92,22 @@ For g\* = 0.65, on the 1,500 cases, let A be the verdicts it adds to the shipped
 3. Else **it does not**.
 
 A gate only ever adds `unrelated` verdicts, so the shipped `agree`/`conflict` errors (costly)
-cannot change; reported anyway. Every other gate of the family, the shipped totals and the
-totals by shape are reported, descriptively. A positive verdict licenses a default change
-proposal for `decide_facts`, not the change itself.
+cannot change; reported anyway. Every other gate of the family, the shipped totals, the totals
+by shape and **A and its errors by (kind, attribute pair)** (`added_by_type`) are reported,
+descriptively.
+
+**What a "beats" licenses, and what it does not.** A default change *proposal* for
+`decide_facts`, to be checked on written text, not the change itself. Its limits:
+- The `agree` cases are easy paraphrases of one value. The only wrong verdict the gate made on
+  the recordings, fa-17 (two dated events read as `unrelated`), is of a type this batch does not
+  contain, so the batch can understate the wrong `unrelated` verdicts a real mix would add.
+- Wilson treats the added verdicts as independent; they come from 8 kinds x 3 attributes x 2
+  wordings x 2 languages of templates. If A concentrates in a few (kind, attribute pair) cells,
+  the effective sample is smaller than |A|; `added_by_type` shows it.
+- On missed conflicts: 0 of the 58 recorded answers on `conflict` cases fall undecided with
+  `unrelated` on top (rule of three: at most about 5 %), and this batch's conflicts state two
+  plainly different values, so the guard is likely to hold here and says little about subtler
+  conflicts.
 
 ## Power, said plainly
 
@@ -118,34 +133,43 @@ win with probability about 0.87-0.90, one right 80 % of the time at most 0.02 (t
 rate), and "undecided" no longer happens. If the band is as thin as graph-e suggests (8 %),
 power at 0.93 falls to about 0.66, and a true 0.93 can come out "does not beat"; the false-win
 rate stays under 0.02 at every band. Read a "does not beat" with that in mind; a "beats" is
-safe.
+unlikely to be a false win on this batch, within the limits above.
 
 ## Cost and caps
 
-1,500 calls. At the measured cost of this question on the fifth batch (0.0034 USD for 120, 28
-micro-USD): **about 0.042 USD**, the expected spend. At the median real request (71 micro-USD,
-a figure for longer requests than this one): 0.107 USD. The `CappedDecider` per-call estimate
-(0.019 USD in all) is the lowest of the three, so it is not what bounds the run: the ledger cap
-is. The runner refuses a plan whose higher estimate passes the cap, so the cap is **0.15 USD**,
-raised from 0.10 because the 71-micro-USD figure for 1,500 calls (0.107) no longer fits under
-0.10; the expected spend stays about 0.04 USD. Hard cap in the ledger at a fixed path,
-`~/.cache/sanchopanza/a5-unrelated/ledger.jsonl` (no variable moves it; `dry` and `paid` print
-it), with the launches beside it in `launches.jsonl` (HEAD and why each stopped).
+1,500 calls. What the ledger settles is each call's computed cost (its input tokens x 0.042 USD
+per million); on the fifth batch this question cost 0.0034 USD for 120 calls (28 micro-USD), so
+the expected spend is **about 0.042 USD**. At the median real request (71 micro-USD, a figure
+for longer requests than this one): 0.107 USD. The `CappedDecider` per-call estimate (0.019 USD
+in all) is the lowest of the three, so it is not what bounds the run: the ledger cap is. The
+runner refuses a plan whose higher estimate, plus what the ledger already holds, passes the
+cap, so the cap is **0.15 USD**, raised from 0.10 because the 71-micro-USD figure for 1,500
+calls (0.107) no longer fits under 0.10; the expected spend stays about 0.04 USD. Hard cap in
+the ledger at a fixed path, `~/.cache/sanchopanza/a5-unrelated/ledger.jsonl` (no variable moves
+it; `dry` and `paid` print it), with the launches beside it in `launches.jsonl` (HEAD and why
+each stopped).
 
-`paid` refuses, before the key is read, unless: the higher estimate fits under the cap; the
-seal matches this file and the launcher; HEAD descends from the instrument commit and `src/`,
-`benchmarks/paid_once.py`, `benchmarks/facts_gate/`, `benchmarks/jev114/l4.py`,
-`benchmarks/thresholds.py`, the three `benches/graph*.jsonl` and the derivation recordings are
-identical to it, with nothing uncommitted under them; the cases have their hash; the recordings
-derive 0.65; the launch rule allows a launch; no other `paid` of the lot holds its lock. Then,
-in one event loop: `jev-preflight` (one call, about 13 micro-USD, outside the ledger), the live
-client built inside that loop, every call once, in order, and the first refusal, failure, empty
-answer or answer from a model other than jev-1.13.0 stops it. The Jev client itself retries an
-HTTP 429 or 529 up to 3 times inside one call.
+`paid` refuses, before the key is read, unless: the estimate plus what the ledger holds fits
+under the cap; the seal matches this file and the launcher (and this file names the instrument
+commit: `seal` refuses otherwise); HEAD descends from the instrument commit and `src/`,
+`benchmarks/paid_once.py`, `benchmarks/facts_gate/`, `benchmarks/thresholds.py`, the three
+`benches/graph*.jsonl` and the derivation recordings are identical to it, with nothing
+uncommitted under them; the cases have their hash; the recordings derive 0.65; the launch rule
+allows a launch; on the first launch, no recording exists yet; no other `paid` of the lot holds
+its lock. The key loader and the live client live in `paid_once.py` (sealed with the
+instrument); nothing from another lot is imported. Then, in one event loop: `jev-preflight`
+(one call, about 13 micro-USD, outside the ledger), the live client (`JevDecider`, jev-1.13.0,
+long context and images off) built inside that loop, every call once, in order, and the first
+refusal, failure, empty answer or answer from a model other than jev-1.13.0 stops it. Only lines
+answered by jev-1.13.0 count as recorded, in `paid`, `dry` and `report` alike. The Jev client
+itself retries an HTTP 429 or 529 up to 3 times inside one call.
 
 The key arrives through the file `SANCHOPANZA_KEYS_ENV` names (never printed, never in this
 repository); `a5-unrelated-run.cmd` sets it and the python, as placeholders here, filled only in
 the sealed worktree's copy.
+
+**Clock.** About 6-15 minutes for 1,500 calls, one at a time. Launch attended, outside
+02:00-08:00 (Windows Update restarts).
 
 ## Launch (owner's decision)
 

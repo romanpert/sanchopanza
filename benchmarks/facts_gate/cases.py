@@ -12,10 +12,10 @@ written two ways in Spanish and two in English. Five shapes, each a label by con
   hesitates between `agree` and `unrelated` (fa-26, fa-34, fa-42 in `benches/graph-c.jsonl`).
 - `unrelated` (twin): the same attribute of two entities of the same kind, other places.
 
-The two wordings of an attribute name the same event or count, never two events (founded
-against incorporated, inaugurated against in service): a conflict between them is a conflict
-by construction. `EVENT_STEMS` holds, for every attribute where two events could be confused,
-the word both wordings must share; a test checks it.
+The two wordings of an attribute name the same event or the same magnitude, never two (founded
+against incorporated, the festival's length against the days its concerts span): a conflict
+between them is a conflict by construction. `EVENT_STEMS` holds, for every one of the 24
+attributes, the words both wordings must share; a test checks every template against it.
 
 Mix 40 % `unrelated`, 30 % `agree`, 30 % `conflict`, the fifth batch's (12/9/9). Languages
 alternate. Nothing here is drawn from a model, and no label is read off a model's answer.
@@ -53,9 +53,9 @@ KINDS: dict[str, tuple[str, str, dict[str, Attribute]]] = {
     "plant": ("la planta desaladora de {p}", "the {p} desalination plant", {
         "output": (20_000, 90_000, 1_000, [
             "{E} produce {v} metros cubicos de agua al dia.",
-            "La produccion diaria de {e} es de {v} metros cubicos.",
-            "{E} produces {v} cubic metres of water a day.",
-            "The daily output of {e} is {v} cubic metres."]),
+            "La produccion de {e} es de {v} metros cubicos al dia.",
+            "{E} produces {v} cubic metres of water per day.",
+            "The output of {e} is {v} cubic metres per day."]),
         "year": (1985, 2020, 1, [
             "{E} se inauguro en {v}.",
             "La inauguracion de {e} tuvo lugar en {v}.",
@@ -63,55 +63,55 @@ KINDS: dict[str, tuple[str, str, dict[str, Attribute]]] = {
             "The inauguration of {e} took place in {v}."]),
         "staff": (40, 400, 1, [
             "{E} tiene una plantilla de {v} trabajadores.",
-            "En {e} trabajan {v} personas.",
+            "La plantilla de {e} es de {v} trabajadores.",
             "{E} has a staff of {v}.",
-            "{v} people work at {e}."]),
+            "The staff of {e} numbers {v}."]),
     }),
     "museum": ("el museo municipal de {p}", "the {p} municipal museum", {
         "visitors": (20_000, 300_000, 1_000, [
             "{E} recibio {v} visitantes en 2025.",
-            "En 2025 pasaron por {e} {v} visitantes.",
+            "Por {e} pasaron {v} visitantes en 2025.",
             "{E} received {v} visitors in 2025.",
             "In 2025, {v} visitors went through {e}."]),
         "works": (800, 20_000, 100, [
             "La coleccion de {e} reune {v} obras.",
-            "{E} conserva {v} piezas en su coleccion.",
+            "{E} conserva {v} obras en su coleccion.",
             "The collection of {e} holds {v} works.",
-            "{E} keeps {v} pieces in its collection."]),
+            "{E} keeps {v} works in its collection."]),
         "year": (1950, 2015, 1, [
-            "{E} abrio sus puertas al publico en {v}.",
+            "{E} abrio sus puertas al publico por primera vez en {v}.",
             "{E} abrio al publico por primera vez en {v}.",
-            "{E} opened its doors to the public in {v}.",
+            "{E} first opened its doors to the public in {v}.",
             "{E} first opened to the public in {v}."]),
     }),
     "reservoir": ("el embalse de {p}", "the {p} reservoir", {
         "capacity": (20, 900, 1, [
-            "{E} tiene una capacidad de {v} hectometros cubicos.",
+            "{E} tiene una capacidad maxima de {v} hectometros cubicos.",
             "La capacidad maxima de {e} es de {v} hectometros cubicos.",
-            "{E} holds up to {v} cubic hectometres.",
+            "{E} has a maximum capacity of {v} cubic hectometres.",
             "The maximum capacity of {e} is {v} cubic hectometres."]),
         "height": (30, 140, 1, [
-            "La presa de {e} mide {v} metros de altura.",
+            "La presa de {e} tiene una altura de {v} metros.",
             "La altura de la presa de {e} es de {v} metros.",
-            "The dam of {e} is {v} metres high.",
+            "The dam of {e} has a height of {v} metres.",
             "The height of the dam of {e} is {v} metres."]),
         "year": (1950, 2005, 1, [
-            "Las obras de {e} terminaron en {v}.",
             "La construccion de {e} termino en {v}.",
-            "Work on {e} was completed in {v}.",
-            "Construction of {e} was completed in {v}."]),
+            "{E} termino su construccion en {v}.",
+            "Construction of {e} was completed in {v}.",
+            "{E} completed its construction in {v}."]),
     }),
     "company": ("la empresa Transportes {p}", "the haulier {p} Freight", {
         "revenue": (5, 900, 1, [
             "{E} factura {v} millones de euros al ano.",
             "La facturacion anual de {e} es de {v} millones de euros.",
             "{E} has annual revenue of {v} million euros.",
-            "The yearly revenue of {e} is {v} million euros."]),
+            "The annual revenue of {e} is {v} million euros."]),
         "employees": (30, 5_000, 1, [
             "{E} tiene {v} empleados.",
-            "La plantilla de {e} es de {v} personas.",
+            "El numero de empleados de {e} es de {v}.",
             "{E} has {v} employees.",
-            "The workforce of {e} is {v} people."]),
+            "The number of employees of {e} is {v}."]),
         "year": (1950, 2020, 1, [
             "{E} se fundo en {v}.",
             "La fundacion de {e} data de {v}.",
@@ -120,9 +120,9 @@ KINDS: dict[str, tuple[str, str, dict[str, Attribute]]] = {
     }),
     "bridge": ("el puente de {p}", "the {p} bridge", {
         "length": (120, 3_000, 10, [
-            "{E} mide {v} metros de longitud.",
+            "{E} tiene una longitud de {v} metros.",
             "La longitud de {e} es de {v} metros.",
-            "{E} is {v} metres long.",
+            "{E} has a length of {v} metres.",
             "The length of {e} is {v} metres."]),
         "year": (1960, 2022, 1, [
             "{E} se abrio al trafico en {v}.",
@@ -131,16 +131,16 @@ KINDS: dict[str, tuple[str, str, dict[str, Attribute]]] = {
             "{E} was opened to traffic in {v}."]),
         "lanes": (2, 8, 1, [
             "{E} tiene {v} carriles.",
-            "Por {e} circulan vehiculos en {v} carriles.",
+            "El numero de carriles de {e} es de {v}.",
             "{E} has {v} lanes.",
-            "Traffic crosses {e} on {v} lanes."]),
+            "The number of lanes of {e} is {v}."]),
     }),
     "hospital": ("el hospital comarcal de {p}", "the {p} district hospital", {
         "beds": (80, 1_400, 1, [
             "{E} dispone de {v} camas.",
             "El numero de camas de {e} es de {v}.",
             "{E} has {v} beds.",
-            "The bed count of {e} is {v}."]),
+            "The number of beds of {e} is {v}."]),
         "year": (1960, 2020, 1, [
             "{E} se inauguro en {v}.",
             "La inauguracion de {e} fue en {v}.",
@@ -148,21 +148,21 @@ KINDS: dict[str, tuple[str, str, dict[str, Attribute]]] = {
             "The inauguration of {e} took place in {v}."]),
         "theatres": (4, 40, 1, [
             "{E} cuenta con {v} quirofanos.",
-            "El bloque quirurgico de {e} tiene {v} quirofanos.",
+            "El numero de quirofanos de {e} es de {v}.",
             "{E} has {v} operating theatres.",
-            "The surgical block of {e} has {v} operating theatres."]),
+            "The number of operating theatres of {e} is {v}."]),
     }),
     "cooperative": ("la cooperativa agricola de {p}", "the {p} farming cooperative", {
         "members": (100, 5_000, 1, [
             "{E} tiene {v} socios.",
             "El numero de socios de {e} es de {v}.",
             "{E} has {v} members.",
-            "The membership of {e} is {v}."]),
+            "The number of members of {e} is {v}."]),
         "hectares": (200, 20_000, 10, [
             "{E} cultiva {v} hectareas.",
-            "La superficie cultivada por {e} es de {v} hectareas.",
+            "La superficie que cultiva {e} es de {v} hectareas.",
             "{E} farms {v} hectares.",
-            "The land farmed by {e} covers {v} hectares."]),
+            "The land {e} farms covers {v} hectares."]),
         "year": (1950, 2015, 1, [
             "{E} se fundo en {v}.",
             "La fundacion de {e} fue en {v}.",
@@ -182,22 +182,39 @@ KINDS: dict[str, tuple[str, str, dict[str, Attribute]]] = {
             "{E} has so far been held {v} times."]),
         "days": (2, 10, 1, [
             "{E} dura {v} dias.",
-            "Los conciertos de {e} se reparten en {v} dias.",
+            "La duracion de {e} es de {v} dias.",
             "{E} lasts {v} days.",
-            "The concerts of {e} are spread over {v} days."]),
+            "The duration of {e} is {v} days."]),
     }),
 }
-# The word both wordings of an attribute share, (Spanish, English), where two different events
-# or counts could otherwise be named (a founding and an incorporation, edition N and N held).
+# For every attribute, the words both wordings share, (Spanish, English): they name the same
+# event or the same magnitude (one founding, one daily output, one count of operating theatres),
+# so two values of it are a conflict by construction. A test checks every template against it.
 EVENT_STEMS: dict[tuple[str, str], tuple[str, str]] = {
+    ("plant", "output"): ("al dia", "per day"),
     ("plant", "year"): ("inaugur", "inaugur"),
-    ("museum", "year"): ("abrio", "opened"),
-    ("reservoir", "year"): ("termin", "completed"),
+    ("plant", "staff"): ("plantilla", "staff"),
+    ("museum", "visitors"): ("visitantes en 2025", "visitors"),
+    ("museum", "works"): ("obras", "works"),
+    ("museum", "year"): ("por primera vez", "first opened"),
+    ("reservoir", "capacity"): ("capacidad maxima", "maximum capacity"),
+    ("reservoir", "height"): ("altura de", "height of"),
+    ("reservoir", "year"): ("construccion", "construction"),
+    ("company", "revenue"): ("factura", "revenue"),
+    ("company", "employees"): ("empleados", "employees"),
     ("company", "year"): ("fund", "found"),
+    ("bridge", "length"): ("longitud de", "length of"),
     ("bridge", "year"): ("trafico", "traffic"),
+    ("bridge", "lanes"): ("carriles", "lanes"),
+    ("hospital", "beds"): ("camas", "beds"),
     ("hospital", "year"): ("inaugur", "inaugur"),
+    ("hospital", "theatres"): ("quirofanos", "operating theatres"),
+    ("cooperative", "members"): ("socios", "members"),
+    ("cooperative", "hectares"): ("hectareas", "hectares"),
     ("cooperative", "year"): ("fund", "found"),
+    ("festival", "attendance"): ("asistentes", "attendees"),
     ("festival", "editions"): ("ediciones", "held"),
+    ("festival", "days"): ("dias", "days"),
 }
 SOURCES = {
     "es": ("segun su memoria anual", "segun el ultimo informe publicado",
@@ -257,6 +274,7 @@ def one(rng: random.Random, label: str, shape: str, lang: str, pool: list[str]) 
     value = draw(rng, kind, attribute)
     first = rng.randrange(2)
     a = say(kind, place, attribute, value, lang, first)
+    attrs = [attribute, attribute]
     if shape == "values":
         b = say(kind, place, attribute, other_value(rng, kind, attribute, value), lang, 1 - first)
     elif shape == "restated":
@@ -268,11 +286,21 @@ def one(rng: random.Random, label: str, shape: str, lang: str, pool: list[str]) 
     elif shape == "same":
         second = rng.choice([x for x in attributes if x != attribute])
         b = say(kind, place, second, draw(rng, kind, second), lang, rng.randrange(2))
+        attrs = [attribute, second]
     else:  # twin: the same attribute of another entity of the same kind
         b = say(kind, twin, attribute, other_value(rng, kind, attribute, value), lang, 1 - first)
     if rng.randrange(2):
         a, b = b, a
-    return {"label": label, "shape": shape, "lang": lang, "kind": kind, "a": a, "b": b}
+    pair = "+".join(sorted(attrs))
+    return {
+        "label": label,
+        "shape": shape,
+        "lang": lang,
+        "kind": kind,
+        "a": a,
+        "b": b,
+        "pair": pair,
+    }
 
 
 def build(seed: int = SEED) -> list[dict[str, Any]]:
@@ -297,6 +325,7 @@ def build(seed: int = SEED) -> list[dict[str, Any]]:
                 "shape": shape,
                 "lang": lang,
                 "kind": case["kind"],
+                "attributes": case["pair"],
             }
         )
     return cases

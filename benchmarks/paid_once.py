@@ -26,6 +26,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -113,6 +114,8 @@ def sealed_text(lot: Lot) -> str:
 def seal(lot: Lot) -> str:
     """Write the seal once; a different one already there is refused, never overwritten (a
     prereg edited after its seal is an amendment, not a new seal)."""
+    if instrument_commit(lot.prereg) is None:
+        raise SystemExit("prereg.md names no instrument commit: write it before sealing")
     target = lot.prereg.with_suffix(".sha256")
     text = sealed_text(lot)
     if target.exists() and target.read_text(encoding="utf-8").strip() not in ("", text.strip()):
@@ -232,17 +235,32 @@ def unanswered_blocks(lot: Lot, missing: int) -> bool:
 # --- plan and ask -----------------------------------------------------------------------------
 
 
-async def _missing(queries: Sequence[Query], fixture: Path) -> list[Query]:
-    recorded = RecordedDecider.from_file(fixture)
+def recorded(lot: Lot) -> RecordedDecider:
+    """The lot's recording, only the lines its model answered: `RecordingDecider` writes a
+    line before `ask_missing` sees the model, so an answer from another model is on disk but
+    never counts as answered."""
+    if not lot.fixture.exists():
+        return RecordedDecider(())
+    lines = [json.loads(x) for x in lot.fixture.read_text(encoding="utf-8").splitlines() if x]
+    return RecordedDecider([e for e in lines if e.get("model") == lot.model])
+
+
+async def _missing(queries: Sequence[Query], lot: Lot) -> list[Query]:
+    replay = recorded(lot)
     out = []
     for point, state, qs in queries:
-        if not (await recorded.decide(point, state, qs)).answers:
+        if not (await replay.decide(point, state, qs)).answers:
             out.append((point, state, qs))
     return out
 
 
+def spent(lot: Lot) -> float:
+    """What the lot's ledger already holds (reserved or settled), 0 before any launch."""
+    return SpendLedger(lot.ledger, cap_usd=lot.cap_usd).spent() if lot.ledger.exists() else 0.0
+
+
 def plan(queries: Sequence[Query], lot: Lot) -> dict[str, Any]:
-    missing = asyncio.run(_missing(queries, lot.fixture))
+    missing = asyncio.run(_missing(queries, lot))
     pessimistic = sum(
         estimate_usd(s, q, price_per_mtok=DEFAULT_PRICE_PER_MTOK) for _, s, q in missing
     )
@@ -252,6 +270,7 @@ def plan(queries: Sequence[Query], lot: Lot) -> dict[str, Any]:
         "to_ask": len(missing),
         "usd_at_median_request": round(len(missing) * MEDIAN_REQUEST_USD, 6),
         "usd_estimate_capped_decider": round(pessimistic, 6),
+        "usd_spent_on_ledger": round(spent(lot), 6),
         "cap_usd": lot.cap_usd,
         "ledger": str(lot.ledger),
         "launches_so_far": len(history(lot)),
@@ -259,15 +278,40 @@ def plan(queries: Sequence[Query], lot: Lot) -> dict[str, Any]:
 
 
 def require_room(plan_: dict[str, Any], cap_usd: float) -> None:
-    """Refuse a run whose higher estimate does not fit under its cap."""
+    """Refuse a run whose higher estimate, on top of what the ledger already holds, does not
+    fit under its cap: a relaunch is refused up front rather than stopped halfway."""
     most = max(plan_["usd_at_median_request"], plan_["usd_estimate_capped_decider"])
-    if most > cap_usd:
-        raise SystemExit(f"estimated {most:.4f} USD does not fit under {cap_usd}: nothing spent")
+    total = most + plan_.get("usd_spent_on_ledger", 0.0)
+    if total > cap_usd:
+        raise SystemExit(f"{total:.4f} USD (spent + estimate) does not fit under {cap_usd}")
+
+
+def load_key() -> None:
+    """TYPESAFE_API_KEY into this process from the file SANCHOPANZA_KEYS_ENV names, if unset.
+    The value is never printed; a missing file or line is a refusal."""
+    if os.environ.get("TYPESAFE_API_KEY"):
+        return
+    named = os.environ.get("SANCHOPANZA_KEYS_ENV", "")
+    if not named or not Path(named).is_file():
+        raise SystemExit("TYPESAFE_API_KEY unset and SANCHOPANZA_KEYS_ENV names no file")
+    for line in Path(named).read_text(encoding="utf-8").splitlines():
+        name, _, value = line.strip().partition("=")
+        if name.strip() == "TYPESAFE_API_KEY" and value.strip():
+            os.environ["TYPESAFE_API_KEY"] = value.strip().strip('"').strip("'")
+            return
+    raise SystemExit("no TYPESAFE_API_KEY line in the file SANCHOPANZA_KEYS_ENV names")
+
+
+def jev_live(model: str) -> Any:  # pragma: no cover - builds the real client
+    """The live decider: plain requests, no long context, no images, the lot's model."""
+    from sanchopanza.providers.jev import JevDecider
+
+    return JevDecider(model=model, long_context=False, images=False)
 
 
 async def ask_missing(queries: Sequence[Query], lot: Lot, *, live: Any) -> dict[str, Any]:
     """Ask `live` (a Jev decider) for each missing query, in order, one at a time."""
-    todo = await _missing(queries, lot.fixture)
+    todo = await _missing(queries, lot)
     capped = CappedDecider(
         live,
         ledger=SpendLedger(lot.ledger, cap_usd=lot.cap_usd),
@@ -322,10 +366,12 @@ def run_paid(
     lot: Lot,
     queries: Sequence[Query],
     *,
-    load_key: Callable[[], None],
-    make_live: Callable[[], Any],
-) -> dict[str, Any]:  # pragma: no cover - the live path; every refusal before it is tested
-    """Every check, then the key, then `session` in a single event loop."""
+    load_key: Callable[[], None] = load_key,
+    make_live: Callable[[], Any] | None = None,
+    check: Callable[[str], Awaitable[None]] | None = None,
+) -> dict[str, Any]:
+    """Every check, then the key, then `session` in a single event loop. `load_key`,
+    `make_live` and `check` default to the real ones; tests pass traps."""
     plan_ = plan(queries, lot)
     print(json.dumps(plan_, indent=1))
     if plan_["to_ask"] == 0:
@@ -336,16 +382,19 @@ def run_paid(
     require_inputs(lot)
     lot.run_dir.mkdir(parents=True, exist_ok=True)
     with _lockfile.locked(lot.run_dir / "paid", wait_s=1.0, stale_s=LOCK_STALE_S, strict=True):
-        if not may_launch(history(lot)):
+        past = history(lot)
+        if not may_launch(past):
             raise SystemExit("launch rule: no launch left (one relaunch at most, none after "
                              "a 402, a 429 or the cap)")  # fmt: skip
+        if not past and lot.fixture.exists():
+            raise SystemExit(f"first launch, but {lot.fixture.name} already exists: nothing spent")
         load_key()
         start = {"event": "start", "head": head(), "instrument": commit,
                  "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "to_ask": plan_["to_ask"]}  # fmt: skip
         result = asyncio.run(
             session(
-                queries, lot, make_live=make_live, check=preflight,
-                on_start=lambda: _note(lot, start),
+                queries, lot, make_live=make_live or (lambda: jev_live(lot.model)),
+                check=check or preflight, on_start=lambda: _note(lot, start),
             )
         )  # fmt: skip
         _note(lot, {"event": "end", **result})

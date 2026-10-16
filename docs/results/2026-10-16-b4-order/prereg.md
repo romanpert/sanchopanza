@@ -82,7 +82,8 @@ on the 233 pooled questions, **unrounded** (`recall_ci95_low_exact`).
 
 What each licenses. The interval's half-width for a difference between two orders is about
 0.044 here, wider than the -0.02 margin, so rule 2 holds only when L4's point gain over the
-weaker free order is roughly +2.4 to +4.4 points without reaching significance: "not worth its
+stronger free order (the one giving the smaller lower bound, the minimum of the two) is roughly
++2.4 to +4.4 points without reaching significance: "not worth its
 calls" means "a gain this run cannot separate from zero", not "equal". Rule 3 covers a gain
 under about +2.4 points, a tie or a loss; it says the Score is not shown to help, and nothing
 about the free orders. Neither rule 2 nor rule 3 licenses shipping `fit_score=False` as a
@@ -121,33 +122,44 @@ detectable; the headroom is 14.
 
 ## Cost and caps
 
-355 calls of up to 12 paragraphs of up to 900 characters each. At the median real request (71
-micro-USD): 0.025 USD, an underestimate for calls this long; the `CappedDecider` estimate (3
-characters per token): 0.074 USD; at Jev's measured 4-7.4 characters per token: **about
-0.03-0.055 USD**, so **about 0.05 USD** is the realistic figure. Hard cap **0.10 USD** in the
-ledger at a fixed path, `~/.cache/sanchopanza/b4-order/ledger.jsonl` (no variable moves it;
-`dry` and `paid` print it), with the launches beside it in `launches.jsonl` (HEAD and why each
-stopped). A call cut by a transport error settles at 0 in the ledger though Jev may bill it:
-the cap has 0.026 USD of room over the `CappedDecider` estimate for that.
+355 calls of up to 12 paragraphs of up to 900 characters each. What the ledger settles is the
+computed cost of each call (its input tokens x 0.042 USD per million). The `CappedDecider`
+estimate counts 3 characters per token: 0.074 USD. These calls run at about 3.1-3.9 characters
+per token (real cost 0.76-0.95 of that estimate), so the expected spend is **about 0.056-0.070
+USD**; the median real request (71 micro-USD, 0.025 USD here) underestimates calls this long.
+Hard cap **0.10 USD** in the ledger at a fixed path, `~/.cache/sanchopanza/b4-order/ledger.jsonl`
+(no variable moves it; `dry` and `paid` print it), with the launches beside it in
+`launches.jsonl` (HEAD and why each stopped). A call cut by a transport error settles at 0 in
+the ledger though Jev may bill it: the cap has 0.026 USD of room over the estimate for that.
+On a relaunch, what the ledger already holds is added to the estimate before the cap check.
 
-`paid` refuses, before the key is read, unless: the higher estimate fits under the cap; the
-seal matches this file and the launcher; HEAD descends from the instrument commit and `src/`,
+`paid` refuses, before the key is read, unless: the estimate plus what the ledger holds fits
+under the cap; the seal matches this file and the launcher (and this file names the instrument
+commit: `seal` refuses otherwise); HEAD descends from the instrument commit and `src/`,
 `benchmarks/paid_once.py`, `benchmarks/passage_fit/`, `benchmarks/lateral/wholedocs/`,
 `benchmarks/lateral/ledger.py`, `benchmarks/longdocs/`, `benchmarks/triage_sets/run.py`,
-`benchmarks/jev114/l4.py`, `benchmarks/thresholds.py` and the three recordings above are
-identical to it, with nothing uncommitted under them; the QASPER export has its hash; the launch
-rule allows a launch; no other `paid` of the lot holds its lock. Then, in one event loop:
-`jev-preflight` (one call, about 13 micro-USD, outside the ledger), the live client built inside
+`benchmarks/thresholds.py` and the three recordings above are identical to it, with nothing
+uncommitted under them; the QASPER export has its hash; the launch rule allows a launch; on the
+first launch, no recording exists yet; no other `paid` of the lot holds its lock. The key loader
+and the live client live in `paid_once.py` (sealed with the instrument); nothing from another
+lot is imported. Then, in one event loop: `jev-preflight` (one call, about 13 micro-USD, outside
+the ledger), the live client (`JevDecider`, jev-1.13.0, long context and images off) built inside
 that loop, every call once, in order, and the first refusal, failure, empty answer or answer
-from a model other than jev-1.13.0 stops it. The Jev client itself retries an HTTP 429 or 529
-up to 3 times inside one call.
+from a model other than jev-1.13.0 stops it. Only lines answered by jev-1.13.0 count as recorded,
+in `paid`, `dry` and `report` alike. The Jev client itself retries an HTTP 429 or 529 up to 3
+times inside one call. `tests/test_passage_fit_bench.py` checks, on both sets, that
+`select_passages(fit_chars=3400, fit_score=True)` asks exactly these 355 queries (202 + 153,
+same keys, same order) and that without the Score it cuts exactly as FREE.
 
 The key arrives through the file `SANCHOPANZA_KEYS_ENV` names (never printed, never in this
 repository); `b4-order-run.cmd` sets it and the python, as placeholders here, filled only in
 the sealed worktree's copy.
 
+**Clock.** About 3-5 minutes for 355 calls, one at a time. Launch attended, outside 02:00-08:00
+(Windows Update restarts).
+
 ## Launch (owner's decision)
 
-    python benchmarks/passage_fit/run.py dry      # free: 355 to ask, about 0.05 USD
+    python benchmarks/passage_fit/run.py dry      # free: 355 to ask, about 0.06-0.07 USD
     python benchmarks/passage_fit/run.py seal     # after review, with the commit written above
     b4-order-run.cmd                              # from the sealed worktree, by WMI: paid, report

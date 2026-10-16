@@ -78,7 +78,7 @@ MIN_ADDED = 16  # 16 of 16 is the fewest added verdicts whose Wilson lower bound
 MODEL = "jev-1.13.0"
 COSTLY = {"agree", "conflict"}
 GATE_UNDER_TEST = 0.65  # derived by `derive` on the recordings, written in prereg.md
-CASES_SHA256 = "2673a2529751d5349841be74aa0664a8da9c7504ec379683107fe04fe4d8ab3e"
+CASES_SHA256 = "d793dd4a2764a5a0d2bdcf1c2cafd56d69193e373a4445fc436607fcf3e14a4e"
 LOT = paid_once.Lot(
     name="a5-unrelated",
     prereg=PREREG,
@@ -90,7 +90,6 @@ LOT = paid_once.Lot(
         "src",
         "benchmarks/paid_once.py",
         "benchmarks/facts_gate",
-        "benchmarks/jev114/l4.py",
         "benchmarks/thresholds.py",
         "benches/graph.jsonl",
         "benches/graph-c.jsonl",
@@ -127,7 +126,8 @@ async def answered(
     rows = []
     for c in cases:
         d = await decider.decide(*query(c))
-        row = {"id": c["id"], "set": tag, "expected": c["expected"]}
+        row = {"id": c["id"], "set": tag, "expected": c["expected"],
+               "type": f"{c.get('kind', '-')}:{c.get('attributes', '-')}"}  # fmt: skip
         if d.failed or not d.answers:
             if not allow_missing:
                 raise SystemExit(f"{tag}: {c['id']} has no recording")
@@ -154,6 +154,19 @@ def added(rows: list[dict[str, Any]], gate: float) -> dict[str, Any]:
         "net": right - WRONG_WEIGHT * (len(new) - right),
         "wilson95_low": wilson_lower(right, len(new)) if new else None,  # unrounded: compared
     }
+
+
+def by_type(rows: list[dict[str, Any]], gate: float) -> dict[str, dict[str, int]]:
+    """The verdicts `gate` adds, and the wrong ones, per (kind, attribute pair): the cases come
+    from 8 kinds x 3 attributes x 2 wordings, not from independent sources, so a precision
+    carried by a few types says less than its Wilson bound."""
+    out: dict[str, dict[str, int]] = {}
+    for r in rows:
+        if r["shipped"] is None and r[f"g{gate:.2f}"] is not None:
+            cell = out.setdefault(r["type"], {"added": 0, "wrong": 0})
+            cell["added"] += 1
+            cell["wrong"] += r["expected"] != "unrelated"
+    return dict(sorted(out.items(), key=lambda kv: (-kv[1]["added"], kv[0])))
 
 
 def shipped(rows: list[dict[str, Any]]) -> dict[str, int]:
@@ -246,7 +259,7 @@ def verdict(rows: list[dict[str, Any]], gate: float | None) -> dict[str, Any]:
 
 async def report(gate: float | None) -> dict[str, Any]:
     cases = load_cases([CASES])
-    recorded = RecordedDecider.from_file(FIXTURE)
+    recorded = paid_once.recorded(LOT)  # only lines answered by the lot's model
     missing = sum([not (await recorded.decide(*query(c))).answers for c in cases])
     if paid_once.unanswered_blocks(LOT, missing):
         raise SystemExit(f"{missing} cases unanswered and a launch is still allowed: relaunch")
@@ -262,6 +275,7 @@ async def report(gate: float | None) -> dict[str, Any]:
         "shipped": shipped(rows),
         "shipped_by_shape": by_shape,
         "gates": [added(rows, g) for g in GATES],
+        "added_by_type": by_type(rows, gate) if gate is not None else {},
         "result": verdict(rows, gate),
     }
 
@@ -299,14 +313,7 @@ def main() -> int:
         print(json.dumps({"gate_under_test": GATE_UNDER_TEST, "head": paid_once.head(), **plan},
                          indent=1))  # fmt: skip
         return 0
-    sys.path.insert(0, str(ROOT / "benchmarks" / "jev114"))
-    import l4  # noqa: PLC0415  (jev114/l4.py: the key loader every lot uses)
-
-    from sanchopanza.providers.jev import JevDecider
-
-    result = paid_once.run_paid(
-        LOT, asks, load_key=l4.load_key, make_live=lambda: JevDecider(model=MODEL)
-    )
+    result = paid_once.run_paid(LOT, asks)
     print(json.dumps(result, indent=1))
     return 0 if result["stopped"] is None else 2
 

@@ -74,7 +74,6 @@ INSTRUMENT = (
     "benchmarks/lateral/ledger.py",
     "benchmarks/longdocs",
     "benchmarks/triage_sets/run.py",
-    "benchmarks/jev114/l4.py",
     "benchmarks/thresholds.py",
     "fixtures/longdocs.jsonl",
     "fixtures/longdocs-sentences.jsonl",
@@ -123,9 +122,9 @@ def queries(rows: list[dict[str, Any]], budget: int) -> list[tuple[str, Any, Any
     return out
 
 
-async def recorded_scores(rows: list[dict[str, Any]], budget: int) -> int:
-    """Fill `scores` on every overflowing row from the recording; return how many calls lack."""
-    recorded = RecordedDecider.from_file(FIXTURE)
+async def recorded_scores(rows: list[dict[str, Any]], budget: int, recorded: Any) -> int:
+    """Fill `scores` on every overflowing row from the recording (`paid_once.recorded`: only
+    lines answered by the lot's model); return how many calls lack an answer."""
     lacking = 0
     for row in rows:
         if od.total(row["items"]) <= budget:  # it all fits: no call, every arm sends it all
@@ -208,7 +207,8 @@ def analysis(qasper: pathlib.Path, *, paid: bool) -> dict[str, Any]:
     budget = od.budget_from([od.total(r["items"]) for r in derivation])
     lacking = 0
     if paid:
-        lacking = asyncio.run(recorded_scores(derivation + rows, budget))
+        recorded = paid_once.recorded(lot(qasper))
+        lacking = asyncio.run(recorded_scores(derivation + rows, budget, recorded))
         if paid_once.unanswered_blocks(lot(qasper), lacking):
             raise SystemExit(f"{lacking} Score calls unanswered and a launch is still allowed")
     over = [r for r in rows if od.total(r["items"]) > budget]
@@ -250,17 +250,10 @@ def main() -> int:
         plan = paid_once.plan(asks, lot(args.qasper))
         print(json.dumps({"budget_chars": budget, "head": paid_once.head(), **plan}, indent=1))
         return 0
-    import l4  # noqa: PLC0415  (jev114/l4.py: the key loader every lot uses)
-
-    from sanchopanza.providers.jev import JevDecider
-
-    result = paid_once.run_paid(
-        lot(args.qasper), asks, load_key=l4.load_key, make_live=lambda: JevDecider(model=MODEL)
-    )
+    result = paid_once.run_paid(lot(args.qasper), asks)
     print(json.dumps(result, indent=1))
     return 0 if result["stopped"] is None else 2
 
 
 if __name__ == "__main__":
-    sys.path.insert(0, str(ROOT / "benchmarks" / "jev114"))
     raise SystemExit(main())
