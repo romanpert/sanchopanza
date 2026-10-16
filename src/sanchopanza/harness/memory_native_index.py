@@ -128,9 +128,14 @@ def index_without(text: str) -> str:
 
 
 def linked(path: Path) -> bool:
-    """A symbolic link or (Windows) a junction."""
-    junction = getattr(path, "is_junction", None)
-    return path.is_symlink() or bool(junction and junction())
+    """A symbolic link or (Windows) a junction, from `os.lstat` (Python 3.11 has no
+    `Path.is_junction`). A path that cannot be read is not a link."""
+    try:
+        found = os.lstat(path)
+    except OSError:
+        return False
+    mount = getattr(stat, "IO_REPARSE_TAG_MOUNT_POINT", 0xA0000003)
+    return stat.S_ISLNK(found.st_mode) or getattr(found, "st_reparse_tag", 0) == mount
 
 
 def read_only(path: Path) -> bool:

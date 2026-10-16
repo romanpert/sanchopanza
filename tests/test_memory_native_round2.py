@@ -155,10 +155,25 @@ def test_medium3_going_off_with_a_read_only_index_still_installs(
         _writable(native(tmp_path))
 
 
-def test_medium4_memory_formation_with_no_memory_folder_says_so(monkeypatch, capsys) -> None:
+def test_medium4_memory_formation_with_no_memory_folder_says_so(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    from types import SimpleNamespace
+
+    from sanchopanza.context import formation
+
     monkeypatch.setattr("sanchopanza.harness.memory_gate.memory_dir_for", lambda *a, **k: None)
     monkeypatch.delenv("SANCHOPANZA_MEMORY_DIR", raising=False)
+
+    def never(*args: object, **kwargs: object) -> None:
+        raise AssertionError("formation ran without a memory folder")
+
+    monkeypatch.setattr(formation, "form", never)
     assert cli._formation_dir() is None
+    args = SimpleNamespace(form_memories=True)
+    cli._after_compaction(args, None, [], SimpleNamespace(steps=[]), tmp_path / "a" / "archive",
+                          "s")  # fmt: skip
+    assert "memory formation skipped" in capsys.readouterr().err
 
 
 def test_medium4_no_memory_after_the_flag_sweeps_our_note(tmp_path: Path, monkeypatch) -> None:
@@ -183,9 +198,9 @@ def test_low_a_a_bom_before_our_line_is_kept_and_our_line_still_ours(tmp_path: P
     index.write_bytes(b"\xef\xbb\xbf" + index.read_bytes())
     _refresh(tmp_path, [record(request="A new plan entirely about ship_all")])
     text = index.read_bytes().decode("utf-8")
-    assert text.startswith("﻿") and text.count(mni.LINE_HEAD) == 1
+    assert text.startswith("\ufeff") and text.count(mni.LINE_HEAD) == 1
     mn.uninstall(tmp_path / "config")
-    assert index.read_bytes().decode("utf-8") == "﻿"
+    assert index.read_bytes().decode("utf-8") == "\ufeff"
 
 
 def test_low_b_covered_with_an_unreadable_index_keeps_the_note(tmp_path: Path) -> None:
@@ -230,3 +245,28 @@ def test_low_g_a_record_whose_changed_list_was_cut_is_not_whole() -> None:
     many = tuple(f"app/module_{i:03d}.py" for i in range(40))
     _text, _line, keys = mn.compose([record(changed=many)])
     assert keys == []
+
+
+def test_low_c_a_junction_is_seen_without_path_is_junction(tmp_path: Path, monkeypatch) -> None:
+    target, junction = tmp_path / "target", tmp_path / "junction"
+    target.mkdir()
+    done = subprocess.run(["cmd", "/c", "mklink", "/J", str(junction), str(target)],
+                          capture_output=True, check=False)  # fmt: skip
+    if os.name != "nt" or done.returncode != 0:
+        pytest.skip("no junction on this machine")
+    monkeypatch.delattr(Path, "is_junction", raising=False)  # Python 3.11 has none
+    assert mni.linked(junction)
+    assert not mni.linked(target) and not mni.linked(tmp_path / "missing")
+
+
+@pytest.mark.parametrize(("text", "window", "whole"), [
+    ("a\nb\n", {"limit": 2}, True),
+    ("a\nb\n", {"limit": 1}, False),
+    ("a\nb", {"limit": 2}, True),
+    ("a\nb", {"limit": 1}, False),
+    ("a\nb\n", {"offset": -1}, False),
+    ("a\nb\n", {"offset": 1}, True),
+    ("a\nb\n", {}, True),
+])  # fmt: skip
+def test_low_whole_read_counts_lines_exactly(text: str, window: dict, whole: bool) -> None:
+    assert mn._whole_read(window, text) is whole

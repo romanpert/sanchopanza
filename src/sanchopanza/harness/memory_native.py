@@ -387,7 +387,8 @@ def _whole_read(data: Mapping[str, Any], text: str) -> bool:
         limit = int(data["limit"]) if data.get("limit") is not None else None
     except (TypeError, ValueError):
         return False
-    return offset <= 1 and (limit is None or limit >= text.count("\n") + 1)
+    lines = text.count("\n") + (not text.endswith("\n"))
+    return 0 <= offset <= 1 and (limit is None or limit >= lines)
 
 
 # ---- going off ---------------------------------------------------------------------------------
