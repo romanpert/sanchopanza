@@ -142,6 +142,30 @@
   (+5.07 points [1.53, 9.77]), but lets more unfinished ones through: catches 598 → 583 of 744
   (−2.02 [−5.37, +0.26]), past the −2 guard. `SANCHOPANZA_DONE_EVIDENCE` stays opt-in
   ([checkdone-w17](docs/results/2026-10-16-checkdone-w17/)).
+- **C4, A5's gate on written pairs of fa-17's kinds** (sealed `3a201f0`, jev-1.13.0, 0.035 USD of
+  Jev): **the gate beats the shipped policy**. At `unrelated_at=0.65`, 66 added verdicts on 1,500
+  pairs (two dated events, a role and an act, a figure and its subset, plus controls), all 66
+  right, no missed conflict, Wilson 95 % low 0.945, and no `unrelated` added to any of the 900
+  related pairs. It licensed 0.65 as `decide_facts`' default (above, Changed)
+  ([C4](docs/results/2026-10-16-c4-written/)).
+- **C5b, the free order against page order when `select_passages` must cut**
+  (sealed `adc03c2`, jev-1.13.0, 1.371 USD of Jev): **FREE confirmed**. On 646 fresh QASPER train
+  questions, of which 348 overflow 3,400 characters, `select_passages(fit_chars=3400,
+  fit_score=False)` keeps 78.3 % of the answer sentences against page order's 61.9 % at the same
+  characters (3,214 against 3,218), +16.4 points, cluster 95 % [+11.0, +21.9]. The free order is a
+  measured option for a caller that must cut at that budget, on papers; the defaults
+  (`fit_chars=None`, `fit_score=True`) are unchanged ([C5b](docs/results/2026-10-16-c5b-free/)).
+  C5, the same question on QASPER validation (sealed `3a201f0`), gave no valid reading: its
+  runner's own squire cap cut 1,437 of FREE's decisions, so its sealed "FREE loses" does not
+  measure the option (post-data, with the cap lifted, +12.0 [+6.7, +17.0])
+  ([C5](docs/results/2026-10-16-c5-free/)); runners no longer cap their squire.
+- **`page_view="window"`, opt-in** (`Squire.triage_pages`, `triage_many`, `select_passages`,
+  `points.chunks.context_questions`; `text.match_window`, `text.WINDOW_MARK`,
+  `points.chunks.PageView`, `PAGE_VIEWS`, `require_page_view`): a paragraph longer than the
+  view shows whole sentences around its best match to the question instead of its head, within
+  the same 900 characters; Latin-script text (other scripts keep the head). Its lot, C6, is
+  deferred: not measured. Also `providers.capped.LedgerBusy` and `budget.SpendLedger.busy`: a
+  ledger lock not had in time is a pause, not the cap.
 
 ### Documentation
 
