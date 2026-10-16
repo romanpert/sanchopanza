@@ -8,8 +8,9 @@ Jev only, no call to Claude. Both versions were asked live on 2026-10-16:
 The trajectories are 950 that neither the recalibration nor its confirmation saw: AgentDojo's own
 published runs of Claude 3.7 Sonnet, in suites this repository had never asked about.
 
-**The seal.** Pre-registered in `prereg.md` (sha256 `bb20b9c1…`, in `prereg.sha256`). The inputs
-are fixed in `data.sha256` (`e82c4f87…`).
+**The seal.** Pre-registered in `prereg.md`, sealed by `prereg.sha256` (`bb20b9c1…`, one hash
+over `prereg.md`, the inputs, the launcher and the code). The inputs are fixed in `data.sha256`
+(`e82c4f87…`).
 
 - The sealing commit `aff4cff` adds those two files and nothing else, on top of the instrument
   commit `a8cd589`.
@@ -24,7 +25,8 @@ as much as it relies on 0.5 under 1.13. The profile is unchanged.
   - The difference is +0.8 points, [−1.1, +3.2] with user tasks as the resampling unit.
   - 21 stops favour 1.14 and 13 favour 1.13, exact McNemar p 0.23 (unclustered).
 - **The guard holds.** 1.14 makes 150 false blocks of 795 finished stops, against 165 for 1.13.
-  - That is 1.9 points fewer: the cluster interval of "not falsely blocked" is [0.0, +4.5].
+  - That is 1.9 points fewer. Its interval's upper bound for 1.14 minus 1.13 false blocks is 0.0
+    points (cluster interval [−4.5, 0.0]).
   - It never exceeds 1.13's false-block rate.
 - **Answers and launch.** Every stop has an answer from both versions, and the launch completed.
 
@@ -84,8 +86,9 @@ stop in five**:
 Benign runs: 89 against 90 of 106. Attacked runs: 648 against 655 of 844.
 
 **The trade the profile makes, visible here.** 0.30 takes 15 false blocks away and lets 7 more
-unfinished stops through: 8 lost against 1 gained, mostly in travel. On these stops that nets out
-in 1.14's favour, because finished stops outnumber unfinished ones five to one. The registered
+unfinished stops through: 8 lost against 1 gained, mostly in travel. On these stops the point
+estimate nets out in 1.14's favour (+0.8, CI [−1.1, +3.2]), because finished stops outnumber
+unfinished ones five to one. The registered
 guard watches false blocks, not recall, so the recall loss is reported, not tested.
 
 ## Power against what came out
@@ -137,7 +140,7 @@ slack's short tool results and a lot on workspace's.
 
 | | |
 |---|---|
-| Jev, billed | **0.1371 USD** for batch `jev114-checkdone`: 0.0685 per version and two preflights, median 65 µUSD a call. Expected 0.130 at the registration; cap 0.25. |
+| Jev, ledger (input tokens × list price) | **0.1371 USD** for batch `jev114-checkdone`: 0.0685 per version and two preflights, median 65 µUSD a call. Expected 0.130 at the registration; cap 0.25. |
 | Shared ledger | 3.8515 → 3.9886 of 4.50 USD |
 | Claude | 0 |
 

@@ -15,7 +15,8 @@ Pre-registered in `prereg.md`:
 - instrument commit `92107d2`, sealed in `f392ee8`;
 - cases sha256 `d793dd4a…4a4e`;
 - `prereg.sha256` holds the hash of `prereg.md` and of `a5-unrelated-run.cmd`;
-- reviewed by `revisor-prereg` before the seal.
+- reviewed by `revisor-prereg` before the seal;
+- its title still reads "DRAFT": the title is part of the sealed text, so it stays as written.
 
 Run on 2026-10-16 from a detached worktree at the seal commit, started outside the session
 (WMI). The paid step ran from 10:26:02 to 10:31:44 and the report finished at 10:31:45. Jev
@@ -133,7 +134,8 @@ The limits, as registered:
   × 2 wordings × 2 languages), concentrated as the table above shows. Wilson treats them as 39
   independent draws, and the effective sample is smaller.
 - **Missed conflicts.** None of the 450 conflicts entered the band at any gate. Before the run,
-  0 of 58 recorded conflicts had either (rule of three: at most about 5 %). This batch's
+  0 of the 58 recorded answers on conflict cases fell undecided with `unrelated` on top (rule of
+  three: at most about 5 %). This batch's
   conflicts state two plainly different values, so the guard held where it was easiest to hold.
 
 ## Cost and clock

@@ -5,10 +5,12 @@ Jev only, no call to Claude. Both versions were asked live on 2026-10-16 over 53
 - the 125 hand-written `benches/retrieval*.jsonl` cases, asked again so every case is one draw;
 - 405 cases rendered from 45 invented fact records, with labels by construction.
 
-**The seal.** Pre-registered in `prereg.md` (sha256 `39fdec51…`, in `prereg.sha256`). Every case's
-request and label is fixed in `data.sha256` (`d659027b…`).
+**The seal.** Pre-registered in `prereg.md`, sealed by `prereg.sha256` (`39fdec51…`, one hash
+over `prereg.md`, the cases, the launcher and the code). Every case's request and label is fixed
+in `data.sha256` (`d659027b…`).
 
 - The sealing commit `303dcc4` adds those two files and nothing else, on top of `aff4cff`.
+- Its message carries only the data hash, although the registration says it carries both.
 - Before sealing, `revisor-prereg` reviewed the registration against the code in two passes.
 
 ## Verdict
@@ -120,8 +122,8 @@ convention: a different primary body reaching the same figures.
 
 ### Post hoc, not registered and not proposed
 
-On the evaluation part, 1.14 at any cut from 0.10 to 0.20 would be right on 319 of 320, with 0
-or 1 costly drop and 50 of 50 hand-written. That cut was read off the evaluation data after the
+On the evaluation part, 1.14 at any cut from 0.10 to 0.20 would be right on 319 or 320 of 320
+(all 320 from 0.12 to 0.19), with 0 or 1 costly drop and 50 of 50 hand-written. That cut was read off the evaluation data after the
 fact, so it licenses nothing. It only says where a better rule might land.
 
 - Rule D could be bounded from below, for example by the highest `keep` score in calibration
@@ -136,8 +138,8 @@ Either would be a new registration on new cases.
   2 / 2, and the count guard holds.
 - The primary came out "no concluyente" with a wide interval, [−6.4, +5.5]. Resampling the 11
   families as units turns a few `independent` drops into a large template-stratum variance.
-- The decision was then settled by the costly-drops guard, which the power section had treated
-  as passing.
+- The proposal fails on two checks, the primary and the costly-drops guard, which the power
+  section had treated as passing.
 
 ## What this licenses
 
@@ -154,7 +156,7 @@ Either would be a new registration on new cases.
 
 | | |
 |---|---|
-| Jev, billed | **0.0277 USD** for batch `jev114-redundant-drop`: 0.0139 per version and two preflights, median 26 µUSD a call. Expected 0.034; cap 0.10. |
+| Jev, ledger (input tokens × list price) | **0.0277 USD** for batch `jev114-redundant-drop`: 0.0139 per version and two preflights, median 26 µUSD a call. Expected 0.034; cap 0.10. |
 | Shared ledger | 3.9886 → 4.0163 of 4.50 USD |
 | Claude | 0 |
 
