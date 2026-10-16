@@ -81,7 +81,7 @@ Pending from these lots:
 
 | # | Item | Priority | Cost | State |
 |---|---|---|---|---|
-| B1 | Publish a release (`v*` tag and PyPI) so the consumer stops pinning a tarball by commit | **high** | free (owner's decision, irreversible) | open |
+| B1 | Publish a release (`v*` tag and PyPI) so the consumer stops pinning a tarball by commit | **high** | free (PyPI: owner's decision, irreversible) | `v0.3.0` tagged with a GitHub release; PyPI open |
 | A3 | MCP tool calls pass the installed hook with no decision | medium | Jev (replay ~0.03 USD), then Claude (a bounded live probe) | open |
 | B6 | Page triage and passages unmeasured in Spanish or outside QASPER | medium | Jev (< 0.10 USD) + Claude (~1-3 USD, Haiku answering) | open |
 | B4 | Order the approved paragraphs that do not fit by a four-level score | low-medium | free + Jev cents | open |
@@ -100,18 +100,16 @@ Pending from these lots:
 
 ## Open
 
-**B1. A published release.** The consumer installs
-`sanchopanza[jev] @ https://github.com/romanpert/sanchopanza/archive/<sha>.tar.gz`, pinned to one
-commit in three files that must move together. There is no tag in the repository;
-`pyproject.toml` says 0.3.0 and `.github/workflows/release.yml` publishes to PyPI by Trusted
-Publishing on a `v*.*.*` tag ([governance](governance.md)), so pushing the tag is the PyPI
-publication: the `pypi` environment admits `v*` tags with no required reviewer, and the GitHub
-release job waits on the PyPI job. CI is green again since `35896ea`, the first green run since
-2026-09-27, so a tag on main would now publish. If the history is ever rewritten, the
-old SHAs stop resolving and the consumer's image would not build, or would run without a decider:
-its factory falls back to a null decider in silence when the package does not import. Proposal:
-tag `v0.3.0` (or `v0.3.1`), publish, and have the consumer move to `sanchopanza[jev]>=0.3`. Until
-then, every change here means moving the SHA there by hand.
+**B1. A published release: tagged, not on PyPI.** `v0.3.0` is tagged on `10f2cbe` with a
+[GitHub release](https://github.com/romanpert/sanchopanza/releases/tag/v0.3.0) (wheel, sdist and
+the CHANGELOG's 0.3.0 section). A tag push no longer publishes to PyPI: the `pypi` environment
+admits `v*` tags with no required reviewer, so PyPI is a separate
+`gh workflow run release.yml --ref v0.3.0` ([governance](governance.md)), the owner's call. The
+consumer pinned one commit's tarball in three files that must move together; it can pin
+`sanchopanza[jev] @ https://github.com/romanpert/sanchopanza/archive/refs/tags/v0.3.0.tar.gz`
+now, and `sanchopanza[jev]>=0.3` once PyPI has it. A tag survives a history rewrite that would
+stop an old SHA from resolving (the consumer's factory falls back to a null decider in silence
+when the package does not import).
 
 **A3. MCP calls in Claude Code.** The installed hook judges shell commands, delegations and
 searches, and lets MCP tool calls through: on ATBench-Codex, whose risks live in MCP calls, it

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
+from .. import catalog
 from ..contract import Decider, DeciderOutOfFunds, DeciderUnavailable, Decision, Question, State
 
 
@@ -32,7 +33,9 @@ class FallbackDecider:
         errors: list[str] = []
         broke = False
         for decider in self._deciders:
-            pending = {k: q for k, q in questions.items() if k not in merged}
+            # The ids travel with what is left (`catalog.narrowed`): an id key recorded
+            # further down the chain must name the variant that was asked.
+            pending = catalog.narrowed(questions, [k for k in questions if k not in merged])
             if not pending:
                 break
             try:
@@ -134,7 +137,9 @@ class CascadeDecider:
         if not pending:
             return first
         try:
-            second = await self._expensive.decide(point, state, {k: questions[k] for k in pending})
+            second = await self._expensive.decide(
+                point, state, catalog.narrowed(questions, pending)
+            )
         except DeciderUnavailable:
             if first.failed:
                 raise
