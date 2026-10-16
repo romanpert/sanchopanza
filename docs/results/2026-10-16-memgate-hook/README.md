@@ -2,8 +2,8 @@
 
 **The result.** Reading each candidate record whole lets the installed hook give a related
 earlier record more often at a session's first prompt, but it also gives records more often
-where nothing is related, past the sealed margin. By the sealed rule: **"peor en ruido"**. The
-installed hook stays on the short window.
+where nothing is related, by an amount whose upper bound passes the sealed margin. By the sealed
+rule: **"peor en ruido"**. The installed hook stays on the short window.
 
 - **Hits, the primary (126 hittable requests).** The hook gave a related record on 45 with the
   long window (L) against 29 with the shipped short window (S): **35.7 % against 23.0 %, +12.7
@@ -87,8 +87,8 @@ hits was there to see, and was seen. The guard decided the lot, not the primary.
 ## What it implies
 
 - **The installed hook stays on the short window** (`SANCHOPANZA_MEMORY_WINDOW` unset). The long
-  window there finds more of what is related, and gives more of what is not, by more than the
-  margin fixed before the data. It stays an opt-in (`=long`) for whoever prefers recall at a
+  window there finds more of what is related, and gives more of what is not (+3.7 points),
+  without the data ruling out more than the +5 margin fixed before them. It stays an opt-in (`=long`) for whoever prefers recall at a
   session's start to a cleaner one.
 - **The library gate's default does not change from this.** `memory_gate.gate` reads memory
   files, and its long window was confirmed on LongMemEval
@@ -155,6 +155,6 @@ SWE-chat cache (`--build`):
 PYTHONPATH=src python benchmarks/memgate_hook/memgate_hook.py --run
 ```
 
-Checked after the run: the replay rebuilds `summary.json` exactly and every record shown in both
-arms. On 15 rows a probability differs by a few hundredths: 11 requests repeat within the run,
-Jev was asked each time, and the replay answers every repeat from one recording.
+The free replay reproduces `summary.json` and every record shown in both arms. On 15 rows a
+probability differs by a few hundredths, because 11 requests repeat within the run and the
+replay answers each repeat from one recording.

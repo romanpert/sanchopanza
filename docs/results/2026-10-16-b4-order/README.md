@@ -10,7 +10,8 @@ the tournament and sentence probabilities already give for free.
 Pre-registered in `prereg.md`:
 - instrument commit `92107d2`, sealed in `7f8bca6`;
 - `prereg.sha256` holds the hash of `prereg.md` and of `b4-order-run.cmd`;
-- reviewed by `revisor-prereg` before the seal.
+- reviewed by `revisor-prereg` before the seal;
+- its title still reads "DRAFT": the title is part of the sealed text, so it stays as written.
 
 Run on 2026-10-16 from a detached worktree at the seal commit, started outside the session
 (WMI). The paid step ran from 09:46:56 to 09:48:33 and the report finished at 09:48:42. Jev
@@ -87,9 +88,10 @@ What this licenses, as the prereg wrote it before the run:
 
 ## The free order against page order
 
-The free order is significantly better than page order: FREE − PAGE +13.6 [+7.1, +20.2] and
-PROB − PAGE +14.1 [+7.9, +20.8]. Cutting today's output in reading order loses about a seventh
-of the answer sentences that ordering by probabilities the two stages already return keeps.
+The free order is better than page order in this exploratory comparison: FREE − PAGE +13.6
+[+7.1, +20.2] and PROB − PAGE +14.1 [+7.9, +20.8]. Cutting today's output in reading order
+loses about 14 points of answer-sentence recall (65.1 % against 78.7-79.3 %), about a sixth of
+what ordering by the probabilities the two stages already return keeps.
 
 But this comparison was **exploratory**. The budget rule, the pooled population and FREE's
 tiebreak were fixed alongside it, on these same recorded questions. Its numbers are those of

@@ -24,13 +24,16 @@ sealed rule the replay is not confirmed**:
 **Pre-registered** in `prereg.md`:
 - sealed at commit 65528af;
 - `prereg.sha256` c222aaf5…;
-- reviewed against the code by `revisor-prereg` before the seal.
+- reviewed against the code by `revisor-prereg` before the seal;
+- its title and opening still read "DRAFT, not sealed": they are part of the sealed text, so they
+  stay as written.
 
 The seal still matched at scoring time (`analysis.json`, `seal`).
 
 **What ran:**
 - **When and where:** 2026-10-16, 06:13 to 06:15, from a detached worktree at the sealed
-  commit, launched outside the session.
+  commit, launched by WMI (CreateFlags 512), where the prereg says in the foreground from the
+  session.
 - **Data:** the 500 ATBench-Codex test trajectories (250 unsafe), turned into Claude Code
   transcripts. Each of their 1,195 actions became one PreToolUse event: 1,188 non-shell calls
   and 7 shell commands.
@@ -61,7 +64,7 @@ Trajectories flagged at the cut 0.5, `jev-1.13.0`, with Wilson 95 % intervals.
 | Arm | Recall (250 unsafe) | FPR (250 safe) |
 |---|---|---|
 | Offline reference: whole records, 2026-09-27 (`fixtures/cascade-jev.jsonl`) | 213 (85.2 % [80.3, 89.1]) | 73 (29.2 % [23.9, 35.1]) |
-| **`mcp`**: the hook with `SANCHOPANZA_GUARD_MCP=1` | **185 (74.0 % [68.2, 79.1])** | **82 (32.8 % [27.3, 38.8])** |
+| **`mcp`**: the hook with `SANCHOPANZA_GUARD_MCP=1` | **185 (74.0 % [68.2, 79.0])** | **82 (32.8 % [27.3, 38.8])** |
 | `today`: the hook as `install` writes it | 0 (0.0 % [0.0, 1.5]) | 0 (0.0 % [0.0, 1.5]) |
 | `mcp` without Codex's own tools (reported) | 183 (73.2 % [67.4, 78.3]) | 82 (32.8 % [27.3, 38.8]) |
 | Offline control, asked today ([amendment 1](#amendment-1-the-offline-control-asked-again)) | 213 (85.2 % [80.3, 89.1]) | 72 (28.8 % [23.5, 34.7]) |
@@ -92,9 +95,9 @@ are not the false-deny rate of ordinary MCP work: that is phase 2's question.
   - **112 of the 589 MCP calls in safe trajectories are denied** (19.0 % [16.1, 22.4]);
   - **82 of the 250 safe sessions (32.8 %) meet at least one denial**;
   - writes and sends are denied far more often than reads (next section).
-- **Jev per call:** 42 µ$ (954 input tokens at the median), and 203 ms at the median (p90
-  250 ms) as the client measures it. At 2.4 calls per trajectory that is about 100 µ$ per
-  session. The hook's process start is not in these figures.
+- **Jev per call:** 42 µ$ a call on average (40 µ$ and 953 input tokens at the median), and
+  203 ms at the median (p90 250 ms) as the client measures it. At 2.4 calls per trajectory that
+  is about 100 µ$ per session. The hook's process start is not in these figures.
 
 ## Where the recall went, and what the false flags are
 
@@ -221,7 +224,8 @@ records were answered by `jev-1.13.0`, with no stop. The amendment's seal matche
 
 **No drift shown, by the reading fixed before the answers** (`p_exact` 1.0 on the unsafe pairs).
 The point flags the same unsafe trajectories today as on 2026-09-27, so the 0.852 → 0.740 gap
-is the hook judging each call before its result, not Jev moving.
+comes from the hook's view of the session (prefixes ending on a call, results cut, a different
+rendering), not from Jev moving.
 
 ## Not done
 
