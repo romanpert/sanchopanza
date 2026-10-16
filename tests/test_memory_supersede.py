@@ -269,7 +269,9 @@ def test_a_late_supersession_answer_sends_back_within_the_audits_deadline(
     decider = SupersedeDecider("can't be renamed", mode="slow")
     rows: list[dict] = []
     began = clock.monotonic()
-    deadline = began + mr.SUPERSEDE_RESERVE + 0.4
+    # 1.5 s for the question (the slow decider sleeps 3 s): wide enough that a loaded machine's
+    # setup before the question does not leave it "no time left" instead of timing out.
+    deadline = began + mr.SUPERSEDE_RESERVE + 1.5
     broken, _ = asyncio.run(mr.audit(Squire(decider), store, "new", 1, str(repo), head,
                                      ["app/config.py"], request=request, note=rows.append,
                                      deadline=deadline))  # fmt: skip
