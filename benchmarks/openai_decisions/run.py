@@ -27,7 +27,6 @@ import asyncio
 import functools
 import json
 import pathlib
-import random
 import sys
 from collections.abc import Sequence
 from typing import Any
@@ -40,7 +39,7 @@ sys.path.insert(0, str(ROOT / "benchmarks"))
 import paid_once  # noqa: E402
 
 from sanchopanza.budget import SpendLedger  # noqa: E402
-from sanchopanza.contract import Decision, Truth  # noqa: E402
+from sanchopanza.contract import Choice, Decision, Score, Truth  # noqa: E402
 from sanchopanza.eval import stats  # noqa: E402
 from sanchopanza.eval.bench import Row, load_cases, run_bench, summarize  # noqa: E402
 from sanchopanza.providers import create  # noqa: E402
@@ -52,11 +51,20 @@ BENCHES = tuple(ROOT / "benches" / f"{n}.jsonl" for n in ("core", "safety", "gra
 JEV_FIXTURE = ROOT / "fixtures" / "public-benches.jsonl"
 RESULTS = ROOT / "docs" / "results" / "2026-10-16-openai-decisions"
 QUERIES = 301
-MARGIN = -0.05  # OpenAI minus Jev, share of the 245 cases right under the shipped policy
+MARGIN = -0.05  # OpenAI minus Jev, share of the 244 rows right under the shipped policy
 BOOT_DRAWS = 10_000
 BOOT_SEED = 20261016
 PREFLIGHT_STATE = "A launcher checks that the decision service answers before a paid run."
-PREFLIGHT_QUESTION = "Is this text about checking that a service answers?"
+PREFLIGHT_QUESTIONS = {
+    "ok": Truth("Is this text about checking that a service answers?"),
+    "kind": Choice(
+        "What kind of text is this?",
+        {"operations": "running or checking a system", "fiction": "a story"},
+    ),
+    "urgency": Score("How urgent does the text sound?", ["not urgent", "somewhat", "very"]),
+}
+TIMEOUT_S = 60.0
+EMPTY_STREAK = 5  # unusable answers in a row that stop the run (a broken format, not a refusal)
 
 LOT = paid_once.Lot(
     name="openai-decisions",
@@ -66,21 +74,17 @@ LOT = paid_once.Lot(
     model=od.DEFAULT_MODEL,
     cap_usd=0.10,
     instrument=(
+        "src",
         "benchmarks/openai_decisions/run.py",
         "benchmarks/paid_once.py",
-        "src/sanchopanza/providers/openai_decisions.py",
-        "src/sanchopanza/providers/capped.py",
-        "src/sanchopanza/providers/recorded.py",
-        "src/sanchopanza/eval/bench.py",
-        "src/sanchopanza/points",
-        "src/sanchopanza/policy.py",
         "benches/core.jsonl",
         "benches/safety.jsonl",
         "benches/graph.jsonl",
         "fixtures/public-benches.jsonl",
     ),
     price_per_mtok=od.DEFAULT_PRICE_PER_MTOK,
-    model_prefix=True,
+    snapshot=r"\d{4}-\d{2}-\d{2}",
+    empty_streak=EMPTY_STREAK,
 )
 
 
@@ -110,30 +114,51 @@ def queries() -> list[tuple[str, Any, Any]]:
 # --- live: preflight and client -------------------------------------------------------------
 
 
+PLANNED: dict[str, float] = {}  # the run's estimated total, set by `main` before run_paid
+
+
+def check_preflight(decision: Decision, estimate_usd: float, planned_usd: float, spent_usd: float,
+                    cap_usd: float) -> dict[str, Any]:  # fmt: skip
+    """The preflight's rule, free: every type answered, a token count reported, and the run's
+    estimate scaled by this call's real/estimated ratio still under the cap."""
+    missing = [k for k in PREFLIGHT_QUESTIONS if decision.answer(k).empty]
+    if missing or not LOT.serves(decision.model):
+        raise SystemExit(f"preflight: no usable answer to {missing} (served {decision.model})")
+    if decision.input_tokens <= 0:
+        raise SystemExit("preflight: no input token count came back; the ledger could not bound "
+                         "what is billed")  # fmt: skip
+    ratio = max(1.0, decision.cost_usd / estimate_usd) if estimate_usd > 0 else 1.0
+    projected = spent_usd + planned_usd * ratio
+    if projected > cap_usd:
+        raise SystemExit(f"preflight: the run projects {projected:.4f} USD at {ratio:.2f}x the "
+                         f"estimate, over the {cap_usd} cap")  # fmt: skip
+    return {"preflight": "ok", "served": decision.model, "usd": decision.cost_usd,
+            "ratio": round(ratio, 3), "projected_usd": round(projected, 6)}  # fmt: skip
+
+
 async def preflight(model: str) -> None:  # pragma: no cover - one real decision, cents of a cent
-    """One predicate through the lot's own ledger, in the caller's loop: the service answers,
-    with a model of the lot's name, before anything is asked."""
-    client = od.OpenAIDecisionsClient()
+    """One call with a predicate, a choice and a score through the lot's own ledger, in the
+    caller's loop, before anything is asked (`check_preflight`)."""
+    client = od.OpenAIDecisionsClient(timeout_s=TIMEOUT_S)
+    ledger = SpendLedger(LOT.ledger, cap_usd=LOT.cap_usd)
     try:
         capped = CappedDecider(
             client,
-            ledger=SpendLedger(LOT.ledger, cap_usd=LOT.cap_usd),
+            ledger=ledger,
             batch=f"{LOT.name}-preflight",
             max_usd=LOT.cap_usd,
             price_per_mtok=LOT.price_per_mtok,
         )
-        decision = await capped.decide(
-            "preflight", PREFLIGHT_STATE, {"ok": Truth(PREFLIGHT_QUESTION)}
-        )
+        decision = await capped.decide("preflight", PREFLIGHT_STATE, PREFLIGHT_QUESTIONS)
     finally:
         await client.aclose()
-    if decision.answer("ok").empty or not LOT.serves(decision.model):
-        raise SystemExit(f"preflight: no usable answer from {model} (served {decision.model})")
-    print(json.dumps({"preflight": "ok", "served": decision.model, "usd": decision.cost_usd}))
+    estimate = od.estimate_usd(PREFLIGHT_STATE, PREFLIGHT_QUESTIONS)
+    print(json.dumps(check_preflight(decision, estimate, PLANNED.get("usd", 0.0), ledger.spent(),
+                                     LOT.cap_usd)))  # fmt: skip
 
 
 def live() -> Any:  # pragma: no cover - builds the real client
-    return od.OpenAIDecisionsClient()
+    return od.OpenAIDecisionsClient(timeout_s=TIMEOUT_S)
 
 
 # --- report ---------------------------------------------------------------------------------
@@ -142,6 +167,31 @@ def live() -> Any:  # pragma: no cover - builds the real client
 def _rows(decider: Any) -> list[Row]:
     results = asyncio.run(run_bench(load_cases(BENCHES), decider, concurrency=1))
     return [r for r in results if isinstance(r, Row)]
+
+
+class _Watch:
+    """Passes decisions through and notes whether any question asked had no usable answer."""
+
+    name = "watch"
+
+    def __init__(self, inner: Any) -> None:
+        self.inner, self.short = inner, False
+
+    async def decide(self, point: str, state: Any, questions: Any) -> Decision:
+        decision = await self.inner.decide(point, state, questions)
+        self.short = self.short or not paid_once.complete(decision, questions)
+        return decision
+
+
+def flagged_rows(decider: Any) -> list[tuple[Row, bool]]:
+    """Each case's rows with whether any of its queries lacked a usable answer, one case at a
+    time so a flag belongs to its own case."""
+    out: list[tuple[Row, bool]] = []
+    for case in load_cases(BENCHES):
+        watch = _Watch(decider)
+        results = asyncio.run(run_bench([case], watch, concurrency=1))
+        out += [(r, watch.short) for r in results if isinstance(r, Row)]
+    return out
 
 
 def openai_recording() -> RecordedDecider:
@@ -153,17 +203,11 @@ def right(row: Row) -> bool:
 
 
 def paired(a: Sequence[bool], b: Sequence[bool]) -> dict[str, Any]:
-    """`a` minus `b`, share of cases right: exact McNemar and a paired bootstrap 95 % interval."""
+    """`a` minus `b`, share of cases right: exact McNemar and a paired bootstrap 95 % interval
+    (`stats.bootstrap_difference`: draws 250 and 9,749 of the 10,000 sorted)."""
     n = len(a)
     only_a, only_b, p = stats.mcnemar(a, b)
-    diff = (sum(a) - sum(b)) / n
-    rng = random.Random(BOOT_SEED)
-    draws = []
-    for _ in range(BOOT_DRAWS):
-        idx = [rng.randrange(n) for _ in range(n)]
-        draws.append(sum(a[i] - b[i] for i in idx) / n)
-    draws.sort()
-    lo, hi = draws[int(0.025 * BOOT_DRAWS)], draws[int(0.975 * BOOT_DRAWS) - 1]
+    diff, lo, hi = stats.bootstrap_difference(a, b, replicas=BOOT_DRAWS, seed=BOOT_SEED)
     return {"n": n, "a_right": sum(a), "b_right": sum(b), "only_a": only_a, "only_b": only_b,
             "mcnemar_p": p, "difference": diff, "ci95": [lo, hi]}  # fmt: skip
 
@@ -181,21 +225,31 @@ def verdict(lo: float, hi: float, margin: float = MARGIN) -> str:
 
 
 def report() -> dict[str, Any]:
-    jev = _rows(create("recorded", path=str(JEV_FIXTURE)))
-    oai = _rows(openai_recording())
-    by_id = {r.id: r for r in jev}
-    pairs = [(o, by_id[o.id]) for o in oai if o.id in by_id]
+    missing_queries = len(asyncio.run(paid_once._missing(queries(), LOT)))
+    if paid_once.unanswered_blocks(LOT, missing_queries):
+        raise SystemExit(f"{missing_queries} queries not yet asked and a launch is still allowed")
+    jev = flagged_rows(create("recorded", path=str(JEV_FIXTURE)))
+    oai = flagged_rows(openai_recording())
+    by_id = {r.id: (r, f) for r, f in jev}
+    pairs = [((o, fo), by_id[o.id]) for o, fo in oai if o.id in by_id]
     if len(pairs) != len(jev) or len(oai) != len(jev):
         raise SystemExit(
             f"cases do not pair: {len(oai)} OpenAI, {len(jev)} Jev, {len(pairs)} paired"
         )
-    primary = paired([right(o) for o, _ in pairs], [right(j) for _, j in pairs])
-    missing = len(asyncio.run(paid_once._missing(queries(), LOT)))
+    # A row any of whose questions got no usable answer is not right, whatever the default says.
+    primary = paired(
+        [right(o) and not fo for (o, fo), _ in pairs], [right(j) and not fj for _, (j, fj) in pairs]
+    )
     out = {
         "primary": {**primary, "margin": MARGIN, "verdict": verdict(*primary["ci95"])},  # fmt: skip
-        "queries_unanswered_in_recording": missing,
-        "openai": summarize(oai),
-        "jev": summarize(jev),
+        "queries_not_asked": missing_queries,
+        "rows_without_a_usable_answer": {
+            "openai": sum(f for _, f in oai),
+            "jev": sum(f for _, f in jev),
+        },  # fmt: skip
+        "served_models": sorted({o.model for o, _ in oai if o.model not in ("-", "code")}),
+        "openai": summarize([o for o, _ in oai]),
+        "jev": summarize([j for j, _ in jev]),
     }
     return out
 
@@ -225,9 +279,11 @@ def main() -> int:
                                                "utf-8")  # fmt: skip
         print(json.dumps(result["primary"], indent=1))
         return 0
+    asks = queries()
+    PLANNED["usd"] = sum(od.estimate_usd(s, q) for _, s, q in asks)
     result = paid_once.run_paid(
         LOT,
-        queries(),
+        asks,
         load_key=functools.partial(paid_once.load_key, "OPENAI_API_KEY"),
         make_live=live,
         check=preflight,

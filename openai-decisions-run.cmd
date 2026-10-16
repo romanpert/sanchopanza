@@ -11,6 +11,8 @@ cd /d "%~dp0"
 set "PY=<PYTHON>"
 set "SANCHOPANZA_KEYS_ENV=<KEYS_ENV_PATH>"
 set "PYTHONPATH=%~dp0src"
+rem The key comes only from the file named above, never from an inherited variable.
+set "OPENAI_API_KEY="
 if "%PY%"=="<PYTHON>" (
   echo refused: set PY in this copy
   exit /b 1

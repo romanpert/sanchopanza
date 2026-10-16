@@ -46,7 +46,11 @@ from sanchopanza.providers.capped import (  # noqa: E402
     CappedDecider,
     estimate_usd,
 )
-from sanchopanza.providers.recorded import RecordedDecider, RecordingDecider  # noqa: E402
+from sanchopanza.providers.recorded import (  # noqa: E402
+    RecordedDecider,
+    RecordingDecider,
+    key_of,
+)
 
 MEDIAN_REQUEST_USD = 71e-6  # a real Jev request, median (CLAUDE.md); a short question is ~29
 LOCK_STALE_S = 6 * 3600.0  # a paid run holds its lock for minutes; never taken over sooner
@@ -68,11 +72,21 @@ class Lot:
     inputs: tuple[tuple[Path, str], ...] = field(default=())  # (file, raw sha256)
     home: Path = field(default_factory=lambda: Path.home() / ".cache" / "sanchopanza")
     price_per_mtok: float = DEFAULT_PRICE_PER_MTOK  # what the estimates and reservations use
-    model_prefix: bool = False  # True: a served snapshot `<model>-<suffix>` counts as the model
+    snapshot: str | None = None  # a regex: `<model>-<snapshot>` also counts as the model
+    # 0: stop at the first empty or partial answer (A5, B4). K > 0: record it and go on, and stop
+    # only after K of them in a row; a recorded query counts as asked, answered or not.
+    empty_streak: int = 0
 
     def serves(self, model: str) -> bool:
         """Whether an answer from `model` is the lot's model."""
-        return model == self.model or (self.model_prefix and model.startswith(self.model + "-"))
+        if model == self.model:
+            return True
+        prefix = self.model + "-"
+        return bool(
+            self.snapshot
+            and model.startswith(prefix)
+            and re.fullmatch(self.snapshot, model[len(prefix) :])
+        )
 
     @property
     def run_dir(self) -> Path:
@@ -251,7 +265,18 @@ def recorded(lot: Lot) -> RecordedDecider:
     return RecordedDecider([e for e in lines if lot.serves(str(e.get("model") or ""))])
 
 
+def recorded_keys(lot: Lot) -> set[str]:
+    """The keys of every query the lot's model answered, with answers or without."""
+    if not lot.fixture.exists():
+        return set()
+    lines = [json.loads(x) for x in lot.fixture.read_text(encoding="utf-8").splitlines() if x]
+    return {str(e.get("key")) for e in lines if lot.serves(str(e.get("model") or ""))}
+
+
 async def _missing(queries: Sequence[Query], lot: Lot) -> list[Query]:
+    if lot.empty_streak:
+        asked = recorded_keys(lot)
+        return [(p, s, q) for p, s, q in queries if key_of(p, s, q, lot.model) not in asked]
     replay = recorded(lot)
     out = []
     for point, state, qs in queries:
@@ -324,10 +349,11 @@ async def ask_missing(queries: Sequence[Query], lot: Lot, *, live: Any) -> dict[
         price_per_mtok=lot.price_per_mtok,
     )
     recorder = RecordingDecider(capped, lot.fixture)
-    asked, spent = 0, 0.0
+    asked, spent, streak, unusable = 0, 0.0, 0, 0
 
     def out(stopped: str | None) -> dict[str, Any]:
         return {"asked": asked, "usd": round(spent, 6), "missing_at_start": len(todo),
+                "unusable_answers": unusable,
                 "stopped": stopped, "stop_kind": stop_kind(stopped)}  # fmt: skip
 
     for point, state, qs in todo:
@@ -337,11 +363,26 @@ async def ask_missing(queries: Sequence[Query], lot: Lot, *, live: Any) -> dict[
             return out(f"{type(error).__name__}: {str(error)[:200]}")
         asked += 1
         spent += decision.cost_usd
-        if decision.failed or not decision.answers:
-            return out(f"failed or empty answer: {str(decision.error)[:200]}")
+        if not lot.empty_streak:  # A5's and B4's rule, as they ran
+            if decision.failed or not decision.answers:
+                return out(f"failed or empty answer: {str(decision.error)[:200]}")
+            if not lot.serves(decision.model):
+                return out(f"model moved: {decision.model} != {lot.model}")
+            continue
         if not lot.serves(decision.model):
             return out(f"model moved: {decision.model} != {lot.model}")
+        short = decision.failed or not complete(decision, qs)
+        unusable += short
+        streak = streak + 1 if short else 0
+        if lot.empty_streak and streak >= lot.empty_streak:
+            return out(f"failed or empty answer: {streak} in a row")
     return out(None)
+
+
+def complete(decision: Any, questions: Any) -> bool:
+    """Every question asked has a usable (non-empty) answer."""
+    answers = decision.answers or {}
+    return all(key in answers and not answers[key].empty for key in questions)
 
 
 async def session(
