@@ -160,3 +160,9 @@ def test_the_manifest_names_the_input_the_code_pins() -> None:
     assert len(manifest["ids"]) == len(set(manifest["ids"])) == 836
     used, _, _ = c6.b6_used()
     assert not used & set(manifest["ids"])  # fresh: no question B6 asked
+
+
+def test_c6_spends_on_the_rounds_shared_ledger_under_its_batch_cap() -> None:
+    lot = c6.lot()
+    assert lot.ledger == c6.w17_round.LEDGER and lot.shared_cap_usd == 6.0
+    assert lot.cap_usd == c6.CAP_USD == 4.5

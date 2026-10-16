@@ -3,7 +3,7 @@ rem C5 paid lot (Jev only, about 0.75-1.3 USD expected, hard cap 2.00 in the led
 rem docs/results/2026-10-16-c5-free/prereg.md: prereg.sha256 holds the sha256 of this file with
 rem the two values below read as placeholders. Export the input first (free_confirm.py export PARQUET, free,
 rem from the QASPER validation parquet), then run this from the detached worktree at
-rem the sealed commit, outside the Claude Code session (WMI, CreateFlags 512), never between 02:00
+rem the sealed commit, outside the Claude Code session (WMI, CreateFlags 512), never between 00:00
 rem and 08:00, once; free_confirm.py allows one relaunch, none after a 402, a 429 or the cap. Fill PY
 rem and SANCHOPANZA_KEYS_ENV in that worktree's copy only; never commit them. The key is read from
 rem the file SANCHOPANZA_KEYS_ENV names, never printed. Stop: Get-CimInstance Win32_Process with
@@ -18,7 +18,7 @@ if "%HOUR%" LSS "08" (
 )
 set "PY=<PYTHON>"
 set "SANCHOPANZA_KEYS_ENV=<KEYS_ENV_PATH>"
-set "PYTHONPATH=%~dp0src"
+rem -I ignores PYTHONPATH: each script puts this worktree's src on its path itself.
 if "%PY%"=="<PYTHON>" (
   echo refused: set PY in this copy
   exit /b 1

@@ -327,13 +327,14 @@ def dry(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def make_live(the_lot: paid_once.Lot) -> tuple[Any, Any]:  # pragma: no cover - real client
-    """The Jev client with its own retries off (no 429 or 529 asked again), capped on the
+    """The Jev client without its retry of a 429 (a 429 stops the run; it still retries a 529
+    up to 3 times inside one call, and does not retry a timeout), capped on the
     round's shared ledger under this batch's cap, and recorded."""
     from sanchopanza.providers import CappedDecider, jev
     from sanchopanza.providers.jev import JevDecider
     from sanchopanza.providers.recorded import RecordingDecider
 
-    jev.RETRYABLE = frozenset()
+    jev.RETRYABLE = frozenset(jev.RETRYABLE - {429})
     inner = JevDecider(model=MODEL, long_context=False, images=False, timeout_s=br.TIMEOUT_S)
     capped = CappedDecider(inner, ledger=paid_once.ledger_of(the_lot), batch=NAME,
                            max_usd=CAP_USD)  # fmt: skip
@@ -407,10 +408,17 @@ def analysis() -> dict[str, Any]:
     rows = load_rows()
     asker = lot_asker(None)
     out = asyncio.run(ask(rows, asker))
-    if paid_once.unanswered_blocks(lot(), asker.failures):
-        raise SystemExit(f"{asker.failures} calls unanswered and a launch is still allowed")
-    got = report(rows, out, unanswered=asker.failures, affected=frozenset(asker.failed_ids))
-    return {"head": paid_once.head(), "unanswered_calls": asker.failures, **got}
+    missing = unanswered(asker)
+    if paid_once.unanswered_blocks(lot(), missing):
+        raise SystemExit(f"{missing} calls unanswered and a launch is still allowed")
+    got = report(rows, out, unanswered=missing, affected=frozenset(asker.failed_ids))
+    return {"head": paid_once.head(), "unanswered_calls": missing, **got}
+
+
+def unanswered(asker: br.Asker) -> int:
+    """Distinct calls without an answer: PAGE's and FREE's runs ask the same calls, and an
+    unanswered one is met by both."""
+    return len(asker.failed_keys)
 
 
 def main() -> int:

@@ -61,6 +61,7 @@ class SpendLedger:
         self.path = Path(path)
         self.cap_usd = float(cap_usd)
         self._wait_s = wait_s
+        self.busy = False  # the last `reserve` refused because the lock was not had in time
 
     def _rows(self) -> list[dict[str, Any]]:
         if not self.path.exists():
@@ -101,6 +102,7 @@ class SpendLedger:
         """A reservation id when `usd` fits under both caps, else None (do not call)."""
         if not (math.isfinite(usd) and usd >= 0):
             raise ValueError("a reservation is a non-negative, finite number of dollars")
+        self.busy = False
         try:
             with _lockfile.locked(self.path, wait_s=self._wait_s, strict=True):
                 totals = self._totals(self._rows()).values()
@@ -116,6 +118,7 @@ class SpendLedger:
                 self._append({"id": rid, "batch": batch, "reserved": usd, "at": time.time()})
                 return rid
         except (_lockfile.LockTimeout, OSError):
+            self.busy = True  # not the cap: another process held the ledger
             return None
 
     def settle(self, rid: str, usd: float) -> None:

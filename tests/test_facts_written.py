@@ -191,3 +191,14 @@ def test_the_lot_spends_on_the_rounds_shared_ledger_and_its_launcher_is_sealed_n
     assert runner.paid_once.launcher_digest(filled) == runner.paid_once.launcher_digest(
         lot.launcher
     )
+
+
+def test_the_two_name_pairs_are_reported_by_where_the_identity_sits() -> None:
+    rows = [{"expected": c["expected"], "shipped": None, "type": "t", "g0.65": "unrelated"}
+            for c in CASES]  # fmt: skip
+    got = runner.two_names(rows, CASES)
+    a = got["identity_in_fact_a"]
+    b = got["identity_in_fact_b"]
+    assert sum(cell["n"] for cell in a.values()) == 55
+    assert sum(cell["n"] for cell in b.values()) == 28
+    assert set(a) <= {"dated:agree", "dated:conflict"}

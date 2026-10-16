@@ -84,3 +84,26 @@ def test_with_failures_remembered_a_failed_request_is_never_asked_again() -> Non
         twice(br.Asker(plain, RecordedDecider([])))
     )  # B6's default: asked again, as sealed
     assert not again.failed and plain.calls == 2
+
+
+def test_a_ledger_lock_not_had_in_time_is_busy_not_the_cap(tmp_path: Path) -> None:
+    import pytest
+
+    from sanchopanza import _lockfile
+    from sanchopanza.budget import SpendLedger
+    from sanchopanza.providers.capped import CappedDecider, LedgerBusy, SpendCapReached
+
+    path = tmp_path / "ledger.json"
+    book = SpendLedger(path, cap_usd=6.0, wait_s=0.05)
+    capped = CappedDecider(_FailsOnce(), ledger=book, batch="c4-written", max_usd=0.15)
+    with _lockfile.locked(path, wait_s=1.0, strict=True):  # another lot holds the ledger
+        assert book.reserve(0.01, batch="c4-written") is None and book.busy
+        with pytest.raises(LedgerBusy) as busy:
+            asyncio.run(capped.decide("p", {"s": 1}, {"Q": Truth("Is it so?")}))
+    assert not isinstance(busy.value, SpendCapReached)
+    kind = paid_once.stop_kind(f"{type(busy.value).__name__}: {busy.value}")
+    assert kind == "busy" and paid_once.may_launch([{"stop_kind": kind}])
+    assert book.reserve(0.01, batch="c4-written") and not book.busy
+    full = SpendLedger(path, cap_usd=0.001)
+    assert full.reserve(0.01, batch="c4-written") is None and not full.busy  # the cap, not busy
+    assert br.halt_kind(busy.value) == "busy"

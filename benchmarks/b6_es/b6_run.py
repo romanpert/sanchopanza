@@ -125,6 +125,8 @@ def halt_kind(error: Exception) -> str | None:
     403, 429, a 5xx, no connection); None for this call's own failure (a timeout, a 400)."""
     if isinstance(error, SpendCapReached):
         return "cap"
+    if type(error).__name__ == "LedgerBusy":  # the ledger's lock held elsewhere: not the cap
+        return "busy"
     if isinstance(error, DeciderOutOfFunds):
         return "pause"
     found = re.search(r"HTTP (\d{3})", str(error))
@@ -161,6 +163,9 @@ class Asker:
         # loop past any handler, so the launch could not write how it ended
         self.model_halts = model_halts
         self.failed_memo: dict[str, Decision] = {}
+        self.failed_keys: set[str] = (
+            set()
+        )  # distinct requests left unanswered (`failures` counts uses)
         self.fallback = fallback
         self.gate = asyncio.Semaphore(CONCURRENCY)
         self.memo: dict[str, Decision] = {}
@@ -189,6 +194,7 @@ class Asker:
         return Decision(point, {}, "b6", "-", error=why)
 
     def _remember(self, key: str, failed: Decision) -> Decision:
+        self.failed_keys.add(key)
         if self.memo_failures:
             self.failed_memo[key] = failed
         return failed
@@ -203,6 +209,7 @@ class Asker:
         if found.answers and found.model == MODEL and self.complete(found, qs):
             return found  # a partial recording is a miss: asked again, the new line wins
         if self.fallback is None:
+            self.failed_keys.add(key)
             return self._failed(point, "not recorded, no live decider")
         if key in self.failed_memo:  # the same call failed earlier in this run: not asked again
             self.failed_ids.add(ROW.get())

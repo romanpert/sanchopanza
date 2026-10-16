@@ -37,6 +37,11 @@ class SpendCapReached(DeciderUnavailable):
     """The call was not made: it would not fit under the ledger's cap or the batch's."""
 
 
+class LedgerBusy(DeciderUnavailable):
+    """The call was not made: the ledger's lock was not had in time (another process held
+    it). Not the cap: nothing says the call would not fit, and a later one may be made."""
+
+
 def estimate_usd(
     state: State, questions: Mapping[str, Question], *, price_per_mtok: float
 ) -> float:
@@ -102,6 +107,10 @@ class CappedDecider:
     async def decide(self, point: str, state: State, questions: Mapping[str, Question]) -> Decision:
         estimate = self._cost_of(state, questions)
         rid = self._ledger.reserve(estimate, batch=self._batch, batch_cap_usd=self._max_usd)
+        if rid is None and getattr(self._ledger, "busy", False):
+            raise LedgerBusy(
+                f"ledger busy: its lock was not had in time; batch {self._batch!r}, not called"
+            )
         if rid is None:
             raise SpendCapReached(
                 f"spend cap: a call estimated at {estimate:.6f} USD does not fit (batch "

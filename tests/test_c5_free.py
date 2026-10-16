@@ -160,3 +160,10 @@ def test_the_lot_spends_on_the_round_ledger_and_its_launcher_is_sealed_not_instr
                       .replace("<KEYS_ENV_PATH>", "C:/k/.env", 1), encoding="utf-8")  # fmt: skip
     assert fc.paid_once.launcher_digest(filled) == fc.paid_once.launcher_digest(lot.launcher)
     assert fc.lot_asker(None).memo_failures  # a failed call is never asked again in the run
+
+
+def test_an_unanswered_call_met_by_page_and_free_counts_once() -> None:
+    asker = fc.lot_asker(None)  # a replay with nothing recorded
+    asyncio.run(fc.ask([_row()], asker))
+    assert asker.failures == 2  # the tournament call, met by both runs
+    assert fc.unanswered(asker) == 1

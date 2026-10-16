@@ -221,6 +221,8 @@ def may_launch(past: Sequence[dict[str, Any]]) -> bool:
 def stop_kind(stopped: str | None) -> str | None:
     if stopped is None:
         return None
+    if "LedgerBusy" in stopped:
+        return "busy"  # the ledger's lock was held elsewhere: not final, a relaunch may follow
     if "SpendCapReached" in stopped:
         return "cap"
     if "402" in stopped or "OutOfFunds" in stopped:

@@ -83,10 +83,12 @@ def lot() -> paid_once.Lot:
 
 
 def make_live() -> Any:  # pragma: no cover - builds the real client
-    """`paid_once.jev_live` with the client's own retries off: no call is ever asked twice."""
+    """`paid_once.jev_live` without the client's retry of a 429 (a 429 stops the lot): the
+    client still retries a 529 up to 3 times inside one call, before an answer is recorded
+    once. A timeout is not retried by the client."""
     from sanchopanza.providers import jev
 
-    jev.RETRYABLE = frozenset()
+    jev.RETRYABLE = frozenset(jev.RETRYABLE - {429})
     return paid_once.jev_live(MODEL)
 
 
@@ -118,6 +120,16 @@ def wrong_by_kind(rows: list[dict[str, Any]], cases: list[dict[str, Any]]) -> di
         cell["gate_added_wilson95_high"] = round(1 - run.wilson_lower(
             cell["n"] - cell["gate_added_unrelated"], cell["n"]), 4)  # fmt: skip
     return dict(sorted(out.items()))
+
+
+def two_names(rows: list[dict[str, Any]], cases: list[dict[str, Any]]) -> dict[str, Any]:
+    """The 83 `dated` pairs that name the entity two ways, as fa-17, by the fact the identity
+    sits in (reported, not voted)."""
+    out = {}
+    for side in ("a", "b"):
+        pick = [(r, c) for r, c in zip(rows, cases, strict=True) if c.get("identity_in") == side]
+        out[f"identity_in_fact_{side}"] = wrong_by_kind([r for r, _ in pick], [c for _, c in pick])
+    return out
 
 
 def result(rows: list[dict[str, Any]], cases: list[dict[str, Any]]) -> dict[str, Any]:
@@ -166,6 +178,7 @@ async def report(cases: list[dict[str, Any]], the_lot: paid_once.Lot | None = No
         "gates": [run.added(rows, g) for g in run.GATES],
         "added_by_type": run.by_type(rows, GATE),
         "related_kinds": wrong_by_kind(rows, cases),
+        "two_names": two_names(rows, cases),
         "result": result(rows, cases),
     }
 

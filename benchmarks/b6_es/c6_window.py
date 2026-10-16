@@ -51,6 +51,7 @@ import b6_score as sc  # noqa: E402
 import b6_wiki as wiki  # noqa: E402
 import c6_stats as cs  # noqa: E402
 import paid_once  # noqa: E402
+import w17_round  # noqa: E402
 
 from sanchopanza import _lockfile  # noqa: E402
 from sanchopanza.text import match_window, truncate  # noqa: E402
@@ -65,13 +66,14 @@ INPUT = HOME / NAME / "c6-docs.jsonl"  # built by `build`, outside the repositor
 INPUT_SHA256 = "c040e91417bc2daf78e4d2d428595dc06e0ae19479ec62bbbbaddb533b7841cb"
 FIXTURE = REPO / "fixtures" / NAME / "recording.jsonl"  # below fixtures/: its own set
 MODEL = br.MODEL  # jev-1.13.0, the production DEFAULT_MODEL
-CAP_USD = 6.00  # hard, in the ledger; `dry`'s pessimistic estimate must fit under it
+CAP_USD = w17_round.BATCH_CAPS[NAME]  # 4.50 on the round's shared ledger (6.00 over C4-C6)
 VIEW = sc.VIEW  # 900, `chunks.PAGE_LIMIT`
 LANGS = ("es", "en")
 ARMS = {lang: (f"Dh-{lang}", f"Dw-{lang}") for lang in LANGS}
 B6_USD_PER_CALL = 2.5277 / 11_202  # B6's docs bench, billed: what a real call cost there
 INSTRUMENT = ("src", "benchmarks/b6_es", "benchmarks/paid_once.py",
-              "benchmarks/jev114/l4_stats.py", "c6-window-run.cmd")  # fmt: skip
+              "benchmarks/jev114/l4_stats.py", "benchmarks/w17_round.py",
+              "c6-window-run.cmd")  # fmt: skip
 
 
 def lot() -> paid_once.Lot:
@@ -85,6 +87,8 @@ def lot() -> paid_once.Lot:
         instrument=INSTRUMENT,
         inputs=((INPUT, INPUT_SHA256),),
         home=HOME,
+        shared_ledger=w17_round.LEDGER,
+        shared_cap_usd=w17_round.CAP_USD,
     )
 
 
@@ -277,15 +281,13 @@ def analysis(*, paid: bool) -> dict[str, Any]:
 
 def make_live(the_lot: paid_once.Lot) -> tuple[Any, Any]:  # pragma: no cover - real client
     """(the Jev client, the capped and recording decider around it), inside the run's loop."""
-    from sanchopanza.budget import SpendLedger
     from sanchopanza.providers import CappedDecider, jev
     from sanchopanza.providers.jev import JevDecider
     from sanchopanza.providers.recorded import RecordingDecider
 
     jev.RETRYABLE = frozenset(jev.RETRYABLE - {429})  # a 429 stops the run, never retried
     inner = JevDecider(model=MODEL, long_context=False, images=False, timeout_s=br.TIMEOUT_S)
-    ledger = SpendLedger(the_lot.ledger, cap_usd=CAP_USD)
-    capped = CappedDecider(inner, ledger=ledger, batch=NAME, max_usd=CAP_USD)
+    capped = CappedDecider(inner, ledger=paid_once.ledger_of(the_lot), batch=NAME, max_usd=CAP_USD)
     FIXTURE.parent.mkdir(parents=True, exist_ok=True)
     return inner, RecordingDecider(capped, FIXTURE)
 
@@ -328,7 +330,7 @@ def paid(launcher: Path | None, *, load_key: Any = paid_once.load_key,
         raise SystemExit("a paid run starts from c6-window-run.cmd (--launcher): nothing spent")
     rows = load_rows()
     plan = dry(rows)
-    room = CAP_USD - paid_once.spent(the_lot)
+    room = paid_once.room(the_lot)  # this batch's cap and the round's, whichever is less
     if plan["pessimistic_usd"] > room:
         raise SystemExit(f"{plan['pessimistic_usd']} USD does not fit in the {room:.4f} left")
     paid_once.require_sealed(the_lot)
