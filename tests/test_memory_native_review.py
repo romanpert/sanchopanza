@@ -120,7 +120,7 @@ def test_h3_an_index_that_keeps_changing_is_given_up_on(tmp_path: Path, monkeypa
     monkeypatch.setattr(mni, "before_swap", writer)
     assert _refresh(tmp_path)["native"] == "index busy"
     text = _index(tmp_path)
-    assert not _ours(text) and text.count("- [X]") == 2
+    assert not _ours(text) and text.count("- [X]") == mni.SWAP_TRIES
 
 
 # ---- H4: only what the note holds whole counts ---------------------------------------------------

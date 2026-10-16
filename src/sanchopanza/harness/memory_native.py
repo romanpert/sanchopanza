@@ -72,6 +72,7 @@ FILE_CHARS = 3_200  # room for one stored record whole (episodes caps 1,000 + 1,
 RECORDS = 3
 REQUEST_CHARS = 1_100
 REPORT_CHARS = 1_300
+CHANGED_CHARS = 300
 COVER_SHARE = 0.5
 COVER_SLACK_S = 5.0
 COVER_READ = 20_000
@@ -193,7 +194,9 @@ def _block(record: ep.Episode) -> tuple[str, bool]:
     if report:
         parts.append(f"## Outcome (the agent's final report)\n{truncate(report, REPORT_CHARS)}")
     if record.changed:
-        parts.append(truncate(mask_strict("Changed: " + ", ".join(record.changed)), 300))
+        changed = mask_strict("Changed: " + ", ".join(record.changed))
+        whole = whole and len(changed) <= CHANGED_CHARS
+        parts.append(truncate(changed, CHANGED_CHARS))
     return "\n\n".join(parts), whole
 
 
@@ -309,8 +312,10 @@ def refresh(folder: Path, records: Sequence[ep.Episode], *, session: str, store:
     if not any(r.changed for r in records):
         return {**row, "native": "no change"}
     note, index = folder / NOTE, folder / INDEX
-    if any(mni.linked(p) for p in (folder, index, note)):
+    if any(mni.linked(p) for p in (folder.parent, folder, index, note)):
         return {**row, "native": "link refused"}
+    if mni.read_only(index) or mni.read_only(note):
+        return {**row, "native": "index read-only" if mni.read_only(index) else "note read-only"}
     if folder.is_dir():
         mni.clean_temps(folder)
     before = mni.read_text(note)
@@ -321,7 +326,10 @@ def refresh(folder: Path, records: Sequence[ep.Episode], *, session: str, store:
     with ep.locked(store / STATE):
         if covered:
             status = mni.swap_index(index, mni.index_without) if index.exists() else "unchanged"
-            if before:
+            if before and status in (
+                "written",
+                "unchanged",
+            ):  # never a line left pointing at nothing
                 note.unlink()
             state = {"session": session, "keys": [], "carrier": "claude-code",
                      "files": covered, "at": time.time()}  # fmt: skip
@@ -336,7 +344,7 @@ def refresh(folder: Path, records: Sequence[ep.Episode], *, session: str, store:
         if before != text:  # the note first: the line never points at nothing
             mni.write(note, text)
         status = mni.swap_index(index, lambda t: mni.index_with(t, line))
-        if status in ("busy", "full", "unreadable"):
+        if status in ("busy", "full", "unreadable", "read-only"):
             if not before:
                 note.unlink(missing_ok=True)
             return {**row, "native": f"index {status}"}
@@ -351,7 +359,7 @@ def refresh(folder: Path, records: Sequence[ep.Episode], *, session: str, store:
 def keys_after_read(event: Mapping[str, Any], store: Path, session: str) -> list[str]:
     """The records another session's note holds whole, when this event is `session` reading
     that note, unchanged since it was written. Else none."""
-    if event.get("tool_name") != "Read":
+    if event.get("tool_name") != "Read" or event.get("agent_id"):  # a subagent's read is its own
         return []
     data = event.get("tool_input") if isinstance(event.get("tool_input"), Mapping) else {}
     state = _state(store)
@@ -366,7 +374,20 @@ def keys_after_read(event: Mapping[str, Any], store: Path, session: str) -> list
     files = state.get("files") if isinstance(state.get("files"), dict) else {}
     if not text or not mni.is_owned_note(text) or _digest(text) != files.get(NOTE):
         return []
+    if not _whole_read(data, text):
+        return []
     return [str(k) for k in state.get("keys") or []]
+
+
+def _whole_read(data: Mapping[str, Any], text: str) -> bool:
+    """The Read took the note from its first line to its last (no offset past line 1, no limit
+    short of its length)."""
+    try:
+        offset = int(data.get("offset") or 0)
+        limit = int(data["limit"]) if data.get("limit") is not None else None
+    except (TypeError, ValueError):
+        return False
+    return offset <= 1 and (limit is None or limit >= text.count("\n") + 1)
 
 
 # ---- going off ---------------------------------------------------------------------------------
@@ -386,14 +407,16 @@ def uninstall(config: Path) -> list[str]:
     removed: list[str] = []
     for folder in sorted((config / "projects").glob("*/memory")):
         note, index = folder / NOTE, folder / INDEX
-        if any(mni.linked(p) for p in (folder, note, index)):
+        if any(mni.linked(p) for p in (folder.parent, folder, note, index)):
             continue
         text = mni.read_text(index)
-        mine = bool(text) and any(mni.is_ours(n) for n in (text or "").split("\n"))
-        if mine and mni.swap_index(index, mni.index_without) == "written":
-            removed.append(f"{index}: our line")
+        status = "unchanged"
+        if text and any(mni.is_ours(n) for n in text.split("\n")):
+            status = mni.swap_index(index, mni.index_without)
+            if status == "written":
+                removed.append(f"{index}: our line")
         body = mni.read_text(note)
-        if body and mni.is_owned_note(body):
+        if status in ("written", "unchanged") and body and mni.is_owned_note(body):
             with contextlib.suppress(OSError):
                 note.unlink()
                 removed.append(str(note))

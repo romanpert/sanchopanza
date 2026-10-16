@@ -441,7 +441,7 @@ def native_at_stop(event: Mapping[str, Any], seen: Recorded) -> None:
 def native_after_read(event: Mapping[str, Any]) -> None:
     """A `Read` of another session's unchanged note: the records it holds whole count as given
     to this session, so a later touch does not repeat them. Nothing is held back before."""
-    if event.get("tool_name") != "Read":
+    if event.get("tool_name") != "Read" or event.get("agent_id"):  # a subagent's read: its own
         return
     store, session = store_for(event), str(event.get("session_id") or "session")
     try:

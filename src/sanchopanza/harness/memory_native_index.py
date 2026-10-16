@@ -39,11 +39,24 @@ NOTE_HEAD = "---\nname: sanchopanza-next\n"
 TEMP_PREFIX = ".sanchopanza-"
 STALE_S = 600.0
 _OURS = re.compile("^" + re.escape(LINE_HEAD) + '"[^"\n]*"$')
+BOM = "\ufeff"
+# What JavaScript's String.prototype.trim removes (Claude Code trims the index before cutting).
+JS_SPACE = (
+    " \t\n\r\v\f\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007"
+    "\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000\ufeff"
+)
+SWAP_TRIES = 6
 
 
 def is_ours(line: str) -> bool:
-    """`line` (without its "\\n", with or without its "\\r") is exactly our line."""
+    """`line` (without its "\\n", with or without its "\\r", after a leading BOM) is exactly
+    our line."""
+    line = line[1:] if line.startswith(BOM) else line
     return bool(_OURS.match(line[:-1] if line.endswith("\r") else line))
+
+
+def _bom(text: str) -> tuple[str, str]:
+    return (BOM, text[1:]) if text.startswith(BOM) else ("", text)
 
 
 def is_owned_note(text: str) -> bool:
@@ -68,7 +81,7 @@ def _prefix(text: str, units: int) -> int:
 
 
 def loaded(text: str) -> str:
-    kept = "\n".join(text.strip().split("\n")[:INDEX_LINES])
+    kept = "\n".join(text.strip(JS_SPACE).split("\n")[:INDEX_LINES])
     if _units(kept) > INDEX_UNITS:
         room = _prefix(kept, INDEX_UNITS)
         cut = kept.rfind("\n", 0, room)
@@ -84,31 +97,44 @@ def _newline(text: str) -> str:
 
 def index_with(text: str, line: str) -> str | None:
     """The index with our line (ours replaced in place, else appended), or None when our line
-    would be past what Claude Code loads."""
-    parts = text.split("\n")
+    would be past what Claude Code loads or would push any other loaded line out of it."""
+    bom, body = _bom(text)
+    parts = body.split("\n")
     mine = [i for i, n in enumerate(parts) if is_ours(n)]
     if mine:
         first = mine[0]
         ending = "\r" if parts[first].endswith("\r") else ""
         parts = [line + ending if i == first else n for i, n in enumerate(parts)
                  if i == first or i not in mine]  # fmt: skip
-        new = "\n".join(parts)
+        new = bom + "\n".join(parts)
     else:
-        newline = _newline(text)
-        head = text if not text or text.endswith("\n") else text + newline
-        new = head + line + newline
-    return new if any(is_ours(n) for n in loaded(new).split("\n")) else None
+        newline = _newline(body)
+        head = body if not body or body.endswith("\n") else body + newline
+        new = bom + head + line + newline
+    after = loaded(new).split("\n")
+    if not any(is_ours(n) for n in after):
+        return None
+    kept = {n.rstrip("\r") for n in after}
+    theirs = [n.rstrip("\r") for n in loaded(text).split("\n") if n and not is_ours(n)]
+    return new if all(n in kept for n in theirs) else None
 
 
 def index_without(text: str) -> str:
-    return "\n".join(n for n in text.split("\n") if not is_ours(n))
+    bom, body = _bom(text)
+    return bom + "\n".join(n for n in body.split("\n") if not is_ours(n))
 
 
 # ---- files -------------------------------------------------------------------------------------
 
 
 def linked(path: Path) -> bool:
-    return path.is_symlink()
+    """A symbolic link or (Windows) a junction."""
+    junction = getattr(path, "is_junction", None)
+    return path.is_symlink() or bool(junction and junction())
+
+
+def read_only(path: Path) -> bool:
+    return path.exists() and not os.access(path, os.W_OK)
 
 
 def read_text(path: Path) -> str | None:
@@ -122,7 +148,8 @@ def read_text(path: Path) -> str | None:
 
 
 def _temp(path: Path, text: str) -> str:
-    """`text` in a flushed temporary file beside `path`, with `path`'s mode when it exists."""
+    """`text` in a flushed temporary file beside `path`, with `path`'s mode when it exists
+    (always writable by us, so it can be removed)."""
     fd, temp = tempfile.mkstemp(dir=path.parent, prefix=TEMP_PREFIX, suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8", newline="") as handle:
@@ -130,7 +157,7 @@ def _temp(path: Path, text: str) -> str:
             handle.flush()
             os.fsync(handle.fileno())
         with contextlib.suppress(OSError):
-            os.chmod(temp, stat.S_IMODE(path.stat().st_mode))
+            os.chmod(temp, stat.S_IMODE(path.stat().st_mode) | stat.S_IWUSR)
     except BaseException:
         Path(temp).unlink(missing_ok=True)
         raise
@@ -164,13 +191,17 @@ def before_swap(path: Path) -> None:
     """Called between building the new index and checking it again (a seam for the tests)."""
 
 
-def swap_index(path: Path, build: Callable[[str], str | None], tries: int = 2) -> str:
+def swap_index(path: Path, build: Callable[[str], str | None], tries: int = SWAP_TRIES) -> str:
     """Rebuild the index from its current text and put it in place unless it changed meanwhile:
-    "written", "unchanged", "full" (`build` gave None), "unreadable" or "busy"."""
-    for _ in range(tries):
+    "written", "unchanged", "full" (`build` gave None), "unreadable", "read-only" or "busy". A
+    replace Windows refuses (another process has the file open, maybe writing it) goes round
+    again from a fresh read: it is never retried over what may have changed."""
+    for attempt in range(tries):
         before = read_text(path)
         if before is None:
             return "unreadable"
+        if read_only(path):
+            return "read-only"
         new = build(before)
         if new is None:
             return "full"
@@ -181,8 +212,11 @@ def swap_index(path: Path, build: Callable[[str], str | None], tries: int = 2) -
         try:
             before_swap(path)
             if read_text(path) == before:
-                _replace(temp, path)
-                return "written"
+                try:
+                    os.replace(temp, path)
+                    return "written"
+                except PermissionError:
+                    time.sleep(0.02 * (attempt + 1))
         finally:
             Path(temp).unlink(missing_ok=True)
     return "busy"

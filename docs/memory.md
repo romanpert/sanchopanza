@@ -192,6 +192,38 @@ not shown): a fresh session stopped to ask the open questions the handoff listed
   ([memory Stop](results/2026-10-14-memory-stop/)).
 - The full list is in `memory_hook.py`'s docstring.
 
+### Into Claude Code's own memory (`--memory-native`, opt-in, not measured live)
+
+`sanchopanza install --memory --memory-native --write` also writes each session's last records
+into Claude Code's own auto memory. It adds one note, `sanchopanza-next.md`, marked as ours in its
+front matter, and one exact line in `MEMORY.md`. Claude Code loads that line itself at the next
+start and reads the note when it chooses to.
+
+- **What it is for.** The plan reaches the next session through Claude Code's own mechanism. It
+  works with anything that reads that folder, it stays there if sanchopanza is off, and it
+  composes with the memory Claude Code saves itself.
+  - When Claude Code saved the plan itself during the session, no note is written.
+  - That needs a memory of its own written in that session that restates the request and that
+    the session wrote or that names a changed file.
+- **What it costs.** It saves nothing. A replay of F2's recorded sessions on Sonnet 5.5 shows the
+  bridge adds tokens to S:
+  - about +38 per new session for the index line when the note is not read;
+  - about +524 when it is, plus one tool turn.
+  - The prompt still gets the record as before. After the session reads the note whole, a file
+    touch does not repeat it.
+- **What it never does.**
+  - It never changes, moves or removes a line or file it did not write.
+  - It stays off where Claude Code's memory is moved (`autoMemoryDirectory`, the cowork
+    override) or off: `autoMemoryEnabled: false`, `CLAUDE_CODE_DISABLE_AUTO_MEMORY`, simple,
+    safe and remote modes.
+  - It leaves a full, read-only, linked or non-UTF-8 index alone.
+- **Turning it off.** Run `install` without `--memory-native` (or with `--no-memory`). That
+  removes only our marked notes and our exact lines, and says which.
+- **A change that comes with it.** The memory gate (`memory_gate.memory_dir_for`) now finds the
+  memory folder as Claude Code derives it: the canonical git root under the configuration folder,
+  or the folder settings move it to. It used to take the transcript's folder. For a session
+  started in a subfolder or a worktree, these are now the same folder Claude Code uses.
+
 ## What is stored, and what leaves the machine
 
 - **On disk.** The store is `~/.sanchopanza/memory-store/<repository>/`, outside the project.

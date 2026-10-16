@@ -359,8 +359,11 @@ def _install(args: argparse.Namespace) -> int:
     if "env: SANCHOPANZA_MEMORY_NATIVE" in settings.removed:  # the bridge off: its note out
         from .harness.memory_native import install_config, uninstall
 
-        for gone in uninstall(install_config(path, project_settings(path))):
-            sys.stdout.write(f"removed from Claude Code's auto memory: {gone}\n")
+        try:
+            for gone in uninstall(install_config(path, project_settings(path))):
+                sys.stdout.write(f"removed from Claude Code's auto memory: {gone}\n")
+        except OSError as error:  # the settings are written; the note stays where it is
+            sys.stdout.write(f"the memory bridge's note was not removed ({error})\n")
     if _finish_mcp_json(args, mcp_change):
         return 2
     if config.scan_content:
@@ -653,13 +656,18 @@ def _after_compaction(
     import asyncio
 
     from .context.formation import form
-    from .harness.memory_gate import memory_dir_for
 
     archived = {
         s.id: archive / f"{compact.safe_name(s.id)}.txt" for s in plan.steps if s.action == "stub"
     }
     stubbed = {k: path for k, path in archived.items() if path.exists()}  # none when cleared
-    directory = _env.get("MEMORY_DIR") or memory_dir_for({"cwd": str(Path.cwd())})
+    directory = _formation_dir()
+    if directory is None:
+        sys.stderr.write(
+            "sanchopanza compact: memory formation skipped (auto memory is off "
+            "here, or its folder is unknown; SANCHOPANZA_MEMORY_DIR names one)\n"
+        )
+        return
     try:
         records = asyncio.run(form(squire, messages, stubbed, Path(directory)))
     except Exception as error:  # formation is lateral: the compaction stands
@@ -670,6 +678,16 @@ def _after_compaction(
         f"sanchopanza compact: memory formation asked {len(records)}, stored {stored} "
         f"in {directory}\n"
     )
+
+
+def _formation_dir() -> Path | None:
+    """Where memory formation writes: `SANCHOPANZA_MEMORY_DIR`, else this folder's auto memory as
+    Claude Code derives it (`memory_gate.memory_dir_for`), else None."""
+    from . import _env
+    from .harness import memory_gate
+
+    named = _env.get("MEMORY_DIR")
+    return Path(named) if named else memory_gate.memory_dir_for({"cwd": str(Path.cwd())})
 
 
 def _keep_out_of_git(path: Path) -> None:
