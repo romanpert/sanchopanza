@@ -35,6 +35,10 @@ LAUNCHERS: dict[str, tuple[set[str], set[str]]] = {
         {"benchmarks/a3_mcp/w17_replay.py"},
         {"C:\\sp-runs\\w17-mcp-post"},
     ),
+    "memlot-night-run.cmd": (
+        {"benchmarks/memory_carry/handoff_night.py"},
+        {"C:\\sp-runs\\memory-w17"},
+    ),
     "checkdone-w17-run.cmd": (
         {"benchmarks/jev114/checkdone_w17.py"},
         {"C:\\sp-runs\\jev114", "C:\\sp-runs\\jev114\\checkdone-w17"},
