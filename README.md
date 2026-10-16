@@ -795,9 +795,13 @@ runs that measured them and have not been tuned on the results.
 Each item, with its priority and cost, is in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 - **Long documents, past the first router.** `points.longdoc` is measured on four-option
-  questions with a cut of 0.6. Still to measure: a higher cut for Opus 5.5 users (0.8, on fresh
-  tasks; descriptively the gap there was 0.6 points), and a long-document set graded on free-text
-  answers ([lb162x](docs/results/2026-10-16-lb162x/README.md)).
+  questions over documents of more than 100,000 characters, with a cut of 0.6. A higher cut for
+  Opus 5.5 users did not earn a tighter claim: at 0.8, on the 78 fresh tasks left (all under
+  100,000 characters), the router was −6.4 points from Opus [−14.1, −1.4], "no concluyente" at
+  −5, while saving 30.8 % of its cost; on those shorter documents Jev covered more and was right
+  less often ([lbo8](docs/results/2026-10-16-lbo8/README.md)). Still to measure: a
+  long-document set graded on free-text answers (a design draft:
+  [longdoc-free](docs/results/2026-10-16-longdoc-free/design.md)).
 - **MCP results, not only MCP calls.** The guard before the call is not confirmed
   ([A3](docs/results/2026-10-16-a3-mcp/README.md)): most of what it missed shows only in a tool's
   answer. The check after the call (`--guard-mcp-post`) caught more there and flagged more safe

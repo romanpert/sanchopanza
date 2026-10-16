@@ -106,9 +106,13 @@ when the package does not import).
 **C7. The LongBench routing point.** **Done** (merge `9705f25`): `points.longdoc`, opt-in and
 out of `install`, gives Jev 1.14's letter when its top choice reaches 0.6, otherwise `escalate`
 with the reason, never a silent answer; a test replays lb162's 162 recorded answers through it.
-What lb162x leaves to measure: a higher cut for Opus 5.5 users (0.8,
-pre-registered on fresh tasks; descriptively the gap there was 0.6 points), and a long-document
-set graded on free-text answers.
+The 0.8 cut for Opus 5.5 users ran as **lbo8** (2026-10-16, sealed `2f232f1`, 9.24 USD): on
+the 78 fresh QA tasks left, all under 100,000 characters, "no concluyente" at −5 (−6.4 points
+[−14.1, −1.4]; Jev right on 20 of the 30 it covered, Opus on 25), 30.8 % [20.9, 41.4] of Opus's
+cost saved ([lbo8](results/2026-10-16-lbo8/README.md)): no tighter claim, and the router is not
+for documents under 100,000 characters as it stands. What remains: a long-document set graded on
+free-text answers ([design draft](results/2026-10-16-longdoc-free/design.md), about 63 USD of
+Claude and 7 of Jev, the owner's call).
 
 **D1. OpenAI's Decisions API.** sanchopanza is a layer with one decision contract; Jev is the
 provider every figure was measured with, and OpenAI's `/v1/decisions` (public beta since

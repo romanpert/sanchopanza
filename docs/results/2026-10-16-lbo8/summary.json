@@ -1,0 +1,213 @@
+{
+ "cut": 0.8,
+ "margin": -0.05,
+ "primary": {
+  "tasks": 78,
+  "n": 78,
+  "covered": 30,
+  "covered_with_opus": 30,
+  "covered_without_opus": 0,
+  "jev_only_right": 0,
+  "opus_only_right": 5,
+  "diff": -0.064103,
+  "ci95": [
+   -0.141436,
+   -0.014156
+  ],
+  "ci95_points": [
+   -14.14,
+   -1.42
+  ],
+  "method": "Tango score 95 % (paired)",
+  "margin": -0.05,
+  "min_covered_sessions": 8,
+  "verdict": "no concluyente",
+  "pause": [],
+  "mcnemar_p": 0.0625
+ },
+ "sensitivity_not_run_as_wrong": {
+  "tasks": 78,
+  "n": 78,
+  "covered": 30,
+  "covered_with_opus": 30,
+  "covered_without_opus": 0,
+  "jev_only_right": 0,
+  "opus_only_right": 5,
+  "diff": -0.064103,
+  "ci95": [
+   -0.141436,
+   -0.014156
+  ],
+  "ci95_points": [
+   -14.14,
+   -1.42
+  ],
+  "method": "Tango score 95 % (paired)",
+  "margin": -0.05,
+  "min_covered_sessions": 8,
+  "verdict": "no concluyente",
+  "pause": [],
+  "mcnemar_p": 0.0625
+ },
+ "saving": {
+  "n": 78,
+  "covered": 30,
+  "measured": 78,
+  "share": 0.3079,
+  "ci95": [
+   0.2092,
+   0.4144
+  ],
+  "usd": {
+   "covered": 2.8224,
+   "uncovered": 6.1342,
+   "jev": 0.0649,
+   "alone": 8.9566,
+   "hybrid": 6.199,
+   "saving": 2.7575
+  },
+  "bootstrap": {
+   "draws": 10000,
+   "kept": 10000,
+   "seed": 20261016,
+   "unit": "task"
+  },
+  "reading": "ahorra",
+  "pause": []
+ },
+ "saving_sensitivity_infra_counted": {
+  "n": 78,
+  "covered": 30,
+  "measured": 78,
+  "share": 0.3079,
+  "ci95": [
+   0.2092,
+   0.4144
+  ],
+  "usd": {
+   "covered": 2.8224,
+   "uncovered": 6.1342,
+   "jev": 0.0649,
+   "alone": 8.9566,
+   "hybrid": 6.199,
+   "saving": 2.7575
+  },
+  "bootstrap": {
+   "draws": 10000,
+   "kept": 10000,
+   "seed": 20261016,
+   "unit": "task"
+  },
+  "reading": "ahorra",
+  "pause": []
+ },
+ "saving_sensitivity_reduced_cap_at_full": {
+  "n": 78,
+  "covered": 30,
+  "measured": 78,
+  "share": 0.3079,
+  "ci95": [
+   0.2092,
+   0.4144
+  ],
+  "usd": {
+   "covered": 2.8224,
+   "uncovered": 6.1342,
+   "jev": 0.0649,
+   "alone": 8.9566,
+   "hybrid": 6.199,
+   "saving": 2.7575
+  },
+  "bootstrap": {
+   "draws": 10000,
+   "kept": 10000,
+   "seed": 20261016,
+   "unit": "task"
+  },
+  "reading": "ahorra",
+  "pause": []
+ },
+ "covered_accuracy": {
+  "covered": 30,
+  "jev_right": 20,
+  "jev_precision": 0.6667,
+  "jev_wilson95": [
+   0.4878,
+   0.8077
+  ],
+  "opus_graded": 30,
+  "opus_right": 25,
+  "opus_accuracy": 0.8333,
+  "opus_wilson95": [
+   0.6644,
+   0.9266
+  ]
+ },
+ "overall": {
+  "tasks_known": 78,
+  "opus_right": 56,
+  "opus_accuracy": 0.7179,
+  "hybrid_right": 51,
+  "hybrid_accuracy": 0.6538
+ },
+ "descriptive_cuts": [
+  {
+   "cut": 0.6,
+   "covered": 55,
+   "covered_with_opus": 55,
+   "jev_only_right": 4,
+   "opus_only_right": 12,
+   "n": 78,
+   "diff": -0.102564,
+   "ci95_points": [
+    -20.93,
+    -0.23
+   ],
+   "saving_share": 0.6176870196884807,
+   "descriptive": true
+  },
+  {
+   "cut": 0.7,
+   "covered": 47,
+   "covered_with_opus": 47,
+   "jev_only_right": 4,
+   "opus_only_right": 8,
+   "n": 78,
+   "diff": -0.051282,
+   "ci95_points": [
+    -14.83,
+    4.03
+   ],
+   "saving_share": 0.5083559452588756,
+   "descriptive": true
+  }
+ ],
+ "jev": {
+  "rows": 78,
+  "status": {
+   "answered": 78,
+   "failed": 0,
+   "stopped": 0
+  },
+  "usd": 0.06487
+ },
+ "opus_sessions": {
+  "sessions": 78,
+  "usd": 8.9566,
+  "mean_usd": 0.1148,
+  "median_usd": 0.103685,
+  "max_usd": 0.319292,
+  "infra": 0,
+  "hit_cap": 0,
+  "reduced_cap": 15,
+  "reduced_cap_hit": 0,
+  "lowered_stop_no_letter": 0,
+  "min_cap_usd": 3.86
+ },
+ "stops": {
+  "S": "done",
+  "J": "done",
+  "O": "done"
+ },
+ "jev_ledger_batch_usd": 0.064871
+}

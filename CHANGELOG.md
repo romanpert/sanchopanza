@@ -108,6 +108,14 @@
 
 ### Measured
 
+- **The longdoc router at a 0.8 cut against Opus 5.5: "no concluyente"**
+  (`docs/results/2026-10-16-lbo8`, sealed `2f232f1`): on the 78 fresh LongBench v2 QA tasks left,
+  all under 100,000 characters, Jev 1.14 answering where its top choice reached 0.8 (30 of 78)
+  and Opus 5.5 in clean Claude Code 2.1.287 elsewhere, against Opus alone: −6.4 points, Tango 95 %
+  [−14.1, −1.4], against a −5 margin; Jev right on 20 of the 30 it covered, Opus on 25, every
+  disagreement Opus's way (0 to 5). 30.8 % [20.9, 41.4] of Opus's cost saved. No tighter claim
+  for 0.8; the 0.6 router's result over 100,000 characters is untouched. 9.24 USD (Opus 8.96 at
+  list price, Jev 0.065).
 - **W17, the MCP guard after the call, a development lot** on A3's 500 ATBench-Codex
   trajectories (sealed `2912c0b`, jev-1.13.0, 0.062 USD of Jev): **does not license** a
   fresh-data confirmation. Pre-call plus after-the-call at 0.5 caught 35 more unsafe
