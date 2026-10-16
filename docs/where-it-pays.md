@@ -714,7 +714,18 @@ Each of these is specified enough that a disagreement becomes a measurement.
     (`install --guard-mcp`, opt-in), replayed with jev-1.13.0 over 500 ATBench-Codex
     trajectories, caught 185 of 250 unsafe ones (74.0 %) against 0 for the hook as it ships and
     flagged 82 of 250 safe ones (32.8 %): under the sealed 75.2 % recall floor, not confirmed;
-    the live Claude Code phase was not run **[M]** (`docs/results/2026-10-16-a3-mcp/`).
+    the live Claude Code phase was not run **[M]** (`docs/results/2026-10-16-a3-mcp/`). The guard
+    after the call (`--guard-mcp-post`), development replay W17 on the same 500 trajectories,
+    jev-1.13.0 at 0.5: with A3's guard it catches 220 of 250 unsafe trajectories against 185 for
+    A3's guard alone (two-sided p 5.8e−11), and also flags 96 of 250 safe ones against 82, whose
+    one-sided upper bound (+8.0 points) is past the sealed +7: it does not license a confirmation
+    and stays opt-in; 29 of the 35 it adds are caught only after the last call ran **[M]**
+    (`docs/results/2026-10-16-w17-mcp-post/`).
+14. **check_done with the evidence the answer rests on.** With evidence windows in the record
+    (`SANCHOPANZA_DONE_EVIDENCE`), jev-1.14.0 at 0.30, 1,572 unseen AgentDojo stops: false blocks
+    of finished stops fall from 165 to 123 of 828 (+5.07 points [1.53, 9.77]), but catches of
+    unfinished ones fall from 598 to 583 of 744 (−2.02 [−5.37, +0.26]), under the −2 guard: not
+    adopted, opt-in **[M]** (`docs/results/2026-10-16-checkdone-w17/`).
 
 ---
 
