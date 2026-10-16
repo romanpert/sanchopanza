@@ -81,6 +81,24 @@ def test_each_request_is_asked_once_and_development_stops_only_for_their_new_rec
     assert [r["id"] for r in dev_only] == ["dev-a#new"]
 
 
+def test_the_overlap_check_finds_a_request_recorded_under_1_13_keys(monkeypatch, tmp_path):
+    import json as _json
+
+    from sanchopanza.providers.recorded import key_of
+
+    stop = runner.stop_of(_entry(), _data("tiny", "It is tiny."), "confirm")
+    r = stop["old"]
+    fixtures = tmp_path / "fixtures"
+    (fixtures / "jev114").mkdir(parents=True)
+    for model in (None, "jev-1.13.0", "jev-1.14.0"):
+        (fixtures / "jev114" / "checkdone114-13r.jsonl").write_text(
+            _json.dumps({"key": key_of(r["point"], r["state"], r["questions"], model)}) + "\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setattr(runner, "ROOT", tmp_path)
+        assert runner.overlap_with_seen([r]) == 1, model
+
+
 def test_the_lot_is_one_model_capped_and_sealed_over_the_builder():
     lot = runner.LOT
     assert dict(lot.models) == {"14": "jev-1.14.0"}
@@ -111,6 +129,61 @@ def test_the_lot_spends_on_the_shared_ledger_and_needs_room_for_its_whole_batch(
     own = lots.Lot(name="x", out=ROOT, run=ROOT, batch_cap=0.25, sealed=(), fixture_stem="x",
                    ledger=ROOT / "elsewhere.json")  # fmt: skip
     assert runner.room_problem(own).startswith("not the shared ledger")
+
+
+def _filled_launcher(tmp_path: Path, extra: str = "") -> Path:
+    """The run folder's copy: CRLF, its three local values filled, as the launch uses it."""
+    text = (ROOT / "checkdone-w17-run.cmd").read_text(encoding="utf-8")
+    filled = {"PY": r"C:\py\python.exe", "SANCHOPANZA_KEYS_ENV": r"C:\k\.keys",
+              "WT": r"C:\wt\run-checkdone-w17"}  # fmt: skip
+    placeholders = {"PY": "<PYTHON>", "SANCHOPANZA_KEYS_ENV": "<KEYS_ENV_PATH>", "WT": "<WORKTREE>"}
+    for name, value in filled.items():
+        placeholder = f'set "{name}={placeholders[name]}"'
+        assert text.count(placeholder) == 1, placeholder
+        text = text.replace(placeholder, f'set "{name}={value}"')
+    path = tmp_path / "checkdone-w17-run.cmd"
+    path.write_bytes((text + extra).replace("\n", "\r\n").encode("utf-8"))
+    return path
+
+
+def test_the_paid_path_reaches_the_launch_from_the_filled_launcher_and_no_other(
+    monkeypatch, tmp_path
+):
+    import argparse
+    import json as _json
+
+    import pytest
+
+    lots = runner.lots
+    long = _listing(120, {100: "recipe-collection.docx"})
+    confirm = [runner.stop_of(_entry(), _data(long, "recipe-collection.docx"), "confirm")]
+    dev = [{**confirm[0], "set": "dev", "id": "dev-a"}]
+    monkeypatch.setattr(runner, "load_confirm", lambda root=None: confirm)
+    monkeypatch.setattr(runner, "load_dev", lambda root=None: dev)
+    data = tmp_path / "data.sha256"
+    data.write_text(_json.dumps({"stops": runner.digest_of(confirm, dev)}), encoding="utf-8")
+    monkeypatch.setattr(runner, "DATA", data)
+    monkeypatch.setattr(lots, "require_seal_commit", lambda lot: {"head": "h", "parent": "p"})
+    monkeypatch.setattr(lots, "require_seal", lambda lot: None)
+    monkeypatch.setattr(lots, "ledger_room", lambda lot: {"ledger_spent": 4.0163,
+                                                          "ledger_room": 0.4837,
+                                                          "batch_spent": 0.0})  # fmt: skip
+    launched = []
+    monkeypatch.setattr(lots, "paid_launch", lambda lot, run_all, commits: launched.append(
+        (lot.name, commits)) or 0)  # fmt: skip
+    args = argparse.Namespace(dry=False, paid=True, data_root=tmp_path)
+
+    monkeypatch.setenv("SANCHOPANZA_LAUNCHER", str(_filled_launcher(tmp_path)))
+    assert runner.cmd_run(args) == 0
+    assert launched == [("jev114-checkdone-w17", {"head": "h", "parent": "p"})]
+
+    monkeypatch.setenv("SANCHOPANZA_LAUNCHER", str(_filled_launcher(tmp_path, "rem changed\n")))
+    with pytest.raises(SystemExit, match="differs from the sealed"):
+        runner.cmd_run(args)
+    monkeypatch.delenv("SANCHOPANZA_LAUNCHER")
+    with pytest.raises(SystemExit, match="not started by the lot's launcher"):
+        runner.cmd_run(args)
+    assert len(launched) == 1
 
 
 def test_the_inputs_are_the_registered_unseen_pipelines():

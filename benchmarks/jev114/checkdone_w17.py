@@ -255,7 +255,9 @@ def overlap_with_seen(asked: Sequence[Mapping[str, Any]]) -> int:
         for line in path.read_text(encoding="utf-8").splitlines() if path.exists() else []:
             if line.strip():
                 seen.add(json.loads(line).get("key"))
-    mine = {key_of(r["point"], r["state"], r["questions"], MODEL) for r in asked}
+    # A key holds the model only from 1.14 on: 1.13 lines are keyed without it.
+    models = (None, *lots.MODELS.values())
+    mine = {key_of(r["point"], r["state"], r["questions"], m) for r in asked for m in models}
     return len(mine & seen)
 
 
@@ -348,7 +350,7 @@ def plan(confirm: list[dict[str, Any]], dev: list[dict[str, Any]]) -> dict[str, 
     # MEDIAN_USD a request at checkdone114's mean request size, scaled by these requests' size.
     at_71 = len(asked) * MEDIAN_USD * (sum(chars) / len(chars)) / rate["mean_chars"]
     price = DEFAULT_PRICE_PER_MTOK
-    pessimistic = sum(estimate_usd(r["state"], r["questions"], price_per_mtok=price) for r in asked)
+    capped = sum(estimate_usd(r["state"], r["questions"], price_per_mtok=price) for r in asked)
     by = Counter((s["set"], s["pipeline"], s["label"], s["changed"]) for s in confirm + dev)
     q, k = dev_shares(dev)
     cd_ = sum(s["changed"] and s["label"] == "done" for s in confirm)
@@ -367,7 +369,7 @@ def plan(confirm: list[dict[str, Any]], dev: list[dict[str, Any]]) -> dict[str, 
         "records_at_the_limit_confirm": at_limit,
         "jev_usd_expected": round(expected, 4),
         "jev_usd_at_71_microusd_scaled": round(at_71, 4),
-        "jev_usd_pessimistic": round(pessimistic, 4),
+        "jev_usd_capped_estimate": round(capped, 4),
         "rate": rate,
         "claude_usd": 0.0,
         "batch_cap": LOT.batch_cap,
@@ -414,8 +416,8 @@ def cmd_run(args: argparse.Namespace) -> int:
         if short:
             print(f"refused: {short}")
             return 5
-        if report["jev_usd_pessimistic"] > LOT.batch_cap:
-            print("note: the pessimistic estimate exceeds the cap; the cap stops the run")
+        if report["jev_usd_capped_estimate"] > LOT.batch_cap:
+            print("note: CappedDecider's estimate exceeds the cap; the cap stops the run")
         return 0
     commits = lots.require_sealed_checkout(LOT)
     short = room_problem()
@@ -493,15 +495,17 @@ def cmd_publish(_: argparse.Namespace) -> int:
 # --- development: the ceiling and what the new builder shows, free --------------------------
 
 
-def hidden_values(task: str, steps: Sequence[tuple[str, str]]) -> tuple[set[str], set[str]]:
+def hidden_values(
+    task: str, steps: Sequence[tuple[str, str]]
+) -> tuple[set[str], set[str], set[str]]:
     """Values the agent wrote after its first cut tool result that appear in a result only past
     its head and nowhere the old record shows (the task, the heads): the ceiling of the fix.
-    Returns them, and those the new record's tool results show."""
+    Returns them, those the new record's tool results show, and those of the final answer."""
     head = done_evidence.HEAD
     tools = [t for k, t in steps if k == "tool"]
     first = next((i for i, (k, t) in enumerate(steps) if k == "tool" and len(t) > head), None)
     if first is None:
-        return set(), set()
+        return set(), set(), set()
     visible = task + "\n" + "\n".join(t[:head] for t in tools)
     hidden = "\n".join(t[head:] for t in tools if len(t) > head)
     later = [t for i, (k, t) in enumerate(steps) if i > first and k != "tool"]
@@ -509,7 +513,9 @@ def hidden_values(task: str, steps: Sequence[tuple[str, str]]) -> tuple[set[str]
              if done_evidence.find(hidden, a) is not None
              and done_evidence.find(visible, a) is None}  # fmt: skip
     shown = "\n".join(done_evidence.kept_results(steps))
-    return found, {a for a in found if done_evidence.find(shown, a) is not None}
+    final = [t for k, t in steps if k == "agent"][-1:]
+    answer = set(done_evidence.anchors(final[0])) if final else set()
+    return found, {a for a in found if done_evidence.find(shown, a) is not None}, found & answer
 
 
 GROUPS = {("done", True): "false_block", ("done", False): "passed",
@@ -520,13 +526,13 @@ def cmd_dev(_: argparse.Namespace) -> int:
     rows = dev_rows()
     manifest = [json.loads(x) for x in cd.INPUTS.read_text(encoding="utf-8").splitlines() if x]
     tally: Counter[str] = Counter()
-    growth = []
+    growth, chars = [], {"old": 0, "new": 0}
     for entry in manifest:
         data = json.loads((cd.DATA_ROOT / entry["path"]).read_text(encoding="utf-8"))
         stop, row = stop_of(entry, data, "dev"), rows[entry["path"]]
         group = GROUPS[(row["label"], row["p_14"] < CUT)]
         task, steps = _runner().steps(cd.normalized(data["messages"]))
-        found, shown = hidden_values(task, steps)
+        found, shown, final = hidden_values(task, steps)
         cut = any(k == "tool" and len(t) > done_evidence.HEAD for k, t in steps)
         tally[f"{group} n"] += 1
         tally[f"{group} cut"] += cut
@@ -534,12 +540,17 @@ def cmd_dev(_: argparse.Namespace) -> int:
         tally[f"{group} ceiling"] += bool(found)
         tally[f"{group} ceiling, new record shows some"] += bool(found) and bool(shown)
         tally[f"{group} ceiling, new record shows all"] += bool(found) and shown == found
+        tally[f"{group} ceiling, final answer only"] += bool(final)
+        for arm in chars:
+            chars[arm] += len(stop[arm]["state"]["record"])
         if stop["changed"]:
             growth.append(len(stop["new"]["state"]["record"]) - len(stop["old"]["state"]["record"]))
     growth.sort()
     print(json.dumps(dict(sorted(tally.items())), indent=1))
+    grew = round(chars["new"] / chars["old"] - 1, 4)
     print(json.dumps({"changed": len(growth), "growth_median": growth[len(growth) // 2],
-                      "growth_max": growth[-1]}))  # fmt: skip
+                      "growth_max": growth[-1], "record_chars": chars,
+                      "record_chars_growth": grew}))  # fmt: skip
     return 0
 
 

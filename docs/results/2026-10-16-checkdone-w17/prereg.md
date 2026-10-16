@@ -59,10 +59,9 @@ without catching fewer unfinished ones?** That is the condition for turning
 - **The ceiling of the fix is 87 of the 150 false blocks.** In those 87, a value the agent wrote
   after its first cut result appears in a result only past the cut, and not in the task or any
   kept head. Counted on the agent's final answer alone, it is 80.
-- A looser count that also matches values inside longer ones finds 100. The 87 uses the
-  builder's own matching, which is stricter.
 - The builder changes 258 of 950 records. A changed record grows by 859 characters at the median,
-  4,088 at most. All 950 requests together grow by 8.5 %.
+  4,088 at most. The 950 records together grow by 8.5 % (3,422,951 to 3,715,322 characters).
+- Every figure in this section is printed by `dev`.
 - The old records are byte for byte the ones checkdone114 asked: `checkdone114.py rows` replays
   all 950 from its recordings unchanged.
 
@@ -141,13 +140,26 @@ The cut is read from the code: `Thresholds.for_model("jev-1.14.0").done`, the sh
 - When the new record would pass the record limit and the old one does not, the builder returns
   the old one (`done_evidence.record(limit=...)`), so the windows never push out the request or
   the final answer.
-- 4 confirmation records reach the limit. Above it, the bench keeps the record's head
-  (`text.truncate`, as every earlier lot) and the Stop hook keeps its tail. For those 4 records
-  the two arms read the same head-cut shape, and the hook would read another one. That
-  difference predates this lot.
+- **Records above the limit.** The dry run counts 4 records at the limit. They are both arms of
+  2 stops: gemini-2.0-flash-001, `not_done`, workspace `user_task_29` (injections 7 and 12).
+  - The old records are 26,753 and 30,273 characters; the new ones 34,137 and 35,607.
+  - The fallback does not apply, because the old record does not fit either.
+  - The bench keeps a record's head (`text.truncate`, as every earlier lot), so the head cut
+    drops more of the new record's end than of the old one's, the final answer included.
+  - The Stop hook would keep the tail instead. That difference between bench and hook predates
+    this lot.
+  - Neither stop is a finished one, so neither enters the primary; both enter the guard.
 
 **Reading an answer.** Through `Decision.answer` (`usable`). A NaN or an absent answer is a
 missing answer, never a "do not block".
+
+**Failures and passes** (`lot.Lot` defaults):
+
+- `passes` = 2: a request whose call failed is asked once more in a second pass.
+- 25 failed calls halt the run. That stop is not final: the lot may be launched once more.
+- A recorded line with any answer counts as answered and is not asked again, even when the
+  answer is a NaN. In `rows` such an answer reads as missing (`p` None), and it enters the 2 %
+  missing rule below.
 
 ## Metric and verdict (`benchmarks/jev114/checkdone_w17_analysis.py`)
 
@@ -157,8 +169,9 @@ missing answer, never a "do not block".
 
 - The measure is "not falsely blocked", new record minus old, on every finished stop both arms
   answered.
-- Exact McNemar on the items, unclustered.
-- A 95 % paired bootstrap over user-task clusters: `l4_stats.paired_binary`, 10,000 replicas.
+- Two-sided exact McNemar on the items, unclustered.
+- A 95 % paired bootstrap over user-task clusters (`l4_stats.paired_binary`): 10,000
+  resamples, seed 20261015 (`l4_stats.BOOT_SEED`), percentile bounds at 2.5 % and 97.5 %.
 - Verdict by `lot_stats.verdict_of`:
   - "mejora": the difference is above 0, p < 0.05, **and** the cluster interval's lower bound is
     above 0;
@@ -167,8 +180,9 @@ missing answer, never a "do not block".
   - otherwise "no concluyente".
 
 **Guard: catching unfinished stops,** on the confirmation's 744 unfinished stops. It compares
-the blocks among them, new minus old. **The guard holds when the cluster interval's lower bound
-is at least −2 points.**
+the blocks among them, new minus old, with the same McNemar and bootstrap. **The guard holds
+when the cluster interval's lower bound is at least −0.02.** The comparison is on the values as
+`l4_stats` rounds them, to 4 decimals.
 
 **No verdict unless the last launch completed** (`launches.jsonl` ends in `complete`). A launch
 paused on a 402 is not complete.
@@ -225,7 +239,8 @@ draws by cluster, with the lot's real cluster sizes:
 
 **Reading:**
 
-- If the new record lifts a fifth or more of the false blocks it touches, the lot sees it.
+- If the new record lifts a fifth of the false blocks it touches, P("mejora") is 70 %; at three
+  tenths it is 96 %.
 - If it lets a fifth or more of the touched catches through, the guard fails. That is the
   intended reading, not a lack of power.
 - A lift of a tenth is not detectable here.
@@ -236,7 +251,9 @@ draws by cluster, with the lot's real cluster sizes:
   1.39 × 10⁻⁸ USD per request character. That is a median of 65 µUSD a request at 5,189
   characters on average.
 - **Expected for the 1,633 requests:** 0.130 USD. Scaling the 71 µUSD median of a real request
-  by these requests' size gives 0.128 USD. `CappedDecider`'s pessimistic estimate is 0.131 USD.
+  by these requests' size gives 0.128 USD. `CappedDecider`'s own estimate, at its default price
+  (1.40 × 10⁻⁸ USD per character against the measured 1.39 × 10⁻⁸), is 0.131 USD. It is not
+  an upper bound.
 - **Cap:** `BATCH_CAP` 0.25 USD in code, batch `jev114-checkdone-w17`.
 - **The ledger is the shared one:** `C:/sp-runs/jev114/ledger.json`, which every 1.14 lot
   spends on, with its own 4.50 USD cap. This lot creates no ledger of its own.
@@ -244,8 +261,11 @@ draws by cluster, with the lot's real cluster sizes:
     batch cap.
   - `room_problem` checks this. The dry run exits 5, and the paid run refuses before any call,
     when the lot is not on the shared ledger, or when the ledger has less room than what is
-    left of the batch cap. So the batch cap, not another lot's spending, is what can stop the
-    run.
+    left of the batch cap.
+  - The room is checked once, at the start. If another lot spent more than 0.23 USD on the
+    shared ledger during this run, the ledger cap would end it with `SpendCapReached`. That is
+    a final stop: no verdict, and no relaunch. No other lot should spend on the ledger while
+    this one runs.
   - Either cap stops the run between calls. The run halts on the first cap, 402 or wrong model.
 - `python -m sanchopanza jev-preflight` runs before the launch. Claude: 0.
 
@@ -254,7 +274,8 @@ draws by cluster, with the lot's real cluster sizes:
 1. Seal; then `git worktree add --detach ..\sanchopanza-run-checkdone-w17 <seal commit>`.
 2. Copy `checkdone-w17-run.cmd` to `C:\sp-runs\jev114\checkdone-w17\` and fill PY,
    SANCHOPANZA_KEYS_ENV and WT there. Run the filled copy with `dry` first.
-3. Launch the filled copy by WMI (CreateFlags 512), outside any Claude Code session.
+3. Launch the filled copy by WMI (CreateFlags 512), outside any Claude Code session. Do not
+   launch between 02:00 and 08:00, when Windows Update may restart the machine.
 4. Watch the log and the PID. A STOP file in the run folder stops it between calls. Kill only
    by verified PID.
 5. `publish`, `rows`, `checkdone_w17_analysis.py`.
