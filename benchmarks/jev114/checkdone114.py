@@ -73,6 +73,7 @@ LOT = lots.Lot(
     out=OUT,
     run=RUN,
     batch_cap=BATCH_CAP,
+    launcher="checkdone114-run.cmd",
     fixture_stem="checkdone114",
     sealed=(
         "docs/results/2026-10-16-checkdone114/prereg.md",

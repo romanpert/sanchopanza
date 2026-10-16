@@ -62,6 +62,7 @@ LOT = lots.Lot(
     out=OUT,
     run=RUN,
     batch_cap=BATCH_CAP,
+    launcher="redundant-drop-run.cmd",
     fixture_stem="redundant-drop",
     sealed=(
         "docs/results/2026-10-16-redundant-drop/prereg.md",

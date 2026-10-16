@@ -15,9 +15,9 @@ The rule is docs/results/2026-10-16-redundant-drop/prereg.md:
    of the hand-written stratum (retrieval + retrieval-b, 50) and the template stratum (the 30
    evaluation records, 270), equal weights. 95 % interval by a stratified bootstrap: events in
    the hand stratum, records and families crossed in the template stratum. `lot_stats.verdict_of`.
-4. Hand-written stratum on its own: "no peor" or "mejora" (event clusters), and a count guard:
-   1.14 loses at most one more case than it wins there, and catches at least as many of its 18
-   `drop` pages as 1.13.
+4. Hand-written stratum: a count guard. 1.14 loses at most one more case than it wins there,
+   and catches at least as many of its 18 `drop` pages as 1.13. (Its own interval verdict is
+   reported, not required: on 50 cases "no peor" would demand agreement on all 50.)
 5. Costly drops: 1.14 drops at most two more `keep` pages of the evaluation part than 1.13.
 6. No verdict unless the last launch completed; no proposal when more than 2 % of the cases lack
    an answer from either arm, or 1.14 leaves 2 points more unanswered than 1.13.
@@ -188,7 +188,6 @@ def analyse(all_rows: Sequence[Mapping[str, Any]], launch: str | None = None) ->
         "derivation reachable on 1.14": cut14 is not None,
         "derivation stable": stability["stable"],
         "primary no peor or mejora": primary["verdict"] in lot_stats.FAVOURABLE,
-        "hand stratum no peor or mejora": strat_h["verdict"] in lot_stats.FAVOURABLE,
         "hand count guard": strat_h["count_guard"],
         "costly drops guard": a14["costly_drops"] <= a13["costly_drops"] + COSTLY_GAP,
     }
@@ -243,14 +242,18 @@ def analyse(all_rows: Sequence[Mapping[str, Any]], launch: str | None = None) ->
 
 def hand_power(
     clusters: Sequence[str], patterns: Sequence[tuple[int, int]], *, placements: int = 200,
-    replicas: int = 2000, seed: int = 20261016,
+    replicas: int = 2000, seed: int = 20261016, drop: Sequence[bool] | None = None,
 ) -> list[dict[str, Any]]:  # fmt: skip
     """For each (wins, losses) of 1.14 on the hand-written evaluation cases, placed at random
-    among them, how often the hand stratum reads each verdict (event-cluster bootstrap)."""
+    among them: how often the hand stratum's own interval reads each verdict (event-cluster
+    bootstrap; descriptive now), and how often the count guard holds (`drop` marks the drop
+    pages: a win there is a drop only 1.14 catches, a loss one only 1.13 catches)."""
     rng = random.Random(seed)
+    drop = [False] * len(clusters) if drop is None else list(drop)
     out = []
     for wins, losses in patterns:
         tally: dict[str, int] = {}
+        guard = 0
         for _ in range(placements):
             chosen = rng.sample(range(len(clusters)), wins + losses)
             new, old = [True] * len(clusters), [True] * len(clusters)
@@ -263,8 +266,11 @@ def hand_power(
             p = l4_stats.mcnemar_exact(wins, losses)
             found = lot_stats.verdict_of(diff, ci, p)
             tally[found] = tally.get(found, 0) + 1
+            hits = sum(drop[i] for i in chosen[:wins]) - sum(drop[i] for i in chosen[wins:])
+            guard += losses - wins <= NET_LOSS and hits >= 0
         shares = {k: round(v / placements, 3) for k, v in sorted(tally.items())}
-        out.append({"wins": wins, "losses": losses, "verdicts": shares})
+        out.append({"wins": wins, "losses": losses, "verdicts": shares,
+                    "count_guard_holds": round(guard / placements, 3)})  # fmt: skip
     return out
 
 
@@ -280,15 +286,17 @@ def _cluster_ci(new: Sequence[bool], old: Sequence[bool], clusters: Sequence[str
     return l4_stats.ci95(diffs)
 
 
-def power(clusters_of: Callable[[], Sequence[str]]) -> list[dict[str, Any]]:
-    patterns = ((0, 0), (1, 1), (3, 3), (5, 5), (0, 1), (0, 2), (0, 4), (1, 3), (2, 0))
-    return hand_power(clusters_of(), patterns)
+def power(hand: Callable[[], tuple[Sequence[str], Sequence[bool]]]) -> list[dict[str, Any]]:
+    patterns = ((0, 0), (1, 1), (2, 2), (3, 3), (5, 5), (0, 1), (0, 2), (0, 4), (1, 3), (2, 0))
+    clusters, drop = hand()
+    return hand_power(clusters, patterns, drop=drop)
 
 
-def _hand_ev_clusters() -> list[str]:
+def _hand_ev() -> tuple[list[str], list[bool]]:
     import redundant_drop
 
-    return [redundant_drop.cluster_of(c) for c in redundant_drop.old_cases() if c["half"] == "ev"]
+    ev = [c for c in redundant_drop.old_cases() if c["half"] == "ev"]
+    return [redundant_drop.cluster_of(c) for c in ev], [c["expected"] == "drop" for c in ev]
 
 
 def main() -> int:
@@ -296,7 +304,7 @@ def main() -> int:
     parser.add_argument("--power", action="store_true")
     args = parser.parse_args()
     if args.power:
-        for row in power(_hand_ev_clusters):
+        for row in power(_hand_ev):
             print(json.dumps(row), flush=True)
         return 0
     rows = [json.loads(x) for x in ROWS.read_text(encoding="utf-8").splitlines() if x.strip()]

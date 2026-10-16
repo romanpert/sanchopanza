@@ -143,7 +143,8 @@ answer is a missing answer, never a "do not block".
 1.14's false-block rate minus 1.13's, among `done` stops, has an upper bound of at most +2 points.
 
 **No verdict unless the last launch completed.** The launch log that `publish` copies must end in
-`complete`. Otherwise the result is "sin veredicto", whatever the rows say.
+`complete`. Otherwise the result is "sin veredicto", whatever the rows say. A launch paused
+on a 402 is not complete.
 
 **Missing answers withhold a favourable verdict** when either of these holds:
 
@@ -211,14 +212,16 @@ The disagreement rate on the recalibration's held-out half was 3 or 5 of 329, ab
 | **Hard cap in code** | `BATCH_CAP` 0.25 USD for batch `jev114-checkdone`, on the shared ledger `C:/sp-runs/jev114/ledger.json` capped at 4.50 USD (3.8515 spent, 0.6485 left on 2026-10-16) |
 | Claude | **0 USD** |
 
-**The TypeSafe balance must be at least 0.30 USD before launch.** The preflight cannot read it:
-it only learns that a call came back, or that it got a 402. The owner checks the balance on the
-TypeSafe console before starting.
+**The balance is not checked.** Nobody can read the TypeSafe console before this launch, and
+the preflight cannot see the balance. **A 402 is a pause, never a result.** In the preflight or
+mid-run, it logs the launch as `paused`, exits 6 and is never scored. It does not count against
+the one relaunch, so the lot can be launched again once there is balance; what is recorded is
+kept and replayed. A test pins this.
 
 **What stops the run:**
 
 - A call that would not fit under the cap raises `SpendCapReached`, and the run stops.
-- One relaunch at most, and none after a cap, a 402, a wrong model or a completed launch.
+- One relaunch at most, and none after a cap, a wrong model or a completed launch.
 - A `STOP` file in `C:/sp-runs/jev114/checkdone114/` stops it between calls.
 
 ## Seal and launch
@@ -245,23 +248,30 @@ TypeSafe console before starting.
 - HEAD is the sealing commit (the last commit that touched `prereg.sha256`);
 - `git status --porcelain` is empty;
 - every sealed file and input matches;
+- it was started by the sealed launcher (`SANCHOPANZA_LAUNCHER`);
 - both versions answer a preflight under their own names.
 
-**The launcher.** `checkdone114-run.cmd` sets `PYTHONPATH` to the worktree's own `src`, and
-works from that worktree. `SANCHOPANZA_KEYS_ENV` is a path placeholder (`<KEYS_ENV_PATH>`), filled
-in **before the seal**, since the launcher is a sealed file. The launcher refuses a paid run while
-it is the placeholder. It is started by
-WMI from a `git worktree add --detach` at the sealing commit. `checkdone114-run.cmd dry` runs the
-free plan through the same environment.
+**The launcher.** The tracked `checkdone114-run.cmd` holds placeholders only:
+`set "PY=<PYTHON>"`, `set "SANCHOPANZA_KEYS_ENV=<KEYS_ENV_PATH>"` and `set "WT=<WORKTREE>"`. No
+local path goes into the public repository.
+
+- The seal reads those three values as placeholders (`lot.launcher_text`).
+- The filled copy lives in `C:/sp-runs/jev114/checkdone114/`, untracked, and keeps the seal.
+- The launcher passes its own path in `SANCHOPANZA_LAUNCHER`. The runner refuses unless that
+  copy equals the tracked file except for those three values.
+- Tests pin that filling them keeps the seal and that changing any other line breaks it.
+- `PYTHONPATH` is the detached worktree's `src`. The filled copy is started by WMI.
+- `checkdone114-run.cmd dry` runs the free plan through the same environment.
 
 ```bash
 python benchmarks/jev114/checkdone114.py fetch          # free, once: the 950 files, checked
 python benchmarks/jev114/checkdone114.py run --dry --l2-runs-root MAIN   # free: the plan above
 python benchmarks/jev114/checkdone114_analysis.py --power                # free: the table above
-# revisor-prereg; fix; fill <KEYS_ENV_PATH> in the launcher (a path only); then:
+# revisor-prereg; fix; then:
 python benchmarks/jev114/checkdone114.py seal           # data.sha256 + prereg.sha256, commit them
-# owner: TypeSafe balance >= 0.30 USD; git worktree add --detach at the sealing commit
-checkdone114-run.cmd                                    # by WMI, from the detached worktree
+# git worktree add --detach at the sealing commit; copy the launcher to the run folder and fill
+# PY, SANCHOPANZA_KEYS_ENV and WT there (untracked)
+C:/sp-runs/jev114/checkdone114/checkdone114-run.cmd     # by WMI; exit 6 = paused on a 402
 python benchmarks/jev114/checkdone114.py publish        # free: recordings + launch log
 python benchmarks/jev114/checkdone114.py rows           # free: done-scored.jsonl
 python benchmarks/jev114/checkdone114_analysis.py       # free: analysis.json, the verdict

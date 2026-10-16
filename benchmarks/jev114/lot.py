@@ -27,7 +27,9 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import os
 import random
+import re
 import shutil
 import subprocess
 from collections.abc import Awaitable, Callable, Mapping, Sequence
@@ -76,8 +78,17 @@ COMMON_SEALED = (
     "src/sanchopanza/providers/recorded.py",
     "src/sanchopanza/providers/null.py",
 )
-FINAL_STOPS = ("SpendCapReached", "spend cap", "DeciderOutOfFunds", "HTTP 402", "out of funds",
-               "no_funds", "WrongModel", "asked jev", "served jev")  # fmt: skip
+# A launch that ends on one of these may not be followed by another: the cap or a wrong model.
+FINAL_STOPS = ("SpendCapReached", "spend cap", "WrongModel", "asked jev", "served jev")
+# A 402 (no balance) is a pause, never a result: the launch is logged `paused`, gives no verdict,
+# does not count against the one relaunch, and the lot may be launched again once there is
+# balance. Nobody reads the TypeSafe balance before a launch: the preflight cannot see it.
+FUNDS_STOPS = ("DeciderOutOfFunds", "HTTP 402", "out of funds", "no_funds")
+PAUSED_EXIT = 6
+# The launcher's local values (the python, the key file, the detached worktree) are read as
+# placeholders by the seal: the tracked file holds placeholders, the filled copy lives in the
+# lot's run folder (untracked), and both hash the same. Any other change breaks the seal.
+LOCAL_VALUES = re.compile(r'^(set "(?:PY|SANCHOPANZA_KEYS_ENV|WT)=)[^"\n]*(")', re.MULTILINE)
 
 
 @dataclass(frozen=True)
@@ -88,6 +99,7 @@ class Lot:
     batch_cap: float
     sealed: Sequence[str]  # repo-relative, in seal order
     fixture_stem: str  # <run>/<stem>-<arm>.jsonl, published as fixtures/jev114/<same name>
+    launcher: str = ""  # repo-relative .cmd, sealed with its local values as placeholders
     gate: int = 4
     cases_at_once: int = 4
     passes: int = 2
@@ -115,11 +127,29 @@ def _folded(path: Path) -> bytes:
     return path.read_bytes().replace(b"\r\n", b"\n")
 
 
+def launcher_text(path: Path) -> bytes:
+    """A launcher with LF ends and its local values as placeholders."""
+    text = _folded(path).decode("utf-8")
+    return LOCAL_VALUES.sub(r"\1<LOCAL>\2", text).encode("utf-8")
+
+
 def digest(lot: Lot) -> str:
     h = hashlib.sha256()
     for rel in lot.sealed:
-        h.update(_folded(ROOT / rel))
+        path = ROOT / rel
+        h.update(launcher_text(path) if rel == lot.launcher else _folded(path))
     return h.hexdigest()
+
+
+def require_launcher(lot: Lot) -> None:
+    """The paid run was started by the sealed launcher: the copy that ran (its path in
+    SANCHOPANZA_LAUNCHER, which the launcher sets) equals the tracked one but for its local
+    values."""
+    ran = os.environ.get("SANCHOPANZA_LAUNCHER", "")
+    if not ran or not Path(ran).is_file():
+        raise SystemExit("not started by the lot's launcher: nothing spent")
+    if launcher_text(Path(ran)) != launcher_text(ROOT / lot.launcher):
+        raise SystemExit(f"{ran} differs from the sealed {lot.launcher}: nothing spent")
 
 
 def require_seal(lot: Lot) -> None:
@@ -148,6 +178,7 @@ def require_sealed_checkout(lot: Lot) -> None:
     if _git("status", "--porcelain"):
         raise SystemExit("the worktree is not clean: nothing spent")
     require_seal(lot)
+    require_launcher(lot)
 
 
 # --- recordings -------------------------------------------------------------------------------
@@ -404,14 +435,15 @@ def read_launches(path: Path) -> list[dict[str, Any]]:
 
 
 def may_launch(lot: Lot) -> str | None:
-    """Why a paid launch is refused: one relaunch at most, and none after a cap, a 402, a model
-    served under another name, or a launch that completed."""
+    """Why a paid launch is refused: one relaunch at most, and none after a cap, a model served
+    under another name, or a launch that completed. A launch paused on a 402 does not count."""
     path = launches(lot)
     if not path.exists():
         existing = [str(lot.fixture(a)) for a in lot.models if lot.fixture(a).exists()]
         return f"answers recorded before any launch: {existing}" if existing else None
     past = read_launches(path)
     started = sum(p.get("outcome") == "started" for p in past)
+    started -= sum(p.get("outcome") == "paused" for p in past)
     if started >= 2:
         return f"{started} launches already"
     if any(any(stop in p.get("why", "") for stop in FINAL_STOPS) for p in past):
@@ -444,8 +476,7 @@ def publish(lot: Lot) -> list[str]:
 
 def preflight_both(lot: Lot, ledger: SpendLedger) -> str:
     """ "" when both versions answer under their own names, else why not. The preflight cannot
-    read the TypeSafe balance (it learns only "a call came back" or a 402): the balance check
-    of the registration is the owner's, before the launch."""
+    read the TypeSafe balance; a 402 here pauses the lot (`paid_launch`)."""
     from sanchopanza.providers.jev import preflight
 
     for arm, model in lot.models.items():
@@ -474,9 +505,14 @@ def ledger_room(lot: Lot) -> dict[str, float]:
             "batch_spent": round(ledger.spent(lot.name), 4)}  # fmt: skip
 
 
+def funds_stop(why: str) -> bool:
+    return any(marker in why for marker in FUNDS_STOPS)
+
+
 def paid_launch(lot: Lot, run_all: Callable[[], tuple[int, str]]) -> int:
     """The registered launch: sealed checkout checked by the caller, one relaunch at most,
-    preflight of both versions, then `run_all`, logged."""
+    preflight of both versions, then `run_all`, logged. A 402, in the preflight or mid-run,
+    logs `paused` and exits PAUSED_EXIT: no score, and the lot may be launched again."""
     from jev114_components import load_key
 
     refused = may_launch(lot)
@@ -487,11 +523,15 @@ def paid_launch(lot: Lot, run_all: Callable[[], tuple[int, str]]) -> int:
     log_launch(lot, "started", "")
     failed_preflight = preflight_both(lot, ledger)
     if failed_preflight:
-        log_launch(lot, "stopped", failed_preflight)
-        return 3
+        paused = funds_stop(failed_preflight)
+        log_launch(lot, "paused" if paused else "stopped", failed_preflight)
+        return PAUSED_EXIT if paused else 3
     code, why = run_all()
     print(f"ledger {ledger.spent():.4f} of {lot.ledger_cap}; {lot.name} "
           f"{ledger.spent(lot.name):.4f} of {lot.batch_cap}", flush=True)  # fmt: skip
+    if code and funds_stop(why):
+        log_launch(lot, "paused", why)
+        return PAUSED_EXIT
     if code or (lot.run / "STOP").exists():
         log_launch(lot, "stopped", why or "STOP file")
         return code or 5

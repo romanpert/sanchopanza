@@ -210,3 +210,41 @@ def test_the_stratified_interval_is_zero_when_the_arms_agree():
     tmpl = [r for r in rows if r["file"] == "generated"]
     result = analysis.stratified(hand, tmpl, 0.59, 0.5, replicas=200)
     assert result["diff"] == 0.0 and result["ci95"] == (0.0, 0.0)
+
+
+def _hand(wins_on_drops: int, losses_on_keeps: int, losses_on_drops: int):
+    rows = []
+    for i in range(50):
+        drop = i < 18
+        p13 = 0.9 if drop else 0.1
+        p14 = p13
+        if drop and i < wins_on_drops:
+            p13 = 0.1  # only 1.14 catches this drop
+        if drop and wins_on_drops <= i < wins_on_drops + losses_on_drops:
+            p14 = 0.1  # only 1.13 catches this drop
+        if not drop and i < 18 + losses_on_keeps:
+            p14 = 0.9  # 1.14 drops a keep page
+        rows.append({"expected": "drop" if drop else "keep", "cluster": f"e{i % 9}",
+                     "p_13r": p13, "p_14": p14})  # fmt: skip
+    return analysis.hand_stratum(rows, 0.59, 0.5)
+
+
+def test_the_count_guard_lets_a_balanced_exchange_through_and_stops_net_losses():
+    assert _hand(1, 1, 0)["count_guard"]  # 1 / 1
+    assert _hand(2, 2, 0)["count_guard"]  # 2 / 2
+    assert _hand(0, 1, 0)["count_guard"]  # one keep page dropped
+    assert not _hand(0, 0, 1)["count_guard"]  # one drop missed: fewer hits
+    assert not _hand(0, 0, 4)["count_guard"]  # the recalibration's 0 / 4
+    assert not _hand(0, 2, 0)["count_guard"]  # a net loss of two
+
+
+def test_the_hand_stratums_own_verdict_is_not_required():
+    rows = _synthetic(0)
+    for row in rows:  # one balanced exchange on the hand-written pages
+        if row["id"] == "h0":
+            row["p_13r"] = 0.05
+        if row["id"] == "h20":
+            row["p_14"] = 0.95
+    result = analysis.analyse(rows, launch="complete")
+    assert result["hand_stratum"]["count_guard"]
+    assert "hand stratum no peor or mejora" not in result["checks"]

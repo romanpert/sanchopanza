@@ -117,3 +117,119 @@ def test_the_paid_path_keeps_every_live_decider_in_one_loop(tmp_path, monkeypatc
     assert len(run) == 4  # two arms, two passes: fresh clients per pass
     assert len({id(d.loop) for d in run}) == 1  # all in the run's one loop
     assert all(d.closed for d in LoopBoundJev.made if d.calls)
+
+
+# --- a 402 is a pause; the launcher seals with its local values as placeholders --------------
+
+
+class BrokeJev(LoopBoundJev):
+    """Runs out of funds on its third call."""
+
+    async def decide(self, point, state, questions):
+        from sanchopanza.contract import DeciderOutOfFunds
+
+        if self.calls >= 2:
+            raise DeciderOutOfFunds("jev did not answer: HTTP 402 (out of funds)")
+        self.calls += 1
+        answer = Answer(kind="truth", confidence=0.8, truth=0.9)
+        return Decision(point=point, answers={"done": answer}, provider="jev", model=self.model)
+
+
+def _lot(tmp_path, name="test-pause"):
+    return lots.Lot(name=name, out=tmp_path, run=tmp_path / "run", batch_cap=0.01, sealed=(),
+                    fixture_stem="t", ledger=tmp_path / "ledger.json")  # fmt: skip
+
+
+def _ok_preflight(model: str):
+    return jev_module.PreflightResult(True, "ok", 200, 0.0, model, "fake")
+
+
+def _cases(n: int = 8):
+    out = []
+    for i in range(n):
+        state, qs = completion.questions(task=f"job {i}", record="AGENT: done")
+        out.append({"id": str(i), "point": "completion", "state": state, "questions": qs})
+    return out
+
+
+async def _ask(case, decider):
+    return await decider.decide(case["point"], case["state"], case["questions"]), None
+
+
+async def _answered(case, arm):
+    d = await arm.recorded.decide(case["point"], case["state"], case["questions"])
+    return bool(d.answers)
+
+
+def test_a_402_in_the_preflight_pauses_and_allows_a_relaunch(tmp_path, monkeypatch):
+    monkeypatch.setattr(jev_module, "preflight", lambda model: jev_module.PreflightResult(
+        False, "no_funds", 402, 0.0, model, "402"))  # fmt: skip
+    monkeypatch.setattr(_load("jev114_components"), "load_key", lambda: None)
+    lot = _lot(tmp_path)
+    for _ in range(3):  # paused launches never use up the relaunch
+        assert lots.paid_launch(lot, lambda: (0, "")) == lots.PAUSED_EXIT
+    assert [r["outcome"] for r in lots.read_launches(lots.launches(lot))][-1] == "paused"
+    assert lots.may_launch(lot) is None
+
+
+def test_a_402_mid_run_pauses_with_no_verdict_and_allows_a_relaunch(tmp_path, monkeypatch):
+    monkeypatch.setattr(jev_module, "JevDecider", BrokeJev)
+    monkeypatch.setattr(jev_module, "preflight", _ok_preflight)
+    monkeypatch.setattr(_load("jev114_components"), "load_key", lambda: None)
+    lot, cases = _lot(tmp_path), _cases()
+    code = lots.paid_launch(lot, lambda: asyncio.run(lots.run_cases(lot, cases, _ask, _answered)))
+    assert code == lots.PAUSED_EXIT
+    past = lots.read_launches(lots.launches(lot))
+    assert past[-1]["outcome"] == "paused" and "402" in past[-1]["why"]
+    assert lots.may_launch(lot) is None
+    stats = _load("lot_stats")
+
+    (tmp_path / "launches.jsonl").write_text(lots.launches(lot).read_text(), encoding="utf-8")
+    assert stats.launch_status(tmp_path) == "paused"  # the analysis gives no verdict
+
+
+def test_a_cap_still_ends_the_lot(tmp_path):
+    lot = _lot(tmp_path)
+    lots.log_launch(lot, "started", "")
+    lots.log_launch(lot, "stopped", "SpendCapReached: batch full")
+    assert "cap" in lots.may_launch(lot)
+
+
+def test_filling_the_local_values_keeps_the_launchers_seal(tmp_path, monkeypatch):
+    for rel in ("checkdone114-run.cmd", "redundant-drop-run.cmd"):
+        tracked = ROOT / rel
+        text = tracked.read_text(encoding="utf-8")
+        filled = (text.replace('set "PY=<PYTHON>"', r'set "PY=C:\py\python.exe"')
+                  .replace('set "SANCHOPANZA_KEYS_ENV=<KEYS_ENV_PATH>"',
+                           r'set "SANCHOPANZA_KEYS_ENV=D:\keys\.env"')
+                  .replace('set "WT=<WORKTREE>"', r'set "WT=C:\wt\lot"'))  # fmt: skip
+        assert filled != text
+        copy = tmp_path / rel
+        copy.write_text(filled.replace("\n", "\r\n"), encoding="utf-8", newline="")
+        assert lots.launcher_text(copy) == lots.launcher_text(tracked)
+        lot = lots.Lot(name="t", out=tmp_path, run=tmp_path, batch_cap=0.01, sealed=(rel,),
+                       fixture_stem="t", launcher=rel)  # fmt: skip
+        monkeypatch.setenv("SANCHOPANZA_LAUNCHER", str(copy))
+        lots.require_launcher(lot)
+        for other in ("set MODE=--paid", "set ROOT=", "exit /b %CODE%"):
+            changed = filled.replace(other, other + " ", 1)
+            assert changed != filled, other
+            copy.write_text(changed, encoding="utf-8")
+            assert lots.launcher_text(copy) != lots.launcher_text(tracked), other
+            with pytest.raises(SystemExit):
+                lots.require_launcher(lot)
+        monkeypatch.delenv("SANCHOPANZA_LAUNCHER")
+        with pytest.raises(SystemExit):
+            lots.require_launcher(lot)
+
+
+def test_the_seal_reads_the_launcher_with_placeholders():
+    plain = lots.Lot(name="t", out=ROOT, run=ROOT, batch_cap=0.01,
+                     sealed=("checkdone114-run.cmd",), fixture_stem="t")  # fmt: skip
+    sealed = lots.Lot(name="t", out=ROOT, run=ROOT, batch_cap=0.01,
+                      sealed=("checkdone114-run.cmd",), fixture_stem="t",
+                      launcher="checkdone114-run.cmd")  # fmt: skip
+    import hashlib
+
+    expected = hashlib.sha256(lots.launcher_text(ROOT / "checkdone114-run.cmd")).hexdigest()
+    assert lots.digest(sealed) == expected != lots.digest(plain)

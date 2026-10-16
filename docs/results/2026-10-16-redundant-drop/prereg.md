@@ -113,8 +113,8 @@ document's name, since no template names it any more.
   17, 18 and 16.
 
 **The templates are easier than the hand-written pages.** Pooled with them, the hand-written
-cases would be diluted. The rule below therefore weights the strata equally and requires the
-hand stratum to pass on its own.
+cases would be diluted. The rule below therefore weights the strata equally and puts a count
+guard on the hand stratum.
 
 ## Parts and clusters
 
@@ -177,17 +177,21 @@ from the same draw.
      across records.
    - Verdict by `lot_stats.verdict_of`, margin −2 points. "Mejora" also needs the interval
      above 0; the McNemar p is unclustered.
-4. **The hand stratum on its own must be "no peor" or "mejora"** (event-cluster bootstrap, same
-   margin).
-5. **Count guard on the hand stratum.** Both of these must hold:
+4. **Count guard on the hand stratum.** Both of these must hold:
    - 1.14 loses at most one more case than it wins;
    - 1.14 catches at least as many of the 18 hand-written `drop` pages as 1.13.
-6. **Costly drops.** 1.14 drops at most two more `keep` pages of the evaluation part than 1.13.
-7. **No verdict unless the last launch completed**, read from the launch log `publish` copies.
-   No proposal when either of these holds:
+
+   The hand stratum's own interval verdict (event clusters) is reported, not required. An
+   earlier draft of this registration also required it to read "no peor". That requirement was
+   replaced by this count guard **before the seal, with no data of this lot in existence**,
+   because on 50 cases it demands agreement on all 50 (see Power). The recalibration's two draws
+   had 4 disagreements each, so the old rule would have withheld the change by construction.
+5. **Costly drops.** 1.14 drops at most two more `keep` pages of the evaluation part than 1.13.
+6. **No verdict unless the last launch completed**, read from the launch log `publish` copies.
+   A launch paused on a 402 is not complete. No proposal when either of these holds:
    - more than 2 % of the cases lack an answer from either arm;
    - 1.14 leaves 2 points more unanswered than 1.13.
-8. **Proposal.** `adds_nothing` for 1.14 becomes the derived cut only when every check above
+7. **Proposal.** `adds_nothing` for 1.14 becomes the derived cut only when every check above
    holds. Otherwise the profile keeps 0.61, and the failed checks are listed. The change itself
    would be a later commit with a test. This lot changes no threshold.
 
@@ -201,27 +205,34 @@ from the same draw.
 
 ## Power, as it stands (`redundant_drop_analysis.py --power`, and the tests' synthetic lots)
 
-**The hand stratum decides.** On 50 cases, one net loss is exactly the 2-point margin. Below,
+**The hand stratum.** On 50 cases, one net loss is exactly the 2-point margin. Below,
 1.14's wins and losses are placed at random among the 50 hand-written evaluation cases (200
-placements each), and the verdict is read from the event-cluster bootstrap:
+placements each). The table gives how often the stratum's own interval reads each verdict
+(event-cluster bootstrap), and how often rule 4's count guard holds. A win is a drop page only
+1.14 catches; a loss is one only 1.13 catches.
 
-| 1.14 wins / losses | "no peor" | "no concluyente" | "peor" |
-|---|---|---|---|
-| 0 / 0 | 1.00 | | |
-| 2 / 0 | 1.00 | | |
-| 1 / 1 | 0.15 | 0.85 | |
-| 3 / 3 | 0.01 | 0.99 | |
-| 5 / 5 | 0.01 | 0.99 | |
-| 0 / 1, 0 / 2, 1 / 3 | | 1.00 | |
-| 0 / 4 | | 0.46 | 0.54 |
+| 1.14 wins / losses | Own interval: "no peor" | "no concluyente" | "peor" | Count guard holds |
+|---|---|---|---|---|
+| 0 / 0 | 1.00 | | | 1.00 |
+| 2 / 0 | 1.00 | | | 1.00 |
+| 1 / 1 | 0.15 | 0.85 | | 0.79 |
+| 2 / 2 | 0.05 | 0.96 | | 0.71 |
+| 3 / 3 | 0.01 | 0.99 | | 0.67 |
+| 5 / 5 | 0.01 | 0.99 | | 0.64 |
+| 0 / 1 | | 1.00 | | 0.63 |
+| 0 / 2, 1 / 3 | | 1.00 | | 0.00 |
+| 0 / 4 | | 0.36 | 0.64 | 0.00 |
 
 **Reading:**
 
-- **Rule 4 is met only when the arms agree on every hand-written evaluation page, or 1.14 only
-  wins.** Any loss in the hand stratum withholds the proposal. That is stricter than the count
-  guard of rule 5, and it is the rule as written.
-- In the recalibration's two draws, the arms disagreed on 4 of these 50 each time, all at the
-  cuts.
+- **Why the own-interval requirement was dropped.** It reads "no peor" only when the arms agree
+  on all 50 pages, or 1.14 only wins: 1 / 1 passes 15 % of the time, 3 / 3 0.5 %.
+- **What the count guard does instead.** It always stops a net loss of two or more: 0 / 2,
+  1 / 3 and the recalibration's 0 / 4. It lets a balanced exchange through (1 / 1, 2 / 2)
+  unless the losses fall on drop pages and the wins do not. It lets a single net loss through
+  when that loss is a `keep` page dropped, not a drop missed.
+- In the recalibration's two draws, the arms disagreed on 4 of these 50 each time, all drops
+  missed at the cuts.
 - **In the template stratum, "no peor" means above all that the arms agree on templates.**
 - With templates in full agreement, the stratified primary reads:
   - 0 hand losses: "no peor";
@@ -244,12 +255,15 @@ template interval is wider.
 | **Hard cap in code** | `BATCH_CAP` 0.10 USD for batch `jev114-redundant-drop`, on the shared ledger `C:/sp-runs/jev114/ledger.json` capped at 4.50 USD (0.6485 left on 2026-10-16) |
 | Claude | **0 USD** |
 
-**The TypeSafe balance must be at least 0.30 USD before launch,** checked by the owner on the
-console. The preflight cannot read the balance.
+**The balance is not checked.** Nobody can read the TypeSafe console before this launch, and
+the preflight cannot see the balance. **A 402 is a pause, never a result.** In the preflight or
+mid-run, it logs the launch as `paused`, exits 6 and is never scored. It does not count against
+the one relaunch, so the lot can be launched again once there is balance; what is recorded is
+kept and replayed. A test pins this.
 
 **What stops the run:**
 
-- One relaunch at most, and none after a cap, a 402, a wrong model or a completed launch.
+- One relaunch at most, and none after a cap, a wrong model or a completed launch.
 - A `STOP` file in `C:/sp-runs/jev114/redundant-drop/` stops it between calls.
 
 ## Seal and launch
@@ -270,23 +284,31 @@ console. The preflight cannot read the balance.
 - HEAD is the sealing commit;
 - the worktree is clean;
 - every sealed file and input matches;
+- it was started by the sealed launcher (`SANCHOPANZA_LAUNCHER`);
 - `cases.jsonl` is what the generator writes;
 - both versions pass a preflight.
 
-**The launcher.** `redundant-drop-run.cmd` sets `PYTHONPATH` to the worktree's own `src`.
-`SANCHOPANZA_KEYS_ENV` is a path placeholder filled in **before the seal**, and the launcher
-refuses a paid run while it is the placeholder. It is started by WMI from a
-`git worktree add --detach` at the sealing commit. `redundant-drop-run.cmd dry` runs the free
-plan.
+**The launcher.** The tracked `redundant-drop-run.cmd` holds placeholders only:
+`set "PY=<PYTHON>"`, `set "SANCHOPANZA_KEYS_ENV=<KEYS_ENV_PATH>"` and `set "WT=<WORKTREE>"`. No
+local path goes into the public repository.
+
+- The seal reads those three values as placeholders (`lot.launcher_text`).
+- The filled copy lives in `C:/sp-runs/jev114/redundant-drop/`, untracked, and keeps the seal.
+- The launcher passes its own path in `SANCHOPANZA_LAUNCHER`. The runner refuses unless that
+  copy equals the tracked file except for those three values.
+- Tests pin that filling them keeps the seal and that changing any other line breaks it.
+- `PYTHONPATH` is the detached worktree's `src`. The filled copy is started by WMI.
+- `redundant-drop-run.cmd dry` runs the free plan.
 
 ```bash
 python benchmarks/jev114/redundant_gen.py --check       # free: cases.jsonl is what the code writes
 python benchmarks/jev114/redundant_drop.py run --dry    # free: the plan above
 python benchmarks/jev114/redundant_drop_analysis.py --power   # free: the power table
-# revisor-prereg; fix; fill <KEYS_ENV_PATH> in the launcher (a path only); then:
+# revisor-prereg; fix; then:
 python benchmarks/jev114/redundant_drop.py seal         # data.sha256 + prereg.sha256, commit them
-# owner: TypeSafe balance >= 0.30 USD; git worktree add --detach at the sealing commit
-redundant-drop-run.cmd                                  # by WMI, from the detached worktree
+# git worktree add --detach at the sealing commit; copy the launcher to the run folder and fill
+# PY, SANCHOPANZA_KEYS_ENV and WT there (untracked)
+C:/sp-runs/jev114/redundant-drop/redundant-drop-run.cmd # by WMI; exit 6 = paused on a 402
 python benchmarks/jev114/redundant_drop.py publish      # free: recordings + launch log
 python benchmarks/jev114/redundant_drop.py rows         # free: drop-scored.jsonl
 python benchmarks/jev114/redundant_drop_analysis.py     # free: analysis.json, the verdict
