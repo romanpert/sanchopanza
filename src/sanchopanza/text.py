@@ -187,13 +187,17 @@ def match_window(text: object, purpose: str, limit: int) -> str:
 
     `truncate(text, limit)` while the sentence sharing the most distinct words with `purpose`
     (accent-folded, stopwords out, earliest on a tie, as `_bm25_words` reads them) ends inside
-    the head, or no sentence shares one: then nothing changes. Past the head, the sentences
-    around that match instead, whole, alternately one after and one before, up to `limit`
-    characters of whitespace-collapsed text, with `[...]` where text is left out on either
-    side. Unlike `excerpt` it keeps no head beside the window and never cuts a sentence that
-    fits: on B6's Spanish articles `excerpt` put fewer answer sentences in view than the head
-    did. Language-agnostic: no stemming, no word list beyond `STOPWORDS`. No model call.
+    what that head shows, or no sentence shares one: then nothing changes. Past the head, the
+    sentences around that match instead, whole, alternately one after and one before, with
+    `[...]` where text is left out on either side; the window and its markers are no longer
+    than the head and its marker (`limit` + 6 characters of whitespace-collapsed text). Unlike
+    `excerpt` it keeps no head beside the window and never cuts a sentence that fits: on B6's
+    Spanish articles `excerpt` put fewer answer sentences in view than the head did. Words are
+    Latin-script letters and digits (`_bm25_words`), no stemming: text in other scripts finds
+    no shared word and keeps the head. No model call.
     """
+    if limit <= 0:
+        raise ValueError("limit must be a positive number of characters")
     text = str(text or "")
     if len(text) <= limit:
         return text
@@ -205,10 +209,15 @@ def match_window(text: object, purpose: str, limit: int) -> str:
         return head
     shared = [len(words & set(_bm25_words(flat[a:b]))) for a, b in spans]
     best = max(range(len(spans)), key=lambda i: (shared[i], -i))
-    if shared[best] == 0 or spans[best][1] <= limit:
+    shown = len(re.sub(r"\s+", " ", text[:limit]).lstrip())  # the head, collapsed as `flat`
+    if shared[best] == 0 or spans[best][1] <= shown:
         return head
-    start, end = _grow(spans, best, limit)
-    return ("[...] " if start > 0 else "") + flat[start:end] + (" [...]" if end < len(flat) else "")
+    start, end = _grow(spans, best, max(1, limit - len(WINDOW_MARK)))
+    body = flat[start:end].strip()
+    return (WINDOW_MARK if start > 0 else "") + body + (" [...]" if end < len(flat) else "")
+
+
+WINDOW_MARK = "[...] "  # before a window that does not start the page; " [...]" after one
 
 
 def _sentence_spans(flat: str) -> list[tuple[int, int]]:

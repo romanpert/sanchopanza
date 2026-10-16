@@ -399,7 +399,7 @@ class Squire:
         return result
 
     async def triage_pages(
-        self, *, purpose: str, pages: Sequence[tuple[str, str]], excerpt: str = "head"
+        self, *, purpose: str, pages: Sequence[tuple[str, str]], page_view: chunks.PageView = "head"
     ) -> list[tuple[bool, float | None]]:
         """Which of these pages hold a fact the answer needs, judged with the others in view.
 
@@ -407,17 +407,18 @@ class Squire:
         questions nothing was chosen on: 98.3 % of supporting pages kept at 34 % of the text,
         where asking page by page kept 94.3 % at 53 % in ten calls
         (docs/results/2026-09-27-chunks/). Up to `chunks.PAGE_MAX` pages; later ones and
-        unanswered ones are kept: in doubt, a page enters. `excerpt="window"` (opt-in, roadmap
+        unanswered ones are kept: in doubt, a page enters. `page_view="window"` (opt-in, roadmap
         C6) shows a page past `Limits.page_chars` around its best match to `purpose`
         (`text.match_window`); `"head"`, the default, is what every published run used.
         """
+        chunks.require_page_view(page_view)
         most = self._limits.pages_per_call
         state, qs = chunks.context_questions(
             purpose=purpose,
             pages=pages,
             page_limit=self._limits.page_chars,
             page_max=most,
-            excerpt=excerpt,
+            page_view=page_view,
         )
         decision = await self.decide("triage_pages", state, qs)
         out: list[tuple[bool, float | None]] = []
@@ -428,7 +429,7 @@ class Squire:
         return out
 
     async def triage_many(
-        self, *, purpose: str, pages: Sequence[tuple[str, str]], excerpt: str = "head"
+        self, *, purpose: str, pages: Sequence[tuple[str, str]], page_view: chunks.PageView = "head"
     ) -> list[tuple[bool, float | None]]:
         """`triage_pages` for any number of pages: a tournament of in-context calls.
 
@@ -439,16 +440,17 @@ class Squire:
         The recommended way to keep documents out of an answering call: over each document's
         passages, 9/9 answers kept at 79.5 % fewer input tokens on a fixed sequence, one call
         (docs/results/2026-09-28-fixed-pages/). Unanswered pages are kept. The probability
-        returned is the last one the page got. `excerpt` as in `triage_pages`.
+        returned is the last one the page got. `page_view` as in `triage_pages`.
         """
-        return await self._page_tournament(purpose, pages, passages.CallReserve(None), excerpt)
+        chunks.require_page_view(page_view)
+        return await self._page_tournament(purpose, pages, passages.CallReserve(None), page_view)
 
     async def _page_tournament(
         self,
         purpose: str,
         pages: Sequence[tuple[str, str]],
         reserve: passages.CallReserve,
-        excerpt: str = "head",
+        page_view: chunks.PageView = "head",
     ) -> list[tuple[bool, float | None]]:
         """`triage_many`, each call claimed from `reserve`; a group past it goes unanswered."""
 
@@ -460,7 +462,7 @@ class Squire:
                 pages=[pages[i] for i in ids],
                 page_limit=self._limits.page_chars,
                 page_max=self._limits.pages_per_call,
-                excerpt=excerpt,
+                page_view=page_view,
             )
             decision = await self.decide("triage_pages", state, qs)
             self.record(decision, pages=len(ids))
@@ -510,7 +512,7 @@ class Squire:
         max_calls: int | None = None,
         fit_chars: int | None = None,
         fit_score: bool = True,
-        excerpt: str = "head",
+        page_view: chunks.PageView = "head",
     ) -> list[list[tuple[bool, float | None]] | None]:
         """The passages of one long document the answer needs: paragraphs, then sentences.
 
@@ -535,15 +537,16 @@ class Squire:
         stays in page order. `fit_score=False` skips the Score: the free order, no call.
         `fit_chars=None`, the default, changes nothing and adds no call.
 
-        `excerpt="window"` (opt-in, a candidate: roadmap C6) shows the tournament a paragraph
+        `page_view="window"` (opt-in, a candidate: roadmap C6) shows the tournament a paragraph
         past `Limits.page_chars` around its best match to `purpose` instead of its head
         (`text.match_window`); the sentence stage reads whole paragraphs either way. `"head"`,
         the default, is what every published run used.
         """
+        chunks.require_page_view(page_view)
         if fit_chars is not None and fit_chars < 1:
             raise ValueError("fit_chars must be >= 1 (or None for no fitting)")
         reserve = passages.CallReserve(max_calls)  # claimed before the first await
-        kept = await self._page_tournament(purpose, pages, reserve, excerpt)
+        kept = await self._page_tournament(purpose, pages, reserve, page_view)
         judged, whole = passages.sentence_stage(kept, self._t.document_paragraphs, reserve.left)
         for _ in judged:  # the sentence calls, claimed so that a later fit sees what is left
             reserve.take()

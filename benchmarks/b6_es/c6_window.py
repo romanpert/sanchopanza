@@ -1,4 +1,4 @@
-"""C6: the `select_passages` tournament with `excerpt="window"` against the head, fresh questions.
+"""C6: the `select_passages` tournament with `page_view="window"` against the head, fresh questions.
 
     python -I benchmarks/b6_es/c6_window.py build [--data DIR]   # free, offline: rows, manifest
     python -I benchmarks/b6_es/c6_window.py ceiling              # free: views only, no model
@@ -13,7 +13,7 @@ Questions: MLQA v1.0 test (CC BY-SA 3.0) that B6 did not use, whose Spanish arti
 B6's 614 docs articles, at B6's pinned revisions (CC BY-SA 4.0), read from B6's article cache
 offline; the gold sentence is located by B6's own code (`b6_build.doc_row`). Arms, jev-1.13.0,
 shipped thresholds and limits, no answering model: `Dh-es`/`Dw-es` and `Dh-en`/`Dw-en`,
-`Squire.select_passages(excerpt="head"|"window")` over the whole article.
+`Squire.select_passages(page_view="head"|"window")` over the whole article.
 
 Only questions whose article the window changes are asked (some paragraph shown differently
 by `text.match_window`); on every other question both arms send the same requests, get the
@@ -210,10 +210,10 @@ async def ask(rows: Sequence[Mapping[str, Any]], asker: br.Asker) -> list[dict[s
         for lang in br.arm_order(position, LANGS):
             if not changed(row, lang):
                 continue
-            for arm, excerpt in zip(ARMS[lang], ("head", "window"), strict=True):
+            for arm, view in zip(ARMS[lang], ("head", "window"), strict=True):
                 question, pages, _ = sc.doc_inputs(row, arm)
                 got = await squires[arm].select_passages(
-                    purpose=question, pages=pages, excerpt=excerpt
+                    purpose=question, pages=pages, page_view=view
                 )
                 out[arm] = [None if e is None else [[k, p] for k, p in e] for e in got]
         return out
