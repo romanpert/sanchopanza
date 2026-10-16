@@ -89,18 +89,23 @@ Claude Code ran past 150k that one setting alone did as well as the whole sancho
 it is all you want), wires [memory](docs/results/2026-10-13-memory-cell/) between requests,
 sessions and sibling worktrees (`--no-memory` leaves it out; see below), copies the
 `sanchopanza-code` skill and, for a project install, registers `find_in_repo` (always loaded, with a
-description of when to use it). Memory records each finished request verbatim, command output
-included, outside the project (`~/.sanchopanza/memory-store/<repository>/`, this user only, kept 30
-days), and gives a later request the records that bear on it; the touch when the agent opens or
-changes a file asks no model. With a TypeSafe key (or a provider), Jev decisions also keep the
-person's standing rules: each sentence of a prompt is asked whether it is one, and the newest are
-given at every session start. That is the mechanism that was measured (243 decisions over 24 pairs,
-0.008 USD; the cell's gain came with no send-back); without a key
-memory records and recalls by code only, which the cell did not measure. It is on by default since
-2026-10-14 because of that one cell: on Sonnet 5.5, a fact said in a parallel session or a sibling
-worktree was broken in 0 of 24 pairs with it and in 11 of 24 by clean Claude Code, at a median
-+12 % cost. On Opus 5.5 it had no room (Claude Code alone already kept the fact), and the web and
-code results in this README were measured without it. The Stop audit, which holds a request's
+description of when to use it). Memory ([how it works](docs/memory.md)) records each finished
+request verbatim, by code, outside the project (`~/.sanchopanza/memory-store/<repository>/`, this
+user only, records kept 30 days). With a TypeSafe key (or a provider), Jev keeps the person's
+standing rules (each sentence of a prompt is asked whether it is one) and gives them at every
+session start, and at a new session's first prompt gives back the earlier work it judges about
+the same code; opening or writing a file earlier work changed brings that work's record, by code.
+On Sonnet 5.5 in clean Claude Code 2.1.287 it won both cells it was measured in: a fact said in a
+parallel session or sibling worktree was broken in 0 of 24 pairs with it and in 11 without, at a
+median +12 % cost ([memory cell](docs/results/2026-10-13-memory-cell/)); and a two-step feature
+continued in a new session with one line naming it was finished right in 48 of 48 triples,
+against 44 with a pasted handoff from the previous session and 4 with the line alone, at 0.92x
+the handoff's cost ([F2](docs/results/2026-10-16-memory-f2/)). So you can start the next session
+with "Let's continue with the invoice export" instead of asking for a handoff prompt (measured on
+Sonnet 5.5 with the project-scope install, on our scenes). It is on by default since 2026-10-14.
+On Opus 5.5 it had no room in either test, since Claude Code's own auto memory already carried the
+fact and the plan; without a key neither cell was measured, and the web and code results in this
+README were measured without it. The Stop audit, which holds a request's
 diff against the stored rules and sends a confident break back once, is **off by default since
 2026-10-14** (`SANCHOPANZA_MEMORY_RULES_AUDIT=on`, in the environment or in the settings' `env`,
 turns it on): replayed over the maintainer's own sessions it sent 8 of 518 requests back with v8

@@ -105,14 +105,18 @@ Other comparisons (reported, not deciding):
 
 ## What S gave, and when
 
-- **Session 1.** At its Stop, memory's rule extraction (one Jev decision) stored 1-3 standing
-  rules from session 1's prompt in every S arm.
+- **Session 1.** At its Stop, memory's rule extraction (one Jev decision per prompt sentence)
+  stored 1-3 standing rules from session 1's prompt in every S arm.
 - **Session 2, at start.** SessionStart gave the standing rules, newest first, after the
   7 decoys.
 - **Session 2, the record.** Session 1's record came:
   - at the "continue" prompt in 36 of 48 Sonnet arms and 18 of 24 Opus arms (Jev at the prompt
     gate);
-  - at the first read of a step-1 file in the other 12 and 6.
+  - through the file-touch path in the other 12 and 6: on Sonnet at a Read of a step-1 file in
+    7 and at the first shell write to one in 5 (after that write); on Opus at a Read in all 6.
+    The split follows the continue line: in the 9 scenes whose line names a file step 1 wrote,
+    the record came at the prompt; in the 3 whose line names none, the prompt gate keeps no
+    record that changed files.
 - Every S arm got session 1's record in session 2.
 - The draft expected the prompt gate to hold the record back at a "continue" line. It did so
   in a quarter of the arms, and the file-touch path covered those.
