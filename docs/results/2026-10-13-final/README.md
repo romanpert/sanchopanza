@@ -117,9 +117,12 @@ done, in at least 3 of 8 ([memory-frontier](../2026-10-05-memory-frontier/gate-r
 | F1 (i), principle | Sonnet 5.5 | — | — | — | — | — | **sin margen** (N broke 2/8) |
 | F1 (ii), stale rule | Sonnet 5.5 | — | — | — | — | — | **sin margen** (N broke 0/8) |
 | F1 (i), (ii), (iii) | Opus 5.5 | — | — | — | — | — | **sin margen** (N broke 0/8, 0/8, 1/8) |
-| F2, handoffs | Sonnet 5.5, Opus 5.5 | — | — | — | — | — | **no corrido** |
+| F2, continuing a two-step feature in a new session (N0: a plain "let's continue") | Sonnet 5.5 | **+83.3** (kept all: S 48/48, N0 4/48; the handoff ritual H 44/48) | one-sided lower bound +81.4 (Tango); S − H +8.3, lower bound +2.6, margin −12.5 | 6e-14 (McNemar, 44 to 0) | 1.226 (median per triple; S/H 0.917) | session 2: 26.8 s against 20.5 s (medians) | **gana** |
+| F2, as above | Opus 5.5 | +4.2 (S 22/24, N0 21/24; H 17/24) | S − N0 lower bound −6.4; S − H +20.8, lower bound +8.6 | 0.5 | 1.105 (S/H 1.060) | 45.1 s against 41.1 s | **sin margen** (Claude Code's own auto memory carried the plan in every arm) |
 
-Source: [2026-10-13-memory-cell](../2026-10-13-memory-cell/README.md) (sealed prereg d42d261).
+Source: [2026-10-13-memory-cell](../2026-10-13-memory-cell/README.md) (sealed prereg d42d261);
+F2: [2026-10-16-memory-f2](../2026-10-16-memory-f2/README.md) (sealed 763dafd; 42.25 USD, Claude
+Code 2.1.287; "gana" is F2's sealed rule, S better than N0 and not worse than H, with no harm).
 Cost is the median S/N per pair; its interval is the geometric mean's, bootstrapped over scenes.
 S is the default install plus `--memory` (project scope); the default left memory off when this
 was measured and has wired it since 2026-10-14 (`--no-memory` leaves it out), so S is now the
@@ -135,11 +138,15 @@ default install. The other cells' S ran without memory.
 
 ## What wins, what does not, and why
 
-- **One measured cell is a win for S: memory on Sonnet 5.5, a fact said in a parallel session
-  or sibling worktree.** S broke the fact in 0 of 24 pairs, N in 11 (McNemar p 0.00049), at a
-  median cost of 1.117 (+12 %, within the sealed 1.15). The gain is in the 4 of 8 scenes where the
-  fact is not in the code. Memory is on by default in the install since 2026-10-14. On Opus 5.5
-  memory had no room.
+- **Two measured cells are a win for S, both memory on Sonnet 5.5.** A fact said in a parallel
+  session or sibling worktree: S broke it in 0 of 24 pairs, N in 11 (McNemar p 0.00049), at a
+  median cost of 1.117 (+12 %, within the sealed 1.15); the gain is in the 4 of 8 scenes where the
+  fact is not in the code. Continuing a two-step feature in a new session (F2): S did the next
+  step right in 48 of 48 triples, N with a plain "let's continue" in 4, and N with the owner's
+  handoff ritual in 44, at 1.23x N's cost and 0.92x the ritual's; what S carried was what came
+  next, since no session that built step 2 lost the constraint or the decision. Memory is on by
+  default in the install since 2026-10-14. On Opus 5.5 memory had no room in either family:
+  Claude Code's own auto memory carried the plan.
 - **No other measured cell is a win.** Three web suites are "no gana" on Sonnet 5.5; code on Haiku
   4.5 is non-inferior with no saving shown; on long code the Jev part (A) did not hold its edge.
   Early compaction near 67k on long code: cost 0.900 [0.741, 1.093], no saving shown. The rest is "sin margen" or not run.
@@ -158,18 +165,20 @@ default install. The other cells' S ran without memory.
   (the component benches in the top-level README), not as a default layer on Claude Code. The
   first measured substitution of a Sonnet 5.5 session came after this scoreboard (next section).
 
-## After the scoreboard: components measured on 2026-10-15
+## After the scoreboard: components measured on 2026-10-15 and 16
 
 Not S−N cells: neither is the install line against clean Claude Code. Each is a component
 against what it would replace, pre-registered and sealed before any answer.
 
 | Measure | Model | Result | 95 % CI | Verdict by the sealed rule |
 |---|---|---|---|---|
-| Jev where it is sure (top choice ≥ 0.6), Sonnet elsewhere, against Sonnet alone, 162 fresh LongBench v2 tasks | Jev 1.14 long window; Sonnet 5.5 in clean Claude Code 2.1.287 | +1.2 pts (coverage 37 %; on the 60 covered, Jev 31 and Sonnet 29 right); about 27 % of Sonnet's cost saved, uncovered cost estimated | [−3.1, +5.6] | **no peor** at −10 |
+| Jev where it is sure (top choice ≥ 0.6), Sonnet elsewhere, against Sonnet alone, 162 fresh LongBench v2 tasks | Jev 1.14 long window; Sonnet 5.5 in clean Claude Code 2.1.287 | +1.2 pts (coverage 37 %; on the 60 covered, Jev 31 and Sonnet 29 right); 33.9 % [24.0, 44.0] of Sonnet's cost saved | [−3.1, +5.6] | **no peor** at −10 |
+| The same router against Opus 5.5 alone, the same 162 tasks | Jev 1.14 long window; Opus 5.5 in clean Claude Code 2.1.287 | −3.7 pts (on the 60 covered, Opus 37 and Jev 31 right); 29.5 % [21.7, 37.7] of Opus's cost saved | [−8.0, +0.6] | **no peor** at −10 |
 | The memory gate reading whole sessions in one call against the shipped short window, 84 unseen LongMemEval questions | Jev 1.13 | recall 0.905 against 0.726; against BM25 top 3 +8.9 pts [0.0, +17.3], "alcanza" | [+10.7, +25.7] pts | **confirmado** |
 
 Sources: [lb162](../2026-10-15-lb162/README.md) (sealed c483beb; 0.875 USD of Jev, 5.757 of
-Claude), [memgate-long](../2026-10-15-memgate-long/README.md) (sealed c8d1da1; 0.53 USD of Jev).
+Claude), [lb162x](../2026-10-16-lb162x/README.md) (sealed 24adf4a; Opus on all 162 and Sonnet on
+the 102 uncovered tasks, 27.01 USD of Claude, no Jev call), [memgate-long](../2026-10-15-memgate-long/README.md) (sealed c8d1da1; 0.53 USD of Jev).
 The first is a Jev decision that replaces calls of the expensive model, the case this page
 names as the only one where a decision saves; it covers multiple choice over one long document
 and one draw. The second is a recall gain inside a component, measured on the library gate
@@ -182,7 +191,6 @@ By decision:
 
 - **Code on Sonnet 5.5 and Opus 5.5**: about 357 USD of list price estimated (cap 465) for Sonnet
   78×1 and Opus 52×1 (plan section 3). Only Haiku exists (phase D).
-- **Memory F2, handoffs**: about 180.5 USD (`2026-10-05-memory-frontier/prereg-f2-handoff.md`).
 - **Fable 5.1**: no suite.
 - **The memory cell on Opus 5.5**: sin margen at the gate.
 

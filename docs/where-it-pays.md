@@ -36,6 +36,12 @@ part of long code are not.
   (`docs/results/2026-10-13-memory-cell/`). With the layer the fact was broken in 0 of 24 pairs,
   without it in 11 (McNemar p 0.00049; by scene 4 wins, 0 losses), at a median 1.117 of the cost
   (+12 %). The gain is in the 4 of 8 scenes where the fact is not in the code.
+- Memory on Sonnet 5.5, continuing a two-step feature in a new session, is "gana" as well
+  (`docs/results/2026-10-16-memory-f2/`, pre-registered): with a plain "let's continue" the next
+  step was done right, constraint and decision kept, in 48 of 48 triples with the layer, 4 of 48
+  without it (McNemar p 6e-14) and 44 of 48 with a pasted handoff, at 1.23x the cost of doing
+  nothing and 0.92x the ritual's. On Opus 5.5 there was no room: Claude Code's own auto memory
+  carried the plan (22, 17 and 21 of 24).
 - Early compaction on long code (near 67k against N-early's 160k, Sonnet 5.5, 5 chains) is "no gana" (`docs/results/2026-10-13-long-compact/`): cost 0.900 [0.741, 1.093] with quality non-inferior (under the post-data amendment: conan-2 repeated, still no gana: 0.875 [0.754, 1.015] substituted, 0.887 [0.750, 1.050] averaged); no saving shown, so `install --context-budget` stays at 160,000.
 
 The rule above is what that result says. A decision pays where it replaces a call or tokens of the
@@ -452,7 +458,7 @@ implemented with a bench; "designed" means the arithmetic is here and the code i
 | **Triple verification before commit** | an LLM re-reading the chunk per proposed edge | triples extracted | in the package | **17 committed and 1 of them backwards** on 50 cases, eleven of them `reversed`: `ed-26` is committed against a text that states the opposite **[M]**. A backwards edge is the one error here nothing downstream catches |
 | **Injection screening on fetched content** | a hosted guardrail at ~0.60 USD/MTok | pages fetched | in the package | Public bench: 27/28 under the policy (flags above 0.70), AUC 1.00, against a regex at 23/28. AgentDojo: 101/124 attacks at 0.70, 120/124 with the regex alongside, **0/149** false alarms on real tool outputs **[M]**. End to end on AgentDojo's `slack` suite the undefended Sonnet 5 was compromised **0 times in 105**, so the scan bought nothing there, and it is off by default **[M]** |
 | **Closed-vocabulary classification** | a small LLM doing extraction-by-prompt | records | in the package | 80-85 % against independent labels, majority baseline 43-62 % **[M]** |
-| **Long-document multiple choice where Jev is sure** | a Sonnet 5.5 session reading the document | questions | measured, not a point yet | On 162 fresh LongBench v2 tasks, pre-registered: Jev 1.14 with the long window where its top choice is at least 0.6 (37 % covered), Sonnet 5.5 in clean Claude Code elsewhere: +1.2 points [−3.1, +5.6] against Sonnet alone, no worse at −10, about 27 % of Sonnet's cost saved (uncovered cost estimated) **[M]** (`docs/results/2026-10-15-lb162/`) |
+| **Long-document multiple choice where Jev is sure** | a Sonnet 5.5 session reading the document | questions | measured, not a point yet | On 162 fresh LongBench v2 tasks, pre-registered: Jev 1.14 with the long window where its top choice is at least 0.6 (37 % covered), Sonnet 5.5 in clean Claude Code elsewhere: +1.2 points [−3.1, +5.6] against Sonnet alone, no worse at −10, 33.9 % [24.0, 44.0] of Sonnet's cost saved; with Opus 5.5 as the expensive model −3.7 points [−8.0, +0.6], no worse at −10, 29.5 % [21.7, 37.7] of Opus's cost saved **[M]** (`docs/results/2026-10-15-lb162/`, `docs/results/2026-10-16-lb162x/`) |
 | **Extraction gating before a generative pass** | the generative extractor, on chunks with nothing in them | chunks in the corpus | in the package | 15/16, AUC 1.00 **[M]**; LazyGraphRAG makes this budget the whole cost curve **[P]** |
 
 ### Tier 2 - substitution, argued, not yet measured end to end
