@@ -406,3 +406,45 @@ Segunda pasada, sobre 89dcfce: un bloqueo y tres "debe", más "conviene":
 4. Además: la regla con cotas sin redondear; el prefijo en la primera llamada que corrió; la copia
    congelada contrastada con el manifiesto y `pip freeze` en el log; el runner comprueba el sello
    él mismo; la hora también antes de cada llamada (`clock`).
+
+## 17. Enmienda 1 (2026-10-17, antes de cualquier dato de la tanda)
+
+Escrita y sellada antes de que corra ninguna llamada de la tanda (el humo de la sección 12 corrió
+con el sello anterior, `510a5c6`; la tanda no ha corrido nunca). Sustituye al sello de `510a5c6`
+(instrumento `8341b6c`): el sello nuevo es hijo único del commit que añade esta sección. Cambia
+tres cosas; los brazos, cadenas, medidas, regla, potencia y topes (secciones 2-9) no cambian.
+
+1. **Escrituras que sobreviven a un apagado sucio.** El 16 a las 22:37 la máquina se cayó (evento
+   41) con otra tanda en marcha y su fichero de filas quedó a ceros: se escribía con un temporal y
+   `os.replace` sin `fsync`. Este instrumento tenía el mismo patrón en `arm_files.write_row`
+   (`row.json`, del que la tanda se reanuda y se cobra). Entra el arreglo de main (`88f5400`,
+   aquí `b42c1d9`): `sanchopanza.durable` (fsync antes del rename, fsync por línea añadida) en
+   `arm_files.write_row` y los demás escritores de estado de `benchmarks/`. Además, aquí,
+   `diff-<k>.patch` y `final.patch` (el runner se reanuda desde `diff-<k>.patch` y la nota sale
+   de ellos) pasan por `durable.replace_text`, con test (`tests/test_durable.py`). Los bytes
+   escritos son los mismos. **Lo instalado en P y en F** (todo `src/`, sellado) cambia solo en
+   cómo escriben `SpendLedger`, el cortacircuitos de fondos y el almacén de episodios de memoria:
+   con fsync, mismos bytes; la tanda es sin clave de Jev (`keyless`), así que los dos primeros no
+   se usan, y el tercero escribe lo mismo. Ningún prompt, hook ni salida del modelo cambia.
+2. **Horas quietas levantadas con Windows Update en pausa.** La regla de la sección 10 (ninguna
+   cadena empieza ni ninguna llamada se hace entre 00:00 y 08:00, `quiet_refusal`) existe solo
+   porque Windows Update reinicia la máquina de 02:00 a 08:00. Ahora se levanta mientras las
+   actualizaciones estén **pausadas al menos 24 h más allá de cada comprobación**
+   (`benchmarks/memory_carry/winupdate.py`: el final más temprano entre `PauseUpdatesExpiryTime`
+   y `PauseQualityUpdatesEndTime` de `HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings`; sin
+   pausa, o con un valor ilegible, la regla sigue). Se comprueba en los mismos sitios que antes:
+   antes de cada cadena y antes de cada llamada. Si la pausa se acaba a media tanda, la regla
+   vuelve sola. El runner anota en `runner-sonnet.log` cada levantamiento ("quiet hours lifted",
+   con la fecha de fin), y se publica como desviación del horario. **No cambian** la regla de
+   medianoche (una cadena no empieza si cruzaría las 00:00) ni la del reinicio pendiente
+   (`RebootRequired`, `RebootPending`, antes de cada cadena). Las secciones 11 y 15.7
+   ("lanzamiento a las 08:05") quedan así: se lanza cuando la pausa está puesta y comprobada, a
+   cualquier hora que deje acabar la primera cadena antes de medianoche. Con la pausa puesta por
+   el dueño la noche del 16 al 17 y el lanzamiento hacia las 03:00, las cinco cadenas (~11 h,
+   8-16) acaban hacia las 14:00 (como muy tarde ~19:00). La vigilancia hasta el final de la
+   última cadena (sección 10) sigue, a cargo de la sesión coordinadora.
+3. **Humo otra vez** (sección 12), con el sello nuevo, la copia congelada nueva y el mismo
+   lanzador, antes de la tanda: tope duro 8 USD (esperado 2-5). Lo que se lee a mano es lo de la
+   sección 12, más que el log anota el levantamiento de las horas si corre entre 00:00 y 08:00.
+
+Revisión independiente del delta (`revisor-prereg`) antes de sellar: sección 18.

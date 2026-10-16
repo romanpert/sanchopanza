@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import datetime as dt
 import sys
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +16,7 @@ import carry  # noqa: E402
 import docker_env  # noqa: E402
 import long_guard  # noqa: E402
 import run  # noqa: E402
+import winupdate  # noqa: E402
 from long_money import held  # noqa: E402
 
 
@@ -47,11 +48,16 @@ def start_refusal(ctx: Any, names: list[str], known: Mapping[str, Any],
 QUIET = (0, 8)  # no chain starts in these hours: past midnight, and Windows Update's 02:00-08:00
 
 
-def quiet_refusal(profile: Any, allow: bool, now: dt.datetime | None = None) -> str:
+def quiet_refusal(profile: Any, allow: bool, now: dt.datetime | None = None,
+                  lifted: Callable[[], str] = winupdate.quiet_lifted) -> str:  # fmt: skip
     """A day-only profile (the guard-pointers lot) starts no chain between 00:00 and 08:00:
-    Windows Update restarts the PC in 02:00-08:00 (the close-out lost a call to it at 05:04)."""
+    Windows Update restarts the PC in 02:00-08:00 (the close-out lost a call to it at 05:04).
+    Amendment 1 (sealed before any data): the hours lift while updates are paused for at least
+    another `winupdate.MARGIN` (`winupdate.quiet_lifted`), checked at every call."""
     hour = (now or dt.datetime.now()).hour
     if getattr(profile, "day_only", False) and not allow and QUIET[0] <= hour < QUIET[1]:
+        if lifted():
+            return ""
         return f"no chain starts between {QUIET[0]:02d}:00 and {QUIET[1]:02d}:00 (Windows Update)"
     return ""
 

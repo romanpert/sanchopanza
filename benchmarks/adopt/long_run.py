@@ -66,6 +66,7 @@ import long_resume  # noqa: E402
 import long_window  # noqa: E402
 import meter  # noqa: E402
 import run  # noqa: E402
+import winupdate  # noqa: E402
 from long_money import blocks, ceiling_of, held, rows_under, spent  # noqa: E402,F401
 from long_start import (  # noqa: E402
     midnight_refusal,
@@ -75,6 +76,7 @@ from long_start import (  # noqa: E402
 )
 
 sys.path.insert(0, str(HERE.parents[1] / "src"))
+from sanchopanza import durable  # noqa: E402
 from sanchopanza.harness.install_defaults import window_for  # noqa: E402
 
 ROOT = Path(r"C:\sp-runs\L")  # outside the home folder: carry.refuse_unclean; short for MAX_PATH
@@ -560,7 +562,7 @@ def settle_dead(ctx: Ctx, a: Arm, state: ArmState, rows: list[dict[str, Any]], k
     row = long_resume.dead_row(k, a.asks[k - 1], facts, decision, money, stream)
     log(f"{a.name} {a.arm} {k}: the runner died in this call; {decision}")
     if decision != "retry":
-        (a.evidence / f"diff-{k}.patch").write_text(state.diff, encoding="utf-8", newline="\n")
+        durable.replace_text(a.evidence / f"diff-{k}.patch", state.diff, newline="\n")
     state = replace(state, session=session, usage=usage, seen=state.seen | {r.id for r in new})
     stop = "set aside" if decision == "set-aside" else ""
     return a, [*rows, row], state, k if decision == "retry" else k + 1, stop
@@ -660,7 +662,7 @@ def settle(ctx: Ctx, a: Arm, k: int, ask: Mapping[str, Any],
            attempt: Mapping[str, Any]) -> tuple[ArmState, dict[str, Any], str]:  # fmt: skip
     """The call's row, the state for the next call, and why the arm stops ("" to go on)."""
     facts, state = attempt["facts"], attempt["state"]
-    (a.evidence / f"diff-{k}.patch").write_text(attempt["diff"], encoding="utf-8", newline="\n")
+    durable.replace_text(a.evidence / f"diff-{k}.patch", attempt["diff"], newline="\n")
     seen_before = state.seen
     money, state = meter_call(ctx, a, state, attempt)
     s_facts, state = s_arm_facts(a, state) if installed(a.arm, ctx.profile) else ({}, state)
@@ -814,7 +816,7 @@ def stop_of(ctx: Ctx, a: Arm, row: Mapping[str, Any], attempt: Mapping[str, Any]
 def finish(ctx: Ctx, a: Arm, base: Mapping[str, Any], rows: list[dict[str, Any]],
            stop: str) -> None:  # fmt: skip
     final = docker_env.agent_diff(a.work, a.base)
-    (a.evidence / "final.patch").write_text(final, encoding="utf-8", newline="\n")
+    durable.replace_text(a.evidence / "final.patch", final, newline="\n")
     sessions = [r.get("session") or "" for r in rows]
     missing = arm_files.copy_transcripts(sessions, a.evidence, arm_files.projects_root(a.env))
     ran = [r for r in rows if not str(r.get("status", "")).startswith("NOT RUN")]
@@ -887,6 +889,8 @@ def run_all(ctx: Ctx, names: list[str], known: Mapping[str, Any], models: list[s
                        or restart_refusal(ctx.profile, allow_midnight)):
                 log(f"{name} {model}: refused: {why}")
                 return 1
+            if getattr(ctx.profile, "day_only", False) and (why := winupdate.quiet_lifted()):
+                log(f"{name} {model}: quiet hours lifted: {why} (amendment 1)")
             log(f"{name} {model}: start, spent so far {spent(ctx.layout):.2f} USD")
             if stop := run_chain(c, known[name], status):
                 log(f"{name} {model}: stopped ({stop})")

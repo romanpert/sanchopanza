@@ -137,11 +137,16 @@ def test_no_chain_starts_between_midnight_and_eight(monkeypatch) -> None:
     import long_start
 
     p = long_run.PROFILES["guardptr"]
-    assert long_start.quiet_refusal(p, False, dt.datetime(2026, 10, 17, 5, 0))
-    assert long_start.quiet_refusal(p, False, dt.datetime(2026, 10, 17, 0, 30))
-    assert long_start.quiet_refusal(p, False, dt.datetime(2026, 10, 17, 8, 5)) == ""
-    assert long_start.quiet_refusal(p, True, dt.datetime(2026, 10, 17, 5, 0)) == ""
+    held = lambda: ""  # noqa: E731  (updates not paused)
+    assert long_start.quiet_refusal(p, False, dt.datetime(2026, 10, 17, 5, 0), held)
+    assert long_start.quiet_refusal(p, False, dt.datetime(2026, 10, 17, 0, 30), held)
+    assert long_start.quiet_refusal(p, False, dt.datetime(2026, 10, 17, 8, 5), held) == ""
+    assert long_start.quiet_refusal(p, True, dt.datetime(2026, 10, 17, 5, 0), held) == ""
     assert long_start.quiet_refusal(long_run.PROFILES["compact"], False,
-                                    dt.datetime(2026, 10, 17, 5, 0)) == ""  # fmt: skip
+                                    dt.datetime(2026, 10, 17, 5, 0), held) == ""  # fmt: skip
+    # Amendment 1: updates paused past the margin lift the hours, for the guard lot only.
+    paused = lambda: "Windows Update paused until 2026-10-24 01:10 UTC"  # noqa: E731
+    assert long_start.quiet_refusal(p, False, dt.datetime(2026, 10, 17, 5, 0), paused) == ""
+    assert dt.timedelta(hours=16) <= long_start.winupdate.MARGIN  # the lot's slowest wall
     for name in [n for n in sys.modules if n.startswith(("long_", "run", "docker_env"))]:
         sys.modules.pop(name, None)

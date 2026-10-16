@@ -147,6 +147,14 @@ def test_adopt_rows_are_synced_before_the_rename(
     assert kinds(events)[:2] == ["fsync", "replace"]
 
 
+def test_long_runs_patches_are_synced() -> None:
+    """A long arm resumes from `diff-<k>.patch` and is graded on them and on `final.patch`: a
+    dirty shutdown must not leave them zero-filled (guard-pointers amendment 1)."""
+    text = (ROOT / "benchmarks" / "adopt" / "long_run.py").read_text(encoding="utf-8")
+    assert not re.search(r'\.patch"\)\.write_text\(', text)
+    assert len(re.findall(r'durable\.replace_text\(a\.evidence / f?"(?:diff-|final)', text)) == 3
+
+
 # ---- no unsynced temp-and-rename left ------------------------------------------------------
 
 # A temporary file written and renamed into place with no fsync. Left as they are, on purpose:

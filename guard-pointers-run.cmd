@@ -27,7 +27,9 @@ rem   $s = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property
 rem   Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
 rem     CommandLine = "cmd.exe /c <root>\guard-pointers-run.cmd <seal>"; ProcessStartupInformation = $s }
 rem A chain starts only if it ends before midnight, not between 00:00 and 08:00 (Windows Update
-rem restarts the PC in 02:00-08:00) and not while Windows says a restart is pending.
+rem restarts the PC in 02:00-08:00) and not while Windows says a restart is pending. Amendment 1:
+rem the 00:00-08:00 hours lift while Windows Update is paused at least 24 h past each check
+rem (benchmarks\memory_carry\winupdate.py); launched then, it may start before 08:05.
 rem Run it again to resume: finished arms are skipped, a stopped arm goes on at its next request.
 rem Stop: a STOP file in the root (between calls), or
 rem `python benchmarks\adopt\long_run.py kill --root <root>` (verified PID only).
