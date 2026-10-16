@@ -4,12 +4,14 @@
     Authorization: Bearer $OPENAI_API_KEY
     {"model": "gpt-6-luna", "input": "...", "questions": [{"type", "name", "instructions", ...}]}
 
-**Written against the official guide, never called.** The format is the one in OpenAI's guide
+**Written against the official guide, measured once.** The format is the one in OpenAI's guide
 (developers.openai.com/api/docs/guides/decisions, read 2026-10-16; public beta since
 2026-10-06); the API reference page was not readable, so error bodies, limits and the field
-constraints are not documented here and the tests stand on a mock of the guide's examples. No
-answer from this provider has been measured on any bench in this repository: it is an
-adapter, not a result, and its thresholds are Jev's until someone derives its own.
+constraints are not documented here and the tests stand on a mock of the guide's examples. One
+sealed measurement (docs/results/2026-10-16-openai-decisions): on the public benches, asked as
+sanchopanza ships, 200 of 244 rows right against Jev's 206 (−2.5 points [−6.1, +1.2], "no
+concluyente" at −5), every query answered, its predicate probabilities better calibrated than
+Jev's. Its thresholds are Jev's until someone derives its own.
 
 Mapping, from the guide:
 - `Truth` is a `predicate`; its answer is `probability`, and confidence is |2p - 1| as for

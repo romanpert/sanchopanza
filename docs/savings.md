@@ -28,7 +28,7 @@ one workload; neither is a saving figure for the package as a whole.
 | Claude Sonnet 5 | 2.00 | 10.00 |
 | Claude Haiku 4.5 | 1.00 | 5.00 |
 | Jev 1.13 (the decision model every figure here was measured with) | 0.042 | free |
-| OpenAI Decisions API, `gpt-6-luna` (an adapter, not measured here) | 0.10 | free |
+| OpenAI Decisions API, `gpt-6-luna` (measured once: [D1](results/2026-10-16-openai-decisions/README.md)) | 0.10 | free |
 
 ## Measured: what the decision layer costs
 

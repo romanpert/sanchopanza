@@ -17,7 +17,7 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 | C9 | Memory's prune deleted the standing rules of a project idle for 30 days | **high** | free | **done** (`230a2aa`) |
 | C10 | Two names of other private projects and some local paths in public files | **high** | free | **in progress** |
 | B1 | Publish a release (`v*` tag and PyPI) so the consumer stops pinning a tarball by commit | **high** | free (PyPI: owner's decision, irreversible) | **in part**: `v0.3.1` tagged with a GitHub release; PyPI approved by the owner, but the publish waits for the trusted publisher on pypi.org (owner's account) |
-| D1 | OpenAI's Decisions API as one more provider | medium | free (adapter); OpenAI calls: owner's decision | **adapter done, never called** (`openai-decisions`) |
+| D1 | OpenAI's Decisions API as one more provider | medium | free (adapter); OpenAI calls: owner's decision | **measured once** (D1: "no concluyente" at −5, −2.5 points [−6.1, +1.2], 0.0143 USD; `openai-decisions`) |
 | C7 | The LongBench routing point, opt-in | medium | free (code); Claude for what follows | **done** (`9705f25`) |
 | C1 | A PostToolUse check on MCP results (what A3's PreToolUse guard cannot read) | medium | Jev (replay ~0.05-0.10 USD), then Claude (~5 USD live probe) | **built, opt-in** (`--guard-mcp-post`); W17's development lot does not license a confirmation (+35 unsafe caught, +14 safe flagged, upper bound +8.0 past +7); next: a new registration with the cut fixed before its data, on fresh ATBench (~0.20 USD of Jev) |
 | C2 | check_done with the tool results the answer rests on, not cut at 1,500 characters | medium | free (record builder) + Jev (~0.3-0.5 USD) | **built, opt-in** (`SANCHOPANZA_DONE_EVIDENCE`); checkdone-w17: not adopted, false blocks 165 → 123 of 828 (+5.07 [1.53, 9.77]) but catches 598 → 583 of 744 (−2.02 [−5.37, +0.26]) past the −2 guard; next: diagnose the lost catches (18, mostly multi-part workspace tasks), change the builder, confirm under a new registration |
@@ -120,12 +120,9 @@ provider every figure was measured with, and OpenAI's `/v1/decisions` (public be
 one. **Adapter done** (`providers/openai_decisions.py`, `create("openai-decisions")`): written
 against OpenAI's guide, tested on a mock of its examples, always behind a spending ledger every
 process shares (0.50 USD in all by default) and the shared funds breaker on an out-of-quota
-answer. Never called: nothing says whether its
-probabilities are calibrated on these points, and every threshold was set against Jev. What it
-would take to say anything: a free preflight-style check of one call, then the public benches
-replayed live and recorded (core, safety, graph: 227 decisions, about 185,000 input tokens, so
-about 0.02 USD at list price), compared with Jev's recording on the same items. OpenAI spend is
-the owner's call.
+answer. **Measured once** (2026-10-16, sealed `2fc329b`, [D1](results/2026-10-16-openai-decisions/README.md)):
+on the public benches it decided 200 of 244 rows right against Jev's 206, −2.5 points [−6.1, +1.2], "no concluyente" at −5, with better-calibrated yes/no answers, for 0.0143 USD. Next, if it is worth a second supplier: parity on the 1,437 component items (about 0.24
+USD of OpenAI) and a threshold profile of its own; OpenAI spend is the owner's call.
 
 **C1. A PostToolUse check on MCP results.** A3's misses are mostly harm that shows only in a
 tool's answer (14 of 33 are `malicious_tool_execution`), which a PreToolUse guard never reads.

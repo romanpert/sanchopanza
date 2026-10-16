@@ -29,7 +29,7 @@ hands those questions to a separate model that cannot write, only answer: a choi
 probability, logged. The model sits behind one contract, so it is a provider you choose:
 TypeSafe's Jev, with which every figure for sanchopanza's own decision points was measured (a median of about 71 millionths of
 a dollar a request), a self-hosted CLM, any LLM forced into a schema, OpenAI's Decisions API
-(an adapter, not measured yet), or your own classifier ([providers](docs/providers.md)). If it
+(measured once: in the same range as Jev on the public benches), or your own classifier ([providers](docs/providers.md)). If it
 is missing or unsure, the agent does exactly what it did before.
 
 **Who it is for.** Anyone running AI agents who wants to spend less on them and trust them
@@ -524,7 +524,7 @@ tested with fake providers only.
 | Against a hosted evaluation meter (Azure, Vertex legacy), per 1,000 judgments of 1,500 input tokens | 0.063 USD against about 42 USD: **~670x** |
 | **Long-document questions routed by `points.longdoc`**, end to end with the frontier model's share | **33.9 % [24.0, 44.0]** of Sonnet 5.5's cost saved, **29.5 % [21.7, 37.7]** of Opus 5.5's, no worse at −10 points ([lb162x](docs/results/2026-10-16-lb162x/README.md)) |
 | **Memory instead of the handoff ritual**, Sonnet 5.5, per triple | **0.92x [0.85, 0.95]** the ritual's cost, 48 of 48 against 44 of 48 ([F2](docs/results/2026-10-16-memory-f2/README.md)) |
-| OpenAI's Decisions API, list price | 0.10 USD per million input tokens, about 2.4x Jev's; not measured here |
+| OpenAI's Decisions API, list price and measured | 0.10 USD per million input tokens, about 2.4x Jev's; on the public benches it counted fewer tokens (123,148 against 154,827), so about 1.9x Jev's cost a call: 0.0143 USD for the 301 queries ([D1](docs/results/2026-10-16-openai-decisions/README.md)) |
 
 The second row is the one to read, because both sides of it are measured rather than quoted
 from a tariff. Building a second annotator for our own bench meant asking a frontier model
@@ -748,9 +748,10 @@ separate the classes: train its heads on your cases first ([CLM on a CPU](docs/r
 OpenAI's Decisions API, a public beta since 2026-10-06, has an adapter:
 `create("openai-decisions")`, written against OpenAI's guide and tested on a mock of its
 examples, always behind a spending ledger shared by every process (0.50 USD in all by default).
-It has never been called
-here, and every threshold was set against Jev: record it on your own cases before trusting a
-cut ([providers](docs/providers.md#openai-checked-2026-09-30)). A local classifier is one more
+Measured once, pre-registered: on the public benches it decided 200 of 244 rows right against Jev's 206, −2.5 points [−6.1, +1.2], "no concluyente" at −5, with better-calibrated yes/no answers, for 0.0143 USD
+([D1](docs/results/2026-10-16-openai-decisions/README.md)). Every threshold was set against
+Jev: record it on your own cases before trusting a cut
+([providers](docs/providers.md#openai-checked-2026-09-30)). A local classifier is one more
 provider too, never a stand-in trained on another provider's answers: TypeSafe's terms forbid
 training on Jev's outputs, so train on your own labels or a public benchmark's, and measure on
 data it never saw.

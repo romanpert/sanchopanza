@@ -17,7 +17,7 @@
   `SANCHOPANZA_OPENAI_DECISIONS_MAX_USD`) and does not reset by itself. Only a rate-limit 429 is
   retried; an out-of-quota answer trips the shared funds breaker, whose notice no longer sends a
   non-Jev provider to `jev-preflight`. Tested on a mock of the
-  guide's examples; **never called and not measured**: every threshold in `policy.py` was set
+  guide's examples, and measured once (below, D1); every threshold in `policy.py` was set
   against Jev.
 - **An MCP guard after the call, opt-in** (`install --guard-mcp-post`, `--guard-mcp-withhold`;
   `SANCHOPANZA_GUARD_MCP_POST=1|withhold`; merge `c3313a3`). The `actions` point judges an MCP
@@ -108,6 +108,13 @@
 
 ### Measured
 
+- **OpenAI's Decisions API on the public benches: "no concluyente"**
+  (`docs/results/2026-10-16-openai-decisions`, sealed `2fc329b`, reviewed twice): asked as
+  sanchopanza ships, `gpt-6-luna` decided 200 of 244 rows right against Jev's 206 (jev-1.13.0's
+  recording), −2.5 points, paired bootstrap 95 % [−6.1, +1.2], against a −5 margin; McNemar 7
+  against 13, p 0.26. Every one of the 301 queries answered; better-calibrated yes/no answers
+  (expected calibration error 0.028 against 0.094); behind on the citation points, facts and the
+  plan's dependencies. 0.0143 USD of OpenAI.
 - **The longdoc router at a 0.8 cut against Opus 5.5: "no concluyente"**
   (`docs/results/2026-10-16-lbo8`, sealed `2f232f1`): on the 78 fresh LongBench v2 QA tasks left,
   all under 100,000 characters, Jev 1.14 answering where its top choice reached 0.8 (30 of 78)

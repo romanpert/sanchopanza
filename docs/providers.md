@@ -21,7 +21,7 @@ For `Choice`, the provider's own confidence if it has one, else top minus runner
 | Name | Class | What it is for | Confidence is |
 |---|---|---|---|
 | `jev` | `JevDecider` | TypeSafe Jev over HTTP; the model the paper measures | a property of the output distribution |
-| `openai-decisions` | `OpenAIDecisionsClient` behind `CappedDecider` | OpenAI's Decisions API (`/v1/decisions`, `gpt-6-luna`, public beta since 2026-10-06). **Written against OpenAI's guide and tested on a mock of its examples; never called, never measured here** (see below). Reads `OPENAI_API_KEY`; refuses past a ledger every process shares, 0.50 USD in all by default | the provider's own for Choice and Score; |2p - 1| for Truth, as everywhere |
+| `openai-decisions` | `OpenAIDecisionsClient` behind `CappedDecider` | OpenAI's Decisions API (`/v1/decisions`, `gpt-6-luna`, public beta since 2026-10-06). Written against OpenAI's guide and tested on a mock of its examples; **measured once**: on the public benches 200 of 244 rows right against Jev's 206, −2.5 points [−6.1, +1.2], "no concluyente" at −5 ([D1](results/2026-10-16-openai-decisions/README.md)). Reads `OPENAI_API_KEY`; refuses past a ledger every process shares, 0.50 USD in all by default | the provider's own for Choice and Score; |2p - 1| for Truth, as everywhere |
 | `recorded` | `RecordedDecider` | replay of real decisions; tests, dry runs, CI | recorded |
 | `null` | `NullDecider` | no provider; every policy uses its default | none |
 | `clm` | `JevDecider` | CLM-8B (Contrastive-LM, Apache-2.0) behind its self-hosted `clm-serve`, which speaks Jev's wire format. **Run against a real server** on 2026-09-30, on a CPU encoder (transformers, float32) instead of the reference vLLM on NVIDIA: it works end to end, but zero-shot on sanchopanza's benches it agrees far less than Jev (injection 12/28 against 27/28, routing 3/20 against 14/20) and its probabilities do not separate the classes (`results/2026-09-30-clm-cpu/`). Needs its heads trained before it can stand in for Jev; pass `timeout_s` high on a CPU | CLM's own probabilities; zero-shot, measured not to separate on these questions |
@@ -94,9 +94,12 @@ For an LLM you do not have a completer for, write `async def complete(system, us
 
   What is not known: the API reference page was not readable on 2026-10-16, so error bodies,
   limits per request and rate limits come from no official source; the tests stand on a mock
-  of the guide's illustrative answers. Nothing in this repository has asked it a question, so
-  nothing says whether its probabilities are calibrated on these points, and every threshold in
-  `policy.py` was set against Jev: measure it on your own cases (`sanchopanza bench ... --provider
+  of the guide's illustrative answers. Measured once on the public benches, pre-registered
+  ([D1](results/2026-10-16-openai-decisions/README.md)): every one of 301 queries answered, 200 of
+  244 rows right against Jev's 206 (−2.5 points [−6.1, +1.2], "no concluyente" at −5), behind on
+  the citation points, facts and the plan's dependencies, its predicate probabilities better
+  calibrated (expected calibration error 0.028 against Jev's 0.094), at about 1.9x Jev's cost a
+  call. Every threshold in `policy.py` was set against Jev: measure it on your own cases (`sanchopanza bench ... --provider
   openai-decisions --record ...`) before trusting a cut. An out-of-quota answer (429
   `insufficient_quota`, or 402) trips the same shared breaker as Jev's 402 and is not retried.
   `create` never returns it uncapped: the client sits behind `CappedDecider` on a ledger every

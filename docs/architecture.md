@@ -100,8 +100,9 @@ thresholds in `policy.py` were set against it. The others:
   3/20 against 14/20) and its probabilities do not separate the classes
   (`docs/results/2026-09-30-clm-cpu/README.md`).
 - `openai-decisions` is OpenAI's Decisions API (`providers/openai_decisions.py`), written
-  against OpenAI's guide and tested on a mock of its examples; it has never been called or
-  measured here, and `create` always puts it behind a dollar ledger every process shares.
+  against OpenAI's guide and tested on a mock of its examples; measured once, pre-registered:
+  on the public benches it decided 200 of 244 rows right against Jev's 206, −2.5 points [−6.1, +1.2], "no concluyente" at −5, with better-calibrated yes/no answers, for 0.0143 USD (`docs/results/2026-10-16-openai-decisions/`). `create` always puts it behind a dollar
+  ledger every process shares.
 - `llm` forces a generative model into the same typed answers, `local` wraps your own
   classifiers, `recorded` replays a fixture and `null` answers nothing.
 

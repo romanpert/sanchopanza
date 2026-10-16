@@ -227,3 +227,16 @@ def test_a_failed_preflight_leaves_no_launch_record(tmp_path) -> None:
             setattr(paid_once, name, fn)
     assert calls == ["key", "check"]
     assert paid_once.history(lot) == []
+
+
+def test_the_published_result_replays_from_the_recording() -> None:
+    """docs/results/2026-10-16-openai-decisions: 200 against 206 of 244, "no concluyente"."""
+    if not run.LOT.fixture.exists():
+        pytest.skip("D1's recording is not present")
+    out = run.report()
+    primary = out["primary"]
+    assert (primary["a_right"], primary["b_right"], primary["only_a"], primary["only_b"]) == (
+        200, 206, 7, 13)  # fmt: skip
+    assert primary["verdict"] == "no concluyente" and out["queries_not_asked"] == 0
+    assert out["rows_without_a_usable_answer"] == {"openai": 0, "jev": 0}
+    assert [round(x, 4) for x in primary["ci95"]] == [-0.0615, 0.0123]

@@ -7,7 +7,7 @@
     create("null")                        answers nothing; every policy uses its default
     create("openai-decisions")            OpenAI's Decisions API (reads OPENAI_API_KEY), always
                                           behind a ledger shared by every process (0.50 USD by
-                                          default); written to the guide, never measured
+                                          default); measured once on the public benches
     create("llm", complete=...)           any LLM forced into a JSON schema
     create("local", handlers=...)         your own classifiers, embeddings, vision models
     FallbackDecider([a, b])               first provider that answers wins
