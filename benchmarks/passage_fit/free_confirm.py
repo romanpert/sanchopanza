@@ -386,7 +386,9 @@ def paid(launcher: pathlib.Path | None, *, load_key: Any = paid_once.load_key,
         or not launcher.is_file()
         or (paid_once.launcher_digest(launcher) != paid_once.launcher_digest(the_lot.launcher))
     ):
-        raise SystemExit("a paid run starts from c5-free-run.cmd (--launcher): nothing spent")
+        raise SystemExit(
+            f"a paid run starts from {the_lot.launcher.name} (--launcher): nothing spent"
+        )
     rows = load_rows()
     plan = dry(rows)
     room = paid_once.room(the_lot)  # this batch's cap and the round's, whichever is less

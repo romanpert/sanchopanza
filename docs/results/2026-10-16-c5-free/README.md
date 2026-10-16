@@ -16,8 +16,9 @@ CI [−13.4, −0.6]). That reading does not measure the option.
 
 The sealed verdict is what the rule produced; the defect means it does not measure the
 option, and the post-data reading does not replace it. **B4's +13.6 was not refuted**: what the
-sealed rule read as a loss is the runner cutting FREE's runs. A valid confirmation needs a new
-sealed run on questions nobody has looked at, with the fixed runner.
+sealed rule read as a loss is the runner cutting FREE's runs. The confirmation came from C5b,
+the same design on a fresh QASPER train draw with the runner fixed: **+16.4 points [+11.0,
++21.9]**, confirmed by the sealed rule (docs/results/2026-10-16-c5b-free/).
 
 Pre-registered in `prereg.md`:
 - instrument commit `319ee79`, sealed in `3a201f0`;
@@ -112,12 +113,13 @@ after the data is labelled as such and does not replace the sealed verdict.
 
 ## What it implies
 
-- **`fit_score=False` stays opt-in, as a candidate.** That is what the sealed rule licenses: its
+- **C5's sealed rule left `fit_score=False` a candidate, opt-in.** its
   rule 2 ("FREE loses") leaves the free order a candidate as rule 3 does (`prereg.md`, "What each
   licenses"). It should not be retired: B4 (exploratory) and this lot's post-data reading both
   favour it over page order, by +13.6 and +12.0.
-- **It is not yet a measured option.** That needs a sealed run on fresh questions with the fixed
-  runner: a draw from QASPER's train split the size of this one costs about 1.2 USD of Jev.
+- **C5b has since measured it:** on the 348 of 646 fresh QASPER train questions that overflow, with the runner
+  fixed, FREE kept 78.3 % against page order's 61.9 %, +16.4 [+11.0, +21.9], confirmed by the sealed
+  rule (docs/results/2026-10-16-c5b-free/).
 - **BM25 over the delivered text** is not told apart from page order (+3.6 [−2.2, +9.0]).
 - **The ceiling** (answer paragraphs first) is 94.1 %, +30.5 points over page order [+25.5,
   +35.4]; post-data, 18.5 points above the free order.

@@ -1,4 +1,4 @@
-"""The published C4 and C5 results replay from their recordings.
+"""The published C4, C5 and C5b results replay from their recordings.
 
 C4 (docs/results/2026-10-16-c4-written/): the 1,500 recorded answers give analysis.json again.
 C5 (docs/results/2026-10-16-c5-free/): the gzipped recording has its hash; with the QASPER
@@ -77,3 +77,27 @@ def test_c5_replays_the_sealed_report_and_the_post_data_reading(
     assert sealed["verdict"] == "FREE loses to page order"
     assert "verdict" not in post
     assert post["rule_applied_post_data"].startswith("FREE confirmed")
+
+
+C5B = ROOT / "docs" / "results" / "2026-10-16-c5b-free"
+C5B_GZ_SHA256 = "509ec55e8015ea5a1bc9bb18a437244fea03fba6ba78cd90346d7676aecf6dda"
+C5B_RECORDING_SHA256 = "21efa6dff3628ba508bdb7b1f86869bcfbce95f5ceb2cca1b6d53ff476d0e6e0"
+
+
+def test_c5b_ships_its_recording_gzipped() -> None:
+    gz = ROOT / "fixtures" / "c5b-free" / "recording.jsonl.gz"
+    assert _sha(gz) == C5B_GZ_SHA256
+    assert hashlib.sha256(gzip.decompress(gz.read_bytes())).hexdigest() == C5B_RECORDING_SHA256
+
+
+def test_c5b_replays_its_sealed_report(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    fb = _load("free_confirm_b", ROOT / "benchmarks/passage_fit/free_confirm_b.py")
+    if not fb.QASPER.exists():
+        pytest.skip("the QASPER train export is not here (free_confirm_b.py export)")
+    plain = tmp_path / "recording.jsonl"
+    plain.write_bytes(gzip.decompress((ROOT / "fixtures/c5b-free/recording.jsonl.gz").read_bytes()))
+    monkeypatch.setattr(fb.c5, "FIXTURE", plain)
+    sealed = json.loads((C5B / "analysis.json").read_text(encoding="utf-8"))
+    replayed = json.loads(json.dumps(fb.c5.analysis(fb.c5.SEALED_SQUIRE_CAP_USD)))
+    assert _without_head(replayed) == _without_head(sealed)
+    assert sealed["verdict"].startswith("FREE confirmed") and sealed["unanswered_calls"] == 0
