@@ -34,6 +34,9 @@ wins when both are set (`sanchopanza._env`):
                       and send Claude back once if it confidently does not (opt-in; never
                       twice in a row; any failure lets the stop through). Measured on
                       AgentDojo, not on coding sessions: see docs/results/2026-09-25-completion.
+    DONE_EVIDENCE     "1" to keep, in CHECK_DONE's record, the part of a long tool result the
+                      agent's later text rests on, besides its head (`points.done_evidence`).
+                      Off until measured: benchmarks/jev114/w17_prereg.md.
     ON_CHANGE         "0" to run CHECK_DONE (and candor) on every request. By default they act
                       only on a request that changed something (`harness.change_gate`): on
                       question-and-answer sessions the send-back never changed a grade.
@@ -69,7 +72,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from .. import _env
-from ..points import completion
+from ..points import completion, done_evidence
 from ..points.routing import Tier
 from . import change_gate
 from .generic import Guardian, HarnessConfig, text_of
@@ -136,6 +139,7 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
     cheap = _env.get("CHEAP_SEARCH", "", env=env) in ("1", "true", "yes")
     scan = _env.get("SCAN_CONTENT", "", env=env) in ("1", "true", "yes")
     check_done = _env.get("CHECK_DONE", "", env=env) in ("1", "true", "yes")
+    done_evidence = _env.get("DONE_EVIDENCE", "", env=env) in ("1", "true", "yes")
     shell_fetches = _env.get("SCAN_SHELL_FETCHES", "1", env=env) not in ("0", "false", "no")
     named = {t.strip() for t in _env.get("CONTENT_TOOLS", "", env=env).split(",") if t.strip()}
     purpose = _env.get("PURPOSE", "", env=env).strip()
@@ -158,6 +162,7 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
         cheap_search_available=lambda: cheap,
         scan_content=scan,
         check_done=check_done,
+        done_evidence=done_evidence,
         scan_shell_fetches=shell_fetches,
         content_tools=frozenset(named) if named else defaults.content_tools,
         content_purpose=(lambda: purpose) if purpose else defaults.content_purpose,
@@ -214,11 +219,17 @@ def _text_of(content: Any) -> str:
 
 
 def transcript_task_and_record(
-    path: Path, *, record_limit: int | None = None, result_limit: int | None = None
+    path: Path,
+    *,
+    record_limit: int | None = None,
+    result_limit: int | None = None,
+    evidence: bool = False,
 ) -> tuple[str, str]:
     """The last real prompt, and what the agent did after it, from a Claude Code transcript.
     The record keeps its last `record_limit` characters (`completion.RECORD_LIMIT`) and each
-    tool result its first `result_limit` (`TOOL_RESULT_LIMIT`)."""
+    tool result its first `result_limit` (`TOOL_RESULT_LIMIT`); with `evidence`, also the part
+    of a longer result the agent's later text and actions rest on (`done_evidence.record`, the
+    builder the bench uses)."""
     shown = TOOL_RESULT_LIMIT if result_limit is None else result_limit
     kept = completion.RECORD_LIMIT if record_limit is None else record_limit
     entries = []
@@ -227,7 +238,7 @@ def transcript_task_and_record(
             entries.append(json.loads(line))
         except json.JSONDecodeError:
             continue
-    task, lines = "", []
+    task, steps = "", []
     for entry in entries:
         message = entry.get("message") or {}
         content = message.get("content")
@@ -235,20 +246,19 @@ def transcript_task_and_record(
             blocks = content if isinstance(content, list) else []
             results = [b for b in blocks if isinstance(b, dict) and b.get("type") == "tool_result"]
             if results:
-                for b in results:
-                    lines.append(f"TOOL RESULT: {_text_of(b.get('content'))[:shown]}")
+                steps.extend(("tool", _text_of(b.get("content"))) for b in results)
             elif change_gate.is_request(entry):  # not hook feedback, not a compaction summary
-                task, lines = _text_of(content).strip(), []  # a new request starts the record
+                task, steps = _text_of(content).strip(), []  # a new request starts the record
         elif entry.get("type") == "assistant" and isinstance(content, list):
             for b in content:
                 if not isinstance(b, dict):
                     continue
                 if b.get("type") == "text" and b.get("text"):
-                    lines.append(f"AGENT: {b['text']}")
+                    steps.append(("agent", b["text"]))
                 elif b.get("type") == "tool_use":
                     arguments = json.dumps(b.get("input"), ensure_ascii=False)
-                    lines.append(f"AGENT ACTION: {b.get('name')}({arguments})")
-    record = "\n".join(lines)
+                    steps.append(("action", f"{b.get('name')}({arguments})"))
+    record = done_evidence.record(steps, evidence=evidence, head=shown, limit=kept)
     return task, record[-kept:]
 
 
@@ -259,7 +269,7 @@ async def stop(input_data: dict[str, Any], guardian: Guardian) -> dict[str, Any]
         return {}
     path = Path(str(input_data.get("transcript_path")))
     try:
-        task, record = transcript_task_and_record(path)
+        task, record = transcript_task_and_record(path, evidence=config.done_evidence)
         opened = change_gate.transcript_changed(path) or change_gate.asks_action(task)
         if change_gate.on() and not opened:
             return {}  # a request that only read and asked for no action: nothing to hold

@@ -129,6 +129,9 @@ class HarnessConfig:
     # None: the squire's `Thresholds.done` (0.5 for 1.13; a model profile can move it).
     check_done: bool = False
     done_cut: float | None = None
+    # Keep, in the record, the part of a long tool result the answer rests on, besides its
+    # head (`points.done_evidence`). Off until measured (benchmarks/jev114/w17_prereg.md).
+    done_evidence: bool = False
     content_tools: frozenset[str] = frozenset({"WebFetch", "WebSearch"})
     # With `scan_content` on, the output of a shell command that fetches from the network
     # (`curl`, `wget`, `Invoke-WebRequest`, ... see `fetch.fetches_from_network`) is scanned

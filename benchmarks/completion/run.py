@@ -36,7 +36,7 @@ _spec_cascade = importlib.util.spec_from_file_location(
 cascade = importlib.util.module_from_spec(_spec_cascade)
 _spec_cascade.loader.exec_module(cascade)
 
-from sanchopanza.points import completion  # noqa: E402
+from sanchopanza.points import completion, done_evidence  # noqa: E402
 from sanchopanza.providers import create  # noqa: E402
 from sanchopanza.providers.llm import answers_from  # noqa: E402
 from sanchopanza.providers.recorded import RecordedDecider, RecordingDecider  # noqa: E402
@@ -65,8 +65,18 @@ def require_prereg() -> None:
         raise SystemExit("prereg.md or points/completion.py changed: nothing spent")
 
 
-def render(messages: list[dict[str, Any]]) -> tuple[str, str]:
-    task, lines = "", []
+def render(messages: list[dict[str, Any]], *, evidence: bool = False) -> tuple[str, str]:
+    """The task and check_done's record, built by `done_evidence.record` as the Stop hook
+    builds it. Without `evidence`, the record every earlier lot asked about."""
+    task, done = steps(messages)
+    return task, done_evidence.record(
+        done, evidence=evidence, head=TOOL_LIMIT, limit=completion.RECORD_LIMIT
+    )
+
+
+def steps(messages: list[dict[str, Any]]) -> tuple[str, list[tuple[str, str]]]:
+    """The first user text, and what followed as `done_evidence` steps."""
+    task, out = "", []
     for m in messages:
         blocks = m.get("content") or []
         if m["role"] == "user" and not task:
@@ -74,16 +84,16 @@ def render(messages: list[dict[str, Any]]) -> tuple[str, str]:
         elif m["role"] == "assistant":
             for b in blocks:
                 if b.get("type") == "text" and b.get("content"):
-                    lines.append(f"AGENT: {b['content']}")
+                    out.append(("agent", b["content"]))
             for call in m.get("tool_calls") or []:
                 args = json.dumps(call["args"], ensure_ascii=False)
-                lines.append(f"AGENT ACTION: {call['function']}({args})")
+                out.append(("action", f"{call['function']}({args})"))
         elif m["role"] == "tool":
             text = " ".join(b.get("content") or "" for b in blocks if b.get("type") == "text")
             if m.get("error"):
                 text = f"ERROR: {m['error']}"
-            lines.append(f"TOOL RESULT: {text[:TOOL_LIMIT]}")
-    return task, "\n".join(lines)
+            out.append(("tool", text))
+    return task, out
 
 
 def load() -> list[dict[str, Any]]:
