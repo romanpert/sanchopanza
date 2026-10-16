@@ -210,7 +210,7 @@ Supported in the client since 2026-10-15 (merge `5694973`), with the default unc
 inputs, interleaved per item, each lot pre-registered and sealed before any 1.14 answer; Jev
 only, 3.85 USD in all on the shared ledger, 0 USD of Claude (Claude answers are the earlier
 recordings). One draw per version. The two confirmations the owner approved that evening ran on
-ledgers of their own: memgate-long 0.53 USD of Jev, lb162 0.875 USD of Jev and 5.757 USD of
+ledgers of their own: memgate-long 0.53 USD of Jev, lb162 0.874 USD of Jev on the 162 tasks (0.875 with the smoke) and 5.757 USD of
 Claude.
 
 | Lot | Verdict by the sealed rule |
@@ -225,7 +225,7 @@ Claude.
 | [Memory gate, long window](results/2026-10-15-memgate-long/README.md) | **Confirmed** on the 84 unseen LongMemEval questions, jev-1.13.0: recall 0.726 → 0.905, +17.8 points [+10.7, +25.7], Holm p < 0.001, no failures; the long window reaches BM25 top 3 (+8.9 [0.0, +17.3]) where the short one does not. 0.5283 USD |
 | [Confirmation](results/2026-10-15-jev114-recalconf/README.md) | **Not admissible**: on a second draw of the same 1,298 cases the profile falls to 551 against 555 of 646 (−0.6 points [−2.3, +0.9], inconclusive) and `redundant_page` is worse (44 against 48 of 50); on 910 candor counterfactuals no cut had seen, 1.14 at 0.90 is worse than 1.13 at 0.83 (770 against 800, −3.3 points [−5.4, −1.2]). check_done at 0.30 holds. No new labelled cases exist for the L1 points, so they are confirmed only against draw-to-draw noise |
 | [LongBench cut of 0.6, power](results/2026-10-15-jev114-b3conf/README.md) | No affordable confirmation can decide at a −2 point margin (about 3,200 paired tasks; LongBench v2 has 503). Deciding at −10 points takes 162 tasks with Sonnet on the covered ones: the owner's call |
-| [LongBench cut of 0.6, 162 fresh tasks](results/2026-10-15-lb162/README.md) | **No worse at −10**: Jev 1.14 with the long window where its top choice is ≥ 0.6, Sonnet 5.5 (clean Claude Code 2.1.287) elsewhere, against Sonnet alone: +1.2 points [−3.1, +5.6]. Coverage 37 % (60 of 162, L6 had 54 %); on those Jev 31, Sonnet 29 right (McNemar p 0.79). 33.9 % [24.0, 44.0] of Sonnet's cost saved, measured on the 102 uncovered tasks by [lb162x](results/2026-10-16-lb162x/README.md). 0.875 USD of Jev, 5.757 of Claude |
+| [LongBench cut of 0.6, 162 fresh tasks](results/2026-10-15-lb162/README.md) | **No worse at −10**: Jev 1.14 with the long window where its top choice is ≥ 0.6, Sonnet 5.5 (clean Claude Code 2.1.287) elsewhere, against Sonnet alone: +1.2 points [−3.1, +5.6]. Coverage 37 % (60 of 162, L6 had 54 %); on those Jev 31, Sonnet 29 right (McNemar p 0.79). 33.9 % [24.0, 44.0] of Sonnet's cost saved, measured on the 102 uncovered tasks by [lb162x](results/2026-10-16-lb162x/README.md). 0.874 USD of Jev on the 162 tasks (0.875 with the smoke), 5.757 of Claude |
 
 **`DEFAULT_MODEL` stays `jev-1.13.0`**, and candor stays on 1.13. 1.14 is an opt-in with its profile
 (`SANCHOPANZA_JEV_MODEL=jev-1.14.0`), better on calibration, supersession and R-Judge, and no

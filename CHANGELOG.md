@@ -93,7 +93,8 @@ they were.
 All on 2026-10-16, each lot pre-registered and sealed before its first answer and run once,
 except A6, a free replay. Jev is `jev-1.13.0` unless said.
 
-- **Memory's second measured win** (`docs/results/2026-10-16-memory-f2`, sealed `763dafd`): on
+- **Memory against the handoff ritual** (`docs/results/2026-10-16-memory-f2`, sealed `763dafd`;
+  F2's sealed verdict, not a "gana" by the scoreboard's rule, which F2 did not seal a cost for): on
   Sonnet 5.5 in clean Claude Code 2.1.287, a new session started with one line naming the work
   finished the next step right in 48 of 48 triples, against 44 with the handoff ritual and 4
   with the line alone, at 0.92x the ritual's cost; on Opus 5.5 no room (S 22, H 17, the line
