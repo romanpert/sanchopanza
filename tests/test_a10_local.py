@@ -398,6 +398,11 @@ def test_run_reads_no_test_stop_before_the_seal(tmp_path, monkeypatch):
         raise AssertionError("a test stop was read before the seal was checked")
 
     monkeypatch.setattr(a10_eval, "SEAL", tmp_path / "prereg.sha256")
+    # require_seal binds SEAL as a default when it is defined: point the default at the missing
+    # file too, so the test holds whether or not the real seal has been written.
+    defaults = a10_eval.require_seal.__defaults__
+    monkeypatch.setattr(a10_eval.require_seal, "__defaults__",
+                        (defaults[0], tmp_path / "prereg.sha256", defaults[2]))  # fmt: skip
     monkeypatch.setattr(a10_eval.data, "load_test", forbidden)
     monkeypatch.setattr(a10_eval.model, "load", forbidden)
     with pytest.raises(SystemExit, match="not sealed"):
