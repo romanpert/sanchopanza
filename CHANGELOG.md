@@ -65,6 +65,16 @@ they were.
 - **`docs/memory.md`**: how memory works (records at Stop, standing rules at SessionStart,
   recall at a first prompt behind a name gate and Jev at 0.8, the touch), its cost, what is
   stored and sent, how to turn it off, and the limits of its two wins.
+- **A long document's multiple-choice question, opt-in** (`sanchopanza.points.longdoc`, merge
+  `9705f25`; not in `install`, no default changes, `DEFAULT_MODEL` stays jev-1.13.0).
+  `longdoc.answer(decider, document, question, options)` asks jev-1.14.0 one Choice over the
+  whole document with the long-context header (middle-cut past 900,000 characters, asked again
+  shorter after a refusal) and gives the letter when the top choice reaches 0.6, otherwise
+  `escalate` with the reason; `longdoc.measured_decider()` builds the measured decider. No
+  long-context mode, another model, other than four options, out of funds or every length
+  refused: an escalation, never a silent answer. `providers.long_context.long_context_twin` is
+  the one helper both this point and the memory gate's long window use. Measured as lb162 and
+  lb162x (below).
 - **`policy.__all__`** names the public API (`MODEL_PROFILES`, `Thresholds`, `confident`,
   `model_of`, `probability`).
 
@@ -115,8 +125,10 @@ except A6, a free replay. Jev is `jev-1.13.0` unless said.
   against Opus alone: −3.7 points [−8.0, +0.6], **no worse** at the −10-point margin, though
   Opus beats Jev on the covered tasks (37 against 31 of 60). Opus's cost saved 29.5 %
   [21.7, 37.7]; Sonnet 5.5's, now measured on the 102 uncovered tasks, 33.9 % [24.0, 44.0]. Opus
-  alone right on 105 of 162, Sonnet on 89. 27.01 USD at list price. Not a point in the package
-  yet.
+  alone right on 105 of 162, Sonnet on 89. 27.01 USD at list price. Against Sonnet 5.5 (lb162):
+  +1.2 [−3.1, +5.6]; on the tasks Jev answered, Opus was right more often (McNemar 10 against 4,
+  p 0.18, not significant). The point is `points.longdoc` (above); a test replays lb162's 162
+  recorded answers, costs included, through it.
 - **The installed memory hook with the long window: "peor en ruido"**
   (`docs/results/2026-10-16-memgate-hook`, sealed `211227c`): on 905 SWE-chat first requests,
   hits +12.7 points [+6.3, +19.8] on the 126 hittable ones, false alarms +3.7 [+1.5, +6.2] on

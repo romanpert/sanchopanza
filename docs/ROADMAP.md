@@ -17,7 +17,7 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 | C9 | Memory's prune deleted the standing rules of a project idle for 30 days | **high** | free | **done** (`230a2aa`) |
 | C10 | Two names of other private projects and some local paths in public files | **high** | free | **in progress** |
 | B1 | Publish a release (`v*` tag and PyPI) so the consumer stops pinning a tarball by commit | **high** | free (PyPI: owner's decision, irreversible) | `v0.3.0` tagged with a GitHub release; 0.3.1 in preparation; PyPI with the owner's yes |
-| C7 | The LongBench routing point, opt-in | medium | free (code); Claude for what follows | **in progress** |
+| C7 | The LongBench routing point, opt-in | medium | free (code); Claude for what follows | **done** (`9705f25`) |
 | C1 | A PostToolUse check on MCP results (what A3's PreToolUse guard cannot read) | medium | Jev (replay ~0.05-0.10 USD), then Claude (~5 USD live probe) | idea, from A3 |
 | C2 | check_done with the tool results the answer rests on, not cut at 1,500 characters | medium | free (record builder) + Jev (~0.3-0.5 USD) | open, from checkdone114 |
 | C8 | Four memory gaps read from the code and F2's logs | medium | free replays first; Claude (~40 USD, F2-sized) to confirm | open, unmeasured |
@@ -77,7 +77,7 @@ Each lot pre-registered and sealed before its first answer, reviewed against the
   (−6.0 [−11.6, −1.7]). Next (C3): a rule with a lower bound on the cut, on new cases.
 - **LongBench: lb162x.** Against Opus 5.5 the router is "no worse" at −10 (−3.7 [−8.0, +0.6]),
   Opus's cost saved 29.5 % [21.7, 37.7]; Sonnet 5.5's saving is **measured at 33.9 %
-  [24.0, 44.0]**. The routing point as an opt-in is **in progress** in another session (C7).
+  [24.0, 44.0]**. The routing point is in the package as an opt-in, `points.longdoc` (C7).
 
 ## Open
 
@@ -101,9 +101,10 @@ now, and `sanchopanza[jev]>=0.3` once PyPI has it. A tag survives a history rewr
 stop an old SHA from resolving (the consumer's factory falls back to a null decider in silence
 when the package does not import).
 
-**C7. The LongBench routing point** (in progress): Jev's letter and probability at ≥ 0.6,
-otherwise "ask your own model", shaped like `navigate`'s `escalate_below`, opt-in and out of
-`install`. What lb162x leaves to measure: a higher cut for Opus 5.5 users (0.8,
+**C7. The LongBench routing point.** **Done** (merge `9705f25`): `points.longdoc`, opt-in and
+out of `install`, gives Jev 1.14's letter when its top choice reaches 0.6, otherwise `escalate`
+with the reason, never a silent answer; a test replays lb162's 162 recorded answers through it.
+What lb162x leaves to measure: a higher cut for Opus 5.5 users (0.8,
 pre-registered on fresh tasks; descriptively the gap there was 0.6 points), and a long-document
 set graded on free-text answers.
 
