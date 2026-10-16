@@ -1,9 +1,11 @@
 # Prerregistro: la guarda con punteros (P) frente a la guarda entera (F) en el banco largo (2026-10-16)
 
-Borrador para sellar. Escrito antes de cualquier corrida de esta tanda. Lo revisa contra el código
-un `revisor-prereg` independiente; después se sella con su commit y su sha256 (sección 15) y la
-tanda corre desde un `git worktree add --detach` en ese commit. Los marcadores `<SEAL>` se rellenan
-al sellar.
+Borrador para sellar. Escrito antes de cualquier corrida de esta tanda. Diseño A aprobado por el
+dueño el 2026-10-16 (cinco cadenas, margen −5, 250 $ duros más un humo de 8 $ duros, brazos sin
+clave). Lo revisó contra el código un `revisor-prereg` independiente (sin bloqueos; cuatro "debe" y
+varios "conviene", todos aplicados antes del sello: sección 16). Se sella como dice la sección 15 y
+la tanda corre desde un `git worktree add --detach` en el commit de sello. `<SEAL>` es el commit
+del instrumento, padre del de sello, y se nombra en el mensaje del commit de sello, no aquí.
 
 ## 1. Pregunta
 
@@ -33,7 +35,7 @@ Los dos son la instalación que un usuario hace en su proyecto, `sanchopanza ins
 | Brazo | Código | Flags de `install` | Guarda tras compactar |
 |---|---|---|---|
 | **P** (el defecto) | `long_run.arm_spec("P")` | ninguno | `pointers`: peticiones, ficheros cambiados, punteros; lo irrepetible archivado en `<proyecto>/.sanchopanza/archive/<sesión>/guard-*.txt` |
-| **F** (guarda entera) | `long_run.arm_spec("F")` | `--guard-full` | `struct`: los resultados enteros, hasta 44.000 caracteres en 6 partes (`SANCHOPANZA_GUARD_CHOOSER=struct`) |
+| **F** (guarda entera) | `long_run.arm_spec("F")` | `--guard-full` | `struct`: los resultados enteros, con un presupuesto de 44.000 caracteres para ellos (`structural.STRUCT_CHARS`; el bloque entero tuvo una mediana de 49.473 en el replay) en 6 partes (`SANCHOPANZA_GUARD_CHOOSER=struct`) |
 
 - Lo demás es el defecto en los dos (comprobado en seco, sección 14): el guardia de shell (perfil
   `coding`), memoria (registra y devuelve por código), `find_in_repo` diferido tras la búsqueda de
@@ -43,8 +45,10 @@ Los dos son la instalación que un usuario hace en su proyecto, `sanchopanza ins
   clave vacío, sin leer ninguna clave; los hooks construyen el decisor nulo (`NullDecider`,
   comprobado antes de la primera llamada), no hay `jev-preflight` ni gasto de Jev. Motivo: la
   guarda, en sus dos variantes, no pregunta a ningún modelo; Jev solo añadiría gasto, el riesgo de
-  402 y ruido igual en los dos brazos. Lo que el dueño tiene con clave (memoria con decisor) queda
-  fuera (sección 13).
+  402 y ruido igual en los dos brazos. **Límite declarado** (aprobado por el dueño): lo que tiene un
+  usuario con clave (memoria con decisor) queda fuera (sección 13). Las decisiones que los hooks
+  anotan sin preguntar a ningún modelo (proveedores `code`, el guardia de shell, y `budget`) no
+  cuentan como pagadas.
 - **El archivo de P va donde lo pone la instalación**, dentro de la copia de trabajo del agente: el
   runner no lo desvía a la evidencia (`hook_env`, `ADOPT_GUARD_LOT=1`), porque la guarda le dice al
   agente que lo lea en esa ruta. `.sanchopanza/` se ignora a sí misma y queda fuera del diff
@@ -54,18 +58,40 @@ Los dos son la instalación que un usuario hace en su proyecto, `sanchopanza ins
 - **Comprobaciones en vivo que paran la tanda** (fichero `STOP`, en cada llamada de P o F):
   - **la guarda de su brazo**: cada compactación tiene su bloque construido en el PreCompact, con
     el elegido del brazo (`pointers` en P, `struct` en F), leído del propio log de la guarda
-    (`<evidencia>/guard.jsonl`, `long_pointers.guard_breaks`). Un `pointers (archive failed: rule
-    only)` se anota, no para;
+    (`<evidencia>/guard.jsonl`, `long_pointers.guard_breaks`). Una compactación sin bloque, o con
+    el elegido del otro brazo, para;
   - **la ventana**: una compactación con `pre` fuera de 120.000-185.000 o una llamada con más de
     203.000 de contexto (`long_pointers.window_breaks`). Ne compactó en el cierre entre 159.643 y
     162.755;
-  - **sin pagos**: cualquier decisión respondida por un proveedor que no sea el nulo
-    (`long_pointers.keyless_breaks`);
-  - **el mismo prefijo**: la primera petición de P y la de F, a ±50 tokens (`prefix_breaks`);
+  - **sin pagos**: cualquier decisión respondida por un proveedor que no sea el nulo, `code` o
+    `budget` (`long_pointers.keyless_breaks`);
+  - **el mismo prefijo**: la primera petición de P y la de F, a ±50 tokens (`prefix_breaks`),
+    comprobado en la PRIMERA llamada del segundo brazo de cada cadena (`long_run.first_call_breaks`),
+    no al acabar los dos;
   - lo de siempre: init (versión 2.1.287, modelo, modo de permisos, sin clave de API), el servidor
     `sanchopanza` conectado o, por estar diferido, `pending` en el init (`Expect.deferred`); un
     `failed` o ausente para; diff que desaparece; errores de hooks por encima del 5 %.
-
+- **Guarda que falla (se cuenta, no para).** Cuando la guarda falla construye el bloque de la regla
+  (peticiones y rastro, sin punteros ni resultados) y lo marca: `pointers (archive failed: rule
+  only)` en P (no pudo escribir el archivo) y `struct (error: rule only)` en F (excepción al
+  construir). Las dos pasan la comprobación de arriba porque empiezan por el elegido de su brazo.
+  **Decisión**: una compactación con la guarda fallida no para la tanda (la instalación falla
+  abierta igual en el campo y eso es parte de lo que se mide); se cuentan y se publican por brazo y
+  cadena (`long_pointers_read.carry`: `failed` y `choosers`). Si en algún brazo fallan más de 1 de
+  cada 10 de sus compactaciones, se dice al lado del veredicto, que no cambia.
+- **Qué pasa si una comprobación salta** (como en el cierre, sección 2 de su prereg): la tanda
+  queda parada con `STOP` y se mira a mano.
+  - Si el tratamiento no es el registrado (una compactación sin la guarda de su brazo, otro
+    elegido, la ventana que no tomó, un prefijo distinto, una decisión pagada), la tanda queda
+    parada y decide el dueño; esa cadena no se lee (`long_pointers_read.paused`: un brazo parado
+    por `harness`, `limit` o `ceiling`, o con fila parcial, deja la cadena sin puntuar y la tanda
+    "sin veredicto" mientras siga así).
+  - Si fue un fallo del arnés que no toca al tratamiento (p. ej. Docker, disco, un init con el
+    servidor diferido aún arrancando que no esté previsto), se anota como desviación, se quita el
+    `STOP` y se reanuda desde el mismo worktree (`long_resume`: lo acabado no se repite, la llamada
+    a medias se carga a su tope). La cadena se lee entera solo cuando sus dos brazos acabaron (por
+    su final, su tope o su pared).
+  - Una cadena que no puede acabar se excluye y se dice; con menos de cinco no hay veredicto.
 ## 3. Cadenas
 
 Las cinco cadenas long60 válidas con manifiesto, en el orden del cierre: **conan-1, pydantic-1,
@@ -83,7 +109,11 @@ completas (60 bugs y 2 *callbacks*, 62 peticiones).
 - Usuario limpio y caché aislada por brazo (`CLAUDE_CONFIG_DIR` propio por cadena y brazo,
   `carry.clean_config`), copia de trabajo nueva por brazo, raíz `C:\sp-runs\L-guardptr` nueva.
 - No se reutiliza ninguna corrida anterior.
-
+- **La caché de prompts del servidor es compartida** entre los dos brazos de una cadena: corren
+  seguidos con el mismo prefijo (mismo usuario de la suscripción), así que el segundo brazo puede
+  leer de caché lo que escribió el primero. P va segundo en tres cadenas (pydantic-1, conan-2,
+  moto-2) y F en dos. Es otra razón por la que el coste es solo descriptivo; la calidad no depende
+  de ello.
 ## 5. Topes y gasto
 
 - Dólares del dueño a precio de lista (`meter.OWNER_RATES`), de cada transcripción; corre con la
@@ -100,7 +130,7 @@ completas (60 bugs y 2 *callbacks*, 62 peticiones).
   código**. Más el humo (sección 12, ≤ 8 $ duros, raíz propia): **≤ 258 $ en total**.
 - Una corrida parada por su tope compara en las llamadas comunes; sigue el brazo siguiente
   (`local_stops = ("cap", "wall")`).
-- **Por encima de 70 $: lo aprueba el dueño** (sección 9).
+- **Aprobado por el dueño** el 2026-10-16: diseño A, 250 $ duros más el humo (8 $ duros).
 
 ## 6. Medidas
 
@@ -108,7 +138,9 @@ Lectura: `benchmarks/adopt/long_pointers_read.py` (`grade` con Docker, `read`, g
 `long_compact.chain_line` con el par (P, F).
 
 - **Llamadas comunes**: de la 1 a la última que corrieron los dos brazos. Una cadena cuenta con
-  **≥ 30 llamadas comunes** y la nota común de los dos brazos.
+  **≥ 30 llamadas comunes** y la nota común de los dos brazos, y **solo con sus dos filas
+  finales**: un brazo pausado (`stopped` en `limit`, `harness` o `ceiling`) o con fila parcial deja
+  la cadena sin puntuar (`chains_paused`) y la tanda sin veredicto mientras dure (sección 2).
 - **Principal: bugs resueltos.** Cada brazo puntuado en su instantánea tras la última llamada común
   (`diff-<k>.patch`, `perbug.grade`), sobre los bugs pedidos a los dos. **Todas las cadenas con un
   tiempo de 300 s por test** (`TEST_TIMEOUT`, fijado aquí, antes de los datos: en el cierre la nota
@@ -117,6 +149,10 @@ Lectura: `benchmarks/adopt/long_pointers_read.py` (`grade` con Docker, `read`, g
     20261005), con su cota unilateral al 95 % (`one_sided_low`) y su IC bilateral al 95 %;
   - **y** la cota unilateral al 95 % de la t sobre la media de las diferencias por cadena (`t_low`,
     gl = cadenas − 1).
+  - **Dos estimandos, declarados**: el bootstrap estima la diferencia **agrupada por bugs** (cada
+    bug común pesa igual, así que una cadena con más llamadas comunes pesa más); la t, la **media
+    sin pesos de las cadenas** (cada cadena pesa igual). Con 43-60 bugs comunes por cadena casi
+    coinciden; si no, se publican las dos.
 - **Secundaria, descriptiva: el coste P/F** en las llamadas comunes (`long_report.cost_ratio`: media
   pareada de ln(P/F), IC 95 % de la t), con su nombre ("más barato demostrado", "sin diferencia
   demostrada", "más caro demostrado"). No entra en el veredicto (sección 8).
@@ -124,8 +160,9 @@ Lectura: `benchmarks/adopt/long_pointers_read.py` (`grade` con Docker, `read`, g
   compactaciones; lecturas de un `guard-*.txt` archivado (con `Read` o `cat`/`head`/`tail`/`sed
   -n`); comandos de antes de la compactación repetidos y ficheros de antes releídos en las 20
   peticiones siguientes a cada compactación. **Arrastre** (`carry`, del log de la guarda): bloques,
-  sus caracteres (mediana), salidas archivadas, elegidos. Con esto se compara en vivo lo que dijo el
-  replay (49k frente a ~8k caracteres por compactación; 13 de 100 re-peticiones).
+  sus caracteres (mediana), salidas archivadas, elegidos y **guardas fallidas** (sección 2). Con esto
+  se compara en vivo lo que dijo el replay (49k frente a ~8k caracteres por compactación; 13 de 100
+  re-peticiones).
 - Se publican además: compactaciones y su `pre`, contexto pico, abandonos no resueltos, coste por
   bug resuelto, cómo acabó cada corrida, la nota final de cada brazo (`grade --final`) y los
   *callbacks*.
@@ -144,11 +181,14 @@ ahorro no paga.
 | las dos cotas por encima de −5 pts, IC bilateral entero por debajo de 0 | **no inferior, con una pérdida menor demostrada** |
 | no inferior no, IC bilateral entero por debajo de 0 | **peor** |
 | ninguna de las anteriores | **no demostrado** |
-| menos de 5 cadenas con ≥ 30 llamadas comunes y nota común | **sin veredicto** |
+| menos de 5 cadenas con ≥ 30 llamadas comunes y nota común, o alguna cadena pausada o parcial | **sin veredicto** |
 
 - **Por qué las dos cotas**: con 5 cadenas el bootstrap por cadenas es liberal: si P pierde de
-  verdad 5 puntos, dice "no inferior" en un 9-14 % de las tandas (simulado); la t, en un 5-7 %.
-  Exigir las dos deja el error cerca del 5 % nominal.
+  verdad 5 puntos, dice "no inferior" en un 9-14 % de las tandas (simulado); la t, en un 4-7 %.
+  Exigir las dos deja el error cerca del 5 % nominal. **En la simulación la exigencia del bootstrap
+  no muerde nunca**: "las dos" da lo mismo que la t sola en todas las filas de 5 cadenas (y difiere
+  en 0,001 en dos filas de 10 pares). La regla es, en la práctica, la cota t; el bootstrap se exige
+  igual y se publica.
 - "No demostrado" no se lee como "pierde": se publica la estimación y su intervalo y decide el
   dueño. "Peor" lo lleva el dueño (¿volver a `struct` por defecto?).
 - Nada de esto cambia después de ver datos. Si algo resulta inaplicable, se dice y se publica la
@@ -165,17 +205,20 @@ Modelo: en cada par, cada bug es discordante (lo resuelve un brazo y el otro no)
   réplicas del mismo brazo en días distintos (sin el conan-1 de Ne del 7 de octubre, que perdió 19-22 bugs
   frente a las demás corridas, todos del mismo lado: una corrida torcida, eso es τ).
 
-Probabilidad de "no inferior" (las dos cotas), 5 cadenas de 60 bugs, el diseño registrado:
+Probabilidad de "no inferior" (las dos cotas), 5 cadenas, el diseño registrado. **Lo esperable son
+~45 bugs comunes por cadena, no 60**: la sección 5 prevé que casi todas las corridas acaben en su
+tope, y en el cierre las cadenas tuvieron 43-60 bugs comunes. La columna de 45 es la que se espera;
+la de 60, el techo.
 
-| d | Δ real | τ | margen −5 | margen −7 |
-|---|---|---|---|---|
-| 0,07 | 0 | 0 | **0,85** | 0,97 |
-| 0,07 | −2 pts | 0 | 0,49 | 0,84 |
-| 0,07 | 0 | 2 pts | 0,73 | 0,94 |
-| 0,07 | 0 | 5 pts | 0,50 | 0,76 |
-| 0,12 | 0 | 0 | 0,66 | 0,86 |
-| 0,20 | 0 | 0 | 0,52 | 0,71 |
-| d ≥ margen | = margen | 0 | 0,05 | 0,05-0,06 (error de tipo I) |
+| d | Δ real | τ | −5, 45 bugs | −5, 60 bugs | −7, 45 bugs | −7, 60 bugs |
+|---|---|---|---|---|---|---|
+| 0,07 | 0 | 0 | **0,75** | 0,85 | 0,93 | 0,97 |
+| 0,07 | −2 pts | 0 | 0,44 | 0,49 | 0,75 | 0,84 |
+| 0,07 | 0 | 2 pts | 0,67 | 0,73 | 0,91 | 0,94 |
+| 0,07 | 0 | 5 pts | 0,47 | 0,50 | 0,72 | 0,76 |
+| 0,12 | 0 | 0 | 0,59 | 0,66 | 0,81 | 0,86 |
+| 0,20 | 0 | 0 | 0,41 | 0,52 | 0,62 | 0,71 |
+| d ≥ margen | = margen | 0 | 0,06 | 0,05 | 0,04-0,07 | 0,05-0,06 (error de tipo I) |
 
 - **Coste**: con 5 cadenas, un cociente real de 0,94 se demostraría (IC entero bajo 1) en un 11 %
   de las tandas con la desviación del log de 0,171 y en un 18 % con 0,10. Hacen falta ~60 cadenas
@@ -188,15 +231,14 @@ Probabilidad de "no inferior" (las dos cotas), 5 cadenas de 60 bugs, el diseño 
 - **~70 $ no deciden.** Con 70 $ caben dos cadenas completas (cuatro corridas): dos grupos no dan
   intervalo. Cinco cadenas de 20 bugs (~60 $) tendrían una compactación por corrida (pydantic,
   ninguna) y una potencia por debajo de 0,5 a −5 puntos.
-- **El diseño registrado (A)**: 5 cadenas × 60 bugs, ~185-200 $ esperados, 250 duros; potencia
-  0,85 con d = 0,07.
-- **Alternativa (B), solo si el dueño la elige antes del sello**: las 30 primeras peticiones de bug
+- **El diseño registrado (A), el que aprobó el dueño**: 5 cadenas × 60 bugs, ~185-200 $
+  esperados, 250 duros; potencia 0,75 con ~45 bugs comunes (0,85 si las cadenas llegan enteras),
+  con d = 0,07.
+- **Alternativa (B), no elegida** (queda en el código, perfil `guardptr-30`, sin uso): las 30 primeras peticiones de bug
   de cada cadena (perfil `guardptr-30`, 32 peticiones, 18 $ por corrida, 180 duros; Ne gastó
   6,89-12,82 $ en esas peticiones: **~110-120 $ esperados**). Una o dos compactaciones por corrida.
   Con el margen −5 su potencia cae a 0,61 (d = 0,07); con **−7** sube a 0,86, pero −7 deja pasar
-  una pérdida mayor que lo que P ahorra. Si se elige B, se cambian aquí el perfil, el margen
-  (`MARGINS["guardptr-30"]` = 0,07), el mínimo de llamadas comunes (20) y la sección 11, antes de
-  sellar.
+  una pérdida mayor que lo que P ahorra.
 - Diez grupos de 30 bugs (5 cadenas × 2 pares) dan 0,92 a −5 con d = 0,07, por ~220-230 $: más
   caro que A por poco más potencia. No se propone.
 
@@ -210,8 +252,12 @@ Probabilidad de "no inferior" (las dos cotas), 5 cadenas de 60 bugs, el diseño 
 - Tope de corrida o pared (4 h): para ese brazo; sigue el siguiente. Techo: para la tanda.
 - **Reloj**: una cadena (los dos brazos, `hours` 1,7 por brazo: 3,4 h) no empieza si cruzaría la
   medianoche (`midnight_refusal`) ni entre las 00:00 y las 08:00 (`quiet_refusal`: Windows Update
-  reinicia entre 02:00 y 08:00; el cierre perdió una llamada a las 05:04). El lanzador se niega si
-  Windows tiene un reinicio pendiente (`RebootRequired`, `RebootPending`).
+  reinicia entre 02:00 y 08:00; el cierre perdió una llamada a las 05:04) ni con un reinicio
+  pendiente de Windows (`RebootRequired`, `RebootPending`): el lanzador lo mira al empezar y el
+  runner **antes de cada cadena** (`restart_refusal`), porque una actualización puede llegar a
+  media tanda.
+- **El dueño o el coordinador vigila hasta que acaba la última cadena** (dos monitores: líneas del
+  log y PID vivo); la tanda no se deja sola.
 - Matar solo por PID verificado (`long_run.py kill --root C:\sp-runs\L-guardptr`).
 - Vigilancia en vivo: `long-run.status.json`, `runner-sonnet.log` y `launch.log` en la raíz, y el PID
   vivo (dos monitores).
@@ -224,6 +270,7 @@ Probabilidad de "no inferior" (las dos cotas), 5 cadenas de 60 bugs, el diseño 
   las 19:30 del mismo día. Si las cadenas van lentas, la regla de medianoche deja sin empezar la
   quinta (no empieza pasadas ~20:36) y el runner sale; se relanza al día siguiente a las 08:05 desde
   el mismo worktree (reanuda: lo acabado no se repite).
+- Vigilada hasta el final de la última cadena (sección 10).
 - Después, la nota (Docker, gratis; ~10-20 min por brazo): `long_pointers_read.py grade --final`.
 
 ## 12. Humo (antes de la tanda; perfil `guardptr-smoke`)
@@ -232,7 +279,8 @@ Probabilidad de "no inferior" (las dos cotas), 5 cadenas de 60 bugs, el diseño 
   `--context-budget 67000` para que compacten en una sesión corta (ventana 100.000; el humo del
   2026-10-07 compactó dos veces en la segunda llamada). 1 $ por llamada, 4 por corrida, **8 $
   duros**; raíz `C:\sp-runs\L-guardptr-smoke`. **Esperado: ~2-5 $**, ~30 min. Mismo commit
-  sellado, misma copia congelada, mismo lanzador (`guard-pointers-run.cmd <SEAL> smoke`).
+  sellado, misma copia congelada, mismo lanzador (`guard-pointers-run.cmd <SEAL> smoke`). F corre
+  primero en pydantic-1 (`arm_order`); un tope de F no impide P (`local_stops` = tope y pared).
 - Debe mostrar, leído a mano antes de la tanda: que el init pasa con `find_in_repo` diferido (y qué
   estado da: `connected` o `pending`); que cada compactación de P lleva `pointers` y la de F
   `struct` en `guard.jsonl` y en la fila; que P escribe sus `guard-*.txt` dentro de la copia de
@@ -252,6 +300,9 @@ Probabilidad de "no inferior" (las dos cotas), 5 cadenas de 60 bugs, el diseño 
   come la potencia: 0,50 con τ = 5 pts). Solo vale el agregado.
 - Cuatro repositorios (conan ×2, pydantic, moto ×2); bugs de SWE-smith, no el código del dueño.
 - Sonnet 5.5 solo; Opus 5.5 no se corre.
+- **No son datos nuevos para la hipótesis**: las cinco cadenas son las mismas sobre las que se hizo
+  el replay que motivó el cambio (las 10 sesiones long60 de Claude Code limpio). Lo nuevo es medir
+  la calidad en vivo con los dos brazos; el ahorro de coste no se confirma aquí en datos nuevos.
 
 ## 14. Comprobado en seco (gratis, antes del sello)
 
@@ -263,22 +314,57 @@ Probabilidad de "no inferior" (las dos cotas), 5 cadenas de 60 bugs, el diseño 
   compactación inyectada: P construye `pointers` y F `struct` en las cinco cadenas, sin parar; una
   compactación a 67.500 en la ventana de 193k para la tanda; el humo en Haiku compacta y construye
   la guarda de cada brazo.
-- `install --scope project --write` y `--guard-full` en un repositorio vacío: difieren solo en
-  `SANCHOPANZA_GUARD_CHOOSER=struct` (con su marca) y los 6 comandos de SessionStart.
+- `install --scope project --write` y `--guard-full` en un repositorio vacío difieren en tres cosas
+  y en nada más: el PreCompact de la guarda lleva `--parts 6`; SessionStart (compact) tiene 6
+  comandos (`--part 1..6 --parts 6`) en vez de 1; y el `env` lleva `SANCHOPANZA_GUARD_CHOOSER=struct`
+  y `SANCHOPANZA_GUARD_CHOOSER_BY=sanchopanza`.
+- El sello en código (`tests/test_adopt_guardptr_seal.py`): en un repositorio sellado de prueba el
+  lanzador rellenado, por `cmd.exe`, pasa la comprobación, escribe HEAD en `launch.status` y corre
+  el humo en seco; una copia cambiada más allá de sus valores locales, un árbol sucio, un commit
+  posterior al sello, un commit de sello que toca otra cosa o una copia congelada que no es el
+  padre se niegan antes de cualquier llamada.
 
 ## 15. Lanzamiento y sello
 
-1. Sello: commit del instrumento, sha256 de este fichero y de `guard-pointers-run.cmd` en el
-   mensaje; `<SEAL>` = ese commit. Revisión independiente (`revisor-prereg`) antes; lo que
-   encuentre se arregla y se vuelve a sellar antes de cualquier dato.
-2. Gratis: `python benchmarks\adopt\freeze.py <SEAL>`; `long_launch.py plan guardptr`; los tests de
+1. **Instrumento**: el commit con este fichero y todo el código es `<SEAL>`.
+2. **Sello** (`benchmarks/adopt/guardptr_seal.py seal`): escribe `prereg.manifest.json` y
+   `prereg.sha256` (sha256 sobre este fichero, cada fichero del instrumento, `SEALED`, las fuentes
+   del paquete y el lanzador con sus valores locales como marcadores). El commit de sello es hijo
+   único de `<SEAL>`, añade esos dos ficheros y nada más, y nombra `<SEAL>` en su mensaje.
+3. **En código, antes de gastar** (`long_launch.py` → `guardptr_seal.require_seal`): HEAD es el
+   commit de sello (el último que tocó `prereg.sha256`, un solo padre, solo los ficheros del
+   sello), el árbol está limpio, el sello coincide, la copia del lanzador que corrió
+   (`ADOPT_LAUNCHER`, que pone el propio lanzador; un nombre que ningún filtro de entorno quita) es
+   la sellada salvo sus valores locales, y el `<SEAL>` dado es el padre de HEAD. HEAD queda en
+   `launch.status` y en `launch.log`.
+4. Gratis: `python benchmarks\adopt\freeze.py <SEAL>`; `long_launch.py plan guardptr`; los tests de
    la sección 14; Docker arriba, sin `LIMIT.flag`, sin reinicio pendiente; preguntar qué otras
    sesiones gastan suscripción (límite semanal compartido).
-3. Humo: `git worktree add --detach ..\sanchopanza-guardptr <SEAL>`; `guard-pointers-run.cmd <SEAL>
-   smoke` por WMI (`Win32_Process.Create`, `CreateFlags 512`); leerlo a mano (sección 12).
-4. Tanda: `guard-pointers-run.cmd <SEAL>` por WMI desde el mismo worktree, a las 08:05; PIDs en
-   `launch.json`; avisar a las demás sesiones (PID, hora, tope).
-5. Al acabar: `long_pointers_read.py grade --final` y `long_pointers_read.py read --json
+5. `git worktree add --detach ..\sanchopanza-guardptr <commit de sello>`; copiar
+   `guard-pointers-run.cmd` a la raíz de la tanda y rellenar allí `PY` y `WT` (el fichero
+   seguido solo lleva marcadores).
+6. Humo: la copia rellenada con `<SEAL> smoke` por WMI (`Win32_Process.Create`, `CreateFlags
+   512`); leerlo a mano (sección 12).
+7. Tanda: la copia rellenada con `<SEAL>`, por WMI, a las 08:05; PIDs en `launch.json`; avisar a
+   las demás sesiones (PID, hora, tope).
+8. Al acabar: `long_pointers_read.py grade --final` y `long_pointers_read.py read --json
    docs/results/2026-10-16-guard-pointers/read.json`; cada fallo y cada número favorable, a mano.
 
-- Commit sellado: `<SEAL>`. sha256 de este fichero: `<SHA256>`. Revisión: `<REVISOR>`.
+## 16. Revisión independiente (antes del sello)
+
+`revisor-prereg`, sobre 85c58ee: nada bloqueante. Lo que pidió y lo que se hizo, antes de cualquier
+dato:
+
+1. **Sello en código** como los lotes hermanos: `guardptr_seal.py` y la comprobación en
+   `long_launch.py` (sección 15), con test por la entrada real (`cmd.exe`).
+2. **No puntuar cadenas pausadas o parciales**: `long_pointers_read.paused`; qué pasa si salta una
+   comprobación (sección 2).
+3. **Potencia con los bugs comunes esperados** (~45) y que "las dos" es la t (sección 8).
+4. **Guardas fallidas** de P y de F: declaradas, contadas y publicadas; no paran (sección 2).
+5. Además: `code` y `budget` no son decisiones pagadas; el prefijo, en la primera llamada del
+   segundo brazo; las tres diferencias de la instalación (sección 14); el presupuesto de `struct`
+   frente a la mediana del bloque (sección 2); el humo corre P aunque F llegue a su tope; la caché
+   de prompts compartida (sección 4); vigilancia hasta la última cadena y reinicio pendiente antes
+   de cada cadena (sección 10); las cadenas son las del replay (sección 13); los dos estimandos
+   (sección 6); el lanzador seguido sin rutas locales y con fin de línea CRLF
+   (`.gitattributes`).

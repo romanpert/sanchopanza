@@ -97,7 +97,7 @@ def chains_for(ratio: float, sd: float, power: float = 0.80) -> int:
     return math.ceil(((1.96 + 0.8416) * sd / abs(math.log(ratio))) ** 2)
 
 
-DESIGNS = ((5, 60), (5, 30), (10, 30))
+DESIGNS = ((5, 60), (5, 45), (5, 30), (10, 30))
 DISCORDANCE = (0.07, 0.12, 0.20)
 MARGINS = (0.05, 0.07)
 # (true effect, its spread between pairs): none; a 2-point loss; a 2- and a 5-point spread (a run
@@ -136,7 +136,9 @@ def main(argv: list[str] | None = None) -> int:
     for row in found["cost"] + found["cost_chains_needed"]:
         print(json.dumps(row))
     if args.json:
-        Path(args.json).write_text(json.dumps(found, indent=1) + "\n", encoding="utf-8")
+        Path(args.json).write_text(
+            json.dumps(found, indent=1) + "\n", encoding="utf-8", newline="\n"
+        )
     return 0
 
 
