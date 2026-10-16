@@ -179,8 +179,9 @@ def test_a_decision_answered_again_from_the_memo_never_exhausts_the_squire() -> 
     """The sealed run's defect: the squire's own meter charged a decision again each time the
     memo or the recording answered it, under a cap equal to the batch's, and cut 1,437 of
     FREE's decisions to defaults. Here PAGE's calls cost 1.50 and FREE's repeat them."""
-    rows = [{**_row(), "id": f"q#{k}", "paper": "q", "question": f"topic number {k}"}
-            for k in range(2)]
+    rows = [
+        {**_row(), "id": f"q#{k}", "paper": "q", "question": f"topic number {k}"} for k in range(2)
+    ]
     live = _Costly()
     out = asyncio.run(fc.ask(rows, fc.lot_asker(live)))
     assert live.calls == 10  # 5 a question, none asked twice
