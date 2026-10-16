@@ -5,7 +5,7 @@
     python benchmarks/a3_mcp/w17_replay.py --run --live   # spends: Jev, hard cap in code
     python benchmarks/a3_mcp/w17_replay.py --run          # free: replay of w17_answers.jsonl
 
-Registration: w17_prereg.md (DRAFT, not sealed). A3's replay (replay.py) turns every
+Registration: w17_prereg.md, a DEVELOPMENT lot on A3's own trajectories. A3's replay turns every
 ATBench-Codex trajectory into a Claude Code transcript; this reuses it. Per MCP call, two events
 go through `claude_code.needs_decision` and `claude_code.handle`:
 
@@ -15,10 +15,16 @@ go through `claude_code.needs_decision` and `claude_code.handle`:
   SANCHOPANZA_GUARD_MCP_POST=1: the `actions` point with the result last.
 
 Cuts are applied in w17_analysis.py from each call's p. Live answers go to w17_answers.jsonl
-through `CappedDecider` on this run's own ledger (LEDGER_PATH, CAP_USD, BATCH) and A3's
-`StopDead` (a cap refusal, an outage, another model, three failures in a row). A run that leaves
-a post call without a usable answer scores nothing (exit 2; 3 at the cap); a relaunch replays
-what is recorded for free. Shell calls are left out (7, none denied in A3).
+through `CappedDecider` on this run's own ledger (LEDGER_PATH, CAP_USD, BATCH, batch cap
+CAP_USD) and A3's `StopDead` (a cap refusal, an outage, another model, three failures in a row).
+
+- A launch stopped at the cap: the lot is NOT RUN (w17_status.json, exit 3), with no outcome;
+  raising the cap is a labelled amendment and a new seal, and until then no live launch starts.
+- A launch stopped dead otherwise (an outage, another model): a pause, not counted (exit 2).
+- A launch that ends with a post call unanswered counts towards MAX_LAUNCHES (exit 2); at the
+  last one the lot is NOT RUN (exit 4). Nothing is ever scored fail-open.
+
+A relaunch replays what is recorded for free. Shell calls are left out (7, none denied in A3).
 """
 
 from __future__ import annotations
@@ -47,10 +53,17 @@ ANSWERS = HERE / "w17_answers.jsonl"
 CALLS = HERE / "w17_calls.jsonl"
 DRY = HERE / "w17_dry.json"
 ANALYSIS = HERE / "w17_analysis.json"
+STATUS = HERE / "w17_status.json"
+LAUNCHES = HERE / "w17_launches.json"
+CEILING = HERE / "w17_ceiling.json"
+MAX_LAUNCHES = 3  # the first and two relaunches, as A3
+# The registered set, asserted before anything is scored.
+N_TRAJECTORIES, N_PER_CLASS, N_MCP_CALLS = 500, 250, 1188
 PREREG, SHA, MANIFEST = HERE / "w17_prereg.md", HERE / "w17_prereg.sha256", HERE / "w17.manifest"
 LEDGER_PATH = pathlib.Path("C:/sp-runs/w17-mcp-post/ledger.json")
-# The dry run expects about 0.06-0.09 USD for 1,188 requests; the cap leaves room for the flat
-# median estimate and one relaunch's overshoot, and stays far under the 10 USD ask-first line.
+# Ledger dollars: `CappedDecider` prices input tokens only (PRICE_PER_MTOK, about 42 µ$ an
+# answer here). The dry run expects 0.062 of them for 1,188 requests; at the flat 71 µ$ median
+# the bill for a run stopped at this cap would be about 0.20 x 71 / 42 = 0.34 USD.
 CAP_USD = 0.20
 BATCH = "w17-mcp-post"
 PRE_ENV = dict(replay.ARMS["mcp"])
@@ -58,7 +71,11 @@ POST_ENV = {**replay.BASE_ENV, "SANCHOPANZA_GUARD_MCP_POST": "1"}
 SEALED = ("benchmarks/a3_mcp/w17_replay.py", "benchmarks/a3_mcp/w17_analysis.py",
           "benchmarks/a3_mcp/replay.py", "benchmarks/a3_mcp/deciders.py",
           "benchmarks/cascade/run.py", "benchmarks/jev114/l4_stats.py",
-          "benchmarks/agentdojo/score.py", "tests/test_mcp_post.py",
+          "benchmarks/agentdojo/score.py", "benchmarks/a3_mcp/diagnose.py",
+          "benchmarks/a3_mcp/analysis.py", "benchmarks/a3_mcp/w17_ceiling.py",
+          "benchmarks/a3_mcp/w17_ceiling.json", "benchmarks/a3_mcp/w17_dry.json",
+          "tests/test_mcp_post.py", "tests/test_w17_mcp_post_replay.py",
+          "fixtures/cascade-jev.jsonl",
           "docs/results/2026-10-16-a3-mcp/answers.jsonl",
           "docs/results/2026-10-16-a3-mcp/calls.jsonl")  # fmt: skip
 
@@ -137,6 +154,19 @@ def labels(data: pathlib.Path) -> dict[str, dict[str, Any]]:
     return {str(r["id"]): r for r in json.loads(data.read_text(encoding="utf-8"))}
 
 
+def gained() -> list[str]:
+    """The 33 the free ceiling says the last result adds (w17_ceiling.json)."""
+    return list(json.loads(CEILING.read_text(encoding="utf-8"))["gained_ids"])
+
+
+def check_set(cases: Sequence[Mapping[str, Any]], rows: Sequence[Mapping[str, Any]]) -> None:
+    """The registered set or nothing: 500 trajectories, 250 per class, 1,188 MCP calls."""
+    unsafe = sum(c["label"] == "unsafe" for c in cases)
+    found = (len(cases), unsafe, len(cases) - unsafe, len(rows))
+    if found != (N_TRAJECTORIES, N_PER_CLASS, N_PER_CLASS, N_MCP_CALLS):
+        raise SystemExit(f"not the registered set: {found}, nothing scored")
+
+
 # ---- dry ----------------------------------------------------------------------------------------
 
 
@@ -158,7 +188,8 @@ def dry(cases: Sequence[Mapping[str, Any]], root: pathlib.Path, data: pathlib.Pa
     calls = estimate.calls
     flat = len(calls) * replay.FLAT_USD
     fit = sum(c["fit_usd"] for c in calls)
-    proxy = analysis.analyse(rehearsal(rows, data), labels(data), pre_matches_a3(rows))
+    check_set(cases, rows)
+    proxy = analysis.analyse(rehearsal(rows, data), labels(data), pre_matches_a3(rows), gained())
     return {
         "trajectories": len(cases), "mcp_calls": len(rows),
         "pre_replayed_free": len(pre.seen), "pre_asked": pre.asked,
@@ -171,7 +202,9 @@ def dry(cases: Sequence[Mapping[str, Any]], root: pathlib.Path, data: pathlib.Pa
         "usd_reserved_each_at_most": round(max((c["reserve_usd"] for c in calls),
                                                default=0.0), 6),
         "cap_usd": CAP_USD, "fits_under_cap": max(flat, fit) <= CAP_USD,
-        "rehearsal_proxy_not_a_result": {"arms": proxy["arms"], "verdict": proxy["verdict"]},
+        "rehearsal_proxy_not_a_result": {"arms": proxy["arms"], "paired": proxy["paired"],
+                                         "ceiling_33": proxy["ceiling_33"],
+                                         "proxy_outcome": proxy["development_rule"]},
     }  # fmt: skip
 
 
@@ -218,19 +251,35 @@ def ledger_spent() -> float:
     return SpendLedger(LEDGER_PATH, cap_usd=CAP_USD).spent(BATCH)
 
 
+def launches() -> int:
+    try:
+        return int(json.loads(LAUNCHES.read_text(encoding="utf-8"))["live"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return 0
+
+
+def _write(path: pathlib.Path, value: Any) -> None:
+    path.write_text(json.dumps(value) + "\n", encoding="utf-8", newline="\n")
+
+
 def go_live(data: pathlib.Path) -> Any:
+    if STATUS.exists():
+        raise SystemExit(f"{STATUS.name} says the lot is not run: an amendment comes first")
+    if launches() >= MAX_LAUNCHES:
+        raise SystemExit("every allowed launch is used: nothing spent")
     if not seal_state(data)["matches_seal"]:
         raise SystemExit("w17_prereg.md, the code or the data differ from the seal: nothing spent")
     if ANSWERS.exists() and ledger_spent() <= 0:
         raise SystemExit("w17_answers.jsonl exists but this run's ledger holds no spend: refused")
     replay.preflight()
-    return dec.live_decider(LEDGER_PATH, CAP_USD, BATCH)
+    return dec.live_decider(LEDGER_PATH, CAP_USD, BATCH, CAP_USD)
 
 
 def run(cases: Sequence[Mapping[str, Any]], root: pathlib.Path, data: pathlib.Path,
         live: Any) -> int:  # fmt: skip
     post = dec.Answers(ANSWERS, live)
     rows = asyncio.run(run_all(cases, dec.Answers(replay.ANSWERS), post, root))
+    check_set(cases, rows)
     cover = analysis.coverage(rows)
     state = {
         "asked": post.asked,
@@ -239,12 +288,29 @@ def run(cases: Sequence[Mapping[str, Any]], root: pathlib.Path, data: pathlib.Pa
     }
     print(json.dumps(state), file=sys.stderr)
     if cover["post_unanswered"] or cover["pre_unanswered"]:
-        return 3 if dec.HALTED and dec.HALTED[0].startswith(dec.CAP) else 2
+        return stopped(live is not None)
     CALLS.write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8", newline="\n")
-    extra = {"seal": seal_state(data), "ledger_usd": round(ledger_spent(), 6)}
-    print(json.dumps(analysis.write(rows, labels(data), pre_matches_a3(rows), ANALYSIS, extra)
-                     ["verdict"], indent=1))  # fmt: skip
+    extra = {"seal": seal_state(data), "ledger_usd": round(ledger_spent(), 6),
+             "launches": launches()}  # fmt: skip
+    result = analysis.write(rows, labels(data), pre_matches_a3(rows), ANALYSIS, gained(), extra)
+    print(json.dumps(result["development_rule"], indent=1))
     return 0
+
+
+def stopped(live: bool) -> int:
+    """A run with a call unanswered: the cap makes the lot NOT RUN (3); a pause is not counted
+    (2); otherwise the launch counts, and the last allowed one makes the lot NOT RUN (4)."""
+    if dec.HALTED and dec.HALTED[0].startswith(dec.CAP):
+        _write(STATUS, {"status": "not run", "why": "stopped at the cap", "cap_usd": CAP_USD})
+        return 3
+    if dec.HALTED or not live:
+        return 2
+    n = launches() + 1
+    _write(LAUNCHES, {"live": n})
+    if n >= MAX_LAUNCHES:
+        _write(STATUS, {"status": "not run", "why": f"unanswered after {n} launches"})
+        return 4
+    return 2
 
 
 def main(argv: list[str] | None = None) -> int:

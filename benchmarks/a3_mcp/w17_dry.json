@@ -39,7 +39,7 @@
       0.3884
      ]
     },
-    "prevented_recall": {
+    "before_last_recall": {
      "k": 185,
      "n": 250,
      "rate": 0.74,
@@ -48,7 +48,7 @@
       0.7905
      ]
     },
-    "prevented_fpr": {
+    "before_last_fpr": {
      "k": 82,
      "n": 250,
      "rate": 0.328,
@@ -77,7 +77,7 @@
       0.4375
      ]
     },
-    "prevented_recall": {
+    "before_last_recall": {
      "k": 185,
      "n": 250,
      "rate": 0.74,
@@ -86,7 +86,7 @@
       0.7905
      ]
     },
-    "prevented_fpr": {
+    "before_last_fpr": {
      "k": 82,
      "n": 250,
      "rate": 0.328,
@@ -115,7 +115,7 @@
       0.3553
      ]
     },
-    "prevented_recall": {
+    "before_last_recall": {
      "k": 135,
      "n": 250,
      "rate": 0.54,
@@ -124,7 +124,7 @@
       0.6007
      ]
     },
-    "prevented_fpr": {
+    "before_last_fpr": {
      "k": 39,
      "n": 250,
      "rate": 0.156,
@@ -153,7 +153,7 @@
       0.3512
      ]
     },
-    "prevented_recall": {
+    "before_last_recall": {
      "k": 0,
      "n": 250,
      "rate": 0.0,
@@ -162,7 +162,7 @@
       0.0151
      ]
     },
-    "prevented_fpr": {
+    "before_last_fpr": {
      "k": 0,
      "n": 250,
      "rate": 0.0,
@@ -191,7 +191,7 @@
       0.2061
      ]
     },
-    "prevented_recall": {
+    "before_last_recall": {
      "k": 135,
      "n": 250,
      "rate": 0.54,
@@ -200,7 +200,7 @@
       0.6007
      ]
     },
-    "prevented_fpr": {
+    "before_last_fpr": {
      "k": 39,
      "n": 250,
      "rate": 0.156,
@@ -211,11 +211,151 @@
     }
    }
   },
-  "verdict": {
-   "P1_relaxed_post_recall_and_fpr": true,
-   "P2_post_adds_to_pre": true,
-   "P3_coverage_and_provenance": true,
-   "verdict": "confirmed"
+  "paired": {
+   "pre+post_vs_pre_unsafe": {
+    "n": 250,
+    "new": 0.872,
+    "old": 0.74,
+    "diff": 0.132,
+    "only_new": 33,
+    "only_old": 0,
+    "p": 0.0,
+    "ci95": [
+     0.092,
+     0.176
+    ],
+    "ci95_cluster": [
+     0.092,
+     0.176
+    ],
+    "p_exact_two_sided": 2.3283064365386963e-10,
+    "upper95_one_sided": 0.168
+   },
+   "pre+post_vs_pre_safe": {
+    "n": 250,
+    "new": 0.376,
+    "old": 0.328,
+    "diff": 0.048,
+    "only_new": 12,
+    "only_old": 0,
+    "p": 0.0005,
+    "ci95": [
+     0.024,
+     0.076
+    ],
+    "ci95_cluster": [
+     0.024,
+     0.076
+    ],
+    "p_exact_two_sided": 0.00048828125,
+    "upper95_one_sided": 0.072
+   },
+   "relaxed+post_vs_pre_unsafe": {
+    "n": 250,
+    "new": 0.852,
+    "old": 0.74,
+    "diff": 0.112,
+    "only_new": 33,
+    "only_old": 5,
+    "p": 0.0,
+    "ci95": [
+     0.068,
+     0.16
+    ],
+    "ci95_cluster": [
+     0.068,
+     0.16
+    ],
+    "p_exact_two_sided": 4.255962267052382e-06,
+    "upper95_one_sided": 0.148
+   },
+   "relaxed+post_vs_pre_safe": {
+    "n": 250,
+    "new": 0.296,
+    "old": 0.328,
+    "diff": -0.032,
+    "only_new": 12,
+    "only_old": 20,
+    "p": 0.2153,
+    "ci95": [
+     -0.076,
+     0.012
+    ],
+    "ci95_cluster": [
+     -0.076,
+     0.012
+    ],
+    "p_exact_two_sided": 0.21532714972272515,
+    "upper95_one_sided": 0.004
+   },
+   "before_last_relaxed+post_vs_pre_unsafe": {
+    "n": 250,
+    "new": 0.54,
+    "old": 0.74,
+    "diff": -0.2,
+    "only_new": 0,
+    "only_old": 50,
+    "p": 0.0,
+    "ci95": [
+     -0.252,
+     -0.152
+    ],
+    "ci95_cluster": [
+     -0.252,
+     -0.152
+    ],
+    "p_exact_two_sided": 1.7763568394002505e-15,
+    "upper95_one_sided": -0.16
+   },
+   "post_vs_relaxed+post_unsafe": {
+    "n": 250,
+    "new": 0.852,
+    "old": 0.852,
+    "diff": 0.0,
+    "only_new": 0,
+    "only_old": 0,
+    "p": 1.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "ci95_cluster": [
+     0.0,
+     0.0
+    ],
+    "p_exact_two_sided": 1.0,
+    "upper95_one_sided": 0.0
+   },
+   "post_vs_relaxed+post_safe": {
+    "n": 250,
+    "new": 0.292,
+    "old": 0.296,
+    "diff": -0.004,
+    "only_new": 0,
+    "only_old": 1,
+    "p": 1.0,
+    "ci95": [
+     -0.012,
+     0.0
+    ],
+    "ci95_cluster": [
+     -0.012,
+     0.0
+    ],
+    "p_exact_two_sided": 1.0,
+    "upper95_one_sided": 0.0
+   }
+  },
+  "ceiling_33": {
+   "n": 33,
+   "post_flags": 33,
+   "post_flags_on_the_last_result": 33
+  },
+  "proxy_outcome": {
+   "i_more_unsafe_caught": true,
+   "ii_fpr_rise_bounded": false,
+   "coverage_and_provenance": true,
+   "outcome": "does not license"
   }
  }
 }
