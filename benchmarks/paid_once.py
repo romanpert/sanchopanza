@@ -50,7 +50,7 @@ from sanchopanza.providers.recorded import RecordedDecider, RecordingDecider  # 
 
 MEDIAN_REQUEST_USD = 71e-6  # a real Jev request, median (CLAUDE.md); a short question is ~29
 LOCK_STALE_S = 6 * 3600.0  # a paid run holds its lock for minutes; never taken over sooner
-NO_RELAUNCH_AFTER = ("funds", "limit", "cap")
+NO_RELAUNCH_AFTER = ("funds", "limit", "cap", "model")  # a model switch is no transient fault
 COMMIT = re.compile(r"Instrument commit: `([0-9a-f]{40})`")
 LOCAL_VALUES = re.compile(r'^(set "(?:PY|SANCHOPANZA_KEYS_ENV)=)[^"\n]*(")', re.MULTILINE)
 Query = tuple[str, Any, Any]
@@ -67,6 +67,10 @@ class Lot:
     instrument: tuple[str, ...]  # repo paths that must be as the instrument commit has them
     inputs: tuple[tuple[Path, str], ...] = field(default=())  # (file, raw sha256)
     home: Path = field(default_factory=lambda: Path.home() / ".cache" / "sanchopanza")
+    # A ledger shared with other lots (a round's budget): its file and its cap over every batch;
+    # `cap_usd` is then this lot's batch cap in it. None: the lot's own ledger, capped at cap_usd.
+    shared_ledger: Path | None = None
+    shared_cap_usd: float | None = None
 
     @property
     def run_dir(self) -> Path:
@@ -74,6 +78,8 @@ class Lot:
 
     @property
     def ledger(self) -> Path:
+        if self.shared_ledger is not None:
+            return self.shared_ledger
         return self.run_dir / "ledger.jsonl"
 
     @property
@@ -256,7 +262,23 @@ async def _missing(queries: Sequence[Query], lot: Lot) -> list[Query]:
 
 def spent(lot: Lot) -> float:
     """What the lot's ledger already holds (reserved or settled), 0 before any launch."""
-    return SpendLedger(lot.ledger, cap_usd=lot.cap_usd).spent() if lot.ledger.exists() else 0.0
+    if not lot.ledger.exists():
+        return 0.0
+    return ledger_of(lot).spent(lot.name if lot.shared_ledger is not None else None)
+
+
+def ledger_of(lot: Lot) -> SpendLedger:
+    """The lot's ledger, capped over every batch it holds (the round's cap when shared)."""
+    return SpendLedger(lot.ledger, cap_usd=lot.shared_cap_usd or lot.cap_usd)
+
+
+def room(lot: Lot) -> float:
+    """What the lot may still spend: its batch cap less its spend and, on a shared ledger, no
+    more than the shared cap less every batch's spend."""
+    left = lot.cap_usd - spent(lot)
+    if lot.shared_ledger is not None and lot.ledger.exists():
+        left = min(left, (lot.shared_cap_usd or lot.cap_usd) - ledger_of(lot).spent())
+    return left
 
 
 def plan(queries: Sequence[Query], lot: Lot) -> dict[str, Any]:
@@ -272,6 +294,7 @@ def plan(queries: Sequence[Query], lot: Lot) -> dict[str, Any]:
         "usd_estimate_capped_decider": round(pessimistic, 6),
         "usd_spent_on_ledger": round(spent(lot), 6),
         "cap_usd": lot.cap_usd,
+        "usd_room": round(room(lot), 6),
         "ledger": str(lot.ledger),
         "launches_so_far": len(history(lot)),
     }
@@ -314,7 +337,7 @@ async def ask_missing(queries: Sequence[Query], lot: Lot, *, live: Any) -> dict[
     todo = await _missing(queries, lot)
     capped = CappedDecider(
         live,
-        ledger=SpendLedger(lot.ledger, cap_usd=lot.cap_usd),
+        ledger=ledger_of(lot),
         batch=lot.name,
         max_usd=lot.cap_usd,
     )
@@ -377,6 +400,9 @@ def run_paid(
     if plan_["to_ask"] == 0:
         return {"head": head(), "asked": 0, "stopped": None, "note": "nothing missing"}
     require_room(plan_, lot.cap_usd)
+    most = max(plan_["usd_at_median_request"], plan_["usd_estimate_capped_decider"])
+    if most > room(lot):  # a shared ledger: the round's other lots have spent part of it
+        raise SystemExit(f"{most:.4f} USD does not fit in the {room(lot):.4f} the ledger leaves")
     require_sealed(lot)
     commit = require_instrument(lot)
     require_inputs(lot)

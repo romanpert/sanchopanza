@@ -32,6 +32,7 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "benchmarks"))
 
 import paid_once  # noqa: E402
+import w17_round  # noqa: E402
 
 
 def _load(name: str, path: pathlib.Path) -> Any:
@@ -48,29 +49,45 @@ written = _load("facts_written", HERE / "written.py")
 RESULTS = ROOT / "docs" / "results" / "2026-10-16-c4-written"
 PREREG = RESULTS / "prereg.md"
 CASES = written.OUT
-CASES_SHA256 = "44351330b80dd172cd7aa75a4c33252e0eeb638cedf216cbdd7e1fcf81e601d8"
+CASES_SHA256 = "a589a5d25d025390af8071b80129670a2b129ee003a54f3721e445da246207b9"
 FIXTURE = ROOT / "fixtures" / "c4-written" / "recording.jsonl"  # below fixtures/: its own set
 MODEL = run.MODEL  # jev-1.13.0
 GATE = run.GATE_UNDER_TEST  # 0.65, A5's
-CAP_USD = 0.15
+NAME = "c4-written"
+CAP_USD = w17_round.BATCH_CAPS[NAME]  # 0.15, this lot's batch cap on the round's shared ledger
+PARTIAL_SHARE = 0.02  # more cases than this unanswered once no launch is left: no verdict
+# The question's wording admits `unrelated` for a consistent pair of events or for a role and
+# its act: the second reading leaves those `agree` pairs out.
+LABEL_SENSITIVE = {("dated", "agree"), ("role", "agree")}
+BANDS = (0.065, 0.07, 0.08, 0.10, 0.125)  # A5's real band was 39 / 560 = 7.0 %
 
 
 def lot() -> paid_once.Lot:
     return paid_once.Lot(
-        name="c4-written",
+        name=NAME,
         prereg=PREREG,
-        launcher=ROOT / "c4-written-run.cmd",
+        launcher=ROOT / "c4-written-run.cmd",  # fixed by the seal (`launcher_digest`), not here
         fixture=FIXTURE,
         model=MODEL,
-        cap_usd=CAP_USD,  # hard, in the ledger at ~/.cache/sanchopanza/c4-written/ (fixed path)
+        cap_usd=CAP_USD,
         instrument=(
             "src",
             "benchmarks/paid_once.py",
             "benchmarks/facts_gate",
             "benchmarks/thresholds.py",
-            "c4-written-run.cmd",
+            "benchmarks/w17_round.py",
         ),  # fmt: skip
+        shared_ledger=w17_round.LEDGER,
+        shared_cap_usd=w17_round.CAP_USD,
     )
+
+
+def make_live() -> Any:  # pragma: no cover - builds the real client
+    """`paid_once.jev_live` with the client's own retries off: no call is ever asked twice."""
+    from sanchopanza.providers import jev
+
+    jev.RETRYABLE = frozenset()
+    return paid_once.jev_live(MODEL)
 
 
 def load() -> list[dict[str, Any]]:
@@ -103,6 +120,37 @@ def wrong_by_kind(rows: list[dict[str, Any]], cases: list[dict[str, Any]]) -> di
     return dict(sorted(out.items()))
 
 
+def result(rows: list[dict[str, Any]], cases: list[dict[str, Any]]) -> dict[str, Any]:
+    """The registered verdict, and the second reading without the label-sensitive pairs."""
+    missing = sum(bool(r.get("unanswered")) for r in rows)
+    if missing == len(rows):
+        return {"verdict": "no verdict: not run", "unanswered": missing}
+    if missing > PARTIAL_SHARE * len(rows):
+        return {"verdict": f"partial: {missing} cases unanswered, no verdict",
+                "unanswered": missing}  # fmt: skip
+    answered = [r for r in rows if not r.get("unanswered")]
+    primary = run.verdict(answered, GATE)
+    kept = [r for r, c in zip(rows, cases, strict=True) if not r.get("unanswered")
+            and (c["kind"], c["expected"]) not in LABEL_SENSITIVE]  # fmt: skip
+    second = run.verdict(kept, GATE)
+    only_labels = primary["verdict"].startswith("the gate does not") and second[
+        "verdict"
+    ].startswith("the gate beats")
+    return {**primary, "unanswered": missing, "without_dated_and_role_agree": second,
+            "label_disagreement_only": only_labels}  # fmt: skip
+
+
+def power_rows(units: int) -> list[dict[str, Any]]:
+    """A5's power formula (`run.p_beats`) at the bands in BANDS."""
+    return [
+        {"band": band, "added_expected": round(units * band, 1),
+         "p_undecided": round(sum(run._binom(units, n, band) for n in range(run.MIN_ADDED)), 4),
+         **{f"p_beats_at_{p:.2f}": round(run.p_beats(units, band, p), 3)
+            for p in (0.80, 0.93, 0.95)}}
+        for band in BANDS
+    ]  # fmt: skip
+
+
 async def report(cases: list[dict[str, Any]], the_lot: paid_once.Lot | None = None) -> dict:
     the_lot = the_lot or lot()
     recorded = paid_once.recorded(the_lot)
@@ -118,7 +166,7 @@ async def report(cases: list[dict[str, Any]], the_lot: paid_once.Lot | None = No
         "gates": [run.added(rows, g) for g in run.GATES],
         "added_by_type": run.by_type(rows, GATE),
         "related_kinds": wrong_by_kind(rows, cases),
-        "result": run.verdict(rows, GATE),
+        "result": result(rows, cases),
     }
 
 
@@ -132,22 +180,22 @@ def main() -> int:
     cases = load()
     if args.action == "power":
         unrelated = sum(c["expected"] == "unrelated" for c in cases)
-        print(json.dumps({"unrelated_controls": run.power_table(unrelated)}, indent=1))
+        print(json.dumps({"unrelated_controls": power_rows(unrelated)}, indent=1))
         return 0
     if args.action == "report":
-        result = asyncio.run(report(cases))
+        got = asyncio.run(report(cases))
         RESULTS.mkdir(parents=True, exist_ok=True)
-        (RESULTS / "analysis.json").write_text(json.dumps(result, indent=1) + "\n", "utf-8")
-        print(json.dumps(result, indent=1))
+        (RESULTS / "analysis.json").write_text(json.dumps(got, indent=1) + "\n", "utf-8")
+        print(json.dumps(got, indent=1))
         return 0
     asks = queries(cases)
     if args.action == "dry":
         print(json.dumps({"gate": GATE, "head": paid_once.head(), **paid_once.plan(asks, lot())},
                          indent=1))  # fmt: skip
         return 0
-    result = paid_once.run_paid(lot(), asks)
-    print(json.dumps(result, indent=1))
-    return 0 if result["stopped"] is None else 2
+    got = paid_once.run_paid(lot(), asks, make_live=make_live)
+    print(json.dumps(got, indent=1))
+    return 0 if got["stopped"] is None else 2
 
 
 if __name__ == "__main__":

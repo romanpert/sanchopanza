@@ -22,10 +22,14 @@ after the first, the act in or after the year of the first appointment, the part
 the whole) and `conflict` when they break it, since then they cannot both be true as stated.
 `unrelated` controls pair two facts about the same entity that no values could make
 contradict (a law's date and its number of articles, a person's birth and the languages she
-speaks), the shape A5 found the gate's verdicts in. Half the `dated` pairs name the entity
-two ways, as fa-17 does, with the identity stated in the first fact. Mix 40 % `unrelated`,
-30 % `agree`, 30 % `conflict` (A5's and the fifth batch's); languages alternate. Nothing here
-is drawn from a model and no label is read off a model's answer.
+speaks), the shape A5 found the gate's verdicts in. In the three `dated` domains that have a
+second name (a law, a bridge, a company), half the pairs name the entity two ways, as fa-17
+does, the identity stated in the fact with the first event: 83 of the 300 `dated` pairs (36
+`agree`, 47 `conflict`), the identity in `fact_a` in 55 of them and in `fact_b` in 28, after
+the random order of the two facts (`identity_in`). Numbers from 1,000 up carry the language's
+thousands separator, all of them. Mix 40 % `unrelated`, 30 % `agree`, 30 % `conflict` (A5's
+and the fifth batch's); languages alternate. Nothing here is drawn from a model and no label
+is read off a model's answer.
 """
 
 from __future__ import annotations
@@ -171,7 +175,7 @@ def date_text(day: dt.date, lang: str) -> str:
 
 
 def number(value: int, lang: str) -> str:
-    if value < 10_000:
+    if value < 1_000:
         return str(value)
     return f"{value:,}".replace(",", "." if lang == "es" else ",")
 
@@ -222,6 +226,7 @@ def dated(rng: random.Random, label: str, lang: str) -> dict[str, Any]:
     a = first[k].format(E=a_subject, e=a_object, d=date_text(start, lang))
     b = second[k].format(E=capital(named), e=named, d=date_text(end, lang))
     return {"domain": domain, "entity": named, "a": a, "b": b,
+            "identity": "a" if named != entity else None,
             "values": {"first": start.isoformat(), "second": end.isoformat()},
             "shown": [date_text(start, lang), date_text(end, lang)]}  # fmt: skip
 
@@ -271,7 +276,7 @@ def unrelated(rng: random.Random, lang: str) -> dict[str, Any]:
             "made": "nombrada" if female else "nombrado",
             "title": "ministra" if female else "ministro",
             "y": str(rng.randrange(1990, 2022)),
-            "k": str(rng.randrange(low, high + 1))}  # fmt: skip
+            "k": number(rng.randrange(low, high + 1), lang)}  # fmt: skip
     a = (first_es if lang == "es" else first_en).format(**fill)
     b = (second_es if lang == "es" else second_en).format(**fill)
     entity = {"law": f"{n['n']}", "person": n["name"], "minister": n["name"]}.get(domain, n["p"])
@@ -285,7 +290,8 @@ def one(rng: random.Random, label: str, kind: str, lang: str) -> dict[str, Any]:
     case = unrelated(rng, lang) if kind == "unrelated" else MAKERS[kind](rng, label, lang)
     case = {**case, "a": contract(case["a"]), "b": contract(case["b"])}
     if rng.randrange(2):
-        case = {**case, "a": case["b"], "b": case["a"]}
+        flipped = {"a": "b", "b": "a"}.get(case.get("identity") or "")
+        case = {**case, "a": case["b"], "b": case["a"], "identity": flipped}
     return case
 
 
@@ -306,6 +312,7 @@ def build(seed: int = SEED) -> list[dict[str, Any]]:
             "input": {"fact_a": case["a"], "fact_b": case["b"]},
             "expected": label, "lang": lang, "kind": kind, "attributes": case["domain"],
             "entity": case["entity"], "values": case["values"], "shown": case["shown"],
+            "identity_in": case.get("identity"),
         })  # fmt: skip
     return cases
 
