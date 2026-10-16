@@ -1,9 +1,9 @@
-# C5: the free order against page order on QASPER questions nobody has looked at (pre-registration, DRAFT)
+# C5: the free order against page order on QASPER questions nobody has looked at (pre-registration)
 
-Status: **draft, not sealed.** Before the seal: an independent `revisor-prereg` review against
-the code, then `python -I benchmarks/passage_fit/free_confirm.py seal` writes `prereg.sha256`
-(the sha256 of this file and of `c5-free-run.cmd`, its two local values read as placeholders).
-Instrument commit: `dfa7e5a1e5a57b352975bb21b4de55ecd6caf7b4`.
+Status: reviewed twice against the code by `revisor-prereg`. The seal, `prereg.sha256` (written
+by `python -I benchmarks/passage_fit/free_confirm.py seal`), holds the sha256 of this file and of
+`c5-free-run.cmd`, its two local values read as placeholders.
+Instrument commit: `319ee7988c6a5b84d874cd91f3f642e8bc750c19`.
 
 ## Question
 
@@ -70,7 +70,8 @@ With lo and hi the 95 % cluster-bootstrap bounds of FREE − PAGE recall on the 
 **unrounded** (`recall_ci95_cluster_exact`; the rounded pair is for reading):
 
 0. **Incomplete.** Once no launch is left, any call unanswered: **"no verdict: incomplete, N
-   calls unanswered"**. An unanswered tournament group keeps its paragraphs and an unanswered
+   calls unanswered"**, N counting distinct calls (PAGE's and FREE's runs meet the same call;
+   it counts once). An unanswered tournament group keeps its paragraphs and an unanswered
    sentence call keeps its sentences (the package's rule: in doubt, text enters), so FREE and
    PAGE cut the same oversized text and the difference is pulled toward zero. The readings
    without every question an unanswered call touched are then reported as a sensitivity
@@ -79,6 +80,7 @@ With lo and hi the 95 % cluster-bootstrap bounds of FREE − PAGE recall on the 
    characters"**.
 2. hi < 0: **"FREE loses to page order"**.
 3. Otherwise **"not confirmed: FREE and page order not told apart"**.
+4. No question's delivered text exceeds B: **"no verdict: no question overflows the budget"**.
 
 What each licenses. Rule 1 makes `select_passages(fit_chars=..., fit_score=False)` a measured
 option at B = 3,400 on scientific papers, jev-1.13.0: a caller that must cut should cut in the
@@ -127,14 +129,16 @@ this file and the launcher; HEAD descends from the instrument commit and `src/`,
 not an instrument path: the seal fixes it, its two local values read as placeholders, so a copy
 filled in place passes); the launch rule allows a launch; on a first launch no recording
 exists; no other `paid` of the lot holds its lock. Then, in one event loop: `jev-preflight`,
-the live client (`JevDecider`, jev-1.13.0, long context and images off, its own retries of 429
-and 529 turned off) built inside it, every call through `CappedDecider`, recorded in
+the live client (`JevDecider`, jev-1.13.0, long context and images off; the client retries an HTTP 529 up to 3 times inside one call, with a growing pause, before an answer is recorded once; a 429 is not retried and stops the lot; a timeout is not retried by the client) built
+inside it, every call through `CappedDecider`, recorded in
 `fixtures/c5-free/recording.jsonl` (hashed keys, no text), at most 4 in flight, never asked
 twice: a call that failed answers every later identical request of the run with the same
 failure (`Asker(memo_failures=True)`). The first cap refusal, 401/402/403/429, 5xx or loss of
 connection stops every later call; three failures in a row of any kind do too; an answer from
 another model halts the run as a stop of kind "model" (`Asker(model_halts=True)`), written in
-`launches.jsonl`.
+`launches.jsonl`. A ledger lock not had within 5 seconds (another process writing the shared
+ledger) halts it as "busy", not as the cap: not final, the relaunch stays allowed. C5 does not
+run at the same time as C4 or C6.
 
 **Launch rule.** One launch and at most one relaunch (`paid_once.may_launch`), none after an HTTP
 402, a 429, the cap or an answer from another model; a relaunch replays what was recorded and

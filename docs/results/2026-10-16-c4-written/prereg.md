@@ -1,9 +1,9 @@
-# C4: A5's `unrelated` gate on fa-17's kinds of pair (pre-registration, DRAFT)
+# C4: A5's `unrelated` gate on fa-17's kinds of pair (pre-registration)
 
-Status: **draft, not sealed.** Before the seal: an independent `revisor-prereg` review against
-the code, then `python benchmarks/facts_gate/written_run.py seal` writes `prereg.sha256` (the
-sha256 of this file and of `c4-written-run.cmd`, its two local values read as placeholders).
-Instrument commit: `dfa7e5a1e5a57b352975bb21b4de55ecd6caf7b4`.
+Status: reviewed twice against the code by `revisor-prereg`. The seal, `prereg.sha256` (written
+by `python benchmarks/facts_gate/written_run.py seal`), holds the sha256 of this file and of
+`c4-written-run.cmd`, its two local values read as placeholders.
+Instrument commit: `319ee7988c6a5b84d874cd91f3f642e8bc750c19`.
 
 ## Question
 
@@ -81,7 +81,10 @@ What each licenses. Rule 2 completes A5's proposal: `unrelated_at=0.65` may beco
 `decide_facts`' default at jev-1.13.0 (the change itself is a separate commit, with
 `relate_facts`' docs and the CHANGELOG). Rule 3 keeps the default at `None` and names, in
 `related_kinds`, which kind the gate turned into `unrelated`. Rule 1 says the band was too thin
-here. Reported, not voted: per kind and label, the pairs the gate turns into `unrelated` with the
+here. Only the primary reading decides the default: the second reading (without `dated` and
+`role` `agree` pairs) is reported and licenses nothing; `label_disagreement_only` is a flag for
+the reader. Reported, not voted: the 83 two-name pairs by the fact their identity sits in
+(`two_names`); per kind and label, the pairs the gate turns into `unrelated` with the
 Wilson 95 % upper bound of that rate, and the shipped policy's own wrong and undecided verdicts
 (an `agree` read confidently as `unrelated` is the shipped policy's, which no `unrelated` gate
 changes); every gate of the family.
@@ -125,9 +128,11 @@ its two local values read as placeholders, so a filled copy passes); the cases h
 the launch rule allows a launch (one launch and at most one relaunch, none after an HTTP 402, a
 429, the cap or an answer from another model); on a first launch no recording exists; no other
 `paid` of the lot holds its lock. Then, in one event loop, `jev-preflight`, the live client
-(`JevDecider`, its own retries of 429 and 529 turned off: no call is asked twice) and every
-missing call once, in order; the first refusal, failure, empty answer or answer from another
-model stops it, and the stop is written (`launches.jsonl`). While a relaunch is allowed,
+(`JevDecider`: the client retries an HTTP 529 up to 3 times inside one call, with a growing pause, before an answer is recorded once; a 429 is not retried and stops the lot; a timeout is not retried by the client) and every missing call once, in order; the first refusal, failure,
+empty answer or answer from another model stops it, and the stop is written (`launches.jsonl`).
+A ledger lock not had within 5 seconds (another process writing the shared ledger) stops the
+launch as "busy", not as the cap: it is not final, and the relaunch stays allowed. C4 does not run
+at the same time as C5 or C6. While a relaunch is allowed,
 `report` refuses with cases unanswered; after it, rule 0 applies.
 
 **Launch.** From a `git worktree add --detach` at the seal commit, by WMI in its own process group
