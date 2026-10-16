@@ -24,19 +24,21 @@ in `context.guard`; this module only reads the event and the transcript and writ
 
 Environment (every name is `SANCHOPANZA_<NAME>`):
 
-    GUARD_CHOOSER    pointers (default since 2026-10-16, no model): the requests verbatim, the
-                     files changed and pointers to the tool output since the previous compaction;
-                     output that cannot be had again is written whole to the archive beside the
-                     project (`.sanchopanza/archive/<session>/guard-*.txt`, the event's cwd or
-                     SANCHOPANZA_ARCHIVE) and its pointer names the file to Read
-                     (`context.pointers`); an archive that cannot be written gives the rule's
-                     block | struct (the default from 2026-10-05, `install --guard-full`): whole
-                     tool results since the previous compaction,
-                     the latest on each file being edited first, then by recency, output that
-                     cannot be had again first in each, pointers for re-readable results left out
-                     (`context.structural`; measured offline 2026-10-05: Jev's ranking lost to
-                     recency, docs/results/2026-10-05-guard-struct); any error there gives the
-                     rule's block | rule: value lines of one-shot output by a free rule (the
+    GUARD_CHOOSER    One of:
+                     pointers (the default since 2026-10-16, no model): the requests verbatim
+                     first, the files changed, and pointers to the tool output since the previous
+                     compaction (`context.pointers`). Every output that cannot be had again is
+                     written whole, masked strictly, to the archive beside the project
+                     (`.sanchopanza/archive/<session>/guard-*.txt`, under the event's cwd or
+                     SANCHOPANZA_ARCHIVE); the block names that folder once and each listed line
+                     its file. An archive that cannot be written gives the rule's block |
+                     struct (the default from 2026-10-05 to 2026-10-16, `install --guard-full`):
+                     whole tool results since the previous compaction, the latest on each file
+                     being edited first, then by recency, output that cannot be had again first
+                     in each, pointers for re-readable results left out (`context.structural`;
+                     measured offline 2026-10-05: Jev's ranking lost to recency,
+                     docs/results/2026-10-05-guard-struct); any error there gives the rule's
+                     block | rule: value lines of one-shot output by a free rule (the
                      default until 2026-10-05) | judge: every output line judged by the decider,
                      the person's requests as the question, no content rule | decider: the rule's
                      lines, one tournament over commands when they do not fit (the first version).

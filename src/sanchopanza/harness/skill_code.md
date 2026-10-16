@@ -27,10 +27,12 @@ headed `sanchopanza guard` follows the summary. It holds:
 
 - the person's requests, word for word,
 - the files changed so far,
-- pointers to the tool output from before the compaction, newest first. A line ending in
-  `-> Read <path>` is output that cannot be had again (a one-shot command, a subagent's report),
-  kept whole in that file: `Read` it instead of re-running the command. The other lines name a
-  file, search or command you can read or run again.
+- pointers to the tool output from before the compaction, newest first. The block names one
+  archive folder; a line ending in `-> guard-<id>.txt (N characters)` is output that cannot be
+  had again (a one-shot command, a subagent's report), kept whole in that file in that folder,
+  secrets masked: `Read` it (folder plus file name) instead of re-running the command. "N more
+  archived" counts files there that no line lists. The other lines name a file, search or
+  command you can read or run again.
 
 Trust the requests and the archived files over the summary for exact values (identifiers,
 numbers, tokens, paths). Re-read a file before editing it, since the summary does not hold its
