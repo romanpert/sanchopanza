@@ -1,0 +1,2 @@
+{"event": "start", "head": "adc03c2f55362af7102a1b06656b7d84c66999ae", "instrument": "3386caa7efb280fe7046bf0b89a783805deb90c3", "at": "2026-10-16T21:14:14+0200", "plan": {"questions": 646, "calls": 7379, "pessimistic_usd": 1.4145, "expected_usd": 0.9897, "calls_triage_pages": 2255, "calls_select_sentences": 5124, "usd_at_qasper_ledger_rate": 0.7721, "cap_usd": 2.0, "fits_under_cap": true, "claude_usd": 0.0}}
+{"event": "end", "calls": {"select": 8869}, "stopped": null, "stop_kind": null}

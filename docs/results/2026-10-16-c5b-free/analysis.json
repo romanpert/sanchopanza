@@ -1,0 +1,135 @@
+{
+ "head": "adc03c2f55362af7102a1b06656b7d84c66999ae",
+ "unanswered_calls": 0,
+ "budget_chars": 3400,
+ "questions": 646,
+ "papers": 300,
+ "overflowing": {
+  "n": 348,
+  "papers": 216
+ },
+ "arms": {
+  "PAGE": {
+   "recall": 0.6191,
+   "all_gold": 0.5632,
+   "chars_mean": 3218.1
+  },
+  "BM25": {
+   "recall": 0.6161,
+   "all_gold": 0.5431,
+   "chars_mean": 3247.9
+  },
+  "FREE": {
+   "recall": 0.7831,
+   "all_gold": 0.7213,
+   "chars_mean": 3213.7
+  },
+  "GOLD": {
+   "recall": 0.9287,
+   "all_gold": 0.8994,
+   "chars_mean": 3218.8
+  }
+ },
+ "paired": {
+  "FREE-PAGE": {
+   "n": 348,
+   "recall_diff": 0.1641,
+   "recall_ci95_cluster": [
+    0.1099,
+    0.2185
+   ],
+   "recall_ci95_cluster_exact": [
+    0.10987287588033857,
+    0.21848989039129882
+   ],
+   "recall_ci95_item": [
+    0.1092,
+    0.2185
+   ],
+   "all_gold": {
+    "n": 348,
+    "new": 0.7213,
+    "old": 0.5632,
+    "diff": 0.158,
+    "only_new": 81,
+    "only_old": 26,
+    "p": 0.0,
+    "ci95": [
+     0.1006,
+     0.2155
+    ],
+    "ci95_cluster": [
+     0.1034,
+     0.2137
+    ]
+   }
+  },
+  "BM25-PAGE": {
+   "n": 348,
+   "recall_diff": -0.0029,
+   "recall_ci95_cluster": [
+    -0.0607,
+    0.0565
+   ],
+   "recall_ci95_cluster_exact": [
+    -0.060707315655996005,
+    0.056458200101666016
+   ],
+   "recall_ci95_item": [
+    -0.059,
+    0.0531
+   ],
+   "all_gold": {
+    "n": 348,
+    "new": 0.5431,
+    "old": 0.5632,
+    "diff": -0.0201,
+    "only_new": 50,
+    "only_old": 57,
+    "p": 0.5621,
+    "ci95": [
+     -0.0805,
+     0.0374
+    ],
+    "ci95_cluster": [
+     -0.0796,
+     0.0406
+    ]
+   }
+  },
+  "GOLD-PAGE": {
+   "n": 348,
+   "recall_diff": 0.3097,
+   "recall_ci95_cluster": [
+    0.2633,
+    0.3568
+   ],
+   "recall_ci95_cluster_exact": [
+    0.2633283613893032,
+    0.3567770303548747
+   ],
+   "recall_ci95_item": [
+    0.2646,
+    0.3557
+   ],
+   "all_gold": {
+    "n": 348,
+    "new": 0.8994,
+    "old": 0.5632,
+    "diff": 0.3362,
+    "only_new": 117,
+    "only_old": 0,
+    "p": 0.0,
+    "ci95": [
+     0.2874,
+     0.3851
+    ],
+    "ci95_cluster": [
+     0.2849,
+     0.3887
+    ]
+   }
+  }
+ },
+ "verdict": "FREE confirmed: it keeps more answer sentences than page order at 3,400 characters"
+}

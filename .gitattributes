@@ -11,3 +11,4 @@ c5b-free-run.cmd text eol=crlf
 c6-window-run.cmd text eol=crlf
 fixtures/*.jsonl.gz binary
 fixtures/c5-free/*.jsonl.gz binary
+fixtures/c5b-free/*.jsonl.gz binary
