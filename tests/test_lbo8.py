@@ -150,7 +150,7 @@ def test_power_grows_with_the_tasks():
 def test_the_money_rule_runs_every_session_at_the_expected_cost_and_stays_under_the_ceiling():
     phase = lbo8.PHASE_O
     lb162x = lbo8.lb162x
-    assert lb162x.at_mean(phase, lbo8.OPUS_EST_USD * 1.6, phase.n) == phase.n
+    assert lb162x.at_mean(phase, lbo8.OPUS_EST_USD * 1.5, phase.n) == phase.n
     assert lb162x.guaranteed(phase) >= 1
     spent, cap = 0.0, lb162x.cap_for(0.0, phase)
     while cap is not None:  # every session at its cap plus one worst turn

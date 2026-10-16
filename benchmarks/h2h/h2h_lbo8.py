@@ -237,7 +237,8 @@ def plan_lines(run_dir: pathlib.Path, now: dt.datetime) -> list[str]:
         f"order: {' -> '.join(p.key for p in DRIVEN)} (smoke, phase J, phase O); "
         f"{1 + o.n} Opus sessions and {lbo8.N_TASKS} Jev tasks; lot ceiling "
         f"{lbo8.LOT_CEILING_USD:.2f} USD (smoke {SMOKE.ceiling:g} + J {lbo8.JEV_CAP_USD:g} + "
-        f"O {o.ceiling:g}); expected ~{lbo8.N_TASKS * lbo8.OPUS_EST_USD + 0.2 + 0.07:.1f} USD",
+        f"O {o.ceiling:g}), {lbo8.LOT_WORST_USD:.2f} at worst with the smoke's turn past its cap; "
+        f"expected ~{lbo8.N_TASKS * lbo8.OPUS_EST_USD + 0.2 + 0.07:.1f} USD",
         f"phase O order (seed {lbo8.ORDER_SEED}): first {lbo8.opus_order()[:3]}",
         f"wall: phase O ~{o.n * o.wall_mean_s / 60:.0f} min at {o.wall_mean_s:g} s a session, "
         f"clock allowance {o.n * o.wall_mean_s * s162.WALL_FACTOR / 60 + 10:.0f} min: start "

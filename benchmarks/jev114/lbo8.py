@@ -94,8 +94,11 @@ OPUS_EST_USD = 0.10
 JEV_USD_PER_MCHAR = 0.012
 JEV_WORST_USD_PER_MCHAR = lb162.JEV_WORST_USD_PER_MCHAR
 JEV_CAP_USD = 0.20  # phase J's ledger and batch cap
+# Phase O's ceiling leaves room for the smoke's worst turn: --max-budget-usd cuts only between
+# turns, so the smoke can spend its 0.80 plus one worst turn (8.64), and 0.80 + 8.64 + 0.20 (J)
+# + 21.36 is the 31.00 the owner approved, as a worst case and not only as caps.
 PHASE_O = lb162x.Phase("O", "lbo8-opus", "OPUS", meter.OPUS_55, IDS_FILE, N_TASKS,
-                       ceiling=30.00, full_cap=lb162x.stats.OPUS_FULL_CAP_USD, floor=1.00,
+                       ceiling=21.36, full_cap=lb162x.stats.OPUS_FULL_CAP_USD, floor=1.00,
                        wall_mean_s=25.0, cost_scale=1.0, rows=OUT / "opus-rows.jsonl",
                        stop=OUT / "opus-stop.json")  # fmt: skip
 # The smoke: lb162x's (ONE Opus session on lb162's smoke task, a LongBench dev task outside the
@@ -118,7 +121,8 @@ class JevPhase:
 
 PHASE_J = JevPhase()
 DRIVEN = (SMOKE, PHASE_J, PHASE_O)  # what the driver runs, in this order
-LOT_CEILING_USD = round(SMOKE.ceiling + JEV_CAP_USD + PHASE_O.ceiling, 2)  # 31.00
+LOT_CEILING_USD = round(SMOKE.ceiling + JEV_CAP_USD + PHASE_O.ceiling, 2)  # 22.36 in caps
+LOT_WORST_USD = round(LOT_CEILING_USD + SMOKE.worst_turn, 2)  # 31.00: the smoke's turn past its cap
 
 read_ids = lb162.read_ids
 

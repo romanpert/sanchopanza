@@ -41,9 +41,10 @@ DAY = dt.datetime(2026, 10, 16)
 
 def test_the_registered_lot():
     assert lbo8.MARGIN == -0.05 and lbo8.CUT == 0.8 and lbo8.MIN_COVERED_SESSIONS == 8
-    assert (O.ceiling, O.full_cap, O.floor, O.worst_turn) == (30.0, 6.0, 1.0, 8.64)
+    assert (O.ceiling, O.full_cap, O.floor, O.worst_turn) == (21.36, 6.0, 1.0, 8.64)
     assert O.model_id == "claude-opus-5-5" and O.n == 78 and O.arm == "OPUS-CC"
-    assert lbo8.JEV_CAP_USD == 0.20 and lbo8.LOT_CEILING_USD == 31.00
+    assert lbo8.JEV_CAP_USD == 0.20 and lbo8.LOT_CEILING_USD == 22.36
+    assert lbo8.LOT_WORST_USD == 31.00  # the approved exposure, with the smoke's worst turn
     assert (S.ceiling, S.full_cap, S.model_id) == (0.80, 0.80, "claude-opus-5-5")
     assert lbo8.DRIVEN == (S, J, O)
 
@@ -78,8 +79,8 @@ def test_phase_o_runs_all_78_in_a_seeded_order():
 
 
 @pytest.mark.parametrize("spent, cap", [
-    (0.0, 6.0), (15.36, 6.0), (15.37, 5.99), (18.0, 3.36), (20.36, 1.0), (20.361, None),
-    (29.0, None),
+    (0.0, 6.0), (6.72, 6.0), (6.73, 5.99), (9.36, 3.36), (11.72, 1.0), (11.721, None),
+    (20.0, None),
 ])  # fmt: skip
 def test_cap_for_is_the_full_cap_while_it_fits_then_the_room_left_then_none(spent, cap):
     got = lb162x.cap_for(spent, O)
@@ -96,9 +97,12 @@ def test_the_phase_loop_and_the_cap_rule_stop_at_the_same_spend():
         assert loop_stops == (lb162x.cap_for(spent, O) is None), spent
 
 
-def test_sessions_at_worst_and_at_one_point_six_times_the_expected_cost():
-    assert lb162x.guaranteed(O) == 2
-    assert lb162x.at_mean(O, lbo8.OPUS_EST_USD * 1.6, O.n) == O.n
+def test_sessions_at_worst_and_above_the_expected_cost():
+    # 21.36 leaves the smoke's worst turn inside the approved 31.00: all 78 run up to 1.5x the
+    # expected cost, 74 at 1.6x; at worst (every session at its cap plus a worst turn) one.
+    assert lb162x.guaranteed(O) == 1
+    assert lb162x.at_mean(O, lbo8.OPUS_EST_USD * 1.5, O.n) == O.n
+    assert lb162x.at_mean(O, lbo8.OPUS_EST_USD * 1.6, O.n) == 74
 
 
 def test_the_guard_takes_this_lots_run_folder(tmp_path):

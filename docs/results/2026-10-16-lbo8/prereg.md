@@ -24,11 +24,17 @@ of the 78 prepared documents. A test checks that every file the driver loads is 
   with 29.5 % of Opus's cost saved. The 0.8 cut saves about a third of that (10.6 % on lb162x),
   so it only earns a place with a clearly tighter claim. −5 is the tightest margin the 78 tasks
   allow: Tango's floor at 78 tasks is −4.7 (see Power). The owner accepts the power that follows:
-  about 62 % if 0.8 behaves as it did on lb162x, 17 % if it disagrees with Opus as 0.6 did. What
+  about 62 % if 0.8 behaves as it did on lb162x (57-59 % once "no medido" is counted, see
+  Power), 17 % if it disagrees with Opus as 0.6 did. What
   a pass licenses: Jev up to about 30 points less accurate than Opus on the ~17 % of tasks it
   answers.
 - **Population: the 78** in `ids.txt`.
-- **Exposure: 31 USD** (hard caps in code; expected about 8.1 USD). Approved above the 10 USD line.
+- **Exposure: 31 USD at worst** (expected about 8.1 USD). Approved above the 10 USD line. The
+  caps in code add to 22.36 (smoke 0.80, J 0.20, phase O 21.36); `--max-budget-usd` cuts only
+  between turns, so the smoke can pass its 0.80 by one worst turn (8.64, an assumption: Opus
+  rewrites a 1M-token window to the cache and answers 32,000 tokens), and 22.36 + 8.64 = 31.00.
+  Phase O's sessions keep their worst turn inside its own ceiling (`cap_for`). Phase O's ceiling
+  is 21.36, not lb162x's 30, so that the worst case is the approved 31.
 
 ## Why
 
@@ -106,7 +112,8 @@ One driver, one process, in this order (`lbo8.DRIVEN`): the smoke, phase J, phas
   b = 1, c = 0 [−3.5, +6.9] and b = 2, c = 1 [−4.7, +7.8], "no peor"; but **one Opus-only
   disagreement alone fails**: b = 0, c = 1 gives [−6.9, +3.5] and b = 1, c = 1 [−5.8, +5.8],
   "no concluyente". "peor" needs at least 8 Opus-only disagreements with none the other way.
-- No verdict with fewer than 8 covered tasks with an Opus session ("no medido"); none while a
+- No verdict with fewer than 8 covered tasks with an Opus grade in the reading at hand
+  ("no medido"; in the sensitivity reading an infrastructure error counts as a grade); none while a
   phase is paused or a LIMIT.flag or STOP is in the run folder ("pausa").
 - Infrastructure errors and lowered-cap stops are read as in lb162x: not run in the primary
   reading, wrong in the sensitivity reading (`lb162x_stats.grade`). A session most of whose
@@ -146,7 +153,10 @@ Chance of "no peor" (`lbo8.power`, 1,000 draws a cell):
 Read plainly:
 - **With the 78,** "no peor" at −5 has about 62 % power if 0.8 behaves as it did on lb162x, and
   about 17 % if Jev disagrees with Opus as much as at 0.6 (9 % if it also covers 25 %). At −7:
-  92 %, 39 % and 23 %.
+  92 %, 39 % and 23 %. `lbo8.power` does not apply the rule of 8 covered tasks: the chance of
+  fewer than 8 covered of 78 is about 4 % at lb162x's coverage (16.7 %), 27 % at 12 % and 48 % at
+  10 %, and coverage on documents of 49,000 to 100,000 characters was never measured; in the good
+  scenario the power net of "no medido" is about 57-59 %.
 - **A tight claim** ("keeps Opus's accuracy", −3) would need all 281 fresh tasks: about 77 %
   power in the good scenario. But 203 of those tasks are domains the router was never measured
   on.
@@ -160,18 +170,21 @@ Read plainly:
 |---|---|---|
 | Phase J, Jev on 78 (5.77 M characters at 0.012 USD per M) | 0.07 USD | 0.20 USD (ledger + batch); 0.086 at the dearest rate before retries |
 | Smoke, one Opus session | ~0.2 USD | 0.80 USD |
-| Phase O, Opus on 78 (0.10 USD a task: lb162x's short band was 0.099, max 0.19) | 7.8 USD; simulated mean 7.73, p95 8.21; at 1.6 x, p95 13.14 | **ceiling 30.00 USD** |
-| **Lot** | **about 8.1 USD** | **31.00 USD** |
+| Phase O, Opus on 78 (0.10 USD a task: lb162x's short band was 0.099, max 0.19) | 7.8 USD; simulated mean 7.73, p95 8.21 | **ceiling 21.36 USD** |
+| **Lot** | **about 8.1 USD** | **22.36 USD in caps; 31.00 at worst** (the smoke's turn past its cap) |
 
 - **Each session:** `--max-budget-usd` 6.00 (arm N's Opus cap, unchanged from lb162x).
   `cap_for` lowers the cap when 6.00 plus one worst turn no longer fits under the ceiling
-  (spent above 15.36 USD). Below 1.00 the phase stops (spent above 20.36). The worst turn is
-  8.64 USD: Opus 5.5 rewrites its whole 1M-token window to the cache and answers 32,000 tokens.
-  The cap leaves room for it because `--max-budget-usd` only cuts between turns.
-- **Exposure:** at 1.6 x the expected cost, all 78 sessions run with no cap lowered. At worst
-  (every session at its cap plus a worst turn) the ceiling runs 2 sessions.
-- **Above the 10 USD line:** the lot's ceiling is 31 USD; the owner approved it on 2026-10-16.
-  The expected cost is 8.1.
+  (spent above 6.72 USD). Below 1.00 the phase stops (spent above 11.72). The worst turn is
+  8.64 USD, an assumption (Opus 5.5 rewrites its whole 1M-token window to the cache and answers
+  32,000 tokens), as lb162x stated it. The cap leaves room for it because `--max-budget-usd`
+  only cuts between turns.
+- **Exposure:** all 78 sessions run up to 1.5 x the expected cost; at 1.6 x about 74 (the
+  simulation on lb162x's sessions: mean 74.4, 5th percentile 70). At worst (every session at its
+  cap plus a worst turn) one session. Each `--retry-smoke` opens a new 0.80 ceiling; the
+  `jev-preflight` decision (about 13 micro-USD) is outside the ledger.
+- **Above the 10 USD line:** the lot's worst case is 31 USD; the owner approved it on
+  2026-10-16. The expected cost is 8.1.
 - **Wall time:** about 30 minutes of Opus sessions (lb162x: mean 22 s a session; the clock rule
   takes 25 s), one at a time, and a few minutes of phase J.
 
@@ -181,7 +194,9 @@ Read plainly:
   1.5 x the clock rule's mean, plus 10 minutes, would cross midnight. Phase O: 78 x 25 s x 1.5 +
   10 min = 59 minutes, so **the lot starts between 08:00 and 23:01**; the driver checks phase
   O's clock before anything (the smoke is one session, phase J a few minutes). Phase J takes a
-  15-minute allowance, checked before its first call.
+  15-minute allowance, checked before its first call. The start check is phase O's alone: a
+  launch after about 22:40 can spend the smoke and J and then stop phase O by the clock (exit 5),
+  so **launch before 22:40**.
 - Before each Opus session (lb162's guard): a stop if it is before 08:00, past the phase's start
   date, or midnight is less than 10 minutes away (kind `clock`, exit 5, a pause).
 - Attended throughout; nothing left running between 02:00 and 08:00.
@@ -197,7 +212,8 @@ lb162x's, with phase J's own:
   `claude` on PATH that is not the pinned build, another lot's run folder, a preflight problem):
   `preflight`, exit 3;
 - phase J paused (an HTTP 402, Jev's 429, an outage, three failed tasks in a row): `jev`, exit
-  4. Jev's 429 is not the subscription's limit and writes no LIMIT.flag. A relaunch asks only
+  4. Jev's 429 is not the subscription's limit and writes no LIMIT.flag. A 402 already in
+  `jev-preflight`, before any call, is a refusal: `preflight`, exit 3. A relaunch asks only
   the tasks the pause left unasked; phase J at its cap is final (`ceiling`), scored as it is,
   and phase O runs;
 - the clock: `clock`, exit 5;
@@ -226,12 +242,15 @@ Exit 1 means only the ceiling: every phase over, one ended at its ceiling. A pha
 - **The money rule** was simulated on lb162x's real Opus sessions: see Money.
 
 `python benchmarks/h2h/h2h_lbo8.py --dry | --preflight`, 2026-10-16: the order S → J → O, 79
-Opus sessions and 78 Jev tasks, lot ceiling 31.00 USD, expected about 8.1, phase O about 32
+Opus sessions and 78 Jev tasks, caps 22.36 USD (31.00 at worst), expected about 8.1, phase O about 32
 minutes and a start by 23:01; the smoke task `66eefe85821e116aacb228dc` (118,549 characters);
 phase J's ledger `C:\sp-runs\lbo8\jev-ledger.jsonl`, 0 USD spent, all 78 tasks unrecorded (asked
 live). The preflight passes the pinned build, Opus's id in it, the data, the documents, the
-hooks and the ledger, and refuses twice, as expected in a session: no subscription token (the
-launcher passes the keys file) and `launch.ps1` does not yet take `-Runner h2h_lbo8.py`.
+hooks and the ledger, and refuses only for the subscription token, as expected in a session
+(the launcher passes the keys file). Phase J's plan counts one try a task; with documents under
+900,000 characters the retries at 0.8 and 0.64 of the window resend the whole document, about
+0.26 USD at worst, past the 0.20 cap: `CappedDecider` then refuses, J ends at its ceiling (final)
+and what it did not ask counts as not covered.
 
 ## Run plan
 
@@ -244,19 +263,21 @@ group, the pinned Claude Code first on PATH, `DISABLE_AUTOUPDATER=1`), run folde
 python -m sanchopanza jev-preflight                # Jev's balance and key (exit 0)
 python benchmarks/h2h/h2h_lbo8.py --dry            # free: the plan, money, clock, spent so far
 python benchmarks/h2h/h2h_lbo8.py --preflight      # free (needs the subscription token)
-powershell -File benchmarks/h2h/launch.ps1 -Runner h2h_lbo8.py -RunnerArgs "--lot lbo8" -Pin $env:USERPROFILE\.cache\sanchopanza\claude-pin\2.1.287 -KeysEnv <path to the keys .env that SANCHOPANZA_KEYS_ENV names> -Log C:\sp-runs\lbo8\driver.log -PidFile C:\sp-runs\lbo8\driver.pids
+powershell -File ..\sanchopanza-lbo8\benchmarks\h2h\launch.ps1 -Runner h2h_lbo8.py -RunnerArgs "--lot lbo8" -Pin $env:USERPROFILE\.cache\sanchopanza\claude-pin\2.1.287 -KeysEnv <path to the keys .env that SANCHOPANZA_KEYS_ENV names> -Log C:\sp-runs\lbo8\driver.log -PidFile C:\sp-runs\lbo8\driver.pids
 python benchmarks/h2h/h2h_lbo8.py                  # rows without text, smoke and phase O
 python benchmarks/jev114/lbo8.py --analyse         # the analysis, summary.json
 ```
 
-Watch the log and the PIDs; stop with a `STOP` file in `C:\sp-runs\lbo8` or by verified PID
-only. Start between 08:00 and 23:01 and stay with it; STOP on a 429.
+`launch.ps1` takes the worktree from its own folder: it must be the detached worktree's copy
+(the main checkout's would run there and refuse, exit 3). Watch the log and the PIDs; stop with
+a `STOP` file in `C:\sp-runs\lbo8` or by verified PID only. Start between 08:00 and 22:40 and
+stay with it; STOP on a 429.
 
 ## Before a seal
 
 Done (2026-10-16):
 
-1. The owner's decisions: margin −5, the 78, 31 USD exposure.
+1. The owner's decisions: margin −5, the 78, 31 USD exposure at worst.
 2. The live driver `benchmarks/h2h/h2h_lbo8.py` over h2h_longdoc, reusing lb162x's driver and
    `lb162x_guard` as they are (no guard of its own was needed: `Budget` takes the phase and the
    run folder).
@@ -266,9 +287,11 @@ Done (2026-10-16):
 
 Left, in order:
 
-1. `launch.ps1` must take `-Runner h2h_lbo8.py` (one entry in its `ValidateSet`); the driver's
-   preflight refuses until it does.
-2. A `revisor-prereg` review against the code; fixes before any data.
+1. `launch.ps1` takes `-Runner h2h_lbo8.py` (done, `c74943b`).
+2. A `revisor-prereg` review against the code (done, 2026-10-16: no blocker; its two "must"
+   items, the smoke's worst turn inside the approved exposure and this section's launcher text,
+   are fixed above, and its notes on power, "no medido", the clock, phase J's retries, the exit
+   on a 402 and the launcher's folder are in the text).
 3. Commit the instrument on a clean tree (the seal hashes every file of the package: no other
    session's uncommitted edit may be in it), `python benchmarks/jev114/lbo8.py --seal`, and a
    commit whose message carries the hash.
