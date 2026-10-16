@@ -3,7 +3,7 @@
 Status: **draft, not sealed.** Before the seal: an independent `revisor-prereg` review against
 the code, then `python benchmarks/facts_gate/written_run.py seal` writes `prereg.sha256` (the
 sha256 of this file and of `c4-written-run.cmd`, its two local values read as placeholders).
-Instrument commit: `40097b5f13a995c4dfa67a7c026b1d461b3955ff`.
+Instrument commit: `ba632bc7ba2fbbdf2a5dc60d7377c8bad5009462`.
 
 ## Question
 
@@ -19,7 +19,7 @@ there. Does the gate still meet A5's rule on a batch built of that kind?
 ## The batch (`benchmarks/facts_gate/written.py`, `written.jsonl`)
 
 1,500 pairs over invented entities, Spanish and English alternating, seed 20261017, sha256
-`44351330b80dd172cd7aa75a4c33252e0eeb638cedf216cbdd7e1fcf81e601d8` (LF text); `paid` and
+`a589a5d25d025390af8071b80129670a2b129ee003a54f3721e445da246207b9` (LF text); `paid` and
 `report` refuse another file.
 
 | kind | what the two facts say | agree (150) | conflict (150) |
@@ -31,18 +31,28 @@ there. Does the gate still meet A5's rule on a batch built of that kind?
 and **600 `unrelated` controls**: two facts about the same entity that no values could make
 contradict (a law's date and its number of articles, a person's birth and the languages she
 speaks, an earthquake's damaged homes and its length in seconds, ...), the shape where A5 found
-the gate's added verdicts. Mix 40 / 30 / 30, A5's and the fifth batch's. Half the `dated` pairs
-name the entity two ways, as fa-17 does, with the identity stated in the first fact ("La Ley 315,
-el nuevo código de aguas, se promulgó el ..." / "El nuevo código de aguas entró en vigor el
-...").
+the gate's added verdicts. Mix 40 / 30 / 30, A5's and the fifth batch's. Numbers from 1,000 up
+carry the language's thousands separator, all of them.
+
+**Two names for one entity, as fa-17.** In the three `dated` domains that have a second name (a
+law, a bridge, a company), half the pairs name the entity two ways, the identity stated in the
+fact with the first event ("La Ley 315, el nuevo código de aguas, se promulgó el ..." / "El nuevo
+código de aguas entró en vigor el ..."): **83 of the 300 `dated` pairs** (36 `agree`, 47
+`conflict`). After the random order of the two facts the identity sits in `fact_a` in 55 of them
+and in `fact_b` in 28 (`identity_in` in each case).
 
 **The label rule, checkable by hand.** Two facts that constrain each other are `agree` when
 their values respect the constraint and `conflict` when they break it (then they cannot both be
 true as stated: the question's own definition). Each case stores the values it was built from,
 and `tests/test_facts_written.py` checks every label against them. No label comes from a model.
-The rule reads fa-17's label (`agree`) as the owner wrote it; a reviewer who reads a consistent
-dated pair as `unrelated` should say so before the seal, since the verdict counts the gate's
-`unrelated` on such a pair as wrong.
+The rule reads fa-17's label (`agree`) as the owner wrote it, and that is the primary scoring.
+The question's own wording ("`unrelated`: different attributes ... and neither supports nor
+contradicts the other") admits `unrelated` for a consistent pair of dated events and for a role
+and an act done in it, so a **second reading**, sealed here, scores the same answers without the
+300 `dated` and `role` `agree` pairs (1,200 cases). A "does not beat" that the second reading
+turns into "beats" is a disagreement about those labels, not a wrong verdict of the gate, and is
+reported as such (`label_disagreement_only`). Tests read every value back from the text of all
+1,500 cases and check that both facts name the same entity.
 
 ## Calls and the gate
 
@@ -55,11 +65,17 @@ shipped policy and every gate of A5's family beside it.
 
 Added verdicts are the cases the shipped policy leaves undecided and the gate decides.
 
+0. **Not run or partial.** No case answered: **"no verdict: not run"**. Once no launch is left,
+   more than 2 % of the cases unanswered (more than 30): **"partial: N cases unanswered, no
+   verdict"**. With 2 % or fewer, the rules below apply to the answered cases only, and the
+   number left out is reported.
 1. Fewer than 16 added verdicts: **"undecided: too few cases in the band to reach the target"**.
 2. No added verdict on a `conflict` pair (no missed conflict) and the Wilson 95 % lower bound of
    their precision (right = labelled `unrelated`), unrounded, >= 0.80: **"the gate beats the
    shipped policy"**.
 3. Otherwise **"the gate does not beat the shipped policy"**.
+
+The second reading applies rules 1-3 to the 1,200 cases without `dated` and `role` `agree` pairs.
 
 What each licenses. Rule 2 completes A5's proposal: `unrelated_at=0.65` may become
 `decide_facts`' default at jev-1.13.0 (the change itself is a separate commit, with
@@ -74,34 +90,46 @@ changes); every gate of the family.
 
 - Templated text, like A5's: 3 kinds x 6 domains x 2 languages. The added verdicts are not
   independent draws; the Wilson bound treats them as such.
-- The `unrelated` controls are not A5's shapes; their band may differ from A5's 7 %.
+- The `unrelated` controls are not A5's shapes; their band may differ from A5's 7.0 %.
 - Only jev-1.13.0.
 
 ## Power (`written_run.py power`, A5's formula)
 
-With every related pair kept out of the band, the 600 controls add about 48-75 verdicts at A5's
-band of 8-12.5 %, and "beats" comes out with probability 0.70-0.90 at a true precision of 0.93,
-0.87-0.98 at 0.95. Each wrong verdict on a related pair lowers the precision; a single one on a
-`conflict` pair decides rule 3.
+A5's real band was 39 of 560 same-entity pairs, **7.0 %**. With every related pair kept out of
+the band, the 600 controls add about 39-42 verdicts at bands of 6.5-7 %, and "beats" comes out
+with probability **0.57-0.62 at a true precision of 0.93 and 0.76-0.80 at 0.95**; at 8-12.5 %
+(48-75 added) 0.70-0.90 and 0.87-0.98. Each wrong verdict on a related pair lowers the
+precision; a single one on a `conflict` pair decides rule 3. This run is a check, not a powered
+test of a small effect: at A5's band a "does not beat" from too few right verdicts is likely
+even if the gate is fine, and is read with the per-kind table.
 
 ## Cost and caps
 
 1,500 calls of two short sentences. `CappedDecider`'s estimate: 0.019 USD; at the 71 micro-USD
-median request: 0.107 USD; at A5's settled 23 micro-USD a call: **about 0.035 USD expected**. Hard
-cap **0.15 USD** in the ledger at `~/.cache/sanchopanza/c4-written/ledger.jsonl`; `paid` refuses
-unless the larger estimate plus what the ledger holds fits under it. Claude: 0.
+median request: 0.107 USD; at A5's settled 23 micro-USD a call: **about 0.035 USD expected**.
+Ledger dollars are each call's input tokens x 0.042 USD per million, not TypeSafe's bill; check
+the TypeSafe balance by hand before the launch.
+
+**One ledger for the round.** C4, C5 and C6 share the round's Jev budget in one ledger file,
+`C:/sp-runs/w17-jev/ledger.json` (`benchmarks/w17_round.py`; no variable moves it): **6.00 USD
+over the three lots**, and this lot's batch `c4-written` capped at **0.15 USD** in it
+(`SpendLedger` refuses any call past either). `paid` refuses unless the larger estimate fits in
+both what this batch has left and what the round has left (`paid_once.room`). The
+`jev-preflight` call (about 13 micro-USD) is outside the ledger. Claude: 0.
 
 `paid` refuses, before the key is read, unless: the seal matches this file and the launcher; HEAD
 descends from the instrument commit and `src/`, `benchmarks/paid_once.py`,
-`benchmarks/facts_gate/`, `benchmarks/thresholds.py` and `c4-written-run.cmd` are identical to
-it, nothing uncommitted under them; the cases have their hash; the launch rule allows a launch
-(one launch and at most one relaunch, none after an HTTP 402, a 429 or the cap); on a first
-launch no recording exists; no other `paid` of the lot holds its lock. Then, in one event loop,
-`jev-preflight`, the live client and every missing call once, in order; the first refusal,
-failure, empty answer or answer from another model stops it. While a relaunch is allowed,
-`report` refuses with cases unanswered; after it, an unanswered case is undecided under every
-policy and counted (`unanswered`).
+`benchmarks/facts_gate/`, `benchmarks/thresholds.py` and `benchmarks/w17_round.py` are identical
+to it, nothing uncommitted under them (the launcher is not an instrument path: the seal fixes it,
+its two local values read as placeholders, so a filled copy passes); the cases have their hash;
+the launch rule allows a launch (one launch and at most one relaunch, none after an HTTP 402, a
+429, the cap or an answer from another model); on a first launch no recording exists; no other
+`paid` of the lot holds its lock. Then, in one event loop, `jev-preflight`, the live client
+(`JevDecider`, its own retries of 429 and 529 turned off: no call is asked twice) and every
+missing call once, in order; the first refusal, failure, empty answer or answer from another
+model stops it, and the stop is written (`launches.jsonl`). While a relaunch is allowed,
+`report` refuses with cases unanswered; after it, rule 0 applies.
 
 **Launch.** From a `git worktree add --detach` at the seal commit, by WMI in its own process group
-(`CreateFlags=512`), outside any Claude Code session, never between 02:00 and 08:00. Stopped only
-by PID.
+(`CreateFlags=512`), outside any Claude Code session; the launcher refuses to start between
+00:00 and 08:00. It takes a few minutes (A5: 5.7). Stopped only by PID.

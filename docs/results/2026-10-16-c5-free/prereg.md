@@ -3,7 +3,7 @@
 Status: **draft, not sealed.** Before the seal: an independent `revisor-prereg` review against
 the code, then `python -I benchmarks/passage_fit/free_confirm.py seal` writes `prereg.sha256`
 (the sha256 of this file and of `c5-free-run.cmd`, its two local values read as placeholders).
-Instrument commit: `40097b5f13a995c4dfa67a7c026b1d461b3955ff`.
+Instrument commit: `ba632bc7ba2fbbdf2a5dc60d7377c8bad5009462`.
 
 ## Question
 
@@ -35,7 +35,9 @@ before any answer, on questions no run of this package has read.
   once: 718; the answer sentences located from the first answer's highlighted evidence
   (`longdocs.sentences.enrich`): 69 not located; 3 where those sentences are not
   `select_passages`' own (`text.split_sentences`) excluded: **646 questions in 257 papers**.
-  Pages as the 2026-09-27 runs built them (section, paragraph).
+  Pages as the 2026-09-27 runs built them (section, paragraph). The questions are asked in an
+  order shuffled with seed 20261018 (`SEED`); the order changes nothing but which calls are in
+  flight together.
 - Labels by construction: an answer sentence is a sentence overlapping QASPER's highlighted
   evidence. No label comes from a model.
 
@@ -64,8 +66,15 @@ several questions; item-bootstrap intervals reported, not voted.
 
 ## Verdict rule (applied by `free_confirm.py report`, `verdict`, as written)
 
-With lo and hi the 95 % cluster-bootstrap bounds of FREE − PAGE recall on the population:
+With lo and hi the 95 % cluster-bootstrap bounds of FREE − PAGE recall on the population,
+**unrounded** (`recall_ci95_cluster_exact`; the rounded pair is for reading):
 
+0. **Incomplete.** Once no launch is left, any call unanswered: **"no verdict: incomplete, N
+   calls unanswered"**. An unanswered tournament group keeps its paragraphs and an unanswered
+   sentence call keeps its sentences (the package's rule: in doubt, text enters), so FREE and
+   PAGE cut the same oversized text and the difference is pulled toward zero. The readings
+   without every question an unanswered call touched are then reported as a sensitivity
+   (`sensitivity_without_affected`), not a verdict. Nothing recorded at all is the same rule.
 1. lo > 0: **"FREE confirmed: it keeps more answer sentences than page order at 3,400
    characters"**.
 2. hi < 0: **"FREE loses to page order"**.
@@ -89,32 +98,49 @@ about 0.98 for B4's +13.6, 0.83 for +10, 0.64 for +8 (without the widening: 1.00
 ## Cost and caps
 
 The free dry run (`free_confirm.py dry`, B6's stub): 7,116 calls (1,976 tournament, 5,140
-sentence), **1.28 USD** at `CappedDecider`'s pessimistic reservation, 0.74 at the QASPER
-whole-papers run's billed cost a call (0.537 USD over 5,132 calls); the stub sends more
-paragraphs to the sentence stage than Jev did there (8.1 a question), so the expected spend is
-**about 0.75-1.3 USD**. Hard cap **2.00 USD** in the ledger at
-`~/.cache/sanchopanza/c5-free/ledger.jsonl`, launches beside it. Claude: 0.
+sentence), **1.28 USD** at `CappedDecider`'s pessimistic reservation. The stub sends 7.96
+paragraphs a question to the sentence stage, about what Jev sent on QASPER test (1,766 calls
+over 219 questions, 8.06), so the count is not inflated. At the QASPER whole-papers run's
+ledger rate (0.537 USD over 5,132 calls) the 7,116 calls come to **about 0.74 USD expected**;
+1.30 USD is the pessimistic end. Ledger dollars are each call's input tokens x 0.042 USD per
+million, not TypeSafe's bill; a call cut by a timeout settles at its reservation. Check the
+TypeSafe balance by hand before the launch. Claude: 0.
+
+**One ledger for the round.** C4, C5 and C6 share the round's Jev budget in one ledger file,
+`C:/sp-runs/w17-jev/ledger.json` (`benchmarks/w17_round.py`; no variable moves it): **6.00 USD
+over the three lots**, and this lot's batch `c5-free` capped at **2.00 USD** in it
+(`SpendLedger` refuses any call past either). The launches are logged in
+`~/.cache/sanchopanza/c5-free/launches.jsonl`. The `jev-preflight` call (about 13 micro-USD) is
+outside the ledger.
+
+**Duration.** At B6's pace (11,202 calls in 14.4 minutes, 4 in flight) about 10-20 minutes;
+launched before 23:00 it ends well before midnight, and the launcher refuses to start between
+00:00 and 08:00.
 
 `paid` refuses, before the key is read, unless: it was started from `c5-free-run.cmd` or a copy
 differing only in its two local values; the export has its sha256; the dry run's pessimistic
-estimate fits in what the cap leaves on the ledger; the seal matches this file and the launcher;
-HEAD descends from the instrument commit and `src/`, `benchmarks/passage_fit/`,
-`benchmarks/b6_es/`, `benchmarks/paid_once.py`, `benchmarks/jev114/l4_stats.py`,
-`benchmarks/longdocs/`, `benchmarks/triage_sets/run.py` and `c5-free-run.cmd` are identical to
-it, nothing uncommitted under them; the launch rule allows a launch; on a first launch no
-recording exists; no other `paid` of the lot holds its lock. Then, in one event loop:
-`jev-preflight`, the live client (`JevDecider`, jev-1.13.0, long context and images off, a 429
-not retried) built inside it, every call through `CappedDecider`, recorded in
-`fixtures/c5-free/recording.jsonl` (hashed keys, no text), at most 4 in flight, never retried. The
-first cap refusal, 401/402/403/429, 5xx or loss of connection stops every later call; three
-failures in a row of any kind do too.
+estimate fits in what this batch and the round have left (`paid_once.room`); the seal matches
+this file and the launcher; HEAD descends from the instrument commit and `src/`,
+`benchmarks/passage_fit/`, `benchmarks/b6_es/`, `benchmarks/paid_once.py`,
+`benchmarks/jev114/l4_stats.py`, `benchmarks/longdocs/`, `benchmarks/triage_sets/run.py` and
+`benchmarks/w17_round.py` are identical to it, nothing uncommitted under them (the launcher is
+not an instrument path: the seal fixes it, its two local values read as placeholders, so a copy
+filled in place passes); the launch rule allows a launch; on a first launch no recording
+exists; no other `paid` of the lot holds its lock. Then, in one event loop: `jev-preflight`,
+the live client (`JevDecider`, jev-1.13.0, long context and images off, its own retries of 429
+and 529 turned off) built inside it, every call through `CappedDecider`, recorded in
+`fixtures/c5-free/recording.jsonl` (hashed keys, no text), at most 4 in flight, never asked
+twice: a call that failed answers every later identical request of the run with the same
+failure (`Asker(memo_failures=True)`). The first cap refusal, 401/402/403/429, 5xx or loss of
+connection stops every later call; three failures in a row of any kind do too; an answer from
+another model halts the run as a stop of kind "model" (`Asker(model_halts=True)`), written in
+`launches.jsonl`.
 
 **Launch rule.** One launch and at most one relaunch (`paid_once.may_launch`), none after an HTTP
-402, a 429 or the cap; a relaunch replays what was recorded and asks the rest. While a relaunch
-is allowed, `report` refuses with calls unanswered; after it, an unanswered tournament group
-keeps its paragraphs and an unanswered sentence call keeps its sentences (the package's rule: in
-doubt, text enters), and the number of unanswered calls is reported.
+402, a 429, the cap or an answer from another model; a relaunch replays what was recorded and
+asks the rest. While a relaunch is allowed, `report` refuses with calls unanswered; after it,
+rule 0 applies.
 
 **Launch.** From a `git worktree add --detach` at the seal commit, by WMI in its own process group
-(`CreateFlags=512`), outside any Claude Code session, never between 02:00 and 08:00; the export is
-made first (free). Stopped only by PID.
+(`CreateFlags=512`), outside any Claude Code session, before 23:00 (the launcher refuses 00:00-08:00);
+the export is made first (free) if it is not already there with its sha256. Stopped only by PID.
