@@ -340,11 +340,13 @@ def cmd_run(args: argparse.Namespace) -> int:
         if report["jev_usd_pessimistic"] > LOT.batch_cap:
             print("note: the pessimistic estimate exceeds the cap; the cap stops the run")
         return 0
-    lots.require_sealed_checkout(LOT)
+    commits = lots.require_sealed_checkout(LOT)
     sealed = json.loads(DATA.read_text(encoding="utf-8"))
     if inputs_digest(cases) != sealed["done"]:
         raise SystemExit("inputs differ from the sealed ones: nothing spent")
-    return lots.paid_launch(LOT, lambda: asyncio.run(lots.run_cases(LOT, cases, ask, answered)))
+    return lots.paid_launch(
+        LOT, lambda: asyncio.run(lots.run_cases(LOT, cases, ask, answered)), commits
+    )
 
 
 def cmd_seal(args: argparse.Namespace) -> int:

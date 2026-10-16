@@ -299,12 +299,97 @@ def _hand_ev() -> tuple[list[str], list[bool]]:
     return [redundant_drop.cluster_of(c) for c in ev], [c["expected"] == "drop" for c in ev]
 
 
+# --- the whole decision, per pattern and on lot L1's draw (free) -----------------------------
+
+C14_POWER = 0.5  # any 1.14 cut below 1.13's: what matters is who is right, not where the cut is
+
+
+def _row(drop: bool, outcome: str, **keys: Any) -> dict[str, Any]:
+    """One evaluation case whose two arms end `agree`, `win` (only 1.14 right) or `loss`."""
+    right_p, wrong_p = (0.9, 0.1) if drop else (0.1, 0.9)
+    p13, p14 = right_p, right_p
+    if outcome == "win":
+        p13 = wrong_p
+    elif outcome == "loss":
+        p14 = wrong_p
+    return {"expected": "drop" if drop else "keep", "p_13r": p13, "p_14": p14, **keys}
+
+
+def passes(hand: Sequence[Mapping[str, Any]], tmpl: Sequence[Mapping[str, Any]], c14: float,
+           *, replicas: int) -> dict[str, Any]:  # fmt: skip
+    """The decision's evaluation checks on given rows: the stratified primary, the hand count
+    guard and the costly-drops guard (the derivation and stability are taken as passed)."""
+    primary = stratified(hand, tmpl, SHIPPED_13, c14, replicas=replicas)
+    guard = hand_stratum(hand, SHIPPED_13, c14)["count_guard"]
+    ev = [*hand, *tmpl]
+    costly = acts(ev, "14", c14)["costly_drops"] <= acts(ev, "13r", SHIPPED_13)["costly_drops"] + 2
+    ok = primary["verdict"] in lot_stats.FAVOURABLE and guard and costly
+    return {"primary": primary["verdict"], "count_guard": guard, "costly_guard": costly,
+            "passes": ok}  # fmt: skip
+
+
+def whole_power(
+    hand: Callable[[], tuple[Sequence[str], Sequence[bool]]],
+    template: Callable[[], list[dict[str, Any]]], *, placements: int = 40, replicas: int = 1000,
+    seed: int = 20261016,
+) -> list[dict[str, Any]]:  # fmt: skip
+    """How often the whole decision passes when 1.14 wins and loses so many hand-written
+    evaluation cases (placed at random) and agrees with 1.13 on every template case."""
+    clusters, drop = hand()
+    tmpl = template()
+    rng = random.Random(seed)
+    out = []
+    for wins, losses in ((0, 0), (1, 0), (2, 0), (1, 1), (2, 2), (3, 1), (0, 1), (1, 3), (0, 4)):
+        passed = 0
+        for _ in range(placements):
+            chosen = rng.sample(range(len(clusters)), wins + losses)
+            outcome = {i: "win" for i in chosen[:wins]} | {i: "loss" for i in chosen[wins:]}
+            rows = [_row(drop[i], outcome.get(i, "agree"), cluster=clusters[i])
+                    for i in range(len(clusters))]  # fmt: skip
+            passed += passes(rows, tmpl, C14_POWER, replicas=replicas)["passes"]
+        out.append({"whole_decision": f"{wins} / {losses}", "passes": f"{passed}/{placements}"})
+    return out
+
+
+def _template_ev() -> list[dict[str, Any]]:
+    import redundant_gen
+
+    return [_row(c["expected"] == "drop", "agree", scenario=c["scenario"], family=c["family"])
+            for c in redundant_gen.cases() if c["half"] == "ev"]  # fmt: skip
+
+
+L1_ROWS = ROOT / "docs" / "results" / "2026-10-15-jev114-l1" / "rows" / "rows-bench.jsonl"
+
+
+def draw1_by_cut(template: Callable[[], list[dict[str, Any]]],
+                 cuts: Sequence[float] = (0.61, 0.59, 0.57, 0.55, 0.50, 0.45, 0.40, 0.35, 0.30),
+                 *, replicas: int = 2000) -> list[dict[str, Any]]:  # fmt: skip
+    """Lot L1's draw 1 on the 50 hand-written evaluation pages, 1.13 at 0.59 and 1.14 at each
+    cut, with the templates in full agreement: what the decision would have said."""
+    import redundant_drop
+
+    event = {c["id"]: redundant_drop.cluster_of(c) for c in redundant_drop.old_cases()}
+    by: dict[str, dict[str, Any]] = {}
+    for line in L1_ROWS.read_text(encoding="utf-8").splitlines():
+        row = json.loads(line)
+        if row["point"] == "redundant_page" and row["file"] in ("retrieval", "retrieval-b"):
+            item = by.setdefault(row["id"], {"expected": row["expected"],
+                                             "cluster": event[row["id"]]})  # fmt: skip
+            item[f"p_{row['arm']}"] = row["probability"]
+    hand, tmpl = list(by.values()), template()
+    return [{"draw1_cut_14": c, **passes(hand, tmpl, c, replicas=replicas)} for c in cuts]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--power", action="store_true")
     args = parser.parse_args()
     if args.power:
         for row in power(_hand_ev):
+            print(json.dumps(row), flush=True)
+        for row in whole_power(_hand_ev, _template_ev):
+            print(json.dumps(row), flush=True)
+        for row in draw1_by_cut(_template_ev):
             print(json.dumps(row), flush=True)
         return 0
     rows = [json.loads(x) for x in ROWS.read_text(encoding="utf-8").splitlines() if x.strip()]

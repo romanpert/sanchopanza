@@ -1,9 +1,10 @@
 # Pre-registration: redundant_page on Jev 1.14 with 90 new `drop` cases in its derivation (lot jev114-redundant-drop)
 
-**DRAFT, not sealed.** Written 2026-10-15, revised 2026-10-16 after two independent reviews.
-Before any paid call: a second review against the code (`revisor-prereg`), then
-`redundant_drop.py seal`, then a commit of `prereg.sha256` and `data.sha256`. That commit is the
-sealing commit, and its message carries both hashes.
+**Sealed.** Written 2026-10-15 and revised 2026-10-16 after two independent reviews against the
+code (`revisor-prereg`, two passes each), before any answer of this lot existed. `redundant_drop.py
+seal` wrote `prereg.sha256` and `data.sha256`; the sealing commit adds those two files and
+nothing else, and its message carries both hashes. **The seal commit pins every other module:**
+a paid run starts only with HEAD equal to the seal commit and a clean tree.
 
 Jev only, no call to Claude. **An attended launch of about 5 minutes.**
 
@@ -231,8 +232,37 @@ placements each). The table gives how often the stratum's own interval reads eac
   1 / 3 and the recalibration's 0 / 4. It lets a balanced exchange through (1 / 1, 2 / 2)
   unless the losses fall on drop pages and the wins do not. It lets a single net loss through
   when that loss is a `keep` page dropped, not a drop missed.
-- In the recalibration's two draws, the arms disagreed on 4 of these 50 each time, all drops
-  missed at the cuts.
+- **The recalibration's two draws.** Both versions disagreed on 4 of these 50 pages each time,
+  all `drop` pages:
+  - in draw 1, 1.14 at 0.61 lost rd-28, rd-31 and rd-37, and caught rd-40, which 1.13 at 0.59
+    missed (1 / 3);
+  - in draw 2 it lost all four (0 / 4).
+  - 1.14 scores rd-28 0.30 and 0.27, so no reasonable cut recovers it.
+
+**The whole decision.** Below, 1.14 wins and loses so many hand-written evaluation pages
+(placed at random, 40 placements each) and agrees with 1.13 on every template page. The
+decision passes when the stratified primary is "no peor" or "mejora", the count guard holds,
+and the costly-drops guard holds. The derivation and stability checks are taken as passed.
+
+| 1.14 wins / losses on hand-written pages | Whole decision passes |
+|---|---|
+| 0 / 0, 1 / 0, 2 / 0 | 40 / 40 |
+| 3 / 1 | 24 / 40 |
+| 1 / 1 | 10 / 40 |
+| 2 / 2 | 1 / 40 |
+| 0 / 1, 1 / 3, 0 / 4 | 0 / 40 |
+
+**On lot L1's draw 1.** The same decision on the 50 hand-written pages, with 1.13 at 0.59, 1.14
+at each cut, and the templates in full agreement:
+
+| 1.14 cut | Primary | Count guard | Passes |
+|---|---|---|---|
+| 0.61, 0.59, 0.57, 0.55 | no concluyente | fails | no |
+| 0.50, 0.45, 0.40, 0.35 | no concluyente | holds | no |
+| 0.30 | no peor | holds | yes |
+
+**With about 4 hand-written disagreements, as in the two earlier draws, the expected result is
+"no concluyente" and no change, unless 1.14 loses no net case.**
 - **In the template stratum, "no peor" means above all that the arms agree on templates.**
 - With templates in full agreement, the stratified primary reads:
   - 0 hand losses: "no peor";
@@ -264,6 +294,14 @@ kept and replayed. A test pins this.
 **What stops the run:**
 
 - One relaunch at most, and none after a cap, a wrong model or a completed launch.
+- **The launch log** (`launches.jsonl`) records HEAD and HEAD^ when a launch starts, and how
+  many lines each recording holds when it ends. A launch is refused if any recording has fewer
+  lines than the last launch left. The reason a launch ended is written in a fixed vocabulary:
+  - `DeciderOutOfFunds (HTTP 402)`, `SpendCapReached`, `WrongModel`, `STOP file`;
+  - `N failed calls`, `preflight: <reason>`, `other`.
+
+  No error text, path or answer goes in it. `publish` refuses to copy a log holding anything
+  else into the public results folder.
 - A `STOP` file in `C:/sp-runs/jev114/redundant-drop/` stops it between calls.
 
 ## Seal and launch
@@ -282,7 +320,9 @@ kept and replayed. A test pins this.
 
 **`run --paid` refuses unless:**
 
-- HEAD is the sealing commit;
+- HEAD is the sealing commit (the last commit that touched `prereg.sha256`);
+- that commit has one parent and changes only this lot's `prereg.sha256` and `data.sha256`, so a
+  seal commit cannot carry code;
 - the worktree is clean;
 - every sealed file and input matches;
 - it was started by the sealed launcher (`SANCHOPANZA_LAUNCHER`);

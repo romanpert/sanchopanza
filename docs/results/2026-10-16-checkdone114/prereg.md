@@ -1,9 +1,10 @@
 # Pre-registration: check_done under Jev 1.14 on unseen AgentDojo trajectories (lot jev114-checkdone)
 
-**DRAFT, not sealed.** Written 2026-10-15, revised 2026-10-16 after two independent reviews.
-Before any paid call: a second review against the code (`revisor-prereg`), then
-`checkdone114.py seal`, then a commit of `prereg.sha256` and `data.sha256`. That commit is the
-sealing commit, and its message carries both hashes.
+**Sealed.** Written 2026-10-15 and revised 2026-10-16 after two independent reviews against the
+code (`revisor-prereg`, two passes each), before any answer of this lot existed. `checkdone114.py
+seal` wrote `prereg.sha256` and `data.sha256`; the sealing commit adds those two files and
+nothing else, and its message carries both hashes. **The seal commit pins every other module:**
+a paid run starts only with HEAD equal to the seal commit and a clean tree.
 
 Jev only, no call to Claude. **An attended launch of about 10 minutes.**
 
@@ -222,6 +223,14 @@ kept and replayed. A test pins this.
 
 - A call that would not fit under the cap raises `SpendCapReached`, and the run stops.
 - One relaunch at most, and none after a cap, a wrong model or a completed launch.
+- **The launch log** (`launches.jsonl`) records HEAD and HEAD^ when a launch starts, and how
+  many lines each recording holds when it ends. A launch is refused if any recording has fewer
+  lines than the last launch left. The reason a launch ended is written in a fixed vocabulary:
+  - `DeciderOutOfFunds (HTTP 402)`, `SpendCapReached`, `WrongModel`, `STOP file`;
+  - `N failed calls`, `preflight: <reason>`, `other`.
+
+  No error text, path or answer goes in it. `publish` refuses to copy a log holding anything
+  else into the public results folder.
 - A `STOP` file in `C:/sp-runs/jev114/checkdone114/` stops it between calls.
 
 ## Seal and launch
@@ -246,6 +255,8 @@ kept and replayed. A test pins this.
 **`run --paid` refuses unless:**
 
 - HEAD is the sealing commit (the last commit that touched `prereg.sha256`);
+- that commit has one parent and changes only this lot's `prereg.sha256` and `data.sha256`, so a
+  seal commit cannot carry code;
 - `git status --porcelain` is empty;
 - every sealed file and input matches;
 - it was started by the sealed launcher (`SANCHOPANZA_LAUNCHER`);

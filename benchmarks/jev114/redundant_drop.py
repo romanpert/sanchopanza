@@ -228,11 +228,13 @@ def cmd_run(args: argparse.Namespace) -> int:
         print(f"dry: nothing asked. A paid launch now would be "
               f"{'refused: ' + refused if refused else 'allowed after the seal'}")  # fmt: skip
         return 4 if report["label_problems"] or report["new_duplicating_old"] else 0
-    lots.require_sealed_checkout(LOT)
+    commits = lots.require_sealed_checkout(LOT)
     sealed = json.loads(DATA.read_text(encoding="utf-8"))
     if inputs_digest(all_cases) != sealed["cases"]:
         raise SystemExit("inputs differ from the sealed ones: nothing spent")
-    return lots.paid_launch(LOT, lambda: asyncio.run(lots.run_cases(LOT, all_cases, ask, answered)))
+    return lots.paid_launch(
+        LOT, lambda: asyncio.run(lots.run_cases(LOT, all_cases, ask, answered)), commits
+    )
 
 
 def cmd_seal(_: argparse.Namespace) -> int:

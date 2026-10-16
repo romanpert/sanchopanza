@@ -233,3 +233,98 @@ def test_the_seal_reads_the_launcher_with_placeholders():
 
     expected = hashlib.sha256(lots.launcher_text(ROOT / "checkdone114-run.cmd")).hexdigest()
     assert lots.digest(sealed) == expected != lots.digest(plain)
+
+
+# --- the sealing commit, the launch log's vocabulary, a shrinking recording -------------------
+
+
+def _repo(tmp_path):
+    import subprocess
+
+    root = tmp_path / "repo"
+    (root / "src").mkdir(parents=True)
+    (root / "docs" / "lot").mkdir(parents=True)
+
+    def git(*args):
+        config = ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"]
+        subprocess.run(["git", "-C", str(root), *config, *args], check=True, capture_output=True)
+
+    git("init", "-q")
+    (root / "src" / "code.py").write_text("x = 1\n", encoding="utf-8")
+    git("add", "-A")
+    git("commit", "-q", "-m", "instrument")
+    lot = lots.Lot(name="t", out=root / "docs" / "lot", run=tmp_path / "run", batch_cap=0.01,
+                   sealed=(), fixture_stem="t")  # fmt: skip
+    return root, lot, git
+
+
+def _seal(root, git, *extra):
+    (root / "docs" / "lot" / "prereg.sha256").write_text("aa\n", encoding="utf-8")
+    (root / "docs" / "lot" / "data.sha256").write_text("{}\n", encoding="utf-8")
+    for path in extra:
+        (root / path).write_text("x = 2\n", encoding="utf-8")
+    git("add", "-A")
+    git("commit", "-q", "-m", "seal")
+
+
+def test_a_clean_seal_commit_passes_and_logs_head_and_parent(tmp_path):
+    root, lot, git = _repo(tmp_path)
+    _seal(root, git)
+    commits = lots.require_seal_commit(lot, root)
+    assert len(commits["head"]) == 40 and len(commits["parent"]) == 40
+    assert commits["head"] != commits["parent"]
+
+
+def test_a_dirty_tree_refuses(tmp_path):
+    root, lot, git = _repo(tmp_path)
+    _seal(root, git)
+    (root / "src" / "code.py").write_text("x = 3\n", encoding="utf-8")
+    with pytest.raises(SystemExit, match="not clean"):
+        lots.require_seal_commit(lot, root)
+
+
+def test_a_seal_commit_that_carries_code_refuses(tmp_path):
+    root, lot, git = _repo(tmp_path)
+    _seal(root, git, "src/code.py")
+    with pytest.raises(SystemExit, match="not only the seal"):
+        lots.require_seal_commit(lot, root)
+
+
+def test_a_commit_after_the_seal_refuses(tmp_path):
+    root, lot, git = _repo(tmp_path)
+    _seal(root, git)
+    (root / "src" / "code.py").write_text("x = 4\n", encoding="utf-8")
+    git("commit", "-q", "-am", "later")
+    with pytest.raises(SystemExit, match="not the sealing commit"):
+        lots.require_seal_commit(lot, root)
+
+
+def test_the_launch_log_holds_only_public_reasons(tmp_path):
+    assert lots.public_why("DeciderOutOfFunds: jev at C:/x/y did not answer: HTTP 402") == (
+        "DeciderOutOfFunds (HTTP 402)"
+    )
+    assert lots.public_why("SpendCapReached: batch t is full at 0.01") == "SpendCapReached"
+    assert lots.public_why("WrongModel: asked jev-1.14.0, served 'x'") == "WrongModel"
+    assert lots.public_why("25 failed calls") == "25 failed calls"
+    assert lots.public_why("preflight: auth") == "preflight: auth"
+    assert lots.public_why("Traceback in C:\\Users\\someone\\file.py: secret text") == "other"
+    lot = _lot(tmp_path)
+    lots.log_launch(lot, "stopped", "ReadTimeout: https://host/path?q=state text")
+    assert lots.read_launches(lots.launches(lot))[-1]["why"] == "other"
+    with lots.launches(lot).open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps({"outcome": "stopped", "why": "C:/private/path"}) + "\n")
+    with pytest.raises(SystemExit, match="non-public"):
+        lots.publish(lot)
+
+
+def test_a_shrunk_recording_refuses_a_relaunch(tmp_path):
+    lot = _lot(tmp_path)
+    lot.run.mkdir(parents=True, exist_ok=True)
+    lot.fixture("13r").write_text('{"key": "a"}\n{"key": "b"}\n', encoding="utf-8")
+    lots.log_launch(lot, "started", "", head="h", parent="p")
+    lots.log_launch(lot, "stopped", "25 failed calls")
+    assert lots.read_launches(lots.launches(lot))[-1]["lines"] == {"13r": 2, "14": 0}
+    assert lots.read_launches(lots.launches(lot))[0]["head"] == "h"
+    assert lots.may_launch(lot) is None
+    lot.fixture("13r").write_text('{"key": "a"}\n', encoding="utf-8")
+    assert "shrank" in lots.may_launch(lot)

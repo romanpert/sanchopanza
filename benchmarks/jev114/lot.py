@@ -160,27 +160,50 @@ def require_seal(lot: Lot) -> None:
         raise SystemExit("a sealed file changed since the seal: nothing spent")
 
 
-def _git(*args: str) -> str:
-    done = subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, text=True)
+def _git(*args: str, root: Path = ROOT) -> str:
+    done = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True)
     if done.returncode:
         raise SystemExit(f"git {' '.join(args)} failed: {done.stderr.strip()[:200]}")
     return done.stdout.strip()
 
 
-def sealing_commit(lot: Lot) -> str:
-    rel = (lot.out / "prereg.sha256").relative_to(ROOT).as_posix()
-    return _git("log", "-1", "--format=%H", "--", rel)
+def seal_files(lot: Lot, root: Path = ROOT) -> tuple[str, str]:
+    return tuple((lot.out / name).relative_to(root).as_posix()
+                 for name in ("prereg.sha256", "data.sha256"))  # type: ignore[return-value]  # fmt: skip
 
 
-def require_sealed_checkout(lot: Lot) -> None:
-    """HEAD is the sealing commit and nothing in the worktree differs from it."""
-    head, sealed = _git("rev-parse", "HEAD"), sealing_commit(lot)
+def sealing_commit(lot: Lot, root: Path = ROOT) -> str:
+    return _git("log", "-1", "--format=%H", "--", seal_files(lot, root)[0], root=root)
+
+
+def require_seal_commit(lot: Lot, root: Path = ROOT) -> dict[str, str]:
+    """HEAD is the sealing commit (the last that touched `prereg.sha256`), it has one parent,
+    it changes nothing but this lot's `prereg.sha256` and `data.sha256` (so a seal commit
+    cannot carry code: every other module is pinned by HEAD^), and the tree is clean. Returns
+    HEAD and its parent, for the launch log."""
+    head, sealed = _git("rev-parse", "HEAD", root=root), sealing_commit(lot, root)
     if not sealed or head != sealed:
         raise SystemExit(f"HEAD {head[:9]} is not the sealing commit {sealed[:9]}: nothing spent")
-    if _git("status", "--porcelain"):
+    parents = _git("rev-list", "--parents", "-n", "1", "HEAD", root=root).split()[1:]
+    if len(parents) != 1:
+        raise SystemExit(f"the sealing commit has {len(parents)} parents, not 1: nothing spent")
+    changed = set(_git("diff", "--name-only", "HEAD^", "HEAD", root=root).split())
+    if changed != set(seal_files(lot, root)):
+        raise SystemExit(f"the sealing commit changes {sorted(changed)}, not only the seal: "
+                         "nothing spent")  # fmt: skip
+    if _git("status", "--porcelain", root=root):
         raise SystemExit("the worktree is not clean: nothing spent")
+    return {"head": head, "parent": parents[0]}
+
+
+def require_sealed_checkout(lot: Lot) -> dict[str, str]:
+    """The sealing commit checked out clean, every sealed file as sealed, and the run started
+    by the sealed launcher. Returns HEAD and HEAD^ for the launch log."""
+    commits = require_seal_commit(lot)
     require_seal(lot)
     require_launcher(lot)
+    print(f"HEAD {commits['head']} (seal); HEAD^ {commits['parent']}", flush=True)
+    return commits
 
 
 # --- recordings -------------------------------------------------------------------------------
@@ -436,29 +459,71 @@ def read_launches(path: Path) -> list[dict[str, Any]]:
     return read_recording(path)[0]
 
 
+def recorded_lines(lot: Lot) -> dict[str, int]:
+    return {arm: len(read_recording(lot.fixture(arm))[0]) for arm in lot.models}
+
+
 def may_launch(lot: Lot) -> str | None:
     """Why a paid launch is refused: one relaunch at most, and none after a cap, a model served
-    under another name, or a launch that completed. A launch paused on a 402 does not count."""
+    under another name, or a launch that completed; never when a recording holds fewer lines
+    than the last launch left in it. A launch paused on a 402 does not count."""
     path = launches(lot)
     if not path.exists():
         existing = [str(lot.fixture(a)) for a in lot.models if lot.fixture(a).exists()]
         return f"answers recorded before any launch: {existing}" if existing else None
     past = read_launches(path)
+    last = next((p["lines"] for p in reversed(past) if p.get("lines")), None)
+    if last:
+        now = recorded_lines(lot)
+        shrunk = {a: (n, now.get(a, 0)) for a, n in last.items() if now.get(a, 0) < n}
+        if shrunk:
+            return f"a recording shrank since the last launch (was, now): {shrunk}"
     started = sum(p.get("outcome") == "started" for p in past)
     started -= sum(p.get("outcome") == "paused" for p in past)
     if started >= 2:
         return f"{started} launches already"
     if any(any(stop in p.get("why", "") for stop in FINAL_STOPS) for p in past):
-        return "an earlier launch stopped on a cap, a 402 or a wrong model"
+        return "an earlier launch stopped on the cap or a wrong model"
     if any(p.get("outcome") == "complete" for p in past):
         return "an earlier launch completed"
     return None
 
 
-def log_launch(lot: Lot, outcome: str, why: str) -> None:
+def public_why(why: str) -> str:
+    """Why a launch ended, in a fixed vocabulary: the launch log is published, so no error
+    text, path or answer leaves the machine through it."""
+    if not why:
+        return ""
+    if funds_stop(why):
+        return "DeciderOutOfFunds (HTTP 402)"
+    if "SpendCapReached" in why or "spend cap" in why:
+        return "SpendCapReached"
+    if "WrongModel" in why or "asked jev" in why or "served jev" in why:
+        return "WrongModel"
+    if why == "STOP file":
+        return why
+    failed = re.fullmatch(r"(\d+) failed calls", why)
+    if failed:
+        return f"{failed.group(1)} failed calls"
+    reason = re.fullmatch(r"preflight: (\w+)", why)
+    if reason and reason.group(1) in ("auth", "no_key", "unreachable", "other"):
+        return f"preflight: {reason.group(1)}"
+    return "other"
+
+
+PUBLIC_WHY = re.compile(
+    r"(|DeciderOutOfFunds \(HTTP 402\)|SpendCapReached|WrongModel|STOP file|"
+    r"\d+ failed calls|preflight: (auth|no_key|unreachable|other)|other)"
+)
+
+
+def log_launch(lot: Lot, outcome: str, why: str, **extra: Any) -> None:
     lot.run.mkdir(parents=True, exist_ok=True)
+    row = {"outcome": outcome, "why": public_why(why), **extra}
+    if outcome != "started":
+        row["lines"] = recorded_lines(lot)
     with launches(lot).open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps({"outcome": outcome, "why": why[:300]}) + "\n")
+        handle.write(json.dumps(row) + "\n")
 
 
 def publish(lot: Lot) -> list[str]:
@@ -471,6 +536,9 @@ def publish(lot: Lot) -> list[str]:
             shutil.copyfile(lot.fixture(arm), lot.published(arm))
             done.append(lot.published(arm).relative_to(ROOT).as_posix())
     if launches(lot).exists():
+        for row in read_launches(launches(lot)):
+            if not PUBLIC_WHY.fullmatch(str(row.get("why", ""))):
+                raise SystemExit(f"launch log holds a non-public reason: {row.get('why')!r}")
         shutil.copyfile(launches(lot), lot.out / "launches.jsonl")
         done.append((lot.out / "launches.jsonl").relative_to(ROOT).as_posix())
     return done
@@ -511,9 +579,12 @@ def funds_stop(why: str) -> bool:
     return any(marker in why for marker in FUNDS_STOPS)
 
 
-def paid_launch(lot: Lot, run_all: Callable[[], tuple[int, str]]) -> int:
-    """The registered launch: sealed checkout checked by the caller, one relaunch at most,
-    preflight of both versions, then `run_all`, logged. A 402, in the preflight or mid-run,
+def paid_launch(
+    lot: Lot, run_all: Callable[[], tuple[int, str]], commits: Mapping[str, str] | None = None
+) -> int:
+    """The registered launch: sealed checkout checked by the caller (its HEAD and HEAD^ come in
+    `commits` and go to the log), one relaunch at most, preflight of both versions, then
+    `run_all`, logged with each recording's line count. A 402, in the preflight or mid-run,
     logs `paused` and exits PAUSED_EXIT: no score, and the lot may be launched again."""
     from jev114_components import load_key
 
@@ -522,7 +593,7 @@ def paid_launch(lot: Lot, run_all: Callable[[], tuple[int, str]]) -> int:
         raise SystemExit(f"launch refused: {refused}")
     load_key()
     ledger = SpendLedger(lot.ledger, cap_usd=lot.ledger_cap)
-    log_launch(lot, "started", "")
+    log_launch(lot, "started", "", **dict(commits or {}))
     failed_preflight = preflight_both(lot, ledger)
     if failed_preflight:
         paused = funds_stop(failed_preflight)

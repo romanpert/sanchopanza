@@ -238,6 +238,21 @@ def test_the_count_guard_lets_a_balanced_exchange_through_and_stops_net_losses()
     assert not _hand(0, 2, 0)["count_guard"]  # a net loss of two
 
 
+def test_the_whole_decision_on_patterns_and_on_draw_1():
+    tmpl = analysis._template_ev()
+    assert len(tmpl) == 270
+    clusters, drop = analysis._hand_ev()
+    agree = [analysis._row(d, "agree", cluster=c) for c, d in zip(clusters, drop, strict=True)]
+    assert analysis.passes(agree, tmpl, 0.5, replicas=200)["passes"]
+    lost = [analysis._row(d, "loss" if i in (0, 1, 2, 3) else "agree", cluster=c)
+            for i, (c, d) in enumerate(zip(clusters, drop, strict=True))]  # fmt: skip
+    assert not analysis.passes(lost, tmpl, 0.5, replicas=200)["passes"]
+    found = analysis.draw1_by_cut(analysis._template_ev, (0.61, 0.30), replicas=300)
+    by_cut = {r["draw1_cut_14"]: r for r in found}
+    assert not by_cut[0.61]["passes"] and not by_cut[0.61]["count_guard"]
+    assert by_cut[0.30]["passes"]
+
+
 def test_the_hand_stratums_own_verdict_is_not_required():
     rows = _synthetic(0)
     for row in rows:  # one balanced exchange on the hand-written pages
