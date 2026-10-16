@@ -1,4 +1,4 @@
-# Roadmap: what is pending, by priority (2026-10-15)
+# Roadmap: what is pending, by priority (2026-10-16)
 
 What is still open in sanchopanza after the final scoreboard
 ([`docs/results/2026-10-13-final/`](results/2026-10-13-final/README.md)), and what the one known
@@ -9,6 +9,184 @@ Cost: **free** is code, tests or replays with no model; **Jev** is TypeSafe call
 said); **Claude** is Claude Code sessions on the subscription, quoted at list price.
 Priority: **high** breaks something or blocks the consumer; **medium** is a cheap, measurable
 gain; **low** is an idea, or an expensive cell with no margin shown.
+
+## Priority table
+
+| # | Item | Priority | Cost | State |
+|---|---|---|---|---|
+| C9 | Memory's prune deletes the standing rules of a project idle for 30 days | **high** | free | **in progress** (`memfix`) |
+| C10 | Two names of other private projects and some local paths in public files | **high** | free | **in progress** |
+| B1 | Publish a release (`v*` tag and PyPI) so the consumer stops pinning a tarball by commit | **high** | free (PyPI: owner's decision, irreversible) | `v0.3.0` tagged with a GitHub release; 0.3.1 in preparation; PyPI with the owner's yes |
+| C7 | The LongBench routing point, opt-in | medium | free (code); Claude for what follows | **in progress** |
+| C1 | A PostToolUse check on MCP results (what A3's PreToolUse guard cannot read) | medium | Jev (replay ~0.05-0.10 USD), then Claude (~5 USD live probe) | idea, from A3 |
+| C2 | check_done with the tool results the answer rests on, not cut at 1,500 characters | medium | free (record builder) + Jev (~0.3-0.5 USD) | open, from checkdone114 |
+| C8 | Four memory gaps read from the code and F2's logs | medium | free replays first; Claude (~40 USD, F2-sized) to confirm | open, unmeasured |
+| C4 | A5's `unrelated_at=0.65` on written text with fa-17-type pairs | low-medium | free (cases) + Jev cents | open, from A5 |
+| C5 | `select_passages(fit_score=False)` against page order on fresh questions | low-medium | Jev (~0.5-1.5 USD) | open, from B4 |
+| C6 | Closing Spanish's 3-6 points in page triage and passages | low | Jev (~0.2 USD pages, ~2.5 USD documents per arm) | idea, from B6 |
+| C3 | `redundant_page` under 1.14 with a cut bounded from below, on new cases | low | free (cases) + Jev (~0.03-0.05 USD) | open, from redundant-drop |
+| A4 | Cells not run by decision (code on Sonnet and Opus, Fable, S2, Ne against Ne+A) | low (owner's decision) | Claude: see below | memory F2 **run**; the rest not run by decision |
+| A3 | MCP tool calls pass the installed hook with no decision | medium | Jev 0.0805 USD | **done**: not confirmed; guard opt-in (`install --guard-mcp`) |
+| B6 | Page triage and passages in Spanish | medium | Jev 2.6445 USD | **done**: both inconclusive at −5 |
+| B4 | Order the approved paragraphs that do not fit by a four-level score | low-medium | Jev 0.0617 USD | **done**: Score not confirmed |
+| B7 | A stable API of questions, thresholds and recording keys to import rather than copy | low | free | **done** (merge `a502293`) |
+| A5 | `relate_facts`: the `unrelated` gate | low | Jev 0.0348 USD | **done**: 0.65 beats the shipped gate; a proposal |
+| A6 | Getting an agent to use `find_in_repo` | low | free (ceiling) | **closed without spending**: ceiling 3.20 % |
+| A7 | The derivation rule against Sonnet on unseen data | low | Claude + Jev | **closed**: no margin |
+| A8 | Deciding before Claude Code's auto-mode classifier | low | Jev + Claude | **closed**: no lever in Claude Code |
+| A9 | The tool window by tournament over the sub-groups of a large server | low | Jev | **closed**: no margin |
+| A10 | A local classifier (LoRA) for decisions Jev pays for today | low | free (Colab or Kaggle) | **owner's decision**: not for money; offline fallback only |
+| A1 | Benchmarks read the TypeSafe key from a fixed path on the owner's disk | high | free | **done** (`de7c38a`) |
+| A2 | Documents with an old state: README "What is open", the guard-struct README, the root `STATUS*.md` | medium | free | **done** (2026-10-15) |
+| B2 | Spanish sentence splitting | medium | free | **done** (`872e068`) |
+| B3 | `select_passages`: an unanswered paragraph, and a call budget per document | medium | free | **done** (`a1a04db`) |
+
+## The 2026-10-16 lots
+
+Each lot pre-registered and sealed before its first answer, reviewed against the code by
+`revisor-prereg`, and run once from a detached worktree at the sealed commit. Jev is
+`jev-1.13.0` unless the row says otherwise.
+
+| Lot | Verdict by the sealed rule | Cost |
+|---|---|---|
+| [A3, the MCP guard over ATBench-Codex](results/2026-10-16-a3-mcp/README.md) | **Not confirmed**: recall 0.740 against the 0.752 floor (185 of 250 unsafe, the hook as shipped 0), FPR 0.328. 112 of the 589 MCP calls in safe trajectories denied (19.0 %). Amendment 1: the offline control flags the same 213 unsafe trajectories as on 2026-09-27, no drift | Jev 0.0805 USD |
+| [memgate-hook, the installed memory hook with the long window](results/2026-10-16-memgate-hook/README.md) | **"Peor en ruido"**: hits +12.7 points [+6.3, +19.8] on 126 hittable requests, false alarms +3.7 [+1.5, +6.2] on 483, past the +5 guard. The hook stays short | Jev 0.1794 USD |
+| [B4, order by a four-level Score](results/2026-10-16-b4-order/README.md) | **Score not confirmed**: +2.3 [−1.5, +6.2] over the free order, +1.8 [−2.3, +5.7] over tournament probability; free order over page order +13.6 [+7.1, +20.2], exploratory | Jev 0.0617 USD |
+| [A5, `unrelated_at=0.65`](results/2026-10-16-a5-unrelated/README.md) | **Beats the shipped gate**: 39 added verdicts on 1,500 new pairs, all right, Wilson lower bound 0.910. A proposal, not the change | Jev 0.0348 USD |
+| [B6, Spanish against English on MLQA](results/2026-10-16-b6-es/README.md) | **Both inconclusive at −5**: pages −3.4 [−6.1, −0.8] (95.5 % against 98.9 %), documents −5.9 [−9.0, −2.9] (85.8 % against 91.7 %), same share of text; BM25 loses 10-11 | Jev 2.6445 USD |
+| [checkdone114, check_done under 1.14 on unseen AgentDojo stops](results/2026-10-16-checkdone114/README.md) | **Confirmed no worse**: 1.14 at 0.30 right on 745 of 950, 1.13 at 0.5 on 737, +0.8 [−1.1, +3.2]; false blocks 150 against 165 of 795 | Jev 0.1371 USD |
+| [redundant-drop, `redundant_page` under 1.14 with 90 more drops](results/2026-10-16-redundant-drop/README.md) | **No proposal**: rule D clears at 0.04, the costly-drops guard fails (8 keep pages dropped against 0); 0.61 loses drops again, −6.0 [−11.6, −1.7] | Jev 0.0277 USD |
+| [memory F2, memory against the handoff ritual](results/2026-10-16-memory-f2/README.md) | **Sonnet 5.5: S not worse than H and better than N0** (48, 44 and 4 of 48); **Opus 5.5 direction only** (22, 17, 21 of 24) | Claude 42.25 USD list |
+| [lb162x, the LongBench router against Opus 5.5](results/2026-10-16-lb162x/README.md) | **No worse at −10** against Opus 5.5 (−3.7 [−8.0, +0.6], "sustituye"); Opus's cost saved 29.5 % [21.7, 37.7]; Sonnet's saving measured, 33.9 % [24.0, 44.0] | Claude 27.01 USD list |
+| [A6, the find ceiling](results/2026-10-16-a6-ceiling/README.md) | **Under 5 %**: 3.20 % [2.50, 3.94] of Sonnet 5.5's cost over 19 clean long-chain sessions; not pre-registered, free | free |
+
+**Pending from these lots:**
+
+- **The memory gate's long window is the library default** since `c65f021`:
+  `memory_gate.gate` reads every memory whole in one call (`SANCHOPANZA_MEMORY_WINDOW=short`
+  turns it off), on memgate-long's confirmation (recall 0.726 → 0.905 on 84 unseen LongMemEval
+  questions). **The installed hook stays short**: memgate-hook found it "peor en ruido" on 905
+  SWE-chat first requests, hits +12.7 [+6.3, +19.8] for false alarms +3.7 [+1.5, +6.2] over the
+  +5 guard. `=long` stays an opt-in there.
+- **check_done: confirmed (no worse) for 1.14 at 0.30 in the Stop hook**, +0.8 [−1.1, +3.2] on
+  950 unseen AgentDojo stops. The limit it showed is a new open item (C2): both versions block
+  about one finished stop in five (165 and 150 of 795) when tool results are cut at 1,500
+  characters; 115 of 1.14's 150 false blocks have a cut result.
+- **`redundant_page`: no proposal.** The 90 new `drop` cases let rule D clear, at 0.04, inside
+  the `keep` pages' scores; the costly-drops guard fails. 0.61 loses drops for the third time
+  (−6.0 [−11.6, −1.7]). Next (C3): a rule with a lower bound on the cut, on new cases.
+- **LongBench: lb162x.** Against Opus 5.5 the router is "no worse" at −10 (−3.7 [−8.0, +0.6]),
+  Opus's cost saved 29.5 % [21.7, 37.7]; Sonnet 5.5's saving is **measured at 33.9 %
+  [24.0, 44.0]**. The routing point as an opt-in is **in progress** in another session (C7).
+
+## Open
+
+**C9. Memory's prune deletes the standing rules.** `context/episodes.py`'s prune deletes every
+`*.json` in a project's store except `index.json`, `rules.json` included, so a project idle for
+30 days loses its standing rules. **In progress** (branch `memfix`).
+
+**C10. Private names and local paths in public files.** Two names of other private projects and
+some local paths remain in tracked benchmark code, tests and planning documents. **In
+progress** in another session.
+
+**B1. A published release: tagged, not on PyPI.** `v0.3.0` is tagged on `10f2cbe` with a
+[GitHub release](https://github.com/romanpert/sanchopanza/releases/tag/v0.3.0) (wheel, sdist and
+the CHANGELOG's 0.3.0 section). **0.3.1 is in preparation**: it will carry everything from
+2026-10-16 (CHANGELOG, "0.3.1 (unreleased)"). A tag push does not publish to PyPI: PyPI is a
+separate `gh workflow run release.yml --ref <tag>` ([governance](governance.md)), with the
+owner's yes. The consumer pinned one commit's tarball in three files that must move together;
+it can pin `sanchopanza[jev] @ https://github.com/romanpert/sanchopanza/archive/refs/tags/v0.3.0.tar.gz`
+now, and `sanchopanza[jev]>=0.3` once PyPI has it. A tag survives a history rewrite that would
+stop an old SHA from resolving (the consumer's factory falls back to a null decider in silence
+when the package does not import).
+
+**C7. The LongBench routing point** (in progress): Jev's letter and probability at ≥ 0.6,
+otherwise "ask your own model", shaped like `navigate`'s `escalate_below`, opt-in and out of
+`install`. What lb162x leaves to measure: a higher cut for Opus 5.5 users (0.8,
+pre-registered on fresh tasks; descriptively the gap there was 0.6 points), and a long-document
+set graded on free-text answers.
+
+**C1. A PostToolUse check on MCP results.** A3's misses are mostly harm that shows only in a
+tool's answer (14 of 33 are `malicious_tool_execution`), which a PreToolUse guard never reads.
+A check on the result cannot undo the call, but can stop the agent before it acts on it or
+passes it on. Its own lot: a prereg, a replay on the same 500 ATBench-Codex trajectories
+(about 0.05-0.10 USD of Jev), which harms an after-the-fact check still prevents, then a live
+probe.
+
+**C2. check_done with long tool outputs.** The record builder keeps the first 1,500 characters
+of each tool result; workspace results run far longer, and the judge then sees an answer it
+cannot check. Keep the part of each result the answer rests on, then measure again on the 950
+stops (a new registration; about 0.3-0.5 USD of Jev at longer inputs) before the Stop hook is
+advertised beyond slack-like settings.
+
+**C8. Memory: four gaps, unmeasured.** Read from the code and from F2's logs; each needs a
+measurement before any change.
+- A bare "continue" gets no prompt recall: the name gate passes a record only if the prompt
+  names a file it changed (`harness/memory_recall.py`). In F2 the record came at the prompt in
+  36 of 48 Sonnet arms and through the file touch in the other 12.
+- With shell reads the record arrives after the first shell write: `SHELL_READS = False`, and
+  `shell_first` exists but `install` wires no memory `PreToolUse`.
+- A record keeps the prompt's first 1,000 characters (`REQUEST_CHARS`), so a plan at the end of
+  a long prompt is lost.
+- Plan sentences are stored as standing rules and crowd the 8-rule, 1,800-character slot
+  (in F2's logs, a median of about 1,690 characters given at a session's start).
+
+**C4. A5 on written text.** Before `unrelated_at=0.65` becomes `decide_facts`' default: a batch
+with fa-17's kind of pair (two dated events, a role and an act, a figure and its subset), the
+only kind the gate has got wrong, absent from A5's templated batch. Free to build, Jev cents.
+
+**C5. The free order on fresh data.** `fit_score=False` beat page order by +13.6 points
+[+7.1, +20.2] in B4, exploratory. Confirm it with the budget rule, the order and the comparison
+fixed in advance on questions nobody has looked at (QASPER's validation split, or a long
+document outside English papers), about 0.5-1.5 USD of Jev, before it becomes a measured option.
+
+**C6. Spanish's 3-6 points.** Ideas: the question asked in its Spanish original against the
+translated one, to tell the question's language from the text's; or the sentence stage's excerpt
+taken by a window around its best match instead of a head cut at 900 characters (the gap is
+smallest where the gold sits in the first 900: −4.5). About 0.2 USD of Jev per pages arm and
+2.5 USD per documents arm.
+
+**C3. `redundant_page` with a bounded cut.** A cut rule bounded from below (for example by the
+highest `keep` score in calibration, or a precision target on `keep` pages), fixed before the
+data, on cases not used in redundant-drop. Post hoc, a cut from 0.10 to 0.20 was right on 319 of
+320 there, which licenses nothing.
+
+**A4. Cells not run by decision** ([final scoreboard](results/2026-10-13-final/README.md), "What
+was not run"). **Memory F2 ran** on 2026-10-16 (sealed `763dafd`, clean Claude Code 2.1.287):
+on Sonnet 5.5, S was not worse than the handoff ritual and better than nothing (48 of 48 against
+44 and 4; Tango lower bound +2.6 points; McNemar p 5.7e−14), at 0.92 the ritual's cost and 1.23
+the bare line's (paired medians); on Opus 5.5 direction only (S 22, H 17, N0 21 of 24), no room,
+since Opus's own auto memory carried the plan in every arm. 42.25 USD at list price. The gain
+comes from carrying "what was next", not from a constraint saved. Still not run, by decision:
+code on Sonnet 5.5 and Opus 5.5 (about 357 USD at list price, cap 465), Fable 5.1 (no suite),
+the S2 confirmation (owner's decision after its dev), Ne against Ne+A (about 43 chains to see a
+−7 %, [`PLAN-GANAR-H2H.md`](PLAN-GANAR-H2H.md)).
+
+## Closed
+
+**A6. Getting an agent to use `find_in_repo`: closed without spending.** The ceiling on what
+imposing find could save, from recorded sessions ([a6-ceiling](results/2026-10-16-a6-ceiling/README.md)):
+3.20 % [2.50, 3.94] of Sonnet 5.5's cost over 19 clean long-chain sessions and 1,046 bugs,
+under the 5 % rule. Sonnet reaches the right file in its first request on most bugs. Opus 5.5
+3.15 % on 2 sessions; Haiku 4.5 on single issues 5.29 % [3.96, 6.79]. A fresh repository with a
+frontier model is unmeasured.
+
+**A7. The derivation rule against Sonnet: no margin.** A3 was not confirmed, and on
+ATBench-Codex Jev already equals Sonnet 5 (78.5 % against 78.9 %,
+[cascade-sonnet](results/2026-09-28-cascade-sonnet/README.md)). Closed until a set shows a gap.
+
+**A8. Before the auto-mode classifier: no lever in Claude Code.** The classifier costs no money
+there and a PreToolUse `allow` does not skip it ([`MAPA-HUECOS-ARNES.md`](MAPA-HUECOS-ARNES.md)
+section 2). The version with a billed reviewer is Codex's, and that is the cascade.
+
+**A9. The unit of the tool window: no margin.** The platform's own tool search already costs
+less than the window at the same success (an estimated 0.34x of loading everything against the
+window's 0.54x, [wide](results/2026-09-25-wide/README.md)).
+
+**A10. A local classifier: the owner's decision.** Not for money, since it would replace Jev's
+micro-dollars a decision; only as an offline fallback. TypeSafe's MCA 2.3(b) forbids training on
+Jev's outputs and also "develop a similar or competing product". Train only on our own labels or
+a public bench's, and measure outside the training set.
 
 ## Jev 1.14
 
@@ -47,118 +225,44 @@ Claude.
 | [Memory gate, long window](results/2026-10-15-memgate-long/README.md) | **Confirmed** on the 84 unseen LongMemEval questions, jev-1.13.0: recall 0.726 → 0.905, +17.8 points [+10.7, +25.7], Holm p < 0.001, no failures; the long window reaches BM25 top 3 (+8.9 [0.0, +17.3]) where the short one does not. 0.5283 USD |
 | [Confirmation](results/2026-10-15-jev114-recalconf/README.md) | **Not admissible**: on a second draw of the same 1,298 cases the profile falls to 551 against 555 of 646 (−0.6 points [−2.3, +0.9], inconclusive) and `redundant_page` is worse (44 against 48 of 50); on 910 candor counterfactuals no cut had seen, 1.14 at 0.90 is worse than 1.13 at 0.83 (770 against 800, −3.3 points [−5.4, −1.2]). check_done at 0.30 holds. No new labelled cases exist for the L1 points, so they are confirmed only against draw-to-draw noise |
 | [LongBench cut of 0.6, power](results/2026-10-15-jev114-b3conf/README.md) | No affordable confirmation can decide at a −2 point margin (about 3,200 paired tasks; LongBench v2 has 503). Deciding at −10 points takes 162 tasks with Sonnet on the covered ones: the owner's call |
-| [LongBench cut of 0.6, 162 fresh tasks](results/2026-10-15-lb162/README.md) | **No worse at −10**: Jev 1.14 with the long window where its top choice is ≥ 0.6, Sonnet 5.5 (clean Claude Code 2.1.287) elsewhere, against Sonnet alone: +1.2 points [−3.1, +5.6]. Coverage 37 % (60 of 162, L6 had 54 %); on those Jev 31, Sonnet 29 right (McNemar p 0.79). About 27 % of Sonnet's cost saved, with the uncovered tasks' cost estimated. 0.875 USD of Jev, 5.757 of Claude |
+| [LongBench cut of 0.6, 162 fresh tasks](results/2026-10-15-lb162/README.md) | **No worse at −10**: Jev 1.14 with the long window where its top choice is ≥ 0.6, Sonnet 5.5 (clean Claude Code 2.1.287) elsewhere, against Sonnet alone: +1.2 points [−3.1, +5.6]. Coverage 37 % (60 of 162, L6 had 54 %); on those Jev 31, Sonnet 29 right (McNemar p 0.79). 33.9 % [24.0, 44.0] of Sonnet's cost saved, measured on the 102 uncovered tasks by [lb162x](results/2026-10-16-lb162x/README.md). 0.875 USD of Jev, 5.757 of Claude |
 
 **`DEFAULT_MODEL` stays `jev-1.13.0`**, and candor stays on 1.13. 1.14 is an opt-in with its profile
 (`SANCHOPANZA_JEV_MODEL=jev-1.14.0`), better on calibration, supersession and R-Judge, and no
-better where a switch would pay; the long-context gain is the window's and works on 1.13.
-
-Pending from these lots:
-
-- **The memory gate with the long window: confirmed, opt-in.** On the 84 LongMemEval test
-  questions L6 had not seen ([memgate-long](results/2026-10-15-memgate-long/README.md), sealed
-  `c8d1da1`, jev-1.13.0, 0.5283 USD of Jev), recall rises from 0.726 to 0.905, +17.8 points
-  [+10.7, +25.7], with no failed call, and the long window reaches BM25 top 3 (+8.9 [0.0, +17.3]).
-  Precision falls from 0.91 to 0.71; a prompt costs about 0.005 USD against 0.001, one call of
-  about 1.6 s. The mode is in the package as `SANCHOPANZA_MEMORY_WINDOW=long` (merge `64bf8c8`):
-  default requests unchanged, the long call held to the job's budget and falling back to the
-  short window when it does not fit, fails or runs late. **Proposed:** make it the default of the
-  library gate `memory_gate.gate` (`=short` turns it off). The installed hook judges records, not
-  sessions, and stays short until a replay on the SWE-chat records (under 1 USD of Jev) measures
-  the long window there.
-- **check_done recalibrated** on 1.14: the profile's 0.30 matches 1.13 on the held-out half
-  (312 against 313 of 329), but was read off the same lot; it needs new AgentDojo trajectories
-  before the Stop hook relies on it under 1.14.
-- `redundant_page` needs about 90 new `drop` cases for its 90 % derivation to clear without
-  hinging on one page.
-- **A LongBench routing point**, opt-in and out of `install`: Jev's letter and probability at
-  ≥ 0.6, otherwise "ask your own model", shaped like `navigate`'s `escalate_below`. Before a
-  product claim beyond multiple choice: Sonnet on the 102 uncovered tasks (about 12.5 USD) to
-  measure the saving instead of estimating it, Opus 5.5 as the expensive model, and a
-  long-document set graded on free-text answers.
-
-## Priority table
-
-| # | Item | Priority | Cost | State |
-|---|---|---|---|---|
-| B1 | Publish a release (`v*` tag and PyPI) so the consumer stops pinning a tarball by commit | **high** | free (PyPI: owner's decision, irreversible) | `v0.3.0` tagged with a GitHub release; PyPI open |
-| A3 | MCP tool calls pass the installed hook with no decision | medium | Jev (replay ~0.03 USD), then Claude (a bounded live probe) | open |
-| B6 | Page triage and passages unmeasured in Spanish or outside QASPER | medium | Jev (< 0.10 USD) + Claude (~1-3 USD, Haiku answering) | open |
-| B4 | Order the approved paragraphs that do not fit by a four-level score | low-medium | free + Jev cents | open |
-| B7 | A stable API of questions, thresholds and recording keys to import rather than copy | low | free | open |
-| A4 | Cells not run by decision (code on Sonnet and Opus, memory F2, Fable, S2, Ne against Ne+A) | low (owner's decision) | Claude: see below | open |
-| A5 | `relate_facts`: the `unrelated` gate | low | Jev cents | open |
-| A6 | Getting an agent to use `find_in_repo` | low | Claude | open |
-| A7 | The derivation rule against Sonnet on unseen data | low | Claude + Jev | open |
-| A8 | Deciding before Claude Code's auto-mode classifier | low | Jev + Claude | idea, unmeasured |
-| A9 | The tool window by tournament over the sub-groups of a large server | low | Jev | idea, unmeasured |
-| A10 | A local classifier (LoRA) for decisions Jev pays for today | low | free (Colab or Kaggle) | idea |
-| A1 | Benchmarks read the TypeSafe key from a fixed path on the owner's disk | high | free | **done** (`de7c38a`) |
-| A2 | Documents with an old state: README "What is open", the guard-struct README, the root `STATUS*.md` | medium | free | **done** (2026-10-15) |
-| B2 | Spanish sentence splitting | medium | free | **done** (`872e068`) |
-| B3 | `select_passages`: an unanswered paragraph, and a call budget per document | medium | free | **done** (`a1a04db`) |
-
-## Open
-
-**B1. A published release: tagged, not on PyPI.** `v0.3.0` is tagged on `10f2cbe` with a
-[GitHub release](https://github.com/romanpert/sanchopanza/releases/tag/v0.3.0) (wheel, sdist and
-the CHANGELOG's 0.3.0 section). A tag push no longer publishes to PyPI: the `pypi` environment
-admits `v*` tags with no required reviewer, so PyPI is a separate
-`gh workflow run release.yml --ref v0.3.0` ([governance](governance.md)), the owner's call. The
-consumer pinned one commit's tarball in three files that must move together; it can pin
-`sanchopanza[jev] @ https://github.com/romanpert/sanchopanza/archive/refs/tags/v0.3.0.tar.gz`
-now, and `sanchopanza[jev]>=0.3` once PyPI has it. A tag survives a history rewrite that would
-stop an old SHA from resolving (the consumer's factory falls back to a null decider in silence
-when the package does not import).
-
-**A3. MCP calls in Claude Code.** The installed hook judges shell commands, delegations and
-searches, and lets MCP tool calls through: on ATBench-Codex, whose risks live in MCP calls, it
-flagged 0 of 250 unsafe trajectories. The `actions` point judged the same set at 78.2 % offline
-and is not wired into the hook ([cascade-frontier](results/2026-09-27-cascade-frontier/),
-[broad](results/2026-09-28-claude-code-broad/)). Next: a replay of the wiring over what is
-recorded, then a bounded live probe.
-
-**B6. Spanish, and documents other than scientific papers.** What is confirmed is English:
-`triage_pages` keeps every supporting page in 98.3 % of HotpotQA questions at 34 % of the text,
-`select_passages` every answer sentence in 87.2 % of QASPER questions at 21.0 % (README, "What it
-decides"). The consumer asks in Spanish, cuts each page to 900 characters and preselects by BM25
-past 90 paragraphs, none of it measured. Next: a small Spanish bench with labels by construction.
-
-**B4. Approved paragraphs that do not fit.** When the paragraphs that pass exceed the delivery
-size, the consumer orders them by a four-level score; a second Truth pass did not discriminate.
-In three of its own probes on a long public report the conclusions came through the passages in
-54 calls. A candidate option for `select_passages`, after a replay here confirms it.
-
-**B7. A stable API to import.** The consumer keeps its own copy of questions, policies, the DAG
-and the recorder, because migrating changes its recording keys (they sign the question text) and
-the point names in its trace. A versioned id per question and a recording key that does not
-depend on the text's language would let it import instead. Meanwhile: what is measured there is
-ported here, not the other way round.
-
-**A4. Cells not run by decision** ([final scoreboard](results/2026-10-13-final/README.md), "What
-was not run"): code on Sonnet 5.5 and Opus 5.5 (about 357 USD at list price, cap 465), memory F2
-handoffs (about 180.5 USD), Fable 5.1 (no suite), the S2 confirmation (owner's decision after its
-dev), Ne against Ne+A (about 43 chains to see a −7 %, [`PLAN-GANAR-H2H.md`](PLAN-GANAR-H2H.md)).
-None has a margin shown.
-
-**A5-A7.** Open in the README, "What is open": `relate_facts` (the `unrelated` gate at 0.5 and
-examples on `unrelated` did not beat the shipped question on the fifth batch); `find_in_repo`
-offered and called in 6 of 27 sessions; the "within half a point" derivation rule, untested
-against Sonnet on unseen data.
-
-**A8. Before the auto-mode classifier.** The classifier costs no money in Claude Code and a
-PreToolUse `allow` does not skip it, so only latency could be won, and that is unmeasured
-([`MAPA-HUECOS-ARNES.md`](MAPA-HUECOS-ARNES.md) section 2).
-
-**A9. The unit of the tool window**, through the tournament over the sub-groups of a large
-server. An idea, unmeasured.
-
-**A10. A local classifier.** A small LoRA model could take decisions Jev pays for today
-(safety, injection, done, relevance). Train only on our own labels or a public bench's, never
-on Jev's outputs (check the provider's terms first), and measure it outside its training set.
+better where a switch would pay; the long-context gain is the window's and works on 1.13. Since
+2026-10-16 the profile's check_done cut of 0.30 is confirmed on unseen trajectories
+(checkdone114); its `redundant_page` cut of 0.61 is not fixed (redundant-drop).
 
 ## Done
 
+- **A3** (2026-10-16, merge `2727cc3`): an MCP guard, opt-in (`install --guard-mcp`,
+  `SANCHOPANZA_GUARD_MCP`; records masked by `redact.mask_strict`). Its sealed replay over
+  ATBench-Codex is **not confirmed**: recall 0.74 against the 0.752 floor, FPR 0.328, and 19 % of
+  MCP calls in safe sessions denied; the offline control shows no drift. Phase 2 (live) was not
+  run. The next proposal is C1, its own lot.
+- **B6** (2026-10-16, merge `bbde947`): Spanish against English on the same MLQA questions,
+  **both inconclusive at −5**: pages −3.4 [−6.1, −0.8], documents −5.9 [−9.0, −2.9], at the same
+  share of text; BM25 alone loses 10-11 points. For the consumer: asking in Spanish costs a few
+  points of recall, not a different regime; its 900-character cut is a fixed loss of about 3
+  points; its BM25 preselection past 90 paragraphs cost no measurable recall on 86 articles. On
+  the way: `split_sentences` cuts through zero-width characters (`29c433b`), which Spanish
+  Wikipedia writes after every footnote mark.
+- **B4** (2026-10-16, merge `d07ee43`): `select_passages(fit_chars=, fit_score=)`, opt-in. The
+  four-level Score is **not confirmed** over the free order (+2.3 [−1.5, +6.2]); the free order
+  beats page order by +13.6 [+7.1, +20.2], exploratory. Next: C5.
+- **B7** (merge `a502293`): versioned question ids in `sanchopanza.catalog` and an opt-in
+  recording key from them (`keys="id"`); every text key and fixture unchanged. What remains: the
+  harness points (the Claude Code hooks, candor, the context autopilot, browsing) have no ids
+  yet, and an id key signs their text.
+- **A5** (2026-10-16, merge `d07ee43`): `unrelated_at=0.65` **beats the shipped gate** (39 of 39
+  added verdicts right, Wilson 0.910). A **proposal** to make it `decide_facts`' default, pending
+  C4; `unrelated_at` stays `None`.
+- **A4, memory F2** (2026-10-16, merge `780cf27`): see A4 above.
+- **The memory gate's long window as the library default** (merge `c65f021`), with the static
+  fallback said once, a 10 s deadline and `CachedDecider.with_long_context` (`62c8893`).
+- **check_done under 1.14 at 0.30, confirmed** (2026-10-16, merge `0b60b01`).
+- **lb162x** (2026-10-16, merge `a7612e5`): the LongBench router against Opus 5.5, and Sonnet's
+  saving measured.
 - **CI green again** (merges `0f00805`, `35896ea`, 2026-10-15): CI had failed on every push since
   2026-10-02 (an unpinned ruff, unformatted files, tests that needed this PC's venv, home cache or
   full git history). ruff is pinned in the `dev` extras, the tree is formatted, and the tests that
@@ -192,3 +296,4 @@ on Jev's outputs (check the provider's terms first), and measure it outside its 
   precision target ([where it pays](where-it-pays.md) section 6, item 3).
 - Attachments in the state: a text-only decider refuses them out loud (`providers/jev.py`).
 - The guard split, probed live (`cb0062e`).
+- Versioned question ids and an id recording key (`sanchopanza.catalog`, `keys="id"`; B7).
