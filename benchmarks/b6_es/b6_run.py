@@ -163,9 +163,10 @@ class Asker:
         # loop past any handler, so the launch could not write how it ended
         self.model_halts = model_halts
         self.failed_memo: dict[str, Decision] = {}
-        self.failed_keys: set[str] = (
-            set()
-        )  # distinct requests left unanswered (`failures` counts uses)
+        self.failed_keys: set[str] = set()  # distinct requests unanswered (`failures`: uses)
+        # A live call in flight, per key: an identical request made meanwhile waits for it
+        # instead of asking again (C5b asked one call twice when two overlapped)
+        self.in_flight: dict[str, asyncio.Future[Decision]] = {}
         self.fallback = fallback
         self.gate = asyncio.Semaphore(CONCURRENCY)
         self.memo: dict[str, Decision] = {}
@@ -214,6 +215,28 @@ class Asker:
         if key in self.failed_memo:  # the same call failed earlier in this run: not asked again
             self.failed_ids.add(ROW.get())
             return self.failed_memo[key]
+        pending = self.in_flight.get(key)
+        if pending is not None:  # the same call is being asked: its answer is this one's too
+            shared = await asyncio.shield(pending)
+            if shared.failed:
+                self.failed_ids.add(ROW.get())
+            return shared
+        future: asyncio.Future[Decision] = asyncio.get_running_loop().create_future()
+        future.add_done_callback(lambda done: done.cancelled() or done.exception())
+        self.in_flight[key] = future
+        try:
+            decision = await self._live(key, arm, point, state, qs)
+        except BaseException as error:
+            future.set_exception(error)
+            raise
+        finally:
+            self.in_flight.pop(key, None)
+        future.set_result(decision)
+        return decision
+
+    async def _live(self, key: str, arm: str, point: str, state: Any,
+                    qs: Mapping[str, Any]) -> Decision:  # fmt: skip
+        """One live call, never retried; what `decide` asks when nothing answers it."""
         async with self.gate:
             if self.halted:  # a stop met while this call waited: it is not made
                 self.failures += 1
