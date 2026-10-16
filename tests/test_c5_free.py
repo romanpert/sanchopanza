@@ -92,10 +92,10 @@ def test_free_reuses_every_call_and_cuts_by_probability_where_page_order_cuts_th
 
 
 def test_the_rule() -> None:
-    assert fc.verdict({"recall_ci95_cluster": (0.01, 0.2)}).startswith("FREE confirmed")
-    assert fc.verdict({"recall_ci95_cluster": (-0.01, 0.2)}).startswith("not confirmed")
-    assert fc.verdict({"recall_ci95_cluster": (-0.2, -0.01)}).startswith("FREE loses")
-    assert fc.verdict({"recall_ci95_cluster": None}).startswith("no verdict")
+    assert fc.verdict({"recall_ci95_cluster_exact": (0.01, 0.2)}).startswith("FREE confirmed")
+    assert fc.verdict({"recall_ci95_cluster_exact": (-0.01, 0.2)}).startswith("not confirmed")
+    assert fc.verdict({"recall_ci95_cluster_exact": (-0.2, -0.01)}).startswith("FREE loses")
+    assert fc.verdict({"recall_ci95_cluster_exact": None}).startswith("no verdict")
 
 
 def test_a_paid_run_refuses_before_the_key_without_its_launcher() -> None:
@@ -111,3 +111,52 @@ def test_the_lot_is_bound_to_its_input_budget_and_cap() -> None:
     assert lot.cap_usd == fc.CAP_USD <= 2.0 and fc.BUDGET == 3_400
     assert lot.inputs == ((fc.QASPER, fc.QASPER_SHA256),) and len(fc.QASPER_SHA256) == 64
     assert "benchmarks/passage_fit" in lot.instrument
+
+
+def test_the_rule_reads_the_unrounded_bound() -> None:
+    assert fc.verdict({"recall_ci95_cluster_exact": (0.00004, 0.2)}).startswith("FREE confirmed")
+    assert fc.bounds([0.1 * k for k in range(41)]) == (0.1 * 1, 0.1 * 39)
+
+
+def test_any_call_unanswered_gives_no_verdict_and_a_sensitivity_without_its_questions(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(fc, "BUDGET", 120)
+    rows = [_row(), {**_row(), "id": "q#2", "paper": "q"}]
+    live = _Probs()
+    out = asyncio.run(fc.ask(rows, fc.lot_asker(live)))
+    got = fc.report(rows, out, unanswered=2, affected=frozenset({"q#2"}))
+    assert got["verdict"] == "no verdict: incomplete, 2 calls unanswered"
+    assert got["sensitivity_without_affected"]["questions_left_out"] == 1
+    assert got["sensitivity_without_affected"]["questions"] == 1
+    assert fc.report(rows, out)["verdict"] != got["verdict"]
+
+
+class _Moved(_Probs):
+    async def decide(self, point: str, state: Any, qs: Any) -> Decision:
+        self.calls += 1
+        return Decision(point, {k: truth(0.9) for k in qs}, "moved", "jev-1.14.0")
+
+
+def test_a_model_switch_is_a_written_stop_that_forbids_a_relaunch() -> None:
+    async def check(_: str) -> None:
+        return None
+
+    got = asyncio.run(fc.session([_row()], fc.lot(), check, lambda _: (None, _Moved()),
+                                 lambda: None))  # fmt: skip
+    assert got["stop_kind"] == "model" and got["stopped"].startswith("model moved")
+    assert not fc.paid_once.may_launch([{"stop_kind": got["stop_kind"]}])
+
+
+def test_the_lot_spends_on_the_round_ledger_and_its_launcher_is_sealed_not_instrument(
+    tmp_path: Path,
+) -> None:
+    lot = fc.lot()
+    assert lot.ledger == fc.w17_round.LEDGER and lot.shared_cap_usd == 6.0 and lot.cap_usd == 2.0
+    assert not any(p.endswith(".cmd") for p in lot.instrument)
+    filled = tmp_path / "c5-free-run.cmd"
+    text = lot.launcher.read_text(encoding="utf-8")
+    filled.write_text(text.replace("<PYTHON>", "C:/py/python.exe", 1)
+                      .replace("<KEYS_ENV_PATH>", "C:/k/.env", 1), encoding="utf-8")  # fmt: skip
+    assert fc.paid_once.launcher_digest(filled) == fc.paid_once.launcher_digest(lot.launcher)
+    assert fc.lot_asker(None).memo_failures  # a failed call is never asked again in the run

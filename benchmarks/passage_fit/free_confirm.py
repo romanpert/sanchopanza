@@ -47,6 +47,7 @@ import b6_run as br  # noqa: E402
 import l4_stats as ls  # noqa: E402
 import orders as od  # noqa: E402
 import paid_once  # noqa: E402
+import w17_round  # noqa: E402
 
 from sanchopanza import _lockfile  # noqa: E402
 from sanchopanza.text import split_sentences  # noqa: E402
@@ -73,12 +74,14 @@ QASPER_SHA256 = "1824533661cc2f8b4c442a9444ea62ac87b56c99b0aee1782f7c41464da1ab2
 FIXTURE = ROOT / "fixtures" / NAME / "recording.jsonl"
 MODEL = br.MODEL  # jev-1.13.0
 BUDGET = 3_400  # B4's budget: the median delivered size on its 261 derivation questions
-CAP_USD = 2.00
+CAP_USD = w17_round.BATCH_CAPS[NAME]  # 2.00, this batch's cap on the round's ledger
 SEED = 20261018
-USD_PER_CALL = 0.537 / 5_132  # the whole-papers run on QASPER test, billed (lateral-wholedocs)
+USD_PER_CALL = 0.537 / 5_132  # the QASPER whole-papers run, settled in its ledger (not the bill)
+# The launcher is not here: the seal fixes it (`launcher_digest`, its local values as
+# placeholders), and a copy filled in place must not fail the instrument check.
 INSTRUMENT = ("src", "benchmarks/passage_fit", "benchmarks/b6_es", "benchmarks/paid_once.py",
               "benchmarks/jev114/l4_stats.py", "benchmarks/longdocs",
-              "benchmarks/triage_sets/run.py", "c5-free-run.cmd")  # fmt: skip
+              "benchmarks/triage_sets/run.py", "benchmarks/w17_round.py")  # fmt: skip
 
 
 def lot() -> paid_once.Lot:
@@ -92,11 +95,15 @@ def lot() -> paid_once.Lot:
         instrument=INSTRUMENT,
         inputs=((QASPER, QASPER_SHA256),),
         home=HOME,
+        shared_ledger=w17_round.LEDGER,
+        shared_cap_usd=w17_round.CAP_USD,
     )
 
 
 def lot_asker(fallback: Any | None) -> br.Asker:
-    return br.Asker(fallback, recorded=paid_once.recorded(lot()))
+    return br.Asker(
+        fallback, recorded=paid_once.recorded(lot()), memo_failures=True, model_halts=True
+    )
 
 
 # ---- data ----------------------------------------------------------------------------------
@@ -220,26 +227,37 @@ def arms(row: dict[str, Any], got: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+def bounds(values: list[float]) -> tuple[float, float]:
+    """The 95 % percentile bounds, unrounded (`l4_stats.ci95`'s positions, without its rounding):
+    the verdict compares these."""
+    ordered = sorted(values)
+    return ordered[int(0.025 * (len(ordered) - 1))], ordered[int(0.975 * (len(ordered) - 1))]
+
+
 def compare(per: list[dict[str, Any]], papers: list[str], a: str, b: str) -> dict[str, Any]:
+    if not per:
+        return {"n": 0, "recall_diff": None, "recall_ci95_cluster": None,
+                "recall_ci95_cluster_exact": None}  # fmt: skip
     diffs = [p[a]["recall"] - p[b]["recall"] for p in per]
 
     def mean(idx: list[int]) -> float:
         return sum(diffs[i] for i in idx) / len(idx)
 
+    exact = bounds(ls.bootstrap(mean, ls.clusters_as_units(papers)))
     alls = ls.paired_binary([p[a]["all"] for p in per], [p[b]["all"] for p in per], papers)
     return {
         "n": len(per),
-        "recall_diff": round(mean(list(range(len(per)))), 4) if per else None,
-        "recall_ci95_cluster": ls.ci95(ls.bootstrap(mean, ls.clusters_as_units(papers)))
-        if per else None,
-        "recall_ci95_item": ls.ci95(ls.bootstrap(mean, ls.items_as_units(len(per))))
-        if per else None,
+        "recall_diff": round(mean(list(range(len(per)))), 4),
+        "recall_ci95_cluster": [round(exact[0], 4), round(exact[1], 4)],
+        "recall_ci95_cluster_exact": list(exact),
+        "recall_ci95_item": ls.ci95(ls.bootstrap(mean, ls.items_as_units(len(per)))),
         "all_gold": alls,
     }  # fmt: skip
 
 
 def verdict(primary: dict[str, Any]) -> str:
-    ci = primary.get("recall_ci95_cluster")
+    """The registered rule, on the unrounded cluster bounds."""
+    ci = primary.get("recall_ci95_cluster_exact")
     if ci is None:
         return "no verdict: no question overflows the budget"
     if ci[0] > 0:
@@ -249,7 +267,27 @@ def verdict(primary: dict[str, Any]) -> str:
     return "not confirmed: FREE and page order not told apart"
 
 
-def report(rows: list[dict[str, Any]], out: list[dict[str, Any]]) -> dict[str, Any]:
+def report(
+    rows: list[dict[str, Any]],
+    out: list[dict[str, Any]],
+    *,
+    unanswered: int = 0,
+    affected: frozenset[str] = frozenset(),
+) -> dict[str, Any]:
+    """Every reading. With any call unanswered once no launch is left, no verdict: an
+    unanswered call keeps its text (the package's rule), which pulls FREE toward PAGE; the
+    readings without the affected questions are then a sensitivity, not a verdict."""
+    got = readings(rows, out)
+    if unanswered:
+        clean = [g for g in out if g["id"] not in affected]
+        kept = [r for r in rows if r["id"] not in affected]
+        return {**got, "verdict": f"no verdict: incomplete, {unanswered} calls unanswered",
+                "sensitivity_without_affected": {"questions_left_out": len(affected),
+                                                 **readings(kept, clean)}}  # fmt: skip
+    return got
+
+
+def readings(rows: list[dict[str, Any]], out: list[dict[str, Any]]) -> dict[str, Any]:
     by_id = {r["id"]: r for r in rows}
     per_all = [(by_id[g["id"]], arms(by_id[g["id"]], g)) for g in out]
     over = [(r, a) for r, a in per_all if a["overflow"]]
@@ -280,7 +318,7 @@ def dry(rows: list[dict[str, Any]]) -> dict[str, Any]:
     asyncio.run(ask(rows, asker))
     c = asker.calls.get("select", {"calls": 0, "pessimistic_usd": 0.0, "expected_usd": 0.0})
     return {"questions": len(rows), **{k: round(v, 4) for k, v in c.items()},
-            "usd_at_qasper_billed_per_call": round(c["calls"] * USD_PER_CALL, 4),
+            "usd_at_qasper_ledger_rate": round(c["calls"] * USD_PER_CALL, 4),
             "cap_usd": CAP_USD, "fits_under_cap": c["pessimistic_usd"] <= CAP_USD,
             "claude_usd": 0.0}  # fmt: skip
 
@@ -289,15 +327,16 @@ def dry(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def make_live(the_lot: paid_once.Lot) -> tuple[Any, Any]:  # pragma: no cover - real client
-    from sanchopanza.budget import SpendLedger
+    """The Jev client with its own retries off (no 429 or 529 asked again), capped on the
+    round's shared ledger under this batch's cap, and recorded."""
     from sanchopanza.providers import CappedDecider, jev
     from sanchopanza.providers.jev import JevDecider
     from sanchopanza.providers.recorded import RecordingDecider
 
-    jev.RETRYABLE = frozenset(jev.RETRYABLE - {429})
+    jev.RETRYABLE = frozenset()
     inner = JevDecider(model=MODEL, long_context=False, images=False, timeout_s=br.TIMEOUT_S)
-    capped = CappedDecider(inner, ledger=SpendLedger(the_lot.ledger, cap_usd=CAP_USD),
-                           batch=NAME, max_usd=CAP_USD)  # fmt: skip
+    capped = CappedDecider(inner, ledger=paid_once.ledger_of(the_lot), batch=NAME,
+                           max_usd=CAP_USD)  # fmt: skip
     FIXTURE.parent.mkdir(parents=True, exist_ok=True)
     return inner, RecordingDecider(capped, FIXTURE)
 
@@ -305,6 +344,8 @@ def make_live(the_lot: paid_once.Lot) -> tuple[Any, Any]:  # pragma: no cover - 
 def stopped_by(asker: br.Asker) -> str | None:
     if asker.halted:
         kind, why = asker.halted[0]
+        if kind == "model":
+            return f"model moved: {why}"
         return f"SpendCapReached: {why}" if kind == "cap" else why
     return f"{asker.failures} calls unanswered" if asker.failures else None
 
@@ -337,7 +378,7 @@ def paid(launcher: pathlib.Path | None, *, load_key: Any = paid_once.load_key,
         raise SystemExit("a paid run starts from c5-free-run.cmd (--launcher): nothing spent")
     rows = load_rows()
     plan = dry(rows)
-    room = CAP_USD - paid_once.spent(the_lot)
+    room = paid_once.room(the_lot)  # this batch's cap and the round's, whichever is less
     if plan["pessimistic_usd"] > room:
         raise SystemExit(f"{plan['pessimistic_usd']} USD does not fit in the {room:.4f} left")
     paid_once.require_sealed(the_lot)
@@ -349,7 +390,7 @@ def paid(launcher: pathlib.Path | None, *, load_key: Any = paid_once.load_key,
         past = paid_once.history(the_lot)
         if not paid_once.may_launch(past):
             raise SystemExit("launch rule: no launch left (one relaunch at most, none after "
-                             "a 402, a 429 or the cap)")  # fmt: skip
+                             "a 402, a 429, the cap or another model)")  # fmt: skip
         if not past and FIXTURE.exists() and FIXTURE.stat().st_size:
             raise SystemExit(f"first launch, but {FIXTURE.name} holds answers: nothing spent")
         load_key()
@@ -368,7 +409,8 @@ def analysis() -> dict[str, Any]:
     out = asyncio.run(ask(rows, asker))
     if paid_once.unanswered_blocks(lot(), asker.failures):
         raise SystemExit(f"{asker.failures} calls unanswered and a launch is still allowed")
-    return {"head": paid_once.head(), "unanswered_calls": asker.failures, **report(rows, out)}
+    got = report(rows, out, unanswered=asker.failures, affected=frozenset(asker.failed_ids))
+    return {"head": paid_once.head(), "unanswered_calls": asker.failures, **got}
 
 
 def main() -> int:

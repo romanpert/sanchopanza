@@ -151,11 +151,15 @@ class Asker:
     and the question it hit (`ROW`), and the first stop and its kind."""
 
     def __init__(self, fallback: Any | None, recorded: RecordedDecider | None = None, *,
-                 memo_failures: bool = False) -> None:  # fmt: skip
+                 memo_failures: bool = False, model_halts: bool = False) -> None:  # fmt: skip
         self.recorded = recordings() if recorded is None else recorded  # another lot's, if given
         # `memo_failures` (later lots; B6 ran without it): a live call that failed answers every
         # later identical request in this run with the same failure, so nothing is asked twice
         self.memo_failures = memo_failures
+        # `model_halts` (later lots): an answer from another model halts the run as a stop of
+        # kind "model" instead of raising SystemExit, which asyncio re-raises out of the event
+        # loop past any handler, so the launch could not write how it ended
+        self.model_halts = model_halts
         self.failed_memo: dict[str, Decision] = {}
         self.fallback = fallback
         self.gate = asyncio.Semaphore(CONCURRENCY)
@@ -215,6 +219,9 @@ class Asker:
                 why = f"{type(error).__name__}: {error}"
                 return self._remember(key, self._failed(point, why, halt_kind(error)))
         if decision.model != MODEL:
+            if self.model_halts:
+                self.halted.insert(0, ("model", f"served {decision.model}, not {MODEL}"))
+                return self._failed(point, f"served {decision.model}")
             self.halted.append(("pause", f"served {decision.model}, not {MODEL}"))
             raise SystemExit(f"asked {MODEL}, served {decision.model}: stopped")
         if decision.failed or not self.complete(decision, qs):

@@ -10,6 +10,12 @@ rem the file SANCHOPANZA_KEYS_ENV names, never printed. Stop: Get-CimInstance Wi
 rem free_confirm.py in its command line, then Stop-Process -Id <pid>. Never by name.
 rem Exit codes of free_confirm.py paid: 0 everything asked, 1 refused (see the log), 2 stopped mid-run.
 cd /d "%~dp0"
+set "HOUR=%TIME:~0,2%"
+set "HOUR=%HOUR: =0%"
+if "%HOUR%" LSS "08" (
+  echo refused: not between 00:00 and 08:00 ^(Windows Update restarts, midnight^)
+  exit /b 1
+)
 set "PY=<PYTHON>"
 set "SANCHOPANZA_KEYS_ENV=<KEYS_ENV_PATH>"
 set "PYTHONPATH=%~dp0src"
