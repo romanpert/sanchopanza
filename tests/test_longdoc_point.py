@@ -5,35 +5,26 @@ and, where the LongBench v2 cache is on this machine, a free replay of lb162's r
 
 from __future__ import annotations
 
-import importlib.util
 import json
-import sys
 from pathlib import Path
-from types import SimpleNamespace
+from types import MappingProxyType, SimpleNamespace
 
 import pytest
 
 from sanchopanza.contract import Answer, DeciderOutOfFunds, DeciderUnavailable, Decision
 from sanchopanza.points import longdoc
+from sanchopanza.providers.capped import SpendCapReached
 from sanchopanza.providers.recorded import RecordedDecider, key_of
+
+from .helpers import bench_module
 
 ROOT = Path(__file__).resolve().parents[1]
 LB162 = ROOT / "docs" / "results" / "2026-10-15-lb162"
+JEV114 = ROOT / "benchmarks" / "jev114"
 MODEL = "jev-1.14.0"
 
-
-def _load(name: str, rel: str):
-    if name in sys.modules:
-        return sys.modules[name]
-    spec = importlib.util.spec_from_file_location(name, ROOT / rel)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-l6 = _load("jev114_l6", "benchmarks/jev114/l6.py")
-import lb162_stats  # noqa: E402  (on the path once l6 is loaded)
+l6 = bench_module(JEV114, "l6")
+lb162_stats = bench_module(JEV114, "lb162_stats")
 
 # ---- fakes ---------------------------------------------------------------------------------
 
@@ -63,7 +54,7 @@ class Fake:
         step = self.script.pop(0)
         if isinstance(step, BaseException):
             raise step
-        letter, probs = step
+        letter, probs = NO_LETTER if step is None else step
         answer = _choice(letter, probs)
         return Decision(point, {"answer": answer}, self.name, self.served, 1000, 0.002)
 
@@ -101,6 +92,7 @@ class Replay:
 
 
 OPTS = ("first", "second", "third", "fourth")
+NO_LETTER = ("E", {"A": 0.5, "B": 0.5})  # answered, but the pick has no probability
 SURE = ("B", {"A": 0.1, "B": 0.6, "C": 0.2, "D": 0.1})
 UNSURE = ("C", {"A": 0.1, "B": 0.2, "C": 0.59, "D": 0.11})
 
@@ -156,10 +148,28 @@ def test_two_to_n_options_get_letters_in_order():
     assert list(qs["answer"].options) == ["A", "B", "C", "D", "E", "F"]
 
 
-@pytest.mark.parametrize("options", [(), ("only",), tuple(str(i) for i in range(27))])
-def test_option_count_out_of_range_is_refused(options):
+@pytest.mark.parametrize(
+    "options",
+    [(), ("only",), tuple(str(i) for i in range(27)), "ABCD", ("a", ""), ("a", "  "), ("a", 3)],
+)
+def test_bad_options_are_refused(options):
     with pytest.raises(ValueError):
         longdoc.questions("q", options, "doc")
+
+
+@pytest.mark.parametrize("window", [0, 1, -5, 1.5, True, "900000"])
+def test_a_window_that_is_not_an_int_of_at_least_two_is_refused(window):
+    with pytest.raises(ValueError):
+        longdoc.questions("q", OPTS, "doc", window_chars=window)
+
+
+async def test_answer_refuses_bad_input_before_any_call():
+    fake = Fake([SURE])
+    with pytest.raises(ValueError):
+        await longdoc.answer(fake, "doc", "q", "ABCD")
+    with pytest.raises(ValueError):
+        await longdoc.answer(fake, "doc", "q", OPTS, window_chars=1)
+    assert fake.calls == []
 
 
 def test_empty_question_or_document_is_refused():
@@ -212,6 +222,14 @@ def test_no_usable_answer_escalates():
     assert result.escalate and result.p is None
 
 
+def test_probabilities_cannot_be_changed():
+    result = longdoc.decide(_decision(*SURE))
+    assert isinstance(result.probabilities, MappingProxyType)
+    with pytest.raises(TypeError):
+        result.probabilities["A"] = 1.0  # type: ignore[index]
+    assert isinstance(longdoc.LongdocAnswer(True, "x").probabilities, MappingProxyType)
+
+
 def test_another_model_escalates_even_when_sure():
     result = longdoc.decide(_decision(*SURE, model="jev-1.13.0"))
     assert result.escalate and "jev-1.13.0" in result.reason and MODEL in result.reason
@@ -259,6 +277,21 @@ async def test_served_by_another_model_escalates_after_the_call():
     assert result.escalate and "jev-1.15.0" in result.reason and result.cost_usd == 0.002
 
 
+async def test_another_served_model_is_not_asked_again_shorter():
+    fake = Fake([None, SURE], model=None, served="jev-1.15.0")  # no letter, wrong model
+    result = await longdoc.answer(fake, "doc", "q", OPTS)
+    assert result.escalate and "jev-1.15.0" in result.reason
+    assert len(fake.calls) == 1 and result.tries == 1
+
+
+async def test_a_question_with_other_than_four_options_escalates_unless_asked():
+    fake = Fake([SURE])
+    result = await longdoc.answer(fake, "doc", "q", ("yes", "no"))
+    assert result.escalate and "4 options" in result.reason and fake.calls == []
+    result = await longdoc.answer(fake, "doc", "q", ("yes", "no"), measured_only=False)
+    assert not result.escalate and result.letter == "B" and len(fake.calls) == 1
+
+
 async def test_model_none_accepts_any_model():
     fake = Fake([SURE], model="jev-1.13.0")
     assert not (await longdoc.answer(fake, "doc", "q", OPTS, model=None)).escalate
@@ -282,12 +315,32 @@ async def test_refused_at_every_length_escalates():
     assert result.escalate and result.tries == 3 and "HTTP 400" in result.reason
 
 
-async def test_out_of_funds_or_an_outage_escalates_at_once():
-    for error in (DeciderOutOfFunds("jev did not answer: HTTP 402 (out of funds)"),
-                  DeciderUnavailable("jev did not answer: HTTP 503")):  # fmt: skip
-        fake = Fake([error, SURE])
-        result = await longdoc.answer(fake, "doc", "q", OPTS)
-        assert result.escalate and len(fake.calls) == 1 and str(error) in result.reason
+@pytest.mark.parametrize(
+    "error",
+    [
+        DeciderOutOfFunds("jev did not answer: HTTP 402 (out of funds)"),
+        DeciderUnavailable("jev did not answer: HTTP 503"),
+        DeciderUnavailable("jev did not answer: HTTP 429"),
+        SpendCapReached("jev: 0.0012 USD would pass the batch cap (not called)"),
+    ],
+)
+async def test_out_of_funds_a_cap_a_limit_or_an_outage_escalates_at_once(error):
+    fake = Fake([error, SURE])
+    result = await longdoc.answer(fake, "doc", "q", OPTS)
+    assert result.escalate and len(fake.calls) == 1
+    assert result.reason == str(error)  # said once, not under a second prefix
+
+
+async def test_paid_tries_add_up_when_a_later_one_fails():
+    fake = Fake([None, DeciderUnavailable("jev did not answer: HTTP 503")])
+    result = await longdoc.answer(fake, "doc", "q", OPTS)
+    assert result.escalate and result.tries == 2 and result.cost_usd == 0.002
+    assert result.reason == "jev did not answer: HTTP 503"
+
+
+async def test_an_exception_that_is_not_the_decider_unavailable_propagates():
+    with pytest.raises(RuntimeError):
+        await longdoc.answer(Fake([RuntimeError("a bug")]), "doc", "q", OPTS)
 
 
 async def test_measured_decider_is_jev_114_with_the_header(monkeypatch):
@@ -301,7 +354,7 @@ async def test_measured_decider_is_jev_114_with_the_header(monkeypatch):
 
 
 def _lb162_tasks():
-    data = _load("longdoc_data", "benchmarks/h2h/longdoc_data.py")
+    data = bench_module(ROOT / "benchmarks" / "h2h", "longdoc_data")
     path = data.CACHE / "lb162" / "tasks.jsonl"
     if not path.is_file():
         pytest.skip("the LongBench v2 cache of lot lb162 is not on this machine")
@@ -313,7 +366,7 @@ def _lb162_tasks():
 
 async def test_replays_every_lb162_answer_and_its_coverage():
     """The point's requests hit lb162's recorded keys, and its reading is lb162's: the same
-    letter, probability and number of tries on all 162 tasks, 60 covered at 0.6."""
+    letter, probability, number of tries and cost on all 162 tasks, 60 covered at 0.6."""
     tasks = _lb162_tasks()
     replay = Replay(RecordedDecider.from_file(LB162 / "jev-answers-j14-L.jsonl", model=MODEL))
     rows = [json.loads(x) for x in (LB162 / "jev-scored.jsonl").read_text("utf-8").splitlines()]
@@ -325,6 +378,7 @@ async def test_replays_every_lb162_answer_and_its_coverage():
         cell = row["j14-L"]
         assert (result.top, result.p, result.tries) == (cell["letter"], cell["p"], cell["tries"])
         assert result.shown_chars == cell["shown_chars"]
+        assert round(result.cost_usd, 6) == cell["usd"]
         assert result.escalate is not lb162_stats.is_covered(row)
         covered += not result.escalate
     assert (len(rows), covered) == (162, 60)
