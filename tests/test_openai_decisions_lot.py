@@ -4,17 +4,36 @@ before any key is read. No network."""
 from __future__ import annotations
 
 import asyncio
+import importlib.util
 import sys
 from pathlib import Path
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "benchmarks" / "openai_decisions"))
 sys.path.insert(0, str(ROOT / "benchmarks"))
 
 import paid_once  # noqa: E402
-import run  # noqa: E402
+
+# run.py under its own name: a bare `import run` would take whichever benchmark's run module
+# another test imported first.
+_SPEC = importlib.util.spec_from_file_location(
+    "d1_run", ROOT / "benchmarks" / "openai_decisions" / "run.py"
+)
+run = importlib.util.module_from_spec(_SPEC)
+_SPEC.loader.exec_module(run)
+
+
+def _benchmarks_last() -> None:
+    """The lot's modules put benchmarks/ first on sys.path, where its `agentdojo/` folder would
+    shadow the installed agentdojo package for every test collected after this one."""
+    entry = str(ROOT / "benchmarks")
+    while entry in sys.path:
+        sys.path.remove(entry)
+    sys.path.append(entry)
+
+
+_benchmarks_last()
 
 from sanchopanza import answers  # noqa: E402
 from sanchopanza.contract import Decision, Truth  # noqa: E402

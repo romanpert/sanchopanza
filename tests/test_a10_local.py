@@ -26,6 +26,16 @@ import a10_features as features  # noqa: E402
 import a10_logreg as logreg  # noqa: E402
 import a10_model as model  # noqa: E402
 
+
+def _benchmarks_off_the_path() -> None:
+    """The lot's modules put benchmarks/ on sys.path, where its `agentdojo/` folder imports as a
+    namespace package and breaks the agentdojo skip of every test collected after this one; the
+    modules are loaded by now, so the entry goes."""
+    entry = str(ROOT / "benchmarks")
+    while entry in sys.path:
+        sys.path.remove(entry)
+
+
 TRAIN_RUNS = ROOT / "docs" / "results" / "2026-09-24-agentdojo-e2e" / "runs"
 
 
@@ -452,3 +462,13 @@ def test_the_shipped_model_is_the_cv_choice():
     assert fitted.meta["train_digest"] == report["train_digest"]
     assert len(fitted.weights) == len(fitted.vectorizer.terms) == fitted.meta["terms"]
     assert {t.split(":", 1)[0] for t in fitted.vectorizer.terms} <= set(features.FAMILIES)
+
+
+# Last, once every module of the lot is loaded: collection goes on without benchmarks/ on the
+# path; each test of this file gets it back while it runs (lazy imports such as `thresholds`).
+_benchmarks_off_the_path()
+
+
+@pytest.fixture(autouse=True)
+def _benchmarks_on_the_path_while_testing(monkeypatch):
+    monkeypatch.syspath_prepend(str(ROOT / "benchmarks"))
