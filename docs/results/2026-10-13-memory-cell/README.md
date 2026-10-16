@@ -70,7 +70,7 @@ sure (bootstrap interval 12.5-79 points).
 - **Every N break** was read from `git diff HEAD` (table above). Each one is the fact plainly
   broken, with the task done and the tests passing.
 - **How S kept the fact: the same mechanism in all 24 pairs.**
-  - Session 1b said the fact in passing. At its Stop, memory's rule extraction (one Jev decision)
+  - Session 1b said the fact in passing. At its Stop, memory's rule extraction (one Jev decision per prompt sentence)
     stored it as a standing rule: each store ended with 8 rules, the 7 decoys plus the scene's
     own.
   - That includes the 12 worktree pairs: the store is keyed by the repository and shared by its

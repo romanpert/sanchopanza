@@ -1,0 +1,180 @@
+{
+ "H2_docs_es_vs_en": {
+  "n": 614,
+  "a": 0.8583,
+  "b": 0.9169,
+  "difference": -0.0586,
+  "ci95": [
+   -0.0896,
+   -0.0293
+  ],
+  "only_a": 26,
+  "only_b": 62,
+  "mcnemar_p": 0.0002,
+  "verdict": "inconclusive",
+  "text": {
+   "a": 0.0994,
+   "b": 0.0936,
+   "difference": 0.0059,
+   "ci95": [
+    -0.0015,
+    0.0125
+   ],
+   "within_margin": true
+  },
+  "pareto": "not shown on recall"
+ },
+ "any_gold": {
+  "n": 614,
+  "a": 0.8583,
+  "b": 0.9169,
+  "difference": -0.0586,
+  "ci95": [
+   -0.0896,
+   -0.0293
+  ],
+  "only_a": 26,
+  "only_b": 62,
+  "mcnemar_p": 0.0002
+ },
+ "sensitivity_both_exact": {
+  "n": 420,
+  "a": 0.8619,
+  "b": 0.9143,
+  "difference": -0.0524,
+  "ci95": [
+   -0.0881,
+   -0.019
+  ],
+  "only_a": 17,
+  "only_b": 39,
+  "mcnemar_p": 0.0046
+ },
+ "sensitivity_any_fuzzy": {
+  "n": 194,
+  "a": 0.8505,
+  "b": 0.9227,
+  "difference": -0.0722,
+  "ci95": [
+   -0.1289,
+   -0.0155
+  ],
+  "only_a": 9,
+  "only_b": 23,
+  "mcnemar_p": 0.0201
+ },
+ "answer_only_in_gold_both": {
+  "n": 309,
+  "a": 0.8576,
+  "b": 0.9191,
+  "difference": -0.0615,
+  "ci95": [
+   -0.1003,
+   -0.0227
+  ],
+  "only_a": 10,
+  "only_b": 29,
+  "mcnemar_p": 0.0034
+ },
+ "gold_in_view_both": {
+  "n": 581,
+  "a": 0.8864,
+  "b": 0.9312,
+  "difference": -0.0448,
+  "ci95": [
+   -0.0723,
+   -0.0189
+  ],
+  "only_a": 21,
+  "only_b": 47,
+  "mcnemar_p": 0.0022
+ },
+ "answer_string_kept": {
+  "n": 614,
+  "a": 0.8811,
+  "b": 0.9332,
+  "difference": -0.0521,
+  "ci95": [
+   -0.0798,
+   -0.0261
+  ],
+  "only_a": 21,
+  "only_b": 53,
+  "mcnemar_p": 0.0003
+ },
+ "C2_bm25_90_descriptive": {
+  "n": 86,
+  "a": 0.8023,
+  "b": 0.814,
+  "difference": -0.0116,
+  "ci95": [
+   -0.0698,
+   0.0465
+  ],
+  "only_a": 3,
+  "only_b": 4,
+  "mcnemar_p": 1.0,
+  "preselection_keeps_gold_paragraph_all_built": {
+   "n": 86,
+   "rate": 0.9767,
+   "ci95": [
+    0.9191,
+    0.9936
+   ]
+  }
+ },
+ "kept_absolute": {
+  "D-es": {
+   "chars": 2708.9772,
+   "sentences": 17.0782
+  },
+  "D-es90": {
+   "chars": 2610.0879,
+   "sentences": 16.5358
+  },
+  "D-en": {
+   "chars": 3023.0375,
+   "sentences": 21.4886
+  }
+ },
+ "kept_share": {
+  "D-es": 0.0994,
+  "D-es90": 0.0982,
+  "D-en": 0.0936
+ },
+ "anchors": {
+  "es": {
+   "n": 614,
+   "rate": 0.8583,
+   "ci95": [
+    0.8285,
+    0.8837
+   ]
+  },
+  "en_outside_qasper": {
+   "n": 614,
+   "rate": 0.9169,
+   "ci95": [
+    0.8924,
+    0.9363
+   ]
+  },
+  "published_english": {
+   "recall": 0.872,
+   "kept_share": 0.21,
+   "source": "QASPER, 219 questions"
+  }
+ },
+ "bm25_at_same_text": {
+  "es": 0.6922,
+  "en": 0.8013
+ },
+ "rows": {
+  "all": 614,
+  "both_exact": 420,
+  "answer_only_in_gold": 309,
+  "gold_in_view": 581,
+  "over_90_es": 86
+ },
+ "head": "1f54dd493315d55ab087841d14b3a367851cddc1"
+}

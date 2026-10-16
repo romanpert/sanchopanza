@@ -30,3 +30,5 @@ fixtures/cli/candor-*.jsonl
 .claude/
 CLAUDE.md
 CLAUDE.local.md
+# B6 recordings ship gzipped (fixtures/b6-es.jsonl.gz); the plain copy a replay needs stays local.
+/fixtures/b6-es.jsonl
