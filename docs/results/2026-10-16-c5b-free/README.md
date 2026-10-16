@@ -92,7 +92,8 @@ By the prereg's rule 1 (C5's, inherited):
 - **About `fit_score`'s default (True, the four-level Score):** this run did not test the
   Score. B4 did not confirm it over the free order: +2.3 [−1.5, +6.2], at the cost of its calls.
   Making `fit_score=False` the default for callers that set `fit_chars` is a separate decision,
-  which this rule does not license.
+  which this rule does not license. The owner took it after this run, on C5b with B4: since 0.3.2
+  `fit_score` defaults to `False` (`9abb025`); `fit_chars=None` is unchanged.
 
 ## Cost and clock
 

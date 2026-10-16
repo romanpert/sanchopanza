@@ -161,8 +161,9 @@
   questions, of which 348 overflow 3,400 characters, `select_passages(fit_chars=3400,
   fit_score=False)` keeps 78.3 % of the answer sentences against page order's 61.9 % at the same
   characters (3,214 against 3,218), +16.4 points, cluster 95 % [+11.0, +21.9]. The free order is a
-  measured option for a caller that must cut at that budget, on papers; the defaults
-  (`fit_chars=None`, `fit_score=True`) are unchanged ([C5b](docs/results/2026-10-16-c5b-free/)).
+  measured option for a caller that must cut at that budget, on papers; with B4 it is
+  `fit_score`'s default (above, Changed; `fit_chars` stays `None`)
+  ([C5b](docs/results/2026-10-16-c5b-free/)).
   C5, the same question on QASPER validation (sealed `3a201f0`), gave no valid reading: its
   runner's own squire cap cut 1,437 of FREE's decisions, so its sealed "FREE loses" does not
   measure the option (post-data, with the cap lifted, +12.0 [+6.7, +17.0])
