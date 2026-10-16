@@ -3,7 +3,7 @@
 Status: **draft, not sealed.** Before the seal: an independent `revisor-prereg` review against
 the code, then `python benchmarks/facts_gate/written_run.py seal` writes `prereg.sha256` (the
 sha256 of this file and of `c4-written-run.cmd`, its two local values read as placeholders).
-Instrument commit: `ba632bc7ba2fbbdf2a5dc60d7377c8bad5009462`.
+Instrument commit: `dfa7e5a1e5a57b352975bb21b4de55ecd6caf7b4`.
 
 ## Question
 
