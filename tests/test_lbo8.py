@@ -49,6 +49,19 @@ def test_the_frozen_ids_do_not_overlap_any_earlier_lot():
     assert not set(ids) & dev
 
 
+def test_the_frozen_ids_do_not_overlap_the_60_of_2026_10_06_where_the_cache_is():
+    """The 60 live only in the local LongBench cache (not in the repository)."""
+    drawn = Path.home() / ".cache" / "sanchopanza" / "longdoc" / "tasks.jsonl"
+    if not drawn.exists():
+        pytest.skip("no local draw of 2026-10-06 (the 60 tasks) on this machine")
+    import json
+
+    sixty = {json.loads(x)["task_id"] for x in drawn.read_text(encoding="utf-8").splitlines()
+             if x.strip()}  # fmt: skip
+    assert len(sixty) == 60
+    assert not set(lbo8.read_ids(lbo8.IDS_FILE)) & sixty
+
+
 # ---- the descriptive table (lb162 + lb162x recordings) ------------------------------------------
 
 

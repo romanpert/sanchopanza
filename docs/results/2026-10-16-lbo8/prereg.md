@@ -1,7 +1,8 @@
 # Lot lbo8 (DRAFT, not sealed): the longdoc router at the 0.8 cut against Opus 5.5, on fresh LongBench v2 tasks
 
-**Status: a draft for the owner.** Nothing here is sealed, no session has run, and nothing has
-been spent. Sealing needs: the owner's choice of margin and population (below), the live driver
+**Status: a ready draft, not proposed for funding now.** At 0.8 the router saved about 10.6 % of
+Opus's cost on lb162x (descriptively), and 78 tasks cannot decide a −3-point margin (see
+Power). Nothing here is sealed, no session has run, and nothing has been spent. Sealing needs: the owner's choice of margin and population (below), the live driver
 and its guard (not written), a `revisor-prereg` review against the code, and then `--seal`.
 
 ## Why
@@ -29,7 +30,9 @@ tasks, and lb162's 162). Fresh, 281 remain:
 
 - **78 in the same two domains** (55 Single-, 23 Multi-Document QA), all under 100,000 characters
   (48,765 to 99,827, median 72,731), all of the set's "short" band; 53 hard, 25 easy. Frozen by
-  metadata only in `ids.txt` (sha256 607d0d3e…), disjoint from every earlier lot (tested).
+  metadata only in `ids.txt` (sha256 607d0d3e…). The tests check that none is one of lb162's
+  162 or the 10 dev tasks, and none of the 60 of 2026-10-06 where the local cache holds them
+  (skipped without it). The freeze itself drew them outside all 222 used ids (`lbo8.used_ids`).
 - 203 in other domains: Long In-context Learning 81, Code Repository Understanding 50,
   Long-dialogue History 39, Long Structured Data 33.
 
@@ -82,14 +85,17 @@ Chance of "no peor" (`lbo8.power`, 1,000 draws a cell):
 |---|---|---|---|---|---|
 | As lb162x at 0.8 (16.7 %; 0/27, 1/27) | 78 | 0.00 | 0.62 | 0.92 | 0.98 |
 | | 281 | 0.77 | 1.00 | 1.00 | 1.00 |
-| As lb162x at 0.7 (16.7 %; 2/41, 6/41) | 78 | 0.02 | 0.16 | 0.45 | 0.78 |
+| 0.7's disagreement rates at 0.8's coverage (16.7 %; 2/41, 6/41) | 78 | 0.02 | 0.16 | 0.45 | 0.78 |
 | | 281 | 0.18 | 0.74 | 0.98 | 1.00 |
-| 0.6's disagreement (16.7 %; 4/60, 10/60), pessimistic | 78 | 0.03 | 0.17 | 0.39 | 0.72 |
+| 0.6's disagreement rates at 0.8's coverage (16.7 %; 4/60, 10/60) | 78 | 0.03 | 0.17 | 0.39 | 0.72 |
 | | 281 | 0.14 | 0.68 | 0.96 | 1.00 |
+| 0.6's disagreement rates at 25 % coverage (4/60, 10/60), the most pessimistic | 78 | 0.02 | 0.09 | 0.23 | 0.55 |
+| | 281 | 0.05 | 0.34 | 0.76 | 0.99 |
 
 Read plainly:
 - **With the 78,** "no peor" at −5 has about 62 % power if 0.8 behaves as it did on lb162x, and
-  about 17 % if Jev disagrees with Opus as much as at 0.6. At −7: 92 % and 39 %.
+  about 17 % if Jev disagrees with Opus as much as at 0.6 (9 % if it also covers 25 %). At −7:
+  92 %, 39 % and 23 %.
 - **A tight claim** ("keeps Opus's accuracy", −3) would need all 281 fresh tasks: about 77 %
   power in the good scenario. But 203 of those tasks are domains the router was never measured
   on.

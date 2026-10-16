@@ -252,9 +252,9 @@ def power(n: int, *, coverage: float, jev_only: float, opus_only: float, margin:
 # Planning scenarios, from lb162x's covered tasks: (coverage, Jev-only rate, Opus-only rate).
 SCENARIOS = {
     "as lb162x at 0.8 (27 covered: 0 Jev-only, 1 Opus-only)": (27 / 162, 0 / 27, 1 / 27),
-    "as lb162x at 0.7 (41 covered: 2, 6)": (27 / 162, 2 / 41, 6 / 41),
-    "as lb162x at 0.6 (60 covered: 4, 10), the pessimistic one": (27 / 162, 4 / 60, 10 / 60),
-    "0.6's disagreement at 25 % coverage": (0.25, 4 / 60, 10 / 60),
+    "0.7's disagreement rates (2, 6 of 41) at 0.8's coverage": (27 / 162, 2 / 41, 6 / 41),
+    "0.6's disagreement rates (4, 10 of 60) at 0.8's coverage": (27 / 162, 4 / 60, 10 / 60),
+    "0.6's disagreement rates at 25 % coverage, the most pessimistic": (0.25, 4 / 60, 10 / 60),
 }
 MARGINS = (-0.03, -0.05, -0.07, -0.10)
 SIZES = (N_TASKS, 162, 281)
