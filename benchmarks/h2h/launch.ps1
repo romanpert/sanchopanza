@@ -1,4 +1,5 @@
-# Starts an h2h runner (-Runner: h2h_gaia.py, h2h_bcp.py, h2h_longdoc.py or h2h_lb162.py) with
+# Starts an h2h runner (-Runner: h2h_gaia.py, h2h_bcp.py, h2h_longdoc.py, h2h_lb162.py or
+# h2h_lb162x.py) with
 # --live outside the calling session, the way long paid batches on this PC
 # survive: through WMI (not this shell's process tree), in a new process group (CreateFlags 512,
 # so a stray Ctrl+C on another console cannot reach it), with the pinned Claude Code 2.1.287
@@ -17,7 +18,7 @@
 # case-blind: no variable here may be called $runner, which would be the validated -Runner.
 param(
     [Parameter(Mandatory = $true)][string]$RunnerArgs,
-    [ValidateSet('h2h_gaia.py', 'h2h_bcp.py', 'h2h_longdoc.py', 'h2h_lb162.py')][string]$Runner = 'h2h_gaia.py',
+    [ValidateSet('h2h_gaia.py', 'h2h_bcp.py', 'h2h_longdoc.py', 'h2h_lb162.py', 'h2h_lb162x.py')][string]$Runner = 'h2h_gaia.py',
     [string]$Log = "$env:USERPROFILE\.cache\sanchopanza\gaia\h2h\launch.log",
     [string]$PidFile = "$env:USERPROFILE\.cache\sanchopanza\gaia\h2h\launch.pids",
     [string]$Pin = $(if ($env:SANCHOPANZA_PIN_DIR) { $env:SANCHOPANZA_PIN_DIR } else { 'C:\sp-runs\pin' }),
