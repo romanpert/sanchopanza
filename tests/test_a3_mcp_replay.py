@@ -380,7 +380,8 @@ def test_a_seal_matches_until_something_changes(tmp_path) -> None:
 def test_the_key_loader_is_the_runner_s_own(tmp_path, monkeypatch) -> None:
     keys = tmp_path / "keys.txt"
     keys.write_text("OTHER=1\nTYPESAFE_API_KEY='abc'\n", encoding="utf-8")
-    monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+    # setenv, not delenv: load_key writes the variable, and pytest only restores what it set.
+    monkeypatch.setenv("TYPESAFE_API_KEY", "")
     monkeypatch.setenv("SANCHOPANZA_KEYS_ENV", str(keys))
     dec.load_key()
     import os
