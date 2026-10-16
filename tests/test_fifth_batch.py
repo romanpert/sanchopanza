@@ -104,6 +104,20 @@ def test_the_candidate_facts_rule_only_adds_unrelated():
     assert entities.decide_facts(under_half, t, unrelated_at=0.5)[0] is None
 
 
+def test_the_default_accepts_unrelated_at_065_below_the_gate_and_nothing_else():
+    """0.3.2's default, licensed by A5 and C4: `unrelated` on top at >= 0.65 is a verdict even
+    below `relax`; `agree` and `conflict` at the same probability are not; None is the gate."""
+    t = Thresholds()
+    unrelated = _facts_decision({"unrelated": 0.66, "agree": 0.24, "conflict": 0.10})
+    agree = _facts_decision({"agree": 0.66, "unrelated": 0.24, "conflict": 0.10})
+    assert unrelated.answer("relation").confidence < t.relax
+    assert entities.decide_facts(unrelated, t)[0] == "unrelated"
+    assert entities.decide_facts(unrelated, t, unrelated_at=None)[0] is None
+    assert entities.decide_facts(agree, t)[0] is None
+    under = _facts_decision({"unrelated": 0.64, "agree": 0.26, "conflict": 0.10})
+    assert entities.decide_facts(under, t)[0] is None
+
+
 def _row(expected: str, verdict: str, direction: float = 0.95) -> dict:
     return {"id": "x", "expected": expected, "verdict": verdict, "direction": direction}
 
@@ -161,7 +175,7 @@ def test_the_recording_licenses_only_the_direction_wording():
         "edge_direction_cut": False,
     }
     # what the verdicts leave as defaults
-    assert entities.decide_facts.__kwdefaults__ == {"unrelated_at": None}
+    assert entities.decide_facts.__kwdefaults__ == {"unrelated_at": entities.UNRELATED_AT}
     assert entities.fact_questions.__kwdefaults__ == {"unrelated_examples": False}
     assert graph.edge_questions.__kwdefaults__["direction_by_roles"] is True
 

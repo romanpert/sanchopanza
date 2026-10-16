@@ -22,7 +22,7 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 | C1 | A PostToolUse check on MCP results (what A3's PreToolUse guard cannot read) | medium | Jev (replay ~0.05-0.10 USD), then Claude (~5 USD live probe) | **built, opt-in** (`--guard-mcp-post`); W17's development lot does not license a confirmation (+35 unsafe caught, +14 safe flagged, upper bound +8.0 past +7); next: a new registration with the cut fixed before its data, on fresh ATBench (~0.20 USD of Jev) |
 | C2 | check_done with the tool results the answer rests on, not cut at 1,500 characters | medium | free (record builder) + Jev (~0.3-0.5 USD) | **built, opt-in** (`SANCHOPANZA_DONE_EVIDENCE`); checkdone-w17: not adopted, false blocks 165 → 123 of 828 (+5.07 [1.53, 9.77]) but catches 598 → 583 of 744 (−2.02 [−5.37, +0.26]) past the −2 guard; next: diagnose the lost catches (18, mostly multi-part workspace tasks), change the builder, confirm under a new registration |
 | C8 | Four memory gaps read from the code and F2's logs | medium | free replays first; Claude (~40 USD, F2-sized) to confirm | **fixed in code** (merge `e029489`), replayed on F2's recordings only, not measured live |
-| C4 | A5's `unrelated_at=0.65` on written text with fa-17-type pairs | low-medium | free (cases) + Jev cents | open, from A5 |
+| C4 | A5's `unrelated_at=0.65` on written text with fa-17-type pairs | low-medium | Jev 0.035 USD | **done**: 66 added verdicts, all right (Wilson 0.945); 0.65 is the default since 0.3.2 |
 | C5 | `select_passages(fit_score=False)` against page order on fresh questions | low-medium | Jev (~0.5-1.5 USD) | open, from B4 |
 | C6 | Closing Spanish's 3-6 points in page triage and passages | low | Jev (~0.2 USD pages, ~2.5 USD documents per arm) | idea, from B6 |
 | C11 | The pointer guard's quality on long code: Sonnet 5.5 long60 chains, `pointers` against `--guard-full`, interleaved | medium | Claude (design A: 5 chains x 2 arms, non-inferiority at −5 points; about 185-200 USD expected at list price, 250 hard cap) | open, prereg under `revisor-prereg` review |
@@ -32,7 +32,7 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 | B6 | Page triage and passages in Spanish | medium | Jev 2.6445 USD | **done**: both inconclusive at −5 |
 | B4 | Order the approved paragraphs that do not fit by a four-level score | low-medium | Jev 0.0617 USD | **done**: Score not confirmed |
 | B7 | A stable API of questions, thresholds and recording keys to import rather than copy | low | free | **done** (merge `a502293`) |
-| A5 | `relate_facts`: the `unrelated` gate | low | Jev 0.0348 USD | **done**: 0.65 beats the shipped gate; a proposal |
+| A5 | `relate_facts`: the `unrelated` gate | low | Jev 0.0348 USD | **done**: 0.65 beats the shipped gate; the default since 0.3.2, after C4 |
 | A6 | Getting an agent to use `find_in_repo` | low | free (ceiling) | **closed without spending**: ceiling 3.05 % |
 | A7 | The derivation rule against Sonnet on unseen data | low | Claude + Jev | **closed**: no margin |
 | A8 | Deciding before Claude Code's auto-mode classifier | low | Jev + Claude | **closed**: no lever in Claude Code |
@@ -151,9 +151,12 @@ in the CHANGELOG's 0.3.2). Read from the code and from F2's logs, as they stood 
 - Plan sentences are stored as standing rules and crowd the 8-rule, 1,800-character slot
   (in F2's logs, a median of about 1,690 characters given at a session's start).
 
-**C4. A5 on written text.** Before `unrelated_at=0.65` becomes `decide_facts`' default: a batch
-with fa-17's kind of pair (two dated events, a role and an act, a figure and its subset), the
-only kind the gate has got wrong, absent from A5's templated batch. Free to build, Jev cents.
+**C4. A5 on written text: done.** 1,500 written pairs of fa-17's three kinds (two dated events,
+a role and an act, a figure and its subset) plus controls, sealed, jev-1.13.0, 0.035 USD: at
+`unrelated_at=0.65` 66 added verdicts, all right, none a missed conflict, Wilson lower bound
+0.945 ([C4](results/2026-10-16-c4-written/README.md)). `decide_facts`' default is 0.65 since 0.3.2; on the fourth
+batch's recording `relate_facts` reads 39/43 when deciding (36/40 under the gate alone). Not
+measured on jev-1.14.0.
 
 **C5. The free order on fresh data.** `fit_score=False` beat page order by +13.6 points
 [+7.1, +20.2] in B4, exploratory. Confirm it with the budget rule, the order and the comparison
@@ -280,8 +283,8 @@ better where a switch would pay; the long-context gain is the window's and works
   harness points (the Claude Code hooks, candor, the context autopilot, browsing) have no ids
   yet, and an id key signs their text.
 - **A5** (2026-10-16, merge `d07ee43`): `unrelated_at=0.65` **beats the shipped gate** (39 of 39
-  added verdicts right, Wilson 0.910). A **proposal** to make it `decide_facts`' default, pending
-  C4; `unrelated_at` stays `None`.
+  added verdicts right, Wilson 0.910); with C4's 66 of 66 on written text, `decide_facts`'
+  default since 0.3.2.
 - **A4, memory F2** (2026-10-16, merge `780cf27`): see A4 above.
 - **The memory gate's long window as the library default** (merge `c65f021`), with the static
   fallback said once, a 10 s deadline and `CachedDecider.with_long_context` (`62c8893`).

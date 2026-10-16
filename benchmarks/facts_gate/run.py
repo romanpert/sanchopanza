@@ -134,7 +134,7 @@ async def answered(
             rows.append({**row, "unanswered": True, "shipped": None,
                          **{f"g{g:.2f}": None for g in GATES}})  # fmt: skip
             continue
-        row["shipped"] = entities.decide_facts(d, t)[0]
+        row["shipped"] = entities.decide_facts(d, t, unrelated_at=None)[0]
         for g in GATES:
             row[f"g{g:.2f}"] = entities.decide_facts(d, t, unrelated_at=g)[0]
         rows.append(row)

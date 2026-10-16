@@ -124,12 +124,16 @@ def test_reading_the_direction_first_is_what_finds_a_reversed_edge(run):
 
 
 def test_facts_cannot_say_unrelated_and_that_is_the_whole_defect(run):
-    """It never confuses conflict with unrelated. It just never reaches `unrelated`."""
+    """It never confuses conflict with unrelated. Under the confidence gate alone it reached
+    `unrelated` 3 times in 12; with 0.3.2's `unrelated_at=0.65` it reaches it 6 times, and the
+    3 it adds are right (the fourth batch reads 39/43 when deciding, from 36/40)."""
     _, results = run
     rows = [r for r in results if getattr(r, "point", None) == "facts"]
     unrelated = [r for r in rows if r.expected == "unrelated"]
     assert len(unrelated) == 12
-    assert sum(1 for r in unrelated if r.predicted == "unrelated") <= 4
+    assert sum(1 for r in unrelated if r.predicted == "unrelated") == 6
+    decided = [r for r in rows if r.decided]
+    assert (len(decided), sum(1 for r in decided if r.correct)) == (43, 39)
     # No conflict is ever called unrelated, and no unrelated is ever called conflict.
     assert not [r for r in rows if r.expected == "conflict" and r.predicted == "unrelated"]
     assert not [r for r in rows if r.expected == "unrelated" and r.predicted == "conflict"]

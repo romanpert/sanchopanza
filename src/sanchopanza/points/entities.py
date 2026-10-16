@@ -121,15 +121,22 @@ def fact_questions(
     return state, tag("facts", qs, variant="examples" if unrelated_examples else "")
 
 
-def decide_facts(
-    decision: Decision, t: Thresholds, *, unrelated_at: float | None = None
-) -> tuple[FactRelation | None, float]:
-    """(relation, confidence). None below `relax`.
+UNRELATED_AT = 0.65
 
-    `unrelated_at` is the candidate asymmetric rule of the edge-facts pre-registration:
-    `unrelated` triggers no action, so it is also accepted when it is the top option at that
-    probability even under `relax`. `agree` and `conflict` keep the shipped gate. Off (None)
-    unless the fifth batch licenses it.
+
+def decide_facts(
+    decision: Decision, t: Thresholds, *, unrelated_at: float | None = UNRELATED_AT
+) -> tuple[FactRelation | None, float]:
+    """(relation, confidence). None below `relax`, except for `unrelated` (below).
+
+    `unrelated` triggers no action, so below `relax` it is still accepted when it is the top
+    option at probability >= `unrelated_at` (0.65 by default since 0.3.2); `agree` and
+    `conflict` keep the shipped gate. `unrelated_at=None` is the gate alone, as before 0.3.2.
+    Measured on jev-1.13.0, sealed both times: on 1,500 templated pairs it added 39 verdicts,
+    all right (Wilson lower bound 0.910, docs/results/2026-10-16-a5-unrelated); on 1,500
+    written pairs of the kinds it had got wrong (two dated events, a role and an act, a figure
+    and its subset) it added 66, all right, none a missed conflict (lower bound 0.945,
+    docs/results/2026-10-16-c4-written). Not measured on jev-1.14.0.
     """
     answer = decision.answer("relation")
     if decision.failed or answer.empty:

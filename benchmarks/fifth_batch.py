@@ -221,7 +221,7 @@ async def facts_arm(decider, *, examples: bool) -> dict[str, Any]:
         a = d.answer("relation")
         base = {"id": c["id"], "expected": c["expected"], "choice": a.choice}
         base["p"] = {k: round(v, 3) for k, v in a.probabilities.items()}
-        shipped.append({**base, "verdict": entities.decide_facts(d, t)[0]})
+        shipped.append({**base, "verdict": entities.decide_facts(d, t, unrelated_at=None)[0]})
         verdict = entities.decide_facts(d, t, unrelated_at=UNRELATED_AT)[0]
         candidate.append({**base, "verdict": verdict})
     return {

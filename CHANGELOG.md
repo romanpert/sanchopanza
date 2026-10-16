@@ -56,6 +56,17 @@
 
 ### Changed
 
+- **`relate_facts` accepts `unrelated` below the confidence gate when it is the top option at
+  0.65 or more** (`entities.decide_facts(..., unrelated_at=0.65)`, now the default;
+  `unrelated_at=None` is the gate alone). `unrelated` triggers no action, so a confident
+  `unrelated` under `relax` was an abstention for nothing. Sealed twice on jev-1.13.0: 39 added
+  verdicts on 1,500 templated pairs, all right (Wilson lower bound 0.910,
+  `docs/results/2026-10-16-a5-unrelated`), and 66 on 1,500 written pairs of the only kinds it had
+  got wrong, all right, none a missed conflict (lower bound 0.945, `docs/results/2026-10-16-c4-written`).
+  On the fourth batch's recording it reads 39/43 when deciding, from 36/40; the public benches
+  do not move (16 of 20 decided). The runners that reproduce earlier results pass
+  `unrelated_at=None`. Not measured on jev-1.14.0.
+
 - **A cheaper default install, every old behaviour one flag away** (merge `da005a9`):
   - `find_in_repo` has no `alwaysLoad`: Claude Code defers it behind its tool search, which
     keeps about 425 tokens out of every request and no longer holds Claude Code's startup on the
