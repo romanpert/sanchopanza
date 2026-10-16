@@ -1,11 +1,12 @@
 # Jev 1.14 against 1.13 with the long window (lot L6: LongBench v2, QASPER, LongMemEval)
 
-**The result.** The long window changes one verdict and the model changes none.
+**The result.** The long window changes one verdict. The model's one significant difference is
+1.6 points less QASPER text kept.
 
 - **A7, memory gate.** Reading every LongMemEval session whole lifts the gate's recall from
   0.72 to **0.91** on 36 questions, for both 1.13 and 1.14. Under the sealed rule this is
   "mejora" (+18.5 points, Holm p 0.03). It ends 3.1 points under BM25 top 3 (0.94 on these
-  questions), with 21 % fewer characters injected and better precision (0.66-0.69 against
+  questions), with 19-21 % fewer characters injected and better precision (0.66-0.69 against
   0.56). It misses "alcanza" by 0.08 of a point.
 - **B3, LongBench v2.** Jev alone with the whole document (up to 900,000 characters) does not
   replace Sonnet at the registered cut. Jev answers 21-22 of 50 right; Sonnet got 31. At 0.9
@@ -48,7 +49,7 @@ Each task is one Choice A-D over the document.
 - **S** shows 100,000 characters: the first and last halves, under 32k tokens.
 - **L** shows up to 900,000 characters with the long-context header; 44 of the 50 documents fit
   whole.
-- **Sonnet 5.5** (clean Claude Code, arm N) got **31/50 right** at 6.13 USD, 0.123 a task.
+- **Sonnet 5.5** (clean Claude Code 2.1.287, arm N) got **31/50 right** at 6.13 USD, 0.123 a task.
 
 | Cell | Right / 50 | AUC (confidence, right vs wrong) | Tokens a task | Jev USD |
 |---|---|---|---|---|
@@ -97,7 +98,10 @@ Any cut chosen from this table would be post hoc.
 At 0.6 the hybrid matched Sonnet's 31/50 at 43 % of its cost. On those 27 tasks Jev and
 Sonnet were each right on 17. The CI of ±12 points does not show "no peor", and the cut was
 not registered. This is a hypothesis for a confirmation on fresh LongBench tasks, not a
-result.
+result. It was taken up: [b3conf](../2026-10-15-jev114-b3conf/README.md) found that 50 fresh
+tasks with Jev alone decide about 4 % of the time, [lb162](../2026-10-15-lb162/README.md) ran
+162 fresh tasks with the cut fixed at 0.6 (no worse than Sonnet at −10 points, "sustituye"),
+and [lb162x](../2026-10-16-lb162x/README.md) measured the saving and the hybrid against Opus 5.5.
 
 ### Model and window (family B3, Holm over six)
 
@@ -181,8 +185,8 @@ Against BM25 top 3 (the original criterion 1, and "alcanza" at −3 points):
 
 | Cell | Difference | Bate | Alcanza |
 |---|---|---|---|
-| S, either model | −21.5 [−37.5, −8.1] | no | no |
-| L, either model | **−3.08** [−15.9, +8.6] | no | no, by 0.08 of a point |
+| S, either model | −21.5 (1.13 [−37.5, −8.1], 1.14 [−37.7, −6.9]) | no | no |
+| L, either model | **−3.08** (1.13 [−14.8, +8.1], 1.14 [−15.9, +8.6]) | no | no, by 0.08 of a point |
 
 **Reading.**
 - The registered reading of 2026-09-28 holds: the excerpt capped the gate. With the whole
@@ -190,7 +194,7 @@ Against BM25 top 3 (the original criterion 1, and "alcanza" at −3 points):
   one line in a long session (single-session user and assistant 0.5-0.6 → 1.0, knowledge update
   0.6 → 0.9-1.0) and in multi-session (0.75 → 1.0).
 - Temporal reasoning does not move (0.85-0.88).
-- The two preference questions stay at 0 in every cell.
+- The two preference questions stay at 0 in every gate cell (BM25 finds both).
 - BM25 is unusually strong on these 36 questions: 0.94, against 0.85 on all 120.
 - n = 36 resolves only large effects. The window's +18.5 is one; the −3 against BM25 is not
   resolved either way.
@@ -204,13 +208,17 @@ Against BM25 top 3 (the original criterion 1, and "alcanza" at −3 points):
   - Alone, Jev answers 42-44 % against Sonnet's 62 %.
   - The only promising number is post hoc: at 0.6 the hybrid tied Sonnet at 43 % of its cost.
     It deserves one confirmatory run on 50 fresh LongBench v2 tasks, with the cut fixed at 0.6
-    beforehand, about 0.3 USD of Jev and 0 of Claude. It is not a product claim today.
+    beforehand, about 0.3 USD of Jev and 0 of Claude. It is not a product claim today. What
+    followed: b3conf, lb162 and lb162x, as under B3 above.
 - **Where the long window does pay is inside a component: the memory gate.** Whole sessions
   in one call lift recall by 18.5 points, to within 3 of BM25, with less text injected and
   higher precision. It costs about 0.005 USD a prompt against 0.001.
   - Candidate change: a memory-gate mode with the long-context header and `Limits(page_chars`
     large, `pages_per_call` large`)`. Confirm it on the remaining 84 test questions first
-    (about 1 USD for one model).
+    (about 1 USD for one model). Done in [memgate-long](../2026-10-15-memgate-long/README.md):
+    +17.8 points [+10.7, +25.7] on jev-1.13.0. The long window is the library gate's default
+    since 2026-10-16; the installed hook stays short
+    ([memgate-hook](../2026-10-16-memgate-hook/README.md)).
   - This mode works on 1.13. It is not a reason to switch models.
 - **QASPER triage:** do not replace the tournament with one call. It keeps more text, and P28
   still fails.

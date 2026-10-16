@@ -54,7 +54,8 @@ Secondary readings, descriptive:
 
 - **BOX against 1.14's own text ranking, on the 48 B2 steps:** 35.4 % against 54.2 %, −18.8
   [−35.4, −2.1], p 0.064. FUSE10 on that ranking: 43.8 %, −10.4 [−25.0, +4.2].
-- **The zoom** is better than one Box: +7.0 [+1.4, +13.4], p 0.041, 15 steps won against 5.
+- **The zoom** is better than one Box: +7.0 [+1.4, +13.4], p 0.041 (unadjusted, descriptive),
+  15 steps won against 5.
   The cause is that Box answers in steps of 2 % of the image. On a 1280 px tile that is 26 px,
   the height of a link.
 - **Box as a ranking** (candidates by overlap): R@5 62.0 %, R@10 64.8 %, R@20 70.4 %, against
@@ -67,8 +68,8 @@ Secondary readings, descriptive:
 
 Box finds the region of the page more often than not, but not the element. A step's target
 sits among nested candidates (a `div` around a `span` around a link) and among look-alike rows,
-and a box placed 26 px off picks a neighbour. Even zoomed it only matches the text ranking's top
-1, so the text ranking stays the better primitive here. Box does not lift the text's top 10
+and a box placed 26 px off picks a neighbour. Even zoomed, Box is not shown better than the text
+ranking's top 1 (+0.7 points [−8.5, +10.6]), so the text ranking stays the primitive here. Box does not lift the text's top 10
 either: FUSE10 wins 21 steps and loses 21.
 
 ## B2: the ranking with the page in the state (48 steps)
@@ -107,10 +108,11 @@ Jev 1.14 answers HTTP 400 "Invalid image dimensions" to an image with a side of 
 - refused: 1280x256, 1280x270, 1200x256, 600x256, 256x1100 and 256x1280;
 - accepted: 1280x280, 1280x290, 1280x300 and 1568x330.
 
-The vendor's page gives 256 px as the floor, and `providers.jev_assets` (`MIN_SIDE = 256`)
-follows it. The real floor lies between 271 and 280 px. This is what halted B2's first launch
-at its third step, and what failed B1's one call. The lot's own pictures now keep 300 px
-(`vision.MIN_BAND`). `jev_assets` was not changed in this lot.
+The vendor's page gives 256 px as the floor, and `providers.jev_assets` followed it at the time
+(`MIN_SIDE = 256`). The real floor lies between 271 and 280 px. This is what halted B2's first
+launch at its third step, and what failed B1's one call. The lot's own pictures keep 300 px
+(`vision.MIN_BAND`). `jev_assets` was not changed in this lot; its `MIN_SIDE` is 280 now
+(`aa6fe79`).
 
 ## Spend
 

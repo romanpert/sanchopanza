@@ -135,7 +135,12 @@ per arm and recorded in `fixtures/jev114/l1-components.jsonl` (1.14) and
 - Do not switch `DEFAULT_MODEL` to 1.14 as it stands. First recalibrate `t.adds_nothing`
   (`redundant_page`, 0.59) on the 1.14 recordings with `benchmarks/thresholds.py` (free), and
   check `memory_write`, `goal_met` and `extract_gate` the same way; a switch should keep the
-  Score's better calibration and the supersession gain without the redundancy loss.
+  Score's better calibration and the supersession gain without the redundancy loss. What
+  followed: the [recalibration](../2026-10-15-jev114-recal/README.md) gave 1.14 a profile of its
+  own, which does not fix `redundant_page` (0.61); its
+  [confirmation](../2026-10-15-jev114-recalconf/README.md) was "not admissible", with
+  `redundant_page` worse; and [redundant-drop](../2026-10-16-redundant-drop/README.md), with 90
+  more `drop` cases, cleared the derivation only at 0.04 and proposed no cut.
 - Injection: keep the window scan. One whole-text call is the same recall for fewer calls and
   more tokens.
 

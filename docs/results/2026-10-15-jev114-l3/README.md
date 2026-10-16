@@ -77,8 +77,9 @@ McNemar p is Holm-adjusted across the three families.
 | 1.14 | 87.3 % | 87.7 % | 89.2 % | 89.7 % | 88.2 % | 89.7 % |
 
 The two versions are close in every language. 1.14 is a little lower in the Latin-script
-languages and a little higher in Chinese and Arabic, which is where the small, non-significant
-difference in differences comes from.
+languages and a little higher in Chinese and Arabic. The small, non-significant difference in
+differences comes mostly from English, where 1.14 is 2.0 points lower; outside English the two
+versions differ by −0.2 points.
 
 In SIB-200 English, reported apart as the reference for the gap, 1.14 is 2.0 points lower
 [-4.4, 0.0]: 1 item right only for 1.14, 5 only for 1.13, McNemar p 0.22. At the gate its
@@ -96,15 +97,16 @@ right and wrong labels about equally.
 
 ## What this shows and what it does not
 
-- **The vendor's claim.** On these sets, 1.14 is a drop-in replacement for 1.13 as a labeller,
-  at the same price per token (both versions read the same number of input tokens). The
+- **The vendor's claim.** On these sets, 1.14 is no worse than 1.13 as a labeller by the
+  registered −2-point rule (SIB-200 English, which the rule does not count, is −2.0 points
+  [−4.4, 0.0], and −2.9 [−5.4, −0.9] at the gate), at the same price per token (both versions read the same number of input tokens). The
   vendor's "largest gain in multilingual" does not show up here: in five languages with an
   English rubric, the two versions label alike.
 - **Ranking at AG News.** 1.14 orders its confidence better on AG News: its AUROC of p1 rises
   by 0.05, with an interval off zero. This metric is reported, but no rule rests on it. It does
   not appear on the other two sets.
 - **The errors are the same ones.** The largest share on AG News is still the Sci/Tech-labelled-
-  Business boundary: 51 items, the same for both versions. On SIB-200 it is geography taken as
+  Business boundary: 55 items for 1.13 and 56 for 1.14, 51 of them shared. On SIB-200 it is geography taken as
   science/technology (25 items for 1.14) and entertainment taken as travel (16).
 - **Not measured:**
   - Languages outside these six, and low-resource ones. SIB-200 has 205 languages; this run

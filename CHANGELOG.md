@@ -1,5 +1,147 @@
 # Changelog
 
+## 0.3.1 (unreleased)
+
+The memory gate reads whole memories by default, an opt-in guard for MCP calls, versioned
+question ids to import, and ten measurements of 2026-10-16, most of which leave the defaults as
+they were.
+
+### Changed
+
+- **The library memory gate reads every memory whole by default** (`memory_gate.gate`,
+  `memory_window.GATE_DEFAULT`; merge `c65f021`). With `SANCHOPANZA_MEMORY_WINDOW` unset, step
+  2 is one call over every memory with Jev's long-context header on that call only;
+  `SANCHOPANZA_MEMORY_WINDOW=short` or `window="short"` gives the short window as before, and
+  it stays the fallback past the long window, without a long-context decider, past the job's
+  budget or when the long call answers nothing. 0.3.0 shipped this as an opt-in. Measured on
+  jev-1.13.0 on 84 unseen LongMemEval questions (`docs/results/2026-10-15-memgate-long`):
+  recall 0.726 to 0.905 (+17.8 points [+10.7, +25.7]), precision 0.91 to 0.71, about 0.005 USD
+  a prompt against 0.001. At the default `max_usd` of 0.10 one squire serves some 10 to 20 long
+  prompts before it reads the short window; give each prompt its own (`Squire.fork()`), as a
+  hook process does. **The installed memory hook stays on the short window**: with the long one
+  it was "peor en ruido" on 905 SWE-chat first requests (`docs/results/2026-10-16-memgate-hook`,
+  below).
+- **`CappedDecider` settles an unreachable call at its estimate.** A transport failure (a
+  timeout, a dropped connection) may come after the server took the request, so the
+  reservation stands at the estimate, as it already did for a call cancelled in flight; other
+  refusals still settle at 0. Not measured: it moves only the ledger's figure, on the safe side.
+
+### Added
+
+- **Versioned question ids to import rather than copy** (`sanchopanza.catalog`; merge
+  `a502293`). Every point has an id (`triage@1`) and every question one (`triage.relevant@1`);
+  the builders the squire calls tag their questions, and `catalog.POINTS[name].thresholds` says
+  which `Thresholds` fields a point's policy reads. `RecordingDecider(..., keys="id")` writes a
+  second key built from the ids, which does not change with the wording's language, and
+  `RecordedDecider(..., keys="id")` answers by the text key first and by the id key only when
+  that misses; an untagged question under a key asked with two wordings has no id and is signed
+  whole, so it misses rather than replays the other wording. The default stays `keys="text"`:
+  every text key and fixture is unchanged, pinned by `tests/test_catalog.py`. The harness
+  points (the Claude Code hooks, candor, the context autopilot, browsing) have no ids yet. No
+  model involved.
+- **An opt-in guard for MCP tool calls** (`install --guard-mcp`, `SANCHOPANZA_GUARD_MCP=1`; merge
+  `2727cc3`). The PreToolUse matcher takes every MCP tool (`^(?:<names>)$|^mcp__`), and the
+  hook asks the `actions` point about the session so far and the pending call
+  (`Squire.guard_action`), denying at `Thresholds.action_stop` (0.5). Our own servers and those
+  in `SANCHOPANZA_GUARD_MCP_SKIP` are not judged. The record it sends is masked by the new
+  `redact.mask_strict` (credential values in JSON or repr keys, passwords in URLs, private keys
+  cut before their end) before any cut. **Measured, sealed, not confirmed**
+  (`docs/results/2026-10-16-a3-mcp`, jev-1.13.0, ATBench-Codex): 185 of 250 unsafe trajectories
+  caught (74.0 %) against the 75.2 % floor and 0 for the hook as it ships; 82 of 250 safe ones
+  flagged (32.8 %), and 112 of the 589 MCP calls in safe trajectories denied (19.0 %). 42 µ$ and
+  203 ms (median) a call. Off by default.
+- **`select_passages(fit_chars=, fit_score=)`**, opt-in (merge `d07ee43`). When what the two
+  stages keep is longer than `fit_chars`, the delivered paragraphs are ordered and taken while
+  they fit: by best sentence probability, then tournament probability (`fit_score=False`), or
+  first by a four-level Score per paragraph (`fit_score=True`, one more call per 12
+  paragraphs). Measured on 233 overflowing QASPER questions at 3,400 characters
+  (`docs/results/2026-10-16-b4-order`, below): the Score is not confirmed over the free order;
+  the free order over page order is exploratory. `fit_chars` stays `None`.
+- **`docs/memory.md`**: how memory works (records at Stop, standing rules at SessionStart,
+  recall at a first prompt behind a name gate and Jev at 0.8, the touch), its cost, what is
+  stored and sent, how to turn it off, and the limits of its two wins.
+- **`policy.__all__`** names the public API (`MODEL_PROFILES`, `Thresholds`, `confident`,
+  `model_of`, `probability`).
+
+### Fixed
+
+- **`split_sentences` cuts through zero-width characters after an end mark, and keeps them**
+  (`text.split_sentences`, merge `29c433b`). Spanish Wikipedia writes a zero-width space after
+  every footnote mark, in 58 % of its paragraphs, and the sentence stage judged two sentences as
+  one there. 0 of 473,345 English and fixture strings change; on B6's Spanish articles the
+  splitter gives 122,367 sentences with the marks kept against 122,248 with them stripped.
+- **The memory gate's long window** (`62c8893`): a fallback for a static reason (a decider with
+  no long-context mode: null, recorded, or a cached Jev before this) writes one stderr line per
+  process and decider instead of one per prompt, while the journal and the memory log keep it
+  per call and dynamic reasons are said every time; the gate's long call runs under a 10 s
+  deadline (`GATE_DEADLINE_S`, retries on 429 and 529 included), then the short window; and
+  `CachedDecider.with_long_context()` forwards the mode, cached on the same TTL and store with
+  the header in its keys only, so every existing key is unchanged. Not measured.
+- **Memory's prune keeps the standing rules** (`context/episodes.py`): it deleted every `*.json`
+  of a project's store but `index.json`, `rules.json` included, so a project idle for 30 days
+  lost its standing rules. memfix, pending merge.
+- **Two tests no longer leak a fake TypeSafe key into the session** (`b9ef239`, `6289682`): run
+  before `test_find_auto`, they broke it.
+- **The F2 runner counts a resumed handoff turn at its own cost** (`b78d75c`,
+  `benchmarks/memory_carry/handoff_cost.py`). For a resumed `claude -p` turn Claude Code 2.1.287
+  reports the session's running total; the runner and the analysis now read the turn's own
+  cost as that total minus session 1's when it equals the turn's tokens at Claude Code's rates
+  (it did, to within 1e-17 USD, in all 76 handoffs).
+
+### Measured
+
+All on 2026-10-16, each lot pre-registered and sealed before its first answer and run once,
+except A6, a free replay. Jev is `jev-1.13.0` unless said.
+
+- **Memory's second measured win** (`docs/results/2026-10-16-memory-f2`, sealed `763dafd`): on
+  Sonnet 5.5 in clean Claude Code 2.1.287, a new session started with one line naming the work
+  finished the next step right in 48 of 48 triples, against 44 with the handoff ritual and 4
+  with the line alone, at 0.92x the ritual's cost; on Opus 5.5 no room (S 22, H 17, the line
+  alone 21 of 24: Claude Code's own auto memory carried the plan in every arm). S not worse than
+  the ritual (Tango lower bound +2.6 points) and better than the line alone (McNemar p
+  5.7e-14); 1.23x the line alone's cost. The gain is carrying what came next: every session that
+  built step 2, in every arm, kept the constraint and the decision. 42.25 USD at list price.
+- **The LongBench router against Opus 5.5, and its saving measured**
+  (`docs/results/2026-10-16-lb162x`, sealed `24adf4a`): Jev 1.14 with the long window where its
+  top choice is ≥ 0.6 (60 of 162 tasks), Opus 5.5 in clean Claude Code 2.1.287 elsewhere,
+  against Opus alone: −3.7 points [−8.0, +0.6], **no worse** at the −10-point margin, though
+  Opus beats Jev on the covered tasks (37 against 31 of 60). Opus's cost saved 29.5 %
+  [21.7, 37.7]; Sonnet 5.5's, now measured on the 102 uncovered tasks, 33.9 % [24.0, 44.0]. Opus
+  alone right on 105 of 162, Sonnet on 89. 27.01 USD at list price. Not a point in the package
+  yet.
+- **The installed memory hook with the long window: "peor en ruido"**
+  (`docs/results/2026-10-16-memgate-hook`, sealed `211227c`): on 905 SWE-chat first requests,
+  hits +12.7 points [+6.3, +19.8] on the 126 hittable ones, false alarms +3.7 [+1.5, +6.2] on
+  the 483 with nothing related, past the +5 guard. The hook stays short. 0.1794 USD of Jev.
+- **check_done under Jev 1.14 at 0.30 confirmed no worse** (`docs/results/2026-10-16-checkdone114`,
+  sealed `aff4cff`): on 950 unseen AgentDojo stops, right on 745 against 737 for 1.13 at 0.5,
+  +0.8 points [−1.1, +3.2], false blocks 150 against 165 of 795. The profile's `done` stays
+  0.30. Both versions block about one finished stop in five when tool results are cut at 1,500
+  characters. 0.1371 USD of Jev.
+- **`redundant_page` under Jev 1.14: no proposal** (`docs/results/2026-10-16-redundant-drop`,
+  sealed `303dcc4`): with 141 `drop` cases in calibration rule D clears, at 0.04, and the
+  costly-drops guard fails (8 `keep` pages dropped against 0); the profile's 0.61 loses drops for
+  the third time, −6.0 points [−11.6, −1.7]. The profile is unchanged. 0.0277 USD of Jev.
+- **The MCP guard replayed over ATBench-Codex: not confirmed** (`docs/results/2026-10-16-a3-mcp`,
+  sealed `65528af`; figures under Added). Amendment 1, after the data: the offline control,
+  asked again, flags the same 213 of 250 unsafe trajectories as on 2026-09-27, so the gap is the
+  hook judging each call before its result, not Jev moving. 0.0805 USD of Jev.
+- **`relate_facts` with `unrelated_at=0.65` beats the shipped gate**
+  (`docs/results/2026-10-16-a5-unrelated`, sealed `f392ee8`): 39 verdicts added on 1,500 new
+  pairs, all right, Wilson lower bound 0.910. A proposal to make it the default, pending a check
+  on written text; `unrelated_at` stays `None`. 0.0348 USD of Jev.
+- **A four-level Score for paragraphs that do not fit: not confirmed**
+  (`docs/results/2026-10-16-b4-order`, sealed `7f8bca6`): +2.3 points [−1.5, +6.2] over the free
+  order, +1.8 [−2.3, +5.7] over tournament probability; the free order over page order +13.6
+  [+7.1, +20.2], exploratory. 0.0617 USD of Jev.
+- **Page triage and passages in Spanish against English: both inconclusive at −5**
+  (`docs/results/2026-10-16-b6-es`, sealed `1f54dd4`, MLQA): pages 95.5 % against 98.9 %, −3.4
+  points [−6.1, −0.8]; documents 85.8 % against 91.7 %, −5.9 [−9.0, −2.9]; the same share of
+  text in both languages; BM25 alone loses 10 to 11 points. 2.6445 USD of Jev.
+- **The ceiling on what imposing `find_in_repo` could save** (`docs/results/2026-10-16-a6-ceiling`,
+  free, not pre-registered): 3.20 % [2.50, 3.94] of Sonnet 5.5's cost over 19 clean long-chain
+  sessions and 1,046 bugs, under the 5 % rule, so no paid lot follows.
+
 ## 0.3.0 (2026-10-15)
 
 A tool window that follows the session without breaking the prompt cache, an interface for
@@ -49,8 +191,8 @@ do not favour this package.
   budget and is not shipped. After three guessed addresses in a row that come back 404 or as a
   disambiguation page, `read` searches for the purpose instead of fetching the next one.
   Optional extras: `sanchopanza[documents]` (pypdf), `sanchopanza[search]` (ddgs).
-- **Memory v3, just in time** (`install --memory`, still off by default). When the agent opens
-  or changes a file, it is given the records of earlier requests that changed that file (the
+- **Memory v3, just in time** (`install --memory`, on by default since 2026-10-14, see "Changed
+  behaviour a user may notice"). When the agent opens or changes a file, it is given the records of earlier requests that changed that file (the
   two newest, once per session, code only); recall at a prompt now runs only at a session's
   first live request, with the decider at 0.8, and not at all without a decider.
   - **v4: which record, by the lines in view.** Each record keeps prints of the lines it wrote
@@ -630,13 +772,13 @@ do not favour this package.
     was broken in 0 of 24 pairs, by clean Claude Code in 11 (McNemar p 0.00049; by scene 4 wins,
     0 losses, sign test 0.0625); task 23 vs 24, cost 1.117 [1.05, 1.15], wall 1.12, 8.47 USD. The
     gain is in the 4 of 8 scenes where the fact is not in the code. It is the default install plus
-    `--memory`, which is not on by default.
+    `--memory`, which is the default since 2026-10-14.
   - Early compaction on long code (near 67k against N-early's 160k, Sonnet 5.5, 5 chains, sealed fb42fa4): **no gana** (`docs/results/2026-10-13-long-compact/`). Cost 0.900 [0.741, 1.093], quality -1.4 points (non-inferior at -10), wall 1.09, 173.11 USD; 0.858 [0.748, 0.984] if a call cut by a PC reboot is metered at what it cost, a sensitivity the sealed rule does not use. `install --context-budget` stays at 160,000. Under the post-data amendment (conan-2 repeated on 2026-10-15, 33.69 USD, 206.80 in all): still no gana, R1 0.875 [0.754, 1.015], R2 0.887 [0.750, 1.050].
   - Not run, by decision: code on Sonnet and Opus 5.5 (about 357 USD), memory F2, Fable 5.1, and
     the memory cell on Opus.
 - **Jev 1.14 against 1.13, both asked live on 2026-10-15, six pre-registered lots and a free
-  recalibration** (`docs/results/2026-10-15-jev114-*`; 3.65 USD of Jev, 0 of Claude). No worse
-  on the component benches taken together (−0.42 points [−1.46, +0.70] on 1,437 items), with
+  recalibration** (`docs/results/2026-10-15-jev114-*`; 3.65 USD of Jev, 3.85 with the
+  confirmation, 0 of Claude). No worse on the component benches taken together (−0.42 points [−1.46, +0.70] on 1,437 items), with
   better Score calibration and supersession; no worse as a labeller, in English and in five
   other languages; worse on check_done at the 0.5 cut and on `redundant_page` at 0.59, both
   cuts set on 1.13; no gain on find_in_repo, candor, images or long context. With its own
