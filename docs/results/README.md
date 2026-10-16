@@ -58,7 +58,7 @@ stays `jev-1.13.0`.
 
 Each pre-registered and sealed before any answer, Jev only (no call to Claude), against the
 shipped setting or what it would replace; A6 and the guard replay are free offline readings, not
-pre-registered.
+pre-registered; the C8 replay is free, not pre-registered, and calls nothing.
 
 | Folder | What it backs |
 |---|---|
@@ -71,6 +71,7 @@ pre-registered.
 | [2026-10-16-a6-ceiling](2026-10-16-a6-ceiling/README.md) | What imposing `find_in_repo` on a frontier model could save at most, free and offline on 19 recorded long-chain sessions of clean Claude Code 2.1.287 with Sonnet 5.5 (1,046 bugs): the cost spent before first reaching a fixed file, on bugs where find's top 5 holds it, is **3.05 % [2.36, 3.78]** of the model's cost (requests priced from the transcripts), under the h2h plan's 5 % rule for replayed bets (2026-10-07): A6 closed without spending. 0 USD |
 | [2026-10-16-guard-pointers-replay](2026-10-16-guard-pointers-replay/README.md) | The guard's pointer block (the default since 0.3.2) against its whole-results block (`--guard-full`), free and offline on the 10 Sonnet 5.5 sessions of the long-compaction run (clean Claude Code 2.1.287, 98 compactions): median **7,925 characters against 49,473**; carry to the next compaction **0.19 against 1.18 USD per session** near 160k (Ne) and **0.35 against 1.98** near 67k (Nl), 1.31 USD less per session; the agent fetched again something the whole-results block held in **7 of 98 compactions**, 0.0019 USD per compaction against its 0.16 of carry. First-order, quality not measured, ±20 % on tokens per character. 0 USD |
 | [2026-10-16-b6-es](2026-10-16-b6-es/README.md) | Page triage and passage selection in Spanish against English on the same MLQA questions, jev-1.13.0: pages 95.5 % against 98.9 %, -3.4 points [-6.1, -0.8]; whole Wikipedia articles 85.8 % against 91.7 %, -5.9 [-9.0, -2.9]: **"inconclusive"** at the -5 margin, Spanish lower; BM25 drops 10 to 11 points. 2.64 USD |
+| [2026-10-16-memory-c8-replay](2026-10-16-memory-c8-replay/README.md) | Memory's C8 changes on recorded data, free, nothing live: F2's S arms replayed with the night's logged decisions give session 1's record at a plain "continue" prompt in 48 of 48 Sonnet and 24 of 24 Opus arms (36 and 18 that night), with the same decider calls (36 and 18) and about the same characters; 16 of F2's 118 stored rules are plan-shaped; the continuation cue fires on 7 of 909 SWE-chat first prompts; 0 of the owner's 280 stored rules are plan-shaped. Free |
 
 ## Main evidence
 
