@@ -81,7 +81,7 @@ ROOTS = {"smoke": Path(r"C:\sp-runs\L-smoke"), "gate": Path(r"C:\sp-runs\L"),
          "guardptr-smoke": Path(r"C:\sp-runs\L-guardptr-smoke")}
 # Profiles that run only from their sealing commit (`guardptr_seal.require_seal`); a dry run
 # checks it too when its config names a sealed repository (`seal_repo`).
-SEALED_LOTS = ("guardptr", "guardptr-30", "guardptr-smoke")
+SEALED_LOTS = long_pointers.SEALED_LOTS
 # Profiles the launcher does not grade: `long_pointers_read.py grade` does, every chain with the
 # per-test timeout its prereg registers (the close-out's moto grade hung 16 minutes without one).
 GRADED_APART = {"guardptr": 300, "guardptr-30": 300, "guardptr-smoke": 300}
@@ -416,6 +416,10 @@ def launch(name: str, args: argparse.Namespace) -> int:
         return 1
     env = {**os.environ, **(cfg.get("env") or {}), "PYTHONUNBUFFERED": "1",
            "ADOPT_PYTHON": os.environ.get("ADOPT_PYTHON") or sys.executable}  # fmt: skip
+    if name in SEALED_LOTS:  # the runner checks the seal again itself (`long_run.seal_refusal`)
+        env = {**env, guardptr_seal.INSTRUMENT_VAR: args.seal,
+               **({guardptr_seal.REPO_VAR: str(cfg["seal_repo"])} if cfg.get("seal_repo")
+                  else {})}  # fmt: skip
     if installing := [a for a in profile.arms if long_run.installed(a, profile)]:
         try:
             exe = installed_sancho(profile, cfg, args)
@@ -424,6 +428,11 @@ def launch(name: str, args: argparse.Namespace) -> int:
             return 1
         env = {**env, "ADOPT_SANCHO": str(exe)}
         log(f"{' and '.join(installing)} runs {exe}")
+        if name in SEALED_LOTS and not cfg.get("sancho"):  # the real path: the frozen copy
+            if why := guardptr_seal.frozen_refusal(exe, guardptr_seal.manifest(REPO)):
+                log(f"refused: {why}")
+                return 1
+            log(f"frozen copy matches the sealed package; {guardptr_seal.frozen_versions(exe)}")
         python = Path(cfg.get("preflight_python") or exe.parent / "python.exe")
         if profile.keyless:
             log("keyless: no TypeSafe key is read and no preflight is asked (the null decider)")

@@ -67,15 +67,19 @@ import long_window  # noqa: E402
 import meter  # noqa: E402
 import run  # noqa: E402
 from long_money import blocks, ceiling_of, held, rows_under, spent  # noqa: E402,F401
-from long_start import midnight_refusal, quiet_refusal, start_refusal  # noqa: E402
-from long_start import restart_refusal  # noqa: E402
+from long_start import (  # noqa: E402
+    midnight_refusal,
+    quiet_refusal,
+    restart_refusal,
+    start_refusal,
+)
 
 sys.path.insert(0, str(HERE.parents[1] / "src"))
 from sanchopanza.harness.install_defaults import window_for  # noqa: E402
 
 ROOT = Path(r"C:\sp-runs\L")  # outside the home folder: carry.refuse_unclean; short for MAX_PATH
 WINDOW = "CLAUDE_CODE_AUTO_COMPACT_WINDOW"
-EXIT = {"limit": 2, "cap": 2, "ceiling": 2, "wall": 2, "set aside": 3, "harness": 4,
+EXIT = {"limit": 2, "cap": 2, "ceiling": 2, "wall": 2, "clock": 2, "set aside": 3, "harness": 4,
         "rerequest": long_pilot.EXIT_REREQUEST}  # fmt: skip
 # The sealed S line (docs/S-SEAL-DRAFT.md, S0 for code suites); its budget is the profile's.
 S_FLAGS = ("--guard", "--guard-profile", "coding", "--memory", "--candor", "--find",
@@ -292,6 +296,7 @@ class Ctx:
     keyfile: Path | None = None
     ceiling: float = 0.0
     manifests: Path = MANIFESTS
+    allow_midnight: bool = False  # the dry runs: no clock stops
 
 
 @dataclass(frozen=True)
@@ -491,7 +496,8 @@ def run_arm(ctx: Ctx, chain: Mapping[str, Any], arm: str, status: Mapping[str, A
         arm_files.write_row(a.evidence, arm_files.partial_row(base, rows))
         log(f"{a.name} {arm} {k}/{len(a.asks)} {row['status']} {row.get('owner_usd', 0):.3f} USD "
             f"ctx {row.get('peak_context', 0)} compactions {len(row.get('compactions', []))}")
-        if not stop and (why := first_call_breaks(a.evidence.parent, arm, k)):
+        first_ran = row["status"] == "ran" and not any(r.get("status") == "ran" for r in rows[:-1])
+        if not stop and (why := first_call_breaks(a.evidence.parent, arm, first_ran)):
             (ctx.layout.root / long_guard.STOP_FILE).write_text(why, encoding="utf-8")
             log(f"{a.name} {arm}: STOP: {why}")
             stop = "harness"
@@ -592,6 +598,9 @@ def before_call(ctx: Ctx, a: Arm, rows: list[dict[str, Any]], state: ArmState) -
         return "cap"
     if sum(r.get("wall_s", 0.0) for r in rows) > ctx.profile.wall_s:
         return "wall"
+    if why := quiet_refusal(ctx.profile, ctx.allow_midnight):  # a long chain reaching 00:00-08:00
+        log(f"{a.name} {a.arm}: {why}; paused, a relaunch after 08:00 goes on from here")
+        return "clock"
     if why := long_money.room_refusal(spent(layout), cap, over, ctx.ceiling, "ceiling"):
         log(f"{a.name} {a.arm}: {why}")
         return "ceiling"
@@ -743,12 +752,32 @@ def call_breaks(a: Arm, row: Mapping[str, Any], attempt: Mapping[str, Any],
     return tuple(out)
 
 
-def first_call_breaks(folder: Path, arm: str, k: int) -> str:
-    """P and F (the guard lot) share their first prefix: checked at the second arm's FIRST call,
-    from the rows on disk (its partial row is written after every call), not after both arms."""
-    if arm not in long_pointers.GUARD_ARMS or k != 1:
+def first_call_breaks(folder: Path, arm: str, first_ran: bool) -> str:
+    """P and F (the guard lot) share their first prefix: checked at the second arm's first call
+    that RAN (call 1, or the next if call 1 was cut), from the rows on disk (its partial row is
+    written after every call), not after both arms. `cross_arm_breaks` compares each arm's first
+    call with status "ran"."""
+    if arm not in long_pointers.GUARD_ARMS or not first_ran:
         return ""
     return long_guard.cross_arm_breaks(folder)
+
+
+def seal_refusal(profile: Profile, env: Mapping[str, str] | None = None) -> str:
+    """The guard lot's profiles run only from their sealing commit, started by the sealed
+    launcher (`guardptr_seal.require_seal`), checked here again so that `long_run.py run` alone
+    cannot spend. "" when it may run."""
+    if profile.name not in long_pointers.SEALED_LOTS:
+        return ""
+    import guardptr_seal
+
+    source = os.environ if env is None else env
+    repo = Path(source.get(guardptr_seal.REPO_VAR) or guardptr_seal.REPO)
+    try:
+        guardptr_seal.require_seal(source.get(guardptr_seal.LAUNCHER_VAR, ""),
+                                   source.get(guardptr_seal.INSTRUMENT_VAR, ""), repo)  # fmt: skip
+    except SystemExit as refused:
+        return str(refused)
+    return ""
 
 
 def low_window_breaks(row: Mapping[str, Any]) -> list[str]:
@@ -886,6 +915,10 @@ def main(argv: list[str] | None = None) -> int:
 
         return long_report.grade_all(layout, names, known, models, profile.arms)
     carry.ignore_interrupts()
+    if why := seal_refusal(profile):
+        log(f"refused: {why}")
+        return 1
+    ctx = replace(ctx, allow_midnight=args.allow_midnight)
     if why := start_refusal(ctx, names, known, models):
         log(f"refused: {why}")
         return 1

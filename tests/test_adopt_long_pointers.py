@@ -369,16 +369,16 @@ def test_the_shared_prefix_is_checked_at_the_second_arm_s_first_call(m, tmp_path
     folder = tmp_path / "c1-sonnet"
     first = {"request": 1, "status": "ran", "first_request": {"read": 15_000, "write": 6_000}}
     _arm_row(folder, "F", calls=[first], window={"configured": 193_000})
-    assert long_run.first_call_breaks(folder, "P", 2) == ""  # only at the first call
+    assert long_run.first_call_breaks(folder, "P", False) == ""  # only at the first call that ran
     same = {**first, "first_request": {"read": 15_000, "write": 6_020}}
     _arm_row(folder, "P", calls=[same], window={"configured": 193_000})
-    assert long_run.first_call_breaks(folder, "P", 1) == ""
+    assert long_run.first_call_breaks(folder, "P", True) == ""
     (folder / "P" / "row.json").unlink()
     far = {**first, "first_request": {"read": 15_000, "write": 9_000}}
     (folder / "P" / "row.json").write_text(json.dumps({"arm": "P", "calls": [far]}),
                                            encoding="utf-8")  # fmt: skip
-    assert "differs from F's" in long_run.first_call_breaks(folder, "P", 1)
-    assert long_run.first_call_breaks(folder, "Ne", 1) == ""  # other lots keep their own check
+    assert "differs from F's" in long_run.first_call_breaks(folder, "P", True)
+    assert long_run.first_call_breaks(folder, "Ne", True) == ""  # other lots keep their own check
 
 
 def test_a_pending_restart_stops_the_next_chain(m, monkeypatch) -> None:
@@ -392,3 +392,60 @@ def test_a_pending_restart_stops_the_next_chain(m, monkeypatch) -> None:
     assert long_start.restart_refusal(long_run.PROFILES["compact"], False) == ""
     monkeypatch.setattr(long_start, "restart_pending", lambda: "")
     assert long_start.restart_refusal(p, False) == ""
+
+
+# ---- the second pass (revisor-prereg) ------------------------------------------------------------
+
+
+def test_the_runner_refuses_a_guard_profile_without_the_sealed_launcher(m) -> None:
+    long_run, *_ = m
+    why = long_run.seal_refusal(long_run.PROFILES["guardptr"], {})
+    assert "nothing spent" in why
+    assert long_run.seal_refusal(long_run.PROFILES["compact"], {}) == ""
+
+
+def test_long_run_alone_cannot_spend_on_the_lot(m, tmp_path) -> None:
+    long_run, *_ = m
+    argv = ["run", "--profile", "guardptr", "--root", str(tmp_path / "L"),
+            "--limit-flag", str(tmp_path / "LIMIT.flag")]  # fmt: skip
+    assert long_run.main(argv) == 1
+    assert not (tmp_path / "L" / "runs").exists()
+
+
+def test_a_call_in_the_quiet_hours_pauses_the_arm(m, monkeypatch, tmp_path) -> None:
+    long_run, _, long_guard, _, _ = m
+    monkeypatch.setattr(long_run, "quiet_refusal", lambda _p, allow: "" if allow else "02:00")
+    monkeypatch.setattr(long_run.docker_env, "health", lambda: "")
+    ctx = long_run.Ctx(long_run.Layout(tmp_path, tmp_path / "LIMIT.flag"),
+                       long_run.PROFILES["guardptr"], "sonnet", ceiling=250.0)  # fmt: skip
+    a = _arm(long_run, long_guard, tmp_path, "P")
+    assert long_run.before_call(ctx, a, [], long_run.ArmState()) == "clock"
+    dry = long_run.replace(ctx, allow_midnight=True)
+    assert long_run.before_call(dry, a, [], long_run.ArmState()) == ""
+    assert long_run.EXIT["clock"] == 2
+
+
+def test_a_clock_pause_is_resumable_and_not_scored(m, tmp_path) -> None:
+    *_, read = m
+    import long_resume
+
+    assert long_resume.may_resume({"stopped": "clock"})
+    base = tmp_path / "runs" / "c1-sonnet"
+    _arm_row(base, "P", stopped="clock")
+    _arm_row(base, "F", stopped="")
+    assert read.paused(base) == ["P: stopped (clock)"]
+
+
+def test_cut_calls_are_counted_per_arm(m) -> None:
+    *_, read = m
+    row = {"calls": [{"status": "ran"}, {"status": "cut (timeout)", "deviation": "went on"},
+                     {"status": "ran", "retried": True}, {"status": "ran"}]}  # fmt: skip
+    assert read.cuts(row) == {"cut": 1, "retried": 1, "set_aside": 0}
+
+
+def test_the_rule_compares_unrounded_bounds(m) -> None:
+    *_, read = m
+    q = {"difference": -0.01, "ci95": [-0.06, 0.02], "one_sided_low": -0.049996,
+         "t_low": -0.050004}  # fmt: skip
+    assert read.verdict(q, 5, 0.05) == "not shown"  # rounded to 4 places both would read -0.05
+    assert read.published(q)["t_low"] == -0.05

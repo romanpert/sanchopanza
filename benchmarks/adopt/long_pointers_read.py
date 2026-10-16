@@ -75,14 +75,31 @@ def t_low(clusters: Sequence[Sequence[tuple[bool, bool]]]) -> float | None:
 
 
 def quality(clusters: Sequence[Sequence[tuple[bool, bool]]]) -> dict[str, Any]:
+    """Unrounded: the rule compares these; `published` rounds them for the reading."""
     diff, low, high = long_report.cluster_bootstrap(clusters)
-    bound = t_low(clusters)
     return {
-        "difference": round(diff, 4),
-        "ci95": [round(low, 4), round(high, 4)],
-        "one_sided_low": round(long_report.one_sided_low(clusters), 4),
-        "t_low": round(bound, 4) if bound is not None else None,
+        "difference": diff,
+        "ci95": [low, high],
+        "one_sided_low": long_report.one_sided_low(clusters),
+        "t_low": t_low(clusters),
     }
+
+
+def published(q: Mapping[str, Any] | None) -> dict[str, Any] | None:
+    if q is None:
+        return None
+    rounded = {k: (round(v, 4) if isinstance(v, float) else v) for k, v in q.items()}
+    return {**rounded, "ci95": [round(x, 4) for x in q["ci95"]]}
+
+
+def cuts(row: Mapping[str, Any]) -> dict[str, int]:
+    """Calls cut mid-run (charged at their cap; the arm went on: `resume_decision` "continue" on
+    these chains' splits) and calls asked again after a cut that did nothing (`retried`)."""
+    calls = row.get("calls") or []
+    return {"cut": sum(str(c.get("status", "")).startswith("cut") or "deviation" in c
+                       for c in calls),
+            "retried": sum(bool(c.get("retried")) for c in calls),
+            "set_aside": sum(c.get("status") == "SET ASIDE" for c in calls)}  # fmt: skip
 
 
 def verdict(q: Mapping[str, Any] | None, chains: int, margin: float,
@@ -202,11 +219,12 @@ def read(root: Path, chains: Sequence[str], profile: str = "guardptr") -> dict[s
              for v in counted.values()]  # fmt: skip
     lines = {c: {**{k: v for k, v in line.items() if k != "pairs"},
                  "mechanism": {a: mechanism(base[c] / a) for a in PAIR},
-                 "carry": {a: carry(_row(base[c] / a)) for a in PAIR}}
+                 "carry": {a: carry(_row(base[c] / a)) for a in PAIR},
+                 "cuts": {a: cuts(_row(base[c] / a)) for a in PAIR}}
              for c, line in found.items()}  # fmt: skip
     return {"rule": RULE, "profile": profile, "margin": margin, "min_common": floor,
             "chains_read": len(found), "chains_counted": sorted(counted),
-            "chains_paused": held, "quality": q,
+            "chains_paused": held, "quality": published(q),
             "verdict": "no verdict" if held else verdict(q, len(counted), margin),
             "cost": cost_reading(costs),
             "chains": lines}  # fmt: skip

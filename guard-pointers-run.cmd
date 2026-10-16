@@ -13,8 +13,11 @@ rem                                         67k, 8 USD hard (root C:\sp-runs\L-g
 rem <seal>: the instrument commit, the sealing commit's parent (named in the sealing commit's
 rem message), frozen first with `python benchmarks\adopt\freeze.py <seal>` (free).
 rem THIS FILE HOLDS PLACEHOLDERS ONLY. Copy it to the run's root (untracked) and fill PY (the
-rem venv's python) and WT (the worktree --detach at the SEALING commit) there. The seal reads those
-rem two values as placeholders, so the filled copy keeps the seal; long_launch.py refuses unless
+rem venv's python), SANCHOPANZA_KEYS_ENV (the .env file holding CLAUDE_CODE_OAUTH_TOKEN, the
+rem subscription's token: a launch started by WMI gets no window variables; read inside the
+rem process, never printed) and WT (the worktree --detach at the SEALING commit) there. The seal
+rem reads those three values as placeholders, so the filled copy keeps the seal; long_launch.py
+rem refuses unless
 rem the copy that ran (ADOPT_LAUNCHER, set below) equals this file but for them, HEAD is the
 rem sealing commit (one parent, only the seal files), the tree is clean and the seal matches
 rem (benchmarks/adopt/guardptr_seal.py). HEAD goes into launch.status.
@@ -33,6 +36,7 @@ rem Claude Code folder and the runner (a stand-in claude; the dry config names t
 rem `dry` with any of the three unset is refused: it would fall back to the real root and runner.
 setlocal
 set "PY=<PYTHON>"
+set "SANCHOPANZA_KEYS_ENV=<KEYS_ENV_PATH>"
 set "WT=<WORKTREE>"
 if "%PY%"=="<PYTHON>" (
   echo refused: fill PY in the run root's copy
@@ -71,6 +75,11 @@ if /i "%DRYARG%"=="dry" (
   set DRY=--dry-config "%LL_DRY_CONFIG%"
   set ISDRY=1
 )
+if not defined ISDRY if "%SANCHOPANZA_KEYS_ENV%"=="<KEYS_ENV_PATH>" (
+  echo refused: fill SANCHOPANZA_KEYS_ENV in the run root's copy
+  exit /b 2
+)
+if "%SANCHOPANZA_KEYS_ENV%"=="<KEYS_ENV_PATH>" set SANCHOPANZA_KEYS_ENV=
 set "ADOPT_LAUNCHER=%~f0"
 cd /d "%WT%"
 set PATH=%PIN%;%PATH%

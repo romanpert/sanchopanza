@@ -35,6 +35,7 @@ FAILED_MARK = "rule only"
 # Decisions the hooks journal without asking any model: the shell guard's own (`code`) and a
 # spent budget (`budget`). Neither is a paid call.
 FREE_PROVIDERS = (None, "null", "code", "budget")
+SEALED_LOTS = ("guardptr", "guardptr-30", "guardptr-smoke")  # run only from their sealing commit
 DEFAULT_BUDGET = 160_000  # install_defaults.DEFAULT_BUDGET: what the default install writes
 GUARD_LOG = "guard.jsonl"
 LOT_ENV = ("ADOPT_GUARD_LOT", "1")  # hook_env.GUARD_LOT_VAR
