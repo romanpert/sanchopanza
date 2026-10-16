@@ -12,10 +12,11 @@ once. Choosing a TTL is choosing how long an answer is allowed to stand for the 
 
 The key is the decision point, the state and the questions (canonical JSON, keys sorted), the
 order in which each question lists its options (the order the model sees moved answers), and
-the provider's name and model. A decision that failed, answered nothing, answered only some of
-the questions, or answered a number no threshold can use is never stored. A hit comes back
-with cost, tokens and latency at zero and `@cache` after the provider's name, so a journal
-never counts it as a paid call.
+the provider's name and model; a `with_long_context` twin adds the header to its keys and
+shares the store, so the memory gate's long window works through the cache. A decision that
+failed, answered nothing, answered only some of the questions, or answered a number no
+threshold can use is never stored. A hit comes back with cost, tokens and latency at zero and
+`@cache` after the provider's name, so a journal never counts it as a paid call.
 
 The optional store on disk is JSON lines holding the key (a hash) and the answers (numbers):
 the text the agent read is not copied to it.
@@ -89,7 +90,23 @@ class CachedDecider:
         self.accepts_attachments = getattr(inner, "accepts_attachments", False)
         self.hits = 0
         self.skipped = 0
+        self._long = False  # a `with_long_context` twin: the header is part of its keys
         self._entries: Mapping[str, _Entry] = self._load()
+        self._root = self  # whose entries this one reads and adds to (a twin: its parent's)
+
+    def with_long_context(self, **options: Any) -> CachedDecider:
+        """The inner decider's long-context twin (`harness.memory_window`), cached on the same
+        TTL and store, with the header in its keys: an answer read with the header never
+        answers a request without it, or the other way round. Every key of this decider stays
+        as it was. A decider whose inner one has no long-context mode raises AttributeError,
+        as the inner one would."""
+        make = getattr(self._inner, "with_long_context", None)
+        if not callable(make):
+            raise AttributeError(f"{self._inner.name} has no long-context mode")
+        twin = CachedDecider.__new__(CachedDecider)
+        twin.__dict__.update(self.__dict__)  # same TTL, clock, store and entries
+        twin._inner, twin._long, twin.hits = make(**options), True, 0
+        return twin
 
     def _model(self) -> str:
         inner = self._inner
@@ -104,6 +121,8 @@ class CachedDecider:
             "questions": {k: asdict(q) for k, q in questions.items()},
             "order": order_of(questions),
         }
+        if self._long:  # only the twin's keys carry it: no existing key changes
+            body = {**body, "long_context": True}
         serialized = json.dumps(body, sort_keys=True, ensure_ascii=False, default=repr)
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
@@ -125,7 +144,8 @@ class CachedDecider:
         return entries
 
     def _store(self, key: str, entry: _Entry) -> None:
-        self._entries = {**self._entries, key: entry}
+        root = self._root
+        root._entries = {**root._entries, key: entry}
         if self._path is None:
             return
         row = {
@@ -140,7 +160,7 @@ class CachedDecider:
     async def decide(self, point: str, state: State, questions: Mapping[str, Question]) -> Decision:
         key = self._key(point, state, questions)
         now = self._clock()
-        found = self._entries.get(key)
+        found = self._root._entries.get(key)
         if found is not None and now - found.stored_at < self._ttl:
             self.hits += 1
             return replace(

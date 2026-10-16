@@ -17,13 +17,15 @@ This module is a `UserPromptSubmit` hook body. Per prompt:
 3. The kept memories, most probable first, rendered under `cap` characters, each headed by its
    file name so the model can open the full file. What did not fit is listed by name.
 
-The long window (`SANCHOPANZA_MEMORY_WINDOW=long` or `window="long"`, off by default; see
-`memory_window`): step 2 reads every memory whole in one call with Jev's long-context header on
-that call only. On 36 LongMemEval questions it lifted the selection's recall from 0.72 to 0.91
-at about 0.005 USD a prompt against 0.001 (lot L6), confirmed on 84 unseen questions on
-jev-1.13.0 (0.726 to 0.905, lot memgate-long). Past the long window, without a decider that
-has the mode, or when the call would not fit the job's budget or answers nothing, it is step 2
-as above, and it says so.
+The long window is `gate`'s default (`memory_window.GATE_DEFAULT`; see `memory_window`):
+step 2 reads every memory whole in one call with Jev's long-context header on that call only.
+On 36 LongMemEval questions it lifted the selection's recall from 0.72 to 0.91 at about
+0.005 USD a prompt against 0.001 (lot L6), confirmed on 84 unseen questions on jev-1.13.0
+(0.726 to 0.905, lot memgate-long). `SANCHOPANZA_MEMORY_WINDOW=short` or `window="short"` is
+step 2 as above, the shipped short window. Past the long window, without a decider that has the
+mode, or when the call would not fit the job's budget or answers nothing, it is step 2 as above
+too, and it says so. The installed memory hook (`memory_hook`) is another path and stays on the
+short window unless asked for `long`.
 
 Optional, off by default because it costs calls: `check_conflicts` runs `Squire.reconcile` on
 at most `max_pairs` pairs of kept memories that share vocabulary. A pair the decider calls a
@@ -329,7 +331,8 @@ async def triage_window(
     def answered(verdicts: list[tuple[bool, float | None]]) -> bool:
         return any(p is not None for _, p in verdicts)
 
-    verdicts, report = await mw.run_long(squire, state, questions, ask, answered)
+    verdicts, report = await mw.run_long(squire, state, questions, ask, answered,
+                                         deadline_s=mw.GATE_DEADLINE_S)  # fmt: skip
     if verdicts is None:
         verdicts = await triage_memories(squire, prompt, memories)
     return verdicts, report
@@ -369,8 +372,18 @@ async def gate(
     window: str | None = None,
 ) -> GateResult:
     """Decide what to inject for one prompt. Raises only on a bug; `handle_user_prompt` wraps.
-    `window` is `short` or `long` (`memory_window`); None reads `SANCHOPANZA_MEMORY_WINDOW`."""
-    chosen = mw.window_from_env() if window is None else mw.normalize_window(window)
+    `window` is `short` or `long` (`memory_window`); None reads `SANCHOPANZA_MEMORY_WINDOW`,
+    and `long` when it is unset (`memory_window.GATE_DEFAULT`).
+
+    Budget: the long call is held to the squire's job cap (`Thresholds.max_usd`, 0.10 USD by
+    default) and adds to its meter. At about 0.005 USD a prompt (0.01 at the window's ceiling)
+    one squire runs out after some 10 to 20 prompts and then reads the short window. Give each
+    prompt its own squire (`Squire.fork()`, as a hook process does), or raise `max_usd` for a
+    squire that serves many prompts."""
+    if window is None:
+        chosen = mw.window_from_env(default=mw.GATE_DEFAULT)
+    else:
+        chosen = mw.normalize_window(window)
     prompt = redact_secrets(prompt.strip())
     base = {"memories": len(memories), "prompt_chars": len(prompt)}
     if not memories:

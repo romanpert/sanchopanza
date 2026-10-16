@@ -130,6 +130,9 @@ the client's estimate (input tokens × Jev's list price):
 **For `memory_gate.gate`: make the long window the default.** This is a proposal; the owner
 decides.
 
+Adopted as the library default on 2026-10-16 (`SANCHOPANZA_MEMORY_WINDOW=short` turns it off);
+the installed memory hook stays on the short window, as below.
+
 - **The case for it.** The gate's job is to find the memory a prompt needs. The long window now
   has a confirmed +18-point recall gain on unseen questions, and it reaches BM25 top 3 where
   the short window does not.

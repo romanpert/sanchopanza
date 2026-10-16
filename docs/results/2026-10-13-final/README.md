@@ -172,8 +172,9 @@ Sources: [lb162](../2026-10-15-lb162/README.md) (sealed c483beb; 0.875 USD of Je
 Claude), [memgate-long](../2026-10-15-memgate-long/README.md) (sealed c8d1da1; 0.53 USD of Jev).
 The first is a Jev decision that replaces calls of the expensive model, the case this page
 names as the only one where a decision saves; it covers multiple choice over one long document
-and one draw. The second is a recall gain inside a component, opt-in in the package
-(`SANCHOPANZA_MEMORY_WINDOW=long`), measured on the library gate rather than the installed hook.
+and one draw. The second is a recall gain inside a component, measured on the library gate
+rather than the installed hook: the long window is the library gate's default
+(`SANCHOPANZA_MEMORY_WINDOW=short` turns it off), and the installed hook stays on the short one.
 
 ## What was not run
 
