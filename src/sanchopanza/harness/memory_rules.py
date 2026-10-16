@@ -3,8 +3,8 @@
 Three moments, all in the memory hook:
 - **Stop, after the record is saved:** each sentence of the request's prompt is asked whether it
   is a standing rule; the ones that are join the project's `rules.json`, verbatim, with when and
-  where they were said. Only the prompt's text is read: never tool output or files. A plan or
-  next-step sentence (`is_plan`, ROADMAP C8) is not asked about: it belongs to the record.
+  where they were said. Only the prompt's text is read: never tool output or files. A sentence
+  shaped as a plan (`is_plan`, ROADMAP C8) is not asked about: it belongs to the record.
 - **SessionStart (a new session, a resume, a clear or after a compaction):** the newest rules are
   given as context, whatever file the session goes on to touch (the carry bench's cross-file gap:
   a rule said while changing one file and broken in another).
@@ -144,22 +144,40 @@ def _norm(text: str) -> str:
 
 # ROADMAP C8: a plan or a decision about the next step ("For step 2, cap the discount at 20 %",
 # "Step 2, in the next session: ...") is what comes next in one feature, not a rule later work
-# must keep. In F2 the standing-rules question kept 40 such sentences in 72 S arms, beside each
-# scene's constraint, in the 8-rule slot every session start gives. They belong to the record of
-# the request that said them (`memory_recall.continued` gives it at a continuation), so they are
-# neither asked about at Stop (no decision spent) nor given at a session start (stored before).
+# must keep. In F2 the standing-rules question kept such sentences in the 8-rule slot every
+# session start gives, beside each scene's constraint (16 of its 118 stored rules have the shapes
+# below; the owner's 280 real stored rules, none). Only unmistakable plan shapes count, and
+# never a sentence with a lasting word (review of w17-memgaps, H1: "Always run step 2 tests",
+# "Phase 1 migrations must always be reversible", "Nunca despliegues por la mañana" are rules).
+# A plan is not asked about at Stop (it belongs to the record of its request, which
+# `memory_recall.continued` gives at a continuation), and one stored before ranks below every
+# rule (`ranked`): nothing stored disappears.
+_LASTING = re.compile(
+    r"\b(?:always|never|must|every|any|only|don['’]?t|do not|can['’]?t|cannot|won['’]?t|"
+    r"siempre|nunca|jam[áa]s|s[óo]lo|no)\b",
+    re.IGNORECASE,
+)
 _PLAN = re.compile(
-    r"\bsteps?\s*(?:\d+|one|two|three|four|five)\b|\bnext (?:session|time|step)\b|"
-    r"\b(?:tomorrow|later today)\b|\b(?:phase|stage)\s*\d+\b|"
-    r"\bpasos?\s*(?:\d+|uno|dos|tres)\b|\bpr[óo]xima sesi[óo]n\b|\bfase\s*\d+\b|"
-    r"(?<!esta )\bmañana\b|\bsiguiente paso\b",
+    r"^\W*(?:and\s+|also\s+|y\s+)?(?:for|in)\s+step\s*\d+\b|"  # "For step 2, ..."
+    r"\bsteps?\s*\d+,?\s+(?:in|for)\s+the\s+next\s+session\b|"  # "Step 2, in the next session"
+    r"\b(?:in\s+the\s+)?next\s+session,?\s+(?:we|i)(?:['’]ll|\s+will|\s+can|\s+do)\b|"
+    r"\b(?:we|i)\s+(?:had\s+)?(?:planned|said)\b[^.;]{0,60}?\bstep\s*\d+\b|"  # a plan revised
+    r"^\W*(?:y\s+)?(?:para|en)\s+el\s+paso\s*\d+\b|\ben\s+la\s+pr[óo]xima\s+sesi[óo]n\b",
     re.IGNORECASE,
 )
 
 
 def is_plan(sentence: str) -> bool:
-    """A sentence about a numbered step, the next session or tomorrow: a plan, not a rule."""
-    return bool(_PLAN.search(sentence or ""))
+    """A sentence shaped as a plan for a numbered step or the next session, with no lasting
+    word in it: a plan, not a rule."""
+    text = sentence or ""
+    return bool(_PLAN.search(text)) and not _LASTING.search(text)
+
+
+def ranked(rules: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
+    """Newest first by the time they were said, plan-shaped ones (`is_plan`) after every rule."""
+    newest = sorted(rules, key=lambda r: -float(r.get("at") or 0))
+    return sorted(newest, key=lambda r: is_plan(str(r.get("text") or "")))
 
 
 def plan_in(request: str) -> bool:
@@ -181,7 +199,7 @@ async def extract(squire: Squire, store: Path, episodes: Sequence[ep.Episode]) -
     if not fresh:
         return []
     pending = [(e, s) for e in fresh for s in points.sentences(e.request)
-               if not is_plan(s)]  # fmt: skip
+               if not is_plan(s) and ep.CUT.strip() not in s]  # fmt: skip
 
     async def ask(sentence: str, request: str) -> float | None:
         state, qs = points.questions_for_sentence(sentence, request)
@@ -231,10 +249,9 @@ def _line(rule: Mapping[str, Any]) -> str:
 def render(store: Path) -> str:
     """The newest rules as session context, or "" when there are none. Newest first by the time
     they were said, whatever order the store keeps; header, lines and closing within GIVE_CHARS.
-    A plan (`is_plan`) stored before C8 is not given: it would take a rule's place."""
+    A plan-shaped one (`is_plan`) comes after every rule (`ranked`)."""
     lines, room = [], GIVE_CHARS - len(HEADER) - len(CLOSING) - 1
-    rules = sorted((r for r in load(store)["rules"] if not is_plan(str(r.get("text") or ""))),
-                   key=lambda r: -float(r.get("at") or 0))  # fmt: skip
+    rules = ranked(load(store)["rules"])
     for rule in rules[:GIVE_MAX]:
         line = _line(rule)
         if len(line) + 1 > room:
@@ -342,7 +359,7 @@ async def audit(squire: Squire, store: Path, session: str, index: int, cwd: str,
     own = [
         r for r in data["rules"] if not (r.get("session") == session and r.get("index") == index)
     ]
-    held = own[:CHECK_MAX]
+    held = ranked(own)[:CHECK_MAX]  # rules before plans, as given at a start
     change = _diff(cwd, head, paths) if held else ""
     if not change.strip():
         return [], {}
