@@ -125,6 +125,8 @@ def halt_kind(error: Exception) -> str | None:
     403, 429, a 5xx, no connection); None for this call's own failure (a timeout, a 400)."""
     if isinstance(error, SpendCapReached):
         return "cap"
+    if type(error).__name__ == "LedgerBusy":  # the ledger's lock held elsewhere: not the cap
+        return "busy"
     if isinstance(error, DeciderOutOfFunds):
         return "pause"
     found = re.search(r"HTTP (\d{3})", str(error))
@@ -150,8 +152,20 @@ class Asker:
     answers every question asked. Counts calls and estimated dollars per arm, every failure
     and the question it hit (`ROW`), and the first stop and its kind."""
 
-    def __init__(self, fallback: Any | None) -> None:
-        self.recorded = recordings()
+    def __init__(self, fallback: Any | None, recorded: RecordedDecider | None = None, *,
+                 memo_failures: bool = False, model_halts: bool = False) -> None:  # fmt: skip
+        self.recorded = recordings() if recorded is None else recorded  # another lot's, if given
+        # `memo_failures` (later lots; B6 ran without it): a live call that failed answers every
+        # later identical request in this run with the same failure, so nothing is asked twice
+        self.memo_failures = memo_failures
+        # `model_halts` (later lots): an answer from another model halts the run as a stop of
+        # kind "model" instead of raising SystemExit, which asyncio re-raises out of the event
+        # loop past any handler, so the launch could not write how it ended
+        self.model_halts = model_halts
+        self.failed_memo: dict[str, Decision] = {}
+        self.failed_keys: set[str] = (
+            set()
+        )  # distinct requests left unanswered (`failures` counts uses)
         self.fallback = fallback
         self.gate = asyncio.Semaphore(CONCURRENCY)
         self.memo: dict[str, Decision] = {}
@@ -179,6 +193,12 @@ class Asker:
             self.halted.append((kind, why))
         return Decision(point, {}, "b6", "-", error=why)
 
+    def _remember(self, key: str, failed: Decision) -> Decision:
+        self.failed_keys.add(key)
+        if self.memo_failures:
+            self.failed_memo[key] = failed
+        return failed
+
     @staticmethod
     def complete(decision: Decision, qs: Mapping[str, Any]) -> bool:
         return all(not decision.answer(k).empty for k in qs)
@@ -189,7 +209,11 @@ class Asker:
         if found.answers and found.model == MODEL and self.complete(found, qs):
             return found  # a partial recording is a miss: asked again, the new line wins
         if self.fallback is None:
+            self.failed_keys.add(key)
             return self._failed(point, "not recorded, no live decider")
+        if key in self.failed_memo:  # the same call failed earlier in this run: not asked again
+            self.failed_ids.add(ROW.get())
+            return self.failed_memo[key]
         async with self.gate:
             if self.halted:  # a stop met while this call waited: it is not made
                 self.failures += 1
@@ -200,12 +224,15 @@ class Asker:
                 decision = await self.fallback.decide(point, state, qs)
             except Exception as error:  # noqa: BLE001 - every failure is counted, none retried
                 why = f"{type(error).__name__}: {error}"
-                return self._failed(point, why, halt_kind(error))
+                return self._remember(key, self._failed(point, why, halt_kind(error)))
         if decision.model != MODEL:
+            if self.model_halts:
+                self.halted.insert(0, ("model", f"served {decision.model}, not {MODEL}"))
+                return self._failed(point, f"served {decision.model}")
             self.halted.append(("pause", f"served {decision.model}, not {MODEL}"))
             raise SystemExit(f"asked {MODEL}, served {decision.model}: stopped")
         if decision.failed or not self.complete(decision, qs):
-            return self._failed(point, decision.error or "partial answer")
+            return self._remember(key, self._failed(point, decision.error or "partial answer"))
         self.in_a_row = 0
         self.memo[key] = decision
         return decision

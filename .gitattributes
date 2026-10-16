@@ -5,4 +5,8 @@
 docs/results/2026-09-29-context-guard/prereg*.md -text
 # cmd.exe reads labels and goto reliably only with CRLF; its seal hashes it with LF.
 b6-es-run.cmd text eol=crlf
+c4-written-run.cmd text eol=crlf
+c5-free-run.cmd text eol=crlf
+c6-window-run.cmd text eol=crlf
 fixtures/*.jsonl.gz binary
+fixtures/c5-free/*.jsonl.gz binary
