@@ -5,6 +5,7 @@ tested without either."""
 from __future__ import annotations
 
 import datetime
+import fnmatch
 import hashlib
 import pathlib
 import re
@@ -41,11 +42,37 @@ def git_in(repo: pathlib.Path) -> Git:
     return run
 
 
+# What a run writes in the lot's folder: the only paths that may differ from HEAD there.
+RUN_FILES = ("*-answers-*", "*-scored*", "*-zone.json", "summary.json")
+SEAL_FILES = ("prereg.sha256", "prereg.manifest.json")  # all the sealing commit may change
+
+
+def _run_file(path: str, rel: str) -> bool:
+    folder, _, base = path.rpartition("/")
+    return folder == rel and any(fnmatch.fnmatchcase(base, p) for p in RUN_FILES)
+
+
+def changed_paths(git: Git) -> list[str]:
+    """Every path that differs from HEAD (staged, unstaged or untracked, files not folders)."""
+    lines = git("status", "--porcelain", "--untracked-files=all").splitlines()
+    return [line[3:].split(" -> ")[-1].strip().strip('"') for line in lines if line.strip()]
+
+
+def heads(git: Git) -> dict[str, Any]:
+    """HEAD and its parents (the sealing commit and the commit it sealed)."""
+    ids = git("rev-list", "--parents", "-n", "1", "HEAD").split()
+    return {"head": ids[0] if ids else "", "parents": ids[1:]}
+
+
 def live_refusal(name: str, *, repo: pathlib.Path, out: pathlib.Path,
                  now: datetime.datetime, git: Git) -> str:  # fmt: skip
-    """Why a live `name` ("smoke" or "run") must not start, or "": not inside the update
-    window; HEAD is the commit that wrote this lot's seal; nothing changed outside `out` (the
-    lot's own folder, where answers and rows are written); for the run, the smoke is scored."""
+    """Why a live `name` ("smoke" or "run") must not start, or "":
+    - not inside the update window;
+    - HEAD is the commit that wrote this lot's seal, with a single parent, and it changed only
+      `prereg.sha256` and `prereg.manifest.json` (the seal of what its parent holds);
+    - nothing differs from HEAD but the run's own new files in `out` (answers, scored rows,
+      the zone file, the summary): prereg.md and the seal files included;
+    - for the run, the smoke is scored."""
     start, end = UPDATE_WINDOW
     if start <= now.hour < end:
         return f"it is {now:%H:%M}, inside the {start:02d}:00-{end:02d}:00 update window"
@@ -53,16 +80,26 @@ def live_refusal(name: str, *, repo: pathlib.Path, out: pathlib.Path,
     sealed = git("log", "-1", "--format=%H", "--", f"{rel}/prereg.sha256").strip()
     if not sealed:
         return "the seal (prereg.sha256) is not committed"
-    head = git("rev-parse", "HEAD").strip()
-    if head != sealed:
-        return f"HEAD {head[:8]} is not the commit that wrote the seal, {sealed[:8]}"
-    dirty = [line for line in git("status", "--porcelain").splitlines()
-             if line.strip() and not line[3:].strip().strip('"').startswith(rel)]  # fmt: skip
+    found = heads(git)
+    if found["head"] != sealed:
+        return f"HEAD {found['head'][:8]} is not the commit that wrote the seal, {sealed[:8]}"
+    if len(found["parents"]) != 1:
+        return f"the sealing commit has {len(found['parents'])} parents, not one"
+    touched = set(git("diff", "--name-only", "HEAD^", "HEAD").split())
+    if not touched <= {f"{rel}/{f}" for f in SEAL_FILES}:
+        return f"the sealing commit changed {len(touched)} paths, not only the seal's two"
+    dirty = [p for p in changed_paths(git) if not _run_file(p, rel)]
     if dirty:
-        return f"{len(dirty)} paths changed outside {rel}: the tree is not the sealed one"
+        return f"{len(dirty)} paths differ from the sealed commit: {', '.join(dirty[:3])}"
     if name == "run" and not (out / "smoke-scored.jsonl").exists():
         return "the smoke is not scored (smoke-scored.jsonl): run --smoke --live first"
     return ""
+
+
+def prereg_changed(repo: pathlib.Path, out: pathlib.Path, git: Git) -> bool:
+    """prereg.md differs from HEAD: a re-seal must seal a committed prereg, not a draft."""
+    rel = out.relative_to(repo).as_posix()
+    return f"{rel}/prereg.md" in changed_paths(git)
 
 
 def time_zone() -> dict[str, Any]:
@@ -71,6 +108,11 @@ def time_zone() -> dict[str, Any]:
     minutes = int(offset.total_seconds() // 60) if offset is not None else 0
     return {"tzname": list(time.tzname), "timezone_s": time.timezone, "altzone_s": time.altzone,
             "utc_offset_min_now": minutes}  # fmt: skip
+
+
+def offsets(zone: Mapping[str, Any]) -> dict[str, Any]:
+    """The zone's UTC offsets only, for the summary (Windows' zone names come back localised)."""
+    return {k: zone.get(k) for k in ("timezone_s", "altzone_s", "utc_offset_min_now")}
 
 
 def zone_mismatch(saved: Mapping[str, Any], current: Mapping[str, Any]) -> str:

@@ -274,14 +274,20 @@ def test_a_decider_shared_across_two_loops_fails_as_in_a3() -> None:
 # ---- live conditions, the replay and the time zone ----------------------------------------------
 
 
-def fake_git(head: str = "abc", sealed: str = "abc", status: str = "") -> Any:
+LOT = "docs/results/lot"
+SEAL_DIFF = f"{LOT}/prereg.sha256\n{LOT}/prereg.manifest.json\n"
+
+
+def fake_git(head: str = "abc", sealed: str = "abc", status: str = "",
+             parents: tuple = ("p1",), diff: str = SEAL_DIFF) -> Any:  # fmt: skip
     def git(*args: str) -> str:
-        return {"log": sealed, "rev-parse": head, "status": status}[args[0]]
+        return {"log": sealed, "rev-list": " ".join([head, *parents]), "diff": diff,
+                "status": status}[args[0]]  # fmt: skip
 
     return git
 
 
-def refusal(name: str, tmp_path: Path, now: datetime.datetime = NOON, **git: str) -> str:
+def refusal(name: str, tmp_path: Path, now: datetime.datetime = NOON, **git: Any) -> str:
     out = tmp_path / "docs" / "results" / "lot"
     out.mkdir(parents=True, exist_ok=True)
     return lr.live_refusal(name, repo=tmp_path, out=out, now=now, git=fake_git(**git))
@@ -295,12 +301,94 @@ def test_a_live_call_waits_for_the_sealed_commit_a_clean_tree_the_hours_and_the_
     assert refusal("smoke", tmp_path, datetime.datetime(2026, 10, 16, 8, 0)) == ""
     assert "not committed" in refusal("smoke", tmp_path, sealed="")
     assert "not the commit" in refusal("smoke", tmp_path, head="def")
-    assert "changed outside" in refusal("smoke", tmp_path, status=" M src/x.py\n")
-    ours = "?? docs/results/lot/run-answers-S.jsonl\n M docs/results/lot/smoke-scored.jsonl\n"
+    assert "differ from the sealed" in refusal("smoke", tmp_path, status=" M src/x.py\n")
+    ours = (
+        f"?? {LOT}/run-answers-S.jsonl\n M {LOT}/smoke-scored.jsonl\n"
+        f"?? {LOT}/run-zone.json\n M {LOT}/summary.json\n?? {LOT}/run-replay-scored.jsonl\n"
+    )
     assert refusal("smoke", tmp_path, status=ours) == ""
     assert "smoke is not scored" in refusal("run", tmp_path)
     (tmp_path / "docs" / "results" / "lot" / "smoke-scored.jsonl").write_text("{}\n")
     assert refusal("run", tmp_path) == ""
+
+
+@pytest.mark.parametrize("path", ["prereg.md", "prereg.sha256", "prereg.manifest.json",
+                                  "notes.md", "sub/run-scored.jsonl"])  # fmt: skip
+def test_the_prereg_its_seal_and_any_other_file_of_the_lot_must_be_as_sealed(
+    tmp_path: Path, path: str
+) -> None:
+    for code in (" M", "??", "M "):
+        why = refusal("smoke", tmp_path, status=f"{code} {LOT}/{path}\n")
+        assert "differ from the sealed" in why, (path, code)
+
+
+def test_the_sealing_commit_has_one_parent_and_changes_only_the_seal(tmp_path: Path) -> None:
+    assert "2 parents" in refusal("smoke", tmp_path, parents=("p1", "p2"))
+    assert "0 parents" in refusal("smoke", tmp_path, parents=())
+    assert refusal("smoke", tmp_path, diff=f"{LOT}/prereg.sha256\n") == ""
+    for extra in (f"{LOT}/prereg.md", "src/sanchopanza/squire.py", f"{LOT}/run-scored.jsonl"):
+        why = refusal("smoke", tmp_path, diff=SEAL_DIFF + extra + "\n")
+        assert "not only the seal" in why, extra
+
+
+def lot_in(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    out = tmp_path / "docs" / "results" / "lot"
+    out.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(mg, "REPO", tmp_path)
+    monkeypatch.setattr(mg, "OUT", out)
+    monkeypatch.setattr(mg, "seal_ok", lambda: True)
+    return out
+
+
+def test_a_launch_saves_its_zone_head_and_parent_and_a_relaunch_needs_the_same_zone(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    out = lot_in(tmp_path, monkeypatch)
+
+    def stop_at_key() -> None:
+        raise SystemExit("key reached")
+
+    monkeypatch.setattr(mg.l4, "load_key", stop_at_key)
+    with pytest.raises(SystemExit, match="key reached"):
+        mg.go_live("smoke", now=NOON, git=fake_git(head="h1", sealed="h1", parents=("h0",)))
+    saved = json.loads((out / "smoke-zone.json").read_text())
+    assert saved["head"] == "h1" and saved["parents"] == ["h0"]
+    assert saved["timezone_s"] == lr.time_zone()["timezone_s"]
+    with pytest.raises(SystemExit, match="key reached"):  # a relaunch in the same zone
+        mg.go_live("smoke", now=NOON, git=fake_git(head="h1", sealed="h1", parents=("h0",)))
+    other = {**saved, "tzname": ["Elsewhere", "Elsewhere DST"], "timezone_s": 12_345}
+    (out / "smoke-zone.json").write_text(json.dumps(other))
+
+    def no_key() -> None:
+        raise AssertionError("the key was read")
+
+    monkeypatch.setattr(mg.l4, "load_key", no_key)
+    with pytest.raises(SystemExit, match="the run was in"):
+        mg.go_live("smoke", now=NOON, git=fake_git(head="h1", sealed="h1", parents=("h0",)))
+
+
+def test_the_summary_keeps_offsets_and_commits_not_zone_names(tmp_path: Path) -> None:
+    zone = tmp_path / "run-zone.json"
+    zone.write_text(json.dumps({**lr.time_zone(), "head": "h1", "parents": ["h0"]}))
+    got = mg.run_of_record(zone)
+    assert set(got) == {"timezone_s", "altzone_s", "utc_offset_min_now", "head", "head_parent"}
+    assert got["head"] == "h1" and got["head_parent"] == "h0"
+    assert mg.run_of_record(tmp_path / "none.json") is None
+
+
+def test_a_re_seal_over_a_prereg_that_differs_from_head_is_refused(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    out = lot_in(tmp_path, monkeypatch)
+    (out / "prereg.md").write_text("# prereg\n")
+    monkeypatch.setattr(mg, "SEALED_DATA", ())
+    monkeypatch.setattr(mg, "sealed_paths", lambda: ())
+    monkeypatch.setattr(mg, "LAUNCHER", tmp_path / "none.cmd")
+    mg.seal(git=fake_git())
+    (out / "prereg.md").write_text("# prereg, changed\n")
+    with pytest.raises(SystemExit, match="commit it before a re-seal"):
+        mg.seal(again=True, git=fake_git(status=f" M {LOT}/prereg.md\n"))
+    assert mg.seal(again=True, git=fake_git(status=f" M {LOT}/prereg.sha256\n"))
 
 
 def test_the_live_run_refuses_without_the_seal_before_reading_any_key(
