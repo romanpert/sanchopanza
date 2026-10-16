@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import contextlib
 import re
+import time
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
@@ -106,6 +107,81 @@ def gate_passes(prompt: str, record: ep.Episode, folded: str | None = None) -> b
     """v5 at a first prompt: a record that changed files enters only if the prompt names one;
     a record that changed nothing (a question, an investigation) is judged as in v4.1."""
     return not record.changed or named_in(prompt, record, folded)
+
+
+# ---- a continuation at a session's first prompt (ROADMAP C8) ----------------------------------
+
+# "Let's continue with the shipping labels." names no file, so the v5 gate keeps every record
+# that changed files out, and the decider is not asked: in F2 (docs/results/2026-10-16-memory-f2)
+# 12 of 48 Sonnet arms got session 1's record only at a file touch, 5 of them after their first
+# shell write. A session's first prompt that only says to go on gets, by code, the newest record
+# of the project's newest session (its plan's request when one of its requests states a plan),
+# if younger than CONTINUE_DAYS. The decider's question and the cases that ask it do not change.
+# Replayed free on 2026-10-16: on F2's 72 S arms the record comes at the prompt in all 72 (54
+# before), with the same decider calls (54) and no new question. On the 909 SWE-chat first
+# prompts of docs/results/2026-10-16-memgate-hook the cue fires on 8, each one asking to go on
+# (three a bare "resume", four about the last or a previous session, one "vamos continuar a fase
+# 2"): the record given is labelled related on 1 and unrelated on 7, by labels from file changes
+# that cannot credit a record that only carries the plan; 7 of 909 is the most this adds to the
+# hook's false alarms there.
+CONTINUE_MAX = 240  # characters: a continuation is a line, not a brief
+CONTINUE_DAYS = 7.0
+_FILLER = (
+    r"(?:(?:ok(?:ay)?|so|now|ready|alright|right|great|good|thanks|please|claude|hey|hi|hello|"
+    r"howdy|vale|bueno|venga|bien|gracias|hola)\b[\s,.!:;-]*)*"
+)
+_OPEN = r"(?:(?:let'?s|lets|we can|can you|could you|please|shall we|vamos(?: a)?|podemos)\s+)?"
+_GO_ON = (
+    r"(?:continue|continuing|carry on|keep going|resume|pick (?:it |this |things )?(?:back )?up|"
+    r"go on|seguimos|sigamos|continuemos|continuamos|contin[uú]a|continuar|retomamos|retomemos|"
+    r"retoma)\b"
+)
+_CONTINUE = re.compile(rf"^\W*{_FILLER}{_OPEN}{_GO_ON}", re.IGNORECASE)
+_LEFT_OFF = re.compile(
+    r"\bwhere (?:we|you|i) (?:left off|stopped)\b|\b(?:last|previous) session\b|\bnext step\b|"
+    r"\bdonde lo dejamos\b|\b(?:[úu]ltima|anterior) sesi[óo]n\b|\bsiguiente paso\b",
+    re.IGNORECASE,
+)
+
+
+def continuation(prompt: str) -> bool:
+    """The prompt only says to go on: it opens with "continue", "let's carry on", "resume",
+    "seguimos"... or asks where the last session left off. A slash command, a brief longer than
+    CONTINUE_MAX, or "continue" further in ("fix the continue statement") is not."""
+    text = prompt.strip()
+    if not text or len(text) > CONTINUE_MAX or text.startswith("/"):
+        return False
+    return bool(_CONTINUE.search(text) or _LEFT_OFF.search(text))
+
+
+def continue_on() -> bool:
+    return str(_env.get("MEMORY_CONTINUE", "") or "on").strip().lower() not in ("off", "0")
+
+
+def continue_days() -> float:
+    try:
+        days = float(_env.get("MEMORY_CONTINUE_DAYS", "") or CONTINUE_DAYS)
+    except ValueError:
+        return CONTINUE_DAYS
+    return days if days > 0 else CONTINUE_DAYS
+
+
+def continued(prompt: str, pool: Sequence[ep.Episode], now: float) -> ep.Episode | None:
+    """The record a continuation gets: of the newest session in `pool`, its newest request that
+    states a plan (`memory_rules.plan_in`), else its newest request; none when the newest record
+    is older than CONTINUE_DAYS or has no time."""
+    if not pool or not continuation(prompt):
+        return None
+    from .memory_rules import plan_in  # not at import: the touch imports this module
+
+    def order(e: ep.Episode) -> tuple[float, str, int]:
+        return (e.at, e.session, e.index)
+
+    newest = max(pool, key=order)
+    if not newest.at or now - newest.at > continue_days() * 86_400:
+        return None
+    same = [e for e in pool if e.session == newest.session]
+    return max([e for e in same if plan_in(e.request)] or [newest], key=order)
 
 
 def candidates(prompt: str, pool: Sequence[ep.Episode], k: int = K) -> list[ep.Episode]:
@@ -215,6 +291,28 @@ async def _choose(
     return chosen, {**row, "probabilities": probabilities, **read}
 
 
+async def _picked(
+    squire: Squire | None, prompt: str, found: Sequence[ep.Episode], row: dict[str, Any]
+) -> tuple[list[ep.Episode] | None, dict[str, Any]]:
+    """(the records the name gate and the decider choose, or None with the row saying why;
+    `timed_out` when `_choose` has logged it)."""
+    if not found:
+        return None, {**row, "reason": "no candidate"}
+    gated = row["mode"] == "decider" and row["prompt_mode"] == "first" and gate_named()
+    folded = _fold(prompt)
+    if gated and not any(gate_passes(prompt, e, folded) for e in found):
+        return None, {**row, "reason": "the prompt names no file a candidate changed"}
+    picked = await _choose(squire, prompt, found, row)
+    if picked is None:
+        return None, {**row, "timed_out": True}
+    chosen, row = picked
+    if gated:  # judged together, as measured; the gate only drops what it can name or not
+        dropped = [e.key for e in chosen if not gate_passes(prompt, e, folded)]
+        chosen = [e for e in chosen if e.key not in dropped]
+        row = {**row, "gate_dropped": dropped}
+    return chosen, row
+
+
 async def recall(event: Mapping[str, Any], squire: Squire | None = None) -> dict[str, Any]:
     from ..redact import redact_secrets
 
@@ -257,24 +355,22 @@ async def recall(event: Mapping[str, Any], squire: Squire | None = None) -> dict
         return {}
     shown_before = mh.shown_since_compaction(store, session, boundaries)
     pool = pool_of(ep.load(store), session, live, shown_before)
+    # A continuation, at the session's very first request only (not after a compaction, where
+    # Claude Code's summary carries the work, and not mid-session).
+    first = known and requests == 0 and continue_on()
+    carried = continued(prompt, pool, time.time()) if first else None
     found = candidates(prompt, pool, mh._int("MEMORY_K", K))
-    row = {**row, "pool": len(pool), "candidates": [e.key for e in found]}
-    if not found:
-        mh._log({**row, "reason": "no candidate"})
+    row = {**row, "pool": len(pool), "candidates": [e.key for e in found],
+           **({"continued": carried.key} if carried else {})}  # fmt: skip
+    chosen, row = await _picked(squire, prompt, found, row)
+    if carried is not None:  # first, so the cap never leaves it out
+        chosen = [carried, *(e for e in chosen or () if e.key != carried.key)]
+    timed_out = bool(row.get("timed_out"))
+    row = {k: v for k, v in row.items() if k != "timed_out"}
+    if chosen is None:
+        if not timed_out:  # `_choose` logged a timeout itself
+            mh._log(row)
         return {}
-    gated = row["mode"] == "decider" and row["prompt_mode"] == "first" and gate_named()
-    folded = _fold(prompt)
-    if gated and not any(gate_passes(prompt, e, folded) for e in found):
-        mh._log({**row, "reason": "the prompt names no file a candidate changed"})
-        return {}
-    picked = await _choose(squire, prompt, found, row)
-    if picked is None:
-        return {}
-    chosen, row = picked
-    if gated:  # judged together, as measured; the gate only drops what it can name or not
-        dropped = [e.key for e in chosen if not gate_passes(prompt, e, folded)]
-        chosen = [e for e in chosen if e.key not in dropped]
-        row = {**row, "gate_dropped": dropped}
     text, shown = render(chosen, mh._int("MEMORY_CHARS", CHARS))
     mh._log({**row, "shown": shown, "chars": len(text)})
     if not text:
