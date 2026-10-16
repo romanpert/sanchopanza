@@ -236,6 +236,39 @@ def passages_events(call: int) -> None:
             out.write(json.dumps({"ts": "2026-10-07T00:00:00+00:00", **event}) + "\n")
 
 
+def guard_commands(event: str) -> list[str]:
+    """The guard-hook commands of the project settings for `event` (PreCompact, SessionStart)."""
+    settings = Path(".claude", "settings.json")
+    data = json.loads(settings.read_text("utf-8")) if settings.exists() else {}
+    return [
+        str(hook.get("command", ""))
+        for entry in data.get("hooks", {}).get(event, [])
+        for hook in entry.get("hooks", [])
+        if "guard-hook" in str(hook.get("command", ""))
+    ]
+
+
+def run_guard_hooks(session: str, transcript: Path) -> None:
+    """FAKE_RUN_GUARD=1: at a compaction, run the install's own guard hooks as Claude Code does
+    (PreCompact, then SessionStart with source `compact`, the settings' `env` block in their
+    environment), through the runner's `hook_env.py`, so a dry run exercises the real chooser,
+    its log and its archive. Their output is not used."""
+    import subprocess
+
+    settings = Path(".claude", "settings.json")
+    data = json.loads(settings.read_text("utf-8")) if settings.exists() else {}
+    env = {**os.environ, **{k: str(v) for k, v in (data.get("env") or {}).items()}}
+    base = {"session_id": session, "transcript_path": str(transcript), "cwd": os.getcwd()}
+    for event, extra in (
+        ("PreCompact", {"trigger": "auto"}),
+        ("SessionStart", {"source": "compact"}),
+    ):
+        payload = json.dumps({**base, "hook_event_name": event, **extra})
+        for command in guard_commands(event):
+            subprocess.run(command, shell=True, input=payload, capture_output=True, text=True,
+                           timeout=120, env=env)  # fmt: skip
+
+
 def run_call(argv: list[str]) -> int:
     config = Path(os.environ["CLAUDE_CONFIG_DIR"])
     state = load_state(config)
@@ -264,6 +297,8 @@ def run_call(argv: list[str]) -> int:
     usages = replay(call, session, model, transcript, installed)
     debug_lines(option(argv, "--debug-file"), usages, window(model, config) - OUTPUT_RESERVE)
     if kind == "compact":
+        if os.environ.get("FAKE_RUN_GUARD") == "1":
+            run_guard_hooks(session, transcript)
         pre = int(os.environ.get("FAKE_COMPACT_PRE") or 160_500)
         emit({"type": "system", "subtype": "compact_boundary", "session_id": session,
               "compact_metadata": {"trigger": "auto", "pre_tokens": pre,

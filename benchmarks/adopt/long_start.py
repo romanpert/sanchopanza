@@ -44,6 +44,18 @@ def start_refusal(ctx: Any, names: list[str], known: Mapping[str, Any],
     return ""
 
 
+QUIET = (0, 8)  # no chain starts in these hours: past midnight, and Windows Update's 02:00-08:00
+
+
+def quiet_refusal(profile: Any, allow: bool, now: dt.datetime | None = None) -> str:
+    """A day-only profile (the guard-pointers lot) starts no chain between 00:00 and 08:00:
+    Windows Update restarts the PC in 02:00-08:00 (the close-out lost a call to it at 05:04)."""
+    hour = (now or dt.datetime.now()).hour
+    if getattr(profile, "day_only", False) and not allow and QUIET[0] <= hour < QUIET[1]:
+        return f"no chain starts between {QUIET[0]:02d}:00 and {QUIET[1]:02d}:00 (Windows Update)"
+    return ""
+
+
 def midnight_refusal(profile: Any, model: str, allow: bool) -> str:
     hours = profile.hours.get(model, 4.0) * len(profile.arms)
     if not allow and long_guard.crosses_midnight(dt.datetime.now(), hours):

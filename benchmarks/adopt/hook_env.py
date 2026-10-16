@@ -27,6 +27,12 @@ SESSION_MAX_USD = "0.10"  # Jev, per Claude Code session (phases A and B)
 # 0.10 held for the whole resumed session, and past it the hooks failed open in silence
 # (long-session pre-mortem, f).
 CEILING_VAR = "ADOPT_JEV_MAX_USD"
+# The guard-pointers lot (docs/results/2026-10-16-guard-pointers): its arms are the default install,
+# whose pointer guard archives one-shot output beside the project (`<cwd>/.sanchopanza/archive`)
+# and tells the agent to Read it there. With this variable set to 1 the archive is left where the
+# install puts it (not the evidence folder, outside the agent's working copy), and the guard's own
+# log (`SANCHOPANZA_GUARD_LOG`: chooser and block size per compaction) goes to the evidence.
+GUARD_LOT_VAR = "ADOPT_GUARD_LOT"
 
 
 def environment(
@@ -37,6 +43,9 @@ def environment(
     source = os.environ if base is None else base
     env = {k: v for k, v in source.items() if not k.startswith(("ANTHROPIC_", "TYPESAFE_"))}
     key = keyfile.read_text(encoding="utf-8").strip() if keyfile.exists() else ""
+    lot = source.get(GUARD_LOT_VAR) == "1"
+    archive = ({"SANCHOPANZA_GUARD_LOG": str(evidence / "guard.jsonl")} if lot else
+               {"SANCHOPANZA_ARCHIVE": str(evidence / "archive")})  # fmt: skip
     return {**env, "SANCHOPANZA_JOURNAL": str(evidence / "journal.jsonl"),
             "SANCHOPANZA_GUARD_DIR": str(evidence / "guard"),
             "SANCHOPANZA_SESSION_MAX_USD": source.get(CEILING_VAR) or SESSION_MAX_USD,
@@ -47,8 +56,7 @@ def environment(
             # The S line's other state, per session too (S-SEAL-DRAFT: else ~/.sancho)
             "SANCHOPANZA_CRAWL_DIR": str(evidence / "crawl"),
             "SANCHOPANZA_FETCH_DIR": str(evidence / "fetch"),
-            "SANCHOPANZA_ARCHIVE": str(evidence / "archive"),
-            **({"TYPESAFE_API_KEY": key} if key else {})}  # fmt: skip
+            **archive, **({"TYPESAFE_API_KEY": key} if key else {})}  # fmt: skip
 
 
 def main(argv: list[str]) -> int:

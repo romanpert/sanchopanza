@@ -61,12 +61,13 @@ import long_call  # noqa: E402
 import long_guard  # noqa: E402
 import long_money  # noqa: E402
 import long_pilot  # noqa: E402
+import long_pointers  # noqa: E402
 import long_resume  # noqa: E402
 import long_window  # noqa: E402
 import meter  # noqa: E402
 import run  # noqa: E402
 from long_money import blocks, ceiling_of, held, rows_under, spent  # noqa: E402,F401
-from long_start import midnight_refusal, start_refusal  # noqa: E402
+from long_start import midnight_refusal, quiet_refusal, start_refusal  # noqa: E402
 
 sys.path.insert(0, str(HERE.parents[1] / "src"))
 from sanchopanza.harness.install_defaults import window_for  # noqa: E402
@@ -128,9 +129,28 @@ COMPACT_CONAN2_CEILING = 45.0
 # request past the threshold. Outside these bounds the arm is not the registered treatment.
 LOW_PRE = (50_000, 110_000)  # a compaction's `pre` tokens
 LOW_PEAK = 110_000  # a call's peak context (a window that never took: N passes it by call ~8-15)
+# The guard-pointers lot (owner, 2026-10-16; docs/results/2026-10-16-guard-pointers/prereg.md):
+# P, the default install (pointer guard), against F, the same install with --guard-full, no
+# decider key in either (`long_pointers`). Sonnet 5.5, one run per arm and chain, the five valid
+# long60 chains in the close-out's order, the close-out's caps: 4.50 a call, 25 a run (no call
+# starts past ~18.9: the cap and one turn at the 193k window are held), 5 x 2 x 25 = 250 hard.
+GUARDPTR_CHAINS = (*COMPACT_CHAINS, *COMPACT_FIFTH)
+GUARDPTR_CHAIN_CAP = 25.0
+GUARDPTR_CEILING = 250.0
+# The smaller design the prereg also prices (not the registered one unless the owner picks it
+# before the seal): the first 30 bugs of each chain (32 requests; N-early spent 6.89-12.82 on
+# them), 18 a run (no call starts past ~11.9), 5 x 2 x 18 = 180 hard.
+GUARDPTR30_BUGS = 30
+GUARDPTR30_CHAIN_CAP = 18.0
+GUARDPTR30_CEILING = 180.0
+# Its smoke: Haiku, 3 bugs of pydantic-1, both arms at --context-budget 67000 so that they compact
+# (the guard is what the smoke checks), 1 a call, 4 a run (no call starts past ~2.6), 8 hard.
+GUARDPTR_SMOKE_CHAIN_CAP = 4.0
+GUARDPTR_SMOKE_CEILING = 8.0
 SMOKE_CHAIN = "pydantic__pydantic-long60-1"  # validated first; Haiku, 3 bugs, its own root
 MANIFESTS = HERE / "long60"  # long60/<chain>.json, written by `long.py manifests` once valid
 JEV_MAX_USD = 0.50  # per chain (pre-mortem 15)
+NULL_DECIDER = "NullDecider"  # what a keyless profile's hooks must build (no Jev, nothing paid)
 HOOK_ERRORS = 0.05  # hook calls ending in error, at most this share of a call's
 
 
@@ -152,6 +172,8 @@ class Profile:
     forced_timeouts: tuple[tuple[str, int, float], ...] = ()  # (arm, request, seconds)
     hours: Mapping[str, float] = field(default_factory=dict)  # expected per arm (midnight rule)
     choices: tuple[str, ...] = ()  # arms `--arms` may run instead of `arms`
+    keyless: bool = False  # installed arms with no decider key: the null decider, never Jev
+    day_only: bool = False  # no chain starts between 00:00 and 08:00 (long_start.quiet_refusal)
     # Stops that end one arm only: the run goes on with the next arm and chain (the close-out runs
     # ten arms under one root; a run stopped by its own cap is compared on its common calls).
     local_stops: tuple[str, ...] = ()
@@ -221,6 +243,20 @@ PROFILES = {
                               {"sonnet": COMPACT_CONAN2_CAP}, COMPACT_CONAN2_CEILING,
                               COMPACT_CONAN2, hard_cap=COMPACT_CONAN2_CEILING,
                               hours={"sonnet": 1.6}, local_stops=("cap", "wall")),
+    "guardptr": Profile("guardptr", ("P", "F"), ("sonnet",), {"sonnet": GATE_CALL_CAP["sonnet"]},
+                        {"sonnet": GUARDPTR_CHAIN_CAP}, GUARDPTR_CEILING, GUARDPTR_CHAINS,
+                        hard_cap=GUARDPTR_CEILING, hours={"sonnet": 1.7},
+                        local_stops=("cap", "wall"), keyless=True, day_only=True),
+    "guardptr-30": Profile("guardptr-30", ("P", "F"), ("sonnet",),
+                           {"sonnet": GATE_CALL_CAP["sonnet"]}, {"sonnet": GUARDPTR30_CHAIN_CAP},
+                           GUARDPTR30_CEILING, GUARDPTR_CHAINS, hard_cap=GUARDPTR30_CEILING,
+                           bugs=GUARDPTR30_BUGS, hours={"sonnet": 1.0},
+                           local_stops=("cap", "wall"), keyless=True, day_only=True),
+    "guardptr-smoke": Profile("guardptr-smoke", ("P", "F"), ("haiku",), {"haiku": 1.0},
+                              {"haiku": GUARDPTR_SMOKE_CHAIN_CAP}, GUARDPTR_SMOKE_CEILING,
+                              (SMOKE_CHAIN,), hard_cap=GUARDPTR_SMOKE_CEILING, bugs=3,
+                              budget=67_000, hours={"haiku": 0.5}, keyless=True,
+                              day_only=True),
 }  # fmt: skip
 
 
@@ -268,6 +304,7 @@ class ArmState:
     journal_lines: int = 0
     decisions: tuple[Mapping[str, Any], ...] = ()
     hook_lines: int = 0
+    guard_lines: int = 0  # lines of the guard's log (P and F) accounted so far
     context: int = 0  # the last call's peak context (how big the next first turn may be)
     window: int | None = None  # the window the session reported
 
@@ -291,7 +328,9 @@ def arm_spec(arm: str, profile: Profile) -> run.Arm:
         return run.Arm((*S_FLAGS, "--context-budget", str(profile.budget)), env=S_ENV)
     if arm in long_pilot.ARMS:
         return long_pilot.arm_spec(arm)
-    raise SystemExit(f"unknown arm {arm}: N, Ne, Nl, S, A or A10")
+    if arm in long_pointers.GUARD_ARMS:  # the default install, its guard pointers or full
+        return run.Arm(long_pointers.install_flags(arm, profile.budget))
+    raise SystemExit(f"unknown arm {arm}: N, Ne, Nl, S, A, A10, P or F")
 
 
 def installed(arm: str, profile: Profile) -> bool:
@@ -402,9 +441,10 @@ def assemble(ctx: Ctx, chain: Mapping[str, Any], arm: str, evidence: Path, work:
     servers = tuple(json.loads((work / ".mcp.json").read_text(encoding="utf-8"))
                     .get("mcpServers", {}))  # fmt: skip
     env = {**carry.environment(config, base=run.child_env(chain["tag"], base)),
-           "ADOPT_LABEL": f"{name}-{arm}", "ADOPT_JEV_MAX_USD": f"{JEV_MAX_USD:.2f}"}
+           "ADOPT_LABEL": f"{name}-{arm}", "ADOPT_JEV_MAX_USD": f"{JEV_MAX_USD:.2f}",
+           **(dict([long_pointers.LOT_ENV]) if arm in long_pointers.GUARD_ARMS else {})}
     expect = long_guard.Expect(carry.PIN, run.MODELS[ctx.model], long_call.PERMISSION_MODE,
-                               servers)  # fmt: skip
+                               servers, long_pointers.deferred_servers(work / ".mcp.json"))
     return Arm(name, arm, asked, evidence, work, config, base, work / ".mcp.json", env, expect,
                tuple(asks_of(asked)))  # fmt: skip
 
@@ -477,8 +517,8 @@ def resume(ctx: Ctx, chain: Mapping[str, Any], arm: str, row: Mapping[str, Any]
     state = ArmState(long_resume.session_of(rows), long_resume.usage_of(rows),
                      long_resume.seen_of(rows), docker_env.agent_diff(work, a.base),
                      _lines(journal), tuple(long_guard.decisions(journal)),
-                     _lines(hooks), long_resume.context_of(rows),
-                     long_resume.window_of(rows))  # fmt: skip
+                     _lines(hooks), _lines(evidence / long_pointers.GUARD_LOG),
+                     long_resume.context_of(rows), long_resume.window_of(rows))  # fmt: skip
     k = long_resume.next_request(rows)
     dead = long_resume.dead_stream(evidence, k, rows) if k <= len(a.asks) else None
     if dead is None:
@@ -623,7 +663,7 @@ def settle(ctx: Ctx, a: Arm, k: int, ask: Mapping[str, Any],
            "streams": attempt.get("streams") or [attempt["stream"].name],
            **money, **s_facts, "usage_after": dict(state.usage),
            "metered_ids": sorted(state.seen - seen_before)}  # fmt: skip
-    row = {**row, "breaks": list(call_breaks(a, row, attempt, state))}
+    row = {**row, "breaks": list(call_breaks(a, row, attempt, state, ctx.profile))}
     stop = stop_of(ctx, a, row, attempt)
     return replace(state, diff=attempt["diff"], context=int(row.get("peak_context") or 0) or
                    state.context, window=(attempt["window"] or {}).get("window") or
@@ -668,20 +708,30 @@ def s_arm_facts(a: Arm, state: ArmState) -> tuple[dict[str, Any], ArmState]:
              "hook_errors": errors, **(long_pilot.call_facts(journal, state.journal_lines)
                                        if a.arm in long_pilot.ARMS else {})}  # fmt: skip
     total_hooks = state.hook_lines + len(hook_rows)
+    if a.arm in long_pointers.GUARD_ARMS:  # the guard's own log: chooser and size per compaction
+        guard = long_pointers.guard_rows(a.evidence, state.guard_lines)
+        facts = {**facts, "guard": long_pointers.guard_facts(guard)}
+        state = replace(state, guard_lines=state.guard_lines + len(guard))
     return facts, replace(state, journal_lines=len(lines), hook_lines=total_hooks,
                           decisions=(*state.decisions, *new))  # fmt: skip
 
 
 def call_breaks(a: Arm, row: Mapping[str, Any], attempt: Mapping[str, Any],
-                state: ArmState) -> tuple[str, ...]:  # fmt: skip
+                state: ArmState, profile: Profile | None = None) -> tuple[str, ...]:  # fmt: skip
     """Invariants the call broke; any one stops the arm and writes the STOP file."""
     out = list(long_guard.init_breaks(row["init"], a.expect)) if not attempt["cut"] else []
     if long_guard.diff_vanished(state.diff, attempt["diff"]):
         out.append("the diff came back empty after a non-empty one (pre-mortem 13)")
-    if a.arm != "N" and long_guard.jev_outage(list(state.decisions)):
+    if profile is not None and profile.keyless:  # null decider only: another is a paid call
+        out.extend(long_pointers.keyless_breaks(list(state.decisions)))
+    elif a.arm != "N" and long_guard.jev_outage(list(state.decisions)):
         out.append("Jev: the first decisions all failed or null (pre-mortem 15)")
     if a.arm == "Nl":
         out.extend(low_window_breaks(row))
+    if a.arm in long_pointers.GUARD_ARMS:
+        budget = profile.budget if profile is not None else long_pointers.DEFAULT_BUDGET
+        out.extend([*long_pointers.window_breaks(row, budget),
+                    *long_pointers.guard_breaks(a.arm, row)])  # fmt: skip
     hooks = row.get("hook_calls", 0)
     if hooks and row.get("hook_errors", 0) / hooks > HOOK_ERRORS:
         out.append(f"hooks: {row['hook_errors']} of {hooks} calls ended in error")
@@ -768,9 +818,14 @@ def load_chains(path: Path | None) -> dict[str, Any]:
 
 
 def keyfile_for(profile: Profile, layout: Layout) -> Path | None:
-    """The TypeSafe key for S's hooks, written under the root and removed at the end."""
+    """The TypeSafe key for S's hooks, written under the root and removed at the end; an empty
+    file for a keyless profile (its hooks build the null decider; no key is read at all)."""
     if not any(installed(arm, profile) for arm in profile.arms):
         return None
+    if profile.keyless:
+        path = layout.root / f"no-key-{os.getpid()}.key"
+        path.write_text("", encoding="utf-8")
+        return path
     key = carry.from_harness_env("TYPESAFE_API_KEY")
     if not key:
         raise SystemExit("no TypeSafe key: the S arm would run without its decider")
@@ -785,7 +840,8 @@ def run_all(ctx: Ctx, names: list[str], known: Mapping[str, Any], models: list[s
     for model in models:
         c = replace(ctx, model=model)
         for name in names:
-            if why := midnight_refusal(ctx.profile, model, allow_midnight):
+            if why := (midnight_refusal(ctx.profile, model, allow_midnight)
+                       or quiet_refusal(ctx.profile, allow_midnight)):
                 log(f"{name} {model}: refused: {why}")
                 return 1
             log(f"{name} {model}: start, spent so far {spent(ctx.layout):.2f} USD")
@@ -824,8 +880,9 @@ def main(argv: list[str] | None = None) -> int:
         # Free (no question is sent). "JevDecider from <path>" is an editable install; the
         # launcher holds the paid runs to a frozen copy (`long_launch.frozen_sancho`).
         found = run.decider_probe(ctx.keyfile) if ctx.keyfile else run.HELD_DECIDER
-        if found.split(" ", 1)[0] != run.HELD_DECIDER:
-            log(f"refused: S's hooks would build {found}, not {run.HELD_DECIDER} ({run.SANCHO})")
+        wanted = NULL_DECIDER if ctx.keyfile and profile.keyless else run.HELD_DECIDER
+        if found.split(" ", 1)[0] != wanted:
+            log(f"refused: the hooks would build {found}, not {wanted} ({run.SANCHO})")
             return 1
         return run_all(ctx, names, known, models, args.allow_midnight)
     finally:
