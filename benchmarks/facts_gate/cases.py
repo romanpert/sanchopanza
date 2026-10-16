@@ -33,12 +33,15 @@ from typing import Any
 HERE = pathlib.Path(__file__).resolve().parent
 OUT = HERE / "cases.jsonl"
 SEED = 20261016
+# Sized for power (prereg.md, "Power"): 600 `unrelated`, 560 of them the same-entity shape where
+# the band lives, so the gate's added verdicts number about 56-75; `agree` and `conflict` keep
+# the 40/30/30 mix, so the added verdicts' precision is read against the same mix as before.
 SHAPES = (
-    ("unrelated", "same", 150),
-    ("unrelated", "twin", 50),
-    ("agree", "restated", 75),
-    ("agree", "detail", 75),
-    ("conflict", "values", 150),
+    ("unrelated", "same", 560),
+    ("unrelated", "twin", 40),
+    ("agree", "restated", 225),
+    ("agree", "detail", 225),
+    ("conflict", "values", 450),
 )
 HEADS = ("Val", "Mor", "Tar", "Bel", "Cas", "Ner", "Ost", "Lum", "Ar", "Quin", "Fer", "Sal")
 TAILS = ("dera", "mosa", "illa", "ena", "ueda", "aral", "onte", "ima", "orca", "ada")
@@ -274,16 +277,20 @@ def one(rng: random.Random, label: str, shape: str, lang: str, pool: list[str]) 
 
 def build(seed: int = SEED) -> list[dict[str, Any]]:
     rng = random.Random(seed)
-    pool = places(rng, 60)
+    pool = places(rng, len(HEADS) * len(TAILS))
     plan = [(label, shape) for label, shape, n in SHAPES for _ in range(n)]
     rng.shuffle(plan)
     cases = []
+    seen: set[frozenset[str]] = set()
     for i, (label, shape) in enumerate(plan):
         lang = "es" if i % 2 == 0 else "en"
         case = one(rng, label, shape, lang, pool)
+        while frozenset((case["a"], case["b"])) in seen:  # no pair twice, in either order
+            case = one(rng, label, shape, lang, pool)
+        seen.add(frozenset((case["a"], case["b"])))
         cases.append(
             {
-                "id": f"fg-{i + 1:03d}",
+                "id": f"fg-{i + 1:04d}",
                 "point": "facts",
                 "input": {"fact_a": case["a"], "fact_b": case["b"]},
                 "expected": label,

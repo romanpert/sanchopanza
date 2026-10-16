@@ -1,5 +1,5 @@
 @echo off
-rem A5 paid lot (Jev only, about 0.015-0.036 USD, hard cap 0.10 in the ledger), sealed in
+rem A5 paid lot (Jev only, about 0.04-0.11 USD, hard cap 0.15 in the ledger), sealed in
 rem docs/results/2026-10-16-a5-unrelated/prereg.md: prereg.sha256 holds the sha256 of this file
 rem with the two values below read as placeholders. Run it from the detached worktree at the
 rem sealed commit, outside the Claude Code session (WMI), once; run.py allows one relaunch, none

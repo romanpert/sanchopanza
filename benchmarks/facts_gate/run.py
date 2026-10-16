@@ -4,6 +4,7 @@ Pre-registered in `docs/results/2026-10-16-a5-unrelated/prereg.md`.
 
     python benchmarks/facts_gate/run.py free     # free: derive the gate, see it on graph-e
     python benchmarks/facts_gate/run.py dry      # free: the calls of the constructed batch, priced
+    python benchmarks/facts_gate/run.py power    # free: the probability each verdict comes out
     python benchmarks/facts_gate/run.py seal     # sha256 of prereg.md and the launcher, once
     python benchmarks/facts_gate/run.py paid     # Jev, through a5-unrelated-run.cmd only
     python benchmarks/facts_gate/run.py report   # free once recorded: the verdict
@@ -34,6 +35,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import math
 import pathlib
 import sys
 from typing import Any
@@ -76,14 +78,14 @@ MIN_ADDED = 16  # 16 of 16 is the fewest added verdicts whose Wilson lower bound
 MODEL = "jev-1.13.0"
 COSTLY = {"agree", "conflict"}
 GATE_UNDER_TEST = 0.65  # derived by `derive` on the recordings, written in prereg.md
-CASES_SHA256 = "a219ba794172621e2877f8492df34bdd8b7391421215bed7cb8dc52e24039b53"
+CASES_SHA256 = "2673a2529751d5349841be74aa0664a8da9c7504ec379683107fe04fe4d8ab3e"
 LOT = paid_once.Lot(
     name="a5-unrelated",
     prereg=PREREG,
     launcher=ROOT / "a5-unrelated-run.cmd",
     fixture=FIXTURE,
     model=MODEL,
-    cap_usd=0.10,  # hard, in the ledger at ~/.cache/sanchopanza/a5-unrelated/ (fixed path)
+    cap_usd=0.15,  # hard, in the ledger at ~/.cache/sanchopanza/a5-unrelated/ (fixed path)
     instrument=(
         "src",
         "benchmarks/paid_once.py",
@@ -195,6 +197,39 @@ async def free() -> dict[str, Any]:
     }
 
 
+def _binom(n: int, k: int, p: float) -> float:
+    return math.comb(n, k) * p**k * (1 - p) ** (n - k)
+
+
+def p_beats(units: int, band: float, precision: float) -> float:
+    """P(rule 2 says "beats") when each of `units` cases lands in the band with probability
+    `band` and each added verdict is right with probability `precision` (no missed conflict)."""
+    total = 0.0
+    for n in range(MIN_ADDED, units + 1):
+        pn = _binom(units, n, band)
+        if pn < 1e-12:
+            continue
+        need = next((k for k in range(n + 1) if wilson_lower(k, n) >= TARGET), None)
+        if need is not None:
+            total += pn * sum(_binom(n, j, precision) for j in range(need, n + 1))
+    return total
+
+
+def power_table(units: int) -> list[dict[str, Any]]:
+    """The prereg's power: bands from the conservative 8 % to the recorded 12.5 %."""
+    return [
+        {
+            "band": band,
+            "added_expected": round(units * band, 1),
+            "p_undecided": round(sum(_binom(units, n, band) for n in range(MIN_ADDED)), 4),
+            **{
+                f"p_beats_at_{p:.2f}": round(p_beats(units, band, p), 3) for p in (0.80, 0.93, 0.95)
+            },
+        }
+        for band in (0.08, 0.10, 0.125)
+    ]
+
+
 def verdict(rows: list[dict[str, Any]], gate: float | None) -> dict[str, Any]:
     """The sealed rule (prereg.md), on the constructed batch."""
     if gate is None:
@@ -233,9 +268,15 @@ async def report(gate: float | None) -> dict[str, Any]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("action", choices=("free", "dry", "seal", "paid", "report"))
+    ap.add_argument("action", choices=("free", "dry", "power", "seal", "paid", "report"))
     args = ap.parse_args()
     RESULTS.mkdir(parents=True, exist_ok=True)
+    if args.action == "power":
+        same = sum(c["shape"] == "same" for c in load_cases([CASES]))
+        unrelated = sum(c["expected"] == "unrelated" for c in load_cases([CASES]))
+        table = {"same_entity_only": power_table(same), "all_unrelated": power_table(unrelated)}
+        print(json.dumps(table, indent=1))
+        return 0
     if args.action == "seal":
         print(paid_once.seal(LOT))
         return 0

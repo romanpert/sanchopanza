@@ -46,14 +46,18 @@ def test_the_committed_batch_is_the_seeded_one_and_its_hash_holds():
 
 def test_the_batch_mix_is_the_registered_one():
     built = cases.build()
-    assert len(built) == 500
+    assert len(built) == 1500
     labels = [c["expected"] for c in built]
     assert (labels.count("unrelated"), labels.count("agree"), labels.count("conflict")) == (
-        200,
-        150,
-        150,
+        600,
+        450,
+        450,
     )
-    assert len({c["id"] for c in built}) == 500
+    shapes = [c["shape"] for c in built]
+    assert (shapes.count("same"), shapes.count("twin")) == (560, 40)
+    assert len({c["id"] for c in built}) == 1500
+    pairs = {frozenset((c["input"]["fact_a"], c["input"]["fact_b"])) for c in built}
+    assert len(pairs) == 1500  # no pair twice, in either order
     assert {c["lang"] for c in built} == {"es", "en"}
 
 
@@ -140,6 +144,15 @@ def test_the_target_is_compared_unrounded():
     rows = _rows([("unrelated", None, 0.70)] * 60 + [("agree", None, 0.70)] * 7)
     assert round(run.wilson_lower(60, 67), 3) == 0.8 > run.wilson_lower(60, 67)
     assert run.verdict(rows, 0.65)["verdict"] == "the gate does not beat the shipped policy"
+
+
+def test_the_registered_power_is_what_the_batch_gives():
+    (low, mid, high) = run.power_table(560)  # the same-entity pairs only: the conservative count
+    assert (low["band"], mid["band"], high["band"]) == (0.08, 0.10, 0.125)
+    assert high["added_expected"] == 70.0 and high["p_undecided"] == 0.0
+    assert high["p_beats_at_0.93"] >= 0.85 and high["p_beats_at_0.80"] <= 0.02
+    assert low["p_beats_at_0.93"] < mid["p_beats_at_0.93"] < high["p_beats_at_0.93"]
+    assert run.power_table(200)[2]["p_beats_at_0.93"] < 0.35  # the first draft: a coin flip
 
 
 class OneCase:
