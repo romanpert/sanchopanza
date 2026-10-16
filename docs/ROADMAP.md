@@ -25,7 +25,7 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 | C4 | A5's `unrelated_at=0.65` on written text with fa-17-type pairs | low-medium | Jev 0.035 USD | **done**: 66 added verdicts, all right (Wilson 0.945); 0.65 is the default since 0.3.2 |
 | C5 | `select_passages(fit_score=False)` against page order on fresh questions | low-medium | Jev 1.371 USD (C5b) | **done via C5b**: the free order confirmed over page order at 3,400 characters, +16.4 [+11.0, +21.9]; `fit_score=False` is the default since 0.3.2 |
 | C6 | Closing Spanish's 3-6 points in page triage and passages | low | Jev (~0.2 USD pages, ~2.5 USD documents per arm) | idea, from B6 |
-| C11 | The pointer guard's quality on long code: Sonnet 5.5 long60 chains, `pointers` against `--guard-full`, interleaved | medium | Claude (design A: 5 chains x 2 arms, non-inferiority at −5 points; about 185-200 USD expected at list price, 250 hard cap) | open, prereg under `revisor-prereg` review |
+| C11 | The pointer guard's quality on long code: Sonnet 5.5 long60 chains, `pointers` against `--guard-full`, interleaved | medium | Claude (design A: 5 chains x 2 arms, non-inferiority at −5 points; about 185-200 USD expected at list price, 250 hard cap) | **sealed** (`510a5c6`, instrument `8341b6c`); Haiku smoke passed; to launch (08:05, ~11 h). Before launching: its row writer has no fsync (fixed on main in 0.3.2) — reseal with the fix or shadow-copy `row.json` |
 | C3 | `redundant_page` under 1.14 with a cut bounded from below, on new cases | low | free (cases) + Jev (~0.03-0.05 USD) | open, from redundant-drop |
 | A4 | Cells not run by decision (code on Sonnet and Opus, Fable, S2, Ne against Ne+A) | low (owner's decision) | Claude: see below | memory F2 **run**; the rest not run by decision |
 | A3 | MCP tool calls pass the installed hook with no decision | medium | Jev 0.0805 USD | **done**: not confirmed; guard opt-in (`install --guard-mcp`) |
@@ -140,8 +140,14 @@ cannot check. Keep the part of each result the answer rests on, then measure aga
 stops (a new registration; about 0.3-0.5 USD of Jev at longer inputs) before the Stop hook is
 advertised beyond slack-like settings.
 
-**C8. Memory: four gaps, fixed in code, not measured live** (merge `e029489`; what changed is
-in the CHANGELOG's 0.3.2). Read from the code and from F2's logs, as they stood before the fix:
+**C8. Memory: four gaps, fixed in code; measured live on Sonnet 5.5** (merge `e029489`; what
+changed is in the CHANGELOG's 0.3.2). W17 ([memory-w17](results/2026-10-16-memory-w17/README.md), sealed `5d416fa`):
+the default user-scope install kept the plan in 48 of 48 pairs against clean Claude Code's 9,
+and with a bare "Let's continue." in 24 of 24 against 3, at 1.19x the cost [1.15, 1.24]: "S'
+better than N0; no gana (cost)". The Opus 5.5 lot was interrupted by a PC crash (its rows file
+was zero-filled; writers now fsync): no verdict. Resuming it needs a labelled amendment: the prereg's crash
+rule re-runs an arm whole but has no procedure for a lost rows file (rebuilding the rows and
+the ledger from the arms' streams would come after partial data). Read from the code and from F2's logs, as they stood before the fix:
 - A bare "continue" gets no prompt recall: the name gate passes a record only if the prompt
   names a file it changed (`harness/memory_recall.py`). In F2 the record came at the prompt in
   36 of 48 Sonnet arms and through the file touch in the other 12.
