@@ -3,7 +3,7 @@
 Status: **draft, not sealed.** Before the seal: an independent `revisor-prereg` review against
 the code, then `python -I benchmarks/b6_es/c6_window.py seal` writes `prereg.sha256` (the sha256
 of this file and of `c6-window-run.cmd`, its two local values read as placeholders).
-Instrument commit: `364c04dd5ef1350b0d45f86729ecb384b8ad1a84`.
+Instrument commit: `40097b5f13a995c4dfa67a7c026b1d461b3955ff`.
 
 ## Question
 
