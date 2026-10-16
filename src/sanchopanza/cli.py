@@ -255,6 +255,9 @@ def _install(args: argparse.Namespace) -> int:
     from .harness.install import apply, default_path, default_plugin_root, plan, project_settings
     from .harness.install_defaults import DEFAULT_BUDGET, apply_skill, skill_change
 
+    if args.memory_native and not args.memory:
+        sys.stderr.write("--memory-native rides on memory's hooks: it needs --memory\n")
+        return 2
     if args.knowledge is None:  # into the default install behind one constant
         knowledge = install_knowledge.KNOWLEDGE_DEFAULT
         args = argparse.Namespace(**{**vars(args), "knowledge": knowledge})
@@ -353,6 +356,11 @@ def _install(args: argparse.Namespace) -> int:
         return 2
     kept = f" (previous contents in {backup.name})" if backup else ""
     sys.stdout.write(f"\nwritten to {path}{kept}\n")
+    if "env: SANCHOPANZA_MEMORY_NATIVE" in settings.removed:  # the bridge off: its note out
+        from .harness.memory_native import install_config, uninstall
+
+        for gone in uninstall(install_config(path, project_settings(path))):
+            sys.stdout.write(f"removed from Claude Code's auto memory: {gone}\n")
     if _finish_mcp_json(args, mcp_change):
         return 2
     if config.scan_content:

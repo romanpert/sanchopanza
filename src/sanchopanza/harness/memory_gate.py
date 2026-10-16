@@ -72,6 +72,7 @@ from ..points import chunks
 from ..redact import redact_secrets
 from ..text import BM25Index, excerpt
 from . import memory_window as mw
+from .memory_native_index import NOTE as NATIVE_NOTE
 
 if TYPE_CHECKING:
     from ..squire import Squire
@@ -163,7 +164,8 @@ def memory_from_text(file: str, text: str, *, mtime: float = 0.0) -> Memory:
 
 
 def load_memories(directory: Path) -> tuple[Memory, ...]:
-    """Every `*.md` memory file of a directory except the index, sorted by file name.
+    """Every `*.md` memory file of a directory except the index and the memory bridge's own
+    note (`memory_native`, which repeats records the hooks hold), sorted by file name.
 
     Unreadable files are skipped, not fatal: one broken memory must not hide the others.
     """
@@ -171,7 +173,7 @@ def load_memories(directory: Path) -> tuple[Memory, ...]:
         return ()
     out: list[Memory] = []
     for path in sorted(directory.glob("*.md")):
-        if path.name == INDEX or not path.is_file():
+        if path.name in (INDEX, NATIVE_NOTE) or not path.is_file():
             continue
         try:
             text = path.read_text(encoding="utf-8", errors="replace")
@@ -188,19 +190,14 @@ def project_key(cwd: str) -> str:
 
 
 def memory_dir_for(event: Mapping[str, Any], *, home: Path | None = None) -> Path | None:
-    """The memory directory of the session that sent `event`.
+    """The auto-memory folder of the session that sent `event`, as Claude Code derives it
+    (`memory_native.auto_memory_dir`: the canonical git root's folder under the configuration
+    folder, or the folder settings move it to); None when auto memory is off or unknown."""
+    from .memory_native import auto_memory_dir  # not at import: memory_native imports git work
 
-    The transcript lives in the project directory, so its parent is the most reliable anchor
-    (the cwd can move during a session). Falls back to the cwd, then to None.
-    """
-    transcript = str(event.get("transcript_path") or "")
-    if transcript:
-        return Path(transcript).parent / "memory"
-    cwd = str(event.get("cwd") or "")
-    if cwd:
-        base = home if home is not None else Path.home()
-        return base / ".claude" / "projects" / project_key(cwd) / "memory"
-    return None
+    if not str(event.get("cwd") or ""):
+        return None
+    return auto_memory_dir(event, home=home)
 
 
 # --- pure pieces ------------------------------------------------------------------------

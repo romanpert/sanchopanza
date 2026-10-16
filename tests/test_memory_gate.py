@@ -100,9 +100,10 @@ def test_secrets_are_redacted_at_load(tmp_path):
     assert GH_TOKEN not in memory.body and "[secret]" in memory.body
 
 
-def test_memory_dir_comes_from_the_transcript_then_the_cwd(tmp_path):
-    event = {"transcript_path": str(tmp_path / "proj" / "s.jsonl"), "cwd": "c:\\x"}
-    assert mg.memory_dir_for(event) == tmp_path / "proj" / "memory"
+def test_memory_dir_is_claude_code_s_auto_memory_folder(tmp_path, monkeypatch):
+    monkeypatch.delenv("CLAUDE_CONFIG_DIR", raising=False)
+    event = {"transcript_path": str(tmp_path / "projects" / "p" / "s.jsonl"), "cwd": "c:\\x"}
+    assert mg.memory_dir_for(event) == tmp_path / "projects" / "c--x" / "memory"
     got = mg.memory_dir_for({"cwd": "C:\\Users\\r\\a.b"}, home=tmp_path)
     assert got == tmp_path / ".claude" / "projects" / "C--Users-r-a-b" / "memory"
     assert mg.memory_dir_for({}) is None

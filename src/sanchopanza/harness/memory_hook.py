@@ -56,9 +56,9 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
     MEMORY_RULES_AUDIT       off (default) | on: at Stop, hold the request's diff against the
                              rules and send a confident break back once (`memory_rules.audit_on`)
     MEMORY_NATIVE            off (default) | 1: at Stop, the session's records also go into
-                             Claude Code's own auto memory (one note, one index line), and a
-                             new session is not given again what that note carries
-                             (`memory_native`; `install --memory-native`)
+                             Claude Code's own auto memory (one note, one index line); a
+                             later session that reads that note is not given its records again
+                             at a touch (`memory_native`; `install --memory-native`)
     MEMORY_WINDOW            short (default here) | long: the decider reads each candidate
                              record whole (Jev's long-context header only past its short
                              window), within MEMORY_DECIDER_SECONDS less 3 s, and the pages
@@ -420,30 +420,37 @@ def wrote_by(store: Path, session: str, index: int) -> list[str]:
 
 
 def native_at_stop(event: Mapping[str, Any], seen: Recorded) -> None:
-    """Stop and SessionEnd: the session's note in Claude Code's auto memory. Never costs the
-    record: an error is logged and Claude Code's folder is left as it was."""
+    """Stop and SessionEnd: the session's note in Claude Code's auto memory, after the rules.
+    Never costs the record: an error is logged and Claude Code's folder is left as it was."""
     session = str(event.get("session_id") or "session")
     try:
         folder = memory_native.native_dir(event)
         if folder is None:
-            _log({"event": "native", "native": "auto memory off or unknown folder"})
+            _log({"event": "native", "native": "off here (auto memory off, moved or unknown)"})
             return
+        written: frozenset[str] = frozenset()
+        with contextlib.suppress(Exception):  # without it, coverage needs a changed file's name
+            entries = ep.entries_of(Path(str(event["transcript_path"])))
+            written = frozenset(memory_native.memory_writes(entries, folder))
         _log(memory_native.refresh(folder, seen.episodes, session=session,
-                                   store=store_for(event)))  # fmt: skip
+                                   store=store_for(event), written=written))  # fmt: skip
     except Exception as error:  # noqa: BLE001 - the bridge is extra
         _log({"event": "native", "error": f"{error.__class__.__name__}: {error}"})
 
 
-def carried_at_start(event: Mapping[str, Any]) -> None:
-    """A new session's start: the records our note carries, which Claude Code loads itself,
-    count as given to this session (neither the prompt nor the touch gives them again)."""
+def native_after_read(event: Mapping[str, Any]) -> None:
+    """A `Read` of another session's unchanged note: the records it holds whole count as given
+    to this session, so a later touch does not repeat them. Nothing is held back before."""
+    if event.get("tool_name") != "Read":
+        return
     store, session = store_for(event), str(event.get("session_id") or "session")
     try:
-        keys = memory_native.carried(event, store, session)
+        keys = memory_native.keys_after_read(event, store, session)
         if keys:
+            boundaries, _ = live_at_last_prompt(store, session)
             with ep.locked(_shown_path(store, session)):
-                remember_shown(store, session, 0, keys)
-        _log({"event": "native", "carried": keys})
+                remember_shown(store, session, boundaries, keys)
+            _log({"event": "native", "read": keys})
     except Exception as error:  # noqa: BLE001 - then the records may come again; never worse
         _log({"event": "native", "error": f"{error.__class__.__name__}: {error}"})
 
@@ -456,8 +463,6 @@ def at_session_start(event: Mapping[str, Any]) -> dict[str, Any]:
     if event.get("source") == "compact":
         with contextlib.suppress(Exception):  # the rules still come if this fails
             after_compaction(event)
-    if event.get("source") in ("startup", "clear") and memory_native.native_on():
-        carried_at_start(event)
     text = memory_rules.render(store_for(event)) if memory_rules.rules_on() else ""
     _log({"event": "SessionStart", "source": event.get("source"), "rules_chars": len(text)})
     if not text:
@@ -474,15 +479,19 @@ def handle(event: Mapping[str, Any]) -> dict[str, Any]:
         if name == "SessionEnd":
             memory_tree.forget_open(store_for(event), session)
         _log({"event": name, "episodes": len(seen.episodes), "written": list(seen.written)})
+        out = rules_at_stop(event, seen, start) if name == "Stop" else {}
         if memory_native.native_on():
             native_at_stop(event, seen)
-        return rules_at_stop(event, seen, start) if name == "Stop" else {}
+        return out
     if name == "UserPromptSubmit":
         import asyncio  # a prompt may ask the decider; the touch never does
 
         return asyncio.run(recall(event))
     if name == "PostToolUse":
-        return touch(event)
+        given = touch(event)
+        if memory_native.native_on():
+            native_after_read(event)
+        return given
     if name == "PreToolUse":
         return shell_first(event)
     if name == "SessionStart":

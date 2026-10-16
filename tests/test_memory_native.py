@@ -14,8 +14,10 @@ from typing import Any
 import pytest
 
 from sanchopanza.context import episodes as ep
+from sanchopanza.harness import memory_gate as mg
 from sanchopanza.harness import memory_hook as mh
 from sanchopanza.harness import memory_native as mn
+from sanchopanza.harness import memory_native_index as mni
 from sanchopanza.harness.generic import HarnessConfig
 from sanchopanza.harness.install import plan
 
@@ -120,11 +122,14 @@ def test_auto_memory_turned_off_means_no_folder(
     assert mn.native_dir(event(tmp_path)) is None
 
 
-def test_an_auto_memory_directory_in_user_settings_is_followed(tmp_path: Path) -> None:
+def test_an_auto_memory_directory_turns_the_bridge_off_and_reading_follows_it(
+    tmp_path: Path,
+) -> None:
     settings = tmp_path / "config" / "settings.json"
     settings.parent.mkdir(parents=True)
     settings.write_text(json.dumps({"autoMemoryDirectory": str(tmp_path / "mine")}), "utf-8")
-    assert mn.native_dir(event(tmp_path)) == tmp_path / "mine"
+    assert mn.native_dir(event(tmp_path)) is None
+    assert mn.auto_memory_dir(event(tmp_path)) == tmp_path / "mine"
 
 
 def test_a_slug_past_claude_code_s_200_characters_is_not_guessed(tmp_path: Path) -> None:
@@ -154,7 +159,7 @@ def test_a_worktree_shares_the_main_checkout_s_memory_as_claude_code_does(
             "transcript_path": str(tmp_path / "config" / "projects" / "x" / "w1.jsonl"),
         }
     )
-    slug = mn.project_key(str(main.resolve()).replace("\\", "/"))
+    slug = mg.project_key(str(main.resolve()).replace("\\", "/"))
     assert found is not None and found.parent.name.casefold() == slug.casefold()
 
 
@@ -163,7 +168,7 @@ def test_a_worktree_shares_the_main_checkout_s_memory_as_claude_code_does(
 
 def test_the_note_is_in_claude_code_s_memory_format_and_bounded() -> None:
     long = record(request=PLAN + " " + "x" * 9000, report=REPORT + f" token={GH_TOKEN}")
-    text, line = mn.compose([long])
+    text, line, _keys = mn.compose([long])
     head = text.split("---")[1]
     assert "name: sanchopanza-next" in head and "description:" in head
     assert "metadata:\n  type: project" in head
@@ -214,13 +219,13 @@ def test_refresh_is_idempotent_and_replaces_only_its_own_line(tmp_path: Path) ->
 def test_a_full_index_is_left_alone_and_no_note_is_written(tmp_path: Path) -> None:
     folder = native(tmp_path)
     folder.mkdir(parents=True)
-    full = "".join(f"- [m{i}](m{i}.md) — x\n" for i in range(mn.INDEX_LINES))
+    full = "".join(f"- [m{i}](m{i}.md) — x\n" for i in range(mni.INDEX_LINES))
     (folder / "MEMORY.md").write_text(full, encoding="utf-8")
     row = mn.refresh(folder, [record()], session="s1", store=tmp_path / "store")
     assert row["native"] == "index full"
     assert (folder / "MEMORY.md").read_text(encoding="utf-8") == full
     assert not (folder / mn.NOTE).exists()
-    wide = "- [w](w.md) — " + "y" * (mn.INDEX_BYTES - 20) + "\n"
+    wide = "- [w](w.md) — " + "y" * (mni.INDEX_UNITS - 20) + "\n"
     (folder / "MEMORY.md").write_text(wide, encoding="utf-8")
     assert (
         mn.refresh(folder, [record()], session="s1", store=tmp_path / "store")["native"]
@@ -259,27 +264,6 @@ def test_claude_code_s_own_memory_of_the_plan_this_session_takes_over(tmp_path: 
     assert not (folder / mn.NOTE).exists()
     assert index.read_text(encoding="utf-8") == "- [Labels](labels-step2.md) — s2\n"
     assert own.exists()
-
-
-def test_the_record_claude_code_saved_itself_is_not_given_again_while_unchanged(
-    tmp_path: Path,
-) -> None:
-    folder = native(tmp_path)
-    folder.mkdir(parents=True)
-    store = tmp_path / "store"
-    own = folder / "labels-step2.md"
-    own.write_text(
-        "Step 2 next session: ship_all(orders, carrier) through the carrier client; "
-        "label_for(order) in app/labels.py; carrier rejects more than 50 labels; shipping "
-        "labels step 1 done today.",
-        "utf-8",
-    )
-    (folder / "MEMORY.md").write_text("- [Labels](labels-step2.md) — step 2\n", "utf-8")
-    assert mn.refresh(folder, [record()], session="s1", store=store)["native"] == "covered"
-    assert mn.carried(event(tmp_path, session="s2"), store, "s2") == ["s1-001"]
-    assert mn.carried(event(tmp_path, session="s1"), store, "s1") == []  # its own session
-    own.write_text("Rewritten: nothing about step 2.", "utf-8")
-    assert mn.carried(event(tmp_path, session="s2"), store, "s2") == []
 
 
 def test_an_older_or_unrelated_memory_of_claude_code_does_not_cover(tmp_path: Path) -> None:
@@ -367,35 +351,6 @@ def test_without_the_bridge_the_next_session_is_given_the_record(
 ) -> None:
     _transcript(tmp_path, "s1", _step_one())
     mh.handle(event(tmp_path))
-    assert "session s1" in _next_session_gets(tmp_path, monkeypatch)
-
-
-def test_with_the_bridge_the_record_claude_code_loads_is_not_given_again(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setenv("SANCHOPANZA_MEMORY_NATIVE", "1")
-    _transcript(tmp_path, "s1", _step_one())
-    mh.handle(event(tmp_path))
-    assert _next_session_gets(tmp_path, monkeypatch) == ""
-
-
-def test_a_note_dropped_from_the_index_is_not_counted_as_carried(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setenv("SANCHOPANZA_MEMORY_NATIVE", "1")
-    _transcript(tmp_path, "s1", _step_one())
-    mh.handle(event(tmp_path))
-    (native(tmp_path) / "MEMORY.md").write_text("- [Other](other.md) — rewritten by CC\n", "utf-8")
-    assert "session s1" in _next_session_gets(tmp_path, monkeypatch)
-
-
-def test_a_note_edited_since_it_was_written_is_not_counted_as_carried(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setenv("SANCHOPANZA_MEMORY_NATIVE", "1")
-    _transcript(tmp_path, "s1", _step_one())
-    mh.handle(event(tmp_path))
-    (native(tmp_path) / mn.NOTE).write_text("---\nname: sanchopanza-next\n---\nemptied", "utf-8")
     assert "session s1" in _next_session_gets(tmp_path, monkeypatch)
 
 

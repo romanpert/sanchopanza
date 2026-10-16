@@ -178,14 +178,18 @@ def _archive_entry(tmp_path: Path, name: str, text: str, about: str) -> Path:
 
 
 def _memory(tmp_path: Path, name: str, body: str) -> Path:
-    project = tmp_path / "project"
+    """A memory file where Claude Code keeps it: `<config>/projects/<cwd's folder name>/memory`
+    (`memory_gate.memory_dir_for`), the transcript's config folder being `tmp_path/config`."""
+    project = tmp_path / "config" / "projects" / mg.project_key(str(tmp_path))
     (project / "memory").mkdir(parents=True, exist_ok=True)
     path = project / "memory" / f"{name}.md"
     path.write_text(f"---\nname: {name}\ndescription: {name} notes\n---\n{body}\n", "utf-8")
     return project
 
 
-async def test_prompt_recall_joins_memory_files_and_the_archive(tmp_path):
+async def test_prompt_recall_joins_memory_files_and_the_archive(tmp_path, monkeypatch):
+    monkeypatch.delenv("CLAUDE_CONFIG_DIR", raising=False)
+    monkeypatch.setenv("SANCHOPANZA_MEMORY_STORE_KEY", "folder")
     project = _memory(tmp_path, "deploy", "Deploy with the blue pipeline, never on Fridays.")
     _archive_entry(tmp_path, "c1", "pytest output: test_parser_unicode FAILED", "pytest -q")
     _archive_entry(tmp_path, "c2", "npm install finished", "npm install")
