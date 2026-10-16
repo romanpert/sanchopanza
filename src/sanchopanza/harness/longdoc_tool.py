@@ -20,23 +20,27 @@ Sonnet 5.5 alone (+1.2 points [-3.1, +5.6]) and within the -10-point margin of O
 
 - a question with other than four options (`points.longdoc` escalates it);
 - a file under `MIN_CHARS` (100,000 characters): never measured, and cheap for the model to read;
-- an answer under the cut, any refusal, or no Jev key.
+- an answer under the cut, any refusal, any failure, or no Jev key.
 
-Each of these is a reply that says why and to answer it from the file, never an error.
+Each of these is a reply that says why and to answer it from the file, never a tool error.
 
 **The cut** is the caller's, in code (`Asker(cut=)`) or `SANCHOPANZA_LONGDOC_CUT`, never the
 model's. 0.8 looked closer to Opus post hoc on lb162x (-0.6 points at 17 % coverage); that is
-not confirmed.
+not confirmed. A value in the environment that is not a number in (0, 1] is said on stderr in
+one line and the default kept, so the other tool sets of the server still start.
 
-**Money.** Every call goes through `CappedDecider` on a ledger of the day
-(`~/.cache/sanchopanza/longdoc/ask-YYYY-MM-DD.jsonl`), capped at `SANCHOPANZA_LONGDOC_CAP_USD`
-(default `CAP_USD`, 0.50 USD a day). A call that does not fit is not made, and the reply says to
-answer from the file.
+**Money.** Every call goes through `CappedDecider` on the ledger of the day it is made
+(`<cache>/longdoc/ask-YYYY-MM-DD.jsonl`, the date read at each call), capped at
+`SANCHOPANZA_LONGDOC_CAP_USD` (default `CAP_USD`, 0.50 USD a day). The ledger is a file shared
+by every process (`SpendLedger` locks it), so every Claude Code session that runs this server
+draws on the same daily cap. A call that does not fit is not made, and the reply says to answer
+from the file.
 
-**Files.** Only under the knowledge server's roots, never through a hidden component
-(`knowledge_tool.Knowledge.load`). A text file is sent as it is on disk, as LongBench's documents
-were. A PDF, DOCX or HTML file is sent as its extracted text (`documents`), which was not
-measured.
+**Files only, local only.** A URL (anything with `://`) is refused before anything is read: a web
+page is not the measured case, and the knowledge server's `read` exists for it. Paths only under
+the knowledge server's roots, never through a hidden component (`knowledge_tool.Knowledge.load`).
+A text file is sent as it is on disk, as LongBench's documents were. A PDF, DOCX or HTML file is
+sent as its extracted text (`documents`), which was not measured.
 
 **Cost per question, not per file.** Each question sends the whole file to Jev again: ten
 questions on one file cost ten calls.
@@ -44,9 +48,12 @@ questions on one file cost ten calls.
 
 from __future__ import annotations
 
+import asyncio
 import datetime as dt
+import math
 import os
-from collections.abc import Mapping, Sequence
+import sys
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -68,18 +75,42 @@ _FROM_ENV = object()
 
 
 def ledger_dir() -> Path:
-    return Path.home() / ".cache" / "sanchopanza" / "longdoc"
+    return _env.cache_dir() / "longdoc"
 
 
-def _float(raw: str, default: float) -> float:
-    try:
-        return float(raw) if raw.strip() else default
-    except ValueError:
+def valid_cut(value: float) -> bool:
+    return math.isfinite(value) and 0.0 < value <= 1.0
+
+
+def valid_cap(value: float) -> bool:
+    return math.isfinite(value) and value > 0
+
+
+def _setting(env: Mapping[str, str], name: str, default: float, valid: Callable) -> float:
+    """`SANCHOPANZA_LONGDOC_<name>` as a number, or `default` with one line on stderr when it is
+    set but not a valid number."""
+    raw = _env.get(f"LONGDOC_{name}", "", env=env).strip()
+    if not raw:
         return default
+    try:
+        value = float(raw)
+    except ValueError:
+        value = math.nan
+    if valid(value):
+        return value
+    sys.stderr.write(f"sanchopanza: SANCHOPANZA_LONGDOC_{name}={raw!r} is not valid; "
+                     f"ask_document uses {default}\n")  # fmt: skip
+    return default
+
+
+def _checked(value: float, valid: Callable, what: str) -> float:
+    if not valid(value):
+        raise ValueError(f"{what} is out of range: {value}")
+    return value
 
 
 class Asker:
-    """The tool's logic, with the file reader and the decider injectable."""
+    """The tool's logic, with the file reader, the decider and the clock injectable."""
 
     def __init__(
         self,
@@ -91,42 +122,47 @@ class Asker:
         ledger_dir: Path | None = None,
         env: Mapping[str, str] | None = None,
         min_chars: int = MIN_CHARS,
+        today: Callable[[], dt.date] = dt.date.today,
     ) -> None:
         self.env = dict(os.environ) if env is None else dict(env)
-        self.cut = cut if cut is not None else _float(_env.get("LONGDOC_CUT", "", env=self.env),
-                                                      longdoc.CUT)  # fmt: skip
-        if not 0.0 < self.cut <= 1.0:
-            raise ValueError(f"the cut is a probability in (0, 1], not {self.cut}")
-        self.cap_usd = cap_usd if cap_usd is not None else _float(
-            _env.get("LONGDOC_CAP_USD", "", env=self.env), CAP_USD)  # fmt: skip
+        self.cut = (_checked(cut, valid_cut, "the cut (0 < cut <= 1)") if cut is not None
+                    else _setting(self.env, "CUT", longdoc.CUT, valid_cut))  # fmt: skip
+        self.cap_usd = (_checked(cap_usd, valid_cap, "cap_usd (finite, > 0)") if cap_usd is not None
+                        else _setting(self.env, "CAP_USD", CAP_USD, valid_cap))  # fmt: skip
         self.kit = kit or Knowledge(env=self.env)
         self.min_chars = min_chars
+        self.today = today
         self._ledger_dir = ledger_dir
-        self._decider = decider
+        self._given = decider
+        self._inner: Any = _FROM_ENV  # the measured JevDecider, built once on first use
 
-    @property
-    def decider(self) -> Any:
-        """The decider given, or the measured one under the day's ledger when a key is set
-        (None without a key)."""
-        if self._decider is _FROM_ENV:
-            self._decider = self._from_env()
-        return self._decider
+    def _measured(self) -> Any:
+        """The measured Jev decider, built once (None without a key)."""
+        if self._inner is _FROM_ENV:
+            key = self.env.get("TYPESAFE_API_KEY", "")
+            self._inner = longdoc.measured_decider(key) if key else None
+        return self._inner
 
-    def _from_env(self) -> Any:
-        key = self.env.get("TYPESAFE_API_KEY", "")
-        if not key:
+    def decider_now(self) -> Any:
+        """The decider given, or the measured one under the ledger of today (read now)."""
+        if self._given is not _FROM_ENV:
+            return self._given
+        inner = self._measured()
+        if inner is None:
             return None
         from ..budget import SpendLedger
         from ..providers.capped import CappedDecider
 
         folder = self._ledger_dir or ledger_dir()
         folder.mkdir(parents=True, exist_ok=True)
-        ledger = SpendLedger(folder / f"ask-{dt.date.today():%Y-%m-%d}.jsonl", cap_usd=self.cap_usd)
-        return CappedDecider(longdoc.measured_decider(key), ledger=ledger, batch=BATCH,
-                             max_usd=self.cap_usd)  # fmt: skip
+        ledger = SpendLedger(folder / f"ask-{self.today():%Y-%m-%d}.jsonl", cap_usd=self.cap_usd)
+        return CappedDecider(inner, ledger=ledger, batch=BATCH, max_usd=self.cap_usd)
 
     def text_of(self, path: str) -> tuple[str, str]:
-        """(the file's text, "") or ("", why it was not read)."""
+        """(the file's text, "") or ("", why it was not read). A URL is refused unread."""
+        if "://" in path:
+            return "", (f"Refused: {path} is not a local file. ask_document reads local files "
+                        "only; use read(url, purpose) for a web page.")  # fmt: skip
         doc = self.kit.load(path)
         if isinstance(doc, str):
             return "", doc
@@ -136,7 +172,14 @@ class Asker:
         return "\n\n".join(chunk.text for chunk in doc.page.chunks), ""
 
     async def ask(self, path: str, question: str, choices: Sequence[str]) -> str:
-        text, why = self.text_of(path)
+        """The reply: the answer, a refusal or a handback, never an exception."""
+        try:
+            return await self._ask(path, question, choices)
+        except Exception as error:  # noqa: BLE001 - every failure is a handback, never a tool error
+            return _handback(f"{type(error).__name__}: {error}", path)
+
+    async def _ask(self, path: str, question: str, choices: Sequence[str]) -> str:
+        text, why = await asyncio.to_thread(self.text_of, path)
         if why:
             return why
         try:
@@ -147,7 +190,7 @@ class Asker:
             return _handback(f"{len(text):,} characters; the cut was measured on documents over "
                              f"{self.min_chars:,}", path)  # fmt: skip
         try:
-            decider = self.decider
+            decider = await asyncio.to_thread(self.decider_now)
         except DeciderUnavailable as error:  # e.g. the jev extra (httpx) is not installed
             return _handback(str(error), path)
         if decider is None:
@@ -160,13 +203,22 @@ class Asker:
                 f"(cut {self.cut}), {result.cost_usd:.4f} USD; the file was not read into your "
                 "context.")  # fmt: skip
 
+    async def aclose(self) -> None:
+        """Close the measured decider's connection, if one was built."""
+        inner, self._inner = self._inner, _FROM_ENV
+        close = getattr(inner, "aclose", None)
+        if callable(close):
+            await close()
+
 
 def _handback(reason: str, path: str) -> str:
     return f"Not answered: {reason}. Read {path} and answer it yourself."
 
 
 def add_longdoc(server: Any, asker: Asker | None = None) -> Any:
-    """Register `ask_document` on an MCP server."""
+    """Register `ask_document` on an MCP server. The measured decider's connection is left to
+    the process's exit: the stdio server has no shutdown hook here (`Asker.aclose` for a caller
+    that has one)."""
     tool = asker or Asker()
 
     @server.tool(name=TOOL, description=DESCRIPTION)
