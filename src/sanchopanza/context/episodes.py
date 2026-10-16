@@ -396,22 +396,58 @@ def _report(messages: Sequence[Mapping[str, Any]]) -> str:
     return ""
 
 
+SNAP = 120  # characters a cut may move back (head) or forward (tail) to fall between words
+
+
+def _head_end(head: str) -> str:
+    """`head` back to its last sentence end, else its last space, within SNAP characters."""
+    window = head[-SNAP:]
+    ends = list(re.finditer(r"[.!?](?=\s)", window))
+    if ends:
+        return head[: len(head) - len(window) + ends[-1].end()]
+    space = max(window.rfind(" "), window.rfind("\n"))
+    return head[: len(head) - len(window) + space].rstrip() if space > 0 else head
+
+
+def _tail_start(tail: str) -> str:
+    """`tail` forward to its first sentence start, else past its first space, within SNAP."""
+    window = tail[:SNAP]
+    start = re.search(r"[.!?]\s+", window) or re.search(r"\s+", window)
+    return tail[start.end() :] if start else tail
+
+
 def head_tail(text: str, limit: int) -> str:
     """`text` whole when it fits in `limit`; else its head and its tail joined by CUT, within
-    `limit`. ROADMAP C8: a long prompt often says its plan or its decision last ("Step 2, in the
-    next session: ..."), and a head cut lost it. The head is the larger half: the page the
-    decider reads (`Episode.page`) cuts the request's head shorter still, so it reads as before."""
+    `limit`, each cut moved to a sentence end or a space (review of w17-memgaps, M3). ROADMAP C8:
+    a long prompt often says its plan or its decision last ("Step 2, in the next session: ..."),
+    and a head cut lost it. The head is the larger half: the page the decider reads
+    (`Episode.page`) cuts the request's head shorter still, so it reads as before."""
     if len(text) <= limit:
         return text
-    room = max(0, limit - len(CUT))
+    if limit <= len(CUT):
+        return text[:limit]
+    room = limit - len(CUT)
     head = (room + 1) // 2
-    return f"{text[:head]}{CUT}{text[len(text) - (room - head) :]}"
+    return f"{_head_end(text[:head])}{CUT}{_tail_start(text[len(text) - (room - head) :])}"
+
+
+def _said(message: Mapping[str, Any]) -> str:
+    """What the person typed, without Claude Code's command markup (`/model`, `/clear`)."""
+    return guard_mod._MARKUP.sub("", message_text(message)).strip() if is_prompt(message) else ""
+
+
+def asked_requests(entries: Iterable[Mapping[str, Any]]) -> int:
+    """Requests the person asked: a prompt that says something once Claude Code's command
+    markup is taken out, or one the agent answered (a custom command expands into a prompt). A
+    session opened with `/model` or `/clear` has asked none."""
+    groups = split_requests(entries).groups
+    return sum(1 for g in groups if _said(g[0]) or any(m.get("role") == "assistant" for m in g))
 
 
 def _request(first: Mapping[str, Any]) -> str:
     """The prompt verbatim and masked (whole, before it is cut), head and tail within
     REQUEST_CHARS; a slash command keeps its name and arguments."""
-    said = guard_mod._MARKUP.sub("", message_text(first)).strip() if is_prompt(first) else ""
+    said = _said(first)
     if said and guard_mod.HEADER not in said:
         return head_tail(mask(said), REQUEST_CHARS)
     bare = " ".join(_TAGS.sub(" ", message_text(first)).split())
