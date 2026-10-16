@@ -528,7 +528,10 @@ def test_the_start_refusals_and_their_exit_codes(tmp_path, monkeypatch):
 
 
 def test_the_smoke_is_one_opus_session_on_a_dev_task_outside_the_162():
-    task = h2h.smoke_task()
+    try:
+        task = h2h.smoke_task()
+    except FileNotFoundError as missing:  # the drawn LongBench tasks live in this PC's cache
+        pytest.skip(f"needs the local LongBench draw: {missing}")
     assert task.task_id not in set(lb.lb162.frozen_ids())
     assert lb.SMOKE.model_id == "claude-opus-5-5" and lb.SMOKE.ceiling == 0.80
     assert h2h.smoke_cap(0.0) == 0.80 and h2h.smoke_cap(0.01) is None
