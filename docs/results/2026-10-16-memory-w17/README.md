@@ -7,8 +7,7 @@
   - The same held when session 2's line named nothing ("Let's continue."): 24 of 24 against 3 of
     24.
   - S' cost a median 1.187x N0 per pair [1.148, 1.244], above the sealed bound of 1.10.
-- **Lot O, Opus 5.5: not run to completion; no verdict.** Resumption is pending a recovery of the
-  rows from the arms' recorded streams (below). No Opus result is reported here.
+- **Lot O, Opus 5.5: not run to completion; no verdict.** No Opus result is reported here.
 
 The lots are sealed by `prereg.sha256` `49b86f8b873f7260bf5855664bdc237ef12411bbe3d4fe9bb11fb54c13e01cdc`
 at commit 5d416fa (instrument f31caf8; prereg.md sha256 `2d01db77…53742`, launcher
@@ -94,9 +93,9 @@ percentile bootstrap (10,000 draws, seed 20261017, pairs in (scene, repetition) 
 | | pairs | S' / N0, median | 95 % interval |
 |---|---|---|---|
 | **all (the sealed S2)** | 48 | **1.187** | **[1.148, 1.244]** |
-| named stratum | 24 | 1.155 | [1.022, 1.246] |
+| named stratum | 24 | 1.155 | [1.021, 1.246] |
 | bare stratum | 24 | 1.217 | [1.179, 1.329] |
-| session 1 only (the same prompt and work in both arms: the install's own overhead) | 48 | 1.052 | [0.961, 1.079] |
+| session 1 only (the same prompt and work in both arms; an overhead of the install is not shown) | 48 | 1.052 | [0.961, 1.079] |
 
 - **Cost per arm run, median:** N0 0.1016 USD, S' 0.1235 USD (Jev included).
 - **Per session, median:** session 1 N0 0.0582, S' 0.0627 USD; session 2 N0 0.0417, S' 0.0620 USD.
@@ -153,10 +152,8 @@ difference between the installs.
 
 ## Lot O, Opus 5.5: not run to completion
 
-The Opus run started at 22:10:40 and stopped when the machine went down unexpectedly during its
-eleventh pair (not a Windows Update restart). Its rows file did not survive the unclean shutdown,
-so the relaunch refused to resume. It has no verdict and no result is read from it. Resumption
-is pending a recovery of the rows from the arms' recorded streams, under the sealed rules.
+The Opus run started at 22:10:40 and did not run to completion. It has no verdict and no result
+is read from it.
 
 ## What it means for the product
 
@@ -164,8 +161,9 @@ is pending a recovery of the rows from the arms' recorded streams, under the sea
   "Let's continue."**: 48 of 48 against Claude Code alone's 9 (24 of 24 against 3 on the bare
   line), with no request beyond the line and no harm.
 - **It is not a "gana":** it cost 1.19x Claude Code alone per pair [1.15, 1.24], above the sealed
-  1.10. Most of that is S' doing the next step where Claude Code alone stops to ask; the install's
-  own overhead on the same work in session 1 is 1.05x [0.96, 1.08].
+  1.10. Descriptively and post hoc (above), the extra cost sits in the pairs where S' did the next
+  step and Claude Code alone did not do it; on the same work in session 1 an overhead of the
+  install is not shown: 1.05x [0.96, 1.08].
 - **Next:** a "gana" on Sonnet needs a cost rule that compares equal work, sealed before its data,
   or scenes where N0 also builds. Opus answers the cost question once its run is completed.
 
