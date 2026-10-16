@@ -12,11 +12,12 @@ settings. Shared by `run.py` and `long_run.py`.
 from __future__ import annotations
 
 import json
-import os
 import shutil
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
+
+from sanchopanza import durable
 
 HOME_PROJECTS = Path.home() / ".claude" / "projects"
 
@@ -43,12 +44,9 @@ def copy_transcripts(sessions: Iterable[str], evidence: Path, root: Path) -> lis
 
 
 def write_row(evidence: Path, row: Mapping[str, Any]) -> None:
-    """`row.json`, replaced whole: written beside and renamed, so a crash mid-write never leaves
-    half a row."""
-    path = evidence / "row.json"
-    temporary = evidence / "row.json.tmp"
-    temporary.write_text(json.dumps(dict(row), indent=1), encoding="utf-8")
-    os.replace(temporary, path)
+    """`row.json`, replaced whole: written beside, synced and renamed, so neither a crash
+    mid-write nor the machine going down leaves half a row."""
+    durable.replace_text(evidence / "row.json", json.dumps(dict(row), indent=1))
 
 
 def partial_row(base: Mapping[str, Any], calls: list[dict[str, Any]]) -> dict[str, Any]:

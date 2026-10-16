@@ -42,7 +42,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from .. import _lockfile
+from .. import _lockfile, durable
 from ..redact import mask
 from ..text import truncate
 from . import guard as guard_mod
@@ -444,12 +444,14 @@ def episodes_of(
 
 
 def write_private(path: Path, text: str) -> None:
-    """Write `text` atomically (a reader never sees half a file), readable by this user only."""
+    """Write `text` atomically (a reader never sees half a file), readable by this user only,
+    synced before the rename so the machine going down does not empty the store."""
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     fd, temp = tempfile.mkstemp(dir=path.parent, prefix=".tmp-", suffix=".json")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
             handle.write(text)
+            durable.sync(handle)
         os.chmod(temp, 0o600)
         _replace(temp, path)
     except BaseException:

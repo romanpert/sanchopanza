@@ -45,6 +45,8 @@ import related  # noqa: E402
 import run  # noqa: E402
 from chains import CACHE, files_of, full  # noqa: E402
 
+from sanchopanza import durable  # noqa: E402
+
 SWAPS = 4
 OUT = CACHE / "chains-validated.json"  # full rows: 4 MB, kept out of the repository
 SUMMARY = HERE / "chains-validated-summary.json"
@@ -166,9 +168,7 @@ def summarize(done: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
 
 
 def _write(path: Path, text: str) -> None:
-    temp = path.with_suffix(path.suffix + ".tmp")
-    temp.write_text(text, encoding="utf-8", newline="\n")
-    os.replace(temp, path)
+    durable.replace_text(path, text, temp=path.with_suffix(path.suffix + ".tmp"), newline="\n")
 
 
 @contextmanager

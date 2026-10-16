@@ -41,6 +41,8 @@ sys.path.insert(0, str(HERE))
 
 import monitors  # noqa: E402
 
+from sanchopanza import durable  # noqa: E402
+
 DATASET = "metr-evals/malt-transcripts-public"
 REVISION = "3521e8e22b6af12fea3249443e554b96b6fc4f49"
 SHARDS = 13
@@ -71,6 +73,7 @@ def fetch(out: Path = DIR) -> None:
         with urllib.request.urlopen(request, timeout=600) as response, part.open("wb") as f:  # noqa: S310
             while chunk := response.read(1 << 20):
                 f.write(chunk)
+            durable.sync(f)  # a shard named in full is whole, even after the machine went down
         part.rename(path)
 
 
