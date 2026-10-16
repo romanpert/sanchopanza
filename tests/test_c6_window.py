@@ -75,7 +75,7 @@ class _Counting:
 
 def test_the_window_arm_reuses_every_equal_request_and_unchanged_questions_cost_nothing() -> None:
     live = _Counting()
-    asker = br.Asker(live)
+    asker = c6.lot_asker(live)
     out = asyncio.run(c6.ask([_row("a"), _row("b", long_gold=False)], asker))
     assert set(out[0]) == {"id", "Dh-es", "Dw-es"} and set(out[1]) == {"id"}
     # head: one tournament call and three sentence calls; the window: only its own tournament
@@ -149,7 +149,7 @@ def test_the_lot_is_bound_to_its_input_cap_and_instrument() -> None:
     lot = c6.lot()
     assert lot.name == "c6-window" and lot.cap_usd == c6.CAP_USD <= 10.0
     assert lot.inputs[0][0] == c6.INPUT and "benchmarks/b6_es" in lot.instrument
-    assert br.FIXTURE == c6.FIXTURE  # the B6 asker replays this lot's recording only
+    assert br.FIXTURE != c6.FIXTURE  # B6's own asker still replays B6's recording
 
 
 def test_the_manifest_names_the_input_the_code_pins() -> None:

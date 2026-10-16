@@ -73,8 +73,6 @@ B6_USD_PER_CALL = 2.5277 / 11_202  # B6's docs bench, billed: what a real call c
 INSTRUMENT = ("src", "benchmarks/b6_es", "benchmarks/paid_once.py",
               "benchmarks/jev114/l4_stats.py", "c6-window-run.cmd")  # fmt: skip
 
-br.FIXTURE = FIXTURE  # `b6_run.Asker` replays this lot's recording, not B6's
-
 
 def lot() -> paid_once.Lot:
     return paid_once.Lot(
@@ -88,6 +86,12 @@ def lot() -> paid_once.Lot:
         inputs=((INPUT, INPUT_SHA256),),
         home=HOME,
     )
+
+
+def lot_asker(fallback: Any | None) -> br.Asker:
+    """B6's asker (recording first, one live call on a miss, never retried, stops on a cap or
+    an outage) over this lot's recording, only the lines jev-1.13.0 answered."""
+    return br.Asker(fallback, recorded=paid_once.recorded(lot()))
 
 
 # ---- views ---------------------------------------------------------------------------------
@@ -238,7 +242,7 @@ def dry(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     """Free: the calls a stub's answers lead to (B6's stub, recordings first), priced three
     ways: `CappedDecider`'s pessimistic reservation (the cap check), the expected factor, and
     B6's billed cost a call."""
-    asker = br.Asker(br.Stub())
+    asker = lot_asker(br.Stub())
     asyncio.run(ask(rows, asker))
     calls = sum(c["calls"] for c in asker.calls.values())
     pessimistic = sum(c["pessimistic_usd"] for c in asker.calls.values())
@@ -260,7 +264,7 @@ def dry(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
 def analysis(*, paid: bool) -> dict[str, Any]:
     """Free: replay the recording and apply the registered rule."""
     rows = load_rows()
-    asker = br.Asker(None)
+    asker = lot_asker(None)
     out = asyncio.run(ask(rows, asker))
     if paid and paid_once.unanswered_blocks(lot(), asker.failures):
         raise SystemExit(f"{asker.failures} calls unanswered and a launch is still allowed")
@@ -299,7 +303,7 @@ async def session(rows: Sequence[Mapping[str, Any]], the_lot: paid_once.Lot, che
     await check(MODEL)
     on_start()
     inner, live = build_live(the_lot)
-    asker = br.Asker(live)
+    asker = lot_asker(live)
     try:
         await ask(rows, asker)
     finally:

@@ -150,8 +150,8 @@ class Asker:
     answers every question asked. Counts calls and estimated dollars per arm, every failure
     and the question it hit (`ROW`), and the first stop and its kind."""
 
-    def __init__(self, fallback: Any | None) -> None:
-        self.recorded = recordings()
+    def __init__(self, fallback: Any | None, recorded: RecordedDecider | None = None) -> None:
+        self.recorded = recordings() if recorded is None else recorded  # another lot's, if given
         self.fallback = fallback
         self.gate = asyncio.Semaphore(CONCURRENCY)
         self.memo: dict[str, Decision] = {}
