@@ -339,7 +339,17 @@ def init_facts(event: dict[str, Any]) -> dict[str, Any]:
             "session_id": event.get("session_id"), "permission_mode": event.get("permissionMode"),
             "api_key_source": event.get("apiKeySource"), **count,
             "mcp": {str(s.get("name")): str(s.get("status")) for s in servers},
-            "memory_auto": paths.get("auto") if isinstance(paths, dict) else None}  # fmt: skip
+            "memory_auto": paths.get("auto") if isinstance(paths, dict) else None,
+            "skill_names": skill_names(event)}  # fmt: skip
+
+
+def skill_names(event: dict[str, Any]) -> list[str]:
+    """The names of the skills a session's `init` lists (a name, or an object with one)."""
+    out = []
+    for s in event.get("skills") or []:
+        name = s if isinstance(s, str) else s.get("name") if isinstance(s, dict) else None
+        out += [str(name)] if name else []
+    return out
 
 
 def limited(event: dict[str, Any]) -> bool:

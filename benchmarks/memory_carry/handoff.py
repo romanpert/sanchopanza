@@ -86,7 +86,19 @@ RUNS: dict[str, dict[str, Any]] = {
                   "cap": 109.0, "dir": "r2"},
     "f2-opus": {"model": "opus", "scenes": list(HANDOFF), "repeats": [1, 2], "cap": 106.0,
                 "dir": "r3"},
+    # W17 (docs/results/2026-10-16-memory-w17/prereg.md): two arms, S at user scope, call caps
+    # about 4x (Sonnet) and 2.6x (Opus) F2's dearest session, a stratum of repetitions whose
+    # session 2 is BARE_LINE. The lot's 45 USD (LOTS["w17"]["night_cap"]) binds both run caps.
+    "w17-sonnet": {"model": "sonnet", "scenes": list(HANDOFF), "repeats": [1, 2, 3, 4],
+                   "bare": [3, 4], "cap": 17.0, "dir": "r1", "lot": "w17", "arms": ("N0", "S"),
+                   "scope": "user", "call_caps": {"sonnet": 0.50, "opus": 0.80},
+                   "jev_cap": 0.50},
+    "w17-opus": {"model": "opus", "scenes": list(HANDOFF), "repeats": [1, 2, 3], "bare": [3],
+                 "cap": 33.0, "dir": "r2", "lot": "w17", "arms": ("N0", "S"), "scope": "user",
+                 "call_caps": {"sonnet": 0.50, "opus": 0.80}, "jev_cap": 0.50},
 }  # fmt: skip
+BARE_LINE = "Let's continue."  # W17's stratum: a session 2 line that names nothing
+CAP_FILE = "jev-cap.json"  # beside the run's key: the hooks' Jev cap (carry_hook.CAP_FILE)
 SESSION_TIMEOUT = 900
 HANDOFF_TIMEOUT = 600
 CARRIED = 0.5  # the resumed turn's first request holds at least half of session 1's last one
@@ -98,56 +110,103 @@ OUT = Path(r"C:\sp-runs\memory-f2")  # the lot's own files: rows, ledger, stream
 WORK = Path(r"C:\sp-runs\w16")  # where the agent works: no name of the lot, scene or arm
 RESULTS = handoff_seal.RESULTS
 BROKEN_AFTER = 3  # arms in a row with a session that ended without a result stop the run
-EXIT = {"": 0, "cap": 2, "limit": 3, "harness": 4, "manual": 6, "broken": 7}
+EXIT = {"": 0, "cap": 2, "limit": 3, "harness": 4, "manual": 6, "broken": 7, "quiet": 8}
 seal, seal_ok = handoff_seal.seal, handoff_seal.seal_ok
+# A lot: the runs of one night, its cap over all of them, where its own files and the agents'
+# folders go, the run whose automatic gate decides whether the rest run, and whether arms may
+# run in the quiet hours (Windows Update restarts this machine between 02:00 and 08:00).
+LOTS: dict[str, dict[str, Any]] = {
+    "f2": {"sequence": ("f2-pilot", "f2-sonnet", "f2-opus"), "night_cap": NIGHT_CAP, "out": OUT,
+           "work": WORK, "gate": "f2-pilot", "quiet": False},
+    "w17": {"sequence": ("w17-sonnet", "w17-opus"), "night_cap": 45.0,
+            "out": Path(r"C:\sp-runs\memory-w17"), "work": Path(r"C:\sp-runs\w18"), "gate": None,
+            "quiet": True},
+}  # fmt: skip
+QUIET = (dt.time(2, 0), dt.time(8, 0))  # no W17 arm runs, even in part, between these
+
+
+def lot_of(run: str) -> str:
+    return str(RUNS[run].get("lot", "f2"))
+
+
+def arms_of(run: str) -> tuple[str, ...]:
+    return tuple(RUNS[run].get("arms", ARMS))
+
+
+def scope_of(run: str | None) -> str:
+    """Where arm S's `sanchopanza install` writes: the scene's repository (F2) or the user's
+    settings, which under a clean user are the arm's own CLAUDE_CONFIG_DIR (W17)."""
+    return str(RUNS[run].get("scope", "project")) if run else "project"
+
+
+def call_cap(run: str | None, model: str) -> float:
+    caps = (RUNS[run].get("call_caps") if run else None) or CALL_CAPS
+    return float(caps[model])
+
+
+def line_of(run: str | None, rep: int) -> str:
+    """Session 2's line: "bare" (BARE_LINE) in the run's bare repetitions, else "named" (the
+    scene's own `continue` line, as F2)."""
+    return "bare" if run and rep in RUNS[run].get("bare", ()) else "named"
+
+
+def work_of(run: str) -> Path:
+    return Path(LOTS[lot_of(run)]["work"]) / RUNS[run]["dir"]
 
 
 # ---- plan ----------------------------------------------------------------------------------------
 
 
 def build_plan(run: str) -> list[tuple[str, str, str, int]]:
-    """(scene, model, arm, repetition) for every arm of every triple, the arms of a triple one
-    after the other, their order rotated from triple to triple (and from repetition to
-    repetition) so each arm runs first, second and third about equally often."""
-    spec = RUNS[run]
+    """(scene, model, arm, repetition) for every arm of every triple (a pair in a two-arm run),
+    the arms of a triple one after the other, their order rotated from triple to triple (and
+    from repetition to repetition) so each arm runs first, second and third about equally
+    often."""
+    spec, arms = RUNS[run], arms_of(run)
     out = []
     for rep in spec["repeats"]:
         for i, name in enumerate(spec["scenes"]):
-            k = (i + rep) % len(ARMS)
-            out += [(name, spec["model"], arm, rep) for arm in (*ARMS[k:], *ARMS[:k])]
+            k = (i + rep) % len(arms)
+            out += [(name, spec["model"], arm, rep) for arm in (*arms[k:], *arms[:k])]
     return out
 
 
 def folder_name(run: str, triple: int, arm: str) -> str:
     """`t<NN>-<x>`: the triple's number and a letter per arm, shuffled per triple with a seed
-    of the run and the triple, so the letter says nothing about the arm."""
+    of the run and the triple, so the letter says nothing about the arm (a two-arm run takes
+    the first two letters of the same shuffle)."""
     letters = list(LETTERS)
     random.Random(f"{run}/{triple}").shuffle(letters)
-    return f"t{triple:02d}-{dict(zip(ARMS, letters, strict=True))[arm]}"
+    arms = arms_of(run) if run in RUNS else ARMS
+    return f"t{triple:02d}-{dict(zip(arms, letters[: len(arms)], strict=True))[arm]}"
 
 
 def calls_of(arm: str) -> int:
     return 3 if arm == "H" else 2
 
 
-def reserve_of(model: str, arm: str) -> float:
+def reserve_of(model: str, arm: str, run: str | None = None) -> float:
     """What the next arm may spend at most: each call at its cap plus one worst turn past it,
     and S's Jev reserve per session."""
     jev = 2 * carry_s.JEV_RESERVE if arm == "S" else 0.0
-    return calls_of(arm) * (CALL_CAPS[model] + WORST_TURN[model]) + jev
+    return calls_of(arm) * (call_cap(run, model) + WORST_TURN[model]) + jev
 
 
 # ---- a claude call and its NOT RUN rules ---------------------------------------------------------
 
 
-def command(prompt: str, model: str, resume: str | None = None) -> list[str]:
+def command(prompt: str, model: str, resume: str | None = None,
+            cap: float | None = None) -> list[str]:  # fmt: skip
     """The memory cell's command shape; a prompt that begins with "-" (a handoff can start with a
-    list item) goes last, after "--", so it is never read as an option."""
+    list item) goes last, after "--", so it is never read as an option. `cap`: the run's
+    `--max-budget-usd` (F2's CALL_CAPS when not given)."""
     if prompt.startswith("-"):
-        return [*command("x", model, resume)[:2], *command("x", model, resume)[3:], "--", prompt]
+        base = command("x", model, resume, cap)
+        return [*base[:2], *base[3:], "--", prompt]
     head = ["claude", "-p", prompt, *(["--resume", resume] if resume else [])]
+    usd = CALL_CAPS[model] if cap is None else cap
     return [*head, "--model", carry.MODELS[model], "--output-format", "stream-json", "--verbose",
-            "--max-budget-usd", f"{CALL_CAPS[model]:.2f}", "--settings", "{}",
+            "--max-budget-usd", f"{usd:.2f}", "--settings", "{}",
             "--allowedTools", *carry.TOOLS]  # fmt: skip
 
 
@@ -222,35 +281,47 @@ def seed(work: Path, repo: Path, name: str) -> None:
         (work / "store" / folder / "rules.json").write_text(payload, encoding="utf-8")
 
 
-def steps_of(arm: str) -> list[str]:
+def steps_of(arm: str, line: str = "named") -> list[str]:
     resume = f"handoff: claude -p --resume <session 1 id> {HANDOFF_REQUEST!r}"
-    return ["session 1: first", *([resume] if arm == "H" else []),
-            "session 2: " + ("handoff.txt" if arm == "H" else "continue")]  # fmt: skip
+    second = "handoff.txt" if arm == "H" else "continue" if line == "named" else "bare"
+    return ["session 1: first", *([resume] if arm == "H" else []), f"session 2: {second}"]
+
+
+def second_prompt(scene: dict[str, Any], line: str) -> str:
+    return BARE_LINE if line == "bare" else str(scene["continue"])
 
 
 def arm_run(out: Path, work: Path, name: str, model: str, arm: str, rep: int, keyfile: Path,
-            dry: bool, clean: bool = True) -> dict[str, Any]:  # fmt: skip
-    """One arm: the agent works in `work` (neutral), its records go to `out/arms/<work name>`."""
+            dry: bool, clean: bool = True, run: str | None = None) -> dict[str, Any]:  # fmt: skip
+    """One arm: the agent works in `work` (neutral), its records go to `out/arms/<work name>`.
+    `run` gives the arm its scope, session 2's line and its call cap (F2's when None)."""
     rec = out / "arms" / work.name
     scene = HANDOFF[name]
+    scope, line = scope_of(run), line_of(run, rep)
+    cap = call_cap(run, model) if run else None  # F2: its own CALL_CAPS, as sealed
     work.mkdir(parents=True, exist_ok=True)
     rec.mkdir(parents=True, exist_ok=True)
     prepare = (lambda repo: carry_s.install(work, repo, keyfile, carry.environment())) \
-        if arm == "S" else None  # fmt: skip
+        if arm == "S" and scope == "project" else None  # fmt: skip
     repo = carry.build(work, {"files": scene["files"]}, prepare)
     config = carry.clean_config(work) if clean else None
+    if arm == "S" and scope == "user":
+        carry_s.install_user(work, config or carry.clean_config(work), keyfile,
+                             carry.environment())  # fmt: skip
     if arm == "S":
         seed(work, repo, name)
         for kept in ("install.txt", "install"):  # the install's output and copies: records
             if (work / kept).exists():
                 os.replace(work / kept, rec / kept)
     row: dict[str, Any] = {"scene": name, "model": model, "arm": arm, "repeat": rep,
-                           "folder": str(work), "planned": steps_of(arm)}  # fmt: skip
+                           "folder": str(work), "planned": steps_of(arm, line), "line": line,
+                           "scope": scope, "call_cap": call_cap(run, model)}  # fmt: skip
     if dry:
         return {**row, "dry": True, "repo": str(repo)}
     secrets = [s for s in (carry.clean_token() if clean else "", key_of(keyfile)) if s]
     try:
-        done = sessions_of(work, rec, repo, scene, model, arm, config)
+        done = sessions_of(work, rec, repo, scene, model, arm, config,
+                           second_prompt(scene, line), cap, scope)  # fmt: skip
     finally:
         found = [carry.scrub(folder, s) for folder in (work, rec) for s in secrets]
     scrubbed = [f for got in found for f in got[0]]
@@ -260,6 +331,10 @@ def arm_run(out: Path, work: Path, name: str, model: str, arm: str, rep: int, ke
     full: dict[str, Any] = {**row, **done, **flags}
     for secret in secrets:  # the OAuth token and the TypeSafe key never land in a row
         full = carry.redact(full, secret)
+    if run and arm == "S" and isinstance(full.get("kept_all"), bool):
+        from handoff_analyze import own_sendbacks  # the row keeps what the analysis reads
+
+        full = {**full, "sendbacks_other_rule": own_sendbacks(full, None)}
     return full
 
 
@@ -269,11 +344,13 @@ def key_of(keyfile: Path) -> str:
 
 
 def sessions_of(work: Path, rec: Path, repo: Path, scene: dict[str, Any], model: str, arm: str,
-                config: Path | None) -> dict[str, Any]:  # fmt: skip
+                config: Path | None, line_text: str | None = None, cap: float | None = None,
+                scope: str = "project") -> dict[str, Any]:  # fmt: skip
     projects = config / "projects" if config else carry.PROJECTS
     ran: list[dict[str, Any]] = []
     turn: dict[str, Any] = {}
-    first = one(work, rec, repo, scene["first"], model, arm, "session-1", config, projects)
+    first = one(work, rec, repo, scene["first"], model, arm, "session-1", config, projects, cap,
+                scope)  # fmt: skip
     ran.append(first)
     cut = session_cut(first, model) or first.get("harness_cut", "")
     if not cut and not first.get("limit_hit") and arm == "H":
@@ -283,8 +360,9 @@ def sessions_of(work: Path, rec: Path, repo: Path, scene: dict[str, Any], model:
     pasted: bool | None = None
     if not cut and not limit:
         carry.commit_wip(repo)
-        prompt = turn["text"] if arm == "H" else scene["continue"]
-        second = one(work, rec, repo, prompt, model, arm, "session-2", config, projects)
+        prompt = turn["text"] if arm == "H" else (line_text or scene["continue"])
+        second = one(work, rec, repo, prompt, model, arm, "session-2", config, projects, cap,
+                     scope)  # fmt: skip
         ran.append(second)
         limit = second.get("limit_hit")
         cut = session_cut(second, model) or second.get("harness_cut", "")
@@ -323,17 +401,36 @@ def hook_starts(work: Path) -> int:
 
 
 def one(work: Path, rec: Path, repo: Path, prompt: str, model: str, arm: str, tag: str,
-        config: Path | None, projects: Path) -> dict[str, Any]:  # fmt: skip
+        config: Path | None, projects: Path, cap: float | None = None,
+        scope: str = "project") -> dict[str, Any]:  # fmt: skip
+    """One session. At user scope no MCP server is installed (`install` only prints the line
+    that would register find_in_repo), so S's check asks for the memory hook at the session's
+    start instead of a connected server."""
     since = carry_s.hook_rows(work)
-    result = hc.call(rec, repo, command(prompt, model), tag, config, SESSION_TIMEOUT)
+    cmd = command(prompt, model) if cap is None else command(prompt, model, cap=cap)
+    result = charged(hc.call(rec, repo, cmd, tag, config, SESSION_TIMEOUT), model, cap)
     auto = (result.get("init") or {}).get("memory_auto")
-    broken = carry_s.session_breaks(work, result, since) \
+    server = carry_s.SERVER if scope == "project" else None
+    broken = carry_s.session_breaks(work, result, since, server=server) \
         if arm == "S" and carry.session_ran(result) else []  # fmt: skip
     return {
         **result,
         "native": carry.native_memory(repo, projects, auto),
         **({"harness_cut": f"harness: {tag}: {'; '.join(broken)}"} if broken else {}),
     }
+
+
+def charge_of(model: str, cap: float | None) -> float:
+    """What a call that reported no cost may have spent: its cap and one worst turn past it."""
+    return (CALL_CAPS[model] if cap is None else cap) + WORST_TURN[model]
+
+
+def charged(result: dict[str, Any], model: str, cap: float | None) -> dict[str, Any]:
+    """A session whose stream reported no cost (no `result` event: a timeout, a crash, a
+    killed process) is charged `charge_of`, so every cap holds in code; flagged in its row."""
+    if result.get("cost_reported"):
+        return result
+    return {**result, "cost": charge_of(model, cap), "cost_charged": True}
 
 
 def handoff_step(rec: Path, repo: Path, first: dict[str, Any], model: str,
@@ -396,6 +493,7 @@ def brief(s: dict[str, Any]) -> dict[str, Any]:
         "limit_hit",
         "native",
         "harness_cut",
+        "cost_charged",
         "first_prompt",
         "last_prompt",
         "is_error",
@@ -464,10 +562,12 @@ def book(out: Path, kind: str, usd: float, what: str) -> None:
                             "at": time.strftime("%Y-%m-%d %H:%M:%S")}) + "\n")  # fmt: skip
 
 
-def lost_cost(work: Path, rec: Path) -> float:
-    """What an interrupted arm had spent: its streams' own results and its decisions."""
-    claude = sum(carry.read_stream(f)["cost"] for f in sorted(rec.glob("*.jsonl"))
-                 if f.name.startswith(("session-", "handoff")))  # fmt: skip
+def lost_cost(work: Path, rec: Path, charge: float = 0.0) -> float:
+    """What an interrupted arm had spent: its streams' own results and its decisions; a stream
+    that reported no cost (the call was cut) counts `charge` (its cap and one worst turn)."""
+    streams = [f for f in sorted(rec.glob("*.jsonl")) if f.name.startswith(("session-", "handoff"))]
+    claude = sum(carry.read_stream(f)["cost"] if hc.stream_extra(f)["cost_reported"] else charge
+                 for f in streams)  # fmt: skip
     return claude + (carry_s.jev(work)["jev_usd"] if work.exists() else 0.0)
 
 
@@ -500,11 +600,25 @@ def wait_for_day(seconds: float, clock: Callable[[], dt.datetime], sleep: Callab
         sleep(60)
 
 
-def resume_interrupted(out: Path, work: Path, seen: dict[str, int]) -> tuple[dict[str, int], bool]:
-    """An arm folder without a row: its spend counted, the folders set aside; True when it may
-    run again (at most INTERRUPTS times)."""
+def in_quiet_hours(seconds: float, now: dt.datetime) -> bool:
+    """Whether an arm expected to take `seconds` (times WALL_FACTOR, plus the margin) from `now`
+    would run, even in part, between QUIET's two times."""
+    end = now + dt.timedelta(seconds=seconds * WALL_FACTOR + MIDNIGHT_MARGIN_S)
+    start, stop = QUIET
+    t = now
+    while t <= end:  # minute steps: an arm takes minutes, the window hours
+        if start <= t.time() < stop:
+            return True
+        t += dt.timedelta(minutes=1)
+    return start <= end.time() < stop
+
+
+def resume_interrupted(out: Path, work: Path, seen: dict[str, int],
+                       charge: float = 0.0) -> tuple[dict[str, int], bool]:  # fmt: skip
+    """An arm folder without a row: its spend counted (a cut call at `charge`), the folders set
+    aside; True when it may run again (at most INTERRUPTS times)."""
     rec = out / "arms" / work.name
-    lost = lost_cost(work, rec)
+    lost = lost_cost(work, rec, charge)
     book(out, "interrupted", lost, work.name)
     seen = {**seen, work.name: seen.get(work.name, 0) + 1}
     (out / "interrupts.json").write_text(json.dumps(seen), encoding="utf-8")
@@ -520,42 +634,55 @@ def run_plan(out: Path, run: str, keyfile: Path, dry: bool, cap: float, night: P
              arm_fn: Callable[..., dict[str, Any]] = arm_run,
              work_root: Path | None = None) -> str:  # fmt: skip
     """Runs what is left of `run`; returns why it stopped ("cap", "limit", "harness", "manual",
-    "broken") or "" at its end. LIMIT.flag goes to `night` (the root) or else `out`."""
-    work_root = work_root or WORK / RUNS[run]["dir"]
-    plan = build_plan(run)
+    "broken", "quiet") or "" at its end. LIMIT.flag goes to `night` (the root) or else `out`.
+    A lot with quiet hours starts no arm that would run into them ("quiet", resumable)."""
+    work_root = work_root or work_of(run)
+    plan, arms = build_plan(run), arms_of(run)
+    quiet = bool(LOTS[lot_of(run)]["quiet"])
+    extra = {} if lot_of(run) == "f2" else {"run": run}  # F2's arms take no run: as sealed
+    pairs = lot_of(run) != "f2"
     rows = [] if dry else rows_of(out)
     done = {(r["scene"], r["model"], r["arm"], r["repeat"]) for r in rows}
     seen, failed = interrupts(out), 0
     for index, (name, model, arm, rep) in enumerate(plan):
         if (name, model, arm, rep) in done:
             continue
-        work = work_root / folder_name(run, index // len(ARMS), arm)
+        work = work_root / folder_name(run, index // len(arms), arm)
+        cap_of = call_cap(run, model)
         base = {"scene": name, "model": model, "arm": arm, "repeat": rep, "folder": str(work)}
         if not dry and stop_file(out, night):
             print("stop: a STOP file", flush=True)
             return "manual"
         if not dry and (work.exists() or (out / "arms" / work.name).exists()):
-            seen, again = resume_interrupted(out, work, seen)
+            seen, again = resume_interrupted(out, work, seen, charge_of(model, cap_of))
             if not again:
                 rows.append({**base, "cut": f"interrupted {seen[work.name]} times", "cost": 0.0})
                 write_rows(out, rows)
                 continue
         spent = 0.0 if dry else ledger(out)
-        if spent + reserve_of(model, arm) > cap:
+        first_of_triple = index % len(arms) == 0
+        need = reserve_of(model, arm, run)
+        if pairs and first_of_triple:  # W17: a pair starts only if both its arms fit (no orphan)
+            need = sum(reserve_of(model, a, run) for a in arms)
+        if spent + need > cap:
             print(f"stop: {spent:.2f} USD spent, the next arm could pass {cap}", flush=True)
             return "cap"
-        first_of_triple = index % len(ARMS) == 0
-        expected = EXPECTED_ARM_S[model] * (len(ARMS) if first_of_triple else 1)
+        expected = EXPECTED_ARM_S[model] * (len(arms) if first_of_triple else 1)
         if not dry and not wait_for_day(expected, clock, sleep, lambda: stop_file(out, night)):
             return "manual"
+        if not dry and quiet and in_quiet_hours(expected, clock()):
+            print(f"stop: quiet hours {QUIET[0]:%H:%M}-{QUIET[1]:%H:%M}; run it again after",
+                  flush=True)  # fmt: skip
+            return "quiet"
         try:
-            row = arm_fn(out, work, name, model, arm, rep, keyfile, dry)
+            row = arm_fn(out, work, name, model, arm, rep, keyfile, dry, **extra)
         except Exception as error:  # never ends the night: the arm is NOT RUN, its spend counted
             if dry:
                 raise
             row = {**base, "cut": f"harness exception: {type(error).__name__}",
                    "error": str(error)[-300:],
-                   "cost": lost_cost(work, out / "arms" / work.name)}  # fmt: skip
+                   "cost": lost_cost(work, out / "arms" / work.name,
+                                     charge_of(model, cap_of))}  # fmt: skip
         if dry:
             print(json.dumps({k: row[k] for k in ("scene", "model", "arm", "repeat", "folder",
                                                   "planned")}))  # fmt: skip
@@ -593,12 +720,15 @@ def complete(out: Path, run: str) -> bool:
 
 def execute(run: str, out: Path, cap: float, dry: bool = False, night: Path | None = None,
             work_root: Path | None = None) -> str:  # fmt: skip
-    """A whole run: refusals, the key and Jev's preflight, then the plan."""
-    work_root = work_root or (out / "work" if dry else WORK / RUNS[run]["dir"])
+    """A whole run: refusals, the key and Jev's preflight, then the plan. A W17 run also writes
+    its Jev cap beside the key (`carry_hook.CAP_FILE`): every hook's decider then goes through
+    `CappedDecider` on that run's own ledger (`capped_sub.py`)."""
+    work_root = work_root or (out / "work" if dry else work_of(run))
     keyfile = work_root / "typesafe.key"
     keyfile.unlink(missing_ok=True)  # one left by a crash is never reused
+    lot = lot_of(run)
     if not dry:
-        handoff_seal.require_sealed_checkout()
+        handoff_seal.require_sealed_checkout(*([] if lot == "f2" else [lot]))
         carry.refuse_unclean(out)
         carry.refuse_unclean(work_root)
         carry.record_claude(out, False, True)
@@ -610,6 +740,9 @@ def execute(run: str, out: Path, cap: float, dry: bool = False, night: Path | No
     try:
         if not dry:
             keyfile = carry.keyfile_from_harness_env(work_root)
+            if "jev_cap" in RUNS[run]:
+                (work_root / CAP_FILE).write_text(json.dumps({"cap_usd": RUNS[run]["jev_cap"]}),
+                                                  encoding="utf-8")  # fmt: skip
             book(out, "preflight", carry.jev_first(out, plan, keyfile), "jev-preflight")
         return run_plan(out, run, keyfile, dry, cap, night, work_root=work_root)
     finally:
@@ -625,17 +758,20 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dry", action="store_true")
     parser.add_argument("--preflight", action="store_true")
     parser.add_argument("--seal", action="store_true")
+    parser.add_argument("--lot", choices=sorted(LOTS), default="f2")
     args = parser.parse_args(argv)
     if args.seal:
-        print(seal())
+        results, fixed = handoff_seal.LOTS[args.lot]
+        print(seal(handoff_seal.REPO, results, fixed))
         return 0
     if args.preflight:
         import handoff_preflight
 
-        return handoff_preflight.main(Path(args.out) if args.out else OUT)
+        root = Path(args.out) if args.out else Path(LOTS[args.lot]["out"])
+        return handoff_preflight.main(root, args.lot)
     if not args.run:
         parser.error("--run, --preflight or --seal")
-    out = Path(args.out) if args.out else OUT / args.run
+    out = Path(args.out) if args.out else Path(LOTS[lot_of(args.run)]["out"]) / args.run
     cap = min(args.cap if args.cap is not None else RUNS[args.run]["cap"], RUNS[args.run]["cap"])
     return EXIT[execute(args.run, out, cap, args.dry)]
 

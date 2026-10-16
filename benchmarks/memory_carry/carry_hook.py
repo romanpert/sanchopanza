@@ -23,8 +23,11 @@ import sys
 import time
 from pathlib import Path
 
-SRC = Path(__file__).resolve().parents[2] / "src"
+HERE = Path(__file__).resolve().parent
+SRC = HERE.parents[1] / "src"
 TOKEN = "CLAUDE_CODE_OAUTH_TOKEN"
+CAP_FILE = "jev-cap.json"  # beside the run's key: {"cap_usd": ...} (handoff.CAP_FILE)
+LEDGER = "jev-ledger.jsonl"  # beside the run's key: the hooks' SpendLedger
 
 
 def key_of(keyfile: Path) -> str:
@@ -56,9 +59,21 @@ def log_call(run: Path, row: dict[str, object]) -> None:
         log.write(json.dumps(row) + "\n")
 
 
+def command_of(keyfile: Path, name: str, rest: list[str]) -> list[str]:
+    """`python -m sanchopanza <name> ...`; when the run wrote CAP_FILE beside its key (W17), the
+    same command through `capped_sub.py`, so every decision the hook asks goes through
+    `CappedDecider` on the run's own ledger (`jev-ledger.jsonl` beside the key)."""
+    cap_file = keyfile.parent / CAP_FILE
+    if not cap_file.is_file():
+        return [sys.executable, "-m", "sanchopanza", name, *rest]
+    cap = float(json.loads(cap_file.read_text(encoding="utf-8"))["cap_usd"])
+    return [sys.executable, str(HERE / "capped_sub.py"), str(keyfile.parent / LEDGER), str(cap),
+            name, *rest]  # fmt: skip
+
+
 def sub(run: Path, keyfile: Path, name: str, rest: list[str]) -> int:
     env = s_env(run, keyfile)
-    command = [sys.executable, "-m", "sanchopanza", name, *rest]
+    command = command_of(keyfile, name, rest)
     key = "TYPESAFE_API_KEY" in env
     if name.endswith("-mcp"):  # a server: the client's stdio, for as long as it runs
         log_call(run, {"sub": name, "event": "server start", "key": key})

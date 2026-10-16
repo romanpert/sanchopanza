@@ -1,4 +1,6 @@
-"""F2's seal (docs/results/2026-10-16-memory-f2/prereg.md, "Seal") and the sealed checkout.
+"""F2's seal (docs/results/2026-10-16-memory-f2/prereg.md, "Seal") and the sealed checkout, and
+the same for W17's memory lots on F2's runner (docs/results/2026-10-16-memory-w17/prereg.md):
+`LOTS` names each lot's results folder and its fixed files.
 
 `seal` writes `prereg.manifest.json` (sha256, LF bytes, of the prereg and every sealed file:
 the launcher, pyproject.toml, every file of `benchmarks/memory_carry/`'s Python and every file
@@ -27,32 +29,49 @@ SEALED_FIXED = (
     "tests/test_memory_carry_handoff.py", "tests/test_memory_carry_handoff_run.py",
     "tests/test_memory_carry_handoff_work.py",
 )  # fmt: skip
+RESULTS_W17 = REPO / "docs" / "results" / "2026-10-16-memory-w17"
+SEALED_FIXED_W17 = (
+    "memlot-night-run.cmd", "pyproject.toml", "benchmarks/meter.py",
+    "benchmarks/memory_carry/handoff.py", "benchmarks/memory_carry/handoff_analyze.py",
+    "benchmarks/memory_carry/handoff_call.py", "benchmarks/memory_carry/handoff_cost.py",
+    "benchmarks/memory_carry/handoff_cost_ci.py", "benchmarks/memory_carry/handoff_night.py",
+    "benchmarks/memory_carry/handoff_pairs.py", "benchmarks/memory_carry/handoff_preflight.py",
+    "benchmarks/memory_carry/handoff_seal.py", "benchmarks/memory_carry/scenes_handoff.py",
+    "benchmarks/memory_carry/carry.py", "benchmarks/memory_carry/carry_s.py",
+    "benchmarks/memory_carry/carry_hook.py", "benchmarks/memory_carry/capped_sub.py",
+    "tests/test_memory_carry_handoff.py", "tests/test_memory_carry_handoff_run.py",
+    "tests/test_memory_carry_handoff_work.py", "tests/test_memory_carry_w17.py",
+)  # fmt: skip
+LOTS = {"f2": (RESULTS, SEALED_FIXED), "w17": (RESULTS_W17, SEALED_FIXED_W17)}
+PATH_WORDS = {"w17": ("f2", "memory", "handoff", "memlot", "w17", "sonnet", "opus")}
 SEALED_GLOBS = ("src/sanchopanza/**/*", "benchmarks/memory_carry/*.py")
 NOT_CODE = ("__pycache__",)
 SEALED_CHECKOUT_REFUSED = 11
 
 
-def sealed_paths(repo: Path = REPO) -> tuple[str, ...]:
+def sealed_paths(repo: Path = REPO, fixed: tuple[str, ...] = SEALED_FIXED) -> tuple[str, ...]:
     found = {p.relative_to(repo).as_posix() for g in SEALED_GLOBS for p in repo.glob(g)
              if p.is_file() and not set(NOT_CODE) & set(p.parts)
              and p.suffix not in (".pyc", ".pyo")}  # fmt: skip
-    return (*SEALED_FIXED, *sorted(found - set(SEALED_FIXED)))
+    return (*fixed, *sorted(found - set(fixed)))
 
 
-def manifest(repo: Path = REPO, results: Path = RESULTS) -> dict[str, str]:
+def manifest(repo: Path = REPO, results: Path = RESULTS,
+             fixed: tuple[str, ...] = SEALED_FIXED) -> dict[str, str]:  # fmt: skip
     def digest(path: Path) -> str:
         return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
     doc = (results / "prereg.md").relative_to(repo).as_posix()
-    return {p: digest(repo / p) for p in (doc, *sealed_paths(repo))}
+    return {p: digest(repo / p) for p in (doc, *sealed_paths(repo, fixed))}
 
 
 def combined(found: dict[str, str]) -> str:
     return hashlib.sha256("".join(f"{k} {v}\n" for k, v in found.items()).encode()).hexdigest()
 
 
-def seal(repo: Path = REPO, results: Path = RESULTS) -> str:
-    found = manifest(repo, results)
+def seal(repo: Path = REPO, results: Path = RESULTS,
+         fixed: tuple[str, ...] = SEALED_FIXED) -> str:  # fmt: skip
+    found = manifest(repo, results, fixed)
     value = combined(found)
     target = results / "prereg.sha256"
     if target.exists() and target.read_text().strip() not in ("", value):
@@ -63,9 +82,11 @@ def seal(repo: Path = REPO, results: Path = RESULTS) -> str:
     return value
 
 
-def seal_ok(repo: Path = REPO, results: Path = RESULTS) -> bool:
+def seal_ok(repo: Path = REPO, results: Path = RESULTS,
+            fixed: tuple[str, ...] = SEALED_FIXED) -> bool:  # fmt: skip
     target = results / "prereg.sha256"
-    return target.exists() and target.read_text().strip() == combined(manifest(repo, results))
+    return target.exists() and target.read_text().strip() == combined(
+        manifest(repo, results, fixed))  # fmt: skip
 
 
 def git(repo: Path, *args: str) -> str:
@@ -74,9 +95,10 @@ def git(repo: Path, *args: str) -> str:
     return done.stdout.strip() if done.returncode == 0 else f"<git failed: {done.stderr.strip()}>"
 
 
-def checkout_refusal(repo: Path = REPO, results: Path = RESULTS) -> str:
+def checkout_refusal(repo: Path = REPO, results: Path = RESULTS,
+                     fixed: tuple[str, ...] = SEALED_FIXED) -> str:  # fmt: skip
     """Why this checkout may not run the lot ("" when it may)."""
-    if not seal_ok(repo, results):
+    if not seal_ok(repo, results, fixed):
         return "prereg.md or the code differ from the seal (or no seal)"
     sealed = git(repo, "log", "-1", "--format=%H", "--",
                  (results / "prereg.sha256").relative_to(repo).as_posix())  # fmt: skip
@@ -89,8 +111,16 @@ def checkout_refusal(repo: Path = REPO, results: Path = RESULTS) -> str:
     return ""
 
 
-def require_sealed_checkout(repo: Path = REPO, results: Path = RESULTS) -> None:
-    why = checkout_refusal(repo, results)
+def path_refusal(lot: str, repo: Path = REPO) -> str:
+    """W17: the checkout's own path may not name the lot (S's installed hooks show it to the
+    agent); the launcher checks the same words."""
+    named = [w for w in PATH_WORDS.get(lot, ()) if w in str(repo).lower()]
+    return f"the checkout's path {repo} names the lot ({', '.join(named)})" if named else ""
+
+
+def require_sealed_checkout(lot: str = "f2", repo: Path = REPO) -> None:
+    results, fixed = LOTS[lot]
+    why = path_refusal(lot, repo) or checkout_refusal(repo, results, fixed)
     if why:
         print(f"refused: {why}; nothing run", flush=True)
         raise SystemExit(SEALED_CHECKOUT_REFUSED)

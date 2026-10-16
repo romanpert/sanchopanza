@@ -86,6 +86,45 @@ def s_check() -> tuple[bool, str]:
                 f"{','.join(memory)}; Stop audit env {audit}")  # fmt: skip
 
 
+def user_check(tmp: Path | None = None) -> tuple[bool, str]:
+    """W17's S' as it ships at user scope: the runner's install into an arm's configuration
+    folder (`carry_s.install_user`, before its commands are rewired) writes the same settings and
+    skill as a bare `sanchopanza install --write` writes into `~/.claude` (the home pointed at an
+    empty folder); memory's hooks are in them; no `.mcp.json` and no MCP approval anywhere."""
+    with tempfile.TemporaryDirectory() as scratch:
+        base = Path(tmp or scratch)
+        run, home, cwd = base / "arm", base / "home", base / "cwd"
+        for folder in (run / "claude-config", home, cwd):
+            folder.mkdir(parents=True, exist_ok=True)
+        try:
+            carry_s.install_user(run, run / "claude-config", base / "k", carry.environment())
+        except RuntimeError as error:
+            return False, f"runner's user install failed: {error}"
+        env = {**carry.environment(), "PYTHONPATH": str(carry_s.SRC), "HOME": str(home),
+               "USERPROFILE": str(home)}  # fmt: skip
+        done = subprocess.run([sys.executable, "-m", "sanchopanza", "install", "--write"],
+                              cwd=cwd, env=env, capture_output=True, text=True, timeout=120,
+                              check=False)  # fmt: skip
+        if done.returncode:
+            return False, f"bare install failed: {done.stderr[-300:]}"
+        written = run / "install" / "as-written"
+        same = all((written / rel).is_file() and (home / ".claude" / rel).is_file()
+                   and (written / rel).read_text(encoding="utf-8")
+                   == (home / ".claude" / rel).read_text(encoding="utf-8")
+                   for rel in carry_s.U_INSTALLED)  # fmt: skip
+        settings = json.loads((written / "settings.json").read_text(encoding="utf-8"))
+        hooks = settings.get("hooks") or {}
+        memory = [e for e in MEMORY_EVENTS
+                  if any("memory-hook" in h.get("command", "") for x in hooks.get(e, [])
+                         for h in x.get("hooks", []))]  # fmt: skip
+        mcp = [str(p) for p in base.rglob(".mcp.json")]
+        approved = "enabledMcpjsonServers" in settings
+        ok = same and len(memory) == len(MEMORY_EVENTS) and not mcp and not approved
+        return ok, (f"runner user install == bare `install --write` in ~/.claude: {same}; memory "
+                    f"hooks on {','.join(memory)}; .mcp.json: {mcp or 'none'}; MCP approval: "
+                    f"{approved}")  # fmt: skip
+
+
 def decider_check() -> tuple[bool, str]:
     code = (
         "from sanchopanza.harness.claude_code import decider_from_env; import httpx; "
@@ -113,15 +152,23 @@ def inputs_check() -> tuple[bool, str]:
     return ok, f"{len(HANDOFF)} scenes, pilot {HANDOFF_PILOT}; problems: {bad or 'none'}"
 
 
-def caps_check() -> tuple[bool, str]:
+def caps_check(lot: str = "f2") -> tuple[bool, str]:
     lines, ok = [], True
-    for run, spec in handoff.RUNS.items():
-        triple = sum(handoff.reserve_of(spec["model"], arm) for arm in handoff.ARMS)
+    runs = handoff.LOTS[lot]["sequence"]
+    night_cap = handoff.NIGHT_CAP if lot == "f2" else float(handoff.LOTS[lot]["night_cap"])
+    for run in runs:
+        spec = handoff.RUNS[run]
+        triple = sum(handoff.reserve_of(spec["model"], arm, run) for arm in handoff.arms_of(run))
         ok = ok and spec["cap"] >= triple
-        lines.append(f"{run}: cap {spec['cap']}, one triple's reserve {triple:.2f}")
-    total = sum(spec["cap"] for spec in handoff.RUNS.values())
-    ok = ok and total <= handoff.NIGHT_CAP
-    return ok, "; ".join(lines) + f"; caps sum {total} <= night {handoff.NIGHT_CAP}"
+        lines.append(f"{run}: cap {spec['cap']}, one triple's (pair's) reserve {triple:.2f}")
+    total = sum(handoff.RUNS[r]["cap"] for r in runs)
+    if lot == "f2":
+        ok = ok and total <= night_cap
+        return ok, "; ".join(lines) + f"; caps sum {total} <= night {night_cap}"
+    # W17: each run's cap is min(its cap, night cap - the other run's spend) in code, so the
+    # night cap binds the two together whichever runs first.
+    ok = ok and all(handoff.RUNS[r]["cap"] <= night_cap for r in runs)
+    return ok, "; ".join(lines) + f"; each <= night {night_cap}, which binds both in code"
 
 
 def isolation_check(root: Path, work: Path | None = None) -> tuple[bool, str]:
@@ -131,7 +178,8 @@ def isolation_check(root: Path, work: Path | None = None) -> tuple[bool, str]:
     home = Path.home().resolve()
     inside = [str(p) for p in (root, work) if p.resolve().is_relative_to(home)]
     found = carry.ancestors_memory(root.resolve()) + carry.ancestors_memory(work.resolve())
-    named = [w for w in ("memory", "f2", "handoff", "sonnet", "opus") if w in str(work).lower()]
+    words = ("memory", "f2", "handoff", "sonnet", "opus", "w17", "lot", "bare")
+    named = [w for w in words if w in str(work).lower()]
     ok = not inside and not found and not named
     return ok, (f"root {root}, work {work}; under home: {inside or 'none'}; memory above: "
                 f"{found or 'none'}; names in the work path: {named or 'none'}")  # fmt: skip
@@ -144,16 +192,18 @@ def token_check() -> tuple[bool | None, str]:
                   "not read by the preflight")  # fmt: skip
 
 
-def report(root: Path) -> list[tuple[str, bool | None, str]]:
+def report(root: Path, lot: str = "f2") -> list[tuple[str, bool | None, str]]:
     out: list[tuple[str, bool | None, str]] = []
-    for name, fn in (("pin", pin_check), ("arm S install", s_check),
-                     ("decider", decider_check), ("inputs", inputs_check),
-                     ("caps", caps_check)):  # fmt: skip
+    install = ("arm S install", s_check) if lot == "f2" else ("arm S' user install", user_check)
+    for name, fn in (("pin", pin_check), install, ("decider", decider_check),
+                     ("inputs", inputs_check), ("caps", lambda: caps_check(lot))):  # fmt: skip
         ok, detail = fn()
         out.append((name, ok, detail))
-    out.append(("clean user", *isolation_check(root)))
+    out.append(("clean user", *isolation_check(root, Path(handoff.LOTS[lot]["work"]))))
     out.append(("token", *token_check()))
-    out.append(("seal", handoff.seal_ok(), "prereg.sha256 matches" if handoff.seal_ok()
+    results, fixed = handoff.handoff_seal.LOTS[lot]
+    sealed = handoff.seal_ok(handoff.handoff_seal.REPO, results, fixed)
+    out.append(("seal", sealed, "prereg.sha256 matches" if sealed
                 else "not sealed or changed since"))  # fmt: skip
     flags = [str(p) for p in root.rglob("*") if p.name in ("LIMIT.flag", "STOP")] \
         if root.exists() else []  # fmt: skip
@@ -161,8 +211,8 @@ def report(root: Path) -> list[tuple[str, bool | None, str]]:
     return out
 
 
-def main(root: Path) -> int:
-    rows: list[Any] = report(root)
+def main(root: Path, lot: str = "f2") -> int:
+    rows: list[Any] = report(root, lot)
     for name, ok, detail in rows:
         mark = "ok  " if ok else "skip" if ok is None else "FAIL"
         print(f"{mark} {name}: {detail}")

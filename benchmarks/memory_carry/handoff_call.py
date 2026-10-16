@@ -32,6 +32,13 @@ TOUCH = {
     "carry_hook": re.compile(r"carry_hook"),
     "claude-config": re.compile(r"claude-config"),
     "store": re.compile(r"(^|[\\/\s'\"=])store([\\/]|$|[\s'\"])"),
+    # W17: what lies beside the arm's own folder (the run's other arms, the pair's other arm),
+    # the run's key and Jev files, and S's own logs.
+    "../..": re.compile(r"\.\.[\\/]+\.\."),
+    "typesafe.key": re.compile(r"typesafe\.key"),
+    "jev-": re.compile(r"jev-(cap|ledger)"),
+    "hooks.jsonl": re.compile(r"hooks\.jsonl"),
+    "journal.jsonl": re.compile(r"journal\.jsonl"),
 }
 LIMIT_WORDS = ("usage limit", "hit your limit", "weekly limit")
 LIMIT_SHORT = 400  # characters: a longer successful answer that mentions a limit is not one
@@ -69,7 +76,7 @@ def call(run: Path, cwd: Path, cmd: list[str], tag: str, config: Path | None,
         except subprocess.TimeoutExpired:
             kill_tree(proc)
             code, err, late = None, "", True
-    seen = {**carry.read_stream(stream), **stream_extra(stream)}
+    seen = {**carry.read_stream(stream), **stream_extra(stream, Path(cwd).parent.name)}
     limit = bool(seen.get("limit_hit")) or limit_text(seen, err or "")
     return {**seen, "returncode": code, "stderr": (err or "")[-300:], "timeout": late,
             "tag": tag, "started": started, "seconds": round(time.time() - started, 1),
@@ -83,7 +90,7 @@ def limit_text(seen: dict[str, Any], stderr: str) -> bool:
     return said or any(w in stderr.lower() for w in LIMIT_WORDS)
 
 
-def stream_extra(path: Path) -> dict[str, Any]:
+def stream_extra(path: Path, own: str = "") -> dict[str, Any]:
     text, reported, usage, prompts, agents = "", False, {}, [], 0
     touched: set[str] = set()
     raw = path.read_text(encoding="utf-8") if path.exists() else ""
@@ -106,15 +113,19 @@ def stream_extra(path: Path) -> dict[str, Any]:
             content = message.get("content") or []
             uses = [b for b in content if isinstance(b, dict) and b.get("type") == "tool_use"]
             agents += sum(1 for b in uses if b.get("name") in ("Task", "Agent"))
-            touched |= touches([json.dumps(b.get("input") or {}) for b in uses])
+            touched |= touches([json.dumps(b.get("input") or {}) for b in uses], own)
     return {"text": text, "cost_reported": reported, "tokens": tokens_of(usage),
             "first_prompt": prompts[0] if prompts else None,
             "last_prompt": prompts[-1] if prompts else None, "subagents": agents,
             "touched": sorted(touched)}  # fmt: skip
 
 
-def touches(inputs: list[str]) -> set[str]:
-    """Which harness files (TOUCH) the tool calls' inputs name; JSON escapes undone first."""
+SIBLING = re.compile(r"(?<![A-Za-z0-9])t\d\d-[abc](?![A-Za-z0-9])")
+
+
+def touches(inputs: list[str], own: str = "") -> set[str]:
+    """Which harness files (TOUCH) the tool calls' inputs name; JSON escapes undone first.
+    "sibling" (only with `own`): an arm folder's name (`t<NN>-<x>`) other than `own`."""
     found: set[str] = set()
     for raw in inputs:
         try:
@@ -122,6 +133,8 @@ def touches(inputs: list[str]) -> set[str]:
         except (ValueError, AttributeError):
             text = raw
         found |= {label for label, pattern in TOUCH.items() if pattern.search(text)}
+        if own and any(m != own for m in SIBLING.findall(text)):
+            found.add("sibling")
     return found
 
 

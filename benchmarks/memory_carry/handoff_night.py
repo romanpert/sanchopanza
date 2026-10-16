@@ -11,6 +11,10 @@ crash or reboot runs again whole (`handoff.run_plan`).
   if it fails, nothing larger runs (exit 5). Its result is final: a resume reads it back.
 - Any other stop (cap, limit, harness, STOP, broken) ends the night with that run's exit code.
 - After each run its analysis (free) goes to `<run>-table.json`.
+- `--lot w17` runs W17's two memory lots instead (docs/results/2026-10-16-memory-w17/
+  prereg.md): w17-sonnet then w17-opus, no gate, one cap of 45 USD over both
+  (`handoff.LOTS`), no arm in the quiet hours; `--only <run>` runs one of them. Its
+  analysis is `handoff_pairs.analyse`.
 
     python benchmarks/memory_carry/handoff_night.py --root C:\\sp-runs\\memory-f2 [--dry]
 """
@@ -32,6 +36,7 @@ sys.path.insert(0, str(HERE))
 import carry  # noqa: E402
 import handoff  # noqa: E402
 import handoff_analyze  # noqa: E402
+import handoff_pairs  # noqa: E402
 import handoff_seal  # noqa: E402
 
 SEQUENCE = ("f2-pilot", "f2-sonnet", "f2-opus")
@@ -70,9 +75,12 @@ def lock(root: Path) -> None:
     path.write_text(f"{os.getpid()} {time.strftime('%Y-%m-%d %H:%M:%S')}\n", encoding="utf-8")
 
 
-def spent_before(root: Path, run: str) -> float:
-    earlier = SEQUENCE[: SEQUENCE.index(run)]
-    return sum(handoff.ledger(root / r) for r in earlier)
+def spent_before(root: Path, run: str, lot: str = "f2") -> float:
+    """What the lot's other runs spent before `run` (for W17, whose runs can run alone with
+    `--only`, every other run of the lot)."""
+    sequence = handoff.LOTS[lot]["sequence"]
+    others = sequence[: sequence.index(run)] if lot == "f2" else [r for r in sequence if r != run]
+    return sum(handoff.ledger(root / r) for r in others)
 
 
 def table(root: Path, run: str) -> None:
@@ -80,7 +88,11 @@ def table(root: Path, run: str) -> None:
     rows = handoff.rows_of(out)
     plan = handoff.build_plan(run)
     planned = sorted({(s, m, r) for s, m, _, r in plan})
-    result = handoff_analyze.analyse(rows, handoff.RUNS[run]["model"], out, planned)
+    model = handoff.RUNS[run]["model"]
+    if handoff.lot_of(run) == "f2":
+        result = handoff_analyze.analyse(rows, model, out, planned)
+    else:
+        result = handoff_pairs.analyse(rows, model, out, planned)
     (root / f"{run}-table.json").write_text(json.dumps(result, indent=1), encoding="utf-8")
 
 
@@ -101,36 +113,39 @@ def status(root: Path, text: str) -> None:
     print(text, flush=True)
 
 
-def night(root: Path, dry: bool = False, work: Path | None = None) -> int:
-    """`work`: where the agents work (handoff.WORK); a dry night builds under `root/dry`."""
+def night(root: Path, dry: bool = False, work: Path | None = None, lot: str = "f2",
+          only: str | None = None) -> int:  # fmt: skip
+    """`work`: where the agents work (the lot's own); a dry night builds under `root/dry`.
+    `only`: one run of the lot (W17's two lots can run apart)."""
+    spec = handoff.LOTS[lot]
+    sequence = tuple(r for r in spec["sequence"] if only in (None, r))
+    if not sequence:
+        raise SystemExit(f"{only} is not a run of the lot {lot}")
     root.mkdir(parents=True, exist_ok=True)
     if dry:
-        for run in SEQUENCE:
+        for run in sequence:
             print(f"== {run} (dry: every arm built, nothing called)", flush=True)
             out = root / "dry" / run
-            handoff.execute(
-                run,
-                out,
-                handoff.RUNS[run]["cap"],
-                dry=True,
-                work_root=(work or root / "dry" / "w16") / handoff.RUNS[run]["dir"],
-            )
+            base = work or root / "dry" / Path(spec["work"]).name
+            handoff.execute(run, out, handoff.RUNS[run]["cap"], dry=True,
+                            work_root=base / handoff.RUNS[run]["dir"])  # fmt: skip
         return 0
-    handoff_seal.require_sealed_checkout()
-    for run in SEQUENCE:  # a key a crash left behind is never reused
-        (handoff.WORK / handoff.RUNS[run]["dir"] / "typesafe.key").unlink(missing_ok=True)
+    handoff_seal.require_sealed_checkout(*([] if lot == "f2" else [lot]))
+    for run in sequence:  # a key a crash left behind is never reused
+        (handoff.work_of(run) / "typesafe.key").unlink(missing_ok=True)
     if (root / "LIMIT.flag").exists():
         status(root, "refused: LIMIT.flag (a usage limit paused the night)")
         return handoff.EXIT["limit"]
     lock(root)
     try:
-        for run in SEQUENCE:
-            if run != "f2-pilot":
+        for run in sequence:
+            if spec["gate"] and run != spec["gate"]:
                 result = pilot_gate(root)
                 if not result["pass"]:
                     status(root, "gate failed: " + "; ".join(result["reasons"]))
                     return GATE_FAIL
-            cap = min(handoff.RUNS[run]["cap"], handoff.NIGHT_CAP - spent_before(root, run))
+            night_cap = handoff.NIGHT_CAP if lot == "f2" else float(spec["night_cap"])
+            cap = min(handoff.RUNS[run]["cap"], night_cap - spent_before(root, run, lot))
             status(root, f"{run} starts, cap {cap:.2f} USD")
             stop = handoff.execute(run, root / run, cap, night=root)
             table(root, run)
@@ -146,10 +161,13 @@ def night(root: Path, dry: bool = False, work: Path | None = None) -> int:
 def main(argv: list[str] | None = None) -> int:
     carry.ignore_interrupts()
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", default=str(handoff.OUT))
+    parser.add_argument("--root")
     parser.add_argument("--dry", action="store_true")
+    parser.add_argument("--lot", choices=sorted(handoff.LOTS), default="f2")
+    parser.add_argument("--only", choices=sorted(handoff.RUNS))
     args = parser.parse_args(argv)
-    return night(Path(args.root), args.dry)
+    root = Path(args.root) if args.root else Path(handoff.LOTS[args.lot]["out"])
+    return night(root, args.dry, lot=args.lot, only=args.only)
 
 
 if __name__ == "__main__":
