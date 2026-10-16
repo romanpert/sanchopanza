@@ -1,0 +1,143 @@
+{
+ "model": "sonnet",
+ "triples": 4,
+ "not_run": [],
+ "verdict": "sin veredicto",
+ "criteria": {
+  "1_s_not_worse_than_h": false,
+  "2_s_better_than_n0": null,
+  "5a_tests": true,
+  "5b_false_sendbacks": true,
+  "false_sendbacks": 0
+ },
+ "count": {
+  "N0": {
+   "task": 0,
+   "fact": 0,
+   "decision": 0,
+   "intact": 4,
+   "tests": 4,
+   "kept_all": 0
+  },
+  "H": {
+   "task": 4,
+   "fact": 4,
+   "decision": 4,
+   "intact": 4,
+   "tests": 4,
+   "kept_all": 4
+  },
+  "S": {
+   "task": 4,
+   "fact": 4,
+   "decision": 4,
+   "intact": 4,
+   "tests": 4,
+   "kept_all": 4
+  }
+ },
+ "S_vs_H": {
+  "a": "S",
+  "b": "H",
+  "triples": 4,
+  "a_only": 0,
+  "b_only": 0,
+  "difference": 0.0,
+  "tango_lower_95_raw": -0.4034786252027047,
+  "tango_lower_95": -0.4035,
+  "p_a_better": 1.0,
+  "p_b_better": 1.0
+ },
+ "S_vs_N0": {
+  "a": "S",
+  "b": "N0",
+  "triples": 4,
+  "a_only": 4,
+  "b_only": 0,
+  "difference": 1.0,
+  "tango_lower_95_raw": 0.1930427495945905,
+  "tango_lower_95": 0.193,
+  "p_a_better": 0.0625,
+  "p_b_better": 1.0
+ },
+ "H_vs_N0": {
+  "a": "H",
+  "b": "N0",
+  "triples": 4,
+  "a_only": 4,
+  "b_only": 0,
+  "difference": 1.0,
+  "tango_lower_95_raw": 0.1930427495945905,
+  "tango_lower_95": 0.193,
+  "p_a_better": 0.0625,
+  "p_b_better": 1.0
+ },
+ "cost_median_usd": {
+  "N0": 0.094794,
+  "H": 0.143097,
+  "S": 0.121612
+ },
+ "cost_ratio_median": {
+  "S/H": 0.825805,
+  "S/N0": 1.235383
+ },
+ "tokens_median": {
+  "N0": {
+   "input": 14.0,
+   "output": 1664.5,
+   "cache_read": 144750.5,
+   "cache_write": 12288.0
+  },
+  "H": {
+   "input": 18.0,
+   "output": 4033.0,
+   "cache_read": 193903.5,
+   "cache_write": 15706.0
+  },
+  "S": {
+   "input": 14.0,
+   "output": 2369.5,
+   "cache_read": 153803.0,
+   "cache_write": 16078.0
+  }
+ },
+ "handoff_chars": {
+  "median": 1540.5,
+  "max": 1988
+ },
+ "handoff_output_tokens": {
+  "median": 595.5,
+  "max": 740
+ },
+ "handoff_names": {
+  "C": 4,
+  "D": 4,
+  "both": 4
+ },
+ "handoff_cost_at_least_session_1": 4,
+ "given_in_S": 4,
+ "native_after_1": {
+  "N0": 0,
+  "H": 1,
+  "S": 0
+ },
+ "jev": {
+  "jev_decisions": 32,
+  "jev_failed": 0
+ },
+ "subagents": {
+  "N0": 0,
+  "H": 0,
+  "S": 0
+ },
+ "crossed_midnight": 0,
+ "touched": {
+  "H session-1": {
+   "claude-config": 1
+  },
+  "H session-2": {
+   "claude-config": 1
+  }
+ },
+ "not_run_reasons": {}
+}

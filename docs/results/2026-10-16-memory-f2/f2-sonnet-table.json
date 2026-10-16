@@ -1,0 +1,149 @@
+{
+ "model": "sonnet",
+ "triples": 48,
+ "not_run": [],
+ "verdict": "S not worse than H; S better than N0",
+ "criteria": {
+  "1_s_not_worse_than_h": true,
+  "2_s_better_than_n0": true,
+  "5a_tests": true,
+  "5b_false_sendbacks": true,
+  "false_sendbacks": 0
+ },
+ "count": {
+  "N0": {
+   "task": 4,
+   "fact": 4,
+   "decision": 4,
+   "intact": 48,
+   "tests": 48,
+   "kept_all": 4
+  },
+  "H": {
+   "task": 44,
+   "fact": 44,
+   "decision": 44,
+   "intact": 48,
+   "tests": 48,
+   "kept_all": 44
+  },
+  "S": {
+   "task": 48,
+   "fact": 48,
+   "decision": 48,
+   "intact": 48,
+   "tests": 48,
+   "kept_all": 48
+  }
+ },
+ "S_vs_H": {
+  "a": "S",
+  "b": "H",
+  "triples": 48,
+  "a_only": 4,
+  "b_only": 0,
+  "difference": 0.0833,
+  "tango_lower_95_raw": 0.025528896008707218,
+  "tango_lower_95": 0.0255,
+  "p_a_better": 0.0625,
+  "p_b_better": 1.0
+ },
+ "S_vs_N0": {
+  "a": "S",
+  "b": "N0",
+  "triples": 48,
+  "a_only": 44,
+  "b_only": 0,
+  "difference": 0.9167,
+  "tango_lower_95_raw": 0.8143972775538666,
+  "tango_lower_95": 0.8144,
+  "p_a_better": 5.684341886080802e-14,
+  "p_b_better": 1.0
+ },
+ "H_vs_N0": {
+  "a": "H",
+  "b": "N0",
+  "triples": 48,
+  "a_only": 41,
+  "b_only": 1,
+  "difference": 0.8333,
+  "tango_lower_95_raw": 0.6939510514506209,
+  "tango_lower_95": 0.694,
+  "p_a_better": 9.777068044058979e-12,
+  "p_b_better": 0.9999999999997726
+ },
+ "cost_median_usd": {
+  "N0": 0.104723,
+  "H": 0.142016,
+  "S": 0.126503
+ },
+ "cost_ratio_median": {
+  "S/H": 0.916836,
+  "S/N0": 1.225614
+ },
+ "tokens_median": {
+  "N0": {
+   "input": 15.0,
+   "output": 2090.5,
+   "cache_read": 157073.5,
+   "cache_write": 13156.5
+  },
+  "H": {
+   "input": 18.0,
+   "output": 4160.5,
+   "cache_read": 193078.5,
+   "cache_write": 15695.0
+  },
+  "S": {
+   "input": 14.0,
+   "output": 2786.0,
+   "cache_read": 156645.5,
+   "cache_write": 16246.0
+  }
+ },
+ "handoff_chars": {
+  "median": 1574.5,
+  "max": 2076
+ },
+ "handoff_output_tokens": {
+  "median": 559.5,
+  "max": 1352
+ },
+ "handoff_names": {
+  "C": 48,
+  "D": 48,
+  "both": 48
+ },
+ "handoff_cost_at_least_session_1": 48,
+ "given_in_S": 48,
+ "native_after_1": {
+  "N0": 4,
+  "H": 10,
+  "S": 0
+ },
+ "jev": {
+  "jev_decisions": 377,
+  "jev_failed": 0
+ },
+ "subagents": {
+  "N0": 0,
+  "H": 0,
+  "S": 0
+ },
+ "crossed_midnight": 0,
+ "touched": {
+  "N0 session-2": {
+   "claude-config": 14
+  },
+  "H session-1": {
+   "claude-config": 10
+  },
+  "H session-2": {
+   "claude-config": 7
+  },
+  "N0 session-1": {
+   "claude-config": 4
+  }
+ },
+ "not_run_reasons": {}
+}

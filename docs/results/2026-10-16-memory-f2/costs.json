@@ -1,0 +1,47 @@
+{
+ "f2-pilot": {
+  "table_from_public_rows": true,
+  "same_as_the_night_but_costs": true,
+  "costs": {
+   "model": "sonnet",
+   "handoffs": 4,
+   "handoff_turn_cost_median": 0.013147,
+   "sources": [
+    "running total minus session 1"
+   ],
+   "max_gap_to_tokens_priced": 1.734723475976807e-18
+  },
+  "spent_usd": 1.495278
+ },
+ "f2-sonnet": {
+  "table_from_public_rows": true,
+  "same_as_the_night_but_costs": true,
+  "costs": {
+   "model": "sonnet",
+   "handoffs": 48,
+   "handoff_turn_cost_median": 0.011907,
+   "sources": [
+    "running total minus session 1"
+   ],
+   "max_gap_to_tokens_priced": 1.0408340855860843e-17
+  },
+  "spent_usd": 18.296866
+ },
+ "f2-opus": {
+  "table_from_public_rows": true,
+  "same_as_the_night_but_costs": true,
+  "costs": {
+   "model": "opus",
+   "handoffs": 24,
+   "handoff_turn_cost_median": 0.021279,
+   "sources": [
+    "running total minus session 1"
+   ],
+   "max_gap_to_tokens_priced": 1.3877787807814457e-17
+  },
+  "spent_usd": 22.459526
+ },
+ "lot": {
+  "spent_usd": 42.2517
+ }
+}

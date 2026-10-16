@@ -1,0 +1,12 @@
+{
+ "pass": true,
+ "a": true,
+ "b": true,
+ "c": true,
+ "d": true,
+ "e": true,
+ "reasons": [],
+ "arms": 12,
+ "planned": 12,
+ "cut": {}
+}
