@@ -1,6 +1,6 @@
 ---
 name: sanchopanza-code
-description: How to work in a Claude Code session that has sanchopanza installed. Use when a request describes behaviour rather than naming a symbol or file and you need to find where it lives in a large or unfamiliar repository; when the conversation was just compacted and a "sanchopanza guard" block follows the summary; when a "[sanchopanza memory" block gives standing rules or records of earlier work; when a sanchopanza hook denies a command or adds a note to a result; or when a task will be long and you want to keep the context small.
+description: Use when a sanchopanza block or hook note appears (guard after a compaction, memory records) or to decide when to call find_in_repo.
 ---
 
 # Working with sanchopanza installed

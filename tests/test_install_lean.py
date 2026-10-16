@@ -96,3 +96,29 @@ def test_the_find_tool_carries_a_search_hint_for_tool_search(tmp_path: Path) -> 
 
 def test_the_kind_help_is_short() -> None:
     assert len(mcp.KIND_HELP) < 180
+
+
+# ---- the skill: a one-line description in every session, the body only when invoked ------------
+
+
+def _front(text: str) -> dict[str, str]:
+    head = text.split("---")[1]
+    return dict(line.split(": ", 1) for line in head.strip().splitlines())
+
+
+def test_the_skill_description_is_one_short_line_that_still_names_its_triggers() -> None:
+    """Claude Code lists every skill's description in each session's first message; the body
+    is read only when the skill is invoked (never, in 275 head-to-head sessions)."""
+    front = _front(defaults.skill_text())
+    assert front["name"] == "sanchopanza-code"
+    description = front["description"]
+    assert len(description) < 200
+    for word in ("sanchopanza", "guard", "memory", "find_in_repo"):
+        assert word in description
+
+
+def test_the_skill_body_keeps_its_sections() -> None:
+    body = defaults.skill_text().split("---", 2)[2]
+    for heading in ("## 1. Finding code", "## 2. After a compaction", "## 3. Memory",
+                    "## 4. Keep the context small", "## 5. When a hook speaks"):  # fmt: skip
+        assert heading in body
