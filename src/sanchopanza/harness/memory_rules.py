@@ -3,7 +3,8 @@
 Three moments, all in the memory hook:
 - **Stop, after the record is saved:** each sentence of the request's prompt is asked whether it
   is a standing rule; the ones that are join the project's `rules.json`, verbatim, with when and
-  where they were said. Only the prompt's text is read: never tool output or files.
+  where they were said. Only the prompt's text is read: never tool output or files. A plan or
+  next-step sentence (`is_plan`, ROADMAP C8) is not asked about: it belongs to the record.
 - **SessionStart (a new session, a resume, a clear or after a compaction):** the newest rules are
   given as context, whatever file the session goes on to touch (the carry bench's cross-file gap:
   a rule said while changing one file and broken in another).
@@ -141,6 +142,33 @@ def _norm(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().casefold()
 
 
+# ROADMAP C8: a plan or a decision about the next step ("For step 2, cap the discount at 20 %",
+# "Step 2, in the next session: ...") is what comes next in one feature, not a rule later work
+# must keep. In F2 the standing-rules question kept 40 such sentences in 72 S arms, beside each
+# scene's constraint, in the 8-rule slot every session start gives. They belong to the record of
+# the request that said them (`memory_recall.continued` gives it at a continuation), so they are
+# neither asked about at Stop (no decision spent) nor given at a session start (stored before).
+_PLAN = re.compile(
+    r"\bsteps?\s*(?:\d+|one|two|three|four|five)\b|\bnext (?:session|time|step)\b|"
+    r"\b(?:tomorrow|later today)\b|\b(?:phase|stage)\s*\d+\b|"
+    r"\bpasos?\s*(?:\d+|uno|dos|tres)\b|\bpr[óo]xima sesi[óo]n\b|\bfase\s*\d+\b|"
+    r"(?<!esta )\bmañana\b|\bsiguiente paso\b",
+    re.IGNORECASE,
+)
+
+
+def is_plan(sentence: str) -> bool:
+    """A sentence about a numbered step, the next session or tomorrow: a plan, not a rule."""
+    return bool(_PLAN.search(sentence or ""))
+
+
+def plan_in(request: str) -> bool:
+    """A request that states a plan in one of the person's sentences."""
+    from ..points.rules import sentences
+
+    return any(is_plan(s) for s in sentences(request or ""))
+
+
 async def extract(squire: Squire, store: Path, episodes: Sequence[ep.Episode]) -> list[str]:
     """New standing rules from the requests not asked yet; the texts added. A request is marked
     asked only when every one of its sentences got an answer (a decider error retries later)."""
@@ -152,7 +180,8 @@ async def extract(squire: Squire, store: Path, episodes: Sequence[ep.Episode]) -
     fresh = [e for e in episodes if e.key not in asked and e.request.strip()]
     if not fresh:
         return []
-    pending = [(e, s) for e in fresh for s in points.sentences(e.request)]
+    pending = [(e, s) for e in fresh for s in points.sentences(e.request)
+               if not is_plan(s)]  # fmt: skip
 
     async def ask(sentence: str, request: str) -> float | None:
         state, qs = points.questions_for_sentence(sentence, request)
@@ -201,9 +230,11 @@ def _line(rule: Mapping[str, Any]) -> str:
 
 def render(store: Path) -> str:
     """The newest rules as session context, or "" when there are none. Newest first by the time
-    they were said, whatever order the store keeps; header, lines and closing within GIVE_CHARS."""
+    they were said, whatever order the store keeps; header, lines and closing within GIVE_CHARS.
+    A plan (`is_plan`) stored before C8 is not given: it would take a rule's place."""
     lines, room = [], GIVE_CHARS - len(HEADER) - len(CLOSING) - 1
-    rules = sorted(load(store)["rules"], key=lambda r: -float(r.get("at") or 0))
+    rules = sorted((r for r in load(store)["rules"] if not is_plan(str(r.get("text") or ""))),
+                   key=lambda r: -float(r.get("at") or 0))  # fmt: skip
     for rule in rules[:GIVE_MAX]:
         line = _line(rule)
         if len(line) + 1 > room:
