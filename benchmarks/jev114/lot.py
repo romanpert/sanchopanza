@@ -77,6 +77,8 @@ COMMON_SEALED = (
     "src/sanchopanza/providers/cached.py",
     "src/sanchopanza/providers/recorded.py",
     "src/sanchopanza/providers/null.py",
+    "src/sanchopanza/catalog.py",  # recorded.py imports it (question ids, B7)
+    "src/sanchopanza/points/__init__.py",
 )
 # A launch that ends on one of these may not be followed by another: the cap or a wrong model.
 FINAL_STOPS = ("SpendCapReached", "spend cap", "WrongModel", "asked jev", "served jev")

@@ -275,7 +275,8 @@ kept and replayed. A test pins this.
 - the three `benches/retrieval*.jsonl`;
 - `points/triage.py`, `eval/bench.py`, `eval/stats.py` and `dag.py`;
 - `lot.COMMON_SEALED`: the lot machinery, the key loader, the Jev client and model keys, the
-  ledger and cap, the recordings, `squire`, `limits`, `text`, `contract`, `policy` and the rest.
+  ledger and cap, the recordings and `catalog`, `squire`, `limits`, `text`, `contract`, `policy`
+  and the rest.
 
 **`data.sha256`** signs every case's file, id, half, label, cluster and request key.
 

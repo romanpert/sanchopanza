@@ -238,7 +238,7 @@ kept and replayed. A test pins this.
   - `jev114_paired.py` and `l4_stats.py`;
   - the Jev client, its model keys and assets;
   - the ledger and the cap;
-  - the recording and cache providers;
+  - the recording and cache providers, and `catalog` (which `recorded` imports since B7);
   - `contract`, `media`, `limits`, `text`, `policy`, `squire`, `journal`, `funds` and `_env`.
 
 `data.sha256` covers every request key, label, cluster and `security` flag.
