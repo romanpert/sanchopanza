@@ -111,7 +111,9 @@ class Guard:
     chooser: str
     clipped: tuple[str, ...] = ()  # outputs the harness cut before the model saw them
     # "lines": value lines of one-shot output (the rule and the decider choosers); "results":
-    # whole tool results chosen by structure (`context.structural`), with `pointers` to re-read
+    # whole tool results chosen by structure (`context.structural`), with `pointers` to re-read;
+    # "pointers": no output at all, pointers only, archived files for what cannot be had again
+    # (`context.pointers`)
     kind: str = "lines"
     pointers: tuple[str, ...] = ()  # results left out that can be had again, named for re-reading
 
@@ -657,6 +659,12 @@ POINTERS_HEADING = (
     "Left out for room, and can be had again (read, search, fetch or run it again before "
     "relying on it; newest first):"
 )
+# The pointer block's (`context.pointers`): no output is repeated, every pointer says where it is.
+ARCHIVED_HEADING = (
+    "Tool output from before the compaction, not repeated here (newest first). Where a line "
+    "says Read <path>, that file holds the output whole, as it was printed (it cannot be had "
+    "again otherwise); read, search, fetch or run the rest again before relying on it:"
+)
 
 
 def block(guard: Guard, header: str = HEADER) -> str:
@@ -673,7 +681,7 @@ def block(guard: Guard, header: str = HEADER) -> str:
         for source, lines in groups.items():
             parts.append(f"{source}\n<<<output\n" + "\n".join(lines) + "\n>>>")
     if guard.pointers:
-        parts.append(POINTERS_HEADING)
+        parts.append(ARCHIVED_HEADING if guard.kind == "pointers" else POINTERS_HEADING)
         parts.extend(f"  {pointer}" for pointer in guard.pointers)
     if guard.clipped:
         parts.append(
@@ -708,11 +716,21 @@ INSTRUCTIONS_RESULTS = (
 )
 
 
+INSTRUCTIONS_POINTERS = (
+    "The harness will attach, right after your summary, the person's requests verbatim, the "
+    "files changed and pointers to the earlier tool output (archived files to Read for output "
+    "that cannot be had again). Do not spend the summary copying those. Spend it on what they do "
+    "not carry: why each step was taken, what was tried and failed, decisions and their reasons, "
+    "the exact values the next steps depend on, and exactly what remains to do."
+)
+
+
 def instructions(guard: Guard) -> str:
     """The `PreCompact` output: a note for the summariser. Empty when nothing will be attached."""
     if guard.empty:
         return ""
-    return INSTRUCTIONS_RESULTS if guard.kind == "results" else INSTRUCTIONS
+    notes = {"results": INSTRUCTIONS_RESULTS, "pointers": INSTRUCTIONS_POINTERS}
+    return notes.get(guard.kind, INSTRUCTIONS)
 
 
 def contains(text: str, value: str) -> bool:

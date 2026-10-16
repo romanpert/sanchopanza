@@ -23,16 +23,20 @@ for you. What it changes for you:
 ## 2. After a compaction
 
 When the context fills up, Claude Code summarises the conversation. With sanchopanza, a block
-headed `sanchopanza guard` follows the summary. It holds, verbatim:
+headed `sanchopanza guard` follows the summary. It holds:
 
-- the output of commands that cannot be run again (their latest run),
+- the person's requests, word for word,
 - the files changed so far,
-- the person's requests, word for word.
+- pointers to the tool output from before the compaction, newest first. A line ending in
+  `-> Read <path>` is output that cannot be had again (a one-shot command, a subagent's report),
+  kept whole in that file: `Read` it instead of re-running the command. The other lines name a
+  file, search or command you can read or run again.
 
-Trust that block over the summary for exact values (identifiers, numbers, tokens, paths). Do not
-re-run a command whose output is in the block. Re-read a file before editing it, since the
-summary does not hold its current text. Check the requests block for anything the summary
-reduced or dropped before you call the work done.
+Trust the requests and the archived files over the summary for exact values (identifiers,
+numbers, tokens, paths). Re-read a file before editing it, since the summary does not hold its
+current text. Check the requests block for anything the summary reduced or dropped before you
+call the work done. (Installed with `--guard-full`, the block holds the earlier output itself,
+whole, instead of pointers to it.)
 
 ## 3. Memory from earlier requests and sessions
 

@@ -189,6 +189,7 @@ def _part(path: Path, session: str, i: int, monkeypatch, k: int = 6) -> str:
 
 
 def test_precompact_keeps_one_file_per_part_and_each_command_prints_its_own(env, monkeypatch):
+    monkeypatch.setenv("SANCHOPANZA_GUARD_CHOOSER", "struct")  # one setting away since 2026-10-16
     path = _big(env / "s.jsonl")
     assert _pre(path, "p", monkeypatch) == guard.INSTRUCTIONS_RESULTS
     files = sorted((env / "kept").glob("p.part*.json"))
@@ -209,6 +210,7 @@ def test_precompact_keeps_one_file_per_part_and_each_command_prints_its_own(env,
 
 
 def test_the_parts_read_in_any_order_give_the_same_texts(env, monkeypatch):
+    monkeypatch.setenv("SANCHOPANZA_GUARD_CHOOSER", "struct")  # one setting away since 2026-10-16
     path = _big(env / "s.jsonl")
     _pre(path, "a", monkeypatch)
     forward = [_part(path, "a", i, monkeypatch) for i in range(1, 7)]
@@ -218,6 +220,7 @@ def test_the_parts_read_in_any_order_give_the_same_texts(env, monkeypatch):
 
 
 def test_missing_part_files_are_rebuilt_to_the_same_split(env, monkeypatch):
+    monkeypatch.setenv("SANCHOPANZA_GUARD_CHOOSER", "struct")  # one setting away since 2026-10-16
     path = _big(env / "s.jsonl")
     _pre(path, "k", monkeypatch)
     kept = [_part(path, "k", i, monkeypatch) for i in range(1, 7)]
@@ -265,6 +268,8 @@ def test_a_part_after_another_session_start_adds_nothing(env, monkeypatch):
 
 @pytest.mark.parametrize("where", ["precompact", "rebuild"])
 def test_any_error_while_splitting_gives_the_rule_in_part_one_only(env, monkeypatch, where):
+    monkeypatch.setenv("SANCHOPANZA_GUARD_CHOOSER", "struct")  # one setting away since 2026-10-16
+
     def broken(*_: Any, **__: Any) -> Any:
         raise KeyError("boom")
 
@@ -314,7 +319,7 @@ def test_install_writes_one_command_per_part_and_takes_them_all_out(tmp_path):
     path = tmp_path / "settings.json"
     path.write_text(json.dumps({"hooks": {"SessionStart": [
         {"matcher": "compact", "hooks": [{"type": "command", "command": "theirs"}]}]}}), "utf-8")  # fmt: skip
-    apply(plan(path, HarnessConfig(), guard=True))
+    apply(plan(path, HarnessConfig(), guard=True, guard_full=True))  # split: the whole block
     hooks = json.loads(path.read_text("utf-8"))["hooks"]
     starts = _ours(hooks, "SessionStart")
     assert len(starts) == 1 and starts[0]["matcher"] == "compact"
@@ -326,7 +331,7 @@ def test_install_writes_one_command_per_part_and_takes_them_all_out(tmp_path):
         GUARD_COMMAND
     ]
     assert hooks["SessionStart"][0]["hooks"][0]["command"] == "theirs"
-    assert not plan(path, HarnessConfig(), guard=True).changed  # idempotent
+    assert not plan(path, HarnessConfig(), guard=True, guard_full=True).changed  # idempotent
     apply(plan(path, HarnessConfig(), guard=False))
     after = json.loads(path.read_text("utf-8"))
     assert GUARD_COMMAND not in json.dumps(after) and "theirs" in json.dumps(after)
@@ -350,7 +355,7 @@ def test_another_k_replaces_the_parts_and_one_is_the_single_block(tmp_path):
 def test_an_older_single_command_install_is_upgraded_in_place(tmp_path):
     path = tmp_path / "settings.json"
     apply(plan(path, HarnessConfig(), guard=True, guard_parts=1))
-    upgraded = plan(path, HarnessConfig(), guard=True)
+    upgraded = plan(path, HarnessConfig(), guard=True, guard_full=True)
     assert any(line == "SessionStart: compact (guard, 6 parts)" for line in upgraded.added)
     apply(upgraded)
     hooks = json.loads(path.read_text("utf-8"))["hooks"]
@@ -360,7 +365,7 @@ def test_an_older_single_command_install_is_upgraded_in_place(tmp_path):
 def test_install_reads_the_budget_and_cap_the_hooks_will_read(tmp_path, monkeypatch):
     monkeypatch.setenv("SANCHOPANZA_GUARD_STRUCT_CHARS", "20000")
     path = tmp_path / "settings.json"
-    apply(plan(path, HarnessConfig(), guard=True))
+    apply(plan(path, HarnessConfig(), guard=True, guard_full=True))
     hooks = json.loads(path.read_text("utf-8"))["hooks"]
     assert len(_ours(hooks, "SessionStart")[0]["hooks"]) == parts.default_parts(20_000, 9_500)
 

@@ -122,3 +122,85 @@ def test_the_skill_body_keeps_its_sections() -> None:
     for heading in ("## 1. Finding code", "## 2. After a compaction", "## 3. Memory",
                     "## 4. Keep the context small", "## 5. When a hook speaks"):  # fmt: skip
         assert heading in body
+
+
+# ---- the guard: pointers by default, the whole-results block one flag away ----------------------
+
+CHOOSER = "SANCHOPANZA_GUARD_CHOOSER"
+
+
+def _guard_commands(settings: Path) -> dict[str, list[str]]:
+    hooks = json.loads(settings.read_text("utf-8")).get("hooks", {})
+    return {
+        event: [h["command"] for e in hooks.get(event, []) for h in e.get("hooks", [])
+                if "guard-hook" in h.get("command", "")]
+        for event in ("PreCompact", "SessionStart", "PostToolUse")
+    }  # fmt: skip
+
+
+def _env(settings: Path) -> dict[str, str]:
+    return json.loads(settings.read_text("utf-8")).get("env", {})
+
+
+def test_the_default_guard_is_one_command_per_event_and_names_no_chooser(tmp_path: Path) -> None:
+    """The pointer block fits one hook's inline limit: no split, and the hook's own default
+    chooser (pointers) is the one used."""
+    settings, _ = _paths(tmp_path)
+    assert _install(settings) == 0
+    one = ["sanchopanza guard-hook"]
+    assert _guard_commands(settings) == {"PreCompact": one, "SessionStart": one, "PostToolUse": one}
+    assert CHOOSER not in _env(settings)
+
+
+def test_the_guard_full_dial_works_both_ways(tmp_path: Path) -> None:
+    settings, _ = _paths(tmp_path)
+    assert _install(settings, "--guard-full") == 0
+    commands = _guard_commands(settings)
+    assert commands["PreCompact"] == ["sanchopanza guard-hook --parts 6"]
+    assert commands["SessionStart"] == [f"sanchopanza guard-hook --part {i} --parts 6"
+                                        for i in range(1, 7)]  # fmt: skip
+    assert _env(settings)[CHOOSER] == "struct"
+    assert _install(settings) == 0  # a run without the flag: back to the pointer block
+    assert _guard_commands(settings)["SessionStart"] == ["sanchopanza guard-hook"]
+    assert CHOOSER not in _env(settings)
+
+
+def test_a_chooser_the_owner_set_is_theirs_to_keep(tmp_path: Path) -> None:
+    settings, _ = _paths(tmp_path)
+    settings.parent.mkdir(parents=True)
+    settings.write_text(json.dumps({"env": {CHOOSER: "keep"}}), "utf-8")
+    assert _install(settings) == 0
+    assert _env(settings)[CHOOSER] == "keep"
+
+
+def test_no_guard_takes_our_chooser_and_hooks_out(tmp_path: Path) -> None:
+    settings, _ = _paths(tmp_path)
+    assert _install(settings, "--guard-full") == 0
+    assert _install(settings, "--no-guard") == 0
+    assert CHOOSER not in _env(settings)
+    assert _guard_commands(settings) == {"PreCompact": [], "SessionStart": [], "PostToolUse": []}
+
+
+# ---- the whole default plan, and every earlier behaviour one flag away ---------------------------
+
+
+def test_the_default_plan_is_the_lean_one_and_each_old_behaviour_is_one_flag_away(
+    tmp_path: Path,
+) -> None:
+    settings, mcp_file = _paths(tmp_path)
+    assert _install(settings) == 0
+    lean = (_find_entry(mcp_file), _guard_commands(settings), _env(settings).get(CHOOSER))
+    assert lean == ({"command": "sanchopanza", "args": ["find-mcp"]},
+                    {e: ["sanchopanza guard-hook"] for e in ("PreCompact", "SessionStart",
+                                                             "PostToolUse")},
+                    None)  # fmt: skip
+    skill = settings.parent / "skills" / "sanchopanza-code" / "SKILL.md"
+    assert len(_front(skill.read_text("utf-8"))["description"]) < 200
+
+    assert _install(settings, "--find-always-load", "--guard-full") == 0
+    assert _find_entry(mcp_file)["alwaysLoad"] is True
+    assert len(_guard_commands(settings)["SessionStart"]) == 6
+    assert _env(settings)[CHOOSER] == "struct"
+
+    assert _install(settings) == 0  # and back
+    assert (_find_entry(mcp_file), _guard_commands(settings), _env(settings).get(CHOOSER)) == lean

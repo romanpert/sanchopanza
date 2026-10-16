@@ -189,6 +189,7 @@ def test_the_block_stays_within_the_inline_cap_whatever_the_results_budget():
 
 
 def test_the_hook_keeps_the_block_inline_and_reads_the_cap(env, monkeypatch):
+    monkeypatch.setenv("SANCHOPANZA_GUARD_CHOOSER", "struct")  # one setting away since 2026-10-16
     path = _big_session(env / "big.jsonl", 100_000)
 
     def attached(session: str) -> str:
@@ -206,6 +207,7 @@ def test_the_hook_keeps_the_block_inline_and_reads_the_cap(env, monkeypatch):
 
 
 def test_the_hook_reads_the_struct_budget(env, monkeypatch):
+    monkeypatch.setenv("SANCHOPANZA_GUARD_CHOOSER", "struct")  # one setting away since 2026-10-16
     monkeypatch.setenv("SANCHOPANZA_GUARD_STRUCT_CHARS", "60")
     path = write_session(env / "s.jsonl", compacted=False)
     _run({"hook_event_name": "PreCompact", "trigger": "auto", "session_id": "b",
@@ -255,15 +257,18 @@ def test_the_block_says_what_it_carries_and_the_note_matches(env):
 # ---- the hook: default, speed, fail-safe, install ------------------------------------------------
 
 
-def test_struct_is_the_default_chooser_and_keep_stays_an_option(env, monkeypatch):
-    assert guard_hook._chooser() == "struct"
+def test_struct_and_keep_stay_one_setting_away(env, monkeypatch):
+    assert guard_hook._chooser() == "pointers"  # the default since 2026-10-16
     monkeypatch.setenv("SANCHOPANZA_GUARD_CHOOSER", "")
+    assert guard_hook._chooser() == "pointers"
+    monkeypatch.setenv("SANCHOPANZA_GUARD_CHOOSER", "struct")
     assert guard_hook._chooser() == "struct"
     monkeypatch.setenv("SANCHOPANZA_GUARD_CHOOSER", "keep")
     assert guard_hook._chooser() == "keep"
 
 
 def test_the_default_hook_attaches_the_structural_block(env, monkeypatch):
+    monkeypatch.setenv("SANCHOPANZA_GUARD_CHOOSER", "struct")  # one setting away since 2026-10-16
     path = write_session(env / "s.jsonl", compacted=False)
     note = _run({"hook_event_name": "PreCompact", "trigger": "manual", "session_id": "d",
                  "transcript_path": str(path)}, monkeypatch)  # fmt: skip
@@ -311,6 +316,7 @@ def _big_session(path: Path, tokens: int) -> Path:
 
 
 def test_a_400k_token_transcript_is_handled_well_under_two_seconds(env, monkeypatch):
+    monkeypatch.setenv("SANCHOPANZA_GUARD_CHOOSER", "struct")  # one setting away since 2026-10-16
     path = _big_session(env / "big.jsonl", 400_000)
     assert path.stat().st_size > 1_600_000
     start = time.perf_counter()
@@ -326,6 +332,8 @@ def test_a_400k_token_transcript_is_handled_well_under_two_seconds(env, monkeypa
 
 
 def test_any_error_in_the_structural_keep_gives_the_rule(env, monkeypatch):
+    monkeypatch.setenv("SANCHOPANZA_GUARD_CHOOSER", "struct")  # one setting away since 2026-10-16
+
     def broken(*_: Any, **__: Any) -> Any:
         raise KeyError("boom")
 
