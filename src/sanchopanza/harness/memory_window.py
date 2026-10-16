@@ -5,8 +5,8 @@
 - the library gate `memory_gate.gate` defaults to **long** (`GATE_DEFAULT`), confirmed there
   (below); `short` turns it off;
 - the installed hook (`memory_hook`, at a session's first prompt) defaults to **short**
-  (`HOOK_DEFAULT`): it judges records, not memory files, and the long window is not measured on
-  them; `long` turns it on.
+  (`HOOK_DEFAULT`): it judges records, not memory files, and on them the long window was worse
+  on noise (below); `long` turns it on.
 
 `short` is the shipped short window, whose requests, journal and log rows are the same to the
 byte as before the long window existed (tests/test_memory_window.py pins them); any value other
@@ -32,10 +32,12 @@ Where it applies, and nowhere else (not the autopilot's recall, not any other po
 - `memory_hook` at a session's first prompt (records of earlier requests; installed by default;
   the long window only with `SANCHOPANZA_MEMORY_WINDOW=long`): the decider reads each candidate
   record whole (`Episode.text()`) instead of its 880-character page, on the same decider; the
-  long-context twin only when the call is over Jev's short window (`SHORT_WINDOW_CHARS`). Not
-  measured on records: they are bounded by code (request, report and output at about 1,000
-  characters each), so L6's gain, found where evidence sat deep in a long session, may not carry
-  over. `benchmarks/memgate_hook` is the replay that would measure it.
+  long-context twin only when the call is over Jev's short window (`SHORT_WINDOW_CHARS`).
+  Measured on 905 SWE-chat first requests (docs/results/2026-10-16-memgate-hook, sealed):
+  worse on noise. Hits rose 12.7 points [+6.3, +19.8] on the 126 requests with something to
+  find, but false alarms rose 3.7 points [+1.5, +6.2] on the 483 with nothing related, past the
+  registered +5 guard; records are bounded by code (about 1,000 characters a section), so L6's
+  gain, found where evidence sat deep in a long session, does not carry over as is.
 
 It falls back to the shipped short path, never in silence, when:
 
