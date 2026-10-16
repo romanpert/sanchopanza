@@ -1,11 +1,10 @@
 # The installed memory hook with the long window, on SWE-chat records (lot memgate-hook): pre-registration
 
-**DRAFT, not sealed.** Written 2026-10-15 and revised on 2026-10-16 after a code review and an
-independent `revisor-prereg` review, before any answer of either arm on these requests. To be
-reviewed again against the code before the seal. `prereg.sha256` will hold the hash of this
-file together with the code and inputs it names (`prereg.manifest.json`, written by
-`python benchmarks/memgate_hook/memgate_hook.py --seal`). The sealing commit's message carries
-the hash.
+Written 2026-10-15 and revised on 2026-10-16 after a code review and two independent
+`revisor-prereg` reviews, before any answer of either arm on these requests. `prereg.sha256`
+holds the hash of this file together with the code and inputs it names (`prereg.manifest.json`,
+written by `python benchmarks/memgate_hook/memgate_hook.py --seal`), in a commit of its own whose
+message carries the hash.
 
 ## The question
 
@@ -185,23 +184,29 @@ here does not rule out a gain of several points.
 
 1. the seal: this file, the code, the items file and the launcher match `prereg.sha256`;
 2. the hour: not between 02:00 and 08:00 (the machine's update window);
-3. HEAD is the commit that wrote `prereg.sha256`, and nothing is changed outside this folder;
-4. for the run, `smoke-scored.jsonl` exists.
+3. HEAD is the commit that last wrote `prereg.sha256`; it has a single parent; and it changed
+   nothing but `prereg.sha256` and `prereg.manifest.json` (`git diff --name-only HEAD^ HEAD`);
+4. nothing differs from HEAD (staged, unstaged or untracked) except the run's own new files in
+   this folder (`*-answers-*`, `*-scored*`, `*-zone.json`, `summary.json`): this file and the
+   seal's two files included;
+5. for the run, `smoke-scored.jsonl` exists;
+6. on a relaunch after a pause, `<smoke|run>-zone.json` already holds the same time zone.
 
-Then the process's time zone (names and offsets) is written to `<smoke|run>-zone.json`, the key
-is read, and the preflight runs.
+Then the process's time zone (names and offsets), HEAD and HEAD^ are written to
+`<smoke|run>-zone.json`, the key is read, and the preflight runs. A re-seal (`--seal --reseal`)
+is refused while this file differs from HEAD: it seals a committed prereg.
 
 ## Running it
 
-From a `git worktree add --detach` at the sealed commit
-(`C:\Users\roman\Desktop\proyectos\apps\sanchopanza-run-memgate-hook`), with the main checkout's
+From a `git worktree add --detach` at the sealed commit (`<worktree>`), with the main checkout's
 python and `PYTHONPATH=<worktree>\src`, launched outside the session by WMI with the launcher
 `C:\sp-runs\memgate-hook\memgate-hook-run.cmd` (`smoke`, then `run`), which is not tracked. The
-launcher logs the start, `tzutil /g` and HEAD, and refuses to start while its python or its keys
-file is still a placeholder (`<PYTHON>`, `<KEYS_ENV_PATH>`). The seal holds it by
-`memgate_hook_live.launcher_digest`: its sha256 with LF line ends and those two lines read as
-their placeholders, so filling them does not break the seal and changing any other line does.
-That digest: `b29061301a4a5b0257432fa2bdd5408f844ba892eb87fc81f1e5a6b5e373347e`. No local path
+launcher logs the start, `tzutil /g`, HEAD, its own sha256, the python's version and httpx's,
+and refuses to start while its python or its keys file is still a placeholder (`<PYTHON>`,
+`<KEYS_ENV_PATH>`). The seal holds it by `memgate_hook_live.launcher_digest`: its sha256 with LF
+line ends and those two lines read as their placeholders, so filling them does not break the
+seal and changing any other line does. That digest:
+`c01d5e64d7e84e75016503ddfbfa7988d3e7428423b14fe63d26130f3eca8c7b`. No local path
 goes into anything tracked. 1,318 live calls one at a time, at the 0.3 s median memgate-long
 measured for a short call, plus the local hook work: about 15 to 25 minutes.
 
@@ -221,7 +226,8 @@ inside the process and never printed.
 hook again, writes `<name>-replay-scored.jsonl` (never over the rows of record) and counts the
 rows that differ from them (exit 3 if any). It is refused in a time zone other than the one in
 `<name>-zone.json`: L's requests hold each record's local time (`Episode.title`), so a replay
-elsewhere would ask different keys. The summary holds the run's time zone.
+elsewhere would ask different keys. The summary holds the run's UTC offsets (not the zone's
+localised names), the commit it ran at and that commit's parent.
 
 ## The smoke
 

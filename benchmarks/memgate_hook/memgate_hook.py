@@ -505,9 +505,10 @@ def manifest() -> dict[str, str]:
     return out | {f"launcher:{LAUNCHER.name}": launcher}
 
 
-def seal(again: bool = False) -> str:
+def seal(again: bool = False, *, git: live_rules.Git | None = None) -> str:
     """prereg.manifest.json and prereg.sha256 (memgate-long's scheme). A different seal there is
-    refused unless `again`, and `again` is refused once this lot spent or recorded anything."""
+    refused unless `again`, and `again` is refused once this lot spent or recorded anything, or
+    while prereg.md differs from HEAD (a re-seal seals a committed prereg)."""
     found = manifest()
     value = mgl.l6.combined(found)
     target = OUT / "prereg.sha256"
@@ -515,6 +516,8 @@ def seal(again: bool = False) -> str:
         raise SystemExit("prereg.sha256 already holds another seal: nothing written")
     if again and (spent() > 0 or any(OUT.glob("*-answers-*.jsonl"))):
         raise SystemExit("answers or spend exist already: no re-seal, nothing written")
+    if again and live_rules.prereg_changed(REPO, OUT, git or live_rules.git_in(REPO)):
+        raise SystemExit("prereg.md differs from HEAD: commit it before a re-seal")
     (OUT / "prereg.manifest.json").write_text(json.dumps(found, indent=1) + "\n",
                                               encoding="utf-8", newline="\n")  # fmt: skip
     target.write_text(value + "\n", encoding="utf-8", newline="\n")
@@ -537,16 +540,22 @@ def seal_ok() -> bool:
 def go_live(name: str, *, now: datetime.datetime | None = None,
             git: live_rules.Git | None = None) -> None:  # fmt: skip
     """Before the key is read: the seal holds, then `memgate_hook_live.live_refusal` (outside
-    02:00-08:00, HEAD is the sealing commit, a clean tree outside OUT, the smoke before the
-    run). The time zone is written beside the rows, for the replay."""
+    02:00-08:00; HEAD is the sealing commit, with one parent, changing only the seal's files;
+    nothing differs from it but the run's own files; the smoke before the run), and on a
+    relaunch the zone of the first launch. The zone, HEAD and HEAD^ are written beside the
+    rows, for the replay and the summary."""
     if not seal_ok():
         raise SystemExit("prereg.md, the code or the inputs differ from the seal: nothing spent")
+    git = git or live_rules.git_in(REPO)
     why = live_rules.live_refusal(name, repo=REPO, out=OUT, now=now or datetime.datetime.now(),
-                                  git=git or live_rules.git_in(REPO))  # fmt: skip
+                                  git=git)  # fmt: skip
+    zone, here = OUT / f"{name}-zone.json", live_rules.time_zone()
+    if not why and zone.exists():  # a relaunch after a pause: the same zone, or the keys move
+        why = live_rules.zone_mismatch(json.loads(zone.read_text(encoding="utf-8")), here)
     if why:
         raise SystemExit(f"{name}: not started, {why}: nothing spent")
-    (OUT / f"{name}-zone.json").write_text(json.dumps(live_rules.time_zone()) + "\n",
-                                           encoding="utf-8", newline="\n")  # fmt: skip
+    zone.write_text(json.dumps({**here, **live_rules.heads(git)}) + "\n", encoding="utf-8",
+                    newline="\n")  # fmt: skip
     l4.load_key()
     mgl.no_retry_on_429()
     mgl.preflight_or_stop()
@@ -669,14 +678,23 @@ def retest_pairs(rows: Sequence[Mapping[str, Any]],
     return pairs
 
 
+def run_of_record(zone: pathlib.Path) -> dict[str, Any] | None:
+    """For the summary: the live run's UTC offsets (not Windows' localised zone names), the
+    commit it ran at and that commit's parent (the sealed instrument)."""
+    if not zone.exists():
+        return None
+    saved = json.loads(zone.read_text(encoding="utf-8"))
+    return {**live_rules.offsets(saved), "head": saved.get("head"),
+            "head_parent": (saved.get("parents") or [None])[0]}  # fmt: skip
+
+
 def analyse_and_write(items: Sequence[Mapping[str, Any]] = ()) -> int:
     rows = read_rows("run")
     if rows is None:
         print("no run-scored.jsonl yet: nothing to analyse", file=sys.stderr)
         return 0
     summary = an.analyse(rows, min_requests=MIN_REQUESTS)
-    zone = OUT / "run-zone.json"
-    summary["time_zone"] = json.loads(zone.read_text(encoding="utf-8")) if zone.exists() else None
+    summary["run_of_record"] = run_of_record(OUT / "run-zone.json")
     summary["retest_v5_cache"] = an.retest(retest_pairs(rows, items)) if items else None
     summary["spent"] = {"batch": round(spent(BATCH), 6), "smoke": round(spent(SMOKE_BATCH), 6),
                         "ledger": round(spent(), 6)}  # fmt: skip
