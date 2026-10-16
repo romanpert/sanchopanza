@@ -270,6 +270,9 @@ def _install(args: argparse.Namespace) -> int:
     if args.guard_mcp_post is False and args.guard_mcp_withhold:
         sys.stderr.write("--guard-mcp-withhold needs the check --no-guard-mcp-post turns off\n")
         return 2
+    if args.memory_native and not args.memory:
+        sys.stderr.write("--memory-native rides on memory's hooks: it needs --memory\n")
+        return 2
     if args.knowledge is None:  # into the default install behind one constant
         knowledge = install_knowledge.KNOWLEDGE_DEFAULT
         args = argparse.Namespace(**{**vars(args), "knowledge": knowledge})
@@ -320,6 +323,7 @@ def _install(args: argparse.Namespace) -> int:
             guard_full=args.guard_full,
             candor=args.candor,
             memory=args.memory,
+            memory_native=args.memory_native,
             crawl=args.crawl,
             prune=args.prune,
             sources=args.sources,
@@ -371,6 +375,14 @@ def _install(args: argparse.Namespace) -> int:
         return 2
     kept = f" (previous contents in {backup.name})" if backup else ""
     sys.stdout.write(f"\nwritten to {path}{kept}\n")
+    if "env: SANCHOPANZA_MEMORY_NATIVE" in settings.removed:  # the bridge off: its note out
+        from .harness.memory_native import install_config, uninstall
+
+        try:
+            for gone in uninstall(install_config(path, project_settings(path))):
+                sys.stdout.write(f"removed from Claude Code's auto memory: {gone}\n")
+        except OSError as error:  # the settings are written; the note stays where it is
+            sys.stdout.write(f"the memory bridge's note was not removed ({error})\n")
     if _finish_mcp_json(args, mcp_change):
         return 2
     if config.scan_content:
@@ -403,6 +415,12 @@ def _install(args: argparse.Namespace) -> int:
             "(docs/results/2026-10-16-memory-f2). The Stop audit that sends the "
             "agent back on a stored rule is off (SANCHOPANZA_MEMORY_RULES_AUDIT=on). "
             "--no-memory leaves memory out.\n"
+        )
+    if args.memory and args.memory_native:
+        sys.stdout.write(
+            "The memory bridge is on: each session's records also go into Claude Code's own "
+            "auto memory (sanchopanza-next.md and one line in MEMORY.md), and a new session is "
+            "not given again what that note carries.\n"
         )
     if args.candor:
         sys.stdout.write(
@@ -659,13 +677,18 @@ def _after_compaction(
     import asyncio
 
     from .context.formation import form
-    from .harness.memory_gate import memory_dir_for
 
     archived = {
         s.id: archive / f"{compact.safe_name(s.id)}.txt" for s in plan.steps if s.action == "stub"
     }
     stubbed = {k: path for k, path in archived.items() if path.exists()}  # none when cleared
-    directory = _env.get("MEMORY_DIR") or memory_dir_for({"cwd": str(Path.cwd())})
+    directory = _formation_dir()
+    if directory is None:
+        sys.stderr.write(
+            "sanchopanza compact: memory formation skipped (auto memory is off "
+            "here, or its folder is unknown; SANCHOPANZA_MEMORY_DIR names one)\n"
+        )
+        return
     try:
         records = asyncio.run(form(squire, messages, stubbed, Path(directory)))
     except Exception as error:  # formation is lateral: the compaction stands
@@ -676,6 +699,16 @@ def _after_compaction(
         f"sanchopanza compact: memory formation asked {len(records)}, stored {stored} "
         f"in {directory}\n"
     )
+
+
+def _formation_dir() -> Path | None:
+    """Where memory formation writes: `SANCHOPANZA_MEMORY_DIR`, else this folder's auto memory as
+    Claude Code derives it (`memory_gate.memory_dir_for`), else None."""
+    from . import _env
+    from .harness import memory_gate
+
+    named = _env.get("MEMORY_DIR")
+    return Path(named) if named else memory_gate.memory_dir_for({"cwd": str(Path.cwd())})
 
 
 def _keep_out_of_git(path: Path) -> None:
@@ -1020,6 +1053,15 @@ def main(argv: list[str] | None = None) -> int:
         "that sends the agent back on a confident break of a stored rule is off "
         "(SANCHOPANZA_MEMORY_RULES_AUDIT=on turns it on; none of its send-backs in the "
         "maintainer's real sessions was right: docs/results/2026-10-14-memory-stop)",
+    )
+    install.add_argument(
+        "--memory-native",
+        action="store_true",
+        help="with --memory: also write each session's records into Claude Code's own auto "
+        "memory (one note, sanchopanza-next.md, and its one line in MEMORY.md, which Claude "
+        "Code loads itself at the next start), and do not give a new session again what that "
+        "note carries. Never edits Claude Code's or your own memories; skipped when Claude "
+        "Code saved the plan itself. Opt-in until measured (SANCHOPANZA_MEMORY_NATIVE=1)",
     )
     install.add_argument(
         "--crawl",
