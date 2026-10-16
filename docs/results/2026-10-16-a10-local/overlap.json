@@ -1,0 +1,27 @@
+{
+ "train": 655,
+ "test": 950,
+ "train_suites": {
+  "slack": 655
+ },
+ "test_suites": {
+  "banking": 169,
+  "travel": 167,
+  "workspace": 614
+ },
+ "train_agents": [
+  "claude-haiku-4-5-none",
+  "claude-sonnet-5-none",
+  "claude-sonnet-5-spotlighting",
+  "claude-sonnet-5-squire",
+  "claude-sonnet-5-squire-mark"
+ ],
+ "test_agents": [
+  "claude-3-7-sonnet-20250219"
+ ],
+ "shared_clusters": [],
+ "shared_task_dir_names": 26,
+ "shared_task_texts": 0,
+ "shared_records": 0,
+ "shared_ids": 0
+}

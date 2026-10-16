@@ -1,0 +1,299 @@
+{
+ "train_digest": "df2eb0dc06a319efc5b37a8eccd0dcace7c8395165827fec6a984be71eada4e0",
+ "n": 655,
+ "done": 342,
+ "folds": {
+  "0": {
+   "stops": 150,
+   "clusters": 5
+  },
+  "1": {
+   "stops": 130,
+   "clusters": 6
+  },
+  "2": {
+   "stops": 125,
+   "clusters": 5
+  },
+  "3": {
+   "stops": 125,
+   "clusters": 5
+  },
+  "4": {
+   "stops": 125,
+   "clusters": 5
+  }
+ },
+ "grid": [
+  {
+   "config": "w+l+s|w2|C=0.1",
+   "cv": {
+    "auc": 0.9192,
+    "auc_per_fold": [
+     0.8114,
+     0.9406,
+     0.9711,
+     0.942,
+     0.9792
+    ],
+    "log_loss": 0.5144,
+    "accuracy_at_0.5": 0.887
+   }
+  },
+  {
+   "config": "w+l+s|w2|C=1",
+   "cv": {
+    "auc": 0.9392,
+    "auc_per_fold": [
+     0.8511,
+     0.9368,
+     0.9972,
+     0.9899,
+     0.9537
+    ],
+    "log_loss": 0.3405,
+    "accuracy_at_0.5": 0.8931
+   }
+  },
+  {
+   "config": "w+l+s|w2|C=10",
+   "cv": {
+    "auc": 0.9465,
+    "auc_per_fold": [
+     0.8918,
+     0.9262,
+     0.9933,
+     1.0,
+     0.9398
+    ],
+    "log_loss": 0.2886,
+    "accuracy_at_0.5": 0.8901
+   }
+  },
+  {
+   "config": "w+l+s|w2|C=100",
+   "cv": {
+    "auc": 0.9483,
+    "auc_per_fold": [
+     0.9055,
+     0.9222,
+     0.991,
+     1.0,
+     0.9344
+    ],
+    "log_loss": 0.3305,
+    "accuracy_at_0.5": 0.8885
+   }
+  },
+  {
+   "config": "w+c+l+s|w2|C=0.1",
+   "cv": {
+    "auc": 0.9292,
+    "auc_per_fold": [
+     0.8304,
+     0.9373,
+     0.9819,
+     0.9515,
+     0.9763
+    ],
+    "log_loss": 0.5139,
+    "accuracy_at_0.5": 0.8931
+   }
+  },
+  {
+   "config": "w+c+l+s|w2|C=1",
+   "cv": {
+    "auc": 0.9446,
+    "auc_per_fold": [
+     0.8672,
+     0.9387,
+     0.9951,
+     0.9938,
+     0.9563
+    ],
+    "log_loss": 0.3347,
+    "accuracy_at_0.5": 0.8901
+   }
+  },
+  {
+   "config": "w+c+l+s|w2|C=10",
+   "cv": {
+    "auc": 0.9496,
+    "auc_per_fold": [
+     0.8968,
+     0.9267,
+     0.9928,
+     1.0,
+     0.9452
+    ],
+    "log_loss": 0.2771,
+    "accuracy_at_0.5": 0.8916
+   }
+  },
+  {
+   "config": "w+c+l+s|w2|C=100",
+   "cv": {
+    "auc": 0.9513,
+    "auc_per_fold": [
+     0.9089,
+     0.9198,
+     0.9917,
+     1.0,
+     0.9424
+    ],
+    "log_loss": 0.3132,
+    "accuracy_at_0.5": 0.8962
+   }
+  },
+  {
+   "config": "w+l+s|w1|C=0.1",
+   "cv": {
+    "auc": 0.9218,
+    "auc_per_fold": [
+     0.815,
+     0.9397,
+     0.9719,
+     0.9401,
+     0.9835
+    ],
+    "log_loss": 0.5099,
+    "accuracy_at_0.5": 0.887
+   }
+  },
+  {
+   "config": "w+l+s|w1|C=1",
+   "cv": {
+    "auc": 0.9419,
+    "auc_per_fold": [
+     0.8553,
+     0.938,
+     0.9974,
+     0.9912,
+     0.9586
+    ],
+    "log_loss": 0.3351,
+    "accuracy_at_0.5": 0.887
+   }
+  },
+  {
+   "config": "w+l+s|w1|C=10",
+   "cv": {
+    "auc": 0.9498,
+    "auc_per_fold": [
+     0.8978,
+     0.9274,
+     0.9936,
+     1.0,
+     0.9421
+    ],
+    "log_loss": 0.2806,
+    "accuracy_at_0.5": 0.8901
+   }
+  },
+  {
+   "config": "w+l+s|w1|C=100",
+   "cv": {
+    "auc": 0.9516,
+    "auc_per_fold": [
+     0.9123,
+     0.9241,
+     0.993,
+     1.0,
+     0.939
+    ],
+    "log_loss": 0.3197,
+    "accuracy_at_0.5": 0.8885
+   }
+  },
+  {
+   "config": "l+s|w1|C=0.1",
+   "cv": {
+    "auc": 0.8952,
+    "auc_per_fold": [
+     0.7708,
+     0.9289,
+     0.9608,
+     0.9324,
+     0.9766
+    ],
+    "log_loss": 0.5182,
+    "accuracy_at_0.5": 0.858
+   }
+  },
+  {
+   "config": "l+s|w1|C=1",
+   "cv": {
+    "auc": 0.9214,
+    "auc_per_fold": [
+     0.8132,
+     0.9286,
+     0.9992,
+     0.984,
+     0.9583
+    ],
+    "log_loss": 0.3606,
+    "accuracy_at_0.5": 0.8809
+   }
+  },
+  {
+   "config": "l+s|w1|C=10",
+   "cv": {
+    "auc": 0.9399,
+    "auc_per_fold": [
+     0.8919,
+     0.926,
+     0.9923,
+     0.9995,
+     0.9321
+    ],
+    "log_loss": 0.3081,
+    "accuracy_at_0.5": 0.8855
+   }
+  },
+  {
+   "config": "l+s|w1|C=100",
+   "cv": {
+    "auc": 0.9431,
+    "auc_per_fold": [
+     0.9068,
+     0.925,
+     0.9863,
+     1.0,
+     0.9261
+    ],
+    "log_loss": 0.351,
+    "accuracy_at_0.5": 0.8885
+   }
+  }
+ ],
+ "chosen": {
+  "name": "w+l+s|w1|C=100",
+  "families": [
+   "w",
+   "l",
+   "s"
+  ],
+  "word_n": 1,
+  "c": 100.0,
+  "min_df": 2
+ },
+ "cut_rule": "D at 0.9",
+ "cut": 0.09,
+ "at_cut": {
+  "cut": 0.09,
+  "accuracy": 0.884,
+  "blocks": 271,
+  "false_blocks": 17,
+  "caught": 254,
+  "unfinished": 313
+ },
+ "max_accuracy_cut_descriptive": 0.28,
+ "at_max_accuracy_cut": {
+  "cut": 0.28,
+  "accuracy": 0.9115,
+  "blocks": 305,
+  "false_blocks": 25,
+  "caught": 280,
+  "unfinished": 313
+ }
+}
