@@ -302,6 +302,7 @@ def _install(args: argparse.Namespace) -> int:
             guard_parts=args.guard_parts,
             candor=args.candor,
             memory=args.memory,
+            memory_native=args.memory_native,
             crawl=args.crawl,
             prune=args.prune,
             sources=args.sources,
@@ -382,6 +383,12 @@ def _install(args: argparse.Namespace) -> int:
             "(docs/results/2026-10-16-memory-f2). The Stop audit that sends the "
             "agent back on a stored rule is off (SANCHOPANZA_MEMORY_RULES_AUDIT=on). "
             "--no-memory leaves memory out.\n"
+        )
+    if args.memory and args.memory_native:
+        sys.stdout.write(
+            "The memory bridge is on: each session's records also go into Claude Code's own "
+            "auto memory (sanchopanza-next.md and one line in MEMORY.md), and a new session is "
+            "not given again what that note carries.\n"
         )
     if args.candor:
         sys.stdout.write(
@@ -967,6 +974,15 @@ def main(argv: list[str] | None = None) -> int:
         "that sends the agent back on a confident break of a stored rule is off "
         "(SANCHOPANZA_MEMORY_RULES_AUDIT=on turns it on; none of its send-backs in the "
         "maintainer's real sessions was right: docs/results/2026-10-14-memory-stop)",
+    )
+    install.add_argument(
+        "--memory-native",
+        action="store_true",
+        help="with --memory: also write each session's records into Claude Code's own auto "
+        "memory (one note, sanchopanza-next.md, and its one line in MEMORY.md, which Claude "
+        "Code loads itself at the next start), and do not give a new session again what that "
+        "note carries. Never edits Claude Code's or your own memories; skipped when Claude "
+        "Code saved the plan itself. Opt-in until measured (SANCHOPANZA_MEMORY_NATIVE=1)",
     )
     install.add_argument(
         "--crawl",

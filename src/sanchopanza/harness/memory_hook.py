@@ -55,6 +55,10 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
     MEMORY_RULES             on (default) | off: standing rules kept at Stop, given at start
     MEMORY_RULES_AUDIT       off (default) | on: at Stop, hold the request's diff against the
                              rules and send a confident break back once (`memory_rules.audit_on`)
+    MEMORY_NATIVE            off (default) | 1: at Stop, the session's records also go into
+                             Claude Code's own auto memory (one note, one index line), and a
+                             new session is not given again what that note carries
+                             (`memory_native`; `install --memory-native`)
     MEMORY_WINDOW            short (default here) | long: the decider reads each candidate
                              record whole (Jev's long-context header only past its short
                              window), within MEMORY_DECIDER_SECONDS less 3 s, and the pages
@@ -86,7 +90,7 @@ from .. import _env
 from ..context import episodes as ep
 from ..context.archive import safe_name
 from ..context.transcript import _is_boundary
-from . import memory_store, memory_tree
+from . import memory_native, memory_store, memory_tree
 from .hookio import stdin_text, stdout_json
 
 # Split out of this module (review of F1); re-exported, and they look this module's names up at
@@ -412,6 +416,38 @@ def wrote_by(store: Path, session: str, index: int) -> list[str]:
     return [str(x) for x in data.get("changed") or []] if isinstance(data, dict) else []
 
 
+# ---- the bridge into Claude Code's own auto memory (`memory_native`, opt-in) ------------------
+
+
+def native_at_stop(event: Mapping[str, Any], seen: Recorded) -> None:
+    """Stop and SessionEnd: the session's note in Claude Code's auto memory. Never costs the
+    record: an error is logged and Claude Code's folder is left as it was."""
+    session = str(event.get("session_id") or "session")
+    try:
+        folder = memory_native.native_dir(event)
+        if folder is None:
+            _log({"event": "native", "native": "auto memory off or unknown folder"})
+            return
+        _log(memory_native.refresh(folder, seen.episodes, session=session,
+                                   store=store_for(event)))  # fmt: skip
+    except Exception as error:  # noqa: BLE001 - the bridge is extra
+        _log({"event": "native", "error": f"{error.__class__.__name__}: {error}"})
+
+
+def carried_at_start(event: Mapping[str, Any]) -> None:
+    """A new session's start: the records our note carries, which Claude Code loads itself,
+    count as given to this session (neither the prompt nor the touch gives them again)."""
+    store, session = store_for(event), str(event.get("session_id") or "session")
+    try:
+        keys = memory_native.carried(event, store, session)
+        if keys:
+            with ep.locked(_shown_path(store, session)):
+                remember_shown(store, session, 0, keys)
+        _log({"event": "native", "carried": keys})
+    except Exception as error:  # noqa: BLE001 - then the records may come again; never worse
+        _log({"event": "native", "error": f"{error.__class__.__name__}: {error}"})
+
+
 def at_session_start(event: Mapping[str, Any]) -> dict[str, Any]:
     """Any SessionStart: the project's standing rules (v7); after a compaction, also what is
     live (`after_compaction`)."""
@@ -420,6 +456,8 @@ def at_session_start(event: Mapping[str, Any]) -> dict[str, Any]:
     if event.get("source") == "compact":
         with contextlib.suppress(Exception):  # the rules still come if this fails
             after_compaction(event)
+    if event.get("source") in ("startup", "clear") and memory_native.native_on():
+        carried_at_start(event)
     text = memory_rules.render(store_for(event)) if memory_rules.rules_on() else ""
     _log({"event": "SessionStart", "source": event.get("source"), "rules_chars": len(text)})
     if not text:
@@ -436,6 +474,8 @@ def handle(event: Mapping[str, Any]) -> dict[str, Any]:
         if name == "SessionEnd":
             memory_tree.forget_open(store_for(event), session)
         _log({"event": name, "episodes": len(seen.episodes), "written": list(seen.written)})
+        if memory_native.native_on():
+            native_at_stop(event, seen)
         return rules_at_stop(event, seen, start) if name == "Stop" else {}
     if name == "UserPromptSubmit":
         import asyncio  # a prompt may ask the decider; the touch never does

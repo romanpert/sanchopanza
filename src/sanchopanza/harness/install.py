@@ -164,6 +164,7 @@ from .install_hooks import _already_wired, _entry, _owned, _without_ours, merge_
 from .install_hooks import _merge_crawl as _merge_crawl
 from .install_hooks import _merge_owned as _merge_owned
 from .install_hooks import hook_key as hook_key
+from .install_memory import merge_memory_native
 
 PLUGIN = "sanchopanza-compact"
 MARKETPLACE = "sanchopanza-local"
@@ -642,6 +643,7 @@ def _merge(
     knowledge: bool = False,
     knowledge_server: bool = False,
     guard_parts: int | None = None,
+    memory_native: bool = False,
 ) -> tuple[dict[str, Any], list[str], list[str]]:
     if current is None:
         current = {}
@@ -671,6 +673,8 @@ def _merge(
     merged, plus, minus = _merge_candor(merged, candor)
     added, removed = [*added, *plus], [*removed, *minus]
     merged, plus, minus = _merge_memory(merged, memory)
+    added, removed = [*added, *plus], [*removed, *minus]
+    merged, plus, minus = merge_memory_native(merged, memory and memory_native)
     added, removed = [*added, *plus], [*removed, *minus]
     auto = find and find_auto  # find's substitute: opt-in, only with find, in the nudge's place
     nudge = find_hook_command(command)  # find's nudge: opt-in, and only with find
@@ -725,6 +729,7 @@ def plan(
     fetch: bool = False,
     knowledge: bool = False,
     guard_parts: int | None = None,
+    memory_native: bool = False,
 ) -> Settings:
     current: Any = {}
     if path.exists():
@@ -753,6 +758,7 @@ def plan(
         guard_parts=guard_parts,
         candor=candor,
         memory=memory,
+        memory_native=memory_native,
         budget=budget,
         find=find,
         find_nudge=find_nudge,
