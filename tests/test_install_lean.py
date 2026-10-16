@@ -224,3 +224,39 @@ def test_the_python_api_benchmarks_call_has_the_same_dial(tmp_path: Path) -> Non
     loaded = mcp_json_changes(target, False, find=True, find_always_load=True)
     assert "alwaysLoad" not in deferred
     assert loaded["mcpServers"]["sanchopanza"]["alwaysLoad"] is True
+
+
+# ---- review fix: a chooser the owner set is never overwritten nor removed -----------------------
+
+CHOOSER_BY = "SANCHOPANZA_GUARD_CHOOSER_BY"
+
+
+def test_guard_full_marks_its_chooser_and_a_plain_install_removes_only_ours(tmp_path: Path) -> None:
+    settings, _ = _paths(tmp_path)
+    assert _install(settings, "--guard-full") == 0
+    assert _env(settings)[CHOOSER] == "struct" and _env(settings)[CHOOSER_BY] == "sanchopanza"
+    assert _install(settings) == 0
+    assert CHOOSER not in _env(settings) and CHOOSER_BY not in _env(settings)
+
+
+def test_an_owner_struct_is_kept_by_a_plain_install(tmp_path: Path) -> None:
+    settings, _ = _paths(tmp_path)
+    settings.parent.mkdir(parents=True)
+    settings.write_text(json.dumps({"env": {CHOOSER: "struct"}}), "utf-8")
+    assert _install(settings) == 0
+    assert _env(settings)[CHOOSER] == "struct" and CHOOSER_BY not in _env(settings)
+    assert _install(settings, "--guard-full") == 0  # theirs already: left unmarked
+    assert _install(settings) == 0
+    assert _env(settings)[CHOOSER] == "struct"
+
+
+def test_guard_full_refuses_to_overwrite_an_owner_chooser_and_says_so(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    settings, _ = _paths(tmp_path)
+    settings.parent.mkdir(parents=True)
+    settings.write_text(json.dumps({"env": {CHOOSER: "keep"}}), "utf-8")
+    assert _install(settings, "--guard-full") == 0
+    assert _env(settings)[CHOOSER] == "keep" and CHOOSER_BY not in _env(settings)
+    err = capsys.readouterr().err
+    assert "--guard-full" in err and CHOOSER in err and "keep" in err

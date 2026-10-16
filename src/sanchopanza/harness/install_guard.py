@@ -14,7 +14,8 @@ inline only up to 10,000 characters that block is split (`context.parts`): `PreC
 `sanchopanza guard-hook --part i --parts K`, each printing its own part or nothing. K is
 `context.parts.default_parts` of the struct budget and the inline cap (6 at the defaults) unless
 `--guard-parts` says otherwise; 1 wires the single capped block. A chooser the owner set is
-theirs: only our `struct` is ever taken out.
+theirs: ours is marked (`SANCHOPANZA_GUARD_CHOOSER_BY=sanchopanza`), and only a marked one is
+ever overwritten or taken out.
 
 Our hooks are recognised by their command (`sanchopanza guard-hook`, with or without `--part` and
 `--parts`), never by their matcher, so a run with another K replaces them and a run without the
@@ -37,6 +38,8 @@ Merged = tuple[dict[str, Any], list[str], list[str]]
 
 CHOOSER = "SANCHOPANZA_GUARD_CHOOSER"
 FULL_CHOOSER = "struct"  # the whole-results block, `--guard-full`
+CHOOSER_BY = "SANCHOPANZA_GUARD_CHOOSER_BY"  # marks the chooser as written by `--guard-full`
+MARK = "sanchopanza"
 
 
 def default_guard_parts(full: bool = False) -> int:
@@ -89,20 +92,29 @@ def _wired(owned: list[Mapping[str, Any]], matcher: str, commands: tuple[str, ..
     return found == list(commands)
 
 
-def merge_guard_chooser(merged: dict[str, Any], full: bool) -> Merged:
-    """`SANCHOPANZA_GUARD_CHOOSER=struct` with `full`; without it, ours out (a chooser of the
-    owner's own, any other value, is kept)."""
+def owner_chooser(merged: Mapping[str, Any]) -> str | None:
+    """The chooser the owner set themselves (no marker of ours beside it), or None."""
     env = merged.get("env", {})
-    if not isinstance(env, dict):
+    if not isinstance(env, Mapping) or CHOOSER not in env or env.get(CHOOSER_BY) == MARK:
+        return None
+    return str(env.get(CHOOSER))
+
+
+def merge_guard_chooser(merged: dict[str, Any], full: bool) -> Merged:
+    """`SANCHOPANZA_GUARD_CHOOSER=struct` with `full`, marked ours (`CHOOSER_BY`); without it,
+    ours out. A chooser the owner set (no marker) is never overwritten nor removed: `cli` says
+    so when `--guard-full` meets one (`owner_chooser`)."""
+    env = merged.get("env", {})
+    if not isinstance(env, dict) or owner_chooser(merged) is not None:
         return merged, [], []
-    current = env.get(CHOOSER)
+    ours = {CHOOSER: FULL_CHOOSER, CHOOSER_BY: MARK}
     if full:
-        if current == FULL_CHOOSER:
+        if all(env.get(k) == v for k, v in ours.items()):
             return merged, [], []
-        return {**merged, "env": {**env, CHOOSER: FULL_CHOOSER}}, [f"env: {CHOOSER}=struct"], []
-    if current != FULL_CHOOSER:
+        return {**merged, "env": {**env, **ours}}, [f"env: {CHOOSER}=struct"], []
+    if CHOOSER not in env and CHOOSER_BY not in env:
         return merged, [], []
-    rest = {k: v for k, v in env.items() if k != CHOOSER}
+    rest = {k: v for k, v in env.items() if k not in ours}
     return {**merged, "env": rest}, [], [f"env: {CHOOSER}"]
 
 

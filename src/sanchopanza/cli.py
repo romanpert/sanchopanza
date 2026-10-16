@@ -250,6 +250,16 @@ def _passages_hook(args: argparse.Namespace) -> int:
     return passages_main()
 
 
+def _warn_owner_chooser(args: argparse.Namespace, merged: dict[str, Any]) -> None:
+    """`--guard-full` never overwrites a guard chooser the owner set: say so."""
+    from .harness.install_guard import CHOOSER, FULL_CHOOSER, owner_chooser
+
+    theirs = owner_chooser(merged)
+    if args.guard and args.guard_full and theirs not in (None, FULL_CHOOSER):
+        sys.stderr.write(f"--guard-full: {CHOOSER}={theirs} is yours and was left as it is; "
+                         f"set it to {FULL_CHOOSER} for the whole-results block\n")  # fmt: skip
+
+
 def _install(args: argparse.Namespace) -> int:
     from .harness import install_knowledge
     from .harness import install_passages as passages
@@ -316,6 +326,7 @@ def _install(args: argparse.Namespace) -> int:
             find_auto=args.find_auto,
             profile=args.guard_profile,
         )
+        _warn_owner_chooser(args, settings.merged)
         passages.check(args.passages, args.passages_fraction, args.passages_tokens,
                        autopilot=args.autopilot)  # fmt: skip
         settings = passages.with_passages(settings, on=args.passages,
