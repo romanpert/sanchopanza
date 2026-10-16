@@ -263,3 +263,19 @@ def test_the_hand_stratums_own_verdict_is_not_required():
     result = analysis.analyse(rows, launch="complete")
     assert result["hand_stratum"]["count_guard"]
     assert "hand stratum no peor or mejora" not in result["checks"]
+
+
+def test_the_published_result_reproduces():
+    rows = [json.loads(x) for x in analysis.ROWS.read_text(encoding="utf-8").splitlines() if x]
+    result = analysis.analyse(rows)
+    assert result["launch"] == "complete"
+    assert result["cuts"]["14_derived"] == 0.04 and result["stability_14"]["stable"]
+    assert result["primary_stratified"]["verdict"] == "no concluyente"
+    assert result["hand_stratum"]["count_guard"]
+    assert result["evaluation"]["14"]["costly_drops"] == 8
+    assert result["decision"] == {
+        "propose_adds_nothing_14": None,
+        "failed_checks": ["primary no peor or mejora", "costly drops guard"],
+    }
+    published = json.loads((analysis.OUT / "analysis.json").read_text(encoding="utf-8"))
+    assert published["decision"] == result["decision"]
