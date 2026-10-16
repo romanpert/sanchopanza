@@ -55,6 +55,7 @@ sys.path.insert(0, str(HERE.parent / "memory_carry"))
 import carry  # noqa: E402
 import costmodel  # noqa: E402
 import freeze  # noqa: E402
+import guardptr_seal  # noqa: E402
 import long_guard  # noqa: E402
 import long_money  # noqa: E402
 import long_pilot  # noqa: E402
@@ -78,6 +79,9 @@ ROOTS = {"smoke": Path(r"C:\sp-runs\L-smoke"), "gate": Path(r"C:\sp-runs\L"),
          "guardptr": Path(r"C:\sp-runs\L-guardptr"),
          "guardptr-30": Path(r"C:\sp-runs\L-guardptr30"),
          "guardptr-smoke": Path(r"C:\sp-runs\L-guardptr-smoke")}
+# Profiles that run only from their sealing commit (`guardptr_seal.require_seal`); a dry run
+# checks it too when its config names a sealed repository (`seal_repo`).
+SEALED_LOTS = ("guardptr", "guardptr-30", "guardptr-smoke")
 # Profiles the launcher does not grade: `long_pointers_read.py grade` does, every chain with the
 # per-test timeout its prereg registers (the close-out's moto grade hung 16 minutes without one).
 GRADED_APART = {"guardptr": 300, "guardptr-30": 300, "guardptr-smoke": 300}
@@ -381,6 +385,16 @@ def launch(name: str, args: argparse.Namespace) -> int:
         log(f"refused: {why}")
         return 1
     profile = long_run.PROFILES[name].with_arms(arms)
+    if name in SEALED_LOTS and (not cfg or cfg.get("seal_repo")):
+        try:  # before anything else: HEAD the sealing commit, clean, the seal, the launcher
+            head = guardptr_seal.require_seal(os.environ.get(guardptr_seal.LAUNCHER_VAR, ""),
+                                              args.seal, Path(cfg.get("seal_repo") or REPO))
+        except SystemExit as refused:
+            log(f"refused: {refused}")
+            return 1
+        log(f"HEAD {head} (the sealing commit); frozen copy {args.seal} (its parent)")
+        with (root / "launch.status").open("a", encoding="utf-8") as status:
+            status.write(f"seal HEAD {head}\n")
     known = (json.loads(Path(cfg["chains_file"]).read_text(encoding="utf-8"))
              if cfg.get("chains_file") else run.chains())  # fmt: skip
     names = list(profile.chains)

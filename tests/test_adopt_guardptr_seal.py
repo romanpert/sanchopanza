@@ -1,0 +1,141 @@
+"""The guard-pointers lot runs only from its sealing commit (`benchmarks/adopt/guardptr_seal.py`),
+checked by `long_launch.py` before anything is spent, through the launcher's real entry point
+(`cmd.exe`, the filled copy that sets ADOPT_LAUNCHER). Free: git and hashes; the dry launch uses
+the stand-in `claude` and runner, no model, no API, no Jev, no Docker."""
+
+from __future__ import annotations
+
+import json
+import os
+import pathlib
+import shutil
+import subprocess
+import sys
+
+import pytest
+
+from tests.test_adopt_long_launch import MAIN_VENV, dry_environment, launch
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+ADOPT = ROOT / "benchmarks" / "adopt"
+SMOKE = "pydantic__pydantic-long60-1"
+PYTHON = MAIN_VENV / "python.exe"
+
+
+@pytest.fixture
+def seal_mod(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.syspath_prepend(str(ADOPT))
+    import guardptr_seal
+
+    yield guardptr_seal
+    sys.modules.pop("guardptr_seal", None)
+
+
+def _git(repo: pathlib.Path, *args: str) -> str:
+    done = subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t",
+                           "-c", "core.autocrlf=false", *args], capture_output=True, text=True,
+                          check=True)  # fmt: skip
+    return done.stdout.strip()
+
+
+def sealed_repo(base: pathlib.Path, seal_mod) -> tuple[pathlib.Path, str, str]:  # noqa: ANN001
+    """A repository holding the sealed files (copied from this tree), the instrument committed,
+    then sealed in its own commit. Returns (repo, instrument, sealing commit)."""
+    repo = base / "sealed"
+    files = [seal_mod.PREREG, seal_mod.LAUNCHER, *seal_mod.SEALED]
+    for rel in files:
+        target = repo / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / rel, target)
+    (repo / ".gitattributes").write_text("* -text\n", encoding="utf-8")
+    _git(repo, "init", "-q")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "instrument")
+    instrument = _git(repo, "rev-parse", "HEAD")
+    seal_mod.seal(repo)
+    _git(repo, "add", seal_mod.SHA, seal_mod.MANIFEST)
+    _git(repo, "commit", "-q", "-m", f"seal: instrument {instrument}")
+    return repo, instrument, _git(repo, "rev-parse", "HEAD")
+
+
+def filled(base: pathlib.Path, source: pathlib.Path, worktree: pathlib.Path) -> pathlib.Path:
+    """The launcher as the owner fills it in the run's root: PY and WT, nothing else."""
+    text = source.read_bytes().decode("utf-8")
+    text = text.replace('set "PY=<PYTHON>"', f'set "PY={PYTHON}"', 1)
+    text = text.replace('set "WT=<WORKTREE>"', f'set "WT={worktree}"', 1)
+    base.mkdir(parents=True, exist_ok=True)
+    out = base / "guard-pointers-run.cmd"
+    out.write_bytes(text.encode("utf-8"))
+    return out
+
+
+def test_the_launcher_s_local_values_do_not_change_the_seal(seal_mod, tmp_path) -> None:
+    copy = filled(tmp_path / "run", ROOT / seal_mod.LAUNCHER, ROOT)
+    assert seal_mod.launcher_text(copy) == seal_mod.launcher_text(ROOT / seal_mod.LAUNCHER)
+    other = copy.read_text(encoding="utf-8").replace("exit /b 3", "exit /b 0")
+    copy.write_text(other, encoding="utf-8")
+    assert seal_mod.launcher_text(copy) != seal_mod.launcher_text(ROOT / seal_mod.LAUNCHER)
+
+
+def test_the_tracked_launcher_holds_placeholders_only(seal_mod) -> None:
+    text = (ROOT / seal_mod.LAUNCHER).read_text(encoding="utf-8")
+    assert 'set "PY=<PYTHON>"' in text and 'set "WT=<WORKTREE>"' in text
+    assert "Users\\roman" not in text and 'set "ADOPT_LAUNCHER=%~f0"' in text
+    assert "git rev-parse HEAD" in text
+    assert b"\r\n" in (ROOT / seal_mod.LAUNCHER).read_bytes()  # labels and goto: CRLF
+    assert "guard-pointers-run.cmd text eol=crlf" in (ROOT / ".gitattributes").read_text("utf-8")
+
+
+def test_only_the_sealing_commit_on_a_clean_tree_passes(seal_mod, tmp_path) -> None:
+    repo, instrument, head = sealed_repo(tmp_path, seal_mod)
+    ran = filled(tmp_path / "run", repo / seal_mod.LAUNCHER, repo)
+    assert seal_mod.require_seal(str(ran), instrument, repo) == head
+    with pytest.raises(SystemExit, match="not the instrument"):
+        seal_mod.require_seal(str(ran), head, repo)
+    with pytest.raises(SystemExit, match="ADOPT_LAUNCHER"):
+        seal_mod.require_seal("", instrument, repo)
+    (repo / seal_mod.SEALED[3]).write_text("changed\n", encoding="utf-8")
+    with pytest.raises(SystemExit, match="not clean"):
+        seal_mod.require_seal(str(ran), instrument, repo)
+    _git(repo, "commit", "-q", "-am", "after the seal")
+    with pytest.raises(SystemExit, match="not the sealing commit"):
+        seal_mod.require_seal(str(ran), instrument, repo)
+
+
+def test_a_seal_commit_that_changes_more_than_the_seal_is_refused(seal_mod, tmp_path) -> None:
+    repo, instrument, _ = sealed_repo(tmp_path, seal_mod)
+    _git(repo, "reset", "-q", "--soft", "HEAD^")
+    (repo / seal_mod.PREREG).write_text("edited with the seal\n", encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "seal and an edit")
+    with pytest.raises(SystemExit, match="changes"):
+        seal_mod.require_seal_commit(repo)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
+@pytest.mark.skipif(not PYTHON.exists(), reason="main's venv is not on this machine")
+def test_the_real_entry_point_checks_the_seal_before_anything(seal_mod, tmp_path) -> None:
+    repo, instrument, head = sealed_repo(tmp_path, seal_mod)
+    env = dry_environment(tmp_path, (SMOKE,))
+    config = json.loads((tmp_path / "dry.json").read_text(encoding="utf-8"))
+    dev = str(MAIN_VENV / "sanchopanza.exe")
+    (tmp_path / "dry.json").write_text(json.dumps({**config, "sancho": dev,
+                                                   "seal_repo": str(repo)}),
+                                       encoding="utf-8")  # fmt: skip
+    ran = filled(tmp_path / "run", ROOT / seal_mod.LAUNCHER, ROOT)
+    assert launch(str(ran), [instrument, "smoke", "dry"], env) in (0, 3)
+    root = tmp_path / "L"
+    log = (root / "launch.log").read_text(encoding="utf-8", errors="replace")
+    assert f"HEAD {head} (the sealing commit)" in log
+    assert f"seal HEAD {head}" in (root / "launch.status").read_text(encoding="utf-8")
+    # a copy changed beyond its local values: refused before any call
+    root = tmp_path / "L2"
+    changed = filled(tmp_path / "bad", ROOT / seal_mod.LAUNCHER, ROOT)
+    changed.write_bytes(changed.read_bytes().replace(b"exit /b 3", b"exit /b 4"))
+    assert launch(str(changed), [instrument, "smoke", "dry"], {**env, "LL_ROOT": str(root)}) == 1
+    log = (root / "launch.log").read_text(encoding="utf-8", errors="replace")
+    assert "differs from the sealed" in log and not (root / "runs").exists()
+    # the wrong frozen copy: refused
+    root = tmp_path / "L3"
+    assert launch(str(ran), [head, "smoke", "dry"], {**env, "LL_ROOT": str(root)}) == 1
+    assert "not the instrument" in (root / "launch.log").read_text(encoding="utf-8")

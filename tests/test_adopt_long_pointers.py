@@ -289,4 +289,106 @@ def test_the_carry_facts_come_from_the_guard_log_in_the_rows(m) -> None:
     row = {"calls": [{"guard": [first]}, {"guard": []}, {"guard": [second]}]}
     assert read.carry(row) == {"blocks": 2, "block_chars": [8_000, 7_000],
                                "median_block_chars": 7_500, "archived": 4,
-                               "choosers": ["pointers"]}  # fmt: skip
+                               "choosers": ["pointers"], "failed": 0}  # fmt: skip
+
+
+# ---- the reviewer's points (revisor-prereg, before the seal) ------------------------------------
+
+
+def test_the_shell_guard_s_own_decisions_are_not_paid_calls(m) -> None:
+    *_, long_pointers, _ = m
+    free = [{"provider": "code"}, {"provider": "budget"}, {"provider": "null"}]
+    assert long_pointers.keyless_breaks(free) == []
+    assert long_pointers.keyless_breaks([*free, {"provider": "llm"}])
+
+
+def test_a_failed_guard_is_counted_not_stopped(m) -> None:
+    *_, long_pointers, read = m
+    assert long_pointers.FAILED_GUARD == {"P": "pointers (archive failed: rule only)",
+                                          "F": "struct (error: rule only)"}  # fmt: skip
+    for arm, chooser in long_pointers.FAILED_GUARD.items():
+        row = {"compactions": [{"pre": 160_000}], "guard": [{"chooser": chooser}]}
+        assert long_pointers.guard_breaks(arm, row) == []
+    whole = {"chooser": "struct", "block_chars": 40_000}
+    failed = {"chooser": "struct (error: rule only)", "block_chars": 900}
+    row = {"calls": [{"guard": [whole]}, {"guard": [failed]}]}
+    found = read.carry(row)
+    assert found["failed"] == 1 and found["blocks"] == 2
+    assert found["choosers"] == ["struct", "struct (error: rule only)"]
+
+
+def _arm_row(folder: pathlib.Path, arm: str, **extra) -> None:  # noqa: ANN003
+    evidence = folder / arm
+    evidence.mkdir(parents=True)
+    row = {"arm": arm, "calls": [{"request": 1, "status": "ran", "owner_usd": 1.0}], **extra}
+    (evidence / "row.json").write_text(json.dumps(row), encoding="utf-8")
+
+
+def test_a_paused_or_partial_chain_is_not_scored(m, tmp_path) -> None:
+    *_, read = m
+    base = tmp_path / "runs" / "c1-sonnet"
+    _arm_row(base, "P", stopped="limit")
+    _arm_row(base, "F", stopped="")
+    assert read.paused(base) == ["P: stopped (limit)"]
+    other = tmp_path / "runs" / "c2-sonnet"
+    _arm_row(other, "P", stopped="", partial=True)
+    _arm_row(other, "F", stopped="cap")
+    assert read.paused(other) == ["P: partial (the runner died or is running)"]
+    done = tmp_path / "runs" / "c3-sonnet"
+    _arm_row(done, "P", stopped="cap")
+    _arm_row(done, "F", stopped="")
+    assert read.paused(done) == []
+    for why in ("harness", "ceiling"):
+        again = tmp_path / "runs" / f"c-{why}-sonnet"
+        _arm_row(again, "P", stopped=why)
+        _arm_row(again, "F", stopped="")
+        assert read.paused(again)
+
+
+def test_a_paused_chain_leaves_the_lot_without_verdict(m, monkeypatch, tmp_path) -> None:
+    *_, read = m
+    line = {"common_calls": 60, "ratio": 0.95, "pairs": [(True, True)] * 60,
+            "arms": {"P": {"cost_common": 17.0}, "F": {"cost_common": 18.0}}}  # fmt: skip
+    monkeypatch.setattr(read.long_compact, "chain_line", lambda *_a, **_k: dict(line))
+    monkeypatch.setattr(read, "paused", lambda base: ["P: stopped (limit)"] if "c5" in str(base)
+                        else [])  # fmt: skip
+    found = read.read(tmp_path, ["c1", "c2", "c3", "c4", "c5"])
+    assert found["chains_counted"] == ["c1", "c2", "c3", "c4"]
+    assert found["chains_paused"] == {"c5": ["P: stopped (limit)"]}
+    assert found["verdict"] == "no verdict"
+
+
+def test_the_smoke_runs_p_even_when_f_stops_at_its_cap(m) -> None:
+    long_run, *_ = m
+    smoke = long_run.PROFILES["guardptr-smoke"]
+    assert smoke.local_stops == ("cap", "wall") and smoke.day_only
+
+
+def test_the_shared_prefix_is_checked_at_the_second_arm_s_first_call(m, tmp_path) -> None:
+    long_run, *_ = m
+    folder = tmp_path / "c1-sonnet"
+    first = {"request": 1, "status": "ran", "first_request": {"read": 15_000, "write": 6_000}}
+    _arm_row(folder, "F", calls=[first], window={"configured": 193_000})
+    assert long_run.first_call_breaks(folder, "P", 2) == ""  # only at the first call
+    same = {**first, "first_request": {"read": 15_000, "write": 6_020}}
+    _arm_row(folder, "P", calls=[same], window={"configured": 193_000})
+    assert long_run.first_call_breaks(folder, "P", 1) == ""
+    (folder / "P" / "row.json").unlink()
+    far = {**first, "first_request": {"read": 15_000, "write": 9_000}}
+    (folder / "P" / "row.json").write_text(json.dumps({"arm": "P", "calls": [far]}),
+                                           encoding="utf-8")  # fmt: skip
+    assert "differs from F's" in long_run.first_call_breaks(folder, "P", 1)
+    assert long_run.first_call_breaks(folder, "Ne", 1) == ""  # other lots keep their own check
+
+
+def test_a_pending_restart_stops_the_next_chain(m, monkeypatch) -> None:
+    long_run, *_ = m
+    import long_start
+
+    p = long_run.PROFILES["guardptr"]
+    monkeypatch.setattr(long_start, "restart_pending", lambda: "RebootRequired")
+    assert "RebootRequired" in long_start.restart_refusal(p, False)
+    assert long_start.restart_refusal(p, True) == ""  # the dry runs
+    assert long_start.restart_refusal(long_run.PROFILES["compact"], False) == ""
+    monkeypatch.setattr(long_start, "restart_pending", lambda: "")
+    assert long_start.restart_refusal(p, False) == ""

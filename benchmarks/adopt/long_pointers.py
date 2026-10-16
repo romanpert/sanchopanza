@@ -14,7 +14,8 @@ What stops the run (STOP file), checked on every call of P or F:
   from the guard's own log, `<evidence>/guard.jsonl`, which `hook_env` turns on for these arms);
 - a compaction far from where the install's budget puts it, or a context past its window
   (`window_breaks`): the window never took;
-- any decision asked of a provider other than the null decider (`keyless_breaks`): a paid call.
+- any decision a provider answered, other than the null decider and the hooks' own `code`
+  and `budget` (`keyless_breaks`): a paid call.
 """
 
 from __future__ import annotations
@@ -25,6 +26,15 @@ from pathlib import Path
 from typing import Any
 
 GUARD_ARMS = {"P": ("pointers", ()), "F": ("struct", ("--guard-full",))}
+# What each arm's guard builds when it fails (`harness.guard_hook`): the rule's block, which still
+# carries the requests and the trail. It passes `guard_breaks` (it starts with the arm's chooser):
+# a failed-guard compaction is counted and published (`long_pointers_read.carry`), never a stop
+# (prereg, section 2): the install fails open in the field too.
+FAILED_GUARD = {"P": "pointers (archive failed: rule only)", "F": "struct (error: rule only)"}
+FAILED_MARK = "rule only"
+# Decisions the hooks journal without asking any model: the shell guard's own (`code`) and a
+# spent budget (`budget`). Neither is a paid call.
+FREE_PROVIDERS = (None, "null", "code", "budget")
 DEFAULT_BUDGET = 160_000  # install_defaults.DEFAULT_BUDGET: what the default install writes
 GUARD_LOG = "guard.jsonl"
 LOT_ENV = ("ADOPT_GUARD_LOT", "1")  # hook_env.GUARD_LOT_VAR
@@ -97,7 +107,7 @@ def guard_breaks(arm: str, row: Mapping[str, Any]) -> list[str]:
 
 def keyless_breaks(decisions: Sequence[Mapping[str, Any]]) -> list[str]:
     """A decision a provider answered in a keyless arm: a paid call nobody approved."""
-    paid = [d for d in decisions if d.get("provider") not in (None, "null")]
+    paid = [d for d in decisions if d.get("provider") not in FREE_PROVIDERS]
     return [f"{len(paid)} decision(s) asked of {sorted({str(d.get('provider')) for d in paid})} "
             "in a keyless arm"] if paid else []  # fmt: skip
 

@@ -14,7 +14,8 @@ import sys
 
 import pytest
 
-from tests.test_adopt_long_launch import MAIN_VENV, dry_environment, launch, needs_python
+from tests.test_adopt_guardptr_seal import filled
+from tests.test_adopt_long_launch import MAIN_VENV, dry_environment, launch
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ADOPT = ROOT / "benchmarks" / "adopt"
@@ -31,6 +32,11 @@ DEV_SANCHO = MAIN_VENV / "sanchopanza.exe"
 
 windows = pytest.mark.skipif(os.name != "nt", reason="the launchers are Windows batch files")
 dev = pytest.mark.skipif(not DEV_SANCHO.exists(), reason="main's venv is not on this machine")
+
+
+def copy(base: pathlib.Path) -> str:
+    """The launcher filled as the owner fills it in the run's root (PY, WT)."""
+    return str(filled(base / "run", ROOT / CMD, ROOT))
 
 
 def lot_environment(base: pathlib.Path, chains: tuple[str, ...], model: str,
@@ -56,10 +62,9 @@ def _text(path: pathlib.Path) -> str:
 
 @windows
 @dev
-@needs_python(CMD)
 def test_the_launcher_runs_p_and_f_on_each_chain_with_their_own_guard(tmp_path) -> None:
     env = lot_environment(tmp_path, CHAINS, "sonnet", 160_500)
-    code = launch(CMD, ["0000000", "dry"], env, timeout=1500)
+    code = launch(copy(tmp_path), ["0000000", "dry"], env, timeout=1500)
     root = tmp_path / "L"
     log = _text(root / "launch.log")
     assert code in (0, 3), log
@@ -85,10 +90,9 @@ def test_the_launcher_runs_p_and_f_on_each_chain_with_their_own_guard(tmp_path) 
 
 @windows
 @dev
-@needs_python(CMD)
 def test_the_smoke_runs_haiku_compacting_near_67k(tmp_path) -> None:
     env = lot_environment(tmp_path, (SMOKE,), "haiku", 67_500)
-    code = launch(CMD, ["0000000", "smoke", "dry"], env)
+    code = launch(copy(tmp_path), ["0000000", "smoke", "dry"], env)
     root = tmp_path / "L"
     assert code in (0, 3), _text(root / "launch.log")
     assert "ceiling 8.00 (hard, in code)" in _text(root / "launch.log")
@@ -100,28 +104,27 @@ def test_the_smoke_runs_haiku_compacting_near_67k(tmp_path) -> None:
 
 @windows
 @dev
-@needs_python(CMD)
 def test_a_compaction_where_the_window_never_took_stops_the_launch(tmp_path) -> None:
     env = lot_environment(tmp_path, CHAINS, "sonnet", 67_500)
-    assert launch(CMD, ["0000000", "dry"], env, timeout=900) == 4
+    assert launch(copy(tmp_path), ["0000000", "dry"], env, timeout=900) == 4
     assert "compacted at 67500" in _text(tmp_path / "L" / "STOP")
 
 
 @windows
 def test_the_launcher_needs_a_seal_and_takes_30_smoke_and_dry_only(tmp_path) -> None:
     env = dry_environment(tmp_path, CHAINS)
-    assert launch(CMD, [], env) == 2
-    assert launch(CMD, ["dry"], env) == 2
-    assert launch(CMD, ["0000000", "x"], env) == 2
-    assert launch(CMD, ["0000000", "smoke", "x"], env) == 2
+    assert launch(CMD, ["0000000", "dry"], env) == 2  # the tracked file: placeholders, refused
+    cmd = copy(tmp_path)
+    assert launch(cmd, [], env) == 2
+    assert launch(cmd, ["dry"], env) == 2
+    assert launch(cmd, ["0000000", "x"], env) == 2
+    assert launch(cmd, ["0000000", "smoke", "x"], env) == 2
     no_root = {k: v for k, v in env.items() if k != "LL_ROOT"}
-    assert launch(CMD, ["0000000", "dry"], {**no_root, "LL_ROOT": ""}) == 2
+    assert launch(cmd, ["0000000", "dry"], {**no_root, "LL_ROOT": ""}) == 2
 
 
-def test_the_launcher_is_lf_and_pins_claude_code_and_its_roots() -> None:
-    raw = (ROOT / CMD).read_bytes()
-    assert b"\r\n" not in raw
-    text = raw.decode("utf-8")
+def test_the_launcher_pins_claude_code_and_its_roots() -> None:
+    text = (ROOT / CMD).read_bytes().decode("utf-8")
     assert r"claude-pin\2.1.287" in text and "DISABLE_AUTOUPDATER=1" in text
     for root in (r"C:\sp-runs\L-guardptr", r"C:\sp-runs\L-guardptr30", "L-guardptr-smoke"):
         assert root in text

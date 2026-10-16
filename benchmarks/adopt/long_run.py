@@ -68,6 +68,7 @@ import meter  # noqa: E402
 import run  # noqa: E402
 from long_money import blocks, ceiling_of, held, rows_under, spent  # noqa: E402,F401
 from long_start import midnight_refusal, quiet_refusal, start_refusal  # noqa: E402
+from long_start import restart_refusal  # noqa: E402
 
 sys.path.insert(0, str(HERE.parents[1] / "src"))
 from sanchopanza.harness.install_defaults import window_for  # noqa: E402
@@ -256,7 +257,7 @@ PROFILES = {
                               {"haiku": GUARDPTR_SMOKE_CHAIN_CAP}, GUARDPTR_SMOKE_CEILING,
                               (SMOKE_CHAIN,), hard_cap=GUARDPTR_SMOKE_CEILING, bugs=3,
                               budget=67_000, hours={"haiku": 0.5}, keyless=True,
-                              day_only=True),
+                              day_only=True, local_stops=("cap", "wall")),
 }  # fmt: skip
 
 
@@ -490,6 +491,10 @@ def run_arm(ctx: Ctx, chain: Mapping[str, Any], arm: str, status: Mapping[str, A
         arm_files.write_row(a.evidence, arm_files.partial_row(base, rows))
         log(f"{a.name} {arm} {k}/{len(a.asks)} {row['status']} {row.get('owner_usd', 0):.3f} USD "
             f"ctx {row.get('peak_context', 0)} compactions {len(row.get('compactions', []))}")
+        if not stop and (why := first_call_breaks(a.evidence.parent, arm, k)):
+            (ctx.layout.root / long_guard.STOP_FILE).write_text(why, encoding="utf-8")
+            log(f"{a.name} {arm}: STOP: {why}")
+            stop = "harness"
         if stop:
             rows = [*rows, *not_run(a.asks[k:], k + 1, stop)]
             break
@@ -738,6 +743,14 @@ def call_breaks(a: Arm, row: Mapping[str, Any], attempt: Mapping[str, Any],
     return tuple(out)
 
 
+def first_call_breaks(folder: Path, arm: str, k: int) -> str:
+    """P and F (the guard lot) share their first prefix: checked at the second arm's FIRST call,
+    from the rows on disk (its partial row is written after every call), not after both arms."""
+    if arm not in long_pointers.GUARD_ARMS or k != 1:
+        return ""
+    return long_guard.cross_arm_breaks(folder)
+
+
 def low_window_breaks(row: Mapping[str, Any]) -> list[str]:
     """Nl not compacting where the prereg says: a compaction outside `LOW_PRE`, or a call whose
     context passed `LOW_PEAK` (the window never took)."""
@@ -841,7 +854,8 @@ def run_all(ctx: Ctx, names: list[str], known: Mapping[str, Any], models: list[s
         c = replace(ctx, model=model)
         for name in names:
             if why := (midnight_refusal(ctx.profile, model, allow_midnight)
-                       or quiet_refusal(ctx.profile, allow_midnight)):
+                       or quiet_refusal(ctx.profile, allow_midnight)
+                       or restart_refusal(ctx.profile, allow_midnight)):
                 log(f"{name} {model}: refused: {why}")
                 return 1
             log(f"{name} {model}: start, spent so far {spent(ctx.layout):.2f} USD")

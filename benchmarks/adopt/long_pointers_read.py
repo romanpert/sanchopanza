@@ -36,7 +36,9 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import long_compact  # noqa: E402
+import long_pointers  # noqa: E402
 import long_report  # noqa: E402
+import long_resume  # noqa: E402
 
 PAIR = ("P", "F")
 ROOTS = {
@@ -54,7 +56,8 @@ RULE = (
     "by the cluster bootstrap (whole chains resampled) and by the t bound of the per-chain mean "
     "(with 'a smaller loss shown' added when the bootstrap's two-sided 95 % interval lies below "
     "0); worse: not non-inferior and that interval lies below 0; not shown: otherwise; no "
-    "verdict: fewer than 5 chains with their minimum of common calls and both arms graded there"
+    "verdict: fewer than 5 chains with their minimum of common calls and both arms graded there, "
+    "or any chain with an arm paused (limit, harness, ceiling) or a partial row"
 )
 ARCHIVED = re.compile(r"guard-[A-Za-z0-9_.-]+\.txt$")
 
@@ -160,6 +163,7 @@ def carry(row: Mapping[str, Any]) -> dict[str, Any]:
         "median_block_chars": statistics.median(chars) if chars else None,
         "archived": sum(int(g.get("archived") or 0) for g in blocks),
         "choosers": sorted({str(g.get("chooser")) for g in blocks}),
+        "failed": sum(long_pointers.FAILED_MARK in str(g.get("chooser") or "") for g in blocks),
     }
 
 
@@ -171,23 +175,40 @@ def _row(evidence: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
+def paused(base: Path) -> list[str]:
+    """Why a chain's rows are not final: an arm paused by the usage limit, an invariant's STOP or
+    the ceiling (`long_resume.RESUMES`: a relaunch goes on from there), or a partial row (the
+    runner died, or is still running). Such a chain is not scored (prereg, section 6)."""
+    out = []
+    for arm in PAIR:
+        row = _row(base / arm)
+        if row.get("partial"):
+            out.append(f"{arm}: partial (the runner died or is running)")
+        elif row.get("stopped") in long_resume.RESUMES:
+            out.append(f"{arm}: stopped ({row['stopped']})")
+    return out
+
+
 def read(root: Path, chains: Sequence[str], profile: str = "guardptr") -> dict[str, Any]:
     margin, floor = MARGINS[profile], MIN_COMMON[profile]
     found = {c: line for c in chains if (line := long_compact.chain_line(root, c, PAIR))}
-    counted = {c: v for c, v in found.items() if v["common_calls"] >= floor and v["ratio"]
-               and v["pairs"]}  # fmt: skip
+    base = {c: root / "runs" / f"{c}-{long_compact.MODEL}" for c in found}
+    held = {c: why for c in found if (why := paused(base[c]))}
+    counted = {c: v for c, v in found.items() if c not in held and v["common_calls"] >= floor
+               and v["ratio"] and v["pairs"]}  # fmt: skip
     clusters = [v["pairs"] for v in counted.values()]
     q = quality(clusters) if clusters else None
     costs = [(v["arms"]["P"]["cost_common"], v["arms"]["F"]["cost_common"])
              for v in counted.values()]  # fmt: skip
-    base = {c: root / "runs" / f"{c}-{long_compact.MODEL}" for c in found}
     lines = {c: {**{k: v for k, v in line.items() if k != "pairs"},
                  "mechanism": {a: mechanism(base[c] / a) for a in PAIR},
                  "carry": {a: carry(_row(base[c] / a)) for a in PAIR}}
              for c, line in found.items()}  # fmt: skip
     return {"rule": RULE, "profile": profile, "margin": margin, "min_common": floor,
-            "chains_read": len(found), "chains_counted": sorted(counted), "quality": q,
-            "verdict": verdict(q, len(counted), margin), "cost": cost_reading(costs),
+            "chains_read": len(found), "chains_counted": sorted(counted),
+            "chains_paused": held, "quality": q,
+            "verdict": "no verdict" if held else verdict(q, len(counted), margin),
+            "cost": cost_reading(costs),
             "chains": lines}  # fmt: skip
 
 

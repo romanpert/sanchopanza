@@ -56,6 +56,35 @@ def quiet_refusal(profile: Any, allow: bool, now: dt.datetime | None = None) -> 
     return ""
 
 
+_WINDOWS = r"SOFTWARE\Microsoft\Windows\CurrentVersion"
+RESTART_KEYS = (_WINDOWS + r"\WindowsUpdate\Auto Update\RebootRequired",
+                _WINDOWS + r"\Component Based Servicing\RebootPending")
+
+
+def restart_pending() -> str:
+    """The first of `RESTART_KEYS` present under HKLM ("" when none, or off Windows)."""
+    try:
+        import winreg
+    except ImportError:
+        return ""
+    for key in RESTART_KEYS:
+        try:
+            winreg.CloseKey(winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key))
+        except OSError:
+            continue
+        return key.rsplit("\\", 1)[-1]
+    return ""
+
+
+def restart_refusal(profile: Any, allow: bool) -> str:
+    """A day-only profile starts no chain while Windows has a restart pending (checked before
+    each chain, not only at the launch: an update can land mid-lot)."""
+    if not getattr(profile, "day_only", False) or allow:
+        return ""
+    found = restart_pending()
+    return f"Windows has a restart pending ({found})" if found else ""
+
+
 def midnight_refusal(profile: Any, model: str, allow: bool) -> str:
     hours = profile.hours.get(model, 4.0) * len(profile.arms)
     if not allow and long_guard.crosses_midnight(dt.datetime.now(), hours):
