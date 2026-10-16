@@ -49,6 +49,8 @@ sys.path.insert(0, str(REPO / "benchmarks" / "adopt"))
 import docker_env  # noqa: E402
 import singles_run  # noqa: E402
 
+from sanchopanza import durable  # noqa: E402
+
 DRAWN = HERE / "singles-d.json"
 OUT = HERE / "singles-validated.json"
 PREREG = REPO / "docs" / "results" / "2026-10-03-adopt-d"
@@ -203,10 +205,8 @@ def write_out(drawn: dict[str, Any], results: dict[str, dict[str, Any]]) -> None
            else {}),  # fmt: skip
         "results": sorted(results.values(), key=lambda r: r["order"]),
     }
-    tmp = OUT.with_suffix(".json.tmp")
-    tmp.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n", encoding="utf-8",
-                   newline="\n")  # fmt: skip
-    os.replace(tmp, OUT)
+    durable.replace_text(OUT, json.dumps(data, indent=1, ensure_ascii=False) + "\n",
+                         temp=OUT.with_suffix(".json.tmp"), newline="\n")  # fmt: skip
 
 
 def per_stratum(selected: list[dict[str, Any]]) -> dict[str, int]:
