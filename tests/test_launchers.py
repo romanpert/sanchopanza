@@ -29,6 +29,7 @@ LAUNCHERS: dict[str, tuple[set[str], set[str]]] = {
     "b6-es-run.cmd": ({"benchmarks/b6_es/b6_run.py"}, {"C:\\sp-runs\\b6-es"}),
     "c4-written-run.cmd": ({"benchmarks/facts_gate/written_run.py"}, {CACHE + "c4-written"}),
     "c5-free-run.cmd": ({"benchmarks/passage_fit/free_confirm.py"}, {CACHE + "c5-free"}),
+    "c5b-free-run.cmd": ({"benchmarks/passage_fit/free_confirm_b.py"}, {CACHE + "c5b-free"}),
     "c6-window-run.cmd": ({"benchmarks/b6_es/c6_window.py"}, {CACHE + "c6-window"}),
     "checkdone114-run.cmd": (
         {"benchmarks/jev114/checkdone114.py"},

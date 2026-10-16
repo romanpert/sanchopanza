@@ -1,4 +1,4 @@
-"""The shared Jev budget of the C4, C5 and C6 lots: one ledger file, one cap over all three.
+"""The shared Jev budget of the round's lots (C4, C5, C5b, C6): one ledger file, one cap.
 
 Each lot reserves and settles every call in this file under its own batch name and its own batch
 cap (`SpendLedger.reserve(batch=..., batch_cap_usd=...)` through `CappedDecider`), and the file
@@ -18,7 +18,8 @@ from sanchopanza.budget import SpendLedger  # noqa: E402
 
 LEDGER = Path("C:/sp-runs/w17-jev/ledger.json")
 CAP_USD = 6.00  # the round's Jev budget, over every lot
-BATCH_CAPS = {"c4-written": 0.15, "c5-free": 2.00, "c6-window": 4.50}  # the round cap binds first
+BATCH_CAPS = {"c4-written": 0.15, "c5-free": 2.00, "c5b-free": 2.00,
+              "c6-window": 4.50}  # fmt: skip  # the round cap binds first
 
 
 def ledger(path: Path = LEDGER) -> SpendLedger:
