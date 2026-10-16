@@ -3,8 +3,7 @@
 **Draft, not reviewed, not sealed.** Written 2026-10-16. Before the seal:
 
 1. `revisor-prereg` reviews it against the code.
-2. It moves to `docs/results/2026-10-17-checkdone-w17/prereg.md`, the path `LOT.sealed` names.
-3. `checkdone_w17.py seal` writes `prereg.sha256` and `data.sha256`. The sealing commit adds
+2. `checkdone_w17.py seal` writes `prereg.sha256` and `data.sha256`. The sealing commit adds
    those files and nothing else.
 
 Nothing in this lot has been asked of Jev. Jev only, no call to Claude. **An attended launch of
@@ -238,9 +237,15 @@ draws by cluster, with the lot's real cluster sizes:
   characters on average.
 - **Expected for the 1,633 requests:** 0.130 USD. Scaling the 71 µUSD median of a real request
   by these requests' size gives 0.128 USD. `CappedDecider`'s pessimistic estimate is 0.131 USD.
-- **Cap:** `BATCH_CAP` 0.25 USD in code, batch `jev114-checkdone-w17`, on the shared ledger
-  `C:/sp-runs/jev114/ledger.json`.
-  - That ledger has its own 4.50 USD cap; 4.0163 USD was spent at the dry run, leaving 0.48 USD.
+- **Cap:** `BATCH_CAP` 0.25 USD in code, batch `jev114-checkdone-w17`.
+- **The ledger is the shared one:** `C:/sp-runs/jev114/ledger.json`, which every 1.14 lot
+  spends on, with its own 4.50 USD cap. This lot creates no ledger of its own.
+  - At the dry run that ledger had 4.0163 USD spent and **0.48 USD left**. That covers the whole
+    batch cap.
+  - `room_problem` checks this. The dry run exits 5, and the paid run refuses before any call,
+    when the lot is not on the shared ledger, or when the ledger has less room than what is
+    left of the batch cap. So the batch cap, not another lot's spending, is what can stop the
+    run.
   - Either cap stops the run between calls. The run halts on the first cap, 402 or wrong model.
 - `python -m sanchopanza jev-preflight` runs before the launch. Claude: 0.
 

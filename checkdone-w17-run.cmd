@@ -1,5 +1,5 @@
 @echo off
-rem Lot jev114-checkdone-w17 (DRAFT, benchmarks/jev114/w17_prereg.md): check_done's record with
+rem Lot jev114-checkdone-w17 (DRAFT, docs/results/2026-10-16-checkdone-w17/prereg.md): check_done's record with
 rem the evidence kept against the old record, both asked of jev-1.14.0 and read at 0.30, on
 rem 1,572 unseen AgentDojo stops plus the changed records of checkdone114's 950. Jev only, no
 rem Claude: 1,633 requests, about 0.13 USD expected, BATCH_CAP 0.25 USD in code on the shared

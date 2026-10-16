@@ -36,7 +36,7 @@ wins when both are set (`sanchopanza._env`):
                       AgentDojo, not on coding sessions: see docs/results/2026-09-25-completion.
     DONE_EVIDENCE     "1" to keep, in CHECK_DONE's record, the part of a long tool result the
                       agent's later text rests on, besides its head (`points.done_evidence`).
-                      Off until measured: benchmarks/jev114/w17_prereg.md.
+                      Off until measured: docs/results/2026-10-16-checkdone-w17/prereg.md.
     ON_CHANGE         "0" to run CHECK_DONE (and candor) on every request. By default they act
                       only on a request that changed something (`harness.change_gate`): on
                       question-and-answer sessions the send-back never changed a grade.

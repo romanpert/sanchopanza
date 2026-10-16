@@ -5,9 +5,9 @@ unseen AgentDojo stops that cut was behind most false blocks (docs/results/
 2026-10-16-checkdone114/): 115 of Jev 1.14's 150 had a tool result longer than the head, and in
 87 of them a value the agent wrote afterwards (a file name, a size, an id, a time, a name) was
 in a result only past the cut and nowhere the record showed. The judge saw an answer it could
-not check and called it unsupported. Whether keeping it helps is measured, not assumed:
-benchmarks/jev114/w17_prereg.md; until then the Stop hook uses it only when asked
-(`SANCHOPANZA_DONE_EVIDENCE=1`).
+not check and called it unsupported. Whether keeping it helps is measured, not assumed
+(docs/results/2026-10-16-checkdone-w17/prereg.md); until then the Stop hook uses it only when
+asked (`SANCHOPANZA_DONE_EVIDENCE=1`).
 
 `kept` leaves a result that fits as it is, and a longer one as its head when nothing the agent
 wrote afterwards is found past the head, so those records are the old ones byte for byte. When

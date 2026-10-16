@@ -9,7 +9,7 @@ asked of jev-1.14.0 and read at the shipped profile's 0.30. Lot jev114-checkdone
     python benchmarks/jev114/checkdone_w17.py publish | rows        # free, after the launch
     python benchmarks/jev114/checkdone_w17_analysis.py              # free: the verdict
 
-Registered (draft) in benchmarks/jev114/w17_prereg.md; at the seal it moves to `OUT`.
+Registered (draft) in docs/results/2026-10-16-checkdone-w17/prereg.md (`OUT`).
 
 THE ARMS differ only in the record: `old` is `completion.render` as every earlier lot built it,
 each tool result cut to its first 1,500 characters; `new` is the same call with `evidence=True`
@@ -54,8 +54,8 @@ from sanchopanza.points import done_evidence  # noqa: E402
 from sanchopanza.providers.capped import DEFAULT_PRICE_PER_MTOK, estimate_usd  # noqa: E402
 from sanchopanza.providers.recorded import RecordedDecider, key_of  # noqa: E402
 
-OUT = ROOT / "docs" / "results" / "2026-10-17-checkdone-w17"  # created at the seal
-PREREG = HERE / "w17_prereg.md"  # the draft; `OUT / prereg.md` once sealed
+OUT = ROOT / "docs" / "results" / "2026-10-16-checkdone-w17"  # created at the seal
+PREREG = OUT / "prereg.md"
 INPUTS = HERE / "w17_inputs.jsonl"
 DATA = OUT / "data.sha256"
 RUN = Path(os.environ.get("SANCHOPANZA_JEV114_RUN", "C:/sp-runs/jev114")) / "checkdone-w17"
@@ -68,7 +68,7 @@ CONFIRM = ("claude-3-5-sonnet-20241022", "gemini-2.0-flash-001")
 EXPECTED = {"claude-3-5-sonnet-20241022": 622, "gemini-2.0-flash-001": 950}
 MODEL = "jev-1.14.0"
 CUT = 0.30  # `policy.MODEL_PROFILES["jev-1.14.0"].done`, read again by the analysis
-BATCH_CAP = 0.25
+BATCH_CAP = 0.25  # this lot's batch, on the shared jev114 ledger (`lot.LEDGER`, 4.50 USD cap)
 POWER_SEED = 20261017
 MEDIAN_USD = 71e-6  # a real Jev request, the median the owner prices by; checkdone114 measured 65
 
@@ -81,7 +81,7 @@ LOT = lots.Lot(
     fixture_stem="checkdone-w17",
     models={"14": MODEL},
     sealed=(
-        "docs/results/2026-10-17-checkdone-w17/prereg.md",
+        "docs/results/2026-10-16-checkdone-w17/prereg.md",
         "benchmarks/jev114/w17_inputs.jsonl",
         "checkdone-w17-run.cmd",
         "benchmarks/jev114/checkdone_w17.py",
@@ -384,6 +384,20 @@ def plan(confirm: list[dict[str, Any]], dev: list[dict[str, Any]]) -> dict[str, 
     }
 
 
+def room_problem(lot: lots.Lot | None = None) -> str | None:
+    """Why the shared ledger cannot hold this lot, or None. The lot spends on the jev114
+    ledger every 1.14 lot shares (no ledger of its own), and that ledger must have room for
+    what is left of the batch cap, so the batch cap and not the ledger is what stops the run."""
+    lot = LOT if lot is None else lot
+    if lot.ledger != lots.LEDGER or lot.ledger_cap != lots.LEDGER_CAP:
+        return f"not the shared ledger: {lot.ledger} at {lot.ledger_cap}"
+    room = lots.ledger_room(lot)
+    left = lot.batch_cap - room["batch_spent"]
+    if room["ledger_room"] < left:
+        return f"the shared ledger has {room['ledger_room']} USD left, the batch {left:.4f}"
+    return None
+
+
 def cmd_run(args: argparse.Namespace) -> int:
     if args.dry == args.paid:
         raise SystemExit("run: pass exactly one of --dry or --paid")
@@ -396,10 +410,17 @@ def cmd_run(args: argparse.Namespace) -> int:
               f"{'refused: ' + refused if refused else 'allowed after the seal'}")  # fmt: skip
         if report["overlap_with_earlier_recordings"]:
             return 4
+        short = room_problem()
+        if short:
+            print(f"refused: {short}")
+            return 5
         if report["jev_usd_pessimistic"] > LOT.batch_cap:
             print("note: the pessimistic estimate exceeds the cap; the cap stops the run")
         return 0
     commits = lots.require_sealed_checkout(LOT)
+    short = room_problem()
+    if short:
+        raise SystemExit(f"launch refused: {short}")
     sealed = json.loads(DATA.read_text(encoding="utf-8"))
     if digest_of(confirm, dev) != sealed["stops"]:
         raise SystemExit("inputs differ from the sealed ones: nothing spent")
@@ -422,8 +443,8 @@ def digest_of(confirm: Sequence[Mapping[str, Any]], dev: Sequence[Mapping[str, A
 
 
 def cmd_seal(args: argparse.Namespace) -> int:
-    if not (OUT / "prereg.md").exists():
-        raise SystemExit(f"copy the reviewed draft {PREREG.name} to {OUT}/prereg.md first")
+    if not PREREG.exists():
+        raise SystemExit(f"{PREREG} is missing: nothing sealed")
     data = {"stops": digest_of(load_confirm(args.data_root), load_dev())}
     DATA.write_text(json.dumps(data, indent=1) + "\n", encoding="utf-8")
     (OUT / "prereg.sha256").write_text(lots.digest(LOT) + "\n", encoding="utf-8")

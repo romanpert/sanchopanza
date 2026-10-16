@@ -3,7 +3,7 @@
 
     python benchmarks/jev114/checkdone_w17_analysis.py
 
-The rule is benchmarks/jev114/w17_prereg.md (at the seal, `OUT/prereg.md`), "Metric and verdict":
+The rule is docs/results/2026-10-16-checkdone-w17/prereg.md, "Metric and verdict":
 
 - block = p(done) < cut, the cut read from the code (`Thresholds.for_model("jev-1.14.0").done`);
 - primary, on the confirmation's finished stops: "not falsely blocked", new record minus old,
@@ -34,7 +34,7 @@ import lot_stats  # noqa: E402
 
 from sanchopanza.policy import Thresholds  # noqa: E402
 
-OUT = ROOT / "docs" / "results" / "2026-10-17-checkdone-w17"
+OUT = ROOT / "docs" / "results" / "2026-10-16-checkdone-w17"
 ROWS = OUT / "done-scored.jsonl"
 MODEL = "jev-1.14.0"
 GUARD = 0.02  # recall on unfinished stops: new may lose at most 2 points (CI lower bound)

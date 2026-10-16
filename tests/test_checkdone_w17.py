@@ -1,5 +1,5 @@
-"""Lot jev114-checkdone-w17 (draft, benchmarks/jev114/w17_prereg.md): the runner's free parts
-and the analysis, with no network and no model.
+"""Lot jev114-checkdone-w17 (draft, docs/results/2026-10-16-checkdone-w17/prereg.md): the
+runner's free parts and the analysis, with no network and no model.
 
 Pins the arms to the record builder (old = the record every earlier lot asked about, new = the
 same with `done_evidence`), the asking plan to each request once, the cut to the shipped 1.14
@@ -90,6 +90,27 @@ def test_the_lot_is_one_model_capped_and_sealed_over_the_builder():
                 "benchmarks/jev114/w17_inputs.jsonl"):  # fmt: skip
         assert rel in lot.sealed, rel
     assert runner.CUT == analysis.cut() == 0.30
+
+
+def test_the_lot_spends_on_the_shared_ledger_and_needs_room_for_its_whole_batch(monkeypatch):
+    lot, lots = runner.LOT, runner.lots
+    assert lot.ledger == lots.LEDGER and lot.ledger_cap == lots.LEDGER_CAP == 4.50
+    assert runner.PREREG == ROOT / "docs/results/2026-10-16-checkdone-w17/prereg.md"
+    assert runner.PREREG.exists() and runner.OUT == analysis.OUT
+    assert "docs/results/2026-10-16-checkdone-w17/prereg.md" in lot.sealed
+
+    def room(left, spent=0.0):
+        return lambda _: {"ledger_spent": 4.5 - left, "ledger_room": left, "batch_spent": spent}
+
+    monkeypatch.setattr(lots, "ledger_room", room(0.48))
+    assert runner.room_problem() is None
+    monkeypatch.setattr(lots, "ledger_room", room(0.20))
+    assert "0.2 USD left" in runner.room_problem()
+    monkeypatch.setattr(lots, "ledger_room", room(0.20, spent=0.10))  # a relaunch: 0.15 to go
+    assert runner.room_problem() is None
+    own = lots.Lot(name="x", out=ROOT, run=ROOT, batch_cap=0.25, sealed=(), fixture_stem="x",
+                   ledger=ROOT / "elsewhere.json")  # fmt: skip
+    assert runner.room_problem(own).startswith("not the shared ledger")
 
 
 def test_the_inputs_are_the_registered_unseen_pipelines():
