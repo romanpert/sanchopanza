@@ -58,8 +58,9 @@ Environment (every name is `SANCHOPANZA_<NAME>`):
     MEMORY_WINDOW            short (default here) | long: the decider reads each candidate
                              record whole (Jev's long-context header only past its short
                              window), within MEMORY_DECIDER_SECONDS less 3 s, and the pages
-                             when it cannot (`memory_window`; opt-in here, not measured on
-                             records; the library gate `memory_gate.gate` defaults to long)
+                             when it cannot (`memory_window`; opt-in here: on records it
+                             was worse on noise, docs/results/2026-10-16-memgate-hook; the
+                             library gate `memory_gate.gate` defaults to long)
 
 Cost: the touch calls no model; at most one decider call at a session's first prompt (two with
 `MEMORY_WINDOW=long` when the long call falls back and the pages are judged after it).
