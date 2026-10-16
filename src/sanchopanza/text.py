@@ -182,6 +182,74 @@ def excerpt(text: object, purpose: str, limit: int) -> str:
     return head + marker + rest[best_start : best_start + window_len]
 
 
+def match_window(text: object, purpose: str, limit: int) -> str:
+    """The head of a page, unless its best match to `purpose` lies past it (roadmap C6).
+
+    `truncate(text, limit)` while the sentence sharing the most distinct words with `purpose`
+    (accent-folded, stopwords out, earliest on a tie, as `_bm25_words` reads them) ends inside
+    the head, or no sentence shares one: then nothing changes. Past the head, the sentences
+    around that match instead, whole, alternately one after and one before, up to `limit`
+    characters of whitespace-collapsed text, with `[...]` where text is left out on either
+    side. Unlike `excerpt` it keeps no head beside the window and never cuts a sentence that
+    fits: on B6's Spanish articles `excerpt` put fewer answer sentences in view than the head
+    did. Language-agnostic: no stemming, no word list beyond `STOPWORDS`. No model call.
+    """
+    text = str(text or "")
+    if len(text) <= limit:
+        return text
+    head = truncate(text, limit)
+    words = set(_bm25_words(purpose))
+    flat = re.sub(r"\s+", " ", text).strip()
+    spans = _sentence_spans(flat)
+    if not words or not spans:
+        return head
+    shared = [len(words & set(_bm25_words(flat[a:b]))) for a, b in spans]
+    best = max(range(len(spans)), key=lambda i: (shared[i], -i))
+    if shared[best] == 0 or spans[best][1] <= limit:
+        return head
+    start, end = _grow(spans, best, limit)
+    return ("[...] " if start > 0 else "") + flat[start:end] + (" [...]" if end < len(flat) else "")
+
+
+def _sentence_spans(flat: str) -> list[tuple[int, int]]:
+    """Character spans of `split_sentences(flat)` in whitespace-collapsed `flat`."""
+    spans: list[tuple[int, int]] = []
+    start = 0
+    for sentence in split_sentences(flat):
+        at = flat.find(sentence, start)
+        if at < 0:  # the splitter changed the text: no spans, the caller keeps the head
+            return []
+        spans.append((at, at + len(sentence)))
+        start = at + len(sentence)
+    return spans
+
+
+def _grow(spans: Sequence[tuple[int, int]], best: int, limit: int) -> tuple[int, int]:
+    """From sentence `best`, add whole neighbours, after then before in turn (the side that
+    went second goes first on the next turn), while the span stays within `limit`."""
+    lo = hi = best
+    size = spans[best][1] - spans[best][0]
+    turn = 0
+    while True:
+        moved = False
+        for side in (1, -1) if turn % 2 == 0 else (-1, 1):
+            if side == 1 and hi + 1 < len(spans):
+                add = spans[hi + 1][1] - spans[hi][1]
+                if size + add <= limit:
+                    hi, size, moved = hi + 1, size + add, True
+                    break
+            if side == -1 and lo > 0:
+                add = spans[lo][0] - spans[lo - 1][0]
+                if size + add <= limit:
+                    lo, size, moved = lo - 1, size + add, True
+                    break
+        turn += 1
+        if not moved:
+            break
+    start, end = spans[lo][0], spans[hi][1]
+    return start, min(end, start + limit)
+
+
 def normalize(text: str) -> str:
     """Collapse whitespace and straighten typographic quotes: the only tolerated edits."""
     flat = re.sub(r"\s+", " ", text or "").strip()

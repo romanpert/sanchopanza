@@ -20,13 +20,14 @@ from typing import Any
 
 from ..catalog import tag
 from ..contract import Question, Truth
-from ..text import truncate
+from ..text import match_window, truncate
 from .triage import CONTRIBUTES
 
 SENTENCE_MAX = 40
 SENTENCE_LIMIT = 600
 PAGE_LIMIT = 900
 PAGE_MAX = 30
+EXCERPTS = ("head", "window")  # how a page past its limit is shown (`text.match_window`)
 
 
 def sentence_id(index: int) -> str:
@@ -67,13 +68,23 @@ def context_questions(
     pages: Sequence[tuple[str, str]],
     page_limit: int | None = None,
     page_max: int | None = None,
+    excerpt: str = "head",
 ) -> tuple[Mapping[str, Any], dict[str, Question]]:
     """One Truth per page, every page in view. `page_limit` and `page_max` default to
-    `PAGE_LIMIT` and `PAGE_MAX`, the measured cuts (`limits.Limits`)."""
+    `PAGE_LIMIT` and `PAGE_MAX`, the measured cuts (`limits.Limits`). `excerpt="head"`, the
+    measured default, shows a long page's first `page_limit` characters; `"window"` (opt-in,
+    roadmap C6) shows `text.match_window`: the same head unless the page's best match to
+    `purpose` lies past it."""
+    if excerpt not in EXCERPTS:
+        raise ValueError(f"excerpt must be one of {EXCERPTS}, not {excerpt!r}")
     pages = list(pages)[: PAGE_MAX if page_max is None else page_max]
     limit = PAGE_LIMIT if page_limit is None else page_limit
+
+    def view(x: str) -> str:
+        return truncate(x, limit) if excerpt == "head" else match_window(x, purpose, limit)
+
     body = "\n".join(
-        f"{page_id(i)}| {truncate(t, 120)}: {truncate(x, limit)}" for i, (t, x) in enumerate(pages)
+        f"{page_id(i)}| {truncate(t, 120)}: {view(x)}" for i, (t, x) in enumerate(pages)
     )
     state = {"purpose": truncate(purpose, 400), "pages": body}
     qs: dict[str, Question] = {
