@@ -34,10 +34,18 @@ What this module does, at a memory `Stop` when `SANCHOPANZA_MEMORY_NATIVE=1`
 - **Claude Code first.** When Claude Code saved a memory of its own during this session that
   restates at least COVER_SHARE of the session's request words, the plan is carried natively; our
   note is not written, and an older note of ours is taken out (it would be stale).
-- **Less injected.** The keys written into the note are kept (`native.json` in the store). At the
-  next session's start, while the note is unchanged and its index line is within what Claude Code
-  loads, those records count as already given to that session: neither the prompt recall nor the
-  file touch injects them again (`memory_hook.carried_at_start`).
+- **Less injected.** The keys of the records native memory carries (in our note, or in Claude
+  Code's own memory of the plan) are kept with each carrying file's digest (`native.json` in the
+  store). At the next session's start, while every such file is unchanged and its index line is
+  within what Claude Code loads, those records count as already given to that session: neither
+  the prompt recall nor the file touch injects them again (`memory_hook.carried_at_start`).
+
+The index and the SessionStart text both land in the first user message, which Claude Code
+writes to the cache afresh every session: moving text from a hook into native memory saves no
+cache cost by itself. What saves is not giving twice what native memory already holds. What the
+bridge adds is that the plan reaches the next session through Claude Code's own mechanism: any
+harness that reads it gets it, it survives sanchopanza being off, and it composes with the
+memory Claude Code saves itself (Opus 5.5 did after every F2 session 1).
 
 Fails open: any error writes one log line and leaves Claude Code's folder as it was.
 """
@@ -244,12 +252,6 @@ def index_without(text: str) -> str:
     return "".join(n for n in text.splitlines(keepends=True) if not _ours(n))
 
 
-def carries(folder: Path) -> bool:
-    """Our line is in what Claude Code loads of the folder's index."""
-    text = _read_index(folder / INDEX)
-    return bool(text) and any(_ours(n) for n in _loaded(text or "").split("\n"))
-
-
 # ---- files -------------------------------------------------------------------------------------
 
 
@@ -350,10 +352,12 @@ def refresh(folder: Path, records: Sequence[ep.Episode], *, session: str,
         covered = covering(folder, records, since)
         if covered:
             removed = _drop(folder, index)
+            files = {n: _digest(_read(folder / n)) for n in covered}
             state = {"session": session, "keys": keys, "carrier": "claude-code",
-                     "files": covered, "at": time.time()}  # fmt: skip
+                     "dir": str(folder), "files": files, "at": time.time()}  # fmt: skip
             ep.write_private(store / STATE, json.dumps(state))
-            return {**row, "native": "covered", "covered_by": covered, "removed": removed}
+            return {**row, "native": "covered", "covered_by": covered, "removed": removed,
+                    "keys": keys}  # fmt: skip
         text, line = compose(records)
         new_index = index_with(index, line)
         if new_index is None:
@@ -367,21 +371,25 @@ def refresh(folder: Path, records: Sequence[ep.Episode], *, session: str,
             written = True
         ep.write_private(store / STATE, json.dumps({
             "session": session, "keys": keys, "carrier": "sanchopanza", "dir": str(folder),
-            "digest": _digest(text), "at": time.time()}))  # fmt: skip
+            "files": {NOTE: _digest(text)}, "at": time.time()}))  # fmt: skip
     return {**row, "native": "written" if written else "unchanged", "keys": keys,
             "chars": len(text), "line_chars": len(line)}  # fmt: skip
 
 
 def carried(event: Mapping[str, Any], store: Path, session: str) -> list[str]:
-    """The record keys our note carries into `session`: another session wrote it, it is unchanged
-    since, and Claude Code loads its index line. Else none."""
+    """The record keys native memory carries into `session`: another session's Stop found them
+    in our note or in Claude Code's own memory of the plan, every such file is unchanged since,
+    and Claude Code loads its index line. Else none."""
     state = _state(store)
-    if state.get("carrier") != "sanchopanza" or state.get("session") in (None, session):
+    files = state.get("files")
+    if state.get("session") in (None, session) or not isinstance(files, dict) or not files:
         return []
     folder = native_dir(event)
     if folder is None or os.path.normcase(str(folder)) != os.path.normcase(str(state.get("dir"))):
         return []
-    text = _read(folder / NOTE)
-    if not text or _digest(text) != state.get("digest") or not carries(folder):
-        return []
+    loaded = _loaded(_read_index(folder / INDEX) or "")
+    for name, digest in files.items():
+        text = _read(folder / str(name))
+        if not text or _digest(text) != digest or f"]({name})" not in loaded:
+            return []
     return [str(k) for k in state.get("keys") or []]

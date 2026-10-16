@@ -261,6 +261,27 @@ def test_claude_code_s_own_memory_of_the_plan_this_session_takes_over(tmp_path: 
     assert own.exists()
 
 
+def test_the_record_claude_code_saved_itself_is_not_given_again_while_unchanged(
+    tmp_path: Path,
+) -> None:
+    folder = native(tmp_path)
+    folder.mkdir(parents=True)
+    store = tmp_path / "store"
+    own = folder / "labels-step2.md"
+    own.write_text(
+        "Step 2 next session: ship_all(orders, carrier) through the carrier client; "
+        "label_for(order) in app/labels.py; carrier rejects more than 50 labels; shipping "
+        "labels step 1 done today.",
+        "utf-8",
+    )
+    (folder / "MEMORY.md").write_text("- [Labels](labels-step2.md) — step 2\n", "utf-8")
+    assert mn.refresh(folder, [record()], session="s1", store=store)["native"] == "covered"
+    assert mn.carried(event(tmp_path, session="s2"), store, "s2") == ["s1-001"]
+    assert mn.carried(event(tmp_path, session="s1"), store, "s1") == []  # its own session
+    own.write_text("Rewritten: nothing about step 2.", "utf-8")
+    assert mn.carried(event(tmp_path, session="s2"), store, "s2") == []
+
+
 def test_an_older_or_unrelated_memory_of_claude_code_does_not_cover(tmp_path: Path) -> None:
     folder = native(tmp_path)
     folder.mkdir(parents=True)
