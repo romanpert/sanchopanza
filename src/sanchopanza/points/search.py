@@ -12,6 +12,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Literal
 
+from ..catalog import tag
 from ..contract import Choice, Decision, Question, Truth
 from ..policy import Thresholds, probability
 from ..text import truncate
@@ -81,7 +82,7 @@ def questions(
             },
         ),
     }
-    return state, qs
+    return state, tag("search", qs)
 
 
 @dataclass(frozen=True, slots=True)

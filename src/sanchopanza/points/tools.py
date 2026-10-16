@@ -20,6 +20,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
+from ..catalog import tag
 from ..contract import Decision, Question, Truth
 from ..policy import Thresholds, probability
 from ..text import truncate
@@ -117,7 +118,7 @@ def questions(
                 },
             },
         )
-    return state, qs
+    return state, tag("tools", qs)
 
 
 JUST_READ_LIMIT = 1500
@@ -168,7 +169,7 @@ def observe_questions(
                 },
             },
         )
-    return state, qs
+    return state, tag("tool_window", qs)
 
 
 @dataclass(frozen=True, slots=True)

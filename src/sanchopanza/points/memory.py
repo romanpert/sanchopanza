@@ -58,6 +58,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Literal
 
+from ..catalog import tag
 from ..contract import Decision, Question, Truth
 from ..policy import Thresholds, probability
 from ..text import truncate
@@ -194,7 +195,7 @@ def write_questions(
     }
     if ask_common:
         qs = {**qs, "common": common_question()}
-    return state, qs
+    return state, tag("memory_write", qs)
 
 
 @dataclass(frozen=True, slots=True)
@@ -330,7 +331,7 @@ def collision_questions(*, new: str, stored: str) -> tuple[Mapping[str, Any], di
             },
         ),
     }
-    return state, qs
+    return state, tag("memory_collision", qs)
 
 
 @dataclass(frozen=True, slots=True)
@@ -417,7 +418,7 @@ def recall_questions(
             },
         )
     }
-    return state, qs
+    return state, tag("recall", qs)
 
 
 # --- M4: which records of earlier requests bear on a new one? ---------------------------
