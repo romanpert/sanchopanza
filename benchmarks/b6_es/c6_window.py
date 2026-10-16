@@ -225,6 +225,7 @@ def scores(rows: Sequence[Mapping[str, Any]], out: Sequence[Mapping[str, Any]]) 
                 continue
             head_in, window_in = in_view(row, lang)
             by_lang[lang].append({
+                "id": row["id"],
                 "article": row["es"]["title"],
                 "head": sc.doc_score(row, h, sc.doc_mask(row, h, got[h])),
                 "window": sc.doc_score(row, w, sc.doc_mask(row, w, got[w])),

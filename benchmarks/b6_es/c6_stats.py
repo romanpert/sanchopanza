@@ -106,8 +106,25 @@ def report(by_lang: Mapping[str, Sequence[Mapping[str, Any]]], totals: Mapping[s
         got["changed_questions"] = {"n": len(scores), "of": totals[lang], "share": round(share, 4)}
         got["recall_over_every_question"] = None if diff is None else round(diff * share, 4)
         out[lang] = got
+    out["gap_es_minus_en"] = gap(by_lang.get("es", ()), by_lang.get("en", ()))
     out["verdict"] = verdict(out["es"], out["en"])
     return out
+
+
+def gap(es: Sequence[Mapping[str, Any]], en: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    """Spanish against English recall under each excerpt, on the questions changed in both
+    (reported, not voted)."""
+    english = {s["id"]: s for s in en}
+    both = [(s, english[s["id"]]) for s in es if s["id"] in english]
+    clusters = [s["article"] for s, _ in both]
+    return {
+        excerpt: ls.paired_binary(
+            [bool(s[excerpt]["all_gold"]) for s, _ in both],
+            [bool(e[excerpt]["all_gold"]) for _, e in both],
+            clusters,
+        )
+        for excerpt in ("head", "window")
+    }
 
 
 # ---- power ---------------------------------------------------------------------------------

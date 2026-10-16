@@ -108,7 +108,13 @@ def test_the_report_scales_the_changed_questions_to_every_question() -> None:
         def doc(hit: bool) -> dict[str, Any]:
             return {"all_gold": hit, "answer_kept": hit, "kept_share": 0.1}
 
-        return {"article": article, "head": doc(head), "window": doc(window), "enters_view": True}
+        return {
+            "id": article,
+            "article": article,
+            "head": doc(head),
+            "window": doc(window),
+            "enters_view": True,
+        }
 
     es = [score(False, True, "x"), score(True, True, "y")]
     en = [score(True, True, "x")]
@@ -117,6 +123,8 @@ def test_the_report_scales_the_changed_questions_to_every_question() -> None:
     assert got["es"]["recall_over_every_question"] == 0.1
     assert got["es"]["changed_questions"] == {"n": 2, "of": 10, "share": 0.2}
     assert got["es"]["text_kept_share"]["diff"] == 0.0
+    assert got["gap_es_minus_en"]["head"]["n"] == 1  # "x" is changed in both languages
+    assert got["gap_es_minus_en"]["head"]["diff"] == -1.0
 
 
 def test_power_rises_with_questions_and_falls_with_noise() -> None:
