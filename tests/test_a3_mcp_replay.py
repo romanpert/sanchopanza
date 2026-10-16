@@ -298,6 +298,30 @@ def test_a_missing_control_does_not_block_the_main_arm(tmp_path) -> None:
     assert analysis.control(checks)["unanswered"] == ["1", "2"]
 
 
+class LoopBound(Live):
+    """Jev's client: its connections belong to the first event loop that used them, and any
+    other loop finds that loop closed (what failed 498 of 500 control records on 2026-10-16)."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.loop: asyncio.AbstractEventLoop | None = None
+
+    async def decide(self, point, state, questions):  # noqa: ANN001, ANN201
+        running = asyncio.get_running_loop()
+        self.loop = self.loop or running
+        if running is not self.loop:
+            raise RuntimeError("Event loop is closed")
+        return await super().decide(point, state, questions)
+
+
+def test_the_control_is_asked_in_the_hook_s_own_event_loop(tmp_path) -> None:
+    live = LoopBound()
+    code = replay.run(_cases(), _control(), tmp_path / "root", live, 1)
+    checks = [json.loads(x) for x in replay.CONTROL.read_text(encoding="utf-8").splitlines()]
+    assert code == 0 and not replay.HALTED
+    assert [(c["id"], c["p"], c["error"]) for c in checks] == [("1", 0.9, None), ("2", 0.1, None)]
+
+
 def test_the_hook_and_the_control_never_share_a_question(tmp_path) -> None:
     with pytest.raises(SystemExit, match="share"):
         replay.disjoint({("k", "o"), ("a", "o")}, {("k", "o")})

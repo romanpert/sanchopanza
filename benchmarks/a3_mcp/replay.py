@@ -464,6 +464,19 @@ def disjoint(hook: set[tuple[str, str]], control: set[tuple[str, str]]) -> None:
         raise SystemExit(f"the hook and the control share {len(shared)} questions: nothing scored")
 
 
+async def hook_then_control(cases: Sequence[Mapping[str, Any]],
+                            control: Sequence[Mapping[str, Any]], root: pathlib.Path,
+                            hook_answers: Answers, control_answers: Answers,
+                            ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:  # fmt: skip
+    """The hook's arms, then the control, in ONE event loop. The live decider's HTTP client
+    belongs to the loop that first used it: a second `asyncio.run` finds that loop closed."""
+    rows = await run_all(cases, hook_answers, root)
+    hook, control_answers.seen = set(hook_answers.seen), set()
+    checks = await run_control(control, control_answers, reference())
+    disjoint(hook, set(control_answers.seen))
+    return rows, checks
+
+
 def run(cases: Sequence[Mapping[str, Any]], control: Sequence[Mapping[str, Any]],
         root: pathlib.Path, live: Any, launch: int) -> int:  # fmt: skip
     """Exit 0 with calls.jsonl and control.jsonl written, or 2/3 with nothing scored.
@@ -472,10 +485,7 @@ def run(cases: Sequence[Mapping[str, Any]], control: Sequence[Mapping[str, Any]]
     the control (reported) and leaves the main arms alone. A launch stopped dead (HALTED: a cap,
     an outage, another model) is a pause and never scores fail-open, even at the last launch."""
     answers = Answers(ANSWERS, live)
-    rows = asyncio.run(run_all(cases, answers, root))
-    hook, answers.seen = set(answers.seen), set()
-    checks = asyncio.run(run_control(control, answers, reference()))
-    disjoint(hook, set(answers.seen))
+    rows, checks = asyncio.run(hook_then_control(cases, control, root, answers, answers))
     missing = unanswered(rows)
     print(json.dumps({"asked": answers.asked, "halted": HALTED[:1], "unanswered": len(missing),
                       "control_unanswered": sum(c["p"] is None for c in checks),
