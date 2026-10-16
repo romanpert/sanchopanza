@@ -35,6 +35,12 @@
   `SANCHOPANZA_LONGDOC_CAP_USD`), and every failure answered as a handback. Measured only as the
   library point (lb162, lb162x); the tool itself, and PDF or DOCX text, are not.
 
+- **check_done's record can keep the evidence the answer rests on, opt-in**
+  (`SANCHOPANZA_DONE_EVIDENCE=1`, `points/done_evidence.py`): past each tool result's head it adds
+  windows around the values the agent wrote afterwards (file names, sizes, ids, times), rarest
+  first, within 1,500 more characters per result; one builder for the Stop hook and the bench, and
+  with the option off the record is the old one byte for byte. Measured: not adopted (below).
+
 ### Changed
 
 - **A cheaper default install, every old behaviour one flag away** (merge `da005a9`):
@@ -83,7 +89,14 @@
   fresh-data confirmation. Pre-call plus after-the-call at 0.5 caught 35 more unsafe
   trajectories than the pre-call guard alone and none fewer (220 against 185 of 250, two-sided
   exact McNemar p 6e-11), and flagged 14 more safe ones (96 against 82 of 250), whose one-sided
-  upper bound, +8.0 points, is past the +7 the lot sealed. The guard stays opt-in.
+  upper bound, +8.0 points, is past the +7 the lot sealed. The guard stays opt-in
+  ([W17](docs/results/2026-10-16-w17-mcp-post/)).
+- **jev114-checkdone-w17, check_done's record with the evidence windows** (sealed `1f83f8b`,
+  jev-1.14.0 at 0.30, 1,572 unseen AgentDojo stops, 0.128 USD of Jev): **no se adopta (la guarda
+  no se sostiene)**. The new record lifts false blocks of finished stops from 165 to 123 of 828
+  (+5.07 points [1.53, 9.77]), but lets more unfinished ones through: catches 598 → 583 of 744
+  (−2.02 [−5.37, +0.26]), past the −2 guard. `SANCHOPANZA_DONE_EVIDENCE` stays opt-in
+  ([checkdone-w17](docs/results/2026-10-16-checkdone-w17/)).
 
 ### Documentation
 
