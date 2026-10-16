@@ -16,7 +16,7 @@ Pre-registered in `prereg.md`:
 - reviewed twice by `revisor-prereg` against the code before the seal.
 
 Run on 2026-10-16 from a detached worktree at the seal commit, started outside the session
-(WMI). The launch ran from 18:33:58 to 18:40:46, report included. Jev (`jev-1.13.0`) answered
+(WMI). The launch started at 18:34:04 and its report was written by 18:40:46. Jev (`jev-1.13.0`) answered
 **1,500 of 1,500** calls on the first launch, with no relaunch, no unanswered case and no
 refusal. The round's shared ledger settled **0.0350 USD** for this batch, under its 0.15 cap
 (23 micro-USD a call; median latency 218 ms). Claude: 0.
@@ -101,7 +101,7 @@ license nothing.
 ## Where the added verdicts come from
 
 The 66 are all `unrelated` controls: 34 from a bridge's start of works and its length, 30 from a
-minister's appointment and her years of study, 2 from a university's enrolment and its library
+minister's appointment and the years of study, 2 from a university's enrolment and its library
 hours. That is 11 % of the 600 controls, against A5's 7.0 %. Two domains hold 64 of the 66: the
 verdicts are not independent draws, and the effective sample is smaller than the Wilson bound
 assumes.
@@ -113,7 +113,7 @@ Decided 1,134 of 1,500, 1,074 of them right. It read 53 `unrelated` controls as 
 
 ## What it licenses, and what it does not
 
-- **Licensed:** `unrelated_at=0.65` as `decide_facts`' default (and so `relate_facts'`) at
+- **Licensed:** `unrelated_at=0.65` as `decide_facts`' default (and so `relate_facts`') at
   jev-1.13.0. On pairs of fa-17's kind it added no wrong verdict and missed no conflict, and on
   the controls it added 66 right ones.
 - **Not licensed:** any gate below 0.65, other models, or text beyond these templates.

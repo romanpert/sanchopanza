@@ -4,18 +4,20 @@
 CI [−13.4, −0.6]). That reading does not measure the option.
 - **What went wrong in the reading.** The sealed runner capped its own squire at 2.00 USD of
   decisions. Each time the memo or the recording answered a decision, the squire counted it
-  again. In the sealed report 1,437 of FREE's decisions, in 182 of the 346 questions that count,
-  came back as the package's default ("budget exhausted") and were never asked.
+  again. In the sealed report 1,437 of FREE's decisions, in 292 of the 646 questions (1,138 of
+  them in 182 of the 346 that count), came back as the package's default ("budget exhausted")
+  and were never asked.
 - **Where FREE was not cut** (164 questions): it kept **78.0 %** of the answer sentences, against
   page order's 59.8 %.
 - **The same recorded answers with the squire's cap lifted** (a post-data amendment, labelled
   as such; it does not replace the sealed verdict): FREE **75.6 %** against page order's
-  **63.6 %**, **+12.0 points [+6.7, +17.0]**. That is the direction and size of B4's
-  exploratory +13.6 [+7.1, +20.2].
+  **63.6 %**, **+12.0 points [+6.7, +17.0]**, in line with B4's exploratory +13.6 [+7.1,
+  +20.2], post-data.
 
-So this lot gives no valid verdict either way. **B4's +13.6 was not refuted**: what the sealed
-rule read as a loss is the runner cutting FREE's runs. A valid confirmation needs a new sealed
-run on questions nobody has looked at, with the fixed runner.
+The sealed verdict is what the rule produced; the defect means it does not measure the
+option, and the post-data reading does not replace it. **B4's +13.6 was not refuted**: what the
+sealed rule read as a loss is the runner cutting FREE's runs. A valid confirmation needs a new
+sealed run on questions nobody has looked at, with the fixed runner.
 
 Pre-registered in `prereg.md`:
 - instrument commit `319ee79`, sealed in `3a201f0`;
@@ -28,7 +30,7 @@ Run on 2026-10-16 from a detached worktree at the seal commit, started outside t
 | launch | when | calls | outcome |
 |---|---|---|---|
 | first | 18:42:39-19:06:42 | 7,956 | all answered; `report` refused: 246 calls never asked |
-| relaunch | 19:09:23-19:11:09 | 246 | all answered; report written |
+| relaunch | 19:09:24-19:11:09 | 246 | all answered; report written |
 
 The relaunch is the sealed procedure for a recording that lacks calls: it replays what was
 recorded and asks the rest. The 246 calls (all sentence calls) were missing for the same reason
@@ -110,13 +112,15 @@ after the data is labelled as such and does not replace the sealed verdict.
 
 ## What it implies
 
-- **`fit_score=False` stays opt-in, as a candidate.** It should not be retired. Both readings
-  that measure the option favour it over page order, by +13.6 (B4, exploratory) and +12.0
-  (here, post-data).
+- **`fit_score=False` stays opt-in, as a candidate.** That is what the sealed rule licenses: its
+  rule 2 ("FREE loses") leaves the free order a candidate as rule 3 does (`prereg.md`, "What each
+  licenses"). It should not be retired: B4 (exploratory) and this lot's post-data reading both
+  favour it over page order, by +13.6 and +12.0.
 - **It is not yet a measured option.** That needs a sealed run on fresh questions with the fixed
   runner: a draw from QASPER's train split the size of this one costs about 1.2 USD of Jev.
 - **BM25 over the delivered text** is not told apart from page order (+3.6 [−2.2, +9.0]).
-- **The ceiling** (answer paragraphs first) is 94.1 %, 18.5 points above the free order.
+- **The ceiling** (answer paragraphs first) is 94.1 %, +30.5 points over page order [+25.5,
+  +35.4]; post-data, 18.5 points above the free order.
 
 ## Cost and clock
 

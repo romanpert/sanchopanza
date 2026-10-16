@@ -72,9 +72,8 @@ def test_c5_replays_the_sealed_report_and_the_post_data_reading(
     post = json.loads((C5 / "analysis-postdata.json").read_text(encoding="utf-8"))
     replayed = json.loads(json.dumps(fc.analysis(fc.SEALED_SQUIRE_CAP_USD)))
     assert _without_head(replayed) == _without_head(sealed)
-    lifted = json.loads(
-        json.dumps({"reading": fc.POSTDATA_LABEL, **fc.analysis(fc.SQUIRE_CAP_USD)})
-    )
+    lifted = json.loads(json.dumps(fc.postdata_reading(fc.analysis(fc.SQUIRE_CAP_USD))))
     assert _without_head(lifted) == _without_head(post)
     assert sealed["verdict"] == "FREE loses to page order"
-    assert post["verdict"].startswith("FREE confirmed")
+    assert "verdict" not in post
+    assert post["rule_applied_post_data"].startswith("FREE confirmed")

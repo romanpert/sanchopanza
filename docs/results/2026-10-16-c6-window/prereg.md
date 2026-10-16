@@ -4,6 +4,10 @@ Status: **draft, not sealed.** Before the seal: an independent `revisor-prereg` 
 the code, then `python -I benchmarks/b6_es/c6_window.py seal` writes `prereg.sha256` (the sha256
 of this file and of `c6-window-run.cmd`, its two local values read as placeholders).
 Instrument commit: `40097b5f13a995c4dfa67a7c026b1d461b3955ff`.
+**Deferred by the owner (2026-10-16), and stale:** `src/`, `benchmarks/b6_es/` and the round's
+shared ledger changed after 40097b5 (`page_view=`, `match_window` measured as the head shows it,
+the squire's own cap lifted, the shared ledger at a 4.50 batch cap). Before sealing it needs a new
+instrument commit, the C6 items of the first review, and the ceiling and cost recomputed.
 
 ## Question
 

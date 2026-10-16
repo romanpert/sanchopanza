@@ -1,6 +1,6 @@
 {
  "reading": "post-data amendment, labelled: the sealed run's recorded answers, read with the squire's own cap lifted; not the sealed verdict",
- "head": "3a201f0114742e368b26ee5f0b333526cc94f9a7",
+ "head": "7050f50bee7574a4703ab065c61b5d7b6f9b68a3",
  "unanswered_calls": 0,
  "budget_chars": 3400,
  "questions": 646,
@@ -132,5 +132,5 @@
    }
   }
  },
- "verdict": "FREE confirmed: it keeps more answer sentences than page order at 3,400 characters"
+ "rule_applied_post_data": "FREE confirmed: it keeps more answer sentences than page order at 3,400 characters"
 }

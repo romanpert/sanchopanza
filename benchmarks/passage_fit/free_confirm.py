@@ -425,6 +425,13 @@ def analysis(squire_cap: float = SQUIRE_CAP_USD) -> dict[str, Any]:
     return {"head": paid_once.head(), "unanswered_calls": missing, **got}
 
 
+def postdata_reading(report: dict[str, Any]) -> dict[str, Any]:
+    """The post-data reading: labelled, and its rule output under its own name, so that nothing
+    reads it as the sealed verdict."""
+    rest = {k: v for k, v in report.items() if k != "verdict"}
+    return {"reading": POSTDATA_LABEL, **rest, "rule_applied_post_data": report["verdict"]}
+
+
 def unanswered(asker: br.Asker) -> int:
     """Distinct calls without an answer: PAGE's and FREE's runs ask the same calls, and an
     unanswered one is met by both."""
@@ -458,7 +465,7 @@ def main() -> int:
         print(json.dumps(result, indent=1))
         return 0
     if args.action == "postdata":  # the same answers, the squire's cap lifted: labelled
-        result = {"reading": POSTDATA_LABEL, **analysis(SQUIRE_CAP_USD)}
+        result = postdata_reading(analysis(SQUIRE_CAP_USD))
         out = RESULTS / "analysis-postdata.json"
         out.write_bytes((json.dumps(result, indent=1) + "\n").encode())
         print(json.dumps(result, indent=1))
