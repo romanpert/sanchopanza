@@ -260,3 +260,24 @@ def test_guard_full_refuses_to_overwrite_an_owner_chooser_and_says_so(
     assert _env(settings)[CHOOSER] == "keep" and CHOOSER_BY not in _env(settings)
     err = capsys.readouterr().err
     assert "--guard-full" in err and CHOOSER in err and "keep" in err
+
+
+def test_the_instructions_name_the_tool_under_the_servers_name(monkeypatch) -> None:  # noqa: ANN001
+    assert "mcp__repo-tools__find_in_repo" in mcp.find_instructions("repo-tools")
+    assert mcp.find_instructions() == mcp.FIND_INSTRUCTIONS
+    seen: dict[str, str] = {}
+
+    class Fake:
+        def tool(self, description: str | None = None, **_: Any):  # noqa: ANN201
+            return lambda fn: fn
+
+        def run(self) -> None:
+            pass
+
+    def fake_server(name: str, instructions: str = "") -> Fake:
+        seen["instructions"] = instructions
+        return Fake()
+
+    monkeypatch.setattr(mcp, "_server", fake_server)
+    mcp.main(["--tools", "find", "--name", "repo-tools"])
+    assert "mcp__repo-tools__find_in_repo" in seen["instructions"]
