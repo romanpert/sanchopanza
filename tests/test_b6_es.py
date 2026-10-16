@@ -399,6 +399,12 @@ def test_a_complete_or_capped_bench_is_not_asked_again_and_docs_waits_for_pages(
         run.launch_gate("docs", "d")
 
 
+def test_pages_ended_at_its_cap_blocks_docs(isolated):
+    _launch("pages", "cap", digest="e")
+    with pytest.raises(SystemExit, match="pages bench ended at its cap"):
+        run.launch_gate("docs", "e")
+
+
 def test_halt_kinds():
     from sanchopanza.contract import DeciderUnavailable
 
@@ -462,14 +468,72 @@ def test_a_partial_answer_is_an_unanswered_call(isolated):
     assert asker.failures == 1 and run.outcome_of(asker) == "incomplete"
 
 
-def test_a_recorded_answer_from_another_model_does_not_count(isolated):
+def test_a_recording_from_another_model_is_a_miss_asked_again_live(isolated):
     from sanchopanza.providers.recorded import RecordingDecider
 
     state, qs = {"pages": "a"}, {"P01": Q}
     asyncio.run(RecordingDecider(_Answers(model="jev-1.12.0"), run.FIXTURE).decide("p", state, qs))
-    asker = run.Asker(None)
+    replay = run.Asker(None)
+    assert asyncio.run(replay.decide("P-es", "p", state, qs)).failed  # ignored when read
+    live = _Answers()
+    asker = run.Asker(RecordingDecider(live, run.FIXTURE))
     got = asyncio.run(asker.decide("P-es", "p", state, qs))
-    assert got.failed and asker.failures == 1
+    assert live.calls == 1 and got.model == run.MODEL and asker.failures == 0
+    again = run.Asker(None)  # the new line, written after the other model's, answers now
+    assert asyncio.run(again.decide("P-es", "p", state, qs)).model == run.MODEL
+
+
+def test_a_partial_recording_is_asked_again(isolated):
+    from sanchopanza.providers.recorded import RecordingDecider
+
+    state, qs = {"pages": "a"}, {"P01": Q, "P02": Q}
+    asyncio.run(RecordingDecider(_Answers(partial=True), run.FIXTURE).decide("p", state, qs))
+    live = _Answers()
+    asker = run.Asker(live)
+    asyncio.run(asker.decide("P-es", "p", state, qs))
+    assert live.calls == 1 and asker.failures == 0
+
+
+def _live_ready(monkeypatch, order: list[str]) -> None:
+    monkeypatch.setattr(run, "require_seal", lambda: None)
+    monkeypatch.setattr(run, "require_launcher", lambda path: None)
+    monkeypatch.setattr(run, "require_clean_tree", lambda: "abc123")
+    monkeypatch.setattr(run, "require_seal_in_head", lambda: None)
+    monkeypatch.setattr(run, "digest", lambda: "d")
+    monkeypatch.setattr(run, "load_key", lambda: order.append("key"))
+    monkeypatch.setattr(run, "preflight", lambda: order.append("preflight"))
+
+
+def test_a_live_launch_needs_the_seal_committed(isolated, monkeypatch):
+    import subprocess
+
+    def untracked(*args):
+        raise subprocess.CalledProcessError(1, ["git", *args])
+
+    real = run.require_seal_in_head
+    monkeypatch.setattr(run, "git", untracked)
+    with pytest.raises(SystemExit, match="not committed"):
+        real()
+    monkeypatch.setattr(run, "load_rows", _rows([_page_row()], []))
+    order: list[str] = []
+    _live_ready(monkeypatch, order)
+    monkeypatch.setattr(run, "require_seal_in_head", real)
+    with pytest.raises(SystemExit, match="not committed"):
+        run.run(isolated, "pages", live=True, smoke=False)
+    assert order == []  # refused before the key is read
+
+
+def test_a_relaunch_must_fit_in_what_the_cap_has_left(isolated, monkeypatch):
+    from sanchopanza.budget import SpendLedger
+
+    monkeypatch.setattr(run, "load_rows", _rows([_page_row()], []))
+    order: list[str] = []
+    _live_ready(monkeypatch, order)
+    ledger = SpendLedger(run.RUN_DIR / "ledger.json", cap_usd=run.LEDGER_CAP_USD)
+    ledger.reserve(run.BATCH_CAP_USD["pages"] - 0.0001, batch="b6-es-pages")
+    with pytest.raises(SystemExit, match="does not fit"):
+        run.run(isolated, "pages", live=True, smoke=False)
+    assert order == []
 
 
 def test_a_live_launch_reads_the_key_before_the_preflight_and_uses_one_event_loop(
@@ -487,17 +551,14 @@ def test_a_live_launch_reads_the_key_before_the_preflight_and_uses_one_event_loo
         built_in_loop.append(asyncio.get_running_loop() is not None)
         return live
 
-    monkeypatch.setattr(run, "require_seal", lambda: None)
-    monkeypatch.setattr(run, "require_launcher", lambda path: None)
-    monkeypatch.setattr(run, "require_clean_tree", lambda: "abc123")
-    monkeypatch.setattr(run, "digest", lambda: "d")
-    monkeypatch.setattr(run, "load_key", lambda: order.append("key"))
-    monkeypatch.setattr(run, "preflight", lambda: order.append("preflight"))
+    _live_ready(monkeypatch, order)
     monkeypatch.setattr(run, "make_live", make_live)
     assert run.run(isolated, "pages", live=True, smoke=False) == 0
     assert order == ["key", "preflight"]
     assert built_in_loop == [True] and live.calls == 4 and len(live.loops) == 1
     assert [h["outcome"] for h in run.launches("pages", "d")] == ["complete"]
+    started = (run.RUN_DIR / "launches.jsonl").read_text(encoding="utf-8").splitlines()[0]
+    assert '"python"' in started and '"httpx"' in started and '"head": "abc123"' in started
     report = (isolated / "out" / "analysis-pages.json").read_text(encoding="utf-8")
     assert '"head": "abc123"' in report
 
@@ -505,10 +566,16 @@ def test_a_live_launch_reads_the_key_before_the_preflight_and_uses_one_event_loo
 def test_the_launcher_holds_placeholders_only_and_is_sealed():
     text = (ROOT / "b6-es-run.cmd").read_text(encoding="utf-8")
     for line in ('set "PY=<PYTHON>"', 'set "SANCHOPANZA_KEYS_ENV=<KEYS_ENV_PATH>"',
-                 'set "WT=<WORKTREE>"'):  # fmt: skip
+                 'set "WT=<WORKTREE>"', 'set "SANCHOPANZA_B6_DATA=<DATA_DIR>"'):  # fmt: skip
         assert line in text
-    assert "Users\\roman" not in text and ".env" not in text
+    assert "Users\\roman" not in text and ".env" not in text and "sp-data" not in text
+    assert text.count('--data "%SANCHOPANZA_B6_DATA%"') == 4  # every python call names it
     assert "b6-es-run.cmd" in run.SEALED and "benchmarks/jev114/l4.py" not in run.SEALED
+
+
+def test_the_launcher_is_checked_out_with_crlf():
+    raw = (ROOT / "b6-es-run.cmd").read_bytes()
+    assert raw.count(b"\r\n") == raw.count(b"\n") > 0
 
 
 def _filled(tmp_path, text: str) -> Path:
@@ -519,9 +586,10 @@ def _filled(tmp_path, text: str) -> Path:
 
 def test_filling_the_local_values_keeps_the_seal_and_any_other_change_breaks_it(tmp_path):
     sealed = (ROOT / "b6-es-run.cmd").read_text(encoding="utf-8")
-    filled = (sealed.replace('"PY=<PYTHON>"', '"PY=D:\\py\\python.exe"')
-              .replace('"SANCHOPANZA_KEYS_ENV=<KEYS_ENV_PATH>"', '"SANCHOPANZA_KEYS_ENV=D:\\k.env"')
-              .replace('"WT=<WORKTREE>"', '"WT=D:\\wt"'))  # fmt: skip
+    filled = sealed
+    for name, placeholder in run.LOCAL_VALUES.items():
+        filled = filled.replace(f'"{name}={placeholder}"', f'"{name}=D:\\local\\{name}"')
+    assert filled.count("<") < sealed.count("<")
     assert run.launcher_text(_filled(tmp_path, filled)) == run.launcher_text(ROOT / "b6-es-run.cmd")
     run.require_launcher(_filled(tmp_path, filled))
     changed = filled + "rem one more line" + chr(10)

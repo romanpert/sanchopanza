@@ -78,8 +78,8 @@ N_DOCS: int | None = None  # every built row
 BENCHES = ("pages", "docs")
 ARMS = {"pages": an.PAGE_ARMS, "docs": an.DOC_ARMS}
 BATCH_CAP_USD = {"pages": 0.30, "docs": 5.00}  # `--dry` must fit its pessimistic estimate
-SMOKE_CAP_USD = 0.10
-LEDGER_CAP_USD = sum(BATCH_CAP_USD.values()) + SMOKE_CAP_USD
+SMOKE_CAP_USD = 0.10  # each of the two smoke batches (pages, docs)
+LEDGER_CAP_USD = sum(BATCH_CAP_USD.values()) + 2 * SMOKE_CAP_USD  # 5.50
 MAX_LAUNCHES = 3  # the first and two relaunches; a pause is not a launch
 CONCURRENCY = 4
 TIMEOUT_S = 30.0
@@ -135,6 +135,15 @@ def halt_kind(error: Exception) -> str | None:
     return None
 
 
+def recordings() -> RecordedDecider:
+    """FIXTURE's lines answered by MODEL only: a line from any other model is ignored, so its
+    query is a miss and is asked again live (the new line is written after it and wins)."""
+    if not FIXTURE.exists():
+        return RecordedDecider([])
+    lines = [json.loads(x) for x in FIXTURE.read_text(encoding="utf-8").splitlines() if x.strip()]
+    return RecordedDecider([x for x in lines if x.get("model") == MODEL])
+
+
 class Asker:
     """Recordings first; on a miss one call to `fallback` (the capped live decider, or the dry
     stub), never retried. A recorded or live answer counts only when it comes from MODEL and
@@ -142,7 +151,7 @@ class Asker:
     and the question it hit (`ROW`), and the first stop and its kind."""
 
     def __init__(self, fallback: Any | None) -> None:
-        self.recorded = RecordedDecider.from_file(FIXTURE)
+        self.recorded = recordings()
         self.fallback = fallback
         self.gate = asyncio.Semaphore(CONCURRENCY)
         self.memo: dict[str, Decision] = {}
@@ -177,10 +186,8 @@ class Asker:
     async def decide(self, arm: str, point: str, state: Any, qs: Mapping[str, Any]) -> Decision:
         key = key_of(point, state, qs)
         found = self.memo.get(key) or await self.recorded.decide(point, state, qs)
-        if found.answers:
-            if found.model != MODEL or not self.complete(found, qs):
-                return self._failed(point, f"recorded answer from {found.model} or partial")
-            return found
+        if found.answers and found.model == MODEL and self.complete(found, qs):
+            return found  # a partial recording is a miss: asked again, the new line wins
         if self.fallback is None:
             return self._failed(point, "not recorded, no live decider")
         async with self.gate:
@@ -293,8 +300,11 @@ def load_rows(data: Path, name: str, n: int | None = None) -> list[dict[str, Any
 LAUNCHER = "b6-es-run.cmd"
 # The launcher's three local values, read as their placeholders: the repository holds the
 # placeholders, an untracked filled copy runs, and both hash alike.
-LOCAL_VALUES = {"PY": "<PYTHON>", "SANCHOPANZA_KEYS_ENV": "<KEYS_ENV_PATH>", "WT": "<WORKTREE>"}
-_LOCAL_LINE = re.compile(r'^(set "(PY|SANCHOPANZA_KEYS_ENV|WT)=)[^"\n]*(")', re.MULTILINE)
+LOCAL_VALUES = {"PY": "<PYTHON>", "SANCHOPANZA_KEYS_ENV": "<KEYS_ENV_PATH>", "WT": "<WORKTREE>",
+                "SANCHOPANZA_B6_DATA": "<DATA_DIR>"}  # fmt: skip
+_LOCAL_LINE = re.compile(
+    r'^(set "(PY|SANCHOPANZA_KEYS_ENV|WT|SANCHOPANZA_B6_DATA)=)[^"\n]*(")', re.MULTILINE
+)
 
 
 def launcher_text(path: Path) -> bytes:
@@ -352,6 +362,15 @@ def git(*args: str) -> str:
     return done.stdout.strip()
 
 
+def require_seal_in_head() -> None:
+    """The seal is a tracked file: with a clean tree it is the one HEAD holds. An untracked
+    seal would let an unsealed tree seal itself and launch with a fresh launch count."""
+    try:
+        git("ls-files", "--error-unmatch", SEAL.relative_to(REPO).as_posix())
+    except (subprocess.CalledProcessError, ValueError) as error:
+        raise SystemExit("prereg.sha256 is not committed: launch from the sealed commit") from error
+
+
 def require_clean_tree() -> str:
     """The commit a live launch runs from; refused when a tracked file differs from it."""
     if git("status", "--porcelain", "--untracked-files=no"):
@@ -390,7 +409,8 @@ def launch_gate(bench: str, value: str) -> None:
     """The relaunch rule (prereg): a complete bench is replayed, never asked again; a cap
     reached ends it until a sealed amendment; after MAX_LAUNCHES counted launches the bench is
     terminal, "no verdict". A pause (401/402/403/429/5xx, no connection) is not a launch. The
-    docs bench waits for the pages bench to be complete or terminal."""
+    docs bench waits for the pages bench to be complete or terminal; a pages bench ended by its
+    cap blocks docs too, until a sealed amendment."""
     history = launches(bench, value)
     outcomes = {h["outcome"] for h in history}
     if "complete" in outcomes:
@@ -401,6 +421,8 @@ def launch_gate(bench: str, value: str) -> None:
         raise SystemExit(f"{bench} is terminal after {MAX_LAUNCHES} launches: no verdict")
     if bench == "docs":
         pages = launches("pages", value)
+        if any(h["outcome"] == "cap" for h in pages):
+            raise SystemExit("the pages bench ended at its cap: docs waits for a sealed amendment")
         done = any(h["outcome"] == "complete" for h in pages)
         if not done and len(counted(pages)) < MAX_LAUNCHES:
             raise SystemExit("the pages bench runs first, to completion (prereg)")
@@ -525,6 +547,24 @@ def power(data: Path) -> dict[str, Any]:
 # ---- run ---------------------------------------------------------------------------------
 
 
+def spent_in(batch: str) -> float:
+    """What the ledger already counts for `batch` (settled calls, open reservations)."""
+    from sanchopanza.budget import SpendLedger
+
+    return SpendLedger(RUN_DIR / "ledger.json", cap_usd=LEDGER_CAP_USD).spent(batch)
+
+
+def versions() -> dict[str, str]:
+    """The interpreter and HTTP client a launch ran with, for its row in launches.jsonl."""
+    try:
+        import httpx
+
+        client = str(httpx.__version__)
+    except ImportError:
+        client = "absent"
+    return {"python": sys.version, "httpx": client}
+
+
 def run(data: Path, bench: str, *, live: bool, smoke: bool, launcher: Path | None = None) -> int:
     rows = bench_rows(data, bench, smoke)
     cap = SMOKE_CAP_USD if smoke else BATCH_CAP_USD[bench]
@@ -534,18 +574,20 @@ def run(data: Path, bench: str, *, live: bool, smoke: bool, launcher: Path | Non
         require_seal()
         require_launcher(launcher)
         head = require_clean_tree()
+        require_seal_in_head()
         value = digest()
         if not smoke:
             launch_gate(bench, value)
+            room = cap - spent_in(batch)
             plan = dry(data, [bench])[bench]
-            if not plan["fits_under_cap"]:
-                raise SystemExit("the dry estimate does not fit under the cap: nothing spent")
+            if plan["jev"]["pessimistic_usd"] > room:
+                raise SystemExit(f"what is left to ask does not fit in the {room:.4f} USD left")
         load_key()  # before the preflight, which needs it
         preflight()
         launch_id = uuid.uuid4().hex
         if not smoke:
             record_launch({"id": launch_id, "bench": bench, "digest": value, "head": head,
-                           "at": time.time()})  # fmt: skip
+                           "at": time.time(), **versions()})  # fmt: skip
 
     async def ask() -> tuple[Asker, list[dict]]:
         asker = Asker(make_live(batch, cap) if live else None)  # inside this loop, only this one

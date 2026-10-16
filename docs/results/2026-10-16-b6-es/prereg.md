@@ -5,7 +5,7 @@ review by `revisor-prereg` against the code, and the owner's approval of the cos
 `python -I benchmarks/b6_es/b6_run.py --seal`. `prereg.sha256` will hold one sha256
 (`b6_run.digest`) over this file, `bench-manifest.json`, the runner and its modules
 (`b6_run.py`, `b6_analysis.py`, `b6_score.py`, `b6_build.py`, `b6_wiki.py`), their tests, the
-launcher `b6-es-run.cmd` (its three local values read as placeholders, below) and every file of
+launcher `b6-es-run.cmd` (its four local values read as placeholders, below) and every file of
 `src/sanchopanza/**/*.py`, text hashed with LF line ends. `--seal` writes it once: it refuses
 when a seal exists or `fixtures/b6-es.jsonl` holds any answer. The live paths check it before
 reading the key and spend nothing if anything changed. The sealing commit's message carries
@@ -130,8 +130,9 @@ one after the other, Spanish first on even launch positions and English first on
 most 4 calls in flight. Answers are recorded in `fixtures/b6-es.jsonl` (hashed keys, no text).
 
 **One bench a run, pages first.** `--bench pages` runs to completion (or to terminal) before
-`--bench docs` is allowed (`b6_run.launch_gate`). Each bench is scored when it is complete.
-Nothing in this pre-registration changes after the pages result is read.
+`--bench docs` is allowed (`b6_run.launch_gate`); a pages bench ended by its cap blocks docs
+until a sealed amendment. Each bench is scored when it is complete. Nothing in this
+pre-registration changes after the pages result is read.
 
 ## Metrics
 
@@ -191,9 +192,9 @@ Descriptive only, no verdict:
   the published English numbers (98.3 % at 33.6 %; 87.2 % at 21.0 %); D-en as an English
   document type outside QASPER (encyclopaedic articles).
 
-**A bench is scored only when every call answered**, from MODEL, with every question it asked
-answered: a recorded or live answer from another model, or one missing a question, is an
-unanswered call. Jev is not deterministic across a day, so each question's Spanish-English
+**A bench is scored only when every call answered**, from jev-1.13.0, with every question it
+asked answered: a live answer missing a question is an unanswered call, and a recording from
+another model or a partial one is a miss asked again (below, "Stops"). Jev is not deterministic across a day, so each question's Spanish-English
 disagreement includes the draw's own noise, which the CI carries.
 
 ## Power
@@ -222,11 +223,22 @@ d is unknown before any answer. Free readings bound it:
 | 0.20 | 628 | 0.44 | 0.61 | 0.79 | 3.5 points |
 | 0.23 | 723 | 0.40 | 0.55 | 0.73 | 3.8 points |
 
-So: **pages, 264 primary rows**, power about 0.95 at d 0.05. **Docs, 614 rows** (every MLQA test
-article that qualifies; no more exist in the split): 0.87 at the proxy's d, **0.79 at 0.20 and
-0.73 at 0.23**. A true drop of 5 points or more is detected (McNemar, 80 %) with about the same
-n as "no worse" when the languages are equal. C2's 86 rows give a half-width of about 5.6
-points at d 0.07: descriptive.
+So:
+
+- **Pages, 264 primary rows**: power 0.95 **only if d is about 0.05**, which needs both hit
+  rates at about 95 % or more (HotpotQA's 98.3 % suggests so). At the BM25 proxy's d of 0.23 it
+  would be 0.39; at 0.10, 0.73. The pages power is an assumption on Jev's hit rates, not a
+  measurement.
+- **Docs, 614 rows** (every MLQA test article that qualifies; no more exist in the split):
+  **0.85 at the proxy's d of 0.171**, 0.79 at 0.20 and 0.73 at 0.23, the range Jev's draw noise
+  makes likely.
+- A true drop of 5 points or more is detected (McNemar, 80 %) with about the same n as "no
+  worse" when the languages are equal. C2's 86 rows give a half-width of about 5.6 points at
+  d 0.07: descriptive.
+- **C1 is known in advance to land near −3.7 points** (11 of 300 Spanish answers end past
+  character 900, each a loss whenever P-es keeps its page), with a CI that will most likely
+  cross −5: expect "inconclusive", which here describes a fixed, small, known loss rather than
+  an unknown.
 
 **A free finding before any answer:** BM25 itself is 8 points worse in Spanish at the same
 text (pages 67.4 % against 75.4 %; docs 81.3 % against 89.3 %), on the same questions. The
@@ -267,12 +279,14 @@ flight, roughly 1-1.5 hours, docs nearly all of it.
   check in QASPER Run 2's shape (Haiku through clean Claude Code 2.1.287, about 0.026 USD a
   question) can follow under its own prereg.
 - **Hard caps in code:** this bench's own ledger (`$SANCHOPANZA_B6_RUN/ledger.json`) capped at
-  **5.40 USD**; batch `b6-es-pages` at **0.30 USD**, `b6-es-docs` at **5.00 USD** (the
-  pessimistic 3.57 and room for Spanish tokens); the smoke on its own batches at **0.10 USD**.
-  Every live call goes through `CappedDecider` (a pessimistic reservation before the call;
-  refused when it does not fit). A live run refuses to start when the dry estimate of what is
-  left to ask does not fit under its bench's cap. The roadmap's "< 0.10 USD of Jev" was a guess
-  this dry run replaces; the owner approves the 2.72 USD expected (5.40 capped) before the seal.
+  **5.50 USD**; batch `b6-es-pages` at **0.30 USD**, `b6-es-docs` at **5.00 USD** (the
+  pessimistic 3.57 and room for Spanish tokens); each smoke on its own batch
+  (`b6-es-smoke-pages`, `b6-es-smoke-docs`) at **0.10 USD**. Every live call goes through
+  `CappedDecider` (a pessimistic reservation before the call; refused when it does not fit). A
+  live launch refuses to start when the dry estimate of what is left to ask does not fit in
+  what its bench's cap has left (the cap minus what the ledger already counts for that batch).
+  The roadmap's "< 0.10 USD of Jev" was a guess this dry run replaces; the owner approves the
+  2.72 USD expected (5.50 capped) before the seal.
 - **What the ledger counts** is the client's estimate, input tokens × the list price, not
   TypeSafe's bill. A call cut by the client's timeout settles at 0 although Jev may have billed
   it; one cancelled in flight stands at its estimate (`CappedDecider`). The preflight (one call,
@@ -285,8 +299,13 @@ flight, roughly 1-1.5 hours, docs nearly all of it.
     scored, and it does not count as a launch. A 402 is a pause like the others (no balance
     check is possible meanwhile): relaunch after the top-up.
   - **3 failed calls in a row** of any kind (a timeout, an HTTP 400): the launch ends incomplete.
-  - **an answer served by another model** ends the process at once, unrecorded; the launch is
-    left without an outcome and counts as incomplete (a retired model ends terminal).
+  - **an answer served live by another model** ends the process at once; the launch is left
+    without an outcome and counts as incomplete (a retired model ends terminal). Its line is
+    written to the fixture and ignored when read, as below.
+- **Recordings from another model, or partial ones, are misses.** The fixture is read keeping
+  only jev-1.13.0's lines (`b6_run.recordings`); a recorded answer that misses any question it
+  asked is not used either. Such a query is asked again live on the next launch, and its new
+  line, written after the old one, is the one every later replay reads.
   - No retries within a launch. A relaunch replays every recorded answer free and asks the
     rest, **including the calls that timed out or failed: a retry by another name**, bounded by
     the rule below.
@@ -294,8 +313,10 @@ flight, roughly 1-1.5 hours, docs nearly all of it.
 ### Relaunch rule (in code: `b6_run.launch_gate`, `launches.jsonl`)
 
 Every live launch of a bench is written to `$SANCHOPANZA_B6_RUN/launches.jsonl` with the seal,
-the commit (`git rev-parse HEAD`; refused when a tracked file differs from it), and on exit its
-outcome and the ids of the questions with an unanswered call. Outcomes: **complete** (scored;
+the commit (`git rev-parse HEAD`; refused when a tracked file differs from it, and when
+`prereg.sha256` is not a tracked file, so the seal is the one HEAD holds and an unsealed tree
+cannot seal itself and start a fresh count), `sys.version` and `httpx.__version__`, and on exit
+its outcome and the ids of the questions with an unanswered call. Outcomes: **complete** (scored;
 never asked again, a replay is free), **cap** (ended, above), **pause** (not counted),
 **incomplete** (counted), and a launch with no outcome (killed, crashed, a wrong model) counts as
 incomplete. **At most 3 counted launches** a bench: the first and two relaunches. After the
@@ -309,15 +330,17 @@ From a `git worktree add --detach` at the sealed commit, with the bench rebuilt 
 (`b6_build.py` without `--fresh` fetches each article by its pinned revision, or reads it from
 the cache, and refuses unless every built file matches the manifest's SHA-256), outside the
 session, by WMI in its own process group, not between 02:00 and 08:00, through the launcher.
-The repository's `b6-es-run.cmd` holds three placeholders, never a local path: `set
-"PY=<PYTHON>"`, `set "SANCHOPANZA_KEYS_ENV=<KEYS_ENV_PATH>"`, `set "WT=<WORKTREE>"`. The owner fills
-them in an untracked copy (e.g. `C:\sp-runs\b6-es\b6-es-run.cmd`); the seal and the runner read
-those three lines as their placeholders, so filling them keeps the seal and any other change to
-the copy is refused (`b6_run.require_launcher`, which every live run checks against the copy it
-was started from). The launcher refuses its placeholders.
+The repository's `b6-es-run.cmd` holds four placeholders, never a local path: `set
+"PY=<PYTHON>"`, `set "SANCHOPANZA_KEYS_ENV=<KEYS_ENV_PATH>"`, `set "WT=<WORKTREE>"` and `set
+"SANCHOPANZA_B6_DATA=<DATA_DIR>"`, the last passed as `--data` to every call. The owner fills them
+in an untracked copy (e.g. `C:\sp-runs\b6-es\b6-es-run.cmd`); the seal and the runner read those
+four lines as their placeholders, so filling them keeps the seal and any other change to the
+copy is refused (`b6_run.require_launcher`, which every live run checks against the copy it was
+started from). The launcher refuses its placeholders. It is checked out with CRLF line ends
+(`.gitattributes`), which cmd.exe needs for its labels; the seal hashes it with LF.
 
     <copy>\b6-es-run.cmd pages dry     free: what is left to ask, and its cost
-    <copy>\b6-es-run.cmd smoke         two dev questions of each bench, smoke cap
+    <copy>\b6-es-run.cmd smoke         two dev questions of each bench, a smoke cap each
     <copy>\b6-es-run.cmd pages         the pages bench, to completion
     <copy>\b6-es-run.cmd docs          then the docs bench
     python -I benchmarks/b6_es/b6_run.py --bench pages     free replay and analysis
