@@ -324,7 +324,8 @@ def _write(path: pathlib.Path, value: Any) -> None:
     path.write_text(json.dumps(value) + "\n", encoding="utf-8", newline="\n")
 
 
-def go_live(data: pathlib.Path, cases: Sequence[Mapping[str, Any]]) -> Any:
+def go_live(data: pathlib.Path, cases: Sequence[Mapping[str, Any]],
+            launcher: Mapping[str, str] | None = None) -> Any:  # fmt: skip
     check_set(cases)  # the registered set, before anything else and before any spend
     if STATUS.exists():
         raise SystemExit(f"{STATUS.name} says the lot is not run: an amendment comes first")
@@ -333,7 +334,7 @@ def go_live(data: pathlib.Path, cases: Sequence[Mapping[str, Any]]) -> Any:
     head = require_seal_commit()
     if not seal_state(data)["matches_seal"]:
         raise SystemExit("w17_prereg.md, the code or the data differ from the seal: nothing spent")
-    require_launcher()
+    require_launcher(launcher)
     print(f"HEAD {head} (seal)", flush=True)
     if ANSWERS.exists() and ledger_spent() <= 0:
         raise SystemExit("w17_answers.jsonl exists but this run's ledger holds no spend: refused")
@@ -393,6 +394,9 @@ def main(argv: list[str] | None = None) -> int:
     data, root = replay.codex_path(args.codex), pathlib.Path(args.root)
     if not data.is_file():
         raise SystemExit(f"ATBench-Codex not found at {data}: set SANCHOPANZA_ATBENCH_CODEX")
+    # Read before A3's scrub, which drops every SANCHOPANZA_* it does not keep: the first sealed
+    # launch (09ef1b9) was refused because the launcher's own variable was gone by then.
+    launcher = {"SANCHOPANZA_LAUNCHER": os.environ.get("SANCHOPANZA_LAUNCHER", "")}
     replay.clean_environment()
     cases = replay.load(data)
     if args.seal:
@@ -404,7 +408,7 @@ def main(argv: list[str] | None = None) -> int:
         print(report, end="")
         return 0
     if args.run:
-        return run(cases, root, data, go_live(data, cases) if args.live else None)
+        return run(cases, root, data, go_live(data, cases, launcher) if args.live else None)
     parser.print_help()
     return 0
 

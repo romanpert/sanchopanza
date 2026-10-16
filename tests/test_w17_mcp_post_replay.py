@@ -156,7 +156,8 @@ def test_the_live_path_checks_the_set_first_then_the_seal(tmp_path, monkeypatch)
     data.write_text("[]", encoding="utf-8")
     with pytest.raises(SystemExit, match="registered set"):
         w17.go_live(data, CASES[:-1])
-    with pytest.raises(SystemExit, match="seal"):  # this checkout is not a sealing commit
+    # A development checkout is never a clean sealing commit: refused there, whichever it is not.
+    with pytest.raises(SystemExit, match="sealing commit|not clean|differ from the seal"):
         w17.go_live(data, CASES)
 
 
@@ -234,3 +235,37 @@ def test_a_cap_stop_or_the_last_launch_leaves_the_lot_not_run(tmp_path, monkeypa
     monkeypatch.setattr(dec, "HALTED", ["pause: HTTP 503"])
     status.unlink()
     assert w17.stopped(live=True) == 2 and not launched.exists()  # a pause is not counted
+
+
+def _through_main(tmp_path, monkeypatch, copy) -> list:  # noqa: ANN001
+    """`--run --live` through `main`, as the launcher runs it: the environment scrub active,
+    the git, seal, preflight and decider stubbed, `run` replaced by a probe."""
+    data = tmp_path / "codex.json"
+    data.write_text("[]", encoding="utf-8")
+    for name, value in (("STATUS", "status.json"), ("LAUNCHES", "launches.json"),
+                        ("ANSWERS", "answers.jsonl")):  # fmt: skip
+        monkeypatch.setattr(w17, name, tmp_path / value)
+    monkeypatch.setattr(w17.replay, "load", lambda path: CASES)
+    monkeypatch.setattr(w17, "require_seal_commit", lambda: "head")
+    monkeypatch.setattr(w17, "seal_state", lambda data: {"matches_seal": True})
+    monkeypatch.setattr(w17.replay, "preflight", lambda: None)
+    monkeypatch.setattr(dec, "live_decider", lambda *args: "live")
+    reached: list = []
+    monkeypatch.setattr(w17, "run", lambda cases, root, data, live: reached.append(live) or 0)
+    monkeypatch.setenv("SANCHOPANZA_LAUNCHER", str(copy))
+    assert w17.main(["--run", "--live", "--codex", str(data), "--root", str(tmp_path)]) == 0
+    return reached
+
+
+def test_the_launcher_check_survives_the_environment_scrub(tmp_path, monkeypatch) -> None:
+    """The first sealed launch (09ef1b9) was refused: `replay.clean_environment` dropped
+    SANCHOPANZA_LAUNCHER before `require_launcher` read it."""
+    import pytest
+
+    tracked = (REPO / w17.LAUNCHER).read_text(encoding="utf-8")
+    copy = tmp_path / "w17-mcp-post-run.cmd"
+    copy.write_text(tracked.replace("<PYTHON>", "C:/py/python.exe", 1), encoding="utf-8")
+    assert _through_main(tmp_path, monkeypatch, copy) == ["live"]
+    copy.write_text(tracked.replace("--run --live", "--run --live --x"), encoding="utf-8")
+    with pytest.raises(SystemExit, match="differs"):
+        _through_main(tmp_path, monkeypatch, copy)

@@ -213,3 +213,10 @@ only by `pre`, and both terms can be read as counts:
 - **A check after the call cannot undo it.** Recall counts detection after the fact; "flagged before the last MCP result" is reported for each arm.
 - **ATBench's safe trajectories are built to look risky.** Their FPR is not the false-block rate of ordinary MCP work.
 - **`withhold`'s output shape** (`updatedMCPToolOutput` as a string) is read from the pinned Claude Code 2.1.287 binary, not exercised live. A separate hook entry that rewrites the same MCP tool's result (the crawl echo cut) runs in parallel and can still override it.
+
+## Amendment 1 (before any answer)
+
+- **What happened.** The first sealed launch, from 09ef1b9, was refused at 16:20:27 by the launcher check ("not started by the lot's launcher"). `replay.clean_environment` drops every `SANCHOPANZA_*` variable it does not keep, so `SANCHOPANZA_LAUNCHER` was already gone when `require_launcher` read it.
+- **What it cost.** Nothing was asked or spent: no answers and no ledger. It was not a counted launch, and `MAX_LAUNCHES` is unchanged.
+- **The fix.** `w17_replay.main` now reads the variable before the scrub and passes it to `go_live`. A test goes through `main --run --live` with the scrub active.
+- **Resealed.** The fix and this section are sealed again before any answer exists.
