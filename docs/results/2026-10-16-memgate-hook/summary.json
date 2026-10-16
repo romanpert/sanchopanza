@@ -1,0 +1,125 @@
+{
+ "first_requests": 905,
+ "asked": 659,
+ "complete": 659,
+ "candidates_differ": 0,
+ "failed": {
+  "S": 0,
+  "L": 0
+ },
+ "failure_gap": 0.0,
+ "hittable": 126,
+ "related_but_gated": 50,
+ "without_related": 483,
+ "hit_L_vs_S": {
+  "n": 126,
+  "new": 0.3571,
+  "old": 0.2302,
+  "diff": 0.127,
+  "only_new": 18,
+  "only_old": 2,
+  "p": 0.0004,
+  "ci95": [
+   0.0635,
+   0.1984
+  ],
+  "ci95_cluster": [
+   0.0625,
+   0.1917
+  ]
+ },
+ "false_alarm_L_vs_S": {
+  "n": 483,
+  "new": 0.087,
+  "old": 0.0497,
+  "diff": 0.0373,
+  "only_new": 27,
+  "only_old": 9,
+  "p": 0.0039,
+  "ci95": [
+   0.0145,
+   0.0621
+  ],
+  "ci95_cluster": [
+   0.0132,
+   0.0631
+  ]
+ },
+ "false_alarm_by_record": {
+  "changed_files": {
+   "n": 483,
+   "new": 0.029,
+   "old": 0.0124,
+   "diff": 0.0166,
+   "only_new": 9,
+   "only_old": 1,
+   "p": 0.0215,
+   "ci95": [
+    0.0041,
+    0.0311
+   ],
+   "ci95_cluster": [
+    0.0041,
+    0.0315
+   ]
+  },
+  "changed_nothing": {
+   "n": 483,
+   "new": 0.06,
+   "old": 0.0373,
+   "diff": 0.0228,
+   "only_new": 19,
+   "only_old": 8,
+   "p": 0.0522,
+   "ci95": [
+    0.0021,
+    0.0435
+   ],
+   "ci95_cluster": [
+    0.002,
+    0.0452
+   ]
+  }
+ },
+ "verdict": "peor en ruido",
+ "describe": {
+  "S": {
+   "requests": 905,
+   "recall": 0.1312,
+   "precision": 0.4324,
+   "noise": 0.0307,
+   "records_given": 74,
+   "failed": 0,
+   "fallbacks": {},
+   "long_usd": 0.0
+  },
+  "L": {
+   "requests": 905,
+   "recall": 0.2036,
+   "precision": 0.3684,
+   "noise": 0.0541,
+   "records_given": 133,
+   "failed": 0,
+   "fallbacks": {},
+   "long_usd": 0.113046
+  }
+ },
+ "run_of_record": {
+  "timezone_s": -3600,
+  "altzone_s": -7200,
+  "utc_offset_min_now": 120,
+  "head": "211227c0f6fc222bd868d79f65be5327bf49be1d",
+  "head_parent": "ccebeff8ddd13a285d3e15b5b479ea84d6600c58"
+ },
+ "retest_v5_cache": {
+  "records": 1840,
+  "mean_abs_diff": 0.0177,
+  "median_abs_diff": 0.01,
+  "agree_at_cut": 0.9935
+ },
+ "spent": {
+  "batch": 0.178321,
+  "smoke": 0.001064,
+  "ledger": 0.179384
+ }
+}
