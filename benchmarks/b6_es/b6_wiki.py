@@ -44,21 +44,17 @@ SKIP_CLASSES = (
 HEADINGS = frozenset({"h2", "h3", "h4"})
 
 
-# Spanish Wikipedia writes a zero-width space after every footnote mark (58 % of the Spanish
-# paragraphs of this bench, 72 of 28,681 English ones). It is not whitespace to `\s`, so
-# `text.split_sentences` does not break at ".​ " and glues the sentences around it
-# (68,479 Spanish sentences with them, 83,616 without). Dropped here, so the bench compares
-# languages and not this mark; the package itself is unchanged.
-ZERO_WIDTH = "​‌‍⁠﻿"
-_DROP = str.maketrans("", "", ZERO_WIDTH)
-# A footnote mark left in the text: MLQA's Spanish paragraphs keep them (1,409 of 3,000 pages
-# of this bench, 81 of the English ones), today's HTML holds them in `<sup>`. Narrow on purpose:
-# a number, "n." or "nota" and a number, in brackets; other bracketed text is left alone.
+# Zero-width characters stay: Spanish Wikipedia writes one after every footnote mark, and
+# `text.split_sentences` cuts through them since 29c433b, so the bench reads the text as the
+# consumer would. A footnote mark left in the text is dropped: MLQA's Spanish paragraphs keep
+# them (1,370 of the 3,000 pages of this bench against 5 English ones), while today's HTML holds
+# them in `<sup>`, which the parser skips. Narrow on purpose: a number, "n." or "nota" and a
+# number, in brackets; other bracketed text is left alone.
 MARK = re.compile(r"\[(?:\d{1,3}|n\. ?\d{1,3}|nota \d{1,3})\]")
 
 
 def collapse(text: str) -> str:
-    return re.sub(r"\s+", " ", MARK.sub("", (text or "").translate(_DROP))).strip()
+    return re.sub(r"\s+", " ", MARK.sub("", text or "")).strip()
 
 
 @dataclass(frozen=True, slots=True)

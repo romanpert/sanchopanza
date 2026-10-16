@@ -16,7 +16,9 @@ Spanish test item has the same id in the English test file, with its English que
 and English Wikipedia paragraph: a paired English control on the same questions. The archive is
 downloaded to the data directory and checked against its SHA-256; it is never committed.
 
-Two benches, disjoint by article:
+Two benches, disjoint by article. The docs bench takes every question that qualifies, one per
+Spanish article, in a seeded order; the pages bench takes the first questions whose article the
+docs bench did not take.
 
 - **pages** (`triage_pages`, HotpotQA's shape): the question's own MLQA paragraph and nine
   distractor paragraphs of the same split, chosen by BM25 in both languages at once (rank sum),
@@ -25,8 +27,10 @@ Two benches, disjoint by article:
 - **docs** (`select_passages`, QASPER's shape): the whole Wikipedia article, Spanish and
   English, at a revision pinned in the manifest. The gold sentence is the one holding the
   answer: the MLQA sentence around the answer span (its anchor) is located in the article by
-  its letters and digits only, and must occur exactly once; an article where it does not is
-  excluded and the reason counted.
+  its letters and digits only, and must occur exactly once, or be found by the fuzzy fallback
+  of `locate` (each row records its route); an article where it is not is excluded and the
+  reason counted. The parse API renders an old revision with today's templates, so a rebuild
+  by someone else, later, may not reproduce the manifest's SHA-256 even at the same revisions.
 
 Committed: `docs/results/2026-10-16-b6-es/bench-manifest.json` (ids, revision ids, counts,
 exclusion reasons, SHA-256 of the built files). Not committed: the archive, the article cache
@@ -71,7 +75,7 @@ MEMBERS = {
 LANGS = ("es", "en")
 SEED = 20261016
 PAGES_N = 300  # questions in the pages bench
-DOCS_N = 400  # questions in the docs bench; the pre-registration says how many are asked
+DOCS_N: int | None = None  # docs questions: every Spanish article of the split that qualifies
 SMOKE_N = 2  # dev questions per bench for a smoke run
 PAGES_PER_SET = 10
 MIN_ANCHOR_KEY = 20  # letters and digits an anchor needs to be located without ambiguity
@@ -94,16 +98,15 @@ DEFAULT_DATA = Path(
 
 
 def collapse_with_map(text: str) -> tuple[str, list[int]]:
-    """`text` with whitespace runs collapsed, footnote marks and zero-width characters dropped
-    (as `wiki.collapse`) and the ends stripped, and for each original position the position it
-    maps to in the result (a dropped or stripped character maps to the next kept one, or the
-    nearest edge)."""
+    """`text` with whitespace runs collapsed, footnote marks dropped (as `wiki.collapse`) and
+    the ends stripped, and for each original position the position it maps to in the result
+    (a dropped or stripped character maps to the next kept one, or the nearest edge)."""
     marks = {i for m in wiki.MARK.finditer(text) for i in range(m.start(), m.end())}
     out: list[str] = []
     where: list[int] = []
     pending_space = False
     for i, ch in enumerate(text):
-        if ch in wiki.ZERO_WIDTH or i in marks:
+        if i in marks:
             where.append(len(out) + (1 if pending_space else 0))
             continue
         if ch.isspace():
@@ -328,18 +331,19 @@ def _fuzzy(needle: str, hay: str) -> tuple[float, list[tuple[int, int, int]]]:
     return sum(size for _, _, size in blocks) / len(needle), blocks
 
 
-def _answer_in(blocks, inside: Sequence[int], needle: str, hay: str) -> tuple[int, int] | None:
-    """The answer's `[start, end)` in `hay`'s key: inside one matched block, else the answer's
-    letters occurring exactly once within the matched stretch (60 letters either side)."""
+def _answer_in(blocks, inside: Sequence[int], needle: str, hay: str):
+    """`(start, end, route)` of the answer in `hay`'s key: inside one matched block ("block"),
+    else the answer's letters occurring exactly once within the matched stretch, 60 letters
+    either side ("search"); None otherwise."""
     i0, i1 = inside[0], inside[-1] + 1
     for a, b, size in blocks:
         if a <= i0 and i1 <= a + size:
-            return b + i0 - a, b + i1 - a
+            return b + i0 - a, b + i1 - a, "block"
     answer = needle[i0:i1]
     lo = max(0, blocks[0][1] - 60)
     hi = blocks[-1][1] + blocks[-1][2] + 60
     found = [m.start() + lo for m in re.finditer(re.escape(answer), hay[lo:hi])]
-    return (found[0], found[0] + len(answer)) if len(found) == 1 else None
+    return (found[0], found[0] + len(answer), "search") if len(found) == 1 else None
 
 
 def locate(anchor: str, answer_offset: tuple[int, int], paragraphs: Sequence[tuple[str, str]]):
@@ -347,8 +351,9 @@ def locate(anchor: str, answer_offset: tuple[int, int], paragraphs: Sequence[tup
 
     The anchor is matched on letters and digits only (footnote marks, quotes and spacing differ
     between MLQA's extraction and today's HTML). `how` is "exact" when it occurs exactly once in
-    the article; failing any exact occurrence, "fuzzy" when one paragraph alone holds it edited
-    (`_fuzzy`) and the answer is still there, letter for letter (`_answer_in`)."""
+    the article; failing any exact occurrence, "fuzzy-block" or "fuzzy-search" when one
+    paragraph alone holds it edited (`_fuzzy`) and the answer is still there, letter for letter,
+    by the route `_answer_in` found it."""
     needle, positions_in_anchor = key_of(anchor)
     if len(needle) < MIN_ANCHOR_KEY:
         return "anchor too short"
@@ -380,7 +385,7 @@ def locate(anchor: str, answer_offset: tuple[int, int], paragraphs: Sequence[tup
     if span is None:
         return "answer not in the edited anchor"
     positions = keyed[j][1]
-    return j, positions[span[0]], positions[span[1] - 1] + 1, "fuzzy"
+    return j, positions[span[0]], positions[span[1] - 1] + 1, f"fuzzy-{span[2]}"
 
 
 def doc_side(item: Mapping[str, Any], article: wiki.Article) -> dict[str, Any] | str:
@@ -461,15 +466,16 @@ def build_docs(
     order: Sequence[str],
     items: Mapping[str, Any],
     fetcher: wiki.Fetcher,
-    n: int,
+    n: int | None,
     pinned: Mapping[str, Mapping[str, int]] | None,
 ) -> tuple[list[dict[str, Any]], dict[str, int], list[str]]:
+    """The first `n` questions that qualify, in draw order (every one when `n` is None)."""
     rows: list[dict[str, Any]] = []
     excluded: dict[str, int] = {}
     tried: list[str] = []
     ids = list(pinned) if pinned is not None else order
     for qid in ids:
-        if len(rows) == n:
+        if n is not None and len(rows) == n:
             break
         tried.append(qid)
         got = doc_row(qid, items[qid], fetcher, pinned[qid] if pinned is not None else None)
@@ -481,7 +487,7 @@ def build_docs(
     return rows, excluded, tried
 
 
-def build(data: Path, *, fresh: bool, pages_n: int = PAGES_N, docs_n: int = DOCS_N,
+def build(data: Path, *, fresh: bool, pages_n: int = PAGES_N, docs_n: int | None = DOCS_N,
           offline: bool = False) -> dict[str, Any]:  # fmt: skip
     archive = download(data)
     fetcher = wiki.Fetcher(data / "wiki", offline=offline)
@@ -505,12 +511,11 @@ def build(data: Path, *, fresh: bool, pages_n: int = PAGES_N, docs_n: int = DOCS
             pinned = {q: manifest[key]["revids"][q] for q in manifest[key]["ids"]}
         docs, excluded, tried = build_docs(order, items, fetcher, n_docs, pinned)
         doc_titles = {items[r["id"]]["es"]["title"] for r in docs}
-        doc_tried_titles = {items[q]["es"]["title"] for q in tried}
         pool = Pool(items)
         if manifest is not None:
             page_ids = manifest[f"{name}pages"]["ids"]
-        else:
-            page_ids = [q for q in order if items[q]["es"]["title"] not in doc_tried_titles]
+        else:  # the articles the docs bench did not take, in draw order
+            page_ids = [q for q in order if items[q]["es"]["title"] not in doc_titles]
         pages: list[dict[str, Any]] = []
         for qid in page_ids:
             if len(pages) == n_pages:

@@ -1,4 +1,4 @@
-"""Scores, verdicts and power for the B6 bench (`b6_run.py`). Pure: no model, no network.
+"""Scores, comparisons and power for the B6 bench (`b6_run.py`). Pure: no model, no network.
 
 Every metric is a label by construction: a page is the question's own MLQA paragraph or not, a
 sentence holds the MLQA answer span or not. Nothing here reads a decider's answer as a label.
@@ -17,48 +17,59 @@ import b6_build as bb
 from sanchopanza.eval.stats import bootstrap_difference, mcnemar, wilson
 from sanchopanza.text import BM25Index
 
-MARGIN = 0.05  # Spanish no worse than English by more than 5 points (and the consumer arms)
-TEXT_MARGIN = 0.05  # Spanish keeps at most 5 points more of the text (Pareto side)
+MARGIN = 0.05  # Spanish no worse than English by more than 5 points
+TEXT_MARGIN = 0.05  # Spanish keeps at most 5 points more of the text (the Pareto side)
 PUBLISHED = {
     "pages": {"recall": 0.983, "kept_share": 0.336, "source": "HotpotQA, 300 questions"},
     "docs": {"recall": 0.872, "kept_share": 0.210, "source": "QASPER, 219 questions"},
 }
-CONSUMER_PAGE_CHARS = 900
+# `triage_pages` and every tournament call show the decider each page's first 900 characters
+# (`chunks.PAGE_LIMIT`, `Limits.page_chars`): the consumer's own cut to 900 sends the decider
+# the same text, without the " [...]" marker. What the cut changes is what is delivered.
+VIEW = 900
 CONSUMER_PRESELECT = 90
-
-
-# ---- one question --------------------------------------------------------------------------
 
 
 def lang_of(arm: str) -> str:
     return "en" if arm.endswith("-en") else "es"
 
 
-def page_texts(row: Mapping[str, Any], arm: str) -> list[tuple[str, str]]:
-    pages = [(str(t), str(x)) for t, x in row[lang_of(arm)]["pages"]]
-    if arm == "P-es900":
-        return [(t, x[:CONSUMER_PAGE_CHARS]) for t, x in pages]
-    return pages
+def letters(text: str) -> str:
+    return bb.key_of(text)[0]
 
 
-def page_score(row: Mapping[str, Any], arm: str, verdicts: Sequence[Sequence[Any]]) -> dict:
-    """`hit`: the gold page kept. `delivered`: kept with its answer inside what is delivered
-    (for P-es900, the answer ends within the first 900 characters). Shares are of characters."""
-    side = row[lang_of(arm)]
-    pages = page_texts(row, arm)
+# ---- pages --------------------------------------------------------------------------------
+
+
+def page_texts(row: Mapping[str, Any], lang: str) -> list[tuple[str, str]]:
+    return [(str(t), str(x)) for t, x in row[lang]["pages"]]
+
+
+def answer_in_view(row: Mapping[str, Any], lang: str) -> bool:
+    """The gold page's answer ends within the 900 characters the decider sees."""
+    return row[lang]["answer_span"][1] <= VIEW
+
+
+def page_score(row: Mapping[str, Any], lang: str, verdicts: Sequence[Sequence[Any]]) -> dict:
+    """`hit`: the gold page kept. `delivered`: kept and its answer within the first 900
+    characters, what a consumer that cuts each page to 900 passes on (C1, free). `answer_kept`:
+    the answer's letters appear in some kept page. Shares are of characters."""
+    pages = page_texts(row, lang)
     keep = [bool(v[0]) for v in verdicts]
     hit = keep[row["gold"]]
-    end = side["answer_span"][1]
-    delivered = hit and (arm != "P-es900" or end <= CONSUMER_PAGE_CHARS)
+    kept_text = " ".join(x for (_, x), k in zip(pages, keep, strict=True) if k)
     kept = sum(len(x) for (_, x), k in zip(pages, keep, strict=True) if k)
-    full = sum(len(x) for _, x in side["pages"])
     return {
         "hit": hit,
-        "delivered": delivered,
+        "delivered": hit and answer_in_view(row, lang),
+        "answer_kept": letters(row[lang]["answer"]) in letters(kept_text),
         "kept_share": kept / max(1, sum(len(x) for _, x in pages)),
-        "kept_share_of_full": kept / max(1, full),
         "kept_chars": kept,
+        "kept_pages": sum(keep),
     }
+
+
+# ---- docs ---------------------------------------------------------------------------------
 
 
 def doc_inputs(row: Mapping[str, Any], arm: str) -> tuple[str, list[tuple[str, str]], list[int]]:
@@ -88,43 +99,67 @@ def doc_mask(row: Mapping[str, Any], arm: str, entries: Sequence[Any]) -> list[l
     return mask
 
 
-def sentence_lengths(row: Mapping[str, Any], lang: str) -> list[list[int]]:
-    return [[b - a for a, b in bb.sentence_ranges(t)] for _, t in row[lang]["pages"]]
+def sentences(row: Mapping[str, Any], lang: str) -> list[list[str]]:
+    return [[t[a:b] for a, b in bb.sentence_ranges(t)] for _, t in row[lang]["pages"]]
 
 
 def doc_score(row: Mapping[str, Any], arm: str, mask: Sequence[Sequence[bool]]) -> dict:
     lang = lang_of(arm)
     gold = row[lang]["gold_s"]
-    lengths = sentence_lengths(row, lang)
+    texts = sentences(row, lang)
     hits = [m for ms, gs in zip(mask, gold, strict=True) for m, g in zip(ms, gs, strict=True) if g]
-    kept = sum(
-        n for ms, ns in zip(mask, lengths, strict=True) for m, n in zip(ms, ns, strict=True) if m
-    )
-    total = sum(sum(ns) for ns in lengths)
+    kept = [s for ms, ss in zip(mask, texts, strict=True) for m, s in zip(ms, ss, strict=True) if m]
+    total = sum(len(s) for ss in texts for s in ss)
     _, _, sent = doc_inputs(row, arm)
     return {
         "all_gold": all(hits),
         "any_gold": any(hits),
-        "kept_share": kept / max(1, total),
-        "kept_chars": kept,
+        "answer_kept": letters(row[lang]["answer"]) in letters(" ".join(kept)),
+        "kept_share": sum(len(s) for s in kept) / max(1, total),
+        "kept_chars": sum(len(s) for s in kept),
+        "kept_sentences": len(kept),
         "gold_paragraph_sent": row[lang]["gold_paragraph"] in set(sent),
     }
+
+
+def answer_only_in_gold(row: Mapping[str, Any], lang: str) -> bool:
+    """The answer's letters occur in the gold sentence and in no other sentence of the article:
+    a question where keeping any other sentence cannot stand in for the gold one."""
+    needle = letters(row[lang]["answer"])
+    gold = row[lang]["gold_s"]
+    for ss, gs in zip(sentences(row, lang), gold, strict=True):
+        for s, g in zip(ss, gs, strict=True):
+            if not g and needle in letters(s):
+                return False
+    return True
+
+
+def gold_in_view(row: Mapping[str, Any], lang: str) -> bool:
+    """The gold sentence starts within the 900 characters of its paragraph the tournament sees."""
+    side = row[lang]
+    j = side["gold_paragraph"]
+    ranges = bb.sentence_ranges(side["pages"][j][1])
+    first = next(i for i, g in enumerate(side["gold_s"][j]) if g)
+    return ranges[first][0] < VIEW
+
+
+def both_exact(row: Mapping[str, Any]) -> bool:
+    return all(row[lang].get("match") == "exact" for lang in bb.LANGS)
 
 
 # ---- free baselines (BM25, no model) ------------------------------------------------------
 
 
-def bm25_pages_at(row: Mapping[str, Any], arm: str, budget: int) -> bool:
+def bm25_pages_at(row: Mapping[str, Any], lang: str, budget: int) -> bool:
     """The gold page is among the BM25 best pages that fit `budget` characters (at least one)."""
-    pages = page_texts(row, arm)
-    question = row[lang_of(arm)]["question"]
-    scores = BM25Index([f"{t}\n{x}" for t, x in pages]).scores(question)
+    pages = page_texts(row, lang)
+    scores = BM25Index([f"{t}\n{x}" for t, x in pages]).scores(row[lang]["question"])
     used = 0
     for k in sorted(range(len(pages)), key=lambda k: (-scores[k], k)):
         if used and used + len(pages[k][1]) > budget:
             break
         if k == row["gold"]:
-            return arm != "P-es900" or row["es"]["answer_span"][1] <= CONSUMER_PAGE_CHARS
+            return True
         used += len(pages[k][1])
     return False
 
@@ -132,10 +167,7 @@ def bm25_pages_at(row: Mapping[str, Any], arm: str, budget: int) -> bool:
 def bm25_sentences_at(row: Mapping[str, Any], lang: str, budget: int) -> bool:
     """Every gold sentence is among the BM25 best sentences of the article within `budget`."""
     side = row[lang]
-    flat = []
-    for j, (_, text) in enumerate(side["pages"]):
-        for i, (a, b) in enumerate(bb.sentence_ranges(text)):
-            flat.append((j, i, text[a:b]))
+    flat = [(j, i, s) for j, ss in enumerate(sentences(row, lang)) for i, s in enumerate(ss)]
     scores = BM25Index([s for _, _, s in flat]).scores(side["question"])
     chosen, used = set(), 0
     for k in sorted(range(len(flat)), key=lambda k: (-scores[k], k)):
@@ -161,7 +193,7 @@ def preselect_keeps_gold(row: Mapping[str, Any], lang: str) -> bool | None:
 
 def mean_difference(a: Sequence[float], b: Sequence[float], *, replicas: int = 2000,
                     seed: int = 7) -> tuple[float, float, float]:  # fmt: skip
-    """Mean of a - b with a 95 % CI by paired resampling (the same scheme as the stats module)."""
+    """Mean of a - b with a 95 % CI by paired resampling (the scheme of `eval.stats`)."""
     if len(a) != len(b) or not a:
         raise ValueError("both series must have the same non-zero length")
     n = len(a)
@@ -171,23 +203,16 @@ def mean_difference(a: Sequence[float], b: Sequence[float], *, replicas: int = 2
         idx = [rng.randrange(n) for _ in range(n)]
         diffs.append(sum(a[i] - b[i] for i in idx) / n)
     diffs.sort()
-    return (
-        sum(x - y for x, y in zip(a, b, strict=True)) / n,
-        diffs[int(0.025 * replicas)],
-        diffs[int(0.975 * replicas) - 1],
-    )
+    observed = sum(x - y for x, y in zip(a, b, strict=True)) / n
+    return observed, diffs[int(0.025 * replicas)], diffs[int(0.975 * replicas) - 1]
 
 
-def paired(a: Sequence[bool], b: Sequence[bool], *, margin: float = MARGIN) -> dict[str, Any]:
-    """a against b on the same questions: difference, bootstrap CI, McNemar, verdict at margin."""
+def describe(a: Sequence[bool], b: Sequence[bool]) -> dict[str, Any]:
+    """a against b on the same questions: difference, bootstrap CI, McNemar; no verdict."""
+    if not a:
+        return {"n": 0}
     diff, lo, hi = bootstrap_difference(list(a), list(b))
     only_a, only_b, p = mcnemar(list(a), list(b))
-    if lo > -margin:
-        verdict = "no worse" + (" (but lower)" if hi < 0 else "")
-    elif hi < -margin:
-        verdict = f"worse by more than {round(100 * margin)} points"
-    else:
-        verdict = "inconclusive"
     return {
         "n": len(a),
         "a": round(sum(a) / len(a), 4),
@@ -197,8 +222,23 @@ def paired(a: Sequence[bool], b: Sequence[bool], *, margin: float = MARGIN) -> d
         "only_a": only_a,
         "only_b": only_b,
         "mcnemar_p": round(p, 4),
-        "verdict": verdict,
     }
+
+
+def verdict(lo: float, hi: float, *, margin: float = MARGIN) -> str:
+    if lo > -margin:
+        return "no worse" + (" (but lower)" if hi < 0 else "")
+    if hi < -margin:
+        return f"worse by more than {round(100 * margin)} points"
+    return "inconclusive"
+
+
+def paired(a: Sequence[bool], b: Sequence[bool], *, margin: float = MARGIN) -> dict[str, Any]:
+    """`describe`, and the verdict at `margin` from the CI (prereg, rules 1-3)."""
+    out = describe(a, b)
+    if out["n"]:
+        out["verdict"] = verdict(*out["ci95"], margin=margin)
+    return out
 
 
 def proportion(hits: Sequence[bool]) -> dict[str, Any]:
@@ -215,6 +255,21 @@ def text_side(a: Sequence[float], b: Sequence[float]) -> dict[str, Any]:
         "ci95": [round(lo, 4), round(hi, 4)],
         "within_margin": hi < TEXT_MARGIN,
     }
+
+
+def pareto(recall: Mapping[str, Any], text: Mapping[str, Any]) -> str:
+    """ "no worse on both" when the recall verdict is "no worse" and Spanish keeps at most 5
+    points more text (the CI's upper bound); else which side fails."""
+    good_recall = str(recall.get("verdict", "")).startswith("no worse")
+    if good_recall and text["within_margin"]:
+        return "no worse on both"
+    if good_recall:
+        return "no worse on recall only (more text)"
+    return "not shown on recall"
+
+
+def mean(values: Sequence[float]) -> float:
+    return round(sum(values) / len(values), 4) if values else 0.0
 
 
 # ---- power -------------------------------------------------------------------------------
