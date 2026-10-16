@@ -49,14 +49,13 @@ NATIVE_FLAG = "--memory-native"
 NATIVE_ENV = "SANCHOPANZA_MEMORY_NATIVE"
 BARE = ("h_judge", "h_loud", "h_merge")  # F2: the continue line names no file step 1 wrote
 OUT = Path(r"C:\sp-runs\w17-native")
-WORK = Path(r"C:\sp-runs\w17")  # where the agent works: no name of the lot, scene or arm
 MODEL = "sonnet"
 # Expected cost per arm at Claude Code's list price, F2's Sonnet medians per triple (N0 0.105,
 # S 0.127; SN taken as S), for the estimate only; the caps below are what binds.
 EXPECTED_ARM_USD = {"N0": 0.105, "S": 0.127, "SN": 0.127}
 RUNS: dict[str, dict[str, Any]] = {
-    "w17-pilot": {"scenes": HANDOFF_PILOT, "repeats": [0], "cap": 12.0, "dir": "p"},
-    "w17-sonnet": {"scenes": list(HANDOFF), "repeats": [1, 2, 3, 4], "cap": 26.0, "dir": "m"},
+    "w17-pilot": {"scenes": HANDOFF_PILOT, "repeats": [0], "cap": 5.0},
+    "w17-sonnet": {"scenes": list(HANDOFF), "repeats": [1, 2, 3, 4], "cap": 26.0},
 }
 
 
@@ -179,7 +178,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.dry:
         raise SystemExit("only --dry before the seal")
     out = Path(args.out) if args.out else OUT / f"{args.run}-dry"
-    rows = run_plan(out, args.run, out / "typesafe.key", True, out / "work")
+    rows = run_plan(out, args.run, out / "typesafe.key", True, out / "w")
     (out / "dry.json").write_text(json.dumps(rows, indent=1), encoding="utf-8")
     print(json.dumps({"arms": len(rows), **estimate(args.run)}))
     return 0

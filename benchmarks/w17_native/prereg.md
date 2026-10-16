@@ -12,15 +12,19 @@ had saved its own auto memory in session 1 (4 of 4, against 0 of 44).
 
 The memory bridge (`harness.memory_native`, `install --memory-native`) writes the session's
 records into Claude Code's own auto memory: one note, `sanchopanza-next.md`, and one line in
-`MEMORY.md`, which Claude Code loads itself at the next start. At that start, the records the note
-carries count as already given, so the hooks do not inject them again.
+`MEMORY.md`, which Claude Code loads itself at the next start. After review it is conservative:
+the hooks still give the record at the next session's prompt and touch as without it. Only after
+that session `Read`s the unchanged note do the records it holds whole count as given, so a later
+touch skips them.
 
 The index and the hooks' SessionStart text both land in the first user message, which is
-cache-written afresh every session. Moving text into native memory therefore saves no cache cost
-by itself. The bridge's claim is:
+cache-written afresh every session, so moving text into native memory saves no cache cost by
+itself. In this conservative form the bridge adds tokens to S: its index line always, and the
+note when the model reads it. The bridge's claim is:
 
-- the plan reaches the next session through Claude Code's own mechanism, with fewer hook tokens;
-- and continuing still works as well as with S.
+- the plan reaches the next session through Claude Code's own mechanism, which works with any
+  harness that reads it and survives sanchopanza being off;
+- continuing still works as well as with S, at a small, bounded extra cost.
 
 ## Arms (one triple = one scene, one repetition, three arms one after the other)
 
@@ -46,6 +50,10 @@ by itself. The bridge's claim is:
 3. **Cost, SN against S:** the paired median cost ratio per triple (Claude Code's list price plus
    Jev). Its bootstrap 95 % upper bound (10,000 draws over triples, seed 20261017) must be
    ≤ 1.05.
+   - Stated in advance: SN adds its index line (about 38 tokens) to every session 2, and the
+     note (about 520 tokens) plus one tool turn when the model reads it. At Sonnet 5.5's rates
+     that is about 0.007 USD, roughly 5 % of S's 0.127 USD triple, so criterion 3 sits at its
+     edge.
 4. **Cost, SN against N0, for the final scoreboard's "gana":** the same ratio's upper bound must be
    ≤ 1.10.
    - Stated in advance: F2's S/N0 was 1.226 [1.141, 1.261].
@@ -97,7 +105,7 @@ With 36 triples the margin would allow only 1 such loss (−11.5), so 48 it is.
 **Pilot (w17-pilot):** 4 scenes × 1 repetition (12 arms), F2's pilot scenes. It gates the night
 on the same conditions as F2's pilot gate, plus:
 - SN wrote its note in every SN session 1;
-- the next session logged `carried` with session 1's keys.
+- every SN session 2 that read the note logged `read` with session 1's keys.
 
 ## Cost and caps (in code: `benchmarks/w17_native/run.py`)
 
@@ -106,7 +114,7 @@ on the same conditions as F2's pilot gate, plus:
 
 | run | arms | expected | hard cap | every arm at its reserve |
 |---|---|---|---|---|
-| w17-pilot | 12 | 1.44 USD | 12.0 USD | 30.56 USD |
+| w17-pilot | 12 | 1.44 USD | 5.0 USD | 30.56 USD |
 | w17-sonnet | 144 | 17.23 USD | 26.0 USD | 366.72 USD |
 
 - Total expected: about 18.7 USD, paid by the subscription (`claude -p`). That is above the
@@ -128,19 +136,21 @@ decisions on F2's recorded S arms, with no model call.
   arms (48 Sonnet, 24 Opus).
 - **Sonnet.** The bridge would have written its note after all 48 sessions 1. Claude Code saved
   none of its own in S.
-  - Note median 1,921 characters; index line 150.
-  - In all 48 sessions 2 the record S injected would not have been given again: median
-    2,170 characters (prompt or touch).
-  - Net change per session 2: −2,020 characters (about −505 tokens) if the note is not read,
-    and −143 characters (about −36 tokens) if the model reads it. In F2, Sonnet N0 read the memory
-    file in all 4 sessions that had one, so expect the second case plus one tool turn.
+  - Note median 2,143 characters; index line 150.
+  - The prompt still gets the record (median 1,936 characters), as in S.
+  - A touch skips it only after the note was read. That could apply in the 12 arms whose record
+    came at a touch.
+  - Net change per session 2: +150 characters (about +38 tokens) if the note is not read, and
+    +2,097 characters (about +524 tokens) if it is. In F2, Sonnet N0 read the memory file in all
+    4 sessions that had one, so expect the second case plus one tool turn.
 - **Opus.**
-  - Claude Code's own memory restated the plan in 8 of 24 sessions 1, by the coverage rule (at
-    least 50 % of the request's words). There the bridge writes no note and skips S's record:
-    median 2,875 characters.
-  - Elsewhere it writes the note: 16 of 24 arms.
-  - 31 of the 40 rules that sessions 1 stored were restated in Claude Code's own memory, a
-    second injection that a rules dedupe could skip.
+  - Claude Code's own memory restated the plan in 8 of 24 sessions 1. The coverage rule needs
+    at least 50 % of the request's words, plus the session's own write of that file or a
+    changed file's name. There the bridge writes no note.
+  - S's record is still given there: median 2,328 characters. This review does not count Claude
+    Code's own memory as a reason to hold back.
+  - 31 of the 40 rules that sessions 1 stored were restated in Claude Code's own memory; a rules
+    dedupe could skip them.
   - 21 Opus folders changed again in session 2, so this side is approximate.
 - **Dry run of this runner.** `python benchmarks/w17_native/run.py --run w17-pilot --dry`:
   - built the 12 pilot arms: repositories, clean configuration folders, the user-scope install
@@ -156,7 +166,8 @@ decisions on F2's recorded S arms, with no model call.
     `handoff.brief`.
   - The S-arm break checks must drop F2's "MCP server connected" condition, since user scope
     registers none.
-  - Add the folder byte-identity check (criterion 5) and the `carried` check (pilot gate).
+  - Add the folder byte-identity check (criterion 5) and the `read` check (pilot gate).
+  - The coordinator is redesigning the paid lot; this draft waits for that.
 - **Midnight rule and resume:** as F2 (`handoff.run_plan`), with these arms and reserves.
 - **Review:** `revisor-prereg` against this file and the code. Then seal (sha256 + commit) and
   run from a detached worktree.

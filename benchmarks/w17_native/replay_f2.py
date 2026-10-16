@@ -10,8 +10,9 @@ Code folder under `<work>`):
    records from the arm's store: what the bridge would have done at session 1's Stop (written,
    or covered by a memory Claude Code saved itself), and the note's size.
 3. What S injected in session 2 (its hook log): the standing rules at start, the record at the
-   prompt and at file touches; which of those records the note carries (the bridge would not have
-   given them again).
+   prompt and at file touches. With the bridge the prompt still gets the record; a touch skips
+   the records the note holds whole only after the session read the note, so `deduped_chars`
+   (touch only) is an upper bound.
 
 Claude Code's memory files are copied as they are now; a file it changed again in session 2 is
 counted with its later text (flagged `later`). Tokens are estimated at CHARS_PER_TOKEN.
@@ -100,6 +101,12 @@ def restated(rule: str, text: str) -> bool:
     return bool(words) and len(words & found) / len(words) >= mn.COVER_SHARE
 
 
+def reported_dir(session: Mapping[str, Any]) -> Path | None:
+    """The auto-memory folder a session's `init` named, or None when it named none."""
+    named = str((session.get("init") or {}).get("memory_auto") or "").strip()
+    return Path(named) if named else None
+
+
 def copy_memory(source: Path, target: Path, until: float) -> int:
     """Claude Code's memory files into `target`, times kept; how many changed after `until`."""
     target.mkdir(parents=True, exist_ok=True)
@@ -115,18 +122,19 @@ def replay_arm(row: Mapping[str, Any], scratch: Path) -> dict[str, Any]:
     folder = Path(row["folder"])
     s1, s2 = row["sessions"][0], row["sessions"][-1]
     sid1 = str((s1.get("init") or {}).get("session_id") or "")
-    reported = Path(str((s1.get("init") or {}).get("memory_auto") or ""))
+    reported = reported_dir(s1)
     transcripts = list((folder / "claude-config" / "projects").glob(f"*/{sid1}.jsonl"))
     event = {"session_id": sid1, "cwd": str(folder / "repo"),
              "transcript_path": str(transcripts[0]) if transcripts else ""}  # fmt: skip
     derived = mn.native_dir(event, env={})
-    same = derived is not None and os.path.normcase(str(derived)).rstrip("\\/") == \
-        os.path.normcase(str(reported)).rstrip("\\/")  # fmt: skip
+    same = (derived is not None and reported is not None
+            and os.path.normcase(str(derived)).rstrip("\\/")
+            == os.path.normcase(str(reported)).rstrip("\\/"))  # fmt: skip
     stores = [p for p in (folder / "store").iterdir() if p.is_dir() and p.name != ".keys"]
     records = [e for s in stores for e in ep.load(s, limit=0) if e.session == sid1]
     s1_end = transcripts[0].stat().st_mtime + SLACK_S if transcripts else 0.0
     native = scratch / folder.name / "memory"
-    later = copy_memory(reported, native, s1_end)
+    later = copy_memory(reported, native, s1_end) if reported else 0
     outcome = mn.refresh(native, records, session=sid1, store=scratch / folder.name / "store")
     note = (native / mn.NOTE).read_text(encoding="utf-8") if (native / mn.NOTE).exists() else ""
     s2_start = float(s2.get("started") or 0)
@@ -141,14 +149,13 @@ def replay_arm(row: Mapping[str, Any], scratch: Path) -> dict[str, Any]:
     given = {**given, "s1_rules": len(rules), "s1_rule_chars": sum(len(t) + 3 for t in rules),
              "s1_rules_in_claude_memory": in_claude}  # fmt: skip
     carried = set(outcome.get("keys") or [])
-    deduped = [k for k in given["prompt_keys"] + given["touch_keys"] if k in carried]
+    deduped = [k for k in given["touch_keys"] if k in carried]
     return {
         "scene": row["scene"], "repeat": row["repeat"], "folder_ok": same,
         "native": outcome.get("native"), "covered_by": outcome.get("covered_by", []),
         "later": later, "note_chars": len(note), "line_chars": outcome.get("line_chars", 0),
         "records": len(records), **given, "deduped_keys": deduped,
-        "deduped_chars": (given["prompt_chars"] if set(given["prompt_keys"]) & carried else 0)
-        + (given["touch_chars"] if set(given["touch_keys"]) & carried else 0),
+        "deduped_chars": given["touch_chars"] if set(given["touch_keys"]) & carried else 0,
         "s2_cache_write": s2["tokens"]["cache_write"],
     }  # fmt: skip
 
@@ -166,7 +173,7 @@ def summary(arms: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     for r in arms:
         states = {**states, str(r["native"]): states.get(str(r["native"]), 0) + 1}
     added = [r["line_chars"] + r["note_chars"] - r["deduped_chars"] for r in written]
-    unread = [r["line_chars"] - r["deduped_chars"] for r in written]
+    unread = [r["line_chars"] for r in written]
     return {
         "arms": len(arms), "folder_ok": sum(1 for r in arms if r["folder_ok"]),
         "native": states, "later": sum(1 for r in arms if r["later"]),
@@ -176,7 +183,6 @@ def summary(arms: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
         "s2_touch_chars_median": med("touch_chars"),
         "deduped_chars_median": med("deduped_chars", written) if written else 0,
         "deduped_arms": sum(1 for r in [*written, *covered] if r["deduped_chars"]),
-        "covered_deduped_chars_median": med("deduped_chars", covered) if covered else 0,
         "s1_rules": sum(r["s1_rules"] for r in arms),
         "s1_rule_chars_median": med("s1_rule_chars"),
         "s1_rules_in_claude_memory": sum(r["s1_rules_in_claude_memory"] for r in arms),

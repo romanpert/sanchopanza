@@ -73,3 +73,14 @@ def test_the_replay_reads_what_s_gave_session_two() -> None:
                    "touch_chars": 300, "touch_keys": ["s1-002"]}  # fmt: skip
     assert replay.restated("The carrier rejects requests", "the carrier rejects requests")
     assert not replay.restated("The carrier rejects requests", json.dumps({"x": 1}))
+
+
+def test_l8_a_session_that_named_no_memory_folder_is_not_matched() -> None:
+    assert replay.reported_dir({"init": {}}) is None
+    assert replay.reported_dir({"init": {"memory_auto": "C:/x/memory/"}}) == Path("C:/x/memory/")
+
+
+def test_the_pilot_cap_is_five_dollars_and_fits_one_reserve() -> None:
+    found = run.estimate("w17-pilot")
+    assert found["cap_usd"] == 5.0
+    assert found["expected_usd"] + max(run.reserve_of(a) for a in run.ARMS) <= found["cap_usd"]
