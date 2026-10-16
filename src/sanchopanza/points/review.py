@@ -12,6 +12,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from ..catalog import tag
 from ..contract import Decision, Question, Truth
 from ..policy import Thresholds
 from ..text import truncate
@@ -55,7 +56,7 @@ def questions(task: str, result: str) -> tuple[Mapping[str, Any], dict[str, Ques
             },
         ),
     }
-    return state, qs
+    return state, tag("review", qs)
 
 
 @dataclass(frozen=True, slots=True)

@@ -2,7 +2,8 @@
 
     create("jev", api_key=...)            TypeSafe Jev over HTTP
     create("recorded", path=...)          replays a fixture; tests and dry runs, free
-                                          (model="jev-1.14.0": that version's lines only)
+                                          (model="jev-1.14.0": that version's lines only;
+                                          keys="id": by question id, `id_key_of`)
     create("null")                        answers nothing; every policy uses its default
     create("llm", complete=...)           any LLM forced into a JSON schema
     create("local", handlers=...)         your own classifiers, embeddings, vision models
@@ -28,7 +29,7 @@ if TYPE_CHECKING:
     from .fixed import FixedDecider
     from .local import LocalDecider
     from .null import NullDecider
-    from .recorded import RecordedDecider, RecordingDecider, key_of, order_of
+    from .recorded import RecordedDecider, RecordingDecider, id_key_of, key_of, order_of
 
 __all__ = [
     "CachedDecider",
@@ -42,6 +43,7 @@ __all__ = [
     "RecordingDecider",
     "RoutedDecider",
     "create",
+    "id_key_of",
     "key_of",
     "order_of",
 ]
@@ -55,7 +57,9 @@ _LAZY = {
     "FixedDecider": "fixed",
     "LocalDecider": "local",
     "NullDecider": "null",
-    **dict.fromkeys(("RecordedDecider", "RecordingDecider", "key_of", "order_of"), "recorded"),
+    **dict.fromkeys(
+        ("RecordedDecider", "RecordingDecider", "id_key_of", "key_of", "order_of"), "recorded"
+    ),
 }
 
 
@@ -105,5 +109,7 @@ def create(name: str, **kwargs: Any) -> Decider:
         raise KeyError(f"unknown provider {name!r}; known: {sorted(targets)}")
     cls = _load(targets[name])
     if name == "recorded" and "path" in kwargs:
-        return cls.from_file(kwargs["path"], model=kwargs.get("model"))
+        return cls.from_file(
+            kwargs["path"], model=kwargs.get("model"), keys=kwargs.get("keys", "text")
+        )
     return cls(**kwargs)

@@ -18,6 +18,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Any
 
+from ..catalog import tag
 from ..contract import Question, Truth
 from ..text import truncate
 from .triage import CONTRIBUTES
@@ -57,7 +58,7 @@ def sentence_questions(
         sentence_id(i): _about(f"sentence {sentence_id(i)}", "sentences")
         for i in range(len(sentences))
     }
-    return state, qs
+    return state, tag("select_sentences", qs)
 
 
 def context_questions(
@@ -78,4 +79,4 @@ def context_questions(
     qs: dict[str, Question] = {
         page_id(i): _about(f"page {page_id(i)}", "pages") for i in range(len(pages))
     }
-    return state, qs
+    return state, tag("triage_pages", qs)
