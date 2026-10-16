@@ -5,6 +5,9 @@
                                           (model="jev-1.14.0": that version's lines only;
                                           keys="id": by question id, `id_key_of`)
     create("null")                        answers nothing; every policy uses its default
+    create("openai-decisions")            OpenAI's Decisions API (reads OPENAI_API_KEY), always
+                                          behind a ledger shared by every process (0.50 USD by
+                                          default); written to the guide, never measured
     create("llm", complete=...)           any LLM forced into a JSON schema
     create("local", handlers=...)         your own classifiers, embeddings, vision models
     FallbackDecider([a, b])               first provider that answers wins
@@ -81,6 +84,7 @@ _BUILTIN = {
     "recorded": "sanchopanza.providers.recorded:RecordedDecider",
     "jev": "sanchopanza.providers.jev:JevDecider",
     "clm": "sanchopanza.providers.jev:clm",
+    "openai-decisions": "sanchopanza.providers.openai_decisions:openai_decisions",
     "llm": "sanchopanza.providers.llm:LLMDecider",
     "local": "sanchopanza.providers.local:LocalDecider",
 }

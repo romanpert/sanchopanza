@@ -146,8 +146,16 @@ def message(data: dict[str, Any]) -> str:
     return (
         f"sanchopanza: {provider} is out of funds (HTTP {data.get('status', 402)} since {since}). "
         "Every S component is running on its defaults, without its judgments, until the balance "
-        "is topped up. Check with `python -m sanchopanza jev-preflight`."
+        f"is topped up. {_check_hint(provider)}"
     )
+
+
+def _check_hint(provider: str) -> str:
+    """How to check: Jev and a CLM server have a preflight; another provider's account is
+    checked where it is billed."""
+    if provider in ("jev", "clm", "the decider"):
+        return "Check with `python -m sanchopanza jev-preflight`."
+    return f"Check the {provider} account's balance; the breaker clears on its first answer."
 
 
 def live() -> list[dict[str, Any]]:
