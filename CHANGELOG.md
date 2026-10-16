@@ -56,6 +56,14 @@
 
 ### Changed
 
+- **`select_passages(fit_chars=...)` cuts in the free order by default** (`fit_score` now
+  defaults to `False`; `fit_score=True` still puts a four-level Score first; `fit_chars` stays
+  `None`, so nothing changes unless a caller sets it). The owner's rule, the option the evidence
+  supports (C5b's sealed rule licensed the option, not a default): C5b confirmed the free order over page order
+  on 348 fresh QASPER questions at 3,400 characters (answer-sentence recall 78.3 % against
+  61.9 %, +16.4 points [+11.0, +21.9]); B4 did not show the Score over the free order (+2.3
+  [−1.5, +6.2]); the free order costs no call. The benches that reproduce B4, C5 and C5b pass
+  `fit_score` explicitly.
 - **`relate_facts` accepts `unrelated` below the confidence gate when it is the top option at
   0.65 or more** (`entities.decide_facts(..., unrelated_at=0.65)`, now the default;
   `unrelated_at=None` is the gate alone). `unrelated` triggers no action, so a confident

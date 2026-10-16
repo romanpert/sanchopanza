@@ -817,12 +817,13 @@ Each item, with its priority and cost, is in [docs/ROADMAP.md](docs/ROADMAP.md).
   says to go on gets the latest record; a long prompt's record keeps its head and tail; plan
   sentences rank below standing rules; shell reads stay off. Replayed on F2's recorded decisions
   only; no live session has run with them.
-- **Which order `select_passages` cuts in by default.** When a caller must cut to
-  `fit_chars`, the free order (`fit_score=False`, no extra call) is confirmed over page order on
-  fresh QASPER questions at 3,400 characters: answer-sentence recall 78.3 % against 61.9 %, +16.4
-  points [+11.0, +21.9] ([C5b](docs/results/2026-10-16-c5b-free/README.md)); the four-level Score
-  was not shown over it ([B4](docs/results/2026-10-16-b4-order/README.md)). The default stays
-  `fit_score=True` until the owner decides; other budgets and documents are unmeasured.
+- **Cutting passages to a budget beyond papers at 3,400 characters.** When a caller sets
+  `fit_chars`, `select_passages` cuts in the free order by default since 0.3.2 (no extra call):
+  on fresh QASPER questions at 3,400 characters it kept the answer sentences in 78.3 % against
+  61.9 % for page order, +16.4 points [+11.0, +21.9]
+  ([C5b](docs/results/2026-10-16-c5b-free/README.md)); a four-level Score first was not shown
+  over it ([B4](docs/results/2026-10-16-b4-order/README.md)) and stays as `fit_score=True`.
+  Other budgets and other kinds of documents are unmeasured.
 - **Spanish's 3 to 6 points.** On the same MLQA questions, Spanish keeps the needed page or
   sentence less often than English at the same share of text: pages 95.5 % against 98.9 %, −3.4
   points [−6.1, −0.8]; whole articles 85.8 % against 91.7 %, −5.9 [−9.0, −2.9]; both inconclusive

@@ -511,7 +511,7 @@ class Squire:
         pages: Sequence[tuple[str, str]],
         max_calls: int | None = None,
         fit_chars: int | None = None,
-        fit_score: bool = True,
+        fit_score: bool = False,
         page_view: chunks.PageView = "head",
     ) -> list[list[tuple[bool, float | None]] | None]:
         """The passages of one long document the answer needs: paragraphs, then sentences.
@@ -531,10 +531,14 @@ class Squire:
         and is what every published run used.
 
         `fit_chars` (opt-in; roadmap B4, C5b): when the kept sentences add up to more
-        characters than this, the delivered paragraphs are ordered by a four-level Score
-        (`passages.fit_questions`, claimed from the same `max_calls`), then by their best
-        sentence probability, and those that do not fit in that order become `None`. Output
-        stays in page order. `fit_score=False` skips the Score: the free order, no call.
+        characters than this, the delivered paragraphs are ordered by their best sentence
+        probability, then their tournament probability (the free order, no call), and those
+        that do not fit in that order become `None`. Output stays in page order. The free order
+        is the default since 0.3.2, the owner's decision on the evidence: it kept more answer
+        sentences than page order on fresh QASPER questions at 3,400 characters (+16.4 points
+        [+11.0, +21.9], C5b), and a four-level Score first was not shown over it (+2.3
+        [-1.5, +6.2], B4). `fit_score=True` puts that Score first (`passages.fit_questions`,
+        claimed from the same `max_calls`, one call per 12 paragraphs).
         `fit_chars=None`, the default, changes nothing and adds no call.
 
         `page_view="window"` (opt-in, a candidate: roadmap C6) shows the tournament a paragraph

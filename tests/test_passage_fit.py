@@ -123,7 +123,9 @@ def test_what_fits_is_left_alone_with_no_call():
 def test_what_does_not_fit_is_cut_by_the_score_and_kept_in_page_order():
     pages = _doc(5)
     decider = Staged([0.9] * 5, scores={0: 0, 1: 1, 2: 3, 3: 0, 4: 2})
-    out = asyncio.run(Squire(decider).select_passages(purpose="p", pages=pages, fit_chars=50))
+    out = asyncio.run(
+        Squire(decider).select_passages(purpose="p", pages=pages, fit_chars=50, fit_score=True)
+    )
     assert decider.calls.count("passage_fit") == 1
     assert _delivered(out) == [2, 4]  # the two best fit (48 of 50); output stays in page order
     assert all(out[i] is None for i in (0, 1, 3))
@@ -132,7 +134,9 @@ def test_what_does_not_fit_is_cut_by_the_score_and_kept_in_page_order():
 def test_a_failed_score_falls_back_to_the_tournament_probability():
     pages = _doc(4)
     decider = Staged([0.80, 0.99, 0.85, 0.95], fit_down=True)
-    out = asyncio.run(Squire(decider).select_passages(purpose="p", pages=pages, fit_chars=50))
+    out = asyncio.run(
+        Squire(decider).select_passages(purpose="p", pages=pages, fit_chars=50, fit_score=True)
+    )
     assert _delivered(out) == [1, 3]
 
 
@@ -149,7 +153,9 @@ def test_without_the_score_the_free_order_cuts_and_no_call_is_made():
 def test_many_paragraphs_are_scored_in_groups():
     n = passages.FIT_PER_CALL + 3
     decider = Staged([0.9] * n)
-    asyncio.run(Squire(decider).select_passages(purpose="p", pages=_doc(n), fit_chars=30))
+    asyncio.run(
+        Squire(decider).select_passages(purpose="p", pages=_doc(n), fit_chars=30, fit_score=True)
+    )
     assert decider.calls.count("passage_fit") == 2
 
 
@@ -158,10 +164,22 @@ def test_the_fit_calls_count_against_max_calls():
     decider = Staged([0.9] * 3, scores={0: 0, 1: 0, 2: 3})
     # one tournament call and three sentence calls use the four: no score, probability order
     out = asyncio.run(
-        Squire(decider).select_passages(purpose="p", pages=pages, fit_chars=30, max_calls=4)
+        Squire(decider).select_passages(
+            purpose="p", pages=pages, fit_chars=30, max_calls=4, fit_score=True
+        )
     )
     assert "passage_fit" not in decider.calls
     assert _delivered(out) == [0]
+
+
+def test_fit_chars_alone_cuts_in_the_free_order_with_no_score_call():
+    """0.3.2's default (the owner's decision on C5b and B4): `fit_chars` without `fit_score`
+    orders by sentence, then tournament probability, and asks no Score."""
+    pages = _doc(4)
+    decider = Staged([0.80, 0.99, 0.85, 0.95], scores={0: 3, 2: 3})
+    out = asyncio.run(Squire(decider).select_passages(purpose="p", pages=pages, fit_chars=50))
+    assert "passage_fit" not in decider.calls
+    assert _delivered(out) == [1, 3]
 
 
 def test_fit_chars_must_be_positive():
