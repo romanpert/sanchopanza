@@ -86,6 +86,7 @@ from ..budget import Meter
 from ..contract import Decision, Question, State
 from ..limits import Limits
 from ..providers.capped import DEFAULT_PRICE_PER_MTOK, estimate_usd
+from ..providers.long_context import long_context_twin
 
 if TYPE_CHECKING:
     from ..squire import Squire
@@ -173,14 +174,7 @@ def _decider_for(squire: Squire, header: bool) -> tuple[Any | None, str]:
     """The squire's own decider, or with `header` its long-context twin; (None, why) without."""
     if not header:
         return squire.decider, ""
-    make = getattr(squire.decider, "with_long_context", None)
-    name = getattr(squire.decider, "name", "?")
-    if not callable(make):
-        return None, f"the decider {name!r} has no long-context mode"
-    try:
-        return make(timeout_s=LONG_TIMEOUT_S), ""
-    except Exception as error:  # noqa: BLE001 - a CLM server, a proxy, a wrapper over one
-        return None, f"the decider {name!r} has no long-context mode ({error.__class__.__name__})"
+    return long_context_twin(squire.decider, LONG_TIMEOUT_S)
 
 
 def _note(squire: Squire, data: dict[str, Any]) -> dict[str, Any]:
