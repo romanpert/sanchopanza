@@ -1,10 +1,9 @@
 # B4: order the approved paragraphs that do not fit by a four-level Score (pre-registration, DRAFT)
 
-Status: **draft, not sealed.** Sealing: write the instrument commit below, then
-`python benchmarks/passage_fit/run.py seal` after an independent review against the code. The
-seal (`prereg.sha256`) holds the sha256 of this file and of `b4-order-run.cmd` (its two local
-values read as placeholders). Instrument commit: to be written here at sealing, as
-`` Instrument commit: `<40 hex>` ``.
+Status: **sealed** after three independent reviews against the code. The seal
+(`prereg.sha256`, written by `python benchmarks/passage_fit/run.py seal`) holds the sha256 of this
+file and of `b4-order-run.cmd` (its two local values read as placeholders).
+Instrument commit: `92107d2987cf5a880e8cb95d0f011c41180d65a8`.
 
 ## Question
 
