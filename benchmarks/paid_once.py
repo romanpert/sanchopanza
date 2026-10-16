@@ -283,6 +283,23 @@ def recorded_keys(lot: Lot) -> set[str]:
 
 
 async def _missing(queries: Sequence[Query], lot: Lot) -> list[Query]:
+    """What the recording lacks, each distinct request once, in first order: a query listed
+    twice is asked once, and its recorded answer serves both."""
+    return _distinct(await _lacking(queries, lot), lot)
+
+
+def _distinct(queries: Sequence[Query], lot: Lot) -> list[Query]:
+    seen: set[str] = set()
+    out = []
+    for point, state, qs in queries:
+        key = key_of(point, state, qs, lot.model)
+        if key not in seen:
+            seen.add(key)
+            out.append((point, state, qs))
+    return out
+
+
+async def _lacking(queries: Sequence[Query], lot: Lot) -> list[Query]:
     if lot.empty_streak:
         asked = recorded_keys(lot)
         return [(p, s, q) for p, s, q in queries if key_of(p, s, q, lot.model) not in asked]
