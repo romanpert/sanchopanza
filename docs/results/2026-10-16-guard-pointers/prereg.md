@@ -1,9 +1,9 @@
 # Prerregistro: la guarda con punteros (P) frente a la guarda entera (F) en el banco largo (2026-10-16)
 
-Borrador para sellar. Escrito antes de cualquier corrida de esta tanda. Diseño A aprobado por el
-dueño el 2026-10-16 (cinco cadenas, margen −5, 250 $ duros más un humo de 8 $ duros, brazos sin
-clave). Lo revisó contra el código un `revisor-prereg` independiente (sin bloqueos; cuatro "debe" y
-varios "conviene", todos aplicados antes del sello: sección 16). Se sella como dice la sección 15 y
+Escrito antes de cualquier corrida de esta tanda. Diseño A aprobado por el dueño el 2026-10-16
+(cinco cadenas, margen −5, 250 $ duros más un humo de 8 $ duros, brazos sin clave). Lo revisó
+contra el código un `revisor-prereg` independiente en dos pasadas; todo lo que pidió se aplicó
+antes del sello (sección 16). Se sella como dice la sección 15 y
 la tanda corre desde un `git worktree add --detach` en el commit de sello. `<SEAL>` es el commit
 del instrumento, padre del de sello, y se nombra en el mensaje del commit de sello, no aquí.
 
@@ -71,6 +71,13 @@ Los dos son la instalación que un usuario hace en su proyecto, `sanchopanza ins
   - lo de siempre: init (versión 2.1.287, modelo, modo de permisos, sin clave de API), el servidor
     `sanchopanza` conectado o, por estar diferido, `pending` en el init (`Expect.deferred`); un
     `failed` o ausente para; diff que desaparece; errores de hooks por encima del 5 %.
+- **Llamada cortada a media tanda (se carga y se sigue).** Una llamada que el runner corta
+  (tiempo, flujo parado, el proceso muerto) se carga a su tope de 4,50 $, como en todas las tandas
+  largas. Si no hizo nada (ninguna herramienta, el mismo diff) se repite una vez; si hizo algo, el
+  brazo sigue en la petición siguiente como desviación declarada (`long_guard.resume_decision`
+  "continue": las cinco cadenas son de los repartos `gate`, `dev` y `reserve`). "Set aside" solo
+  existe para cadenas `held`, así que aquí no puede pasar. Las llamadas cortadas, repetidas y
+  apartadas se publican por brazo y cadena (`long_pointers_read.cuts`).
 - **Guarda que falla (se cuenta, no para).** Cuando la guarda falla construye el bloque de la regla
   (peticiones y rastro, sin punteros ni resultados) y lo marca: `pointers (archive failed: rule
   only)` en P (no pudo escribir el archivo) y `struct (error: rule only)` en F (excepción al
@@ -130,6 +137,10 @@ completas (60 bugs y 2 *callbacks*, 62 peticiones).
   código**. Más el humo (sección 12, ≤ 8 $ duros, raíz propia): **≤ 258 $ en total**.
 - Una corrida parada por su tope compara en las llamadas comunes; sigue el brazo siguiente
   (`local_stops = ("cap", "wall")`).
+- **La copia congelada es el paquete sellado**: antes de la primera llamada, cada
+  `src/sanchopanza/**/*.py` del manifiesto tiene que estar en su `site-packages` con el mismo
+  sha256 (`guardptr_seal.frozen_refusal`), y `pip freeze` de `mcp`, `httpx` y `sanchopanza` queda
+  en `launch.log`.
 - **Aprobado por el dueño** el 2026-10-16: diseño A, 250 $ duros más el humo (8 $ duros).
 
 ## 6. Medidas
@@ -153,6 +164,8 @@ Lectura: `benchmarks/adopt/long_pointers_read.py` (`grade` con Docker, `read`, g
     bug común pesa igual, así que una cadena con más llamadas comunes pesa más); la t, la **media
     sin pesos de las cadenas** (cada cadena pesa igual). Con 43-60 bugs comunes por cadena casi
     coinciden; si no, se publican las dos.
+- **La regla compara las cotas sin redondear**; se redondean a 4 decimales solo al publicar
+  (`published`).
 - **Secundaria, descriptiva: el coste P/F** en las llamadas comunes (`long_report.cost_ratio`: media
   pareada de ln(P/F), IC 95 % de la t), con su nombre ("más barato demostrado", "sin diferencia
   demostrada", "más caro demostrado"). No entra en el veredicto (sección 8).
@@ -255,7 +268,10 @@ la de 60, el techo.
   reinicia entre 02:00 y 08:00; el cierre perdió una llamada a las 05:04) ni con un reinicio
   pendiente de Windows (`RebootRequired`, `RebootPending`): el lanzador lo mira al empezar y el
   runner **antes de cada cadena** (`restart_refusal`), porque una actualización puede llegar a
-  media tanda.
+  media tanda. Y **antes de cada llamada**, si la hora ya está entre las 00:00 y las 08:00 (una
+  cadena empezada a las 20:36 con brazos de 4 h podría llegar), el brazo se pausa con `clock`
+  (salida 2, reanudable: `long_resume.RESUMES`); la cadena no se puntúa mientras siga pausada, y
+  un relanzamiento pasadas las 08:00 sigue desde ahí. Se anota como desviación.
 - **El dueño o el coordinador vigila hasta que acaba la última cadena** (dos monitores: líneas del
   log y PID vivo); la tanda no se deja sola.
 - Matar solo por PID verificado (`long_run.py kill --root C:\sp-runs\L-guardptr`).
@@ -331,18 +347,27 @@ la de 60, el techo.
    `prereg.sha256` (sha256 sobre este fichero, cada fichero del instrumento, `SEALED`, las fuentes
    del paquete y el lanzador con sus valores locales como marcadores). El commit de sello es hijo
    único de `<SEAL>`, añade esos dos ficheros y nada más, y nombra `<SEAL>` en su mensaje.
-3. **En código, antes de gastar** (`long_launch.py` → `guardptr_seal.require_seal`): HEAD es el
-   commit de sello (el último que tocó `prereg.sha256`, un solo padre, solo los ficheros del
-   sello), el árbol está limpio, el sello coincide, la copia del lanzador que corrió
+3. **En código, antes de gastar** (`long_launch.py` → `guardptr_seal.require_seal`, y otra vez
+   el runner, `long_run.seal_refusal`, así que `long_run.py run --profile guardptr` solo se niega):
+   HEAD es el commit de sello (el último que tocó `prereg.sha256`, un solo padre, solo los ficheros
+   del sello), el árbol está limpio, el sello coincide, la copia del lanzador que corrió
    (`ADOPT_LAUNCHER`, que pone el propio lanzador; un nombre que ningún filtro de entorno quita) es
    la sellada salvo sus valores locales, y el `<SEAL>` dado es el padre de HEAD. HEAD queda en
-   `launch.status` y en `launch.log`.
+   `launch.status` y en `launch.log`. **Qué se sella** (`guardptr_seal.sealed`): lo que la tanda
+   ejecuta y todos los módulos del repositorio que eso importa, arriba o dentro de una función,
+   por nombre o por cadena (`_optional`), sacados de su código (`imports_closure`; un test lo
+   contrasta con lo que Python carga de verdad); los manifiestos de las cinco cadenas,
+   `power.json`, `pyproject.toml` y todo `src/`.
 4. Gratis: `python benchmarks\adopt\freeze.py <SEAL>`; `long_launch.py plan guardptr`; los tests de
    la sección 14; Docker arriba, sin `LIMIT.flag`, sin reinicio pendiente; preguntar qué otras
    sesiones gastan suscripción (límite semanal compartido).
 5. `git worktree add --detach ..\sanchopanza-guardptr <commit de sello>`; copiar
-   `guard-pointers-run.cmd` a la raíz de la tanda y rellenar allí `PY` y `WT` (el fichero
-   seguido solo lleva marcadores).
+   `guard-pointers-run.cmd` a la raíz de la tanda y rellenar allí **`PY`, `SANCHOPANZA_KEYS_ENV` y
+   `WT`** (el fichero seguido solo lleva marcadores). `SANCHOPANZA_KEYS_ENV` nombra el `.env` que
+   guarda `CLAUDE_CODE_OAUTH_TOKEN`, el token de la suscripción: un lanzamiento por WMI no recibe
+   variables de la ventana. El lanzador real se niega con el marcador sin rellenar; el token se lee
+   dentro del proceso y nunca se imprime (probado en seco con un fichero de claves falso nombrado
+   en la copia, sin el token en el entorno).
 6. Humo: la copia rellenada con `<SEAL> smoke` por WMI (`Win32_Process.Create`, `CreateFlags
    512`); leerlo a mano (sección 12).
 7. Tanda: la copia rellenada con `<SEAL>`, por WMI, a las 08:05; PIDs en `launch.json`; avisar a
@@ -368,3 +393,16 @@ dato:
    de cada cadena (sección 10); las cadenas son las del replay (sección 13); los dos estimandos
    (sección 6); el lanzador seguido sin rutas locales y con fin de línea CRLF
    (`.gitattributes`).
+
+Segunda pasada, sobre 89dcfce: un bloqueo y tres "debe", más "conviene":
+
+1. **Bloqueo: el token no llegaba al runner** por el camino real. El lanzador lleva ahora
+   `set "SANCHOPANZA_KEYS_ENV=<KEYS_ENV_PATH>"`, se niega sin rellenarlo, y el sello lo lee como
+   valor local; test por `cmd.exe` con el token solo en el fichero de claves.
+2. **Lo sellado se saca de las importaciones** (faltaban `masking`, `related`, `chains`,
+   `carry_s`, `rules`, `scenes*`, ficheros no Python de `src/` y `pyproject.toml`), con un test que
+   falla si un módulo importado no está sellado.
+3. **Llamadas cortadas** declaradas (sección 2) y publicadas por brazo.
+4. Además: la regla con cotas sin redondear; el prefijo en la primera llamada que corrió; la copia
+   congelada contrastada con el manifiesto y `pip freeze` en el log; el runner comprueba el sello
+   él mismo; la hora también antes de cada llamada (`clock`).
