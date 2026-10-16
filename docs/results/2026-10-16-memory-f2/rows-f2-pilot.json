@@ -1,0 +1,1286 @@
+[
+ {
+  "scene": "h_batch",
+  "model": "sonnet",
+  "arm": "N0",
+  "repeat": 0,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": false,
+  "fact_pass": false,
+  "decision_pass": false,
+  "intact_pass": true,
+  "kept_all": false,
+  "cost": 0.089258,
+  "tokens": {
+   "input": 12,
+   "output": 1593,
+   "cache_read": 122762,
+   "cache_write": 12188
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "folder": "t00-a",
+  "given": 0,
+  "native_after_1": 0,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.046846399999999996,
+    "turns": 3,
+    "tools": 2,
+    "seconds": 22.9,
+    "tokens": {
+     "input": 6,
+     "output": 778,
+     "cache_read": 60512,
+     "cache_write": 6738
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21965,
+    "last_prompt": 22923,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 0
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.042412,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 21.1,
+    "tokens": {
+     "input": 6,
+     "output": 815,
+     "cache_read": 62250,
+     "cache_write": 5450
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21721,
+    "last_prompt": 23376,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 0
+   }
+  ]
+ },
+ {
+  "scene": "h_batch",
+  "model": "sonnet",
+  "arm": "H",
+  "repeat": 0,
+  "planned": [
+   "session 1: first",
+   "handoff: claude -p --resume <session 1 id> 'Give me a prompt to continue this work in a clean session.'",
+   "session 2: handoff.txt"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.198338,
+  "tokens": {
+   "input": 18,
+   "output": 3712,
+   "cache_read": 193039,
+   "cache_write": 15458
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "pasted_verbatim": true,
+  "folder": "t00-b",
+  "given": 0,
+  "native_after_1": 0,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.060742199999999996,
+    "turns": 7,
+    "tools": 6,
+    "seconds": 24.6,
+    "tokens": {
+     "input": 10,
+     "output": 1065,
+     "cache_read": 105981,
+     "cache_write": 7219
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21965,
+    "last_prompt": 23404,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 0
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.06426119999999999,
+    "turns": 8,
+    "tools": 7,
+    "seconds": 26.7,
+    "tokens": {
+     "input": 6,
+     "output": 1979,
+     "cache_read": 63656,
+     "cache_write": 7932
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22336,
+    "last_prompt": 25858,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 0
+   }
+  ],
+  "handoff": {
+   "returncode": 0,
+   "subtype": "success",
+   "cost": 0.0733346,
+   "cost_reported": true,
+   "context_carried": true,
+   "same_session": true,
+   "first_prompt": 23711,
+   "tokens": {
+    "input": 2,
+    "output": 668,
+    "cache_read": 23402,
+    "cache_write": 307
+   },
+   "seconds": 9.9,
+   "tools": 0,
+   "chars": 1785,
+   "names": {
+    "C": true,
+    "D": true
+   }
+  }
+ },
+ {
+  "scene": "h_batch",
+  "model": "sonnet",
+  "arm": "S",
+  "repeat": 0,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.180692,
+  "jev_usd": 0.000256,
+  "jev_decisions": 8,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 14,
+   "output": 2365,
+   "cache_read": 138729,
+   "cache_write": 32317
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "folder": "t00-c",
+  "given": 1,
+  "native_after_1": 0,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1210686,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 30.5,
+    "tokens": {
+     "input": 8,
+     "output": 897,
+     "cache_read": 70933,
+     "cache_write": 24474
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23314,
+    "last_prompt": 24476,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 1,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 0
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.0596232,
+    "turns": 6,
+    "tools": 5,
+    "seconds": 26.8,
+    "tokens": {
+     "input": 6,
+     "output": 1468,
+     "cache_read": 67796,
+     "cache_write": 7843
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 24192,
+    "last_prompt": 26194,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 1,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 0
+   }
+  ]
+ },
+ {
+  "scene": "h_spanish",
+  "model": "sonnet",
+  "arm": "H",
+  "repeat": 0,
+  "planned": [
+   "session 1: first",
+   "handoff: claude -p --resume <session 1 id> 'Give me a prompt to continue this work in a clean session.'",
+   "session 2: handoff.txt"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.213144,
+  "tokens": {
+   "input": 18,
+   "output": 4844,
+   "cache_read": 194768,
+   "cache_write": 17099
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "pasted_verbatim": true,
+  "folder": "t01-a",
+  "given": 0,
+  "native_after_1": 0,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.0573186,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 27.6,
+    "tokens": {
+     "input": 8,
+     "output": 1106,
+     "cache_read": 82733,
+     "cache_write": 7424
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21950,
+    "last_prompt": 23609,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 0
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.08480560000000001,
+    "turns": 6,
+    "tools": 5,
+    "seconds": 30.9,
+    "tokens": {
+     "input": 8,
+     "output": 2998,
+     "cache_read": 88428,
+     "cache_write": 9281
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22391,
+    "last_prompt": 27207,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 0
+   }
+  ],
+  "handoff": {
+   "returncode": 0,
+   "subtype": "success",
+   "cost": 0.07102,
+   "cost_reported": true,
+   "context_carried": true,
+   "same_session": true,
+   "first_prompt": 24003,
+   "tokens": {
+    "input": 2,
+    "output": 740,
+    "cache_read": 23607,
+    "cache_write": 394
+   },
+   "seconds": 11.6,
+   "tools": 0,
+   "chars": 1988,
+   "names": {
+    "C": true,
+    "D": true
+   }
+  }
+ },
+ {
+  "scene": "h_spanish",
+  "model": "sonnet",
+  "arm": "S",
+  "repeat": 0,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.127029,
+  "jev_usd": 0.000255,
+  "jev_decisions": 8,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 14,
+   "output": 2843,
+   "cache_read": 155455,
+   "cache_write": 16870
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "folder": "t01-c",
+  "given": 1,
+  "native_after_1": 0,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.060889399999999996,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 28.5,
+    "tokens": {
+     "input": 8,
+     "output": 1135,
+     "cache_read": 87937,
+     "cache_write": 7984
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23268,
+    "last_prompt": 24594,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 1,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 0
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.06613959999999999,
+    "turns": 6,
+    "tools": 5,
+    "seconds": 26.6,
+    "tokens": {
+     "input": 6,
+     "output": 1708,
+     "cache_read": 67518,
+     "cache_write": 8886
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 24135,
+    "last_prompt": 27237,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 1,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 0
+   }
+  ]
+ },
+ {
+  "scene": "h_spanish",
+  "model": "sonnet",
+  "arm": "N0",
+  "repeat": 0,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": false,
+  "fact_pass": false,
+  "decision_pass": false,
+  "intact_pass": true,
+  "kept_all": false,
+  "cost": 0.101049,
+  "tokens": {
+   "input": 14,
+   "output": 2046,
+   "cache_read": 144863,
+   "cache_write": 12897
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "folder": "t01-b",
+  "given": 0,
+  "native_after_1": 0,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.0624508,
+    "turns": 7,
+    "tools": 6,
+    "seconds": 24.1,
+    "tokens": {
+     "input": 8,
+     "output": 1456,
+     "cache_read": 82974,
+     "cache_write": 7820
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21953,
+    "last_prompt": 24005,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 0
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.0385978,
+    "turns": 3,
+    "tools": 2,
+    "seconds": 18.7,
+    "tokens": {
+     "input": 6,
+     "output": 590,
+     "cache_read": 61889,
+     "cache_write": 5077
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21719,
+    "last_prompt": 23003,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 0
+   }
+  ]
+ },
+ {
+  "scene": "h_nomutate",
+  "model": "sonnet",
+  "arm": "S",
+  "repeat": 0,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.115686,
+  "jev_usd": 0.000254,
+  "jev_decisions": 8,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 14,
+   "output": 2374,
+   "cache_read": 153872,
+   "cache_write": 15286
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "folder": "t02-b",
+  "given": 1,
+  "native_after_1": 0,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.062338199999999996,
+    "turns": 7,
+    "tools": 6,
+    "seconds": 25.3,
+    "tokens": {
+     "input": 8,
+     "output": 1212,
+     "cache_read": 87111,
+     "cache_write": 8195
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23295,
+    "last_prompt": 24805,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 1,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 0
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.0533482,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 23.1,
+    "tokens": {
+     "input": 6,
+     "output": 1162,
+     "cache_read": 66761,
+     "cache_write": 7091
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23815,
+    "last_prompt": 25442,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 1,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 0
+   }
+  ]
+ },
+ {
+  "scene": "h_nomutate",
+  "model": "sonnet",
+  "arm": "N0",
+  "repeat": 0,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": false,
+  "fact_pass": false,
+  "decision_pass": false,
+  "intact_pass": true,
+  "kept_all": false,
+  "cost": 0.095728,
+  "tokens": {
+   "input": 14,
+   "output": 1732,
+   "cache_read": 144638,
+   "cache_write": 12363
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "folder": "t02-a",
+  "given": 0,
+  "native_after_1": 0,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.0553878,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 22.3,
+    "tokens": {
+     "input": 8,
+     "output": 942,
+     "cache_read": 82679,
+     "cache_write": 7354
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21958,
+    "last_prompt": 23539,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 0
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.040339799999999995,
+    "turns": 3,
+    "tools": 2,
+    "seconds": 20.2,
+    "tokens": {
+     "input": 6,
+     "output": 790,
+     "cache_read": 61959,
+     "cache_write": 5009
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21723,
+    "last_prompt": 22935,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 0
+   }
+  ]
+ },
+ {
+  "scene": "h_nomutate",
+  "model": "sonnet",
+  "arm": "H",
+  "repeat": 0,
+  "planned": [
+   "session 1: first",
+   "handoff: claude -p --resume <session 1 id> 'Give me a prompt to continue this work in a clean session.'",
+   "session 2: handoff.txt"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.22194,
+  "tokens": {
+   "input": 20,
+   "output": 4110,
+   "cache_read": 218205,
+   "cache_write": 15954
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "pasted_verbatim": true,
+  "folder": "t02-c",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.07334280000000001,
+    "turns": 9,
+    "tools": 8,
+    "seconds": 28.8,
+    "tokens": {
+     "input": 10,
+     "output": 1890,
+     "cache_read": 106254,
+     "cache_write": 8293
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21958,
+    "last_prompt": 24478,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.063685,
+    "turns": 6,
+    "tools": 5,
+    "seconds": 24.1,
+    "tokens": {
+     "input": 8,
+     "output": 1745,
+     "cache_read": 87475,
+     "cache_write": 7181
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22396,
+    "last_prompt": 25107,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ],
+  "handoff": {
+   "returncode": 0,
+   "subtype": "success",
+   "cost": 0.08491200000000002,
+   "cost_reported": true,
+   "context_carried": true,
+   "same_session": true,
+   "first_prompt": 24958,
+   "tokens": {
+    "input": 2,
+    "output": 475,
+    "cache_read": 24476,
+    "cache_write": 480
+   },
+   "seconds": 8.9,
+   "tools": 0,
+   "chars": 1296,
+   "names": {
+    "C": true,
+    "D": true
+   }
+  }
+ },
+ {
+  "scene": "h_weeks",
+  "model": "sonnet",
+  "arm": "N0",
+  "repeat": 0,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": false,
+  "fact_pass": false,
+  "decision_pass": false,
+  "intact_pass": true,
+  "kept_all": false,
+  "cost": 0.093859,
+  "tokens": {
+   "input": 14,
+   "output": 1597,
+   "cache_read": 145047,
+   "cache_write": 12213
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "folder": "t03-c",
+  "given": 0,
+  "native_after_1": 0,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.0530894,
+    "turns": 6,
+    "tools": 5,
+    "seconds": 22.6,
+    "tokens": {
+     "input": 8,
+     "output": 877,
+     "cache_read": 82897,
+     "cache_write": 6931
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21907,
+    "last_prompt": 23116,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 0
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.04077,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 15.8,
+    "tokens": {
+     "input": 6,
+     "output": 720,
+     "cache_read": 62150,
+     "cache_write": 5282
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21724,
+    "last_prompt": 23208,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 0
+   }
+  ]
+ },
+ {
+  "scene": "h_weeks",
+  "model": "sonnet",
+  "arm": "H",
+  "repeat": 0,
+  "planned": [
+   "session 1: first",
+   "handoff: claude -p --resume <session 1 id> 'Give me a prompt to continue this work in a clean session.'",
+   "session 2: handoff.txt"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.18889,
+  "tokens": {
+   "input": 18,
+   "output": 3956,
+   "cache_read": 192579,
+   "cache_write": 14425
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "pasted_verbatim": true,
+  "folder": "t03-a",
+  "given": 0,
+  "native_after_1": 0,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.0530786,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 21.5,
+    "tokens": {
+     "input": 8,
+     "output": 808,
+     "cache_read": 82593,
+     "cache_write": 7116
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21905,
+    "last_prompt": 23301,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 0
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.0666326,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 29.7,
+    "tokens": {
+     "input": 6,
+     "output": 2625,
+     "cache_read": 63153,
+     "cache_write": 6935
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22156,
+    "last_prompt": 24861,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 0
+   }
+  ],
+  "handoff": {
+   "returncode": 0,
+   "subtype": "success",
+   "cost": 0.0691792,
+   "cost_reported": true,
+   "context_carried": true,
+   "same_session": true,
+   "first_prompt": 23536,
+   "tokens": {
+    "input": 4,
+    "output": 523,
+    "cache_read": 46833,
+    "cache_write": 374
+   },
+   "seconds": 13.7,
+   "tools": 1,
+   "chars": 1191,
+   "names": {
+    "C": true,
+    "D": true
+   }
+  }
+ },
+ {
+  "scene": "h_weeks",
+  "model": "sonnet",
+  "arm": "S",
+  "repeat": 0,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.113125,
+  "jev_usd": 0.000246,
+  "jev_decisions": 8,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 14,
+   "output": 2153,
+   "cache_read": 153734,
+   "cache_write": 15205
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "folder": "t03-b",
+  "given": 1,
+  "native_after_1": 0,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.056801,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 25.6,
+    "tokens": {
+     "input": 8,
+     "output": 740,
+     "cache_read": 87045,
+     "cache_write": 7994
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23236,
+    "last_prompt": 24604,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 1,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 0
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.0563238,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 25.3,
+    "tokens": {
+     "input": 6,
+     "output": 1413,
+     "cache_read": 66689,
+     "cache_write": 7211
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23814,
+    "last_prompt": 25562,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-sonnet-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 1,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 0
+   }
+  ]
+ }
+]
