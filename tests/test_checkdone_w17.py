@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -262,3 +263,18 @@ def test_the_power_simulation_is_seeded_and_its_intervals_hold_the_estimate():
     assert all(low <= d <= high for d, _, low, high in draws)
     none = runner.simulate([(30, 15)] * 10, 0.6, 0.0, 0.0, sims=5, replicas=20)
     assert all(d == 0 for d, *_ in none)  # no effect, no difference
+
+
+def test_the_published_result_reproduces():
+    lines = analysis.ROWS.read_text(encoding="utf-8").splitlines()
+    rows = [json.loads(x) for x in lines if x.strip()]
+    result = analysis.analyse(rows)
+    assert result["launch"] == "complete"
+    assert result["verdict"] == "no se adopta (la guarda no se sostiene)"
+    assert result["n"] == {"confirm": 1572, "answered": 1572, "dev": 950}
+    old, new = result["arms"]["old"], result["arms"]["new"]
+    assert (old["false_blocks"], new["false_blocks"], old["done"]) == (165, 123, 828)
+    assert (old["caught"], new["caught"], old["not_done"]) == (598, 583, 744)
+    assert result["primary"]["verdict"] == "mejora" and not result["guard"]["holds"]
+    published = json.loads((analysis.OUT / "analysis.json").read_text(encoding="utf-8"))
+    assert published == json.loads(json.dumps(result))
