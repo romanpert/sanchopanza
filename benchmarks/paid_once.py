@@ -67,6 +67,12 @@ class Lot:
     instrument: tuple[str, ...]  # repo paths that must be as the instrument commit has them
     inputs: tuple[tuple[Path, str], ...] = field(default=())  # (file, raw sha256)
     home: Path = field(default_factory=lambda: Path.home() / ".cache" / "sanchopanza")
+    price_per_mtok: float = DEFAULT_PRICE_PER_MTOK  # what the estimates and reservations use
+    model_prefix: bool = False  # True: a served snapshot `<model>-<suffix>` counts as the model
+
+    def serves(self, model: str) -> bool:
+        """Whether an answer from `model` is the lot's model."""
+        return model == self.model or (self.model_prefix and model.startswith(self.model + "-"))
 
     @property
     def run_dir(self) -> Path:
@@ -242,7 +248,7 @@ def recorded(lot: Lot) -> RecordedDecider:
     if not lot.fixture.exists():
         return RecordedDecider(())
     lines = [json.loads(x) for x in lot.fixture.read_text(encoding="utf-8").splitlines() if x]
-    return RecordedDecider([e for e in lines if e.get("model") == lot.model])
+    return RecordedDecider([e for e in lines if lot.serves(str(e.get("model") or ""))])
 
 
 async def _missing(queries: Sequence[Query], lot: Lot) -> list[Query]:
@@ -261,9 +267,7 @@ def spent(lot: Lot) -> float:
 
 def plan(queries: Sequence[Query], lot: Lot) -> dict[str, Any]:
     missing = asyncio.run(_missing(queries, lot))
-    pessimistic = sum(
-        estimate_usd(s, q, price_per_mtok=DEFAULT_PRICE_PER_MTOK) for _, s, q in missing
-    )
+    pessimistic = sum(estimate_usd(s, q, price_per_mtok=lot.price_per_mtok) for _, s, q in missing)
     return {
         "calls": len(queries),
         "recorded": len(queries) - len(missing),
@@ -286,20 +290,20 @@ def require_room(plan_: dict[str, Any], cap_usd: float) -> None:
         raise SystemExit(f"{total:.4f} USD (spent + estimate) does not fit under {cap_usd}")
 
 
-def load_key() -> None:
-    """TYPESAFE_API_KEY into this process from the file SANCHOPANZA_KEYS_ENV names, if unset.
+def load_key(variable: str = "TYPESAFE_API_KEY") -> None:
+    """`variable` into this process from the file SANCHOPANZA_KEYS_ENV names, if unset.
     The value is never printed; a missing file or line is a refusal."""
-    if os.environ.get("TYPESAFE_API_KEY"):
+    if os.environ.get(variable):
         return
     named = os.environ.get("SANCHOPANZA_KEYS_ENV", "")
     if not named or not Path(named).is_file():
-        raise SystemExit("TYPESAFE_API_KEY unset and SANCHOPANZA_KEYS_ENV names no file")
+        raise SystemExit(f"{variable} unset and SANCHOPANZA_KEYS_ENV names no file")
     for line in Path(named).read_text(encoding="utf-8").splitlines():
         name, _, value = line.strip().partition("=")
-        if name.strip() == "TYPESAFE_API_KEY" and value.strip():
-            os.environ["TYPESAFE_API_KEY"] = value.strip().strip('"').strip("'")
+        if name.strip() == variable and value.strip():
+            os.environ[variable] = value.strip().strip('"').strip("'")
             return
-    raise SystemExit("no TYPESAFE_API_KEY line in the file SANCHOPANZA_KEYS_ENV names")
+    raise SystemExit(f"no {variable} line in the file SANCHOPANZA_KEYS_ENV names")
 
 
 def jev_live(model: str) -> Any:  # pragma: no cover - builds the real client
@@ -317,6 +321,7 @@ async def ask_missing(queries: Sequence[Query], lot: Lot, *, live: Any) -> dict[
         ledger=SpendLedger(lot.ledger, cap_usd=lot.cap_usd),
         batch=lot.name,
         max_usd=lot.cap_usd,
+        price_per_mtok=lot.price_per_mtok,
     )
     recorder = RecordingDecider(capped, lot.fixture)
     asked, spent = 0, 0.0
@@ -334,7 +339,7 @@ async def ask_missing(queries: Sequence[Query], lot: Lot, *, live: Any) -> dict[
         spent += decision.cost_usd
         if decision.failed or not decision.answers:
             return out(f"failed or empty answer: {str(decision.error)[:200]}")
-        if decision.model != lot.model:
+        if not lot.serves(decision.model):
             return out(f"model moved: {decision.model} != {lot.model}")
     return out(None)
 
