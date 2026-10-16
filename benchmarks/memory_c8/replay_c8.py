@@ -55,7 +55,8 @@ def main(argv: list[str] | None = None) -> int:
     }
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(result, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    text = json.dumps(result, indent=1, ensure_ascii=False) + "\n"
+    out.write_text(text, encoding="utf-8", newline="\n")
     print(json.dumps(brief(result), indent=1, ensure_ascii=False))
     return 0
 
