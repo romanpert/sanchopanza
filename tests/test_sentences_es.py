@@ -120,10 +120,66 @@ def test_spanish_numbers_etc_and_acronyms(text, expected):
     assert split_sentences(text) == expected
 
 
+ZWSP = "\u200b"
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        # Spanish Wikipedia: a zero-width space after the footnote, the mark itself dropped
+        (
+            f"Fue fundada en 1900.{ZWSP} Después creció.",
+            [f"Fue fundada en 1900.{ZWSP}", "Después creció."],
+        ),
+        # ... or kept: "[12]" and the zero-width space between the dot and the next sentence
+        (
+            f"Fue fundada en 1900.[12]{ZWSP} La ciudad creció.[3][4]{ZWSP} Él llegó después.",
+            [
+                f"Fue fundada en 1900.[12]{ZWSP}",
+                f"La ciudad creció.[3][4]{ZWSP}",
+                "Él llegó después.",
+            ],
+        ),
+        # the mark before the dot
+        (
+            f"Fue fundada en 1900[12].{ZWSP} ¿Quién la fundó?",
+            [f"Fue fundada en 1900[12].{ZWSP}", "¿Quién la fundó?"],
+        ),
+        # no space at all, or the zero-width space after it
+        (f"Fin en 2009.{ZWSP}Después vino otra.", [f"Fin en 2009.{ZWSP}", "Después vino otra."]),
+        (f"Fin en 2009. {ZWSP}Después vino otra.", ["Fin en 2009.", f"{ZWSP}Después vino otra."]),
+        # a held abbreviation still holds, and the merge puts back what the cut took
+        (
+            f"Habló la Sra.{ZWSP}Gómez. Fin.[1]{ZWSP} Otra.",
+            [f"Habló la Sra.{ZWSP}Gómez.", f"Fin.[1]{ZWSP}", "Otra."],
+        ),
+        # no cut without an end mark, or before a lower-case word
+        (f"Uno{ZWSP} Dos.", [f"Uno{ZWSP} Dos."]),
+        (f"Fin.[1]{ZWSP} y sigue.", [f"Fin.[1]{ZWSP} y sigue."]),
+    ],
+)
+def test_a_zero_width_character_or_a_footnote_mark_after_the_end_does_not_hide_the_cut(
+    text, expected
+):
+    assert split_sentences(text) == expected
+
+
+@pytest.mark.parametrize("mark", ["\u200b", "\u200c", "\u200d", "\u2060", "\ufeff"])
+def test_every_zero_width_character_is_transparent_and_kept(mark):
+    assert split_sentences(f"Fin en 2009.[20]{mark} Después vino otra.") == [
+        f"Fin en 2009.[20]{mark}",
+        "Después vino otra.",
+    ]
+
+
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
         ("One. Two!  Three? 4 more. (a) b.", ["One.", "Two!", "Three?", "4 more.", "(a) b."]),
+        # a footnote mark with no zero-width character is left as it was
+        ("It won in 2009.[12] Then it closed.", ["It won in 2009.[12] Then it closed."]),
+        ("It won in 2009. [12] Then it closed.", ["It won in 2009.", "[12] Then it closed."]),
+        ("A.[1]B c.", ["A.[1]B c."]),
         # "Sr." after a name is the English suffix, and it still ends a sentence there
         (
             "The airport is named after Ben Douglas, Sr. The name stuck.",

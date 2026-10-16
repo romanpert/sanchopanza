@@ -67,7 +67,20 @@ JACCARD_REPEAT = 0.7
 # sentence with an accented capital (`À-Ö`, `Ø-Þ`: Á É Í Ó Ú Ñ Ü...), `¿`, `¡` or `«`; none of
 # them changed a split over QASPER, HotpotQA or any string in `fixtures/` (CHANGELOG).
 # Quotes are left out: English text has `. "` and a cut there would change its sentences.
-SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9(\[À-ÖØ-Þ¿¡«])")
+_OPENS = r"A-Z0-9(\[À-ÖØ-Þ¿¡«"
+SENTENCE_BREAK = re.compile(rf"(?<=[.!?])\s+(?=[{_OPENS}])")
+
+# Zero-width characters are not whitespace to `\s`, and Spanish Wikipedia writes a zero-width
+# space after every footnote mark (58 % of its paragraphs on the B6 bench): "1900.[12]\u200b La".
+# Where one stands between an end mark and the next sentence, it and the footnote marks before
+# it are transparent to the cut and stay in the text, on the side they were written. A text
+# with none splits exactly as before (`SENTENCE_BREAK`), and so does a footnote mark alone:
+# English "2009.[12] Then" is still one piece. `[n. 3]` is no mark here: its `. 3` is a cut.
+ZERO_WIDTH = "\u200b\u200c\u200d\u2060\ufeff"
+_FOOTNOTE = r"\[(?:\d{1,3}|nota \d{1,3})\]"
+_HIDDEN_BREAK = re.compile(
+    rf"[.!?](?P<tail>(?:{_FOOTNOTE}|[{ZERO_WIDTH}])*)(?P<gap>[\s{ZERO_WIDTH}]*)(?=[{_OPENS}])"
+)
 
 # Spanish abbreviations a capital follows without a new sentence: titles before a name, "p. ej.",
 # page and number references, "EE. UU.". None is an English word; "Sr" is held only where it is
@@ -88,18 +101,41 @@ def _holds(piece: str) -> bool:
     return not before or not (before[-1][0].isupper() or before[-1].endswith(","))
 
 
+def _pieces(flat: str) -> list[tuple[str, str]]:
+    """`(separator, piece)` at each cut of collapsed text; the separator is what the cut took
+    (one space, or nothing between a zero-width character and a capital)."""
+    if not any(c in flat for c in ZERO_WIDTH):
+        parts = SENTENCE_BREAK.split(flat)
+        return [("" if i == 0 else " ", part) for i, part in enumerate(parts)]
+    out: list[tuple[str, str]] = []
+    start, sep = 0, ""
+    for m in _HIDDEN_BREAK.finditer(flat):
+        tail, gap = m["tail"], m["gap"]
+        hidden = any(c in ZERO_WIDTH for c in tail + gap)
+        if not hidden and (tail or not gap):  # what SENTENCE_BREAK would not cut either
+            continue
+        rest = gap.lstrip(ZERO_WIDTH)  # zero-width characters right after the end stay with it
+        left = m.end("gap") - len(rest)
+        right = left + len(rest) - len(rest.lstrip(" "))
+        out.append((sep, flat[start:left]))
+        sep, start = flat[left:right], right
+    out.append((sep, flat[start:]))
+    return out
+
+
 def split_sentences(text: str) -> list[str]:
     """Sentences of a paragraph, whitespace collapsed; nothing clever, and that is measured.
 
     A cut right after a held Spanish abbreviation (`_holds`) is undone: "el Sr. Pérez" is one
-    sentence. English with no accented capital splits exactly as before."""
+    sentence. Zero-width characters after the end mark do not hide the cut and are kept.
+    English with no accented capital and no zero-width character splits exactly as before."""
     flat = re.sub(r"\s+", " ", text or "").strip()
     out: list[str] = []
-    for part in SENTENCE_BREAK.split(flat) if flat else []:
+    for sep, part in _pieces(flat) if flat else []:
         if not part:
             continue
-        if out and _holds(out[-1]):
-            out[-1] = f"{out[-1]} {part}"  # the cut was a single collapsed space
+        if out and _holds(out[-1].rstrip(ZERO_WIDTH)):
+            out[-1] = f"{out[-1]}{sep}{part}"  # put back what the cut took
         else:
             out.append(part)
     return out

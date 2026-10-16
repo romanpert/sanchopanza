@@ -15,6 +15,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any, Literal
 
+from ..catalog import tag
 from ..contract import Choice, Decision, Question, Truth
 from ..policy import Thresholds, probability
 from ..text import truncate
@@ -58,7 +59,7 @@ def alignment_questions(
             },
         )
     }
-    return state, qs
+    return state, tag("entity", qs)
 
 
 def decide_alignment(decision: Decision, t: Thresholds) -> tuple[bool | None, float]:
@@ -117,7 +118,7 @@ def fact_questions(
             },
         )
     }
-    return state, qs
+    return state, tag("facts", qs, variant="examples" if unrelated_examples else "")
 
 
 def decide_facts(
@@ -164,7 +165,7 @@ def classification_questions(
             opts,
         )
     }
-    return state, qs
+    return state, tag("classify", qs)
 
 
 def decide_classification(

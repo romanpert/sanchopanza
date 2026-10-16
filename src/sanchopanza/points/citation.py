@@ -14,6 +14,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any, Literal
 
+from ..catalog import tag
 from ..contract import Choice, Decision, Question
 from ..policy import Thresholds
 from ..text import truncate
@@ -49,7 +50,7 @@ def questions(claim: str, section: str) -> tuple[Mapping[str, Any], dict[str, Qu
             },
         )
     }
-    return state, qs
+    return state, tag("citation", qs)
 
 
 def decide(decision: Decision, t: Thresholds, *, quote_found: bool) -> tuple[Verdict, float]:
