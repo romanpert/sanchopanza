@@ -5,13 +5,26 @@ benchmarks/passage_fit/free_confirm_b.py seal`; it holds the sha256 of this file
 `c5b-free-run.cmd`, its two local values read as placeholders.
 Instrument commit: `3386caa7efb280fe7046bf0b89a783805deb90c3`.
 
+**Lineage.** The seal commit is a descendant of 3386caa on this branch, with no merge of `main`
+(`main` changed 36 files under `src/` since, and the instrument check would refuse). The lot is
+launched from a `git worktree add --detach` at that seal commit.
+
 This prereg lists what differs from C5's sealed prereg (`docs/results/2026-10-16-c5-free/prereg.md`,
 sha256 `8b22ed29…`, sealed in `3a201f0`). Everything it does not change is C5's, word for word:
 - the option under test, `select_passages(fit_chars=3400, fit_score=False)`;
 - the arms (PAGE, FREE, BM25, GOLD), the budget B = 3,400 and the population;
 - the metric, the cluster bootstrap over papers, and the unrounded bound;
 - rules 0-4 and what each licenses;
-- the launch and relaunch rules, and the stops.
+- the launch and relaunch rules, and the stops;
+- the model, `jev-1.13.0` (`b6_run.MODEL`);
+- the verdict, applied by `free_confirm_b.py report` through C5's `report`.
+
+What follows from the inherited rules, stated here:
+- A 402 mid-run (TypeSafe out of funds) is a stop of kind "funds", which allows no relaunch. With
+  calls unanswered, rule 0 then applies: "no verdict: incomplete". The balance cannot be checked
+  from the session.
+- A "busy" stop (the ledger's lock not had within 5 seconds) on the first launch uses the single
+  relaunch.
 
 ## Why
 
@@ -33,11 +46,14 @@ this package has read.
      `report` refuse another file.
    - **Building:** C5's builder, unchanged: 1,840 questions eligible, 184 not located, 3
      misaligned, 1,653 built.
-   - **The draw** (`free_confirm_b.draw`): papers in an order shuffled with seed 20261019, every
+   - **The draw** (`free_confirm_b.draw`): papers in an order shuffled with seed 20261019 (C5's
+     seed + 1, the first one tried), every
      built question of each, until the count reaches 646 (C5's size). This takes **300 papers
      and 646 questions**.
    - None of these papers is in the validation split (tested). No run of this package has read
      the train split.
+   - The inherited refusal of a wrong parquet still says "validation" in its message. This is
+     cosmetic, left as is to keep the instrument at 3386caa.
 2. **The runner's squire has no cap of its own** (`SQUIRE_CAP_USD = 1e9`) in every action,
    `report` included. The caps are the ledger's. C5's `postdata` action is refused here.
 3. **Lot `c5b-free`:**
@@ -67,10 +83,11 @@ alpha 0.05 two-sided, normal approximation, the chance that rule 1's lower bound
 
 - **Dry run** (`free_confirm_b.py dry`, B6's stub): 646 questions, 7,379 calls (2,255 tournament,
   5,124 sentence), **1.41 USD** pessimistic, 0.77 at the QASPER whole-papers run's ledger rate.
-- **Expected cost:** C5's stub predicted 7,116 calls, and the ledger settled 1.222 USD for 8,202.
-  At that ratio, C5b's expected cost is about **1.2-1.3 USD**.
+- **Expected cost:** C5 settled 0.955 of its dry run's pessimistic estimate (1.222 of 1.284
+  USD). At that ratio C5b's 1.41 gives about 1.35, and train papers' calls are larger, so the
+  expected cost is about **1.3-1.4 USD**, under the 2.00 batch cap.
 - **Caps:** batch cap 2.00 USD on the round's shared ledger. Ledger dollars are each call's
   input tokens x 0.042 USD per million, not TypeSafe's bill. The preflight call is outside the
   ledger. Check the TypeSafe balance by hand before the launch. Claude: 0.
-- **Clock:** about 25 minutes. Launched before 23:00 it ends before midnight. It does not run at
-  the same time as another lot.
+- **Clock:** about 25 minutes. It is attended and launched before midnight; the launcher refuses
+  to start between 00:00 and 08:00. It does not run at the same time as another lot.
