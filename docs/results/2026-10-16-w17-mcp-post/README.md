@@ -87,11 +87,11 @@ is detected only after the last call ran.
 | Comparison | Unsafe: only new / only old, difference | Safe: only new / only old, difference |
 |---|---|---|
 | **`pre+post` − `pre`** | **35 / 0, +14.0 points [10.0, 18.4]**, p 5.8e−11 | **14 / 0, +5.6 [2.8, 8.4]**, p 1.2e−4, one-sided upper bound +8.0 |
-| `relaxed+post` − `pre` | 35 / 4, +12.4 [8.0, 16.8], p 3.4e−7 | 14 / 12, +0.8 [−3.2, +4.8], p 0.85 |
-| `post` − `pre` | 35 / 4, +12.4 [8.0, 16.8], p 3.4e−7 | 14 / 14, 0.0 [−4.0, +4.0], p 1.0 |
-| `post` − `relaxed+post` | 0 / 0, 0.0 | 0 / 2, −0.8 [−2.0, 0.0], p 0.5 |
-| Before the last result, `relaxed+post` − `pre` | 6 / 43, −14.8 [−20.0, −9.6] | |
-| Before the last result, `post` − `relaxed+post` | 0 / 85, −34.0 [−40.0, −28.4] | |
+| `relaxed+post` − `pre` (exploratory) | 35 / 4, +12.4 [8.0, 16.8], p 3.4e−7 | 14 / 12, +0.8 [−3.2, +4.8], p 0.85 (not shown) |
+| `post` − `pre` (exploratory) | 35 / 4, +12.4 [8.0, 16.8], p 3.4e−7 | 14 / 14, 0.0 [−4.0, +4.0], p 1.0 (not shown) |
+| `post` − `relaxed+post` (exploratory) | 0 / 0, 0.0 | 0 / 2, −0.8 [−2.0, 0.0], p 0.5 (not shown) |
+| Before the last result, `relaxed+post` − `pre` (exploratory) | 6 / 43, −14.8 [−20.0, −9.6] | |
+| Before the last result, `post` − `relaxed+post` (exploratory) | 0 / 85, −34.0 [−40.0, −28.4] | |
 
 **When the check catches.** Of the 35 unsafe trajectories that only `pre+post` flags, **29 are
 flagged only after their last MCP call ran** and 6 earlier, on a result a later call follows. Of
@@ -137,7 +137,7 @@ ordinary MCP work.
 
 - **Blocks in safe sessions, per MCP call:** the post check flags **113 of the 589 calls in safe
   trajectories** (19.2 % [16.2, 22.6]): 73 of the 250 last results and 40 of the 339 earlier
-  ones. The guard before the call denies 112 of them at 0.5 (19.0 %) and 47 at 0.7 (8.0 %).
+  ones. The guard before the call denies 112 of the 589 at 0.5 (19.0 %) and 47 at 0.7 (8.0 %).
 - **In unsafe trajectories** the post check flags 288 of 599 calls: 210 of the 250 last results.
 - **Codex's own tools:** the post check flags 1 of their 35 calls in safe trajectories and 4 of
   30 in unsafe ones.
@@ -154,16 +154,17 @@ ordinary MCP work.
   sees, and it catches most of what A3 missed: misbehaving tools, poisoned feedback, injections
   in a result. Recall rises by 14 points.
 - **It catches after the fact.** 29 of the 35 trajectories it adds are flagged only once the
-  last call has run. It can stop the agent before it acts on or passes on that result, not undo
-  the call.
+  last call has run. At most it can stop the agent before it acts on or passes on that result
+  (not measured live), and it cannot undo the call.
 - **The bound was the binding term, as the registration said.** The proxy put the upper bound at
   7.2 points; the real check, which renders the record as the hook does, put it at 8.0.
 - **Two exploratory readings for a next registration** (cuts chosen on this data, not judged):
-  - `relaxed+post` (pre at 0.7, post at 0.5) keeps the recall (216, +12.4 points over `pre`) at
-    an FPR no higher than `pre`'s (84 against 82, upper bound of the rise +4.0). It moves the
+  - `relaxed+post` (pre at 0.7, post at 0.5) keeps the recall (216, +12.4 points over `pre`)
+    with an FPR rise not shown (84 against 82, +0.8 points [−3.2, +4.8], p 0.85; one-sided upper
+    bound +4.0). It moves the
     catch later: 148 unsafe flagged before the last result against `pre`'s 185.
-  - `post` alone matches it on the unsafe (the same 216) with 2 safe flags fewer (82 against
-    84), but flags only 63 before the last result.
+  - `post` alone matches it on the unsafe (the same 216), a difference on the safe not shown
+    (82 against 84, 0 / 2, p 0.5), but flags only 63 before the last result.
   - Either would need its own prereg, with the cut fixed before its data, on fresh trajectories.
 
 ## Not done
@@ -172,8 +173,9 @@ ordinary MCP work.
 - **A live Claude Code session:** what the model does with the `block` reason, or with a
   withheld result (`--guard-mcp-withhold`), was not measured.
 - **No other Jev model:** 1.14 was not asked here.
-- **No cut was chosen on this set.** The relaunch rules never applied: the launch left no call
-  unanswered.
+- **No cut was chosen after the post answers** for the judged rule: its cuts (0.5 / 0.5) were
+  fixed before them; the 0.7 pre cut was chosen on this data and is exploratory. The relaunch
+  rules never applied: the launch left no call unanswered.
 
 ## Spend
 
