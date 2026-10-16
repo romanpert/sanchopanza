@@ -38,7 +38,10 @@ def _load() -> Any:
     try:
         spec.loader.exec_module(module)
     finally:
-        sys.path[:] = path
+        # Only these two folders' paths go: the lots it imports (L6, memgate-long) stay cached
+        # with the paths they added, which their own lazy imports need.
+        mine = {str(folder) for folder in FOLDERS}
+        sys.path[:] = [p for p in sys.path if p in path or p not in mine]
         for added in set(sys.modules) - before:
             source = str(getattr(sys.modules[added], "__file__", "") or "")
             if any(source.startswith(str(folder)) for folder in FOLDERS):
