@@ -27,7 +27,7 @@ safe to run, is this page worth reading, is the task really done. Today the same
 that does the work answers each one, at its price, and leaves no record of why. Sanchopanza
 hands those questions to a separate model that cannot write, only answer: a choice or a
 probability, logged. The model sits behind one contract, so it is a provider you choose:
-TypeSafe's Jev, with which every figure here was measured (a median of about 71 millionths of
+TypeSafe's Jev, with which every figure for sanchopanza's own decision points was measured (a median of about 71 millionths of
 a dollar a request), a self-hosted CLM, any LLM forced into a schema, OpenAI's Decisions API
 (an adapter, not measured yet), or your own classifier ([providers](docs/providers.md)). If it
 is missing or unsure, the agent does exactly what it did before.
@@ -40,17 +40,17 @@ developers who build them. You do not need to write code to use it with Claude C
 
 | | Measured | The catch |
 |---|---|---|
-| **Long-document questions for about 30 % less of the frontier model** | On 162 fresh LongBench v2 tasks, pre-registered: Jev answers where it is sure (37 % of the tasks), the frontier model the rest. Against Sonnet 5.5 alone: +1.2 points [−3.1, +5.6], **33.9 % [24.0, 44.0] less** of its cost. Against Opus 5.5 alone: −3.7 points [−8.0, +0.6], **29.5 % [21.7, 37.7] less** of its cost. Both no worse at the −10-point margin fixed beforehand | Four-option multiple choice only, one draw, opt-in (`points.longdoc`). On the tasks Jev took, Opus was right more often than Jev (37 against 31 of 60), so "no worse" is at −10 points, not at zero ([lb162](docs/results/2026-10-15-lb162/README.md), [lb162x](docs/results/2026-10-16-lb162x/README.md)) |
-| **A new session picks up the work without a handoff** | Sonnet 5.5, the default install against clean Claude Code, 12 two-step scenes: a new session started with one line naming the work finished the next step in **48 of 48** triples, against 44 with the pasted handoff ritual and 4 with the line alone, at **0.92x [0.85, 0.95]** the ritual's cost | Synthetic scenes, headless, one model: on Opus 5.5 Claude Code's own auto memory carried the plan in every arm. Against the bare line it costs more (1.23x [1.14, 1.26]), so by the scoreboard's rule it substitutes for the ritual and does not "gana" ([F2](docs/results/2026-10-16-memory-f2/README.md)) |
+| **Long-document questions for about 30 % less of the frontier model** | On 162 fresh LongBench v2 tasks, pre-registered: Jev answers where its top choice reaches 0.6 (37 % of the tasks), the frontier model the rest. Against Sonnet 5.5 alone: +1.2 points [−3.1, +5.6], **33.9 % [24.0, 44.0] less** of its cost. Against Opus 5.5 alone: −3.7 points [−8.0, +0.6], **29.5 % [21.7, 37.7] less** of its cost. Both no worse at the −10-point margin fixed beforehand | Four-option multiple choice only, one draw, opt-in (`points.longdoc`). On the tasks Jev took, Opus was right more often than Jev (37 against 31 of 60), so "no worse" is at −10 points, not at zero ([lb162](docs/results/2026-10-15-lb162/README.md), [lb162x](docs/results/2026-10-16-lb162x/README.md)) |
+| **A new session picks up the work without a handoff** | Sonnet 5.5, the default install against clean Claude Code, 12 two-step scenes: a new session started with one line naming the work finished the next step in **48 of 48** triples, against 44 with the pasted handoff ritual and 4 with the line alone, at **0.92x [0.85, 0.95]** the ritual's cost | Synthetic scenes, headless, one model: on Opus 5.5 Claude Code's own auto memory saved the plan after every first session, in every arm. Against the bare line it costs more (1.23x [1.14, 1.26]), so by the scoreboard's rule it substitutes for the ritual and does not "gana" ([F2](docs/results/2026-10-16-memory-f2/README.md)) |
 | **The same small judgments for a fraction of the price** | Against Claude Opus 5 on the same 211 judgments: **131x cheaper and 10.9x faster**. A thousand decisions cost about **0.03 USD** against **3.72 USD** | Opus is the better judge: 2 more right at a plain 0.5 cut, 4 more under the thresholds shipped. Against Claude Opus 5.5, the same judgments come out even (200 against 199) at about a hundredth of the price ([Opus 5.5](docs/results/2026-09-30-opus55-substitution/)). Only for closed questions, never for the work itself ([substitution](docs/results/2026-09-27-memory-write-cut/fifty/substitution.md)) |
 | **A guard inside Claude Code that stops the dangerous command** | In 144 recorded sessions, the destructive commands plain Claude Code ran 15 of 15 times were stopped **16 of 16** times; planted instructions in a file or a downloaded page were flagged 16 of 16; **0 false alarms** in 93 ordinary events | Two kinds of destructive command, one agent model, 8 repetitions each. It does not judge MCP tool calls unless asked, and the opt-in guard for them is not confirmed ([A3](docs/results/2026-10-16-a3-mcp/README.md)). The agent refused the planted text either way, so the flag was a warning, not a changed answer ([Claude Code](docs/results/2026-09-28-claude-code-broad/)) |
-| **Keeps what Claude Code's summary drops** | With Claude Code's own auto-compaction firing mid-task, a one-shot value (a probe's error code and limit) was lost by the native summary in 6 of 7 sessions. Adding the guard next to the summary: **5 of 7 tasks finished with the free rule, 6 of 7 with the decider cascade, against 2 of 7 with the summary alone**, at lower cost | Haiku 4.5, one family of generated tasks, n = 7, not significant on its own (McNemar p = 0.375); the rule's arm lost a re-readable control value twice more than native ([compaction guard](docs/results/2026-09-29-context-guard/)). On Sonnet 5.5 end to end it added nothing measurable over Claude Code's compaction window alone ([N-early](docs/results/2026-10-07-h2h-ne/)) |
+| **Keeps what Claude Code's summary drops** | With Claude Code's own auto-compaction firing mid-task, a one-shot value (a probe's error code and limit) was lost by the native summary in 6 of 7 sessions. Adding the guard next to the summary: **5 of 7 tasks finished with the free rule (`rule` chooser), 6 of 7 with the decider cascade (`keep`), against 2 of 7 with the summary alone**, at lower cost | The default chooser since 0.3.2, `pointers`, has no end-to-end result yet. Haiku 4.5, one family of generated tasks, n = 7, not significant on its own (McNemar p = 0.375); the rule's arm lost a re-readable control value twice more than native ([compaction guard](docs/results/2026-09-29-context-guard/)). On Sonnet 5.5 end to end it added nothing measurable over Claude Code's compaction window alone ([N-early](docs/results/2026-10-07-h2h-ne/)) |
 | **Less to read, same answers** | Judging which documents one answer needs, with the others in view: **9 of 9** answers kept, against 9 of 9 with everything, at **79.5 % fewer** input tokens | One answering call over a sequence mostly useless by construction, pre-registered; the tenth task was stopped by the cost cap. Inside a free agent loop the saving did not show ([fixed pages](docs/results/2026-09-28-fixed-pages/)) |
 
 **Head to head, it won one measured cell, memory on Sonnet 5.5, now on by default; a second
-memory test on Sonnet 5.5 (F2) met its own sealed positive verdict, and an opt-in router for
-long-document questions saved about 30 % of the frontier model's cost with no loss shown at its
-margin.** Web, code and long code did not win. Claude Code with sanchopanza against clean Claude
+memory test on Sonnet 5.5 (F2) met its own sealed positive verdict.** Web, code and long code
+did not win. Outside the scoreboard, an opt-in router for long-document questions saved about
+30 % of the frontier model's cost, no worse at the −10-point margin fixed beforehand. Claude Code with sanchopanza against clean Claude
 Code, per model and per axis ([final scoreboard](docs/results/2026-10-13-final/)):
 
 - On Sonnet 5.5 the three web suites are "no gana". GAIA: +3.8 points at 1.07x the cost.
@@ -99,7 +99,7 @@ sanchopanza install --write
 The second command writes Claude Code hooks into `~/.claude/settings.json`, keeping every
 hook already there and a backup of the file as it was (`settings.json.bak`); without
 `--write` it only prints what it would change. The decisions need a provider: Jev with a
-TypeSafe key in `TYPESAFE_API_KEY` (what every figure here was measured with), or the one
+TypeSafe key in `TYPESAFE_API_KEY` (what every figure for sanchopanza's own points was measured with), or the one
 `SANCHOPANZA_PROVIDER` names (`clm`, `llm`, `openai-decisions` or an installed plugin). Without
 one, only a short list of destructive commands written in code is still refused, and everything
 else goes through as it did before. By default it guards
@@ -228,7 +228,7 @@ indexes every run, with the main evidence and the negatives apart from the histo
 | It pays | Measured |
 |---|---|
 | **Substituting a check some model was going to make anyway** (verify this citation, match this pair, check this triple) | Against Claude Opus 5 on the same 211 judgments, both arms metered: **131x cheaper and 10.9x faster**, 2 decisions less accurate at a plain 0.5 cut (202 against 204) and 4 under the shipped thresholds (200) ([paper, 5.13](docs/paper.md), [substitution](docs/results/2026-09-27-memory-write-cut/fifty/substitution.md)). Against Claude Opus 5.5 on the same 211: a tie, 200 against 199, at 99x less per judgment ([Opus 5.5](docs/results/2026-09-30-opus55-substitution/)). Against Claude Haiku 4.5 with tool-forced output on 156 cases: **49x cheaper, 3x faster**, comparable accuracy ([paper, 5.6](docs/paper.md)) |
-| **Answering a long document's multiple-choice question where Jev is sure** | On 162 fresh LongBench v2 tasks, pre-registered: Jev 1.14 with its long window answered when its top choice reached 0.6 (37 % of the tasks), Sonnet 5.5 in clean Claude Code 2.1.287 the rest. Against Sonnet alone: **+1.2 points [−3.1, +5.6], no worse** at the −10-point margin fixed beforehand, for **33.9 % [24.0, 44.0]** less of Sonnet's cost, measured. Against Opus 5.5 alone, the same router: −3.7 points [−8.0, +0.6], no worse at −10, for **29.5 % [21.7, 37.7]** less of Opus's cost; there Opus was right more often than Jev on the covered tasks (37 against 31 of 60; McNemar 10 against 4, p 0.18). One draw, multiple choice only ([lb162](docs/results/2026-10-15-lb162/README.md), [lb162x](docs/results/2026-10-16-lb162x/README.md)) |
+| **Answering a long document's multiple-choice question where Jev's top choice reaches 0.6** | On 162 fresh LongBench v2 tasks, pre-registered: Jev 1.14 with its long window answered when its top choice reached 0.6 (37 % of the tasks), Sonnet 5.5 in clean Claude Code 2.1.287 the rest. Against Sonnet alone: **+1.2 points [−3.1, +5.6], no worse** at the −10-point margin fixed beforehand, for **33.9 % [24.0, 44.0]** less of Sonnet's cost, measured. Against Opus 5.5 alone, the same router: −3.7 points [−8.0, +0.6], no worse at −10, for **29.5 % [21.7, 37.7]** less of Opus's cost; there Opus was right more often than Jev on the covered tasks (37 against 31 of 60; McNemar 10 against 4, p 0.18). One draw, multiple choice only ([lb162](docs/results/2026-10-15-lb162/README.md), [lb162x](docs/results/2026-10-16-lb162x/README.md)) |
 | **Cheap guards with a false-alarm rate low enough to leave on** | The injection check raised **0 false alarms on 149 real tool outputs**; the question and a free keyword layer together catch 120 of 124 AgentDojo payloads ([bench](docs/results/2026-09-24-agentdojo/)). Marking flagged content costs 1 task in 42; redacting it costs 65 points of utility under attack; and in front of a model that already refuses the guard buys nothing, since undefended Sonnet 5 was compromised 0 times in 105 ([end to end](docs/results/2026-09-24-agentdojo-e2e/)). A tool window that widens on what the agent reads let 24 of 56 payloads add the attacker's tools without the scan, and 0 of 56 with it ([window](docs/results/2026-09-25-window/)) |
 | **Typed decisions whose confidence can be acted on** | 131 of 132 decisions above 0.75 confidence were right, against 11 of 24 below it. Choice answers are the best calibrated primitive (ECE 0.035, n = 392); Truth answers are under-confident (0.142, n = 182), so a policy can act only when confident and fall back to the harness default otherwise ([paper](docs/paper.md)) |
 | **Checking the agent's own "done" before it stops** | On 655 AgentDojo trajectories, labelled by the benchmark's own check of the environment's final state: believing the agent is right **52 %** of the time, one calibrated question **94 %** (AUC 0.98), 94.5 % on the held-out half. Blocking a stop below the derived cut was right 138 times in 147 held out. Shipped as an opt-in Claude Code Stop hook (`SANCHOPANZA_CHECK_DONE=1`); measured on AgentDojo tasks, not on coding sessions ([completion](docs/results/2026-09-25-completion/)). On 950 unseen AgentDojo stops of another agent, with each tool result cut to its first 1,500 characters in the record, both Jev 1.13 at 0.5 and Jev 1.14 at 0.30 blocked about one finished stop in five (165 and 150 of 795), at a block precision of 0.39-0.40 and AUC 0.81; 1.14 was confirmed no worse than 1.13, and the record builder needs to keep the part of each tool result the answer rests on before the hook is advertised beyond the setting it was measured on ([checkdone114](docs/results/2026-10-16-checkdone114/README.md)). **It does not carry to a label that means something else.** On tau2-bench, whose reward also counts a refusal the policy demands as success, it scored 54 % against 67 % for trusting the agent (AUC 0.56, pre-registered) ([external](docs/results/2026-09-29-candor-external/)) |
@@ -295,11 +295,12 @@ What is kept, by `SANCHOPANZA_GUARD_CHOOSER`:
   named (file and line range, search, command); output that cannot be had again (shell commands,
   subagent reports) is written whole, masked, to `.sanchopanza/archive/<session>/guard-<id>.txt`
   in the project (git-ignored), and the block names that folder once so the agent can `Read` what
-  it needs. Replayed offline on 10 long60 sessions at Sonnet 5.5's rates, the block's median is
-  8,058 characters against struct's 49,473, and carrying it costs 0.19 instead of 1.17 USD per
-  session (Ne arm) and 0.35 instead of 1.97 (Nl arm), 1.30 USD less on average; the items the
-  struct block held that the agent fetched again were worth about 0.0023 USD per compaction,
-  against 0.16 USD to carry the block. **Quality after compaction is not measured yet**: a
+  it needs. Replayed offline on the 10 Sonnet 5.5 long60 sessions of the long-compaction run (98
+  compactions), the block's median is 7,925 characters against struct's 49,473, and carrying it
+  costs 0.19 instead of 1.18 USD per session (Ne arm) and 0.35 instead of 1.98 (Nl arm), 1.31 USD
+  less on average; the items the struct block held that the agent fetched again were worth about
+  0.0019 USD per compaction, against 0.16 USD to carry the block
+  ([replay](docs/results/2026-10-16-guard-pointers-replay/)). **Quality after compaction is not measured yet**: a
   Sonnet 5.5 long-chain confirmation, pointers against `--guard-full`, is being prepared.
   Existing six-part installs switch to it on upgrade (part 1 carries the block, parts 2-6 print
   nothing). A chooser you set yourself is kept; `install` only ever changes one it marked
@@ -543,8 +544,8 @@ cp docs/results/2026-09-27-memory-write-cut/fifty/annotator-* DIR/
 python benchmarks/substitution.py --results DIR
 ```
 
-The two saving percentages above are each one measured substitution, on its own workload;
-there is no saving percentage for the package as a whole. The break-even arithmetic and the
+The two measured substitutions above, the router and memory against the ritual, are each one
+workload; there is no saving percentage for the package as a whole. The break-even arithmetic and the
 experiments that bound it are in [docs/savings.md](docs/savings.md) and
 [benchmarks/](benchmarks/).
 
@@ -807,10 +808,10 @@ Each item, with its priority and cost, is in [docs/ROADMAP.md](docs/ROADMAP.md).
   stops (165 and 150 of 795): the record should keep the part of each result the answer rests on
   before the Stop hook is advertised beyond the setting it was measured on
   ([checkdone114](docs/results/2026-10-16-checkdone114/README.md)).
-- **Memory's four gaps, read from the code and F2's logs, unmeasured.** A bare "continue" gets
-  no recall at the prompt (the name gate needs a changed file named); with shell reads the record
-  arrives only at the first shell write; a record keeps the prompt's first 1,000 characters; plan
-  sentences crowd the standing-rules slot.
+- **Memory's four gaps, fixed in code and not yet measured live (C8).** A first prompt that only
+  says to go on gets the latest record; a long prompt's record keeps its head and tail; plan
+  sentences rank below standing rules; shell reads stay off. Replayed on F2's recorded decisions
+  only; no live session has run with them.
 - **`relate_facts` on written text.** `unrelated_at=0.65` beat the shipped gate on templated
   pairs ([A5](docs/results/2026-10-16-a5-unrelated/README.md)); before it becomes the default it
   needs pairs of the only kind it has got wrong, two dated events, a role and an act, a figure and
@@ -834,7 +835,7 @@ Each item, with its priority and cost, is in [docs/ROADMAP.md](docs/ROADMAP.md).
   and the compaction window alone against it plus the decider
   ([final scoreboard](docs/results/2026-10-13-final/), "What was not run").
 
-Closed since the last scoreboard, each with its result: getting an agent to call `find_in_repo`
+Closed, each with its result: getting an agent to call `find_in_repo`
 (the most imposing it could save is 3.05 % [2.36, 3.78] of Sonnet 5.5's cost,
 [A6](docs/results/2026-10-16-a6-ceiling/README.md)); a derivation rule against Sonnet (Jev already
 equals Sonnet 5 on ATBench-Codex, [Sonnet](docs/results/2026-09-28-cascade-sonnet/)); the tool

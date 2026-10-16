@@ -49,7 +49,8 @@
     changed and the last test run, then pointers; output that cannot be had again is archived
     whole, masked with `mask_strict`, under `.sanchopanza/archive/<session>/`. One block of at
     most 9,500 characters, one guard command per event. Replayed offline on 10 long60 sessions:
-    1.30 USD less carry cost per session on average (1.17 → 0.19 USD Ne, 1.97 → 0.35 Nl);
+    1.31 USD less carry cost per session on average (1.18 → 0.19 USD Ne, 1.98 → 0.35 Nl;
+    `docs/results/2026-10-16-guard-pointers-replay/`, 98 compactions);
     quality after compaction not measured yet. `--guard-full` writes `struct` with the six-part
     split and a marker (`SANCHOPANZA_GUARD_CHOOSER_BY`); a chooser the owner set is kept.
     Existing six-part installs switch on upgrade without a reinstall. `plan()` gains
