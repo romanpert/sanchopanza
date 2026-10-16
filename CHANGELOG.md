@@ -114,10 +114,11 @@ except A6, a free replay. Jev is `jev-1.13.0` unless said.
   F2's sealed verdict, not a "gana" by the scoreboard's rule, which F2 did not seal a cost for): on
   Sonnet 5.5 in clean Claude Code 2.1.287, a new session started with one line naming the work
   finished the next step right in 48 of 48 triples, against 44 with the handoff ritual and 4
-  with the line alone, at 0.92x the ritual's cost; on Opus 5.5 no room (S 22, H 17, the line
+  with the line alone, at 0.92x [0.85, 0.95] the ritual's cost: a substitute for the ritual at
+  lower cost; on Opus 5.5 no room (S 22, H 17, the line
   alone 21 of 24: Claude Code's own auto memory carried the plan in every arm). S not worse than
   the ritual (Tango lower bound +2.6 points) and better than the line alone (McNemar p
-  5.7e-14); 1.23x the line alone's cost. The gain is carrying what came next: every session that
+  5.7e-14); 1.23x [1.14, 1.26] the line alone's cost (descriptive intervals). The gain is carrying what came next: every session that
   built step 2, in every arm, kept the constraint and the decision. 42.25 USD at list price.
 - **The LongBench router against Opus 5.5, and its saving measured**
   (`docs/results/2026-10-16-lb162x`, sealed `24adf4a`): Jev 1.14 with the long window where its

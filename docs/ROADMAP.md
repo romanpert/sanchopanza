@@ -156,8 +156,9 @@ data, on cases not used in redundant-drop. Post hoc, a cut from 0.10 to 0.20 was
 **A4. Cells not run by decision** ([final scoreboard](results/2026-10-13-final/README.md), "What
 was not run"). **Memory F2 ran** on 2026-10-16 (sealed `763dafd`, clean Claude Code 2.1.287):
 on Sonnet 5.5, S was not worse than the handoff ritual and better than nothing (48 of 48 against
-44 and 4; Tango lower bound +2.6 points; McNemar p 5.7e−14), at 0.92 the ritual's cost and 1.23
-the bare line's (paired medians); on Opus 5.5 direction only (S 22, H 17, N0 21 of 24), no room,
+44 and 4; Tango lower bound +2.6 points; McNemar p 5.7e−14), at 0.92 [0.85, 0.95] the ritual's
+cost and 1.23 [1.14, 1.26] the bare line's (paired medians, descriptive intervals): a substitute
+for the ritual at lower cost, not a "gana" by the scoreboard's rule; on Opus 5.5 direction only (S 22, H 17, N0 21 of 24), no room,
 since Opus's own auto memory carried the plan in every arm. 42.25 USD at list price. The gain
 comes from carrying "what was next", not from a constraint saved. Still not run, by decision:
 code on Sonnet 5.5 and Opus 5.5 (about 357 USD at list price, cap 465), Fable 5.1 (no suite),
