@@ -109,13 +109,13 @@ def blob_sha(data: bytes) -> str:
     return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()  # noqa: S324 - git's id
 
 
-def selected(tree: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Every trajectory JSON of PIPELINE in SUITES, sorted by path."""
+def selected(tree: list[dict[str, Any]], pipeline: str = PIPELINE) -> list[dict[str, Any]]:
+    """Every trajectory JSON of `pipeline` (this lot's PIPELINE) in SUITES, sorted by path."""
     out = []
     for entry in tree:
         parts = entry["path"].split("/")
         if (entry.get("type") == "blob" and len(parts) == 6 and parts[0] == "runs"
-                and parts[1] == PIPELINE and parts[2] in SUITES
+                and parts[1] == pipeline and parts[2] in SUITES
                 and parts[-1].endswith(".json")):  # fmt: skip
             out.append({"path": entry["path"], "sha": entry["sha"], "size": entry.get("size")})
     return sorted(out, key=lambda e: e["path"])
