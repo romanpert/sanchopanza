@@ -14,6 +14,8 @@ import random
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 JEV114 = ROOT / "benchmarks" / "jev114"
 RECAL_DONE = ROOT / "docs" / "results" / "2026-10-15-jev114-recal" / "done-scored.jsonl"
@@ -89,13 +91,61 @@ def test_a_case_is_check_dones_request_with_the_utility_label():
     assert (case["state"], case["questions"]) == (state, qs)
     assert case["label"] == "not_done" and case["cluster"] == "travel/user_task_3"
     assert case["attack"] == "important_instructions" and case["point"] == "completion"
+    assert case["security"] is False and case["injection"] == "travel/benign"
+    hijacked = runner.case_of(entry, {**data, "security": True, "injection_task_id": "it_1"},
+                              runner._completion_runner().render)  # fmt: skip
+    assert hijacked["security"] is True and hijacked["injection"] == "travel/it_1"
+    benign = {"path": f"runs/{runner.PIPELINE}/travel/user_task_3/none/none.json"}
+    assert runner.case_of(benign, {**data, "security": True},
+                          runner._completion_runner().render)["security"] is False  # fmt: skip
 
 
 def test_the_lot_is_capped_and_sealed_over_its_instrument():
     assert runner.LOT.batch_cap <= 0.25 and runner.LOT.ledger_cap == 4.50
     for rel in runner.LOT.sealed:
         assert (ROOT / rel).exists(), rel
-    assert runner.LOT.fixture("14").name == "checkdone114-14.jsonl"
+    lots = sys.modules["lot"]
+    for rel in ("checkdone114-run.cmd", "benchmarks/cascade/run.py", "src/sanchopanza/squire.py",
+                "src/sanchopanza/providers/jev.py", *lots.COMMON_SEALED):  # fmt: skip
+        assert rel in runner.LOT.sealed, rel
+    assert runner.LOT.fixture("14") == runner.RUN / "checkdone114-14.jsonl"
+    assert runner.LOT.published("14").name == "checkdone114-14.jsonl"
+    launcher = (ROOT / "checkdone114-run.cmd").read_text(encoding="utf-8")
+    assert '"SANCHOPANZA_KEYS_ENV=<KEYS_ENV_PATH>"' in launcher
+    assert "checkdone114.py run %MODE%" in launcher
+
+
+def test_a_paid_run_refuses_outside_the_sealing_commit():
+    with pytest.raises(SystemExit):
+        sys.modules["lot"].require_sealed_checkout(runner.LOT)
+
+
+def test_a_cut_short_recording_line_is_set_aside_and_counted(tmp_path):
+    lots = sys.modules["lot"]
+    path = tmp_path / "rec.jsonl"
+    path.write_text('{"key": "a"}\n{"key": "b"}\n{"key": "c', encoding="utf-8")
+    assert lots.read_recording(path) == ([{"key": "a"}, {"key": "b"}], 1)
+    assert lots.repair_recording(path) == 1
+    assert path.read_text(encoding="utf-8") == '{"key": "a"}\n{"key": "b"}\n'
+    assert (tmp_path / "rec.jsonl.truncated").read_text(encoding="utf-8") == '{"key": "c\n'
+    assert lots.repair_recording(path) == 0
+
+
+def test_the_asking_order_is_seeded_and_mixes_suites():
+    lots = sys.modules["lot"]
+    cases = [{"id": f"{s}-{i}"} for s in ("banking", "travel", "workspace") for i in range(30)]
+    first = lots.shuffled(cases)
+    assert first == lots.shuffled(cases) and first != cases
+    assert {c["id"].split("-")[0] for c in first[:15]} == {"banking", "travel", "workspace"}
+
+
+def test_a_nan_answer_is_missing_not_a_block():
+    from sanchopanza.contract import Answer, Decision
+
+    nan = Decision(point="completion", answers={"done": Answer(kind="truth", confidence=0.5,
+                                                               truth=float("nan"))},
+                   provider="jev", model="jev-1.14.0")  # fmt: skip
+    assert nan.answer("done").empty and nan.answer("done").truth is None
 
 
 def test_one_relaunch_at_most_and_none_after_a_final_stop(tmp_path):
@@ -120,12 +170,12 @@ def test_cuts_are_the_shipped_ones():
 
 def _recal_held_out():
     rows = [json.loads(x) for x in RECAL_DONE.read_text(encoding="utf-8").splitlines() if x]
-    return [{**r, "cluster": r["id"], "suite": "slack", "attack": "x"} for r in rows
-            if r["half"] == "held_out"]  # fmt: skip
+    return [{**r, "cluster": r["id"], "injection": r["id"], "suite": "slack", "attack": "x",
+             "security": False} for r in rows if r["half"] == "held_out"]  # fmt: skip
 
 
 def test_the_recalibrations_held_out_half_reproduces():
-    result = analysis.analyse(_recal_held_out())
+    result = analysis.analyse(_recal_held_out(), launch="complete")
     assert result["arms"]["14"]["right"] == 312 and result["arms"]["13r"]["right"] == 313
     assert result["answered_by_both"] == 329
     assert result["arms"]["14"]["false_blocks"] == 8 and result["arms"]["13r"]["false_blocks"] == 7
@@ -145,7 +195,9 @@ def _rows(n: int, flip: float, seed: int = 5):
                 "id": str(i),
                 "suite": "s",
                 "cluster": f"c{i // 5}",
+                "injection": f"i{i % 7}",
                 "attack": "none",
+                "security": False,
                 "label": "done" if done else "not_done",
                 "p_13r": p13,
                 "p_14": p14,
@@ -155,15 +207,46 @@ def _rows(n: int, flip: float, seed: int = 5):
 
 
 def test_equal_arms_confirm_and_a_bad_arm_is_peor():
-    assert analysis.analyse(_rows(300, 0.0))["verdict"].startswith("confirmado")
-    assert analysis.analyse(_rows(300, 0.15))["verdict"] == "peor"
+    assert analysis.analyse(_rows(300, 0.0), "complete")["verdict"].startswith("confirmado")
+    assert analysis.analyse(_rows(300, 0.15), "complete")["verdict"] == "peor"
+
+
+def test_no_verdict_unless_the_last_launch_completed():
+    assert analysis.analyse(_rows(300, 0.0), "stopped")["verdict"].startswith("sin veredicto")
 
 
 def test_missing_answers_withhold_a_favourable_verdict():
     rows = _rows(300, 0.0)
-    for row in rows[:15]:
+    for row in rows[:5]:  # 1.7 % unanswered by 1.14 only: under both limits
         row["p_14"] = None
-    assert analysis.analyse(rows)["verdict"] == "no concluyente"
+    assert analysis.analyse(rows, "complete")["verdict"].startswith("confirmado")
+    for row in rows[:9]:  # 3 %: over the union limit and the failure gap
+        row["p_14"] = None
+    result = analysis.analyse(rows, "complete")
+    assert result["answers"]["failure_gap"] == 0.03 and result["verdict"] == "no concluyente"
+
+
+def test_mejora_needs_the_cluster_interval_above_zero():
+    stats = sys.modules["lot_stats"]
+    assert stats.verdict_of(0.03, (0.005, 0.05), 0.01) == "mejora"
+    assert stats.verdict_of(0.03, (-0.004, 0.05), 0.01) == "no peor"
+    assert stats.verdict_of(0.03, (-0.03, 0.08), 0.01) == "no concluyente"
+
+
+def test_rank_auc_is_the_published_one():
+    stats = sys.modules["lot_stats"]
+    published = _load("recalconf_analysis")
+    rng = random.Random(3)
+    for _ in range(20):
+        scores = [round(rng.random(), 1) for _ in range(40)]
+        labels = [rng.random() < 0.4 for _ in range(40)]
+        assert stats.rank_auc(scores, labels) == published.auc(scores, labels)
+
+
+def test_the_power_simulation_is_seeded():
+    one = analysis.simulate(0.012, 0.3, sims=20, replicas=200)
+    assert one == analysis.simulate(0.012, 0.3, sims=20, replicas=200)
+    assert sum(analysis.SIZES) == 950 and len(analysis.SIZES) == 106
 
 
 def test_auc_block_is_rank_auc_with_a_cluster_interval():

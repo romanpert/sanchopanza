@@ -62,6 +62,23 @@ def test_the_check_catches_a_planted_new_figure_and_a_missing_item():
     assert gen.problems(emptied)
 
 
+def test_a_drop_adds_no_word_outside_its_frame():
+    for case in (c for c in gen.cases() if c["expected"] == "drop"):
+        s = next(x for x in gen.SCENARIOS if x["sid"] == case["scenario"])
+        added = gen.words(case["input"]["text"]) - gen.words(case["input"]["known"])
+        assert added - gen.words(s["source"]) <= gen.FRAME[case["family"]], case["id"]
+    drop = next(c for c in gen.cases() if c["family"] == "headline")
+    planted = {**drop, "input": {**drop["input"], "text": drop["input"]["text"] + " Provisional."}}
+    assert any("frame" in p for p in gen.problems(planted))
+
+
+def test_no_uncontracted_or_mismatched_spanish():
+    for case in gen.cases():
+        for text in (case["input"]["known"], case["input"]["text"]):
+            assert " de el " not in text and " a el " not in text, case["id"]
+            assert "su cuentas" not in text and "primer cuentas" not in text, case["id"]
+
+
 def test_rounding_keeps_less_precision():
     assert gen.rounded_down(2350) == 2000 and gen.rounded_down(37) == 30
     assert gen.fmt(84300000) == "84.300.000"
@@ -74,7 +91,45 @@ def test_the_runner_reads_the_registered_cases():
     assert runner.duplicates_of_old(runner.new_cases(), runner.old_cases()) == 0
     for rel in runner.LOT.sealed:
         assert (ROOT / rel).exists(), rel
+    for rel in ("redundant-drop-run.cmd", "src/sanchopanza/points/triage.py",
+                "src/sanchopanza/squire.py", *sys.modules["lot"].COMMON_SEALED):  # fmt: skip
+        assert rel in runner.LOT.sealed, rel
     assert runner.LOT.batch_cap <= 0.10
+    assert '"SANCHOPANZA_KEYS_ENV=<KEYS_ENV_PATH>"' in (ROOT / "redundant-drop-run.cmd").read_text(
+        encoding="utf-8"
+    )
+
+
+def test_the_signed_request_is_what_the_bench_path_sends():
+    import asyncio
+
+    from sanchopanza.contract import Decision
+    from sanchopanza.providers.recorded import key_of
+
+    comp = sys.modules["jev114_components"]
+    sent = []
+
+    class Capture:
+        name = "capture"
+
+        async def decide(self, point, state, questions):
+            sent.append(key_of(point, state, questions))
+            return Decision(point=point, answers={}, provider="capture", model="-")
+
+    cases = runner.cases()
+    picked = [cases[0], cases[60], cases[124], cases[200], cases[-1]]
+    for case in picked:
+        asyncio.run(comp.ask_bench(case, Capture()))
+    assert sent == [key_of(runner.POINT, *runner.request_of(c)) for c in picked]
+
+
+def test_hand_written_cases_cluster_by_event():
+    by_id = {c["id"]: runner.cluster_of(c) for c in runner.old_cases()}
+    assert by_id["rd-01"] == by_id["rd-77"] == by_id["rd-03"] == by_id["rd-06"]
+    assert by_id["rd-08"] == by_id["rd-29"] and by_id["rd-13"] == by_id["rd-61"]
+    assert by_id["rd-51"] != by_id["rd-01"]
+    new = runner.new_cases()
+    assert runner.cluster_of(new[0]) == f"record:{new[0]['scenario']}"
 
 
 def _draw1_rows():
@@ -92,6 +147,7 @@ def _draw1_rows():
                 "expected": row["expected"],
                 "half": "cal" if row["file"] == "retrieval-c" else "ev",
                 "cluster": row["id"],
+                "scenario": None,
             },
         )
         item[f"p_{row['arm']}"] = row["probability"]
@@ -106,7 +162,51 @@ def test_the_recalibrations_derivation_reproduces_and_hinges():
 
 
 def test_the_analysis_runs_on_the_old_cases_and_withholds_a_proposal():
-    result = analysis.analyse(_draw1_rows())
+    result = analysis.analyse(_draw1_rows(), launch="complete")
     assert result["cuts"]["14_derived"] == 0.61
-    assert result["evaluation"]["hand_written"]["n"] == 50
+    assert result["hand_stratum"]["n"] == 50
     assert result["decision"]["propose_adds_nothing_14"] is None
+    assert "derivation stable" in result["decision"]["failed_checks"]
+
+
+def _synthetic(hand_losses: int, template_disagree: int = 0):
+    rows = []
+    for i in range(50):
+        drop = i < 18
+        p = 0.9 if drop else 0.1
+        rows.append({"id": f"h{i}", "file": "retrieval", "half": "ev", "family": "bench",
+                     "expected": "drop" if drop else "keep", "scenario": None,
+                     "cluster": f"event:{i % 16}", "p_13r": p,
+                     "p_14": 0.05 if drop and i < hand_losses else p})  # fmt: skip
+    for s in range(30):
+        for f, label in (("wire", "drop"), ("ficha", "drop"), ("extra", "keep")):
+            p = 0.9 if label == "drop" else 0.1
+            flip = s < template_disagree and f == "wire"
+            rows.append({"id": f"t{s}{f}", "file": "generated", "half": "ev", "family": f,
+                         "expected": label, "scenario": f"g{s}", "cluster": f"record:g{s}",
+                         "p_13r": p, "p_14": 0.05 if flip else p})  # fmt: skip
+    for i in range(60):  # a calibration part that derives a cut
+        drop = i < 45
+        rows.append({"id": f"c{i}", "file": "generated", "half": "cal", "family": "wire",
+                     "expected": "drop" if drop else "keep", "scenario": f"k{i % 10}",
+                     "cluster": f"record:k{i % 10}", "p_13r": 0.9 if drop else 0.1,
+                     "p_14": 0.9 if drop else 0.1})  # fmt: skip
+    return rows
+
+
+def test_hand_losses_cannot_hide_behind_templates():
+    agree = analysis.analyse(_synthetic(0), launch="complete")
+    assert agree["primary_stratified"]["verdict"] == "no peor"
+    assert agree["hand_stratum"]["count_guard"] and agree["hand_stratum"]["verdict"] == "no peor"
+    lost = analysis.analyse(_synthetic(4), launch="complete")
+    assert lost["hand_stratum"]["net_loss"] == 4 and not lost["hand_stratum"]["count_guard"]
+    assert lost["hand_stratum"]["verdict"] not in ("no peor", "mejora")
+    assert lost["decision"]["propose_adds_nothing_14"] is None
+
+
+def test_the_stratified_interval_is_zero_when_the_arms_agree():
+    rows = [r for r in _synthetic(0) if r["half"] == "ev"]
+    hand = [r for r in rows if r["file"] != "generated"]
+    tmpl = [r for r in rows if r["file"] == "generated"]
+    result = analysis.stratified(hand, tmpl, 0.59, 0.5, replicas=200)
+    assert result["diff"] == 0.0 and result["ci95"] == (0.0, 0.0)

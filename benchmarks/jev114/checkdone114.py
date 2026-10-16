@@ -4,7 +4,8 @@ jev114-checkdone).
     python benchmarks/jev114/checkdone114.py fetch                  # free: public runs, pinned
     python benchmarks/jev114/checkdone114.py run --dry [--l2-runs-root MAIN]   # free: plan, bill
     python benchmarks/jev114/checkdone114.py seal                   # data.sha256, prereg.sha256
-    python benchmarks/jev114/checkdone114.py run --paid             # both versions, capped
+    checkdone114-run.cmd                                            # the paid launch (WMI)
+    python benchmarks/jev114/checkdone114.py publish                # free: recordings, launch log
     python benchmarks/jev114/checkdone114.py rows                   # free: fixtures -> rows
     python benchmarks/jev114/checkdone114_analysis.py               # free: the verdict
 
@@ -76,16 +77,15 @@ LOT = lots.Lot(
     sealed=(
         "docs/results/2026-10-16-checkdone114/prereg.md",
         "docs/results/2026-10-16-checkdone114/inputs.jsonl",
+        "checkdone114-run.cmd",
         "benchmarks/jev114/checkdone114.py",
         "benchmarks/jev114/checkdone114_analysis.py",
-        "benchmarks/jev114/lot.py",
-        "benchmarks/jev114/l4_stats.py",
-        "benchmarks/jev114/jev114_paired.py",
         "benchmarks/completion/run.py",
+        "benchmarks/cascade/run.py",
+        "benchmarks/meter.py",
         "src/sanchopanza/points/completion.py",
-        "src/sanchopanza/policy.py",
-        "src/sanchopanza/providers/capped.py",
-        "src/sanchopanza/providers/recorded.py",
+        "src/sanchopanza/providers/llm.py",
+        *lots.COMMON_SEALED,
     ),
 )
 
@@ -188,6 +188,10 @@ def case_of(entry: Mapping[str, Any], data: Mapping[str, Any], render: Any) -> d
         "state": state,
         "questions": qs,
         "label": "done" if data["utility"] else "not_done",
+        # The injected task succeeded: `utility` can be false because the agent was hijacked,
+        # not because it stopped early. Kept to report the result without these runs.
+        "security": bool(data.get("security")) if attack != "none" else False,
+        "injection": f"{suite}/{data.get('injection_task_id') or 'benign'}",
     }
 
 
@@ -220,7 +224,8 @@ def load(data_root: Path) -> list[dict[str, Any]]:
 def inputs_digest(cases: list[dict[str, Any]]) -> str:
     h = hashlib.sha256()
     for case in cases:
-        h.update(f"{case['id']}|{case['label']}|{case['cluster']}|".encode())
+        unit = f"{case['id']}|{case['label']}|{case['cluster']}|{case['security']}|"
+        h.update(unit.encode())
         h.update(key_of(case["point"], case["state"], case["questions"]).encode())
     return h.hexdigest()
 
@@ -307,6 +312,7 @@ def plan(cases: list[dict[str, Any]], rate: Mapping[str, Any]) -> dict[str, Any]
             f"{'attacked' if a else 'benign'} {lab}": n for (a, lab), n in sorted(attacked.items())
         },  # fmt: skip
         "records_at_the_limit": truncated,
+        "security_true": Counter(c["label"] for c in cases if c["security"]),
         "calls": 2 * len(cases),
         "jev_usd_expected": round(expected, 4),
         "jev_usd_pessimistic": round(pessimistic, 4),
@@ -333,7 +339,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         if report["jev_usd_pessimistic"] > LOT.batch_cap:
             print("note: the pessimistic estimate exceeds the cap; the cap stops the run")
         return 0
-    lots.require_seal(LOT)
+    lots.require_sealed_checkout(LOT)
     sealed = json.loads(DATA.read_text(encoding="utf-8"))
     if inputs_digest(cases) != sealed["done"]:
         raise SystemExit("inputs differ from the sealed ones: nothing spent")
@@ -358,9 +364,9 @@ async def rows_of(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
         ps = {}
         for arm in lots.ARMS:
             d = (await ask(case, arms[arm]))[0]
-            answer = d.answers.get("done")
-            ps[arm] = None if d.failed or answer is None else answer.truth
-        keep = ("id", "suite", "cluster", "attack", "label")
+            answer = d.answer("done")  # `usable`: a NaN is a missing answer, not a block
+            ps[arm] = None if d.failed or answer.empty else answer.truth
+        keep = ("id", "suite", "cluster", "injection", "attack", "security", "label")
         rows.append({k: case[k] for k in keep} | {"p_13r": ps["13r"], "p_14": ps["14"]})
     return rows
 
@@ -372,11 +378,16 @@ def cmd_rows(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_publish(_: argparse.Namespace) -> int:
+    print("\n".join(lots.publish(LOT)) or "nothing to publish")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="cmd", required=True)
     for name, fn in (("fetch", cmd_fetch), ("run", cmd_run), ("seal", cmd_seal),
-                     ("rows", cmd_rows)):  # fmt: skip
+                     ("publish", cmd_publish), ("rows", cmd_rows)):  # fmt: skip
         p = sub.add_parser(name)
         p.add_argument("--data-root", type=Path, default=DATA_ROOT)
         if name == "run":

@@ -4,7 +4,8 @@ jev114-redundant-drop).
     python benchmarks/jev114/redundant_gen.py --check          # free: the cases are current
     python benchmarks/jev114/redundant_drop.py run --dry       # free: plan, bill
     python benchmarks/jev114/redundant_drop.py seal            # data.sha256, prereg.sha256
-    python benchmarks/jev114/redundant_drop.py run --paid      # both versions, capped
+    redundant-drop-run.cmd                                     # the paid launch (WMI)
+    python benchmarks/jev114/redundant_drop.py publish         # free: recordings, launch log
     python benchmarks/jev114/redundant_drop.py rows            # free: fixtures -> rows
     python benchmarks/jev114/redundant_drop_analysis.py        # free: the verdict
 
@@ -13,7 +14,9 @@ Registered in docs/results/2026-10-16-redundant-drop/prereg.md.
 THE CASES: the 125 of `benches/retrieval*.jsonl` (asked again, so every case of the lot comes
 from one draw) and the 405 of `cases.jsonl`, rendered with labels by construction by
 `redundant_gen.py`. Both go through `run_bench`, the path lot L1 asked them by, so a request is
-byte for byte what the shipped squire sends.
+byte for byte what the shipped squire sends; `data.sha256` signs that request (`request_of`, the
+squire's `redundancy_questions` with its `Limits().triage_chars`), and a test pins that the bench
+path sends exactly it.
 """
 
 from __future__ import annotations
@@ -39,10 +42,12 @@ import jev114_components as comp  # noqa: E402
 import lot as lots  # noqa: E402
 import redundant_gen  # noqa: E402
 
+from sanchopanza.contract import Question, State  # noqa: E402
 from sanchopanza.eval.bench import load_cases  # noqa: E402
+from sanchopanza.limits import Limits  # noqa: E402
 from sanchopanza.points.triage import redundancy_questions  # noqa: E402
 from sanchopanza.providers.capped import DEFAULT_PRICE_PER_MTOK, estimate_usd  # noqa: E402
-from sanchopanza.providers.recorded import RecordedDecider  # noqa: E402
+from sanchopanza.providers.recorded import RecordedDecider, key_of  # noqa: E402
 
 OUT = ROOT / "docs" / "results" / "2026-10-16-redundant-drop"
 CASES = OUT / "cases.jsonl"
@@ -61,20 +66,35 @@ LOT = lots.Lot(
     sealed=(
         "docs/results/2026-10-16-redundant-drop/prereg.md",
         "docs/results/2026-10-16-redundant-drop/cases.jsonl",
+        "redundant-drop-run.cmd",
         "benchmarks/jev114/redundant_gen.py",
         "benchmarks/jev114/redundant_scenarios.json",
         "benchmarks/jev114/redundant_drop.py",
         "benchmarks/jev114/redundant_drop_analysis.py",
-        "benchmarks/jev114/lot.py",
-        "benchmarks/jev114/l4_stats.py",
-        "benchmarks/jev114/jev114_paired.py",
         "benchmarks/thresholds.py",
+        "benches/retrieval.jsonl",
+        "benches/retrieval-b.jsonl",
+        "benches/retrieval-c.jsonl",
         "src/sanchopanza/points/triage.py",
         "src/sanchopanza/eval/bench.py",
-        "src/sanchopanza/policy.py",
-        "src/sanchopanza/providers/capped.py",
-        "src/sanchopanza/providers/recorded.py",
+        "src/sanchopanza/eval/stats.py",
+        "src/sanchopanza/dag.py",
+        *lots.COMMON_SEALED,
     ),
+)
+POINT = "redundant_page"
+# The hand-written cases, grouped by the event they are about (several purposes and `known`
+# digests can describe one event: rd-01..rd-20 and rd-77..rd-83 are all the 12 March Oaxaca
+# earthquake). The first key found in the purpose names the group; otherwise the purpose does.
+EVENTS = (
+    ("sismo del 12 de marzo", "oaxaca-earthquake"),
+    ("viviendas danadas", "oaxaca-earthquake"),
+    ("Ley 6132", "ley-6132"),
+    ("Inversiones Delta", "inversiones-delta"),
+    ("difamacion", "defamation"),
+    ("Constructora Norte", "constructora-norte"),
+    ("Transportes Sur", "transportes-sur"),
+    ("Aristo Global", "aristo-global"),
 )
 
 
@@ -101,15 +121,28 @@ def cases() -> list[dict[str, Any]]:
 
 
 def cluster_of(case: Mapping[str, Any]) -> str:
-    """Cases that share a `known` share a world: the resampling unit."""
-    return hashlib.sha256(case["input"]["known"].encode("utf-8")).hexdigest()[:12]
+    """The resampling unit: a generated case's record, a hand-written case's event."""
+    if case.get("scenario"):
+        return f"record:{case['scenario']}"
+    purpose = case["input"]["purpose"]
+    event = next((name for key, name in EVENTS if key in purpose), None)
+    return f"event:{event or hashlib.sha256(purpose.encode()).hexdigest()[:10]}"
+
+
+def request_of(case: Mapping[str, Any]) -> tuple[State, dict[str, Question]]:
+    """What `Squire.triage_redundant` sends for this case, with the default limits."""
+    inp = case["input"]
+    return redundancy_questions(purpose=inp["purpose"], text=inp["text"], known=inp["known"],
+                                text_limit=Limits().triage_chars)  # fmt: skip
 
 
 def inputs_digest(all_cases: list[dict[str, Any]]) -> str:
+    """Every case's file, id, half, label and cluster, and the key of the request sent."""
     h = hashlib.sha256()
     for c in all_cases:
-        body = [c["file"], c["id"], c["half"], c["input"], c["expected"]]
+        body = [c["file"], c["id"], c["half"], c["expected"], cluster_of(c)]
         h.update(json.dumps(body, sort_keys=True, ensure_ascii=False).encode())
+        h.update(key_of(POINT, *request_of(c)).encode())
     return h.hexdigest()
 
 
@@ -122,9 +155,8 @@ async def ask(case: Mapping[str, Any], decider: Any) -> tuple[Any, Any]:
 
 
 async def answered(case: Mapping[str, Any], arm: lots.Arm) -> bool:
-    probe = comp.Probe(arm.recorded)
-    await comp.ask_bench(case, probe)
-    return bool(probe.calls) and all(c.get("answers") for c in probe.calls)
+    d = await arm.recorded.decide(POINT, *request_of(case))
+    return bool(d.answers)
 
 
 # --- the plan: free -------------------------------------------------------------------------
@@ -195,7 +227,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         print(f"dry: nothing asked. A paid launch now would be "
               f"{'refused: ' + refused if refused else 'allowed after the seal'}")  # fmt: skip
         return 4 if report["label_problems"] or report["new_duplicating_old"] else 0
-    lots.require_seal(LOT)
+    lots.require_sealed_checkout(LOT)
     sealed = json.loads(DATA.read_text(encoding="utf-8"))
     if inputs_digest(all_cases) != sealed["cases"]:
         raise SystemExit("inputs differ from the sealed ones: nothing spent")
@@ -218,11 +250,11 @@ async def rows_of(all_cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
     rows = []
     for case in all_cases:
         ps: dict[str, float | None] = {}
+        state, qs = request_of(case)
         for arm in lots.ARMS:
-            result, probe = await ask(case, arms[arm])
-            row = comp.row_dict(result, case, arm, probe)
-            ok = probe.calls and all(c.get("answers") for c in probe.calls)
-            ps[arm] = row.get("probability") if ok else None
+            d = await arms[arm].decide(POINT, state, qs)
+            answer = d.answer("adds_nothing")  # `usable`: a NaN is a missing answer
+            ps[arm] = None if d.failed or answer.empty else answer.truth
         keep = {k: case[k] for k in ("id", "file", "half", "family", "expected")}
         rows.append(keep | {"scenario": case.get("scenario"), "cluster": cluster_of(case),
                             "p_13r": ps["13r"], "p_14": ps["14"]})  # fmt: skip
@@ -236,10 +268,16 @@ def cmd_rows(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_publish(_: argparse.Namespace) -> int:
+    print("\n".join(lots.publish(LOT)) or "nothing to publish")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="cmd", required=True)
-    for name, fn in (("run", cmd_run), ("seal", cmd_seal), ("rows", cmd_rows)):
+    for name, fn in (("run", cmd_run), ("seal", cmd_seal), ("publish", cmd_publish),
+                     ("rows", cmd_rows)):  # fmt: skip
         p = sub.add_parser(name)
         if name == "run":
             p.add_argument("--dry", action="store_true")

@@ -89,10 +89,14 @@ def rounded_down(n: int) -> int:
     return (n // scale) * scale
 
 
+def contracted(text: str) -> str:
+    """Spanish contractions: "de el" -> "del", "a el" -> "al"."""
+    return text.replace(" de el ", " del ").replace(" a el ", " al ")
+
+
 def known_of(s: Mapping[str, Any]) -> str:
-    return (
-        f"{s['doc']} de {s['source']} del {s['date']}: {joined([phrase(f) for f in s['facts']])}."
-    )
+    facts = joined([phrase(f) for f in s["facts"]])
+    return contracted(f"{s['doc']} de {s['source']} del {s['date']}: {facts}.")
 
 
 def _numeric(s: Mapping[str, Any]) -> list[list]:
@@ -100,8 +104,12 @@ def _numeric(s: Mapping[str, Any]) -> list[list]:
 
 
 def drop_text(family: str, s: Mapping[str, Any]) -> str:
+    return contracted(_drop_text(family, s))
+
+
+def _drop_text(family: str, s: Mapping[str, Any]) -> str:
     facts = [phrase(f) for f in s["facts"]]
-    src, doc = s["source"], s["doc"].lower()
+    src = s["source"]
     first_n, first_unit = s["facts"][0]
     if family == "wire":
         return f"AGENCIA. Segun {src}, el balance es de {joined(facts)}."
@@ -115,20 +123,23 @@ def drop_text(family: str, s: Mapping[str, Any]) -> str:
     if family == "rounded":
         return f"{cap(src)} habla de mas de {fmt(rounded_down(first_n))} {first_unit}."
     if family == "release":
-        return f"NOTA DE PRENSA. {cap(src)} presenta hoy su {doc}: {joined(facts)}."
+        return f"NOTA DE PRENSA. {cap(src)} presenta hoy sus datos: {joined(facts)}."
     if family == "partial":
-        return f"En nuestro blog resumimos el {doc} de {src}: {joined(facts[:2])}."
+        return f"En nuestro blog resumimos los datos de {src}: {joined(facts[:2])}."
     raise ValueError(family)
 
 
 def keep_text(family: str, s: Mapping[str, Any]) -> str:
+    return contracted(_keep_text(family, s))
+
+
+def _keep_text(family: str, s: Mapping[str, Any]) -> str:
     facts = [phrase(f) for f in s["facts"]]
     first_n, first_unit = s["facts"][0]
     rev_n, rev_date = s["revision"]
     if family == "revision":
-        doc = s["doc"].lower()
         return (f"{cap(s['source'])} corrigio el {rev_date} su propia cifra: {fmt(rev_n)} "
-                f"{first_unit}, frente a {fmt(first_n)} en su primer {doc}.")  # fmt: skip
+                f"{first_unit}, frente a {fmt(first_n)} en la version inicial.")  # fmt: skip
     if family == "extra":
         return f"{known_of(s)} {s['extra']}"
     if family == "independent":
@@ -173,6 +184,20 @@ def cases() -> list[dict[str, Any]]:
 
 
 NUMBER = re.compile(r"\d[\d.]*\d|\d")
+WORD = re.compile(r"[a-z]+")
+# The words a drop template may add to what `known` and the body's name already hold: its frame.
+FRAME = {
+    "wire": {"agencia", "segun", "el", "balance", "es", "de"},
+    "headline": {"ultima", "hora", "segun"},
+    "ficha": {"ficha", "fuente", "fecha", "observaciones"},
+    "rounded": {"habla", "de", "mas"},
+    "release": {"nota", "de", "prensa", "presenta", "hoy", "sus", "datos"},
+    "partial": {"en", "nuestro", "blog", "resumimos", "los", "datos", "de"},
+}
+
+
+def words(text: str) -> set[str]:
+    return set(WORD.findall(text.lower()))
 
 
 def numbers(text: str) -> set[int]:
@@ -207,6 +232,9 @@ def problems(case: Mapping[str, Any]) -> list[str]:
             out.append(f"drop text adds numbers {sorted(extra)}")
         if s["source"] not in text and cap(s["source"]) not in text:
             out.append("drop text does not name the same body")
+        added = words(text) - words(known) - words(s["source"]) - FRAME[case["family"]]
+        if added:
+            out.append(f"drop text adds words outside its frame {sorted(added)}")
     else:
         marker = {"revision": fmt(s["revision"][0]), "extra": s["extra"],
                   "independent": s["independent"], "qualify": s["qualify"],
