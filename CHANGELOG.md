@@ -114,6 +114,16 @@
   - The `sanchopanza-code` skill says what to do with a plain "let's continue" line and with a
     blocked MCP result or a stop sent back as unfinished.
 
+### Fixed
+
+- **Records that outlive the process survive the machine going down** (`sanchopanza.durable`;
+  merge `db81571`). A temporary file renamed over its target kept readers from seeing half a
+  file, but after an unclean shutdown the rename could reach the disk before the data and leave
+  the target zero-filled. Memory's episodes store and the funds breaker now `fsync` before the
+  rename, and the spend ledger behind the Jev cap after each line; the bytes written are the
+  same. Caches and per-session hook state, which a crash makes moot, keep their plain writes. A
+  test fails on a new unsynced write-then-rename in `src/` or `benchmarks/`.
+
 ### Measured
 
 - **A10, a local check_done classifier on public labels: "no concluyente"**
