@@ -1,0 +1,35 @@
+{
+ "trajectories": 500,
+ "calls": 1195,
+ "mcp_calls": 1188,
+ "mcp_calls_codex_native": 65,
+ "shell_calls": 7,
+ "decisions_by_arm": {
+  "mcp": 1189,
+  "today": 1
+ },
+ "already_recorded": 0,
+ "to_ask": 1689,
+ "to_ask_hook": 1189,
+ "to_ask_control": 500,
+ "by_point": {
+  "action_risk": 1688,
+  "guard": 1
+ },
+ "record_chars_hook": {
+  "min": 241,
+  "median": 1410,
+  "p90": 2955,
+  "max": 8959
+ },
+ "usd_flat_71u": 0.1199,
+ "usd_fit": 0.0819,
+ "usd_fit_control": 0.0308,
+ "usd_reserved": 0.0808,
+ "token_fit": [
+  518.7,
+  0.3289
+ ],
+ "cap_usd": 0.25,
+ "fits_under_cap": true
+}

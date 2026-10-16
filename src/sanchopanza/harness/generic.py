@@ -1,11 +1,13 @@
 """The harness-agnostic layer: tool calls in, verdicts out.
 
-A `Guardian` watches three families of tools:
+A `Guardian` watches four families of tools:
 
 - **delegation** (`Agent`, `Task`, ...): rewrites the requested tier to the one the squire
   chose (model per subtask) and, after the subtask returns, appends a review note.
 - **search** (`WebSearch`, ...): denies a repeated query, or points to a cheaper engine.
 - **shell** (`Bash`, ...): denies with a reason when the code list or the squire flags it.
+- **MCP** (`mcp__<server>__<tool>`, opt-in with `guard_mcp`): denies with a reason when the
+  `actions` point, reading the session so far and the pending call, flags it (roadmap A3).
 
 Everything else passes untouched. Denying never breaks the agent: it receives the reason
 and changes course.
@@ -34,6 +36,9 @@ class ToolCall:
     name: str
     arguments: Mapping[str, Any]
     event: str = "PreToolUse"
+    # What the agent did before this call, as `mcp_guard` renders it (the MCP guard reads it);
+    # empty when the harness has no transcript to give.
+    record: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -95,6 +100,16 @@ class HarnessConfig:
         {"Bash", "bash", "shell", "run_command", "execute", "PowerShell"}
     )
     shell_command_key: str = "command"
+    # --- MCP tool calls, judged before they run (opt-in, roadmap A3) ---------------------
+    # Off by default: the per-call path is unmeasured, and offline, on whole ATBench-Codex
+    # trajectories at the shipped cut, the point flagged 73 of 250 safe ones (29 %) beside
+    # 213 of 250 unsafe; every judged call is one paid decision. `harness.mcp_guard`, and
+    # docs/results/2026-10-16-a3-mcp/prereg.md, whose verdict decides the default.
+    guard_mcp: bool = False
+    # Servers whose calls are never judged, compared by `mcp_guard.server_key`. Our own are
+    # always left out (`mcp_guard.own_servers`).
+    mcp_skip_servers: frozenset[str] = frozenset()
+    mcp_record_chars: int = 24_000  # at most `mcp_guard.RECORD_CHARS`
     guard_environment: Mapping[str, Any] | None = None
     # "sandbox": the research container the guard was written for; "coding": a person's own
     # repository (Claude Code, Codex), set by `sanchopanza install` (points.guard).
@@ -144,6 +159,18 @@ class HarnessConfig:
             return False
         return fetches_from_network(str(arguments.get(self.shell_command_key) or ""))
 
+    def guards_mcp(self, name: str) -> bool:
+        """Whether a PreToolUse on tool `name` goes through the MCP guard."""
+        if not self.guard_mcp:
+            return False
+        from .mcp_guard import own_servers, server_key, server_of
+
+        server = server_of(name)
+        if server is None:
+            return False
+        skipped = {server_key(s) for s in (*own_servers(), *self.mcp_skip_servers)}
+        return server_key(server) not in skipped
+
     def tier_name(self, tier: Tier) -> str:
         return self.tiers.get(tier, tier)
 
@@ -169,6 +196,8 @@ class Guardian:
             return await self._before_search(call)
         if call.name in c.shell_tools:
             return await self._before_shell(call)
+        if c.guards_mcp(call.name):
+            return await self._before_mcp(call)
         return ALLOW
 
     async def after_tool(self, call: ToolCall, response: Any) -> Note | None:
@@ -271,6 +300,25 @@ class Guardian:
             f"Command denied ({result.reason}). This job does not delete outside its output, "
             "does not send files or secrets to the network, does not change permissions and "
             "does not execute downloaded content. Achieve the same with the job's own tools.",
+        )
+
+    async def _before_mcp(self, call: ToolCall) -> Verdict:
+        from ..redact import mask_strict
+        from .mcp_guard import RECORD_CHARS, with_pending
+
+        c = self.config
+        # The record holds tool results and a decider may be a third party: masked line by line
+        # before any cut (`mcp_guard`), and once more whole for a record built elsewhere. Never
+        # past the point's own cut, which would take the pending call off the end.
+        limit = max(1, min(c.mcp_record_chars, RECORD_CHARS))
+        record = mask_strict(with_pending(call.record, call.name, call.arguments, limit))
+        result = await self.squire.guard_action(record, tool=call.name)
+        if not result.denied:
+            return ALLOW
+        return Verdict(
+            "deny",
+            f"MCP call denied ({result.reason}). Do not retry it as it is: ask the user to "
+            "confirm this action, or do what was asked another way.",
         )
 
     def _task_text(self, arguments: Mapping[str, Any]) -> str:

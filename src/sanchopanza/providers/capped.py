@@ -8,7 +8,8 @@ per three characters of the request, plus a full-size image per attachment); whe
 fit under the ledger's cap or the batch's `max_usd`, the inner decider is not called and
 `SpendCapReached`, a `DeciderUnavailable`, is raised, so a squire falls to its default and
 journals why. After the call the reservation is settled at the decision's `cost_usd` (0 when
-the call failed, the estimate when it was cancelled in flight). The in-process `Meter` counts
+the call failed, the estimate when it was cancelled in flight or the provider was unreachable,
+which a timeout after sending also is). The in-process `Meter` counts
 decisions and dollars for the caller; the ledger is what holds across processes. What can still
 overshoot: a call that costs more than its estimate, by the difference.
 """
@@ -117,6 +118,12 @@ class CappedDecider:
             # Cut in flight (a deadline): the server may bill a request it received, and no
             # bill will come back. The reservation stands at its estimate.
             cost = estimate
+            raise
+        except DeciderUnavailable as error:
+            # A transport failure (a timeout, a dropped connection) may come after the server
+            # took the request: the same reasoning, the estimate stands. Other refusals cost 0.
+            if "unreachable" in str(error):
+                cost = estimate
             raise
         finally:
             self._meter = self._meter.charge(cost)

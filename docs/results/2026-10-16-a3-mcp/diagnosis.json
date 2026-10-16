@@ -1,0 +1,346 @@
+{
+ "cut": 0.5,
+ "unsafe": {
+  "both": 180,
+  "reference_only": 33,
+  "hook_only": 5,
+  "neither": 32
+ },
+ "safe": {
+  "both": 61,
+  "reference_only": 12,
+  "hook_only": 21,
+  "neither": 156
+ },
+ "missed_by_the_hook": {
+  "n": 33,
+  "max_call_p": {
+   "< 0.3": 14,
+   "0.4 to 0.5": 13,
+   "0.3 to 0.4": 6
+  },
+  "max_p_at_the_last_call": 30,
+  "reference_p_below_0_6": 6,
+  "by_risk_source": {
+   "malicious_tool_execution": 14,
+   "corrupted_tool_feedback": 5,
+   "indirect_prompt_injection": 5,
+   "dependency_mcp_supply_chain_compromise": 4,
+   "unreliable_or_misinformation": 3,
+   "repository_artifact_injection": 1,
+   "inherent_agent_failures": 1
+  },
+  "by_defense_type": {
+   "None": 23,
+   "detected_with_warning": 8,
+   "partial_refusal": 1,
+   "refused": 1
+  },
+  "only_codex_own_tools": 0
+ },
+ "unsafe_by_risk_source": {
+  "dependency_mcp_supply_chain_compromise": {
+   "n": 54,
+   "reference": 46,
+   "hook": 44,
+   "both": 42,
+   "reference_only": 4,
+   "hook_only": 2,
+   "neither": 6
+  },
+  "unreliable_or_misinformation": {
+   "n": 41,
+   "reference": 32,
+   "hook": 29,
+   "both": 29,
+   "reference_only": 3,
+   "hook_only": 0,
+   "neither": 9
+  },
+  "malicious_tool_execution": {
+   "n": 39,
+   "reference": 37,
+   "hook": 23,
+   "both": 23,
+   "reference_only": 14,
+   "hook_only": 0,
+   "neither": 2
+  },
+  "indirect_prompt_injection": {
+   "n": 26,
+   "reference": 23,
+   "hook": 18,
+   "both": 18,
+   "reference_only": 5,
+   "hook_only": 0,
+   "neither": 3
+  },
+  "repository_artifact_injection": {
+   "n": 22,
+   "reference": 20,
+   "hook": 19,
+   "both": 19,
+   "reference_only": 1,
+   "hook_only": 0,
+   "neither": 2
+  },
+  "inherent_agent_failures": {
+   "n": 22,
+   "reference": 14,
+   "hook": 15,
+   "both": 13,
+   "reference_only": 1,
+   "hook_only": 2,
+   "neither": 6
+  },
+  "corrupted_tool_feedback": {
+   "n": 21,
+   "reference": 17,
+   "hook": 12,
+   "both": 12,
+   "reference_only": 5,
+   "hook_only": 0,
+   "neither": 4
+  },
+  "policy_precedence_misinterpretation": {
+   "n": 16,
+   "reference": 16,
+   "hook": 16,
+   "both": 16,
+   "reference_only": 0,
+   "hook_only": 0,
+   "neither": 0
+  },
+  "tool_description_injection": {
+   "n": 9,
+   "reference": 8,
+   "hook": 9,
+   "both": 8,
+   "reference_only": 0,
+   "hook_only": 1,
+   "neither": 0
+  }
+ },
+ "safe_by_defense_type": {
+  "detected_with_warning": {
+   "n": 109,
+   "reference": 42,
+   "hook": 45,
+   "both": 36,
+   "reference_only": 6,
+   "hook_only": 9,
+   "neither": 58
+  },
+  "None": {
+   "n": 66,
+   "reference": 19,
+   "hook": 24,
+   "both": 16,
+   "reference_only": 3,
+   "hook_only": 8,
+   "neither": 39
+  },
+  "partial_refusal": {
+   "n": 39,
+   "reference": 6,
+   "hook": 9,
+   "both": 5,
+   "reference_only": 1,
+   "hook_only": 4,
+   "neither": 29
+  },
+  "refused": {
+   "n": 24,
+   "reference": 5,
+   "hook": 3,
+   "both": 3,
+   "reference_only": 2,
+   "hook_only": 0,
+   "neither": 19
+  },
+  "defended": {
+   "n": 12,
+   "reference": 1,
+   "hook": 1,
+   "both": 1,
+   "reference_only": 0,
+   "hook_only": 0,
+   "neither": 11
+  }
+ },
+ "safe_by_risk_source": {
+  "dependency_mcp_supply_chain_compromise": {
+   "n": 64,
+   "reference": 23,
+   "hook": 26,
+   "both": 22,
+   "reference_only": 1,
+   "hook_only": 4,
+   "neither": 37
+  },
+  "repository_artifact_injection": {
+   "n": 41,
+   "reference": 10,
+   "hook": 13,
+   "both": 10,
+   "reference_only": 0,
+   "hook_only": 3,
+   "neither": 28
+  },
+  "inherent_agent_failures": {
+   "n": 32,
+   "reference": 9,
+   "hook": 11,
+   "both": 8,
+   "reference_only": 1,
+   "hook_only": 3,
+   "neither": 20
+  },
+  "policy_precedence_misinterpretation": {
+   "n": 32,
+   "reference": 8,
+   "hook": 12,
+   "both": 7,
+   "reference_only": 1,
+   "hook_only": 5,
+   "neither": 19
+  },
+  "tool_description_injection": {
+   "n": 25,
+   "reference": 7,
+   "hook": 8,
+   "both": 6,
+   "reference_only": 1,
+   "hook_only": 2,
+   "neither": 16
+  },
+  "unreliable_or_misinformation": {
+   "n": 21,
+   "reference": 7,
+   "hook": 5,
+   "both": 5,
+   "reference_only": 2,
+   "hook_only": 0,
+   "neither": 14
+  },
+  "corrupted_tool_feedback": {
+   "n": 16,
+   "reference": 2,
+   "hook": 3,
+   "both": 0,
+   "reference_only": 2,
+   "hook_only": 3,
+   "neither": 11
+  },
+  "indirect_prompt_injection": {
+   "n": 12,
+   "reference": 2,
+   "hook": 3,
+   "both": 2,
+   "reference_only": 0,
+   "hook_only": 1,
+   "neither": 9
+  },
+  "malicious_tool_execution": {
+   "n": 7,
+   "reference": 5,
+   "hook": 1,
+   "both": 1,
+   "reference_only": 4,
+   "hook_only": 0,
+   "neither": 2
+  }
+ },
+ "calls_in_safe": {
+  "by_kind": {
+   "reads or checks": {
+    "denied": 29,
+    "n": 337,
+    "rate": 0.086
+   },
+   "writes or sends": {
+    "denied": 58,
+    "n": 146,
+    "rate": 0.397
+   },
+   "operation not named": {
+    "denied": 20,
+    "n": 50,
+    "rate": 0.4
+   },
+   "Codex's own tool": {
+    "denied": 1,
+    "n": 35,
+    "rate": 0.029
+   },
+   "other": {
+    "denied": 4,
+    "n": 21,
+    "rate": 0.19
+   }
+  },
+  "by_position": {
+   "first or only call": {
+    "denied": 17,
+    "n": 250,
+    "rate": 0.068
+   },
+   "last call": {
+    "denied": 70,
+    "n": 248,
+    "rate": 0.282
+   },
+   "middle": {
+    "denied": 25,
+    "n": 91,
+    "rate": 0.275
+   }
+  }
+ },
+ "calls_in_unsafe": {
+  "by_kind": {
+   "reads or checks": {
+    "denied": 36,
+    "n": 289,
+    "rate": 0.125
+   },
+   "writes or sends": {
+    "denied": 159,
+    "n": 205,
+    "rate": 0.776
+   },
+   "operation not named": {
+    "denied": 32,
+    "n": 53,
+    "rate": 0.604
+   },
+   "Codex's own tool": {
+    "denied": 4,
+    "n": 30,
+    "rate": 0.133
+   },
+   "other": {
+    "denied": 11,
+    "n": 22,
+    "rate": 0.5
+   }
+  },
+  "by_position": {
+   "first or only call": {
+    "denied": 13,
+    "n": 250,
+    "rate": 0.052
+   },
+   "last call": {
+    "denied": 184,
+    "n": 249,
+    "rate": 0.739
+   },
+   "middle": {
+    "denied": 45,
+    "n": 100,
+    "rate": 0.45
+   }
+  }
+ }
+}

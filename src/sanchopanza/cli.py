@@ -269,6 +269,7 @@ def _install(args: argparse.Namespace) -> int:
         scan_content=args.scan_content,
         check_done=args.check_done,
         scan_shell_fetches=not args.no_shell_fetches,
+        guard_mcp=args.guard_mcp,
         content_tools=(
             frozenset(t.strip() for t in args.content_tools.split(",") if t.strip())
             if args.content_tools
@@ -886,6 +887,14 @@ def main(argv: list[str] | None = None) -> int:
         help="SessionStart commands the guard's block is split over, each under Claude Code's "
         "10,000-character inline limit for a hook (default: enough for the 44,000-character "
         "budget, 6; 1 for the single capped block)",
+    )
+    install.add_argument(
+        "--guard-mcp",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="judge MCP tool calls before they run: the decision model reads the session so far "
+        "and the pending call and denies what a careful operator would stop (one paid decision "
+        "per call; off by default until measured, docs/results/2026-10-16-a3-mcp)",
     )
     install.add_argument(
         "--guard-profile",
