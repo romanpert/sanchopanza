@@ -20,10 +20,12 @@ wins when both are set (`sanchopanza._env`):
     TIERS             "light=haiku-agent,default=general-purpose,deep=opus-agent" (optional)
     CHEAP_SEARCH      "1" when a cheap search tool is available to the agent
     SCAN_CONTENT      "1" to scan arriving tool results for instructions aimed at the
-                      model. Off by default: it is a DETECTION control, not a barrier - by
-                      PostToolUse the text is already in the transcript and no hook can
-                      replace a tool result. It warns you, marks the passage as data in
-                      front of the model, and journals the event. See `points.injection`.
+                      model. Off by default: it is a DETECTION control, not a barrier - it
+                      leaves the result as it is, so the text reaches the model (Claude Code
+                      2.1.287 lets a PostToolUse hook replace a result, `updatedToolOutput`;
+                      only GUARD_MCP_POST=withhold uses that). It warns you, marks the passage
+                      as data in front of the model, and journals the event. See
+                      `points.injection`.
     CONTENT_TOOLS     comma-separated tool names to scan (default: WebFetch,WebSearch)
     SCAN_SHELL_FETCHES  "0" to stop scanning the output of shell commands that fetch
                       from the network (curl, wget, Invoke-WebRequest, ...). On by default
@@ -315,9 +317,14 @@ def needs_decision(
     if event == "PostToolUse":
         reviewed = name in config.delegate_tools and config.review_delegations
         scanned = config.scan_content and config.scans_after(name, arguments)
-        judged = config.guards_mcp_result(name)
-        wanted = reviewed or scanned or judged
-        return wanted and bool(text_of(input_data.get("tool_response")).strip())
+        response = input_data.get("tool_response")
+        if (reviewed or scanned) and text_of(response).strip():
+            return True
+        if not config.guards_mcp_result(name):
+            return False
+        from .mcp_guard import result_text  # stdlib and redact only
+
+        return bool(result_text(response).strip())
     families = config.delegate_tools | config.search_tools | config.shell_tools
     return name in families or config.guards_mcp(name)
 
@@ -345,8 +352,28 @@ def repo_hint(input_data: Mapping[str, Any]) -> dict[str, Any]:
     return {"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": note}}
 
 
+def withheld(output: Mapping[str, Any]) -> bool:
+    """Whether a hook output replaces an MCP result (the MCP guard after the call, withhold)."""
+    specific = output.get("hookSpecificOutput") if output else None
+    return isinstance(specific, Mapping) and "updatedMCPToolOutput" in specific
+
+
 def merge_outputs(first: Mapping[str, Any], second: Mapping[str, Any]) -> dict[str, Any]:
-    """Two hook outputs as one: contexts joined, the second's other fields win."""
+    """Two hook outputs as one: contexts joined, the second's other fields win, except that a
+    withheld MCP result stays withheld: Claude Code prefers `updatedToolOutput` over
+    `updatedMCPToolOutput` (2.1.287), so the other output's rewrite is dropped."""
+    if withheld(first) or withheld(second):
+        keep = first if withheld(first) else second
+        other = dict(second if keep is first else first)
+        specific = dict(other.get("hookSpecificOutput") or {})
+        specific.pop("updatedToolOutput", None)
+        specific.pop("updatedMCPToolOutput", None)
+        other = (
+            {**other, "hookSpecificOutput": specific}
+            if specific
+            else {k: v for k, v in other.items() if k != "hookSpecificOutput"}
+        )
+        first, second = (keep, other) if keep is first else (other, keep)
     if not first:
         return dict(second)
     if not second:
@@ -412,7 +439,9 @@ async def handle(
         if needs_decision(input_data, guardian.config):
             base = await post_tool_use(guardian)(input_data)
         extra = {}
-        if pilot.any and wants(input_data, pilot):
+        # A withheld MCP result is not handed to the autopilot: it would archive the original
+        # (and `search_archive` give it back) and its `updatedToolOutput` would win over ours.
+        if pilot.any and not withheld(base) and wants(input_data, pilot):
             extra = await autopilot_post(input_data, squire, pilot)
         return merge_outputs(base, extra)
     return await pre_tool_use(guardian)(input_data)

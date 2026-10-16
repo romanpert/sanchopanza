@@ -277,6 +277,49 @@ def with_pending(record: str, name: str, arguments: Mapping[str, Any] | None,
 # input, not yet in the transcript; it is masked whole, then cut to PENDING_CHARS, head and tail.
 
 
+def _dump(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, default=str)
+
+
+def _part_text(part: Any) -> str:
+    """One content part: text as it is, an embedded resource's text with its other fields, any
+    other part (an image's metadata, a `resource_link`, an unknown shape) as JSON."""
+    if isinstance(part, str):
+        return part
+    if isinstance(part, Mapping):
+        if part.get("type") == "text" and isinstance(part.get("text"), str):
+            return part["text"]
+        resource = part.get("resource")
+        if isinstance(resource, Mapping) and isinstance(resource.get("text"), str):
+            rest = {k: v for k, v in resource.items() if k != "text"}
+            return f"{_dump(rest)}\n{resource['text']}" if rest else resource["text"]
+    return _dump(part)
+
+
+def result_text(response: Any) -> str:
+    """Everything the model can read of an MCP tool's result, for the check after the call.
+
+    Not `generic.text_of`, which picks one field (`result`, `content`...) and reads parts it
+    does not know as "": a payload beside a benign `result`, or in a `resource` part, was never
+    judged (code review, W17). Here a content list is read part by part (`_part_text`), its
+    sibling fields are added as JSON, and any other shape is the whole response as JSON."""
+    if response is None:
+        return ""
+    if isinstance(response, str):
+        return response
+    if isinstance(response, list):
+        return "\n".join(t for t in map(_part_text, response) if t)
+    if isinstance(response, Mapping):
+        content = response.get("content")
+        if isinstance(content, list):
+            rest = {k: v for k, v in response.items()
+                    if k != "content" and v not in (None, False, "", [], {})}  # fmt: skip
+            parts = result_text(content)
+            return f"{parts}\n{_dump(rest)}" if rest else parts
+        return _dump(response)
+    return str(response)
+
+
 def result_line(text: str) -> str:
     """A tool result as the point reads it, masked whole (not cut: `fit` cuts it)."""
     return f"ENVIRONMENT: {mask_strict(text)}"
@@ -301,7 +344,10 @@ def record_after_result(
             if on_error is not None:
                 on_error(f"transcript unreadable: {error.__class__.__name__}")
     lines = lines_of(entries, skip_id=tool_use_id)
-    return fit([*lines, cap(action_line(name, arguments), LINE_CHARS)], result_line(result), limit)
+    call = cap(action_line(name, arguments), LINE_CHARS)
+    if lines and lines[-1] == call:  # no tool_use_id: the transcript's own copy of the call
+        lines = lines[:-1]
+    return fit([*lines, call], result_line(result), limit)
 
 
 def with_result(record: str, name: str, arguments: Mapping[str, Any] | None, result: str,

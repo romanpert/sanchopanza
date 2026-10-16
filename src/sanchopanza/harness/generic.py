@@ -11,7 +11,9 @@ A `Guardian` watches four families of tools:
   with `guard_mcp_post`, the same point again once the call has returned, its result last (W17).
 
 Everything else passes untouched. Denying never breaks the agent: it receives the reason
-and changes course.
+and changes course. A harness that calls `Guardian.after_tool` itself must render all of the
+`Note` it gets back: `block` (a blocking reason for the model) and `withhold` (the result to
+show instead of the tool's) as well as `context` and `user`.
 """
 
 from __future__ import annotations
@@ -130,8 +132,9 @@ class HarnessConfig:
     result_limit: int = 4000
     # --- content that arrives from outside, scanned after the fact -----------------------
     # Off by default. It costs one decision per tool result and, unlike every other family
-    # here, it cannot change the outcome: by PostToolUse the text is in the transcript and
-    # the harness offers no way to replace a tool result. It detects and warns. See
+    # here, it does not change the outcome: it leaves the result as it is, so the text reaches
+    # the model (Claude Code 2.1.287 lets a PostToolUse hook replace a result; only the MCP
+    # guard's `mcp_post_withhold` does). It detects and warns. See
     # `points.injection` for why that is still worth having and why it must not be sold as
     # a barrier.
     scan_content: bool = False
@@ -227,19 +230,25 @@ class Guardian:
         """
         c = self.config
         text = text_of(response)
-        if not text.strip():
+        judged = c.guards_mcp_result(call.name)
+        if not text.strip() and not judged:
             return None
         parts: list[Note] = []
-        if call.name in c.delegate_tools and c.review_delegations:
+        if text.strip() and call.name in c.delegate_tools and c.review_delegations:
             task = self._task_text(call.arguments)
             if task.strip():
                 outcome = await self.squire.review_report(task, text[: c.result_limit])
                 if outcome and outcome.message:
                     parts.append(Note(context=outcome.message))
-        if c.scan_content and c.scans_after(call.name, call.arguments):
+        if text.strip() and c.scan_content and c.scans_after(call.name, call.arguments):
             parts.append(await self._scan(call, text))
-        if c.guards_mcp_result(call.name):
-            parts.append(await self._after_mcp(call, text))
+        if judged:
+            # Its own reading of the result: all the model can read (`mcp_guard.result_text`).
+            from .mcp_guard import result_text
+
+            whole = result_text(response)
+            if whole.strip():
+                parts.append(await self._after_mcp(call, whole))
         joined = Note(
             context="\n\n".join(p.context for p in parts if p.context),
             user="\n".join(p.user for p in parts if p.user),

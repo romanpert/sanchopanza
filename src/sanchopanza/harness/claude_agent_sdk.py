@@ -159,11 +159,11 @@ def _record_after(guardian: Guardian, input_data: Mapping[str, Any], name: str,
     if not config.guards_mcp_result(name):
         return ""
     from . import mcp_guard
-    from .generic import text_of
 
     try:
+        text = mcp_guard.result_text(response)
         return mcp_guard.record_after_result(
-            input_data.get("transcript_path") or None, name, arguments, text_of(response),
+            input_data.get("transcript_path") or None, name, arguments, text,
             tool_use_id=str(input_data.get("tool_use_id") or ""),
             limit=config.mcp_record_chars, on_error=_warner(guardian, name))  # fmt: skip
     except Exception as error:  # noqa: BLE001 - the record is an aid; the decision still runs

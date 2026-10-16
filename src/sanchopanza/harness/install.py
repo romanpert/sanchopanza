@@ -120,9 +120,10 @@ it (`updatedMCPToolOutput`, MCP tools only). One paid decision per judged result
 
 The one decision worth understanding is `--scan-content`, which is off unless asked for. It
 adds a PostToolUse scan of arriving content for instructions aimed at the model. That is a
-detection control and not a barrier - by PostToolUse the bytes are in the transcript and the
-harness offers no way to replace a tool result - so it warns the operator, names the passage
-as data in front of the model, and journals the event. `points.injection` argues the case.
+detection control and not a barrier - it leaves the result as it is, so the text reaches the
+model (Claude Code 2.1.287 lets a PostToolUse hook replace a result, which only
+`--guard-mcp-withhold` uses) - so it warns the operator, names the passage as data in front of
+the model, and journals the event. `points.injection` argues the case.
 """
 
 from __future__ import annotations
