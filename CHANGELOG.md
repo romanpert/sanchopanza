@@ -1,5 +1,96 @@
 # Changelog
 
+## 0.3.2 (unreleased)
+
+### Added
+
+- **An adapter for OpenAI's Decisions API** (`create("openai-decisions")`,
+  `providers/openai_decisions.py`; `SANCHOPANZA_PROVIDER=openai-decisions` in the hooks). Written
+  against OpenAI's guide for `/v1/decisions` (public beta since 2026-10-06, `gpt-6-luna`):
+  `Truth` as a `predicate` with its criteria in the instructions, `Choice` as a `choice`,
+  `Score` as a `score` with its levels lowest first; a `refusal` is no answer, and `Box` and
+  attachments are refused before any request. Reads `OPENAI_API_KEY`. `create` never returns it
+  uncapped: it sits behind `CappedDecider` on a ledger every process on the machine shares,
+  hooks included (`SANCHOPANZA_OPENAI_DECISIONS_LEDGER`), each call reserved at a pessimistic
+  estimate before it is made and settled at its reported cost, or at the estimate when no token
+  count comes back; the ledger's total is 0.50 USD by default (`max_usd`,
+  `SANCHOPANZA_OPENAI_DECISIONS_MAX_USD`) and does not reset by itself. Only a rate-limit 429 is
+  retried; an out-of-quota answer trips the shared funds breaker, whose notice no longer sends a
+  non-Jev provider to `jev-preflight`. Tested on a mock of the
+  guide's examples; **never called and not measured**: every threshold in `policy.py` was set
+  against Jev.
+- **An MCP guard after the call, opt-in** (`install --guard-mcp-post`, `--guard-mcp-withhold`;
+  `SANCHOPANZA_GUARD_MCP_POST=1|withhold`; merge `c3313a3`). The `actions` point judges an MCP
+  tool's result once it arrives, with the same question as the pre-call guard
+  (`Squire.guard_action(after=True)`, its own cut `action_result_stop`, 0.5), and on a flag
+  returns `decision: block` with the reason to the model; `withhold` also replaces the result
+  (`updatedMCPToolOutput`, which Claude Code 2.1.287 applies to MCP tools). The result is read
+  whole, embedded resources and structured fields included (`mcp_guard.result_text`); a failure
+  or no funds lets the result through. Without the flag the install is byte for byte as before.
+- **`ask_document`, an opt-in MCP tool** (`python -m sanchopanza.harness.mcp --tools longdoc`;
+  `harness/longdoc_tool.py`; merge `c326905`): Jev answers a four-option question over one long
+  local file when its top choice reaches the cut (0.6, `SANCHOPANZA_LONGDOC_CUT`), otherwise it
+  hands the question back to the model with the reason. Local files under the server's roots
+  only (URLs refused), a daily spend cap shared by every process (0.50 USD,
+  `SANCHOPANZA_LONGDOC_CAP_USD`), and every failure answered as a handback. Measured only as the
+  library point (lb162, lb162x); the tool itself, and PDF or DOCX text, are not.
+
+### Changed
+
+- **A cheaper default install, every old behaviour one flag away** (merge `da005a9`):
+  - `find_in_repo` has no `alwaysLoad`: Claude Code defers it behind its tool search, which
+    keeps about 425 tokens out of every request and no longer holds Claude Code's startup on the
+    server (`--find-always-load` restores it). Its server instructions are one line naming
+    `mcp__<server>__find_in_repo` (291 → 171 characters), `KIND_HELP` is shorter (262 → 154)
+    and the tool carries `_meta["anthropic/searchHint"]`.
+  - The `sanchopanza-code` skill's description is one line (152 characters, was 551).
+  - **The compaction guard's default chooser is `pointers`**: the requests first, the files
+    changed and the last test run, then pointers; output that cannot be had again is archived
+    whole, masked with `mask_strict`, under `.sanchopanza/archive/<session>/`. One block of at
+    most 9,500 characters, one guard command per event. Replayed offline on 10 long60 sessions:
+    1.30 USD less carry cost per session on average (1.17 → 0.19 USD Ne, 1.97 → 0.35 Nl);
+    quality after compaction not measured yet. `--guard-full` writes `struct` with the six-part
+    split and a marker (`SANCHOPANZA_GUARD_CHOOSER_BY`); a chooser the owner set is kept.
+    Existing six-part installs switch on upgrade without a reinstall. `plan()` gains
+    `guard_full=False` and `mcp_json_changes()` `find_always_load=False`, both appended last.
+- **Memory's four gaps from F2's logs (C8)** (merge of `w17-memgaps`):
+  - A session's first prompt that only says to go on ("continue", "let's carry on", "seguimos",
+    "where did we leave off?") gets the latest record of the project's newest finished session,
+    by code, if it is younger than 7 days (`SANCHOPANZA_MEMORY_CONTINUE=off`,
+    `SANCHOPANZA_MEMORY_CONTINUE_DAYS`); a session still running in parallel is skipped, a
+    `/model` or `/clear` opening still counts as fresh, and a bug report that starts with
+    "continue" or "seguimos sin" does not fire it (7 of 909 SWE-chat first prompts do). Replayed
+    on F2's recorded decisions, the record now arrives at the prompt in 48 of 48 Sonnet arms
+    (36 before) and 24 of 24 Opus arms, with the same Jev calls.
+  - A record keeps the head and the tail of a long prompt within its 1,000 characters, cut at a
+    sentence end; the secret mask runs on the whole prompt first.
+  - Plan-shaped sentences ("for step 2 …", "next session we'll …", "en la próxima sesión …")
+    with no lasting word are not asked as standing rules, and stored ones rank after every rule
+    at a session start instead of crowding the 8-rule slot; a sentence with always, never,
+    must, only, siempre, nunca … is always a candidate rule. None of the owner's 280 stored
+    rules is affected.
+  - `shell_first` stays off (`SHELL_READS = False`): with the first change, every F2 arm that
+    waited for a shell write gets the record at the prompt.
+  - The `sanchopanza-code` skill says what to do with a plain "let's continue" line and with a
+    blocked MCP result or a stop sent back as unfinished.
+
+### Measured
+
+- **W17, the MCP guard after the call, a development lot** on A3's 500 ATBench-Codex
+  trajectories (sealed `2912c0b`, jev-1.13.0, 0.062 USD of Jev): **does not license** a
+  fresh-data confirmation. Pre-call plus after-the-call at 0.5 caught 35 more unsafe
+  trajectories than the pre-call guard alone and none fewer (220 against 185 of 250, two-sided
+  exact McNemar p 6e-11), and flagged 14 more safe ones (96 against 82 of 250), whose one-sided
+  upper bound, +8.0 points, is past the +7 the lot sealed. The guard stays opt-in.
+
+### Documentation
+
+- The README, `docs/providers.md` and the results index present sanchopanza as a layer with one
+  decision contract and several providers, Jev the one every figure was measured with; the two
+  measured substitutions (the LongBench router, `points.longdoc`, and memory against the handoff
+  ritual, F2) appear in the README's first table, its cost table and the head-to-head summary;
+  "What is open" follows the roadmap (A6, A7 and A9 closed; C1-C8 open).
+
 ## 0.3.1 (2026-10-16)
 
 The memory gate reads whole memories by default, an opt-in guard for MCP calls, versioned
