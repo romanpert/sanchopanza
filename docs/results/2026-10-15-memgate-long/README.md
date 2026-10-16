@@ -127,11 +127,9 @@ the client's estimate (input tokens × Jev's list price):
 
 ## Recommendation
 
-**For `memory_gate.gate`: make the long window the default.** This is a proposal; the owner
-decides.
-
-Adopted as the library default on 2026-10-16 (`SANCHOPANZA_MEMORY_WINDOW=short` turns it off);
-the installed memory hook stays on the short window, as below.
+**For `memory_gate.gate`: make the long window the default.** The owner adopted it: the long
+window is the library default since 2026-10-16 (merge `c65f021`; `SANCHOPANZA_MEMORY_WINDOW=short`
+turns it off). The installed memory hook stays on the short window, as below.
 
 - **The case for it.** The gate's job is to find the memory a prompt needs. The long window now
   has a confirmed +18-point recall gain on unseen questions, and it reaches BM25 top 3 where
@@ -144,14 +142,17 @@ the installed memory hook stays on the short window, as below.
 - **Why the precision drop matters less than it looks.** The gate renders at most 10,000
   characters (3,000 a memory), most probable first. The extra sessions it selects cost room in
   that cap, not unbounded context.
-- **How the change would look.** The package already ships the mode as an opt-in
+- **How the change was made.** The package shipped the mode as an opt-in
   (`SANCHOPANZA_MEMORY_WINDOW=long`, merged in 64bf8c8). Making it the default for
-  `memory_gate.gate` means flipping that default and keeping `short` as the setting that turns
-  it off. The short window stays the fallback past Jev's long window, without a long-context
-  decider, or past the job's budget.
+  `memory_gate.gate` flipped that default and kept `short` as the setting that turns it off.
+  The short window stays the fallback past Jev's long window, without a long-context decider,
+  or past the job's budget.
 - **What stays as it is.** The installed memory hook keeps the short window. It judges
-  candidate records, not LongMemEval sessions, and nothing here measures it with the long
-  window. It stays short until a records replay on SWE-chat measures it.
+  candidate records, not LongMemEval sessions, and this lot does not measure it. The records
+  replay on SWE-chat did, on 2026-10-16 ([memgate-hook](../2026-10-16-memgate-hook/README.md)):
+  on 905 first requests the long window gave more hits (+12.7 points [+6.3, +19.8]) and more
+  false alarms (+3.7 [+1.5, +6.2]; the cluster upper bound 6.3 against the sealed +5), "peor en
+  ruido". The hook stays short.
 - **Not measured.** Answer accuracy downstream of the gate, jev-1.14.0 on these 84 (L6 found no
   model effect on its 36), and the preference questions `needs_recall` skips.
 

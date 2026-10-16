@@ -29,7 +29,9 @@ reviewed the registration twice against the code.
   - Five points stay "no peor", and two are "no concluyente".
 - **Not run: new labelled cases for the six L1 points.** None exist with the same definition, in
   the repository or in public data, and this lot does not write labels. check_done on new
-  trajectories was not run either, since it needs agent runs on Claude.
+  trajectories was not run in this lot. [checkdone114](../2026-10-16-checkdone114/README.md)
+  ran it on 2026-10-16 on AgentDojo's published runs of Claude 3.7 Sonnet (950 trajectories, no
+  agent run needed): confirmed no worse at 0.30.
 
 ## Part B: a second draw of the recalibration's 1,298 cases
 
@@ -147,14 +149,20 @@ it. This lot changes no threshold, and these findings bear on anyone who opts in
 - **redundant_page.** 0.61 loses held-out drops on both draws: 45 and 44 of 50, against 47 and 48
   for 1.13. The fix the recalibration proposed still applies: about 90 new labelled `drop` cases
   so that a 90 % derivation does not hinge on one page.
+  - 2026-10-16: [redundant-drop](../2026-10-16-redundant-drop/README.md) added them. The
+    derivation no longer hinges on one page but lands at 0.04, inside the `keep` pages' scores,
+    and fails the costly-drops guard (8 against 0): no proposal. 0.61 lost drops a third time
+    (−6.0 points [−11.6, −1.7]).
 - **check_done.** It holds on a second draw: 310 against 311, false blocks 10 against 9.
   1.14 at 0.5 would make 14 false blocks.
 
 **Still unconfirmed on unseen cases:**
 
-- The six L1 points and check_done have now been checked against two draws only.
-- Writing new labelled cases (about 420 for the L1 points) and running new AgentDojo trajectories
-  for check_done (agents on Claude) remain the way to settle them. Neither changes this verdict.
+- The six L1 points have been checked against two draws only. Writing new labelled cases (about
+  420) remains the way to settle them; it does not change this verdict.
+- check_done is settled on unseen trajectories: on 950 AgentDojo stops no lot had seen
+  ([checkdone114](../2026-10-16-checkdone114/README.md)), 1.14 at 0.30 is no worse than 1.13 at
+  0.5, +0.8 points [−1.1, +3.2].
 
 ## Bill
 
@@ -169,7 +177,7 @@ calls, against an expected 0.197 and the lot's 0.45 cap. The shared ledger went 
   - Every labelled case of these points in the repository is one of the 533 in
     `benches/*.jsonl`, all asked by L1.
   - No public dataset labels the same questions.
-- **check_done on new trajectories** (it needs agent runs on Claude).
+- **check_done on new trajectories**, measured afterwards by checkdone114 (above).
 - **Candor round 1**, where 1.13's cut was fitted.
 
 ## Reproducing

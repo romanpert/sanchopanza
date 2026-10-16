@@ -12,7 +12,7 @@ On find, any@1 was identical: 50.4 % in both arms, with 3 issues gained and 3 lo
 fails only because a 117-item CI cannot exclude −2 points.
 
 Pre-registered in `prereg.md`:
-- commit 8f83b1c, re-sealed over LF bytes in 7698fc3;
+- commit 8f83b1c, sealed in 7698fc3;
 - `prereg.sha256` fbf111b1…;
 - reviewed twice by `revisor-prereg` before the seal.
 
@@ -104,7 +104,8 @@ Every original verdict stands under 1.14. Nothing that failed on 1.13 holds on 1
   measured here.
 - **Skipped for budget**, as registered:
   - MALT, about 0.064 USD for the two arms;
-  - the candor counterfactuals of rounds 3-5, which are phase 2;
+  - the candor counterfactuals of rounds 3-5, which are phase 2 (the
+    [confirmation](../2026-10-15-jev114-recalconf/README.md) then asked rounds 2-5);
   - errata's `check_done` and per-sentence questions, which no registered verdict reads.
 
 ## Spend
@@ -121,11 +122,15 @@ Every original verdict stands under 1.14. Nothing that failed on 1.13 holds on 1
 ## Recommendation
 
 - **Do not switch find_in_repo or the candor holistic question to 1.14 on this evidence.**
-  - find gains nothing, apart from about 6 % fewer calls.
+  - find gains nothing, apart from about 5 % fewer calls and 6 % less cost.
   - On errata the ranking does not improve, and the 0.83 cut no longer means the same.
 - If 1.14 becomes the default anyway (1.13 will be retired), **recalibrate**
   `errata.HOLISTIC_CUT` and the candor holistic cut on 1.14 recordings before trusting them. On
-  1.14 the 0.83 cut flags 40 % of accepted answers.
+  1.14 the 0.83 cut flags 40 % of accepted answers. What followed: the
+  [recalibration](../2026-10-15-jev114-recal/README.md) set the holistic cut at 0.90 on 1.14, and
+  its [confirmation](../2026-10-15-jev114-recalconf/README.md) found 1.14 at 0.90 worse than 1.13
+  at 0.83 on 910 counterfactuals no cut had seen (−3.3 points [−5.4, −1.2]; AUC 0.958 against
+  0.972). Candor stays on 1.13.
 - `check_done`'s 0.5 cut sits on the 2026-09-25 AgentDojo calibration, not on tau2. tau2 does
   not argue for moving it: the gain is in ranking only, near chance.
 

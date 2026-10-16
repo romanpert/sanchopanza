@@ -220,16 +220,21 @@ point is "peor". But four findings argue against making it now:
 
 1.14's gains are elsewhere: Score calibration, supersession and R-Judge (L1, L2).
 
-**Keep the profile.** It makes `SANCHOPANZA_JEV_MODEL=jev-1.14.0` a safe opt-in now, and when
-1.13 is retired the switch starts from cuts that are no worse.
+**Keep the profile.** It makes `SANCHOPANZA_JEV_MODEL=jev-1.14.0` an opt-in, and when 1.13 is
+retired the switch starts from cuts that are no worse.
 
 The confirmation that followed ([2026-10-15-jev114-recalconf](../2026-10-15-jev114-recalconf/README.md))
 did not hold this: on a second draw the profile was inconclusive taken together and worse on
 `redundant_page`, and on unseen candor counterfactuals 1.14 was worse. The profile stays an
 opt-in, not a safe one, and candor stays on 1.13.
 
-**Before the switch, a confirmation on cases neither version was asked**, estimated in Jev at
-today's per-call costs (31.6 µUSD per L1 call, about 47 per check_done trajectory, 87 per errata
+**Before the switch, a confirmation on cases neither version was asked.** What ran of this plan:
+the second draw ([recalconf](../2026-10-15-jev114-recalconf/README.md), with the candor
+counterfactuals of rounds 2-5: not admissible), check_done on 950 unseen AgentDojo trajectories
+([checkdone114](../2026-10-16-checkdone114/README.md): no worse at 0.30) and 90 more `drop`
+cases for redundant_page ([redundant-drop](../2026-10-16-redundant-drop/README.md): the
+derivation clears only at 0.04, no cut proposed). New labelled cases for the six L1 points were
+not written. The plan as estimated in Jev at today's per-call costs (31.6 µUSD per L1 call, about 47 per check_done trajectory, 87 per errata
 holistic call), both arms:
 
 | What | Cases | Jev USD |

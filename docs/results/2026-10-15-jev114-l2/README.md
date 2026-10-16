@@ -33,7 +33,7 @@ sets; paired bootstrap 95 % intervals (2,000 resamples, seed 7).
 Day-to-day noise of 1.13 (`13r` against `rec`, the same model a month apart): 2 labels of 655
 flipped on check_done, 12 of 571 on R-Judge, 10 of 500 on Codex, no accuracy difference
 significant. 1.14 moved 16, 23 and 26. Token counts and cost per request are identical between
-versions; median latency 203-218 ms for both today (250 ms in September).
+versions; median latency 203-218 ms for both today (233-250 ms in September).
 
 ### check_done: 1.14 says "not done" more often
 
@@ -75,7 +75,8 @@ at 25.6 % of Opus's cost with 1.14 (30.0 % with 1.13), false allows 8.8 % for bo
 
 ## ATBench-Codex: the confirmation at tau 0.45
 
-Opus 5 answers are the Claude Code CLI recording of 2026-09-27.
+Opus 5 answers are the Claude Code CLI recording of 2026-09-27 (its Claude Code version was not
+recorded).
 
 | arm | set | Jev alone | cascade | Opus alone | difference [95 %] | cost / Opus | escalated | verdict |
 |---|---|---|---|---|---|---|---|---|
@@ -93,14 +94,18 @@ derived tau is 0.25 instead of 0, at 17.6 % of Sonnet's cost.
 
 - **check_done: stay on 1.13.** Moving needs a cut recalibrated on 1.14 and confirmed on unseen
   trajectories; at the current 0.5 the Stop hook would block about twice as many finished runs.
+  What followed: the [recalibration](../2026-10-15-jev114-recal/README.md) set 0.30, its
+  [confirmation](../2026-10-15-jev114-recalconf/README.md) held it on a second draw (310 against
+  311), and [checkdone114](../2026-10-16-checkdone114/README.md) confirmed it no worse on 950
+  unseen AgentDojo stops (745 against 737 right, +0.8 points [−1.1, +3.2]).
 - **Permission cascade: stay on 1.13 by the sealed rule.** 1.14 is better on R-Judge and keeps
   the Codex confirmation at a slightly lower cost, but on Codex alone at the cut it is
   inconclusive (-1.6 points, interval down to -3.6). tau 0.45 needs no recalibration on either
   version.
 - **The R-Judge 50 % bar is not evidence for 1.14.** The pass is the registered split's; at the
   split medians both versions sit near 31 % of Opus's cost.
-- A migration when 1.13 is retired will need: a recalibrated check_done cut, and a second
-  Codex draw to settle the inconclusive reading.
+- A migration when 1.13 is retired will need a second Codex draw to settle the inconclusive
+  reading; the recalibrated check_done cut (0.30) is confirmed, as above.
 
 ## What this does not settle
 

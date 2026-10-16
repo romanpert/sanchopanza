@@ -1,4 +1,4 @@
-# B3 at the 0.6 cut: the confirmation was not run, because it cannot decide
+# B3 at the 0.6 cut: the −2-point confirmation was not run, because it cannot decide (the −10-point one ran as lb162)
 
 **The result.** Lot L6 proposed a confirmation of its one post hoc number: on LongBench v2,
 Jev 1.14 with the long window answering alone where its confidence is >= 0.6, and Sonnet 5.5
@@ -18,6 +18,14 @@ confirmation was measured for free from L6's recorded answers.
 
 The −2-point rule cannot confirm this hybrid on LongBench v2, with Claude or without. The
 hypothesis stays open, not refuted. No product claim follows from it.
+
+The design this lot named as deciding, 162 tasks at −10 points with Sonnet on the covered ones,
+was run as [lb162](../2026-10-15-lb162/README.md): no worse than Sonnet 5.5 (+1.2 points
+[−3.1, +5.6]), "sustituye", with coverage 37 % rather than L6's 54 %, Jev's precision on the
+covered tasks 52 %, and Sonnet's cost on them 5.76 USD against the 12 estimated here.
+[lb162x](../2026-10-16-lb162x/README.md) then measured the whole saving (33.9 % [24.0, 44.0] of
+Sonnet's cost) and the hybrid against Opus 5.5 (no worse at −10, −3.7 [−8.0, +0.6]). The
+−2-point question stays as above.
 
 ## Why the confirmation cannot decide
 
@@ -59,7 +67,7 @@ of n tasks reaches each verdict, if the truth is what L6 saw.
 |---|---|---|---|---|
 | **−2 points (the rule)** | **50** | **3.7 %** | **0.1 %** | **12.2** |
 | −2 points | 162 | 1.1 % | 0 | 9.1 |
-| −5 points | 50 | 10.7 % | 0 | 12.2 |
+| −5 points | 50 | 10.7 % | 0.04 % | 12.2 |
 | −10 points | 50 | 37.4 % | 0 | 12.2 |
 | −10 points | 162 | 69.2 % | 0 | 9.1 |
 
@@ -70,7 +78,7 @@ of n tasks reaches each verdict, if the truth is what L6 saw.
 | **−2 points (the rule)** | **50** | **6.9 %** | **1.1 %** | **11.1** |
 | −2 points | 100 | 7.2 % | 0.5 % | 7.9 |
 | −2 points | 162 | 9.8 % | 0.5 % | 6.2 |
-| −5 points | 162 | 36.7 % | 0 | 6.2 |
+| −5 points | 162 | 36.7 % | 0.02 % | 6.2 |
 | −10 points | 50 | 47.2 % | 0 | 11.1 |
 | −10 points | 162 | 88.2 % | 0 | 6.2 |
 

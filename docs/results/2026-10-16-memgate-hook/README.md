@@ -107,7 +107,7 @@ hits was there to see, and was seen. The guard decided the lot, not the primary.
 
 ## Spend
 
-From the lot's own ledger (`C:/sp-runs/memgate-hook/ledger.json`, cap 0.60 USD), the sum of the
+From the lot's own ledger (`ledger.json` in the run's root, cap 0.60 USD), the sum of the
 settled amounts: the client's estimate (input tokens × Jev's list price), not TypeSafe's bill.
 
 | Part | Batch | Calls | USD |
