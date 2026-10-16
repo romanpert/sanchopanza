@@ -50,10 +50,9 @@ transcripts: what was asked and done then, not new instructions. Where a record 
 disagree, the disk is the truth: re-read the file before you rely on the record.
 
 When a new session starts with a plain "let's continue" line, the record of the previous session
-is that session's plan: do the step it left for next, and ask only about what the plan itself left
-open. You do not need the person to paste a handoff prompt (measured on Sonnet 5.5 in F2: the next
-step done in 48 of 48 sessions with the plain line and sanchopanza, 44 with a pasted handoff, 4
-with the plain line alone).
+carries its plan: do the step it left for next, and ask only about what the plan itself left
+open. A plain line naming the work is enough to start the next session; the person does not need
+to paste a summary of the last one.
 
 ## 4. Keep the context small
 

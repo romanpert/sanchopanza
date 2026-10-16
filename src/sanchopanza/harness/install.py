@@ -65,8 +65,8 @@ that cannot be had again archived whole beside the project for the agent to Read
 attaches the whole tool output instead (`context.structural`, the default from 2026-10-05 to
 2026-10-16): the `SessionStart` entry then holds K commands, one part of the block each, because
 Claude Code keeps each hook's context inline only up to 10,000 characters
-(`harness.install_guard`; `--guard-parts`, 6 by default). Our entries are recognised by their
-command, and a run without the flag takes them out.
+(`harness.install_guard`; `--guard-parts`, 6 with `--guard-full`, 1 otherwise). Our entries are
+recognised by their command, and a run without the flag takes them out.
 
 `--memory` wires memory between requests and sessions (`harness.memory_hook`,
 `sanchopanza memory-hook`): `Stop` and `SessionEnd` record each finished request verbatim, by
@@ -119,7 +119,8 @@ point with the result last and, at `T_ACTION_RESULT_STOP`, answers `decision: bl
 reason for the model and a notice for the operator. It cannot undo the call. `--guard-mcp-withhold`
 (which implies it) writes `withhold`: the flagged result is also replaced before the model reads
 it (`updatedMCPToolOutput`, MCP tools only). One paid decision per judged result; independent of
-`--guard-mcp`; off by default, not measured yet (W17, benchmarks/a3_mcp/w17_prereg.md).
+`--guard-mcp`; off by default: its development lot W17 (benchmarks/a3_mcp/w17_prereg.md)
+did not license a fresh-data confirmation (more unsafe caught, more safe flagged than allowed).
 
 The one decision worth understanding is `--scan-content`, which is off unless asked for. It
 adds a PostToolUse scan of arriving content for instructions aimed at the model. That is a

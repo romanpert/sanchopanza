@@ -934,7 +934,8 @@ def main(argv: list[str] | None = None) -> int:
         default=None,  # None: not given (so --guard-mcp-withhold can imply it); off
         help="judge what an MCP call returned, after it ran: the same question with the result "
         "last; a flag blocks with a reason for Claude and a notice for you (it cannot undo the "
-        "call; one paid decision per result; off by default, not measured yet)",
+        "call; one paid decision per result; off by default: its development lot W17 did not "
+        "license a confirmation)",
     )
     install.add_argument(
         "--guard-mcp-withhold",

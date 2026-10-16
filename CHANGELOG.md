@@ -43,7 +43,8 @@
     server (`--find-always-load` restores it). Its server instructions are one line naming
     `mcp__<server>__find_in_repo` (291 → 171 characters), `KIND_HELP` is shorter (262 → 154)
     and the tool carries `_meta["anthropic/searchHint"]`.
-  - The `sanchopanza-code` skill's description is one line (152 characters, was 551).
+  - The `sanchopanza-code` skill's description is one line (132 characters, was 531; its line
+    in Claude Code's skill listing is 152 characters, was 551).
   - **The compaction guard's default chooser is `pointers`**: the requests first, the files
     changed and the last test run, then pointers; output that cannot be had again is archived
     whole, masked with `mask_strict`, under `.sanchopanza/archive/<session>/`. One block of at
@@ -89,7 +90,8 @@
   decision contract and several providers, Jev the one every figure was measured with; the two
   measured substitutions (the LongBench router, `points.longdoc`, and memory against the handoff
   ritual, F2) appear in the README's first table, its cost table and the head-to-head summary;
-  "What is open" follows the roadmap (A6, A7 and A9 closed; C1-C8 open).
+  "What is open" follows the roadmap (A6, A7 and A9 closed; the rest open, with C1 built and
+  C8 fixed in code, neither confirmed live).
 
 ## 0.3.1 (2026-10-16)
 
