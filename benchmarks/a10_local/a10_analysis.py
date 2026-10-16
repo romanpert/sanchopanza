@@ -1,15 +1,23 @@
 """The registered analysis of lot A10 (docs/results/2026-10-16-a10-local/prereg.md): the local
-classifier against Jev's recorded decisions on the same stops. Pure functions, no I/O.
+classifier against Jev's recorded probabilities on the same stops. Pure functions, no I/O.
 
-A row is {"id", "cluster", "label" ("done" | "not_done"), "p_local", "p_14", "p_13r"}. Every arm
-blocks a stop when its p(done) is below its cut: the local one at the cut fixed on the training
-set, `jev-1.14.0` at 0.30 and `jev-1.13.0` at 0.5 (the cuts lot checkdone114 scored). Jev's
-probabilities are read here only to score Jev's own decisions; nothing of them reaches the
-classifier.
+A row is {"id", "cluster", "label" ("done" | "not_done"), "p_local", "p_14", "p_13r"}.
 
-The statistics are the jev114 lots': exact McNemar and the paired bootstrap of
-`l4_stats.paired_binary` (10,000 replicas, user-task clusters and single stops), Wilson intervals
-from `sanchopanza.eval.stats`, rank AUC and its cluster bootstrap from `lot_stats`.
+THE PRIMARY is the paired difference in AUC (finished stops ranked above unfinished ones), local
+minus `jev-1.14.0`, with a cluster bootstrap over user tasks (`l4_stats.bootstrap`: 10,000
+replicas, seed 20261015), read on its unrounded bounds against a margin of -0.05 AUC. AUC needs
+no cut, so an arm cannot score well by blocking little: on checkdone114's 950 stops "never
+block" is right on 795, more than either Jev arm at its cut.
+
+SECONDARY: right decisions at the cuts, false blocks and catches. Every arm blocks a stop when
+its p(done) is below its cut: the local one at the cut fixed on the training set, `jev-1.14.0`
+at 0.30 and `jev-1.13.0` at 0.5 (the cuts lot checkdone114 scored), and a descriptive "never"
+arm that blocks nothing. Jev's probabilities are read here only to score Jev; nothing of them
+reaches the classifier.
+
+The statistics are the jev114 lots': exact McNemar and the paired bootstrap of `l4_stats` (same
+resampling and seed as `paired_binary`), Wilson intervals from `sanchopanza.eval.stats`, rank AUC
+from `lot_stats`.
 """
 
 from __future__ import annotations
@@ -27,7 +35,9 @@ MODELS = {"14": "jev-1.14.0", "13r": "jev-1.13.0"}
 # The cuts lot checkdone114 scored (`policy.Thresholds.for_model(...).done` on 2026-10-16),
 # registered here as numbers so a later profile change cannot move them; a test pins them.
 JEV_CUTS = {"14": 0.30, "13r": 0.5}
-MARGIN = -0.05  # non-inferiority: the cluster interval's lower bound above -5 points
+AUC_MARGIN = -0.05  # the primary: the AUC difference's lower bound above -0.05
+MARGIN = -0.05  # secondary, accuracy at the cuts: above -5 points
+NEVER = "never"  # the descriptive arm that never blocks (p_never = 1, cut 0)
 
 
 def jev_cuts() -> dict[str, float]:
@@ -68,19 +78,20 @@ def _auc(rows: Sequence[Mapping[str, Any]], arm: str) -> float | None:
     return None if found is None else round(found, 4)
 
 
-def verdict(result: Mapping[str, Any]) -> str:
-    """The registered rule on the user-task cluster interval of (local - Jev) accuracy, read on
-    the unrounded bounds when present. The house convention for margin lots: "peor" only when
-    the whole interval lies below the margin."""
+def verdict(result: Mapping[str, Any], margin: float = MARGIN) -> str:
+    """The registered rule on a cluster interval of (local - Jev), read on the unrounded bounds
+    when present. The house convention for margin lots: "peor" only when the whole interval
+    lies below the margin; an interval wholly below 0 whose lower bound is above the margin is
+    "no peor"."""
     ci = result.get("ci95_cluster_raw") or result.get("ci95_cluster")
     if result.get("diff") is None or ci is None:
         return "no medido"
     low, high = ci
     if low > 0:
         return "mejor"
-    if low > MARGIN:
+    if low > margin:
         return "no peor"
-    if high < MARGIN:
+    if high < margin:
         return "peor"
     return "no concluyente"
 
@@ -128,23 +139,52 @@ def paired(
     }  # fmt: skip
 
 
+def paired_auc(rows: Sequence[Mapping[str, Any]], new: str, old: str) -> dict[str, Any]:
+    """AUC of p(done) for finished above unfinished stops, arm `new` minus arm `old`, with the
+    user-task cluster bootstrap of `l4_stats.bootstrap` (10,000 replicas, its seed) and the
+    interval's unrounded bounds for the verdict."""
+    labels = [r["label"] == "done" for r in rows]
+    a, b = [r[f"p_{new}"] for r in rows], [r[f"p_{old}"] for r in rows]
+
+    def area(scores: Sequence[float], idx: Sequence[int]) -> float | None:
+        return lot_stats.rank_auc([scores[i] for i in idx], [labels[i] for i in idx])
+
+    def diff(idx: list[int]) -> float | None:
+        x, y = area(a, idx), area(b, idx)
+        return None if x is None or y is None else x - y
+
+    everything = list(range(len(rows)))
+    whole = diff(everything)
+    if whole is None:
+        return {"n": len(rows), "diff": None, "ci95_cluster": None, "verdict": "no medido"}
+    cluster = _bounds(
+        l4_stats.bootstrap(diff, l4_stats.clusters_as_units([r["cluster"] for r in rows]))
+    )
+    result = {
+        "n": len(rows), "positives": sum(labels),
+        "new": round(area(a, everything), 4), "old": round(area(b, everything), 4),
+        "diff": round(whole, 4), "ci95_cluster": _rounded(cluster), "ci95_cluster_raw": cluster,
+        "replicas": l4_stats.BOOT, "seed": l4_stats.BOOT_SEED,
+    }  # fmt: skip
+    result["verdict"] = verdict(result, AUC_MARGIN)
+    return result
+
+
 def against(rows: Sequence[Mapping[str, Any]], arm: str, cuts: Mapping[str, float]) -> dict:
-    """Local minus Jev `arm` on the same stops: right decisions (the verdict), finished stops
-    not falsely blocked, unfinished stops caught, and AUC."""
+    """Local minus Jev `arm` on the same stops: AUC (the verdict), then right decisions at the
+    cuts, finished stops not falsely blocked and unfinished stops caught."""
     local, cut = cuts["local"], cuts[arm]
     done = [r for r in rows if r["label"] == "done"]
     unfinished = [r for r in rows if r["label"] == "not_done"]
     accuracy = paired(rows, lambda r: right(r, "local", local), lambda r: right(r, arm, cut))
-    accuracy["verdict"] = verdict(accuracy)
+    accuracy["verdict_descriptive"] = verdict(accuracy, MARGIN)
     return {
+        "auc": paired_auc(rows, "local", arm),
         "accuracy": accuracy,
         "not_falsely_blocked": paired(done, lambda r: not blocks(r["p_local"], local),
                                       lambda r: not blocks(r[f"p_{arm}"], cut)),
         "caught": paired(unfinished, lambda r: blocks(r["p_local"], local),
                          lambda r: blocks(r[f"p_{arm}"], cut)),
-        "auc": lot_stats.paired_auc([r["label"] == "done" for r in rows],
-                                    [r["p_local"] for r in rows], [r[f"p_{arm}"] for r in rows],
-                                    [r["cluster"] for r in rows]),
     }  # fmt: skip
 
 
@@ -152,11 +192,13 @@ def analyse(rows: Sequence[Mapping[str, Any]], local_cut: float) -> dict[str, An
     missing = [r["id"] for r in rows if None in (r["p_local"], r["p_14"], r["p_13r"])]
     if missing:
         raise SystemExit(f"{len(missing)} stops without a probability, first {missing[:3]}")
+    rows = [{**r, f"p_{NEVER}": 1.0} for r in rows]
     cuts = {"local": local_cut, **jev_cuts()}
+    shown = {**cuts, NEVER: 0.0}
     suites = sorted({r["cluster"].split("/")[0] for r in rows})
     by_suite = {
         s: {arm: arm_table([r for r in rows if r["cluster"].startswith(s + "/")], arm, cut)
-            for arm, cut in cuts.items()}
+            for arm, cut in shown.items()}
         for s in suites
     }  # fmt: skip
     primary = against(rows, "14", cuts)
@@ -165,9 +207,9 @@ def analyse(rows: Sequence[Mapping[str, Any]], local_cut: float) -> dict[str, An
         "done": sum(r["label"] == "done" for r in rows),
         "clusters": len({r["cluster"] for r in rows}),
         "cuts": cuts,
-        "arms": {arm: arm_table(rows, arm, cut) for arm, cut in cuts.items()},
+        "arms": {arm: arm_table(rows, arm, cut) for arm, cut in shown.items()},
         "primary_vs_14": primary,
         "secondary_vs_13r": against(rows, "13r", cuts),
         "by_suite": by_suite,
-        "verdict": primary["accuracy"]["verdict"],
+        "verdict": primary["auc"]["verdict"],
     }

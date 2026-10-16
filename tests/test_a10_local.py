@@ -263,6 +263,24 @@ def test_cut_rule_takes_the_most_recall_that_keeps_block_precision():
     assert a10_train.derive_cut([0.1] * 63, [False] * 60 + [True] * 3) is None
 
 
+def test_the_cut_ladder_goes_090_then_080_then_max_accuracy():
+    assert a10_train.PRECISION_TARGETS == (0.90, 0.80)
+    # 0.90 reachable: 100/101 blocked right.
+    p = [0.1] * 101 + [0.9] * 120
+    done = [False] * 100 + [True] + [True] * 100 + [False] * 20
+    assert a10_train.cut_by_ladder(p, done) == (0.11, "D at 0.9")
+    # Only 0.80: 60/63 (Wilson lower 0.87); blocking the 0.9s too drops it to 60/113.
+    p = [0.1] * 63 + [0.9] * 50
+    done = [False] * 60 + [True] * 3 + [True] * 50
+    assert a10_train.cut_by_ladder(p, done) == (0.11, "D at 0.8")
+    # Neither: 6/10 at 0.1. Every cut from 0.11 to 0.90 is right on 36 of 42; the lowest wins.
+    p = [0.1] * 10 + [0.9] * 32
+    done = [False] * 6 + [True] * 4 + [True] * 30 + [False] * 2
+    assert a10_train.max_accuracy_cut(p, done) == 0.11
+    assert a10_train.accuracy_at(p, done, 0.11) == 36 / 42
+    assert a10_train.cut_by_ladder(p, done) == (0.11, "max out-of-fold accuracy")
+
+
 @pytest.mark.parametrize(
     ("ci", "expected"),
     [
@@ -284,6 +302,19 @@ def test_verdict_reads_the_unrounded_bounds():
     rounded = {"diff": 0.0, "ci95_cluster": (-0.05, 0.01)}
     assert analysis.verdict(rounded) == "no concluyente"
     assert analysis.verdict({**rounded, "ci95_cluster_raw": (-0.04999, 0.01)}) == "no peor"
+
+
+def test_the_primary_is_the_auc_difference_with_its_margin():
+    assert analysis.AUC_MARGIN == -0.05
+    # Local ranks every finished stop above every unfinished one; Jev 1.14 ranks at random.
+    rows = [{"id": str(i), "cluster": f"c{i % 6}", "label": "done" if i % 2 else "not_done",
+             "p_local": 0.9 if i % 2 else 0.1, "p_14": (i * 37 % 100) / 100}
+            for i in range(60)]  # fmt: skip
+    found = analysis.paired_auc(rows, "local", "14")
+    assert found["new"] == 1.0 and found["diff"] > 0
+    assert found["ci95_cluster_raw"][0] > 0 and found["verdict"] == "mejor"
+    swapped = analysis.paired_auc(rows, "14", "local")
+    assert swapped["verdict"] == "peor"
 
 
 def test_paired_gives_l4_stats_intervals():
@@ -311,10 +342,16 @@ def test_analysis_on_synthetic_rows_has_every_registered_block():
             for i in range(30)]  # fmt: skip
     found = analysis.analyse(rows, 0.35)
     assert found["cuts"] == {"local": 0.35, "14": 0.30, "13r": 0.5}
-    assert set(found["arms"]) == {"local", "14", "13r"}
+    assert set(found["arms"]) == {"local", "14", "13r", "never"}
+    never = found["arms"]["never"]
+    assert never["blocks"] == 0 and never["auc"] == 0.5
+    assert never["accuracy"]["k"] == sum(r["label"] == "done" for r in rows)
     for block in ("accuracy", "not_falsely_blocked", "caught", "auc"):
         assert block in found["primary_vs_14"] and block in found["secondary_vs_13r"]
-    assert found["verdict"] == found["primary_vs_14"]["accuracy"]["verdict"]
+    # The primary is the AUC difference; accuracy's reading is descriptive.
+    assert found["verdict"] == found["primary_vs_14"]["auc"]["verdict"]
+    assert "verdict" not in found["primary_vs_14"]["accuracy"]
+    assert found["primary_vs_14"]["auc"]["replicas"] == 10_000
     with pytest.raises(SystemExit):
         analysis.analyse([{**rows[0], "p_14": None}], 0.35)
 

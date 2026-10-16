@@ -1,8 +1,7 @@
-# DRAFT, NOT SEALED. Pre-registration: A10, a local check_done classifier trained on public labels, against Jev on unseen stops
+# Pre-registration: A10, a local check_done classifier trained on public labels, against Jev on unseen stops
 
-Status: **draft**, written 2026-10-16 and revised the same evening after a `revisor-prereg`
-review. Not sealed. Nothing has been scored on the test set: `eval.py run` refuses until
-`prereg.sha256` exists and matches.
+Status: registered 2026-10-16 after two `revisor-prereg` reviews. Sealed by `prereg.sha256` in
+this directory before any test stop was scored. `eval.py run` refuses unless that seal matches.
 
 ## Question
 
@@ -47,6 +46,7 @@ or a provider kept on the machine. It is not a saving: Jev costs micro-dollars a
        (`p_14`, `p_13r`);
      - on the 393, in `../2026-10-15-jev114-recal/done-scored.jsonl`, read by the dry run after
        the model was fixed.
+     - `power.py` reads only the labels and clusters of the 950 from the same file.
 
 ## Data
 
@@ -116,7 +116,7 @@ scikit-learn. Code: `benchmarks/a10_local/`.
 | View | C = 0.1 | 1 | 10 | 100 |
 |---|---|---|---|---|
 | A, words 1-2 | 0.922 | 0.936 | 0.938 | 0.937 |
-| **B, A + chars** | 0.937 | **0.944** (log-loss 0.341) | 0.942 | 0.940 |
+| **B, A + chars** | 0.936 | **0.944** (log-loss 0.341) | 0.942 | 0.940 |
 | C, words 1 | 0.928 | 0.939 | 0.939 | 0.938 |
 | D, last message + structure | 0.888 | 0.916 | 0.928 | 0.929 |
 
@@ -135,7 +135,9 @@ terms, sha256 `df370586…`.
 - Its "security note" and "flagged" terms are the undefended agents' own words, warning the user
   about an injected page. They are not Jev's marker: no training record holds that.
 
-## The cut
+## The cut (for the secondary comparisons)
+
+The primary needs no cut. The cut matters only for the secondary comparisons at the cuts.
 
 **Block when p(done) < 0.45.**
 
@@ -152,10 +154,12 @@ The targets are tried in order:
 2. **0.80**, the target recal used for its other points.
 3. If neither finds a cut, the out-of-fold accuracy-maximising cut.
 
+A test pins each rung.
+
 **Why the ladder.** With 107 unfinished training stops, no cut reaches 0.90: the best Wilson lower
-bound is 0.87, at 0.35. `thresholds.py` puts the 90 % floor at 35 blocks, all of them right. The
-ladder was fixed on TRAIN after seeing that the 0.90 rule found no cut there. No test stop had
-been scored, and none has been.
+bound is 0.879, at 0.33, where all 28 blocks are right. `thresholds.py` puts the 90 % floor at 35
+blocks, all of them right. The ladder was fixed on TRAIN after seeing that the 0.90 rule found no
+cut there. No test stop had been scored, and none has been.
 
 **Result: 0.45, by D at 0.80.** At 0.45 the out-of-fold record is:
 
@@ -164,20 +168,27 @@ been scored, and none has been.
 - 69 of the 107 unfinished stops caught;
 - accuracy 0.883.
 
-**Why this rule and not maximum accuracy.** The two cuts compared against are Jev's operating
-points. 1.14's 0.30 was set by rule D on the 655, and a false block costs the user a turn.
-
 **Descriptive, not used.** The accuracy-maximising out-of-fold cut is 0.56. It gives accuracy
 0.888, with 19 false blocks and 82 caught.
 
-**Known when the rule was chosen.** Lot checkdone114 is published, so these were known:
+## Known when the rules were chosen
 
-- the test set's label mix, 84 % done;
-- Jev 1.14's 150 false blocks of 795 finished stops;
-- 1.14's 745 right of 950 and 1.13's 737.
+Lot checkdone114 is published. These test-set figures were known when the cut rule and the
+primary were chosen:
 
-A lower cut blocks less, which helps on a done-heavy set. The rule was chosen to match Jev's
-derivation, not for that mix.
+- the label mix: 795 done of 950 (84 %), so "never block" is right on 795;
+- Jev 1.14 at 0.30 is right on 745, with 150 false blocks of 795 finished stops;
+- Jev 1.13 at 0.5 is right on 737, with 165 false blocks;
+- both versions' AUC: 0.81.
+
+**Why the primary is AUC.** The first draft registered accuracy at the cuts as the primary. The
+second `revisor-prereg` review pointed out the problem: "never block" beats both Jev arms on
+accuracy here, so a local arm that blocks little could read "mejor" or "no peor" on accuracy
+without telling finished stops from unfinished ones.
+
+The primary was switched to the AUC difference after that review, before any test stop was
+scored. AUC needs no cut. A lower cut blocks less, which helps accuracy on a done-heavy set; the
+cut rule was chosen to match Jev's derivation, not for that mix.
 
 ## Dry run on TRAIN (out of fold; `train.py dry`, `dry.json`)
 
@@ -185,25 +196,27 @@ The whole evaluation pipeline was run on the 393. It compared the out-of-fold `p
 Jev's recorded probabilities on the same stops. Jev's 0.30 was derived on half of the 655, so
 Jev's row is partly in-sample.
 
-| Arm | Right | False blocks (of 286) | Caught (of 107) | AUC |
+| Arm | AUC | Right | False blocks (of 286) | Caught (of 107) |
 |---|---|---|---|---|
-| local at 0.45 | 347 (88.3 %) | 8 | 69 | 0.944 |
-| Jev 1.14 at 0.30 | 365 (92.9 %) | 2 | 81 | 0.938 |
-| Jev 1.13 at 0.5 | 366 (93.1 %) | 1 | 81 | 0.963 |
+| local (cut 0.45) | 0.944 | 347 (88.3 %) | 8 | 69 |
+| Jev 1.14 (cut 0.30) | 0.938 | 365 (92.9 %) | 2 | 81 |
+| Jev 1.13 (cut 0.5) | 0.963 | 366 (93.1 %) | 1 | 81 |
+| never block | 0.5 | 286 (72.8 %) | 0 | 0 |
 
-**Local minus 1.14:** −4.6 points, cluster interval [−8.4, −1.0].
+**The primary on TRAIN.** AUC, local minus 1.14: **+0.006, cluster interval [−0.062, +0.072]**
+(10,000 replicas). That reads **"no concluyente"**: the lower bound is below −0.05 and the upper
+bound is not.
 
-- 5 stops favour local and 23 favour 1.14 (exact McNemar p 0.0009).
-- The rule below reads **"no concluyente"** on TRAIN: the interval lies wholly below 0, but not
-  wholly below −5.
-- Against 1.13: −4.8 points, [−8.8, −1.2].
-- The two rank about equally: AUC 0.944 against 0.938, difference +0.006, [−0.062, +0.068].
-- The gap is in the cut. The local arm blocks fewer unfinished stops (69 against 81) and makes
-  more false blocks (8 against 2).
+- Against 1.13: −0.020, [−0.084, +0.029].
+- **Accuracy at the cuts (secondary):** −4.6 points, [−8.4, −1.0]. 5 stops favour local and 23
+  favour 1.14 (exact McNemar p 0.0009).
+- The gap is in the cut, not in the ranking. The local arm blocks fewer unfinished stops (69
+  against 81) and makes more false blocks (8 against 2).
 
-**Stated before any test score.** The classifier trails Jev by about 4.6 points on its own suite,
-before any shift. The test suites, agent and tool vocabulary differ. **The expected verdict on
-the test set is "no concluyente" or "peor".**
+**Stated before any test score.** The local arm ranks as well as Jev on its own suite. The test
+suites, agent and tool vocabulary differ, and the interval at n = 950 is about as wide as the
+margin (below). **The expected verdict on the test set is "no concluyente".** "peor" needs a
+large loss of ranking under the shift.
 
 The lot is still worth running:
 
@@ -213,79 +226,93 @@ The lot is still worth running:
 
 ## Hypotheses and verdict rule (fixed now)
 
-Every arm blocks when its p(done) is below its cut: local 0.45, Jev 1.14 0.30, Jev 1.13 0.5.
-These are the cuts checkdone114 scored, written as constants in `a10_analysis.JEV_CUTS` and
-pinned by a test against `policy.Thresholds`.
+**Primary: AUC, local minus Jev 1.14.**
 
-**Primary.** On the 950 stops, compare right decisions, **local minus Jev 1.14 at 0.30**. The
-interval is a paired bootstrap over the **106 user-task clusters**, the unit checkdone114
-registered: `l4_stats.bootstrap`, 10,000 replicas, seed 20261015. It is read on its **unrounded**
-bounds. The rule is the house convention of the margin lots (lbo8, lb162):
-
-- **"mejor"** if the lower bound is above 0.
-- **"no peor"** if the lower bound is above **−5 points** (the non-inferiority margin).
-- **"peor"** if the upper bound is below −5 points.
-- **"no concluyente"** otherwise.
-
-Also reported:
-
-- the unclustered paired-bootstrap interval;
-- exact McNemar p and the discordant counts;
-- descriptively, whether the cluster interval lies wholly below 0 (`below_zero`). A difference
-  below 0 that is not wholly below −5 reads "no concluyente".
+- **What is measured.** On the 950 stops, the AUC of p(done) for finished stops ranked above
+  unfinished ones (rank AUC, ties at half), local minus Jev 1.14's recorded probability.
+- **The interval.** A paired bootstrap over the **106 user-task clusters**, the unit checkdone114
+  registered: `l4_stats.bootstrap`, 10,000 replicas, seed 20261015. It is read on its
+  **unrounded** bounds (`a10_analysis.paired_auc`).
+- **Margin:** −0.05 AUC. The rule is the house convention of the margin lots (lbo8, lb162):
+  - **"mejor"** if the lower bound is above 0.
+  - **"no peor"** if the lower bound is above −0.05. That includes an interval wholly below 0
+    whose lower bound is above the margin.
+  - **"peor"** if the upper bound is below −0.05.
+  - **"no concluyente"** only when the lower bound is at or below −0.05 and the upper bound is
+    not below it.
 
 **Secondary**, each reported, none changing the primary:
 
-1. The same comparison against **Jev 1.13 at 0.5**, read by the same rule.
-2. **False blocks.** Finished stops not falsely blocked, local minus each Jev arm, with the
-   cluster interval. Jev's figures: 1.14 makes 150 false blocks of 795 and 1.13 makes 165.
-3. **Catches.** Unfinished stops blocked, local minus each Jev arm, with the cluster interval.
-4. **AUC** of p(done) for finished above unfinished. Each arm's rank AUC and the paired cluster
-   bootstrap of the difference (`lot_stats.paired_auc`, 2,000 replicas).
-5. Per arm: accuracy, false-block rate and catch rate with Wilson 95 % intervals, and block
-   precision; also by suite.
+1. **The same AUC comparison against Jev 1.13**, read by the same rule.
+2. **Right decisions at the cuts**, local minus each Jev arm: local 0.45, Jev 1.14 0.30, Jev 1.13
+   0.5.
+   - These are the cuts checkdone114 scored, written as constants in `a10_analysis.JEV_CUTS` and
+     pinned by a test against `policy.Thresholds`.
+   - Cluster interval (`l4_stats.bootstrap`, the same seed), unclustered interval, exact McNemar
+     p and the discordant counts.
+   - A descriptive reading by the same rule at a 5-point margin (`verdict_descriptive`), and
+     whether the interval lies wholly below 0 (`below_zero`).
+3. **A "never block" arm**, descriptive: it is right on every finished stop, 795 of 950. **A
+   better accuracy counts only together with the AUC and with the false blocks and catches**: an
+   arm can gain accuracy here by blocking less.
+4. **False blocks.** Finished stops not falsely blocked, local minus each Jev arm, with the
+   cluster interval.
+5. **Catches.** Unfinished stops blocked, local minus each Jev arm, with the cluster interval.
+6. **Per arm:**
+   - AUC;
+   - accuracy, false-block rate and catch rate with Wilson 95 % intervals;
+   - block precision;
+   - all of these also by suite.
 
 **Missing values.** None are expected: Jev answered all 950 in both versions. A row without a
 probability stops the analysis.
 
 ## Power at n = 950 (`power.py`, `power.json`)
 
-**The setup.** The simulation uses checkdone114's 106 cluster sizes. Their plain mean is 8.96;
-the size-weighted mean Σm²/Σm, which sets the design effect, is 12.5.
+**Primary (`simulate_auc`).**
 
-- It sets a true difference Δ (local minus 1.14) and a rate of stops where exactly one arm is
-  right.
-- Each cluster draws its own rate and win share, beta with intra-cluster correlation ρ.
-- 150 simulations per cell; a cluster bootstrap of 400 replicas each.
+- **The data.** It is simulated on checkdone114's own 950 stops: their published labels (795
+  done) and their 106 user-task clusters. No Jev answer is used.
+- **The score model.** Each arm's score is μ·done + a cluster effect + noise, with unit total
+  noise variance.
+  - A share ρ_cluster of that variance is per cluster.
+  - The two arms' cluster effects and noises are correlated ρ_arms.
+  - μ = √2·Φ⁻¹(AUC) gives each arm its AUC.
+- **The arms.** Jev 1.14 at its published 0.814. Local at 0.814 + Δ, where Δ = +0.13 means the
+  local arm keeps its out-of-fold 0.944 on the test suites.
+- **The runs.** 200 simulations per cell; a cluster bootstrap of 500 replicas each (the analysis
+  uses 10,000); the registered verdict.
 
-**The plausible rate.** On TRAIN the two disagree on 7.1 % of stops (28 of 393). On the test it
-should be much higher: Jev 1.14 is wrong on 21.6 % there and blocks 250 of the 950. So 15 to
-35 %.
+| Δ AUC | ρ_cluster | P(no peor or mejor) | P(peor) | Half-width of the interval |
+|---|---|---|---|---|
+| +0.13 | 0 or 0.3 | 1.00 (all "mejor") | 0.00 | ±0.040 to ±0.059 |
+| 0 | 0 | 0.51 to 0.56 | 0.00 | ±0.050 |
+| 0 | 0.3 | 0.31 to 0.43 | 0.00 | ±0.062 to ±0.073 |
+| −0.025 | 0 or 0.3 | 0.15 to 0.16 | 0.00 to 0.01 | ±0.052 to ±0.075 |
+| −0.05 | 0 or 0.3 | 0.01 to 0.05 | 0.03 to 0.05 | ±0.053 to ±0.078 |
+| −0.10 | 0 or 0.3 | 0.00 | 0.22 to 0.40 | ±0.056 to ±0.082 |
 
-| Δ | rate | ρ | P(no peor or mejor) | P(peor) | Half-width, simulated / analytic |
-|---|---|---|---|---|---|
-| 0 | 0.15 | 0 | 0.97 | 0.00 | ±2.4 / ±2.5 points |
-| 0 | 0.25 | 0 | 0.85 | 0.00 | ±3.2 / ±3.2 |
-| 0 | 0.35 | 0 | 0.78 | 0.00 | ±3.6 / ±3.8 |
-| 0 | 0.15 | 0.3 | 0.72 | 0.00 | ±3.7 / ±5.2 |
-| 0 | 0.25 | 0.3 | 0.52 | 0.00 | ±5.1 / ±6.7 |
-| 0 | 0.35 | 0.3 | 0.38 | 0.00 | ±6.3 / ±8.0 |
-| −2.5 | 0.15 | 0 | 0.45 | 0.00 | ±2.4 |
-| −2.5 | 0.35 | 0.3 | 0.08 | 0.00 | ±6.3 |
-| −5 | 0.15 to 0.35 | 0 or 0.3 | 0.01 to 0.06 | 0.02 to 0.07 | ±2.4 to ±6.4 |
-| −10 | 0.15 | 0 | 0.00 | 0.98 | ±2.3 |
-| −10 | 0.35 | 0.3 | 0.00 | 0.35 | ±6.4 |
+The ranges cover ρ_arms = 0.3 and 0.6.
 
-**The interval** will be about ±2.5 to ±6.5 points.
+**What this means:**
 
-**At parity**, "no peor" comes out with probability 0.38 to 0.97, depending on the rate and the
-clustering.
+- **The interval** will be about ±0.05 to ±0.08 AUC, as wide as the margin.
+- **At parity**, "no peor" comes out with probability 0.31 to 0.56. "no concluyente" is the
+  likeliest reading unless the local arm ranks clearly better.
+- **A local arm that keeps its in-domain AUC** reads "mejor" with probability 1.
+- **A true −0.05 or worse** reads "no peor" with probability at most 0.05.
+- **A true −0.10** reads "peor" with probability 0.22 to 0.40.
+- **On TRAIN** the interval at n = 393 was ±0.067.
 
-**What the margin allows.** A classifier truly 5 points behind reads "no peor" with probability
-at most 0.06. Under the house rule it then reads mostly "no concluyente".
+**Secondary, accuracy at the cuts (`simulate`).** The same clusters. Their plain mean size is
+8.96; the size-weighted mean Σm²/Σm, which sets the design effect, is 12.5.
 
-**What "peor" needs.** The whole interval below −5 points. A true deficit of 10 points reads
-"peor" with probability 0.35 to 0.98.
+- **The rates simulated.** Rates of stops where exactly one arm is right of 0.15, 0.25 and 0.35.
+- **Why those rates.** On TRAIN the arms disagree on 7.1 % (28 of 393). On the test Jev 1.14 is
+  wrong on 21.6 % and blocks 250 of the 950, so the rate may well exceed 0.35.
+- **The interval.** About ±2.4 to ±6.4 points.
+- **At parity**, the accuracy reading is "no peor" with probability 0.38 to 0.97.
+- The full table is in `power.json`.
 
 ## What this does not settle
 
@@ -302,28 +329,36 @@ at most 0.06. Under the house rule it then reads mostly "no concluyente".
 
 ## What the seal covers, and running (the owner's steps)
 
+**What `eval.SEALED` covers:**
+
+- this file;
+- `cv.json`, `oof.jsonl`, `dry.json`, `overlap.json`, `power.json` and `power.py`;
+- the model;
+- the lot's code, the record builder and loaders, and the statistics;
+- checkdone114's inputs, data seal and Jev rows.
+
 **Only `run` is behind the seal.** The other commands differ:
 
 - `overlap` reads the test stops' text to compare it with the training text, and scores nothing;
 - `hash` and `seal` read no test stop;
-- `train.py` reads no test stop.
+- `train.py` and `power.py` read no test stop's text. `power.py` reads only the published labels
+  and clusters.
 
 **The steps:**
 
-1. Review this registration again with `revisor-prereg`, then remove "DRAFT" from the title.
-2. Commit the registration, `cv.json`, the model and the code.
-3. Run `python benchmarks/a10_local/eval.py hash`. It hashes:
-   - this file, `cv.json` and the model;
-   - the lot's code, the record builder and loaders, and the statistics;
-   - checkdone114's inputs, data seal and Jev rows (`eval.SEALED`).
+1. Remove "DRAFT, NOT SEALED." from the title.
+2. Commit the registration, the reports, the model and the code.
+3. Run `python benchmarks/a10_local/eval.py hash`.
 4. Run `python benchmarks/a10_local/eval.py seal` once.
    - It refuses while `git status --porcelain` shows any sealed file changed or untracked.
    - It refuses to overwrite a seal.
    - It writes `prereg.sha256`.
 5. Commit the seal on its own.
-6. Run `python benchmarks/a10_local/eval.py run` in a worktree detached at the sealing commit.
+6. Run `python benchmarks/a10_local/eval.py run` in a worktree detached at the commit that
+   contains `prereg.sha256`.
    - It refuses before reading any test stop unless the seal matches.
-   - It refuses if `analysis.json` or `scored.jsonl` already exist: the lot is judged once.
+   - It refuses if `analysis.json` or `scored.jsonl` already exist: the lot is judged once. The
+     check sees only its own checkout; the scoring is deterministic anyway.
    - It then checks the 950 stops against checkdone114's `data.sha256`.
    - It writes `scored.jsonl` (id, cluster, label, p_local; no text) and `analysis.json` in that
      worktree. Both are then copied back into this directory.
@@ -335,7 +370,7 @@ python benchmarks/a10_local/train.py cv   [--runs-root CHECKOUT]   # cv.json, oo
 python benchmarks/a10_local/train.py fit  [--runs-root CHECKOUT]   # fixtures/a10_local/model.json
 python benchmarks/a10_local/train.py dry                            # dry.json, TRAIN only
 python benchmarks/a10_local/eval.py overlap                         # overlap.json, no scoring
-python benchmarks/a10_local/power.py                                # power.json
+python benchmarks/a10_local/power.py                                # power.json (~10 min)
 python -m pytest tests/test_a10_local.py
 ```
 

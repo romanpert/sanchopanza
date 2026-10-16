@@ -9,17 +9,19 @@ call, and it scores nothing on the test set unless the registration is sealed.
 Registered in docs/results/2026-10-16-a10-local/prereg.md.
 
 THE SEAL is one sha256 over `SEALED` (LF-folded text) and the model file's bytes: the
-registration, the CV report that fixed every knob, the model, this lot's code, the record builder
-and loaders the stops go through, the statistics, and checkdone114's inputs, data seal and
-recorded Jev rows. Only `run` is behind it. `overlap` reads the test stops' text to compare it
+registration, the CV report that fixed every knob and its out-of-fold probabilities, the dry
+run, the overlap and power reports and their code, the model, this lot's code, the record
+builder and loaders the stops go through, the statistics, and checkdone114's inputs, data seal
+and recorded Jev rows. Only `run` is behind it. `overlap` reads the test stops' text to compare it
 with the training text and scores nothing; `hash` and `seal` read no test stop.
 
 `seal` is the owner's step, once the registration is reviewed (`revisor-prereg`) and committed:
 it refuses while `git status --porcelain` shows any sealed file changed or untracked, and it
 never overwrites a seal. `run` checks the seal before reading a single test stop, refuses when
-`analysis.json` or `scored.jsonl` already exist (the lot is judged once), checks the 950 stops
-against checkdone114's sealed `data.sha256`, then scores. It runs in a worktree detached at the
-sealing commit; its two outputs are then copied back into this directory.
+`analysis.json` or `scored.jsonl` already exist (the lot is judged once; the check sees only
+its own checkout, and the scoring is deterministic anyway), checks the 950 stops against
+checkdone114's sealed `data.sha256`, then scores. It runs in a worktree detached at the commit
+that contains `prereg.sha256`; its two outputs are then copied back into this directory.
 
 Jev's recorded probabilities (checkdone114's `done-scored.jsonl`) are read only to score Jev's
 own decisions at its cuts; they never reach the classifier.
@@ -53,6 +55,11 @@ EXPECTED_TEST = 950
 SEALED = (
     "docs/results/2026-10-16-a10-local/prereg.md",
     "docs/results/2026-10-16-a10-local/cv.json",
+    "docs/results/2026-10-16-a10-local/oof.jsonl",
+    "docs/results/2026-10-16-a10-local/dry.json",
+    "docs/results/2026-10-16-a10-local/overlap.json",
+    "docs/results/2026-10-16-a10-local/power.json",
+    "benchmarks/a10_local/power.py",
     "benchmarks/a10_local/a10_analysis.py",
     "benchmarks/a10_local/a10_data.py",
     "benchmarks/a10_local/a10_features.py",

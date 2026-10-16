@@ -107,9 +107,60 @@
    "blocks": 82,
    "block_precision": 0.9878,
    "auc": 0.9632
+  },
+  "never": {
+   "cut": 0.0,
+   "accuracy": {
+    "k": 286,
+    "n": 393,
+    "rate": 0.7277,
+    "wilson95": [
+     0.6817,
+     0.7694
+    ]
+   },
+   "false_blocks": {
+    "k": 0,
+    "n": 286,
+    "rate": 0.0,
+    "wilson95": [
+     0.0,
+     0.0133
+    ]
+   },
+   "caught": {
+    "k": 0,
+    "n": 107,
+    "rate": 0.0,
+    "wilson95": [
+     0.0,
+     0.0347
+    ]
+   },
+   "blocks": 0,
+   "block_precision": null,
+   "auc": 0.5
   }
  },
  "primary_vs_14": {
+  "auc": {
+   "n": 393,
+   "positives": 286,
+   "new": 0.9437,
+   "old": 0.9376,
+   "diff": 0.0061,
+   "ci95_cluster": [
+    -0.0622,
+    0.0724
+   ],
+   "ci95_cluster_raw": [
+    -0.062202895419187554,
+    0.07237086584912678
+   ],
+   "replicas": 10000,
+   "seed": 20261015,
+   "verdict": "no concluyente"
+  },
   "accuracy": {
    "n": 393,
    "new": 0.883,
@@ -131,7 +182,7 @@
     -0.010178117048346057
    ],
    "below_zero": true,
-   "verdict": "no concluyente"
+   "verdict_descriptive": "no concluyente"
   },
   "not_falsely_blocked": {
    "n": 286,
@@ -176,20 +227,27 @@
     0.0
    ],
    "below_zero": false
-  },
+  }
+ },
+ "secondary_vs_13r": {
   "auc": {
    "n": 393,
    "positives": 286,
    "new": 0.9437,
-   "old": 0.9376,
-   "diff": 0.0061,
+   "old": 0.9632,
+   "diff": -0.0195,
    "ci95_cluster": [
-    -0.0623,
-    0.0683
-   ]
-  }
- },
- "secondary_vs_13r": {
+    -0.0837,
+    0.0289
+   ],
+   "ci95_cluster_raw": [
+    -0.08368807173263293,
+    0.028930401719292398
+   ],
+   "replicas": 10000,
+   "seed": 20261015,
+   "verdict": "no concluyente"
+  },
   "accuracy": {
    "n": 393,
    "new": 0.883,
@@ -211,7 +269,7 @@
     -0.012254901960784314
    ],
    "below_zero": true,
-   "verdict": "no concluyente"
+   "verdict_descriptive": "no concluyente"
   },
   "not_falsely_blocked": {
    "n": 286,
@@ -256,17 +314,6 @@
     0.0
    ],
    "below_zero": false
-  },
-  "auc": {
-   "n": 393,
-   "positives": 286,
-   "new": 0.9437,
-   "old": 0.9632,
-   "diff": -0.0195,
-   "ci95_cluster": [
-    -0.0847,
-    0.0277
-   ]
   }
  },
  "by_suite": {
@@ -369,6 +416,39 @@
     "blocks": 82,
     "block_precision": 0.9878,
     "auc": 0.9632
+   },
+   "never": {
+    "cut": 0.0,
+    "accuracy": {
+     "k": 286,
+     "n": 393,
+     "rate": 0.7277,
+     "wilson95": [
+      0.6817,
+      0.7694
+     ]
+    },
+    "false_blocks": {
+     "k": 0,
+     "n": 286,
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.0133
+     ]
+    },
+    "caught": {
+     "k": 0,
+     "n": 107,
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.0347
+     ]
+    },
+    "blocks": 0,
+    "block_precision": null,
+    "auc": 0.5
    }
   }
  },
