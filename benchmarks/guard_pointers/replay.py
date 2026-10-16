@@ -369,8 +369,9 @@ def main(argv: list[str] | None = None) -> int:
     summary = summarise(rows)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    (out / "compactions.json").write_text(json.dumps(rows, indent=1) + "\n", encoding="utf-8")
-    (out / "summary.json").write_text(json.dumps(summary, indent=1) + "\n", encoding="utf-8")
+    for name, value in (("compactions.json", rows), ("summary.json", summary)):
+        text = json.dumps(value, indent=1) + "\n"
+        (out / name).write_text(text, encoding="utf-8", newline="\n")  # the same bytes anywhere
     print(json.dumps(summary, indent=1))
     return 0
 
