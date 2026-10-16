@@ -31,6 +31,8 @@ S_INSTALL = ("install", "--scope", "project", "--memory", "--write")
 SERVER = "sanchopanza"  # install_defaults.FIND_SERVER
 JEV_RESERVE = 0.05  # USD of Jev held per S session before a pair (at ~3e-5 a decision: ~1,600)
 INSTALLED = (".claude/settings.json", ".claude/skills/sanchopanza-code/SKILL.md", ".mcp.json")
+U_INSTALL = ("install", "--scope", "user", "--memory", "--write")  # W17: the user's settings
+U_INSTALLED = ("settings.json", "skills/sanchopanza-code/SKILL.md")  # in the configuration folder
 
 
 def prefix(run: Path, keyfile: Path) -> str:
@@ -102,6 +104,43 @@ def install(run: Path, repo: Path, keyfile: Path, env: Mapping[str, str]) -> Non
     _keep(repo, run / "install" / "rewired")
 
 
+def install_user(run: Path, config: Path, keyfile: Path, env: Mapping[str, str]) -> None:
+    """`sanchopanza install` at user scope (`U_INSTALL`) as a user runs it, into the arm's clean
+    Claude Code configuration folder `config`, which Claude Code reads the user's settings and
+    skills from under CLAUDE_CONFIG_DIR (`--path <config>/settings.json`: the user scope's default
+    path is `~/.claude/settings.json`). Run from `config`, the folder where a user-scope install
+    would put a `.mcp.json` if it wrote one; it writes none (it prints the `claude mcp add-json`
+    line for find_in_repo instead, and that line is not run). Then every `sanchopanza ...` hook
+    command is put behind `carry_hook.py ... sub` as `install` does for the project scope. The
+    files as written and as rewired are kept under `<run>/install/`."""
+    settings = config / "settings.json"
+    done = subprocess.run([sys.executable, "-m", "sanchopanza", *U_INSTALL, "--path",
+                           str(settings)], cwd=config, env={**env, "PYTHONPATH": str(SRC)},
+                          capture_output=True, text=True, timeout=120, check=False)  # fmt: skip
+    (run / "install.txt").write_text(done.stdout + done.stderr, encoding="utf-8")
+    missing = [rel for rel in U_INSTALLED if not (config / rel).is_file()]
+    if done.returncode or missing:
+        raise RuntimeError(f"sanchopanza install failed ({done.returncode}, missing {missing}): "
+                           f"{done.stderr[-400:]}")  # fmt: skip
+    if (config / ".mcp.json").exists():
+        raise RuntimeError("the user-scope install wrote a .mcp.json: not the default install")
+    _keep_from(config, U_INSTALLED, run / "install" / "as-written")
+    data = json.loads(settings.read_text(encoding="utf-8"))
+    text = json.dumps(rewire_settings(data, run, keyfile), indent=2) + "\n"
+    settings.write_text(text, encoding="utf-8", newline="\n")
+    left = settings.read_text(encoding="utf-8")
+    if '"sanchopanza ' in left:  # a command left as written would run the home's state
+        raise RuntimeError("not every sanchopanza command was rewired: settings.json")
+    _keep_from(config, U_INSTALLED, run / "install" / "rewired")
+
+
+def _keep_from(base: Path, rels: tuple[str, ...], into: Path) -> None:
+    for rel in rels:
+        if (base / rel).is_file():
+            (into / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(base / rel, into / rel)
+
+
 def _rows(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
         return []
@@ -133,11 +172,14 @@ def hook_rows(run: Path) -> int:
     return len(_rows(run / "hooks.jsonl"))
 
 
-def session_breaks(run: Path, result: Mapping[str, Any], since: int = 0) -> list[str]:
+def session_breaks(run: Path, result: Mapping[str, Any], since: int = 0,
+                   server: str | None = SERVER) -> list[str]:  # fmt: skip
     """Why a finished S session did not run as S: among the hook calls logged after the first
     `since` (this session's), the memory hook never answered a prompt without an error (it exits
     0 even when it fails, and then writes to stderr), or failed at every Stop; or the find server
-    was not connected at its start."""
+    was not connected at its start. With `server` None (a user-scope install, which registers no
+    server) the memory hook must have answered the session's start instead: the proof that
+    Claude Code loaded the user's settings from the arm's configuration folder."""
     out = []
     mine = [r for r in _rows(run / "hooks.jsonl")[since:] if r.get("sub") == "memory-hook"]
     prompts = [r for r in mine if r.get("event") == "UserPromptSubmit"
@@ -147,9 +189,13 @@ def session_breaks(run: Path, result: Mapping[str, Any], since: int = 0) -> list
     stops = [r for r in mine if r.get("event") == "Stop"]
     if stops and all(r.get("stderr") or r.get("exit") for r in stops):
         out.append(f"the memory hook failed at every Stop ({len(stops)})")
-    status = ((result.get("init") or {}).get("mcp") or {}).get(SERVER)
+    if server is None:
+        if not any(r.get("event") == "SessionStart" for r in mine):
+            out.append("the memory hook did not answer the session's SessionStart")
+        return out
+    status = ((result.get("init") or {}).get("mcp") or {}).get(server)
     if status != "connected":
-        out.append(f"MCP server {SERVER}: {status}")
+        out.append(f"MCP server {server}: {status}")
     return out
 
 
