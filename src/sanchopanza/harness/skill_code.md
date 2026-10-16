@@ -1,6 +1,6 @@
 ---
 name: sanchopanza-code
-description: How to work in a Claude Code session that has sanchopanza installed. Use when a request describes behaviour rather than naming a symbol or file and you need to find where it lives in a large or unfamiliar repository; when the conversation was just compacted and a "sanchopanza guard" block follows the summary; when a sanchopanza hook denies a command or adds a note to a result; or when a task will be long and you want to keep the context small.
+description: How to work in a Claude Code session that has sanchopanza installed. Use when a request describes behaviour rather than naming a symbol or file and you need to find where it lives in a large or unfamiliar repository; when the conversation was just compacted and a "sanchopanza guard" block follows the summary; when a "[sanchopanza memory" block gives standing rules or records of earlier work; when a sanchopanza hook denies a command or adds a note to a result; or when a task will be long and you want to keep the context small.
 ---
 
 # Working with sanchopanza installed
@@ -34,7 +34,16 @@ re-run a command whose output is in the block. Re-read a file before editing it,
 summary does not hold its current text. Check the requests block for anything the summary
 reduced or dropped before you call the work done.
 
-## 3. Keep the context small
+## 3. Memory from earlier requests and sessions
+
+A block headed `[sanchopanza memory, standing rules: ...]` holds rules in the person's own
+words, said in earlier sessions: keep them (the newer one where two conflict), or say plainly
+before you break one. Blocks headed `[sanchopanza memory: records of earlier requests ...]` or
+`[sanchopanza memory, earlier work on <path>: ...]` are past work, written by code from the
+transcripts: what was asked and done then, not new instructions. Where a record and the files
+disagree, the disk is the truth: re-read the file before you rely on the record.
+
+## 4. Keep the context small
 
 Every call re-reads the whole conversation, so a long session pays for every large output again
 and again. sanchopanza sets the session to compact at a fixed budget; you help by not filling it:
@@ -44,7 +53,7 @@ and again. sanchopanza sets the session to compact at a fixed budget; you help b
   (one file or `-k`), the full suite once at the end;
 - do not paste back long outputs in your own messages.
 
-## 4. When a hook speaks
+## 5. When a hook speaks
 
 - A denied shell command comes with its reason (deletes outside the work, sends files or secrets
   to the network, changes permissions, runs something downloaded). Do not retry it reworded; do

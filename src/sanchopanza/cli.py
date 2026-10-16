@@ -377,7 +377,9 @@ def _install(args: argparse.Namespace) -> int:
         sys.stdout.write(
             "Memory is on: each finished request is recorded verbatim, command output included, "
             "outside the project (~/.sanchopanza/memory-store, this user only, 30 days), and a "
-            "later request is given the records that bear on it. The Stop audit that sends the "
+            "later request is given the records that bear on it. On Sonnet 5.5 a new session "
+            "can start with one line naming the work instead of a pasted handoff "
+            "(docs/results/2026-10-16-memory-f2). The Stop audit that sends the "
             "agent back on a stored rule is off (SANCHOPANZA_MEMORY_RULES_AUDIT=on). "
             "--no-memory leaves memory out.\n"
         )
@@ -894,7 +896,7 @@ def main(argv: list[str] | None = None) -> int:
         default=False,
         help="judge MCP tool calls before they run: the decision model reads the session so far "
         "and the pending call and denies what a careful operator would stop (one paid decision "
-        "per call; off by default until measured, docs/results/2026-10-16-a3-mcp)",
+        "per call; off by default: measured, not confirmed, docs/results/2026-10-16-a3-mcp)",
     )
     install.add_argument(
         "--guard-profile",
@@ -957,7 +959,11 @@ def main(argv: list[str] | None = None) -> int:
         "store the person's standing rules and give them at every session start (the measured "
         "mechanism); without one it records and gives records by code only. On by default since "
         "the memory cell (docs/results/2026-10-13-memory-cell: on Sonnet 5.5 with Jev, 0 of 24 "
-        "facts broken against 11, at +12 %% cost); --no-memory to leave it out. The Stop audit "
+        "facts broken against 11, at +12 %% cost). After it, F2 "
+        "(docs/results/2026-10-16-memory-f2, Sonnet 5.5, project-scope install): a new "
+        "session started with one line naming the "
+        "work finished the next step in 48 of 48, against 44 with a pasted handoff and 4 with "
+        "the line alone; no room on Opus 5.5. --no-memory to leave it out. The Stop audit "
         "that sends the agent back on a confident break of a stored rule is off "
         "(SANCHOPANZA_MEMORY_RULES_AUDIT=on turns it on; none of its send-backs in the "
         "maintainer's real sessions was right: docs/results/2026-10-14-memory-stop)",
