@@ -30,7 +30,7 @@ def test_the_default_install_wires_guard_budget_find_and_skill(tmp_path: Path) -
     assert set(data["hooks"]) >= {"PreCompact", "SessionStart", "PreToolUse", "PostToolUse"}
     assert data["enabledMcpjsonServers"] == ["sanchopanza"]
     server = json.loads(mcp_file.read_text("utf-8"))["mcpServers"]["sanchopanza"]
-    assert server == {"command": "sanchopanza", "args": ["find-mcp"], "alwaysLoad": True}
+    assert server == {"command": "sanchopanza", "args": ["find-mcp"]}  # deferred: tool search
     skill = (skills / "sanchopanza-code" / "SKILL.md").read_text("utf-8")
     assert skill.startswith("---\nname: sanchopanza-code\n")
 
@@ -107,13 +107,13 @@ def test_the_find_server_command_follows_the_hook_command() -> None:
     assert entry["args"] == ["-m", "sanchopanza", "find-mcp"]
 
 
-def test_the_find_server_is_never_deferred_behind_tool_search() -> None:
+def test_the_find_server_is_deferred_unless_always_load_is_asked_for() -> None:
     """With Claude Code's default tools, tool search defers MCP tools: the model sees the bare
-    name and must call ToolSearch first. In the adoption study's 108 S arms Haiku never called
-    ToolSearch, so find_in_repo was never used; offered with its schema (find-e2e) it was used in
-    6 of 27 sessions. `alwaysLoad` keeps it in the turn-1 prompt (2.1.282-2.1.287 accept it)."""
-    entry = defaults.find_server_entry("sanchopanza hook")
-    assert entry["alwaysLoad"] is True
+    name and calls ToolSearch to load the schema. Loaded always (`alwaysLoad`, 2.1.282-2.1.287
+    accept it) its schema was paid in every request while agents called it in 2 of 78 S sessions
+    (adopt-d), so since 2026-10-16 it is deferred, and the server's instructions name it."""
+    assert "alwaysLoad" not in defaults.find_server_entry("sanchopanza hook")
+    assert defaults.find_server_entry("sanchopanza hook", always_load=True)["alwaysLoad"] is True
 
 
 def test_a_user_install_writes_no_mcp_json_where_it_is_run(

@@ -116,15 +116,17 @@ def _plan_mcp_json(args: argparse.Namespace, settings_path: Path) -> tuple[Path,
         # would otherwise drop one into whatever directory it was run from.
         args.find = project_settings(settings_path)
         if not args.find:
+            load = ',"alwaysLoad":true' if args.find_always_load else ""
             sys.stdout.write("find_in_repo for every project: claude mcp add-json --scope user "
-                             "sanchopanza '{\"command\":\"sanchopanza\",\"args\":[\"find-mcp\"],"
-                             "\"alwaysLoad\":true}'\n")  # fmt: skip
+                             "sanchopanza '{\"command\":\"sanchopanza\",\"args\":[\"find-mcp\"]"
+                             f"{load}}}'\n")  # fmt: skip
     try:
         # A user install prints the line; with --knowledge, which reads pages itself, the fetch
         # server is not registered, as its hook is not wired.
         fetch = args.fetch and not args.knowledge and project_settings(settings_path)
         content = mcp_json_changes(target, args.lean, args.command_line, find=args.find,
-                                   find_auto=args.find_auto, fetch=fetch)  # fmt: skip
+                                   find_auto=args.find_auto, fetch=fetch,
+                                   find_always_load=args.find_always_load)  # fmt: skip
     except (ValueError, OSError) as error:
         if args.lean:
             raise
@@ -919,6 +921,13 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="register the find_in_repo MCP server in the project's .mcp.json (on by default for "
         "a project or local install; a user install prints the `claude mcp add` line instead)",
+    )
+    install.add_argument(
+        "--find-always-load",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="with find, load its schema in every request (alwaysLoad) instead of leaving it "
+        "behind Claude Code's tool search, where the model loads it when it wants it (default)",
     )
     install.add_argument(
         "--find-nudge",

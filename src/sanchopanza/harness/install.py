@@ -501,6 +501,7 @@ def mcp_json_changes(
     find: bool = False,
     find_auto: bool = False,
     fetch: bool = False,
+    find_always_load: bool = False,
 ) -> dict[str, Any] | None:
     """The new `.mcp.json` content, or None when nothing changes. Only our entries are touched.
 
@@ -508,7 +509,11 @@ def mcp_json_changes(
     overwritten. Otherwise the file is only looked at to take our entries out: one that is
     missing, unreadable or malformed holds nothing of ours, so it is left alone and never fails
     the install."""
-    find_entry = find_server_entry(portable_command(command), auto=find_auto) if find else None
+    find_entry = (
+        find_server_entry(portable_command(command), auto=find_auto, always_load=find_always_load)
+        if find
+        else None
+    )
     fetch_entry = fetch_server_entry(portable_command(command)) if fetch else None
     wanted = {ARCHIVE_SERVER: archive_server_entry(command) if lean else None,
               FIND_SERVER: find_entry,

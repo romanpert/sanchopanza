@@ -395,8 +395,7 @@ def test_install_find_auto_wires_both_events_and_the_server_flag(tmp_path: Path)
     for event in find_auto.EVENTS:
         [entry] = entries[event]
         assert entry == {"matcher": find_auto.MATCHER, "hooks": [find_auto.hook()]}
-    assert _server_entry(settings) == {"command": "sanchopanza", "args": ["find-mcp", "--auto"],
-                                       "alwaysLoad": True}  # fmt: skip
+    assert _server_entry(settings) == {"command": "sanchopanza", "args": ["find-mcp", "--auto"]}
     assert json.loads(settings.read_text("utf-8"))["enabledMcpjsonServers"] == ["sanchopanza"]
     assert _install(settings, "--find-auto") == 0  # twice: still one of each
     assert all(len(v) == 1 for v in _auto_entries(settings).values())
