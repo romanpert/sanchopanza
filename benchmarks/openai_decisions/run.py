@@ -64,7 +64,9 @@ PREFLIGHT_QUESTIONS = {
     "urgency": Score("How urgent does the text sound?", ["not urgent", "somewhat", "very"]),
 }
 TIMEOUT_S = 60.0
-EMPTY_STREAK = 5  # unusable answers in a row that stop the run (a broken format, not a refusal)
+# Decisions in a row with no usable answer at all that stop the run: more than the longest run of
+# one point's queries (94 dependency), so a provider refusing a whole point does not stop it.
+EMPTY_STREAK = 100
 
 LOT = paid_once.Lot(
     name="openai-decisions",
@@ -241,7 +243,11 @@ def report() -> dict[str, Any]:
         [right(o) and not fo for (o, fo), _ in pairs], [right(j) and not fj for _, (j, fj) in pairs]
     )
     out = {
-        "primary": {**primary, "margin": MARGIN, "verdict": verdict(*primary["ci95"])},  # fmt: skip
+        "primary": {
+            **primary,
+            "margin": MARGIN,
+            "verdict": "no medido" if missing_queries else verdict(*primary["ci95"]),
+        },  # fmt: skip
         "queries_not_asked": missing_queries,
         "rows_without_a_usable_answer": {
             "openai": sum(f for _, f in oai),
@@ -280,7 +286,8 @@ def main() -> int:
         print(json.dumps(result["primary"], indent=1))
         return 0
     asks = queries()
-    PLANNED["usd"] = sum(od.estimate_usd(s, q) for _, s, q in asks)
+    todo = asyncio.run(paid_once._missing(asks, LOT))  # a relaunch is priced on what is left
+    PLANNED["usd"] = sum(od.estimate_usd(s, q) for _, s, q in todo)
     result = paid_once.run_paid(
         LOT,
         asks,

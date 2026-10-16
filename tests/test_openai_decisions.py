@@ -400,3 +400,19 @@ def test_long_input_is_billed_double() -> None:
 def test_the_estimate_is_on_the_safe_side_of_four_characters_a_token() -> None:
     chars = len(json.dumps([od.to_wire(k, q) for k, q in QUESTIONS.items()])) + 1
     assert od.estimate_usd("t", QUESTIONS) >= od.cost_usd(chars / 4)
+
+
+def test_a_rate_limit_waits_as_long_as_retry_after_asks_up_to_a_bound(monkeypatch) -> None:
+    waits: list[float] = []
+
+    async def sleep(seconds: float) -> None:
+        waits.append(seconds)
+
+    monkeypatch.setattr(od.asyncio, "sleep", sleep)
+    replies = [httpx.Response(429, headers={"retry-after": "7"}, json={"error": {}}),
+               httpx.Response(200, json=OK)]  # fmt: skip
+    _run(_client(lambda r: replies.pop(0)).decide("p", "t", QUESTIONS))
+    assert waits == [7.0]
+    too_long = _client(lambda r: httpx.Response(429, headers={"retry-after": "120"}, json={}))
+    with pytest.raises(DeciderUnavailable, match="Retry-After 120"):
+        _run(too_long.decide("p", "t", QUESTIONS))

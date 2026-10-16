@@ -176,3 +176,54 @@ def test_a_row_without_a_usable_answer_is_flagged_for_both_arms() -> None:
     assert len(jev) == 244 and sum(f for _, f in jev) == 0  # Jev answered every question
     empty = run.flagged_rows(RecordedDecider(()))
     assert sum(f for _, f in empty) == 244 - 17  # all but the code denials ask a question
+
+
+def test_a_partial_refusal_does_not_count_toward_the_streak(tmp_path) -> None:
+    """A provider that refuses one question of two still answers: only a decision with no
+    usable answer at all moves the streak, so a refused point does not stop the run."""
+
+    class _Half:
+        name, calls = "openai-decisions", 0
+
+        async def decide(self, point, state, questions):
+            self.calls += 1
+            return _decision({"a": answers.truth(0.9)})  # "b" refused
+
+    qs = [("p", {"i": i}, {"a": Truth("a"), "b": Truth("b")}) for i in range(8)]
+    out = asyncio.run(paid_once.ask_missing(qs, _lot(tmp_path), live=_Half()))
+    assert (out["stopped"], out["asked"], out["unusable_answers"]) == (None, 8, 8)
+
+
+def test_the_registered_streak_is_longer_than_any_point_run() -> None:
+    longest, current, last = 0, 0, None
+    for point, _, _ in run.queries():
+        current = current + 1 if point == last else 1
+        last, longest = point, max(longest, current)
+    assert longest < run.EMPTY_STREAK
+
+
+def test_a_failed_preflight_leaves_no_launch_record(tmp_path) -> None:
+    lot = _lot(tmp_path)
+    calls: list[str] = []
+
+    async def failing(model: str) -> None:
+        calls.append("check")
+        raise SystemExit("preflight: refused")
+
+    monkey = {
+        "require_sealed": paid_once.require_sealed,
+        "require_instrument": paid_once.require_instrument,
+        "require_inputs": paid_once.require_inputs,
+    }
+    paid_once.require_sealed = lambda lot: None
+    paid_once.require_instrument = lambda lot: "0" * 40
+    paid_once.require_inputs = lambda lot: None
+    try:
+        with pytest.raises(SystemExit, match="preflight"):
+            paid_once.run_paid(lot, _truth_queries(2), load_key=lambda: calls.append("key"),
+                               make_live=lambda: calls.append("live"), check=failing)  # fmt: skip
+    finally:
+        for name, fn in monkey.items():
+            setattr(paid_once, name, fn)
+    assert calls == ["key", "check"]
+    assert paid_once.history(lot) == []

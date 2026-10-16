@@ -88,7 +88,8 @@ OUT_OF_FUNDS = 402
 RATE_LIMITED = 429
 QUOTA_CODES = frozenset({"insufficient_quota", "billing_hard_limit_reached"})
 MAX_RETRIES = 3
-BASE_WAIT_S = 0.25
+BASE_WAIT_S = 1.0
+MAX_WAIT_S = 30.0  # the longest Retry-After honoured; a longer one is a stop
 WIRE_KIND = {"predicate": Truth, "choice": Choice, "score": Score}
 
 
@@ -364,8 +365,21 @@ class OpenAIDecisionsClient:
             # Only a rate limit is retried: a 5xx may have been billed, and is not repeated.
             if response.status_code != RATE_LIMITED or attempt == MAX_RETRIES:
                 break
-            await asyncio.sleep(BASE_WAIT_S * (2**attempt))
+            wait = _retry_after(response)
+            if wait is None:
+                wait = BASE_WAIT_S * (2**attempt)
+            if wait > MAX_WAIT_S:
+                last += f"; Retry-After {wait:g} s"
+                break
+            await asyncio.sleep(wait)
         raise DeciderUnavailable(f"{self.name} did not answer: {last}")
+
+
+def _retry_after(response: Any) -> float | None:
+    """The seconds a 429's `Retry-After` header asks for, if it is a finite number."""
+    headers = getattr(response, "headers", None) or {}
+    value = as_number(headers.get("retry-after")) if hasattr(headers, "get") else None
+    return value if value is not None and value >= 0 else None
 
 
 def _answers(raw: Any, questions: Mapping[str, Question]) -> dict[str, Answer]:

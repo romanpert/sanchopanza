@@ -73,8 +73,9 @@ class Lot:
     home: Path = field(default_factory=lambda: Path.home() / ".cache" / "sanchopanza")
     price_per_mtok: float = DEFAULT_PRICE_PER_MTOK  # what the estimates and reservations use
     snapshot: str | None = None  # a regex: `<model>-<snapshot>` also counts as the model
-    # 0: stop at the first empty or partial answer (A5, B4). K > 0: record it and go on, and stop
-    # only after K of them in a row; a recorded query counts as asked, answered or not.
+    # 0: stop at the first empty or partial answer (A5, B4). K > 0: record any answer and go on;
+    # stop only after K decisions in a row with no usable answer at all (a broken format: a
+    # refusal of some questions leaves the others), and a recorded query counts as asked.
     empty_streak: int = 0
 
     def serves(self, model: str) -> bool:
@@ -371,9 +372,9 @@ async def ask_missing(queries: Sequence[Query], lot: Lot, *, live: Any) -> dict[
             continue
         if not lot.serves(decision.model):
             return out(f"model moved: {decision.model} != {lot.model}")
-        short = decision.failed or not complete(decision, qs)
-        unusable += short
-        streak = streak + 1 if short else 0
+        unusable += decision.failed or not complete(decision, qs)
+        nothing = decision.failed or not any(not a.empty for a in decision.answers.values())
+        streak = streak + 1 if nothing else 0
         if lot.empty_streak and streak >= lot.empty_streak:
             return out(f"failed or empty answer: {streak} in a row")
     return out(None)
