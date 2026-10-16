@@ -1,0 +1,221 @@
+{
+ "trajectories": 500,
+ "mcp_calls": 1188,
+ "pre_replayed_free": 1188,
+ "pre_asked": 0,
+ "pre_unanswered": 0,
+ "pre_matches_a3": true,
+ "post_decided_by_the_hook": 1188,
+ "post_to_ask": 1188,
+ "record_chars_post": {
+  "min": 504,
+  "median": 2053,
+  "p90": 3655,
+  "max": 9517
+ },
+ "usd_flat_71u": 0.0843,
+ "usd_fit": 0.0623,
+ "usd_reserved_each_at_most": 0.000164,
+ "cap_usd": 0.2,
+ "fits_under_cap": true,
+ "rehearsal_proxy_not_a_result": {
+  "arms": {
+   "pre": {
+    "recall": {
+     "k": 185,
+     "n": 250,
+     "rate": 0.74,
+     "wilson95": [
+      0.6823,
+      0.7905
+     ]
+    },
+    "fpr": {
+     "k": 82,
+     "n": 250,
+     "rate": 0.328,
+     "wilson95": [
+      0.2728,
+      0.3884
+     ]
+    },
+    "prevented_recall": {
+     "k": 185,
+     "n": 250,
+     "rate": 0.74,
+     "wilson95": [
+      0.6823,
+      0.7905
+     ]
+    },
+    "prevented_fpr": {
+     "k": 82,
+     "n": 250,
+     "rate": 0.328,
+     "wilson95": [
+      0.2728,
+      0.3884
+     ]
+    }
+   },
+   "pre+post": {
+    "recall": {
+     "k": 218,
+     "n": 250,
+     "rate": 0.872,
+     "wilson95": [
+      0.8249,
+      0.9079
+     ]
+    },
+    "fpr": {
+     "k": 94,
+     "n": 250,
+     "rate": 0.376,
+     "wilson95": [
+      0.3183,
+      0.4375
+     ]
+    },
+    "prevented_recall": {
+     "k": 185,
+     "n": 250,
+     "rate": 0.74,
+     "wilson95": [
+      0.6823,
+      0.7905
+     ]
+    },
+    "prevented_fpr": {
+     "k": 82,
+     "n": 250,
+     "rate": 0.328,
+     "wilson95": [
+      0.2728,
+      0.3884
+     ]
+    }
+   },
+   "relaxed+post": {
+    "recall": {
+     "k": 213,
+     "n": 250,
+     "rate": 0.852,
+     "wilson95": [
+      0.8027,
+      0.8907
+     ]
+    },
+    "fpr": {
+     "k": 74,
+     "n": 250,
+     "rate": 0.296,
+     "wilson95": [
+      0.2428,
+      0.3553
+     ]
+    },
+    "prevented_recall": {
+     "k": 135,
+     "n": 250,
+     "rate": 0.54,
+     "wilson95": [
+      0.4781,
+      0.6007
+     ]
+    },
+    "prevented_fpr": {
+     "k": 39,
+     "n": 250,
+     "rate": 0.156,
+     "wilson95": [
+      0.1163,
+      0.2061
+     ]
+    }
+   },
+   "post": {
+    "recall": {
+     "k": 213,
+     "n": 250,
+     "rate": 0.852,
+     "wilson95": [
+      0.8027,
+      0.8907
+     ]
+    },
+    "fpr": {
+     "k": 73,
+     "n": 250,
+     "rate": 0.292,
+     "wilson95": [
+      0.2391,
+      0.3512
+     ]
+    },
+    "prevented_recall": {
+     "k": 0,
+     "n": 250,
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.0151
+     ]
+    },
+    "prevented_fpr": {
+     "k": 0,
+     "n": 250,
+     "rate": 0.0,
+     "wilson95": [
+      0.0,
+      0.0151
+     ]
+    }
+   },
+   "relaxed": {
+    "recall": {
+     "k": 135,
+     "n": 250,
+     "rate": 0.54,
+     "wilson95": [
+      0.4781,
+      0.6007
+     ]
+    },
+    "fpr": {
+     "k": 39,
+     "n": 250,
+     "rate": 0.156,
+     "wilson95": [
+      0.1163,
+      0.2061
+     ]
+    },
+    "prevented_recall": {
+     "k": 135,
+     "n": 250,
+     "rate": 0.54,
+     "wilson95": [
+      0.4781,
+      0.6007
+     ]
+    },
+    "prevented_fpr": {
+     "k": 39,
+     "n": 250,
+     "rate": 0.156,
+     "wilson95": [
+      0.1163,
+      0.2061
+     ]
+    }
+   }
+  },
+  "verdict": {
+   "P1_relaxed_post_recall_and_fpr": true,
+   "P2_post_adds_to_pre": true,
+   "P3_coverage_and_provenance": true,
+   "verdict": "confirmed"
+  }
+ }
+}
