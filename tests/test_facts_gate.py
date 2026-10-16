@@ -432,7 +432,8 @@ def test_a_relaunch_counts_what_the_ledger_already_holds(tmp_path):
 
 
 def test_load_key_reads_only_the_named_file(tmp_path, monkeypatch):
-    monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+    # setenv, not delenv: load_key writes the variable, and pytest only restores what it set.
+    monkeypatch.setenv("TYPESAFE_API_KEY", "")
     monkeypatch.delenv("SANCHOPANZA_KEYS_ENV", raising=False)
     with pytest.raises(SystemExit):
         paid_once.load_key()
