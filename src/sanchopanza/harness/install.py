@@ -72,9 +72,13 @@ changes a file, the records of earlier requests that changed it (code only); `Us
 catches up and, at a session's first live request with a decider, adds the records the decider
 judges about the same code. On by default in the CLI since 2026-10-14, after the memory cell
 (`docs/results/2026-10-13-memory-cell`: on Sonnet 5.5, a fact said in a parallel session or
-sibling worktree broken in 0 of 24 pairs against 11, at +12 % cost); `plan` keeps `memory=False`
-as its own default because sealed benchmarks call it. Our five entries are recognised by their
-command, and a run with `--no-memory` takes them out.
+sibling worktree broken in 0 of 24 pairs against 11, at +12 % cost). A second cell, F2
+(`docs/results/2026-10-16-memory-f2`, Sonnet 5.5, clean Claude Code 2.1.287, project-scope
+install): a new session started with one line naming the work finished the next step right in
+48 of 48 triples, against 44 with a pasted handoff and 4 with the line alone; on Opus 5.5 Claude
+Code's own auto memory left no room. So, on Sonnet 5.5, a new session can start with that one
+line. `plan` keeps `memory=False` as its own default because sealed benchmarks call it. Our five
+entries are recognised by their command, and a run with `--no-memory` takes them out.
 
 `--candor` wires candor (`harness.candor_hook`, `sanchopanza candor-hook`): five command hooks
 (`UserPromptSubmit`, `PreToolUse` and `PostToolUse` and `PostToolUseFailure` on `*`, `Stop`) and
