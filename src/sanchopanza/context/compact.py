@@ -65,7 +65,6 @@ StepAction = Literal["keep", "stub", "truncate", "drop"]
 ARMS: tuple[str, ...] = ("sanchopanza", "fastjev", "rules", "mask", "tournament")
 MASK_TURNS = 10  # arXiv:2508.21433's M
 
-StubStyle = Literal["plain", "index", "cleared"]
 STUB_STYLES: tuple[str, ...] = ("plain", "index", "cleared")
 CLEARED = "[Old tool result content cleared]"
 STUB = (

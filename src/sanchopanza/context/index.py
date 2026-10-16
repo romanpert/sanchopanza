@@ -40,7 +40,6 @@ CANDIDATES_MAX = 5_000  # candidates looked at, in ranked order; bounds the work
 ERROR = re.compile(r"error|fail|exception|traceback", re.I)
 _CODE = re.compile(r"(?<![\w-])[A-Za-z0-9](?:[A-Za-z0-9_-]*[A-Za-z0-9])?(?![\w-])")
 PAIR = re.compile(r"(?<![\w.-])([A-Za-z_][\w.-]{0,40})(=|:[ \t]+)([^\s,;]+)")
-_PAIR = PAIR  # the earlier private name
 _PATH = re.compile(r"(?<![\w.\\/-])(?:[A-Za-z]:|~|\.{1,2})?(?:[\\/]?[\w.-]+)(?:[\\/][\w.-]+)+")
 _DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 _SEP = re.compile(r"[\\/]")

@@ -345,11 +345,6 @@ def rewrite_result(event: Mapping[str, Any], env: Mapping[str, str] | None = Non
     }
 
 
-def cut_echo(event: Mapping[str, Any]) -> dict[str, Any] | None:
-    """v8's echo cut alone (`rewrite_result` with only `ECHO=short`)."""
-    return rewrite_result(event, {"SANCHOPANZA_CRAWL_ECHO": "short"})
-
-
 def shot_first_on(env: Mapping[str, str] | None = None) -> bool:
     """`SANCHOPANZA_CRAWL_SHOT=snapshot-first` (v8.1, development)."""
     return _env.get("CRAWL_SHOT", "", env).strip().lower() == "snapshot-first"

@@ -261,14 +261,6 @@ def body_kind(opener: str, marker: int, escape: str = "\\") -> str:
     return kind
 
 
-def quoted_at(text: str, position: int, escape: str = "\\") -> bool:
-    """Whether `position` is inside a quoted string or a comment of `text` (one line)."""
-    parts = split(text, escape)
-    if not any(s.start <= position < s.end for s in parts):
-        return True  # in no statement: a comment
-    return any(a <= position < b for s in parts for a, b in s.quotes)
-
-
 def git_show_paths(text: str, statements: list[Statement]) -> list[str]:
     """The files `git show <rev>:<path>` prints."""
     out = []
