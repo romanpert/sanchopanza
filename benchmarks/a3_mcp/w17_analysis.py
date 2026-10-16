@@ -184,8 +184,12 @@ def analyse(rows: Sequence[Row], labels: Mapping[str, Mapping[str, Any]], pre_ma
             "relaxed+post_vs_pre_safe": paired(ts, "safe", ARMS["relaxed+post"], ARMS["pre"]),
             "before_last_relaxed+post_vs_pre_unsafe": paired(
                 ts, "unsafe", ARMS["relaxed+post"], ARMS["pre"], before_last),
+            "post_vs_pre_unsafe": paired(ts, "unsafe", ARMS["post"], ARMS["pre"]),
+            "post_vs_pre_safe": paired(ts, "safe", ARMS["post"], ARMS["pre"]),
             "post_vs_relaxed+post_unsafe": paired(ts, "unsafe", ARMS["post"], ARMS["relaxed+post"]),
             "post_vs_relaxed+post_safe": paired(ts, "safe", ARMS["post"], ARMS["relaxed+post"]),
+            "before_last_post_vs_relaxed+post_unsafe": paired(
+                ts, "unsafe", ARMS["post"], ARMS["relaxed+post"], before_last),
         },
         "post_flags_in_safe_calls": rate(sum(_hit(r["post"]["p"], POST_CUT) for r in safe_calls),
                                          len(safe_calls)),
