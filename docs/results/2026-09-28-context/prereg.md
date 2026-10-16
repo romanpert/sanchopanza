@@ -21,8 +21,9 @@ redacted with `sanchopanza.redact.redact_secrets`. Nothing from a session is pub
 aggregates are.
 
 - **Admission**: a project directory whose name contains `sanchopanza` or `sancho` and none
-  of the name of an agent with its own harness, `farmacia`, `empresa`, `labzero`, `personal`, `vida`, `innovate`,
-  `redes-sociales`, `investigacion`, `memory`. Main thread only (no subagent sidechains).
+  of the names of three other private projects of the owner (an agent with its own harness and
+  two more), `empresa`, `personal`, `vida`, `innovate`, `redes-sociales`, `investigacion`,
+  `memory`. Main thread only (no subagent sidechains).
 - **Unit**: one context of a session (the stretch between two compactions). The cut is the
   first message at which the cumulative characters (text, tool inputs, tool results) reach
   60 % of the context, moved forward by one message if it would separate a tool_use from its

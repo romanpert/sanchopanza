@@ -121,6 +121,16 @@ def load(path: pathlib.Path = S_INSTALL) -> SLine:
     return parse(json.loads(path.read_text(encoding="utf-8")))
 
 
+def source_root(line: SLine, root: pathlib.Path) -> pathlib.Path:
+    """The repository the line freezes from: `root` (the runner's own) when `source` is null, and
+    a relative `source` read from `root`, so the file needs no path of one machine. The frozen
+    copy is `commit` of that repository, the same from any of its worktrees."""
+    if not line.source:
+        return root
+    path = pathlib.Path(line.source).expanduser()
+    return path if path.is_absolute() else (root / path).resolve()
+
+
 def require_sealed(line: SLine, allow_unsealed: bool = False) -> None:
     if not line.sealed and not allow_unsealed:
         raise SystemExit("the S install line is not sealed (s_install.json): no paid S session")

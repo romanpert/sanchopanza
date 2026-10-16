@@ -14,10 +14,11 @@ per unit with the history messages, the future messages and the labels, all pass
 `sanchopanza.redact.redact_secrets`, and a manifest that names units by hash, not by path.
 
 Claude Code source. A project directory is admitted only when its name contains an allowlisted
-public-repo word (`sanchopanza`, `sancho`) and none of the private words in `DENY`. Nothing
-else is read past its directory name. There is deliberately no switch to admit sessions from
-a private project's directory, even when they worked on the public repository: widening the
-pool is the owner's decision, made by editing `ALLOW` and amending `prereg.md`.
+public-repo word (`sanchopanza`, `sancho`) and none of the private words (`DENY`, and
+`DENY_SHA256` for those kept out of the text). Nothing else is read past its directory name.
+There is deliberately no switch to admit sessions from a private project's directory, even when
+they worked on the public repository: widening the pool is the owner's decision, made by editing
+`ALLOW` and amending `prereg.md`.
 
 A unit is one public trajectory, or one Claude Code context (a stretch between compactions).
 The cut is the message where the cumulative characters reach 60 % of the unit; the history
@@ -81,15 +82,20 @@ ALLOW = ("sanchopanza", "sancho")
 # Private words: a project whose name holds one is never admitted. Names not published here come
 # from SANCHOPANZA_CONTEXT_DENY (comma-separated) on the machine that builds the dataset.
 DENY = (
-    "farmacia",
     "empresa",
-    "labzero",
     "personal",
     "vida",
     "innovate",
     "redes-sociales",
     "investigacion",
     "memory",
+)
+# Private words kept out of the repository's text: (length, sha256 of the lowercased word). A
+# name is denied when any of its substrings of that length hashes to the digest, which is the
+# same test as `word in name` for a word written in DENY.
+DENY_SHA256 = (
+    (8, "871218d9cd73fe0c69c22f890eab7411278e7bef7affd5e3fefde347df3644ec"),
+    (7, "216bda9c86fdb3c9effef948a05b377afa54e19e32d2dc3ddca0cd97605c7993"),
 )
 PLACEHOLDER = ("xxxx", "your_", "your-", "example", "dummy", "placeholder", "...", "<", "redacted")
 
@@ -99,9 +105,26 @@ def private_words(environ: Mapping[str, str] = os.environ) -> tuple[str, ...]:
     return DENY + tuple(w.strip().lower() for w in extra.split(",") if w.strip())
 
 
+def hashed_words(words: Iterable[str]) -> tuple[tuple[int, str], ...]:
+    """(length, sha256) of each lowercased word, the form of DENY_SHA256."""
+    low = (w.lower() for w in words)
+    return tuple((len(w), hashlib.sha256(w.encode("utf-8")).hexdigest()) for w in low)
+
+
+def holds_hashed(low: str, hashed: Iterable[tuple[int, str]]) -> bool:
+    """Whether a substring of `low` is one of the hashed words."""
+    for size, digest in hashed:
+        pieces = {low[i : i + size] for i in range(len(low) - size + 1)}
+        if any(hashlib.sha256(p.encode("utf-8")).hexdigest() == digest for p in pieces):
+            return True
+    return False
+
+
 def project_admitted(name: str) -> bool:
     low = name.lower()
-    return any(w in low for w in ALLOW) and not any(w in low for w in private_words())
+    if not any(w in low for w in ALLOW) or holds_hashed(low, DENY_SHA256):
+        return False
+    return not any(w in low for w in private_words())
 
 
 def entropy(text: str) -> float:
@@ -274,6 +297,7 @@ def build(
         "rule": {
             "allow": ALLOW if source == "claude-code" else None,
             "deny": DENY if source == "claude-code" else None,
+            "deny_sha256": DENY_SHA256 if source == "claude-code" else None,
             "cut_share": CUT_SHARE,
             "min_results": MIN_RESULTS,
             "min_result_chars": MIN_RESULT_CHARS,

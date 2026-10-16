@@ -430,7 +430,7 @@ def phase_context(phase_name: str, brazos: Sequence[str], line: Any = None) -> d
     if "SP" not in brazos:
         return ctx
     chosen = line if line is not None else arms.s_line.load()
-    source = pathlib.Path(chosen.source) if chosen.source else ROOT
+    source = arms.s_line.source_root(chosen, ROOT)
     frozen = arms.freeze(source, RUNS, chosen.commit)
     scratch = verify_scratch(frozen.name, phase_name)
     digest, problems, hints = verified_line(chosen, frozen / "src", scratch)

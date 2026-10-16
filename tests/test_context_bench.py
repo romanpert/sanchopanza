@@ -42,7 +42,7 @@ public = _load("public")
 
 # prereg.md with Amendment 1 (public trajectories) and Amendment 2 (arrival and recall
 # simulations), each written before any decider call it registers.
-PREREG_SHA256 = "3d82f2854c673283cb01acdb7a4036005855527a46192c66b90d58872a5e82b8"
+PREREG_SHA256 = "1b58aadbcc5778a4674ece34f63f794971245722beb3affa0ab2a831413942b0"
 
 N_CALLS = 80
 FILLER = " ".join(["lorem ipsum dolor sit amet consectetur"] * 100)  # ~3,900 chars of prose
@@ -83,10 +83,11 @@ def _write(path: Path, entries: list[dict]) -> None:
 
 
 @pytest.fixture()
-def dataset(tmp_path: Path) -> dict:
+def dataset(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict:
+    monkeypatch.setattr(build, "DENY_SHA256", build.hashed_words(("project-a",)))
     projects = tmp_path / "projects"
     _write(projects / "C--x-apps-sanchopanza" / "s1.jsonl", _session())
-    _write(projects / "c--x-apps-labzero-sanchopanza" / "s2.jsonl", _session())
+    _write(projects / "c--x-apps-project-a-sanchopanza" / "s2.jsonl", _session())
     rng = random.Random(1)
     live = "sk-" + "".join(rng.choice(string.ascii_letters + string.digits) for _ in range(40))
     _write(projects / "C--x-sancho-other" / "s3.jsonl", _session(secret=live))
@@ -186,9 +187,14 @@ def test_page_offsets_are_seeded_and_capped(tmp_path: Path):
 def test_admission_is_by_public_name_and_private_words_win(monkeypatch):
     monkeypatch.delenv("SANCHOPANZA_CONTEXT_DENY", raising=False)
     assert build.project_admitted("C--Users-x-apps-sanchopanza")
-    assert not build.project_admitted("c--Users-x-apps-labzero-sanchopanza")
-    assert not build.project_admitted("C--Users-x-farmacia")
+    assert not build.project_admitted("c--Users-x-apps-empresa-sanchopanza")
+    assert not build.project_admitted("C--Users-x-personal-sancho")
     assert build.project_admitted("c--Users-x-apps-other-agent-sanchopanza")
+    assert len(build.DENY_SHA256) == 2  # two private words kept out of the text
+    monkeypatch.setattr(build, "DENY_SHA256", build.hashed_words(("project-a", "Project-B")))
+    assert not build.project_admitted("c--Users-x-apps-project-a-sanchopanza")
+    assert not build.project_admitted("C--Users-X-PROJECT-B2-sancho")
+    assert build.project_admitted("c--Users-x-apps-project-c-sanchopanza")
     monkeypatch.setenv("SANCHOPANZA_CONTEXT_DENY", " Other-Agent ,")
     assert not build.project_admitted("c--Users-x-apps-other-agent-sanchopanza")
 

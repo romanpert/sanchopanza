@@ -1,7 +1,7 @@
 {
   "sealed": true,
   "note": "SEALED 2026-10-06 by session dd for the h2h confirmations (docs/results/2026-10-06-h2h-conf/prereg.md). S0: the line of docs/S-SEAL-DRAFT.md (session 95 with session a1, 2026-10-05; update 2026-10-06: change gate A in, check-done and candor kept), run from a frozen copy of main at aad9903 (gate A f2a0fe2, out-of-funds breaker 674806b). SANCHOPANZA_GUARD_CHOOSER=keep is explicit: the measured cascade, not the unmeasured struct default of guard-struct. Every SP row must carry this commit in sp_commit. Changing anything here is an amendment of the prereg.",
-  "source": "C:/Users/roman/Desktop/proyectos/apps/sanchopanza",
+  "source": ".",
   "commit": "aad9903054896c6618026c3c2b069dd314503f3a",
   "flags": [
     "--guard",

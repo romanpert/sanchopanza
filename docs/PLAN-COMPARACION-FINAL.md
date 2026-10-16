@@ -10,7 +10,7 @@ Roman (2026-10-05): una última vuelta de mejora y las pruebas finales, Claude C
 
 | Brazo | Definición | Referencia |
 |---|---|---|
-| **N** | Claude Code limpio: `CLAUDE_CONFIG_DIR` vacío por par, sin plugins, skills, MCP, hooks ni CLAUDE.md de Roman; salida fuera de `C:\Users\roman` (la búsqueda hacia arriba carga `~/.claude/CLAUDE.md` y `rules\`) | `--clean-user` y `refuse_unclean` de `benchmarks/memory_carry/carry.py`, rama memoria-f1 (ad0471c, 8e9dc68). a1 y 8f los copian |
+| **N** | Claude Code limpio: `CLAUDE_CONFIG_DIR` vacío por par, sin plugins, skills, MCP, hooks ni CLAUDE.md de Roman; salida fuera de la carpeta de usuario `~` (la búsqueda hacia arriba carga `~/.claude/CLAUDE.md` y `rules\`) | `--clean-user` y `refuse_unclean` de `benchmarks/memory_carry/carry.py`, rama memoria-f1 (ad0471c, 8e9dc68). a1 y 8f los copian |
 | **S** | Lo que `sanchopanza install` deja por defecto en main tras la fusión de browse (en curso hoy), sellado **una sola vez**. Los hooks de browse (crawl, prune, sources, fetch) son opt-in y **no** van en el defecto salvo que se decida | por fijar tras la fusión |
 | **S+X** (opcional) | Una variante opt-in candidata por suite, p. ej. S+find-auto (87611e1, 50f605b) | solo si su sonda sale bien |
 
@@ -18,7 +18,7 @@ Roman (2026-10-05): una última vuelta de mejora y las pruebas finales, Claude C
 - Claude Code fijado a **2.1.287** (como en `prereg-f1-gate.md`, decisión 2).
 - **Las tandas en curso de 8f no cuentan para el marcador final.** La fase D (sello f422cea0) y la sonda find_auto cargan la configuración de Roman en los dos brazos, como declara su sello, y corren en Claude Code 2.1.285 y Haiku 4.5. Valen para lo que sellaron.
 
-- **N limpio en todas las suites** con `--clean-user` / `refuse_unclean` de `carry.py` (memoria), y la carpeta de cada tarea fuera de `C:/Users/roman`.
+- **N limpio en todas las suites** con `--clean-user` / `refuse_unclean` de `carry.py` (memoria), y la carpeta de cada tarea fuera de la carpeta de usuario (`~`).
 - **Duda abierta:** confirmar que `--setting-sources ""` evita cargar `~/.claude/CLAUDE.md` **[sin comprobar]**.
 
 Por qué N limpio: hasta hoy las tandas carry cargaban 5 MCP, 21 plugins, 119 skills y 5 hooks de Roman (`prereg-f1-correctness.md`, sección Arms).
