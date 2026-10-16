@@ -1,0 +1,1654 @@
+{
+ "question": "at most what share of the expensive model's cost imposing find could save",
+ "headline": "view|never=all|top5",
+ "threshold": 0.05,
+ "bootstrap": {
+  "draws": 10000,
+  "seed": 20261015,
+  "unit": "session (or request, 'by-request')"
+ },
+ "rates": "API list rates, benchmarks/meter.py OWNER_RATES",
+ "blocks": {
+  "long60-clean | claude-opus-5-5": {
+   "describe": {
+    "sessions": 2,
+    "bug_units": 118,
+    "requests_all": 121,
+    "hit5": 69,
+    "hit8": 77,
+    "hit5_kind_all": 38,
+    "total_expensive_usd": 105.496,
+    "other_models_usd": 0,
+    "readedit": {
+     "touched": 110,
+     "never": 8,
+     "calls_before_p50": 1,
+     "calls_before_p90": 4,
+     "requests_before_p50": 1,
+     "requests_before_p90": 3,
+     "cost_before_usd_touched": 20.804,
+     "cost_never_touched_usd": 6.58,
+     "cost_before_hit_touched_usd": 11.527,
+     "carry_hit_usd": 7.53
+    },
+    "view": {
+     "touched": 115,
+     "never": 3,
+     "calls_before_p50": 0,
+     "calls_before_p90": 1,
+     "requests_before_p50": 0,
+     "requests_before_p90": 1,
+     "cost_before_usd_touched": 4.82,
+     "cost_never_touched_usd": 3.731,
+     "cost_before_hit_touched_usd": 2.887,
+     "carry_hit_usd": 2.137
+    }
+   },
+   "ceilings": {
+    "readedit|never=all|top5": {
+     "ceiling": 0.1133775401760525,
+     "lo": 0.08204469203846027,
+     "hi": 0.13919744505329198,
+     "num_usd": 11.9609,
+     "den_usd": 105.496,
+     "clusters": 2
+    },
+    "readedit|never=all|top5|by-request": {
+     "ceiling": 0.11337754017605253,
+     "lo": 0.0825901915628184,
+     "hi": 0.14581742843074896,
+     "num_usd": 11.9609,
+     "den_usd": 105.496,
+     "clusters": 121
+    },
+    "readedit|never=0|top5": {
+     "ceiling": 0.10926024034825484,
+     "lo": 0.07293098611022651,
+     "hi": 0.13919744505329198,
+     "num_usd": 11.5265,
+     "den_usd": 105.496,
+     "clusters": 2
+    },
+    "readedit|never=0|top5|by-request": {
+     "ceiling": 0.10926024034825486,
+     "lo": 0.07888690904844511,
+     "hi": 0.1413256717212044,
+     "num_usd": 11.5265,
+     "den_usd": 105.496,
+     "clusters": 121
+    },
+    "readedit|never=all|top8": {
+     "ceiling": 0.15430771873014035,
+     "lo": 0.15341351171345752,
+     "hi": 0.15539285257515276,
+     "num_usd": 16.2788,
+     "den_usd": 105.496,
+     "clusters": 2
+    },
+    "readedit|never=all|top5-kind-all": {
+     "ceiling": 0.055740745637364926,
+     "lo": 0.05525364461328955,
+     "hi": 0.056331850154890624,
+     "num_usd": 5.8804,
+     "den_usd": 105.496,
+     "clusters": 2
+    },
+    "readedit|never=all|top5+carry": {
+     "ceiling": 0.18475737277163323,
+     "lo": 0.12959833829349332,
+     "hi": 0.23021130077370436,
+     "num_usd": 19.4912,
+     "den_usd": 105.496,
+     "clusters": 2
+    },
+    "readedit|never=all|perfect-find": {
+     "ceiling": 0.2595693036038095,
+     "lo": 0.22241499542576867,
+     "hi": 0.2901863958874086,
+     "num_usd": 27.3835,
+     "den_usd": 105.496,
+     "clusters": 2
+    },
+    "readedit|never=all|perfect-find+carry": {
+     "ceiling": 0.40700597251778176,
+     "lo": 0.31768639857466824,
+     "hi": 0.48060997087629087,
+     "num_usd": 42.9375,
+     "den_usd": 105.496,
+     "clusters": 2
+    },
+    "view|never=all|top5": {
+     "ceiling": 0.031481892617111144,
+     "lo": 0.016745946942987453,
+     "hi": 0.04362508221517239,
+     "num_usd": 3.3212,
+     "den_usd": 105.496,
+     "clusters": 2
+    },
+    "view|never=all|top5|by-request": {
+     "ceiling": 0.03148189261711116,
+     "lo": 0.012555320713225387,
+     "hi": 0.05431169233305728,
+     "num_usd": 3.3212,
+     "den_usd": 105.496,
+     "clusters": 121
+    },
+    "view|never=0|top5": {
+     "ceiling": 0.027364592789313472,
+     "lo": 0.007632241014753686,
+     "hi": 0.04362508221517239,
+     "num_usd": 2.8869,
+     "den_usd": 105.496,
+     "clusters": 2
+    },
+    "view|never=0|top5|by-request": {
+     "ceiling": 0.027364592789313483,
+     "lo": 0.010018303797803886,
+     "hi": 0.0488775884288614,
+     "num_usd": 2.8869,
+     "den_usd": 105.496,
+     "clusters": 121
+    },
+    "view|never=all|top8": {
+     "ceiling": 0.04857173654530591,
+     "lo": 0.04362508221517239,
+     "hi": 0.054574576976056846,
+     "num_usd": 5.1241,
+     "den_usd": 105.496,
+     "clusters": 2
+    },
+    "view|never=all|top5-kind-all": {
+     "ceiling": 0.009742467817049733,
+     "lo": 0.005630580862728498,
+     "hi": 0.014732305313014529,
+     "num_usd": 1.0278,
+     "den_usd": 105.496,
+     "clusters": 2
+    },
+    "view|never=all|top5+carry": {
+     "ceiling": 0.051742511979878114,
+     "lo": 0.020215046309193907,
+     "hi": 0.07772279187855874,
+     "num_usd": 5.4586,
+     "den_usd": 105.496,
+     "clusters": 2
+    },
+    "view|never=all|perfect-find": {
+     "ceiling": 0.08105525519150088,
+     "lo": 0.06296763545797353,
+     "hi": 0.09596039943260289,
+     "num_usd": 8.551,
+     "den_usd": 105.496,
+     "clusters": 2
+    },
+    "view|never=all|perfect-find+carry": {
+     "ceiling": 0.14273679227746353,
+     "lo": 0.09266277521381934,
+     "hi": 0.18400040009654875,
+     "num_usd": 15.0582,
+     "den_usd": 105.496,
+     "clusters": 2
+    }
+   },
+   "headline": {
+    "ceiling": 0.031481892617111144,
+    "lo": 0.016745946942987453,
+    "hi": 0.04362508221517239,
+    "num_usd": 3.3212,
+    "den_usd": 105.496,
+    "clusters": 2
+   },
+   "per_session": {
+    "L/conan-io__conan-long60-1-opus/N": {
+     "model": "claude-opus-5-5",
+     "arm": "N",
+     "bugs": 58,
+     "hit5": 35,
+     "usd": 57.836,
+     "view_top5": 0.0436,
+     "readedit_never0_top5": 0.1392
+    },
+    "L/pydantic__pydantic-long60-1-opus/N": {
+     "model": "claude-opus-5-5",
+     "arm": "N",
+     "bugs": 60,
+     "hit5": 34,
+     "usd": 47.66,
+     "view_top5": 0.0167,
+     "readedit_never0_top5": 0.0729
+    }
+   }
+  },
+  "long60-clean | claude-sonnet-5-5": {
+   "describe": {
+    "sessions": 19,
+    "bug_units": 1046,
+    "requests_all": 1073,
+    "hit5": 607,
+    "hit8": 687,
+    "hit5_kind_all": 313,
+    "total_expensive_usd": 301.656,
+    "other_models_usd": 0,
+    "readedit": {
+     "touched": 284,
+     "never": 762,
+     "calls_before_p50": 2,
+     "calls_before_p90": 6,
+     "requests_before_p50": 1,
+     "requests_before_p90": 6,
+     "cost_before_usd_touched": 22.297,
+     "cost_never_touched_usd": 226.205,
+     "cost_before_hit_touched_usd": 11.19,
+     "carry_hit_usd": 4.71
+    },
+    "view": {
+     "touched": 1015,
+     "never": 31,
+     "calls_before_p50": 0,
+     "calls_before_p90": 2,
+     "requests_before_p50": 0,
+     "requests_before_p90": 2,
+     "cost_before_usd_touched": 20.334,
+     "cost_never_touched_usd": 8.568,
+     "cost_before_hit_touched_usd": 8.708,
+     "carry_hit_usd": 3.044
+    }
+   },
+   "ceilings": {
+    "readedit|never=all|top5": {
+     "ceiling": 0.4418529546678787,
+     "lo": 0.39166871698653305,
+     "hi": 0.4845933699607757,
+     "num_usd": 133.2876,
+     "den_usd": 301.656,
+     "clusters": 19
+    },
+    "readedit|never=all|top5|by-request": {
+     "ceiling": 0.4418529546678787,
+     "lo": 0.4057942717365718,
+     "hi": 0.4778905045833539,
+     "num_usd": 133.2876,
+     "den_usd": 301.656,
+     "clusters": 1073
+    },
+    "readedit|never=0|top5": {
+     "ceiling": 0.03709546358953016,
+     "lo": 0.023545044857674294,
+     "hi": 0.05385431992074233,
+     "num_usd": 11.1901,
+     "den_usd": 301.656,
+     "clusters": 19
+    },
+    "readedit|never=0|top5|by-request": {
+     "ceiling": 0.03709546358953016,
+     "lo": 0.02872523428107873,
+     "hi": 0.04647063494913399,
+     "num_usd": 11.1901,
+     "den_usd": 301.656,
+     "clusters": 1073
+    },
+    "readedit|never=all|top8": {
+     "ceiling": 0.5148302850469069,
+     "lo": 0.4609011026394186,
+     "hi": 0.5585271631626821,
+     "num_usd": 155.3017,
+     "den_usd": 301.656,
+     "clusters": 19
+    },
+    "readedit|never=all|top5-kind-all": {
+     "ceiling": 0.21980596370364025,
+     "lo": 0.18880560866980445,
+     "hi": 0.24547916467852496,
+     "num_usd": 66.3058,
+     "den_usd": 301.656,
+     "clusters": 19
+    },
+    "readedit|never=all|top5+carry": {
+     "ceiling": 0.45746801366838885,
+     "lo": 0.4075895380380064,
+     "hi": 0.5005846713087052,
+     "num_usd": 137.998,
+     "den_usd": 301.656,
+     "clusters": 19
+    },
+    "readedit|never=all|perfect-find": {
+     "ceiling": 0.8237954353414628,
+     "lo": 0.7486453907926955,
+     "hi": 0.8867814399417063,
+     "num_usd": 248.5029,
+     "den_usd": 301.656,
+     "clusters": 19
+    },
+    "readedit|never=all|perfect-find+carry": {
+     "ceiling": 0.8544878167132052,
+     "lo": 0.7801447944790799,
+     "hi": 0.9149457037181612,
+     "num_usd": 257.7614,
+     "den_usd": 301.656,
+     "clusters": 19
+    },
+    "view|never=all|top5": {
+     "ceiling": 0.031977729098051265,
+     "lo": 0.024962716821562984,
+     "hi": 0.03939285913961378,
+     "num_usd": 9.6463,
+     "den_usd": 301.656,
+     "clusters": 19
+    },
+    "view|never=all|top5|by-request": {
+     "ceiling": 0.031977729098051265,
+     "lo": 0.0245670832697491,
+     "hi": 0.04035616956649521,
+     "num_usd": 9.6463,
+     "den_usd": 301.656,
+     "clusters": 1073
+    },
+    "view|never=0|top5": {
+     "ceiling": 0.028868497429966892,
+     "lo": 0.022821013700124584,
+     "hi": 0.03525605505143584,
+     "num_usd": 8.7084,
+     "den_usd": 301.656,
+     "clusters": 19
+    },
+    "view|never=0|top5|by-request": {
+     "ceiling": 0.028868497429966892,
+     "lo": 0.021915024569737415,
+     "hi": 0.03663642149728785,
+     "num_usd": 8.7084,
+     "den_usd": 301.656,
+     "clusters": 1073
+    },
+    "view|never=all|top8": {
+     "ceiling": 0.038783705292739445,
+     "lo": 0.03236547468652821,
+     "hi": 0.045282349977744045,
+     "num_usd": 11.6993,
+     "den_usd": 301.656,
+     "clusters": 19
+    },
+    "view|never=all|top5-kind-all": {
+     "ceiling": 0.011379875720438096,
+     "lo": 0.007558641083694534,
+     "hi": 0.016579350917736428,
+     "num_usd": 3.4328,
+     "den_usd": 301.656,
+     "clusters": 19
+    },
+    "view|never=all|top5+carry": {
+     "ceiling": 0.042068151754138944,
+     "lo": 0.03205223984908075,
+     "hi": 0.052894995166749864,
+     "num_usd": 12.6901,
+     "den_usd": 301.656,
+     "clusters": 19
+    },
+    "view|never=all|perfect-find": {
+     "ceiling": 0.09580990184462942,
+     "lo": 0.08168889410327773,
+     "hi": 0.10896833545872145,
+     "num_usd": 28.9016,
+     "den_usd": 301.656,
+     "clusters": 19
+    },
+    "view|never=all|perfect-find+carry": {
+     "ceiling": 0.12076727713812428,
+     "lo": 0.10375989070137152,
+     "hi": 0.13626286438332397,
+     "num_usd": 36.4302,
+     "den_usd": 301.656,
+     "clusters": 19
+    }
+   },
+   "headline": {
+    "ceiling": 0.031977729098051265,
+    "lo": 0.024962716821562984,
+    "hi": 0.03939285913961378,
+    "num_usd": 9.6463,
+    "den_usd": 301.656,
+    "clusters": 19
+   },
+   "per_session": {
+    "L-compact-conan2/conan-io__conan-long60-2-sonnet/Ne": {
+     "model": "claude-sonnet-5-5",
+     "arm": "Ne",
+     "bugs": 44,
+     "hit5": 22,
+     "usd": 14.127,
+     "view_top5": 0.0342,
+     "readedit_never0_top5": 0.0582
+    },
+    "L-compact-conan2/conan-io__conan-long60-2-sonnet/Nl": {
+     "model": "claude-sonnet-5-5",
+     "arm": "Nl",
+     "bugs": 51,
+     "hit5": 28,
+     "usd": 12.811,
+     "view_top5": 0.0302,
+     "readedit_never0_top5": 0.1369
+    },
+    "L-compact/conan-io__conan-long60-1-sonnet/Ne": {
+     "model": "claude-sonnet-5-5",
+     "arm": "Ne",
+     "bugs": 60,
+     "hit5": 35,
+     "usd": 16.358,
+     "view_top5": 0.0318,
+     "readedit_never0_top5": 0.0243
+    },
+    "L-compact/conan-io__conan-long60-1-sonnet/Nl": {
+     "model": "claude-sonnet-5-5",
+     "arm": "Nl",
+     "bugs": 60,
+     "hit5": 35,
+     "usd": 13.764,
+     "view_top5": 0.0389,
+     "readedit_never0_top5": 0.0689
+    },
+    "L-compact/conan-io__conan-long60-2-sonnet/Ne": {
+     "model": "claude-sonnet-5-5",
+     "arm": "Ne",
+     "bugs": 44,
+     "hit5": 22,
+     "usd": 16.352,
+     "view_top5": 0.023,
+     "readedit_never0_top5": 0.0324
+    },
+    "L-compact/conan-io__conan-long60-2-sonnet/Nl": {
+     "model": "claude-sonnet-5-5",
+     "arm": "Nl",
+     "bugs": 43,
+     "hit5": 21,
+     "usd": 11.527,
+     "view_top5": 0.0689,
+     "readedit_never0_top5": 0.1061
+    },
+    "L-compact/getmoto__moto-long60-1-sonnet/Ne": {
+     "model": "claude-sonnet-5-5",
+     "arm": "Ne",
+     "bugs": 55,
+     "hit5": 33,
+     "usd": 15.99,
+     "view_top5": 0.0243,
+     "readedit_never0_top5": 0.0122
+    },
+    "L-compact/getmoto__moto-long60-1-sonnet/Nl": {
+     "model": "claude-sonnet-5-5",
+     "arm": "Nl",
+     "bugs": 60,
+     "hit5": 36,
+     "usd": 10.704,
+     "view_top5": 0.0092,
+     "readedit_never0_top5": 0.011
+    },
+    "L-compact/getmoto__moto-long60-2-sonnet/Ne": {
+     "model": "claude-sonnet-5-5",
+     "arm": "Ne",
+     "bugs": 60,
+     "hit5": 40,
+     "usd": 15.49,
+     "view_top5": 0.0238,
+     "readedit_never0_top5": 0.0426
+    },
+    "L-compact/getmoto__moto-long60-2-sonnet/Nl": {
+     "model": "claude-sonnet-5-5",
+     "arm": "Nl",
+     "bugs": 60,
+     "hit5": 40,
+     "usd": 11.503,
+     "view_top5": 0.0649,
+     "readedit_never0_top5": 0.0825
+    },
+    "L-compact/pydantic__pydantic-long60-1-sonnet/Ne": {
+     "model": "claude-sonnet-5-5",
+     "arm": "Ne",
+     "bugs": 60,
+     "hit5": 34,
+     "usd": 12.947,
+     "view_top5": 0.0089,
+     "readedit_never0_top5": 0.0185
+    },
+    "L-compact/pydantic__pydantic-long60-1-sonnet/Nl": {
+     "model": "claude-sonnet-5-5",
+     "arm": "Nl",
+     "bugs": 60,
+     "hit5": 34,
+     "usd": 9.891,
+     "view_top5": 0.027,
+     "readedit_never0_top5": 0.0532
+    },
+    "L-n2/pydantic__pydantic-long60-1-sonnet/N": {
+     "model": "claude-sonnet-5-5",
+     "arm": "N",
+     "bugs": 60,
+     "hit5": 34,
+     "usd": 20.404,
+     "view_top5": 0.0145,
+     "readedit_never0_top5": 0.0486
+    },
+    "L-n2c/conan-io__conan-long60-1-sonnet/N": {
+     "model": "claude-sonnet-5-5",
+     "arm": "N",
+     "bugs": 48,
+     "hit5": 30,
+     "usd": 28.775,
+     "view_top5": 0.0471,
+     "readedit_never0_top5": 0.0064
+    },
+    "L-ne/conan-io__conan-long60-1-sonnet/Ne": {
+     "model": "claude-sonnet-5-5",
+     "arm": "Ne",
+     "bugs": 60,
+     "hit5": 35,
+     "usd": 14.6,
+     "view_top5": 0.0466,
+     "readedit_never0_top5": 0.0595
+    },
+    "L-ne/pydantic__pydantic-long60-1-sonnet/Ne": {
+     "model": "claude-sonnet-5-5",
+     "arm": "Ne",
+     "bugs": 60,
+     "hit5": 34,
+     "usd": 11.885,
+     "view_top5": 0.0255,
+     "readedit_never0_top5": 0.0219
+    },
+    "L-ne2c/conan-io__conan-long60-1-sonnet/Ne": {
+     "model": "claude-sonnet-5-5",
+     "arm": "Ne",
+     "bugs": 51,
+     "hit5": 30,
+     "usd": 16.526,
+     "view_top5": 0.0574,
+     "readedit_never0_top5": 0.0237
+    },
+    "L/conan-io__conan-long60-1-sonnet/N": {
+     "model": "claude-sonnet-5-5",
+     "arm": "N",
+     "bugs": 50,
+     "hit5": 30,
+     "usd": 26.395,
+     "view_top5": 0.0206,
+     "readedit_never0_top5": 0.0
+    },
+    "L/pydantic__pydantic-long60-1-sonnet/N": {
+     "model": "claude-sonnet-5-5",
+     "arm": "N",
+     "bugs": 60,
+     "hit5": 34,
+     "usd": 21.606,
+     "view_top5": 0.0204,
+     "readedit_never0_top5": 0.0062
+    }
+   }
+  },
+  "phaseB-owner-setup | claude-sonnet-5-5": {
+   "describe": {
+    "sessions": 2,
+    "bug_units": 50,
+    "requests_all": 50,
+    "hit5": 32,
+    "hit8": 35,
+    "hit5_kind_all": 19,
+    "total_expensive_usd": 13.261,
+    "other_models_usd": 0,
+    "readedit": {
+     "touched": 5,
+     "never": 45,
+     "calls_before_p50": 1,
+     "calls_before_p90": 6,
+     "requests_before_p50": 1,
+     "requests_before_p90": 6,
+     "cost_before_usd_touched": 0.346,
+     "cost_never_touched_usd": 12.252,
+     "cost_before_hit_touched_usd": 0.277,
+     "carry_hit_usd": 0.79
+    },
+    "view": {
+     "touched": 49,
+     "never": 1,
+     "calls_before_p50": 0,
+     "calls_before_p90": 1,
+     "requests_before_p50": 0,
+     "requests_before_p90": 1,
+     "cost_before_usd_touched": 0.526,
+     "cost_never_touched_usd": 0.417,
+     "cost_before_hit_touched_usd": 0.449,
+     "carry_hit_usd": 0.843
+    }
+   },
+   "ceilings": {
+    "readedit|never=all|top5": {
+     "ceiling": 0.6359067525641199,
+     "lo": 0.45404717918862914,
+     "hi": 0.6551640306961352,
+     "num_usd": 8.4325,
+     "den_usd": 13.2606,
+     "clusters": 2
+    },
+    "readedit|never=all|top5|by-request": {
+     "ceiling": 0.6359067525641199,
+     "lo": 0.4862029445099019,
+     "hi": 0.7782041699553319,
+     "num_usd": 8.4325,
+     "den_usd": 13.2606,
+     "clusters": 50
+    },
+    "readedit|never=0|top5": {
+     "ceiling": 0.020860024710641543,
+     "lo": 0.015790629036193313,
+     "hi": 0.06873377552353654,
+     "num_usd": 0.2766,
+     "den_usd": 13.2606,
+     "clusters": 2
+    },
+    "readedit|never=0|top5|by-request": {
+     "ceiling": 0.020860024710641543,
+     "lo": 0.0,
+     "hi": 0.05608972904587806,
+     "num_usd": 0.2766,
+     "den_usd": 13.2606,
+     "clusters": 50
+    },
+    "readedit|never=all|top8": {
+     "ceiling": 0.6825815315317454,
+     "lo": 0.5667884331813241,
+     "hi": 0.6948429696255092,
+     "num_usd": 9.0514,
+     "den_usd": 13.2606,
+     "clusters": 2
+    },
+    "readedit|never=all|top5-kind-all": {
+     "ceiling": 0.36859340488347486,
+     "lo": 0.11636802328315003,
+     "hi": 0.39530178341575267,
+     "num_usd": 4.8878,
+     "den_usd": 13.2606,
+     "clusters": 2
+    },
+    "readedit|never=all|top5+carry": {
+     "ceiling": 0.6954767598911623,
+     "lo": 0.4759122269851955,
+     "hi": 0.7187266510000901,
+     "num_usd": 9.2224,
+     "den_usd": 13.2606,
+     "clusters": 2
+    },
+    "readedit|never=all|perfect-find": {
+     "ceiling": 0.9500290360105577,
+     "lo": 0.7147703073681065,
+     "hi": 0.9749407999961569,
+     "num_usd": 12.598,
+     "den_usd": 13.2606,
+     "clusters": 2
+    },
+    "readedit|never=all|perfect-find+carry": {
+     "ceiling": 1.0284393182219387,
+     "lo": 0.736635355164673,
+     "hi": 1.0593387092867999,
+     "num_usd": 13.6377,
+     "den_usd": 13.2606,
+     "clusters": 2
+    },
+    "view|never=all|top5": {
+     "ceiling": 0.03387522499260157,
+     "lo": 0.01077493073106927,
+     "hi": 0.036321336479992083,
+     "num_usd": 0.4492,
+     "den_usd": 13.2606,
+     "clusters": 2
+    },
+    "view|never=all|top5|by-request": {
+     "ceiling": 0.03387522499260158,
+     "lo": 0.006644460217664229,
+     "hi": 0.07104944214547756,
+     "num_usd": 0.4492,
+     "den_usd": 13.2606,
+     "clusters": 50
+    },
+    "view|never=0|top5": {
+     "ceiling": 0.03387522499260157,
+     "lo": 0.01077493073106927,
+     "hi": 0.036321336479992083,
+     "num_usd": 0.4492,
+     "den_usd": 13.2606,
+     "clusters": 2
+    },
+    "view|never=0|top5|by-request": {
+     "ceiling": 0.03387522499260158,
+     "lo": 0.006644460217664229,
+     "hi": 0.07104944214547756,
+     "num_usd": 0.4492,
+     "den_usd": 13.2606,
+     "clusters": 50
+    },
+    "view|never=all|top8": {
+     "ceiling": 0.03387522499260157,
+     "lo": 0.01077493073106927,
+     "hi": 0.036321336479992083,
+     "num_usd": 0.4492,
+     "den_usd": 13.2606,
+     "clusters": 2
+    },
+    "view|never=all|top5-kind-all": {
+     "ceiling": 0.0123276523472044,
+     "lo": 0.0,
+     "hi": 0.013633038836123223,
+     "num_usd": 0.1635,
+     "den_usd": 13.2606,
+     "clusters": 2
+    },
+    "view|never=all|top5+carry": {
+     "ceiling": 0.09743437227027393,
+     "lo": 0.024925710297449426,
+     "hi": 0.10511238143236487,
+     "num_usd": 1.292,
+     "den_usd": 13.2606,
+     "clusters": 2
+    },
+    "view|never=all|perfect-find": {
+     "ceiling": 0.07114905116643001,
+     "lo": 0.01077493073106927,
+     "hi": 0.07754212252154087,
+     "num_usd": 0.9435,
+     "den_usd": 13.2606,
+     "clusters": 2
+    },
+    "view|never=all|perfect-find+carry": {
+     "ceiling": 0.13955569304553556,
+     "lo": 0.024925710297449426,
+     "hi": 0.1516939677542868,
+     "num_usd": 1.8506,
+     "den_usd": 13.2606,
+     "clusters": 2
+    }
+   },
+   "headline": {
+    "ceiling": 0.03387522499260157,
+    "lo": 0.01077493073106927,
+    "hi": 0.036321336479992083,
+    "num_usd": 0.4492,
+    "den_usd": 13.2606,
+    "clusters": 2
+   },
+   "per_session": {
+    "phaseB/encode__starlette-long-1r1/N": {
+     "model": "claude-sonnet-5-5",
+     "arm": "N",
+     "bugs": 10,
+     "hit5": 7,
+     "usd": 1.27,
+     "view_top5": 0.0108,
+     "readedit_never0_top5": 0.0687
+    },
+    "phaseB/pydantic__pydantic-long40-1/N": {
+     "model": "claude-sonnet-5-5",
+     "arm": "N",
+     "bugs": 40,
+     "hit5": 25,
+     "usd": 11.991,
+     "view_top5": 0.0363,
+     "readedit_never0_top5": 0.0158
+    }
+   }
+  },
+  "singles-haiku | claude-haiku-4-5-20251001": {
+   "describe": {
+    "sessions": 74,
+    "bug_units": 74,
+    "requests_all": 74,
+    "hit5": 45,
+    "hit8": 50,
+    "hit5_kind_all": 23,
+    "total_expensive_usd": 20.745,
+    "other_models_usd": 0,
+    "readedit": {
+     "touched": 72,
+     "never": 2,
+     "calls_before_p50": 2,
+     "calls_before_p90": 8,
+     "requests_before_p50": 2,
+     "requests_before_p90": 7,
+     "cost_before_usd_touched": 2.11,
+     "cost_never_touched_usd": 0.587,
+     "cost_before_hit_touched_usd": 1.112,
+     "carry_hit_usd": 0.374
+    },
+    "view": {
+     "touched": 72,
+     "never": 2,
+     "calls_before_p50": 2,
+     "calls_before_p90": 7,
+     "requests_before_p50": 2,
+     "requests_before_p90": 6,
+     "cost_before_usd_touched": 2.042,
+     "cost_never_touched_usd": 0.587,
+     "cost_before_hit_touched_usd": 1.097,
+     "carry_hit_usd": 0.365
+    }
+   },
+   "ceilings": {
+    "readedit|never=all|top5": {
+     "ceiling": 0.05360600793800174,
+     "lo": 0.040213523402361055,
+     "hi": 0.06875951946854196,
+     "num_usd": 1.1121,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "readedit|never=all|top5|by-request": {
+     "ceiling": 0.05360600793800174,
+     "lo": 0.040213523402361055,
+     "hi": 0.06875951946854196,
+     "num_usd": 1.1121,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "readedit|never=0|top5": {
+     "ceiling": 0.05360600793800174,
+     "lo": 0.040213523402361055,
+     "hi": 0.06875951946854196,
+     "num_usd": 1.1121,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "readedit|never=0|top5|by-request": {
+     "ceiling": 0.05360600793800174,
+     "lo": 0.040213523402361055,
+     "hi": 0.06875951946854196,
+     "num_usd": 1.1121,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "readedit|never=all|top8": {
+     "ceiling": 0.06194370633667792,
+     "lo": 0.047155742568904264,
+     "hi": 0.07799518128393304,
+     "num_usd": 1.285,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "readedit|never=all|top5-kind-all": {
+     "ceiling": 0.026364040228849042,
+     "lo": 0.015225689815250245,
+     "hi": 0.04041191395479441,
+     "num_usd": 0.5469,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "readedit|never=all|top5+carry": {
+     "ceiling": 0.07161444675180775,
+     "lo": 0.05030156363875583,
+     "hi": 0.09586190173098577,
+     "num_usd": 1.4856,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "readedit|never=all|perfect-find": {
+     "ceiling": 0.13000966341097614,
+     "lo": 0.09708818388627947,
+     "hi": 0.1779082766005986,
+     "num_usd": 2.6971,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "readedit|never=all|perfect-find+carry": {
+     "ceiling": 0.17186399932643395,
+     "lo": 0.13248958325740337,
+     "hi": 0.22076729116541366,
+     "num_usd": 3.5653,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "view|never=all|top5": {
+     "ceiling": 0.052870504399963936,
+     "lo": 0.0395741894994234,
+     "hi": 0.06790444028252043,
+     "num_usd": 1.0968,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "view|never=all|top5|by-request": {
+     "ceiling": 0.052870504399963936,
+     "lo": 0.0395741894994234,
+     "hi": 0.06790444028252043,
+     "num_usd": 1.0968,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "view|never=0|top5": {
+     "ceiling": 0.052870504399963936,
+     "lo": 0.0395741894994234,
+     "hi": 0.06790444028252043,
+     "num_usd": 1.0968,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "view|never=0|top5|by-request": {
+     "ceiling": 0.052870504399963936,
+     "lo": 0.0395741894994234,
+     "hi": 0.06790444028252043,
+     "num_usd": 1.0968,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "view|never=all|top8": {
+     "ceiling": 0.06083616327166258,
+     "lo": 0.04619384542851269,
+     "hi": 0.0767248611295853,
+     "num_usd": 1.2621,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "view|never=all|top5-kind-all": {
+     "ceiling": 0.026364040228849042,
+     "lo": 0.015225689815250245,
+     "hi": 0.04041191395479441,
+     "num_usd": 0.5469,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "view|never=all|top5+carry": {
+     "ceiling": 0.07045074586754793,
+     "lo": 0.049588780915250465,
+     "hi": 0.09469804628190204,
+     "num_usd": 1.4615,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "view|never=all|perfect-find": {
+     "ceiling": 0.12675263522555225,
+     "lo": 0.09415988516809079,
+     "hi": 0.17434724876437174,
+     "num_usd": 2.6295,
+     "den_usd": 20.7451,
+     "clusters": 74
+    },
+    "view|never=all|perfect-find+carry": {
+     "ceiling": 0.16817125394946436,
+     "lo": 0.12914096966402164,
+     "hi": 0.21676868288759954,
+     "num_usd": 3.4887,
+     "den_usd": 20.7451,
+     "clusters": 74
+    }
+   },
+   "headline": {
+    "ceiling": 0.052870504399963936,
+    "lo": 0.0395741894994234,
+    "hi": 0.06790444028252043,
+    "num_usd": 1.0968,
+    "den_usd": 20.7451,
+    "clusters": 74
+   },
+   "per_session": {
+    "A-singles:django__django-11211:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.323,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "A-singles:django__django-11333:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.169,
+     "view_top5": 0.1464,
+     "readedit_never0_top5": 0.1464
+    },
+    "A-singles:django__django-11400:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.213,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "A-singles:django__django-11532:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.21,
+     "view_top5": 0.1424,
+     "readedit_never0_top5": 0.1424
+    },
+    "A-singles:django__django-11999:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.359,
+     "view_top5": 0.1084,
+     "readedit_never0_top5": 0.1084
+    },
+    "A-singles:django__django-13109:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.288,
+     "view_top5": 0.0866,
+     "readedit_never0_top5": 0.0866
+    },
+    "A-singles:django__django-13807:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.401,
+     "view_top5": 0.0619,
+     "readedit_never0_top5": 0.0619
+    },
+    "A-singles:django__django-14007:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.889,
+     "view_top5": 0.0836,
+     "readedit_never0_top5": 0.0887
+    },
+    "A-singles:django__django-14011:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.519,
+     "view_top5": 0.1743,
+     "readedit_never0_top5": 0.1743
+    },
+    "A-singles:django__django-14631:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.342,
+     "view_top5": 0.0723,
+     "readedit_never0_top5": 0.0723
+    },
+    "A-singles:django__django-15022:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.464,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "A-singles:django__django-15572:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.184,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "A-singles:django__django-16263:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 1.265,
+     "view_top5": 0.0297,
+     "readedit_never0_top5": 0.0344
+    },
+    "A-singles:django__django-17029:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.081,
+     "view_top5": 0.3011,
+     "readedit_never0_top5": 0.3011
+    },
+    "A-singles:django__django-17087:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.284,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "A-singles:matplotlib__matplotlib-24637:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.376,
+     "view_top5": 0.0675,
+     "readedit_never0_top5": 0.0675
+    },
+    "A-singles:matplotlib__matplotlib-25332:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.567,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "A-singles:scikit-learn__scikit-learn-13779:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.187,
+     "view_top5": 0.1307,
+     "readedit_never0_top5": 0.1307
+    },
+    "A-singles:sphinx-doc__sphinx-10323:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.298,
+     "view_top5": 0.1294,
+     "readedit_never0_top5": 0.1294
+    },
+    "A-singles:sphinx-doc__sphinx-10435:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.279,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "A-singles:sphinx-doc__sphinx-10614:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.699,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "A-singles:sphinx-doc__sphinx-7590:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.459,
+     "view_top5": 0.0529,
+     "readedit_never0_top5": 0.0529
+    },
+    "A-singles:sympy__sympy-11618:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.389,
+     "view_top5": 0.0619,
+     "readedit_never0_top5": 0.0619
+    },
+    "A-singles:sympy__sympy-20428:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.264,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "A-singles:sympy__sympy-21930:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.299,
+     "view_top5": 0.0968,
+     "readedit_never0_top5": 0.0968
+    },
+    "A-singles:sympy__sympy-23534:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.138,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "dev-alwaysload:django__django-12143:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.231,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "dev-alwaysload:django__django-15104:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.226,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "dev-alwaysload:django__django-15563:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.569,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "dev-alwaysload:sympy__sympy-18763:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.314,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "dev-nudge:django__django-11790:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.456,
+     "view_top5": 0.0626,
+     "readedit_never0_top5": 0.0626
+    },
+    "dev-nudge:django__django-12039:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.417,
+     "view_top5": 0.0591,
+     "readedit_never0_top5": 0.0591
+    },
+    "dev-nudge:django__django-12774:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.326,
+     "view_top5": 0.0758,
+     "readedit_never0_top5": 0.0758
+    },
+    "dev-nudge:django__django-13195:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.238,
+     "view_top5": 0.1061,
+     "readedit_never0_top5": 0.1061
+    },
+    "dev-nudge:django__django-13343:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.385,
+     "view_top5": 0.093,
+     "readedit_never0_top5": 0.093
+    },
+    "dev-nudge:django__django-13569:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.486,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "dev-nudge:django__django-16100:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.408,
+     "view_top5": 0.0593,
+     "readedit_never0_top5": 0.0593
+    },
+    "dev-nudge:django__django-16642:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.16,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "dev-nudge:sympy__sympy-12419:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 1.271,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "dev-nudge:sympy__sympy-16766:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.236,
+     "view_top5": 0.1207,
+     "readedit_never0_top5": 0.1207
+    },
+    "dev1:django__django-11206:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.556,
+     "view_top5": 0.0437,
+     "readedit_never0_top5": 0.0437
+    },
+    "dev1:django__django-12708:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.552,
+     "view_top5": 0.0509,
+     "readedit_never0_top5": 0.0509
+    },
+    "dev1:django__django-14752:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.155,
+     "view_top5": 0.1649,
+     "readedit_never0_top5": 0.1649
+    },
+    "dev1:django__django-15315:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.411,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "dev1:django__django-16631:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.423,
+     "view_top5": 0.0719,
+     "readedit_never0_top5": 0.0719
+    },
+    "dev1:matplotlib__matplotlib-23412:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.434,
+     "view_top5": 0.0711,
+     "readedit_never0_top5": 0.0711
+    },
+    "find-e2e:astropy__astropy-12907:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.075,
+     "view_top5": 0.1556,
+     "readedit_never0_top5": 0.1556
+    },
+    "find-e2e:astropy__astropy-13236:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.085,
+     "view_top5": 0.1409,
+     "readedit_never0_top5": 0.1409
+    },
+    "find-e2e:astropy__astropy-8707:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.109,
+     "view_top5": 0.1048,
+     "readedit_never0_top5": 0.1048
+    },
+    "find-e2e:astropy__astropy-8872:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.091,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "find-e2e:django__django-14559:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.106,
+     "view_top5": 0.1739,
+     "readedit_never0_top5": 0.1739
+    },
+    "find-e2e:django__django-15569:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.045,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "find-e2e:django__django-16145:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.089,
+     "view_top5": 0.1275,
+     "readedit_never0_top5": 0.1275
+    },
+    "find-e2e:django__django-16256:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.091,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "find-e2e:matplotlib__matplotlib-21568:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.089,
+     "view_top5": 0.3087,
+     "readedit_never0_top5": 0.3616
+    },
+    "find-e2e:matplotlib__matplotlib-26208:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.104,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "find-e2e:matplotlib__matplotlib-26342:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.086,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "find-e2e:matplotlib__matplotlib-26466:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.123,
+     "view_top5": 0.2102,
+     "readedit_never0_top5": 0.2102
+    },
+    "find-e2e:pydata__xarray-3305:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.105,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "find-e2e:pydata__xarray-3677:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.101,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "find-e2e:pydata__xarray-6599:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.077,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "find-e2e:pydata__xarray-7393:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.091,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "find-e2e:pytest-dev__pytest-7490:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.095,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "find-e2e:scikit-learn__scikit-learn-12682:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.095,
+     "view_top5": 0.2152,
+     "readedit_never0_top5": 0.2152
+    },
+    "find-e2e:scikit-learn__scikit-learn-12973:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.1,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "find-e2e:scikit-learn__scikit-learn-14053:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.083,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "find-e2e:scikit-learn__scikit-learn-14141:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.025,
+     "view_top5": 0.4492,
+     "readedit_never0_top5": 0.4492
+    },
+    "find-e2e:sphinx-doc__sphinx-10449:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.115,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "find-e2e:sphinx-doc__sphinx-7910:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.103,
+     "view_top5": 0.1376,
+     "readedit_never0_top5": 0.1376
+    },
+    "find-e2e:sphinx-doc__sphinx-7985:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.109,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "find-e2e:sphinx-doc__sphinx-8551:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.102,
+     "view_top5": 0.18,
+     "readedit_never0_top5": 0.18
+    },
+    "find-e2e:sympy__sympy-15809:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 1,
+     "usd": 0.086,
+     "view_top5": 0.2645,
+     "readedit_never0_top5": 0.2645
+    },
+    "find-e2e:sympy__sympy-20916:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.115,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    },
+    "find-e2e:sympy__sympy-23413:N:": {
+     "model": "claude-haiku-4-5-20251001",
+     "arm": "N",
+     "bugs": 1,
+     "hit5": 0,
+     "usd": 0.051,
+     "view_top5": 0.0,
+     "readedit_never0_top5": 0.0
+    }
+   }
+  }
+ }
+}
