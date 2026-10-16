@@ -1,0 +1,115 @@
+{
+ "H1_pages_es_vs_en": {
+  "n": 264,
+  "a": 0.9545,
+  "b": 0.9886,
+  "difference": -0.0341,
+  "ci95": [
+   -0.0606,
+   -0.0076
+  ],
+  "only_a": 2,
+  "only_b": 11,
+  "mcnemar_p": 0.0225,
+  "verdict": "inconclusive",
+  "rows": "answer within the first 900 characters in both languages",
+  "text": {
+   "a": 0.1933,
+   "b": 0.1844,
+   "difference": 0.0088,
+   "ci95": [
+    -0.0065,
+    0.024
+   ],
+   "within_margin": true
+  },
+  "pareto": "not shown on recall"
+ },
+ "H1_all_rows": {
+  "n": 300,
+  "a": 0.95,
+  "b": 0.9567,
+  "difference": -0.0067,
+  "ci95": [
+   -0.04,
+   0.0233
+  ],
+  "only_a": 10,
+  "only_b": 12,
+  "mcnemar_p": 0.8318
+ },
+ "C1_consumer_cut_900": {
+  "n": 300,
+  "a": 0.92,
+  "b": 0.95,
+  "difference": -0.03,
+  "ci95": [
+   -0.05,
+   -0.0133
+  ],
+  "only_a": 0,
+  "only_b": 9,
+  "mcnemar_p": 0.0039,
+  "verdict": "inconclusive",
+  "note": "free from P-es: the decider already sees 900 characters a page; the cut loses exactly the kept gold pages whose answer ends past character 900",
+  "answer_past_900": {
+   "es": 11,
+   "en": 30
+  }
+ },
+ "answer_string_kept": {
+  "n": 300,
+  "a": 0.95,
+  "b": 0.9567,
+  "difference": -0.0067,
+  "ci95": [
+   -0.04,
+   0.0233
+  ],
+  "only_a": 10,
+  "only_b": 12,
+  "mcnemar_p": 0.8318
+ },
+ "kept_absolute": {
+  "P-es": {
+   "chars": 1212.7233,
+   "pages": 1.9567
+  },
+  "P-en": {
+   "chars": 1781.4533,
+   "pages": 1.9033
+  }
+ },
+ "kept_share": {
+  "P-es": 0.1881,
+  "P-en": 0.1835
+ },
+ "anchors": {
+  "es": {
+   "n": 300,
+   "rate": 0.95,
+   "ci95": [
+    0.9192,
+    0.9695
+   ]
+  },
+  "en": {
+   "n": 300,
+   "rate": 0.9567,
+   "ci95": [
+    0.9273,
+    0.9745
+   ]
+  },
+  "published_english": {
+   "recall": 0.983,
+   "kept_share": 0.336,
+   "source": "HotpotQA, 300 questions"
+  }
+ },
+ "bm25_at_same_text": {
+  "es": 0.61,
+  "en": 0.7067
+ },
+ "head": "1f54dd493315d55ab087841d14b3a367851cddc1"
+}
