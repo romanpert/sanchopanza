@@ -1,0 +1,153 @@
+{
+ "derived_gate": 0.65,
+ "derivation": {
+  "cases": "graph + graph-c, 50 cases x 2 recordings",
+  "shipped": {
+   "n": 100,
+   "decided": 79,
+   "right": 71,
+   "costly": 4,
+   "unrelated_read_as_agree": 4
+  },
+  "gates": [
+   {
+    "gate": 0.4,
+    "added": 12,
+    "right": 10,
+    "wrong": 2,
+    "missed_conflicts": 0,
+    "net": 2,
+    "wilson95_low": 0.5519636426153273
+   },
+   {
+    "gate": 0.45,
+    "added": 12,
+    "right": 10,
+    "wrong": 2,
+    "missed_conflicts": 0,
+    "net": 2,
+    "wilson95_low": 0.5519636426153273
+   },
+   {
+    "gate": 0.5,
+    "added": 12,
+    "right": 10,
+    "wrong": 2,
+    "missed_conflicts": 0,
+    "net": 2,
+    "wilson95_low": 0.5519636426153273
+   },
+   {
+    "gate": 0.55,
+    "added": 11,
+    "right": 9,
+    "wrong": 2,
+    "missed_conflicts": 0,
+    "net": 1,
+    "wilson95_low": 0.5230138624217552
+   },
+   {
+    "gate": 0.6,
+    "added": 9,
+    "right": 8,
+    "wrong": 1,
+    "missed_conflicts": 0,
+    "net": 4,
+    "wilson95_low": 0.5649937852319399
+   },
+   {
+    "gate": 0.65,
+    "added": 6,
+    "right": 6,
+    "wrong": 0,
+    "missed_conflicts": 0,
+    "net": 6,
+    "wilson95_low": 0.6096569663469356
+   },
+   {
+    "gate": 0.7,
+    "added": 1,
+    "right": 1,
+    "wrong": 0,
+    "missed_conflicts": 0,
+    "net": 1,
+    "wilson95_low": 0.2065432914738929
+   }
+  ]
+ },
+ "shown_on_fifth_batch": {
+  "cases": "graph-e, 30 cases x 2 recordings",
+  "shipped": {
+   "n": 60,
+   "decided": 54,
+   "right": 50,
+   "costly": 2,
+   "unrelated_read_as_agree": 2
+  },
+  "gates": [
+   {
+    "gate": 0.4,
+    "added": 0,
+    "right": 0,
+    "wrong": 0,
+    "missed_conflicts": 0,
+    "net": 0,
+    "wilson95_low": null
+   },
+   {
+    "gate": 0.45,
+    "added": 0,
+    "right": 0,
+    "wrong": 0,
+    "missed_conflicts": 0,
+    "net": 0,
+    "wilson95_low": null
+   },
+   {
+    "gate": 0.5,
+    "added": 0,
+    "right": 0,
+    "wrong": 0,
+    "missed_conflicts": 0,
+    "net": 0,
+    "wilson95_low": null
+   },
+   {
+    "gate": 0.55,
+    "added": 0,
+    "right": 0,
+    "wrong": 0,
+    "missed_conflicts": 0,
+    "net": 0,
+    "wilson95_low": null
+   },
+   {
+    "gate": 0.6,
+    "added": 0,
+    "right": 0,
+    "wrong": 0,
+    "missed_conflicts": 0,
+    "net": 0,
+    "wilson95_low": null
+   },
+   {
+    "gate": 0.65,
+    "added": 0,
+    "right": 0,
+    "wrong": 0,
+    "missed_conflicts": 0,
+    "net": 0,
+    "wilson95_low": null
+   },
+   {
+    "gate": 0.7,
+    "added": 0,
+    "right": 0,
+    "wrong": 0,
+    "missed_conflicts": 0,
+    "net": 0,
+    "wilson95_low": null
+   }
+  ]
+ }
+}

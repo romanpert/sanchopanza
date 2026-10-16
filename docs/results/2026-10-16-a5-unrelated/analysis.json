@@ -1,0 +1,174 @@
+{
+ "head": "f392ee8f91c9b878bbe48d6f93282d8399c4e4c3",
+ "gate_under_test": 0.65,
+ "unanswered": 0,
+ "shipped": {
+  "n": 1500,
+  "decided": 990,
+  "right": 951,
+  "costly": 0,
+  "unrelated_read_as_agree": 39
+ },
+ "shipped_by_shape": {
+  "detail": {
+   "n": 225,
+   "decided": 225,
+   "right": 225,
+   "costly": 0,
+   "unrelated_read_as_agree": 0
+  },
+  "restated": {
+   "n": 225,
+   "decided": 225,
+   "right": 225,
+   "costly": 0,
+   "unrelated_read_as_agree": 0
+  },
+  "same": {
+   "n": 560,
+   "decided": 52,
+   "right": 13,
+   "costly": 0,
+   "unrelated_read_as_agree": 39
+  },
+  "twin": {
+   "n": 40,
+   "decided": 39,
+   "right": 39,
+   "costly": 0,
+   "unrelated_read_as_agree": 0
+  },
+  "values": {
+   "n": 450,
+   "decided": 449,
+   "right": 449,
+   "costly": 0,
+   "unrelated_read_as_agree": 0
+  }
+ },
+ "gates": [
+  {
+   "gate": 0.4,
+   "added": 227,
+   "right": 227,
+   "wrong": 0,
+   "missed_conflicts": 0,
+   "net": 227,
+   "wilson95_low": 0.9833582855083312
+  },
+  {
+   "gate": 0.45,
+   "added": 227,
+   "right": 227,
+   "wrong": 0,
+   "missed_conflicts": 0,
+   "net": 227,
+   "wilson95_low": 0.9833582855083312
+  },
+  {
+   "gate": 0.5,
+   "added": 227,
+   "right": 227,
+   "wrong": 0,
+   "missed_conflicts": 0,
+   "net": 227,
+   "wilson95_low": 0.9833582855083312
+  },
+  {
+   "gate": 0.55,
+   "added": 143,
+   "right": 143,
+   "wrong": 0,
+   "missed_conflicts": 0,
+   "net": 143,
+   "wilson95_low": 0.9738384762900975
+  },
+  {
+   "gate": 0.6,
+   "added": 91,
+   "right": 91,
+   "wrong": 0,
+   "missed_conflicts": 0,
+   "net": 91,
+   "wilson95_low": 0.959494567784601
+  },
+  {
+   "gate": 0.65,
+   "added": 39,
+   "right": 39,
+   "wrong": 0,
+   "missed_conflicts": 0,
+   "net": 39,
+   "wilson95_low": 0.9103301463997611
+  },
+  {
+   "gate": 0.7,
+   "added": 11,
+   "right": 11,
+   "wrong": 0,
+   "missed_conflicts": 0,
+   "net": 11,
+   "wilson95_low": 0.7411599827511859
+  }
+ ],
+ "added_by_type": {
+  "bridge:lanes+year": {
+   "added": 9,
+   "wrong": 0
+  },
+  "plant:staff+year": {
+   "added": 7,
+   "wrong": 0
+  },
+  "hospital:theatres+year": {
+   "added": 6,
+   "wrong": 0
+  },
+  "hospital:beds+theatres": {
+   "added": 3,
+   "wrong": 0
+  },
+  "museum:visitors+works": {
+   "added": 3,
+   "wrong": 0
+  },
+  "reservoir:capacity+year": {
+   "added": 3,
+   "wrong": 0
+  },
+  "company:employees+year": {
+   "added": 2,
+   "wrong": 0
+  },
+  "cooperative:hectares+members": {
+   "added": 2,
+   "wrong": 0
+  },
+  "bridge:lanes+length": {
+   "added": 1,
+   "wrong": 0
+  },
+  "cooperative:hectares+year": {
+   "added": 1,
+   "wrong": 0
+  },
+  "festival:attendance+days": {
+   "added": 1,
+   "wrong": 0
+  },
+  "plant:output+staff": {
+   "added": 1,
+   "wrong": 0
+  }
+ },
+ "result": {
+  "gate": 0.65,
+  "added": 39,
+  "right": 39,
+  "wrong": 0,
+  "missed_conflicts": 0,
+  "net": 39,
+  "wilson95_low": 0.9103301463997611,
+  "verdict": "the gate beats the shipped policy"
+ }
+}

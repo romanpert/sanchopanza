@@ -497,6 +497,8 @@ class Squire:
         purpose: str,
         pages: Sequence[tuple[str, str]],
         max_calls: int | None = None,
+        fit_chars: int | None = None,
+        fit_score: bool = True,
     ) -> list[list[tuple[bool, float | None]] | None]:
         """The passages of one long document the answer needs: paragraphs, then sentences.
 
@@ -513,10 +515,21 @@ class Squire:
         included; the sentence stage spends what is left on the surest paragraphs and keeps the
         rest past the gate whole, unjudged (`points.passages`). `None`, the default, is no cap,
         and is what every published run used.
+
+        `fit_chars` (opt-in, a candidate: roadmap B4): when the kept sentences add up to more
+        characters than this, the delivered paragraphs are ordered by a four-level Score
+        (`passages.fit_questions`, claimed from the same `max_calls`), then by their best
+        sentence probability, and those that do not fit in that order become `None`. Output
+        stays in page order. `fit_score=False` skips the Score: the free order, no call.
+        `fit_chars=None`, the default, changes nothing and adds no call.
         """
+        if fit_chars is not None and fit_chars < 1:
+            raise ValueError("fit_chars must be >= 1 (or None for no fitting)")
         reserve = passages.CallReserve(max_calls)  # claimed before the first await
         kept = await self._page_tournament(purpose, pages, reserve)
         judged, whole = passages.sentence_stage(kept, self._t.document_paragraphs, reserve.left)
+        for _ in judged:  # the sentence calls, claimed so that a later fit sees what is left
+            reserve.take()
 
         async def sentences_of(title: str, body: str) -> list[tuple[bool, float | None]]:
             return await self.select_sentences(
@@ -537,7 +550,61 @@ class Squire:
                 return [(True, None)] * len(split_sentences(pages[i][1]))
             return None
 
-        return [entry(i) for i in range(len(pages))]
+        out = [entry(i) for i in range(len(pages))]
+        if fit_chars is None:
+            return out
+        scoring = reserve if fit_score else None
+        return await self._fit_passages(purpose, pages, out, kept, fit_chars, scoring)
+
+    async def _fit_passages(
+        self,
+        purpose: str,
+        pages: Sequence[tuple[str, str]],
+        out: list[list[tuple[bool, float | None]] | None],
+        kept: Sequence[tuple[bool, float | None]],
+        budget: int,
+        reserve: passages.CallReserve | None,
+    ) -> list[list[tuple[bool, float | None]] | None]:
+        """`select_passages(fit_chars=...)`: drop the delivered paragraphs that do not fit.
+        `reserve` None: no Score is asked, the free order decides."""
+        delivered: list[int] = []
+        texts: list[str] = []
+        sizes: list[int] = []
+        for i, got in enumerate(out):
+            chosen = [
+                s for s, (k, _) in zip(split_sentences(pages[i][1]), got or [], strict=False) if k
+            ]
+            if chosen:
+                delivered.append(i)
+                texts.append(" ".join(chosen))
+                sizes.append(sum(len(s) for s in chosen))
+        if sum(sizes) <= budget:
+            return out
+        groups = [
+            list(range(a, min(a + passages.FIT_PER_CALL, len(delivered))))
+            for a in range(0, len(delivered), passages.FIT_PER_CALL)
+        ]
+
+        async def score(group: list[int]) -> list[float | None]:
+            if reserve is None or not reserve.take():
+                return [None] * len(group)
+            state, qs = passages.fit_questions(
+                purpose=purpose, paragraphs=[(pages[delivered[j]][0], texts[j]) for j in group]
+            )
+            decision = await self.decide("passage_fit", state, qs)
+            self.record(decision, paragraphs=len(group))
+            if decision.failed:
+                return [None] * len(group)
+            return [decision.answer(passages.fit_id(k)).score for k in range(len(group))]
+
+        scores = [s for got in await asyncio.gather(*(score(g) for g in groups)) for s in got]
+        order = passages.fit_order(
+            scores,
+            [passages.best_sentence(out[i]) for i in delivered],
+            [kept[i][1] for i in delivered],
+        )
+        dropped = set(delivered) - {delivered[j] for j in passages.fit(order, sizes, budget)}
+        return [None if i in dropped else got for i, got in enumerate(out)]
 
     async def prune_context(
         self,
