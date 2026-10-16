@@ -159,7 +159,50 @@ def analyse(rows: list[dict[str, Any]], model: str, run: Path | None = None,
     verdict = verdict_of(model, enough, c1, c2, harm_tests and harm_sb)
     return {"model": model, "triples": n, "not_run": not_run, "verdict": verdict,
             "criteria": criteria, "count": count, "S_vs_H": s_h, "S_vs_N0": s_n0,
-            "H_vs_N0": h_n0, **reported(done)}  # fmt: skip
+            "H_vs_N0": h_n0, **reported(done), "touched": touched(mine),
+            "not_run_reasons": dict(Counter(cut_kind(r) for r in mine if r.get("cut"))),
+            **without_touched(done)}  # fmt: skip
+
+
+def cut_kind(row: dict[str, Any]) -> str:
+    """A NOT RUN row's reason without its details ("handoff: no text", "timeout", ...)."""
+    cut = str(row.get("cut") or "")
+    return cut if cut.startswith("handoff") else cut.split(":")[0].split(" (")[0]
+
+
+def touched(rows: list[dict[str, Any]]) -> dict[str, dict[str, int]]:
+    """Per arm and session, how many sessions' tool calls named a harness file, by file."""
+    out: dict[str, dict[str, int]] = {}
+    for r in rows:
+        for s in r.get("sessions") or []:
+            for label in s.get("touched") or []:
+                key = f"{r['arm']} {s.get('tag')}"
+                out[key] = {**out.get(key, {}), label: out.get(key, {}).get(label, 0) + 1}
+    return out
+
+
+def s_second_touched(t: dict[str, dict[str, Any]]) -> bool:
+    return any(s.get("tag") == "session-2" and s.get("touched")
+               for s in t["S"].get("sessions") or [])  # fmt: skip
+
+
+def without_touched(done: dict[Any, dict[str, dict[str, Any]]]) -> dict[str, Any]:
+    """Reported, never deciding: criteria 1 and 2 again without the triples whose S session 2
+    touched a harness file (only when one did)."""
+    kept = {k: t for k, t in done.items() if not s_second_touched(t)}
+    if len(kept) == len(done):
+        return {}
+    s_h, s_n0 = compare(kept, "S", "H"), compare(kept, "S", "N0")
+    return {
+        "without_s2_touched": {
+            "triples": len(kept),
+            "dropped": sorted(f"{k[0]} r{k[2]}" for k in done if k not in kept),
+            "1_s_not_worse_than_h": s_h["tango_lower_95_raw"] > -MARGIN,
+            "2_s_better_than_n0": s_n0["p_a_better"] < ALPHA,
+            "S_vs_H": s_h,
+            "S_vs_N0": s_n0,
+        }
+    }
 
 
 def verdict_of(model: str, enough: bool, c1: bool, c2: bool, c5: bool) -> str:

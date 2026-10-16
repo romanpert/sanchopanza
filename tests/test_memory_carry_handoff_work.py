@@ -102,9 +102,14 @@ if not resume:
     project = pathlib.Path(os.environ["CLAUDE_CONFIG_DIR"]) / "projects" / "p"
     project.mkdir(parents=True, exist_ok=True)
     meta = {"type": "user", "isMeta": True, "message": {"content": "caveat"}}
-    user = {"type": "user", "message": {"role": "user", "content": prompt}}
+    pasted = prompt + os.environ.get("FAKE_ALTER", "")
+    user = {"type": "user", "message": {"role": "user", "content": pasted}}
     (project / f"{sid}.jsonl").write_text(json.dumps(meta) + "\n" + json.dumps(user) + "\n")
 text = "HANDOFF: ship_all with create_labels, at most 50 per call." if resume else "done"
+secret = os.environ.get("FAKE_SECRET", "")
+if secret:
+    pathlib.Path("leak.txt").write_text(secret)
+    text = text + " " + secret
 init = {"type": "system", "subtype": "init", "session_id": sid,
         "model": "claude-sonnet-5-5", "claude_code_version": "2.1.287"}
 usage = {"input_tokens": 10, "cache_read_input_tokens": size}
@@ -153,3 +158,40 @@ def test_a_pasted_text_that_differs_is_recorded(tmp_path: Path) -> None:
     (config / "projects" / "p" / "s1.jsonl").write_text(json.dumps(line) + "\n")
     assert handoff.hc.first_prompt_in_transcript(config, "s1") == "abc "
     assert handoff.hc.first_prompt_in_transcript(config, "s2") is None
+
+
+def stand_in(tmp_path: Path, monkeypatch: Any, **env: str) -> None:
+    fake = tmp_path / "fake_claude.py"
+    fake.write_text(FAKE)
+    (tmp_path / "step1.txt").write_text(STEP1)
+    (tmp_path / "step2.txt").write_text(STEP2)
+    monkeypatch.setenv("FAKE_LOG", str(tmp_path / "calls.json"))
+    monkeypatch.setenv(carry.TOKEN, "tok-test-123")
+    for k, v in env.items():
+        monkeypatch.setenv(k, v)
+    monkeypatch.setattr(handoff, "command", lambda prompt, model, resume=None:
+                        [sys.executable, str(fake), prompt, resume or ""])  # fmt: skip
+
+
+def test_a_paste_that_differs_cuts_the_h_arm(tmp_path: Path, monkeypatch: Any) -> None:
+    stand_in(tmp_path, monkeypatch, FAKE_ALTER=" ")
+    got = handoff.arm_run(tmp_path / "lot", tmp_path / "w" / "t00-c", "h_batch", "sonnet", "H", 1,
+                          tmp_path / "k", False)  # fmt: skip
+    assert got["pasted_verbatim"] is False
+    assert got["cut"] == "handoff: session 2's first prompt differs from handoff.txt"
+    assert "kept_all" not in got
+
+
+def test_the_typesafe_key_is_scrubbed_and_redacted(tmp_path: Path, monkeypatch: Any) -> None:
+    secret = "ts-key-0123456789-secret"
+    stand_in(tmp_path, monkeypatch, FAKE_SECRET=secret)
+    keyfile = tmp_path / "r2" / "typesafe.key"
+    keyfile.parent.mkdir()
+    keyfile.write_text(secret)
+    lot, work = tmp_path / "lot", tmp_path / "r2" / "t00-a"
+    got = handoff.arm_run(lot, work, "h_batch", "sonnet", "N0", 1, keyfile, False)
+    assert secret not in json.dumps(got) and got.get("token_scrubbed")
+    for folder in (work, lot / "arms" / "t00-a"):
+        for path in folder.rglob("*"):
+            if path.is_file() and ".git" not in path.parts:
+                assert secret.encode() not in path.read_bytes(), path

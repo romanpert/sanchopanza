@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -23,6 +24,15 @@ from typing import Any
 
 import carry
 
+# Harness files an agent could open beside its repository (reported, never deciding): S's
+# installed settings and server, the hook launcher, Claude Code's own configuration, S's store.
+TOUCH = {
+    ".claude": re.compile(r"(^|[\\/\s'\"=])\.claude[\\/]"),
+    ".mcp.json": re.compile(r"\.mcp\.json"),
+    "carry_hook": re.compile(r"carry_hook"),
+    "claude-config": re.compile(r"claude-config"),
+    "store": re.compile(r"(^|[\\/\s'\"=])store([\\/]|$|[\s'\"])"),
+}
 LIMIT_WORDS = ("usage limit", "hit your limit", "weekly limit")
 LIMIT_SHORT = 400  # characters: a longer successful answer that mentions a limit is not one
 WIN_CMDLINE = 32_767  # Windows' CreateProcess limit on a command line
@@ -75,6 +85,7 @@ def limit_text(seen: dict[str, Any], stderr: str) -> bool:
 
 def stream_extra(path: Path) -> dict[str, Any]:
     text, reported, usage, prompts, agents = "", False, {}, [], 0
+    touched: set[str] = set()
     raw = path.read_text(encoding="utf-8") if path.exists() else ""
     for line in raw.splitlines():
         try:
@@ -93,11 +104,25 @@ def stream_extra(path: Path) -> dict[str, Any]:
             kinds = ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")
             prompts.append(sum(int(used.get(k) or 0) for k in kinds))
             content = message.get("content") or []
-            agents += sum(1 for b in content if isinstance(b, dict) and b.get("type") ==
-                          "tool_use" and b.get("name") in ("Task", "Agent"))  # fmt: skip
+            uses = [b for b in content if isinstance(b, dict) and b.get("type") == "tool_use"]
+            agents += sum(1 for b in uses if b.get("name") in ("Task", "Agent"))
+            touched |= touches([json.dumps(b.get("input") or {}) for b in uses])
     return {"text": text, "cost_reported": reported, "tokens": tokens_of(usage),
             "first_prompt": prompts[0] if prompts else None,
-            "last_prompt": prompts[-1] if prompts else None, "subagents": agents}  # fmt: skip
+            "last_prompt": prompts[-1] if prompts else None, "subagents": agents,
+            "touched": sorted(touched)}  # fmt: skip
+
+
+def touches(inputs: list[str]) -> set[str]:
+    """Which harness files (TOUCH) the tool calls' inputs name; JSON escapes undone first."""
+    found: set[str] = set()
+    for raw in inputs:
+        try:
+            text = " ".join(str(v) for v in json.loads(raw).values())
+        except (ValueError, AttributeError):
+            text = raw
+        found |= {label for label, pattern in TOUCH.items() if pattern.search(text)}
+    return found
 
 
 def tokens_of(usage: dict[str, Any]) -> dict[str, int]:

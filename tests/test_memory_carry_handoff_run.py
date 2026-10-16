@@ -460,3 +460,49 @@ def test_the_night_refuses_at_a_limit_flag_in_the_root(tmp_path: Path, monkeypat
     monkeypatch.setattr(handoff, "execute", fake_execute(ran))
     (tmp_path / "LIMIT.flag").write_text("x")
     assert night.night(tmp_path) == handoff.EXIT["limit"] and ran == []
+
+
+# ---- harness files the agent touched (reported) ------------------------------------------------
+
+
+@pytest.mark.parametrize(("text", "want"), [
+    ("cat ../store/c--x/rules.json", {"store"}),
+    (r"C:\sp-runs\w16\r2\t00-a\claude-config\projects", {"claude-config"}),
+    (r"Get-Content ..\store\x\rules.json", {"store"}),
+    ("Read .claude/settings.json", {".claude"}),
+    (r"type ..\repo\.mcp.json", {".mcp.json"}),
+    (r"Get-Content C:\w\t00-a\repo\.claude\settings.json", {".claude"}),
+    ("python benchmarks/memory_carry/carry_hook.py", {"carry_hook"}),
+    ("app/datastore.py restore.py my.claudette store_front.py", set()),
+])  # fmt: skip
+def test_touches_names_harness_files_only(text: str, want: set[str]) -> None:
+    assert hc.touches([json.dumps({"command": text})]) == want
+
+
+def test_stream_records_which_harness_files_a_session_touched(tmp_path: Path) -> None:
+    use = {"type": "tool_use", "name": "Bash", "input": {"command": "ls ../store"}}
+    event = {"type": "assistant", "message": {"content": [use], "usage": {}}}
+    (tmp_path / "s.jsonl").write_text(json.dumps(event) + chr(10))
+    assert hc.stream_extra(tmp_path / "s.jsonl")["touched"] == ["store"]
+
+
+def test_touched_is_reported_and_criteria_again_without_those_triples() -> None:
+    peek = {"sessions": [{"tag": "session-1"}, {"tag": "session-2", "touched": ["store"]}]}
+    rows = [r if not (r["arm"] == "S" and r["repeat"] == 1) else {**r, **peek}
+            for r in sonnet_rows()]  # fmt: skip
+    rows += [
+        {
+            **row("h_batch", "H", 9),
+            "model": "sonnet",
+            "cut": "handoff: session 2's first prompt differs from handoff.txt",
+        }
+    ]
+    result = an.analyse(rows, "sonnet")
+    assert result["touched"] == {"S session-2": {"store": 12}}
+    again = result["without_s2_touched"]
+    assert again["triples"] == 36 and len(again["dropped"]) == 12
+    assert again["1_s_not_worse_than_h"] and again["2_s_better_than_n0"]
+    assert result["not_run_reasons"] == {
+        "handoff: session 2's first prompt differs from handoff.txt": 1
+    }
+    assert "without_s2_touched" not in an.analyse(sonnet_rows(), "sonnet")

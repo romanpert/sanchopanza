@@ -158,7 +158,10 @@ nothing larger runs.
    whether `handoff.txt` names C and D (the scene's fixed key phrases); H against N0 (McNemar
    both ways); what S gave in session 2 (`hook-log.jsonl`); Claude Code's own auto memory per
    arm; Jev decisions and failures; subagent calls; arms whose sessions crossed midnight; handoff
-   turns whose reported cost is at least session 1's (a cumulative report would show so).
+   turns whose reported cost is at least session 1's (a cumulative report would show so);
+   per arm and session, whether the agent's tool calls named a harness file beside its
+   repository (`.claude/`, `.mcp.json`, `carry_hook`, `claude-config`, `store`; from the
+   streams); and, when any S session 2 did, criteria 1 and 2 again without those triples.
 
 **Verdict, the same rule for both models (`handoff_analyze.verdict_of`):**
 
@@ -180,7 +183,9 @@ No pooling across models. The metric is not changed after the data.
   less than **50 %** of session 1's last request's context (`context_carried`: a fresh session
   holds only the system prompt and the request; half, not all, because on resume Claude Code may
   drop earlier thinking blocks); or session 2's command line with that text would reach Windows'
-  32,767-character limit. The triple is NOT RUN and the count is reported. No retry.
+  32,767-character limit; or, in any run, session 2's first user message in its transcript
+  differs from `handoff.txt` (`pasted_verbatim` False). The triple is NOT RUN and the count is
+  reported per model (`not_run_reasons`). No retry.
 - **S** did not run as S (`carry_s` checks, as the memory cell): the arm is cut and the run
   stops (exit 4).
 - **An exception in the runner** during an arm: the arm is NOT RUN (`harness exception:
@@ -212,6 +217,9 @@ No pooling across models. The metric is not changed after the data.
   16.48 on Opus.
 - Per night: each run's cap is min(its cap, 230 minus what the earlier runs spent); the three
   caps add up to 226.5.
+- Every cap is counted in Claude Code's own `total_cost_usd` (its price table, plus Jev's own
+  costs); priced at the owner's rates in `benchmarks/meter.py` the same tokens can come to about
+  1.5 to 2 times as much.
 
 ## Clock
 
@@ -228,7 +236,7 @@ The owner accepted the night unattended, 02:00-08:00 included.
   then refuses to start (exit 1) when the variable is empty or the file it names does not exist;
   it never reads that file. The token reaches only the `claude` processes, the key only S's hooks
   (in `C:\sp-runs\w16\<r>\typesafe.key`, deleted at the start of the night, of each run, and at
-  each run's end).
+  each run's end); both are scrubbed from each arm's files and redacted from every row.
 - **The checkout.** From a detached worktree at the sealing commit, at a path that names nothing
   of the lot. `handoff_night.py` refuses (exit 11) unless the files match the seal, HEAD is the
   commit that last wrote `prereg.sha256`, and `git status --porcelain` is empty. The launcher

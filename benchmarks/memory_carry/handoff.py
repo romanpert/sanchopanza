@@ -247,16 +247,24 @@ def arm_run(out: Path, work: Path, name: str, model: str, arm: str, rep: int, ke
                            "folder": str(work), "planned": steps_of(arm)}  # fmt: skip
     if dry:
         return {**row, "dry": True, "repo": str(repo)}
-    token = carry.clean_token() if clean else ""
+    secrets = [s for s in (carry.clean_token() if clean else "", key_of(keyfile)) if s]
     try:
         done = sessions_of(work, rec, repo, scene, model, arm, config)
     finally:
-        found = carry.scrub(work, token) if clean else ([], [])
-        found_rec = carry.scrub(rec, token) if clean else ([], [])
-    flags = {**({"token_scrubbed": found[0] + found_rec[0]} if found[0] + found_rec[0] else {}),
-             **({"token_in_git": found[1]} if found[1] else {})}  # fmt: skip
-    full = {**row, **done, **flags}
-    return carry.redact(full, token) if clean else full
+        found = [carry.scrub(folder, s) for folder in (work, rec) for s in secrets]
+    scrubbed = [f for got in found for f in got[0]]
+    in_git = [f for got in found for f in got[1]]
+    flags = {**({"token_scrubbed": scrubbed} if scrubbed else {}),
+             **({"token_in_git": in_git} if in_git else {})}  # fmt: skip
+    full: dict[str, Any] = {**row, **done, **flags}
+    for secret in secrets:  # the OAuth token and the TypeSafe key never land in a row
+        full = carry.redact(full, secret)
+    return full
+
+
+def key_of(keyfile: Path) -> str:
+    """The TypeSafe key the harness wrote for S's hooks, to scrub it (never printed)."""
+    return keyfile.read_text(encoding="utf-8").strip() if keyfile.is_file() else ""
 
 
 def sessions_of(work: Path, rec: Path, repo: Path, scene: dict[str, Any], model: str, arm: str,
@@ -283,6 +291,8 @@ def sessions_of(work: Path, rec: Path, repo: Path, scene: dict[str, Any], model:
             got = hc.first_prompt_in_transcript(config, (second.get("init") or {}).get(
                 "session_id"))  # fmt: skip
             pasted = None if got is None else got == prompt
+            if pasted is False and not cut:  # session 2 did not get the handoff as written
+                cut = "handoff: session 2's first prompt differs from handoff.txt"
     jev = carry_s.jev(work) if arm == "S" else {}
     if arm == "S" and not cut and not limit:
         broken = carry_s.pair_breaks(jev)
@@ -383,6 +393,7 @@ def brief(s: dict[str, Any]) -> dict[str, Any]:
         "last_prompt",
         "is_error",
         "api_error_status",
+        "touched",
     )
     return {k: s.get(k) for k in keys if k in s}
 
