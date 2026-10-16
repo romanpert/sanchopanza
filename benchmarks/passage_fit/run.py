@@ -2,9 +2,12 @@
 
     python benchmarks/passage_fit/run.py free     # free: recordings only, the free orders
     python benchmarks/passage_fit/run.py dry      # free: the Score calls, recorded and priced
-    python benchmarks/passage_fit/run.py seal     # sha256 of prereg.md, once
-    python benchmarks/passage_fit/run.py paid     # Jev: only what is missing, capped, once
+    python benchmarks/passage_fit/run.py seal     # sha256 of prereg.md and the launcher, once
+    python benchmarks/passage_fit/run.py paid     # Jev, through b4-order-run.cmd only
     python benchmarks/passage_fit/run.py report   # free once recorded: every arm, the verdict
+
+`paid` refuses before reading the key unless the seal, the instrument commit, the QASPER
+export's sha256, the cap and the launch rule all hold (`paid_once.run_paid`).
 
 QASPER test split as JSONL (`--qasper`, default ~/.cache/sancho/qasper-test.jsonl). The two
 stages are replayed from the recordings of the whole-papers runs, nothing re-asked: the 261
@@ -29,7 +32,6 @@ import argparse
 import asyncio
 import importlib.util
 import json
-import os
 import pathlib
 import sys
 from typing import Any
@@ -61,13 +63,36 @@ PREREG = RESULTS / "prereg.md"
 # One level below `fixtures/`: the analyses that read every `fixtures/*.jsonl` keep their sets.
 FIXTURE = ROOT / "fixtures" / "b4-order" / "recording.jsonl"
 QASPER = pathlib.Path.home() / ".cache" / "sancho" / "qasper-test.jsonl"
+QASPER_SHA256 = "4e71660ba0da787d9c78c6949abe52e67f36db6135f8fea3b96b591e73d5fce1"  # raw bytes
 MODEL = "jev-1.13.0"
-BATCH = "b4-order"
-CAP_USD = 0.10  # hard, in the ledger; the pessimistic estimate of the plan must fit under it
-RUN = pathlib.Path(
-    os.environ.get("SANCHOPANZA_B4_RUN", pathlib.Path.home() / ".cache" / "sanchopanza" / BATCH)
-)
 NONINFERIOR = 0.02  # L4 may trail the free order by at most this much recall (prereg)
+INSTRUMENT = (
+    "src",
+    "benchmarks/paid_once.py",
+    "benchmarks/passage_fit",
+    "benchmarks/lateral/wholedocs",
+    "benchmarks/lateral/ledger.py",
+    "benchmarks/longdocs",
+    "benchmarks/triage_sets/run.py",
+    "benchmarks/jev114/l4.py",
+    "benchmarks/thresholds.py",
+    "fixtures/longdocs.jsonl",
+    "fixtures/longdocs-sentences.jsonl",
+    "fixtures/lateral-wholedocs.jsonl",
+)
+
+
+def lot(qasper: pathlib.Path) -> Any:
+    return paid_once.Lot(
+        name="b4-order",
+        prereg=PREREG,
+        launcher=ROOT / "b4-order-run.cmd",
+        fixture=FIXTURE,
+        model=MODEL,
+        cap_usd=0.10,  # hard, in the ledger at ~/.cache/sanchopanza/b4-order/ (fixed path)
+        instrument=INSTRUMENT,
+        inputs=((qasper, QASPER_SHA256),),
+    )
 
 
 def rows_of(qasper: pathlib.Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -156,6 +181,7 @@ def compare(per: list[dict[str, Any]], a: str, b: str) -> dict[str, Any]:
     return {
         "recall_diff": round(diff, 4),
         "recall_ci95": [round(lo, 4), round(hi, 4)],
+        "recall_ci95_low_exact": lo,  # what the verdict compares, unrounded
         "all_gold_only_first": only_a,
         "all_gold_only_second": only_b,
         "mcnemar_p": round(p, 4),
@@ -163,10 +189,10 @@ def compare(per: list[dict[str, Any]], a: str, b: str) -> dict[str, Any]:
 
 
 def verdict(paired: dict[str, Any]) -> str:
-    """The rule of prereg.md, applied as written."""
+    """The rule of prereg.md, applied as written, on unrounded bounds."""
 
     def low(key: str) -> float:
-        return paired[key]["recall_ci95"][0]
+        return paired[key]["recall_ci95_low_exact"]
 
     beats_today = low("L4-PAGE") > 0 and low("L4-BM25") > 0
     over_free = min(low("L4-FREE"), low("L4-PROB"))
@@ -180,14 +206,17 @@ def verdict(paired: dict[str, Any]) -> str:
 def analysis(qasper: pathlib.Path, *, paid: bool) -> dict[str, Any]:
     derivation, rows = rows_of(qasper)
     budget = od.budget_from([od.total(r["items"]) for r in derivation])
+    lacking = 0
     if paid:
         lacking = asyncio.run(recorded_scores(derivation + rows, budget))
-        if lacking:
-            raise SystemExit(f"{lacking} Score calls not recorded: run `paid` first")
+        if paid_once.unanswered_blocks(lot(qasper), lacking):
+            raise SystemExit(f"{lacking} Score calls unanswered and a launch is still allowed")
     over = [r for r in rows if od.total(r["items"]) > budget]
     derived_over = [r for r in derivation if od.total(r["items"]) > budget]
     report = {
+        "head": paid_once.head(),
         "budget_chars": budget,
+        "score_calls_unanswered": lacking,  # scored as unscored (FREE's order), per the prereg
         "questions": {"derivation": len(derivation), "confirmation": len(rows)},
         "overflowing": {"derivation": len(derived_over), "confirmation": len(over)},
         "primary_pooled_overflowing": summary(derived_over + over, budget),
@@ -206,7 +235,7 @@ def main() -> int:
     ap.add_argument("--qasper", type=pathlib.Path, default=QASPER)
     args = ap.parse_args()
     if args.action == "seal":
-        print(paid_once.seal(PREREG))
+        print(paid_once.seal(lot(args.qasper)))
         return 0
     if args.action in ("free", "report"):
         report = analysis(args.qasper, paid=args.action == "report")
@@ -217,28 +246,16 @@ def main() -> int:
     derivation, rows = rows_of(args.qasper)
     budget = od.budget_from([od.total(r["items"]) for r in derivation])
     asks = queries(derivation + rows, budget)
-    plan = {"budget_chars": budget, **paid_once.plan(asks, FIXTURE), "cap_usd": CAP_USD}
-    print(json.dumps(plan, indent=1))
     if args.action == "dry":
+        plan = paid_once.plan(asks, lot(args.qasper))
+        print(json.dumps({"budget_chars": budget, "head": paid_once.head(), **plan}, indent=1))
         return 0
-    paid_once.require_room(plan, CAP_USD)
-    paid_once.require_sealed(PREREG)
     import l4  # noqa: PLC0415  (jev114/l4.py: the key loader every lot uses)
 
-    l4.load_key()
-    paid_once.preflight(MODEL)
     from sanchopanza.providers.jev import JevDecider
 
-    RUN.mkdir(parents=True, exist_ok=True)
-    result = asyncio.run(
-        paid_once.ask_missing(
-            asks,
-            FIXTURE,
-            live=JevDecider(model=MODEL),
-            ledger=RUN / "ledger.jsonl",
-            batch=BATCH,
-            cap_usd=CAP_USD,
-        )
+    result = paid_once.run_paid(
+        lot(args.qasper), asks, load_key=l4.load_key, make_live=lambda: JevDecider(model=MODEL)
     )
     print(json.dumps(result, indent=1))
     return 0 if result["stopped"] is None else 2

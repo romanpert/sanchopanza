@@ -4,9 +4,12 @@ Pre-registered in `docs/results/2026-10-16-a5-unrelated/prereg.md`.
 
     python benchmarks/facts_gate/run.py free     # free: derive the gate, see it on graph-e
     python benchmarks/facts_gate/run.py dry      # free: the calls of the constructed batch, priced
-    python benchmarks/facts_gate/run.py seal     # sha256 of prereg.md, once
-    python benchmarks/facts_gate/run.py paid     # Jev: only what is missing, capped, once
+    python benchmarks/facts_gate/run.py seal     # sha256 of prereg.md and the launcher, once
+    python benchmarks/facts_gate/run.py paid     # Jev, through a5-unrelated-run.cmd only
     python benchmarks/facts_gate/run.py report   # free once recorded: the verdict
+
+`paid` refuses before reading the key unless the seal, the instrument commit, the cases' hash,
+the derived gate, the cap and the launch rule all hold (`paid_once.run_paid`).
 
 The gate is `entities.decide_facts(..., unrelated_at=g)`: below the shipped confidence gate
 (`relax`, 0.60), `unrelated` is still accepted when it is the top option at probability >= g.
@@ -31,7 +34,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-import os
 import pathlib
 import sys
 from typing import Any
@@ -72,14 +74,28 @@ WRONG_WEIGHT = 4  # right - 4 x wrong > 0  <=>  precision > 0.80, the package's 
 TARGET = 0.80
 MIN_ADDED = 16  # 16 of 16 is the fewest added verdicts whose Wilson lower bound clears 0.80
 MODEL = "jev-1.13.0"
-BATCH = "a5-unrelated"
-CAP_USD = 0.10
-RUN = pathlib.Path(
-    os.environ.get("SANCHOPANZA_A5_RUN", pathlib.Path.home() / ".cache" / "sanchopanza" / BATCH)
-)
 COSTLY = {"agree", "conflict"}
 GATE_UNDER_TEST = 0.65  # derived by `derive` on the recordings, written in prereg.md
-CASES_SHA256 = "5cb71e7d9e91dede0e42d8835061140805f4ccf7b956a640c295f0ff5ea6c5bf"
+CASES_SHA256 = "a219ba794172621e2877f8492df34bdd8b7391421215bed7cb8dc52e24039b53"
+LOT = paid_once.Lot(
+    name="a5-unrelated",
+    prereg=PREREG,
+    launcher=ROOT / "a5-unrelated-run.cmd",
+    fixture=FIXTURE,
+    model=MODEL,
+    cap_usd=0.10,  # hard, in the ledger at ~/.cache/sanchopanza/a5-unrelated/ (fixed path)
+    instrument=(
+        "src",
+        "benchmarks/paid_once.py",
+        "benchmarks/facts_gate",
+        "benchmarks/jev114/l4.py",
+        "benchmarks/thresholds.py",
+        "benches/graph.jsonl",
+        "benches/graph-c.jsonl",
+        "benches/graph-e.jsonl",
+        *(str(p.relative_to(ROOT)).replace("\\", "/") for ps in RECORDINGS.values() for p in ps),
+    ),
+)
 
 
 def entries(paths: tuple[pathlib.Path, ...]) -> list[dict[str, Any]]:
@@ -99,15 +115,23 @@ def query(case: dict[str, Any]) -> tuple[str, Any, Any]:
     return ("facts", *entities.fact_questions(fact_a=i["fact_a"], fact_b=i["fact_b"]))
 
 
-async def answered(cases: list[dict[str, Any]], decider: Any, tag: str) -> list[dict[str, Any]]:
-    """One row per case: the label and the verdict of the shipped policy and of every gate."""
+async def answered(
+    cases: list[dict[str, Any]], decider: Any, tag: str, *, allow_missing: bool = False
+) -> list[dict[str, Any]]:
+    """One row per case: the label and the verdict of the shipped policy and of every gate.
+    A case with no answer is refused, or with `allow_missing` (the sealed rule, after the
+    launches are spent) undecided under every policy and flagged `unanswered`."""
     t = Thresholds()
     rows = []
     for c in cases:
         d = await decider.decide(*query(c))
-        if d.failed or not d.answers:
-            raise SystemExit(f"{tag}: {c['id']} has no recording")
         row = {"id": c["id"], "set": tag, "expected": c["expected"]}
+        if d.failed or not d.answers:
+            if not allow_missing:
+                raise SystemExit(f"{tag}: {c['id']} has no recording")
+            rows.append({**row, "unanswered": True, "shipped": None,
+                         **{f"g{g:.2f}": None for g in GATES}})  # fmt: skip
+            continue
         row["shipped"] = entities.decide_facts(d, t)[0]
         for g in GATES:
             row[f"g{g:.2f}"] = entities.decide_facts(d, t, unrelated_at=g)[0]
@@ -126,7 +150,7 @@ def added(rows: list[dict[str, Any]], gate: float) -> dict[str, Any]:
         "wrong": len(new) - right,
         "missed_conflicts": sum(r["expected"] == "conflict" for r in new),
         "net": right - WRONG_WEIGHT * (len(new) - right),
-        "wilson95_low": round(wilson_lower(right, len(new)), 3) if new else None,
+        "wilson95_low": wilson_lower(right, len(new)) if new else None,  # unrounded: compared
     }
 
 
@@ -178,7 +202,7 @@ def verdict(rows: list[dict[str, Any]], gate: float | None) -> dict[str, Any]:
     got = added(rows, gate)
     if got["added"] < MIN_ADDED:
         outcome = "undecided: too few cases in the band to reach the target"
-    elif got["missed_conflicts"] == 0 and got["wilson95_low"] >= TARGET:
+    elif got["missed_conflicts"] == 0 and wilson_lower(got["right"], got["added"]) >= TARGET:
         outcome = "the gate beats the shipped policy"
     else:
         outcome = "the gate does not beat the shipped policy"
@@ -187,13 +211,19 @@ def verdict(rows: list[dict[str, Any]], gate: float | None) -> dict[str, Any]:
 
 async def report(gate: float | None) -> dict[str, Any]:
     cases = load_cases([CASES])
-    rows = await answered(cases, RecordedDecider.from_file(FIXTURE), "constructed")
+    recorded = RecordedDecider.from_file(FIXTURE)
+    missing = sum([not (await recorded.decide(*query(c))).answers for c in cases])
+    if paid_once.unanswered_blocks(LOT, missing):
+        raise SystemExit(f"{missing} cases unanswered and a launch is still allowed: relaunch")
+    rows = await answered(cases, recorded, "constructed", allow_missing=True)
     by_shape = {
         s: shipped([r for r, c in zip(rows, cases, strict=True) if c["shape"] == s])
         for s in sorted({c["shape"] for c in cases})
     }
     return {
+        "head": paid_once.head(),
         "gate_under_test": gate,
+        "unanswered": sum(r.get("unanswered", False) for r in rows),
         "shipped": shipped(rows),
         "shipped_by_shape": by_shape,
         "gates": [added(rows, g) for g in GATES],
@@ -207,7 +237,7 @@ def main() -> int:
     args = ap.parse_args()
     RESULTS.mkdir(parents=True, exist_ok=True)
     if args.action == "seal":
-        print(paid_once.seal(PREREG))
+        print(paid_once.seal(LOT))
         return 0
     derived = asyncio.run(free())
     if args.action == "free":
@@ -223,29 +253,18 @@ def main() -> int:
         print(json.dumps(result, indent=1))
         return 0
     asks = [query(c) for c in load_cases([CASES])]
-    plan = {"gate_under_test": GATE_UNDER_TEST, **paid_once.plan(asks, FIXTURE)}
-    print(json.dumps({**plan, "cap_usd": CAP_USD}, indent=1))
     if args.action == "dry":
+        plan = paid_once.plan(asks, LOT)
+        print(json.dumps({"gate_under_test": GATE_UNDER_TEST, "head": paid_once.head(), **plan},
+                         indent=1))  # fmt: skip
         return 0
-    paid_once.require_room(plan, CAP_USD)
-    paid_once.require_sealed(PREREG)
     sys.path.insert(0, str(ROOT / "benchmarks" / "jev114"))
     import l4  # noqa: PLC0415  (jev114/l4.py: the key loader every lot uses)
 
-    l4.load_key()
-    paid_once.preflight(MODEL)
     from sanchopanza.providers.jev import JevDecider
 
-    RUN.mkdir(parents=True, exist_ok=True)
-    result = asyncio.run(
-        paid_once.ask_missing(
-            asks,
-            FIXTURE,
-            live=JevDecider(model=MODEL),
-            ledger=RUN / "ledger.jsonl",
-            batch=BATCH,
-            cap_usd=CAP_USD,
-        )
+    result = paid_once.run_paid(
+        LOT, asks, load_key=l4.load_key, make_live=lambda: JevDecider(model=MODEL)
     )
     print(json.dumps(result, indent=1))
     return 0 if result["stopped"] is None else 2

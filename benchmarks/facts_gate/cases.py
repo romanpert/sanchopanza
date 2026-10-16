@@ -12,8 +12,14 @@ written two ways in Spanish and two in English. Five shapes, each a label by con
   hesitates between `agree` and `unrelated` (fa-26, fa-34, fa-42 in `benches/graph-c.jsonl`).
 - `unrelated` (twin): the same attribute of two entities of the same kind, other places.
 
+The two wordings of an attribute name the same event or count, never two events (founded
+against incorporated, inaugurated against in service): a conflict between them is a conflict
+by construction. `EVENT_STEMS` holds, for every attribute where two events could be confused,
+the word both wordings must share; a test checks it.
+
 Mix 40 % `unrelated`, 30 % `agree`, 30 % `conflict`, the fifth batch's (12/9/9). Languages
 alternate. Nothing here is drawn from a model, and no label is read off a model's answer.
+Written after the recorded answers on `graph`, `graph-c` and `graph-e` had been looked at.
 """
 
 from __future__ import annotations
@@ -37,327 +43,166 @@ SHAPES = (
 HEADS = ("Val", "Mor", "Tar", "Bel", "Cas", "Ner", "Ost", "Lum", "Ar", "Quin", "Fer", "Sal")
 TAILS = ("dera", "mosa", "illa", "ena", "ueda", "aral", "onte", "ima", "orca", "ada")
 
-# kind: (Spanish entity, English entity, {attribute: (low, high, step, [es1, es2, en1, en2])})
-KINDS: dict[str, tuple[str, str, dict[str, tuple[int, int, int, list[str]]]]] = {
-    "plant": (
-        "la planta desaladora de {p}",
-        "the {p} desalination plant",
-        {
-            "output": (
-                20_000,
-                90_000,
-                1_000,
-                [
-                    "{E} produce {v} metros cubicos de agua al dia.",
-                    "La produccion diaria de {e} es de {v} metros cubicos.",
-                    "{E} produces {v} cubic metres of water a day.",
-                    "The daily output of {e} is {v} cubic metres.",
-                ],
-            ),
-            "year": (
-                1985,
-                2020,
-                1,
-                [
-                    "{E} se inauguro en {v}.",
-                    "{E} entro en servicio el ano {v}.",
-                    "{E} opened in {v}.",
-                    "{E} went into service in {v}.",
-                ],
-            ),
-            "staff": (
-                40,
-                400,
-                1,
-                [
-                    "{E} tiene una plantilla de {v} trabajadores.",
-                    "En {e} trabajan {v} personas.",
-                    "{E} has a staff of {v}.",
-                    "{v} people work at {e}.",
-                ],
-            ),
-        },
-    ),
-    "museum": (
-        "el museo municipal de {p}",
-        "the {p} municipal museum",
-        {
-            "visitors": (
-                20_000,
-                300_000,
-                1_000,
-                [
-                    "{E} recibio {v} visitantes en 2025.",
-                    "En 2025 pasaron por {e} {v} visitantes.",
-                    "{E} received {v} visitors in 2025.",
-                    "In 2025, {v} visitors went through {e}.",
-                ],
-            ),
-            "works": (
-                800,
-                20_000,
-                100,
-                [
-                    "La coleccion de {e} reune {v} obras.",
-                    "{E} conserva {v} piezas en su coleccion.",
-                    "The collection of {e} holds {v} works.",
-                    "{E} keeps {v} pieces in its collection.",
-                ],
-            ),
-            "year": (
-                1950,
-                2015,
-                1,
-                [
-                    "{E} abrio sus puertas en {v}.",
-                    "{E} se fundo en {v}.",
-                    "{E} opened its doors in {v}.",
-                    "{E} was founded in {v}.",
-                ],
-            ),
-        },
-    ),
-    "reservoir": (
-        "el embalse de {p}",
-        "the {p} reservoir",
-        {
-            "capacity": (
-                20,
-                900,
-                1,
-                [
-                    "{E} tiene una capacidad de {v} hectometros cubicos.",
-                    "La capacidad maxima de {e} es de {v} hectometros cubicos.",
-                    "{E} holds up to {v} cubic hectometres.",
-                    "The maximum capacity of {e} is {v} cubic hectometres.",
-                ],
-            ),
-            "height": (
-                30,
-                140,
-                1,
-                [
-                    "La presa de {e} mide {v} metros de altura.",
-                    "La altura de la presa de {e} es de {v} metros.",
-                    "The dam of {e} is {v} metres high.",
-                    "The height of the dam of {e} is {v} metres.",
-                ],
-            ),
-            "year": (
-                1950,
-                2005,
-                1,
-                [
-                    "Las obras de {e} terminaron en {v}.",
-                    "{E} se termino de construir en {v}.",
-                    "Work on {e} was completed in {v}.",
-                    "{E} was finished in {v}.",
-                ],
-            ),
-        },
-    ),
-    "company": (
-        "la empresa Transportes {p}",
-        "the haulier {p} Freight",
-        {
-            "revenue": (
-                5,
-                900,
-                1,
-                [
-                    "{E} factura {v} millones de euros al ano.",
-                    "La facturacion anual de {e} es de {v} millones de euros.",
-                    "{E} has annual revenue of {v} million euros.",
-                    "The yearly revenue of {e} is {v} million euros.",
-                ],
-            ),
-            "employees": (
-                30,
-                5_000,
-                1,
-                [
-                    "{E} tiene {v} empleados.",
-                    "La plantilla de {e} es de {v} personas.",
-                    "{E} has {v} employees.",
-                    "The workforce of {e} is {v} people.",
-                ],
-            ),
-            "year": (
-                1950,
-                2020,
-                1,
-                [
-                    "{E} se fundo en {v}.",
-                    "{E} fue constituida en {v}.",
-                    "{E} was founded in {v}.",
-                    "{E} was incorporated in {v}.",
-                ],
-            ),
-        },
-    ),
-    "bridge": (
-        "el puente de {p}",
-        "the {p} bridge",
-        {
-            "length": (
-                120,
-                3_000,
-                10,
-                [
-                    "{E} mide {v} metros de longitud.",
-                    "La longitud de {e} es de {v} metros.",
-                    "{E} is {v} metres long.",
-                    "The length of {e} is {v} metres.",
-                ],
-            ),
-            "year": (
-                1960,
-                2022,
-                1,
-                [
-                    "{E} se abrio al trafico en {v}.",
-                    "{E} entro en servicio en {v}.",
-                    "{E} opened to traffic in {v}.",
-                    "{E} went into service in {v}.",
-                ],
-            ),
-            "lanes": (
-                2,
-                8,
-                1,
-                [
-                    "{E} tiene {v} carriles.",
-                    "Por {e} circulan vehiculos en {v} carriles.",
-                    "{E} has {v} lanes.",
-                    "Traffic crosses {e} on {v} lanes.",
-                ],
-            ),
-        },
-    ),
-    "hospital": (
-        "el hospital comarcal de {p}",
-        "the {p} district hospital",
-        {
-            "beds": (
-                80,
-                1_400,
-                1,
-                [
-                    "{E} dispone de {v} camas.",
-                    "El numero de camas de {e} es de {v}.",
-                    "{E} has {v} beds.",
-                    "The bed count of {e} is {v}.",
-                ],
-            ),
-            "year": (
-                1960,
-                2020,
-                1,
-                [
-                    "{E} se inauguro en {v}.",
-                    "{E} abrio en el ano {v}.",
-                    "{E} was inaugurated in {v}.",
-                    "{E} opened in {v}.",
-                ],
-            ),
-            "theatres": (
-                4,
-                40,
-                1,
-                [
-                    "{E} cuenta con {v} quirofanos.",
-                    "El bloque quirurgico de {e} tiene {v} quirofanos.",
-                    "{E} has {v} operating theatres.",
-                    "The surgical block of {e} has {v} operating theatres.",
-                ],
-            ),
-        },
-    ),
-    "cooperative": (
-        "la cooperativa agricola de {p}",
-        "the {p} farming cooperative",
-        {
-            "members": (
-                100,
-                5_000,
-                1,
-                [
-                    "{E} tiene {v} socios.",
-                    "El numero de socios de {e} es de {v}.",
-                    "{E} has {v} members.",
-                    "The membership of {e} is {v}.",
-                ],
-            ),
-            "hectares": (
-                200,
-                20_000,
-                10,
-                [
-                    "{E} cultiva {v} hectareas.",
-                    "La superficie cultivada por {e} es de {v} hectareas.",
-                    "{E} farms {v} hectares.",
-                    "The land farmed by {e} covers {v} hectares.",
-                ],
-            ),
-            "year": (
-                1950,
-                2015,
-                1,
-                [
-                    "{E} se fundo en {v}.",
-                    "{E} nacio en {v}.",
-                    "{E} was founded in {v}.",
-                    "{E} was set up in {v}.",
-                ],
-            ),
-        },
-    ),
-    "festival": (
-        "el festival de musica de {p}",
-        "the {p} music festival",
-        {
-            "attendance": (
-                5_000,
-                400_000,
-                1_000,
-                [
-                    "{E} reunio a {v} asistentes en su ultima edicion.",
-                    "La ultima edicion de {e} tuvo {v} asistentes.",
-                    "{E} drew {v} attendees at its last edition.",
-                    "The last edition of {e} had {v} attendees.",
-                ],
-            ),
-            "editions": (
-                5,
-                70,
-                1,
-                [
-                    "{E} ha celebrado {v} ediciones.",
-                    "{E} va por su edicion numero {v}.",
-                    "{E} has been held {v} times.",
-                    "{E} is on its edition number {v}.",
-                ],
-            ),
-            "days": (
-                2,
-                10,
-                1,
-                [
-                    "{E} dura {v} dias.",
-                    "Los conciertos de {e} se reparten en {v} dias.",
-                    "{E} lasts {v} days.",
-                    "The concerts of {e} are spread over {v} days.",
-                ],
-            ),
-        },
-    ),
+Attribute = tuple[int, int, int, list[str]]  # low, high, step, [es1, es2, en1, en2]
+
+# fmt: off
+KINDS: dict[str, tuple[str, str, dict[str, Attribute]]] = {
+    "plant": ("la planta desaladora de {p}", "the {p} desalination plant", {
+        "output": (20_000, 90_000, 1_000, [
+            "{E} produce {v} metros cubicos de agua al dia.",
+            "La produccion diaria de {e} es de {v} metros cubicos.",
+            "{E} produces {v} cubic metres of water a day.",
+            "The daily output of {e} is {v} cubic metres."]),
+        "year": (1985, 2020, 1, [
+            "{E} se inauguro en {v}.",
+            "La inauguracion de {e} tuvo lugar en {v}.",
+            "{E} was inaugurated in {v}.",
+            "The inauguration of {e} took place in {v}."]),
+        "staff": (40, 400, 1, [
+            "{E} tiene una plantilla de {v} trabajadores.",
+            "En {e} trabajan {v} personas.",
+            "{E} has a staff of {v}.",
+            "{v} people work at {e}."]),
+    }),
+    "museum": ("el museo municipal de {p}", "the {p} municipal museum", {
+        "visitors": (20_000, 300_000, 1_000, [
+            "{E} recibio {v} visitantes en 2025.",
+            "En 2025 pasaron por {e} {v} visitantes.",
+            "{E} received {v} visitors in 2025.",
+            "In 2025, {v} visitors went through {e}."]),
+        "works": (800, 20_000, 100, [
+            "La coleccion de {e} reune {v} obras.",
+            "{E} conserva {v} piezas en su coleccion.",
+            "The collection of {e} holds {v} works.",
+            "{E} keeps {v} pieces in its collection."]),
+        "year": (1950, 2015, 1, [
+            "{E} abrio sus puertas al publico en {v}.",
+            "{E} abrio al publico por primera vez en {v}.",
+            "{E} opened its doors to the public in {v}.",
+            "{E} first opened to the public in {v}."]),
+    }),
+    "reservoir": ("el embalse de {p}", "the {p} reservoir", {
+        "capacity": (20, 900, 1, [
+            "{E} tiene una capacidad de {v} hectometros cubicos.",
+            "La capacidad maxima de {e} es de {v} hectometros cubicos.",
+            "{E} holds up to {v} cubic hectometres.",
+            "The maximum capacity of {e} is {v} cubic hectometres."]),
+        "height": (30, 140, 1, [
+            "La presa de {e} mide {v} metros de altura.",
+            "La altura de la presa de {e} es de {v} metros.",
+            "The dam of {e} is {v} metres high.",
+            "The height of the dam of {e} is {v} metres."]),
+        "year": (1950, 2005, 1, [
+            "Las obras de {e} terminaron en {v}.",
+            "La construccion de {e} termino en {v}.",
+            "Work on {e} was completed in {v}.",
+            "Construction of {e} was completed in {v}."]),
+    }),
+    "company": ("la empresa Transportes {p}", "the haulier {p} Freight", {
+        "revenue": (5, 900, 1, [
+            "{E} factura {v} millones de euros al ano.",
+            "La facturacion anual de {e} es de {v} millones de euros.",
+            "{E} has annual revenue of {v} million euros.",
+            "The yearly revenue of {e} is {v} million euros."]),
+        "employees": (30, 5_000, 1, [
+            "{E} tiene {v} empleados.",
+            "La plantilla de {e} es de {v} personas.",
+            "{E} has {v} employees.",
+            "The workforce of {e} is {v} people."]),
+        "year": (1950, 2020, 1, [
+            "{E} se fundo en {v}.",
+            "La fundacion de {e} data de {v}.",
+            "{E} was founded in {v}.",
+            "The founding of {e} dates from {v}."]),
+    }),
+    "bridge": ("el puente de {p}", "the {p} bridge", {
+        "length": (120, 3_000, 10, [
+            "{E} mide {v} metros de longitud.",
+            "La longitud de {e} es de {v} metros.",
+            "{E} is {v} metres long.",
+            "The length of {e} is {v} metres."]),
+        "year": (1960, 2022, 1, [
+            "{E} se abrio al trafico en {v}.",
+            "La apertura al trafico de {e} fue en {v}.",
+            "{E} opened to traffic in {v}.",
+            "{E} was opened to traffic in {v}."]),
+        "lanes": (2, 8, 1, [
+            "{E} tiene {v} carriles.",
+            "Por {e} circulan vehiculos en {v} carriles.",
+            "{E} has {v} lanes.",
+            "Traffic crosses {e} on {v} lanes."]),
+    }),
+    "hospital": ("el hospital comarcal de {p}", "the {p} district hospital", {
+        "beds": (80, 1_400, 1, [
+            "{E} dispone de {v} camas.",
+            "El numero de camas de {e} es de {v}.",
+            "{E} has {v} beds.",
+            "The bed count of {e} is {v}."]),
+        "year": (1960, 2020, 1, [
+            "{E} se inauguro en {v}.",
+            "La inauguracion de {e} fue en {v}.",
+            "{E} was inaugurated in {v}.",
+            "The inauguration of {e} took place in {v}."]),
+        "theatres": (4, 40, 1, [
+            "{E} cuenta con {v} quirofanos.",
+            "El bloque quirurgico de {e} tiene {v} quirofanos.",
+            "{E} has {v} operating theatres.",
+            "The surgical block of {e} has {v} operating theatres."]),
+    }),
+    "cooperative": ("la cooperativa agricola de {p}", "the {p} farming cooperative", {
+        "members": (100, 5_000, 1, [
+            "{E} tiene {v} socios.",
+            "El numero de socios de {e} es de {v}.",
+            "{E} has {v} members.",
+            "The membership of {e} is {v}."]),
+        "hectares": (200, 20_000, 10, [
+            "{E} cultiva {v} hectareas.",
+            "La superficie cultivada por {e} es de {v} hectareas.",
+            "{E} farms {v} hectares.",
+            "The land farmed by {e} covers {v} hectares."]),
+        "year": (1950, 2015, 1, [
+            "{E} se fundo en {v}.",
+            "La fundacion de {e} fue en {v}.",
+            "{E} was founded in {v}.",
+            "{E} dates its founding to {v}."]),
+    }),
+    "festival": ("el festival de musica de {p}", "the {p} music festival", {
+        "attendance": (5_000, 400_000, 1_000, [
+            "{E} reunio a {v} asistentes en su ultima edicion.",
+            "La ultima edicion de {e} tuvo {v} asistentes.",
+            "{E} drew {v} attendees at its last edition.",
+            "The last edition of {e} had {v} attendees."]),
+        "editions": (5, 70, 1, [
+            "{E} ha celebrado {v} ediciones.",
+            "Hasta hoy se han celebrado {v} ediciones de {e}.",
+            "{E} has been held {v} times.",
+            "{E} has so far been held {v} times."]),
+        "days": (2, 10, 1, [
+            "{E} dura {v} dias.",
+            "Los conciertos de {e} se reparten en {v} dias.",
+            "{E} lasts {v} days.",
+            "The concerts of {e} are spread over {v} days."]),
+    }),
+}
+# The word both wordings of an attribute share, (Spanish, English), where two different events
+# or counts could otherwise be named (a founding and an incorporation, edition N and N held).
+EVENT_STEMS: dict[tuple[str, str], tuple[str, str]] = {
+    ("plant", "year"): ("inaugur", "inaugur"),
+    ("museum", "year"): ("abrio", "opened"),
+    ("reservoir", "year"): ("termin", "completed"),
+    ("company", "year"): ("fund", "found"),
+    ("bridge", "year"): ("trafico", "traffic"),
+    ("hospital", "year"): ("inaugur", "inaugur"),
+    ("cooperative", "year"): ("fund", "found"),
+    ("festival", "editions"): ("ediciones", "held"),
 }
 SOURCES = {
     "es": ("segun su memoria anual", "segun el ultimo informe publicado",
            "de acuerdo con el registro oficial"),
     "en": ("according to its annual report", "according to the latest published report",
            "according to the official register"),
-}  # fmt: skip
+}
+# fmt: on
 
 
 def number(value: int, lang: str, attribute: str) -> str:
@@ -385,7 +230,7 @@ def draw(rng: random.Random, kind: str, attribute: str) -> int:
 
 def other_value(rng: random.Random, kind: str, attribute: str, value: int) -> int:
     """A value plainly different from `value` within the attribute's range."""
-    low, high, step, _ = KINDS[kind][2][attribute]
+    _, _, step, _ = KINDS[kind][2][attribute]
     while True:
         candidate = draw(rng, kind, attribute)
         gap = abs(candidate - value)
@@ -458,7 +303,7 @@ def main() -> int:
     text = text_of(build())
     OUT.write_text(text, encoding="utf-8", newline="\n")
     digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
-    OUT.with_suffix(".sha256").write_text(digest + "\n", encoding="utf-8")
+    OUT.with_suffix(".sha256").write_text(digest + "\n", encoding="utf-8", newline="\n")
     print(digest)
     return 0
 
