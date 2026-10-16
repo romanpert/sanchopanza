@@ -5,8 +5,15 @@
   continued a two-step feature correctly in 48 of 48 triples. With the handoff ritual (H) it did
   so in 44. Clean Claude Code with a plain "let's continue" line (N0) did so in 4.
 - **Opus 5.5: "direction only: S not worse than H"; S better than N0 is not shown.** S 22,
-  H 17, N0 21 of 24. On Opus, Claude Code's own auto memory already carried the plan in every
-  arm, and the ritual did worse than nothing.
+  H 17, N0 21 of 24. On Opus, Claude Code's own auto memory saved the plan after every
+  session 1, in every arm, and the ritual scored lowest (17 against N0's 21; 1 to 5, p 0.11, not
+  shown).
+
+**How it reads on the final scoreboard.** F2's prereg seals no cost condition; the scoreboard's
+"gana" asks for more success at p < 0.05 without losing on cost. On Sonnet 5.5, S cost 1.23x N0
+with a descriptive interval of [1.14, 1.26] (below), entirely above 1, so F2 is reported there by
+its sealed verdict and not as "gana": a trade against doing nothing, and a substitute for the
+ritual at 0.92x its cost [0.85, 0.95].
 
 The lot is sealed by `prereg.sha256` `b7745da349278df9afce032caac1924b55310edde35e2163fb3281b5480c85f3`
 at commit 763dafd (prereg.md sha256 `6094536a…ae072`, launcher `f2-night-run.cmd`
@@ -61,7 +68,8 @@ checked by code in the repository.
 - Wherever a session built step 2, it kept C and followed D, in all six arm-model cells.
 - So this lot measured whether the agent knew what came next and did it. It did not measure a
   constraint said in passing being lost; no session lost one.
-- How the misses happened (read from the final message of each missed session 2):
+- How the misses happened (read on the machine from the final message of each missed session
+  2; the transcripts are not published):
   - **N0 on Sonnet** ended its turn with a question or an offer to proceed instead of building
     in 35 of its 44 misses. The other 9 did not build the planned step 2 either.
   - **H's 4 Sonnet misses and 6 of its 7 Opus misses**: the handoff itself listed open choices,
@@ -74,8 +82,8 @@ Other comparisons (reported, not deciding):
 - **S against H:** 4 to 0 on Sonnet (McNemar p = 0.0625), 5 to 0 on Opus (p = 0.031).
 - **H against N0:** on Sonnet the ritual helps a great deal: 41 to 1, +83.3 points (Tango lower
   bound +69.4).
-- On Opus the ritual did **worse than nothing**: H kept all in 17, N0 in 21, 1 to 5, -16.7
-  points (p = 0.11 that N0 is better). It cost about the same as doing nothing.
+- On Opus the ritual **scored lowest**: H kept all in 17, N0 in 21, 1 to 5, -16.7 points
+  (p = 0.11 that N0 is better: not shown). It cost about the same as doing nothing.
 
 ## Why Opus has no room: Claude Code's own auto memory
 
@@ -87,8 +95,8 @@ Other comparisons (reported, not deciding):
 - **On Sonnet, N0 kept all exactly when Claude Code saved its own memory in session 1** (4 of
   4), and never when it did not (0 of 44).
 - **Opus saved its own auto memory after every session 1 of every arm** (for example a file
-  "Pending step 2 — ship_all(orders, carrier) ..."), and opened that folder again in most
-  sessions 2.
+  "Pending step 2 — ship_all(orders, carrier) ...", read on the machine), and opened that
+  folder again in most sessions 2.
   - That is why N0 keeps 21 of 24 on Opus, and S cannot add much.
 - **Folders the agent touched.** The runner flags any session whose tool calls name Claude
   Code's configuration folder (`claude-config`).
@@ -148,7 +156,7 @@ Other comparisons (reported, not deciding):
 - H includes its handoff turn at the turn's own cost. For a resumed `claude -p` turn, Claude
   Code 2.1.287 reports `total_cost_usd` as the session's running total (session 1 plus the turn).
   - The turn's own cost is that total minus session 1's.
-  - That equals the turn's own tokens priced at Claude Code's rates, to within 1e-17 USD in all
+  - That equals the turn's own tokens priced at Claude Code's rates, to within 2e-17 USD in all
     76 handoffs (`costs.json`).
 
 | | N0 | H | S | S / H (paired median) | S / N0 |
@@ -156,9 +164,22 @@ Other comparisons (reported, not deciding):
 | Sonnet 5.5 | 0.105 USD | 0.142 USD | 0.127 USD | **0.917** | 1.226 |
 | Opus 5.5 | 0.297 USD | 0.305 USD | 0.325 USD | **1.060** | 1.105 |
 
+**The ratios' spread** (descriptive and post hoc, not in the prereg, never deciding): paired
+bootstrap 95 % intervals of the median per triple, resampling triples, 10,000 draws, seed
+20261016, the same pairing as the table (H's handoff turn at its own cost, Jev added to S):
+
+| | S / N0 | S / H |
+|---|---|---|
+| Sonnet 5.5 (48 triples) | 1.226 [1.141, 1.261] | 0.917 [0.853, 0.946] |
+| Opus 5.5 (24 triples) | 1.105 [1.011, 1.158] | 1.060 [1.009, 1.183] |
+
+`python benchmarks/memory_carry/handoff_cost_ci.py docs/results/2026-10-16-memory-f2` gives
+these from the public rows. On Sonnet S cost more than N0 and less than H across each interval;
+on Opus it cost more than both.
+
 H's handoff turn costs:
 - a median of 0.012 USD on Sonnet and 0.021 USD on Opus;
-- 560 output tokens over about 23,000 cached input tokens.
+- 560 output tokens over about 23,500 cached input tokens.
 
 **Tokens per arm run, median** (input / output / cache read / cache write):
 
@@ -167,8 +188,8 @@ H's handoff turn costs:
 | Sonnet 5.5 | 15 / 2,091 / 157,074 / 13,157 | 18 / 4,161 / 193,079 / 15,695 | 14 / 2,786 / 156,646 / 16,246 |
 | Opus 5.5 | 20 / 5,053 / 217,149 / 18,909 | 20 / 5,345 / 217,324 / 18,845 | 20 / 4,956 / 231,662 / 21,695 |
 
-**Wall time:** session 2 median 20.5 / 26.8 / 26.8 s on Sonnet and 41.1 / 43.2 / 45.1 s on Opus
-(N0 / H / S). The night took 4 h 14 min.
+**Wall time** (each session's `seconds` in the public rows): session 2 median 20.4 / 26.75 /
+26.8 s on Sonnet and 40.8 / 41.3 / 44.45 s on Opus (N0 / H / S). The night took 4 h 14 min.
 
 ## Exclusions and items reported whatever the result
 
@@ -179,6 +200,13 @@ H's handoff turn costs:
 - **Pilot gate:** (a) to (e) all held, 12 of 12 arms (`gate.md`, `gate.json`).
 - **init, all 456 sessions:** Claude Code 2.1.287, the run's model, `apiKeySource` `none` (the
   subscription's OAuth token).
+- **Permission mode:** every session 1 ran in mode `auto` and every session 2 in `default`, in
+  all three arms alike (the prereg said `default` for both).
+- **What a clean session loads:** every N0 and H session reported 3 plugins, 19 skills, 5 agents
+  and no MCP server. All are Claude Code 2.1.287's own built-ins (the plugins are its `@builtin`
+  ones; the agents are `claude`, `Explore`, `general-purpose`, `Plan` and `statusline-setup`),
+  none from the owner's configuration. S's sessions reported the same plus the install's
+  `sanchopanza-code` skill and its `sanchopanza` MCP server.
 - **S ran as S in every arm.** Its memory hook answered SessionStart in both sessions of all 72
   S arms, and its find server was connected.
 - **Subagents:** none.
@@ -193,17 +221,20 @@ H's handoff turn costs:
 
 ## What it means for the product
 
-- **On Sonnet 5.5, installing sanchopanza replaces the handoff ritual and does better.**
+- **On Sonnet 5.5, installing sanchopanza replaces the handoff ritual with no loss** (not
+  worse than H by the sealed −12.5-point margin; 48 against 44, 4 to 0, p 0.0625: a gain over
+  the ritual is not shown), and beats doing nothing by 44 to 0.
   - Continuing with a bare "let's continue" line, S finished the next step correctly every
     time: 48 of 48, against 44 with a handoff and 4 with nothing.
-  - It cost 8 % less than the ritual and 23 % more than doing nothing.
+  - It cost 0.92x the ritual [0.85, 0.95] and 1.23x doing nothing [1.14, 1.26] (descriptive
+    intervals): a substitute for the ritual, and a trade against doing nothing.
   - It needs no extra request and no paste.
   - The gain comes from carrying the plan, not from catching a forgotten constraint: every
     session that built step 2, in every arm, kept C and D.
 - **On Opus 5.5, Claude Code's own auto memory does the job.**
-  - N0 keeps 21 of 24, S 22, and S adds about 10 % to the cost.
-  - The handoff ritual is the worst option on Opus (17 of 24): its prompts hand over open
-    questions, and a fresh session stops to ask them.
+  - N0 keeps 21 of 24, S 22, and S adds about 10 % to the cost (1.10x [1.01, 1.16]).
+  - The handoff ritual scored lowest on Opus (17 of 24; against N0 1 to 5, p 0.11, not shown):
+    its prompts hand over open questions, and a fresh session stops to ask them.
   - The product claim there is "no harm, no gain over Claude Code alone".
 
 ## What this does not show
@@ -232,6 +263,7 @@ H's handoff turn costs:
 | `gate.json`, `gate.md` | the pilot's automatic gate |
 | `rows-f2-*.json` | every arm's row with numbers and flags only: no text the agent or the model wrote, no handoff text, no session id, no path |
 | `costs.json` | per run, the handoff turn's own cost against its tokens at Claude Code's rates, and the lot's spend |
+| `benchmarks/memory_carry/handoff_cost_ci.py` | the descriptive bootstrap intervals of the cost ratios, from `rows-f2-*.json` |
 
 `python benchmarks/memory_carry/handoff_publish.py <run root> <this folder>` rebuilds these
 files. It checks two things for each of the three tables:
