@@ -1,9 +1,11 @@
 # D1: OpenAI's Decisions API as a provider, on the public benches
 
-Status: **to be sealed** after an independent review against the code. The seal (`prereg.sha256`,
+Status: **to be sealed** after an independent review against the code (done 2026-10-16; its
+two blocking findings, a refusal stopping the whole run and unanswered rows scored by the
+default, and its other findings are fixed below and in the code, before any data). The seal (`prereg.sha256`,
 written by `python benchmarks/openai_decisions/run.py seal`) holds the sha256 of this file and of
 `openai-decisions-run.cmd` with its two local values read as placeholders.
-Instrument commit: `<INSTRUMENT_COMMIT>`.
+Instrument commit: `9ab04736a8343fdda2dfde38ac0939a7918e3492`.
 
 ## Question
 
@@ -36,27 +38,47 @@ Jev's, and the public benches are small.
   refuses before reading the key unless the seal, the instrument commit (the paths in
   `run.LOT.instrument` unchanged since it), the cap and the launch rule hold (one launch, at most
   one relaunch, none after a 402, a 429 or the cap).
-- **Preflight:** one predicate through the lot's own ledger; it must answer, with a model whose
-  name is `gpt-6-luna` or `gpt-6-luna-<snapshot>`. Then the client is built in the same event
-  loop and the 301 queries are asked in order, one at a time, each recorded as it comes. The run
-  stops at the first refusal, failure, empty answer or answer from another model.
-- **Key:** `OPENAI_API_KEY` from the file `SANCHOPANZA_KEYS_ENV` names (the launcher's copy only),
-  never printed.
+- **Preflight** (`run.check_preflight`): one call with a predicate, a choice and a score
+  through the lot's own ledger. It must answer all three, with a model named `gpt-6-luna` or
+  `gpt-6-luna-YYYY-MM-DD` (a dated snapshot; `gpt-6-luna-mini` is not the lot's model), and
+  report an input token count (without one the ledger could not bound what is billed). Its real
+  cost over its estimate gives a ratio (at least 1): the estimate of the queries still to ask
+  times that ratio, plus what the ledger holds, must fit under the cap, or nothing more is asked. A preflight that
+  refuses is not recorded as a launch.
+- **The run:** the client is built in the same event loop and the 301 queries are asked in
+  order, one at a time, each recorded as it comes, with a 60-second timeout a call. **A refusal
+  or an unusable answer** (a question left out, or an answer that is empty, such as a Choice
+  without a confidence) **is recorded and the run goes on**; a recorded query counts as asked,
+  so a relaunch does not ask it again. The run stops at a failure (an exception: unreachable, a
+  quota answer, the cap), an answer from another model, or 100 decisions in a row with no usable
+  answer at all (a broken format; the longest run of one point's queries is 94, so a provider
+  refusing a whole point does not stop it, and a refusal of some questions of a query does not
+  count). Only a rate-limit 429 is retried, three times, waiting what `Retry-After` asks up to
+  30 s (else 1, 2 and 4 s; a longer `Retry-After` is a stop); a 5xx is not retried.
+- **Key:** `OPENAI_API_KEY` from the file `SANCHOPANZA_KEYS_ENV` names (the launcher's copy only;
+  the launcher clears any inherited `OPENAI_API_KEY` first), never printed.
 - `run.py report` (free): both arms replayed through `sanchopanza.eval.bench` under the shipped
   `Thresholds()` (jev-1.13.0's: no model profile applies to `gpt-6-luna`) and the shipped point
   policies, `relate_facts` with 0.3.2's `unrelated_at=0.65`, the same for both arms; cases paired
-  by id.
+  by id, one case at a time. `report` refuses while queries are unasked and a relaunch is still
+  allowed.
 
 ## Verdict rule (applied by `run.py report`, as written)
 
 - **Primary:** a row is *right* when it is decided and correct under the shipped policy (an
   abstention is not right: the harness falls to its default). Difference **OpenAI minus Jev** in
-  the share of the 244 rows right; **paired bootstrap 95 % interval** (10,000 draws, seed
-  20261016), compared unrounded; exact McNemar on the discordant rows, reported.
+  the share of the 244 rows right; **paired bootstrap 95 % interval** (`stats.bootstrap_difference`,
+  10,000 draws, seed 20261016, the sorted draws at 0-based indices 250 and 9,749), compared unrounded;
+  exact McNemar on the discordant rows, reported.
 - **Margin −5 points.** "mejor" when the lower bound is above 0; "no peor" when it is above −5;
   "peor" when the upper bound is below −5; otherwise "no concluyente".
-- A query left unanswered in the recording (a refusal, a stop) makes its rows abstentions for
-  OpenAI in the primary reading; their count is reported (`queries_unanswered_in_recording`).
+- **"no medido"** instead of a verdict while any of the 301 queries is unasked once no launch is
+  left (a stop by a 429, a timeout or the cap): rows never asked say nothing about the provider.
+- **A row any of whose questions got no usable answer is not right**, in either arm, whatever
+  the policy's default would have decided: several points decide by default (with no answer at
+  all, 113 of the 244 rows are decided and 57 of them right), and a refusal must not earn that
+  credit. Reported per arm: `rows_without_a_usable_answer` (Jev's recording answers every
+  question: 0), `queries_not_asked`, and the models that served (`served_models`).
 - **Secondary, descriptive:** per point, agreement when deciding, coverage, AUC, Brier and ECE
   on the binary points, and accuracy at a plain 0.5 cut (`at_0.5`), for both arms; cost and
   median latency per call; calibration by primitive.
@@ -68,6 +90,11 @@ the chance of "no peor" at −5 is about 0.88 if they disagree on 6 % of the row
 0.54 at 15 % and 0.42 at 20 %; if OpenAI is 2 points worse, about 0.20-0.50. At 244 rows a
 "no concluyente" is a likely outcome and would be reported as such. Parity at a tighter margin
 would need the 1,437 component items of L1 (about 0.24 USD), a separate lot.
+
+## Clock
+
+301 calls one at a time, a few minutes. Launched attended, outside 02:00-08:00 (Windows Update
+restarts). No Claude Code session, so the midnight rule of the paid Claude lots does not apply.
 
 ## Cost and caps
 
