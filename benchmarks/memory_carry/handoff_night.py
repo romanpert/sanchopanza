@@ -32,6 +32,7 @@ sys.path.insert(0, str(HERE))
 import carry  # noqa: E402
 import handoff  # noqa: E402
 import handoff_analyze  # noqa: E402
+import handoff_seal  # noqa: E402
 
 SEQUENCE = ("f2-pilot", "f2-sonnet", "f2-opus")
 GATE_FAIL = 5
@@ -100,16 +101,25 @@ def status(root: Path, text: str) -> None:
     print(text, flush=True)
 
 
-def night(root: Path, dry: bool = False) -> int:
+def night(root: Path, dry: bool = False, work: Path | None = None) -> int:
+    """`work`: where the agents work (handoff.WORK); a dry night builds under `root/dry`."""
     root.mkdir(parents=True, exist_ok=True)
     if dry:
         for run in SEQUENCE:
             print(f"== {run} (dry: every arm built, nothing called)", flush=True)
-            handoff.execute(run, root / "dry" / run, handoff.RUNS[run]["cap"], dry=True)
+            out = root / "dry" / run
+            handoff.execute(
+                run,
+                out,
+                handoff.RUNS[run]["cap"],
+                dry=True,
+                work_root=(work or root / "dry" / "w16") / handoff.RUNS[run]["dir"],
+            )
         return 0
-    handoff.require_seal()
-    if (root / "LIMIT.flag").exists() or any((root / r / "LIMIT.flag").exists()
-                                             for r in SEQUENCE):  # fmt: skip
+    handoff_seal.require_sealed_checkout()
+    for run in SEQUENCE:  # a key a crash left behind is never reused
+        (handoff.WORK / handoff.RUNS[run]["dir"] / "typesafe.key").unlink(missing_ok=True)
+    if (root / "LIMIT.flag").exists():
         status(root, "refused: LIMIT.flag (a usage limit paused the night)")
         return handoff.EXIT["limit"]
     lock(root)
@@ -126,8 +136,6 @@ def night(root: Path, dry: bool = False) -> int:
             table(root, run)
             status(root, f"{run} ends: {stop or 'done'}, spent {handoff.ledger(root / run):.2f}")
             if stop:
-                if stop == "limit":
-                    (root / "LIMIT.flag").write_text(f"{run}\n", encoding="utf-8")
                 return handoff.EXIT[stop]
         status(root, "night done")
         return 0

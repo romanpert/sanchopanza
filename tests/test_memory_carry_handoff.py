@@ -354,3 +354,11 @@ def test_the_start_repository_passes_its_tests_and_gives_nothing_away(
     assert not [w for w in TELLS[name] if w in scene["continue"].lower()]
     assert all(w in scene["first"].lower() for w in TELLS[name])
     assert not mod.names_c_d(scene["continue"], scene)["C"]
+
+
+def test_h_pages_needs_an_explicit_limit_of_at_most_100(tmp_path: Path) -> None:
+    scene = HANDOFF["h_pages"]
+    no_limit = {"app/orders.py": ORD1 + FETCH % "{**({'after': after} if after else {})}"}
+    root = build(tmp_path, scene, STEP1["h_pages"], no_limit)
+    got = results(root, scene)
+    assert got["task"] and got["decision"] and not got["fact"]

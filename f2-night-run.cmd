@@ -16,6 +16,12 @@ rem (a WMI process inherits no window variable); the token reaches only claude, 
 rem hooks. That path is not in this file: the lead writes C:\sp-runs\memory-f2\keys-env.cmd, an
 rem untracked file outside the repository holding only `set SANCHOPANZA_KEYS_ENV=<path>`. The
 rem launcher checks that the file it names exists and never reads it.
+rem The worktree's own path may not name the lot (S's installed hooks show it to the agent):
+rem create it as, e.g., ..\sp-w16; a path with f2, memory or handoff in it is refused (exit 10).
+rem handoff_night.py itself refuses (exit 11) unless the files match the seal, HEAD is the
+rem sealing commit and git status is clean.
+rem Exits: 1 keys, 2 arguments, 3 LIMIT.flag, 9 wrong claude version, 10 worktree path; then
+rem handoff_night.py's (0 done, 2 cap, 3 limit, 4 harness, 5 gate, 6 STOP, 7 broken, 11 seal).
 setlocal
 set SANCHOPANZA_KEYS_ENV=
 if exist C:\sp-runs\memory-f2\keys-env.cmd call C:\sp-runs\memory-f2\keys-env.cmd
@@ -39,6 +45,10 @@ if not "%~1"=="" (
   echo refused: the only argument is dry >> "%STATUS%"
   exit /b 2
 )
+echo %WT%| findstr /i "f2 memory handoff" > nul && (
+  echo refused %DATE% %TIME%: the worktree path %WT% names the lot >> "%STATUS%"
+  exit /b 10
+)
 if "%SANCHOPANZA_KEYS_ENV%"=="" (
   echo refused %DATE% %TIME%: no SANCHOPANZA_KEYS_ENV, write %ROOT%\keys-env.cmd >> "%STATUS%"
   exit /b 1
@@ -59,7 +69,7 @@ where claude >> "%STATUS%" 2>&1
 call claude --version >> "%STATUS%" 2>&1
 claude --version | findstr /l /b /c:"2.1.287 " > nul || (
   echo refused %DATE% %TIME%: claude first on PATH is not 2.1.287 >> "%STATUS%"
-  exit /b 3
+  exit /b 9
 )
 "%PY%" -u benchmarks\memory_carry\handoff_night.py --root "%ROOT%" >> "%ROOT%\night.log" 2>&1
 set CODE=%ERRORLEVEL%

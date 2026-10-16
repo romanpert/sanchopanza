@@ -93,9 +93,9 @@ def triples(rows: list[dict[str, Any]]) -> dict[tuple[str, str, int], dict[str, 
 
 def own_sendbacks(row: dict[str, Any], run: Path | None) -> int:
     """S's second session sent back by a rule other than the scene's own C (from hook-log)."""
-    if run is None:
+    if not row.get("folder"):
         return 0
-    log = run / f"{row['scene']}-{row['model']}-S-{row['repeat']}" / "hook-log.jsonl"
+    log = Path(row["folder"]) / "hook-log.jsonl"
     if not log.exists():
         return 0
     session, false = 0, 0
@@ -127,6 +127,7 @@ def compare(done: dict[Any, dict[str, dict[str, Any]]], a: str, b: str) -> dict[
         "a_only": a_only,
         "b_only": b_only,
         "difference": round((a_only - b_only) / n, 4) if n else None,
+        "tango_lower_95_raw": tango_bound(a_only, b_only, n, Z_ONE_SIDED_95),
         "tango_lower_95": round(tango_bound(a_only, b_only, n, Z_ONE_SIDED_95), 4),
         "p_a_better": mcnemar(a_only, b_only),
         "p_b_better": mcnemar(b_only, a_only),
@@ -146,7 +147,7 @@ def analyse(rows: list[dict[str, Any]], model: str, run: Path | None = None,
              | {"kept_all": sum(t[arm]["kept_all"] for t in done.values())}
              for arm in ARMS}  # fmt: skip
     s_h, s_n0, h_n0 = compare(done, "S", "H"), compare(done, "S", "N0"), compare(done, "H", "N0")
-    c1 = s_h["tango_lower_95"] > -MARGIN
+    c1 = s_h["tango_lower_95_raw"] > -MARGIN
     c2 = s_n0["p_a_better"] < ALPHA
     harm_tests = count["S"]["tests"] >= count["H"]["tests"] - math.floor(MARGIN * n)
     false_sb = sum(own_sendbacks(t["S"], run) for t in done.values())
@@ -155,16 +156,22 @@ def analyse(rows: list[dict[str, Any]], model: str, run: Path | None = None,
     criteria = {"1_s_not_worse_than_h": c1, "2_s_better_than_n0": c2 if c1 else None,
                 "5a_tests": harm_tests, "5b_false_sendbacks": harm_sb,
                 "false_sendbacks": false_sb}  # fmt: skip
-    if not enough:
-        verdict = "sin veredicto"
-    elif model == "opus":
-        verdict = "direction only: " + ("S not worse than H" if c1 else "not shown")
-    else:
-        verdict = "S not worse than H" if c1 and harm_tests and harm_sb else "not shown"
-        verdict += "; S better than N0" if c1 and c2 else ""
+    verdict = verdict_of(model, enough, c1, c2, harm_tests and harm_sb)
     return {"model": model, "triples": n, "not_run": not_run, "verdict": verdict,
             "criteria": criteria, "count": count, "S_vs_H": s_h, "S_vs_N0": s_n0,
             "H_vs_N0": h_n0, **reported(done)}  # fmt: skip
+
+
+def verdict_of(model: str, enough: bool, c1: bool, c2: bool, c5: bool) -> str:
+    """The prereg's verdict, the same for both models (Opus is labelled direction only): "S not
+    worse than H" needs criteria 1 and 5; "S better than N0" needs 2 (read only when 1 holds)
+    and 5; "not shown" otherwise; "sin veredicto" with too few triples."""
+    if not enough:
+        return "sin veredicto"
+    claims = [text for ok, text in ((c1 and c5, "S not worse than H"),
+                                    (c1 and c2 and c5, "S better than N0")) if ok]  # fmt: skip
+    said = "; ".join(claims) or "not shown"
+    return f"direction only: {said}" if model == "opus" else said
 
 
 def reported(done: dict[Any, dict[str, dict[str, Any]]]) -> dict[str, Any]:
@@ -210,7 +217,10 @@ def gate(rows: list[dict[str, Any]], planned: list[tuple[str, str, str, int]]) -
     """The automatic gate after f2-pilot (prereg, "Pilot and its gate"). Every planned arm must
     have a row. (a) H's handoff was captured in every triple; (b) every check returned a boolean
     in every arm (no arm cut); (c) no scene has every arm failing `task`; (d) N0 did not keep
-    all in every triple. Passes only when all four hold."""
+    all in every triple; (e) S's memory hook answered SessionStart in both sessions of every S
+    arm. Passes only when all five hold. (a) means, in every H row: no cut at the handoff, a
+    non-empty text, a reported cost, `context_carried` True (None fails) and session 2's first
+    prompt in its transcript equal to the handoff byte for byte (`pasted_verbatim` True)."""
     by_key = {(r["scene"], r["model"], r["arm"], r["repeat"]): r for r in rows}
     missing = [f"{s} {a} r{r}" for s, m, a, r in planned if (s, m, a, r) not in by_key]
     have = [by_key[p] for p in planned if p in by_key]
@@ -218,7 +228,9 @@ def gate(rows: list[dict[str, Any]], planned: list[tuple[str, str, str, int]]) -
     a_ok = not missing and len(h_rows) == len({(s, r) for s, _, _, r in planned}) and all(
         not str(r.get("cut") or "").startswith("handoff")
         and (r.get("handoff") or {}).get("chars", 0) > 0
-        and (r.get("handoff") or {}).get("cost_reported") for r in h_rows)  # fmt: skip
+        and (r.get("handoff") or {}).get("cost_reported")
+        and (r.get("handoff") or {}).get("context_carried") is True
+        and r.get("pasted_verbatim") is True for r in h_rows)  # fmt: skip
     fields = ("tests_pass", "task_pass", "fact_pass", "decision_pass", "intact_pass", "kept_all")
     b_ok = not missing and all(not r.get("cut") and all(isinstance(r.get(f), bool)
                                                         for f in fields) for r in have)  # fmt: skip
@@ -229,14 +241,18 @@ def gate(rows: list[dict[str, Any]], planned: list[tuple[str, str, str, int]]) -
     c_ok = not missing and not all_fail
     n0 = [r for r in have if r["arm"] == "N0"]
     d_ok = not missing and bool(n0) and not all(r.get("kept_all") is True for r in n0)
+    s_rows = [r for r in have if r["arm"] == "S"]
+    e_ok = not missing and bool(s_rows) and all(int(r.get("hook_starts") or 0) >= 2
+                                                for r in s_rows)  # fmt: skip
     reasons = [text for ok, text in (
         (not missing, f"arms without a row: {', '.join(missing)}"),
         (a_ok, "(a) a handoff was not captured in every H triple"),
         (b_ok, "(b) a check did not return a boolean, or an arm was cut, in some arm"),
         (c_ok, f"(c) every arm failed task in: {', '.join(all_fail)}"),
         (d_ok, "(d) N0 kept all in every pilot triple: no room"),
+        (e_ok, "(e) S's memory hook did not answer SessionStart in both sessions of every S arm"),
     ) if not ok]  # fmt: skip
-    return {"pass": not reasons, "a": a_ok, "b": b_ok, "c": c_ok, "d": d_ok,
+    return {"pass": not reasons, "a": a_ok, "b": b_ok, "c": c_ok, "d": d_ok, "e": e_ok,
             "reasons": reasons, "arms": len(have), "planned": len(planned),
             "cut": {f"{r['scene']} {r['arm']} r{r['repeat']}": r["cut"] for r in have
                     if r.get("cut")}}  # fmt: skip
@@ -246,7 +262,7 @@ def gate_text(result: dict[str, Any]) -> str:
     head = "PASS: f2-sonnet may run" if result["pass"] else "FAIL: nothing larger runs"
     lines = [f"# F2 pilot gate: {head}", "",
              f"Arms with a row: {result['arms']} of {result['planned']}.", ""]  # fmt: skip
-    lines += [f"- ({k}) {'holds' if result[k] else 'fails'}" for k in ("a", "b", "c", "d")]
+    lines += [f"- ({k}) {'holds' if result[k] else 'fails'}" for k in ("a", "b", "c", "d", "e")]
     lines += ["", *[f"- {r}" for r in result["reasons"]]]
     lines += [f"- cut: {k}: {v}" for k, v in result["cut"].items()]
     return "\n".join(lines) + "\n"

@@ -1,8 +1,9 @@
 # F2: memory against the handoff ritual, Sonnet 5.5 and Opus 5.5. Written before its data
 
 From the draft `docs/results/2026-10-05-memory-frontier/prereg-f2-handoff.md`, with the owner's
-answers of 2026-10-15. Sealed by `prereg.sha256` (see "Seal"); until that file matches, every
-live path refuses. No session of this lot has run.
+answers of 2026-10-15 and an independent review's findings of 2026-10-16 (applied before
+sealing). Sealed by `prereg.sha256` (see "Seal"); until that file matches, every live path
+refuses. No session of this lot has run.
 
 ## Question
 
@@ -15,29 +16,48 @@ much of what session 1 said? At what cost in dollars, tokens and the user's effo
 
 All three: clean Claude Code exactly as in the memory cell (`docs/results/2026-10-13-memory-cell`):
 a fresh `CLAUDE_CONFIG_DIR` per arm run, kept across its sessions, signed in with the
-subscription's OAuth token only; run folder `C:\sp-runs\memory-f2`, outside the home folder;
-Claude Code 2.1.287 pinned; `claude -p` with `--output-format stream-json --verbose`,
-`--settings "{}"`, `--allowedTools Bash Read Edit Write Glob Grep`, default permission mode,
-`--max-budget-usd` 0.80 (Sonnet 5.5, `claude-sonnet-5-5`) or 1.50 (Opus 5.5, `claude-opus-5-5`),
-a 900 s timeout per session. Session 1 is the same prompt in every arm; its work is committed.
+subscription's OAuth token only; Claude Code 2.1.287 pinned; `claude -p` with
+`--output-format stream-json --verbose`, `--settings "{}"`, `--allowedTools Bash Read Edit Write
+Glob Grep`, default permission mode, `--max-budget-usd` 0.80 (Sonnet 5.5, `claude-sonnet-5-5`)
+or 1.50 (Opus 5.5, `claude-opus-5-5`), a 900 s timeout per session. Session 1 is the same
+prompt in every arm; its work is committed.
 
 - **N0**: session 2, a new session, gets the scene's `continue` line ("Let's continue with the
   shipping labels.").
 - **H**: after session 1, the same session is resumed once: `claude -p --resume <session 1 id>
   "Give me a prompt to continue this work in a clean session."`, same flags, caps and folder,
-  600 s timeout. Its stream is `handoff.jsonl`, its result text `handoff.txt`. Session 2, a new
-  session, gets exactly that text, nothing added. The handoff turn's cost and tokens count in H.
+  600 s timeout. Its result text is `handoff.txt`. Session 2, a new session, gets exactly that
+  text, nothing added; that it arrived byte for byte is checked in session 2's own transcript
+  (`pasted_verbatim`). The handoff turn's cost and tokens count in H.
 - **S**: N0 plus `sanchopanza install --scope project --memory --write` in the scene's
-  repository before its start commit, from `src/` at the sealing commit (`carry_s.install`, as
-  the memory cell). `--memory` is the default since 2026-10-14 and changes nothing (the preflight
-  checks that a bare `install --scope project --write` writes the same files); the Stop audit is
-  off by default and stays off. Hooks and the `find_in_repo` server run behind
-  `carry_hook.py` with the arm's own state and the TypeSafe key (never in the agent's
-  environment); Jev decides. S's store starts with 7 decoy rules of other scenes, never one the
-  scene marks `near` (`handoff.decoys`). Session 2 gets the same `continue` line as N0.
+  repository before its start commit (`carry_s.install`, as the memory cell), from `src/` at
+  the sealing commit, which is **origin/main 3fb53f1** (the published state; `src/` and
+  `pyproject.toml` unchanged on this branch). `--memory` is the default since 2026-10-14 and
+  changes nothing (the preflight checks that a bare `install --scope project --write` writes the
+  same files); the Stop audit is off by default and stays off. Hooks and the `find_in_repo`
+  server run behind `carry_hook.py` with the arm's own state and the TypeSafe key (never in the
+  agent's environment); Jev decides. S's store starts with 7 decoy rules of other scenes, never
+  one the scene marks `near` (`handoff.decoys`). Session 2 gets the same `continue` line as N0.
 
 Arm order rotates from triple to triple and from repetition to repetition (`build_plan`): in
 f2-sonnet each arm runs first in 16 of 48 triples.
+
+### What the agent sees is neutral
+
+- Each arm works in `C:\sp-runs\w16\<r1|r2|r3>\t<NN>-<x>`, its repository in `repo\` under it:
+  NN is the triple's number, x a letter per arm shuffled per triple by a seeded RNG
+  (`folder_name`). The scene, the arm and the model are only in the lot's own rows.
+- The lot's own files (rows, ledger, streams, `handoff.txt`, S's install output, logs) are in
+  `C:\sp-runs\memory-f2\<run>\`, which no session is pointed at.
+- The agent's environment has no PYTHONPATH, no key and no `SANCHOPANZA_*` variable; the checks
+  run with the same environment.
+- Tested (`test_memory_carry_handoff_work.py`): in every path and file under the work root, no
+  scene name, arm name, model name or name of the lot, and no word that gives away the scene's
+  C, D or step 2 (S's installed sanchopanza files are exempt from that last check only).
+- What remains, inherent and declared: S's installed hooks name the sealed worktree's path and
+  `benchmarks\memory_carry\carry_hook.py`. The launcher refuses a worktree whose path contains
+  `f2`, `memory` or `handoff` (create it as, e.g., `..\sp-w16`). A session can open its own
+  configuration folder (`..\claude-config`), as any Claude Code user can open `~/.claude`.
 
 ## Scenes
 
@@ -60,7 +80,7 @@ step 2, C or D (tested).
 | `h_merge` | CRM ignores case and `+tag` in addresses (constraint) | keep the existing record (plain) |
 | `h_weeks` | weeks run Sunday to Saturday (constraint) | round weeks to a quarter hour (plain) |
 | `h_judge` | text judgments go through `judge()` (preference) | enterprise plan always urgent (plain) |
-| `h_pages` | page size at most 100 (constraint) | cursor, not offset (reversal) |
+| `h_pages` | every call asks for a page of at most 100 (constraint) | cursor, not offset (reversal) |
 
 Six scenes have C as a working preference, three have D reversing a plan made earlier in the
 same prompt.
@@ -68,6 +88,13 @@ same prompt.
 **Checks** after session 2 (Python in the repository, exit 0 when true): `task` (step 2 works),
 `fact` (C holds in step 2), `decision` (D followed), `intact` (step 1 still works), and the
 repository's tests. **Primary outcome, "kept all": `task` and `fact` and `decision`.**
+
+**Checks a natural implementation may pass without knowing C or D** (they cost room, so power):
+C in `h_loud` (an unknown currency raises a `KeyError` unless code adds a fallback) and
+`h_nomutate` (a comprehension does not mutate), D in `h_batch` (the bulk call is there to be
+used) and `h_merge` (keeping the first record seen keeps the existing one). C in `h_pages` was
+strengthened before sealing: leaving the limit out does not keep it. If N0 keeps all in every
+pilot triple the gate stops the night (d); on the full runs the counts per scene are reported.
 
 ## Runs
 
@@ -99,28 +126,32 @@ ends the night. A relaunch resumes: recorded arms are kept, the gate's result is
 
 The night continues past the pilot only if every one of its 12 arms has a row and:
 
-- **(a)** H's handoff was captured in all 4 H triples: no H row cut at the handoff, a non-empty
-  `handoff.txt`, a cost reported by the resumed turn;
+- **(a)** H's handoff was captured and pasted in all 4 H triples: no H row cut at the handoff, a
+  non-empty `handoff.txt`, a cost reported by the resumed turn, `context_carried` True (unknown
+  fails) and session 2's first user message in its transcript equal to `handoff.txt` byte for
+  byte (`pasted_verbatim` True);
 - **(b)** every check ran and returned a boolean (`tests`, `task`, `fact`, `decision`,
   `intact`, `kept all`) in every arm, and no arm was cut;
 - **(c)** no pilot scene has every arm failing `task`;
-- **(d)** N0 did not keep all in all 4 pilot triples.
+- **(d)** N0 did not keep all in all 4 pilot triples;
+- **(e)** S's hooks ran: in every pilot S arm, the memory hook answered SessionStart in both
+  sessions (`hook_starts` at least 2, from `carry_hook`'s log). This checks the harness, not
+  whether S gave anything.
 
 Otherwise the driver writes `gate.md` and `gate.json` with the reasons and stops (exit 5);
 nothing larger runs.
 
 ## Criteria (fixed sequence, per model, over triples with all three arms run)
 
-1. **Sonnet: S not worse than H on kept all.** The lower bound of the one-sided 95 % Tango score
+1. **S not worse than H on kept all.** The lower bound of the one-sided 95 % Tango score
    interval for the paired difference S - H (Tango 1998; `tango_bound`, tested against both of
-   the paper's worked examples) is above **-12.5 points**.
-2. **Sonnet: S better than N0 on kept all**: one-sided exact McNemar, p < 0.05. Confirmatory
-   only if 1 holds.
-3. **Opus: as 1**, and 4. **Opus: as 2**: 24 triples, **direction only**; a miss reads "not
-   shown", not "worse".
-5. **No harm, per model:** S's repository tests pass in no more than floor(0.125 x triples)
-   fewer triples than H's (6 of 48, 3 of 24); S second sessions sent back by a rule other than
-   the scene's C at most 5 % of triples.
+   the paper's worked examples), unrounded, is above **-12.5 points**.
+2. **S better than N0 on kept all**: one-sided exact McNemar, p < 0.05. Read only if 1 holds.
+3. On Opus, 1 and 2 are computed the same way; with 24 triples they are **direction only**.
+4. (Opus's reading of 2.)
+5. **No harm:** S's repository tests pass in no more than floor(0.125 x triples) fewer triples
+   than H's (6 of 48, 3 of 24); S second sessions sent back by a rule other than the scene's C
+   in at most 5 % of triples.
 6. **Reported, not criteria:** per arm `task`, `fact`, `decision`, `intact`; per triple cost
    (USD, S with Jev) and tokens (input, output, cache read, cache write) per arm, medians and
    paired median S/H, S/N0; the handoff's length (characters, output tokens: median, max);
@@ -129,36 +160,58 @@ nothing larger runs.
    arm; Jev decisions and failures; subagent calls; arms whose sessions crossed midnight; handoff
    turns whose reported cost is at least session 1's (a cumulative report would show so).
 
-**Verdict** (Sonnet): "S not worse than H" when 1 and 5 hold, plus "S better than N0" when 2
-holds; "not shown" otherwise; **"sin veredicto"** when fewer than 40 Sonnet triples (20 Opus)
-ran. No pooling across models. The metric is not changed after the data.
+**Verdict, the same rule for both models (`handoff_analyze.verdict_of`):**
+
+- "**S not worse than H**" when 1 and 5 hold;
+- "**S better than N0**" when 1, 2 and 5 hold;
+- "**not shown**" when neither claim holds (so whenever 5 fails);
+- Opus's verdict is prefixed "**direction only:**"; a miss reads "not shown", not "worse";
+- "**sin veredicto**" when fewer than 40 Sonnet triples (20 Opus) ran.
+
+No pooling across models. The metric is not changed after the data.
 
 ## NOT RUN (a row with `cut`, never retried) and stops
 
 - A session that timed out, ended without a result, or whose `init` shows another model or
-  Claude Code; a session stopped by its own `--max-budget-usd` counts as run.
+  Claude Code; a session stopped by its own `--max-budget-usd` counts as run. A timed-out
+  session's whole process tree is killed by its own PID (never by name).
 - **H's handoff:** session 1 gave no session id; the resumed turn timed out, exited non-zero,
-  returned no text or reported no cost; its first request held less than 90 % of session 1's last
-  request's context (`context_carried`: the resume did not carry session 1); or its text is over
-  30,000 characters. The triple is NOT RUN and the count is reported. No retry.
+  ran another model or Claude Code, returned no text or reported no cost; its first request held
+  less than **50 %** of session 1's last request's context (`context_carried`: a fresh session
+  holds only the system prompt and the request; half, not all, because on resume Claude Code may
+  drop earlier thinking blocks); or session 2's command line with that text would reach Windows'
+  32,767-character limit. The triple is NOT RUN and the count is reported. No retry.
 - **S** did not run as S (`carry_s` checks, as the memory cell): the arm is cut and the run
   stops (exit 4).
-- **Usage limit (429, weekly limit):** the arm gets no row (its folder is kept aside as
-  `*.limit-<time>`), `LIMIT.flag` is written and the night stops (exit 3). A pause, never a
-  result: after the owner removes the flag, a relaunch runs that arm again whole.
+- **An exception in the runner** during an arm: the arm is NOT RUN (`harness exception:
+  <class>`), what it spent is counted, and the night goes on.
+- **Usage limit (429, weekly limit):** from the stream's events, or a short or error result (or
+  stderr) that says "usage limit", "hit your limit" or "weekly limit". The arm gets no row (its
+  folders are kept aside as `*.limit-<time>`), `C:\sp-runs\memory-f2\LIMIT.flag` is written (the
+  only place) and the night stops (exit 3). A pause, never a result: after the owner removes the
+  flag, a relaunch runs that arm again whole.
 - **Crash or reboot:** an arm with a folder and no row is counted (its streams' costs and its
-  decisions) and runs again whole, at most twice; a third interruption makes it NOT RUN.
+  decisions), its folders are kept aside as `*.interrupted-<time>`, and it runs again whole, at
+  most twice; a third interruption makes it NOT RUN.
 - Three arms in a row with a session that ended without a result stop the run (exit 7).
 - A `STOP` file in the root or a run folder stops before the next arm (exit 6).
 
 ## Caps, in code
 
 - Per call: `--max-budget-usd` 0.80 Sonnet, 1.50 Opus, the handoff turn included.
+- **One worst turn per call**, since Claude Code checks the cap between turns: a turn that
+  reads a 200,000-token context from the cache, writes 50,000 new tokens to it and answers
+  20,000, at Claude Code's own rates (`meter.CLAUDE_CODE_RATES`, the dearer cache write):
+  Sonnet 5.5 200,000 x 0.2 + 50,000 x 4.0 + 20,000 x 10 per million = **0.44 USD**; Opus 5.5
+  200,000 x 0.2 + 50,000 x 8.0 + 20,000 x 20 = **0.84 USD** (`handoff.worst_turn`). The memory
+  cell's dearest session was 0.115.
 - Per run, before each arm: what the run spent (sessions' own `total_cost_usd`, Jev decisions,
-  the Jev preflight, interrupted arms) plus the arm's calls at their cap (3 for H, 2 otherwise),
-  one worst turn past it (0.40 Sonnet, 0.75 Opus) and, for S, 0.05 USD of Jev per session, must
-  stay within the run's cap (11.5, 109, 106) or the run stops (exit 2).
-- Per night: each run's cap is min(its cap, 230 minus what the earlier runs spent).
+  the Jev preflight, interrupted arms) plus, for each of the arm's calls (3 for H, 2 otherwise),
+  its cap and one worst turn, plus for S 0.05 USD of Jev per session, must stay within the run's
+  cap (11.5, 109, 106) or the run stops (exit 2). One triple's reserve is 8.78 USD on Sonnet,
+  16.48 on Opus.
+- Per night: each run's cap is min(its cap, 230 minus what the earlier runs spent); the three
+  caps add up to 226.5.
 
 ## Clock
 
@@ -173,7 +226,14 @@ The owner accepted the night unattended, 02:00-08:00 included.
   the lead writes `C:\sp-runs\memory-f2\keys-env.cmd`, a local untracked file outside the
   repository holding only `set SANCHOPANZA_KEYS_ENV=<path>`. The launcher calls it if it exists,
   then refuses to start (exit 1) when the variable is empty or the file it names does not exist;
-  it never reads that file. The token reaches only the `claude` processes, the key only S's hooks.
+  it never reads that file. The token reaches only the `claude` processes, the key only S's hooks
+  (in `C:\sp-runs\w16\<r>\typesafe.key`, deleted at the start of the night, of each run, and at
+  each run's end).
+- **The checkout.** From a detached worktree at the sealing commit, at a path that names nothing
+  of the lot. `handoff_night.py` refuses (exit 11) unless the files match the seal, HEAD is the
+  commit that last wrote `prereg.sha256`, and `git status --porcelain` is empty. The launcher
+  refuses a Claude Code other than 2.1.287 (exit 9) and a worktree path that names the lot (exit
+  10).
 - **Reboot.** A reboot (or any crash) pauses the night: nothing relaunches it. The lead or the
   owner starts the same `f2-night-run.cmd` again, the same way (WMI), and it resumes from what
   is recorded.
@@ -183,8 +243,7 @@ The owner accepted the night unattended, 02:00-08:00 included.
     rem free: checks, dry run, seal
     set PYTHONPATH=<worktree>\src
     "%PY%" benchmarks\memory_carry\handoff.py --preflight --out C:\sp-runs\memory-f2
-    "%PY%" benchmarks\memory_carry\handoff.py --run f2-pilot --dry --out %TEMP%\f2-dry
-    f2-night-run.cmd dry
+    "%PY%" benchmarks\memory_carry\handoff_night.py --root %TEMP%\f2-dry --dry
     "%PY%" benchmarks\memory_carry\handoff.py --seal
     rem paid: by WMI from a detached worktree at the sealing commit (header of f2-night-run.cmd)
     rem analysis (free)
@@ -194,10 +253,11 @@ The owner accepted the night unattended, 02:00-08:00 included.
 
 ## Seal
 
-`handoff.py --seal` writes `prereg.manifest.json` (sha256 of this file, the launcher, the runner,
-analyzer, driver, preflight, scenes, their tests, every `benchmarks/memory_carry/*.py` and every
-`src/sanchopanza/**/*.py`, LF bytes) and `prereg.sha256` (the sha256 of the manifest's lines).
-A different seal is refused. The night refuses unless the files match it.
+`handoff.py --seal` writes `prereg.manifest.json` (sha256, LF bytes, of this file, the launcher,
+`pyproject.toml`, `benchmarks/meter.py`, the runner, its modules and tests, every
+`benchmarks/memory_carry/*.py` and **every file** under `src/sanchopanza/`, not only its `.py`)
+and `prereg.sha256` (the sha256 of the manifest's lines). A different seal is refused. The night
+refuses unless the checkout matches it (see "Running it").
 
 ## Deviations from the draft
 
@@ -209,8 +269,9 @@ A different seal is refused. The night refuses unless the files match it.
   each.
 - A session timeout makes the arm NOT RUN and the night goes on (the memory cell stopped and
   resumed once); the stand-in for an unattended night.
-- `context_carried`, the 30,000-character limit, the "three in a row without a result" stop, the
-  interrupted-arm rule and the minimum triples for a verdict are added.
+- Opaque work folders, `context_carried` and `pasted_verbatim`, gate (e), the command-line
+  limit, runner exceptions, the "three in a row without a result" stop, the interrupted-arm rule,
+  the minimum triples for a verdict, and one worst turn per call are added.
 - Expected costs are re-estimated from the memory cell's clean-user sessions; the owner's caps
   are unchanged.
 

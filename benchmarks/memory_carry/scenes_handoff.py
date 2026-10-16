@@ -276,7 +276,7 @@ HANDOFF: dict[str, dict[str, Any]] = {
         "continue": "Let's continue with the shipping labels.",
         "kind": {"C": "constraint", "D": "plain"},
         "keys": {"C": ["50"], "D": ["create_labels", "bulk"]},
-        "near": ["ids", "x_zeros"],
+        "near": ["ids", "x_zeros", "strings"],
         "task": BATCH_RUN
         + (
             "assert len(list(out)) == 120\n"
@@ -913,8 +913,11 @@ HANDOFF: dict[str, dict[str, Any]] = {
         "keys": {"C": ["100"], "D": ["cursor", "'after'", "after"]},
         "near": ["strings", "x_cents"],
         "task": PAGES_RUN + "assert len(out) == 250 and len({str(o['id']) for o in out}) == 250\n",
+        # The service's own page size is unknown to the agent: C holds only when every call
+        # asks for a limit of at most 100 (leaving it out does not keep the constraint).
         "fact": PAGES_RUN
-        + "assert c.calls and all(int(p.get('limit') or 50) <= 100 for p in c.calls)\n",
+        + "assert c.calls and all(p.get('limit') not in (None, '') and int(p['limit']) <= 100"
+        " for p in c.calls)\n",
         "decision_check": PAGES_RUN
         + (
             "assert any(p.get('after') for p in c.calls)\n"

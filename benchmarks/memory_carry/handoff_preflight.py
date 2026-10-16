@@ -124,11 +124,17 @@ def caps_check() -> tuple[bool, str]:
     return ok, "; ".join(lines) + f"; caps sum {total} <= night {handoff.NIGHT_CAP}"
 
 
-def isolation_check(root: Path) -> tuple[bool, str]:
+def isolation_check(root: Path, work: Path | None = None) -> tuple[bool, str]:
+    """The lot's root and the agents' work root: outside the home folder, no memory file above
+    them; the work root's path names nothing of the lot (handoff.WORK)."""
+    work = work or handoff.WORK
     home = Path.home().resolve()
-    inside = root.resolve().is_relative_to(home)
-    found = carry.ancestors_memory(root.resolve())
-    return not inside and not found, f"root {root}; under home: {inside}; memory above: {found}"
+    inside = [str(p) for p in (root, work) if p.resolve().is_relative_to(home)]
+    found = carry.ancestors_memory(root.resolve()) + carry.ancestors_memory(work.resolve())
+    named = [w for w in ("memory", "f2", "handoff", "sonnet", "opus") if w in str(work).lower()]
+    ok = not inside and not found and not named
+    return ok, (f"root {root}, work {work}; under home: {inside or 'none'}; memory above: "
+                f"{found or 'none'}; names in the work path: {named or 'none'}")  # fmt: skip
 
 
 def token_check() -> tuple[bool | None, str]:

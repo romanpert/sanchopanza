@@ -1,13 +1,15 @@
 """F2's runner, analysis, gate and night (`benchmarks/memory_carry/handoff*.py`), with no paid
 call: Tango's interval against his published examples, the plan and its caps, the handoff's NOT
-RUN rules, the gate, the stops (limit, STOP, interrupted, broken, midnight), the seal, and a
-whole H arm against a stand-in claude."""
+RUN rules, the gate, the verdicts, the stops (limit, STOP, interrupted, exception, broken,
+midnight), the seal and the sealed checkout. The agent's view and a whole arm against a
+stand-in claude are in `test_memory_carry_handoff_work.py`."""
 
 from __future__ import annotations
 
 import datetime as dt
 import json
-import sys
+import re
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -18,8 +20,8 @@ from .helpers import bench_module
 ROOT = Path(__file__).resolve().parents[1]
 BENCH = ROOT / "benchmarks" / "memory_carry"
 night = bench_module(BENCH, "handoff_night")
-handoff, an = night.handoff, night.handoff_analyze
-carry = handoff.carry
+handoff, an, hseal = night.handoff, night.handoff_analyze, night.handoff_seal
+hc, carry = handoff.hc, handoff.carry
 
 Z95 = 1.959963984540054
 
@@ -47,7 +49,7 @@ def test_tango_with_no_discordant_triple_and_mcnemar() -> None:
     assert an.mcnemar(0, 0) == 1.0
 
 
-# ---- the plan and its caps ---------------------------------------------------------------------
+# ---- the plan, its folders and its caps --------------------------------------------------------
 
 
 def test_plans_rotate_the_arms_and_hold_the_owner_s_runs() -> None:
@@ -61,14 +63,33 @@ def test_plans_rotate_the_arms_and_hold_the_owner_s_runs() -> None:
         assert len({(s, r) for s, _, _, r in sonnet[i : i + 3]}) == 1
     assert {m for _, m, _, _ in opus} == {"opus"}
     assert [handoff.RUNS[r]["cap"] for r in night.SEQUENCE] == [11.5, 109.0, 106.0]
-    assert handoff.NIGHT_CAP == 230.0
+    assert handoff.NIGHT_CAP == 230.0 and sum(handoff.RUNS[r]["cap"] for r in night.SEQUENCE) <= 230
     assert handoff.CALL_CAPS == {"sonnet": 0.80, "opus": 1.50}
 
 
-def test_reserve_counts_three_calls_for_h_and_one_worst_turn() -> None:
-    assert handoff.reserve_of("sonnet", "H") == pytest.approx(3 * 0.80 + 0.40)
-    assert handoff.reserve_of("sonnet", "N0") == pytest.approx(2 * 0.80 + 0.40)
-    assert handoff.reserve_of("opus", "S") == pytest.approx(2 * 1.50 + 0.75 + 0.10)
+def test_folder_names_are_opaque_and_the_letter_says_nothing_of_the_arm() -> None:
+    names = {(t, a): handoff.folder_name("f2-sonnet", t, a) for t in range(48)
+             for a in handoff.ARMS}  # fmt: skip
+    assert all(re.fullmatch(r"t\d\d-[abc]", n) for n in names.values())
+    for t in range(48):
+        assert len({names[(t, a)] for a in handoff.ARMS}) == 3
+    for arm in handoff.ARMS:
+        assert {names[(t, arm)][-1] for t in range(48)} == {"a", "b", "c"}
+    assert handoff.folder_name("f2-sonnet", 7, "H") == handoff.folder_name("f2-sonnet", 7, "H")
+    work = str(handoff.WORK).lower()
+    assert not [w for w in ("memory", "f2", "handoff", "sonnet", "opus") if w in work]
+    assert {handoff.RUNS[r]["dir"] for r in night.SEQUENCE} == {"r1", "r2", "r3"}
+
+
+def test_one_worst_turn_per_call_from_claude_code_s_rates() -> None:
+    assert handoff.WORST_TURN["sonnet"] == pytest.approx(0.44)
+    assert handoff.WORST_TURN["opus"] == pytest.approx(0.84)
+    assert handoff.reserve_of("sonnet", "H") == pytest.approx(3 * (0.80 + 0.44))
+    assert handoff.reserve_of("sonnet", "N0") == pytest.approx(2 * (0.80 + 0.44))
+    assert handoff.reserve_of("opus", "S") == pytest.approx(2 * (1.50 + 0.84) + 0.10)
+    for run in night.SEQUENCE:  # every run's cap holds at least one triple's reserve
+        spec = handoff.RUNS[run]
+        assert spec["cap"] > sum(handoff.reserve_of(spec["model"], a) for a in handoff.ARMS)
 
 
 def test_command_resumes_with_the_owner_s_wording_under_the_same_cap() -> None:
@@ -84,8 +105,9 @@ def test_command_resumes_with_the_owner_s_wording_under_the_same_cap() -> None:
 
 # ---- the handoff's NOT RUN rules ---------------------------------------------------------------
 
+PIN_INIT = {"version": carry.PIN, "model": carry.MODELS["sonnet"]}
 GOOD = {"returncode": 0, "subtype": "success", "text": "Continue with step 2...", "cost": 0.02,
-        "cost_reported": True, "context_carried": True}  # fmt: skip
+        "cost_reported": True, "context_carried": True, "init": PIN_INIT}  # fmt: skip
 
 
 @pytest.mark.parametrize(("change", "why"), [
@@ -96,18 +118,37 @@ GOOD = {"returncode": 0, "subtype": "success", "text": "Continue with step 2..."
     ({"cost": 0.0}, "handoff: no cost reported"),
     ({"context_carried": False}, "handoff: the resumed turn did not carry"),
     ({"context_carried": None}, ""),
-    ({"text": "x" * 30_001}, "handoff: text over"),
+    ({"text": "x" * 32_700}, "handoff: session 2's command line"),
     ({"timeout": True}, "handoff: timeout"),
+    ({"init": {**PIN_INIT, "version": "2.1.300"}}, "handoff: ran"),
+    ({"init": {**PIN_INIT, "model": "claude-opus-5-5"}}, "handoff: ran"),
 ])  # fmt: skip
 def test_handoff_cut(change: dict[str, Any], why: str) -> None:
-    got = handoff.handoff_cut({}, {**GOOD, **change})
+    got = handoff.handoff_cut({**GOOD, **change}, "sonnet")
     assert got.startswith(why) and bool(got) == bool(why)
 
 
-def test_context_carried_compares_the_resumed_prompt_with_session_1() -> None:
+def test_context_carried_needs_half_of_session_1_s_context() -> None:
     assert handoff.carried({"last_prompt": 30000}, {"first_prompt": 31000}) is True
-    assert handoff.carried({"last_prompt": 30000}, {"first_prompt": 18000}) is False
+    assert handoff.carried({"last_prompt": 30000}, {"first_prompt": 16000}) is True
+    assert handoff.carried({"last_prompt": 30000}, {"first_prompt": 14000}) is False
     assert handoff.carried({"last_prompt": None}, {"first_prompt": 18000}) is None
+
+
+def test_the_weekly_limit_is_read_from_a_short_or_error_result_too() -> None:
+    assert hc.limit_text({"text": "You've hit your limit · resets 3am"}, "")
+    assert hc.limit_text({"text": "x" * 900 + " weekly limit", "is_error": True}, "")
+    assert not hc.limit_text({"text": "x" * 900 + " no usage limit here"}, "")
+    assert hc.limit_text({"text": "done"}, "Claude AI usage limit reached")
+    assert not hc.limit_text({"text": "Added fetch_all with limit=100."}, "")
+
+
+def test_checks_run_without_the_keys_path_or_pythonpath(tmp_path: Path, monkeypatch: Any) -> None:
+    monkeypatch.setenv("SANCHOPANZA_KEYS_ENV", "C:/somewhere/.env")
+    monkeypatch.setenv("PYTHONPATH", "C:/somewhere/src")
+    code = ("import os, sys; sys.exit(int(any(k in os.environ for k in "
+            "('SANCHOPANZA_KEYS_ENV', 'PYTHONPATH', 'TYPESAFE_API_KEY'))))")  # fmt: skip
+    assert handoff.passes(tmp_path, code)
 
 
 def test_decoys_never_touch_the_scene() -> None:
@@ -127,13 +168,12 @@ def row(scene: str, arm: str, rep: int = 0, **over: Any) -> dict[str, Any]:
             "sessions": [{"cost": 0.1}], "tokens": {"input": 1, "output": 2, "cache_read": 3,
                                                     "cache_write": 4}}  # fmt: skip
     if arm == "H":
-        base["handoff"] = {
-            "chars": 900,
-            "cost_reported": True,
-            "cost": 0.03,
-            "names": {"C": True, "D": True},
-            "tokens": {"output": 300},
-        }
+        base["handoff"] = {"chars": 900, "cost_reported": True, "cost": 0.03,
+                           "context_carried": True, "names": {"C": True, "D": True},
+                           "tokens": {"output": 300}}  # fmt: skip
+        base["pasted_verbatim"] = True
+    if arm == "S":
+        base["hook_starts"] = 2
     return {**base, **over}
 
 
@@ -142,19 +182,26 @@ def pilot_rows(**per: dict[str, Any]) -> list[dict[str, Any]]:
     return [row(s, a, r, **per.get(f"{s}:{a}", {})) for s, _, a, r in plan]
 
 
-def test_gate_passes_when_all_four_hold() -> None:
+def test_gate_passes_when_all_five_hold() -> None:
     result = an.gate(pilot_rows(), handoff.build_plan("f2-pilot"))
     assert result["pass"] and result["reasons"] == []
-    assert "PASS" in an.gate_text(result)
+    assert "PASS" in an.gate_text(result) and "(e) holds" in an.gate_text(result)
+
+
+HAND = {"chars": 500, "cost_reported": True, "context_carried": True}
 
 
 @pytest.mark.parametrize(("per", "letter"), [
     ({"h_batch:H": {"cut": "handoff: no text", "handoff": {"chars": 0}}}, "a"),
-    ({"h_weeks:H": {"handoff": {"chars": 500, "cost_reported": False}}}, "a"),
+    ({"h_weeks:H": {"handoff": {**HAND, "cost_reported": False}}}, "a"),
+    ({"h_weeks:H": {"handoff": {**HAND, "context_carried": None}}}, "a"),
+    ({"h_spanish:H": {"pasted_verbatim": False}}, "a"),
+    ({"h_spanish:H": {"pasted_verbatim": None}}, "a"),
     ({"h_spanish:S": {"fact_pass": None}}, "b"),
     ({"h_spanish:N0": {"cut": "timeout"}}, "b"),
     ({"h_weeks:N0": {"task_pass": False}, "h_weeks:H": {"task_pass": False},
       "h_weeks:S": {"task_pass": False}}, "c"),
+    ({"h_nomutate:S": {"hook_starts": 1}}, "e"),
 ])  # fmt: skip
 def test_gate_fails_on_each_condition(per: dict[str, Any], letter: str) -> None:
     result = an.gate(pilot_rows(**per), handoff.build_plan("f2-pilot"))
@@ -170,36 +217,55 @@ def test_gate_fails_when_n0_keeps_everything_or_an_arm_is_missing() -> None:
     assert not short["pass"] and "without a row" in short["reasons"][0]
 
 
-# ---- analysis ----------------------------------------------------------------------------------
+# ---- analysis and verdicts ---------------------------------------------------------------------
+
+
+def sonnet_rows(**change: Any) -> list[dict[str, Any]]:
+    return [row(s, a, r, **(change if a == "S" else {}))
+            for s, _, a, r in handoff.build_plan("f2-sonnet")]  # fmt: skip
 
 
 def test_analyse_reads_the_criteria_in_sequence() -> None:
-    rows = [row(s, a, r) for s, _, a, r in handoff.build_plan("f2-sonnet")]
+    rows = sonnet_rows()
     result = an.analyse(rows, "sonnet")
     assert result["triples"] == 48 and result["S_vs_H"]["a_only"] == 0
     assert result["criteria"]["1_s_not_worse_than_h"] and result["criteria"]["2_s_better_than_n0"]
     assert result["verdict"] == "S not worse than H; S better than N0"
+    assert result["S_vs_H"]["tango_lower_95_raw"] > -an.MARGIN
     worse = [r if r["arm"] != "S" or r["repeat"] > 2 else {**r, "kept_all": False} for r in rows]
     got = an.analyse(worse, "sonnet")
     assert not got["criteria"]["1_s_not_worse_than_h"]
     assert got["criteria"]["2_s_better_than_n0"] is None and got["verdict"] == "not shown"
-    few = an.analyse(rows[:30], "sonnet")
-    assert few["verdict"] == "sin veredicto"
+    assert an.analyse(rows[:30], "sonnet")["verdict"] == "sin veredicto"
     assert result["handoff_names"]["both"] == 48 and result["cost_ratio_median"]["S/H"] > 1
+
+
+def test_no_harm_is_needed_for_either_claim() -> None:
+    harmed = an.analyse(sonnet_rows(tests_pass=False), "sonnet")
+    assert harmed["criteria"]["1_s_not_worse_than_h"] and not harmed["criteria"]["5a_tests"]
+    assert harmed["verdict"] == "not shown"
+    assert an.verdict_of("opus", True, True, True, True) == (
+        "direction only: S not worse than H; S better than N0"
+    )
+    assert an.verdict_of("opus", True, True, True, False) == "direction only: not shown"
+    assert an.verdict_of("sonnet", True, True, False, True) == "S not worse than H"
+    assert an.verdict_of("sonnet", True, False, True, True) == "not shown"
 
 
 # ---- the run's stops ---------------------------------------------------------------------------
 
 
-def fake_arm(results: list[dict[str, Any]]):
-    calls: list[tuple[str, str, int]] = []
+def fake_arm(results: list[Any]):
+    calls: list[tuple[str, str, int, str]] = []
 
-    def arm(out: Path, name: str, model: str, arm: str, rep: int, keyfile: Path,
+    def arm(out: Path, work: Path, name: str, model: str, arm: str, rep: int, keyfile: Path,
             dry: bool) -> dict[str, Any]:  # fmt: skip
-        (out / f"{name}-{model}-{arm}-{rep}").mkdir(parents=True, exist_ok=True)
-        calls.append((name, arm, rep))
+        work.mkdir(parents=True, exist_ok=True)
+        calls.append((name, arm, rep, work.name))
         extra = results.pop(0) if results else {}
-        return {**row(name, arm, rep), **extra}
+        if isinstance(extra, Exception):
+            raise extra
+        return {**row(name, arm, rep), "folder": str(work), **extra}
 
     return arm, calls
 
@@ -209,14 +275,18 @@ NOON = dt.datetime(2026, 10, 15, 12, 0)
 
 def go(out: Path, arm_fn: Any, cap: float = 100.0, clock: Any = lambda: NOON,
        sleep: Any = lambda s: None) -> str:  # fmt: skip
-    return handoff.run_plan(out, "f2-pilot", out / "k", False, cap, None, clock, sleep, arm_fn)
+    return handoff.run_plan(out / "lot", "f2-pilot", out / "k", False, cap, None, clock, sleep,
+                            arm_fn, work_root=out / "w")  # fmt: skip
 
 
-def test_the_run_ends_writes_rows_and_resumes_for_free(tmp_path: Path) -> None:
+def test_the_run_ends_writes_rows_atomically_and_resumes_for_free(tmp_path: Path) -> None:
     arm, calls = fake_arm([])
     assert go(tmp_path, arm) == ""
-    assert len(handoff.rows_of(tmp_path)) == 12 and handoff.complete(tmp_path, "f2-pilot")
-    assert handoff.ledger(tmp_path) == pytest.approx(12 * 0.3 + 4 * 0.001)
+    lot = tmp_path / "lot"
+    assert len(handoff.rows_of(lot)) == 12 and handoff.complete(lot, "f2-pilot")
+    assert not (lot / "f2.json.tmp").exists()
+    assert handoff.ledger(lot) == pytest.approx(12 * 0.3 + 4 * 0.001)
+    assert {c[3] for c in calls} == {p.name for p in (tmp_path / "w").iterdir()}
     again, more = fake_arm([])
     assert go(tmp_path, again) == "" and more == []
 
@@ -224,46 +294,68 @@ def test_the_run_ends_writes_rows_and_resumes_for_free(tmp_path: Path) -> None:
 def test_the_cap_stops_before_an_arm(tmp_path: Path) -> None:
     arm, calls = fake_arm([{"cost": 3.0}] * 12)
     assert go(tmp_path, arm, cap=11.5) == "cap"
-    assert handoff.ledger(tmp_path) + 2.0 <= 11.5 + 2.8 and len(calls) < 12
+    assert len(calls) == 3 and handoff.ledger(tmp_path / "lot") == pytest.approx(9.001)
 
 
 def test_a_usage_limit_pauses_without_a_row(tmp_path: Path) -> None:
     arm, calls = fake_arm([{}, {"limit_hit": True, "cut": "usage limit"}])
     assert go(tmp_path, arm) == "limit"
-    assert (tmp_path / "LIMIT.flag").exists() and len(handoff.rows_of(tmp_path)) == 1
-    assert list(tmp_path.glob("*.limit-*"))
+    assert (tmp_path / "lot" / "LIMIT.flag").exists() and len(
+        handoff.rows_of(tmp_path / "lot")
+    ) == 1
+    assert list((tmp_path / "w").glob(f"{calls[1][3]}.limit-*"))
 
 
-def test_stop_file_and_interrupted_arms(tmp_path: Path) -> None:
-    (tmp_path / "STOP").write_text("")
+def test_an_exception_in_an_arm_is_not_run_and_the_night_goes_on(tmp_path: Path) -> None:
+    arm, calls = fake_arm([RuntimeError("boom")])
+    assert go(tmp_path, arm) == ""
+    rows = handoff.rows_of(tmp_path / "lot")
+    cut = [r for r in rows if r.get("cut")]
+    assert len(rows) == 12 and len(cut) == 1
+    assert cut[0]["cut"] == "harness exception: RuntimeError"
+
+
+def test_stop_file_and_interrupted_arms_are_set_aside(tmp_path: Path) -> None:
+    lot = tmp_path / "lot"
+    lot.mkdir()
+    (lot / "STOP").write_text("")
     arm, calls = fake_arm([])
     assert go(tmp_path, arm) == "manual" and calls == []
-    (tmp_path / "STOP").unlink()
+    (lot / "STOP").unlink()
     first = handoff.build_plan("f2-pilot")[0]
-    folder = tmp_path / f"{first[0]}-{first[1]}-{first[2]}-{first[3]}"
-    folder.mkdir()
-    (folder / "session-1.jsonl").write_text(
+    name = handoff.folder_name("f2-pilot", 0, first[2])
+    (tmp_path / "w" / name).mkdir(parents=True)
+    (lot / "arms" / name).mkdir(parents=True)
+    (lot / "arms" / name / "session-1.jsonl").write_text(
         json.dumps({"type": "result", "total_cost_usd": 0.25}) + "\n"
     )
     assert go(tmp_path, arm) == ""
-    assert handoff.ledger(tmp_path) == pytest.approx(0.25 + 12 * 0.3 + 4 * 0.001)
-    assert json.loads((tmp_path / "interrupts.json").read_text()) == {folder.name: 1}
+    assert handoff.ledger(lot) == pytest.approx(0.25 + 12 * 0.3 + 4 * 0.001)
+    assert json.loads((lot / "interrupts.json").read_text()) == {name: 1}
+    assert list((tmp_path / "w").glob(f"{name}.interrupted-*"))
+    assert list((lot / "arms").glob(f"{name}.interrupted-*"))
 
 
 def test_an_arm_interrupted_too_often_is_not_run(tmp_path: Path) -> None:
     first = handoff.build_plan("f2-pilot")[0]
-    name = f"{first[0]}-{first[1]}-{first[2]}-{first[3]}"
-    (tmp_path / "interrupts.json").write_text(json.dumps({name: handoff.INTERRUPTS}))
-    (tmp_path / name).mkdir()
+    name = handoff.folder_name("f2-pilot", 0, first[2])
+    (tmp_path / "lot").mkdir()
+    (tmp_path / "lot" / "interrupts.json").write_text(json.dumps({name: handoff.INTERRUPTS}))
+    (tmp_path / "w" / name).mkdir(parents=True)
     arm, calls = fake_arm([])
     assert go(tmp_path, arm) == ""
-    cut = [r for r in handoff.rows_of(tmp_path) if r.get("cut")]
+    cut = [r for r in handoff.rows_of(tmp_path / "lot") if r.get("cut")]
     assert len(cut) == 1 and cut[0]["cut"].startswith("interrupted")
 
 
 def test_arms_without_a_result_in_a_row_stop_the_run(tmp_path: Path) -> None:
     arm, calls = fake_arm([{"cut": "session-1 ended without a result (exit 1)"}] * 3)
     assert go(tmp_path, arm) == "broken" and len(calls) == 3
+
+
+def test_s_not_running_as_s_stops_the_run(tmp_path: Path) -> None:
+    arm, calls = fake_arm([{"cut": "harness: session-1: MCP server sanchopanza: failed"}])
+    assert go(tmp_path, arm) == "harness" and len(calls) == 1
 
 
 def test_the_midnight_rule_waits_for_the_next_day(tmp_path: Path) -> None:
@@ -274,121 +366,97 @@ def test_the_midnight_rule_waits_for_the_next_day(tmp_path: Path) -> None:
     assert slept and len(calls) == 12
 
 
-# ---- the seal ----------------------------------------------------------------------------------
+# ---- the seal and the sealed checkout ----------------------------------------------------------
 
 
-def test_seal_is_written_once_and_breaks_on_any_change(tmp_path: Path) -> None:
+def fake_repo(tmp_path: Path) -> tuple[Path, Path]:
     repo, results = tmp_path / "repo", tmp_path / "repo" / "docs" / "results" / "x"
-    for rel in (*handoff.SEALED_FIXED, "src/sanchopanza/a.py"):
+    for rel in (*hseal.SEALED_FIXED, "src/sanchopanza/a.py", "src/sanchopanza/h/skill.md"):
         (repo / rel).parent.mkdir(parents=True, exist_ok=True)
         (repo / rel).write_text(f"# {rel}\n")
     results.mkdir(parents=True)
     (results / "prereg.md").write_text("prereg\r\n")
-    assert not handoff.seal_ok(repo, results)
-    value = handoff.seal(repo, results)
-    assert handoff.seal_ok(repo, results) and handoff.seal(repo, results) == value
-    assert "src/sanchopanza/a.py" in json.loads((results / "prereg.manifest.json").read_text())
-    (repo / "src/sanchopanza/a.py").write_text("# changed\n")
-    assert not handoff.seal_ok(repo, results)
+    return repo, results
+
+
+def test_seal_covers_every_src_file_and_pyproject_and_is_written_once(tmp_path: Path) -> None:
+    repo, results = fake_repo(tmp_path)
+    assert not hseal.seal_ok(repo, results)
+    value = hseal.seal(repo, results)
+    assert hseal.seal_ok(repo, results) and hseal.seal(repo, results) == value
+    sealed = json.loads((results / "prereg.manifest.json").read_text())
+    assert {"src/sanchopanza/a.py", "src/sanchopanza/h/skill.md", "pyproject.toml",
+            "benchmarks/meter.py"} <= set(sealed)  # fmt: skip
+    (repo / "src/sanchopanza/h/skill.md").write_text("# changed\n")
+    assert not hseal.seal_ok(repo, results)
     with pytest.raises(SystemExit):
-        handoff.seal(repo, results)
+        hseal.seal(repo, results)
+
+
+def git(repo: Path, *args: str) -> None:
+    subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@example.org",
+                    *args], check=True, capture_output=True)  # fmt: skip
+
+
+def test_the_checkout_must_be_the_sealing_commit_and_clean(tmp_path: Path) -> None:
+    repo, results = fake_repo(tmp_path)
+    git(repo, "init", "-q")
+    hseal.seal(repo, results)
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "seal")
+    assert hseal.checkout_refusal(repo, results) == ""
+    (repo / "notes.txt").write_text("x")
+    assert "not clean" in hseal.checkout_refusal(repo, results)
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "later")
+    assert "not the sealing commit" in hseal.checkout_refusal(repo, results)
 
 
 def test_the_live_night_refuses_without_the_seal(tmp_path: Path, monkeypatch: Any) -> None:
-    monkeypatch.setattr(handoff, "seal_ok", lambda *a: False)
-    with pytest.raises(SystemExit):
+    monkeypatch.setattr(hseal, "seal_ok", lambda *a: False)
+    with pytest.raises(SystemExit) as stop:
         night.night(tmp_path)
+    assert stop.value.code == hseal.SEALED_CHECKOUT_REFUSED
+
+
+def fake_execute(ran: list[Any]):
+    def execute(run: str, out: Path, cap: float, dry: bool = False, night: Path | None = None,
+                work_root: Path | None = None) -> str:  # fmt: skip
+        ran.append((run, cap))
+        return ""
+
+    return execute
 
 
 def test_the_night_stops_at_a_failed_gate(tmp_path: Path, monkeypatch: Any) -> None:
-    ran: list[str] = []
-    monkeypatch.setattr(handoff, "require_seal", lambda: None)
-    monkeypatch.setattr(handoff, "execute", lambda run, out, cap, dry=False, night=None:
-                        ran.append(run) or "")  # fmt: skip
+    ran: list[Any] = []
+    monkeypatch.setattr(hseal, "require_sealed_checkout", lambda: None)
+    monkeypatch.setattr(handoff, "execute", fake_execute(ran))
     (tmp_path / "f2-pilot").mkdir()
     (tmp_path / "f2-pilot" / "f2.json").write_text(
         json.dumps(pilot_rows(**{f"{s}:N0": {"kept_all": True} for s in handoff.HANDOFF_PILOT}))
     )
-    assert night.night(tmp_path) == night.GATE_FAIL and ran == ["f2-pilot"]
+    assert night.night(tmp_path) == night.GATE_FAIL and [r for r, _ in ran] == ["f2-pilot"]
     assert "FAIL" in (tmp_path / "gate.md").read_text()
     assert not (tmp_path / "night.lock").exists()
 
 
 def test_the_night_runs_the_sequence_after_a_passing_gate(tmp_path: Path,
                                                           monkeypatch: Any) -> None:  # fmt: skip
-    caps: list[tuple[str, float]] = []
-    monkeypatch.setattr(handoff, "require_seal", lambda: None)
-    monkeypatch.setattr(handoff, "execute", lambda run, out, cap, dry=False, night=None:
-                        caps.append((run, cap)) or "")  # fmt: skip
+    ran: list[Any] = []
+    monkeypatch.setattr(hseal, "require_sealed_checkout", lambda: None)
+    monkeypatch.setattr(handoff, "execute", fake_execute(ran))
     (tmp_path / "f2-pilot").mkdir()
     (tmp_path / "f2-pilot" / "f2.json").write_text(json.dumps(pilot_rows()))
     handoff.book(tmp_path / "f2-pilot", "arm", 7.0, "x")
     handoff.book(tmp_path / "f2-sonnet", "arm", 120.0, "y")
     assert night.night(tmp_path) == 0
-    assert caps == [("f2-pilot", 11.5), ("f2-sonnet", 109.0), ("f2-opus", 103.0)]
+    assert ran == [("f2-pilot", 11.5), ("f2-sonnet", 109.0), ("f2-opus", 103.0)]
 
 
-# ---- a whole H arm against a stand-in claude ---------------------------------------------------
-
-STEP1 = """def label_for(order):
-    return {'to': order['name'], 'address': order['address'],
-            'weight_kg': round(order['weight_g'] / 1000, 2)}
-"""
-STEP2 = """
-
-def ship_all(orders, carrier):
-    paid = [label_for(o) for o in orders if o['paid']]
-    out = []
-    for i in range(0, len(paid), 50):
-        out += carrier.create_labels(paid[i:i + 50])
-    return out
-"""
-FAKE = r"""
-import json, os, pathlib, sys
-prompt, resume = sys.argv[1], sys.argv[2]
-here = pathlib.Path(__file__).parent
-log = pathlib.Path(os.environ["FAKE_LOG"])
-calls = json.loads(log.read_text()) if log.exists() else []
-log.write_text(json.dumps(calls + [{"prompt": prompt, "resume": resume}]))
-sid = resume or f"sid-{len(calls)}"
-size = 40000 if resume else 20000
-step1, step2 = (here / "step1.txt").read_text(), (here / "step2.txt").read_text()
-if not resume:
-    code = step1 if "Step 1" in prompt else step1 + step2
-    pathlib.Path("app/labels.py").write_text(code)
-text = "HANDOFF: ship_all with create_labels, at most 50 per call." if resume else "done"
-init = {"type": "system", "subtype": "init", "session_id": sid,
-        "model": "claude-sonnet-5-5", "claude_code_version": "2.1.287"}
-usage = {"input_tokens": 10, "cache_read_input_tokens": size}
-said = {"type": "assistant", "message": {"content": [], "usage": usage}}
-result = {"type": "result", "subtype": "success", "total_cost_usd": 0.05, "num_turns": 2,
-          "result": text, "usage": {**usage, "output_tokens": 20,
-                                    "cache_creation_input_tokens": 5}}
-for e in (init, said, result):
-    print(json.dumps(e))
-"""
-
-
-def test_a_whole_h_arm_resumes_pastes_the_handoff_and_checks(tmp_path: Path,
-                                                             monkeypatch: Any) -> None:  # fmt: skip
-    fake = tmp_path / "fake_claude.py"
-    fake.write_text(FAKE)
-    (tmp_path / "step1.txt").write_text(STEP1)
-    (tmp_path / "step2.txt").write_text(STEP2)
-    monkeypatch.setenv("FAKE_LOG", str(tmp_path / "calls.json"))
-    monkeypatch.setenv(carry.TOKEN, "tok-test-123")
-    monkeypatch.setattr(handoff, "command", lambda prompt, model, resume=None:
-                        [sys.executable, str(fake), prompt, resume or ""])  # fmt: skip
-    got = handoff.arm_run(tmp_path / "out", "h_batch", "sonnet", "H", 0, tmp_path / "k", False)
-    calls = json.loads((tmp_path / "calls.json").read_text())
-    assert [c["resume"] for c in calls] == ["", "sid-0", ""]
-    assert calls[1]["prompt"] == handoff.HANDOFF_REQUEST
-    assert calls[2]["prompt"].startswith("HANDOFF:")
-    assert (
-        (tmp_path / "out" / "h_batch-sonnet-H-0" / "handoff.txt").read_text().startswith("HANDOFF:")
-    )
-    assert not got.get("cut") and got["kept_all"] and got["intact_pass"]
-    assert got["handoff"]["context_carried"] and got["handoff"]["names"] == {"C": True, "D": True}
-    assert got["cost"] == pytest.approx(0.15) and got["tokens"]["output"] == 60
-    n0 = handoff.arm_run(tmp_path / "out", "h_batch", "sonnet", "N0", 0, tmp_path / "k", False)
-    assert n0["kept_all"] and n0["cost"] == pytest.approx(0.10)
+def test_the_night_refuses_at_a_limit_flag_in_the_root(tmp_path: Path, monkeypatch: Any) -> None:
+    ran: list[Any] = []
+    monkeypatch.setattr(hseal, "require_sealed_checkout", lambda: None)
+    monkeypatch.setattr(handoff, "execute", fake_execute(ran))
+    (tmp_path / "LIMIT.flag").write_text("x")
+    assert night.night(tmp_path) == handoff.EXIT["limit"] and ran == []
