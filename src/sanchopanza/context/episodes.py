@@ -60,6 +60,9 @@ KEEP_DAYS = 30  # records older than this are removed when a project's records a
 # key -> {"changed", "at"} of every record in a project's folder: the touch reads this one file
 # (300 record files took 0.75-3.2 s to load cold on Windows, 2026-10-01).
 INDEX = "index.json"
+# A record's file name, `safe_name(Episode.key)`: the store also keeps the standing rules
+# (`rules.json`) and the adoption stamp beside the records, and the retention must not take them.
+RECORD_NAME = re.compile(r"^.+-\d{3,}\.json$")
 # v4: a record keeps, per file, prints of the lines its request wrote (16+ characters, the last
 # WROTE_MAX per file), never shown, so that a later Read or Edit can say whose code it is at.
 LINE_MIN = 16
@@ -576,12 +579,15 @@ def load_keys(folder: Path, keys: Iterable[str]) -> list[Episode]:
 
 
 def _is_record(path: Path) -> bool:
-    return path.name != INDEX and not path.name.startswith(".tmp-")
+    """A name `save` writes (`<session>-<NNN>.json`, `Episode.key`): never the index, the
+    standing rules (`rules.json`), the adoption stamp or a writer's temporary file."""
+    return RECORD_NAME.match(path.name) is not None and not path.name.startswith(".tmp-")
 
 
 def prune(folder: Path, before: float) -> None:
+    """Remove the records last written before `before`; every other file of the store stays."""
     for path in folder.glob("*.json"):
-        if path.name == INDEX:
+        if not _is_record(path):
             continue
         try:
             if path.stat().st_mtime < before:
