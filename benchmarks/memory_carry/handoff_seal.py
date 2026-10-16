@@ -43,6 +43,7 @@ SEALED_FIXED_W17 = (
     "tests/test_memory_carry_handoff_work.py", "tests/test_memory_carry_w17.py",
 )  # fmt: skip
 LOTS = {"f2": (RESULTS, SEALED_FIXED), "w17": (RESULTS_W17, SEALED_FIXED_W17)}
+PATH_WORDS = {"w17": ("f2", "memory", "handoff", "memlot", "w17", "sonnet", "opus")}
 SEALED_GLOBS = ("src/sanchopanza/**/*", "benchmarks/memory_carry/*.py")
 NOT_CODE = ("__pycache__",)
 SEALED_CHECKOUT_REFUSED = 11
@@ -110,9 +111,16 @@ def checkout_refusal(repo: Path = REPO, results: Path = RESULTS,
     return ""
 
 
+def path_refusal(lot: str, repo: Path = REPO) -> str:
+    """W17: the checkout's own path may not name the lot (S's installed hooks show it to the
+    agent); the launcher checks the same words."""
+    named = [w for w in PATH_WORDS.get(lot, ()) if w in str(repo).lower()]
+    return f"the checkout's path {repo} names the lot ({', '.join(named)})" if named else ""
+
+
 def require_sealed_checkout(lot: str = "f2", repo: Path = REPO) -> None:
     results, fixed = LOTS[lot]
-    why = checkout_refusal(repo, results, fixed)
+    why = path_refusal(lot, repo) or checkout_refusal(repo, results, fixed)
     if why:
         print(f"refused: {why}; nothing run", flush=True)
         raise SystemExit(SEALED_CHECKOUT_REFUSED)

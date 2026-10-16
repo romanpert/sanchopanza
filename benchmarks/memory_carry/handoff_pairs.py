@@ -13,8 +13,8 @@ pairs resampled (DRAWS, SEED), as F2's descriptive one (`handoff_cost_ci.bootstr
   hold; "S' better than N0; no gana (cost)" when S1 and S3 hold; "not shown" otherwise.
 - **Opus 5.5** (`w17-opus`): O1 the cost ratio's upper bound <= COST_BOUND["opus"]; O2 kept all
   not worse, the one-sided 95 % Tango lower bound of S' - N0 above -MARGIN; O3 no harm as S3.
-  "no extra cost" when O1, O2 and O3 hold; "costs extra" when the ratio's lower bound is above
-  1; "not determined" otherwise.
+  In order: "costs extra" when the ratio's lower bound is above 1 (whatever O1 says); "no extra
+  cost" when O1, O2 and O3 hold; "not determined" otherwise.
 - **Scoreboard** (both, `scoreboard`): "sin margen" when N0 failed kept all in fewer than
   HEADROOM of the pairs; "gana (coste)" when the ratio's upper bound is below 1, O2's bound
   holds and there is no harm; "gana (éxito)" when S1 holds, the ratio's upper bound is within
@@ -32,6 +32,8 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import random
+import statistics
 import sys
 from collections import Counter
 from pathlib import Path
@@ -53,7 +55,7 @@ from handoff_analyze import (  # noqa: E402
     touched,
     triples,
 )
-from handoff_cost_ci import bootstrap_median  # noqa: E402
+from handoff_cost_ci import percentile  # noqa: E402
 
 ARMS = ("N0", "S")
 SEED = 20261017
@@ -69,19 +71,31 @@ def s_cost(t: dict[str, dict[str, Any]]) -> float:
 
 
 def ratio_interval(values: list[float]) -> dict[str, Any]:
-    got = bootstrap_median(values, DRAWS, SEED)
-    return {"pairs": got["triples"], "median": got["median"], "ci95": got["ci95"],
-            "draws": DRAWS, "seed": SEED}  # fmt: skip
+    """The median and its percentile bootstrap 95 % interval (`ci95`, rounded for reading);
+    the rules read `ci95_raw`, unrounded. `values` in the pairs' fixed order (`by_pair`)."""
+    rng = random.Random(SEED)
+    n = len(values)
+    meds = sorted(statistics.median(rng.choices(values, k=n)) for _ in range(DRAWS))
+    raw = [percentile(meds, 0.025), percentile(meds, 0.975)]
+    return {"pairs": n, "median": round(statistics.median(values), 6),
+            "ci95": [round(x, 4) for x in raw], "ci95_raw": raw, "draws": DRAWS,
+            "seed": SEED}  # fmt: skip
+
+
+def by_pair(done: dict[Any, dict[str, dict[str, Any]]]) -> list[dict[str, dict[str, Any]]]:
+    """The pairs sorted by (scene, model, repetition): the bootstrap does not depend on the
+    order rows were written in."""
+    return [done[k] for k in sorted(done)]
 
 
 def cost_ratios(done: dict[Any, dict[str, dict[str, Any]]]) -> list[float]:
-    return [s_cost(t) / float(t["N0"]["cost"]) for t in done.values() if t["N0"]["cost"]]
+    return [s_cost(t) / float(t["N0"]["cost"]) for t in by_pair(done) if t["N0"]["cost"]]
 
 
 def first_session_ratios(done: dict[Any, dict[str, dict[str, Any]]]) -> list[float]:
     """S's session 1 over N0's: the same prompt and the same work, so the install's own cost."""
     out = []
-    for t in done.values():
+    for t in by_pair(done):
         s, n = (float((t[a].get("sessions") or [{}])[0].get("cost") or 0) for a in ("S", "N0"))
         if n:
             out.append(s / n)
@@ -91,7 +105,8 @@ def first_session_ratios(done: dict[Any, dict[str, dict[str, Any]]]) -> list[flo
 def harm(done: dict[Any, dict[str, dict[str, Any]]], run: Path | None) -> dict[str, Any]:
     n = len(done)
     tests = {a: sum(bool(t[a].get("tests_pass")) for t in done.values()) for a in ARMS}
-    false_sb = sum(own_sendbacks(t["S"], run) for t in done.values())
+    false_sb = sum(int(t["S"]["sendbacks_other_rule"]) if "sendbacks_other_rule" in t["S"]
+                   else own_sendbacks(t["S"], run) for t in done.values())  # fmt: skip
     return {"tests": tests["S"] >= tests["N0"] - math.floor(MARGIN * n),
             "false_sendbacks": false_sb, "sendbacks": false_sb <= SENDBACK_RATE * n}  # fmt: skip
 
@@ -124,9 +139,11 @@ def verdict_of(model: str, enough: bool, c: dict[str, Any], ci: list[float]) -> 
         if c["s1_better"] and c["s3_tests"] and c["s3_sendbacks"]:
             return "gana" if c["s2_cost"] else "S' better than N0; no gana (cost)"
         return "not shown"
+    if ci[0] > 1.0:  # first: an interval wholly above 1 is extra cost, however small
+        return "costs extra"
     if c["o1_cost"] and c["o2_not_worse"] and c["o3_tests"] and c["o3_sendbacks"]:
         return "no extra cost"
-    return "costs extra" if ci[0] > 1.0 else "not determined"
+    return "not determined"
 
 
 def analyse(rows: list[dict[str, Any]], model: str, run: Path | None = None,
@@ -138,8 +155,9 @@ def analyse(rows: list[dict[str, Any]], model: str, run: Path | None = None,
     n = len(done)
     cmp = compare(done, "S", "N0")
     ratios = cost_ratios(done)
-    cost = ratio_interval(ratios) if ratios else {"median": None, "ci95": [math.inf, math.inf]}
-    ci = cost["ci95"]
+    cost = ratio_interval(ratios) if ratios else {"median": None, "ci95": [math.inf, math.inf],
+                                                  "ci95_raw": [math.inf, math.inf]}  # fmt: skip
+    ci = cost["ci95_raw"]
     no_harm = harm(done, run)
     tango_ok = cmp["tango_lower_95_raw"] > -MARGIN
     bound = COST_BOUND[model]
@@ -199,7 +217,10 @@ def main(argv: list[str] | None = None) -> int:
     import handoff
 
     run = Path(args.run)
-    name = run.name if run.name in handoff.RUNS else "w17-sonnet"
+    name = run.name
+    if name not in handoff.RUNS or handoff.lot_of(name) != "w17":
+        runs = ", ".join(handoff.LOTS["w17"]["sequence"])
+        raise SystemExit(f"{run}: not a W17 run folder ({runs})")
     plan = handoff.build_plan(name)
     planned = sorted({(s, m, r) for s, m, _, r in plan})
     result = analyse(handoff.rows_of(run), handoff.RUNS[name]["model"], run, planned)

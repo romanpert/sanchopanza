@@ -162,8 +162,13 @@ def caps_check(lot: str = "f2") -> tuple[bool, str]:
         ok = ok and spec["cap"] >= triple
         lines.append(f"{run}: cap {spec['cap']}, one triple's (pair's) reserve {triple:.2f}")
     total = sum(handoff.RUNS[r]["cap"] for r in runs)
-    ok = ok and total <= night_cap
-    return ok, "; ".join(lines) + f"; caps sum {total} <= night {night_cap}"
+    if lot == "f2":
+        ok = ok and total <= night_cap
+        return ok, "; ".join(lines) + f"; caps sum {total} <= night {night_cap}"
+    # W17: each run's cap is min(its cap, night cap - the other run's spend) in code, so the
+    # night cap binds the two together whichever runs first.
+    ok = ok and all(handoff.RUNS[r]["cap"] <= night_cap for r in runs)
+    return ok, "; ".join(lines) + f"; each <= night {night_cap}, which binds both in code"
 
 
 def isolation_check(root: Path, work: Path | None = None) -> tuple[bool, str]:

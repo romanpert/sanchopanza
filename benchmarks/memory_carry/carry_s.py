@@ -29,6 +29,7 @@ SRC = HERE.parents[1] / "src"
 LAUNCHER = HERE / "carry_hook.py"
 S_INSTALL = ("install", "--scope", "project", "--memory", "--write")
 SERVER = "sanchopanza"  # install_defaults.FIND_SERVER
+SKILL = "sanchopanza-code"  # install_defaults.SKILL_NAME
 JEV_RESERVE = 0.05  # USD of Jev held per S session before a pair (at ~3e-5 a decision: ~1,600)
 INSTALLED = (".claude/settings.json", ".claude/skills/sanchopanza-code/SKILL.md", ".mcp.json")
 U_INSTALL = ("install", "--scope", "user", "--memory", "--write")  # W17: the user's settings
@@ -192,6 +193,8 @@ def session_breaks(run: Path, result: Mapping[str, Any], since: int = 0,
     if server is None:
         if not any(r.get("event") == "SessionStart" for r in mine):
             out.append("the memory hook did not answer the session's SessionStart")
+        if SKILL not in ((result.get("init") or {}).get("skill_names") or []):
+            out.append(f"the {SKILL} skill is not in the session's init")
         return out
     status = ((result.get("init") or {}).get("mcp") or {}).get(server)
     if status != "connected":

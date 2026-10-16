@@ -103,23 +103,50 @@ def test_the_lot_s_roots_are_neutral_and_its_own() -> None:
 
 
 def test_the_lot_s_call_caps_and_reserves() -> None:
-    assert handoff.call_cap("w17-sonnet", "sonnet") == 0.60
-    assert handoff.call_cap("w17-opus", "opus") == 1.00
+    assert handoff.call_cap("w17-sonnet", "sonnet") == 0.50
+    assert handoff.call_cap("w17-opus", "opus") == 0.80
     cmd = handoff.command("x", "opus", cap=handoff.call_cap("w17-opus", "opus"))
-    assert cmd[cmd.index("--max-budget-usd") + 1] == "1.00"
-    assert handoff.reserve_of("sonnet", "S", "w17-sonnet") == pytest.approx(2 * (0.60 + 0.44) + 0.1)
-    assert handoff.reserve_of("opus", "N0", "w17-opus") == pytest.approx(2 * (1.00 + 0.84))
+    assert cmd[cmd.index("--max-budget-usd") + 1] == "0.80"
+    assert handoff.reserve_of("sonnet", "S", "w17-sonnet") == pytest.approx(2 * (0.50 + 0.44) + 0.1)
+    assert handoff.reserve_of("opus", "N0", "w17-opus") == pytest.approx(2 * (0.80 + 0.84))
     assert handoff.reserve_of("opus", "N0") == pytest.approx(2 * (1.50 + 0.84))  # F2 unchanged
 
 
-def test_the_lot_caps_sum_to_the_night_cap_and_each_holds_a_pair() -> None:
+def test_the_night_cap_binds_both_runs_and_each_holds_a_pair() -> None:
     lot = handoff.LOTS["w17"]
-    caps = [handoff.RUNS[r]["cap"] for r in RUNS]
-    assert sum(caps) <= lot["night_cap"] == 45.0
+    assert lot["night_cap"] == 45.0
+    assert [handoff.RUNS[r]["cap"] for r in RUNS] == [17.0, 33.0]
     for run in RUNS:
         spec = handoff.RUNS[run]
         pair = sum(handoff.reserve_of(spec["model"], a, run) for a in handoff.arms_of(run))
-        assert spec["cap"] > pair
+        assert pair < spec["cap"] <= lot["night_cap"]
+    ok, detail = preflight.caps_check("w17")
+    assert ok and "binds both" in detail
+
+
+def test_a_session_that_reported_no_cost_is_charged_its_cap_and_a_worst_turn(
+    tmp_path: Path,
+) -> None:
+    got = handoff.charged({"cost": 0.0, "cost_reported": False}, "opus", 0.80)
+    assert got["cost"] == pytest.approx(0.80 + 0.84) and got["cost_charged"]
+    kept = {"cost": 0.2, "cost_reported": True}
+    assert handoff.charged(kept, "opus", 0.80) == kept
+    assert handoff.charged({}, "sonnet", None)["cost"] == pytest.approx(0.80 + 0.44)  # F2's cap
+    rec = tmp_path / "rec"
+    rec.mkdir()
+    (rec / "session-1.jsonl").write_text(json.dumps({"type": "result", "total_cost_usd": 0.3}))
+    (rec / "session-2.jsonl").write_text(json.dumps({"type": "system", "subtype": "init"}))
+    assert handoff.lost_cost(tmp_path / "none", rec, 1.64) == pytest.approx(0.3 + 1.64)
+    assert handoff.lost_cost(tmp_path / "none", rec) == pytest.approx(0.3)
+
+
+def test_a_pair_starts_only_when_both_its_arms_fit(tmp_path: Path) -> None:
+    arm, calls = fake_arm([{"cost": 1.0}] * 96)
+    pair = sum(handoff.reserve_of("sonnet", a, "w17-sonnet") for a in ("N0", "S"))
+    got = handoff.run_plan(tmp_path / "lot", "w17-sonnet", tmp_path / "k", False, pair + 1.5,
+                           None, lambda: NOON, lambda s: None, arm,
+                           work_root=tmp_path / "w")  # fmt: skip
+    assert got == "cap" and len(calls) == 2  # the second pair would not fit whole: no orphan
 
 
 # ---- the user-scope install ----------------------------------------------------------------------
@@ -156,11 +183,21 @@ def test_user_scope_needs_the_memory_hook_at_start_not_a_server(tmp_path: Path) 
     rows = [{"sub": "memory-hook", "event": "SessionStart", "exit": 0},
             {"sub": "memory-hook", "event": "UserPromptSubmit", "exit": 0}]  # fmt: skip
     (tmp_path / "hooks.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
-    result = {"init": {"mcp": {}}}
+    result = {"init": {"mcp": {}, "skill_names": ["init", "sanchopanza-code"]}}
     assert carry_s.session_breaks(tmp_path, result, 0, server=None) == []
     assert carry_s.session_breaks(tmp_path, result, 0)[0].startswith("MCP server")
+    no_skill = {"init": {"mcp": {}, "skill_names": ["init"]}}
+    assert carry_s.session_breaks(tmp_path, no_skill, 0, server=None) == [
+        "the sanchopanza-code skill is not in the session's init"
+    ]
     (tmp_path / "hooks.jsonl").write_text(json.dumps(rows[1]) + "\n")
     assert "SessionStart" in carry_s.session_breaks(tmp_path, result, 0, server=None)[0]
+
+
+def test_init_keeps_the_skill_names() -> None:
+    event = {"type": "system", "subtype": "init", "skills": ["a", {"name": "sanchopanza-code"}, 3]}
+    assert carry.init_facts(event)["skill_names"] == ["a", "sanchopanza-code"]
+    assert carry.init_facts(event)["skills"] == 3
 
 
 # ---- a whole pair against a stand-in claude ----------------------------------------------------
@@ -337,6 +374,52 @@ def test_opus_reads_the_cost_three_ways() -> None:
                           "opus")  # fmt: skip
     assert not worse["criteria"]["o2_not_worse"] and worse["verdict"] == "not determined"
     assert free["scoreboard"] == "sin margen"  # N0 kept all everywhere: no room to win
+
+
+def test_a_small_but_certain_extra_cost_is_extra_cost() -> None:
+    kept = {"kept_all": True}
+    rows = lot_rows("w17-opus", s={**kept, "cost": 0.1028}, n0=kept)  # 1.03x with Jev
+    got = pairs.analyse(rows, "opus")
+    assert got["criteria"]["o1_cost"] and got["cost_ratio"]["ci95_raw"][0] > 1
+    assert got["verdict"] == "costs extra"
+
+
+def test_the_row_s_send_backs_decide_no_harm() -> None:
+    rows = lot_rows("w17-sonnet", s={"cost": 0.103, "sendbacks_other_rule": 1})
+    got = pairs.analyse(rows, "sonnet")
+    assert got["false_sendbacks"] == 48 and not got["criteria"]["s3_sendbacks"]
+
+
+def test_the_ratios_are_resampled_in_pair_order() -> None:
+    rows = lot_rows("w17-sonnet", s={"cost": 0.11})
+    rows = [{**r, "cost": r["cost"] + 0.001 * r["repeat"]} if r["arm"] == "S" else r for r in rows]
+    a, b = pairs.analyse(rows, "sonnet"), pairs.analyse(rows[::-1], "sonnet")
+    assert a["cost_ratio"] == b["cost_ratio"]
+
+
+def test_the_analysis_refuses_a_folder_that_is_not_a_w17_run(tmp_path: Path) -> None:
+    with pytest.raises(SystemExit):
+        pairs.main([str(tmp_path / "f2-sonnet")])
+
+
+def test_the_sealed_checkout_refuses_a_path_that_names_the_lot() -> None:
+    assert "names the lot" in hseal.path_refusal("w17", Path("C:/x/sanchopanza-w17-memlot"))
+    assert hseal.path_refusal("w17", Path("C:/x/sp-w18")) == ""
+    assert hseal.path_refusal("f2", Path("C:/x/sanchopanza-w17-memlot")) == ""
+    with pytest.raises(SystemExit):
+        hseal.require_sealed_checkout("w17", Path("C:/x/sanchopanza-w17-memlot"))
+
+
+@pytest.mark.parametrize(("text", "want"), [
+    (r"ls ..\..", {"../.."}),
+    ("cat ../../t03-b/repo/app.py", {"../..", "sibling"}),
+    (r"cd C:\sp-runs\w18\r1\t05-a\repo", set()),
+    (r"type C:\sp-runs\w18\r1\typesafe.key", {"typesafe.key"}),
+    ("cat ../../jev-ledger.jsonl ../hooks.jsonl ../journal.jsonl",
+     {"../..", "jev-", "hooks.jsonl", "journal.jsonl"}),
+])  # fmt: skip
+def test_touches_names_what_lies_beside_the_arm(text: str, want: set[str]) -> None:
+    assert handoff.hc.touches([json.dumps({"command": text})], own="t05-a") == want
 
 
 def test_opus_scoreboard_reads_room_and_cost() -> None:
