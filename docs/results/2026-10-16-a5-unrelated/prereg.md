@@ -1,10 +1,9 @@
 # A5: does a different `unrelated` gate beat the shipped `relate_facts`? (pre-registration, DRAFT)
 
-Status: **draft, not sealed.** Sealing: write the instrument commit below, then
-`python benchmarks/facts_gate/run.py seal` after an independent review against the code. The seal
-(`prereg.sha256`) holds the sha256 of this file and of `a5-unrelated-run.cmd` (its two local
-values read as placeholders). Instrument commit: to be written here at sealing, as
-`` Instrument commit: `<40 hex>` ``.
+Status: **sealed** after four independent reviews against the code. The seal (`prereg.sha256`,
+written by `python benchmarks/facts_gate/run.py seal`) holds the sha256 of this file and of
+`a5-unrelated-run.cmd` (its two local values read as placeholders).
+Instrument commit: `92107d2987cf5a880e8cb95d0f011c41180d65a8`.
 
 ## Question
 
