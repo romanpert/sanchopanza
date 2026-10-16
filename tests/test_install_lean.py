@@ -204,3 +204,23 @@ def test_the_default_plan_is_the_lean_one_and_each_old_behaviour_is_one_flag_awa
 
     assert _install(settings) == 0  # and back
     assert (_find_entry(mcp_file), _guard_commands(settings), _env(settings).get(CHOOSER)) == lean
+
+
+def test_the_python_api_benchmarks_call_has_the_same_dial(tmp_path: Path) -> None:
+    """`plan` and `mcp_json_changes` (what sealed runners call): lean by default, each earlier
+    behaviour one keyword away."""
+    from sanchopanza.harness.generic import HarnessConfig
+    from sanchopanza.harness.install import mcp_json_changes, plan
+
+    path = tmp_path / "settings.json"
+    lean = plan(path, HarnessConfig(), guard=True).merged
+    full = plan(path, HarnessConfig(), guard=True, guard_full=True).merged
+    assert len(lean["hooks"]["SessionStart"][0]["hooks"]) == 1
+    assert CHOOSER not in lean.get("env", {})
+    assert len(full["hooks"]["SessionStart"][0]["hooks"]) == 6
+    assert full["env"][CHOOSER] == "struct"
+    target = tmp_path / ".mcp.json"
+    deferred = mcp_json_changes(target, False, find=True)["mcpServers"]["sanchopanza"]
+    loaded = mcp_json_changes(target, False, find=True, find_always_load=True)
+    assert "alwaysLoad" not in deferred
+    assert loaded["mcpServers"]["sanchopanza"]["alwaysLoad"] is True
