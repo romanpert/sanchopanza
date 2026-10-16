@@ -253,3 +253,16 @@ def test_auc_block_is_rank_auc_with_a_cluster_interval():
     result = analysis.auc_block(_rows(120, 0.0))
     assert result["new"] == result["old"] == 1.0 and result["diff"] == 0.0
     assert result["ci95_cluster"] == (0.0, 0.0)
+
+
+def test_the_published_result_reproduces():
+    rows = [json.loads(x) for x in analysis.ROWS.read_text(encoding="utf-8").splitlines() if x]
+    result = analysis.analyse(rows)
+    assert result["launch"] == "complete" and result["verdict"] == "confirmado (no peor)"
+    assert (result["arms"]["14"]["right"], result["arms"]["13r"]["right"]) == (745, 737)
+    assert (result["arms"]["14"]["false_blocks"], result["arms"]["13r"]["false_blocks"]) == (
+        150,
+        165,
+    )
+    published = json.loads((analysis.OUT / "analysis.json").read_text(encoding="utf-8"))
+    assert published["primary"] == json.loads(json.dumps(result["primary"]))
