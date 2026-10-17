@@ -202,16 +202,16 @@
   not worse by the sealed margin; scoreboard "no gana" on both models
   ([W17](docs/results/2026-10-16-memory-w17/)).
 - **Equal work, W17's Sonnet question with one "Yes, go ahead." in each arm** (sealed `d1c39af`,
-  Claude Code 2.1.287, Sonnet 5.5, 48 pairs, 11.98 USD): **"gana (éxito)", against Claude Code
-  told once to go on**. Each arm was resumed once with "Yes, go ahead." when its session 2 left
-  step 2 undone. The default user-scope install kept the plan in 48 of 48 pairs against clean
-  Claude Code's 3 (45 to 0, one-sided McNemar p 2.8e-14), at 1.005x the cost per pair
-  [0.949, 1.063], within the sealed 1.10, with no harm. Not a saving: clean Claude Code was
-  nudged in 45 pairs and after the nudge did step 2 as session 1 specified it (its name,
-  signature and constraints) in none, in 30 writing a step 2 of its own; that round brought its
-  cost up to the install's; without it the install costs
-  1.247x [1.178, 1.295]. The person modelled answers blind; one who repeats the task is not
-  measured ([equal work](docs/results/2026-10-17-memory-equal-work/)).
+  Claude Code 2.1.287, Sonnet 5.5, 48 pairs, 11.98 USD): **"gana (éxito)", against Claude Code told
+  once to go on**. Each arm was resumed once with "Yes, go ahead." when its session 2 left step 2
+  undone. The default user-scope install kept the plan in 48 of 48 pairs against clean Claude Code's
+  3 (45 to 0, one-sided McNemar p 2.8e-14), at 1.005x the cost per pair [0.949, 1.063], within the
+  sealed 1.10, with no harm. Not a saving: clean Claude Code was nudged in 45 pairs and after the
+  nudge did step 2 as session 1 specified it (its name, signature and constraints) in none, in 30
+  writing other code (a function of its own, or changes to step 1's code); that round brought its
+  cost up to the install's; without it the install costs 1.247x [1.178, 1.295]. The person modelled
+  answers blind; one who repeats the task is not measured ([equal
+  work](docs/results/2026-10-17-memory-equal-work/)).
 - **C4, A5's gate on written pairs of fa-17's kinds** (sealed `3a201f0`, jev-1.13.0, 0.035 USD of
   Jev): **the gate beats the shipped policy**. At `unrelated_at=0.65`, 66 added verdicts on 1,500
   pairs (two dated events, a role and an act, a figure and its subset, plus controls), all 66

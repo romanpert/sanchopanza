@@ -56,16 +56,15 @@ wins.
   is not "gana". On Opus 5.5 there was no room: Claude Code's own auto memory carried the plan
   (22, 17 and 21 of 24).
 - Memory on Sonnet 5.5 as it ships, the same features at equal work
-  (`docs/results/2026-10-17-memory-equal-work/`, pre-registered; clean Claude Code 2.1.287
-  against `install --scope user`, each arm resumed once with "Yes, go ahead." when its new
-  session left the next step undone, 48 pairs) is **"gana (éxito)", against Claude Code told once
-  to go on**: 48 of 48 against 3 (45 to 0, McNemar p 2.8e-14), at 1.005x the cost
-  [0.949, 1.063], within the sealed 1.10. It is the rule above at work, not against it: the layer
-  saved nothing. Clean Claude Code was nudged in 45 pairs and after the nudge did the step as the
-  first session specified it (its name, signature and constraints) in none, in 30 writing a step
-  of its own; that round brought its cost up to the layer's.
-  Without it the layer costs 1.25x [1.18, 1.30]. The person modelled answers blind; one who
-  repeats the task was not measured.
+  (`docs/results/2026-10-17-memory-equal-work/`, pre-registered; clean Claude Code 2.1.287 against
+  `install --scope user`, each arm resumed once with "Yes, go ahead." when its new session left the
+  next step undone, 48 pairs) is **"gana (éxito)", against Claude Code told once to go on**: 48 of
+  48 against 3 (45 to 0, McNemar p 2.8e-14), at 1.005x the cost [0.949, 1.063], within the sealed
+  1.10. It is the rule above at work, not against it: the layer saved nothing. Clean Claude Code was
+  nudged in 45 pairs and after the nudge did the step as the first session specified it (its name,
+  signature and constraints) in none, in 30 writing other code (a function of its own, or changes to
+  step 1's code); that round brought its cost up to the layer's. Without it the layer costs 1.25x
+  [1.18, 1.30]. The person modelled answers blind; one who repeats the task was not measured.
 - Early compaction on long code (near 67k against N-early's 160k, Sonnet 5.5, 5 chains) is "no gana" (`docs/results/2026-10-13-long-compact/`): cost 0.900 [0.741, 1.093] with quality non-inferior (under the post-data amendment: conan-2 repeated, still no gana: 0.875 [0.754, 1.015] substituted, 0.887 [0.750, 1.050] averaged); no saving shown, so `install --context-budget` stays at 160,000.
 
 The rule above is what that result says. A decision pays where it replaces a call or tokens of the

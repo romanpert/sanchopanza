@@ -60,7 +60,7 @@ Each lot pre-registered and sealed before its first answer, reviewed against the
 | [redundant-drop, `redundant_page` under 1.14 with 90 more drops](results/2026-10-16-redundant-drop/README.md) | **No proposal**: rule D clears at 0.04, the costly-drops guard fails (8 keep pages dropped against 0); 0.61 loses drops again, −6.0 [−11.6, −1.7] | Jev 0.0277 USD |
 | [memory F2, memory against the handoff ritual](results/2026-10-16-memory-f2/README.md) | **Sonnet 5.5: S not worse than H and better than N0** (48, 44 and 4 of 48); **Opus 5.5 direction only** (22, 17, 21 of 24) | Claude 42.25 USD list |
 | [memory W17, memory as it ships against clean Claude Code](results/2026-10-16-memory-w17/README.md) | **Sonnet 5.5: S' better than N0; no gana (cost)** (48 against 9 of 48, 1.19x [1.15, 1.24]); **Opus 5.5: not determined** (34 against 31 of 36, p 0.125; 0.999x [0.965, 1.055]) | Claude 32.50 USD list (about 39.7 with the discarded first Opus run) |
-| [memory equal work, W17 with one "Yes, go ahead." in each arm](results/2026-10-17-memory-equal-work/README.md) | **Sonnet 5.5: gana (éxito), against Claude Code told once to go on** (48 against 3 of 48, 45 to 0, p 2.8e-14; 1.005x [0.949, 1.063] within the sealed 1.10); N0 nudged in 45 pairs, step 2 as session 1 specified it done after the nudge in 0 (a step 2 of its own in 30); without the nudge 1.247x [1.178, 1.295]; not a saving | Claude 11.98 USD list |
+| [memory equal work, W17 with one "Yes, go ahead." in each arm](results/2026-10-17-memory-equal-work/README.md) | **Sonnet 5.5: gana (éxito), against Claude Code told once to go on** (48 against 3 of 48, 45 to 0, p 2.8e-14; 1.005x [0.949, 1.063] within the sealed 1.10); N0 nudged in 45 pairs, step 2 as session 1 specified it done after the nudge in 0 (other code (a function of its own, or changes to step 1's code) in 30); without the nudge 1.247x [1.178, 1.295]; not a saving | Claude 11.98 USD list |
 | [lb162x, the LongBench router against Opus 5.5](results/2026-10-16-lb162x/README.md) | **No worse at −10** against Opus 5.5 (−3.7 [−8.0, +0.6], "sustituye"); Opus's cost saved 29.5 % [21.7, 37.7]; Sonnet's saving measured, 33.9 % [24.0, 44.0] | Claude 27.01 USD list |
 | [A6, the find ceiling](results/2026-10-16-a6-ceiling/README.md) | **Under 5 %**: 3.05 % [2.36, 3.78] of Sonnet 5.5's cost over 19 clean long-chain sessions; not pre-registered, free | free |
 
@@ -168,24 +168,25 @@ cannot check. Keep the part of each result the answer rests on, then measure aga
 stops (a new registration; about 0.3-0.5 USD of Jev at longer inputs) before the Stop hook is
 advertised beyond slack-like settings.
 
-**C8. Memory: four gaps, fixed in code; measured live on Sonnet 5.5 and Opus 5.5** (merge `e029489`; what
-changed is in the CHANGELOG's 0.3.2). W17 ([memory-w17](results/2026-10-16-memory-w17/README.md), sealed `5d416fa`):
-the default user-scope install kept the plan in 48 of 48 pairs against clean Claude Code's 9,
-and with a bare "Let's continue." in 24 of 24 against 3, at 1.19x the cost [1.15, 1.24]: "S'
-better than N0; no gana (cost)". On Opus 5.5 (repeated whole under the prereg's Amendment 1,
-sealed `941c9a9`) it kept the plan in 34 of 36 pairs against 31 (3 to 0, p 0.125) at 0.999x the
-cost [0.965, 1.055]: "not determined", since O1 needs the upper bound at 1.05; no gana. Post hoc,
-after the data: on Opus the install's overhead shows in session 1, on the same work in both arms
-(1.09x [1.06, 1.12]), so a cheaper first session is the candidate lever; "gana (coste)" asks for
-the upper bound below 1.00, not the median (with this spread, a median of about 0.95).
-At equal work ([memory-equal-work](results/2026-10-17-memory-equal-work/README.md), sealed
-`d1c39af`; rule R3: each arm resumed once with "Yes, go ahead." when session 2 left step 2
-undone), Sonnet 5.5: 48 of 48 against 3, at 1.005x the cost [0.949, 1.063], "gana (éxito)" by
-the scoreboard's rule 2.4 against N0⁺, Claude Code told once to go on. Clean Claude Code was
-nudged in 45 pairs and after the nudge did step 2 as session 1 specified it (its name, signature
-and constraints) in none, in 30 writing a step 2 of its own; the extra round brought its cost to the install's, so this is no saving
-(1.247x [1.178, 1.295] without it). Open: a person who repeats the task, which this lot does not
-measure, and new scenes.
+**C8. Memory: four gaps, fixed in code; measured live on Sonnet 5.5 and Opus 5.5** (merge `e029489`;
+what changed is in the CHANGELOG's 0.3.2). W17
+([memory-w17](results/2026-10-16-memory-w17/README.md), sealed `5d416fa`): the default user-scope
+install kept the plan in 48 of 48 pairs against clean Claude Code's 9, and with a bare "Let's
+continue." in 24 of 24 against 3, at 1.19x the cost [1.15, 1.24]: "S' better than N0; no gana
+(cost)". On Opus 5.5 (repeated whole under the prereg's Amendment 1, sealed `941c9a9`) it kept the
+plan in 34 of 36 pairs against 31 (3 to 0, p 0.125) at 0.999x the cost [0.965, 1.055]: "not
+determined", since O1 needs the upper bound at 1.05; no gana. Post hoc, after the data: on Opus the
+install's overhead shows in session 1, on the same work in both arms (1.09x [1.06, 1.12]), so a
+cheaper first session is the candidate lever; "gana (coste)" asks for the upper bound below 1.00,
+not the median (with this spread, a median of about 0.95). At equal work
+([memory-equal-work](results/2026-10-17-memory-equal-work/README.md), sealed `d1c39af`; rule R3:
+each arm resumed once with "Yes, go ahead." when session 2 left step 2 undone), Sonnet 5.5: 48 of 48
+against 3, at 1.005x the cost [0.949, 1.063], "gana (éxito)" by the scoreboard's rule 2.4 against
+N0⁺, Claude Code told once to go on. Clean Claude Code was nudged in 45 pairs and after the nudge
+did step 2 as session 1 specified it (its name, signature and constraints) in none, in 30 writing
+other code (a function of its own, or changes to step 1's code); the extra round brought its cost to
+the install's, so this is no saving (1.247x [1.178, 1.295] without it). Open: a person who repeats
+the task, which this lot does not measure, and new scenes.
 
 Read from the code and from F2's logs, as they stood before the fix:
 - A bare "continue" gets no prompt recall: the name gate passes a record only if the prompt

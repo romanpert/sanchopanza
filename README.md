@@ -83,17 +83,17 @@ Code, per model and per axis ([final scoreboard](docs/results/2026-10-13-final/)
   Claude Code lies above 1, so by the scoreboard's rule it is not "gana". On Opus 5.5 there was no
   room: Claude Code's own auto memory carried the plan (S 22, handoff 17, nothing 21 of 24)
   ([F2](docs/results/2026-10-16-memory-f2/)).
-- Memory on Sonnet 5.5 as it ships (the default user-scope install), continuing the same
-  features at equal work: each arm was resumed once with "Yes, go ahead." when its new session
-  left the next step undone (clean Claude Code 2.1.287, 48 pairs, pre-registered): **gana
-  (éxito), against Claude Code told once to go on**. The install did the step in 48 of 48 pairs,
-  clean Claude Code in 3 (45 to 0, McNemar p 2.8e-14), at 1.005x the cost [0.949, 1.063], within
-  the sealed 1.10. It is not a saving: clean Claude Code was nudged in 45 pairs and after the
-  nudge did the step as the first session specified it (its name, signature and constraints) in
-  none, in 30 writing a step of its own; the extra round brought its cost up to the install's,
-  and without it the install cost 1.25x [1.18, 1.30].
-  The person modelled answers blind; one who repeats the task was not measured
-  ([equal work](docs/results/2026-10-17-memory-equal-work/README.md)).
+- Memory on Sonnet 5.5 as it ships (the default user-scope install), continuing the same features at
+  equal work: each arm was resumed once with "Yes, go ahead." when its new session left the next
+  step undone (clean Claude Code 2.1.287, 48 pairs, pre-registered): **gana (éxito), against Claude
+  Code told once to go on**. The install did the step in 48 of 48 pairs, clean Claude Code in 3 (45
+  to 0, McNemar p 2.8e-14), at 1.005x the cost [0.949, 1.063], within the sealed 1.10. It is not a
+  saving: clean Claude Code was nudged in 45 pairs and after the nudge did the step as the first
+  session specified it (its name, signature and constraints) in none, in 30 writing other code (a
+  function of its own, or changes to step 1's code); the extra round brought its cost up to the
+  install's, and without it the install cost 1.25x [1.18, 1.30]. The person modelled answers blind;
+  one who repeats the task was not measured ([equal
+  work](docs/results/2026-10-17-memory-equal-work/README.md)).
 - Long-document multiple choice, with `points.longdoc` (opt-in, not in `install`): Jev 1.14
   answers where its top choice reaches 0.6, the frontier model the rest. On 162 fresh LongBench
   v2 tasks, pre-registered, against Sonnet 5.5 alone: +1.2 points [−3.1, +5.6], 33.9 %

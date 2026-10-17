@@ -121,7 +121,7 @@ done, in at least 3 of 8 ([memory-frontier](../2026-10-05-memory-frontier/gate-r
 | F2, as above | Opus 5.5 | +4.2 (S 22/24, N0 21/24; H 17/24) | S − N0 lower bound −6.4; S − H +20.8, lower bound +8.6 | 0.5 | 1.105 [1.011, 1.158] (S/H 1.060 [1.009, 1.183]) | 1.09 (44.45 s / 40.8 s) | **sin margen** (F2's sealed reading: direction only, S not worse than H; Claude Code's own auto memory saved the plan after every Opus session 1, in every arm) |
 | W17, continuing in a new session with the default USER-scope install as it ships (src cbfd932: lean install, C8 fixes), named line and bare "Let's continue." | Sonnet 5.5 | **+81.3** (kept all: S' 48/48, N0 9/48; bare line 24/24 vs 3/24) | one-sided Tango lower bound +70.4 | 1.8e-12 (McNemar, 39 to 0) | 1.187 [1.148, 1.244] (median per pair, sealed bound 1.10) | 1.31 (session 2 medians, 35.3 s / 26.95 s) | **no gana** (W17's sealed verdict: "S' better than N0; no gana (cost)") |
 | W17, as above (bare line on repetition 3 only) | Opus 5.5 | +8.3 (kept all: S' 34/36, N0 31/36; named 22/24 vs 21/24, bare 12/12 vs 10/12) | one-sided Tango lower bound +0.8, margin −12.5: not worse | 0.125 (McNemar, 3 to 0) | 0.999 [0.965, 1.055] (median per pair, sealed bound 1.05) | 1.10 (session 2 medians, 44.9 s / 40.95 s) | **no gana** (W17's sealed verdict: "not determined"; Claude Code's own auto memory saved after every Opus session 1, in both arms) |
-| Equal work (rule R3): W17's arms, scenes and strata, each arm resumed once with "Yes, go ahead." when its session 2 left step 2 undone; N departs: N0⁺ is clean Claude Code told once to go on (src 4c143e1, the same installed files as W17) | Sonnet 5.5 | **+93.8** (kept all: S' 48/48, N0⁺ 3/48; N0 nudged in 45 pairs, after the nudge step 2 as session 1 specified it in 0, a step 2 of its own in 30) | one-sided Tango lower bound +83.4, margin −12.5 | 2.8e-14 (McNemar, 45 to 0) | 1.005 [0.949, 1.063] (median per pair, the nudge counted; sealed bound 1.10; without the nudge 1.247 [1.178, 1.295]) | 1.39 (session 2 medians, 30.75 s / 22.1 s; N0's nudge a median 20.5 s more) | **gana (éxito), against N0⁺** (the lot's sealed rule: the scoreboard's 2.4 made exact as W17 made it; not a saving: S' costs what N0⁺ costs, and N0's extra round did step 2 as specified in 0 of 45 pairs) |
+| Equal work (rule R3): W17's arms, scenes and strata, each arm resumed once with "Yes, go ahead." when its session 2 left step 2 undone; N departs: N0⁺ is clean Claude Code told once to go on (src 4c143e1, the same installed files as W17) | Sonnet 5.5 | **+93.8** (kept all: S' 48/48, N0⁺ 3/48; N0 nudged in 45 pairs, after the nudge step 2 as session 1 specified it in 0, other code (a function of its own, or changes to step 1's code) in 30) | one-sided Tango lower bound +83.4, margin −12.5 | 2.8e-14 (McNemar, 45 to 0) | 1.005 [0.949, 1.063] (median per pair, the nudge counted; sealed bound 1.10; without the nudge 1.247 [1.178, 1.295]) | 1.39 (session 2 medians, 30.75 s / 22.1 s; N0's nudge a median 20.5 s more) | **gana (éxito), against N0⁺** (the lot's sealed rule: the scoreboard's 2.4 made exact as W17 made it; not a saving: S' costs what N0⁺ costs, and N0's extra round did step 2 as specified in 0 of 45 pairs) |
 
 Source: [2026-10-13-memory-cell](../2026-10-13-memory-cell/README.md) (sealed prereg d42d261).
 Cost is the median S/N per pair; its interval is the geometric mean's, bootstrapped over scenes.
@@ -165,28 +165,27 @@ bootstrap over triples (10,000 draws, seed 20261016), descriptive and post hoc.
 - **Two measured rows are a win for S, both memory on Sonnet 5.5, plus F2's sealed positive
   verdict:** a fact said in a parallel session, and continuing a two-step feature against clean
   Claude Code told once to go on (equal work). A fact said in a parallel session or sibling
-  worktree: S broke it in 0 of 24 pairs,
-  N in 11 (McNemar p 0.00049), at a median cost of 1.117 (+12 %, within the sealed 1.15); the
-  gain is in the 4 of 8 scenes where the fact is not in the code. Continuing a two-step feature
-  in a new session (F2, Sonnet 5.5, clean Claude Code 2.1.287): S did the next step in 48 of 48
-  triples, N with a plain "let's continue" in 4 (44 to 0), and N with the owner's handoff ritual
-  in 44 (S not worse by the sealed margin; 4 to 0, p 0.0625). S cost 1.23x N [1.14, 1.26] and
-  0.92x the ritual [0.85, 0.95]: it replaces the ritual with no loss shown, at lower cost, and
-  beats doing nothing at a higher one, so it is F2's sealed verdict, not a "gana". What S
-  carried was the plan: no session in any arm that built step 2 lost the constraint or the
+  worktree: S broke it in 0 of 24 pairs, N in 11 (McNemar p 0.00049), at a median cost of 1.117 (+12
+  %, within the sealed 1.15); the gain is in the 4 of 8 scenes where the fact is not in the code.
+  Continuing a two-step feature in a new session (F2, Sonnet 5.5, clean Claude Code 2.1.287): S did
+  the next step in 48 of 48 triples, N with a plain "let's continue" in 4 (44 to 0), and N with the
+  owner's handoff ritual in 44 (S not worse by the sealed margin; 4 to 0, p 0.0625). S cost 1.23x N
+  [1.14, 1.26] and 0.92x the ritual [0.85, 0.95]: it replaces the ritual with no loss shown, at
+  lower cost, and beats doing nothing at a higher one, so it is F2's sealed verdict, not a "gana".
+  What S carried was the plan: no session in any arm that built step 2 lost the constraint or the
   decision. Memory is on by default in the install since 2026-10-14. Measured again as it ships
   (W17, user scope, after the C8 fixes): 48 of 48 against 9, and 24 of 24 against 3 with a bare
-  "Let's continue.", at 1.19x [1.15, 1.24] the cost: better, not a "gana". At equal work (the
-  same install and scenes, each arm resumed once with "Yes, go ahead." when session 2 left step
-  2 undone): 48 of 48 against 3, at 1.005x [0.949, 1.063] the cost, "gana (éxito)", against
-  Claude Code told once to go on. It is not a saving: Claude Code alone was nudged in 45 pairs
-  and after the nudge did step 2 as session 1 specified it (its name, signature and
-  constraints) in none, in 30 writing a step 2 of its own; that extra round brought its cost up
-  to S's, and without it S cost 1.25x [1.18, 1.30]. On Opus 5.5 memory had no
+  "Let's continue.", at 1.19x [1.15, 1.24] the cost: better, not a "gana". At equal work (the same
+  install and scenes, each arm resumed once with "Yes, go ahead." when session 2 left step 2
+  undone): 48 of 48 against 3, at 1.005x [0.949, 1.063] the cost, "gana (éxito)", against Claude
+  Code told once to go on. It is not a saving: Claude Code alone was nudged in 45 pairs and after
+  the nudge did step 2 as session 1 specified it (its name, signature and constraints) in none, in
+  30 writing other code (a function of its own, or changes to step 1's code); that extra round
+  brought its cost up to S's, and without it S cost 1.25x [1.18, 1.30]. On Opus 5.5 memory had no
   room in either family: Claude Code's own auto memory carried the fact and the plan. As it ships
-  (W17), on Opus it kept the plan in 34 of 36 pairs against 31 (p 0.125) at a median 0.999x
-  [0.965, 1.055]; that it costs no more is not shown (sealed O1: upper bound 1.055 over 1.05):
-  "not determined", no gana.
+  (W17), on Opus it kept the plan in 34 of 36 pairs against 31 (p 0.125) at a median 0.999x [0.965,
+  1.055]; that it costs no more is not shown (sealed O1: upper bound 1.055 over 1.05): "not
+  determined", no gana.
 - **No other measured cell is a win.** Three web suites are "no gana" on Sonnet 5.5; code on Haiku
   4.5 is non-inferior with no saving shown; on long code the Jev part (A) did not hold its edge.
   Early compaction near 67k on long code: cost 0.900 [0.741, 1.093], no saving shown. The rest is "sin margen" or not run.

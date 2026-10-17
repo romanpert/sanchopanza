@@ -9,14 +9,14 @@ Sonnet 5.5, clean Claude Code 2.1.287).
 - S' cost a median 1.005x N0⁺ per pair [0.949, 1.063]: within the sealed 1.10, not below 1.00.
   No harm.
 
-**What the "gana" rests on.** N0 left step 2 undone after session 2 in 45 of 48 pairs and was
-nudged in those 45. **After the nudge, N0 did step 2 as session 1 specified it (its name,
-signature and constraints) in 0 of the 45.** In 30 it wrote a step 2 of its own, under its own
-names or signature; the checks ask for session 1's. The nudge cost N0 a median 0.0232 USD (1.10
-USD over the 45), and that extra round brought N0's cost per pair up to S's. S' did not get
-cheaper: it costs what N0 costs when a person tells it to go on, and it does step 2 as specified
-where N0 then still does not. On the same rows without the nudge (W17's reading, a sealed
-secondary) S' costs 1.247x N0 [1.178, 1.295]: "no gana (cost)", as in W17.
+**What the "gana" rests on.** N0 left step 2 undone after session 2 in 45 of 48 pairs and was nudged
+in those 45. **After the nudge, N0 did step 2 as session 1 specified it (its name, signature and
+constraints) in 0 of the 45.** In 30 it wrote other code instead: a function of its own, under its
+own names or signature, or changes to step 1's code; the checks ask for session 1's. The nudge cost
+N0 a median 0.0232 USD (1.10 USD over the 45), and that extra round brought N0's cost per pair up to
+S's. S' did not get cheaper: it costs what N0 costs when a person tells it to go on, and it does
+step 2 as specified where N0 then still does not. On the same rows without the nudge (W17's reading,
+a sealed secondary) S' costs 1.247x N0 [1.178, 1.295]: "no gana (cost)", as in W17.
 
 **Which person this models.** The nudge is a person who answers whatever session 2 said with the
 same blind "Yes, go ahead.", without repeating the task. A person who repeated it (named step 2,
@@ -128,10 +128,10 @@ On the named line, that S' costs less than N0⁺ is not shown (the interval reac
   of wall time. By stratum (descriptive): named 0.0270, bare 0.0213.
 - **What N0 did** (read from the 45 nudges' streams, post hoc and descriptive; the streams are not
   published):
-  - 30 wrote a step 2 of their own, not step 2 as session 1 specified it (its name, signature
-    and constraints): a function under another name or signature, or changes to step 1's code. In `h_batch`, where session 1 asked for
-    `ship_all(orders, carrier)`, the nudge answered: "I added `ship_labels(orders, carrier)` to
-    `app/labels.py`, and all 6 tests pass".
+  - 30 wrote a step 2 of their own, not step 2 as session 1 specified it (its name, signature and
+    constraints): a function under another name or signature, or changes to step 1's code. In
+    `h_batch`, where session 1 asked for `ship_all(orders, carrier)`, the nudge answered: "I added
+    `ship_labels(orders, carrier)` to `app/labels.py`, and all 6 tests pass".
   - 11 only cleaned the repository (a `.gitignore`, untracking the committed `__pycache__`):
     "I added a `.gitignore` for `__pycache__/`, `*.pyc` and `.pytest_cache/`."
   - 3 asked again: "\"Go ahead\" could mean a few things, and I don't want to guess. Which do you
