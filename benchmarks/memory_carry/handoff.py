@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import hashlib
 import json
 import os
 import random
@@ -484,7 +485,6 @@ def nudge_step(work: Path, rec: Path, repo: Path, second: dict[str, Any], model:
     if tree_state(repo) != before_state(rec):  # cut before the nudge is paid for, not after
         return {"tree_kept": False, "started": False, "cost": 0.0, "cost_reported": True}, \
             "nudge: the repository changed between session 2 and the nudge"  # fmt: skip
-    kept = True
     since = carry_s.hook_rows(work)
     push = handoff_step(rec, repo, second, model, config, handoff_nudge.NUDGE,
                         handoff_nudge.TAG, cap, SESSION_TIMEOUT,
@@ -499,8 +499,7 @@ def nudge_step(work: Path, rec: Path, repo: Path, second: dict[str, Any], model:
         broken = carry_s.session_breaks(work, push, since, server=server, start=False)
         cut = f"harness: nudge: {'; '.join(broken)}" if broken else ""
     starts = handoff_nudge.starts_since(work, since) if arm == "S" else []
-    cut = cut or ("" if kept else "nudge: the repository changed between session 2 and the nudge")
-    return {**push, "session_starts": starts, "tree_kept": kept,
+    return {**push, "session_starts": starts, "tree_kept": True,
             **handoff_nudge.requests(rec)}, cut  # fmt: skip
 
 
@@ -659,8 +658,6 @@ def checks(repo: Path, scene: dict[str, Any], env: dict[str, str] | None = None)
 def tree_state(repo: Path) -> str:
     """The working tree as the agent sees it: `git status --porcelain` and the sha256 of every
     file's path and bytes (`.git` aside)."""
-    import hashlib
-
     status = subprocess.run(["git", "-C", str(repo), "status", "--porcelain"],
                             capture_output=True, text=True, check=False).stdout  # fmt: skip
     digest = hashlib.sha256(status.encode())

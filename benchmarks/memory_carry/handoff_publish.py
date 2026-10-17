@@ -66,9 +66,17 @@ INIT_KEYS = ("model", "version", "permission_mode", "api_key_source", "mcp_serve
 COST_FIELDS = ("cost_median_usd", "cost_ratio_median")
 
 
+CHECK_KEYS = ("tests_pass", *(f"{c}_pass" for c in handoff.CHECKS), "kept_all")
+
+
+def public_checks(found: dict[str, Any]) -> dict[str, Any]:
+    """The checks after session 2: the scene's checks' flags only (`handoff.CHECKS`)."""
+    return {k: found[k] for k in CHECK_KEYS if k in (found or {})}
+
+
 def public_row(row: dict[str, Any]) -> dict[str, Any]:
     row = handoff_cost.own_row(row)
-    out = {k: row[k] for k in ROW_KEYS if k in row}
+    out = {k: public_checks(row[k]) if k == "checks_s2" else row[k] for k in ROW_KEYS if k in row}
     out["folder"] = Path(str(row.get("folder") or "")).name
     out["given"] = len(row.get("given") or [])
     out["native_after_1"] = len(row.get("native_after_1") or [])
@@ -99,13 +107,15 @@ def analysis(rows: list[dict[str, Any]], run: str, out: Path | None) -> dict[str
     """The run's sealed analysis: the equal-work lot's (`handoff_ew`), W17's pairs
     (`handoff_pairs`) or F2's triples (`handoff_analyze`)."""
     if handoff.lot_of(run) == "ew":
+        handoff_ew.model_is_mine(handoff.RUNS[run]["model"], run)
         return handoff_ew.analyse(rows, out, planned(run))
     sealed = handoff_pairs if handoff.lot_of(run) == "w17" else handoff_analyze
     return sealed.analyse(rows, handoff.RUNS[run]["model"], out, planned(run))
 
 
 def same_as_night(new: dict[str, Any], old: dict[str, Any], run: str) -> bool:
-    """W17's table equals the night's in every field; F2's in every field but the costs."""
+    """W17's and the equal-work lot's tables equal the night's in every field; F2's in every
+    field but the costs."""
     skip = COST_FIELDS if handoff.lot_of(run) == "f2" else ()
     return {k: v for k, v in new.items() if k not in skip} == \
         {k: v for k, v in old.items() if k not in skip}  # fmt: skip
@@ -140,7 +150,7 @@ def spent(rows: list[dict[str, Any]], root: Path, run: str) -> float:
 
 def one_lot(names: list[str]) -> None:
     """Refuses (SystemExit) a costs.json whose runs, kept or new, are not all runs of one lot
-    (`handoff.lot_of`): a results folder never mixes F2 and W17."""
+    (`handoff.lot_of`): a results folder never mixes F2, W17 and the equal-work lot."""
     unknown = sorted({k for k in names if k not in handoff.RUNS})
     if unknown:
         raise SystemExit(f"costs.json: {', '.join(unknown)} not a run ({', '.join(handoff.RUNS)})")

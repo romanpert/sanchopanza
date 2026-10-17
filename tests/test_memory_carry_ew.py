@@ -276,6 +276,34 @@ def test_a_tree_changed_before_the_nudge_cuts_the_arm(tmp_path: Path, monkeypatc
     assert [c["resume"] for c in json.loads(log.read_text())] == ["", ""]
 
 
+@pytest.mark.parametrize("change", ["edit", "stage"])
+def test_a_real_change_to_the_tree_changes_its_state_and_cuts_before_the_call(
+        tmp_path: Path, monkeypatch: Any, change: str) -> None:  # fmt: skip
+    # tree_state itself, not a stand-in: a file's bytes changed, or only a `git add` (the same
+    # bytes, another `git status`), each changes the state, and nudge_step cuts without a call.
+    import subprocess
+
+    work, rec = tmp_path / "w", tmp_path / "rec"
+    rec.mkdir()
+    repo = carry.build(work, {"files": handoff.HANDOFF["h_batch"]["files"]})
+    (repo / "app" / "labels.py").write_text(STEP1)
+    (repo / "notes.txt").write_text("untracked\n")
+    handoff.checks_apart(repo, handoff.HANDOFF["h_batch"], rec / "checks-s2")
+    before = handoff.before_state(rec)
+    assert before and handoff.tree_state(repo) == before
+    if change == "edit":
+        (repo / "app" / "labels.py").write_text(STEP1 + "\n# touched\n")
+    else:
+        subprocess.run(["git", "-C", str(repo), "add", "notes.txt"], check=True)
+    assert handoff.tree_state(repo) != before
+    calls: list[Any] = []
+    monkeypatch.setattr(handoff, "handoff_step", lambda *a, **k: calls.append(a) or {})
+    push, cut = handoff.nudge_step(work, rec, repo, {"cost": 0.04}, "sonnet", "N0", None, 0.25,
+                                   "user")  # fmt: skip
+    assert cut == "nudge: the repository changed between session 2 and the nudge"
+    assert push["tree_kept"] is False and push["cost"] == 0.0 and calls == []
+
+
 def test_the_nudge_names_nothing_and_is_not_memory_s_continuation_cue() -> None:
     from sanchopanza.harness.memory_recall import continuation
 

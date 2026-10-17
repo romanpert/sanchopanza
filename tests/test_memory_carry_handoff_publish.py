@@ -197,7 +197,8 @@ def test_the_nudge_names_its_running_reading_after_session_2() -> None:
 # ---- the equal-work lot ---------------------------------------------------------------------
 
 EW_PRIVATE = ("C:/somewhere", "sid-2", "abc", "skill_names", "memory_auto", "started",
-              "resumed", "1792241133")  # fmt: skip
+              "resumed", "1792241133", "a private error", "private stderr",
+              "the agent's reply", "pytest's own output")  # fmt: skip
 
 
 def ew_row(arm: str, nudged: bool, kept: bool, repeat: int = 1) -> dict:
@@ -215,11 +216,13 @@ def ew_row(arm: str, nudged: bool, kept: bool, repeat: int = 1) -> dict:
                      "memory_auto": "C:/somewhere/memory/", "skill_names": ["x"]},
             "first_request": {"input": 2, "cache_read": 23104, "cache_write": 511},
             "session_2_last_request": {"input": 2, "cache_read": 22397, "cache_write": 707},
-            "chars": 901} if nudged else {}  # fmt: skip
+            "chars": 901, "error": "a private error", "stderr": "private stderr",
+            "text": "the agent's reply"} if nudged else {}  # fmt: skip
     base = w17_row(arm, kept)
     return {**base, "repeat": repeat, "line": "named" if repeat < 3 else "bare",
             "call_cap": 0.25, "folder": "C:/somewhere/w20/r1/t00-a", "kept_all": kept,
-            "task_pass": kept, "fact_pass": kept, "decision_pass": kept, "checks_s2": checks,
+            "task_pass": kept, "fact_pass": kept, "decision_pass": kept,
+            "checks_s2": {**checks, "output": "pytest's own output"},
             "kept_all_s2": checks["kept_all"], "nudged": nudged, "nudge": push,
             "cost": 0.12 + (0.0276 if nudged else 0.0)}  # fmt: skip
 
@@ -235,6 +238,8 @@ def test_ew_rows_keep_the_nudge_s_numbers_and_flags_only() -> None:
     for private in EW_PRIVATE:
         assert private not in text
     assert n0["checks_s2"]["task_pass"] is False and n0["kept_all_s2"] is False
+    assert list(n0["checks_s2"]) == ["tests_pass", "task_pass", "fact_pass", "decision_pass",
+                                     "intact_pass", "kept_all"]  # fmt: skip
     assert n0["nudged"] is True and n0["nudge"]["cost"] == 0.0276
     assert n0["nudge"]["cost_source"] == "running total minus session 1"  # as recorded
     assert n0["nudge"]["init"] == {**dict.fromkeys(pub.INIT_KEYS), "model": "claude-sonnet-5-5",
@@ -251,8 +256,29 @@ def test_ew_runs_are_analysed_by_their_own_sealed_reading() -> None:
     assert got == pub.handoff_ew.analyse(rows, None, pub.planned("ew-sonnet"))
     assert got["reading"] == "equal work (R3)" and got["nudges"]["N0"]["nudged"] == 2
     assert pub.analysis([pub.public_row(r) for r in rows], "ew-sonnet", None) == got
-    assert pub.same_as_night(got, got, "ew-sonnet")
     assert not pub.same_as_night({**got, "cost_median_usd": {}}, got, "ew-sonnet")
+
+
+PUBLISHED = {"2026-10-16-memory-f2": ("f2-pilot", "f2-sonnet", "f2-opus"),
+             "2026-10-16-memory-w17": ("w17-sonnet", "w17-opus"),
+             "2026-10-17-memory-equal-work": ("ew-sonnet",)}  # fmt: skip
+
+
+@pytest.mark.parametrize("folder,run", [(f, r) for f, runs in PUBLISHED.items() for r in runs])
+def test_each_published_table_is_its_sealed_reading_of_the_published_rows(
+        folder: str, run: str) -> None:  # fmt: skip
+    # The publisher as it stands reproduces, byte for byte, every table already published.
+    results = ROOT / "docs" / "results" / folder
+    rows = json.loads((results / f"rows-{run}.json").read_text(encoding="utf-8"))
+    text = json.dumps(pub.analysis(rows, run, None), indent=1, ensure_ascii=False) + "\n"
+    assert text.encode("utf-8") == (results / f"{run}-table.json").read_bytes()
+
+
+def test_the_ew_reading_refuses_a_run_of_another_model(monkeypatch: pytest.MonkeyPatch) -> None:
+    runs = {**pub.handoff.RUNS, "ew-sonnet": {**pub.handoff.RUNS["ew-sonnet"], "model": "opus"}}
+    monkeypatch.setattr(pub.handoff, "RUNS", runs)
+    with pytest.raises(SystemExit, match="sonnet only"):
+        pub.analysis(ew_rows(), "ew-sonnet", None)
 
 
 def ew_folder(tmp_path: Path) -> Path:

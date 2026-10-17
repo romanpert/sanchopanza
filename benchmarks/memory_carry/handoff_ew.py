@@ -57,6 +57,13 @@ BUDGET_STOP = "error_max_budget_usd"  # carry.BUDGET_STOP: a call stopped by its
 READING = "equal work (R3)"
 
 
+def model_is_mine(model: str, run: str) -> None:
+    """Refuses (SystemExit) a run of another model: this reading keeps only MODEL's rows, so a
+    run of another model would be read as no pairs at all."""
+    if model != MODEL:
+        raise SystemExit(f"{run}: model {model}, this reading reads {MODEL} only")
+
+
 def whole(row: dict[str, Any]) -> float:
     """The arm's cost: its calls' own costs (a nudge included) and its Jev decisions."""
     return float(row["cost"]) + float(row.get("jev_usd") or 0)
@@ -258,6 +265,7 @@ def main(argv: list[str] | None = None) -> int:
     if run.name not in handoff.RUNS or handoff.lot_of(run.name) != "ew":
         runs = ", ".join(handoff.LOTS["ew"]["sequence"])
         raise SystemExit(f"{run}: not this lot's run folder ({runs})")
+    model_is_mine(handoff.RUNS[run.name]["model"], run.name)
     plan = handoff.build_plan(run.name)
     planned = sorted({(s, m, r) for s, m, _, r in plan})
     result = analyse(handoff.rows_of(run), run, planned)
