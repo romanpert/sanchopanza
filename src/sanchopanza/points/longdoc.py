@@ -51,9 +51,10 @@ lb162x (docs/results/2026-10-16-lb162x):
 (`question` stripped, `document` middle-cut) and the Choice are lot L6's `b3_question` and
 lot lb162's phase J (benchmarks/jev114/l6.py, lb162.py), so a recording key of one is the key
 of the other: tests/test_longdoc_point.py replays all 162 of lb162's recorded answers through
-this point. A call refused (HTTP 400, a read timeout) or answered without a usable letter is
-asked again at 0.8 and then 0.64 of the window, as lb162 did; a document shorter than the
-shrunk window is sent again unchanged, as it was there.
+this point with `redact=False` (by default secret-shaped strings are masked first, which
+changes 4 of lb162's 162 requests). A call refused (HTTP 400, a read timeout) or answered
+without a usable letter is asked again at 0.8 and then 0.64 of the window, as lb162 did; a
+document shorter than the shrunk window is sent again unchanged, as it was there.
 
 **Outside the measured setup, escalated unless the caller opts out.** A question with other
 than four options escalates unless `measured_only=False`; another model escalates unless
@@ -232,8 +233,14 @@ async def answer(
     model: str | None = MEASURED_MODEL,
     measured_only: bool = True,
     window_chars: int = WINDOW_CHARS,
+    redact: bool = True,
 ) -> LongdocAnswer:
     """Ask Jev once over the document (shorter only after a refusal) and apply `decide`.
+
+    The question, the document and the options are masked by `redact.redact_secrets` first,
+    whole, before any cut: the document leaves for api.typesafe.ai. `redact=False` sends them
+    as written, as lot lb162 measured them (4 of its 162 documents hold a string the redactor
+    masks: tests/test_longdoc_point.py replays that way).
 
     Bad input (`questions`: an empty question or document, options that are not 2 to 26
     non-empty strings, a window that is not a whole number of at least 2) raises `ValueError`
@@ -242,6 +249,11 @@ async def answer(
     cap) is an escalation with the reason; any other exception is a bug and propagates."""
     _check_cut(cut)
     questions(question, options, document, window_chars=window_chars)
+    if redact:
+        from ..redact import redact_secrets
+
+        question, document = redact_secrets(question), redact_secrets(document)
+        options = [redact_secrets(o) for o in options]
     twin, why = long_context_twin(decider, LONG_TIMEOUT_S)
     if twin is None:
         return LongdocAnswer(True, why)

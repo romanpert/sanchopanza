@@ -45,7 +45,7 @@ def _squire(max_usd: float | None = None) -> Any:
     env = dict(os.environ)
     if max_usd is not None:
         env["SANCHOPANZA_T_MAX_USD"] = str(max_usd)
-    return squire_from_env(env)
+    return squire_from_env(env, redact=True)
 
 
 def _label(args: argparse.Namespace) -> int:

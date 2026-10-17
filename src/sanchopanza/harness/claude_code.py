@@ -183,10 +183,14 @@ def config_from_env(env: dict[str, str] | None = None) -> HarnessConfig:
 
 
 def squire_from_env(
-    env: dict[str, str] | None = None, *, redact: bool = False, decider: Decider | None = None
+    env: dict[str, str] | None = None, *, redact: bool = True, decider: Decider | None = None
 ) -> Any:
     """The hook's squire. `decider` stands in for the provider the environment names (a
-    replay, a capped or recording one); everything else is read from `env` as the hook reads it."""
+    replay, a capped or recording one); everything else is read from `env` as the hook reads it.
+
+    Every state is masked by `redact.redact_secrets` before the decider sees it: with Jev it
+    leaves for api.typesafe.ai. `redact=False` sends it raw; a caller asking for that says why
+    (tests/test_redact_defaults.py scans src/ for it)."""
     from ..journal import JsonlJournal
     from ..policy import Thresholds, model_of
     from ..redact import redact_secrets
@@ -212,7 +216,7 @@ def guardian_from_env(
     env: dict[str, str] | None = None, *, decider: Decider | None = None
 ) -> Guardian:
     env = env if env is not None else dict(os.environ)
-    return Guardian(squire_from_env(env, decider=decider), config_from_env(env))
+    return Guardian(squire_from_env(env, redact=True, decider=decider), config_from_env(env))
 
 
 TOOL_RESULT_LIMIT = 1_500

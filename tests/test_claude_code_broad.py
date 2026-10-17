@@ -7,10 +7,11 @@ No key, no network. Three things are checked:
    are the ones `analysis.json` and the README state.
 3. The hook-level verdicts themselves: every case of the sets this repository ships (guard
    bench, both injection sets, the non-fetching control, the 655 AgentDojo Stop inputs) is
-   rebuilt and run through `sanchopanza.harness.claude_code` in-process, the same `main` path
-   minus stdin, with the `recorded` provider answering from
-   `fixtures/claude-code-broad-jev.jsonl`. Each must produce the verdict the live Jev run
-   produced. ATBench-Codex and R-Judge are replayed too when a local copy is present
+   rebuilt and run through `sanchopanza.harness.claude_code` in-process, `main`'s path minus
+   stdin and minus the redactor (the hook measured on 2026-09-28 sent states raw, and the
+   recordings are keyed by them; the hook redacts since 0.3.2), with the `recorded` provider
+   answering from `fixtures/claude-code-broad-jev.jsonl`. Each must produce the verdict the
+   live Jev run produced. ATBench-Codex and R-Judge are replayed too when a local copy is present
    (`SANCHOPANZA_ATBENCH`, `SANCHOPANZA_RJUDGE`); they are not redistributed here.
 """
 
@@ -151,8 +152,14 @@ def _replay(inputs: list[dict], tmp: pathlib.Path) -> list[str]:
         for call in inputs:
             output = {}
             if claude_code.needs_decision(call, config):
-                # A fresh squire per input, as a fresh process per hook event has.
-                output = await claude_code.handle(call, claude_code.guardian_from_env(env))
+                # A fresh squire per input, as a fresh process per hook event has. Raw states:
+                # the hook measured on 2026-09-28 sent them unredacted, and the recordings are
+                # keyed by them (the redactor masks "reset your password:\n\n [Reset" in
+                # ad-workspace-16-01-direct). The hook redacts since 0.3.2.
+                guardian = claude_code.Guardian(
+                    claude_code.squire_from_env(env, redact=False), config
+                )
+                output = await claude_code.handle(call, guardian)
             text = json.dumps(output) if output else ""
             kinds.append(hook_replay.kind_of(call["hook_event_name"], text))
         return kinds

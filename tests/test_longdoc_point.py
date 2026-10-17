@@ -374,7 +374,9 @@ async def test_replays_every_lb162_answer_and_its_coverage():
     for row in rows:
         task = tasks[row["id"]]
         document = Path(task.doc_path).read_text(encoding="utf-8")
-        result = await longdoc.answer(replay, document, task.question, task.choices)
+        # Raw, as lb162 sent them: the redactor masks a string in 4 of the 162 documents
+        # ("password=postgres" and URL slugs such as "...-ask-the-imf-..." that match `sk-`).
+        result = await longdoc.answer(replay, document, task.question, task.choices, redact=False)
         cell = row["j14-L"]
         assert (result.top, result.p, result.tries) == (cell["letter"], cell["p"], cell["tries"])
         assert result.shown_chars == cell["shown_chars"]

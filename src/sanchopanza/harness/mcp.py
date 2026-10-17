@@ -253,7 +253,7 @@ def _squire_if_keyed() -> Any:
     from .claude_code import decider_from_env, squire_from_env
 
     decider = decider_from_env()
-    return None if getattr(decider, "name", "null") == "null" else squire_from_env()
+    return None if getattr(decider, "name", "null") == "null" else squire_from_env(redact=True)
 
 
 def build_server(squire: Squire, *, name: str = "sanchopanza") -> Any:
@@ -434,7 +434,7 @@ def main(argv: list[str] | None = None) -> int:
     if "decisions" in wanted:
         from .claude_code import squire_from_env
 
-        add_decisions(server, squire_from_env())
+        add_decisions(server, squire_from_env(redact=True))
     if "label" in wanted:
         add_label(server)
     if "browse" in wanted:
