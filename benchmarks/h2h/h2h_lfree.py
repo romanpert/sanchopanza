@@ -212,7 +212,7 @@ def make_row_for(task: FreeTask, run: int, arm: str, caps: Mapping[str, float],
                  extra: Callable[[Mapping[str, Any]], Mapping[str, Any]] | None):  # fmt: skip
     def make_row(out, stderr, work, side, wall, projects):  # noqa: ANN001, ANN202
         folder = common.reading.folder_of(work, projects)
-        ended_well = not out.get("is_error", False)
+        ended_well = not out.get("is_error", True)  # as common_row: no JSON is an error
         reply = common.reply_text(out, folder, lambda t: extract(t, ended_well) is not None)
         row = common.common_row(task.key, run, arm, out, stderr, work, side, wall, projects,
                                 LEAK_WORD, caps)  # fmt: skip
