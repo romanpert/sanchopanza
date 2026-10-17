@@ -55,6 +55,9 @@ KEPT = (
     "error",
     "init",
     "session_starts",
+    "tree_kept",
+    "first_request",
+    "session_2_last_request",
 )
 
 
@@ -95,6 +98,33 @@ def starts_since(work: Path, since: int) -> list[str]:
         rows += [row] if isinstance(row, dict) else []
     return [str(r.get("source")) for r in rows
             if r.get("sub") == "memory-hook" and r.get("event") == "SessionStart"]  # fmt: skip
+
+
+def usages(stream: Path) -> list[dict[str, int]]:
+    """Each request's tokens in a stream (its assistant events' usage), in order."""
+    out = []
+    raw = stream.read_text(encoding="utf-8") if stream.exists() else ""
+    for line in raw.splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        message = event.get("message") if isinstance(event, dict) else None
+        if event.get("type") == "assistant" and isinstance(message, dict):
+            used = message.get("usage") or {}
+            kinds = {"input": "input_tokens", "cache_read": "cache_read_input_tokens",
+                     "cache_write": "cache_creation_input_tokens"}  # fmt: skip
+            out.append({k: int(used.get(v) or 0) for k, v in kinds.items()})
+    return out
+
+
+def requests(rec: Path) -> dict[str, Any]:
+    """The nudge's first request and session 2's last one: a warm resume reads session 2's
+    context from the cache; a cold one writes it again (reported, not deciding)."""
+    first = usages(rec / f"{TAG}.jsonl")[:1]
+    last = usages(rec / "session-2.jsonl")[-1:]
+    return {"first_request": first[0] if first else None,
+            "session_2_last_request": last[0] if last else None}  # fmt: skip
 
 
 def facts(push: dict[str, Any]) -> dict[str, Any]:

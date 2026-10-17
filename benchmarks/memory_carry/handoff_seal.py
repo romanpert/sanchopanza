@@ -58,6 +58,7 @@ LOTS = {"f2": (RESULTS, SEALED_FIXED), "w17": (RESULTS_W17, SEALED_FIXED_W17),
 PATH_WORDS = {"w17": ("f2", "memory", "handoff", "memlot", "w17", "sonnet", "opus"),
               "ew": ("f2", "memory", "handoff", "memlot", "w17", "sonnet", "opus", "ew", "equal",
                      "nudge")}  # fmt: skip
+SEAL_ALONE = ("ew",)  # lots whose sealing commit may hold only the seal (`checkout_refusal`)
 SEALED_GLOBS = ("src/sanchopanza/**/*", "benchmarks/memory_carry/*.py")
 NOT_CODE = ("__pycache__",)
 SEALED_CHECKOUT_REFUSED = 11
@@ -110,8 +111,10 @@ def git(repo: Path, *args: str) -> str:
 
 
 def checkout_refusal(repo: Path = REPO, results: Path = RESULTS,
-                     fixed: tuple[str, ...] = SEALED_FIXED) -> str:  # fmt: skip
-    """Why this checkout may not run the lot ("" when it may)."""
+                     fixed: tuple[str, ...] = SEALED_FIXED,
+                     alone: bool = False) -> str:  # fmt: skip
+    """Why this checkout may not run the lot ("" when it may). `alone` (the equal-work lot):
+    the sealing commit changes only the seal's two files, so nothing else came in with it."""
     if not seal_ok(repo, results, fixed):
         return "prereg.md or the code differ from the seal (or no seal)"
     sealed = git(repo, "log", "-1", "--format=%H", "--",
@@ -122,6 +125,12 @@ def checkout_refusal(repo: Path = REPO, results: Path = RESULTS,
     dirty = git(repo, "status", "--porcelain")
     if dirty:
         return f"the checkout is not clean: {dirty.splitlines()[0]}"
+    if alone:
+        rel = results.relative_to(repo).as_posix()
+        seal_files = {f"{rel}/prereg.manifest.json", f"{rel}/prereg.sha256"}
+        changed = set(git(repo, "diff", "--name-only", "HEAD~1", "HEAD").splitlines())
+        if changed != seal_files:
+            return f"the sealing commit changes more than the seal: {sorted(changed - seal_files)}"
     return ""
 
 
@@ -134,7 +143,7 @@ def path_refusal(lot: str, repo: Path = REPO) -> str:
 
 def require_sealed_checkout(lot: str = "f2", repo: Path = REPO) -> None:
     results, fixed = LOTS[lot]
-    why = path_refusal(lot, repo) or checkout_refusal(repo, results, fixed)
+    why = path_refusal(lot, repo) or checkout_refusal(repo, results, fixed, lot in SEAL_ALONE)
     if why:
         print(f"refused: {why}; nothing run", flush=True)
         raise SystemExit(SEALED_CHECKOUT_REFUSED)

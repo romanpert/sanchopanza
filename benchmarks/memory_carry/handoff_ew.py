@@ -19,7 +19,12 @@ after session 2 recorded (`kept_all_s2`).
   gana" otherwise. No harm is W17's (`handoff_pairs.harm`), on the checks after the nudge.
 - **Sealed secondaries (they do not change the verdict):** W17's reading of the same rows as they
   stood after session 2 (`handoff_pairs.analyse` on `at_s2`: kept all after session 2, the cost
-  of sessions 1 and 2 plus Jev, W17's seed); the named and bare strata; the nudge per arm.
+  of sessions 1 and 2 plus the arm's whole Jev, W17's seed; its send-backs count the nudge's,
+  since the nudge continues session 2); the named and bare strata; the nudge per arm; the cost
+  interval with scenes resampled instead of pairs (`by_scene`); and the pairs lost to a nudge
+  NOT RUN, with a sensitivity reading that counts that arm as failed (`lost_to_nudge`).
+- A pair whose N0 cost is zero is left out of the ratio and counted (`n0_zero_cost`): a run N0
+  arm always has a reported or charged cost, so the count should be 0.
 
     python benchmarks/memory_carry/handoff_ew.py RUN_DIR
 """
@@ -29,6 +34,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import random
 import statistics
 import sys
 from collections import Counter
@@ -40,6 +46,7 @@ sys.path.insert(0, str(HERE))
 
 import handoff_pairs as hp  # noqa: E402
 from handoff_analyze import ALPHA, MARGIN, compare, cut_kind, ran, touched, triples  # noqa: E402
+from handoff_cost_ci import percentile  # noqa: E402
 
 ARMS = ("N0", "S")
 MODEL = "sonnet"
@@ -79,12 +86,65 @@ def both_checks(row: dict[str, Any] | None) -> bool:
     return ran(row) and isinstance((row or {}).get("kept_all_s2"), bool)
 
 
+def ratios_of(done: Pairs) -> list[float]:
+    return [whole(t["S"]) / whole(t["N0"]) for t in hp.by_pair(done) if whole(t["N0"])]
+
+
 def interval(done: Pairs) -> dict[str, Any]:
-    ratios = [whole(t["S"]) / whole(t["N0"]) for t in hp.by_pair(done) if whole(t["N0"])]
+    ratios = ratios_of(done)
     if not ratios:
         return {"pairs": 0, "median": None, "ci95": [math.inf, math.inf],
                 "ci95_raw": [math.inf, math.inf]}  # fmt: skip
     return hp.ratio_interval(ratios, SEED)
+
+
+def by_scene(done: Pairs) -> dict[str, Any]:
+    """The median ratio's percentile bootstrap 95 % with scenes resampled (each drawn scene
+    brings all its pairs): pairs of one scene are not independent. Reported, not deciding."""
+    groups: dict[str, list[float]] = {}
+    for key in sorted(done):
+        t = done[key]
+        if whole(t["N0"]):
+            groups.setdefault(key[0], []).append(whole(t["S"]) / whole(t["N0"]))
+    if not groups:
+        return {"scenes": 0, "median": None}
+    names, rng = sorted(groups), random.Random(SEED)
+    meds = sorted(statistics.median([x for s in rng.choices(names, k=len(names))
+                                     for x in groups[s]]) for _ in range(hp.DRAWS))  # fmt: skip
+    raw = [percentile(meds, 0.025), percentile(meds, 0.975)]
+    every = [x for s in names for x in groups[s]]
+    return {"scenes": len(names), "median": round(statistics.median(every), 6),
+            "ci95": [round(x, 4) for x in raw], "ci95_raw": raw, "draws": hp.DRAWS,
+            "seed": SEED}  # fmt: skip
+
+
+def nudge_cut(row: dict[str, Any] | None) -> bool:
+    """An arm cut only by its nudge (not by S' failing to run as S', which stops the run)."""
+    cut = str((row or {}).get("cut") or "")
+    return bool(row) and cut.startswith("nudge:") and isinstance(row.get("kept_all_s2"), bool)
+
+
+def lost_to_nudge(all_t: Pairs, run: Path | None) -> dict[str, Any]:
+    """Pairs left out because an arm's nudge was NOT RUN, and the reading that counts each such
+    arm as failed (kept all false, its cost as recorded, the charge included). Not deciding."""
+    lost = {k: t for k, t in all_t.items()
+            if all(both_checks(t.get(a)) or nudge_cut(t.get(a)) for a in ARMS)
+            and any(nudge_cut(t.get(a)) for a in ARMS)}  # fmt: skip
+    by_arm = {a: sum(nudge_cut(t.get(a)) for t in lost.values()) for a in ARMS}
+    _, _, done = pairs_of([r for t in all_t.values() for r in t.values()])
+    failed = {k: {a: {**r, "cut": None, "kept_all": False} if nudge_cut(r) else r
+                  for a, r in t.items()} for k, t in lost.items()}  # fmt: skip
+    both = {**done, **failed}
+    if not lost:
+        return {"pairs_lost": 0, "by_arm": by_arm}
+    cmp, cost = compare(both, "S", "N0"), interval(both)
+    harm = hp.harm(both, run)
+    fails = sum(1 for t in both.values() if not t["N0"]["kept_all_s2"])
+    board = hp.scoreboard(len(both), fails, cost["ci95_raw"], cmp["tango_lower_95_raw"] > -MARGIN,
+                          cmp["p_a_better"] < ALPHA, bool(harm["tests"] and harm["sendbacks"]),
+                          COST_BOUND)  # fmt: skip
+    return {"pairs_lost": len(lost), "by_arm": by_arm, "pairs": len(both), "verdict": board,
+            "S_vs_N0": cmp, "cost_ratio": cost}  # fmt: skip
 
 
 def nudges(done: dict[Any, dict[str, dict[str, Any]]]) -> dict[str, dict[str, Any]]:
@@ -158,10 +218,28 @@ def analyse(rows: list[dict[str, Any]], run: Path | None = None,
         "nudges": nudges(done), "nudge_report": nudge_report(done),
         "strata": {line: stratum(sub) for line, sub in by_line.items()},
         "w17_reading": hp.analyse([at_s2(r) for r in mine], MODEL, run, planned),
+        "by_scene": by_scene(done), "lost_to_nudge": lost_to_nudge(all_t, run),
+        "n0_zero_cost": sum(1 for t in done.values() if not whole(t["N0"])),
+        "checks_disagree": disagree(done),
         "not_run": sorted(f"{k[0]} r{k[2]}" for k in keys if k not in done),
         "not_run_reasons": dict(Counter(cut_kind(r) for r in mine if r.get("cut"))),
         **hp.reported(done), "touched": touched([with_nudge(r) for r in mine]),
     }  # fmt: skip
+
+
+def disagree(done: Pairs) -> dict[str, int]:
+    """Arms not nudged whose checks after session 2 (on a copy) and at the end (in the agent's
+    tree) differ: the same tree twice, so this should be 0. Reported, not deciding."""
+    keys = ("tests_pass", "task_pass", "fact_pass", "decision_pass", "intact_pass", "kept_all")
+    return {
+        a: sum(
+            1
+            for t in done.values()
+            if not t[a].get("nudged")
+            and any((t[a].get("checks_s2") or {}).get(k) != t[a].get(k) for k in keys)
+        )
+        for a in ARMS
+    }
 
 
 def with_nudge(row: dict[str, Any]) -> dict[str, Any]:

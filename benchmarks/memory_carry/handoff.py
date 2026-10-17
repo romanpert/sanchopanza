@@ -37,6 +37,7 @@ import datetime as dt
 import json
 import os
 import random
+import shutil
 import subprocess
 import sys
 import time
@@ -83,6 +84,7 @@ def worst_turn(model: str) -> float:
 
 WORST_TURN = {m: worst_turn(m) for m in CALL_CAPS}
 NIGHT_CAP = 230.0  # USD at list price over every run of the night (handoff_night.py)
+EW_CAP = 22.0  # the equal-work run's (and lot's) cap: the owner's, 2026-10-17 about 14:25
 RUNS: dict[str, dict[str, Any]] = {
     "f2-pilot": {"model": "sonnet", "scenes": HANDOFF_PILOT, "repeats": [0], "cap": 11.5,
                  "dir": "r1"},
@@ -102,11 +104,12 @@ RUNS: dict[str, dict[str, Any]] = {
                  "cap": 33.0, "dir": "r2", "lot": "w17", "arms": ("N0", "S"), "scope": "user",
                  "call_caps": {"sonnet": 0.50, "opus": 0.80}, "jev_cap": 0.50},
     # Equal work (docs/results/2026-10-17-memory-equal-work/prereg.md): W17's Sonnet pairs, and a
-    # nudge (handoff_nudge) when `task` fails after session 2; three calls an arm under 18 USD.
+    # nudge (handoff_nudge) when `task` fails after session 2; three calls an arm under EW_CAP;
+    # the pairs interleaved, named and bare, so a run its cap stops loses both strata alike.
     "ew-sonnet": {"model": "sonnet", "scenes": list(HANDOFF), "repeats": [1, 2, 3, 4],
-                  "bare": [3, 4], "cap": 18.0, "dir": "r1", "lot": "ew", "arms": ("N0", "S"),
+                  "bare": [3, 4], "cap": EW_CAP, "dir": "r1", "lot": "ew", "arms": ("N0", "S"),
                   "scope": "user", "call_caps": {"sonnet": 0.25}, "jev_cap": 0.50,
-                  "nudge": True},
+                  "nudge": True, "order": "interleaved"},
 }  # fmt: skip
 BARE_LINE = "Let's continue."  # W17's stratum: a session 2 line that names nothing
 CAP_FILE = "jev-cap.json"  # beside the run's key: the hooks' Jev cap (carry_hook.CAP_FILE)
@@ -134,7 +137,7 @@ LOTS: dict[str, dict[str, Any]] = {
     "w17": {"sequence": ("w17-sonnet", "w17-opus"), "night_cap": 45.0,
             "out": Path(r"C:\sp-runs\memory-w17-redo"), "work": Path(r"C:\sp-runs\w19"),
             "gate": None, "quiet": True},
-    "ew": {"sequence": ("ew-sonnet",), "night_cap": 18.0, "out": Path(r"C:\sp-runs\mem-ew"),
+    "ew": {"sequence": ("ew-sonnet",), "night_cap": EW_CAP, "out": Path(r"C:\sp-runs\mem-ew"),
            "work": Path(r"C:\sp-runs\w20"), "gate": None, "quiet": True},
 }  # fmt: skip
 W17_INTERRUPTED = (Path(r"C:\sp-runs\memory-w17"), Path(r"C:\sp-runs\w18"))  # 16 Oct: evidence
@@ -217,11 +220,23 @@ def build_plan(run: str) -> list[tuple[str, str, str, int]]:
     often."""
     spec, arms = RUNS[run], arms_of(run)
     out = []
-    for rep in spec["repeats"]:
-        for i, name in enumerate(spec["scenes"]):
-            k = (i + rep) % len(arms)
-            out += [(name, spec["model"], arm, rep) for arm in (*arms[k:], *arms[:k])]
+    for i, name, rep in pair_order(run):
+        k = (i + rep) % len(arms)  # the arm that goes first: a pair's own, whatever the order
+        out += [(name, spec["model"], arm, rep) for arm in (*arms[k:], *arms[:k])]
     return out
+
+
+def pair_order(run: str) -> list[tuple[int, str, int]]:
+    """(scene index, scene, repetition) in the order the pairs run: repetition by repetition
+    (F2, W17), or, with `order` "interleaved" (equal work), a named pair then a bare one, scene
+    by scene, the first named and bare repetitions before the second ones."""
+    spec = RUNS[run]
+    if spec.get("order") != "interleaved":
+        return [(i, n, r) for r in spec["repeats"] for i, n in enumerate(spec["scenes"])]
+    bare = [r for r in spec["repeats"] if r in spec.get("bare", ())]
+    named = [r for r in spec["repeats"] if r not in bare]
+    return [(i, n, r) for a, b in zip(named, bare, strict=True)
+            for i, n in enumerate(spec["scenes"]) for r in (a, b)]  # fmt: skip
 
 
 def folder_name(run: str, triple: int, arm: str) -> str:
@@ -433,7 +448,7 @@ def sessions_of(work: Path, rec: Path, repo: Path, scene: dict[str, Any], model:
     push: dict[str, Any] = {}
     before: dict[str, Any] = {}
     if nudge and not cut and not limit:
-        before = checks(repo, scene)
+        before = checks_apart(repo, scene, rec / "checks-s2")
         if handoff_nudge.wanted(before):
             push, cut = nudge_step(work, rec, repo, ran[-1], model, arm, config, cap, scope)
             limit = push.get("limit_hit")
@@ -454,17 +469,18 @@ def sessions_of(work: Path, rec: Path, repo: Path, scene: dict[str, Any], model:
            **({"hook_starts": hook_starts(work)} if arm == "S" else {})}  # fmt: skip
     if cut or limit:
         return {**row, "cut": cut or "usage limit"}
-    return {**row, **(before if before and not push else checks(repo, scene))}
+    return {**row, **checks(repo, scene)}  # in the agent's tree, as W17: they decide
 
 
 def nudge_step(work: Path, rec: Path, repo: Path, second: dict[str, Any], model: str, arm: str,
                config: Path | None, cap: float | None,
                scope: str) -> tuple[dict[str, Any], str]:  # fmt: skip
     """Session 2 resumed once with the nudge, under the run's call cap: (the turn, why the arm
-    is cut or ""). Session 2's work is committed first; a turn that reported no cost is charged
-    its cap and one worst turn; S's hooks must answer its prompt (a resumed session's start is
-    recorded, not required)."""
-    carry.commit_wip(repo)
+    is cut or ""). A turn that reported no cost is charged its cap and one worst turn; S's
+    hooks must answer its prompt (a resumed session's start is recorded, not required). Nothing touches the repository between session 2 and the nudge:
+    no commit, and session 2's checks ran on a copy (`checks_apart`); `tree_kept` says the tree
+    the nudge resumes on is byte for byte the one session 2 left."""
+    kept = tree_state(repo) == before_state(rec)
     since = carry_s.hook_rows(work)
     push = handoff_step(rec, repo, second, model, config, handoff_nudge.NUDGE,
                         handoff_nudge.TAG, cap, SESSION_TIMEOUT)  # fmt: skip
@@ -478,7 +494,9 @@ def nudge_step(work: Path, rec: Path, repo: Path, second: dict[str, Any], model:
         broken = carry_s.session_breaks(work, push, since, server=server, start=False)
         cut = f"harness: nudge: {'; '.join(broken)}" if broken else ""
     starts = handoff_nudge.starts_since(work, since) if arm == "S" else []
-    return {**push, "session_starts": starts}, cut
+    cut = cut or ("" if kept else "nudge: the repository changed between session 2 and the nudge")
+    return {**push, "session_starts": starts, "tree_kept": kept,
+            **handoff_nudge.requests(rec)}, cut  # fmt: skip
 
 
 def hook_starts(work: Path) -> int:
@@ -609,26 +627,59 @@ def crossed(ran: list[dict[str, Any]]) -> bool:
     return start != end
 
 
-def passes(repo: Path, code: str) -> bool:
+def passes(repo: Path, code: str, env: dict[str, str] | None = None) -> bool:
     try:
         done = subprocess.run([carry.PYTHON, "-c", code], cwd=repo, capture_output=True,
-                              timeout=120, env=hc.agent_env(None))  # fmt: skip
+                              timeout=120, env=env or hc.agent_env(None))  # fmt: skip
     except subprocess.TimeoutExpired:
         return False
     return done.returncode == 0
 
 
-def checks(repo: Path, scene: dict[str, Any]) -> dict[str, Any]:
+def checks(repo: Path, scene: dict[str, Any], env: dict[str, str] | None = None) -> dict[str, Any]:
     """The repository's tests and the scene's checks, with the agent's environment."""
+    env = env or hc.agent_env(None)
     try:
         tests = subprocess.run([carry.PYTHON, "-m", "pytest", "-q", "-p", "no:cacheprovider"],
                                cwd=repo, capture_output=True, text=True, timeout=300,
-                               env=hc.agent_env(None)).returncode  # fmt: skip
+                               env=env).returncode  # fmt: skip
     except subprocess.TimeoutExpired:
         tests = -1
-    found = {name: passes(repo, check_code(scene, name)) for name in CHECKS}
+    found = {name: passes(repo, check_code(scene, name), env) for name in CHECKS}
     return {"tests_pass": tests == 0, **{f"{k}_pass": v for k, v in found.items()},
             "kept_all": bool(found["task"] and found["fact"] and found["decision"])}  # fmt: skip
+
+
+def tree_state(repo: Path) -> str:
+    """The working tree as the agent sees it: `git status --porcelain` and the sha256 of every
+    file's path and bytes (`.git` aside)."""
+    import hashlib
+
+    status = subprocess.run(["git", "-C", str(repo), "status", "--porcelain"],
+                            capture_output=True, text=True, check=False).stdout  # fmt: skip
+    digest = hashlib.sha256(status.encode())
+    for path in sorted(p for p in repo.rglob("*") if p.is_file() and ".git" not in
+                       p.relative_to(repo).parts):  # fmt: skip
+        digest.update(path.relative_to(repo).as_posix().encode() + b"\0" + path.read_bytes())
+    return digest.hexdigest()
+
+
+def before_state(rec: Path) -> str:
+    path = rec / "checks-s2.tree"
+    return path.read_text(encoding="utf-8") if path.exists() else ""
+
+
+def checks_apart(repo: Path, scene: dict[str, Any], into: Path) -> dict[str, Any]:
+    """Session 2's checks without touching the agent's tree: on a copy of the repository (no
+    `.git`) in `into`, the lot's own folder, with the agent's environment and no bytecode
+    written; the copy is removed. The tree's state before is kept beside it (`tree_state`)."""
+    (into.parent / f"{into.name}.tree").write_text(tree_state(repo), encoding="utf-8")
+    shutil.rmtree(into, ignore_errors=True)
+    shutil.copytree(repo, into / "repo", ignore=shutil.ignore_patterns(".git"))
+    try:
+        return checks(into / "repo", scene, {**hc.agent_env(None), "PYTHONDONTWRITEBYTECODE": "1"})
+    finally:
+        shutil.rmtree(into, ignore_errors=True)
 
 
 # ---- a run ---------------------------------------------------------------------------------------
@@ -820,6 +871,14 @@ def run_plan(out: Path, run: str, keyfile: Path, dry: bool, cap: float, night: P
     return ""
 
 
+def out_refusal(run: str, out: Path, dry: bool) -> str:
+    """The equal-work lot runs live only in its own root (its cap's ledger is there)."""
+    own = Path(LOTS["ew"]["out"]) / run
+    if dry or lot_of(run) != "ew" or out.resolve() == own.resolve():
+        return ""
+    return f"{run} runs live only in {own}, not {out}"
+
+
 def complete(out: Path, run: str) -> bool:
     have = {(r["scene"], r["model"], r["arm"], r["repeat"]) for r in rows_of(out)}
     return all(p in have for p in build_plan(run))
@@ -882,6 +941,9 @@ def main(argv: list[str] | None = None) -> int:
     if not args.run:
         parser.error("--run, --preflight or --seal")
     out = Path(args.out) if args.out else Path(LOTS[lot_of(args.run)]["out"]) / args.run
+    if why := out_refusal(args.run, out, args.dry):
+        print(f"refused: {why}; nothing run", flush=True)
+        return handoff_seal.SEALED_CHECKOUT_REFUSED
     cap = min(args.cap if args.cap is not None else RUNS[args.run]["cap"], RUNS[args.run]["cap"])
     return EXIT[execute(args.run, out, cap, args.dry)]
 

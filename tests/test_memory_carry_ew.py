@@ -35,9 +35,23 @@ NOON = dt.datetime(2026, 10, 17, 12, 0)
 # ---- the plan, the roots and the caps ------------------------------------------------------------
 
 
-def test_the_lot_is_w17_s_sonnet_plan_with_the_nudge() -> None:
-    plan = handoff.build_plan(RUN)
-    assert plan == [(s, m, a, r) for s, m, a, r in handoff.build_plan("w17-sonnet")]
+def test_the_lot_is_w17_s_sonnet_pairs_interleaved_with_the_nudge() -> None:
+    plan, w17 = handoff.build_plan(RUN), handoff.build_plan("w17-sonnet")
+    assert sorted(plan) == sorted(w17) and plan != w17
+    # each pair keeps W17's arm order (which arm goes first), whatever the pairs' order
+    firsts = {(s, r): a for i, (s, _, a, r) in enumerate(w17) if i % 2 == 0}
+    mine = [(s, r, a) for i, (s, _, a, r) in enumerate(plan) if i % 2 == 0]
+    assert all(firsts[(s, r)] == a for s, r, a in mine)
+    assert [a for _, _, a in mine].count("N0") == 24
+    lines = [handoff.line_of(RUN, r) for _, r, _ in mine]
+    assert lines == ["named", "bare"] * 24  # every prefix of the run holds both strata alike
+    for line in ("named", "bare"):
+        assert [a for (_, r, a), x in zip(mine, lines, strict=True) if x == line].count("N0") == 12
+    assert [r for _, r, _ in mine[:24]] == [1, 3] * 12 and {s for s, _, _ in mine[:24]} == set(
+        handoff.HANDOFF
+    )
+    first, second = list(handoff.HANDOFF)[:2]
+    assert handoff.pair_order("w17-sonnet")[:2] == [(0, first, 1), (1, second, 1)]
     assert len(plan) == 96 and {m for _, m, _, _ in plan} == {"sonnet"}
     assert handoff.arms_of(RUN) == ("N0", "S") and handoff.scope_of(RUN) == "user"
     assert [handoff.line_of(RUN, r) for r in (1, 2, 3, 4)] == ["named", "named", "bare", "bare"]
@@ -59,8 +73,11 @@ def test_the_lot_s_roots_are_new_and_neutral() -> None:
         assert not [o for o in handoff.W17_INTERRUPTED if o in (path, *path.parents)]
 
 
-def test_the_run_cap_is_18_usd_and_each_call_reserves_its_cap_and_a_worst_turn() -> None:
-    assert handoff.RUNS[RUN]["cap"] == 18.0 == handoff.LOTS["ew"]["night_cap"]
+def test_the_run_cap_is_the_owner_s_22_usd_and_each_call_reserves_its_cap_and_a_worst_turn() -> (
+    None
+):
+    assert handoff.EW_CAP == 22.0  # the owner's, 2026-10-17: one number to change
+    assert handoff.RUNS[RUN]["cap"] == handoff.EW_CAP == handoff.LOTS["ew"]["night_cap"]
     assert handoff.call_cap(RUN, "sonnet") == 0.25
     assert handoff.WORST_TURN["sonnet"] == pytest.approx(0.44)
     assert handoff.calls_of("N0", RUN) == handoff.calls_of("S", RUN) == 3
@@ -69,23 +86,24 @@ def test_the_run_cap_is_18_usd_and_each_call_reserves_its_cap_and_a_worst_turn()
     assert handoff.reserve_of("sonnet", "S", RUN) == pytest.approx(3 * (0.25 + 0.44) + 0.15)
     pair = sum(handoff.reserve_of("sonnet", a, RUN) for a in ("N0", "S"))
     assert pair == pytest.approx(4.29)
-    assert 18.0 - pair == pytest.approx(13.71)  # no pair starts past this spend
+    assert handoff.EW_CAP - pair == pytest.approx(17.71)  # no pair starts past this spend
     # W17's and F2's reserves are unchanged
     assert handoff.reserve_of("sonnet", "S", "w17-sonnet") == pytest.approx(2 * 0.94 + 0.1)
     assert handoff.reserve_of("opus", "N0") == pytest.approx(2 * (1.50 + 0.84))
     ok, detail = preflight.caps_check("ew")
-    assert ok and "18.0" in detail and "4.29" in detail
+    assert ok and "22.0" in detail and "4.29" in detail
 
 
 def test_no_pair_starts_that_could_pass_the_run_cap(tmp_path: Path) -> None:
     arm, calls = fake_arm([{"cost": 1.0}] * 96)
-    got = handoff.run_plan(tmp_path / "lot", RUN, tmp_path / "k", False, 18.0, None,
+    cap = handoff.RUNS[RUN]["cap"]
+    got = handoff.run_plan(tmp_path / "lot", RUN, tmp_path / "k", False, cap, None,
                            lambda: NOON, lambda s: None, arm, work_root=tmp_path / "w",
                            lifted=lambda: "", restart=lambda: "")  # fmt: skip
-    # 1 USD an arm: seven pairs start (12 + 4.29 <= 18), the eighth would not fit (14 + 4.29)
+    # 1 USD an arm: nine pairs start (16 + 4.29 <= 22), the tenth would not fit (18 + 4.29)
     spent = handoff.ledger(tmp_path / "lot")
-    assert got == "cap" and spent + 4.29 > 18.0 and len(calls) % 2 == 0
-    assert spent - 2.0 + 4.29 <= 18.0  # the last pair that started did fit
+    assert got == "cap" and spent == pytest.approx(18.0, abs=0.01) and len(calls) == 18
+    assert spent - 2.0 + 4.29 <= cap < spent + 4.29
 
 
 def test_a_nudge_that_reported_no_cost_is_charged_its_cap_and_a_worst_turn() -> None:
@@ -120,8 +138,22 @@ if not resume:
     code = step1 if first else (step1 + step2 if mode == "works" else None)
 elif mode != "stubborn":
     code = step1 + step2
+import subprocess
+def tree():
+    status = subprocess.run(["git", "status", "--porcelain"], capture_output=True,
+                            text=True).stdout
+    files = sorted(str(p) for p in pathlib.Path(".").rglob("*") if ".git" not in p.parts)
+    heads = subprocess.run(["git", "rev-list", "--count", "HEAD"], capture_output=True,
+                           text=True).stdout.strip()
+    return {"status": status, "files": files, "commits": heads}
+seen = tree()
 if code is not None:
     pathlib.Path("app/labels.py").write_text(code)
+if not resume and "Step 1" not in prompt and code is None:
+    pathlib.Path("notes.txt").write_text("asked what to continue")
+calls = json.loads(log.read_text())
+calls[-1] = {**calls[-1], "seen": seen, "left": tree()}
+log.write_text(json.dumps(calls))
 init = {"type": "system", "subtype": "init", "session_id": sid,
         "model": "claude-sonnet-5-5", "claude_code_version": "2.1.287"}
 usage = {"input_tokens": 10, "cache_read_input_tokens": size}
@@ -180,6 +212,12 @@ def test_an_arm_that_did_not_do_step_2_gets_one_nudge_and_its_own_cost(
     rec = tmp_path / "lot" / "arms" / "t00-a"
     assert (rec / "nudge.jsonl").exists() and not (rec / "handoff.txt").exists()
     assert "handoff" not in got or got["handoff"] == {}
+    # the nudge resumed on exactly the tree session 2 left: no commit, no bytecode, the note kept
+    assert calls[2]["seen"] == calls[1]["left"] and "?? notes.txt" in calls[2]["seen"]["status"]
+    assert not [f for f in calls[2]["seen"]["files"] if "__pycache__" in f]
+    assert push["tree_kept"] is True and not (rec / "checks-s2").exists()
+    assert push["first_request"] == {"input": 10, "cache_read": 40000, "cache_write": 0}
+    assert push["session_2_last_request"] == {"input": 10, "cache_read": 20000, "cache_write": 0}
 
 
 def test_an_arm_that_did_step_2_gets_no_nudge(tmp_path: Path, monkeypatch: Any) -> None:
@@ -196,6 +234,44 @@ def test_a_nudge_that_does_not_help_leaves_the_arm_failed(tmp_path: Path, monkey
     got = n0_arm(tmp_path, rep=3)
     assert got["line"] == "bare" and got["nudged"] and not got.get("cut")
     assert got["kept_all_s2"] is False and got["kept_all"] is False
+
+
+def test_session_2_s_checks_run_on_a_copy_and_leave_the_tree_as_it_was(tmp_path: Path) -> None:
+    import subprocess
+
+    work, rec = tmp_path / "w", tmp_path / "rec"
+    rec.mkdir()
+    repo = carry.build(work, {"files": handoff.HANDOFF["h_batch"]["files"]})
+    (repo / "app" / "labels.py").write_text(STEP1 + STEP2)  # step 2 there, not committed
+    before = handoff.tree_state(repo)
+    status = subprocess.run(["git", "-C", str(repo), "status", "--porcelain"],
+                            capture_output=True, text=True).stdout  # fmt: skip
+    got = handoff.checks_apart(repo, handoff.HANDOFF["h_batch"], rec / "checks-s2")
+    assert got == handoff.checks(repo, handoff.HANDOFF["h_batch"]) and got["task_pass"]
+    # (the second run above is in the tree itself, as the final checks are: it may write
+    # bytecode; the state was taken before it)
+    assert handoff.before_state(rec) == before and not (rec / "checks-s2").exists()
+    assert status and "labels.py" in status
+
+
+def test_the_copy_s_checks_write_nothing_into_the_tree(tmp_path: Path) -> None:
+    work, rec = tmp_path / "w", tmp_path / "rec"
+    rec.mkdir()
+    repo = carry.build(work, {"files": handoff.HANDOFF["h_batch"]["files"]})
+    (repo / "app" / "labels.py").write_text(STEP1)
+    before = handoff.tree_state(repo)
+    handoff.checks_apart(repo, handoff.HANDOFF["h_batch"], rec / "checks-s2")
+    assert handoff.tree_state(repo) == before
+    assert not [p for p in repo.rglob("*") if "__pycache__" in p.parts or ".pytest_cache" in
+                p.parts]  # fmt: skip
+
+
+def test_a_tree_changed_before_the_nudge_cuts_the_arm(tmp_path: Path, monkeypatch: Any) -> None:
+    stand_in(tmp_path, monkeypatch, "asks")
+    monkeypatch.setattr(handoff, "before_state", lambda rec: "another tree")
+    got = n0_arm(tmp_path)
+    assert got["cut"] == "nudge: the repository changed between session 2 and the nudge"
+    assert got["nudge"]["tree_kept"] is False
 
 
 def test_the_nudge_names_nothing_and_is_not_memory_s_continuation_cue() -> None:
@@ -365,7 +441,7 @@ def fake_arm(results: list[Any]):
 
 def test_the_lot_runs_whole_resumes_and_keeps_the_quiet_hours(tmp_path: Path) -> None:
     arm, calls = fake_arm([])
-    go = lambda clock: handoff.run_plan(tmp_path / "lot", RUN, tmp_path / "k", False, 18.0,  # noqa: E731
+    go = lambda clock: handoff.run_plan(tmp_path / "lot", RUN, tmp_path / "k", False, 22.0,  # noqa: E731
                                         None, clock, lambda s: None, arm,
                                         work_root=tmp_path / "w", lifted=lambda: "",
                                         restart=lambda: "")  # fmt: skip
@@ -385,7 +461,7 @@ def fake_execute(ran: list[Any]):
     return execute
 
 
-def test_the_night_runs_only_this_lot_under_its_18_usd(tmp_path: Path, monkeypatch: Any) -> None:
+def test_the_night_runs_only_this_lot_under_its_cap(tmp_path: Path, monkeypatch: Any) -> None:
     monkeypatch.setitem(handoff.LOTS["ew"], "work", tmp_path / "work")
     seen: list[str] = []
     monkeypatch.setattr(hseal, "require_sealed_checkout", lambda lot="f2": seen.append(lot))
@@ -393,7 +469,7 @@ def test_the_night_runs_only_this_lot_under_its_18_usd(tmp_path: Path, monkeypat
     monkeypatch.setattr(handoff, "execute", fake_execute(ran))
     monkeypatch.setattr(night, "table", lambda root, run: None)
     assert night.night(tmp_path, lot="ew") == 0
-    assert ran == [(RUN, 18.0, False)] and seen == ["ew"]
+    assert ran == [(RUN, handoff.EW_CAP, False)] and seen == ["ew"]
     assert night.spent_before(tmp_path, RUN, "ew") == 0.0
 
 
@@ -431,6 +507,50 @@ def test_the_seal_names_this_lot_s_prereg_launcher_modules_and_tests() -> None:
 ])  # fmt: skip
 def test_the_sealed_checkout_refuses_a_path_that_names_the_lot(path: str, named: bool) -> None:
     assert bool(hseal.path_refusal("ew", Path(path))) is named
+
+
+def git(repo: Path, *args: str) -> None:
+    import subprocess
+
+    subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@example.org",
+                    *args], check=True, capture_output=True)  # fmt: skip
+
+
+def test_the_sealing_commit_may_hold_only_the_seal(tmp_path: Path) -> None:
+    repo, results = tmp_path / "repo", tmp_path / "repo" / "docs" / "results" / "x"
+    for rel in (*hseal.SEALED_FIXED, "src/sanchopanza/a.py"):
+        (repo / rel).parent.mkdir(parents=True, exist_ok=True)
+        (repo / rel).write_text(f"# {rel}\n")
+    results.mkdir(parents=True)
+    (results / "prereg.md").write_text("prereg\n")
+    git(repo, "init", "-q")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "instrument")
+    hseal.seal(repo, results)
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "seal")
+    assert hseal.checkout_refusal(repo, results, alone=True) == ""
+    # a seal committed together with a change to the code: refused for this lot only
+    git(repo, "reset", "-q", "--soft", "HEAD~1")
+    (repo / "src/sanchopanza/a.py").write_text("# changed\n")
+    (results / "prereg.sha256").unlink()
+    hseal.seal(repo, results)
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "seal and code")
+    assert "more than the seal" in hseal.checkout_refusal(repo, results, alone=True)
+    assert "src/sanchopanza/a.py" in hseal.checkout_refusal(repo, results, alone=True)
+    assert hseal.checkout_refusal(repo, results) == ""  # F2's and W17's rule unchanged
+    assert hseal.SEAL_ALONE == ("ew",)
+
+
+def test_the_run_refuses_a_live_out_other_than_its_root(tmp_path: Path, capsys: Any) -> None:
+    own = Path(handoff.LOTS["ew"]["out"]) / RUN
+    assert handoff.out_refusal(RUN, own, False) == ""
+    assert "runs live only in" in handoff.out_refusal(RUN, tmp_path / RUN, False)
+    assert handoff.out_refusal(RUN, tmp_path / RUN, True) == ""  # a dry run builds anywhere
+    assert handoff.out_refusal("w17-sonnet", tmp_path, False) == ""
+    assert handoff.main(["--run", RUN, "--out", str(tmp_path / RUN)]) == 11
+    assert "nothing run" in capsys.readouterr().out and not (tmp_path / RUN).exists()
 
 
 def launcher() -> tuple[str, list[str]]:
@@ -552,6 +672,40 @@ def test_the_nudge_s_tool_calls_are_reported_with_the_sessions() -> None:
     assert got["touched"] == {"N0 nudge": {"store": 48}}
     assert got["nudge_report"]["N0"]["cost_median_usd"] == pytest.approx(0.04)
     assert got["nudge_report"]["N0"]["cost_sources"] == {"x": 48}
+
+
+def test_the_scene_bootstrap_is_reported_and_does_not_decide() -> None:
+    rows = lot_rows(each=lambda k, r: {**r, "cost": 0.12 + 0.002 * (k % 12)}
+                    if r["arm"] == "N0" else r)  # fmt: skip
+    got = ew.analyse(rows)
+    scene = got["by_scene"]
+    assert scene["scenes"] == 12 and scene["seed"] == ew.SEED and scene["draws"] == 10_000
+    assert scene["median"] == pytest.approx(got["cost_ratio"]["median"])
+    assert scene["ci95_raw"][0] <= scene["median"] <= scene["ci95_raw"][1]
+    assert got["verdict"] == "gana (coste)" and got["n0_zero_cost"] == 0
+    assert got["checks_disagree"] == {"N0": 0, "S": 0}
+
+
+def test_pairs_lost_to_a_nudge_are_counted_and_read_as_n0_failing() -> None:
+    cut = {"cut": "nudge: timeout", "cost": 0.8}
+    rows = lot_rows(each=lambda k, r: {**r, **cut} if r["arm"] == "N0" and k < 5 else r)
+    got = ew.analyse(rows)
+    assert got["pairs"] == 43 and got["not_run_reasons"] == {"nudge": 5}
+    lost = got["lost_to_nudge"]
+    assert lost["pairs_lost"] == 5 and lost["by_arm"] == {"N0": 5, "S": 0}
+    assert lost["pairs"] == 48 and lost["S_vs_N0"]["a_only"] == 5
+    assert lost["verdict"] in ("gana (coste)", "gana (éxito)", "no gana")
+    harness = lot_rows(each=lambda k, r: {**r, "cut": "harness: nudge: x"}
+                       if r["arm"] == "S" and k < 2 else r)  # fmt: skip
+    assert ew.analyse(harness)["lost_to_nudge"]["pairs_lost"] == 0  # S' not as S': not a nudge loss
+
+
+def test_a_non_nudged_arm_whose_two_checks_differ_is_reported() -> None:
+    odd = {"checks_s2": {"tests_pass": True, "task_pass": True, "fact_pass": True,
+                         "decision_pass": True, "intact_pass": True, "kept_all": True},
+           "tests_pass": False}  # fmt: skip
+    got = ew.analyse(lot_rows(s=odd))
+    assert got["checks_disagree"] == {"N0": 0, "S": 48}
 
 
 def test_the_analysis_refuses_a_folder_that_is_not_this_lot_s(tmp_path: Path) -> None:
