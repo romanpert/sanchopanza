@@ -68,8 +68,7 @@ CONFIRM_STUB_PESSIMISTIC_USD = 2.2152
 
 # The code the reading runs (and the dev rows it reads), checked against dev2's instrument
 # commit before anything is read: the reading runs in a checkout where these equal it.
-READING_INSTRUMENT = ("src", "benchmarks/longdoc_free", "benchmarks/h2h", "benchmarks/paid_once.py",
-                      jp.IDS_REL, *jp.DEV_ROWS)  # fmt: skip
+READING_INSTRUMENT = ("src", "benchmarks", jp.IDS_REL, *jp.DEV_ROWS)  # as the Claude lot's
 PAUSE_FILES = ("LIMIT.flag", "STOP")
 
 

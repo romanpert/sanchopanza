@@ -588,7 +588,7 @@ def test_the_reading_runs_only_where_its_code_equals_the_instrument(monkeypatch)
     monkeypatch.setattr(jp.paid_once, "git", git)
     assert d2.require_reading_instrument() == jp.paid_once.instrument_commit(jp.lot("dev2").prereg)
     diffed = next(c for c in calls if c[0] == "diff")
-    for path in ("src", "benchmarks/longdoc_free", "benchmarks/h2h", *jp.DEV_ROWS):
+    for path in ("src", "benchmarks", jp.IDS_REL, *jp.DEV_ROWS):  # meter, lb162x, browse too
         assert path in diffed
     git, _ = _fake_git(diff_rc=1)
     monkeypatch.setattr(jp.paid_once, "git", git)
