@@ -4,10 +4,13 @@ router with the BM25 prefilter before Jev. Free: reads public rows and the lot's
     python -I benchmarks/longdoc_free/dev2_read.py   # docs/results/2026-10-17-lfree-dev2/dev2.json
 
 Registered in docs/results/2026-10-17-lfree-dev2/prereg-dev2.md. Inputs: dev2's gate p per
-question (`jev-dev2.jsonl`, phase dev2 of jev_phase.py), dev2's H sessions
-(`dev2-haiku-rows.jsonl`, stage dev2 of h2h_lfree.py) and, reused, the sealed dev's N, H0 and HC
-sessions (`../2026-10-16-longdoc-free/dev-*-rows.jsonl`, pinned below by sha256: a changed file
-refuses the reading). The dev's own H sessions are not read.
+question (`jev-dev2.jsonl`, phase dev2 of jev_phase.py), dev2's N and H sessions
+(`dev2-sonnet-rows.jsonl`, `dev2-haiku-rows.jsonl`, stage dev2 of h2h_lfree.py) and, reused, the
+sealed dev's H0 and HC sessions (`../2026-10-16-longdoc-free/dev-*-rows.jsonl`, pinned below by
+sha256: a changed file refuses the reading). H0 and HC enter no R - N: H0 only the with-H0
+money and the descriptive controls, HC the memory rule. The dev's own N is read only for the
+descriptive N(dev2) - N(dev) on the same questions (the arm's run-to-run variance); the dev's H
+only for its mean F1 beside dev2's.
 
 `dev_read.read` does the rest, unchanged in its rules: read at all (35 of 41), memory (HC), the
 cut (`stats.dev_cut`), n for the confirmation's 310 questions, and the money. Two inputs differ
@@ -47,13 +50,14 @@ jp = _load("lf_jev_phase", HERE / "jev_phase.py")
 
 DEV_DIR = jp.RESULTS
 DEV2_DIR = jp.DEV2_DIR
-# The sealed dev's rows dev2 reuses, sha256 with LF line ends (paid_once.digest).
+# The sealed dev's rows dev2 reads (H0 and HC reused; N for the rerun's comparison), sha256
+# with LF line ends (paid_once.digest).
 REUSED_SHA256 = {
     "dev-sonnet-rows.jsonl": "6b83cb45f607a00404900cf08881d5c5c0d6133d892e929e1fc49ab9a51533d8",
     "dev-haiku-rows.jsonl": "0b52f1c81701fdfbde5c4fba87d34c714f2625aaddc679984166332e6a3bca09",
 }
-REUSED_VARIANTS = ("N", "H0", "HC")
-NEW_VARIANTS = ("H",)
+REUSED_VARIANTS = ("H0", "HC")
+NEW_VARIANTS = ("N", "H")
 CONFIRM_HAIKU_ARMS = ("H",)
 # The confirmation's Jev plan at K = 200 (`jev_phase.py dry --phase confirm --prefilter-k 200`,
 # the stub, free, 2026-10-17: 310 questions, 3,196 tournament, 1,513 sentence and 310 gate calls);
@@ -68,7 +72,7 @@ def require_reused(folder: Path = DEV_DIR) -> None:
 
 def combine(dev_rows: Sequence[Mapping[str, Any]],
             dev2_rows: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:  # fmt: skip
-    """The dev's N, H0 and HC sessions and dev2's H: one session per question and arm."""
+    """The dev's H0 and HC sessions and dev2's N and H: one session per question and arm."""
     stray = sorted({r["variant"] for r in dev2_rows} - set(NEW_VARIANTS))
     if stray:
         raise SystemExit(f"dev2's rows hold arms it does not run: {stray}")
@@ -105,6 +109,28 @@ def at_cut(rows: Sequence[Mapping[str, Any]], cut: float) -> dict[str, Any]:
     saved = stats.bootstrap(rows, stats.saving(cut))
     return {"cut": cut, "router_minus_n": _interval(router, 2), "saving": _interval(saved, 4),
             "coverage": round(stats.coverage(rows, cut), 3)}  # fmt: skip
+
+
+def rerun_n(jev2: Sequence[Mapping[str, Any]], dev_rows: Sequence[Mapping[str, Any]],
+            dev2_rows: Sequence[Mapping[str, Any]]) -> dict[str, Any] | None:  # fmt: skip
+    """N(dev2) - N(dev) on the questions both ran, descriptive (no verdict): the mean in F1
+    points with the novel bootstrap, the SD of the per-question difference, how many questions
+    moved, and both runs' cost."""
+    novel = {int(r["id"]): r["novel"] for r in jev2}
+    old = {int(r["id"]): r for r in dev_rows if r["variant"] == "N"}
+    new = {int(r["id"]): r for r in dev2_rows if r["variant"] == "N"}
+    both = sorted(set(old) & set(new) & set(novel))
+    if not both:
+        return None
+    rows = [{"novel": novel[i], "a": float(new[i].get("f1") or 0.0),
+             "b": float(old[i].get("f1") or 0.0)} for i in both]  # fmt: skip
+    diff = [100.0 * (r["a"] - r["b"]) for r in rows]
+    found = stats.bootstrap(rows, _diff(lambda r: r["a"], lambda r: r["b"]))
+    return {"questions": len(both), "n_dev2_minus_n_dev": _interval(found, 2),
+            "sd_points": round(statistics.stdev(diff), 2) if len(diff) > 1 else 0.0,
+            "moved": sum(d != 0 for d in diff),
+            "usd_dev": round(sum(float(old[i]["usd"]) for i in both), 4),
+            "usd_dev2": round(sum(float(new[i]["usd"]) for i in both), 4)}  # fmt: skip
 
 
 def expected_confirm(money: Mapping[str, Mapping[str, float]], jev_each: float) -> dict[str, Any]:
@@ -148,8 +174,9 @@ def read(
     out["by_cut"] = by_cut(rows)
     out["at_cut"] = at_cut(rows, out["cut"]) if out["cut"] is not None else None
     out["expected_confirm_usd"] = expected_confirm(out["money"], jev_spent / len(jev2))
+    out["n_rerun"] = rerun_n(jev2, dev_rows, dev2_rows)  # descriptive, not a verdict
     dev_h = [float(r.get("f1") or 0.0) for r in dev_rows if r["variant"] == "H"]
-    new_h = [float(r.get("f1") or 0.0) for r in dev2_rows]
+    new_h = [float(r.get("f1") or 0.0) for r in dev2_rows if r["variant"] == "H"]
     out["vs_dev"] = {
         "h_mean_f1_dev": round(100 * statistics.fmean(dev_h), 2) if dev_h else None,
         "h_mean_f1_dev2": round(100 * statistics.fmean(new_h), 2) if new_h else None,
@@ -197,7 +224,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         jev2,
         [*dev_read.read_jsonl(DEV_DIR / "dev-sonnet-rows.jsonl"),
          *dev_read.read_jsonl(DEV_DIR / "dev-haiku-rows.jsonl")],
-        dev_read.read_jsonl(DEV2_DIR / "dev2-haiku-rows.jsonl"),
+        [*dev_read.read_jsonl(DEV2_DIR / "dev2-sonnet-rows.jsonl"),
+         *dev_read.read_jsonl(DEV2_DIR / "dev2-haiku-rows.jsonl")],
         jev_spent=spent[jp.DEV2],
         jev_planned=planned,
         confirm_planned=CONFIRM_STUB_PESSIMISTIC_USD * jp.PROBE_STUB_RATIO,

@@ -1,7 +1,8 @@
 """Lot longdoc-free's dev2 (docs/results/2026-10-17-lfree-dev2/prereg-dev2.md): phase J2 of
 jev_phase.py (the BM25 prefilter at the probe's K on the 41 dev questions, its own lot, one
-launch), stage dev2 of h2h_lfree.py (H alone) and dev2_read.py (the sealed dev's rules on the
-new H with the dev's N, H0 and HC reused). No network, no key, no session."""
+launch), stage dev2 of h2h_lfree.py (smoke, N again, then H alone) and dev2_read.py (the sealed
+dev's rules on dev2's N and H, the dev's H0 and HC reused, N's rerun described). No network,
+no key, no session."""
 
 from __future__ import annotations
 
@@ -301,37 +302,92 @@ def _dev_rows(name: str) -> list[dict]:
     return [json.loads(x) for x in (DEV / name).read_text("utf-8").splitlines() if x.strip()]
 
 
-def test_stage_dev2_is_h_alone_on_dev2s_passages():
-    assert h2h.STAGES["dev2"] == (h2h.DEV2_H,)
+def test_stage_dev2_is_the_devs_design_with_n_run_again_and_h_on_dev2s_passages():
+    assert h2h.STAGES["dev2"] == (h2h.DEV2_SMOKE, h2h.DEV2_N, h2h.DEV2_H)
     assert h2h.STAGES["dev"] == (h2h.SMOKE, h2h.DEV_N, h2h.DEV_HAIKU)  # unchanged
-    assert h2h.variants_of(h2h.DEV2_H, 1) == ["H"]
+    assert h2h.variants_of(h2h.DEV2_N, 3) == ["N"] and h2h.variants_of(h2h.DEV2_H, 1) == ["H"]
     assert h2h.variants_of(h2h.DEV_HAIKU, 1) == ["H0", "HC", "H"]
     task = h2h.FreeTask("7:H", 7, "H", "abc", "Who?", ("Peyton",), "dev2")
     assert h2h.document_of(task) == jp.passages_path("dev2", 7)
-    assert h2h.prompt(task) == h2h.prompt(dataclasses.replace(task, stage="dev"))
+    n = dataclasses.replace(task, key="7:N", variant="N")
+    assert h2h.document_of(n) == h2h.pool.novel_path("abc")
+    assert h2h.prompt(task) == h2h.prompt(dataclasses.replace(task, stage="dev")) == h2h.prompt(n)
+    for new, old in ((h2h.DEV2_SMOKE, h2h.SMOKE), (h2h.DEV2_N, h2h.DEV_N)):
+        same = ("model_id", "full_cap", "ceiling", "floor")  # the dev's own caps
+        assert [getattr(new, k) for k in same] == [getattr(old, k) for k in same]
     assert h2h.DEV2_H.model_id == h2h.DEV_HAIKU.model_id and h2h.DEV2_H.full_cap == 1.50
-    assert h2h.DEV2_H.name not in {p.name for p in h2h.STAGES["dev"]}  # its own sessions
-    assert h2h.DEV2_H.rows.parent == jp.DEV2_DIR
+    dev_names = {p.name for p in h2h.STAGES["dev"]}
+    assert all(p.name not in dev_names for p in h2h.STAGES["dev2"])  # their own sessions
+    assert all(p.rows.parent == jp.DEV2_DIR for p in h2h.STAGES["dev2"])
+    assert len(h2h.STAGE_OF) == 6
 
 
 @pytest.mark.skipif(not CACHED, reason="∞Bench En.QA or its frozen ids not cached")
-def test_stage_dev2_asks_every_dev_question_once_in_the_devs_order():
-    tasks = h2h.tasks_of(h2h.DEV2_H)
-    assert len(tasks) == h2h.DEV2_H.n == 41 and {t.variant for t in tasks} == {"H"}
-    assert [t.item for t in tasks] == [t.item for t in h2h.tasks_of(h2h.DEV_N)]
-    assert {t.stage for t in tasks} == {"dev2"}
+def test_stage_dev2_asks_every_dev_question_once_per_arm_in_the_devs_order():
+    n, h = h2h.tasks_of(h2h.DEV2_N), h2h.tasks_of(h2h.DEV2_H)
+    assert len(n) == len(h) == 41 and {t.variant for t in n} == {"N"}
+    assert {t.variant for t in h} == {"H"}
+    assert [t.item for t in n] == [t.item for t in h] == [t.item for t in h2h.tasks_of(h2h.DEV_N)]
+    smoke = h2h.tasks_of(h2h.DEV2_SMOKE)
+    assert [(t.item, t.variant) for t in smoke] == [(t.item, t.variant)
+                                                    for t in h2h.tasks_of(h2h.SMOKE)]  # fmt: skip
+    assert {t.stage for t in [*n, *h, *smoke]} == {"dev2"}
 
 
-def test_dev2s_ceiling_holds_41_sessions_at_the_devs_h_cost_and_fits_the_lot():
-    h = [float(r["usd"]) for r in _dev_rows("dev-haiku-rows.jsonl") if r["variant"] == "H"]
-    per = max(1.5 * statistics.fmean(h), dr.percentile(h, 0.95))
-    phase = h2h.DEV2_H
-    assert phase.ceiling - phase.worst_turn - phase.floor >= phase.n * per
+def _room_for(phase, rows: list[dict], arm: str) -> tuple[float, float]:
+    usd = [float(r["usd"]) for r in rows if r["variant"] == arm]
+    per = max(1.5 * statistics.fmean(usd), dr.percentile(usd, 0.95))
+    return phase.ceiling - phase.worst_turn - phase.floor, phase.n * per
+
+
+def test_dev2s_ceilings_hold_41_sessions_at_the_devs_measured_cost_and_fit_the_lot():
+    room, need = _room_for(h2h.DEV2_N, _dev_rows("dev-sonnet-rows.jsonl"), "N")
+    assert room >= need  # 7.18 against 41 x 0.1307 = 5.36
+    room, need = _room_for(h2h.DEV2_H, _dev_rows("dev-haiku-rows.jsonl"), "H")
+    assert room >= need  # 2.54 against 41 x 0.0534 = 2.19
     got = h2h.money("dev2")
-    assert got["most_usd"] == pytest.approx(5.00)
+    assert got["S2"]["most_usd"] == pytest.approx(0.80 + 4.32)  # the smoke reserves no turn
+    assert got["D2N"]["most_usd"] == 12.00 and got["D2H"]["most_usd"] == 5.00
+    assert got["most_usd"] == pytest.approx(22.12)
     spent_so_far = 8.196  # the dev's Claude: smoke, N and the Haiku arms, at list price
-    assert spent_so_far + got["most_usd"] <= dr.CLAUDE_CAP_USD
+    assert spent_so_far + got["most_usd"] <= dr.CLAUDE_CAP_USD  # 30.32 of 105
     assert h2h.money("dev")["most_usd"] == pytest.approx(0.80 + 4.32 + 12.00 + 9.00)
+
+
+def test_each_smoke_has_its_own_cap_rule_and_the_others_cap_for():
+    rule, reserve = h2h.money_rules(h2h.DEV2_SMOKE)
+    assert reserve == 0.80 and rule(0.0) == 0.80 and rule(0.10) is None  # one session
+    rule, reserve = h2h.money_rules(h2h.DEV2_N)
+    assert rule is None and reserve == pytest.approx(0.50 + 4.32)
+    assert h2h.money_rules(h2h.SMOKE)[1] == 0.80
+
+
+def test_a_failed_dev2_smoke_stops_the_stage_and_only_a_passed_one_is_final(tmp_path, monkeypatch):
+    ran = []
+
+    def run_one(phase):
+        ran.append(phase.key)
+        return "smoke" if phase.key == "S2" else "done"
+
+    kind, kinds = h2h.x.drive(h2h.STAGES["dev2"], run_one, final=lambda p: None)
+    assert ran == ["S2"] and kind != "done"
+    stop = tmp_path / "stop.json"
+    monkeypatch.setattr(h2h, "DEV2_SMOKE", dataclasses.replace(h2h.DEV2_SMOKE, stop=stop))
+    smoke = h2h.DEV2_SMOKE
+    monkeypatch.setitem(h2h.SMOKES, smoke.key, smoke)
+    stop.write_text('{"kind": "ceiling"}\n', "utf-8")
+    assert h2h.final_kind(smoke) is None  # a smoke is final only when it passed
+    stop.write_text('{"kind": "done"}\n', "utf-8")
+    assert h2h.final_kind(smoke) == "done"
+
+
+def test_the_stage_clock_budgets_83_sessions_at_a_minute_and_a_half_and_its_margin():
+    phases = h2h.STAGES["dev2"]
+    seconds = h2h.clock_budget_s(phases, sum(p.n for p in phases))
+    assert seconds == 83 * 60 * 1.5 + 600 == 8070  # 2 h 14.5 min: start by 21:45
+    late = h2h.dt.datetime(2026, 10, 18, 21, 46)
+    assert h2h.s162.crosses_midnight(late, seconds)
+    assert not h2h.s162.crosses_midnight(h2h.dt.datetime(2026, 10, 18, 21, 45), seconds)
 
 
 def test_dev2s_claude_lot_binds_its_prereg_and_the_reused_rows():
@@ -395,28 +451,41 @@ def _jev(n: int = 40, per: int = 5) -> list[dict]:
              "empty": False, "gold_in_kept": bool(i % 3)} for i in range(n)]  # fmt: skip
 
 
-def _sessions(n: int = 40, h_f1: float = 0.6, arms=("N", "H", "H0", "HC")) -> list[dict]:
+def _sessions(n: int = 40, h_f1: float = 0.6, arms=("N", "H", "H0", "HC"),
+              n_f1: float = 0.6) -> list[dict]:  # fmt: skip
     cost = {"N": 0.07, "H": 0.03, "H0": 0.08, "HC": 0.018}
-    f1 = {"N": 0.6, "H": h_f1, "H0": 0.5, "HC": 0.01}
+    f1 = {"N": n_f1, "H": h_f1, "H0": 0.5, "HC": 0.01}
     return [{"id": i, "variant": a, "f1": f1[a] + (0.1 if i % 4 == 0 else 0.0), "usd": cost[a],
              "answer_words": 2, "has_answer_line": True, "no_answer": False, "hit_cap": False}
             for i in range(n) for a in arms]  # fmt: skip
 
 
-def _read(dev_h_f1: float = 0.0, new_h_f1: float = 0.6, **kw):
+def _read(dev_h_f1: float = 0.0, new_h_f1: float = 0.6, dev_n_f1: float = 0.6, **kw):
     args = {"jev_spent": 0.45, "jev_planned": 0.49, "confirm_planned": 3.139,
-            "claude_spent": 9.5, "jev_room": 11.66} | kw  # fmt: skip
-    return d2.read(_jev(), _sessions(h_f1=dev_h_f1), _sessions(h_f1=new_h_f1, arms=("H",)),
-                   **args)  # fmt: skip
+            "claude_spent": 12.4, "jev_room": 11.66} | kw  # fmt: skip
+    return d2.read(_jev(), _sessions(h_f1=dev_h_f1, n_f1=dev_n_f1),
+                   _sessions(h_f1=new_h_f1, arms=("N", "H")), **args)  # fmt: skip
 
 
-def test_combine_takes_the_devs_n_h0_hc_and_dev2s_h_only():
-    got = d2.combine(_sessions(h_f1=0.0), _sessions(h_f1=0.6, arms=("H",)))
-    h = [r for r in got if r["variant"] == "H"]
-    assert len(h) == 40 and all(r["f1"] >= 0.6 for r in h)  # the dev's H (0.0) is not read
+def test_combine_takes_the_devs_h0_hc_and_dev2s_n_and_h():
+    got = d2.combine(_sessions(h_f1=0.0, n_f1=0.0), _sessions(h_f1=0.6, arms=("N", "H")))
+    for arm in ("N", "H"):
+        mine = [r for r in got if r["variant"] == arm]
+        assert len(mine) == 40 and all(r["f1"] >= 0.6 for r in mine)  # the dev's (0.0) unread
     assert {r["variant"] for r in got} == {"N", "H", "H0", "HC"}
+    assert len([r for r in got if r["variant"] == "H0"]) == 40
     with pytest.raises(SystemExit, match="does not run"):
-        d2.combine(_sessions(), _sessions(arms=("H", "N")))
+        d2.combine(_sessions(), _sessions(arms=("H", "H0")))
+
+
+def test_r_minus_n_uses_dev2s_n_and_the_rerun_is_reported_beside_it():
+    got = _read(dev_n_f1=0.2)  # the dev's N far lower: it must not enter R - N
+    assert got["cut"] == 0.5 and got["by_cut"]["0.5"]["router_minus_n"] == pytest.approx(0.0)
+    rerun = got["n_rerun"]
+    assert rerun["questions"] == 40 and rerun["moved"] == 40
+    assert rerun["n_dev2_minus_n_dev"]["estimate"] == pytest.approx(40.0)
+    assert rerun["sd_points"] == pytest.approx(0.0) and rerun["usd_dev2"] == pytest.approx(2.8)
+    assert got["money"]["N"]["sessions"] == 40  # N's money is dev2's, not both runs'
 
 
 def test_a_tie_sets_the_cut_with_intervals_and_seals_by_the_money_without_h0():
@@ -447,6 +516,7 @@ def test_a_losing_h_sets_no_cut_and_no_phase_j2_means_not_run():
     assert got["cut"] is None and got["at_cut"] is None and not got["seal_confirmation"]
     none = d2.read([], _sessions(), [], jev_spent=0.0, jev_planned=0.0, confirm_planned=3.139,
                    claude_spent=8.2, jev_room=12.0)  # fmt: skip
+    assert d2.rerun_n(_jev(), _sessions(), []) is None
     assert none["status"] == "not run" and none["seal_confirmation"] is False
 
 

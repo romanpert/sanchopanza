@@ -128,8 +128,9 @@ ORACLE_USD = {PROBE: PROBE_ORACLE_USD, DEV2: DEV2_ORACLE_USD}
 # Phases whose K is fixed here and that launch once only, never again (the probe's refusals).
 FIXED_K = {PROBE: PROBE_K, DEV2: PROBE_K}
 ONE_LAUNCH = (PROBE, DEV2)
-# dev2 reuses the sealed dev's N, H0 and HC sessions (prereg-dev2.md section 4): bound to its
-# instrument, so a change to them after its instrument commit refuses every dev2 run.
+# dev2 reads the sealed dev's sessions (prereg-dev2.md section 4): H0 and HC reused, N compared
+# with dev2's own N; bound to its instrument, so a change to them after its instrument commit
+# refuses every dev2 run.
 DEV_ROWS = ("docs/results/2026-10-16-longdoc-free/dev-sonnet-rows.jsonl",
             "docs/results/2026-10-16-longdoc-free/dev-haiku-rows.jsonl")  # fmt: skip
 

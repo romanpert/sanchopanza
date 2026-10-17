@@ -21,9 +21,10 @@ and in what `document.txt` holds:
 
 One phase per model: N's, then Haiku's with H, H0 and HC interleaved per question (their order
 rotating with the question's position), so each phase reserves one worst turn. Stage dev2
-(docs/results/2026-10-17-lfree-dev2/prereg-dev2.md, `--stage dev2`) is one phase, H alone on
-the passages of jev_phase.py's phase dev2 (the BM25 prefilter before Jev), bound to that
-prereg's seal; it reuses the sealed dev's N, H0 and HC rows. The money and
+(docs/results/2026-10-17-lfree-dev2/prereg-dev2.md, `--stage dev2`) is the dev's design with
+N run again: its own smoke, phase N, then phase H alone on the passages of jev_phase.py's phase
+dev2 (the BM25 prefilter before Jev), bound to that prereg's seal; it reuses the sealed dev's
+H0 and HC rows (descriptive). The money and
 each session's health are lb162x's (`cap_for`: a session's cap while cap + one worst turn fits
 under the phase's ceiling; lb162x_guard.Budget), the clock and STOP lb162's, the exits
 h2h_lb162x's (done 0, ceiling 1, limit 2, preflight 3, clock 5, manual 6, error 7, outage 8,
@@ -113,18 +114,30 @@ DEV_HAIKU = Phase("DH", "lfree-dev-haiku", "HAIKU", meter.HAIKU_45, IDS, 123, ce
 SMOKE = Phase("S", "lfree-smoke", "SONNET", meter.SONNET_55, IDS, 1, ceiling=0.80, full_cap=0.80,
               floor=0.80, wall_mean_s=60.0, cost_scale=1.0, rows=OUT / "smoke-rows.jsonl",
               stop=OUT / "smoke-stop.json")  # fmt: skip
-# dev2 (docs/results/2026-10-17-lfree-dev2/prereg-dev2.md): H alone, Haiku 4.5 on the passages
-# Jev kept behind the BM25 prefilter (jev_phase.py phase dev2), on the 41 dev questions in the
-# dev's seeded order; N, H0 and HC are the sealed dev's sessions, reused. Its session cap is the
-# dev's for Haiku; its ceiling leaves room for 41 sessions at the dev H's 95th percentile
-# (0.0534 USD, above 1.5 times its mean 0.0313) after one worst turn and the floor.
+# dev2 (docs/results/2026-10-17-lfree-dev2/prereg-dev2.md), the dev's design with N run again:
+# its smoke (one Sonnet session, the first dev question), phase N (Sonnet 5.5, the whole novel,
+# the dev's caps), then phase H alone (Haiku 4.5 on the passages Jev kept behind the BM25
+# prefilter, jev_phase.py phase dev2), on the 41 dev questions in the dev's seeded order; H0 and
+# HC are the sealed dev's sessions, reused (descriptive only). H's session cap is the dev's for
+# Haiku; its ceiling leaves room for 41 sessions at the dev H's 95th percentile (0.0534 USD,
+# above 1.5 times its mean 0.0313) after one worst turn and the floor.
 DEV2_OUT = jev_phase.DEV2_DIR
+DEV2_SMOKE = Phase("S2", "lfree-dev2-smoke", "SONNET", meter.SONNET_55, IDS, 1, ceiling=0.80,
+                   full_cap=0.80, floor=0.80, wall_mean_s=60.0, cost_scale=1.0,
+                   rows=DEV2_OUT / "dev2-smoke-rows.jsonl",
+                   stop=DEV2_OUT / "dev2-smoke-stop.json")  # fmt: skip
+DEV2_N = Phase("D2N", "lfree-dev2-sonnet", "SONNET", meter.SONNET_55, IDS, 41, ceiling=12.00,
+               full_cap=CAPS["SONNET"], floor=0.50, wall_mean_s=60.0, cost_scale=1.0,
+               rows=DEV2_OUT / "dev2-sonnet-rows.jsonl",
+               stop=DEV2_OUT / "dev2-sonnet-stop.json")  # fmt: skip
 DEV2_H = Phase("D2H", "lfree-dev2-haiku", "HAIKU", meter.HAIKU_45, IDS, 41, ceiling=5.00,
                full_cap=CAPS["HAIKU"], floor=0.30, wall_mean_s=45.0, cost_scale=1.0,
                rows=DEV2_OUT / "dev2-haiku-rows.jsonl",
                stop=DEV2_OUT / "dev2-haiku-stop.json")  # fmt: skip
-STAGES: dict[str, tuple[Phase, ...]] = {"dev": (SMOKE, DEV_N, DEV_HAIKU), "dev2": (DEV2_H,)}
+STAGES: dict[str, tuple[Phase, ...]] = {"dev": (SMOKE, DEV_N, DEV_HAIKU),
+                                        "dev2": (DEV2_SMOKE, DEV2_N, DEV2_H)}  # fmt: skip
 STAGE_OF = {p.key: stage for stage, phases in STAGES.items() for p in phases}
+SMOKES = {SMOKE.key: SMOKE, DEV2_SMOKE.key: DEV2_SMOKE}
 ONLY = {DEV2_H.key: ("H",)}  # a phase that runs some of its model's arms only
 
 
@@ -208,7 +221,7 @@ def variants_of(phase: Phase, position: int) -> list[str]:
 def tasks_of(phase: Phase) -> list[FreeTask]:
     stage = STAGE_OF[phase.key]
     items = stage_items(stage)
-    if phase.key == SMOKE.key:
+    if phase.key in SMOKES:
         items = items[:1]
     out = []
     for position, item in enumerate(items):
@@ -335,22 +348,33 @@ def smoke_passed(rows: Sequence[Mapping[str, Any]]) -> bool:
                for r in phase_loop.counted(list(rows)))  # fmt: skip
 
 
-def settle_smoke(kind: str) -> str:
+def settle_smoke(kind: str, smoke: Phase = SMOKE) -> str:
     if kind not in ("done", "ceiling"):
         return kind
-    if smoke_passed(gaia.read_rows(sessions_of(SMOKE))):
+    if smoke_passed(gaia.read_rows(sessions_of(smoke))):
         return "done"
-    guard_mod.void_free(sessions_of(SMOKE), "smoke failed at 0 USD: repeated on a relaunch")
+    guard_mod.void_free(sessions_of(smoke), "smoke failed at 0 USD: repeated on a relaunch")
     return "smoke"
 
 
-def smoke_cap(spent: float) -> float | None:
-    return SMOKE.full_cap if spent + SMOKE.full_cap <= SMOKE.ceiling + 1e-9 else None
+def smoke_cap(spent: float, smoke: Phase = SMOKE) -> float | None:
+    return smoke.full_cap if spent + smoke.full_cap <= smoke.ceiling + 1e-9 else None
+
+
+def money_rules(phase: Phase) -> tuple[Callable[[float], float | None] | None, float]:
+    """The guard's cap rule and the phase loop's reserve: a smoke's own cap, once, with no
+    worst turn reserved (its ceiling is its cap); any other phase lb162x's `cap_for` and its
+    floor plus one worst turn."""
+    smoke = SMOKES.get(phase.key)
+    if smoke is None:
+        return None, phase.loop_reserve
+    return (lambda spent: smoke_cap(spent, smoke)), smoke.full_cap
 
 
 def final_kind(phase: Phase) -> str | None:
+    """A smoke is over only when it passed (`done`); another phase at `done` or `ceiling`."""
     kind = (lb162x.stop_of(phase) or {}).get("kind")
-    finals = ("done",) if phase.key == SMOKE.key else lb162x.FINAL
+    finals = ("done",) if phase.key in SMOKES else lb162x.FINAL
     return kind if kind in finals else None
 
 
@@ -369,7 +393,7 @@ def money(stage: str) -> dict[str, Any]:
     cap plus one worst turn, since its cap reserves none)."""
     out = {}
     for phase in STAGES[stage]:
-        worst = phase.full_cap + phase.worst_turn if phase.key == SMOKE.key else phase.ceiling
+        worst = phase.full_cap + phase.worst_turn if phase.key in SMOKES else phase.ceiling
         out[phase.key] = {"name": phase.name, "model": phase.model_id, "sessions": phase.n,
                           "ceiling": phase.ceiling, "full_cap": phase.full_cap,
                           "worst_turn": phase.worst_turn, "most_usd": round(worst, 2)}  # fmt: skip
@@ -443,6 +467,13 @@ def model_problems(pin_dir: pathlib.Path = s162.PIN_DIR) -> list[str]:
 Git = Callable[..., subprocess.CompletedProcess]
 
 
+def clock_budget_s(todo: Sequence[Phase], sessions: int) -> float:
+    """The seconds the start's midnight check budgets: every session left at the slowest
+    phase's mean times WALL_FACTOR, plus the margin (lb162's rule)."""
+    slowest = max(p.wall_mean_s for p in todo)
+    return sessions * slowest * s162.WALL_FACTOR + s162.MIDNIGHT_MARGIN_S
+
+
 def refusal(stage: str, now: dt.datetime, run_dir: pathlib.Path = RUN_DIR,
             git: Git = git_out) -> tuple[str, str] | None:  # fmt: skip
     """Before any session: (kind, why) when the stage may not start, else None."""
@@ -463,10 +494,9 @@ def refusal(stage: str, now: dt.datetime, run_dir: pathlib.Path = RUN_DIR,
     if not todo:
         return "done", "every phase is over: nothing to run"
     sessions = sum(p.n - done_now(p) for p in todo)
-    seconds = sessions * max(p.wall_mean_s for p in todo) * s162.WALL_FACTOR
     if now.hour < s162.EARLIEST_HOUR:
         return "clock", f"{now:%H:%M} is before {s162.EARLIEST_HOUR:02d}:00"
-    if s162.crosses_midnight(now, seconds + s162.MIDNIGHT_MARGIN_S):
+    if s162.crosses_midnight(now, clock_budget_s(todo, sessions)):
         return "clock", f"{sessions} sessions started at {now:%H:%M} would cross midnight"
     return None
 
@@ -482,10 +512,10 @@ def run_phase(phase: Phase, found: Sequence[str]) -> str:  # pragma: no cover - 
         return "clock"
     sessions, reservations = sessions_of(phase), reservations_of(phase)
     sessions.parent.mkdir(parents=True, exist_ok=True)
-    smoke = phase.key == SMOKE.key
-    guard = guard_mod.Budget(phase, now, sessions, reservations,
-                             cap_rule=smoke_cap if smoke else None, run_dir=RUN_DIR)  # fmt: skip
-    reserve = SMOKE.full_cap if smoke else phase.loop_reserve
+    smoke = SMOKES.get(phase.key)
+    cap_rule, reserve = money_rules(phase)
+    guard = guard_mod.Budget(phase, now, sessions, reservations, cap_rule=cap_rule,
+                             run_dir=RUN_DIR)  # fmt: skip
     code, rows = common.run_live(x.live_args(phase), steps(phase, tasks),
                                  guard_mod.known_rows(sessions, reservations),
                                  lambda ctx: guard.wrap(session_for(phase, ctx)), sessions,
@@ -493,8 +523,8 @@ def run_phase(phase: Phase, found: Sequence[str]) -> str:  # pragma: no cover - 
                                  found)  # fmt: skip
     kind = s162.stop_kind(code, guard)
     said = export(phase, rows)
-    if smoke:
-        kind = settle_smoke(kind)
+    if smoke is not None:
+        kind = settle_smoke(kind, smoke)
     print(json.dumps({"phase": phase.key, **said, "stop": kind}), file=sys.stderr)
     return kind
 
