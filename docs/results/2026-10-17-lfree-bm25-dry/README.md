@@ -1,8 +1,30 @@
-# A free BM25 prefilter before Jev's page tournament (∞Bench En.QA dev, dry)
+# A free BM25 prefilter before Jev's page tournament (∞Bench En.QA dev)
 
-**Status: dry and free. No call was made: every number below is a replay of the dev's recorded
-Jev calls, B6's dry-run stub, or arithmetic on them. Nothing here is a measured result of the
-prefilter; it sizes a small paid probe for the owner to approve or not.**
+**Status: a dry sizing (free) and one sealed paid probe of 3 questions (Jev only, 0.0346 USD).
+By the probe's sealed rule a new dev is worth preparing: at K = 200, Jev cost 0.0115 USD a
+question on average (at most 0.0203) on questions where it cost 0.041-0.070 over the whole
+novel. Three questions measure cost, not quality: nothing here says the router's F1 holds.**
+
+## The probe (paid, sealed `62f7d1d`)
+
+Jev 1.13.0 (`jev-1.13.0` on all 143 calls), `select_passages` and the Truth gate behind the BM25
+shortlist of K = 200 pages, on dev ids 0, 7 and 375; pre-registered in `prereg-probe.md` (two
+independent review rounds), instrument `50e645f`, one launch on 2026-10-17 from a detached
+worktree at the seal, every call answered, no stop. Ledger 0.034602 USD of its 0.06 cap.
+
+| Id | Tournament calls, real / oracle | Sentence calls | Jev USD, real / oracle | Same question in the dev (whole novel) | Gate p, probe / dev | Gold in kept text, probe / dev |
+|---|---|---|---|---|---|---|
+| 0 | 27 / 24 | 69 | 0.0203 / 0.0198 | 0.0413 | 0.69 / 0.73 | yes / yes |
+| 7 | 7 / 9 | 8 | 0.0045 / 0.0056 | 0.0700 | 0.37 / 0.40 | no / no |
+| 375 | 18 / 21 | 11 | 0.0098 / 0.0111 | 0.0684 | 0.81 / 0.72 | yes / yes |
+| **Mean** | | | **0.0115** / 0.0122 | 0.0599 | | |
+
+**Sealed rule:** mean ≤ 0.015 and none above 0.031, on unrounded sums: 0.0115 and 0.0203,
+**passed**: a new dev with the prefilter is worth preparing (its own pre-registration and the
+owner's approval). The oracle's cost was within 25 % on each question (real/oracle 1.03, 0.81,
+0.88), so the dry table below is a fair guide to K. Kept text shrank (46,695 against 60,679
+characters on id 0) and ∞Bench's reference stayed in it wherever it was before; with 3 questions
+that is description, not a quality result.
 
 ## The question
 
@@ -106,11 +128,10 @@ dev's largest sentence stage, 182 calls, 0.014). Against the dev's substitution 
 quality-safe alternative at 0.014-0.024. Nothing here says the router's F1 holds: the gate's p
 and the coverage would move with the passages.
 
-## The probe it would take (not run)
+## The probe as proposed before it ran
 
 Approved by the owner on 2026-10-17 as proposed below; its pre-registration is
-`prereg-probe.md`, to be sealed after an independent review.
-
+`prereg-probe.md`. Its result is at the top of this page.
 
 - **What:** Jev only, `select_passages` and the gate at K = 200 on 3 dev questions, chosen to
   span the predicted cost: id 0 (oracle 0.0199 USD, the dearest), id 375 (0.0111, the median,
@@ -129,5 +150,9 @@ Approved by the owner on 2026-10-17 as proposed below; its pre-registration is
 ## Files
 
 `bm25-dry.json` (every number above; per question: ids, novel keys, page and call counts,
-costs; no question, answer or novel text), `prereg-probe.md` (the probe's registration). Code: `benchmarks/longdoc_free/bm25_dry.py`,
-`pages.bm25_shortlist`, `jev_phase.ask(prefilter_k=...)`.
+costs; no question, answer or novel text), `prereg-probe.md` and `prereg-probe.sha256` (the
+probe's registration and seal), `probe-read.json` (the probe's reading by `probe_read.py`),
+`jev-probe.jsonl` (its rows: gate p, kept characters, whether the reference is in the kept
+text), `../../../fixtures/longdoc-free/jev-probe.jsonl.gz` (its recording: hashed keys and
+answers, no text; the reading replays from it). Code: `benchmarks/longdoc_free/bm25_dry.py`,
+`probe_read.py`, `pages.bm25_shortlist`, `jev_phase.ask(prefilter_k=...)`.
