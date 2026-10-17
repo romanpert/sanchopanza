@@ -110,9 +110,15 @@ The 0.8 cut for Opus 5.5 users ran as **lbo8** (2026-10-16, sealed `2f232f1`, 9.
 the 78 fresh QA tasks left, all under 100,000 characters, "no concluyente" at −5 (−6.4 points
 [−14.1, −1.4]; Jev right on 20 of the 30 it covered, Opus on 25), 30.8 % [20.9, 41.4] of Opus's
 cost saved ([lbo8](results/2026-10-16-lbo8/README.md)): no tighter claim, and the router is not
-for documents under 100,000 characters as it stands. What remains: a long-document set graded on
-free-text answers ([design draft](results/2026-10-16-longdoc-free/design.md), about 63 USD of
-Claude and 7 of Jev, the owner's call).
+for documents under 100,000 characters as it stands. Free-text answers ran as the dev of
+**longdoc-free** (2026-10-17, sealed `d8f266f`, ∞Bench En.QA, 41 questions on 8 novels, Sonnet
+5.5 and Haiku 4.5 in clean Claude Code 2.1.287, Jev 1.13): the router of Jev's passages and gate
+to Haiku cost 25 % more than Sonnet alone (saving −25.1 % [−36, −13]) for −0.6 F1
+[−8.2, +7.9], and Jev's passages did not help Haiku (−0.5 [−10.2, +9.3] against the whole novel); by its
+sealed rule no confirmation was sealed (541 questions needed, 310 left)
+([longdoc-free](results/2026-10-16-longdoc-free/README.md)). Jev cost 0.039 USD a question on
+these novels (its page tournament 0.037) against Sonnet's 0.069 in Claude Code; a free pre-filter
+before the tournament is the open proposal.
 
 **D1. OpenAI's Decisions API.** sanchopanza is a layer with one decision contract; Jev is the
 provider every figure was measured with, and OpenAI's `/v1/decisions` (public beta since

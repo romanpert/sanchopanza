@@ -126,6 +126,17 @@
 
 ### Measured
 
+- **Long documents with free-text answers: no confirmation sealed**
+  (`docs/results/2026-10-16-longdoc-free`, dev sealed `d8f266f`; Sonnet 5.5 and Haiku 4.5 in
+  clean Claude Code 2.1.287, Jev 1.13.0; 9.80 USD): on 41 ∞Bench En.QA questions over 8
+  novels, graded by ∞Bench's own token F1, the router that hands a question to Haiku 4.5 with
+  Jev's kept passages when Jev's gate says they suffice (cut 0.6, 33 of 41) and to Sonnet 5.5
+  with the whole novel otherwise scored −0.6 F1 points [−8.2, +7.9] against Sonnet alone and
+  **cost 25.1 % more** (saving −25.1 % [−36, −13]): Jev cost 0.039 USD a question (its page
+  tournament 0.037), more than Haiku saves over Sonnet in Claude Code (0.069 against 0.031).
+  Haiku from Jev's passages 44.6 F1, from the whole novel 45.1, Sonnet 55.0. By its sealed rule
+  (541 questions needed for the confirmation, 310 left) the lot stops at its dev. The lot's code
+  (`benchmarks/longdoc_free/`, `benchmarks/h2h/h2h_lfree.py`) ships no package change.
 - **A10, a local check_done classifier on public labels: "no concluyente"**
   (`docs/results/2026-10-16-a10-local`, sealed `ac61ad0`, free): trained only on AgentDojo's own
   labels for 393 slack stops (no pipeline Jev guarded), it ranked checkdone114's 950 unseen stops

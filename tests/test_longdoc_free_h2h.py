@@ -178,7 +178,11 @@ def test_the_launcher_takes_this_runner():
     assert h2h.launcher_problems() == []
 
 
-def test_an_unsealed_stage_is_refused_before_any_session(tmp_path: Path):
+def test_an_unsealed_stage_is_refused_before_any_session(tmp_path: Path, monkeypatch):
+    prereg = tmp_path / "prereg-x.md"
+    prereg.write_text("Instrument commit: `" + "a" * 40 + "`\n", "utf-8")
+    unsealed = h2h.dataclasses.replace(h2h.claude_lot("dev"), prereg=prereg)
+    monkeypatch.setattr(h2h, "claude_lot", lambda stage: unsealed)
     kind, why = h2h.refusal("dev", dt.datetime(2026, 10, 18, 9, 0), run_dir=tmp_path, git=_git())
     assert kind == "preflight" and "sealed" in why
 

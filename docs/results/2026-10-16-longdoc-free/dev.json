@@ -1,0 +1,96 @@
+{
+ "questions": 41,
+ "complete": 41,
+ "missing": 0,
+ "coverage_by_cut": {
+  "0.5": 0.829,
+  "0.6": 0.805,
+  "0.7": 0.585,
+  "0.8": 0.22,
+  "0.9": 0.0
+ },
+ "gold_in_kept": 21,
+ "cut": 0.6,
+ "money": {
+  "H": {
+   "sessions": 41,
+   "mean_usd": 0.0313,
+   "p95_usd": 0.0534,
+   "max_usd": 0.0655,
+   "hit_cap": 0
+  },
+  "H0": {
+   "sessions": 41,
+   "mean_usd": 0.0792,
+   "p95_usd": 0.2276,
+   "max_usd": 0.2519,
+   "hit_cap": 0
+  },
+  "HC": {
+   "sessions": 41,
+   "mean_usd": 0.0177,
+   "p95_usd": 0.0183,
+   "max_usd": 0.0198,
+   "hit_cap": 0
+  },
+  "N": {
+   "sessions": 41,
+   "mean_usd": 0.0693,
+   "p95_usd": 0.1307,
+   "max_usd": 0.2865,
+   "hit_cap": 0
+  }
+ },
+ "jev": {
+  "spent_usd": 1.6072,
+  "pessimistic_usd": 1.6035,
+  "settled_over_pessimistic": 1.0023
+ },
+ "answers": {
+  "H": {
+   "median_words": 4,
+   "answer_line_share": 1.0,
+   "no_answer": 0,
+   "mean_f1": 44.56,
+   "mean_f1_short": 44.62
+  },
+  "H0": {
+   "median_words": 3,
+   "answer_line_share": 1.0,
+   "no_answer": 0,
+   "mean_f1": 45.06,
+   "mean_f1_short": 45.23
+  },
+  "HC": {
+   "median_words": 7,
+   "answer_line_share": 1.0,
+   "no_answer": 0,
+   "mean_f1": 0.97,
+   "mean_f1_short": 0.97
+  },
+  "N": {
+   "median_words": 3,
+   "answer_line_share": 1.0,
+   "no_answer": 0,
+   "mean_f1": 55.03,
+   "mean_f1_short": 55.15
+  }
+ },
+ "confirm_money": {
+  "sonnet_ceiling": 45.34,
+  "haiku_ceiling": 89.57,
+  "jev_cap": 12.5,
+  "jev_expected": 12.35,
+  "jev_fits": false,
+  "claude_with_dev": 143.1,
+  "fits": false
+ },
+ "memory_answers": false,
+ "router_minus_n": -0.59,
+ "sd_points": 29.86,
+ "design_effect": 1.5,
+ "n_needed": 541,
+ "seal_confirmation": false,
+ "saving": -0.2515,
+ "why": "541 questions needed, 310 left: not sealed on En.QA alone"
+}
