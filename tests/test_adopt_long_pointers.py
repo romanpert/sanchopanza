@@ -449,3 +449,62 @@ def test_the_rule_compares_unrounded_bounds(m) -> None:
          "t_low": -0.050004}  # fmt: skip
     assert read.verdict(q, 5, 0.05) == "not shown"  # rounded to 4 places both would read -0.05
     assert read.published(q)["t_low"] == -0.05
+
+
+# ---- the grade under the profile's model ---------------------------------------------------------
+
+SMOKE = "pydantic__pydantic-long60-1"
+
+
+def _graded_rows(base: pathlib.Path) -> None:
+    for arm in ("P", "F"):
+        evidence = base / arm
+        evidence.mkdir(parents=True)
+        row = {"arm": arm, "token": "T", "bugs": 3,
+               "calls": [{"request": 1, "status": "ran", "owner_usd": 0.1}]}  # fmt: skip
+        (evidence / "row.json").write_text(json.dumps(row), encoding="utf-8")
+        (evidence / "diff-1.patch").write_text("", encoding="utf-8")
+
+
+@pytest.fixture
+def no_docker(m, monkeypatch):
+    """perbug.grade and the chains stubbed: nothing runs pytest, Docker or reads the cache."""
+    import perbug
+    import run
+
+    asked = []
+    monkeypatch.setattr(run, "chains", lambda: {SMOKE: {"bugs": [{"id": i} for i in range(3)]}})
+    monkeypatch.setattr(perbug, "grade", lambda chain, patch: asked.append(chain) or
+                        {"resolved": 0, "bugs": []})  # fmt: skip
+    return asked
+
+
+def test_the_grade_reads_the_runs_of_the_profile_s_model(m, no_docker, tmp_path) -> None:
+    long_run, *_, read = m
+    assert long_run.PROFILES["guardptr-smoke"].models == ("haiku",)
+    _graded_rows(tmp_path / "runs" / f"{SMOKE}-haiku")
+    assert read.main(["grade", "--profile", "guardptr-smoke", "--root", str(tmp_path)]) == 0
+    assert len(no_docker) == 2  # P and F, each at its common call
+    for arm in ("P", "F"):
+        graded = tmp_path / "runs" / f"{SMOKE}-haiku" / arm / "grade-common.json"
+        assert json.loads(graded.read_text(encoding="utf-8"))["common_calls"] == 1
+
+
+def test_a_grade_with_nothing_to_grade_fails_and_says_where_it_looked(
+    m, no_docker, tmp_path, capsys
+) -> None:
+    *_, read = m
+    _graded_rows(tmp_path / "runs" / f"{SMOKE}-sonnet")  # another model's runs: not the smoke's
+    assert read.main(["grade", "--profile", "guardptr-smoke", "--root", str(tmp_path)]) == 1
+    err = capsys.readouterr().err
+    assert "nothing graded" in err and "-haiku" in err
+    assert no_docker == []
+
+
+def test_the_reading_reads_the_profile_s_model_too(m, monkeypatch, tmp_path) -> None:
+    *_, read = m
+    seen = []
+    monkeypatch.setattr(read.long_compact, "chain_line",
+                        lambda root, chain, pair, model: seen.append(model))  # fmt: skip
+    read.main(["read", "--profile", "guardptr", "--root", str(tmp_path)])
+    assert set(seen) == {"sonnet"} and len(seen) == len(CHAINS)
