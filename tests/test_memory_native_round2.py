@@ -27,6 +27,10 @@ from .test_memory_native import (  # noqa: F401 - _clean is the shared autouse f
 EMO = "\U0001f600"
 
 
+# A junction is made with cmd.exe: the test cannot even start elsewhere.
+WINDOWS_ONLY = pytest.mark.skipif(os.name != "nt", reason="junctions are Windows-only")
+
+
 def _refresh(tmp_path: Path, records: list | None = None, **extra: object) -> dict:
     return mn.refresh(native(tmp_path), records or [record()], session="s1",
                       store=tmp_path / "store", **extra)  # fmt: skip
@@ -216,6 +220,7 @@ def test_low_b_covered_with_an_unreadable_index_keeps_the_note(tmp_path: Path) -
     assert (folder / mni.NOTE).exists()
 
 
+@WINDOWS_ONLY
 def test_low_c_a_junction_is_refused(tmp_path: Path) -> None:
     target = tmp_path / "shared"
     target.mkdir()
@@ -223,7 +228,7 @@ def test_low_c_a_junction_is_refused(tmp_path: Path) -> None:
     folder.parent.mkdir(parents=True)
     done = subprocess.run(["cmd", "/c", "mklink", "/J", str(folder), str(target)],
                           capture_output=True, check=False)  # fmt: skip
-    if os.name != "nt" or done.returncode != 0:
+    if done.returncode != 0:
         pytest.skip("no junction on this machine")
     assert _refresh(tmp_path)["native"] == "link refused"
     assert list(target.iterdir()) == []
@@ -247,12 +252,13 @@ def test_low_g_a_record_whose_changed_list_was_cut_is_not_whole() -> None:
     assert keys == []
 
 
+@WINDOWS_ONLY
 def test_low_c_a_junction_is_seen_without_path_is_junction(tmp_path: Path, monkeypatch) -> None:
     target, junction = tmp_path / "target", tmp_path / "junction"
     target.mkdir()
     done = subprocess.run(["cmd", "/c", "mklink", "/J", str(junction), str(target)],
                           capture_output=True, check=False)  # fmt: skip
-    if os.name != "nt" or done.returncode != 0:
+    if done.returncode != 0:
         pytest.skip("no junction on this machine")
     monkeypatch.delattr(Path, "is_junction", raising=False)  # Python 3.11 has none
     assert mni.linked(junction)
