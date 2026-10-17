@@ -1,6 +1,6 @@
 # Pre-registration: the BM25 prefilter's probe (Jev only, 3 dev questions, K = 200)
 
-Instrument commit: `1bd06a67ad979ed797a2a5b7875bb21a3ef0f32a`
+Instrument commit: `50e645f42df6d0bb13fd0043ff42749cbe3142ff`
 
 Written 2026-10-17, before any call of this probe. Approved by the owner on 2026-10-17 as
 proposed in `README.md` (this folder). Sealed by `prereg-probe.sha256` (below) only after an
@@ -78,8 +78,11 @@ Then, in the order the code checks them:
 
 - **Why 0.06.** The rule (section 4) says no once the three questions' bills pass 0.045
   (3 × 0.015). A stop at the cap leaves at least the cap less the call refused and the
-  reservations still open (each under 0.001) settled, past 0.045: such a stop already decides
-  "no" (section 6), so nothing past 0.06 is worth paying for. The plan, 0.0385, fits with 0.0215
+  reservations still open (each under 0.001) in the ledger, past 0.045: such a stop already
+  decides "no" (section 6), so nothing past 0.06 is worth paying for. The ledger is the measure
+  here, not the recorded bills of section 4: it keeps a call cut in flight or unreachable at its
+  estimate, with no bill in the recording, so the two differ only after many such calls (about
+  13 timeouts to move it by the margin). The plan, 0.0385, fits with 0.0215
   to spare.
 - **Why it cannot exceed 0.0626.** Every call goes through `CappedDecider` on this lot's own
   ledger (`longdoc-free-bm25-probe/ledger.jsonl` under the user's sanchopanza cache), capped at
@@ -131,7 +134,10 @@ recording, per decision point: only recorded (answered) calls, never calls attem
 characters, whether ∞Bench's normalised reference is in the kept text) as description only:
 three questions say nothing on quality. The recording (`fixtures/longdoc-free/jev-probe.jsonl`:
 hashed keys and answers, no text) is committed gzipped like the dev's; the replay and
-`probe_read.py` read the `.gz` when the plain file is gone.
+`probe_read.py` read the `.gz` when the plain file is gone. The reading also needs the launch
+history (`launches.jsonl`, in the lot's folder under the user's sanchopanza cache): on a clean
+clone with only the `.gz` it says "no launch", so the official reading is the one written on
+this machine, `probe-read.json`, committed beside the recording.
 
 **Results are committed from outside the sealed run worktree:** the recording, `jev-probe.jsonl`
 and `probe-read.json` are copied to another checkout and committed there, never with
@@ -146,6 +152,12 @@ every call answered, or the replay finds a call the recording does not answer:
   no whatever the rest would cost, since bills only add up: it stopped at the cap, or its
   recorded bills are past 0.045 in all, or one question's recorded bills are past 0.031;
 - otherwise it is **not run**, with no verdict.
+
+"Bills only add up" holds for a run that is a prefix of a complete one. After an isolated
+failure that does not stop the run, the unanswered pages pass the tournament's cut and add a few
+tournament calls (about 0.0005 USD), so in a narrow band just past 0.045 or 0.031 a run could be
+read "decided by spend" that a run without that failure might not have reached. Either label
+leads to no new dev.
 
 Stops that lead there: no launch, or a launch with no end line (killed, a crash, a restart); the
 cap (`SpendCapReached`); a 402 (no funds); a 429; an outage (401, 403, a 5xx, no connection);
@@ -174,3 +186,8 @@ The launcher is shared with the longdoc-free dev and confirmation phases, and it
 changed since the dev was sealed: the dev's sealed launcher digest
 (`../2026-10-16-longdoc-free/prereg-dev-a1.sha256`) is verified at the dev's own seal commit,
 not at HEAD. This probe's digest is the one in `prereg-probe.sha256`.
+
+One change reaches the dev's free paths: `lot_asker` now also reads `jev-dev.jsonl.gz`, so the
+dev's `rows` and `dry` can replay from the committed recording where before they found nothing to
+read. That replay reproduces the published dev rows (`bm25-dry.json`,
+`replay_matches_published_rows: true`); the dev's paid path has no launch left.
