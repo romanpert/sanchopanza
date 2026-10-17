@@ -97,7 +97,7 @@ def read() -> dict[str, Any]:
             "real_tournament_calls": int(got.get("calls_triage_pages", 0)),
             "oracle_tournament_calls": int(predicted["calls_triage_pages"]),
             "real_sentence_calls": int(got.get("calls_select_sentences", 0)),
-            "real_usd": round(sum(got.get(f"usd_{p}", 0.0) for p in dry.POINTS), 6),
+            "real_usd": sum(got.get(f"usd_{p}", 0.0) for p in dry.POINTS),  # the rule's: unrounded
             "oracle_usd": round(dry.usd(predicted, real_dev["factor"], dry.POINTS), 6),
             "dev_full_novel_usd": round(
                 sum(real_dev["counting"].by_row[rid].get(f"usd_{p}", 0.0) for p in dry.POINTS), 6
