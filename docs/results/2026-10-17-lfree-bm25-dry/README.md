@@ -118,8 +118,8 @@ Approved by the owner on 2026-10-17 as proposed below; its pre-registration is
   was 0.041, 0.068 and 0.070 USD, so each question's saving is read directly.
 - **Cost:** expected 0.037 USD (the oracle), 0.055 with 1.5 times; the ceiling of three
   questions is 0.094.
-- **Hard cap: 0.10 USD** in its own `paid_once` lot (ledger, recording, sealed prereg), behind
-  `jev-preflight`: phase `probe` of `jev_phase.py`, its ids and K fixed in code, the only paid
+- **Hard cap: 0.10 USD** (its ledger capped at 0.095, plus at most 0.0026 for calls in
+  flight) in its own `paid_once` lot (ledger, recording, sealed prereg), behind `jev-preflight`: phase `probe` of `jev_phase.py`, its ids and K fixed in code, the only paid
   path that takes the prefilter.
 - **Rule to seal before it runs:** a new dev is worth preparing only if the 3 questions' mean
   real Jev is at most 0.015 USD and none exceeds 0.031; real tournament calls against the

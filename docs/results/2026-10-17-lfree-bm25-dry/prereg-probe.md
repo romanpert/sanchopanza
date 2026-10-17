@@ -1,6 +1,6 @@
 # Pre-registration: the BM25 prefilter's probe (Jev only, 3 dev questions, K = 200)
 
-Instrument commit: `f4dafa03e32f9a65e4072685d3920a8a3927b80e`
+Instrument commit: `073589b3e9e8bff7c0098b6ae83f91484dc3fff9`
 
 Written 2026-10-17, before any call of this probe. Approved by the owner on 2026-10-17 as
 proposed in `README.md` (this folder). Sealed by `prereg-probe.sha256` (below) only after an
@@ -40,7 +40,8 @@ independent review; until then this file may change and nothing may be spent.
   launcher filled in place; HEAD descends from the instrument commit above and nothing under
   `src`, `benchmarks/longdoc_free`, `benchmarks/b6_es`, `benchmarks/paid_once.py` or the
   frozen `ids.json` differs from it; the ∞Bench file has its pinned sha256.
-- The dry run's pessimistic estimate fits in what the lot's ledger has left.
+- The plan fits in what the lot's ledger has left: the larger of the dry run's stub estimate
+  times 1.417 and the oracle's expected 0.0366 (section 3).
 - **One launch only:** refused after any earlier launch of this lot, whatever it did, when its
   ledger holds any spend, or when its recording holds any answer.
 - The launcher refuses between 00:00 and 08:00, with its local values unset, or with a phase other
@@ -51,29 +52,40 @@ independent review; until then this file may change and nothing may be spent.
 
 | | USD |
 |---|---|
-| Expected (the dry oracle: 0.0199 + 0.0111 + 0.0056) | 0.037 |
+| Expected (the dry oracle: 0.0199 + 0.0111 + 0.0056) | 0.0366 |
 | Expected with the 1.5 margin | 0.055 |
-| The dry run's stub, pessimistic estimate (`jev_phase.py dry --phase probe`) | 0.027 |
+| The dry run's stub, pessimistic estimate (`jev_phase.py dry --phase probe`) | 0.0272 |
+| **Plan for the room check:** max(0.0272 × 1.417, 0.0366) | **0.0385** |
 | Ceiling with the dev's largest sentence stage (3 × 0.031) | 0.094 |
-| **Hard cap (the lot's ledger)** | **0.10** |
+| **The ledger's cap** | **0.095** |
+| Worst overshoot past it (4 calls in flight × 0.000645) | 0.0026 |
+| **Worst total, against the owner's hard 0.10** | **0.0976** |
 
-- **Why it cannot exceed the cap:** every call goes through `CappedDecider` on this lot's own
-  ledger (`longdoc-free-bm25-probe/ledger.jsonl` under the user's sanchopanza cache, capped at
-  0.10), which reserves each call's estimate before sending it and refuses any call whose
-  reservation would take the ledger past 0.10; a call's bill then settles in place of its
-  reservation. A bill can exceed its reservation: on the dev, tournament calls billed at most
-  0.81 of it, but sentence calls up to 1.55 times and gate calls up to 3.3 times (at most
-  0.00024 and 0.00064 USD a call). With 4 calls in flight at most, the ledger can therefore
-  close above 0.10 by at most about 4 × 0.00064, **0.0026 USD (0.103 in all)**.
+- **Why it cannot exceed 0.10:** every call goes through `CappedDecider` on this lot's own
+  ledger (`longdoc-free-bm25-probe/ledger.jsonl` under the user's sanchopanza cache), capped at
+  **0.095**. It reserves each call's estimate before sending it and refuses any call whose
+  reservation would take the ledger past 0.095; a call's bill then settles in place of its
+  reservation, and a refused call costs nothing. A bill can exceed its reservation (on the
+  dev, tournament calls billed at most 0.81 of it, sentence calls up to 1.55 times and gate
+  calls up to 3.3 times), and a call's overshoot is less than its whole bill. Bills already
+  settled are in the ledger before the next reservation is checked, so only the calls in
+  flight when the cap bites can carry the ledger past it: at most 4 (`b6_run.CONCURRENCY`),
+  each billing at most 0.000645 USD, the dev's dearest call (a gate over about 60,000 kept
+  characters, the largest input the probe sends; tournament calls send 30 pages of at most
+  900 characters, about half of it). So the spend is at most 0.095 + 4 × 0.000645 = **0.0976
+  USD**, under the owner's 0.10 (in code: `PROBE_HARD_CAP_USD`, `PROBE_MAX_BILL_USD`,
+  `PROBE_IN_FLIGHT`, tested). A call cut in flight or unreachable keeps its reservation, which
+  is no overshoot.
+- **The plan before the launch:** the stub undercounts real Jev's tournament calls (real/stub
+  1.417 pooled on the dev, 0.59 to 2.47 per question), so the room check uses the larger of
+  the stub's 0.0272 times 1.417 (0.0385) and the oracle's expected 0.0366: 0.0385, which must
+  fit in the ledger's room (0.095 before any spend).
 - **Per question:** the tournament over 200 pages makes at most 4 rounds of 7 calls (3 pruning
   rounds and a final one), 28 calls, 0.017 USD at the dev's dearest tournament call; the
   sentence stage has no such ceiling (one call per page passing the final round, up to 200),
   which is why the cap, not the arithmetic, is the guarantee. Reaching it makes the probe "not
   run" (section 6).
-- The dry run's stub undercounts real Jev's tournament calls (real/stub 1.417 pooled on the
-  dev, 0.59 to 2.47 per question): its 0.027 is below the oracle's 0.037 and is used only for
-  the room check before the launch.
-- The owner's TypeSafe balance must hold at least 0.11 USD before the launch.
+- The owner's TypeSafe balance must hold at least 0.10 USD before the launch.
 
 ## 4. The decision rule (sealed)
 
