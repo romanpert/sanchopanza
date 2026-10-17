@@ -9,7 +9,8 @@
 # lines around the
 # runner's output; the PIDs (the cmd.exe started by WMI and the runner's python.exe under it) go
 # to -PidFile, a file of their own. The runner logs its sessions beside
-# ~/.cache/sanchopanza/gaia/h2h/<phase>/sessions.jsonl.
+# ~/.cache/sanchopanza/gaia/h2h/<phase>/sessions.jsonl. The Python is -Py, else the .venv of the
+# main checkout this worktree belongs to (only that checkout has one).
 #
 #   powershell -File benchmarks/h2h/launch.ps1 -RunnerArgs "--phase dev --ids ... --ceiling 25" `
 #       -Log C:\sp-runs\h2h\dev.log -PidFile C:\sp-runs\h2h\dev.pids
@@ -22,10 +23,16 @@ param(
     [string]$Log = "$env:USERPROFILE\.cache\sanchopanza\gaia\h2h\launch.log",
     [string]$PidFile = "$env:USERPROFILE\.cache\sanchopanza\gaia\h2h\launch.pids",
     [string]$Pin = $(if ($env:SANCHOPANZA_PIN_DIR) { $env:SANCHOPANZA_PIN_DIR } else { 'C:\sp-runs\pin' }),
-    [string]$KeysEnv = ''
+    [string]$KeysEnv = '',
+    [string]$Py = ''
 )
 $worktree = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$py = 'C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts\python.exe'
+$py = $Py
+if (-not $py) {
+    $commonDir = git -C $worktree rev-parse --path-format=absolute --git-common-dir
+    $py = Join-Path (Split-Path -Parent $commonDir) '.venv\Scripts\python.exe'
+}
+if (-not (Test-Path $py)) { throw "no python at $py (pass -Py)" }
 if (-not (Test-Path "$Pin\claude.exe")) { throw "no pinned claude.exe in $Pin" }
 New-Item -ItemType Directory -Force (Split-Path -Parent $Log) | Out-Null
 New-Item -ItemType Directory -Force (Split-Path -Parent $PidFile) | Out-Null

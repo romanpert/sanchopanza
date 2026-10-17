@@ -331,6 +331,12 @@ def test_the_launcher_turns_the_updater_off_and_takes_the_keys_path_only():
     assert "Get-Content" not in text  # the file it names is never opened
 
 
+def test_the_launcher_names_no_local_path():
+    text = (ROOT / "benchmarks/h2h/launch.ps1").read_text(encoding="utf-8")
+    assert "C:\\Users" not in text and "[string]$Py = ''" in text
+    assert "rev-parse --path-format=absolute --git-common-dir" in text  # the main checkout's .venv
+
+
 def test_the_seal_covers_every_file_the_runners_load():
     probe = (
         "import importlib.util, json, pathlib, sys\n"
