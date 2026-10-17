@@ -68,9 +68,40 @@ def _rows() -> list[dict]:
 # ---- the lot -----------------------------------------------------------------------------------
 
 
-def test_the_probe_is_its_own_lot_capped_at_ten_cents():
+def test_the_probes_ledger_cap_and_its_worst_overshoot_stay_within_the_owners_ten_cents():
+    cap = jp.CAP_USD["probe"]
+    assert cap == 0.095 and jp.PROBE_IN_FLIGHT == br.CONCURRENCY == 4
+    worst = cap + jp.PROBE_IN_FLIGHT * jp.PROBE_MAX_BILL_USD
+    assert worst <= jp.PROBE_HARD_CAP_USD == 0.10
+
+
+def test_the_probes_constants_are_the_dev_and_the_dry_measurement_s():
+    import gzip
+    import json as _json
+
+    with gzip.open(ROOT / "fixtures/longdoc-free/jev-dev.jsonl.gz", "rt", encoding="utf-8") as fh:
+        bills = [float(_json.loads(x)["cost_usd"]) for x in fh if x.strip()]
+    assert max(bills) <= jp.PROBE_MAX_BILL_USD  # a call overshoots its reservation by < its bill
+    measured = _json.loads((jp.PROBE_DIR / "bm25-dry.json").read_text("utf-8"))
+    assert measured["ratio_real_over_stub"]["pooled"] == jp.PROBE_STUB_RATIO
+    at_k = next(k for k in measured["by_k"] if k["k"] == jp.PROBE_K)["jev_usd_oracle_by_id"]
+    assert pytest.approx(sum(at_k[str(i)] for i in jp.PROBE_IDS)) == jp.PROBE_ORACLE_USD
+
+
+def test_the_probes_room_check_takes_the_larger_of_the_corrected_stub_and_the_oracle(
+    monkeypatch,
+):
+    monkeypatch.setattr(jp, "lot_asker", lambda phase, fallback: _stub_asker())
+    got = jp.dry("probe", _rows())
+    corrected = got["pessimistic_usd"] * jp.PROBE_STUB_RATIO
+    assert got["planned_usd"] == round(max(corrected, jp.PROBE_ORACLE_USD), 4)
+    assert got["fits_under_cap"] == (got["planned_usd"] <= jp.CAP_USD["probe"])
+    assert "planned_usd" not in jp.dry("dev", _rows())  # the sealed phases' plan, unchanged
+
+
+def test_the_probe_is_its_own_lot_capped_under_ten_cents():
     probe, dev = jp.lot("probe"), jp.lot("dev")
-    assert probe.name == "longdoc-free-bm25-probe" and probe.cap_usd == 0.10
+    assert probe.name == "longdoc-free-bm25-probe" and probe.cap_usd == 0.095
     assert probe.prereg.name == "prereg-probe.md"
     assert probe.prereg.parent.name == "2026-10-17-lfree-bm25-dry"
     assert probe.fixture.name == "jev-probe.jsonl"
@@ -105,7 +136,7 @@ def test_the_dry_run_refuses_another_k_for_the_probe(monkeypatch):
     with pytest.raises(ValueError, match="fixed"):
         jp.dry("probe", _rows(), prefilter_k=100)
     got = jp.dry("probe", _rows())
-    assert got["prefilter_k"] == 200 and got["cap_usd"] == 0.10
+    assert got["prefilter_k"] == 200 and got["cap_usd"] == 0.095
 
 
 def test_the_probe_launches_once_and_never_again():
@@ -170,6 +201,7 @@ def test_the_rehearsal_records_every_call_under_the_cap_then_replays_free(rehear
     spent = jp.paid_once.spent(the_lot)
     assert 0 < spent <= the_lot.cap_usd
     assert the_lot.fixture.stat().st_size > 0
+    assert jp.paid_once.history(the_lot)[0]["plan"]["planned_usd"] >= jp.PROBE_ORACLE_USD
     history = jp.paid_once.history(the_lot)
     assert len(history) == 1 and history[0]["stop_kind"] is None
     assert history[0]["plan"]["prefilter_k"] == 200
@@ -194,7 +226,7 @@ def test_the_ledger_stops_the_probe_at_its_cap(rehearsal, monkeypatch):
     real_dry = jp.dry
 
     def optimistic(phase, rows=None, prefilter_k=None):  # a plan that fits: the cap must hold
-        return real_dry(phase, rows, prefilter_k) | {"pessimistic_usd": 0.0}
+        return real_dry(phase, rows, prefilter_k) | {"pessimistic_usd": 0.0, "planned_usd": 0.0}
 
     monkeypatch.setattr(jp, "dry", optimistic)
     monkeypatch.setattr(jp, "CAP_USD", {**jp.CAP_USD, "probe": 0.004})

@@ -73,7 +73,13 @@ FIT_CHARS = 60_000  # about 20,000 tokens: under Jev's 32k a question, H's file
 # Dev 1.50 at the seal; 1.80 by amendment 1 (the owner, 2026-10-17, after the first launch met
 # the cap: real Jev made about 39 % more tournament calls than the dry run's stub). The lot's Jev:
 # 14.30.
-CAP_USD = {"dev": 1.80, "confirm": 12.50, "probe": 0.10}
+# The probe: the owner's hard 0.10 USD is the ledger's cap plus the most the calls in flight when
+# it bites can bill past their reservations, each less than its whole bill, at most the dev's
+# dearest call (a gate over the 60,000 kept characters, the largest input the probe sends).
+PROBE_HARD_CAP_USD = 0.10
+PROBE_MAX_BILL_USD = 0.000645  # the dev's dearest billed call: 0.000644616
+PROBE_IN_FLIGHT = br.CONCURRENCY  # 4
+CAP_USD = {"dev": 1.80, "confirm": 12.50, "probe": 0.095}  # probe: 0.095 + 4 x 0.000645 = 0.0976
 # Amendment 1: one more launch of the dev, only after its first launch, from the original seal,
 # stopped at the cap.
 ORIGINAL_DEV_SEAL = "6fd974705d223d7e3a0eeeb13a933da3459ea54e"
@@ -90,6 +96,12 @@ PROBE = "probe"
 PROBE_DIR = ROOT / "docs" / "results" / "2026-10-17-lfree-bm25-dry"
 PROBE_IDS = (0, 7, 375)  # the dearest, cheapest and median by the dry oracle at K = 200
 PROBE_K = 200
+# The probe's plan before the launch (docs/results/2026-10-17-lfree-bm25-dry/bm25-dry.json): the
+# stub undercounts real Jev's tournament calls, 1.417 times pooled on the dev, and the oracle
+# expects 0.0199 + 0.0056 + 0.0111 USD for these ids at this K; the larger of the stub's estimate
+# so corrected and the oracle's must fit in the ledger's room.
+PROBE_STUB_RATIO = 1.417
+PROBE_ORACLE_USD = 0.0366
 
 
 def prefilter_for(phase: str) -> int | None:
@@ -246,6 +258,9 @@ def dry(
     out = {"phase": phase, "questions": len(rows), "calls": calls,
            "pessimistic_usd": round(pessimistic, 4), "cap_usd": CAP_USD[phase],
            "fits_under_cap": pessimistic <= CAP_USD[phase], "claude_usd": 0.0}  # fmt: skip
+    if phase == PROBE:
+        planned = max(pessimistic * PROBE_STUB_RATIO, PROBE_ORACLE_USD)
+        out = {**out, "planned_usd": round(planned, 4), "fits_under_cap": planned <= CAP_USD[phase]}
     return out if prefilter_k is None else {**out, "prefilter_k": prefilter_k}
 
 
@@ -336,8 +351,9 @@ def paid(phase: str, launcher: pathlib.Path | None, *, load_key: Any = paid_once
     rows = load_rows(phase)
     plan = dry(phase, rows)
     room = paid_once.room(the_lot)
-    if plan["pessimistic_usd"] > room:
-        raise SystemExit(f"{plan['pessimistic_usd']} USD does not fit in the {room:.4f} left")
+    needed = plan.get("planned_usd", plan["pessimistic_usd"])  # the probe's, else the stub's
+    if needed > room:
+        raise SystemExit(f"{needed} USD does not fit in the {room:.4f} left")
     paid_once.require_sealed(the_lot)
     commit = paid_once.require_instrument(the_lot)
     paid_once.require_inputs(the_lot)
