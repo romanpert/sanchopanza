@@ -54,6 +54,7 @@ import carry  # noqa: E402
 import carry_s  # noqa: E402
 import handoff_call as hc  # noqa: E402
 import handoff_cost  # noqa: E402
+import handoff_nudge  # noqa: E402
 import handoff_seal  # noqa: E402
 import meter  # noqa: E402
 import winupdate  # noqa: E402
@@ -100,6 +101,12 @@ RUNS: dict[str, dict[str, Any]] = {
     "w17-opus": {"model": "opus", "scenes": list(HANDOFF), "repeats": [1, 2, 3], "bare": [3],
                  "cap": 33.0, "dir": "r2", "lot": "w17", "arms": ("N0", "S"), "scope": "user",
                  "call_caps": {"sonnet": 0.50, "opus": 0.80}, "jev_cap": 0.50},
+    # Equal work (docs/results/2026-10-17-memory-equal-work/prereg.md): W17's Sonnet pairs, and a
+    # nudge (handoff_nudge) when `task` fails after session 2; three calls an arm under 18 USD.
+    "ew-sonnet": {"model": "sonnet", "scenes": list(HANDOFF), "repeats": [1, 2, 3, 4],
+                  "bare": [3, 4], "cap": 18.0, "dir": "r1", "lot": "ew", "arms": ("N0", "S"),
+                  "scope": "user", "call_caps": {"sonnet": 0.25}, "jev_cap": 0.50,
+                  "nudge": True},
 }  # fmt: skip
 BARE_LINE = "Let's continue."  # W17's stratum: a session 2 line that names nothing
 CAP_FILE = "jev-cap.json"  # beside the run's key: the hooks' Jev cap (carry_hook.CAP_FILE)
@@ -127,6 +134,8 @@ LOTS: dict[str, dict[str, Any]] = {
     "w17": {"sequence": ("w17-sonnet", "w17-opus"), "night_cap": 45.0,
             "out": Path(r"C:\sp-runs\memory-w17-redo"), "work": Path(r"C:\sp-runs\w19"),
             "gate": None, "quiet": True},
+    "ew": {"sequence": ("ew-sonnet",), "night_cap": 18.0, "out": Path(r"C:\sp-runs\mem-ew"),
+           "work": Path(r"C:\sp-runs\w20"), "gate": None, "quiet": True},
 }  # fmt: skip
 W17_INTERRUPTED = (Path(r"C:\sp-runs\memory-w17"), Path(r"C:\sp-runs\w18"))  # 16 Oct: evidence
 QUIET = (dt.time(2, 0), dt.time(8, 0))  # no W17 arm runs, even in part, between these
@@ -183,6 +192,11 @@ def call_cap(run: str | None, model: str) -> float:
     return float(caps[model])
 
 
+def nudges(run: str | None) -> bool:
+    """Whether the run's arms get the nudge after a failed `task` check (handoff_nudge)."""
+    return bool(run and RUNS[run].get("nudge"))
+
+
 def line_of(run: str | None, rep: int) -> str:
     """Session 2's line: "bare" (BARE_LINE) in the run's bare repetitions, else "named" (the
     scene's own `continue` line, as F2)."""
@@ -220,15 +234,16 @@ def folder_name(run: str, triple: int, arm: str) -> str:
     return f"t{triple:02d}-{dict(zip(arms, letters[: len(arms)], strict=True))[arm]}"
 
 
-def calls_of(arm: str) -> int:
-    return 3 if arm == "H" else 2
+def calls_of(arm: str, run: str | None = None) -> int:
+    """H's handoff turn, or the run's possible nudge, is a third call."""
+    return 3 if arm == "H" or nudges(run) else 2
 
 
 def reserve_of(model: str, arm: str, run: str | None = None) -> float:
     """What the next arm may spend at most: each call at its cap plus one worst turn past it,
-    and S's Jev reserve per session."""
-    jev = 2 * carry_s.JEV_RESERVE if arm == "S" else 0.0
-    return calls_of(arm) * (call_cap(run, model) + WORST_TURN[model]) + jev
+    and S's Jev reserve per call it may make (two sessions, and the nudge's turn)."""
+    jev = calls_of(arm, run) * carry_s.JEV_RESERVE if arm == "S" else 0.0
+    return calls_of(arm, run) * (call_cap(run, model) + WORST_TURN[model]) + jev
 
 
 # ---- a claude call and its NOT RUN rules ---------------------------------------------------------
@@ -320,10 +335,11 @@ def seed(work: Path, repo: Path, name: str) -> None:
         (work / "store" / folder / "rules.json").write_text(payload, encoding="utf-8")
 
 
-def steps_of(arm: str, line: str = "named") -> list[str]:
+def steps_of(arm: str, line: str = "named", nudge: bool = False) -> list[str]:
     resume = f"handoff: claude -p --resume <session 1 id> {HANDOFF_REQUEST!r}"
     second = "handoff.txt" if arm == "H" else "continue" if line == "named" else "bare"
-    return ["session 1: first", *([resume] if arm == "H" else []), f"session 2: {second}"]
+    push = [handoff_nudge.STEP] if nudge else []
+    return ["session 1: first", *([resume] if arm == "H" else []), f"session 2: {second}", *push]
 
 
 def second_prompt(scene: dict[str, Any], line: str) -> str:
@@ -353,14 +369,15 @@ def arm_run(out: Path, work: Path, name: str, model: str, arm: str, rep: int, ke
             if (work / kept).exists():
                 os.replace(work / kept, rec / kept)
     row: dict[str, Any] = {"scene": name, "model": model, "arm": arm, "repeat": rep,
-                           "folder": str(work), "planned": steps_of(arm, line), "line": line,
+                           "folder": str(work), "planned": steps_of(arm, line, nudges(run)),
+                           "line": line,
                            "scope": scope, "call_cap": call_cap(run, model)}  # fmt: skip
     if dry:
         return {**row, "dry": True, "repo": str(repo)}
     secrets = [s for s in (carry.clean_token() if clean else "", key_of(keyfile)) if s]
     try:
         done = sessions_of(work, rec, repo, scene, model, arm, config,
-                           second_prompt(scene, line), cap, scope)  # fmt: skip
+                           second_prompt(scene, line), cap, scope, nudges(run))  # fmt: skip
     finally:
         found = [carry.scrub(folder, s) for folder in (work, rec) for s in secrets]
     scrubbed = [f for got in found for f in got[0]]
@@ -384,7 +401,9 @@ def key_of(keyfile: Path) -> str:
 
 def sessions_of(work: Path, rec: Path, repo: Path, scene: dict[str, Any], model: str, arm: str,
                 config: Path | None, line_text: str | None = None, cap: float | None = None,
-                scope: str = "project") -> dict[str, Any]:  # fmt: skip
+                scope: str = "project", nudge: bool = False) -> dict[str, Any]:  # fmt: skip
+    """The arm's calls. With `nudge` (equal work), a failed `task` check after session 2 gets
+    one resumed turn (`push`, handoff_nudge) before the checks that decide."""
     projects = config / "projects" if config else carry.PROJECTS
     ran: list[dict[str, Any]] = []
     turn: dict[str, Any] = {}
@@ -411,23 +430,55 @@ def sessions_of(work: Path, rec: Path, repo: Path, scene: dict[str, Any], model:
             pasted = None if got is None else got == prompt
             if pasted is False and not cut:  # session 2 did not get the handoff as written
                 cut = "handoff: session 2's first prompt differs from handoff.txt"
+    push: dict[str, Any] = {}
+    before: dict[str, Any] = {}
+    if nudge and not cut and not limit:
+        before = checks(repo, scene)
+        if handoff_nudge.wanted(before):
+            push, cut = nudge_step(work, rec, repo, ran[-1], model, arm, config, cap, scope)
+            limit = push.get("limit_hit")
     jev = carry_s.jev(work) if arm == "S" else {}
     if arm == "S" and not cut and not limit:
         broken = carry_s.pair_breaks(jev)
         cut = f"harness: {'; '.join(broken)}" if broken else ""
-    calls = [*ran, *([turn] if turn else [])]
+    calls = [*ran, *([turn] if turn else []), *([push] if push else [])]
     row = {"sessions": [brief(s) for s in ran], "handoff": handoff_facts(turn, scene),
            "given": carry.given(work), "native_after_1": first.get("native", []), **jev,
            "cost": round(sum(float(s.get("cost") or 0.0) for s in calls), 6),
            "tokens": {k: sum(s["tokens"][k] for s in calls if s.get("tokens"))
                       for k in ("input", "output", "cache_read", "cache_write")},
            "subagents": sum(int(s.get("subagents") or 0) for s in calls),
-           "crossed_midnight": crossed(ran), "limit_hit": bool(limit),
+           "crossed_midnight": crossed([*ran, *([push] if push.get("started") else [])]),
+           "limit_hit": bool(limit), **handoff_nudge.row_facts(nudge, before, push),
            **({"pasted_verbatim": pasted} if arm == "H" else {}),
            **({"hook_starts": hook_starts(work)} if arm == "S" else {})}  # fmt: skip
     if cut or limit:
         return {**row, "cut": cut or "usage limit"}
-    return {**row, **checks(repo, scene)}
+    return {**row, **(before if before and not push else checks(repo, scene))}
+
+
+def nudge_step(work: Path, rec: Path, repo: Path, second: dict[str, Any], model: str, arm: str,
+               config: Path | None, cap: float | None,
+               scope: str) -> tuple[dict[str, Any], str]:  # fmt: skip
+    """Session 2 resumed once with the nudge, under the run's call cap: (the turn, why the arm
+    is cut or ""). Session 2's work is committed first; a turn that reported no cost is charged
+    its cap and one worst turn; S's hooks must answer its prompt (a resumed session's start is
+    recorded, not required)."""
+    carry.commit_wip(repo)
+    since = carry_s.hook_rows(work)
+    push = handoff_step(rec, repo, second, model, config, handoff_nudge.NUDGE,
+                        handoff_nudge.TAG, cap, SESSION_TIMEOUT)  # fmt: skip
+    if not push.get("cost_reported"):
+        push = {**push, "cost": charge_of(model, cap), "cost_charged": True}
+    if push.get("limit_hit"):
+        return push, ""
+    cut = handoff_nudge.cut_of(push, pinned(push, model))
+    server = carry_s.SERVER if scope == "project" else None
+    if not cut and arm == "S":
+        broken = carry_s.session_breaks(work, push, since, server=server, start=False)
+        cut = f"harness: nudge: {'; '.join(broken)}" if broken else ""
+    starts = handoff_nudge.starts_since(work, since) if arm == "S" else []
+    return {**push, "session_starts": starts}, cut
 
 
 def hook_starts(work: Path) -> int:
@@ -473,21 +524,29 @@ def charged(result: dict[str, Any], model: str, cap: float | None) -> dict[str, 
 
 
 def handoff_step(rec: Path, repo: Path, first: dict[str, Any], model: str,
-                 config: Path | None) -> dict[str, Any]:  # fmt: skip
-    """H's ritual: session 1 resumed once with HANDOFF_REQUEST; its text kept in handoff.txt."""
+                 config: Path | None, prompt: str = HANDOFF_REQUEST, tag: str = "handoff",
+                 cap: float | None = None,
+                 timeout: int = HANDOFF_TIMEOUT) -> dict[str, Any]:  # fmt: skip
+    """H's ritual: session 1 resumed once with HANDOFF_REQUEST; its text kept in handoff.txt.
+    The nudge reuses it: `first` is then session 2, `prompt` the nudge, `tag` its stream's name,
+    `cap` the run's call cap (F2's CALL_CAPS when None). The turn's own cost, never the session's
+    running total (`handoff_cost.turn_own`)."""
     sid = (first.get("init") or {}).get("session_id")
     if not sid:
-        return {"returncode": None, "subtype": "", "text": "", "tag": "handoff",
-                "error": "session 1 reported no session id"}  # fmt: skip
-    turn = hc.call(rec, repo, command(HANDOFF_REQUEST, model, resume=str(sid)), "handoff",
-                   config, HANDOFF_TIMEOUT)  # fmt: skip
+        return {"returncode": None, "subtype": "", "text": "", "tag": tag,
+                "error": "the resumed session reported no session id"}  # fmt: skip
+    cmd = command(prompt, model, resume=str(sid)) if cap is None else \
+        command(prompt, model, resume=str(sid), cap=cap)  # fmt: skip
+    turn = hc.call(rec, repo, cmd, tag, config, timeout)
     total = float(turn.get("cost") or 0.0)
     own, source = handoff_cost.turn_own(total, float(first.get("cost") or 0.0),
                                         turn.get("tokens"), model)  # fmt: skip
     turn = {**turn, "resumed": str(sid), "context_carried": carried(first, turn),
             "same_session": (turn.get("init") or {}).get("session_id") == sid,
             "cost": own, "cost_reported_total": total, "cost_source": source}  # fmt: skip
-    (rec / "handoff.txt").write_text(str(turn.get("text") or ""), encoding="utf-8", newline="")
+    if tag == "handoff":
+        (rec / "handoff.txt").write_text(str(turn.get("text") or ""), encoding="utf-8",
+                                         newline="")  # fmt: skip
     return turn
 
 
@@ -603,7 +662,8 @@ def book(out: Path, kind: str, usd: float, what: str) -> None:
 def lost_cost(work: Path, rec: Path, charge: float = 0.0) -> float:
     """What an interrupted arm had spent: its streams' own results and its decisions; a stream
     that reported no cost (the call was cut) counts `charge` (its cap and one worst turn)."""
-    streams = [f for f in sorted(rec.glob("*.jsonl")) if f.name.startswith(("session-", "handoff"))]
+    calls = ("session-", "handoff", handoff_nudge.TAG)  # the nudge's stream is a call too
+    streams = [f for f in sorted(rec.glob("*.jsonl")) if f.name.startswith(calls)]
     claude = sum(carry.read_stream(f)["cost"] if hc.stream_extra(f)["cost_reported"] else charge
                  for f in streams)  # fmt: skip
     return claude + (carry_s.jev(work)["jev_usd"] if work.exists() else 0.0)

@@ -45,6 +45,10 @@ LAUNCHERS: dict[str, tuple[set[str], set[str]]] = {
         {"benchmarks/memory_carry/handoff_night.py"},
         {"C:\\sp-runs\\memory-w17-redo"},
     ),
+    "ew-night-run.cmd": (
+        {"benchmarks/memory_carry/handoff_night.py"},
+        {"C:\\sp-runs\\mem-ew"},
+    ),
     "checkdone-w17-run.cmd": (
         {"benchmarks/jev114/checkdone_w17.py"},
         {"C:\\sp-runs\\jev114", "C:\\sp-runs\\jev114\\checkdone-w17"},
@@ -144,12 +148,13 @@ def test_no_tracked_launcher_reads_the_errorlevel_inside_a_block() -> None:
 
 
 DRY = {"f2-night-run.cmd": r"C:\sp-runs\memory-f2",
-       "memlot-night-run.cmd": r"C:\sp-runs\memory-w17-redo"}  # fmt: skip
+       "memlot-night-run.cmd": r"C:\sp-runs\memory-w17-redo",
+       "ew-night-run.cmd": r"C:\sp-runs\mem-ew"}  # fmt: skip
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="runs the launcher in cmd.exe")
 @pytest.mark.parametrize("code", [0, 7])
-@pytest.mark.parametrize("name", sorted(DRY), ids=["a", "b"])
+@pytest.mark.parametrize("name", sorted(DRY), ids=["a", "b", "c"])
 def test_a_dry_run_s_exit_reaches_the_status_and_the_launcher_s_exit(
         name: str, code: int, tmp_path: Path) -> None:  # fmt: skip
     # A copy of the launcher in a scratch folder, its root and Python pointed there, and a stub

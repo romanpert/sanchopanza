@@ -20,6 +20,9 @@ crash or reboot runs again whole (`handoff.run_plan`).
   them; and the redo's root (`handoff.LOTS["w17"]["out"]`) runs only w17-opus, under its own
   33 USD: w17-sonnet is refused there (exit 11), since that root holds no ledger of it and the
   45 USD would not bind it.
+- `--lot ew` runs the equal-work lot (docs/results/2026-10-17-memory-equal-work/prereg.md):
+  ew-sonnet alone, W17's quiet hours and their lift, its own roots, 18 USD; its analysis is
+  `handoff_ew.analyse`.
 
     python benchmarks/memory_carry/handoff_night.py --root C:\\sp-runs\\memory-f2 [--dry]
 """
@@ -41,6 +44,7 @@ sys.path.insert(0, str(HERE))
 import carry  # noqa: E402
 import handoff  # noqa: E402
 import handoff_analyze  # noqa: E402
+import handoff_ew  # noqa: E402
 import handoff_pairs  # noqa: E402
 import handoff_seal  # noqa: E402
 
@@ -116,6 +120,8 @@ def table(root: Path, run: str) -> None:
     model = handoff.RUNS[run]["model"]
     if handoff.lot_of(run) == "f2":
         result = handoff_analyze.analyse(rows, model, out, planned)
+    elif handoff.lot_of(run) == "ew":
+        result = handoff_ew.analyse(rows, out, planned)
     else:
         result = handoff_pairs.analyse(rows, model, out, planned)
     (root / f"{run}-table.json").write_text(json.dumps(result, indent=1), encoding="utf-8")

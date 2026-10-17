@@ -174,13 +174,15 @@ def hook_rows(run: Path) -> int:
 
 
 def session_breaks(run: Path, result: Mapping[str, Any], since: int = 0,
-                   server: str | None = SERVER) -> list[str]:  # fmt: skip
+                   server: str | None = SERVER, start: bool = True) -> list[str]:  # fmt: skip
     """Why a finished S session did not run as S: among the hook calls logged after the first
     `since` (this session's), the memory hook never answered a prompt without an error (it exits
     0 even when it fails, and then writes to stderr), or failed at every Stop; or the find server
     was not connected at its start. With `server` None (a user-scope install, which registers no
     server) the memory hook must have answered the session's start instead: the proof that
-    Claude Code loaded the user's settings from the arm's configuration folder."""
+    Claude Code loaded the user's settings from the arm's configuration folder. `start` False (a
+    resumed turn, the equal-work lot's nudge, whose settings session 1 and 2 already proved):
+    the start is not required; the prompt, the Stops and the skill still are."""
     out = []
     mine = [r for r in _rows(run / "hooks.jsonl")[since:] if r.get("sub") == "memory-hook"]
     prompts = [r for r in mine if r.get("event") == "UserPromptSubmit"
@@ -191,7 +193,7 @@ def session_breaks(run: Path, result: Mapping[str, Any], since: int = 0,
     if stops and all(r.get("stderr") or r.get("exit") for r in stops):
         out.append(f"the memory hook failed at every Stop ({len(stops)})")
     if server is None:
-        if not any(r.get("event") == "SessionStart" for r in mine):
+        if start and not any(r.get("event") == "SessionStart" for r in mine):
             out.append("the memory hook did not answer the session's SessionStart")
         if SKILL not in ((result.get("init") or {}).get("skill_names") or []):
             out.append(f"the {SKILL} skill is not in the session's init")

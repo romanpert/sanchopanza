@@ -1,6 +1,7 @@
 """F2's seal (docs/results/2026-10-16-memory-f2/prereg.md, "Seal") and the sealed checkout, and
-the same for W17's memory lots on F2's runner (docs/results/2026-10-16-memory-w17/prereg.md):
-`LOTS` names each lot's results folder and its fixed files.
+the same for W17's memory lots on F2's runner (docs/results/2026-10-16-memory-w17/prereg.md) and
+the equal-work lot (docs/results/2026-10-17-memory-equal-work/prereg.md): `LOTS` names each lot's
+results folder and its fixed files.
 
 `seal` writes `prereg.manifest.json` (sha256, LF bytes, of the prereg and every sealed file:
 the launcher, pyproject.toml, every file of `benchmarks/memory_carry/`'s Python and every file
@@ -43,8 +44,20 @@ SEALED_FIXED_W17 = (
     "tests/test_memory_carry_handoff_work.py", "tests/test_memory_carry_w17.py",
     "tests/test_winupdate.py", "tests/test_durable.py",
 )  # fmt: skip
-LOTS = {"f2": (RESULTS, SEALED_FIXED), "w17": (RESULTS_W17, SEALED_FIXED_W17)}
-PATH_WORDS = {"w17": ("f2", "memory", "handoff", "memlot", "w17", "sonnet", "opus")}
+# The equal-work lot (docs/results/2026-10-17-memory-equal-work/prereg.md): W17's files, its
+# own launcher, the nudge, its reading and its tests (and the launchers' table, which runs its dry).
+RESULTS_EW = REPO / "docs" / "results" / "2026-10-17-memory-equal-work"
+SEALED_FIXED_EW = (
+    "ew-night-run.cmd", *SEALED_FIXED_W17[1:],
+    "benchmarks/memory_carry/handoff_nudge.py", "benchmarks/memory_carry/handoff_ew.py",
+    "benchmarks/memory_carry/winupdate.py",
+    "tests/test_memory_carry_ew.py", "tests/test_launchers.py",
+)  # fmt: skip
+LOTS = {"f2": (RESULTS, SEALED_FIXED), "w17": (RESULTS_W17, SEALED_FIXED_W17),
+        "ew": (RESULTS_EW, SEALED_FIXED_EW)}  # fmt: skip
+PATH_WORDS = {"w17": ("f2", "memory", "handoff", "memlot", "w17", "sonnet", "opus"),
+              "ew": ("f2", "memory", "handoff", "memlot", "w17", "sonnet", "opus", "ew", "equal",
+                     "nudge")}  # fmt: skip
 SEALED_GLOBS = ("src/sanchopanza/**/*", "benchmarks/memory_carry/*.py")
 NOT_CODE = ("__pycache__",)
 SEALED_CHECKOUT_REFUSED = 11
