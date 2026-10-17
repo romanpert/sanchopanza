@@ -1,10 +1,10 @@
 # longdoc-free, dev2: the router with the BM25 prefilter before Jev, pre-registration
 
-Instrument commit: `32d40c7892a99b5f665db8ba264f12f52591c12d`
+Instrument commit: `43e8b13cbc49ac5dd5de5e09763ec7795b499e15`
 
-Written 2026-10-17, before any call of dev2. **Not sealed**: an independent review
-(`revisor-prereg`) goes first; until `prereg-dev2.sha256` exists this file may change and
-nothing may be spent. The owner approved preparing a new dev with the prefilter on 2026-10-17,
+Written 2026-10-17, before any call of dev2. **Not sealed**: reviewed by `revisor-prereg`
+(section 11); until `prereg-dev2.sha256` exists this file may change and nothing may be
+spent. The owner approved preparing a new dev with the prefilter on 2026-10-17,
 after the probe's sealed rule said it was worth preparing (`../2026-10-17-lfree-bm25-dry/`),
 within the lot's approvals: Claude, **what has really been spent plus the caps of what is left
 never exceeds 105 USD** (8.196 spent, the dev's smoke, N and Haiku arms); Jev, **14.30 USD for
@@ -87,7 +87,8 @@ unread.
 ### Refusals (each spends nothing), in the order the code checks them
 
 1. The launcher (`longdoc-free-jev-run.cmd dev2`) refuses a phase other than dev, confirm,
-   probe or dev2, the hours 00:00 to 08:00, and its local values unset.
+   probe or dev2, the hours 00:00 to 08:00, **dev2 from 22:00** (J2 takes minutes: the dev's
+   2,779 calls took 4; dev2 plans about 830), and its local values unset.
 2. `jev_phase.py paid --phase dev2`: the launcher given is the lot's (digest, local values
    masked).
 3. The plan (0.492) fits in what the ledger has left (1.00 before any spend).
@@ -132,16 +133,21 @@ seeded order (`random.Random(20261018)`).
   against 41 x 0.0534 = 2.19. The smoke's cap reserves no worst turn, so its most is 0.80 +
   4.32. **At most 22.12 USD**; expected about 4.2 (the dev's smoke 0.10, N 41 x 0.0693 = 2.84,
   H 41 x 0.0313 = 1.28; the passages are shorter than the dev's).
-- **The smoke** must pass (a Sonnet session above 0 USD that ended with an answer or at its cap)
-  before phase N starts; a failed smoke stops the stage (`smoke`). Its `usd_by_model` is read
-  by hand for a subagent on another model, as in the dev.
+- **The smoke** must pass (a Sonnet session above 0 USD that ended with an answer or at its cap,
+  so a smoke at its cap passes, as in the dev: it tests the path, not the answer) before phase N
+  starts; a failed smoke stops the stage (`smoke`, a test), its 0-USD rows voided so a resume
+  asks it again. Its `usd_by_model` is read by hand for a subagent on another model, as in the
+  dev.
 - **Refusals before any session** (`refusal("dev2")`): the seal (`prereg-dev2.sha256`); the
   instrument (`src`, `benchmarks`, `ids.json` and the dev rows it reads) unchanged since its
   commit; the pinned input; the seal commit itself, detached and clean; the pinned `claude`
   first on PATH; the dev novels present and equal to their keys; **every dev question's dev2
   passages present and as long as `jev-dev2.jsonl` says** (written only by a complete phase
   J2; so no Claude session, N's included, runs without a complete J2); `launch.ps1` taking the
-  runner; no `LIMIT.flag`; not before 08:00.
+  runner; no `LIMIT.flag`; not before 08:00; and **the owner's lot rule** (`lot_problem`, a
+  test): what every phase of the lot has really spent plus the most the phases left can spend
+  (each one's ceiling, a smoke's cap plus a worst turn) at most 105 USD (at the first start:
+  8.196 + 22.12 = 30.32).
 - **Midnight:** the start budgets every session left at the slowest phase's mean (60 s) times
   1.5, plus 600 s (`clock_budget_s`, lb162's rule): 83 x 60 x 1.5 + 600 = **8,070 s, 2 h 14.5
   min**, so the stage is refused if started **after 21:45** (a test); each phase checks its own
@@ -150,17 +156,30 @@ seeded order (`random.Random(20261018)`).
 - **Stops:** STOP in `C:/sp-runs/longdoc-free`; a usage limit (429, "weekly limit") stops the
   stage and writes `LIMIT.flag` (a pause, never a result); an outage or three infrastructure
   failures in a row stop the phase (lb162x_guard).
+- **Pauses and resumes** (decided for the owner before the seal). A paused stage (a 429 and its
+  `LIMIT.flag`, a STOP, the clock or midnight, an outage) **may be resumed from the same seal**,
+  by the same launch command from the same run worktree: phases already final are skipped,
+  sessions already recorded are kept, and only what is left runs, with the same refusals (the
+  lot rule included) and the same caps. A weekly-limit 429 waits for the limit to reset (the
+  owner removes `LIMIT.flag` then); STOP is removed by hand. Nothing else is relaunched: J2 has
+  its one launch (section 3). **Each phase's session dates are reported** (`session_dates`, from
+  its reservations), and whether N's and H's sessions all ran on one day
+  (`n_and_h_same_day`); if they did not, that is reported as such, beside the result, and
+  changes no rule and no verdict.
 
 ### N runs again; H0 and HC are the sealed dev's, reused
 
 - **N is dev2's own** (the owner's choice): R − N, the cut, n and the saving pair dev2's H with
-  dev2's N, both drawn the same day with the same instrument. A drift since the dev (the served
-  model, the service) now shows in both arms of R − N, not only in H.
+  dev2's N, both drawn with the same instrument and seal, on one day unless a pause spreads
+  them (reported, above). A drift since the dev (the served model, the service) now shows in
+  both arms of R − N, not only in H.
 - **H0 and HC are reused** from `../2026-10-16-longdoc-free/dev-haiku-rows.jsonl` (sha256 with
   LF line ends `0b52f1c8...`). **They enter no R − N and no decision on the router**: HC only the
-  memory rule (1.0 against N's 55.0 in the dev: it cannot fire), H0 only the with-H0 money
-  figure, which is reported and does not decide (section 5.5), and the descriptive controls. The
-  reuse risk (one earlier draw) therefore touches description only.
+  memory rule (section 5.2), H0 only the with-H0 money figure, which is reported and does not
+  decide (section 5.5), and the descriptive controls. One more role, mechanical: a question
+  enters the reading's rows only with N, H and H0 all present (`dev_read.stats_rows`, unchanged);
+  the dev's H0 has all 41 (`dev.json`: 41 of 41 complete), so H0 removes no question. The reuse
+  risk (one earlier draw) therefore touches description only.
 - **The dev's N is read for one descriptive figure**, N(dev2) − N(dev) on the same 41 questions
   (`n_rerun`: the mean in points with the novel bootstrap, the SD of the per-question
   difference, how many questions moved, both runs' cost): the run-to-run variance of the arm,
@@ -170,6 +189,18 @@ seeded order (`random.Random(20261018)`).
   (`dev2_read.REUSED_SHA256`). The dev's H is read only for its mean F1 beside dev2's.
 
 ## 5. The reading (`dev2_read.py`; the dev's rules, `dev_read.read`, `stats.py`)
+
+**When it reads.** `dev2_read.py` first checks its own code: HEAD descends from the instrument
+commit above and nothing under `src`, `benchmarks/longdoc_free`, `benchmarks/h2h`,
+`benchmarks/paid_once.py`, `ids.json` or the two dev row files differs from it or is
+uncommitted (`require_reading_instrument`, paid_once's check); otherwise it refuses before
+reading anything. So the reading runs in a checkout whose instrument files equal the
+instrument commit (for instance main after the merge, while those files are unchanged); later
+changes there mean reading from a worktree at the instrument. It reads nothing either
+(`status` "not read", no confirmation sealed) while a `LIMIT.flag` or STOP is in
+`C:/sp-runs/longdoc-free` or any of S2, D2N and D2H lacks a final kind (`h2h_lfree.final_kind`:
+a smoke that passed, a phase done or at its ceiling) (`pause_reasons`, tests for each case).
+Without a complete J2 it reports "not run".
 
 Applied to the per-question rows (dev2's gate p, N and H; the dev's H0 and HC; Jev's cost a
 question is dev2's ledger spend over 41, as in the dev), before any confirmation call:
@@ -205,7 +236,10 @@ question is dev2's ledger spend over 41, as in the dev), before any confirmation
      when the lot's real spend (the dev's and dev2's, every session and open reservation) plus
      these ceilings is at most 105.
    **A confirmation is sealed** (its own pre-registration and the owner's approval) only when
-   rules 1-4 pass and both monies fit; otherwise the owner decides.
+   rules 1-4 pass and both monies fit; otherwise the owner decides. Such a confirmation needs
+   its own instrument too: the code's `confirm` phase is still the dev's, without a prefilter
+   (`prefilter_for("confirm")` is None) and with the dev's 12.50 cap (`CAP_USD["confirm"]`),
+   so neither runs the router dev2 measures nor fits what the lot's Jev leaves.
 
 **Reported** (`dev2.json`): the cut; R − N and the saving at the cut with percentile bootstraps
 resampling novels (10,000 draws, seeded); every cut's coverage, covered questions, covered
@@ -213,7 +247,8 @@ H − N, R − N and saving (point estimates); n needed against 310; both monies
 confirmation's expected money at dev2's means (Claude without and with H0, Jev at dev2's cost a
 question); Jev's real cost a question from the recording (mean, 90th percentile, dearest);
 dev2's H mean F1 beside the dev's H; N(dev2) − N(dev) on the same questions (`n_rerun`,
-section 4: description only); the dev's descriptive controls (median answer words, answer
+section 4: description only); each phase's session dates and whether N and H ran on one
+day; the dev's descriptive controls (median answer words, answer
 lines, 12-token F1, gold in the kept passages, sessions at their cap).
 
 ### What the dev's rows say before dev2 runs (a projection, not a measurement)
@@ -260,7 +295,11 @@ ceilings 45.34 + 19.01 on top of about 12.4 spent, about 77 of 105; Jev 3.14 pla
   dev2 seals a confirmation) and its Jev cap at what the lot leaves (section 5.5); every other
   rule and threshold is the dev's.
 - **Ids 0, 7 and 375 asked again**, not replayed from the probe's recording.
-- **One launch only** for J2 (the probe's rule), where the dev had one launch and one relaunch.
+- **One launch only** for J2 (the probe's rule), where the dev had one launch and one relaunch;
+  J2 also refused from 22:00. The Claude stage may be resumed after a pause (section 4), as the
+  driver allows.
+- **The lot's Claude rule in code** (`lot_problem` in `refusal`), where the dev checked it by
+  hand; and the reading waits for every phase to be final and checks its own code first.
 
 ## 8. What dev2 does not say
 
@@ -281,27 +320,40 @@ Claude Code cannot grep as cheaply.
    `longdoc-free-jev-run.cmd` only, fill `PY` and `SANCHOPANZA_KEYS_ENV`. Nothing is committed in
    that worktree until dev2 ends.
 3. The owner checks the TypeSafe balance holds at least 1.10 USD.
-4. **Phase J2**, between 08:00 and midnight, by WMI from outside the Claude Code session
+4. **Phase J2**, between 08:00 and 22:00 (the launcher refuses outside), by WMI from outside
+   the Claude Code session
    (`New-CimInstance Win32_ProcessStartup -ClientOnly -Property @{CreateFlags=[uint32]512}`,
    then `Invoke-CimMethod Win32_Process Create` with `cmd.exe /c <run worktree>\longdoc-free-jev-run.cmd dev2`
    and the run worktree as its directory). Its log: `longdoc-free-dev2/launch.log` under the
    user's sanchopanza cache; `paid-exit 0` then `rows-exit 0` means the passages and
    `jev-dev2.jsonl` are written. Any other exit: dev2 not run, stop here.
-5. **The Claude phases** (smoke, N, H, one launch of the stage), from the same run worktree,
-   only when no other lot draws on the subscription, between 08:00 and **21:45** (the stage
-   refuses later: section 4): `powershell -File benchmarks/h2h/launch.ps1 -Runner h2h_lfree.py
-   -RunnerArgs "--stage dev2" -Pin %USERPROFILE%\.cache\sanchopanza\claude-pin\2.1.287 -KeysEnv
-   <path> -Log C:\sp-runs\longdoc-free\dev2-driver.log -PidFile
-   C:\sp-runs\longdoc-free\dev2-driver.pids`. Watch the log and the PIDs; stop only by PID.
-6. Free, after: `python benchmarks/h2h/h2h_lfree.py --stage dev2` (the public rows), the
-   recording gzipped, `jev-dev2.jsonl`, `dev2-smoke-rows.jsonl`, `dev2-sonnet-rows.jsonl`,
-   `dev2-haiku-rows.jsonl` and their stop files copied to
-   another checkout (never `git add -A` in the run worktree: its launcher holds the key file's
-   path), then `python -I benchmarks/longdoc_free/dev2_read.py` writes `dev2.json`.
+5. **The Claude phases** (smoke, N, H), from the same run worktree, only when no other lot
+   draws on the subscription, between 08:00 and **21:45** for a full stage (the stage refuses a
+   start whose budget would cross midnight: section 4): `powershell -File
+   benchmarks/h2h/launch.ps1 -Runner h2h_lfree.py -RunnerArgs "--stage dev2" -Pin
+   %USERPROFILE%\.cache\sanchopanza\claude-pin\2.1.287 -KeysEnv <path> -Log
+   C:\sp-runs\longdoc-free\dev2-driver.log -PidFile C:\sp-runs\longdoc-free\dev2-driver.pids`.
+   Watch the log and the PIDs; stop only by PID. A paused stage is resumed by the same command
+   (section 4, "Pauses and resumes"), after a weekly limit has reset.
+6. Free, after every phase is final: `python benchmarks/h2h/h2h_lfree.py --stage dev2` (the
+   public rows), the recording gzipped, `jev-dev2.jsonl`, `dev2-smoke-rows.jsonl`,
+   `dev2-sonnet-rows.jsonl`, `dev2-haiku-rows.jsonl` and their stop files copied to another
+   checkout (never `git add -A` in the run worktree: its launcher holds the key file's path),
+   then, in a checkout whose instrument files equal the instrument commit (section 5),
+   `python -I benchmarks/longdoc_free/dev2_read.py` writes `dev2.json`.
 
 ## 10. The seal
 
 `prereg-dev2.sha256`, written by the command of section 9.1, binds this file, the launcher and,
 through the instrument commit named at the top, the code, the frozen ids and the dev rows it
 reads.
-It is **not written yet**: the independent review comes first.
+It is **not written yet**.
+
+## 11. Independent review (`revisor-prereg`, before the seal)
+
+On the draft at instrument `32d40c7`: **can be sealed, with fixes**, all made in the instrument
+above: the reading waits for every Claude phase to be final and for no LIMIT.flag or STOP, and
+checks its code against the instrument commit; the pause and resume rule and the session dates
+(section 4); J2 refused from 22:00; the lot's Claude rule in `refusal`; a failed dev2 smoke
+stops the stage (a test); the confirmation's own instrument and H0's role in which questions
+are read (sections 4, 5); the launcher's header on relaunches.
