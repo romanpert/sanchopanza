@@ -121,7 +121,7 @@ def test_the_night_cap_binds_both_runs_and_each_holds_a_pair() -> None:
         pair = sum(handoff.reserve_of(spec["model"], a, run) for a in handoff.arms_of(run))
         assert pair < spec["cap"] <= lot["night_cap"]
     ok, detail = preflight.caps_check("w17")
-    assert ok and "binds both" in detail
+    assert ok and "binds both where both run" in detail and "only w17-opus" in detail
 
 
 def test_a_session_that_reported_no_cost_is_charged_its_cap_and_a_worst_turn(
@@ -406,7 +406,9 @@ def fake_execute(ran: list[Any]):
     return execute
 
 
-def test_the_lot_s_night_runs_both_lots_under_one_cap(tmp_path: Path, monkeypatch: Any) -> None:
+def test_the_lot_s_night_runs_both_lots_under_one_cap_outside_the_redo_s_root(
+        tmp_path: Path, monkeypatch: Any) -> None:  # fmt: skip
+    monkeypatch.setitem(handoff.LOTS["w17"], "work", tmp_path / "work")  # no real key unlinked
     ran: list[Any] = []
     monkeypatch.setattr(hseal, "require_sealed_checkout", lambda lot="f2": None)
     monkeypatch.setattr(handoff, "execute", fake_execute(ran))
@@ -418,6 +420,26 @@ def test_the_lot_s_night_runs_both_lots_under_one_cap(tmp_path: Path, monkeypatc
     monkeypatch.setattr(handoff, "execute", fake_execute(only))
     assert night.night(tmp_path, lot="w17", only="w17-opus") == 0
     assert [r for r, _ in only] == ["w17-opus"]
+
+
+@pytest.mark.parametrize("dry", [False, True])
+def test_the_redo_s_root_refuses_w17_sonnet(tmp_path: Path, monkeypatch: Any, dry: bool) -> None:
+    # Amendment 1: the redo's root holds no w17-sonnet ledger (that run is published from the
+    # first root), so the lot's 45 USD would not bind a w17-sonnet run there: it is refused, dry or
+    # live, before anything is written; w17-opus alone runs under its own 33 USD.
+    redo = tmp_path / "redo"
+    monkeypatch.setitem(handoff.LOTS["w17"], "out", redo)
+    monkeypatch.setitem(handoff.LOTS["w17"], "work", tmp_path / "work")
+    monkeypatch.setattr(hseal, "require_sealed_checkout", lambda lot="f2": None)
+    ran: list[Any] = []
+    monkeypatch.setattr(handoff, "execute", fake_execute(ran))
+    for root, only in ((redo, None), (redo, "w17-sonnet"), (redo / "sub", None)):
+        assert night.night(root, dry, lot="w17", only=only) == hseal.SEALED_CHECKOUT_REFUSED
+    assert ran == [] and not redo.exists()
+    assert night.night(redo, dry, lot="w17", only="w17-opus") == 0
+    assert [r for r, _ in ran] == ["w17-opus"]
+    if not dry:
+        assert ran == [("w17-opus", handoff.RUNS["w17-opus"]["cap"])]
 
 
 def test_the_lot_s_night_refuses_without_its_seal(tmp_path: Path, monkeypatch: Any) -> None:

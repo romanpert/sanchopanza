@@ -91,7 +91,8 @@ RUNS: dict[str, dict[str, Any]] = {
                 "dir": "r3"},
     # W17 (docs/results/2026-10-16-memory-w17/prereg.md): two arms, S at user scope, call caps
     # about 4x (Sonnet) and 2.6x (Opus) F2's dearest session, a stratum of repetitions whose
-    # session 2 is BARE_LINE. The lot's 45 USD (LOTS["w17"]["night_cap"]) binds both run caps.
+    # session 2 is BARE_LINE. The lot's 45 USD (LOTS["w17"]["night_cap"]) binds both run caps
+    # in a root that holds both; the redo's root (Amendment 1) runs only w17-opus, under its 33.
     "w17-sonnet": {"model": "sonnet", "scenes": list(HANDOFF), "repeats": [1, 2, 3, 4],
                    "bare": [3, 4], "cap": 17.0, "dir": "r1", "lot": "w17", "arms": ("N0", "S"),
                    "scope": "user", "call_caps": {"sonnet": 0.50, "opus": 0.80},

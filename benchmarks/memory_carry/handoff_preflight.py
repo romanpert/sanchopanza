@@ -165,10 +165,12 @@ def caps_check(lot: str = "f2") -> tuple[bool, str]:
     if lot == "f2":
         ok = ok and total <= night_cap
         return ok, "; ".join(lines) + f"; caps sum {total} <= night {night_cap}"
-    # W17: each run's cap is min(its cap, night cap - the other run's spend) in code, so the
-    # night cap binds the two together whichever runs first.
+    # W17: each run's cap is min(its cap, night cap - the other run's spend in the same root)
+    # in code, so the night cap binds the two together where both run. The redo's root
+    # (Amendment 1) refuses w17-sonnet, so there w17-opus runs under its own cap alone.
     ok = ok and all(handoff.RUNS[r]["cap"] <= night_cap for r in runs)
-    return ok, "; ".join(lines) + f"; each <= night {night_cap}, which binds both in code"
+    return ok, "; ".join(lines) + (f"; each <= night {night_cap}, which binds both where both run;"
+                                   " the redo's root runs only w17-opus")  # fmt: skip
 
 
 def isolation_check(root: Path, work: Path | None = None) -> tuple[bool, str]:
