@@ -55,6 +55,7 @@ def _benchmarks_on_the_path_while_testing(monkeypatch):
         ("Answer: first\nmore\nanswer: the Hebrides", "the Hebrides"),
         ("The summer home is the Hebrides.", "The summer home is the Hebrides."),
         ("Reasoning...\n\nPeyton\n", "Peyton"),
+        ("Final answer: Peyton", "Peyton"),
         ("", None),
         ("   \n", None),
         (None, None),
@@ -148,19 +149,29 @@ def test_public_rows_carry_scores_and_money_not_the_answer():
 # ---- refusals ----------------------------------------------------------------------------------
 
 
-def _git(branch: bool = False, status: str = ""):
+def _git(branch: bool = False, status: str = "", tracked: bool = True, sealed_at: str = "abc"):
     def git(*args: str) -> subprocess.CompletedProcess:
         if args[0] == "symbolic-ref":
             return subprocess.CompletedProcess(args, 0 if branch else 1, "", "")
+        if args[0] == "ls-files":
+            return subprocess.CompletedProcess(args, 0 if tracked else 1, "", "")
+        if args[0] == "rev-parse":
+            return subprocess.CompletedProcess(args, 0, "abc\n", "")
+        if args[0] == "log":
+            return subprocess.CompletedProcess(args, 0, f"{sealed_at}\n", "")
         return subprocess.CompletedProcess(args, 0, status, "")
 
     return git
 
 
-def test_the_checkout_must_be_detached_and_clean():
-    assert h2h.checkout_problems(_git()) == []
-    assert any("branch" in p for p in h2h.checkout_problems(_git(branch=True)))
-    assert any("changes" in p for p in h2h.checkout_problems(_git(status=" M x.py\n")))
+def test_a_run_starts_only_from_the_seal_commit_detached_and_clean():
+    lot = h2h.claude_lot("dev")
+    seal = h2h.jev_phase.sealed_head_problems
+    assert seal(lot, _git()) == []
+    assert any("branch" in p for p in seal(lot, _git(branch=True)))
+    assert any("changes" in p for p in seal(lot, _git(status=" M x.py\n")))
+    assert any("not committed" in p for p in seal(lot, _git(tracked=False)))
+    assert any("not the commit that sealed" in p for p in seal(lot, _git(sealed_at="def")))
 
 
 def test_the_launcher_takes_this_runner():
@@ -175,7 +186,7 @@ def test_an_unsealed_stage_is_refused_before_any_session(tmp_path: Path):
 def test_the_claude_lot_binds_the_jev_phases_prereg_with_the_whole_instrument():
     lot = h2h.claude_lot("dev")
     assert lot.prereg == h2h.jev_phase.lot("dev").prereg
-    assert lot.instrument == ("src", "benchmarks")
+    assert lot.instrument == ("src", "benchmarks", "docs/results/2026-10-16-longdoc-free/ids.json")
 
 
 # ---- one session end to end, with a fake claude ------------------------------------------------
@@ -236,3 +247,61 @@ def test_a_long_answer_loses_precision_and_no_text_is_no_answer(tmp_path, monkey
     assert 0 < row["f1"] < 0.5 and row["answer_words"] == 6
     row, _ = _session(tmp_path / "e", monkeypatch, "H0", "")
     assert row["final_answer"] is None and row["f1"] == 0.0
+
+
+# ---- review of 2026-10-17 ----------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "reply",
+    [
+        "API Error: 500 Internal server error",
+        "Invalid API key · Please run /login",
+        "Let me search the file for the summer home.",
+    ],
+)
+def test_a_failed_or_capped_session_without_an_answer_line_has_no_answer(reply):
+    assert h2h.extract(reply, ok=False) is None
+    assert h2h.extract(reply + "\nANSWER: Peyton", ok=False) == "Peyton"
+
+
+def test_a_failed_session_reaches_the_guard_as_no_answer(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "tok")
+    gaia = h2h.gaia
+    monkeypatch.setattr(gaia, "RUNS", tmp_path / "runs")
+    novel = tmp_path / "abc.txt"
+    novel.write_text("text " * 10, "utf-8")
+    monkeypatch.setattr(h2h.pool, "novel_path", lambda key: novel)
+    monkeypatch.setattr(gaia, "run_claude", lambda argv, work, side, env: (
+        {"result": "Invalid API key · Please run /login", "total_cost_usd": 0.0,
+         "is_error": True, "subtype": "error_during_execution"}, ""))  # fmt: skip
+    task = h2h.FreeTask("7:N", 7, "N", "abc", "Who?", ("Peyton",), "dev")
+    row = h2h.one_session(task, 1, "SONNET-CC", {"phase": "t"}, "t", {"SONNET": 0.75})
+    assert row["final_answer"] is None and row["f1"] == 0.0
+    assert h2h.guard_mod.trouble(row, h2h.meter.SONNET_55) is not None
+
+
+def test_the_short_f1_cuts_the_answer_to_twelve_tokens():
+    long = "Peyton " + "and so on " * 10
+    assert h2h.grade_short("Peyton", ["Peyton"]) == 1.0
+    assert h2h.grade_short(long, ["Peyton"]) > h2h.grade(long, ["Peyton"])
+
+
+def test_the_data_check_refuses_a_changed_novel_and_a_changed_passage(tmp_path, monkeypatch):
+    table = {"items": [{"id": 1, "novel": "k1", "chars": 3, "phase": "dev"}]}
+    monkeypatch.setattr(h2h.pool, "require_pinned", lambda: None)
+    monkeypatch.setattr(h2h.pool, "read_frozen", lambda: table)
+    novel = tmp_path / "k1.txt"
+    novel.write_text("abc", "utf-8")
+    monkeypatch.setattr(h2h.pool, "novel_path", lambda key: novel)
+    monkeypatch.setattr(h2h.pool, "novel_key", lambda text: "k1" if text == "abc" else "other")
+    kept = tmp_path / "1.txt"
+    kept.write_text("kept", "utf-8")
+    monkeypatch.setattr(h2h.jev_phase, "passages_path", lambda phase, item: kept)
+    monkeypatch.setattr(h2h, "OUT", tmp_path)
+    (tmp_path / "jev-dev.jsonl").write_text('{"id": 1, "kept_chars": 4}\n', "utf-8")
+    assert h2h.data_problems("dev") == []
+    (tmp_path / "jev-dev.jsonl").write_text('{"id": 1, "kept_chars": 5}\n', "utf-8")
+    assert any("differ" in p for p in h2h.data_problems("dev"))
+    novel.write_text("abd", "utf-8")
+    assert any("differ from their key" in p for p in h2h.data_problems("dev"))

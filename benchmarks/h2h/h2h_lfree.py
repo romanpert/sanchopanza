@@ -85,18 +85,19 @@ BRAZO = "CC"
 VARIANTS = {"SONNET": ("N",), "HAIKU": ("H", "H0", "HC")}
 CAPS = {"SONNET": 3.00, "HAIKU": 1.50}  # h2h_longdoc's (twice GAIA's) for long documents
 # The instrument a Claude phase is bound to: everything it imports and the package.
-INSTRUMENT = ("src", "benchmarks")
+INSTRUMENT = ("src", "benchmarks", jev_phase.IDS_REL)
 BOOK = (
     "Read the book in the file {doc} (in your working directory) and answer the question. Be "
     "very concise in your answer.\n\nQuestion: {question}\n\nEnd your reply with one line: "
-    "ANSWER: <your answer>"
+    "ANSWER: <your answer, in a few words>"
 )
 CLOSED = (
     "Answer the question about a novel from what you already know; there is no file. Be very "
     "concise in your answer, and if you do not know, give your best guess.\n\nQuestion: "
-    "{question}\n\nEnd your reply with one line: ANSWER: <your answer>"
+    "{question}\n\nEnd your reply with one line: ANSWER: <your answer, in a few words>"
 )
-ANSWER_LINE = re.compile(r"^\W*answer\W*:\s*(.+?)\s*$", re.IGNORECASE | re.MULTILINE)
+ANSWER_LINE = re.compile(r"^\W*(?:final\s+)?answer\W*:\s*(.+?)\s*$", re.IGNORECASE | re.MULTILINE)
+SHORT_TOKENS = 12  # the design's length sensitivity: F1 of the answer's first 12 tokens
 
 Phase = lb162x.Phase
 IDS = pool.IDS_FILE
@@ -131,9 +132,11 @@ class FreeTask:
 # ---- the answer ------------------------------------------------------------------------------
 
 
-def extract(reply: str | None) -> str | None:
-    """The text after the reply's last `ANSWER:` line, else its last non-empty line; None for no
-    text."""
+def extract(reply: str | None, ok: bool = True) -> str | None:
+    """The text after the reply's last `ANSWER:` line, else (when the session ended well, `ok`)
+    its last non-empty line; None for no text, and for a session that failed or met its cap
+    without an ANSWER line (an error message or a half-done turn is no answer: the guard sees
+    it, review of 2026-10-17)."""
     if not reply or not reply.strip():
         return None
     found = ANSWER_LINE.findall(reply)
@@ -141,12 +144,19 @@ def extract(reply: str | None) -> str | None:
         answer = found[-1].strip().strip("*").strip()
         if answer:
             return answer
+    if not ok:
+        return None
     lines = [line.strip().strip("*").strip() for line in reply.splitlines() if line.strip()]
     return lines[-1] if lines else None
 
 
 def grade(answer: str | None, answers: Sequence[str]) -> float:
     return float(score.qa_f1_score(answer or "", list(answers)))
+
+
+def grade_short(answer: str | None, answers: Sequence[str]) -> float:
+    """F1 of the answer cut to its first SHORT_TOKENS whitespace tokens (registered secondary)."""
+    return grade(" ".join((answer or "").split()[:SHORT_TOKENS]), answers)
 
 
 # ---- tasks and sessions ----------------------------------------------------------------------
@@ -205,10 +215,11 @@ def make_row_for(task: FreeTask, run: int, arm: str, caps: Mapping[str, float],
         reply = common.reply_text(out, folder, lambda t: extract(t) is not None)
         row = common.common_row(task.key, run, arm, out, stderr, work, side, wall, projects,
                                 LEAK_WORD, caps)  # fmt: skip
-        answer = extract(reply)
+        answer = extract(reply, bool(row.get("ok", False)))
         f1 = grade(answer, task.answers)
         return {**row, "item": task.item, "variant": task.variant, "final_answer": answer,
-                "f1": f1, "ok_oficial": f1 == 1.0, "success": f1 > 0,
+                "f1": f1, "f1_short": grade_short(answer, task.answers),
+                "ok_oficial": f1 == 1.0, "success": f1 > 0,
                 "has_answer_line": bool(reply and ANSWER_LINE.search(reply)),
                 "answer_words": len((answer or "").split()),
                 **(extra(out) if extra else {})}  # fmt: skip
@@ -268,7 +279,8 @@ def public_rows(rows: Sequence[Mapping[str, Any]], phase: Phase) -> list[dict[st
             continue
         served = guard_mod.served_by(r)
         out.append({"key": r["task_id"], "id": r.get("item"), "variant": r.get("variant"),
-                    "f1": r.get("f1"), "answer_words": r.get("answer_words"),
+                    "f1": r.get("f1"), "f1_short": r.get("f1_short"),
+                    "answer_words": r.get("answer_words"),
                     "has_answer_line": r.get("has_answer_line"),
                     "no_answer": r.get("final_answer") is None,
                     "usd": round(float(r["list_usd"]), 6), "wall_s": r.get("wall_s"),
@@ -343,36 +355,42 @@ def git_out(*args: str) -> subprocess.CompletedProcess:
                           check=False, timeout=60)  # fmt: skip
 
 
-def checkout_problems(git: Callable[..., subprocess.CompletedProcess] = git_out) -> list[str]:
-    found = []
-    if git("symbolic-ref", "-q", "HEAD").returncode == 0:
-        found.append("HEAD is on a branch: run from a worktree detached at the sealed commit")
-    status = git("status", "--porcelain", "--untracked-files=no")
-    if status.returncode != 0 or status.stdout.strip():
-        found.append("the checkout has changes")
-    return found
-
-
 def passages_problems(stage: str) -> list[str]:
+    """Every question of the stage has phase J's passages, as long as its public row says (the
+    private folder is shared by worktrees)."""
     phase_name = "dev" if stage == "dev" else "confirm"
     ids = pool.phase_ids(pool.read_frozen(), phase_name)
     missing = [i for i in ids if not jev_phase.passages_path(phase_name, i).is_file()]
-    return (
-        [f"{len(missing)} questions without phase J's passages: jev_phase.py rows"]
-        if missing
-        else []
-    )
+    if missing:
+        return [f"{len(missing)} questions without phase J's passages: jev_phase.py rows"]
+    rows = OUT / f"jev-{phase_name}.jsonl"
+    if not rows.is_file():
+        return [f"no {rows.name}: jev_phase.py rows --phase {phase_name}"]
+    lines = [json.loads(x) for x in rows.read_text("utf-8").splitlines() if x.strip()]
+    kept = {int(r["id"]): r["kept_chars"] for r in lines}
+    wrong = [
+        i
+        for i in ids
+        if kept.get(i) != len(jev_phase.passages_path(phase_name, i).read_text("utf-8"))
+    ]
+    return [f"{len(wrong)} passages files differ from {rows.name}"] if wrong else []
 
 
 def data_problems(stage: str) -> list[str]:
+    """The pinned input, the stage's novels as their keys say, and its passages."""
     try:
         pool.require_pinned()
     except SystemExit as why:
         return [str(why)]
-    missing = [k for k in {r["novel"] for r in pool.read_frozen()["items"]}
-               if not pool.novel_path(k).is_file()]  # fmt: skip
-    found = [f"{len(missing)} novels missing: pool.py --prepare"] if missing else []
-    return [*found, *passages_problems(stage)]
+    phase_name = "dev" if stage == "dev" else "confirm"
+    novels = {r["novel"] for r in pool.read_frozen()["items"] if r["phase"] == phase_name}
+    missing = [k for k in novels if not pool.novel_path(k).is_file()]
+    if missing:
+        return [f"{len(missing)} novels missing: pool.py --prepare"]
+    changed = [k for k in novels if pool.novel_key(pool.novel_path(k).read_text("utf-8")) != k]
+    if changed:
+        return [f"{len(changed)} novels differ from their key: pool.py --prepare"]
+    return passages_problems(stage)
 
 
 def launcher_problems(path: pathlib.Path = LAUNCHER) -> list[str]:
@@ -396,8 +414,8 @@ def refusal(stage: str, now: dt.datetime, run_dir: pathlib.Path = RUN_DIR,
         paid_once.require_sealed(the_lot)
         paid_once.require_instrument(the_lot)
         paid_once.require_inputs(the_lot)
-        found = [*checkout_problems(git), *x.pin_problems(), *data_problems(stage),
-                 *launcher_problems()]  # fmt: skip
+        found = [*jev_phase.sealed_head_problems(the_lot, git), *x.pin_problems(),
+                 *data_problems(stage), *launcher_problems()]  # fmt: skip
         if found:
             return "preflight", "; ".join(found)
     except SystemExit as why:

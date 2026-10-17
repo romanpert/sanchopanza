@@ -93,7 +93,8 @@ def test_the_phases_are_separate_lots_under_the_owners_jev_cap():
     assert dev.name == "longdoc-free-dev" and confirm.name == "longdoc-free"
     assert dev.fixture != confirm.fixture and dev.run_dir != confirm.run_dir
     assert dev.prereg.name == "prereg-dev.md" and confirm.prereg.name == "prereg.md"
-    assert dev.cap_usd + confirm.cap_usd <= 11.50
+    assert dev.cap_usd + confirm.cap_usd <= 14.00  # the owner's, raised on 2026-10-17
+    assert "docs/results/2026-10-16-longdoc-free/ids.json" in dev.instrument
     assert dev.model == confirm.model == "jev-1.13.0"
 
 
@@ -134,3 +135,16 @@ def test_the_replay_writes_the_kept_text_privately_and_public_rows(monkeypatch, 
     assert "Highbury" in kept and len(kept) == out[0]["kept_chars"]
     public = (tmp_path / "results" / "jev-dev.jsonl").read_text("utf-8")
     assert "Highbury" not in public and json.loads(public.splitlines()[0])["id"] == 0
+
+
+def test_a_paid_run_off_the_seal_commit_spends_nothing(monkeypatch, tmp_path: Path):
+    launcher = jp.lot("dev").launcher
+    monkeypatch.setattr(jp, "load_rows", lambda phase: _rows(1))
+    monkeypatch.setattr(jp, "lot_asker", lambda phase, fallback: _stub_asker())
+    monkeypatch.setattr(jp.paid_once, "room", lambda lot: 99.0)
+    monkeypatch.setattr(jp.paid_once, "require_sealed", lambda lot: None)
+    monkeypatch.setattr(jp.paid_once, "require_instrument", lambda lot: "c" * 40)
+    monkeypatch.setattr(jp.paid_once, "require_inputs", lambda lot: None)
+    with pytest.raises(SystemExit, match="not the commit that sealed"):
+        jp.paid("dev", launcher, load_key=lambda: pytest.fail("the key was read"),
+                sealed_head=lambda lot: ["HEAD is not the commit that sealed it"])  # fmt: skip

@@ -10,14 +10,22 @@ the cost of each; Jev's cost as the phase's spend over its questions (the asker 
 per phase, not per question).
 
 What it decides, by rules written before any dev data:
-- the cut: `stats.dev_cut` (the lowest of 0.5-0.9 whose covered questions have H - N >= -2 F1
-  points), None when none does (then the router is not confirmed: no confirmation is sealed);
+- whether the dev is read at all: at least MIN_COMPLETE questions with every arm;
+- the cut: `stats.dev_cut` (the lowest of 0.5-0.9 covering at least 29 % and 8 questions whose
+  covered questions have H - N >= -2 F1 points), None when none does (then the router is not
+  confirmed: no confirmation is sealed);
+- memory: HC's mean F1 within MEMORY_GAP points of N's means the set measures what Haiku
+  remembers, and no confirmation is sealed on it;
 - n for the confirmation: 80 % power for R - N against -5 at one-sided 2.5 %, with the dev's
-  SD of the per-question difference, the design effect of its novel clusters (at least 1), and
+  SD of the per-question difference, the design effect of its novel clusters (at least
+  DEFF_FLOOR, since 8 clusters estimate it poorly), and
   the dev's R - N as the true difference (at most 0: a dev gain is not banked); refused (no seal
   on En.QA) when above the 310 confirmation questions;
-- the confirmation's money: each arm's mean and 95th-percentile session cost, Jev's settled
-  cost over the dry run's pessimistic estimate.
+- the confirmation's money: per Claude phase, CONFIRM_ITEMS sessions per arm at the larger of
+  1.5 times the arm's dev mean and its dev 95th percentile, plus one worst turn and the floor;
+  Jev's cap as the confirmation's dry-run pessimistic estimate times the dev's settled over
+  pessimistic ratio, times 1.5. Over the owner's caps (Jev 12.50 for the confirmation; Claude:
+  the dev's real spend plus the confirmation's ceilings at most 105): the owner decides.
 Reported, not decided: HC's mean F1 (what is answered from memory), median answer words and the
 share of replies with an ANSWER line per arm, the gate's coverage at each cut, gold in the kept
 passages.
@@ -49,6 +57,13 @@ def _load(name: str, path: Path) -> Any:
 
 stats = _load("lf_stats", HERE / "stats.py")
 
+MIN_COMPLETE = 35  # of the dev's 41 questions
+MEMORY_GAP = 10.0  # F1 points: HC this close to N means the answers come from memory
+DEFF_FLOOR = 1.5
+CLAUDE_CAP_USD = 105.0
+JEV_CONFIRM_CAP_USD = 12.50
+WORST_TURN = {"SONNET": 4.32, "HAIKU": 2.16}
+FLOOR = {"SONNET": 0.50, "HAIKU": 0.30}
 Z_ALPHA = 1.959964  # one-sided 2.5 %
 Z_POWER = 0.841621  # 80 %
 CONFIRM_ITEMS = 310
@@ -106,6 +121,27 @@ def design_effect(rows: Sequence[Mapping[str, Any]], diff: Any) -> float:
     return max(1.0, clustered / iid)
 
 
+def confirm_money(
+    money: Mapping[str, Mapping[str, float]],
+    dev_claude_usd: float,
+    jev_ratio: float | None,
+    jev_confirm_pessimistic: float,
+) -> dict[str, Any]:
+    """The confirmation's ceilings by the registered formula, and whether they fit."""
+
+    def per(arm: str) -> float:
+        got = money.get(arm, {})
+        return max(1.5 * float(got.get("mean_usd", 0.0)), float(got.get("p95_usd", 0.0)))
+
+    sonnet = CONFIRM_ITEMS * per("N") + WORST_TURN["SONNET"] + FLOOR["SONNET"]
+    haiku = CONFIRM_ITEMS * (per("H") + per("H0")) + WORST_TURN["HAIKU"] + FLOOR["HAIKU"]
+    jev = jev_confirm_pessimistic * (jev_ratio or 1.0) * 1.5
+    claude_total = dev_claude_usd + sonnet + haiku
+    return {"sonnet_ceiling": round(sonnet, 2), "haiku_ceiling": round(haiku, 2),
+            "jev_cap": round(jev, 2), "claude_with_dev": round(claude_total, 2),
+            "fits": claude_total <= CLAUDE_CAP_USD and jev <= JEV_CONFIRM_CAP_USD}  # fmt: skip
+
+
 def n_needed(sd: float, deff: float, true_diff: float, margin: float = stats.MARGIN) -> int:
     """80 % power at one-sided 2.5 % for diff > margin; sd, true_diff and margin in points."""
     gap = min(true_diff, 0.0) - margin
@@ -143,14 +179,19 @@ def answer_form(sessions: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
             ),
             "no_answer": sum(bool(r.get("no_answer")) for r in mine),
             "mean_f1": round(100 * statistics.fmean(float(r.get("f1") or 0) for r in mine), 2),
+            "mean_f1_short": round(
+                100 * statistics.fmean(float(r.get("f1_short") or 0) for r in mine), 2
+            ),
         }
     return out
 
 
 def read(jev: Sequence[Mapping[str, Any]], sessions: Sequence[Mapping[str, Any]],
-         jev_spent: float, jev_pessimistic: float) -> dict[str, Any]:  # fmt: skip
+         jev_spent: float, jev_pessimistic: float,
+         jev_confirm_pessimistic: float = 12.32) -> dict[str, Any]:  # fmt: skip
     rows = stats_rows(jev, sessions, jev_spent)
-    cut = stats.dev_cut(rows)
+    complete = len(rows) >= MIN_COMPLETE
+    cut = stats.dev_cut(rows) if complete else None
     out: dict[str, Any] = {
         "questions": len(jev),
         "complete": len(rows),
@@ -168,6 +209,22 @@ def read(jev: Sequence[Mapping[str, Any]], sessions: Sequence[Mapping[str, Any]]
         },  # fmt: skip
         "answers": answer_form(sessions),
     }
+    money_now = out["money"]
+    dev_claude = sum(float(r["usd"]) for r in sessions)
+    ratio = out["jev"]["settled_over_pessimistic"]
+    out["confirm_money"] = confirm_money(money_now, dev_claude, ratio, jev_confirm_pessimistic)
+    hc = out["answers"].get("HC", {}).get("mean_f1")
+    n_f1 = out["answers"].get("N", {}).get("mean_f1")
+    memory = hc is not None and n_f1 is not None and hc >= n_f1 - MEMORY_GAP
+    out["memory_answers"] = memory
+    if not complete:
+        why = f"{len(rows)} complete questions, under {MIN_COMPLETE}: the dev is not read"
+        out.update({"n_needed": None, "seal_confirmation": False, "why": why})
+        return out
+    if memory:
+        why = f"HC {hc} within {MEMORY_GAP:g} points of N {n_f1}: memory answers"
+        out.update({"n_needed": None, "seal_confirmation": False, "why": why})
+        return out
     if cut is None:
         out["n_needed"] = None
         out["seal_confirmation"] = False
@@ -179,15 +236,17 @@ def read(jev: Sequence[Mapping[str, Any]], sessions: Sequence[Mapping[str, Any]]
 
     values = [diff(r) for r in rows]
     sd = statistics.stdev(values) if len(values) > 1 else 0.0
-    deff = design_effect(rows, diff)
+    deff = max(DEFF_FLOOR, design_effect(rows, diff))
     observed = statistics.fmean(values) if values else 0.0
     n = n_needed(sd, deff, observed)
     out.update({"router_minus_n": round(observed, 2), "sd_points": round(sd, 2),
                 "design_effect": round(deff, 3), "n_needed": n,
-                "seal_confirmation": n <= CONFIRM_ITEMS,
+                "seal_confirmation": n <= CONFIRM_ITEMS and out["confirm_money"]["fits"],
                 "saving": round(stats.saving(cut)(rows), 4) if rows else None})  # fmt: skip
     if n > CONFIRM_ITEMS:
         out["why"] = f"{n} questions needed, {CONFIRM_ITEMS} left: not sealed on En.QA alone"
+    elif not out["confirm_money"]["fits"]:
+        out["why"] = "the confirmation's money does not fit the owner's caps: the owner decides"
     return out
 
 
@@ -195,14 +254,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     import argparse
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--jev-spent", type=float, required=True, help="phase J's settled USD")
-    ap.add_argument("--jev-pessimistic", type=float, required=True, help="its dry-run estimate")
+    ap.add_argument("--jev-pessimistic", type=float, default=1.4425, help="dev's dry run")
+    ap.add_argument("--jev-confirm-pessimistic", type=float, default=12.3211)
     args = ap.parse_args(argv)
+    jev_phase = _load("lf_jev_phase", HERE / "jev_phase.py")
+    spent = jev_phase.paid_once.spent(jev_phase.lot("dev"))  # phase J's ledger, settled
     lot_dir = HERE.parents[1] / "docs" / "results" / "2026-10-16-longdoc-free"
     sessions = [*read_jsonl(lot_dir / "dev-sonnet-rows.jsonl"),
                 *read_jsonl(lot_dir / "dev-haiku-rows.jsonl")]  # fmt: skip
-    got = read(read_jsonl(lot_dir / "jev-dev.jsonl"), sessions, args.jev_spent,
-               args.jev_pessimistic)  # fmt: skip
+    got = read(read_jsonl(lot_dir / "jev-dev.jsonl"), sessions, spent, args.jev_pessimistic,
+               args.jev_confirm_pessimistic)  # fmt: skip
     (lot_dir / "dev.json").write_text(json.dumps(got, indent=1) + "\n", encoding="utf-8")
     print(json.dumps(got, indent=1))
     return 0

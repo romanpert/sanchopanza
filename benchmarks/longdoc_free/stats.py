@@ -25,6 +25,10 @@ DRAWS = 10_000
 SEED = 20261017
 MARGIN = -5.0  # F1 points, both hypotheses
 DEV_TOLERANCE = -2.0  # F1 points on the covered dev items
+# A cut must also cover enough to be worth confirming (review of 2026-10-17): the design's
+# break-even coverage (the router saves nothing below about 29 %), and at least 8 questions.
+DEV_MIN_COVERAGE = 0.29
+DEV_MIN_COVERED = 8
 CUTS = (0.5, 0.6, 0.7, 0.8, 0.9)
 MIN_COVERAGE = 0.20
 ALPHA_ONE_SIDED = 0.025
@@ -101,11 +105,12 @@ def bootstrap(rows: Sequence[Row], stat: Statistic, draws: int = DRAWS,
 
 
 def dev_cut(rows: Sequence[Row], cuts: Sequence[float] = CUTS) -> float | None:
-    """The lowest cut whose covered items have H - N >= DEV_TOLERANCE points (point estimate),
-    or None when no cut covers anything that meets it."""
+    """The lowest cut that covers at least DEV_MIN_COVERAGE of the items and DEV_MIN_COVERED
+    of them, and whose covered items have H - N >= DEV_TOLERANCE points (point estimate); None
+    when no cut meets all three."""
     for cut in sorted(cuts):
         chosen = [r for r in rows if covered(r, cut)]
-        if not chosen:
+        if len(chosen) < DEV_MIN_COVERED or coverage(rows, cut) < DEV_MIN_COVERAGE:
             continue
         if mean_diff(lambda r: r["f1"]["H"], lambda r: r["f1"]["N"])(chosen) >= DEV_TOLERANCE:
             return cut

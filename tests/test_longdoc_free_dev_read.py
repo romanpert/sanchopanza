@@ -57,6 +57,24 @@ def test_a_tie_sets_a_cut_and_a_confirmation_that_fits():
     assert got["answers"]["HC"]["mean_f1"] < got["answers"]["N"]["mean_f1"]
 
 
+def test_too_few_complete_questions_and_memory_stop_the_reading():
+    short = dr.read(_jev(30), _sessions(30), jev_spent=0.4, jev_pessimistic=1.44)
+    assert not short["seal_confirmation"] and "not read" in short["why"]
+    remembered = [{**s, "f1": 0.65} if s["variant"] == "HC" else s for s in _sessions()]
+    got = dr.read(_jev(), remembered, jev_spent=0.4, jev_pessimistic=1.44)
+    assert got["memory_answers"] and not got["seal_confirmation"] and "memory" in got["why"]
+
+
+def test_the_confirmation_money_follows_the_registered_formula():
+    money = {"N": {"mean_usd": 0.10, "p95_usd": 0.20}, "H": {"mean_usd": 0.02, "p95_usd": 0.02},
+             "H0": {"mean_usd": 0.05, "p95_usd": 0.06}}  # fmt: skip
+    got = dr.confirm_money(money, dev_claude_usd=8.0, jev_ratio=0.5, jev_confirm_pessimistic=12.32)
+    assert got["sonnet_ceiling"] == pytest.approx(310 * 0.20 + 4.32 + 0.50)
+    assert got["haiku_ceiling"] == pytest.approx(310 * (0.03 + 0.075) + 2.16 + 0.30)
+    assert got["jev_cap"] == pytest.approx(12.32 * 0.5 * 1.5)
+    assert got["fits"] == (got["claude_with_dev"] <= 105.0 and got["jev_cap"] <= 12.50)
+
+
 def test_a_haiku_that_loses_on_the_covered_questions_sets_no_cut():
     got = dr.read(_jev(), _sessions(h_gap=-0.3), jev_spent=0.4, jev_pessimistic=1.44)
     assert got["cut"] is None and not got["seal_confirmation"] and "not confirmed" in got["why"]

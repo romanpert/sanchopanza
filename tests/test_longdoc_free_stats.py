@@ -60,14 +60,21 @@ def test_the_bootstrap_resamples_whole_novels():
 
 
 def test_the_dev_cut_is_the_lowest_whose_covered_items_hold_within_two_points():
-    rows = [
-        _row(0, "a", 1.0, 0.0, 0.65),
-        _row(1, "a", 1.0, 1.0, 0.85),
-        _row(2, "b", 0.5, 0.5, 0.95),
-    ]
-    # at 0.5 and 0.6 item 0 is covered and loses 100 points among 3; from 0.7 on it is not
+    # 30 questions: 4 at p 0.65 where Haiku loses everything, 10 at 0.85 that tie, 16 under
+    rows = ([_row(i, f"n{i}", 1.0, 0.0, 0.65) for i in range(4)]
+            + [_row(i, f"n{i}", 1.0, 1.0, 0.85) for i in range(4, 14)]
+            + [_row(i, f"n{i}", 1.0, 1.0, 0.1) for i in range(14, 30)])  # fmt: skip
+    # at 0.5 and 0.6 the covered lose 400/14 points; at 0.7 and 0.8 they tie, 10 of 30 covered
     assert stats.dev_cut(rows) == 0.7
     assert stats.dev_cut([_row(0, "a", 1.0, 0.0, 0.99)]) is None
+
+
+def test_a_cut_that_covers_too_little_is_no_cut():
+    """The review's probe: 1 of 41 covered and tied set the cut at 0.5 before the rule."""
+    rows = [_row(0, "n0", 0.6, 0.6, 0.95)] + [_row(i, f"n{i}", 0.6, 0.6, 0.1) for i in range(1, 41)]
+    assert stats.dev_cut(rows) is None
+    few = [_row(i, f"n{i}", 0.6, 0.6, 0.95) for i in range(7)]  # 100 % covered but 7 questions
+    assert stats.dev_cut(few) is None
 
 
 def _confirm(h_gap: float, coverage: float, n_novels: int = 40, per: int = 5) -> list[dict]:

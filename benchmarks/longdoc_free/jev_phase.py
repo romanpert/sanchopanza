@@ -15,9 +15,11 @@ model or three failures in a row) over this phase's recording. Jev is `b6_run.MO
 jev-1.13.0, the model the 0.3.2 default ships and C5b measured `select_passages` on.
 
 Each phase (dev, confirm) is its own `paid_once.Lot`: its prereg, recording, ledger and cap
-(1.50 and 10.00 USD; the owner's 11.50 for the lot). `rows` replays the recording (no call) and
-writes each question's kept text to PRIVATE/<phase>/passages/<id>.txt, the file arm H reads, and
-the public row: id, novel, the gate's p (None when it gave no usable answer), kept characters.
+(1.50 and 12.50 USD; the owner's 14.00 for the lot, raised from 11.50 on 2026-10-17 when
+the confirmation's dry run came to 12.32 USD pessimistic). `rows` replays the recording (no
+call) and writes each question's kept text to PRIVATE/<phase>/passages/<id>.txt, the file arm H
+reads, and the public row: id, novel, the gate's p (None when it gave no usable answer), kept
+characters. A paid run starts only from the seal commit itself (`sealed_head_problems`).
 """
 
 from __future__ import annotations
@@ -62,13 +64,15 @@ HOME = pathlib.Path.home() / ".cache" / "sanchopanza"
 PRIVATE = pool.CACHE / "private"
 MODEL = br.MODEL  # jev-1.13.0
 FIT_CHARS = 60_000  # about 20,000 tokens: under Jev's 32k a question, H's file
-CAP_USD = {"dev": 1.50, "confirm": 10.00}
+CAP_USD = {"dev": 1.50, "confirm": 12.50}  # the owner's 14.00 for the lot (2026-10-17)
 SQUIRE_CAP_USD = 1e9  # the squire's own meter is no cap (C5's lesson): the ledger's is
 POINT = "longdoc_free_gate"
 GATE = Truth(
     "`passages` are excerpts of one novel. They state everything needed to answer `question`."
 )
-INSTRUMENT = ("src", "benchmarks/longdoc_free", "benchmarks/b6_es", "benchmarks/paid_once.py")
+IDS_REL = "docs/results/2026-10-16-longdoc-free/ids.json"
+INSTRUMENT = ("src", "benchmarks/longdoc_free", "benchmarks/b6_es", "benchmarks/paid_once.py",
+              IDS_REL)  # fmt: skip
 PHASES = ("dev", "confirm")
 
 
@@ -85,6 +89,26 @@ def lot(phase: str) -> paid_once.Lot:
         inputs=((pool.RAW, pool.SHA256),),
         home=HOME,
     )
+
+
+def sealed_head_problems(the_lot: paid_once.Lot, git: Any = paid_once.git) -> list[str]:
+    """A paid run starts from the seal commit itself: HEAD detached, the checkout clean, the
+    seal file tracked and HEAD the last commit that touched it (review of 2026-10-17)."""
+    seal = the_lot.prereg.with_suffix(".sha256").relative_to(ROOT).as_posix()
+    found = []
+    if git("symbolic-ref", "-q", "HEAD").returncode == 0:
+        found.append("HEAD is on a branch: run from a worktree detached at the seal commit")
+    status = git("status", "--porcelain", "--untracked-files=no")
+    if status.returncode != 0 or status.stdout.strip():
+        found.append("the checkout has changes")
+    if git("ls-files", "--error-unmatch", seal).returncode != 0:
+        found.append(f"{seal} is not committed")
+    else:
+        head = git("rev-parse", "HEAD").stdout.strip()
+        last = git("log", "-1", "--format=%H", "--", seal).stdout.strip()
+        if not head or head != last:
+            found.append(f"HEAD is not the commit that sealed {seal}")
+    return found
 
 
 def lot_asker(phase: str, fallback: Any | None) -> br.Asker:
@@ -218,7 +242,8 @@ async def session(phase: str, rows: list[dict[str, Any]], the_lot: paid_once.Lot
 
 
 def paid(phase: str, launcher: pathlib.Path | None, *, load_key: Any = paid_once.load_key,
-         check: Any = paid_once.preflight, build_live: Any = make_live) -> int:  # fmt: skip
+         check: Any = paid_once.preflight, build_live: Any = make_live,
+         sealed_head: Any = sealed_head_problems) -> int:  # fmt: skip
     the_lot = lot(phase)
     if (
         launcher is None
@@ -236,6 +261,8 @@ def paid(phase: str, launcher: pathlib.Path | None, *, load_key: Any = paid_once
     paid_once.require_sealed(the_lot)
     commit = paid_once.require_instrument(the_lot)
     paid_once.require_inputs(the_lot)
+    if found := sealed_head(the_lot):
+        raise SystemExit("; ".join(found) + ": nothing spent")
     the_lot.run_dir.mkdir(parents=True, exist_ok=True)
     with _lockfile.locked(the_lot.run_dir / "paid", wait_s=1.0,
                           stale_s=paid_once.LOCK_STALE_S, strict=True):  # fmt: skip
