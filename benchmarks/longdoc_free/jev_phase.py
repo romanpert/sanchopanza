@@ -26,8 +26,14 @@ Phase "probe" (docs/results/2026-10-17-lfree-bm25-dry/prereg-probe.md, the owner
 (`pages.bm25_shortlist`), both fixed here. Its own lot (`longdoc-free-bm25-probe`: prereg,
 recording, ledger capped at 0.06 USD, 0.0626 with its worst overshoot and the preflight, under
 the owner's hard 0.10) and one launch only: none
-after any launch, any spend in its ledger or any answer in its recording. No other phase takes
-a prefilter on a paid path.
+after any launch, any spend in its ledger or any answer in its recording.
+
+Phase "dev2" (docs/results/2026-10-17-lfree-dev2/prereg-dev2.md, the owner's approval of
+2026-10-17 after the probe): the 41 dev questions with the same prefilter at PROBE_K, fixed here,
+its own lot (`longdoc-free-dev2`: prereg, recording, ledger capped at DEV2 cap below, passages in
+PRIVATE/dev2/) and the probe's refusals: one launch only, none after any launch, any spend in its
+ledger or any answer in its recording. The probe and dev2 are the only phases with a prefilter
+on a paid path.
 """
 
 from __future__ import annotations
@@ -87,7 +93,11 @@ PROBE_MAX_BILL_USD = 0.000645  # the dev's dearest billed call: 0.000644616
 PROBE_IN_FLIGHT = br.CONCURRENCY  # 4
 PROBE_PREFLIGHT_USD = 13e-6  # `jev-preflight`: one short decision, not in the ledger
 # probe: 0.06 + 4 x 0.000645 + 0.000013 = 0.0626
-CAP_USD = {"dev": 1.80, "confirm": 12.50, "probe": 0.06}
+# dev2 (prereg-dev2.md section 3): 1.00, set from the probe's real cost, not the stub: 41 times
+# its dearest question (0.0203) is 0.83, its mean (0.0115) 0.47. Its worst total, with the same
+# in-flight bound and the preflight: 1.00 + 4 x 0.000645 + 0.000013 = 1.0026.
+CAP_USD = {"dev": 1.80, "confirm": 12.50, "probe": 0.06, "dev2": 1.00}
+JEV_LOT_USD = 14.30  # the owner's Jev for the whole longdoc-free lot (dev, probe, dev2, confirm)
 # Amendment 1: one more launch of the dev, only after its first launch, from the original seal,
 # stopped at the cap.
 ORIGINAL_DEV_SEAL = "6fd974705d223d7e3a0eeeb13a933da3459ea54e"
@@ -99,9 +109,11 @@ GATE = Truth(
 IDS_REL = "docs/results/2026-10-16-longdoc-free/ids.json"
 INSTRUMENT = ("src", "benchmarks/longdoc_free", "benchmarks/b6_es", "benchmarks/paid_once.py",
               IDS_REL)  # fmt: skip
-PHASES = ("dev", "confirm", "probe")
 PROBE = "probe"
+DEV2 = "dev2"
+PHASES = ("dev", "confirm", PROBE, DEV2)
 PROBE_DIR = ROOT / "docs" / "results" / "2026-10-17-lfree-bm25-dry"
+DEV2_DIR = ROOT / "docs" / "results" / "2026-10-17-lfree-dev2"
 PROBE_IDS = (0, 7, 375)  # the dearest, cheapest and median by the dry oracle at K = 200
 PROBE_K = 200
 # The probe's plan before the launch (docs/results/2026-10-17-lfree-bm25-dry/bm25-dry.json): the
@@ -110,21 +122,33 @@ PROBE_K = 200
 # so corrected and the oracle's must fit in the ledger's room.
 PROBE_STUB_RATIO = 1.417
 PROBE_ORACLE_USD = 0.0366
+# dev2's plan, by the same rule: the oracle's 41 questions at K = 200 (bm25-dry.json).
+DEV2_ORACLE_USD = 0.4439
+ORACLE_USD = {PROBE: PROBE_ORACLE_USD, DEV2: DEV2_ORACLE_USD}
+# Phases whose K is fixed here and that launch once only, never again (the probe's refusals).
+FIXED_K = {PROBE: PROBE_K, DEV2: PROBE_K}
+ONE_LAUNCH = (PROBE, DEV2)
+# dev2 reuses the sealed dev's N, H0 and HC sessions (prereg-dev2.md section 4): bound to its
+# instrument, so a change to them after its instrument commit refuses every dev2 run.
+DEV_ROWS = ("docs/results/2026-10-16-longdoc-free/dev-sonnet-rows.jsonl",
+            "docs/results/2026-10-16-longdoc-free/dev-haiku-rows.jsonl")  # fmt: skip
 
 
 def prefilter_for(phase: str) -> int | None:
-    """The BM25 prefilter a phase runs with: the probe's K, and none for any other phase."""
-    return PROBE_K if phase == PROBE else None
+    """The BM25 prefilter a phase runs with: the probe's and dev2's K, none for the others."""
+    return FIXED_K.get(phase)
 
 
 def results_dir(phase: str) -> pathlib.Path:
-    return PROBE_DIR if phase == PROBE else RESULTS
+    return {PROBE: PROBE_DIR, DEV2: DEV2_DIR}.get(phase, RESULTS)
 
 
 def lot(phase: str) -> paid_once.Lot:
-    name = {"dev": f"{NAME}-dev", "confirm": NAME, PROBE: f"{NAME}-bm25-probe"}[phase]
+    name = {"dev": f"{NAME}-dev", "confirm": NAME, PROBE: f"{NAME}-bm25-probe",
+            DEV2: f"{NAME}-dev2"}[phase]  # fmt: skip
     prereg = {"dev": RESULTS / "prereg-dev-a1.md", "confirm": RESULTS / "prereg.md",
-              PROBE: PROBE_DIR / "prereg-probe.md"}[phase]  # fmt: skip
+              PROBE: PROBE_DIR / "prereg-probe.md",
+              DEV2: DEV2_DIR / "prereg-dev2.md"}[phase]  # fmt: skip
     return paid_once.Lot(
         name=name,
         prereg=prereg,
@@ -132,7 +156,7 @@ def lot(phase: str) -> paid_once.Lot:
         fixture=ROOT / "fixtures" / NAME / f"jev-{phase}.jsonl",
         model=MODEL,
         cap_usd=CAP_USD[phase],
-        instrument=INSTRUMENT,
+        instrument=INSTRUMENT + (DEV_ROWS if phase == DEV2 else ()),
         inputs=((pool.RAW, pool.SHA256),),
         home=HOME,
     )
@@ -166,8 +190,9 @@ def sealed_head_problems(the_lot: paid_once.Lot, git: Any = paid_once.git) -> li
 def may_launch(phase: str, past: list[dict[str, Any]]) -> bool:
     """paid_once's rule (one launch and one relaunch, none after a 402, a 429, the cap or another
     model), and amendment 1's one exception: the dev's single launch from the original seal,
-    stopped at the cap, may be followed by one launch. The probe: one launch, never another."""
-    if phase == PROBE:
+    stopped at the cap, may be followed by one launch. The probe and dev2: one launch, never
+    another."""
+    if phase in ONE_LAUNCH:
         return not past
     if paid_once.may_launch(past):
         return True
@@ -199,7 +224,9 @@ def lot_asker(phase: str, fallback: Any | None) -> br.Asker:
 
 
 def phase_ids(phase: str) -> set[int]:
-    """The frozen ids of a phase; the probe's, which must be dev questions."""
+    """The frozen ids of a phase; the probe's, which must be dev questions; dev2's, the dev's."""
+    if phase == DEV2:
+        return set(pool.phase_ids(pool.read_frozen(), "dev"))
     if phase != PROBE:
         return set(pool.phase_ids(pool.read_frozen(), phase))
     dev = set(pool.phase_ids(pool.read_frozen(), "dev"))
@@ -268,9 +295,10 @@ def dry(
     phase: str, rows: list[dict[str, Any]] | None = None, prefilter_k: int | None = None
 ) -> dict[str, Any]:
     """The phase's calls and pessimistic cost with the stub, free. `prefilter_k` measures a K
-    on a sealed phase's questions; the probe runs with its own K, and no other."""
-    if phase == PROBE and prefilter_k not in (None, PROBE_K):
-        raise ValueError(f"the probe's K is fixed at {PROBE_K}")
+    on a sealed phase's questions; the probe and dev2 run with their own K, and no other. Their
+    plan is the larger of the stub's estimate times PROBE_STUB_RATIO and the oracle's."""
+    if phase in FIXED_K and prefilter_k not in (None, FIXED_K[phase]):
+        raise ValueError(f"{phase}'s K is fixed at {FIXED_K[phase]}")
     prefilter_k = prefilter_for(phase) if prefilter_k is None else prefilter_k
     rows = load_rows(phase) if rows is None else rows
     asker = lot_asker(phase, br.Stub())
@@ -280,8 +308,8 @@ def dry(
     out = {"phase": phase, "questions": len(rows), "calls": calls,
            "pessimistic_usd": round(pessimistic, 4), "cap_usd": CAP_USD[phase],
            "fits_under_cap": pessimistic <= CAP_USD[phase], "claude_usd": 0.0}  # fmt: skip
-    if phase == PROBE:
-        planned = max(pessimistic * PROBE_STUB_RATIO, PROBE_ORACLE_USD)
+    if phase in ORACLE_USD:
+        planned = max(pessimistic * PROBE_STUB_RATIO, ORACLE_USD[phase])
         out = {**out, "planned_usd": round(planned, 4), "fits_under_cap": planned <= CAP_USD[phase]}
     return out if prefilter_k is None else {**out, "prefilter_k": prefilter_k}
 
@@ -373,7 +401,7 @@ def paid(phase: str, launcher: pathlib.Path | None, *, load_key: Any = paid_once
     rows = load_rows(phase)
     plan = dry(phase, rows)
     room = paid_once.room(the_lot)
-    needed = plan.get("planned_usd", plan["pessimistic_usd"])  # the probe's, else the stub's
+    needed = plan.get("planned_usd", plan["pessimistic_usd"])  # the probe's/dev2's, else the stub's
     if needed > room:
         raise SystemExit(f"{needed} USD does not fit in the {room:.4f} left")
     paid_once.require_sealed(the_lot)
@@ -388,8 +416,9 @@ def paid(phase: str, launcher: pathlib.Path | None, *, load_key: Any = paid_once
         if not may_launch(phase, past):
             raise SystemExit("launch rule: no launch left (one relaunch at most, none after "
                              "a 402, a 429, the cap or another model; amendment 1's one "
-                             "exception spent or not met; the probe: one launch)")  # fmt: skip
-        if phase == PROBE and paid_once.spent(the_lot) > 0:
+                             "exception spent or not met; the probe and dev2: one "
+                             "launch)")  # fmt: skip
+        if phase in ONE_LAUNCH and paid_once.spent(the_lot) > 0:
             raise SystemExit(f"{the_lot.name}'s ledger has already spent: one launch only, "
                              "nothing spent")  # fmt: skip
         held = recording_path(the_lot)
@@ -415,8 +444,8 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     if args.prefilter_k is not None and args.action != "dry":
         ap.error("--prefilter-k is for the dry run only: a paid path takes its phase's K")
-    if args.prefilter_k is not None and args.phase == PROBE:
-        ap.error(f"the probe's K is fixed at {PROBE_K} in code")
+    if args.prefilter_k is not None and args.phase in FIXED_K:
+        ap.error(f"{args.phase}'s K is fixed at {FIXED_K[args.phase]} in code")
     if args.action == "dry":
         print(json.dumps(dry(args.phase, prefilter_k=args.prefilter_k), indent=1))
         return 0

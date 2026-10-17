@@ -20,7 +20,10 @@ and in what `document.txt` holds:
 - HC: Haiku 4.5, no file and a closed-book prompt (what is answered from memory; dev only).
 
 One phase per model: N's, then Haiku's with H, H0 and HC interleaved per question (their order
-rotating with the question's position), so each phase reserves one worst turn. The money and
+rotating with the question's position), so each phase reserves one worst turn. Stage dev2
+(docs/results/2026-10-17-lfree-dev2/prereg-dev2.md, `--stage dev2`) is one phase, H alone on
+the passages of jev_phase.py's phase dev2 (the BM25 prefilter before Jev), bound to that
+prereg's seal; it reuses the sealed dev's N, H0 and HC rows. The money and
 each session's health are lb162x's (`cap_for`: a session's cap while cap + one worst turn fits
 under the phase's ceiling; lb162x_guard.Budget), the clock and STOP lb162's, the exits
 h2h_lb162x's (done 0, ceiling 1, limit 2, preflight 3, clock 5, manual 6, error 7, outage 8,
@@ -110,8 +113,19 @@ DEV_HAIKU = Phase("DH", "lfree-dev-haiku", "HAIKU", meter.HAIKU_45, IDS, 123, ce
 SMOKE = Phase("S", "lfree-smoke", "SONNET", meter.SONNET_55, IDS, 1, ceiling=0.80, full_cap=0.80,
               floor=0.80, wall_mean_s=60.0, cost_scale=1.0, rows=OUT / "smoke-rows.jsonl",
               stop=OUT / "smoke-stop.json")  # fmt: skip
-STAGES: dict[str, tuple[Phase, ...]] = {"dev": (SMOKE, DEV_N, DEV_HAIKU)}
+# dev2 (docs/results/2026-10-17-lfree-dev2/prereg-dev2.md): H alone, Haiku 4.5 on the passages
+# Jev kept behind the BM25 prefilter (jev_phase.py phase dev2), on the 41 dev questions in the
+# dev's seeded order; N, H0 and HC are the sealed dev's sessions, reused. Its session cap is the
+# dev's for Haiku; its ceiling leaves room for 41 sessions at the dev H's 95th percentile
+# (0.0534 USD, above 1.5 times its mean 0.0313) after one worst turn and the floor.
+DEV2_OUT = jev_phase.DEV2_DIR
+DEV2_H = Phase("D2H", "lfree-dev2-haiku", "HAIKU", meter.HAIKU_45, IDS, 41, ceiling=5.00,
+               full_cap=CAPS["HAIKU"], floor=0.30, wall_mean_s=45.0, cost_scale=1.0,
+               rows=DEV2_OUT / "dev2-haiku-rows.jsonl",
+               stop=DEV2_OUT / "dev2-haiku-stop.json")  # fmt: skip
+STAGES: dict[str, tuple[Phase, ...]] = {"dev": (SMOKE, DEV_N, DEV_HAIKU), "dev2": (DEV2_H,)}
 STAGE_OF = {p.key: stage for stage, phases in STAGES.items() for p in phases}
+ONLY = {DEV2_H.key: ("H",)}  # a phase that runs some of its model's arms only
 
 
 @dataclasses.dataclass(frozen=True)
@@ -162,9 +176,18 @@ def grade_short(answer: str | None, answers: Sequence[str]) -> float:
 # ---- tasks and sessions ----------------------------------------------------------------------
 
 
+def jev_of(stage: str) -> str:
+    """The Jev phase whose passages and rows a stage reads: dev, dev2, else the confirmation."""
+    return stage if stage in ("dev", jev_phase.DEV2) else "confirm"
+
+
+def ids_of(stage: str) -> str:
+    """The frozen phase a stage's questions come from: dev2 asks the dev's questions."""
+    return "confirm" if jev_of(stage) == "confirm" else "dev"
+
+
 def stage_items(stage: str) -> list[Any]:
-    phase_name = "dev" if stage == "dev" else "confirm"
-    ids = set(pool.phase_ids(pool.read_frozen(), phase_name))
+    ids = set(pool.phase_ids(pool.read_frozen(), ids_of(stage)))
     items, _ = pool.items(pool.rows())
     chosen = sorted((i for i in items if i.id in ids), key=lambda i: i.id)
     random.Random(ORDER_SEED).shuffle(chosen)
@@ -177,6 +200,11 @@ def variants_at(model: str, position: int) -> list[str]:
     return own[shift:] + own[:shift]
 
 
+def variants_of(phase: Phase, position: int) -> list[str]:
+    only = ONLY.get(phase.key)
+    return list(only) if only else variants_at(phase.model, position)
+
+
 def tasks_of(phase: Phase) -> list[FreeTask]:
     stage = STAGE_OF[phase.key]
     items = stage_items(stage)
@@ -184,7 +212,7 @@ def tasks_of(phase: Phase) -> list[FreeTask]:
         items = items[:1]
     out = []
     for position, item in enumerate(items):
-        for variant in variants_at(phase.model, position):
+        for variant in variants_of(phase, position):
             out.append(FreeTask(f"{item.id}:{variant}", item.id, variant, item.novel,
                                 item.question, item.answers, stage))  # fmt: skip
     return out
@@ -194,7 +222,7 @@ def document_of(task: FreeTask) -> pathlib.Path | None:
     if task.variant in ("N", "H0"):
         return pool.novel_path(task.novel)
     if task.variant == "H":
-        return jev_phase.passages_path("dev" if task.stage == "dev" else "confirm", task.item)
+        return jev_phase.passages_path(jev_of(task.stage), task.item)
     return None
 
 
@@ -353,9 +381,11 @@ def money(stage: str) -> dict[str, Any]:
 
 
 def claude_lot(stage: str) -> paid_once.Lot:
-    """The Jev phase's lot with the Claude phases' wider instrument."""
-    return dataclasses.replace(jev_phase.lot("dev" if stage == "dev" else "confirm"),
-                               instrument=INSTRUMENT)  # fmt: skip
+    """The Jev phase's lot with the Claude phases' wider instrument (dev2's: and the sealed
+    dev's rows it reuses)."""
+    reused = jev_phase.DEV_ROWS if stage == jev_phase.DEV2 else ()
+    return dataclasses.replace(jev_phase.lot(jev_of(stage)),
+                               instrument=INSTRUMENT + reused)  # fmt: skip
 
 
 def git_out(*args: str) -> subprocess.CompletedProcess:
@@ -366,12 +396,12 @@ def git_out(*args: str) -> subprocess.CompletedProcess:
 def passages_problems(stage: str) -> list[str]:
     """Every question of the stage has phase J's passages, as long as its public row says (the
     private folder is shared by worktrees)."""
-    phase_name = "dev" if stage == "dev" else "confirm"
-    ids = pool.phase_ids(pool.read_frozen(), phase_name)
+    phase_name = jev_of(stage)
+    ids = pool.phase_ids(pool.read_frozen(), ids_of(stage))
     missing = [i for i in ids if not jev_phase.passages_path(phase_name, i).is_file()]
     if missing:
         return [f"{len(missing)} questions without phase J's passages: jev_phase.py rows"]
-    rows = OUT / f"jev-{phase_name}.jsonl"
+    rows = (DEV2_OUT if phase_name == jev_phase.DEV2 else OUT) / f"jev-{phase_name}.jsonl"
     if not rows.is_file():
         return [f"no {rows.name}: jev_phase.py rows --phase {phase_name}"]
     lines = [json.loads(x) for x in rows.read_text("utf-8").splitlines() if x.strip()]
@@ -390,8 +420,7 @@ def data_problems(stage: str) -> list[str]:
         pool.require_pinned()
     except SystemExit as why:
         return [str(why)]
-    phase_name = "dev" if stage == "dev" else "confirm"
-    novels = {r["novel"] for r in pool.read_frozen()["items"] if r["phase"] == phase_name}
+    novels = {r["novel"] for r in pool.read_frozen()["items"] if r["phase"] == ids_of(stage)}
     missing = [k for k in novels if not pool.novel_path(k).is_file()]
     if missing:
         return [f"{len(missing)} novels missing: pool.py --prepare"]

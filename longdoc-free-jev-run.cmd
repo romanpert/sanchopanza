@@ -1,7 +1,7 @@
 @echo off
-rem Lot longdoc-free, phase J (Jev only): longdoc-free-jev-run.cmd dev ^| confirm ^| probe. Hard
-rem caps in each phase's ledger: dev 1.80 USD (1.50 at its seal, 1.80 by amendment 1), confirm
-rem 12.50 (the owner's 14.30 for the lot), probe 0.06. Sealed in
+rem Lot longdoc-free, phase J (Jev only): longdoc-free-jev-run.cmd dev ^| confirm ^| probe ^| dev2.
+rem Hard caps in each phase's ledger: dev 1.80 USD (1.50 at its seal, 1.80 by amendment 1),
+rem confirm 12.50 (the owner's 14.30 for the lot), probe 0.06, dev2 1.00. Sealed in
 rem docs/results/2026-10-16-longdoc-free/prereg-dev.md and prereg.md: each prereg.sha256 holds
 rem the sha256 of this file with the two values below read as placeholders. Run it from the
 rem detached worktree at the sealed commit, outside the Claude Code session (WMI, CreateFlags
@@ -17,10 +17,14 @@ rem ledger capped at 0.06 USD (0.0626 at worst with calls in flight and the pref
 rem the owner's 0.10), one launch and never another. Results are committed from outside the
 rem sealed run worktree, never with git add -A there: its filled copy of this file holds the
 rem key file's path.
+rem Phase dev2 (the 41 dev questions with the same prefilter at K = 200, fixed in
+rem jev_phase.py): sealed in docs/results/2026-10-17-lfree-dev2/prereg-dev2.md, its own ledger
+rem capped at 1.00 USD (1.0026 at worst with calls in flight and the preflight), one launch
+rem and never another, its passages in the private cache under dev2.
 cd /d "%~dp0"
 set "PHASE=%~1"
-if not "%PHASE%"=="dev" if not "%PHASE%"=="confirm" if not "%PHASE%"=="probe" (
-  echo refused: the first argument is the phase, dev, confirm or probe
+if not "%PHASE%"=="dev" if not "%PHASE%"=="confirm" if not "%PHASE%"=="probe" if not "%PHASE%"=="dev2" (
+  echo refused: the first argument is the phase, dev, confirm, probe or dev2
   exit /b 1
 )
 set "HOUR=%TIME:~0,2%"
