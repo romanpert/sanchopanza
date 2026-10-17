@@ -1,4 +1,4 @@
-# A10 with labels from the target environment: in-domain labels close much of the gap, not all of it
+# A10 with labels from the target environment: no concluyente at −0.05 (0.812 against Jev 0.861)
 
 **The result:** by the planned rule, **"no concluyente"**. A local check_done classifier trained on
 AgentDojo's own labels in the suites it is scored on (banking, travel, workspace), never on the
@@ -6,13 +6,18 @@ user task it scores, ranked 2,522 stops at **AUC 0.812** against **0.861** for J
 same stops: **−0.049, cluster bootstrap 95 % [−0.104, +0.004]**, against a −0.05 margin. Not
 shown to be as good as Jev, and not shown to be worse.
 
-Against A10's cross-suite classifier (slack labels only), in-domain labels gained **+0.048 AUC
-[−0.007, +0.104]** on the same stops: about half of A10's gap closes, but the interval reaches 0.
-Training each agent only on its own stops did best: **−0.023 [−0.075, +0.029]** against Jev.
+Against A10's cross-suite classifier (slack labels only), scored on these same 2,522 stops, the
+in-domain labels moved the AUC by **+0.048 [−0.007, +0.104]**. As a point estimate that is about
+half of the A10 model's −0.097 gap to Jev on these stops, but it is not shown: the interval
+includes 0. (A10's published gap, −0.159, was measured on the 950 stops of one agent, a different
+stop set.) Training each agent only on its own stops gave the highest point estimate against Jev,
+**−0.023 [−0.075, +0.029]**. Own-agent and pooled labels were not compared with each other.
 
 Free: no model was called. Planned in [`plan.md`](plan.md), committed with the code before any
-held-out stop was scored; the run refused unless the plan and the code were committed, and it
-records the commit (`99bbb1a`) and the plan's sha256 (`befa14b0…`).
+held-out stop was scored. The run refused unless the plan and the lot's two new files
+(`a10_target.py`, `target.py`) were committed. The A10 modules they import were already
+committed and are unchanged between the two commits of this lot. It records the commit
+(`99bbb1a`) and the plan's sha256 (`befa14b0…`).
 
 ## What ran
 
@@ -47,9 +52,12 @@ records the commit (`99bbb1a`) and the plan's sha256 (`befa14b0…`).
 | No target labels (A10's slack model) | 2,522 | 0.764 | 0.861 | −0.097 | [−0.151, −0.047] | no concluyente |
 
 - **The strict split** removes the leak the primary leaves (an injected payload seen under other
-  user tasks in training). It reads the same as the primary, so that leak did not flatter it.
+  user tasks in training). Its reading against Jev is the same as the primary's. Not planned,
+  descriptive: on the 753 stops the strict split scores, the primary's model gives AUC 0.821 and
+  the strict one 0.823, so on these stops the leak did not raise the primary's ranking.
 - **In-domain against cross-suite:** +0.048 [−0.007, +0.104] (local in-domain minus A10's
-  model). A10's model scored 0.655 on the 950 alone; on all 2,522 it scores 0.764.
+  model, descriptive: no margin was planned between the two). Not shown: the interval includes 0.
+  A10's model scored 0.655 on the 950 alone; on all 2,522 it scores 0.764.
 
 **By suite** (in-domain local / Jev, difference and interval):
 
@@ -68,8 +76,9 @@ records the commit (`99bbb1a`) and the plan's sha256 (`befa14b0…`).
 | gemini-2.0-flash | 950 | 0.882 | 0.759 | −0.123 [−0.191, −0.063] | 0.782 | −0.099 [−0.163, −0.042] |
 
 On gemini-2.0-flash's stops the pooled arm reads "peor" by the rule (the whole interval below
-−0.05); its own-labels arm narrowly misses that zone. The subgroups are small and not the
-verdict.
+−0.05); its own-labels arm narrowly misses that zone. That is one of nine subgroup comparisons (three
+suites, three agents times two arms), with no multiplicity correction. The subgroups are small
+and not the verdict.
 
 **Per fold** (descriptive; the pooled AUC mixes five fitted models): mean AUC Jev 0.863, local
 in-domain 0.825, own-agent 0.843, A10's model 0.761. The local arm was ahead of Jev in one fold
@@ -77,9 +86,11 @@ of five (0.901 against 0.833).
 
 ## What this licenses, and what it does not
 
-- **Labels from the setting help.** With the same model, in-domain labels lift the ranking from
-  0.764 to 0.812 on the same stops, and to 0.838 when each agent is trained on its own runs. A
-  local provider still needs labels from the setting it serves; A10's conclusion holds.
+- **Labels from the setting: a gain in the point estimate, not shown.** With the same model, the
+  AUC on the same stops goes from 0.764 (slack labels) to 0.812 with in-domain labels,
+  +0.048 [−0.007, +0.104]. That interval includes 0. With each agent trained on its own runs the
+  AUC is 0.838; that arm was not compared with A10's model. A local provider still needs labels
+  from the setting it serves; A10's conclusion holds.
 - **Not shown to match Jev.** Every interval against Jev reaches below −0.05. The primary's point
   estimate sits at the margin.
 - **The interval is set by 106 user tasks, not 2,522 stops.** A confirmation that could separate
@@ -100,6 +111,9 @@ of five (0.901 against 0.833).
 
 - `plan.md`: the plan, committed before the run.
 - `analysis.json`: every comparison, with the commit, the plan's sha256, the folds and the fits.
+  It is kept as the run wrote it. Its `target_vs_a10` entry carries a `"verdict"` from the
+  margin rule. That comparison is descriptive (no margin was planned between two local arms), so
+  that field is not a reading. The code now labels it `"descriptive"` for future runs.
 - `scored.jsonl`: each stop's id, cluster, agent, label, fold and the four local probabilities
   (`p_target`, `p_strict` (null where the strict split does not score), `p_agent`, `p_a10`); no
   text, no Jev probability (those stay in their own lots).

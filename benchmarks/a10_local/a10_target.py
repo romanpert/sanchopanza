@@ -229,7 +229,8 @@ def analyse(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
             for a in agents
         },  # fmt: skip
         "a10_vs_jev": analysis.paired_auc(rows, "a10", JEV),
-        "target_vs_a10": analysis.paired_auc(rows, "target", "a10"),
+        # Two local arms with no margin registered between them: the interval, no verdict.
+        "target_vs_a10": {**analysis.paired_auc(rows, "target", "a10"), "verdict": "descriptive"},
         "per_fold": per_fold(rows, (JEV, "target", "agent", "a10")),
         "replicas": l4_stats.BOOT,
         "verdict": primary["verdict"],

@@ -223,6 +223,8 @@ def test_analyse_reports_every_registered_comparison(monkeypatch):
     assert set(report["by_agent"][PIPES[0]]) == {"target", "agent"}
     for key in ("agent", "a10_vs_jev", "target_vs_a10", "per_fold"):
         assert key in report
+    # Two local arms, no margin registered between them: no verdict, only the interval.
+    assert report["target_vs_a10"]["verdict"] == "descriptive"
     assert set(report["per_fold"]["folds"]) == {"0", "1", "2"}
 
 
