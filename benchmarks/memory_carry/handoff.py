@@ -477,9 +477,10 @@ def nudge_step(work: Path, rec: Path, repo: Path, second: dict[str, Any], model:
                scope: str) -> tuple[dict[str, Any], str]:  # fmt: skip
     """Session 2 resumed once with the nudge, under the run's call cap: (the turn, why the arm
     is cut or ""). A turn that reported no cost is charged its cap and one worst turn; S's
-    hooks must answer its prompt (a resumed session's start is recorded, not required). Nothing touches the repository between session 2 and the nudge:
-    no commit, and session 2's checks ran on a copy (`checks_apart`); `tree_kept` says the tree
-    the nudge resumes on is byte for byte the one session 2 left."""
+    hooks must answer its prompt (a resumed session's start is recorded, not required).
+    Nothing touches the repository between session 2 and the nudge: no commit, and session 2's
+    checks ran on a copy (`checks_apart`); `tree_kept` says the tree the nudge resumes on is
+    byte for byte the one session 2 left."""
     kept = tree_state(repo) == before_state(rec)
     since = carry_s.hook_rows(work)
     push = handoff_step(rec, repo, second, model, config, handoff_nudge.NUDGE,
