@@ -481,7 +481,10 @@ def nudge_step(work: Path, rec: Path, repo: Path, second: dict[str, Any], model:
     Nothing touches the repository between session 2 and the nudge: no commit, and session 2's
     checks ran on a copy (`checks_apart`); `tree_kept` says the tree the nudge resumes on is
     byte for byte the one session 2 left."""
-    kept = tree_state(repo) == before_state(rec)
+    if tree_state(repo) != before_state(rec):  # cut before the nudge is paid for, not after
+        return {"tree_kept": False, "started": False, "cost": 0.0, "cost_reported": True}, \
+            "nudge: the repository changed between session 2 and the nudge"  # fmt: skip
+    kept = True
     since = carry_s.hook_rows(work)
     push = handoff_step(rec, repo, second, model, config, handoff_nudge.NUDGE,
                         handoff_nudge.TAG, cap, SESSION_TIMEOUT)  # fmt: skip

@@ -267,11 +267,13 @@ def test_the_copy_s_checks_write_nothing_into_the_tree(tmp_path: Path) -> None:
 
 
 def test_a_tree_changed_before_the_nudge_cuts_the_arm(tmp_path: Path, monkeypatch: Any) -> None:
-    stand_in(tmp_path, monkeypatch, "asks")
+    log = stand_in(tmp_path, monkeypatch, "asks")
     monkeypatch.setattr(handoff, "before_state", lambda rec: "another tree")
     got = n0_arm(tmp_path)
     assert got["cut"] == "nudge: the repository changed between session 2 and the nudge"
     assert got["nudge"]["tree_kept"] is False
+    # cut before the nudge is asked: no third call, so nothing is paid for an arm thrown away
+    assert [c["resume"] for c in json.loads(log.read_text())] == ["", ""]
 
 
 def test_the_nudge_names_nothing_and_is_not_memory_s_continuation_cue() -> None:

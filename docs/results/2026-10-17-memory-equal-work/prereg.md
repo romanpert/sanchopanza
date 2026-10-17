@@ -113,7 +113,9 @@ shipping labels."), repetitions 1-2; **bare** (`BARE_LINE` = "Let's continue."),
   claim that it was done), with the same words; knows only that step 2 is missing; costs nothing.
 - **Then:** the checks run again, in the agent's tree as in W17, and **they decide** (`kept_all`
   and every `*_pass` of the row; in an arm not nudged they run there too, and an arm whose two
-  readings differ is reported, `checks_disagree`, expected 0).
+  readings differ is reported, `checks_disagree`, expected 0; it sees a copy that passes
+  where the tree fails, not the reverse, which would add a nudge: no check or scene test
+  reads git or an absolute path, so neither is expected).
   The row keeps the checks after session 2 (`checks_s2`, `kept_all_s2`), whether the arm was
   nudged (`nudged`) and the nudge's facts (`nudge`: its own cost, the reported running total, how
   the own cost was read, whether it resumed session 2's session and carried its context, tokens,
@@ -205,9 +207,13 @@ ones last).
 - **Where the cap stops the run**, recomputed on the interleaved plan with W17's Sonnet costs per
   pair (11.18 USD over the 48 pairs) and W17's 39 pairs where N0's `task` failed (S' none), for a
   mean nudge cost m (free, `sizing.py`, kept with the proposal, not tracked): **all 48 pairs start
-  while m <= 0.178 USD; 40 or more (the verdict's minimum) while m <= 0.270 USD**; past that the
+  while m <= 0.1777 USD; 40 or more (the verdict's minimum) while m <= 0.270 USD**; past that the
   verdict is "sin veredicto". A warm nudge (0.03-0.065) and a cold one (0.12-0.155) both fit 48
-  pairs. (With the first draft's 18 USD these were 0.072 and 0.145.)
+  pairs. (With the first draft's 18 USD these were 0.072 and 0.145.) A cut by the cap keeps
+  the strata even in any prefix of the plan, but drops repetitions 2 and 4 of the scenes last
+  in the order (h_pages, h_judge, ...), not pairs spread over every scene. An arm whose tree
+  changed between session 2 and the nudge is cut before the nudge is asked, so nothing is
+  paid for it.
 - **Expected wall time:** W17's Sonnet lot took 118 minutes for 96 arms (about 74 s an arm with
   building and checks); about 40 nudges of 40 to 60 s and a second round of checks add about 30
   to 40 minutes: **about 2.5 hours**.
