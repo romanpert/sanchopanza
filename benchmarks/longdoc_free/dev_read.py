@@ -129,21 +129,27 @@ def confirm_money(
     dev_claude_usd: float,
     jev_ratio: float | None,
     jev_confirm_pessimistic: float,
+    *,
+    jev_cap: float = JEV_CONFIRM_CAP_USD,
+    haiku_arms: Sequence[str] = ("H", "H0"),
 ) -> dict[str, Any]:
-    """The confirmation's ceilings by the registered formula, and whether they fit."""
+    """The confirmation's ceilings by the registered formula, and whether they fit. `jev_cap`
+    and `haiku_arms` default to the sealed dev's (12.50; H and H0 in the Haiku phase); dev2
+    (prereg-dev2.md) passes what the lot's Jev leaves and H alone."""
 
     def per(arm: str) -> float:
         got = money.get(arm, {})
         return max(1.5 * float(got.get("mean_usd", 0.0)), float(got.get("p95_usd", 0.0)))
 
     sonnet = CONFIRM_ITEMS * per("N") + WORST_TURN["SONNET"] + FLOOR["SONNET"]
-    haiku = CONFIRM_ITEMS * (per("H") + per("H0")) + WORST_TURN["HAIKU"] + FLOOR["HAIKU"]
+    haiku = (CONFIRM_ITEMS * sum(per(arm) for arm in haiku_arms) + WORST_TURN["HAIKU"]
+             + FLOOR["HAIKU"])  # fmt: skip
     expected = jev_confirm_pessimistic * (jev_ratio if jev_ratio is not None else 1.0)
-    jev_fits = (jev_confirm_pessimistic <= JEV_CONFIRM_CAP_USD
-                and expected * JEV_MARGIN <= JEV_CONFIRM_CAP_USD)  # fmt: skip
+    jev_fits = (jev_confirm_pessimistic <= jev_cap
+                and expected * JEV_MARGIN <= jev_cap)  # fmt: skip
     claude_total = dev_claude_usd + sonnet + haiku
     return {"sonnet_ceiling": round(sonnet, 2), "haiku_ceiling": round(haiku, 2),
-            "jev_cap": JEV_CONFIRM_CAP_USD, "jev_expected": round(expected, 2),
+            "jev_cap": jev_cap, "jev_expected": round(expected, 2),
             "jev_fits": jev_fits, "claude_with_dev": round(claude_total, 2),
             "fits": claude_total <= CLAUDE_CAP_USD and jev_fits}  # fmt: skip
 
@@ -195,7 +201,8 @@ def answer_form(sessions: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
 def read(jev: Sequence[Mapping[str, Any]], sessions: Sequence[Mapping[str, Any]],
          jev_spent: float, jev_pessimistic: float,
          jev_confirm_pessimistic: float = 12.32,
-         dev_claude_usd: float | None = None) -> dict[str, Any]:  # fmt: skip
+         dev_claude_usd: float | None = None, *, jev_cap: float = JEV_CONFIRM_CAP_USD,
+         haiku_arms: Sequence[str] = ("H", "H0")) -> dict[str, Any]:  # fmt: skip
     rows = stats_rows(jev, sessions, jev_spent)
     complete = len(rows) >= MIN_COMPLETE
     cut = stats.dev_cut(rows) if complete else None
@@ -220,7 +227,8 @@ def read(jev: Sequence[Mapping[str, Any]], sessions: Sequence[Mapping[str, Any]]
     dev_claude = (sum(float(r["usd"]) for r in sessions) if dev_claude_usd is None
                   else dev_claude_usd)  # fmt: skip
     ratio = out["jev"]["settled_over_pessimistic"]
-    out["confirm_money"] = confirm_money(money_now, dev_claude, ratio, jev_confirm_pessimistic)
+    out["confirm_money"] = confirm_money(money_now, dev_claude, ratio, jev_confirm_pessimistic,
+                                         jev_cap=jev_cap, haiku_arms=haiku_arms)  # fmt: skip
     hc = out["answers"].get("HC", {}).get("mean_f1")
     n_f1 = out["answers"].get("N", {}).get("mean_f1")
     memory = hc is not None and n_f1 is not None and hc >= n_f1 - MEMORY_GAP

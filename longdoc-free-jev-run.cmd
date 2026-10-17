@@ -1,12 +1,14 @@
 @echo off
-rem Lot longdoc-free, phase J (Jev only): longdoc-free-jev-run.cmd dev ^| confirm ^| probe. Hard
-rem caps in each phase's ledger: dev 1.80 USD (1.50 at its seal, 1.80 by amendment 1), confirm
-rem 12.50 (the owner's 14.30 for the lot), probe 0.06. Sealed in
+rem Lot longdoc-free, phase J (Jev only): longdoc-free-jev-run.cmd dev ^| confirm ^| probe ^| dev2.
+rem Hard caps in each phase's ledger: dev 1.80 USD (1.50 at its seal, 1.80 by amendment 1),
+rem confirm 12.50 (the owner's 14.30 for the lot), probe 0.06, dev2 1.00. Sealed in
 rem docs/results/2026-10-16-longdoc-free/prereg-dev.md and prereg.md: each prereg.sha256 holds
 rem the sha256 of this file with the two values below read as placeholders. Run it from the
 rem detached worktree at the sealed commit, outside the Claude Code session (WMI, CreateFlags
-rem 512), never between 00:00 and 08:00, once per phase; jev_phase.py allows one relaunch, none
-rem after a 402, a 429 or the cap. Fill PY and SANCHOPANZA_KEYS_ENV in that worktree's copy
+rem 512), never between 00:00 and 08:00 (dev2: nor after 22:00), once per phase; jev_phase.py
+rem allows the dev and the confirmation one relaunch, none after a 402, a 429 or the cap, and
+rem the probe and dev2 one launch, never another. Fill PY and SANCHOPANZA_KEYS_ENV in that
+rem worktree's copy
 rem only; never commit them. The key is read from the file SANCHOPANZA_KEYS_ENV names, never
 rem printed. Stop: Get-CimInstance Win32_Process with jev_phase.py in its command line, then
 rem Stop-Process -Id <pid>. Never by name.
@@ -17,16 +19,24 @@ rem ledger capped at 0.06 USD (0.0626 at worst with calls in flight and the pref
 rem the owner's 0.10), one launch and never another. Results are committed from outside the
 rem sealed run worktree, never with git add -A there: its filled copy of this file holds the
 rem key file's path.
+rem Phase dev2 (the 41 dev questions with the same prefilter at K = 200, fixed in
+rem jev_phase.py): sealed in docs/results/2026-10-17-lfree-dev2/prereg-dev2.md, its own ledger
+rem capped at 1.00 USD (1.0026 at worst with calls in flight and the preflight), one launch
+rem and never another, its passages in the private cache under dev2.
 cd /d "%~dp0"
 set "PHASE=%~1"
-if not "%PHASE%"=="dev" if not "%PHASE%"=="confirm" if not "%PHASE%"=="probe" (
-  echo refused: the first argument is the phase, dev, confirm or probe
+if not "%PHASE%"=="dev" if not "%PHASE%"=="confirm" if not "%PHASE%"=="probe" if not "%PHASE%"=="dev2" (
+  echo refused: the first argument is the phase, dev, confirm, probe or dev2
   exit /b 1
 )
 set "HOUR=%TIME:~0,2%"
 set "HOUR=%HOUR: =0%"
 if "%HOUR%" LSS "08" (
   echo refused: not between 00:00 and 08:00 ^(Windows Update restarts, midnight^)
+  exit /b 1
+)
+if "%PHASE%"=="dev2" if "%HOUR%" GEQ "22" (
+  echo refused: dev2 starts before 22:00 ^(prereg-dev2.md^)
   exit /b 1
 )
 set "PY=<PYTHON>"

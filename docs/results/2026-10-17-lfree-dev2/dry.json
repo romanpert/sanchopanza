@@ -1,0 +1,90 @@
+{
+ "instrument": "1dc76910ed5d19acf5d257204a381a3e1df20f1b",
+ "phase_j2": {
+  "phase": "dev2",
+  "questions": 41,
+  "calls": {
+   "select": {
+    "calls": 792,
+    "pessimistic_usd": 0.3438,
+    "expected_usd": 0.2677,
+    "calls_triage_pages": 499,
+    "calls_select_sentences": 293
+   },
+   "gate": {
+    "calls": 41,
+    "pessimistic_usd": 0.0034,
+    "expected_usd": 0.0034,
+    "calls_longdoc_free_gate": 41
+   }
+  },
+  "pessimistic_usd": 0.3472,
+  "cap_usd": 1.0,
+  "fits_under_cap": true,
+  "claude_usd": 0.0,
+  "planned_usd": 0.492,
+  "prefilter_k": 200
+ },
+ "confirmation_at_k200": {
+  "phase": "confirm",
+  "questions": 310,
+  "calls": {
+   "select": {
+    "calls": 4709,
+    "pessimistic_usd": 2.1974,
+    "expected_usd": 1.7164,
+    "calls_triage_pages": 3196,
+    "calls_select_sentences": 1513
+   },
+   "gate": {
+    "calls": 310,
+    "pessimistic_usd": 0.0177,
+    "expected_usd": 0.0177,
+    "calls_longdoc_free_gate": 310
+   }
+  },
+  "pessimistic_usd": 2.2152,
+  "cap_usd": 12.5,
+  "fits_under_cap": true,
+  "claude_usd": 0.0,
+  "prefilter_k": 200,
+  "planned_usd": 3.1389
+ },
+ "claude_h2": {
+  "sessions": {
+   "S2": 1,
+   "D2N": 41,
+   "D2H": 41
+  },
+  "money": {
+   "S2": {
+    "name": "lfree-dev2-smoke",
+    "model": "claude-sonnet-5-5",
+    "sessions": 1,
+    "ceiling": 0.8,
+    "full_cap": 0.8,
+    "worst_turn": 4.32,
+    "most_usd": 5.12
+   },
+   "D2N": {
+    "name": "lfree-dev2-sonnet",
+    "model": "claude-sonnet-5-5",
+    "sessions": 41,
+    "ceiling": 12.0,
+    "full_cap": 3.0,
+    "worst_turn": 4.32,
+    "most_usd": 12.0
+   },
+   "D2H": {
+    "name": "lfree-dev2-haiku",
+    "model": "claude-haiku-4-5-20251001",
+    "sessions": 41,
+    "ceiling": 5.0,
+    "full_cap": 1.5,
+    "worst_turn": 2.16,
+    "most_usd": 5.0
+   },
+   "most_usd": 22.12
+  }
+ }
+}
