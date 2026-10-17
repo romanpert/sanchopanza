@@ -76,8 +76,10 @@ def dry_environment(base: pathlib.Path, chains: tuple[str, ...]) -> dict[str, st
               "sancho": str(SANCHO), "preflight_python": sys.executable,
               "preflight_pythonpath": str(FAKE / "preflight"), "env": secrets}  # fmt: skip
     (base / "dry.json").write_text(json.dumps(config, indent=1), encoding="utf-8")
+    # SANCHOPANZA_PY: this suite's own python, so a checkout with no .venv (CI) reaches the checks
     return {"LL_ROOT": str(base / "L"), "LL_PIN": str(pin), "LL_MANIFESTS": str(manifests),
-            "LL_DRY_CONFIG": str(base / "dry.json"), **secrets}  # fmt: skip
+            "LL_DRY_CONFIG": str(base / "dry.json"), "SANCHOPANZA_PY": sys.executable,
+            **secrets}  # fmt: skip
 
 
 def launcher_python(cmd: str) -> pathlib.Path:
