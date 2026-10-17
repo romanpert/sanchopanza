@@ -1,6 +1,6 @@
 # longdoc-free, dev2: the router with the BM25 prefilter before Jev, pre-registration
 
-Instrument commit: `43e8b13cbc49ac5dd5de5e09763ec7795b499e15`
+Instrument commit: `1dc76910ed5d19acf5d257204a381a3e1df20f1b`
 
 Written 2026-10-17, before any call of dev2. **Not sealed**: reviewed by `revisor-prereg`
 (section 11); until `prereg-dev2.sha256` exists this file may change and nothing may be
@@ -191,8 +191,9 @@ seeded order (`random.Random(20261018)`).
 ## 5. The reading (`dev2_read.py`; the dev's rules, `dev_read.read`, `stats.py`)
 
 **When it reads.** `dev2_read.py` first checks its own code: HEAD descends from the instrument
-commit above and nothing under `src`, `benchmarks/longdoc_free`, `benchmarks/h2h`,
-`benchmarks/paid_once.py`, `ids.json` or the two dev row files differs from it or is
+commit above and nothing under `src`, `benchmarks` (the reading imports `meter.py`,
+`jev114/lb162x.py` and `browse/phase.py` besides `longdoc_free`, `h2h` and `paid_once.py`),
+`ids.json` or the two dev row files differs from it or is
 uncommitted (`require_reading_instrument`, paid_once's check); otherwise it refuses before
 reading anything. So the reading runs in a checkout whose instrument files equal the
 instrument commit (for instance main after the merge, while those files are unchanged); later
