@@ -10,10 +10,13 @@ rem only; never commit them. The key is read from the file SANCHOPANZA_KEYS_ENV 
 rem printed. Stop: Get-CimInstance Win32_Process with jev_phase.py in its command line, then
 rem Stop-Process -Id <pid>. Never by name.
 rem Exit codes of jev_phase.py paid: 0 everything asked, 1 refused (see the log), 2 stopped mid-run.
+rem Phase probe (the BM25 prefilter's probe, 3 dev questions at K = 200, ids and K in
+rem jev_phase.py): sealed in docs/results/2026-10-17-lfree-bm25-dry/prereg-probe.md, its own
+rem ledger capped at 0.10 USD, one launch and never another.
 cd /d "%~dp0"
 set "PHASE=%~1"
-if not "%PHASE%"=="dev" if not "%PHASE%"=="confirm" (
-  echo refused: the first argument is the phase, dev or confirm
+if not "%PHASE%"=="dev" if not "%PHASE%"=="confirm" if not "%PHASE%"=="probe" (
+  echo refused: the first argument is the phase, dev, confirm or probe
   exit /b 1
 )
 set "HOUR=%TIME:~0,2%"
@@ -35,6 +38,7 @@ if "%SANCHOPANZA_KEYS_ENV%"=="<KEYS_ENV_PATH>" (
 )
 set "OUT=%USERPROFILE%\.cache\sanchopanza\longdoc-free-%PHASE%"
 if "%PHASE%"=="confirm" set "OUT=%USERPROFILE%\.cache\sanchopanza\longdoc-free"
+if "%PHASE%"=="probe" set "OUT=%USERPROFILE%\.cache\sanchopanza\longdoc-free-bm25-probe"
 if not exist "%OUT%" mkdir "%OUT%"
 echo start %PHASE% %DATE% %TIME% >> "%OUT%\launch.log"
 git rev-parse HEAD >> "%OUT%\launch.log" 2>&1

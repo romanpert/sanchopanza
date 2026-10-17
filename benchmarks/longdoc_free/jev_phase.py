@@ -20,6 +20,12 @@ the confirmation's dry run came to 12.32 USD pessimistic). `rows` replays the re
 call) and writes each question's kept text to PRIVATE/<phase>/passages/<id>.txt, the file arm H
 reads, and the public row: id, novel, the gate's p (None when it gave no usable answer), kept
 characters. A paid run starts only from the seal commit itself (`sealed_head_problems`).
+
+Phase "probe" (docs/results/2026-10-17-lfree-bm25-dry/prereg-probe.md, the owner's approval of
+2026-10-17): Jev only on the dev questions PROBE_IDS, with the free BM25 prefilter at PROBE_K
+(`pages.bm25_shortlist`), both fixed here. Its own lot (`longdoc-free-bm25-probe`: prereg,
+recording, ledger, cap 0.10 USD) and one launch only: none after any launch, any spend in its
+ledger or any answer in its recording. No other phase takes a prefilter on a paid path.
 """
 
 from __future__ import annotations
@@ -67,7 +73,7 @@ FIT_CHARS = 60_000  # about 20,000 tokens: under Jev's 32k a question, H's file
 # Dev 1.50 at the seal; 1.80 by amendment 1 (the owner, 2026-10-17, after the first launch met
 # the cap: real Jev made about 39 % more tournament calls than the dry run's stub). The lot's Jev:
 # 14.30.
-CAP_USD = {"dev": 1.80, "confirm": 12.50}
+CAP_USD = {"dev": 1.80, "confirm": 12.50, "probe": 0.10}
 # Amendment 1: one more launch of the dev, only after its first launch, from the original seal,
 # stopped at the cap.
 ORIGINAL_DEV_SEAL = "6fd974705d223d7e3a0eeeb13a933da3459ea54e"
@@ -79,14 +85,28 @@ GATE = Truth(
 IDS_REL = "docs/results/2026-10-16-longdoc-free/ids.json"
 INSTRUMENT = ("src", "benchmarks/longdoc_free", "benchmarks/b6_es", "benchmarks/paid_once.py",
               IDS_REL)  # fmt: skip
-PHASES = ("dev", "confirm")
+PHASES = ("dev", "confirm", "probe")
+PROBE = "probe"
+PROBE_DIR = ROOT / "docs" / "results" / "2026-10-17-lfree-bm25-dry"
+PROBE_IDS = (0, 7, 375)  # the dearest, cheapest and median by the dry oracle at K = 200
+PROBE_K = 200
+
+
+def prefilter_for(phase: str) -> int | None:
+    """The BM25 prefilter a phase runs with: the probe's K, and none for any other phase."""
+    return PROBE_K if phase == PROBE else None
+
+
+def results_dir(phase: str) -> pathlib.Path:
+    return PROBE_DIR if phase == PROBE else RESULTS
 
 
 def lot(phase: str) -> paid_once.Lot:
-    suffix = "" if phase == "confirm" else f"-{phase}"
-    prereg = RESULTS / ("prereg-dev-a1.md" if phase == "dev" else f"prereg{suffix}.md")
+    name = {"dev": f"{NAME}-dev", "confirm": NAME, PROBE: f"{NAME}-bm25-probe"}[phase]
+    prereg = {"dev": RESULTS / "prereg-dev-a1.md", "confirm": RESULTS / "prereg.md",
+              PROBE: PROBE_DIR / "prereg-probe.md"}[phase]  # fmt: skip
     return paid_once.Lot(
-        name=f"{NAME}{suffix}",
+        name=name,
         prereg=prereg,
         launcher=ROOT / "longdoc-free-jev-run.cmd",
         fixture=ROOT / "fixtures" / NAME / f"jev-{phase}.jsonl",
@@ -126,7 +146,9 @@ def sealed_head_problems(the_lot: paid_once.Lot, git: Any = paid_once.git) -> li
 def may_launch(phase: str, past: list[dict[str, Any]]) -> bool:
     """paid_once's rule (one launch and one relaunch, none after a 402, a 429, the cap or another
     model), and amendment 1's one exception: the dev's single launch from the original seal,
-    stopped at the cap, may be followed by one launch."""
+    stopped at the cap, may be followed by one launch. The probe: one launch, never another."""
+    if phase == PROBE:
+        return not past
     if paid_once.may_launch(past):
         return True
     return (phase == "dev" and len(past) == 1 and past[0].get("stop_kind") == "cap"
@@ -142,10 +164,20 @@ def lot_asker(phase: str, fallback: Any | None) -> br.Asker:
 # ---- the questions ---------------------------------------------------------------------------
 
 
+def phase_ids(phase: str) -> set[int]:
+    """The frozen ids of a phase; the probe's, which must be dev questions."""
+    if phase != PROBE:
+        return set(pool.phase_ids(pool.read_frozen(), phase))
+    dev = set(pool.phase_ids(pool.read_frozen(), "dev"))
+    if not set(PROBE_IDS) <= dev:
+        raise SystemExit(f"the probe's ids {PROBE_IDS} are not all dev questions")
+    return set(PROBE_IDS)
+
+
 def load_rows(phase: str) -> list[dict[str, Any]]:
     """The phase's questions in id order, each with its novel's pages (built once a novel)."""
     pool.require_pinned()
-    ids = set(pool.phase_ids(pool.read_frozen(), phase))
+    ids = phase_ids(phase)
     items, texts = pool.items(pool.rows())
     built: dict[str, list[tuple[str, str]]] = {}
     out = []
@@ -201,6 +233,11 @@ def gold_in(kept: str, answers: list[str]) -> bool:
 def dry(
     phase: str, rows: list[dict[str, Any]] | None = None, prefilter_k: int | None = None
 ) -> dict[str, Any]:
+    """The phase's calls and pessimistic cost with the stub, free. `prefilter_k` measures a K
+    on a sealed phase's questions; the probe runs with its own K, and no other."""
+    if phase == PROBE and prefilter_k not in (None, PROBE_K):
+        raise ValueError(f"the probe's K is fixed at {PROBE_K}")
+    prefilter_k = prefilter_for(phase) if prefilter_k is None else prefilter_k
     rows = load_rows(phase) if rows is None else rows
     asker = lot_asker(phase, br.Stub())
     asyncio.run(ask(rows, asker, prefilter_k))
@@ -220,7 +257,7 @@ def replay(phase: str) -> list[dict[str, Any]]:
     """The recording read back (no call): public rows; the kept text into PRIVATE."""
     rows = load_rows(phase)
     asker = lot_asker(phase, None)
-    got = asyncio.run(ask(rows, asker))
+    got = asyncio.run(ask(rows, asker, prefilter_for(phase)))
     if asker.failed_keys:
         raise SystemExit(f"{len(asker.failed_keys)} calls not recorded: the phase is not complete")
     by_id = {r["id"]: r for r in rows}
@@ -232,7 +269,7 @@ def replay(phase: str) -> list[dict[str, Any]]:
         out.append({"id": g["id"], "novel": g["novel"], "p": g["p"], "kept_chars": len(g["kept"]),
                     "empty": g["kept"] == pages.EMPTY,
                     "gold_in_kept": gold_in(g["kept"], by_id[g["id"]]["answers"])})  # fmt: skip
-    target = RESULTS / f"jev-{phase}.jsonl"
+    target = results_dir(phase) / f"jev-{phase}.jsonl"
     target.write_text("".join(json.dumps(r) + "\n" for r in out), encoding="utf-8")
     return out
 
@@ -240,13 +277,18 @@ def replay(phase: str) -> list[dict[str, Any]]:
 # ---- paying (C5b's `free_confirm.paid`, per phase) -------------------------------------------
 
 
-def make_live(the_lot: paid_once.Lot) -> tuple[Any, Any]:  # pragma: no cover - real client
-    from sanchopanza.providers import CappedDecider, jev
-    from sanchopanza.providers.jev import JevDecider
+def make_live(the_lot: paid_once.Lot, inner: Any | None = None) -> tuple[Any, Any]:
+    """The live decider: `inner` (the real Jev client when None) behind the lot's capped ledger,
+    every answer recorded. Tests rehearse the paid path with a costed stub as `inner`."""
+    from sanchopanza.providers import CappedDecider
     from sanchopanza.providers.recorded import RecordingDecider
 
-    jev.RETRYABLE = frozenset(jev.RETRYABLE - {429})
-    inner = JevDecider(model=MODEL, long_context=False, images=False, timeout_s=br.TIMEOUT_S)
+    if inner is None:  # pragma: no cover - the real client
+        from sanchopanza.providers import jev
+        from sanchopanza.providers.jev import JevDecider
+
+        jev.RETRYABLE = frozenset(jev.RETRYABLE - {429})
+        inner = JevDecider(model=MODEL, long_context=False, images=False, timeout_s=br.TIMEOUT_S)
     capped = CappedDecider(inner, ledger=paid_once.ledger_of(the_lot), batch=the_lot.name,
                            max_usd=the_lot.cap_usd)  # fmt: skip
     the_lot.fixture.parent.mkdir(parents=True, exist_ok=True)
@@ -269,7 +311,7 @@ async def session(phase: str, rows: list[dict[str, Any]], the_lot: paid_once.Lot
     inner, live = build_live(the_lot)
     asker = lot_asker(phase, live)
     try:
-        await ask(rows, asker)
+        await ask(rows, asker, prefilter_for(phase))
     finally:
         close = getattr(inner, "aclose", None)
         if close is not None:
@@ -308,7 +350,10 @@ def paid(phase: str, launcher: pathlib.Path | None, *, load_key: Any = paid_once
         if not may_launch(phase, past):
             raise SystemExit("launch rule: no launch left (one relaunch at most, none after "
                              "a 402, a 429, the cap or another model; amendment 1's one "
-                             "exception spent or not met)")  # fmt: skip
+                             "exception spent or not met; the probe: one launch)")  # fmt: skip
+        if phase == PROBE and paid_once.spent(the_lot) > 0:
+            raise SystemExit(f"{the_lot.name}'s ledger has already spent: one launch only, "
+                             "nothing spent")  # fmt: skip
         if not past and the_lot.fixture.exists() and the_lot.fixture.stat().st_size:
             raise SystemExit(
                 f"first launch, but {the_lot.fixture.name} holds answers: nothing spent"
@@ -328,10 +373,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("action", choices=("dry", "seal", "paid", "rows"))
     ap.add_argument("--phase", choices=PHASES, required=True)
     ap.add_argument("--launcher", type=pathlib.Path)
-    ap.add_argument("--prefilter-k", type=int, help="dry only: BM25's K best pages enter Jev")
+    ap.add_argument("--prefilter-k", type=int,
+                    help="dry, dev or confirm only: BM25's K best pages enter Jev")  # fmt: skip
     args = ap.parse_args(argv)
     if args.prefilter_k is not None and args.action != "dry":
-        ap.error("--prefilter-k is for the dry run only: no sealed run uses it")
+        ap.error("--prefilter-k is for the dry run only: a paid path takes its phase's K")
+    if args.prefilter_k is not None and args.phase == PROBE:
+        ap.error(f"the probe's K is fixed at {PROBE_K} in code")
     if args.action == "dry":
         print(json.dumps(dry(args.phase, prefilter_k=args.prefilter_k), indent=1))
         return 0

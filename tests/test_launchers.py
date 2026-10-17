@@ -35,7 +35,11 @@ LAUNCHERS: dict[str, tuple[set[str], set[str]]] = {
     "c6-window-run.cmd": ({"benchmarks/b6_es/c6_window.py"}, {CACHE + "c6-window"}),
     "longdoc-free-jev-run.cmd": (
         {"benchmarks/longdoc_free/jev_phase.py"},
-        {CACHE + "longdoc-free-%PHASE%", CACHE + "longdoc-free"},
+        {
+            CACHE + "longdoc-free-%PHASE%",
+            CACHE + "longdoc-free",
+            CACHE + "longdoc-free-bm25-probe",
+        },
     ),
     "benchmarks/a3_mcp/w17-mcp-post-run.cmd": (
         {"benchmarks/a3_mcp/w17_replay.py"},
