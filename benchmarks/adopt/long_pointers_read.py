@@ -7,7 +7,9 @@ against F (the same install with --guard-full), one run per arm and chain. Free:
     python benchmarks/adopt/long_pointers_read.py read  [--profile guardptr] [--root ...] [--json f]
 
 Both read the runs of the profile's model (`<root>/runs/<chain>-<model>`: haiku for the smoke);
-`grade` exits 1 when it graded nothing (a wrong root or profile, never a finished grade).
+`grade` says on stderr each chain or arm it did not grade at a common call, and exits 1 when
+it graded nothing (a wrong root or profile, never a finished grade) or a chain with both rows
+left an arm ungraded; with --final a final grade alone does not count as graded.
 
 Per chain, on the calls both arms ran (`long_compact.chain_line` with the pair P, F: common calls,
 each arm graded at its own snapshot after the last of them, every chain with the same per-test
@@ -234,28 +236,58 @@ def read(root: Path, chains: Sequence[str], profile: str = "guardptr",
             "chains": lines}  # fmt: skip
 
 
+def _warn(text: str) -> None:
+    print(text, file=sys.stderr, flush=True)
+
+
+def graded_arms(lines: Sequence[str]) -> set[str]:
+    """The arms `long_compact.grade_common` graded, from its lines ("<chain> <arm>: graded ...")."""
+    return {line.split(":", 1)[0].rsplit(" ", 1)[-1] for line in lines}
+
+
+def grade_chain(root: Path, chain: str, known: Mapping[str, Any], model: str,
+                final: bool) -> tuple[int, bool]:  # fmt: skip
+    """(arms graded at the common call, whether the chain is whole but an arm was left
+    ungraded). Each arm not graded is said on stderr; a final grade alone does not count."""
+    base = root / "runs" / f"{chain}-{model}"
+    rows = [a for a in PAIR if (base / a / "row.json").exists()]
+    common = long_compact.grade_common(root, chain, known, PAIR, model)
+    lines = [*common, *(long_compact.grade_final(root, chain, known, PAIR, model) if final
+                        else [])]  # fmt: skip
+    for line in lines:
+        print(line, flush=True)
+    if len(common) >= len(PAIR):
+        return len(common), False
+    left = [a for a in PAIR if a not in graded_arms(common)]
+    if len(rows) < len(PAIR):
+        missing = [a for a in PAIR if a not in rows]
+        _warn(f"{chain} ({model}): not graded, no row for {'/'.join(missing)} under {base}")
+        return len(common), False
+    _warn(f"{chain} ({model}): {'/'.join(left)} not graded at a common call (none, or its "
+          "snapshot is missing)")  # fmt: skip
+    return len(common), True
+
+
 def grade(root: Path, chains: Sequence[str], models: Sequence[str], final: bool = False) -> int:
-    """Each chain's P and F graded at their common calls (and finally, with `final`), under the
-    runs of each of the profile's models (`<chain>-<model>`). Exit 1 when nothing was graded: no
-    rows there, or no common call, is a wrong root or profile, never a finished grade."""
+    """Each chain's P and F graded at their common calls (and finally, with `final`; a final
+    grade alone is not a graded arm), under the runs of each of the profile's models
+    (`<chain>-<model>`). Exit 1 when nothing was graded at a common call (a wrong root or
+    profile, never a finished grade) or when a chain with both rows left an arm ungraded."""
     import run
 
     known = run.chains()
-    graded = 0
+    graded, short = 0, False
     with long_compact.per_test_timeout(TEST_TIMEOUT):
         for model in models:
             for chain in chains:
-                lines = long_compact.grade_common(root, chain, known, PAIR, model)
-                lines += long_compact.grade_final(root, chain, known, PAIR, model) if final else []
-                for line in lines:
-                    print(line, flush=True)
-                graded += len(lines)
+                count, left = grade_chain(root, chain, known, model, final)
+                graded, short = graded + count, short or left
     if not graded:
         where = ", ".join(str(root / "runs" / f"<chain>-{m}") for m in models)
-        print(f"nothing graded: no rows of {'/'.join(PAIR)} with a common call under {where} "
-              f"for {len(chains)} chain(s)", file=sys.stderr, flush=True)  # fmt: skip
+        _warn(f"nothing graded: no rows of {'/'.join(PAIR)} with a common call under {where} "
+              f"for {len(chains)} chain(s)")  # fmt: skip
         return 1
-    return 0
+    return 1 if short else 0
 
 
 def main(argv: list[str] | None = None) -> int:

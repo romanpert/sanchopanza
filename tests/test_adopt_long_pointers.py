@@ -501,10 +501,49 @@ def test_a_grade_with_nothing_to_grade_fails_and_says_where_it_looked(
     assert no_docker == []
 
 
-def test_the_reading_reads_the_profile_s_model_too(m, monkeypatch, tmp_path) -> None:
+def test_rows_of_the_model_without_a_common_call_fail(m, no_docker, tmp_path, capsys) -> None:
     *_, read = m
-    seen = []
-    monkeypatch.setattr(read.long_compact, "chain_line",
-                        lambda root, chain, pair, model: seen.append(model))  # fmt: skip
-    read.main(["read", "--profile", "guardptr", "--root", str(tmp_path)])
-    assert set(seen) == {"sonnet"} and len(seen) == len(CHAINS)
+    base = tmp_path / "runs" / f"{SMOKE}-haiku"
+    _graded_rows(base)
+    row = json.loads((base / "F" / "row.json").read_text(encoding="utf-8"))
+    row["calls"] = [{"request": 1, "status": "NOT RUN (cap)"}]  # F never ran: no common call
+    (base / "F" / "row.json").write_text(json.dumps(row), encoding="utf-8")
+    assert read.main(["grade", "--profile", "guardptr-smoke", "--root", str(tmp_path)]) == 1
+    err = capsys.readouterr().err
+    assert "P/F not graded at a common call" in err and "nothing graded" in err
+    assert no_docker == []
+
+
+def test_a_whole_chain_with_an_arm_left_ungraded_fails_and_names_it(
+    m, no_docker, tmp_path, capsys
+) -> None:
+    *_, read = m
+    base = tmp_path / "runs" / f"{SMOKE}-haiku"
+    _graded_rows(base)
+    (base / "F" / "diff-1.patch").unlink()  # F's snapshot at the common call is gone
+    argv = ["grade", "--profile", "guardptr-smoke", "--root", str(tmp_path), "--final"]
+    assert read.main(argv) == 1
+    out = capsys.readouterr()
+    assert f"{SMOKE} P: graded at call 1" in out.out
+    assert f"{SMOKE} (haiku): F not graded at a common call" in out.err
+    assert len(no_docker) == 1
+
+
+def test_the_reading_reads_the_profile_s_model_too(m, monkeypatch, tmp_path) -> None:
+    import dataclasses
+
+    long_run, *_, read = m
+    profile = dataclasses.replace(long_run.PROFILES["guardptr"], models=("opus",))
+    monkeypatch.setitem(long_run.PROFILES, "guardptr", profile)
+    seen, bases = [], []
+    line = {"common_calls": 60, "ratio": 0.95, "pairs": [(True, True)] * 60,
+            "arms": {"P": {"cost_common": 17.0}, "F": {"cost_common": 18.0}}}  # fmt: skip
+
+    def chain_line(root, chain, pair, model):  # noqa: ANN001, ANN202
+        return seen.append(model) or dict(line)
+
+    monkeypatch.setattr(read.long_compact, "chain_line", chain_line)
+    monkeypatch.setattr(read, "paused", lambda base: bases.append(base.name) or [])
+    assert read.main(["read", "--profile", "guardptr", "--root", str(tmp_path)]) == 0
+    assert seen == ["opus"] * len(CHAINS)
+    assert bases == [f"{c}-opus" for c in CHAINS]
