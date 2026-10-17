@@ -404,11 +404,17 @@ def test_the_runner_refuses_a_guard_profile_without_the_sealed_launcher(m) -> No
     assert long_run.seal_refusal(long_run.PROFILES["compact"], {}) == ""
 
 
-def test_long_run_alone_cannot_spend_on_the_lot(m, tmp_path) -> None:
+def test_long_run_alone_cannot_spend_on_the_lot(m, monkeypatch, tmp_path) -> None:
     long_run, *_ = m
+    # The validated chains live in this machine's cache, not in CI's; the refusal under test
+    # (the seal) comes before any chain is read.
+    monkeypatch.setattr(long_run.run, "chains", lambda: {})
+    said: list[str] = []
+    monkeypatch.setattr(long_run, "log", said.append)
     argv = ["run", "--profile", "guardptr", "--root", str(tmp_path / "L"),
             "--limit-flag", str(tmp_path / "LIMIT.flag")]  # fmt: skip
     assert long_run.main(argv) == 1
+    assert said and said[-1].startswith("refused:") and "nothing spent" in said[-1]
     assert not (tmp_path / "L" / "runs").exists()
 
 
