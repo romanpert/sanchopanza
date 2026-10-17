@@ -47,9 +47,11 @@ developers who build them. You do not need to write code to use it with Claude C
 | **Keeps what Claude Code's summary drops** | With Claude Code's own auto-compaction firing mid-task, a one-shot value (a probe's error code and limit) was lost by the native summary in 6 of 7 sessions. Adding the guard next to the summary: **5 of 7 tasks finished with the free rule (`rule` chooser), 6 of 7 with the decider cascade (`keep`), against 2 of 7 with the summary alone**, at lower cost | The default chooser since 0.3.2, `pointers`, has no end-to-end result yet. Haiku 4.5, one family of generated tasks, n = 7, not significant on its own (McNemar p = 0.375); the rule's arm lost a re-readable control value twice more than native ([compaction guard](docs/results/2026-09-29-context-guard/)). On Sonnet 5.5 end to end it added nothing measurable over Claude Code's compaction window alone ([N-early](docs/results/2026-10-07-h2h-ne/)) |
 | **Less to read, same answers** | Judging which documents one answer needs, with the others in view: **9 of 9** answers kept, against 9 of 9 with everything, at **79.5 % fewer** input tokens | One answering call over a sequence mostly useless by construction, pre-registered; the tenth task was stopped by the cost cap. Inside a free agent loop the saving did not show ([fixed pages](docs/results/2026-09-28-fixed-pages/)) |
 
-**Head to head, it won one measured cell, memory on Sonnet 5.5, now on by default; a second
-memory test on Sonnet 5.5 (F2) met its own sealed positive verdict.** Web, code and long code
-did not win. Outside the scoreboard, an opt-in router for long-document questions saved about
+**Head to head, it won two measured rows, both memory on Sonnet 5.5, now on by default: a fact
+said in a parallel session, and continuing a feature against Claude Code told once to go on (a
+win on success within the sealed cost bound, not a saving); F2 met its own sealed positive
+verdict, and W17, the same features as it ships with no nudge, found it better at 1.19x the cost,
+not a "gana".** Web, code and long code did not win. Outside the scoreboard, an opt-in router for long-document questions saved about
 30 % of the frontier model's cost, no worse at the −10-point margin fixed beforehand. Claude Code with sanchopanza against clean Claude
 Code, per model and per axis ([final scoreboard](docs/results/2026-10-13-final/)):
 
@@ -81,6 +83,17 @@ Code, per model and per axis ([final scoreboard](docs/results/2026-10-13-final/)
   Claude Code lies above 1, so by the scoreboard's rule it is not "gana". On Opus 5.5 there was no
   room: Claude Code's own auto memory carried the plan (S 22, handoff 17, nothing 21 of 24)
   ([F2](docs/results/2026-10-16-memory-f2/)).
+- Memory on Sonnet 5.5 as it ships (the default user-scope install), continuing the same
+  features at equal work: each arm was resumed once with "Yes, go ahead." when its new session
+  left the next step undone (clean Claude Code 2.1.287, 48 pairs, pre-registered): **gana
+  (éxito), against Claude Code told once to go on**. The install did the step in 48 of 48 pairs,
+  clean Claude Code in 3 (45 to 0, McNemar p 2.8e-14), at 1.005x the cost [0.949, 1.063], within
+  the sealed 1.10. It is not a saving: clean Claude Code was nudged in 45 pairs and after the
+  nudge did the step as the first session specified it (its name, signature and constraints) in
+  none, in 30 writing a step of its own; the extra round brought its cost up to the install's,
+  and without it the install cost 1.25x [1.18, 1.30].
+  The person modelled answers blind; one who repeats the task was not measured
+  ([equal work](docs/results/2026-10-17-memory-equal-work/README.md)).
 - Long-document multiple choice, with `points.longdoc` (opt-in, not in `install`): Jev 1.14
   answers where its top choice reaches 0.6, the frontier model the rest. On 162 fresh LongBench
   v2 tasks, pre-registered, against Sonnet 5.5 alone: +1.2 points [−3.1, +5.6], 33.9 %
@@ -133,7 +146,10 @@ handoff's cost [0.85, 0.95] and 1.23x the line alone's [1.14, 1.26]
 ([F2](docs/results/2026-10-16-memory-f2/)). So you can start the next session with "Let's
 continue with the invoice export" instead of asking for a handoff prompt, with no loss shown and
 at lower cost (measured on Sonnet 5.5 with the project-scope install, headless, on 12 synthetic
-scenes). It is on by default since 2026-10-14.
+scenes). It is on by default since 2026-10-14. As it ships at user scope, against clean Claude
+Code told once "Yes, go ahead." when it stopped short, it did the next step in 48 of 48 pairs
+against 3, at 1.005x its cost [0.949, 1.063], within the sealed 1.10 and not cheaper
+([equal work](docs/results/2026-10-17-memory-equal-work/README.md)).
 On Opus 5.5 it had no room in either test, since Claude Code's own auto memory already carried the
 fact and the plan; without a key neither cell was measured, and the web and code results in this
 README were measured without it. The Stop audit, which holds a request's
@@ -820,10 +836,14 @@ Each item, with its priority and cost, is in [docs/ROADMAP.md](docs/ROADMAP.md).
   stops (165 and 150 of 795): the record should keep the part of each result the answer rests on
   before the Stop hook is advertised beyond the setting it was measured on
   ([checkdone114](docs/results/2026-10-16-checkdone114/README.md)).
-- **Memory's four gaps, fixed in code and not yet measured live (C8).** A first prompt that only
-  says to go on gets the latest record; a long prompt's record keeps its head and tail; plan
-  sentences rank below standing rules; shell reads stay off. Replayed on F2's recorded decisions
-  only; no live session has run with them.
+- **Memory's four gaps, fixed in code (C8), and what is left after measuring them live.** A
+  first prompt that only says to go on gets the latest record; a long prompt's record keeps its
+  head and tail; plan sentences rank below standing rules; shell reads stay off. Live as it ships
+  on Sonnet 5.5: better than clean Claude Code at 1.19x its cost
+  ([W17](docs/results/2026-10-16-memory-w17/README.md)), and "gana (éxito)" against Claude Code
+  told once to go on, at 1.005x [0.949, 1.063]
+  ([equal work](docs/results/2026-10-17-memory-equal-work/README.md)); on Opus 5.5 "not
+  determined". Open: a person who answers with the task itself, and new scenes.
 - **Cutting passages to a budget beyond papers at 3,400 characters.** When a caller sets
   `fit_chars`, `select_passages` cuts in the free order by default since 0.3.2 (no extra call):
   on fresh QASPER questions at 3,400 characters it kept the answer sentences in 78.3 % against

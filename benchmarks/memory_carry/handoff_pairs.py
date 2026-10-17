@@ -70,16 +70,17 @@ def s_cost(t: dict[str, dict[str, Any]]) -> float:
     return float(t["S"]["cost"]) + float(t["S"].get("jev_usd") or 0)
 
 
-def ratio_interval(values: list[float]) -> dict[str, Any]:
+def ratio_interval(values: list[float], seed: int = SEED) -> dict[str, Any]:
     """The median and its percentile bootstrap 95 % interval (`ci95`, rounded for reading);
-    the rules read `ci95_raw`, unrounded. `values` in the pairs' fixed order (`by_pair`)."""
-    rng = random.Random(SEED)
+    the rules read `ci95_raw`, unrounded. `values` in the pairs' fixed order (`by_pair`).
+    `seed`: W17's unless a lot seals its own (the equal-work lot, `handoff_ew.SEED`)."""
+    rng = random.Random(seed)
     n = len(values)
     meds = sorted(statistics.median(rng.choices(values, k=n)) for _ in range(DRAWS))
     raw = [percentile(meds, 0.025), percentile(meds, 0.975)]
     return {"pairs": n, "median": round(statistics.median(values), 6),
             "ci95": [round(x, 4) for x in raw], "ci95_raw": raw, "draws": DRAWS,
-            "seed": SEED}  # fmt: skip
+            "seed": seed}  # fmt: skip
 
 
 def by_pair(done: dict[Any, dict[str, dict[str, Any]]]) -> list[dict[str, dict[str, Any]]]:

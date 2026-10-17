@@ -6,11 +6,15 @@ which are the record of how they were reached.
 
 ## Head to head: Claude Code alone against Claude Code + sanchopanza
 
-The final scoreboard, per axis and model, and the runs behind each cell. One measured cell is a
-win for sanchopanza: memory on Sonnet 5.5 across parallel sessions, with memory on (the install's
-default since 2026-10-14). F2 adds a sealed positive verdict for memory on Sonnet 5.5: better
-than a plain "let's continue" and not worse than the handoff ritual, at 1.23x the first's cost
-and 0.92x the second's, so not a "gana" by the scoreboard's cost rule. Web, code, long code's
+The final scoreboard, per axis and model, and the runs behind each cell. Two measured rows are a
+win for sanchopanza, both memory on Sonnet 5.5 (memory is the install's default since
+2026-10-14): across parallel sessions, and at equal work against Claude Code told once to go on
+("Yes, go ahead." when it left the next step undone: 48 of 48 pairs against 3, at 1.005x the cost
+[0.949, 1.063], "gana (éxito)"; not a saving, since after the nudge Claude Code did the step as
+session 1 specified it in none of the 45 pairs it was given, and the round raised its cost to the
+install's). F2 adds a sealed positive verdict for memory on Sonnet 5.5: better than a plain
+"let's continue" and not worse than the handoff ritual, at 1.23x the first's cost and 0.92x the
+second's, so not a "gana" by the scoreboard's cost rule. Web, code, long code's
 Jev part and early compaction on long code are not wins. Outside the install, the LongBench
 router (`points.longdoc`, opt-in) saved 33.9 % [24.0, 44.0] of Sonnet 5.5's cost and 29.5 %
 [21.7, 37.7] of Opus 5.5's, no worse at −10 points ([lb162](2026-10-15-lb162/README.md),
@@ -18,7 +22,7 @@ router (`points.longdoc`, opt-in) saved 33.9 % [24.0, 44.0] of Sonnet 5.5's cost
 
 | Folder | What it backs |
 |---|---|
-| [2026-10-13-final](2026-10-13-final/) | The scoreboard: web "no gana" on Sonnet 5.5 in three suites, code on Haiku 4.5 non-inferior with no saving, long code's Jev part "no gana", memory "gana" on Sonnet 5.5 across parallel sessions and "sin margen" on Opus 5.5 and in two of three Sonnet families; F2 on Sonnet 5.5 by its sealed verdict (S better than N0, not worse than the handoff ritual; cost 1.23x N0 [1.14, 1.26]) and "sin margen" on Opus 5.5; the components measured after it; what was not run, and why |
+| [2026-10-13-final](2026-10-13-final/) | The scoreboard: web "no gana" on Sonnet 5.5 in three suites, code on Haiku 4.5 non-inferior with no saving, long code's Jev part "no gana", memory "gana" on Sonnet 5.5 across parallel sessions and "sin margen" on Opus 5.5 and in two of three Sonnet families; F2 on Sonnet 5.5 by its sealed verdict (S better than N0, not worse than the handoff ritual; cost 1.23x N0 [1.14, 1.26]) and "sin margen" on Opus 5.5; W17's memory as it ships "no gana" on both models; equal work "gana (éxito)" on Sonnet 5.5 against clean Claude Code told once to go on (cost 1.005 [0.949, 1.063], not a saving); the components measured after it; what was not run, and why |
 | [2026-10-05-h2h-gaia](2026-10-05-h2h-gaia/README-conf.md) | GAIA validation, Sonnet 5.5: +3.8 points [-1.5, +9.9], cost 1.074 [0.908, 1.255], wall 1.39: no gana |
 | [2026-10-06-h2h-bcp](2026-10-06-h2h-bcp/README-conf.md) | BrowseComp-Plus, Sonnet 5.5: +7.8 points (p 0.092), cost 1.17 [1.007, 1.356]: no gana |
 | [2026-10-06-h2h-longdoc](2026-10-06-h2h-longdoc/README-conf.md) | LongBench v2, Sonnet 5.5: -6 points [-18, +6], cost 0.785 [0.634, 1.008]: no gana |
@@ -32,6 +36,7 @@ router (`points.longdoc`, opt-in) saved 33.9 % [24.0, 44.0] of Sonnet 5.5's cost
 | [2026-10-13-memory-cell](2026-10-13-memory-cell/README.md) | The open memory cell, Sonnet 5.5, a fact said in a parallel session or sibling worktree, 24 pairs, pre-registered: S broke 0 facts against N's 11 (McNemar p 0.00049; by scene 4 wins, 0 losses), task 23 vs 24, cost 1.117 [1.05, 1.15], wall 1.12: **gana**. S is the default install plus `--memory`; 8.47 USD |
 | [2026-10-16-memory-f2](2026-10-16-memory-f2/README.md) | Memory against the owner's handoff ritual, clean Claude Code 2.1.287, 12 two-step scenes, pre-registered. Sonnet 5.5, 48 triples: next step done right S 48, handoff H 44, plain "continue" N0 4; S - H +8.3 points, Tango lower bound +2.6 (margin -12.5), S vs N0 44 to 0 (p 5.7e-14): **"S not worse than H; S better than N0"**, cost S/H 0.92 [0.85, 0.95], S/N0 1.23 [1.14, 1.26] (paired bootstrap of the median per triple, descriptive): a substitute for the ritual and a trade against doing nothing, not a "gana" by the scoreboard's cost rule. Opus 5.5, 24 triples, direction only: S 22, H 17, N0 21: **"S not worse than H"**, S better than N0 not shown; Claude Code's own auto memory saved the plan after every Opus session 1, and the ritual scored lowest (1 to 5 against N0, p 0.11, not shown). Every miss was step 2 not done; no session that built it lost C or D. 42.25 USD |
 | [2026-10-16-memory-w17](2026-10-16-memory-w17/README.md) | Memory as it ships (the default user-scope install, src cbfd932) against clean Claude Code 2.1.287, F2's 12 scenes, pre-registered. Sonnet 5.5, 48 pairs: plan kept S' 48, N0 9 (39 to 0, p 1.8e-12); with a bare "Let's continue." 24 against 3; cost per pair 1.19 [1.15, 1.24] over the sealed 1.10: **"S' better than N0; no gana (cost)"**. Opus 5.5, 36 pairs (repeated whole under Amendment 1): plan kept S' 34, N0 31 (3 to 0, p 0.125); cost per pair 0.999 [0.965, 1.055] over the sealed 1.05: **"not determined"**. 11.18 USD (Sonnet), 21.32 (Opus), about 39.7 in all with the discarded first Opus run |
+| [2026-10-17-memory-equal-work](2026-10-17-memory-equal-work/README.md) | W17's Sonnet question at equal work (rule R3), pre-registered: each arm resumed once with "Yes, go ahead." when session 2 left step 2 undone, clean Claude Code 2.1.287, the default user-scope install (src 4c143e1, W17's installed files), Sonnet 5.5, 48 pairs. Plan kept S' 48, N0⁺ 3 (45 to 0, p 2.8e-14); N0 nudged in 45 pairs, step 2 as session 1 specified it (its name, signature and constraints) done after the nudge in 0, a step 2 of its own written in 30; cost per pair 1.005 [0.949, 1.063], within the sealed 1.10: **"gana (éxito)", against Claude Code told once to go on** (the scoreboard's rule 2.4 against N0⁺). Not a saving: without the nudge 1.247 [1.178, 1.295]. The person modelled answers blind; one who repeats the task is not measured. 11.98 USD |
 | [2026-10-14-memory-stop](2026-10-14-memory-stop/README.md) | Memory's Stop audit made opt-in (`SANCHOPANZA_MEMORY_RULES_AUDIT=on`), from records already on disk, no paid call: over the maintainer's own sessions (a private replay, read by hand) it never sent work back rightly; it repaired a break only in scenes built for it, and in the memory cell it sent nothing back in 72 audits. Memory itself stays on |
 | [2026-10-13-long-compact](2026-10-13-long-compact/README.md) | Early compaction near 67k (what `install --context-budget 67000` writes) against N-early near 160k, Sonnet 5.5, 5 long60 chains, k = 1, pre-registered: cost 0.900 [0.741, 1.093], quality −1.4 points (non-inferior at −10), wall 1.09: **no gana**, no saving shown (0.858 [0.748, 0.984] if a call cut by a PC reboot is metered rather than charged at its cap, a sensitivity the sealed rule does not use) (under the post-data amendment: conan-2 repeated at 0.952, still no gana: R1 0.875 [0.754, 1.015], R2 0.887 [0.750, 1.050]). 173.11 + 33.69 USD |
 

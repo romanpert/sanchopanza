@@ -165,6 +165,9 @@ def caps_check(lot: str = "f2") -> tuple[bool, str]:
     if lot == "f2":
         ok = ok and total <= night_cap
         return ok, "; ".join(lines) + f"; caps sum {total} <= night {night_cap}"
+    if lot == "ew":  # one run, its cap the lot's
+        ok = ok and total <= night_cap
+        return ok, "; ".join(lines) + f"; the run's cap is the lot's {night_cap}"
     # W17: each run's cap is min(its cap, night cap - the other run's spend in the same root)
     # in code, so the night cap binds the two together where both run. The redo's root
     # (Amendment 1) refuses w17-sonnet, so there w17-opus runs under its own cap alone.
@@ -180,7 +183,7 @@ def isolation_check(root: Path, work: Path | None = None) -> tuple[bool, str]:
     home = Path.home().resolve()
     inside = [str(p) for p in (root, work) if p.resolve().is_relative_to(home)]
     found = carry.ancestors_memory(root.resolve()) + carry.ancestors_memory(work.resolve())
-    words = ("memory", "f2", "handoff", "sonnet", "opus", "w17", "lot", "bare")
+    words = ("memory", "f2", "handoff", "sonnet", "opus", "w17", "lot", "bare", "nudge", "equal")
     named = [w for w in words if w in str(work).lower()]
     ok = not inside and not found and not named
     return ok, (f"root {root}, work {work}; under home: {inside or 'none'}; memory above: "

@@ -1,6 +1,7 @@
 """F2's seal (docs/results/2026-10-16-memory-f2/prereg.md, "Seal") and the sealed checkout, and
-the same for W17's memory lots on F2's runner (docs/results/2026-10-16-memory-w17/prereg.md):
-`LOTS` names each lot's results folder and its fixed files.
+the same for W17's memory lots on F2's runner (docs/results/2026-10-16-memory-w17/prereg.md) and
+the equal-work lot (docs/results/2026-10-17-memory-equal-work/prereg.md): `LOTS` names each lot's
+results folder and its fixed files.
 
 `seal` writes `prereg.manifest.json` (sha256, LF bytes, of the prereg and every sealed file:
 the launcher, pyproject.toml, every file of `benchmarks/memory_carry/`'s Python and every file
@@ -43,8 +44,21 @@ SEALED_FIXED_W17 = (
     "tests/test_memory_carry_handoff_work.py", "tests/test_memory_carry_w17.py",
     "tests/test_winupdate.py", "tests/test_durable.py",
 )  # fmt: skip
-LOTS = {"f2": (RESULTS, SEALED_FIXED), "w17": (RESULTS_W17, SEALED_FIXED_W17)}
-PATH_WORDS = {"w17": ("f2", "memory", "handoff", "memlot", "w17", "sonnet", "opus")}
+# The equal-work lot (docs/results/2026-10-17-memory-equal-work/prereg.md): W17's files, its
+# own launcher, the nudge, its reading and its tests (and the launchers' table, which runs its dry).
+RESULTS_EW = REPO / "docs" / "results" / "2026-10-17-memory-equal-work"
+SEALED_FIXED_EW = (
+    "ew-night-run.cmd", *SEALED_FIXED_W17[1:],
+    "benchmarks/memory_carry/handoff_nudge.py", "benchmarks/memory_carry/handoff_ew.py",
+    "benchmarks/memory_carry/winupdate.py",
+    "tests/test_memory_carry_ew.py", "tests/test_launchers.py",
+)  # fmt: skip
+LOTS = {"f2": (RESULTS, SEALED_FIXED), "w17": (RESULTS_W17, SEALED_FIXED_W17),
+        "ew": (RESULTS_EW, SEALED_FIXED_EW)}  # fmt: skip
+PATH_WORDS = {"w17": ("f2", "memory", "handoff", "memlot", "w17", "sonnet", "opus"),
+              "ew": ("f2", "memory", "handoff", "memlot", "w17", "sonnet", "opus", "ew", "equal",
+                     "nudge")}  # fmt: skip
+SEAL_ALONE = ("ew",)  # lots whose sealing commit may hold only the seal (`checkout_refusal`)
 SEALED_GLOBS = ("src/sanchopanza/**/*", "benchmarks/memory_carry/*.py")
 NOT_CODE = ("__pycache__",)
 SEALED_CHECKOUT_REFUSED = 11
@@ -97,8 +111,10 @@ def git(repo: Path, *args: str) -> str:
 
 
 def checkout_refusal(repo: Path = REPO, results: Path = RESULTS,
-                     fixed: tuple[str, ...] = SEALED_FIXED) -> str:  # fmt: skip
-    """Why this checkout may not run the lot ("" when it may)."""
+                     fixed: tuple[str, ...] = SEALED_FIXED,
+                     alone: bool = False) -> str:  # fmt: skip
+    """Why this checkout may not run the lot ("" when it may). `alone` (the equal-work lot):
+    the sealing commit changes only the seal's two files, so nothing else came in with it."""
     if not seal_ok(repo, results, fixed):
         return "prereg.md or the code differ from the seal (or no seal)"
     sealed = git(repo, "log", "-1", "--format=%H", "--",
@@ -109,6 +125,12 @@ def checkout_refusal(repo: Path = REPO, results: Path = RESULTS,
     dirty = git(repo, "status", "--porcelain")
     if dirty:
         return f"the checkout is not clean: {dirty.splitlines()[0]}"
+    if alone:
+        rel = results.relative_to(repo).as_posix()
+        seal_files = {f"{rel}/prereg.manifest.json", f"{rel}/prereg.sha256"}
+        changed = set(git(repo, "diff", "--name-only", "HEAD~1", "HEAD").splitlines())
+        if changed != seal_files:
+            return f"the sealing commit changes more than the seal: {sorted(changed - seal_files)}"
     return ""
 
 
@@ -121,7 +143,7 @@ def path_refusal(lot: str, repo: Path = REPO) -> str:
 
 def require_sealed_checkout(lot: str = "f2", repo: Path = REPO) -> None:
     results, fixed = LOTS[lot]
-    why = path_refusal(lot, repo) or checkout_refusal(repo, results, fixed)
+    why = path_refusal(lot, repo) or checkout_refusal(repo, results, fixed, lot in SEAL_ALONE)
     if why:
         print(f"refused: {why}; nothing run", flush=True)
         raise SystemExit(SEALED_CHECKOUT_REFUSED)
