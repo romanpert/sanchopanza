@@ -37,7 +37,7 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 | A7 | The derivation rule against Sonnet on unseen data | low | Claude + Jev | **closed**: no margin |
 | A8 | Deciding before Claude Code's auto-mode classifier | low | Jev + Claude | **closed**: no lever in Claude Code |
 | A9 | The tool window by tournament over the sub-groups of a large server | low | Jev | **closed**: no margin |
-| A10 | A local classifier as one more provider (`LocalDecider`), trained on our own or public labels | low | free (Colab or Kaggle) | **measured** (free): on unseen suites AUC 0.655 against Jev's 0.814, "no concluyente" at −0.05; it does not transfer |
+| A10 | A local classifier as one more provider (`LocalDecider`), trained on our own or public labels | low | free (Colab or Kaggle) | **measured** (free): on unseen suites AUC 0.655 against Jev's 0.814, "no concluyente" at −0.05; it does not transfer. With labels from the target environment AUC 0.812 against 0.861, −0.049 [−0.104, +0.004], also "no concluyente" |
 | A1 | Benchmarks read the TypeSafe key from a fixed path on the owner's disk | high | free | **done** (`de7c38a`) |
 | A2 | Documents with an old state: README "What is open", the guard-struct README, the root `STATUS*.md` | medium | free | **done** (2026-10-15) |
 | B2 | Spanish sentence splitting | medium | free | **done** (`872e068`) |
@@ -241,6 +241,12 @@ a local check_done classifier trained only on AgentDojo's labels for 393 slack s
 local provider needs labels from the setting it serves. TypeSafe's MCA 2.3(b) forbids training on
 Jev's outputs and also "develop a similar or competing product". Train only on our own labels or
 a public bench's, and measure outside the training set.
+**With labels from the target environment** (2026-10-17, planned before scoring in `99bbb1a`, free;
+[A10-target](results/2026-10-17-a10-target/README.md)): cross-fitted by user task on 2,522
+AgentDojo stops of three agents, AUC 0.812 against Jev 1.14's 0.861, −0.049 [−0.104, +0.004],
+"no concluyente" at −0.05; the gain over the cross-suite model on the same stops, +0.048
+[−0.007, +0.104], is not shown. The interval is set by the 106 user tasks: settling it needs more
+distinct tasks, not more runs of the same ones.
 
 ## Jev 1.14
 

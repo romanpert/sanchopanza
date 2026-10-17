@@ -839,7 +839,9 @@ Each item, with its priority and cost, is in [docs/ROADMAP.md](docs/ROADMAP.md).
 - **A local classifier as a provider.** A first one, for check_done, trained only on AgentDojo's
   labels for one suite, ranked unseen suites at AUC 0.655 against Jev's 0.814 ("no concluyente"
   at −0.05, catching 18 of 155 unfinished stops against 100): it does not transfer
-  ([A10](docs/results/2026-10-16-a10-local/README.md)). A local provider needs labels from the
+  ([A10](docs/results/2026-10-16-a10-local/README.md)). With labels from the suites it is scored
+  on, AUC 0.812 against Jev's 0.861 on 2,522 stops, also "no concluyente"
+  ([A10-target](docs/results/2026-10-17-a10-target/README.md)). A local provider needs labels from the
   setting it serves, never Jev's answers.
 - **Cells not run by decision.** Code on Sonnet 5.5 and Opus 5.5, Fable 5.1, the S2 confirmation,
   and the compaction window alone against it plus the decider

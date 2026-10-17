@@ -143,6 +143,12 @@
   at AUC 0.655 against Jev 1.14's 0.814, −0.159, cluster 95 % [−0.272, −0.048], against a −0.05
   margin; it caught 18 of 155 unfinished stops against 100. Level with Jev on its own suite (AUC
   0.944 out of fold), it does not transfer.
+- **A10 with labels from the target environment: "no concluyente"**
+  (`docs/results/2026-10-17-a10-target`, planned before scoring in `99bbb1a`, free): the same
+  model cross-fitted by user task on 2,522 AgentDojo stops of three agents (banking, travel,
+  workspace; AgentDojo's own labels, Jev's scores for the comparison only) ranked them at AUC
+  0.812 against Jev 1.14's 0.861, −0.049, cluster 95 % [−0.104, +0.004], against a −0.05 margin.
+  Against A10's cross-suite model on the same stops, +0.048 [−0.007, +0.104]: not shown.
 - **OpenAI's Decisions API on the public benches: "no concluyente"**
   (`docs/results/2026-10-16-openai-decisions`, sealed `2fc329b`, reviewed twice): asked as
   sanchopanza ships, `gpt-6-luna` decided 200 of 244 rows right against Jev's 206 (jev-1.13.0's
