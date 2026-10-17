@@ -1,6 +1,6 @@
 # longdoc-free, dev phase: pre-registration
 
-Instrument commit: `f15e11a977b382c361a29bc5c1f3db969c1c276a`
+Instrument commit: `4c1623b56006ba9a6d098d9eefd3aade3fa78f65`
 
 Written 2026-10-17 before any call of this lot. The owner approved the lot on 2026-10-17
 (design `design.md`, about 63 USD of Claude and 7 of Jev, hard caps 105 and 11.50, H0
@@ -70,8 +70,11 @@ novels (`stats.verdict`).
   the dev is reported as not run.**
 - Launcher `longdoc-free-jev-run.cmd dev`, sealed by this file's seal, run from a worktree
   detached at the seal commit itself (checked: HEAD detached and clean, the seal file committed
-  and HEAD the last commit that touched it); refused between 00:00 and 08:00 and with its local
-  values unset; the key is read after every other check.
+  and HEAD the last commit that touched it); its `PY` and `SANCHOPANZA_KEYS_ENV` are filled in
+  place in that worktree's tracked copy, the one change the clean check allows (its digest, the
+  two values masked, must equal the sealed one); refused between 00:00 and 08:00 and with its
+  local values unset; the key is read after every other check. **Nothing is committed in the run
+  worktree until the dev ends** (a commit there would refuse the next stage).
 - Jev's decisions are recorded only to replay this lot (TypeSafe MCA 2.3(b): never to train a
   model or to distil Jev). Recordings hold hashed keys and the answers, no text.
 
@@ -155,10 +158,12 @@ call:
    runs all 310 either way; n only decides whether it is sealed.
 5. **Money**: per Claude phase of the confirmation, 310 sessions per arm at the larger of 1.5
    times the arm's dev mean and its dev 95th percentile, plus one worst turn and the floor (N's
-   phase; H's and H0's in one Haiku phase); Jev's cap as the confirmation's dry-run pessimistic
-   estimate (12.32 USD) times the dev's settled over pessimistic ratio, times 1.5. It must fit:
-   Jev at most 12.50; Claude, the dev's real spend plus these ceilings, at most 105. If not, the
-   owner decides before any seal.
+   phase; H's and H0's in one Haiku phase). Claude fits when the dev's real spend (every session
+   and open reservation of its three phases, the smoke included, as the guard counts it) plus
+   these ceilings is at most 105. Jev's cap stays 12.50; it fits when the confirmation's dry-run
+   pessimistic estimate (12.32 USD) is under it (what `paid` requires) and so is its expected
+   cost, that estimate times the dev's settled over pessimistic ratio, times a 1.2 margin (up to
+   a ratio of 0.85). If either does not fit, the owner decides before any seal.
 
 Reported, not deciding: the gate's coverage at each cut, the share of questions whose
 normalised gold answer is in the kept passages, median answer words, the share of replies with
