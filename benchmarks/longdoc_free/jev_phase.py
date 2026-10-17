@@ -64,7 +64,13 @@ HOME = pathlib.Path.home() / ".cache" / "sanchopanza"
 PRIVATE = pool.CACHE / "private"
 MODEL = br.MODEL  # jev-1.13.0
 FIT_CHARS = 60_000  # about 20,000 tokens: under Jev's 32k a question, H's file
-CAP_USD = {"dev": 1.50, "confirm": 12.50}  # the owner's 14.00 for the lot (2026-10-17)
+# Dev 1.50 at the seal; 1.80 by amendment 1 (the owner, 2026-10-17, after the first launch met
+# the cap: real Jev made about 39 % more tournament calls than the dry run's stub). The lot's Jev:
+# 14.30.
+CAP_USD = {"dev": 1.80, "confirm": 12.50}
+# Amendment 1: one more launch of the dev, only after its first launch, from the original seal,
+# stopped at the cap.
+ORIGINAL_DEV_SEAL = "6fd974705d223d7e3a0eeeb13a933da3459ea54e"
 SQUIRE_CAP_USD = 1e9  # the squire's own meter is no cap (C5's lesson): the ledger's is
 POINT = "longdoc_free_gate"
 GATE = Truth(
@@ -78,9 +84,10 @@ PHASES = ("dev", "confirm")
 
 def lot(phase: str) -> paid_once.Lot:
     suffix = "" if phase == "confirm" else f"-{phase}"
+    prereg = RESULTS / ("prereg-dev-a1.md" if phase == "dev" else f"prereg{suffix}.md")
     return paid_once.Lot(
         name=f"{NAME}{suffix}",
-        prereg=RESULTS / f"prereg{suffix}.md",
+        prereg=prereg,
         launcher=ROOT / "longdoc-free-jev-run.cmd",
         fixture=ROOT / "fixtures" / NAME / f"jev-{phase}.jsonl",
         model=MODEL,
@@ -114,6 +121,16 @@ def sealed_head_problems(the_lot: paid_once.Lot, git: Any = paid_once.git) -> li
         if not head or head != last:
             found.append(f"HEAD is not the commit that sealed {seal}")
     return found
+
+
+def may_launch(phase: str, past: list[dict[str, Any]]) -> bool:
+    """paid_once's rule (one launch and one relaunch, none after a 402, a 429, the cap or another
+    model), and amendment 1's one exception: the dev's single launch from the original seal,
+    stopped at the cap, may be followed by one launch."""
+    if paid_once.may_launch(past):
+        return True
+    return (phase == "dev" and len(past) == 1 and past[0].get("stop_kind") == "cap"
+            and past[0].get("head") == ORIGINAL_DEV_SEAL)  # fmt: skip
 
 
 def lot_asker(phase: str, fallback: Any | None) -> br.Asker:
@@ -272,9 +289,10 @@ def paid(phase: str, launcher: pathlib.Path | None, *, load_key: Any = paid_once
     with _lockfile.locked(the_lot.run_dir / "paid", wait_s=1.0,
                           stale_s=paid_once.LOCK_STALE_S, strict=True):  # fmt: skip
         past = paid_once.history(the_lot)
-        if not paid_once.may_launch(past):
+        if not may_launch(phase, past):
             raise SystemExit("launch rule: no launch left (one relaunch at most, none after "
-                             "a 402, a 429, the cap or another model)")  # fmt: skip
+                             "a 402, a 429, the cap or another model; amendment 1's one "
+                             "exception spent or not met)")  # fmt: skip
         if not past and the_lot.fixture.exists() and the_lot.fixture.stat().st_size:
             raise SystemExit(
                 f"first launch, but {the_lot.fixture.name} holds answers: nothing spent"

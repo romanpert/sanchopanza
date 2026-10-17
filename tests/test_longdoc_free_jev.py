@@ -92,8 +92,9 @@ def test_the_phases_are_separate_lots_under_the_owners_jev_cap():
     dev, confirm = jp.lot("dev"), jp.lot("confirm")
     assert dev.name == "longdoc-free-dev" and confirm.name == "longdoc-free"
     assert dev.fixture != confirm.fixture and dev.run_dir != confirm.run_dir
-    assert dev.prereg.name == "prereg-dev.md" and confirm.prereg.name == "prereg.md"
-    assert dev.cap_usd + confirm.cap_usd <= 14.00  # the owner's, raised on 2026-10-17
+    assert dev.prereg.name == "prereg-dev-a1.md" and confirm.prereg.name == "prereg.md"
+    assert dev.cap_usd == 1.80  # amendment 1
+    assert dev.cap_usd + confirm.cap_usd <= 14.30  # the owner's, raised twice on 2026-10-17
     assert "docs/results/2026-10-16-longdoc-free/ids.json" in dev.instrument
     assert dev.model == confirm.model == "jev-1.13.0"
 
@@ -148,3 +149,17 @@ def test_a_paid_run_off_the_seal_commit_spends_nothing(monkeypatch, tmp_path: Pa
     with pytest.raises(SystemExit, match="not the commit that sealed"):
         jp.paid("dev", launcher, load_key=lambda: pytest.fail("the key was read"),
                 sealed_head=lambda lot: ["HEAD is not the commit that sealed it"])  # fmt: skip
+
+
+def _launch(stop: str, head: str = jp.ORIGINAL_DEV_SEAL) -> dict:
+    return {"event": "start", "head": head, "stop_kind": stop}
+
+
+def test_amendment_one_allows_one_more_dev_launch_after_the_cap_from_the_original_seal():
+    assert jp.may_launch("dev", [])
+    assert jp.may_launch("dev", [_launch("cap")])
+    assert not jp.may_launch("dev", [_launch("cap"), _launch("done")])  # one only
+    assert not jp.may_launch("dev", [_launch("cap", head="0" * 40)])  # not the original seal
+    assert not jp.may_launch("dev", [_launch("funds")])  # a 402: still none
+    assert not jp.may_launch("confirm", [_launch("cap")])  # the confirmation keeps the rule
+    assert jp.may_launch("dev", [_launch("failure")])  # paid_once's own one relaunch
