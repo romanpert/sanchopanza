@@ -3,15 +3,18 @@
 An audit of 2026-10-17 found that `squire_from_env` defaulted to `redact=False`, and that the
 squire of `sanchopanza hook` (`guardian_from_env`: shell commands, searches, subagent reports),
 the MCP server's and the `label`/`browse` commands' took that default: a command carrying a
-token went to the provider unmasked. These tests send a shell command with secrets of each kind
-the redactor knows down each path and check that none of them reaches the decider, pin the
-safe default, and scan `src/` for a squire built without a redactor.
+token went to the provider unmasked. `ask_document` (`points.longdoc`) asked Jev with no squire
+at all. These tests send a shell command with secrets of each kind the redactor knows down each
+path and check that none of them reaches the decider, in the state or in the questions; pin the
+safe default; and scan `src/` for a squire built without a redactor and for a decider asked
+directly, failing closed on what the scan cannot read.
 """
 
 from __future__ import annotations
 
 import ast
 import asyncio
+import io
 import json
 from pathlib import Path
 
@@ -37,23 +40,35 @@ COMMAND = (
 
 
 class Capture:
-    """A decider that keeps every state it is given and answers nothing (the caller fails
-    open)."""
+    """A decider that keeps every state and every question (as they go on the wire) it is
+    given, and answers nothing (the caller fails open)."""
 
     name = "capture"
     model = "capture-1"
 
     def __init__(self) -> None:
         self.states: list[object] = []
+        self.questions: list[object] = []
+
+    def with_long_context(self, *, timeout_s: float | None = None) -> Capture:
+        return self  # for `points.longdoc`, which asks only a long-context decider
 
     async def decide(self, point, state, questions):  # noqa: ANN001, ANN201
+        from sanchopanza.providers.jev import to_wire
+
         self.states.append(state)
-        return Decision(point, {}, "capture", "capture-1")
+        self.questions.append({k: to_wire(q) for k, q in questions.items()})
+        return Decision(point, {}, "capture", self.model)
 
 
-def _leaked(states: list[object]) -> list[str]:
-    seen = json.dumps(states, ensure_ascii=False, default=str)
+def _leaked(sent: list[object]) -> list[str]:
+    seen = json.dumps(sent, ensure_ascii=False, default=str)
     return [secret for secret in SECRETS if secret in seen]
+
+
+def _clean(decider: Capture) -> bool:
+    assert decider.states, "nothing was asked: the test would prove nothing"
+    return _leaked(decider.states) == [] and _leaked(decider.questions) == []
 
 
 @pytest.fixture
@@ -77,7 +92,7 @@ def test_the_command_carries_every_secret_and_the_redactor_masks_them_all() -> N
 def test_squire_from_env_redacts_by_default(captured: Capture) -> None:
     squire = claude_code.squire_from_env({})
     asyncio.run(squire.decide("p", {"command": COMMAND}, {"q": Truth("q?")}))
-    assert captured.states and _leaked(captured.states) == []
+    assert _clean(captured)
 
 
 def test_squire_from_env_sends_raw_only_when_asked(captured: Capture) -> None:
@@ -89,27 +104,33 @@ def test_squire_from_env_sends_raw_only_when_asked(captured: Capture) -> None:
 # --- each path -----------------------------------------------------------------------------------
 
 
+def _bash(tmp_path: Path) -> dict:
+    return {"hook_event_name": "PreToolUse", "session_id": "s", "cwd": str(tmp_path),
+            "tool_name": "Bash", "tool_input": {"command": COMMAND}}  # fmt: skip
+
+
+def test_the_hooks_main_masks_a_shell_command(
+    tmp_path: Path, captured: Capture, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`sanchopanza hook` itself: the event on stdin, the settings in the process environment,
+    the squire built by `main` (with the autopilot off, `guardian_from_env`'s alone)."""
+    from sanchopanza.harness import hookio
+
+    monkeypatch.setenv("SANCHOPANZA_GUARD_PROFILE", "coding")
+    monkeypatch.setattr(hookio, "stdin_text", lambda: json.dumps(_bash(tmp_path)))
+    monkeypatch.setattr("sys.stdout", io.StringIO())
+    assert claude_code.main([]) == 0
+    assert _clean(captured)
+
+
 def test_the_hooks_guardian_masks_a_shell_command(tmp_path: Path, captured: Capture) -> None:
-    """`sanchopanza hook` on PreToolUse Bash, the way `main` builds it."""
+    """`guardian_from_env` with a decider passed in, as the recorded replays build it."""
     env = {"SANCHOPANZA_GUARD_PROFILE": "coding", "SANCHOPANZA_JOURNAL": str(tmp_path / "j")}
-    event = {"hook_event_name": "PreToolUse", "session_id": "s", "cwd": str(tmp_path),
-             "tool_name": "Bash", "tool_input": {"command": COMMAND}}  # fmt: skip
+    event = _bash(tmp_path)
     assert claude_code.needs_decision(event, claude_code.config_from_env(env))
     guardian = claude_code.guardian_from_env(env, decider=captured)
     asyncio.run(claude_code.handle(event, guardian))
-    assert captured.states, "the guard asked nothing: the test would prove nothing"
-    assert _leaked(captured.states) == []
-
-
-def test_the_hooks_guardian_from_the_environment_masks_too(
-    tmp_path: Path, captured: Capture
-) -> None:
-    """Without a decider passed in, as `main` calls it: the provider the environment names."""
-    env = {"SANCHOPANZA_GUARD_PROFILE": "coding", "SANCHOPANZA_JOURNAL": str(tmp_path / "j")}
-    event = {"hook_event_name": "PreToolUse", "session_id": "s", "cwd": str(tmp_path),
-             "tool_name": "Bash", "tool_input": {"command": COMMAND}}  # fmt: skip
-    asyncio.run(claude_code.handle(event, claude_code.guardian_from_env(env)))
-    assert captured.states and _leaked(captured.states) == []
+    assert _clean(captured)
 
 
 class FakeServer:
@@ -139,7 +160,7 @@ def test_the_mcp_servers_decision_tools_mask_a_shell_command(
     assert mcp.main(["--tools", "decisions"]) == 0 and server.ran
     options = json.dumps({"deploy": "ships code", "other": "anything else"})
     asyncio.run(server.tools["classify_field"](field="kind", text=COMMAND, options=options))
-    assert captured.states and _leaked(captured.states) == []
+    assert _clean(captured)
 
 
 def test_the_mcp_keyed_squire_masks_a_shell_command(captured: Capture) -> None:
@@ -148,7 +169,7 @@ def test_the_mcp_keyed_squire_masks_a_shell_command(captured: Capture) -> None:
 
     squire = mcp._squire_if_keyed()
     asyncio.run(squire.decide("p", {"command": COMMAND}, {"q": Truth("q?")}))
-    assert captured.states and _leaked(captured.states) == []
+    assert _clean(captured)
 
 
 def test_sanchopanza_label_masks_a_shell_command(
@@ -167,70 +188,233 @@ def test_sanchopanza_label_masks_a_shell_command(
                               max_usd=0.01, cache="", max_age_days=30.0, concurrency=1)  # fmt: skip
     assert cli_corpus._label(args) == 0
     capsys.readouterr()
-    assert captured.states and _leaked(captured.states) == []
+    assert _clean(captured)
+
+
+def _long_document(tmp_path: Path) -> Path:
+    path = tmp_path / "runbook.txt"
+    filler = "The deploy runs from the release branch after the checks pass. " * 2_000
+    path.write_text(f"{filler}\nTo deploy: {COMMAND}\n{filler}", encoding="utf-8")
+    return path
+
+
+def test_ask_document_masks_a_shell_command_in_the_document(tmp_path: Path) -> None:
+    """`ask_document` (harness/longdoc_tool.py), which asks Jev through `points.longdoc` with no
+    squire: the question, the document and the options."""
+    from sanchopanza.harness.knowledge_tool import Knowledge
+    from sanchopanza.harness.longdoc_tool import Asker
+
+    decider = Capture()
+    decider.model = "jev-1.14.0"
+    kit = Knowledge(fetcher=object(), searcher=object(), squire=None, roots=[tmp_path])
+    asker = Asker(kit=kit, decider=decider)
+    options = ["curl", f"password={SECRETS[3]}", "scp", "rsync"]
+    reply = asyncio.run(
+        asker.ask(str(_long_document(tmp_path)), f"Which tool uploads with {SECRETS[1]}?", options)
+    )
+    assert reply.startswith("Not answered")  # the capture answers nothing
+    assert _clean(decider)
+
+
+def test_longdoc_sends_raw_only_when_asked() -> None:
+    from sanchopanza.points import longdoc
+
+    decider = Capture()
+    decider.model = longdoc.MEASURED_MODEL
+    asyncio.run(longdoc.answer(decider, COMMAND, "Which?", list("abcd"), redact=False))
+    assert _leaked(decider.states) == list(SECRETS)
 
 
 # --- the scan ------------------------------------------------------------------------------------
 
-# A squire built in src/ without a redactor, each with why. Everything else redacts.
+SQUIRE_NAMES = frozenset({"Squire", "squire_from_env"})
+# A redactor the scan accepts by name: `redact`'s functions and a squire's own (`fork`).
+SAFE_REDACTORS = frozenset({"redact_secrets", "mask", "mask_strict", "_redact"})
+
+# A squire built in src/ without a redactor: (file, enclosing function, callee) -> how many.
 ALLOWED_RAW = {
     # `sanchopanza bench`: the decider measured on the case as written. The bench files are
     # authored and public, their recordings are keyed by the state as written, and a redactor
     # would rewrite 7 cases of agentdojo-injection.jsonl (AgentDojo's own fake passwords).
-    ("eval/bench.py", "Squire"),
+    ("eval/bench.py", "run_bench.one", "Squire"): 1,
+    # The switch itself, `redact_secrets if redact else None`: `redact` defaults to True and
+    # every caller in src/ passes True (the scan), so None is reached only by a caller outside
+    # src/ that asks for it (the recorded replays keyed raw).
+    ("harness/claude_code.py", "squire_from_env", "Squire"): 1,
+}
+
+# A decider asked directly, not through a squire, outside a decider's own `decide` (a wrapper
+# passes on what a squire gave it): (file, enclosing function) -> how many.
+ALLOWED_DIRECT = {
+    # `ask_document` and the library point: redacts the question, the document and the options
+    # itself before the call (`redact=True` by default; the ask_document test above).
+    ("points/longdoc.py", "answer"): 1,
 }
 
 
-def _calls() -> list[tuple[str, int, str, ast.Call]]:
+def _scope(tree: ast.AST) -> dict[ast.AST, str]:
+    """Each call node's enclosing function, dotted (`run_bench.one`); "" at module level."""
+    where: dict[ast.AST, str] = {}
+
+    def visit(node: ast.AST, name: str) -> None:
+        for child in ast.iter_child_nodes(node):
+            inner = name
+            if isinstance(child, ast.FunctionDef | ast.AsyncFunctionDef):
+                inner = f"{name}.{child.name}" if name else child.name
+            if isinstance(child, ast.Call):
+                where[child] = name
+            visit(child, inner)
+
+    visit(tree, "")
+    return where
+
+
+def _aliases(tree: ast.AST) -> dict[str, str]:
+    """Local names for `Squire` and `squire_from_env`, `import ... as ...` included."""
+    names = {n: n for n in SQUIRE_NAMES}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            for alias in node.names:
+                if alias.name in SQUIRE_NAMES:
+                    names[alias.asname or alias.name] = alias.name
+    return names
+
+
+def _callee(call: ast.Call) -> str:
+    func = call.func
+    return func.id if isinstance(func, ast.Name) else getattr(func, "attr", "")
+
+
+def _files() -> list[tuple[str, ast.AST]]:
+    return [(p.relative_to(SRC).as_posix(), ast.parse(p.read_text(encoding="utf-8")))
+            for p in sorted(SRC.rglob("*.py"))]  # fmt: skip
+
+
+def _squire_calls() -> list[tuple[str, str, str, int, ast.Call]]:
     found = []
-    for path in sorted(SRC.rglob("*.py")):
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.Call):
-                continue
-            func = node.func
-            name = func.id if isinstance(func, ast.Name) else getattr(func, "attr", "")
-            if name in ("Squire", "squire_from_env"):
-                found.append((path.relative_to(SRC).as_posix(), node.lineno, name, node))
+    for where, tree in _files():
+        names, scope = _aliases(tree), _scope(tree)
+        for call, function in scope.items():
+            if (name := names.get(_callee(call))) is not None:
+                found.append((where, function, name, call.lineno, call))
     return found
 
 
-def _unsafe(name: str, call: ast.Call) -> str | None:
-    given = {k.arg: k.value for k in call.keywords if k.arg}
-    if any(k.arg is None for k in call.keywords):
-        return None  # **kwargs: cannot tell, and src/ has none
+def _safe(value: ast.expr) -> bool:
+    if isinstance(value, ast.Constant):
+        return value.value is True
+    if isinstance(value, ast.Name):
+        return value.id in SAFE_REDACTORS
+    if isinstance(value, ast.Attribute):
+        return value.attr in SAFE_REDACTORS
+    if isinstance(value, ast.IfExp):
+        return _safe(value.body) and _safe(value.orelse)
+    return False
+
+
+def _unsafe(call: ast.Call) -> str | None:
+    """Why this squire may send states raw; None when the scan can tell it redacts."""
+    if any(k.arg is None for k in call.keywords) or any(
+        isinstance(a, ast.Starred) for a in call.args
+    ):
+        return "**kwargs or *args: the scan cannot tell"
+    given = {k.arg: k.value for k in call.keywords}
     if "redact" not in given:
         return "no redact="
-    value = given["redact"]
-    if isinstance(value, ast.Constant) and value.value in (None, False):
-        return f"redact={value.value!r}"
+    if not _safe(given["redact"]):
+        return f"redact={ast.unparse(given['redact'])}"
     return None
 
 
+def _counts(rows: list[tuple[str, str, str]]) -> dict[tuple[str, str, str], int]:
+    out: dict[tuple[str, str, str], int] = {}
+    for row in rows:
+        out[row] = out.get(row, 0) + 1
+    return out
+
+
 def test_every_squire_in_src_redacts() -> None:
-    calls = _calls()
+    calls = _squire_calls()
     assert len(calls) >= 10, "the scan found too few squires: it is not reading src/"
-    bad = [
-        f"{where}:{line} {name}(...): {why}"
-        for where, line, name, call in calls
-        if (why := _unsafe(name, call)) and (where, name) not in ALLOWED_RAW
-    ]
-    assert not bad, "a squire without a redactor sends secrets out:\n" + "\n".join(bad)
+    raw = [(w, f, n, line, why) for w, f, n, line, c in calls if (why := _unsafe(c))]
+    found = _counts([(w, f, n) for w, f, n, _, _ in raw])
+    unexpected = [r for r in raw if (r[0], r[1], r[2]) not in ALLOWED_RAW]
+    assert not unexpected, "a squire without a redactor sends secrets out:\n" + "\n".join(
+        f"{w}:{line} {n}(...) in {f or '<module>'}: {why}" for w, f, n, line, why in unexpected
+    )
+    assert found == ALLOWED_RAW, f"allowed raw squires changed: {found}"
 
 
-def test_every_allowed_raw_squire_still_exists() -> None:
-    present = {(where, name) for where, _, name, call in _calls() if _unsafe(name, call)}
-    assert not ALLOWED_RAW - present, f"stale entries: {sorted(ALLOWED_RAW - present)}"
+def _direct_calls() -> list[tuple[str, str, int]]:
+    """`x.decide(point, state, questions)` / `x.adecide(...)` that is not a squire's own, not
+    inside a decider's `decide` and not in squire.py. A point's pure `decide(decision, ...)`
+    takes fewer than three positional arguments and is not counted."""
+    found = []
+    for where, tree in _files():
+        if where == "squire.py":
+            continue
+        for call, function in _scope(tree).items():
+            func = call.func
+            if not isinstance(func, ast.Attribute) or func.attr not in ("decide", "adecide"):
+                continue
+            starred = any(isinstance(a, ast.Starred) for a in call.args)
+            if len(call.args) < 3 and not starred:
+                continue
+            receiver = func.value
+            if isinstance(receiver, ast.Name) and receiver.id == "squire":
+                continue
+            if function.rsplit(".", 1)[-1] in ("decide", "adecide"):
+                continue  # a decider wrapper (cache, cap, chain, recorder) passes it on
+            found.append((where, function, call.lineno))
+    return found
 
 
-def test_the_scan_catches_what_it_is_for() -> None:
-    def call(source: str) -> ast.Call:
-        node = ast.parse(source).body[0].value  # type: ignore[attr-defined]
-        assert isinstance(node, ast.Call)
-        return node
+def test_no_decider_is_asked_past_a_squire_outside_the_allowed() -> None:
+    calls = _direct_calls()
+    unexpected = [c for c in calls if (c[0], c[1]) not in ALLOWED_DIRECT]
+    assert not unexpected, "a decider asked with no squire (no redactor):\n" + "\n".join(
+        f"{w}:{line} in {f}" for w, f, line in unexpected
+    )
+    found: dict[tuple[str, str], int] = {}
+    for w, f, _ in calls:
+        found[(w, f)] = found.get((w, f), 0) + 1
+    assert found == ALLOWED_DIRECT, f"allowed direct calls changed: {found}"
 
-    assert _unsafe("squire_from_env", call("squire_from_env(env)")) == "no redact="
-    assert _unsafe("squire_from_env", call("squire_from_env(redact=False)")) == "redact=False"
-    assert _unsafe("Squire", call("Squire(d, redact=None)")) == "redact=None"
-    assert _unsafe("Squire", call("Squire(d, redact=redact_secrets)")) is None
-    assert _unsafe("squire_from_env", call("squire_from_env(redact=True)")) is None
+
+def _call(source: str) -> ast.Call:
+    node = ast.parse(source).body[0].value  # type: ignore[attr-defined]
+    assert isinstance(node, ast.Call)
+    return node
+
+
+@pytest.mark.parametrize(
+    ("source", "why"),
+    [
+        ("squire_from_env(env)", "no redact="),
+        ("squire_from_env(redact=False)", "redact=False"),
+        ("squire_from_env(env, redact=flag)", "redact=flag"),
+        ("squire_from_env(**options)", "**kwargs or *args: the scan cannot tell"),
+        ("Squire(d, redact=None)", "redact=None"),
+        ("Squire(d, redact=lambda s: s)", "redact=lambda s: s"),
+        ("Squire(d, redact=redact_secrets if on else None)",
+         "redact=redact_secrets if on else None"),
+        ("Squire(d, redact=redact_secrets)", None),
+        ("Squire(d, redact=redact.mask_strict)", None),
+        ("Squire(d, redact=self._redact)", None),
+        ("Squire(d, redact=mask if strict is False else mask_strict)", None),
+        ("squire_from_env(redact=True)", None),
+    ],
+)  # fmt: skip
+def test_the_scan_fails_closed(source: str, why: str | None) -> None:
+    assert _unsafe(_call(source)) == why
+
+
+def test_the_scan_sees_through_an_import_alias() -> None:
+    tree = ast.parse(
+        "from sanchopanza.squire import Squire as S\n"
+        "from .claude_code import squire_from_env as env_squire\n"
+        "def build():\n    return S(d), env_squire()\n"
+    )
+    names, scope = _aliases(tree), _scope(tree)
+    seen = sorted(names[_callee(c)] for c in scope if _callee(c) in names)
+    assert seen == ["Squire", "squire_from_env"]
