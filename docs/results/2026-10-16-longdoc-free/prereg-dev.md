@@ -1,6 +1,6 @@
 # longdoc-free, dev phase: pre-registration
 
-Instrument commit: `4c1623b56006ba9a6d098d9eefd3aade3fa78f65`
+Instrument commit: `5ada5af09379a9d9bc67d40210c55e00733cd304`
 
 Written 2026-10-17 before any call of this lot. The owner approved the lot on 2026-10-17
 (design `design.md`, about 63 USD of Claude and 7 of Jev, hard caps 105 and 11.50, H0
@@ -198,3 +198,22 @@ It reports no verdict: 41 questions on 8 novels. Its cut and feasibility are cho
 never reused as evidence. One session per question and arm. Sonnet 5.5 only; Opus 5.5 is a
 later lot. ∞Bench's novels are famous books with names replaced; HC sizes what memory still
 answers.
+
+## 8. Independent review (`revisor-prereg`, before the seal)
+
+Three rounds on 2026-10-17, against the code, before any call.
+
+1. On the draft (instrument `253f38b`): **one block**, a session that failed with text (an API
+   error, an expired login) or met its cap mid-turn was scored as an answer and never reached
+   the guard; fixed (the answer rule of section 4, with a test through the guard). And: a cut
+   could be set on 1 covered question (now 29 % and 8); phase J's expected cost was 1.13, not
+   0.20 (the balance rule); the confirmation's phase J did not fit 10.00 (the owner raised the
+   lot's Jev cap to 14.00); `ids.json` and the seal commit were not bound (both now are); the
+   dev's money, an incomplete phase J and the answer length were undeclared (sections 3, 6).
+2. On `f15e11a`: **one block**, the launcher filled in place would fail the new clean-checkout
+   check (it is now the one change allowed, its masked digest checked); and the Jev money rule
+   would almost always say "does not fit" (now the pessimistic estimate and the expected cost
+   with a 1.2 margin under 12.50). Also the dev's real Claude spend (every session and open
+   reservation) and the reply predicate.
+3. On `4c1623b`: **can be sealed**; one optional point (a missing `is_error` read as an error),
+   done in the instrument above.
