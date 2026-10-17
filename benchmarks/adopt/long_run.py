@@ -83,13 +83,22 @@ ROOT = Path(r"C:\sp-runs\L")  # outside the home folder: carry.refuse_unclean; s
 WINDOW = "CLAUDE_CODE_AUTO_COMPACT_WINDOW"
 EXIT = {"limit": 2, "cap": 2, "ceiling": 2, "wall": 2, "clock": 2, "set aside": 3, "harness": 4,
         "rerequest": long_pilot.EXIT_REREQUEST}  # fmt: skip
+# S's guard as sealed (cb0062e, owner 10-06): the whole-results block (struct) over 6 parts, the
+# install's default then. Since 0.3.2 the default is the pointer block, so S says its guard itself:
+# a relaunch with a newer sanchopanza still runs the measured treatment. Not `--guard-full`: the
+# sealed copy predates it (an unknown flag there); `--guard-parts` and the chooser variable are
+# read the same by both (the variable in the settings' env, which the install never removes).
+# Literals of cb0062e's own vocabulary (its guard_hook reads SANCHOPANZA_GUARD_CHOOSER), not
+# today's names: a rename there must not move the sealed line.
+S_GUARD_PARTS = 6
+S_GUARD_FLAGS = ("--guard-parts", str(S_GUARD_PARTS))
+S_GUARD_ENV = (("SANCHOPANZA_GUARD_CHOOSER", "struct"),)
 # The sealed S line (docs/S-SEAL-DRAFT.md, S0 for code suites); its budget is the profile's.
 S_FLAGS = ("--guard", "--guard-profile", "coding", "--memory", "--candor", "--find",
            "--find-auto", "--skill", "--scan-content", "--check-done", "--content-tools",
            "WebFetch,WebSearch,mcp__sanchopanza-fetch__fetch_passages", "--crawl", "--prune",
-           "--fetch", "--provider", "jev")  # fmt: skip
-# No guard chooser: the sealed install's default (cb0062e: struct over 6 parts; owner 10-06).
-S_ENV = (("SANCHOPANZA_CANDOR_MODE", "observe"),
+           "--fetch", "--provider", "jev", *S_GUARD_FLAGS)  # fmt: skip
+S_ENV = (*S_GUARD_ENV, ("SANCHOPANZA_CANDOR_MODE", "observe"),
          ("SANCHOPANZA_CRAWL_LINE_VERSION", "6"), ("SANCHOPANZA_CRAWL_NOTES", "3"),
          ("SANCHOPANZA_CRAWL_ECHO", "short"), ("SANCHOPANZA_CRAWL_LINE_AT", "prompt"),
          ("SANCHOPANZA_CRAWL_NOTES_AT", "front"), ("SANCHOPANZA_CRAWL_SHOT", "snapshot-first"),
@@ -426,13 +435,14 @@ def prepare(ctx: Ctx, chain: Mapping[str, Any], arm: str) -> Arm:
         key = run.arm_keyfile(ctx.keyfile, name, arm)
         install = long_pilot.install if arm in long_pilot.ARMS else run.install_sancho
         install(work, evidence, key, spec.install)
-        log(f"{name} {arm}: {arm_files.guard_parts(work)} ({run.SANCHO})")
     else:
         mcp.write_text('{"mcpServers": {}}\n', encoding="utf-8", newline="\n")
     if spec.env:
         arm_files.write_env_settings(work, spec.env)
         if spec.install is not None:  # else restore_install puts back the settings without it
             run.snapshot_install(work, evidence)
+    if spec.install is not None:  # the guard the arm runs with, its env written (S: struct)
+        log(f"{name} {arm}: {arm_files.guard_parts(work)} ({run.SANCHO})")
     return assemble(ctx, chain, arm, evidence, work, base)
 
 

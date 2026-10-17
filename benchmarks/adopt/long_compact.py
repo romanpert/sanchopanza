@@ -103,12 +103,12 @@ def bugs_within(row: Mapping[str, Any], k: int) -> list[str]:
                               if c.get("kind") == "bug" and int(c.get("request") or 0) <= k))
 
 
-def chain_line(root: Path, chain: str,
-               pair: tuple[str, str] = (TREATED, CONTROL)) -> dict[str, Any] | None:  # fmt: skip
+def chain_line(root: Path, chain: str, pair: tuple[str, str] = (TREATED, CONTROL),
+               model: str = MODEL) -> dict[str, Any] | None:  # fmt: skip
     """Both arms of one chain, or None when either has no row (`pair`: treated, control; the
-    guard-pointers lot reads P and F with this same line)."""
+    guard-pointers lot reads P and F with this same line; `model`: its runs' folder suffix)."""
     TREATED, CONTROL = pair  # noqa: N806 - the module's names, for another pair of arms
-    base = root / "runs" / f"{chain}-{MODEL}"
+    base = root / "runs" / f"{chain}-{model}"
     rows = {a: _json(base / a / "row.json") for a in (TREATED, CONTROL)}
     lines = {a: long_compare.arm_line(base / a) for a in (TREATED, CONTROL)}
     if any(v is None for v in (*rows.values(), *lines.values())):
@@ -251,13 +251,14 @@ def amend(root: Path, repeat_root: Path, chains: Sequence[str],
 
 
 def grade_common(root: Path, chain: str, known: Mapping[str, Any],
-                 pair: tuple[str, str] = (TREATED, CONTROL)) -> list[str]:  # fmt: skip
+                 pair: tuple[str, str] = (TREATED, CONTROL),
+                 model: str = MODEL) -> list[str]:  # fmt: skip
     """Each arm graded at its snapshot after the last common call, beside its evidence."""
     import long_run
     import perbug
 
     TREATED, CONTROL = pair  # noqa: N806
-    base = root / "runs" / f"{chain}-{MODEL}"
+    base = root / "runs" / f"{chain}-{model}"
     rows = {a: _json(base / a / "row.json") for a in (TREATED, CONTROL)}
     if any(r is None for r in rows.values()):
         return []
@@ -300,10 +301,11 @@ def per_test_timeout(seconds: int) -> Iterator[None]:
 
 
 def grade_final(root: Path, chain: str, known: Mapping[str, Any],
-                pair: tuple[str, str] = (TREATED, CONTROL)) -> list[str]:  # fmt: skip
+                pair: tuple[str, str] = (TREATED, CONTROL),
+                model: str = MODEL) -> list[str]:  # fmt: skip
     """Each arm's final grade (`long_report.grade_arm`, grade.json), for a chain the launcher's
     grade could not finish."""
-    base = root / "runs" / f"{chain}-{MODEL}"
+    base = root / "runs" / f"{chain}-{model}"
     out = []
     for arm in pair:
         if (base / arm / "final.patch").exists():

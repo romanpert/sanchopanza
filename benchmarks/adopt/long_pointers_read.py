@@ -6,6 +6,11 @@ against F (the same install with --guard-full), one run per arm and chain. Free:
     python benchmarks/adopt/long_pointers_read.py grade [--profile guardptr] [--root ...] [--final]
     python benchmarks/adopt/long_pointers_read.py read  [--profile guardptr] [--root ...] [--json f]
 
+Both read the runs of the profile's model (`<root>/runs/<chain>-<model>`: haiku for the smoke);
+`grade` says on stderr each chain or arm it did not grade at a common call, and exits 1 when
+it graded nothing (a wrong root or profile, never a finished grade) or a chain with both rows
+left an arm ungraded; with --final a final grade alone does not count as graded.
+
 Per chain, on the calls both arms ran (`long_compact.chain_line` with the pair P, F: common calls,
 each arm graded at its own snapshot after the last of them, every chain with the same per-test
 timeout, `TEST_TIMEOUT`, registered before any run):
@@ -206,10 +211,11 @@ def paused(base: Path) -> list[str]:
     return out
 
 
-def read(root: Path, chains: Sequence[str], profile: str = "guardptr") -> dict[str, Any]:
+def read(root: Path, chains: Sequence[str], profile: str = "guardptr",
+         model: str = long_compact.MODEL) -> dict[str, Any]:  # fmt: skip
     margin, floor = MARGINS[profile], MIN_COMMON[profile]
-    found = {c: line for c in chains if (line := long_compact.chain_line(root, c, PAIR))}
-    base = {c: root / "runs" / f"{c}-{long_compact.MODEL}" for c in found}
+    found = {c: line for c in chains if (line := long_compact.chain_line(root, c, PAIR, model))}
+    base = {c: root / "runs" / f"{c}-{model}" for c in found}
     held = {c: why for c in found if (why := paused(base[c]))}
     counted = {c: v for c, v in found.items() if c not in held and v["common_calls"] >= floor
                and v["ratio"] and v["pairs"]}  # fmt: skip
@@ -230,6 +236,60 @@ def read(root: Path, chains: Sequence[str], profile: str = "guardptr") -> dict[s
             "chains": lines}  # fmt: skip
 
 
+def _warn(text: str) -> None:
+    print(text, file=sys.stderr, flush=True)
+
+
+def graded_arms(lines: Sequence[str]) -> set[str]:
+    """The arms `long_compact.grade_common` graded, from its lines ("<chain> <arm>: graded ...")."""
+    return {line.split(":", 1)[0].rsplit(" ", 1)[-1] for line in lines}
+
+
+def grade_chain(root: Path, chain: str, known: Mapping[str, Any], model: str,
+                final: bool) -> tuple[int, bool]:  # fmt: skip
+    """(arms graded at the common call, whether the chain is whole but an arm was left
+    ungraded). Each arm not graded is said on stderr; a final grade alone does not count."""
+    base = root / "runs" / f"{chain}-{model}"
+    rows = [a for a in PAIR if (base / a / "row.json").exists()]
+    common = long_compact.grade_common(root, chain, known, PAIR, model)
+    lines = [*common, *(long_compact.grade_final(root, chain, known, PAIR, model) if final
+                        else [])]  # fmt: skip
+    for line in lines:
+        print(line, flush=True)
+    if len(common) >= len(PAIR):
+        return len(common), False
+    left = [a for a in PAIR if a not in graded_arms(common)]
+    if len(rows) < len(PAIR):
+        missing = [a for a in PAIR if a not in rows]
+        _warn(f"{chain} ({model}): not graded, no row for {'/'.join(missing)} under {base}")
+        return len(common), False
+    _warn(f"{chain} ({model}): {'/'.join(left)} not graded at a common call (none, or its "
+          "snapshot is missing)")  # fmt: skip
+    return len(common), True
+
+
+def grade(root: Path, chains: Sequence[str], models: Sequence[str], final: bool = False) -> int:
+    """Each chain's P and F graded at their common calls (and finally, with `final`; a final
+    grade alone is not a graded arm), under the runs of each of the profile's models
+    (`<chain>-<model>`). Exit 1 when nothing was graded at a common call (a wrong root or
+    profile, never a finished grade) or when a chain with both rows left an arm ungraded."""
+    import run
+
+    known = run.chains()
+    graded, short = 0, False
+    with long_compact.per_test_timeout(TEST_TIMEOUT):
+        for model in models:
+            for chain in chains:
+                count, left = grade_chain(root, chain, known, model, final)
+                graded, short = graded + count, short or left
+    if not graded:
+        where = ", ".join(str(root / "runs" / f"<chain>-{m}") for m in models)
+        _warn(f"nothing graded: no rows of {'/'.join(PAIR)} with a common call under {where} "
+              f"for {len(chains)} chain(s)")  # fmt: skip
+        return 1
+    return 1 if short else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     import long_run
 
@@ -241,21 +301,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--final", action="store_true", help="grade: also the final grade")
     args = parser.parse_args(argv)
     root = Path(args.root) if args.root else ROOTS[args.profile]
-    chains = list(long_run.PROFILES[args.profile].chains)
+    profile = long_run.PROFILES[args.profile]
+    chains = list(profile.chains)
     if args.action == "grade":
-        import run
-
-        known = run.chains()
-        with long_compact.per_test_timeout(TEST_TIMEOUT):
-            for chain in chains:
-                lines = long_compact.grade_common(root, chain, known, PAIR)
-                lines += long_compact.grade_final(root, chain, known, PAIR) if args.final else []
-                for line in lines:
-                    print(line, flush=True)
-        return 0
+        return grade(root, chains, profile.models, args.final)
     if args.profile not in MARGINS:
         parser.error(f"{args.profile} is graded, not read: it has no rule")
-    text = json.dumps(read(root, chains, args.profile), indent=1)
+    if len(profile.models) != 1:
+        parser.error(f"{args.profile} runs {profile.models}: a reading is of one model")
+    text = json.dumps(read(root, chains, args.profile, profile.models[0]), indent=1)
     print(text)
     if args.json:
         Path(args.json).write_text(text, encoding="utf-8", newline="\n")
