@@ -14,7 +14,10 @@ crash or reboot runs again whole (`handoff.run_plan`).
 - `--lot w17` runs W17's two memory lots instead (docs/results/2026-10-16-memory-w17/
   prereg.md): w17-sonnet then w17-opus, no gate, one cap of 45 USD over both
   (`handoff.LOTS`), no arm in the quiet hours; `--only <run>` runs one of them. Its
-  analysis is `handoff_pairs.analyse`.
+  analysis is `handoff_pairs.analyse`. Amendment 1 (the Opus redo): the quiet hours lift while
+  Windows Update is paused (`winupdate.quiet_lifted`), and a night, dry or live, refuses the
+  interrupted run's roots (`handoff.W17_INTERRUPTED`, exit 11), so the redo cannot mix with
+  them.
 
     python benchmarks/memory_carry/handoff_night.py --root C:\\sp-runs\\memory-f2 [--dry]
 """
@@ -83,6 +86,14 @@ def spent_before(root: Path, run: str, lot: str = "f2") -> float:
     return sum(handoff.ledger(root / r) for r in others)
 
 
+def interrupted_refusal(root: Path, lot: str) -> str:
+    """W17's redo (Amendment 1): why `root` or the lot's work folder is, or lies under, the
+    interrupted run's ("" when neither does; `handoff.interrupted_refusal`)."""
+    if lot != "w17":
+        return ""
+    return handoff.interrupted_refusal(root, Path(handoff.LOTS[lot]["work"]))
+
+
 def table(root: Path, run: str) -> None:
     out = root / run
     rows = handoff.rows_of(out)
@@ -121,6 +132,9 @@ def night(root: Path, dry: bool = False, work: Path | None = None, lot: str = "f
     sequence = tuple(r for r in spec["sequence"] if only in (None, r))
     if not sequence:
         raise SystemExit(f"{only} is not a run of the lot {lot}")
+    if why := interrupted_refusal(root, lot):  # dry or not, before anything is written there
+        print(f"refused: {why}; nothing run", flush=True)
+        return handoff_seal.SEALED_CHECKOUT_REFUSED
     root.mkdir(parents=True, exist_ok=True)
     if dry:
         for run in sequence:

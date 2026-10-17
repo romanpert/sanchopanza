@@ -37,7 +37,7 @@ LAUNCHERS: dict[str, tuple[set[str], set[str]]] = {
     ),
     "memlot-night-run.cmd": (
         {"benchmarks/memory_carry/handoff_night.py"},
-        {"C:\\sp-runs\\memory-w17"},
+        {"C:\\sp-runs\\memory-w17-redo"},
     ),
     "checkdone-w17-run.cmd": (
         {"benchmarks/jev114/checkdone_w17.py"},

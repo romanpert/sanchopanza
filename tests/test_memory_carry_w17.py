@@ -244,9 +244,13 @@ def fake_arm(results: list[Any]):
     return arm, calls
 
 
-def go(out: Path, arm_fn: Any, run: str = "w17-sonnet", clock: Any = lambda: NOON) -> str:
+def go(out: Path, arm_fn: Any, run: str = "w17-sonnet", clock: Any = lambda: NOON,
+       lifted: Any = lambda: "", restart: Any = lambda: "") -> str:  # fmt: skip
+    """`lifted` and `restart` stand in for the registry (no Windows Update pause and no pending
+    restart unless a test says so)."""
     return handoff.run_plan(out / "lot", run, out / "k", False, 100.0, None, clock,
-                            lambda s: None, arm_fn, work_root=out / "w")  # fmt: skip
+                            lambda s: None, arm_fn, work_root=out / "w",
+                            lifted=lifted, restart=restart)  # fmt: skip
 
 
 def test_the_lot_runs_whole_and_resumes(tmp_path: Path) -> None:
@@ -269,6 +273,128 @@ def test_no_arm_starts_that_would_run_into_the_quiet_hours(tmp_path: Path) -> No
     got = handoff.run_plan(tmp_path / "f2", "f2-pilot", tmp_path / "k", False, 100.0, None,
                            lambda: late, lambda s: None, f2, work_root=tmp_path / "w2")  # fmt: skip
     assert got == "" and len(f2_calls) == 12  # F2's night ran through its quiet hours
+
+
+def test_a_windows_update_pause_lifts_the_quiet_hours_and_the_log_says_so(
+    tmp_path: Path, capsys: Any
+) -> None:
+    """Amendment 1: asked before every arm that would reach 02:00-08:00; each lift is logged."""
+    late = dt.datetime(2026, 10, 17, 1, 55)
+    asked: list[int] = []
+
+    def paused() -> str:
+        asked.append(1)
+        return "Windows Update paused until 2026-10-24 01:10 UTC"
+
+    arm, calls = fake_arm([])
+    assert go(tmp_path / "a", arm, clock=lambda: late, lifted=paused) == "" and len(calls) == 96
+    assert len(asked) == 96
+    log = capsys.readouterr().out
+    assert log.count("quiet hours lifted for t") == 96 and "2026-10-24 01:10" in log
+    noon, noon_calls = fake_arm([])
+    assert go(tmp_path / "b", noon, lifted=paused) == "" and len(asked) == 96  # not asked at noon
+    ended = iter(["Windows Update paused until 2026-10-24 01:10 UTC", ""])
+    more, more_calls = fake_arm([])
+    assert go(tmp_path / "c", more, clock=lambda: late, lifted=lambda: next(ended)) == "quiet"
+    assert len(more_calls) == 1  # the pause ended: the rule is back before the next arm
+
+
+def test_a_pending_restart_keeps_the_quiet_hours_despite_a_pause(
+    tmp_path: Path, capsys: Any
+) -> None:
+    late = dt.datetime(2026, 10, 17, 1, 55)
+    paused = lambda: "Windows Update paused until 2026-10-24 01:10 UTC"  # noqa: E731
+    asked: list[int] = []
+
+    def pending() -> str:
+        asked.append(1)
+        return "RebootRequired"
+
+    arm, calls = fake_arm([])
+    assert go(tmp_path / "a", arm, clock=lambda: late, lifted=paused, restart=pending) == "quiet"
+    assert calls == [] and asked == [1]
+    assert "restart pending, RebootRequired" in capsys.readouterr().out
+    unpaused, _ = fake_arm([])
+    assert go(tmp_path / "b", unpaused, clock=lambda: late, restart=pending) == "quiet"
+    noon, noon_calls = fake_arm([])
+    assert go(tmp_path / "c", noon, restart=pending) == "" and len(noon_calls) == 96
+    assert asked == [1]  # asked only when a pause would lift the hours
+
+
+def test_the_real_readers_are_the_defaults_and_the_keys_are_the_guard_lot_s() -> None:
+    import inspect
+
+    params = inspect.signature(handoff.run_plan).parameters
+    assert params["lifted"].default is handoff.winupdate.quiet_lifted
+    assert params["restart"].default is handoff.restart_pending
+    base = "SOFTWARE/Microsoft/Windows/CurrentVersion/"
+    want = (base + "WindowsUpdate/Auto Update/RebootRequired",
+            base + "Component Based Servicing/RebootPending")  # fmt: skip
+    assert tuple(k.replace("\\", "/") for k in handoff.RESTART_KEYS) == want
+    assert isinstance(handoff.restart_pending(), str)
+
+
+def test_execute_refuses_the_interrupted_roots_and_their_subfolders(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
+    old_out, old_work = tmp_path / "old", tmp_path / "oldwork"
+    monkeypatch.setattr(handoff, "W17_INTERRUPTED", (old_out, old_work))
+    for out, work in ((old_out / "w17-opus", tmp_path / "w"), (tmp_path / "o", old_work / "r2"),
+                      (old_out, None)):  # fmt: skip
+        for dry in (True, False):
+            with pytest.raises(SystemExit) as stop:
+                handoff.execute("w17-opus", out, 33.0, dry=dry, work_root=work)
+            assert stop.value.code == hseal.SEALED_CHECKOUT_REFUSED
+    assert not old_out.exists() and not old_work.exists()
+    assert handoff.interrupted_refusal(tmp_path / "new", tmp_path / "w") == ""
+    assert "interrupted" in handoff.interrupted_refusal(old_work / "r2" / "t00-a")
+
+
+def test_the_redo_s_roots_are_new_and_the_interrupted_ones_refused(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
+    lot = handoff.LOTS["w17"]
+    old_out, old_work = handoff.W17_INTERRUPTED
+    assert lot["out"] == Path(r"C:\sp-runs\memory-w17-redo") and lot["out"] != old_out
+    assert lot["work"] == Path(r"C:\sp-runs\w19") and lot["work"] != old_work
+    for path in (lot["out"], lot["work"]):  # neither is inside the other run's folders
+        assert old_out not in path.parents and old_work not in path.parents
+    # the night refuses them (dry too) before it writes anything there: stand-ins, not the real
+    monkeypatch.setattr(handoff, "W17_INTERRUPTED", (tmp_path / "old", tmp_path / "oldwork"))
+    monkeypatch.setattr(hseal, "require_sealed_checkout", lambda lot="f2": None)
+    ran: list[Any] = []
+    monkeypatch.setattr(handoff, "execute", fake_execute(ran))
+    for dry in (False, True):
+        got = night.night(tmp_path / "old", dry=dry, lot="w17", only="w17-opus")
+        assert got == hseal.SEALED_CHECKOUT_REFUSED and not (tmp_path / "old").exists()
+    monkeypatch.setitem(handoff.LOTS["w17"], "work", tmp_path / "oldwork")
+    assert night.night(tmp_path / "new", lot="w17", only="w17-opus") == 11 and ran == []
+    assert night.interrupted_refusal(tmp_path / "old", "f2") == ""
+
+
+def test_the_redo_alone_in_its_new_root_has_the_sealed_run_cap(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
+    """No w17-sonnet ledger in the new root: min(33, 45 - 0) = 33 USD, the sealed run cap."""
+    ran: list[Any] = []
+    monkeypatch.setattr(hseal, "require_sealed_checkout", lambda lot="f2": None)
+    monkeypatch.setattr(handoff, "execute", fake_execute(ran))
+    assert night.spent_before(tmp_path, "w17-opus", "w17") == 0.0
+    assert night.night(tmp_path, lot="w17", only="w17-opus") == 0
+    assert ran == [("w17-opus", 33.0)]
+
+
+def test_the_redo_s_launcher_runs_only_opus_from_its_new_root() -> None:
+    text = (ROOT / "memlot-night-run.cmd").read_text(encoding="utf-8")
+    body = [x for x in text.splitlines() if not x.lstrip().lower().startswith("rem")]
+    sets = {x.split("=", 1)[0][4:]: x.split("=", 1)[1] for x in body if x.startswith("set ")}
+    assert sets["ROOT"] == r"C:\sp-runs\memory-w17-redo"
+    assert sets["ONLY"] == "--only w17-opus"
+    assert not [x for x in body if "w17-sonnet" in x or "memory-w17\\" in x]
+    runs = [x for x in body if "handoff_night.py" in x]
+    assert len(runs) == 2 and all("%ONLY%" in x for x in runs)
+    assert r'call "%ROOT%\keys-env.cmd"' in text and r'call "%ROOT%\python-env.cmd"' in text
+    assert 'if /i not "%~1"=="opus"' in text  # anything but opus or dry: exit 2
 
 
 def fake_execute(ran: list[Any]):
@@ -318,6 +444,8 @@ def test_the_lot_s_seal_names_its_own_prereg_launcher_and_modules() -> None:
         "benchmarks/memory_carry/handoff_pairs.py",
         "benchmarks/memory_carry/capped_sub.py",
         "tests/test_memory_carry_w17.py",
+        "tests/test_winupdate.py",
+        "tests/test_durable.py",
         "benchmarks/memory_carry/carry_hook.py",
         "benchmarks/memory_carry/carry_s.py",
     ):
