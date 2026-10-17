@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import dataclasses
+import gzip
 import importlib.util
 import os
 import subprocess
@@ -70,9 +71,19 @@ def _rows() -> list[dict]:
 
 def test_the_probes_ledger_cap_and_its_worst_overshoot_stay_within_the_owners_ten_cents():
     cap = jp.CAP_USD["probe"]
-    assert cap == 0.095 and jp.PROBE_IN_FLIGHT == br.CONCURRENCY == 4
-    worst = cap + jp.PROBE_IN_FLIGHT * jp.PROBE_MAX_BILL_USD
+    assert cap == 0.06 and jp.PROBE_IN_FLIGHT == br.CONCURRENCY == 4
+    worst = cap + jp.PROBE_IN_FLIGHT * jp.PROBE_MAX_BILL_USD + jp.PROBE_PREFLIGHT_USD
     assert worst <= jp.PROBE_HARD_CAP_USD == 0.10
+    assert worst == pytest.approx(0.0626, abs=5e-5)
+
+
+def test_the_cap_sits_above_the_plan_and_above_any_spend_that_already_decides_no():
+    probe_read = _probe_read()
+    assert pytest.approx(3 * probe_read.RULE_MEAN_USD) == probe_read.RULE_TOTAL_USD
+    # a cap stop leaves settled bills over the rule's total: the cap less one call's
+    # reservation and the reservations still open (4 in flight, each under 0.001)
+    assert jp.CAP_USD["probe"] - 5 * 0.001 > probe_read.RULE_TOTAL_USD
+    assert jp.CAP_USD["probe"] >= 0.0385 + 0.02  # the plan fits with margin
 
 
 def test_the_probes_constants_are_the_dev_and_the_dry_measurement_s():
@@ -101,7 +112,7 @@ def test_the_probes_room_check_takes_the_larger_of_the_corrected_stub_and_the_or
 
 def test_the_probe_is_its_own_lot_capped_under_ten_cents():
     probe, dev = jp.lot("probe"), jp.lot("dev")
-    assert probe.name == "longdoc-free-bm25-probe" and probe.cap_usd == 0.095
+    assert probe.name == "longdoc-free-bm25-probe" and probe.cap_usd == 0.06
     assert probe.prereg.name == "prereg-probe.md"
     assert probe.prereg.parent.name == "2026-10-17-lfree-bm25-dry"
     assert probe.fixture.name == "jev-probe.jsonl"
@@ -136,7 +147,7 @@ def test_the_dry_run_refuses_another_k_for_the_probe(monkeypatch):
     with pytest.raises(ValueError, match="fixed"):
         jp.dry("probe", _rows(), prefilter_k=100)
     got = jp.dry("probe", _rows())
-    assert got["prefilter_k"] == 200 and got["cap_usd"] == 0.095
+    assert got["prefilter_k"] == 200 and got["cap_usd"] == 0.06
 
 
 def test_the_probe_launches_once_and_never_again():
@@ -213,6 +224,36 @@ def test_the_rehearsal_records_every_call_under_the_cap_then_replays_free(rehear
         rehearsal()  # a second launch, whatever the first did
 
 
+def test_the_recording_is_read_gzipped_when_only_the_gz_is_there(rehearsal):
+    assert rehearsal() == 0
+    the_lot = jp.lot("probe")
+    plain = jp.replay("probe")
+    gz = the_lot.fixture.with_name(the_lot.fixture.name + ".gz")
+    assert jp.recording_path(the_lot) == the_lot.fixture  # the plain file first
+    with gzip.open(gz, "wb") as out:
+        out.write(the_lot.fixture.read_bytes())
+    the_lot.fixture.unlink()
+    assert jp.recording_path(the_lot) == gz
+    assert jp.replay("probe") == plain  # the same rows from the .gz
+    lines = _probe_read().recorded_lines(the_lot)
+    assert lines and all(x["model"] == jp.MODEL for x in lines)
+
+
+def test_the_recording_path_is_the_plain_file_when_neither_exists(tmp_path: Path):
+    the_lot = dataclasses.replace(jp.lot("probe"), fixture=tmp_path / "jev-probe.jsonl")
+    assert jp.recording_path(the_lot) == the_lot.fixture
+    assert jp.recorded(the_lot).decide is not None  # an empty recording, as paid_once's
+
+
+def test_a_first_launch_is_refused_when_only_a_gzipped_recording_exists(rehearsal):
+    the_lot = jp.lot("probe")
+    gz = the_lot.fixture.with_name(the_lot.fixture.name + ".gz")
+    with gzip.open(gz, "wt", encoding="utf-8") as out:
+        out.write('{"key": "k", "model": "jev-1.13.0", "answers": {}}\n')
+    with pytest.raises(SystemExit, match="holds answers"):
+        rehearsal(load_key=lambda: pytest.fail("the key was read"))
+
+
 def test_a_probe_is_refused_once_anything_was_spent_even_without_a_launch(rehearsal):
     the_lot = jp.lot("probe")
     ledger = jp.paid_once.ledger_of(the_lot)
@@ -240,8 +281,8 @@ def test_the_ledger_stops_the_probe_at_its_cap(rehearsal, monkeypatch):
 # ---- the reading -------------------------------------------------------------------------------
 
 
-def _q(usd: float) -> dict:
-    return {"real_usd": usd}
+def _q(usd: float, complete: bool = True) -> dict:
+    return {"real_usd": usd, "complete": complete}
 
 
 def _probe_read():
@@ -255,6 +296,36 @@ def test_the_sealed_rule_reads_the_mean_and_the_dearest_question():
     assert verdict([_q(0.016), _q(0.016), _q(0.016)], ran=True)["prepare_new_dev"] is False
     not_run = verdict([_q(0.001)] * 3, ran=False)
     assert not_run["prepare_new_dev"] is None and not_run["status"] == "not run"
+
+
+@pytest.mark.parametrize(("questions", "settled", "stop", "decided"), [
+    ([_q(0.001, False)] * 3, 0.059, "cap", True),       # the cap: over the rule's total
+    ([_q(0.001, False)] * 3, 0.0451, "funds", True),    # settled past 0.045, then a 402
+    ([_q(0.0311), _q(0.0, False), _q(0.0, False)], 0.0311, "failure", True),  # one over 0.031
+    # a question's bills only add up: past 0.031 before it completed, it is past 0.031
+    ([_q(0.0311, False), _q(0.0, False), _q(0.0, False)], 0.0311, "failure", True),
+    ([_q(0.031, False), _q(0.0, False), _q(0.0, False)], 0.031, "failure", False),
+    ([_q(0.010), _q(0.0, False), _q(0.0, False)], 0.010, "limit", False),
+    ([_q(0.0, False)] * 3, 0.0, "unfinished", False),
+])  # fmt: skip
+def test_a_stopped_probe_is_decided_by_spend_only_when_the_rule_already_says_no(
+    questions, settled, stop, decided
+):
+    got = _probe_read().probe_verdict(questions, ran=False, settled_usd=settled, stop_kind=stop)
+    if decided:
+        assert got["prepare_new_dev"] is False and got["status"] == "decided by spend"
+    else:
+        assert got["prepare_new_dev"] is None and got["status"] == "not run"
+
+
+def test_a_not_run_report_counts_only_answered_calls():
+    counting = dry.Counting(RecordedDecider([]), answered_only=True)
+    asker = dry.asker_over(None, counting)
+    dry.run(_rows()[:1], asker, 20)
+    assert asker.failed_keys and counting.by_row.get("0", {}).get("calls_triage_pages", 0) == 0
+    attempted = dry.Counting(RecordedDecider([]))
+    dry.run(_rows()[:1], dry.asker_over(None, attempted), 20)
+    assert attempted.by_row["0"]["calls_triage_pages"] > 0  # the dry measurement's default
 
 
 # ---- the launcher ------------------------------------------------------------------------------

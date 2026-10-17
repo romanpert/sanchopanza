@@ -7,9 +7,10 @@ Sealed in docs/results/2026-10-17-lfree-bm25-dry/prereg-probe.md. Per question o
 tournament, sentences, gate) and its real tournament calls, beside what the dry oracle predicted
 for the same question at the same K (`bm25_dry.Oracle` over the dev's recorded rounds). The rule:
 a new dev is worth preparing only if the questions' mean real Jev is at most RULE_MEAN_USD and
-none exceeds RULE_MAX_USD. The probe is "not run" when it has no launch, its launch did not end
-with every call answered (the cap, a 402, a 429, an outage, another model, a kill), or its
-recording does not answer every call of the replay.
+none exceeds RULE_MAX_USD. A probe whose launch did not end with every call answered (the cap,
+a 402, a 429, an outage, another model, one failed call, a kill), or whose recording does not
+answer every call of the replay, is "decided by spend" (a no) when its bills already say no
+(`probe_verdict`), else "not run". Calls are counted from the recording: recorded calls only.
 """
 
 from __future__ import annotations
@@ -42,16 +43,34 @@ from sanchopanza.providers.recorded import RecordedDecider  # noqa: E402
 
 RULE_MEAN_USD = 0.015
 RULE_MAX_USD = 0.031
+RULE_TOTAL_USD = 3 * RULE_MEAN_USD  # the mean over the 3 questions, as a total: 0.045
 
 
-def probe_verdict(questions: list[dict[str, Any]], *, ran: bool) -> dict[str, Any]:
-    """The sealed rule over each question's real Jev (`real_usd`)."""
-    if not ran:
-        return {"status": "not run", "prepare_new_dev": None}
-    spent = [q["real_usd"] for q in questions]
-    mean, dearest = statistics.fmean(spent), max(spent)
-    return {"status": "run", "mean_usd": round(mean, 4), "max_usd": round(dearest, 4),
-            "prepare_new_dev": mean <= RULE_MEAN_USD and dearest <= RULE_MAX_USD}  # fmt: skip
+def probe_verdict(
+    questions: list[dict[str, Any]],
+    *,
+    ran: bool,
+    settled_usd: float = 0.0,
+    stop_kind: str | None = None,
+) -> dict[str, Any]:
+    """The sealed rule over each question's real Jev (`real_usd`, unrounded). A probe that did
+    not run to the end is "decided by spend", a no, when what it already billed says no
+    whatever the rest would cost (bills only add up): it stopped at the cap, its recorded bills
+    (`settled_usd`) are past the 3 questions' 0.045, or one question's recorded bills are past
+    0.031. Any other stop is "not run"."""
+    if ran:
+        spent = [q["real_usd"] for q in questions]
+        mean, dearest = statistics.fmean(spent), max(spent)
+        return {"status": "run", "mean_usd": round(mean, 4), "max_usd": round(dearest, 4),
+                "prepare_new_dev": mean <= RULE_MEAN_USD and dearest <= RULE_MAX_USD}  # fmt: skip
+    over = [q for q in questions if q["real_usd"] > RULE_MAX_USD]
+    if stop_kind == "cap" or settled_usd > RULE_TOTAL_USD or over:
+        why = ("stopped at the cap" if stop_kind == "cap"
+               else f"{settled_usd:.4f} USD billed, past {RULE_TOTAL_USD:.3f}"
+               if settled_usd > RULE_TOTAL_USD
+               else f"a question billed past {RULE_MAX_USD}")  # fmt: skip
+        return {"status": "decided by spend", "why": why, "prepare_new_dev": False}
+    return {"status": "not run", "prepare_new_dev": None}
 
 
 def lines_of(path: pathlib.Path) -> list[dict[str, Any]]:
@@ -60,6 +79,12 @@ def lines_of(path: pathlib.Path) -> list[dict[str, Any]]:
     opener = gzip.open if path.suffix == ".gz" else open
     with opener(path, "rt", encoding="utf-8") as handle:
         return [json.loads(x) for x in handle if x.strip()]
+
+
+def recorded_lines(the_lot: Any) -> list[dict[str, Any]]:
+    """The lot's recorded lines from its model, from the plain file or its `.gz`."""
+    lines = lines_of(jp.recording_path(the_lot))
+    return [x for x in lines if the_lot.serves(str(x.get("model") or ""))]
 
 
 def launched_cleanly(the_lot: Any) -> tuple[bool, str]:
@@ -72,16 +97,22 @@ def launched_cleanly(the_lot: Any) -> tuple[bool, str]:
     return True, "every call answered"
 
 
+def stop_kind_of(the_lot: Any) -> str | None:
+    past = jp.paid_once.history(the_lot)
+    return past[-1].get("stop_kind") if past else "no launch"
+
+
 def read() -> dict[str, Any]:
     the_lot = jp.lot(jp.PROBE)
     rows = jp.load_rows(jp.PROBE)
-    lines = [x for x in lines_of(the_lot.fixture) if the_lot.serves(str(x.get("model") or ""))]
+    lines = recorded_lines(the_lot)
     costs = {str(x["key"]): float(x.get("cost_usd") or 0.0) for x in lines}
-    probe = dry.Counting(RecordedDecider(lines), costs)
+    probe = dry.Counting(RecordedDecider(lines), costs, answered_only=True)  # recorded calls
     asker = dry.asker_over(None, probe)
     dry.run(rows, asker, jp.PROBE_K)
     clean, why = launched_cleanly(the_lot)
     complete = not asker.failed_keys
+    settled = sum(costs.values())
 
     dev_lines = dry.recording()
     real_dev = dry.replay_real(rows, dev_lines)
@@ -94,6 +125,7 @@ def read() -> dict[str, Any]:
         got, predicted = probe.by_row.get(rid, {}), oracle.by_row[rid]
         questions.append({
             "id": row["id"],
+            "complete": rid not in asker.failed_ids,
             "real_tournament_calls": int(got.get("calls_triage_pages", 0)),
             "oracle_tournament_calls": int(predicted["calls_triage_pages"]),
             "real_sentence_calls": int(got.get("calls_select_sentences", 0)),
@@ -108,10 +140,13 @@ def read() -> dict[str, Any]:
         "ids": list(jp.PROBE_IDS),
         "launch": why,
         "recording_complete": complete,
+        "recorded_bills_usd": round(settled, 6),
         "ledger_spent_usd": round(jp.paid_once.spent(the_lot), 6),
         "cap_usd": the_lot.cap_usd,
         "questions": questions,
-        "verdict": probe_verdict(questions, ran=clean and complete),
+        "verdict": probe_verdict(
+            questions, ran=clean and complete, settled_usd=settled, stop_kind=stop_kind_of(the_lot)
+        ),  # fmt: skip
     }
 
 

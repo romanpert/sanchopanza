@@ -74,13 +74,20 @@ class Counting:
     """A decider passed through: per question and point, calls, estimate and recorded cost;
     for the tournament, each page's p in the order it was asked (its rounds)."""
 
-    def __init__(self, inner: Any, costs: dict[str, float] | None = None) -> None:
+    def __init__(
+        self, inner: Any, costs: dict[str, float] | None = None, *, answered_only: bool = False
+    ) -> None:
+        """`answered_only`: count only calls the inner decider answered (a replay's recorded
+        calls), not every call attempted."""
         self.inner, self.costs, self.name = inner, costs or {}, "counting"
+        self.answered_only = answered_only
         self.by_row: dict[str, dict[str, float]] = {}
         self.rounds: dict[tuple[str, str], list[float | None]] = {}
 
     async def decide(self, point: str, state: Any, qs: Any) -> Decision:
         decision = await self.inner.decide(point, state, qs)
+        if self.answered_only and not decision.answers:
+            return decision
         row = br.ROW.get()
         tally = self.by_row.setdefault(row, {})
         added = {

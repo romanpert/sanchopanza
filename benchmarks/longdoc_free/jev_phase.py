@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import gzip
 import importlib.util
 import json
 import pathlib
@@ -49,6 +50,7 @@ import paid_once  # noqa: E402
 
 from sanchopanza import _lockfile  # noqa: E402
 from sanchopanza.contract import Truth  # noqa: E402
+from sanchopanza.providers.recorded import RecordedDecider  # noqa: E402
 
 
 def _load(name: str, path: pathlib.Path) -> Any:
@@ -74,13 +76,17 @@ FIT_CHARS = 60_000  # about 20,000 tokens: under Jev's 32k a question, H's file
 # Dev 1.50 at the seal; 1.80 by amendment 1 (the owner, 2026-10-17, after the first launch met
 # the cap: real Jev made about 39 % more tournament calls than the dry run's stub). The lot's Jev:
 # 14.30.
-# The probe: the owner's hard 0.10 USD is the ledger's cap plus the most the calls in flight when
-# it bites can bill past their reservations, each less than its whole bill, at most the dev's
-# dearest call (a gate over the 60,000 kept characters, the largest input the probe sends).
+# The probe: the owner's hard 0.10 USD bounds the ledger's cap, plus the most the calls in flight
+# when it bites can bill past their reservations (each less than its whole bill, at most the
+# dev's dearest call: a gate over the 60,000 kept characters, the largest input the probe
+# sends), plus the preflight, which is outside the ledger. The cap itself is 0.06: past the
+# rule's 3 x 0.015 a stop at the cap already decides "no", so nothing more is worth paying for.
 PROBE_HARD_CAP_USD = 0.10
 PROBE_MAX_BILL_USD = 0.000645  # the dev's dearest billed call: 0.000644616
 PROBE_IN_FLIGHT = br.CONCURRENCY  # 4
-CAP_USD = {"dev": 1.80, "confirm": 12.50, "probe": 0.095}  # probe: 0.095 + 4 x 0.000645 = 0.0976
+PROBE_PREFLIGHT_USD = 13e-6  # `jev-preflight`: one short decision, not in the ledger
+# probe: 0.06 + 4 x 0.000645 + 0.000013 = 0.0626
+CAP_USD = {"dev": 1.80, "confirm": 12.50, "probe": 0.06}
 # Amendment 1: one more launch of the dev, only after its first launch, from the original seal,
 # stopped at the cap.
 ORIGINAL_DEV_SEAL = "6fd974705d223d7e3a0eeeb13a933da3459ea54e"
@@ -168,10 +174,24 @@ def may_launch(phase: str, past: list[dict[str, Any]]) -> bool:
             and past[0].get("head") == ORIGINAL_DEV_SEAL)  # fmt: skip
 
 
+def recording_path(the_lot: paid_once.Lot) -> pathlib.Path:
+    """The lot's recording: the plain file, else its committed `.gz`, else the plain path."""
+    gz = the_lot.fixture.with_name(the_lot.fixture.name + ".gz")
+    return gz if not the_lot.fixture.exists() and gz.exists() else the_lot.fixture
+
+
+def recorded(the_lot: paid_once.Lot) -> Any:
+    """`paid_once.recorded` over the plain file, unchanged; over the `.gz` the same lines."""
+    path = recording_path(the_lot)
+    if path == the_lot.fixture:
+        return paid_once.recorded(the_lot)
+    with gzip.open(path, "rt", encoding="utf-8") as handle:
+        lines = [json.loads(x) for x in handle if x.strip()]
+    return RecordedDecider([e for e in lines if the_lot.serves(str(e.get("model") or ""))])
+
+
 def lot_asker(phase: str, fallback: Any | None) -> br.Asker:
-    return br.Asker(
-        fallback, recorded=paid_once.recorded(lot(phase)), memo_failures=True, model_halts=True
-    )
+    return br.Asker(fallback, recorded=recorded(lot(phase)), memo_failures=True, model_halts=True)
 
 
 # ---- the questions ---------------------------------------------------------------------------
@@ -371,10 +391,9 @@ def paid(phase: str, launcher: pathlib.Path | None, *, load_key: Any = paid_once
         if phase == PROBE and paid_once.spent(the_lot) > 0:
             raise SystemExit(f"{the_lot.name}'s ledger has already spent: one launch only, "
                              "nothing spent")  # fmt: skip
-        if not past and the_lot.fixture.exists() and the_lot.fixture.stat().st_size:
-            raise SystemExit(
-                f"first launch, but {the_lot.fixture.name} holds answers: nothing spent"
-            )
+        held = recording_path(the_lot)
+        if not past and held.exists() and held.stat().st_size:
+            raise SystemExit(f"first launch, but {held.name} holds answers: nothing spent")
         load_key()
         start = {"event": "start", "phase": phase, "head": paid_once.head(), "instrument": commit,
                  "at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "plan": plan}  # fmt: skip
