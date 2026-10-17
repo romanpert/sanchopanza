@@ -129,7 +129,38 @@ LOTS: dict[str, dict[str, Any]] = {
 }  # fmt: skip
 W17_INTERRUPTED = (Path(r"C:\sp-runs\memory-w17"), Path(r"C:\sp-runs\w18"))  # 16 Oct: evidence
 QUIET = (dt.time(2, 0), dt.time(8, 0))  # no W17 arm runs, even in part, between these
-# ... unless Windows Update is paused at least winupdate.MARGIN past the check (Amendment 1).
+# ... unless Windows Update is paused at least winupdate.MARGIN past the check and no restart is
+# pending (Amendment 1). The keys are the guard-pointers lot's (`long_start.RESTART_KEYS`): that
+# module is not imported here (its `carry` is adopt's, not this folder's).
+_WINDOWS = r"SOFTWARE\Microsoft\Windows\CurrentVersion"
+RESTART_KEYS = (_WINDOWS + r"\WindowsUpdate\Auto Update\RebootRequired",
+                _WINDOWS + r"\Component Based Servicing\RebootPending")  # fmt: skip
+
+
+def restart_pending() -> str:
+    """The first of `RESTART_KEYS` present under HKLM ("" when none, or off Windows)."""
+    try:
+        import winreg
+    except ImportError:
+        return ""
+    for key in RESTART_KEYS:
+        try:
+            winreg.CloseKey(winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key))
+        except OSError:
+            continue
+        return key.rsplit("\\", 1)[-1]
+    return ""
+
+
+def interrupted_refusal(*paths: Path) -> str:
+    """W17's redo (Amendment 1): why one of `paths` is, or lies under, the interrupted run's root
+    or work folder ("" when none does). Those folders are evidence: never resumed, set aside,
+    charged or written."""
+    for path in paths:
+        for old in W17_INTERRUPTED:
+            if path.resolve().is_relative_to(old.resolve()):
+                return f"{path} is in the interrupted run's {old}; the redo uses its own"
+    return ""
 
 
 def lot_of(run: str) -> str:
@@ -639,12 +670,13 @@ def run_plan(out: Path, run: str, keyfile: Path, dry: bool, cap: float, night: P
              sleep: Callable[[float], Any] = time.sleep,
              arm_fn: Callable[..., dict[str, Any]] = arm_run,
              work_root: Path | None = None,
-             lifted: Callable[[], str] = winupdate.quiet_lifted) -> str:  # fmt: skip
+             lifted: Callable[[], str] = winupdate.quiet_lifted,
+             restart: Callable[[], str] = restart_pending) -> str:  # fmt: skip
     """Runs what is left of `run`; returns why it stopped ("cap", "limit", "harness", "manual",
     "broken", "quiet") or "" at its end. LIMIT.flag goes to `night` (the root) or else `out`.
     A lot with quiet hours starts no arm that would run into them ("quiet", resumable), unless
-    `lifted` gives a reason (W17 Amendment 1: Windows Update paused well past the check),
-    which the log records before that arm."""
+    `lifted` gives a reason (W17 Amendment 1: Windows Update paused well past the check) and
+    `restart` finds no restart pending; the log records each lift before that arm."""
     work_root = work_root or work_of(run)
     plan, arms = build_plan(run), arms_of(run)
     quiet = bool(LOTS[lot_of(run)]["quiet"])
@@ -680,9 +712,12 @@ def run_plan(out: Path, run: str, keyfile: Path, dry: bool, cap: float, night: P
         if not dry and not wait_for_day(expected, clock, sleep, lambda: stop_file(out, night)):
             return "manual"
         if not dry and quiet and in_quiet_hours(expected, clock()):
-            if not (why := lifted()):
-                print(f"stop: quiet hours {QUIET[0]:%H:%M}-{QUIET[1]:%H:%M}; run it again after",
-                      flush=True)  # fmt: skip
+            why = lifted()
+            pending = restart() if why else ""
+            if not why or pending:
+                held = f" (not lifted: Windows has a restart pending, {pending})" if pending else ""
+                print(f"stop: quiet hours {QUIET[0]:%H:%M}-{QUIET[1]:%H:%M}; run it again after"
+                      + held, flush=True)  # fmt: skip
                 return "quiet"
             print(f"quiet hours lifted for {work.name}: {why} (amendment 1)", flush=True)
         try:
@@ -735,9 +770,12 @@ def execute(run: str, out: Path, cap: float, dry: bool = False, night: Path | No
     its Jev cap beside the key (`carry_hook.CAP_FILE`): every hook's decider then goes through
     `CappedDecider` on that run's own ledger (`capped_sub.py`)."""
     work_root = work_root or (out / "work" if dry else work_of(run))
+    lot = lot_of(run)
+    if lot == "w17" and (why := interrupted_refusal(out, work_root)):  # before any write there
+        print(f"refused: {why}; nothing run", flush=True)
+        raise SystemExit(handoff_seal.SEALED_CHECKOUT_REFUSED)
     keyfile = work_root / "typesafe.key"
     keyfile.unlink(missing_ok=True)  # one left by a crash is never reused
-    lot = lot_of(run)
     if not dry:
         handoff_seal.require_sealed_checkout(*([] if lot == "f2" else [lot]))
         carry.refuse_unclean(out)

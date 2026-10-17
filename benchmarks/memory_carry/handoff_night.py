@@ -87,16 +87,11 @@ def spent_before(root: Path, run: str, lot: str = "f2") -> float:
 
 
 def interrupted_refusal(root: Path, lot: str) -> str:
-    """W17's redo (Amendment 1): why `root` or the lot's work folder is the interrupted run's
-    ("" when neither is). Those folders are evidence, never resumed, set aside or charged."""
+    """W17's redo (Amendment 1): why `root` or the lot's work folder is, or lies under, the
+    interrupted run's ("" when neither does; `handoff.interrupted_refusal`)."""
     if lot != "w17":
         return ""
-    old_out, old_work = (p.resolve() for p in handoff.W17_INTERRUPTED)
-    if root.resolve() == old_out:
-        return f"{root} is the interrupted run's root; the redo uses its own"
-    if Path(handoff.LOTS[lot]["work"]).resolve() == old_work:
-        return f"{old_work} is the interrupted run's work folder; the redo uses its own"
-    return ""
+    return handoff.interrupted_refusal(root, Path(handoff.LOTS[lot]["work"]))
 
 
 def table(root: Path, run: str) -> None:

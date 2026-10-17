@@ -245,11 +245,12 @@ def fake_arm(results: list[Any]):
 
 
 def go(out: Path, arm_fn: Any, run: str = "w17-sonnet", clock: Any = lambda: NOON,
-       lifted: Any = lambda: "") -> str:  # fmt: skip
-    """`lifted` stands in for the registry (no Windows Update pause unless a test says so)."""
+       lifted: Any = lambda: "", restart: Any = lambda: "") -> str:  # fmt: skip
+    """`lifted` and `restart` stand in for the registry (no Windows Update pause and no pending
+    restart unless a test says so)."""
     return handoff.run_plan(out / "lot", run, out / "k", False, 100.0, None, clock,
                             lambda s: None, arm_fn, work_root=out / "w",
-                            lifted=lifted)  # fmt: skip
+                            lifted=lifted, restart=restart)  # fmt: skip
 
 
 def test_the_lot_runs_whole_and_resumes(tmp_path: Path) -> None:
@@ -298,11 +299,55 @@ def test_a_windows_update_pause_lifts_the_quiet_hours_and_the_log_says_so(
     assert len(more_calls) == 1  # the pause ended: the rule is back before the next arm
 
 
-def test_the_real_pause_reader_is_the_default() -> None:
+def test_a_pending_restart_keeps_the_quiet_hours_despite_a_pause(
+    tmp_path: Path, capsys: Any
+) -> None:
+    late = dt.datetime(2026, 10, 17, 1, 55)
+    paused = lambda: "Windows Update paused until 2026-10-24 01:10 UTC"  # noqa: E731
+    asked: list[int] = []
+
+    def pending() -> str:
+        asked.append(1)
+        return "RebootRequired"
+
+    arm, calls = fake_arm([])
+    assert go(tmp_path / "a", arm, clock=lambda: late, lifted=paused, restart=pending) == "quiet"
+    assert calls == [] and asked == [1]
+    assert "restart pending, RebootRequired" in capsys.readouterr().out
+    unpaused, _ = fake_arm([])
+    assert go(tmp_path / "b", unpaused, clock=lambda: late, restart=pending) == "quiet"
+    noon, noon_calls = fake_arm([])
+    assert go(tmp_path / "c", noon, restart=pending) == "" and len(noon_calls) == 96
+    assert asked == [1]  # asked only when a pause would lift the hours
+
+
+def test_the_real_readers_are_the_defaults_and_the_keys_are_the_guard_lot_s() -> None:
     import inspect
 
-    default = inspect.signature(handoff.run_plan).parameters["lifted"].default
-    assert default is handoff.winupdate.quiet_lifted
+    params = inspect.signature(handoff.run_plan).parameters
+    assert params["lifted"].default is handoff.winupdate.quiet_lifted
+    assert params["restart"].default is handoff.restart_pending
+    base = "SOFTWARE/Microsoft/Windows/CurrentVersion/"
+    want = (base + "WindowsUpdate/Auto Update/RebootRequired",
+            base + "Component Based Servicing/RebootPending")  # fmt: skip
+    assert tuple(k.replace("\\", "/") for k in handoff.RESTART_KEYS) == want
+    assert isinstance(handoff.restart_pending(), str)
+
+
+def test_execute_refuses_the_interrupted_roots_and_their_subfolders(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
+    old_out, old_work = tmp_path / "old", tmp_path / "oldwork"
+    monkeypatch.setattr(handoff, "W17_INTERRUPTED", (old_out, old_work))
+    for out, work in ((old_out / "w17-opus", tmp_path / "w"), (tmp_path / "o", old_work / "r2"),
+                      (old_out, None)):  # fmt: skip
+        for dry in (True, False):
+            with pytest.raises(SystemExit) as stop:
+                handoff.execute("w17-opus", out, 33.0, dry=dry, work_root=work)
+            assert stop.value.code == hseal.SEALED_CHECKOUT_REFUSED
+    assert not old_out.exists() and not old_work.exists()
+    assert handoff.interrupted_refusal(tmp_path / "new", tmp_path / "w") == ""
+    assert "interrupted" in handoff.interrupted_refusal(old_work / "r2" / "t00-a")
 
 
 def test_the_redo_s_roots_are_new_and_the_interrupted_ones_refused(
@@ -399,6 +444,8 @@ def test_the_lot_s_seal_names_its_own_prereg_launcher_and_modules() -> None:
         "benchmarks/memory_carry/handoff_pairs.py",
         "benchmarks/memory_carry/capped_sub.py",
         "tests/test_memory_carry_w17.py",
+        "tests/test_winupdate.py",
+        "tests/test_durable.py",
         "benchmarks/memory_carry/carry_hook.py",
         "benchmarks/memory_carry/carry_s.py",
     ):

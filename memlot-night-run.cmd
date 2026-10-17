@@ -14,7 +14,8 @@ rem   memlot-night-run.cmd opus      only w17-opus (the redo)
 rem   memlot-night-run.cmd dry       builds every arm of w17-opus under %ROOT%\dry, calls nothing
 rem Run it again to resume (after a crash, a reboot or a removed LIMIT.flag): recorded arms are
 rem kept. No arm starts that would run into 02:00-08:00 (exit 8) unless Windows Update is paused
-rem at least 24 h past that arm's check (winupdate.quiet_lifted; the log says so). Stop between
+rem at least 24 h past that arm's check and no restart is pending (winupdate.quiet_lifted,
+rem handoff.restart_pending; the log says so). Launch by day, 08:00-21:30. Stop between
 rem arms: a STOP file in the root. Now: Get-CimInstance Win32_Process by command line, then
 rem Stop-Process -Id (never by name).
 rem The token and the TypeSafe key are read by carry.py from the file SANCHOPANZA_KEYS_ENV names
