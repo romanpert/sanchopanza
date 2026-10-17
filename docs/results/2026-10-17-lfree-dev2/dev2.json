@@ -1,0 +1,188 @@
+{
+ "status": "run",
+ "questions": 41,
+ "complete": 41,
+ "missing": 0,
+ "coverage_by_cut": {
+  "0.5": 0.805,
+  "0.6": 0.78,
+  "0.7": 0.585,
+  "0.8": 0.268,
+  "0.9": 0.024
+ },
+ "gold_in_kept": 18,
+ "cut": null,
+ "money": {
+  "H": {
+   "sessions": 41,
+   "mean_usd": 0.0285,
+   "p95_usd": 0.0537,
+   "max_usd": 0.063,
+   "hit_cap": 0
+  },
+  "H0": {
+   "sessions": 41,
+   "mean_usd": 0.0792,
+   "p95_usd": 0.2276,
+   "max_usd": 0.2519,
+   "hit_cap": 0
+  },
+  "HC": {
+   "sessions": 41,
+   "mean_usd": 0.0177,
+   "p95_usd": 0.0183,
+   "max_usd": 0.0198,
+   "hit_cap": 0
+  },
+  "N": {
+   "sessions": 41,
+   "mean_usd": 0.0664,
+   "p95_usd": 0.12,
+   "max_usd": 0.1724,
+   "hit_cap": 0
+  }
+ },
+ "jev": {
+  "spent_usd": 0.4338,
+  "pessimistic_usd": 0.492,
+  "settled_over_pessimistic": 0.8818
+ },
+ "answers": {
+  "H": {
+   "median_words": 4,
+   "answer_line_share": 1.0,
+   "no_answer": 0,
+   "mean_f1": 37.54,
+   "mean_f1_short": 37.33
+  },
+  "H0": {
+   "median_words": 3,
+   "answer_line_share": 1.0,
+   "no_answer": 0,
+   "mean_f1": 45.06,
+   "mean_f1_short": 45.23
+  },
+  "HC": {
+   "median_words": 7,
+   "answer_line_share": 1.0,
+   "no_answer": 0,
+   "mean_f1": 0.97,
+   "mean_f1_short": 0.97
+  },
+  "N": {
+   "median_words": 3,
+   "answer_line_share": 1.0,
+   "no_answer": 0,
+   "mean_f1": 56.26,
+   "mean_f1_short": 56.25
+  }
+ },
+ "confirm_money": {
+  "sonnet_ceiling": 42.02,
+  "haiku_ceiling": 19.11,
+  "jev_cap": 12.224372978,
+  "jev_expected": 2.77,
+  "jev_fits": true,
+  "claude_with_dev": 73.31,
+  "fits": true
+ },
+ "memory_answers": false,
+ "n_needed": null,
+ "seal_confirmation": false,
+ "why": "no cut meets the dev rule: the router is not confirmed",
+ "confirm_money_with_h0": {
+  "sonnet_ceiling": 42.02,
+  "haiku_ceiling": 89.66,
+  "jev_cap": 12.224372978,
+  "jev_expected": 2.77,
+  "jev_fits": true,
+  "claude_with_dev": 143.87,
+  "fits": false
+ },
+ "by_cut": {
+  "0.5": {
+   "coverage": 0.805,
+   "covered": 33,
+   "covered_h_minus_n": -13.24,
+   "router_minus_n": -10.66,
+   "saving": 0.2519
+  },
+  "0.6": {
+   "coverage": 0.78,
+   "covered": 32,
+   "covered_h_minus_n": -11.57,
+   "router_minus_n": -9.03,
+   "saving": 0.2431
+  },
+  "0.7": {
+   "coverage": 0.585,
+   "covered": 24,
+   "covered_h_minus_n": -9.24,
+   "router_minus_n": -5.41,
+   "saving": 0.0782
+  },
+  "0.8": {
+   "coverage": 0.268,
+   "covered": 11,
+   "covered_h_minus_n": -14.69,
+   "router_minus_n": -3.94,
+   "saving": -0.049
+  },
+  "0.9": {
+   "coverage": 0.024,
+   "covered": 1,
+   "covered_h_minus_n": 0.0,
+   "router_minus_n": 0.0,
+   "saving": -0.1428
+  }
+ },
+ "at_cut": null,
+ "expected_confirm_usd": {
+  "claude_without_h0": 29.42,
+  "claude_with_h0": 53.97,
+  "jev": 3.28
+ },
+ "n_rerun": {
+  "questions": 41,
+  "n_dev2_minus_n_dev": {
+   "estimate": 1.23,
+   "low": -2.91,
+   "high": 5.35,
+   "clusters": 8
+  },
+  "sd_points": 18.15,
+  "moved": 17,
+  "usd_dev": 2.8414,
+  "usd_dev2": 2.7225
+ },
+ "vs_dev": {
+  "h_mean_f1_dev": 44.56,
+  "h_mean_f1_dev2": 37.54,
+  "jev_a_question_dev2": 0.0106
+ },
+ "session_dates": {
+  "S2": [
+   "2026-10-17"
+  ],
+  "D2N": [
+   "2026-10-17"
+  ],
+  "D2H": [
+   "2026-10-17"
+  ]
+ },
+ "n_and_h_same_day": true,
+ "jev_by_question": {
+  "questions": 41,
+  "complete": true,
+  "mean_usd": 0.0106,
+  "p90_usd": 0.0151,
+  "max_usd": 0.0192
+ },
+ "jev_ledgers_usd": {
+  "dev": 1.607213,
+  "probe": 0.034602,
+  "dev2": 0.433811
+ },
+ "claude_spent_usd": 12.1847
+}
