@@ -106,7 +106,11 @@ dev's largest sentence stage, 182 calls, 0.014). Against the dev's substitution 
 quality-safe alternative at 0.014-0.024. Nothing here says the router's F1 holds: the gate's p
 and the coverage would move with the passages.
 
-## The probe it would take (not run; the owner's decision)
+## The probe it would take (not run)
+
+Approved by the owner on 2026-10-17 as proposed below; its pre-registration is
+`prereg-probe.md`, to be sealed after an independent review.
+
 
 - **What:** Jev only, `select_passages` and the gate at K = 200 on 3 dev questions, chosen to
   span the predicted cost: id 0 (oracle 0.0199 USD, the dearest), id 375 (0.0111, the median,
@@ -115,8 +119,8 @@ and the coverage would move with the passages.
 - **Cost:** expected 0.037 USD (the oracle), 0.055 with 1.5 times; the ceiling of three
   questions is 0.094.
 - **Hard cap: 0.10 USD** in its own `paid_once` lot (ledger, recording, sealed prereg), behind
-  `jev-preflight`. It needs a new lot and a `paid` path that takes the prefilter: the dry run
-  is the only path that takes it today, on purpose.
+  `jev-preflight`: phase `probe` of `jev_phase.py`, its ids and K fixed in code, the only paid
+  path that takes the prefilter.
 - **Rule to seal before it runs:** a new dev is worth preparing only if the 3 questions' mean
   real Jev is at most 0.015 USD and none exceeds 0.031; real tournament calls against the
   oracle's are reported per question.
@@ -124,5 +128,5 @@ and the coverage would move with the passages.
 ## Files
 
 `bm25-dry.json` (every number above; per question: ids, novel keys, page and call counts,
-costs; no question, answer or novel text). Code: `benchmarks/longdoc_free/bm25_dry.py`,
+costs; no question, answer or novel text), `prereg-probe.md` (the probe's registration). Code: `benchmarks/longdoc_free/bm25_dry.py`,
 `pages.bm25_shortlist`, `jev_phase.ask(prefilter_k=...)`.
