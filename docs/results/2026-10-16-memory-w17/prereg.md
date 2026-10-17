@@ -473,7 +473,9 @@ scenario (26.2). Expected at list price: **22.8 USD** (36 x 0.633).
 - **Worst case for the lot, with the redo at its cap: 11.18 + ~7.2 + 33.00 = about 51.4 USD**
   (about 51.8 with Jev's possible 0.40 past the run cap), above the 45 USD sealed for the lot.
 
-Owner's approval: <PENDIENTE>
+Owner's approval: given on 2026-10-17 at about 08:55, asked in session, before any of the
+redo's data: the redo's hard cap of 33.00 USD (33.40 with Jev), expected about 23 USD, and
+the lot's worst case of about 51.8 USD, above the sealed 45.
 
 **Seal and launch.** As "Seal" and "Running it", with the new roots: the instrument is the commit
 that last changes this section; `handoff.py --seal --lot w17` in a clean checkout of it writes
