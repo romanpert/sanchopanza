@@ -1,0 +1,51 @@
+{
+ "k": 200,
+ "ids": [
+  0,
+  7,
+  375
+ ],
+ "launch": "every call answered",
+ "recording_complete": true,
+ "recorded_bills_usd": 0.034602,
+ "ledger_spent_usd": 0.034602,
+ "cap_usd": 0.06,
+ "questions": [
+  {
+   "id": 0,
+   "complete": true,
+   "real_tournament_calls": 27,
+   "oracle_tournament_calls": 24,
+   "real_sentence_calls": 69,
+   "real_usd": 0.020279364,
+   "oracle_usd": 0.019782,
+   "dev_full_novel_usd": 0.041278
+  },
+  {
+   "id": 7,
+   "complete": true,
+   "real_tournament_calls": 7,
+   "oracle_tournament_calls": 9,
+   "real_sentence_calls": 8,
+   "real_usd": 0.0045220980000000004,
+   "oracle_usd": 0.005612,
+   "dev_full_novel_usd": 0.069976
+  },
+  {
+   "id": 375,
+   "complete": true,
+   "real_tournament_calls": 18,
+   "oracle_tournament_calls": 21,
+   "real_sentence_calls": 11,
+   "real_usd": 0.009800952000000002,
+   "oracle_usd": 0.011142,
+   "dev_full_novel_usd": 0.068364
+  }
+ ],
+ "verdict": {
+  "status": "run",
+  "mean_usd": 0.0115,
+  "max_usd": 0.0203,
+  "prepare_new_dev": true
+ }
+}

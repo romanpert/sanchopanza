@@ -10,6 +10,10 @@ Kept text: `select_passages` returns, per page, None (not sent on) or one `(keep
 sentence of `text.split_sentences(page)`. The kept sentences are joined in the novel's order,
 a page's with spaces, pages apart with a blank line, and GAP between pages that are not next to
 each other. Pure: no model.
+
+Prefilter (opt-in; no sealed run used it): `bm25_shortlist` keeps the K pages BM25 scores best
+for the question, so only those enter Jev's page tournament; `spread` puts the tournament's
+entries back among the whole novel's pages (None for every page left out).
 """
 
 from __future__ import annotations
@@ -18,7 +22,7 @@ import re
 from collections.abc import Sequence
 
 from sanchopanza.points.chunks import PAGE_LIMIT
-from sanchopanza.text import split_sentences
+from sanchopanza.text import BM25Index, split_sentences
 
 PAGE_CHARS = PAGE_LIMIT  # 900
 GAP = "[...]"
@@ -66,6 +70,29 @@ def pages_of(text: str, limit: int = PAGE_CHARS) -> list[Page]:
     if current:
         pages.append(current)
     return [(str(i + 1), page) for i, page in enumerate(pages)]
+
+
+def bm25_shortlist(pages: Sequence[Page], question: str, k: int) -> list[int]:
+    """The free prefilter (opt-in, off in every sealed run): the indices of the `k` pages BM25
+    (`text.BM25Index`, the package's one) scores best for `question`, ties by position, returned
+    in the novel's order. Every page when `k` covers them."""
+    if k < 1:
+        raise ValueError("k must be >= 1")
+    if k >= len(pages):
+        return list(range(len(pages)))
+    scores = BM25Index([page for _, page in pages]).scores(question)
+    best = sorted(range(len(pages)), key=lambda i: (-scores[i], i))[:k]
+    return sorted(best)
+
+
+def spread(entries: Sequence[Entry], shortlist: Sequence[int], n: int) -> list[Entry]:
+    """A shortlist's entries back at their pages' places among `n`, None everywhere else."""
+    if len(entries) != len(shortlist):
+        raise ValueError(f"{len(entries)} entries for a shortlist of {len(shortlist)}")
+    out: list[Entry] = [None] * n
+    for index, entry in zip(shortlist, entries, strict=True):
+        out[index] = entry
+    return out
 
 
 def kept_text(pages: Sequence[Page], entries: Sequence[Entry]) -> str:
