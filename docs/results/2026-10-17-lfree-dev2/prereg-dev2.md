@@ -1,6 +1,6 @@
 # longdoc-free, dev2: the router with the BM25 prefilter before Jev, pre-registration
 
-Instrument commit: `e0e46233a12d0fbfe83a9458066b1f10345f5c8a`
+Instrument commit: `32d40c7892a99b5f665db8ba264f12f52591c12d`
 
 Written 2026-10-17, before any call of dev2. **Not sealed**: an independent review
 (`revisor-prereg`) goes first; until `prereg-dev2.sha256` exists this file may change and
@@ -8,7 +8,9 @@ nothing may be spent. The owner approved preparing a new dev with the prefilter 
 after the probe's sealed rule said it was worth preparing (`../2026-10-17-lfree-bm25-dry/`),
 within the lot's approvals: Claude, **what has really been spent plus the caps of what is left
 never exceeds 105 USD** (8.196 spent, the dev's smoke, N and Haiku arms); Jev, **14.30 USD for
-the lot** (1.6072 spent by the dev, 0.0346 by the probe).
+the lot** (1.6072 spent by the dev, 0.0346 by the probe). On a first draft that reused the
+dev's N, the owner chose on 2026-10-17 to **run N again** in dev2 and to keep reusing only H0
+and HC.
 
 This dev2 has its own folder, not the dev's: the dev's folder holds a sealed, read and published
 phase (`../2026-10-16-longdoc-free/`), and dev2 is another instrument (the prefilter), another
@@ -106,65 +108,76 @@ outage, another model, three failures, one isolated failure, a kill), the launch
 dev2 is reported as not run, with what was spent. There is no relaunch. The owner accepted this
 risk with the one-launch design of the probe; it is the same here.
 
-## 4. Phase H2: Claude Code, H alone (paid, the subscription)
+## 4. The Claude Code phases (paid, the subscription): smoke, N, then H
 
-- **Stage dev2** of `benchmarks/h2h/h2h_lfree.py`, one phase `D2H` (`lfree-dev2-haiku`): **H
-  only**, Haiku 4.5 (`claude-haiku-4-5-20251001`) in clean Claude Code 2.1.287 (the pinned copy
-  first on PATH, `DISABLE_AUTOUPDATER=1`), a clean user and an empty `CLAUDE_CONFIG_DIR` per
-  session, the web taken away, the local hook, the same tools, the dev's prompt and answer rule;
-  `document.txt` is phase J2's kept passages. The 41 dev questions in the dev's seeded order
-  (`random.Random(20261018)`).
-- **Money:** session cap 1.50 (the dev's for Haiku), ceiling **5.00**, worst turn 2.16, floor
-  0.30 (`cap_for`, lb162x's rule). The room before a stop, 5.00 − 2.16 − 0.30 = 2.54, holds 41
-  sessions at the dev H's 95th percentile (0.0534 USD, above 1.5 times its mean 0.0313): 2.19
-  (a test). **At most 5.00 USD**, expected about 1.3 (the dev's H; the passages are shorter).
-- **No smoke.** The dev's smoke tested the Sonnet path; this phase is the dev's Haiku arm with
-  another file, on the same pinned Claude Code, and the dev's 123 Haiku sessions were all served
-  by Haiku, none at its cap. The guard still stops the phase on an outage, three infrastructure
-  failures in a row or a session another model served (lb162x_guard).
+**Stage dev2** of `benchmarks/h2h/h2h_lfree.py`, the dev's design: one phase per model, run in
+the dev's order (its smoke, then Sonnet's phase, then Haiku's), not N and H interleaved per
+question, because the dev ran them that way and each model phase reserves its own worst turn.
+Every session is one headless Claude Code 2.1.287 session (the pinned copy first on PATH,
+`DISABLE_AUTOUPDATER=1`), a clean user and an empty `CLAUDE_CONFIG_DIR`, the web taken away, the
+local hook, the same tools, the dev's prompt and answer rule. The 41 dev questions in the dev's
+seeded order (`random.Random(20261018)`).
+
+| Phase | Sessions | Arm, model, `document.txt` | Session cap | Ceiling | Worst turn | Floor | Most |
+|---|---|---|---|---|---|---|---|
+| `S2` smoke (`lfree-dev2-smoke`) | 1 | N on the first dev question (the dev's smoke question) | 0.80 | 0.80 | 4.32 | 0.80 | **5.12** |
+| `D2N` (`lfree-dev2-sonnet`) | 41 | N: Sonnet 5.5 (`claude-sonnet-5-5`), the whole novel | 3.00 | 12.00 | 4.32 | 0.50 | **12.00** |
+| `D2H` (`lfree-dev2-haiku`) | 41 | H: Haiku 4.5 (`claude-haiku-4-5-20251001`), phase J2's kept passages | 1.50 | 5.00 | 2.16 | 0.30 | **5.00** |
+
+- **Money** (lb162x's rule, `cap_for`: a session gets its cap while cap plus one worst turn fits
+  under the phase's ceiling; below the floor the phase stops, kind `ceiling`). The smoke and N
+  have the dev's exact caps and ceilings. Each ceiling holds its 41 sessions at the larger of
+  1.5 times the dev's measured mean and its 95th percentile, after one worst turn and the floor
+  (tests): N 12.00 − 4.32 − 0.50 = 7.18 against 41 x 0.1307 = 5.36; H 5.00 − 2.16 − 0.30 = 2.54
+  against 41 x 0.0534 = 2.19. The smoke's cap reserves no worst turn, so its most is 0.80 +
+  4.32. **At most 22.12 USD**; expected about 4.2 (the dev's smoke 0.10, N 41 x 0.0693 = 2.84,
+  H 41 x 0.0313 = 1.28; the passages are shorter than the dev's).
+- **The smoke** must pass (a Sonnet session above 0 USD that ended with an answer or at its cap)
+  before phase N starts; a failed smoke stops the stage (`smoke`). Its `usd_by_model` is read
+  by hand for a subagent on another model, as in the dev.
 - **Refusals before any session** (`refusal("dev2")`): the seal (`prereg-dev2.sha256`); the
-  instrument (`src`, `benchmarks`, `ids.json` and the reused rows) unchanged since its commit;
-  the pinned input; the seal commit itself, detached and clean; the pinned `claude` first on
-  PATH; the dev novels present and equal to their keys; **every dev question's dev2 passages
-  present and as long as `jev-dev2.jsonl` says** (written only by a complete phase J2);
-  `launch.ps1` taking the runner; no `LIMIT.flag`; not before 08:00, and the phase refused when
-  its sessions (41 x 45 s x 1.5 + 600 s, about 56 minutes) would cross midnight.
+  instrument (`src`, `benchmarks`, `ids.json` and the dev rows it reads) unchanged since its
+  commit; the pinned input; the seal commit itself, detached and clean; the pinned `claude`
+  first on PATH; the dev novels present and equal to their keys; **every dev question's dev2
+  passages present and as long as `jev-dev2.jsonl` says** (written only by a complete phase
+  J2; so no Claude session, N's included, runs without a complete J2); `launch.ps1` taking the
+  runner; no `LIMIT.flag`; not before 08:00.
+- **Midnight:** the start budgets every session left at the slowest phase's mean (60 s) times
+  1.5, plus 600 s (`clock_budget_s`, lb162's rule): 83 x 60 x 1.5 + 600 = **8,070 s, 2 h 14.5
+  min**, so the stage is refused if started **after 21:45** (a test); each phase checks its own
+  sessions again at its start, and no session starts within 10 minutes of midnight. The dev's
+  measured sessions put the real run near 25 minutes (N 19.7 s and H 14.2 s a session).
 - **Stops:** STOP in `C:/sp-runs/longdoc-free`; a usage limit (429, "weekly limit") stops the
-  phase and writes `LIMIT.flag` (a pause, never a result); an outage or three infrastructure
-  failures in a row stop it.
+  stage and writes `LIMIT.flag` (a pause, never a result); an outage or three infrastructure
+  failures in a row stop the phase (lb162x_guard).
 
-### The design choice: N, H0 and HC are the sealed dev's sessions, reused
+### N runs again; H0 and HC are the sealed dev's, reused
 
-dev2 reads N (Sonnet 5.5, the whole novel), H0 (Haiku 4.5, the whole novel) and HC (closed book)
-from `../2026-10-16-longdoc-free/dev-sonnet-rows.jsonl` and `dev-haiku-rows.jsonl` (sha256 with
-LF line ends `6b83cb45...` and `0b52f1c8...`, `dev2_read.REUSED_SHA256`; a changed file refuses
-the reading, and both files are in both phases' instrument). The dev's own H rows are not read.
-
-- **Why it is valid.** The same 41 questions, the same prompt and answer rule, the same pinned
-  Claude Code 2.1.287, the same model ids, run on 2026-10-17, the day dev2 is prepared. The
-  prefilter changes only H's file and the gate's p; N, H0 and HC do not depend on Jev.
-- **The risk ("la corrida es la unidad").** One session per question and arm, and a session
-  repeated differs: here N's draw is the dev's, H's is new. The router R takes N's own row
-  wherever the gate does not cover, so R − N is exactly 0 there, and run-to-run variance enters
-  R − N only through the covered questions' H − N. Pairing a new H with an old N adds no bias in
-  expectation (two independent draws, as a rerun would be), but dev2's cut is chosen against the
-  same N draw the dev chose its cut against, and anything that drifted since (the served model,
-  the service) would show up only in H. dev2 cannot tell that drift from the prefilter's effect.
-- **The alternative, for the reviewer and the owner:** rerun N too, a phase like the dev's
-  (41 Sonnet sessions, cap 3.00, ceiling 12.00) and its smoke (0.80 + 4.32): **17.12 USD more at
-  most**, about 2.9 expected, the lot then at most 8.196 + 5.00 + 17.12 = 30.3 of 105. It buys a
-  fresh N paired with the fresh H, nothing on power (the SD of R − N is per question either
-  way). It is not built; choosing it means a new instrument commit before the seal.
+- **N is dev2's own** (the owner's choice): R − N, the cut, n and the saving pair dev2's H with
+  dev2's N, both drawn the same day with the same instrument. A drift since the dev (the served
+  model, the service) now shows in both arms of R − N, not only in H.
+- **H0 and HC are reused** from `../2026-10-16-longdoc-free/dev-haiku-rows.jsonl` (sha256 with
+  LF line ends `0b52f1c8...`). **They enter no R − N and no decision on the router**: HC only the
+  memory rule (1.0 against N's 55.0 in the dev: it cannot fire), H0 only the with-H0 money
+  figure, which is reported and does not decide (section 5.5), and the descriptive controls. The
+  reuse risk (one earlier draw) therefore touches description only.
+- **The dev's N is read for one descriptive figure**, N(dev2) − N(dev) on the same 41 questions
+  (`n_rerun`: the mean in points with the novel bootstrap, the SD of the per-question
+  difference, how many questions moved, both runs' cost): the run-to-run variance of the arm,
+  measured once because both draws exist. It is not planned for a verdict and decides nothing.
+  `dev-sonnet-rows.jsonl` (`6b83cb45...`) is pinned for it. Both dev row files are in both
+  phases' instrument (`jev_phase.DEV_ROWS`) and a changed file refuses the reading
+  (`dev2_read.REUSED_SHA256`). The dev's H is read only for its mean F1 beside dev2's.
 
 ## 5. The reading (`dev2_read.py`; the dev's rules, `dev_read.read`, `stats.py`)
 
-Applied to the per-question rows (dev2's gate p and H, the dev's N, H0 and HC; Jev's cost a
+Applied to the per-question rows (dev2's gate p, N and H; the dev's H0 and HC; Jev's cost a
 question is dev2's ledger spend over 41, as in the dev), before any confirmation call:
 
 1. **Read at all:** at least 35 of the 41 questions complete; else dev2 is reported, nothing
    sealed.
 2. **Memory:** HC's mean F1 within 10 points of N's: no confirmation (HC is the dev's, 1.0
-   against 55.0: this cannot fire).
+   against the dev's N 55.0: it fires only if dev2's N falls under 11).
 3. **The cut:** the lowest of 0.5, 0.6, 0.7, 0.8, 0.9 that covers at least 29 % and 8
    questions and whose covered questions have H − N ≥ −2 F1 points. None: the router is not
    confirmed, no confirmation is sealed. (At dev2's projected Jev, 0.0115 a question, the
@@ -173,21 +186,22 @@ question is dev2's ledger spend over 41, as in the dev), before any confirmation
    with dev2's SD of R − N at the cut, the design effect of its 8 novel clusters (at least 1.5)
    and dev2's R − N as the true difference (at most 0). Above 310: no confirmation on En.QA.
 5. **Money** (two inputs changed, decided now, before any dev2 data):
-   - **The confirmation's Haiku phase is H alone, no H0.** By the dev's formula with H0 the
-     confirmation does not fit 105 whatever dev2 finds (H0's 95th percentile, 0.2276 USD, makes
-     310 H0 sessions alone 70.6 USD; the dev's reading: 143 USD). H0 answers attribution (does
-     Jev's passage selection help Haiku over the whole novel?), which the dev already read
-     (H − H0 −0.5 [−10.2, +9.3]), and neither confirmation hypothesis (R − N, then H − N) needs
-     it. The design left this to the owner ("decides whether H0 runs in the confirmation");
-     the with-H0 figure is reported beside it (`confirm_money_with_h0`). **The owner confirms
-     this before the seal.**
+   - **The confirmation's Haiku phase is H alone, no H0. This needs the owner's yes, asked only
+     if dev2 seals a confirmation** (before that confirmation's own seal); it changes nothing
+     dev2 runs or spends. By the dev's formula with H0 the confirmation does not fit 105
+     whatever dev2 finds (H0's 95th percentile, 0.2276 USD, makes 310 H0 sessions alone 70.6
+     USD; the dev's reading: 143 USD). H0 answers attribution (does Jev's passage selection help
+     Haiku over the whole novel?), which the dev already read (H − H0 −0.5 [−10.2, +9.3]), and
+     neither confirmation hypothesis (R − N, then H − N) needs it. The design left this to the
+     owner ("decides whether H0 runs in the confirmation"); the with-H0 figure is reported
+     beside it (`confirm_money_with_h0`). If the owner says no, the with-H0 money decides.
    - **The confirmation's Jev cap is what the lot's 14.30 leaves** after every Jev ledger of the
      lot (dev, probe, dev2), not the dev's 12.50 (which, with dev2, would pass 14.30). The
      confirmation's Jev plan at K = 200 is its dry run's stub estimate, 2.2152 USD, times 1.417:
      **3.139** (`dry.json`); it fits when that plan, and the plan times dev2's real over its own
      plan (0.347 x 1.417) times 1.2, are under the cap.
    - Unchanged: per Claude phase, 310 sessions at the larger of 1.5 times the arm's mean and its
-     95th percentile (N the dev's, H dev2's), plus one worst turn and the floor; Claude fits
+     95th percentile (N and H dev2's), plus one worst turn and the floor; Claude fits
      when the lot's real spend (the dev's and dev2's, every session and open reservation) plus
      these ceilings is at most 105.
    **A confirmation is sealed** (its own pre-registration and the owner's approval) only when
@@ -198,13 +212,14 @@ resampling novels (10,000 draws, seeded); every cut's coverage, covered question
 H − N, R − N and saving (point estimates); n needed against 310; both monies; the
 confirmation's expected money at dev2's means (Claude without and with H0, Jev at dev2's cost a
 question); Jev's real cost a question from the recording (mean, 90th percentile, dearest);
-dev2's H mean F1 beside the dev's H; the dev's descriptive controls (median answer words, answer
+dev2's H mean F1 beside the dev's H; N(dev2) − N(dev) on the same questions (`n_rerun`,
+section 4: description only); the dev's descriptive controls (median answer words, answer
 lines, 12-token F1, gold in the kept passages, sessions at their cap).
 
 ### What the dev's rows say before dev2 runs (a projection, not a measurement)
 
-The dev's rows with Jev at the probe's 0.0115 USD a question in place of 0.039 (the gate's p and
-H as the dev measured them; dev2 will move both):
+The dev's rows with Jev at the probe's 0.0115 USD a question in place of 0.039 (the gate's p, H
+and N as the dev measured them; dev2 will move all three):
 
 | Cut | Coverage | R − N (points) | SD of R − N | n needed | Saving |
 |---|---|---|---|---|---|
@@ -225,28 +240,34 @@ is reported as it comes; it is stated here so that no one reads it as a surprise
 |---|---|---|---|
 | Jev phase J2 | 1.00 ledger, **1.0026** worst | 0.44-0.49 | |
 | Jev, the lot (dev 1.6072, probe 0.0346, dev2) | **2.644** worst | 2.09-2.13 | 14.30 |
-| Claude phase H2 | **5.00** | about 1.3 | |
-| Claude, the lot (8.196 spent + H2's cap) | **13.20** | 9.5 | 105 |
-| Not built: N rerun with its smoke | +17.12 | +2.9 | |
+| Claude smoke `S2` (cap 0.80 + one worst turn 4.32) | **5.12** | 0.10 | |
+| Claude phase N `D2N` (ceiling, cap 3.00 + worst turn 4.32 inside it) | **12.00** | 2.84 | |
+| Claude phase H `D2H` (ceiling, cap 1.50 + worst turn 2.16 inside it) | **5.00** | 1.28 | |
+| Claude, dev2 | **22.12** | about 4.2 | |
+| Claude, the lot (8.196 spent + dev2's caps) | **30.32** | about 12.4 | 105 |
 
-A confirmation, if sealed, comes with its own pre-registration and money. At dev2's projected
-numbers (N 0.0693 and 0.1307 at its 95th percentile, H as the dev's), without H0: Claude ceilings
-45.34 + 19.01 on top of about 9.5 spent, about 74 of 105; Jev 3.14 planned against 11.66 left.
+A confirmation, if sealed, comes with its own pre-registration and money. At projected numbers
+(N as the dev's, 0.0693 and 0.1307 at its 95th percentile; H as the dev's), without H0: Claude
+ceilings 45.34 + 19.01 on top of about 12.4 spent, about 77 of 105; Jev 3.14 planned against
+11.66 left.
 
 ## 7. Departures from the sealed dev and from the design
 
 - **The prefilter** (BM25, K = 200, before the tournament): the instrument under test.
-- **N, H0 and HC reused** from the sealed dev (section 4), not rerun.
-- **No smoke** (section 4).
-- **The confirmation's money rule**: H alone in its Haiku phase and its Jev cap at what the lot
-  leaves (section 5.5); every other rule and threshold is the dev's.
+- **H0 and HC reused** from the sealed dev (section 4), not rerun; they enter no R − N. N and H
+  run again, in the dev's phases (smoke, N, Haiku) with its caps; the Haiku phase runs H alone.
+- **The confirmation's money rule**: H alone in its Haiku phase (the owner's yes, asked only if
+  dev2 seals a confirmation) and its Jev cap at what the lot leaves (section 5.5); every other
+  rule and threshold is the dev's.
 - **Ids 0, 7 and 375 asked again**, not replayed from the probe's recording.
 - **One launch only** for J2 (the probe's rule), where the dev had one launch and one relaunch.
 
 ## 8. What dev2 does not say
 
 It reports no verdict: 41 questions on 8 novels, one session per question and arm, its cut and
-its n chosen on it and never reused as evidence. N, H0 and HC are one earlier draw. Sonnet 5.5
+its n chosen on it and never reused as evidence. H0 and HC are one earlier draw; N(dev2) −
+N(dev) is one pair of draws of one arm, a description of its variance, not an estimate to
+plan on. Sonnet 5.5
 only; Opus 5.5 is a later lot. Nothing about K other than 200, other `fit_chars`, or documents
 Claude Code cannot grep as cheaply.
 
@@ -266,18 +287,21 @@ Claude Code cannot grep as cheaply.
    and the run worktree as its directory). Its log: `longdoc-free-dev2/launch.log` under the
    user's sanchopanza cache; `paid-exit 0` then `rows-exit 0` means the passages and
    `jev-dev2.jsonl` are written. Any other exit: dev2 not run, stop here.
-5. **Phase H2**, from the same run worktree, only when no other lot draws on the subscription and
-   before about 23:00: `powershell -File benchmarks/h2h/launch.ps1 -Runner h2h_lfree.py
+5. **The Claude phases** (smoke, N, H, one launch of the stage), from the same run worktree,
+   only when no other lot draws on the subscription, between 08:00 and **21:45** (the stage
+   refuses later: section 4): `powershell -File benchmarks/h2h/launch.ps1 -Runner h2h_lfree.py
    -RunnerArgs "--stage dev2" -Pin %USERPROFILE%\.cache\sanchopanza\claude-pin\2.1.287 -KeysEnv
    <path> -Log C:\sp-runs\longdoc-free\dev2-driver.log -PidFile
    C:\sp-runs\longdoc-free\dev2-driver.pids`. Watch the log and the PIDs; stop only by PID.
 6. Free, after: `python benchmarks/h2h/h2h_lfree.py --stage dev2` (the public rows), the
-   recording gzipped, `jev-dev2.jsonl`, `dev2-haiku-rows.jsonl` and its stop file copied to
+   recording gzipped, `jev-dev2.jsonl`, `dev2-smoke-rows.jsonl`, `dev2-sonnet-rows.jsonl`,
+   `dev2-haiku-rows.jsonl` and their stop files copied to
    another checkout (never `git add -A` in the run worktree: its launcher holds the key file's
    path), then `python -I benchmarks/longdoc_free/dev2_read.py` writes `dev2.json`.
 
 ## 10. The seal
 
 `prereg-dev2.sha256`, written by the command of section 9.1, binds this file, the launcher and,
-through the instrument commit named at the top, the code, the frozen ids and the reused rows.
+through the instrument commit named at the top, the code, the frozen ids and the dev rows it
+reads.
 It is **not written yet**: the independent review comes first.
