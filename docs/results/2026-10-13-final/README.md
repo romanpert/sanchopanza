@@ -120,7 +120,7 @@ done, in at least 3 of 8 ([memory-frontier](../2026-10-05-memory-frontier/gate-r
 | F2, continuing a two-step feature in a new session (N0: a plain "let's continue") | Sonnet 5.5 | **+91.7** (kept all: S 48/48, N0 4/48; the handoff ritual H 44/48) | one-sided lower bound +81.4 (Tango); S − H +8.3, lower bound +2.6, margin −12.5 | 5.7e-14 (McNemar, 44 to 0) | 1.226 [1.141, 1.261] (median per triple, descriptive bootstrap; S/H 0.917 [0.853, 0.946]) | 1.31 (session 2 medians, 26.8 s / 20.4 s) | **S better than N0, not worse than H** (F2's sealed verdict; not "gana": the cost interval lies above 1) |
 | F2, as above | Opus 5.5 | +4.2 (S 22/24, N0 21/24; H 17/24) | S − N0 lower bound −6.4; S − H +20.8, lower bound +8.6 | 0.5 | 1.105 [1.011, 1.158] (S/H 1.060 [1.009, 1.183]) | 1.09 (44.45 s / 40.8 s) | **sin margen** (F2's sealed reading: direction only, S not worse than H; Claude Code's own auto memory saved the plan after every Opus session 1, in every arm) |
 | W17, continuing in a new session with the default USER-scope install as it ships (src cbfd932: lean install, C8 fixes), named line and bare "Let's continue." | Sonnet 5.5 | **+81.3** (kept all: S' 48/48, N0 9/48; bare line 24/24 vs 3/24) | one-sided Tango lower bound +70.4 | 1.8e-12 (McNemar, 39 to 0) | 1.187 [1.148, 1.244] (median per pair, sealed bound 1.10) | 1.31 (session 2 medians, 35.3 s / 26.95 s) | **no gana** (W17's sealed verdict: "S' better than N0; no gana (cost)") |
-| W17, as above | Opus 5.5 | — | — | — | — | — | **no verdict yet** (interrupted by a PC crash; resumption pending) |
+| W17, as above (bare line on repetition 3 only) | Opus 5.5 | +8.3 (kept all: S' 34/36, N0 31/36; named 22/24 vs 21/24, bare 12/12 vs 10/12) | one-sided Tango lower bound +0.8, margin −12.5: not worse | 0.125 (McNemar, 3 to 0) | 0.999 [0.965, 1.055] (median per pair, sealed bound 1.05) | 1.10 (session 2 medians, 44.9 s / 40.95 s) | **no gana** (W17's sealed verdict: "not determined"; Claude Code's own auto memory saved after every Opus session 1, in both arms) |
 
 Source: [2026-10-13-memory-cell](../2026-10-13-memory-cell/README.md) (sealed prereg d42d261).
 Cost is the median S/N per pair; its interval is the geometric mean's, bootstrapped over scenes.
@@ -128,8 +128,9 @@ S is the default install plus `--memory` (project scope); the default left memor
 was measured and has wired it since 2026-10-14 (`--no-memory` leaves it out), so S is now the
 default install. The other cells' S ran without memory.
 
-W17: [2026-10-16-memory-w17](../2026-10-16-memory-w17/README.md) (sealed 5d416fa; Sonnet 11.18 USD;
-clean Claude Code 2.1.287 against `install --scope user` as it ships, F2's 12 scenes, 48 pairs).
+W17: [2026-10-16-memory-w17](../2026-10-16-memory-w17/README.md) (Sonnet sealed 5d416fa, 11.18 USD;
+Opus sealed 941c9a9 under the prereg's Amendment 1, 21.32 USD; clean Claude Code 2.1.287 against
+`install --scope user` as it ships, F2's 12 scenes, 48 Sonnet and 36 Opus pairs).
 
 F2: [2026-10-16-memory-f2](../2026-10-16-memory-f2/README.md) (sealed 763dafd; 42.25 USD; clean
 Claude Code 2.1.287 against `install --scope project` as it ships, 12 synthetic scenes,
@@ -162,7 +163,10 @@ bootstrap over triples (10,000 draws, seed 20261016), descriptive and post hoc.
   decision. Memory is on by default in the install since 2026-10-14. Measured again as it ships
   (W17, user scope, after the C8 fixes): 48 of 48 against 9, and 24 of 24 against 3 with a bare
   "Let's continue.", at 1.19x [1.15, 1.24] the cost: better, not a "gana". On Opus 5.5 memory had no
-  room in either family: Claude Code's own auto memory carried the fact and the plan.
+  room in either family: Claude Code's own auto memory carried the fact and the plan. As it ships
+  (W17), on Opus it kept the plan in 34 of 36 pairs against 31 (p 0.125) at a median 0.999x
+  [0.965, 1.055]; that it costs no more is not shown (sealed O1: upper bound 1.055 over 1.05):
+  "not determined", no gana.
 - **No other measured cell is a win.** Three web suites are "no gana" on Sonnet 5.5; code on Haiku
   4.5 is non-inferior with no saving shown; on long code the Jev part (A) did not hold its edge.
   Early compaction near 67k on long code: cost 0.900 [0.741, 1.093], no saving shown. The rest is "sin margen" or not run.

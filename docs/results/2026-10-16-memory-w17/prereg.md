@@ -378,3 +378,108 @@ seal is refused.
   skill in its init) settles it, and a failure stops the run at that arm, after its first
   session when that session failed (at most about 0.13 USD on Sonnet).
 - S's cost at user scope, and how N0 answers a line that names nothing.
+
+## Amendment 1 (2026-10-17, before the Opus redo's data)
+
+Written before any session of the redo has run. It replaces the seal of 5d416fa (instrument
+f31caf8, sha256 `49b86f8b873f7260bf5855664bdc237ef12411bbe3d4fe9bb11fb54c13e01cdc`) for the
+redo of `w17-opus` only; `w17-sonnet` ran whole under that seal and its published result
+(`README.md`) stands as it is. The new seal is the only child of the commit that adds this
+section; until it is written, every live path refuses ("no seal").
+
+**Why the redo.** On 2026-10-16 at 22:37 the machine went down (System event 41) while
+`w17-opus` ran. Its rows file `f2.json` came back zero-filled, and so did the end of its
+`ledger.jsonl`: both were written with a temporary file and `os.replace`, or an append, with no
+`fsync`, so the rename reached the disk before the data. The relaunch at 22:51 stopped with an
+error (exit 1) before any arm: `f2.json` could not be read. The owner decided to run `w17-opus`
+again, whole and clean.
+
+**The interrupted run is discarded.** 23 arm folders had started (pairs t00 to t11); its
+ledger's readable lines hold **6.56 USD** (the Jev preflight and 21 arms); its zero-filled last
+line and the arm cut at 22:37 are not in that figure (about 0.6 USD more at F2's Opus arm
+means). None of it is read, resumed or used for any verdict, figure or table. Its
+folders (`C:\sp-runs\memory-w17\w17-opus`, `C:\sp-runs\w18\r2`) are left where they are, as
+evidence, and are not deleted.
+
+**What changes.**
+1. **State that survives an unclean shutdown.** Main's fix (88f5400, here cherry-picked with
+   `-x`) writes through `sanchopanza.durable`: a file is flushed and `os.fsync`ed before its
+   rename, an appended line after it is written. In this runner: the rows (`handoff.write_rows`),
+   the ledger (`handoff.book`) and `interrupts.json`. In `src/`: the Jev cap's `SpendLedger`
+   lines, the funds breaker and memory's episodes store. The bytes written are the same; only how
+   they are written changes (`tests/test_durable.py`, each writer syncs before its rename with
+   unchanged bytes).
+2. **The quiet hours lift while Windows Update is paused and no restart is pending.** The rule
+   of "NOT RUN and stops" (no arm starts whose expected time would reach 02:00-08:00, exit 8)
+   exists only because Windows Update restarts this machine then. It now lifts only when both
+   hold at the check:
+   - updates are **paused at least 24 hours past the check**
+     (`benchmarks/memory_carry/winupdate.py`, byte for byte the guard-pointers lot's module and
+     tests after its review, 9e8f05a): the update agent's own flag `PausedQualityStatus` is
+     `"1"` under `HKLM\SOFTWARE\Microsoft\WindowsUpdate\UpdatePolicy\Settings`, and the earliest
+     end of `PauseUpdatesExpiryTime` and `PauseQualityUpdatesEndTime` under
+     `HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings` is at least 24 hours away. It fails
+     closed: no flag, a flag other than `"1"`, no end, or an end that cannot be read keeps the
+     rule;
+   - **no restart is pending**: neither of the guard-pointers lot's two keys
+     (`long_start.RESTART_KEYS`; here `handoff.RESTART_KEYS` and `handoff.restart_pending`, the
+     same two paths, `SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired`
+     and `SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending`
+     under HKLM) exists. A pending restart keeps the rule even under a pause.
+
+   Both are checked where the rule was, before each arm that would reach the window
+   (`handoff.run_plan`); each lift is written to the runner's log (`night.log`: "quiet hours lifted
+   for t<NN>-<x>: Windows Update paused until ..."), and a stop says why it was not lifted. If the
+   pause ends or a restart becomes pending during the run, the rule is back before the next arm.
+   **The midnight rule does not change** (a pair or an arm does not start when it would reach
+   midnight; the driver waits).
+3. **New roots.** The redo's own files go to `C:\sp-runs\memory-w17-redo\w17-opus\` (keys and
+   Python files: `C:\sp-runs\memory-w17-redo\keys-env.cmd` and `python-env.cmd`, as before) and
+   its arms work in `C:\sp-runs\w19\r2\t<NN>-<x>` (`handoff.LOTS["w17"]`). `handoff_night.py` and
+   `handoff.execute` both refuse, dry or live and before writing anything, a root or work folder
+   that is, or lies under, the interrupted run's root or work folder (`handoff.W17_INTERRUPTED`,
+   `handoff.interrupted_refusal`, exit 11). So the redo cannot resume from, set aside, or charge
+   an arm of the interrupted run, and its Jev cap starts from an empty `jev-ledger.jsonl`.
+4. **The launcher runs only the redo**: `memlot-night-run.cmd opus` (or `dry`, which builds the
+   Opus arms under the new root and calls nothing). No argument and `sonnet` are refused (exit 2).
+5. **The lot's 45 USD no longer binds the redo.** The redo is bound only by its own run cap of
+   33.00 USD: in the new root `handoff_night.spent_before` sees no `w17-sonnet` ledger, so the
+   code's min(33.0, 45 - 0) is 33.00, and the interrupted run's spend is not counted against it
+   (figures under "Caps and cost").
+6. **Launched by day.** The redo is launched between 08:00 and 21:30. It takes about 1.5 to 2
+   hours (72 arms at about 75 s each, plus building and checks), so it reaches neither midnight
+   nor the 02:00-08:00 window from the start; the lift of change 2 only covers a run that is
+   resumed late. This is a launch rule for the lead, not a check in code.
+7. **The seal also covers** `tests/test_winupdate.py` and `tests/test_durable.py`
+   (`handoff_seal.SEALED_FIXED_W17`).
+
+**What does not change.** The arms N0 and S' and how they are built; S' is still `src/` as at
+cbfd932 plus the writes of change 1 (the same installed `settings.json`, hooks, skill and `env`;
+the preflight's byte-for-byte check against a bare `sanchopanza install --write` holds as
+sealed); the 12 scenes and their checks; `w17-opus`'s three repetitions (named 1-2, bare 3), 36
+pairs, 144 sessions, its plan and arm order; the call caps (0.80 USD Opus, one worst turn of
+0.84 per call), the reserve per pair (6.66 USD), the charge for a session that reported no cost,
+Jev's 0.50 USD cap per run; Opus's criteria O1-O3 and their verdict order; the scoreboard's rule;
+the analysis (`handoff_pairs.analyse`, the bootstrap and its seed) and what is reported.
+
+**Caps and cost.** The run cap stays the sealed **33.00 USD**. The code computes it as
+min(33.0, 45 - what the lot's other run spent in the root): the new root holds no `w17-sonnet`
+ledger, so 45 - 0 = 45 and the cap is 33.00 (in the old root it was min(33.0, 45 - 11.18 =
+33.82) = 33.00, the same). The redo starts no pair past 26.34 USD (33.00 - 6.66), above its +15 %
+scenario (26.2). Expected at list price: **22.8 USD** (36 x 0.633).
+- The interrupted run: **about 7.2 USD**, that is 6.56 readable in its ledger plus about 0.6 for
+  its zero-filled last line and the arms with no row.
+- **Expected for the lot: Sonnet 11.18 + interrupted Opus ~7.2 + redo ~22.8 = about 41 USD.**
+- **Worst case for the lot, with the redo at its cap: 11.18 + ~7.2 + 33.00 = about 51.4 USD**
+  (about 51.8 with Jev's possible 0.40 past the run cap), above the 45 USD sealed for the lot.
+
+Owner's approval: given on 2026-10-17 at about 08:55, asked in session, before any of the
+redo's data: the redo's hard cap of 33.00 USD (33.40 with Jev), expected about 23 USD, and
+the lot's worst case of about 51.8 USD, above the sealed 45.
+
+**Seal and launch.** As "Seal" and "Running it", with the new roots: the instrument is the commit
+that last changes this section; `handoff.py --seal --lot w17` in a clean checkout of it writes
+`prereg.manifest.json` and `prereg.sha256` (the old seal files are removed by the instrument
+commit, so that `seal` writes a new one), committed alone; the run goes from a detached worktree
+at that sealing commit whose path names nothing of the lot. An independent review of this
+amendment against the code (`revisor-prereg`) goes before the seal.

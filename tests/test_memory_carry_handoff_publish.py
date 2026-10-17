@@ -105,6 +105,73 @@ def test_runs_default_to_f2_and_take_the_named_ones() -> None:
         pub.runs_of(["w17-nope"])
 
 
+def test_costs_keep_the_runs_published_from_another_lot_folder() -> None:
+    # W17's Sonnet run and its Opus redo live in different lot folders: publishing one must not
+    # drop the other's entry from costs.json, and the lot's total is over both.
+    old = {"w17-sonnet": {"spent_usd": 11.182309}, "lot": {"spent_usd": 11.1823}}
+    new = {"w17-opus": {"spent_usd": 21.315415}}
+    got = pub.merged_costs(old, new)
+    assert got == {"w17-sonnet": {"spent_usd": 11.182309}, "w17-opus": {"spent_usd": 21.315415},
+                   "lot": {"spent_usd": 32.4977}}  # fmt: skip
+    again = pub.merged_costs(got, {"w17-sonnet": {"spent_usd": 11.182309}})
+    assert again == got and list(again) == list(got)
+    assert pub.merged_costs({}, new) == {**new, "lot": {"spent_usd": 21.3154}}
+
+
+def test_costs_refuse_another_lot_s_runs_or_an_unknown_run() -> None:
+    w17 = {"w17-opus": {"spent_usd": 21.315415}}
+    with pytest.raises(SystemExit, match="mix the lots f2, w17"):
+        pub.merged_costs({"f2-sonnet": {"spent_usd": 30.0}, "lot": {"spent_usd": 30.0}}, w17)
+    with pytest.raises(SystemExit, match="w17-nope"):
+        pub.merged_costs({"w17-nope": {"spent_usd": 1.0}}, w17)
+
+
+def lot_folder(tmp_path: Path, run: str, night_ok: bool = True) -> Path:
+    """A lot folder holding one W17 run: its rows, a preflight line in its ledger and the night's
+    table (the sealed analysis of those rows, or a changed one when `night_ok` is False)."""
+    model = pub.handoff.RUNS[run]["model"]
+    rows = [{**w17_row("S", True), "model": model}, {**w17_row("N0", False), "model": model}]
+    root = tmp_path / run.split("-")[1]
+    (root / run).mkdir(parents=True)
+    (root / run / "f2.json").write_text(json.dumps(rows), encoding="utf-8")
+    pub.handoff.book(root / run, "preflight", 0.000012, "jev preflight")
+    table = pub.analysis(rows, run, root / run)
+    table = table if night_ok else {**table, "verdict": "another"}
+    (root / f"{run}-table.json").write_text(json.dumps(table), encoding="utf-8")
+    return root
+
+
+def test_publishing_two_lot_folders_into_one_results_folder(tmp_path: Path) -> None:
+    # W17: the Sonnet run from its folder, then the Opus redo from its own, into one folder.
+    dest = tmp_path / "results"
+    sonnet = lot_folder(tmp_path, "w17-sonnet", night_ok=False)
+    opus = lot_folder(tmp_path, "w17-opus")
+    assert pub.main([str(sonnet), str(dest), "w17-sonnet"]) == 1  # its night's table differs
+    assert pub.main([str(opus), str(dest), "w17-opus"]) == 0  # only this call's run is checked
+    costs = json.loads((dest / "costs.json").read_text(encoding="utf-8"))
+    assert list(costs) == ["w17-sonnet", "w17-opus", "lot"]
+    assert costs["w17-sonnet"]["same_as_the_night"] is False
+    assert costs["w17-opus"]["same_as_the_night"] is True
+    spent = [costs[r]["spent_usd"] for r in ("w17-sonnet", "w17-opus")]
+    assert spent == [pytest.approx(0.240412), pytest.approx(0.240412)]
+    assert costs["lot"]["spent_usd"] == round(sum(spent), 4)
+    for name in ("rows-w17-sonnet.json", "w17-sonnet-table.json", "rows-w17-opus.json",
+                 "w17-opus-table.json"):  # fmt: skip
+        assert (dest / name).exists()
+
+
+def test_publishing_refuses_a_results_folder_of_another_lot_before_writing(
+        tmp_path: Path) -> None:  # fmt: skip
+    dest = tmp_path / "results"
+    dest.mkdir()
+    f2 = {"f2-sonnet": {"spent_usd": 30.0}, "lot": {"spent_usd": 30.0}}
+    (dest / "costs.json").write_text(json.dumps(f2), encoding="utf-8")
+    with pytest.raises(SystemExit, match="mix the lots"):
+        pub.main([str(lot_folder(tmp_path, "w17-opus")), str(dest), "w17-opus"])
+    assert sorted(p.name for p in dest.iterdir()) == ["costs.json"]
+    assert json.loads((dest / "costs.json").read_text(encoding="utf-8")) == f2
+
+
 def test_turn_own_reads_each_kind_of_report() -> None:
     cost = pub.handoff_cost
     own = cost.priced(TOKENS, "sonnet")

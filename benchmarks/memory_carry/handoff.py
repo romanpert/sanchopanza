@@ -56,6 +56,7 @@ import handoff_call as hc  # noqa: E402
 import handoff_cost  # noqa: E402
 import handoff_seal  # noqa: E402
 import meter  # noqa: E402
+import winupdate  # noqa: E402
 from scenes_handoff import CHECKS, HANDOFF, HANDOFF_PILOT, check_code, names_c_d  # noqa: E402
 
 from sanchopanza import durable  # noqa: E402
@@ -90,7 +91,8 @@ RUNS: dict[str, dict[str, Any]] = {
                 "dir": "r3"},
     # W17 (docs/results/2026-10-16-memory-w17/prereg.md): two arms, S at user scope, call caps
     # about 4x (Sonnet) and 2.6x (Opus) F2's dearest session, a stratum of repetitions whose
-    # session 2 is BARE_LINE. The lot's 45 USD (LOTS["w17"]["night_cap"]) binds both run caps.
+    # session 2 is BARE_LINE. The lot's 45 USD (LOTS["w17"]["night_cap"]) binds both run caps
+    # in a root that holds both; the redo's root (Amendment 1) runs only w17-opus, under its 33.
     "w17-sonnet": {"model": "sonnet", "scenes": list(HANDOFF), "repeats": [1, 2, 3, 4],
                    "bare": [3, 4], "cap": 17.0, "dir": "r1", "lot": "w17", "arms": ("N0", "S"),
                    "scope": "user", "call_caps": {"sonnet": 0.50, "opus": 0.80},
@@ -120,11 +122,46 @@ seal, seal_ok = handoff_seal.seal, handoff_seal.seal_ok
 LOTS: dict[str, dict[str, Any]] = {
     "f2": {"sequence": ("f2-pilot", "f2-sonnet", "f2-opus"), "night_cap": NIGHT_CAP, "out": OUT,
            "work": WORK, "gate": "f2-pilot", "quiet": False},
+    # W17's Opus redo (prereg, Amendment 1): new roots, so it cannot read, resume from, set
+    # aside or charge anything of the interrupted run, left where it was in `W17_INTERRUPTED`.
     "w17": {"sequence": ("w17-sonnet", "w17-opus"), "night_cap": 45.0,
-            "out": Path(r"C:\sp-runs\memory-w17"), "work": Path(r"C:\sp-runs\w18"), "gate": None,
-            "quiet": True},
+            "out": Path(r"C:\sp-runs\memory-w17-redo"), "work": Path(r"C:\sp-runs\w19"),
+            "gate": None, "quiet": True},
 }  # fmt: skip
+W17_INTERRUPTED = (Path(r"C:\sp-runs\memory-w17"), Path(r"C:\sp-runs\w18"))  # 16 Oct: evidence
 QUIET = (dt.time(2, 0), dt.time(8, 0))  # no W17 arm runs, even in part, between these
+# ... unless Windows Update is paused at least winupdate.MARGIN past the check and no restart is
+# pending (Amendment 1). The keys are the guard-pointers lot's (`long_start.RESTART_KEYS`): that
+# module is not imported here (its `carry` is adopt's, not this folder's).
+_WINDOWS = r"SOFTWARE\Microsoft\Windows\CurrentVersion"
+RESTART_KEYS = (_WINDOWS + r"\WindowsUpdate\Auto Update\RebootRequired",
+                _WINDOWS + r"\Component Based Servicing\RebootPending")  # fmt: skip
+
+
+def restart_pending() -> str:
+    """The first of `RESTART_KEYS` present under HKLM ("" when none, or off Windows)."""
+    try:
+        import winreg
+    except ImportError:
+        return ""
+    for key in RESTART_KEYS:
+        try:
+            winreg.CloseKey(winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key))
+        except OSError:
+            continue
+        return key.rsplit("\\", 1)[-1]
+    return ""
+
+
+def interrupted_refusal(*paths: Path) -> str:
+    """W17's redo (Amendment 1): why one of `paths` is, or lies under, the interrupted run's root
+    or work folder ("" when none does). Those folders are evidence: never resumed, set aside,
+    charged or written."""
+    for path in paths:
+        for old in W17_INTERRUPTED:
+            if path.resolve().is_relative_to(old.resolve()):
+                return f"{path} is in the interrupted run's {old}; the redo uses its own"
+    return ""
 
 
 def lot_of(run: str) -> str:
@@ -633,10 +670,14 @@ def run_plan(out: Path, run: str, keyfile: Path, dry: bool, cap: float, night: P
              clock: Callable[[], dt.datetime] = dt.datetime.now,
              sleep: Callable[[float], Any] = time.sleep,
              arm_fn: Callable[..., dict[str, Any]] = arm_run,
-             work_root: Path | None = None) -> str:  # fmt: skip
+             work_root: Path | None = None,
+             lifted: Callable[[], str] = winupdate.quiet_lifted,
+             restart: Callable[[], str] = restart_pending) -> str:  # fmt: skip
     """Runs what is left of `run`; returns why it stopped ("cap", "limit", "harness", "manual",
     "broken", "quiet") or "" at its end. LIMIT.flag goes to `night` (the root) or else `out`.
-    A lot with quiet hours starts no arm that would run into them ("quiet", resumable)."""
+    A lot with quiet hours starts no arm that would run into them ("quiet", resumable), unless
+    `lifted` gives a reason (W17 Amendment 1: Windows Update paused well past the check) and
+    `restart` finds no restart pending; the log records each lift before that arm."""
     work_root = work_root or work_of(run)
     plan, arms = build_plan(run), arms_of(run)
     quiet = bool(LOTS[lot_of(run)]["quiet"])
@@ -672,9 +713,14 @@ def run_plan(out: Path, run: str, keyfile: Path, dry: bool, cap: float, night: P
         if not dry and not wait_for_day(expected, clock, sleep, lambda: stop_file(out, night)):
             return "manual"
         if not dry and quiet and in_quiet_hours(expected, clock()):
-            print(f"stop: quiet hours {QUIET[0]:%H:%M}-{QUIET[1]:%H:%M}; run it again after",
-                  flush=True)  # fmt: skip
-            return "quiet"
+            why = lifted()
+            pending = restart() if why else ""
+            if not why or pending:
+                held = f" (not lifted: Windows has a restart pending, {pending})" if pending else ""
+                print(f"stop: quiet hours {QUIET[0]:%H:%M}-{QUIET[1]:%H:%M}; run it again after"
+                      + held, flush=True)  # fmt: skip
+                return "quiet"
+            print(f"quiet hours lifted for {work.name}: {why} (amendment 1)", flush=True)
         try:
             row = arm_fn(out, work, name, model, arm, rep, keyfile, dry, **extra)
         except Exception as error:  # never ends the night: the arm is NOT RUN, its spend counted
@@ -725,9 +771,12 @@ def execute(run: str, out: Path, cap: float, dry: bool = False, night: Path | No
     its Jev cap beside the key (`carry_hook.CAP_FILE`): every hook's decider then goes through
     `CappedDecider` on that run's own ledger (`capped_sub.py`)."""
     work_root = work_root or (out / "work" if dry else work_of(run))
+    lot = lot_of(run)
+    if lot == "w17" and (why := interrupted_refusal(out, work_root)):  # before any write there
+        print(f"refused: {why}; nothing run", flush=True)
+        raise SystemExit(handoff_seal.SEALED_CHECKOUT_REFUSED)
     keyfile = work_root / "typesafe.key"
     keyfile.unlink(missing_ok=True)  # one left by a crash is never reused
-    lot = lot_of(run)
     if not dry:
         handoff_seal.require_sealed_checkout(*([] if lot == "f2" else [lot]))
         carry.refuse_unclean(out)

@@ -171,12 +171,16 @@
   (+5.07 points [1.53, 9.77]), but lets more unfinished ones through: catches 598 → 583 of 744
   (−2.02 [−5.37, +0.26]), past the −2 guard. `SANCHOPANZA_DONE_EVIDENCE` stays opt-in
   ([checkdone-w17](docs/results/2026-10-16-checkdone-w17/)).
-- **W17, memory as it ships, against clean Claude Code** (sealed `5d416fa`, Sonnet 5.5, Claude Code
-  2.1.287, 11.18 USD): **"S' better than N0; no gana (cost)"**. Continuing a two-step feature in a
-  new session with the default user-scope install, S' kept the plan in 48 of 48 pairs against 9
-  (one-sided McNemar p 1.8e-12), and with a bare "Let's continue." in 24 of 24 against 3; the cost
-  per pair was 1.19x [1.15, 1.24], above the sealed 1.10. The Opus 5.5 lot was interrupted by a PC
-  crash and has no verdict yet ([W17](docs/results/2026-10-16-memory-w17/)).
+- **W17, memory as it ships, against clean Claude Code** (Claude Code 2.1.287): on Sonnet 5.5
+  (sealed `5d416fa`, 11.18 USD) **"S' better than N0; no gana (cost)"**. Continuing a two-step
+  feature in a new session with the default user-scope install, S' kept the plan in 48 of 48 pairs
+  against 9 (one-sided McNemar p 1.8e-12), and with a bare "Let's continue." in 24 of 24 against
+  3; the cost per pair was 1.19x [1.15, 1.24], above the sealed 1.10. On Opus 5.5 (sealed
+  `941c9a9` under the prereg's Amendment 1, 21.32 USD) **"not determined"**: the cost per pair
+  was a median 0.999x [0.965, 1.055], so that it costs no more is not shown (upper bound 0.0055
+  above the sealed 1.05), and S' kept the plan in 34 of 36 pairs against 31 (3 to 0, p 0.125),
+  not worse by the sealed margin; scoreboard "no gana" on both models
+  ([W17](docs/results/2026-10-16-memory-w17/)).
 - **C4, A5's gate on written pairs of fa-17's kinds** (sealed `3a201f0`, jev-1.13.0, 0.035 USD of
   Jev): **the gate beats the shipped policy**. At `unrelated_at=0.65`, 66 added verdicts on 1,500
   pairs (two dated events, a role and an act, a figure and its subset, plus controls), all 66

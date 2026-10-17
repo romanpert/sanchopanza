@@ -41,6 +41,7 @@ SEALED_FIXED_W17 = (
     "benchmarks/memory_carry/carry_hook.py", "benchmarks/memory_carry/capped_sub.py",
     "tests/test_memory_carry_handoff.py", "tests/test_memory_carry_handoff_run.py",
     "tests/test_memory_carry_handoff_work.py", "tests/test_memory_carry_w17.py",
+    "tests/test_winupdate.py", "tests/test_durable.py",
 )  # fmt: skip
 LOTS = {"f2": (RESULTS, SEALED_FIXED), "w17": (RESULTS_W17, SEALED_FIXED_W17)}
 PATH_WORDS = {"w17": ("f2", "memory", "handoff", "memlot", "w17", "sonnet", "opus")}

@@ -36,10 +36,13 @@ set PYTHONPATH=%WT%\src
 set DISABLE_AUTOUPDATER=1
 if not exist "%ROOT%" mkdir "%ROOT%"
 set STATUS=%ROOT%\launch.status
+rem dry: Python runs from a one-line if, so CODE holds its own exit (inside a ( ) block
+rem the errorlevel would be read before Python ran); the status line and the exit carry it.
+if /i "%~1"=="dry" "%PY%" -u benchmarks\memory_carry\handoff_night.py --root "%ROOT%" --dry > "%ROOT%\dry.log" 2>&1
+set CODE=%ERRORLEVEL%
 if /i "%~1"=="dry" (
-  "%PY%" -u benchmarks\memory_carry\handoff_night.py --root "%ROOT%" --dry > "%ROOT%\dry.log" 2>&1
-  echo dry-exit %ERRORLEVEL% %DATE% %TIME% >> "%STATUS%"
-  exit /b 0
+  echo dry-exit %CODE% %DATE% %TIME% >> "%STATUS%"
+  exit /b %CODE%
 )
 if not "%~1"=="" (
   echo refused: the only argument is dry >> "%STATUS%"
