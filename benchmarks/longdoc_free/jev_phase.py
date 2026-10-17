@@ -157,15 +157,28 @@ def load_rows(phase: str) -> list[dict[str, Any]]:
     return out
 
 
-async def ask(rows: list[dict[str, Any]], asker: br.Asker) -> list[dict[str, Any]]:
-    """Per question: the passages, then the gate over them."""
+async def ask(
+    rows: list[dict[str, Any]], asker: br.Asker, prefilter_k: int | None = None
+) -> list[dict[str, Any]]:
+    """Per question: the passages, then the gate over them. `prefilter_k` (opt-in, None in every
+    sealed run, which it leaves unchanged): only the K pages BM25 scores best for the question
+    (`pages.bm25_shortlist`) enter the tournament; the rest are not kept."""
+    if prefilter_k is not None and prefilter_k < 1:
+        raise ValueError("prefilter_k must be >= 1 (or None for no prefilter)")
     squire = br.squire(asker, "select", SQUIRE_CAP_USD)
 
     async def one(row: dict[str, Any]) -> dict[str, Any]:
         br.ROW.set(str(row["id"]))
-        entries = await squire.select_passages(purpose=row["question"], pages=row["pages"],
+        novel = row["pages"]
+        shortlist = None
+        if prefilter_k is not None:
+            shortlist = pages.bm25_shortlist(novel, row["question"], prefilter_k)
+        seen = novel if shortlist is None else [novel[i] for i in shortlist]
+        entries = await squire.select_passages(purpose=row["question"], pages=seen,
                                                fit_chars=FIT_CHARS, fit_score=False)  # fmt: skip
-        kept = pages.kept_text(row["pages"], entries)
+        if shortlist is not None:
+            entries = pages.spread(entries, shortlist, len(novel))
+        kept = pages.kept_text(novel, entries)
         state = {"question": row["question"], "passages": kept}
         decision = await asker.decide("gate", POINT, state, {"enough": GATE})
         p = None if decision.failed else decision.answer("enough").truth
@@ -185,15 +198,18 @@ def gold_in(kept: str, answers: list[str]) -> bool:
 # ---- free: the dry run and the replay ----------------------------------------------------------
 
 
-def dry(phase: str, rows: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+def dry(
+    phase: str, rows: list[dict[str, Any]] | None = None, prefilter_k: int | None = None
+) -> dict[str, Any]:
     rows = load_rows(phase) if rows is None else rows
     asker = lot_asker(phase, br.Stub())
-    asyncio.run(ask(rows, asker))
+    asyncio.run(ask(rows, asker, prefilter_k))
     calls = {arm: {k: round(v, 4) for k, v in c.items()} for arm, c in asker.calls.items()}
     pessimistic = sum(c["pessimistic_usd"] for c in asker.calls.values())
-    return {"phase": phase, "questions": len(rows), "calls": calls,
-            "pessimistic_usd": round(pessimistic, 4), "cap_usd": CAP_USD[phase],
-            "fits_under_cap": pessimistic <= CAP_USD[phase], "claude_usd": 0.0}  # fmt: skip
+    out = {"phase": phase, "questions": len(rows), "calls": calls,
+           "pessimistic_usd": round(pessimistic, 4), "cap_usd": CAP_USD[phase],
+           "fits_under_cap": pessimistic <= CAP_USD[phase], "claude_usd": 0.0}  # fmt: skip
+    return out if prefilter_k is None else {**out, "prefilter_k": prefilter_k}
 
 
 def passages_path(phase: str, item_id: int) -> pathlib.Path:
@@ -312,9 +328,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("action", choices=("dry", "seal", "paid", "rows"))
     ap.add_argument("--phase", choices=PHASES, required=True)
     ap.add_argument("--launcher", type=pathlib.Path)
+    ap.add_argument("--prefilter-k", type=int, help="dry only: BM25's K best pages enter Jev")
     args = ap.parse_args(argv)
+    if args.prefilter_k is not None and args.action != "dry":
+        ap.error("--prefilter-k is for the dry run only: no sealed run uses it")
     if args.action == "dry":
-        print(json.dumps(dry(args.phase), indent=1))
+        print(json.dumps(dry(args.phase, prefilter_k=args.prefilter_k), indent=1))
         return 0
     if args.action == "seal":
         print(paid_once.seal(lot(args.phase)))

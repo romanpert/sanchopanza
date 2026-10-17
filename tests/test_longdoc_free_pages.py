@@ -83,3 +83,39 @@ def test_a_real_novel_when_cached():
     got = pages.pages_of(text)
     assert all(len(p) <= pages.PAGE_CHARS for _, p in got)
     assert len(got) > len(text) // pages.PAGE_CHARS * 0.9
+
+
+# ---- the free BM25 prefilter (opt-in, branch b0-lfree-bm25) ------------------------------------
+
+
+def _story() -> list[tuple[str, str]]:
+    filler = "The weather in the village was mild and the fields were green. " * 12
+    text = "\n\n".join(
+        f"Chapter {i}. Harriet sang at the harvest fair in Donwell." if i in (7, 31) else filler
+        for i in range(40)
+    )
+    return pages.pages_of(text)
+
+
+def test_the_shortlist_keeps_the_k_best_bm25_pages_in_the_novels_order():
+    novel = _story()
+    got = pages.bm25_shortlist(novel, "Where did Harriet sing at the harvest fair?", 3)
+    assert len(got) == 3 and got == sorted(got)
+    best = [i for i, (_, page) in enumerate(novel) if "Harriet" in page]
+    assert len(best) == 2 and set(best) <= set(got)
+
+
+def test_the_shortlist_breaks_ties_by_position_and_keeps_every_page_when_k_covers_them():
+    novel = _story()
+    assert pages.bm25_shortlist(novel, "nothing matches zzz", 2) == [0, 1]
+    assert pages.bm25_shortlist(novel, "Harriet", len(novel)) == list(range(len(novel)))
+    assert pages.bm25_shortlist(novel, "Harriet", 10**6) == list(range(len(novel)))
+    with pytest.raises(ValueError):
+        pages.bm25_shortlist(novel, "Harriet", 0)
+
+
+def test_spread_puts_the_shortlists_entries_back_and_none_elsewhere():
+    got = pages.spread([[(True, 0.9)], None], [1, 4], 6)
+    assert got == [None, [(True, 0.9)], None, None, None, None]
+    with pytest.raises(ValueError):
+        pages.spread([None], [1, 4], 6)
