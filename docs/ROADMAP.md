@@ -147,9 +147,12 @@ the default user-scope install kept the plan in 48 of 48 pairs against clean Cla
 and with a bare "Let's continue." in 24 of 24 against 3, at 1.19x the cost [1.15, 1.24]: "S'
 better than N0; no gana (cost)". On Opus 5.5 (repeated whole under the prereg's Amendment 1,
 sealed `941c9a9`) it kept the plan in 34 of 36 pairs against 31 (3 to 0, p 0.125) at 0.999x the
-cost [0.965, 1.055]: "not determined", since O1 needs the upper bound at 1.05; no gana. On Opus the
-install's overhead shows in session 1, on the same work in both arms (1.09x [1.06, 1.12]): the
-next lever there is a cheaper first session. Read from the code and from F2's logs, as they stood before the fix:
+cost [0.965, 1.055]: "not determined", since O1 needs the upper bound at 1.05; no gana. Post hoc,
+after the data: on Opus the install's overhead shows in session 1, on the same work in both arms
+(1.09x [1.06, 1.12]), so a cheaper first session is the candidate lever; "gana (coste)" asks for
+the upper bound below 1.00, not the median (with this spread, a median of about 0.95).
+
+Read from the code and from F2's logs, as they stood before the fix:
 - A bare "continue" gets no prompt recall: the name gate passes a record only if the prompt
   names a file it changed (`harness/memory_recall.py`). In F2 the record came at the prompt in
   36 of 48 Sonnet arms and through the file touch in the other 12.

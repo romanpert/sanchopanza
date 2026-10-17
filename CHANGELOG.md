@@ -165,10 +165,11 @@
   feature in a new session with the default user-scope install, S' kept the plan in 48 of 48 pairs
   against 9 (one-sided McNemar p 1.8e-12), and with a bare "Let's continue." in 24 of 24 against
   3; the cost per pair was 1.19x [1.15, 1.24], above the sealed 1.10. On Opus 5.5 (sealed
-  `941c9a9` under the prereg's Amendment 1, 21.32 USD) **"not determined"**: the cost per pair was
-  0.999x [0.965, 1.055], its upper bound 0.0055 above the sealed 1.05, and S' kept the plan in 34 of 36 pairs
-  against 31 (3 to 0, p 0.125), not worse by the sealed margin; scoreboard "no gana" on both
-  models ([W17](docs/results/2026-10-16-memory-w17/)).
+  `941c9a9` under the prereg's Amendment 1, 21.32 USD) **"not determined"**: the cost per pair
+  was a median 0.999x [0.965, 1.055], so that it costs no more is not shown (upper bound 0.0055
+  above the sealed 1.05), and S' kept the plan in 34 of 36 pairs against 31 (3 to 0, p 0.125),
+  not worse by the sealed margin; scoreboard "no gana" on both models
+  ([W17](docs/results/2026-10-16-memory-w17/)).
 - **C4, A5's gate on written pairs of fa-17's kinds** (sealed `3a201f0`, jev-1.13.0, 0.035 USD of
   Jev): **the gate beats the shipped policy**. At `unrelated_at=0.65`, 66 added verdicts on 1,500
   pairs (two dated events, a role and an act, a figure and its subset, plus controls), all 66

@@ -58,8 +58,9 @@ Code, per model and per axis ([final scoreboard](docs/results/2026-10-13-final/)
   lies below 1 with success held.
 - On SWE-bench Verified, with Haiku 4.5 only, success is non-inferior and no saving is shown.
 - On 60-bug coding sessions, the Jev part did not keep its edge.
-- Memory shows no gain on Opus 5.5: no room in two tests; as it ships, the same cost as clean
-  Claude Code, 0.999x [0.965, 1.055], keeping the plan in 34 of 36 pairs against 31 (p 0.125)
+- Memory shows no gain on Opus 5.5: Claude Code's own auto memory already keeps most of it
+  (F1 gate: 1 break in 24; F2: N0 21 of 24); as it ships (W17), "not determined": 34 of 36
+  against 31 (p 0.125) at 0.999x [0.965, 1.055], where that it costs no more is not shown
   ([W17](docs/results/2026-10-16-memory-w17/README.md)).
 - What moved results was Claude Code's own compaction window, a setting.
 - Memory on Sonnet 5.5, a fact said in a parallel session or sibling worktree: **gana**. With

@@ -164,8 +164,9 @@ bootstrap over triples (10,000 draws, seed 20261016), descriptive and post hoc.
   (W17, user scope, after the C8 fixes): 48 of 48 against 9, and 24 of 24 against 3 with a bare
   "Let's continue.", at 1.19x [1.15, 1.24] the cost: better, not a "gana". On Opus 5.5 memory had no
   room in either family: Claude Code's own auto memory carried the fact and the plan. As it ships
-  (W17), on Opus it cost the same as clean Claude Code, 0.999x [0.965, 1.055], and kept the plan in
-  34 of 36 pairs against 31 (p 0.125): "not determined", no gana.
+  (W17), on Opus it kept the plan in 34 of 36 pairs against 31 (p 0.125) at a median 0.999x
+  [0.965, 1.055]; that it costs no more is not shown (sealed O1: upper bound 1.055 over 1.05):
+  "not determined", no gana.
 - **No other measured cell is a win.** Three web suites are "no gana" on Sonnet 5.5; code on Haiku
   4.5 is non-inferior with no saving shown; on long code the Jev part (A) did not hold its edge.
   Early compaction near 67k on long code: cost 0.900 [0.741, 1.093], no saving shown. The rest is "sin margen" or not run.

@@ -8,8 +8,9 @@
     24.
   - S' cost a median 1.187x N0 per pair [1.148, 1.244], above the sealed bound of 1.10.
 - **Lot O, Opus 5.5: "not determined". Scoreboard: "no gana".**
-  - S' cost the same as N0: a median 0.999x per pair [0.965, 1.055]. The sealed O1 needs the
-    upper bound at 1.05 or below; it is 1.05549 unrounded, 0.0055 above.
+  - Cost per pair S' / N0: a median 0.999x [0.965, 1.055]. That S' costs no more is not
+    shown: the sealed O1 needs the upper bound at 1.05 or below; it is 1.05549 unrounded, 0.0055
+    above.
   - S' kept the plan in 34 of 36 pairs, N0 in 31 of 36 (3 to 0). Not worse by the sealed margin
     (O2 holds), and not shown to be better: one-sided McNemar p = 0.125.
 
@@ -118,9 +119,10 @@ none where S' did not: one-sided exact McNemar p = 0.125. By stratum: named 22 a
 0, p = 0.5), bare 12 against 10 (2 to 0, p = 0.25). By scene, S' kept all more often in 2 of 12
 scenes (`h_semicolon` 3 and 1, `h_judge` 1 and 0) and tied in 10.
 
-**Cost is at parity**, within the bootstrap's interval of about 3.5 % below to 5.5 % above N0.
-The prereg's power section expected "not determined" if S' truly costs the same as N0: O1 holds
-with probability 0.25 at 1.00x over 36 pairs.
+**That S' costs no more than N0 is not shown:** the median is 0.999x and the interval
+[0.965, 1.055] runs from about 3.5 % below to 5.5 % above N0, past the sealed 1.05. The prereg's
+power section expected "not determined" if S' truly costs the same as N0: O1 holds with
+probability 0.25 at 1.00x over 36 pairs.
 
 **Every miss, in either arm, was step 2 not done.** Wherever a session built step 2 it kept C
 and followed D. As in F2, `h_judge` (an urgency verdict with no cutoff given, which its C forbids
@@ -128,8 +130,8 @@ the code to pick) holds both S' misses and 3 of N0's 5; N0's other 2 are `h_semi
 (repetitions 1 and 3).
 
 **Claude Code's own auto memory saved after every Opus session 1, in both arms**
-(`native_after_1` 36 of 36 in N0 and in S'), as it did in every F2 Opus arm. That is why N0
-keeps 31 of 36 on Opus and S' has little to add.
+(`native_after_1` 36 of 36 in N0 and in S'), as it did in every F2 Opus arm. That N0 keeps
+31 of 36 on Opus and S' adds 3 is consistent with that; this lot does not measure it.
 
 ## What S' gave, and when
 
@@ -173,7 +175,7 @@ percentile bootstrap (10,000 draws, seed 20261017, pairs in (scene, repetition) 
   - Sonnet: in the 39 pairs where only S' kept all, the ratio's median is 1.225; in the 9 pairs
     where both arms kept all, 0.896. S' costs more mostly because it builds step 2 where N0
     stops, which a cheaper install cannot remove. The prereg expected this: "no gana on cost".
-  - Opus: in the 31 pairs where both arms kept all, 0.986; in the 3 where only S' did, 1.300; in
+  - Opus: in the 31 pairs where both arms kept all, 0.985; in the 3 where only S' did, 1.300; in
     the 2 where neither did, 1.202.
 
 **Tokens per arm run, median** (input / output / cache read / cache write):
@@ -239,7 +241,8 @@ measured cost difference between the installs.
   0.80 cap.
 - **The interrupted first Opus run:** about 7.2 USD (Amendment 1, "Caps and cost"), not used
   for any figure.
-- **The lot in all: about 39.7 USD** (11.18 + 7.2 + 21.32).
+- **The lot in all: about 39.7 USD** (11.18 + 7.2 + 21.32). The `lot` total in `costs.json`,
+  32.50 USD, covers only the two published runs; the discarded first Opus run is not in it.
 
 ## What it means for the product
 
@@ -250,15 +253,18 @@ measured cost difference between the installs.
   the sealed 1.10. Descriptively and post hoc (above), the extra cost sits in the pairs where S'
   did the next step and Claude Code alone did not do it; on the same work in session 1 an
   overhead of the install is not shown: 1.05x [0.96, 1.08].
-- **On Opus 5.5 it costs the same as Claude Code alone and is not shown to do better:** 0.999x
-  [0.965, 1.055] per pair, 34 of 36 against 31 (p 0.125), no harm. Claude Code saved its own
-  auto memory after every Opus session 1, in both arms, and alone kept the plan in 31 of 36. "No extra cost"
-  would have needed the upper bound at 1.05; it is 1.055: "not determined", not a "gana".
+- **On Opus 5.5, "not determined": neither costing no more nor doing better is shown.** Per
+  pair a median 0.999x [0.965, 1.055]; that it costs no more is not shown (sealed O1: upper
+  bound 1.055 over 1.05); 34 of 36 against 31 (p 0.125), no harm. Claude Code saved its own
+  auto memory after every Opus session 1, in both arms, and alone kept the plan in 31 of 36.
+  Not a "gana".
 - **Next:** a "gana" on Sonnet needs a cost rule that compares equal work, sealed before its data,
-  or scenes where N0 also builds. On Opus the lever is the install's own overhead, seen in
-  session 1 (1.09x [1.06, 1.12] on the same work): a cheaper first session could move the pair's
-  ratio below 1, which "gana (coste)" asks for. At a true parity, 36 pairs show "no extra cost"
-  with probability 0.25 (the prereg's power), so parity alone needs more pairs.
+  or scenes where N0 also builds.
+- **On Opus (post hoc, after the data):** the install's own overhead shows in session 1 (1.09x
+  [1.06, 1.12] on the same work), so a cheaper first session is the candidate lever. "gana
+  (coste)" asks for the cost ratio's upper bound below 1.00, not the median: with this lot's
+  spread that is a median of about 0.95 (the interval reaches 5.7 % above its median). At a true
+  parity, 36 pairs show "no extra cost" with probability 0.25 (the prereg's power).
 
 ## What this does not show
 
