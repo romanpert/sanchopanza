@@ -806,8 +806,10 @@ Each item, with its priority and cost, is in [docs/ROADMAP.md](docs/ROADMAP.md).
   less often ([lbo8](docs/results/2026-10-16-lbo8/README.md)). On free-text answers over
   whole novels the router cost more than Sonnet alone in its dev, because Jev's page tournament
   cost 0.039 USD a question ([longdoc-free](docs/results/2026-10-16-longdoc-free/README.md));
-  a free BM25 pre-filter brought that to 0.0115 on 3 probe questions, cost only so far
-  ([BM25 pre-filter](docs/results/2026-10-17-lfree-bm25-dry/README.md)).
+  a free BM25 pre-filter brought that to 0.0106, but Haiku on the shortlisted passages lost
+  enough that no cut met the dev's rule: not confirmed
+  ([BM25 pre-filter](docs/results/2026-10-17-lfree-bm25-dry/README.md),
+  [dev2](docs/results/2026-10-17-lfree-dev2/README.md)).
 - **MCP results, not only MCP calls.** The guard before the call is not confirmed
   ([A3](docs/results/2026-10-16-a3-mcp/README.md)): most of what it missed shows only in a tool's
   answer. The check after the call (`--guard-mcp-post`) caught more there and flagged more safe

@@ -152,8 +152,8 @@ or pays.
 **The proposal is to stop design (b) on ∞Bench En.QA.** On these novels Sonnet 5.5 in Claude
 Code answers at about 0.07 USD a question by searching the file, and the margin left between
 Sonnet and Haiku (about 0.04 USD a question) does not carry passage selection plus a gate whose
-covered questions lose about 0 to 13 F1 points against Sonnet at the cuts that cover enough,
-depending on the draw. What remains open for longdoc-free is a different population
+covered questions land between a gain of 6 and a loss of 13 F1 points against Sonnet at the
+cuts that cover enough, depending on the draw. What remains open for longdoc-free is a different population
 (documents Claude Code cannot grep as cheaply, or Opus 5.5 as the frontier model, where the
 margin is larger), which is a new lot with its own design.
 

@@ -144,6 +144,13 @@
   0.041-0.070. By the probe's sealed rule (mean at most 0.015, none above 0.031) a new dev is
   worth preparing; the probe measures cost only. The pre-filter is a bench option
   (`jev_phase.py`, `pages.bm25_shortlist`), not a package change.
+- **Long documents with free-text answers, the pre-filter's dev: not confirmed**
+  (`docs/results/2026-10-17-lfree-dev2`, sealed `09e30e8`; Sonnet 5.5 rerun and Haiku 4.5 in
+  clean Claude Code 2.1.287, Jev 1.13.0; Jev 0.4338, Claude 3.99 USD): with the BM25 pre-filter,
+  on the dev's 41 questions, Jev came to 0.0106 USD a question and the router at the dev's cut
+  would have cost 24 % less than Sonnet alone, but Haiku on the shortlisted passages fell (−7.0
+  F1 [−15.5, +2.3] against the dev's Haiku) and no cut meets the dev's rule (covered H − N −9.2
+  to −13.2 where coverage suffices). The design stops on ∞Bench En.QA.
 - **A10, a local check_done classifier on public labels: "no concluyente"**
   (`docs/results/2026-10-16-a10-local`, sealed `ac61ad0`, free): trained only on AgentDojo's own
   labels for 393 slack stops (no pipeline Jev guarded), it ranked checkdone114's 950 unseen stops

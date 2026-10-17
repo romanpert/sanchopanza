@@ -133,8 +133,13 @@ pre-filter** of the 200 pages that best match the question, before the tournamen
 probe sealed `62f7d1d`, Jev 1.13.0 only, 0.0346 USD): on 3 dev questions Jev cost 0.0115 USD a
 question on average, at most 0.0203, where the whole novel cost 0.041-0.070; by its sealed rule a
 new dev with the pre-filter is worth preparing, the owner's decision (it spends Claude)
-([BM25 pre-filter](results/2026-10-17-lfree-bm25-dry/README.md)). Cost only: nothing yet on
-quality.
+([BM25 pre-filter](results/2026-10-17-lfree-bm25-dry/README.md)). **Its dev** (dev2, sealed
+`09e30e8`, the same 41 questions, Sonnet 5.5 rerun, Jev 0.4338 and Claude 3.99 USD): by its sealed
+rule no cut qualifies, the router is not confirmed. Jev came to 0.0106 USD a question and the
+router at the dev's cut would have cost 24 % less than Sonnet alone, but Haiku on the shortlisted
+passages fell (−7.0 F1 [−15.5, +2.3] against the dev's Haiku) and covered H − N was −9.2 to
+−13.2 at every cut that covers enough ([dev2](results/2026-10-17-lfree-dev2/README.md)). This
+design on ∞Bench En.QA stops here: a confirmation lacks questions either way.
 
 **D1. OpenAI's Decisions API.** sanchopanza is a layer with one decision contract; Jev is the
 provider every figure was measured with, and OpenAI's `/v1/decisions` (public beta since
