@@ -100,7 +100,7 @@ def test_handoff_ledger_and_interrupts_are_synced(
     handoff.book(tmp_path, "arm", 0.25, "t00-a")
     assert kinds(events) == ["fsync"]
     assert handoff.ledger(tmp_path) == 0.25
-    monkeypatch.setattr(handoff, "lost_cost", lambda work, rec: 0.5)
+    monkeypatch.setattr(handoff, "lost_cost", lambda work, rec, charge=0.0: 0.5)
     events.clear()
     seen, again = handoff.resume_interrupted(tmp_path, tmp_path / "work" / "t01-b", {})
     assert seen == {"t01-b": 1} and handoff.interrupts(tmp_path) == seen
