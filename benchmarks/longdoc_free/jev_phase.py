@@ -24,7 +24,8 @@ characters. A paid run starts only from the seal commit itself (`sealed_head_pro
 Phase "probe" (docs/results/2026-10-17-lfree-bm25-dry/prereg-probe.md, the owner's approval of
 2026-10-17): Jev only on the dev questions PROBE_IDS, with the free BM25 prefilter at PROBE_K
 (`pages.bm25_shortlist`), both fixed here. Its own lot (`longdoc-free-bm25-probe`: prereg,
-recording, ledger capped at 0.095 USD, 0.10 with its worst overshoot) and one launch only: none
+recording, ledger capped at 0.06 USD, 0.0626 with its worst overshoot and the preflight, under
+the owner's hard 0.10) and one launch only: none
 after any launch, any spend in its ledger or any answer in its recording. No other phase takes
 a prefilter on a paid path.
 """
