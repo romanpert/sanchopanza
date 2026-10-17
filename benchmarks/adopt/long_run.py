@@ -78,7 +78,6 @@ from long_start import (  # noqa: E402
 sys.path.insert(0, str(HERE.parents[1] / "src"))
 from sanchopanza import durable  # noqa: E402
 from sanchopanza.harness.install_defaults import window_for  # noqa: E402
-from sanchopanza.harness.install_guard import CHOOSER, FULL_CHOOSER  # noqa: E402
 
 ROOT = Path(r"C:\sp-runs\L")  # outside the home folder: carry.refuse_unclean; short for MAX_PATH
 WINDOW = "CLAUDE_CODE_AUTO_COMPACT_WINDOW"
@@ -89,9 +88,11 @@ EXIT = {"limit": 2, "cap": 2, "ceiling": 2, "wall": 2, "clock": 2, "set aside": 
 # a relaunch with a newer sanchopanza still runs the measured treatment. Not `--guard-full`: the
 # sealed copy predates it (an unknown flag there); `--guard-parts` and the chooser variable are
 # read the same by both (the variable in the settings' env, which the install never removes).
+# Literals of cb0062e's own vocabulary (its guard_hook reads SANCHOPANZA_GUARD_CHOOSER), not
+# today's names: a rename there must not move the sealed line.
 S_GUARD_PARTS = 6
 S_GUARD_FLAGS = ("--guard-parts", str(S_GUARD_PARTS))
-S_GUARD_ENV = ((CHOOSER, FULL_CHOOSER),)
+S_GUARD_ENV = (("SANCHOPANZA_GUARD_CHOOSER", "struct"),)
 # The sealed S line (docs/S-SEAL-DRAFT.md, S0 for code suites); its budget is the profile's.
 S_FLAGS = ("--guard", "--guard-profile", "coding", "--memory", "--candor", "--find",
            "--find-auto", "--skill", "--scan-content", "--check-done", "--content-tools",
@@ -434,13 +435,14 @@ def prepare(ctx: Ctx, chain: Mapping[str, Any], arm: str) -> Arm:
         key = run.arm_keyfile(ctx.keyfile, name, arm)
         install = long_pilot.install if arm in long_pilot.ARMS else run.install_sancho
         install(work, evidence, key, spec.install)
-        log(f"{name} {arm}: {arm_files.guard_parts(work)} ({run.SANCHO})")
     else:
         mcp.write_text('{"mcpServers": {}}\n', encoding="utf-8", newline="\n")
     if spec.env:
         arm_files.write_env_settings(work, spec.env)
         if spec.install is not None:  # else restore_install puts back the settings without it
             run.snapshot_install(work, evidence)
+    if spec.install is not None:  # the guard the arm runs with, its env written (S: struct)
+        log(f"{name} {arm}: {arm_files.guard_parts(work)} ({run.SANCHO})")
     return assemble(ctx, chain, arm, evidence, work, base)
 
 

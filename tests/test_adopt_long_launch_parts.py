@@ -434,3 +434,11 @@ def test_s_settings_deliver_the_guard_struct_in_six_parts(
     assert m.arm_files.guard_parts(tmp_path) == (
         "guard: 6 SessionStart(compact) parts, chooser struct"
     )
+    if which == "current":  # the chooser is the arm's, unmarked: an install never takes it out
+        assert "SANCHOPANZA_GUARD_CHOOSER_BY" not in settings["env"]
+        again = _s_settings(command, env, spec, tmp_path)  # a reinstall over it (resume, rerun)
+        assert again["env"]["SANCHOPANZA_GUARD_CHOOSER"] == "struct"
+        assert "SANCHOPANZA_GUARD_CHOOSER_BY" not in again["env"]
+        assert m.arm_files.guard_parts(tmp_path) == (
+            "guard: 6 SessionStart(compact) parts, chooser struct"
+        )
