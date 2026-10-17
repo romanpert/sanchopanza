@@ -56,6 +56,7 @@ import handoff_call as hc  # noqa: E402
 import handoff_cost  # noqa: E402
 import handoff_seal  # noqa: E402
 import meter  # noqa: E402
+import winupdate  # noqa: E402
 from scenes_handoff import CHECKS, HANDOFF, HANDOFF_PILOT, check_code, names_c_d  # noqa: E402
 
 from sanchopanza import durable  # noqa: E402
@@ -120,11 +121,15 @@ seal, seal_ok = handoff_seal.seal, handoff_seal.seal_ok
 LOTS: dict[str, dict[str, Any]] = {
     "f2": {"sequence": ("f2-pilot", "f2-sonnet", "f2-opus"), "night_cap": NIGHT_CAP, "out": OUT,
            "work": WORK, "gate": "f2-pilot", "quiet": False},
+    # W17's Opus redo (prereg, Amendment 1): new roots, so it cannot read, resume from, set
+    # aside or charge anything of the interrupted run, left where it was in `W17_INTERRUPTED`.
     "w17": {"sequence": ("w17-sonnet", "w17-opus"), "night_cap": 45.0,
-            "out": Path(r"C:\sp-runs\memory-w17"), "work": Path(r"C:\sp-runs\w18"), "gate": None,
-            "quiet": True},
+            "out": Path(r"C:\sp-runs\memory-w17-redo"), "work": Path(r"C:\sp-runs\w19"),
+            "gate": None, "quiet": True},
 }  # fmt: skip
+W17_INTERRUPTED = (Path(r"C:\sp-runs\memory-w17"), Path(r"C:\sp-runs\w18"))  # 16 Oct: evidence
 QUIET = (dt.time(2, 0), dt.time(8, 0))  # no W17 arm runs, even in part, between these
+# ... unless Windows Update is paused at least winupdate.MARGIN past the check (Amendment 1).
 
 
 def lot_of(run: str) -> str:
@@ -633,10 +638,13 @@ def run_plan(out: Path, run: str, keyfile: Path, dry: bool, cap: float, night: P
              clock: Callable[[], dt.datetime] = dt.datetime.now,
              sleep: Callable[[float], Any] = time.sleep,
              arm_fn: Callable[..., dict[str, Any]] = arm_run,
-             work_root: Path | None = None) -> str:  # fmt: skip
+             work_root: Path | None = None,
+             lifted: Callable[[], str] = winupdate.quiet_lifted) -> str:  # fmt: skip
     """Runs what is left of `run`; returns why it stopped ("cap", "limit", "harness", "manual",
     "broken", "quiet") or "" at its end. LIMIT.flag goes to `night` (the root) or else `out`.
-    A lot with quiet hours starts no arm that would run into them ("quiet", resumable)."""
+    A lot with quiet hours starts no arm that would run into them ("quiet", resumable), unless
+    `lifted` gives a reason (W17 Amendment 1: Windows Update paused well past the check),
+    which the log records before that arm."""
     work_root = work_root or work_of(run)
     plan, arms = build_plan(run), arms_of(run)
     quiet = bool(LOTS[lot_of(run)]["quiet"])
@@ -672,9 +680,11 @@ def run_plan(out: Path, run: str, keyfile: Path, dry: bool, cap: float, night: P
         if not dry and not wait_for_day(expected, clock, sleep, lambda: stop_file(out, night)):
             return "manual"
         if not dry and quiet and in_quiet_hours(expected, clock()):
-            print(f"stop: quiet hours {QUIET[0]:%H:%M}-{QUIET[1]:%H:%M}; run it again after",
-                  flush=True)  # fmt: skip
-            return "quiet"
+            if not (why := lifted()):
+                print(f"stop: quiet hours {QUIET[0]:%H:%M}-{QUIET[1]:%H:%M}; run it again after",
+                      flush=True)  # fmt: skip
+                return "quiet"
+            print(f"quiet hours lifted for {work.name}: {why} (amendment 1)", flush=True)
         try:
             row = arm_fn(out, work, name, model, arm, rep, keyfile, dry, **extra)
         except Exception as error:  # never ends the night: the arm is NOT RUN, its spend counted
