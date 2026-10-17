@@ -349,31 +349,76 @@ def test_the_measured_case_is_refused_where_the_old_check_let_it_through(
     assert money.room_refusal(spent - over, budget, over, ceiling, "ceiling") == ""
 
 
-# ---- the S seal (owner, 2026-10-06: cb0062e, the install's default guard) ----------------------
+# ---- the S seal (owner, 2026-10-06: cb0062e, the guard struct over 6 parts) -------------------
 
 
-def test_s_sets_no_guard_chooser_of_its_own(m: SimpleNamespace) -> None:
-    assert not any(k.endswith("GUARD_CHOOSER") for k, _v in m.long_run.S_ENV)
+def test_s_asks_the_sealed_guard_itself(m: SimpleNamespace) -> None:
+    """Since 0.3.2 the install's default guard is the pointer block: S asks for struct over 6
+    parts explicitly, with a flag and a variable the sealed copy reads too (it has no
+    --guard-full)."""
+    spec = m.long_run.arm_spec("S", m.long_run.PROFILES["dev"])
+    flags = list(spec.install)
+    assert flags[flags.index("--guard-parts") + 1] == "6" and "--guard-full" not in flags
+    assert dict(spec.env)["SANCHOPANZA_GUARD_CHOOSER"] == "struct"
     assert m.long_launch.SEAL_COMMIT == "cb0062e"
 
 
-def test_s_settings_at_the_seal_deliver_the_guard_in_six_parts(
-    m: SimpleNamespace, tmp_path: pathlib.Path
-) -> None:
-    full = m.long_launch.git("rev-parse", "cb0062e").stdout.strip()
-    exe = m.long_launch.freeze.ROOT / f"{full[:12]}-jev-mcp" / "Scripts" / "sanchopanza.exe"
-    if not exe.exists():
-        pytest.skip("the seal is not frozen here (benchmarks/adopt/freeze.py cb0062e)")
+def test_every_profile_before_the_pointer_guard_asks_struct(m: SimpleNamespace) -> None:
+    """Each arm a historical profile may run that installs the guard says struct over 6 parts;
+    the ones that install no guard (N, Ne, Nl; A and A10 with --no-guard) stay without one. The
+    guard-pointers lot's P (the default install) and F (--guard-full) are what they were."""
+    lots = set(m.long_run.long_pointers.SEALED_LOTS)
+    seen = set()
+    for name, profile in m.long_run.PROFILES.items():
+        if name in lots:
+            continue
+        for arm in profile.choices or profile.arms:
+            spec = m.long_run.arm_spec(arm, profile)
+            flags = list(spec.install or ())
+            if spec.install is None or "--no-guard" in flags:
+                assert "SANCHOPANZA_GUARD_CHOOSER" not in dict(spec.env), (name, arm)
+                continue
+            seen.add(arm)
+            assert flags[flags.index("--guard-parts") + 1] == "6", (name, arm)
+            assert dict(spec.env).get("SANCHOPANZA_GUARD_CHOOSER") == "struct", (name, arm)
+    assert seen == {"S"}
+    for name in lots:
+        profile = m.long_run.PROFILES[name]
+        budget = () if profile.budget == 160_000 else ("--context-budget", str(profile.budget))
+        p, f = (m.long_run.arm_spec(a, profile) for a in ("P", "F"))
+        assert (p.install, p.env) == (budget, ())
+        assert (f.install, f.env) == (("--guard-full", *budget), ())
+
+
+def _s_settings(command: list[str], env: dict[str, str], spec, tmp_path: pathlib.Path) -> dict:  # type: ignore[no-untyped-def]
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
-    spec = m.long_run.arm_spec("S", m.long_run.PROFILES["dev"])
+    done = subprocess.run([*command, "install", "--scope", "project", "--write", *spec.install],
+                          cwd=tmp_path, env=env, capture_output=True, text=True)  # fmt: skip
+    assert done.returncode == 0, done.stderr
+    return json.loads((tmp_path / ".claude" / "settings.json").read_text(encoding="utf-8"))
+
+
+@pytest.mark.parametrize("which", ["seal", "current"])
+def test_s_settings_deliver_the_guard_struct_in_six_parts(
+    m: SimpleNamespace, tmp_path: pathlib.Path, which: str
+) -> None:
+    """The sealed copy and today's install, given S's line, wire the same guard."""
     env = {
         k: v
         for k, v in os.environ.items()
         if not k.startswith(("SANCHOPANZA_", "SANCHO_", "TYPESAFE_", "PYTHONPATH"))
     }
-    done = subprocess.run([str(exe), "install", "--scope", "project", "--write", *spec.install],
-                          cwd=tmp_path, env=env, capture_output=True, text=True)  # fmt: skip
-    assert done.returncode == 0, done.stderr
+    if which == "seal":
+        full = m.long_launch.git("rev-parse", "cb0062e").stdout.strip()
+        exe = m.long_launch.freeze.ROOT / f"{full[:12]}-jev-mcp" / "Scripts" / "sanchopanza.exe"
+        if not exe.exists():
+            pytest.skip("the seal is not frozen here (benchmarks/adopt/freeze.py cb0062e)")
+        command = [str(exe)]
+    else:
+        command = [sys.executable, "-m", "sanchopanza"]
+        env = {**env, "PYTHONPATH": str(ROOT / "src")}
+    spec = m.long_run.arm_spec("S", m.long_run.PROFILES["dev"])
+    _s_settings(command, env, spec, tmp_path)
     m.arm_files.write_env_settings(tmp_path, spec.env)  # what the runner adds for S
     settings = json.loads((tmp_path / ".claude" / "settings.json").read_text(encoding="utf-8"))
     compact = [h["command"] for e in settings["hooks"]["SessionStart"]
@@ -383,9 +428,9 @@ def test_s_settings_at_the_seal_deliver_the_guard_in_six_parts(
     ]
     assert any("guard-hook --parts 6" in h["command"] for e in settings["hooks"]["PreCompact"]
                for h in e["hooks"])  # fmt: skip
-    assert "SANCHOPANZA_GUARD_CHOOSER" not in settings["env"]
+    assert settings["env"]["SANCHOPANZA_GUARD_CHOOSER"] == "struct"
     assert settings["env"]["CLAUDE_CODE_AUTO_COMPACT_WINDOW"] == "193000"
     assert settings["env"]["SANCHOPANZA_CANDOR_MODE"] == "observe"
     assert m.arm_files.guard_parts(tmp_path) == (
-        "guard: 6 SessionStart(compact) parts, chooser the install's default"
+        "guard: 6 SessionStart(compact) parts, chooser struct"
     )

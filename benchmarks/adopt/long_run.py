@@ -78,18 +78,26 @@ from long_start import (  # noqa: E402
 sys.path.insert(0, str(HERE.parents[1] / "src"))
 from sanchopanza import durable  # noqa: E402
 from sanchopanza.harness.install_defaults import window_for  # noqa: E402
+from sanchopanza.harness.install_guard import CHOOSER, FULL_CHOOSER  # noqa: E402
 
 ROOT = Path(r"C:\sp-runs\L")  # outside the home folder: carry.refuse_unclean; short for MAX_PATH
 WINDOW = "CLAUDE_CODE_AUTO_COMPACT_WINDOW"
 EXIT = {"limit": 2, "cap": 2, "ceiling": 2, "wall": 2, "clock": 2, "set aside": 3, "harness": 4,
         "rerequest": long_pilot.EXIT_REREQUEST}  # fmt: skip
+# S's guard as sealed (cb0062e, owner 10-06): the whole-results block (struct) over 6 parts, the
+# install's default then. Since 0.3.2 the default is the pointer block, so S says its guard itself:
+# a relaunch with a newer sanchopanza still runs the measured treatment. Not `--guard-full`: the
+# sealed copy predates it (an unknown flag there); `--guard-parts` and the chooser variable are
+# read the same by both (the variable in the settings' env, which the install never removes).
+S_GUARD_PARTS = 6
+S_GUARD_FLAGS = ("--guard-parts", str(S_GUARD_PARTS))
+S_GUARD_ENV = ((CHOOSER, FULL_CHOOSER),)
 # The sealed S line (docs/S-SEAL-DRAFT.md, S0 for code suites); its budget is the profile's.
 S_FLAGS = ("--guard", "--guard-profile", "coding", "--memory", "--candor", "--find",
            "--find-auto", "--skill", "--scan-content", "--check-done", "--content-tools",
            "WebFetch,WebSearch,mcp__sanchopanza-fetch__fetch_passages", "--crawl", "--prune",
-           "--fetch", "--provider", "jev")  # fmt: skip
-# No guard chooser: the sealed install's default (cb0062e: struct over 6 parts; owner 10-06).
-S_ENV = (("SANCHOPANZA_CANDOR_MODE", "observe"),
+           "--fetch", "--provider", "jev", *S_GUARD_FLAGS)  # fmt: skip
+S_ENV = (*S_GUARD_ENV, ("SANCHOPANZA_CANDOR_MODE", "observe"),
          ("SANCHOPANZA_CRAWL_LINE_VERSION", "6"), ("SANCHOPANZA_CRAWL_NOTES", "3"),
          ("SANCHOPANZA_CRAWL_ECHO", "short"), ("SANCHOPANZA_CRAWL_LINE_AT", "prompt"),
          ("SANCHOPANZA_CRAWL_NOTES_AT", "front"), ("SANCHOPANZA_CRAWL_SHOT", "snapshot-first"),
