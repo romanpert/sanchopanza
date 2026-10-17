@@ -180,3 +180,112 @@ def test_turn_own_reads_each_kind_of_report() -> None:
     assert cost.turn_own(own, 0.06, TOKENS, "sonnet") == (own, cost.OWN)
     assert cost.turn_own(0.5, 0.06, TOKENS, "sonnet") == (pytest.approx(own), cost.PRICED)
     assert cost.turn_own(0.5, 0.06, None, "sonnet") == (0.5, cost.OWN)
+
+
+def test_the_nudge_names_its_running_reading_after_session_2() -> None:
+    # The nudge resumes session 2: its running reading has its own label. H's label stays the
+    # string F2's published rows carry, so republishing F2 gives the same bytes.
+    cost = pub.handoff_cost
+    own = cost.priced(TOKENS, "sonnet")
+    assert cost.RUNNING == "running total minus session 1"
+    assert cost.RUNNING_S2 == "running total minus session 2"
+    got = cost.turn_own(0.04 + own, 0.04, TOKENS, "sonnet", cost.RUNNING_S2)
+    assert got == (pytest.approx(own), cost.RUNNING_S2)
+    assert cost.turn_own(own, 0.04, TOKENS, "sonnet", cost.RUNNING_S2) == (own, cost.OWN)
+
+
+# ---- the equal-work lot ---------------------------------------------------------------------
+
+EW_PRIVATE = ("C:/somewhere", "sid-2", "abc", "skill_names", "memory_auto", "started",
+              "resumed", "1792241133")  # fmt: skip
+
+
+def ew_row(arm: str, nudged: bool, kept: bool, repeat: int = 1) -> dict:
+    """An equal-work row: N0 nudged after a session 2 that left step 2 undone, or S' not."""
+    checks = {"tests_pass": True, "task_pass": not nudged, "fact_pass": not nudged,
+              "decision_pass": not nudged, "intact_pass": True, "kept_all": not nudged}  # fmt: skip
+    push = {"tag": "nudge", "returncode": 0, "subtype": "success", "cost": 0.0276,
+            "cost_reported": True, "cost_reported_total": 0.068, "cost_source":
+            "running total minus session 1", "resumed": "sid-2", "context_carried": True,
+            "same_session": True, "first_prompt": 23617, "last_prompt": 24723,
+            "tokens": {"input": 4, "output": 1183, "cache_read": 46719, "cache_write": 1617},
+            "seconds": 20.1, "started": 1792241133.17, "turns": 2, "tools": 1, "touched": [],
+            "subagents": 0, "timeout": False, "session_starts": [], "tree_kept": True,
+            "init": {"model": "claude-sonnet-5-5", "version": "2.1.287", "session_id": "sid-2",
+                     "memory_auto": "C:/somewhere/memory/", "skill_names": ["x"]},
+            "first_request": {"input": 2, "cache_read": 23104, "cache_write": 511},
+            "session_2_last_request": {"input": 2, "cache_read": 22397, "cache_write": 707},
+            "chars": 901} if nudged else {}  # fmt: skip
+    base = w17_row(arm, kept)
+    return {**base, "repeat": repeat, "line": "named" if repeat < 3 else "bare",
+            "call_cap": 0.25, "folder": "C:/somewhere/w20/r1/t00-a", "kept_all": kept,
+            "task_pass": kept, "fact_pass": kept, "decision_pass": kept, "checks_s2": checks,
+            "kept_all_s2": checks["kept_all"], "nudged": nudged, "nudge": push,
+            "cost": 0.12 + (0.0276 if nudged else 0.0)}  # fmt: skip
+
+
+def ew_rows() -> list[dict]:
+    return [ew_row("S", False, True, 1), ew_row("N0", True, False, 1),
+            ew_row("S", False, True, 3), ew_row("N0", True, False, 3)]  # fmt: skip
+
+
+def test_ew_rows_keep_the_nudge_s_numbers_and_flags_only() -> None:
+    n0 = pub.public_row(ew_row("N0", True, False))
+    text = json.dumps(n0)
+    for private in EW_PRIVATE:
+        assert private not in text
+    assert n0["checks_s2"]["task_pass"] is False and n0["kept_all_s2"] is False
+    assert n0["nudged"] is True and n0["nudge"]["cost"] == 0.0276
+    assert n0["nudge"]["cost_source"] == "running total minus session 1"  # as recorded
+    assert n0["nudge"]["init"] == {**dict.fromkeys(pub.INIT_KEYS), "model": "claude-sonnet-5-5",
+                                   "version": "2.1.287"}  # fmt: skip
+    assert n0["nudge"]["first_request"]["cache_read"] == 23104 and n0["nudge"]["tree_kept"]
+    s = pub.public_row(ew_row("S", False, True))
+    assert s["nudged"] is False and s["nudge"] == {} and s["kept_all_s2"] is True
+    assert "nudge" not in pub.public_row(w17_row("S", True))  # W17's rows unchanged
+
+
+def test_ew_runs_are_analysed_by_their_own_sealed_reading() -> None:
+    rows = ew_rows()
+    got = pub.analysis(rows, "ew-sonnet", None)
+    assert got == pub.handoff_ew.analyse(rows, None, pub.planned("ew-sonnet"))
+    assert got["reading"] == "equal work (R3)" and got["nudges"]["N0"]["nudged"] == 2
+    assert pub.analysis([pub.public_row(r) for r in rows], "ew-sonnet", None) == got
+    assert pub.same_as_night(got, got, "ew-sonnet")
+    assert not pub.same_as_night({**got, "cost_median_usd": {}}, got, "ew-sonnet")
+
+
+def ew_folder(tmp_path: Path) -> Path:
+    root = tmp_path / "mem-ew"
+    (root / "ew-sonnet").mkdir(parents=True)
+    rows = ew_rows()
+    (root / "ew-sonnet" / "f2.json").write_text(json.dumps(rows), encoding="utf-8")
+    pub.handoff.book(root / "ew-sonnet", "preflight", 0.000012, "jev preflight")
+    table = pub.analysis(rows, "ew-sonnet", root / "ew-sonnet")
+    (root / "ew-sonnet-table.json").write_text(json.dumps(table, ensure_ascii=False),
+                                               encoding="utf-8")  # fmt: skip
+    return root
+
+
+def test_publishing_the_ew_lot_twice_gives_the_same_bytes(tmp_path: Path) -> None:
+    root, dest = ew_folder(tmp_path), tmp_path / "results"
+    names = ("rows-ew-sonnet.json", "ew-sonnet-table.json", "costs.json")
+    assert pub.main([str(root), str(dest), "ew-sonnet"]) == 0
+    first = {n: (dest / n).read_bytes() for n in names}
+    assert pub.main([str(root), str(dest), "ew-sonnet"]) == 0
+    assert {n: (dest / n).read_bytes() for n in names} == first
+    costs = json.loads(first["costs.json"])
+    assert list(costs) == ["ew-sonnet", "lot"]
+    assert costs["ew-sonnet"]["same_as_the_night"] is True
+    assert costs["ew-sonnet"]["table_from_public_rows"] is True
+    assert costs["ew-sonnet"]["spent_usd"] == pytest.approx(4 * 0.1202 + 2 * 0.0276 + 0.000012)
+    text = first["rows-ew-sonnet.json"].decode("utf-8")
+    for private in EW_PRIVATE:
+        assert private not in text
+
+
+def test_an_ew_results_folder_refuses_another_lot_s_run(tmp_path: Path) -> None:
+    dest = tmp_path / "results"
+    assert pub.main([str(ew_folder(tmp_path)), str(dest), "ew-sonnet"]) == 0
+    with pytest.raises(SystemExit, match="mix the lots ew, w17"):
+        pub.main([str(lot_folder(tmp_path, "w17-opus")), str(dest), "w17-opus"])
