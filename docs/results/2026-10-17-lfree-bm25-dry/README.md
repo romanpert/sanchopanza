@@ -3,14 +3,20 @@
 **Status: a dry sizing (free) and one sealed paid probe of 3 questions (Jev only, 0.0346 USD).
 By the probe's sealed rule a new dev is worth preparing: at K = 200, Jev cost 0.0115 USD a
 question on average (at most 0.0203) on questions where it cost 0.041-0.070 over the whole
-novel. Three questions measure cost, not quality: nothing here says the router's F1 holds.**
+novel. The probe measures these three questions' cost; by its sealed rule the verdict only
+authorises preparing a new dev, and says nothing on quality: nothing here says the router's F1
+holds.**
 
 ## The probe (paid, sealed `62f7d1d`)
 
 Jev 1.13.0 (`jev-1.13.0` on all 143 calls), `select_passages` and the Truth gate behind the BM25
 shortlist of K = 200 pages, on dev ids 0, 7 and 375; pre-registered in `prereg-probe.md` (two
 independent review rounds), instrument `50e645f`, one launch on 2026-10-17 from a detached
-worktree at the seal, every call answered, no stop. Ledger 0.034602 USD of its 0.06 cap.
+worktree at the seal, every call answered, no stop. Ledger 0.034602 USD of its 0.06 cap. The
+owner confirmed a TypeSafe balance of at least 0.10 USD before the launch, as the prereg asks.
+The oracle column is `probe-read.json`'s, which prices the oracle with these three questions'
+own billed/estimate ratios; with the dev's 41-question ratios of the setup below it is 0.0199,
+0.0056 and 0.0111 (real/oracle 1.02, 0.81, 0.88; mean 0.0122 either way).
 
 | Id | Tournament calls, real / oracle | Sentence calls | Jev USD, real / oracle | Same question in the dev (whole novel) | Gate p, probe / dev | Gold in kept text, probe / dev |
 |---|---|---|---|---|---|---|
@@ -21,15 +27,16 @@ worktree at the seal, every call answered, no stop. Ledger 0.034602 USD of its 0
 
 **Sealed rule:** mean ≤ 0.015 and none above 0.031, on unrounded sums: 0.0115 and 0.0203,
 **passed**: a new dev with the prefilter is worth preparing (its own pre-registration and the
-owner's approval). The oracle's cost was within 25 % on each question (real/oracle 1.03, 0.81,
-0.88), so the dry table below is a fair guide to K. Kept text shrank (46,695 against 60,679
+owner's approval). On these 3 questions at K = 200 the oracle's cost was within 25 % of real
+Jev (real/oracle 1.03, 0.81, 0.88), and real tournament calls were 0.78 to 1.13 times the
+oracle's. Kept text shrank (46,695 against 60,679
 characters on id 0) and ∞Bench's reference stayed in it wherever it was before; with 3 questions
 that is description, not a quality result.
 
 ## The question
 
 The longdoc-free dev (`../2026-10-16-longdoc-free/`) found Jev's passage selection cost
-0.039 USD a question, 0.037 of it the page tournament (68 calls a question over novels of a
+0.039 USD a question, 0.037 of it the page tournament (68 calls a question over a question's novel of a
 median 805 pages of 900 characters), more than the about 0.030 USD that sending covered
 questions to Haiku 4.5 instead of Sonnet 5.5 saves. Would a free BM25 shortlist of the K pages
 that best match the question, before the tournament, bring Jev well under that, and what would
@@ -66,8 +73,8 @@ it drop?
 | Gold answer string in Jev's kept text | 21 of 41 (in the novel at all, normalised, 27) |
 
 The stub's error is not a constant: it ranks the lines of a call's page list, and a page with a
-paragraph break spans several lines, so its ranks land on the wrong page ids. A flat 1.39
-correction is right on the total and wrong on any one question.
+paragraph break spans several lines, so its ranks land on the wrong page ids. A flat
+correction (the pooled 1.417) is right on the total and wrong on any one question.
 
 ## Recall and cost by K (41 questions)
 
@@ -104,7 +111,7 @@ one, each of ceil(K / 30) calls, each priced here at the dev's dearest tournamen
 
 ## Reading
 
-- **Cost.** The two estimators agree within 12 % from K = 60 on (20 % at K = 30, a call or two
+- **Cost.** The two estimators agree within about 12 % from K = 60 on (20 % at K = 30, a call or two
   a question). At K = 200, Jev comes to about
   0.010-0.011 USD a question (a quarter of the dev's 0.039); its tournament cannot exceed 28
   calls, 0.017 USD.
@@ -115,8 +122,8 @@ one, each of ceil(K / 30) calls, each priced here at the dev's dearest tournamen
   holding it in the top 200 for 25.
 - **The oracle's blind spot.** It takes a page's p as its own; real Jev judges each page among
   29 others, and a shortlist where every page matches the question may pass more of them to
-  later rounds. That is why the range below goes to 1.5 times the higher estimate, and why only
-  a real probe can settle it.
+  later rounds. That is why the range below goes to 1.5 times the higher estimate. The probe
+  (top) found real tournament calls 0.78 to 1.13 times the oracle's on 3 questions.
 
 ## Recommendation (a projection, not a measurement)
 
@@ -149,7 +156,7 @@ Approved by the owner on 2026-10-17 as proposed below; its pre-registration is
 
 ## Files
 
-`bm25-dry.json` (every number above; per question: ids, novel keys, page and call counts,
+`bm25-dry.json` (every number of the dry sections; per question: ids, novel keys, page and call counts,
 costs; no question, answer or novel text), `prereg-probe.md` and `prereg-probe.sha256` (the
 probe's registration and seal), `probe-read.json` (the probe's reading by `probe_read.py`),
 `jev-probe.jsonl` (its rows: gate p, kept characters, whether the reference is in the kept

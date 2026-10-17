@@ -137,6 +137,13 @@
   Haiku from Jev's passages 44.6 F1, from the whole novel 45.1, Sonnet 55.0. By its sealed rule
   (541 questions needed for the confirmation, 310 left) the lot stops at its dev. The lot's code
   (`benchmarks/longdoc_free/`, `benchmarks/h2h/h2h_lfree.py`) ships no package change.
+- **A free BM25 pre-filter before Jev's page tournament: a new dev worth preparing**
+  (`docs/results/2026-10-17-lfree-bm25-dry`, probe sealed `62f7d1d`, Jev 1.13.0 only, 0.0346 USD):
+  sized dry on the dev's recording, then probed on 3 dev questions with the 200 pages BM25 ranks
+  best: Jev cost 0.0115 USD a question on average, at most 0.0203, where the whole novel cost
+  0.041-0.070. By the probe's sealed rule (mean at most 0.015, none above 0.031) a new dev is
+  worth preparing; the probe measures cost only. The pre-filter is a bench option
+  (`jev_phase.py`, `pages.bm25_shortlist`), not a package change.
 - **A10, a local check_done classifier on public labels: "no concluyente"**
   (`docs/results/2026-10-16-a10-local`, sealed `ac61ad0`, free): trained only on AgentDojo's own
   labels for 393 slack stops (no pipeline Jev guarded), it ranked checkdone114's 950 unseen stops

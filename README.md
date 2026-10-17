@@ -803,9 +803,11 @@ Each item, with its priority and cost, is in [docs/ROADMAP.md](docs/ROADMAP.md).
   Opus 5.5 users did not earn a tighter claim: at 0.8, on the 78 fresh tasks left (all under
   100,000 characters), the router was −6.4 points from Opus [−14.1, −1.4], "no concluyente" at
   −5, while saving 30.8 % of its cost; on those shorter documents Jev covered more and was right
-  less often ([lbo8](docs/results/2026-10-16-lbo8/README.md)). Still to measure: a
-  long-document set graded on free-text answers (a design draft:
-  [longdoc-free](docs/results/2026-10-16-longdoc-free/design.md)).
+  less often ([lbo8](docs/results/2026-10-16-lbo8/README.md)). On free-text answers over
+  whole novels the router cost more than Sonnet alone in its dev, because Jev's page tournament
+  cost 0.039 USD a question ([longdoc-free](docs/results/2026-10-16-longdoc-free/README.md));
+  a free BM25 pre-filter brought that to 0.0115 on 3 probe questions, cost only so far
+  ([BM25 pre-filter](docs/results/2026-10-17-lfree-bm25-dry/README.md)).
 - **MCP results, not only MCP calls.** The guard before the call is not confirmed
   ([A3](docs/results/2026-10-16-a3-mcp/README.md)): most of what it missed shows only in a tool's
   answer. The check after the call (`--guard-mcp-post`) caught more there and flagged more safe

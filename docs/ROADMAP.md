@@ -128,8 +128,13 @@ to Haiku cost 25 % more than Sonnet alone (saving −25.1 % [−36, −13]) for 
 [−8.2, +7.9], and Jev's passages did not help Haiku (−0.5 [−10.2, +9.3] against the whole novel); by its
 sealed rule no confirmation was sealed (541 questions needed, 310 left)
 ([longdoc-free](results/2026-10-16-longdoc-free/README.md)). Jev cost 0.039 USD a question on
-these novels (its page tournament 0.037) against Sonnet's 0.069 in Claude Code; a free pre-filter
-before the tournament is the open proposal.
+these novels (its page tournament 0.037) against Sonnet's 0.069 in Claude Code. **A free BM25
+pre-filter** of the 200 pages that best match the question, before the tournament (2026-10-17,
+probe sealed `62f7d1d`, Jev 1.13.0 only, 0.0346 USD): on 3 dev questions Jev cost 0.0115 USD a
+question on average, at most 0.0203, where the whole novel cost 0.041-0.070; by its sealed rule a
+new dev with the pre-filter is worth preparing, the owner's decision (it spends Claude)
+([BM25 pre-filter](results/2026-10-17-lfree-bm25-dry/README.md)). Cost only: nothing yet on
+quality.
 
 **D1. OpenAI's Decisions API.** sanchopanza is a layer with one decision contract; Jev is the
 provider every figure was measured with, and OpenAI's `/v1/decisions` (public beta since
