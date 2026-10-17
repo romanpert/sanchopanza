@@ -93,13 +93,18 @@ def lot(phase: str) -> paid_once.Lot:
 
 def sealed_head_problems(the_lot: paid_once.Lot, git: Any = paid_once.git) -> list[str]:
     """A paid run starts from the seal commit itself: HEAD detached, the checkout clean, the
-    seal file tracked and HEAD the last commit that touched it (review of 2026-10-17)."""
+    seal file tracked and HEAD the last commit that touched it (review of 2026-10-17). The
+    launcher filled in place is the one change allowed: `paid` checks its digest with the local
+    values masked."""
     seal = the_lot.prereg.with_suffix(".sha256").relative_to(ROOT).as_posix()
+    launcher = the_lot.launcher.relative_to(ROOT).as_posix()
     found = []
     if git("symbolic-ref", "-q", "HEAD").returncode == 0:
         found.append("HEAD is on a branch: run from a worktree detached at the seal commit")
     status = git("status", "--porcelain", "--untracked-files=no")
-    if status.returncode != 0 or status.stdout.strip():
+    changed = [line for line in status.stdout.splitlines()
+               if line.strip() and line[3:].strip().strip('"') != launcher]  # fmt: skip
+    if status.returncode != 0 or changed:
         found.append("the checkout has changes")
     if git("ls-files", "--error-unmatch", seal).returncode != 0:
         found.append(f"{seal} is not committed")

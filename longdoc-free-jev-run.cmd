@@ -1,6 +1,6 @@
 @echo off
 rem Lot longdoc-free, phase J (Jev only): longdoc-free-jev-run.cmd dev ^| confirm. Hard caps in
-rem each phase's ledger: dev 1.50 USD, confirm 10.00 (the owner's 11.50 for the lot). Sealed in
+rem each phase's ledger: dev 1.50 USD, confirm 12.50 (the owner's 14.00 for the lot). Sealed in
 rem docs/results/2026-10-16-longdoc-free/prereg-dev.md and prereg.md: each prereg.sha256 holds
 rem the sha256 of this file with the two values below read as placeholders. Run it from the
 rem detached worktree at the sealed commit, outside the Claude Code session (WMI, CreateFlags

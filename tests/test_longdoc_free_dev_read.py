@@ -71,8 +71,20 @@ def test_the_confirmation_money_follows_the_registered_formula():
     got = dr.confirm_money(money, dev_claude_usd=8.0, jev_ratio=0.5, jev_confirm_pessimistic=12.32)
     assert got["sonnet_ceiling"] == pytest.approx(310 * 0.20 + 4.32 + 0.50)
     assert got["haiku_ceiling"] == pytest.approx(310 * (0.03 + 0.075) + 2.16 + 0.30)
-    assert got["jev_cap"] == pytest.approx(12.32 * 0.5 * 1.5)
-    assert got["fits"] == (got["claude_with_dev"] <= 105.0 and got["jev_cap"] <= 12.50)
+    assert got["jev_cap"] == 12.50 and got["jev_expected"] == pytest.approx(12.32 * 0.5)
+    assert got["jev_fits"] and got["fits"] == (got["claude_with_dev"] <= 105.0)
+
+
+def test_jev_fits_with_the_expected_cost_and_its_margin_under_the_cap():
+    money = {"N": {"mean_usd": 0.10, "p95_usd": 0.10}}
+    near = dr.confirm_money(money, 8.0, jev_ratio=0.79, jev_confirm_pessimistic=12.32)
+    assert near["jev_fits"]  # B6's factors: 12.32 * 0.79 * 1.2 = 11.68 <= 12.50
+    high = dr.confirm_money(money, 8.0, jev_ratio=0.90, jev_confirm_pessimistic=12.32)
+    assert not high["jev_fits"]  # 12.32 * 0.90 * 1.2 = 13.31
+    low = dr.confirm_money(money, 8.0, jev_ratio=0.60, jev_confirm_pessimistic=12.32)
+    assert low["jev_fits"]
+    over = dr.confirm_money(money, 8.0, jev_ratio=0.10, jev_confirm_pessimistic=12.60)
+    assert not over["jev_fits"]  # the pessimistic estimate itself over the cap: paid refuses
 
 
 def test_a_haiku_that_loses_on_the_covered_questions_sets_no_cut():

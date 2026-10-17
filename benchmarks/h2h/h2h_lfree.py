@@ -212,7 +212,8 @@ def make_row_for(task: FreeTask, run: int, arm: str, caps: Mapping[str, float],
                  extra: Callable[[Mapping[str, Any]], Mapping[str, Any]] | None):  # fmt: skip
     def make_row(out, stderr, work, side, wall, projects):  # noqa: ANN001, ANN202
         folder = common.reading.folder_of(work, projects)
-        reply = common.reply_text(out, folder, lambda t: extract(t) is not None)
+        ended_well = not out.get("is_error", False)
+        reply = common.reply_text(out, folder, lambda t: extract(t, ended_well) is not None)
         row = common.common_row(task.key, run, arm, out, stderr, work, side, wall, projects,
                                 LEAK_WORD, caps)  # fmt: skip
         answer = extract(reply, bool(row.get("ok", False)))
@@ -326,6 +327,13 @@ def final_kind(phase: Phase) -> str | None:
 
 
 # ---- money ------------------------------------------------------------------------------------
+
+
+def stage_spent(stage: str) -> float:
+    """What the stage's phases have really spent: every counted session and every open
+    reservation (at its cap and one worst turn), as the guard counts it."""
+    return sum(guard_mod.spent_now(sessions_of(p), reservations_of(p), p.full_cap + p.worst_turn)
+               for p in STAGES[stage])  # fmt: skip
 
 
 def money(stage: str) -> dict[str, Any]:

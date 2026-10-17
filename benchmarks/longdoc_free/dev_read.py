@@ -23,9 +23,11 @@ What it decides, by rules written before any dev data:
   on En.QA) when above the 310 confirmation questions;
 - the confirmation's money: per Claude phase, CONFIRM_ITEMS sessions per arm at the larger of
   1.5 times the arm's dev mean and its dev 95th percentile, plus one worst turn and the floor;
-  Jev's cap as the confirmation's dry-run pessimistic estimate times the dev's settled over
-  pessimistic ratio, times 1.5. Over the owner's caps (Jev 12.50 for the confirmation; Claude:
-  the dev's real spend plus the confirmation's ceilings at most 105): the owner decides.
+  Jev fits when the confirmation's dry-run pessimistic estimate is under its 12.50 cap (what
+  `paid` requires) and its expected cost (that estimate times the dev's settled over pessimistic
+  ratio) times JEV_MARGIN is too. Claude fits when the dev's real spend (every session and open
+  reservation of its phases, the smoke included) plus the confirmation's ceilings is at most 105.
+  Otherwise the owner decides.
 Reported, not decided: HC's mean F1 (what is answered from memory), median answer words and the
 share of replies with an ANSWER line per arm, the gate's coverage at each cut, gold in the kept
 passages.
@@ -62,6 +64,7 @@ MEMORY_GAP = 10.0  # F1 points: HC this close to N means the answers come from m
 DEFF_FLOOR = 1.5
 CLAUDE_CAP_USD = 105.0
 JEV_CONFIRM_CAP_USD = 12.50
+JEV_MARGIN = 1.2
 WORST_TURN = {"SONNET": 4.32, "HAIKU": 2.16}
 FLOOR = {"SONNET": 0.50, "HAIKU": 0.30}
 Z_ALPHA = 1.959964  # one-sided 2.5 %
@@ -135,11 +138,14 @@ def confirm_money(
 
     sonnet = CONFIRM_ITEMS * per("N") + WORST_TURN["SONNET"] + FLOOR["SONNET"]
     haiku = CONFIRM_ITEMS * (per("H") + per("H0")) + WORST_TURN["HAIKU"] + FLOOR["HAIKU"]
-    jev = jev_confirm_pessimistic * (jev_ratio or 1.0) * 1.5
+    expected = jev_confirm_pessimistic * (jev_ratio if jev_ratio is not None else 1.0)
+    jev_fits = (jev_confirm_pessimistic <= JEV_CONFIRM_CAP_USD
+                and expected * JEV_MARGIN <= JEV_CONFIRM_CAP_USD)  # fmt: skip
     claude_total = dev_claude_usd + sonnet + haiku
     return {"sonnet_ceiling": round(sonnet, 2), "haiku_ceiling": round(haiku, 2),
-            "jev_cap": round(jev, 2), "claude_with_dev": round(claude_total, 2),
-            "fits": claude_total <= CLAUDE_CAP_USD and jev <= JEV_CONFIRM_CAP_USD}  # fmt: skip
+            "jev_cap": JEV_CONFIRM_CAP_USD, "jev_expected": round(expected, 2),
+            "jev_fits": jev_fits, "claude_with_dev": round(claude_total, 2),
+            "fits": claude_total <= CLAUDE_CAP_USD and jev_fits}  # fmt: skip
 
 
 def n_needed(sd: float, deff: float, true_diff: float, margin: float = stats.MARGIN) -> int:
@@ -188,7 +194,8 @@ def answer_form(sessions: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
 
 def read(jev: Sequence[Mapping[str, Any]], sessions: Sequence[Mapping[str, Any]],
          jev_spent: float, jev_pessimistic: float,
-         jev_confirm_pessimistic: float = 12.32) -> dict[str, Any]:  # fmt: skip
+         jev_confirm_pessimistic: float = 12.32,
+         dev_claude_usd: float | None = None) -> dict[str, Any]:  # fmt: skip
     rows = stats_rows(jev, sessions, jev_spent)
     complete = len(rows) >= MIN_COMPLETE
     cut = stats.dev_cut(rows) if complete else None
@@ -210,7 +217,8 @@ def read(jev: Sequence[Mapping[str, Any]], sessions: Sequence[Mapping[str, Any]]
         "answers": answer_form(sessions),
     }
     money_now = out["money"]
-    dev_claude = sum(float(r["usd"]) for r in sessions)
+    dev_claude = (sum(float(r["usd"]) for r in sessions) if dev_claude_usd is None
+                  else dev_claude_usd)  # fmt: skip
     ratio = out["jev"]["settled_over_pessimistic"]
     out["confirm_money"] = confirm_money(money_now, dev_claude, ratio, jev_confirm_pessimistic)
     hc = out["answers"].get("HC", {}).get("mean_f1")
@@ -259,11 +267,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = ap.parse_args(argv)
     jev_phase = _load("lf_jev_phase", HERE / "jev_phase.py")
     spent = jev_phase.paid_once.spent(jev_phase.lot("dev"))  # phase J's ledger, settled
+    h2h = _load("lf_h2h", HERE.parent / "h2h" / "h2h_lfree.py")
+    claude = h2h.stage_spent("dev")  # every session and open reservation, the smoke's too
     lot_dir = HERE.parents[1] / "docs" / "results" / "2026-10-16-longdoc-free"
     sessions = [*read_jsonl(lot_dir / "dev-sonnet-rows.jsonl"),
                 *read_jsonl(lot_dir / "dev-haiku-rows.jsonl")]  # fmt: skip
     got = read(read_jsonl(lot_dir / "jev-dev.jsonl"), sessions, spent, args.jev_pessimistic,
-               args.jev_confirm_pessimistic)  # fmt: skip
+               args.jev_confirm_pessimistic, claude)  # fmt: skip
     (lot_dir / "dev.json").write_text(json.dumps(got, indent=1) + "\n", encoding="utf-8")
     print(json.dumps(got, indent=1))
     return 0

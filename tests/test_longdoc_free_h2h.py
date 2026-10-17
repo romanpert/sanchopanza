@@ -305,3 +305,15 @@ def test_the_data_check_refuses_a_changed_novel_and_a_changed_passage(tmp_path, 
     assert any("differ" in p for p in h2h.data_problems("dev"))
     novel.write_text("abd", "utf-8")
     assert any("differ from their key" in p for p in h2h.data_problems("dev"))
+
+
+def test_the_launcher_filled_in_place_is_the_one_change_allowed():
+    lot = h2h.claude_lot("dev")
+    seal = h2h.jev_phase.sealed_head_problems
+    assert seal(lot, _git(status=" M longdoc-free-jev-run.cmd\n")) == []
+    assert seal(lot, _git(status=" M longdoc-free-jev-run.cmd\n M src/x.py\n"))
+
+
+def test_the_stage_spend_is_zero_before_any_session(tmp_path, monkeypatch):
+    monkeypatch.setattr(h2h, "PRIVATE", tmp_path)
+    assert h2h.stage_spent("dev") == 0.0
