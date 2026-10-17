@@ -10,7 +10,9 @@
   every field but the costs for F2 (H's handoff turn re-costed after the night; the criteria
   never read a cost).
 - `costs.json`: per run what it spent (sessions' own costs, Jev and the preflights) and, for F2,
-  the handoff turn's own cost against its tokens priced at Claude Code's rates.
+  the handoff turn's own cost against its tokens priced at Claude Code's rates. The runs already
+  in an existing costs.json are kept, and its `lot` total is over all of them (W17's Sonnet run
+  and its Opus redo are published from different lot folders).
 
     python benchmarks/memory_carry/handoff_publish.py ROOT OUT_DIR [RUN ...]
 
@@ -112,6 +114,16 @@ def spent(rows: list[dict[str, Any]], root: Path, run: str) -> float:
     return arms + sum(float(x["usd"]) for x in lines if x["kind"] == "preflight")
 
 
+def merged_costs(old: dict[str, Any], new: dict[str, Any]) -> dict[str, Any]:
+    """costs.json after publishing `new`: the runs already there are kept (a lot's runs may live
+    in different lot folders, as W17's Sonnet run and its Opus redo), each run published now
+    replaces its entry, and the lot's total is recomputed over all of them."""
+    runs = {k: v for k, v in old.items() if k != "lot"}
+    runs = {**runs, **{k: v for k, v in new.items() if k != "lot"}}
+    total = round(sum(v["spent_usd"] for v in runs.values()), 4)
+    return {**runs, "lot": {"spent_usd": total}}
+
+
 def main(argv: list[str]) -> int:
     root, dest = Path(argv[0]), Path(argv[1])
     runs = runs_of(argv[2:])
@@ -133,13 +145,15 @@ def main(argv: list[str]) -> int:
             report[run]["costs"] = costs(rows, handoff.RUNS[run]["model"])
         report[run]["spent_usd"] = round(spent(rows, root, run), 6)
         (dest / f"{run}-table.json").write_text(full + "\n", encoding="utf-8", newline="\n")
-    report["lot"] = {"spent_usd": round(sum(v["spent_usd"] for v in report.values()), 4)}
+    old_costs = dest / "costs.json"
+    old = json.loads(old_costs.read_text(encoding="utf-8")) if old_costs.exists() else {}
+    report = merged_costs(old, report)
     (dest / "costs.json").write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8",
                                      newline="\n")  # fmt: skip
     print(json.dumps(report, indent=1))
     ok = all(v["table_from_public_rows"] and v.get("same_as_the_night_but_costs",
                                                    v.get("same_as_the_night"))
-             for k, v in report.items() if k != "lot")  # fmt: skip
+             for k, v in report.items() if k in runs)  # fmt: skip
     return 0 if ok else 1
 
 

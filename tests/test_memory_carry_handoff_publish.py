@@ -105,6 +105,19 @@ def test_runs_default_to_f2_and_take_the_named_ones() -> None:
         pub.runs_of(["w17-nope"])
 
 
+def test_costs_keep_the_runs_published_from_another_lot_folder() -> None:
+    # W17's Sonnet run and its Opus redo live in different lot folders: publishing one must not
+    # drop the other's entry from costs.json, and the lot's total is over both.
+    old = {"w17-sonnet": {"spent_usd": 11.182309}, "lot": {"spent_usd": 11.1823}}
+    new = {"w17-opus": {"spent_usd": 21.315415}}
+    got = pub.merged_costs(old, new)
+    assert got == {"w17-sonnet": {"spent_usd": 11.182309}, "w17-opus": {"spent_usd": 21.315415},
+                   "lot": {"spent_usd": 32.4977}}  # fmt: skip
+    again = pub.merged_costs(got, {"w17-sonnet": {"spent_usd": 11.182309}})
+    assert again == got and list(again) == list(got)
+    assert pub.merged_costs({}, new) == {**new, "lot": {"spent_usd": 21.3154}}
+
+
 def test_turn_own_reads_each_kind_of_report() -> None:
     cost = pub.handoff_cost
     own = cost.priced(TOKENS, "sonnet")
