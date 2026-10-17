@@ -225,20 +225,27 @@ section and the text above differ, this section holds. The text above is the ori
 registration, sealed at `6fd9747` (`prereg-dev.md`, `prereg-dev.sha256`, unchanged).
 
 - **What happened.** Phase J's first launch (2026-10-17 10:23-10:27, from `6fd9747`) stopped at
-  its 1.50 USD cap (`SpendCapReached`, 1.4996 settled): real Jev made 2,729 page-tournament calls
+  its 1.50 USD cap (`SpendCapReached`; 1.4992 settled, 1.4996 on the ledger at the refusal with
+  calls in flight): real Jev made 2,729 page-tournament calls
   where the dry run's stub made 1,967 (about 39 % more: it sends more pages to later rounds),
   then 251 sentence calls and 1 gate call of 41. By section 3's rule there is no relaunch after
   the cap, so the dev would be "not run". The cause is the instrument's estimate, not the data:
   the cap had 4 % of room over the stub's pessimistic estimate.
 - **What has been seen.** Only Jev's recorded decisions (hashed keys and answers, not read by
   hand), no session, no F1, and of the gate only that 1 of 41 was asked; its value was not read.
+  The counts of the dry run over the recording (below) do show how selective Jev's tournament
+  was (how many pages reach the sentence stage), not any gate p or answer.
 - **The change, by the owner's decision of 2026-10-17:** the dev's Jev cap is **1.80 USD**
   (`jev_phase.CAP_USD`), and **one more launch** is allowed: only after the dev's single launch
   from the original seal stopped at the cap (`jev_phase.may_launch`). The recording is replayed
   first, so only the calls it lacks are asked: a dry run over it (free, the stub for what is
   missing) counts 58 tournament, about 1,282 sentence and 40 gate calls, **0.161 USD
   pessimistic**, against the 0.30 left on the same ledger. The lot's Jev cap is 14.30 (dev 1.80,
-  confirmation 12.50).
+  confirmation 12.50). **If this launch stops too, for any reason, there is no third**
+  (`may_launch`) and the dev is "not run". The launcher's header still says "dev 1.50": it is
+  left as sealed (the run worktree's copy is filled in place) and this section supersedes it.
+- **Section 5.5's Jev ratio** is the dev's total settled spend over the sum of both launches'
+  pessimistic plans (1.4425 and the second launch's, in `launches.jsonl`).
 - **Nothing else changes**: the questions, the arms, the Claude money, the rules of section 5.
   The confirmation's money is decided after the dev (section 5.5): the dev's real tournament
   depth puts the confirmation's phase J near 16.5 USD pessimistic, above its 12.50 cap; that goes
