@@ -21,7 +21,7 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 | C7 | The LongBench routing point, opt-in | medium | free (code); Claude for what follows | **done** (`9705f25`) |
 | C1 | A PostToolUse check on MCP results (what A3's PreToolUse guard cannot read) | medium | Jev (replay ~0.05-0.10 USD), then Claude (~5 USD live probe) | **built, opt-in** (`--guard-mcp-post`); W17's development lot does not license a confirmation (+35 unsafe caught, +14 safe flagged, upper bound +8.0 past +7); next: a new registration with the cut fixed before its data, on fresh ATBench (~0.20 USD of Jev) |
 | C2 | check_done with the tool results the answer rests on, not cut at 1,500 characters | medium | free (record builder) + Jev (~0.3-0.5 USD) | **built, opt-in** (`SANCHOPANZA_DONE_EVIDENCE`); checkdone-w17: not adopted, false blocks 165 → 123 of 828 (+5.07 [1.53, 9.77]) but catches 598 → 583 of 744 (−2.02 [−5.37, +0.26]) past the −2 guard; next: diagnose the lost catches (18, mostly multi-part workspace tasks), change the builder, confirm under a new registration |
-| C8 | Four memory gaps read from the code and F2's logs | medium | free replays first; Claude (~40 USD, F2-sized) to confirm | **fixed in code** (merge `e029489`); measured live as it ships in W17: Sonnet 5.5 "S' better than N0; no gana (cost)", Opus 5.5 "not determined" (cost 0.999x [0.965, 1.055] over the sealed 1.05) |
+| C8 | Four memory gaps read from the code and F2's logs | medium | free replays first; Claude (~40 USD, F2-sized) to confirm | **fixed in code** (merge `e029489`); measured live as it ships in W17: Sonnet 5.5 "S' better than N0; no gana (cost)", Opus 5.5 "not determined" (cost 0.999x [0.965, 1.055] over the sealed 1.05); at equal work (each arm told "Yes, go ahead." once), Sonnet 5.5 "gana (éxito)", 48 against 3 of 48 at 1.005x [0.949, 1.063], not a saving |
 | C4 | A5's `unrelated_at=0.65` on written text with fa-17-type pairs | low-medium | Jev 0.035 USD | **done**: 66 added verdicts, all right (Wilson 0.945); 0.65 is the default since 0.3.2 |
 | C5 | `select_passages(fit_score=False)` against page order on fresh questions | low-medium | Jev 1.371 USD (C5b) | **done via C5b**: the free order confirmed over page order at 3,400 characters, +16.4 [+11.0, +21.9]; `fit_score=False` is the default since 0.3.2 |
 | C6 | Closing Spanish's 3-6 points in page triage and passages | low | Jev (~0.2 USD pages, ~2.5 USD documents per arm) | idea, from B6 |
@@ -60,6 +60,7 @@ Each lot pre-registered and sealed before its first answer, reviewed against the
 | [redundant-drop, `redundant_page` under 1.14 with 90 more drops](results/2026-10-16-redundant-drop/README.md) | **No proposal**: rule D clears at 0.04, the costly-drops guard fails (8 keep pages dropped against 0); 0.61 loses drops again, −6.0 [−11.6, −1.7] | Jev 0.0277 USD |
 | [memory F2, memory against the handoff ritual](results/2026-10-16-memory-f2/README.md) | **Sonnet 5.5: S not worse than H and better than N0** (48, 44 and 4 of 48); **Opus 5.5 direction only** (22, 17, 21 of 24) | Claude 42.25 USD list |
 | [memory W17, memory as it ships against clean Claude Code](results/2026-10-16-memory-w17/README.md) | **Sonnet 5.5: S' better than N0; no gana (cost)** (48 against 9 of 48, 1.19x [1.15, 1.24]); **Opus 5.5: not determined** (34 against 31 of 36, p 0.125; 0.999x [0.965, 1.055]) | Claude 32.50 USD list (about 39.7 with the discarded first Opus run) |
+| [memory equal work, W17 with one "Yes, go ahead." in each arm](results/2026-10-17-memory-equal-work/README.md) | **Sonnet 5.5: gana (éxito)** (48 against 3 of 48, 45 to 0, p 2.8e-14; 1.005x [0.949, 1.063] within the sealed 1.10); N0 nudged in 45 pairs, step 2 done after it in 0; without the nudge 1.247x [1.178, 1.295]; not a saving | Claude 11.98 USD list |
 | [lb162x, the LongBench router against Opus 5.5](results/2026-10-16-lb162x/README.md) | **No worse at −10** against Opus 5.5 (−3.7 [−8.0, +0.6], "sustituye"); Opus's cost saved 29.5 % [21.7, 37.7]; Sonnet's saving measured, 33.9 % [24.0, 44.0] | Claude 27.01 USD list |
 | [A6, the find ceiling](results/2026-10-16-a6-ceiling/README.md) | **Under 5 %**: 3.05 % [2.36, 3.78] of Sonnet 5.5's cost over 19 clean long-chain sessions; not pre-registered, free | free |
 
@@ -172,6 +173,13 @@ cost [0.965, 1.055]: "not determined", since O1 needs the upper bound at 1.05; n
 after the data: on Opus the install's overhead shows in session 1, on the same work in both arms
 (1.09x [1.06, 1.12]), so a cheaper first session is the candidate lever; "gana (coste)" asks for
 the upper bound below 1.00, not the median (with this spread, a median of about 0.95).
+At equal work ([memory-equal-work](results/2026-10-17-memory-equal-work/README.md), sealed
+`d1c39af`; rule R3: each arm resumed once with "Yes, go ahead." when session 2 left step 2
+undone), Sonnet 5.5: 48 of 48 against 3, at 1.005x the cost [0.949, 1.063], "gana (éxito)" by
+the scoreboard's rule 2.4 against N0⁺. Clean Claude Code was nudged in 45 pairs and did step 2
+after the nudge in none; the extra round brought its cost to the install's, so this is no saving
+(1.247x [1.178, 1.295] without it). Open: a person who repeats the task, which this lot does not
+measure, and new scenes.
 
 Read from the code and from F2's logs, as they stood before the fix:
 - A bare "continue" gets no prompt recall: the name gate passes a record only if the prompt

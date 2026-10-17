@@ -16,11 +16,13 @@ The short version, and everything below is the argument for it:
 
 **The head-to-head test of that rule, 2026-10-13.** Claude Code with sanchopanza installed was
 measured against clean Claude Code 2.1.287, per model and axis
-(`docs/results/2026-10-13-final/`) **[M]**. One measured cell is a win: memory on Sonnet 5.5
-across parallel sessions, with memory, on by default in `sanchopanza install` since 2026-10-14
-(`--no-memory` leaves it out). A second memory test on Sonnet 5.5 (F2) met its own sealed
-positive verdict, better than doing nothing and not worse than the handoff ritual, at a higher
-cost than doing nothing. Web, code and the Jev part of long code are not wins.
+(`docs/results/2026-10-13-final/`) **[M]**. Two measured rows are a win, both memory on Sonnet
+5.5, on by default in `sanchopanza install` since 2026-10-14 (`--no-memory` leaves it out):
+across parallel sessions, and continuing a feature against Claude Code told once to go on, where
+the win is success within the cost bound, not a saving. A third memory test on Sonnet 5.5 (F2)
+met its own sealed positive verdict, better than doing nothing and not worse than the handoff
+ritual, at a higher cost than doing nothing. Web, code and the Jev part of long code are not
+wins.
 
 - On Sonnet 5.5, GAIA, BrowseComp-Plus and LongBench v2 are "no gana". Cost S/N was 1.074,
   1.17 and 0.785, and no interval lies below 1 with success held.
@@ -52,11 +54,21 @@ cost than doing nothing. Web, code and the Jev part of long code are not wins.
   the ritual. The interval against clean Claude Code lies above 1, so by the scoreboard's rule it
   is not "gana". On Opus 5.5 there was no room: Claude Code's own auto memory carried the plan
   (22, 17 and 21 of 24).
+- Memory on Sonnet 5.5 as it ships, the same features at equal work
+  (`docs/results/2026-10-17-memory-equal-work/`, pre-registered; clean Claude Code 2.1.287
+  against `install --scope user`, each arm resumed once with "Yes, go ahead." when its new
+  session left the next step undone, 48 pairs) is **"gana (éxito)"**: 48 of 48 against 3 (45 to
+  0, McNemar p 2.8e-14), at 1.005x the cost [0.949, 1.063], within the sealed 1.10. It is the
+  rule above at work, not against it: the layer saved nothing. Clean Claude Code was nudged in 45
+  pairs and did the step after the nudge in none; that round brought its cost up to the layer's.
+  Without it the layer costs 1.25x [1.18, 1.30]. The person modelled answers blind; one who
+  repeats the task was not measured.
 - Early compaction on long code (near 67k against N-early's 160k, Sonnet 5.5, 5 chains) is "no gana" (`docs/results/2026-10-13-long-compact/`): cost 0.900 [0.741, 1.093] with quality non-inferior (under the post-data amendment: conan-2 repeated, still no gana: 0.875 [0.754, 1.015] substituted, 0.887 [0.750, 1.050] averaged); no saving shown, so `install --context-budget` stays at 160,000.
 
 The rule above is what that result says. A decision pays where it replaces a call or tokens of the
-expensive model, not as one more layer. Neither memory result is a saving against clean Claude
-Code (1.12x and 1.23x its cost); against the handoff ritual F2's S cost 0.92x [0.85, 0.95].
+expensive model, not as one more layer. No memory result is a saving against clean Claude Code
+(1.12x and 1.23x its cost, and 1.005x when Claude Code is told once to go on); against the
+handoff ritual F2's S cost 0.92x [0.85, 0.95].
 
 **The rule's clearest measured case is the long-document router** (`points.longdoc`, opt-in,
 outside the scoreboard's install) **[M]**. On 162 fresh LongBench v2 tasks, pre-registered, Jev
