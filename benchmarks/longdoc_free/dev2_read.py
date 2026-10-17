@@ -23,6 +23,7 @@ from the recording, and the confirmation's expected money.
 
 from __future__ import annotations
 
+import dataclasses
 import importlib.util
 import json
 import statistics
@@ -63,6 +64,33 @@ CONFIRM_HAIKU_ARMS = ("H",)
 # the stub, free, 2026-10-17: 310 questions, 3,196 tournament, 1,513 sentence and 310 gate calls);
 # the plan is this pessimistic estimate times jev_phase.PROBE_STUB_RATIO (3.139 USD).
 CONFIRM_STUB_PESSIMISTIC_USD = 2.2152
+
+
+# The code the reading runs (and the dev rows it reads), checked against dev2's instrument
+# commit before anything is read: the reading runs in a checkout where these equal it.
+READING_INSTRUMENT = ("src", "benchmarks/longdoc_free", "benchmarks/h2h", "benchmarks/paid_once.py",
+                      jp.IDS_REL, *jp.DEV_ROWS)  # fmt: skip
+PAUSE_FILES = ("LIMIT.flag", "STOP")
+
+
+def require_reading_instrument() -> str:
+    """paid_once's instrument check over READING_INSTRUMENT: HEAD descends from the commit
+    prereg-dev2.md names and nothing under those paths differs from it or is uncommitted."""
+    the_lot = dataclasses.replace(jp.lot(jp.DEV2), instrument=READING_INSTRUMENT)
+    return jp.paid_once.require_instrument(the_lot)
+
+
+def pause_reasons(phases: Sequence[Any], final: Any, run_dir: Path) -> list[str]:
+    """Why dev2 may not be read yet (lb162x's pattern): a LIMIT.flag or STOP in the lot's run
+    folder, or a Claude phase without a final kind (`h2h_lfree.final_kind`: a smoke that
+    passed, a phase done or at its ceiling)."""
+    reasons = [f"{name} in the run folder" for name in PAUSE_FILES if (run_dir / name).exists()]
+    return [*reasons, *(f"phase {p.key} not over" for p in phases if final(p) is None)]
+
+
+def same_day(dates: Mapping[str, Sequence[str]]) -> bool:
+    """Whether N's and H's sessions all ran on one day (reported, not a verdict change)."""
+    return len({*dates.get("D2N", ()), *dates.get("D2H", ())}) <= 1
 
 
 def require_reused(folder: Path = DEV_DIR) -> None:
@@ -155,13 +183,18 @@ def read(
     confirm_planned: float,
     claude_spent: float,
     jev_room: float,
+    paused: Sequence[str] = (),
 ) -> dict[str, Any]:
     """`dev_read.read` on dev2's sessions with the confirmation's Jev cap at `jev_room` and its
     Haiku phase H alone; then the intervals, every cut and the expected money. `jev_planned`
     and `confirm_planned` are in the same unit (the stub's pessimistic estimate times
-    PROBE_STUB_RATIO), so their ratio carries dev2's real over its plan to the confirmation."""
+    PROBE_STUB_RATIO), so their ratio carries dev2's real over its plan to the confirmation.
+    Not run without a complete phase J2; not read while `paused` (`pause_reasons`) says why."""
     if not jev2:
         return {"status": "not run", "why": "no jev-dev2.jsonl: phase J2 did not complete",
+                "seal_confirmation": False}  # fmt: skip
+    if paused:
+        return {"status": "not read", "why": "; ".join(paused), "paused": list(paused),
                 "seal_confirmation": False}  # fmt: skip
     sessions = combine(dev_rows, dev2_rows)
     out = dev_read.read(jev2, sessions, jev_spent, jev_planned, confirm_planned, claude_spent,
@@ -210,6 +243,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.parse_args(argv)
+    require_reading_instrument()
     require_reused()
     the_lot = jp.lot(jp.DEV2)
     past = jp.paid_once.history(the_lot)
@@ -231,8 +265,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         confirm_planned=CONFIRM_STUB_PESSIMISTIC_USD * jp.PROBE_STUB_RATIO,
         claude_spent=claude,
         jev_room=jp.JEV_LOT_USD - sum(spent.values()),
+        paused=pause_reasons(h2h.STAGES["dev2"], h2h.final_kind, h2h.RUN_DIR),
     )  # fmt: skip
-    if jev2:
+    dates = h2h.phase_dates("dev2")
+    got["session_dates"] = dates
+    got["n_and_h_same_day"] = same_day(dates)  # reported, not a verdict change
+    if got["status"] == "run":
         got["jev_by_question"] = jev_by_question(the_lot, jp.load_rows(jp.DEV2), jp.PROBE_K)
     got["jev_ledgers_usd"] = {k: round(v, 6) for k, v in spent.items()}
     got["claude_spent_usd"] = round(claude, 4)

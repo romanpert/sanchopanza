@@ -5,8 +5,10 @@ rem confirm 12.50 (the owner's 14.30 for the lot), probe 0.06, dev2 1.00. Sealed
 rem docs/results/2026-10-16-longdoc-free/prereg-dev.md and prereg.md: each prereg.sha256 holds
 rem the sha256 of this file with the two values below read as placeholders. Run it from the
 rem detached worktree at the sealed commit, outside the Claude Code session (WMI, CreateFlags
-rem 512), never between 00:00 and 08:00, once per phase; jev_phase.py allows one relaunch, none
-rem after a 402, a 429 or the cap. Fill PY and SANCHOPANZA_KEYS_ENV in that worktree's copy
+rem 512), never between 00:00 and 08:00 (dev2: nor after 22:00), once per phase; jev_phase.py
+rem allows the dev and the confirmation one relaunch, none after a 402, a 429 or the cap, and
+rem the probe and dev2 one launch, never another. Fill PY and SANCHOPANZA_KEYS_ENV in that
+rem worktree's copy
 rem only; never commit them. The key is read from the file SANCHOPANZA_KEYS_ENV names, never
 rem printed. Stop: Get-CimInstance Win32_Process with jev_phase.py in its command line, then
 rem Stop-Process -Id <pid>. Never by name.
@@ -31,6 +33,10 @@ set "HOUR=%TIME:~0,2%"
 set "HOUR=%HOUR: =0%"
 if "%HOUR%" LSS "08" (
   echo refused: not between 00:00 and 08:00 ^(Windows Update restarts, midnight^)
+  exit /b 1
+)
+if "%PHASE%"=="dev2" if "%HOUR%" GEQ "22" (
+  echo refused: dev2 starts before 22:00 ^(prereg-dev2.md^)
   exit /b 1
 )
 set "PY=<PYTHON>"

@@ -523,3 +523,199 @@ def test_a_losing_h_sets_no_cut_and_no_phase_j2_means_not_run():
 def test_the_registered_confirmation_plan_is_the_k200_dry_run():
     assert d2.CONFIRM_STUB_PESSIMISTIC_USD == 2.2152
     assert d2.CONFIRM_STUB_PESSIMISTIC_USD < dr.JEV_CONFIRM_CAP_USD  # far under the sealed 12.50
+
+
+# ---- review of 2026-10-17 (revisor-prereg: "can be sealed", with fixes) -------------------------
+
+
+def _final_all(phase):
+    return "done"
+
+
+@pytest.mark.parametrize("unfinished", ["S2", "D2N", "D2H"])
+def test_the_reading_waits_for_every_claude_phase_to_be_final(unfinished, tmp_path):
+    phases = h2h.STAGES["dev2"]
+    final = lambda p: None if p.key == unfinished else "done"  # noqa: E731
+    reasons = d2.pause_reasons(phases, final, tmp_path)
+    assert reasons == [f"phase {unfinished} not over"]
+    assert d2.pause_reasons(phases, _final_all, tmp_path) == []
+
+
+@pytest.mark.parametrize("flag", ["LIMIT.flag", "STOP"])
+def test_the_reading_waits_while_a_limit_or_stop_file_is_in_the_run_folder(flag, tmp_path):
+    (tmp_path / flag).write_text("x", "utf-8")
+    assert d2.pause_reasons(h2h.STAGES["dev2"], _final_all, tmp_path) == [
+        f"{flag} in the run folder"
+    ]
+
+
+def test_a_paused_dev2_is_not_read_and_seals_nothing():
+    got = _read(paused=["phase D2H not over"])
+    assert got["status"] == "not read" and got["seal_confirmation"] is False
+    assert got["paused"] == ["phase D2H not over"] and "cut" not in got
+    assert _read(paused=[])["status"] == "run"
+    none = d2.read([], _sessions(), [], jev_spent=0.0, jev_planned=0.0, confirm_planned=3.139,
+                   claude_spent=8.2, jev_room=12.0, paused=["STOP in the run folder"])  # fmt: skip
+    assert none["status"] == "not run"  # no complete J2 comes first
+
+
+def test_h2h_final_kind_is_the_readings_final(tmp_path, monkeypatch):
+    stop = tmp_path / "stop.json"
+    phase = dataclasses.replace(h2h.DEV2_N, stop=stop)
+    assert h2h.final_kind(phase) is None  # not run
+    for kind, final in (("done", "done"), ("ceiling", "ceiling"), ("limit", None),
+                        ("clock", None), ("manual", None)):  # fmt: skip
+        stop.write_text(json.dumps({"kind": kind}) + "\n", "utf-8")
+        assert h2h.final_kind(phase) == final
+
+
+def _fake_git(diff_rc: int = 0, loose: str = ""):
+    calls = []
+
+    def git(*args):
+        calls.append(args)
+        if args[0] == "diff":
+            return subprocess.CompletedProcess(args, diff_rc, "", "")
+        if args[0] == "status":
+            return subprocess.CompletedProcess(args, 0, loose, "")
+        return subprocess.CompletedProcess(args, 0, "", "")
+
+    return git, calls
+
+
+def test_the_reading_runs_only_where_its_code_equals_the_instrument(monkeypatch):
+    git, calls = _fake_git()
+    monkeypatch.setattr(jp.paid_once, "git", git)
+    assert d2.require_reading_instrument() == jp.paid_once.instrument_commit(jp.lot("dev2").prereg)
+    diffed = next(c for c in calls if c[0] == "diff")
+    for path in ("src", "benchmarks/longdoc_free", "benchmarks/h2h", *jp.DEV_ROWS):
+        assert path in diffed
+    git, _ = _fake_git(diff_rc=1)
+    monkeypatch.setattr(jp.paid_once, "git", git)
+    with pytest.raises(SystemExit, match="instrument differs"):
+        d2.require_reading_instrument()
+    git, _ = _fake_git(loose="?? benchmarks/h2h/new.py\n")
+    monkeypatch.setattr(jp.paid_once, "git", git)
+    with pytest.raises(SystemExit, match="not committed"):
+        d2.require_reading_instrument()
+
+
+def test_main_refuses_before_reading_anything_off_the_instrument(monkeypatch, tmp_path):
+    monkeypatch.setattr(d2, "DEV2_DIR", tmp_path)
+
+    def refuse():
+        raise SystemExit("the instrument differs from its registered commit: nothing spent")
+
+    monkeypatch.setattr(d2, "require_reading_instrument", refuse)
+    monkeypatch.setattr(d2.jp.paid_once, "history", lambda lot: pytest.fail("read the lot"))
+    with pytest.raises(SystemExit, match="instrument differs"):
+        d2.main([])
+    assert not (tmp_path / "dev2.json").exists()
+
+
+def test_a_failed_dev2_smoke_settles_as_smoke_and_is_voided(tmp_path, monkeypatch):
+    sessions = tmp_path / "sessions.jsonl"
+    row = {"arm": "SONNET-CC", "task_id": "164:N", "run": 1, "reservation": "r1",
+           "list_usd": 0.0, "ok": False, "subtype": "error_during_execution",
+           "final_answer": None, "usd_by_model": {},
+           "tokens": {"input": 0, "output": 0}}  # a refused request: a known 0 USD  # fmt: skip
+    sessions.write_text(json.dumps(row) + "\n", "utf-8")
+    monkeypatch.setattr(h2h, "sessions_of", lambda phase: sessions)
+    assert h2h.settle_smoke("ceiling", h2h.DEV2_SMOKE) == "smoke"
+    assert json.loads(sessions.read_text("utf-8"))["not_run"] is True  # asked again on a resume
+    assert h2h.settle_smoke("limit", h2h.DEV2_SMOKE) == "limit"
+    ran = []
+    h2h.x.drive(
+        h2h.STAGES["dev2"],
+        lambda p: (
+            ran.append(p.key) or (h2h.settle_smoke("ceiling", p) if p.key == "S2" else "done")
+        ),
+        final=lambda p: None,
+    )
+    assert ran == ["S2"]  # N and H never start
+
+
+def test_the_lots_claude_rule_counts_spent_and_the_ceilings_of_what_remains():
+    todo = list(h2h.STAGES["dev2"])
+    spent = {"S": 0.0997, "DN": 2.84, "DH": 5.26}  # the dev's phases, about 8.20
+    got = h2h.lot_claude_worst("dev2", todo, lambda p: spent.get(p.key, 0.0))
+    assert got == pytest.approx(sum(spent.values()) + 22.12)
+    assert h2h.lot_problem("dev2", todo, lambda p: spent.get(p.key, 0.0)) is None
+    half = [h2h.DEV2_H]  # smoke and N over: their spend, not their ceilings
+    spent_now = {**spent, "S2": 0.10, "D2N": 2.9}
+    got = h2h.lot_claude_worst("dev2", half, lambda p: spent_now.get(p.key, 0.0))
+    assert got == pytest.approx(sum(spent_now.values()) + 5.00)
+    too_much = h2h.lot_problem("dev2", todo, lambda p: 90.0 if p.key == "DN" else 0.0)
+    assert too_much and "105" in too_much
+
+
+def test_refusal_applies_the_lots_claude_rule(tmp_path, monkeypatch):
+    for name in ("require_sealed", "require_inputs"):
+        monkeypatch.setattr(h2h.paid_once, name, lambda lot: None)
+    monkeypatch.setattr(h2h.paid_once, "require_instrument", lambda lot: "c" * 40)
+    monkeypatch.setattr(h2h.jev_phase, "sealed_head_problems", lambda lot, git: [])
+    monkeypatch.setattr(h2h.x, "pin_problems", lambda: [])
+    monkeypatch.setattr(h2h, "data_problems", lambda stage: [])
+    monkeypatch.setattr(h2h, "launcher_problems", lambda: [])
+    monkeypatch.setattr(h2h, "final_kind", lambda p: None)
+    monkeypatch.setattr(h2h, "done_now", lambda p: 0)
+    monkeypatch.setattr(h2h, "phase_spent", lambda p: 30.0 if p.key == "DH" else 0.0)
+    now = h2h.dt.datetime(2026, 10, 18, 9, 0)
+    assert h2h.refusal("dev2", now, run_dir=tmp_path) is None  # 30 + 22.12 <= 105
+    monkeypatch.setattr(h2h, "phase_spent", lambda p: 90.0 if p.key == "DH" else 0.0)
+    kind, why = h2h.refusal("dev2", now, run_dir=tmp_path)
+    assert kind == "preflight" and "105" in why
+
+
+def test_each_phases_session_dates_come_from_its_reservations(tmp_path, monkeypatch):
+    def reservations(phase):
+        return tmp_path / f"{phase.key}.jsonl"
+
+    monkeypatch.setattr(h2h, "reservations_of", reservations)
+    lines = {"S2": ["2026-10-18T09:00:00"], "D2N": ["2026-10-18T09:01:00", "2026-10-18T09:20:00"],
+             "D2H": ["2026-10-18T23:50:00", "2026-10-19T09:00:00"]}  # fmt: skip
+    for key, starts in lines.items():
+        (tmp_path / f"{key}.jsonl").write_text(
+            "".join(json.dumps({"rid": "x", "started": s}) + "\n" for s in starts), "utf-8"
+        )
+    got = h2h.phase_dates("dev2")
+    assert got == {"S2": ["2026-10-18"], "D2N": ["2026-10-18"],
+                   "D2H": ["2026-10-18", "2026-10-19"]}  # fmt: skip
+    assert d2.same_day(got) is False
+    assert d2.same_day({"D2N": ["2026-10-18"], "D2H": ["2026-10-18"]}) is True
+
+
+def _launcher_at(tmp_path, hour: str) -> Path:
+    """The launcher's copy with its clock read as `hour` (the tracked file reads %TIME%)."""
+    raw = (ROOT / "longdoc-free-jev-run.cmd").read_bytes().decode("utf-8")
+    assert raw.count("%TIME:~0,2%") == 1
+    copy = tmp_path / "longdoc-free-jev-run.cmd"
+    copy.write_bytes(raw.replace("%TIME:~0,2%", hour).encode("utf-8"))
+    return copy
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="runs the launcher in cmd.exe")
+@pytest.mark.parametrize(("phase", "hour", "refusal"), [
+    ("dev2", "22", "dev2 starts before 22:00"),
+    ("dev2", "23", "dev2 starts before 22:00"),
+    ("dev2", "21", "set PY in this copy"),
+    ("probe", "23", "set PY in this copy"),
+    ("dev2", "07", "not between 00:00 and 08:00"),
+])  # fmt: skip
+def test_the_launcher_refuses_dev2_after_22_00_and_keeps_the_others_hours(
+    phase, hour, refusal, tmp_path
+):
+    copy = _launcher_at(tmp_path, hour)
+    env = {k: v for k, v in os.environ.items() if k != "SANCHOPANZA_KEYS_ENV"}
+    got = subprocess.run(["cmd.exe", "/c", str(copy), phase], cwd=tmp_path, env=env,
+                         capture_output=True, text=True, timeout=60)  # fmt: skip
+    assert got.returncode == 1 and refusal in got.stdout
+    assert not (tmp_path / "benchmarks").exists()
+
+
+def test_the_launchers_dev2_hour_check_is_tracked_with_crlf():
+    raw = (ROOT / "longdoc-free-jev-run.cmd").read_bytes()
+    assert raw.count(b"\r\n") == raw.count(b"\n")
+    text = raw.decode("utf-8")
+    assert 'if "%PHASE%"=="dev2" if "%HOUR%" GEQ "22" (' in text
+    assert "the probe and dev2 one launch, never another" in text

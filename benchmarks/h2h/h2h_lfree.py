@@ -76,6 +76,7 @@ LF = ROOT / "benchmarks" / "longdoc_free"
 pool = _load("lf_pool", LF / "pool.py")
 jev_phase = _load("lf_jev_phase", LF / "jev_phase.py")
 score = _load("lf_infbench_score", LF / "infbench_score.py")
+dev_read = _load("lf_dev_read", LF / "dev_read.py")
 
 LOT = "longdoc-free"
 OUT = pool.LOT_DIR
@@ -381,19 +382,60 @@ def final_kind(phase: Phase) -> str | None:
 # ---- money ------------------------------------------------------------------------------------
 
 
+def phase_spent(phase: Phase) -> float:
+    """What a phase has really spent: every counted session and every open reservation (at its
+    cap and one worst turn), as the guard counts it."""
+    return guard_mod.spent_now(sessions_of(phase), reservations_of(phase),
+                               phase.full_cap + phase.worst_turn)  # fmt: skip
+
+
 def stage_spent(stage: str) -> float:
-    """What the stage's phases have really spent: every counted session and every open
-    reservation (at its cap and one worst turn), as the guard counts it."""
-    return sum(guard_mod.spent_now(sessions_of(p), reservations_of(p), p.full_cap + p.worst_turn)
-               for p in STAGES[stage])  # fmt: skip
+    """What the stage's phases have really spent (`phase_spent`)."""
+    return sum(phase_spent(p) for p in STAGES[stage])
+
+
+def most_of(phase: Phase) -> float:
+    """The most a phase can spend: its ceiling; a smoke's cap plus one worst turn, since its
+    cap reserves none."""
+    return phase.full_cap + phase.worst_turn if phase.key in SMOKES else phase.ceiling
+
+
+def lot_claude_worst(stage: str, todo: Sequence[Phase],
+                     spent: Callable[[Phase], float] | None = None) -> float:  # fmt: skip
+    """The lot's Claude at worst: what every phase of every stage has really spent, except the
+    phases still to run, which count at the most they can spend (a phase's ceiling bounds its
+    whole spend, the part already spent included)."""
+    spent = spent or phase_spent
+    left = {p.key for p in todo}
+    done = sum(spent(p) for phases in STAGES.values() for p in phases if p.key not in left)
+    return done + sum(most_of(p) for p in todo)
+
+
+def lot_problem(stage: str, todo: Sequence[Phase],
+                spent: Callable[[Phase], float] | None = None) -> str | None:  # fmt: skip
+    """The owner's rule: spent plus the caps of what is left never exceeds the lot's 105 USD."""
+    worst = lot_claude_worst(stage, todo, spent)
+    if worst > dev_read.CLAUDE_CAP_USD + 1e-9:
+        return (f"the lot's Claude at worst {worst:.2f} USD (spent plus the ceilings left) is "
+                f"over {dev_read.CLAUDE_CAP_USD:g}")  # fmt: skip
+    return None
+
+
+def phase_dates(stage: str) -> dict[str, list[str]]:
+    """Each phase's session dates, from its reservations (one a started session)."""
+    out = {}
+    for phase in STAGES[stage]:
+        path = reservations_of(phase)
+        lines = gaia.read_rows(path)
+        out[phase.key] = sorted({str(r["started"])[:10] for r in lines if r.get("started")})
+    return out
 
 
 def money(stage: str) -> dict[str, Any]:
-    """Per phase: sessions, its ceiling, and the most it can spend (the ceiling; the smoke's
-    cap plus one worst turn, since its cap reserves none)."""
+    """Per phase: sessions, its ceiling, and the most it can spend (`most_of`)."""
     out = {}
     for phase in STAGES[stage]:
-        worst = phase.full_cap + phase.worst_turn if phase.key in SMOKES else phase.ceiling
+        worst = most_of(phase)
         out[phase.key] = {"name": phase.name, "model": phase.model_id, "sessions": phase.n,
                           "ceiling": phase.ceiling, "full_cap": phase.full_cap,
                           "worst_turn": phase.worst_turn, "most_usd": round(worst, 2)}  # fmt: skip
@@ -493,6 +535,8 @@ def refusal(stage: str, now: dt.datetime, run_dir: pathlib.Path = RUN_DIR,
     todo = [p for p in STAGES[stage] if not final_kind(p)]
     if not todo:
         return "done", "every phase is over: nothing to run"
+    if why := lot_problem(stage, todo):
+        return "preflight", why
     sessions = sum(p.n - done_now(p) for p in todo)
     if now.hour < s162.EARLIEST_HOUR:
         return "clock", f"{now:%H:%M} is before {s162.EARLIEST_HOUR:02d}:00"
