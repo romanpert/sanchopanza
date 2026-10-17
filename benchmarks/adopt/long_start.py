@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import datetime as dt
 import sys
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +16,7 @@ import carry  # noqa: E402
 import docker_env  # noqa: E402
 import long_guard  # noqa: E402
 import run  # noqa: E402
+import winupdate  # noqa: E402
 from long_money import held  # noqa: E402
 
 
@@ -42,6 +43,62 @@ def start_refusal(ctx: Any, names: list[str], known: Mapping[str, Any],
     carry.refuse_unclean(layout.root)  # no token, or memory files above the run root: exits
     carry.record_claude(layout.root, False, True, ctx.claude)  # not 2.1.287: exits
     return ""
+
+
+QUIET = (0, 8)  # no chain starts in these hours: past midnight, and Windows Update's 02:00-08:00
+
+
+def quiet_refusal(profile: Any, allow: bool, now: dt.datetime | None = None,
+                  lifted: Callable[[], str] = winupdate.quiet_lifted) -> str:  # fmt: skip
+    """A day-only profile (the guard-pointers lot) starts no chain between 00:00 and 08:00:
+    Windows Update restarts the PC in 02:00-08:00 (the close-out lost a call to it at 05:04).
+    Amendment 1 (sealed before any data): the hours lift while updates are paused for at least
+    another `winupdate.MARGIN` (`winupdate.quiet_lifted`), checked at every call."""
+    hour = (now or dt.datetime.now()).hour
+    if getattr(profile, "day_only", False) and not allow and QUIET[0] <= hour < QUIET[1]:
+        if lifted():
+            return ""
+        return f"no chain starts between {QUIET[0]:02d}:00 and {QUIET[1]:02d}:00 (Windows Update)"
+    return ""
+
+
+def quiet_lift_note(profile: Any, allow: bool, now: dt.datetime | None = None,
+                    lifted: Callable[[], str] = winupdate.quiet_lifted) -> str:  # fmt: skip
+    """What to log when amendment 1 lifts the quiet hours ("" when they are not in force: a
+    profile without them, a dry run, a daytime hour, or no pause)."""
+    hour = (now or dt.datetime.now()).hour
+    if not getattr(profile, "day_only", False) or allow or not QUIET[0] <= hour < QUIET[1]:
+        return ""
+    return lifted()
+
+
+_WINDOWS = r"SOFTWARE\Microsoft\Windows\CurrentVersion"
+RESTART_KEYS = (_WINDOWS + r"\WindowsUpdate\Auto Update\RebootRequired",
+                _WINDOWS + r"\Component Based Servicing\RebootPending")
+
+
+def restart_pending() -> str:
+    """The first of `RESTART_KEYS` present under HKLM ("" when none, or off Windows)."""
+    try:
+        import winreg
+    except ImportError:
+        return ""
+    for key in RESTART_KEYS:
+        try:
+            winreg.CloseKey(winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key))
+        except OSError:
+            continue
+        return key.rsplit("\\", 1)[-1]
+    return ""
+
+
+def restart_refusal(profile: Any, allow: bool) -> str:
+    """A day-only profile starts no chain while Windows has a restart pending (checked before
+    each chain, not only at the launch: an update can land mid-lot)."""
+    if not getattr(profile, "day_only", False) or allow:
+        return ""
+    found = restart_pending()
+    return f"Windows has a restart pending ({found})" if found else ""
 
 
 def midnight_refusal(profile: Any, model: str, allow: bool) -> str:

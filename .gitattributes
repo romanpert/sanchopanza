@@ -10,6 +10,7 @@ c5-free-run.cmd text eol=crlf
 c5b-free-run.cmd text eol=crlf
 c6-window-run.cmd text eol=crlf
 longdoc-free-jev-run.cmd text eol=crlf
+guard-pointers-run.cmd text eol=crlf
 fixtures/*.jsonl.gz binary
 fixtures/c5-free/*.jsonl.gz binary
 fixtures/c5b-free/*.jsonl.gz binary

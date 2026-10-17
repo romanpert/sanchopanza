@@ -216,8 +216,8 @@ def test_smoke_launcher_runs_three_arms_on_three_bugs_and_resumes_a_dead_runner(
     assert all(c["metered_ids"] and c["usage_after"] for r in rows.values() for c in r["calls"])
     assert "gate:" in _text(root / "grade.log")  # graded (stand-in pytest), give-ups apart
     assert f"S runs {SANCHO}" in log
-    if SANCHO == SEALED:  # the sealed install's guard: struct over 6 parts, no chooser of ours
-        assert "guard: 6 SessionStart(compact) parts, chooser the install's default" in _text(
+    if SANCHO == SEALED:  # the sealed guard, struct over 6 parts, as S asks for it
+        assert "guard: 6 SessionStart(compact) parts, chooser struct" in _text(
             root / "runner-haiku.log"
         )
 

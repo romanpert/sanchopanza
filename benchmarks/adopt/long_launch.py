@@ -7,6 +7,7 @@ runner per model, the grade and the windows.
     python benchmarks/adopt/long_launch.py gate [--root C:\\sp-runs\\L]
     python benchmarks/adopt/long_launch.py pilot-a --commit <commit> [--arm A|A10]
     python benchmarks/adopt/long_launch.py plan smoke|gate|pilot-a [--arm A10]  # the plan only
+    python benchmarks/adopt/long_launch.py guardptr --seal <commit>   # also guardptr-30, -smoke
 
 In order, and nothing paid before the last:
 1. SIGINT ignored; the run folder gets `launch.json` with this process's PID, its parent's (the
@@ -20,7 +21,9 @@ In order, and nothing paid before the last:
    the frozen sanchopanza of the seal commit (built by `freeze.py`, with gate A and
    the 402 breaker in its history) and `python -m sanchopanza jev-preflight` with it, which
    exits 0 ok, 10 no_funds, 11 auth, 12 no_key, 13 unreachable, 14 other; any other code than 0
-   ends the launch with that code before a model is asked anything.
+   ends the launch with that code before a model is asked anything. A keyless profile (the
+   guard-pointers lot: P and F, `--seal` its own commit, `GUARDPTR_NEEDS` in its history) runs
+   the frozen copy too, and no preflight: no key is read and no decision is asked.
 5. The runner (`long_run.py run`), per model: the gate runs Opus only when Sonnet exits 0.
    A second launch resumes: finished arms are skipped and a stopped one goes on at its next
    request (`long_resume`).
@@ -52,12 +55,15 @@ sys.path.insert(0, str(HERE.parent / "memory_carry"))
 import carry  # noqa: E402
 import costmodel  # noqa: E402
 import freeze  # noqa: E402
+import guardptr_seal  # noqa: E402
 import long_guard  # noqa: E402
 import long_money  # noqa: E402
 import long_pilot  # noqa: E402
+import long_pointers  # noqa: E402
 import long_run  # noqa: E402
 import meter  # noqa: E402
 import run  # noqa: E402
+from sanchopanza import durable  # noqa: E402  (src/: long_run)
 
 ROOTS = {"smoke": Path(r"C:\sp-runs\L-smoke"), "gate": Path(r"C:\sp-runs\L"),
          "pilot-a": long_pilot.ROOTS["A"],  # A10: long_pilot.ROOTS["A10"] (`root_for`)
@@ -69,7 +75,22 @@ ROOTS = {"smoke": Path(r"C:\sp-runs\L-smoke"), "gate": Path(r"C:\sp-runs\L"),
          "compact-fifth": Path(r"C:\sp-runs\L-compact"),
          "compact-extra": Path(r"C:\sp-runs\L-compact"),
          # the conan-2 repeat (owner 2026-10-14, 45 USD hard): its own root, its own ceiling
-         "compact-conan2": Path(r"C:\sp-runs\L-compact-conan2")}
+         "compact-conan2": Path(r"C:\sp-runs\L-compact-conan2"),
+         # the guard-pointers lot (2026-10-16): its own roots, ceilings and the smoke apart
+         "guardptr": Path(r"C:\sp-runs\L-guardptr"),
+         "guardptr-30": Path(r"C:\sp-runs\L-guardptr30"),
+         "guardptr-smoke": Path(r"C:\sp-runs\L-guardptr-smoke")}
+# Profiles that run only from their sealing commit (`guardptr_seal.require_seal`); a dry run
+# checks it too when its config names a sealed repository (`seal_repo`).
+SEALED_LOTS = long_pointers.SEALED_LOTS
+# Profiles the launcher does not grade: `long_pointers_read.py grade` does, every chain with the
+# per-test timeout its prereg registers (the close-out's moto grade hung 16 minutes without one).
+GRADED_APART = {"guardptr": 300, "guardptr-30": 300, "guardptr-smoke": 300}
+# What the guard-pointers lot's frozen copy must carry: the pointer guard as the default, its
+# review fixes (archive every one-shot output, masked) and --guard-full's marked chooser.
+GUARDPTR_NEEDS = {"bc2a0ac": "the pointer guard as the default chooser",
+                  "4998684": "the pointer guard's review fixes (archive all, mask_strict)",
+                  "6e2a1a1": "--guard-full's marked chooser"}  # fmt: skip
 # The seal must carry these (main): gate A for check-done and candor, and the 402 breaker with
 # `jev-preflight`. An older frozen copy would run S without them.
 SEAL_NEEDS = {"f2a0fe2": "gate A (check-done and candor on change or action)",
@@ -98,7 +119,7 @@ def note_pids(root: Path, **pids: Any) -> dict[str, Any]:
         history = [*history, mine]
     else:
         history = [*history[:-1], {**history[-1], **{k: v for k, v in pids.items()}}]
-    path.write_text(json.dumps(history, indent=1), encoding="utf-8", newline="\n")
+    durable.replace_text(path, json.dumps(history, indent=1), newline="\n")
     return history[-1]
 
 
@@ -153,8 +174,9 @@ def turn_lines(profile: Any, model: str) -> list[str]:
 
 def modelled(arm: str) -> str:
     """The arm whose cost model an arm borrows: a passages arm N's (its effect is what the pilot
-    asks), N-early-low N-early's (its saving is what the close-out asks: an upper side)."""
-    return "N" if arm in long_pilot.ARMS else "Ne" if arm == "Nl" else arm
+    asks), N-early-low N-early's (its saving is what the close-out asks: an upper side), and the
+    guard lot's P and F N-early's too (the default install compacts at N-early's window)."""
+    return "N" if arm in long_pilot.ARMS else "Ne" if arm in ("Nl", "P", "F") else arm
 
 
 def expected(model: str, bugs: int, calls: int, profile: Any) -> dict[str, tuple[float, float]]:
@@ -196,6 +218,7 @@ def plan_lines(name: str, chains: Mapping[str, Any], names: list[str], root: Pat
                          f"{note}")  # fmt: skip
     blocks, outside = long_run.held(layout, profile, names, list(profile.models))
     holding = sum(c for *_x, c in blocks) + outside
+    pre, peak = long_pointers.bounds(profile.budget)
     lines += [f"expected total {low:.2f}-{high:.2f} USD (cost model, check-done 'mid'; "
               "uncapped, list prices)",
               f"caps held {holding:.2f} USD (each chain at the larger of its caps and its "
@@ -205,6 +228,10 @@ def plan_lines(name: str, chains: Mapping[str, Any], names: list[str], root: Pat
               *([f"N-early window {profile.window} (S's install for --context-budget "
                  f"{profile.budget}); N's window: the server's, recorded in windows.json"]
                 if {"Ne", "S"} & set(profile.arms) else
+                [f"P and F: the install's window {profile.window} (--context-budget "
+                 f"{profile.budget}); a compaction outside {pre}, a context past {peak} or a "
+                 "compaction without its arm's guard stops the run"]
+                if {"P", "F"} & set(profile.arms) else
                 ["window: the server's (no arm sets one), recorded in windows.json"]),
               *([f"N-early-low window {low_window()} (the install's for --context-budget "
                  f"{long_run.COMPACT_LOW_BUDGET}), compacting near "
@@ -258,8 +285,10 @@ def pilot_sancho(commit: str) -> Path:
 
 def installed_sancho(profile: Any, cfg: Mapping[str, Any], args: argparse.Namespace) -> Path:
     """The frozen sanchopanza the installed arms run (dry: the configured one, still checked for
-    `passages-hook` when a passages arm runs)."""
+    `passages-hook` when a passages arm runs). A keyless profile: the copy of its own seal."""
     pilot = bool(set(profile.arms) & set(long_pilot.ARMS))
+    if not cfg.get("sancho") and profile.keyless:
+        return frozen_sancho(args.seal or "", None, GUARDPTR_NEEDS)
     if not cfg.get("sancho"):
         return pilot_sancho(args.commit) if pilot else frozen_sancho(args.seal or "")
     exe = Path(cfg["sancho"])
@@ -357,6 +386,16 @@ def launch(name: str, args: argparse.Namespace) -> int:
         log(f"refused: {why}")
         return 1
     profile = long_run.PROFILES[name].with_arms(arms)
+    if name in SEALED_LOTS and (not cfg or cfg.get("seal_repo")):
+        try:  # before anything else: HEAD the sealing commit, clean, the seal, the launcher
+            head = guardptr_seal.require_seal(os.environ.get(guardptr_seal.LAUNCHER_VAR, ""),
+                                              args.seal, Path(cfg.get("seal_repo") or REPO))
+        except SystemExit as refused:
+            log(f"refused: {refused}")
+            return 1
+        log(f"HEAD {head} (the sealing commit); frozen copy {args.seal} (its parent)")
+        with (root / "launch.status").open("a", encoding="utf-8") as status:
+            status.write(f"seal HEAD {head}\n")
     known = (json.loads(Path(cfg["chains_file"]).read_text(encoding="utf-8"))
              if cfg.get("chains_file") else run.chains())  # fmt: skip
     names = list(profile.chains)
@@ -378,6 +417,10 @@ def launch(name: str, args: argparse.Namespace) -> int:
         return 1
     env = {**os.environ, **(cfg.get("env") or {}), "PYTHONUNBUFFERED": "1",
            "ADOPT_PYTHON": os.environ.get("ADOPT_PYTHON") or sys.executable}  # fmt: skip
+    if name in SEALED_LOTS:  # the runner checks the seal again itself (`long_run.seal_refusal`)
+        env = {**env, guardptr_seal.INSTRUMENT_VAR: args.seal,
+               **({guardptr_seal.REPO_VAR: str(cfg["seal_repo"])} if cfg.get("seal_repo")
+                  else {})}  # fmt: skip
     if installing := [a for a in profile.arms if long_run.installed(a, profile)]:
         try:
             exe = installed_sancho(profile, cfg, args)
@@ -386,13 +429,23 @@ def launch(name: str, args: argparse.Namespace) -> int:
             return 1
         env = {**env, "ADOPT_SANCHO": str(exe)}
         log(f"{' and '.join(installing)} runs {exe}")
+        if name in SEALED_LOTS and not cfg.get("sancho"):  # the real path: the frozen copy
+            if why := guardptr_seal.frozen_refusal(exe, guardptr_seal.manifest(REPO)):
+                log(f"refused: {why}")
+                return 1
+            log(f"frozen copy matches the sealed package; {guardptr_seal.frozen_versions(exe)}")
         python = Path(cfg.get("preflight_python") or exe.parent / "python.exe")
-        if code := preflight(python, root, cfg.get("preflight_pythonpath", "")):
+        if profile.keyless:
+            log("keyless: no TypeSafe key is read and no preflight is asked (the null decider)")
+        elif code := preflight(python, root, cfg.get("preflight_pythonpath", "")):
             log(f"refused: jev-preflight exit {code}; nothing was run")
             return code
     code = runs(name, cfg, root, env, arms)
     windows(root)
-    if code == 0 and cfg.get("grade", True):
+    if code == 0 and name in GRADED_APART:
+        log(f"{name}: graded apart, `long_pointers_read.py grade --profile {name} --final` "
+            f"(per-test timeout {GRADED_APART[name]} s; the launcher's grade hung on moto)")
+    elif code == 0 and cfg.get("grade", True):
         code = run_step(runner_cmd(cfg, "grade", name, root, None, arms), env,
                         root / "grade.log", "grade", root)  # fmt: skip
     return code
@@ -403,12 +456,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("action", choices=("smoke", "gate", "pilot-a", "noise-ne", "noise-n",
                                            "conan-n2", "conan-ne2", "conan-a2", "compact",
                                            "compact-fifth", "compact-extra",
-                                           "compact-conan2", "plan"))  # fmt: skip
+                                           "compact-conan2", "guardptr", "guardptr-30",
+                                           "guardptr-smoke", "plan"))  # fmt: skip
     parser.add_argument("profile", nargs="?", default="",
                         help="plan: smoke, gate, pilot-a, noise-ne, noise-n, conan-n2, "
                         "conan-ne2, conan-a2, compact, compact-fifth, compact-extra or "
                         "compact-conan2")
-    parser.add_argument("--seal", default="", help="smoke: the sealed S commit (frozen copy)")
+    parser.add_argument("--seal", default="",
+                        help="smoke: the sealed S commit; guardptr*: the lot's sealed commit "
+                        "(frozen copy)")  # fmt: skip
     parser.add_argument("--commit", default="",
                         help="pilot-a, conan-a2: A's own commit (frozen copy)")
     parser.add_argument("--arm", default="", choices=("", *long_pilot.ARMS),

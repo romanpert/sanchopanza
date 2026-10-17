@@ -73,6 +73,11 @@ LAUNCHERS: dict[str, tuple[set[str], set[str]]] = {
         {"C:\\sp-runs\\memory-carry"},
     ),
     "f2-night-run.cmd": ({"benchmarks/memory_carry/handoff_night.py"}, {"C:\\sp-runs\\memory-f2"}),
+    "guard-pointers-run.cmd": (
+        ADOPT,
+        {f"C:\\sp-runs\\{x}" for x in ("L-guardptr", "L-guardptr30", "L-guardptr-smoke")}
+        | {"%LL_ROOT%"},
+    ),
     "long-compact-run.cmd": (
         ADOPT,
         {"C:\\sp-runs\\L-compact", "C:\\sp-runs\\L-compact-conan2", "%LL_ROOT%"},
