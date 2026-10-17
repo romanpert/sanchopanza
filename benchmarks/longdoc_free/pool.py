@@ -10,7 +10,7 @@ text, which the file carries once per question.
 
     python benchmarks/longdoc_free/pool.py --download   # the pinned file into the cache
     python benchmarks/longdoc_free/pool.py --prepare    # each novel once, as <key>.txt
-    python benchmarks/longdoc_free/pool.py --freeze     # ids.json: every item, its novel, dev or not
+    python benchmarks/longdoc_free/pool.py --freeze     # ids.json: each item, its novel, its phase
 
 The dev draw reads metadata only (ids and novel keys, never a question or an answer): the novels
 in a seeded order, whole, until DEV_ITEMS questions are reached.
@@ -142,7 +142,7 @@ def novel_path(key: str, root: Path = NOVELS) -> Path:
 
 
 def prepare(texts: dict[str, str], root: Path = NOVELS) -> int:
-    """Each novel once, as `<key>.txt` (UTF-8, newlines as in the file); returns how many written."""
+    """Each novel once, as `<key>.txt` (UTF-8, as in the file); returns how many were written."""
     root.mkdir(parents=True, exist_ok=True)
     written = 0
     for key, text in texts.items():
