@@ -58,7 +58,9 @@ Code, per model and per axis ([final scoreboard](docs/results/2026-10-13-final/)
   lies below 1 with success held.
 - On SWE-bench Verified, with Haiku 4.5 only, success is non-inferior and no saving is shown.
 - On 60-bug coding sessions, the Jev part did not keep its edge.
-- Memory has no room on Opus 5.5.
+- Memory shows no gain on Opus 5.5: no room in two tests; as it ships, the same cost as clean
+  Claude Code, 0.999x [0.965, 1.055], keeping the plan in 34 of 36 pairs against 31 (p 0.125)
+  ([W17](docs/results/2026-10-16-memory-w17/README.md)).
 - What moved results was Claude Code's own compaction window, a setting.
 - Memory on Sonnet 5.5, a fact said in a parallel session or sibling worktree: **gana**. With
   sanchopanza the fact was broken in 0 of 24 pairs, by clean Claude Code in 11 (McNemar p 0.00049;

@@ -1,0 +1,7702 @@
+[
+ {
+  "scene": "h_batch",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.261335,
+  "jev_usd": 0.000255,
+  "jev_decisions": 8,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 16,
+   "output": 3761,
+   "cache_read": 174174,
+   "cache_write": 18902
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t00-b",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.120531,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 42.0,
+    "tokens": {
+     "input": 8,
+     "output": 1760,
+     "cache_read": 84375,
+     "cache_write": 8553
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22268,
+    "last_prompt": 24220,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1408038,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 39.8,
+    "tokens": {
+     "input": 8,
+     "output": 2001,
+     "cache_read": 89799,
+     "cache_write": 10349
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23511,
+    "last_prompt": 26141,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 1
+   }
+  ]
+ },
+ {
+  "scene": "h_batch",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.278307,
+  "tokens": {
+   "input": 24,
+   "output": 4191,
+   "cache_read": 261995,
+   "cache_write": 17749
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t00-a",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.10591640000000001,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 35.9,
+    "tokens": {
+     "input": 8,
+     "output": 1429,
+     "cache_read": 82002,
+     "cache_write": 7613
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21609,
+    "last_prompt": 23280,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.17239059999999998,
+    "turns": 14,
+    "tools": 13,
+    "seconds": 46.8,
+    "tokens": {
+     "input": 16,
+     "output": 2762,
+     "cache_read": 179993,
+     "cache_write": 10136
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21532,
+    "last_prompt": 25928,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_loud",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.373575,
+  "tokens": {
+   "input": 24,
+   "output": 7104,
+   "cache_read": 278715,
+   "cache_write": 21957
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t01-b",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1412214,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 42.6,
+    "tokens": {
+     "input": 8,
+     "output": 2756,
+     "cache_read": 82667,
+     "cache_write": 8692
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21597,
+    "last_prompt": 24359,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.23235360000000002,
+    "turns": 17,
+    "tools": 16,
+    "seconds": 50.1,
+    "tokens": {
+     "input": 16,
+     "output": 4348,
+     "cache_read": 196048,
+     "cache_write": 13265
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21569,
+    "last_prompt": 29057,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_loud",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.400416,
+  "jev_usd": 0.000223,
+  "jev_decisions": 7,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 22,
+   "output": 7447,
+   "cache_read": 256902,
+   "cache_write": 25001
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t01-c",
+  "given": 1,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.161086,
+    "turns": 7,
+    "tools": 6,
+    "seconds": 47.2,
+    "tokens": {
+     "input": 10,
+     "output": 3051,
+     "cache_read": 107890,
+     "cache_write": 9806
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22218,
+    "last_prompt": 25473,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.2393304,
+    "turns": 10,
+    "tools": 9,
+    "seconds": 56.8,
+    "tokens": {
+     "input": 12,
+     "output": 4396,
+     "cache_read": 149012,
+     "cache_write": 15195
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23439,
+    "last_prompt": 30987,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_spanish",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.373641,
+  "jev_usd": 0.000222,
+  "jev_decisions": 7,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 26,
+   "output": 6062,
+   "cache_read": 309724,
+   "cache_write": 23794
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t02-b",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.17113200000000003,
+    "turns": 7,
+    "tools": 6,
+    "seconds": 52.8,
+    "tokens": {
+     "input": 12,
+     "output": 2878,
+     "cache_read": 134340,
+     "cache_write": 10832
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22224,
+    "last_prompt": 26499,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.20250880000000002,
+    "turns": 12,
+    "tools": 11,
+    "seconds": 54.2,
+    "tokens": {
+     "input": 14,
+     "output": 3184,
+     "cache_read": 175384,
+     "cache_write": 12962
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23604,
+    "last_prompt": 28754,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_spanish",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.321231,
+  "tokens": {
+   "input": 22,
+   "output": 5860,
+   "cache_read": 239994,
+   "cache_write": 19493
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t02-a",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1438742,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 58.2,
+    "tokens": {
+     "input": 10,
+     "output": 2697,
+     "cache_read": 104951,
+     "cache_write": 8613
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21592,
+    "last_prompt": 24280,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1773566,
+    "turns": 10,
+    "tools": 9,
+    "seconds": 38.6,
+    "tokens": {
+     "input": 12,
+     "output": 3163,
+     "cache_read": 135043,
+     "cache_write": 10880
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21574,
+    "last_prompt": 26672,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_flag",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.258493,
+  "tokens": {
+   "input": 18,
+   "output": 4173,
+   "cache_read": 190085,
+   "cache_write": 17118
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t03-b",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1181702,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 34.2,
+    "tokens": {
+     "input": 8,
+     "output": 1967,
+     "cache_read": 81831,
+     "cache_write": 7804
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21544,
+    "last_prompt": 23471,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1403228,
+    "turns": 7,
+    "tools": 6,
+    "seconds": 37.3,
+    "tokens": {
+     "input": 10,
+     "output": 2206,
+     "cache_read": 108254,
+     "cache_write": 9314
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21597,
+    "last_prompt": 25106,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_flag",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.289372,
+  "jev_usd": 0.000216,
+  "jev_decisions": 7,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 16,
+   "output": 4754,
+   "cache_read": 174459,
+   "cache_write": 19917
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t03-c",
+  "given": 1,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1318696,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 40.3,
+    "tokens": {
+     "input": 8,
+     "output": 2258,
+     "cache_read": 83868,
+     "cache_write": 8738
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22179,
+    "last_prompt": 24405,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1575022,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 43.5,
+    "tokens": {
+     "input": 8,
+     "output": 2496,
+     "cache_read": 90591,
+     "cache_write": 11179
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23524,
+    "last_prompt": 26971,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_nomutate",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.242013,
+  "jev_usd": 0.000222,
+  "jev_decisions": 7,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 14,
+   "output": 3434,
+   "cache_read": 147263,
+   "cache_write": 17978
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t04-a",
+  "given": 1,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.12671960000000002,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 40.2,
+    "tokens": {
+     "input": 8,
+     "output": 2052,
+     "cache_read": 83958,
+     "cache_write": 8607
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22247,
+    "last_prompt": 24274,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.115293,
+    "turns": 3,
+    "tools": 2,
+    "seconds": 31.0,
+    "tokens": {
+     "input": 6,
+     "output": 1382,
+     "cache_read": 63305,
+     "cache_write": 9371
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23324,
+    "last_prompt": 25163,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_nomutate",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.267119,
+  "tokens": {
+   "input": 18,
+   "output": 4362,
+   "cache_read": 190156,
+   "cache_write": 17722
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t04-b",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.11003639999999999,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 36.9,
+    "tokens": {
+     "input": 8,
+     "output": 1650,
+     "cache_read": 81782,
+     "cache_write": 7581
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21598,
+    "last_prompt": 23248,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1570828,
+    "turns": 11,
+    "tools": 10,
+    "seconds": 35.8,
+    "tokens": {
+     "input": 10,
+     "output": 2712,
+     "cache_read": 108374,
+     "cache_write": 10141
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21538,
+    "last_prompt": 25933,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_dryrun",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.315699,
+  "tokens": {
+   "input": 22,
+   "output": 5212,
+   "cache_read": 245217,
+   "cache_write": 20291
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t05-c",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1327952,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 41.8,
+    "tokens": {
+     "input": 10,
+     "output": 2095,
+     "cache_read": 105036,
+     "cache_write": 8731
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21584,
+    "last_prompt": 24398,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.18290420000000002,
+    "turns": 11,
+    "tools": 10,
+    "seconds": 40.2,
+    "tokens": {
+     "input": 12,
+     "output": 3117,
+     "cache_read": 140181,
+     "cache_write": 11560
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21585,
+    "last_prompt": 27352,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_dryrun",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.309896,
+  "jev_usd": 0.000184,
+  "jev_decisions": 6,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 18,
+   "output": 5210,
+   "cache_read": 198362,
+   "cache_write": 20744
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t05-a",
+  "given": 1,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1345692,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 44.2,
+    "tokens": {
+     "input": 10,
+     "output": 2073,
+     "cache_read": 107306,
+     "cache_write": 8951
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22248,
+    "last_prompt": 24618,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1753272,
+    "turns": 6,
+    "tools": 5,
+    "seconds": 45.5,
+    "tokens": {
+     "input": 8,
+     "output": 3137,
+     "cache_read": 91056,
+     "cache_write": 11793
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23519,
+    "last_prompt": 27585,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_semicolon",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.251258,
+  "jev_usd": 0.00022,
+  "jev_decisions": 7,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 16,
+   "output": 3508,
+   "cache_read": 170771,
+   "cache_write": 18360
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t06-b",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1292614,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 41.8,
+    "tokens": {
+     "input": 10,
+     "output": 1936,
+     "cache_read": 107187,
+     "cache_write": 8633
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22224,
+    "last_prompt": 24300,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.12199679999999999,
+    "turns": 3,
+    "tools": 2,
+    "seconds": 32.5,
+    "tokens": {
+     "input": 6,
+     "output": 1572,
+     "cache_read": 63584,
+     "cache_write": 9727
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23325,
+    "last_prompt": 25519,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_semicolon",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": false,
+  "fact_pass": false,
+  "decision_pass": false,
+  "intact_pass": true,
+  "kept_all": false,
+  "cost": 0.209584,
+  "tokens": {
+   "input": 14,
+   "output": 2545,
+   "cache_read": 141782,
+   "cache_write": 16284
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t06-a",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1224952,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 41.0,
+    "tokens": {
+     "input": 10,
+     "output": 1901,
+     "cache_read": 104456,
+     "cache_write": 7943
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21577,
+    "last_prompt": 23610,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.0870892,
+    "turns": 3,
+    "tools": 2,
+    "seconds": 21.3,
+    "tokens": {
+     "input": 4,
+     "output": 644,
+     "cache_read": 37326,
+     "cache_write": 8341
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21538,
+    "last_prompt": 24133,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_retry",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.301129,
+  "tokens": {
+   "input": 20,
+   "output": 5268,
+   "cache_read": 217967,
+   "cache_write": 19012
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t07-c",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.11308599999999999,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 38.4,
+    "tokens": {
+     "input": 8,
+     "output": 1745,
+     "cache_read": 82010,
+     "cache_write": 7719
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21606,
+    "last_prompt": 23386,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1880434,
+    "turns": 14,
+    "tools": 13,
+    "seconds": 53.4,
+    "tokens": {
+     "input": 12,
+     "output": 3523,
+     "cache_read": 135957,
+     "cache_write": 11293
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21545,
+    "last_prompt": 27085,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_retry",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.284826,
+  "jev_usd": 0.000221,
+  "jev_decisions": 7,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 18,
+   "output": 4442,
+   "cache_read": 200572,
+   "cache_write": 19475
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t07-a",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.12193219999999999,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 48.3,
+    "tokens": {
+     "input": 8,
+     "output": 1890,
+     "cache_read": 84061,
+     "cache_write": 8411
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22238,
+    "last_prompt": 24078,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1628942,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 48.4,
+    "tokens": {
+     "input": 10,
+     "output": 2552,
+     "cache_read": 116511,
+     "cache_write": 11064
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23505,
+    "last_prompt": 26856,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 1
+   }
+  ]
+ },
+ {
+  "scene": "h_merge",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.309423,
+  "jev_usd": 0.000188,
+  "jev_decisions": 6,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 20,
+   "output": 5048,
+   "cache_read": 223037,
+   "cache_write": 20472
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t08-b",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.13450779999999998,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 47.4,
+    "tokens": {
+     "input": 10,
+     "output": 2142,
+     "cache_read": 107339,
+     "cache_write": 8770
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22248,
+    "last_prompt": 24437,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.17491559999999998,
+    "turns": 10,
+    "tools": 9,
+    "seconds": 48.4,
+    "tokens": {
+     "input": 10,
+     "output": 2906,
+     "cache_read": 115698,
+     "cache_write": 11702
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23308,
+    "last_prompt": 27494,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_merge",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.292819,
+  "tokens": {
+   "input": 20,
+   "output": 5005,
+   "cache_read": 213913,
+   "cache_write": 18732
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t08-c",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.12598020000000001,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 48.9,
+    "tokens": {
+     "input": 10,
+     "output": 2035,
+     "cache_read": 104441,
+     "cache_write": 8044
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21588,
+    "last_prompt": 23711,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1668384,
+    "turns": 12,
+    "tools": 11,
+    "seconds": 36.8,
+    "tokens": {
+     "input": 10,
+     "output": 2970,
+     "cache_read": 109472,
+     "cache_write": 10688
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21541,
+    "last_prompt": 26480,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_weeks",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.276499,
+  "tokens": {
+   "input": 18,
+   "output": 4647,
+   "cache_read": 190553,
+   "cache_write": 18172
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t09-b",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.10810039999999999,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 31.1,
+    "tokens": {
+     "input": 8,
+     "output": 1552,
+     "cache_read": 81822,
+     "cache_write": 7583
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21547,
+    "last_prompt": 23250,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.16839819999999997,
+    "turns": 12,
+    "tools": 11,
+    "seconds": 36.4,
+    "tokens": {
+     "input": 10,
+     "output": 3095,
+     "cache_read": 108731,
+     "cache_write": 10589
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21551,
+    "last_prompt": 26381,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_weeks",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.29153,
+  "jev_usd": 0.00026,
+  "jev_decisions": 8,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 18,
+   "output": 4506,
+   "cache_read": 196852,
+   "cache_write": 20246
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t09-c",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1231728,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 58.3,
+    "tokens": {
+     "input": 10,
+     "output": 1707,
+     "cache_read": 106804,
+     "cache_write": 8454
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22191,
+    "last_prompt": 24121,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1683576,
+    "turns": 9,
+    "tools": 8,
+    "seconds": 41.2,
+    "tokens": {
+     "input": 8,
+     "output": 2799,
+     "cache_read": 90048,
+     "cache_write": 11792
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23076,
+    "last_prompt": 27584,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_judge",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": false,
+  "fact_pass": false,
+  "decision_pass": false,
+  "intact_pass": true,
+  "kept_all": false,
+  "cost": 0.317305,
+  "jev_usd": 0.000189,
+  "jev_decisions": 6,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 20,
+   "output": 5237,
+   "cache_read": 227946,
+   "cache_write": 20862
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t10-c",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1324084,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 42.5,
+    "tokens": {
+     "input": 8,
+     "output": 2219,
+     "cache_read": 84542,
+     "cache_write": 8886
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22245,
+    "last_prompt": 24553,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1848968,
+    "turns": 7,
+    "tools": 6,
+    "seconds": 67.6,
+    "tokens": {
+     "input": 12,
+     "output": 3018,
+     "cache_read": 143404,
+     "cache_write": 11976
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23536,
+    "last_prompt": 27768,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_judge",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": false,
+  "fact_pass": false,
+  "decision_pass": false,
+  "intact_pass": true,
+  "kept_all": false,
+  "cost": 0.236215,
+  "tokens": {
+   "input": 12,
+   "output": 3624,
+   "cache_read": 120113,
+   "cache_write": 17458
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t10-a",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.13163760000000002,
+    "turns": 6,
+    "tools": 5,
+    "seconds": 35.6,
+    "tokens": {
+     "input": 6,
+     "output": 2478,
+     "cache_read": 59388,
+     "cache_write": 8772
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21611,
+    "last_prompt": 24439,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.104577,
+    "turns": 7,
+    "tools": 6,
+    "seconds": 23.0,
+    "tokens": {
+     "input": 6,
+     "output": 1146,
+     "cache_read": 60725,
+     "cache_write": 8686
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21592,
+    "last_prompt": 24478,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_pages",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.302154,
+  "tokens": {
+   "input": 20,
+   "output": 5209,
+   "cache_read": 217750,
+   "cache_write": 19293
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t11-a",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.11499619999999999,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 34.0,
+    "tokens": {
+     "input": 8,
+     "output": 1778,
+     "cache_read": 82261,
+     "cache_write": 7869
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21611,
+    "last_prompt": 23536,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1871578,
+    "turns": 14,
+    "tools": 13,
+    "seconds": 39.5,
+    "tokens": {
+     "input": 12,
+     "output": 3431,
+     "cache_read": 135489,
+     "cache_write": 11424
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21537,
+    "last_prompt": 27216,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_pages",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 1,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.290438,
+  "jev_usd": 0.000224,
+  "jev_decisions": 7,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 18,
+   "output": 4499,
+   "cache_read": 200451,
+   "cache_write": 20037
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t11-b",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1257246,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 38.6,
+    "tokens": {
+     "input": 8,
+     "output": 1978,
+     "cache_read": 84463,
+     "cache_write": 8655
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22270,
+    "last_prompt": 24322,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.16471360000000002,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 40.9,
+    "tokens": {
+     "input": 10,
+     "output": 2521,
+     "cache_read": 115988,
+     "cache_write": 11382
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23531,
+    "last_prompt": 27174,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_batch",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.290142,
+  "tokens": {
+   "input": 20,
+   "output": 4796,
+   "cache_read": 217268,
+   "cache_write": 18836
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t12-b",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.11611199999999999,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 38.0,
+    "tokens": {
+     "input": 8,
+     "output": 1808,
+     "cache_read": 82240,
+     "cache_write": 7934
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21606,
+    "last_prompt": 23601,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1740296,
+    "turns": 13,
+    "tools": 12,
+    "seconds": 39.6,
+    "tokens": {
+     "input": 12,
+     "output": 2988,
+     "cache_read": 135028,
+     "cache_write": 10902
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21531,
+    "last_prompt": 26694,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_batch",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.258205,
+  "jev_usd": 0.000255,
+  "jev_decisions": 8,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 16,
+   "output": 3614,
+   "cache_read": 174223,
+   "cache_write": 18877
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t12-a",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1172868,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 37.8,
+    "tokens": {
+     "input": 8,
+     "output": 1659,
+     "cache_read": 84174,
+     "cache_write": 8405
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22269,
+    "last_prompt": 24072,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.14091780000000004,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 40.9,
+    "tokens": {
+     "input": 8,
+     "output": 1955,
+     "cache_read": 90049,
+     "cache_write": 10472
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23564,
+    "last_prompt": 26264,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 1
+   }
+  ]
+ },
+ {
+  "scene": "h_loud",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.392074,
+  "jev_usd": 0.000192,
+  "jev_decisions": 6,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 20,
+   "output": 7455,
+   "cache_read": 230872,
+   "cache_write": 24590
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t13-a",
+  "given": 1,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1785128,
+    "turns": 9,
+    "tools": 8,
+    "seconds": 63.5,
+    "tokens": {
+     "input": 10,
+     "output": 3589,
+     "cache_read": 107984,
+     "cache_write": 10637
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22220,
+    "last_prompt": 26304,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.2135616,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 53.1,
+    "tokens": {
+     "input": 10,
+     "output": 3866,
+     "cache_read": 122888,
+     "cache_write": 13953
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23735,
+    "last_prompt": 29745,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_loud",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.367133,
+  "tokens": {
+   "input": 22,
+   "output": 7241,
+   "cache_read": 245646,
+   "cache_write": 21637
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t13-c",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.14778600000000003,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 47.2,
+    "tokens": {
+     "input": 10,
+     "output": 2807,
+     "cache_read": 104910,
+     "cache_write": 8828
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21598,
+    "last_prompt": 24495,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.21934720000000002,
+    "turns": 9,
+    "tools": 8,
+    "seconds": 65.1,
+    "tokens": {
+     "input": 12,
+     "output": 4434,
+     "cache_read": 140736,
+     "cache_write": 12809
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21564,
+    "last_prompt": 28601,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_spanish",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.354463,
+  "tokens": {
+   "input": 22,
+   "output": 6731,
+   "cache_read": 241496,
+   "cache_write": 21432
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t14-a",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1484624,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 50.4,
+    "tokens": {
+     "input": 10,
+     "output": 2898,
+     "cache_read": 104912,
+     "cache_write": 8685
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21594,
+    "last_prompt": 24352,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.2060008,
+    "turns": 11,
+    "tools": 10,
+    "seconds": 55.0,
+    "tokens": {
+     "input": 12,
+     "output": 3833,
+     "cache_read": 136584,
+     "cache_write": 12747
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21575,
+    "last_prompt": 28539,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_spanish",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.361799,
+  "jev_usd": 0.000221,
+  "jev_decisions": 7,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 24,
+   "output": 6144,
+   "cache_read": 279873,
+   "cache_write": 22856
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t14-c",
+  "given": 1,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.16084880000000001,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 45.2,
+    "tokens": {
+     "input": 10,
+     "output": 2771,
+     "cache_read": 108784,
+     "cache_write": 10454
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22226,
+    "last_prompt": 26121,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.2009498,
+    "turns": 11,
+    "tools": 10,
+    "seconds": 65.3,
+    "tokens": {
+     "input": 14,
+     "output": 3373,
+     "cache_read": 171089,
+     "cache_write": 12402
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23354,
+    "last_prompt": 28194,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_flag",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.279479,
+  "jev_usd": 0.000254,
+  "jev_decisions": 8,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 18,
+   "output": 4295,
+   "cache_read": 196215,
+   "cache_write": 19283
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t15-b",
+  "given": 1,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1325192,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 45.7,
+    "tokens": {
+     "input": 10,
+     "output": 2102,
+     "cache_read": 106676,
+     "cache_write": 8638
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22179,
+    "last_prompt": 24305,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.14695980000000003,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 42.9,
+    "tokens": {
+     "input": 8,
+     "output": 2193,
+     "cache_read": 89539,
+     "cache_write": 10645
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23375,
+    "last_prompt": 26437,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_flag",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.282933,
+  "tokens": {
+   "input": 18,
+   "output": 4910,
+   "cache_read": 191545,
+   "cache_write": 18294
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t15-c",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.11750739999999998,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 39.8,
+    "tokens": {
+     "input": 8,
+     "output": 1937,
+     "cache_read": 81877,
+     "cache_write": 7795
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21544,
+    "last_prompt": 23462,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1654256,
+    "turns": 13,
+    "tools": 12,
+    "seconds": 44.4,
+    "tokens": {
+     "input": 10,
+     "output": 2973,
+     "cache_read": 109668,
+     "cache_write": 10499
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21584,
+    "last_prompt": 26291,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_nomutate",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.302688,
+  "tokens": {
+   "input": 20,
+   "output": 5136,
+   "cache_read": 214159,
+   "cache_write": 19632
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t16-a",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1397076,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 44.8,
+    "tokens": {
+     "input": 10,
+     "output": 2299,
+     "cache_read": 105158,
+     "cache_write": 9082
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21597,
+    "last_prompt": 24749,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.16298020000000002,
+    "turns": 11,
+    "tools": 10,
+    "seconds": 38.3,
+    "tokens": {
+     "input": 10,
+     "output": 2837,
+     "cache_read": 109001,
+     "cache_write": 10550
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21570,
+    "last_prompt": 26342,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_nomutate",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.251732,
+  "jev_usd": 0.000252,
+  "jev_decisions": 8,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 16,
+   "output": 3575,
+   "cache_read": 172441,
+   "cache_write": 18210
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t16-c",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1222016,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 43.1,
+    "tokens": {
+     "input": 8,
+     "output": 1886,
+     "cache_read": 83928,
+     "cache_write": 8458
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22248,
+    "last_prompt": 24125,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1295306,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 44.3,
+    "tokens": {
+     "input": 8,
+     "output": 1689,
+     "cache_read": 88513,
+     "cache_write": 9752
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23253,
+    "last_prompt": 25544,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 1
+   }
+  ]
+ },
+ {
+  "scene": "h_dryrun",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.342069,
+  "jev_usd": 0.000216,
+  "jev_decisions": 7,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 20,
+   "output": 5794,
+   "cache_read": 227663,
+   "cache_write": 22572
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t17-b",
+  "given": 1,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1486054,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 53.1,
+    "tokens": {
+     "input": 10,
+     "output": 2390,
+     "cache_read": 108307,
+     "cache_write": 9888
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22249,
+    "last_prompt": 25555,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1934632,
+    "turns": 7,
+    "tools": 6,
+    "seconds": 53.3,
+    "tokens": {
+     "input": 10,
+     "output": 3404,
+     "cache_read": 119356,
+     "cache_write": 12684
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23795,
+    "last_prompt": 28476,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_dryrun",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.324862,
+  "tokens": {
+   "input": 20,
+   "output": 5977,
+   "cache_read": 215610,
+   "cache_write": 20265
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t17-a",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1332384,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 47.1,
+    "tokens": {
+     "input": 10,
+     "output": 2116,
+     "cache_read": 104992,
+     "cache_write": 8735
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21582,
+    "last_prompt": 24402,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.19162359999999998,
+    "turns": 10,
+    "tools": 9,
+    "seconds": 49.5,
+    "tokens": {
+     "input": 10,
+     "output": 3861,
+     "cache_read": 110618,
+     "cache_write": 11530
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21580,
+    "last_prompt": 27322,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_semicolon",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.270074,
+  "tokens": {
+   "input": 20,
+   "output": 4293,
+   "cache_read": 212991,
+   "cache_write": 17692
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t18-b",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1264548,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 42.4,
+    "tokens": {
+     "input": 10,
+     "output": 2052,
+     "cache_read": 104674,
+     "cache_write": 8055
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21575,
+    "last_prompt": 23722,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1436194,
+    "turns": 7,
+    "tools": 6,
+    "seconds": 50.5,
+    "tokens": {
+     "input": 10,
+     "output": 2241,
+     "cache_read": 108317,
+     "cache_write": 9637
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21530,
+    "last_prompt": 25429,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_semicolon",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.272266,
+  "jev_usd": 0.000219,
+  "jev_decisions": 7,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 20,
+   "output": 3797,
+   "cache_read": 220551,
+   "cache_write": 19017
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t18-a",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1420098,
+    "turns": 6,
+    "tools": 5,
+    "seconds": 60.0,
+    "tokens": {
+     "input": 12,
+     "output": 2213,
+     "cache_read": 131149,
+     "cache_write": 8934
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22223,
+    "last_prompt": 24601,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1302564,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 37.1,
+    "tokens": {
+     "input": 8,
+     "output": 1584,
+     "cache_read": 89402,
+     "cache_write": 10083
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23451,
+    "last_prompt": 25875,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_retry",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.285846,
+  "jev_usd": 0.000221,
+  "jev_decisions": 7,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 18,
+   "output": 4493,
+   "cache_read": 200332,
+   "cache_write": 19481
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t19-a",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1230088,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 51.4,
+    "tokens": {
+     "input": 8,
+     "output": 1915,
+     "cache_read": 84064,
+     "cache_write": 8483
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22240,
+    "last_prompt": 24150,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1628376,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 52.8,
+    "tokens": {
+     "input": 10,
+     "output": 2578,
+     "cache_read": 116268,
+     "cache_write": 10998
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23472,
+    "last_prompt": 26790,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 1
+   }
+  ]
+ },
+ {
+  "scene": "h_retry",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.303257,
+  "tokens": {
+   "input": 20,
+   "output": 5101,
+   "cache_read": 217703,
+   "cache_write": 19702
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t19-c",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.11705220000000001,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 40.1,
+    "tokens": {
+     "input": 8,
+     "output": 1888,
+     "cache_read": 82021,
+     "cache_write": 7857
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21604,
+    "last_prompt": 23524,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.18620440000000002,
+    "turns": 11,
+    "tools": 10,
+    "seconds": 46.0,
+    "tokens": {
+     "input": 12,
+     "output": 3213,
+     "cache_read": 135682,
+     "cache_write": 11845
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21546,
+    "last_prompt": 27637,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_merge",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.294327,
+  "tokens": {
+   "input": 24,
+   "output": 4668,
+   "cache_read": 264313,
+   "cache_write": 18501
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t20-a",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.11562020000000002,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 43.8,
+    "tokens": {
+     "input": 10,
+     "output": 1624,
+     "cache_read": 104181,
+     "cache_write": 7783
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21589,
+    "last_prompt": 23450,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1787064,
+    "turns": 13,
+    "tools": 12,
+    "seconds": 50.0,
+    "tokens": {
+     "input": 14,
+     "output": 3044,
+     "cache_read": 160132,
+     "cache_write": 10718
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21536,
+    "last_prompt": 26510,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_merge",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.289972,
+  "jev_usd": 0.00022,
+  "jev_decisions": 7,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 18,
+   "output": 4342,
+   "cache_read": 197938,
+   "cache_write": 20434
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t20-b",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.12944560000000002,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 47.8,
+    "tokens": {
+     "input": 10,
+     "output": 1952,
+     "cache_read": 107108,
+     "cache_write": 8618
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22249,
+    "last_prompt": 24285,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.160526,
+    "turns": 8,
+    "tools": 7,
+    "seconds": 47.1,
+    "tokens": {
+     "input": 8,
+     "output": 2390,
+     "cache_read": 90830,
+     "cache_write": 11816
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23196,
+    "last_prompt": 27608,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 1
+   }
+  ]
+ },
+ {
+  "scene": "h_weeks",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.249925,
+  "jev_usd": 0.000214,
+  "jev_decisions": 7,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 16,
+   "output": 3552,
+   "cache_read": 172143,
+   "cache_write": 18049
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t21-c",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1163192,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 40.9,
+    "tokens": {
+     "input": 8,
+     "output": 1664,
+     "cache_read": 83836,
+     "cache_write": 8280
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22190,
+    "last_prompt": 23947,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1336054,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 35.7,
+    "tokens": {
+     "input": 8,
+     "output": 1888,
+     "cache_read": 88307,
+     "cache_write": 9769
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23133,
+    "last_prompt": 25561,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 1
+   }
+  ]
+ },
+ {
+  "scene": "h_weeks",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.294365,
+  "tokens": {
+   "input": 22,
+   "output": 4749,
+   "cache_read": 238486,
+   "cache_write": 18950
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t21-b",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.12205039999999998,
+    "turns": 6,
+    "tools": 5,
+    "seconds": 44.1,
+    "tokens": {
+     "input": 10,
+     "output": 1717,
+     "cache_read": 104392,
+     "cache_write": 8349
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21548,
+    "last_prompt": 24016,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1723148,
+    "turns": 12,
+    "tools": 11,
+    "seconds": 50.8,
+    "tokens": {
+     "input": 12,
+     "output": 3032,
+     "cache_read": 134094,
+     "cache_write": 10601
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21547,
+    "last_prompt": 26393,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_judge",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": false,
+  "fact_pass": false,
+  "decision_pass": false,
+  "intact_pass": true,
+  "kept_all": false,
+  "cost": 0.244403,
+  "tokens": {
+   "input": 14,
+   "output": 3689,
+   "cache_read": 143717,
+   "cache_write": 17728
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t22-c",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1337792,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 44.4,
+    "tokens": {
+     "input": 8,
+     "output": 2481,
+     "cache_read": 82556,
+     "cache_write": 8452
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21610,
+    "last_prompt": 24119,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1106242,
+    "turns": 7,
+    "tools": 6,
+    "seconds": 23.6,
+    "tokens": {
+     "input": 6,
+     "output": 1208,
+     "cache_read": 61161,
+     "cache_write": 9276
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21572,
+    "last_prompt": 25068,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_judge",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": false,
+  "fact_pass": false,
+  "decision_pass": false,
+  "intact_pass": true,
+  "kept_all": false,
+  "cost": 0.25883,
+  "jev_usd": 0.000189,
+  "jev_decisions": 6,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 16,
+   "output": 3570,
+   "cache_read": 172391,
+   "cache_write": 19111
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t22-b",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1415336,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 57.5,
+    "tokens": {
+     "input": 10,
+     "output": 2360,
+     "cache_read": 107588,
+     "cache_write": 9097
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22243,
+    "last_prompt": 24764,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.11729660000000001,
+    "turns": 6,
+    "tools": 5,
+    "seconds": 21.3,
+    "tokens": {
+     "input": 6,
+     "output": 1210,
+     "cache_read": 64803,
+     "cache_write": 10014
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23555,
+    "last_prompt": 25806,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_pages",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.281624,
+  "jev_usd": 0.000223,
+  "jev_decisions": 7,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 18,
+   "output": 4252,
+   "cache_read": 197599,
+   "cache_write": 19624
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t23-c",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.13284479999999999,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 60.0,
+    "tokens": {
+     "input": 10,
+     "output": 2054,
+     "cache_read": 107504,
+     "cache_write": 8778
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22270,
+    "last_prompt": 24445,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.148779,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 46.8,
+    "tokens": {
+     "input": 8,
+     "output": 2198,
+     "cache_read": 90095,
+     "cache_write": 10846
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23518,
+    "last_prompt": 26638,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_pages",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 2,
+  "planned": [
+   "session 1: first",
+   "session 2: continue"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.292356,
+  "tokens": {
+   "input": 20,
+   "output": 4892,
+   "cache_read": 216858,
+   "cache_write": 18883
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "named",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t23-a",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.11359600000000002,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 34.3,
+    "tokens": {
+     "input": 8,
+     "output": 1725,
+     "cache_read": 82160,
+     "cache_write": 7829
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21610,
+    "last_prompt": 23496,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1787596,
+    "turns": 13,
+    "tools": 12,
+    "seconds": 41.8,
+    "tokens": {
+     "input": 12,
+     "output": 3167,
+     "cache_read": 134698,
+     "cache_write": 11054
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21538,
+    "last_prompt": 26846,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_batch",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.245521,
+  "jev_usd": 0.000166,
+  "jev_decisions": 5,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 14,
+   "output": 3402,
+   "cache_read": 148043,
+   "cache_write": 18477
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t24-c",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1240562,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 48.0,
+    "tokens": {
+     "input": 8,
+     "output": 1888,
+     "cache_read": 84321,
+     "cache_write": 8675
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22267,
+    "last_prompt": 24342,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1214644,
+    "turns": 3,
+    "tools": 2,
+    "seconds": 33.2,
+    "tokens": {
+     "input": 6,
+     "output": 1514,
+     "cache_read": 63722,
+     "cache_write": 9802
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23505,
+    "last_prompt": 25594,
+    "is_error": false,
+    "touched": [],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_batch",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.250844,
+  "tokens": {
+   "input": 18,
+   "output": 3713,
+   "cache_read": 191198,
+   "cache_write": 17284
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t24-a",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1118954,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 39.0,
+    "tokens": {
+     "input": 8,
+     "output": 1612,
+     "cache_read": 82717,
+     "cache_write": 7885
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21606,
+    "last_prompt": 23552,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.13894820000000002,
+    "turns": 6,
+    "tools": 5,
+    "seconds": 37.7,
+    "tokens": {
+     "input": 10,
+     "output": 2101,
+     "cache_read": 108481,
+     "cache_write": 9399
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21530,
+    "last_prompt": 25191,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 1
+   }
+  ]
+ },
+ {
+  "scene": "h_loud",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.362366,
+  "tokens": {
+   "input": 22,
+   "output": 7013,
+   "cache_read": 247370,
+   "cache_write": 21568
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t25-b",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.13983640000000003,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 45.5,
+    "tokens": {
+     "input": 8,
+     "output": 2700,
+     "cache_read": 82822,
+     "cache_write": 8655
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21597,
+    "last_prompt": 24322,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.22252960000000002,
+    "turns": 14,
+    "tools": 13,
+    "seconds": 63.1,
+    "tokens": {
+     "input": 14,
+     "output": 4313,
+     "cache_read": 164548,
+     "cache_write": 12913
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21564,
+    "last_prompt": 28705,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_loud",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.418774,
+  "jev_usd": 0.000167,
+  "jev_decisions": 5,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 26,
+   "output": 8085,
+   "cache_read": 315131,
+   "cache_write": 24243
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t25-a",
+  "given": 1,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1575644,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 55.3,
+    "tokens": {
+     "input": 10,
+     "output": 2991,
+     "cache_read": 107642,
+     "cache_write": 9522
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22218,
+    "last_prompt": 25189,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.2612098,
+    "turns": 12,
+    "tools": 11,
+    "seconds": 63.0,
+    "tokens": {
+     "input": 16,
+     "output": 5094,
+     "cache_read": 207489,
+     "cache_write": 14721
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23354,
+    "last_prompt": 30513,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_spanish",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.333855,
+  "jev_usd": 0.000196,
+  "jev_decisions": 6,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 22,
+   "output": 5233,
+   "cache_read": 254095,
+   "cache_write": 22286
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t26-b",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.15509520000000002,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 53.0,
+    "tokens": {
+     "input": 10,
+     "output": 2540,
+     "cache_read": 108716,
+     "cache_write": 10314
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22224,
+    "last_prompt": 25981,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.17875980000000002,
+    "turns": 10,
+    "tools": 9,
+    "seconds": 42.1,
+    "tokens": {
+     "input": 12,
+     "output": 2693,
+     "cache_read": 145379,
+     "cache_write": 11972
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23436,
+    "last_prompt": 27764,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 1
+   }
+  ]
+ },
+ {
+  "scene": "h_spanish",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.352154,
+  "tokens": {
+   "input": 24,
+   "output": 6229,
+   "cache_read": 266389,
+   "cache_write": 21775
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t26-c",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1638582,
+    "turns": 6,
+    "tools": 5,
+    "seconds": 54.8,
+    "tokens": {
+     "input": 12,
+     "output": 2972,
+     "cache_read": 129931,
+     "cache_write": 9798
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21594,
+    "last_prompt": 25465,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1882956,
+    "turns": 9,
+    "tools": 8,
+    "seconds": 51.1,
+    "tokens": {
+     "input": 12,
+     "output": 3257,
+     "cache_read": 136458,
+     "cache_write": 11977
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21566,
+    "last_prompt": 27769,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_flag",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.293171,
+  "tokens": {
+   "input": 18,
+   "output": 5013,
+   "cache_read": 194316,
+   "cache_write": 19247
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t27-b",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.11990179999999999,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 38.1,
+    "tokens": {
+     "input": 8,
+     "output": 2011,
+     "cache_read": 81969,
+     "cache_write": 7907
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21544,
+    "last_prompt": 23574,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1732694,
+    "turns": 11,
+    "tools": 10,
+    "seconds": 38.0,
+    "tokens": {
+     "input": 10,
+     "output": 3002,
+     "cache_read": 112347,
+     "cache_write": 11340
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21588,
+    "last_prompt": 27132,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_flag",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.28875,
+  "jev_usd": 0.000159,
+  "jev_decisions": 5,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 18,
+   "output": 4439,
+   "cache_read": 198772,
+   "cache_write": 20018
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t27-c",
+  "given": 1,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1199248,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 40.7,
+    "tokens": {
+     "input": 8,
+     "output": 1834,
+     "cache_read": 83544,
+     "cache_write": 8313
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22178,
+    "last_prompt": 23980,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1688256,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 45.7,
+    "tokens": {
+     "input": 10,
+     "output": 2605,
+     "cache_read": 115228,
+     "cache_write": 11705
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23309,
+    "last_prompt": 27497,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_nomutate",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.268642,
+  "jev_usd": 0.000196,
+  "jev_decisions": 6,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 16,
+   "output": 4049,
+   "cache_read": 173672,
+   "cache_write": 19108
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t28-a",
+  "given": 1,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.13254100000000002,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 40.4,
+    "tokens": {
+     "input": 8,
+     "output": 2229,
+     "cache_read": 84205,
+     "cache_write": 8886
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22249,
+    "last_prompt": 24553,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1361014,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 37.9,
+    "tokens": {
+     "input": 8,
+     "output": 1820,
+     "cache_read": 89467,
+     "cache_write": 10222
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23408,
+    "last_prompt": 26014,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_nomutate",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.288337,
+  "tokens": {
+   "input": 18,
+   "output": 5034,
+   "cache_read": 191683,
+   "cache_write": 18656
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t28-c",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.11701059999999999,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 39.4,
+    "tokens": {
+     "input": 8,
+     "output": 1883,
+     "cache_read": 81913,
+     "cache_write": 7867
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21598,
+    "last_prompt": 23534,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.17132599999999998,
+    "turns": 12,
+    "tools": 11,
+    "seconds": 39.0,
+    "tokens": {
+     "input": 10,
+     "output": 3151,
+     "cache_read": 109770,
+     "cache_write": 10789
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21567,
+    "last_prompt": 26581,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_dryrun",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.326088,
+  "tokens": {
+   "input": 22,
+   "output": 5765,
+   "cache_read": 241539,
+   "cache_write": 20299
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t29-c",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1367542,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 43.1,
+    "tokens": {
+     "input": 10,
+     "output": 2190,
+     "cache_read": 105411,
+     "cache_write": 8979
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21584,
+    "last_prompt": 24646,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1893336,
+    "turns": 10,
+    "tools": 9,
+    "seconds": 41.7,
+    "tokens": {
+     "input": 12,
+     "output": 3575,
+     "cache_read": 136128,
+     "cache_write": 11320
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21556,
+    "last_prompt": 27112,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_dryrun",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.330825,
+  "jev_usd": 0.000129,
+  "jev_decisions": 4,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 20,
+   "output": 5777,
+   "cache_read": 226304,
+   "cache_write": 21243
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t29-b",
+  "given": 1,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1444528,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 46.0,
+    "tokens": {
+     "input": 10,
+     "output": 2478,
+     "cache_read": 107624,
+     "cache_write": 9166
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22247,
+    "last_prompt": 24833,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.18637199999999998,
+    "turns": 7,
+    "tools": 6,
+    "seconds": 56.1,
+    "tokens": {
+     "input": 10,
+     "output": 3299,
+     "cache_read": 118680,
+     "cache_write": 12077
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23499,
+    "last_prompt": 27869,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_semicolon",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.285065,
+  "jev_usd": 0.000163,
+  "jev_decisions": 5,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 22,
+   "output": 3975,
+   "cache_read": 249703,
+   "cache_write": 19442
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t30-b",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1167944,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 49.0,
+    "tokens": {
+     "input": 8,
+     "output": 1672,
+     "cache_read": 83972,
+     "cache_write": 8316
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22222,
+    "last_prompt": 23983,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1682702,
+    "turns": 11,
+    "tools": 10,
+    "seconds": 46.6,
+    "tokens": {
+     "input": 14,
+     "output": 2303,
+     "cache_read": 165731,
+     "cache_write": 11126
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23294,
+    "last_prompt": 26918,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_semicolon",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": false,
+  "fact_pass": false,
+  "decision_pass": false,
+  "intact_pass": true,
+  "kept_all": false,
+  "cost": 0.215807,
+  "tokens": {
+   "input": 16,
+   "output": 2838,
+   "cache_read": 164715,
+   "cache_write": 15755
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t30-a",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1238286,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 44.6,
+    "tokens": {
+     "input": 10,
+     "output": 1948,
+     "cache_read": 104583,
+     "cache_write": 7989
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21575,
+    "last_prompt": 23656,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.09197839999999999,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 19.8,
+    "tokens": {
+     "input": 6,
+     "output": 890,
+     "cache_read": 60132,
+     "cache_write": 7766
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21532,
+    "last_prompt": 23558,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_retry",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.296456,
+  "tokens": {
+   "input": 20,
+   "output": 4661,
+   "cache_read": 220219,
+   "cache_write": 19889
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t31-a",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1116936,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 35.3,
+    "tokens": {
+     "input": 8,
+     "output": 1680,
+     "cache_read": 81908,
+     "cache_write": 7710
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21607,
+    "last_prompt": 23377,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1847622,
+    "turns": 9,
+    "tools": 8,
+    "seconds": 43.2,
+    "tokens": {
+     "input": 12,
+     "output": 2981,
+     "cache_read": 138311,
+     "cache_write": 12179
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21537,
+    "last_prompt": 27971,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_retry",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.271969,
+  "jev_usd": 0.000133,
+  "jev_decisions": 4,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 16,
+   "output": 4066,
+   "cache_read": 174527,
+   "cache_write": 19460
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t31-b",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.123072,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 47.1,
+    "tokens": {
+     "input": 8,
+     "output": 1893,
+     "cache_read": 84100,
+     "cache_write": 8545
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22239,
+    "last_prompt": 24212,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1488974,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 36.3,
+    "tokens": {
+     "input": 8,
+     "output": 2173,
+     "cache_read": 90427,
+     "cache_write": 10915
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23370,
+    "last_prompt": 26707,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_merge",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.284905,
+  "jev_usd": 0.000164,
+  "jev_decisions": 5,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 18,
+   "output": 4176,
+   "cache_read": 197645,
+   "cache_write": 20223
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t32-a",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1302772,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 45.0,
+    "tokens": {
+     "input": 10,
+     "output": 1999,
+     "cache_read": 107006,
+     "cache_write": 8607
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22247,
+    "last_prompt": 24274,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1546278,
+    "turns": 8,
+    "tools": 7,
+    "seconds": 37.5,
+    "tokens": {
+     "input": 8,
+     "output": 2177,
+     "cache_read": 90639,
+     "cache_write": 11616
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23245,
+    "last_prompt": 27408,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_merge",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.295284,
+  "tokens": {
+   "input": 22,
+   "output": 4864,
+   "cache_read": 241942,
+   "cache_write": 18691
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t32-b",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1111882,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 35.2,
+    "tokens": {
+     "input": 8,
+     "output": 1649,
+     "cache_read": 82081,
+     "cache_write": 7720
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21587,
+    "last_prompt": 23387,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1840962,
+    "turns": 13,
+    "tools": 12,
+    "seconds": 45.4,
+    "tokens": {
+     "input": 14,
+     "output": 3215,
+     "cache_read": 159861,
+     "cache_write": 10971
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21529,
+    "last_prompt": 26763,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_weeks",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.260252,
+  "tokens": {
+   "input": 18,
+   "output": 3948,
+   "cache_read": 190338,
+   "cache_write": 17894
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t33-a",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1191246,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 61.2,
+    "tokens": {
+     "input": 10,
+     "output": 1653,
+     "cache_read": 104443,
+     "cache_write": 8142
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21547,
+    "last_prompt": 23809,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.141127,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 37.2,
+    "tokens": {
+     "input": 8,
+     "output": 2295,
+     "cache_read": 85895,
+     "cache_write": 9752
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21537,
+    "last_prompt": 25544,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_weeks",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.303848,
+  "jev_usd": 0.000126,
+  "jev_decisions": 4,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 20,
+   "output": 4904,
+   "cache_read": 222758,
+   "cache_write": 20142
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t33-c",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.12449439999999999,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 41.5,
+    "tokens": {
+     "input": 10,
+     "output": 1783,
+     "cache_read": 106692,
+     "cache_write": 8432
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22191,
+    "last_prompt": 24099,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1793532,
+    "turns": 11,
+    "tools": 10,
+    "seconds": 42.6,
+    "tokens": {
+     "input": 10,
+     "output": 3121,
+     "cache_read": 116066,
+     "cache_write": 11710
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23117,
+    "last_prompt": 27502,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_judge",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.298264,
+  "jev_usd": 0.000164,
+  "jev_decisions": 5,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 16,
+   "output": 4991,
+   "cache_read": 175498,
+   "cache_write": 20410
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t34-b",
+  "given": 1,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.13479200000000002,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 46.6,
+    "tokens": {
+     "input": 8,
+     "output": 2316,
+     "cache_read": 84400,
+     "cache_write": 8945
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22244,
+    "last_prompt": 24612,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1634716,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 80.1,
+    "tokens": {
+     "input": 8,
+     "output": 2675,
+     "cache_read": 91098,
+     "cache_write": 11465
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23560,
+    "last_prompt": 27257,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_judge",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": false,
+  "fact_pass": false,
+  "decision_pass": false,
+  "intact_pass": true,
+  "kept_all": false,
+  "cost": 0.229646,
+  "tokens": {
+   "input": 14,
+   "output": 3464,
+   "cache_read": 142952,
+   "cache_write": 16465
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t34-c",
+  "given": 0,
+  "native_after_1": 3,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1278524,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 40.5,
+    "tokens": {
+     "input": 8,
+     "output": 2234,
+     "cache_read": 82542,
+     "cache_write": 8329
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21612,
+    "last_prompt": 23996,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.101794,
+    "turns": 5,
+    "tools": 4,
+    "seconds": 24.1,
+    "tokens": {
+     "input": 6,
+     "output": 1230,
+     "cache_read": 60410,
+     "cache_write": 8136
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21573,
+    "last_prompt": 23928,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 3
+   }
+  ]
+ },
+ {
+  "scene": "h_pages",
+  "model": "opus",
+  "arm": "N0",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.299217,
+  "tokens": {
+   "input": 20,
+   "output": 4719,
+   "cache_read": 221026,
+   "cache_write": 20069
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "folder": "t35-a",
+  "given": 0,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1191374,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 45.0,
+    "tokens": {
+     "input": 8,
+     "output": 1958,
+     "cache_read": 82327,
+     "cache_write": 7935
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21612,
+    "last_prompt": 23602,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1800798,
+    "turns": 10,
+    "tools": 9,
+    "seconds": 48.5,
+    "tokens": {
+     "input": 12,
+     "output": 2761,
+     "cache_read": 138699,
+     "cache_write": 12134
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 21531,
+    "last_prompt": 27926,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 19,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ },
+ {
+  "scene": "h_pages",
+  "model": "opus",
+  "arm": "S",
+  "repeat": 3,
+  "planned": [
+   "session 1: first",
+   "session 2: bare"
+  ],
+  "tests_pass": true,
+  "task_pass": true,
+  "fact_pass": true,
+  "decision_pass": true,
+  "intact_pass": true,
+  "kept_all": true,
+  "cost": 0.309031,
+  "jev_usd": 0.000168,
+  "jev_decisions": 5,
+  "jev_failed": 0,
+  "code_decisions": 0,
+  "tokens": {
+   "input": 18,
+   "output": 4787,
+   "cache_read": 202857,
+   "cache_write": 21581
+  },
+  "subagents": 0,
+  "crossed_midnight": false,
+  "limit_hit": false,
+  "hook_starts": 2,
+  "line": "bare",
+  "scope": "user",
+  "call_cap": 0.8,
+  "sendbacks_other_rule": 0,
+  "folder": "t35-c",
+  "given": 1,
+  "native_after_1": 2,
+  "sessions": [
+   {
+    "tag": "session-1",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.12688860000000002,
+    "turns": 4,
+    "tools": 3,
+    "seconds": 45.9,
+    "tokens": {
+     "input": 8,
+     "output": 2030,
+     "cache_read": 84523,
+     "cache_write": 8669
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 22269,
+    "last_prompt": 24336,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "auto",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   },
+   {
+    "tag": "session-2",
+    "returncode": 0,
+    "subtype": "success",
+    "timeout": false,
+    "cost": 0.1821428,
+    "turns": 10,
+    "tools": 9,
+    "seconds": 50.8,
+    "tokens": {
+     "input": 10,
+     "output": 2757,
+     "cache_read": 118334,
+     "cache_write": 12912
+    },
+    "subagents": 0,
+    "limit_hit": false,
+    "first_prompt": 23547,
+    "last_prompt": 28704,
+    "is_error": false,
+    "touched": [
+     "claude-config"
+    ],
+    "init": {
+     "model": "claude-opus-5-5",
+     "version": "2.1.287",
+     "permission_mode": "default",
+     "api_key_source": "none",
+     "mcp_servers": 0,
+     "plugins": 3,
+     "skills": 20,
+     "agents": 5
+    },
+    "native": 2
+   }
+  ]
+ }
+]

@@ -1,0 +1,197 @@
+{
+ "model": "opus",
+ "pairs": 36,
+ "verdict": "not determined",
+ "scoreboard": "no gana",
+ "criteria": {
+  "o1_cost": false,
+  "o2_not_worse": true,
+  "o3_tests": true,
+  "o3_sendbacks": true
+ },
+ "cost_bound": 1.05,
+ "cost_ratio": {
+  "pairs": 36,
+  "median": 0.998809,
+  "ci95": [
+   0.9654,
+   1.0555
+  ],
+  "ci95_raw": [
+   0.9654061852318447,
+   1.0554890046480232
+  ],
+  "draws": 10000,
+  "seed": 20261017
+ },
+ "S_vs_N0": {
+  "a": "S",
+  "b": "N0",
+  "triples": 36,
+  "a_only": 3,
+  "b_only": 0,
+  "difference": 0.0833,
+  "tango_lower_95_raw": 0.0076076065500491116,
+  "tango_lower_95": 0.0076,
+  "p_a_better": 0.125,
+  "p_b_better": 1.0
+ },
+ "false_sendbacks": 0,
+ "n0_fails": 5,
+ "count": {
+  "N0": {
+   "task": 31,
+   "fact": 31,
+   "decision": 31,
+   "intact": 36,
+   "tests": 36,
+   "kept_all": 31
+  },
+  "S": {
+   "task": 34,
+   "fact": 34,
+   "decision": 34,
+   "intact": 36,
+   "tests": 36,
+   "kept_all": 34
+  }
+ },
+ "strata": {
+  "named": {
+   "pairs": 24,
+   "S_vs_N0": {
+    "a": "S",
+    "b": "N0",
+    "triples": 24,
+    "a_only": 1,
+    "b_only": 0,
+    "difference": 0.0417,
+    "tango_lower_95_raw": -0.06386477238432162,
+    "tango_lower_95": -0.0639,
+    "p_a_better": 0.5,
+    "p_b_better": 1.0
+   },
+   "better": false,
+   "kept_all": {
+    "N0": 21,
+    "S": 22
+   },
+   "cost_ratio": {
+    "pairs": 24,
+    "median": 0.998809,
+    "ci95": [
+     0.962,
+     1.0573
+    ],
+    "ci95_raw": [
+     0.9619664144773857,
+     1.0573460055529185
+    ],
+    "draws": 10000,
+    "seed": 20261017
+   }
+  },
+  "bare": {
+   "pairs": 12,
+   "S_vs_N0": {
+    "a": "S",
+    "b": "N0",
+    "triples": 12,
+    "a_only": 2,
+    "b_only": 0,
+    "difference": 0.1667,
+    "tango_lower_95_raw": -0.047978060538723125,
+    "tango_lower_95": -0.048,
+    "p_a_better": 0.25,
+    "p_b_better": 1.0
+   },
+   "better": false,
+   "kept_all": {
+    "N0": 10,
+    "S": 12
+   },
+   "cost_ratio": {
+    "pairs": 12,
+    "median": 1.000192,
+    "ci95": [
+     0.957,
+     1.1621
+    ],
+    "ci95_raw": [
+     0.9569998491485756,
+     1.1620626937475795
+    ],
+    "draws": 10000,
+    "seed": 20261017
+   }
+  }
+ },
+ "session_1_ratio": {
+  "pairs": 36,
+  "median": 1.088362,
+  "ci95": [
+   1.0563,
+   1.1196
+  ],
+  "ci95_raw": [
+   1.0562951631467261,
+   1.1195759910465473
+  ],
+  "draws": 10000,
+  "seed": 20261017
+ },
+ "not_run": [],
+ "not_run_reasons": {},
+ "cost_median_usd": {
+  "N0": 0.293749,
+  "S": 0.289249
+ },
+ "tokens_median": {
+  "N0": {
+   "input": 20.0,
+   "output": 4878.0,
+   "cache_read": 217063.0,
+   "cache_write": 18859.5
+  },
+  "S": {
+   "input": 18.0,
+   "output": 4467.5,
+   "cache_read": 198567.0,
+   "cache_write": 20027.5
+  }
+ },
+ "session_2_seconds_median": {
+  "N0": 40.95,
+  "S": 44.9
+ },
+ "given_in_S": 36,
+ "hook_starts_below_2": 0,
+ "native_after_1": {
+  "N0": 36,
+  "S": 36
+ },
+ "jev": {
+  "jev_decisions": 227,
+  "jev_failed": 0
+ },
+ "jev_usd": 0.007231,
+ "subagents": {
+  "N0": 0,
+  "S": 0
+ },
+ "crossed_midnight": 0,
+ "touched": {
+  "S session-1": {
+   "claude-config": 36
+  },
+  "S session-2": {
+   "claude-config": 34
+  },
+  "N0 session-1": {
+   "claude-config": 36
+  },
+  "N0 session-2": {
+   "claude-config": 36
+  }
+ }
+}

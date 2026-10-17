@@ -25,7 +25,9 @@ cost than doing nothing. Web, code and the Jev part of long code are not wins.
 - On Sonnet 5.5, GAIA, BrowseComp-Plus and LongBench v2 are "no gana". Cost S/N was 1.074,
   1.17 and 0.785, and no interval lies below 1 with success held.
 - On SWE-bench Verified with Haiku 4.5, success held but no saving was shown.
-- Memory has no room on Opus 5.5.
+- Memory shows no gain on Opus 5.5: no room in two tests; as it ships, the same cost as clean
+  Claude Code, 0.999x [0.965, 1.055], keeping the plan in 34 of 36 pairs against 31 (p 0.125)
+  (`docs/results/2026-10-16-memory-w17/`).
 - The layer added decisions on top of what the model already did. Jev changed what the model saw
   in at most 1.7 % of them, and the rest was prefix and latency.
 - The one thing that moved results was Claude Code's compaction window, a setting:
