@@ -204,7 +204,7 @@ def test_an_arm_that_did_not_do_step_2_gets_one_nudge_and_its_own_cost(
     push = got["nudge"]
     assert push["cost_reported_total"] == pytest.approx(OWN_2 + OWN_NUDGE)
     assert push["cost"] == pytest.approx(OWN_NUDGE)
-    assert push["cost_source"] == handoff.handoff_cost.RUNNING
+    assert push["cost_source"] == handoff.handoff_cost.RUNNING_S2  # session 2 subtracted
     assert push["same_session"] and push["context_carried"] and push["resumed"] == "sid-1"
     assert got["cost"] == pytest.approx(OWN_2 + OWN_2 + OWN_NUDGE)  # never the running total
     assert got["tokens"]["output"] == 60 and len(got["sessions"]) == 2

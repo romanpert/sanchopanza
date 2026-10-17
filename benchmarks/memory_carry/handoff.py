@@ -487,7 +487,8 @@ def nudge_step(work: Path, rec: Path, repo: Path, second: dict[str, Any], model:
     kept = True
     since = carry_s.hook_rows(work)
     push = handoff_step(rec, repo, second, model, config, handoff_nudge.NUDGE,
-                        handoff_nudge.TAG, cap, SESSION_TIMEOUT)  # fmt: skip
+                        handoff_nudge.TAG, cap, SESSION_TIMEOUT,
+                        handoff_cost.RUNNING_S2)  # fmt: skip
     if not push.get("cost_reported"):
         push = {**push, "cost": charge_of(model, cap), "cost_charged": True}
     if push.get("limit_hit"):
@@ -547,12 +548,13 @@ def charged(result: dict[str, Any], model: str, cap: float | None) -> dict[str, 
 
 def handoff_step(rec: Path, repo: Path, first: dict[str, Any], model: str,
                  config: Path | None, prompt: str = HANDOFF_REQUEST, tag: str = "handoff",
-                 cap: float | None = None,
-                 timeout: int = HANDOFF_TIMEOUT) -> dict[str, Any]:  # fmt: skip
+                 cap: float | None = None, timeout: int = HANDOFF_TIMEOUT,
+                 running: str = handoff_cost.RUNNING) -> dict[str, Any]:  # fmt: skip
     """H's ritual: session 1 resumed once with HANDOFF_REQUEST; its text kept in handoff.txt.
     The nudge reuses it: `first` is then session 2, `prompt` the nudge, `tag` its stream's name,
-    `cap` the run's call cap (F2's CALL_CAPS when None). The turn's own cost, never the session's
-    running total (`handoff_cost.turn_own`)."""
+    `cap` the run's call cap (F2's CALL_CAPS when None), `running` the label of the running
+    reading (`handoff_cost.RUNNING_S2`). The turn's own cost, never the session's running total
+    (`handoff_cost.turn_own`)."""
     sid = (first.get("init") or {}).get("session_id")
     if not sid:
         return {"returncode": None, "subtype": "", "text": "", "tag": tag,
@@ -562,7 +564,7 @@ def handoff_step(rec: Path, repo: Path, first: dict[str, Any], model: str,
     turn = hc.call(rec, repo, cmd, tag, config, timeout)
     total = float(turn.get("cost") or 0.0)
     own, source = handoff_cost.turn_own(total, float(first.get("cost") or 0.0),
-                                        turn.get("tokens"), model)  # fmt: skip
+                                        turn.get("tokens"), model, running)  # fmt: skip
     turn = {**turn, "resumed": str(sid), "context_carried": carried(first, turn),
             "same_session": (turn.get("init") or {}).get("session_id") == sid,
             "cost": own, "cost_reported_total": total, "cost_source": source}  # fmt: skip
