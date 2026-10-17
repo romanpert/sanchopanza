@@ -91,16 +91,17 @@ a project idle for 30 days lost its standing rules, and load counted those files
 
 **C10. Private names and local paths in public files.** Two names of other private projects and
 some local paths remain in tracked benchmark code, tests and planning documents. **In part**:
-every free file is clean. The launchers, tests, history notes and scripts that wrote a home
-folder now use `%USERPROFILE%`, `~`, a path relative to the launcher or the main checkout found
-by git's common directory, with the same behaviour on the machine the runs used.
-`tests/test_no_private_names.py` refuses, in every tracked file (`.gz` fixtures decompressed), a
-private name (kept as digests only) and any home folder whose user is not a stand-in (`someone`,
-`x`...). Left for the owner, on the test's explicit lists: 10 sealed files (preregs, sealed
-launchers and one module in a lot's manifest) that write a home folder, 2 sealed files with a
-guarded word (a module's docstring; a third party's repository name in a recorded selection), and
-53 recorded run outputs (browse sessions and reports, one status file) that keep the temp
-folders the runs used.
+every free file is clean, and the module docstring that named another project now says "an agent
+with its own harness". The launchers take Python from the main checkout found by git's common
+directory (the long and F2 ones accept SANCHOPANZA_PY first) and refuse with exit 2 when it is
+missing; tests, history notes and scripts use `%USERPROFILE%`, `~` or paths relative to the
+repository. `tests/test_no_private_names.py` refuses, in every tracked file (`.gz` fixtures
+decompressed), a private name (kept as digests only) and any home folder in any spelling whose
+user is not a stand-in (`someone`, `x`...); its allow-lists cannot go stale. Left for the owner,
+on those explicit lists: 10 sealed files (preregs, sealed launchers and one module in a lot's
+manifest) that write a home folder, 1 sealed recorded selection where a guarded word is a third
+party's repository name, and 54 recorded run outputs (browse sessions and reports, one status
+file, one launcher kept as it ran) that keep the folders the runs used.
 
 **B1. A published release.** `v0.3.0` is tagged on `10f2cbe` with a
 [GitHub release](https://github.com/romanpert/sanchopanza/releases/tag/v0.3.0) (wheel, sdist and

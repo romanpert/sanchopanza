@@ -269,7 +269,8 @@ def is_test_file(path: str) -> bool:
 
 
 def from_audit(did: Iterable[Mapping[str, Any]]) -> list[Action]:
-    """jarvis-module's audit journal `did` list: {tool, target, ok, result, writes?}."""
+    """An agent with its own harness: its audit journal's `did` list, {tool, target, ok, result,
+    writes?}."""
     out = []
     for step in did:
         if not isinstance(step, Mapping):
