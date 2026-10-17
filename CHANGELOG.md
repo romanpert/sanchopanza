@@ -116,13 +116,24 @@
 
 ### Security
 
-- **Secrets are masked before the main hook's decisions leave the machine.** The squire of
-  `sanchopanza hook` (shell commands, searches, subagent reports), of the MCP server and of
-  `label` and `browse` sent its states to the provider without `redact.redact_secrets`, which
-  every other hook applies: a command carrying a token or a password reached Jev unmasked.
-  `squire_from_env` now redacts by default and every caller says so; a test fails on a squire
-  built in `src/` without a redactor. The recorded replays of the A3 and W17 MCP guard lots
-  change no state; the 2026-09-28 broad run is replayed raw, as it was measured.
+- **The main hook masks secret-shaped strings before a decision leaves the machine.** In
+  0.3.0 and 0.3.1, `sanchopanza hook` (the shell guard's commands, WebSearch queries, subagent
+  reports, content scans and the Stop check), the MCP server (`--tools decisions`, and the
+  squire behind `find_in_repo`, `label`, `browse` and `knowledge`), and the `label` and
+  `browse` commands sent their states to the decider without `redact.redact_secrets`, which
+  every other hook already applied. With Jev that is
+  api.typesafe.ai: **a credential typed into a shell command during a session with the hook
+  and Jev left the machine unmasked; rotate it.** All of these redact now, and so does
+  `ask_document` (`points.longdoc.answer`: question, document and options), new in this
+  version. What is masked is what `redact.PATTERNS` matches, not every secret: `sk-...`,
+  GitHub `gh?_...` and Slack `xox?-...` tokens, AWS `AKIA...` key ids, JWTs, `Bearer` tokens,
+  PEM private keys, upper-case `*TOKEN`/`*SECRET`/`*PASSWORD`/`*API_KEY`-style assignments, and
+  `password=`/`passwd:` values. A test fails on a squire built in `src/` without a redactor and
+  on a decider asked with no squire in between, outside a justified list.
+- **API:** `harness.claude_code.squire_from_env` and `points.longdoc.answer` redact by default;
+  `redact=False` sends states as written, for replays of recordings keyed raw (the 2026-09-28
+  broad run's one masked verdict, 4 of lot lb162's 162 documents). The A3 and W17 MCP guard
+  replays change no state.
 
 ### Fixed
 

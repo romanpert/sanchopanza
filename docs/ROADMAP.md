@@ -239,6 +239,16 @@ code on Sonnet 5.5 and Opus 5.5 (about 357 USD at list price, cap 465), Fable 5.
 the S2 confirmation (owner's decision after its dev), Ne against Ne+A (about 43 chains to see a
 −7 %, [`PLAN-GANAR-H2H.md`](PLAN-GANAR-H2H.md)).
 
+**S1. Truncating before redacting.** A state cut before `redact_secrets` runs can keep a
+token's prefix that no longer matches its pattern; mask the whole text first, as `mask_strict`.
+
+**S2. Narrow coverage in shell commands.** `mysql -p...`, `curl -u user:pass` and URLs with
+credentials pass `mask`; weigh `mask_strict` or new patterns, counting the keys each one moves.
+
+**S3. Patterns that cross lines or words.** The password and environment patterns cross line
+breaks ("reset your password:\n\n [Reset") and `sk-` matches inside words ("ask-the-imf"); a
+`mask` v2 needs the window lots and the other recordings keyed on `mask` keyed again.
+
 ## Closed
 
 **A6. Getting an agent to use `find_in_repo`: closed without spending.** The ceiling on what
