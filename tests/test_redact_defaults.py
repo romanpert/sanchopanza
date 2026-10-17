@@ -245,6 +245,8 @@ ALLOWED_RAW = {
 
 # A decider asked directly, not through a squire, outside a decider's own `decide` (a wrapper
 # passes on what a squire gave it): (file, enclosing function) -> how many.
+# A decider's own parameters: a call naming these is a decider's, whatever its receiver.
+DECIDE_ARGS = frozenset({"point", "state", "questions"})
 ALLOWED_DIRECT = {
     # `ask_document` and the library point: redacts the question, the document and the options
     # itself before the call (`redact=True` by default; the ask_document test above).
@@ -358,7 +360,10 @@ def _direct_calls() -> list[tuple[str, str, int]]:
             if not isinstance(func, ast.Attribute) or func.attr not in ("decide", "adecide"):
                 continue
             starred = any(isinstance(a, ast.Starred) for a in call.args)
-            if len(call.args) < 3 and not starred:
+            if (
+                len(call.args) + sum(k.arg in DECIDE_ARGS for k in call.keywords) < 3
+                and not starred
+            ):
                 continue
             receiver = func.value
             if isinstance(receiver, ast.Name) and receiver.id == "squire":

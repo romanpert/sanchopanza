@@ -132,7 +132,7 @@
   on a decider asked with no squire in between, outside a justified list.
 - **API:** `harness.claude_code.squire_from_env` and `points.longdoc.answer` redact by default;
   `redact=False` sends states as written, for replays of recordings keyed raw (the 2026-09-28
-  broad run's one masked verdict, 4 of lot lb162's 162 documents). The A3 and W17 MCP guard
+  broad run's one masked state, 4 of lot lb162's 162 documents). The A3 and W17 MCP guard
   replays change no state.
 
 ### Fixed
