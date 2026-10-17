@@ -28,7 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import long_guard  # noqa: E402
 
-RESUMES = ("limit", "harness", "ceiling")
+RESUMES = ("limit", "harness", "ceiling", "clock")  # clock: a day-only lot paused at 00:00-08:00
 NOT_RUN = "NOT RUN"
 DIED = "cut (runner died)"
 LIMITED = "error result (limit)"

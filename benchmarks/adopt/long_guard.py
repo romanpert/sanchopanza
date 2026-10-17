@@ -40,6 +40,10 @@ PREFIX_SAME = 50  # N against N-early: the same prefix, to this many tokens
 S_PREFIX_EXTRA = (200, 6_000)  # S over N: its skill listing, server schemas, hook texts (~1k)
 JEV_FIRST = 10
 CONNECTED = "connected"
+# A server Claude Code defers behind its tool search (no `alwaysLoad` in .mcp.json: find_in_repo in
+# the default install since 2026-10-16) does not hold the session's start, so its init may still
+# say it is starting. Never a failure; "failed" or absent still breaks.
+PENDING = "pending"
 
 
 @dataclass(frozen=True)
@@ -50,6 +54,7 @@ class Expect:
     model: str
     permission_mode: str
     mcp: tuple[str, ...] = ()  # servers that must be connected (S); none for N and N-early
+    deferred: tuple[str, ...] = ()  # of `mcp`, those without alwaysLoad: connected or pending
 
 
 # ---- stop files ----------------------------------------------------------------------------------
@@ -98,7 +103,8 @@ def init_breaks(init: Mapping[str, Any], expect: Expect) -> tuple[str, ...]:
             found.append(f"{key} {init.get(key)!r}, expected {wanted!r}")
     servers = dict(init.get("mcp") or {})
     for name in expect.mcp:
-        if servers.get(name) != CONNECTED:
+        allowed = (CONNECTED, PENDING) if name in expect.deferred else (CONNECTED,)
+        if servers.get(name) not in allowed:
             found.append(f"MCP server {name} {servers.get(name, 'absent')}")
     extra = sorted(set(servers) - set(expect.mcp))
     if extra:
@@ -126,6 +132,9 @@ def prefix_breaks(prefix: Mapping[str, int]) -> tuple[str, ...]:
     if early is not None and low_early is not None and abs(early - low_early) > PREFIX_SAME:
         out.append(f"N-early-low's prefix {low_early} differs from N-early's {early} by more "
                    f"than {PREFIX_SAME}")  # fmt: skip
+    pointers, full = prefix.get("P"), prefix.get("F")  # the guard lot: one install, two choosers
+    if pointers is not None and full is not None and abs(pointers - full) > PREFIX_SAME:
+        out.append(f"P's prefix {pointers} differs from F's {full} by more than {PREFIX_SAME}")
     low, high = S_PREFIX_EXTRA
     if n is not None and s is not None and not low <= s - n <= high:
         out.append(f"S's prefix {s} is not N's {n} plus {low}-{high}")
