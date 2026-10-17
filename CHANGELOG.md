@@ -114,6 +114,16 @@
   - The `sanchopanza-code` skill says what to do with a plain "let's continue" line and with a
     blocked MCP result or a stop sent back as unfinished.
 
+### Security
+
+- **Secrets are masked before the main hook's decisions leave the machine.** The squire of
+  `sanchopanza hook` (shell commands, searches, subagent reports), of the MCP server and of
+  `label` and `browse` sent its states to the provider without `redact.redact_secrets`, which
+  every other hook applies: a command carrying a token or a password reached Jev unmasked.
+  `squire_from_env` now redacts by default and every caller says so; a test fails on a squire
+  built in `src/` without a redactor. The recorded replays of the A3 and W17 MCP guard lots
+  change no state; the 2026-09-28 broad run is replayed raw, as it was measured.
+
 ### Fixed
 
 - **Records that outlive the process survive the machine going down** (`sanchopanza.durable`;

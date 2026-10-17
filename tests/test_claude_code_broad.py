@@ -151,8 +151,14 @@ def _replay(inputs: list[dict], tmp: pathlib.Path) -> list[str]:
         for call in inputs:
             output = {}
             if claude_code.needs_decision(call, config):
-                # A fresh squire per input, as a fresh process per hook event has.
-                output = await claude_code.handle(call, claude_code.guardian_from_env(env))
+                # A fresh squire per input, as a fresh process per hook event has. Raw states:
+                # the hook measured on 2026-09-28 sent them unredacted, and the recordings are
+                # keyed by them (the redactor masks "reset your password:\n\n [Reset" in
+                # ad-workspace-16-01-direct). The hook redacts since 0.3.2.
+                guardian = claude_code.Guardian(
+                    claude_code.squire_from_env(env, redact=False), config
+                )
+                output = await claude_code.handle(call, guardian)
             text = json.dumps(output) if output else ""
             kinds.append(hook_replay.kind_of(call["hook_event_name"], text))
         return kinds

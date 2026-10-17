@@ -426,7 +426,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.free:
         from ..harness.claude_code import squire_from_env
 
-        squire = squire_from_env()
+        squire = squire_from_env(redact=True)
     found = find(args.query, Path(args.root), squire=squire, k=args.k, kind=args.kind)
     sys.stdout.write(asyncio.run(found))
     sys.stdout.write("\n")
