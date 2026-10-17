@@ -266,7 +266,10 @@
   measured substitutions (the LongBench router, `points.longdoc`, and memory against the handoff
   ritual, F2) appear in the README's first table, its cost table and the head-to-head summary;
   "What is open" follows the roadmap (A6, A7 and A9 closed; the rest open, with C1 built and
-  C8 fixed in code, neither confirmed live).
+  not confirmed live, and C8 fixed in code and measured live as it ships: on Sonnet 5.5 "S'
+  better than N0; no gana (cost)" in [W17](docs/results/2026-10-16-memory-w17/README.md), and
+  "gana (éxito)" against Claude Code told once to go on at [equal
+  work](docs/results/2026-10-17-memory-equal-work/README.md)).
 
 ## 0.3.1 (2026-10-16)
 
@@ -321,8 +324,8 @@ they were.
   cut before their end) before any cut. **Measured, sealed, not confirmed**
   (`docs/results/2026-10-16-a3-mcp`, jev-1.13.0, ATBench-Codex): 185 of 250 unsafe trajectories
   caught (74.0 %) against the 75.2 % floor and 0 for the hook as it ships; 82 of 250 safe ones
-  flagged (32.8 %), and 112 of the 589 MCP calls in safe trajectories denied (19.0 %). 42 µ$ and
-  203 ms (median) a call. Off by default.
+  flagged (32.8 %), and 112 of the 589 MCP calls in safe trajectories denied (19.0 %). 42 µ$ a call
+  on average (40 µ$ at the median) and 203 ms at the median. Off by default.
 - **`select_passages(fit_chars=, fit_score=)`**, opt-in (merge `d07ee43`). When what the two
   stages keep is longer than `fit_chars`, the delivered paragraphs are ordered and taken while
   they fit: by best sentence probability, then tournament probability (`fit_score=False`), or

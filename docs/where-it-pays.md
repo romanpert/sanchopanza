@@ -368,8 +368,11 @@ before the rule was written, so a candidate and not a result. The gate derived f
 recordings, `unrelated` as the top option at 0.65, was then measured on 1,500 new pairs with
 jev-1.13.0 and beat the shipped policy under its sealed rule: 39 added verdicts, all right, none
 a missed conflict, Wilson lower bound 0.910 **[M]** (`docs/results/2026-10-16-a5-unrelated/`).
-That licenses a proposal to make 0.65 the default, not the change: the band was thinner than
-planned and the batch's `agree` and `conflict` cases are easy. Nothing in code changed.
+The band was thinner than planned and that batch's `agree` and `conflict` cases are easy, so it
+was confirmed on 1,500 written pairs of the only kinds the gate had got wrong (C4): 66 added
+verdicts, all right, none a missed conflict, no `unrelated` added to any of the 900 related
+pairs, Wilson lower bound 0.945 **[M]** (`docs/results/2026-10-16-c4-written/`). 0.65 is
+`decide_facts`' default since 0.3.2 (`unrelated_at=None` is the gate alone).
 
 **Score a bench at the threshold the policy applies.** A bench scored at a cut the policy
 never applies reports a policy that does not exist. `check_loop` acts only from 0.70: under
@@ -682,8 +685,10 @@ Each of these is specified enough that a disagreement becomes a measurement.
 10. **`relate_facts` on new cases.** On the fifth batch neither `unrelated` at a plain majority
     nor examples on `unrelated` beat the shipped question (25 right answers each). The `direction`
     question by roles did, and ships. `unrelated` at 0.65 beat the shipped policy on 1,500 new
-    pairs (39 of 39 added verdicts right): a proposal for the default, with harder `agree` and
-    `conflict` cases still to measure (`docs/results/2026-10-16-a5-unrelated/`).
+    pairs (39 of 39 added verdicts right, `docs/results/2026-10-16-a5-unrelated/`) and again on
+    1,500 harder written pairs of the kinds it had got wrong (66 of 66 right, Wilson lower bound
+    0.945, `docs/results/2026-10-16-c4-written/`): it is `decide_facts`' default since 0.3.2.
+    Not measured on jev-1.14.0.
 11. **Masking with an archive, where recall is the only path.** Measured and negative
     (`docs/results/2026-09-28-context-lean/`): with facts made early and needed late, the
     agent guessed from the stub's index or re-ran tools instead of searching the archive. What

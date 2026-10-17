@@ -99,7 +99,8 @@ The runs behind the README's headline numbers.
 |---|---|
 | [2026-10-15-lb162](2026-10-15-lb162/README.md), [2026-10-16-lb162x](2026-10-16-lb162x/README.md) | The long-document router (`points.longdoc`) on 162 fresh LongBench v2 tasks: no worse at −10 points against Sonnet 5.5 (+1.2 [−3.1, +5.6]) and Opus 5.5 (−3.7 [−8.0, +0.6]), saving 33.9 % [24.0, 44.0] and 29.5 % [21.7, 37.7] of their cost |
 | [2026-10-16-memory-f2](2026-10-16-memory-f2/README.md) | Memory instead of the handoff ritual on Sonnet 5.5: 48 of 48 against 44 of 48, at 0.92x [0.85, 0.95] the ritual's cost |
-| [2026-10-13-memory-cell](2026-10-13-memory-cell/README.md) | The one head-to-head "gana": a fact said in a parallel session broken in 0 of 24 pairs against 11, at 1.117x the cost |
+| [2026-10-13-memory-cell](2026-10-13-memory-cell/README.md) | The first of the two head-to-head "gana": a fact said in a parallel session broken in 0 of 24 pairs against 11, at 1.117x the cost |
+| [2026-10-17-memory-equal-work](2026-10-17-memory-equal-work/README.md) | The second head-to-head "gana", against Claude Code told once to go on: memory as it ships did the next step in 48 of 48 pairs against 3, at 1.005x [0.949, 1.063] the cost, not a saving |
 | [2026-09-21-public](2026-09-21-public/) | The public benches (core, safety, graph) replayed from their recording; paper Section 5.9 |
 | [2026-09-27-memory-write-cut](2026-09-27-memory-write-cut/) | The `memory_write` cut derived to a precision target, and the substitution against Opus 5: 131x cheaper, 10.9x faster, 2 decisions less accurate |
 | [2026-09-28-claude-code-broad](2026-09-28-claude-code-broad/) | The guard inside Claude Code: destructive commands stopped 16 of 16, 0 false alarms in 93 events |

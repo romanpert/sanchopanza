@@ -1,4 +1,4 @@
-# Roadmap: what is pending, by priority (2026-10-16)
+# Roadmap: what is pending, by priority (2026-10-17)
 
 What is still open in sanchopanza after the final scoreboard
 ([`docs/results/2026-10-13-final/`](results/2026-10-13-final/README.md)), and what the one known
@@ -25,7 +25,7 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 | C4 | A5's `unrelated_at=0.65` on written text with fa-17-type pairs | low-medium | Jev 0.035 USD | **done**: 66 added verdicts, all right (Wilson 0.945); 0.65 is the default since 0.3.2 |
 | C5 | `select_passages(fit_score=False)` against page order on fresh questions | low-medium | Jev 1.371 USD (C5b) | **done via C5b**: the free order confirmed over page order at 3,400 characters, +16.4 [+11.0, +21.9]; `fit_score=False` is the default since 0.3.2 |
 | C6 | Closing Spanish's 3-6 points in page triage and passages | low | Jev (~0.2 USD pages, ~2.5 USD documents per arm) | idea, from B6 |
-| C11 | The pointer guard's quality on long code: Sonnet 5.5 long60 chains, `pointers` against `--guard-full`, interleaved | medium | Claude (design A: 5 chains x 2 arms, non-inferiority at −5 points; about 185-200 USD expected at list price, 250 hard cap) | **sealed** (`510a5c6`, instrument `8341b6c`); Haiku smoke passed; to launch (08:05, ~11 h). Before launching: its row writer has no fsync (fixed on main in 0.3.2) — reseal with the fix or shadow-copy `row.json` |
+| C11 | The pointer guard's quality on long code: Sonnet 5.5 long60 chains, `pointers` against `--guard-full`, interleaved | medium | Claude (design A: 5 chains x 2 arms, non-inferiority at −5 points; about 185-200 USD expected at list price, 250 hard cap) | **running, no verdict yet**: resealed in `461f6bf` (instrument `9e8f05a`) with amendment 1, written before any data (rows, patches and run state written with fsync; the quiet hours lifted only while Windows Update is paused); launched 2026-10-17 at 09:46; four of five chains done; paused on the weekly usage-limit warnings and resumed by the owner's call; the fifth chain runs on 2026-10-18, under the rule that a chain does not cross midnight |
 | C3 | `redundant_page` under 1.14 with a cut bounded from below, on new cases | low | free (cases) + Jev (~0.03-0.05 USD) | open, from redundant-drop |
 | A4 | Cells not run by decision (code on Sonnet and Opus, Fable, S2, Ne against Ne+A) | low (owner's decision) | Claude: see below | memory F2 **run**; the rest not run by decision |
 | A3 | MCP tool calls pass the installed hook with no decision | medium | Jev 0.0805 USD | **done**: not confirmed; guard opt-in (`install --guard-mcp`) |
