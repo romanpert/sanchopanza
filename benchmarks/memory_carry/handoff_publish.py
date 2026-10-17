@@ -114,10 +114,22 @@ def spent(rows: list[dict[str, Any]], root: Path, run: str) -> float:
     return arms + sum(float(x["usd"]) for x in lines if x["kind"] == "preflight")
 
 
+def one_lot(names: list[str]) -> None:
+    """Refuses (SystemExit) a costs.json whose runs, kept or new, are not all runs of one lot
+    (`handoff.lot_of`): a results folder never mixes F2 and W17."""
+    unknown = sorted({k for k in names if k not in handoff.RUNS})
+    if unknown:
+        raise SystemExit(f"costs.json: {', '.join(unknown)} not a run ({', '.join(handoff.RUNS)})")
+    lots = sorted({handoff.lot_of(k) for k in names})
+    if len(lots) > 1:
+        raise SystemExit(f"costs.json would mix the lots {', '.join(lots)}: {', '.join(names)}")
+
+
 def merged_costs(old: dict[str, Any], new: dict[str, Any]) -> dict[str, Any]:
     """costs.json after publishing `new`: the runs already there are kept (a lot's runs may live
     in different lot folders, as W17's Sonnet run and its Opus redo), each run published now
-    replaces its entry, and the lot's total is recomputed over all of them."""
+    replaces its entry, and the lot's total is recomputed over all of them (`one_lot` first)."""
+    one_lot([k for k in (*old, *new) if k != "lot"])
     runs = {k: v for k, v in old.items() if k != "lot"}
     runs = {**runs, **{k: v for k, v in new.items() if k != "lot"}}
     total = round(sum(v["spent_usd"] for v in runs.values()), 4)
@@ -128,6 +140,9 @@ def main(argv: list[str]) -> int:
     root, dest = Path(argv[0]), Path(argv[1])
     runs = runs_of(argv[2:])
     dest.mkdir(parents=True, exist_ok=True)
+    old_costs = dest / "costs.json"
+    old = json.loads(old_costs.read_text(encoding="utf-8")) if old_costs.exists() else {}
+    one_lot([k for k in (*old, *runs) if k != "lot"])  # before anything is written to `dest`
     report: dict[str, Any] = {}
     for run in runs:
         rows = handoff.rows_of(root / run)
@@ -145,8 +160,6 @@ def main(argv: list[str]) -> int:
             report[run]["costs"] = costs(rows, handoff.RUNS[run]["model"])
         report[run]["spent_usd"] = round(spent(rows, root, run), 6)
         (dest / f"{run}-table.json").write_text(full + "\n", encoding="utf-8", newline="\n")
-    old_costs = dest / "costs.json"
-    old = json.loads(old_costs.read_text(encoding="utf-8")) if old_costs.exists() else {}
     report = merged_costs(old, report)
     (dest / "costs.json").write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8",
                                      newline="\n")  # fmt: skip
