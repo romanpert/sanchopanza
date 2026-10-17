@@ -160,10 +160,12 @@ def test_a_dry_run_s_exit_reaches_the_status_and_the_launcher_s_exit(
     stub.write_text(f"import sys\nprint('stub', sys.argv[1:])\nsys.exit({code})\n",
                     encoding="utf-8")  # fmt: skip
     text = (ROOT / name).read_text(encoding="ascii").replace(DRY[name], str(root))
+    # memlot's `set PY=` is filled here; f2's takes SANCHOPANZA_PY before git's common directory
     text = re.sub(r"(?m)^set PY=.*$", lambda _: f"set PY={sys.executable}", text)
     assert str(root) in text and DRY[name] not in text
     (work / name).write_text(text, encoding="ascii", newline="")
     env = {k: v for k, v in os.environ.items() if k != "SANCHOPANZA_KEYS_ENV"}
+    env["SANCHOPANZA_PY"] = sys.executable
     got = subprocess.run(["cmd.exe", "/c", str(work / name), "dry"], cwd=work, env=env,
                          capture_output=True, text=True, timeout=60)  # fmt: skip
     assert got.returncode == code

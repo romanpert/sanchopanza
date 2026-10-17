@@ -63,7 +63,7 @@ modelled peaks (Sonnet 385k, Opus 292k) a Sonnet arm starts no call past ~30.4 o
 ## The S seal (owner, 2026-10-06)
 
 S is main **cb0062e** (gate A, jev-402, real costs, guard-struct, guard-split), frozen at
-`C:\Users\roman\.cache\sanchopanza\adopt\frozen\cb0062e36340-jev-mcp\` (`freeze.py cb0062e`,
+`~\.cache\sanchopanza\adopt\frozen\cb0062e36340-jev-mcp\` (`freeze.py cb0062e`,
 done). `S_ENV` sets no guard chooser: the install's default, struct over 6 SessionStart(compact)
 parts (GUARD_STRUCT_CHARS 44000, GUARD_INLINE_CHARS 9500), checked by a test that installs the
 sealed copy. The launcher refuses any other seal. The smoke dry run used the frozen copy:
@@ -122,8 +122,8 @@ long-run.status.json runner-<model>.log grade.log report.json windows.json cfg/ 
 **Smoke: ready.** From this worktree, by WMI, outside any session:
 
     Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
-      CommandLine = "cmd.exe /c C:\Users\roman\Desktop\proyectos\apps\sanchopanza-long-launch\long-smoke-run.cmd cb0062e"
-      CurrentDirectory = "C:\Users\roman\Desktop\proyectos\apps\sanchopanza-long-launch" }
+      CommandLine = "cmd.exe /c <worktree>\long-smoke-run.cmd cb0062e"
+      CurrentDirectory = "<worktree>" }
 
 Before it: tell session a1 the PID, time and cap (8 USD hard); C:\sp-runs\LIMIT.flag absent;
 TypeSafe topped up (the launcher's preflight is one real decision, ~13 micro-USD, and stops the
@@ -188,8 +188,8 @@ Compare (free, k=1, descriptive): `python benchmarks/adopt/pilot_a_compare.py`.
 Before launching: `python benchmarks/adopt/freeze.py edd37bb` (free), then by WMI:
 
     Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
-      CommandLine = "cmd.exe /c C:\Users\roman\Desktop\proyectos\apps\sanchopanza-pilot-a\long-pilot-a-run.cmd edd37bb A"
-      CurrentDirectory = "C:\Users\roman\Desktop\proyectos\apps\sanchopanza-pilot-a" }
+      CommandLine = "cmd.exe /c <worktree>\long-pilot-a-run.cmd edd37bb A"
+      CurrentDirectory = "<worktree>" }
 ## Gate (headroom), live (2026-10-07, session 6c)
 
 Root `C:\sp-runs\L`, arm N only, clean user, Claude Code 2.1.287. Spent **168.57 USD** (list,

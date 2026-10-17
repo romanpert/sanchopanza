@@ -26,7 +26,10 @@ rem `dry` with any of the three unset is refused: it would fall back to the real
 setlocal
 set WT=%~dp0
 set WT=%WT:~0,-1%
-set PY=C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts\python.exe
+rem PY: SANCHOPANZA_PY, else the .venv of the main checkout (the folder above git's common
+rem directory, which this worktree shares; the only checkout with a .venv). Checked below.
+set "PY=%SANCHOPANZA_PY%"
+if not defined PY for /f "delims=" %%G in ('git -C "%~dp0." rev-parse --path-format^=absolute --git-common-dir 2^>nul') do set "PY=%%~dpG.venv\Scripts\python.exe"
 set PIN=%USERPROFILE%\.cache\sanchopanza\claude-pin\2.1.287
 set ROOT=C:\sp-runs\L-compact
 set PROFILE=compact
@@ -64,6 +67,10 @@ set DISABLE_AUTOUPDATER=1
 set ADOPT_PYTHON=%PY%
 if not exist "%ROOT%" mkdir "%ROOT%"
 set STATUS=%ROOT%\launch.status
+if not exist "%PY%" (
+  echo refused %DATE% %TIME%: no python, neither SANCHOPANZA_PY nor the main checkout's .venv >> "%STATUS%"
+  exit /b 2
+)
 echo start %DATE% %TIME% %PROFILE% %DRY% >> "%STATUS%"
 where claude >> "%STATUS%" 2>&1
 call claude --version >> "%STATUS%" 2>&1

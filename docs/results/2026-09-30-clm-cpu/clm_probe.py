@@ -3,8 +3,10 @@ import asyncio
 import os
 import sys
 import time
+from pathlib import Path
 
-sys.path.insert(0, r"C:\Users\roman\Desktop\proyectos\apps\sanchopanza\src")
+# this file: docs/results/<lot>/clm_probe.py, three folders under the repository
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 os.environ["SANCHOPANZA_CLM_URL"] = "http://127.0.0.1:18392"
 os.environ["SANCHOPANZA_CLM_MODEL"] = "clm-latest"
 
