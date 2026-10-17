@@ -49,8 +49,9 @@ developers who build them. You do not need to write code to use it with Claude C
 
 **Head to head, it won two measured rows, both memory on Sonnet 5.5, now on by default: a fact
 said in a parallel session, and continuing a feature against Claude Code told once to go on (a
-win on success within the sealed cost bound, not a saving); a third memory test on Sonnet 5.5 (F2) met its
-own sealed positive verdict.** Web, code and long code did not win. Outside the scoreboard, an opt-in router for long-document questions saved about
+win on success within the sealed cost bound, not a saving); F2 met its own sealed positive
+verdict, and W17, the same features as it ships with no nudge, found it better at 1.19x the cost,
+not a "gana".** Web, code and long code did not win. Outside the scoreboard, an opt-in router for long-document questions saved about
 30 % of the frontier model's cost, no worse at the −10-point margin fixed beforehand. Claude Code with sanchopanza against clean Claude
 Code, per model and per axis ([final scoreboard](docs/results/2026-10-13-final/)):
 
@@ -85,10 +86,12 @@ Code, per model and per axis ([final scoreboard](docs/results/2026-10-13-final/)
 - Memory on Sonnet 5.5 as it ships (the default user-scope install), continuing the same
   features at equal work: each arm was resumed once with "Yes, go ahead." when its new session
   left the next step undone (clean Claude Code 2.1.287, 48 pairs, pre-registered): **gana
-  (éxito)**. The install did the step in 48 of 48 pairs, clean Claude Code in 3 (45 to 0, McNemar
-  p 2.8e-14), at 1.005x the cost [0.949, 1.063], within the sealed 1.10. It is not a saving:
-  clean Claude Code was nudged in 45 pairs, did the step after the nudge in none, and the extra
-  round brought its cost up to the install's; without it the install cost 1.25x [1.18, 1.30].
+  (éxito), against Claude Code told once to go on**. The install did the step in 48 of 48 pairs,
+  clean Claude Code in 3 (45 to 0, McNemar p 2.8e-14), at 1.005x the cost [0.949, 1.063], within
+  the sealed 1.10. It is not a saving: clean Claude Code was nudged in 45 pairs and after the
+  nudge did the step as the first session specified it (its name, signature and constraints) in
+  none, in 30 writing a step of its own; the extra round brought its cost up to the install's,
+  and without it the install cost 1.25x [1.18, 1.30].
   The person modelled answers blind; one who repeats the task was not measured
   ([equal work](docs/results/2026-10-17-memory-equal-work/README.md)).
 - Long-document multiple choice, with `points.longdoc` (opt-in, not in `install`): Jev 1.14

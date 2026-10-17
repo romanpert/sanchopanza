@@ -1,6 +1,7 @@
 # Equal work: the default install at user scope against clean Claude Code told once to go on, Sonnet 5.5 (2026-10-17)
 
-**Verdict, by the sealed rule: "gana (éxito)"** (Sonnet 5.5, clean Claude Code 2.1.287).
+**Verdict, by the sealed rule: "gana (éxito)", against Claude Code told once to go on** (N0⁺;
+Sonnet 5.5, clean Claude Code 2.1.287).
 - Claude Code with the default sanchopanza install at user scope (S') continued a two-step
   feature correctly in 48 of 48 pairs. Clean Claude Code told once "Yes, go ahead." when its
   session 2 left step 2 undone (N0⁺) did so in 3 of 48 (45 to 0, one-sided exact McNemar
@@ -9,10 +10,12 @@
   No harm.
 
 **What the "gana" rests on.** N0 left step 2 undone after session 2 in 45 of 48 pairs and was
-nudged in those 45. **The nudge finished step 2 in 0 of the 45.** It cost N0 a median 0.0232 USD
-(1.10 USD over the 45), and that extra round, which did not help, brought N0's cost per pair up to
-S's. S' did not get cheaper: it costs what N0 costs when a person tells it to go on, and does the
-work N0 then still does not do. On the same rows without the nudge (W17's reading, a sealed
+nudged in those 45. **After the nudge, N0 did step 2 as session 1 specified it (its name,
+signature and constraints) in 0 of the 45.** In 30 it wrote a step 2 of its own, under its own
+names or signature; the checks ask for session 1's. The nudge cost N0 a median 0.0232 USD (1.10
+USD over the 45), and that extra round brought N0's cost per pair up to S's. S' did not get
+cheaper: it costs what N0 costs when a person tells it to go on, and it does step 2 as specified
+where N0 then still does not. On the same rows without the nudge (W17's reading, a sealed
 secondary) S' costs 1.247x N0 [1.178, 1.295]: "no gana (cost)", as in W17.
 
 **Which person this models.** The nudge is a person who answers whatever session 2 said with the
@@ -52,11 +55,13 @@ session 2 (`scenes_handoff.py`).
 | S' (`S` in the rows) | N0 plus `sanchopanza install --scope user --memory --write` into the arm's own `CLAUDE_CONFIG_DIR`, as it ships: memory on, Jev deciding (`jev-1.13.0`), the `sanchopanza-code` skill, no MCP server, 7 decoy rules in the store; W17's arm | the pair's line | the same rule |
 
 **The nudge (rule R3).** After session 2 the scene's checks ran on a copy of the repository. If
-and only if `task` failed (step 2 not in the repository), session 2 was resumed once,
-`claude -p --resume <session 2 id> "Yes, go ahead."`, on the tree exactly as session 2 left it,
-under the same 0.25 USD call cap. The checks after it decide. Everything arbitrary in the rule
-favours N0: the person knows exactly when step 2 is missing, costs nothing, and S' controls
-neither the trigger nor the text.
+and only if `task` failed (step 2 as session 1 specified it not in the repository), session 2
+was resumed once, `claude -p --resume <session 2 id> "Yes, go ahead."`, on the tree exactly as
+session 2 left it, under the same 0.25 USD call cap. The checks after it decide. On success,
+everything arbitrary in the rule favours N0: the person knows exactly when step 2 is missing,
+costs nothing, and S' controls neither the trigger nor the text. On cost it does not: the blind
+text made N0 pay a round that did step 2 as specified in 0 of 45 (see "What the gana rests
+on").
 
 **Session 2's line, two strata, as W17:** named ("Let's continue with the shipping labels."),
 repetitions 1-2; bare ("Let's continue."), repetitions 3-4. 24 pairs each.
@@ -94,13 +99,13 @@ S' − N0⁺ on kept all: +93.8 points, one-sided 95 % Tango lower bound +83.4.
 **By scene,** S' kept all in 4 of 4 pairs in every scene; N0⁺ in 1 of 4 in `h_nomutate`,
 `h_weeks` and `h_pages`, and in none elsewhere: S' ahead in 12 of 12 scenes.
 
-**Every N0⁺ miss was step 2 not done**, as in F2 and W17. Wherever a session built step 2, in
-either arm, it kept C and followed D.
+**Every N0⁺ miss was step 2 not done as session 1 specified it**, as in F2 and W17. Wherever a
+session built step 2 as specified, in either arm, it kept C and followed D.
 
 **N0's 3 successes came in session 2, with no nudge,** in the three pairs where Claude Code's own
 auto memory saved after session 1 (`native_after_1`), and in none of the other 45 (`h_nomutate`
 and `h_pages` repetition 1, named; `h_weeks` repetition 4, bare). This is W17's pattern again (9
-of 9 there). S' saved Claude Code's auto memory after 1 session 1 of 48.
+of 9 there). S' saved Claude Code's auto memory after 1 of its 48 sessions 1.
 
 **Strata** (sealed secondaries, not deciding):
 
@@ -119,24 +124,24 @@ On the named line, that S' costs less than N0⁺ is not shown (the interval reac
 - **The cache was warm:** a nudge's first request read a median 23,213 cached tokens against
   session 2's last request's 22,406, and wrote a median 375; no nudge wrote session 2's context
   again.
-- **Its cost:** median 0.0232 USD (named 0.0270, bare 0.0213), from 0.0088 to 0.0549, 1.10 USD
-  over the 45; a median 20.5 s of wall time.
+- **Its cost:** median 0.0232 USD, from 0.0088 to 0.0549, 1.10 USD over the 45; a median 20.5 s
+  of wall time. By stratum (descriptive): named 0.0270, bare 0.0213.
 - **What N0 did** (read from the 45 nudges' streams, post hoc and descriptive; the streams are not
   published):
-  - 30 wrote code, but not step 2 as session 1 specified it: a function under another name or
-    signature, or changes to step 1's code. In `h_batch`, where session 1 asked for
+  - 30 wrote a step 2 of their own, not step 2 as session 1 specified it (its name, signature
+    and constraints): a function under another name or signature, or changes to step 1's code. In `h_batch`, where session 1 asked for
     `ship_all(orders, carrier)`, the nudge answered: "I added `ship_labels(orders, carrier)` to
     `app/labels.py`, and all 6 tests pass".
   - 11 only cleaned the repository (a `.gitignore`, untracking the committed `__pycache__`):
     "I added a `.gitignore` for `__pycache__/`, `*.pyc` and `.pytest_cache/`."
   - 3 asked again: "\"Go ahead\" could mean a few things, and I don't want to guess. Which do you
     want?"
-  - 1 only added tests.
+  - 1 added only tests (and the cleanup).
 - **What N0's session 2 said without memory** (the same streams): mostly a guess at the next step
   and a question, often beside an offer to clean up the committed bytecode. "There's no saved
   memory or notes about where you were headed." "That's a guess from the code, though, and I
   don't know what you had in mind. What should I work on?" A blind "go ahead" then picked one of
-  the options it had offered, or asked again; none of them was step 2 with its C and D.
+  the options it had offered, or asked again; none of them was step 2 as session 1 specified it.
 
 ## What S' gave
 
@@ -172,9 +177,10 @@ pairs in (scene, repetition) order).
   0.0611 USD; N0's session 2 and nudge together 0.0659 USD per pair.
 - **Where a median near 1.00 comes from** (descriptive, post hoc, not part of the verdict): in
   the 45 pairs where N0 was nudged the ratio's median is 1.011; in the 3 where it was not,
-  1.073, 0.822 and 0.890. S' pays for building step 2 in session 2; N0⁺ pays about as much for a session 2
-  that asks and a nudge that does something else.
-- **The install's overhead shows in session 1 on this lot:** on the same work in both arms S'
+  1.073, 0.822 and 0.890. S' pays for building step 2 in session 2; N0⁺ pays about as much for a
+  session 2 that asks and a nudge that does not do step 2 as specified.
+- **The install's overhead shows in session 1 on this lot** (reported, not deciding; against W17
+  descriptive): on the same work in both arms S'
   cost 1.077x N0 [1.040, 1.152]. On W17's Sonnet lot it was not shown (1.052 [0.961, 1.079]).
 - **The secondary W17 reading** of these rows (no nudge): "S' better than N0; no gana (cost)",
   scoreboard "no gana".
@@ -239,7 +245,8 @@ W17 and after 3 here, and N0 kept all exactly there both times.
   step 2 done with more success than clean Claude Code told to go on once, at no more than 1.10x
   its cost.
 - **It is not a saving.** S' costs what N0⁺ costs; it is not "S' is cheaper than Claude Code".
-  The parity comes from N0's extra round, which did step 2 in 0 of 45 pairs. Without that round
+  The median near 1.00 comes from N0's extra round, which did step 2 as session 1 specified it
+  (its name, signature and constraints) in 0 of 45 pairs. Without that round
   S' costs 1.25x [1.18, 1.30] (W17's reading of the same rows).
 - **The person here answers blind.** A person who answers with the task itself would close part
   of N0's gap by hand, at the cost of their own time; that is not measured here. The nearest

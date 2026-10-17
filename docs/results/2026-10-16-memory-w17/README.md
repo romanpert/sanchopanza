@@ -259,7 +259,7 @@ measured cost difference between the installs.
   auto memory after every Opus session 1, in both arms, and alone kept the plan in 31 of 36.
   Not a "gana".
 - **Next:** a "gana" on Sonnet needs a cost rule that compares equal work, sealed before its data,
-  or scenes where N0 also builds.
+  or scenes where N0 also builds. Measured since: `docs/results/2026-10-17-memory-equal-work`.
 - **On Opus (post hoc, after the data):** the install's own overhead shows in session 1 (1.09x
   [1.06, 1.12] on the same work), so a cheaper first session is the candidate lever. "gana
   (coste)" asks for the cost ratio's upper bound below 1.00, not the median: with this lot's
@@ -272,7 +272,8 @@ measured cost difference between the installs.
   pass without knowing C or D (`h_loud`, `h_nomutate`, `h_batch`, `h_merge`). No session lost C or
   D, so the scenes did not test that.
 - **Headless, one prompt per session.** A session 2 that asks a question counts as not done; in
-  real use the person answers, and N0 would recover part of its misses.
+  real use the person answers, and N0 would recover part of its misses. Measured since, for a
+  person who answers "Yes, go ahead.": `docs/results/2026-10-17-memory-equal-work`.
 - **Repetitions are correlated:** by scene the evidence is 12 scenes (Sonnet: S' ahead in 11,
   tied in 1; Opus: S' ahead in 2, tied in 10), not 48 or 36 independent trials.
 - **Sonnet 5.5 and Opus 5.5 only, clean Claude Code 2.1.287 only.** Later releases may change
