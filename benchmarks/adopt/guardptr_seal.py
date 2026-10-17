@@ -58,6 +58,8 @@ ENTRIES = (
     "tests/test_adopt_long_pointers.py",
     "tests/test_adopt_long_pointers_launch.py",
     "tests/test_adopt_guardptr_seal.py",
+    "tests/test_winupdate.py",
+    "tests/test_durable.py",
     "tests/fixtures/long_fake/fake_claude.py",
     "tests/fixtures/long_fake/dry_runner.py",
 )  # fmt: skip

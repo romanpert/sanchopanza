@@ -148,5 +148,12 @@ def test_no_chain_starts_between_midnight_and_eight(monkeypatch) -> None:
     paused = lambda: "Windows Update paused until 2026-10-24 01:10 UTC"  # noqa: E731
     assert long_start.quiet_refusal(p, False, dt.datetime(2026, 10, 17, 5, 0), paused) == ""
     assert dt.timedelta(hours=16) <= long_start.winupdate.MARGIN  # the lot's slowest wall
+    # The log notes a lift only where the hours would have held.
+    night, day = dt.datetime(2026, 10, 17, 5, 0), dt.datetime(2026, 10, 17, 14, 0)
+    assert "paused until" in long_start.quiet_lift_note(p, False, night, paused)
+    assert long_start.quiet_lift_note(p, False, day, paused) == ""
+    assert long_start.quiet_lift_note(p, False, night, held) == ""
+    assert long_start.quiet_lift_note(p, True, night, paused) == ""
+    assert long_start.quiet_lift_note(long_run.PROFILES["compact"], False, night, paused) == ""
     for name in [n for n in sys.modules if n.startswith(("long_", "run", "docker_env"))]:
         sys.modules.pop(name, None)

@@ -410,41 +410,75 @@ Segunda pasada, sobre 89dcfce: un bloqueo y tres "debe", más "conviene":
 ## 17. Enmienda 1 (2026-10-17, antes de cualquier dato de la tanda)
 
 Escrita y sellada antes de que corra ninguna llamada de la tanda (el humo de la sección 12 corrió
-con el sello anterior, `510a5c6`; la tanda no ha corrido nunca). Sustituye al sello de `510a5c6`
-(instrumento `8341b6c`): el sello nuevo es hijo único del commit que añade esta sección. Cambia
-tres cosas; los brazos, cadenas, medidas, regla, potencia y topes (secciones 2-9) no cambian.
+con el sello anterior, `510a5c6`; la tanda no ha corrido nunca: `C:\sp-runs\L-guardptr` no
+existe). Sustituye al sello de `510a5c6` (instrumento `8341b6c`): el sello nuevo es hijo único del
+commit de instrumento que lleva esta sección y la 18. Cambia tres cosas; los brazos, cadenas,
+medidas, regla, potencia y topes (secciones 2-9) no cambian.
 
 1. **Escrituras que sobreviven a un apagado sucio.** El 16 a las 22:37 la máquina se cayó (evento
    41) con otra tanda en marcha y su fichero de filas quedó a ceros: se escribía con un temporal y
    `os.replace` sin `fsync`. Este instrumento tenía el mismo patrón en `arm_files.write_row`
    (`row.json`, del que la tanda se reanuda y se cobra). Entra el arreglo de main (`88f5400`,
-   aquí `b42c1d9`): `sanchopanza.durable` (fsync antes del rename, fsync por línea añadida) en
-   `arm_files.write_row` y los demás escritores de estado de `benchmarks/`. Además, aquí,
-   `diff-<k>.patch` y `final.patch` (el runner se reanuda desde `diff-<k>.patch` y la nota sale
-   de ellos) pasan por `durable.replace_text`, con test (`tests/test_durable.py`). Los bytes
-   escritos son los mismos. **Lo instalado en P y en F** (todo `src/`, sellado) cambia solo en
-   cómo escriben `SpendLedger`, el cortacircuitos de fondos y el almacén de episodios de memoria:
-   con fsync, mismos bytes; la tanda es sin clave de Jev (`keyless`), así que los dos primeros no
-   se usan, y el tercero escribe lo mismo. Ningún prompt, hook ni salida del modelo cambia.
-2. **Horas quietas levantadas con Windows Update en pausa.** La regla de la sección 10 (ninguna
-   cadena empieza ni ninguna llamada se hace entre 00:00 y 08:00, `quiet_refusal`) existe solo
-   porque Windows Update reinicia la máquina de 02:00 a 08:00. Ahora se levanta mientras las
-   actualizaciones estén **pausadas al menos 24 h más allá de cada comprobación**
-   (`benchmarks/memory_carry/winupdate.py`: el final más temprano entre `PauseUpdatesExpiryTime`
-   y `PauseQualityUpdatesEndTime` de `HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings`; sin
-   pausa, o con un valor ilegible, la regla sigue). Se comprueba en los mismos sitios que antes:
-   antes de cada cadena y antes de cada llamada. Si la pausa se acaba a media tanda, la regla
-   vuelve sola. El runner anota en `runner-sonnet.log` cada levantamiento ("quiet hours lifted",
-   con la fecha de fin), y se publica como desviación del horario. **No cambian** la regla de
-   medianoche (una cadena no empieza si cruzaría las 00:00) ni la del reinicio pendiente
-   (`RebootRequired`, `RebootPending`, antes de cada cadena). Las secciones 11 y 15.7
-   ("lanzamiento a las 08:05") quedan así: se lanza cuando la pausa está puesta y comprobada, a
-   cualquier hora que deje acabar la primera cadena antes de medianoche. Con la pausa puesta por
-   el dueño la noche del 16 al 17 y el lanzamiento hacia las 03:00, las cinco cadenas (~11 h,
-   8-16) acaban hacia las 14:00 (como muy tarde ~19:00). La vigilancia hasta el final de la
-   última cadena (sección 10) sigue, a cargo de la sesión coordinadora.
-3. **Humo otra vez** (sección 12), con el sello nuevo, la copia congelada nueva y el mismo
-   lanzador, antes de la tanda: tope duro 8 USD (esperado 2-5). Lo que se lee a mano es lo de la
-   sección 12, más que el log anota el levantamiento de las horas si corre entre 00:00 y 08:00.
+   aquí `b42c1d9`, idéntico): `sanchopanza.durable` (fsync antes del rename, fsync por línea
+   añadida) en `arm_files.write_row` y los demás escritores de estado de `benchmarks/`. Además,
+   aquí pasan por `durable.replace_text`: `diff-<k>.patch` y `final.patch` (el runner se reanuda
+   desde `diff-<k>.patch` y la nota sale de ellos), `long-run.status.json` y `launch.json` (los
+   lee `busy()` al relanzar). Test: `tests/test_durable.py`. Los bytes escritos son los mismos.
+   **Lo instalado en P y en F** (todo `src/`, sellado) cambia solo en cómo escriben
+   `SpendLedger`, el cortacircuitos de fondos y `episodes.write_private` (memoria y el estado de
+   los hooks de fetch, crawl y sources): con fsync, mismos bytes. La tanda es sin clave de Jev
+   (`keyless`), así que los dos primeros no se usan. El guard escribe con `hookio.write_private`,
+   que no cambia: el tratamiento es el mismo. Ningún prompt, hook ni salida del modelo cambia.
+   Siguen sin fsync, y tras un evento 41 se miran a mano (bytes NUL) antes de reanudar:
+   `hooks.jsonl`, `guard.jsonl`, `journal.jsonl` y el archivo `guard-*.txt` de P.
+2. **Horas quietas levantadas con Windows Update en pausa (condicional).** La regla de la sección
+   10 (ninguna cadena empieza ni ninguna llamada se hace entre 00:00 y 08:00, `quiet_refusal`)
+   existe solo porque Windows Update reinicia la máquina de 02:00 a 08:00. Se levanta **solo si**
+   las actualizaciones están pausadas al menos 24 h más allá de cada comprobación
+   (`benchmarks/memory_carry/winupdate.py`): el final más temprano entre
+   `PauseUpdatesExpiryTime` y `PauseQualityUpdatesEndTime` de
+   `HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings`, y además `PausedQualityStatus = 1` en
+   `...\UpdatePolicy\Settings`. Sin pausa, con un valor ilegible o sin la bandera, la regla
+   sigue. Se comprueba donde antes: antes de cada cadena y antes de cada llamada; si la pausa se
+   acaba a media tanda, la regla vuelve sola. El runner anota en `runner-sonnet.log` cada cadena
+   o llamada que pasa entre 00:00 y 08:00 gracias a la pausa ("quiet hours lifted", "call in the
+   quiet hours", con la fecha de fin; `long_start.quiet_lift_note`), y se publica como
+   desviación del horario. **No cambian** la regla de medianoche al empezar cada cadena ni la del
+   reinicio pendiente (antes de cada cadena). Con la pausa, un brazo empezado antes de las 00:00
+   que la cruce sigue en vez de pausarse con `clock` (la fecha del prompt cambia a media
+   corrida): se declara si pasa. A las 08:21 del 17 la pausa **no** estaba puesta
+   (`quiet_lifted()` vacío), así que la tanda se lanza de día por las reglas de la sección 10, y
+   esta parte solo actúa si se pone la pausa y la tanda llega a la noche. Antes de apoyarse en
+   ella de noche, se comprueba en vivo que `quiet_lifted()` no sale vacío con la pausa puesta.
+3. **Humo otra vez** (sección 12), con el sello nuevo, la copia congelada nueva y una copia nueva
+   del lanzador seguido rellenada (`PY`, `SANCHOPANZA_KEYS_ENV`, `WT` al worktree nuevo), antes
+   de la tanda: tope duro 8 USD (esperado 2-5). Antes, la raíz del humo del 16
+   (`C:\sp-runs\L-guardptr-smoke`, HEAD 510a5c6, 1,77 USD) se renombra a
+   `C:\sp-runs\L-guardptr-smoke-510a5c6` (no se borra), porque el runner salta los brazos
+   acabados. Se lee a mano lo de la sección 12, más que `launch.status` lleva el HEAD nuevo y que
+   corrieron las 5 llamadas. **Gasto del lote**: 1,77 ya gastados + 8 + 250 = **259,77 USD como
+   mucho** (antes 258); el dueño autorizó el 17 de madrugada los gastos de estos puntos.
 
-Revisión independiente del delta (`revisor-prereg`) antes de sellar: sección 18.
+## 18. Revisión independiente de la enmienda 1 (antes del sello)
+
+`revisor-prereg`, sobre `3beac36` (delta desde `510a5c6`): ningún bloqueo; cinco "debe", todos
+hechos antes del sello:
+
+1. El humo nuevo no habría corrido nada (raíz con brazos acabados): se renombra la raíz (17.3).
+2. El sobre de gasto pasaba de 258 a 259,77 USD: dicho en la 17.3.
+3. La pausa no estaba puesta: la 17.2 la escribe como condición, con comprobación en vivo antes
+   de apoyarse en ella.
+4. El log anotaba un levantamiento en cada cadena aunque fuera de día, y ninguno por llamada:
+   `quiet_lift_note` anota solo entre 00:00 y 08:00, en la cadena y en la llamada, con test.
+5. Procedimiento del resello: la copia del lanzador se rehace desde el fichero seguido (cambió un
+   comentario); el commit de instrumento quita `prereg.sha256` y `prereg.manifest.json` (el
+   `seal` se niega con el valor viejo dentro; el original, `8341b6c`, tampoco los tenía); el sello
+   es hijo único del commit que lleva las secciones 17 y 18.
+
+"Conviene" hechos: la bandera `PausedQualityStatus`; fsync en `launch.json` y
+`long-run.status.json`; `tests/test_winupdate.py` y `tests/test_durable.py` sellados
+(`guardptr_seal.ENTRIES`); la 17.1 precisa qué escribe con fsync y qué no; el cruce de medianoche
+con la pausa, declarado. No hecho: un reinicio pendiente antes de cada llamada (hoy antes de cada
+cadena); con las horas activas 8-2, Windows no reinicia de día, y de noche solo se corre con la
+pausa. El worktree del sello viejo (`..\sanchopanza-run-gptr`) no se usa; la copia nueva del
+lanzador vive solo en las raíces nuevas.

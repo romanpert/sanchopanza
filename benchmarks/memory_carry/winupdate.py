@@ -13,28 +13,36 @@ from collections.abc import Callable, Mapping
 UX = r"SOFTWARE\Microsoft\WindowsUpdate\UX\Settings"
 # Settings writes both on "Pause updates"; quality updates are the ones that restart overnight.
 ENDS = ("PauseUpdatesExpiryTime", "PauseQualityUpdatesEndTime")
+# And the update agent's own flag (1 while quality updates are paused): stale UX values left
+# after "Resume updates", or a policy, do not count as a pause.
+POLICY, PAUSED = r"SOFTWARE\Microsoft\WindowsUpdate\UpdatePolicy\Settings", "PausedQualityStatus"
 MARGIN = dt.timedelta(hours=24)  # longer than any lot's remaining wall (guard: 8-16 h; W17: ~4 h)
 
 
-def _read_ux() -> dict[str, str]:
-    """The `ENDS` values present under HKLM\\`UX` ({} when none, or off Windows)."""
+def _values(path: str, names: tuple[str, ...]) -> dict[str, str]:
+    """The `names` present under HKLM\\`path` ({} when none, or off Windows)."""
     try:
         import winreg
     except ImportError:
         return {}
     found: dict[str, str] = {}
     try:
-        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, UX)
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path)
     except OSError:
         return {}
     with key:
-        for name in ENDS:
+        for name in names:
             try:
                 value, _ = winreg.QueryValueEx(key, name)
             except OSError:
                 continue
             found[name] = str(value)
     return found
+
+
+def _read_ux() -> dict[str, str]:
+    """The `ENDS` values under `UX` and the `PAUSED` flag under `POLICY`, as found."""
+    return {**_values(UX, ENDS), **_values(POLICY, (PAUSED,))}
 
 
 def _parse(text: str) -> dt.datetime | None:
@@ -48,9 +56,9 @@ def _parse(text: str) -> dt.datetime | None:
 def paused_until(values: Mapping[str, str]) -> dt.datetime | None:
     """The earliest end among the pause values (None when there is none, or one is unreadable:
     a pause half written by Settings is no pause)."""
-    if not values:
+    ends = [_parse(v) for k, v in values.items() if k in ENDS]
+    if not ends:
         return None
-    ends = [_parse(v) for v in values.values()]
     if any(e is None for e in ends):
         return None
     return min(e for e in ends if e is not None)
@@ -58,8 +66,10 @@ def paused_until(values: Mapping[str, str]) -> dt.datetime | None:
 
 def quiet_lifted(now: dt.datetime | None = None,
                  read: Callable[[], Mapping[str, str]] = _read_ux) -> str:  # fmt: skip
-    """Why the quiet hours are lifted ("" when they hold): updates paused past now + MARGIN."""
-    until = paused_until(read())
+    """Why the quiet hours are lifted ("" when they hold): updates paused past now + MARGIN,
+    with the update agent's flag on."""
+    values = read()
+    until = paused_until(values) if values.get(PAUSED) == "1" else None
     now = (now or dt.datetime.now()).astimezone(dt.UTC)
     if until is None or until < now + MARGIN:
         return ""

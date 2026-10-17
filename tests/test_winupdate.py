@@ -19,11 +19,19 @@ NOW = dt.datetime(2026, 10, 17, 3, 0, tzinfo=dt.UTC)
 
 
 def _reader(**values: str):
-    return lambda: values
+    """The registry as Settings leaves it while paused: the agent's flag on, plus `values`."""
+    return lambda: {"PausedQualityStatus": "1", **values}
 
 
 def test_no_pause_keeps_the_quiet_hours() -> None:
     assert wu.quiet_lifted(NOW, _reader()) == ""
+    assert wu.quiet_lifted(NOW, lambda: {}) == ""
+
+
+def test_stale_end_times_without_the_agents_flag_keep_them() -> None:
+    read = _reader(PauseUpdatesExpiryTime="2026-10-24T01:10:00Z", PausedQualityStatus="0")
+    assert wu.quiet_lifted(NOW, read) == ""
+    assert wu.quiet_lifted(NOW, lambda: {"PauseUpdatesExpiryTime": "2026-10-24T01:10:00Z"}) == ""
 
 
 def test_a_week_long_pause_lifts_them() -> None:
@@ -57,4 +65,5 @@ def test_a_naive_time_is_read_as_utc_and_now_may_be_local() -> None:
 
 
 def test_the_real_reader_returns_a_mapping() -> None:
-    assert isinstance(wu._read_ux(), dict)
+    found = wu._read_ux()
+    assert isinstance(found, dict) and set(found) <= {*wu.ENDS, wu.PAUSED}

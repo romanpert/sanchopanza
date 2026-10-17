@@ -63,6 +63,7 @@ import long_pointers  # noqa: E402
 import long_run  # noqa: E402
 import meter  # noqa: E402
 import run  # noqa: E402
+from sanchopanza import durable  # noqa: E402  (src/: long_run)
 
 ROOTS = {"smoke": Path(r"C:\sp-runs\L-smoke"), "gate": Path(r"C:\sp-runs\L"),
          "pilot-a": long_pilot.ROOTS["A"],  # A10: long_pilot.ROOTS["A10"] (`root_for`)
@@ -118,7 +119,7 @@ def note_pids(root: Path, **pids: Any) -> dict[str, Any]:
         history = [*history, mine]
     else:
         history = [*history[:-1], {**history[-1], **{k: v for k, v in pids.items()}}]
-    path.write_text(json.dumps(history, indent=1), encoding="utf-8", newline="\n")
+    durable.replace_text(path, json.dumps(history, indent=1), newline="\n")
     return history[-1]
 
 

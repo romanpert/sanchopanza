@@ -66,10 +66,10 @@ import long_resume  # noqa: E402
 import long_window  # noqa: E402
 import meter  # noqa: E402
 import run  # noqa: E402
-import winupdate  # noqa: E402
 from long_money import blocks, ceiling_of, held, rows_under, spent  # noqa: E402,F401
 from long_start import (  # noqa: E402
     midnight_refusal,
+    quiet_lift_note,
     quiet_refusal,
     restart_refusal,
     start_refusal,
@@ -377,8 +377,8 @@ def asks_of(chain: Mapping[str, Any]) -> list[dict[str, Any]]:
 
 
 def write_status(layout: Layout, base: Mapping[str, Any], **now: Any) -> None:
-    layout.status.write_text(json.dumps({**base, **now, "updated": time.time()}, indent=1),
-                             encoding="utf-8")  # fmt: skip
+    durable.replace_text(layout.status, json.dumps({**base, **now, "updated": time.time()},
+                                                   indent=1))  # fmt: skip
 
 
 def own_status(layout: Layout) -> dict[str, Any]:
@@ -603,6 +603,8 @@ def before_call(ctx: Ctx, a: Arm, rows: list[dict[str, Any]], state: ArmState) -
     if why := quiet_refusal(ctx.profile, ctx.allow_midnight):  # a long chain reaching 00:00-08:00
         log(f"{a.name} {a.arm}: {why}; paused, a relaunch after 08:00 goes on from here")
         return "clock"
+    if note := quiet_lift_note(ctx.profile, ctx.allow_midnight):
+        log(f"{a.name} {a.arm}: call in the quiet hours: {note} (amendment 1)")
     if why := long_money.room_refusal(spent(layout), cap, over, ctx.ceiling, "ceiling"):
         log(f"{a.name} {a.arm}: {why}")
         return "ceiling"
@@ -889,8 +891,8 @@ def run_all(ctx: Ctx, names: list[str], known: Mapping[str, Any], models: list[s
                        or restart_refusal(ctx.profile, allow_midnight)):
                 log(f"{name} {model}: refused: {why}")
                 return 1
-            if getattr(ctx.profile, "day_only", False) and (why := winupdate.quiet_lifted()):
-                log(f"{name} {model}: quiet hours lifted: {why} (amendment 1)")
+            if note := quiet_lift_note(ctx.profile, allow_midnight):
+                log(f"{name} {model}: quiet hours lifted: {note} (amendment 1)")
             log(f"{name} {model}: start, spent so far {spent(ctx.layout):.2f} USD")
             if stop := run_chain(c, known[name], status):
                 log(f"{name} {model}: stopped ({stop})")

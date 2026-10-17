@@ -62,6 +62,16 @@ def quiet_refusal(profile: Any, allow: bool, now: dt.datetime | None = None,
     return ""
 
 
+def quiet_lift_note(profile: Any, allow: bool, now: dt.datetime | None = None,
+                    lifted: Callable[[], str] = winupdate.quiet_lifted) -> str:  # fmt: skip
+    """What to log when amendment 1 lifts the quiet hours ("" when they are not in force: a
+    profile without them, a dry run, a daytime hour, or no pause)."""
+    hour = (now or dt.datetime.now()).hour
+    if not getattr(profile, "day_only", False) or allow or not QUIET[0] <= hour < QUIET[1]:
+        return ""
+    return lifted()
+
+
 _WINDOWS = r"SOFTWARE\Microsoft\Windows\CurrentVersion"
 RESTART_KEYS = (_WINDOWS + r"\WindowsUpdate\Auto Update\RebootRequired",
                 _WINDOWS + r"\Component Based Servicing\RebootPending")
