@@ -86,9 +86,9 @@ def _isolate(tmp_path, monkeypatch) -> None:  # noqa: ANN001
 
 
 def test_the_projects_folder_is_the_one_claude_code_names_for_the_working_copy() -> None:
-    work = pathlib.Path(r"C:\Users\roman\.cache\sanchopanza\adopt\work\pydantic__pydantic-2-Sm")
+    work = pathlib.Path(r"C:\Users\someone\.cache\sanchopanza\adopt\work\pydantic__pydantic-2-Sm")
     assert run.projects_dir(work).name == (
-        "C--Users-roman--cache-sanchopanza-adopt-work-pydantic--pydantic-2-Sm"
+        "C--Users-someone--cache-sanchopanza-adopt-work-pydantic--pydantic-2-Sm"
     )
 
 

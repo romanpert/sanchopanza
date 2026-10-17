@@ -27,7 +27,7 @@ set SANCHOPANZA_KEYS_ENV=
 if exist C:\sp-runs\memory-f2\keys-env.cmd call C:\sp-runs\memory-f2\keys-env.cmd
 set WT=%~dp0
 set WT=%WT:~0,-1%
-set PY=C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts\python.exe
+set PY=%USERPROFILE%\Desktop\proyectos\apps\sanchopanza\.venv\Scripts\python.exe
 set ROOT=C:\sp-runs\memory-f2
 set PIN=%USERPROFILE%\.cache\sanchopanza\claude-pin\2.1.287
 cd /d "%WT%"

@@ -17,7 +17,7 @@ rem root, the pinned Claude Code folder, the manifests and the runner (a stand-i
 setlocal
 set WT=%~dp0
 set WT=%WT:~0,-1%
-set PY=C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts\python.exe
+set PY=%USERPROFILE%\Desktop\proyectos\apps\sanchopanza\.venv\Scripts\python.exe
 set PIN=%USERPROFILE%\.cache\sanchopanza\claude-pin\2.1.287
 set ROOT=C:\sp-runs\L
 set MANIFESTS=%WT%\benchmarks\adopt\long60

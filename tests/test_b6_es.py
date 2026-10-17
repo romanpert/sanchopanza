@@ -636,7 +636,7 @@ def test_the_launcher_holds_placeholders_only_and_is_sealed():
     for line in ('set "PY=<PYTHON>"', 'set "SANCHOPANZA_KEYS_ENV=<KEYS_ENV_PATH>"',
                  'set "WT=<WORKTREE>"', 'set "SANCHOPANZA_B6_DATA=<DATA_DIR>"'):  # fmt: skip
         assert line in text
-    assert "Users\\roman" not in text and ".env" not in text and "sp-data" not in text
+    assert "C:\\Users\\" not in text and ".env" not in text and "sp-data" not in text
     assert text.count('--data "%SANCHOPANZA_B6_DATA%"') == 4  # every python call names it
     assert "b6-es-run.cmd" in run.SEALED and "benchmarks/jev114/l4.py" not in run.SEALED
 

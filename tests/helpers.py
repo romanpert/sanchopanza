@@ -99,6 +99,23 @@ def registered_digest(tree_digest: Callable[[Path], str], root: Path) -> str:
     return h.hexdigest()
 
 
+def main_venv() -> Path:
+    """`Scripts` of the main checkout's `.venv`, where the long runs' launchers take Python from:
+    the folder above git's common directory, which a sibling worktree shares with the main
+    checkout (only that checkout has a `.venv`). The tests that need it skip when it is absent."""
+    root = Path(__file__).resolve().parents[1]
+    try:
+        done = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--path-format=absolute", "--git-common-dir"],
+            capture_output=True, text=True, check=False,
+        )  # fmt: skip
+        common = done.stdout.strip() if done.returncode == 0 else ""
+    except OSError:
+        common = ""
+    checkout = Path(common).parent if common else root
+    return checkout / ".venv" / "Scripts"
+
+
 def missing_commits(*commits: str) -> list[str]:
     """The commits of `commits` this clone does not hold: CI checks out one commit (depth 1),
     so the sealed commits the launch tests look up are only in a full clone."""

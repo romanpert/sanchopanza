@@ -20,10 +20,12 @@ from typing import Any
 
 import pytest
 
+from tests.helpers import main_venv
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ADOPT = ROOT / "benchmarks" / "adopt"
 FAKE = ROOT / "tests" / "fixtures" / "long_fake" / "fake_claude.py"
-MAIN_VENV = pathlib.Path(r"C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts")
+MAIN_VENV = main_venv()
 OURS = (
     "run",
     "long",

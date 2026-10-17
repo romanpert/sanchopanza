@@ -16,13 +16,13 @@ from typing import Any
 
 import pytest
 
-from tests.helpers import missing_commits
+from tests.helpers import main_venv, missing_commits
 from tests.test_adopt_long_runner import _setup, lr  # noqa: F401  (lr: the runner fixture)
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 FAKE = ROOT / "tests" / "fixtures" / "long_fake"
 LEAN_SRC = ROOT.parent / "sanchopanza-lean" / "src"
-MAIN_VENV = pathlib.Path(r"C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts")
+MAIN_VENV = main_venv()
 MAIN_PY = MAIN_VENV / "python.exe"
 GATE = ("conan-io__conan-long60-1", "pydantic__pydantic-long60-1")
 PYD = "pydantic__pydantic-long40-1"

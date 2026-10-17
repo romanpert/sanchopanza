@@ -17,10 +17,12 @@ from typing import Any
 
 import pytest
 
+from tests.helpers import main_venv
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ADOPT = ROOT / "benchmarks" / "adopt"
 FAKE = ROOT / "tests" / "fixtures" / "long_fake"
-MAIN_VENV = pathlib.Path(r"C:\Users\roman\Desktop\proyectos\apps\sanchopanza\.venv\Scripts")
+MAIN_VENV = main_venv()
 # The sealed S (cb0062e, frozen by benchmarks/adopt/freeze.py) when it is here; else main's venv.
 SEALED = (pathlib.Path.home() / ".cache" / "sanchopanza" / "adopt" / "frozen"
           / "cb0062e36340-jev-mcp" / "Scripts" / "sanchopanza.exe")  # fmt: skip
@@ -81,8 +83,8 @@ def dry_environment(base: pathlib.Path, chains: tuple[str, ...]) -> dict[str, st
 def launcher_python(cmd: str) -> pathlib.Path:
     """The python a launcher runs (`set PY=` in the .cmd): the owner's venv, where the runs ran."""
     for line in (ROOT / cmd).read_text(encoding="utf-8").splitlines():
-        if line.startswith("set PY="):
-            return pathlib.Path(line[len("set PY=") :].strip())
+        if line.startswith("set PY="):  # %USERPROFILE%\... : the user folder, never named
+            return pathlib.Path(os.path.expandvars(line[len("set PY=") :].strip()))
     raise AssertionError(f"{cmd} names no python")
 
 

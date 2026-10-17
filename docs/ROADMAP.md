@@ -15,7 +15,7 @@ gain; **low** is an idea, or an expensive cell with no margin shown.
 | # | Item | Priority | Cost | State |
 |---|---|---|---|---|
 | C9 | Memory's prune deleted the standing rules of a project idle for 30 days | **high** | free | **done** (`230a2aa`) |
-| C10 | Two names of other private projects and some local paths in public files | **high** | free | **in progress** |
+| C10 | Two names of other private projects and some local paths in public files | **high** | free | **in part**: free files clean, a test refuses new ones; sealed files and recorded runs wait on the owner |
 | B1 | Publish a release (`v*` tag and PyPI) so the consumer stops pinning a tarball by commit | **high** | free (PyPI: owner's decision, irreversible) | **in part**: `v0.3.1` tagged with a GitHub release; PyPI approved by the owner, but the publish waits for the trusted publisher on pypi.org (owner's account) |
 | D1 | OpenAI's Decisions API as one more provider | medium | free (adapter); OpenAI calls: owner's decision | **measured once** (D1: "no concluyente" at −5, −2.5 points [−6.1, +1.2], 0.0143 USD; `openai-decisions`) |
 | C7 | The LongBench routing point, opt-in | medium | free (code); Claude for what follows | **done** (`9705f25`) |
@@ -90,8 +90,17 @@ a project idle for 30 days lost its standing rules, and load counted those files
 **Done** (merge `230a2aa`): pruning and loading match only record files.
 
 **C10. Private names and local paths in public files.** Two names of other private projects and
-some local paths remain in tracked benchmark code, tests and planning documents. **In
-progress** in another session.
+some local paths remain in tracked benchmark code, tests and planning documents. **In part**:
+every free file is clean. The launchers, tests, history notes and scripts that wrote a home
+folder now use `%USERPROFILE%`, `~`, a path relative to the launcher or the main checkout found
+by git's common directory, with the same behaviour on the machine the runs used.
+`tests/test_no_private_names.py` refuses, in every tracked file (`.gz` fixtures decompressed), a
+private name (kept as digests only) and any home folder whose user is not a stand-in (`someone`,
+`x`...). Left for the owner, on the test's explicit lists: 10 sealed files (preregs, sealed
+launchers and one module in a lot's manifest) that write a home folder, 2 sealed files with a
+guarded word (a module's docstring; a third party's repository name in a recorded selection), and
+53 recorded run outputs (browse sessions and reports, one status file) that keep the temp
+folders the runs used.
 
 **B1. A published release.** `v0.3.0` is tagged on `10f2cbe` with a
 [GitHub release](https://github.com/romanpert/sanchopanza/releases/tag/v0.3.0) (wheel, sdist and

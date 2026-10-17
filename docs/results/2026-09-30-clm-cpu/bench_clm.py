@@ -5,7 +5,8 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, r"C:\Users\roman\Desktop\proyectos\apps\sanchopanza\src")
+REPO = Path(__file__).resolve().parents[3]  # this file: docs/results/<lot>/bench_clm.py
+sys.path.insert(0, str(REPO / "src"))
 os.environ["SANCHOPANZA_CLM_URL"] = "http://127.0.0.1:18392"
 os.environ["SANCHOPANZA_CLM_MODEL"] = "clm-latest"
 
@@ -18,7 +19,6 @@ from sanchopanza.eval.bench import (  # noqa: E402
 )
 from sanchopanza.providers import create  # noqa: E402
 
-REPO = Path(r"C:\Users\roman\Desktop\proyectos\apps\sanchopanza")
 FILES = [str(REPO / "benches" / f) for f in
          ("core.jsonl", "safety.jsonl", "retrieval.jsonl", "steerability.jsonl")]
 OUT = Path(sys.argv[1])
