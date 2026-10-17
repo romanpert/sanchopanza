@@ -27,7 +27,10 @@ set SANCHOPANZA_KEYS_ENV=
 if exist C:\sp-runs\memory-f2\keys-env.cmd call C:\sp-runs\memory-f2\keys-env.cmd
 set WT=%~dp0
 set WT=%WT:~0,-1%
-set PY=%USERPROFILE%\Desktop\proyectos\apps\sanchopanza\.venv\Scripts\python.exe
+rem PY: SANCHOPANZA_PY, else the .venv of the main checkout (the folder above git's common
+rem directory, which this worktree shares; the only checkout with a .venv). Checked below.
+set "PY=%SANCHOPANZA_PY%"
+if not defined PY for /f "delims=" %%G in ('git -C "%~dp0." rev-parse --path-format^=absolute --git-common-dir 2^>nul') do set "PY=%%~dpG.venv\Scripts\python.exe"
 set ROOT=C:\sp-runs\memory-f2
 set PIN=%USERPROFILE%\.cache\sanchopanza\claude-pin\2.1.287
 cd /d "%WT%"
@@ -36,6 +39,10 @@ set PYTHONPATH=%WT%\src
 set DISABLE_AUTOUPDATER=1
 if not exist "%ROOT%" mkdir "%ROOT%"
 set STATUS=%ROOT%\launch.status
+if not exist "%PY%" (
+  echo refused %DATE% %TIME%: no python, neither SANCHOPANZA_PY nor the main checkout's .venv >> "%STATUS%"
+  exit /b 2
+)
 rem dry: Python runs from a one-line if, so CODE holds its own exit (inside a ( ) block
 rem the errorlevel would be read before Python ran); the status line and the exit carry it.
 if /i "%~1"=="dry" "%PY%" -u benchmarks\memory_carry\handoff_night.py --root "%ROOT%" --dry > "%ROOT%\dry.log" 2>&1

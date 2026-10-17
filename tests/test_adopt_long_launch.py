@@ -81,16 +81,16 @@ def dry_environment(base: pathlib.Path, chains: tuple[str, ...]) -> dict[str, st
 
 
 def launcher_python(cmd: str) -> pathlib.Path:
-    """The python a launcher runs (`set PY=` in the .cmd): the owner's venv, where the runs ran."""
-    for line in (ROOT / cmd).read_text(encoding="utf-8").splitlines():
-        if line.startswith("set PY="):  # %USERPROFILE%\... : the user folder, never named
-            return pathlib.Path(os.path.expandvars(line[len("set PY=") :].strip()))
-    raise AssertionError(f"{cmd} names no python")
+    """The python a launcher runs: SANCHOPANZA_PY, else the main checkout's venv (the launcher
+    finds it by git's common directory, as `main_venv` does), where the runs ran."""
+    text = (ROOT / cmd).read_text(encoding="utf-8")
+    assert 'set "PY=%SANCHOPANZA_PY%"' in text and "--git-common-dir" in text, cmd
+    return pathlib.Path(os.environ.get("SANCHOPANZA_PY") or MAIN_VENV / "python.exe")
 
 
 def needs_python(cmd: str) -> pytest.MarkDecorator:
-    """Skip a test that runs `cmd` past its checks when the python it names is not here (a CI
-    runner): the launcher then stops with 'The system cannot find the path specified'."""
+    """Skip a test that runs `cmd` past its checks when its python is not here (a CI runner):
+    the launcher then refuses with exit 2."""
     return pytest.mark.skipif(
         not launcher_python(cmd).exists(),
         reason=f"{cmd} runs {launcher_python(cmd)}, not on this machine",

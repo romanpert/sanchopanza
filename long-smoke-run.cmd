@@ -16,7 +16,10 @@ rem root, the pinned Claude Code folder, the manifests and the runner (a stand-i
 setlocal
 set WT=%~dp0
 set WT=%WT:~0,-1%
-set PY=%USERPROFILE%\Desktop\proyectos\apps\sanchopanza\.venv\Scripts\python.exe
+rem PY: SANCHOPANZA_PY, else the .venv of the main checkout (the folder above git's common
+rem directory, which this worktree shares; the only checkout with a .venv). Checked below.
+set "PY=%SANCHOPANZA_PY%"
+if not defined PY for /f "delims=" %%G in ('git -C "%~dp0." rev-parse --path-format^=absolute --git-common-dir 2^>nul') do set "PY=%%~dpG.venv\Scripts\python.exe"
 set PIN=%USERPROFILE%\.cache\sanchopanza\claude-pin\2.1.287
 set ROOT=C:\sp-runs\L-smoke
 set MANIFESTS=%WT%\benchmarks\adopt\long60
@@ -40,6 +43,10 @@ set DISABLE_AUTOUPDATER=1
 set ADOPT_PYTHON=%PY%
 if not exist "%ROOT%" mkdir "%ROOT%"
 set STATUS=%ROOT%\launch.status
+if not exist "%PY%" (
+  echo refused %DATE% %TIME%: no python, neither SANCHOPANZA_PY nor the main checkout's .venv >> "%STATUS%"
+  exit /b 2
+)
 echo start %DATE% %TIME% smoke seal %SEAL% %DRY% >> "%STATUS%"
 if not exist "%MANIFESTS%\%CHAIN%.json" (
   echo refused %DATE% %TIME%: no manifest %MANIFESTS%\%CHAIN%.json ^(validate the chain first^) >> "%STATUS%"

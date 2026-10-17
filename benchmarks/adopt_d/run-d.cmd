@@ -12,9 +12,22 @@ set PATH=%USERPROFILE%\.cache\sanchopanza\adopt\claude-2.1.285;%PATH%
 set DISABLE_AUTOUPDATER=1
 set ADOPT_SANCHO=
 set PYTHONIOENCODING=utf-8
-set PY=%~dp0..\..\.venv\Scripts\python.exe
 set L=%USERPROFILE%\.cache\sanchopanza\adopt
-cd /d "%~dp0..\.."
+rem The run goes to the main checkout, as it always did: the folder above git's common
+rem directory (a sibling worktree shares it), the only checkout with a .venv. Without it the
+rem launcher refuses (exit 2, a D REFUSED line in D.log).
+set "MAIN="
+for /f "delims=" %%G in ('git -C "%~dp0." rev-parse --path-format^=absolute --git-common-dir 2^>nul') do set "MAIN=%%~dpG"
+if not defined MAIN (
+  echo D REFUSED: this launcher is not in a git checkout >> "%L%\D.log"
+  exit /b 2
+)
+set "PY=%MAIN%.venv\Scripts\python.exe"
+if not exist "%PY%" (
+  echo D REFUSED: no python in the main checkout's .venv >> "%L%\D.log"
+  exit /b 2
+)
+cd /d "%MAIN%"
 claude --version > "%L%\D.version" 2>&1
 "%PY%" -u benchmarks\adopt_d\run_d.py run >> "%L%\D.log" 2>> "%L%\D.log.err"
 echo exit %errorlevel% >> "%L%\D.log"
