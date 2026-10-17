@@ -51,10 +51,13 @@ if "%PY%"=="" (
   exit /b 1
 )
 set ONLY=--only w17-opus
+rem dry: Python runs from a one-line if, so CODE holds its own exit (inside a ( ) block
+rem the errorlevel would be read before Python ran); the status line and the exit carry it.
+if /i "%~1"=="dry" "%PY%" -u benchmarks\memory_carry\handoff_night.py --lot w17 --root "%ROOT%" %ONLY% --dry > "%ROOT%\dry.log" 2>&1
+set CODE=%ERRORLEVEL%
 if /i "%~1"=="dry" (
-  "%PY%" -u benchmarks\memory_carry\handoff_night.py --lot w17 --root "%ROOT%" %ONLY% --dry > "%ROOT%\dry.log" 2>&1
-  echo dry-exit %ERRORLEVEL% %DATE% %TIME% >> "%STATUS%"
-  exit /b 0
+  echo dry-exit %CODE% %DATE% %TIME% >> "%STATUS%"
+  exit /b %CODE%
 )
 if /i not "%~1"=="opus" (
   echo refused %DATE% %TIME%: the only arguments are opus and dry, got "%~1" >> "%STATUS%"

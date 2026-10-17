@@ -9,8 +9,10 @@ table, or the test fails.
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -106,3 +108,61 @@ def test_every_tracked_launcher_is_in_the_table() -> None:
 @pytest.mark.parametrize("name", sorted(LAUNCHERS))
 def test_a_launcher_calls_its_own_script_and_writes_to_its_own_folder(name: str) -> None:
     assert parsed(name) == LAUNCHERS[name]
+
+
+def errorlevels_in_blocks(text: str) -> list[int]:
+    """Lines that read %ERRORLEVEL% inside a ( ) block, where cmd.exe expands it on reading the
+    block, before any command in it has run."""
+    depth, found = 0, []
+    for n, raw in enumerate(text.splitlines(), 1):
+        line = raw.strip()
+        if line.lower().startswith(("rem ", "::")):
+            continue
+        if line.startswith(")"):
+            depth = max(0, depth - 1)
+        if depth and "%errorlevel%" in line.lower():
+            found.append(n)
+        if line.endswith("("):
+            depth += 1
+    return found
+
+
+def test_no_tracked_launcher_reads_the_errorlevel_inside_a_block() -> None:
+    # The dry branches of f2-night-run.cmd and memlot-night-run.cmd did: they wrote the previous
+    # errorlevel to launch.status and exited 0 whatever the dry run returned.
+    assert errorlevels_in_blocks("if x (\n  run\n  echo %ERRORLEVEL%\n)\n") == [3]
+    assert errorlevels_in_blocks("run\nset CODE=%ERRORLEVEL%\nif x (\n  echo %CODE%\n)\n") == []
+    out = subprocess.run(["git", "ls-files", "*.cmd"], cwd=ROOT, capture_output=True, text=True,
+                         check=True)  # fmt: skip
+    bad = {name: errorlevels_in_blocks((ROOT / name).read_text(encoding="utf-8", errors="replace"))
+           for name in out.stdout.split()}  # fmt: skip
+    assert {k: v for k, v in bad.items() if v} == {}
+
+
+DRY = {"f2-night-run.cmd": r"C:\sp-runs\memory-f2",
+       "memlot-night-run.cmd": r"C:\sp-runs\memory-w17-redo"}  # fmt: skip
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="runs the launcher in cmd.exe")
+@pytest.mark.parametrize("code", [0, 7])
+@pytest.mark.parametrize("name", sorted(DRY), ids=["a", "b"])
+def test_a_dry_run_s_exit_reaches_the_status_and_the_launcher_s_exit(
+        name: str, code: int, tmp_path: Path) -> None:  # fmt: skip
+    # A copy of the launcher in a scratch folder, its root and Python pointed there, and a stub
+    # handoff_night.py that exits with `code`: nothing real is read, written or called.
+    work, root = tmp_path / "wt", tmp_path / "root"
+    stub = work / "benchmarks" / "memory_carry" / "handoff_night.py"
+    stub.parent.mkdir(parents=True)
+    stub.write_text(f"import sys\nprint('stub', sys.argv[1:])\nsys.exit({code})\n",
+                    encoding="utf-8")  # fmt: skip
+    text = (ROOT / name).read_text(encoding="ascii").replace(DRY[name], str(root))
+    text = re.sub(r"(?m)^set PY=.*$", lambda _: f"set PY={sys.executable}", text)
+    assert str(root) in text and DRY[name] not in text
+    (work / name).write_text(text, encoding="ascii", newline="")
+    env = {k: v for k, v in os.environ.items() if k != "SANCHOPANZA_KEYS_ENV"}
+    got = subprocess.run(["cmd.exe", "/c", str(work / name), "dry"], cwd=work, env=env,
+                         capture_output=True, text=True, timeout=60)  # fmt: skip
+    assert got.returncode == code
+    status = (root / "launch.status").read_text(encoding="utf-8", errors="replace")
+    assert status.startswith(f"dry-exit {code} ")
+    assert "stub" in (root / "dry.log").read_text(encoding="utf-8", errors="replace")
